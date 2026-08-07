@@ -33,18 +33,11 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.34.5
           run_install: false
 
       - name: Install dependencies
-        shell: bash
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile
-          else
-            echo "::warning::pnpm-lock.yaml does not exist yet. Phase 0 must generate and commit it."
-            pnpm install --no-frozen-lockfile
-          fi
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint

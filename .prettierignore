@@ -1,0 +1,13 @@
+.next/
+dist/
+coverage/
+node_modules/
+pnpm-lock.yaml
+docs/reference/
+AGENTS.md
+CONTRIBUTING.md
+PROJECT_TREE.txt
+docs/
+apps/**/README.md
+packages/**/README.md
+infra/
