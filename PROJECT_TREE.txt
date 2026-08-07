@@ -1,0 +1,137 @@
+valet-platform/
+├── .github
+│   ├── ISSUE_TEMPLATE
+│   │   ├── bug_report.yml
+│   │   ├── config.yml
+│   │   ├── decision_request.yml
+│   │   └── feature_task.yml
+│   ├── workflows
+│   │   └── ci.yml
+│   └── pull_request_template.md
+├── apps
+│   ├── api
+│   │   ├── src
+│   │   │   ├── common
+│   │   │   │   └── README.md
+│   │   │   └── modules
+│   │   │       ├── audit
+│   │   │       │   └── README.md
+│   │   │       ├── auth
+│   │   │       │   └── README.md
+│   │   │       ├── customers
+│   │   │       │   └── README.md
+│   │   │       ├── handoff
+│   │   │       │   └── README.md
+│   │   │       ├── incidents
+│   │   │       │   └── README.md
+│   │   │       ├── keys
+│   │   │       │   └── README.md
+│   │   │       ├── locations
+│   │   │       │   └── README.md
+│   │   │       ├── notifications
+│   │   │       │   └── README.md
+│   │   │       ├── organizations
+│   │   │       │   └── README.md
+│   │   │       ├── parking
+│   │   │       │   └── README.md
+│   │   │       ├── payments
+│   │   │       │   └── README.md
+│   │   │       ├── reporting
+│   │   │       │   └── README.md
+│   │   │       ├── retrieval
+│   │   │       │   └── README.md
+│   │   │       ├── shifts
+│   │   │       │   └── README.md
+│   │   │       ├── staff
+│   │   │       │   └── README.md
+│   │   │       ├── valet-sessions
+│   │   │       │   └── README.md
+│   │   │       ├── vehicle-photos
+│   │   │       │   └── README.md
+│   │   │       ├── vehicles
+│   │   │       │   └── README.md
+│   │   │       └── README.md
+│   │   ├── test
+│   │   │   └── README.md
+│   │   └── README.md
+│   ├── customer
+│   │   ├── src
+│   │   │   ├── app
+│   │   │   │   └── .gitkeep
+│   │   │   ├── components
+│   │   │   │   └── .gitkeep
+│   │   │   ├── features
+│   │   │   │   └── .gitkeep
+│   │   │   └── lib
+│   │   │       └── .gitkeep
+│   │   └── README.md
+│   ├── dashboard
+│   │   ├── src
+│   │   │   ├── app
+│   │   │   │   └── .gitkeep
+│   │   │   ├── components
+│   │   │   │   └── .gitkeep
+│   │   │   ├── features
+│   │   │   │   └── .gitkeep
+│   │   │   └── lib
+│   │   │       └── .gitkeep
+│   │   └── README.md
+│   └── valet
+│       ├── src
+│       │   ├── app
+│       │   │   └── .gitkeep
+│       │   ├── components
+│       │   │   └── .gitkeep
+│       │   ├── features
+│       │   │   └── .gitkeep
+│       │   └── lib
+│       │       └── .gitkeep
+│       └── README.md
+├── docs
+│   ├── reference
+│   │   └── Valet_Project_Concept_Arabic.pdf
+│   ├── 00_SOURCE_OF_TRUTH.md
+│   ├── 01_PRODUCT_SCOPE.md
+│   ├── 02_DOMAIN_MODEL.md
+│   ├── 03_DATABASE_SCHEMA.md
+│   ├── 04_VALET_SESSION_STATE_MACHINE.md
+│   ├── 05_ENGINEERING_RULES.md
+│   ├── 06_SECURITY_AND_DATA_RULES.md
+│   ├── 07_DEFINITION_OF_DONE.md
+│   ├── 08_DECISIONS_LOG.md
+│   ├── 09_TECH_STACK.md
+│   ├── 10_REPOSITORY_STRUCTURE.md
+│   ├── 11_REQUIREMENTS_TRACEABILITY.md
+│   ├── 12_AGENT_EXECUTION_PLAN.md
+│   └── 13_COLLABORATION_WORKFLOW.md
+├── infra
+│   ├── docker
+│   │   └── README.md
+│   ├── nginx
+│   │   └── README.md
+│   └── scripts
+│       └── README.md
+├── packages
+│   ├── config
+│   │   └── README.md
+│   ├── contracts
+│   │   └── README.md
+│   ├── database
+│   │   ├── prisma
+│   │   │   └── schema.prisma
+│   │   └── README.md
+│   ├── testing
+│   │   └── README.md
+│   └── ui
+│       └── README.md
+├── .env.example
+├── .gitignore
+├── AGENTS.md
+├── CONTRIBUTING.md
+├── docker-compose.yml
+├── package.json
+├── pnpm-workspace.yaml
+├── PROJECT_TREE.txt
+├── README.md
+├── tsconfig.base.json
+└── turbo.json

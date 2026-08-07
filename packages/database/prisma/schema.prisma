@@ -1,0 +1,15 @@
+// Valet Platform Prisma schema
+//
+// IMPORTANT:
+// Do not add domain models ad hoc.
+// Phase 1 must translate docs/03_DATABASE_SCHEMA.md into this file,
+// then generate a migration and database integrity tests.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

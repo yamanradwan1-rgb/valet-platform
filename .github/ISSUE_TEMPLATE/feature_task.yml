@@ -1,0 +1,96 @@
+name: Valet implementation task
+description: A scoped implementation task suitable for a human + AI agent
+title: "[VAL-___] "
+labels:
+  - task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Create one focused task. The human owner remains responsible for the AI agent's work.
+
+  - type: input
+    id: objective
+    attributes:
+      label: Objective
+      description: What single outcome should this task produce?
+      placeholder: Implement ValetSession allowed transitions and guards.
+    validations:
+      required: true
+
+  - type: textarea
+    id: docs
+    attributes:
+      label: Required documentation
+      description: Which binding docs must be read before implementation?
+      value: |
+        - AGENTS.md
+        - docs/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: allowed_scope
+    attributes:
+      label: Allowed scope
+      description: Files/modules this task is allowed to modify.
+      placeholder: |
+        apps/api/src/modules/valet-sessions/**
+        apps/api/src/modules/audit/**
+    validations:
+      required: true
+
+  - type: textarea
+    id: forbidden_scope
+    attributes:
+      label: Do not modify
+      description: Explicitly list sensitive/out-of-scope areas.
+      placeholder: |
+        packages/database/prisma/schema.prisma
+        apps/customer/**
+        docs/04_VALET_SESSION_STATE_MACHINE.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Required merged work or interfaces.
+      placeholder: Phase 1 database foundation must be merged first.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Concrete conditions required before the task is done.
+      placeholder: |
+        - All allowed transitions pass.
+        - All forbidden transitions fail.
+        - Transition + audit commit atomically.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Required tests/checks
+      value: |
+        - pnpm lint
+        - pnpm typecheck
+        - pnpm test
+        - pnpm build
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: coordination
+    attributes:
+      label: Coordination
+      options:
+        - label: I checked that another active task does not own the same high-contention files.
+          required: true
+        - label: If a material out-of-scope dependency appears, it will be reported instead of silently implemented.
+          required: true

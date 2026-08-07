@@ -1,0 +1,45 @@
+name: Product / architecture decision
+description: Propose a material change to an accepted product or architecture rule
+title: "[DECISION] "
+labels:
+  - decision
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What problem or conflict requires a decision?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed decision
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected impact
+      description: List affected docs, modules, schema, states, security rules, or workflows.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: governance
+    attributes:
+      label: Governance
+      options:
+        - label: No implementation will silently make this decision before it is accepted.
+          required: true
+        - label: If accepted, `docs/08_DECISIONS_LOG.md` and affected binding docs will be updated first.
+          required: true
