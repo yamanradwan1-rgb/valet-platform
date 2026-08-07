@@ -50,7 +50,6 @@ INTAKE
 
 Do not start feature implementation before reading the binding documentation.
 
-
 ## Collaboration
 
 All work is performed on short-lived branches and merged through Pull Requests.
@@ -70,3 +69,29 @@ typecheck
 test
 build
 ```
+
+## Phase 0 local development
+
+Requirements:
+
+- Node.js 22 or newer
+- Corepack with pnpm 10.34.5
+- Docker with Docker Compose
+
+Install and validate the workspace:
+
+```text
+corepack pnpm install --frozen-lockfile
+docker compose up -d postgres
+corepack pnpm lint
+corepack pnpm typecheck
+corepack pnpm test
+corepack pnpm build
+```
+
+Application development ports:
+
+- Valet employee app: `http://localhost:3000`
+- API and Swagger: `http://localhost:3001` and `http://localhost:3001/docs`
+- Customer experience: `http://localhost:3002`
+- Management dashboard: `http://localhost:3003`
