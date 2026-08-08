@@ -5,10 +5,10 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-09 02:00 +03:00`
+- Date/time: `2026-08-09 02:56 +03:00`
 - Repository: `veletpro0-lgtm/valet-platform`
 - Remote `main`: `e0e3d2fc02138edc510657f82be68e3a883789ba`
-- Verification basis: local `origin/main`/`main`, merged PR #25 at current main, and GitHub Issue #26
+- Verification basis: GitHub PR #27, Issue #26, current feature branch state, and merged PR #25 on `main`
 
 ## Current Milestone
 
@@ -113,12 +113,15 @@ Phase 0 is complete. Phase 1 now has the tenant/staff, Customer/Vehicle, Parking
 `VAL-003I — Lock Payments Persistence Contract`
 
 - Issue #26
+- PR #27
 - Branch: `docs/VAL-003I-payments-persistence-contract`
 - Baseline: `e0e3d2fc02138edc510657f82be68e3a883789ba`
-- Status: **IN PROGRESS / LOCAL DOCS REVIEW**
+- DEC-021 source commit: `55e4aac98f17df63715589bceda907bd3886c7f5`
+- Status: **PR OPEN / CI PENDING**
 - Scope: docs/decision only; lock Payment/Validation/Tip/Cash/ProviderEvent/Refund persistence before any financial migration
 - Accepted direction in branch: DEC-021 payment-centric aggregate with normalized history facts
 - Explicit prohibition: no Prisma, migration, integration-test or application implementation in VAL-003I
+- Merge gate: CI must pass and merge still requires explicit authorization
 
 ## Remaining Phase 1 Foundation Slices
 
@@ -135,15 +138,17 @@ Task/Dispatch, KeyCustodyEvent, ParkingZone/Maps/GPS and domain command/check-in
 
 ## Local / Remote Handoff State
 
-Current verified local state:
+Current verified state:
 
 ```text
-LOCAL WORKING TREE: VAL-003I docs changes only / uncommitted
+LOCAL WORKING TREE (last user-reported): clean
 LOCAL BRANCH: docs/VAL-003I-payments-persistence-contract
-BASELINE HEAD: e0e3d2fc02138edc510657f82be68e3a883789ba
+LOCAL DEC-021 COMMIT: 55e4aac98f17df63715589bceda907bd3886c7f5
+REMOTE FEATURE BRANCH: pushed; PR #27 OPEN
 REMOTE main: e0e3d2fc02138edc510657f82be68e3a883789ba
 ISSUE #26: OPEN
-VAL-003I COMMIT/PUSH/PR: NONE at task start
+CI: pending for the latest PR head after this status-sync update
+LOCAL SYNC NOTE: because this status refresh is committed remotely, local feature branch must fast-forward before any further local work
 ```
 
 ## Current Product / Domain Baseline
@@ -184,12 +189,12 @@ Audit/Black Box history is append-only by contract. Protected future domain muta
 - No active migration owner; VAL-003I is docs/decision only and leaves the migration slot unused.
 - `packages/database/prisma/schema.prisma` and `packages/database/prisma/migrations/**` remain CRITICAL/high-contention while Phase 1 database work continues.
 - Keep one active migration owner at a time.
-- Do not start Payment implementation until VAL-003I is reviewed and merged.
+- Do not start Payment implementation until PR #27 / VAL-003I is merged.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-Review the VAL-003I documentation diff against Issue #26 and DEC-021. After human approval, commit/push/open the docs PR through the normal workflow. Do not create the first Payment migration Issue/branch until this contract is merged into `main`.
+Finish PR #27 review and require CI success. Do not merge without explicit authorization. After PR #27 merges, synchronize local `main` to the new remote merge commit. Only then create the first financial implementation task: **Payment + Validation + tip foundation**, with one active migration owner and one forward-only migration PR.
 
 ## Parallel UX/UI Track
 
