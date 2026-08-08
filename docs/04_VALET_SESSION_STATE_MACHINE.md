@@ -1,37 +1,45 @@
 # ValetSession State Machine
 
 Status: Binding  
-Version: 0.1
+Version: 0.2
 
 ## Scope
 
-ValetSession state represents physical/operational vehicle custody only.
+ValetSession state represents the vehicle's physical/operational custody lifecycle only.
 
-Do not put payment, incident, notification, upload or shift states into this enum.
+Do not put payment, incident, notification, photo/upload, Shift, or Dispatch assignment states into this enum.
 
-## States
+Blueprint v1.0 separates physical custody from task assignment. Assignment/reassignment is tracked by the Task/Dispatch lifecycle, not by a `RETRIEVAL_ASSIGNED` ValetSession state.
+
+## Canonical MVP states
 
 ```text
-INTAKE
+CHECKING_IN
+AWAITING_PARKING
 PARKING
 PARKED
-RETRIEVAL_REQUESTED
-RETRIEVAL_ASSIGNED
+REQUESTED
 RETRIEVING
 READY
-RELEASED
-CANCELLED
+HANDOFF_PENDING
+COMPLETED
 ```
 
 Terminal:
 
-- RELEASED
-- CANCELLED
+- `COMPLETED`
+
+`READY` is the canonical MVP state for the Blueprint's `STAGED/READY` position. A staging zone/spot may be represented as parking/location data without adding a second session state unless a later accepted workflow requires it.
+
+`INCIDENT` is not a normal ValetSession state. Incidents have their own lifecycle and can block/guard commands while the physical custody state remains truthful.
 
 ## Main path
 
 ```text
-INTAKE
+CHECKING_IN
+  |
+  v
+AWAITING_PARKING
   |
   v
 PARKING
@@ -40,10 +48,7 @@ PARKING
 PARKED
   |
   v
-RETRIEVAL_REQUESTED
-  |
-  v
-RETRIEVAL_ASSIGNED
+REQUESTED
   |
   v
 RETRIEVING
@@ -52,176 +57,279 @@ RETRIEVING
 READY
   |
   v
-RELEASED
+HANDOFF_PENDING
+  |
+  v
+COMPLETED
 ```
 
-## INTAKE
+## CHECKING_IN
 
-Vehicle is being checked in and custody is being documented.
+Vehicle intake is in progress and custody/guest access is being established.
 
-Activities:
+Activities may include:
 
-- identify vehicle
-- capture required condition photos
-- establish secure customer access
-- record intake actor
+- OCR/ANPR plate scan
+- confirm/edit or manual plate fallback
+- customer phone/link setup when available
+- vehicle condition check
+- photos according to configured policy
+- intake actor/timestamps
 
 Allowed:
 
-- INTAKE -> PARKING
-- INTAKE -> CANCELLED
+- `CHECKING_IN -> AWAITING_PARKING`
+
+Guard for AWAITING_PARKING:
+
+- valid/authorized Location
+- valid vehicle identification or approved no-plate/manual fallback once that contract is implemented
+- authorized receiving employee
+- required condition information complete
+- configured photo requirement satisfied when policy requires photos
+- session/customer access data valid where used
+
+OCR confidence alone must never block manual fallback.
+
+## AWAITING_PARKING
+
+Check-in is complete; vehicle/key are ready for the Parking task to start.
+
+Typical activities:
+
+- QR key-slot assignment or permitted manual fallback
+- create/queue/assign Parking task through Hybrid Dispatch
+
+Allowed:
+
+- `AWAITING_PARKING -> PARKING`
 
 Guard for PARKING:
 
-- valid vehicle
-- valid location
-- authorized receiving employee
-- required evidence complete OR authorized exception
+- authorized employee/task ownership according to Dispatch rules
+- key custody assignment satisfies current location policy
 
 ## PARKING
 
-Vehicle is being parked / location and key placement are being finalized.
+Vehicle is actively being moved to a parking zone/spot.
+
+If session tracking is enabled by policy, Parking tracking starts on entry and ends when the vehicle becomes PARKED.
 
 Allowed:
 
-- PARKING -> PARKED
-- PARKING -> CANCELLED only through explicit authorized exception
+- `PARKING -> PARKED`
 
 Guard for PARKED:
 
-- parking spot/zone assigned
-- key slot assigned according to location policy
+- permitted Zone/Spot assigned according to Location policy
+- QR proof used when required; manual fallback allowed when policy permits
+- key/vehicle custody remains valid
 - responsible actor known
 
 On PARKED:
 
-- set parked_at
-- append PARKED event
+- set `parked_at`
+- stop active Parking tracking when enabled
+- append parked/custody events
+- notify guest according to configured channel/template
 
 ## PARKED
 
-Vehicle is parked and waiting.
+Vehicle is safely parked and waiting.
 
 Allowed:
 
-- PARKED -> RETRIEVAL_REQUESTED
+- `PARKED -> REQUESTED`
 
-## RETRIEVAL_REQUESTED
+On retrieval request:
 
-A valid request exists.
+- create/open a RetrievalRequest idempotently
+- create/queue the Retrieval task
+- set `retrieval_requested_at`
 
-Allowed:
+Repeated guest requests must return/show the current active request rather than create duplicate active RetrievalRequests/tasks.
 
-- RETRIEVAL_REQUESTED -> RETRIEVAL_ASSIGNED
-- RETRIEVAL_REQUESTED -> PARKED when an authorized request cancellation is supported
+## REQUESTED
 
-On entry:
-
-- create/open RetrievalRequest
-- set retrieval_requested_at
-
-Repeated customer requests must be idempotent.
-
-## RETRIEVAL_ASSIGNED
-
-An authorized employee owns the retrieval task.
+A valid retrieval request exists and the retrieval task is queued/assigned/accepted separately through Hybrid Dispatch.
 
 Allowed:
 
-- RETRIEVAL_ASSIGNED -> RETRIEVING
-- RETRIEVAL_ASSIGNED -> RETRIEVAL_REQUESTED when requeued
+- `REQUESTED -> RETRIEVING` when an authorized employee actually starts Retrieval
+- `REQUESTED -> PARKED` for an authorized cancellation before Retrieval starts
 
-On entry:
+Do not add a ValetSession `ASSIGNED` state. Task assignment belongs to the Task lifecycle.
 
-- set retrieval assignee
-- set retrieval_assigned_at
+Guard for RETRIEVING:
 
-Concurrent assignment must not assign the same task to two employees.
+- active retrieval request exists
+- authorized/accepted task owner according to Dispatch rules
+- key checkout/custody is valid
 
 ## RETRIEVING
 
 Employee is actively retrieving the vehicle.
 
+If session tracking is enabled by policy, Retrieval tracking starts on entry and stops when the vehicle becomes READY.
+
 Allowed:
 
-- RETRIEVING -> READY
-- RETRIEVING -> RETRIEVAL_REQUESTED through audited exception/requeue
+- `RETRIEVING -> READY`
+- `RETRIEVING -> PARKING` only through an explicit audited return-to-parking exception/cancellation flow once its focused task defines required guards
 
 On entry:
 
-- set retrieval_started_at
-- audit key custody action
+- set `retrieval_started_at`
+- record key checkout/custody actor/time
+- start Retrieval tracking if configured
 
 ## READY
 
-Vehicle is physically ready for handoff.
+Vehicle is physically staged/ready at the handoff/pickup point.
 
 Allowed:
 
-- READY -> RELEASED
-- READY -> RETRIEVING only as an explicit correction
+- `READY -> HANDOFF_PENDING`
+- `READY -> RETRIEVING` only as an explicit correction when the vehicle was marked ready incorrectly and must be moved/retrieved again
 
 On entry:
 
-- set ready_at
-- customer notification when configured
+- set `ready_at`
+- stop Retrieval tracking when enabled
+- notify guest that vehicle is ready
 
-Guard for RELEASED:
+Guard for HANDOFF_PENDING:
 
-- valid unconsumed handoff verification
-- verification method allowed by location policy
+- authorized releasing employee
+- vehicle/session matches the intended guest handoff
+- payment/validation preconditions are satisfied when required by Location policy, or the workflow explicitly allows payment during HANDOFF_PENDING
+
+## HANDOFF_PENDING
+
+Vehicle is physically ready and the secure release process is active.
+
+Normal Standard handoff policy accepts either:
+
+- Dynamic one-time QR
+- 4-digit pickup code
+
+Supervisor override is exceptional and requires permission, reason and audit.
+
+Allowed:
+
+- `HANDOFF_PENDING -> COMPLETED`
+- `HANDOFF_PENDING -> READY` when handoff is safely aborted/paused before release
+
+Guard for COMPLETED:
+
+- valid unconsumed handoff verification OR authorized audited supervisor override
+- verification method allowed by Location policy
 - releasing employee authorized
-- payment-before-release policy satisfied if enabled
+- vehicle/session identity still matches
+- payment/validation policy satisfied
+- no blocking incident/exception remains unresolved where policy requires blocking
 
-## RELEASED
+## COMPLETED
 
-Vehicle was handed to the authorized recipient.
+Vehicle was handed to the authorized recipient and the custody session is closed.
 
 Terminal.
 
 On entry:
 
-- set released_at
-- set releasing actor
+- set `completed_at`
+- set completing/releasing actor
 - consume verification
-- complete retrieval request
-- append VEHICLE_RELEASED audit event
+- complete RetrievalRequest/Task
+- finalize applicable key custody
+- append handoff/session-completed Black Box events
+- make receipt/rating flow available when configured
 
-Never rewrite the session to hide post-release mistakes. Use incident/audit records.
+Never rewrite completed custody history to hide later mistakes. Use incidents and append-only corrective events.
 
-## CANCELLED
+## Task / Hybrid Dispatch lifecycle
 
-Early invalidation/correction.
+Task status is separate from ValetSession state.
 
-Terminal.
+Canonical task path:
 
-Required:
+```text
+QUEUED
+  |
+  v
+ASSIGNED
+  |
+  v
+ACCEPTED
+  |
+  v
+IN_PROGRESS
+  |
+  v
+COMPLETED
+```
 
-- authorized actor
-- cancellation reason
-- cancelled_at
-- audit event
+Alternative outcomes/events may include:
 
-Do not use CANCELLED to erase completed custody history.
+- `REASSIGNED`
+- `DECLINED`
+- `CANCELLED`
+- `INCIDENT`
+
+Rules:
+
+- system may suggest/assign based on basic MVP eligibility/load/location/zone context
+- supervisor can reassign
+- reassignment after acceptance records actor + reason
+- concurrent assignment/acceptance must not create two active owners for one task
+- task timeout/requeue behavior is configurable later and must not be invented before its focused task
 
 ## Transition table
 
-| From | To | Command |
+| From | To | Command / meaning |
 |---|---|---|
-| INTAKE | PARKING | complete-intake |
-| INTAKE | CANCELLED | cancel-intake |
+| CHECKING_IN | AWAITING_PARKING | complete-check-in |
+| AWAITING_PARKING | PARKING | start-parking |
 | PARKING | PARKED | confirm-parked |
-| PARKED | RETRIEVAL_REQUESTED | request-retrieval |
-| RETRIEVAL_REQUESTED | RETRIEVAL_ASSIGNED | assign-retrieval |
-| RETRIEVAL_REQUESTED | PARKED | cancel-retrieval |
-| RETRIEVAL_ASSIGNED | RETRIEVING | start-retrieval |
-| RETRIEVAL_ASSIGNED | RETRIEVAL_REQUESTED | requeue-retrieval |
+| PARKED | REQUESTED | request-retrieval |
+| REQUESTED | PARKED | cancel-retrieval-before-start |
+| REQUESTED | RETRIEVING | start-retrieval |
 | RETRIEVING | READY | mark-ready |
-| RETRIEVING | RETRIEVAL_REQUESTED | retrieval-exception-requeue |
+| RETRIEVING | PARKING | return-to-parking-exception (guarded; focused flow required) |
 | READY | RETRIEVING | correct-ready |
-| READY | RELEASED | release |
+| READY | HANDOFF_PENDING | begin-handoff |
+| HANDOFF_PENDING | READY | abort-handoff |
+| HANDOFF_PENDING | COMPLETED | complete-handoff |
 
-Any transition not listed is forbidden until this document changes.
+Any transition not listed is forbidden until this document changes or a referenced focused exception flow is accepted.
+
+## Important Blueprint exception rules
+
+### Duplicate request
+
+One session cannot create multiple active RetrievalRequests/tasks from repeated guest presses.
+
+### Early retrieval cancellation
+
+If Retrieval has not started, return `REQUESTED -> PARKED` through an explicit command.
+
+If Retrieval has started, do not silently jump states. A later focused workflow must choose between staging/READY or explicit return-to-parking based on policy and actual physical custody.
+
+### Wrong phone / no phone
+
+Guest-contact correction and manual supervisor verification do not justify arbitrary physical state changes. Sensitive corrections are audited.
+
+### Key missing / wrong key / wrong vehicle
+
+Verification mismatch or key incident blocks unsafe completion and opens/updates an Incident while preserving physical custody state.
+
+### Internet outage
+
+Offline/retry behavior must preserve idempotency. Server-required payment/verification operations may require a separately documented fallback; do not weaken security silently.
+
+### Invalid/abandoned check-in
+
+Blueprint v1.0 does not fully define a post-session-creation terminal cancellation state for an invalid/abandoned check-in. Do not add `CANCELLED` to the canonical session enum or hard-delete the session without a later accepted decision.
 
 ## API/domain command rule
 
@@ -232,39 +340,49 @@ PATCH /valet-sessions/:id
 { "state": "READY" }
 ```
 
-Preferred explicit commands:
+Preferred explicit commands conceptually include:
 
 ```text
-POST /valet-sessions/:id/complete-intake
+POST /valet-sessions/:id/complete-check-in
+POST /valet-sessions/:id/start-parking
 POST /valet-sessions/:id/confirm-parked
 POST /valet-sessions/:id/request-retrieval
-POST /valet-sessions/:id/assign-retrieval
+POST /valet-sessions/:id/cancel-retrieval
 POST /valet-sessions/:id/start-retrieval
 POST /valet-sessions/:id/mark-ready
+POST /valet-sessions/:id/begin-handoff
 POST /valet-sessions/:id/verify-handoff
-POST /valet-sessions/:id/release
+POST /valet-sessions/:id/complete-handoff
 ```
 
-Each command:
+Task/Dispatch commands are separate from session commands.
 
-1. authorizes tenant/resource
-2. loads current session
+Each protected command:
+
+1. authorizes tenant/resource/location/role
+2. loads current entity/version
 3. validates current state
-4. validates guards
+4. validates configuration/policy guards
 5. performs domain mutation
-6. appends audit event
+6. appends required Black Box/audit/custody event
 7. commits atomically
 8. returns updated representation
 
 ## Required tests
 
+When this state machine is implemented, include at minimum:
+
 - every allowed transition
-- every forbidden transition
-- guards
-- duplicate retrieval request
-- concurrent employee assignment
-- release without verification
-- expired OTP
-- reused OTP
-- tenant-boundary attempt
+- representative forbidden transitions from every state
+- configured photo-policy guard
+- duplicate retrieval request idempotency
+- concurrent task assignment/acceptance protection
+- retrieval cancellation before start
+- release/completion without verification
+- expired/reused pickup code/QR secret
+- unauthorized supervisor override
+- payment/validation-before-handoff guard when configured
+- tenant/location boundary attempts
+- tracking start/stop bound to correct task/session states
 - transition/audit atomicity
+- offline/retry duplicate-command safety where implemented
