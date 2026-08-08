@@ -22,6 +22,16 @@ interface StaffFixture {
   userId: string;
 }
 
+interface VehicleValues {
+  color?: string | null;
+  make?: string | null;
+  model?: string | null;
+  plateCountry?: string | null;
+  plateNumberNormalized?: string | null;
+  plateNumberRaw?: string | null;
+  temporaryDescriptor?: string | null;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
@@ -94,6 +104,57 @@ async function createOrganization(name = "Valet Operator"): Promise<string> {
     `INSERT INTO organizations (id, name, timezone, updated_at)
      VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
     [id, name, "Asia/Amman"],
+  );
+  return id;
+}
+
+async function createCustomer(
+  organizationId: string,
+  phoneNormalized = `+9627${Date.now()}${Math.floor(Math.random() * 1_000)}`,
+  displayName: string | null = null,
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO customers (
+       id, organization_id, phone_normalized, display_name, updated_at
+     ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
+    [id, organizationId, phoneNormalized, displayName],
+  );
+  return id;
+}
+
+async function createVehicle(
+  organizationId: string,
+  values: VehicleValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  const {
+    color = null,
+    make = null,
+    model = null,
+    plateCountry = "JO",
+    plateNumberNormalized = randomUUID(),
+    plateNumberRaw = "12-34567",
+    temporaryDescriptor = null,
+  } = values;
+
+  await databaseClient.query(
+    `INSERT INTO vehicles (
+       id, organization_id, plate_country, plate_number_raw,
+       plate_number_normalized, temporary_descriptor, make, model, color,
+       updated_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)`,
+    [
+      id,
+      organizationId,
+      plateCountry,
+      plateNumberRaw,
+      plateNumberNormalized,
+      temporaryDescriptor,
+      make,
+      model,
+      color,
+    ],
   );
   return id;
 }
@@ -499,6 +560,270 @@ describe("tenant and staff database foundation", () => {
       databaseClient.query("DELETE FROM users WHERE id = $1", [staff.userId]),
       "23503",
       "organization_memberships_user_id_fkey",
+    );
+  });
+});
+
+describe("customer and vehicle database foundation", () => {
+  it("accepts a valid Customer", async () => {
+    const organizationId = await createOrganization();
+    const customerId = await createCustomer(
+      organizationId,
+      "+962790000001",
+      "Guest One",
+    );
+
+    const result = await databaseClient.query<{
+      display_name: string | null;
+      phone_normalized: string;
+    }>(
+      `SELECT display_name, phone_normalized
+       FROM customers
+       WHERE id = $1`,
+      [customerId],
+    );
+    expect(result.rows[0]).toEqual({
+      display_name: "Guest One",
+      phone_normalized: "+962790000001",
+    });
+  });
+
+  it("requires Customer phone_normalized", async () => {
+    const organizationId = await createOrganization();
+
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO customers (id, organization_id, updated_at)
+         VALUES ($1, $2, CURRENT_TIMESTAMP)`,
+        [randomUUID(), organizationId],
+      ),
+      "phone_normalized",
+    );
+  });
+
+  it("accepts a Customer with a null display_name", async () => {
+    const organizationId = await createOrganization();
+    const customerId = await createCustomer(organizationId);
+
+    const result = await databaseClient.query<{
+      display_name: string | null;
+    }>("SELECT display_name FROM customers WHERE id = $1", [customerId]);
+    expect(result.rows[0]?.display_name).toBeNull();
+  });
+
+  it("does not impose Customer phone uniqueness", async () => {
+    const organizationId = await createOrganization();
+    const phone = "+962790000002";
+
+    await createCustomer(organizationId, phone);
+    await expect(createCustomer(organizationId, phone)).resolves.toBeTypeOf(
+      "string",
+    );
+  });
+
+  it("rejects a Customer for an unknown Organization", async () => {
+    await expectPostgresError(
+      createCustomer(randomUUID()),
+      "23503",
+      "customers_organization_id_fkey",
+    );
+  });
+
+  it("restricts deletion of an Organization referenced by a Customer", async () => {
+    const organizationId = await createOrganization();
+    await createCustomer(organizationId);
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        organizationId,
+      ]),
+      "23503",
+      "customers_organization_id_fkey",
+    );
+  });
+
+  it("accepts a valid known-plate Vehicle", async () => {
+    const organizationId = await createOrganization();
+    const vehicleId = await createVehicle(organizationId, {
+      color: null,
+      make: null,
+      model: null,
+      plateCountry: "JO",
+      plateNumberNormalized: "1234567",
+      plateNumberRaw: "12-34567",
+    });
+
+    const result = await databaseClient.query<{
+      color: string | null;
+      make: string | null;
+      model: string | null;
+      plate_country: string | null;
+    }>(
+      `SELECT color, make, model, plate_country
+       FROM vehicles
+       WHERE id = $1`,
+      [vehicleId],
+    );
+    expect(result.rows[0]).toEqual({
+      color: null,
+      make: null,
+      model: null,
+      plate_country: "JO",
+    });
+  });
+
+  it("rejects a partial Vehicle plate identity", async () => {
+    const organizationId = await createOrganization();
+
+    await expectPostgresError(
+      createVehicle(organizationId, {
+        plateCountry: "JO",
+        plateNumberNormalized: "1234567",
+        plateNumberRaw: null,
+      }),
+      "23514",
+      "vehicles_plate_identity_all_or_none_check",
+    );
+  });
+
+  it("rejects a lowercase Vehicle plate_country", async () => {
+    const organizationId = await createOrganization();
+
+    await expectPostgresError(
+      createVehicle(organizationId, { plateCountry: "jo" }),
+      "23514",
+      "vehicles_plate_country_format_check",
+    );
+  });
+
+  it("rejects a duplicate known plate in the same Organization", async () => {
+    const organizationId = await createOrganization();
+    const plate = {
+      plateCountry: "JO",
+      plateNumberNormalized: "7654321",
+      plateNumberRaw: "76-54321",
+    };
+    await createVehicle(organizationId, plate);
+
+    await expectPostgresError(
+      createVehicle(organizationId, plate),
+      "23505",
+      "vehicles_known_plate_unique_idx",
+    );
+  });
+
+  it("allows the same known plate in different Organizations", async () => {
+    const firstOrganizationId = await createOrganization("First Operator");
+    const secondOrganizationId = await createOrganization("Second Operator");
+    const plate = {
+      plateCountry: "JO",
+      plateNumberNormalized: "1122334",
+      plateNumberRaw: "11-22334",
+    };
+    await createVehicle(firstOrganizationId, plate);
+
+    await expect(
+      createVehicle(secondOrganizationId, plate),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("accepts an unidentified Vehicle with a temporary descriptor", async () => {
+    const organizationId = await createOrganization();
+
+    await expect(
+      createVehicle(organizationId, {
+        plateCountry: null,
+        plateNumberNormalized: null,
+        plateNumberRaw: null,
+        temporaryDescriptor: "Black SUV at lane 2",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects an unidentified Vehicle without a temporary descriptor", async () => {
+    const organizationId = await createOrganization();
+
+    await expectPostgresError(
+      createVehicle(organizationId, {
+        plateCountry: null,
+        plateNumberNormalized: null,
+        plateNumberRaw: null,
+        temporaryDescriptor: null,
+      }),
+      "23514",
+      "vehicles_temporary_descriptor_check",
+    );
+  });
+
+  it("rejects blank or whitespace-padded Vehicle descriptors", async () => {
+    const organizationId = await createOrganization();
+
+    for (const temporaryDescriptor of ["", "   ", " Black SUV "]) {
+      await expectPostgresError(
+        createVehicle(organizationId, {
+          plateCountry: null,
+          plateNumberNormalized: null,
+          plateNumberRaw: null,
+          temporaryDescriptor,
+        }),
+        "23514",
+        "vehicles_temporary_descriptor_check",
+      );
+    }
+  });
+
+  it("allows multiple unidentified Vehicles", async () => {
+    const organizationId = await createOrganization();
+
+    await createVehicle(organizationId, {
+      plateCountry: null,
+      plateNumberNormalized: null,
+      plateNumberRaw: null,
+      temporaryDescriptor: "Black sedan",
+    });
+    await expect(
+      createVehicle(organizationId, {
+        plateCountry: null,
+        plateNumberNormalized: null,
+        plateNumberRaw: null,
+        temporaryDescriptor: "White SUV",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("allows duplicate temporary Vehicle descriptors", async () => {
+    const organizationId = await createOrganization();
+    const unidentifiedVehicle = {
+      plateCountry: null,
+      plateNumberNormalized: null,
+      plateNumberRaw: null,
+      temporaryDescriptor: "Black sedan",
+    };
+    await createVehicle(organizationId, unidentifiedVehicle);
+
+    await expect(
+      createVehicle(organizationId, unidentifiedVehicle),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects a Vehicle for an unknown Organization", async () => {
+    await expectPostgresError(
+      createVehicle(randomUUID()),
+      "23503",
+      "vehicles_organization_id_fkey",
+    );
+  });
+
+  it("restricts deletion of an Organization referenced by a Vehicle", async () => {
+    const organizationId = await createOrganization();
+    await createVehicle(organizationId);
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        organizationId,
+      ]),
+      "23503",
+      "vehicles_organization_id_fkey",
     );
   });
 });
