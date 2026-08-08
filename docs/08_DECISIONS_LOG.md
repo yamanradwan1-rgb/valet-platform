@@ -47,20 +47,22 @@ Status: Accepted
 Date: 2026-08-08
 
 Decision:
-Customer MVP is secure web access via QR/SMS/link.
+Customer MVP is secure web access through a phone-based WhatsApp/SMS link, with QR fallback. No account/app install is mandatory.
 
 Reason:
-Avoid installation/registration friction.
+Avoid installation/registration friction and align with Blueprint v1.0 Guest Friction = Minimum.
 
 ---
 
-## DEC-003 — ValetSession is the core aggregate
+## DEC-003 — ValetSession is the core physical-custody aggregate
 
 Status: Accepted  
 Date: 2026-08-08
 
 Decision:
-Each custody visit is one ValetSession with explicit state transitions and immutable audit history.
+Each custody visit is one ValetSession with explicit physical-state transitions and immutable Black Box/audit history.
+
+Task/Dispatch assignment lifecycle remains separate from ValetSession physical state.
 
 ---
 
@@ -70,17 +72,23 @@ Status: Accepted
 Date: 2026-08-08
 
 Decision:
-Payment status stays outside the ValetSession state machine. Location policy may inspect payment status before release.
+Payment/validation/refund state stays outside the ValetSession physical state machine. Location policy may inspect financial state before handoff/completion.
 
 ---
 
-## DEC-005 — AI is outside first MVP
+## DEC-005 — Manual plate entry only / OCR outside first MVP
 
-Status: Accepted  
+Status: Superseded  
 Date: 2026-08-08
 
-Decision:
-Manual plate entry and normal photo evidence must complete the workflow without AI.
+Original decision:
+Manual plate entry and normal photo evidence complete the workflow without OCR/AI.
+
+Superseded by:
+`DEC-012` under Founder & Product Blueprint v1.0.
+
+Reason:
+Blueprint v1.0 explicitly brings assistive OCR/ANPR into the sellable MVP while preserving confirm/edit and manual fallback.
 
 ---
 
@@ -102,11 +110,10 @@ Status: Accepted
 Date: 2026-08-08
 
 Decision:
-SMS/WhatsApp, payment and object-storage providers are accessed through application ports/adapters. Do not hard-code product logic to a specific commercial provider.
+Messaging, payment, object storage, OCR/ANPR and maps providers should be accessed through application boundaries/adapters where practical. Do not hard-code core product logic to one commercial provider.
 
 Reason:
-The local provider choices are not finalized.
-
+First-market/local providers are not all finalized and the product is intended to expand internationally.
 
 ---
 
@@ -129,3 +136,192 @@ Direct work on `main` is prohibited. High-contention files require coordination.
 
 Affected docs/code:
 `AGENTS.md`, `CONTRIBUTING.md`, `docs/07_DEFINITION_OF_DONE.md`, `docs/13_COLLABORATION_WORKFLOW.md`, `.github/**`
+
+---
+
+## DEC-009 — Founder & Product Blueprint v1.0 rebaselines the product contract
+
+Status: Accepted  
+Date: 2026-08-08
+
+Context:
+The project owner supplied VAYLET Founder & Product Blueprint v1.0 (August 2026) after the original Phase 1 database contract was locked and after local, uncommitted VAL-002B work had started.
+
+Decision:
+Treat Blueprint v1.0 as the latest approved product direction. `docs/15_BLUEPRINT_V1_REBASELINE.md` is the repository-native implementation bridge until the Blueprint PDF itself is committed under `docs/reference`.
+
+Previous binding docs must be updated before merging implementation that materially conflicts with Blueprint v1.0.
+
+Reason:
+Avoid implementing stale product assumptions and avoid relying on chat history to communicate the new direction.
+
+Consequences:
+VAL-002B local work is preserved/stashed, re-reviewed after this docs rebaseline, and adjusted only where the new contract actually changes it.
+
+---
+
+## DEC-010 — VAYLET base business model is B2B SaaS, not direct valet operation
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+VAYLET sells software to valet operators, hotels and operating customers. In the base model VAYLET does not employ valet drivers, operate the field service, or take physical custody of customer vehicles.
+
+Reason:
+Reduce direct operational/liability scope and preserve scalable SaaS economics/international expansion.
+
+---
+
+## DEC-011 — Tenant role contract expands and platform roles remain separate
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Current OrganizationMembership roles are:
+
+- `ORG_ADMIN` = Blueprint Company Admin
+- `LOCATION_MANAGER`
+- `VALET_SUPERVISOR`
+- `VALET_EMPLOYEE`
+
+Guest/Customer is not a staff membership.
+
+VAYLET Super Admin is platform-level and must not be represented as an OrganizationMembership.
+
+Venue Client is an approved product actor with restricted location visibility, but its exact persistence/access representation is deferred to a dedicated schema decision because Blueprint v1.0 does not specify enough fields to lock it safely.
+
+Reason:
+Align current Phase 1 work with the approved role model without inventing unprovided schema.
+
+---
+
+## DEC-012 — Assistive OCR/ANPR and configurable photo policy are sellable-MVP capabilities
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Plate OCR/ANPR is included in the sellable MVP only with confirm/edit and a permanent manual fallback. OCR must not block check-in when the plate is unreadable.
+
+Vehicle condition check is required, but photos are optional by default and may be configured as required by Company/Location policy.
+
+Reason:
+Match Blueprint v1.0 while preserving the speed-first employee workflow.
+
+Consequences:
+Old mandatory-four-photo language is superseded. OCR is no longer prohibited from MVP, but autonomous AI/damage detection remains deferred.
+
+---
+
+## DEC-013 — Maps/session tracking is task-scoped and configurable
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Maps plus GPS/session tracking may be implemented in the sellable MVP when configured. Tracking is tied by default to active Parking/Retrieval tasks and is not continuous for the entire employee Shift.
+
+Guest users never receive exact vehicle coordinates.
+
+Reason:
+Support operational visibility/custody while limiting privacy overreach.
+
+---
+
+## DEC-014 — Hybrid Dispatch task lifecycle is separate from ValetSession state
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Use a separate Task/Dispatch lifecycle for queue/assignment/acceptance/reassignment/in-progress/completion.
+
+Canonical Task path:
+
+`QUEUED -> ASSIGNED -> ACCEPTED -> IN_PROGRESS -> COMPLETED`
+
+ValetSession represents physical custody and does not use `RETRIEVAL_ASSIGNED` as a physical state.
+
+Reason:
+Blueprint v1.0 explicitly models Hybrid Dispatch separately from the official vehicle lifecycle.
+
+---
+
+## DEC-015 — Canonical Blueprint-aligned ValetSession lifecycle
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Canonical sellable-MVP physical states are:
+
+`CHECKING_IN -> AWAITING_PARKING -> PARKING -> PARKED -> REQUESTED -> RETRIEVING -> READY -> HANDOFF_PENDING -> COMPLETED`
+
+`READY` is the canonical MVP state for Blueprint `STAGED/READY`; staging zone/spot is operational location data unless a later workflow requires a separate state.
+
+Incident lifecycle remains separate from ValetSession physical state.
+
+Reason:
+Create one implementable state contract while preserving Blueprint separation of custody, dispatch, incidents and handoff.
+
+---
+
+## DEC-016 — Secure standard handoff is Dynamic QR OR 4-digit pickup code
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Standard sellable-MVP handoff accepts either a Dynamic one-time QR or 4-digit pickup code. Either may satisfy the normal policy. Supervisor override is exceptional and must be authorized, reasoned and audited.
+
+Reason:
+Match Blueprint v1.0 handoff contract.
+
+---
+
+## DEC-017 — Configuration First uses Company default -> Location override
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Normal customer/location operating-policy differences identified by the product should be configurable from the Dashboard rather than hard-coded.
+
+Preferred inheritance:
+
+`Company default -> Location override`
+
+Do not implement this as one speculative untyped JSON blob. Add typed configuration contracts/tables through focused feature tasks.
+
+Reason:
+Make the SaaS sellable/configurable without creating an unsafe generic policy engine during foundation work.
+
+---
+
+## DEC-018 — Location owns operational timezone/currency context
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+A Company may own Locations in different countries. Location timezone and currency are therefore first-class operational context. Organization timezone, while retained in the current Phase 1 contract as a Company/default value, must not override each Location's own timezone.
+
+Reason:
+Blueprint v1.0 explicitly requires per-Location timezone/currency and multi-country operators.
+
+---
+
+## DEC-019 — Advanced intelligence follows operational data
+
+Status: Accepted  
+Date: 2026-08-08
+
+Decision:
+Build the operating system and collect clean measured data before implementing predictive/optimization features such as SmartStack AI, Predictive Retrieval, Demand Autopilot or advanced fraud/risk intelligence.
+
+OCR/ANPR assistive scanning is not treated as permission to add autonomous predictive AI.
+
+Reason:
+Preserve the Blueprint rule: build the operating system first; add intelligence after the operation works.
