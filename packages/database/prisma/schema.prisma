@@ -64,6 +64,20 @@ enum KeySlotStatus {
   @@map("key_slot_status")
 }
 
+enum ValetSessionState {
+  CHECKING_IN
+  AWAITING_PARKING
+  PARKING
+  PARKED
+  REQUESTED
+  RETRIEVING
+  READY
+  HANDOFF_PENDING
+  COMPLETED
+
+  @@map("valet_session_state")
+}
+
 model Organization {
   id        String             @id @default(uuid()) @db.Uuid
   name      String
@@ -80,6 +94,7 @@ model Organization {
   vehicles                 Vehicle[]
   parkingSpots             ParkingSpot[]
   keySlots                 KeySlot[]
+  valetSessions            ValetSession[]
 
   @@map("organizations")
 }
@@ -101,6 +116,7 @@ model Location {
   shifts                   Shift[]
   parkingSpots             ParkingSpot[]
   keySlots                 KeySlot[]
+  valetSessions            ValetSession[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
@@ -135,6 +151,9 @@ model OrganizationMembership {
   user                     User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
   membershipLocationAccess MembershipLocationAccess[]
   shifts                   Shift[]
+  checkedInValetSessions   ValetSession[]             @relation("ValetSessionCheckedInBy")
+  assignedValetSessions    ValetSession[]             @relation("ValetSessionCurrentAssignee")
+  completedValetSessions   ValetSession[]             @relation("ValetSessionCompletedBy")
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -181,8 +200,10 @@ model Customer {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  valetSessions ValetSession[]
 
+  @@unique([organizationId, id], map: "customers_organization_id_id_key")
   @@map("customers")
 }
 
@@ -199,8 +220,10 @@ model Vehicle {
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  valetSessions ValetSession[]
 
+  @@unique([organizationId, id], map: "vehicles_organization_id_id_key")
   @@map("vehicles")
 }
 
@@ -214,10 +237,12 @@ model ParkingSpot {
   createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location      Location       @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+  valetSessions ValetSession[]
 
   @@unique([locationId, code], map: "parking_spots_location_id_code_key")
+  @@unique([organizationId, locationId, id], map: "parking_spots_organization_id_location_id_id_key")
   @@map("parking_spots")
 }
 
@@ -230,9 +255,51 @@ model KeySlot {
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location      Location       @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+  valetSessions ValetSession[]
 
   @@unique([locationId, code], map: "key_slots_location_id_code_key")
+  @@unique([organizationId, locationId, id], map: "key_slots_organization_id_location_id_id_key")
   @@map("key_slots")
+}
+
+model ValetSession {
+  id                          String            @id @default(uuid()) @db.Uuid
+  customerAccessTokenHash     String            @unique(map: "valet_sessions_customer_access_token_hash_key") @map("customer_access_token_hash")
+  customerAccessExpiresAt     DateTime          @map("customer_access_expires_at") @db.Timestamptz(3)
+  customerAccessRevokedAt     DateTime?         @map("customer_access_revoked_at") @db.Timestamptz(3)
+  organizationId              String            @map("organization_id") @db.Uuid
+  locationId                  String            @map("location_id") @db.Uuid
+  vehicleId                   String            @map("vehicle_id") @db.Uuid
+  customerId                  String?           @map("customer_id") @db.Uuid
+  state                       ValetSessionState
+  parkingSpotId               String?           @map("parking_spot_id") @db.Uuid
+  keySlotId                   String?           @map("key_slot_id") @db.Uuid
+  currentAssigneeMembershipId String?           @map("current_assignee_membership_id") @db.Uuid
+  checkedInByMembershipId     String            @map("checked_in_by_membership_id") @db.Uuid
+  completedByMembershipId     String?           @map("completed_by_membership_id") @db.Uuid
+  createdAt                   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  checkingInCompletedAt       DateTime?         @map("checking_in_completed_at") @db.Timestamptz(3)
+  parkingStartedAt            DateTime?         @map("parking_started_at") @db.Timestamptz(3)
+  parkedAt                    DateTime?         @map("parked_at") @db.Timestamptz(3)
+  retrievalRequestedAt        DateTime?         @map("retrieval_requested_at") @db.Timestamptz(3)
+  retrievalStartedAt          DateTime?         @map("retrieval_started_at") @db.Timestamptz(3)
+  readyAt                     DateTime?         @map("ready_at") @db.Timestamptz(3)
+  handoffPendingAt            DateTime?         @map("handoff_pending_at") @db.Timestamptz(3)
+  completedAt                 DateTime?         @map("completed_at") @db.Timestamptz(3)
+  version                     Int               @default(1)
+  updatedAt                   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization    Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "valet_sessions_organization_id_fkey")
+  location        Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_location_id_fkey")
+  vehicle         Vehicle                 @relation(fields: [organizationId, vehicleId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_vehicle_id_fkey")
+  customer        Customer?               @relation(fields: [organizationId, customerId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_customer_id_fkey")
+  parkingSpot     ParkingSpot?            @relation(fields: [organizationId, locationId, parkingSpotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_parking_spot_id_fkey")
+  keySlot         KeySlot?                @relation(fields: [organizationId, locationId, keySlotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_key_slot_id_fkey")
+  currentAssignee OrganizationMembership? @relation("ValetSessionCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_current_assignee_id_fkey")
+  checkedInBy     OrganizationMembership  @relation("ValetSessionCheckedInBy", fields: [organizationId, checkedInByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_checked_in_by_id_fkey")
+  completedBy     OrganizationMembership? @relation("ValetSessionCompletedBy", fields: [organizationId, completedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_completed_by_id_fkey")
+
+  @@map("valet_sessions")
 }
