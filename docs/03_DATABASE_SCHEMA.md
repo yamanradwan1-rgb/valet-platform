@@ -1,7 +1,7 @@
 # Database Schema — Logical Design
 
 Status: Binding  
-Version: 0.3
+Version: 0.4
 
 Database: PostgreSQL  
 ORM: Prisma
@@ -278,6 +278,7 @@ organization_id
 plate_country
 plate_number_raw
 plate_number_normalized
+temporary_descriptor
 make
 model
 color
@@ -287,13 +288,26 @@ updated_at
 
 Constraints/rules:
 
-- `plate_country`, `plate_number_raw` and `plate_number_normalized` required once a plate is known
+- `plate_country`, `plate_number_raw` and `plate_number_normalized` nullable together: either all three are non-null or all three are null
+- enforce the all-known/all-absent plate-field invariant with a database check constraint
 - `plate_country` follows the global uppercase ISO country-code convention
-- unique `(organization_id, plate_country, plate_number_normalized)` when plate identity is available under the implemented schema
+- `temporary_descriptor` nullable at the column level, but required by database check when all plate fields are null
+- when present, `temporary_descriptor` must contain non-empty trimmed employee-confirmed text sufficient for operational recognition
+- the temporary descriptor is not unique; multiple unidentified Vehicles remain distinct through independent UUIDs
+- use a partial unique index on `(organization_id, plate_country, plate_number_normalized)` where `plate_number_normalized IS NOT NULL`
+- do not add a plate/identity status enum; known versus unknown is derived from the grouped plate fields
 - `make`, `model` and `color` nullable
 - OCR/ANPR never replaces confirm/edit/manual fallback
 
-Blueprint also requires a no-plate/unreadable fallback using a temporary/manual vehicle descriptor. The exact persistence change needed for plate-less vehicles is **not yet locked** by this document and must be resolved before the Core Check-in schema/task depends on it; do not silently weaken Phase 1 uniqueness constraints inside VAL-002B.
+Later plate identification/correction rules:
+
+- use an explicit authorized domain command rather than a generic Vehicle patch
+- update the same Vehicle with the confirmed plate triple when no tenant-scoped normalized-plate conflict exists
+- append the identification/correction audit event atomically with the protected mutation; do not rewrite earlier Black Box facts
+- `temporary_descriptor` may remain populated after plate identification for operational continuity
+- if the confirmed plate already belongs to another Vehicle in the Organization, reject the conflict and keep both Vehicle identities and their ValetSessions distinct
+- never automatically merge Vehicles or relink custody history; merge/deduplication is deferred to a dedicated approved workflow
+- unreadable/failed OCR does not block check-in when the temporary-descriptor fallback and other check-in guards are satisfied
 
 ## parking_zones
 
@@ -780,6 +794,7 @@ Task/Dispatch, key custody and route/geofence indexes are defined with their foc
 Implement with reviewed SQL migrations where Prisma cannot express them cleanly:
 
 - one ACTIVE shift per membership: `shifts(membership_id)` where `status = ACTIVE`
+- one known Vehicle plate identity per Organization/country: `vehicles(organization_id, plate_country, plate_number_normalized)` where `plate_number_normalized IS NOT NULL`
 - one active ValetSession per `(vehicle_id, location_id)` according to the canonical active-session contract
 - one active ValetSession per non-null `parking_spot_id` where applicable
 - one active ValetSession per non-null `key_slot_id` where applicable
@@ -830,7 +845,6 @@ Current schema details intentionally not locked by this document include:
 - exact map/geofence/route storage
 - exact Task/Dispatch schema
 - exact KeyCustodyEvent schema
-- exact Customer no-plate temporary-vehicle representation
 - exact Payment/Validation/Tip/CashReconciliation/Refund normalized schema
 - country-specific plate-normalization algorithms
 - customer-access token lifetime duration

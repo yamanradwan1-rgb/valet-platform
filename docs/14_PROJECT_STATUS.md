@@ -5,113 +5,69 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-08 20:16 +03:00`
+- Date/time: `2026-08-08 21:03 +03:00`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Verification basis: current GitHub branch/docs/Issue/PR/CI state plus the human-reported local stash state for VAL-002B
+- Verification basis: local `main`/`origin/main` refs and merge history through PR #8
 
 ## Current Milestone
 
-**Product-contract rebaseline before continuing Phase 1 implementation**
+**Phase 1 — Foundation: data, tenants, staff and audit-ready structure**
 
-Phase 0 bootstrap is complete. Phase 1 database work began under the previous product contract, then was intentionally paused before commit/PR when Founder & Product Blueprint v1.0 became the approved product direction.
+Phase 0 bootstrap is complete. The Founder & Product Blueprint v1.0 product-contract rebaseline and the Tenant & Staff database foundation are merged. The remaining no-plate Vehicle identity ambiguity is being closed before Customer + Vehicle persistence is implemented.
 
 ## Completed
 
 ### Phase 0 — Bootstrap
 
 - PR #1 — `chore: bootstrap monorepo foundation`
-- Status: **MERGED**
+- Status: **MERGED / COMPLETED**
 
 ### VAL-002A — Lock previous Phase 1 Database Contract
 
 - Issue #2
 - PR #3 — `docs: lock Phase 1 database contract`
-- Status: **COMPLETED / MERGED**
-
-Its decisions remain historical context but are superseded where Founder & Product Blueprint v1.0 and the accepted rebaseline decisions explicitly changed them.
-
-## Current Task
+- Status: **MERGED / COMPLETED**
+- Note: retained as historical context where later Blueprint decisions supersede it
 
 ### VAL-002R — Rebaseline Product Contracts to Founder Blueprint v1.0
 
-- Issue: **#6 — OPEN**
-- Owner: `veletpro0-lgtm`
+- Issue #6
+- PR #7
 - Branch: `docs/VAL-002R-blueprint-v1-rebaseline`
-- PR: **#7 — OPEN**
-- Current status: **PR OPEN / CI PENDING**
-- Scope: **docs/product-contract only**
-- Application code changes: **none**
-- Prisma/migration changes: **none**
-
-Primary work completed in the branch:
-
-- OLD vs NEW product decision matrix
-- source-of-truth/authority-order update
-- MVP/V2/Enterprise boundary alignment
-- roles/identity-boundary alignment
-- ValetSession physical lifecycle alignment
-- Hybrid Dispatch Task lifecycle separated from ValetSession state
-- assistive OCR/ANPR added to sellable MVP with manual fallback
-- condition photos made optional by default/configurable
-- Maps + task-scoped session tracking added to sellable MVP
-- secure handoff aligned to Dynamic QR OR 4-digit pickup code
-- payments/cash/validation/tips scope aligned
-- Configuration First established as Company default -> Location override
-- internationalization/offline/reliability expectations aligned
-- execution plan / engineering / Definition of Done / collaboration rules aligned
-
-Rebaseline bridge:
-
-- `docs/15_BLUEPRINT_V1_REBASELINE.md`
-
-## Preserved Implementation Work
+- Status: **MERGED / COMPLETED**
+- Result: Blueprint v1.0 authority, scope, roles, lifecycle, Configuration First and implementation bridge are reflected in binding repository docs
 
 ### VAL-002B — Tenant & Staff Database Foundation
 
-- Issue: **#4 — OPEN**
+- Issue #4
+- PR #8
 - Branch: `feat/VAL-002B-tenant-staff-db`
-- Remote branch exists
-- Current project status: **BLOCKED / PRESERVED pending VAL-002R merge**
-- Open PR: none at the time of this handoff
+- Status: **MERGED / COMPLETED**
+- Merge commit on `main`: `f26beb9`
+- Result: Organization, Location, User, OrganizationMembership, MembershipLocationAccess and Shift foundation with tenant constraints, migrations and PostgreSQL integration coverage
 
-The local coding agent completed an uncommitted implementation against the pre-rebaseline contract. The human contributor preserved all changes using the named local stash:
+## Current Task
 
-```text
-VAL-002B pre Blueprint v1 rebaseline
-```
+### VAL-003A — Lock no-plate / unreadable Vehicle identity contract
 
-Git stash contents are local-only and are not a GitHub backup. Do not delete/drop that stash until the work is restored and safely committed after rebaseline.
+- Branch: `docs/VAL-003A-vehicle-identity-fallback`
+- Status: **IN PROGRESS — DOCS/DECISION ONLY**
+- Application/Prisma/migration changes: **none**
+- Objective: lock the smallest safe MVP persistence contract for a Vehicle whose plate is absent, unreadable or not yet confidently established
 
-Reported preserved work includes:
+Decision direction under this task:
 
-- Organization
-- Location
-- User
-- OrganizationMembership
-- MembershipLocationAccess
-- Shift
-- initial Prisma migration
-- tenant-integrity constraints
-- restrictive deletes
-- normalized-email protection
-- shift time/order protection
-- one-active-shift partial unique protection
-- PostgreSQL integration tests
-- Prisma 7 configuration
-- PostgreSQL CI support
+- Vehicle remains the stable Organization-scoped identity even when plate identity is unknown
+- grouped plate fields are all known or all absent
+- a required temporary/manual descriptor supports operational recognition while absent
+- unidentified Vehicles remain distinct by UUID
+- tenant-scoped plate uniqueness applies only when normalized plate identity exists
+- later identification/correction is explicit and audited
+- automatic merge/deduplication remains deferred
 
-Expected post-rebaseline adjustments include at minimum:
+## Current Product / Domain Baseline
 
-- add `VALET_SUPERVISOR` membership role
-- preserve `ORG_ADMIN` as the internal name for Blueprint Company Admin
-- add/align Location timezone + currency according to the updated Phase 1 contract
-- do not invent Venue Client persistence
-- do not model VAYLET Super Admin as an OrganizationMembership
-- preserve reusable tenant/shift/constraint work unless the new binding contract explicitly changes it
-
-## Accepted Rebaseline Highlights
-
-Canonical ValetSession physical lifecycle for future implementation:
+Canonical ValetSession physical lifecycle:
 
 ```text
 CHECKING_IN
@@ -125,13 +81,13 @@ CHECKING_IN
 -> COMPLETED
 ```
 
-Hybrid Dispatch uses a separate Task lifecycle:
+Canonical Hybrid Dispatch Task lifecycle:
 
 ```text
 QUEUED -> ASSIGNED -> ACCEPTED -> IN_PROGRESS -> COMPLETED
 ```
 
-Current tenant membership role contract:
+Current tenant membership roles:
 
 ```text
 ORG_ADMIN
@@ -140,99 +96,41 @@ VALET_SUPERVISOR
 VALET_EMPLOYEE
 ```
 
-Other actor boundaries:
+## Dependencies / Contention
 
-- Guest/Customer: not OrganizationMembership
-- VAYLET Super Admin: platform-level, schema deferred
-- Venue Client: approved actor, persistence/access schema deferred
-
-## High-Contention Ownership
-
-Current rebaseline modifies high-contention binding docs.
-
-Treat `VAL-002R` as single-owner until PR #7 is reviewed/merged.
-
-Database schema/migrations remain reserved for the paused `VAL-002B` work; do not start a second independent migration task while that preserved work is unresolved.
-
-## Current Blockers / Dependencies
-
-`VAL-002B` must not be committed/PR'd against the old contract before `VAL-002R` is merged and its impact is applied.
-
-Do not start the next independent database slice until VAL-002B is restored, adjusted, reviewed and merged or explicitly re-planned.
+- VAL-003A changes high-contention binding database/domain/decision documents and should remain single-owner until reviewed/merged.
+- No Prisma or migration work belongs in VAL-003A.
+- The Customer + Vehicle database task depends on the accepted VAL-003A contract and should start from updated `main` after the documentation decision is merged.
+- Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate decisions/tasks.
 
 ## Exact Next Step
 
-For `VAL-002R`:
+For `VAL-003A`:
 
 ```text
-CI for PR #7
--> review PR against Issue #6 + Blueprint rebaseline bridge
--> resolve any findings
+review Option A contract against Blueprint + tenant/custody rules
+-> documentation checks
+-> commit/push by the human owner when approved
+-> PR + CI + cross-review
 -> human merge decision
 ```
 
-After `VAL-002R` merges, on the contributor machine:
-
-```powershell
-git checkout main
-git pull --ff-only origin main
-git checkout feat/VAL-002B-tenant-staff-db
-git merge --ff-only main
-```
-
-Then restore the preserved implementation carefully:
-
-```powershell
-git stash list
-# verify the stash message before restoring
-git stash apply stash@{N}
-```
-
-Prefer `stash apply` first rather than `stash pop` so the backup remains until the restored work is verified.
-
-Then:
+Next implementation after this decision merges:
 
 ```text
-review VAL-002B against updated docs
--> make only required rebaseline adjustments
+Customer + Vehicle database foundation
+-> new Prisma schema slice and migration
+-> tenant/identity constraint tests
 -> fresh PostgreSQL migration verification
 -> pnpm lint
 -> pnpm typecheck
 -> pnpm test
 -> pnpm build
--> review diff
--> commit
--> push
--> PR
--> CI
--> domain/security/database review
--> human merge decision
 ```
-
-Only after the restored work is safely committed and verified should the preserved stash be dropped.
 
 ## Parallel UX/UI Track
 
-Product design work may proceed in parallel where it does not modify current high-contention code/contracts.
-
-Current product has three core surfaces:
-
-1. Valet Employee App / terminal
-2. Guest web experience
-3. Management / Operations Dashboard
-
-Design direction may establish UX architecture, flows, wireframes and design system before frontend implementation. Frontend implementation should remain feature-by-feature with the corresponding backend/domain capability rather than implementing the entire mocked UI first.
-
-## Human Handoff Notes
-
-- Founder & Product Blueprint v1.0 is the newest approved product direction.
-- `docs/15_BLUEPRINT_V1_REBASELINE.md` records its implementation-relevant bridge inside the repository.
-- GitHub remains the coordination/current-state source of truth.
-- Local coding agents may not see GitHub Issues; ChatGPT should convert Issues into full task packets.
-- `PROJECT_STATUS` is a convenience snapshot, not a binding product contract.
-- Start Session: read this file, then verify actual GitHub state before assigning work.
-- End Session: distinguish local-only, committed, pushed, PR, CI and merged states precisely.
-- Only one contributor/ChatGPT should update this shared status snapshot at a time.
+UX/UI design may proceed in parallel only where it does not redefine active high-contention domain/database contracts. Frontend implementation should remain feature-by-feature with the corresponding backend/domain capability.
 
 ## Status Vocabulary
 
@@ -249,4 +147,4 @@ BLOCKED
 READY FOR LOCAL IMPLEMENTATION
 ```
 
-Never call a task merged/completed merely because a local agent finished, tests passed, or a local commit exists.
+Never call a task merged/completed merely because local edits or validation pass.
