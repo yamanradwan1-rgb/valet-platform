@@ -325,3 +325,45 @@ OCR/ANPR assistive scanning is not treated as permission to add autonomous predi
 
 Reason:
 Preserve the Blueprint rule: build the operating system first; add intelligence after the operation works.
+
+---
+
+## DEC-020 — Vehicle identity supports plate-less check-in
+
+Status: Accepted
+Date: 2026-08-08
+
+Context:
+Blueprint v1.0 requires check-in to continue when a plate is absent, unreadable or not confidently established through OCR/manual entry. The persistence contract must keep custody identity stable, allow multiple unidentified vehicles to remain distinct and preserve tenant-scoped plate uniqueness when a plate is known.
+
+Options considered:
+
+- Option A: create a stable Vehicle even when plate identity is unavailable, using a required temporary/manual descriptor until the plate is known.
+- Option B: defer Vehicle creation and keep temporary identity on the custody/session path until later linking.
+- Option C: introduce a separate temporary-vehicle entity or identity abstraction.
+
+Decision:
+Use Option A for MVP.
+
+A Vehicle may exist without a known plate. `plate_country`, `plate_number_raw` and `plate_number_normalized` are nullable as one group: either all three are present or all three are absent. While all three are absent, `temporary_descriptor` is required and must contain non-empty trimmed employee-confirmed text sufficient to distinguish the vehicle operationally. Each unidentified Vehicle receives its own UUID; the descriptor is not unique.
+
+No plate/identity status enum is introduced because known versus unknown is derived without ambiguity from the grouped plate fields.
+
+When plate identity is known, enforce tenant-scoped uniqueness with a partial unique index on `(organization_id, plate_country, plate_number_normalized)` where `plate_number_normalized IS NOT NULL`.
+
+Later identification or correction uses an explicit audited domain command and updates the same Vehicle when the confirmed normalized plate does not conflict. The temporary descriptor may be retained after identification. If the plate already belongs to another Vehicle in the Organization, reject the identification/correction conflict; do not automatically merge, relink custody history or rewrite Black Box events. The existing unidentified Vehicle and its ValetSessions remain distinct until a dedicated deduplication workflow is approved.
+
+OCR/ANPR remains assistive only. Confirm/edit/manual fallback is permanent, and unreadable OCR must not block an otherwise allowed check-in.
+
+Reason:
+Option A preserves Vehicle as the stable identity referenced by custody while adding only nullable plate fields, one fallback descriptor and database constraints. Option B moves identity onto an undefined session path and creates later linking complexity. Option C adds an unnecessary entity/abstraction.
+
+Consequences:
+
+- Multiple unidentified vehicles are distinct by UUID even if their descriptors match.
+- Plate corrections append audit/Black Box events; they do not replace historical facts.
+- Automatic Vehicle merge/deduplication is deferred to a dedicated command/workflow decision.
+- The Customer + Vehicle database foundation may implement this contract in a new migration with invariant tests.
+
+Affected docs/code:
+`docs/02_DOMAIN_MODEL.md`, `docs/03_DATABASE_SCHEMA.md`, `docs/11_REQUIREMENTS_TRACEABILITY.md`, future Customer + Vehicle schema/migration/domain command work

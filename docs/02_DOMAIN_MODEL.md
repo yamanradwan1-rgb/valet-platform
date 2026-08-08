@@ -1,7 +1,7 @@
 # Domain Model
 
 Status: Binding  
-Version: 0.2
+Version: 0.3
 
 ## Aggregate center
 
@@ -129,6 +129,12 @@ Reusable vehicle identity within an Organization.
 Operational identity supports multi-country plate formats and must not assume one country's plate layout.
 
 Plate OCR/ANPR is assistive input; manual confirm/edit/fallback remains authoritative.
+
+A Vehicle may be created while its plate is absent, unreadable or not yet confidently established. Plate country, raw plate and normalized plate are either all known or all absent. When they are absent, a non-empty employee-confirmed `temporary_descriptor` is required for operational recognition. The descriptor is not a unique identity; each unidentified Vehicle remains distinct through its own UUID.
+
+Known plate identity is unique within the Organization by country plus normalized plate. Later identification or correction updates the same Vehicle through an explicit audited command when no tenant-scoped plate conflict exists. If the plate already belongs to another Vehicle in the Organization, automatic merge/relink is forbidden; the identities and custody histories remain separate pending a dedicated deduplication workflow.
+
+No separate plate-status enum is required because the grouped plate fields unambiguously express known versus unknown identity.
 
 A Vehicle can have many ValetSessions.
 

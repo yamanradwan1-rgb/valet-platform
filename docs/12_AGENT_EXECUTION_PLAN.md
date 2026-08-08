@@ -89,7 +89,7 @@ Required work across focused tasks:
 - condition check
 - configurable photo requirement, OPTIONAL by default
 - plate capture contract with OCR/ANPR confirm/edit + permanent manual fallback
-- no-plate/unreadable fallback decision before implementation depends on it
+- implement the accepted DEC-020 no-plate/unreadable Vehicle identity fallback
 - check-in performance instrumentation
 
 Acceptance direction:

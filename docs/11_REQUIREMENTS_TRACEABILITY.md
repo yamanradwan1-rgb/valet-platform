@@ -32,7 +32,7 @@ The historical concept remains useful for original intent but is superseded wher
 | VAYLET Super Admin | platform-level role; tenant membership prohibited; persistence deferred |
 | Check-in lifecycle | `04_VALET_SESSION_STATE_MACHINE.md` CHECKING_IN/AWAITING_PARKING |
 | OCR/ANPR scan + confirm/edit + manual fallback | DEC-012, Core Check-in task/provider adapter |
-| No plate/unreadable fallback | Core Check-in requirement; persistence details explicitly unresolved before implementation |
+| No plate/unreadable fallback | Stable Vehicle UUID + required temporary descriptor while grouped plate fields are absent; tenant-scoped partial uniqueness when known, DEC-020 |
 | Condition check | ConditionNote/session intake contract |
 | Photos optional by default/configurable required | VehiclePhoto + configured policy guard, DEC-012 |
 | QR key slots | KeySlot + later KeyCustodyEvent |
