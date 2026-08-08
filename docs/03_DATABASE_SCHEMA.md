@@ -1,7 +1,7 @@
 # Database Schema — Logical Design
 
 Status: Binding  
-Version: 0.2
+Version: 0.3
 
 Database: PostgreSQL  
 ORM: Prisma
@@ -21,8 +21,9 @@ These conventions are binding for Phase 1 unless superseded by an accepted decis
 - Store database timestamps as PostgreSQL `timestamptz(3)` in UTC.
 - `created_at` defaults to server/database current time.
 - `updated_at` is maintained by the application/ORM on mutation.
-- Operational timestamps such as `parked_at`, `ready_at` and `released_at` are server-authoritative; clients do not choose trusted operation time.
-- Convert timestamps to Organization/Location timezone only for display.
+- Operational timestamps are server-authoritative; clients do not choose trusted operation time.
+- Convert timestamps for display/reporting using the Location timezone.
+- An Organization may span Locations in multiple timezones/countries; never assume one Organization timezone is authoritative for every Location.
 
 ### Controlled values
 
@@ -35,15 +36,17 @@ These conventions are binding for Phase 1 unless superseded by an accepted decis
 - Application/domain code performs normalization before persistence.
 - Database constraints enforce uniqueness on normalized values where documented.
 - Staff email is trimmed and lowercased before storage; `users.email` stores the normalized value.
+- Staff/guest phone values, when normalized for international use, should use an E.164-compatible canonical representation; exact input UX is an application concern.
 - `plate_country` is an uppercase ISO 3166-1 alpha-2 country code such as `JO`, `AE` or `SA`.
-- Plate normalization is country-aware application behavior. Phase 1 stores both raw and normalized values but does not invent country-specific normalization algorithms; those rules must be defined before intake behavior depends on them.
+- Plate normalization is country-aware application behavior. Store raw and normalized plate values but do not invent one-country normalization rules.
+- OCR/ANPR output is proposed input only; the confirmed/manual value is what the application persists as the operational plate value.
 
 ### Money
 
 - Monetary values use PostgreSQL `numeric(14,3)` / Prisma Decimal, never floating-point types.
 - Currency is an uppercase ISO 4217 three-letter code such as `JOD`, `AED` or `SAR`.
-- `amount` is the base valet charge before discount and tip.
-- `tip_amount` and `discount_amount` default to zero.
+- `amount` is the base valet charge before discount and tip where that payment model applies.
+- `tip_amount` and `discount_amount` default to zero when stored on the same record.
 - Total charge semantics are `amount - discount_amount + tip_amount`.
 - Monetary amounts must be non-negative and `discount_amount <= amount`.
 - Provider adapters may convert decimal amounts to provider-specific minor units at integration boundaries.
@@ -62,7 +65,19 @@ These conventions are binding for Phase 1 unless superseded by an accepted decis
 - Do not cascade-delete operational history.
 - Default foreign-key deletion behavior is `RESTRICT` / `NO ACTION` for operational and audit relationships.
 - Configuration and people records are disabled/inactivated rather than deleted when referenced by history.
-- Optional retention/anonymization behavior is a later legal/business decision and must not be invented in Phase 1.
+- Retention/anonymization behavior must follow later legal/business/configuration decisions; do not invent legal durations.
+
+### Configuration First
+
+Blueprint v1.0 requires normal operating-policy differences to be configurable, generally with:
+
+```text
+Company default -> Location override
+```
+
+This is a binding product requirement but does not authorize a speculative generic JSON settings table in the tenant/staff foundation.
+
+Introduce typed configuration entities/columns in focused tasks when the corresponding policy is implemented.
 
 ### Phase 1 migration policy
 
@@ -86,12 +101,14 @@ Status:
 - ACTIVE
 - INACTIVE
 
-Constraints:
+Constraints/rules:
 
 - name required
 - status required, default `ACTIVE`
-- timezone required
+- `timezone` required for current Phase 1 compatibility and treated as the Company/default timezone, not as an override of each Location's timezone
 - DB timestamps follow the global UTC/timestamptz convention
+
+A later typed configuration task may rename/refine Company-default semantics; do not block Location-specific timezone support on this field.
 
 ## locations
 
@@ -101,6 +118,8 @@ organization_id
 name
 code
 address_text
+timezone
+currency
 status
 created_at
 updated_at
@@ -111,13 +130,15 @@ Status:
 - ACTIVE
 - INACTIVE
 
-Constraints:
+Constraints/rules:
 
 - FK -> organization
 - unique `(organization_id, code)`
+- `timezone` required for operational display/reporting context
+- `currency` required and follows uppercase ISO 4217 convention
 - status required, default `ACTIVE`
 
-Phase 1 does not add a generic settings/policy JSON field. Location-specific operational policy fields are added only when an approved MVP behavior requires them.
+Phase 1 does not add a generic settings/policy JSON field. Location-specific typed configuration is added by focused tasks as approved MVP behavior requires it.
 
 ## users
 
@@ -141,7 +162,7 @@ Constraints/rules:
 
 - `email` required for staff MVP authentication
 - `email` stores normalized trimmed lowercase value and is globally unique
-- `phone` nullable and not unique in Phase 1
+- `phone` nullable and not unique in Phase 1; when normalized it should be stored in E.164-compatible canonical form
 - `password_hash` required and never exposed
 - status required, default `ACTIVE`
 
@@ -159,20 +180,27 @@ updated_at
 
 Role:
 
-- ORG_ADMIN
-- LOCATION_MANAGER
-- VALET_EMPLOYEE
+- `ORG_ADMIN` — internal enum for Blueprint Company Admin
+- `LOCATION_MANAGER`
+- `VALET_SUPERVISOR`
+- `VALET_EMPLOYEE`
 
 Status:
 
 - ACTIVE
 - INACTIVE
 
-Constraints:
+Constraints/rules:
 
 - unique `(organization_id, user_id)`
 - role required
 - status required, default `ACTIVE`
+
+Role-boundary notes:
+
+- Guest/Customer is not an OrganizationMembership.
+- VAYLET Super Admin is platform-level and must not be represented as a tenant membership role.
+- Venue Client is a Blueprint role/actor, but its exact persistence/access representation is not locked in Phase 1; do not invent it inside VAL-002B.
 
 ## membership_location_access
 
@@ -220,6 +248,8 @@ For partial-unique protection, an active shift means exactly:
 status = ACTIVE
 ```
 
+Future task rules must prevent normal Shift completion while the employee owns open tasks unless tasks are reassigned/handed off or an authorized override is used.
+
 ## customers
 
 ```text
@@ -235,9 +265,10 @@ Rules:
 
 - Keep customer data minimal.
 - `phone_normalized` is required when a Customer row is created in MVP.
+- Prefer E.164-compatible normalized phone format.
 - If no customer contact is known/needed, `valet_sessions.customer_id` remains null instead of creating an empty Customer record.
 - `display_name` nullable.
-- Customer phone normalization is application-owned; the database stores the canonical normalized value.
+- No persistent customer account is required for MVP.
 
 ## vehicles
 
@@ -256,10 +287,19 @@ updated_at
 
 Constraints/rules:
 
-- `plate_country`, `plate_number_raw` and `plate_number_normalized` required
+- `plate_country`, `plate_number_raw` and `plate_number_normalized` required once a plate is known
 - `plate_country` follows the global uppercase ISO country-code convention
-- unique `(organization_id, plate_country, plate_number_normalized)`
+- unique `(organization_id, plate_country, plate_number_normalized)` when plate identity is available under the implemented schema
 - `make`, `model` and `color` nullable
+- OCR/ANPR never replaces confirm/edit/manual fallback
+
+Blueprint also requires a no-plate/unreadable fallback using a temporary/manual vehicle descriptor. The exact persistence change needed for plate-less vehicles is **not yet locked** by this document and must be resolved before the Core Check-in schema/task depends on it; do not silently weaken Phase 1 uniqueness constraints inside VAL-002B.
+
+## parking_zones
+
+Blueprint v1.0 introduces first-class parking Zones (garage, VIP, overflow, staging, restricted area).
+
+Exact Phase 1 fields are deferred to the Parking/Maps schema task. Do not add this model inside VAL-002B.
 
 ## parking_spots
 
@@ -279,11 +319,12 @@ Status:
 - ACTIVE
 - INACTIVE
 
-Constraints:
+Constraints/rules:
 
 - location must belong to `organization_id`
 - unique `(location_id, code)`
 - status required, default `ACTIVE`
+- future parking task may relate Spot to ParkingZone and QR identifier
 
 ## key_slots
 
@@ -302,11 +343,12 @@ Status:
 - ACTIVE
 - INACTIVE
 
-Constraints:
+Constraints/rules:
 
 - location must belong to `organization_id`
 - unique `(location_id, code)`
 - status required, default `ACTIVE`
+- MVP key assignment is QR-based, with permitted manual fallback
 
 ## valet_sessions
 
@@ -324,20 +366,20 @@ state
 
 parking_spot_id nullable
 key_slot_id nullable
-retrieval_assignee_membership_id nullable
+current_assignee_membership_id nullable
 
 checked_in_by_membership_id
-released_by_membership_id nullable
+completed_by_membership_id nullable
 
 created_at
-intake_completed_at nullable
+checking_in_completed_at nullable
+parking_started_at nullable
 parked_at nullable
 retrieval_requested_at nullable
-retrieval_assigned_at nullable
 retrieval_started_at nullable
 ready_at nullable
-released_at nullable
-cancelled_at nullable
+handoff_pending_at nullable
+completed_at nullable
 
 version
 updated_at
@@ -349,37 +391,43 @@ Customer-access rules:
 - Never persist the raw bearer token used in the customer URL.
 - Store only a cryptographic hash in `customer_access_token_hash`.
 - `customer_access_token_hash` unique.
-- `customer_access_expires_at` required; exact lifetime is defined by the customer-access implementation phase, not invented in Phase 1.
+- `customer_access_expires_at` required; exact lifetime is defined by the customer-access implementation task.
 - `customer_access_revoked_at` supports explicit revocation.
 - Raw customer access tokens must never be logged or placed in audit metadata.
 
-Constraints/rules:
+Canonical state contract aligned to Blueprint v1.0:
 
-- state is exactly the ValetSession state-machine enum:
-  - INTAKE
-  - PARKING
-  - PARKED
-  - RETRIEVAL_REQUESTED
-  - RETRIEVAL_ASSIGNED
-  - RETRIEVING
-  - READY
-  - RELEASED
-  - CANCELLED
+- CHECKING_IN
+- AWAITING_PARKING
+- PARKING
+- PARKED
+- REQUESTED
+- RETRIEVING
+- READY
+- HANDOFF_PENDING
+- COMPLETED
+
+Rules:
+
 - organization/location/vehicle/customer/membership/parking/key relationships must be tenant-consistent
-- RELEASED requires `released_at`
-- CANCELLED requires `cancelled_at`
+- COMPLETED requires `completed_at`
 - `version` required, defaults to `1`, and must remain >= 1
 - optimistic concurrency increments `version` on contested operational mutation
+- task assignment/reassignment is not a separate ValetSession state; it belongs to Task/Dispatch lifecycle
+- `READY` is the canonical MVP state used for the Blueprint `STAGED/READY` position; staging location is operational location data unless later requirements require a distinct state
+- Incident lifecycle remains separate from ValetSession state
 
-For partial-unique protections, a non-terminal/active ValetSession means exactly:
+For partial-unique protections, an active ValetSession means exactly:
 
 ```text
-state NOT IN (RELEASED, CANCELLED)
+state <> COMPLETED
 ```
 
-Required partial unique protections:
+The exact treatment of abandoned/invalid check-in cancellation must be finalized with the state-machine implementation; do not introduce arbitrary hard-delete behavior.
 
-- one active session for a vehicle at a location: unique `(vehicle_id, location_id)` for active sessions
+Required partial unique protections when these relationships are implemented:
+
+- one active session for a vehicle at a location
 - one active session occupying a given parking spot when `parking_spot_id` is non-null
 - one active session using a given key slot when `key_slot_id` is non-null
 
@@ -398,7 +446,7 @@ captured_at
 created_at
 ```
 
-Capture types:
+Possible capture types:
 
 - FRONT
 - REAR
@@ -412,8 +460,44 @@ Rules:
 - session and capturing membership must belong to `organization_id`
 - `object_key` unique
 - image bytes not stored in PostgreSQL
-- primary four intake photos required unless an authorized exception is recorded
+- photo requirement is driven by configured policy and is OPTIONAL by default in Blueprint v1.0
+- when policy requires evidence, application guards enforce the configured requirement before the relevant command completes
 - photo storage remains private by security policy
+
+## tasks / dispatch events
+
+Blueprint v1.0 adds a separate Hybrid Dispatch lifecycle.
+
+Canonical Task status concepts:
+
+```text
+QUEUED
+ASSIGNED
+ACCEPTED
+IN_PROGRESS
+COMPLETED
+```
+
+Alternative outcomes/events may include `REASSIGNED`, `DECLINED`, `CANCELLED`, `INCIDENT`.
+
+Exact Task/Dispatch persistence is deferred to the focused Operations/Dispatch schema task. Do not add it inside VAL-002B.
+
+## key_custody_events
+
+Blueprint requires assignment/checkout/return actor and timestamp history for keys.
+
+Exact event-table fields are deferred to the focused Key/Operations schema task. Current key slot remains available on ValetSession for fast reads; history must remain append-only/auditable.
+
+## gps_route_events / geofences
+
+Maps/session tracking is approved MVP behavior when configured, but exact persistence is deferred to the Maps task.
+
+Rules to preserve in later schema:
+
+- task-scoped Parking/Retrieval tracking by default
+- not continuous employee tracking for whole Shift
+- Guest cannot access exact coordinates
+- route/geofence retention is configurable/legal-policy dependent
 
 ## retrieval_requests
 
@@ -447,12 +531,15 @@ Constraints/rules:
 - session and optional requester entities must belong to `organization_id`
 - requester fields must be consistent with `requested_by_type`
 - one active retrieval request per session
+- repeated guest presses must return/show the current active request rather than create duplicate active work
 
 For partial-unique protection, an active retrieval request means exactly:
 
 ```text
 status IN (OPEN, ACCEPTED)
 ```
+
+Task assignment state is separate from RetrievalRequest/session physical state.
 
 ## handoff_verifications
 
@@ -472,21 +559,22 @@ override_reason nullable
 created_at
 ```
 
-Methods:
+Methods for MVP:
 
-- OTP
+- PICKUP_CODE
 - DYNAMIC_QR
-- MANAGER_OVERRIDE
+- SUPERVISOR_OVERRIDE
 
 Rules:
 
 - session and optional verifying membership must belong to `organization_id`
-- never persist plaintext OTP or another reusable plaintext verification secret
-- OTP requires `secret_hash` and `expires_at`
-- `attempt_count` required, default `0`, and non-negative
-- `max_attempts` required and greater than zero
-- verification is one-time; consumed verification cannot be reused
-- manager override requires authorized actor + non-empty reason + audit
+- never persist plaintext reusable pickup code/QR secret
+- standard verification secrets expire and are one-time use
+- `attempt_count` required, default `0`, and non-negative when method uses attempts
+- `max_attempts` required/positive where code attempts apply
+- consumed verification cannot be reused
+- supervisor override requires authorized actor + non-empty reason + audit
+- normal Standard policy accepts Dynamic QR OR 4-digit pickup code; stronger policies are later/enterprise configuration
 
 ## payments
 
@@ -518,6 +606,7 @@ Status:
 Rules:
 
 - session must belong to `organization_id`
+- currency should match applicable Location/payment context
 - monetary columns follow the global `numeric(14,3)` convention
 - `tip_amount` default `0`
 - `discount_amount` default `0`
@@ -526,9 +615,11 @@ Rules:
 - `discount_amount >= 0`
 - `discount_amount <= amount`
 - `provider` and `provider_reference` may be null when no external provider transaction exists
-- no raw card data
+- no raw PAN/CVV
 - webhook processing idempotent
 - financial records not hard-deleted
+
+Blueprint MVP also requires cash, Customer Pays/Venue Pays, full/partial validation and tip behavior. Exact normalized Payment/Validation/Tip/CashReconciliation/Refund persistence is deferred to the focused Payments schema task rather than being guessed here.
 
 ## incidents
 
@@ -537,9 +628,9 @@ id
 organization_id
 location_id
 valet_session_id
-type
 status
 severity
+type
 description
 reported_by_membership_id
 created_at
@@ -548,14 +639,16 @@ resolved_by_membership_id nullable
 resolution_notes nullable
 ```
 
-Type:
+Representative Blueprint type categories:
 
-- DAMAGE
+- VEHICLE_DAMAGE
 - KEY
-- VEHICLE_LOCATION
-- DELAY
-- HANDOFF
-- PAYMENT
+- UNAUTHORIZED_ZONE_EXIT
+- WRONG_VEHICLE_HANDOFF_ATTEMPT
+- PAYMENT_DISPUTE
+- CUSTOMER_COMPLAINT
+- EMPLOYEE_SAFETY
+- SYSTEM_CONNECTION
 - OTHER
 
 Status:
@@ -576,6 +669,8 @@ Rules:
 
 - location, session and memberships must belong to `organization_id`
 - status, type and severity required
+- corrections/evidence additions do not rewrite original audit facts
+- full ClaimShield packaging remains V2
 
 ## notifications
 
@@ -612,8 +707,9 @@ Rules:
 - SENT requires `sent_at`
 - FAILED requires `failed_at`
 - notification callbacks must be retry-safe/idempotent when implemented
+- first-market primary messaging channel depends on provider availability/contract; do not hard-code product logic to one provider
 
-## audit_events
+## audit_events / Black Box
 
 ```text
 id
@@ -636,12 +732,37 @@ Rules:
 - append-only
 - no normal update/delete API
 - no cascade delete from operational records into audit history
-- do not put secrets, raw guest tokens, OTPs or unnecessary PII into metadata
-- created in same DB transaction as protected domain mutation
+- corrections append new events instead of replacing originals
+- do not put secrets, raw guest tokens, pickup codes/OTP values or unnecessary PII into metadata
+- created in same DB transaction as protected domain mutation where applicable
+
+Representative Blueprint event names include:
+
+- vehicle.created
+- plate.scanned
+- customer.link_sent
+- condition.recorded
+- photo.added
+- key.assigned
+- task.assigned / task.reassigned
+- parking.started
+- geofence.entered / geofence.exited
+- vehicle.parked
+- retrieval.requested / retrieval.started
+- key.checked_out
+- vehicle.ready
+- payment.completed
+- validation.applied
+- handoff.verified
+- vehicle.released / session.completed
+- incident.opened / incident.evidence_locked
+- override.used
+
+Exact naming convention is finalized in the Audit implementation task; semantics above must be preserved.
 
 ## Required indexes
 
-At minimum:
+At minimum as corresponding entities are implemented:
 
 - `valet_sessions(location_id, state)`
 - `valet_sessions(vehicle_id, created_at desc)`
@@ -652,14 +773,16 @@ At minimum:
 - `shifts(location_id, status)`
 - `incidents(location_id, status)`
 
+Task/Dispatch, key custody and route/geofence indexes are defined with their focused schema tasks.
+
 ## Required partial unique protections
 
 Implement with reviewed SQL migrations where Prisma cannot express them cleanly:
 
 - one ACTIVE shift per membership: `shifts(membership_id)` where `status = ACTIVE`
-- one active ValetSession per `(vehicle_id, location_id)` where state is not RELEASED/CANCELLED
-- one active ValetSession per non-null `parking_spot_id` where state is not RELEASED/CANCELLED
-- one active ValetSession per non-null `key_slot_id` where state is not RELEASED/CANCELLED
+- one active ValetSession per `(vehicle_id, location_id)` according to the canonical active-session contract
+- one active ValetSession per non-null `parking_spot_id` where applicable
+- one active ValetSession per non-null `key_slot_id` where applicable
 - one active retrieval request per `valet_session_id` where status is OPEN/ACCEPTED
 
 ## Deletion policy
@@ -668,18 +791,19 @@ Do not cascade-delete operational history.
 
 Prefer disable/archive/inactivate for configuration and people records.
 
-Retention duration remains a legal/business decision.
+Retention duration remains a legal/business/configuration decision and may vary by customer/country.
 
 ## Atomic transaction rules
 
-Must be atomic:
+Must be atomic where applicable:
 
-- state transition + audit event
+- protected state transition + audit event
 - parking assignment + audit
-- key assignment/movement + audit
-- retrieval acceptance + assignee/state/audit
-- handoff verification + release + audit
-- manager override + reason + audit
+- key assignment/movement + custody/audit event
+- task assignment/reassignment/acceptance + dispatch/audit event
+- handoff verification + completion + audit
+- supervisor override + reason + audit
+- protected financial mutation + financial/audit event
 
 ## Idempotency
 
@@ -689,19 +813,29 @@ Design retry safety for:
 - payment webhook
 - notification callbacks
 - handoff action
-- future offline synchronization
+- offline/reconnect synchronization
+- task accept/reassign operations where duplicate submission is possible
 
-## Explicit Phase 1 deferrals
+## Explicit current deferrals
 
-Do not introduce speculative schema solely for future possibilities.
+Do not introduce speculative schema solely because Blueprint v1.0 mentions a future capability.
 
-Phase 1 intentionally does not define:
+Current schema details intentionally not locked by this document include:
 
-- generic Location settings/policy JSON
+- exact Venue Client identity/access persistence
+- exact VAYLET Super Admin persistence
+- generic Configuration First storage model; typed config comes with focused feature tasks
+- exact OCR/ANPR provider payloads
+- exact map provider payloads
+- exact map/geofence/route storage
+- exact Task/Dispatch schema
+- exact KeyCustodyEvent schema
+- exact Customer no-plate temporary-vehicle representation
+- exact Payment/Validation/Tip/CashReconciliation/Refund normalized schema
 - country-specific plate-normalization algorithms
 - customer-access token lifetime duration
-- legal retention durations
+- legal retention durations/data residency
 - payment-provider-specific payloads
-- offline synchronization tables beyond the stable identifiers/versioning foundations already required
+- full offline synchronization queue/storage design beyond stable IDs/idempotency/version foundations
 
-Add these later only when the approved implementation phase has a concrete requirement.
+Add these only through their approved focused task/decision.
