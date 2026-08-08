@@ -43,6 +43,26 @@ interface KeySlotValues {
   status?: string;
 }
 
+interface ValetSessionFixture extends TenantFixture {
+  checkedInByMembershipId: string;
+  vehicleId: string;
+}
+
+interface ValetSessionValues {
+  completedAt?: Date | null;
+  completedByMembershipId?: string | null;
+  currentAssigneeMembershipId?: string | null;
+  customerAccessExpiresAt?: Date;
+  customerAccessRevokedAt?: Date | null;
+  customerAccessTokenHash?: string;
+  customerId?: string | null;
+  keySlotId?: string | null;
+  organizationId?: string;
+  parkingSpotId?: string | null;
+  state?: string;
+  version?: number;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
@@ -278,6 +298,89 @@ async function createStaff(organizationId: string): Promise<StaffFixture> {
   const userId = await createUser();
   const membershipId = await createMembership(organizationId, userId);
   return { membershipId, userId };
+}
+
+async function createValetSessionFixture(
+  tenant?: TenantFixture,
+): Promise<ValetSessionFixture> {
+  const resolvedTenant = tenant ?? (await createTenant());
+  const vehicleId = await createVehicle(resolvedTenant.organizationId);
+  const { membershipId: checkedInByMembershipId } = await createStaff(
+    resolvedTenant.organizationId,
+  );
+  return { ...resolvedTenant, checkedInByMembershipId, vehicleId };
+}
+
+async function createValetSession(
+  fixture: ValetSessionFixture,
+  values: ValetSessionValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  const organizationId = values.organizationId ?? fixture.organizationId;
+  const customerAccessTokenHash =
+    values.customerAccessTokenHash ??
+    `sha256:${randomUUID().replaceAll("-", "")}`;
+  const customerAccessExpiresAt =
+    values.customerAccessExpiresAt ?? new Date(Date.now() + 60 * 60 * 1_000);
+  const customerAccessRevokedAt = values.customerAccessRevokedAt ?? null;
+  const state = values.state ?? "CHECKING_IN";
+  const customerId = values.customerId ?? null;
+  const parkingSpotId = values.parkingSpotId ?? null;
+  const keySlotId = values.keySlotId ?? null;
+  const currentAssigneeMembershipId =
+    values.currentAssigneeMembershipId ?? null;
+  const completedByMembershipId = values.completedByMembershipId ?? null;
+  const completedAt = values.completedAt ?? null;
+
+  const columns = [
+    "id",
+    "customer_access_token_hash",
+    "customer_access_expires_at",
+    "customer_access_revoked_at",
+    "organization_id",
+    "location_id",
+    "vehicle_id",
+    "customer_id",
+    "state",
+    "parking_spot_id",
+    "key_slot_id",
+    "current_assignee_membership_id",
+    "checked_in_by_membership_id",
+    "completed_by_membership_id",
+    "completed_at",
+    "updated_at",
+  ];
+  const parameters: unknown[] = [
+    id,
+    customerAccessTokenHash,
+    customerAccessExpiresAt,
+    customerAccessRevokedAt,
+    organizationId,
+    fixture.locationId,
+    fixture.vehicleId,
+    customerId,
+    state,
+    parkingSpotId,
+    keySlotId,
+    currentAssigneeMembershipId,
+    fixture.checkedInByMembershipId,
+    completedByMembershipId,
+    completedAt,
+    new Date(),
+  ];
+
+  if (values.version !== undefined) {
+    columns.push("version");
+    parameters.push(values.version);
+  }
+
+  const placeholders = parameters.map((_, index) => `$${index + 1}`);
+  await databaseClient.query(
+    `INSERT INTO valet_sessions (${columns.join(", ")})
+     VALUES (${placeholders.join(", ")})`,
+    parameters,
+  );
+  return id;
 }
 
 async function insertShift(
@@ -1180,5 +1283,507 @@ describe("key slot database foundation", () => {
       ]),
       "23503",
     );
+  });
+});
+
+describe("valet session database foundation", () => {
+  const documentedStates = [
+    "CHECKING_IN",
+    "AWAITING_PARKING",
+    "PARKING",
+    "PARKED",
+    "REQUESTED",
+    "RETRIEVING",
+    "READY",
+    "HANDOFF_PENDING",
+    "COMPLETED",
+  ];
+
+  it("accepts a valid minimal CHECKING_IN session", async () => {
+    const fixture = await createValetSessionFixture();
+    const sessionId = await createValetSession(fixture);
+
+    const result = await databaseClient.query<{
+      customer_access_token_hash: string;
+      state: string;
+    }>(
+      `SELECT customer_access_token_hash, state::text AS state
+       FROM valet_sessions WHERE id = $1`,
+      [sessionId],
+    );
+    expect(result.rows[0]).toEqual({
+      customer_access_token_hash: expect.stringMatching(/^sha256:[a-f0-9]+$/),
+      state: "CHECKING_IN",
+    });
+  });
+
+  it("accepts all nine documented ValetSession states", async () => {
+    for (const state of documentedStates) {
+      const fixture = await createValetSessionFixture();
+      await expect(
+        createValetSession(fixture, {
+          completedAt: state === "COMPLETED" ? new Date() : null,
+          state,
+        }),
+      ).resolves.toBeTypeOf("string");
+    }
+  });
+
+  it("rejects an undocumented ValetSession state", async () => {
+    const fixture = await createValetSessionFixture();
+
+    await expectPostgresError(
+      createValetSession(fixture, { state: "UNSUPPORTED" }),
+      "22P02",
+    );
+  });
+
+  it("allows all documented nullable relationship fields", async () => {
+    const fixture = await createValetSessionFixture();
+    const sessionId = await createValetSession(fixture);
+
+    const result = await databaseClient.query<{
+      completed_by_membership_id: string | null;
+      current_assignee_membership_id: string | null;
+      customer_id: string | null;
+      key_slot_id: string | null;
+      parking_spot_id: string | null;
+    }>(
+      `SELECT customer_id, parking_spot_id, key_slot_id,
+              current_assignee_membership_id, completed_by_membership_id
+       FROM valet_sessions WHERE id = $1`,
+      [sessionId],
+    );
+    expect(result.rows[0]).toEqual({
+      completed_by_membership_id: null,
+      current_assignee_membership_id: null,
+      customer_id: null,
+      key_slot_id: null,
+      parking_spot_id: null,
+    });
+  });
+
+  it("rejects a duplicate customer access token hash", async () => {
+    const tokenHash = `sha256:${randomUUID().replaceAll("-", "")}`;
+    await createValetSession(await createValetSessionFixture(), {
+      customerAccessTokenHash: tokenHash,
+    });
+
+    await expectPostgresError(
+      createValetSession(await createValetSessionFixture(), {
+        customerAccessTokenHash: tokenHash,
+      }),
+      "23505",
+      "valet_sessions_customer_access_token_hash_key",
+    );
+  });
+
+  it("requires customer access expiration", async () => {
+    const fixture = await createValetSessionFixture();
+
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO valet_sessions (
+           id, customer_access_token_hash, organization_id, location_id,
+           vehicle_id, state, checked_in_by_membership_id, updated_at
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)`,
+        [
+          randomUUID(),
+          `sha256:${randomUUID().replaceAll("-", "")}`,
+          fixture.organizationId,
+          fixture.locationId,
+          fixture.vehicleId,
+          "CHECKING_IN",
+          fixture.checkedInByMembershipId,
+        ],
+      ),
+      "customer_access_expires_at",
+    );
+  });
+
+  it("requires an explicit state without a database default", async () => {
+    const fixture = await createValetSessionFixture();
+
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO valet_sessions (
+           id, customer_access_token_hash, customer_access_expires_at,
+           organization_id, location_id, vehicle_id,
+           checked_in_by_membership_id, updated_at
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)`,
+        [
+          randomUUID(),
+          `sha256:${randomUUID().replaceAll("-", "")}`,
+          new Date(Date.now() + 60 * 60 * 1_000),
+          fixture.organizationId,
+          fixture.locationId,
+          fixture.vehicleId,
+          fixture.checkedInByMembershipId,
+        ],
+      ),
+      "state",
+    );
+  });
+
+  it("defaults version to 1", async () => {
+    const sessionId = await createValetSession(
+      await createValetSessionFixture(),
+    );
+
+    const result = await databaseClient.query<{ version: number }>(
+      "SELECT version FROM valet_sessions WHERE id = $1",
+      [sessionId],
+    );
+    expect(result.rows[0]?.version).toBe(1);
+  });
+
+  it("rejects version values below 1", async () => {
+    await expectPostgresError(
+      createValetSession(await createValetSessionFixture(), { version: 0 }),
+      "23514",
+      "valet_sessions_version_check",
+    );
+  });
+
+  it("rejects COMPLETED without completed_at", async () => {
+    await expectPostgresError(
+      createValetSession(await createValetSessionFixture(), {
+        state: "COMPLETED",
+      }),
+      "23514",
+      "valet_sessions_completed_at_check",
+    );
+  });
+
+  it("accepts COMPLETED with completed_at", async () => {
+    await expect(
+      createValetSession(await createValetSessionFixture(), {
+        completedAt: new Date(),
+        state: "COMPLETED",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects an unknown Organization", async () => {
+    const fixture = await createValetSessionFixture();
+
+    await expectPostgresError(
+      createValetSession(fixture, { organizationId: randomUUID() }),
+      "23503",
+    );
+  });
+
+  it("rejects a Location from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+
+    await expectPostgresError(
+      createValetSession({ ...fixture, locationId: otherTenant.locationId }),
+      "23503",
+      "valet_sessions_org_location_id_fkey",
+    );
+  });
+
+  it("rejects a Vehicle from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+    const otherVehicleId = await createVehicle(otherTenant.organizationId);
+
+    await expectPostgresError(
+      createValetSession({ ...fixture, vehicleId: otherVehicleId }),
+      "23503",
+      "valet_sessions_org_vehicle_id_fkey",
+    );
+  });
+
+  it("rejects a Customer from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+    const otherCustomerId = await createCustomer(otherTenant.organizationId);
+
+    await expectPostgresError(
+      createValetSession(fixture, { customerId: otherCustomerId }),
+      "23503",
+      "valet_sessions_org_customer_id_fkey",
+    );
+  });
+
+  it("rejects checked-in-by membership from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+    const otherStaff = await createStaff(otherTenant.organizationId);
+
+    await expectPostgresError(
+      createValetSession({
+        ...fixture,
+        checkedInByMembershipId: otherStaff.membershipId,
+      }),
+      "23503",
+      "valet_sessions_org_checked_in_by_id_fkey",
+    );
+  });
+
+  it("rejects current-assignee membership from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+    const otherStaff = await createStaff(otherTenant.organizationId);
+
+    await expectPostgresError(
+      createValetSession(fixture, {
+        currentAssigneeMembershipId: otherStaff.membershipId,
+      }),
+      "23503",
+      "valet_sessions_org_current_assignee_id_fkey",
+    );
+  });
+
+  it("rejects completed-by membership from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+    const otherStaff = await createStaff(otherTenant.organizationId);
+
+    await expectPostgresError(
+      createValetSession(fixture, {
+        completedByMembershipId: otherStaff.membershipId,
+      }),
+      "23503",
+      "valet_sessions_org_completed_by_id_fkey",
+    );
+  });
+
+  it("rejects a ParkingSpot from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+    const otherParkingSpotId = await createParkingSpot(otherTenant);
+
+    await expectPostgresError(
+      createValetSession(fixture, { parkingSpotId: otherParkingSpotId }),
+      "23503",
+      "valet_sessions_org_location_parking_spot_id_fkey",
+    );
+  });
+
+  it("rejects a ParkingSpot from another Location in the same Organization", async () => {
+    const tenant = await createTenant();
+    const fixture = await createValetSessionFixture(tenant);
+    const otherLocationId = await createLocation(tenant.organizationId);
+    const otherParkingSpotId = await createParkingSpot({
+      locationId: otherLocationId,
+      organizationId: tenant.organizationId,
+    });
+
+    await expectPostgresError(
+      createValetSession(fixture, { parkingSpotId: otherParkingSpotId }),
+      "23503",
+      "valet_sessions_org_location_parking_spot_id_fkey",
+    );
+  });
+
+  it("rejects a KeySlot from another Organization", async () => {
+    const fixture = await createValetSessionFixture();
+    const otherTenant = await createTenant();
+    const otherKeySlotId = await createKeySlot(otherTenant);
+
+    await expectPostgresError(
+      createValetSession(fixture, { keySlotId: otherKeySlotId }),
+      "23503",
+      "valet_sessions_org_location_key_slot_id_fkey",
+    );
+  });
+
+  it("rejects a KeySlot from another Location in the same Organization", async () => {
+    const tenant = await createTenant();
+    const fixture = await createValetSessionFixture(tenant);
+    const otherLocationId = await createLocation(tenant.organizationId);
+    const otherKeySlotId = await createKeySlot({
+      locationId: otherLocationId,
+      organizationId: tenant.organizationId,
+    });
+
+    await expectPostgresError(
+      createValetSession(fixture, { keySlotId: otherKeySlotId }),
+      "23503",
+      "valet_sessions_org_location_key_slot_id_fkey",
+    );
+  });
+
+  it("restricts deletion of every referenced operational resource", async () => {
+    const tenant = await createTenant();
+    const fixture = await createValetSessionFixture(tenant);
+    const customerId = await createCustomer(tenant.organizationId);
+    const parkingSpotId = await createParkingSpot(tenant);
+    const keySlotId = await createKeySlot(tenant);
+    const currentAssignee = await createStaff(tenant.organizationId);
+    const completedBy = await createStaff(tenant.organizationId);
+    await createValetSession(fixture, {
+      completedByMembershipId: completedBy.membershipId,
+      currentAssigneeMembershipId: currentAssignee.membershipId,
+      customerId,
+      keySlotId,
+      parkingSpotId,
+    });
+
+    const deletions: Array<[string, string, string?]> = [
+      [
+        "DELETE FROM vehicles WHERE id = $1",
+        fixture.vehicleId,
+        "valet_sessions_org_vehicle_id_fkey",
+      ],
+      [
+        "DELETE FROM customers WHERE id = $1",
+        customerId,
+        "valet_sessions_org_customer_id_fkey",
+      ],
+      [
+        "DELETE FROM organization_memberships WHERE id = $1",
+        fixture.checkedInByMembershipId,
+        "valet_sessions_org_checked_in_by_id_fkey",
+      ],
+      [
+        "DELETE FROM organization_memberships WHERE id = $1",
+        currentAssignee.membershipId,
+        "valet_sessions_org_current_assignee_id_fkey",
+      ],
+      [
+        "DELETE FROM organization_memberships WHERE id = $1",
+        completedBy.membershipId,
+        "valet_sessions_org_completed_by_id_fkey",
+      ],
+      [
+        "DELETE FROM parking_spots WHERE id = $1",
+        parkingSpotId,
+        "valet_sessions_org_location_parking_spot_id_fkey",
+      ],
+      [
+        "DELETE FROM key_slots WHERE id = $1",
+        keySlotId,
+        "valet_sessions_org_location_key_slot_id_fkey",
+      ],
+    ];
+
+    for (const [query, id, constraint] of deletions) {
+      await expectPostgresError(
+        databaseClient.query(query, [id]),
+        "23503",
+        constraint,
+      );
+    }
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM locations WHERE id = $1", [
+        tenant.locationId,
+      ]),
+      "23503",
+    );
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        tenant.organizationId,
+      ]),
+      "23503",
+    );
+  });
+
+  it("rejects a second active session for the same Location and Vehicle", async () => {
+    const fixture = await createValetSessionFixture();
+    await createValetSession(fixture, { state: "PARKED" });
+
+    await expectPostgresError(
+      createValetSession(fixture, { state: "REQUESTED" }),
+      "23505",
+      "valet_sessions_active_location_vehicle_key",
+    );
+  });
+
+  it("allows one Vehicle to have active sessions at different Locations", async () => {
+    const tenant = await createTenant();
+    const fixture = await createValetSessionFixture(tenant);
+    const otherLocationId = await createLocation(tenant.organizationId);
+    await createValetSession(fixture, { state: "PARKED" });
+
+    await expect(
+      createValetSession(
+        { ...fixture, locationId: otherLocationId },
+        { state: "REQUESTED" },
+      ),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("allows a later active session after completion for the same Location and Vehicle", async () => {
+    const fixture = await createValetSessionFixture();
+    await createValetSession(fixture, {
+      completedAt: new Date(),
+      state: "COMPLETED",
+    });
+
+    await expect(createValetSession(fixture)).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects a second active session using the same ParkingSpot", async () => {
+    const tenant = await createTenant();
+    const parkingSpotId = await createParkingSpot(tenant);
+    await createValetSession(await createValetSessionFixture(tenant), {
+      parkingSpotId,
+      state: "PARKED",
+    });
+
+    await expectPostgresError(
+      createValetSession(await createValetSessionFixture(tenant), {
+        parkingSpotId,
+        state: "PARKING",
+      }),
+      "23505",
+      "valet_sessions_active_parking_spot_id_key",
+    );
+  });
+
+  it("does not reserve ParkingSpot occupancy after completion", async () => {
+    const tenant = await createTenant();
+    const parkingSpotId = await createParkingSpot(tenant);
+    await createValetSession(await createValetSessionFixture(tenant), {
+      completedAt: new Date(),
+      parkingSpotId,
+      state: "COMPLETED",
+    });
+
+    await expect(
+      createValetSession(await createValetSessionFixture(tenant), {
+        parkingSpotId,
+        state: "PARKING",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects a second active session using the same KeySlot", async () => {
+    const tenant = await createTenant();
+    const keySlotId = await createKeySlot(tenant);
+    await createValetSession(await createValetSessionFixture(tenant), {
+      keySlotId,
+      state: "PARKED",
+    });
+
+    await expectPostgresError(
+      createValetSession(await createValetSessionFixture(tenant), {
+        keySlotId,
+        state: "RETRIEVING",
+      }),
+      "23505",
+      "valet_sessions_active_key_slot_id_key",
+    );
+  });
+
+  it("does not reserve KeySlot occupancy after completion", async () => {
+    const tenant = await createTenant();
+    const keySlotId = await createKeySlot(tenant);
+    await createValetSession(await createValetSessionFixture(tenant), {
+      completedAt: new Date(),
+      keySlotId,
+      state: "COMPLETED",
+    });
+
+    await expect(
+      createValetSession(await createValetSessionFixture(tenant), {
+        keySlotId,
+        state: "CHECKING_IN",
+      }),
+    ).resolves.toBeTypeOf("string");
   });
 });
