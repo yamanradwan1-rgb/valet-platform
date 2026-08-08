@@ -301,5 +301,8 @@ model ValetSession {
   checkedInBy     OrganizationMembership  @relation("ValetSessionCheckedInBy", fields: [organizationId, checkedInByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_checked_in_by_id_fkey")
   completedBy     OrganizationMembership? @relation("ValetSessionCompletedBy", fields: [organizationId, completedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_completed_by_id_fkey")
 
+  @@index([locationId, state], map: "valet_sessions_location_id_state_idx")
+  @@index([vehicleId, createdAt(sort: Desc)], map: "valet_sessions_vehicle_id_created_at_idx")
+  @@index([locationId, retrievalRequestedAt], map: "valet_sessions_location_id_retrieval_requested_at_idx")
   @@map("valet_sessions")
 }
