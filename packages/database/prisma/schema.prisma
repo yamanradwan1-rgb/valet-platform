@@ -50,6 +50,20 @@ enum ShiftStatus {
   @@map("shift_status")
 }
 
+enum ParkingSpotStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("parking_spot_status")
+}
+
+enum KeySlotStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("key_slot_status")
+}
+
 model Organization {
   id        String             @id @default(uuid()) @db.Uuid
   name      String
@@ -64,6 +78,8 @@ model Organization {
   shifts                   Shift[]
   customers                Customer[]
   vehicles                 Vehicle[]
+  parkingSpots             ParkingSpot[]
+  keySlots                 KeySlot[]
 
   @@map("organizations")
 }
@@ -83,6 +99,8 @@ model Location {
   organization             Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   membershipLocationAccess MembershipLocationAccess[]
   shifts                   Shift[]
+  parkingSpots             ParkingSpot[]
+  keySlots                 KeySlot[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
@@ -184,4 +202,37 @@ model Vehicle {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
 
   @@map("vehicles")
+}
+
+model ParkingSpot {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @map("organization_id") @db.Uuid
+  locationId     String            @map("location_id") @db.Uuid
+  code           String
+  label          String
+  status         ParkingSpotStatus @default(ACTIVE)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+
+  @@unique([locationId, code], map: "parking_spots_location_id_code_key")
+  @@map("parking_spots")
+}
+
+model KeySlot {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  locationId     String        @map("location_id") @db.Uuid
+  code           String
+  status         KeySlotStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+
+  @@unique([locationId, code], map: "key_slots_location_id_code_key")
+  @@map("key_slots")
 }
