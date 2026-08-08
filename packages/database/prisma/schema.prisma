@@ -1,15 +1,154 @@
-// Valet Platform Prisma schema
-//
-// IMPORTANT:
-// Do not add domain models ad hoc.
-// Phase 1 must translate docs/03_DATABASE_SCHEMA.md into this file,
-// then generate a migration and database integrity tests.
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("organization_status")
+}
+
+enum LocationStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("location_status")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+
+  @@map("user_status")
+}
+
+enum MembershipRole {
+  ORG_ADMIN
+  LOCATION_MANAGER
+  VALET_SUPERVISOR
+  VALET_EMPLOYEE
+
+  @@map("membership_role")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("membership_status")
+}
+
+enum ShiftStatus {
+  ACTIVE
+  ENDED
+
+  @@map("shift_status")
+}
+
+model Organization {
+  id        String             @id @default(uuid()) @db.Uuid
+  name      String
+  status    OrganizationStatus @default(ACTIVE)
+  timezone  String
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  locations                Location[]
+  memberships              OrganizationMembership[]
+  membershipLocationAccess MembershipLocationAccess[]
+  shifts                   Shift[]
+
+  @@map("organizations")
+}
+
+model Location {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  name           String
+  code           String
+  addressText    String         @map("address_text")
+  timezone       String
+  currency       String
+  status         LocationStatus @default(ACTIVE)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization             Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  membershipLocationAccess MembershipLocationAccess[]
+  shifts                   Shift[]
+
+  @@unique([organizationId, code], map: "locations_organization_id_code_key")
+  @@unique([organizationId, id], map: "locations_organization_id_id_key")
+  @@map("locations")
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique(map: "users_email_key")
+  phone        String?
+  passwordHash String     @map("password_hash")
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(3)
+
+  memberships OrganizationMembership[]
+
+  @@map("users")
+}
+
+model OrganizationMembership {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  role           MembershipRole
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization             Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  user                     User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  membershipLocationAccess MembershipLocationAccess[]
+  shifts                   Shift[]
+
+  @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
+  @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
+  @@map("organization_memberships")
+}
+
+model MembershipLocationAccess {
+  organizationId String   @map("organization_id") @db.Uuid
+  membershipId   String   @map("membership_id") @db.Uuid
+  locationId     String   @map("location_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  membership   OrganizationMembership @relation(fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict)
+  location     Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+
+  @@id([membershipId, locationId], map: "membership_location_access_pkey")
+  @@map("membership_location_access")
+}
+
+model Shift {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @map("organization_id") @db.Uuid
+  locationId     String      @map("location_id") @db.Uuid
+  membershipId   String      @map("membership_id") @db.Uuid
+  status         ShiftStatus @default(ACTIVE)
+  startedAt      DateTime    @map("started_at") @db.Timestamptz(3)
+  endedAt        DateTime?   @map("ended_at") @db.Timestamptz(3)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location     Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+  membership   OrganizationMembership @relation(fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict)
+
+  @@index([locationId, status], map: "shifts_location_id_status_idx")
+  @@map("shifts")
 }

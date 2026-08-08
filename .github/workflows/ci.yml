@@ -20,6 +20,24 @@ jobs:
     name: quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+      TEST_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: valet
+          POSTGRES_PASSWORD: valet
+          POSTGRES_DB: valet
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U valet -d valet"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout
