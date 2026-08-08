@@ -95,11 +95,33 @@ interface RetrievalRequestValues {
   status?: string;
 }
 
+interface HandoffVerificationFixture {
+  organizationId: string;
+  valetSessionId: string;
+}
+
+interface HandoffVerificationTestFixture extends HandoffVerificationFixture {
+  membershipId: string;
+}
+
+interface HandoffVerificationValues {
+  attemptCount?: number;
+  consumedAt?: Date | null;
+  expiresAt?: Date | null;
+  maxAttempts: number;
+  method: string;
+  organizationId?: string;
+  overrideReason?: string | null;
+  secretHash?: string | null;
+  verifiedAt?: Date | null;
+  verifiedByMembershipId?: string | null;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
-const testDatabaseName = `valet_003g_${process.pid}_${Date.now()}`;
+const testDatabaseName = `valet_003h_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations", import.meta.url),
 );
@@ -112,6 +134,7 @@ const expectedMigrationDirectories = [
   "20260808000600_restore_valet_session_query_indexes",
   "20260808000700_audit_event_foundation",
   "20260808000800_retrieval_request_foundation",
+  "20260808000900_handoff_verification_foundation",
 ];
 
 let databaseCreated = false;
@@ -496,6 +519,64 @@ async function createRetrievalRequestTestFixture(): Promise<RetrievalRequestTest
   };
 }
 
+async function createHandoffVerification(
+  fixture: HandoffVerificationFixture,
+  values: HandoffVerificationValues,
+): Promise<string> {
+  const id = randomUUID();
+  const columns = [
+    "id",
+    "organization_id",
+    "valet_session_id",
+    "method",
+    "secret_hash",
+    "expires_at",
+    "max_attempts",
+    "verified_at",
+    "verified_by_membership_id",
+    "consumed_at",
+    "override_reason",
+  ];
+  const parameters: unknown[] = [
+    id,
+    values.organizationId ?? fixture.organizationId,
+    fixture.valetSessionId,
+    values.method,
+    values.secretHash ?? null,
+    values.expiresAt ?? null,
+    values.maxAttempts,
+    values.verifiedAt ?? null,
+    values.verifiedByMembershipId ?? null,
+    values.consumedAt ?? null,
+    values.overrideReason ?? null,
+  ];
+
+  if (values.attemptCount !== undefined) {
+    columns.push("attempt_count");
+    parameters.push(values.attemptCount);
+  }
+
+  const placeholders = parameters.map((_, index) => `$${index + 1}`);
+  await databaseClient.query(
+    `INSERT INTO handoff_verifications (${columns.join(", ")})
+     VALUES (${placeholders.join(", ")})`,
+    parameters,
+  );
+  return id;
+}
+
+async function createHandoffVerificationTestFixture(): Promise<HandoffVerificationTestFixture> {
+  const tenant = await createTenant();
+  const valetSessionFixture = await createValetSessionFixture(tenant);
+  const valetSessionId = await createValetSession(valetSessionFixture);
+  const { membershipId } = await createStaff(tenant.organizationId);
+  return {
+    membershipId,
+    organizationId: tenant.organizationId,
+    valetSessionId,
+  };
+}
+
 async function insertShift(
   tenant: TenantFixture,
   membershipId: string,
@@ -529,7 +610,7 @@ async function insertShift(
 }
 
 beforeAll(async () => {
-  expect(testDatabaseName).toMatch(/^valet_003g_\d+_\d+$/);
+  expect(testDatabaseName).toMatch(/^valet_003h_\d+_\d+$/);
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl });
   await adminClient.connect();
@@ -2183,8 +2264,10 @@ describe("audit event database foundation", () => {
 });
 
 describe("retrieval request database foundation", () => {
-  it("applies exactly all eight forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+  it("keeps the first eight forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories.slice(0, 8)).toEqual(
+      expectedMigrationDirectories.slice(0, 8),
+    );
   });
 
   it("accepts a valid CUSTOMER request", async () => {
@@ -2700,5 +2783,505 @@ describe("retrieval request database foundation", () => {
       [requestId],
     );
     expect(result.rows[0]?.created_at).toBeInstanceOf(Date);
+  });
+});
+
+describe("handoff verification database foundation", () => {
+  it("applies exactly all nine forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+  });
+
+  it("accepts a valid PICKUP_CODE verification", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1_000);
+    const verificationId = await createHandoffVerification(fixture, {
+      expiresAt,
+      maxAttempts: 5,
+      method: "PICKUP_CODE",
+      secretHash: `sha256:${randomUUID().replaceAll("-", "")}`,
+    });
+
+    const result = await databaseClient.query<{
+      attempt_count: number;
+      created_at: Date;
+      expires_at: Date;
+      max_attempts: number;
+      method: string;
+      secret_hash: string;
+    }>(
+      `SELECT method::text AS method, secret_hash, expires_at,
+              attempt_count, max_attempts, created_at
+       FROM handoff_verifications WHERE id = $1`,
+      [verificationId],
+    );
+    expect(result.rows[0]).toEqual({
+      attempt_count: 0,
+      created_at: expect.any(Date),
+      expires_at: expiresAt,
+      max_attempts: 5,
+      method: "PICKUP_CODE",
+      secret_hash: expect.stringMatching(/^sha256:[a-f0-9]+$/),
+    });
+  });
+
+  it("accepts a valid DYNAMIC_QR verification", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    const verificationId = await createHandoffVerification(fixture, {
+      expiresAt: new Date(Date.now() + 10 * 60 * 1_000),
+      maxAttempts: 0,
+      method: "DYNAMIC_QR",
+      secretHash: `sha256:${randomUUID().replaceAll("-", "")}`,
+    });
+
+    const result = await databaseClient.query<{
+      expires_at: Date;
+      method: string;
+      secret_hash: string;
+    }>(
+      `SELECT method::text AS method, secret_hash, expires_at
+       FROM handoff_verifications WHERE id = $1`,
+      [verificationId],
+    );
+    expect(result.rows[0]).toEqual({
+      expires_at: expect.any(Date),
+      method: "DYNAMIC_QR",
+      secret_hash: expect.stringMatching(/^sha256:[a-f0-9]+$/),
+    });
+  });
+
+  it("accepts a valid SUPERVISOR_OVERRIDE with a same-tenant membership and reason", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    const verificationId = await createHandoffVerification(fixture, {
+      maxAttempts: 0,
+      method: "SUPERVISOR_OVERRIDE",
+      overrideReason: "Customer identity confirmed",
+      verifiedByMembershipId: fixture.membershipId,
+    });
+
+    const result = await databaseClient.query<{
+      method: string;
+      override_reason: string;
+      verified_by_membership_id: string;
+    }>(
+      `SELECT method::text AS method, override_reason,
+              verified_by_membership_id
+       FROM handoff_verifications WHERE id = $1`,
+      [verificationId],
+    );
+    expect(result.rows[0]).toEqual({
+      method: "SUPERVISOR_OVERRIDE",
+      override_reason: "Customer identity confirmed",
+      verified_by_membership_id: fixture.membershipId,
+    });
+  });
+
+  it("defines exactly the documented PostgreSQL handoff method enum", async () => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT e.enumlabel
+       FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = 'handoff_verification_method'
+       ORDER BY e.enumsortorder`,
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual([
+      "PICKUP_CODE",
+      "DYNAMIC_QR",
+      "SUPERVISOR_OVERRIDE",
+    ]);
+  });
+
+  it("rejects an unknown Organization", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        expiresAt: new Date(),
+        maxAttempts: 0,
+        method: "DYNAMIC_QR",
+        organizationId: randomUUID(),
+        secretHash: "sha256:unknown-organization",
+      }),
+      "23503",
+    );
+  });
+
+  it("rejects a ValetSession from another Organization", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    const otherFixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(
+        {
+          organizationId: fixture.organizationId,
+          valetSessionId: otherFixture.valetSessionId,
+        },
+        {
+          expiresAt: new Date(),
+          maxAttempts: 0,
+          method: "DYNAMIC_QR",
+          secretHash: "sha256:cross-tenant-session",
+        },
+      ),
+      "23503",
+      "handoff_verifications_org_valet_session_id_fkey",
+    );
+  });
+
+  it("rejects a verifying membership from another Organization", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    const otherFixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        maxAttempts: 0,
+        method: "SUPERVISOR_OVERRIDE",
+        overrideReason: "Cross-tenant actor must fail",
+        verifiedByMembershipId: otherFixture.membershipId,
+      }),
+      "23503",
+      "handoff_verifications_org_verified_by_membership_id_fkey",
+    );
+  });
+
+  it("uses RESTRICT for every HandoffVerification foreign key and blocks Organization deletion", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    await createHandoffVerification(fixture, {
+      maxAttempts: 0,
+      method: "SUPERVISOR_OVERRIDE",
+      overrideReason: "Deletion protection",
+      verifiedByMembershipId: fixture.membershipId,
+    });
+
+    const foreignKeys = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'handoff_verifications'::regclass
+         AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(foreignKeys.rows).toEqual([
+      {
+        confdeltype: "r",
+        conname: "handoff_verifications_org_valet_session_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "handoff_verifications_org_verified_by_membership_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "handoff_verifications_organization_id_fkey",
+      },
+    ]);
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        fixture.organizationId,
+      ]),
+      "23503",
+    );
+  });
+
+  it("restricts deletion of a referenced ValetSession", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    await createHandoffVerification(fixture, {
+      expiresAt: new Date(),
+      maxAttempts: 0,
+      method: "DYNAMIC_QR",
+      secretHash: "sha256:session-delete-restriction",
+    });
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM valet_sessions WHERE id = $1", [
+        fixture.valetSessionId,
+      ]),
+      "23503",
+      "handoff_verifications_org_valet_session_id_fkey",
+    );
+  });
+
+  it("restricts deletion of a referenced verifying membership", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    await createHandoffVerification(fixture, {
+      maxAttempts: 0,
+      method: "SUPERVISOR_OVERRIDE",
+      overrideReason: "Membership delete restriction",
+      verifiedByMembershipId: fixture.membershipId,
+    });
+
+    await expectPostgresError(
+      databaseClient.query(
+        "DELETE FROM organization_memberships WHERE id = $1",
+        [fixture.membershipId],
+      ),
+      "23503",
+      "handoff_verifications_org_verified_by_membership_id_fkey",
+    );
+  });
+
+  it("defaults attempt_count to 0", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+    const verificationId = await createHandoffVerification(fixture, {
+      expiresAt: new Date(),
+      maxAttempts: 3,
+      method: "PICKUP_CODE",
+      secretHash: "sha256:default-attempt-count",
+    });
+
+    const result = await databaseClient.query<{ attempt_count: number }>(
+      "SELECT attempt_count FROM handoff_verifications WHERE id = $1",
+      [verificationId],
+    );
+    expect(result.rows[0]?.attempt_count).toBe(0);
+  });
+
+  it("requires max_attempts without a database default", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO handoff_verifications (
+           id, organization_id, valet_session_id, method,
+           secret_hash, expires_at
+         ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          randomUUID(),
+          fixture.organizationId,
+          fixture.valetSessionId,
+          "DYNAMIC_QR",
+          "sha256:missing-max-attempts",
+          new Date(),
+        ],
+      ),
+      "max_attempts",
+    );
+  });
+
+  it("rejects PICKUP_CODE without secret_hash", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        expiresAt: new Date(),
+        maxAttempts: 5,
+        method: "PICKUP_CODE",
+      }),
+      "23514",
+      "handoff_verifications_pickup_code_check",
+    );
+  });
+
+  it("rejects PICKUP_CODE without expires_at", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        maxAttempts: 5,
+        method: "PICKUP_CODE",
+        secretHash: "sha256:missing-expiry",
+      }),
+      "23514",
+      "handoff_verifications_pickup_code_check",
+    );
+  });
+
+  it("rejects PICKUP_CODE with negative attempt_count", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        attemptCount: -1,
+        expiresAt: new Date(),
+        maxAttempts: 5,
+        method: "PICKUP_CODE",
+        secretHash: "sha256:negative-attempt-count",
+      }),
+      "23514",
+      "handoff_verifications_pickup_code_check",
+    );
+  });
+
+  it("rejects PICKUP_CODE with max_attempts equal to 0", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        expiresAt: new Date(),
+        maxAttempts: 0,
+        method: "PICKUP_CODE",
+        secretHash: "sha256:zero-max-attempts",
+      }),
+      "23514",
+      "handoff_verifications_pickup_code_check",
+    );
+  });
+
+  it("rejects PICKUP_CODE with negative max_attempts", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        expiresAt: new Date(),
+        maxAttempts: -1,
+        method: "PICKUP_CODE",
+        secretHash: "sha256:negative-max-attempts",
+      }),
+      "23514",
+      "handoff_verifications_pickup_code_check",
+    );
+  });
+
+  it("rejects DYNAMIC_QR without secret_hash", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        expiresAt: new Date(),
+        maxAttempts: 0,
+        method: "DYNAMIC_QR",
+      }),
+      "23514",
+      "handoff_verifications_dynamic_qr_check",
+    );
+  });
+
+  it("rejects DYNAMIC_QR without expires_at", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        maxAttempts: 0,
+        method: "DYNAMIC_QR",
+        secretHash: "sha256:dynamic-qr-missing-expiry",
+      }),
+      "23514",
+      "handoff_verifications_dynamic_qr_check",
+    );
+  });
+
+  it("rejects SUPERVISOR_OVERRIDE without verifying membership", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        maxAttempts: 0,
+        method: "SUPERVISOR_OVERRIDE",
+        overrideReason: "Missing actor",
+      }),
+      "23514",
+      "handoff_verifications_supervisor_override_check",
+    );
+  });
+
+  it("rejects SUPERVISOR_OVERRIDE with null override_reason", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        maxAttempts: 0,
+        method: "SUPERVISOR_OVERRIDE",
+        verifiedByMembershipId: fixture.membershipId,
+      }),
+      "23514",
+      "handoff_verifications_supervisor_override_check",
+    );
+  });
+
+  it("rejects SUPERVISOR_OVERRIDE with an empty override_reason", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        maxAttempts: 0,
+        method: "SUPERVISOR_OVERRIDE",
+        overrideReason: "",
+        verifiedByMembershipId: fixture.membershipId,
+      }),
+      "23514",
+      "handoff_verifications_supervisor_override_check",
+    );
+  });
+
+  it("rejects SUPERVISOR_OVERRIDE with a whitespace-only override_reason", async () => {
+    const fixture = await createHandoffVerificationTestFixture();
+
+    await expectPostgresError(
+      createHandoffVerification(fixture, {
+        maxAttempts: 0,
+        method: "SUPERVISOR_OVERRIDE",
+        overrideReason: "   ",
+        verifiedByMembershipId: fixture.membershipId,
+      }),
+      "23514",
+      "handoff_verifications_supervisor_override_check",
+    );
+  });
+
+  it("creates exactly the documented HandoffVerification columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'handoff_verifications'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "valet_session_id",
+      "method",
+      "secret_hash",
+      "expires_at",
+      "attempt_count",
+      "max_attempts",
+      "verified_at",
+      "verified_by_membership_id",
+      "consumed_at",
+      "override_reason",
+      "created_at",
+    ]);
+  });
+
+  it("does not create plaintext pickup-code or QR-secret columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'handoff_verifications'`,
+    );
+    const columnNames = result.rows.map((row) => row.column_name);
+    expect(columnNames).not.toContain("plaintext_code");
+    expect(columnNames).not.toContain("pickup_code");
+    expect(columnNames).not.toContain("qr_secret");
+    expect(columnNames).not.toContain("token");
+  });
+
+  it("creates no non-PK HandoffVerification index or uniqueness constraint", async () => {
+    const indexes = await databaseClient.query<{ indexname: string }>(
+      `SELECT indexname
+       FROM pg_indexes
+       WHERE schemaname = 'public'
+         AND tablename = 'handoff_verifications'
+       ORDER BY indexname`,
+    );
+    expect(indexes.rows.map((row) => row.indexname)).toEqual([
+      "handoff_verifications_pkey",
+    ]);
+
+    const uniquenessConstraints = await databaseClient.query<{
+      conname: string;
+      contype: string;
+    }>(
+      `SELECT conname, contype
+       FROM pg_constraint
+       WHERE conrelid = 'handoff_verifications'::regclass
+         AND contype IN ('p', 'u')
+       ORDER BY conname`,
+    );
+    expect(uniquenessConstraints.rows).toEqual([
+      { conname: "handoff_verifications_pkey", contype: "p" },
+    ]);
   });
 });
