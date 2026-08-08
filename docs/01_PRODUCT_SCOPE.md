@@ -1,142 +1,260 @@
 # MVP Product Scope
 
 Status: Binding  
-Version: 0.1
+Version: 0.2
 
 ## Goal
 
-Validate that one valet company at one real location can operate a busy shift digitally and reliably without depending on paper tickets.
+Build a sellable B2B SaaS valet operating system that can run a real location for a full shift without paper tickets and without daily developer intervention for normal operating-policy changes.
 
-The architecture must support multiple organizations and locations without requiring enterprise-scale infrastructure for the pilot.
+The primary commercial ICP is a valet operator managing roughly 5–50 locations, while the first pilot may deliberately run at one location with a limited team to measure real operational improvement.
 
-## Personas
+VAYLET software does not employ valet drivers or take vehicle custody in the base business model.
+
+## Product principles
+
+- Employee speed first: common actions should take the fewest practical taps.
+- Configuration First: normal customer/location operating differences are managed from Dashboard configuration rather than hard-coded.
+- Least privilege: each actor sees only what is required.
+- Audit by default: important actions create durable Black Box/audit events.
+- Guest friction minimum: no mandatory account or app install.
+- International by design: Arabic/English, RTL/LTR, location currency/timezone and multi-country data assumptions.
+- Sell the operating system before advanced prediction, custom hardware or speculative AI.
+
+## Personas and roles
+
+### Guest / Customer
+
+Must be able to:
+
+- receive a secure phone-based WhatsApp/SMS link, with QR fallback where needed
+- view safe vehicle/session status
+- request the vehicle
+- see retrieval/ready progress and ETA when available
+- pay/tip when required by location policy
+- use secure pickup QR/code
+- receive receipt
+- rate experience / report an issue when enabled
+
+Must not see exact parking coordinates or key-slot information.
+
+No mandatory customer account/password/app is required for MVP.
 
 ### Valet Employee
 
 Must be able to:
 
 - authenticate
-- start/end a shift
-- receive a vehicle
-- enter plate data
-- capture required condition photos
-- assign parking location
-- assign key location
-- see retrieval queue
-- accept/perform retrieval
-- mark vehicle ready
-- verify secure handoff
-- record an incident
+- start/end a location-scoped shift
+- see/accept assigned operational tasks
+- start a new vehicle check-in
+- scan plate using OCR/ANPR, confirm/edit, or use manual fallback
+- record vehicle condition quickly
+- capture photos when chosen/required by policy
+- assign/scan QR key slot
+- park and assign zone/spot, with QR/manual fallback
+- perform retrieval
+- complete secure handoff
+- report an incident
+- see shift summary
 
-### Location Manager / Supervisor
+Employee cannot delete audit history, issue refunds, or perform unrestricted overrides.
 
-Must be able to:
-
-- see active vehicles
-- see retrieval queue
-- see employees on shift
-- inspect complete vehicle/session timeline
-- resolve operational exceptions
-- review incidents
-- inspect basic performance metrics
-
-### Organization Admin
+### Valet Supervisor
 
 Must be able to:
 
-- manage organization
-- manage locations
-- manage staff and roles
-- view authorized reports
+- supervise vehicles/tasks at authorized locations
+- reassign tasks
+- handle operational exceptions
+- use limited audited overrides where policy permits
+- review/triage incidents
 
-### Customer
+### Location Manager
 
 Must be able to:
 
-- receive an access link / QR / SMS
-- view vehicle status
-- request vehicle
-- see retrieval progress
-- complete handoff verification
-- pay and receive receipt when payments are enabled
+- manage the authorized location
+- see shifts, revenue, keys, incidents, KPIs and reports
+- configure approved location operating policies
+- manage zones/spots/maps as permitted
 
-No customer account/password is required for MVP.
+Must not automatically see other company locations.
+
+### Company Admin
+
+Internal tenant-role mapping: `ORG_ADMIN`.
+
+Must be able to:
+
+- manage company locations
+- manage staff/roles and approved permission settings
+- manage company defaults and location overrides
+- manage prices/policies/branding/billing configuration as implemented
+- view company-authorized reports
+
+Production Company Admin requires MFA.
+
+### Venue Client
+
+Blueprint actor for a venue/customer that needs restricted visibility into its own location performance, validations, ratings, SLA and incidents.
+
+Exact identity/persistence model is not yet locked and must not be invented inside unrelated tasks.
+
+### VAYLET Super Admin
+
+Platform-level operator role for tenants, subscriptions, support, feature flags and system health.
+
+It is not an `OrganizationMembership` role. Sensitive access must be justified/audited and production access requires MFA. Exact persistence model is deferred until the platform-admin task.
 
 ## Core MVP workflow
 
-1. Employee receives vehicle.
-2. Plate is entered.
-3. Required vehicle photos are captured.
-4. Digital customer access is created.
-5. Parking spot/zone is assigned.
-6. Key slot is assigned.
-7. Vehicle is marked parked.
-8. Customer requests vehicle.
-9. Retrieval is assigned/accepted.
-10. Employee retrieves vehicle.
-11. Vehicle is marked ready.
-12. Customer is verified by OTP or another approved method.
-13. Vehicle is released.
-14. Complete audit timeline remains available.
+1. Employee starts a Shift at an authorized Location.
+2. Employee starts New Vehicle check-in.
+3. Plate OCR/ANPR scans the plate when available; employee confirms/edits or uses manual fallback.
+4. Customer phone/contact is captured when available and a secure WhatsApp/SMS link is sent; QR is fallback.
+5. Employee records vehicle condition; photos follow configured policy and are optional by default.
+6. Vehicle/ValetSession is created with server-authoritative timestamps.
+7. Employee assigns/scans a QR key slot or uses permitted manual fallback.
+8. Hybrid Dispatch creates/assigns the Parking task.
+9. Employee starts Parking; task-scoped session tracking starts only if configured.
+10. Employee assigns zone/spot, optionally by QR; manual fallback remains available.
+11. Vehicle becomes PARKED and active parking tracking stops.
+12. Guest requests the vehicle from the secure link.
+13. Retrieval enters the queue and basic Hybrid Dispatch assigns/suggests an eligible employee; supervisor can reassign.
+14. Key checkout/custody is recorded.
+15. Employee starts Retrieval; configured task-scoped tracking begins.
+16. Vehicle becomes READY; tracking stops and guest is notified.
+17. Payment/validation is completed according to location policy where required.
+18. Secure handoff uses Dynamic one-time QR or 4-digit pickup code; supervisor override is exceptional and audited.
+19. Session becomes COMPLETED; receipt/rating flow may follow; Black Box/audit history remains available.
 
-## Required modules
+## Required sellable-MVP capabilities
 
-- Authentication
-- Organizations
-- Locations
-- Staff / Memberships / Roles
-- Shifts
-- Customers
-- Vehicles
-- ValetSessions
-- Vehicle Photos
-- Parking Spots
-- Key Slots
-- Retrieval
-- Secure Handoff
-- Notifications abstraction
-- Payments abstraction / optional pilot integration
-- Incidents
-- Audit
-- Basic Reporting
+- Multi-tenant Company/Location structure
+- Base roles/permissions and location access
+- Employee app / web terminal
+- Guest web experience without mandatory account
+- SMS and/or WhatsApp integration according to available first-market channel
+- Plate OCR/ANPR + confirm/edit + manual fallback
+- Vehicle condition check + configurable optional photos
+- QR key slots
+- Parking zones/spots + optional QR
+- Maps + configurable Parking/Retrieval task-scoped session tracking
+- Basic Hybrid Dispatch and supervisor reassignment
+- Vehicle request / retrieval queue
+- Secure handoff with Dynamic QR or 4-digit pickup code
+- Basic digital payments plus cash, validation and tips
+- Notifications
+- Basic Black Box audit timeline
+- Basic incident reporting
+- Configuration-capable Management Dashboard
+- Reports and CSV/PDF export
+- Arabic/English with real RTL/LTR
+- Offline-friendly employee actions / retry-safe foundations
+- Basic subscription/admin controls
 
-## Payment rule
+## Configuration First
 
-Payment is modeled from the start but may be disabled for the earliest operational pilot.
+Where the Blueprint defines normal operating policy as configurable, the product should support:
 
-Payment state must remain independent from ValetSession operational state.
+```text
+Company default -> Location override
+```
 
-## Explicitly out of scope
+Examples include, when implemented:
 
-Unless explicitly approved:
+- operating hours
+- currency/timezone
+- language defaults
+- valet fee/payment methods/tips
+- photo policy
+- plate scan settings
+- key system
+- parking spot requirement
+- tracking on/off
+- route history/geofence policy
+- release policy
+- notification templates
+- SLA target
+- validation rules
+- allowed roles
 
-- automatic plate OCR
+This scope requirement does not authorize one generic untyped settings JSON table. Typed configuration is introduced by focused implementation tasks.
+
+## Payments and validation
+
+Sellable MVP supports the product concepts:
+
+- Customer Pays
+- Venue Pays
+- Full Validation
+- Partial Validation
+- tips
+- cash reconciliation
+- at least one digital payment gateway in the first market
+
+Payment lifecycle remains separate from physical ValetSession state.
+
+Employees cannot issue refunds; higher-authority refund actions require reason + audit.
+
+## Maps / employee tracking rule
+
+GPS/session tracking is configurable and tied by default to active Parking/Retrieval tasks.
+
+Do not track employees continuously for the whole Shift by default.
+
+The Guest never sees exact parking coordinates.
+
+## Explicitly deferred beyond sellable MVP
+
+Unless separately approved:
+
 - AI damage detection/comparison
-- vehicle recognition AI
-- GPS tracking
+- autonomous make/model recognition
+- NFC/BLE key tags
+- VAYLET Qualified / Safety Score
+- full ClaimShield evidence package workflow
+- enhanced/high-security enterprise handoff policies beyond the MVP baseline
+- POS/PMS integrations unless required by a pilot
+- enterprise SSO
+- persistent optional customer account / Valet Passport
+- advanced fraud/risk engine
+- predictive ETA/retrieval/demand systems
+- SmartStack AI
+- Curb Control Tower / Demand Autopilot
+- Smart Key Vault/custom hardware
+- ANPR entrance cameras
+- indoor maps/digital twin
+- advanced BI/data warehouse
+- custom data residency/private integrations
 - reservations
-- consumer loyalty/Valet+
-- marketplace
+- consumer marketplace
 - Anywhere Valet
-- smart key locker hardware
-- advanced workforce scheduling
-- dynamic pricing
-- advanced data warehouse/BI
-- microservices
-- Kubernetes
+- microservices/Kubernetes
 
-## Pilot metrics
+## Pilot validation
 
-Capture at minimum:
+Target 2–3 companies/locations willing to trial the product, with an initial pilot that may operate one real location for roughly 30 days.
 
-- check-in duration
-- retrieval duration
-- number of vehicles handled
-- currently parked count
-- retrieval request count
-- delayed retrievals
-- operational errors
-- incidents
+Capture a pre-pilot baseline and compare at minimum:
+
+- check-in time
+- parking time
+- retrieval wait
+- handoff time
+- SLA compliance
+- cars per employee
+- active queue
+- key exceptions
+- incidents/complaints per volume
+- validation rate where used
+- digital payment rate where used
+- cash variance where used
+- guest rating
 - employee adoption/friction
-- customer use of Bring My Car
-- willingness of business to pay
+- session loss/duplicate-event failures
+- manager reliance on Dashboard
+- willingness to convert/expand to paid locations
+
+Success is operational proof, not UI admiration alone.
