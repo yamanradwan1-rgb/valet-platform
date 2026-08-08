@@ -32,6 +32,17 @@ interface VehicleValues {
   temporaryDescriptor?: string | null;
 }
 
+interface ParkingSpotValues {
+  code?: string;
+  label?: string;
+  status?: string;
+}
+
+interface KeySlotValues {
+  code?: string;
+  status?: string;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
@@ -171,6 +182,60 @@ async function createLocation(
      ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)`,
     [id, organizationId, "Main Entrance", code, "Amman", "Asia/Amman", "JOD"],
   );
+  return id;
+}
+
+async function createParkingSpot(
+  tenant: TenantFixture,
+  values: ParkingSpotValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  const {
+    code = `SPOT-${randomUUID()}`,
+    label = "Parking Spot",
+    status,
+  } = values;
+
+  if (status === undefined) {
+    await databaseClient.query(
+      `INSERT INTO parking_spots (
+         id, organization_id, location_id, code, label, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
+      [id, tenant.organizationId, tenant.locationId, code, label],
+    );
+  } else {
+    await databaseClient.query(
+      `INSERT INTO parking_spots (
+         id, organization_id, location_id, code, label, status, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
+      [id, tenant.organizationId, tenant.locationId, code, label, status],
+    );
+  }
+  return id;
+}
+
+async function createKeySlot(
+  tenant: TenantFixture,
+  values: KeySlotValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  const { code = `KEY-${randomUUID()}`, status } = values;
+
+  if (status === undefined) {
+    await databaseClient.query(
+      `INSERT INTO key_slots (
+         id, organization_id, location_id, code, updated_at
+       ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
+      [id, tenant.organizationId, tenant.locationId, code],
+    );
+  } else {
+    await databaseClient.query(
+      `INSERT INTO key_slots (
+         id, organization_id, location_id, code, status, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
+      [id, tenant.organizationId, tenant.locationId, code, status],
+    );
+  }
   return id;
 }
 
@@ -824,6 +889,296 @@ describe("customer and vehicle database foundation", () => {
       ]),
       "23503",
       "vehicles_organization_id_fkey",
+    );
+  });
+});
+
+describe("parking spot database foundation", () => {
+  it("accepts a valid ParkingSpot", async () => {
+    const tenant = await createTenant();
+    const parkingSpotId = await createParkingSpot(tenant, {
+      code: "A-01",
+      label: "Garage A / 01",
+    });
+
+    const result = await databaseClient.query<{
+      code: string;
+      label: string;
+    }>("SELECT code, label FROM parking_spots WHERE id = $1", [parkingSpotId]);
+    expect(result.rows[0]).toEqual({ code: "A-01", label: "Garage A / 01" });
+  });
+
+  it("defaults ParkingSpot status to ACTIVE", async () => {
+    const tenant = await createTenant();
+    const parkingSpotId = await createParkingSpot(tenant);
+
+    const result = await databaseClient.query<{ status: string }>(
+      "SELECT status::text AS status FROM parking_spots WHERE id = $1",
+      [parkingSpotId],
+    );
+    expect(result.rows[0]?.status).toBe("ACTIVE");
+  });
+
+  it("accepts an INACTIVE ParkingSpot", async () => {
+    const tenant = await createTenant();
+    const parkingSpotId = await createParkingSpot(tenant, {
+      status: "INACTIVE",
+    });
+
+    const result = await databaseClient.query<{ status: string }>(
+      "SELECT status::text AS status FROM parking_spots WHERE id = $1",
+      [parkingSpotId],
+    );
+    expect(result.rows[0]?.status).toBe("INACTIVE");
+  });
+
+  it("rejects an undocumented ParkingSpot status", async () => {
+    const tenant = await createTenant();
+
+    await expectPostgresError(
+      createParkingSpot(tenant, { status: "UNSUPPORTED" }),
+      "22P02",
+    );
+  });
+
+  it("requires ParkingSpot code and label", async () => {
+    const tenant = await createTenant();
+
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO parking_spots (
+           id, organization_id, location_id, label, updated_at
+         ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
+        [randomUUID(), tenant.organizationId, tenant.locationId, "Spot"],
+      ),
+      "code",
+    );
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO parking_spots (
+           id, organization_id, location_id, code, updated_at
+         ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
+        [randomUUID(), tenant.organizationId, tenant.locationId, "A-02"],
+      ),
+      "label",
+    );
+  });
+
+  it("rejects duplicate ParkingSpot codes in one Location", async () => {
+    const tenant = await createTenant();
+    await createParkingSpot(tenant, { code: "A-03" });
+
+    await expectPostgresError(
+      createParkingSpot(tenant, { code: "A-03" }),
+      "23505",
+      "parking_spots_location_id_code_key",
+    );
+  });
+
+  it("allows the same ParkingSpot code in different Locations", async () => {
+    const organizationId = await createOrganization();
+    const firstLocationId = await createLocation(organizationId, "FIRST");
+    const secondLocationId = await createLocation(organizationId, "SECOND");
+    await createParkingSpot(
+      { locationId: firstLocationId, organizationId },
+      { code: "A-04" },
+    );
+
+    await expect(
+      createParkingSpot(
+        { locationId: secondLocationId, organizationId },
+        { code: "A-04" },
+      ),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects a ParkingSpot for an unknown Organization", async () => {
+    const tenant = await createTenant();
+
+    await expectPostgresError(
+      createParkingSpot({ ...tenant, organizationId: randomUUID() }),
+      "23503",
+    );
+  });
+
+  it("rejects a ParkingSpot for an unknown Location", async () => {
+    const organizationId = await createOrganization();
+
+    await expectPostgresError(
+      createParkingSpot({ locationId: randomUUID(), organizationId }),
+      "23503",
+      "parking_spots_organization_id_location_id_fkey",
+    );
+  });
+
+  it("rejects a cross-Organization ParkingSpot Location", async () => {
+    const firstTenant = await createTenant();
+    const secondTenant = await createTenant();
+
+    await expectPostgresError(
+      createParkingSpot({
+        locationId: secondTenant.locationId,
+        organizationId: firstTenant.organizationId,
+      }),
+      "23503",
+      "parking_spots_organization_id_location_id_fkey",
+    );
+  });
+
+  it("restricts deletion of a referenced ParkingSpot Location and Organization", async () => {
+    const tenant = await createTenant();
+    await createParkingSpot(tenant);
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM locations WHERE id = $1", [
+        tenant.locationId,
+      ]),
+      "23503",
+      "parking_spots_organization_id_location_id_fkey",
+    );
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        tenant.organizationId,
+      ]),
+      "23503",
+    );
+  });
+});
+
+describe("key slot database foundation", () => {
+  it("accepts a valid KeySlot", async () => {
+    const tenant = await createTenant();
+    const keySlotId = await createKeySlot(tenant, { code: "K-01" });
+
+    const result = await databaseClient.query<{ code: string }>(
+      "SELECT code FROM key_slots WHERE id = $1",
+      [keySlotId],
+    );
+    expect(result.rows[0]?.code).toBe("K-01");
+  });
+
+  it("defaults KeySlot status to ACTIVE", async () => {
+    const tenant = await createTenant();
+    const keySlotId = await createKeySlot(tenant);
+
+    const result = await databaseClient.query<{ status: string }>(
+      "SELECT status::text AS status FROM key_slots WHERE id = $1",
+      [keySlotId],
+    );
+    expect(result.rows[0]?.status).toBe("ACTIVE");
+  });
+
+  it("accepts an INACTIVE KeySlot", async () => {
+    const tenant = await createTenant();
+    const keySlotId = await createKeySlot(tenant, { status: "INACTIVE" });
+
+    const result = await databaseClient.query<{ status: string }>(
+      "SELECT status::text AS status FROM key_slots WHERE id = $1",
+      [keySlotId],
+    );
+    expect(result.rows[0]?.status).toBe("INACTIVE");
+  });
+
+  it("rejects an undocumented KeySlot status", async () => {
+    const tenant = await createTenant();
+
+    await expectPostgresError(
+      createKeySlot(tenant, { status: "UNSUPPORTED" }),
+      "22P02",
+    );
+  });
+
+  it("requires a KeySlot code", async () => {
+    const tenant = await createTenant();
+
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO key_slots (
+           id, organization_id, location_id, updated_at
+         ) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)`,
+        [randomUUID(), tenant.organizationId, tenant.locationId],
+      ),
+      "code",
+    );
+  });
+
+  it("rejects duplicate KeySlot codes in one Location", async () => {
+    const tenant = await createTenant();
+    await createKeySlot(tenant, { code: "K-02" });
+
+    await expectPostgresError(
+      createKeySlot(tenant, { code: "K-02" }),
+      "23505",
+      "key_slots_location_id_code_key",
+    );
+  });
+
+  it("allows the same KeySlot code in different Locations", async () => {
+    const organizationId = await createOrganization();
+    const firstLocationId = await createLocation(organizationId, "FIRST");
+    const secondLocationId = await createLocation(organizationId, "SECOND");
+    await createKeySlot(
+      { locationId: firstLocationId, organizationId },
+      { code: "K-03" },
+    );
+
+    await expect(
+      createKeySlot(
+        { locationId: secondLocationId, organizationId },
+        { code: "K-03" },
+      ),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects a KeySlot for an unknown Organization", async () => {
+    const tenant = await createTenant();
+
+    await expectPostgresError(
+      createKeySlot({ ...tenant, organizationId: randomUUID() }),
+      "23503",
+    );
+  });
+
+  it("rejects a KeySlot for an unknown Location", async () => {
+    const organizationId = await createOrganization();
+
+    await expectPostgresError(
+      createKeySlot({ locationId: randomUUID(), organizationId }),
+      "23503",
+      "key_slots_organization_id_location_id_fkey",
+    );
+  });
+
+  it("rejects a cross-Organization KeySlot Location", async () => {
+    const firstTenant = await createTenant();
+    const secondTenant = await createTenant();
+
+    await expectPostgresError(
+      createKeySlot({
+        locationId: secondTenant.locationId,
+        organizationId: firstTenant.organizationId,
+      }),
+      "23503",
+      "key_slots_organization_id_location_id_fkey",
+    );
+  });
+
+  it("restricts deletion of a referenced KeySlot Location and Organization", async () => {
+    const tenant = await createTenant();
+    await createKeySlot(tenant);
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM locations WHERE id = $1", [
+        tenant.locationId,
+      ]),
+      "23503",
+      "key_slots_organization_id_location_id_fkey",
+    );
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        tenant.organizationId,
+      ]),
+      "23503",
     );
   });
 });
