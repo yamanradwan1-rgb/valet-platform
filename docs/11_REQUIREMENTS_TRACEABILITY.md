@@ -52,9 +52,13 @@ The historical concept remains useful for original intent but is superseded wher
 | Append-only corrections | Audit/Black Box rule across domain/security docs |
 | Basic incident reporting | Incident entity/module |
 | Evidence Lock / full ClaimShield | basic evidence integrity in MVP; full ClaimShield V2 |
-| Customer Pays / Venue Pays / full/partial validation | Payments/Validation focused task |
-| Tips | financial model/reporting task |
-| Cash reconciliation | Payments/reconciliation focused task |
+| Customer Pays / Venue Pays | Payment `service_payer`; financial responsibility only, DEC-021 |
+| No/full/partial validation | First-class superseding Validation history with one current row, DEC-021 |
+| Tips | Payment `tip_amount` for cash/digital; distribution/payroll deferred, DEC-021 |
+| Cash receipt/reconciliation | Append-only CashEntry receipt/adjustments; shift close/settlement deferred, DEC-021 |
+| Digital payment callback retry safety | Payment creation idempotency + unique provider-event receipt, DEC-021 |
+| Authorized partial/full refunds | Separate append-only Refund lifecycle + transactional aggregate guard, DEC-021 |
+| Historical payment currency | Immutable Location-currency snapshot on Payment, DEC-021 |
 | No raw PAN/CVV | `06_SECURITY_AND_DATA_RULES.md` |
 | Configuration First | DEC-017 + Dashboard/configuration tasks |
 | Company default -> Location override | DEC-017 |

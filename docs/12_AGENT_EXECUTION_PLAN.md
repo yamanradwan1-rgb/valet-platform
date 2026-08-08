@@ -1,7 +1,7 @@
 # AI Agent Execution Plan
 
 Status: Binding work sequence  
-Version: 0.2
+Version: 0.3
 
 The agent must not attempt to build the whole product in one pass.
 
@@ -166,17 +166,27 @@ Support the sellable MVP financial models without storing raw card data.
 Required work across focused tasks:
 
 - location currency context
-- Customer Pays
-- Venue Pays
-- Full Validation
-- Partial Validation
-- tips
-- cash receipt / reconciliation
+- accepted DEC-021 Payment aggregate with explicit Customer/Venue service responsibility
+- first-class current/superseding Validation history for none/full/partial validation
+- Payment `tip_amount` for both cash and digital collection
+- append-only CashEntry receipt/correction history and reconciliation reporting foundation
+- provider-neutral callback-event deduplication
+- separate append-only partial/full Refund lifecycle
 - at least one approved digital payment gateway for the first market
 - provider adapter + signature verification + idempotent callbacks
 - refund permissions/audit
 
 Payment/validation/refund lifecycle remains separate from ValetSession physical state.
+
+Required database implementation order:
+
+1. Payment + Validation + tip foundation
+2. CashEntry + provider-event/idempotency foundation
+3. Refund foundation
+
+Use one active migration owner and one forward-only migration PR at a time. Complete focused tenant, money, status, idempotency and concurrency tests for each slice before starting the next.
+
+Provider selection/SDK/webhook implementation follows the provider-neutral persistence foundation. Shift cash close/reopen, drawer management, venue settlement, POS/PMS, tax, ledger/accounting, payroll/tip distribution and chargeback handling are not part of these foundation slices.
 
 ## Phase 7 — Dashboard, Configuration First and reporting
 

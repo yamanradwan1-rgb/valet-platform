@@ -5,16 +5,16 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-09 00:05 +03:00`
+- Date/time: `2026-08-09 02:56 +03:00`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Remote `main`: `c8bd64586a6b9c33e50ff5a84a2303eb6ceff76d`
-- Verification basis: GitHub main history, merged PR #20, CI run #27, Issue #19, and the user-reported local terminal state before PR #20 merged
+- Remote `main`: `e0e3d2fc02138edc510657f82be68e3a883789ba`
+- Verification basis: GitHub PR #27, Issue #26, current feature branch state, and merged PR #25 on `main`
 
 ## Current Milestone
 
 **Phase 1 — Foundation: data, tenants, staff and audit-ready structure**
 
-Phase 0 is complete. Phase 1 now has the tenant/staff, Customer/Vehicle, ParkingSpot/KeySlot, ValetSession and AuditEvent/Black Box persistence foundations merged with PostgreSQL integrity coverage.
+Phase 0 is complete. Phase 1 now has the tenant/staff, Customer/Vehicle, ParkingSpot/KeySlot, ValetSession, AuditEvent/Black Box, RetrievalRequest and HandoffVerification persistence foundations merged with PostgreSQL integrity coverage. The sellable-MVP financial persistence contract is the active docs/decision task; no financial migration is active.
 
 ## Completed
 
@@ -93,25 +93,43 @@ Phase 0 is complete. Phase 1 now has the tenant/staff, Customer/Vehicle, Parking
 - CI: **PASSED** — lint, typecheck, test and build
 - Result: append-only AuditEvent persistence foundation, tenant/location-safe session and actor relations, required timeline index, 13 focused tests; database package reached 99 passing tests in the task validation
 
+### VAL-003G — RetrievalRequest Database Foundation
+
+- Issue #22
+- PR #23
+- Status: **MERGED / COMPLETED**
+- Result: tenant-safe retrieval request persistence and one-active-request protection
+
+### VAL-003H — HandoffVerification Database Foundation
+
+- Issue #24
+- PR #25
+- Merge commit: `e0e3d2f`
+- Status: **MERGED / COMPLETED**
+- Result: tenant-safe pickup-code, Dynamic QR and supervisor-override verification persistence foundation
+
 ## Current Task
 
-No implementation task is currently active after VAL-003F merged.
+`VAL-003I — Lock Payments Persistence Contract`
 
-Recommended next focused Phase 1 slice:
-
-```text
-RetrievalRequest database foundation
-```
-
-Create and scope the next Issue from current `main` before implementation. Do not start another migration task until ownership is explicit.
+- Issue #26
+- PR #27
+- Branch: `docs/VAL-003I-payments-persistence-contract`
+- Baseline: `e0e3d2fc02138edc510657f82be68e3a883789ba`
+- DEC-021 source commit: `55e4aac98f17df63715589bceda907bd3886c7f5`
+- Status: **PR OPEN / CI PENDING**
+- Scope: docs/decision only; lock Payment/Validation/Tip/Cash/ProviderEvent/Refund persistence before any financial migration
+- Accepted direction in branch: DEC-021 payment-centric aggregate with normalized history facts
+- Explicit prohibition: no Prisma, migration, integration-test or application implementation in VAL-003I
+- Merge gate: CI must pass and merge still requires explicit authorization
 
 ## Remaining Phase 1 Foundation Slices
 
 The execution plan still calls for separately scoped persistence/foundation work for:
 
-- RetrievalRequest
-- HandoffVerification
-- Payment foundation
+- Payment + Validation + tip foundation after VAL-003I is reviewed and merged
+- CashEntry + provider-event/idempotency foundation
+- Refund foundation
 - Incident
 - Notification
 - demo/seed data when its dedicated task is reached
@@ -120,19 +138,18 @@ Task/Dispatch, KeyCustodyEvent, ParkingZone/Maps/GPS and domain command/check-in
 
 ## Local / Remote Handoff State
 
-At the last user-reported terminal state before PR #20 merged:
+Current verified state:
 
 ```text
-LOCAL WORKING TREE: clean
-LOCAL BRANCH: feat/VAL-003F-audit-event-db
-LOCAL/REMOTE FEATURE COMMIT: cc721df
-FEATURE BRANCH: pushed
-PR #20: now merged remotely
-REMOTE main: c8bd645
-LOCAL main: not yet confirmed synced to c8bd645 after the merge
+LOCAL WORKING TREE (last user-reported): clean
+LOCAL BRANCH: docs/VAL-003I-payments-persistence-contract
+LOCAL DEC-021 COMMIT: 55e4aac98f17df63715589bceda907bd3886c7f5
+REMOTE FEATURE BRANCH: pushed; PR #27 OPEN
+REMOTE main: e0e3d2fc02138edc510657f82be68e3a883789ba
+ISSUE #26: OPEN
+CI: pending for the latest PR head after this status-sync update
+LOCAL SYNC NOTE: because this status refresh is committed remotely, local feature branch must fast-forward before any further local work
 ```
-
-Therefore the first local action next session is to synchronize `main` before creating the next task branch.
 
 ## Current Product / Domain Baseline
 
@@ -169,38 +186,15 @@ Audit/Black Box history is append-only by contract. Protected future domain muta
 
 ## Dependencies / Contention
 
-- No active migration owner at this handoff; VAL-003F is merged.
+- No active migration owner; VAL-003I is docs/decision only and leaves the migration slot unused.
 - `packages/database/prisma/schema.prisma` and `packages/database/prisma/migrations/**` remain CRITICAL/high-contention while Phase 1 database work continues.
 - Keep one active migration owner at a time.
-- No unresolved blocker was recorded at the end of VAL-003F.
+- Do not start Payment implementation until PR #27 / VAL-003I is merged.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-At the start of the next session:
-
-```powershell
-git checkout main
-git pull --ff-only origin main
-git status
-git log -3 --oneline
-```
-
-Expected remote head:
-
-```text
-c8bd645 Merge pull request #20 from veletpro0-lgtm/feat/VAL-003F-audit-event-db
-```
-
-Then:
-
-```text
-verify GitHub current state
--> create/assign the next scoped Phase 1 Issue
--> create a branch from current main
--> keep one migration owner
--> provide the local coding agent a self-contained task packet
-```
+Finish PR #27 review and require CI success. Do not merge without explicit authorization. After PR #27 merges, synchronize local `main` to the new remote merge commit. Only then create the first financial implementation task: **Payment + Validation + tip foundation**, with one active migration owner and one forward-only migration PR.
 
 ## Parallel UX/UI Track
 

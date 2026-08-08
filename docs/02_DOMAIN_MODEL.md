@@ -1,7 +1,7 @@
 # Domain Model
 
 Status: Binding  
-Version: 0.3
+Version: 0.4
 
 ## Aggregate center
 
@@ -53,7 +53,11 @@ Customer / Guest Contact (when known)
             +-- GPS/RouteEvent when tracking enabled
             +-- RetrievalRequest
             +-- HandoffVerification
-            +-- Payment / Validation / Tip / Refund records as implemented
+            +-- Payment
+                 +-- Validation history
+                 +-- CashEntry history when cash is used
+                 +-- PaymentProviderEvent deduplication when digital payment is used
+                 +-- Refund history
             +-- Incident
             +-- Notification
             +-- AuditEvent / Black Box timeline
@@ -267,37 +271,74 @@ Reusable plaintext verification secrets must never be stored.
 
 ## Payment
 
-Separate financial lifecycle.
+The current financial aggregate for one ValetSession. At most one Payment exists per session. It is created when the session's financial policy is evaluated; absence is not equivalent to `NOT_REQUIRED`.
 
-MVP product concepts include:
+Payment records the immutable currency snapshot, base service charge, customer tip, service responsibility, collection method, amount due to be collected directly from the customer, amount actually collected and the current payment lifecycle status.
 
-- customer-paid fee
-- venue-paid/complimentary
-- full validation
-- partial validation
-- tip
-- cash reconciliation
-- digital gateway payment
+One Payment has one collection method. Split tender, installments and multiple successful collections are not part of the accepted MVP contract.
 
-Payment state remains outside ValetSession physical custody state, although location policy may require financial completion before handoff.
+Service responsibility is explicit:
+
+- `CUSTOMER` means the customer is responsible for the base service charge after effective validation.
+- `VENUE` means the venue is financially responsible for the base service charge. It does not create or imply a Venue Client identity, receivable or settlement account.
+
+Service responsibility is immutable after Payment creation. A `CUSTOMER` Payment cannot be changed to `VENUE`, and a `VENUE` Payment cannot be changed to `CUSTOMER`. If responsibility was configured incorrectly, correction requires a dedicated future financial-correction workflow/decision.
+
+Tip is a non-negative customer-paid value on Payment for both cash and digital flows. It is not an employee distribution/payroll record.
+
+Payment is a current financial projection, while corrections and externally delivered facts are preserved by Validation, CashEntry, PaymentProviderEvent, Refund and required AuditEvent records. Once collection has occurred, monetary terms are not silently rewritten.
+
+Payment state remains outside ValetSession physical custody state, although Location policy may require financial completion before handoff.
 
 ## Validation
 
-Records venue/customer fee support according to location policy.
+First-class history of venue support applied to the Payment's base service charge.
 
-Possible product modes include full or partial validation. Exact persistence is introduced by the Payments/Validation schema task.
+Validation belongs to Payment and therefore to the same Organization, ValetSession and Location. Controlled modes are:
+
+- `NONE` with amount `0`, used only as an explicit superseding correction that removes an earlier validation
+- `FULL` with an amount equal to the Payment service amount
+- `PARTIAL` with an amount greater than `0` and less than the Payment service amount
+
+No initial validation is represented by no current Validation row. Multiple historical Validation rows may exist, but at most one is current. A correction retires the current marker and appends a superseding row atomically; it does not rewrite the earlier mode or amount.
+
+Validation applies only when immutable service responsibility is `CUSTOMER`. `VENUE` responsibility already removes the base service amount from direct customer collection and is not combined with Validation. Because payer never changes, current and historical Validation rows cannot later become semantically attached to a `VENUE` Payment.
+
+The database can enforce mode/amount shape, one current row, same-tenant relationships and non-deletion. Equality/ordering against the Payment service amount is enforced by transactional domain logic because it crosses rows.
 
 ## Tip
 
-Financial value separate from valet fee for reporting/distribution policy.
+`tip_amount` is stored on Payment rather than in a separate Tip entity.
 
-Exact distribution/payout behavior is a later focused implementation concern.
+It is the voluntary amount paid by the customer in addition to any customer-responsible service amount. It is included in `amount_due` and may be collected by cash or digital payment. Keeping it as one Payment field is sufficient because MVP has no tip allocation, payroll, commission or multi-recipient distribution lifecycle.
+
+After payment collection, a returned tip is represented through Refund rather than by reducing historical `tip_amount`.
+
+## CashEntry
+
+Append-only cash receipt and correction fact for a cash Payment.
+
+The single initial receipt records a positive amount equal to the current amount due, collecting membership, server-authoritative occurrence time and a stable submission idempotency key. A correction appends a positive increase/decrease entry with actor and non-empty reason; it never edits or deletes an earlier entry. CashEntry corrections fix recorded cash facts; actual money returned to a customer is represented by Refund.
+
+Payment keeps the current `amount_paid` projection, which must equal the transactionally applied net CashEntry total. Shift close/reopen, drawer ownership and enterprise settlement are not part of this foundation contract; later reporting may reconcile cash by aggregating these entries.
+
+## PaymentProviderEvent
+
+Minimal provider-neutral committed callback outcome used only for digital payment/refund retry safety. It is not a durable asynchronous inbox.
+
+After signature verification and adapter normalization, ProviderEvent insert, Payment/Refund mutation and required AuditEvent commit atomically. Durable outcomes are only `PROCESSED` and `IGNORED`. Failure before commit rolls back everything and leaves no event row; duplicate delivery after commit reuses the unique Organization/provider/event record and does not repeat mutation or AuditEvent.
+
+Raw callback payloads, card data, payment tokens and provider credentials are not part of this entity.
 
 ## Refund
 
-Financial correction requiring higher-authority permission, amount, reason, timestamp and audit.
+Separate append-only financial correction against a Payment.
 
-Valet Employee cannot issue refunds.
+Refund records a positive amount, non-empty reason, authorizing membership, request time, status, completion time when successful, stable idempotency key and an optional digital-provider reference. Cash refunds complete synchronously; digital refunds may be pending before provider confirmation.
+
+Multiple partial refunds and a final full refund are allowed. Full versus partial is derived from the remaining refundable balance rather than persisted as another status. Transactional application logic must lock the Payment and ensure the sum of pending/successful refunds never exceeds `amount_paid`; a simple row CHECK cannot safely enforce that aggregate.
+
+Valet Employee cannot issue refunds. Role authorization and the required atomic AuditEvent are application responsibilities; same-tenant actor/payment relationships and row-local amount/reason rules are database responsibilities.
 
 ## Incident
 
