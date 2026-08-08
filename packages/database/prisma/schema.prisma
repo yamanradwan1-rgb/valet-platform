@@ -94,6 +94,14 @@ enum RetrievalRequestStatus {
   @@map("retrieval_request_status")
 }
 
+enum HandoffVerificationMethod {
+  PICKUP_CODE
+  DYNAMIC_QR
+  SUPERVISOR_OVERRIDE
+
+  @@map("handoff_verification_method")
+}
+
 model Organization {
   id        String             @id @default(uuid()) @db.Uuid
   name      String
@@ -112,6 +120,7 @@ model Organization {
   keySlots                 KeySlot[]
   valetSessions            ValetSession[]
   retrievalRequests        RetrievalRequest[]
+  handoffVerifications     HandoffVerification[]
   auditEvents              AuditEvent[]
 
   @@map("organizations")
@@ -174,6 +183,7 @@ model OrganizationMembership {
   assignedValetSessions    ValetSession[]             @relation("ValetSessionCurrentAssignee")
   completedValetSessions   ValetSession[]             @relation("ValetSessionCompletedBy")
   retrievalRequests        RetrievalRequest[]
+  verifiedHandoffs         HandoffVerification[]
   auditEvents              AuditEvent[]
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
@@ -313,17 +323,18 @@ model ValetSession {
   version                     Int               @default(1)
   updatedAt                   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization      Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "valet_sessions_organization_id_fkey")
-  location          Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_location_id_fkey")
-  vehicle           Vehicle                 @relation(fields: [organizationId, vehicleId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_vehicle_id_fkey")
-  customer          Customer?               @relation(fields: [organizationId, customerId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_customer_id_fkey")
-  parkingSpot       ParkingSpot?            @relation(fields: [organizationId, locationId, parkingSpotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_parking_spot_id_fkey")
-  keySlot           KeySlot?                @relation(fields: [organizationId, locationId, keySlotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_key_slot_id_fkey")
-  currentAssignee   OrganizationMembership? @relation("ValetSessionCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_current_assignee_id_fkey")
-  checkedInBy       OrganizationMembership  @relation("ValetSessionCheckedInBy", fields: [organizationId, checkedInByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_checked_in_by_id_fkey")
-  completedBy       OrganizationMembership? @relation("ValetSessionCompletedBy", fields: [organizationId, completedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_completed_by_id_fkey")
-  auditEvents       AuditEvent[]
-  retrievalRequests RetrievalRequest[]
+  organization         Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "valet_sessions_organization_id_fkey")
+  location             Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_location_id_fkey")
+  vehicle              Vehicle                 @relation(fields: [organizationId, vehicleId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_vehicle_id_fkey")
+  customer             Customer?               @relation(fields: [organizationId, customerId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_customer_id_fkey")
+  parkingSpot          ParkingSpot?            @relation(fields: [organizationId, locationId, parkingSpotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_parking_spot_id_fkey")
+  keySlot              KeySlot?                @relation(fields: [organizationId, locationId, keySlotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_key_slot_id_fkey")
+  currentAssignee      OrganizationMembership? @relation("ValetSessionCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_current_assignee_id_fkey")
+  checkedInBy          OrganizationMembership  @relation("ValetSessionCheckedInBy", fields: [organizationId, checkedInByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_checked_in_by_id_fkey")
+  completedBy          OrganizationMembership? @relation("ValetSessionCompletedBy", fields: [organizationId, completedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_completed_by_id_fkey")
+  auditEvents          AuditEvent[]
+  retrievalRequests    RetrievalRequest[]
+  handoffVerifications HandoffVerification[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -351,6 +362,28 @@ model RetrievalRequest {
   requestedByMembership OrganizationMembership? @relation(fields: [organizationId, requestedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "retrieval_requests_org_requested_by_membership_id_fkey")
 
   @@map("retrieval_requests")
+}
+
+model HandoffVerification {
+  id                     String                    @id @default(uuid()) @db.Uuid
+  organizationId         String                    @map("organization_id") @db.Uuid
+  valetSessionId         String                    @map("valet_session_id") @db.Uuid
+  method                 HandoffVerificationMethod
+  secretHash             String?                   @map("secret_hash")
+  expiresAt              DateTime?                 @map("expires_at") @db.Timestamptz(3)
+  attemptCount           Int                       @default(0) @map("attempt_count")
+  maxAttempts            Int                       @map("max_attempts")
+  verifiedAt             DateTime?                 @map("verified_at") @db.Timestamptz(3)
+  verifiedByMembershipId String?                   @map("verified_by_membership_id") @db.Uuid
+  consumedAt             DateTime?                 @map("consumed_at") @db.Timestamptz(3)
+  overrideReason         String?                   @map("override_reason")
+  createdAt              DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization         Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "handoff_verifications_organization_id_fkey")
+  valetSession         ValetSession            @relation(fields: [organizationId, valetSessionId], references: [organizationId, id], onDelete: Restrict, map: "handoff_verifications_org_valet_session_id_fkey")
+  verifiedByMembership OrganizationMembership? @relation(fields: [organizationId, verifiedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "handoff_verifications_org_verified_by_membership_id_fkey")
+
+  @@map("handoff_verifications")
 }
 
 model AuditEvent {
