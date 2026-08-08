@@ -62,6 +62,8 @@ model Organization {
   memberships              OrganizationMembership[]
   membershipLocationAccess MembershipLocationAccess[]
   shifts                   Shift[]
+  customers                Customer[]
+  vehicles                 Vehicle[]
 
   @@map("organizations")
 }
@@ -151,4 +153,35 @@ model Shift {
 
   @@index([locationId, status], map: "shifts_location_id_status_idx")
   @@map("shifts")
+}
+
+model Customer {
+  id              String   @id @default(uuid()) @db.Uuid
+  organizationId  String   @map("organization_id") @db.Uuid
+  phoneNormalized String   @map("phone_normalized")
+  displayName     String?  @map("display_name")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@map("customers")
+}
+
+model Vehicle {
+  id                    String   @id @default(uuid()) @db.Uuid
+  organizationId        String   @map("organization_id") @db.Uuid
+  plateCountry          String?  @map("plate_country")
+  plateNumberRaw        String?  @map("plate_number_raw")
+  plateNumberNormalized String?  @map("plate_number_normalized")
+  temporaryDescriptor   String?  @map("temporary_descriptor")
+  make                  String?
+  model                 String?
+  color                 String?
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@map("vehicles")
 }
