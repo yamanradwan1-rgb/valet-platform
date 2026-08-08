@@ -1,7 +1,7 @@
 # Repository Structure
 
 Status: Binding  
-Version: 0.1
+Version: 0.2
 
 ```text
 valet-platform/
@@ -17,6 +17,7 @@ valet-platform/
 │   └── pull_request_template.md
 ├── CONTRIBUTING.md
 ├── README.md
+├── PROJECT_TREE.txt
 ├── package.json
 ├── pnpm-workspace.yaml
 ├── turbo.json
@@ -85,6 +86,7 @@ valet-platform/
 │
 └── docs/
     ├── reference/
+    │   └── Valet_Project_Concept_Arabic.pdf
     ├── 00_SOURCE_OF_TRUTH.md
     ├── 01_PRODUCT_SCOPE.md
     ├── 02_DOMAIN_MODEL.md
@@ -98,64 +100,93 @@ valet-platform/
     ├── 10_REPOSITORY_STRUCTURE.md
     ├── 11_REQUIREMENTS_TRACEABILITY.md
     ├── 12_AGENT_EXECUTION_PLAN.md
-    └── 13_COLLABORATION_WORKFLOW.md
+    ├── 13_COLLABORATION_WORKFLOW.md
+    ├── 14_PROJECT_STATUS.md
+    └── 15_BLUEPRINT_V1_REBASELINE.md
 ```
 
-## Module ownership
+The Founder & Product Blueprint v1.0 PDF is the newest approved product source supplied by the project owner. Until the binary PDF is committed under `docs/reference`, `docs/15_BLUEPRINT_V1_REBASELINE.md` is the repository-native implementation bridge.
+
+## Current module ownership
 
 ### auth
-Staff authentication, token lifecycle and guards.
+Staff authentication, session/token lifecycle and guards.
 
 ### organizations
-Organization configuration and tenant boundary.
+Organization/Company tenant boundary and Company-level defaults as typed configuration is introduced.
 
 ### locations
-Physical operating locations and policies.
+Physical operating Locations and Location-owned operational context such as timezone/currency plus approved typed policy overrides.
 
 ### staff
-Memberships, roles and location access.
+Organization memberships, roles and location access.
+
+Current tenant membership roles are:
+
+- `ORG_ADMIN`
+- `LOCATION_MANAGER`
+- `VALET_SUPERVISOR`
+- `VALET_EMPLOYEE`
+
+Venue Client and VAYLET Super Admin persistence are not to be invented inside this module without their dedicated accepted schema decisions.
 
 ### shifts
-Employee shift lifecycle.
+Employee shift lifecycle at a Location.
 
 ### customers
-Minimal guest/customer contact model.
+Minimal Guest/customer contact model and secure access relationship where implemented. No mandatory persistent customer account in sellable MVP.
 
 ### vehicles
-Reusable vehicle identity.
+Reusable vehicle identity with multi-country plate assumptions. OCR/ANPR remains assistive input with confirm/edit/manual fallback.
 
 ### valet-sessions
-Core aggregate and legal state transitions.
+Core physical-custody aggregate and explicit legal state transitions.
+
+Hybrid Dispatch assignment/acceptance/reassignment is not a ValetSession state.
 
 ### vehicle-photos
-Evidence metadata and object-storage integration.
+Private condition/evidence metadata and object-storage integration. Photo requirement is policy-driven and optional by default.
 
 ### parking
-Parking spots/zones and occupancy rules.
+Parking Zones/Spots and occupancy/location rules. Exact Zone/Map persistence is introduced by focused tasks.
 
 ### keys
-Key slots and custody/location rules.
+QR Key Slots and key-custody/location rules. Append-only custody-event persistence may be added in the focused Operations task.
 
 ### retrieval
-Retrieval request/assignment lifecycle.
+RetrievalRequest lifecycle, duplicate-request protection and customer/staff request semantics.
+
+Task assignment/reassignment belongs to a separate Dispatch/Task responsibility when that module is introduced; do not place assignment state in ValetSession or RetrievalRequest merely because a dedicated module does not exist yet.
 
 ### handoff
-OTP/verification and release authorization.
+Dynamic one-time QR / 4-digit pickup-code verification, supervisor override controls and secure completion authorization.
 
 ### notifications
-SMS/WhatsApp/email abstraction.
+SMS/WhatsApp/email abstraction and delivery records.
 
 ### payments
-Payment lifecycle and provider adapters.
+Payment lifecycle and provider adapters. Focused later work may add validation, tips, cash reconciliation and refunds without putting those states into ValetSession.
 
 ### incidents
-Operational exceptions/disputes.
+Operational exceptions/disputes and basic incident evidence integrity. Full ClaimShield remains later work.
 
 ### audit
-Append-only operational evidence.
+Append-only Black Box/audit history.
 
 ### reporting
-Read/query layer for operational dashboard metrics.
+Read/query layer for operational Dashboard metrics/reports.
+
+## Planned focused capabilities do not require premature folders
+
+Blueprint v1.0 adds approved concepts such as:
+
+- Hybrid Dispatch Task/DispatchEvent
+- Maps/GPS/geofence tracking
+- typed Configuration First policies
+- Validation/Tip/CashReconciliation/Refund
+- subscription/admin controls
+
+Do not create empty speculative modules only to mirror the Blueprint list. Add/rename modules through focused implementation tasks when ownership/interfaces are concrete.
 
 ## Dependency rule
 
@@ -164,3 +195,5 @@ Modules may collaborate through explicit application/domain interfaces.
 Do not create circular dependencies simply to make an implementation convenient.
 
 UI apps call the API; they do not connect directly to PostgreSQL.
+
+Provider-specific messaging/payment/maps/OCR/object-storage behavior should stay behind application boundaries/adapters where practical.

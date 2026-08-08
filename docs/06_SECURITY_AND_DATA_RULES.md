@@ -1,102 +1,230 @@
 # Security and Data Rules
 
 Status: Binding  
-Version: 0.1
+Version: 0.2
 
 ## Priority threats
 
 - unauthorized vehicle release
-- cross-tenant data exposure
-- guessed/stolen customer access link
-- OTP brute-force/reuse
-- employee account misuse
-- evidence tampering
-- public vehicle photos
-- fraudulent payment callbacks
+- cross-tenant or cross-location data exposure
+- guessed/stolen guest access link
+- pickup-code brute-force/reuse
+- employee account/session misuse
+- privileged admin misuse
+- evidence/Black Box tampering
+- public vehicle photos or sensitive exports
+- fraudulent payment callbacks/refunds
+- cash/validation manipulation
+- unsafe GPS/session tracking or privacy overreach
+- duplicate offline/retry mutations
 - loss of audit history
+
+## Transport and infrastructure
+
+- TLS for production network traffic.
+- Least privilege for database/cloud identities.
+- Production secrets stay outside source code in environment/secret management.
+- Encrypted backups and a documented/tested restore procedure are required before production readiness.
+- Central error/monitoring must avoid unnecessary PII/secrets.
+- Dependency/security scanning and incident-response procedures are part of production hardening.
 
 ## Staff authentication
 
 - secure password hashing using Argon2id or approved equivalent
 - short-lived access token
-- rotated/revocable refresh token
+- rotated/revocable refresh/session mechanism
 - account disable support
+- device/session revocation support as staff authentication matures
+- production Company Admin requires MFA
+- production VAYLET Super Admin requires MFA
 
-## Customer access
+Enterprise SSO is deferred until its approved later phase.
 
-MVP does not require customer passwords.
+## Roles and authorization
+
+Follow least privilege.
+
+Current tenant membership roles:
+
+- `ORG_ADMIN` = Company Admin
+- `LOCATION_MANAGER`
+- `VALET_SUPERVISOR`
+- `VALET_EMPLOYEE`
+
+Guest/Customer is not a staff membership. VAYLET Super Admin is platform-level. Venue Client requires restricted authorized location visibility; its exact persistence model remains a dedicated decision.
+
+Protected operations verify, as applicable:
+
+1. authentication / guest token validity
+2. tenant/platform scope
+3. organization membership
+4. location access
+5. role/permission
+6. resource ownership
+7. active policy/guard
+
+Cross-tenant access is a critical defect.
+
+Sensitive actions such as override, refund, role change, data export and incident close require audit with actor/time/reason where appropriate.
+
+## Guest access
+
+MVP does not require customer passwords or an account.
+
+Primary access is secure phone-based WhatsApp/SMS link, with QR fallback where needed.
 
 Use:
 
 - cryptographically unguessable scoped token
 - session-specific authorization
 - expiry/revocation policy
-- only customer-safe actions
+- only guest-safe actions/data
+- anti-abuse/rate limiting on externally usable guest endpoints
 
-## Authorization order
+Never expose exact parking coordinates, internal employee-only data or key-slot identifiers to the Guest.
 
-Protected operations verify:
+Raw guest bearer tokens must not be stored in logs/audit metadata.
 
-1. authentication where required
-2. organization membership
-3. location access
-4. role permission
-5. resource ownership
+## Secure handoff
 
-## OTP handoff
+Standard MVP verification accepts either:
 
-- cryptographically secure generation
-- short expiry
-- store only hash
-- attempt limit
-- rate limit
+- Dynamic one-time QR
+- 4-digit pickup code
+
+Security controls:
+
+- cryptographically secure secret generation
+- short/appropriate expiry
+- store only a hash or non-reusable verifier representation
+- attempt limit for pickup-code entry
+- rate limit / anti-brute-force protection
 - single use
-- no OTP value in logs/audit metadata
+- consumed verification cannot be reused
+- no plaintext pickup code/QR secret in logs/audit metadata
 
-Manager override:
+Supervisor override:
 
-- restricted role
+- restricted role/permission
 - mandatory reason
 - explicit audit event
+- cannot silently bypass vehicle/session mismatch or other configured blocking controls without an explicit accepted policy
 
-## Vehicle photos
+Enhanced/high-security handoff policies are later configuration/enterprise work unless a pilot explicitly requires them.
 
-- private S3-compatible bucket
+## Vehicle condition photos / attachments
+
+Photos are optional by default according to Blueprint v1.0 and may be required by Company/Location policy.
+
+When captured:
+
+- private S3-compatible/object-storage bucket
 - short-lived signed URLs or authorized backend proxy
 - MIME/type/size validation
+- ownership/tenant authorization
 - never publicly enumerable
 - preserve evidence integrity
+- sensitive incident evidence download/export should be auditable
 
-Retention period is TBD and must not be invented.
+Do not invent a legal retention period. Retention must later be configurable/contract-aware where required.
 
-## Payments
+## Black Box / audit / evidence
 
-- external PCI-compliant provider
-- never store PAN/CVV
-- verify webhook signature
-- idempotent webhook processing
+Operational history is append-only.
+
+- protected domain mutation + required audit event commit atomically
+- later corrections create new events rather than rewriting original facts
+- operational/audit history is not hard-deleted through normal application behavior
+- sensitive audit metadata must exclude secrets and unnecessary PII
+- high-risk evidence lock/export behavior may be introduced with Incident/ClaimShield tasks
+
+Full ClaimShield evidence-package workflow is V2; basic Black Box and incident evidence integrity are MVP requirements.
+
+## Maps, GPS and employee privacy
+
+Blueprint v1.0 approves Maps + configurable session tracking for active vehicle tasks.
+
+Default privacy rule:
+
+- tracking is tied to active Parking/Retrieval tasks
+- tracking is not continuous for the employee's entire Shift by default
+- start/stop must follow approved task/session state + Location policy
+- Guest never sees exact coordinates
+- route history/geofence storage and retention follow configured/legal policy
+- privacy notices/customer contracts must accurately describe the tracking behavior before production use
+
+Do not expand task-scoped tracking into general employee surveillance without a new explicit decision.
+
+## Payments, cash, validation and refunds
+
+Use an external PCI-compliant/tokenized provider where practical.
+
+- never store raw PAN/CVV
+- verify webhook signatures
+- idempotent/retry-safe webhook processing
 - store provider reference/status only as needed
+- keep tips/fees/validation semantics auditable
+- cash adjustments after closure require appropriate higher permission/audit according to final financial workflow
+- Valet Employee cannot issue refunds
+- refunds require authorized role, amount, reason, timestamp and audit
+
+Exact provider/compliance obligations depend on the first market and provider contract.
+
+## Offline/retry safety
+
+Offline-friendly employee actions are part of the sellable MVP direction.
+
+Design protected mutations with stable IDs/idempotency/request/device context so reconnect/sync does not create duplicate sessions, requests, tasks, payments or custody events.
+
+Operations that require authoritative online verification, such as certain payment/handoff steps, must use an explicitly documented fallback; never silently weaken security when offline.
 
 ## Secrets
 
 Use environment variables/secret manager.
 
-Never commit production secrets or real keys.
+Never commit production secrets, real API keys, raw verification codes or provider credentials.
 
 ## Privacy minimization
 
-Collect only data needed to run the valet operation.
+Collect only data needed to run/support the valet operation.
 
-Do not add identity documents, GPS tracking or unrelated profiling without explicit approval.
+Typical MVP data may include:
 
-## Retention
+- guest phone/contact token when used
+- vehicle/plate data
+- session/task/custody history
+- optional condition photos
+- task-scoped GPS/route data when policy enables it
+- external-provider payment references/status
+- incidents/audit
 
-Do not invent legal retention periods.
+Do not add identity documents, unrelated profiling or continuous location tracking without explicit approval.
 
-System design must allow later retention policies for:
+## Retention and residency
 
-- vehicle photos
-- customer contact data
+Retention must be configurable/contract/legal-policy aware for categories such as:
+
+- vehicle photos/evidence
+- guest contact data
+- route/GPS history
 - audit history
-- payments
-- incidents
+- payments/refunds/validation
+- incidents/claims
+
+Blueprint v1.0 does not define universal legal retention or residency periods. Do not invent them.
+
+Country/client-specific data residency, messaging consent and local legal requirements require local review before commercial launch.
+
+## Security operations / launch hardening
+
+Before production/paid-customer readiness, plan and verify as applicable:
+
+- authentication/authorization tests
+- tenant-isolation / IDOR tests
+- guest endpoint rate-limiting tests
+- webhook signature/idempotency tests
+- backup restore drill
+- monitoring/alerting for login/admin/payment/messaging anomalies
+- permission review for larger customers
+- rollback/release procedure
+- incident-response runbook
