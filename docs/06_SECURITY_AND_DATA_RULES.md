@@ -1,7 +1,7 @@
 # Security and Data Rules
 
 Status: Binding  
-Version: 0.2
+Version: 0.3
 
 ## Priority threats
 
@@ -160,13 +160,21 @@ Do not expand task-scoped tracking into general employee surveillance without a 
 Use an external PCI-compliant/tokenized provider where practical.
 
 - never store raw PAN/CVV
-- verify webhook signatures
-- idempotent/retry-safe webhook processing
-- store provider reference/status only as needed
-- keep tips/fees/validation semantics auditable
-- cash adjustments after closure require appropriate higher permission/audit according to final financial workflow
+- never store reusable provider payment tokens, credentials, secrets or raw callback payloads in financial/audit records
+- Payment copies Location currency and explicitly separates service amount, current customer amount due, amount paid and tip
+- Customer Pays/Venue Pays is a controlled service-responsibility value, not a Venue Client identity or settlement account
+- Validation history is first-class; superseding corrections append a row and retire only the current marker
+- tip remains a Payment field and has no payroll/distribution semantics
+- verify callback signatures before accepting provider events for processing
+- deduplicate callbacks with unique `(organization_id, provider, provider_event_id)` persistence and make financial mutation + processing result + required AuditEvent atomic
+- provider and provider reference are present only for digital flows under the accepted nullable/uniqueness rules
+- cash receipt/correction uses append-only CashEntry rows with same-tenant actor, server time and unique submission idempotency key
+- cash adjustments require a non-empty reason and appropriate permission/audit; earlier cash entries are never edited
+- shift cash close/reopen, drawer management and advanced settlement are deferred rather than approximated by a general ledger
 - Valet Employee cannot issue refunds
-- refunds require authorized role, amount, reason, timestamp and audit
+- Refund is append-only and requires authorized same-tenant actor, positive amount, non-empty reason, server timestamp, entity-specific idempotency key and audit
+- refund amount aggregation is enforced in a locked transaction so pending/successful refunds cannot exceed amount paid; role and aggregate authorization are not delegated to a row CHECK
+- financial records use restrictive relationships and are not hard-deleted through normal application behavior
 
 Exact provider/compliance obligations depend on the first market and provider contract.
 

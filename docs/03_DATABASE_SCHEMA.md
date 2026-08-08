@@ -1,7 +1,7 @@
 # Database Schema — Logical Design
 
 Status: Binding  
-Version: 0.4
+Version: 0.5
 
 Database: PostgreSQL  
 ORM: Prisma
@@ -45,10 +45,16 @@ These conventions are binding for Phase 1 unless superseded by an accepted decis
 
 - Monetary values use PostgreSQL `numeric(14,3)` / Prisma Decimal, never floating-point types.
 - Currency is an uppercase ISO 4217 three-letter code such as `JOD`, `AED` or `SAR`.
-- `amount` is the base valet charge before discount and tip where that payment model applies.
-- `tip_amount` and `discount_amount` default to zero when stored on the same record.
-- Total charge semantics are `amount - discount_amount + tip_amount`.
-- Monetary amounts must be non-negative and `discount_amount <= amount`.
+- Payment `service_amount` is the base valet charge before validation and tip.
+- Validation `amount` is the reduction applied to the customer-responsible service amount; it is not a payment or a negative ledger entry.
+- Payment `tip_amount` is the voluntary customer-paid amount in addition to the customer-responsible service amount.
+- Payment `amount_due` is the final amount to collect directly from the customer after service responsibility and current validation, plus tip.
+- Payment `amount_paid` is the current total actually collected from the customer.
+- Refund `amount` is a positive amount returned or pending return from previously collected `amount_paid`.
+- Net retained amount is derived as Payment `amount_paid - sum(SUCCEEDED Refund.amount)`; it is not duplicated on Payment.
+- All monetary values in the accepted MVP financial contract are non-negative. CashEntry type represents decreases without storing negative money.
+- Cross-row monetary invariants are enforced by locked transactional domain commands; do not claim a simple row CHECK can enforce aggregate totals.
+- A Payment copies the Location currency when created. The immutable copy preserves historical meaning if Location configuration changes later.
 - Provider adapters may convert decimal amounts to provider-specific minor units at integration boundaries.
 
 ### Tenant consistency
@@ -595,45 +601,244 @@ Rules:
 ```text
 id
 organization_id
+location_id
 valet_session_id
+service_payer
+collection_method
+currency
+service_amount
+tip_amount
+amount_due
+amount_paid
+status
+creation_idempotency_key
 provider nullable
 provider_reference nullable
-currency
-amount
-tip_amount
-discount_amount
-status
 created_at
 updated_at
 paid_at nullable
 ```
 
-Status:
+Service payer:
+
+- CUSTOMER
+- VENUE
+
+Collection method:
+
+- NONE
+- CASH
+- DIGITAL
+
+Payment status:
 
 - NOT_REQUIRED
 - UNPAID
 - PENDING
 - PAID
 - FAILED
-- REFUNDED
 
 Rules:
 
-- session must belong to `organization_id`
-- currency should match applicable Location/payment context
-- monetary columns follow the global `numeric(14,3)` convention
-- `tip_amount` default `0`
-- `discount_amount` default `0`
-- `amount >= 0`
+- at most one Payment per ValetSession, enforced by unique `(organization_id, valet_session_id)`
+- create the Payment when the session's financial policy is evaluated; absence means not yet evaluated and must never be interpreted as `NOT_REQUIRED`
+- Location and ValetSession must belong to `organization_id`, and the ValetSession must belong to the stored Location
+- `currency` is copied from the authoritative Location at creation and is immutable
+- `creation_idempotency_key` is required and unique within Organization
+- monetary columns use `numeric(14,3)`
+- `service_amount >= 0`
 - `tip_amount >= 0`
-- `discount_amount >= 0`
-- `discount_amount <= amount`
-- `provider` and `provider_reference` may be null when no external provider transaction exists
-- no raw PAN/CVV
-- webhook processing idempotent
-- financial records not hard-deleted
+- `amount_due >= 0`
+- `amount_paid >= 0` and `amount_paid <= amount_due`
+- effective customer service due is `service_amount - current_validation.amount` for `CUSTOMER` (validation amount is treated as `0` when there is no current row), or `0` for `VENUE`
+- `amount_due = effective customer service due + tip_amount`
+- `VENUE` expresses responsibility for the base service charge only; it does not create Venue Client identity, venue receivable or settlement persistence
+- `service_payer` is immutable after Payment creation; changing `CUSTOMER` to `VENUE` or `VENUE` to `CUSTOMER` by mutating Payment is forbidden
+- an incorrectly configured financial responsibility requires a dedicated future financial-correction workflow/decision; this contract does not invent one
+- `tip_amount` remains on Payment because MVP has no tip distribution/payroll lifecycle; it is included in `amount_due` for both cash and digital collection
+- non-null provider references are unique by `(organization_id, provider, provider_reference)`
+- Refund state is not copied onto Payment; a paid Payment remains `PAID` while Refund rows preserve refund lifecycle/history
+- no separate Tip table is created
+- Payment status remains independent from ValetSession state
+- pre-collection `service_amount`, `tip_amount` and current Validation may be corrected only through an explicit authorized transaction that preserves Validation history, recomputes `amount_due` and writes required audit; `service_payer` is never mutable
+- after any collection, monetary terms are not silently rewritten and returned value uses Refund
+- split tender, multiple successful collections and installment payment are not accepted MVP persistence behavior; one Payment has one collection method
+- no normal hard delete
 
-Blueprint MVP also requires cash, Customer Pays/Venue Pays, full/partial validation and tip behavior. Exact normalized Payment/Validation/Tip/CashReconciliation/Refund persistence is deferred to the focused Payments schema task rather than being guessed here.
+Required row-local Payment matrix:
+
+- `collection_method = NONE` requires status `NOT_REQUIRED`, `amount_due = 0`, `amount_paid = 0`, null provider and null provider reference
+- status `NOT_REQUIRED` requires `collection_method = NONE`
+- `collection_method = CASH` requires null provider and null provider reference
+- `collection_method = DIGITAL` requires non-null provider; provider reference may be null only while status is `UNPAID` before a reference exists, or while status is `FAILED` when the failed attempt did not create a reference
+- status `UNPAID` requires a positive unpaid balance (`amount_due > amount_paid`), no authoritative digital result pending, and collection method `CASH` or `DIGITAL`; a digital UNPAID row requires non-null provider
+- status `PENDING` requires collection method `DIGITAL`, non-null provider, non-null provider reference and `amount_paid = 0`
+- status `FAILED` requires collection method `DIGITAL`, non-null provider and a positive unpaid balance (`amount_due > amount_paid`)
+- status `PAID` requires collection method `CASH` or `DIGITAL`, `amount_due > 0`, `amount_paid = amount_due` and non-null `paid_at`
+
+Every field-to-field implication in this row-local matrix, together with the non-negative money and `amount_paid <= amount_due` rules, is intended to be enforced with database CHECK constraints. Provider/reference uniqueness is a database unique constraint. The current-Validation formula, allowed pre-collection correction transaction, cash aggregate and refund aggregate cross rows and must instead be enforced by locked transactional domain logic plus tests.
+
+## validations
+
+```text
+id
+organization_id
+payment_id
+mode
+amount
+is_current
+supersedes_validation_id nullable
+applied_by_membership_id
+applied_at
+created_at
+```
+
+Mode:
+
+- NONE
+- FULL
+- PARTIAL
+
+Rules:
+
+- Validation belongs to Payment; Organization, ValetSession and Location are inherited through the tenant-safe Payment relation rather than duplicated
+- applying membership belongs to the same Organization and must be authorized for the Payment's Location in application code
+- no initial validation is represented by no current row
+- Validation is permitted only for a Payment whose immutable `service_payer = CUSTOMER`; current and historical Validation rows can never become attached semantically to a later `VENUE` Payment because payer mutation is forbidden
+- `NONE` is used only as an explicit superseding correction and requires `amount = 0`
+- `FULL` requires `amount > 0`; transactional domain logic requires it to equal Payment `service_amount`
+- `PARTIAL` requires `amount > 0`; transactional domain logic requires it to be less than Payment `service_amount`
+- multiple history rows may exist, but a partial unique index permits at most one current Validation per Payment where `is_current = true`
+- a correction atomically marks the previous row non-current, inserts a new row pointing to the previous row, recalculates Payment `amount_due`, and writes the required AuditEvent
+- mode, amount, actor and timestamps on historical rows are immutable; rows are not deleted
+- same-Payment supersession and tenant ownership must be database-enforced where practical
+
+## cash_entries
+
+```text
+id
+organization_id
+payment_id
+entry_type
+amount
+received_or_adjusted_by_membership_id
+reason nullable
+submission_idempotency_key
+occurred_at
+created_at
+```
+
+Entry type:
+
+- RECEIPT
+- ADJUSTMENT_INCREASE
+- ADJUSTMENT_DECREASE
+
+Rules:
+
+- accepted only for a Payment whose collection method is `CASH`
+- amount uses `numeric(14,3)` and must be greater than zero
+- actor must belong to the same Organization and be authorized for the Payment's Location in application code
+- `occurred_at` is server-authoritative
+- `submission_idempotency_key` is required and unique within Organization
+- at most one `RECEIPT` exists per Payment; transactional logic requires its amount to equal the then-current `amount_due`
+- adjustment entries require a non-empty trimmed reason and correct recorded cash history; they do not represent money returned to a customer, which is a Refund
+- entries are append-only and never corrected or deleted in place
+- Payment `amount_paid` is the transactionally maintained net of receipt/increase less decrease entries and must remain between zero and `amount_due`
+- the command that inserts an entry also updates Payment status/amount and writes required AuditEvent atomically
+- Payment/CashEntry is sufficient for MVP receipt history and reconciliation reporting; shift close/reopen, cash drawer and settlement entities are deferred until a focused operational requirement exists
+
+## payment_provider_events
+
+```text
+id
+organization_id
+payment_id
+refund_id nullable
+provider
+provider_event_id
+provider_reference nullable
+processing_status
+received_at
+processed_at
+safe_result_code nullable
+created_at
+```
+
+Processing status:
+
+- PROCESSED
+- IGNORED
+
+Rules:
+
+- used only for provider-neutral digital Payment/Refund callback idempotency
+- Payment and optional Refund must belong to the same Organization, and optional Refund must belong to the referenced Payment
+- unique `(organization_id, provider, provider_event_id)` prevents duplicate callback mutation
+- `provider_reference` preserves the safe transaction/order reference carried by that event when present
+- after provider signature verification and adapter normalization, ProviderEvent insert, Payment/Refund mutation and required AuditEvent must commit in one database transaction
+- `received_at` and `processed_at` are server-authoritative; every durable row has a committed processing outcome
+- the first valid callback is normalized and transactionally committed as `PROCESSED` when its recognized financial result is applied, or `IGNORED` when it is valid but intentionally causes no financial mutation
+- duplicate delivery after commit finds the existing unique provider event row and does not repeat Payment/Refund mutation or AuditEvent
+- if processing fails before commit, the entire transaction rolls back; no durable ProviderEvent row remains and provider retry may safely execute again
+- PaymentProviderEvent is not a durable asynchronous inbox; `PROCESSED` and `IGNORED` are the only durable statuses and both describe committed outcomes
+- internal processing failure is not persisted as a ProviderEvent status; provider-reported financial failure is represented by Payment/Refund lifecycle while its successfully handled ProviderEvent is `PROCESSED`
+- a valid successful collection callback atomically sets Payment `amount_paid = amount_due`, status `PAID` and server-authoritative `paid_at`; partial digital capture is not part of the accepted MVP contract
+- store only identifiers, safe classification/result and timestamps needed for processing/audit
+- never store raw callback payload, PAN, CVV, reusable token, provider credential or secret
+- provider-specific event names/payload mapping remain in the adapter, not the core schema
+- no separate PaymentAttempt entity is required for MVP: retryable creation uses Payment `creation_idempotency_key`, callback retries use this event uniqueness, and a failed collection retry may replace Payment's current provider reference only through an explicit audited command before Payment is paid; prior callback references remain on ProviderEvent history
+
+## refunds
+
+```text
+id
+organization_id
+payment_id
+amount
+reason
+status
+authorized_by_membership_id
+idempotency_key
+provider nullable
+provider_reference nullable
+requested_at
+completed_at nullable
+created_at
+```
+
+Status:
+
+- PENDING
+- SUCCEEDED
+- FAILED
+
+Rules:
+
+- Refund is a separate append-only entity; Payment has no `REFUNDED` status
+- amount uses `numeric(14,3)` and must be greater than zero
+- reason is required, trimmed and non-empty
+- authorizing membership and Payment must belong to the same Organization; Location permission and role authorization remain application checks
+- `VALET_EMPLOYEE` is never authorized to issue a refund
+- `idempotency_key` is required and unique within Organization
+- cash refund is created as `SUCCEEDED` atomically with cash handling and `completed_at`
+- cash refund requires null provider/provider reference
+- digital refund begins `PENDING`, copies Payment provider, and a successful digital refund requires `completed_at` and provider reference
+- non-null refund provider references are unique by `(organization_id, provider, provider_reference)`
+- multiple refunds are allowed; full versus partial is derived from remaining refundable balance and is not another persisted type
+- successful refunded total is the sum of `SUCCEEDED` Refund amounts; pending amounts reserve refundable balance but are not yet returned
+- in one locked transaction, application logic must enforce `new refund amount <= amount_paid - sum(existing PENDING and SUCCEEDED refund amounts)`
+- cross-row refund totals cannot be enforced with a simple CHECK constraint and must be covered by concurrency/integration tests
+- refund authorization, Refund mutation and required AuditEvent commit atomically
+- failed/superseded Refund rows remain historical and are not hard-deleted
+
+Financial tenant/location ownership:
+
+- Payment stores `organization_id`, `location_id` and `valet_session_id` and uses composite tenant/location-safe foreign keys
+- Validation, CashEntry, PaymentProviderEvent and Refund store `organization_id` plus `payment_id`; they derive ValetSession/Location from Payment instead of duplicating those identifiers
+- every child uses a composite same-Organization Payment relation
+- applying/collecting/adjusting/refunding membership fields use same-Organization composite relations; application authorization additionally verifies Location access and role
+- all financial parent, actor and history relationships use `RESTRICT` / `NO ACTION`; normal application behavior never cascade-deletes financial history
 
 ## incidents
 
@@ -799,6 +1004,8 @@ Implement with reviewed SQL migrations where Prisma cannot express them cleanly:
 - one active ValetSession per non-null `parking_spot_id` where applicable
 - one active ValetSession per non-null `key_slot_id` where applicable
 - one active retrieval request per `valet_session_id` where status is OPEN/ACCEPTED
+- one current Validation per `payment_id` where `is_current = true`
+- one CashEntry receipt per `payment_id` where `entry_type = RECEIPT`
 
 ## Deletion policy
 
@@ -845,7 +1052,8 @@ Current schema details intentionally not locked by this document include:
 - exact map/geofence/route storage
 - exact Task/Dispatch schema
 - exact KeyCustodyEvent schema
-- exact Payment/Validation/Tip/CashReconciliation/Refund normalized schema
+- provider-specific payment/refund fields and callback payload mapping beyond the accepted provider-neutral contract
+- shift-close/reopen, cash drawer and advanced reconciliation/settlement persistence
 - country-specific plate-normalization algorithms
 - customer-access token lifetime duration
 - legal retention durations/data residency
