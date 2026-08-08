@@ -63,6 +63,18 @@ interface ValetSessionValues {
   version?: number;
 }
 
+interface AuditEventValues {
+  actorMembershipId?: string | null;
+  entityId?: string;
+  entityType?: string;
+  eventType?: string;
+  idempotencyKey?: string | null;
+  metadataJson?: Record<string, unknown>;
+  occurredAt?: Date;
+  organizationId?: string;
+  valetSessionId?: string | null;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
@@ -379,6 +391,34 @@ async function createValetSession(
     `INSERT INTO valet_sessions (${columns.join(", ")})
      VALUES (${placeholders.join(", ")})`,
     parameters,
+  );
+  return id;
+}
+
+async function createAuditEvent(
+  tenant: TenantFixture,
+  values: AuditEventValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO audit_events (
+       id, organization_id, location_id, valet_session_id,
+       actor_membership_id, event_type, entity_type, entity_id,
+       metadata_json, idempotency_key, occurred_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    [
+      id,
+      values.organizationId ?? tenant.organizationId,
+      tenant.locationId,
+      values.valetSessionId ?? null,
+      values.actorMembershipId ?? null,
+      values.eventType ?? "vehicle.recorded",
+      values.entityType ?? "Vehicle",
+      values.entityId ?? randomUUID(),
+      values.metadataJson ?? { source: "integrity-test", sequence: 1 },
+      values.idempotencyKey ?? null,
+      values.occurredAt ?? new Date(),
+    ],
   );
   return id;
 }
@@ -1785,5 +1825,286 @@ describe("valet session database foundation", () => {
         state: "CHECKING_IN",
       }),
     ).resolves.toBeTypeOf("string");
+  });
+});
+
+describe("audit event database foundation", () => {
+  it("accepts a valid AuditEvent without a session or actor", async () => {
+    const tenant = await createTenant();
+    const entityId = randomUUID();
+    const auditEventId = await createAuditEvent(tenant, { entityId });
+
+    const result = await databaseClient.query<{
+      actor_membership_id: string | null;
+      entity_id: string;
+      valet_session_id: string | null;
+    }>(
+      `SELECT actor_membership_id, entity_id, valet_session_id
+       FROM audit_events WHERE id = $1`,
+      [auditEventId],
+    );
+    expect(result.rows[0]).toEqual({
+      actor_membership_id: null,
+      entity_id: entityId,
+      valet_session_id: null,
+    });
+  });
+
+  it("accepts a valid AuditEvent with a session and actor", async () => {
+    const tenant = await createTenant();
+    const fixture = await createValetSessionFixture(tenant);
+    const valetSessionId = await createValetSession(fixture);
+    const auditEventId = await createAuditEvent(tenant, {
+      actorMembershipId: fixture.checkedInByMembershipId,
+      valetSessionId,
+    });
+
+    const result = await databaseClient.query<{
+      actor_membership_id: string;
+      valet_session_id: string;
+    }>(
+      `SELECT actor_membership_id, valet_session_id
+       FROM audit_events WHERE id = $1`,
+      [auditEventId],
+    );
+    expect(result.rows[0]).toEqual({
+      actor_membership_id: fixture.checkedInByMembershipId,
+      valet_session_id: valetSessionId,
+    });
+  });
+
+  it("enforces every required AuditEvent field", async () => {
+    const tenant = await createTenant();
+    const requiredColumns = [
+      "id",
+      "organization_id",
+      "location_id",
+      "event_type",
+      "entity_type",
+      "entity_id",
+      "metadata_json",
+      "occurred_at",
+    ];
+
+    for (const [missingIndex, missingColumn] of requiredColumns.entries()) {
+      const values: unknown[] = [
+        randomUUID(),
+        tenant.organizationId,
+        tenant.locationId,
+        "vehicle.recorded",
+        "Vehicle",
+        randomUUID(),
+        { source: "integrity-test" },
+        new Date(),
+      ];
+      values[missingIndex] = null;
+
+      await expectNotNullViolation(
+        databaseClient.query(
+          `INSERT INTO audit_events (
+             id, organization_id, location_id, event_type,
+             entity_type, entity_id, metadata_json, occurred_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          values,
+        ),
+        missingColumn,
+      );
+    }
+  });
+
+  it("stores metadata_json as structured JSONB", async () => {
+    const tenant = await createTenant();
+    const metadataJson = {
+      context: { channel: "employee-terminal", sequence: 2 },
+      tags: ["custody", "intake"],
+    };
+    const auditEventId = await createAuditEvent(tenant, { metadataJson });
+
+    const result = await databaseClient.query<{
+      data_type: string;
+      metadata_json: Record<string, unknown>;
+    }>(
+      `SELECT metadata_json, pg_typeof(metadata_json)::text AS data_type
+       FROM audit_events WHERE id = $1`,
+      [auditEventId],
+    );
+    expect(result.rows[0]).toEqual({
+      data_type: "jsonb",
+      metadata_json: metadataJson,
+    });
+  });
+
+  it("accepts a null idempotency_key", async () => {
+    const tenant = await createTenant();
+    const auditEventId = await createAuditEvent(tenant);
+
+    const result = await databaseClient.query<{
+      idempotency_key: string | null;
+    }>("SELECT idempotency_key FROM audit_events WHERE id = $1", [
+      auditEventId,
+    ]);
+    expect(result.rows[0]?.idempotency_key).toBeNull();
+  });
+
+  it("allows duplicate non-null idempotency_key values", async () => {
+    const tenant = await createTenant();
+    const idempotencyKey = `operation-${randomUUID()}`;
+    await createAuditEvent(tenant, { idempotencyKey });
+
+    await expect(
+      createAuditEvent(tenant, { idempotencyKey }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects an unknown Organization", async () => {
+    const tenant = await createTenant();
+
+    await expectPostgresError(
+      createAuditEvent(tenant, { organizationId: randomUUID() }),
+      "23503",
+    );
+  });
+
+  it("rejects a Location from another Organization", async () => {
+    const firstTenant = await createTenant();
+    const secondTenant = await createTenant();
+
+    await expectPostgresError(
+      createAuditEvent({
+        locationId: secondTenant.locationId,
+        organizationId: firstTenant.organizationId,
+      }),
+      "23503",
+      "audit_events_org_location_id_fkey",
+    );
+  });
+
+  it("rejects an actor membership from another Organization", async () => {
+    const tenant = await createTenant();
+    const otherTenant = await createTenant();
+    const otherStaff = await createStaff(otherTenant.organizationId);
+
+    await expectPostgresError(
+      createAuditEvent(tenant, {
+        actorMembershipId: otherStaff.membershipId,
+      }),
+      "23503",
+      "audit_events_org_actor_membership_id_fkey",
+    );
+  });
+
+  it("rejects a ValetSession from another Organization", async () => {
+    const tenant = await createTenant();
+    const otherFixture = await createValetSessionFixture();
+    const otherValetSessionId = await createValetSession(otherFixture);
+
+    await expectPostgresError(
+      createAuditEvent(tenant, { valetSessionId: otherValetSessionId }),
+      "23503",
+      "audit_events_org_location_valet_session_id_fkey",
+    );
+  });
+
+  it("rejects a ValetSession from another Location in the same Organization", async () => {
+    const organizationId = await createOrganization();
+    const firstLocationId = await createLocation(organizationId, "FIRST");
+    const secondLocationId = await createLocation(organizationId, "SECOND");
+    const secondFixture = await createValetSessionFixture({
+      locationId: secondLocationId,
+      organizationId,
+    });
+    const secondLocationSessionId = await createValetSession(secondFixture);
+
+    await expectPostgresError(
+      createAuditEvent(
+        { locationId: firstLocationId, organizationId },
+        { valetSessionId: secondLocationSessionId },
+      ),
+      "23503",
+      "audit_events_org_location_valet_session_id_fkey",
+    );
+  });
+
+  it("restricts deletion of referenced Organization, Location, session, and membership", async () => {
+    const tenant = await createTenant();
+    await createAuditEvent(tenant);
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM locations WHERE id = $1", [
+        tenant.locationId,
+      ]),
+      "23503",
+      "audit_events_org_location_id_fkey",
+    );
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        tenant.organizationId,
+      ]),
+      "23503",
+    );
+
+    const sessionTenant = await createTenant();
+    const fixture = await createValetSessionFixture(sessionTenant);
+    const valetSessionId = await createValetSession(fixture);
+    const actor = await createStaff(sessionTenant.organizationId);
+    await createAuditEvent(sessionTenant, {
+      actorMembershipId: actor.membershipId,
+      valetSessionId,
+    });
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM valet_sessions WHERE id = $1", [
+        valetSessionId,
+      ]),
+      "23503",
+      "audit_events_org_location_valet_session_id_fkey",
+    );
+    await expectPostgresError(
+      databaseClient.query(
+        "DELETE FROM organization_memberships WHERE id = $1",
+        [actor.membershipId],
+      ),
+      "23503",
+      "audit_events_org_actor_membership_id_fkey",
+    );
+  });
+
+  it("creates exactly the required session timeline index shape", async () => {
+    const definition = await databaseClient.query<{ indexdef: string }>(
+      `SELECT indexdef FROM pg_indexes
+       WHERE schemaname = 'public'
+         AND tablename = 'audit_events'
+         AND indexname = 'audit_events_valet_session_id_occurred_at_idx'`,
+    );
+    expect(definition.rows).toHaveLength(1);
+    expect(definition.rows[0]?.indexdef).toContain(
+      "USING btree (valet_session_id, occurred_at)",
+    );
+
+    const columns = await databaseClient.query<{
+      column_name: string;
+      column_position: string;
+      direction: string;
+    }>(
+      `SELECT a.attname AS column_name,
+              k.ordinality::text AS column_position,
+              CASE WHEN (i.indoption[k.ordinality - 1] & 1) = 1
+                   THEN 'DESC' ELSE 'ASC' END AS direction
+       FROM pg_index i
+       JOIN pg_class ci ON ci.oid = i.indexrelid
+       JOIN pg_class ct ON ct.oid = i.indrelid
+       CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY AS k(attnum, ordinality)
+       JOIN pg_attribute a ON a.attrelid = ct.oid AND a.attnum = k.attnum
+       WHERE ci.relname = 'audit_events_valet_session_id_occurred_at_idx'
+       ORDER BY k.ordinality`,
+    );
+    expect(columns.rows).toEqual([
+      {
+        column_name: "valet_session_id",
+        column_position: "1",
+        direction: "ASC",
+      },
+      { column_name: "occurred_at", column_position: "2", direction: "ASC" },
+    ]);
   });
 });
