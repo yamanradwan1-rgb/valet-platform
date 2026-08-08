@@ -103,7 +103,9 @@ valet-platform/
 │   ├── 10_REPOSITORY_STRUCTURE.md
 │   ├── 11_REQUIREMENTS_TRACEABILITY.md
 │   ├── 12_AGENT_EXECUTION_PLAN.md
-│   └── 13_COLLABORATION_WORKFLOW.md
+│   ├── 13_COLLABORATION_WORKFLOW.md
+│   ├── 14_PROJECT_STATUS.md
+│   └── 15_BLUEPRINT_V1_REBASELINE.md
 ├── infra
 │   ├── docker
 │   │   └── README.md
