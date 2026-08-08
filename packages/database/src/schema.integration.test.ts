@@ -75,17 +75,48 @@ interface AuditEventValues {
   valetSessionId?: string | null;
 }
 
+interface RetrievalRequestFixture {
+  organizationId: string;
+  valetSessionId: string;
+}
+
+interface RetrievalRequestTestFixture extends RetrievalRequestFixture {
+  customerId: string;
+  membershipId: string;
+}
+
+interface RetrievalRequestValues {
+  cancelledAt?: Date | null;
+  organizationId?: string;
+  requestedAt?: Date;
+  requestedByCustomerId?: string | null;
+  requestedByMembershipId?: string | null;
+  requestedByType: string;
+  status?: string;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
-const testDatabaseName = `valet_002b_${process.pid}_${Date.now()}`;
+const testDatabaseName = `valet_003g_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations", import.meta.url),
 );
+const expectedMigrationDirectories = [
+  "20260808000100_tenant_staff_foundation",
+  "20260808000200_blueprint_location_and_supervisor",
+  "20260808000300_customer_vehicle_foundation",
+  "20260808000400_parking_spot_key_slot_foundation",
+  "20260808000500_valet_session_foundation",
+  "20260808000600_restore_valet_session_query_indexes",
+  "20260808000700_audit_event_foundation",
+  "20260808000800_retrieval_request_foundation",
+];
 
 let databaseCreated = false;
 let databaseClient: Client;
+let appliedMigrationDirectories: string[] = [];
 
 function connectionUrlFor(databaseName: string): string {
   const url = new URL(adminDatabaseUrl);
@@ -131,6 +162,8 @@ async function applyMigrations(client: Client): Promise<void> {
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
+
+  appliedMigrationDirectories = migrationDirectories;
 
   for (const migrationDirectory of migrationDirectories) {
     const migrationSql = await readFile(
@@ -423,6 +456,46 @@ async function createAuditEvent(
   return id;
 }
 
+async function createRetrievalRequest(
+  fixture: RetrievalRequestFixture,
+  values: RetrievalRequestValues,
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO retrieval_requests (
+       id, organization_id, valet_session_id, requested_by_type,
+       requested_by_customer_id, requested_by_membership_id,
+       status, requested_at, cancelled_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      fixture.valetSessionId,
+      values.requestedByType,
+      values.requestedByCustomerId ?? null,
+      values.requestedByMembershipId ?? null,
+      values.status ?? "OPEN",
+      values.requestedAt ?? new Date(),
+      values.cancelledAt ?? null,
+    ],
+  );
+  return id;
+}
+
+async function createRetrievalRequestTestFixture(): Promise<RetrievalRequestTestFixture> {
+  const tenant = await createTenant();
+  const valetSessionFixture = await createValetSessionFixture(tenant);
+  const valetSessionId = await createValetSession(valetSessionFixture);
+  const customerId = await createCustomer(tenant.organizationId);
+  const { membershipId } = await createStaff(tenant.organizationId);
+  return {
+    customerId,
+    membershipId,
+    organizationId: tenant.organizationId,
+    valetSessionId,
+  };
+}
+
 async function insertShift(
   tenant: TenantFixture,
   membershipId: string,
@@ -456,7 +529,7 @@ async function insertShift(
 }
 
 beforeAll(async () => {
-  expect(testDatabaseName).toMatch(/^valet_002b_\d+_\d+$/);
+  expect(testDatabaseName).toMatch(/^valet_003g_\d+_\d+$/);
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl });
   await adminClient.connect();
@@ -2106,5 +2179,526 @@ describe("audit event database foundation", () => {
       },
       { column_name: "occurred_at", column_position: "2", direction: "ASC" },
     ]);
+  });
+});
+
+describe("retrieval request database foundation", () => {
+  it("applies exactly all eight forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+  });
+
+  it("accepts a valid CUSTOMER request", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const requestedAt = new Date("2026-08-09T09:10:11.123Z");
+    const requestId = await createRetrievalRequest(fixture, {
+      requestedAt,
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+    });
+
+    const result = await databaseClient.query<{
+      cancelled_at: Date | null;
+      created_at: Date;
+      requested_at: Date;
+      requested_by_customer_id: string;
+      requested_by_membership_id: string | null;
+      requested_by_type: string;
+      status: string;
+    }>(
+      `SELECT requested_by_type::text AS requested_by_type,
+              requested_by_customer_id, requested_by_membership_id,
+              status::text AS status, requested_at, cancelled_at, created_at
+       FROM retrieval_requests WHERE id = $1`,
+      [requestId],
+    );
+    expect(result.rows[0]).toEqual({
+      cancelled_at: null,
+      created_at: expect.any(Date),
+      requested_at: requestedAt,
+      requested_by_customer_id: fixture.customerId,
+      requested_by_membership_id: null,
+      requested_by_type: "CUSTOMER",
+      status: "OPEN",
+    });
+  });
+
+  it("accepts a valid STAFF request", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const requestId = await createRetrievalRequest(fixture, {
+      requestedByMembershipId: fixture.membershipId,
+      requestedByType: "STAFF",
+    });
+
+    const result = await databaseClient.query<{
+      requested_by_customer_id: string | null;
+      requested_by_membership_id: string;
+      requested_by_type: string;
+    }>(
+      `SELECT requested_by_type::text AS requested_by_type,
+              requested_by_customer_id, requested_by_membership_id
+       FROM retrieval_requests WHERE id = $1`,
+      [requestId],
+    );
+    expect(result.rows[0]).toEqual({
+      requested_by_customer_id: null,
+      requested_by_membership_id: fixture.membershipId,
+      requested_by_type: "STAFF",
+    });
+  });
+
+  it("rejects CUSTOMER with no customer requester", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, { requestedByType: "CUSTOMER" }),
+      "23514",
+      "retrieval_requests_requester_consistency_check",
+    );
+  });
+
+  it("rejects CUSTOMER with only a staff requester", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        requestedByMembershipId: fixture.membershipId,
+        requestedByType: "CUSTOMER",
+      }),
+      "23514",
+      "retrieval_requests_requester_consistency_check",
+    );
+  });
+
+  it("rejects CUSTOMER with both requester fields", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        requestedByCustomerId: fixture.customerId,
+        requestedByMembershipId: fixture.membershipId,
+        requestedByType: "CUSTOMER",
+      }),
+      "23514",
+      "retrieval_requests_requester_consistency_check",
+    );
+  });
+
+  it("rejects STAFF with no staff requester", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, { requestedByType: "STAFF" }),
+      "23514",
+      "retrieval_requests_requester_consistency_check",
+    );
+  });
+
+  it("rejects STAFF with only a customer requester", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        requestedByCustomerId: fixture.customerId,
+        requestedByType: "STAFF",
+      }),
+      "23514",
+      "retrieval_requests_requester_consistency_check",
+    );
+  });
+
+  it("rejects STAFF with both requester fields", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        requestedByCustomerId: fixture.customerId,
+        requestedByMembershipId: fixture.membershipId,
+        requestedByType: "STAFF",
+      }),
+      "23514",
+      "retrieval_requests_requester_consistency_check",
+    );
+  });
+
+  it("rejects an unknown Organization", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        organizationId: randomUUID(),
+        requestedByCustomerId: fixture.customerId,
+        requestedByType: "CUSTOMER",
+      }),
+      "23503",
+    );
+  });
+
+  it("rejects a ValetSession from another Organization", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const otherFixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(
+        {
+          organizationId: fixture.organizationId,
+          valetSessionId: otherFixture.valetSessionId,
+        },
+        {
+          requestedByCustomerId: fixture.customerId,
+          requestedByType: "CUSTOMER",
+        },
+      ),
+      "23503",
+      "retrieval_requests_org_valet_session_id_fkey",
+    );
+  });
+
+  it("rejects a Customer from another Organization", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const otherFixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        requestedByCustomerId: otherFixture.customerId,
+        requestedByType: "CUSTOMER",
+      }),
+      "23503",
+      "retrieval_requests_org_requested_by_customer_id_fkey",
+    );
+  });
+
+  it("rejects an OrganizationMembership from another Organization", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const otherFixture = await createRetrievalRequestTestFixture();
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        requestedByMembershipId: otherFixture.membershipId,
+        requestedByType: "STAFF",
+      }),
+      "23503",
+      "retrieval_requests_org_requested_by_membership_id_fkey",
+    );
+  });
+
+  it("uses RESTRICT for every RetrievalRequest foreign key and blocks Organization deletion", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    await createRetrievalRequest(fixture, {
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+    });
+
+    const foreignKeys = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'retrieval_requests'::regclass
+         AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(foreignKeys.rows).toEqual([
+      {
+        confdeltype: "r",
+        conname: "retrieval_requests_org_requested_by_customer_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "retrieval_requests_org_requested_by_membership_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "retrieval_requests_org_valet_session_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "retrieval_requests_organization_id_fkey",
+      },
+    ]);
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        fixture.organizationId,
+      ]),
+      "23503",
+    );
+  });
+
+  it("restricts deletion of a referenced ValetSession", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    await createRetrievalRequest(fixture, {
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+    });
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM valet_sessions WHERE id = $1", [
+        fixture.valetSessionId,
+      ]),
+      "23503",
+      "retrieval_requests_org_valet_session_id_fkey",
+    );
+  });
+
+  it("restricts deletion of a referenced Customer", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    await createRetrievalRequest(fixture, {
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+    });
+
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM customers WHERE id = $1", [
+        fixture.customerId,
+      ]),
+      "23503",
+      "retrieval_requests_org_requested_by_customer_id_fkey",
+    );
+  });
+
+  it("restricts deletion of a referenced OrganizationMembership", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    await createRetrievalRequest(fixture, {
+      requestedByMembershipId: fixture.membershipId,
+      requestedByType: "STAFF",
+    });
+
+    await expectPostgresError(
+      databaseClient.query(
+        "DELETE FROM organization_memberships WHERE id = $1",
+        [fixture.membershipId],
+      ),
+      "23503",
+      "retrieval_requests_org_requested_by_membership_id_fkey",
+    );
+  });
+
+  it("accepts the first OPEN request for a ValetSession", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expect(
+      createRetrievalRequest(fixture, {
+        requestedByCustomerId: fixture.customerId,
+        requestedByType: "CUSTOMER",
+        status: "OPEN",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects a second OPEN request for the same ValetSession", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const values = {
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+      status: "OPEN",
+    };
+    await createRetrievalRequest(fixture, values);
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, values),
+      "23505",
+      "retrieval_requests_one_active_per_valet_session_idx",
+    );
+  });
+
+  it("rejects OPEN plus ACCEPTED for the same ValetSession", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    await createRetrievalRequest(fixture, {
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+      status: "OPEN",
+    });
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, {
+        requestedByMembershipId: fixture.membershipId,
+        requestedByType: "STAFF",
+        status: "ACCEPTED",
+      }),
+      "23505",
+      "retrieval_requests_one_active_per_valet_session_idx",
+    );
+  });
+
+  it("rejects ACCEPTED plus ACCEPTED for the same ValetSession", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const values = {
+      requestedByMembershipId: fixture.membershipId,
+      requestedByType: "STAFF",
+      status: "ACCEPTED",
+    };
+    await createRetrievalRequest(fixture, values);
+
+    await expectPostgresError(
+      createRetrievalRequest(fixture, values),
+      "23505",
+      "retrieval_requests_one_active_per_valet_session_idx",
+    );
+  });
+
+  it("allows an active request after a CANCELLED request", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    await createRetrievalRequest(fixture, {
+      cancelledAt: new Date(),
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+      status: "CANCELLED",
+    });
+
+    await expect(
+      createRetrievalRequest(fixture, {
+        requestedByMembershipId: fixture.membershipId,
+        requestedByType: "STAFF",
+        status: "OPEN",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("allows an active request after a COMPLETED request", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    await createRetrievalRequest(fixture, {
+      requestedByMembershipId: fixture.membershipId,
+      requestedByType: "STAFF",
+      status: "COMPLETED",
+    });
+
+    await expect(
+      createRetrievalRequest(fixture, {
+        requestedByCustomerId: fixture.customerId,
+        requestedByType: "CUSTOMER",
+        status: "ACCEPTED",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("allows multiple historical CANCELLED requests for one ValetSession", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const values = {
+      cancelledAt: new Date(),
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+      status: "CANCELLED",
+    };
+    await createRetrievalRequest(fixture, values);
+
+    await expect(createRetrievalRequest(fixture, values)).resolves.toBeTypeOf(
+      "string",
+    );
+  });
+
+  it("allows multiple historical COMPLETED requests for one ValetSession", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+    const values = {
+      requestedByMembershipId: fixture.membershipId,
+      requestedByType: "STAFF",
+      status: "COMPLETED",
+    };
+    await createRetrievalRequest(fixture, values);
+
+    await expect(createRetrievalRequest(fixture, values)).resolves.toBeTypeOf(
+      "string",
+    );
+  });
+
+  it("defines exactly the documented PostgreSQL requester enum values", async () => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT e.enumlabel
+       FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = 'retrieval_requester_type'
+       ORDER BY e.enumsortorder`,
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual([
+      "CUSTOMER",
+      "STAFF",
+    ]);
+  });
+
+  it("defines exactly the documented PostgreSQL status enum values", async () => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT e.enumlabel
+       FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = 'retrieval_request_status'
+       ORDER BY e.enumsortorder`,
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual([
+      "OPEN",
+      "ACCEPTED",
+      "CANCELLED",
+      "COMPLETED",
+    ]);
+  });
+
+  it("creates the active-request index as a partial UNIQUE index", async () => {
+    const result = await databaseClient.query<{
+      has_predicate: boolean;
+      indisunique: boolean;
+    }>(
+      `SELECT i.indisunique, i.indpred IS NOT NULL AS has_predicate
+       FROM pg_index i
+       JOIN pg_class c ON c.oid = i.indexrelid
+       WHERE c.relname = 'retrieval_requests_one_active_per_valet_session_idx'`,
+    );
+    expect(result.rows).toEqual([{ has_predicate: true, indisunique: true }]);
+  });
+
+  it("uses exactly valet_session_id with the OPEN and ACCEPTED predicate", async () => {
+    const result = await databaseClient.query<{
+      columns: string[];
+      predicate: string;
+    }>(
+      `SELECT array_agg(a.attname::text ORDER BY k.ordinality) AS columns,
+              pg_get_expr(i.indpred, i.indrelid) AS predicate
+       FROM pg_index i
+       JOIN pg_class ci ON ci.oid = i.indexrelid
+       JOIN pg_class ct ON ct.oid = i.indrelid
+       CROSS JOIN LATERAL unnest(i.indkey)
+         WITH ORDINALITY AS k(attnum, ordinality)
+       JOIN pg_attribute a
+         ON a.attrelid = ct.oid AND a.attnum = k.attnum
+       WHERE ci.relname = 'retrieval_requests_one_active_per_valet_session_idx'
+       GROUP BY i.indpred, i.indrelid`,
+    );
+    expect(result.rows).toEqual([
+      {
+        columns: ["valet_session_id"],
+        predicate:
+          "(status = ANY (ARRAY['OPEN'::retrieval_request_status, 'ACCEPTED'::retrieval_request_status]))",
+      },
+    ]);
+  });
+
+  it("requires requested_at and uses the database current-time default for created_at", async () => {
+    const fixture = await createRetrievalRequestTestFixture();
+
+    await expectNotNullViolation(
+      databaseClient.query(
+        `INSERT INTO retrieval_requests (
+           id, organization_id, valet_session_id, requested_by_type,
+           requested_by_customer_id, status
+         ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          randomUUID(),
+          fixture.organizationId,
+          fixture.valetSessionId,
+          "CUSTOMER",
+          fixture.customerId,
+          "OPEN",
+        ],
+      ),
+      "requested_at",
+    );
+
+    const requestId = await createRetrievalRequest(fixture, {
+      requestedByCustomerId: fixture.customerId,
+      requestedByType: "CUSTOMER",
+      status: "CANCELLED",
+    });
+    const result = await databaseClient.query<{ created_at: Date }>(
+      "SELECT created_at FROM retrieval_requests WHERE id = $1",
+      [requestId],
+    );
+    expect(result.rows[0]?.created_at).toBeInstanceOf(Date);
   });
 });
