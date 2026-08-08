@@ -7,7 +7,7 @@
 
 - Date/time: `2026-08-08 20:16 +03:00`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Verification basis: current GitHub branch/docs/Issue state plus the human-reported local stash state for VAL-002B
+- Verification basis: current GitHub branch/docs/Issue/PR/CI state plus the human-reported local stash state for VAL-002B
 
 ## Current Milestone
 
@@ -37,27 +37,28 @@ Its decisions remain historical context but are superseded where Founder & Produ
 - Issue: **#6 — OPEN**
 - Owner: `veletpro0-lgtm`
 - Branch: `docs/VAL-002R-blueprint-v1-rebaseline`
-- Branch status: **PUSHED / active docs work**
+- PR: **#7 — OPEN**
+- Current status: **PR OPEN / CI PENDING**
 - Scope: **docs/product-contract only**
-- Application code changes: **not allowed**
-- Prisma/migration changes: **not allowed**
+- Application code changes: **none**
+- Prisma/migration changes: **none**
 
-Primary work:
+Primary work completed in the branch:
 
-- record OLD vs NEW product decision matrix
-- update source-of-truth/authority order
-- align MVP/V2/Enterprise boundaries
-- align roles/identity boundaries
-- align ValetSession physical lifecycle
-- separate Hybrid Dispatch task lifecycle from ValetSession state
-- bring assistive OCR/ANPR into sellable MVP with manual fallback
-- make condition photos optional by default/configurable
-- bring Maps + task-scoped session tracking into sellable MVP
-- align secure handoff to Dynamic QR OR 4-digit pickup code
-- align payments/cash/validation/tips scope
-- establish Configuration First: Company default -> Location override
-- align internationalization/offline/reliability expectations
-- align development sequence
+- OLD vs NEW product decision matrix
+- source-of-truth/authority-order update
+- MVP/V2/Enterprise boundary alignment
+- roles/identity-boundary alignment
+- ValetSession physical lifecycle alignment
+- Hybrid Dispatch Task lifecycle separated from ValetSession state
+- assistive OCR/ANPR added to sellable MVP with manual fallback
+- condition photos made optional by default/configurable
+- Maps + task-scoped session tracking added to sellable MVP
+- secure handoff aligned to Dynamic QR OR 4-digit pickup code
+- payments/cash/validation/tips scope aligned
+- Configuration First established as Company default -> Location override
+- internationalization/offline/reliability expectations aligned
+- execution plan / engineering / Definition of Done / collaboration rules aligned
 
 Rebaseline bridge:
 
@@ -73,7 +74,7 @@ Rebaseline bridge:
 - Current project status: **BLOCKED / PRESERVED pending VAL-002R merge**
 - Open PR: none at the time of this handoff
 
-The local coding agent completed an uncommitted implementation against the pre-rebaseline contract. The human contributor preserved all changes using:
+The local coding agent completed an uncommitted implementation against the pre-rebaseline contract. The human contributor preserved all changes using the named local stash:
 
 ```text
 VAL-002B pre Blueprint v1 rebaseline
@@ -149,7 +150,7 @@ Other actor boundaries:
 
 Current rebaseline modifies high-contention binding docs.
 
-Treat `VAL-002R` as single-owner until its PR is reviewed/merged.
+Treat `VAL-002R` as single-owner until PR #7 is reviewed/merged.
 
 Database schema/migrations remain reserved for the paused `VAL-002B` work; do not start a second independent migration task while that preserved work is unresolved.
 
@@ -164,10 +165,9 @@ Do not start the next independent database slice until VAL-002B is restored, adj
 For `VAL-002R`:
 
 ```text
-finish consistency review
--> open PR from docs/VAL-002R-blueprint-v1-rebaseline to main
--> CI
--> review docs against Issue #6 + Blueprint rebaseline bridge
+CI for PR #7
+-> review PR against Issue #6 + Blueprint rebaseline bridge
+-> resolve any findings
 -> human merge decision
 ```
 
