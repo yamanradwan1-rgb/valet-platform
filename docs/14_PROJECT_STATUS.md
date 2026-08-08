@@ -5,15 +5,16 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-08 21:03 +03:00`
+- Date/time: `2026-08-09 00:05 +03:00`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Verification basis: local `main`/`origin/main` refs and merge history through PR #8
+- Remote `main`: `c8bd64586a6b9c33e50ff5a84a2303eb6ceff76d`
+- Verification basis: GitHub main history, merged PR #20, CI run #27, Issue #19, and the user-reported local terminal state before PR #20 merged
 
 ## Current Milestone
 
 **Phase 1 — Foundation: data, tenants, staff and audit-ready structure**
 
-Phase 0 bootstrap is complete. The Founder & Product Blueprint v1.0 product-contract rebaseline and the Tenant & Staff database foundation are merged. The remaining no-plate Vehicle identity ambiguity is being closed before Customer + Vehicle persistence is implemented.
+Phase 0 is complete. Phase 1 now has the tenant/staff, Customer/Vehicle, ParkingSpot/KeySlot, ValetSession and AuditEvent/Black Box persistence foundations merged with PostgreSQL integrity coverage.
 
 ## Completed
 
@@ -25,45 +26,113 @@ Phase 0 bootstrap is complete. The Founder & Product Blueprint v1.0 product-cont
 ### VAL-002A — Lock previous Phase 1 Database Contract
 
 - Issue #2
-- PR #3 — `docs: lock Phase 1 database contract`
+- PR #3
 - Status: **MERGED / COMPLETED**
-- Note: retained as historical context where later Blueprint decisions supersede it
+- Note: historical where later Blueprint v1.0 decisions supersede it
 
 ### VAL-002R — Rebaseline Product Contracts to Founder Blueprint v1.0
 
 - Issue #6
 - PR #7
-- Branch: `docs/VAL-002R-blueprint-v1-rebaseline`
 - Status: **MERGED / COMPLETED**
-- Result: Blueprint v1.0 authority, scope, roles, lifecycle, Configuration First and implementation bridge are reflected in binding repository docs
 
 ### VAL-002B — Tenant & Staff Database Foundation
 
 - Issue #4
 - PR #8
-- Branch: `feat/VAL-002B-tenant-staff-db`
+- Merge commit: `f26beb9`
 - Status: **MERGED / COMPLETED**
-- Merge commit on `main`: `f26beb9`
-- Result: Organization, Location, User, OrganizationMembership, MembershipLocationAccess and Shift foundation with tenant constraints, migrations and PostgreSQL integration coverage
-
-## Current Task
+- Result: Organization, Location, User, OrganizationMembership, MembershipLocationAccess and Shift foundation
 
 ### VAL-003A — Lock no-plate / unreadable Vehicle identity contract
 
-- Branch: `docs/VAL-003A-vehicle-identity-fallback`
-- Status: **IN PROGRESS — DOCS/DECISION ONLY**
-- Application/Prisma/migration changes: **none**
-- Objective: lock the smallest safe MVP persistence contract for a Vehicle whose plate is absent, unreadable or not yet confidently established
+- Issue #9
+- PR #10
+- Merge commit: `02b8465`
+- Status: **MERGED / COMPLETED**
+- Result: accepted DEC-020 plate-less Vehicle identity contract
 
-Decision direction under this task:
+### VAL-003B — Customer & Vehicle Database Foundation
 
-- Vehicle remains the stable Organization-scoped identity even when plate identity is unknown
-- grouped plate fields are all known or all absent
-- a required temporary/manual descriptor supports operational recognition while absent
-- unidentified Vehicles remain distinct by UUID
-- tenant-scoped plate uniqueness applies only when normalized plate identity exists
-- later identification/correction is explicit and audited
-- automatic merge/deduplication remains deferred
+- Issue #11
+- PR #12
+- Merge commit: `ddcdc1c`
+- Status: **MERGED / COMPLETED**
+
+### VAL-003C — Parking Spot & Key Slot Database Foundation
+
+- Issue #13
+- PR #14
+- Merge commit: `e3cf4dc`
+- Status: **MERGED / COMPLETED**
+
+### VAL-003D — ValetSession Database Foundation
+
+- Issue #15
+- PR #16
+- Merge commit: `3577320`
+- Status: **MERGED / COMPLETED**
+- Result: canonical nine-state ValetSession persistence, tenant/location-safe relations, version/completion checks and active-session uniqueness protections
+
+### VAL-003E — Restore Required ValetSession Query Indexes
+
+- Issue #17
+- PR #18
+- Merge commit: `3f76a23`
+- Status: **MERGED / COMPLETED**
+- Result: all three binding ValetSession query indexes restored through a forward-only migration
+
+### VAL-003F — AuditEvent / Black Box Database Foundation
+
+- Issue #19
+- PR #20
+- Branch: `feat/VAL-003F-audit-event-db`
+- Source commit: `cc721df`
+- Merge commit: `c8bd645`
+- Status: **MERGED / COMPLETED**
+- CI: **PASSED** — lint, typecheck, test and build
+- Result: append-only AuditEvent persistence foundation, tenant/location-safe session and actor relations, required timeline index, 13 focused tests; database package reached 99 passing tests in the task validation
+
+## Current Task
+
+No implementation task is currently active after VAL-003F merged.
+
+Recommended next focused Phase 1 slice:
+
+```text
+RetrievalRequest database foundation
+```
+
+Create and scope the next Issue from current `main` before implementation. Do not start another migration task until ownership is explicit.
+
+## Remaining Phase 1 Foundation Slices
+
+The execution plan still calls for separately scoped persistence/foundation work for:
+
+- RetrievalRequest
+- HandoffVerification
+- Payment foundation
+- Incident
+- Notification
+- demo/seed data when its dedicated task is reached
+
+Task/Dispatch, KeyCustodyEvent, ParkingZone/Maps/GPS and domain command/check-in implementation belong to later focused phases/tasks and should not be pulled into these persistence slices without an accepted scope change.
+
+## Local / Remote Handoff State
+
+At the last user-reported terminal state before PR #20 merged:
+
+```text
+LOCAL WORKING TREE: clean
+LOCAL BRANCH: feat/VAL-003F-audit-event-db
+LOCAL/REMOTE FEATURE COMMIT: cc721df
+FEATURE BRANCH: pushed
+PR #20: now merged remotely
+REMOTE main: c8bd645
+LOCAL main: not yet confirmed synced to c8bd645 after the merge
+```
+
+Therefore the first local action next session is to synchronize `main` before creating the next task branch.
 
 ## Current Product / Domain Baseline
 
@@ -96,36 +165,41 @@ VALET_SUPERVISOR
 VALET_EMPLOYEE
 ```
 
+Audit/Black Box history is append-only by contract. Protected future domain mutations that require audit must commit the mutation and required AuditEvent atomically.
+
 ## Dependencies / Contention
 
-- VAL-003A changes high-contention binding database/domain/decision documents and should remain single-owner until reviewed/merged.
-- No Prisma or migration work belongs in VAL-003A.
-- The Customer + Vehicle database task depends on the accepted VAL-003A contract and should start from updated `main` after the documentation decision is merged.
-- Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate decisions/tasks.
+- No active migration owner at this handoff; VAL-003F is merged.
+- `packages/database/prisma/schema.prisma` and `packages/database/prisma/migrations/**` remain CRITICAL/high-contention while Phase 1 database work continues.
+- Keep one active migration owner at a time.
+- No unresolved blocker was recorded at the end of VAL-003F.
+- Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For `VAL-003A`:
+At the start of the next session:
 
-```text
-review Option A contract against Blueprint + tenant/custody rules
--> documentation checks
--> commit/push by the human owner when approved
--> PR + CI + cross-review
--> human merge decision
+```powershell
+git checkout main
+git pull --ff-only origin main
+git status
+git log -3 --oneline
 ```
 
-Next implementation after this decision merges:
+Expected remote head:
 
 ```text
-Customer + Vehicle database foundation
--> new Prisma schema slice and migration
--> tenant/identity constraint tests
--> fresh PostgreSQL migration verification
--> pnpm lint
--> pnpm typecheck
--> pnpm test
--> pnpm build
+c8bd645 Merge pull request #20 from veletpro0-lgtm/feat/VAL-003F-audit-event-db
+```
+
+Then:
+
+```text
+verify GitHub current state
+-> create/assign the next scoped Phase 1 Issue
+-> create a branch from current main
+-> keep one migration owner
+-> provide the local coding agent a self-contained task packet
 ```
 
 ## Parallel UX/UI Track
