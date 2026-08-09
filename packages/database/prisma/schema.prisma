@@ -135,6 +135,21 @@ enum ValidationMode {
   @@map("validation_mode")
 }
 
+enum CashEntryType {
+  RECEIPT
+  ADJUSTMENT_INCREASE
+  ADJUSTMENT_DECREASE
+
+  @@map("cash_entry_type")
+}
+
+enum PaymentProviderEventProcessingStatus {
+  PROCESSED
+  IGNORED
+
+  @@map("payment_provider_event_processing_status")
+}
+
 model Organization {
   id        String             @id @default(uuid()) @db.Uuid
   name      String
@@ -157,6 +172,8 @@ model Organization {
   auditEvents              AuditEvent[]
   payments                 Payment[]
   validations              Validation[]
+  cashEntries              CashEntry[]
+  paymentProviderEvents    PaymentProviderEvent[]
 
   @@map("organizations")
 }
@@ -222,6 +239,7 @@ model OrganizationMembership {
   verifiedHandoffs         HandoffVerification[]
   auditEvents              AuditEvent[]
   appliedValidations       Validation[]
+  cashEntries              CashEntry[]
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -444,10 +462,12 @@ model Payment {
   updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
   paidAt                 DateTime?               @map("paid_at") @db.Timestamptz(3)
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "payments_organization_id_fkey")
-  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "payments_org_location_id_fkey")
-  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "payments_org_location_valet_session_id_fkey")
-  validations  Validation[]
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "payments_organization_id_fkey")
+  location       Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "payments_org_location_id_fkey")
+  valetSession   ValetSession           @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "payments_org_location_valet_session_id_fkey")
+  validations    Validation[]
+  cashEntries    CashEntry[]
+  providerEvents PaymentProviderEvent[]
 
   @@unique([organizationId, valetSessionId], map: "payments_organization_id_valet_session_id_key")
   @@unique([organizationId, creationIdempotencyKey], map: "payments_organization_id_creation_idempotency_key")
@@ -476,6 +496,47 @@ model Validation {
 
   @@unique([organizationId, paymentId, id], map: "validations_organization_id_payment_id_id_key")
   @@map("validations")
+}
+
+model CashEntry {
+  id                               String        @id @default(uuid()) @db.Uuid
+  organizationId                   String        @map("organization_id") @db.Uuid
+  paymentId                        String        @map("payment_id") @db.Uuid
+  entryType                        CashEntryType @map("entry_type")
+  amount                           Decimal       @db.Decimal(14, 3)
+  receivedOrAdjustedByMembershipId String        @map("received_or_adjusted_by_membership_id") @db.Uuid
+  reason                           String?
+  submissionIdempotencyKey         String        @map("submission_idempotency_key")
+  occurredAt                       DateTime      @map("occurred_at") @db.Timestamptz(3)
+  createdAt                        DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization                   Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "cash_entries_organization_id_fkey")
+  payment                        Payment                @relation(fields: [organizationId, paymentId], references: [organizationId, id], onDelete: Restrict, map: "cash_entries_org_payment_id_fkey")
+  receivedOrAdjustedByMembership OrganizationMembership @relation(fields: [organizationId, receivedOrAdjustedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "cash_entries_org_received_or_adjusted_by_membership_id_fkey")
+
+  @@unique([organizationId, submissionIdempotencyKey], map: "cash_entries_organization_id_submission_idempotency_key")
+  @@map("cash_entries")
+}
+
+model PaymentProviderEvent {
+  id                String                               @id @default(uuid()) @db.Uuid
+  organizationId    String                               @map("organization_id") @db.Uuid
+  paymentId         String                               @map("payment_id") @db.Uuid
+  refundId          String?                              @map("refund_id") @db.Uuid
+  provider          String
+  providerEventId   String                               @map("provider_event_id")
+  providerReference String?                              @map("provider_reference")
+  processingStatus  PaymentProviderEventProcessingStatus @map("processing_status")
+  receivedAt        DateTime                             @map("received_at") @db.Timestamptz(3)
+  processedAt       DateTime                             @map("processed_at") @db.Timestamptz(3)
+  safeResultCode    String?                              @map("safe_result_code")
+  createdAt         DateTime                             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "payment_provider_events_organization_id_fkey")
+  payment      Payment      @relation(fields: [organizationId, paymentId], references: [organizationId, id], onDelete: Restrict, map: "payment_provider_events_org_payment_id_fkey")
+
+  @@unique([organizationId, provider, providerEventId], map: "payment_provider_events_org_provider_event_id_key")
+  @@map("payment_provider_events")
 }
 
 model AuditEvent {
