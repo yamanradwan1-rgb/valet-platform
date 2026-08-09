@@ -53,6 +53,9 @@ importers:
       '@nestjs/swagger':
         specifier: ^11.0.0
         version: 11.4.6(@nestjs/common@11.1.28(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.28)(reflect-metadata@0.2.2)
+      pg:
+        specifier: ^8.0.0
+        version: 8.22.0
       reflect-metadata:
         specifier: ^0.2.0
         version: 0.2.2
@@ -63,6 +66,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.1
+      '@types/pg':
+        specifier: ^8.0.0
+        version: 8.21.0
       tsx:
         specifier: ^4.0.0
         version: 4.23.11

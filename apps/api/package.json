@@ -15,11 +15,13 @@
     "@nestjs/core": "11.1.28",
     "@nestjs/platform-express": "11.1.28",
     "@nestjs/swagger": "^11.0.0",
+    "pg": "^8.0.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.0.0",
     "tsx": "^4.0.0",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
