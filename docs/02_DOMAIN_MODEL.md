@@ -1,7 +1,7 @@
 # Domain Model
 
 Status: Binding  
-Version: 0.4
+Version: 0.5
 
 ## Aggregate center
 
@@ -282,9 +282,11 @@ Service responsibility is explicit:
 - `CUSTOMER` means the customer is responsible for the base service charge after effective validation.
 - `VENUE` means the venue is financially responsible for the base service charge. It does not create or imply a Venue Client identity, receivable or settlement account.
 
-Service responsibility is immutable after Payment creation. A `CUSTOMER` Payment cannot be changed to `VENUE`, and a `VENUE` Payment cannot be changed to `CUSTOMER`. If responsibility was configured incorrectly, correction requires a dedicated future financial-correction workflow/decision.
+Service responsibility is normally immutable. A narrowly guarded pre-collection correction may change `CUSTOMER <-> VENUE` only while `amount_paid = 0`, no CashEntry exists, no Validation history exists, and no provider transaction/reference has started. The correction must be explicitly authorized, recompute financial projections, and commit the required AuditEvent atomically. Once any of those guards cease to hold, `service_payer` is immutable.
 
 Tip is a non-negative customer-paid value on Payment for both cash and digital flows. It is not an employee distribution/payroll record.
+
+Before collection starts, an authorized financial correction may change service amount, tip or current Validation and recompute `amount_due`. If recomputation crosses the zero boundary, collection method and status must change in the same transaction: zero due uses `NONE/NOT_REQUIRED`; positive due requires selecting `CASH` or `DIGITAL` and becomes `UNPAID` with the matching provider-field rules.
 
 Payment is a current financial projection, while corrections and externally delivered facts are preserved by Validation, CashEntry, PaymentProviderEvent, Refund and required AuditEvent records. Once collection has occurred, monetary terms are not silently rewritten.
 
@@ -302,7 +304,7 @@ Validation belongs to Payment and therefore to the same Organization, ValetSessi
 
 No initial validation is represented by no current Validation row. Multiple historical Validation rows may exist, but at most one is current. A correction retires the current marker and appends a superseding row atomically; it does not rewrite the earlier mode or amount.
 
-Validation applies only when immutable service responsibility is `CUSTOMER`. `VENUE` responsibility already removes the base service amount from direct customer collection and is not combined with Validation. Because payer never changes, current and historical Validation rows cannot later become semantically attached to a `VENUE` Payment.
+Validation applies only when service responsibility is `CUSTOMER`. A guarded payer correction is therefore allowed only before any Validation history exists; after Validation history exists, payer cannot change to `VENUE`.
 
 The database can enforce mode/amount shape, one current row, same-tenant relationships and non-deletion. Equality/ordering against the Payment service amount is enforced by transactional domain logic because it crosses rows.
 
@@ -324,9 +326,11 @@ Payment keeps the current `amount_paid` projection, which must equal the transac
 
 ## PaymentProviderEvent
 
-Minimal provider-neutral committed callback outcome used only for digital payment/refund retry safety. It is not a durable asynchronous inbox.
+Minimal provider-neutral committed callback outcome used only for digital payment/refund callback retry safety. It is not a durable asynchronous inbox and does not by itself define safe outbound provider-operation retries.
 
 After signature verification and adapter normalization, ProviderEvent insert, Payment/Refund mutation and required AuditEvent commit atomically. Durable outcomes are only `PROCESSED` and `IGNORED`. Failure before commit rolls back everything and leaves no event row; duplicate delivery after commit reuses the unique Organization/provider/event record and does not repeat mutation or AuditEvent.
+
+The selected-provider Phase 6 design must define stable outbound-operation idempotency and how callbacks for stale/superseded provider references are handled. Payment creation idempotency is not treated as proof of later provider-initiation retry safety. No PaymentAttempt is added unless the selected provider demonstrates a concrete need.
 
 Raw callback payloads, card data, payment tokens and provider credentials are not part of this entity.
 
@@ -336,9 +340,11 @@ Separate append-only financial correction against a Payment.
 
 Refund records a positive amount, non-empty reason, authorizing membership, request time, status, completion time when successful, stable idempotency key and an optional digital-provider reference. Cash refunds complete synchronously; digital refunds may be pending before provider confirmation.
 
+Row-state semantics are explicit: digital `PENDING` and `FAILED` require a provider and keep `completed_at` null; every `SUCCEEDED` refund requires `completed_at`; cash success has null provider/reference; digital success requires both provider and provider reference; any non-null provider reference requires provider.
+
 Multiple partial refunds and a final full refund are allowed. Full versus partial is derived from the remaining refundable balance rather than persisted as another status. Transactional application logic must lock the Payment and ensure the sum of pending/successful refunds never exceeds `amount_paid`; a simple row CHECK cannot safely enforce that aggregate.
 
-Valet Employee cannot issue refunds. Role authorization and the required atomic AuditEvent are application responsibilities; same-tenant actor/payment relationships and row-local amount/reason rules are database responsibilities.
+Valet Employee cannot issue refunds. Role authorization and the required atomic AuditEvent are application responsibilities; same-tenant actor/payment relationships and row-local amount/reason/state rules are database responsibilities.
 
 ## Incident
 
