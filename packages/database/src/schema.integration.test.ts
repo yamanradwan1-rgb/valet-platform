@@ -217,7 +217,7 @@ interface NotificationValues {
 
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
-  process.env.DATABASE_URL ??
+  process.env.MIGRATION_DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
 const testDatabaseName = `valet_003n_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(

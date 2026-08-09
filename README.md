@@ -131,8 +131,10 @@ Install and validate the workspace:
 ```text
 corepack pnpm install --frozen-lockfile
 copy .env.example .env
-# Change POSTGRES_PASSWORD in .env and use the same password in DATABASE_URL.
+# Set distinct admin and runtime passwords in the local .env.
 docker compose up -d postgres
+corepack pnpm --filter @valet/database migrate:deploy
+corepack pnpm --filter @valet/database runtime:provision
 corepack pnpm lint
 corepack pnpm typecheck
 corepack pnpm test
@@ -142,10 +144,23 @@ corepack pnpm build
 Docker Compose publishes PostgreSQL only on `127.0.0.1:5432`. Keep `.env`
 local and do not commit it.
 
-An existing PostgreSQL volume retains the password used when that volume was
-initialized; changing `.env` alone does not rotate it. Existing developers must
-either rotate the local database password explicitly, or recreate the local
-development volume only when its contents are disposable.
+`POSTGRES_USER` and `POSTGRES_PASSWORD` initialize the local migration/admin
+role. `MIGRATION_DATABASE_URL` uses that role for Prisma migrations and runtime
+role provisioning. `DATABASE_URL` uses a distinct, restricted application role
+whose password is taken from the URL by the provisioning command. Use this
+deployment order: apply migrations, run `runtime:provision` to reconcile current
+and future table grants, then start applications with `DATABASE_URL`. The runtime
+role receives application `SELECT`, `INSERT`, and `UPDATE` privileges but no
+blanket `DELETE` or `TRUNCATE`. It receives only `SELECT` and `INSERT` on
+`audit_events` and cannot own or change schema objects.
+
+An existing PostgreSQL volume retains its initialized passwords, roles and
+database state. Changing `POSTGRES_USER` in `.env` from `valet` to
+`valet_admin` does not rename or create that role in an initialized volume.
+Developers may keep the existing admin role and point `MIGRATION_DATABASE_URL`
+to it, explicitly create/rename the admin role when they understand the database
+operation, or recreate the disposable local development volume when preservation
+is unnecessary. Recreating the volume removes its local database data.
 
 To intentionally load the synthetic demo dataset, set
 `VAYLET_ALLOW_DEMO_SEED=true` in the local `.env`, keep

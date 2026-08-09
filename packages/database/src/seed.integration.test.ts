@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
-  process.env.DATABASE_URL ??
+  process.env.MIGRATION_DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
 const testDatabaseName = `valet_003p_${process.pid}_${Date.now()}`;
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
@@ -193,6 +193,7 @@ beforeAll(async () => {
 
   await runPnpm(["--filter", "@valet/database", "migrate:deploy"], {
     DATABASE_URL: testDatabaseUrl,
+    MIGRATION_DATABASE_URL: testDatabaseUrl,
     NODE_ENV: "test",
   });
 
