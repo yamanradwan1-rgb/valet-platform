@@ -118,6 +118,8 @@ Raw guest bearer tokens must not be stored in logs/audit metadata.
 
 The existence of hashed guest-access fields on ValetSession is a persistence foundation, not permission for check-in commands to manufacture, return, log, or audit raw bearer tokens. Guest issuance/authorization semantics remain a focused Phase 2 task.
 
+VAL-004E satisfies those required persistence fields with an interim disabled marker for a newly created session: no bearer credential or usable preimage is generated, the marker is both expired and revoked at the session creation timestamp, and neither the result nor the AuditEvent contains it. VAL-004F must replace that disabled state through its own secure issuance contract before any guest access is possible.
+
 ## Secure handoff
 
 Standard MVP verification accepts either:
@@ -178,6 +180,21 @@ has only `SELECT` and `INSERT` on `condition_notes` and `vehicle_photos`.
 `UPDATE`, `DELETE` and `TRUNCATE` are denied so corrections append new evidence
 instead of mutating or removing the original row. Migration/admin ownership
 remains separate from this runtime boundary.
+
+The VAL-004E `intake_operations` record is likewise `SELECT`/`INSERT` only for
+the ordinary runtime role. Its Organization-scoped operation key and normalized
+request fingerprint provide durable retry identity without persisting raw
+customer contact, plate/descriptor input, guest material or audit metadata.
+Changing or deleting that record is not a supported application correction.
+
+Intake creation derives Organization from the target persisted Location and
+requires an active authenticated user, active same-Organization membership,
+explicit Location access and an operational employee/supervisor role. It never
+trusts client-supplied tenant, membership, state, version or audit identities.
+The optional Customer, resolved/created Vehicle, disabled guest fields,
+`CHECKING_IN` ValetSession, `VALET_SESSION_CREATED` AuditEvent and operation
+record commit atomically. Phone equality never authorizes Customer reuse or
+merge, and confirmed Vehicle reuse remains constrained to the same Organization.
 
 For `complete-check-in`, the winning state/version mutation and `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent must commit in one transaction. The event uses the authorized completing membership, same Organization/Location/session scope, server-authoritative time, and safe transition/version metadata only.
 

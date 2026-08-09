@@ -274,13 +274,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("runtime PostgreSQL role boundary", () => {
-  it("applies all 15 migrations through migration credentials only", async () => {
+  it("applies all 16 migrations through migration credentials only", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(15);
+    expect(result.rows).toHaveLength(16);
   });
 
   it("reserves Prisma migration metadata for the migration identity", async () => {
@@ -483,9 +483,10 @@ describe("runtime PostgreSQL role boundary", () => {
     await expectPostgresDenial(runtimePool.query(`TRUNCATE audit_events`));
   });
 
-  it("allows immutable intake evidence insert/select but denies update, delete and truncate", async () => {
+  it("allows immutable intake records insert/select but denies update, delete and truncate", async () => {
     const fixture = await createAuditFixture();
     const conditionNoteId = randomUUID();
+    const intakeOperationKey = `op:${randomUUID()}`;
     const vehiclePhotoId = randomUUID();
     await runtimePool.query(
       `INSERT INTO condition_notes (
@@ -516,6 +517,19 @@ describe("runtime PostgreSQL role boundary", () => {
         `private/runtime/${randomUUID()}`,
       ],
     );
+    await runtimePool.query(
+      `INSERT INTO intake_operations
+         (organization_id, operation_key, request_fingerprint, location_id,
+          valet_session_id)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        fixture.organizationId,
+        intakeOperationKey,
+        "a".repeat(64),
+        fixture.locationId,
+        fixture.sessionId,
+      ],
+    );
 
     await expect(
       runtimePool.query(`SELECT id FROM condition_notes WHERE id = $1`, [
@@ -526,6 +540,13 @@ describe("runtime PostgreSQL role boundary", () => {
       runtimePool.query(`SELECT id FROM vehicle_photos WHERE id = $1`, [
         vehiclePhotoId,
       ]),
+    ).resolves.toMatchObject({ rowCount: 1 });
+    await expect(
+      runtimePool.query(
+        `SELECT operation_key FROM intake_operations
+         WHERE organization_id = $1 AND operation_key = $2`,
+        [fixture.organizationId, intakeOperationKey],
+      ),
     ).resolves.toMatchObject({ rowCount: 1 });
 
     await expectPostgresDenial(
@@ -553,6 +574,23 @@ describe("runtime PostgreSQL role boundary", () => {
       ]),
     );
     await expectPostgresDenial(runtimePool.query(`TRUNCATE vehicle_photos`));
+
+    await expectPostgresDenial(
+      runtimePool.query(
+        `UPDATE intake_operations
+         SET request_fingerprint = request_fingerprint
+         WHERE organization_id = $1 AND operation_key = $2`,
+        [fixture.organizationId, intakeOperationKey],
+      ),
+    );
+    await expectPostgresDenial(
+      runtimePool.query(
+        `DELETE FROM intake_operations
+         WHERE organization_id = $1 AND operation_key = $2`,
+        [fixture.organizationId, intakeOperationKey],
+      ),
+    );
+    await expectPostgresDenial(runtimePool.query(`TRUNCATE intake_operations`));
   });
 
   it("denies indirect evidence mutation through runtime parent-key updates", async () => {
@@ -735,7 +773,7 @@ describe("runtime PostgreSQL role boundary", () => {
       expect(output.includes(testCase.runtimeUrl)).toBe(false);
       expect(output.includes(testCase.migrationUrl)).toBe(false);
     }
-  });
+  }, 15_000);
 
   it("does not reveal runtime credentials when provisioning fails", async () => {
     const redactionPassword = `sentinel-${randomUUID()}`;

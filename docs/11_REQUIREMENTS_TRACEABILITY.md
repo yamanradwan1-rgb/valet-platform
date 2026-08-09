@@ -35,10 +35,16 @@ The historical concept remains useful for original intent but is superseded wher
 | Complete check-in concurrency | expected ValetSession `version`; stale mutation -> `VERSION_CONFLICT`; successful transition increments once |
 | Complete check-in Black Box | `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent committed atomically with the winning transition; safe metadata only |
 | Complete check-in retry boundary | state+version prevents duplicate mutation/audit; transparent original-response replay requires a focused durable operation-ID contract if needed |
+| Intake session creation | VAL-004E internal command atomically creates optional minimal Customer, resolves/creates Vehicle and creates ValetSession exactly at `CHECKING_IN`, version 1; no controller/public API |
+| Intake authorization | Target Location derives Organization; authenticated user derives active employee/supervisor membership with explicit Location access; active Shift is not required |
+| Intake retry safety | Organization-scoped durable operation ID + normalized request fingerprint; exact retry returns the original session with no duplicate rows/audit, mismatched reuse returns `IDEMPOTENCY_CONFLICT` |
+| Intake guest-access boundary | Required session fields hold an expired+revoked disabled marker with no bearer credential generated or returned; secure issuance remains VAL-004F |
+| Customer intake identity | Optional contact uses general E.164-compatible normalization; new operations create distinct minimal Customer rows because phone equality is not an approved reuse/merge policy |
 | OCR/ANPR scan + confirm/edit + manual fallback | VAL-004D internal command persists only explicit human-confirmed/manual plate input; OCR/ANPR remains optional candidate provenance with no vendor integration, DEC-012 |
 | No plate/unreadable fallback | VAL-004D internal command persists a bounded trimmed temporary descriptor and clears grouped plate fields; stable Vehicle UUID remains distinct, DEC-020 |
 | Vehicle identity correction/concurrency | Explicit authorized correction through persisted ValetSession scope; Vehicle `updated_at` optimistic token rejects stale writes; DB partial unique index maps same-tenant collision to `VEHICLE_IDENTITY_CONFLICT`; no automatic merge |
 | Vehicle identity Black Box | Vehicle mutation + one safe Vehicle-scoped AuditEvent commit atomically; event distinguishes confirmed-plate versus temporary-descriptor and set versus correction without plate/descriptor/OCR payload |
+| Intake Vehicle resolution | Human-confirmed known plate reuses the same-Organization Vehicle under the existing partial unique index; temporary descriptor always creates a distinct Vehicle; no automatic merge |
 | Condition check | VAL-004C persists append-only ConditionNote evidence and an explicit session completion marker; condition commands/guards remain pending |
 | Photos optional by default/configurable required | VAL-004C persists private VehiclePhoto metadata plus typed Organization default -> nullable Location override; upload and policy commands remain pending |
 | QR key slots | KeySlot + later KeyCustodyEvent |

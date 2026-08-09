@@ -235,16 +235,16 @@ async function provisionRuntimeRole() {
     );
 
     await client.query(
-      `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos FROM PUBLIC`,
+      `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos, intake_operations FROM PUBLIC`,
     );
     await executeFormatted(
       client,
-      "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos FROM %I",
+      "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos, intake_operations FROM %I",
       [runtimeRole],
     );
     await executeFormatted(
       client,
-      "GRANT SELECT, INSERT ON TABLE condition_notes, vehicle_photos TO %I",
+      "GRANT SELECT, INSERT ON TABLE condition_notes, vehicle_photos, intake_operations TO %I",
       [runtimeRole],
     );
 

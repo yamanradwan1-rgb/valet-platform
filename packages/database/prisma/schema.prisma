@@ -234,6 +234,7 @@ model Organization {
   notifications            Notification[]
   conditionNotes           ConditionNote[]
   vehiclePhotos            VehiclePhoto[]
+  intakeOperations         IntakeOperation[]
 
   @@map("organizations")
 }
@@ -262,6 +263,7 @@ model Location {
   incidents                Incident[]
   conditionNotes           ConditionNote[]
   vehiclePhotos            VehiclePhoto[]
+  intakeOperations         IntakeOperation[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
@@ -468,6 +470,7 @@ model ValetSession {
   notifications               Notification[]
   conditionNotes              ConditionNote[]
   vehiclePhotos               VehiclePhoto[]
+  intakeOperations            IntakeOperation[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -475,6 +478,22 @@ model ValetSession {
   @@index([vehicleId, createdAt(sort: Desc)], map: "valet_sessions_vehicle_id_created_at_idx")
   @@index([locationId, retrievalRequestedAt], map: "valet_sessions_location_id_retrieval_requested_at_idx")
   @@map("valet_sessions")
+}
+
+model IntakeOperation {
+  organizationId     String   @map("organization_id") @db.Uuid
+  operationKey       String   @map("operation_key")
+  requestFingerprint String   @map("request_fingerprint")
+  locationId         String   @map("location_id") @db.Uuid
+  valetSessionId     String   @unique(map: "intake_operations_valet_session_id_key") @map("valet_session_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "intake_operations_organization_id_fkey")
+  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "intake_operations_org_location_id_fkey")
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "intake_operations_org_location_session_id_fkey")
+
+  @@id([organizationId, operationKey], map: "intake_operations_pkey")
+  @@map("intake_operations")
 }
 
 model ConditionNote {
