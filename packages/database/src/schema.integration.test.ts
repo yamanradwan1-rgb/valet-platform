@@ -203,11 +203,23 @@ interface IncidentValues {
   valetSessionId?: string;
 }
 
+interface NotificationValues {
+  channel?: string;
+  failedAt?: Date | null;
+  organizationId?: string;
+  providerReference?: string | null;
+  recipient?: string;
+  sentAt?: Date | null;
+  status?: string;
+  templateKey?: string;
+  valetSessionId?: string | null;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
-const testDatabaseName = `valet_003m_${process.pid}_${Date.now()}`;
+const testDatabaseName = `valet_003n_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations", import.meta.url),
 );
@@ -225,6 +237,7 @@ const expectedMigrationDirectories = [
   "20260809001100_cash_entry_provider_event_foundation",
   "20260809001200_refund_foundation",
   "20260809001300_incident_foundation",
+  "20260809001400_notification_foundation",
 ];
 
 let databaseCreated = false;
@@ -858,6 +871,46 @@ async function createIncident(
   return id;
 }
 
+async function createNotification(
+  fixture: PaymentFixture,
+  values: NotificationValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  const columns = [
+    "id",
+    "organization_id",
+    "valet_session_id",
+    "channel",
+    "recipient",
+    "template_key",
+    "provider_reference",
+    "sent_at",
+    "failed_at",
+  ];
+  const parameters: unknown[] = [
+    id,
+    values.organizationId ?? fixture.organizationId,
+    values.valetSessionId === undefined ? null : values.valetSessionId,
+    values.channel ?? "SMS",
+    values.recipient ?? "synthetic-recipient",
+    values.templateKey ?? "vehicle.status",
+    values.providerReference ?? null,
+    values.sentAt ?? null,
+    values.failedAt ?? null,
+  ];
+  if (values.status !== undefined) {
+    columns.splice(6, 0, "status");
+    parameters.splice(6, 0, values.status);
+  }
+  const placeholders = parameters.map((_, index) => `$${index + 1}`);
+  await databaseClient.query(
+    `INSERT INTO notifications (${columns.join(", ")})
+     VALUES (${placeholders.join(", ")})`,
+    parameters,
+  );
+  return id;
+}
+
 async function insertShift(
   tenant: TenantFixture,
   membershipId: string,
@@ -891,7 +944,7 @@ async function insertShift(
 }
 
 beforeAll(async () => {
-  expect(testDatabaseName).toMatch(/^valet_003m_\d+_\d+$/);
+  expect(testDatabaseName).toMatch(/^valet_003n_\d+_\d+$/);
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl });
   await adminClient.connect();
@@ -5713,9 +5766,11 @@ describe("refund database foundation", () => {
 });
 
 describe("incident database foundation", () => {
-  it("applies exactly all thirteen forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
-    expect(appliedMigrationDirectories.at(-1)).toBe(
+  it("applies the first thirteen forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories.slice(0, 13)).toEqual(
+      expectedMigrationDirectories.slice(0, 13),
+    );
+    expect(appliedMigrationDirectories.at(12)).toBe(
       "20260809001300_incident_foundation",
     );
   });
@@ -6126,5 +6181,372 @@ describe("incident database foundation", () => {
     };
     const [statement, id] = statements[parent]!;
     await expectPostgresError(databaseClient.query(statement, [id]), "23503");
+  });
+});
+
+describe("notification database foundation", () => {
+  it("applies exactly all fourteen forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories.at(-1)).toBe(
+      "20260809001400_notification_foundation",
+    );
+  });
+
+  it.each([
+    ["notification_channel", ["SMS", "WHATSAPP", "EMAIL"]],
+    ["notification_status", ["PENDING", "SENT", "FAILED"]],
+  ])("defines exactly the documented %s enum", async (enumName, expected) => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT e.enumlabel
+       FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = $1
+       ORDER BY e.enumsortorder`,
+      [enumName],
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual(expected);
+  });
+
+  it("creates exactly the documented Notification columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'notifications'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "valet_session_id",
+      "channel",
+      "recipient",
+      "template_key",
+      "status",
+      "provider_reference",
+      "created_at",
+      "sent_at",
+      "failed_at",
+    ]);
+  });
+
+  it("uses the exact documented Notification types, nullability, and defaults", async () => {
+    const result = await databaseClient.query<{
+      column_default: string | null;
+      column_name: string;
+      is_nullable: string;
+      udt_name: string;
+    }>(
+      `SELECT column_name, udt_name, is_nullable, column_default
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'notifications'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows).toEqual([
+      {
+        column_default: null,
+        column_name: "id",
+        is_nullable: "NO",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "organization_id",
+        is_nullable: "NO",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "valet_session_id",
+        is_nullable: "YES",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "channel",
+        is_nullable: "NO",
+        udt_name: "notification_channel",
+      },
+      {
+        column_default: null,
+        column_name: "recipient",
+        is_nullable: "NO",
+        udt_name: "text",
+      },
+      {
+        column_default: null,
+        column_name: "template_key",
+        is_nullable: "NO",
+        udt_name: "text",
+      },
+      {
+        column_default: "'PENDING'::notification_status",
+        column_name: "status",
+        is_nullable: "NO",
+        udt_name: "notification_status",
+      },
+      {
+        column_default: null,
+        column_name: "provider_reference",
+        is_nullable: "YES",
+        udt_name: "text",
+      },
+      {
+        column_default: "CURRENT_TIMESTAMP",
+        column_name: "created_at",
+        is_nullable: "NO",
+        udt_name: "timestamptz",
+      },
+      {
+        column_default: null,
+        column_name: "sent_at",
+        is_nullable: "YES",
+        udt_name: "timestamptz",
+      },
+      {
+        column_default: null,
+        column_name: "failed_at",
+        is_nullable: "YES",
+        udt_name: "timestamptz",
+      },
+    ]);
+  });
+
+  it("does not create provider, callback, retry, content, consent, or metadata persistence", async () => {
+    const columns = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'notifications'`,
+    );
+    const actualColumns = columns.rows.map((row) => row.column_name);
+    for (const forbidden of [
+      "updated_at",
+      "location_id",
+      "provider",
+      "message_body",
+      "rendered_content",
+      "raw_payload",
+      "provider_event_id",
+      "idempotency_key",
+      "retry_count",
+      "metadata",
+      "metadata_json",
+      "consent",
+    ]) {
+      expect(actualColumns).not.toContain(forbidden);
+    }
+
+    const tables = await databaseClient.query<{ table_name: string }>(
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = 'public'
+         AND table_name LIKE 'notification%'
+         AND table_name <> 'notifications'`,
+    );
+    expect(tables.rows).toEqual([]);
+  });
+
+  it("creates only the Notification primary-key index", async () => {
+    const result = await databaseClient.query<{ indexname: string }>(
+      `SELECT indexname
+       FROM pg_indexes
+       WHERE schemaname = 'public' AND tablename = 'notifications'
+       ORDER BY indexname`,
+    );
+    expect(result.rows.map((row) => row.indexname)).toEqual([
+      "notifications_pkey",
+    ]);
+  });
+
+  it("does not create Notification database triggers", async () => {
+    const result = await databaseClient.query<{ trigger_name: string }>(
+      `SELECT trigger_name
+       FROM information_schema.triggers
+       WHERE event_object_schema = 'public'
+         AND event_object_table = 'notifications'`,
+    );
+    expect(result.rows).toEqual([]);
+  });
+
+  it("accepts a minimal Notification and applies the PENDING default", async () => {
+    const fixture = await createPaymentTestFixture();
+    const notificationId = await createNotification(fixture);
+    const result = await databaseClient.query<{
+      provider_reference: string | null;
+      status: string;
+      valet_session_id: string | null;
+    }>(
+      `SELECT status, valet_session_id, provider_reference
+       FROM notifications
+       WHERE id = $1`,
+      [notificationId],
+    );
+    expect(result.rows).toEqual([
+      {
+        provider_reference: null,
+        status: "PENDING",
+        valet_session_id: null,
+      },
+    ]);
+  });
+
+  it.each(["SMS", "WHATSAPP", "EMAIL"])(
+    "accepts Notification channel %s",
+    async (channel) => {
+      const fixture = await createPaymentTestFixture();
+      await expect(
+        createNotification(fixture, { channel }),
+      ).resolves.toBeTypeOf("string");
+    },
+  );
+
+  it("accepts a same-Organization ValetSession", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expect(
+      createNotification(fixture, { valetSessionId: fixture.valetSessionId }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("accepts SENT with sent_at", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expect(
+      createNotification(fixture, { sentAt: new Date(), status: "SENT" }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("accepts FAILED with failed_at", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expect(
+      createNotification(fixture, { failedAt: new Date(), status: "FAILED" }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("accepts a non-null provider_reference without provider coupling", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expect(
+      createNotification(fixture, { providerReference: randomUUID() }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it.each([
+    [
+      "PENDING with both timestamps",
+      { failedAt: new Date(), sentAt: new Date() },
+    ],
+    [
+      "SENT with failed_at also populated",
+      { failedAt: new Date(), sentAt: new Date(), status: "SENT" },
+    ],
+    [
+      "FAILED with sent_at also populated",
+      { failedAt: new Date(), sentAt: new Date(), status: "FAILED" },
+    ],
+  ])(
+    "does not enforce undocumented timestamp coupling: %s",
+    async (_title, values) => {
+      const fixture = await createPaymentTestFixture();
+      await expect(createNotification(fixture, values)).resolves.toBeTypeOf(
+        "string",
+      );
+    },
+  );
+
+  it("allows duplicate provider_reference values", async () => {
+    const fixture = await createPaymentTestFixture();
+    const providerReference = randomUUID();
+    await createNotification(fixture, { providerReference });
+    await expect(
+      createNotification(fixture, { providerReference }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it.each([
+    ["undocumented channel", { channel: "PUSH" }],
+    ["undocumented status", { status: "DELIVERED" }],
+  ])("rejects invalid Notification enum: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    await expectPostgresError(createNotification(fixture, values), "22P02");
+  });
+
+  it.each([
+    ["SENT without sent_at", { status: "SENT" }],
+    ["FAILED without failed_at", { status: "FAILED" }],
+  ])(
+    "rejects invalid Notification timestamp state: %s",
+    async (_title, values) => {
+      const fixture = await createPaymentTestFixture();
+      await expectPostgresError(createNotification(fixture, values), "23514");
+    },
+  );
+
+  it("rejects an unknown Notification Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createNotification(fixture, { organizationId: randomUUID() }),
+      "23503",
+      "notifications_organization_id_fkey",
+    );
+  });
+
+  it("rejects a Notification ValetSession from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createNotification(fixture, {
+        valetSessionId: otherFixture.valetSessionId,
+      }),
+      "23503",
+      "notifications_org_valet_session_id_fkey",
+    );
+  });
+
+  it("uses RESTRICT for every Notification foreign key", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'notifications'::regclass AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(result.rows).toEqual([
+      {
+        confdeltype: "r",
+        conname: "notifications_org_valet_session_id_fkey",
+      },
+      { confdeltype: "r", conname: "notifications_organization_id_fkey" },
+    ]);
+  });
+
+  it("restricts deletion of an Organization referenced by Notification", async () => {
+    const organizationId = await createOrganization();
+    const fixture: PaymentFixture = {
+      locationId: randomUUID(),
+      membershipId: randomUUID(),
+      organizationId,
+      valetSessionId: randomUUID(),
+    };
+    await createNotification(fixture);
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM organizations WHERE id = $1", [
+        organizationId,
+      ]),
+      "23503",
+      "notifications_organization_id_fkey",
+    );
+  });
+
+  it("restricts deletion of a ValetSession referenced by Notification", async () => {
+    const fixture = await createPaymentTestFixture();
+    await createNotification(fixture, {
+      valetSessionId: fixture.valetSessionId,
+    });
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM valet_sessions WHERE id = $1", [
+        fixture.valetSessionId,
+      ]),
+      "23503",
+      "notifications_org_valet_session_id_fkey",
+    );
   });
 });
