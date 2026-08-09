@@ -158,6 +158,24 @@ enum RefundStatus {
   @@map("refund_status")
 }
 
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+
+  @@map("incident_status")
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("incident_severity")
+}
+
 model Organization {
   id        String             @id @default(uuid()) @db.Uuid
   name      String
@@ -183,6 +201,7 @@ model Organization {
   cashEntries              CashEntry[]
   paymentProviderEvents    PaymentProviderEvent[]
   refunds                  Refund[]
+  incidents                Incident[]
 
   @@map("organizations")
 }
@@ -207,6 +226,7 @@ model Location {
   valetSessions            ValetSession[]
   auditEvents              AuditEvent[]
   payments                 Payment[]
+  incidents                Incident[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
@@ -250,6 +270,8 @@ model OrganizationMembership {
   appliedValidations       Validation[]
   cashEntries              CashEntry[]
   authorizedRefunds        Refund[]
+  reportedIncidents        Incident[]                 @relation("IncidentReportedBy")
+  resolvedIncidents        Incident[]                 @relation("IncidentResolvedBy")
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -401,6 +423,7 @@ model ValetSession {
   retrievalRequests    RetrievalRequest[]
   handoffVerifications HandoffVerification[]
   payments             Payment[]
+  incidents            Incident[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -575,6 +598,31 @@ model Refund {
   @@unique([organizationId, provider, providerReference], map: "refunds_organization_id_provider_provider_reference_key")
   @@unique([organizationId, paymentId, id], map: "refunds_organization_id_payment_id_id_key")
   @@map("refunds")
+}
+
+model Incident {
+  id                     String           @id @default(uuid()) @db.Uuid
+  organizationId         String           @map("organization_id") @db.Uuid
+  locationId             String           @map("location_id") @db.Uuid
+  valetSessionId         String           @map("valet_session_id") @db.Uuid
+  status                 IncidentStatus
+  severity               IncidentSeverity
+  type                   String
+  description            String
+  reportedByMembershipId String           @map("reported_by_membership_id") @db.Uuid
+  createdAt              DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  resolvedAt             DateTime?        @map("resolved_at") @db.Timestamptz(3)
+  resolvedByMembershipId String?          @map("resolved_by_membership_id") @db.Uuid
+  resolutionNotes        String?          @map("resolution_notes")
+
+  organization         Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "incidents_organization_id_fkey")
+  location             Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "incidents_org_location_id_fkey")
+  valetSession         ValetSession            @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "incidents_org_location_valet_session_id_fkey")
+  reportedByMembership OrganizationMembership  @relation("IncidentReportedBy", fields: [organizationId, reportedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "incidents_org_reported_by_membership_id_fkey")
+  resolvedByMembership OrganizationMembership? @relation("IncidentResolvedBy", fields: [organizationId, resolvedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "incidents_org_resolved_by_membership_id_fkey")
+
+  @@index([locationId, status], map: "incidents_location_id_status_idx")
+  @@map("incidents")
 }
 
 model AuditEvent {

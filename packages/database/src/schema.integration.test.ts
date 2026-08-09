@@ -189,11 +189,25 @@ interface RefundValues {
   status?: string;
 }
 
+interface IncidentValues {
+  description?: string;
+  locationId?: string;
+  organizationId?: string;
+  reportedByMembershipId?: string;
+  resolutionNotes?: string | null;
+  resolvedAt?: Date | null;
+  resolvedByMembershipId?: string | null;
+  severity?: string;
+  status?: string;
+  type?: string;
+  valetSessionId?: string;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
-const testDatabaseName = `valet_003l_${process.pid}_${Date.now()}`;
+const testDatabaseName = `valet_003m_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations", import.meta.url),
 );
@@ -210,6 +224,7 @@ const expectedMigrationDirectories = [
   "20260809001000_payment_validation_tip_foundation",
   "20260809001100_cash_entry_provider_event_foundation",
   "20260809001200_refund_foundation",
+  "20260809001300_incident_foundation",
 ];
 
 let databaseCreated = false;
@@ -813,6 +828,36 @@ async function createRefund(
   return id;
 }
 
+async function createIncident(
+  fixture: PaymentFixture,
+  values: IncidentValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO incidents (
+       id, organization_id, location_id, valet_session_id,
+       status, severity, type, description,
+       reported_by_membership_id, resolved_at,
+       resolved_by_membership_id, resolution_notes
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      values.locationId ?? fixture.locationId,
+      values.valetSessionId ?? fixture.valetSessionId,
+      values.status ?? "OPEN",
+      values.severity ?? "MEDIUM",
+      values.type ?? "VEHICLE_DAMAGE",
+      values.description ?? "Documented operational incident",
+      values.reportedByMembershipId ?? fixture.membershipId,
+      values.resolvedAt ?? null,
+      values.resolvedByMembershipId ?? null,
+      values.resolutionNotes ?? null,
+    ],
+  );
+  return id;
+}
+
 async function insertShift(
   tenant: TenantFixture,
   membershipId: string,
@@ -846,7 +891,7 @@ async function insertShift(
 }
 
 beforeAll(async () => {
-  expect(testDatabaseName).toMatch(/^valet_003l_\d+_\d+$/);
+  expect(testDatabaseName).toMatch(/^valet_003m_\d+_\d+$/);
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl });
   await adminClient.connect();
@@ -5134,9 +5179,11 @@ describe("cash entry and payment provider event database foundation", () => {
 });
 
 describe("refund database foundation", () => {
-  it("applies exactly all twelve forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
-    expect(appliedMigrationDirectories.at(-1)).toBe(
+  it("applies the first twelve forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories.slice(0, 12)).toEqual(
+      expectedMigrationDirectories.slice(0, 12),
+    );
+    expect(appliedMigrationDirectories.at(11)).toBe(
       "20260809001200_refund_foundation",
     );
   });
@@ -5663,4 +5710,421 @@ describe("refund database foundation", () => {
       await expectPostgresError(databaseClient.query(statement, [id]), "23503");
     },
   );
+});
+
+describe("incident database foundation", () => {
+  it("applies exactly all thirteen forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories.at(-1)).toBe(
+      "20260809001300_incident_foundation",
+    );
+  });
+
+  it.each([
+    ["incident_status", ["OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"]],
+    ["incident_severity", ["LOW", "MEDIUM", "HIGH", "CRITICAL"]],
+  ])("defines exactly the documented %s enum", async (enumName, expected) => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT e.enumlabel
+       FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = $1
+       ORDER BY e.enumsortorder`,
+      [enumName],
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual(expected);
+  });
+
+  it("does not create an incident_type PostgreSQL enum", async () => {
+    const result = await databaseClient.query<{ typname: string }>(
+      `SELECT typname
+       FROM pg_type
+       WHERE typname = 'incident_type'`,
+    );
+    expect(result.rows).toEqual([]);
+  });
+
+  it("creates exactly the documented Incident columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'incidents'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "location_id",
+      "valet_session_id",
+      "status",
+      "severity",
+      "type",
+      "description",
+      "reported_by_membership_id",
+      "created_at",
+      "resolved_at",
+      "resolved_by_membership_id",
+      "resolution_notes",
+    ]);
+  });
+
+  it("uses the exact documented Incident types, nullability, and defaults", async () => {
+    const result = await databaseClient.query<{
+      column_default: string | null;
+      column_name: string;
+      is_nullable: string;
+      udt_name: string;
+    }>(
+      `SELECT column_name, udt_name, is_nullable, column_default
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'incidents'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows).toEqual([
+      {
+        column_default: null,
+        column_name: "id",
+        is_nullable: "NO",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "organization_id",
+        is_nullable: "NO",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "location_id",
+        is_nullable: "NO",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "valet_session_id",
+        is_nullable: "NO",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "status",
+        is_nullable: "NO",
+        udt_name: "incident_status",
+      },
+      {
+        column_default: null,
+        column_name: "severity",
+        is_nullable: "NO",
+        udt_name: "incident_severity",
+      },
+      {
+        column_default: null,
+        column_name: "type",
+        is_nullable: "NO",
+        udt_name: "text",
+      },
+      {
+        column_default: null,
+        column_name: "description",
+        is_nullable: "NO",
+        udt_name: "text",
+      },
+      {
+        column_default: null,
+        column_name: "reported_by_membership_id",
+        is_nullable: "NO",
+        udt_name: "uuid",
+      },
+      {
+        column_default: "CURRENT_TIMESTAMP",
+        column_name: "created_at",
+        is_nullable: "NO",
+        udt_name: "timestamptz",
+      },
+      {
+        column_default: null,
+        column_name: "resolved_at",
+        is_nullable: "YES",
+        udt_name: "timestamptz",
+      },
+      {
+        column_default: null,
+        column_name: "resolved_by_membership_id",
+        is_nullable: "YES",
+        udt_name: "uuid",
+      },
+      {
+        column_default: null,
+        column_name: "resolution_notes",
+        is_nullable: "YES",
+        udt_name: "text",
+      },
+    ]);
+  });
+
+  it("does not create evidence, claim, attachment, or generic metadata persistence", async () => {
+    const columns = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'incidents'`,
+    );
+    for (const forbidden of [
+      "updated_at",
+      "task_id",
+      "evidence_id",
+      "evidence_hash",
+      "claim_id",
+      "claim_number",
+      "attachment_id",
+      "metadata",
+      "metadata_json",
+      "policy_flags",
+    ]) {
+      expect(columns.rows.map((row) => row.column_name)).not.toContain(
+        forbidden,
+      );
+    }
+
+    const tables = await databaseClient.query<{ table_name: string }>(
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = 'public'
+         AND table_name IN (
+           'incident_evidence', 'incident_evidences', 'claims',
+           'incident_attachments'
+         )`,
+    );
+    expect(tables.rows).toEqual([]);
+  });
+
+  it("does not create Incident database triggers", async () => {
+    const result = await databaseClient.query<{ trigger_name: string }>(
+      `SELECT trigger_name
+       FROM information_schema.triggers
+       WHERE event_object_schema = 'public'
+         AND event_object_table = 'incidents'`,
+    );
+    expect(result.rows).toEqual([]);
+  });
+
+  it("creates only the Incident primary key and required query index", async () => {
+    const result = await databaseClient.query<{ indexname: string }>(
+      `SELECT indexname
+       FROM pg_indexes
+       WHERE schemaname = 'public' AND tablename = 'incidents'
+       ORDER BY indexname`,
+    );
+    expect(result.rows.map((row) => row.indexname)).toEqual([
+      "incidents_location_id_status_idx",
+      "incidents_pkey",
+    ]);
+  });
+
+  it("creates the exact non-unique location/status Incident index", async () => {
+    const result = await databaseClient.query<{
+      columns: string[];
+      indisunique: boolean;
+    }>(
+      `SELECT i.indisunique,
+              array_agg(a.attname::text ORDER BY keys.ordinality) AS columns
+       FROM pg_index i
+       JOIN pg_class index_class ON index_class.oid = i.indexrelid
+       JOIN pg_class table_class ON table_class.oid = i.indrelid
+       CROSS JOIN LATERAL unnest(i.indkey)
+         WITH ORDINALITY AS keys(attnum, ordinality)
+       JOIN pg_attribute a
+         ON a.attrelid = table_class.oid AND a.attnum = keys.attnum
+       WHERE index_class.relname = 'incidents_location_id_status_idx'
+       GROUP BY i.indisunique`,
+    );
+    expect(result.rows).toEqual([
+      { columns: ["location_id", "status"], indisunique: false },
+    ]);
+  });
+
+  it("accepts a minimal OPEN Incident with nullable resolution fields", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expect(createIncident(fixture)).resolves.toBeTypeOf("string");
+  });
+
+  it.each(["OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"])(
+    "accepts Incident status %s without lifecycle coupling",
+    async (status) => {
+      const fixture = await createPaymentTestFixture();
+      await expect(createIncident(fixture, { status })).resolves.toBeTypeOf(
+        "string",
+      );
+    },
+  );
+
+  it.each(["LOW", "MEDIUM", "HIGH", "CRITICAL"])(
+    "accepts Incident severity %s",
+    async (severity) => {
+      const fixture = await createPaymentTestFixture();
+      await expect(createIncident(fixture, { severity })).resolves.toBeTypeOf(
+        "string",
+      );
+    },
+  );
+
+  it.each(["VEHICLE_DAMAGE", "CUSTOM_OPERATOR_CATEGORY"])(
+    "accepts Incident TEXT type %s",
+    async (type) => {
+      const fixture = await createPaymentTestFixture();
+      await expect(createIncident(fixture, { type })).resolves.toBeTypeOf(
+        "string",
+      );
+    },
+  );
+
+  it("accepts a same-Organization optional resolver without status coupling", async () => {
+    const fixture = await createPaymentTestFixture();
+    const resolver = await createStaff(fixture.organizationId);
+    await expect(
+      createIncident(fixture, {
+        resolutionNotes: "Reviewed by supervisor",
+        resolvedAt: new Date(),
+        resolvedByMembershipId: resolver.membershipId,
+        status: "OPEN",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it.each([
+    ["undocumented status", { status: "BLOCKED" }],
+    ["undocumented severity", { severity: "URGENT" }],
+  ])("rejects invalid Incident enum: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    await expectPostgresError(createIncident(fixture, values), "22P02");
+  });
+
+  it("rejects an unknown Incident Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createIncident(fixture, { organizationId: randomUUID() }),
+      "23503",
+    );
+  });
+
+  it("rejects an Incident Location from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createIncident(fixture, { locationId: otherFixture.locationId }),
+      "23503",
+      "incidents_org_location_id_fkey",
+    );
+  });
+
+  it("rejects an Incident ValetSession from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createIncident(fixture, { valetSessionId: otherFixture.valetSessionId }),
+      "23503",
+      "incidents_org_location_valet_session_id_fkey",
+    );
+  });
+
+  it("rejects an Incident ValetSession from another Location in the same Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherLocationId = await createLocation(fixture.organizationId);
+    const otherSessionFixture = await createValetSessionFixture({
+      locationId: otherLocationId,
+      organizationId: fixture.organizationId,
+    });
+    const otherSessionId = await createValetSession(otherSessionFixture);
+    await expectPostgresError(
+      createIncident(fixture, { valetSessionId: otherSessionId }),
+      "23503",
+      "incidents_org_location_valet_session_id_fkey",
+    );
+  });
+
+  it("rejects an Incident reporter from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createIncident(fixture, {
+        reportedByMembershipId: otherFixture.membershipId,
+      }),
+      "23503",
+      "incidents_org_reported_by_membership_id_fkey",
+    );
+  });
+
+  it("rejects an Incident resolver from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createIncident(fixture, {
+        resolvedByMembershipId: otherFixture.membershipId,
+      }),
+      "23503",
+      "incidents_org_resolved_by_membership_id_fkey",
+    );
+  });
+
+  it("uses RESTRICT for every Incident foreign key", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'incidents'::regclass AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(result.rows).toEqual([
+      { confdeltype: "r", conname: "incidents_org_location_id_fkey" },
+      {
+        confdeltype: "r",
+        conname: "incidents_org_location_valet_session_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "incidents_org_reported_by_membership_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "incidents_org_resolved_by_membership_id_fkey",
+      },
+      { confdeltype: "r", conname: "incidents_organization_id_fkey" },
+    ]);
+  });
+
+  it.each([
+    "Organization",
+    "Location",
+    "ValetSession",
+    "ReportingMembership",
+    "ResolvingMembership",
+  ])("restricts deletion of an Incident %s parent", async (parent) => {
+    const fixture = await createPaymentTestFixture();
+    const resolver = await createStaff(fixture.organizationId);
+    await createIncident(fixture, {
+      resolvedByMembershipId: resolver.membershipId,
+    });
+    const statements: Record<string, [string, string]> = {
+      Location: ["DELETE FROM locations WHERE id = $1", fixture.locationId],
+      Organization: [
+        "DELETE FROM organizations WHERE id = $1",
+        fixture.organizationId,
+      ],
+      ReportingMembership: [
+        "DELETE FROM organization_memberships WHERE id = $1",
+        fixture.membershipId,
+      ],
+      ResolvingMembership: [
+        "DELETE FROM organization_memberships WHERE id = $1",
+        resolver.membershipId,
+      ],
+      ValetSession: [
+        "DELETE FROM valet_sessions WHERE id = $1",
+        fixture.valetSessionId,
+      ],
+    };
+    const [statement, id] = statements[parent]!;
+    await expectPostgresError(databaseClient.query(statement, [id]), "23503");
+  });
 });
