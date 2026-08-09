@@ -151,11 +151,35 @@ interface ValidationValues {
   supersedesValidationId?: string | null;
 }
 
+interface CashEntryValues {
+  amount?: string;
+  entryType?: string;
+  occurredAt?: Date;
+  organizationId?: string;
+  paymentId?: string;
+  reason?: string | null;
+  receivedOrAdjustedByMembershipId?: string;
+  submissionIdempotencyKey?: string;
+}
+
+interface PaymentProviderEventValues {
+  organizationId?: string;
+  paymentId?: string;
+  processedAt?: Date;
+  processingStatus?: string;
+  provider?: string;
+  providerEventId?: string;
+  providerReference?: string | null;
+  receivedAt?: Date;
+  refundId?: string | null;
+  safeResultCode?: string | null;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
-const testDatabaseName = `valet_003j_${process.pid}_${Date.now()}`;
+const testDatabaseName = `valet_003k_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations", import.meta.url),
 );
@@ -170,6 +194,7 @@ const expectedMigrationDirectories = [
   "20260808000800_retrieval_request_foundation",
   "20260808000900_handoff_verification_foundation",
   "20260809001000_payment_validation_tip_foundation",
+  "20260809001100_cash_entry_provider_event_foundation",
 ];
 
 let databaseCreated = false;
@@ -687,6 +712,62 @@ async function createValidation(
   return id;
 }
 
+async function createCashEntry(
+  fixture: PaymentFixture,
+  paymentId: string,
+  values: CashEntryValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO cash_entries (
+       id, organization_id, payment_id, entry_type, amount,
+       received_or_adjusted_by_membership_id, reason,
+       submission_idempotency_key, occurred_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      values.paymentId ?? paymentId,
+      values.entryType ?? "RECEIPT",
+      values.amount ?? "10.000",
+      values.receivedOrAdjustedByMembershipId ?? fixture.membershipId,
+      values.reason ?? null,
+      values.submissionIdempotencyKey ?? randomUUID(),
+      values.occurredAt ?? new Date(),
+    ],
+  );
+  return id;
+}
+
+async function createPaymentProviderEvent(
+  fixture: PaymentFixture,
+  paymentId: string,
+  values: PaymentProviderEventValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO payment_provider_events (
+       id, organization_id, payment_id, refund_id, provider,
+       provider_event_id, provider_reference, processing_status,
+       received_at, processed_at, safe_result_code
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      values.paymentId ?? paymentId,
+      values.refundId ?? null,
+      values.provider ?? "gateway",
+      values.providerEventId ?? randomUUID(),
+      values.providerReference ?? null,
+      values.processingStatus ?? "PROCESSED",
+      values.receivedAt ?? new Date(),
+      values.processedAt ?? new Date(),
+      values.safeResultCode ?? null,
+    ],
+  );
+  return id;
+}
+
 async function insertShift(
   tenant: TenantFixture,
   membershipId: string,
@@ -720,7 +801,7 @@ async function insertShift(
 }
 
 beforeAll(async () => {
-  expect(testDatabaseName).toMatch(/^valet_003j_\d+_\d+$/);
+  expect(testDatabaseName).toMatch(/^valet_003k_\d+_\d+$/);
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl });
   await adminClient.connect();
@@ -3397,9 +3478,11 @@ describe("handoff verification database foundation", () => {
 });
 
 describe("payment, validation, and tip database foundation", () => {
-  it("applies exactly all ten forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
-    expect(appliedMigrationDirectories.at(-1)).toBe(
+  it("applies the first ten forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories.slice(0, 10)).toEqual(
+      expectedMigrationDirectories.slice(0, 10),
+    );
+    expect(appliedMigrationDirectories.at(9)).toBe(
       "20260809001000_payment_validation_tip_foundation",
     );
   });
@@ -3711,10 +3794,7 @@ describe("payment, validation, and tip database foundation", () => {
       `SELECT table_name
        FROM information_schema.tables
        WHERE table_schema = 'public'
-         AND table_name IN (
-           'tips', 'cash_entries', 'payment_provider_events',
-           'refunds', 'payment_attempts'
-         )`,
+         AND table_name IN ('tips', 'refunds', 'payment_attempts')`,
     );
     expect(result.rows).toEqual([]);
   });
@@ -4338,4 +4418,666 @@ describe("payment, validation, and tip database foundation", () => {
       "validations_org_payment_supersedes_id_fkey",
     );
   });
+});
+
+describe("cash entry and payment provider event database foundation", () => {
+  it("applies exactly all eleven forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories.at(-1)).toBe(
+      "20260809001100_cash_entry_provider_event_foundation",
+    );
+  });
+
+  it.each([
+    [
+      "cash_entry_type",
+      ["RECEIPT", "ADJUSTMENT_INCREASE", "ADJUSTMENT_DECREASE"],
+    ],
+    ["payment_provider_event_processing_status", ["PROCESSED", "IGNORED"]],
+  ])("defines exactly the documented %s enum", async (enumName, expected) => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT e.enumlabel
+       FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = $1
+       ORDER BY e.enumsortorder`,
+      [enumName],
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual(expected);
+  });
+
+  it("creates exactly the documented CashEntry columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'cash_entries'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "payment_id",
+      "entry_type",
+      "amount",
+      "received_or_adjusted_by_membership_id",
+      "reason",
+      "submission_idempotency_key",
+      "occurred_at",
+      "created_at",
+    ]);
+  });
+
+  it("creates exactly the documented PaymentProviderEvent columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'payment_provider_events'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "payment_id",
+      "refund_id",
+      "provider",
+      "provider_event_id",
+      "provider_reference",
+      "processing_status",
+      "received_at",
+      "processed_at",
+      "safe_result_code",
+      "created_at",
+    ]);
+  });
+
+  it("uses the exact documented physical types and nullability", async () => {
+    const result = await databaseClient.query<{
+      column_name: string;
+      is_nullable: string;
+      table_name: string;
+      udt_name: string;
+    }>(
+      `SELECT table_name, column_name, udt_name, is_nullable
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name IN ('cash_entries', 'payment_provider_events')
+       ORDER BY table_name, ordinal_position`,
+    );
+    expect(result.rows).toEqual([
+      {
+        column_name: "id",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "organization_id",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "payment_id",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "entry_type",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "cash_entry_type",
+      },
+      {
+        column_name: "amount",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "numeric",
+      },
+      {
+        column_name: "received_or_adjusted_by_membership_id",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "reason",
+        is_nullable: "YES",
+        table_name: "cash_entries",
+        udt_name: "text",
+      },
+      {
+        column_name: "submission_idempotency_key",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "text",
+      },
+      {
+        column_name: "occurred_at",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "created_at",
+        is_nullable: "NO",
+        table_name: "cash_entries",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "id",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "organization_id",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "payment_id",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "refund_id",
+        is_nullable: "YES",
+        table_name: "payment_provider_events",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "provider",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "text",
+      },
+      {
+        column_name: "provider_event_id",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "text",
+      },
+      {
+        column_name: "provider_reference",
+        is_nullable: "YES",
+        table_name: "payment_provider_events",
+        udt_name: "text",
+      },
+      {
+        column_name: "processing_status",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "payment_provider_event_processing_status",
+      },
+      {
+        column_name: "received_at",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "processed_at",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "safe_result_code",
+        is_nullable: "YES",
+        table_name: "payment_provider_events",
+        udt_name: "text",
+      },
+      {
+        column_name: "created_at",
+        is_nullable: "NO",
+        table_name: "payment_provider_events",
+        udt_name: "timestamptz",
+      },
+    ]);
+  });
+
+  it("uses database defaults only for created_at", async () => {
+    const result = await databaseClient.query<{
+      column_default: string | null;
+      column_name: string;
+      table_name: string;
+    }>(
+      `SELECT table_name, column_name, column_default
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name IN ('cash_entries', 'payment_provider_events')
+       ORDER BY table_name, ordinal_position`,
+    );
+    for (const row of result.rows) {
+      if (row.column_name === "created_at") {
+        expect(row.column_default).toBe("CURRENT_TIMESTAMP");
+      } else {
+        expect(row.column_default).toBeNull();
+      }
+    }
+  });
+
+  it("stores CashEntry amount as numeric(14,3)", async () => {
+    const result = await databaseClient.query<{
+      numeric_precision: number;
+      numeric_scale: number;
+    }>(
+      `SELECT numeric_precision, numeric_scale
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'cash_entries'
+         AND column_name = 'amount'`,
+    );
+    expect(result.rows).toEqual([{ numeric_precision: 14, numeric_scale: 3 }]);
+  });
+
+  it("does not create Refund or PaymentAttempt tables", async () => {
+    const result = await databaseClient.query<{ table_name: string }>(
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = 'public'
+         AND table_name IN ('refunds', 'payment_attempts')`,
+    );
+    expect(result.rows).toEqual([]);
+  });
+
+  it("does not create raw payload, credential, signature, token, or card columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name = 'payment_provider_events'`,
+    );
+    const columns = result.rows.map((row) => row.column_name);
+    for (const forbidden of [
+      "raw_payload",
+      "payload_json",
+      "headers",
+      "request_body",
+      "signature",
+      "signature_header",
+      "secret",
+      "credential",
+      "payment_token",
+      "pan",
+      "cvv",
+    ]) {
+      expect(columns).not.toContain(forbidden);
+    }
+  });
+
+  it("creates only the required CashEntry and ProviderEvent indexes", async () => {
+    const result = await databaseClient.query<{
+      indexname: string;
+      tablename: string;
+    }>(
+      `SELECT tablename, indexname
+       FROM pg_indexes
+       WHERE schemaname = 'public'
+         AND tablename IN ('cash_entries', 'payment_provider_events')
+       ORDER BY tablename, indexname`,
+    );
+    expect(result.rows).toEqual([
+      {
+        indexname: "cash_entries_one_receipt_per_payment_idx",
+        tablename: "cash_entries",
+      },
+      {
+        indexname: "cash_entries_organization_id_submission_idempotency_key",
+        tablename: "cash_entries",
+      },
+      { indexname: "cash_entries_pkey", tablename: "cash_entries" },
+      {
+        indexname: "payment_provider_events_org_provider_event_id_key",
+        tablename: "payment_provider_events",
+      },
+      {
+        indexname: "payment_provider_events_pkey",
+        tablename: "payment_provider_events",
+      },
+    ]);
+  });
+
+  it("creates the one-receipt protection as the exact partial unique index", async () => {
+    const result = await databaseClient.query<{
+      columns: string[];
+      indisunique: boolean;
+      predicate: string;
+    }>(
+      `SELECT i.indisunique,
+              array_agg(a.attname::text ORDER BY k.ordinality) AS columns,
+              pg_get_expr(i.indpred, i.indrelid) AS predicate
+       FROM pg_index i
+       JOIN pg_class ci ON ci.oid = i.indexrelid
+       JOIN pg_class ct ON ct.oid = i.indrelid
+       CROSS JOIN LATERAL unnest(i.indkey)
+         WITH ORDINALITY AS k(attnum, ordinality)
+       JOIN pg_attribute a
+         ON a.attrelid = ct.oid AND a.attnum = k.attnum
+       WHERE ci.relname = 'cash_entries_one_receipt_per_payment_idx'
+       GROUP BY i.indisunique, i.indpred, i.indrelid`,
+    );
+    expect(result.rows).toEqual([
+      {
+        columns: ["payment_id"],
+        indisunique: true,
+        predicate: "(entry_type = 'RECEIPT'::cash_entry_type)",
+      },
+    ]);
+  });
+
+  it.each([
+    ["RECEIPT with positive amount", {}],
+    ["RECEIPT with null reason", { reason: null }],
+    [
+      "ADJUSTMENT_INCREASE with reason",
+      { entryType: "ADJUSTMENT_INCREASE", reason: "Recorded cash increase" },
+    ],
+    [
+      "ADJUSTMENT_DECREASE with reason",
+      { entryType: "ADJUSTMENT_DECREASE", reason: "Recorded cash decrease" },
+    ],
+    [
+      "ADJUSTMENT_INCREASE with surrounding whitespace and non-empty content",
+      { entryType: "ADJUSTMENT_INCREASE", reason: " correction " },
+    ],
+  ])("accepts valid CashEntry: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expect(
+      createCashEntry(fixture, paymentId, values),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("allows multiple adjustments for one Payment", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createCashEntry(fixture, paymentId, {
+      entryType: "ADJUSTMENT_INCREASE",
+      reason: "First correction",
+    });
+    await expect(
+      createCashEntry(fixture, paymentId, {
+        entryType: "ADJUSTMENT_DECREASE",
+        reason: "Second correction",
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it.each([
+    ["zero amount", { amount: "0.000" }],
+    ["negative amount", { amount: "-0.001" }],
+    ["increase with null reason", { entryType: "ADJUSTMENT_INCREASE" }],
+    ["decrease with null reason", { entryType: "ADJUSTMENT_DECREASE" }],
+    [
+      "adjustment with empty reason",
+      { entryType: "ADJUSTMENT_INCREASE", reason: "" },
+    ],
+    [
+      "adjustment with whitespace reason",
+      { entryType: "ADJUSTMENT_DECREASE", reason: "   " },
+    ],
+  ])("rejects invalid CashEntry: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expectPostgresError(
+      createCashEntry(fixture, paymentId, values),
+      "23514",
+    );
+  });
+
+  it("rejects a CashEntry Payment from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    const otherPaymentId = await createPayment(otherFixture);
+    await expectPostgresError(
+      createCashEntry(fixture, otherPaymentId),
+      "23503",
+      "cash_entries_org_payment_id_fkey",
+    );
+  });
+
+  it("rejects a CashEntry actor from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createCashEntry(fixture, paymentId, {
+        receivedOrAdjustedByMembershipId: otherFixture.membershipId,
+      }),
+      "23503",
+      "cash_entries_org_received_or_adjusted_by_membership_id_fkey",
+    );
+  });
+
+  it("scopes cash submission idempotency to Organization", async () => {
+    const key = randomUUID();
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createCashEntry(fixture, paymentId, {
+      submissionIdempotencyKey: key,
+    });
+    await expectPostgresError(
+      createCashEntry(fixture, paymentId, {
+        entryType: "ADJUSTMENT_INCREASE",
+        reason: "Replay must fail",
+        submissionIdempotencyKey: key,
+      }),
+      "23505",
+      "cash_entries_organization_id_submission_idempotency_key",
+    );
+
+    const otherFixture = await createPaymentTestFixture();
+    const otherPaymentId = await createPayment(otherFixture);
+    await expect(
+      createCashEntry(otherFixture, otherPaymentId, {
+        submissionIdempotencyKey: key,
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects a second RECEIPT for one Payment", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createCashEntry(fixture, paymentId);
+    await expectPostgresError(
+      createCashEntry(fixture, paymentId),
+      "23505",
+      "cash_entries_one_receipt_per_payment_idx",
+    );
+  });
+
+  it("uses RESTRICT for every CashEntry foreign key", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'cash_entries'::regclass AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(result.rows).toEqual([
+      {
+        confdeltype: "r",
+        conname: "cash_entries_org_payment_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "cash_entries_org_received_or_adjusted_by_membership_id_fkey",
+      },
+      { confdeltype: "r", conname: "cash_entries_organization_id_fkey" },
+    ]);
+  });
+
+  it.each(["Organization", "Payment", "OrganizationMembership"])(
+    "restricts deletion of a CashEntry %s parent",
+    async (parent) => {
+      const fixture = await createPaymentTestFixture();
+      const paymentId = await createPayment(fixture);
+      await createCashEntry(fixture, paymentId);
+      const statements: Record<string, [string, string]> = {
+        Organization: [
+          "DELETE FROM organizations WHERE id = $1",
+          fixture.organizationId,
+        ],
+        OrganizationMembership: [
+          "DELETE FROM organization_memberships WHERE id = $1",
+          fixture.membershipId,
+        ],
+        Payment: ["DELETE FROM payments WHERE id = $1", paymentId],
+      };
+      const [statement, id] = statements[parent]!;
+      await expectPostgresError(databaseClient.query(statement, [id]), "23503");
+    },
+  );
+
+  it.each([
+    ["PROCESSED without provider reference", {}],
+    ["PROCESSED with provider reference", { providerReference: randomUUID() }],
+    ["IGNORED", { processingStatus: "IGNORED", safeResultCode: "UNRELATED" }],
+  ])("accepts valid PaymentProviderEvent: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expect(
+      createPaymentProviderEvent(fixture, paymentId, values),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("accepts multiple event IDs sharing one provider reference", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    const providerReference = randomUUID();
+    await createPaymentProviderEvent(fixture, paymentId, {
+      providerEventId: randomUUID(),
+      providerReference,
+    });
+    await expect(
+      createPaymentProviderEvent(fixture, paymentId, {
+        providerEventId: randomUUID(),
+        providerReference,
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("accepts a null refund_id", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expect(
+      createPaymentProviderEvent(fixture, paymentId, { refundId: null }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects an unknown ProviderEvent Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expectPostgresError(
+      createPaymentProviderEvent(fixture, paymentId, {
+        organizationId: randomUUID(),
+      }),
+      "23503",
+    );
+  });
+
+  it("rejects a ProviderEvent Payment from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    const otherPaymentId = await createPayment(otherFixture);
+    await expectPostgresError(
+      createPaymentProviderEvent(fixture, otherPaymentId),
+      "23503",
+      "payment_provider_events_org_payment_id_fkey",
+    );
+  });
+
+  it("rejects non-null refund_id until the Refund migration exists", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expectPostgresError(
+      createPaymentProviderEvent(fixture, paymentId, {
+        refundId: randomUUID(),
+      }),
+      "23514",
+      "payment_provider_events_refund_id_null_check",
+    );
+  });
+
+  it("scopes provider-event idempotency by Organization and provider", async () => {
+    const providerEventId = randomUUID();
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createPaymentProviderEvent(fixture, paymentId, { providerEventId });
+    await expectPostgresError(
+      createPaymentProviderEvent(fixture, paymentId, { providerEventId }),
+      "23505",
+      "payment_provider_events_org_provider_event_id_key",
+    );
+
+    const otherProviderFixture = await createPaymentTestFixture({
+      locationId: fixture.locationId,
+      organizationId: fixture.organizationId,
+    });
+    const otherProviderPaymentId = await createPayment(otherProviderFixture);
+    await expect(
+      createPaymentProviderEvent(otherProviderFixture, otherProviderPaymentId, {
+        provider: "other-gateway",
+        providerEventId,
+      }),
+    ).resolves.toBeTypeOf("string");
+
+    const otherOrganization = await createPaymentTestFixture();
+    const otherOrganizationPaymentId = await createPayment(otherOrganization);
+    await expect(
+      createPaymentProviderEvent(
+        otherOrganization,
+        otherOrganizationPaymentId,
+        { providerEventId },
+      ),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("uses RESTRICT for every PaymentProviderEvent foreign key", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'payment_provider_events'::regclass
+         AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(result.rows).toEqual([
+      {
+        confdeltype: "r",
+        conname: "payment_provider_events_org_payment_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "payment_provider_events_organization_id_fkey",
+      },
+    ]);
+  });
+
+  it.each(["Organization", "Payment"])(
+    "restricts deletion of a PaymentProviderEvent %s parent",
+    async (parent) => {
+      const fixture = await createPaymentTestFixture();
+      const paymentId = await createPayment(fixture);
+      await createPaymentProviderEvent(fixture, paymentId);
+      const statements: Record<string, [string, string]> = {
+        Organization: [
+          "DELETE FROM organizations WHERE id = $1",
+          fixture.organizationId,
+        ],
+        Payment: ["DELETE FROM payments WHERE id = $1", paymentId],
+      };
+      const [statement, id] = statements[parent]!;
+      await expectPostgresError(databaseClient.query(statement, [id]), "23503");
+    },
+  );
 });
