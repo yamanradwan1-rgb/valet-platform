@@ -5,17 +5,21 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-09 03:45 +03:00`
+- Date/time: `2026-08-09 18:10 +03:00`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Remote `main`: `b463c87f0ee6733f5a5d99c3d35d16c33ba4bd8b`
-- Local user-reported `main`: clean and synced to `b463c87`
-- Verification basis: merged PR #27 / VAL-003I, Issue #29, Issue #28, and current GitHub branch state
+- Remote `main`: `def431b07e7de2cd77c60c43c6478e0792ecd085`
+- Local user-reported `main`: clean and synced to `def431b07`
+- Verification basis: merged PR #41 / VAL-003O, closed Issue #40, current GitHub `main`, and user-reported local sync
 
 ## Current Milestone
 
-**Phase 1 — Foundation: data, tenants, staff and audit-ready structure**
+**Phase 2 — Core custody domain + check-in**
 
-Phase 0 is complete. Phase 1 has tenant/staff, Customer/Vehicle, ParkingSpot/KeySlot, ValetSession, AuditEvent/Black Box, RetrievalRequest and HandoffVerification persistence foundations merged with PostgreSQL integrity coverage. The DEC-021 financial architecture is accepted. A bounded docs-only clarification is active before the first financial migration slice begins.
+Phase 0 is complete.
+
+Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, and deterministic demo/seed data are merged to `main`.
+
+No Phase 2 implementation task is active yet. Before implementation, create/assign a focused Issue and branch from current `main` according to `docs/12_AGENT_EXECUTION_PLAN.md` and `docs/13_COLLABORATION_WORKFLOW.md`.
 
 ## Completed
 
@@ -41,138 +45,174 @@ Phase 0 is complete. Phase 1 has tenant/staff, Customer/Vehicle, ParkingSpot/Key
 
 - Issue #4
 - PR #8
-- Merge commit: `f26beb9`
 - Status: **MERGED / COMPLETED**
 - Result: Organization, Location, User, OrganizationMembership, MembershipLocationAccess and Shift foundation
 
-### VAL-003A — Lock no-plate / unreadable Vehicle identity contract
+### VAL-003A — No-plate / unreadable Vehicle identity contract
 
 - Issue #9
 - PR #10
-- Merge commit: `02b8465`
 - Status: **MERGED / COMPLETED**
-- Result: accepted DEC-020 plate-less Vehicle identity contract
+- Result: DEC-020 accepted
 
 ### VAL-003B — Customer & Vehicle Database Foundation
 
 - Issue #11
 - PR #12
-- Merge commit: `ddcdc1c`
 - Status: **MERGED / COMPLETED**
 
 ### VAL-003C — Parking Spot & Key Slot Database Foundation
 
 - Issue #13
 - PR #14
-- Merge commit: `e3cf4dc`
 - Status: **MERGED / COMPLETED**
 
 ### VAL-003D — ValetSession Database Foundation
 
 - Issue #15
 - PR #16
-- Merge commit: `3577320`
 - Status: **MERGED / COMPLETED**
-- Result: canonical nine-state ValetSession persistence, tenant/location-safe relations, version/completion checks and active-session uniqueness protections
+- Result: canonical nine-state ValetSession persistence with tenant/location-safe relations and active-session protections
 
 ### VAL-003E — Restore Required ValetSession Query Indexes
 
 - Issue #17
 - PR #18
-- Merge commit: `3f76a23`
 - Status: **MERGED / COMPLETED**
-- Result: all three binding ValetSession query indexes restored through a forward-only migration
 
 ### VAL-003F — AuditEvent / Black Box Database Foundation
 
 - Issue #19
 - PR #20
-- Source commit: `cc721df`
-- Merge commit: `c8bd645`
 - Status: **MERGED / COMPLETED**
-- Result: append-only AuditEvent persistence foundation, tenant/location-safe session and actor relations, required timeline index and focused PostgreSQL coverage
+- Result: append-only AuditEvent persistence foundation and timeline query support
 
 ### VAL-003G — RetrievalRequest Database Foundation
 
 - Issue #22
 - PR #23
 - Status: **MERGED / COMPLETED**
-- Result: tenant-safe retrieval request persistence and one-active-request protection
+- Result: requester consistency, tenant safety and one-active-request protection
 
 ### VAL-003H — HandoffVerification Database Foundation
 
 - Issue #24
 - PR #25
-- Merge commit: `e0e3d2f`
 - Status: **MERGED / COMPLETED**
-- Result: tenant-safe pickup-code, Dynamic QR and supervisor-override verification persistence foundation
+- Result: PICKUP_CODE / DYNAMIC_QR / SUPERVISOR_OVERRIDE persistence foundation without plaintext secrets
 
 ### VAL-003I — Lock Payments Persistence Contract
 
 - Issue #26
 - PR #27
-- Merge commit: `b463c87`
 - Status: **MERGED / COMPLETED**
-- Result: accepted DEC-021 payment-centric MVP financial persistence contract with Payment, Validation history, tip-on-Payment, CashEntry history, provider-event callback deduplication and separate Refund history
+- Result: DEC-021 accepted payment-centric MVP financial persistence contract
 
-## Current Task
-
-`VAL-003I-A — Clarify Financial Persistence Edge Contracts`
+### VAL-003I-A — Clarify Financial Persistence Edge Contracts
 
 - Issue #29
-- Branch: `docs/VAL-003I-A-financial-edge-contracts`
-- Baseline: `b463c87f0ee6733f5a5d99c3d35d16c33ba4bd8b`
-- Status: **DOCS CHANGES IN PROGRESS / NO PR YET**
-- Scope: docs-only clarification of DEC-021 edge semantics after independent product review
-- Required clarifications: zero/positive due transitions, narrowly guarded pre-collection payer correction, currency minor-unit precision rule, provider outbound retry/stale-reference responsibility, exact Refund row-state matrix, and Phase 1 vs Phase 6 ownership
-- Entity model remains unchanged; no PaymentAttempt, ledger, settlement or provider-specific persistence is being added
+- PR #30
+- Status: **MERGED / COMPLETED**
+- Result: DEC-022 accepted; zero/positive due transitions, guarded pre-collection payer correction, currency precision boundary, provider retry ownership and Refund row-state matrix clarified
 
-## Next Implementation Task
-
-`VAL-003J — Payment + Validation + Tip Database Foundation`
+### VAL-003J — Payment + Validation + Tip Database Foundation
 
 - Issue #28
-- Intended branch: `feat/VAL-003J-payment-validation-tip-db`
-- Status: **BLOCKED ON VAL-003I-A DOCS MERGE**
-- Migration slot must not be used until Issue #29 is merged
-- A remote branch with this name was created earlier from `b463c87`; after the docs clarification merges, start/rebase the implementation from the new `main` rather than coding against the stale baseline
+- PR #31
+- Status: **MERGED / COMPLETED**
+- Result: Payment + Validation persistence with tip on Payment and accepted financial integrity rules
 
-## Remaining Phase 1 Foundation Slices
+### VAL-003K — CashEntry + PaymentProviderEvent Database Foundation
 
-Financial persistence order is explicitly Phase 1 foundation:
+- Issue #32
+- PR #33
+- Status: **MERGED / COMPLETED**
+- Result: cash receipt/correction history and committed provider-callback replay protection foundation
 
-1. Payment + Validation + tip
-2. CashEntry + provider-event/idempotency
-3. Refund
+### VAL-003L — Refund Database Foundation
 
-Then remaining separately scoped Phase 1 foundation work includes:
+- Issue #34
+- PR #35
+- Status: **MERGED / COMPLETED**
+- Result: append-only Refund persistence and accepted provider/status/completion matrix
 
-- Incident
-- Notification
-- demo/seed data when its dedicated task is reached
+### VAL-003M — Incident Database Foundation
 
-Phase 6 consumes the Phase 1 financial persistence foundation for domain commands, provider integration, operational payment/refund workflows and related user-facing behavior. It does not own the foundational financial migrations.
+- Issue #36
+- PR #37
+- Status: **MERGED / COMPLETED**
+- Result: tenant/location-safe Incident persistence with status/severity and required query index
 
-Task/Dispatch, KeyCustodyEvent, ParkingZone/Maps/GPS and domain command/check-in implementation belong to later focused phases/tasks and should not be pulled into these persistence slices without an accepted scope change.
+### VAL-003N — Notification Database Foundation
 
-## Local / Remote Handoff State
+- Issue #38
+- PR #39
+- Status: **MERGED / COMPLETED**
+- Result: provider-neutral SMS / WhatsApp / Email Notification persistence with PENDING / SENT / FAILED state integrity
 
-Latest user-reported local state:
+### VAL-003O — Demo / Seed Data Foundation
+
+- Issue #40
+- PR #41
+- Implementation commit: `da0619c7d424e8200959beadab9b869dd3511353`
+- Merge commit: `def431b07e7de2cd77c60c43c6478e0792ecd085`
+- Status: **MERGED / COMPLETED**
+- Result:
+  - deterministic synthetic demo data for the existing Phase 1 schema
+  - standard command: `pnpm --filter @valet/database seed`
+  - production refusal when `NODE_ENV=production`
+  - one-transaction seed with rollback on failure
+  - idempotent re-seeding without destructive reset
+  - fresh PostgreSQL integration coverage using all 14 migrations
+  - first and second seed runs verified with stable logical counts
+  - schema, migrations and lockfile unchanged
+
+## Phase 1 Completion Evidence
+
+Current database foundation contains exactly **14 forward-only migrations**, ending with:
+
+```text
+20260809001400_notification_foundation
+```
+
+VAL-003O adds no migration.
+
+Latest validated database suite after seed work:
+
+```text
+392 / 392 tests passed
+```
+
+The seed integration coverage itself verifies:
+
+- fresh temporary PostgreSQL database creation
+- all 14 migrations applied
+- production seed refusal without mutation
+- actual seed command succeeds
+- actual seed command succeeds a second time
+- demo logical row counts remain stable after the second run
+- representative tenant/staff/vehicle/session/retrieval/handoff/financial/incident/notification fixtures
+
+PR #41 CI passed lint, typecheck, test and build before merge.
+
+## Current Local / Remote Handoff State
+
+Latest user-reported local state after PR #41 merge:
 
 ```text
 LOCAL WORKING TREE: clean
 LOCAL BRANCH: main
-LOCAL main: b463c87
-origin/main: b463c87
+LOCAL main: def431b
+origin/main: def431b
 ```
 
-Current remote coordination state:
+Remote coordination state:
 
 ```text
-Issue #29: OPEN — docs clarification owner
-Branch: docs/VAL-003I-A-financial-edge-contracts
-Issue #28: OPEN but implementation blocked until #29 merges
-feat/VAL-003J-payment-validation-tip-db: exists remotely from pre-clarification baseline; do not implement on it yet
+VAL-003O / Issue #40: CLOSED / COMPLETED
+PR #41: MERGED
+Phase 1 planned implementation: COMPLETE
+Active Phase 2 implementation Issue: NONE YET
 ```
 
 ## Current Product / Domain Baseline
@@ -191,7 +231,7 @@ CHECKING_IN
 -> COMPLETED
 ```
 
-Canonical Hybrid Dispatch Task lifecycle:
+Canonical Hybrid Dispatch Task lifecycle remains separate:
 
 ```text
 QUEUED -> ASSIGNED -> ACCEPTED -> IN_PROGRESS -> COMPLETED
@@ -206,21 +246,43 @@ VALET_SUPERVISOR
 VALET_EMPLOYEE
 ```
 
-Audit/Black Box history is append-only by contract. Protected future domain mutations that require audit must commit the mutation and required AuditEvent atomically.
+Audit/Black Box history is append-only by contract. Protected domain mutations that require audit must commit the mutation and required AuditEvent atomically.
 
-Financial persistence remains payment-centric under DEC-021. DEC-022 clarifies edge behavior without changing entity boundaries or the three-slice order.
+Financial persistence remains payment-centric under DEC-021 with DEC-022 edge clarifications. Phase 6 consumes that persistence for commands/provider/workflows; it does not redesign the Phase 1 foundation without an accepted decision.
+
+## Next Milestone — Phase 2
+
+Per `docs/12_AGENT_EXECUTION_PLAN.md`, Phase 2 is:
+
+**Core custody domain + check-in**
+
+Required work across focused tasks includes:
+
+- explicit ValetSession domain commands and guards
+- optimistic concurrency for contested mutations
+- protected mutation + append-only AuditEvent atomicity
+- customer/guest secure access-link foundation
+- vehicle/session creation
+- condition check
+- configurable photo requirement, optional by default
+- plate capture with OCR/ANPR confirm/edit plus permanent manual fallback
+- accepted DEC-020 no-plate/unreadable Vehicle fallback
+- check-in performance instrumentation
+
+Do not implement Phase 2 as one giant PR. The first Phase 2 task must be scoped into a dedicated Issue before coding.
 
 ## Dependencies / Contention
 
-- No financial migration is active while VAL-003I-A is docs-only.
-- `packages/database/prisma/schema.prisma` and `packages/database/prisma/migrations/**` remain CRITICAL/high-contention while Phase 1 database work continues.
-- Keep one active migration owner at a time.
-- Do not start VAL-003J implementation until Issue #29 is reviewed and merged.
+- No Phase 1 migration task remains active.
+- `packages/database/prisma/schema.prisma` and `packages/database/prisma/migrations/**` remain CRITICAL files; modify them only for a focused accepted task that truly needs persistence change.
+- Phase 2 protected mutations will contend on ValetSession/domain/audit boundaries; keep command scopes small and explicit.
+- Do not pull Hybrid Dispatch/Task persistence into Phase 2 custody commands unless the focused task requires the accepted dependency.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
+- First-market digital payment provider remains a later Phase 6 selection/integration decision.
 
 ## Exact Next Step
 
-Finish VAL-003I-A docs alignment, open a docs-only PR, require CI success and review the exact diff. After it merges, sync local `main`, rebase/recreate the VAL-003J feature branch from the new `main`, then implement only Payment + Validation + tip persistence under Issue #28.
+Create and assign the first focused Phase 2 Issue from current `main` before implementation. Scope it narrowly around the first custody/check-in domain command boundary, define authorization/tenant/location/concurrency/AuditEvent requirements, then create its feature branch from the latest merged `main`.
 
 ## Parallel UX/UI Track
 
