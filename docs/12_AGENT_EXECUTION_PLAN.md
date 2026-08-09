@@ -1,7 +1,7 @@
 # AI Agent Execution Plan
 
 Status: Binding work sequence  
-Version: 0.3
+Version: 0.4
 
 The agent must not attempt to build the whole product in one pass.
 
@@ -53,12 +53,21 @@ Required foundation capabilities over the Phase:
 - migration integrity tests
 - demo/seed data when its dedicated task is reached
 
+The accepted DEC-021 financial persistence foundation is implemented in Phase 1, before Phase 6 application/provider workflows, through this dependency order:
+
+1. Payment + Validation + tip foundation
+2. CashEntry + provider-event/idempotency foundation
+3. Refund foundation
+
+Use one active migration owner and one forward-only migration PR at a time. Complete focused tenant, money, status, idempotency and concurrency tests for each financial slice before starting the next.
+
 Rules:
 
 - Do not add Venue Client or VAYLET Super Admin persistence without a dedicated accepted schema decision.
 - Do not invent a generic Configuration First JSON policy table in the tenant/staff task.
 - Configuration First is binding behavior, but typed configuration storage is introduced through focused feature tasks.
 - One active migration owner at a time while the database foundation is high-contention.
+- Financial Phase 1 persistence does not authorize provider SDK/webhook integration or user-facing payment/refund workflows early; those remain Phase 6 work.
 
 ## Phase 2 — Core custody domain + check-in
 
@@ -161,32 +170,30 @@ Tracking is OFF outside active Parking/Retrieval task sessions unless a later ex
 ## Phase 6 — Payments, validation, cash and tips
 
 Goal:
-Support the sellable MVP financial models without storing raw card data.
+Turn the Phase 1 provider-neutral financial persistence foundation into the sellable MVP payment/validation/cash/refund workflows without storing raw card data.
+
+Phase 6 consumes the financial database structures already established in Phase 1. It does not own the three foundational migration slices.
 
 Required work across focused tasks:
 
-- location currency context
-- accepted DEC-021 Payment aggregate with explicit Customer/Venue service responsibility
-- first-class current/superseding Validation history for none/full/partial validation
-- Payment `tip_amount` for both cash and digital collection
-- append-only CashEntry receipt/correction history and reconciliation reporting foundation
-- provider-neutral callback-event deduplication
-- separate append-only partial/full Refund lifecycle
+- financial-policy evaluation and explicit domain commands over the accepted DEC-021 aggregate
+- Validation application/supersession commands and zero/positive due transitions
+- guarded authorized pre-collection financial correction according to the accepted contract
+- cash collection/correction commands and reconciliation behavior
+- refund authorization, refundable-balance locking and refund commands
+- currency-aware amount precision validation/quantization before persistence/provider conversion
 - at least one approved digital payment gateway for the first market
 - provider adapter + signature verification + idempotent callbacks
-- refund permissions/audit
+- stable outbound provider-operation idempotency for the selected gateway
+- explicit stale/superseded provider-reference callback handling
+- protected financial mutation + required AuditEvent atomicity
+- user-facing payment/validation/receipt/refund workflows where scoped
 
 Payment/validation/refund lifecycle remains separate from ValetSession physical state.
 
-Required database implementation order:
+Provider selection/SDK/webhook implementation follows the provider-neutral Phase 1 persistence foundation. A general PaymentAttempt entity is not added unless the selected provider demonstrates a concrete requirement that the accepted aggregate/event model cannot safely satisfy.
 
-1. Payment + Validation + tip foundation
-2. CashEntry + provider-event/idempotency foundation
-3. Refund foundation
-
-Use one active migration owner and one forward-only migration PR at a time. Complete focused tenant, money, status, idempotency and concurrency tests for each slice before starting the next.
-
-Provider selection/SDK/webhook implementation follows the provider-neutral persistence foundation. Shift cash close/reopen, drawer management, venue settlement, POS/PMS, tax, ledger/accounting, payroll/tip distribution and chargeback handling are not part of these foundation slices.
+Shift cash close/reopen, drawer management, venue settlement, POS/PMS, tax, ledger/accounting, payroll/tip distribution and chargeback handling are not part of the sellable-MVP financial foundation unless a later accepted requirement explicitly adds them.
 
 ## Phase 7 — Dashboard, Configuration First and reporting
 
