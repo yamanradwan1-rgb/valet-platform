@@ -1,7 +1,7 @@
 # Engineering Rules
 
 Status: Binding  
-Version: 0.2
+Version: 0.3
 
 ## Architecture
 
@@ -67,6 +67,24 @@ Task/Hybrid Dispatch assignment lifecycle is separate.
 Do not reintroduce task states such as assignment/acceptance as physical ValetSession states.
 
 Protected state changes use explicit commands, guards and audited transactions.
+
+### Protected custody command pattern
+
+A protected custody command must:
+
+1. derive tenant/resource scope from persisted authorized records rather than trusting client-supplied ownership identifiers
+2. authorize active user, active membership, Location access and the command-specific role/permission
+3. load and compare the current aggregate `version` for contested mutations
+4. validate the exact current physical state and focused policy/domain guards
+5. perform a conditional state/version mutation so a validation-to-write race cannot win
+6. use one server-authoritative operation timestamp where the focused contract requires one
+7. append the required AuditEvent/Black Box fact in the same transaction
+8. commit mutation and audit together or roll both back
+9. return an authorized representation rather than allowing the client to manufacture the resulting state
+
+The first locked Phase 2 example is `complete-check-in`; its exact authorization, guard, concurrency, audit, retry and dependency contract lives in `04_VALET_SESSION_STATE_MACHINE.md` and must not be reinterpreted by API/UI code.
+
+Optimistic `version` concurrency prevents stale contested writes but does not automatically provide transparent duplicate-request replay. If a command requires an exact retry to return the original successful response, use a focused durable operation/idempotency contract rather than claiming versioning alone is idempotency.
 
 ## Errors
 
