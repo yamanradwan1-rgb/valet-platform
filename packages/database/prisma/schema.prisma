@@ -102,6 +102,39 @@ enum HandoffVerificationMethod {
   @@map("handoff_verification_method")
 }
 
+enum PaymentServicePayer {
+  CUSTOMER
+  VENUE
+
+  @@map("payment_service_payer")
+}
+
+enum PaymentCollectionMethod {
+  NONE
+  CASH
+  DIGITAL
+
+  @@map("payment_collection_method")
+}
+
+enum PaymentStatus {
+  NOT_REQUIRED
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+
+  @@map("payment_status")
+}
+
+enum ValidationMode {
+  NONE
+  FULL
+  PARTIAL
+
+  @@map("validation_mode")
+}
+
 model Organization {
   id        String             @id @default(uuid()) @db.Uuid
   name      String
@@ -122,6 +155,8 @@ model Organization {
   retrievalRequests        RetrievalRequest[]
   handoffVerifications     HandoffVerification[]
   auditEvents              AuditEvent[]
+  payments                 Payment[]
+  validations              Validation[]
 
   @@map("organizations")
 }
@@ -145,6 +180,7 @@ model Location {
   keySlots                 KeySlot[]
   valetSessions            ValetSession[]
   auditEvents              AuditEvent[]
+  payments                 Payment[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
@@ -185,6 +221,7 @@ model OrganizationMembership {
   retrievalRequests        RetrievalRequest[]
   verifiedHandoffs         HandoffVerification[]
   auditEvents              AuditEvent[]
+  appliedValidations       Validation[]
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -335,6 +372,7 @@ model ValetSession {
   auditEvents          AuditEvent[]
   retrievalRequests    RetrievalRequest[]
   handoffVerifications HandoffVerification[]
+  payments             Payment[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -384,6 +422,60 @@ model HandoffVerification {
   verifiedByMembership OrganizationMembership? @relation(fields: [organizationId, verifiedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "handoff_verifications_org_verified_by_membership_id_fkey")
 
   @@map("handoff_verifications")
+}
+
+model Payment {
+  id                     String                  @id @default(uuid()) @db.Uuid
+  organizationId         String                  @map("organization_id") @db.Uuid
+  locationId             String                  @map("location_id") @db.Uuid
+  valetSessionId         String                  @map("valet_session_id") @db.Uuid
+  servicePayer           PaymentServicePayer     @map("service_payer")
+  collectionMethod       PaymentCollectionMethod @map("collection_method")
+  currency               String
+  serviceAmount          Decimal                 @map("service_amount") @db.Decimal(14, 3)
+  tipAmount              Decimal                 @map("tip_amount") @db.Decimal(14, 3)
+  amountDue              Decimal                 @map("amount_due") @db.Decimal(14, 3)
+  amountPaid             Decimal                 @map("amount_paid") @db.Decimal(14, 3)
+  status                 PaymentStatus
+  creationIdempotencyKey String                  @map("creation_idempotency_key")
+  provider               String?
+  providerReference      String?                 @map("provider_reference")
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  paidAt                 DateTime?               @map("paid_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "payments_organization_id_fkey")
+  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "payments_org_location_id_fkey")
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "payments_org_location_valet_session_id_fkey")
+  validations  Validation[]
+
+  @@unique([organizationId, valetSessionId], map: "payments_organization_id_valet_session_id_key")
+  @@unique([organizationId, creationIdempotencyKey], map: "payments_organization_id_creation_idempotency_key")
+  @@unique([organizationId, provider, providerReference], map: "payments_organization_id_provider_provider_reference_key")
+  @@unique([organizationId, id], map: "payments_organization_id_id_key")
+  @@map("payments")
+}
+
+model Validation {
+  id                     String         @id @default(uuid()) @db.Uuid
+  organizationId         String         @map("organization_id") @db.Uuid
+  paymentId              String         @map("payment_id") @db.Uuid
+  mode                   ValidationMode
+  amount                 Decimal        @db.Decimal(14, 3)
+  isCurrent              Boolean        @map("is_current")
+  supersedesValidationId String?        @map("supersedes_validation_id") @db.Uuid
+  appliedByMembershipId  String         @map("applied_by_membership_id") @db.Uuid
+  appliedAt              DateTime       @map("applied_at") @db.Timestamptz(3)
+  createdAt              DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization         Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "validations_organization_id_fkey")
+  payment              Payment                @relation(fields: [organizationId, paymentId], references: [organizationId, id], onDelete: Restrict, map: "validations_org_payment_id_fkey")
+  supersedesValidation Validation?            @relation("ValidationSupersession", fields: [organizationId, paymentId, supersedesValidationId], references: [organizationId, paymentId, id], onDelete: Restrict, map: "validations_org_payment_supersedes_id_fkey")
+  supersededBy         Validation[]           @relation("ValidationSupersession")
+  appliedByMembership  OrganizationMembership @relation(fields: [organizationId, appliedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "validations_org_applied_by_membership_id_fkey")
+
+  @@unique([organizationId, paymentId, id], map: "validations_organization_id_payment_id_id_key")
+  @@map("validations")
 }
 
 model AuditEvent {

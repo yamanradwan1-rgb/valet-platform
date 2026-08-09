@@ -117,11 +117,45 @@ interface HandoffVerificationValues {
   verifiedByMembershipId?: string | null;
 }
 
+interface PaymentFixture extends TenantFixture {
+  membershipId: string;
+  valetSessionId: string;
+}
+
+interface PaymentValues {
+  amountDue?: string;
+  amountPaid?: string;
+  collectionMethod?: string;
+  creationIdempotencyKey?: string;
+  currency?: string;
+  locationId?: string;
+  organizationId?: string;
+  paidAt?: Date | null;
+  provider?: string | null;
+  providerReference?: string | null;
+  serviceAmount?: string;
+  servicePayer?: string;
+  status?: string;
+  tipAmount?: string;
+  valetSessionId?: string;
+}
+
+interface ValidationValues {
+  amount?: string;
+  appliedAt?: Date;
+  appliedByMembershipId?: string;
+  isCurrent?: boolean;
+  mode?: string;
+  organizationId?: string;
+  paymentId?: string;
+  supersedesValidationId?: string | null;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
-const testDatabaseName = `valet_003h_${process.pid}_${Date.now()}`;
+const testDatabaseName = `valet_003j_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations", import.meta.url),
 );
@@ -135,6 +169,7 @@ const expectedMigrationDirectories = [
   "20260808000700_audit_event_foundation",
   "20260808000800_retrieval_request_foundation",
   "20260808000900_handoff_verification_foundation",
+  "20260809001000_payment_validation_tip_foundation",
 ];
 
 let databaseCreated = false;
@@ -577,6 +612,81 @@ async function createHandoffVerificationTestFixture(): Promise<HandoffVerificati
   };
 }
 
+async function createPaymentTestFixture(
+  tenant?: TenantFixture,
+): Promise<PaymentFixture> {
+  const resolvedTenant = tenant ?? (await createTenant());
+  const valetSessionFixture = await createValetSessionFixture(resolvedTenant);
+  const valetSessionId = await createValetSession(valetSessionFixture);
+  const { membershipId } = await createStaff(resolvedTenant.organizationId);
+  return { ...resolvedTenant, membershipId, valetSessionId };
+}
+
+async function createPayment(
+  fixture: PaymentFixture,
+  values: PaymentValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO payments (
+       id, organization_id, location_id, valet_session_id,
+       service_payer, collection_method, currency,
+       service_amount, tip_amount, amount_due, amount_paid,
+       status, creation_idempotency_key, provider,
+       provider_reference, updated_at, paid_at
+     ) VALUES (
+       $1, $2, $3, $4, $5, $6, $7, $8, $9,
+       $10, $11, $12, $13, $14, $15, $16, $17
+     )`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      values.locationId ?? fixture.locationId,
+      values.valetSessionId ?? fixture.valetSessionId,
+      values.servicePayer ?? "CUSTOMER",
+      values.collectionMethod ?? "CASH",
+      values.currency ?? "JOD",
+      values.serviceAmount ?? "10.000",
+      values.tipAmount ?? "0.000",
+      values.amountDue ?? "10.000",
+      values.amountPaid ?? "0.000",
+      values.status ?? "UNPAID",
+      values.creationIdempotencyKey ?? randomUUID(),
+      values.provider ?? null,
+      values.providerReference ?? null,
+      new Date(),
+      values.paidAt ?? null,
+    ],
+  );
+  return id;
+}
+
+async function createValidation(
+  fixture: PaymentFixture,
+  paymentId: string,
+  values: ValidationValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO validations (
+       id, organization_id, payment_id, mode, amount, is_current,
+       supersedes_validation_id, applied_by_membership_id, applied_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      values.paymentId ?? paymentId,
+      values.mode ?? "PARTIAL",
+      values.amount ?? "5.000",
+      values.isCurrent ?? true,
+      values.supersedesValidationId ?? null,
+      values.appliedByMembershipId ?? fixture.membershipId,
+      values.appliedAt ?? new Date(),
+    ],
+  );
+  return id;
+}
+
 async function insertShift(
   tenant: TenantFixture,
   membershipId: string,
@@ -610,7 +720,7 @@ async function insertShift(
 }
 
 beforeAll(async () => {
-  expect(testDatabaseName).toMatch(/^valet_003h_\d+_\d+$/);
+  expect(testDatabaseName).toMatch(/^valet_003j_\d+_\d+$/);
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl });
   await adminClient.connect();
@@ -3283,5 +3393,949 @@ describe("handoff verification database foundation", () => {
     expect(uniquenessConstraints.rows).toEqual([
       { conname: "handoff_verifications_pkey", contype: "p" },
     ]);
+  });
+});
+
+describe("payment, validation, and tip database foundation", () => {
+  it("applies exactly all ten forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories.at(-1)).toBe(
+      "20260809001000_payment_validation_tip_foundation",
+    );
+  });
+
+  it.each([
+    ["payment_service_payer", ["CUSTOMER", "VENUE"]],
+    ["payment_collection_method", ["NONE", "CASH", "DIGITAL"]],
+    ["payment_status", ["NOT_REQUIRED", "UNPAID", "PENDING", "PAID", "FAILED"]],
+    ["validation_mode", ["NONE", "FULL", "PARTIAL"]],
+  ])("defines exactly the documented %s enum", async (enumName, expected) => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT e.enumlabel
+       FROM pg_enum e
+       JOIN pg_type t ON t.oid = e.enumtypid
+       WHERE t.typname = $1
+       ORDER BY e.enumsortorder`,
+      [enumName],
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual(expected);
+  });
+
+  it("creates exactly the documented Payment columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'payments'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "location_id",
+      "valet_session_id",
+      "service_payer",
+      "collection_method",
+      "currency",
+      "service_amount",
+      "tip_amount",
+      "amount_due",
+      "amount_paid",
+      "status",
+      "creation_idempotency_key",
+      "provider",
+      "provider_reference",
+      "created_at",
+      "updated_at",
+      "paid_at",
+    ]);
+  });
+
+  it("creates exactly the documented Validation columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'validations'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "payment_id",
+      "mode",
+      "amount",
+      "is_current",
+      "supersedes_validation_id",
+      "applied_by_membership_id",
+      "applied_at",
+      "created_at",
+    ]);
+  });
+
+  it("uses the documented UUID, enum, text, boolean, and timestamp column types", async () => {
+    const result = await databaseClient.query<{
+      column_name: string;
+      is_nullable: string;
+      table_name: string;
+      udt_name: string;
+    }>(
+      `SELECT table_name, column_name, udt_name, is_nullable
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name IN ('payments', 'validations')
+         AND data_type <> 'numeric'
+       ORDER BY table_name, ordinal_position`,
+    );
+    expect(result.rows).toEqual([
+      {
+        column_name: "id",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "organization_id",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "location_id",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "valet_session_id",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "service_payer",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "payment_service_payer",
+      },
+      {
+        column_name: "collection_method",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "payment_collection_method",
+      },
+      {
+        column_name: "currency",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "text",
+      },
+      {
+        column_name: "status",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "payment_status",
+      },
+      {
+        column_name: "creation_idempotency_key",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "text",
+      },
+      {
+        column_name: "provider",
+        is_nullable: "YES",
+        table_name: "payments",
+        udt_name: "text",
+      },
+      {
+        column_name: "provider_reference",
+        is_nullable: "YES",
+        table_name: "payments",
+        udt_name: "text",
+      },
+      {
+        column_name: "created_at",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "updated_at",
+        is_nullable: "NO",
+        table_name: "payments",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "paid_at",
+        is_nullable: "YES",
+        table_name: "payments",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "id",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "organization_id",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "payment_id",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "mode",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "validation_mode",
+      },
+      {
+        column_name: "is_current",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "bool",
+      },
+      {
+        column_name: "supersedes_validation_id",
+        is_nullable: "YES",
+        table_name: "validations",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "applied_by_membership_id",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "uuid",
+      },
+      {
+        column_name: "applied_at",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "timestamptz",
+      },
+      {
+        column_name: "created_at",
+        is_nullable: "NO",
+        table_name: "validations",
+        udt_name: "timestamptz",
+      },
+    ]);
+  });
+
+  it("uses database time defaults only for created_at", async () => {
+    const result = await databaseClient.query<{
+      column_default: string | null;
+      column_name: string;
+      table_name: string;
+    }>(
+      `SELECT table_name, column_name, column_default
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name IN ('payments', 'validations')
+         AND column_name IN (
+           'service_payer', 'collection_method', 'currency',
+           'service_amount', 'tip_amount', 'amount_due', 'amount_paid',
+           'status', 'creation_idempotency_key', 'provider',
+           'is_current', 'applied_at', 'created_at', 'updated_at'
+         )
+       ORDER BY table_name, ordinal_position`,
+    );
+    for (const row of result.rows) {
+      if (row.column_name === "created_at") {
+        expect(row.column_default).toBe("CURRENT_TIMESTAMP");
+      } else {
+        expect(row.column_default).toBeNull();
+      }
+    }
+  });
+
+  it("uses numeric(14,3) for every financial money column", async () => {
+    const result = await databaseClient.query<{
+      column_name: string;
+      numeric_precision: number;
+      numeric_scale: number;
+      table_name: string;
+    }>(
+      `SELECT table_name, column_name, numeric_precision, numeric_scale
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND (
+           (table_name = 'payments' AND column_name IN (
+             'service_amount', 'tip_amount', 'amount_due', 'amount_paid'
+           ))
+           OR (table_name = 'validations' AND column_name = 'amount')
+         )
+       ORDER BY table_name, column_name`,
+    );
+    expect(result.rows).toEqual([
+      {
+        column_name: "amount_due",
+        numeric_precision: 14,
+        numeric_scale: 3,
+        table_name: "payments",
+      },
+      {
+        column_name: "amount_paid",
+        numeric_precision: 14,
+        numeric_scale: 3,
+        table_name: "payments",
+      },
+      {
+        column_name: "service_amount",
+        numeric_precision: 14,
+        numeric_scale: 3,
+        table_name: "payments",
+      },
+      {
+        column_name: "tip_amount",
+        numeric_precision: 14,
+        numeric_scale: 3,
+        table_name: "payments",
+      },
+      {
+        column_name: "amount",
+        numeric_precision: 14,
+        numeric_scale: 3,
+        table_name: "validations",
+      },
+    ]);
+  });
+
+  it("does not create deferred financial tables", async () => {
+    const result = await databaseClient.query<{ table_name: string }>(
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = 'public'
+         AND table_name IN (
+           'tips', 'cash_entries', 'payment_provider_events',
+           'refunds', 'payment_attempts'
+         )`,
+    );
+    expect(result.rows).toEqual([]);
+  });
+
+  it("creates only required Payment and Validation indexes", async () => {
+    const result = await databaseClient.query<{
+      indexname: string;
+      tablename: string;
+    }>(
+      `SELECT tablename, indexname
+       FROM pg_indexes
+       WHERE schemaname = 'public'
+         AND tablename IN ('payments', 'validations')
+       ORDER BY tablename, indexname`,
+    );
+    expect(result.rows).toEqual([
+      {
+        indexname: "payments_organization_id_creation_idempotency_key",
+        tablename: "payments",
+      },
+      {
+        indexname: "payments_organization_id_id_key",
+        tablename: "payments",
+      },
+      {
+        indexname: "payments_organization_id_provider_provider_reference_key",
+        tablename: "payments",
+      },
+      {
+        indexname: "payments_organization_id_valet_session_id_key",
+        tablename: "payments",
+      },
+      { indexname: "payments_pkey", tablename: "payments" },
+      {
+        indexname: "validations_one_current_per_payment_idx",
+        tablename: "validations",
+      },
+      {
+        indexname: "validations_organization_id_payment_id_id_key",
+        tablename: "validations",
+      },
+      { indexname: "validations_pkey", tablename: "validations" },
+    ]);
+  });
+
+  it("creates the current-Validation protection as the exact partial unique index", async () => {
+    const result = await databaseClient.query<{
+      columns: string[];
+      indisunique: boolean;
+      predicate: string;
+    }>(
+      `SELECT i.indisunique,
+              array_agg(a.attname::text ORDER BY k.ordinality) AS columns,
+              pg_get_expr(i.indpred, i.indrelid) AS predicate
+       FROM pg_index i
+       JOIN pg_class ci ON ci.oid = i.indexrelid
+       JOIN pg_class ct ON ct.oid = i.indrelid
+       CROSS JOIN LATERAL unnest(i.indkey)
+         WITH ORDINALITY AS k(attnum, ordinality)
+       JOIN pg_attribute a
+         ON a.attrelid = ct.oid AND a.attnum = k.attnum
+       WHERE ci.relname = 'validations_one_current_per_payment_idx'
+       GROUP BY i.indisunique, i.indpred, i.indrelid`,
+    );
+    expect(result.rows).toEqual([
+      {
+        columns: ["payment_id"],
+        indisunique: true,
+        predicate: "(is_current = true)",
+      },
+    ]);
+  });
+
+  it.each([
+    [
+      "NONE / NOT_REQUIRED",
+      {
+        amountDue: "0.000",
+        amountPaid: "0.000",
+        collectionMethod: "NONE",
+        serviceAmount: "10.000",
+        status: "NOT_REQUIRED",
+      },
+    ],
+    ["CASH / UNPAID", {}],
+    [
+      "CASH / PAID",
+      { amountPaid: "10.000", paidAt: new Date(), status: "PAID" },
+    ],
+    [
+      "DIGITAL / UNPAID without reference",
+      { collectionMethod: "DIGITAL", provider: "gateway", status: "UNPAID" },
+    ],
+    [
+      "DIGITAL / UNPAID with reference",
+      {
+        collectionMethod: "DIGITAL",
+        provider: "gateway",
+        providerReference: randomUUID(),
+        status: "UNPAID",
+      },
+    ],
+    [
+      "DIGITAL / PENDING",
+      {
+        collectionMethod: "DIGITAL",
+        provider: "gateway",
+        providerReference: randomUUID(),
+        status: "PENDING",
+      },
+    ],
+    [
+      "DIGITAL / FAILED without reference",
+      { collectionMethod: "DIGITAL", provider: "gateway", status: "FAILED" },
+    ],
+    [
+      "DIGITAL / FAILED with reference",
+      {
+        collectionMethod: "DIGITAL",
+        provider: "gateway",
+        providerReference: randomUUID(),
+        status: "FAILED",
+      },
+    ],
+    [
+      "DIGITAL / PAID",
+      {
+        amountPaid: "10.000",
+        collectionMethod: "DIGITAL",
+        paidAt: new Date(),
+        provider: "gateway",
+        providerReference: randomUUID(),
+        status: "PAID",
+      },
+    ],
+    [
+      "VENUE responsibility with guest tip only",
+      {
+        amountDue: "2.500",
+        collectionMethod: "CASH",
+        servicePayer: "VENUE",
+        tipAmount: "2.500",
+      },
+    ],
+  ])("accepts valid Payment row: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    await expect(createPayment(fixture, values)).resolves.toBeTypeOf("string");
+  });
+
+  it.each([
+    ["NONE with UNPAID", { amountDue: "0.000", collectionMethod: "NONE" }],
+    [
+      "NOT_REQUIRED with CASH",
+      { amountDue: "0.000", collectionMethod: "CASH", status: "NOT_REQUIRED" },
+    ],
+    [
+      "NOT_REQUIRED with DIGITAL",
+      {
+        amountDue: "0.000",
+        collectionMethod: "DIGITAL",
+        provider: "gateway",
+        status: "NOT_REQUIRED",
+      },
+    ],
+    [
+      "NONE with non-zero due",
+      { collectionMethod: "NONE", status: "NOT_REQUIRED" },
+    ],
+    [
+      "NONE with non-zero paid",
+      {
+        amountDue: "1.000",
+        amountPaid: "1.000",
+        collectionMethod: "NONE",
+        status: "NOT_REQUIRED",
+      },
+    ],
+    [
+      "NONE with provider",
+      {
+        amountDue: "0.000",
+        collectionMethod: "NONE",
+        provider: "gateway",
+        status: "NOT_REQUIRED",
+      },
+    ],
+    [
+      "NONE with provider reference",
+      {
+        amountDue: "0.000",
+        collectionMethod: "NONE",
+        providerReference: randomUUID(),
+        status: "NOT_REQUIRED",
+      },
+    ],
+    ["CASH with provider", { provider: "gateway" }],
+    ["CASH with provider reference", { providerReference: randomUUID() }],
+    ["CASH with PENDING", { status: "PENDING" }],
+    ["CASH with FAILED", { status: "FAILED" }],
+    ["DIGITAL with null provider", { collectionMethod: "DIGITAL" }],
+    [
+      "DIGITAL PENDING with null reference",
+      { collectionMethod: "DIGITAL", provider: "gateway", status: "PENDING" },
+    ],
+    [
+      "DIGITAL PENDING with non-zero paid",
+      {
+        amountPaid: "1.000",
+        collectionMethod: "DIGITAL",
+        provider: "gateway",
+        providerReference: randomUUID(),
+        status: "PENDING",
+      },
+    ],
+    [
+      "DIGITAL PAID with null reference",
+      {
+        amountPaid: "10.000",
+        collectionMethod: "DIGITAL",
+        paidAt: new Date(),
+        provider: "gateway",
+        status: "PAID",
+      },
+    ],
+    [
+      "PAID with zero due",
+      {
+        amountDue: "0.000",
+        amountPaid: "0.000",
+        paidAt: new Date(),
+        status: "PAID",
+      },
+    ],
+    [
+      "PAID with mismatched paid amount",
+      { amountPaid: "5.000", paidAt: new Date(), status: "PAID" },
+    ],
+    ["PAID without paid_at", { amountPaid: "10.000", status: "PAID" }],
+    ["UNPAID without a positive balance", { amountPaid: "10.000" }],
+    [
+      "FAILED without a positive balance",
+      {
+        amountPaid: "10.000",
+        collectionMethod: "DIGITAL",
+        provider: "gateway",
+        status: "FAILED",
+      },
+    ],
+    ["negative service amount", { serviceAmount: "-0.001" }],
+    ["negative tip amount", { tipAmount: "-0.001" }],
+    ["negative amount due", { amountDue: "-0.001" }],
+    ["negative amount paid", { amountPaid: "-0.001" }],
+    ["amount paid greater than due", { amountPaid: "10.001" }],
+    [
+      "VENUE due not equal to tip",
+      { amountDue: "3.000", servicePayer: "VENUE", tipAmount: "2.000" },
+    ],
+    ["malformed currency", { currency: "JODX" }],
+    ["lowercase currency", { currency: "jod" }],
+  ])("rejects invalid Payment row: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    await expectPostgresError(createPayment(fixture, values), "23514");
+  });
+
+  it("enforces one Payment per Organization/ValetSession", async () => {
+    const fixture = await createPaymentTestFixture();
+    await createPayment(fixture);
+    await expectPostgresError(
+      createPayment(fixture),
+      "23505",
+      "payments_organization_id_valet_session_id_key",
+    );
+  });
+
+  it("scopes creation idempotency uniqueness to Organization", async () => {
+    const key = randomUUID();
+    const fixture = await createPaymentTestFixture();
+    await createPayment(fixture, { creationIdempotencyKey: key });
+    const secondSession = await createPaymentTestFixture({
+      locationId: fixture.locationId,
+      organizationId: fixture.organizationId,
+    });
+    await expectPostgresError(
+      createPayment(secondSession, { creationIdempotencyKey: key }),
+      "23505",
+      "payments_organization_id_creation_idempotency_key",
+    );
+
+    const otherOrganization = await createPaymentTestFixture();
+    await expect(
+      createPayment(otherOrganization, { creationIdempotencyKey: key }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("scopes non-null provider-reference uniqueness by Organization and provider", async () => {
+    const reference = randomUUID();
+    const fixture = await createPaymentTestFixture();
+    await createPayment(fixture, {
+      collectionMethod: "DIGITAL",
+      provider: "gateway-a",
+      providerReference: reference,
+    });
+
+    const sameTenantSession = await createPaymentTestFixture({
+      locationId: fixture.locationId,
+      organizationId: fixture.organizationId,
+    });
+    await expectPostgresError(
+      createPayment(sameTenantSession, {
+        collectionMethod: "DIGITAL",
+        provider: "gateway-a",
+        providerReference: reference,
+      }),
+      "23505",
+      "payments_organization_id_provider_provider_reference_key",
+    );
+
+    const otherProviderSession = await createPaymentTestFixture({
+      locationId: fixture.locationId,
+      organizationId: fixture.organizationId,
+    });
+    await expect(
+      createPayment(otherProviderSession, {
+        collectionMethod: "DIGITAL",
+        provider: "gateway-b",
+        providerReference: reference,
+      }),
+    ).resolves.toBeTypeOf("string");
+
+    const otherOrganization = await createPaymentTestFixture();
+    await expect(
+      createPayment(otherOrganization, {
+        collectionMethod: "DIGITAL",
+        provider: "gateway-a",
+        providerReference: reference,
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("permits multiple Payment rows with null provider and reference", async () => {
+    const tenant = await createTenant();
+    const first = await createPaymentTestFixture(tenant);
+    const second = await createPaymentTestFixture(tenant);
+    await createPayment(first);
+    await expect(createPayment(second)).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects an unknown Payment Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createPayment(fixture, { organizationId: randomUUID() }),
+      "23503",
+    );
+  });
+
+  it("rejects a Location from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherTenant = await createTenant();
+    await expectPostgresError(
+      createPayment(fixture, { locationId: otherTenant.locationId }),
+      "23503",
+      "payments_org_location_id_fkey",
+    );
+  });
+
+  it("rejects a ValetSession from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createPayment(fixture, { valetSessionId: otherFixture.valetSessionId }),
+      "23503",
+      "payments_org_location_valet_session_id_fkey",
+    );
+  });
+
+  it("rejects a same-Organization ValetSession from a different Location", async () => {
+    const organizationId = await createOrganization();
+    const firstLocationId = await createLocation(organizationId);
+    const secondLocationId = await createLocation(organizationId);
+    const firstFixture = await createPaymentTestFixture({
+      locationId: firstLocationId,
+      organizationId,
+    });
+    const secondFixture = await createPaymentTestFixture({
+      locationId: secondLocationId,
+      organizationId,
+    });
+    await expectPostgresError(
+      createPayment(firstFixture, {
+        valetSessionId: secondFixture.valetSessionId,
+      }),
+      "23503",
+      "payments_org_location_valet_session_id_fkey",
+    );
+  });
+
+  it("uses RESTRICT for every Payment foreign key", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'payments'::regclass AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(result.rows).toEqual([
+      {
+        confdeltype: "r",
+        conname: "payments_org_location_id_fkey",
+      },
+      {
+        confdeltype: "r",
+        conname: "payments_org_location_valet_session_id_fkey",
+      },
+      { confdeltype: "r", conname: "payments_organization_id_fkey" },
+    ]);
+  });
+
+  it.each(["Organization", "Location", "ValetSession"])(
+    "restricts deletion of a referenced Payment %s parent",
+    async (parent) => {
+      const fixture = await createPaymentTestFixture();
+      await createPayment(fixture);
+      const statements: Record<string, [string, string]> = {
+        Location: ["DELETE FROM locations WHERE id = $1", fixture.locationId],
+        Organization: [
+          "DELETE FROM organizations WHERE id = $1",
+          fixture.organizationId,
+        ],
+        ValetSession: [
+          "DELETE FROM valet_sessions WHERE id = $1",
+          fixture.valetSessionId,
+        ],
+      };
+      const [statement, id] = statements[parent]!;
+      await expectPostgresError(databaseClient.query(statement, [id]), "23503");
+    },
+  );
+
+  it.each([
+    ["initial FULL", { amount: "10.000", mode: "FULL" }],
+    ["initial PARTIAL", { amount: "5.000", mode: "PARTIAL" }],
+  ])("accepts valid Validation history: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expect(
+      createValidation(fixture, paymentId, values),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("accepts a superseding NONE Validation with amount zero", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    const originalId = await createValidation(fixture, paymentId, {
+      amount: "10.000",
+      isCurrent: false,
+      mode: "FULL",
+    });
+    await expect(
+      createValidation(fixture, paymentId, {
+        amount: "0.000",
+        mode: "NONE",
+        supersedesValidationId: originalId,
+      }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("allows multiple historical rows alongside one current Validation", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createValidation(fixture, paymentId, { isCurrent: false });
+    await createValidation(fixture, paymentId, {
+      amount: "4.000",
+      isCurrent: false,
+    });
+    await expect(
+      createValidation(fixture, paymentId, { amount: "3.000" }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it.each([
+    ["NONE with non-zero amount", { amount: "1.000", mode: "NONE" }],
+    ["NONE without supersession", { amount: "0.000", mode: "NONE" }],
+    ["FULL with zero amount", { amount: "0.000", mode: "FULL" }],
+    ["FULL with negative amount", { amount: "-0.001", mode: "FULL" }],
+    ["PARTIAL with zero amount", { amount: "0.000", mode: "PARTIAL" }],
+    ["PARTIAL with negative amount", { amount: "-0.001", mode: "PARTIAL" }],
+  ])("rejects invalid Validation row: %s", async (_title, values) => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await expectPostgresError(
+      createValidation(fixture, paymentId, values),
+      "23514",
+      "validations_mode_amount_check",
+    );
+  });
+
+  it("rejects a Validation actor from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    const otherFixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      createValidation(fixture, paymentId, {
+        appliedByMembershipId: otherFixture.membershipId,
+      }),
+      "23503",
+      "validations_org_applied_by_membership_id_fkey",
+    );
+  });
+
+  it("rejects a Payment from another Organization", async () => {
+    const fixture = await createPaymentTestFixture();
+    const otherFixture = await createPaymentTestFixture();
+    const otherPaymentId = await createPayment(otherFixture);
+    await expectPostgresError(
+      createValidation(fixture, otherPaymentId),
+      "23503",
+      "validations_org_payment_id_fkey",
+    );
+  });
+
+  it("rejects supersession across Payments", async () => {
+    const tenant = await createTenant();
+    const firstFixture = await createPaymentTestFixture(tenant);
+    const secondFixture = await createPaymentTestFixture(tenant);
+    const firstPaymentId = await createPayment(firstFixture);
+    const secondPaymentId = await createPayment(secondFixture);
+    const otherValidationId = await createValidation(
+      secondFixture,
+      secondPaymentId,
+      { isCurrent: false },
+    );
+    await expectPostgresError(
+      createValidation(firstFixture, firstPaymentId, {
+        amount: "0.000",
+        mode: "NONE",
+        supersedesValidationId: otherValidationId,
+      }),
+      "23503",
+      "validations_org_payment_supersedes_id_fkey",
+    );
+  });
+
+  it("rejects a second current Validation for one Payment", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createValidation(fixture, paymentId);
+    await expectPostgresError(
+      createValidation(fixture, paymentId, { amount: "4.000" }),
+      "23505",
+      "validations_one_current_per_payment_idx",
+    );
+  });
+
+  it("uses RESTRICT for every Validation foreign key", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype
+       FROM pg_constraint
+       WHERE conrelid = 'validations'::regclass AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(result.rows).toEqual([
+      {
+        confdeltype: "r",
+        conname: "validations_org_applied_by_membership_id_fkey",
+      },
+      { confdeltype: "r", conname: "validations_org_payment_id_fkey" },
+      {
+        confdeltype: "r",
+        conname: "validations_org_payment_supersedes_id_fkey",
+      },
+      { confdeltype: "r", conname: "validations_organization_id_fkey" },
+    ]);
+  });
+
+  it("restricts deletion of a Payment referenced by Validation", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createValidation(fixture, paymentId);
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM payments WHERE id = $1", [paymentId]),
+      "23503",
+      "validations_org_payment_id_fkey",
+    );
+  });
+
+  it("restricts deletion of an applying membership", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    await createValidation(fixture, paymentId);
+    await expectPostgresError(
+      databaseClient.query(
+        "DELETE FROM organization_memberships WHERE id = $1",
+        [fixture.membershipId],
+      ),
+      "23503",
+      "validations_org_applied_by_membership_id_fkey",
+    );
+  });
+
+  it("restricts deletion of a superseded Validation", async () => {
+    const fixture = await createPaymentTestFixture();
+    const paymentId = await createPayment(fixture);
+    const originalId = await createValidation(fixture, paymentId, {
+      isCurrent: false,
+    });
+    await createValidation(fixture, paymentId, {
+      amount: "0.000",
+      mode: "NONE",
+      supersedesValidationId: originalId,
+    });
+    await expectPostgresError(
+      databaseClient.query("DELETE FROM validations WHERE id = $1", [
+        originalId,
+      ]),
+      "23503",
+      "validations_org_payment_supersedes_id_fkey",
+    );
   });
 });
