@@ -1,7 +1,7 @@
 # Database Schema — Logical Design
 
 Status: Binding  
-Version: 0.6
+Version: 0.7
 
 Database: PostgreSQL  
 ORM: Prisma
@@ -100,6 +100,7 @@ id
 name
 status
 timezone
+check_in_photos_required
 created_at
 updated_at
 ```
@@ -114,6 +115,7 @@ Constraints/rules:
 - name required
 - status required, default `ACTIVE`
 - `timezone` required for current Phase 1 compatibility and treated as the Company/default timezone, not as an override of each Location's timezone
+- `check_in_photos_required` is the typed Company default for check-in photo evidence, required and `false` by default
 - DB timestamps follow the global UTC/timestamptz convention
 
 A later typed configuration task may rename/refine Company-default semantics; do not block Location-specific timezone support on this field.
@@ -129,6 +131,7 @@ address_text
 timezone
 currency
 status
+check_in_photos_required_override nullable
 created_at
 updated_at
 ```
@@ -145,6 +148,7 @@ Constraints/rules:
 - `timezone` required for operational display/reporting context
 - `currency` required and follows uppercase ISO 4217 convention
 - status required, default `ACTIVE`
+- `check_in_photos_required_override` is nullable: null inherits the Organization default, while explicit `true` or `false` overrides it
 
 Phase 1 does not add a generic settings/policy JSON field. Location-specific typed configuration is added by focused tasks as approved MVP behavior requires it.
 
@@ -391,9 +395,11 @@ key_slot_id nullable
 current_assignee_membership_id nullable
 
 checked_in_by_membership_id
+check_in_condition_completed_by_membership_id nullable
 completed_by_membership_id nullable
 
 created_at
+check_in_condition_completed_at nullable
 checking_in_completed_at nullable
 parking_started_at nullable
 parked_at nullable
@@ -432,6 +438,9 @@ Canonical state contract aligned to Blueprint v1.0:
 Rules:
 
 - organization/location/vehicle/customer/membership/parking/key relationships must be tenant-consistent
+- check-in condition completion is incomplete only when both `check_in_condition_completed_at` and `check_in_condition_completed_by_membership_id` are null, and complete only when both are non-null
+- the condition-completion membership must belong to the session Organization
+- the condition-completion marker does not change session state or version; the later focused command owns that mutation behavior
 - COMPLETED requires `completed_at`
 - `version` required, defaults to `1`, and must remain >= 1
 - optimistic concurrency increments `version` on contested operational mutation
@@ -453,36 +462,63 @@ Required partial unique protections when these relationships are implemented:
 - one active session occupying a given parking spot when `parking_spot_id` is non-null
 - one active session using a given key slot when `key_slot_id` is non-null
 
+## condition_notes
+
+```text
+id
+organization_id
+location_id
+valet_session_id
+context
+content
+supersedes_condition_note_id nullable
+recorded_by_membership_id
+created_at
+```
+
+Context:
+
+- `CHECK_IN`
+
+Rules:
+
+- a ConditionNote is append-only, session-specific evidence rather than a mutable current-note field
+- Organization, Location and ValetSession are enforced as one tenant/location/session scope through composite foreign keys
+- the recording OrganizationMembership must belong to the same Organization
+- `content` must contain non-whitespace text
+- a correction appends a new row and points `supersedes_condition_note_id` at an existing note in the same Organization, Location, ValetSession and evidence context
+- the original note remains preserved; historical content is not updated or deleted
+- `created_at` is server-owned and defaults to database current time
+
 ## vehicle_photos
 
 ```text
 id
 organization_id
+location_id
 valet_session_id
-capture_type
-object_key
-mime_type
-size_bytes
+purpose
+storage_object_key
+content_type
 captured_by_membership_id
-captured_at
 created_at
 ```
 
-Possible capture types:
+Purpose:
 
-- FRONT
-- REAR
-- LEFT
-- RIGHT
-- DAMAGE_DETAIL
-- OTHER
+- `CHECK_IN_CONDITION`
 
 Rules:
 
-- session and capturing membership must belong to `organization_id`
-- `object_key` unique
-- image bytes not stored in PostgreSQL
+- Organization, Location and ValetSession are enforced as one tenant/location/session scope through composite foreign keys
+- the capturing OrganizationMembership must belong to the same Organization
+- Vehicle ownership is derived from the tenant-safe ValetSession relationship; `vehicle_id` is intentionally not duplicated on VehiclePhoto
+- `storage_object_key` is an opaque, unique private-object identifier and must contain non-whitespace text
+- `content_type` records non-empty media metadata without storing image bytes
+- no public URL, signed URL, provider-specific URL or binary/blob column is persisted
+- the metadata is append-only intake evidence for the current persistence contract
 - photo requirement is driven by configured policy and is OPTIONAL by default in Blueprint v1.0
+- effective requirement is `COALESCE(location.check_in_photos_required_override, organization.check_in_photos_required)`
 - when policy requires evidence, application guards enforce the configured requirement before the relevant command completes
 - photo storage remains private by security policy
 
@@ -998,7 +1034,8 @@ At minimum as corresponding entities are implemented:
 - `valet_sessions(vehicle_id, created_at desc)`
 - `valet_sessions(location_id, retrieval_requested_at)`
 - `audit_events(valet_session_id, occurred_at)`
-- `vehicle_photos(valet_session_id, captured_at)`
+- `condition_notes(valet_session_id, created_at)`
+- `vehicle_photos(valet_session_id, purpose, created_at)`
 - `retrieval_requests(valet_session_id, status)`
 - `shifts(location_id, status)`
 - `incidents(location_id, status)`

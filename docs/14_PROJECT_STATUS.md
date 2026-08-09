@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-09 21:20 +03:00`
+- Date/time: `2026-08-09` (VAL-004C local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Merged `main` baseline for VAL-004A: `c67c3ea7b66d82586990019de0e4eeeec68230d2`
-- Active branch: `docs/VAL-004A-complete-check-in-contract`
-- Active Issue: #46 — VAL-004A — Lock Complete Check-In Command Contract
-- Verification basis: merged PR #45 / VAL-003P, current GitHub branch state, Issue #46, and binding Phase 2 docs
+- Required merged baseline through VAL-004B: `b3d3a4c8fac018da98511660129fed325263214e`
+- Active branch: `feat/VAL-004C-check-in-intake-persistence`
+- Active Issue: #50 — VAL-004C — Check-In Intake Persistence
+- Verification basis: owner-supplied Issue #50 task packet, required local branch/HEAD preflight, and binding Phase 2 docs
 
 ## Current Milestone
 
@@ -20,9 +20,19 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-VAL-004A is the first active Phase 2 task. It is **binding docs/contract work only** and introduces no application/package implementation, Prisma schema change, migration, or lockfile change.
+VAL-004A and VAL-004B are merged. VAL-004C is the active focused persistence task. It adds the intake evidence and typed photo-policy database dependencies used by later condition/photo commands; it does not implement `complete-check-in` or any API endpoint.
 
 ## Recently Completed Gate
+
+### VAL-004A — Lock Complete Check-In Command Contract
+
+- Status: **MERGED / COMPLETED**
+- Result: binding authorization, state/version, guard, audit, retry and dependency contract for the later `complete-check-in` command
+
+### VAL-004B — Custody Command / Authorization / Concurrency Foundation
+
+- Status: **MERGED / COMPLETED**
+- Result: backend-owned protected command foundation plus dedicated least-privilege runtime database role and append-only AuditEvent enforcement
 
 ### VAL-003O — Demo / Seed Data Foundation
 
@@ -47,7 +57,7 @@ VAL-004A is the first active Phase 2 task. It is **binding docs/contract work on
 
 ## Phase 1 Completion Evidence
 
-Current database foundation contains exactly **14 forward-only migrations**, ending with:
+The merged baseline contains exactly **14 forward-only migrations**, ending with:
 
 ```text
 20260809001400_notification_foundation
@@ -62,57 +72,32 @@ The Phase 1 schema already contains the persistence used by the first Phase 2 co
 - AuditEvent Black Box persistence
 - tenant/location-safe relationships
 
-It does **not** yet contain the complete Blueprint intake dependencies for `ConditionNote`, `VehiclePhoto`, or typed required-photo policy storage.
+The active VAL-004C branch adds migration 15 for `ConditionNote`, `VehiclePhoto`, explicit condition-completion evidence and typed required-photo policy storage.
 
 ## Current Task
 
-### VAL-004A — Lock Complete Check-In Command Contract
+### VAL-004C — Check-In Intake Persistence
 
-- Issue #46
-- Branch: `docs/VAL-004A-complete-check-in-contract`
-- Status: **IN PROGRESS — DOCS/CONTRACT ONLY**
-- Base: merged `main` at `c67c3ea7`
-- Application/Prisma/migration changes: **none**
+- Issue #50
+- Branch: `feat/VAL-004C-check-in-intake-persistence`
+- Status: **READY FOR REVIEW — LOCAL CHANGES ONLY**
+- Base: `b3d3a4c8fac018da98511660129fed325263214e`
+- Expected database state on this branch: **15 forward-only migrations**
 
 Objective:
-Lock the first protected Phase 2 custody command before application/API implementation:
+Persist only the structures required by later intake commands:
 
-```text
-complete-check-in
-CHECKING_IN -> AWAITING_PARKING
-```
+- append-only, session-scoped `ConditionNote` evidence with same-scope correction lineage
+- deterministic ValetSession condition-completion timestamp/actor pair
+- private, append-only `VehiclePhoto` metadata with Vehicle derived through ValetSession
+- typed Organization photo-required default and nullable Location override
+- tenant/location/session composite integrity and focused runtime evidence privileges
 
-The binding contract now establishes:
+VAL-004C does not create condition/photo commands, upload integration, `complete-check-in`, or API routes.
 
-- server-derived tenant/resource scope; client ownership IDs are never trusted for authorization
-- active authenticated staff User + active same-Organization membership
-- explicit access to the ValetSession Location
-- ordinary operational role: `VALET_EMPLOYEE` or `VALET_SUPERVISOR`
-- `LOCATION_MANAGER`/`ORG_ADMIN` do not automatically inherit ordinary field completion permission
-- active Shift is not a hard command prerequisite; actor accountability remains mandatory
-- expected ValetSession `version` is the optimistic-concurrency boundary
-- stale version -> `VERSION_CONFLICT`; current-version wrong state -> `INVALID_STATE_TRANSITION`
-- winning mutation is conditional on both state and expected version
-- success sets only `AWAITING_PARKING`, server `checking_in_completed_at`, and one version increment
-- `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent commits atomically with the transition
-- safe audit metadata excludes guest/auth/handoff/payment secrets
-- no parking/key/Task/Dispatch side effects
-- state+version blocks duplicate transition/audit mutation but is not misrepresented as transparent command replay idempotency
-- durable operation identity is a focused follow-up only if offline retry semantics need original-success replay
+## Remaining Complete Check-In Dependencies
 
-## Explicit VAL-004A Dependencies
-
-Production `complete-check-in` cannot claim the full Blueprint intake contract until focused Phase 2 work provides:
-
-1. ConditionNote persistence/completion semantics
-2. VehiclePhoto/private attachment persistence
-3. typed Company-default -> Location-override required-photo policy, optional by default
-4. secure guest-access issuance/authorization over existing hashed session fields
-5. reusable protected command/authorization/concurrency/transaction infrastructure
-6. dedicated least-privilege runtime DB role and explicit append-only AuditEvent enforcement boundary
-7. durable operation-ID persistence only if transparent offline duplicate replay is required
-
-These dependencies are recorded honestly rather than faked in VAL-004A.
+After VAL-004C, production `complete-check-in` still depends on focused later tasks for condition/photo policy commands, secure guest access, vehicle/session creation flows and the final command/API wiring. The persisted state marker and evidence rows introduced here are dependencies, not permission to start VAL-004D or later tasks inside this branch.
 
 ## Phase 2 Focused Task Sequence
 
@@ -170,25 +155,24 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 ## Dependencies / Contention
 
 - No Phase 1 migration task remains active.
-- `packages/database/prisma/schema.prisma` and `packages/database/prisma/migrations/**` remain CRITICAL files and are out of scope for VAL-004A.
+- VAL-004C is the active single owner of `packages/database/prisma/schema.prisma` and migration 15.
 - `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
-- Condition/photo policy persistence may require a later focused migration owner; do not start it inside VAL-004A.
+- VAL-004C changes persistence only; condition/photo command semantics remain owned by VAL-004G.
 - Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For VAL-004A:
+For VAL-004C:
 
 ```text
-finish docs consistency review
--> verify branch diff contains docs only
--> open PR for Issue #46
--> pass CI/docs checks
--> merge
+finish schema/migration/runtime-role integration coverage
+-> run Prisma validation and all quality gates
+-> review the local diff against Issue #50 scope
+-> stop for human/ChatGPT review without commit or push
 ```
 
-After VAL-004A is merged, start **VAL-004B — Custody Command / Authorization / Concurrency Foundation** from the updated `main`. Do not begin VAL-004H implementation before its recorded intake/security dependencies are available.
+Do not begin VAL-004D or `complete-check-in` implementation on this branch.
 
 ## Parallel UX/UI Track
 
