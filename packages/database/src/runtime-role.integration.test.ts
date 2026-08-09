@@ -13,6 +13,7 @@ interface CommandResult {
 
 interface PostgresError extends Error {
   code?: string;
+  constraint?: string;
 }
 
 interface AuditFixture {
@@ -129,6 +130,20 @@ async function expectPostgresDenial(
     throw new Error("Expected PostgreSQL privilege denial.");
   } catch (error) {
     expect((error as PostgresError).code).toBe("42501");
+  }
+}
+
+async function expectForeignKeyRestriction(
+  operation: Promise<unknown>,
+  constraint: string,
+): Promise<void> {
+  try {
+    await operation;
+    throw new Error("Expected PostgreSQL foreign-key restriction.");
+  } catch (error) {
+    const postgresError = error as PostgresError;
+    expect(postgresError.code).toBe("23503");
+    expect(postgresError.constraint).toBe(constraint);
   }
 }
 
@@ -259,13 +274,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("runtime PostgreSQL role boundary", () => {
-  it("applies all 14 migrations through migration credentials only", async () => {
+  it("applies all 15 migrations through migration credentials only", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(14);
+    expect(result.rows).toHaveLength(15);
   });
 
   it("reserves Prisma migration metadata for the migration identity", async () => {
@@ -466,6 +481,169 @@ describe("runtime PostgreSQL role boundary", () => {
       runtimePool.query(`DELETE FROM audit_events WHERE id = $1`, [auditId]),
     );
     await expectPostgresDenial(runtimePool.query(`TRUNCATE audit_events`));
+  });
+
+  it("allows immutable intake evidence insert/select but denies update, delete and truncate", async () => {
+    const fixture = await createAuditFixture();
+    const conditionNoteId = randomUUID();
+    const vehiclePhotoId = randomUUID();
+    await runtimePool.query(
+      `INSERT INTO condition_notes (
+         id, organization_id, location_id, valet_session_id,
+         context, content, recorded_by_membership_id
+       ) VALUES ($1, $2, $3, $4, 'CHECK_IN', $5, $6)`,
+      [
+        conditionNoteId,
+        fixture.organizationId,
+        fixture.locationId,
+        fixture.sessionId,
+        "Runtime condition evidence",
+        fixture.membershipId,
+      ],
+    );
+    await runtimePool.query(
+      `INSERT INTO vehicle_photos (
+         id, organization_id, location_id, valet_session_id,
+         captured_by_membership_id, purpose,
+         storage_object_key, content_type
+       ) VALUES ($1, $2, $3, $4, $5, 'CHECK_IN_CONDITION', $6, 'image/jpeg')`,
+      [
+        vehiclePhotoId,
+        fixture.organizationId,
+        fixture.locationId,
+        fixture.sessionId,
+        fixture.membershipId,
+        `private/runtime/${randomUUID()}`,
+      ],
+    );
+
+    await expect(
+      runtimePool.query(`SELECT id FROM condition_notes WHERE id = $1`, [
+        conditionNoteId,
+      ]),
+    ).resolves.toMatchObject({ rowCount: 1 });
+    await expect(
+      runtimePool.query(`SELECT id FROM vehicle_photos WHERE id = $1`, [
+        vehiclePhotoId,
+      ]),
+    ).resolves.toMatchObject({ rowCount: 1 });
+
+    await expectPostgresDenial(
+      runtimePool.query(
+        `UPDATE condition_notes SET content = content WHERE id = $1`,
+        [conditionNoteId],
+      ),
+    );
+    await expectPostgresDenial(
+      runtimePool.query(`DELETE FROM condition_notes WHERE id = $1`, [
+        conditionNoteId,
+      ]),
+    );
+    await expectPostgresDenial(runtimePool.query(`TRUNCATE condition_notes`));
+
+    await expectPostgresDenial(
+      runtimePool.query(
+        `UPDATE vehicle_photos SET content_type = content_type WHERE id = $1`,
+        [vehiclePhotoId],
+      ),
+    );
+    await expectPostgresDenial(
+      runtimePool.query(`DELETE FROM vehicle_photos WHERE id = $1`, [
+        vehiclePhotoId,
+      ]),
+    );
+    await expectPostgresDenial(runtimePool.query(`TRUNCATE vehicle_photos`));
+  });
+
+  it("denies indirect evidence mutation through runtime parent-key updates", async () => {
+    const conditionFixture = await createAuditFixture();
+    const conditionNoteId = randomUUID();
+    await runtimePool.query(
+      `INSERT INTO condition_notes (
+         id, organization_id, location_id, valet_session_id,
+         context, content, recorded_by_membership_id
+       ) VALUES ($1, $2, $3, $4, 'CHECK_IN', $5, $6)`,
+      [
+        conditionNoteId,
+        conditionFixture.organizationId,
+        conditionFixture.locationId,
+        conditionFixture.sessionId,
+        "Immutable condition parent-key test",
+        conditionFixture.membershipId,
+      ],
+    );
+    await expect(
+      runtimePool.query(
+        `UPDATE valet_sessions
+         SET updated_at = transaction_timestamp()
+         WHERE id = $1`,
+        [conditionFixture.sessionId],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+    const replacementConditionSessionId = randomUUID();
+    await expectForeignKeyRestriction(
+      runtimePool.query(`UPDATE valet_sessions SET id = $1 WHERE id = $2`, [
+        replacementConditionSessionId,
+        conditionFixture.sessionId,
+      ]),
+      "condition_notes_org_location_session_id_fkey",
+    );
+    const unchangedCondition = await runtimePool.query<{
+      valet_session_id: string;
+    }>(
+      `SELECT valet_session_id::text
+       FROM condition_notes
+       WHERE id = $1`,
+      [conditionNoteId],
+    );
+    expect(unchangedCondition.rows[0]?.valet_session_id).toBe(
+      conditionFixture.sessionId,
+    );
+
+    const photoFixture = await createAuditFixture();
+    const vehiclePhotoId = randomUUID();
+    await runtimePool.query(
+      `INSERT INTO vehicle_photos (
+         id, organization_id, location_id, valet_session_id,
+         captured_by_membership_id, purpose,
+         storage_object_key, content_type
+       ) VALUES ($1, $2, $3, $4, $5, 'CHECK_IN_CONDITION', $6, 'image/jpeg')`,
+      [
+        vehiclePhotoId,
+        photoFixture.organizationId,
+        photoFixture.locationId,
+        photoFixture.sessionId,
+        photoFixture.membershipId,
+        `private/runtime-parent-update/${randomUUID()}`,
+      ],
+    );
+    await expect(
+      runtimePool.query(
+        `UPDATE valet_sessions
+         SET updated_at = transaction_timestamp()
+         WHERE id = $1`,
+        [photoFixture.sessionId],
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+    const replacementPhotoSessionId = randomUUID();
+    await expectForeignKeyRestriction(
+      runtimePool.query(`UPDATE valet_sessions SET id = $1 WHERE id = $2`, [
+        replacementPhotoSessionId,
+        photoFixture.sessionId,
+      ]),
+      "vehicle_photos_org_location_session_id_fkey",
+    );
+    const unchangedPhoto = await runtimePool.query<{
+      valet_session_id: string;
+    }>(
+      `SELECT valet_session_id::text
+       FROM vehicle_photos
+       WHERE id = $1`,
+      [vehiclePhotoId],
+    );
+    expect(unchangedPhoto.rows[0]?.valet_session_id).toBe(
+      photoFixture.sessionId,
+    );
   });
 
   it("denies create, alter and drop DDL", async () => {

@@ -215,6 +215,36 @@ interface NotificationValues {
   valetSessionId?: string | null;
 }
 
+interface CheckInIntakeFixture extends ValetSessionFixture {
+  valetSessionId: string;
+}
+
+interface ConditionNoteValues {
+  content?: string;
+  context?: string;
+  locationId?: string;
+  organizationId?: string;
+  recordedByMembershipId?: string;
+  supersedesConditionNoteId?: string | null;
+  valetSessionId?: string;
+}
+
+interface VehiclePhotoValues {
+  capturedByMembershipId?: string;
+  contentType?: string;
+  locationId?: string;
+  organizationId?: string;
+  purpose?: string;
+  storageObjectKey?: string;
+  valetSessionId?: string;
+}
+
+interface IncrementalMigrationFixture {
+  locationId: string;
+  organizationId: string;
+  valetSessionId: string;
+}
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.MIGRATION_DATABASE_URL ??
@@ -238,11 +268,13 @@ const expectedMigrationDirectories = [
   "20260809001200_refund_foundation",
   "20260809001300_incident_foundation",
   "20260809001400_notification_foundation",
+  "20260809001500_check_in_intake_persistence",
 ];
 
 let databaseCreated = false;
 let databaseClient: Client;
 let appliedMigrationDirectories: string[] = [];
+let incrementalMigrationFixture: IncrementalMigrationFixture;
 
 function connectionUrlFor(databaseName: string): string {
   const url = new URL(adminDatabaseUrl);
@@ -281,6 +313,70 @@ async function expectNotNullViolation(
   }
 }
 
+async function createPreVal004CFixture(
+  client: Client,
+): Promise<IncrementalMigrationFixture> {
+  const organizationId = randomUUID();
+  const locationId = randomUUID();
+  const userId = randomUUID();
+  const membershipId = randomUUID();
+  const vehicleId = randomUUID();
+  const valetSessionId = randomUUID();
+
+  await client.query(
+    `INSERT INTO organizations (id, name, timezone, updated_at)
+     VALUES ($1, 'Pre-VAL-004C organization', 'Asia/Amman', CURRENT_TIMESTAMP)`,
+    [organizationId],
+  );
+  await client.query(
+    `INSERT INTO locations (
+       id, organization_id, name, code, address_text,
+       timezone, currency, updated_at
+     ) VALUES (
+       $1, $2, 'Pre-VAL-004C location', $3, 'Amman',
+       'Asia/Amman', 'JOD', CURRENT_TIMESTAMP
+     )`,
+    [locationId, organizationId, `PRE-${randomUUID()}`],
+  );
+  await client.query(
+    `INSERT INTO users (id, email, password_hash, updated_at)
+     VALUES ($1, $2, 'test-password-hash', CURRENT_TIMESTAMP)`,
+    [userId, `${randomUUID()}@pre-val-004c.test`],
+  );
+  await client.query(
+    `INSERT INTO organization_memberships (
+       id, organization_id, user_id, role, updated_at
+     ) VALUES ($1, $2, $3, 'VALET_EMPLOYEE', CURRENT_TIMESTAMP)`,
+    [membershipId, organizationId, userId],
+  );
+  await client.query(
+    `INSERT INTO vehicles (
+       id, organization_id, temporary_descriptor, updated_at
+     ) VALUES ($1, $2, 'Pre-VAL-004C vehicle', CURRENT_TIMESTAMP)`,
+    [vehicleId, organizationId],
+  );
+  await client.query(
+    `INSERT INTO valet_sessions (
+       id, customer_access_token_hash, customer_access_expires_at,
+       organization_id, location_id, vehicle_id, state,
+       checked_in_by_membership_id, updated_at
+     ) VALUES (
+       $1, $2, CURRENT_TIMESTAMP + interval '1 hour',
+       $3, $4, $5, 'CHECKING_IN', $6, CURRENT_TIMESTAMP
+     )`,
+    [
+      valetSessionId,
+      `sha256:${randomUUID().replaceAll("-", "")}`,
+      organizationId,
+      locationId,
+      vehicleId,
+      membershipId,
+    ],
+  );
+
+  return { locationId, organizationId, valetSessionId };
+}
+
 async function applyMigrations(client: Client): Promise<void> {
   const migrationDirectories = (
     await readdir(migrationsPath, { withFileTypes: true })
@@ -292,6 +388,9 @@ async function applyMigrations(client: Client): Promise<void> {
   appliedMigrationDirectories = migrationDirectories;
 
   for (const migrationDirectory of migrationDirectories) {
+    if (migrationDirectory === "20260809001500_check_in_intake_persistence") {
+      incrementalMigrationFixture = await createPreVal004CFixture(client);
+    }
     const migrationSql = await readFile(
       join(migrationsPath, migrationDirectory, "migration.sql"),
       "utf8",
@@ -550,6 +649,63 @@ async function createValetSession(
     `INSERT INTO valet_sessions (${columns.join(", ")})
      VALUES (${placeholders.join(", ")})`,
     parameters,
+  );
+  return id;
+}
+
+async function createCheckInIntakeFixture(
+  tenant?: TenantFixture,
+): Promise<CheckInIntakeFixture> {
+  const valetSessionFixture = await createValetSessionFixture(tenant);
+  const valetSessionId = await createValetSession(valetSessionFixture);
+  return { ...valetSessionFixture, valetSessionId };
+}
+
+async function createConditionNote(
+  fixture: CheckInIntakeFixture,
+  values: ConditionNoteValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO condition_notes (
+       id, organization_id, location_id, valet_session_id,
+       context, content, supersedes_condition_note_id,
+       recorded_by_membership_id
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      values.locationId ?? fixture.locationId,
+      values.valetSessionId ?? fixture.valetSessionId,
+      values.context ?? "CHECK_IN",
+      values.content ?? "No visible intake condition concerns",
+      values.supersedesConditionNoteId ?? null,
+      values.recordedByMembershipId ?? fixture.checkedInByMembershipId,
+    ],
+  );
+  return id;
+}
+
+async function createVehiclePhoto(
+  fixture: CheckInIntakeFixture,
+  values: VehiclePhotoValues = {},
+): Promise<string> {
+  const id = randomUUID();
+  await databaseClient.query(
+    `INSERT INTO vehicle_photos (
+       id, organization_id, location_id, valet_session_id,
+       captured_by_membership_id, purpose, storage_object_key, content_type
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      id,
+      values.organizationId ?? fixture.organizationId,
+      values.locationId ?? fixture.locationId,
+      values.valetSessionId ?? fixture.valetSessionId,
+      values.capturedByMembershipId ?? fixture.checkedInByMembershipId,
+      values.purpose ?? "CHECK_IN_CONDITION",
+      values.storageObjectKey ?? `private/check-in/${randomUUID()}`,
+      values.contentType ?? "image/jpeg",
+    ],
   );
   return id;
 }
@@ -6185,9 +6341,11 @@ describe("incident database foundation", () => {
 });
 
 describe("notification database foundation", () => {
-  it("applies exactly all fourteen forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
-    expect(appliedMigrationDirectories.at(-1)).toBe(
+  it("keeps the first fourteen forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories.slice(0, 14)).toEqual(
+      expectedMigrationDirectories.slice(0, 14),
+    );
+    expect(appliedMigrationDirectories.at(13)).toBe(
       "20260809001400_notification_foundation",
     );
   });
@@ -6548,5 +6706,462 @@ describe("notification database foundation", () => {
       "23503",
       "notifications_org_valet_session_id_fkey",
     );
+  });
+});
+
+describe("check-in intake persistence", () => {
+  it("applies exactly all fifteen forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories.at(-1)).toBe(
+      "20260809001500_check_in_intake_persistence",
+    );
+  });
+
+  it("upgrades an existing fourteen-migration fixture without changing custody state or version", async () => {
+    const result = await databaseClient.query<{
+      check_in_condition_completed_at: Date | null;
+      check_in_condition_completed_by_membership_id: string | null;
+      check_in_photos_required: boolean;
+      check_in_photos_required_override: boolean | null;
+      state: string;
+      version: number;
+    }>(
+      `SELECT
+         organization.check_in_photos_required,
+         location.check_in_photos_required_override,
+         session.check_in_condition_completed_at,
+         session.check_in_condition_completed_by_membership_id,
+         session.state::text,
+         session.version
+       FROM organizations AS organization
+       INNER JOIN locations AS location
+         ON location.organization_id = organization.id
+       INNER JOIN valet_sessions AS session
+         ON session.organization_id = organization.id
+        AND session.location_id = location.id
+       WHERE organization.id = $1
+         AND location.id = $2
+         AND session.id = $3`,
+      [
+        incrementalMigrationFixture.organizationId,
+        incrementalMigrationFixture.locationId,
+        incrementalMigrationFixture.valetSessionId,
+      ],
+    );
+
+    expect(result.rows[0]).toEqual({
+      check_in_condition_completed_at: null,
+      check_in_condition_completed_by_membership_id: null,
+      check_in_photos_required: false,
+      check_in_photos_required_override: null,
+      state: "CHECKING_IN",
+      version: 1,
+    });
+  });
+
+  it.each([
+    ["condition_evidence_context", ["CHECK_IN"]],
+    ["vehicle_photo_purpose", ["CHECK_IN_CONDITION"]],
+  ])("defines exactly the focused %s enum", async (enumName, expected) => {
+    const result = await databaseClient.query<{ enumlabel: string }>(
+      `SELECT value.enumlabel
+       FROM pg_enum AS value
+       INNER JOIN pg_type AS type ON type.oid = value.enumtypid
+       WHERE type.typname = $1
+       ORDER BY value.enumsortorder`,
+      [enumName],
+    );
+    expect(result.rows.map((row) => row.enumlabel)).toEqual(expected);
+  });
+
+  it("creates only private relational VehiclePhoto metadata", async () => {
+    const result = await databaseClient.query<{
+      column_name: string;
+      data_type: string;
+    }>(
+      `SELECT column_name, data_type
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'vehicle_photos'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "id",
+      "organization_id",
+      "location_id",
+      "valet_session_id",
+      "captured_by_membership_id",
+      "purpose",
+      "storage_object_key",
+      "content_type",
+      "created_at",
+    ]);
+    expect(result.rows.some((row) => row.data_type === "bytea")).toBe(false);
+    expect(
+      result.rows.some((row) =>
+        /(^vehicle_id$|url|binary|blob|data)/i.test(row.column_name),
+      ),
+    ).toBe(false);
+  });
+
+  it("persists a valid CHECK_IN ConditionNote in the correct session and actor scope", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    const noteId = await createConditionNote(fixture, {
+      content: "Small existing mark on rear bumper",
+    });
+    const result = await databaseClient.query<{
+      content: string;
+      context: string;
+      created_at: Date;
+      location_id: string;
+      organization_id: string;
+      recorded_by_membership_id: string;
+      valet_session_id: string;
+    }>(
+      `SELECT organization_id, location_id, valet_session_id,
+              context::text, content, recorded_by_membership_id, created_at
+       FROM condition_notes
+       WHERE id = $1`,
+      [noteId],
+    );
+    expect(result.rows[0]).toMatchObject({
+      content: "Small existing mark on rear bumper",
+      context: "CHECK_IN",
+      location_id: fixture.locationId,
+      organization_id: fixture.organizationId,
+      recorded_by_membership_id: fixture.checkedInByMembershipId,
+      valet_session_id: fixture.valetSessionId,
+    });
+    expect(result.rows[0]?.created_at).toBeInstanceOf(Date);
+  });
+
+  it("rejects blank ConditionNote evidence", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    await expectPostgresError(
+      createConditionNote(fixture, { content: "   " }),
+      "23514",
+      "condition_notes_content_check",
+    );
+  });
+
+  it("rejects cross-tenant, cross-location, and foreign-actor ConditionNote relationships", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    const foreignTenantFixture = await createCheckInIntakeFixture();
+    const otherLocationId = await createLocation(fixture.organizationId);
+    const otherLocationFixture = await createCheckInIntakeFixture({
+      locationId: otherLocationId,
+      organizationId: fixture.organizationId,
+    });
+    const foreignActor = await createStaff(foreignTenantFixture.organizationId);
+
+    await expectPostgresError(
+      createConditionNote(fixture, {
+        valetSessionId: foreignTenantFixture.valetSessionId,
+      }),
+      "23503",
+      "condition_notes_org_location_session_id_fkey",
+    );
+    await expectPostgresError(
+      createConditionNote(fixture, {
+        valetSessionId: otherLocationFixture.valetSessionId,
+      }),
+      "23503",
+      "condition_notes_org_location_session_id_fkey",
+    );
+    await expectPostgresError(
+      createConditionNote(fixture, {
+        recordedByMembershipId: foreignActor.membershipId,
+      }),
+      "23503",
+      "condition_notes_org_recorded_by_membership_id_fkey",
+    );
+  });
+
+  it("appends a same-session correction while preserving the original note", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    const originalId = await createConditionNote(fixture, {
+      content: "Initial condition observation",
+    });
+    const correctionId = await createConditionNote(fixture, {
+      content: "Corrected condition observation",
+      supersedesConditionNoteId: originalId,
+    });
+    const result = await databaseClient.query<{
+      content: string;
+      id: string;
+      supersedes_condition_note_id: string | null;
+    }>(
+      `SELECT id::text, content, supersedes_condition_note_id::text
+       FROM condition_notes
+       WHERE id IN ($1, $2)`,
+      [originalId, correctionId],
+    );
+    expect(result.rows).toHaveLength(2);
+    expect(result.rows).toContainEqual({
+      content: "Initial condition observation",
+      id: originalId,
+      supersedes_condition_note_id: null,
+    });
+    expect(result.rows).toContainEqual({
+      content: "Corrected condition observation",
+      id: correctionId,
+      supersedes_condition_note_id: originalId,
+    });
+  });
+
+  it("rejects ConditionNote correction lineage across sessions and tenants", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    const originalId = await createConditionNote(fixture);
+    const sameTenantOtherSession = await createCheckInIntakeFixture({
+      locationId: fixture.locationId,
+      organizationId: fixture.organizationId,
+    });
+    const foreignTenantSession = await createCheckInIntakeFixture();
+
+    await expectPostgresError(
+      createConditionNote(sameTenantOtherSession, {
+        supersedesConditionNoteId: originalId,
+      }),
+      "23503",
+      "condition_notes_scope_supersedes_id_fkey",
+    );
+    await expectPostgresError(
+      createConditionNote(foreignTenantSession, {
+        supersedesConditionNoteId: originalId,
+      }),
+      "23503",
+      "condition_notes_scope_supersedes_id_fkey",
+    );
+  });
+
+  it("makes condition completion deterministic while preserving session state and version", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    const before = await databaseClient.query<{
+      complete: boolean;
+    }>(
+      `SELECT (
+         check_in_condition_completed_at IS NOT NULL
+         AND check_in_condition_completed_by_membership_id IS NOT NULL
+       ) AS complete
+       FROM valet_sessions WHERE id = $1`,
+      [fixture.valetSessionId],
+    );
+    expect(before.rows[0]?.complete).toBe(false);
+
+    const completedAt = new Date();
+    await databaseClient.query(
+      `UPDATE valet_sessions
+       SET check_in_condition_completed_at = $1,
+           check_in_condition_completed_by_membership_id = $2
+       WHERE id = $3`,
+      [completedAt, fixture.checkedInByMembershipId, fixture.valetSessionId],
+    );
+    const after = await databaseClient.query<{
+      complete: boolean;
+      state: string;
+      version: number;
+    }>(
+      `SELECT (
+         check_in_condition_completed_at IS NOT NULL
+         AND check_in_condition_completed_by_membership_id IS NOT NULL
+       ) AS complete, state::text, version
+       FROM valet_sessions WHERE id = $1`,
+      [fixture.valetSessionId],
+    );
+    expect(after.rows[0]).toEqual({
+      complete: true,
+      state: "CHECKING_IN",
+      version: 1,
+    });
+  });
+
+  it("rejects half-populated condition completion and a foreign-tenant completion actor", async () => {
+    const timestampOnly = await createCheckInIntakeFixture();
+    const actorOnly = await createCheckInIntakeFixture();
+    const foreignActorFixture = await createCheckInIntakeFixture();
+
+    await expectPostgresError(
+      databaseClient.query(
+        `UPDATE valet_sessions
+         SET check_in_condition_completed_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [timestampOnly.valetSessionId],
+      ),
+      "23514",
+      "valet_sessions_check_in_condition_completion_pair_check",
+    );
+    await expectPostgresError(
+      databaseClient.query(
+        `UPDATE valet_sessions
+         SET check_in_condition_completed_by_membership_id = $1
+         WHERE id = $2`,
+        [actorOnly.checkedInByMembershipId, actorOnly.valetSessionId],
+      ),
+      "23514",
+      "valet_sessions_check_in_condition_completion_pair_check",
+    );
+    await expectPostgresError(
+      databaseClient.query(
+        `UPDATE valet_sessions
+         SET check_in_condition_completed_at = CURRENT_TIMESTAMP,
+             check_in_condition_completed_by_membership_id = $1
+         WHERE id = $2`,
+        [
+          foreignActorFixture.checkedInByMembershipId,
+          timestampOnly.valetSessionId,
+        ],
+      ),
+      "23503",
+      "valet_sessions_org_condition_completed_by_id_fkey",
+    );
+  });
+
+  it("persists private CHECK_IN_CONDITION metadata and derives Vehicle from ValetSession", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    const storageObjectKey = `private/check-in/${randomUUID()}`;
+    const photoId = await createVehiclePhoto(fixture, { storageObjectKey });
+    const result = await databaseClient.query<{
+      captured_by_membership_id: string;
+      content_type: string;
+      purpose: string;
+      storage_object_key: string;
+      vehicle_id: string;
+    }>(
+      `SELECT photo.captured_by_membership_id,
+              photo.purpose::text,
+              photo.storage_object_key,
+              photo.content_type,
+              session.vehicle_id
+       FROM vehicle_photos AS photo
+       INNER JOIN valet_sessions AS session
+         ON session.organization_id = photo.organization_id
+        AND session.location_id = photo.location_id
+        AND session.id = photo.valet_session_id
+       WHERE photo.id = $1`,
+      [photoId],
+    );
+    expect(result.rows[0]).toEqual({
+      captured_by_membership_id: fixture.checkedInByMembershipId,
+      content_type: "image/jpeg",
+      purpose: "CHECK_IN_CONDITION",
+      storage_object_key: storageObjectKey,
+      vehicle_id: fixture.vehicleId,
+    });
+  });
+
+  it("rejects blank VehiclePhoto object keys and content types", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    await expectPostgresError(
+      createVehiclePhoto(fixture, { storageObjectKey: "   " }),
+      "23514",
+      "vehicle_photos_storage_object_key_check",
+    );
+    await expectPostgresError(
+      createVehiclePhoto(fixture, { contentType: "   " }),
+      "23514",
+      "vehicle_photos_content_type_check",
+    );
+  });
+
+  it("rejects cross-tenant, cross-location, and foreign-actor VehiclePhoto relationships", async () => {
+    const fixture = await createCheckInIntakeFixture();
+    const foreignTenantFixture = await createCheckInIntakeFixture();
+    const otherLocationId = await createLocation(fixture.organizationId);
+    const otherLocationFixture = await createCheckInIntakeFixture({
+      locationId: otherLocationId,
+      organizationId: fixture.organizationId,
+    });
+    const foreignActor = await createStaff(foreignTenantFixture.organizationId);
+
+    await expectPostgresError(
+      createVehiclePhoto(fixture, {
+        valetSessionId: foreignTenantFixture.valetSessionId,
+      }),
+      "23503",
+      "vehicle_photos_org_location_session_id_fkey",
+    );
+    await expectPostgresError(
+      createVehiclePhoto(fixture, {
+        valetSessionId: otherLocationFixture.valetSessionId,
+      }),
+      "23503",
+      "vehicle_photos_org_location_session_id_fkey",
+    );
+    await expectPostgresError(
+      createVehiclePhoto(fixture, {
+        capturedByMembershipId: foreignActor.membershipId,
+      }),
+      "23503",
+      "vehicle_photos_org_captured_by_membership_id_fkey",
+    );
+  });
+
+  it.each([
+    [false, null, false],
+    [true, null, true],
+    [false, true, true],
+    [true, false, false],
+  ])(
+    "resolves Organization photo default %s with Location override %s to %s",
+    async (organizationDefault, locationOverride, expected) => {
+      const tenant = await createTenant();
+      await databaseClient.query(
+        `UPDATE organizations
+         SET check_in_photos_required = $1
+         WHERE id = $2`,
+        [organizationDefault, tenant.organizationId],
+      );
+      await databaseClient.query(
+        `UPDATE locations
+         SET check_in_photos_required_override = $1
+         WHERE id = $2`,
+        [locationOverride, tenant.locationId],
+      );
+      const result = await databaseClient.query<{ effective: boolean }>(
+        `SELECT COALESCE(
+           location.check_in_photos_required_override,
+           organization.check_in_photos_required
+         ) AS effective
+         FROM locations AS location
+         INNER JOIN organizations AS organization
+           ON organization.id = location.organization_id
+         WHERE location.id = $1`,
+        [tenant.locationId],
+      );
+      expect(result.rows[0]?.effective).toBe(expected);
+    },
+  );
+
+  it("uses restrictive tenant-safe foreign keys for intake evidence", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      confupdtype: string;
+      conname: string;
+      table_name: string;
+    }>(
+      `SELECT constraint_record.conname,
+              constraint_record.confdeltype,
+              constraint_record.confupdtype,
+              table_record.relname AS table_name
+       FROM pg_constraint AS constraint_record
+       INNER JOIN pg_class AS table_record
+         ON table_record.oid = constraint_record.conrelid
+       WHERE constraint_record.contype = 'f'
+         AND table_record.relname IN ('condition_notes', 'vehicle_photos')
+       ORDER BY table_record.relname, constraint_record.conname`,
+    );
+    expect(result.rows).toHaveLength(9);
+    expect(result.rows.every((row) => row.confdeltype === "r")).toBe(true);
+    expect(result.rows.every((row) => row.confupdtype === "r")).toBe(true);
+    expect(result.rows.map((row) => row.conname)).toEqual([
+      "condition_notes_org_location_id_fkey",
+      "condition_notes_org_location_session_id_fkey",
+      "condition_notes_org_recorded_by_membership_id_fkey",
+      "condition_notes_organization_id_fkey",
+      "condition_notes_scope_supersedes_id_fkey",
+      "vehicle_photos_org_captured_by_membership_id_fkey",
+      "vehicle_photos_org_location_id_fkey",
+      "vehicle_photos_org_location_session_id_fkey",
+      "vehicle_photos_organization_id_fkey",
+    ]);
   });
 });

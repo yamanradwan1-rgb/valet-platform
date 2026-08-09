@@ -37,8 +37,8 @@ The historical concept remains useful for original intent but is superseded wher
 | Complete check-in retry boundary | state+version prevents duplicate mutation/audit; transparent original-response replay requires a focused durable operation-ID contract if needed |
 | OCR/ANPR scan + confirm/edit + manual fallback | DEC-012, Core Check-in task/provider adapter |
 | No plate/unreadable fallback | Stable Vehicle UUID + required temporary descriptor while grouped plate fields are absent; tenant-scoped partial uniqueness when known, DEC-020 |
-| Condition check | ConditionNote/session intake contract; focused Phase 2 persistence dependency before production `complete-check-in` can enforce it |
-| Photos optional by default/configurable required | VehiclePhoto + typed configured policy guard, DEC-012; persistence/configuration remains a focused Phase 2 dependency |
+| Condition check | VAL-004C persists append-only ConditionNote evidence and an explicit session completion marker; condition commands/guards remain pending |
+| Photos optional by default/configurable required | VAL-004C persists private VehiclePhoto metadata plus typed Organization default -> nullable Location override; upload and policy commands remain pending |
 | QR key slots | KeySlot + later KeyCustodyEvent |
 | One active vehicle per key slot | DB partial-unique/integrity protection |
 | Parking zones/spots | ParkingZone/ParkingSpot modules |

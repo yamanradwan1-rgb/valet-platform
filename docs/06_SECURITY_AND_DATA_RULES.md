@@ -163,6 +163,12 @@ Operational history is append-only.
 - sensitive audit metadata must exclude secrets and unnecessary PII
 - high-risk evidence lock/export behavior may be introduced with Incident/ClaimShield tasks
 
+For the VAL-004C intake evidence tables, the ordinary application runtime role
+has only `SELECT` and `INSERT` on `condition_notes` and `vehicle_photos`.
+`UPDATE`, `DELETE` and `TRUNCATE` are denied so corrections append new evidence
+instead of mutating or removing the original row. Migration/admin ownership
+remains separate from this runtime boundary.
+
 For `complete-check-in`, the winning state/version mutation and `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent must commit in one transaction. The event uses the authorized completing membership, same Organization/Location/session scope, server-authoritative time, and safe transition/version metadata only.
 
 A stale-version retry or a later attempt from a non-`CHECKING_IN` state must not append another check-in-completed AuditEvent.

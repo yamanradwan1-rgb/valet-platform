@@ -234,6 +234,20 @@ async function provisionRuntimeRole() {
       [runtimeRole],
     );
 
+    await client.query(
+      `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos FROM PUBLIC`,
+    );
+    await executeFormatted(
+      client,
+      "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos FROM %I",
+      [runtimeRole],
+    );
+    await executeFormatted(
+      client,
+      "GRANT SELECT, INSERT ON TABLE condition_notes, vehicle_photos TO %I",
+      [runtimeRole],
+    );
+
     await executeFormatted(
       client,
       "ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE ALL PRIVILEGES ON TABLES FROM %I",
