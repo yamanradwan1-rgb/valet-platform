@@ -1,7 +1,7 @@
 # Security and Data Rules
 
 Status: Binding  
-Version: 0.3
+Version: 0.4
 
 ## Priority threats
 
@@ -71,6 +71,23 @@ Cross-tenant access is a critical defect.
 
 Sensitive actions such as override, refund, role change, data export and incident close require audit with actor/time/reason where appropriate.
 
+### `complete-check-in` authorization boundary
+
+The Phase 2 `complete-check-in` command follows least privilege and the exact contract in `04_VALET_SESSION_STATE_MACHINE.md`:
+
+- authenticated active staff User
+- active same-Organization membership
+- active Organization/Location for normal operation
+- explicit access to the session Location through the accepted location-access model
+- ordinary operational role limited to `VALET_EMPLOYEE` or `VALET_SUPERVISOR`
+- same-tenant/same-location resource ownership verified from persisted records
+
+`LOCATION_MANAGER` and `ORG_ADMIN` do not automatically gain this field-operation permission from broader management scope. A future permission-set feature may grant equivalent permission explicitly.
+
+An active Shift is not a hard authorization prerequisite for this command. The actual completing membership is still required in the AuditEvent so an imperfect Shift state cannot erase actor accountability.
+
+Unauthorized requests must not disclose the existence or detailed state of a cross-tenant resource merely to return a more specific command error.
+
 ## Guest access
 
 MVP does not require customer passwords or an account.
@@ -88,6 +105,8 @@ Use:
 Never expose exact parking coordinates, internal employee-only data or key-slot identifiers to the Guest.
 
 Raw guest bearer tokens must not be stored in logs/audit metadata.
+
+The existence of hashed guest-access fields on ValetSession is a persistence foundation, not permission for check-in commands to manufacture, return, log, or audit raw bearer tokens. Guest issuance/authorization semantics remain a focused Phase 2 task.
 
 ## Secure handoff
 
@@ -132,6 +151,8 @@ When captured:
 
 Do not invent a legal retention period. Retention must later be configurable/contract-aware where required.
 
+`complete-check-in` may enforce a required-photo guard only after the typed Company-default -> Location-override photo policy and authorized private attachment persistence exist. Until then, implementation must not fake this guard with an untyped setting or assume photos are always mandatory.
+
 ## Black Box / audit / evidence
 
 Operational history is append-only.
@@ -141,6 +162,12 @@ Operational history is append-only.
 - operational/audit history is not hard-deleted through normal application behavior
 - sensitive audit metadata must exclude secrets and unnecessary PII
 - high-risk evidence lock/export behavior may be introduced with Incident/ClaimShield tasks
+
+For `complete-check-in`, the winning state/version mutation and `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent must commit in one transaction. The event uses the authorized completing membership, same Organization/Location/session scope, server-authoritative time, and safe transition/version metadata only.
+
+A stale-version retry or a later attempt from a non-`CHECKING_IN` state must not append another check-in-completed AuditEvent.
+
+The current AuditEvent schema provides the history record but database-level append-only enforcement for the ordinary Phase 2 runtime role still requires the explicit privilege/enforcement task identified by VAL-003P. Feature code must not treat migration-owner privileges as the production runtime boundary.
 
 Full ClaimShield evidence-package workflow is V2; basic Black Box and incident evidence integrity are MVP requirements.
 
@@ -187,6 +214,8 @@ Exact provider/compliance obligations depend on the first market and provider co
 Offline-friendly employee actions are part of the sellable MVP direction.
 
 Design protected mutations with stable IDs/idempotency/request/device context so reconnect/sync does not create duplicate sessions, requests, tasks, payments or custody events.
+
+Optimistic aggregate versioning is necessary for contested state changes but is not equivalent to durable command idempotency. `complete-check-in` is protected against duplicate state/audit mutation by its conditional state+version transition; transparent replay of the original success requires a later focused durable operation-ID contract if the offline client needs that behavior.
 
 Operations that require authoritative online verification, such as certain payment/handoff steps, must use an explicitly documented fallback; never silently weaken security when offline.
 

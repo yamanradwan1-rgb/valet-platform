@@ -30,11 +30,15 @@ The historical concept remains useful for original intent but is superseded wher
 | Company Admin | internal `ORG_ADMIN`, DEC-011 |
 | Venue Client restricted visibility | approved actor; schema/access model explicitly deferred |
 | VAYLET Super Admin | platform-level role; tenant membership prohibited; persistence deferred |
-| Check-in lifecycle | `04_VALET_SESSION_STATE_MACHINE.md` CHECKING_IN/AWAITING_PARKING |
+| Check-in lifecycle | `04_VALET_SESSION_STATE_MACHINE.md` CHECKING_IN/AWAITING_PARKING; locked `complete-check-in` command contract |
+| Complete check-in authorization | active authenticated staff + same Organization + explicit Location access + ordinary `VALET_EMPLOYEE`/`VALET_SUPERVISOR` role; active Shift not a hard prerequisite |
+| Complete check-in concurrency | expected ValetSession `version`; stale mutation -> `VERSION_CONFLICT`; successful transition increments once |
+| Complete check-in Black Box | `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent committed atomically with the winning transition; safe metadata only |
+| Complete check-in retry boundary | state+version prevents duplicate mutation/audit; transparent original-response replay requires a focused durable operation-ID contract if needed |
 | OCR/ANPR scan + confirm/edit + manual fallback | DEC-012, Core Check-in task/provider adapter |
 | No plate/unreadable fallback | Stable Vehicle UUID + required temporary descriptor while grouped plate fields are absent; tenant-scoped partial uniqueness when known, DEC-020 |
-| Condition check | ConditionNote/session intake contract |
-| Photos optional by default/configurable required | VehiclePhoto + configured policy guard, DEC-012 |
+| Condition check | ConditionNote/session intake contract; focused Phase 2 persistence dependency before production `complete-check-in` can enforce it |
+| Photos optional by default/configurable required | VehiclePhoto + typed configured policy guard, DEC-012; persistence/configuration remains a focused Phase 2 dependency |
 | QR key slots | KeySlot + later KeyCustodyEvent |
 | One active vehicle per key slot | DB partial-unique/integrity protection |
 | Parking zones/spots | ParkingZone/ParkingSpot modules |
@@ -49,7 +53,7 @@ The historical concept remains useful for original intent but is superseded wher
 | Secure Dynamic QR or 4-digit pickup code | HandoffVerification, DEC-016 |
 | Supervisor handoff override | permission + reason + AuditEvent |
 | Black Box timeline | AuditEvent + custody/task/payment/incident events |
-| Append-only corrections | Audit/Black Box rule across domain/security docs |
+| Append-only corrections | Audit/Black Box rule across domain/security docs; runtime DB enforcement remains an explicit Phase 2 security dependency from VAL-003P |
 | Basic incident reporting | Incident entity/module |
 | Evidence Lock / full ClaimShield | basic evidence integrity in MVP; full ClaimShield V2 |
 | Customer Pays / Venue Pays | Payment `service_payer`; financial responsibility only, DEC-021 |
@@ -66,7 +70,7 @@ The historical concept remains useful for original intent but is superseded wher
 | Arabic/English + RTL/LTR | frontend design/implementation requirement |
 | E.164 phones | DB/application normalization convention |
 | Multi-country plate formats | Vehicle/input normalization rules |
-| Offline-friendly employee actions | reliability/idempotency/offline phase |
+| Offline-friendly employee actions | reliability/idempotency/offline phase; command-level retry boundaries start in Phase 2 |
 | Reports + CSV/PDF export | Reporting/Dashboard scope |
 | Basic subscription/admin controls | later sellable-MVP admin task |
 | White label | configuration/commercial capability; advanced white label V2 |

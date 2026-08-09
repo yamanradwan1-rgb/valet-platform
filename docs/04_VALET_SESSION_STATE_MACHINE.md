@@ -1,7 +1,7 @@
 # ValetSession State Machine
 
 Status: Binding  
-Version: 0.2
+Version: 0.3
 
 ## Scope
 
@@ -80,16 +80,143 @@ Allowed:
 
 - `CHECKING_IN -> AWAITING_PARKING`
 
-Guard for AWAITING_PARKING:
+The only normal command that performs this transition is `complete-check-in`.
 
-- valid/authorized Location
-- valid vehicle identification or approved no-plate/manual fallback once that contract is implemented
-- authorized receiving employee
-- required condition information complete
-- configured photo requirement satisfied when policy requires photos
-- session/customer access data valid where used
+### Locked `complete-check-in` command contract
 
-OCR confidence alone must never block manual fallback.
+This is the first locked Phase 2 protected custody command. It is not a generic session patch and it must not perform parking, key, task, dispatch, retrieval, handoff, payment, incident, or notification lifecycle work.
+
+#### Command inputs and authority
+
+The command identifies the target `ValetSession` and requires the caller's expected current session `version`.
+
+Organization, Location, actor membership, current state, current version, Vehicle ownership, and all protected resource relationships are server-derived from authorized records. A client-supplied organization/location/actor identifier is never trusted to establish authority.
+
+The current `version` field is the single optimistic-concurrency mechanism for this aggregate unless a later accepted decision changes it.
+
+#### Authorization boundary
+
+Before any mutation, all of the following must hold:
+
+1. the caller is an authenticated staff User whose User status is `ACTIVE`
+2. the caller has an `ACTIVE` OrganizationMembership in the same Organization as the ValetSession
+3. the Organization and target Location are active for normal operation
+4. the membership has explicit authorized access to the ValetSession Location through the accepted location-access model
+5. the ordinary operational role is `VALET_EMPLOYEE` or `VALET_SUPERVISOR`
+6. the ValetSession and linked Vehicle resolve inside the same authorized tenant/resource scope
+
+`LOCATION_MANAGER` and `ORG_ADMIN` do not receive ordinary field check-in completion authority merely because those roles have broader management visibility/configuration responsibilities. A later explicit permission-set decision may grant an equivalent operational permission without changing the state-machine semantics.
+
+An active Shift is **not** a hard authorization prerequisite for `complete-check-in`. Shift state may be imperfect; the actual completing actor must still be recorded. This preserves the domain rule that important operational events retain the acting membership even when Shift state is imperfect.
+
+The completing actor may differ from `checked_in_by_membership_id` when an authorized operational handoff occurred during intake. `complete-check-in` does not rewrite `checked_in_by_membership_id`; the completing actor is preserved in the AuditEvent.
+
+#### State and optimistic concurrency
+
+The command requires:
+
+- persisted state exactly `CHECKING_IN`
+- caller-provided `expectedVersion` exactly equal to the persisted `version`
+
+Error precedence for a resolved/authorized session is stable:
+
+1. if persisted `version != expectedVersion`, fail with `VERSION_CONFLICT`
+2. otherwise, if state is not `CHECKING_IN`, fail with `INVALID_STATE_TRANSITION`
+
+The final write must still be conditional on both the expected version and `CHECKING_IN` state so a race between validation and mutation cannot succeed.
+
+On success, `version` increments exactly once. No second lock/version column or alternate concurrency counter is introduced by this command.
+
+#### Intake guards
+
+Before transition, the command must establish:
+
+- the Location/session/Vehicle relationships are valid and authorized
+- Vehicle identity satisfies either the accepted known-plate contract or DEC-020 no-plate fallback with a valid `temporary_descriptor`
+- the completing actor satisfies the authorization boundary above
+- required vehicle condition information is complete
+- photo requirements are satisfied only when the active typed Company/Location policy requires photos; photos remain optional by default
+- guest/session access persistence is structurally valid where that access path is used
+
+OCR/ANPR confidence is never a completion requirement. Confirm/edit/manual input remains authoritative and the accepted no-plate fallback must remain usable.
+
+The current Phase 1 schema does **not** yet persist `ConditionNote`, `VehiclePhoto`, or the typed configurable photo requirement. Therefore a production implementation must not claim that the condition/photo guards above are complete until focused follow-up persistence/configuration tasks provide those dependencies.
+
+The existing ValetSession contains hashed guest-access persistence, but token issuance, authorization, expiry/revocation behavior, and guest-facing access semantics remain a focused Phase 2 guest-access task. `complete-check-in` must not invent or leak raw guest tokens.
+
+Key-slot assignment, ParkingSpot/Zone assignment, Parking task creation/assignment, and Hybrid Dispatch are not prerequisites or side effects of `complete-check-in`; they belong after the session reaches `AWAITING_PARKING`.
+
+#### Server-authoritative success effects
+
+A successful `complete-check-in` transaction performs only these custody effects:
+
+1. set `state = AWAITING_PARKING`
+2. set `checking_in_completed_at` to one server-authoritative timestamp
+3. increment `version` exactly once
+4. append the required AuditEvent/Black Box event using the same transaction
+5. return the updated authorized session representation
+
+The command does not change `parking_spot_id`, `key_slot_id`, current task/dispatch state, retrieval state, payment state, handoff state, or incident/notification state.
+
+#### Audit / Black Box contract
+
+The mutation and its required AuditEvent either both commit or both roll back.
+
+For this command the stable event contract is:
+
+- `event_type = VALET_SESSION_CHECK_IN_COMPLETED`
+- `entity_type = VALET_SESSION`
+- `entity_id = ValetSession.id`
+- matching Organization, Location, and ValetSession scope
+- `actor_membership_id =` the authorized completing membership
+- `occurred_at =` the same server-authoritative operation time used for completion
+- safe metadata sufficient to explain the transition, limited by default to fields such as `from_state`, `to_state`, `from_version`, and `to_version`
+
+Audit metadata must not contain a raw guest access token, raw phone secret, pickup code, authentication token, password, provider secret, payment credential, or other bearer/reusable secret. Do not redesign the AuditEvent table for this command.
+
+#### Retry / idempotency boundary
+
+Optimistic concurrency prevents the same successful transition from being applied twice, but `version` is **not** a durable command-idempotency record.
+
+Minimum locked behavior:
+
+- a retry using a stale `expectedVersion` cannot replay the mutation and returns `VERSION_CONFLICT`
+- a caller that refreshes to the new version and tries `complete-check-in` again sees `INVALID_STATE_TRANSITION`
+- neither case appends a second check-in-completed AuditEvent because the AuditEvent is inserted only in the transaction that actually wins the guarded state/version mutation
+
+This is sufficient to prevent duplicate transition/audit side effects. It does not provide transparent "return the original success response" semantics for an offline duplicate submission.
+
+If the offline/retry implementation requires distinguishing an exact retry from a new semantic command and returning the original successful result, a stable client/device operation identifier with durable uniqueness is required in a focused follow-up persistence task. The current nullable, non-unique `AuditEvent.idempotency_key` is not by itself a sufficient uniqueness guarantee and must not be presented as one.
+
+#### Required implementation dependencies
+
+Before the production command can claim the full Blueprint check-in contract, focused Phase 2 tasks must resolve or implement:
+
+- ConditionNote persistence and completion semantics
+- VehiclePhoto/private attachment persistence used by intake evidence
+- typed Company-default -> Location-override photo requirement storage/evaluation
+- secure guest access issuance/authorization behavior over the existing hashed session fields
+- application/domain command transaction infrastructure and authorization checks
+- dedicated least-privilege runtime database role and the explicit append-only AuditEvent privilege/enforcement boundary required by VAL-003P
+- durable operation-id persistence only if transparent duplicate replay/offline command identity is required
+
+VAL-004A itself introduces none of those persistence/runtime changes.
+
+#### Stable command errors
+
+The implementation should use the existing cross-cutting access/concurrency errors where applicable and adds these check-in-specific meanings:
+
+- `TENANT_ACCESS_DENIED`
+- `LOCATION_ACCESS_DENIED`
+- `CHECK_IN_COMPLETION_NOT_ALLOWED`
+- `VERSION_CONFLICT`
+- `INVALID_STATE_TRANSITION`
+- `VEHICLE_IDENTITY_INCOMPLETE`
+- `CONDITION_CHECK_INCOMPLETE`
+- `PHOTO_REQUIREMENT_NOT_SATISFIED`
+- `GUEST_ACCESS_INVALID` only when the focused guest-access contract defines the corresponding failure
+
+Do not expose whether an unauthorized cross-tenant resource exists merely to provide a more specific error.
 
 ## AWAITING_PARKING
 
@@ -386,3 +513,20 @@ When this state machine is implemented, include at minimum:
 - tracking start/stop bound to correct task/session states
 - transition/audit atomicity
 - offline/retry duplicate-command safety where implemented
+
+For `complete-check-in` specifically, focused implementation coverage must include:
+
+- allowed employee and supervisor completion with explicit Location access
+- denied inactive user/membership and denied unauthorized role/location/tenant scope
+- no hard dependency on an active Shift
+- known-plate and accepted no-plate Vehicle identity paths
+- condition guard and optional/default photo behavior once their persistence exists
+- required-photo policy rejection once typed policy/photo persistence exists
+- `VERSION_CONFLICT` on stale expected version
+- `INVALID_STATE_TRANSITION` when version is current but state is not `CHECKING_IN`
+- exactly one version increment and server-owned completion timestamp
+- exactly one check-in-completed AuditEvent for the winning mutation
+- mutation/audit rollback together on failure
+- duplicate retry does not append another AuditEvent
+- safe audit metadata without bearer/verification/payment secrets
+- no parking/key/task/dispatch side effects

@@ -1,7 +1,7 @@
 # AI Agent Execution Plan
 
 Status: Binding work sequence  
-Version: 0.4
+Version: 0.5
 
 The agent must not attempt to build the whole product in one pass.
 
@@ -32,12 +32,12 @@ No business feature is added retroactively to Phase 0.
 
 ## Phase 1 — Foundation: data, tenants, staff and audit-ready structure
 
+Status: COMPLETE
+
 Goal:
 Establish the persistent multi-tenant foundation required by the sellable product without implementing UI features.
 
-Work is split into focused database/foundation tasks. Current early slices include tenant/staff structure before the remaining domain schema.
-
-Required foundation capabilities over the Phase:
+Completed foundation capabilities include:
 
 - Organization / Company
 - Location with location-owned timezone/currency operational context
@@ -51,28 +51,22 @@ Required foundation capabilities over the Phase:
 - database-enforced tenant integrity
 - critical unique/check/partial-index protections
 - migration integrity tests
-- demo/seed data when its dedicated task is reached
+- deterministic demo/seed data
 
-The accepted DEC-021 financial persistence foundation is implemented in Phase 1, before Phase 6 application/provider workflows, through this dependency order:
+The accepted DEC-021 financial persistence foundation was implemented in Phase 1 before Phase 6 application/provider workflows, through this dependency order:
 
 1. Payment + Validation + tip foundation
 2. CashEntry + provider-event/idempotency foundation
 3. Refund foundation
 
-Use one active migration owner and one forward-only migration PR at a time. Complete focused tenant, money, status, idempotency and concurrency tests for each financial slice before starting the next.
-
-Rules:
-
-- Do not add Venue Client or VAYLET Super Admin persistence without a dedicated accepted schema decision.
-- Do not invent a generic Configuration First JSON policy table in the tenant/staff task.
-- Configuration First is binding behavior, but typed configuration storage is introduced through focused feature tasks.
-- One active migration owner at a time while the database foundation is high-contention.
-- Financial Phase 1 persistence does not authorize provider SDK/webhook integration or user-facing payment/refund workflows early; those remain Phase 6 work.
+Financial Phase 1 persistence does not authorize provider SDK/webhook integration or user-facing payment/refund workflows early; those remain Phase 6 work.
 
 ## Phase 2 — Core custody domain + check-in
 
+Status: IN PROGRESS
+
 Goal:
-Implement the canonical physical vehicle lifecycle foundation and a fast check-in path.
+Implement the canonical physical vehicle lifecycle foundation and a fast check-in path ending in a safely completed `CHECKING_IN -> AWAITING_PARKING` transition.
 
 Canonical ValetSession physical states:
 
@@ -88,7 +82,7 @@ CHECKING_IN
 -> COMPLETED
 ```
 
-Required work across focused tasks:
+Required capability across focused tasks:
 
 - explicit domain commands and guards
 - optimistic concurrency for contested mutations
@@ -98,11 +92,76 @@ Required work across focused tasks:
 - condition check
 - configurable photo requirement, OPTIONAL by default
 - plate capture contract with OCR/ANPR confirm/edit + permanent manual fallback
-- implement the accepted DEC-020 no-plate/unreadable Vehicle identity fallback
+- accepted DEC-020 no-plate/unreadable Vehicle identity fallback
 - check-in performance instrumentation
+
+### Locked first command
+
+VAL-004A locks the binding `complete-check-in` contract in `04_VALET_SESSION_STATE_MACHINE.md` before implementation.
+
+The command performs only:
+
+```text
+CHECKING_IN -> AWAITING_PARKING
+```
+
+It requires authorized active staff, same-Organization scope, explicit Location access, ordinary `VALET_EMPLOYEE`/`VALET_SUPERVISOR` operational permission, expected ValetSession `version`, the accepted Vehicle identity path, required condition completion, typed photo-policy compliance when implemented, and atomic AuditEvent creation.
+
+An active Shift is not a hard authorization prerequisite. Parking/key/Task/Dispatch effects are not part of `complete-check-in`.
+
+State+version concurrency prevents duplicate transition/audit mutation, but it does not promise transparent replay of the original successful response. Durable client/device operation identity is added only if the focused offline/retry task demonstrates that need.
+
+### Phase 2 focused task sequence
+
+Use this dependency-oriented sequence; each remains a separate Issue/PR and may be split further only when reviewability requires it:
+
+1. **VAL-004A — Lock Complete Check-In Command Contract**  
+   Binding docs only: authorization, state/version concurrency, intake guards, audit atomicity, retry boundary, missing dependencies.
+
+2. **VAL-004B — Custody Command / Authorization / Concurrency Foundation**  
+   Reusable backend command pattern for actor/tenant/location authorization, optimistic ValetSession version mutation, transaction ownership, stable errors and required AuditEvent atomicity. This task must also resolve the dedicated Phase 2 runtime DB-role / append-only enforcement dependency before production commands rely on migration-owner privileges.
+
+3. **VAL-004C — Check-In Intake Persistence**  
+   Focused persistence needed by the locked command, including the accepted ConditionNote/VehiclePhoto intake evidence boundary and typed photo-policy persistence where the approved contract requires new schema. One migration owner only if persistence changes are needed.
+
+4. **VAL-004D — Vehicle Identity / Plate Capture Command**  
+   Confirmed plate input, OCR/ANPR assistive boundary, manual fallback, DEC-020 no-plate temporary descriptor path, tenant-scoped conflict handling and audited correction semantics without automatic merge.
+
+5. **VAL-004E — Customer / Vehicle / ValetSession Creation**  
+   Explicit intake creation command(s), tenant/location ownership, checked-in actor, secure retry semantics, active-session protections, server timestamps and initial `CHECKING_IN` state.
+
+6. **VAL-004F — Guest Secure Access Foundation**  
+   Cryptographically strong guest-access issuance and authorization over the existing hashed session fields, expiry/revocation, guest-safe scope and no raw bearer token in persistence/log/audit.
+
+7. **VAL-004G — Condition Check + Photo Policy Commands**  
+   Condition completion semantics, optional-by-default photos, typed Company-default -> Location-override required-photo evaluation, private attachment ownership and completion guards.
+
+8. **VAL-004H — Complete Check-In Command Implementation**  
+   Implement the accepted VAL-004A contract end-to-end: authorized `CHECKING_IN -> AWAITING_PARKING`, expected version, server completion timestamp, one version increment, one `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent, same-transaction rollback, no parking/key/dispatch side effects.
+
+9. **VAL-004I — Check-In API / Integration / Performance Gate**  
+   API/use-case wiring, shared request/response contract, command-error mapping, tenant/location/concurrency/retry integration coverage and performance instrumentation for the normal check-in path.
+
+Do not combine the nine slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
+
+### Phase 2 implementation dependencies that must remain explicit
+
+Before production `complete-check-in` claims the full Blueprint semantics, the repository must have:
+
+- real ConditionNote completion persistence/logic
+- authorized private VehiclePhoto/attachment persistence
+- typed configurable photo requirement with Company default -> Location override
+- secure guest access issuance/authorization behavior
+- dedicated least-privilege application runtime DB credentials
+- explicit append-only AuditEvent privilege/enforcement boundary for the runtime role
+- durable command-operation identity only if transparent offline duplicate replay is required
+
+Do not fake these dependencies inside the command with an untyped policy blob, migration-owner runtime access, or claims that `version` alone is full idempotency.
 
 Acceptance direction:
 The normal low-friction check-in path should target roughly 15–20 seconds where policy does not require photos.
+
+Phase 2 is complete only when a real authorized staff flow can establish a valid intake and safely reach `AWAITING_PARKING` with tenant/location isolation, concurrency protection, audit integrity and the required check-in instrumentation.
 
 ## Phase 3 — Operations: keys, parking and Hybrid Dispatch
 
