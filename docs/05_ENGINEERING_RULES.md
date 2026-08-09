@@ -86,6 +86,16 @@ The first locked Phase 2 example is `complete-check-in`; its exact authorization
 
 Optimistic `version` concurrency prevents stale contested writes but does not automatically provide transparent duplicate-request replay. If a command requires an exact retry to return the original successful response, use a focused durable operation/idempotency contract rather than claiming versioning alone is idempotency.
 
+### Vehicle identity command boundary
+
+Vehicle identity mutation is an explicit internal command scoped through a persisted ValetSession. The command derives Organization, Location, Vehicle and actor membership server-side; accepts only a human-confirmed plate or a DEC-020 temporary descriptor; and rejects mixed modes. OCR/ANPR metadata is candidate provenance only and never supplies the authoritative value without explicit human confirmation.
+
+The shared normalization boundary preserves the human-confirmed raw plate after trimming, applies Unicode NFKC normalization to the canonical value, uppercases the canonical plate and country value, removes whitespace and obvious separator characters (`-`, Unicode dash punctuation, `.`, `/` and `\\`) from the canonical plate, and enforces Unicode-code-point input bounds. The final plate country must satisfy the existing two-letter uppercase `^[A-Z]{2}$` country-code contract; no country-specific plate-number validation is applied.
+
+Corrections use the persisted Vehicle `updated_at` value as the explicit optimistic token. A successful conditional update advances that token monotonically; a stale token returns `VEHICLE_IDENTITY_VERSION_CONFLICT`. The tenant-scoped partial unique plate index is the final race-safe conflict arbiter and maps collisions to `VEHICLE_IDENTITY_CONFLICT`; application code must not auto-merge Vehicle records.
+
+The Vehicle mutation and its required safe `AuditEvent` commit in one transaction or both roll back. ValetSession `version` is not used as a substitute for Vehicle identity concurrency.
+
 ## Errors
 
 Use stable machine-readable codes, e.g.:

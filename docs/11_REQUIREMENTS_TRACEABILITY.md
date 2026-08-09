@@ -35,8 +35,10 @@ The historical concept remains useful for original intent but is superseded wher
 | Complete check-in concurrency | expected ValetSession `version`; stale mutation -> `VERSION_CONFLICT`; successful transition increments once |
 | Complete check-in Black Box | `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent committed atomically with the winning transition; safe metadata only |
 | Complete check-in retry boundary | state+version prevents duplicate mutation/audit; transparent original-response replay requires a focused durable operation-ID contract if needed |
-| OCR/ANPR scan + confirm/edit + manual fallback | DEC-012, Core Check-in task/provider adapter |
-| No plate/unreadable fallback | Stable Vehicle UUID + required temporary descriptor while grouped plate fields are absent; tenant-scoped partial uniqueness when known, DEC-020 |
+| OCR/ANPR scan + confirm/edit + manual fallback | VAL-004D internal command persists only explicit human-confirmed/manual plate input; OCR/ANPR remains optional candidate provenance with no vendor integration, DEC-012 |
+| No plate/unreadable fallback | VAL-004D internal command persists a bounded trimmed temporary descriptor and clears grouped plate fields; stable Vehicle UUID remains distinct, DEC-020 |
+| Vehicle identity correction/concurrency | Explicit authorized correction through persisted ValetSession scope; Vehicle `updated_at` optimistic token rejects stale writes; DB partial unique index maps same-tenant collision to `VEHICLE_IDENTITY_CONFLICT`; no automatic merge |
+| Vehicle identity Black Box | Vehicle mutation + one safe Vehicle-scoped AuditEvent commit atomically; event distinguishes confirmed-plate versus temporary-descriptor and set versus correction without plate/descriptor/OCR payload |
 | Condition check | VAL-004C persists append-only ConditionNote evidence and an explicit session completion marker; condition commands/guards remain pending |
 | Photos optional by default/configurable required | VAL-004C persists private VehiclePhoto metadata plus typed Organization default -> nullable Location override; upload and policy commands remain pending |
 | QR key slots | KeySlot + later KeyCustodyEvent |
@@ -69,7 +71,7 @@ The historical concept remains useful for original intent but is superseded wher
 | Location timezone/currency | `03_DATABASE_SCHEMA.md`, DEC-018 |
 | Arabic/English + RTL/LTR | frontend design/implementation requirement |
 | E.164 phones | DB/application normalization convention |
-| Multi-country plate formats | Vehicle/input normalization rules |
+| Multi-country plate formats | VAL-004D deterministic Unicode NFKC/trim/case/separator normalization boundary; country-specific legal rules remain deferred |
 | Offline-friendly employee actions | reliability/idempotency/offline phase; command-level retry boundaries start in Phase 2 |
 | Reports + CSV/PDF export | Reporting/Dashboard scope |
 | Basic subscription/admin controls | later sellable-MVP admin task |

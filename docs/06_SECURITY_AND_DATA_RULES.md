@@ -88,6 +88,16 @@ An active Shift is not a hard authorization prerequisite for this command. The a
 
 Unauthorized requests must not disclose the existence or detailed state of a cross-tenant resource merely to return a more specific command error.
 
+### Vehicle identity field-operation boundary
+
+The internal vehicle identity command applies the same field-operation authorization boundary through the persisted ValetSession: active User, active same-Organization membership, active Organization/Location, explicit Location access, and `VALET_EMPLOYEE` or `VALET_SUPERVISOR`. `LOCATION_MANAGER` and `ORG_ADMIN` have no implicit permission, and an active Shift is not required.
+
+Caller-supplied tenant, Location, membership, role or Vehicle ownership is not trusted. A foreign or missing session produces the same non-disclosing tenant-access response. Same-Organization plate conflicts return only `VEHICLE_IDENTITY_CONFLICT` and do not expose the conflicting Vehicle; matching plates in different Organizations remain isolated.
+
+OCR/ANPR candidate metadata is neither identity nor authorization evidence. Only explicitly human-confirmed input may write canonical plate fields. Audit metadata records the identity mode, set/correction kind and normalization version, but excludes raw/canonical plate text, temporary descriptor text and OCR payloads.
+
+Vehicle identity mutation and the required Vehicle-scoped AuditEvent are atomic. Stale optimistic tokens, validation errors, authorization failures, uniqueness conflicts and audit failures leave no partial identity mutation or orphan event. Automatic Vehicle merge/relink behavior is prohibited.
+
 ## Guest access
 
 MVP does not require customer passwords or an account.

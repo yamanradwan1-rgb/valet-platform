@@ -19,6 +19,11 @@ export interface PersistedCustodyAuditScope {
   readonly valetSessionId: string;
 }
 
+export interface CustodyAuditEntity {
+  readonly id: string;
+  readonly type: "ValetSession" | "Vehicle";
+}
+
 export class UnsafeCustodyAuditDefinitionError extends Error {
   readonly code = "UNSAFE_AUDIT_METADATA" as const;
 
@@ -51,6 +56,7 @@ export async function appendCustodyAuditEvent(
   transaction: PostgresTransaction,
   input: {
     readonly definition: CustodyAuditEventDefinition;
+    readonly entity?: CustodyAuditEntity;
     readonly occurredAt: Date;
     readonly scope: PersistedCustodyAuditScope;
   },
@@ -59,12 +65,16 @@ export async function appendCustodyAuditEvent(
   validateAuditDefinition(input.definition);
 
   const auditEventId = auditEventIdFactory();
+  const entity = input.entity ?? {
+    id: input.scope.valetSessionId,
+    type: "ValetSession" as const,
+  };
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
         actor_membership_id, event_type, entity_type, entity_id,
         metadata_json, occurred_at)
-     VALUES ($1, $2, $3, $4, $5, $6, 'ValetSession', $4, $7::jsonb, $8)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10)`,
     [
       auditEventId,
       input.scope.organizationId,
@@ -72,6 +82,8 @@ export async function appendCustodyAuditEvent(
       input.scope.valetSessionId,
       input.scope.actorMembershipId,
       input.definition.eventType,
+      entity.type,
+      entity.id,
       JSON.stringify(input.definition.metadata),
       input.occurredAt,
     ],
