@@ -23,6 +23,10 @@ Version: 0.3
 
 - TLS for production network traffic.
 - Least privilege for database/cloud identities.
+- migration/admin database credentials are separate from ordinary application runtime credentials
+- application runtime uses a dedicated least-privilege database role without schema migration or DDL privileges
+- append-only AuditEvent and financial-history persistence requires an explicit database privilege/enforcement decision before Phase 2 commands rely on that guarantee
+- exact database role provisioning and `GRANT`/`REVOKE` policy remains a focused security task; it is not inferred from migration-owner access
 - Production secrets stay outside source code in environment/secret management.
 - Encrypted backups and a documented/tested restore procedure are required before production readiness.
 - Central error/monitoring must avoid unnecessary PII/secrets.
