@@ -31,6 +31,16 @@ Object storage stores vehicle images/attachments.
 
 Redis is not required until a concrete need is demonstrated.
 
+Migration/admin database credentials are not ordinary application runtime
+credentials. Phase 2 application code must use a dedicated least-privilege
+runtime role without schema migration or other DDL privileges.
+
+Before Phase 2 commands rely on append-only AuditEvent or financial-history
+guarantees, the project must make an explicit database privilege/enforcement
+decision for those tables. Exact role provisioning and `GRANT`/`REVOKE` rules
+remain a focused security task; feature code must not assume migration-owner
+privileges are an acceptable runtime boundary.
+
 ## Time, currency and location context
 
 - store DB timestamps in UTC

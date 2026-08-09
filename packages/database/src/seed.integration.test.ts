@@ -8,8 +8,11 @@ const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
-const testDatabaseName = `valet_003o_${process.pid}_${Date.now()}`;
+const testDatabaseName = `valet_003p_${process.pid}_${Date.now()}`;
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const missingDotenvPath = fileURLToPath(
+  new URL("../../../.env.val-003p-does-not-exist", import.meta.url),
+);
 const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const demoOrganizationId = "00000000-0000-4000-8000-000000000001";
 const ammanLocationId = "00000000-0000-4000-8000-000000000002";
@@ -58,14 +61,19 @@ async function runPnpm(
   const npmExecPath = process.env.npm_execpath;
   const command = npmExecPath === undefined ? pnpmExecutable : process.execPath;
   const commandArgs = npmExecPath === undefined ? args : [npmExecPath, ...args];
+  const childEnvironment = { ...process.env };
+  for (const [key, value] of Object.entries(environment)) {
+    if (value === undefined) {
+      delete childEnvironment[key];
+    } else {
+      childEnvironment[key] = value;
+    }
+  }
 
   return await new Promise((resolve, reject) => {
     const child = spawn(command, commandArgs, {
       cwd: repositoryRoot,
-      env: {
-        ...process.env,
-        ...environment,
-      },
+      env: childEnvironment,
       shell: npmExecPath === undefined && process.platform === "win32",
       windowsHide: true,
     });
@@ -101,6 +109,31 @@ async function scalarNumber(
 ): Promise<number> {
   const result = await databaseClient.query<{ count: string }>(sql, values);
   return Number(result.rows[0]?.count ?? 0);
+}
+
+async function expectSeedRejectionWithoutMutation(
+  environment: NodeJS.ProcessEnv,
+  expectedMessage: string,
+  forbiddenOutput?: string,
+): Promise<void> {
+  const before = await scalarNumber(
+    `SELECT count(*)::text AS count FROM organizations`,
+  );
+  let rejection: Error | undefined;
+  try {
+    await runPnpm(["--filter", "@valet/database", "seed"], environment);
+  } catch (error) {
+    rejection = error instanceof Error ? error : new Error(String(error));
+  }
+  expect(rejection).toBeDefined();
+  expect(rejection?.message).toContain(expectedMessage);
+  if (forbiddenOutput !== undefined) {
+    expect(rejection?.message).not.toContain(forbiddenOutput);
+  }
+  const after = await scalarNumber(
+    `SELECT count(*)::text AS count FROM organizations`,
+  );
+  expect(after).toBe(before);
 }
 
 async function demoCounts(): Promise<Record<string, number>> {
@@ -146,7 +179,7 @@ async function demoCounts(): Promise<Record<string, number>> {
 }
 
 beforeAll(async () => {
-  expect(testDatabaseName).toMatch(/^valet_003o_\d+_\d+$/);
+  expect(testDatabaseName).toMatch(/^valet_003p_\d+_\d+$/);
   testDatabaseUrl = connectionUrlFor(testDatabaseName);
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl });
@@ -202,25 +235,131 @@ describe("demo seed data foundation", () => {
   });
 
   it("refuses production without modifying the database", async () => {
-    const before = await scalarNumber(
-      `SELECT count(*)::text AS count FROM organizations`,
-    );
-    await expect(
-      runPnpm(["--filter", "@valet/database", "seed"], {
+    await expectSeedRejectionWithoutMutation(
+      {
         DATABASE_URL: testDatabaseUrl,
         NODE_ENV: "production",
-      }),
-    ).rejects.toThrow("disabled when NODE_ENV=production");
-    const after = await scalarNumber(
-      `SELECT count(*)::text AS count FROM organizations`,
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "requires NODE_ENV=development or NODE_ENV=test",
     );
-    expect(after).toBe(before);
+  }, 60_000);
+
+  it("refuses staging without modifying the database", async () => {
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: testDatabaseUrl,
+        NODE_ENV: "staging",
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "requires NODE_ENV=development or NODE_ENV=test",
+    );
+  }, 60_000);
+
+  it("refuses a missing NODE_ENV without modifying the database", async () => {
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: testDatabaseUrl,
+        DOTENV_CONFIG_PATH: missingDotenvPath,
+        NODE_ENV: undefined,
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "requires NODE_ENV=development or NODE_ENV=test",
+    );
+  }, 60_000);
+
+  it("refuses a missing demo-seed opt-in without modifying the database", async () => {
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: testDatabaseUrl,
+        DOTENV_CONFIG_PATH: missingDotenvPath,
+        NODE_ENV: "test",
+        VAYLET_ALLOW_DEMO_SEED: undefined,
+      },
+      "requires VAYLET_ALLOW_DEMO_SEED=true",
+    );
+  }, 60_000);
+
+  it("refuses a false demo-seed opt-in without modifying the database", async () => {
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: testDatabaseUrl,
+        NODE_ENV: "test",
+        VAYLET_ALLOW_DEMO_SEED: "false",
+      },
+      "requires VAYLET_ALLOW_DEMO_SEED=true",
+    );
+  }, 60_000);
+
+  it("refuses a remote database host without connecting or exposing its password", async () => {
+    const remotePassword = "remote-test-password";
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: `postgresql://user:${remotePassword}@example.invalid:5432/valet`,
+        NODE_ENV: "development",
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "requires a loopback PostgreSQL host",
+      remotePassword,
+    );
+  }, 60_000);
+
+  it("refuses a query-parameter host override without connecting or exposing its password", async () => {
+    const remotePassword = "remote-test-password";
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: `postgresql://user:${remotePassword}@127.0.0.1:5432/valet?host=example.invalid`,
+        NODE_ENV: "development",
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "does not allow PostgreSQL connection parameters or fragments",
+      remotePassword,
+    );
+  }, 60_000);
+
+  it("refuses benign-looking PostgreSQL connection parameters without modifying the database", async () => {
+    const localPassword = "local-test-password";
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: `postgresql://user:${localPassword}@127.0.0.1:5432/valet?port=5432`,
+        NODE_ENV: "development",
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "does not allow PostgreSQL connection parameters or fragments",
+      localPassword,
+    );
+  }, 60_000);
+
+  it("refuses an unexpected local database name before connecting", async () => {
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL:
+          "postgresql://user:local-test-password@127.0.0.1:5432/not_the_demo_db",
+        NODE_ENV: "development",
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "development target must use database",
+      "local-test-password",
+    );
+  }, 60_000);
+
+  it("accepts the documented development target policy before local connection", async () => {
+    await expectSeedRejectionWithoutMutation(
+      {
+        DATABASE_URL: "postgresql://user:local-test-password@127.0.0.1:1/valet",
+        NODE_ENV: "development",
+        VAYLET_ALLOW_DEMO_SEED: "true",
+      },
+      "could not connect using DATABASE_URL",
+      "local-test-password",
+    );
   }, 60_000);
 
   it("seeds coherent synthetic fixtures and remains idempotent", async () => {
     const firstRun = await runPnpm(["--filter", "@valet/database", "seed"], {
       DATABASE_URL: testDatabaseUrl,
       NODE_ENV: "test",
+      VAYLET_ALLOW_DEMO_SEED: "true",
     });
     expect(firstRun.stdout).toContain("VAYLET demo seed complete.");
     const firstCounts = await demoCounts();
@@ -228,6 +367,7 @@ describe("demo seed data foundation", () => {
     const secondRun = await runPnpm(["--filter", "@valet/database", "seed"], {
       DATABASE_URL: testDatabaseUrl,
       NODE_ENV: "test",
+      VAYLET_ALLOW_DEMO_SEED: "true",
     });
     expect(secondRun.stdout).toContain("VAYLET demo seed complete.");
     const secondCounts = await demoCounts();

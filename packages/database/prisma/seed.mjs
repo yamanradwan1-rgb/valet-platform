@@ -4,8 +4,15 @@ import pg from "pg";
 
 const { Client } = pg;
 
-if (process.env.NODE_ENV === "production") {
-  throw new Error("VAYLET demo seed is disabled when NODE_ENV=production.");
+const nodeEnvironment = process.env.NODE_ENV;
+if (nodeEnvironment !== "development" && nodeEnvironment !== "test") {
+  throw new Error(
+    "VAYLET demo seed requires NODE_ENV=development or NODE_ENV=test.",
+  );
+}
+
+if (process.env.VAYLET_ALLOW_DEMO_SEED !== "true") {
+  throw new Error("VAYLET demo seed requires VAYLET_ALLOW_DEMO_SEED=true.");
 }
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -22,6 +29,35 @@ try {
 
 if (!["postgres:", "postgresql:"].includes(parsedDatabaseUrl.protocol)) {
   throw new Error("VAYLET demo seed requires a valid PostgreSQL DATABASE_URL.");
+}
+
+if (parsedDatabaseUrl.search !== "" || parsedDatabaseUrl.hash !== "") {
+  throw new Error(
+    "VAYLET demo seed does not allow PostgreSQL connection parameters or fragments.",
+  );
+}
+
+if (!["127.0.0.1", "localhost"].includes(parsedDatabaseUrl.hostname)) {
+  throw new Error("VAYLET demo seed requires a loopback PostgreSQL host.");
+}
+
+let databaseName;
+try {
+  databaseName = decodeURIComponent(parsedDatabaseUrl.pathname.slice(1));
+} catch {
+  throw new Error("VAYLET demo seed requires an allowed local database name.");
+}
+
+if (nodeEnvironment === "development" && databaseName !== "valet") {
+  throw new Error(
+    "VAYLET demo seed development target must use database valet.",
+  );
+}
+
+if (nodeEnvironment === "test" && !/^valet_003p_\d+_\d+$/.test(databaseName)) {
+  throw new Error(
+    "VAYLET demo seed test target must match the VAL-003P temporary database naming policy.",
+  );
 }
 
 const ids = {

@@ -130,12 +130,34 @@ Install and validate the workspace:
 
 ```text
 corepack pnpm install --frozen-lockfile
+copy .env.example .env
+# Change POSTGRES_PASSWORD in .env and use the same password in DATABASE_URL.
 docker compose up -d postgres
 corepack pnpm lint
 corepack pnpm typecheck
 corepack pnpm test
 corepack pnpm build
 ```
+
+Docker Compose publishes PostgreSQL only on `127.0.0.1:5432`. Keep `.env`
+local and do not commit it.
+
+An existing PostgreSQL volume retains the password used when that volume was
+initialized; changing `.env` alone does not rotate it. Existing developers must
+either rotate the local database password explicitly, or recreate the local
+development volume only when its contents are disposable.
+
+To intentionally load the synthetic demo dataset, set
+`VAYLET_ALLOW_DEMO_SEED=true` in the local `.env`, keep
+`NODE_ENV=development`, confirm that `DATABASE_URL` targets
+`127.0.0.1:5432/valet` (or `localhost:5432/valet`), and run:
+
+```text
+corepack pnpm --filter @valet/database seed
+```
+
+Return `VAYLET_ALLOW_DEMO_SEED` to `false` after seeding. The seed refuses
+unknown environments, remote hosts and non-demo database names.
 
 Application development ports:
 
