@@ -3,7 +3,7 @@
 Status: Proposed  
 Date: 2026-08-10
 
-> This focused proposal is the review copy for VAL-004M. Once accepted, its binding text must be incorporated into `docs/08_DECISIONS_LOG.md` before VAL-004M is merged.
+> Focused review copy for VAL-004M. This proposal must be reviewed and accepted before implementation. Its accepted text must be incorporated into `docs/08_DECISIONS_LOG.md` before VAL-004M is merged.
 
 ## Context
 
@@ -91,13 +91,7 @@ within the immediately preceding 15 minutes
 
 The first 30 attempts may proceed. The next attempt while 30 counted events remain inside the rolling window returns 429.
 
-Every syntactically valid login attempt that passes the limiter consumes the address quota regardless of whether it later:
-
-- succeeds;
-- uses an unknown email;
-- has a wrong password;
-- targets a disabled User;
-- encounters an unsupported/malformed stored password hash.
+Every syntactically valid login attempt that passes the limiter consumes the address quota regardless of whether it later succeeds, uses an unknown email, has a wrong password, targets a disabled User or encounters an unsupported/malformed stored password hash.
 
 Malformed JSON/body/schema requests and Origin failures keep their existing 400/403 transport semantics and do not create staff identifier/address limiter events. Coarse malformed-request/DDoS protection remains a separate reverse-proxy/edge concern.
 
