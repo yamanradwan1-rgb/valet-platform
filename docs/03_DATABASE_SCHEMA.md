@@ -178,6 +178,53 @@ Constraints/rules:
 - `password_hash` required and never exposed
 - status required, default `ACTIVE`
 
+Accepted staff password hashes use an Argon2id PHC string with version 19,
+64 MiB memory, three passes, parallelism four, a 16-byte random salt and a
+32-byte output. Unsupported stored formats fail closed and are never accepted
+as a password fallback.
+
+## staff_auth_sessions
+
+```text
+id
+user_id
+current_access_token_hash
+access_expires_at
+absolute_expires_at
+revoked_at
+created_at
+last_rotated_at
+```
+
+Constraints/rules:
+
+- restrictive User foreign key
+- globally unique, versioned SHA-256 access verifier; raw access credentials are never stored
+- access expiry is at most 15 minutes and never exceeds the fixed absolute expiry
+- absolute expiry is exactly 30 days from database-authoritative session creation and never slides
+- revocation retains the session and its refresh lineage
+
+## staff_refresh_credentials
+
+```text
+id
+session_id
+token_hash
+generation
+created_at
+expires_at
+consumed_at
+replaced_by_credential_id
+```
+
+Constraints/rules:
+
+- restrictive session and same-session replacement-lineage foreign keys
+- globally unique, versioned SHA-256 refresh verifier; raw refresh credentials are never stored
+- unique `(session_id, generation)` and at most one unconsumed credential per session
+- every successful rotation consumes one generation and creates exactly one replacement
+- consumed credentials remain retained so replay can revoke the affected session family
+
 ## organization_memberships
 
 ```text

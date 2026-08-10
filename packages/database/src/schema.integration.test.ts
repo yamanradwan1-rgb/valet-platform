@@ -270,6 +270,7 @@ const expectedMigrationDirectories = [
   "20260809001400_notification_foundation",
   "20260809001500_check_in_intake_persistence",
   "20260810001600_intake_session_creation",
+  "20260810001700_staff_authentication",
 ];
 
 let databaseCreated = false;
@@ -7170,10 +7171,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all sixteen forward-only migrations in order", () => {
+  it("applies exactly all seventeen forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260810001600_intake_session_creation",
+      "20260810001700_staff_authentication",
     );
   });
 
@@ -7333,5 +7334,191 @@ describe("intake session creation persistence", () => {
       [incrementalMigrationFixture.valetSessionId],
     );
     expect(result.rows[0]?.count).toBe(0);
+  });
+});
+
+describe("staff authentication persistence", () => {
+  async function createStaffAuthSessionFixture(): Promise<{
+    refreshId: string;
+    sessionId: string;
+  }> {
+    const userId = await createUser();
+    const sessionId = randomUUID();
+    const refreshId = randomUUID();
+    const accessHash = `staff-access-sha256:v1:${randomUUID().replaceAll("-", "")}${randomUUID().replaceAll("-", "")}`;
+    const refreshHash = `staff-refresh-sha256:v1:${randomUUID().replaceAll("-", "")}${randomUUID().replaceAll("-", "")}`;
+    await databaseClient.query(
+      `INSERT INTO staff_auth_sessions (
+         id, user_id, current_access_token_hash, access_expires_at,
+         absolute_expires_at, created_at, last_rotated_at
+       ) VALUES (
+         $1, $2, $3, TIMESTAMPTZ '2026-01-01 00:15:00+00',
+         TIMESTAMPTZ '2026-01-31 00:00:00+00',
+         TIMESTAMPTZ '2026-01-01 00:00:00+00',
+         TIMESTAMPTZ '2026-01-01 00:00:00+00'
+       )`,
+      [sessionId, userId, accessHash],
+    );
+    await databaseClient.query(
+      `INSERT INTO staff_refresh_credentials (
+         id, session_id, token_hash, generation, created_at, expires_at
+       ) VALUES (
+         $1, $2, $3, 1,
+         TIMESTAMPTZ '2026-01-01 00:00:00+00',
+         TIMESTAMPTZ '2026-01-31 00:00:00+00'
+       )`,
+      [refreshId, sessionId, refreshHash],
+    );
+    return { refreshId, sessionId };
+  }
+
+  it("creates only the accepted session and refresh credential columns", async () => {
+    const result = await databaseClient.query<{
+      column_name: string;
+      table_name: string;
+    }>(
+      `SELECT table_name, column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public'
+         AND table_name IN ('staff_auth_sessions', 'staff_refresh_credentials')
+       ORDER BY table_name, ordinal_position`,
+    );
+    expect(result.rows).toEqual([
+      { column_name: "id", table_name: "staff_auth_sessions" },
+      { column_name: "user_id", table_name: "staff_auth_sessions" },
+      {
+        column_name: "current_access_token_hash",
+        table_name: "staff_auth_sessions",
+      },
+      {
+        column_name: "access_expires_at",
+        table_name: "staff_auth_sessions",
+      },
+      {
+        column_name: "absolute_expires_at",
+        table_name: "staff_auth_sessions",
+      },
+      { column_name: "revoked_at", table_name: "staff_auth_sessions" },
+      { column_name: "created_at", table_name: "staff_auth_sessions" },
+      { column_name: "last_rotated_at", table_name: "staff_auth_sessions" },
+      { column_name: "id", table_name: "staff_refresh_credentials" },
+      { column_name: "session_id", table_name: "staff_refresh_credentials" },
+      { column_name: "token_hash", table_name: "staff_refresh_credentials" },
+      { column_name: "generation", table_name: "staff_refresh_credentials" },
+      { column_name: "created_at", table_name: "staff_refresh_credentials" },
+      { column_name: "expires_at", table_name: "staff_refresh_credentials" },
+      { column_name: "consumed_at", table_name: "staff_refresh_credentials" },
+      {
+        column_name: "replaced_by_credential_id",
+        table_name: "staff_refresh_credentials",
+      },
+    ]);
+  });
+
+  it("enforces one current refresh credential and restrictive foreign keys", async () => {
+    const indexes = await databaseClient.query<{
+      indexdef: string;
+      indexname: string;
+    }>(
+      `SELECT indexname, indexdef
+       FROM pg_indexes
+       WHERE schemaname = 'public'
+         AND tablename = 'staff_refresh_credentials'
+       ORDER BY indexname`,
+    );
+    expect(
+      indexes.rows.find(
+        (row) =>
+          row.indexname ===
+          "staff_refresh_credentials_one_current_per_session_key",
+      )?.indexdef,
+    ).toContain("WHERE (consumed_at IS NULL)");
+
+    const foreignKeys = await databaseClient.query<{
+      confdeltype: string;
+      confupdtype: string;
+    }>(
+      `SELECT confdeltype, confupdtype
+       FROM pg_constraint AS constraint_record
+       INNER JOIN pg_class AS table_record
+         ON table_record.oid = constraint_record.conrelid
+       WHERE constraint_record.contype = 'f'
+         AND table_record.relname IN ('staff_auth_sessions', 'staff_refresh_credentials')`,
+    );
+    expect(foreignKeys.rows).toHaveLength(3);
+    expect(foreignKeys.rows.every((row) => row.confdeltype === "r")).toBe(true);
+    expect(foreignKeys.rows.every((row) => row.confupdtype === "r")).toBe(true);
+  });
+
+  it("rejects invalid staff session timestamp insert and update orderings", async () => {
+    const userId = await createUser();
+    await expectPostgresError(
+      databaseClient.query(
+        `INSERT INTO staff_auth_sessions (
+           id, user_id, current_access_token_hash, access_expires_at,
+           absolute_expires_at, revoked_at, created_at, last_rotated_at
+         ) VALUES (
+           $1, $2, $3,
+           TIMESTAMPTZ '2026-01-01 00:00:00+00',
+           TIMESTAMPTZ '2026-01-31 00:00:00+00',
+           TIMESTAMPTZ '2025-12-31 23:59:59+00',
+           TIMESTAMPTZ '2026-01-01 00:00:00+00',
+           TIMESTAMPTZ '2025-12-31 23:59:59+00'
+         )`,
+        [
+          randomUUID(),
+          userId,
+          `staff-access-sha256:v1:${"a".repeat(64)}`,
+        ],
+      ),
+      "23514",
+      "staff_auth_sessions_expiry_check",
+    );
+
+    const fixture = await createStaffAuthSessionFixture();
+    for (const update of [
+      `access_expires_at = created_at`,
+      `absolute_expires_at = created_at`,
+      `last_rotated_at = created_at - INTERVAL '1 millisecond'`,
+      `revoked_at = created_at - INTERVAL '1 millisecond'`,
+    ]) {
+      await expectPostgresError(
+        databaseClient.query(
+          `UPDATE staff_auth_sessions SET ${update} WHERE id = $1`,
+          [fixture.sessionId],
+        ),
+        "23514",
+        "staff_auth_sessions_expiry_check",
+      );
+    }
+  });
+
+  it("rejects invalid refresh expiry and consumption timestamp orderings", async () => {
+    const fixture = await createStaffAuthSessionFixture();
+    await expectPostgresError(
+      databaseClient.query(
+        `UPDATE staff_refresh_credentials
+         SET expires_at = created_at
+         WHERE id = $1`,
+        [fixture.refreshId],
+      ),
+      "23514",
+      "staff_refresh_credentials_expiry_check",
+    );
+    for (const consumedAt of [
+      `created_at - INTERVAL '1 millisecond'`,
+      `expires_at + INTERVAL '1 millisecond'`,
+    ]) {
+      await expectPostgresError(
+        databaseClient.query(
+          `UPDATE staff_refresh_credentials
+           SET consumed_at = ${consumedAt}
+           WHERE id = $1`,
+          [fixture.refreshId],
+        ),
+        "23514",
+        "staff_refresh_credentials_expiry_check",
+      );
+    }
   });
 });

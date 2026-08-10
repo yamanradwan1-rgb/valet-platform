@@ -36,6 +36,21 @@ const operationRoutes: ReadonlyArray<{
 }> = [
   {
     method: "POST",
+    operation: "STAFF_AUTH_LOGIN",
+    path: /^\/v1\/staff\/auth\/login$/,
+  },
+  {
+    method: "POST",
+    operation: "STAFF_AUTH_REFRESH",
+    path: /^\/v1\/staff\/auth\/refresh$/,
+  },
+  {
+    method: "POST",
+    operation: "STAFF_AUTH_LOGOUT",
+    path: /^\/v1\/staff\/auth\/logout$/,
+  },
+  {
+    method: "POST",
     operation: "CHECK_IN_INTAKE",
     path: /^\/v1\/staff\/check-in\/intakes$/,
   },
@@ -127,6 +142,10 @@ export class CheckInApiExceptionFilter implements ExceptionFilter {
       request.checkInRequestId ?? resolveCheckInRequestId(request.headers);
     request.checkInRequestId = requestId;
     response.setHeader("X-Request-Id", requestId);
+    if (operation.startsWith("STAFF_AUTH_")) {
+      response.setHeader("Cache-Control", "no-store");
+      response.setHeader("Pragma", "no-cache");
+    }
 
     if (request.checkInOperationMeasured === true) {
       const status =

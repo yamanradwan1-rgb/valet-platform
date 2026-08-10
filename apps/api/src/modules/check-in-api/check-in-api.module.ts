@@ -1,11 +1,19 @@
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 
+import { StaffAuthController } from "../auth/staff-auth.controller";
+import { StaffAuthOriginPolicy } from "../auth/staff-auth.origin";
+import {
+  Argon2StaffPasswordVerifier,
+  DatabaseStaffPrincipalResolver,
+  STAFF_PASSWORD_VERIFIER,
+  StaffAuthService,
+} from "../auth/staff-auth.service";
+
 import {
   CHECK_IN_MONOTONIC_CLOCK,
   CHECK_IN_OPERATION_OBSERVER,
   CHECK_IN_POSTGRES_POOL,
-  FailClosedStaffPrincipalResolver,
   NoopCheckInOperationObserver,
   PerformanceMonotonicClock,
   RequestIdMiddleware,
@@ -22,10 +30,18 @@ import { CheckInApiExceptionFilter } from "./check-in-api-exception.filter";
 import { CheckInOperationRunner } from "./check-in-operation-runner";
 
 @Module({
-  controllers: [StaffCheckInController, GuestCheckInController],
+  controllers: [
+    StaffAuthController,
+    StaffCheckInController,
+    GuestCheckInController,
+  ],
   providers: [
     CheckInApiService,
     CheckInOperationRunner,
+    StaffAuthService,
+    StaffAuthOriginPolicy,
+    DatabaseStaffPrincipalResolver,
+    Argon2StaffPasswordVerifier,
     RequestIdMiddleware,
     RuntimePoolLifecycle,
     {
@@ -38,7 +54,11 @@ import { CheckInOperationRunner } from "./check-in-operation-runner";
     },
     {
       provide: STAFF_PRINCIPAL_RESOLVER,
-      useClass: FailClosedStaffPrincipalResolver,
+      useExisting: DatabaseStaffPrincipalResolver,
+    },
+    {
+      provide: STAFF_PASSWORD_VERIFIER,
+      useExisting: Argon2StaffPasswordVerifier,
     },
     {
       provide: CHECK_IN_OPERATION_OBSERVER,
@@ -60,6 +80,10 @@ export class CheckInApiModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(StaffCheckInController, GuestCheckInController);
+      .forRoutes(
+        StaffAuthController,
+        StaffCheckInController,
+        GuestCheckInController,
+      );
   }
 }

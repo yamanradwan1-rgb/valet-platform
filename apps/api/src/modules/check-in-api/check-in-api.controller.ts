@@ -10,6 +10,7 @@ import {
   Put,
   Query,
   Req,
+  UnauthorizedException,
 } from "@nestjs/common";
 import {
   completeCheckInRequestSchema,
@@ -93,7 +94,21 @@ export class StaffCheckInController {
     private readonly principals: StaffPrincipalResolver,
   ) {}
 
-  private async userId(authorization: string | undefined): Promise<string> {
+  private async userId(
+    request: CheckInApiRequest,
+    authorization: string | undefined,
+  ): Promise<string> {
+    const rawHeaders = request.rawHeaders;
+    let authorizationCount = 0;
+    if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) {
+      throw new UnauthorizedException();
+    }
+    for (let index = 0; index < rawHeaders.length; index += 2) {
+      if (rawHeaders[index]?.toLowerCase() === "authorization") {
+        authorizationCount += 1;
+      }
+    }
+    if (authorizationCount !== 1) throw new UnauthorizedException();
     return (await this.principals.resolve(authorization)).userId;
   }
 
@@ -104,7 +119,7 @@ export class StaffCheckInController {
     @Body() body: unknown,
   ) {
     return this.runner.run("CHECK_IN_INTAKE", request, async () => {
-      const principalUserId = await this.userId(authorization);
+      const principalUserId = await this.userId(request, authorization);
       const input = parse<IntakeRequest>(intakeRequestSchema, body);
       const result = await this.service.executeIntake({
         authenticatedUserId: principalUserId,
@@ -143,7 +158,7 @@ export class StaffCheckInController {
     @Body() body: unknown,
   ) {
     return this.runner.run("CHECK_IN_VEHICLE_IDENTITY", request, async () => {
-      const principalUserId = await this.userId(authorization);
+      const principalUserId = await this.userId(request, authorization);
       const sessionId = parseUuid(sessionIdRaw);
       const input = parse<VehicleIdentityRequest>(
         vehicleIdentityRequestSchema,
@@ -176,7 +191,7 @@ export class StaffCheckInController {
     @Body() body: unknown,
   ) {
     return this.runner.run("CHECK_IN_CONDITION_NOTE", request, async () => {
-      const principalUserId = await this.userId(authorization);
+      const principalUserId = await this.userId(request, authorization);
       const input = parse<ConditionNoteRequest>(
         conditionNoteRequestSchema,
         body,
@@ -208,7 +223,7 @@ export class StaffCheckInController {
       "CHECK_IN_CONDITION_NOTE_CORRECTION",
       request,
       async () => {
-        const principalUserId = await this.userId(authorization);
+        const principalUserId = await this.userId(request, authorization);
         const input = parse<ConditionNoteRequest>(
           conditionNoteRequestSchema,
           body,
@@ -238,7 +253,7 @@ export class StaffCheckInController {
     @Body() body: unknown,
   ) {
     return this.runner.run("CHECK_IN_CONDITION_PHOTO", request, async () => {
-      const principalUserId = await this.userId(authorization);
+      const principalUserId = await this.userId(request, authorization);
       const input = parse<ConditionPhotoRequest>(
         conditionPhotoRequestSchema,
         body,
@@ -270,7 +285,7 @@ export class StaffCheckInController {
       "CHECK_IN_CONDITION_COMPLETION",
       request,
       async () => {
-        const principalUserId = await this.userId(authorization);
+        const principalUserId = await this.userId(request, authorization);
         parseAbsentOrEmptyBody(body);
         const result = await this.service.executeConditionCompletion({
           authenticatedUserId: principalUserId,
@@ -293,7 +308,7 @@ export class StaffCheckInController {
     @Body() body: unknown,
   ) {
     return this.runner.run("CHECK_IN_GUEST_ACCESS_ISSUE", request, async () => {
-      const principalUserId = await this.userId(authorization);
+      const principalUserId = await this.userId(request, authorization);
       const input = parse<GuestAccessIssueRequest>(
         guestAccessIssueRequestSchema,
         body,
@@ -328,7 +343,7 @@ export class StaffCheckInController {
       "CHECK_IN_GUEST_ACCESS_REVOKE",
       request,
       async () => {
-        const principalUserId = await this.userId(authorization);
+        const principalUserId = await this.userId(request, authorization);
         parseAbsentOrEmptyBody(body);
         const result = await this.service.executeGuestRevoke({
           authenticatedUserId: principalUserId,
@@ -351,7 +366,7 @@ export class StaffCheckInController {
     @Body() body: unknown,
   ) {
     return this.runner.run("COMPLETE_CHECK_IN", request, async () => {
-      const principalUserId = await this.userId(authorization);
+      const principalUserId = await this.userId(request, authorization);
       const input = parse<CompleteCheckInRequest>(
         completeCheckInRequestSchema,
         body,

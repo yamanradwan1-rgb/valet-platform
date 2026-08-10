@@ -280,9 +280,46 @@ model User {
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(3)
 
-  memberships OrganizationMembership[]
+  memberships       OrganizationMembership[]
+  staffAuthSessions StaffAuthSession[]
 
   @@map("users")
+}
+
+model StaffAuthSession {
+  id                     String    @id @default(uuid()) @db.Uuid
+  userId                 String    @map("user_id") @db.Uuid
+  currentAccessTokenHash String    @unique(map: "staff_auth_sessions_current_access_token_hash_key") @map("current_access_token_hash")
+  accessExpiresAt        DateTime  @map("access_expires_at") @db.Timestamptz(3)
+  absoluteExpiresAt      DateTime  @map("absolute_expires_at") @db.Timestamptz(3)
+  revokedAt              DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastRotatedAt          DateTime  @map("last_rotated_at") @db.Timestamptz(3)
+
+  user               User                     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  refreshCredentials StaffRefreshCredential[]
+
+  @@index([userId, revokedAt, absoluteExpiresAt], map: "staff_auth_sessions_user_id_status_idx")
+  @@map("staff_auth_sessions")
+}
+
+model StaffRefreshCredential {
+  id                     String    @id @default(uuid()) @db.Uuid
+  sessionId              String    @map("session_id") @db.Uuid
+  tokenHash              String    @unique(map: "staff_refresh_credentials_token_hash_key") @map("token_hash")
+  generation             Int
+  createdAt              DateTime  @map("created_at") @db.Timestamptz(3)
+  expiresAt              DateTime  @map("expires_at") @db.Timestamptz(3)
+  consumedAt             DateTime? @map("consumed_at") @db.Timestamptz(3)
+  replacedByCredentialId String?   @map("replaced_by_credential_id") @db.Uuid
+
+  session      StaffAuthSession         @relation(fields: [sessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  replaces     StaffRefreshCredential?  @relation("StaffRefreshReplacement", fields: [sessionId, replacedByCredentialId], references: [sessionId, id], onDelete: Restrict, onUpdate: Restrict)
+  replacedFrom StaffRefreshCredential[] @relation("StaffRefreshReplacement")
+
+  @@unique([sessionId, generation], map: "staff_refresh_credentials_session_id_generation_key")
+  @@unique([sessionId, id], map: "staff_refresh_credentials_session_id_id_key")
+  @@map("staff_refresh_credentials")
 }
 
 model OrganizationMembership {
