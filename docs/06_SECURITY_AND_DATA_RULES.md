@@ -120,6 +120,14 @@ The existence of hashed guest-access fields on ValetSession is a persistence fou
 
 VAL-004E satisfies those required persistence fields with an interim disabled marker for a newly created session: no bearer credential or usable preimage is generated, the marker is both expired and revoked at the session creation timestamp, and neither the result nor the AuditEvent contains it. VAL-004F must replace that disabled state through its own secure issuance contract before any guest access is possible.
 
+VAL-004F replacement uses 256 bits of Node CSPRNG entropy encoded as unpadded base64url. Only the successful authorized issue/rotate result receives the raw bearer token, once. The database stores only `sha256:v1:` plus SHA-256 of the exact raw UTF-8 token string; no raw, reversible or encrypted token copy is persisted. The MVP credential expires 24 hours after the database-authoritative issue/rotation time.
+
+Issue/rotation/revocation require an active User, active same-Organization membership, explicit session-Location access and an operational employee/supervisor role. They lock the ValetSession row and atomically mutate the credential with one safe AuditEvent. Initial `ISSUE_OR_ROTATE` replaces the disabled marker and rotates only a real active credential. It cannot reactivate a real revoked credential: post-revocation access requires the separately explicit `REISSUE_REVOKED` intent and the exact persisted `revokedAt` value previously observed from revocation. This expected timestamp is only an optimistic concurrency token and grants no authorization; the normal authorized path still applies. The intent is rejected unless a real credential remains revoked at that exact timestamp. Row locking plus this comparison prevents stale ordinary rotation and stale explicit reissue from clearing or becoming valid because of a concurrent revocation. Revocation preserves the hash, sets server time, and repeated revocation returns the existing timestamp without another audit. Physical session state and version never change.
+
+Guest resolution accepts no Organization or Location input. It hashes the presented shape-valid token, requires the globally unique matching hash to be unrevoked and unexpired, and returns only session ID, public state and Vehicle make/model/color. Malformed, random, expired, revoked and rotated-old tokens share the same `GUEST_ACCESS_INVALID` code/message. No parking spot, key slot, membership/staff identity, internal Location/Organization, audit data, token/hash, GPS or exact parking location is returned.
+
+VAL-004F is an internal foundation only. Public guest endpoints must add transport security, rate limiting and anti-abuse controls when wired; this task does not implement messaging delivery, guest UI, retrieval or public API behavior.
+
 ## Secure handoff
 
 Standard MVP verification accepts either:
