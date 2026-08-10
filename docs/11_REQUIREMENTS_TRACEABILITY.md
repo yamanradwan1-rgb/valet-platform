@@ -48,8 +48,10 @@ The historical concept remains useful for original intent but is superseded wher
 | Vehicle identity correction/concurrency | Explicit authorized correction through persisted ValetSession scope; Vehicle `updated_at` optimistic token rejects stale writes; DB partial unique index maps same-tenant collision to `VEHICLE_IDENTITY_CONFLICT`; no automatic merge |
 | Vehicle identity Black Box | Vehicle mutation + one safe Vehicle-scoped AuditEvent commit atomically; event distinguishes confirmed-plate versus temporary-descriptor and set versus correction without plate/descriptor/OCR payload |
 | Intake Vehicle resolution | Human-confirmed known plate reuses the same-Organization Vehicle under the existing partial unique index; temporary descriptor always creates a distinct Vehicle; no automatic merge |
-| Condition check | VAL-004C persists append-only ConditionNote evidence and an explicit session completion marker; condition commands/guards remain pending |
-| Photos optional by default/configurable required | VAL-004C persists private VehiclePhoto metadata plus typed Organization default -> nullable Location override; upload and policy commands remain pending |
+| Condition check | VAL-004G adds authorized session-locked append/correction commands over VAL-004C ConditionNote persistence; completion permits zero notes and records the explicit condition marker without changing physical state/version |
+| Photos optional by default/configurable required | VAL-004G implements typed Organization default -> nullable Location override evaluation, private CHECK_IN_CONDITION metadata registration and an exact-session current-policy guard; object upload/byte validation remain pending |
+| Condition/photo concurrency and retry | ValetSession row locking serializes new evidence/completion; correction chains allow one direct successor, exact photo retries return one row/audit, and repeated completion preserves the first marker without another audit |
+| Complete check-in condition guard | VAL-004G exposes a reusable locked guard that evaluates current effective policy/photo evidence independently from the historical completion marker for VAL-004H |
 | QR key slots | KeySlot + later KeyCustodyEvent |
 | One active vehicle per key slot | DB partial-unique/integrity protection |
 | Parking zones/spots | ParkingZone/ParkingSpot modules |
