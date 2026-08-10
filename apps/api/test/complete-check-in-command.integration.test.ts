@@ -885,12 +885,17 @@ describe("VAL-004H complete-check-in command", () => {
     expect(await readCompletionAudits(fixture.sessionId)).toEqual([]);
   });
 
-  it("accepts required policy with a qualifying exact-session photo", async () => {
+  it("rejects required policy with only exact-session unverified metadata", async () => {
     const fixture = await createFixture({ organizationPhotosRequired: true });
     await registerPhoto(fixture);
-    await expect(
+    const before = await readSession(fixture.sessionId);
+    await expectErrorCode(
       createCompleteCheckInCommandExecutor(runtimePool)(commandRequest(fixture)),
-    ).resolves.toMatchObject({ state: "AWAITING_PARKING" });
+      "PHOTO_REQUIREMENT_NOT_SATISFIED",
+    );
+    expect(await readSession(fixture.sessionId)).toEqual(before);
+    expect((await readEvidenceCounts(fixture.sessionId)).vehicle_photos).toBe(1);
+    expect(await readCompletionAudits(fixture.sessionId)).toEqual([]);
   });
 
   it("does not count another session's photo", async () => {
@@ -929,6 +934,7 @@ describe("VAL-004H complete-check-in command", () => {
 
   it("respects a current policy change made after the historical marker", async () => {
     const fixture = await createFixture();
+    await registerPhoto(fixture);
     await adminPool.query(
       `UPDATE locations
        SET check_in_photos_required_override = true
@@ -955,7 +961,7 @@ describe("VAL-004H complete-check-in command", () => {
     expect(await readCompletionAudits(fixture.sessionId)).toEqual([]);
   });
 
-  it("serializes required-photo registration against physical completion", async () => {
+  it("keeps physical completion blocked during concurrent unverified metadata registration", async () => {
     const fixture = await createFixture({ organizationPhotosRequired: true });
     const photo = createRegisterCheckInConditionPhotoCommandExecutor(runtimePool)({
       authenticatedUserId: fixture.userId,
@@ -971,23 +977,21 @@ describe("VAL-004H complete-check-in command", () => {
       completion,
     ]);
     expect(photoOutcome.status).toBe("fulfilled");
+    expect(completionOutcome.status).toBe("rejected");
     if (completionOutcome.status === "rejected") {
       expect(completionOutcome.reason).toMatchObject({
         code: "PHOTO_REQUIREMENT_NOT_SATISFIED",
       });
-      expect((await readSession(fixture.sessionId)).state).toBe("CHECKING_IN");
-      await expect(
-        createCompleteCheckInCommandExecutor(runtimePool)(
-          commandRequest(fixture),
-        ),
-      ).resolves.toMatchObject({ state: "AWAITING_PARKING" });
-    } else {
-      expect((await readSession(fixture.sessionId)).state).toBe(
-        "AWAITING_PARKING",
-      );
     }
+    expect((await readSession(fixture.sessionId)).state).toBe("CHECKING_IN");
+    await expectErrorCode(
+      createCompleteCheckInCommandExecutor(runtimePool)(
+        commandRequest(fixture),
+      ),
+      "PHOTO_REQUIREMENT_NOT_SATISFIED",
+    );
     expect((await readEvidenceCounts(fixture.sessionId)).vehicle_photos).toBe(1);
-    expect(await readCompletionAudits(fixture.sessionId)).toHaveLength(1);
+    expect(await readCompletionAudits(fixture.sessionId)).toEqual([]);
   });
 
   it("serializes condition-marker completion against physical completion", async () => {

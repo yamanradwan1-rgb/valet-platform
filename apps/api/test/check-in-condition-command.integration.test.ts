@@ -801,6 +801,51 @@ describe("VAL-004G condition check and photo policy commands", () => {
     expect(auditText).not.toContain("http");
   });
 
+  it("keeps invented JPEG and PNG metadata unverified under required-photo policy", async () => {
+    const fixture = await createFixture({ organizationPhotosRequired: true });
+    const register =
+      createRegisterCheckInConditionPhotoCommandExecutor(runtimePool);
+    const storageObjectKeys = [
+      `invented/check-in/${randomUUID()}`,
+      `private-looking/check-in/${randomUUID()}`,
+    ];
+    await register({
+      ...staffRequest(fixture),
+      contentType: "image/jpeg",
+      storageObjectKey: storageObjectKeys[0]!,
+    });
+    await register({
+      ...staffRequest(fixture),
+      contentType: "image/png",
+      storageObjectKey: storageObjectKeys[1]!,
+    });
+
+    expect(await readGuard(fixture)).toMatchObject({
+      markerComplete: false,
+      photoPolicy: { required: true },
+      qualifyingPhotoPresent: false,
+      satisfied: false,
+    });
+    const beforeCompletion = await readSession(fixture.sessionId);
+    await expectErrorCode(
+      createCompleteCheckInConditionCommandExecutor(runtimePool)(
+        staffRequest(fixture),
+      ),
+      "CHECK_IN_CONDITION_PHOTO_REQUIRED",
+    );
+    expect(await readSession(fixture.sessionId)).toEqual(beforeCompletion);
+    expect(await photoRows(fixture.sessionId)).toHaveLength(2);
+    const audits = await conditionAuditRows(fixture.sessionId);
+    expect(audits.map((row) => row.event_type)).toEqual([
+      "CHECK_IN_CONDITION_PHOTO_REGISTERED",
+      "CHECK_IN_CONDITION_PHOTO_REGISTERED",
+    ]);
+    const auditText = JSON.stringify(audits);
+    for (const storageObjectKey of storageObjectKeys) {
+      expect(auditText).not.toContain(storageObjectKey);
+    }
+  });
+
   it.each([
     ["https://bucket.example/signed?secret=x", "image/jpeg"],
     ["http://bucket.example/public.png", "image/png"],
@@ -944,7 +989,7 @@ describe("VAL-004G condition check and photo policy commands", () => {
     });
   });
 
-  it("requires a qualifying photo only when effective policy requires it", async () => {
+  it("rejects unverified metadata whenever effective policy requires photos", async () => {
     const fixture = await createFixture({ organizationPhotosRequired: true });
     const before = await readSession(fixture.sessionId);
     await expectErrorCode(
@@ -959,18 +1004,17 @@ describe("VAL-004G condition check and photo policy commands", () => {
     await createRegisterCheckInConditionPhotoCommandExecutor(runtimePool)(
       photoRequest(fixture),
     );
-    await expect(
+    await expectErrorCode(
       createCompleteCheckInConditionCommandExecutor(runtimePool)(
         staffRequest(fixture),
       ),
-    ).resolves.toMatchObject({ completedByMembershipId: fixture.membershipId });
+      "CHECK_IN_CONDITION_PHOTO_REQUIRED",
+    );
+    expect(await readSession(fixture.sessionId)).toEqual(before);
     const auditTypes = (await conditionAuditRows(fixture.sessionId)).map(
       (row) => row.event_type,
     );
-    expect(auditTypes).toEqual([
-      "CHECK_IN_CONDITION_PHOTO_REGISTERED",
-      "VALET_SESSION_CHECK_IN_CONDITION_COMPLETED",
-    ]);
+    expect(auditTypes).toEqual(["CHECK_IN_CONDITION_PHOTO_REGISTERED"]);
   });
 
   it("does not count a photo from another session", async () => {
@@ -1042,7 +1086,7 @@ describe("VAL-004G condition check and photo policy commands", () => {
     expect(await conditionAuditRows(fixture.sessionId)).toEqual([]);
   });
 
-  it("serializes required-photo registration versus completion safely", async () => {
+  it("keeps required-photo completion blocked during concurrent metadata registration", async () => {
     const fixture = await createFixture({ organizationPhotosRequired: true });
     const register = createRegisterCheckInConditionPhotoCommandExecutor(runtimePool);
     const complete = createCompleteCheckInConditionCommandExecutor(runtimePool);
@@ -1051,22 +1095,25 @@ describe("VAL-004G condition check and photo policy commands", () => {
       complete(staffRequest(fixture)),
     ]);
     expect(photo.status).toBe("fulfilled");
-    expect(await photoRows(fixture.sessionId)).toHaveLength(1);
+    expect(completion.status).toBe("rejected");
     if (completion.status === "rejected") {
       expect(completion.reason).toMatchObject({
         code: "CHECK_IN_CONDITION_PHOTO_REQUIRED",
       });
-      expect(
-        (await readSession(fixture.sessionId))
-          .check_in_condition_completed_at,
-      ).toBeNull();
-      await expect(complete(staffRequest(fixture))).resolves.toBeDefined();
-    } else {
-      expect(
-        (await readSession(fixture.sessionId))
-          .check_in_condition_completed_at,
-      ).not.toBeNull();
     }
+    expect(await photoRows(fixture.sessionId)).toHaveLength(1);
+    expect(
+      (await readSession(fixture.sessionId)).check_in_condition_completed_at,
+    ).toBeNull();
+    await expectErrorCode(
+      complete(staffRequest(fixture)),
+      "CHECK_IN_CONDITION_PHOTO_REQUIRED",
+    );
+    expect(
+      (await conditionAuditRows(fixture.sessionId)).map(
+        (row) => row.event_type,
+      ),
+    ).toEqual(["CHECK_IN_CONDITION_PHOTO_REGISTERED"]);
   });
 
   it("rejects every new intake mutation after the session leaves CHECKING_IN", async () => {
@@ -1159,8 +1206,8 @@ describe("VAL-004G condition check and photo policy commands", () => {
     expect(await readGuard(fixture)).toMatchObject({
       markerComplete: true,
       photoPolicy: { required: true },
-      qualifyingPhotoPresent: true,
-      satisfied: true,
+      qualifyingPhotoPresent: false,
+      satisfied: false,
     });
   });
 

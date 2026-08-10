@@ -680,7 +680,7 @@ describe("VAL-004I Check-In HTTP integration", () => {
     expect(original.rows[0]?.content).toBe("Existing scratch");
   });
 
-  it("enforces required-photo policy without leaking storage metadata", async () => {
+  it("keeps required-photo completion blocked by unverified metadata without leaking storage details", async () => {
     const fixture = await createFixture({ organizationPhotoRequired: true });
     const created = await intake(fixture);
     const sessionId = String(created.body.valetSessionId);
@@ -709,7 +709,35 @@ describe("VAL-004I Check-In HTTP integration", () => {
       `/v1/staff/check-in/sessions/${sessionId}/condition-completion`,
       { body: {}, staffToken: fixture.staffToken },
     );
-    expect(marker.status).toBe(200);
+    expect(marker).toMatchObject({
+      body: { code: "CHECK_IN_CONDITION_PHOTO_REQUIRED" },
+      status: 422,
+    });
+    expect(JSON.stringify(marker.body)).not.toContain(storageObjectKey);
+    const persisted = await adminPool.query<{
+      completion_audits: number;
+      marker_completed: boolean;
+      vehicle_photos: number;
+    }>(
+      `SELECT
+         (session.check_in_condition_completed_at IS NOT NULL OR
+          session.check_in_condition_completed_by_membership_id IS NOT NULL)
+           AS marker_completed,
+         (SELECT count(*)::integer FROM vehicle_photos
+          WHERE valet_session_id = session.id) AS vehicle_photos,
+         (SELECT count(*)::integer FROM audit_events
+          WHERE valet_session_id = session.id
+            AND event_type = 'VALET_SESSION_CHECK_IN_CONDITION_COMPLETED')
+           AS completion_audits
+       FROM valet_sessions AS session
+       WHERE session.id = $1`,
+      [sessionId],
+    );
+    expect(persisted.rows[0]).toEqual({
+      completion_audits: 0,
+      marker_completed: false,
+      vehicle_photos: 1,
+    });
   });
 
   it("uses the current Organization default and Location override at Complete Check-In", async () => {
