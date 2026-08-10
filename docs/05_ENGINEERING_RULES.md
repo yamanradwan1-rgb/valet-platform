@@ -108,6 +108,18 @@ The stable operation ID is scoped by Organization and stored with a SHA-256 fing
 
 Creation starts exactly at `CHECKING_IN`, `version = 1`, with parking/key/assignment/later-transition fields unset. Customer, Vehicle, ValetSession, one safe `VALET_SESSION_CREATED` AuditEvent and the idempotency record commit in one transaction or all roll back. This command exposes no controller/public API and does not implement Complete Check-In.
 
+### Guest secure access boundary
+
+VAL-004F provides internal issue/rotate, revoke and bearer-resolution boundaries over the existing ValetSession guest-access fields. Staff mutations accept only authenticated User and ValetSession identifiers, derive Organization/Location/membership server-side, and require active `VALET_EMPLOYEE`/`VALET_SUPERVISOR` explicit Location access without an active Shift prerequisite.
+
+Issuance uses exactly 32 CSPRNG bytes (256 bits) encoded as an unpadded 43-character base64url bearer token. The raw token is returned only by the successful issue/rotate result and is never persisted, logged or audited. Persistence stores `sha256:v1:` plus lowercase SHA-256 hex over the exact raw token UTF-8 string. The fixed MVP lifetime is 24 hours from a database-authoritative mutation timestamp; callers cannot select expiry.
+
+Issue, rotation and revocation lock the ValetSession row and do not change physical state or `version`. Initial `ISSUE_OR_ROTATE` issuance replaces the VAL-004E disabled marker atomically, and the same ordinary intent rotates only a real active credential. Ordinary rotation cannot clear revocation: a real revoked credential requires the separately explicit `REISSUE_REVOKED` intent plus `expectedRevokedAt` exactly equal to the persisted millisecond-precision timestamp previously returned by revocation. `expectedRevokedAt` is an optimistic concurrency token, not authorization; explicit reissue still follows the normal employee/supervisor authorization path. The intent is rejected for a placeholder or active credential and any timestamp mismatch fails without mutation or audit. A valid explicit reissue writes a new hash/fresh expiry, clears revocation and is an intentional reactivation action. Revocation sets the server timestamp while preserving the current hash/expiry. A repeated revocation returns the original revoked result and appends no second audit event. Row locking plus the exact observed-revocation check ensures neither a stale ordinary rotation nor a stale explicit reissue can become valid merely because a concurrent revoke commits first; if a permitted rotation locks first, the following revoke still leaves final access revoked.
+
+The guest resolver accepts only the raw bearer token, applies the same versioned hash contract, and requires a matching unrevoked unexpired session. Malformed, unknown, expired, revoked and rotated-old tokens all return `GUEST_ACCESS_INVALID` with the same non-disclosing message. Its deliberately narrow internal result contains only ValetSession ID, public physical state and nullable Vehicle make/model/color; it excludes tenant/location internals, parking/key data, membership/staff identity, audit data, coordinates, token hash and raw database fields. Public API shape and rate limiting remain VAL-004I/later reliability work.
+
+Issue/rotation/revocation and their respective `GUEST_ACCESS_ISSUED`, `GUEST_ACCESS_ROTATED` or first `GUEST_ACCESS_REVOKED` AuditEvent commit atomically. Resolver reads do not append AuditEvent rows.
+
 ## Errors
 
 Use stable machine-readable codes, e.g.:
