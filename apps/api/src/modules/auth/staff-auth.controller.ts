@@ -183,9 +183,10 @@ export class StaffAuthController {
       }
       const identifierDecision = await this.antiAbuse.reserve(identifierKey, 5);
       if (!identifierDecision.allowed) {
+        const addressRetry = await this.antiAbuse.blocker(addressKey, 30);
         throw new AntiAbuseRateLimitError(
           "STAFF_AUTHENTICATION_RATE_LIMITED",
-          identifierDecision.retryAfter,
+          Math.max(identifierDecision.retryAfter, addressRetry ?? 0),
         );
       }
       let tokens: StaffAuthTokens;

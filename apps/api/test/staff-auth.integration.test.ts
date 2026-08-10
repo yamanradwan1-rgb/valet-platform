@@ -7,7 +7,15 @@ import { type INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import argon2 from "argon2";
 import { Pool } from "pg";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { AppModule } from "../src/app.module";
 import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
@@ -958,6 +966,104 @@ describe("production staff authentication", () => {
     expect(rows.rows[0]?.count).toBe("30");
   }, 60_000);
 
+  it("returns the longer address blocker when attempt 30 encounters an exhausted identifier", async () => {
+    const fixture = await createUser();
+    const limiter = app.get(AntiAbuseService);
+    const addressKey = limiter.key("v1:staff-client-address", "127.0.0.1");
+    const identifierKey = limiter.key(
+      "v1:staff-login-identifier",
+      fixture.email,
+    );
+    await adminPool.query(
+      `INSERT INTO anti_abuse_events (scope, key_hash, state, occurred_at)
+       SELECT $1, $2, 'COUNTED', clock_timestamp() - INTERVAL '1 minute'
+       FROM generate_series(1, 29)
+       UNION ALL
+       SELECT $3, $4, 'COUNTED', clock_timestamp() - INTERVAL '14 minutes 50 seconds'
+       FROM generate_series(1, 5)`,
+      [
+        addressKey.scope,
+        addressKey.keyHash,
+        identifierKey.scope,
+        identifierKey.keyHash,
+      ],
+    );
+    const verifier = app.get(Argon2StaffPasswordVerifier);
+    const verify = vi.spyOn(verifier, "verify");
+    const verificationCount = verify.mock.calls.length;
+
+    const blocked = await request("/v1/staff/auth/login", {
+      body: { email: fixture.email, password: fixture.password },
+    });
+
+    expect(blocked.status).toBe(429);
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(800);
+    expect(verify).toHaveBeenCalledTimes(verificationCount);
+    const persisted = await adminPool.query<{
+      address_count: string;
+      identifier_count: string;
+      session_count: string;
+    }>(
+      `SELECT
+         count(*) FILTER (
+           WHERE scope = 'v1:staff-client-address' AND state = 'COUNTED'
+         )::text AS address_count,
+         count(*) FILTER (
+           WHERE scope = 'v1:staff-login-identifier' AND state = 'COUNTED'
+         )::text AS identifier_count,
+         (SELECT count(*)::text FROM staff_auth_sessions WHERE user_id = $1)
+           AS session_count
+       FROM anti_abuse_events`,
+      [fixture.id],
+    );
+    expect(persisted.rows[0]).toEqual({
+      address_count: "30",
+      identifier_count: "5",
+      session_count: "0",
+    });
+    verify.mockRestore();
+  });
+
+  it("returns the longer identifier blocker when the address scope is already exhausted", async () => {
+    const fixture = await createUser();
+    const limiter = app.get(AntiAbuseService);
+    const addressKey = limiter.key("v1:staff-client-address", "127.0.0.1");
+    const identifierKey = limiter.key(
+      "v1:staff-login-identifier",
+      fixture.email,
+    );
+    await adminPool.query(
+      `INSERT INTO anti_abuse_events (scope, key_hash, state, occurred_at)
+       SELECT $1, $2, 'COUNTED', clock_timestamp() - INTERVAL '14 minutes 50 seconds'
+       FROM generate_series(1, 30)
+       UNION ALL
+       SELECT $3, $4, 'COUNTED', clock_timestamp() - INTERVAL '1 minute'
+       FROM generate_series(1, 5)`,
+      [
+        addressKey.scope,
+        addressKey.keyHash,
+        identifierKey.scope,
+        identifierKey.keyHash,
+      ],
+    );
+    const verifier = app.get(Argon2StaffPasswordVerifier);
+    const verify = vi.spyOn(verifier, "verify");
+    const verificationCount = verify.mock.calls.length;
+
+    const blocked = await request("/v1/staff/auth/login", {
+      body: { email: fixture.email, password: fixture.password },
+    });
+
+    expect(blocked.status).toBe(429);
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(800);
+    expect(verify).toHaveBeenCalledTimes(verificationCount);
+    const events = await adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM anti_abuse_events`,
+    );
+    expect(events.rows[0]?.count).toBe("35");
+    verify.mockRestore();
+  });
+
   it("ignores successful identifier reservations without erasing earlier failures", async () => {
     const fixture = await createUser();
     expect(
@@ -1127,6 +1233,45 @@ describe("production staff authentication", () => {
       lockClient.release();
     }
   }, 10_000);
+
+  it("uses one database decision instant when the oldest blocker expires between count and retry", async () => {
+    const delayedPool = new Pool({ connectionString: testRuntimeUrl });
+    const originalConnect = delayedPool.connect.bind(delayedPool);
+    delayedPool.connect = (async () => {
+      const client = await originalConnect();
+      const originalQuery = client.query.bind(client) as (
+        text: string,
+        values?: unknown[],
+      ) => Promise<unknown>;
+      let delayed = false;
+      client.query = (async (text: string, values?: unknown[]) => {
+        const result = await originalQuery(text, values);
+        if (!delayed && text.includes("count(*)::integer AS count")) {
+          delayed = true;
+          await originalQuery("SELECT pg_sleep(1)");
+        }
+        return result;
+      }) as typeof client.query;
+      return client;
+    }) as typeof delayedPool.connect;
+    const limiter = new AntiAbuseService(
+      delayedPool,
+      new AntiAbuseKeyDeriver(),
+    );
+    const key = limiter.key("v1:guest-token", "decision-boundary-test");
+    await adminPool.query(
+      `INSERT INTO anti_abuse_events (scope, key_hash, state, occurred_at)
+       VALUES
+         ($1, $2, 'COUNTED', clock_timestamp() - INTERVAL '14 minutes 59.5 seconds'),
+         ($1, $2, 'COUNTED', clock_timestamp())`,
+      [key.scope, key.keyHash],
+    );
+    try {
+      await expect(limiter.blocker(key, 2)).resolves.toBe(1);
+    } finally {
+      await delayedPool.end();
+    }
+  });
 
   it("fails the protected login closed when the HMAC secret is unavailable", async () => {
     const secret = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;

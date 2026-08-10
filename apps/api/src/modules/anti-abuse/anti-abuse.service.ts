@@ -30,6 +30,10 @@ interface CountRow {
   readonly count: number;
 }
 
+interface DecisionTimeRow {
+  readonly decision_at: string;
+}
+
 interface RetryRow {
   readonly retry_after: number;
 }
@@ -120,6 +124,7 @@ export class AntiAbuseService {
   private async currentCount(
     transaction: PostgresTransaction,
     key: AntiAbuseKey,
+    decisionAt: string,
   ): Promise<number> {
     const result = await transaction.query<CountRow>(
       `SELECT count(*)::integer AS count
@@ -127,8 +132,8 @@ export class AntiAbuseService {
        WHERE scope = $1
          AND key_hash = $2
          AND state IN ('PENDING', 'COUNTED')
-         AND occurred_at > clock_timestamp() - INTERVAL '15 minutes'`,
-      [key.scope, key.keyHash],
+         AND occurred_at > $3::timestamptz - INTERVAL '15 minutes'`,
+      [key.scope, key.keyHash, decisionAt],
     );
     const count = result.rows[0]?.count;
     if (count === undefined) throw new AntiAbuseUnavailableError();
@@ -138,6 +143,7 @@ export class AntiAbuseService {
   private async retryAfter(
     transaction: PostgresTransaction,
     key: AntiAbuseKey,
+    decisionAt: string,
     offset: number,
   ): Promise<number> {
     const result = await transaction.query<RetryRow>(
@@ -146,7 +152,7 @@ export class AntiAbuseService {
                 LEAST(
                   900,
                   CEIL(EXTRACT(EPOCH FROM (
-                    occurred_at + INTERVAL '15 minutes' - clock_timestamp()
+                    occurred_at + INTERVAL '15 minutes' - $3::timestamptz
                   )))::integer
                 )
               ) AS retry_after
@@ -154,11 +160,11 @@ export class AntiAbuseService {
        WHERE scope = $1
          AND key_hash = $2
          AND state IN ('PENDING', 'COUNTED')
-         AND occurred_at > clock_timestamp() - INTERVAL '15 minutes'
+         AND occurred_at > $3::timestamptz - INTERVAL '15 minutes'
        ORDER BY occurred_at ASC
-       OFFSET $3
+       OFFSET $4
        LIMIT 1`,
-      [key.scope, key.keyHash, offset],
+      [key.scope, key.keyHash, decisionAt, offset],
     );
     const retryAfter = result.rows[0]?.retry_after;
     if (retryAfter === undefined) throw new AntiAbuseUnavailableError();
@@ -171,11 +177,21 @@ export class AntiAbuseService {
     threshold: number,
   ): Promise<AntiAbuseDecision> {
     await this.lock(transaction, key);
-    const count = await this.currentCount(transaction, key);
+    const decisionTime = await transaction.query<DecisionTimeRow>(
+      "SELECT clock_timestamp()::text AS decision_at",
+    );
+    const decisionAt = decisionTime.rows[0]?.decision_at;
+    if (decisionAt === undefined) throw new AntiAbuseUnavailableError();
+    const count = await this.currentCount(transaction, key, decisionAt);
     if (count < threshold) return { allowed: true };
     return {
       allowed: false,
-      retryAfter: await this.retryAfter(transaction, key, count - threshold),
+      retryAfter: await this.retryAfter(
+        transaction,
+        key,
+        decisionAt,
+        count - threshold,
+      ),
     };
   }
 
