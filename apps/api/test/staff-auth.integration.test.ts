@@ -7,9 +7,14 @@ import { type INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import argon2 from "argon2";
 import { Pool } from "pg";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { AppModule } from "../src/app.module";
+import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
+import {
+  AntiAbuseService,
+  AntiAbuseUnavailableError,
+} from "../src/modules/anti-abuse/anti-abuse.service";
 import {
   Argon2StaffPasswordVerifier,
   StaffAuthService,
@@ -97,7 +102,8 @@ async function runPnpm(
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) resolvePromise();
-      else reject(new Error(redact(`pnpm failed (${String(code)}): ${output}`)));
+      else
+        reject(new Error(redact(`pnpm failed (${String(code)}): ${output}`)));
     });
   });
 }
@@ -123,7 +129,8 @@ async function request(
   });
   const text = await response.text();
   return {
-    body: text === "" ? undefined : (JSON.parse(text) as Record<string, unknown>),
+    body:
+      text === "" ? undefined : (JSON.parse(text) as Record<string, unknown>),
     headers: response.headers,
     status: response.status,
   };
@@ -146,12 +153,14 @@ function expectClearedRefreshCookie(result: HttpResult): void {
   expect(setCookie).not.toContain("Domain=");
 }
 
-async function createUser(options: {
-  email?: string;
-  password?: string;
-  passwordHash?: string;
-  status?: "ACTIVE" | "DISABLED";
-} = {}): Promise<{ email: string; id: string; password: string }> {
+async function createUser(
+  options: {
+    email?: string;
+    password?: string;
+    passwordHash?: string;
+    status?: "ACTIVE" | "DISABLED";
+  } = {},
+): Promise<{ email: string; id: string; password: string }> {
   const id = randomUUID();
   const email = options.email ?? `${id}@example.com`;
   const password = options.password ?? "exact staff password";
@@ -181,10 +190,7 @@ async function createOperationalScope(
     locationAccess?: boolean;
     membershipStatus?: "ACTIVE" | "INACTIVE";
     role?:
-      | "LOCATION_MANAGER"
-      | "ORG_ADMIN"
-      | "VALET_EMPLOYEE"
-      | "VALET_SUPERVISOR";
+      "LOCATION_MANAGER" | "ORG_ADMIN" | "VALET_EMPLOYEE" | "VALET_SUPERVISOR";
   } = {},
 ): Promise<{ locationId: string; organizationId: string }> {
   const organizationId = randomUUID();
@@ -332,11 +338,18 @@ beforeAll(async () => {
   adminPool = new Pool({ connectionString: testMigrationUrl });
   process.env.DATABASE_URL = testRuntimeUrl;
   process.env.STAFF_AUTH_ALLOWED_ORIGINS = allowedOrigin;
+  process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
+    randomBytes(32).toString("base64url");
+  process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "";
   app = await NestFactory.create(AppModule, { logger: false });
   await app.listen(0, "127.0.0.1");
   const address = app.getHttpServer().address() as { port: number };
   baseUrl = `http://127.0.0.1:${address.port}`;
 }, 120_000);
+
+beforeEach(async () => {
+  await adminPool.query("DELETE FROM anti_abuse_events");
+});
 
 afterAll(async () => {
   if (app !== undefined) await app.close();
@@ -368,7 +381,10 @@ describe("production staff authentication", () => {
     expect(failedLastLogin.rows[0]?.last_login_at).toBeNull();
 
     const result = await request("/v1/staff/auth/login", {
-      body: { email: `  ${fixture.email.toUpperCase()} `, password: fixture.password },
+      body: {
+        email: `  ${fixture.email.toUpperCase()} `,
+        password: fixture.password,
+      },
     });
     expect(result.status).toBe(200);
     expect(result.body).toMatchObject({ tokenType: "Bearer" });
@@ -401,9 +417,7 @@ describe("production staff authentication", () => {
     expect(row?.current_access_token_hash).toMatch(
       /^staff-access-sha256:v1:[0-9a-f]{64}$/,
     );
-    expect(row?.token_hash).toMatch(
-      /^staff-refresh-sha256:v1:[0-9a-f]{64}$/,
-    );
+    expect(row?.token_hash).toMatch(/^staff-refresh-sha256:v1:[0-9a-f]{64}$/);
     expect(JSON.stringify(row)).not.toContain(String(result.body?.accessToken));
     expect(JSON.stringify(row)).not.toContain(refreshCookieFrom(result));
     expect(
@@ -429,7 +443,9 @@ describe("production staff authentication", () => {
       { email: malformed.email, password: malformed.password },
       { email: disabled.email, password: disabled.password },
     ]) {
-      const result = await request("/v1/staff/auth/login", { body: credentials });
+      const result = await request("/v1/staff/auth/login", {
+        body: credentials,
+      });
       expect(result.status).toBe(401);
       expect(result.body).toMatchObject({
         code: "STAFF_AUTHENTICATION_FAILED",
@@ -450,7 +466,26 @@ describe("production staff authentication", () => {
       `SELECT id, last_login_at FROM users WHERE id = ANY($1::uuid[]) ORDER BY id`,
       [[malformed.id, disabled.id]],
     );
-    expect(lastLogin.rows.every((row) => row.last_login_at === null)).toBe(true);
+    expect(lastLogin.rows.every((row) => row.last_login_at === null)).toBe(
+      true,
+    );
+    const limiter = await adminPool.query<{
+      address_failures: string;
+      identifier_failures: string;
+    }>(
+      `SELECT
+         count(*) FILTER (
+           WHERE scope = 'v1:staff-client-address' AND state = 'COUNTED'
+         )::text AS address_failures,
+         count(*) FILTER (
+           WHERE scope = 'v1:staff-login-identifier' AND state = 'COUNTED'
+         )::text AS identifier_failures
+       FROM anti_abuse_events`,
+    );
+    expect(limiter.rows[0]).toEqual({
+      address_failures: "3",
+      identifier_failures: "3",
+    });
   });
 
   it("rejects missing, malformed, random, expired and revoked access identically", async () => {
@@ -507,6 +542,16 @@ describe("production staff authentication", () => {
     expect(wrongOrigin.status).toBe(403);
     expect(wrongOrigin.body?.code).toBe("STAFF_AUTH_ORIGIN_NOT_ALLOWED");
     expect(wrongOrigin.headers.get("set-cookie")).toBeNull();
+    const malformedJson = await fetch(`${baseUrl}/v1/staff/auth/login`, {
+      body: "{",
+      headers: { "Content-Type": "application/json", Origin: allowedOrigin },
+      method: "POST",
+    });
+    expect(malformedJson.status).toBe(400);
+    const limiterRows = await adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM anti_abuse_events`,
+    );
+    expect(limiterRows.rows[0]?.count).toBe("0");
   });
 
   it("clears malformed and unknown refresh credentials on generic authentication failure", async () => {
@@ -537,9 +582,9 @@ describe("production staff authentication", () => {
     });
     expect(invalidOrigin.status).toBe(403);
     expect(invalidOrigin.headers.get("set-cookie")).toBeNull();
-    expect(
-      await request("/v1/staff/auth/refresh", { cookie }),
-    ).toMatchObject({ status: 200 });
+    expect(await request("/v1/staff/auth/refresh", { cookie })).toMatchObject({
+      status: 200,
+    });
   });
 
   it("rotates both credentials, preserves absolute expiry and revokes replayed families", async () => {
@@ -560,7 +605,9 @@ describe("production staff authentication", () => {
     expect(refreshCookieFrom(refreshed)).not.toBe(firstCookie);
 
     const resolver = app.get<StaffPrincipalResolver>(STAFF_PRINCIPAL_RESOLVER);
-    await expect(resolver.resolve(`Bearer ${firstAccess}`)).rejects.toBeDefined();
+    await expect(
+      resolver.resolve(`Bearer ${firstAccess}`),
+    ).rejects.toBeDefined();
     await expect(
       resolver.resolve(`Bearer ${String(refreshed.body?.accessToken)}`),
     ).resolves.toEqual({ userId: fixture.id });
@@ -613,7 +660,9 @@ describe("production staff authentication", () => {
       cookie: refreshCookieFrom(login),
     });
     expect(refreshed.status).toBe(200);
-    expect(refreshed.body?.accessExpiresAt).toBe(refreshed.body?.sessionExpiresAt);
+    expect(refreshed.body?.accessExpiresAt).toBe(
+      refreshed.body?.sessionExpiresAt,
+    );
     const maxAge = /Max-Age=(\d+)/.exec(
       refreshed.headers.get("set-cookie") ?? "",
     )?.[1];
@@ -851,5 +900,258 @@ describe("production staff authentication", () => {
       [scope.organizationId],
     );
     expect(sessions.rows[0]?.count).toBe("0");
+  });
+
+  it("enforces five normalized-identifier failures without verifying the blocked password", async () => {
+    const fixture = await createUser();
+    for (const email of [
+      fixture.email.toUpperCase(),
+      fixture.email,
+      fixture.email.toUpperCase(),
+      fixture.email,
+      fixture.email,
+    ]) {
+      const failed = await request("/v1/staff/auth/login", {
+        body: { email, password: "wrong password" },
+      });
+      expect(failed.status).toBe(401);
+    }
+    const blocked = await request("/v1/staff/auth/login", {
+      body: { email: fixture.email, password: fixture.password },
+    });
+    expect(blocked.status).toBe(429);
+    expect(blocked.body).toMatchObject({
+      code: "STAFF_AUTHENTICATION_RATE_LIMITED",
+      message: "Too many requests. Try again later.",
+    });
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(Number(blocked.headers.get("retry-after"))).toBeLessThanOrEqual(900);
+    expect(blocked.headers.get("cache-control")).toBe("no-store");
+  }, 30_000);
+
+  it("counts all allowed address attempts, including success, and blocks attempt 31", async () => {
+    const successful = await createUser();
+    expect((await loginUser(successful)).status).toBe(200);
+    for (let index = 1; index < 30; index += 1) {
+      const failed = await request("/v1/staff/auth/login", {
+        body: {
+          email: `unknown-${index}-${randomUUID()}@example.com`,
+          password: "wrong password",
+        },
+      });
+      expect(failed.status).toBe(401);
+    }
+    const blocked = await request("/v1/staff/auth/login", {
+      body: {
+        email: `${randomUUID()}@example.com`,
+        password: "wrong password",
+      },
+    });
+    expect(blocked.status).toBe(429);
+    const rows = await adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count
+       FROM anti_abuse_events
+       WHERE scope = 'v1:staff-client-address' AND state = 'COUNTED'`,
+    );
+    expect(rows.rows[0]?.count).toBe("30");
+  }, 60_000);
+
+  it("ignores successful identifier reservations without erasing earlier failures", async () => {
+    const fixture = await createUser();
+    expect(
+      await request("/v1/staff/auth/login", {
+        body: { email: fixture.email, password: "wrong password" },
+      }),
+    ).toMatchObject({ status: 401 });
+    for (let index = 0; index < 6; index += 1) {
+      expect(await loginUser(fixture)).toMatchObject({ status: 200 });
+    }
+    const states = await adminPool.query<{ state: string }>(
+      `SELECT state FROM anti_abuse_events
+       WHERE scope = 'v1:staff-login-identifier'
+       ORDER BY occurred_at, id`,
+    );
+    expect(states.rows.filter((row) => row.state === "COUNTED")).toHaveLength(
+      1,
+    );
+    expect(states.rows.filter((row) => row.state === "IGNORED")).toHaveLength(
+      6,
+    );
+  }, 30_000);
+
+  it("serializes concurrent identifier failures at exactly five reservations", async () => {
+    const email = `${randomUUID()}@example.com`;
+    const results = await Promise.all(
+      Array.from({ length: 8 }, () =>
+        request("/v1/staff/auth/login", {
+          body: { email, password: "wrong password" },
+        }),
+      ),
+    );
+    expect(results.filter((result) => result.status === 401)).toHaveLength(5);
+    expect(results.filter((result) => result.status === 429)).toHaveLength(3);
+    const counted = await adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM anti_abuse_events
+       WHERE scope = 'v1:staff-login-identifier'
+         AND state IN ('PENDING', 'COUNTED')`,
+    );
+    expect(counted.rows[0]?.count).toBe("5");
+  }, 30_000);
+
+  it("returns 503 when failure finalization cannot become authoritative", async () => {
+    await adminPool.query(
+      `CREATE FUNCTION test_block_counted_anti_abuse() RETURNS trigger
+       LANGUAGE plpgsql AS $$ BEGIN
+         IF NEW.state = 'COUNTED' THEN RAISE EXCEPTION 'blocked'; END IF;
+         RETURN NEW;
+       END $$;
+       CREATE TRIGGER test_block_counted_anti_abuse
+       BEFORE UPDATE ON anti_abuse_events
+       FOR EACH ROW EXECUTE FUNCTION test_block_counted_anti_abuse()`,
+    );
+    try {
+      const result = await request("/v1/staff/auth/login", {
+        body: { email: `${randomUUID()}@example.com`, password: "wrong" },
+      });
+      expect(result.status).toBe(503);
+      expect(result.body?.code).toBe("ANTI_ABUSE_UNAVAILABLE");
+      expect(result.headers.get("cache-control")).toBe("no-store");
+    } finally {
+      await adminPool.query(
+        `DROP TRIGGER test_block_counted_anti_abuse ON anti_abuse_events`,
+      );
+      await adminPool.query(`DROP FUNCTION test_block_counted_anti_abuse()`);
+    }
+  });
+
+  it("rolls back successful login state when identifier success-finalization fails", async () => {
+    const fixture = await createUser();
+    await adminPool.query(
+      `CREATE FUNCTION test_block_ignored_anti_abuse() RETURNS trigger
+       LANGUAGE plpgsql AS $$ BEGIN
+         IF NEW.state = 'IGNORED' THEN RAISE EXCEPTION 'blocked'; END IF;
+         RETURN NEW;
+       END $$;
+       CREATE TRIGGER test_block_ignored_anti_abuse
+       BEFORE UPDATE ON anti_abuse_events
+       FOR EACH ROW EXECUTE FUNCTION test_block_ignored_anti_abuse()`,
+    );
+    try {
+      const result = await loginUser(fixture);
+      expect(result.status).toBe(503);
+      const persisted = await adminPool.query<{
+        last_login_at: Date | null;
+        session_count: string;
+      }>(
+        `SELECT staff_user.last_login_at,
+                count(session.id)::text AS session_count
+         FROM users AS staff_user
+         LEFT JOIN staff_auth_sessions AS session ON session.user_id = staff_user.id
+         WHERE staff_user.id = $1
+         GROUP BY staff_user.id`,
+        [fixture.id],
+      );
+      expect(persisted.rows[0]).toEqual({
+        last_login_at: null,
+        session_count: "0",
+      });
+    } finally {
+      await adminPool.query(
+        `DROP TRIGGER test_block_ignored_anti_abuse ON anti_abuse_events`,
+      );
+      await adminPool.query(`DROP FUNCTION test_block_ignored_anti_abuse()`);
+    }
+  });
+
+  it("shares exact rolling state across service instances and uses full hashes despite lock collision", async () => {
+    const first = app.get(AntiAbuseService);
+    const secondPool = new Pool({ connectionString: testRuntimeUrl });
+    const second = new AntiAbuseService(secondPool, new AntiAbuseKeyDeriver());
+    try {
+      const key = first.key("v1:staff-client-address", "192.0.2.10");
+      const decisions = await Promise.all(
+        Array.from({ length: 40 }, (_, index) =>
+          (index % 2 === 0 ? first : second).count(key, 30),
+        ),
+      );
+      expect(decisions.filter((decision) => decision.allowed)).toHaveLength(30);
+      expect(decisions.filter((decision) => !decision.allowed)).toHaveLength(
+        10,
+      );
+
+      const collisionA = {
+        ...first.key("v1:guest-token", "collision-a"),
+        lockHigh: 123,
+        lockLow: 456,
+      };
+      const collisionB = {
+        ...first.key("v1:guest-token", "collision-b"),
+        lockHigh: 123,
+        lockLow: 456,
+      };
+      expect(await first.count(collisionA, 1)).toEqual({ allowed: true });
+      expect(await second.count(collisionB, 1)).toEqual({ allowed: true });
+    } finally {
+      await secondPool.end();
+    }
+  });
+
+  it("uses database time for rolling expiry and fails closed after the bounded advisory wait", async () => {
+    const limiter = app.get(AntiAbuseService);
+    const key = limiter.key("v1:guest-token", "database-time-test");
+    expect(await limiter.count(key, 1)).toEqual({ allowed: true });
+    const blocked = await limiter.count(key, 1);
+    expect(blocked.allowed).toBe(false);
+    await adminPool.query(
+      `UPDATE anti_abuse_events
+       SET occurred_at = clock_timestamp() - INTERVAL '15 minutes 1 second'
+       WHERE scope = $1 AND key_hash = $2`,
+      [key.scope, key.keyHash],
+    );
+    expect(await limiter.count(key, 1)).toEqual({ allowed: true });
+
+    const lockClient = await adminPool.connect();
+    try {
+      await lockClient.query("BEGIN");
+      await lockClient.query("SELECT pg_advisory_xact_lock($1, $2)", [
+        key.lockHigh,
+        key.lockLow,
+      ]);
+      await expect(limiter.count(key, 2)).rejects.toBeInstanceOf(
+        AntiAbuseUnavailableError,
+      );
+    } finally {
+      await lockClient.query("ROLLBACK");
+      lockClient.release();
+    }
+  }, 10_000);
+
+  it("fails the protected login closed when the HMAC secret is unavailable", async () => {
+    const secret = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
+    delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
+    try {
+      const result = await request("/v1/staff/auth/login", {
+        body: {
+          email: `${randomUUID()}@example.com`,
+          password: "not verified",
+        },
+      });
+      expect(result.status).toBe(503);
+      expect(result.body).toMatchObject({
+        code: "ANTI_ABUSE_UNAVAILABLE",
+        message: "Service temporarily unavailable.",
+      });
+      expect(
+        await adminPool.query(`SELECT 1 FROM anti_abuse_events`),
+      ).toMatchObject({
+        rowCount: 0,
+      });
+    } finally {
+      if (secret === undefined)
+        delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
+      else process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = secret;
+    }
   });
 });

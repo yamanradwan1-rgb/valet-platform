@@ -19,6 +19,15 @@ import {
 import { parse as parseCookie, serialize as serializeCookie } from "cookie";
 
 import type { CheckInApiRequest } from "../check-in-api/check-in-api.boundaries";
+import {
+  AntiAbuseRateLimitError,
+  AntiAbuseService,
+  AntiAbuseUnavailableError,
+} from "../anti-abuse/anti-abuse.service";
+import {
+  ClientAddressUnavailableError,
+  TrustedClientAddressResolver,
+} from "../anti-abuse/client-address";
 import { CheckInTransportValidationError } from "../check-in-api/check-in-api.errors";
 import { CheckInOperationRunner } from "../check-in-api/check-in-operation-runner";
 import { StaffAuthOriginPolicy } from "./staff-auth.origin";
@@ -92,7 +101,9 @@ function clearRefreshCookie(): string {
   return refreshCookie("", 0);
 }
 
-function readRefreshCookie(cookieHeader: string | undefined): string | undefined {
+function readRefreshCookie(
+  cookieHeader: string | undefined,
+): string | undefined {
   if (cookieHeader === undefined) return undefined;
   const matchingNames = cookieHeader
     .split(";")
@@ -121,6 +132,8 @@ export class StaffAuthController {
     private readonly authService: StaffAuthService,
     private readonly originPolicy: StaffAuthOriginPolicy,
     private readonly runner: CheckInOperationRunner,
+    private readonly antiAbuse: AntiAbuseService,
+    private readonly clientAddresses: TrustedClientAddressResolver,
   ) {}
 
   private requireOrigin(origin: string | undefined): void {
@@ -143,7 +156,52 @@ export class StaffAuthController {
       requireJson(contentType);
       requireEmptyQuery(rawQuery);
       const body = parse<StaffLoginRequest>(staffLoginRequestSchema, rawBody);
-      const tokens = await this.authService.login(body.email, body.password);
+      let clientAddress: string;
+      try {
+        clientAddress = this.clientAddresses.resolve(request);
+      } catch (error) {
+        if (error instanceof ClientAddressUnavailableError) {
+          throw new AntiAbuseUnavailableError();
+        }
+        throw error;
+      }
+      const addressKey = this.antiAbuse.key(
+        "v1:staff-client-address",
+        clientAddress,
+      );
+      const identifierKey = this.antiAbuse.key(
+        "v1:staff-login-identifier",
+        body.email,
+      );
+      const addressDecision = await this.antiAbuse.count(addressKey, 30);
+      if (!addressDecision.allowed) {
+        const identifierRetry = await this.antiAbuse.blocker(identifierKey, 5);
+        throw new AntiAbuseRateLimitError(
+          "STAFF_AUTHENTICATION_RATE_LIMITED",
+          Math.max(addressDecision.retryAfter, identifierRetry ?? 0),
+        );
+      }
+      const identifierDecision = await this.antiAbuse.reserve(identifierKey, 5);
+      if (!identifierDecision.allowed) {
+        throw new AntiAbuseRateLimitError(
+          "STAFF_AUTHENTICATION_RATE_LIMITED",
+          identifierDecision.retryAfter,
+        );
+      }
+      let tokens: StaffAuthTokens;
+      try {
+        tokens = await this.authService.login(
+          body.email,
+          body.password,
+          identifierDecision.reservation,
+        );
+      } catch (error) {
+        await this.antiAbuse.finalize(
+          identifierDecision.reservation,
+          "COUNTED",
+        );
+        throw error;
+      }
       const result = accessResponse(tokens);
       response.setHeader(
         "Set-Cookie",

@@ -1,6 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 
-import type { PostgresPool } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import {
   createCompleteCheckInConditionCommandExecutor,
   createCorrectCheckInConditionNoteCommandExecutor,
@@ -21,6 +24,8 @@ import {
   createRevokeGuestAccessCommandExecutor,
   type IssueGuestAccessRequest,
   type StaffGuestAccessRequest,
+  GuestAccessError,
+  resolveGuestAccessWithDatabase,
 } from "../valet-sessions/guest-access-command";
 import {
   createIntakeSessionCommandExecutor,
@@ -98,6 +103,18 @@ export class CheckInApiService {
 
   resolveGuest(rawToken: string) {
     return this.resolveGuestAccess(rawToken);
+  }
+
+  async resolveGuestInTransaction(
+    transaction: PostgresTransaction,
+    rawToken: string,
+  ) {
+    try {
+      return await resolveGuestAccessWithDatabase(transaction, rawToken);
+    } catch (error) {
+      if (error instanceof GuestAccessError) return undefined;
+      throw error;
+    }
   }
 
   async executeCompleteCheckIn(request: CompleteCheckInCommandRequest) {

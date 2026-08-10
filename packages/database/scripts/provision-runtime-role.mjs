@@ -272,6 +272,38 @@ async function provisionRuntimeRole() {
       [runtimeRole],
     );
 
+    await client.query(
+      `REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE anti_abuse_events FROM PUBLIC`,
+    );
+    await executeFormatted(
+      client,
+      "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE anti_abuse_events FROM %I",
+      [runtimeRole],
+    );
+    await executeFormatted(
+      client,
+      "GRANT SELECT ON TABLE anti_abuse_events TO %I",
+      [runtimeRole],
+    );
+    await executeFormatted(
+      client,
+      "GRANT INSERT (scope, key_hash, state) ON TABLE anti_abuse_events TO %I",
+      [runtimeRole],
+    );
+    await executeFormatted(
+      client,
+      "GRANT UPDATE (state) ON TABLE anti_abuse_events TO %I",
+      [runtimeRole],
+    );
+    await client.query(
+      `REVOKE ALL ON FUNCTION cleanup_expired_anti_abuse_events() FROM PUBLIC`,
+    );
+    await executeFormatted(
+      client,
+      "GRANT EXECUTE ON FUNCTION cleanup_expired_anti_abuse_events() TO %I",
+      [runtimeRole],
+    );
+
     await executeFormatted(
       client,
       "ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE ALL PRIVILEGES ON TABLES FROM %I",

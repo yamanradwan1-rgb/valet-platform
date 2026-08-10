@@ -274,13 +274,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("runtime PostgreSQL role boundary", () => {
-  it("applies all 17 migrations through migration credentials only", async () => {
+  it("applies all 18 migrations through migration credentials only", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(17);
+    expect(result.rows).toHaveLength(18);
   });
 
   it("can rotate retained auth rows but cannot delete or truncate them", async () => {
@@ -873,5 +873,56 @@ describe("runtime PostgreSQL role boundary", () => {
     expect(output).toContain("could not connect with MIGRATION_DATABASE_URL");
     expect(output.includes(redactionPassword)).toBe(false);
     expect(output.includes(completeRuntimeUrl)).toBe(false);
+  });
+
+  it("enforces least privilege and fixed cleanup for ephemeral anti-abuse rows", async () => {
+    const currentHash = `anti-abuse-hmac-sha256:v1:${"a".repeat(64)}`;
+    const staleHash = `anti-abuse-hmac-sha256:v1:${"b".repeat(64)}`;
+    const inserted = await runtimePool.query<{ id: string }>(
+      `INSERT INTO anti_abuse_events (scope, key_hash, state)
+       VALUES ('v1:staff-client-address', $1, 'PENDING')
+       RETURNING id::text`,
+      [currentHash],
+    );
+    const id = inserted.rows[0]?.id;
+    expect(id).toBeDefined();
+    await runtimePool.query(
+      `UPDATE anti_abuse_events SET state = 'COUNTED' WHERE id = $1`,
+      [id],
+    );
+    await expectPostgresDenial(
+      runtimePool.query(
+        `UPDATE anti_abuse_events SET key_hash = $1 WHERE id = $2`,
+        [staleHash, id],
+      ),
+    );
+    await expectPostgresDenial(
+      runtimePool.query(
+        `INSERT INTO anti_abuse_events (scope, key_hash, occurred_at, state)
+         VALUES ('v1:guest-token', $1, clock_timestamp(), 'COUNTED')`,
+        [staleHash],
+      ),
+    );
+    await expectPostgresDenial(
+      runtimePool.query(`DELETE FROM anti_abuse_events WHERE id = $1`, [id]),
+    );
+    await expectPostgresDenial(runtimePool.query(`TRUNCATE anti_abuse_events`));
+    await expectPostgresDenial(
+      runtimePool.query(`ALTER TABLE anti_abuse_events ADD COLUMN unsafe text`),
+    );
+
+    await adminPool.query(
+      `INSERT INTO anti_abuse_events (scope, key_hash, occurred_at, state)
+       VALUES ('v1:guest-token', $1, clock_timestamp() - INTERVAL '61 minutes', 'COUNTED')`,
+      [staleHash],
+    );
+    const cleaned = await runtimePool.query<{
+      cleanup_expired_anti_abuse_events: number;
+    }>(`SELECT cleanup_expired_anti_abuse_events()`);
+    expect(cleaned.rows[0]?.cleanup_expired_anti_abuse_events).toBe(1);
+    const remaining = await adminPool.query<{ key_hash: string }>(
+      `SELECT key_hash FROM anti_abuse_events ORDER BY key_hash`,
+    );
+    expect(remaining.rows).toEqual([{ key_hash: currentHash }]);
   });
 });

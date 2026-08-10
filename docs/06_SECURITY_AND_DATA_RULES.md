@@ -52,10 +52,11 @@ authorization facts. Alternate client identity headers never override the
 bearer credential and are not an authentication convention.
 
 Password-only sessions do not assert MFA. Production Company Admin and VAYLET
-Super Admin capabilities requiring MFA remain unavailable. Production staff
-login also remains gated on a separately approved shared/durable anti-abuse
-boundary; process-local counters and improvised rate-limit infrastructure are
-not part of VAL-004L.
+Super Admin capabilities requiring MFA remain unavailable. VAL-004M implements
+accepted DEC-024 as the shared PostgreSQL-backed anti-abuse boundary for staff
+login and guest session resolution. It uses exact rolling windows, database
+time, transaction-level advisory serialization, HMAC-derived limiter keys and
+fail-closed 503 behavior; process-local counters are never authoritative.
 
 Enterprise SSO is deferred until its approved later phase.
 
@@ -141,7 +142,11 @@ Issue/rotation/revocation require an active User, active same-Organization membe
 
 Guest resolution accepts no Organization or Location input. It hashes the presented shape-valid token, requires the globally unique matching hash to be unrevoked and unexpired, and returns only session ID, public state and Vehicle make/model/color. Malformed, random, expired, revoked and rotated-old tokens share the same `GUEST_ACCESS_INVALID` code/message. No parking spot, key slot, membership/staff identity, internal Location/Organization, audit data, token/hash, GPS or exact parking location is returned.
 
-VAL-004I wires the narrow guest resolver only at `GET /v1/guest/session`. It accepts the raw credential exclusively as `Authorization: Bearer <token>` and returns the existing guest-safe result. Query, body, cookie, path and alternate-header token transport are not accepted. Missing, malformed, random, expired, revoked and rotated-old credentials remain indistinguishable. Rate limiting and broader anti-abuse provider integration remain explicit later production-reliability work; no in-memory limiter is claimed here.
+VAL-004I wires the narrow guest resolver only at `GET /v1/guest/session`. It accepts the raw credential exclusively as `Authorization: Bearer <token>` and returns the existing guest-safe result. Query, body, cookie, path and alternate-header token transport are not accepted. Missing, malformed, random, expired, revoked and rotated-old credentials remain indistinguishable.
+
+VAL-004M protects that route with a 60-failure trusted-client-address rolling window and a separate 180-request shape-valid-token rolling window. Guest address reservations become `COUNTED` only for authentication failure and `IGNORED` for success or token-limit rejection. Guest data is returned only after resolution and address finalization commit atomically. Staff login separately enforces 30 syntactically valid attempts per trusted client address and five failed credentials per normalized identifier. Successful staff identifier finalization commits atomically with session issuance and `lastLoginAt`; unknown, wrong-password, disabled and unsupported-hash outcomes are non-disclosing counted failures.
+
+Limiter keys are versioned HMAC-SHA-256 values derived from a separate 32-byte secret with explicit scope separation. Raw/normalized email, raw/canonical address, guest bearer, password and Authorization never enter limiter persistence, AuditEvent or normal telemetry. Socket peer authority is used directly unless the immediate peer is inside an explicitly configured trusted CIDR; only then is one unambiguous `X-Forwarded-For` chain walked right-to-left. Limiter failure never falls back to unlimited access or process memory.
 
 ## Check-in API transport security
 
