@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-10` (VAL-004I local implementation session)
+- Date/time: `2026-08-10` (VAL-004L local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required merged baseline through VAL-004H: `6b3f02df20377cad154e7b1c8f0b7e96de2dc8e1`
-- Active branch: `feat/VAL-004I-check-in-api-gate`
-- Active Issue: #62 — VAL-004I — Check-In API / Integration / Performance Gate
-- Verification basis: owner-supplied Issue #62 task packet, required local branch/HEAD preflight, binding Phase 2 docs and focused real-HTTP/runtime-role PostgreSQL integration coverage
+- Required merged baseline: `6e30805`
+- Active branch: `feat/VAL-004L-production-staff-auth`
+- Active task: VAL-004L — Implement Production Staff Authentication
+- Verification basis: owner-supplied VAL-004L task packet, required local branch/HEAD preflight, accepted DEC-023 and focused real-HTTP/runtime-role PostgreSQL integration coverage
 
 ## Current Milestone
 
@@ -20,7 +20,7 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-VAL-004A through VAL-004H are merged. VAL-004I is implemented locally and ready for review. It adds strict shared check-in transport contracts, dedicated staff/guest HTTP routes, fail-closed production staff-principal injection, centralized request IDs/errors, safe monotonic performance observation and focused real-HTTP/runtime-role integration proof. It adds no migration and does not start Phase 3.
+The Phase 2 check-in slices through VAL-004K are present on the required merged baseline. VAL-004L is implemented locally and ready for review. It replaces the production fail-closed placeholder with DEC-023 opaque PostgreSQL-backed staff authentication while preserving the existing custody authorization boundary. It does not start Phase 3 and does not claim production readiness.
 
 ## Recently Completed Gate
 
@@ -69,7 +69,7 @@ Phase 1 completed with exactly **14 forward-only migrations**, ending with:
 20260809001400_notification_foundation
 ```
 
-The current merged baseline additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration. VAL-004E adds only migration 16, `20260810001600_intake_session_creation`.
+The current merged baseline additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration. VAL-004E adds migration 16, `20260810001600_intake_session_creation`. VAL-004L adds only migration 17, `20260810001700_staff_authentication`.
 
 The Phase 1 schema already contains the persistence used by the first Phase 2 command, including:
 
@@ -82,30 +82,28 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004I — Check-In API / Integration / Performance Gate
+### VAL-004L — Production Staff Authentication
 
-- Issue #62
-- Branch: `feat/VAL-004I-check-in-api-gate`
+- Branch: `feat/VAL-004L-production-staff-auth`
 - Status: **READY FOR REVIEW — LOCAL CHANGES ONLY**
-- Base: `6b3f02df20377cad154e7b1c8f0b7e96de2dc8e1`
-- Expected database state on this branch: **16 forward-only migrations**
+- Base: `6e30805`
+- Expected database state on this branch: **17 forward-only migrations**
 
 Objective:
-Wire the accepted Phase 2 check-in commands through the narrow transport gate:
+Implement accepted DEC-023 login, opaque access resolution, one-time refresh
+rotation/replay revocation, logout, disable checks, strict origin/cookie
+transport and least-privilege retained persistence. Authentication returns only
+the User ID; existing Organization/Location/membership/role checks remain
+authoritative.
 
-- strict shared Zod request/response schemas with no client authority fields
-- dedicated staff routes plus bearer-only guest-safe session read
-- production-default fail-closed staff principal resolver and test-only DI override
-- runtime pool lifecycle, centralized safe HTTP errors and bounded request IDs
-- exactly one safe monotonic measurement per routed operation
-- persisted end-to-end check-in elapsed KPI on successful completion
-- real Nest listener and runtime-role PostgreSQL integration coverage
-
-VAL-004I preserves `AWAITING_PARKING` as the Phase 2 physical endpoint. It does not implement object upload, parking/key assignment, Task/Dispatch, retrieval, handoff, payment, incident, notification, frontend or production guest rate limiting.
+VAL-004L does not implement MFA, signup/reset, device management or rate-limit
+infrastructure. Production deployment remains gated on shared/durable
+anti-abuse controls, production database/network/TLS hardening and the other
+documented deployment controls.
 
 ## Remaining Phase 2 Check-In Gate
 
-VAL-004I closes the planned API/integration/performance implementation slice locally. Phase 2 is not globally complete until VAL-004I review/merge and a separate final Phase 2 security/integrity review gate are complete.
+VAL-004L closes the staff-authentication core locally. Phase 2 is not production-ready until the separately approved shared/durable anti-abuse boundary and remaining production deployment controls are implemented and reviewed.
 
 ## Phase 2 Focused Task Sequence
 
@@ -163,24 +161,24 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 ## Dependencies / Contention
 
 - No Phase 1 migration task remains active.
-- VAL-004I uses the existing ValetSession, Vehicle, condition/photo-policy and AuditEvent persistence, adds no migration and does not modify migrations 1–16.
+- VAL-004L adds only migration 17 and leaves migrations 1–16 unchanged.
 - `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
-- VAL-004I adds only the dedicated check-in API/integration/performance boundary; the accepted VAL-004E–H domain commands remain authoritative.
+- DEC-023 is the accepted staff-authentication contract; existing custody commands remain authoritative for tenant, Location and role authorization.
 - Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For VAL-004I:
+For VAL-004L:
 
 ```text
-finish the dedicated HTTP/runtime-role PostgreSQL integration coverage
+finish the production staff-authentication implementation and coverage
 -> run all quality gates
--> review the local diff against Issue #62 scope
+-> review the local diff against DEC-023 and the VAL-004L task scope
 -> stop for human/ChatGPT review without commit or push
 ```
 
-Do not begin Phase 3 on this branch. After VAL-004I review/merge, run the separate final Phase 2 security/integrity review gate before declaring Phase 2 globally complete.
+Do not begin Phase 3 on this branch. Do not declare Phase 2 production-ready until the shared/durable anti-abuse boundary, production DB/network/TLS hardening and remaining deployment controls are complete.
 
 ## Parallel UX/UI Track
 

@@ -142,6 +142,9 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
 9. **VAL-004I — Check-In API / Integration / Performance Gate**  
    API/use-case wiring, shared request/response contract, command-error mapping, tenant/location/concurrency/retry integration coverage and performance instrumentation for the normal check-in path. Implemented locally on its focused branch; merge/review status remains external repository state.
 
+10. **VAL-004J–L — Phase 2 security/integrity follow-ups**
+    Preserve shared-Vehicle cross-Location custody isolation, require verified condition-photo evidence where policy blocks completion, and implement accepted DEC-023 PostgreSQL-backed production staff authentication. VAL-004L does not add MFA or anti-abuse infrastructure and does not make Phase 2 production-ready.
+
 Do not combine the nine slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
 ### Phase 2 implementation dependencies that must remain explicit
@@ -155,6 +158,8 @@ Before production `complete-check-in` claims the full Blueprint semantics, the r
 - dedicated least-privilege application runtime DB credentials
 - explicit append-only AuditEvent privilege/enforcement boundary for the runtime role
 - durable command-operation identity only if transparent offline duplicate replay is required
+- separately approved shared/durable staff-login and guest anti-abuse controls
+- production database, network and TLS hardening plus documented deployment controls
 
 Do not fake these dependencies inside the command with an untyped policy blob, migration-owner runtime access, or claims that `version` alone is full idempotency.
 

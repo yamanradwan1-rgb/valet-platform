@@ -49,6 +49,7 @@ export interface CheckInApiRequest {
   checkInOperationMeasured?: boolean;
   checkInRequestId?: string;
   readonly headers: Readonly<Record<string, string | string[] | undefined>>;
+  readonly rawHeaders?: readonly string[];
 }
 
 interface HeaderResponse {

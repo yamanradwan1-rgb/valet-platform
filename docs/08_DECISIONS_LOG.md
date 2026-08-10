@@ -476,3 +476,234 @@ Consequences:
 
 Affected docs/code:
 `docs/02_DOMAIN_MODEL.md`, `docs/03_DATABASE_SCHEMA.md`, `docs/12_AGENT_EXECUTION_PLAN.md`, `docs/14_PROJECT_STATUS.md`, future financial persistence/domain/provider tasks
+
+---
+
+## DEC-023 — Production Staff Authentication
+
+Status: Accepted
+Date: 2026-08-10
+
+Context:
+The staff check-in HTTP boundary currently passes the `Authorization` header to an injectable `StaffPrincipalResolver`. Production intentionally binds that boundary to `FailClosedStaffPrincipalResolver`, which rejects every request. Integration tests replace it with a test-only opaque mapping. The persisted `User` already owns normalized unique email, password hash, `ACTIVE`/`DISABLED` status and `last_login_at`, while the custody authorization layer separately resolves current User status, OrganizationMembership, Organization, Location access and operation-specific role from database state.
+
+The repository has no accepted decision for production login, credential format and transport, expiry, refresh rotation, replay handling, logout, persistence or MFA assurance. Implementing the resolver before those choices are approved would silently turn transport code into the security contract.
+
+Options considered:
+
+- Option A: database-backed opaque staff access credentials with a database-backed rotating refresh session.
+- Option B: a signed short-lived access token with a database-backed rotating/revocable refresh session.
+- Option C: an external identity provider or hosted authentication service.
+
+Proposed decision:
+Use Option A for the current Employee/Valet web/PWA MVP.
+
+The API already requires database access to make current `User.status` and session revocation authoritative on every protected request. Option B therefore would not remove the database read that matters, but would add signing-key lifecycle, algorithm/issuer/audience validation and claim-staleness risks. No Organization, Location, membership, role or permission claim may be authoritative, so signed authorization claims offer no benefit. Option C introduces an unselected provider, external availability and deployment decisions, and premature federation/SSO scope; enterprise SSO remains deferred.
+
+The proposed design is one server-owned password login, one opaque access credential and one independently generated opaque refresh credential per staff session. Access is sent as a bearer credential. Refresh is confined to an HttpOnly cookie so browser JavaScript cannot directly read the long-lived credential. Both are verified by database-held hashes; raw credentials are never persisted.
+
+### Login contract
+
+The only MVP login identifier is email. Phone login, public signup, invitations, password reset and account recovery are separate decisions/tasks and are not part of this contract. Production staff Users must be provisioned through a separately approved administrative/onboarding path before this login can be enabled.
+
+The login request is `POST /v1/staff/auth/login` with a strict JSON object containing only `email` and `password`. The email is trimmed and lowercased exactly as required by the existing `users_email_normalized_check`; lookup uses the resulting value against the globally unique stored email. The application must not introduce a second Unicode or locale-specific canonicalization rule without a migration/decision that reconciles existing stored identities. The normalized email is limited to 254 characters. Password input is treated as UTF-8 bytes exactly as submitted, is never trimmed or Unicode-normalized, and is bounded to 1–1024 UTF-8 bytes before password-hash work.
+
+Unknown email, malformed or unsupported password hash, wrong password and `DISABLED` User all return HTTP 401 with the same stable `STAFF_AUTHENTICATION_FAILED` code and generic "Staff authentication failed." message plus the normal request ID. They must not reveal whether an account exists or is disabled. Before returning that failure, the login path performs one Argon2id verification: an unknown email verifies against one fixed valid dummy hash; a stored malformed, unsupported, legacy or placeholder hash also verifies against that same dummy hash; and a User with a supported stored hash verifies the submitted password against that hash even when the User is `DISABLED`. Account status must not cause a cheap early return with materially different password-verification work. Unsupported hashes are never accepted through a fallback. This is timing equalization, not a substitute for rate limiting.
+
+After password verification, session issuance uses one database transaction. It re-reads and locks the User, requires `status = ACTIVE`, inserts the session and first refresh-credential rows, and updates `last_login_at` to the same server/database time used for successful issuance. Raw credentials are returned/set only after commit. A rollback returns no usable credential. `last_login_at` changes on successful new-session issuance only; it does not change on failed login, refresh or ordinary authenticated requests.
+
+Login always creates fresh server-generated credentials and a fresh session ID. It never adopts an inbound session/access value, so an attacker cannot fix the resulting session identifier. A pre-existing refresh cookie is not used as authority for login and is overwritten after successful issuance.
+
+### Password verification
+
+`password_hash` stores one complete Argon2 PHC string and no plaintext or reversible password material. The initially accepted encoding is exactly Argon2id version 19 with `m=65536` KiB, `t=3`, `p=4`, a 16-byte cryptographically random salt and a 32-byte output. This is the selected 64 MiB/three-pass profile aligned with RFC 9106's second recommended Argon2id profile:
+
+```text
+$argon2id$v=19$m=65536,t=3,p=4$<PHC base64 salt>$<PHC base64 hash>
+```
+
+The implementation must parse and bound the PHC fields before invoking verification. A different algorithm, Argon2 version, parameter set, decoded salt/output length or malformed encoding is an unsupported/legacy format and fails closed through the same non-disclosing invalid-login response. There is no bcrypt/PBKDF2/plaintext fallback and no silent reinterpretation of existing seed placeholders. Any later hash-policy upgrade requires an amended accepted contract and an explicit migration/rehash path.
+
+Hash creation and verification use the maintained `argon2` package's Argon2id API. Comparison is performed only by the library verifier; application code must not compare derived hashes with ordinary string equality. Password values, PHC strings and verification errors containing either must never enter logs, metrics, traces or AuditEvent metadata.
+
+### Credential formats and hashing
+
+Each access credential is 32 bytes from Node's cryptographically secure random generator, encoded as unpadded base64url and prefixed exactly as:
+
+```text
+vsa1.<43 base64url characters>
+```
+
+Each refresh credential is generated independently with the same entropy and encoding but a distinct prefix:
+
+```text
+vsr1.<43 base64url characters>
+```
+
+The access and refresh values must never be derived from each other, a User ID, session ID, timestamp or counter. A credential parser accepts only the exact versioned prefix, alphabet and length and rejects duplicates or additional material.
+
+For lookup, the server computes SHA-256 over the complete UTF-8 raw credential, including its staff-specific prefix, and stores only the lowercase-hex versioned verifier:
+
+```text
+staff-access-sha256:v1:<64 lowercase hex characters>
+staff-refresh-sha256:v1:<64 lowercase hex characters>
+```
+
+Plain SHA-256 is sufficient for these independently generated 256-bit credentials because there is no low-entropy secret to brute force. A server pepper would add an operational secret/rotation dependency without materially improving resistance to guessing. The verifier is strictly required for indexed database lookup, but it must remain confined to the authentication tables and parameterized queries; it must not be logged, audited or emitted as telemetry.
+
+### Access transport, lifetime and resolution
+
+Normal staff APIs accept the access credential only in one HTTP header:
+
+```text
+Authorization: Bearer vsa1.<43 base64url characters>
+```
+
+An access credential has a maximum lifetime of 15 minutes. `access_expires_at` is server-authoritative and is set using this exact formula:
+
+```text
+access_expires_at =
+min(database now + 15 minutes, staff_auth_sessions.absolute_expires_at)
+```
+
+The client-supplied clock is never consulted.
+
+`StaffPrincipalResolver.resolve(authorization)` must:
+
+1. require exactly one syntactically valid Bearer access value;
+2. compute its versioned access verifier;
+3. perform an indexed lookup of the owning staff session and current User;
+4. require an unrevoked session, `now < access_expires_at`, `now < absolute_expires_at` and current `User.status = ACTIVE`; and
+5. return exactly `{ userId }` from persisted state.
+
+Missing, malformed, duplicate, unknown, expired, rotated, revoked or otherwise invalid access credentials and disabled/missing Users all retain the existing HTTP 401 `STAFF_AUTHENTICATION_REQUIRED` response. The resolver must not disclose which predicate failed.
+
+`X-User-Id`, `X-Staff-User-Id` and every other client-supplied User, Organization, Location, membership, role or permission value are never authentication or authorization authority. `StaffPrincipalResolver.resolve(authorization)` considers only the `Authorization` value it receives and is not required to detect unrelated HTTP headers. Alternate identity headers are never used to resolve or alter `StaffPrincipal`, do not override a valid Authorization bearer credential, may be ignored as non-authoritative input unless another strict transport policy explicitly rejects them, and must never be introduced as a production authentication convention. Strict request-body and query schemas continue to reject authority fields where those transports are contract-controlled. Test-only resolvers remain dependency-injected test fixtures and must not be selectable through environment variables or production request input.
+
+Authentication proves only a current User identity. Tokens and sessions contain no authoritative Organization ID, Location ID, membership ID, role or permission. Existing custody authorization continues to load current persisted scope and apply active-membership, tenant, explicit Location-access and command-specific role rules. In particular, a valid password session does not grant `LOCATION_MANAGER` or `ORG_ADMIN` the `VALET_EMPLOYEE`/`VALET_SUPERVISOR` field-operation authority they do not already have.
+
+### Refresh transport and browser boundary
+
+The raw refresh credential is never returned in a JSON body and is not accepted in `Authorization`. At initial login it is set only as this host-only cookie:
+
+```text
+__Secure-vaylet_staff_refresh=<vsr1 value>;
+Secure; HttpOnly; SameSite=Strict; Path=/v1/staff/auth; Max-Age=2592000
+```
+
+The cookie has no `Domain` attribute. Server expiry remains authoritative even if a browser retains a stale cookie. On refresh, the replacement cookie keeps the same name and security attributes, but its `Max-Age` is bounded to the remaining whole-second duration from the server/database time to `staff_auth_sessions.absolute_expires_at`; it must never reset to 2592000 or otherwise extend the browser credential beyond the existing absolute session expiry. Successful login and refresh return exactly the raw `accessToken`, literal `tokenType: "Bearer"`, server-authored `accessExpiresAt` and `sessionExpiresAt`; they never return the raw refresh credential. `POST /v1/staff/auth/refresh` accepts the refresh credential only from exactly one cookie with that name, requires an empty strict JSON object, and returns that same access response after commit while replacing the cookie. Missing, malformed, unknown, expired, rotated, replayed, revoked and disabled-User refresh failures all return the same HTTP 401 `STAFF_AUTHENTICATION_FAILED` response and clear the cookie. `POST /v1/staff/auth/logout` uses the same cookie to identify and revoke the current session, clears the cookie with the same name/path/security attributes and `Max-Age=0`, and always returns HTTP 204 with an empty body so validity is not disclosed.
+
+The Employee/Valet web/PWA keeps the access credential in memory only. It must not persist it in `localStorage`, `sessionStorage`, IndexedDB, URLs, service-worker caches or application logs. The refresh cookie is inaccessible to JavaScript, but active XSS can still make authenticated same-origin requests or call refresh and read an allowed response; CSP, output encoding, dependency hygiene and avoiding unsafe script execution remain required controls.
+
+Because browsers do not automatically attach an `Authorization` bearer value, CSRF is not the primary threat for normal staff API access. Login/refresh/logout are POST-only, require `Content-Type: application/json`, require the request `Origin` to exactly match a configured production Employee/Valet origin, and reject a missing or unapproved Origin. `SameSite=Strict`, host-only cookie scope and the narrow cookie path are additional controls, not substitutes for Origin validation.
+
+Production CORS is an explicit allowlist of deployed Employee/Valet origins. It never uses `*`, reflected arbitrary origins or wildcard subdomains. Credentialed auth requests may enable CORS credentials only for an exact allowlisted origin and only the required methods/headers. The deployment must keep the Employee/Valet origin and API same-site so the Strict refresh cookie works; a future cross-site deployment must amend this decision rather than weaken cookie policy ad hoc.
+
+All login, refresh and logout responses use `Cache-Control: no-store` and `Pragma: no-cache`. Reverse proxies, application diagnostics, tracing and error handlers must redact the `Authorization` and `Cookie` headers before capture.
+
+### Session and refresh persistence
+
+Implementation requires new persistence, but this proposed decision creates no Prisma model or migration. Existing migrations remain immutable.
+
+The smallest proposed database model has two staff-only tables independent of guest access.
+
+`staff_auth_sessions` conceptually contains:
+
+- `id`: UUID primary key generated by the server;
+- `user_id`: required restrictive foreign key to `users.id`;
+- `current_access_token_hash`: required unique versioned verifier;
+- `access_expires_at`: required server timestamp;
+- `absolute_expires_at`: required server timestamp exactly 30 days after creation;
+- `revoked_at`: nullable server timestamp;
+- `created_at`: required server timestamp; and
+- `last_rotated_at`: required server timestamp, initially equal to creation.
+
+Checks require the exact versioned access-verifier shape, `access_expires_at > created_at`, `access_expires_at <= absolute_expires_at`, `last_rotated_at >= created_at`, and `revoked_at IS NULL OR revoked_at >= created_at`. Indexes include unique current access verifier and an index beginning with `user_id` suitable for current-session revocation/cleanup. The User foreign key uses restrictive delete/update behavior; staff auth history is not cascade-deleted.
+
+`staff_refresh_credentials` conceptually contains:
+
+- `id`: UUID primary key;
+- `session_id`: required restrictive foreign key to `staff_auth_sessions.id`;
+- `token_hash`: required unique versioned verifier;
+- `generation`: positive integer starting at 1;
+- `created_at`: required server timestamp;
+- `expires_at`: required server timestamp equal to the owning session's absolute expiry;
+- `consumed_at`: nullable server timestamp; and
+- `replaced_by_credential_id`: nullable restrictive self-reference to the next credential.
+
+Constraints require the exact versioned refresh-verifier shape, unique `(session_id, generation)`, unique `token_hash`, at most one unconsumed refresh credential per session through a partial unique index, no self-replacement, and valid timestamp ordering. A composite same-session self-reference from `(session_id, replaced_by_credential_id)` to `(session_id, id)` prevents cross-session lineage. Restrictive foreign keys prevent deletion from erasing replay lineage. Raw access/refresh values are never stored. The application runtime role needs only the specific `SELECT`/`INSERT`/`UPDATE` privileges required by this lifecycle and must not receive `DELETE` or `TRUNCATE` on these tables. Expired/revoked rows may later be removed only by an explicit migration/maintenance-owner retention policy; no retention duration is invented here.
+
+The session lasts exactly 30 days from login and is not sliding. Refresh rotation does not extend `absolute_expires_at`. Initial access issuance and every rotated access credential use the authoritative `access_expires_at` formula above.
+
+### Rotation, replay and concurrency
+
+Every refresh use rotates both credentials. The server hashes the presented refresh value, finds its retained credential row, and in one database transaction locks that row and its owning session. It rechecks current User `ACTIVE`, session not revoked, refresh not expired and session not absolutely expired.
+
+For a current unconsumed refresh credential, the transaction:
+
+1. marks it consumed at the database time;
+2. inserts exactly one next-generation refresh row with a newly generated verifier;
+3. links the old row to the new row;
+4. replaces the session's current access verifier and access expiry with a newly generated access credential;
+5. updates `last_rotated_at`; and
+6. commits before emitting either raw credential.
+
+Exactly one transaction can consume a generation. A transaction that finds an already consumed credential treats it as refresh replay, sets `revoked_at` on the whole owning session/family if not already revoked, emits no credentials and returns the same non-disclosing authentication failure. This applies even when replay is caused by two browser tabs racing: one rotation can commit first, and the losing reuse then revokes that session. The PWA must serialize refresh with one cross-tab coordination mechanism such as the Web Locks API plus a broadcast of the new access state; failure to coordinate intentionally falls back to reauthentication rather than weakening replay detection.
+
+Refresh replay revokes only the affected login session/family, not independent sessions created by other logins. A replayed credential cannot select another User/session because lookup ownership comes only from its verifier row. A disabled User causes refresh failure and session revocation.
+
+### Logout, revocation and disable
+
+Logout revokes the current session by setting `revoked_at` under a row lock and clears the refresh cookie. It is idempotent and non-disclosing; a retained consumed refresh credential presented to logout still identifies and revokes its family. After commit, resolver queries reject the session's access credential immediately even if its 15-minute timestamp has not elapsed.
+
+Logout-all, user-visible device/session management and administrator-initiated per-device revocation are deferred. The schema supports a later authorized operation over sessions by `user_id`; such an operation will require its own authorization, reason and audit contract.
+
+`User.status = DISABLED` blocks login and refresh. Every access resolution joins the current User and requires `ACTIVE`, so all existing sessions become unusable immediately without waiting for access expiry and without trusting a stale token claim. Re-enabling a User does not silently un-revoke sessions, but sessions that were not explicitly revoked solely by the status check could otherwise become usable again; therefore the future disable command must atomically set the User to `DISABLED` and revoke all of that User's unrevoked staff sessions. Until that command exists, direct production User-status mutation is not an approved account-disable workflow.
+
+### MFA boundary
+
+This password/session contract represents password-only staff authentication. It does not assert MFA assurance and does not make `{ userId }` sufficient for privileged Company Admin or VAYLET Super Admin operations.
+
+Production Company Admin (`ORG_ADMIN`) privileged APIs and all VAYLET Super Admin APIs remain unavailable until a separate accepted MFA decision/task adds an MFA enrollment/challenge/recovery lifecycle and a server-validated assurance value bound to the session. That task may extend session persistence and principal/guard interfaces; it must not infer MFA from role, password login, a client claim or the existence of this session. Existing operational field commands continue to permit only their explicitly accepted roles, so this boundary does not grant admin roles implicit valet authority.
+
+### Login abuse and security telemetry
+
+The documented production requirement remains no more than five failed credential attempts for one normalized identifier in a rolling 15-minute window and no more than 30 login attempts from one trusted client address in a rolling 15-minute window. It must apply equivalently to known and unknown normalized identifiers, use only a correctly configured trusted-proxy client address, and return the same HTTP 429 `STAFF_AUTHENTICATION_RATE_LIMITED` response regardless of account existence. Process-local counters are prohibited because they reset and diverge across instances.
+
+Production deployment of staff login is gated on a separately approved shared/durable anti-abuse boundary. The VAL-004L authentication implementation must not select or invent Redis, a WAF, generic rate-limit tables or other anti-abuse infrastructure. That boundary can be delivered by the upcoming production anti-abuse/readiness slice. The authentication core may be implemented and tested independently while production staff routes remain gated, but Phase 2 cannot be declared production-ready until the shared/durable staff-login anti-abuse requirement is implemented and verified. This remains independent of the guest rate-limiting task.
+
+Authentication security telemetry is separate from tenant AuditEvent because login occurs before a membership/Organization/Location actor is established. It may record bounded event type, outcome, request ID, server time and, after successful authentication, internal User/session IDs. It must never record password, password hash, raw access/refresh credential, token verifier, `Authorization`/`Cookie` header or full request body. Failed-login telemetry must not copy the submitted email or password. Any future privileged session revocation remains a separately authorized/audited business action.
+
+### Guest isolation and dependencies
+
+Guest bearer access remains independent. Staff auth must not reuse guest token columns, tables, parsers, dependency-injection bindings, issuance/rotation commands, hashes or lifecycle semantics. Sharing Node's cryptographic primitive does not make the protocols interchangeable because formats, prefixes, persistence and resolvers remain separate.
+
+Implementation would add exactly two direct `@valet/api` runtime dependencies: the maintained `argon2` package for Argon2id and the maintained `cookie` package for standards-compliant refresh-cookie parsing/serialization. No JWT/JWK, Passport, OAuth, hosted-IdP, Redis or MFA dependency is accepted by this decision. Exact compatible dependency versions must be pinned by the implementation task in the repository lockfile after package-security review; this proposal installs nothing.
+
+### Threat review
+
+- Credential theft: an access credential has a 15-minute maximum lifetime; a stolen refresh credential is harder for browser script to read, rotates on every use and can revoke only its session family on replay. TLS is mandatory in production.
+- Database token-table compromise: a read-only leak exposes only verifiers of 256-bit random values and cannot reconstruct raw credentials. Database write/runtime compromise can replace session verifiers and is outside what token hashing alone can contain; least-privilege runtime database controls remain required.
+- Password database compromise: unique-salt Argon2id at the locked memory/time cost slows offline guessing; password strength/provisioning policy remains a required onboarding contract and is not replaced by hashing.
+- Token guessing: independent 256-bit CSPRNG values, exact parsing and unique verifier indexes make online guessing infeasible; abuse controls still protect endpoint resources.
+- Session fixation: login always creates fresh server-owned IDs/credentials and never adopts inbound authority.
+- Refresh replay/concurrent refresh: retained lineage detects old generations, row locking gives one winner, and any consumed-token reuse revokes the family.
+- Stale credentials: database checks make logout, explicit revocation and User disable effective immediately; no signed stale claim bypass exists.
+- Cross-tenant/role spoofing: the principal contains only persisted `userId`; all tenant, Location, membership and role authorization remains database-derived in the custody layer.
+- Alternate-header spoofing: identity headers such as `X-User-Id` never become authority, never alter the resolved principal and never override a valid bearer credential; strict body/query schemas continue to reject authority fields where those transports are contract-controlled.
+- Header/log leakage: raw bearer/cookie values and their verifiers are prohibited from logs, metrics, traces, audit and error bodies; infrastructure redaction is a production gate.
+- CSRF: normal bearer requests are not browser-auto-attached; refresh/logout cookie requests require Strict SameSite, exact Origin, host-only/path scope and POST JSON semantics.
+- XSS: memory-only access and HttpOnly refresh storage limit direct theft but cannot make an actively compromised origin safe; browser hardening remains necessary.
+- Admin privilege escalation: password sessions carry no MFA assertion and privileged admin APIs stay unavailable until the MFA contract is implemented.
+- Replay across devices/sessions: each login has independent credentials/family; replay revokes only the owning session, while User disable invalidates all sessions through current-state checks.
+
+Consequences:
+
+- Production staff routes remain fail-closed until this proposal is reviewed, accepted and implemented with PostgreSQL-backed tests.
+- The implementation task requires new forward-only session/refresh persistence and must update the database contract, Prisma schema and invariant tests without rewriting migrations 1–16.
+- The implementation must add login/refresh/logout transport and replace only the production staff principal binding; it must not redesign existing custody authorization.
+- Staff login abuse control, credential-header redaction and exact production origin configuration are launch gates, not optional hardening notes.
+- Public staff signup, invitation, password reset/recovery, MFA, SSO, device management and logout-all remain separate tasks.
+
+Affected docs/code:
+`docs/03_DATABASE_SCHEMA.md`, `docs/06_SECURITY_AND_DATA_RULES.md`, `docs/11_REQUIREMENTS_TRACEABILITY.md`, future focused staff-auth contracts/controller/resolver/schema/migration/tests, `apps/api/package.json`, `pnpm-lock.yaml`

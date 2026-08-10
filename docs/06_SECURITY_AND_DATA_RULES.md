@@ -34,13 +34,28 @@ Version: 0.4
 
 ## Staff authentication
 
-- secure password hashing using Argon2id or approved equivalent
-- short-lived access token
-- rotated/revocable refresh/session mechanism
-- account disable support
-- device/session revocation support as staff authentication matures
-- production Company Admin requires MFA
-- production VAYLET Super Admin requires MFA
+VAL-004L implements DEC-023's PostgreSQL-backed opaque staff authentication.
+Password verification accepts only the locked Argon2id profile and equalizes
+unknown, malformed-hash and disabled-account work without accepting legacy
+fallbacks. Access and refresh credentials each contain 256 CSPRNG bits, use
+separate versioned formats and are persisted only as versioned SHA-256
+verifiers. Access lasts at most 15 minutes; every refresh rotates both
+credentials under row locks; consumed-credential replay revokes only the
+affected 30-day non-sliding session family.
+
+The refresh credential is host-only, Secure, HttpOnly, SameSite=Strict and
+scoped to `/v1/staff/auth`. Login, refresh and logout require an exact approved
+Origin and strict JSON transport. `User.status` is checked at login, refresh
+and every access resolution. Authentication yields only `{ userId }`; current
+membership, Organization, Location, role and permission remain server-resolved
+authorization facts. Alternate client identity headers never override the
+bearer credential and are not an authentication convention.
+
+Password-only sessions do not assert MFA. Production Company Admin and VAYLET
+Super Admin capabilities requiring MFA remain unavailable. Production staff
+login also remains gated on a separately approved shared/durable anti-abuse
+boundary; process-local counters and improvised rate-limit infrastructure are
+not part of VAL-004L.
 
 Enterprise SSO is deferred until its approved later phase.
 
@@ -130,7 +145,7 @@ VAL-004I wires the narrow guest resolver only at `GET /v1/guest/session`. It acc
 
 ## Check-in API transport security
 
-The dedicated check-in HTTP surface uses strict shared Zod contracts and injects the authenticated staff User ID only from an injectable server-side principal resolver. The default production resolver always returns an authentication failure because no accepted production verifier exists yet. No route accepts `authenticatedUserId`, Organization, membership, role, target state or audit authority, and no `X-User-Id` convention exists.
+The dedicated check-in HTTP surface uses strict shared Zod contracts and injects the authenticated staff User ID only from the DEC-023 PostgreSQL-backed principal resolver. The resolver accepts only an unexpired, unrevoked `vsa1.` bearer whose current User is active and returns only `{ userId }`. No route accepts `authenticatedUserId`, Organization, membership, role, target state or audit authority. `X-User-Id`, `X-Staff-User-Id` and similar caller values are non-authoritative and cannot alter a valid bearer principal.
 
 All new responses carry a bounded ASCII-safe `X-Request-Id`; malformed optional inbound values are replaced with a server UUID rather than reflected. Stable errors repeat the same request ID and never expose SQL, constraint names, stacks, credentials or request bodies. Metrics exclude Authorization, raw tokens, phone, plates, descriptors, note text and storage keys. A raw guest token may appear only in a successful authorized issue/rotate/reissue response and remains hash-only in persistence.
 

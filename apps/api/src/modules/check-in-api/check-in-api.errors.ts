@@ -36,6 +36,8 @@ const statusByCode: Readonly<Record<string, number>> = {
   INTAKE_INPUT_INVALID: HttpStatus.BAD_REQUEST,
   INVALID_STATE_TRANSITION: HttpStatus.CONFLICT,
   LOCATION_ACCESS_DENIED: HttpStatus.NOT_FOUND,
+  STAFF_AUTHENTICATION_FAILED: HttpStatus.UNAUTHORIZED,
+  STAFF_AUTH_ORIGIN_NOT_ALLOWED: HttpStatus.FORBIDDEN,
   PHOTO_REQUIREMENT_NOT_SATISFIED: HttpStatus.UNPROCESSABLE_ENTITY,
   PHOTO_STORAGE_OBJECT_CONFLICT: HttpStatus.CONFLICT,
   TENANT_ACCESS_DENIED: HttpStatus.NOT_FOUND,
@@ -53,6 +55,8 @@ const safeMessages: Readonly<Record<string, string>> = {
   AUTHORIZATION_DENIED: "The requested resource is not available.",
   GUEST_ACCESS_INVALID: "Guest access is invalid.",
   LOCATION_ACCESS_DENIED: "The requested resource is not available.",
+  STAFF_AUTHENTICATION_FAILED: "Staff authentication failed.",
+  STAFF_AUTH_ORIGIN_NOT_ALLOWED: "The request origin is not allowed.",
   TENANT_ACCESS_DENIED: "The requested resource is not available.",
 };
 

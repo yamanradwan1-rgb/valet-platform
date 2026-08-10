@@ -274,13 +274,88 @@ afterAll(async () => {
 }, 60_000);
 
 describe("runtime PostgreSQL role boundary", () => {
-  it("applies all 16 migrations through migration credentials only", async () => {
+  it("applies all 17 migrations through migration credentials only", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(16);
+    expect(result.rows).toHaveLength(17);
+  });
+
+  it("can rotate retained auth rows but cannot delete or truncate them", async () => {
+    const privileges = await adminPool.query<{
+      can_delete: boolean;
+      can_insert: boolean;
+      can_select: boolean;
+      can_truncate: boolean;
+      table_name: string;
+    }>(
+      `SELECT table_name,
+              has_table_privilege($1, format('public.%I', table_name), 'SELECT') AS can_select,
+              has_table_privilege($1, format('public.%I', table_name), 'INSERT') AS can_insert,
+              has_table_privilege($1, format('public.%I', table_name), 'DELETE') AS can_delete,
+              has_table_privilege($1, format('public.%I', table_name), 'TRUNCATE') AS can_truncate
+       FROM unnest(ARRAY['staff_auth_sessions', 'staff_refresh_credentials']) AS table_name
+       ORDER BY table_name`,
+      [runtimeRole],
+    );
+    expect(privileges.rows).toEqual([
+      {
+        can_delete: false,
+        can_insert: true,
+        can_select: true,
+        can_truncate: false,
+        table_name: "staff_auth_sessions",
+      },
+      {
+        can_delete: false,
+        can_insert: true,
+        can_select: true,
+        can_truncate: false,
+        table_name: "staff_refresh_credentials",
+      },
+    ]);
+
+    const updatePrivileges = await adminPool.query<{
+      allowed: boolean;
+      column_name: string;
+      table_name: string;
+    }>(
+      `SELECT table_name, column_name,
+              has_column_privilege(
+                $1,
+                format('public.%I', table_name),
+                column_name,
+                'UPDATE'
+              ) AS allowed
+       FROM (VALUES
+         ('staff_auth_sessions', 'current_access_token_hash'),
+         ('staff_auth_sessions', 'access_expires_at'),
+         ('staff_auth_sessions', 'revoked_at'),
+         ('staff_auth_sessions', 'last_rotated_at'),
+         ('staff_auth_sessions', 'user_id'),
+         ('staff_auth_sessions', 'absolute_expires_at'),
+         ('staff_refresh_credentials', 'consumed_at'),
+         ('staff_refresh_credentials', 'replaced_by_credential_id'),
+         ('staff_refresh_credentials', 'token_hash'),
+         ('staff_refresh_credentials', 'generation')
+       ) AS checked(table_name, column_name)
+       ORDER BY table_name, column_name`,
+      [runtimeRole],
+    );
+    expect(
+      updatePrivileges.rows
+        .filter((row) => row.allowed)
+        .map((row) => `${row.table_name}.${row.column_name}`),
+    ).toEqual([
+      "staff_auth_sessions.access_expires_at",
+      "staff_auth_sessions.current_access_token_hash",
+      "staff_auth_sessions.last_rotated_at",
+      "staff_auth_sessions.revoked_at",
+      "staff_refresh_credentials.consumed_at",
+      "staff_refresh_credentials.replaced_by_credential_id",
+    ]);
   });
 
   it("reserves Prisma migration metadata for the migration identity", async () => {
