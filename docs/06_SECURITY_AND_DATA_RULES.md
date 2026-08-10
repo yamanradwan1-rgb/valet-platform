@@ -177,9 +177,9 @@ When captured:
 
 Do not invent a legal retention period. Retention must later be configurable/contract-aware where required.
 
-VAL-004G evaluates the typed Company-default -> nullable Location-override photo policy from locked persisted rows. An explicit Location `false` overrides a Company `true`; otherwise the Company default applies. Its reusable current-policy guard accepts only exact-session `CHECK_IN_CONDITION` metadata as qualifying evidence. The condition-completion marker is historical evidence and is not treated as proof that a later current policy remains satisfied.
+VAL-004G evaluates the typed Company-default -> nullable Location-override photo policy from locked persisted rows. An explicit Location `false` overrides a Company `true`; otherwise the Company default applies. Current-schema `CHECK_IN_CONDITION` VehiclePhoto rows contain client-declared metadata only and are not qualifying evidence for a required-photo policy. The condition-completion marker is historical evidence and is not treated as proof that a later current policy remains satisfied.
 
-The VAL-004G registration boundary stores authorized private object metadata only. It does not upload or fetch bytes, trust MIME metadata as byte validation, create public URLs or expose the object key through AuditEvent metadata. The opaque storage key is never a client-fetchable URL, and globally conflicting reuse returns a non-disclosing domain conflict. Actual upload authorization, byte sniffing, size enforcement, malware scanning, signed access and lifecycle/retention remain later object-storage work.
+The VAL-004G registration boundary stores authorized private object metadata only. Registration does not verify an object or promote metadata into trusted evidence. It does not upload or fetch bytes, trust MIME metadata as byte validation, create public URLs or expose the object key through AuditEvent metadata. The opaque storage key is never a client-fetchable URL, and globally conflicting reuse returns a non-disclosing domain conflict. Required-photo completion remains unavailable until a server-controlled verification boundary exists. Actual upload authorization, byte sniffing, size enforcement, malware scanning, signed access and lifecycle/retention remain later object-storage work.
 
 ## Black Box / audit / evidence
 

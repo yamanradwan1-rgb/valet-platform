@@ -451,19 +451,15 @@ export async function evaluateLockedCheckInConditionGuard(
   transaction: PostgresTransaction,
   scope: LockedCheckInConditionGuardScope,
 ): Promise<CheckInConditionGuardResult> {
+  // Current VehiclePhoto rows contain client-declared metadata only. Until a
+  // server-controlled object verification boundary exists, none are trusted
+  // evidence for a required-photo policy.
   const result = await transaction.query<GuardRow>(
     `SELECT session.check_in_condition_completed_at,
             session.check_in_condition_completed_by_membership_id::text,
             organization.check_in_photos_required,
             location.check_in_photos_required_override,
-            EXISTS (
-              SELECT 1
-              FROM vehicle_photos AS photo
-              WHERE photo.organization_id = session.organization_id
-                AND photo.location_id = session.location_id
-                AND photo.valet_session_id = session.id
-                AND photo.purpose = 'CHECK_IN_CONDITION'
-            ) AS qualifying_photo_present
+            FALSE AS qualifying_photo_present
      FROM valet_sessions AS session
      INNER JOIN organizations AS organization
        ON organization.id = session.organization_id
