@@ -3,7 +3,7 @@
 Status: Proposed  
 Date: 2026-08-10
 
-> Focused review copy for VAL-004M. This proposal must be reviewed and accepted before implementation. Its accepted text must be incorporated into `docs/08_DECISIONS_LOG.md` before VAL-004M is merged.
+> Focused review copy for VAL-004M. This proposal is ready for review and must be accepted before implementation. Its accepted text must be incorporated into `docs/08_DECISIONS_LOG.md` before VAL-004M is merged.
 
 ## Context
 
