@@ -1,9 +1,9 @@
 # DEC-024 — Shared Durable Anti-Abuse Boundary
 
-Status: Proposed  
+Status: Accepted  
 Date: 2026-08-10
 
-> Focused review copy for VAL-004M. This proposal is ready for review and must be accepted before implementation. Its accepted text must be incorporated into `docs/08_DECISIONS_LOG.md` before VAL-004M is merged.
+> Binding decision for VAL-004M. Before implementation changes are committed, this accepted decision must also be copied into `docs/08_DECISIONS_LOG.md` without semantic changes so the repository authority order remains intact.
 
 ## Context
 
@@ -14,145 +14,202 @@ Phase 2 now exposes two production-sensitive public boundaries that need shared 
 
 DEC-023 already requires no more than five failed staff credential attempts per normalized identifier in a rolling 15-minute window and no more than 30 staff login attempts per trusted client address in a rolling 15-minute window. Guest access separately requires externally usable rate limiting without persisting or logging raw bearer tokens.
 
-Process-local counters are rejected because they reset on restart and diverge across API replicas. The locked stack already requires PostgreSQL, and the initial production model is a containerized API behind a reverse proxy/load balancer as appropriate. Redis, a managed WAF/CDN limiter and another distributed cache are not currently accepted infrastructure dependencies.
+Process-local counters are rejected because they reset on restart and diverge across API replicas. PostgreSQL is already mandatory shared infrastructure for the pilot and both protected request paths already depend on it.
 
 ## Options considered
 
-- **Option A — PostgreSQL-backed exact rolling-window state.** Use the existing shared database with transactional serialization and short-lived limiter events/reservations.
-- **Option B — Redis-backed limiter state.** Good fit for high-volume rate limiting but introduces a new production service, network boundary, persistence/availability policy and ACL/TLS requirement.
-- **Option C — managed edge/WAF rate limiting.** Useful for coarse network/request protection but cannot by itself safely own staff normalized-identifier semantics without moving sensitive application meaning to the edge.
+- **Option A — PostgreSQL-backed exact rolling-window state.** Existing shared database, transactional serialization, short-lived limiter events/reservations.
+- **Option B — Redis-backed limiter state.** Suitable at higher volume but adds a new production service, ACL/TLS/network and availability dependency.
+- **Option C — managed edge/WAF rate limiting.** Useful for coarse network protection but cannot safely own normalized staff-identifier semantics by itself.
 - **Option D — process-local memory.** Rejected because it is neither durable nor shared across replicas.
 
-## Proposed decision
+## Decision
 
-Use **Option A: PostgreSQL-backed exact rolling-window anti-abuse state** for the Phase 2 production-readiness boundary.
+Use **Option A: PostgreSQL-backed exact rolling-window anti-abuse state** for VAL-004M.
 
-PostgreSQL is already a mandatory shared dependency for staff authentication and guest resolution, so this option adds no new network service or provider dependency for the pilot. Exact rolling-window semantics can be enforced transactionally across multiple API processes. Contention is intentionally limited to requests sharing the same limiter key.
+PostgreSQL is the shared authority across API replicas. The implementation uses exact rolling 15-minute windows, transaction-level advisory serialization per limiter key, indexed short-lived limiter rows, and database-authoritative time. Redis/WAF/process-memory limiter dependencies are not introduced by this task.
 
-Redis remains a valid future optimization if measured load demonstrates that PostgreSQL limiter traffic is material. Moving the mechanism later requires a new accepted decision and equivalent behavioral/security tests. Edge/WAF controls may later add coarse DDoS protection but do not replace this application-level contract.
+If measured pilot load later proves material limiter contention, a later accepted decision may move the same public behavior to Redis or an edge/application hybrid.
 
-## Limiter key derivation and privacy
+## Secret and limiter-key contract
 
-The application uses one dedicated **32-byte production secret**, separate from staff/guest credentials and database credentials, to derive limiter keys with HMAC-SHA-256. The same secret must be configured identically on every API replica.
+Production configuration uses:
 
-Persisted limiter keys use:
+```text
+ANTI_ABUSE_HMAC_SECRET_B64URL
+```
+
+It is exactly one unpadded base64url value encoding **32 random bytes**: 43 characters from `[A-Za-z0-9_-]`.
+
+The secret:
+
+- is separate from staff/guest credentials and database credentials;
+- is identical on every API replica;
+- is never committed or logged;
+- causes protected production endpoints to fail closed if absent or malformed;
+- is not rotated ad hoc because changing it would split/reset active windows.
+
+Limiter identities are HMAC-SHA-256 values. Inputs use unambiguous binary domain separation:
+
+```text
+HMAC-SHA-256(secret, UTF8(scope) || 0x00 || UTF8(value))
+```
+
+Scopes are exactly:
+
+```text
+v1:staff-login-identifier
+v1:staff-client-address
+v1:guest-client-address
+v1:guest-token
+```
+
+Persisted key format:
 
 ```text
 anti-abuse-hmac-sha256:v1:<64 lowercase hex characters>
 ```
 
-HMAC inputs are domain-separated:
+Raw/normalized email, raw/canonical client IP, raw guest bearer, password, `Authorization`, `Cookie`, request bodies and auth verifier hashes are never persisted in limiter rows or emitted in normal logs, traces, metrics or `AuditEvent`.
+
+Staff identifier keying reuses the exact DEC-023 email normalization; no second canonicalization rule is allowed.
+
+Guest-token limiter keying uses the exact shape-valid raw guest bearer and is intentionally independent from the guest authentication SHA-256 verifier stored on `ValetSession`.
+
+## Trusted client-address contract
+
+Production configuration uses:
 
 ```text
-v1|staff-login-identifier|<normalized email>
-v1|staff-client-address|<canonical client IP>
-v1|guest-client-address|<canonical client IP>
-v1|guest-token|<exact raw guest bearer>
+ANTI_ABUSE_TRUSTED_PROXY_CIDRS
 ```
 
-Raw email, normalized email, raw/canonical client address, raw guest bearer, password, Authorization header and Cookie header must never be stored in limiter persistence, AuditEvent, logs, traces or metrics.
+as a comma-separated list of explicit IPv4/IPv6 CIDRs. Empty means direct-client mode.
 
-The staff identifier uses the exact DEC-023 normalization already used by staff login. The limiter must not invent a second email canonicalization rule.
+The socket peer address is authoritative unless the immediate peer is inside a configured trusted-proxy CIDR.
 
-The guest-token limiter key is independent of the guest authentication SHA-256 verifier already stored on `ValetSession`; anti-abuse persistence must not reuse or expose that authentication verifier.
+- Untrusted peers: ignore `X-Forwarded-For`, `Forwarded`, `X-Real-IP` and similar headers.
+- Trusted peers: only `X-Forwarded-For` may contribute to the limiter client address.
+- The trusted proxy/load balancer must overwrite or safely append the forwarding chain according to deployment configuration.
+- Multiple ambiguous raw `X-Forwarded-For` header fields or malformed IP/CIDR data fail closed for protected endpoints.
+- Walk the forwarding chain from right to left with the direct peer, discard trusted-proxy hops, and select the first untrusted hop.
+- Do not trust a fixed hop count by itself.
+- IPv4-mapped IPv6 is normalized to canonical IPv4; IPv6 uses one canonical textual form before HMAC keying.
+- Malformed configured CIDRs fail production startup closed.
 
-The HMAC secret is a deployment secret and must never be committed. Production startup must fail closed if it is absent, malformed or not exactly 32 decoded bytes. Uncoordinated secret rotation is prohibited because it would split/reset active windows. A later rotation procedure must preserve current enforcement or deliberately drain the protected endpoints during rotation.
+Production networking must prevent direct untrusted access to a proxy-only internal API listener when proxy mode is enabled.
 
-## Exact rolling-window model
+## Persistence model
 
-All limits use an exact rolling **15-minute** window based on PostgreSQL server time. Client clocks are never authoritative.
+VAL-004M adds one new forward-only migration after migration 17.
 
-Limiter persistence is ephemeral security-control state, not tenant `AuditEvent` history. Conceptually each row contains only:
+Use one ephemeral anti-abuse table with the smallest fields needed for enforcement, conceptually:
 
-- server-generated event/reservation ID;
-- limiter scope;
-- versioned HMAC key;
-- server-authoritative timestamp;
-- minimal reservation/finalization state where required.
+- server-generated row ID;
+- limiter `scope`;
+- versioned HMAC `key_hash`;
+- server-authoritative `occurred_at`;
+- state: `PENDING`, `COUNTED`, or `IGNORED`.
 
-The implementation must index `(scope, key, occurred_at)` for current-window lookup and must never persist request bodies or credential material.
+Index `(scope, key_hash, occurred_at)` for current-window lookup.
 
-For one logical limiter key, check/reserve/record behavior is serialized with a PostgreSQL transaction-level advisory lock and one database transaction. The full HMAC key remains the authoritative lookup key. An advisory-lock hash collision may only over-serialize unrelated keys; it must not merge their counters or permit threshold bypass.
+`PENDING` and `COUNTED` consume quota for failure-only scopes. `IGNORED` does not. Count-all scopes insert directly as `COUNTED`.
 
-A request rejected because an applicable threshold is already exhausted does **not** append another counted event. Repeated 429 requests therefore do not extend the lockout indefinitely.
+Current-window rows are not tenant business history and are never written to `AuditEvent`.
 
-`Retry-After` is computed from the earliest still-counted event/reservation whose expiry currently keeps the relevant threshold exhausted.
+## Advisory serialization
 
-## Staff-login client-address limit
+For each logical limiter key, check/reserve/record behavior runs in one PostgreSQL transaction and obtains a transaction-level advisory lock before counting/inserting.
 
-For a syntactically valid login request that reaches staff authentication, check the trusted-client-address limiter before password verification.
+The advisory-lock ID is deterministically derived from the limiter HMAC output as two signed 32-bit halves from its first eight bytes and acquired with the transaction-scoped advisory-lock form. The full versioned HMAC key remains authoritative for row lookup/counting.
 
-Contract:
+A rare 64-bit advisory-lock collision may only over-serialize unrelated keys; it must never merge counters because SQL filtering still uses the full limiter key.
+
+The limiter transaction uses a bounded local lock timeout of **2 seconds**. Failure to acquire/complete authoritative limiter state within that boundary follows the fail-closed unavailable contract rather than waiting without bound or falling back to memory.
+
+Database server time is authoritative. Client/process clocks do not decide windows, expiry or `Retry-After`.
+
+A request rejected because the relevant threshold is already exhausted does not append another counted event, so repeated 429s do not extend the window.
+
+## Staff login — trusted client-address limit
+
+For a syntactically valid staff-login request that passed the existing strict JSON/Origin transport checks, evaluate the address limiter before Argon2 work.
 
 ```text
-30 accepted login attempts per trusted client address
+30 login attempts per trusted client address
 within the immediately preceding 15 minutes
 ```
 
-The first 30 attempts may proceed. The next attempt while 30 counted events remain inside the rolling window returns 429.
+The first 30 may proceed. While 30 counted address events remain in-window, the next request is 429.
 
-Every syntactically valid login attempt that passes the limiter consumes the address quota regardless of whether it later succeeds, uses an unknown email, has a wrong password, targets a disabled User or encounters an unsupported/malformed stored password hash.
+Every allowed syntactically valid login attempt consumes this address quota regardless of later result: success, unknown email, wrong password, disabled User or unsupported/malformed stored hash.
 
-Malformed JSON/body/schema requests and Origin failures keep their existing 400/403 transport semantics and do not create staff identifier/address limiter events. Coarse malformed-request/DDoS protection remains a separate reverse-proxy/edge concern.
+Malformed JSON/body/schema and existing Origin failures retain their current 400/403 semantics and do not create staff limiter rows. Coarse malformed-request/DDoS protection remains a reverse-proxy/edge concern.
 
-## Staff-login identifier-failure limit
+## Staff login — normalized identifier failure limit
 
-For a syntactically valid request with a normalized email, check the identifier limiter before Argon2 verification.
-
-Contract:
+For a syntactically valid normalized email, evaluate before Argon2:
 
 ```text
 5 failed credential attempts per normalized identifier
 within the immediately preceding 15 minutes
 ```
 
-Unknown email, wrong password, disabled User and unsupported/malformed stored password hash are all the same counted credential-failure outcome.
+Unknown email, wrong password, disabled User and unsupported/malformed stored hash are identical counted failures.
 
-A successful login does not remain counted against the identifier-failure quota and does not erase earlier failures.
+Before password verification, reserve one slot as `PENDING` while holding the identifier limiter transaction/lock. Existing `PENDING` + `COUNTED` rows consume the five slots, so concurrent attempts cannot overshoot the threshold.
 
-To prevent concurrent requests from overshooting the five-failure threshold, every allowed identifier attempt first creates a `PENDING` reservation while holding the limiter key transaction/lock. Current `PENDING` plus counted `FAILED` rows consume the five slots.
+Outcome handling:
 
-After authentication outcome:
+- credential failure -> finalize reservation to `COUNTED` before returning 401;
+- successful session issuance -> finalize to `IGNORED` in the **same database transaction that commits successful staff-session issuance**;
+- inconclusive/unexpected failure -> leave/finalize a fail-safe counted state until it ages out;
+- if failure finalization cannot be made authoritative -> return the shared 503 unavailable response, not a possibly misleading 401.
 
-- credential failure -> finalize reservation as `FAILED`;
-- successful login issuance -> finalize as `IGNORED_SUCCESS`;
-- unexpected application/authentication failure before conclusive success -> retain/finalize a fail-safe counted state until the reservation ages out.
+A successful login does not erase earlier failures. A correct password presented while five still-counted failures exist receives the same staff 429 without password verification.
 
-A correct password submitted while five still-counted failures exist is temporarily rejected with the same 429. The limiter must not bypass the threshold merely because credentials would otherwise succeed.
+Known and unknown identifiers use identical reservation, keying and 429 behavior.
 
-Known and unknown identifiers use identical reservation, key-derivation and 429 behavior.
+## Guest access — trusted client-address failure limit
 
-## Guest-access limits
-
-Guest credentials already contain 256 bits of random entropy. Guest limiting primarily protects endpoint resources and repeated guessing/replay while avoiding unnecessary penalty to normal shared-NAT traffic.
-
-Two limits apply to `GET /v1/guest/session`.
-
-### Guest trusted-client-address failure limit
+For `GET /v1/guest/session`:
 
 ```text
 60 failed guest-authentication attempts per trusted client address
 within the immediately preceding 15 minutes
 ```
 
-The guest address limiter uses the same pending-reservation pattern as the staff identifier limiter.
+Reserve the address slot as `PENDING` before guest authentication.
 
-Missing/malformed bearer, random/unknown bearer, expired bearer and revoked/rotated-old bearer finalize as counted failures. A successful guest resolution finalizes as ignored success and does not remain counted against the address-failure quota.
+Missing bearer, malformed/duplicate bearer, random/unknown bearer, expired bearer and revoked/rotated-old bearer finalize to `COUNTED`.
 
-### Guest token request limit
+A successful guest resolution finalizes to `IGNORED` and does not permanently consume the address-failure quota.
+
+Guest success resolution and address-reservation finalization must commit through one authoritative database transaction before guest data is returned. If that transaction cannot complete, return 503 and no guest data.
+
+## Guest access — token request limit
+
+For shape-valid guest bearers:
 
 ```text
-120 requests per shape-valid derived guest-token key
+180 requests per derived guest-token key
 within the immediately preceding 15 minutes
 ```
 
-Every shape-valid bearer presentation consumes the token-key quota before validity is disclosed, whether the token is valid, expired, revoked, rotated-old or unknown. Successful guest requests therefore remain bounded per credential while many valid guests behind one shared address do not permanently consume the address-failure quota.
+Every shape-valid bearer presentation consumes the token-key quota before validity is disclosed, whether valid, unknown, expired, revoked or rotated-old. This permits ordinary status polling while bounding repeated use of one credential.
 
-A rotating-random-token attacker cannot bypass the address-failure limit by changing token values. Repeated use of one token is additionally bounded by the token-key limit.
+Requests without a shape-valid bearer do not create token-key rows but remain subject to the guest address-failure reservation.
 
-Requests without a shape-valid bearer have no token-key event but can consume the guest address-failure reservation.
+Workflow order is:
 
-## 429 response contract
+1. reserve guest address failure slot;
+2. if bearer is shape-valid, check/record token-key quota;
+3. if token-key quota is already exhausted, finalize the address reservation to `IGNORED` and return token 429;
+4. otherwise perform guest authentication and finalize the address reservation according to success/failure.
+
+A rotating-random-token attacker therefore remains bounded by the address-failure threshold, while normal valid guests behind one NAT are not permanently charged against the address-failure quota.
+
+## 429 contract
 
 Threshold exhaustion returns HTTP 429.
 
@@ -170,116 +227,103 @@ code: GUEST_ACCESS_RATE_LIMITED
 message: Too many requests. Try again later.
 ```
 
-The normal bounded `X-Request-Id` remains present.
-
-`Retry-After` is an integer delta-seconds value:
+Responses include the normal bounded `X-Request-Id`, `Cache-Control: no-store`, and:
 
 ```text
-ceil(earliest still-counted expiry - database now)
+Retry-After: <integer delta-seconds>
 ```
 
-bounded to at least `1` and at most `900`.
+The database computes the delta from the earliest currently counted/reserved row whose expiry keeps the blocking scope exhausted. Clamp to `1..900` seconds.
 
-The response must not expose account existence, guest-token validity, counter values, which limiter scope fired, limiter keys, raw identifiers/addresses/tokens or database details. 429 responses are non-cacheable.
+If multiple applicable scopes are already exhausted, return a conservative `Retry-After` equal to the greatest remaining blocking duration so a client is not told to retry before another known blocker expires.
 
-Below threshold, existing 400/401/403 behavior remains unchanged.
+429 never exposes account existence, token validity, counter values, which scope fired, limiter keys, identifiers, addresses or database details.
 
-## Trusted client-address contract
+Below threshold, existing 400/401/403 semantics remain unchanged.
 
-The TCP peer address from the server socket is authoritative unless the immediate peer is explicitly configured as a trusted reverse proxy/load balancer.
+## Limiter-unavailable contract
 
-Production configuration provides an explicit allowlist of trusted proxy CIDRs. An empty list means **direct-client mode**: all forwarding headers are ignored and the canonical socket peer address is used.
+Both protected endpoints fail closed when authoritative limiter state cannot be derived, locked, written or finalized.
 
-Only when the immediate socket peer belongs to a configured trusted-proxy CIDR may the application use `X-Forwarded-For`. `Forwarded`, `X-Real-IP` and other client-address headers are not independent authority.
+Return:
 
-For a trusted peer, the proxy/load balancer must sanitize or append the forwarding chain according to the deployment contract. The application parses only syntactically valid IP literals, walks the `X-Forwarded-For` chain from right to left together with the direct peer, discards hops inside configured trusted-proxy CIDRs, and selects the first untrusted hop as the client address.
+```text
+HTTP 503
+code: ANTI_ABUSE_UNAVAILABLE
+message: Service temporarily unavailable.
+```
 
-An untrusted direct peer may send arbitrary forwarding headers, but they are ignored.
+with the normal bounded `X-Request-Id` and `Cache-Control: no-store`.
 
-Malformed forwarding data received from a trusted proxy fails closed for the protected endpoint rather than falling back to an attacker-selected value.
+On staff login 503:
 
-IPv4 and IPv6 are accepted. IPv4-mapped IPv6 is normalized to canonical IPv4 before HMAC keying. IPv6 text must use one canonical representation so alternate spellings cannot choose different limiter identities.
+- do not perform password verification when the limiter failed before auth;
+- do not issue/return a staff session unless limiter success-finalization commits atomically with session issuance.
 
-The implementation must not use a fixed trusted-hop count by itself. Production must document trusted proxy CIDRs and prevent direct untrusted access to a proxy-only internal API listener when proxy mode is enabled.
+On guest 503:
 
-## Limiter-backend outage behavior
+- do not return guest session data.
 
-Both protected boundaries fail closed if the anti-abuse PostgreSQL operation cannot be completed.
+Never fall back to unlimited access, process-local counters or caller-supplied identity.
 
-Staff login:
+## Runtime privileges and cleanup
 
-- do not perform password authentication or issue a session;
-- return a stable generic 503 security-service-unavailable response.
+The ordinary runtime DB role receives only the specific `SELECT`/`INSERT`/`UPDATE` privileges required by limiter enforcement. It receives no unrestricted `DELETE`, `TRUNCATE`, schema ownership or DDL privileges on limiter persistence.
 
-Guest resolution:
+Expired rows are ignored by enforcement after 15 minutes. Normal cleanup targets rows older than one hour.
 
-- do not resolve or return guest session data;
-- return a stable generic 503 security-service-unavailable response.
+Cleanup must use a fixed, parameterless maintenance boundary owned by migration/maintenance authority (or equivalently constrained database function) whose cutoff is server-authored and cannot delete current-window rows based on caller-selected keys/timestamps. If runtime is allowed to invoke such a function, only `EXECUTE` on that fixed function is granted; direct table `DELETE` remains denied.
 
-A limiter outage must never silently fall back to process-local memory or unlimited access.
+Cleanup delay does not change enforcement correctness, but unbounded retention is not accepted.
 
-Because this limiter uses the same PostgreSQL dependency already required by these authentication paths, it does not introduce another independent production service dependency.
+## Concurrency / multi-instance acceptance
 
-## Persistence privileges and cleanup
+Tests must prove with shared PostgreSQL state that:
 
-Limiter records are ephemeral security-control data and are not tenant business/audit history.
-
-The ordinary runtime database role may receive only the operations needed by the accepted limiter transaction. It must not receive unrestricted `DELETE`, `TRUNCATE`, schema ownership or DDL privileges on limiter persistence.
-
-Current-window rows must not be erasable through ordinary application DML.
-
-Expired rows are eligible for deletion after they can no longer affect a 15-minute window. Implementation must provide a bounded cleanup boundary owned by migration/maintenance authority or an equivalently constrained database function. Cleanup must be incapable of deleting current-window rows based on caller-selected timestamps/keys.
-
-No limiter row is retained for analytics. Normal cleanup targets rows older than one hour. Temporary cleanup delay is acceptable because stale rows are ignored by enforcement after 15 minutes, but unbounded retention is not accepted.
-
-## Concurrency and multi-instance behavior
-
-The PostgreSQL transaction is the shared authority across API replicas.
-
-Tests must prove:
-
-- two API instances see the same limiter state;
-- simultaneous staff-address attempts cannot exceed 30 accepted attempts in one active window;
-- simultaneous staff identifier attempts cannot create more than five failure-capable reservations;
+- two API instances observe one limiter state;
+- simultaneous staff-address requests cannot exceed 30 accepted attempts;
+- simultaneous staff-identifier requests cannot create more than five failure-capable reservations;
 - simultaneous guest address failures cannot create more than 60 failure-capable reservations;
-- simultaneous same-token guest requests cannot exceed 120 accepted requests;
-- finalizing one reservation cannot alter another limiter key;
-- threshold expiry uses database time, not process time;
-- process restart does not reset active limits.
+- simultaneous same-token guest requests cannot exceed 180 accepted requests;
+- process restart does not reset limits;
+- database time controls expiry;
+- reservation finalization cannot affect another scope/key;
+- advisory-lock timeout/outage fails closed;
+- known/unknown staff identifiers remain non-enumerating;
+- raw email/IP/token/password/header material is absent from limiter persistence/log/audit.
 
-No process-local cache may be authoritative for allow/deny behavior.
+No process-local cache is authoritative for allow/deny behavior.
 
 ## Telemetry
 
 Anti-abuse telemetry is security telemetry, not tenant `AuditEvent`.
 
-Allowed fields are bounded event type, limiter scope, allow/deny/unavailable outcome, request ID, server time and coarse internal error category.
+Allowed fields: bounded event type, limiter scope, allow/deny/unavailable outcome, request ID, server time and coarse internal error category.
 
-Do not emit raw email, normalized email, raw/canonical client IP, raw guest bearer, HMAC limiter key, password, Authorization/Cookie headers, request body or database row identifiers into normal logs/metrics/traces.
+Do not emit raw/normalized email, raw/canonical IP, raw guest bearer, HMAC limiter key, password, `Authorization`, `Cookie`, request body or limiter row IDs into normal logs/metrics/traces.
 
-Aggregated metrics may count allowed/limited/unavailable outcomes by endpoint/scope without identity values.
+Aggregated identity-free counts by endpoint/scope/outcome are allowed.
 
 ## Scope boundary
 
-This decision does not add CAPTCHA, bot scoring, Redis, CDN/WAF policy, payment/handoff rate limiting, object-storage controls, MFA, signup/reset behavior, frontend integration or Phase 3 operations.
+VAL-004M does not add CAPTCHA, bot scoring, Redis, CDN/WAF policy, payment/handoff rate limits, object-storage controls, MFA, signup/reset behavior, frontend integration or Phase 3 operations.
 
-A reverse proxy/WAF may later enforce coarse connection/request limits in addition to this contract, but it must not weaken or replace the application-level staff-identifier and guest-token semantics.
+A future reverse proxy/WAF may add coarse request/connection protection but must not replace or weaken these application-level staff-identifier and guest-token semantics.
 
 Production database network/TLS/credential hardening remains the next separate production-readiness slice.
 
 ## Reason
 
-PostgreSQL is the smallest already-selected shared mechanism that can enforce the required exact rolling windows atomically across replicas without introducing another production service. HMAC-derived keys minimize persisted identity data, reservation semantics close concurrency overshoot on failure-only limits, and the explicit proxy contract prevents caller-controlled forwarding headers from selecting limiter identities.
+PostgreSQL is the smallest already-selected shared mechanism that can enforce exact rolling windows atomically across replicas without another production service. HMAC-derived keys minimize persisted identity data, reservations prevent concurrent overshoot on failure-only limits, bounded transaction-level advisory locking prevents unbounded same-key waits, and explicit proxy rules prevent caller-controlled forwarding headers from selecting limiter identities.
 
 ## Consequences
 
-- VAL-004M implementation requires one new forward-only migration after migration 17 if this decision is accepted.
-- Implementation may add focused anti-abuse service/transport code and PostgreSQL integration tests, but no Redis/WAF dependency.
-- Staff login remains a production gate until the accepted limiter is implemented.
-- Guest public access remains a production-readiness gate until its limiter behavior is implemented.
-- Phase 2 is still not production-ready after this task alone; production DB/network/TLS hardening and remaining deployment controls require their own closure review.
-- If pilot load later shows limiter database contention, a focused accepted decision may move the same behavioral contract to Redis or an edge/application hybrid without changing public error/security semantics.
+- VAL-004M adds exactly one new forward-only migration after migration 17 if implementation matches this decision.
+- No Redis/WAF/rate-limit package dependency is required by the accepted architecture.
+- Staff login and public guest access remain production-readiness gates until this limiter is implemented and verified.
+- Phase 2 is still not production-ready after VAL-004M alone; production DB/network/TLS hardening and remaining deployment controls require their own closure review.
+- Before implementation commit/PR, this accepted decision must be copied into `docs/08_DECISIONS_LOG.md` without semantic changes.
 
 ## Affected docs/code
 
-`docs/03_DATABASE_SCHEMA.md`, `docs/06_SECURITY_AND_DATA_RULES.md`, `docs/08_DECISIONS_LOG.md`, `docs/11_REQUIREMENTS_TRACEABILITY.md`, `docs/12_AGENT_EXECUTION_PLAN.md`, `docs/14_PROJECT_STATUS.md`, future focused anti-abuse migration/runtime-role/service/controller/tests
+`docs/03_DATABASE_SCHEMA.md`, `docs/06_SECURITY_AND_DATA_RULES.md`, `docs/08_DECISIONS_LOG.md`, `docs/11_REQUIREMENTS_TRACEABILITY.md`, `docs/12_AGENT_EXECUTION_PLAN.md`, `docs/14_PROJECT_STATUS.md`, `.env.example`, future focused anti-abuse migration/runtime-role/service/controller/tests
