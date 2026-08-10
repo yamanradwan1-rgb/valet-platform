@@ -140,6 +140,14 @@ The linked Vehicle is held stable with a share lock and must have either a compl
 
 The winning guarded mutation performs only `CHECKING_IN -> AWAITING_PARKING`, sets `checking_in_completed_at` and `updated_at` to one database-authoritative timestamp, increments `version` once and appends one `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent atomically. Parking, key, assignee, checked-in actor, condition evidence/marker, Vehicle, guest credential and downstream retrieval/dispatch/financial/incident/notification state remain unchanged. Retrying the old version returns `VERSION_CONFLICT`; retrying the refreshed version returns `INVALID_STATE_TRANSITION`, with no replay or duplicate audit.
 
+### Check-in transport and performance boundary
+
+VAL-004I exposes only the dedicated `/v1/staff/check-in` routes for the accepted VAL-004E through VAL-004H commands plus `GET /v1/guest/session`. Shared `@valet/contracts` Zod schemas reject unknown keys and never accept client-supplied authenticated User, Organization, membership, role, state, audit or server-timestamp authority. The default production staff-principal resolver fails closed until a real verifier is supplied; `X-User-Id` and equivalent client-trusted identity shortcuts are prohibited. Tests may replace this provider only through test-module dependency injection.
+
+Every routed operation owns one safe correlation ID and exactly one operation measurement using a monotonic duration clock. Measurements contain only request ID, operation, outcome, duration, an optional stable error code and, for successful Complete Check-In, optional elapsed check-in time derived from the exact persisted session `created_at` and `checking_in_completed_at`. Instrumentation failure cannot roll back, replay or convert an already committed command into an HTTP failure. The roughly 15–20 second normal no-photo target is a measured product KPI/benchmark only, never a request timeout or rejection threshold.
+
+Transport serializes explicit safe DTOs with UTC ISO strings and uses one centralized stable error mapping. The intake response includes the current authorized Vehicle `updated_at` token solely so the employee client can invoke the existing optimistic vehicle-identity command; no broad Vehicle read endpoint or new concurrency field is introduced. Complete Check-In remains exactly `CHECKING_IN -> AWAITING_PARKING` and transport does not pre-guess its guards.
+
 ## Errors
 
 Use stable machine-readable codes, e.g.:

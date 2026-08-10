@@ -140,7 +140,7 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
    Implement the accepted VAL-004A contract end-to-end: authorized `CHECKING_IN -> AWAITING_PARKING`, expected version, server completion timestamp, one version increment, one `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent, same-transaction rollback, no parking/key/dispatch side effects.
 
 9. **VAL-004I — Check-In API / Integration / Performance Gate**  
-   API/use-case wiring, shared request/response contract, command-error mapping, tenant/location/concurrency/retry integration coverage and performance instrumentation for the normal check-in path.
+   API/use-case wiring, shared request/response contract, command-error mapping, tenant/location/concurrency/retry integration coverage and performance instrumentation for the normal check-in path. Implemented locally on its focused branch; merge/review status remains external repository state.
 
 Do not combine the nine slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
@@ -161,7 +161,7 @@ Do not fake these dependencies inside the command with an untyped policy blob, m
 Acceptance direction:
 The normal low-friction check-in path should target roughly 15–20 seconds where policy does not require photos.
 
-Phase 2 is complete only when a real authorized staff flow can establish a valid intake and safely reach `AWAITING_PARKING` with tenant/location isolation, concurrency protection, audit integrity and the required check-in instrumentation.
+The VAL-004I integration gate proves that a real authorized staff flow can establish a valid intake and safely reach `AWAITING_PARKING` with tenant/location isolation, concurrency protection, audit integrity and the required check-in instrumentation. Phase 2 must not be declared globally complete until the separate final Phase 2 security/integrity review gate is also completed.
 
 ## Phase 3 — Operations: keys, parking and Hybrid Dispatch
 
