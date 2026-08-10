@@ -296,7 +296,8 @@ async function createOrResolveVehicle(
      FROM vehicles
      WHERE organization_id = $1
        AND plate_country = $2
-       AND plate_number_normalized = $3`,
+       AND plate_number_normalized = $3
+     FOR UPDATE`,
     [organizationId, identity.plateCountry, identity.plateNumberNormalized],
   );
   const vehicle = existing.rows[0];

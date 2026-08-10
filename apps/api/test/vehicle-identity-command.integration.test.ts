@@ -7,6 +7,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import type { MembershipRole } from "../src/modules/staff/custody-staff-authorizer";
+import { createIntakeSessionCommandExecutor } from "../src/modules/valet-sessions/intake-session-command";
+import type { ValetSessionState } from "../src/modules/valet-sessions/protected-custody-command";
 import {
   createVehicleIdentityCommandExecutor,
   normalizePlateNumber,
@@ -28,6 +30,12 @@ interface FixtureOptions {
   membershipStatus?: "ACTIVE" | "INACTIVE";
   role?: MembershipRole;
   userStatus?: "ACTIVE" | "DISABLED";
+}
+
+interface LocationActor {
+  locationId: string;
+  membershipId: string;
+  userId: string;
 }
 
 const adminDatabaseUrl =
@@ -206,6 +214,95 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     );
   }
   return { ...base, ...(await addVehicleSession(base)) };
+}
+
+async function createLocationActor(fixture: Fixture): Promise<LocationActor> {
+  const locationId = randomUUID();
+  const membershipId = randomUUID();
+  const userId = randomUUID();
+  const identity = randomUUID();
+  await adminPool.query(
+    `INSERT INTO locations
+       (id, organization_id, name, code, address_text, timezone, currency,
+        status, updated_at)
+     VALUES ($1, $2, 'Sibling identity location', $3, 'Test address',
+             'Asia/Amman', 'JOD', 'ACTIVE', transaction_timestamp())`,
+    [locationId, fixture.organizationId, identity],
+  );
+  await adminPool.query(
+    `INSERT INTO users (id, email, password_hash, status, updated_at)
+     VALUES ($1, $2, 'not-a-real-password-hash', 'ACTIVE',
+             transaction_timestamp())`,
+    [userId, `${identity}@val-004j.test`],
+  );
+  await adminPool.query(
+    `INSERT INTO organization_memberships
+       (id, organization_id, user_id, role, status, updated_at)
+     VALUES ($1, $2, $3, 'VALET_EMPLOYEE', 'ACTIVE',
+             transaction_timestamp())`,
+    [membershipId, fixture.organizationId, userId],
+  );
+  await adminPool.query(
+    `INSERT INTO membership_location_access
+       (organization_id, membership_id, location_id)
+     VALUES ($1, $2, $3)`,
+    [fixture.organizationId, membershipId, locationId],
+  );
+  return { locationId, membershipId, userId };
+}
+
+async function addSharedVehicleSession(
+  fixture: Fixture,
+  actor: LocationActor,
+  state: ValetSessionState = "CHECKING_IN",
+): Promise<string> {
+  const sessionId = randomUUID();
+  await adminPool.query(
+    `INSERT INTO valet_sessions
+       (id, customer_access_token_hash, customer_access_expires_at,
+        customer_access_revoked_at, organization_id, location_id, vehicle_id,
+        state, checked_in_by_membership_id, checking_in_completed_at,
+        completed_at, version, updated_at)
+     VALUES ($1, $2, transaction_timestamp() + interval '1 hour', NULL,
+             $3, $4, $5, $6::valet_session_state, $7,
+             CASE WHEN $6::valet_session_state = 'CHECKING_IN' THEN NULL
+                  ELSE transaction_timestamp() END,
+             CASE WHEN $6::valet_session_state = 'COMPLETED'
+                  THEN transaction_timestamp()
+                  ELSE NULL END,
+             1, transaction_timestamp())`,
+    [
+      sessionId,
+      `hash-${randomUUID()}`,
+      fixture.organizationId,
+      actor.locationId,
+      fixture.vehicleId,
+      state,
+      actor.membershipId,
+    ],
+  );
+  return sessionId;
+}
+
+async function waitForBlockedQuery(queryPattern: string): Promise<void> {
+  const deadline = Date.now() + 2_000;
+  while (Date.now() < deadline) {
+    const result = await adminPool.query<{ blocked: boolean }>(
+      `SELECT EXISTS (
+         SELECT 1
+         FROM pg_stat_activity
+         WHERE datname = current_database()
+           AND pid <> pg_backend_pid()
+           AND state = 'active'
+           AND wait_event_type = 'Lock'
+           AND query LIKE $1
+       ) AS blocked`,
+      [queryPattern],
+    );
+    if (result.rows[0]?.blocked === true) return;
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 10));
+  }
+  throw new Error(`Timed out waiting for blocked query ${queryPattern}.`);
 }
 
 function confirmedRequest(
@@ -591,6 +688,201 @@ describe("temporary vehicle identity", () => {
 });
 
 describe("vehicle identity conflicts and concurrency", () => {
+  it.each([
+    "AWAITING_PARKING",
+    "PARKING",
+    "PARKED",
+    "REQUESTED",
+    "RETRIEVING",
+    "READY",
+    "HANDOFF_PENDING",
+    "COMPLETED",
+  ] as const)(
+    "rejects the %s session as a Vehicle identity authority handle",
+    async (state) => {
+      const fixture = await createFixture();
+      await adminPool.query(
+        `UPDATE valet_sessions
+         SET state = $2::valet_session_state,
+             checking_in_completed_at = transaction_timestamp(),
+             completed_at = CASE WHEN $2::valet_session_state = 'COMPLETED'
+                                 THEN transaction_timestamp() ELSE NULL END
+         WHERE id = $1`,
+        [fixture.sessionId, state],
+      );
+      const before = await readVehicle(fixture.vehicleId);
+      await expectCommandError(
+        createVehicleIdentityCommandExecutor(runtimePool)(
+          confirmedRequest(fixture),
+        ),
+        "VEHICLE_IDENTITY_SESSION_NOT_MUTABLE",
+      );
+      expect(await readVehicle(fixture.vehicleId)).toEqual(before);
+      expect(await countAudits(fixture.sessionId)).toBe(0);
+    },
+  );
+
+  it("rejects mutation when another Location has active custody of the shared Vehicle", async () => {
+    const fixture = await createFixture();
+    const sibling = await createLocationActor(fixture);
+    const siblingSessionId = await addSharedVehicleSession(
+      fixture,
+      sibling,
+      "PARKED",
+    );
+    const before = await readVehicle(fixture.vehicleId);
+    const error = await expectCommandError(
+      createVehicleIdentityCommandExecutor(runtimePool)(
+        confirmedRequest(fixture),
+      ),
+      "VEHICLE_IDENTITY_CUSTODY_CONFLICT",
+    );
+    expect(error.message).not.toContain(sibling.locationId);
+    expect(error.message).not.toContain(siblingSessionId);
+    expect(await readVehicle(fixture.vehicleId)).toEqual(before);
+    expect(await countAudits(fixture.sessionId)).toBe(0);
+  });
+
+  it("rejects a temporary descriptor when another Location has active custody of the shared Vehicle", async () => {
+    const fixture = await createFixture();
+    const sibling = await createLocationActor(fixture);
+    const siblingSessionId = await addSharedVehicleSession(
+      fixture,
+      sibling,
+      "PARKED",
+    );
+    const before = await readVehicle(fixture.vehicleId);
+    const auditCountBefore = await countAudits(fixture.sessionId);
+    const error = await expectCommandError(
+      createVehicleIdentityCommandExecutor(runtimePool)({
+        authenticatedUserId: fixture.userId,
+        expectedVehicleUpdatedAt: fixture.vehicleUpdatedAt,
+        identity: {
+          mode: "TEMPORARY_DESCRIPTOR",
+          temporaryDescriptor: "Replacement temporary descriptor",
+        },
+        valetSessionId: fixture.sessionId,
+      }),
+      "VEHICLE_IDENTITY_CUSTODY_CONFLICT",
+    );
+    const after = await readVehicle(fixture.vehicleId);
+    expect(error.message).not.toContain(sibling.locationId);
+    expect(error.message).not.toContain(siblingSessionId);
+    expect(after.plate_country).toBe(before.plate_country);
+    expect(after.plate_number_raw).toBe(before.plate_number_raw);
+    expect(after.plate_number_normalized).toBe(
+      before.plate_number_normalized,
+    );
+    expect(after.temporary_descriptor).toBe(before.temporary_descriptor);
+    expect(after.updated_at).toEqual(before.updated_at);
+    expect(await countAudits(fixture.sessionId)).toBe(auditCountBefore);
+  });
+
+  it("cannot mutate after another Location completes check-in while holding the shared Vehicle", async () => {
+    const fixture = await createFixture();
+    const sibling = await createLocationActor(fixture);
+    const siblingSessionId = await addSharedVehicleSession(fixture, sibling);
+    const before = await readVehicle(fixture.vehicleId);
+    const completionTransaction = await adminPool.connect();
+    try {
+      await completionTransaction.query("BEGIN");
+      await completionTransaction.query(
+        `SELECT id FROM valet_sessions WHERE id = $1 FOR UPDATE`,
+        [siblingSessionId],
+      );
+      await completionTransaction.query(
+        `SELECT id FROM vehicles WHERE id = $1 FOR SHARE`,
+        [fixture.vehicleId],
+      );
+      const mutation = createVehicleIdentityCommandExecutor(runtimePool)(
+        confirmedRequest(fixture),
+      ).then(
+        (value) => ({ status: "fulfilled" as const, value }),
+        (reason: unknown) => ({ status: "rejected" as const, reason }),
+      );
+      await waitForBlockedQuery("%FROM vehicles%FOR UPDATE%");
+      await completionTransaction.query(
+        `UPDATE valet_sessions
+         SET state = 'AWAITING_PARKING',
+             checking_in_completed_at = transaction_timestamp(),
+             version = version + 1,
+             updated_at = transaction_timestamp()
+         WHERE id = $1 AND state = 'CHECKING_IN'`,
+        [siblingSessionId],
+      );
+      await completionTransaction.query("COMMIT");
+      expect(await mutation).toMatchObject({
+        reason: { code: "VEHICLE_IDENTITY_CUSTODY_CONFLICT" },
+        status: "rejected",
+      });
+    } catch (error) {
+      await completionTransaction.query("ROLLBACK");
+      throw error;
+    } finally {
+      completionTransaction.release();
+    }
+    expect(await readVehicle(fixture.vehicleId)).toEqual(before);
+    expect(await countAudits(fixture.sessionId)).toBe(0);
+  });
+
+  it(
+    "serializes confirmed-plate intake before the cross-Location custody check",
+    async () => {
+      const fixture = await createFixture();
+      const sibling = await createLocationActor(fixture);
+      const executeIdentity = createVehicleIdentityCommandExecutor(runtimePool);
+      const identified = await executeIdentity(confirmedRequest(fixture));
+      const beforeCorrection = await readVehicle(fixture.vehicleId);
+      const sessionGate = await adminPool.connect();
+      try {
+        await sessionGate.query("BEGIN");
+        await sessionGate.query(
+          `SELECT id FROM valet_sessions WHERE id = $1 FOR UPDATE`,
+          [fixture.sessionId],
+        );
+        const correction = executeIdentity({
+          ...confirmedRequest(fixture),
+          expectedVehicleUpdatedAt: identified.vehicleUpdatedAt,
+          identity: {
+            confirmedByHuman: true,
+            mode: "CONFIRMED_PLATE",
+            plateCountry: "JO",
+            plateNumberRaw: `corrected-${randomUUID()}`,
+          },
+        }).then(
+          (value) => ({ status: "fulfilled" as const, value }),
+          (reason: unknown) => ({ status: "rejected" as const, reason }),
+        );
+        await waitForBlockedQuery("%FROM valet_sessions AS session%FOR UPDATE%");
+        const intake = await createIntakeSessionCommandExecutor(runtimePool)({
+          authenticatedUserId: sibling.userId,
+          intakeOperationId: `intake:${randomUUID()}`,
+          targetLocationId: sibling.locationId,
+          vehicleIdentity: {
+            confirmedByHuman: true,
+            mode: "CONFIRMED_PLATE",
+            plateCountry: "JO",
+            plateNumberRaw: beforeCorrection.plate_number_raw!,
+          },
+        });
+        expect(intake.vehicleId).toBe(fixture.vehicleId);
+        await sessionGate.query("COMMIT");
+        expect(await correction).toMatchObject({
+          reason: { code: "VEHICLE_IDENTITY_CUSTODY_CONFLICT" },
+          status: "rejected",
+        });
+      } catch (error) {
+        await sessionGate.query("ROLLBACK");
+        throw error;
+      } finally {
+        sessionGate.release();
+      }
+      expect(await readVehicle(fixture.vehicleId)).toEqual(beforeCorrection);
+      expect(await countAudits(fixture.sessionId)).toBe(1);
+    },
+    10_000,
+  );
+
   it("rejects same-Organization conflicts and never merges records", async () => {
     const first = await createFixture();
     const secondVehicle = await addVehicleSession(first);
