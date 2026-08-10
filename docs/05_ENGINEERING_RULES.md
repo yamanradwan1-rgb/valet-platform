@@ -120,6 +120,18 @@ The guest resolver accepts only the raw bearer token, applies the same versioned
 
 Issue/rotation/revocation and their respective `GUEST_ACCESS_ISSUED`, `GUEST_ACCESS_ROTATED` or first `GUEST_ACCESS_REVOKED` AuditEvent commit atomically. Resolver reads do not append AuditEvent rows.
 
+### Check-in condition and photo-policy command boundary
+
+VAL-004G provides internal commands to append a `CHECK_IN` ConditionNote, append a correction that identifies the immediately superseded note, register private `CHECK_IN_CONDITION` VehiclePhoto metadata, and record the check-in condition-completion marker. These commands accept authenticated User and ValetSession identifiers, derive Organization/Location/membership server-side, and require active `VALET_EMPLOYEE`/`VALET_SUPERVISOR` explicit Location access without an active Shift prerequisite.
+
+Every new mutation locks the ValetSession and rechecks that its physical state is exactly `CHECKING_IN`. Note content is trimmed, rejects Unicode control characters and is limited to 1,000 Unicode code points. Notes are append-only: correction creates a new same-session/same-tenant note linked to its target and never rewrites the original. The session row lock serializes correction chains while preserving the runtime role's intentionally insert-only access to `condition_notes`; only one direct successor may target a note, while a later correction may target that successor.
+
+Photo registration stores private metadata only; it does not upload, fetch, validate bytes or mint a URL. The trimmed opaque storage object key is limited to 512 Unicode code points, rejects control characters and cannot be an `http:` or `https:` URL. Content type is trimmed, lowercased, limited to 127 Unicode code points and must be an `image/*` media type. The globally unique storage key is the retry identity: only an exact retry with the same Organization, Location, session, `CHECK_IN_CONDITION` purpose, actor and normalized content type returns the existing row without another AuditEvent. Any different reuse returns the generic `PHOTO_STORAGE_OBJECT_CONFLICT` result without disclosing the existing object's scope.
+
+The effective typed photo policy is `Location.check_in_photos_required_override` when non-null, otherwise `Organization.check_in_photos_required`; therefore an explicit Location `false` overrides an Organization `true`. Completion permits zero condition notes. It requires at least one exact-session `CHECK_IN_CONDITION` photo only when the effective policy is true, then atomically sets both condition-completion fields without changing physical state or `version`. A repeated completion returns the original marker and appends no second AuditEvent.
+
+The reusable VAL-004H guard evaluates the current effective policy and current qualifying-photo evidence independently from the historical completion marker. This keeps a later policy change visible without rewriting the persisted marker. Condition-note, correction, photo-registration and first completion mutations each commit with one safe AuditEvent in the same transaction; audit metadata excludes note content, storage keys and other evidence payload.
+
 ## Errors
 
 Use stable machine-readable codes, e.g.:
