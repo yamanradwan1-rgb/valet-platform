@@ -31,10 +31,11 @@ The historical concept remains useful for original intent but is superseded wher
 | Venue Client restricted visibility | approved actor; schema/access model explicitly deferred |
 | VAYLET Super Admin | platform-level role; tenant membership prohibited; persistence deferred |
 | Check-in lifecycle | `04_VALET_SESSION_STATE_MACHINE.md` CHECKING_IN/AWAITING_PARKING; locked `complete-check-in` command contract |
-| Complete check-in authorization | active authenticated staff + same Organization + explicit Location access + ordinary `VALET_EMPLOYEE`/`VALET_SUPERVISOR` role; active Shift not a hard prerequisite |
-| Complete check-in concurrency | expected ValetSession `version`; stale mutation -> `VERSION_CONFLICT`; successful transition increments once |
-| Complete check-in Black Box | `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent committed atomically with the winning transition; safe metadata only |
-| Complete check-in retry boundary | state+version prevents duplicate mutation/audit; transparent original-response replay requires a focused durable operation-ID contract if needed |
+| Complete check-in authorization | VAL-004H implements active authenticated staff + same Organization + explicit Location access + ordinary `VALET_EMPLOYEE`/`VALET_SUPERVISOR`; active Shift is not required and completing actor may differ from checked-in actor |
+| Complete check-in concurrency | VAL-004H locks the session, applies version-before-state error precedence and conditionally performs `CHECKING_IN -> AWAITING_PARKING` with exactly one version increment |
+| Complete check-in Black Box | VAL-004H commits `VALET_SESSION_CHECK_IN_COMPLETED` atomically with the transition using the same database timestamp and safe state/version metadata only |
+| Complete check-in retry boundary | Old-version retry returns `VERSION_CONFLICT`; refreshed-version retry returns `INVALID_STATE_TRANSITION`; neither replays mutation or audit, while transparent original-response replay remains deferred |
+| Complete check-in Vehicle guard | VAL-004H accepts either the complete persisted known-plate triple or DEC-020 temporary-descriptor fallback and never mutates Vehicle identity |
 | Intake session creation | VAL-004E internal command atomically creates optional minimal Customer, resolves/creates Vehicle and creates ValetSession exactly at `CHECKING_IN`, version 1; no controller/public API |
 | Intake authorization | Target Location derives Organization; authenticated user derives active employee/supervisor membership with explicit Location access; active Shift is not required |
 | Intake retry safety | Organization-scoped durable operation ID + normalized request fingerprint; exact retry returns the original session with no duplicate rows/audit, mismatched reuse returns `IDEMPOTENCY_CONFLICT` |
@@ -51,7 +52,7 @@ The historical concept remains useful for original intent but is superseded wher
 | Condition check | VAL-004G adds authorized session-locked append/correction commands over VAL-004C ConditionNote persistence; completion permits zero notes and records the explicit condition marker without changing physical state/version |
 | Photos optional by default/configurable required | VAL-004G implements typed Organization default -> nullable Location override evaluation, private CHECK_IN_CONDITION metadata registration and an exact-session current-policy guard; object upload/byte validation remain pending |
 | Condition/photo concurrency and retry | ValetSession row locking serializes new evidence/completion; correction chains allow one direct successor, exact photo retries return one row/audit, and repeated completion preserves the first marker without another audit |
-| Complete check-in condition guard | VAL-004G exposes a reusable locked guard that evaluates current effective policy/photo evidence independently from the historical completion marker for VAL-004H |
+| Complete check-in condition guard | VAL-004H reuses the VAL-004G locked guard: marker required, ConditionNote optional, and current effective policy requires an exact-session photo only when configured |
 | QR key slots | KeySlot + later KeyCustodyEvent |
 | One active vehicle per key slot | DB partial-unique/integrity protection |
 | Parking zones/spots | ParkingZone/ParkingSpot modules |
