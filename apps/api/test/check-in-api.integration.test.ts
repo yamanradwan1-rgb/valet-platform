@@ -594,6 +594,47 @@ describe("VAL-004I Check-In HTTP integration", () => {
     });
   });
 
+  it("returns a non-disclosing conflict when another Location has active custody of the shared Vehicle", async () => {
+    const owner = await createFixture();
+    const sibling = await createSiblingLocationFixture(owner);
+    const plateNumberRaw = `shared-${randomUUID()}`;
+    const vehicleIdentity = {
+      confirmedByHuman: true,
+      mode: "CONFIRMED_PLATE",
+      plateCountry: "JO",
+      plateNumberRaw,
+    };
+    const ownerSession = await intake(owner, vehicleIdentity);
+    const siblingSession = await intake(sibling, vehicleIdentity);
+    expect(ownerSession.status).toBe(201);
+    expect(siblingSession.status).toBe(201);
+
+    const response = await http(
+      "PUT",
+      `/v1/staff/check-in/sessions/${String(ownerSession.body.valetSessionId)}/vehicle-identity`,
+      {
+        body: {
+          expectedVehicleUpdatedAt: ownerSession.body.vehicleUpdatedAt,
+          identity: {
+            confirmedByHuman: true,
+            mode: "CONFIRMED_PLATE",
+            plateCountry: "JO",
+            plateNumberRaw: `corrected-${randomUUID()}`,
+          },
+        },
+        staffToken: owner.staffToken,
+      },
+    );
+    expect(response).toMatchObject({
+      body: { code: "VEHICLE_IDENTITY_CUSTODY_CONFLICT" },
+      status: 409,
+    });
+    expect(JSON.stringify(response.body)).not.toContain(sibling.locationId);
+    expect(JSON.stringify(response.body)).not.toContain(
+      siblingSession.body.valetSessionId,
+    );
+  });
+
   it("routes append-only condition notes, corrections, and deterministic correction conflicts", async () => {
     const fixture = await createFixture();
     const created = await intake(fixture);
