@@ -269,6 +269,7 @@ const expectedMigrationDirectories = [
   "20260809001300_incident_foundation",
   "20260809001400_notification_foundation",
   "20260809001500_check_in_intake_persistence",
+  "20260810001600_intake_session_creation",
 ];
 
 let databaseCreated = false;
@@ -6710,9 +6711,11 @@ describe("notification database foundation", () => {
 });
 
 describe("check-in intake persistence", () => {
-  it("applies exactly all fifteen forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
-    expect(appliedMigrationDirectories.at(-1)).toBe(
+  it("keeps the first fifteen forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories.slice(0, 15)).toEqual(
+      expectedMigrationDirectories.slice(0, 15),
+    );
+    expect(appliedMigrationDirectories.at(14)).toBe(
       "20260809001500_check_in_intake_persistence",
     );
   });
@@ -7163,5 +7166,172 @@ describe("check-in intake persistence", () => {
       "vehicle_photos_org_location_session_id_fkey",
       "vehicle_photos_organization_id_fkey",
     ]);
+  });
+});
+
+describe("intake session creation persistence", () => {
+  it("applies exactly all sixteen forward-only migrations in order", () => {
+    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories.at(-1)).toBe(
+      "20260810001600_intake_session_creation",
+    );
+  });
+
+  it("creates only the scoped durable intake operation columns", async () => {
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'intake_operations'
+       ORDER BY ordinal_position`,
+    );
+    expect(result.rows.map((row) => row.column_name)).toEqual([
+      "organization_id",
+      "operation_key",
+      "request_fingerprint",
+      "location_id",
+      "valet_session_id",
+      "created_at",
+    ]);
+  });
+
+  it("uses the organization-scoped key and one operation per created session", async () => {
+    const result = await databaseClient.query<{
+      indexdef: string;
+      indexname: string;
+    }>(
+      `SELECT indexname, indexdef
+       FROM pg_indexes
+       WHERE schemaname = 'public' AND tablename = 'intake_operations'
+       ORDER BY indexname`,
+    );
+    expect(result.rows.map((row) => row.indexname)).toEqual([
+      "intake_operations_pkey",
+      "intake_operations_valet_session_id_key",
+    ]);
+    expect(result.rows[0]?.indexdef).toContain(
+      "(organization_id, operation_key)",
+    );
+    expect(result.rows[1]?.indexdef).toContain("(valet_session_id)");
+  });
+
+  it("enforces operation-key and fingerprint checks", async () => {
+    const fixture = await createPaymentTestFixture();
+    await expectPostgresError(
+      databaseClient.query(
+        `INSERT INTO intake_operations
+           (organization_id, operation_key, request_fingerprint, location_id,
+            valet_session_id)
+         VALUES ($1, 'short', $2, $3, $4)`,
+        [
+          fixture.organizationId,
+          "a".repeat(64),
+          fixture.locationId,
+          fixture.valetSessionId,
+        ],
+      ),
+      "23514",
+      "intake_operations_operation_key_check",
+    );
+    await expectPostgresError(
+      databaseClient.query(
+        `INSERT INTO intake_operations
+           (organization_id, operation_key, request_fingerprint, location_id,
+            valet_session_id)
+         VALUES ($1, $2, 'not-a-digest', $3, $4)`,
+        [
+          fixture.organizationId,
+          `op:${randomUUID()}`,
+          fixture.locationId,
+          fixture.valetSessionId,
+        ],
+      ),
+      "23514",
+      "intake_operations_request_fingerprint_check",
+    );
+  });
+
+  it("scopes operation keys to Organization and rejects duplicate session results", async () => {
+    const first = await createPaymentTestFixture();
+    const second = await createPaymentTestFixture();
+    const operationKey = `op:${randomUUID()}`;
+    const insert = (fixture: PaymentFixture, key = operationKey) =>
+      databaseClient.query(
+        `INSERT INTO intake_operations
+           (organization_id, operation_key, request_fingerprint, location_id,
+            valet_session_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          fixture.organizationId,
+          key,
+          "a".repeat(64),
+          fixture.locationId,
+          fixture.valetSessionId,
+        ],
+      );
+
+    await insert(first);
+    await expectPostgresError(
+      insert(first),
+      "23505",
+      "intake_operations_pkey",
+    );
+    await expect(insert(second)).resolves.toBeDefined();
+    await expectPostgresError(
+      insert(first, `op:${randomUUID()}`),
+      "23505",
+      "intake_operations_valet_session_id_key",
+    );
+  });
+
+  it("rejects a session outside the persisted Organization and Location scope", async () => {
+    const first = await createPaymentTestFixture();
+    const second = await createPaymentTestFixture();
+    await expectPostgresError(
+      databaseClient.query(
+        `INSERT INTO intake_operations
+           (organization_id, operation_key, request_fingerprint, location_id,
+            valet_session_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          first.organizationId,
+          `op:${randomUUID()}`,
+          "b".repeat(64),
+          first.locationId,
+          second.valetSessionId,
+        ],
+      ),
+      "23503",
+      "intake_operations_org_location_session_id_fkey",
+    );
+  });
+
+  it("uses RESTRICT for every intake operation foreign key", async () => {
+    const result = await databaseClient.query<{
+      confdeltype: string;
+      confupdtype: string;
+      conname: string;
+    }>(
+      `SELECT conname, confdeltype, confupdtype
+       FROM pg_constraint
+       WHERE conrelid = 'intake_operations'::regclass AND contype = 'f'
+       ORDER BY conname`,
+    );
+    expect(result.rows.map((row) => row.conname)).toEqual([
+      "intake_operations_org_location_id_fkey",
+      "intake_operations_org_location_session_id_fkey",
+      "intake_operations_organization_id_fkey",
+    ]);
+    expect(result.rows.every((row) => row.confdeltype === "r")).toBe(true);
+    expect(result.rows.every((row) => row.confupdtype === "r")).toBe(true);
+  });
+
+  it("does not backfill an operation for a pre-existing session", async () => {
+    const result = await databaseClient.query<{ count: number }>(
+      `SELECT count(*)::integer AS count
+       FROM intake_operations
+       WHERE valet_session_id = $1`,
+      [incrementalMigrationFixture.valetSessionId],
+    );
+    expect(result.rows[0]?.count).toBe(0);
   });
 });

@@ -96,6 +96,18 @@ Corrections use the persisted Vehicle `updated_at` value as the explicit optimis
 
 The Vehicle mutation and its required safe `AuditEvent` commit in one transaction or both roll back. ValetSession `version` is not used as a substitute for Vehicle identity concurrency.
 
+### Intake session creation boundary
+
+VAL-004E is an internal application command. It accepts a target Location, a stable intake operation ID, optional minimal Customer input and a VAL-004D vehicle identity; it does not accept client-supplied Organization, membership, session state, version or audit identity. The command derives Organization from the persisted target Location, derives the actor from the authenticated user and authorizes active `VALET_EMPLOYEE`/`VALET_SUPERVISOR` Location access without requiring an active Shift.
+
+When Customer contact is present, the phone is NFKC-normalized, presentation separators are removed and the final value must satisfy the general E.164-compatible `+` plus 2-15 digit boundary with a nonzero first digit. Each new intake operation creates its own minimal Customer row. Phone equality is not an identity proof, so this command performs no Customer reuse, deduplication or merge; exact retries do not duplicate the row because they resolve through the durable operation record.
+
+Confirmed plates use the shared VAL-004D normalization/confirmation boundary and resolve or create the same-Organization Vehicle through the existing partial unique plate index. A temporary descriptor always creates a distinct Vehicle. Neither path merges Vehicles or moves an existing session. The existing partial unique active-session index is the final race-safe arbiter for one non-`COMPLETED` session for the same Location and Vehicle.
+
+The stable operation ID is scoped by Organization and stored with a SHA-256 fingerprint of the normalized material request. An exact retry returns the original created session without another Customer, Vehicle, ValetSession or AuditEvent; reuse with different normalized material returns `IDEMPOTENCY_CONFLICT`. The operation record contains no raw phone, plate, descriptor, guest credential or audit payload and is `SELECT`/`INSERT` only for the runtime role.
+
+Creation starts exactly at `CHECKING_IN`, `version = 1`, with parking/key/assignment/later-transition fields unset. Customer, Vehicle, ValetSession, one safe `VALET_SESSION_CREATED` AuditEvent and the idempotency record commit in one transaction or all roll back. This command exposes no controller/public API and does not implement Complete Check-In.
+
 ## Errors
 
 Use stable machine-readable codes, e.g.:

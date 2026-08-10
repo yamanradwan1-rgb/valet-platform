@@ -102,19 +102,19 @@ interface VehicleScopeRow {
   vehicle_id: string;
 }
 
-interface NormalizedConfirmedIdentity {
+export interface NormalizedConfirmedIdentity {
   mode: "CONFIRMED_PLATE";
   plateCountry: string;
   plateNumberNormalized: string;
   plateNumberRaw: string;
 }
 
-interface NormalizedTemporaryIdentity {
+export interface NormalizedTemporaryIdentity {
   mode: "TEMPORARY_DESCRIPTOR";
   temporaryDescriptor: string;
 }
 
-type NormalizedVehicleIdentity =
+export type NormalizedVehicleIdentity =
   NormalizedConfirmedIdentity | NormalizedTemporaryIdentity;
 
 interface VehicleIdentityCommandOptions {
@@ -174,7 +174,7 @@ export function normalizePlateNumber(plateNumberRaw: string): {
   return { plateNumberNormalized: normalized, plateNumberRaw: raw };
 }
 
-function normalizeIdentity(
+export function normalizeVehicleIdentityInput(
   input: VehicleIdentityInput,
 ): NormalizedVehicleIdentity {
   if (input === null || typeof input !== "object") {
@@ -288,7 +288,7 @@ export function createVehicleIdentityCommandExecutor(
         "VEHICLE_IDENTITY_VERSION_CONFLICT",
       );
     }
-    const identity = normalizeIdentity(request.identity);
+    const identity = normalizeVehicleIdentityInput(request.identity);
     const transaction = await pool.connect();
     try {
       await transaction.query("BEGIN");

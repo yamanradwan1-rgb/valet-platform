@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-10` (VAL-004D local implementation session)
+- Date/time: `2026-08-10` (VAL-004E local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required merged baseline through VAL-004C: `1baa94ab7d830f4f64aecd042618d442b7dbf807`
-- Active branch: `feat/VAL-004D-vehicle-identity-command`
-- Active Issue: #52 — VAL-004D — Vehicle Identity / Plate Capture Command
-- Verification basis: owner-supplied Issue #52 task packet, required local branch/HEAD preflight, binding Phase 2 docs and focused PostgreSQL integration coverage
+- Required merged baseline through VAL-004D: `8f0576161f8305947eaea92657852185b79bb915`
+- Active branch: `feat/VAL-004E-intake-session-creation`
+- Active Issue: #54 — VAL-004E — Customer / Vehicle / ValetSession Creation
+- Verification basis: owner-supplied Issue #54 task packet, required local branch/HEAD preflight, binding Phase 2 docs and focused PostgreSQL integration coverage
 
 ## Current Milestone
 
@@ -20,7 +20,7 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-VAL-004A, VAL-004B and VAL-004C are merged. VAL-004D is implemented locally and ready for review. It adds the internal vehicle identity command over the existing schema; it does not implement `complete-check-in`, Vehicle/session creation or any API endpoint.
+VAL-004A through VAL-004D are merged. VAL-004E is implemented locally and ready for review. It adds the internal, durable-idempotent intake session creation command and one focused migration; it does not implement secure guest issuance, `complete-check-in` or any API endpoint.
 
 ## Recently Completed Gate
 
@@ -69,7 +69,7 @@ Phase 1 completed with exactly **14 forward-only migrations**, ending with:
 20260809001400_notification_foundation
 ```
 
-The current merged baseline additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration.
+The current merged baseline additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration. VAL-004E adds only migration 16, `20260810001600_intake_session_creation`.
 
 The Phase 1 schema already contains the persistence used by the first Phase 2 command, including:
 
@@ -82,29 +82,30 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004D — Vehicle Identity / Plate Capture Command
+### VAL-004E — Customer / Vehicle / ValetSession Creation
 
-- Issue #52
-- Branch: `feat/VAL-004D-vehicle-identity-command`
+- Issue #54
+- Branch: `feat/VAL-004E-intake-session-creation`
 - Status: **READY FOR REVIEW — LOCAL CHANGES ONLY**
-- Base: `1baa94ab7d830f4f64aecd042618d442b7dbf807`
-- Expected database state on this branch: **15 forward-only migrations**
+- Base: `8f0576161f8305947eaea92657852185b79bb915`
+- Expected database state on this branch: **16 forward-only migrations**
 
 Objective:
-Implement only the internal vehicle identity command slice:
+Implement only the internal intake creation slice:
 
-- explicit human-confirmed plate and DEC-020 temporary-descriptor modes
-- deterministic Unicode-safe plate normalization with no country-specific legal rules
-- persisted ValetSession-derived tenant/Location/Vehicle authorization for operational roles
-- database-backed same-Organization conflict enforcement with no automatic merge
-- Vehicle `updated_at` optimistic correction token
-- atomic Vehicle mutation and required safe AuditEvent
+- persisted target-Location scope and operational employee/supervisor authorization
+- optional minimal E.164-compatible Customer creation with no phone-based reuse/merge
+- confirmed same-Organization Vehicle resolution or distinct temporary Vehicle creation through the VAL-004D normalization boundary
+- exact `CHECKING_IN`, version-1 ValetSession creation under the existing active-session partial unique index
+- Organization-scoped durable idempotency and exact retry replay
+- expired+revoked disabled guest placeholder pending VAL-004F
+- atomic Customer/Vehicle/ValetSession/AuditEvent/idempotency persistence
 
-VAL-004D does not create Vehicle/ValetSession records, integrate an OCR/ANPR vendor, implement `complete-check-in`, or expose an API route.
+VAL-004E does not issue guest credentials, integrate an OCR/ANPR vendor, implement `complete-check-in`, or expose an API route.
 
 ## Remaining Complete Check-In Dependencies
 
-After VAL-004D, production `complete-check-in` still depends on focused later tasks for vehicle/session creation, secure guest access, condition/photo policy commands and final command/API wiring. The internal identity command is one dependency, not permission to combine those later slices into this branch.
+After VAL-004E, production `complete-check-in` still depends on focused later tasks for secure guest access, condition/photo policy commands and final command/API wiring. Intake creation is one dependency, not permission to combine those later slices into this branch.
 
 ## Phase 2 Focused Task Sequence
 
@@ -162,24 +163,24 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 ## Dependencies / Contention
 
 - No Phase 1 migration task remains active.
-- VAL-004D does not modify `packages/database/prisma/schema.prisma` or migrations 1–15; existing tenant-scoped partial plate uniqueness is sufficient.
+- VAL-004E adds exactly migration 16 for the scoped intake idempotency record and does not modify migrations 1–15.
 - `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
-- VAL-004D changes only internal application command behavior and relevant documentation; condition/photo command semantics remain owned by VAL-004G.
+- VAL-004E changes only internal application command/persistence behavior and relevant documentation; guest issuance remains VAL-004F and condition/photo command semantics remain owned by VAL-004G.
 - Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For VAL-004D:
+For VAL-004E:
 
 ```text
-finish internal command and focused PostgreSQL integration coverage
+finish internal command, migration and focused PostgreSQL integration coverage
 -> run Prisma validation and all quality gates
--> review the local diff against Issue #52 scope
+-> review the local diff against Issue #54 scope
 -> stop for human/ChatGPT review without commit or push
 ```
 
-Do not begin VAL-004E or `complete-check-in` implementation on this branch.
+Do not begin VAL-004F or `complete-check-in` implementation on this branch.
 
 ## Parallel UX/UI Track
 
