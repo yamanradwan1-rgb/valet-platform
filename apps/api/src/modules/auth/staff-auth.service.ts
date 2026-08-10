@@ -3,7 +3,14 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import argon2 from "argon2";
 
-import type { PostgresPool, PostgresTransaction } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
+import {
+  AntiAbuseUnavailableError,
+  type AntiAbuseReservation,
+} from "../anti-abuse/anti-abuse.service";
 import {
   CHECK_IN_POSTGRES_POOL,
   type StaffPrincipal,
@@ -188,7 +195,11 @@ export class StaffAuthService {
     private readonly passwordVerifier: StaffPasswordVerifier,
   ) {}
 
-  async login(email: string, password: string): Promise<StaffAuthTokens> {
+  async login(
+    email: string,
+    password: string,
+    identifierReservation?: AntiAbuseReservation,
+  ): Promise<StaffAuthTokens> {
     const lookup = await this.pool.query<UserAuthenticationRow>(
       `SELECT id, password_hash, status FROM users WHERE email = $1`,
       [email],
@@ -270,8 +281,33 @@ export class StaffAuthService {
          WHERE id = $1`,
         [user.id, databaseNow],
       );
+      if (identifierReservation !== undefined) {
+        let finalized;
+        try {
+          await transaction.query("SET LOCAL lock_timeout = '2s'");
+          finalized = await transaction.query(
+            `UPDATE anti_abuse_events
+             SET state = 'IGNORED'
+             WHERE id = $1
+               AND scope = $2
+               AND key_hash = $3
+               AND state = 'PENDING'`,
+            [
+              identifierReservation.id,
+              identifierReservation.key.scope,
+              identifierReservation.key.keyHash,
+            ],
+          );
+        } catch {
+          throw new AntiAbuseUnavailableError();
+        }
+        if (finalized.rowCount !== 1) {
+          throw new AntiAbuseUnavailableError();
+        }
+      }
       const row = inserted.rows[0];
-      if (row === undefined) throw new Error("Authentication session was not created.");
+      if (row === undefined)
+        throw new Error("Authentication session was not created.");
       return row;
     });
     return {
@@ -390,8 +426,7 @@ export class StaffAuthService {
       accessExpiresAt: result.session.access_expires_at,
       accessToken,
       refreshToken: replacementRefreshToken,
-      refreshCookieMaxAgeSeconds:
-        result.session.refresh_cookie_max_age_seconds,
+      refreshCookieMaxAgeSeconds: result.session.refresh_cookie_max_age_seconds,
       sessionExpiresAt: result.session.absolute_expires_at,
     };
   }

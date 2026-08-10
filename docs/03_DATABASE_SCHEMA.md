@@ -225,6 +225,32 @@ Constraints/rules:
 - every successful rotation consumes one generation and creates exactly one replacement
 - consumed credentials remain retained so replay can revoke the affected session family
 
+## anti_abuse_events
+
+```text
+id
+scope
+key_hash
+occurred_at
+state
+```
+
+State:
+
+- `PENDING`
+- `COUNTED`
+- `IGNORED`
+
+Rules:
+
+- ephemeral shared PostgreSQL enforcement state under accepted DEC-024; it is not tenant business history and is never copied to AuditEvent
+- scopes are exactly `v1:staff-login-identifier`, `v1:staff-client-address`, `v1:guest-client-address` and `v1:guest-token`
+- `key_hash` is exactly `anti-abuse-hmac-sha256:v1:` plus 64 lowercase hexadecimal HMAC-SHA-256 characters; raw email, IP, guest bearer, password, Authorization and authentication verifiers are prohibited
+- `id` and `occurred_at` are database-generated, with PostgreSQL time authoritative for rolling windows and cleanup
+- index `(scope, key_hash, occurred_at)` supports exact current-window lookup; a separate occurrence-time index supports fixed retention cleanup
+- ordinary runtime access is limited to select, insert of scope/hash/state and update of state; it has no direct delete, truncate, DDL or ownership authority
+- one fixed parameterless security-definer function deletes only rows older than one server-authored hour; runtime receives execute only
+
 ## organization_memberships
 
 ```text

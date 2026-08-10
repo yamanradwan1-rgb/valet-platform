@@ -160,6 +160,19 @@ export class CheckInApiExceptionFilter implements ExceptionFilter {
               message: "The operation could not be completed.",
               requestId,
             };
+      if (
+        status === HttpStatus.TOO_MANY_REQUESTS ||
+        status === HttpStatus.SERVICE_UNAVAILABLE
+      ) {
+        response.setHeader("Cache-Control", "no-store");
+      }
+      const retryAfter = (exception as { retryAfter?: unknown }).retryAfter;
+      if (
+        status === HttpStatus.TOO_MANY_REQUESTS &&
+        typeof retryAfter === "number"
+      ) {
+        response.setHeader("Retry-After", String(retryAfter));
+      }
       if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
         this.reportUnexpected(requestId, operation);
       }

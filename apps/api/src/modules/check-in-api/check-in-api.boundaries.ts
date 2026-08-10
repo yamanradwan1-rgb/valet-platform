@@ -50,6 +50,7 @@ export interface CheckInApiRequest {
   checkInRequestId?: string;
   readonly headers: Readonly<Record<string, string | string[] | undefined>>;
   readonly rawHeaders?: readonly string[];
+  readonly socket?: { readonly remoteAddress?: string };
 }
 
 interface HeaderResponse {

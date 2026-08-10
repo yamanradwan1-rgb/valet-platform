@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-10` (VAL-004L local implementation session)
+- Date/time: `2026-08-10` (VAL-004M local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required merged baseline: `6e30805`
-- Active branch: `feat/VAL-004L-production-staff-auth`
-- Active task: VAL-004L — Implement Production Staff Authentication
-- Verification basis: owner-supplied VAL-004L task packet, required local branch/HEAD preflight, accepted DEC-023 and focused real-HTTP/runtime-role PostgreSQL integration coverage
+- Required accepted-decision baseline: `02b77c3`
+- Active branch: `feat/VAL-004M-shared-durable-anti-abuse`
+- Active task: VAL-004M — Implement Shared Durable Anti-Abuse Boundary
+- Verification basis: owner-supplied VAL-004M task packet, required local branch/HEAD preflight, accepted DEC-024 and focused real-HTTP/runtime-role PostgreSQL integration coverage
 
 ## Current Milestone
 
@@ -20,7 +20,7 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-The Phase 2 check-in slices through VAL-004K are present on the required merged baseline. VAL-004L is implemented locally and ready for review. It replaces the production fail-closed placeholder with DEC-023 opaque PostgreSQL-backed staff authentication while preserving the existing custody authorization boundary. It does not start Phase 3 and does not claim production readiness.
+The Phase 2 check-in slices through VAL-004L are present on this branch baseline. VAL-004M implements accepted DEC-024 as the shared durable PostgreSQL-backed anti-abuse boundary for staff login and guest session resolution while preserving the existing authentication, guest-token and custody-authorization contracts. It does not start Phase 3 and does not claim production readiness.
 
 ## Recently Completed Gate
 
@@ -69,7 +69,7 @@ Phase 1 completed with exactly **14 forward-only migrations**, ending with:
 20260809001400_notification_foundation
 ```
 
-The current merged baseline additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration. VAL-004E adds migration 16, `20260810001600_intake_session_creation`. VAL-004L adds only migration 17, `20260810001700_staff_authentication`.
+The Phase 2 branch history additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration. VAL-004E adds migration 16, `20260810001600_intake_session_creation`. VAL-004L adds migration 17, `20260810001700_staff_authentication`. VAL-004M adds migration 18, `20260810001800_shared_durable_anti_abuse`.
 
 The Phase 1 schema already contains the persistence used by the first Phase 2 command, including:
 
@@ -82,32 +82,31 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004L — Production Staff Authentication
+### VAL-004M — Shared Durable Anti-Abuse Boundary
 
-- Branch: `feat/VAL-004L-production-staff-auth`
-- Status: **READY FOR REVIEW — LOCAL CHANGES ONLY**
-- Base: `6e30805`
-- Expected database state on this branch: **17 forward-only migrations**
+- Branch: `feat/VAL-004M-shared-durable-anti-abuse`
+- Status: **IMPLEMENTED LOCALLY — QUALITY/SECURITY REVIEW IN PROGRESS**
+- Accepted decision baseline: `02b77c3`
+- Expected database state on this branch: **18 forward-only migrations**
 
 Objective:
-Implement accepted DEC-023 login, opaque access resolution, one-time refresh
-rotation/replay revocation, logout, disable checks, strict origin/cookie
-transport and least-privilege retained persistence. Authentication returns only
-the User ID; existing Organization/Location/membership/role checks remain
-authoritative.
+Implement accepted DEC-024 exact rolling staff-address, staff-identifier,
+guest-address and guest-token limits using shared PostgreSQL state, scoped HMAC
+keys, trusted client-address resolution, bounded transaction advisory locks,
+database-authored retry timing, fixed cleanup and least-privilege runtime access.
 
-VAL-004L does not implement MFA, signup/reset, device management or rate-limit
-infrastructure. Production deployment remains gated on shared/durable
-anti-abuse controls, production database/network/TLS hardening and the other
-documented deployment controls.
+VAL-004M does not implement MFA, signup/reset, device management, Redis, WAF,
+CAPTCHA or Phase 3 operations. Production deployment remains gated on
+production database/network/TLS/credential hardening and the other documented
+deployment controls.
 
 ## Remaining Phase 2 Check-In Gate
 
-VAL-004L closes the staff-authentication core locally. Phase 2 is not production-ready until the separately approved shared/durable anti-abuse boundary and remaining production deployment controls are implemented and reviewed.
+VAL-004L's staff-authentication core and VAL-004M's shared anti-abuse boundary are implemented on the current branch history. Phase 2 is not production-ready until production database/network/TLS/credential hardening and the remaining deployment controls are implemented and reviewed.
 
 ## Phase 2 Focused Task Sequence
 
-The current binding execution plan splits Phase 2 into nine focused slices:
+The current binding execution plan preserves the original nine check-in slices plus focused security/integrity follow-ups:
 
 ```text
 VAL-004A  Lock Complete Check-In Command Contract
@@ -119,6 +118,10 @@ VAL-004F  Guest Secure Access Foundation
 VAL-004G  Condition Check + Photo Policy Commands
 VAL-004H  Complete Check-In Command Implementation
 VAL-004I  Check-In API / Integration / Performance Gate
+VAL-004J  Cross-Location Shared Vehicle Identity Guard
+VAL-004K  Verified Condition-Photo Evidence Guard
+VAL-004L  Production Staff Authentication
+VAL-004M  Shared Durable Anti-Abuse Boundary
 ```
 
 This sequence is dependency-oriented, not permission to combine Phase 2 into one large PR.
@@ -161,24 +164,25 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 ## Dependencies / Contention
 
 - No Phase 1 migration task remains active.
-- VAL-004L adds only migration 17 and leaves migrations 1–16 unchanged.
+- VAL-004L adds migration 17; VAL-004M adds only migration 18 and leaves migrations 1–17 unchanged.
 - `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
 - DEC-023 is the accepted staff-authentication contract; existing custody commands remain authoritative for tenant, Location and role authorization.
+- DEC-024 is the accepted shared anti-abuse contract; limiter buckets never authenticate or authorize a User, tenant, Location, membership, role or guest session.
 - Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For VAL-004L:
+For VAL-004M:
 
 ```text
-finish the production staff-authentication implementation and coverage
+finish shared durable anti-abuse implementation and coverage
 -> run all quality gates
--> review the local diff against DEC-023 and the VAL-004L task scope
--> stop for human/ChatGPT review without commit or push
+-> review the local diff against DEC-024 and the VAL-004M task scope
+-> commit and push the assigned implementation branch after all gates pass
 ```
 
-Do not begin Phase 3 on this branch. Do not declare Phase 2 production-ready until the shared/durable anti-abuse boundary, production DB/network/TLS hardening and remaining deployment controls are complete.
+Do not begin Phase 3 on this branch. Do not declare Phase 2 production-ready until production DB/network/TLS/credential hardening and remaining deployment controls are complete.
 
 ## Parallel UX/UI Track
 

@@ -27,8 +27,7 @@ export type GuestAccessErrorCode =
   | "GUEST_ACCESS_REQUEST_INVALID";
 
 const errorMessages: Record<GuestAccessErrorCode, string> = {
-  GUEST_ACCESS_GENERATION_FAILED:
-    "Guest access could not be generated safely.",
+  GUEST_ACCESS_GENERATION_FAILED: "Guest access could not be generated safely.",
   GUEST_ACCESS_INVALID: "Guest access is invalid.",
   GUEST_ACCESS_INTENT_CONFLICT:
     "Guest access intent does not match the current access state.",
@@ -50,9 +49,7 @@ export interface StaffGuestAccessRequest {
   readonly valetSessionId: string;
 }
 
-export type GuestAccessIssueIntent =
-  | "ISSUE_OR_ROTATE"
-  | "REISSUE_REVOKED";
+export type GuestAccessIssueIntent = "ISSUE_OR_ROTATE" | "REISSUE_REVOKED";
 
 export interface IssueGuestAccessRequest extends StaffGuestAccessRequest {
   readonly expectedRevokedAt?: Date;
@@ -294,9 +291,7 @@ async function authorizeAndLockSession(
   return { actorMembershipId: actor.membershipId, scope };
 }
 
-async function serverTime(
-  transaction: PostgresTransaction,
-): Promise<Date> {
+async function serverTime(transaction: PostgresTransaction): Promise<Date> {
   const result = await transaction.query<{ operation_time: Date }>(
     `SELECT clock_timestamp() AS operation_time`,
   );
@@ -311,8 +306,7 @@ function isTokenHashCollision(error: unknown): boolean {
   const databaseError = error as Partial<DatabaseError>;
   return (
     databaseError.code === "23505" &&
-    databaseError.constraint ===
-      "valet_sessions_customer_access_token_hash_key"
+    databaseError.constraint === "valet_sessions_customer_access_token_hash_key"
   );
 }
 
@@ -329,9 +323,7 @@ async function rollbackPreservingError(
 export function createIssueGuestAccessCommandExecutor(
   pool: PostgresPool,
   options: GuestAccessCommandOptions = {},
-): (
-  request: IssueGuestAccessRequest,
-) => Promise<IssueGuestAccessResult> {
+): (request: IssueGuestAccessRequest) => Promise<IssueGuestAccessResult> {
   return async (request) => {
     const normalized = normalizeIssueRequest(request);
     const transaction = await pool.connect();
@@ -341,9 +333,8 @@ export function createIssueGuestAccessCommandExecutor(
         transaction,
         normalized,
       );
-      const isDisabledPlaceholder = scope.customer_access_token_hash.startsWith(
-        "disabled:intake:",
-      );
+      const isDisabledPlaceholder =
+        scope.customer_access_token_hash.startsWith("disabled:intake:");
       const isRevoked = scope.customer_access_revoked_at !== null;
       const expectedRevocationMatches =
         normalized.expectedRevokedAt !== null &&
@@ -431,9 +422,7 @@ export function createIssueGuestAccessCommandExecutor(
 export function createRevokeGuestAccessCommandExecutor(
   pool: PostgresPool,
   options: GuestAccessCommandOptions = {},
-): (
-  request: StaffGuestAccessRequest,
-) => Promise<RevokeGuestAccessResult> {
+): (request: StaffGuestAccessRequest) => Promise<RevokeGuestAccessResult> {
   return async (request) => {
     const normalized = normalizeStaffRequest(request);
     const transaction = await pool.connect();
@@ -500,11 +489,17 @@ export function createRevokeGuestAccessCommandExecutor(
 export function createGuestAccessResolver(
   pool: PostgresPool,
 ): (rawToken: string) => Promise<GuestSafeSession> {
-  return async (rawToken) => {
-    assertPresentedToken(rawToken);
-    const tokenHash = hashGuestAccessToken(rawToken);
-    const result = await pool.query<GuestSafeSessionRow>(
-      `SELECT session.id::text AS valet_session_id, session.state::text,
+  return async (rawToken) => resolveGuestAccessWithDatabase(pool, rawToken);
+}
+
+export async function resolveGuestAccessWithDatabase(
+  database: PostgresPool | PostgresTransaction,
+  rawToken: string,
+): Promise<GuestSafeSession> {
+  assertPresentedToken(rawToken);
+  const tokenHash = hashGuestAccessToken(rawToken);
+  const result = await database.query<GuestSafeSessionRow>(
+    `SELECT session.id::text AS valet_session_id, session.state::text,
               vehicle.make, vehicle.model, vehicle.color
        FROM valet_sessions AS session
        INNER JOIN vehicles AS vehicle
@@ -513,20 +508,19 @@ export function createGuestAccessResolver(
        WHERE session.customer_access_token_hash = $1
          AND session.customer_access_revoked_at IS NULL
          AND session.customer_access_expires_at > clock_timestamp()`,
-      [tokenHash],
-    );
-    const session = result.rows[0];
-    if (session === undefined) {
-      throw new GuestAccessError("GUEST_ACCESS_INVALID");
-    }
-    return {
-      state: session.state,
-      valetSessionId: session.valet_session_id,
-      vehicle: {
-        color: session.color,
-        make: session.make,
-        model: session.model,
-      },
-    };
+    [tokenHash],
+  );
+  const session = result.rows[0];
+  if (session === undefined) {
+    throw new GuestAccessError("GUEST_ACCESS_INVALID");
+  }
+  return {
+    state: session.state,
+    valetSessionId: session.valet_session_id,
+    vehicle: {
+      color: session.color,
+      make: session.make,
+      model: session.model,
+    },
   };
 }

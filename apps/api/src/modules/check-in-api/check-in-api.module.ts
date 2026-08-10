@@ -2,6 +2,9 @@ import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 
 import { StaffAuthController } from "../auth/staff-auth.controller";
+import { AntiAbuseKeyDeriver } from "../anti-abuse/anti-abuse-key";
+import { AntiAbuseService } from "../anti-abuse/anti-abuse.service";
+import { TrustedClientAddressResolver } from "../anti-abuse/client-address";
 import { StaffAuthOriginPolicy } from "../auth/staff-auth.origin";
 import {
   Argon2StaffPasswordVerifier,
@@ -38,6 +41,9 @@ import { CheckInOperationRunner } from "./check-in-operation-runner";
   providers: [
     CheckInApiService,
     CheckInOperationRunner,
+    AntiAbuseKeyDeriver,
+    AntiAbuseService,
+    TrustedClientAddressResolver,
     StaffAuthService,
     StaffAuthOriginPolicy,
     DatabaseStaffPrincipalResolver,

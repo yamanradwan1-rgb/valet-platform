@@ -11,9 +11,20 @@ import {
 } from "@nestjs/common";
 import { APP_FILTER, NestFactory } from "@nestjs/core";
 import { Pool } from "pg";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { AppController } from "../src/app.controller";
+import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
+import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
+import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import {
   CHECK_IN_MONOTONIC_CLOCK,
@@ -101,6 +112,9 @@ let testRuntimeUrl: string;
   providers: [
     CheckInApiService,
     CheckInOperationRunner,
+    AntiAbuseKeyDeriver,
+    AntiAbuseService,
+    TrustedClientAddressResolver,
     RequestIdMiddleware,
     {
       provide: APP_FILTER,
@@ -367,19 +381,25 @@ async function intake(
   });
 }
 
-async function guestSession(
-  authorization?: string,
-): Promise<{ body: Record<string, unknown>; status: number }> {
+async function guestSession(authorization?: string): Promise<{
+  body: Record<string, unknown>;
+  headers: Headers;
+  status: number;
+}> {
   const response = await fetch(`${baseUrl}/v1/guest/session`, {
     headers: authorization === undefined ? {} : { authorization },
   });
   return {
     body: (await response.json()) as Record<string, unknown>,
+    headers: response.headers,
     status: response.status,
   };
 }
 
 beforeAll(async () => {
+  process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
+    randomBytes(32).toString("base64url");
+  process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "";
   testMigrationUrl = connectionUrlFor(testDatabaseName);
   testRuntimeUrl = runtimeUrlFor(testDatabaseName);
   const bootstrapPool = new Pool({ connectionString: adminDatabaseUrl });
@@ -406,6 +426,10 @@ beforeAll(async () => {
   await app.listen(0, "127.0.0.1");
   baseUrl = await app.getUrl();
 }, 120_000);
+
+beforeEach(async () => {
+  await adminPool.query("DELETE FROM anti_abuse_events");
+});
 
 afterAll(async () => {
   await app?.close();
@@ -949,6 +973,154 @@ describe("VAL-004I Check-In HTTP integration", () => {
     );
     expect(audits.rows[0]?.text).not.toContain(reissuedToken);
     expect(JSON.stringify(measurements)).not.toContain(reissuedToken);
+  });
+
+  it("bounds rotating random guest tokens at sixty address failures without persisting raw inputs", async () => {
+    const rawTokens = Array.from({ length: 61 }, () =>
+      randomBytes(32).toString("base64url"),
+    );
+    for (const rawToken of rawTokens.slice(0, 60)) {
+      expect(await guestSession(`Bearer ${rawToken}`)).toMatchObject({
+        body: { code: "GUEST_ACCESS_INVALID" },
+        status: 401,
+      });
+    }
+    const blocked = await guestSession(`Bearer ${rawTokens[60]}`);
+    expect(blocked.status).toBe(429);
+    expect(blocked.body).toMatchObject({
+      code: "GUEST_ACCESS_RATE_LIMITED",
+      message: "Too many requests. Try again later.",
+    });
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(blocked.headers.get("cache-control")).toBe("no-store");
+    const persisted = await adminPool.query<{
+      address_failures: string;
+      token_events: string;
+      text: string;
+    }>(
+      `SELECT
+         count(*) FILTER (
+           WHERE scope = 'v1:guest-client-address' AND state = 'COUNTED'
+         )::text AS address_failures,
+         count(*) FILTER (WHERE scope = 'v1:guest-token')::text AS token_events,
+         coalesce(string_agg(key_hash, ''), '') AS text
+       FROM anti_abuse_events`,
+    );
+    expect(persisted.rows[0]?.address_failures).toBe("60");
+    expect(persisted.rows[0]?.token_events).toBe("60");
+    for (const rawToken of rawTokens) {
+      expect(persisted.rows[0]?.text).not.toContain(rawToken);
+    }
+  }, 60_000);
+
+  it("counts every shape-valid guest token request and ignores successful address reservations", async () => {
+    const fixture = await createFixture();
+    const created = await intake(fixture);
+    const issued = await http(
+      "POST",
+      `/v1/staff/check-in/sessions/${String(created.body.valetSessionId)}/guest-access/issue`,
+      {
+        body: { intent: "ISSUE_OR_ROTATE" },
+        staffToken: fixture.staffToken,
+      },
+    );
+    const rawToken = String(issued.body.rawToken);
+    for (let index = 0; index < 180; index += 1) {
+      expect(await guestSession(`Bearer ${rawToken}`)).toMatchObject({
+        status: 200,
+      });
+    }
+    const blocked = await guestSession(`Bearer ${rawToken}`);
+    expect(blocked.status).toBe(429);
+    const states = await adminPool.query<{
+      address_counted: string;
+      address_ignored: string;
+      token_counted: string;
+    }>(
+      `SELECT
+         count(*) FILTER (
+           WHERE scope = 'v1:guest-client-address' AND state = 'COUNTED'
+         )::text AS address_counted,
+         count(*) FILTER (
+           WHERE scope = 'v1:guest-client-address' AND state = 'IGNORED'
+         )::text AS address_ignored,
+         count(*) FILTER (
+           WHERE scope = 'v1:guest-token' AND state = 'COUNTED'
+         )::text AS token_counted
+       FROM anti_abuse_events`,
+    );
+    expect(states.rows[0]).toEqual({
+      address_counted: "0",
+      address_ignored: "181",
+      token_counted: "180",
+    });
+  }, 60_000);
+
+  it("returns no guest data when authoritative success finalization fails", async () => {
+    const fixture = await createFixture();
+    const created = await intake(fixture);
+    const issued = await http(
+      "POST",
+      `/v1/staff/check-in/sessions/${String(created.body.valetSessionId)}/guest-access/issue`,
+      {
+        body: { intent: "ISSUE_OR_ROTATE" },
+        staffToken: fixture.staffToken,
+      },
+    );
+    await adminPool.query(
+      `CREATE FUNCTION test_block_guest_ignored() RETURNS trigger
+       LANGUAGE plpgsql AS $$ BEGIN
+         IF NEW.state = 'IGNORED' THEN RAISE EXCEPTION 'blocked'; END IF;
+         RETURN NEW;
+       END $$;
+       CREATE TRIGGER test_block_guest_ignored
+       BEFORE UPDATE ON anti_abuse_events
+       FOR EACH ROW EXECUTE FUNCTION test_block_guest_ignored()`,
+    );
+    try {
+      const result = await guestSession(
+        `Bearer ${String(issued.body.rawToken)}`,
+      );
+      expect(result.status).toBe(503);
+      expect(result.body).toMatchObject({ code: "ANTI_ABUSE_UNAVAILABLE" });
+      expect(result.body).not.toHaveProperty("valetSessionId");
+    } finally {
+      await adminPool.query(
+        `DROP TRIGGER test_block_guest_ignored ON anti_abuse_events`,
+      );
+      await adminPool.query(`DROP FUNCTION test_block_guest_ignored()`);
+    }
+  });
+
+  it("uses the greatest database-authored Retry-After without extending either exhausted window", async () => {
+    const limiter = app.get(AntiAbuseService);
+    const rawToken = randomBytes(32).toString("base64url");
+    const addressKey = limiter.key("v1:guest-client-address", "127.0.0.1");
+    const tokenKey = limiter.key("v1:guest-token", rawToken);
+    await adminPool.query(
+      `INSERT INTO anti_abuse_events (scope, key_hash, occurred_at, state)
+       SELECT $1, $2, clock_timestamp() - INTERVAL '5 minutes', 'COUNTED'
+       FROM generate_series(1, 60)
+       UNION ALL
+       SELECT $3, $4, clock_timestamp() - INTERVAL '1 minute', 'COUNTED'
+       FROM generate_series(1, 180)`,
+      [addressKey.scope, addressKey.keyHash, tokenKey.scope, tokenKey.keyHash],
+    );
+    const first = await guestSession(`Bearer ${rawToken}`);
+    const second = await guestSession(`Bearer ${rawToken}`);
+    expect(first.status).toBe(429);
+    expect(second.status).toBe(429);
+    const firstRetry = Number(first.headers.get("retry-after"));
+    const secondRetry = Number(second.headers.get("retry-after"));
+    expect(firstRetry).toBeGreaterThanOrEqual(830);
+    expect(firstRetry).toBeLessThanOrEqual(840);
+    expect(secondRetry).toBeLessThanOrEqual(firstRetry);
+    const rows = await adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM anti_abuse_events`,
+    );
+    expect(rows.rows[0]?.count).toBe("240");
   });
 
   it("preserves command-owned intake idempotency and active-session conflicts", async () => {
