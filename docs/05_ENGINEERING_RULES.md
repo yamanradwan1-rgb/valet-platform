@@ -132,6 +132,14 @@ The effective typed photo policy is `Location.check_in_photos_required_override`
 
 The reusable VAL-004H guard evaluates the current effective policy and current qualifying-photo evidence independently from the historical completion marker. This keeps a later policy change visible without rewriting the persisted marker. Condition-note, correction, photo-registration and first completion mutations each commit with one safe AuditEvent in the same transaction; audit metadata excludes note content, storage keys and other evidence payload.
 
+### Complete check-in command boundary
+
+VAL-004H implements one dedicated internal command accepting only authenticated User ID, ValetSession ID and expected ValetSession version. It derives tenant, Location, actor and linked Vehicle from persistence; requires active `VALET_EMPLOYEE`/`VALET_SUPERVISOR` explicit Location access without an active Shift; and locks the session through guard evaluation, mutation, audit and commit. Under that lock, stale version is classified before invalid physical state.
+
+The linked Vehicle is held stable with a share lock and must have either a complete, valid persisted known-plate triple or the DEC-020 all-plate-fields-absent plus non-empty temporary descriptor path. The command then reuses the VAL-004G locked guard: the condition marker is mandatory, a ConditionNote is not, and current effective photo policy—not historical marker-time policy—determines whether exact-session `CHECK_IN_CONDITION` evidence is required. Guest credential state and Customer/contact presence are not prerequisites and are not mutated.
+
+The winning guarded mutation performs only `CHECKING_IN -> AWAITING_PARKING`, sets `checking_in_completed_at` and `updated_at` to one database-authoritative timestamp, increments `version` once and appends one `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent atomically. Parking, key, assignee, checked-in actor, condition evidence/marker, Vehicle, guest credential and downstream retrieval/dispatch/financial/incident/notification state remain unchanged. Retrying the old version returns `VERSION_CONFLICT`; retrying the refreshed version returns `INVALID_STATE_TRANSITION`, with no replay or duplicate audit.
+
 ## Errors
 
 Use stable machine-readable codes, e.g.:

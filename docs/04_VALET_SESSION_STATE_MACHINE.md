@@ -86,6 +86,8 @@ The only normal command that performs this transition is `complete-check-in`.
 
 This is the first locked Phase 2 protected custody command. It is not a generic session patch and it must not perform parking, key, task, dispatch, retrieval, handoff, payment, incident, or notification lifecycle work.
 
+VAL-004H implements this contract as a dedicated internal command executor. VAL-004I owns later controller/API mapping, end-to-end integration and performance instrumentation.
+
 #### Command inputs and authority
 
 The command identifies the target `ValetSession` and requires the caller's expected current session `version`.
@@ -140,9 +142,9 @@ Before transition, the command must establish:
 
 OCR/ANPR confidence is never a completion requirement. Confirm/edit/manual input remains authoritative and the accepted no-plate fallback must remain usable.
 
-The current Phase 1 schema does **not** yet persist `ConditionNote`, `VehiclePhoto`, or the typed configurable photo requirement. Therefore a production implementation must not claim that the condition/photo guards above are complete until focused follow-up persistence/configuration tasks provide those dependencies.
+VAL-004C persists `ConditionNote`, private `VehiclePhoto` metadata, the condition-completion marker and typed Organization-default/Location-override photo policy. VAL-004G implements the locked current-policy/current-evidence guard, and VAL-004H reuses that guard while already owning the ValetSession row lock.
 
-The existing ValetSession contains hashed guest-access persistence, but token issuance, authorization, expiry/revocation behavior, and guest-facing access semantics remain a focused Phase 2 guest-access task. `complete-check-in` must not invent or leak raw guest tokens.
+VAL-004F implements guest credential issuance, revocation and resolution separately. Guest credential usability is not a physical `complete-check-in` prerequisite: a disabled, expired or revoked credential and a session without Customer/contact may still pass the physical intake guards. `complete-check-in` never issues, resolves, rotates, revokes, returns or audits guest material.
 
 Key-slot assignment, ParkingSpot/Zone assignment, Parking task creation/assignment, and Hybrid Dispatch are not prerequisites or side effects of `complete-check-in`; they belong after the session reaches `AWAITING_PARKING`.
 
@@ -188,19 +190,11 @@ This is sufficient to prevent duplicate transition/audit side effects. It does n
 
 If the offline/retry implementation requires distinguishing an exact retry from a new semantic command and returning the original successful result, a stable client/device operation identifier with durable uniqueness is required in a focused follow-up persistence task. The current nullable, non-unique `AuditEvent.idempotency_key` is not by itself a sufficient uniqueness guarantee and must not be presented as one.
 
-#### Required implementation dependencies
+#### Implemented dependency foundation
 
-Before the production command can claim the full Blueprint check-in contract, focused Phase 2 tasks must resolve or implement:
+VAL-004B through VAL-004G now provide the accepted authorization/transaction/runtime-role foundation, intake persistence, Vehicle identity commands, intake session creation, separate secure guest access and the current condition/photo-policy guard. VAL-004H consumes those existing surfaces without changing schema or weakening their contracts.
 
-- ConditionNote persistence and completion semantics
-- VehiclePhoto/private attachment persistence used by intake evidence
-- typed Company-default -> Location-override photo requirement storage/evaluation
-- secure guest access issuance/authorization behavior over the existing hashed session fields
-- application/domain command transaction infrastructure and authorization checks
-- dedicated least-privilege runtime database role and the explicit append-only AuditEvent privilege/enforcement boundary required by VAL-003P
-- durable operation-id persistence only if transparent duplicate replay/offline command identity is required
-
-VAL-004A itself introduces none of those persistence/runtime changes.
+Durable operation-id persistence remains deferred unless a later offline/retry task requires transparent replay of the original success response. VAL-004H intentionally preserves the locked version/state retry behavior instead.
 
 #### Stable command errors
 
@@ -208,13 +202,13 @@ The implementation should use the existing cross-cutting access/concurrency erro
 
 - `TENANT_ACCESS_DENIED`
 - `LOCATION_ACCESS_DENIED`
-- `CHECK_IN_COMPLETION_NOT_ALLOWED`
 - `VERSION_CONFLICT`
 - `INVALID_STATE_TRANSITION`
 - `VEHICLE_IDENTITY_INCOMPLETE`
 - `CONDITION_CHECK_INCOMPLETE`
 - `PHOTO_REQUIREMENT_NOT_SATISFIED`
-- `GUEST_ACCESS_INVALID` only when the focused guest-access contract defines the corresponding failure
+
+`GUEST_ACCESS_INVALID` is not a normal `complete-check-in` guard or error.
 
 Do not expose whether an unauthorized cross-tenant resource exists merely to provide a more specific error.
 

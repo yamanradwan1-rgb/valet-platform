@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-10` (VAL-004G local implementation session)
+- Date/time: `2026-08-10` (VAL-004H local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required merged baseline through VAL-004F: `21f44e69be032cf28271f38ffa2d9799ae89a554`
-- Active branch: `feat/VAL-004G-condition-photo-policy`
-- Active Issue: #58 — VAL-004G — Condition Check + Photo Policy Commands
-- Verification basis: owner-supplied Issue #58 task packet, required local branch/HEAD preflight, binding Phase 2 docs and focused PostgreSQL integration coverage
+- Required merged baseline through VAL-004G: `56cdb2e741d0d4fa16a1ce9f4cc90560a34ec37c`
+- Active branch: `feat/VAL-004H-complete-check-in`
+- Active Issue: #60 — VAL-004H — Complete Check-In Command Implementation
+- Verification basis: owner-supplied Issue #60 task packet, required local branch/HEAD preflight, binding Phase 2 docs and focused PostgreSQL integration coverage
 
 ## Current Milestone
 
@@ -20,7 +20,7 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-VAL-004A through VAL-004F are merged. VAL-004G is implemented locally and ready for review. It adds internal condition-note/correction, private photo-metadata registration, typed effective photo-policy, condition-completion marker and reusable current-policy guard commands over the existing schema; it adds no migration and no public API or object upload.
+VAL-004A through VAL-004G are merged. VAL-004H is implemented locally and ready for review. It adds the dedicated internal authorized `CHECKING_IN -> AWAITING_PARKING` command with version/state precedence, Vehicle identity and current condition/photo-policy guards, one database timestamp/version increment and atomic completion audit; it adds no migration or public API.
 
 ## Recently Completed Gate
 
@@ -82,29 +82,29 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004G — Condition Check + Photo Policy Commands
+### VAL-004H — Complete Check-In Command Implementation
 
-- Issue #58
-- Branch: `feat/VAL-004G-condition-photo-policy`
+- Issue #60
+- Branch: `feat/VAL-004H-complete-check-in`
 - Status: **READY FOR REVIEW — LOCAL CHANGES ONLY**
-- Base: `21f44e69be032cf28271f38ffa2d9799ae89a554`
+- Base: `56cdb2e741d0d4fa16a1ce9f4cc90560a34ec37c`
 - Expected database state on this branch: **16 forward-only migrations**
 
 Objective:
-Implement only the internal condition/photo-policy slice:
+Implement only the internal complete-check-in transition:
 
-- authorized, session-locked append-only `CHECK_IN` condition notes and correction chains
-- authorized private `CHECK_IN_CONDITION` VehiclePhoto metadata registration with exact retry semantics
-- typed Organization-default/Location-override required-photo policy evaluation
-- idempotent condition-completion marker recording without physical state/version mutation
-- reusable current-policy/current-evidence guard for VAL-004H
-- atomic safe AuditEvent for each first successful mutation
+- derive and authorize the employee/supervisor actor and persisted tenant/Location scope
+- enforce locked expected-version-before-state error precedence
+- validate persisted known-plate or DEC-020 temporary Vehicle identity
+- reuse the current VAL-004G condition/photo-policy guard
+- perform only `CHECKING_IN -> AWAITING_PARKING`, one timestamp and one version increment
+- commit one safe `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent atomically
 
-VAL-004G does not implement object upload/byte validation, public API wiring, the `CHECKING_IN -> AWAITING_PARKING` transition, `complete-check-in`, parking/key assignment, retrieval, handoff or payment.
+VAL-004H does not implement public API/controller wiring, object upload, parking/key assignment, Task/Dispatch, retrieval, handoff, payment, incident or notification behavior.
 
-## Remaining Complete Check-In Dependencies
+## Remaining Phase 2 Check-In Gate
 
-After VAL-004G, production `complete-check-in` still depends on VAL-004H command implementation and VAL-004I API/integration/performance work. The reusable condition/photo guard is one dependency, not permission to add the physical-state transition on this branch.
+After VAL-004H, the internal physical transition exists. VAL-004I still owns controller/API wiring, shared transport contracts, command-error mapping, end-to-end integration and performance instrumentation; none of those are completed by this branch.
 
 ## Phase 2 Focused Task Sequence
 
@@ -162,24 +162,24 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 ## Dependencies / Contention
 
 - No Phase 1 migration task remains active.
-- VAL-004G uses the existing VAL-004C condition/photo/policy fields, adds no migration and does not modify migrations 1–16.
+- VAL-004H uses the existing ValetSession, Vehicle, condition/photo-policy and AuditEvent persistence, adds no migration and does not modify migrations 1–16.
 - `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
-- VAL-004G changes only internal condition/photo-policy command/guard behavior and relevant documentation; the physical complete-check-in transition remains VAL-004H and public API wiring remains VAL-004I.
+- VAL-004H changes only the internal physical complete-check-in command and relevant documentation; public API/integration/performance wiring remains VAL-004I.
 - Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For VAL-004G:
+For VAL-004H:
 
 ```text
-finish internal commands/guard and focused PostgreSQL integration coverage
+finish the dedicated internal command and focused PostgreSQL integration coverage
 -> run all quality gates
--> review the local diff against Issue #58 scope
+-> review the local diff against Issue #60 scope
 -> stop for human/ChatGPT review without commit or push
 ```
 
-Do not begin VAL-004H or `complete-check-in` implementation on this branch.
+Do not begin VAL-004I API/integration/performance implementation on this branch.
 
 ## Parallel UX/UI Track
 
