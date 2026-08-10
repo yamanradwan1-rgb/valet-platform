@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-10` (VAL-004H local implementation session)
+- Date/time: `2026-08-10` (VAL-004I local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required merged baseline through VAL-004G: `56cdb2e741d0d4fa16a1ce9f4cc90560a34ec37c`
-- Active branch: `feat/VAL-004H-complete-check-in`
-- Active Issue: #60 — VAL-004H — Complete Check-In Command Implementation
-- Verification basis: owner-supplied Issue #60 task packet, required local branch/HEAD preflight, binding Phase 2 docs and focused PostgreSQL integration coverage
+- Required merged baseline through VAL-004H: `6b3f02df20377cad154e7b1c8f0b7e96de2dc8e1`
+- Active branch: `feat/VAL-004I-check-in-api-gate`
+- Active Issue: #62 — VAL-004I — Check-In API / Integration / Performance Gate
+- Verification basis: owner-supplied Issue #62 task packet, required local branch/HEAD preflight, binding Phase 2 docs and focused real-HTTP/runtime-role PostgreSQL integration coverage
 
 ## Current Milestone
 
@@ -20,7 +20,7 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-VAL-004A through VAL-004G are merged. VAL-004H is implemented locally and ready for review. It adds the dedicated internal authorized `CHECKING_IN -> AWAITING_PARKING` command with version/state precedence, Vehicle identity and current condition/photo-policy guards, one database timestamp/version increment and atomic completion audit; it adds no migration or public API.
+VAL-004A through VAL-004H are merged. VAL-004I is implemented locally and ready for review. It adds strict shared check-in transport contracts, dedicated staff/guest HTTP routes, fail-closed production staff-principal injection, centralized request IDs/errors, safe monotonic performance observation and focused real-HTTP/runtime-role integration proof. It adds no migration and does not start Phase 3.
 
 ## Recently Completed Gate
 
@@ -82,29 +82,30 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004H — Complete Check-In Command Implementation
+### VAL-004I — Check-In API / Integration / Performance Gate
 
-- Issue #60
-- Branch: `feat/VAL-004H-complete-check-in`
+- Issue #62
+- Branch: `feat/VAL-004I-check-in-api-gate`
 - Status: **READY FOR REVIEW — LOCAL CHANGES ONLY**
-- Base: `56cdb2e741d0d4fa16a1ce9f4cc90560a34ec37c`
+- Base: `6b3f02df20377cad154e7b1c8f0b7e96de2dc8e1`
 - Expected database state on this branch: **16 forward-only migrations**
 
 Objective:
-Implement only the internal complete-check-in transition:
+Wire the accepted Phase 2 check-in commands through the narrow transport gate:
 
-- derive and authorize the employee/supervisor actor and persisted tenant/Location scope
-- enforce locked expected-version-before-state error precedence
-- validate persisted known-plate or DEC-020 temporary Vehicle identity
-- reuse the current VAL-004G condition/photo-policy guard
-- perform only `CHECKING_IN -> AWAITING_PARKING`, one timestamp and one version increment
-- commit one safe `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent atomically
+- strict shared Zod request/response schemas with no client authority fields
+- dedicated staff routes plus bearer-only guest-safe session read
+- production-default fail-closed staff principal resolver and test-only DI override
+- runtime pool lifecycle, centralized safe HTTP errors and bounded request IDs
+- exactly one safe monotonic measurement per routed operation
+- persisted end-to-end check-in elapsed KPI on successful completion
+- real Nest listener and runtime-role PostgreSQL integration coverage
 
-VAL-004H does not implement public API/controller wiring, object upload, parking/key assignment, Task/Dispatch, retrieval, handoff, payment, incident or notification behavior.
+VAL-004I preserves `AWAITING_PARKING` as the Phase 2 physical endpoint. It does not implement object upload, parking/key assignment, Task/Dispatch, retrieval, handoff, payment, incident, notification, frontend or production guest rate limiting.
 
 ## Remaining Phase 2 Check-In Gate
 
-After VAL-004H, the internal physical transition exists. VAL-004I still owns controller/API wiring, shared transport contracts, command-error mapping, end-to-end integration and performance instrumentation; none of those are completed by this branch.
+VAL-004I closes the planned API/integration/performance implementation slice locally. Phase 2 is not globally complete until VAL-004I review/merge and a separate final Phase 2 security/integrity review gate are complete.
 
 ## Phase 2 Focused Task Sequence
 
@@ -162,24 +163,24 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 ## Dependencies / Contention
 
 - No Phase 1 migration task remains active.
-- VAL-004H uses the existing ValetSession, Vehicle, condition/photo-policy and AuditEvent persistence, adds no migration and does not modify migrations 1–16.
+- VAL-004I uses the existing ValetSession, Vehicle, condition/photo-policy and AuditEvent persistence, adds no migration and does not modify migrations 1–16.
 - `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
-- VAL-004H changes only the internal physical complete-check-in command and relevant documentation; public API/integration/performance wiring remains VAL-004I.
+- VAL-004I adds only the dedicated check-in API/integration/performance boundary; the accepted VAL-004E–H domain commands remain authoritative.
 - Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For VAL-004H:
+For VAL-004I:
 
 ```text
-finish the dedicated internal command and focused PostgreSQL integration coverage
+finish the dedicated HTTP/runtime-role PostgreSQL integration coverage
 -> run all quality gates
--> review the local diff against Issue #60 scope
+-> review the local diff against Issue #62 scope
 -> stop for human/ChatGPT review without commit or push
 ```
 
-Do not begin VAL-004I API/integration/performance implementation on this branch.
+Do not begin Phase 3 on this branch. After VAL-004I review/merge, run the separate final Phase 2 security/integrity review gate before declaring Phase 2 globally complete.
 
 ## Parallel UX/UI Track
 

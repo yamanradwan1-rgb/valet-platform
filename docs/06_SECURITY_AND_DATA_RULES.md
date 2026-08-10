@@ -126,7 +126,13 @@ Issue/rotation/revocation require an active User, active same-Organization membe
 
 Guest resolution accepts no Organization or Location input. It hashes the presented shape-valid token, requires the globally unique matching hash to be unrevoked and unexpired, and returns only session ID, public state and Vehicle make/model/color. Malformed, random, expired, revoked and rotated-old tokens share the same `GUEST_ACCESS_INVALID` code/message. No parking spot, key slot, membership/staff identity, internal Location/Organization, audit data, token/hash, GPS or exact parking location is returned.
 
-VAL-004F is an internal foundation only. Public guest endpoints must add transport security, rate limiting and anti-abuse controls when wired; this task does not implement messaging delivery, guest UI, retrieval or public API behavior.
+VAL-004I wires the narrow guest resolver only at `GET /v1/guest/session`. It accepts the raw credential exclusively as `Authorization: Bearer <token>` and returns the existing guest-safe result. Query, body, cookie, path and alternate-header token transport are not accepted. Missing, malformed, random, expired, revoked and rotated-old credentials remain indistinguishable. Rate limiting and broader anti-abuse provider integration remain explicit later production-reliability work; no in-memory limiter is claimed here.
+
+## Check-in API transport security
+
+The dedicated check-in HTTP surface uses strict shared Zod contracts and injects the authenticated staff User ID only from an injectable server-side principal resolver. The default production resolver always returns an authentication failure because no accepted production verifier exists yet. No route accepts `authenticatedUserId`, Organization, membership, role, target state or audit authority, and no `X-User-Id` convention exists.
+
+All new responses carry a bounded ASCII-safe `X-Request-Id`; malformed optional inbound values are replaced with a server UUID rather than reflected. Stable errors repeat the same request ID and never expose SQL, constraint names, stacks, credentials or request bodies. Metrics exclude Authorization, raw tokens, phone, plates, descriptors, note text and storage keys. A raw guest token may appear only in a successful authorized issue/rotate/reissue response and remains hash-only in persistence.
 
 ## Secure handoff
 

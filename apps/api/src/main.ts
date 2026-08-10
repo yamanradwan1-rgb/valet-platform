@@ -9,7 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const swaggerConfig = new DocumentBuilder()
     .setTitle("Valet Platform API")
-    .setDescription("Phase 0 API scaffold")
+    .setDescription("Valet platform operational API")
     .setVersion("0.0.0")
     .build();
 
@@ -19,6 +19,7 @@ async function bootstrap() {
     SwaggerModule.createDocument(app, swaggerConfig),
   );
 
+  app.enableShutdownHooks();
   const port = Number.parseInt(process.env.PORT ?? "3001", 10);
   await app.listen(port);
 }
