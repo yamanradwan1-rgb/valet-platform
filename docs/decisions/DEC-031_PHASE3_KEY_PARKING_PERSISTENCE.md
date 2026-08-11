@@ -2,6 +2,10 @@
 
 Status: Accepted
 
+Canonical decision log entry: `docs/08_DECISIONS_LOG.md` (DEC-031). This file
+retains the expanded implementation contract and must remain behaviorally
+consistent with that canonical entry.
+
 ## Context
 
 Phase 3 starts after VAL-004S. The existing schema already contains `KeySlot`, `ParkingSpot`, and nullable `ValetSession.key_slot_id` / `parking_spot_id`, but it does not yet model Parking Zones, append-only key custody history, or concurrency-safe current slot/spot occupancy. Hybrid Dispatch remains a separate later concern and must not be encoded into `ValetSession` states or `current_assignee_membership_id`.

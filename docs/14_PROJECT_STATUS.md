@@ -5,16 +5,16 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-11` (VAL-004S local implementation session)
+- Date/time: `2026-08-11` (VAL-005A local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
 - Required accepted-decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
-- Active branch: `refactor/VAL-004S-300-line-structure-policy`
-- Active task: VAL-004S — Enforce 300-Line Agent Structure Policy
-- Verification basis: owner-supplied VAL-004S task packet and accepted DEC-030
+- Active branch: `feat/VAL-005A-key-parking-persistence`
+- Active task: VAL-005A — Phase 3 Key & Parking Persistence Foundation
+- Verification basis: GitHub Issue #84 task packet and accepted DEC-031
 
 ## Current Milestone
 
-**Phase 2 — Core custody domain + check-in**
+**Phase 3 — Operations: keys, parking and Hybrid Dispatch**
 
 Phase 0 is complete.
 
@@ -29,7 +29,8 @@ complete. VAL-004Q is **MERGED / COMPLETED** through PR #79, merge commit
 `ba0cc5d00201f201e9b65d45ab295a4933dcc8df`. Cleanup A/B/C are complete.
 VAL-004R is **MERGED / COMPLETED** through PR #82, merge commit
 `1b5db989252dbf8d47b9fe7f81e55a96ed012c56`. VAL-004S structure enforcement is
-active, Phase 3 has not started, and Phase 2 is not declared production-ready.
+present in the current baseline. VAL-005A persistence implementation is active;
+Phase 2 is not declared production-ready.
 No fresh post-fix Standard Security Scan is claimed.
 
 ## Recently Completed Gate
@@ -91,6 +92,9 @@ Phase 1 completed with exactly **14 forward-only migrations**, ending with:
 
 The Phase 2 branch history additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration. VAL-004E adds migration 16, `20260810001600_intake_session_creation`. VAL-004L adds migration 17, `20260810001700_staff_authentication`. VAL-004M adds migration 18, `20260810001800_shared_durable_anti_abuse`.
 
+The current branch adds migration 19,
+`20260811001900_phase3_key_parking_persistence`, for accepted DEC-031.
+
 The Phase 1 schema already contains the persistence used by the first Phase 2 command, including:
 
 - Vehicle known-plate / DEC-020 temporary-descriptor identity foundation
@@ -102,30 +106,27 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004S — Enforce 300-Line Agent Structure Policy
+### VAL-005A — Phase 3 Key & Parking Persistence Foundation
 
-- Branch: `refactor/VAL-004S-300-line-structure-policy`
+- Branch: `feat/VAL-005A-key-parking-persistence`
 - Status: **ACTIVE — LOCAL IMPLEMENTATION / VALIDATION**
-- Accepted decision baseline: `1b5db989252dbf8d47b9fe7f81e55a96ed012c56`
-- Expected database state on this branch: **18 forward-only migrations**
+- Accepted decision: DEC-031
+- Expected database state on this branch: **19 forward-only migrations**
 
 Objective:
-Implement accepted DEC-030 by splitting the three transitional VAL-004R files
-along real responsibility boundaries and enforcing the 300-line authored-code
-policy through `architecture:check` with a deterministic base-main baseline.
+Implement ParkingZone, exact Zone/Spot persistence, current KeySlot/ParkingSpot
+exclusivity, append-only KeyCustodyEvent persistence and runtime-role grants.
 
-VAL-004S does not change schema, migrations, dependencies, public routes,
-authentication, anti-abuse semantics, provisioning behavior, custody behavior,
-or Phase 3 scope. It does not make Phase 2 production-ready by itself.
+VAL-005A adds no commands, routes, Shift behavior, Task/Dispatch lifecycle,
+state transitions, GPS/maps or guest/retrieval/handoff behavior.
 
 ## Remaining Phase 2 Check-In Gate
 
 VAL-004L staff authentication, VAL-004M shared anti-abuse, VAL-004N production
 database hardening and Cleanup A/B/C are merged. VAL-004R controlled staff
 provisioning is merged/completed through PR #82. MFA-gated privileged admin
-capabilities remain unavailable. VAL-004S — Enforce 300-Line Agent Structure
-Policy is active and is the next repository gate before Phase 3. Phase 3 has
-not started. The former final Phase 2
+capabilities remain unavailable. VAL-004S structure enforcement is present in
+the current baseline and Phase 3 has started with VAL-005A. The former final Phase 2
 security/integrity closure and fresh Standard Security Scan are deferred
 production/pilot-hardening work, not completed checks or pre-Phase-3 gates.
 
@@ -208,17 +209,16 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 
 ## Exact Next Step
 
-Current pre-Phase-3 sequence:
+Current Phase 3 sequence:
 
 ```text
-VAL-004R merged through PR #82
--> complete and merge active VAL-004S — Enforce 300-Line Agent Structure Policy
--> begin Phase 3
+VAL-005A persistence foundation
+-> later Shift, key command, Task/Dispatch and parking command slices
 ```
 
-Do not begin Phase 3 on this branch. Do not declare Phase 2 production-ready
-solely from VAL-004R. The former final Phase 2 closure and fresh Standard
-Security Scan are deferred; neither has been run or passed by this task.
+Do not pull later Phase 3 commands or Dispatch behavior into VAL-005A. Do not
+declare Phase 2 production-ready from this persistence work. The former final
+Phase 2 closure and fresh Standard Security Scan remain deferred.
 
 ## Parallel UX/UI Track
 

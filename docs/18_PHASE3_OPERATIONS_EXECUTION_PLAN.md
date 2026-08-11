@@ -278,6 +278,10 @@ The following is the intended dependency sequence. Each slice requires its own r
 
 Status: ACTIVE
 
+Accepted contract: DEC-031. Implementation is limited to persistence,
+database integrity, append-only runtime-role grants, deterministic seed support,
+and focused verification; no command/API/Dispatch behavior is included.
+
 Purpose:
 
 - ParkingZone persistence;

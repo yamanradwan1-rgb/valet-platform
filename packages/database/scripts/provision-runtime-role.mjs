@@ -10,6 +10,7 @@ import {
   parseRuntimeDatabaseUrlForProvisioning,
   verifyMigrationConnectionTls,
 } from "./database-connection-policy.mjs";
+import { provisionAppendOnlyTablePrivileges } from "./provision-append-only-tables.mjs";
 
 const { Client } = pg;
 
@@ -45,11 +46,7 @@ async function provisionRuntimeRole() {
   );
   const migrationIdentity = decodedDatabaseIdentity(migration);
   const runtimeIdentity = decodedDatabaseIdentity(runtime);
-  assertDatabaseCredentialSeparation(
-    migration,
-    runtime,
-    process.env.NODE_ENV,
-  );
+  assertDatabaseCredentialSeparation(migration, runtime, process.env.NODE_ENV);
   const migrationRole = migrationIdentity.role;
   const runtimeRole = runtimeIdentity.role;
   const runtimePassword = runtimeIdentity.password;
@@ -187,32 +184,10 @@ async function provisionRuntimeRole() {
       [runtimeRole],
     );
 
-    await client.query(
-      `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE audit_events FROM PUBLIC`,
-    );
-    await executeFormatted(
+    await provisionAppendOnlyTablePrivileges(
       client,
-      "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE audit_events FROM %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT SELECT, INSERT ON TABLE audit_events TO %I",
-      [runtimeRole],
-    );
-
-    await client.query(
-      `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos, intake_operations FROM PUBLIC`,
-    );
-    await executeFormatted(
-      client,
-      "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE condition_notes, vehicle_photos, intake_operations FROM %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT SELECT, INSERT ON TABLE condition_notes, vehicle_photos, intake_operations TO %I",
-      [runtimeRole],
+      executeFormatted,
+      runtimeRole,
     );
 
     await client.query(

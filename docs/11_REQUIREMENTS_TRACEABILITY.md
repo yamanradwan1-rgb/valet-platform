@@ -61,9 +61,9 @@ The historical concept remains useful for original intent but is superseded wher
 | Photos optional by default/configurable required | VAL-004G implements typed Organization default -> nullable Location override evaluation, private CHECK_IN_CONDITION metadata registration and an exact-session current-policy guard; object upload/byte validation remain pending |
 | Condition/photo concurrency and retry | ValetSession row locking serializes new evidence/completion; correction chains allow one direct successor, exact photo retries return one row/audit, and repeated completion preserves the first marker without another audit |
 | Complete check-in condition guard | VAL-004H reuses the VAL-004G locked guard: marker required, ConditionNote optional, and current effective policy requires an exact-session photo only when configured |
-| QR key slots | KeySlot + later KeyCustodyEvent |
-| One active vehicle per key slot | DB partial-unique/integrity protection |
-| Parking zones/spots | ParkingZone/ParkingSpot modules |
+| QR key slots | KeySlot + KeyCustodyEvent persistence (DEC-031); commands later |
+| One current session per non-null KeySlot/ParkingSpot | DB unique current-assignment protection (DEC-031); later commands clear reusable resources |
+| Parking zones/spots | ParkingZone/ParkingSpot persistence and exact scope integrity (DEC-031) |
 | Optional QR parking zone/spot | Parking task UX/configuration |
 | Maps + task-scoped session tracking | Maps/GPS task, DEC-013 |
 | Geofence/route events when configured | future Maps persistence task; privacy rules in `06_SECURITY_AND_DATA_RULES.md` |

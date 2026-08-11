@@ -2,6 +2,8 @@ import "dotenv/config";
 
 import pg from "pg";
 
+import { seedPhase3Resources } from "./phase3-resource-seed.mjs";
+
 const { Client } = pg;
 
 const nodeEnvironment = process.env.NODE_ENV;
@@ -81,6 +83,8 @@ const ids = {
   vehicleB: "00000000-0000-4000-8000-000000000051",
   vehicleC: "00000000-0000-4000-8000-000000000052",
   vehicleD: "00000000-0000-4000-8000-000000000053",
+  zoneAmmanMain: "00000000-0000-4000-8000-000000000058",
+  zoneDubaiMain: "00000000-0000-4000-8000-000000000059",
   spotA01: "00000000-0000-4000-8000-000000000060",
   spotA02: "00000000-0000-4000-8000-000000000061",
   spotA03: "00000000-0000-4000-8000-000000000062",
@@ -375,59 +379,7 @@ async function seed() {
       );
     }
 
-    const spots = [
-      [ids.spotA01, ids.ammanLocation, "A-01", "Amman Demo Spot 01"],
-      [ids.spotA02, ids.ammanLocation, "A-02", "Amman Demo Spot 02"],
-      [ids.spotA03, ids.ammanLocation, "A-03", "Amman Demo Spot 03"],
-      [ids.spotA04, ids.ammanLocation, "A-04", "Amman Demo Spot 04"],
-      [ids.spotD01, ids.dubaiLocation, "D-01", "Dubai Demo Spot 01"],
-    ];
-    for (const spot of spots) {
-      await query(
-        `INSERT INTO parking_spots
-           (id, organization_id, location_id, code, label, status, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, 'ACTIVE', $6, $6)
-         ON CONFLICT (id) DO UPDATE SET
-           code = EXCLUDED.code,
-           label = EXCLUDED.label,
-           status = EXCLUDED.status,
-           updated_at = EXCLUDED.updated_at`,
-        [
-          spot[0],
-          ids.organization,
-          spot[1],
-          spot[2],
-          spot[3],
-          timestamps.created,
-        ],
-      );
-    }
-
-    const keySlots = [
-      [ids.keyK01, ids.ammanLocation, "K-01"],
-      [ids.keyK02, ids.ammanLocation, "K-02"],
-      [ids.keyK03, ids.ammanLocation, "K-03"],
-      [ids.keyK04, ids.ammanLocation, "K-04"],
-      [ids.keyDK01, ids.dubaiLocation, "DK-01"],
-    ];
-    for (const keySlot of keySlots) {
-      await query(
-        `INSERT INTO key_slots
-           (id, organization_id, location_id, code, status, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, 'ACTIVE', $5, $5)
-         ON CONFLICT (id) DO UPDATE SET
-           code = EXCLUDED.code,
-           status = EXCLUDED.status,
-           updated_at = EXCLUDED.updated_at`,
-        [
-          keySlot[0],
-          ids.organization,
-          keySlot[1],
-          keySlot[2],
-          timestamps.created,
-        ],
-      );
-    }
+    await seedPhase3Resources(query, ids, timestamps.created);
 
     const sessions = [
       {
@@ -435,6 +387,7 @@ async function seed() {
         vehicleId: ids.vehicleA,
         customerId: ids.customerA,
         state: "PARKED",
+        zoneId: ids.zoneAmmanMain,
         spotId: ids.spotA01,
         keyId: ids.keyK01,
         createdAt: timestamps.sessionACreated,
@@ -452,6 +405,7 @@ async function seed() {
         vehicleId: ids.vehicleB,
         customerId: ids.customerB,
         state: "READY",
+        zoneId: ids.zoneAmmanMain,
         spotId: ids.spotA02,
         keyId: ids.keyK02,
         createdAt: timestamps.sessionBCreated,
@@ -469,8 +423,9 @@ async function seed() {
         vehicleId: ids.vehicleC,
         customerId: ids.customerC,
         state: "COMPLETED",
-        spotId: ids.spotA03,
-        keyId: ids.keyK03,
+        zoneId: null,
+        spotId: null,
+        keyId: null,
         createdAt: timestamps.sessionCCreated,
         checkingInCompletedAt: "2026-08-09T06:48:00.000Z",
         parkingStartedAt: "2026-08-09T06:49:00.000Z",
@@ -486,8 +441,9 @@ async function seed() {
         vehicleId: ids.vehicleD,
         customerId: ids.customerD,
         state: "COMPLETED",
-        spotId: ids.spotA04,
-        keyId: ids.keyK04,
+        zoneId: null,
+        spotId: null,
+        keyId: null,
         createdAt: timestamps.sessionDCreated,
         checkingInCompletedAt: "2026-08-09T08:18:00.000Z",
         parkingStartedAt: "2026-08-09T08:19:00.000Z",
@@ -504,14 +460,15 @@ async function seed() {
       await query(
         `INSERT INTO valet_sessions
            (id, customer_access_token_hash, customer_access_expires_at, organization_id, location_id,
-            vehicle_id, customer_id, state, parking_spot_id, key_slot_id,
+            vehicle_id, customer_id, state, parking_zone_id, parking_spot_id, key_slot_id,
             current_assignee_membership_id, checked_in_by_membership_id, completed_by_membership_id,
             created_at, checking_in_completed_at, parking_started_at, parked_at,
             retrieval_requested_at, retrieval_started_at, ready_at, completed_at, version, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-                 $14, $15, $16, $17, $18, $19, $20, $21, 1, $14)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+                 $15, $16, $17, $18, $19, $20, $21, $22, 1, $15)
          ON CONFLICT (id) DO UPDATE SET
            state = EXCLUDED.state,
+           parking_zone_id = EXCLUDED.parking_zone_id,
            parking_spot_id = EXCLUDED.parking_spot_id,
            key_slot_id = EXCLUDED.key_slot_id,
            current_assignee_membership_id = EXCLUDED.current_assignee_membership_id,
@@ -533,6 +490,7 @@ async function seed() {
           session.vehicleId,
           session.customerId,
           session.state,
+          session.zoneId,
           session.spotId,
           session.keyId,
           ids.valetMembership,

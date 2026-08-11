@@ -213,14 +213,16 @@ The VAL-004I integration gate proves that a real authorized staff flow can estab
 
 ## Phase 3 — Operations: keys, parking and Hybrid Dispatch
 
-The binding pre-Phase-3 sequence is:
+The pre-Phase-3 structure gate is complete and Phase 3 is active. The first
+focused slice is VAL-005A under accepted DEC-031:
 
-1. VAL-004R controlled production staff provisioning merged through PR #82;
-2. complete and merge active VAL-004S 300-line structure enforcement; and
-3. begin Phase 3.
+1. persist ParkingZone and exact Zone/Spot scope;
+2. enforce current KeySlot/ParkingSpot exclusivity;
+3. persist append-only KeyCustodyEvent history and runtime grants; and
+4. stop before command, API, Shift or Dispatch behavior.
 
 Cleanup A/B/C are complete. VAL-004R adds no signup/admin API or MFA claim and
-does not make Phase 2 production-ready by itself. Phase 3 has not started. The
+does not make Phase 2 production-ready by itself. Phase 3 persistence work has started. The
 former final Phase 2 security/integrity closure and fresh Standard Security Scan
 are deferred production/pilot-hardening work and must not be claimed as run or
 passed.

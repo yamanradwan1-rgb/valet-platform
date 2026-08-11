@@ -57,11 +57,28 @@ enum ParkingSpotStatus {
   @@map("parking_spot_status")
 }
 
+enum ParkingZoneStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("parking_zone_status")
+}
+
 enum KeySlotStatus {
   ACTIVE
   INACTIVE
 
   @@map("key_slot_status")
+}
+
+enum KeyCustodyEventType {
+  SLOT_ASSIGNED
+  CHECKED_OUT
+  RETURNED_TO_SLOT
+  SLOT_CLEARED
+  RELEASED
+
+  @@map("key_custody_event_type")
 }
 
 enum ValetSessionState {
@@ -219,8 +236,10 @@ model Organization {
   shifts                   Shift[]
   customers                Customer[]
   vehicles                 Vehicle[]
+  parkingZones             ParkingZone[]
   parkingSpots             ParkingSpot[]
   keySlots                 KeySlot[]
+  keyCustodyEvents         KeyCustodyEvent[]
   valetSessions            ValetSession[]
   retrievalRequests        RetrievalRequest[]
   handoffVerifications     HandoffVerification[]
@@ -255,8 +274,10 @@ model Location {
   organization             Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   membershipLocationAccess MembershipLocationAccess[]
   shifts                   Shift[]
+  parkingZones             ParkingZone[]
   parkingSpots             ParkingSpot[]
   keySlots                 KeySlot[]
+  keyCustodyEvents         KeyCustodyEvent[]
   valetSessions            ValetSession[]
   auditEvents              AuditEvent[]
   payments                 Payment[]
@@ -349,6 +370,7 @@ model OrganizationMembership {
   recordedConditionNotes   ConditionNote[]
   capturedVehiclePhotos    VehiclePhoto[]
   completedConditionChecks ValetSession[]             @relation("ValetSessionCheckInConditionCompletedBy")
+  keyCustodyEvents         KeyCustodyEvent[]
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -427,6 +449,7 @@ model ParkingSpot {
   id             String            @id @default(uuid()) @db.Uuid
   organizationId String            @map("organization_id") @db.Uuid
   locationId     String            @map("location_id") @db.Uuid
+  parkingZoneId  String?           @map("parking_zone_id") @db.Uuid
   code           String
   label          String
   status         ParkingSpotStatus @default(ACTIVE)
@@ -435,11 +458,33 @@ model ParkingSpot {
 
   organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   location      Location       @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
-  valetSessions ValetSession[]
+  parkingZone   ParkingZone?   @relation(fields: [organizationId, locationId, parkingZoneId], references: [organizationId, locationId, id], onDelete: Restrict, map: "parking_spots_org_location_zone_id_fkey")
+  valetSessions ValetSession[] @relation("ValetSessionParkingSpot")
 
   @@unique([locationId, code], map: "parking_spots_location_id_code_key")
   @@unique([organizationId, locationId, id], map: "parking_spots_organization_id_location_id_id_key")
+  @@unique([organizationId, locationId, parkingZoneId, id], map: "parking_spots_org_location_zone_id_id_key")
   @@map("parking_spots")
+}
+
+model ParkingZone {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @map("organization_id") @db.Uuid
+  locationId     String            @map("location_id") @db.Uuid
+  code           String
+  label          String
+  status         ParkingZoneStatus @default(ACTIVE)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location      Location       @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "parking_zones_org_location_id_fkey")
+  parkingSpots  ParkingSpot[]
+  valetSessions ValetSession[]
+
+  @@unique([locationId, code], map: "parking_zones_location_id_code_key")
+  @@unique([organizationId, locationId, id], map: "parking_zones_organization_id_location_id_id_key")
+  @@map("parking_zones")
 }
 
 model KeySlot {
@@ -451,9 +496,10 @@ model KeySlot {
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  location      Location       @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+  organization  Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location      Location          @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
   valetSessions ValetSession[]
+  custodyEvents KeyCustodyEvent[]
 
   @@unique([locationId, code], map: "key_slots_location_id_code_key")
   @@unique([organizationId, locationId, id], map: "key_slots_organization_id_location_id_id_key")
@@ -470,6 +516,7 @@ model ValetSession {
   vehicleId                               String            @map("vehicle_id") @db.Uuid
   customerId                              String?           @map("customer_id") @db.Uuid
   state                                   ValetSessionState
+  parkingZoneId                           String?           @map("parking_zone_id") @db.Uuid
   parkingSpotId                           String?           @map("parking_spot_id") @db.Uuid
   keySlotId                               String?           @map("key_slot_id") @db.Uuid
   currentAssigneeMembershipId             String?           @map("current_assignee_membership_id") @db.Uuid
@@ -493,7 +540,8 @@ model ValetSession {
   location                    Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_location_id_fkey")
   vehicle                     Vehicle                 @relation(fields: [organizationId, vehicleId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_vehicle_id_fkey")
   customer                    Customer?               @relation(fields: [organizationId, customerId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_customer_id_fkey")
-  parkingSpot                 ParkingSpot?            @relation(fields: [organizationId, locationId, parkingSpotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_parking_spot_id_fkey")
+  parkingZone                 ParkingZone?            @relation(fields: [organizationId, locationId, parkingZoneId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_parking_zone_id_fkey")
+  parkingSpot                 ParkingSpot?            @relation("ValetSessionParkingSpot", fields: [organizationId, locationId, parkingZoneId, parkingSpotId], references: [organizationId, locationId, parkingZoneId, id], onDelete: Restrict, map: "valet_sessions_org_location_zone_parking_spot_id_fkey")
   keySlot                     KeySlot?                @relation(fields: [organizationId, locationId, keySlotId], references: [organizationId, locationId, id], onDelete: Restrict, map: "valet_sessions_org_location_key_slot_id_fkey")
   currentAssignee             OrganizationMembership? @relation("ValetSessionCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_current_assignee_id_fkey")
   checkedInBy                 OrganizationMembership  @relation("ValetSessionCheckedInBy", fields: [organizationId, checkedInByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "valet_sessions_org_checked_in_by_id_fkey")
@@ -508,6 +556,7 @@ model ValetSession {
   conditionNotes              ConditionNote[]
   vehiclePhotos               VehiclePhoto[]
   intakeOperations            IntakeOperation[]
+  keyCustodyEvents            KeyCustodyEvent[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -515,6 +564,27 @@ model ValetSession {
   @@index([vehicleId, createdAt(sort: Desc)], map: "valet_sessions_vehicle_id_created_at_idx")
   @@index([locationId, retrievalRequestedAt], map: "valet_sessions_location_id_retrieval_requested_at_idx")
   @@map("valet_sessions")
+}
+
+model KeyCustodyEvent {
+  id                String              @id @default(uuid()) @db.Uuid
+  organizationId    String              @map("organization_id") @db.Uuid
+  locationId        String              @map("location_id") @db.Uuid
+  valetSessionId    String              @map("valet_session_id") @db.Uuid
+  keySlotId         String?             @map("key_slot_id") @db.Uuid
+  actorMembershipId String              @map("actor_membership_id") @db.Uuid
+  eventType         KeyCustodyEventType @map("event_type")
+  occurredAt        DateTime            @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization    Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "key_custody_events_organization_id_fkey")
+  location        Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "key_custody_events_org_location_id_fkey")
+  valetSession    ValetSession           @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "key_custody_events_org_location_session_id_fkey")
+  keySlot         KeySlot?               @relation(fields: [organizationId, locationId, keySlotId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "key_custody_events_org_location_key_slot_id_fkey")
+  actorMembership OrganizationMembership @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "key_custody_events_org_actor_membership_id_fkey")
+
+  @@index([valetSessionId, occurredAt, id], map: "key_custody_events_valet_session_id_occurred_at_id_idx")
+  @@map("key_custody_events")
 }
 
 model IntakeOperation {
