@@ -25,8 +25,9 @@ checkbox is not evidence that a provider control exists.
 - [ ] API process environment does not contain `MIGRATION_DATABASE_URL`.
 - [ ] Production migration URL has exact `sslmode=require` and
   `sslaccept=strict`, with only optional `sslrootcert` beyond those keys; when
-  present, it is a URL-encoded deployment-mounted absolute path available with
-  identical semantics to the Node preflight and Prisma migration process.
+  present, it is a URL-encoded deployment-host-native absolute filesystem path
+  available with identical semantics to the Node preflight and Prisma migration
+  process.
 - [ ] Production migration/provisioning preflight verifies its own encrypted
   backend before mutation.
 - [ ] Runtime and migration identities and their production passwords are

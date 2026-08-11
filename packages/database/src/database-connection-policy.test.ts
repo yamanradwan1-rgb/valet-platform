@@ -1,3 +1,5 @@
+import { isAbsolute } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -11,6 +13,25 @@ const productionMigrationBase =
   "postgresql://valet_admin:admin-secret@database.example:5432/valet";
 const productionRuntimeBase =
   "postgresql://valet_runtime:runtime-secret@database.example:5432/valet";
+const hostAbsoluteCertificatePath =
+  process.platform === "win32"
+    ? "C:\\deployment\\database-ca.pem"
+    : "/deployment/database-ca.pem";
+const privateHostAbsoluteCertificatePath =
+  process.platform === "win32"
+    ? "C:\\deployment\\private database-ca.pem"
+    : "/deployment/private database-ca.pem";
+const foreignPlatformCertificatePath =
+  process.platform === "win32"
+    ? "/deployment/database-ca.pem"
+    : "C:\\deployment\\database-ca.pem";
+
+function migrationUrlWithRootCertificate(path: string): string {
+  return (
+    `${productionMigrationBase}?sslmode=require&sslaccept=strict` +
+    `&sslrootcert=${encodeURIComponent(path)}`
+  );
+}
 
 describe("production migration database connection policy", () => {
   it("accepts only exact require and strict TLS values without stripping them", () => {
@@ -28,36 +49,41 @@ describe("production migration database connection policy", () => {
   });
 
   it(
-    "accepts a POSIX absolute sslrootcert path without changing Prisma's URL",
+    "accepts the host-native absolute path without changing Prisma's URL",
     () => {
-      const value =
-        `${productionMigrationBase}?sslmode=require&sslaccept=strict` +
-        "&sslrootcert=%2Fdeployment%2Fdatabase-ca.pem";
+      expect(isAbsolute(hostAbsoluteCertificatePath)).toBe(true);
+      const value = migrationUrlWithRootCertificate(
+        hostAbsoluteCertificatePath,
+      );
       const migration = parseMigrationDatabaseUrl(value, "production");
       expect(migration.parsed.searchParams.get("sslrootcert")).toBe(
-        "/deployment/database-ca.pem",
+        hostAbsoluteCertificatePath,
       );
       expect(migration.value).toBe(value);
     },
   );
 
-  it("accepts Windows absolute sslrootcert path syntax platform-safely", () => {
-    const value =
-      `${productionMigrationBase}?sslmode=require&sslaccept=strict` +
-      "&sslrootcert=C%3A%5Cdeployment%5Cdatabase-ca.pem";
-    const migration = parseMigrationDatabaseUrl(value, "production");
-    expect(migration.parsed.searchParams.get("sslrootcert")).toBe(
-      "C:\\deployment\\database-ca.pem",
+  it("uses current-host path.isAbsolute semantics for foreign syntax", () => {
+    const value = migrationUrlWithRootCertificate(
+      foreignPlatformCertificatePath,
     );
-    expect(migration.value).toBe(value);
+    if (isAbsolute(foreignPlatformCertificatePath)) {
+      expect(() =>
+        parseMigrationDatabaseUrl(value, "production"),
+      ).not.toThrow();
+    } else {
+      expect(() => parseMigrationDatabaseUrl(value, "production")).toThrow(
+        "requires an absolute sslrootcert path",
+      );
+    }
   });
 
   it(
     "reads the exact decoded absolute path without leaking path or CA failures",
     () => {
-      const value =
-        `${productionMigrationBase}?sslmode=require&sslaccept=strict` +
-        "&sslrootcert=%2Fdeployment%2Fprivate%20database-ca.pem";
+      const value = migrationUrlWithRootCertificate(
+        privateHostAbsoluteCertificatePath,
+      );
       const migration = parseMigrationDatabaseUrl(value, "production");
       const reads: Array<{ encoding: string; path: string }> = [];
       const config = migrationClientConfig(
@@ -69,7 +95,7 @@ describe("production migration database connection policy", () => {
         },
       );
       expect(reads).toEqual([
-        { encoding: "utf8", path: "/deployment/private database-ca.pem" },
+        { encoding: "utf8", path: privateHostAbsoluteCertificatePath },
       ]);
       expect(config.ssl).toEqual({
         ca: "private-ca-contents",
@@ -80,7 +106,7 @@ describe("production migration database connection policy", () => {
       for (const [readCertificate, expectedMessage] of [
         [
           () => {
-            throw new Error("/deployment/private database-ca.pem");
+            throw new Error(privateHostAbsoluteCertificatePath);
           },
           "Production migration TLS CA material is unavailable.",
         ],
@@ -94,7 +120,7 @@ describe("production migration database connection policy", () => {
         }
         expect(failure?.message).toBe(expectedMessage);
         expect(failure?.message).not.toContain(
-          "/deployment/private database-ca.pem",
+          privateHostAbsoluteCertificatePath,
         );
         expect(failure?.message).not.toContain("private-ca-contents");
       }

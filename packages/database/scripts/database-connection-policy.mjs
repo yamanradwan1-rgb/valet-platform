@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { posix, win32 } from "node:path";
+import { isAbsolute } from "node:path";
 
 const postgresProtocols = new Set(["postgres:", "postgresql:"]);
 const productionMigrationKeys = new Set([
@@ -8,10 +8,6 @@ const productionMigrationKeys = new Set([
   "sslrootcert",
 ]);
 const acceptedTlsVersions = new Set(["TLSv1.2", "TLSv1.3"]);
-
-function isAbsoluteFilesystemPath(value) {
-  return posix.isAbsolute(value) || win32.isAbsolute(value);
-}
 
 function requireDatabaseUrl(value, name) {
   if (value === undefined || value.trim() === "") {
@@ -74,7 +70,7 @@ function validateProductionMigrationQuery(parsed) {
   if (
     rootCertificatePath !== null &&
     (rootCertificatePath.trim() === "" ||
-      !isAbsoluteFilesystemPath(rootCertificatePath))
+      !isAbsolute(rootCertificatePath))
   ) {
     throw new Error(
       "Production MIGRATION_DATABASE_URL requires an absolute sslrootcert path.",

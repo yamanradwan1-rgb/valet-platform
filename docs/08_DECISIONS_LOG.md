@@ -1128,14 +1128,14 @@ In production, Prisma migration/admin commands require a narrowly allowlisted qu
 ```text
 sslmode=require
 sslaccept=strict
-sslrootcert=<optional deployment-mounted absolute certificate path>
+sslrootcert=<optional deployment-host-native absolute certificate path>
 ```
 
 Rules:
 
 - `sslmode` must be exactly `require`;
 - `sslaccept` must be exactly `strict`;
-- `sslrootcert` is optional and may point to deployment-mounted CA material when the server chain is not trusted by the normal environment; when supplied, its decoded value must be an absolute POSIX or Windows filesystem path, and that exact path is used by both the Node `pg` preflight and Prisma;
+- `sslrootcert` is optional and may point to deployment-mounted CA material when the server chain is not trusted by the normal environment; when supplied, its decoded value must be a deployment-host-native absolute filesystem path, and that exact path is used by both the Node `pg` preflight and Prisma;
 - duplicate query keys are rejected;
 - every other query key is rejected;
 - URL fragments are rejected;
