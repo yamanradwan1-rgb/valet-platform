@@ -134,6 +134,11 @@ produce only advisory warnings.
 Staff authentication, session/token lifecycle, Origin policy and the shared
 staff-principal resolution boundary.
 
+The API workspace also owns `tools/provision-staff.ts`, a deployment-operator
+command outside `src/**`. Runtime modules must not import it; it uses the
+administrative migration connection boundary to create new staff identities
+under DEC-029.
+
 ### anti-abuse
 Shared durable staff-login and guest-access anti-abuse services, limiter-key
 derivation and trusted client-address resolution.

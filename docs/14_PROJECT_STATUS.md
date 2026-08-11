@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-11` (VAL-004Q local implementation session)
+- Date/time: `2026-08-11` (VAL-004R local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
 - Required accepted-decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
-- Active branch: `chore/VAL-004Q-architecture-guard`
-- Active task: VAL-004Q — Pre-Phase-3 Architecture Guard
-- Verification basis: owner-supplied VAL-004Q task packet and accepted DEC-028
+- Active branch: `feat/VAL-004R-controlled-staff-provisioning`
+- Active task: VAL-004R — Controlled Production Staff Provisioning
+- Verification basis: owner-supplied VAL-004R task packet and accepted DEC-029
 
 ## Current Milestone
 
@@ -25,9 +25,9 @@ VAL-004N is **MERGED / COMPLETED** through PR #73, merge commit
 through PR #75, merge commit `89ffc2f0bbd1f386b9da11b5f871c85c3cb15cce`.
 VAL-004P is **MERGED / COMPLETED** through PR #77, merge commit
 `7b84ee5f6aa3a605d589dc4651ac5920031f9124`. Cleanup A and Cleanup B are
-complete. VAL-004Q is the active Cleanup C architecture-guard slice; the full
-Pre-Phase-3 Structural Cleanup is not complete until its PR is merged, Phase 3
-has not started, and Phase 2 is not yet
+complete. VAL-004Q is **MERGED / COMPLETED** through PR #79, merge commit
+`ba0cc5d00201f201e9b65d45ab295a4933dcc8df`. Cleanup A/B/C are complete.
+VAL-004R controlled staff provisioning is active, Phase 3 has not started, and Phase 2 is not yet
 declared production-ready. No fresh post-fix Standard Security Scan is claimed.
 
 ## Recently Completed Gate
@@ -100,31 +100,33 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004Q — Pre-Phase-3 Architecture Guard
+### VAL-004R — Controlled Production Staff Provisioning
 
-- Branch: `chore/VAL-004Q-architecture-guard`
+- Branch: `feat/VAL-004R-controlled-staff-provisioning`
 - Status: **ACTIVE — IMPLEMENTED / PUSHED, PENDING PR / MERGE**
-- Accepted decision baseline: `1501253e766bed93e3498960294a3777493947a1`
+- Accepted decision baseline: `aa05d07f082fa0e3687b2272c59c2d01bd847519`
 - Expected database state on this branch: **18 forward-only migrations**
 
 Objective:
-Implement accepted DEC-028 with repository-owned resolved import-direction and
-retired-symbol guards, ESLint fast feedback, focused regression coverage, and
-CI integration without changing application behavior.
+Implement accepted DEC-029 as a create-only deployment-operator command that
+atomically creates a Staff Auth-capable User, Organization membership, explicit
+Location access, and safe AuditEvent without adding an HTTP surface.
 
-VAL-004Q does not change schema, migrations, dependencies, public routes,
-authentication, anti-abuse semantics, custody behavior, or Phase 3 scope. Phase
-2 remains gated on secure staff provisioning/admin onboarding, external deployment evidence, and the final
-closure/security-integrity review including a fresh Standard Security Scan.
+VAL-004R does not change schema, migrations, dependencies, public routes,
+authentication, anti-abuse semantics, custody behavior, or Phase 3 scope. It
+does not make Phase 2 production-ready by itself. After VAL-004R merges,
+VAL-004S is the next repository gate before Phase 3.
 
 ## Remaining Phase 2 Check-In Gate
 
 VAL-004L staff authentication, VAL-004M shared anti-abuse, VAL-004N production
-database hardening, VAL-004O Cleanup A, and VAL-004P Cleanup B are merged.
-VAL-004Q Cleanup C is active. Phase 2 is not production-ready until Cleanup C
-is merged, the provider-owned checklist has real evidence, and the final Phase 2
-closure/security-integrity review including a fresh Standard Security Scan is
-completed.
+database hardening and Cleanup A/B/C are merged. VAL-004R controlled staff
+provisioning is implemented and pushed but remains active pending PR/merge.
+MFA-gated privileged admin capabilities remain unavailable. VAL-004S — Enforce
+300-Line Agent Structure Policy is the next repository gate after VAL-004R and
+before Phase 3. Phase 3 has not started. The former final Phase 2
+security/integrity closure and fresh Standard Security Scan are deferred
+production/pilot-hardening work, not completed checks or pre-Phase-3 gates.
 
 ## Phase 2 Focused Task Sequence
 
@@ -148,6 +150,8 @@ VAL-004N  Production Database / Network / TLS / Credential Hardening
 VAL-004O  Shared Runtime Infrastructure Cleanup (Cleanup A)
 VAL-004P  Feature Ownership Cleanup (Cleanup B)
 VAL-004Q  Pre-Phase-3 Architecture Guard (Cleanup C)
+VAL-004R  Controlled Production Staff Provisioning
+VAL-004S  Enforce 300-Line Agent Structure Policy
 ```
 
 This sequence is dependency-oriented, not permission to combine Phase 2 into one large PR.
@@ -203,18 +207,17 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 
 ## Exact Next Step
 
-For VAL-004Q:
+Current pre-Phase-3 sequence:
 
 ```text
-implement architecture dependency/retirement guards and focused regression coverage
--> run all quality gates and architecture:check
--> review the local diff against DEC-028 and the VAL-004Q task scope
--> commit and push the assigned implementation branch after all gates pass
+merge VAL-004R
+-> complete and merge VAL-004S — Enforce 300-Line Agent Structure Policy
+-> begin Phase 3
 ```
 
-Do not begin Phase 3 on this branch. Cleanup C remains active until its PR is merged. Do not
-declare Phase 2 production-ready and do not claim a fresh Standard Security
-Scan was run.
+Do not begin Phase 3 on this branch. Do not declare Phase 2 production-ready
+solely from VAL-004R. The former final Phase 2 closure and fresh Standard
+Security Scan are deferred; neither has been run or passed by this task.
 
 ## Parallel UX/UI Track
 

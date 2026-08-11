@@ -1,5 +1,11 @@
 # Production Database Deployment Checklist
 
+- [ ] Controlled staff provisioning is executed only by an authorized
+  deployment operator using `pnpm --filter @valet/api staff:provision -- ...`,
+  `NODE_ENV=production`, the protected `MIGRATION_DATABASE_URL`, and a password
+  supplied through non-interactive stdin. Retain only non-secret result
+  identifiers as command evidence; record provider ownership separately.
+
 Status: Deployment evidence template
 Decision: DEC-025
 

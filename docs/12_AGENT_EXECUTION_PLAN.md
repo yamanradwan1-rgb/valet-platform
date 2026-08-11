@@ -168,8 +168,24 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
     `GuestAccessModule`, and `CheckInModule` directly from `AppModule`, moving
     staff-principal ownership to Auth, extracting Guest Access application/API
     ownership, and introducing the neutral `ApiOperationRunner` without
-    changing behavior. Active on its focused branch until merge. Cleanup C and
-    Phase 3 have not started.
+    changing behavior. Merged/completed through PR #77, merge commit
+    `7b84ee5f6aa3a605d589dc4651ac5920031f9124`.
+
+15. **VAL-004Q — Pre-Phase-3 Architecture Guard (Cleanup C)**
+    Implement accepted DEC-028 dependency-direction and retired-symbol guards.
+    Merged/completed through PR #79, merge commit
+    `ba0cc5d00201f201e9b65d45ab295a4933dcc8df`. Cleanup A/B/C are complete.
+
+16. **VAL-004R — Controlled Production Staff Provisioning**
+    Implement accepted DEC-029 create-only offline staff provisioning. The
+    implementation is pushed and remains active until its PR is merged; it does
+    not make Phase 2 production-ready by itself.
+
+17. **VAL-004S — Enforce 300-Line Agent Structure Policy**
+    After VAL-004R merges, implement accepted DEC-030 by splitting the
+    transitional VAL-004R files, enforcing the 300-line policy through the
+    repository architecture gate, and establishing the legacy baseline. This is
+    the final repository gate before Phase 3 begins.
 
 Do not combine these focused slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
@@ -186,19 +202,27 @@ Before production `complete-check-in` claims the full Blueprint semantics, the r
 - durable command-operation identity only if transparent offline duplicate replay is required
 - implemented shared/durable DEC-024 staff-login and guest anti-abuse controls
 - production database, network and TLS hardening plus documented deployment controls
-- final Phase 2 closure/security-integrity review after the pre-Phase-3
-  structural cleanup, including
-  completed external deployment evidence and a fresh Standard Security Scan where
-  tooling permits
 
 Do not fake these dependencies inside the command with an untyped policy blob, migration-owner runtime access, or claims that `version` alone is full idempotency.
 
 Acceptance direction:
 The normal low-friction check-in path should target roughly 15–20 seconds where policy does not require photos.
 
-The VAL-004I integration gate proves that a real authorized staff flow can establish a valid intake and safely reach `AWAITING_PARKING` with tenant/location isolation, concurrency protection, audit integrity and the required check-in instrumentation. Phase 2 must not be declared globally complete until the separate final Phase 2 security/integrity review gate is also completed.
+The VAL-004I integration gate proves that a real authorized staff flow can establish a valid intake and safely reach `AWAITING_PARKING` with tenant/location isolation, concurrency protection, audit integrity and the required check-in instrumentation. The former final Phase 2 security/integrity closure and fresh Standard Security Scan are deferred production/pilot-hardening work, not completed checks or pre-Phase-3 gates. VAL-004R alone does not make Phase 2 production-ready.
 
 ## Phase 3 — Operations: keys, parking and Hybrid Dispatch
+
+The binding pre-Phase-3 sequence is:
+
+1. merge VAL-004R controlled production staff provisioning;
+2. complete and merge VAL-004S 300-line structure enforcement; and
+3. begin Phase 3.
+
+Cleanup A/B/C are complete. VAL-004R adds no signup/admin API or MFA claim and
+does not make Phase 2 production-ready by itself. Phase 3 has not started. The
+former final Phase 2 security/integrity closure and fresh Standard Security Scan
+are deferred production/pilot-hardening work and must not be claimed as run or
+passed.
 
 Goal:
 Make the valet operation executable after check-in.

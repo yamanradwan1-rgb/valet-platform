@@ -1,5 +1,12 @@
 # Engineering Rules
 
+Controlled production Staff Auth account creation uses the create-only
+`@valet/api` `staff:provision` operator command accepted by DEC-029. It runs
+outside API runtime source, accepts passwords only through non-interactive
+stdin, uses `MIGRATION_DATABASE_URL`, and atomically creates the User,
+membership, explicit Location access, and AuditEvent. It is not a signup or
+general account-lifecycle API.
+
 Status: Binding  
 Version: 0.3
 

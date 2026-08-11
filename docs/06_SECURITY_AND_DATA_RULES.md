@@ -1,5 +1,11 @@
 # Security and Data Rules
 
+DEC-029 provisioning is a controlled offline create-only boundary. It never
+accepts passwords from argv/environment, never reuses or reactivates an
+existing User, validates Organization and Location scope from persisted rows,
+and writes one safe `STAFF_ACCOUNT_PROVISIONED` AuditEvent atomically. Creating
+an `ORG_ADMIN` membership does not assert MFA or enable MFA-gated admin APIs.
+
 Status: Binding  
 Version: 0.4
 

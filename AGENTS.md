@@ -22,11 +22,12 @@ When instructions conflict, use this order:
 6. `docs/03_DATABASE_SCHEMA.md`.
 7. `docs/02_DOMAIN_MODEL.md`.
 8. `docs/09_TECH_STACK.md`.
-9. `docs/05_ENGINEERING_RULES.md`.
-10. `docs/06_SECURITY_AND_DATA_RULES.md`.
-11. `docs/13_COLLABORATION_WORKFLOW.md` for collaboration/process rules.
-12. `CONTRIBUTING.md`.
-13. Original concept PDF for historical product intent.
+9. `docs/17_AGENT_CODE_STRUCTURE_RULES.md` for mandatory code-structure and file-size constraints.
+10. `docs/05_ENGINEERING_RULES.md`.
+11. `docs/06_SECURITY_AND_DATA_RULES.md`.
+12. `docs/13_COLLABORATION_WORKFLOW.md` for collaboration/process rules.
+13. `CONTRIBUTING.md`.
+14. Original concept PDF for historical product intent.
 
 The Founder & Product Blueprint v1.0 is the latest approved product direction. Until its PDF is committed into `docs/reference`, `docs/15_BLUEPRINT_V1_REBASELINE.md` is the repository-native bridge that records its implementation-relevant decisions.
 
@@ -36,17 +37,18 @@ Never silently resolve a material conflict. Record the resolution as a decision.
 
 Before implementing a feature:
 
-1. Read the relevant docs.
+1. Read the relevant docs, including `docs/17_AGENT_CODE_STRUCTURE_RULES.md` for every code-changing task.
 2. Name the affected entities.
 3. Name the affected ValetSession transitions and Task/Dispatch transitions, if any.
 4. Identify authorization/tenant/location impact.
 5. Identify required DB constraints and indexes.
 6. Identify configuration-policy impact and Company-default/Location-override behavior where applicable.
 7. Confirm the feature is inside the approved MVP/V2/Enterprise boundary.
-8. Update design docs first if agreed behavior changes.
-9. Then implement.
-10. Add tests.
-11. Verify the Definition of Done.
+8. Inspect intended target files and plan extraction before adding code if any target is near or above the 300-line authored-code ceiling.
+9. Update design docs first if agreed behavior changes.
+10. Then implement.
+11. Add tests.
+12. Verify the Definition of Done and the structure rules.
 
 ## 4. Scope discipline
 
@@ -109,6 +111,8 @@ Shared packages:
 The backend owns business rules.
 
 Provider-specific OCR, maps, messaging, payments and object storage must stay behind application boundaries/adapters where practical.
+
+All authored code must also follow `docs/17_AGENT_CODE_STRUCTURE_RULES.md`; agents must not grow god files or bypass the 300-line policy through compressed formatting.
 
 ## 6. Core domain rules
 
@@ -210,6 +214,7 @@ If something is ambiguous:
 - Do not refactor unrelated parts of the codebase while completing a focused task.
 - Do not replace a chosen technology without an accepted decision.
 - Do not mark work complete when tests are failing.
+- Do not create or grow a code file beyond the structural rules in `docs/17_AGENT_CODE_STRUCTURE_RULES.md`.
 
 ## 13. Collaboration and Git rules
 
@@ -239,6 +244,7 @@ docs/08_DECISIONS_LOG.md
 docs/09_TECH_STACK.md
 docs/13_COLLABORATION_WORKFLOW.md
 docs/15_BLUEPRINT_V1_REBASELINE.md
+docs/17_AGENT_CODE_STRUCTURE_RULES.md
 packages/database/prisma/schema.prisma
 packages/database/prisma/migrations/**
 package.json
