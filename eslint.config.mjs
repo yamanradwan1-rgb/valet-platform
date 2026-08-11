@@ -24,6 +24,58 @@ export default tseslint.config(
     },
   },
   {
+    files: ["apps/api/src/common/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/modules/**"],
+              message:
+                "Common infrastructure must not import application modules.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["apps/api/src/modules/anti-abuse/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["../auth/**", "../guest-access/**", "../check-in-api/**"],
+        },
+      ],
+    },
+  },
+  {
+    files: ["apps/api/src/modules/auth/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: ["../guest-access/**", "../check-in-api/**"] },
+      ],
+    },
+  },
+  {
+    files: ["apps/api/src/modules/guest-access/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: ["../check-in-api/**"] }],
+    },
+  },
+  {
+    files: ["apps/api/src/modules/check-in-api/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: ["../guest-access/**", "../anti-abuse/**"] },
+      ],
+    },
+  },
+  {
     files: ["apps/{valet,customer,dashboard}/**/*.{ts,tsx}"],
     plugins: {
       "react-hooks": reactHooks,

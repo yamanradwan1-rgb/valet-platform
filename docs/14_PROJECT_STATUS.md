@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-11` (VAL-004P local implementation session)
+- Date/time: `2026-08-11` (VAL-004Q local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
 - Required accepted-decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
-- Active branch: `refactor/VAL-004P-feature-ownership`
-- Active task: VAL-004P — Feature Ownership Cleanup
-- Verification basis: owner-supplied VAL-004P task packet, accepted DEC-027, and behavior-preserving feature-ownership regression coverage
+- Active branch: `chore/VAL-004Q-architecture-guard`
+- Active task: VAL-004Q — Pre-Phase-3 Architecture Guard
+- Verification basis: owner-supplied VAL-004Q task packet and accepted DEC-028
 
 ## Current Milestone
 
@@ -23,9 +23,11 @@ Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custod
 VAL-004N is **MERGED / COMPLETED** through PR #73, merge commit
 `53e674464c6f3973da9202ce68fc8131af8447e1`. VAL-004O is **MERGED / COMPLETED**
 through PR #75, merge commit `89ffc2f0bbd1f386b9da11b5f871c85c3cb15cce`.
-VAL-004P is the active Cleanup B feature-ownership slice. Cleanup A is complete,
-Cleanup B is active, Cleanup C has not started, the full Pre-Phase-3 Structural
-Cleanup is not complete, Phase 3 has not started, and Phase 2 is not yet
+VAL-004P is **MERGED / COMPLETED** through PR #77, merge commit
+`7b84ee5f6aa3a605d589dc4651ac5920031f9124`. Cleanup A and Cleanup B are
+complete. VAL-004Q is the active Cleanup C architecture-guard slice; the full
+Pre-Phase-3 Structural Cleanup is not complete until its PR is merged, Phase 3
+has not started, and Phase 2 is not yet
 declared production-ready. No fresh post-fix Standard Security Scan is claimed.
 
 ## Recently Completed Gate
@@ -98,29 +100,29 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004P — Feature Ownership Cleanup
+### VAL-004Q — Pre-Phase-3 Architecture Guard
 
-- Branch: `refactor/VAL-004P-feature-ownership`
-- Status: **ACTIVE — LOCAL IMPLEMENTATION / VALIDATION**
-- Accepted decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
+- Branch: `chore/VAL-004Q-architecture-guard`
+- Status: **ACTIVE — IMPLEMENTED / PUSHED, PENDING PR / MERGE**
+- Accepted decision baseline: `1501253e766bed93e3498960294a3777493947a1`
 - Expected database state on this branch: **18 forward-only migrations**
 
 Objective:
-Implement accepted DEC-027 by separating Staff Auth, Anti-Abuse, Guest Access,
-and Staff Check-In ownership into four acyclic feature modules, with a neutral
-shared API operation runner and unchanged public/security/domain behavior.
+Implement accepted DEC-028 with repository-owned resolved import-direction and
+retired-symbol guards, ESLint fast feedback, focused regression coverage, and
+CI integration without changing application behavior.
 
-VAL-004P does not change schema, migrations, dependencies, public routes,
+VAL-004Q does not change schema, migrations, dependencies, public routes,
 authentication, anti-abuse semantics, custody behavior, or Phase 3 scope. Phase
-2 remains gated on Cleanup C, external deployment evidence, and the final
+2 remains gated on secure staff provisioning/admin onboarding, external deployment evidence, and the final
 closure/security-integrity review including a fresh Standard Security Scan.
 
 ## Remaining Phase 2 Check-In Gate
 
 VAL-004L staff authentication, VAL-004M shared anti-abuse, VAL-004N production
-database hardening, and VAL-004O Cleanup A are merged. VAL-004P Cleanup B is
-active. Phase 2 is not production-ready until Cleanup B and Cleanup C are
-merged, the provider-owned checklist has real evidence, and the final Phase 2
+database hardening, VAL-004O Cleanup A, and VAL-004P Cleanup B are merged.
+VAL-004Q Cleanup C is active. Phase 2 is not production-ready until Cleanup C
+is merged, the provider-owned checklist has real evidence, and the final Phase 2
 closure/security-integrity review including a fresh Standard Security Scan is
 completed.
 
@@ -145,6 +147,7 @@ VAL-004M  Shared Durable Anti-Abuse Boundary
 VAL-004N  Production Database / Network / TLS / Credential Hardening
 VAL-004O  Shared Runtime Infrastructure Cleanup (Cleanup A)
 VAL-004P  Feature Ownership Cleanup (Cleanup B)
+VAL-004Q  Pre-Phase-3 Architecture Guard (Cleanup C)
 ```
 
 This sequence is dependency-oriented, not permission to combine Phase 2 into one large PR.
@@ -200,16 +203,16 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 
 ## Exact Next Step
 
-For VAL-004P:
+For VAL-004Q:
 
 ```text
-finish feature ownership separation and focused regression coverage
--> run all quality gates and architecture/dependency searches
--> review the local diff against DEC-027 and the VAL-004P task scope
+implement architecture dependency/retirement guards and focused regression coverage
+-> run all quality gates and architecture:check
+-> review the local diff against DEC-028 and the VAL-004Q task scope
 -> commit and push the assigned implementation branch after all gates pass
 ```
 
-Do not begin Phase 3 on this branch. Cleanup C remains not started. Do not
+Do not begin Phase 3 on this branch. Cleanup C remains active until its PR is merged. Do not
 declare Phase 2 production-ready and do not claim a fresh Standard Security
 Scan was run.
 
