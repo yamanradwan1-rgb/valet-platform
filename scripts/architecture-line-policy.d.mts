@@ -31,10 +31,19 @@ export function evaluateLinePolicy(
   files: ReadonlyMap<string, string>,
   baseline: LineBaseline,
 ): LinePolicyResult;
+export function evaluateHistoricalBaseline(
+  baseline: LineBaseline,
+  historicalFiles: ReadonlyMap<string, string | undefined>,
+): string[];
 export function createGrandfatherEntries(
   baseFiles: ReadonlyMap<string, string>,
 ): GrandfatherEntry[];
 export function checkLinePolicy(
   repositoryRoot: string,
   baselinePath: string,
+  historicalLoader?: (
+    repositoryRoot: string,
+    sourceCommit: string,
+    paths: string[],
+  ) => Promise<Map<string, string | undefined>>,
 ): Promise<LinePolicyResult>;

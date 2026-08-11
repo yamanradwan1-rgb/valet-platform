@@ -1,13 +1,9 @@
-import { execFile } from "node:child_process";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
-import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
-const executeFile = promisify(execFile);
-
-const checker = resolve(__dirname, "../../../scripts/architecture-check.mjs");
+import { checkArchitecture } from "../../../scripts/architecture-check.mjs";
 
 async function runFixture(files: Record<string, string>) {
   const fixtureRoot = await mkdtemp(resolve(tmpdir(), "valet-architecture-"));
@@ -25,24 +21,13 @@ async function runFixture(files: Record<string, string>) {
       await mkdir(dirname(filePath), { recursive: true });
       await writeFile(filePath, content);
     }
-    try {
-      const result = await executeFile(process.execPath, [
-        checker,
-        "--root",
-        fixtureRoot,
-      ]);
-      return { code: 0, output: `${result.stdout}${result.stderr}` };
-    } catch (error) {
-      const failure = error as {
-        code?: number;
-        stdout?: string;
-        stderr?: string;
-      };
-      return {
-        code: failure.code ?? 1,
-        output: `${failure.stdout ?? ""}${failure.stderr ?? ""}`,
-      };
-    }
+    const result = await checkArchitecture(fixtureRoot, async () => new Map());
+    return {
+      code: result.violations.length === 0 ? 0 : 1,
+      output: result.violations
+        .map((violation) => `ARCHITECTURE VIOLATION ${violation}`)
+        .join("\n"),
+    };
   } finally {
     await rm(fixtureRoot, { force: true, recursive: true });
   }

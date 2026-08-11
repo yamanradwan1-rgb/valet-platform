@@ -239,7 +239,7 @@ function exportSpecifier(tokens, start) {
   return undefined;
 }
 
-export async function checkArchitecture(repositoryRoot) {
+export async function checkArchitecture(repositoryRoot, historicalLoader) {
   const sourceRoot = resolve(repositoryRoot, ...SOURCE_DIRECTORY);
   const files = await collectSourceFiles(sourceRoot);
   const violations = [];
@@ -285,10 +285,10 @@ export async function checkArchitecture(repositoryRoot) {
   const linePolicy = await checkLinePolicy(
     repositoryRoot,
     resolve(repositoryRoot, "scripts", "architecture-line-baseline.json"),
+    historicalLoader,
   );
   violations.push(...linePolicy.violations);
   warnings.push(...linePolicy.warnings);
-
   return { violations: violations.sort(), warnings: warnings.sort() };
 }
 

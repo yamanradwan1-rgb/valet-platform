@@ -1,6 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import { isAbsolute, posix, relative, resolve, sep } from "node:path";
 
+import { loadHistoricalBaselineFiles } from "./architecture-line-baseline.mjs";
+
 export const AUTHORED_EXTENSIONS = new Set([
   ".ts",
   ".tsx",
@@ -152,6 +154,47 @@ export function evaluateLinePolicy(files, baseline) {
   return { violations: violations.sort(), warnings: warnings.sort() };
 }
 
+export function evaluateHistoricalBaseline(baseline, historicalFiles) {
+  const violations = [];
+  const { baselineByPath, structuralViolations } = validateBaselineEntries(
+    baseline.grandfathered,
+  );
+  violations.push(...structuralViolations);
+  for (const [path, maximum] of baselineByPath) {
+    const content = historicalFiles.get(path);
+    if (content === undefined) {
+      violations.push(
+        `line baseline: ${path}: BASELINE_PATH_NOT_IN_SOURCE_COMMIT`,
+      );
+      continue;
+    }
+    const historical = countPhysicalLines(content);
+    if (historical <= LINE_LIMIT || historical !== maximum) {
+      violations.push(
+        `line baseline: ${path}: historical ${historical} lines, recorded maximum ${maximum}: BASELINE_LINE_COUNT_MISMATCH`,
+      );
+    }
+  }
+  return violations.sort();
+}
+
+function validateBaselineEntries(entries) {
+  const baselineByPath = new Map();
+  const structuralViolations = [];
+  const seenPaths = new Set();
+  let previousPath;
+  for (const entry of entries) {
+    const reason = invalidBaselineEntry(entry, previousPath, seenPaths);
+    if (typeof entry?.path === "string") {
+      seenPaths.add(entry.path);
+      previousPath = entry.path;
+    }
+    if (reason === undefined) baselineByPath.set(entry.path, entry.maxLines);
+    else structuralViolations.push(`line baseline: ${reason}`);
+  }
+  return { baselineByPath, structuralViolations };
+}
+
 function invalidBaselineEntry(entry, previousPath, seenPaths) {
   if (
     entry === null ||
@@ -215,14 +258,33 @@ function comparePaths(left, right) {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-export async function checkLinePolicy(repositoryRoot, baselinePath) {
+export async function checkLinePolicy(
+  repositoryRoot,
+  baselinePath,
+  historicalLoader = loadHistoricalBaselineFiles,
+) {
   try {
     const [files, baselineContent] = await Promise.all([
       collectAuthoredFiles(repositoryRoot),
       readFile(baselinePath, "utf8"),
     ]);
     const baseline = parseLineBaseline(baselineContent);
-    return evaluateLinePolicy(files, baseline);
+    const currentResult = evaluateLinePolicy(files, baseline);
+    const paths = baseline.grandfathered
+      .map((entry) => entry?.path)
+      .filter((path) => typeof path === "string");
+    const historicalFiles = await historicalLoader(
+      repositoryRoot,
+      baseline.sourceCommit,
+      paths,
+    );
+    return {
+      violations: [
+        ...currentResult.violations,
+        ...evaluateHistoricalBaseline(baseline, historicalFiles),
+      ].sort(),
+      warnings: currentResult.warnings,
+    };
   } catch (error) {
     return {
       violations: [
