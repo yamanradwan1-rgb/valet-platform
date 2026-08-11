@@ -6,6 +6,12 @@ import { fileURLToPath } from "node:url";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { expectedMigrationDirectories } from "./migration-manifest.js";
+import {
+  createScopedParkingSpot,
+  ensureParkingSpotZone,
+} from "./schema-parking-fixture.js";
+
 interface PostgresError extends Error {
   code?: string;
   column?: string;
@@ -32,12 +38,6 @@ interface VehicleValues {
   temporaryDescriptor?: string | null;
 }
 
-interface ParkingSpotValues {
-  code?: string;
-  label?: string;
-  status?: string;
-}
-
 interface KeySlotValues {
   code?: string;
   status?: string;
@@ -58,6 +58,7 @@ interface ValetSessionValues {
   customerId?: string | null;
   keySlotId?: string | null;
   organizationId?: string;
+  parkingZoneId?: string | null;
   parkingSpotId?: string | null;
   state?: string;
   version?: number;
@@ -253,27 +254,6 @@ const testDatabaseName = `valet_003n_${process.pid}_${Date.now()}`;
 const migrationsPath = fileURLToPath(
   new URL("../prisma/migrations", import.meta.url),
 );
-const expectedMigrationDirectories = [
-  "20260808000100_tenant_staff_foundation",
-  "20260808000200_blueprint_location_and_supervisor",
-  "20260808000300_customer_vehicle_foundation",
-  "20260808000400_parking_spot_key_slot_foundation",
-  "20260808000500_valet_session_foundation",
-  "20260808000600_restore_valet_session_query_indexes",
-  "20260808000700_audit_event_foundation",
-  "20260808000800_retrieval_request_foundation",
-  "20260808000900_handoff_verification_foundation",
-  "20260809001000_payment_validation_tip_foundation",
-  "20260809001100_cash_entry_provider_event_foundation",
-  "20260809001200_refund_foundation",
-  "20260809001300_incident_foundation",
-  "20260809001400_notification_foundation",
-  "20260809001500_check_in_intake_persistence",
-  "20260810001600_intake_session_creation",
-  "20260810001700_staff_authentication",
-  "20260810001800_shared_durable_anti_abuse",
-];
-
 let databaseCreated = false;
 let databaseClient: Client;
 let appliedMigrationDirectories: string[] = [];
@@ -478,34 +458,8 @@ async function createLocation(
   return id;
 }
 
-async function createParkingSpot(
-  tenant: TenantFixture,
-  values: ParkingSpotValues = {},
-): Promise<string> {
-  const id = randomUUID();
-  const {
-    code = `SPOT-${randomUUID()}`,
-    label = "Parking Spot",
-    status,
-  } = values;
-
-  if (status === undefined) {
-    await databaseClient.query(
-      `INSERT INTO parking_spots (
-         id, organization_id, location_id, code, label, updated_at
-       ) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)`,
-      [id, tenant.organizationId, tenant.locationId, code, label],
-    );
-  } else {
-    await databaseClient.query(
-      `INSERT INTO parking_spots (
-         id, organization_id, location_id, code, label, status, updated_at
-       ) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
-      [id, tenant.organizationId, tenant.locationId, code, label, status],
-    );
-  }
-  return id;
-}
+const createParkingSpot = (tenant: TenantFixture, values = {}) =>
+  createScopedParkingSpot(databaseClient, tenant, values);
 
 async function createKeySlot(
   tenant: TenantFixture,
@@ -599,6 +553,11 @@ async function createValetSession(
   const state = values.state ?? "CHECKING_IN";
   const customerId = values.customerId ?? null;
   const parkingSpotId = values.parkingSpotId ?? null;
+  const parkingZoneId =
+    values.parkingZoneId ??
+    (parkingSpotId === null
+      ? null
+      : await ensureParkingSpotZone(databaseClient, parkingSpotId));
   const keySlotId = values.keySlotId ?? null;
   const currentAssigneeMembershipId =
     values.currentAssigneeMembershipId ?? null;
@@ -615,6 +574,7 @@ async function createValetSession(
     "vehicle_id",
     "customer_id",
     "state",
+    "parking_zone_id",
     "parking_spot_id",
     "key_slot_id",
     "current_assignee_membership_id",
@@ -633,6 +593,7 @@ async function createValetSession(
     fixture.vehicleId,
     customerId,
     state,
+    parkingZoneId,
     parkingSpotId,
     keySlotId,
     currentAssigneeMembershipId,
@@ -2246,7 +2207,7 @@ describe("valet session database foundation", () => {
     await expectPostgresError(
       createValetSession(fixture, { parkingSpotId: otherParkingSpotId }),
       "23503",
-      "valet_sessions_org_location_parking_spot_id_fkey",
+      "valet_sessions_org_location_parking_zone_id_fkey",
     );
   });
 
@@ -2262,7 +2223,7 @@ describe("valet session database foundation", () => {
     await expectPostgresError(
       createValetSession(fixture, { parkingSpotId: otherParkingSpotId }),
       "23503",
-      "valet_sessions_org_location_parking_spot_id_fkey",
+      "valet_sessions_org_location_parking_zone_id_fkey",
     );
   });
 
@@ -2339,7 +2300,7 @@ describe("valet session database foundation", () => {
       [
         "DELETE FROM parking_spots WHERE id = $1",
         parkingSpotId,
-        "valet_sessions_org_location_parking_spot_id_fkey",
+        "valet_sessions_org_location_zone_parking_spot_id_fkey",
       ],
       [
         "DELETE FROM key_slots WHERE id = $1",
@@ -2418,11 +2379,11 @@ describe("valet session database foundation", () => {
         state: "PARKING",
       }),
       "23505",
-      "valet_sessions_active_parking_spot_id_key",
+      "valet_sessions_parking_spot_id_key",
     );
   });
 
-  it("does not reserve ParkingSpot occupancy after completion", async () => {
+  it("reserves ParkingSpot occupancy until the current assignment is cleared", async () => {
     const tenant = await createTenant();
     const parkingSpotId = await createParkingSpot(tenant);
     await createValetSession(await createValetSessionFixture(tenant), {
@@ -2431,12 +2392,14 @@ describe("valet session database foundation", () => {
       state: "COMPLETED",
     });
 
-    await expect(
+    await expectPostgresError(
       createValetSession(await createValetSessionFixture(tenant), {
         parkingSpotId,
         state: "PARKING",
       }),
-    ).resolves.toBeTypeOf("string");
+      "23505",
+      "valet_sessions_parking_spot_id_key",
+    );
   });
 
   it("rejects a second active session using the same KeySlot", async () => {
@@ -2453,11 +2416,11 @@ describe("valet session database foundation", () => {
         state: "RETRIEVING",
       }),
       "23505",
-      "valet_sessions_active_key_slot_id_key",
+      "valet_sessions_key_slot_id_key",
     );
   });
 
-  it("does not reserve KeySlot occupancy after completion", async () => {
+  it("reserves KeySlot occupancy until the current assignment is cleared", async () => {
     const tenant = await createTenant();
     const keySlotId = await createKeySlot(tenant);
     await createValetSession(await createValetSessionFixture(tenant), {
@@ -2466,12 +2429,14 @@ describe("valet session database foundation", () => {
       state: "COMPLETED",
     });
 
-    await expect(
+    await expectPostgresError(
       createValetSession(await createValetSessionFixture(tenant), {
         keySlotId,
         state: "CHECKING_IN",
       }),
-    ).resolves.toBeTypeOf("string");
+      "23505",
+      "valet_sessions_key_slot_id_key",
+    );
   });
 });
 
@@ -7172,10 +7137,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all eighteen forward-only migrations in order", () => {
+  it("applies exactly all nineteen forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260810001800_shared_durable_anti_abuse",
+      "20260811001900_phase3_key_parking_persistence",
     );
   });
 

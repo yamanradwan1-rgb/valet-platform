@@ -2086,3 +2086,60 @@ This decision supersedes DEC-028 only where DEC-028 says file size is advisory-o
 - Existing oversized debt does not trigger a repository-wide refactor loop.
 - Phase 3 starts from enforced modularity rather than an advisory size warning.
 - Skipping the former security-closure/scan sequence does not mean those checks were run or passed; no such claim may be made without actual execution.
+
+---
+
+## DEC-031 — Phase 3 Key & Parking Persistence Foundation
+
+Status: Accepted
+Date: 2026-08-11
+
+Context:
+Phase 3 needs first-class Parking Zones, exact Zone/Spot integrity, concurrency-safe current KeySlot/ParkingSpot assignment and append-only key custody history before any parking or Dispatch command is implemented. DEC-030 structure limits remain binding.
+
+Decision:
+VAL-005A is persistence/integrity only and adds exactly migration 19,
+`20260811001900_phase3_key_parking_persistence`. Migrations 1–18 remain
+unchanged. It adds `ParkingZoneStatus` with exactly `ACTIVE` and `INACTIVE`, and
+tenant/location-safe `ParkingZone` rows with Location-scoped code uniqueness
+and composite `(organization_id, location_id, id)` identity. Zone, Spot and
+KeySlot codes are resource identifiers only; they never authenticate or
+authorize an actor.
+
+`ParkingSpot.parking_zone_id` is nullable for compatibility. A non-null Zone
+must match the Spot's exact Organization and Location, and Spot exposes the
+composite identity needed for exact Zone/Spot references.
+
+`ValetSession.parking_zone_id` is nullable and Zone-only assignment is valid.
+Spot without Zone is rejected by CHECK. A non-null Spot must match the exact
+Organization, Location and assigned Zone through a composite foreign key.
+Current non-null `key_slot_id` and `parking_spot_id` are unique across all
+ValetSessions, replacing active-state occupancy. Later commands must clear
+current IDs when resources become reusable; this task does not add cleanup
+commands. Migration must fail compatibly rather than invent Zone assignments,
+deduplicate occupancy or rewrite custody history.
+
+`KeyCustodyEventType` contains exactly `SLOT_ASSIGNED`, `CHECKED_OUT`,
+`RETURNED_TO_SLOT`, `SLOT_CLEARED` and `RELEASED`. Append-only
+`KeyCustodyEvent` records Organization, Location, ValetSession, optional
+KeySlot, actor membership, event type and server-authoritative occurrence and
+creation times. Composite foreign keys enforce exact session and slot scope and
+same-Organization actor scope. All event types except `RELEASED` require a
+KeySlot. Deterministic session history is indexed by
+`(valet_session_id, occurred_at, id)`.
+
+The ordinary runtime role receives only SELECT/INSERT on KeyCustodyEvent;
+UPDATE/DELETE/TRUNCATE are revoked and PUBLIC has no mutation privilege.
+Existing runtime restrictions remain intact.
+
+No Shift command, Task/Dispatch model, assignment algorithm, parking command,
+ValetSession transition, GPS/maps, HTTP route, retrieval or handoff behavior is
+part of VAL-005A. The full accepted implementation detail is mirrored in
+`docs/decisions/DEC-031_PHASE3_KEY_PARKING_PERSISTENCE.md`.
+
+Consequences:
+
+- Phase 3 commands receive a database-enforced parking/key custody foundation.
+- Existing Spot configuration remains Zone-null unless explicitly configured.
+- Current resource occupancy cannot be inferred from completed history rows.
+- Hybrid Dispatch remains a separate later persistence and command slice.

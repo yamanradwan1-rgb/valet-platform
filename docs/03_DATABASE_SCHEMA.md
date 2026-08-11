@@ -418,12 +418,6 @@ Later plate identification/correction rules:
 
 ## parking_zones
 
-Blueprint v1.0 introduces first-class parking Zones (garage, VIP, overflow, staging, restricted area).
-
-Exact Phase 1 fields are deferred to the Parking/Maps schema task. Do not add this model inside VAL-002B.
-
-## parking_spots
-
 ```text
 id
 organization_id
@@ -444,8 +438,38 @@ Constraints/rules:
 
 - location must belong to `organization_id`
 - unique `(location_id, code)`
+- unique `(organization_id, location_id, id)` supports exact scoped references
 - status required, default `ACTIVE`
-- future parking task may relate Spot to ParkingZone and QR identifier
+- `code` is a resource identifier usable for QR/manual lookup, never authentication or authorization
+
+## parking_spots
+
+```text
+id
+organization_id
+location_id
+parking_zone_id nullable
+code
+label
+status
+created_at
+updated_at
+```
+
+Status:
+
+- ACTIVE
+- INACTIVE
+
+Constraints/rules:
+
+- location must belong to `organization_id`
+- when present, ParkingZone must belong to the exact same Organization and Location
+- unique `(location_id, code)`
+- unique `(organization_id, location_id, parking_zone_id, id)` supports exact Zone/Spot references
+- status required, default `ACTIVE`
+- existing spots may remain Zone-null until explicitly configured
+- `code` is a resource identifier usable for QR/manual lookup, never authentication or authorization
 
 ## key_slots
 
@@ -485,6 +509,7 @@ customer_id nullable
 
 state
 
+parking_zone_id nullable
 parking_spot_id nullable
 key_slot_id nullable
 current_assignee_membership_id nullable
@@ -533,6 +558,9 @@ Canonical state contract aligned to Blueprint v1.0:
 Rules:
 
 - organization/location/vehicle/customer/membership/parking/key relationships must be tenant-consistent
+- Zone-only parking assignment is valid
+- Spot without Zone is invalid by database CHECK
+- when Spot exists it must match the exact Organization, Location and assigned Zone through a composite foreign key
 - check-in condition completion is incomplete only when both `check_in_condition_completed_at` and `check_in_condition_completed_by_membership_id` are null, and complete only when both are non-null
 - the condition-completion membership must belong to the session Organization
 - the condition-completion marker does not change session state or version; the later focused command owns that mutation behavior
@@ -543,7 +571,7 @@ Rules:
 - `READY` is the canonical MVP state used for the Blueprint `STAGED/READY` position; staging location is operational location data unless later requirements require a distinct state
 - Incident lifecycle remains separate from ValetSession state
 
-For partial-unique protections, an active ValetSession means exactly:
+For vehicle-session protection, an active ValetSession means exactly:
 
 ```text
 state <> COMPLETED
@@ -551,11 +579,13 @@ state <> COMPLETED
 
 The exact treatment of abandoned/invalid check-in cancellation must be finalized with the state-machine implementation; do not introduce arbitrary hard-delete behavior.
 
-Required partial unique protections when these relationships are implemented:
+Required resource protections:
 
 - one active session for a vehicle at a location
-- one active session occupying a given parking spot when `parking_spot_id` is non-null
-- one active session using a given key slot when `key_slot_id` is non-null
+- one current session referencing a given non-null parking spot, regardless of session state
+- one current session referencing a given non-null key slot, regardless of session state
+- null resource assignments remain repeatable
+- later completion/release commands clear current resource IDs; history is retained in append-only events rather than current fields
 
 ## condition_notes
 
@@ -637,9 +667,36 @@ Exact Task/Dispatch persistence is deferred to the focused Operations/Dispatch s
 
 ## key_custody_events
 
-Blueprint requires assignment/checkout/return actor and timestamp history for keys.
+```text
+id
+organization_id
+location_id
+valet_session_id
+key_slot_id nullable
+actor_membership_id
+event_type
+occurred_at
+created_at
+```
 
-Exact event-table fields are deferred to the focused Key/Operations schema task. Current key slot remains available on ValetSession for fast reads; history must remain append-only/auditable.
+Event type:
+
+- SLOT_ASSIGNED
+- CHECKED_OUT
+- RETURNED_TO_SLOT
+- SLOT_CLEARED
+- RELEASED
+
+Rules:
+
+- session must match exact Organization and Location
+- optional KeySlot must match exact Organization and Location
+- actor membership must belong to the same Organization
+- `SLOT_ASSIGNED`, `CHECKED_OUT`, `RETURNED_TO_SLOT` and `SLOT_CLEARED` require a KeySlot
+- `RELEASED` may omit KeySlot
+- `occurred_at` and `created_at` are server/database-authoritative
+- history lookup is indexed by `(valet_session_id, occurred_at, id)`
+- rows are append-only; runtime receives only SELECT/INSERT and PUBLIC receives no mutation privilege
 
 ## gps_route_events / geofences
 
@@ -1196,7 +1253,6 @@ Current schema details intentionally not locked by this document include:
 - exact map provider payloads
 - exact map/geofence/route storage
 - exact Task/Dispatch schema
-- exact KeyCustodyEvent schema
 - provider-specific payment/refund fields and callback payload mapping beyond the accepted provider-neutral contract
 - provider-specific outbound operation idempotency/reference lifecycle and stale/superseded callback mapping
 - shift-close/reopen, cash drawer and advanced reconciliation/settlement persistence
