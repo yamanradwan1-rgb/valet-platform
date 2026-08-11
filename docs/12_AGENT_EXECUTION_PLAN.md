@@ -178,14 +178,15 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
 
 16. **VAL-004R — Controlled Production Staff Provisioning**
     Implement accepted DEC-029 create-only offline staff provisioning. The
-    implementation is pushed and remains active until its PR is merged; it does
-    not make Phase 2 production-ready by itself.
+    implementation is merged/completed through PR #82, merge commit
+    `1b5db989252dbf8d47b9fe7f81e55a96ed012c56`. It does not make Phase 2
+    production-ready by itself.
 
 17. **VAL-004S — Enforce 300-Line Agent Structure Policy**
-    After VAL-004R merges, implement accepted DEC-030 by splitting the
-    transitional VAL-004R files, enforcing the 300-line policy through the
-    repository architecture gate, and establishing the legacy baseline. This is
-    the final repository gate before Phase 3 begins.
+    Implement accepted DEC-030 by splitting the transitional VAL-004R files,
+    enforcing the 300-line policy through the repository architecture gate, and
+    establishing the legacy baseline. Active until its PR merges; this is the
+    final repository gate before Phase 3 begins.
 
 Do not combine these focused slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
@@ -214,8 +215,8 @@ The VAL-004I integration gate proves that a real authorized staff flow can estab
 
 The binding pre-Phase-3 sequence is:
 
-1. merge VAL-004R controlled production staff provisioning;
-2. complete and merge VAL-004S 300-line structure enforcement; and
+1. VAL-004R controlled production staff provisioning merged through PR #82;
+2. complete and merge active VAL-004S 300-line structure enforcement; and
 3. begin Phase 3.
 
 Cleanup A/B/C are complete. VAL-004R adds no signup/admin API or MFA claim and
@@ -463,8 +464,8 @@ pnpm build
 ```
 
 Architecture changes additionally run `pnpm architecture:check`; it is the
-repository-owned CI gate for accepted API dependency direction and has
-advisory-only large-file warnings.
+repository-owned CI gate for accepted API dependency direction and DEC-030's
+baseline-backed 300-line authored-code policy.
 
 Database tasks additionally verify migration behavior on a fresh PostgreSQL database and required integrity tests.
 

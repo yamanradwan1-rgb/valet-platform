@@ -2,6 +2,8 @@ import { readdir, readFile } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { checkLinePolicy } from "./architecture-line-policy.mjs";
+
 const SOURCE_DIRECTORY = ["apps", "api", "src"];
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
 const RETIRED_SYMBOLS = [
@@ -9,7 +11,6 @@ const RETIRED_SYMBOLS = [
   "CHECK_IN_POSTGRES_POOL",
   "GuestCheckInController",
 ];
-const LARGE_FILE_LINE_THRESHOLD = 450;
 
 function toRepositoryPath(repositoryRoot, targetPath) {
   return relative(repositoryRoot, targetPath).split(sep).join("/");
@@ -248,14 +249,6 @@ export async function checkArchitecture(repositoryRoot) {
     const source = await readFile(filePath, "utf8");
     const repositoryPath = toRepositoryPath(repositoryRoot, filePath);
     const sourceArea = classifyArchitectureArea(repositoryPath);
-    const lineCount = source.split(/\r?\n/).length;
-
-    if (lineCount > LARGE_FILE_LINE_THRESHOLD) {
-      warnings.push(
-        `${repositoryPath}: advisory: ${lineCount} lines exceeds ${LARGE_FILE_LINE_THRESHOLD}`,
-      );
-    }
-
     for (const symbol of RETIRED_SYMBOLS) {
       if (new RegExp(`\\b${symbol}\\b`).test(source)) {
         violations.push(
@@ -288,6 +281,13 @@ export async function checkArchitecture(repositoryRoot) {
       }
     }
   }
+
+  const linePolicy = await checkLinePolicy(
+    repositoryRoot,
+    resolve(repositoryRoot, "scripts", "architecture-line-baseline.json"),
+  );
+  violations.push(...linePolicy.violations);
+  warnings.push(...linePolicy.warnings);
 
   return { violations: violations.sort(), warnings: warnings.sort() };
 }
