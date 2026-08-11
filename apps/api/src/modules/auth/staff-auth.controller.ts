@@ -18,7 +18,7 @@ import {
 } from "@valet/contracts";
 import { parse as parseCookie, serialize as serializeCookie } from "cookie";
 
-import type { CheckInApiRequest } from "../check-in-api/check-in-api.boundaries";
+import type { ApiRequest } from "../../common/http/api-request";
 import {
   AntiAbuseRateLimitError,
   AntiAbuseService,
@@ -28,7 +28,7 @@ import {
   ClientAddressUnavailableError,
   TrustedClientAddressResolver,
 } from "../anti-abuse/client-address";
-import { CheckInTransportValidationError } from "../check-in-api/check-in-api.errors";
+import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { CheckInOperationRunner } from "../check-in-api/check-in-operation-runner";
 import { StaffAuthOriginPolicy } from "./staff-auth.origin";
 import {
@@ -61,7 +61,7 @@ export class StaffAuthOriginError extends Error {
 
 function parse<T>(schema: ParseSchema<T>, value: unknown): T {
   const parsed = schema.safeParse(value);
-  if (!parsed.success) throw new CheckInTransportValidationError();
+  if (!parsed.success) throw new ApiTransportValidationError();
   return parsed.data;
 }
 
@@ -74,7 +74,7 @@ function requireJson(contentType: string | undefined): void {
     contentType === undefined ||
     !/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(contentType)
   ) {
-    throw new CheckInTransportValidationError();
+    throw new ApiTransportValidationError();
   }
 }
 
@@ -147,7 +147,7 @@ export class StaffAuthController {
     @Headers("content-type") contentType: string | undefined,
     @Body() rawBody: unknown,
     @Query() rawQuery: unknown,
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Res({ passthrough: true }) response: AuthResponse,
   ): Promise<StaffAuthAccessResponse> {
     setPrivateAuthHeaders(response);
@@ -220,7 +220,7 @@ export class StaffAuthController {
     @Headers("cookie") cookieHeader: string | undefined,
     @Body() rawBody: unknown,
     @Query() rawQuery: unknown,
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Res({ passthrough: true }) response: AuthResponse,
   ): Promise<StaffAuthAccessResponse> {
     setPrivateAuthHeaders(response);
@@ -258,7 +258,7 @@ export class StaffAuthController {
     @Headers("cookie") cookieHeader: string | undefined,
     @Body() rawBody: unknown,
     @Query() rawQuery: unknown,
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Res({ passthrough: true }) response: AuthResponse,
   ): Promise<void> {
     setPrivateAuthHeaders(response);

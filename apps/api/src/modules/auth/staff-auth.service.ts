@@ -7,12 +7,12 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
+import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import {
   AntiAbuseUnavailableError,
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import {
-  CHECK_IN_POSTGRES_POOL,
   type StaffPrincipal,
   type StaffPrincipalResolver,
 } from "../check-in-api/check-in-api.boundaries";
@@ -156,7 +156,7 @@ export class Argon2StaffPasswordVerifier implements StaffPasswordVerifier {
 @Injectable()
 export class DatabaseStaffPrincipalResolver implements StaffPrincipalResolver {
   constructor(
-    @Inject(CHECK_IN_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
   ) {}
 
   async resolve(authorization: string | undefined): Promise<StaffPrincipal> {
@@ -190,7 +190,7 @@ export class DatabaseStaffPrincipalResolver implements StaffPrincipalResolver {
 @Injectable()
 export class StaffAuthService {
   constructor(
-    @Inject(CHECK_IN_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     @Inject(STAFF_PASSWORD_VERIFIER)
     private readonly passwordVerifier: StaffPasswordVerifier,
   ) {}

@@ -4,6 +4,7 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
+import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import {
   createCompleteCheckInConditionCommandExecutor,
   createCorrectCheckInConditionNoteCommandExecutor,
@@ -35,7 +36,6 @@ import {
   createVehicleIdentityCommandExecutor,
   type VehicleIdentityCommandRequest,
 } from "../vehicles/vehicle-identity-command";
-import { CHECK_IN_POSTGRES_POOL } from "./check-in-api.boundaries";
 
 @Injectable()
 export class CheckInApiService {
@@ -51,7 +51,7 @@ export class CheckInApiService {
   private readonly updateVehicleIdentity;
 
   constructor(
-    @Inject(CHECK_IN_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
   ) {
     this.completeCheckIn = createCompleteCheckInCommandExecutor(pool);
     this.completeCondition =

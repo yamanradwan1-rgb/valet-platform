@@ -50,12 +50,14 @@ import {
 import type { VehicleIdentityInput } from "../vehicles/vehicle-identity-command";
 import {
   STAFF_PRINCIPAL_RESOLVER,
-  type CheckInApiRequest,
   type StaffPrincipalResolver,
 } from "./check-in-api.boundaries";
-import { CheckInTransportValidationError } from "./check-in-api.errors";
+import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { CheckInApiService } from "./check-in-api.service";
-import { CheckInOperationRunner } from "./check-in-operation-runner";
+import {
+  CheckInOperationRunner,
+  type CheckInApiRequest,
+} from "./check-in-operation-runner";
 
 interface ParseSchema<T> {
   safeParse(
@@ -69,7 +71,7 @@ const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
 
 function parse<T>(schema: ParseSchema<T>, value: unknown): T {
   const parsed = schema.safeParse(value);
-  if (!parsed.success) throw new CheckInTransportValidationError();
+  if (!parsed.success) throw new ApiTransportValidationError();
   return parsed.data;
 }
 
@@ -78,7 +80,7 @@ function parseAbsentOrEmptyBody(body: unknown): void {
 }
 
 function parseUuid(value: string): string {
-  if (!uuidPattern.test(value)) throw new CheckInTransportValidationError();
+  if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
   return value;
 }
 

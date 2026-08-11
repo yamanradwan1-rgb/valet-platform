@@ -1,21 +1,33 @@
 import { Inject, Injectable } from "@nestjs/common";
 
+import type { ApiRequest } from "../../common/http/api-request";
 import {
-  CHECK_IN_MONOTONIC_CLOCK,
-  CHECK_IN_OPERATION_OBSERVER,
-  type CheckInApiRequest,
-  type CheckInOperationObserver,
+  MONOTONIC_CLOCK,
+  OPERATION_OBSERVER,
   type MonotonicClock,
-} from "./check-in-api.boundaries";
-import { apiHttpException, mapCheckInError } from "./check-in-api.errors";
+  type OperationMeasurement,
+  type OperationObserver,
+} from "../../common/observability/operation-observability";
+
+import { apiHttpException, mapApiError } from "../../common/http/api-errors";
+
+export interface CheckInRequestMeasurementState {
+  checkInElapsedMs?: number;
+}
+
+export type CheckInApiRequest = ApiRequest & CheckInRequestMeasurementState;
+
+interface CheckInOperationMeasurement extends OperationMeasurement {
+  readonly checkInElapsedMs?: number;
+}
 
 @Injectable()
 export class CheckInOperationRunner {
   constructor(
-    @Inject(CHECK_IN_MONOTONIC_CLOCK)
+    @Inject(MONOTONIC_CLOCK)
     private readonly clock: MonotonicClock,
-    @Inject(CHECK_IN_OPERATION_OBSERVER)
-    private readonly observer: CheckInOperationObserver,
+    @Inject(OPERATION_OBSERVER)
+    private readonly observer: OperationObserver,
   ) {}
 
   async run<T>(
@@ -23,7 +35,7 @@ export class CheckInOperationRunner {
     request: CheckInApiRequest,
     action: () => Promise<T>,
   ): Promise<T> {
-    const requestId = request.checkInRequestId ?? "request-id-unavailable";
+    const requestId = request.requestId ?? "request-id-unavailable";
     const startedAt = this.clock.now();
     let outcome: "ERROR" | "SUCCESS" = "SUCCESS";
     let errorCode: string | undefined;
@@ -31,14 +43,14 @@ export class CheckInOperationRunner {
       return await action();
     } catch (error) {
       outcome = "ERROR";
-      const mapped = mapCheckInError(error);
+      const mapped = mapApiError(error);
       errorCode = mapped.code;
       throw apiHttpException(mapped, requestId);
     } finally {
       const durationMs = Math.max(0, this.clock.now() - startedAt);
-      request.checkInOperationMeasured = true;
+      request.operationMeasured = true;
       try {
-        await this.observer.observe({
+        const measurement: CheckInOperationMeasurement = {
           ...(request.checkInElapsedMs === undefined
             ? {}
             : { checkInElapsedMs: request.checkInElapsedMs }),
@@ -47,7 +59,8 @@ export class CheckInOperationRunner {
           operation,
           outcome,
           requestId,
-        });
+        };
+        await this.observer.observe(measurement);
       } catch {
         // Instrumentation must never change the business response.
       }

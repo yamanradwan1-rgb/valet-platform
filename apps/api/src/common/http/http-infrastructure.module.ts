@@ -1,0 +1,16 @@
+import { Module } from "@nestjs/common";
+import { APP_FILTER } from "@nestjs/core";
+
+import { ObservabilityModule } from "../observability/observability.module";
+import { ApiExceptionFilter } from "./api-exception.filter";
+import { RequestIdMiddleware } from "./api-request";
+
+@Module({
+  imports: [ObservabilityModule],
+  providers: [
+    RequestIdMiddleware,
+    { provide: APP_FILTER, useClass: ApiExceptionFilter },
+  ],
+  exports: [ObservabilityModule, RequestIdMiddleware],
+})
+export class HttpInfrastructureModule {}

@@ -8,7 +8,7 @@ import {
   parseCanonicalIp,
   TrustedClientAddressResolver,
 } from "../src/modules/anti-abuse/client-address";
-import type { CheckInApiRequest } from "../src/modules/check-in-api/check-in-api.boundaries";
+import type { ApiRequest } from "../src/common/http/api-request";
 
 const originalSecret = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
 const originalCidrs = process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS;
@@ -26,7 +26,7 @@ function request(options: {
   peer: string;
   rawXff?: readonly string[];
   xff?: string;
-}): CheckInApiRequest {
+}): ApiRequest {
   const rawHeaders = (options.rawXff ?? []).flatMap((value) => [
     "X-Forwarded-For",
     value,
