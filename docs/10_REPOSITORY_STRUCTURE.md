@@ -127,17 +127,20 @@ The root `architecture:check` command is the authoritative repository-owned CI
 gate for these dependency directions. ESLint provides fast restricted-import
 feedback; the checker resolves relative source targets and also rejects the
 retired `CheckInApiModule`, `CHECK_IN_POSTGRES_POOL`, and
-`GuestCheckInController` symbols in application source. Oversized source files
-produce only advisory warnings.
+`GuestCheckInController` symbols in application source. DEC-030's physical-line
+policy is enforced by `scripts/architecture-line-policy.mjs` using the
+base-main-derived `scripts/architecture-line-baseline.json`: new authored code
+over 300 lines and growth of grandfathered debt fail the same gate.
 
 ### auth
 Staff authentication, session/token lifecycle, Origin policy and the shared
 staff-principal resolution boundary.
 
-The API workspace also owns `tools/provision-staff.ts`, a deployment-operator
-command outside `src/**`. Runtime modules must not import it; it uses the
-administrative migration connection boundary to create new staff identities
-under DEC-029.
+The API workspace also owns the thin `tools/provision-staff.ts`
+deployment-operator entrypoint and focused `tools/staff-provisioning/**`
+argument, password, execution and persistence modules outside `src/**`.
+Runtime modules must not import them; the tool uses the administrative migration
+connection boundary to create new staff identities under DEC-029.
 
 ### anti-abuse
 Shared durable staff-login and guest-access anti-abuse services, limiter-key

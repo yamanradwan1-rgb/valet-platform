@@ -1,40 +1,33 @@
-import { execFile } from "node:child_process";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
-import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
-const executeFile = promisify(execFile);
-
-const checker = resolve(__dirname, "../../../scripts/architecture-check.mjs");
+import { checkArchitecture } from "../../../scripts/architecture-check.mjs";
 
 async function runFixture(files: Record<string, string>) {
   const fixtureRoot = await mkdtemp(resolve(tmpdir(), "valet-architecture-"));
   try {
-    for (const [file, content] of Object.entries(files)) {
+    const fixtureFiles = {
+      "scripts/architecture-line-baseline.json": JSON.stringify({
+        grandfathered: [],
+        sourceCommit: "1b5db989252dbf8d47b9fe7f81e55a96ed012c56",
+        version: 1,
+      }),
+      ...files,
+    };
+    for (const [file, content] of Object.entries(fixtureFiles)) {
       const filePath = resolve(fixtureRoot, file);
       await mkdir(dirname(filePath), { recursive: true });
       await writeFile(filePath, content);
     }
-    try {
-      const result = await executeFile(process.execPath, [
-        checker,
-        "--root",
-        fixtureRoot,
-      ]);
-      return { code: 0, output: `${result.stdout}${result.stderr}` };
-    } catch (error) {
-      const failure = error as {
-        code?: number;
-        stdout?: string;
-        stderr?: string;
-      };
-      return {
-        code: failure.code ?? 1,
-        output: `${failure.stdout ?? ""}${failure.stderr ?? ""}`,
-      };
-    }
+    const result = await checkArchitecture(fixtureRoot, async () => new Map());
+    return {
+      code: result.violations.length === 0 ? 0 : 1,
+      output: result.violations
+        .map((violation) => `ARCHITECTURE VIOLATION ${violation}`)
+        .join("\n"),
+    };
   } finally {
     await rm(fixtureRoot, { force: true, recursive: true });
   }
@@ -193,11 +186,11 @@ describe("architecture check", () => {
     expect(result).toEqual({ code: 0, output: "" });
   });
 
-  it("warns but succeeds for an otherwise valid oversized source file", async () => {
+  it("rejects an otherwise valid ungrandfathered oversized source file", async () => {
     const result = await runFixture(
       source("modules/auth", `${"\n".repeat(451)}export const value = true;`),
     );
-    expect(result.code).toBe(0);
-    expect(result.output).toContain("WARNING");
+    expect(result.code).toBe(1);
+    expect(result.output).toContain("NEW_OR_UNGRANDFATHERED_OVERSIZED_FILE");
   });
 });

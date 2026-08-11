@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "sourceCommit": "1b5db989252dbf8d47b9fe7f81e55a96ed012c56",
+  "grandfathered": [
+    {
+      "path": "apps/api/src/modules/auth/staff-auth.service.ts",
+      "maxLines": 458
+    },
+    {
+      "path": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+      "maxLines": 317
+    },
+    {
+      "path": "apps/api/src/modules/valet-sessions/check-in-condition-command.ts",
+      "maxLines": 876
+    },
+    {
+      "path": "apps/api/src/modules/valet-sessions/complete-check-in-command.ts",
+      "maxLines": 351
+    },
+    {
+      "path": "apps/api/src/modules/valet-sessions/guest-access-command.ts",
+      "maxLines": 526
+    },
+    {
+      "path": "apps/api/src/modules/valet-sessions/intake-session-command.ts",
+      "maxLines": 499
+    },
+    {
+      "path": "apps/api/src/modules/vehicles/vehicle-identity-command.ts",
+      "maxLines": 504
+    },
+    {
+      "path": "apps/api/test/check-in-api.integration.test.ts",
+      "maxLines": 1574
+    },
+    {
+      "path": "apps/api/test/check-in-condition-command.integration.test.ts",
+      "maxLines": 1232
+    },
+    {
+      "path": "apps/api/test/complete-check-in-command.integration.test.ts",
+      "maxLines": 1058
+    },
+    {
+      "path": "apps/api/test/guest-access-command.integration.test.ts",
+      "maxLines": 932
+    },
+    {
+      "path": "apps/api/test/intake-session-command.integration.test.ts",
+      "maxLines": 718
+    },
+    {
+      "path": "apps/api/test/protected-custody-command.integration.test.ts",
+      "maxLines": 538
+    },
+    {
+      "path": "apps/api/test/staff-auth.integration.test.ts",
+      "maxLines": 1302
+    },
+    {
+      "path": "apps/api/test/vehicle-identity-command.integration.test.ts",
+      "maxLines": 1099
+    },
+    { "path": "packages/database/prisma/seed.mjs", "maxLines": 792 },
+    {
+      "path": "packages/database/scripts/provision-runtime-role.mjs",
+      "maxLines": 364
+    },
+    {
+      "path": "packages/database/src/runtime-role.integration.test.ts",
+      "maxLines": 949
+    },
+    {
+      "path": "packages/database/src/schema.integration.test.ts",
+      "maxLines": 7598
+    },
+    {
+      "path": "packages/database/src/seed.integration.test.ts",
+      "maxLines": 646
+    },
+    { "path": "scripts/architecture-check.mjs", "maxLines": 343 }
+  ]
+}

@@ -176,4 +176,8 @@ The repository architecture tooling should enforce this policy for new/modified 
 
 The enforcement must distinguish pre-existing oversized legacy files from code introduced or expanded by the current change so adopting this policy does not trigger an unrelated repository-wide refactor.
 
+Repository enforcement is owned by `pnpm architecture:check`, with the focused
+line policy in `scripts/architecture-line-policy.mjs` and the deterministic
+grandfather baseline in `scripts/architecture-line-baseline.json`.
+
 Any future exception requires an explicit Accepted decision. An agent may not grant itself an exception.

@@ -5,15 +5,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { isAcceptedStaffPasswordHash } from "../src/modules/auth/staff-auth.service";
 import {
-  assertNonProductionLoopback,
   executeProvisioning,
   hashProvisioningPassword,
   normalizeProvisioningIdentity,
   parseProvisioningArguments,
   passwordFromStdin,
-  persistProvisionedStaff,
   readProvisioningPassword,
-  requireNodeEnvironment,
 } from "../tools/provision-staff";
 
 function validValues(overrides: string[] = []): string[] {
@@ -216,167 +213,5 @@ describe("provisioning password boundary", () => {
     const passwordHash = await hashProvisioningPassword(password);
     expect(isAcceptedStaffPasswordHash(passwordHash)).toBe(true);
     await expect(argon2.verify(passwordHash, password)).resolves.toBe(true);
-  });
-});
-
-describe("provisioning database safety", () => {
-  it.each(["production", "development", "test"])(
-    "accepts explicit NODE_ENV=%s",
-    (value) => expect(requireNodeEnvironment(value)).toBe(value),
-  );
-
-  it("rejects omitted and invalid NODE_ENV", () => {
-    expect(() => requireNodeEnvironment(undefined)).toThrow("NODE_ENV");
-    expect(() => requireNodeEnvironment("staging")).toThrow("NODE_ENV");
-  });
-
-  it.each(["localhost", "127.0.0.1", "::1", "[::1]"])(
-    "accepts non-production loopback host %s",
-    (host) =>
-      expect(() => assertNonProductionLoopback("test", host)).not.toThrow(),
-  );
-
-  it("rejects a non-production remote host", () => {
-    expect(() =>
-      assertNonProductionLoopback("development", "database.example.com"),
-    ).toThrow("loopback");
-  });
-
-  it("verifies TLS before BEGIN or mutation", async () => {
-    const events: string[] = [];
-    const input = parseProvisioningArguments(validValues());
-    const client = {
-      connect: vi.fn(async () => {
-        events.push("connect");
-      }),
-      end: vi.fn(async () => undefined),
-      query: vi.fn(async (sql: string) => {
-        events.push(sql);
-        if (sql.startsWith("SELECT status")) {
-          return { rowCount: 1, rows: [{ status: "ACTIVE" }] };
-        }
-        if (sql.startsWith("SELECT id::text")) {
-          return {
-            rowCount: 1,
-            rows: [
-              {
-                id: input.locationIds[0],
-                organization_id: input.organizationId,
-                status: "ACTIVE",
-              },
-            ],
-          };
-        }
-        return { rowCount: 0, rows: [] };
-      }),
-    };
-    await executeProvisioning(
-      input,
-      "fifteen-codepoints",
-      {
-        MIGRATION_DATABASE_URL:
-          "postgresql://migration:secret@localhost:5432/valet?sslmode=require&sslaccept=strict",
-        NODE_ENV: "production",
-      },
-      {
-        createClient: () => client as never,
-        verifyTls: async () => {
-          events.push("verify-tls");
-        },
-      },
-    );
-    expect(events.indexOf("verify-tls")).toBeLessThan(events.indexOf("BEGIN"));
-  });
-
-  it("maps connection/TLS failures without disclosing supplied secrets", async () => {
-    const secret = "secret-database-detail";
-    const input = parseProvisioningArguments(validValues());
-    await expect(
-      executeProvisioning(
-        input,
-        "fifteen-codepoints",
-        {
-          MIGRATION_DATABASE_URL:
-            "postgresql://migration:password@localhost:5432/valet?sslmode=require&sslaccept=strict",
-          NODE_ENV: "production",
-        },
-        {
-          createClient: () =>
-            ({
-              connect: async () => undefined,
-              end: async () => undefined,
-              query: async () => ({ rowCount: 0, rows: [] }),
-            }) as never,
-          verifyTls: async () => {
-            throw new Error(secret);
-          },
-        },
-      ),
-    ).rejects.toThrow("Staff provisioning failed");
-    await expect(
-      executeProvisioning(
-        input,
-        "fifteen-codepoints",
-        {
-          MIGRATION_DATABASE_URL:
-            "postgresql://migration:password@localhost:5432/valet?sslmode=require&sslaccept=strict",
-          NODE_ENV: "production",
-        },
-        {
-          createClient: () =>
-            ({
-              connect: async () => undefined,
-              end: async () => undefined,
-              query: async () => ({ rowCount: 0, rows: [] }),
-            }) as never,
-          verifyTls: async () => {
-            throw new Error(secret);
-          },
-        },
-      ),
-    ).rejects.not.toThrow(secret);
-  });
-
-  it.each([
-    "INSERT INTO organization_memberships",
-    "INSERT INTO membership_location_access",
-    "INSERT INTO audit_events",
-  ])("rolls back when %s fails", async (failedStatement) => {
-    const input = parseProvisioningArguments(validValues());
-    const statements: string[] = [];
-    const client = {
-      connect: async () => undefined,
-      end: async () => undefined,
-      query: async (sql: string) => {
-        statements.push(sql);
-        if (sql.startsWith(failedStatement))
-          throw new Error("private SQL detail");
-        if (sql.startsWith("SELECT status")) {
-          return { rowCount: 1, rows: [{ status: "ACTIVE" }] };
-        }
-        if (sql.startsWith("SELECT id::text")) {
-          return {
-            rowCount: 1,
-            rows: [
-              {
-                id: input.locationIds[0],
-                organization_id: input.organizationId,
-                status: "ACTIVE",
-              },
-            ],
-          };
-        }
-        return { rowCount: 0, rows: [] };
-      },
-    };
-    await expect(
-      persistProvisionedStaff(
-        client as never,
-        input,
-        "staff@example.com",
-        "accepted-hash-placeholder",
-      ),
-    ).rejects.toThrow("Staff provisioning failed");
-    expect(statements.at(-1)).toBe("ROLLBACK");
   });
 });

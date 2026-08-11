@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-11` (VAL-004R local implementation session)
+- Date/time: `2026-08-11` (VAL-004S local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
 - Required accepted-decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
-- Active branch: `feat/VAL-004R-controlled-staff-provisioning`
-- Active task: VAL-004R — Controlled Production Staff Provisioning
-- Verification basis: owner-supplied VAL-004R task packet and accepted DEC-029
+- Active branch: `refactor/VAL-004S-300-line-structure-policy`
+- Active task: VAL-004S — Enforce 300-Line Agent Structure Policy
+- Verification basis: owner-supplied VAL-004S task packet and accepted DEC-030
 
 ## Current Milestone
 
@@ -27,8 +27,10 @@ VAL-004P is **MERGED / COMPLETED** through PR #77, merge commit
 `7b84ee5f6aa3a605d589dc4651ac5920031f9124`. Cleanup A and Cleanup B are
 complete. VAL-004Q is **MERGED / COMPLETED** through PR #79, merge commit
 `ba0cc5d00201f201e9b65d45ab295a4933dcc8df`. Cleanup A/B/C are complete.
-VAL-004R controlled staff provisioning is active, Phase 3 has not started, and Phase 2 is not yet
-declared production-ready. No fresh post-fix Standard Security Scan is claimed.
+VAL-004R is **MERGED / COMPLETED** through PR #82, merge commit
+`1b5db989252dbf8d47b9fe7f81e55a96ed012c56`. VAL-004S structure enforcement is
+active, Phase 3 has not started, and Phase 2 is not declared production-ready.
+No fresh post-fix Standard Security Scan is claimed.
 
 ## Recently Completed Gate
 
@@ -100,31 +102,30 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004R — Controlled Production Staff Provisioning
+### VAL-004S — Enforce 300-Line Agent Structure Policy
 
-- Branch: `feat/VAL-004R-controlled-staff-provisioning`
-- Status: **ACTIVE — IMPLEMENTED / PUSHED, PENDING PR / MERGE**
-- Accepted decision baseline: `aa05d07f082fa0e3687b2272c59c2d01bd847519`
+- Branch: `refactor/VAL-004S-300-line-structure-policy`
+- Status: **ACTIVE — LOCAL IMPLEMENTATION / VALIDATION**
+- Accepted decision baseline: `1b5db989252dbf8d47b9fe7f81e55a96ed012c56`
 - Expected database state on this branch: **18 forward-only migrations**
 
 Objective:
-Implement accepted DEC-029 as a create-only deployment-operator command that
-atomically creates a Staff Auth-capable User, Organization membership, explicit
-Location access, and safe AuditEvent without adding an HTTP surface.
+Implement accepted DEC-030 by splitting the three transitional VAL-004R files
+along real responsibility boundaries and enforcing the 300-line authored-code
+policy through `architecture:check` with a deterministic base-main baseline.
 
-VAL-004R does not change schema, migrations, dependencies, public routes,
-authentication, anti-abuse semantics, custody behavior, or Phase 3 scope. It
-does not make Phase 2 production-ready by itself. After VAL-004R merges,
-VAL-004S is the next repository gate before Phase 3.
+VAL-004S does not change schema, migrations, dependencies, public routes,
+authentication, anti-abuse semantics, provisioning behavior, custody behavior,
+or Phase 3 scope. It does not make Phase 2 production-ready by itself.
 
 ## Remaining Phase 2 Check-In Gate
 
 VAL-004L staff authentication, VAL-004M shared anti-abuse, VAL-004N production
 database hardening and Cleanup A/B/C are merged. VAL-004R controlled staff
-provisioning is implemented and pushed but remains active pending PR/merge.
-MFA-gated privileged admin capabilities remain unavailable. VAL-004S — Enforce
-300-Line Agent Structure Policy is the next repository gate after VAL-004R and
-before Phase 3. Phase 3 has not started. The former final Phase 2
+provisioning is merged/completed through PR #82. MFA-gated privileged admin
+capabilities remain unavailable. VAL-004S — Enforce 300-Line Agent Structure
+Policy is active and is the next repository gate before Phase 3. Phase 3 has
+not started. The former final Phase 2
 security/integrity closure and fresh Standard Security Scan are deferred
 production/pilot-hardening work, not completed checks or pre-Phase-3 gates.
 
@@ -210,8 +211,8 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 Current pre-Phase-3 sequence:
 
 ```text
-merge VAL-004R
--> complete and merge VAL-004S — Enforce 300-Line Agent Structure Policy
+VAL-004R merged through PR #82
+-> complete and merge active VAL-004S — Enforce 300-Line Agent Structure Policy
 -> begin Phase 3
 ```
 
