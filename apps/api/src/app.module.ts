@@ -1,10 +1,13 @@
 import { Module } from "@nestjs/common";
 
 import { AppController } from "./app.controller";
-import { CheckInApiModule } from "./modules/check-in-api/check-in-api.module";
+import { AntiAbuseModule } from "./modules/anti-abuse/anti-abuse.module";
+import { AuthModule } from "./modules/auth/auth.module";
+import { CheckInModule } from "./modules/check-in-api/check-in.module";
+import { GuestAccessModule } from "./modules/guest-access/guest-access.module";
 
 @Module({
-  imports: [CheckInApiModule],
+  imports: [AuthModule, AntiAbuseModule, GuestAccessModule, CheckInModule],
   controllers: [AppController],
 })
 export class AppModule {}

@@ -1,9 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 
-import type {
-  PostgresPool,
-  PostgresTransaction,
-} from "../../common/database/postgres";
+import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import {
   createCompleteCheckInConditionCommandExecutor,
@@ -20,15 +17,6 @@ import {
   type CompleteCheckInCommandRequest,
 } from "../valet-sessions/complete-check-in-command";
 import {
-  createGuestAccessResolver,
-  createIssueGuestAccessCommandExecutor,
-  createRevokeGuestAccessCommandExecutor,
-  type IssueGuestAccessRequest,
-  type StaffGuestAccessRequest,
-  GuestAccessError,
-  resolveGuestAccessWithDatabase,
-} from "../valet-sessions/guest-access-command";
-import {
   createIntakeSessionCommandExecutor,
   type IntakeSessionCommandRequest,
 } from "../valet-sessions/intake-session-command";
@@ -43,11 +31,8 @@ export class CheckInApiService {
   private readonly completeCondition;
   private readonly correctConditionNote;
   private readonly intake;
-  private readonly issueGuestAccess;
   private readonly recordConditionNote;
   private readonly registerConditionPhoto;
-  private readonly resolveGuestAccess;
-  private readonly revokeGuestAccess;
   private readonly updateVehicleIdentity;
 
   constructor(
@@ -59,13 +44,10 @@ export class CheckInApiService {
     this.correctConditionNote =
       createCorrectCheckInConditionNoteCommandExecutor(pool);
     this.intake = createIntakeSessionCommandExecutor(pool);
-    this.issueGuestAccess = createIssueGuestAccessCommandExecutor(pool);
     this.recordConditionNote =
       createRecordCheckInConditionNoteCommandExecutor(pool);
     this.registerConditionPhoto =
       createRegisterCheckInConditionPhotoCommandExecutor(pool);
-    this.resolveGuestAccess = createGuestAccessResolver(pool);
-    this.revokeGuestAccess = createRevokeGuestAccessCommandExecutor(pool);
     this.updateVehicleIdentity = createVehicleIdentityCommandExecutor(pool);
   }
 
@@ -91,30 +73,6 @@ export class CheckInApiService {
 
   executeConditionCompletion(request: CheckInConditionStaffRequest) {
     return this.completeCondition(request);
-  }
-
-  executeGuestIssue(request: IssueGuestAccessRequest) {
-    return this.issueGuestAccess(request);
-  }
-
-  executeGuestRevoke(request: StaffGuestAccessRequest) {
-    return this.revokeGuestAccess(request);
-  }
-
-  resolveGuest(rawToken: string) {
-    return this.resolveGuestAccess(rawToken);
-  }
-
-  async resolveGuestInTransaction(
-    transaction: PostgresTransaction,
-    rawToken: string,
-  ) {
-    try {
-      return await resolveGuestAccessWithDatabase(transaction, rawToken);
-    } catch (error) {
-      if (error instanceof GuestAccessError) return undefined;
-      throw error;
-    }
   }
 
   async executeCompleteCheckIn(request: CompleteCheckInCommandRequest) {

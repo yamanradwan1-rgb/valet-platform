@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-11` (VAL-004O local implementation session)
+- Date/time: `2026-08-11` (VAL-004P local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required accepted-decision baseline: `a8fbcabb0da7d8faf0e12d90feeecae5ee51e38c`
-- Active branch: `refactor/VAL-004O-shared-runtime-infrastructure`
-- Active task: VAL-004O — Shared Runtime Infrastructure Cleanup
-- Verification basis: owner-supplied VAL-004O continuation packet, accepted DEC-026, and behavior-preserving infrastructure regression coverage
+- Required accepted-decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
+- Active branch: `refactor/VAL-004P-feature-ownership`
+- Active task: VAL-004P — Feature Ownership Cleanup
+- Verification basis: owner-supplied VAL-004P task packet, accepted DEC-027, and behavior-preserving feature-ownership regression coverage
 
 ## Current Milestone
 
@@ -21,11 +21,12 @@ Phase 0 is complete.
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
 VAL-004N is **MERGED / COMPLETED** through PR #73, merge commit
-`53e674464c6f3973da9202ce68fc8131af8447e1`. VAL-004O is the active Cleanup A
-slice for neutral shared runtime infrastructure ownership. Cleanup B and
-Cleanup C have not started, the full Pre-Phase-3 Structural Cleanup is not
-complete, Phase 3 has not started, and Phase 2 is not yet declared
-production-ready. No fresh post-fix Standard Security Scan is claimed.
+`53e674464c6f3973da9202ce68fc8131af8447e1`. VAL-004O is **MERGED / COMPLETED**
+through PR #75, merge commit `89ffc2f0bbd1f386b9da11b5f871c85c3cb15cce`.
+VAL-004P is the active Cleanup B feature-ownership slice. Cleanup A is complete,
+Cleanup B is active, Cleanup C has not started, the full Pre-Phase-3 Structural
+Cleanup is not complete, Phase 3 has not started, and Phase 2 is not yet
+declared production-ready. No fresh post-fix Standard Security Scan is claimed.
 
 ## Recently Completed Gate
 
@@ -97,30 +98,30 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004N — Production Database / Network / TLS / Credential Hardening
+### VAL-004P — Feature Ownership Cleanup
 
-- Branch: `feat/VAL-004N-production-db-hardening`
-- Status: **IMPLEMENTED LOCALLY — QUALITY/SECURITY REVIEW IN PROGRESS**
-- Accepted decision baseline: `5ce90f39e4c37b6c2a44c0f731558b120e403c7a`
+- Branch: `refactor/VAL-004P-feature-ownership`
+- Status: **ACTIVE — LOCAL IMPLEMENTATION / VALIDATION**
+- Accepted decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
 - Expected database state on this branch: **18 forward-only migrations**
 
 Objective:
-Implement accepted DEC-025 strict production runtime TLS, live `pg_stat_ssl`
-and runtime-role privilege verification, migration TLS allowlisting/preflight,
-admin-secret compartmentalization, distinct production credentials, and a
-provider-neutral network/deployment evidence checklist without adding a
-migration or provider-specific infrastructure.
+Implement accepted DEC-027 by separating Staff Auth, Anti-Abuse, Guest Access,
+and Staff Check-In ownership into four acyclic feature modules, with a neutral
+shared API operation runner and unchanged public/security/domain behavior.
 
-VAL-004N does not implement a cloud network, secret manager, backup system,
-Phase 3 operations, or a fresh Standard Security Scan. Phase 2 remains gated on
-the final closure/security-integrity review and actual deployment evidence.
+VAL-004P does not change schema, migrations, dependencies, public routes,
+authentication, anti-abuse semantics, custody behavior, or Phase 3 scope. Phase
+2 remains gated on Cleanup C, external deployment evidence, and the final
+closure/security-integrity review including a fresh Standard Security Scan.
 
 ## Remaining Phase 2 Check-In Gate
 
-VAL-004L staff authentication and VAL-004M shared anti-abuse are merged.
-VAL-004N is the active repository hardening slice. Phase 2 is not
-production-ready until VAL-004N is merged, the provider-owned checklist has
-real evidence, and the final Phase 2 closure/security-integrity review is
+VAL-004L staff authentication, VAL-004M shared anti-abuse, VAL-004N production
+database hardening, and VAL-004O Cleanup A are merged. VAL-004P Cleanup B is
+active. Phase 2 is not production-ready until Cleanup B and Cleanup C are
+merged, the provider-owned checklist has real evidence, and the final Phase 2
+closure/security-integrity review including a fresh Standard Security Scan is
 completed.
 
 ## Phase 2 Focused Task Sequence
@@ -142,6 +143,8 @@ VAL-004K  Verified Condition-Photo Evidence Guard
 VAL-004L  Production Staff Authentication
 VAL-004M  Shared Durable Anti-Abuse Boundary
 VAL-004N  Production Database / Network / TLS / Credential Hardening
+VAL-004O  Shared Runtime Infrastructure Cleanup (Cleanup A)
+VAL-004P  Feature Ownership Cleanup (Cleanup B)
 ```
 
 This sequence is dependency-oriented, not permission to combine Phase 2 into one large PR.
@@ -197,18 +200,18 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 
 ## Exact Next Step
 
-For VAL-004N:
+For VAL-004P:
 
 ```text
-finish production database hardening implementation and coverage
--> run all quality gates
--> review the local diff against DEC-025 and the VAL-004N task scope
+finish feature ownership separation and focused regression coverage
+-> run all quality gates and architecture/dependency searches
+-> review the local diff against DEC-027 and the VAL-004P task scope
 -> commit and push the assigned implementation branch after all gates pass
 ```
 
-Do not begin Phase 3 on this branch. After VAL-004N, the next gate is the final
-Phase 2 closure/security-integrity review. Do not declare Phase 2
-production-ready and do not claim a fresh Standard Security Scan was run.
+Do not begin Phase 3 on this branch. Cleanup C remains not started. Do not
+declare Phase 2 production-ready and do not claim a fresh Standard Security
+Scan was run.
 
 ## Parallel UX/UI Track
 

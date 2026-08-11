@@ -27,6 +27,7 @@ import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
+import { ApiOperationRunner } from "../src/common/http/api-operation-runner";
 import { RequestIdMiddleware } from "../src/common/http/api-request";
 import {
   MONOTONIC_CLOCK,
@@ -37,14 +38,16 @@ import {
   FailClosedStaffPrincipalResolver,
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
-} from "../src/modules/check-in-api/check-in-api.boundaries";
-import {
-  GuestCheckInController,
-  StaffCheckInController,
-} from "../src/modules/check-in-api/check-in-api.controller";
+} from "../src/modules/auth/staff-principal";
+import { StaffCheckInController } from "../src/modules/check-in-api/check-in-api.controller";
 import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.service";
 import { ApiExceptionFilter } from "../src/common/http/api-exception.filter";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
+import {
+  GuestAccessController,
+  StaffGuestAccessController,
+} from "../src/modules/guest-access/guest-access.controller";
+import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
 
 interface Fixture {
   locationId: string;
@@ -114,9 +117,16 @@ let testMigrationUrl: string;
 let testRuntimeUrl: string;
 
 @Module({
-  controllers: [AppController, StaffCheckInController, GuestCheckInController],
+  controllers: [
+    AppController,
+    StaffCheckInController,
+    StaffGuestAccessController,
+    GuestAccessController,
+  ],
   providers: [
     CheckInApiService,
+    GuestAccessService,
+    ApiOperationRunner,
     CheckInOperationRunner,
     AntiAbuseKeyDeriver,
     AntiAbuseService,
@@ -151,11 +161,15 @@ let testRuntimeUrl: string;
     },
   ],
 })
-class TestCheckInApiModule implements NestModule {
+class TestCheckInModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(StaffCheckInController, GuestCheckInController);
+      .forRoutes(
+        StaffCheckInController,
+        StaffGuestAccessController,
+        GuestAccessController,
+      );
   }
 }
 
@@ -428,7 +442,7 @@ beforeAll(async () => {
   runtimeRoleCreated = true;
   adminPool = new Pool({ connectionString: testMigrationUrl });
   runtimePool = createRuntimePostgresPool(testRuntimeUrl);
-  app = await NestFactory.create(TestCheckInApiModule, { logger: false });
+  app = await NestFactory.create(TestCheckInModule, { logger: false });
   await app.listen(0, "127.0.0.1");
   baseUrl = await app.getUrl();
 }, 120_000);
