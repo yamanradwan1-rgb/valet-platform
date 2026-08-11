@@ -103,7 +103,7 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 ### VAL-004Q — Pre-Phase-3 Architecture Guard
 
 - Branch: `chore/VAL-004Q-architecture-guard`
-- Status: **ACTIVE — LOCAL IMPLEMENTATION / VALIDATION**
+- Status: **ACTIVE — IMPLEMENTED / PUSHED, PENDING PR / MERGE**
 - Accepted decision baseline: `1501253e766bed93e3498960294a3777493947a1`
 - Expected database state on this branch: **18 forward-only migrations**
 

@@ -11,11 +11,6 @@ const RETIRED_SYMBOLS = [
 ];
 const LARGE_FILE_LINE_THRESHOLD = 450;
 
-const IMPORT_PATTERNS = [
-  /\bimport\s+(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']/g,
-  /\bexport\s+(?:[\s\S]*?\s+from\s+)["']([^"']+)["']/g,
-];
-
 function toRepositoryPath(repositoryRoot, targetPath) {
   return relative(repositoryRoot, targetPath).split(sep).join("/");
 }
@@ -70,15 +65,177 @@ function violationForEdge(sourceArea, targetArea) {
 
 export function collectModuleSpecifiers(source) {
   const specifiers = [];
-  for (const pattern of IMPORT_PATTERNS) {
-    pattern.lastIndex = 0;
-    for (const match of source.matchAll(pattern)) {
-      if (match[1] !== undefined) {
-        specifiers.push(match[1]);
+  const tokens = tokenizeModuleSyntax(source);
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.kind !== "identifier") {
+      continue;
+    }
+    if (token.value === "import") {
+      const specifier = importSpecifier(tokens, index + 1);
+      if (specifier !== undefined) {
+        specifiers.push(specifier);
+      }
+    } else if (token.value === "export") {
+      const specifier = exportSpecifier(tokens, index + 1);
+      if (specifier !== undefined) {
+        specifiers.push(specifier);
       }
     }
   }
   return specifiers;
+}
+
+function tokenizeModuleSyntax(source) {
+  const tokens = [];
+  let index = 0;
+  while (index < source.length) {
+    const character = source[index];
+    const next = source[index + 1];
+    if (/\s/.test(character)) {
+      index += 1;
+      continue;
+    }
+    if (character === "/" && next === "/") {
+      index = skipLineComment(source, index + 2);
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      index = skipBlockComment(source, index + 2);
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      const stringToken = readStringToken(source, index, character);
+      tokens.push({ kind: "string", value: stringToken.value });
+      index = stringToken.end;
+      continue;
+    }
+    if (character === "`") {
+      index = skipTemplateLiteral(source, index + 1);
+      continue;
+    }
+    if (/[A-Za-z_$]/.test(character)) {
+      const start = index;
+      index += 1;
+      while (index < source.length && /[A-Za-z0-9_$]/.test(source[index])) {
+        index += 1;
+      }
+      tokens.push({ kind: "identifier", value: source.slice(start, index) });
+      continue;
+    }
+    tokens.push({ kind: "punctuator", value: character });
+    index += 1;
+  }
+  return tokens;
+}
+
+function skipLineComment(source, index) {
+  while (index < source.length && source[index] !== "\n") {
+    index += 1;
+  }
+  return index;
+}
+
+function skipBlockComment(source, index) {
+  while (
+    index < source.length &&
+    !(source[index] === "*" && source[index + 1] === "/")
+  ) {
+    index += 1;
+  }
+  return Math.min(index + 2, source.length);
+}
+
+function skipTemplateLiteral(source, index) {
+  while (index < source.length) {
+    if (source[index] === "\\") {
+      index += 2;
+    } else if (source[index] === "`") {
+      return index + 1;
+    } else {
+      index += 1;
+    }
+  }
+  return index;
+}
+
+function readStringToken(source, index, quote) {
+  let value = "";
+  index += 1;
+  while (index < source.length) {
+    const character = source[index];
+    if (character === quote) {
+      return { end: index + 1, value };
+    }
+    if (character === "\\" && index + 1 < source.length) {
+      value += character + source[index + 1];
+      index += 2;
+    } else {
+      value += character;
+      index += 1;
+    }
+  }
+  return { end: index, value };
+}
+
+function importSpecifier(tokens, start) {
+  if (tokens[start]?.kind === "string") {
+    return tokens[start].value;
+  }
+  if (tokens[start]?.value === "(") {
+    return undefined;
+  }
+
+  let depth = 0;
+  for (let index = start; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.value === "{" || token.value === "[" || token.value === "(") {
+      depth += 1;
+    } else if (
+      token.value === "}" ||
+      token.value === "]" ||
+      token.value === ")"
+    ) {
+      depth = Math.max(0, depth - 1);
+    } else if (depth === 0 && token.value === ";") {
+      return undefined;
+    } else if (
+      depth === 0 &&
+      token.kind === "identifier" &&
+      token.value === "from" &&
+      tokens[index + 1]?.kind === "string"
+    ) {
+      return tokens[index + 1].value;
+    }
+  }
+  return undefined;
+}
+
+function exportSpecifier(tokens, start) {
+  let index = start;
+  if (tokens[index]?.value === "type") {
+    index += 1;
+  }
+  if (tokens[index]?.value === "{") {
+    let depth = 1;
+    index += 1;
+    while (index < tokens.length && depth > 0) {
+      if (tokens[index].value === "{") depth += 1;
+      if (tokens[index].value === "}") depth -= 1;
+      index += 1;
+    }
+  } else if (tokens[index]?.value === "*") {
+    index += 1;
+    if (tokens[index]?.value === "as") {
+      index += 2;
+    }
+  } else {
+    return undefined;
+  }
+  if (tokens[index]?.value === "from" && tokens[index + 1]?.kind === "string") {
+    return tokens[index + 1].value;
+  }
+  return undefined;
 }
 
 export async function checkArchitecture(repositoryRoot) {
