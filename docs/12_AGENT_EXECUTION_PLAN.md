@@ -200,6 +200,10 @@ The VAL-004I integration gate proves that a real authorized staff flow can estab
 
 ## Phase 3 — Operations: keys, parking and Hybrid Dispatch
 
+Before Phase 3, VAL-004R implements DEC-029 create-only controlled production
+staff provisioning after Cleanup A/B/C. It adds no signup/admin API or MFA
+claim and does not make Phase 2 production-ready.
+
 Goal:
 Make the valet operation executable after check-in.
 

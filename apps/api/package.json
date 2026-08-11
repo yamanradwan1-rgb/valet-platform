@@ -6,10 +6,11 @@
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
-    "lint": "eslint src test --max-warnings=0",
+    "lint": "eslint src test tools --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run test",
-    "test:check-in-api": "vitest run test/check-in-api.integration.test.ts"
+    "test:check-in-api": "vitest run test/check-in-api.integration.test.ts",
+    "staff:provision": "tsx tools/provision-staff.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.1.28",
