@@ -2,10 +2,12 @@ import "dotenv/config";
 
 import { defineConfig } from "prisma/config";
 
-const migrationDatabaseUrl = process.env.MIGRATION_DATABASE_URL;
-if (migrationDatabaseUrl === undefined || migrationDatabaseUrl.trim() === "") {
-  throw new Error("Prisma migration commands require MIGRATION_DATABASE_URL.");
-}
+import { parseMigrationDatabaseUrl } from "./scripts/database-connection-policy.mjs";
+
+const migrationDatabase = parseMigrationDatabaseUrl(
+  process.env.MIGRATION_DATABASE_URL,
+  process.env.NODE_ENV,
+);
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -14,6 +16,6 @@ export default defineConfig({
     seed: "node prisma/seed.mjs",
   },
   datasource: {
-    url: migrationDatabaseUrl,
+    url: migrationDatabase.value,
   },
 });

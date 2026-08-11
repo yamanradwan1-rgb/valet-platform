@@ -32,6 +32,22 @@ Version: 0.4
 - Central error/monitoring must avoid unnecessary PII/secrets.
 - Dependency/security scanning and incident-response procedures are part of production hardening.
 
+Accepted DEC-025 makes the production database boundary fail closed. The API
+uses query-free `DATABASE_URL`, strict Node TLS certificate and hostname
+verification, optional secret-provided CA trust, and a live `pg_stat_ssl` plus
+runtime-role capability/ownership preflight before traffic is served. The API
+process must not possess `MIGRATION_DATABASE_URL`. The controlled
+migration/provisioning boundary uses only exact `sslmode=require`,
+`sslaccept=strict`, and optional `sslrootcert` parameters, verifies its actual
+TLS backend before mutation, and requires distinct runtime/admin roles and
+production passwords.
+
+Repository checks cannot prove provider firewall/private-network topology,
+secret-store configuration, backups, restore drills, or rotation ownership.
+Those remain explicit deployment-verified gates in the provider-neutral
+production database checklist and must not be marked complete without external
+evidence.
+
 ## Staff authentication
 
 VAL-004L implements DEC-023's PostgreSQL-backed opaque staff authentication.

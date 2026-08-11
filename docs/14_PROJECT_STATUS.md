@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-10` (VAL-004M local implementation session)
+- Date/time: `2026-08-10` (VAL-004N local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required accepted-decision baseline: `02b77c3`
-- Active branch: `feat/VAL-004M-shared-durable-anti-abuse`
-- Active task: VAL-004M — Implement Shared Durable Anti-Abuse Boundary
-- Verification basis: owner-supplied VAL-004M task packet, required local branch/HEAD preflight, accepted DEC-024 and focused real-HTTP/runtime-role PostgreSQL integration coverage
+- Required accepted-decision baseline: `5ce90f39e4c37b6c2a44c0f731558b120e403c7a`
+- Active branch: `feat/VAL-004N-production-db-hardening`
+- Active task: VAL-004N — Production Database / Network / TLS / Credential Hardening
+- Verification basis: owner-supplied VAL-004N task packet, required local branch/HEAD preflight, accepted DEC-025, and focused runtime/migration PostgreSQL safety coverage
 
 ## Current Milestone
 
@@ -20,7 +20,11 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-The Phase 2 check-in slices through VAL-004L are present on this branch baseline. VAL-004M implements accepted DEC-024 as the shared durable PostgreSQL-backed anti-abuse boundary for staff login and guest session resolution while preserving the existing authentication, guest-token and custody-authorization contracts. It does not start Phase 3 and does not claim production readiness.
+The Phase 2 check-in slices through VAL-004M are merged. VAL-004N implements
+accepted DEC-025's production database TLS, live runtime-role safety,
+migration/admin preflight, credential compartmentalization, and provider-neutral
+deployment evidence boundary. It does not start Phase 3 and does not claim
+production readiness.
 
 ## Recently Completed Gate
 
@@ -61,6 +65,16 @@ The Phase 2 check-in slices through VAL-004L are present on this branch baseline
   - Phase 2 runtime DB boundary documented: dedicated least-privilege runtime role, no runtime DDL/migration privileges
   - explicit append-only AuditEvent/financial-history DB privilege/enforcement decision remains required before production commands rely on that guarantee
 
+### VAL-004M — Shared Durable Anti-Abuse Boundary
+
+- PR #71
+- Merge commit: `56a7c4584f588e61513f728f34958ef497b86b01`
+- Status: **MERGED / COMPLETED**
+- Result: accepted DEC-024 PostgreSQL-backed exact rolling-window staff and
+  guest anti-abuse enforcement with scoped HMAC keys, trusted client-address
+  resolution, bounded advisory locking, fail-closed behavior, fixed cleanup,
+  and least-privilege runtime access
+
 ## Phase 1 Completion Evidence
 
 Phase 1 completed with exactly **14 forward-only migrations**, ending with:
@@ -82,27 +96,31 @@ Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, expli
 
 ## Current Task
 
-### VAL-004M — Shared Durable Anti-Abuse Boundary
+### VAL-004N — Production Database / Network / TLS / Credential Hardening
 
-- Branch: `feat/VAL-004M-shared-durable-anti-abuse`
+- Branch: `feat/VAL-004N-production-db-hardening`
 - Status: **IMPLEMENTED LOCALLY — QUALITY/SECURITY REVIEW IN PROGRESS**
-- Accepted decision baseline: `02b77c3`
+- Accepted decision baseline: `5ce90f39e4c37b6c2a44c0f731558b120e403c7a`
 - Expected database state on this branch: **18 forward-only migrations**
 
 Objective:
-Implement accepted DEC-024 exact rolling staff-address, staff-identifier,
-guest-address and guest-token limits using shared PostgreSQL state, scoped HMAC
-keys, trusted client-address resolution, bounded transaction advisory locks,
-database-authored retry timing, fixed cleanup and least-privilege runtime access.
+Implement accepted DEC-025 strict production runtime TLS, live `pg_stat_ssl`
+and runtime-role privilege verification, migration TLS allowlisting/preflight,
+admin-secret compartmentalization, distinct production credentials, and a
+provider-neutral network/deployment evidence checklist without adding a
+migration or provider-specific infrastructure.
 
-VAL-004M does not implement MFA, signup/reset, device management, Redis, WAF,
-CAPTCHA or Phase 3 operations. Production deployment remains gated on
-production database/network/TLS/credential hardening and the other documented
-deployment controls.
+VAL-004N does not implement a cloud network, secret manager, backup system,
+Phase 3 operations, or a fresh Standard Security Scan. Phase 2 remains gated on
+the final closure/security-integrity review and actual deployment evidence.
 
 ## Remaining Phase 2 Check-In Gate
 
-VAL-004L's staff-authentication core and VAL-004M's shared anti-abuse boundary are implemented on the current branch history. Phase 2 is not production-ready until production database/network/TLS/credential hardening and the remaining deployment controls are implemented and reviewed.
+VAL-004L staff authentication and VAL-004M shared anti-abuse are merged.
+VAL-004N is the active repository hardening slice. Phase 2 is not
+production-ready until VAL-004N is merged, the provider-owned checklist has
+real evidence, and the final Phase 2 closure/security-integrity review is
+completed.
 
 ## Phase 2 Focused Task Sequence
 
@@ -122,6 +140,7 @@ VAL-004J  Cross-Location Shared Vehicle Identity Guard
 VAL-004K  Verified Condition-Photo Evidence Guard
 VAL-004L  Production Staff Authentication
 VAL-004M  Shared Durable Anti-Abuse Boundary
+VAL-004N  Production Database / Network / TLS / Credential Hardening
 ```
 
 This sequence is dependency-oriented, not permission to combine Phase 2 into one large PR.
@@ -164,25 +183,31 @@ Financial persistence remains payment-centric under DEC-021 with DEC-022 edge cl
 ## Dependencies / Contention
 
 - No Phase 1 migration task remains active.
-- VAL-004L adds migration 17; VAL-004M adds only migration 18 and leaves migrations 1–17 unchanged.
+- VAL-004L adds migration 17; VAL-004M adds migration 18. VAL-004N adds no
+  migration and leaves migrations 1–18 unchanged.
 - `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
 - DEC-023 is the accepted staff-authentication contract; existing custody commands remain authoritative for tenant, Location and role authorization.
 - DEC-024 is the accepted shared anti-abuse contract; limiter buckets never authenticate or authorize a User, tenant, Location, membership, role or guest session.
+- DEC-025 is the accepted production database connection/credential contract;
+  repository enforcement must remain distinct from provider-owned network,
+  secret, backup, and restore evidence.
 - Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
 - Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
 
 ## Exact Next Step
 
-For VAL-004M:
+For VAL-004N:
 
 ```text
-finish shared durable anti-abuse implementation and coverage
+finish production database hardening implementation and coverage
 -> run all quality gates
--> review the local diff against DEC-024 and the VAL-004M task scope
+-> review the local diff against DEC-025 and the VAL-004N task scope
 -> commit and push the assigned implementation branch after all gates pass
 ```
 
-Do not begin Phase 3 on this branch. Do not declare Phase 2 production-ready until production DB/network/TLS/credential hardening and remaining deployment controls are complete.
+Do not begin Phase 3 on this branch. After VAL-004N, the next gate is the final
+Phase 2 closure/security-integrity review. Do not declare Phase 2
+production-ready and do not claim a fresh Standard Security Scan was run.
 
 ## Parallel UX/UI Track
 

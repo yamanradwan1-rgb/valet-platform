@@ -4,12 +4,15 @@ import {
   Inject,
   Injectable,
   type NestMiddleware,
+  type OnApplicationBootstrap,
+  type OnApplicationShutdown,
   UnauthorizedException,
 } from "@nestjs/common";
 
 import {
   createRuntimePostgresPool,
   type PostgresPool,
+  verifyProductionRuntimeDatabaseSafety,
 } from "../../common/database/postgres";
 
 export const CHECK_IN_POSTGRES_POOL = Symbol("CHECK_IN_POSTGRES_POOL");
@@ -112,10 +115,18 @@ export function createCheckInRuntimePool(): PostgresPool {
 }
 
 @Injectable()
-export class RuntimePoolLifecycle {
+export class RuntimePoolLifecycle
+  implements OnApplicationBootstrap, OnApplicationShutdown
+{
   constructor(
     @Inject(CHECK_IN_POSTGRES_POOL) private readonly pool: PostgresPool,
   ) {}
+
+  async onApplicationBootstrap(): Promise<void> {
+    if (process.env.NODE_ENV === "production") {
+      await verifyProductionRuntimeDatabaseSafety(this.pool);
+    }
+  }
 
   async onApplicationShutdown(): Promise<void> {
     await this.pool.end();
