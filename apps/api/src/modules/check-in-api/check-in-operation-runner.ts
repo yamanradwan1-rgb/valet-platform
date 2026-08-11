@@ -9,10 +9,13 @@ import {
   type OperationObserver,
 } from "../../common/observability/operation-observability";
 
-import {
-  apiHttpException,
-  mapCheckInError,
-} from "../../common/http/api-errors";
+import { apiHttpException, mapApiError } from "../../common/http/api-errors";
+
+export interface CheckInRequestMeasurementState {
+  checkInElapsedMs?: number;
+}
+
+export type CheckInApiRequest = ApiRequest & CheckInRequestMeasurementState;
 
 interface CheckInOperationMeasurement extends OperationMeasurement {
   readonly checkInElapsedMs?: number;
@@ -29,7 +32,7 @@ export class CheckInOperationRunner {
 
   async run<T>(
     operation: string,
-    request: ApiRequest,
+    request: CheckInApiRequest,
     action: () => Promise<T>,
   ): Promise<T> {
     const requestId = request.requestId ?? "request-id-unavailable";
@@ -40,12 +43,12 @@ export class CheckInOperationRunner {
       return await action();
     } catch (error) {
       outcome = "ERROR";
-      const mapped = mapCheckInError(error);
+      const mapped = mapApiError(error);
       errorCode = mapped.code;
       throw apiHttpException(mapped, requestId);
     } finally {
       const durationMs = Math.max(0, this.clock.now() - startedAt);
-      request.checkInOperationMeasured = true;
+      request.operationMeasured = true;
       try {
         const measurement: CheckInOperationMeasurement = {
           ...(request.checkInElapsedMs === undefined

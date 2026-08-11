@@ -67,7 +67,7 @@ const safeMessages: Readonly<Record<string, string>> = {
   TENANT_ACCESS_DENIED: "The requested resource is not available.",
 };
 
-export function mapCheckInError(error: unknown): MappedApiError {
+export function mapApiError(error: unknown): MappedApiError {
   if (error instanceof ApiTransportValidationError) {
     return {
       code: "REQUEST_INVALID",

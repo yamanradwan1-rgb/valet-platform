@@ -3,8 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Injectable, type NestMiddleware } from "@nestjs/common";
 
 export interface ApiRequest {
-  checkInElapsedMs?: number;
-  checkInOperationMeasured?: boolean;
+  operationMeasured?: boolean;
   requestId?: string;
   readonly headers: Readonly<Record<string, string | string[] | undefined>>;
   readonly rawHeaders?: readonly string[];

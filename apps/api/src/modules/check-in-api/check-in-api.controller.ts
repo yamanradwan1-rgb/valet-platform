@@ -52,10 +52,12 @@ import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
 } from "./check-in-api.boundaries";
-import type { ApiRequest } from "../../common/http/api-request";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { CheckInApiService } from "./check-in-api.service";
-import { CheckInOperationRunner } from "./check-in-operation-runner";
+import {
+  CheckInOperationRunner,
+  type CheckInApiRequest,
+} from "./check-in-operation-runner";
 
 interface ParseSchema<T> {
   safeParse(
@@ -83,7 +85,7 @@ function parseUuid(value: string): string {
 }
 
 function shapeValidGuestBearer(
-  request: ApiRequest,
+  request: CheckInApiRequest,
   value: string | undefined,
 ): string | undefined {
   const rawHeaders = request.rawHeaders;
@@ -113,7 +115,7 @@ export class StaffCheckInController {
   ) {}
 
   private async userId(
-    request: ApiRequest,
+    request: CheckInApiRequest,
     authorization: string | undefined,
   ): Promise<string> {
     const rawHeaders = request.rawHeaders;
@@ -132,7 +134,7 @@ export class StaffCheckInController {
 
   @Post("intakes")
   async createIntake(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Body() body: unknown,
   ) {
@@ -170,7 +172,7 @@ export class StaffCheckInController {
 
   @Put("sessions/:sessionId/vehicle-identity")
   async updateVehicleIdentity(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -203,7 +205,7 @@ export class StaffCheckInController {
 
   @Post("sessions/:sessionId/condition-notes")
   async recordConditionNote(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -231,7 +233,7 @@ export class StaffCheckInController {
 
   @Post("sessions/:sessionId/condition-notes/:noteId/corrections")
   async correctConditionNote(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Param("noteId") noteIdRaw: string,
@@ -265,7 +267,7 @@ export class StaffCheckInController {
 
   @Post("sessions/:sessionId/condition-photos")
   async registerConditionPhoto(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -294,7 +296,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/condition-completion")
   async completeCondition(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -320,7 +322,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/guest-access/issue")
   async issueGuestAccess(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -352,7 +354,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/guest-access/revoke")
   async revokeGuestAccess(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -378,7 +380,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/complete")
   async completeCheckIn(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -418,7 +420,7 @@ export class GuestCheckInController {
 
   @Get("session")
   async getSession(
-    @Req() request: ApiRequest,
+    @Req() request: CheckInApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Query() query: unknown,
   ) {

@@ -145,7 +145,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       response.setHeader("Pragma", "no-cache");
     }
 
-    if (request.checkInOperationMeasured === true) {
+    if (request.operationMeasured === true) {
       const status =
         exception instanceof HttpException
           ? exception.getStatus()
@@ -197,7 +197,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
 
     const startedAt = this.clock.now();
-    request.checkInOperationMeasured = true;
+    request.operationMeasured = true;
     try {
       await this.observer.observe({
         durationMs: Math.max(0, this.clock.now() - startedAt),
