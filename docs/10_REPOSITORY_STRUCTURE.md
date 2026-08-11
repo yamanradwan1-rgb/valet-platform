@@ -123,6 +123,13 @@ Shared runtime database, HTTP, request-ID, exception-filter and observability
 infrastructure remains under `apps/api/src/common/**`. Feature modules consume
 that infrastructure; common code does not import feature modules.
 
+The root `architecture:check` command is the authoritative repository-owned CI
+gate for these dependency directions. ESLint provides fast restricted-import
+feedback; the checker resolves relative source targets and also rejects the
+retired `CheckInApiModule`, `CHECK_IN_POSTGRES_POOL`, and
+`GuestCheckInController` symbols in application source. Oversized source files
+produce only advisory warnings.
+
 ### auth
 Staff authentication, session/token lifecycle, Origin policy and the shared
 staff-principal resolution boundary.

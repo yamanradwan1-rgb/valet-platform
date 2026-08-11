@@ -438,6 +438,10 @@ pnpm test
 pnpm build
 ```
 
+Architecture changes additionally run `pnpm architecture:check`; it is the
+repository-owned CI gate for accepted API dependency direction and has
+advisory-only large-file warnings.
+
 Database tasks additionally verify migration behavior on a fresh PostgreSQL database and required integrity tests.
 
 ## Collaboration gate
