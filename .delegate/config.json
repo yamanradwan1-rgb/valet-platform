@@ -1,0 +1,18 @@
+{
+  "version": "delegate-fleet.v1",
+  "lanes": {
+    "primary": {
+      "implementer": "codex",
+      "effort": "medium"
+    },
+    "review": {
+      "implementer": "codex",
+      "effort": "medium",
+      "readOnly": true
+    },
+    "agy-safe": {
+      "implementer": "agy",
+      "model": "claude-sonnet-4-6"
+    }
+  }
+}
