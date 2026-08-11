@@ -174,10 +174,7 @@ function requireBoundedText(
   if (
     value.length === 0 ||
     Array.from(value).length > maximum ||
-    Array.from(value).some((character) => {
-      const codePoint = character.codePointAt(0) ?? 0;
-      return codePoint <= 0x1f || codePoint === 0x7f;
-    })
+    /\p{Cc}/u.test(value)
   ) {
     fail(message);
   }
@@ -409,12 +406,22 @@ async function readStandardInput(): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+export async function readProvisioningPassword(
+  interactive: boolean,
+  read: () => Promise<string>,
+): Promise<string> {
+  if (interactive) {
+    fail("Provide the password through non-interactive standard input.");
+  }
+  return passwordFromStdin(await read(), false);
+}
+
 async function main(): Promise<void> {
   try {
     const input = parseProvisioningArguments(process.argv.slice(2));
-    const password = passwordFromStdin(
-      await readStandardInput(),
+    const password = await readProvisioningPassword(
       process.stdin.isTTY === true,
+      readStandardInput,
     );
     const result = await executeProvisioning(input, password, process.env);
     process.stdout.write(`${JSON.stringify(result)}\n`);

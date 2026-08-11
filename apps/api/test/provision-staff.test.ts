@@ -12,6 +12,7 @@ import {
   parseProvisioningArguments,
   passwordFromStdin,
   persistProvisionedStaff,
+  readProvisioningPassword,
   requireNodeEnvironment,
 } from "../tools/provision-staff";
 
@@ -143,6 +144,21 @@ describe("controlled staff provisioning input", () => {
       "Invalid Organization ID",
     );
   });
+
+  it("rejects C1 controls while accepting ordinary Unicode operator text", () => {
+    for (const flag of ["--operator-ref", "--reason"]) {
+      const controlled = validValues();
+      controlled[controlled.indexOf(flag) + 1] = "before\u0085after";
+      expect(() => parseProvisioningArguments(controlled)).toThrow("Invalid");
+    }
+    const unicode = validValues();
+    unicode[unicode.indexOf("--operator-ref") + 1] = "مشغّل-١٢٣";
+    unicode[unicode.indexOf("--reason") + 1] = "إنشاء حساب موظف";
+    expect(parseProvisioningArguments(unicode)).toMatchObject({
+      operatorRef: "مشغّل-١٢٣",
+      reason: "إنشاء حساب موظف",
+    });
+  });
 });
 
 describe("provisioning password boundary", () => {
@@ -150,6 +166,14 @@ describe("provisioning password boundary", () => {
     expect(() => passwordFromStdin("fifteen-codepoints", true)).toThrow(
       "non-interactive",
     );
+  });
+
+  it("fails before invoking the password reader for interactive stdin", async () => {
+    const read = vi.fn(async () => "fifteen-codepoints");
+    await expect(readProvisioningPassword(true, read)).rejects.toThrow(
+      "non-interactive",
+    );
+    expect(read).not.toHaveBeenCalled();
   });
 
   it("removes exactly one terminal LF or CRLF", () => {
