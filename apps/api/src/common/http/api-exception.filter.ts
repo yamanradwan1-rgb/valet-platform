@@ -10,15 +10,14 @@ import {
 import { BaseExceptionFilter, HttpAdapterHost } from "@nestjs/core";
 
 import {
-  CHECK_IN_MONOTONIC_CLOCK,
-  CHECK_IN_OPERATION_OBSERVER,
-  resolveCheckInRequestId,
-  type CheckInApiRequest,
-  type CheckInOperationObserver,
+  MONOTONIC_CLOCK,
+  OPERATION_OBSERVER,
   type MonotonicClock,
-} from "./check-in-api.boundaries";
+  type OperationObserver,
+} from "../observability/operation-observability";
+import { resolveRequestId, type ApiRequest } from "./api-request";
 
-interface FilterRequest extends CheckInApiRequest {
+interface FilterRequest extends ApiRequest {
   readonly method: string;
   readonly originalUrl: string;
 }
@@ -109,14 +108,14 @@ function routedOperation(request: FilterRequest): string | undefined {
 }
 
 @Catch()
-export class CheckInApiExceptionFilter implements ExceptionFilter {
+export class ApiExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger("CheckInApi");
 
   constructor(
-    @Inject(CHECK_IN_MONOTONIC_CLOCK)
+    @Inject(MONOTONIC_CLOCK)
     private readonly clock: MonotonicClock,
-    @Inject(CHECK_IN_OPERATION_OBSERVER)
-    private readonly observer: CheckInOperationObserver,
+    @Inject(OPERATION_OBSERVER)
+    private readonly observer: OperationObserver,
     private readonly httpAdapterHost: HttpAdapterHost,
   ) {}
 
@@ -138,9 +137,8 @@ export class CheckInApiExceptionFilter implements ExceptionFilter {
       );
       return;
     }
-    const requestId =
-      request.checkInRequestId ?? resolveCheckInRequestId(request.headers);
-    request.checkInRequestId = requestId;
+    const requestId = request.requestId ?? resolveRequestId(request.headers);
+    request.requestId = requestId;
     response.setHeader("X-Request-Id", requestId);
     if (operation.startsWith("STAFF_AUTH_")) {
       response.setHeader("Cache-Control", "no-store");

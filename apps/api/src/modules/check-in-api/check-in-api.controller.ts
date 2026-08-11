@@ -50,10 +50,10 @@ import {
 import type { VehicleIdentityInput } from "../vehicles/vehicle-identity-command";
 import {
   STAFF_PRINCIPAL_RESOLVER,
-  type CheckInApiRequest,
   type StaffPrincipalResolver,
 } from "./check-in-api.boundaries";
-import { CheckInTransportValidationError } from "./check-in-api.errors";
+import type { ApiRequest } from "../../common/http/api-request";
+import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { CheckInApiService } from "./check-in-api.service";
 import { CheckInOperationRunner } from "./check-in-operation-runner";
 
@@ -69,7 +69,7 @@ const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
 
 function parse<T>(schema: ParseSchema<T>, value: unknown): T {
   const parsed = schema.safeParse(value);
-  if (!parsed.success) throw new CheckInTransportValidationError();
+  if (!parsed.success) throw new ApiTransportValidationError();
   return parsed.data;
 }
 
@@ -78,12 +78,12 @@ function parseAbsentOrEmptyBody(body: unknown): void {
 }
 
 function parseUuid(value: string): string {
-  if (!uuidPattern.test(value)) throw new CheckInTransportValidationError();
+  if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
   return value;
 }
 
 function shapeValidGuestBearer(
-  request: CheckInApiRequest,
+  request: ApiRequest,
   value: string | undefined,
 ): string | undefined {
   const rawHeaders = request.rawHeaders;
@@ -113,7 +113,7 @@ export class StaffCheckInController {
   ) {}
 
   private async userId(
-    request: CheckInApiRequest,
+    request: ApiRequest,
     authorization: string | undefined,
   ): Promise<string> {
     const rawHeaders = request.rawHeaders;
@@ -132,7 +132,7 @@ export class StaffCheckInController {
 
   @Post("intakes")
   async createIntake(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Body() body: unknown,
   ) {
@@ -170,7 +170,7 @@ export class StaffCheckInController {
 
   @Put("sessions/:sessionId/vehicle-identity")
   async updateVehicleIdentity(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -203,7 +203,7 @@ export class StaffCheckInController {
 
   @Post("sessions/:sessionId/condition-notes")
   async recordConditionNote(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -231,7 +231,7 @@ export class StaffCheckInController {
 
   @Post("sessions/:sessionId/condition-notes/:noteId/corrections")
   async correctConditionNote(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Param("noteId") noteIdRaw: string,
@@ -265,7 +265,7 @@ export class StaffCheckInController {
 
   @Post("sessions/:sessionId/condition-photos")
   async registerConditionPhoto(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -294,7 +294,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/condition-completion")
   async completeCondition(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -320,7 +320,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/guest-access/issue")
   async issueGuestAccess(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -352,7 +352,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/guest-access/revoke")
   async revokeGuestAccess(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -378,7 +378,7 @@ export class StaffCheckInController {
   @HttpCode(200)
   @Post("sessions/:sessionId/complete")
   async completeCheckIn(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
@@ -418,7 +418,7 @@ export class GuestCheckInController {
 
   @Get("session")
   async getSession(
-    @Req() request: CheckInApiRequest,
+    @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Query() query: unknown,
   ) {

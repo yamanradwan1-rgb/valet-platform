@@ -26,14 +26,16 @@ import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
+import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
+import { RequestIdMiddleware } from "../src/common/http/api-request";
 import {
-  CHECK_IN_MONOTONIC_CLOCK,
-  CHECK_IN_OPERATION_OBSERVER,
-  CHECK_IN_POSTGRES_POOL,
+  MONOTONIC_CLOCK,
+  OPERATION_OBSERVER,
+  type OperationMeasurement,
+} from "../src/common/observability/operation-observability";
+import {
   FailClosedStaffPrincipalResolver,
-  RequestIdMiddleware,
   STAFF_PRINCIPAL_RESOLVER,
-  type CheckInOperationMeasurement,
   type StaffPrincipalResolver,
 } from "../src/modules/check-in-api/check-in-api.boundaries";
 import {
@@ -41,7 +43,7 @@ import {
   StaffCheckInController,
 } from "../src/modules/check-in-api/check-in-api.controller";
 import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.service";
-import { CheckInApiExceptionFilter } from "../src/modules/check-in-api/check-in-api-exception.filter";
+import { ApiExceptionFilter } from "../src/common/http/api-exception.filter";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
 
 interface Fixture {
@@ -50,6 +52,10 @@ interface Fixture {
   organizationId: string;
   staffToken: string;
   userId: string;
+}
+
+interface CheckInOperationMeasurement extends OperationMeasurement {
+  readonly checkInElapsedMs?: number;
 }
 
 interface FixtureOptions {
@@ -118,12 +124,12 @@ let testRuntimeUrl: string;
     RequestIdMiddleware,
     {
       provide: APP_FILTER,
-      useClass: CheckInApiExceptionFilter,
+      useClass: ApiExceptionFilter,
     },
-    { provide: CHECK_IN_POSTGRES_POOL, useFactory: () => runtimePool },
+    { provide: RUNTIME_POSTGRES_POOL, useFactory: () => runtimePool },
     { provide: STAFF_PRINCIPAL_RESOLVER, useValue: testPrincipalResolver },
     {
-      provide: CHECK_IN_OPERATION_OBSERVER,
+      provide: OPERATION_OBSERVER,
       useValue: {
         observe(measurement: CheckInOperationMeasurement) {
           measurements.push(measurement);
@@ -134,7 +140,7 @@ let testRuntimeUrl: string;
       },
     },
     {
-      provide: CHECK_IN_MONOTONIC_CLOCK,
+      provide: MONOTONIC_CLOCK,
       useValue: {
         now() {
           const current = clockValue;

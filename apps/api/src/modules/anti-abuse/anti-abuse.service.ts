@@ -4,7 +4,7 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
-import { CHECK_IN_POSTGRES_POOL } from "../check-in-api/check-in-api.boundaries";
+import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import {
   AntiAbuseKeyDeriver,
   type AntiAbuseKey,
@@ -73,7 +73,7 @@ async function rollback(transaction: PostgresTransaction): Promise<void> {
 @Injectable()
 export class AntiAbuseService {
   constructor(
-    @Inject(CHECK_IN_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     private readonly keys: AntiAbuseKeyDeriver,
   ) {}
 

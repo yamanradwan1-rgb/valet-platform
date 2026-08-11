@@ -1,14 +1,14 @@
 import { randomBytes, randomUUID } from "node:crypto";
 
 import { Pool } from "pg";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   assertProductionRuntimeRoleSafety,
   inspectRuntimeDatabaseSafety,
   verifyProductionRuntimeDatabaseSafety,
 } from "../src/common/database/postgres";
-import { RuntimePoolLifecycle } from "../src/modules/check-in-api/check-in-api.boundaries";
+import { RuntimeDatabaseLifecycle } from "../src/common/database/runtime-database.module";
 
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
@@ -60,7 +60,9 @@ beforeAll(async () => {
   testAdminUrl = databaseUrlFor(databaseName);
   testRuntimeUrl = runtimeUrlFor(databaseName);
   adminPool = new Pool({ connectionString: testAdminUrl });
-  await adminPool.query(`REVOKE CREATE ON DATABASE "${databaseName}" FROM PUBLIC`);
+  await adminPool.query(
+    `REVOKE CREATE ON DATABASE "${databaseName}" FROM PUBLIC`,
+  );
   await adminPool.query(
     `REVOKE CREATE ON DATABASE "${databaseName}" FROM "${runtimeRole}"`,
   );
@@ -87,6 +89,13 @@ afterAll(async () => {
 }, 30_000);
 
 describe("production runtime database safety verification", () => {
+  it("closes its single injected runtime pool on shutdown", async () => {
+    const end = vi.fn(async () => undefined);
+    const lifecycle = new RuntimeDatabaseLifecycle({ end } as unknown as Pool);
+    await lifecycle.onApplicationShutdown();
+    expect(end).toHaveBeenCalledTimes(1);
+  });
+
   it("accepts the real least-privilege role capability boundary", async () => {
     const safety = await inspectRuntimeDatabaseSafety(runtimePool);
     expect(() => assertProductionRuntimeRoleSafety(safety)).not.toThrow();
@@ -103,7 +112,7 @@ describe("production runtime database safety verification", () => {
     process.env.NODE_ENV = "production";
     try {
       await expect(
-        new RuntimePoolLifecycle(runtimePool).onApplicationBootstrap(),
+        new RuntimeDatabaseLifecycle(runtimePool).onApplicationBootstrap(),
       ).rejects.toThrow("not securely encrypted");
     } finally {
       if (previous === undefined) delete process.env.NODE_ENV;
@@ -206,7 +215,9 @@ describe("production runtime database safety verification", () => {
       expect(name).toMatch(safeIdentifier);
       if (kind === "TABLE") {
         await adminPool.query(`CREATE TABLE "${name}" (id integer)`);
-        await adminPool.query(`ALTER TABLE "${name}" OWNER TO "${runtimeRole}"`);
+        await adminPool.query(
+          `ALTER TABLE "${name}" OWNER TO "${runtimeRole}"`,
+        );
       } else if (kind === "SEQUENCE") {
         await adminPool.query(`CREATE SEQUENCE "${name}"`);
         await adminPool.query(

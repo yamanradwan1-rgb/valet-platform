@@ -156,6 +156,12 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
     provider-neutral deployment checklist. It adds no migration and does not by
     itself declare Phase 2 production-ready.
 
+13. **VAL-004O — Shared Runtime Infrastructure Cleanup (Cleanup A)**
+    Implement accepted DEC-026 by moving the existing runtime database,
+    request-ID, HTTP error/filter, and generic observability ownership to
+    neutral API infrastructure without changing behavior. Cleanup B and Cleanup
+    C remain separate; Phase 3 has not started.
+
 Do not combine these focused slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
 ### Phase 2 implementation dependencies that must remain explicit

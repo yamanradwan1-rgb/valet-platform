@@ -2,7 +2,7 @@ import { isIP } from "node:net";
 
 import { Injectable } from "@nestjs/common";
 
-import type { CheckInApiRequest } from "../check-in-api/check-in-api.boundaries";
+import type { ApiRequest } from "../../common/http/api-request";
 
 interface ParsedIp {
   readonly bytes: Uint8Array;
@@ -143,7 +143,7 @@ function contains(cidr: ParsedCidr, address: ParsedIp): boolean {
   return (cidr.bytes[whole]! & mask) === (address.bytes[whole]! & mask);
 }
 
-function rawHeaderCount(request: CheckInApiRequest, header: string): number {
+function rawHeaderCount(request: ApiRequest, header: string): number {
   const rawHeaders = request.rawHeaders;
   if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) {
     throw new ClientAddressUnavailableError();
@@ -171,7 +171,7 @@ export class TrustedClientAddressResolver {
     return this.trustedCidrs.some((cidr) => contains(cidr, address));
   }
 
-  resolve(request: CheckInApiRequest): string {
+  resolve(request: ApiRequest): string {
     const peerValue = request.socket?.remoteAddress;
     if (peerValue === undefined) throw new ClientAddressUnavailableError();
     let peer: ParsedIp;

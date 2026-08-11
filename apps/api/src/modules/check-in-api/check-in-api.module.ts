@@ -1,5 +1,7 @@
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
-import { APP_FILTER } from "@nestjs/core";
+import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
+import { RequestIdMiddleware } from "../../common/http/api-request";
+import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 
 import { StaffAuthController } from "../auth/staff-auth.controller";
 import { AntiAbuseKeyDeriver } from "../anti-abuse/anti-abuse-key";
@@ -13,23 +15,12 @@ import {
   StaffAuthService,
 } from "../auth/staff-auth.service";
 
-import {
-  CHECK_IN_MONOTONIC_CLOCK,
-  CHECK_IN_OPERATION_OBSERVER,
-  CHECK_IN_POSTGRES_POOL,
-  NoopCheckInOperationObserver,
-  PerformanceMonotonicClock,
-  RequestIdMiddleware,
-  RuntimePoolLifecycle,
-  STAFF_PRINCIPAL_RESOLVER,
-  createCheckInRuntimePool,
-} from "./check-in-api.boundaries";
+import { STAFF_PRINCIPAL_RESOLVER } from "./check-in-api.boundaries";
 import {
   GuestCheckInController,
   StaffCheckInController,
 } from "./check-in-api.controller";
 import { CheckInApiService } from "./check-in-api.service";
-import { CheckInApiExceptionFilter } from "./check-in-api-exception.filter";
 import { CheckInOperationRunner } from "./check-in-operation-runner";
 
 @Module({
@@ -38,6 +29,7 @@ import { CheckInOperationRunner } from "./check-in-operation-runner";
     StaffCheckInController,
     GuestCheckInController,
   ],
+  imports: [HttpInfrastructureModule, RuntimeDatabaseModule],
   providers: [
     CheckInApiService,
     CheckInOperationRunner,
@@ -48,16 +40,6 @@ import { CheckInOperationRunner } from "./check-in-operation-runner";
     StaffAuthOriginPolicy,
     DatabaseStaffPrincipalResolver,
     Argon2StaffPasswordVerifier,
-    RequestIdMiddleware,
-    RuntimePoolLifecycle,
-    {
-      provide: APP_FILTER,
-      useClass: CheckInApiExceptionFilter,
-    },
-    {
-      provide: CHECK_IN_POSTGRES_POOL,
-      useFactory: createCheckInRuntimePool,
-    },
     {
       provide: STAFF_PRINCIPAL_RESOLVER,
       useExisting: DatabaseStaffPrincipalResolver,
@@ -66,21 +48,8 @@ import { CheckInOperationRunner } from "./check-in-operation-runner";
       provide: STAFF_PASSWORD_VERIFIER,
       useExisting: Argon2StaffPasswordVerifier,
     },
-    {
-      provide: CHECK_IN_OPERATION_OBSERVER,
-      useClass: NoopCheckInOperationObserver,
-    },
-    {
-      provide: CHECK_IN_MONOTONIC_CLOCK,
-      useClass: PerformanceMonotonicClock,
-    },
   ],
-  exports: [
-    CHECK_IN_MONOTONIC_CLOCK,
-    CHECK_IN_OPERATION_OBSERVER,
-    CHECK_IN_POSTGRES_POOL,
-    STAFF_PRINCIPAL_RESOLVER,
-  ],
+  exports: [STAFF_PRINCIPAL_RESOLVER],
 })
 export class CheckInApiModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

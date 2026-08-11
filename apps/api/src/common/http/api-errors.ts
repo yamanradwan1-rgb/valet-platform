@@ -4,10 +4,10 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 
-export class CheckInTransportValidationError extends Error {
+export class ApiTransportValidationError extends Error {
   constructor() {
     super("The request is invalid.");
-    this.name = "CheckInTransportValidationError";
+    this.name = "ApiTransportValidationError";
   }
 }
 
@@ -68,7 +68,7 @@ const safeMessages: Readonly<Record<string, string>> = {
 };
 
 export function mapCheckInError(error: unknown): MappedApiError {
-  if (error instanceof CheckInTransportValidationError) {
+  if (error instanceof ApiTransportValidationError) {
     return {
       code: "REQUEST_INVALID",
       message: error.message,

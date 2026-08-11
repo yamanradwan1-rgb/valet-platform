@@ -5,12 +5,12 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-10` (VAL-004N local implementation session)
+- Date/time: `2026-08-11` (VAL-004O local implementation session)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required accepted-decision baseline: `5ce90f39e4c37b6c2a44c0f731558b120e403c7a`
-- Active branch: `feat/VAL-004N-production-db-hardening`
-- Active task: VAL-004N — Production Database / Network / TLS / Credential Hardening
-- Verification basis: owner-supplied VAL-004N task packet, required local branch/HEAD preflight, accepted DEC-025, and focused runtime/migration PostgreSQL safety coverage
+- Required accepted-decision baseline: `a8fbcabb0da7d8faf0e12d90feeecae5ee51e38c`
+- Active branch: `refactor/VAL-004O-shared-runtime-infrastructure`
+- Active task: VAL-004O — Shared Runtime Infrastructure Cleanup
+- Verification basis: owner-supplied VAL-004O continuation packet, accepted DEC-026, and behavior-preserving infrastructure regression coverage
 
 ## Current Milestone
 
@@ -20,11 +20,12 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-The Phase 2 check-in slices through VAL-004M are merged. VAL-004N implements
-accepted DEC-025's production database TLS, live runtime-role safety,
-migration/admin preflight, credential compartmentalization, and provider-neutral
-deployment evidence boundary. It does not start Phase 3 and does not claim
-production readiness.
+VAL-004N is **MERGED / COMPLETED** through PR #73, merge commit
+`53e674464c6f3973da9202ce68fc8131af8447e1`. VAL-004O is the active Cleanup A
+slice for neutral shared runtime infrastructure ownership. Cleanup B and
+Cleanup C have not started, the full Pre-Phase-3 Structural Cleanup is not
+complete, Phase 3 has not started, and Phase 2 is not yet declared
+production-ready. No fresh post-fix Standard Security Scan is claimed.
 
 ## Recently Completed Gate
 
