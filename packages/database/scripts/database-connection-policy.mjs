@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { posix, win32 } from "node:path";
 
 const postgresProtocols = new Set(["postgres:", "postgresql:"]);
 const productionMigrationKeys = new Set([
@@ -7,6 +8,10 @@ const productionMigrationKeys = new Set([
   "sslrootcert",
 ]);
 const acceptedTlsVersions = new Set(["TLSv1.2", "TLSv1.3"]);
+
+function isAbsoluteFilesystemPath(value) {
+  return posix.isAbsolute(value) || win32.isAbsolute(value);
+}
 
 function requireDatabaseUrl(value, name) {
   if (value === undefined || value.trim() === "") {
@@ -52,7 +57,7 @@ function decoded(value, category) {
 
 function validateProductionMigrationQuery(parsed) {
   const seen = new Set();
-  for (const [key, value] of parsed.searchParams) {
+  for (const [key] of parsed.searchParams) {
     if (!productionMigrationKeys.has(key)) {
       throw new Error(
         "Production MIGRATION_DATABASE_URL contains a non-allowlisted query parameter.",
@@ -64,11 +69,16 @@ function validateProductionMigrationQuery(parsed) {
       );
     }
     seen.add(key);
-    if (key === "sslrootcert" && value.trim() === "") {
-      throw new Error(
-        "Production MIGRATION_DATABASE_URL contains an empty sslrootcert path.",
-      );
-    }
+  }
+  const rootCertificatePath = parsed.searchParams.get("sslrootcert");
+  if (
+    rootCertificatePath !== null &&
+    (rootCertificatePath.trim() === "" ||
+      !isAbsoluteFilesystemPath(rootCertificatePath))
+  ) {
+    throw new Error(
+      "Production MIGRATION_DATABASE_URL requires an absolute sslrootcert path.",
+    );
   }
   if (parsed.searchParams.get("sslmode") !== "require") {
     throw new Error(
@@ -107,7 +117,11 @@ export function parseRuntimeDatabaseUrlForProvisioning(value) {
   return { parsed, value };
 }
 
-export function migrationClientConfig(migration, nodeEnv = process.env.NODE_ENV) {
+export function migrationClientConfig(
+  migration,
+  nodeEnv = process.env.NODE_ENV,
+  readCertificate = readFileSync,
+) {
   const { parsed } = migration;
   const config = {
     database: decoded(parsed.pathname.slice(1), "migration database name"),
@@ -122,7 +136,7 @@ export function migrationClientConfig(migration, nodeEnv = process.env.NODE_ENV)
   let ca;
   if (rootCertificatePath !== null) {
     try {
-      ca = readFileSync(rootCertificatePath, "utf8");
+      ca = readCertificate(rootCertificatePath, "utf8");
     } catch {
       throw new Error("Production migration TLS CA material is unavailable.");
     }
@@ -132,7 +146,10 @@ export function migrationClientConfig(migration, nodeEnv = process.env.NODE_ENV)
   }
   return {
     ...config,
-    ssl: ca === undefined ? { rejectUnauthorized: true } : { ca, rejectUnauthorized: true },
+    ssl:
+      ca === undefined
+        ? { rejectUnauthorized: true }
+        : { ca, rejectUnauthorized: true },
   };
 }
 

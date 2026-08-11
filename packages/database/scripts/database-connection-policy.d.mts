@@ -15,6 +15,7 @@ export function parseRuntimeDatabaseUrlForProvisioning(
 export function migrationClientConfig(
   migration: ParsedDatabaseConfiguration,
   nodeEnv?: string,
+  readCertificate?: (path: string, encoding: "utf8") => string,
 ): ClientConfig;
 export function verifyMigrationConnectionTls(
   client: Client,

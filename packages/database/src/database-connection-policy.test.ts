@@ -27,16 +27,79 @@ describe("production migration database connection policy", () => {
     });
   });
 
-  it("accepts one non-empty optional sslrootcert path", () => {
+  it(
+    "accepts a POSIX absolute sslrootcert path without changing Prisma's URL",
+    () => {
+      const value =
+        `${productionMigrationBase}?sslmode=require&sslaccept=strict` +
+        "&sslrootcert=%2Fdeployment%2Fdatabase-ca.pem";
+      const migration = parseMigrationDatabaseUrl(value, "production");
+      expect(migration.parsed.searchParams.get("sslrootcert")).toBe(
+        "/deployment/database-ca.pem",
+      );
+      expect(migration.value).toBe(value);
+    },
+  );
+
+  it("accepts Windows absolute sslrootcert path syntax platform-safely", () => {
     const value =
       `${productionMigrationBase}?sslmode=require&sslaccept=strict` +
-      "&sslrootcert=%2Fdeployment%2Fdatabase-ca.pem";
+      "&sslrootcert=C%3A%5Cdeployment%5Cdatabase-ca.pem";
     const migration = parseMigrationDatabaseUrl(value, "production");
     expect(migration.parsed.searchParams.get("sslrootcert")).toBe(
-      "/deployment/database-ca.pem",
+      "C:\\deployment\\database-ca.pem",
     );
     expect(migration.value).toBe(value);
   });
+
+  it(
+    "reads the exact decoded absolute path without leaking path or CA failures",
+    () => {
+      const value =
+        `${productionMigrationBase}?sslmode=require&sslaccept=strict` +
+        "&sslrootcert=%2Fdeployment%2Fprivate%20database-ca.pem";
+      const migration = parseMigrationDatabaseUrl(value, "production");
+      const reads: Array<{ encoding: string; path: string }> = [];
+      const config = migrationClientConfig(
+        migration,
+        "production",
+        (path, encoding) => {
+          reads.push({ encoding, path });
+          return "private-ca-contents";
+        },
+      );
+      expect(reads).toEqual([
+        { encoding: "utf8", path: "/deployment/private database-ca.pem" },
+      ]);
+      expect(config.ssl).toEqual({
+        ca: "private-ca-contents",
+        rejectUnauthorized: true,
+      });
+      expect(migration.value).toBe(value);
+
+      for (const [readCertificate, expectedMessage] of [
+        [
+          () => {
+            throw new Error("/deployment/private database-ca.pem");
+          },
+          "Production migration TLS CA material is unavailable.",
+        ],
+        [() => "", "Production migration TLS CA material is invalid."],
+      ] as const) {
+        let failure: Error | undefined;
+        try {
+          migrationClientConfig(migration, "production", readCertificate);
+        } catch (error) {
+          failure = error as Error;
+        }
+        expect(failure?.message).toBe(expectedMessage);
+        expect(failure?.message).not.toContain(
+          "/deployment/private database-ca.pem",
+        );
+        expect(failure?.message).not.toContain("private-ca-contents");
+      }
+    },
+  );
 
   it.each([
     ["an unknown key", "sslmode=require&sslaccept=strict&connect_timeout=1"],
@@ -50,6 +113,18 @@ describe("production migration database connection policy", () => {
     ["alternate key casing", "SSLMODE=require&sslaccept=strict"],
     ["alternate value casing", "sslmode=REQUIRE&sslaccept=strict"],
     ["an empty root path", "sslmode=require&sslaccept=strict&sslrootcert="],
+    [
+      "a relative root path",
+      "sslmode=require&sslaccept=strict&sslrootcert=ca.pem",
+    ],
+    [
+      "a dot-relative root path",
+      "sslmode=require&sslaccept=strict&sslrootcert=.%2Fca.pem",
+    ],
+    [
+      "a parent-relative root path",
+      "sslmode=require&sslaccept=strict&sslrootcert=..%2Fca.pem",
+    ],
   ])("rejects %s", (_caseName, query) => {
     expect(() =>
       parseMigrationDatabaseUrl(
