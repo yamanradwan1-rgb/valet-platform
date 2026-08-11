@@ -159,8 +159,17 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
 13. **VAL-004O — Shared Runtime Infrastructure Cleanup (Cleanup A)**
     Implement accepted DEC-026 by moving the existing runtime database,
     request-ID, HTTP error/filter, and generic observability ownership to
-    neutral API infrastructure without changing behavior. Cleanup B and Cleanup
-    C remain separate; Phase 3 has not started.
+    neutral API infrastructure without changing behavior. Merged/completed
+    through PR #75, merge commit
+    `89ffc2f0bbd1f386b9da11b5f871c85c3cb15cce`.
+
+14. **VAL-004P — Feature Ownership Cleanup (Cleanup B)**
+    Implement accepted DEC-027 by composing `AuthModule`, `AntiAbuseModule`,
+    `GuestAccessModule`, and `CheckInModule` directly from `AppModule`, moving
+    staff-principal ownership to Auth, extracting Guest Access application/API
+    ownership, and introducing the neutral `ApiOperationRunner` without
+    changing behavior. Active on its focused branch until merge. Cleanup C and
+    Phase 3 have not started.
 
 Do not combine these focused slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
@@ -177,8 +186,9 @@ Before production `complete-check-in` claims the full Blueprint semantics, the r
 - durable command-operation identity only if transparent offline duplicate replay is required
 - implemented shared/durable DEC-024 staff-login and guest anti-abuse controls
 - production database, network and TLS hardening plus documented deployment controls
-- final Phase 2 closure/security-integrity review after VAL-004N, including
-  completed external deployment evidence and a fresh security review/scan where
+- final Phase 2 closure/security-integrity review after the pre-Phase-3
+  structural cleanup, including
+  completed external deployment evidence and a fresh Standard Security Scan where
   tooling permits
 
 Do not fake these dependencies inside the command with an untyped policy blob, migration-owner runtime access, or claims that `version` alone is full idempotency.

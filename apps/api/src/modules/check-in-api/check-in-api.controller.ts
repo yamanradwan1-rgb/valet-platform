@@ -1,14 +1,12 @@
 import {
   Body,
   Controller,
-  Get,
   Headers,
   HttpCode,
   Inject,
   Param,
   Post,
   Put,
-  Query,
   Req,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -21,10 +19,6 @@ import {
   conditionPhotoRequestSchema,
   conditionPhotoResponseSchema,
   emptyRequestSchema,
-  guestAccessIssueRequestSchema,
-  guestAccessIssueResponseSchema,
-  guestAccessRevokeResponseSchema,
-  guestSafeSessionResponseSchema,
   intakeRequestSchema,
   intakeResponseSchema,
   vehicleIdentityRequestSchema,
@@ -32,26 +26,15 @@ import {
   type CompleteCheckInRequest,
   type ConditionNoteRequest,
   type ConditionPhotoRequest,
-  type GuestAccessIssueRequest,
   type IntakeRequest,
   type VehicleIdentityRequest,
 } from "@valet/contracts";
 
-import { GuestAccessError } from "../valet-sessions/guest-access-command";
-import {
-  AntiAbuseRateLimitError,
-  AntiAbuseService,
-  AntiAbuseUnavailableError,
-} from "../anti-abuse/anti-abuse.service";
-import {
-  ClientAddressUnavailableError,
-  TrustedClientAddressResolver,
-} from "../anti-abuse/client-address";
 import type { VehicleIdentityInput } from "../vehicles/vehicle-identity-command";
 import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
-} from "./check-in-api.boundaries";
+} from "../auth/staff-principal";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { CheckInApiService } from "./check-in-api.service";
 import {
@@ -67,7 +50,6 @@ interface ParseSchema<T> {
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
 
 function parse<T>(schema: ParseSchema<T>, value: unknown): T {
   const parsed = schema.safeParse(value);
@@ -82,23 +64,6 @@ function parseAbsentOrEmptyBody(body: unknown): void {
 function parseUuid(value: string): string {
   if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
   return value;
-}
-
-function shapeValidGuestBearer(
-  request: CheckInApiRequest,
-  value: string | undefined,
-): string | undefined {
-  const rawHeaders = request.rawHeaders;
-  if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) return undefined;
-  let authorizationCount = 0;
-  for (let index = 0; index < rawHeaders.length; index += 2) {
-    if (rawHeaders[index]?.toLowerCase() === "authorization") {
-      authorizationCount += 1;
-    }
-  }
-  if (authorizationCount !== 1) return undefined;
-  const match = typeof value === "string" ? bearerPattern.exec(value) : null;
-  return match?.[1];
 }
 
 function iso(value: Date): string {
@@ -320,64 +285,6 @@ export class StaffCheckInController {
   }
 
   @HttpCode(200)
-  @Post("sessions/:sessionId/guest-access/issue")
-  async issueGuestAccess(
-    @Req() request: CheckInApiRequest,
-    @Headers("authorization") authorization: string | undefined,
-    @Param("sessionId") sessionIdRaw: string,
-    @Body() body: unknown,
-  ) {
-    return this.runner.run("CHECK_IN_GUEST_ACCESS_ISSUE", request, async () => {
-      const principalUserId = await this.userId(request, authorization);
-      const input = parse<GuestAccessIssueRequest>(
-        guestAccessIssueRequestSchema,
-        body,
-      );
-      const result = await this.service.executeGuestIssue({
-        authenticatedUserId: principalUserId,
-        ...(input.intent === "REISSUE_REVOKED"
-          ? { expectedRevokedAt: new Date(input.expectedRevokedAt) }
-          : {}),
-        intent: input.intent,
-        valetSessionId: parseUuid(sessionIdRaw),
-      });
-      return guestAccessIssueResponseSchema.parse({
-        expiresAt: iso(result.expiresAt),
-        issuedAt: iso(result.issuedAt),
-        mutationKind: result.mutationKind,
-        rawToken: result.rawToken,
-        valetSessionId: result.valetSessionId,
-      });
-    });
-  }
-
-  @HttpCode(200)
-  @Post("sessions/:sessionId/guest-access/revoke")
-  async revokeGuestAccess(
-    @Req() request: CheckInApiRequest,
-    @Headers("authorization") authorization: string | undefined,
-    @Param("sessionId") sessionIdRaw: string,
-    @Body() body: unknown,
-  ) {
-    return this.runner.run(
-      "CHECK_IN_GUEST_ACCESS_REVOKE",
-      request,
-      async () => {
-        const principalUserId = await this.userId(request, authorization);
-        parseAbsentOrEmptyBody(body);
-        const result = await this.service.executeGuestRevoke({
-          authenticatedUserId: principalUserId,
-          valetSessionId: parseUuid(sessionIdRaw),
-        });
-        return guestAccessRevokeResponseSchema.parse({
-          revokedAt: iso(result.revokedAt),
-          valetSessionId: result.valetSessionId,
-        });
-      },
-    );
-  }
-
-  @HttpCode(200)
   @Post("sessions/:sessionId/complete")
   async completeCheckIn(
     @Req() request: CheckInApiRequest,
@@ -405,85 +312,6 @@ export class StaffCheckInController {
         valetSessionId: completed.result.valetSessionId,
         version: completed.result.version,
       });
-    });
-  }
-}
-
-@Controller("v1/guest")
-export class GuestCheckInController {
-  constructor(
-    private readonly service: CheckInApiService,
-    private readonly runner: CheckInOperationRunner,
-    private readonly antiAbuse: AntiAbuseService,
-    private readonly clientAddresses: TrustedClientAddressResolver,
-  ) {}
-
-  @Get("session")
-  async getSession(
-    @Req() request: CheckInApiRequest,
-    @Headers("authorization") authorization: string | undefined,
-    @Query() query: unknown,
-  ) {
-    return this.runner.run("GUEST_SESSION_READ", request, async () => {
-      parse(emptyRequestSchema, query ?? {});
-      let clientAddress: string;
-      try {
-        clientAddress = this.clientAddresses.resolve(request);
-      } catch (error) {
-        if (error instanceof ClientAddressUnavailableError) {
-          throw new AntiAbuseUnavailableError();
-        }
-        throw error;
-      }
-      const addressKey = this.antiAbuse.key(
-        "v1:guest-client-address",
-        clientAddress,
-      );
-      const rawToken = shapeValidGuestBearer(request, authorization);
-      const tokenKey =
-        rawToken === undefined
-          ? undefined
-          : this.antiAbuse.key("v1:guest-token", rawToken);
-      const addressDecision = await this.antiAbuse.reserve(addressKey, 60);
-      if (!addressDecision.allowed) {
-        const tokenRetry =
-          tokenKey === undefined
-            ? undefined
-            : await this.antiAbuse.blocker(tokenKey, 180);
-        throw new AntiAbuseRateLimitError(
-          "GUEST_ACCESS_RATE_LIMITED",
-          Math.max(addressDecision.retryAfter, tokenRetry ?? 0),
-        );
-      }
-      if (tokenKey !== undefined) {
-        const tokenDecision = await this.antiAbuse.count(tokenKey, 180);
-        if (!tokenDecision.allowed) {
-          await this.antiAbuse.finalize(addressDecision.reservation, "IGNORED");
-          throw new AntiAbuseRateLimitError(
-            "GUEST_ACCESS_RATE_LIMITED",
-            tokenDecision.retryAfter,
-          );
-        }
-      }
-      if (rawToken === undefined) {
-        await this.antiAbuse.finalize(addressDecision.reservation, "COUNTED");
-        throw new GuestAccessError("GUEST_ACCESS_INVALID");
-      }
-      const result = await this.antiAbuse.transaction(async (transaction) => {
-        const resolved = await this.service.resolveGuestInTransaction(
-          transaction,
-          rawToken,
-        );
-        await this.antiAbuse.finalizeInTransaction(
-          transaction,
-          addressDecision.reservation,
-          resolved === undefined ? "COUNTED" : "IGNORED",
-        );
-        return resolved;
-      });
-      if (result === undefined)
-        throw new GuestAccessError("GUEST_ACCESS_INVALID");
-      return guestSafeSessionResponseSchema.parse(result);
     });
   }
 }

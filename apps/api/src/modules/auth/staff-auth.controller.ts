@@ -19,6 +19,7 @@ import {
 import { parse as parseCookie, serialize as serializeCookie } from "cookie";
 
 import type { ApiRequest } from "../../common/http/api-request";
+import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import {
   AntiAbuseRateLimitError,
   AntiAbuseService,
@@ -29,7 +30,6 @@ import {
   TrustedClientAddressResolver,
 } from "../anti-abuse/client-address";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
-import { CheckInOperationRunner } from "../check-in-api/check-in-operation-runner";
 import { StaffAuthOriginPolicy } from "./staff-auth.origin";
 import {
   StaffAuthenticationError,
@@ -131,7 +131,7 @@ export class StaffAuthController {
   constructor(
     private readonly authService: StaffAuthService,
     private readonly originPolicy: StaffAuthOriginPolicy,
-    private readonly runner: CheckInOperationRunner,
+    private readonly runner: ApiOperationRunner,
     private readonly antiAbuse: AntiAbuseService,
     private readonly clientAddresses: TrustedClientAddressResolver,
   ) {}

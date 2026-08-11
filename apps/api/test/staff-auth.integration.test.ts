@@ -30,7 +30,7 @@ import {
 import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
-} from "../src/modules/check-in-api/check-in-api.boundaries";
+} from "../src/modules/auth/staff-principal";
 
 interface HttpResult {
   readonly body: Record<string, unknown> | undefined;

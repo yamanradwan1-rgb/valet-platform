@@ -15,7 +15,7 @@ import {
 import {
   type StaffPrincipal,
   type StaffPrincipalResolver,
-} from "../check-in-api/check-in-api.boundaries";
+} from "./staff-principal";
 
 export const STAFF_PASSWORD_VERIFIER = Symbol("STAFF_PASSWORD_VERIFIER");
 

@@ -109,8 +109,37 @@ The Founder & Product Blueprint v1.0 PDF is the newest approved product source s
 
 ## Current module ownership
 
+The API application composes four feature modules directly:
+
+```text
+AppModule
+  -> AuthModule
+  -> AntiAbuseModule
+  -> GuestAccessModule
+  -> CheckInModule
+```
+
+Shared runtime database, HTTP, request-ID, exception-filter and observability
+infrastructure remains under `apps/api/src/common/**`. Feature modules consume
+that infrastructure; common code does not import feature modules.
+
 ### auth
-Staff authentication, session/token lifecycle and guards.
+Staff authentication, session/token lifecycle, Origin policy and the shared
+staff-principal resolution boundary.
+
+### anti-abuse
+Shared durable staff-login and guest-access anti-abuse services, limiter-key
+derivation and trusted client-address resolution.
+
+### guest-access
+Staff issue/revoke and guest-safe session-read API/application behavior. The
+existing `/v1/staff/check-in/.../guest-access/...` paths remain public route
+contracts and do not place ownership in Check-In.
+
+### check-in-api
+Staff Check-In API/application behavior only, including intake, vehicle
+identity, condition evidence/completion, `CHECKING_IN -> AWAITING_PARKING`, and
+Check-In-specific KPI enrichment.
 
 ### organizations
 Organization/Company tenant boundary and Company-level defaults as typed configuration is introduced.
