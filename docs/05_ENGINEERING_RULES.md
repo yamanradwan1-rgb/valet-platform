@@ -35,6 +35,15 @@ Migration/admin database credentials are not ordinary application runtime
 credentials. Phase 2 application code must use a dedicated least-privilege
 runtime role without schema migration or other DDL privileges.
 
+In production, the API uses query-free `DATABASE_URL` with strict
+certificate-verifying Node `pg` TLS configuration and must not receive
+`MIGRATION_DATABASE_URL`. Application startup verifies the live backend's
+`pg_stat_ssl` state plus the connected runtime role's flags, ownership and
+`CREATE` capabilities before listening. Migration/provisioning uses the
+separate admin URL through the exact accepted TLS-only query allowlist and must
+verify its own encrypted backend before mutation. See accepted DEC-025 and the
+provider-neutral production database deployment checklist.
+
 Before Phase 2 commands rely on append-only AuditEvent or financial-history
 guarantees, the project must make an explicit database privilege/enforcement
 decision for those tables. Exact role provisioning and `GRANT`/`REVOKE` rules

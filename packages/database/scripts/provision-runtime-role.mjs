@@ -2,46 +2,19 @@ import "dotenv/config";
 
 import pg from "pg";
 
+import {
+  assertDatabaseCredentialSeparation,
+  decodedDatabaseIdentity,
+  migrationClientConfig,
+  parseMigrationDatabaseUrl,
+  parseRuntimeDatabaseUrlForProvisioning,
+  verifyMigrationConnectionTls,
+} from "./database-connection-policy.mjs";
+
 const { Client } = pg;
 
 const safeRolePattern = /^[a-z_][a-z0-9_]{0,62}$/;
 const safeDatabasePattern = /^[A-Za-z_][A-Za-z0-9_-]{0,62}$/;
-
-function requiredUrl(name) {
-  const value = process.env[name];
-  if (value === undefined || value.trim() === "") {
-    throw new Error(`Runtime-role provisioning requires ${name}.`);
-  }
-
-  let parsed;
-  try {
-    parsed = new URL(value);
-  } catch {
-    throw new Error(`Runtime-role provisioning requires a valid ${name}.`);
-  }
-  if (!["postgres:", "postgresql:"].includes(parsed.protocol)) {
-    throw new Error(`Runtime-role provisioning requires a PostgreSQL ${name}.`);
-  }
-  if (parsed.search !== "") {
-    throw new Error(
-      `Runtime-role provisioning does not allow query parameters in ${name}.`,
-    );
-  }
-  if (parsed.hash !== "") {
-    throw new Error(
-      `Runtime-role provisioning does not allow URL fragments in ${name}.`,
-    );
-  }
-  return { parsed, value };
-}
-
-function decodedComponent(value, label) {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    throw new Error(`Runtime-role provisioning received an invalid ${label}.`);
-  }
-}
 
 async function formattedStatement(client, format, values) {
   const placeholders = values
@@ -63,28 +36,25 @@ async function executeFormatted(client, format, values) {
 }
 
 async function provisionRuntimeRole() {
-  const migration = requiredUrl("MIGRATION_DATABASE_URL");
-  const runtime = requiredUrl("DATABASE_URL");
-  const migrationRole = decodedComponent(
-    migration.parsed.username,
-    "migration role name",
+  const migration = parseMigrationDatabaseUrl(
+    process.env.MIGRATION_DATABASE_URL,
+    process.env.NODE_ENV,
   );
-  const runtimeRole = decodedComponent(
-    runtime.parsed.username,
-    "runtime role name",
+  const runtime = parseRuntimeDatabaseUrlForProvisioning(
+    process.env.DATABASE_URL,
   );
-  const runtimePassword = decodedComponent(
-    runtime.parsed.password,
-    "runtime role password",
+  const migrationIdentity = decodedDatabaseIdentity(migration);
+  const runtimeIdentity = decodedDatabaseIdentity(runtime);
+  assertDatabaseCredentialSeparation(
+    migration,
+    runtime,
+    process.env.NODE_ENV,
   );
-  const migrationDatabase = decodedComponent(
-    migration.parsed.pathname.slice(1),
-    "migration database name",
-  );
-  const runtimeDatabase = decodedComponent(
-    runtime.parsed.pathname.slice(1),
-    "runtime database name",
-  );
+  const migrationRole = migrationIdentity.role;
+  const runtimeRole = runtimeIdentity.role;
+  const runtimePassword = runtimeIdentity.password;
+  const migrationDatabase = migrationIdentity.database;
+  const runtimeDatabase = runtimeIdentity.database;
 
   if (!safeRolePattern.test(migrationRole)) {
     throw new Error("MIGRATION_DATABASE_URL contains an unsafe role name.");
@@ -100,25 +70,21 @@ async function provisionRuntimeRole() {
       "MIGRATION_DATABASE_URL and DATABASE_URL must target the same database.",
     );
   }
-  const migrationPort = migration.parsed.port || "5432";
-  const runtimePort = runtime.parsed.port || "5432";
   if (
-    migration.parsed.hostname.toLowerCase() !==
-      runtime.parsed.hostname.toLowerCase() ||
-    migrationPort !== runtimePort
+    migrationIdentity.host !== runtimeIdentity.host ||
+    migrationIdentity.port !== runtimeIdentity.port
   ) {
     throw new Error(
       "MIGRATION_DATABASE_URL and DATABASE_URL must target the same PostgreSQL server.",
     );
   }
-  if (runtimeRole === migrationRole) {
-    throw new Error("Migration and runtime database roles must be distinct.");
-  }
   if (runtimePassword === "") {
     throw new Error("DATABASE_URL must contain a runtime role password.");
   }
 
-  const client = new Client({ connectionString: migration.value });
+  const client = new Client(
+    migrationClientConfig(migration, process.env.NODE_ENV),
+  );
   try {
     await client.connect();
   } catch {
@@ -128,6 +94,7 @@ async function provisionRuntimeRole() {
   }
 
   try {
+    await verifyMigrationConnectionTls(client, process.env.NODE_ENV);
     await client.query("BEGIN");
     const existingRole = await client.query(
       `SELECT 1 FROM pg_roles WHERE rolname = $1`,

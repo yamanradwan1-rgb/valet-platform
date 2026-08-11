@@ -148,6 +148,14 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
 11. **VAL-004M — Shared Durable Anti-Abuse Boundary**
     Implement accepted DEC-024 with one PostgreSQL-backed exact rolling-window boundary for staff login and guest session resolution, scoped HMAC limiter keys, trusted proxy handling, fail-closed behavior, fixed cleanup and least-privilege runtime access. It does not start Phase 3 or close the remaining production database/network/TLS readiness work.
 
+12. **VAL-004N — Production Database / Network / TLS / Credential Hardening**
+    Implement accepted DEC-025 with strict production runtime TLS, live
+    `pg_stat_ssl` and runtime-role safety verification before serving traffic,
+    migration URL allowlisting and TLS preflight, admin-secret
+    compartmentalization, distinct production credentials, and a
+    provider-neutral deployment checklist. It adds no migration and does not by
+    itself declare Phase 2 production-ready.
+
 Do not combine these focused slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
 ### Phase 2 implementation dependencies that must remain explicit
@@ -163,6 +171,9 @@ Before production `complete-check-in` claims the full Blueprint semantics, the r
 - durable command-operation identity only if transparent offline duplicate replay is required
 - implemented shared/durable DEC-024 staff-login and guest anti-abuse controls
 - production database, network and TLS hardening plus documented deployment controls
+- final Phase 2 closure/security-integrity review after VAL-004N, including
+  completed external deployment evidence and a fresh security review/scan where
+  tooling permits
 
 Do not fake these dependencies inside the command with an untyped policy blob, migration-owner runtime access, or claims that `version` alone is full idempotency.
 

@@ -93,6 +93,28 @@ Introduce typed configuration entities/columns in focused tasks when the corresp
 - Each later database task adds a new migration when the schema changes.
 - Never rewrite an already-applied migration to hide a later change.
 
+### Production database connection boundary
+
+Accepted DEC-025 keeps the schema at exactly 18 forward-only migrations while
+hardening how production identities reach PostgreSQL:
+
+- the API runtime receives only query-free `DATABASE_URL` and configures strict
+  certificate-verifying TLS through Node `pg` options;
+- the API fails startup if the migration/admin credential is present;
+- before serving production traffic, the live runtime connection must prove TLS
+  through its own `pg_stat_ssl` row and prove the connected role has no elevated
+  flags, database/schema ownership, `CREATE` capability, or ownership of public
+  application tables, sequences, or functions;
+- migration/admin commands receive `MIGRATION_DATABASE_URL` only in their
+  controlled job boundary, with exact `sslmode=require`, `sslaccept=strict`, and
+  optional `sslrootcert` production parameters;
+- production migration/provisioning verifies its own live `pg_stat_ssl` row
+  before schema or privilege mutation; and
+- runtime and migration roles and production passwords remain distinct.
+
+These connection checks do not change table persistence or replace the explicit
+runtime `GRANT`/`REVOKE` contract.
+
 ## organizations
 
 ```text

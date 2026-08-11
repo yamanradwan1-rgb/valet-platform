@@ -2,8 +2,10 @@ import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
-import { Pool } from "pg";
+import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import { verifyMigrationConnectionTls } from "../scripts/database-connection-policy.mjs";
 
 interface CommandResult {
   code: number | null;
@@ -281,6 +283,25 @@ describe("runtime PostgreSQL role boundary", () => {
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
     expect(result.rows).toHaveLength(18);
+  });
+
+  it("rejects a real plaintext migration preflight without applying a migration", async () => {
+    const before = await adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM _prisma_migrations`,
+    );
+    const client = new Client({ connectionString: testMigrationUrl });
+    try {
+      await client.connect();
+      await expect(
+        verifyMigrationConnectionTls(client, "production"),
+      ).rejects.toThrow("not securely encrypted");
+    } finally {
+      await client.end();
+    }
+    const after = await adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM _prisma_migrations`,
+    );
+    expect(after.rows[0]?.count).toBe(before.rows[0]?.count);
   });
 
   it("can rotate retained auth rows but cannot delete or truncate them", async () => {

@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src --max-warnings=0",
     "prisma:validate": "prisma validate",
-    "migrate:deploy": "prisma migrate deploy",
+    "migrate:deploy": "node scripts/run-migrate-deploy.mjs",
     "runtime:provision": "node scripts/provision-runtime-role.mjs",
     "seed": "node prisma/seed.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
