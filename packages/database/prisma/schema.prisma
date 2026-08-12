@@ -81,6 +81,37 @@ enum KeyCustodyEventType {
   @@map("key_custody_event_type")
 }
 
+enum TaskType {
+  PARKING
+  RETRIEVAL
+
+  @@map("task_type")
+}
+
+enum TaskStatus {
+  QUEUED
+  ASSIGNED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("task_status")
+}
+
+enum DispatchEventType {
+  QUEUED
+  ASSIGNED
+  ACCEPTED
+  DECLINED
+  REASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("dispatch_event_type")
+}
+
 enum ValetSessionState {
   CHECKING_IN
   AWAITING_PARKING
@@ -240,6 +271,7 @@ model Organization {
   parkingSpots             ParkingSpot[]
   keySlots                 KeySlot[]
   keyCustodyEvents         KeyCustodyEvent[]
+  tasks                    Task[]
   valetSessions            ValetSession[]
   retrievalRequests        RetrievalRequest[]
   handoffVerifications     HandoffVerification[]
@@ -278,6 +310,7 @@ model Location {
   parkingSpots             ParkingSpot[]
   keySlots                 KeySlot[]
   keyCustodyEvents         KeyCustodyEvent[]
+  tasks                    Task[]
   valetSessions            ValetSession[]
   auditEvents              AuditEvent[]
   payments                 Payment[]
@@ -371,6 +404,10 @@ model OrganizationMembership {
   capturedVehiclePhotos    VehiclePhoto[]
   completedConditionChecks ValetSession[]             @relation("ValetSessionCheckInConditionCompletedBy")
   keyCustodyEvents         KeyCustodyEvent[]
+  currentTasks             Task[]                     @relation("TaskCurrentAssignee")
+  actedDispatchEvents      DispatchEvent[]            @relation("DispatchEventActor")
+  previousDispatchEvents   DispatchEvent[]            @relation("DispatchEventPreviousAssignee")
+  newDispatchEvents        DispatchEvent[]            @relation("DispatchEventNewAssignee")
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -557,6 +594,7 @@ model ValetSession {
   vehiclePhotos               VehiclePhoto[]
   intakeOperations            IntakeOperation[]
   keyCustodyEvents            KeyCustodyEvent[]
+  tasks                       Task[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -585,6 +623,55 @@ model KeyCustodyEvent {
 
   @@index([valetSessionId, occurredAt, id], map: "key_custody_events_valet_session_id_occurred_at_id_idx")
   @@map("key_custody_events")
+}
+
+model Task {
+  id                          String     @id @default(uuid()) @db.Uuid
+  organizationId              String     @map("organization_id") @db.Uuid
+  locationId                  String     @map("location_id") @db.Uuid
+  valetSessionId              String     @map("valet_session_id") @db.Uuid
+  taskType                    TaskType   @map("task_type")
+  status                      TaskStatus @default(QUEUED)
+  currentAssigneeMembershipId String?    @map("current_assignee_membership_id") @db.Uuid
+  version                     Int        @default(1)
+  createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization    Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_organization_id_fkey")
+  location        Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_id_fkey")
+  valetSession    ValetSession            @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_session_id_fkey")
+  currentAssignee OrganizationMembership? @relation("TaskCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_current_assignee_membership_id_fkey")
+  dispatchEvents  DispatchEvent[]
+
+  @@unique([organizationId, locationId, valetSessionId, id], map: "tasks_organization_id_location_id_valet_session_id_id_key")
+  @@index([locationId, status, createdAt, id], map: "tasks_location_id_status_created_at_id_idx")
+  @@index([currentAssigneeMembershipId, status], map: "tasks_current_assignee_membership_id_status_idx")
+  @@index([valetSessionId, createdAt, id], map: "tasks_valet_session_id_created_at_id_idx")
+  @@map("tasks")
+}
+
+model DispatchEvent {
+  id                           String            @id @default(uuid()) @db.Uuid
+  organizationId               String            @map("organization_id") @db.Uuid
+  locationId                   String            @map("location_id") @db.Uuid
+  taskId                       String            @map("task_id") @db.Uuid
+  valetSessionId               String            @map("valet_session_id") @db.Uuid
+  eventType                    DispatchEventType @map("event_type")
+  actorMembershipId            String?           @map("actor_membership_id") @db.Uuid
+  previousAssigneeMembershipId String?           @map("previous_assignee_membership_id") @db.Uuid
+  newAssigneeMembershipId      String?           @map("new_assignee_membership_id") @db.Uuid
+  reason                       String?
+  occurredAt                   DateTime          @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  createdAt                    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  task             Task                    @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_task_scope_id_fkey")
+  actorMembership  OrganizationMembership? @relation("DispatchEventActor", fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_org_actor_membership_id_fkey")
+  previousAssignee OrganizationMembership? @relation("DispatchEventPreviousAssignee", fields: [organizationId, previousAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_org_previous_assignee_membership_id_fkey")
+  newAssignee      OrganizationMembership? @relation("DispatchEventNewAssignee", fields: [organizationId, newAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_org_new_assignee_membership_id_fkey")
+
+  @@index([taskId, occurredAt, id], map: "dispatch_events_task_id_occurred_at_id_idx")
+  @@index([valetSessionId, occurredAt, id], map: "dispatch_events_valet_session_id_occurred_at_id_idx")
+  @@map("dispatch_events")
 }
 
 model IntakeOperation {

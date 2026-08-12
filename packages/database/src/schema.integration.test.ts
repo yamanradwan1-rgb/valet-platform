@@ -7137,10 +7137,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all nineteen forward-only migrations in order", () => {
+  it("applies exactly all twenty forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260811001900_phase3_key_parking_persistence",
+      "20260812002000_phase3_task_dispatch_persistence",
     );
   });
 
