@@ -13,7 +13,7 @@ export interface CustodyAuditEventDefinition {
 }
 
 export interface PersistedCustodyAuditScope {
-  readonly actorMembershipId: string;
+  readonly actorMembershipId: string | null;
   readonly locationId: string;
   readonly organizationId: string;
   readonly valetSessionId: string;
