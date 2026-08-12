@@ -113,6 +113,16 @@ const operationRoutes: ReadonlyArray<{
     operation: "SHIFT_ACTIVE_LOOKUP",
     path: /^\/v1\/staff\/shifts\/active$/,
   },
+  {
+    method: "POST",
+    operation: "KEY_SLOT_ASSIGN",
+    path: /^\/v1\/staff\/valet-sessions\/[^/]+\/key-slot\/assign$/,
+  },
+  {
+    method: "POST",
+    operation: "KEY_SLOT_CLEAR",
+    path: /^\/v1\/staff\/valet-sessions\/[^/]+\/key-slot\/clear$/,
+  },
 ];
 
 function routedOperation(request: FilterRequest): string | undefined {
