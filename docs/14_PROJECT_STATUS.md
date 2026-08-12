@@ -7,12 +7,11 @@
 
 - Date/time: `2026-08-12`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Current verified implementation `main`: `8c24b46dec32625f19de617783ba85cdf4922815`
-- Completed task: VAL-005C — Key Assignment & Custody Commands
-- Completed issue: #92
-- Accepted decision: DEC-033 (`docs/decisions/DEC-033_KEY_ASSIGNMENT_CUSTODY_COMMANDS.md`)
-- Next task: VAL-005D — Task / Dispatch Persistence Foundation
-- Verification basis: reviewed VAL-005C implementation, GitHub CI run #115 success, PR #95 merged, Issue #92 completed, and current Phase 3 execution plan
+- Verified decision baseline before this status sync: `dddd9c2a0a2a7ea4de2a440a6c71f3a429482e5a`
+- Active task: VAL-005D — Task / Dispatch Persistence Foundation
+- Tracking issue: #97
+- Accepted decision: DEC-034 (`docs/decisions/DEC-034_TASK_DISPATCH_PERSISTENCE_FOUNDATION.md`)
+- Verification basis: reviewed/merged VAL-005C, Accepted DEC-034 merged through PR #98, and the current Phase 3 execution plan
 
 ## Current Milestone
 
@@ -24,11 +23,11 @@ Phase 3 status:
 
 - VAL-005A — Key & Parking Persistence Foundation: **MERGED / COMPLETED** through PR #86, merge commit `3df5d9755e6c42a568c545fa2436c9a22506b41a`.
 - VAL-005B — Shift Operational Eligibility: **MERGED / COMPLETED** through PR #91, merge commit `928f992bb678c4e1fa268810ed42b279e0130cbd`; Issue #88 completed.
-- DEC-033 — Key Assignment & Custody Commands: **ACCEPTED / MERGED** through PR #93, merge commit `b36f2b1ab76fdb539e1127f4fe4bd05d0903b81b`.
 - VAL-005C — Key Assignment & Custody Commands: **MERGED / COMPLETED** through PR #95, implementation commit `2084ae6d5c9c0aea73d2a821238dcf266b6e5379`, merge commit `8c24b46dec32625f19de617783ba85cdf4922815`; Issue #92 completed.
-- VAL-005D — Task / Dispatch Persistence Foundation: **NEXT — DECISION/ISSUE PREPARATION REQUIRED BEFORE IMPLEMENTATION**.
+- DEC-034 — Task / Dispatch Persistence Foundation: **ACCEPTED / MERGED** through PR #98, merge commit `dddd9c2a0a2a7ea4de2a440a6c71f3a429482e5a`.
+- VAL-005D — Task / Dispatch Persistence Foundation: **CURRENT / READY FOR IMPLEMENTATION**; Issue #97 is open.
 
-Exactly **19 forward-only migrations** exist. VAL-005C changed neither Prisma schema nor migrations; migrations 1–19 remain the baseline.
+Exactly **19 forward-only migrations** currently exist. Accepted DEC-034 authorizes exactly migration 20, `20260812002000_phase3_task_dispatch_persistence`; migrations 1–19 remain immutable.
 
 ## Recently Completed Phase 3 Gates
 
@@ -70,24 +69,39 @@ Exactly **19 forward-only migrations** exist. VAL-005C changed neither Prisma sc
 - Database: no Prisma schema change and no migration; migrations 1–19 unchanged.
 - Boundaries preserved: no Task/Dispatch, GPS/maps, Retrieval, handoff, payment, payroll or UI behavior.
 
-## Next Task
+### DEC-034 — Task / Dispatch Persistence Foundation
+
+- Issue #97 — open for implementation
+- Decision PR #98
+- Merge commit: `dddd9c2a0a2a7ea4de2a440a6c71f3a429482e5a`
+- Status: **ACCEPTED / MERGED**
+- Database decision: add exactly migration 20 during VAL-005D implementation; migrations 1–19 remain immutable.
+
+## Current Task
 
 ### VAL-005D — Task / Dispatch Persistence Foundation
 
-- Status: **NEXT — NOT YET AUTHORIZED FOR IMPLEMENTATION**
-- Required first step: create a focused Issue and Accepted persistence decision before coding where semantics are not already locked.
-- Database baseline entering the slice: **19 forward-only migrations**.
+- Issue: #97
+- Status: **CURRENT — READY FOR IMPLEMENTATION AGAINST ACCEPTED DEC-034**
+- Accepted decision: DEC-034
+- Database entering slice: **19 forward-only migrations**
+- Authorized migration: **20 only — `20260812002000_phase3_task_dispatch_persistence`**
 
-VAL-005D purpose remains:
+DEC-034 locks:
 
-- Task entity persistence;
-- Task lifecycle/status persistence compatible with the canonical task path;
-- task type boundary compatible with Parking/Retrieval MVP without implementing Retrieval behavior early;
-- append-only Dispatch/assignment history or equivalent accepted event model;
-- one-active-intended-operation protection;
-- exact tenant/Location/ValetSession integrity.
-
-VAL-005D must not implement the Hybrid Dispatch assignment algorithm, acceptance/reassignment commands, GPS proximity, parking physical-state transitions, Retrieval behavior, payment, handoff or UI early. Those remain later focused slices.
+- first-class `Task` as the authoritative current Hybrid Dispatch projection, separate from ValetSession physical custody state;
+- `TaskType` exactly `PARKING`, `RETRIEVAL`, with Retrieval persistence compatibility only and no Phase 4 behavior;
+- `TaskStatus` exactly `QUEUED`, `ASSIGNED`, `ACCEPTED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`;
+- `DispatchEventType` exactly `QUEUED`, `ASSIGNED`, `ACCEPTED`, `DECLINED`, `REASSIGNED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`;
+- Task current assignee as canonical Task ownership; `ValetSession.current_assignee_membership_id` is not synchronized or treated as authority;
+- `Task.version` as the single Task optimistic-concurrency field;
+- PostgreSQL partial uniqueness allowing at most one active Task per `(valet_session_id, task_type)` across `QUEUED`, `ASSIGNED`, `ACCEPTED`, `IN_PROGRESS`;
+- exact Organization/Location/ValetSession/membership composite integrity;
+- append-only `DispatchEvent` history with structured actor/previous/new assignee/reason facts;
+- runtime `SELECT, INSERT` only for DispatchEvent and `SELECT, INSERT, UPDATE` without delete/truncate for Task;
+- migration 20 only, with no synthesis of production Tasks from legacy ValetSession assignee/state data;
+- no Task/Dispatch HTTP routes or assignment/acceptance/reassignment commands;
+- no ValetSession physical-state transition, GPS/maps, Retrieval behavior, payment, handoff, payroll or UI behavior.
 
 ## Phase 3 Focused Task Sequence
 
@@ -95,8 +109,8 @@ VAL-005D must not implement the Hybrid Dispatch assignment algorithm, acceptance
 VAL-005A  Key & Parking Persistence Foundation                     MERGED
 VAL-005B  Shift Operational Eligibility                            MERGED
 VAL-005C  Key Assignment & Custody Commands                        MERGED
-VAL-005D  Task / Dispatch Persistence Foundation                   NEXT
-VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment
+VAL-005D  Task / Dispatch Persistence Foundation                   CURRENT
+VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment   NEXT
 VAL-005F  Start Parking
 VAL-005G  Confirm Parked
 VAL-005H  Phase 3 API / Integration / Employee Operations Gate
@@ -112,7 +126,13 @@ Phase 1 completed with exactly 14 forward-only migrations. Phase 2 added migrati
 19  20260811001900_phase3_key_parking_persistence
 ```
 
-VAL-005B added no migration. VAL-005C added no migration. The next migration number, if and only if an Accepted VAL-005D persistence decision requires one, is 20. Existing migrations 1–19 remain immutable.
+VAL-005B added no migration. VAL-005C added no migration. VAL-005D is authorized to add exactly:
+
+```text
+20  20260812002000_phase3_task_dispatch_persistence
+```
+
+Do not modify migrations 1–19.
 
 ## Current Product / Domain Baseline
 
@@ -153,9 +173,9 @@ Audit/Black Box history is append-only by contract. Protected domain mutations t
 
 - Staff Auth proves only persisted User identity; tenant, membership, Location and role authority remain server-derived.
 - Cross-tenant access is a critical defect and existing non-disclosing authorization mappings remain active.
-- DEC-032 operational eligibility is the reusable field-operation eligibility boundary.
+- DEC-032 operational eligibility is the reusable field-operation eligibility boundary for later assignment commands.
 - KeySlot QR/code identifies a resource only; it never grants authority.
-- KeyCustodyEvent history remains append-only.
+- KeyCustodyEvent and DispatchEvent history remain append-only where applicable.
 - Common/shared infrastructure must not import feature modules.
 - New authored code files must respect DEC-030 / `docs/17_AGENT_CODE_STRUCTURE_RULES.md` 300-line policy.
 - No fresh post-fix Standard Security Scan is claimed.
@@ -163,9 +183,11 @@ Audit/Black Box history is append-only by contract. Protected domain mutations t
 
 ## Exact Next Step
 
-Prepare **VAL-005D — Task / Dispatch Persistence Foundation** as the next focused Phase 3 slice: create its scoped Issue, inspect the existing Task/Dispatch persistence baseline, and accept a focused decision before implementation if schema, lifecycle, history, uniqueness or concurrency semantics are not already fully locked.
+Implement **VAL-005D — Task / Dispatch Persistence Foundation** on a focused branch from current `main`, strictly against Accepted DEC-034 and Issue #97.
 
-Do not implement VAL-005E Hybrid Dispatch assignment/acceptance/reassignment behavior inside VAL-005D.
+Add exactly migration 20 and the locked persistence/integrity/runtime-role proof. Do not implement VAL-005E assignment/acceptance/reassignment behavior, Task HTTP APIs, parking physical-state transitions, GPS/maps, Retrieval behavior, payment, handoff, payroll or UI early.
+
+After VAL-005D implementation is reviewed, CI-green and merged, proceed to VAL-005E decision/command work.
 
 ## Parallel UX/UI Track
 
