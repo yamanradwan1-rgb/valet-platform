@@ -192,10 +192,11 @@ The binding focused sequence is maintained in `docs/18_PHASE3_OPERATIONS_EXECUTI
 2. **VAL-005B — Shift Operational Eligibility** — **MERGED / COMPLETED**  
    Accepted DEC-032. Merged through PR #91, merge commit `928f992bb678c4e1fa268810ed42b279e0130cbd`; Issue #88 is completed. Implements Shift self-start/self-end, Location-scoped own-active lookup, dynamic operational eligibility and the reusable transaction-aware eligibility boundary required by future Dispatch. It added no migration and left migrations 1–19 unchanged.
 
-3. **VAL-005C — Key Assignment & Custody Commands** — **CURRENT**  
-   Accepted DEC-033 (`docs/decisions/DEC-033_KEY_ASSIGNMENT_CUSTODY_COMMANDS.md`). Issue #92 is open pending implementation. Implements KeySlot assignment/reassignment/clear only in `AWAITING_PARKING`, exact QR/manual code identification, DEC-032 operational eligibility, existing ValetSession version concurrency, append-only custody/Audit atomicity, and reusable checkout/return custody primitives for later parking transitions. It adds no migration and must leave the Prisma schema and migrations 1–19 unchanged.
+3. **VAL-005C — Key Assignment & Custody Commands** — **MERGED / COMPLETED**  
+   Accepted DEC-033. Merged through PR #95, implementation commit `2084ae6d5c9c0aea73d2a821238dcf266b6e5379`, merge commit `8c24b46dec32625f19de617783ba85cdf4922815`; Issue #92 is completed and GitHub CI run #115 passed. Implements KeySlot assign/reassign/clear only in `AWAITING_PARKING`, exact QR/manual code identification, DEC-032 operational eligibility, existing ValetSession version concurrency, append-only custody/Audit atomicity, and internal checkout/return custody primitives for later parking transitions. It changed neither Prisma schema nor migrations; migrations 1–19 remain unchanged.
 
-4. **VAL-005D — Task / Dispatch Persistence Foundation**
+4. **VAL-005D — Task / Dispatch Persistence Foundation** — **NEXT**  
+   Prepare a focused Issue and Accepted persistence decision before implementation where schema/lifecycle/history/uniqueness/concurrency semantics are not already locked. This slice owns persistence only and must stop before Hybrid Dispatch assignment behavior.
 
 5. **VAL-005E — Hybrid Dispatch Assignment / Acceptance / Reassignment**
 
@@ -224,7 +225,7 @@ QUEUED -> ASSIGNED -> ACCEPTED -> IN_PROGRESS -> COMPLETED
 - no duplicate active work for the same intended operation
 - `AWAITING_PARKING -> PARKING -> PARKED` physical-state execution
 
-Do not put dispatch assignment states back into the physical ValetSession state machine. Do not use `ValetSession.current_assignee_membership_id` as canonical Task ownership. Do not introduce GPS/tracking, Retrieval, payroll/timekeeping or later-phase behavior into VAL-005C.
+Do not put dispatch assignment states back into the physical ValetSession state machine. Do not use `ValetSession.current_assignee_membership_id` as canonical Task ownership. Do not introduce VAL-005E assignment/acceptance/reassignment behavior, GPS/tracking, Retrieval, payroll/timekeeping or later-phase behavior into VAL-005D.
 
 ## Phase 4 — Retrieval, guest progression and secure handoff
 

@@ -122,6 +122,8 @@ QR is resource identification, not employee authentication or tenant authorizati
 
 General employee UX still requires a safe manual fallback where the focused policy/command allows it.
 
+VAL-005C / DEC-033 now implements the current KeySlot assign/reassign/clear command surface, exact QR/manual code lookup, database-backed occupancy conflict handling, append-only custody/Audit atomicity, and internal checkout/return custody primitives for later parking transitions.
+
 ### 5. Key Board state must be explainable from authoritative history
 
 The Blueprint's Key Board presents operational states such as:
@@ -309,23 +311,25 @@ Do not build payroll/timekeeping features.
 
 ### VAL-005C - Key Assignment & Custody Commands
 
-Status: ACTIVE / CURRENT
+Status: COMPLETED / MERGED
 
-Accepted contract: DEC-033 (`docs/decisions/DEC-033_KEY_ASSIGNMENT_CUSTODY_COMMANDS.md`). Issue #92 is open pending implementation.
+Accepted contract: DEC-033 (`docs/decisions/DEC-033_KEY_ASSIGNMENT_CUSTODY_COMMANDS.md`). Implementation merged through PR #95, implementation commit `2084ae6d5c9c0aea73d2a821238dcf266b6e5379`, merge commit `8c24b46dec32625f19de617783ba85cdf4922815`; Issue #92 is completed. GitHub CI run #115 passed.
 
-Purpose:
+Purpose delivered:
 
 - assign current KeySlot after check-in;
-- scan-first resource identification with safe manual fallback contract;
+- scan/manual exact resource-code identification;
 - concurrency-safe single-slot occupancy;
 - actor/time custody history;
 - required Audit/Black Box event atomicity;
 - correction/reassignment semantics without history rewrite;
 - reusable transaction-aware custody primitives consumed by later parking commands.
 
-No Parking state transition yet. VAL-005C requires no schema migration and must leave migrations 1–19 and the Prisma schema unchanged.
+No Parking state transition was introduced. VAL-005C changed neither Prisma schema nor migrations; migrations 1–19 remain unchanged.
 
 ### VAL-005D - Task / Dispatch Persistence Foundation
+
+Status: NEXT — focused Issue/Accepted persistence decision required before implementation where semantics are not already locked.
 
 Purpose:
 
@@ -336,7 +340,7 @@ Purpose:
 - one active intended operation protection;
 - tenant/location/session integrity.
 
-No assignment algorithm yet.
+No assignment algorithm yet. Do not pull VAL-005E behavior into this persistence slice.
 
 ### VAL-005E - Hybrid Dispatch Assignment / Acceptance / Reassignment
 
