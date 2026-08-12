@@ -63,7 +63,7 @@ Financial Phase 1 persistence does not authorize provider SDK/webhook integratio
 
 ## Phase 2 — Core custody domain + check-in
 
-Status: IN PROGRESS
+Status: COMPLETE FOR THE PHASE-3 ENTRY GATE; production/pilot hardening remains deferred
 
 Goal:
 Implement the canonical physical vehicle lifecycle foundation and a fast check-in path ending in a safely completed `CHECKING_IN -> AWAITING_PARKING` transition.
@@ -140,102 +140,77 @@ Use this dependency-oriented sequence; each remains a separate Issue/PR and may 
    Implement the accepted VAL-004A contract end-to-end: authorized `CHECKING_IN -> AWAITING_PARKING`, expected version, server completion timestamp, one version increment, one `VALET_SESSION_CHECK_IN_COMPLETED` AuditEvent, same-transaction rollback, no parking/key/dispatch side effects.
 
 9. **VAL-004I — Check-In API / Integration / Performance Gate**  
-   API/use-case wiring, shared request/response contract, command-error mapping, tenant/location/concurrency/retry integration coverage and performance instrumentation for the normal check-in path. Implemented locally on its focused branch; merge/review status remains external repository state.
+   API/use-case wiring, shared request/response contract, command-error mapping, tenant/location/concurrency/retry integration coverage and performance instrumentation for the normal check-in path.
 
 10. **VAL-004J–L — Phase 2 security/integrity follow-ups**
     Preserve shared-Vehicle cross-Location custody isolation, require verified condition-photo evidence where policy blocks completion, and implement accepted DEC-023 PostgreSQL-backed production staff authentication. VAL-004L does not add MFA or anti-abuse infrastructure and does not make Phase 2 production-ready.
 
 11. **VAL-004M — Shared Durable Anti-Abuse Boundary**
-    Implement accepted DEC-024 with one PostgreSQL-backed exact rolling-window boundary for staff login and guest session resolution, scoped HMAC limiter keys, trusted proxy handling, fail-closed behavior, fixed cleanup and least-privilege runtime access. It does not start Phase 3 or close the remaining production database/network/TLS readiness work.
+    Implement accepted DEC-024 with one PostgreSQL-backed exact rolling-window boundary for staff login and guest session resolution, scoped HMAC limiter keys, trusted proxy handling, fail-closed behavior, fixed cleanup and least-privilege runtime access.
 
 12. **VAL-004N — Production Database / Network / TLS / Credential Hardening**
-    Implement accepted DEC-025 with strict production runtime TLS, live
-    `pg_stat_ssl` and runtime-role safety verification before serving traffic,
-    migration URL allowlisting and TLS preflight, admin-secret
-    compartmentalization, distinct production credentials, and a
-    provider-neutral deployment checklist. It adds no migration and does not by
-    itself declare Phase 2 production-ready.
+    Implement accepted DEC-025 with strict production runtime TLS, live `pg_stat_ssl` and runtime-role safety verification before serving traffic, migration URL allowlisting and TLS preflight, admin-secret compartmentalization, distinct production credentials, and a provider-neutral deployment checklist.
 
 13. **VAL-004O — Shared Runtime Infrastructure Cleanup (Cleanup A)**
-    Implement accepted DEC-026 by moving the existing runtime database,
-    request-ID, HTTP error/filter, and generic observability ownership to
-    neutral API infrastructure without changing behavior. Merged/completed
-    through PR #75, merge commit
-    `89ffc2f0bbd1f386b9da11b5f871c85c3cb15cce`.
+    Merged/completed through PR #75, merge commit `89ffc2f0bbd1f386b9da11b5f871c85c3cb15cce`.
 
 14. **VAL-004P — Feature Ownership Cleanup (Cleanup B)**
-    Implement accepted DEC-027 by composing `AuthModule`, `AntiAbuseModule`,
-    `GuestAccessModule`, and `CheckInModule` directly from `AppModule`, moving
-    staff-principal ownership to Auth, extracting Guest Access application/API
-    ownership, and introducing the neutral `ApiOperationRunner` without
-    changing behavior. Merged/completed through PR #77, merge commit
-    `7b84ee5f6aa3a605d589dc4651ac5920031f9124`.
+    Merged/completed through PR #77, merge commit `7b84ee5f6aa3a605d589dc4651ac5920031f9124`.
 
 15. **VAL-004Q — Pre-Phase-3 Architecture Guard (Cleanup C)**
-    Implement accepted DEC-028 dependency-direction and retired-symbol guards.
-    Merged/completed through PR #79, merge commit
-    `ba0cc5d00201f201e9b65d45ab295a4933dcc8df`. Cleanup A/B/C are complete.
+    Merged/completed through PR #79, merge commit `ba0cc5d00201f201e9b65d45ab295a4933dcc8df`.
 
 16. **VAL-004R — Controlled Production Staff Provisioning**
-    Implement accepted DEC-029 create-only offline staff provisioning. The
-    implementation is merged/completed through PR #82, merge commit
-    `1b5db989252dbf8d47b9fe7f81e55a96ed012c56`. It does not make Phase 2
-    production-ready by itself.
+    Merged/completed through PR #82, merge commit `1b5db989252dbf8d47b9fe7f81e55a96ed012c56`.
 
 17. **VAL-004S — Enforce 300-Line Agent Structure Policy**
-    Implement accepted DEC-030 by splitting the transitional VAL-004R files,
-    enforcing the 300-line policy through the repository architecture gate, and
-    establishing the legacy baseline. Active until its PR merges; this is the
-    final repository gate before Phase 3 begins.
+    Completed in the current baseline under accepted DEC-030. The architecture gate enforces the baseline-backed 300-line authored-code policy required for Phase 3.
 
 Do not combine these focused slices into one PR. If an earlier task proves a later slice unnecessary, update this plan in a focused docs decision rather than implementing empty/speculative layers.
 
 ### Phase 2 implementation dependencies that must remain explicit
 
-Before production `complete-check-in` claims the full Blueprint semantics, the repository must have:
+The repository has the dependencies required for the Phase-3 entry gate, including condition/photo behavior, secure guest access, production Staff Auth, durable anti-abuse, runtime database hardening, neutral shared API infrastructure, feature ownership and architecture/structure enforcement.
 
-- real ConditionNote completion persistence/logic
-- authorized private VehiclePhoto/attachment persistence
-- typed configurable photo requirement with Company default -> Location override
-- secure guest access issuance/authorization behavior
-- dedicated least-privilege application runtime DB credentials
-- explicit append-only AuditEvent privilege/enforcement boundary for the runtime role
-- durable command-operation identity only if transparent offline duplicate replay is required
-- implemented shared/durable DEC-024 staff-login and guest anti-abuse controls
-- production database, network and TLS hardening plus documented deployment controls
-
-Do not fake these dependencies inside the command with an untyped policy blob, migration-owner runtime access, or claims that `version` alone is full idempotency.
+The former final Phase 2 security/integrity closure and fresh Standard Security Scan are deferred production/pilot-hardening work. Their deferral does not mean they were run or passed.
 
 Acceptance direction:
 The normal low-friction check-in path should target roughly 15–20 seconds where policy does not require photos.
 
-The VAL-004I integration gate proves that a real authorized staff flow can establish a valid intake and safely reach `AWAITING_PARKING` with tenant/location isolation, concurrency protection, audit integrity and the required check-in instrumentation. The former final Phase 2 security/integrity closure and fresh Standard Security Scan are deferred production/pilot-hardening work, not completed checks or pre-Phase-3 gates. VAL-004R alone does not make Phase 2 production-ready.
-
 ## Phase 3 — Operations: keys, parking and Hybrid Dispatch
 
-The pre-Phase-3 structure gate is complete and Phase 3 is active. The first
-focused slice is VAL-005A under accepted DEC-031:
-
-1. persist ParkingZone and exact Zone/Spot scope;
-2. enforce current KeySlot/ParkingSpot exclusivity;
-3. persist append-only KeyCustodyEvent history and runtime grants; and
-4. stop before command, API, Shift or Dispatch behavior.
-
-Cleanup A/B/C are complete. VAL-004R adds no signup/admin API or MFA claim and
-does not make Phase 2 production-ready by itself. Phase 3 persistence work has started. The
-former final Phase 2 security/integrity closure and fresh Standard Security Scan
-are deferred production/pilot-hardening work and must not be claimed as run or
-passed.
+Status: ACTIVE
 
 Goal:
-Make the valet operation executable after check-in.
+Make the valet operation executable after check-in through a safely parked vehicle while preserving key custody, controlled parking location, task history, Shift eligibility, tenant/Location isolation and append-only Black Box history.
 
-Required work across focused tasks:
+The binding focused sequence is maintained in `docs/18_PHASE3_OPERATIONS_EXECUTION_PLAN.md`:
+
+1. **VAL-005A — Key & Parking Persistence Foundation** — **MERGED / COMPLETED**  
+   Accepted DEC-031. Merged through PR #86, merge commit `3df5d9755e6c42a568c545fa2436c9a22506b41a`. Adds migration 19 only and stops before commands/API/Dispatch.
+
+2. **VAL-005B — Shift Operational Eligibility** — **CURRENT**  
+   Accepted DEC-032. Issue #88 remains open pending implementation. Implements Shift self-start/self-end, Location-scoped own-active lookup, dynamic operational eligibility and the reusable transaction-aware eligibility boundary required by future Dispatch. It adds no migration and must leave migrations 1–19 unchanged.
+
+3. **VAL-005C — Key Assignment & Custody Commands**
+
+4. **VAL-005D — Task / Dispatch Persistence Foundation**
+
+5. **VAL-005E — Hybrid Dispatch Assignment / Acceptance / Reassignment**
+
+6. **VAL-005F — Start Parking**
+
+7. **VAL-005G — Confirm Parked**
+
+8. **VAL-005H — Phase 3 API / Integration / Employee Operations Gate**
+
+Required work across the Phase 3 sequence includes:
 
 - QR-based Key Slots
 - key assignment / checkout / return custody history
 - controlled Parking Zones / Spots
 - optional QR for Zone/Spot with manual fallback
+- Shift/Location operational eligibility
 - separate Task / Hybrid Dispatch lifecycle
 - canonical task path:
 
@@ -246,8 +221,9 @@ QUEUED -> ASSIGNED -> ACCEPTED -> IN_PROGRESS -> COMPLETED
 - reassignment with actor/reason audit where required
 - availability/location/zone/current-load inputs for basic assignment
 - no duplicate active work for the same intended operation
+- `AWAITING_PARKING -> PARKING -> PARKED` physical-state execution
 
-Do not put dispatch assignment states back into the physical ValetSession state machine.
+Do not put dispatch assignment states back into the physical ValetSession state machine. Do not use `ValetSession.current_assignee_membership_id` as canonical Task ownership. Do not introduce GPS/tracking, Retrieval, payroll/timekeeping or later-phase behavior into VAL-005B.
 
 ## Phase 4 — Retrieval, guest progression and secure handoff
 
@@ -465,9 +441,7 @@ pnpm test
 pnpm build
 ```
 
-Architecture changes additionally run `pnpm architecture:check`; it is the
-repository-owned CI gate for accepted API dependency direction and DEC-030's
-baseline-backed 300-line authored-code policy.
+Architecture changes additionally run `pnpm architecture:check`; it is the repository-owned CI gate for accepted API dependency direction and DEC-030's baseline-backed 300-line authored-code policy.
 
 Database tasks additionally verify migration behavior on a fresh PostgreSQL database and required integrity tests.
 
