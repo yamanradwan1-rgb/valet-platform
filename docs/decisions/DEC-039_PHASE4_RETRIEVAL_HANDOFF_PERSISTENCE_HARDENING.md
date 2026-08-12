@@ -1,6 +1,6 @@
 # DEC-039 — Phase 4 Retrieval & Handoff Persistence Hardening
 
-Status: Proposed  
+Status: Accepted  
 Date: 2026-08-12  
 Issue: #129 (`VAL-006A — Retrieval & Handoff Persistence Hardening / Contract Lock`)
 
