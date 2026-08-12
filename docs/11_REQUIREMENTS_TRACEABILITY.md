@@ -65,10 +65,14 @@ The historical concept remains useful for original intent but is superseded wher
 | One current session per non-null KeySlot/ParkingSpot | DB unique current-assignment protection (DEC-031); later commands clear reusable resources |
 | Parking zones/spots | ParkingZone/ParkingSpot persistence and exact scope integrity (DEC-031) |
 | Optional QR parking zone/spot | Parking task UX/configuration |
+| Shift start/end operational contract | DEC-032 / VAL-005B: one ACTIVE Shift per OrganizationMembership; self-start for current `VALET_EMPLOYEE`/`VALET_SUPERVISOR`; self-end of the exact own Shift; Location-scoped active lookup; server-derived authority and PostgreSQL-authoritative timestamps |
+| Shift retry/concurrency + Black Box | DEC-032: same-Location Start retry and repeated/concurrent self-End converge without duplicate mutation/audit; different active Location returns `ACTIVE_SHIFT_CONFLICT`; first start/end writes exactly one `SHIFT_STARTED` / `SHIFT_ENDED` AuditEvent atomically |
+| Dispatch employee availability / Location eligibility | DEC-032 defines dynamic current eligibility from active User/membership/Organization/Location, explicit Location access, allowed role and ACTIVE Shift at the exact Location; future VAL-005E must consume the transaction-aware boundary in the same assignment transaction |
+| Shift open-work handoff boundary | DEC-032 forbids using `ValetSession.current_assignee_membership_id` as canonical Task ownership; canonical open-Task handoff/reassignment integration remains VAL-005D/VAL-005E |
 | Maps + task-scoped session tracking | Maps/GPS task, DEC-013 |
 | Geofence/route events when configured | future Maps persistence task; privacy rules in `06_SECURITY_AND_DATA_RULES.md` |
-| Hybrid Dispatch basic | Task/Dispatch lifecycle, DEC-014 |
-| Supervisor reassignment | DispatchEvent + reason/audit when required |
+| Hybrid Dispatch basic | Task/Dispatch lifecycle, DEC-014; Shift availability/Location boundary locked by DEC-032 |
+| Supervisor reassignment | DispatchEvent + reason/audit when required; focused VAL-005E contract |
 | Vehicle request/queue | RetrievalRequest + Task/Dispatch |
 | Duplicate request prevention | idempotency + one active request/task invariant |
 | Canonical physical vehicle lifecycle | `04_VALET_SESSION_STATE_MACHINE.md`, DEC-015 |

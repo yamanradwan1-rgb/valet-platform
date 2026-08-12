@@ -5,12 +5,13 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-11` (VAL-005A local implementation session)
+- Date/time: `2026-08-12` (VAL-005B source-of-truth sync)
 - Repository: `veletpro0-lgtm/valet-platform`
-- Required accepted-decision baseline: `9c92649378786fac7a0fc31cde8e86221d6c1f2a`
-- Active branch: `feat/VAL-005A-key-parking-persistence`
-- Active task: VAL-005A — Phase 3 Key & Parking Persistence Foundation
-- Verification basis: GitHub Issue #84 task packet and accepted DEC-031
+- Current `main`: `f1695178e43f004e9d11b6d55c0a822dc4edd4f0`
+- Active task: VAL-005B — Shift Operational Eligibility
+- Tracking issue: #88
+- Accepted decision: DEC-032 (`docs/decisions/DEC-032_SHIFT_OPERATIONAL_ELIGIBILITY.md`)
+- Verification basis: merged VAL-005A implementation, merged DEC-032 docs PR #89, and current Phase 3 execution plan
 
 ## Current Milestone
 
@@ -20,69 +21,77 @@ Phase 0 is complete.
 
 Phase 1 is **COMPLETE**. The planned multi-tenant persistence foundation, custody-supporting entities, financial persistence foundation, Incident/Notification persistence, database integrity coverage, deterministic demo/seed data, and the pre-Phase-2 local-security hardening gate are merged to `main`.
 
-VAL-004N is **MERGED / COMPLETED** through PR #73, merge commit
-`53e674464c6f3973da9202ce68fc8131af8447e1`. VAL-004O is **MERGED / COMPLETED**
-through PR #75, merge commit `89ffc2f0bbd1f386b9da11b5f871c85c3cb15cce`.
-VAL-004P is **MERGED / COMPLETED** through PR #77, merge commit
-`7b84ee5f6aa3a605d589dc4651ac5920031f9124`. Cleanup A and Cleanup B are
-complete. VAL-004Q is **MERGED / COMPLETED** through PR #79, merge commit
-`ba0cc5d00201f201e9b65d45ab295a4933dcc8df`. Cleanup A/B/C are complete.
-VAL-004R is **MERGED / COMPLETED** through PR #82, merge commit
-`1b5db989252dbf8d47b9fe7f81e55a96ed012c56`. VAL-004S structure enforcement is
-present in the current baseline. VAL-005A persistence implementation is active;
-Phase 2 is not declared production-ready.
-No fresh post-fix Standard Security Scan is claimed.
+Phase 2 check-in/security/architecture work required before Phase 3 is present in the current baseline. The former final Phase 2 security/integrity closure and fresh Standard Security Scan are deferred production/pilot-hardening work and are **not** claimed as run or passed.
 
-## Recently Completed Gate
+Phase 3 is active:
 
-### VAL-004A — Lock Complete Check-In Command Contract
+- VAL-005A — Key & Parking Persistence Foundation: **MERGED / COMPLETED** through PR #86, merge commit `3df5d9755e6c42a568c545fa2436c9a22506b41a`.
+- DEC-032 — Shift Operational Eligibility: **ACCEPTED / MERGED** through PR #89, merge commit `f1695178e43f004e9d11b6d55c0a822dc4edd4f0`.
+- VAL-005B — Shift Operational Eligibility implementation: **CURRENT / NOT YET IMPLEMENTED**; Issue #88 remains open.
 
+Exactly **19 forward-only migrations** currently exist. VAL-005B is explicitly a no-migration slice under DEC-032; migrations 1–19 must remain unchanged by its implementation.
+
+## Recently Completed Phase 3 Gate
+
+### VAL-005A — Phase 3 Key & Parking Persistence Foundation
+
+- Issue #84
+- PR #86
+- Merge commit: `3df5d9755e6c42a568c545fa2436c9a22506b41a`
 - Status: **MERGED / COMPLETED**
-- Result: binding authorization, state/version, guard, audit, retry and dependency contract for the later `complete-check-in` command
-
-### VAL-004B — Custody Command / Authorization / Concurrency Foundation
-
-- Status: **MERGED / COMPLETED**
-- Result: backend-owned protected command foundation plus dedicated least-privilege runtime database role and append-only AuditEvent enforcement
-
-### VAL-004C — Check-In Intake Persistence
-
-- Status: **MERGED / COMPLETED**
-- Merge commit: `1baa94ab7d830f4f64aecd042618d442b7dbf807`
-- Result: append-only condition/photo evidence persistence, explicit condition-completion evidence and typed Organization-default/Location-override photo policy
-
-### VAL-003O — Demo / Seed Data Foundation
-
-- Issue #40
-- PR #41
-- Status: **MERGED / COMPLETED**
-- Result: deterministic/idempotent synthetic demo seed over the existing 14-migration Phase 1 schema
-
-### VAL-003P — Pre-Phase-2 Security Hardening
-
-- Issue #44
-- PR #45
-- Merge commit: `c67c3ea7b66d82586990019de0e4eeeec68230d2`
-- Status: **MERGED / COMPLETED**
+- Accepted decision: DEC-031
 - Result:
-  - local PostgreSQL Compose publication restricted to loopback
-  - development DB password removed from hard-coded Compose configuration
-  - demo seed changed to fail-closed environment/opt-in/loopback/database-name policy
-  - query-parameter target override blocked before connection
-  - Phase 2 runtime DB boundary documented: dedicated least-privilege runtime role, no runtime DDL/migration privileges
-  - explicit append-only AuditEvent/financial-history DB privilege/enforcement decision remains required before production commands rely on that guarantee
+  - ParkingZone persistence and exact Organization/Location/Zone/Spot integrity
+  - current non-null KeySlot/ParkingSpot exclusivity
+  - append-only KeyCustodyEvent persistence
+  - runtime-role append-only grants
+  - deterministic seed support and focused verification
+  - exactly migration 19: `20260811001900_phase3_key_parking_persistence`
+- Explicitly not included: Shift commands, Task/Dispatch, parking state transitions, GPS/maps, retrieval, handoff, dependencies or lockfile changes
 
-### VAL-004M — Shared Durable Anti-Abuse Boundary
+## Current Task
 
-- PR #71
-- Merge commit: `56a7c4584f588e61513f728f34958ef497b86b01`
-- Status: **MERGED / COMPLETED**
-- Result: accepted DEC-024 PostgreSQL-backed exact rolling-window staff and
-  guest anti-abuse enforcement with scoped HMAC keys, trusted client-address
-  resolution, bounded advisory locking, fail-closed behavior, fixed cleanup,
-  and least-privilege runtime access
+### VAL-005B — Shift Operational Eligibility
 
-## Phase 1 Completion Evidence
+- Issue: #88
+- Status: **CURRENT — READY FOR IMPLEMENTATION AGAINST ACCEPTED DEC-032**
+- Accepted decision: DEC-032
+- Database state: **19 forward-only migrations; no new migration authorized**
+
+DEC-032 locks:
+
+- one ACTIVE Shift per `OrganizationMembership`, not one platform-wide per User;
+- self-start for `VALET_EMPLOYEE` / `VALET_SUPERVISOR` at an authorized active Location;
+- server-derived Organization/membership/role scope;
+- self-end only in VAL-005B, including stale-own-Shift cleanup after access/status changes;
+- dynamic current operational eligibility for future Dispatch;
+- transaction-aware reusable eligibility boundary for future VAL-005E;
+- `POST /v1/staff/shifts/start`;
+- `POST /v1/staff/shifts/:shiftId/end`;
+- `GET /v1/staff/shifts/active?locationId=<uuid>`;
+- `ACTIVE_SHIFT_CONFLICT` -> HTTP 409;
+- `SHIFT_STARTED` and `SHIFT_ENDED` AuditEvents atomically with first successful mutation;
+- PostgreSQL-authoritative timestamps;
+- no supervisor force-end, no Task/Dispatch implementation, no `current_assignee_membership_id` promotion to Task ownership, and no schema migration.
+
+Implementation must preserve authorization-before-mutation: no protected Shift mutation may occur before the authenticated User and persisted target ownership/scope required by DEC-032 have been proven.
+
+## Phase 3 Focused Task Sequence
+
+```text
+VAL-005A  Key & Parking Persistence Foundation                     MERGED
+VAL-005B  Shift Operational Eligibility                            CURRENT
+VAL-005C  Key Assignment & Custody Commands                        NEXT
+VAL-005D  Task / Dispatch Persistence Foundation
+VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment
+VAL-005F  Start Parking
+VAL-005G  Confirm Parked
+VAL-005H  Phase 3 API / Integration / Employee Operations Gate
+```
+
+This sequence is dependency-oriented. Do not combine Phase 3 into one large PR and do not pull later slices into VAL-005B.
+
+## Migration Baseline
 
 Phase 1 completed with exactly **14 forward-only migrations**, ending with:
 
@@ -90,73 +99,22 @@ Phase 1 completed with exactly **14 forward-only migrations**, ending with:
 20260809001400_notification_foundation
 ```
 
-The Phase 2 branch history additionally contains VAL-004C migration 15, `20260809001500_check_in_intake_persistence`. VAL-004D adds no migration. VAL-004E adds migration 16, `20260810001600_intake_session_creation`. VAL-004L adds migration 17, `20260810001700_staff_authentication`. VAL-004M adds migration 18, `20260810001800_shared_durable_anti_abuse`.
-
-The current branch adds migration 19,
-`20260811001900_phase3_key_parking_persistence`, for accepted DEC-031.
-
-The Phase 1 schema already contains the persistence used by the first Phase 2 command, including:
-
-- Vehicle known-plate / DEC-020 temporary-descriptor identity foundation
-- ValetSession `CHECKING_IN`, `AWAITING_PARKING`, `version`, `checking_in_completed_at`, checked-in actor and hashed guest-access fields
-- AuditEvent Black Box persistence
-- tenant/location-safe relationships
-
-Merged VAL-004C provides migration 15 for `ConditionNote`, `VehiclePhoto`, explicit condition-completion evidence and typed required-photo policy storage.
-
-## Current Task
-
-### VAL-005A — Phase 3 Key & Parking Persistence Foundation
-
-- Branch: `feat/VAL-005A-key-parking-persistence`
-- Status: **ACTIVE — LOCAL IMPLEMENTATION / VALIDATION**
-- Accepted decision: DEC-031
-- Expected database state on this branch: **19 forward-only migrations**
-
-Objective:
-Implement ParkingZone, exact Zone/Spot persistence, current KeySlot/ParkingSpot
-exclusivity, append-only KeyCustodyEvent persistence and runtime-role grants.
-
-VAL-005A adds no commands, routes, Shift behavior, Task/Dispatch lifecycle,
-state transitions, GPS/maps or guest/retrieval/handoff behavior.
-
-## Remaining Phase 2 Check-In Gate
-
-VAL-004L staff authentication, VAL-004M shared anti-abuse, VAL-004N production
-database hardening and Cleanup A/B/C are merged. VAL-004R controlled staff
-provisioning is merged/completed through PR #82. MFA-gated privileged admin
-capabilities remain unavailable. VAL-004S structure enforcement is present in
-the current baseline and Phase 3 has started with VAL-005A. The former final Phase 2
-security/integrity closure and fresh Standard Security Scan are deferred
-production/pilot-hardening work, not completed checks or pre-Phase-3 gates.
-
-## Phase 2 Focused Task Sequence
-
-The current binding execution plan preserves the original nine check-in slices plus focused security/integrity follow-ups:
+Phase 2 then added:
 
 ```text
-VAL-004A  Lock Complete Check-In Command Contract
-VAL-004B  Custody Command / Authorization / Concurrency Foundation
-VAL-004C  Check-In Intake Persistence
-VAL-004D  Vehicle Identity / Plate Capture Command
-VAL-004E  Customer / Vehicle / ValetSession Creation
-VAL-004F  Guest Secure Access Foundation
-VAL-004G  Condition Check + Photo Policy Commands
-VAL-004H  Complete Check-In Command Implementation
-VAL-004I  Check-In API / Integration / Performance Gate
-VAL-004J  Cross-Location Shared Vehicle Identity Guard
-VAL-004K  Verified Condition-Photo Evidence Guard
-VAL-004L  Production Staff Authentication
-VAL-004M  Shared Durable Anti-Abuse Boundary
-VAL-004N  Production Database / Network / TLS / Credential Hardening
-VAL-004O  Shared Runtime Infrastructure Cleanup (Cleanup A)
-VAL-004P  Feature Ownership Cleanup (Cleanup B)
-VAL-004Q  Pre-Phase-3 Architecture Guard (Cleanup C)
-VAL-004R  Controlled Production Staff Provisioning
-VAL-004S  Enforce 300-Line Agent Structure Policy
+15  20260809001500_check_in_intake_persistence
+16  20260810001600_intake_session_creation
+17  20260810001700_staff_authentication
+18  20260810001800_shared_durable_anti_abuse
 ```
 
-This sequence is dependency-oriented, not permission to combine Phase 2 into one large PR.
+Phase 3 VAL-005A added:
+
+```text
+19  20260811001900_phase3_key_parking_persistence
+```
+
+VAL-005B adds **no migration**. Do not modify migrations 1–19.
 
 ## Current Product / Domain Baseline
 
@@ -191,34 +149,26 @@ VALET_EMPLOYEE
 
 Audit/Black Box history is append-only by contract. Protected domain mutations that require audit must commit the mutation and required AuditEvent atomically.
 
+`ValetSession.current_assignee_membership_id` is not canonical Task/Hybrid Dispatch ownership.
+
 Financial persistence remains payment-centric under DEC-021 with DEC-022 edge clarifications. Phase 6 consumes that persistence for commands/provider/workflows.
 
-## Dependencies / Contention
+## Important Security / Architecture Boundaries
 
-- No Phase 1 migration task remains active.
-- VAL-004L adds migration 17; VAL-004M adds migration 18. VAL-004N adds no
-  migration and leaves migrations 1–18 unchanged.
-- `docs/04_VALET_SESSION_STATE_MACHINE.md` is the single detailed source for the locked `complete-check-in` contract; other docs should point to it rather than duplicate/reinterpret it.
-- DEC-023 is the accepted staff-authentication contract; existing custody commands remain authoritative for tenant, Location and role authorization.
-- DEC-024 is the accepted shared anti-abuse contract; limiter buckets never authenticate or authorize a User, tenant, Location, membership, role or guest session.
-- DEC-025 is the accepted production database connection/credential contract;
-  repository enforcement must remain distinct from provider-owned network,
-  secret, backup, and restore evidence.
-- Do not pull Hybrid Dispatch/Task, parking/key, retrieval, handoff, payment or notification behavior into `complete-check-in`.
-- Venue Client identity, VAYLET Super Admin persistence, country-specific plate normalization and Vehicle merge/deduplication remain separate deferred decisions/tasks.
+- Staff Auth proves only persisted User identity; tenant, membership, Location and role authority remain server-derived.
+- Cross-tenant access is a critical defect and existing non-disclosing authorization mappings remain active.
+- Common/shared infrastructure must not import feature modules.
+- New authored code files must respect DEC-030 / `docs/17_AGENT_CODE_STRUCTURE_RULES.md` 300-line policy.
+- No fresh post-fix Standard Security Scan is claimed.
+- No Phase 3 task may introduce continuous employee tracking; maps/session tracking remain task-scoped Phase 5 work.
 
 ## Exact Next Step
 
-Current Phase 3 sequence:
+Implement **VAL-005B** on a fresh focused branch from current `main`, strictly against Accepted DEC-032 and Issue #88.
 
-```text
-VAL-005A persistence foundation
--> later Shift, key command, Task/Dispatch and parking command slices
-```
+Do not change schema/migrations, do not implement Task/Dispatch early, do not add supervisor force-end, and do not use `ValetSession.current_assignee_membership_id` as open Task ownership.
 
-Do not pull later Phase 3 commands or Dispatch behavior into VAL-005A. Do not
-declare Phase 2 production-ready from this persistence work. The former final
-Phase 2 closure and fresh Standard Security Scan remain deferred.
+After VAL-005B implementation is reviewed, CI-green and merged, proceed to VAL-005C.
 
 ## Parallel UX/UI Track
 

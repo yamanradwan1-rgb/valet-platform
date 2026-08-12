@@ -276,11 +276,9 @@ The following is the intended dependency sequence. Each slice requires its own r
 
 ### VAL-005A - Key & Parking Persistence Foundation
 
-Status: ACTIVE
+Status: COMPLETED / MERGED
 
-Accepted contract: DEC-031. Implementation is limited to persistence,
-database integrity, append-only runtime-role grants, deterministic seed support,
-and focused verification; no command/API/Dispatch behavior is included.
+Accepted contract: DEC-031. Implementation was merged through PR #86, merge commit `3df5d9755e6c42a568c545fa2436c9a22506b41a`. It is limited to persistence, database integrity, append-only runtime-role grants, deterministic seed support, and focused verification; no command/API/Dispatch behavior is included.
 
 Purpose:
 
@@ -294,6 +292,10 @@ Purpose:
 No command/API/Dispatch behavior.
 
 ### VAL-005B - Shift Operational Eligibility
+
+Status: ACTIVE / CURRENT
+
+Accepted contract: DEC-032 (`docs/decisions/DEC-032_SHIFT_OPERATIONAL_ELIGIBILITY.md`). Issue #88 remains open pending implementation.
 
 Purpose:
 

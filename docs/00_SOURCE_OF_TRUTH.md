@@ -17,6 +17,17 @@ The historical product concept remains available at:
 
 The historical concept is still useful for original intent, but it is superseded wherever Blueprint v1.0 or a later accepted decision explicitly changes the product contract.
 
+## Accepted decision authority
+
+Accepted project decisions may be represented in two repository forms:
+
+- canonical log/summary entries in `docs/08_DECISIONS_LOG.md` marked `Accepted`;
+- focused decision files under `docs/decisions/DEC-*.md` whose own status is `Accepted`.
+
+When both exist for the same decision, the focused standalone DEC is the complete contract and `docs/08_DECISIONS_LOG.md` is its canonical log/summary. A material conflict between the two is a repository contradiction that must be reconciled before implementation.
+
+A focused DEC that is already merged and marked `Accepted` remains binding during a temporary mirror lag in `docs/08_DECISIONS_LOG.md`; mirror lag must not be used to ignore, reinterpret or broaden that decision. The log should be synchronized in a documentation-maintenance task.
+
 ## Product identity
 
 VAYLET is a B2B SaaS operating system for valet operations from vehicle arrival through secure completion, including operational custody, employee workflow, guest experience, configuration, payments where enabled, reporting and audit.
@@ -125,7 +136,7 @@ Do not use this principle as permission to invent an untyped configuration schem
 When the project owner changes an important requirement:
 
 1. Record the new approved source/decision.
-2. Add or update an accepted entry in `08_DECISIONS_LOG.md` when repository reconciliation is needed.
+2. Add or update an Accepted decision in the repository. Focused decisions belong under `docs/decisions/`; `docs/08_DECISIONS_LOG.md` should carry the canonical summary/index and be synchronized when a focused Accepted DEC is added.
 3. Update affected binding docs.
 4. Update implementation only after the contracts are aligned.
 
