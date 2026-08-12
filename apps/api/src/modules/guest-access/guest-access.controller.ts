@@ -42,6 +42,7 @@ import {
   type StaffPrincipalResolver,
 } from "../auth/staff-principal";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
+import { shapeValidGuestBearer } from "./guest-access-bearer";
 import { GuestAccessService } from "./guest-access.service";
 
 interface ParseSchema<T> {
@@ -52,7 +53,6 @@ interface ParseSchema<T> {
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
 
 function parse<T>(schema: ParseSchema<T>, value: unknown): T {
   const parsed = schema.safeParse(value);
@@ -67,23 +67,6 @@ function parseAbsentOrEmptyBody(body: unknown): void {
 function parseUuid(value: string): string {
   if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
   return value;
-}
-
-function shapeValidGuestBearer(
-  request: ApiRequest,
-  value: string | undefined,
-): string | undefined {
-  const rawHeaders = request.rawHeaders;
-  if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) return undefined;
-  let authorizationCount = 0;
-  for (let index = 0; index < rawHeaders.length; index += 2) {
-    if (rawHeaders[index]?.toLowerCase() === "authorization") {
-      authorizationCount += 1;
-    }
-  }
-  if (authorizationCount !== 1) return undefined;
-  const match = typeof value === "string" ? bearerPattern.exec(value) : null;
-  return match?.[1];
 }
 
 function iso(value: Date): string {
