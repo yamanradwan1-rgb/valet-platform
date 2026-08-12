@@ -24,18 +24,31 @@ import {
 } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessModule } from "../src/modules/guest-access/guest-access.module";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { ShiftController } from "../src/modules/shifts/shift.controller";
+import { ShiftModule } from "../src/modules/shifts/shift.module";
+import { ShiftService } from "../src/modules/shifts/shift.service";
 
 function metadata<T>(module: object, key: string): T[] {
   return (Reflect.getMetadata(key, module) as T[] | undefined) ?? [];
 }
 
 describe("accepted feature module ownership", () => {
-  it("composes the four accepted feature modules directly from AppModule", () => {
+  it("composes the accepted feature modules directly from AppModule", () => {
     expect(metadata(AppModule, MODULE_METADATA.IMPORTS)).toEqual([
       AuthModule,
       AntiAbuseModule,
       GuestAccessModule,
       CheckInModule,
+      ShiftModule,
+    ]);
+  });
+
+  it("keeps Shift ownership focused", () => {
+    expect(metadata(ShiftModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      ShiftController,
+    ]);
+    expect(metadata(ShiftModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      ShiftService,
     ]);
   });
 

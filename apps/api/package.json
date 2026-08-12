@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run test",
     "test:check-in-api": "vitest run test/check-in-api.integration.test.ts",
+    "test:shifts": "vitest run test/shift-start.integration.test.ts test/shift-end.integration.test.ts test/shift-eligibility.integration.test.ts test/shift-api.integration.test.ts",
     "staff:provision": "tsx tools/provision-staff.ts"
   },
   "dependencies": {

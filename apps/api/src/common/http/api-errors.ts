@@ -24,6 +24,7 @@ export interface MappedApiError {
 }
 
 const statusByCode: Readonly<Record<string, number>> = {
+  ACTIVE_SHIFT_CONFLICT: HttpStatus.CONFLICT,
   ACTIVE_VALET_SESSION_CONFLICT: HttpStatus.CONFLICT,
   AUTHORIZATION_DENIED: HttpStatus.NOT_FOUND,
   CHECK_IN_CONDITION_PHOTO_REQUIRED: HttpStatus.UNPROCESSABLE_ENTITY,
