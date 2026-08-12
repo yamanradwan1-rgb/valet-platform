@@ -1,14 +1,53 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  activeShiftQuerySchema,
+  activeShiftResponseSchema,
   nonEmptyStringSchema,
   staffAuthAccessResponseSchema,
   staffLoginRequestSchema,
+  startShiftRequestSchema,
+  startShiftResponseSchema,
 } from "./index";
 
 describe("nonEmptyStringSchema", () => {
   it("accepts non-empty bootstrap values", () => {
     expect(nonEmptyStringSchema.parse("valet-platform")).toBe("valet-platform");
+  });
+});
+
+describe("Shift contracts", () => {
+  it("keeps requests strict and location-bound", () => {
+    const locationId = "00000000-0000-4000-8000-000000000001";
+    expect(
+      startShiftRequestSchema.parse({ targetLocationId: locationId }),
+    ).toEqual({ targetLocationId: locationId });
+    expect(
+      startShiftRequestSchema.safeParse({
+        membershipId: "00000000-0000-4000-8000-000000000002",
+        targetLocationId: locationId,
+      }).success,
+    ).toBe(false);
+    expect(
+      activeShiftQuerySchema.safeParse({
+        locationId,
+        organizationId: "00000000-0000-4000-8000-000000000003",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates projections and a null active result", () => {
+    const shift = {
+      endedAt: null,
+      locationId: "00000000-0000-4000-8000-000000000001",
+      shiftId: "00000000-0000-4000-8000-000000000002",
+      startedAt: "2026-08-12T10:00:00.000Z",
+      status: "ACTIVE",
+    };
+    expect(startShiftResponseSchema.parse(shift)).toEqual(shift);
+    expect(activeShiftResponseSchema.parse({ shift: null })).toEqual({
+      shift: null,
+    });
   });
 });
 

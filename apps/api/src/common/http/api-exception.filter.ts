@@ -98,6 +98,21 @@ const operationRoutes: ReadonlyArray<{
     operation: "GUEST_SESSION_READ",
     path: /^\/v1\/guest\/session$/,
   },
+  {
+    method: "POST",
+    operation: "SHIFT_START",
+    path: /^\/v1\/staff\/shifts\/start$/,
+  },
+  {
+    method: "POST",
+    operation: "SHIFT_END",
+    path: /^\/v1\/staff\/shifts\/[^/]+\/end$/,
+  },
+  {
+    method: "GET",
+    operation: "SHIFT_ACTIVE_LOOKUP",
+    path: /^\/v1\/staff\/shifts\/active$/,
+  },
 ];
 
 function routedOperation(request: FilterRequest): string | undefined {
