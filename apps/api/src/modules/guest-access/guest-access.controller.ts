@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UnauthorizedException,
 } from "@nestjs/common";
 import {
@@ -22,6 +23,10 @@ import {
 
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
+import {
+  setNoStoreResponseHeaders,
+  type HeaderResponse,
+} from "../../common/http/no-store-response";
 import type { ApiRequest } from "../../common/http/api-request";
 import {
   AntiAbuseRateLimitError,
@@ -119,7 +124,9 @@ export class StaffGuestAccessController {
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
   ) {
+    setNoStoreResponseHeaders(response);
     return this.runner.run("CHECK_IN_GUEST_ACCESS_ISSUE", request, async () => {
       const principalUserId = await this.userId(request, authorization);
       const input = parse<GuestAccessIssueRequest>(
@@ -151,7 +158,9 @@ export class StaffGuestAccessController {
     @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
   ) {
+    setNoStoreResponseHeaders(response);
     return this.runner.run(
       "CHECK_IN_GUEST_ACCESS_REVOKE",
       request,
@@ -185,7 +194,9 @@ export class GuestAccessController {
     @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
     @Query() query: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
   ) {
+    setNoStoreResponseHeaders(response);
     return this.runner.run("GUEST_SESSION_READ", request, async () => {
       parse(emptyRequestSchema, query ?? {});
       let clientAddress: string;
