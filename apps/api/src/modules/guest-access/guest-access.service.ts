@@ -14,6 +14,7 @@ import {
   type IssueGuestAccessRequest,
   type StaffGuestAccessRequest,
 } from "../valet-sessions/guest-access-command";
+import { resolveGuestAccessForUpdateWithDatabase } from "./guest-access-locked-resolution";
 
 @Injectable()
 export class GuestAccessService {
@@ -41,12 +42,27 @@ export class GuestAccessService {
     return this.resolveGuestAccess(rawToken);
   }
 
-  async resolveInTransaction(
+  resolveInTransaction(
     transaction: PostgresTransaction,
     rawToken: string,
   ) {
+    return this.resolveSafely(() =>
+      resolveGuestAccessWithDatabase(transaction, rawToken),
+    );
+  }
+
+  resolveForUpdateInTransaction(
+    transaction: PostgresTransaction,
+    rawToken: string,
+  ) {
+    return this.resolveSafely(() =>
+      resolveGuestAccessForUpdateWithDatabase(transaction, rawToken),
+    );
+  }
+
+  private async resolveSafely<T>(action: () => Promise<T>) {
     try {
-      return await resolveGuestAccessWithDatabase(transaction, rawToken);
+      return await action();
     } catch (error) {
       if (error instanceof GuestAccessError) return undefined;
       throw error;
