@@ -7,11 +7,9 @@
 
 - Date/time: `2026-08-12`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Verified main baseline before this status sync: `52a7181fc06a300e33472e16361b692d3ea7d20a`
+- Verified implementation merge baseline: `05e860423b2eb65cfd9e764f0ebda519d9a73d52`
 - Current milestone: Phase 3 — Operations: keys, parking and Hybrid Dispatch
-- Active task: VAL-005F — Start Parking
-- Tracking issue: #106
-- Accepted decision: DEC-036 (`docs/decisions/DEC-036_START_PARKING.md`)
+- Next focused task: VAL-005G — Confirm Parked
 - Database baseline: exactly **20 forward-only migrations**
 - No fresh post-fix Standard Security Scan is claimed.
 
@@ -23,68 +21,50 @@ VAL-005B  Shift Operational Eligibility                            MERGED / COMP
 VAL-005C  Key Assignment & Custody Commands                        MERGED / COMPLETED
 VAL-005D  Task / Dispatch Persistence Foundation                   MERGED / COMPLETED
 VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment   MERGED / COMPLETED
-VAL-005F  Start Parking                                            CURRENT / READY FOR IMPLEMENTATION
+VAL-005F  Start Parking                                            MERGED / COMPLETED
 VAL-005G  Confirm Parked                                           NEXT
 VAL-005H  Phase 3 API / Integration / Employee Operations Gate
 ```
 
-## Recently Completed — VAL-005E
+## Recently Completed — VAL-005F
 
-- Issue: #101 — completed
-- Accepted decision: DEC-035
-- Implementation commit: `38a74ad305ebd778447d9eaee346e5c2dbaf0794`
-- Implementation PR: #104
-- Merge commit: `09b8ef78d8a5a29c2b147e3006dfa2e863fba1dd`
-- GitHub CI: run #129 — **SUCCESS**
-- Completion/status sync PR: #105
-- Result: Parking Task queue/read, assignment/self-claim/automatic ranking, accept/decline/reassignment, Task.version concurrency, append-only DispatchEvent + required AuditEvent atomicity, and Shift-end canonical open-work protection.
+- Issue: #106 — completed
+- Accepted decision: DEC-036 (`docs/decisions/DEC-036_START_PARKING.md`)
+- Implementation commit: `bc06db4696e0053d1b9aff7e7dddc2c97c3751fa`
+- Implementation PR: #109
+- Merge commit: `05e860423b2eb65cfd9e764f0ebda519d9a73d52`
+- GitHub CI: run #137 — **SUCCESS**
+- Changed files: 22
 - Database: no Prisma schema change and no migration; migrations remain exactly 20.
 
-## Current Task — VAL-005F
+Delivered behavior:
 
-Issue: #106  
-Decision: DEC-036 — Accepted  
-Status: **CURRENT — READY FOR IMPLEMENTATION**
+- `POST /v1/staff/valet-sessions/:sessionId/start-parking`;
+- strict dual expected-version request contract;
+- self-owned authorization through canonical `Task.current_assignee_membership_id`;
+- DEC-032 operational eligibility inside the protected transaction;
+- coordinated `Task: ACCEPTED -> IN_PROGRESS` and `ValetSession: AWAITING_PARKING -> PARKING`;
+- shared PostgreSQL-authoritative `parking_started_at` / event timestamp;
+- Task.version and ValetSession.version each increment exactly once;
+- current `ValetSession.key_slot_id` remains unchanged;
+- append-only `KeyCustodyEvent(CHECKED_OUT)`;
+- append-only `DispatchEvent(IN_PROGRESS)`;
+- required `VALET_SESSION_PARKING_STARTED` AuditEvent;
+- atomic rollback across Task/session/custody/dispatch/audit effects;
+- concurrency coverage for double start, Task acceptance/reassignment, KeySlot correction and Shift-end interaction;
+- tenant/Location/current-owner concealment and stable error mapping.
 
-VAL-005F owns exactly one coordinated Start Parking operation:
+Explicit boundaries preserved:
 
-```text
-Task:         ACCEPTED -> IN_PROGRESS
-ValetSession: AWAITING_PARKING -> PARKING
-```
-
-The accepted contract requires:
-
-- canonical route `POST /v1/staff/valet-sessions/:sessionId/start-parking`;
-- strict request with both `expectedSessionVersion` and `expectedTaskVersion`;
-- only the current accepted PARKING Task owner may start;
-- DEC-032 operational eligibility inside the same protected transaction;
-- current active KeySlot assignment required;
-- current `ValetSession.key_slot_id` remains assigned and unchanged;
-- exactly one `KeyCustodyEvent(CHECKED_OUT)` through the DEC-033 custody boundary;
-- exactly one `DispatchEvent(IN_PROGRESS)`;
-- exactly one `VALET_SESSION_PARKING_STARTED` AuditEvent;
-- one PostgreSQL-authoritative operation time shared across the coordinated effects;
-- `parking_started_at` set once;
-- Task.version increments exactly once;
-- ValetSession.version increments exactly once;
-- atomic rollback across session/task/custody/dispatch/audit effects;
-- stable non-disclosing errors and safe concurrency outcomes.
-
-VAL-005F explicitly does **not** own:
-
-- Prisma schema or migrations;
-- Zone/Spot assignment/proof;
-- `PARKING -> PARKED`;
-- `parked_at`;
-- Task `COMPLETED`;
-- `RETURNED_TO_SLOT`;
-- GPS/maps/tracking/geofences;
-- Retrieval;
-- payment/handoff/payroll;
-- dashboard/employee UI;
-- offline replay;
-- supervisor reassignment of IN_PROGRESS work.
+- no `ValetSession.current_assignee_membership_id` synchronization;
+- no Zone/Spot assignment or proof;
+- no `PARKING -> PARKED`;
+- no `parked_at`;
+- no Parking Task completion;
+- no `RETURNED_TO_SLOT`;
+- no GPS/maps/tracking/geofences;
+- no Retrieval behavior;
+- no payment, handoff, payroll, dashboard, employee UI, or offline behavior.
 
 ## Database / Migration Baseline
 
@@ -95,12 +75,21 @@ Exactly **20 forward-only migrations** exist:
 20  20260812002000_phase3_task_dispatch_persistence
 ```
 
-Migrations 1–20 remain immutable for VAL-005F. DEC-036 requires no Prisma schema change and no migration.
+Migrations 1–20 remain immutable unless a later Accepted decision explicitly authorizes a new forward-only migration.
 
-`Task.current_assignee_membership_id` remains canonical Hybrid Dispatch ownership. `ValetSession.current_assignee_membership_id` is not synchronized or treated as Task authority.
+`Task.current_assignee_membership_id` remains canonical Hybrid Dispatch ownership. `ValetSession.current_assignee_membership_id` is not.
 
 ## Exact Next Step
 
-Implement **VAL-005F — Start Parking** on a focused branch from the current `main`, strictly against DEC-036 plus DEC-032/033/034/035 and the binding ValetSession state machine.
+Prepare the focused Accepted decision and implementation slice for **VAL-005G — Confirm Parked**.
 
-After implementation is reviewed, Linux CI is green and the PR is merged, proceed to the focused VAL-005G Confirm Parked decision/command slice.
+VAL-005G owns the coordinated parking-completion transaction, including the exact guards and concurrency needed to move:
+
+```text
+Task:         IN_PROGRESS -> COMPLETED
+ValetSession: PARKING -> PARKED
+```
+
+and to establish the required Zone/Spot parking proof, set `parked_at`, return the key through the DEC-033 custody boundary with `RETURNED_TO_SLOT`, and append the required Dispatch/Audit history atomically.
+
+Do not pull Retrieval, GPS/maps/tracking, payment, handoff, payroll, UI or later-phase behavior into VAL-005G before its focused Accepted decision is locked.
