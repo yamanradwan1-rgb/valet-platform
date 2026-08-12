@@ -20,6 +20,7 @@ import { GuestAccessService } from "./guest-access.service";
     HttpInfrastructureModule,
   ],
   providers: [GuestAccessService],
+  exports: [GuestAccessService],
 })
 export class GuestAccessModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

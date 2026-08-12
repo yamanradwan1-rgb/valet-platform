@@ -726,6 +726,10 @@ created_at
 
 Requested-by type:
 
+- `CUSTOMER` means external guest/customer origin; `requested_by_membership_id` must be null and optional Customer attribution may be null.
+- `STAFF` requires `requested_by_membership_id` and requires `requested_by_customer_id` to be null.
+- when optional Customer attribution is present, its existing same-Organization foreign key remains authoritative.
+
 - CUSTOMER
 - STAFF
 

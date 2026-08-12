@@ -101,6 +101,11 @@ const operationRoutes: ReadonlyArray<{
   },
   {
     method: "POST",
+    operation: "GUEST_RETRIEVAL_REQUEST",
+    path: /^\/v1\/guest\/session\/request-retrieval$/,
+  },
+  {
+    method: "POST",
     operation: "SHIFT_START",
     path: /^\/v1\/staff\/shifts\/start$/,
   },
@@ -130,6 +135,7 @@ const guestAccessOperations = new Set([
   "CHECK_IN_GUEST_ACCESS_ISSUE",
   "CHECK_IN_GUEST_ACCESS_REVOKE",
   "GUEST_SESSION_READ",
+  "GUEST_RETRIEVAL_REQUEST",
 ]);
 
 function routedOperation(request: FilterRequest): string | undefined {

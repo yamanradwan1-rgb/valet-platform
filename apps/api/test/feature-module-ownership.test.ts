@@ -35,6 +35,9 @@ import { StartParkingModule } from "../src/modules/parking/start-parking.module"
 import { StartParkingService } from "../src/modules/parking/start-parking.service";
 import { ConfirmParkedController } from "../src/modules/parking/confirm-parked.controller";
 import { ConfirmParkedService } from "../src/modules/parking/confirm-parked.service";
+import { GuestRetrievalController } from "../src/modules/retrieval/guest-retrieval.controller";
+import { RetrievalModule } from "../src/modules/retrieval/retrieval.module";
+import { RetrievalService } from "../src/modules/retrieval/retrieval.service";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
@@ -54,6 +57,7 @@ describe("accepted feature module ownership", () => {
       KeyCustodyModule,
       DispatchModule,
       StartParkingModule,
+      RetrievalModule,
     ]);
   });
 
@@ -74,6 +78,15 @@ describe("accepted feature module ownership", () => {
     ]);
     expect(metadata(DispatchModule, MODULE_METADATA.PROVIDERS)).toEqual([
       DispatchService,
+    ]);
+  });
+
+  it("keeps guest Retrieval ownership separate from Guest Access", () => {
+    expect(metadata(RetrievalModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      GuestRetrievalController,
+    ]);
+    expect(metadata(RetrievalModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      RetrievalService,
     ]);
   });
 
