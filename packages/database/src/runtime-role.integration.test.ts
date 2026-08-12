@@ -460,38 +460,36 @@ describe("runtime PostgreSQL role boundary", () => {
     expect(ownership.rows[0]?.count).toBe("0");
   });
 
-  it("allows required reads, inserts and updates but denies ordinary table delete", async () => {
-    const currentUser = await runtimePool.query<{ current_user: string }>(
-      `SELECT current_user`,
-    );
+  it("allows the required operational reads and writes but not administrative tables", async () => {
+    const currentUser = await runtimePool.query(`SELECT current_user`);
     expect(currentUser.rows[0]?.current_user).toBe(runtimeRole);
-    await expect(
-      runtimePool.query(`SELECT id FROM organizations LIMIT 1`),
-    ).resolves.toBeDefined();
-
-    const organizationId = randomUUID();
+    const fixture = await createAuditFixture();
+    const customerId = randomUUID();
     await runtimePool.query(
-      `INSERT INTO organizations
-         (id, name, status, timezone, updated_at)
-       VALUES ($1, 'Runtime insert', 'ACTIVE', 'Asia/Amman',
+      `INSERT INTO customers
+         (id, organization_id, phone_normalized, updated_at)
+       VALUES ($1, $2, '+962790000000',
                transaction_timestamp())`,
-      [organizationId],
+      [customerId, fixture.organizationId],
     );
     await runtimePool.query(
-      `UPDATE organizations SET name = 'Runtime update',
-                                updated_at = transaction_timestamp()
-       WHERE id = $1`,
-      [organizationId],
+      `UPDATE vehicles SET temporary_descriptor = 'Runtime update',
+                           updated_at = transaction_timestamp()
+       WHERE organization_id = $1`,
+      [fixture.organizationId],
     );
-    const persisted = await adminPool.query<{ name: string }>(
-      `SELECT name FROM organizations WHERE id = $1`,
-      [organizationId],
+    const persisted = await adminPool.query(
+      `SELECT phone_normalized FROM customers WHERE id = $1`,
+      [customerId],
     );
-    expect(persisted.rows[0]?.name).toBe("Runtime update");
+    expect(persisted.rows[0]?.phone_normalized).toBe("+962790000000");
     await expectPostgresDenial(
-      runtimePool.query(`DELETE FROM organizations WHERE id = $1`, [
-        organizationId,
-      ]),
+      runtimePool.query(
+        `INSERT INTO organizations
+        (id, name, timezone, updated_at)
+        VALUES ($1, 'forbidden', 'Asia/Amman', transaction_timestamp())`,
+        [randomUUID()],
+      ),
     );
   });
 
