@@ -248,7 +248,14 @@ describe("DEC-034 Task and DispatchEvent persistence", () => {
         "dispatch_events_assignee_shape_check",
       );
     }
-    await createDispatchEvent(client, scope, taskId, "CANCELLED", null, null);
+    const cancelled = await createDispatchEvent(
+      client,
+      scope,
+      taskId,
+      "CANCELLED",
+      null,
+      null,
+    );
     const first = await createDispatchEvent(
       client,
       scope,
@@ -264,6 +271,10 @@ describe("DEC-034 Task and DispatchEvent persistence", () => {
       "ACCEPTED",
       null,
       member,
+    );
+    await client.query(
+      `UPDATE dispatch_events SET occurred_at = $1 WHERE id = $2`,
+      ["2026-08-12T09:59:59.000Z", cancelled],
     );
     await client.query(
       `UPDATE dispatch_events SET occurred_at = $1 WHERE id = $2`,
