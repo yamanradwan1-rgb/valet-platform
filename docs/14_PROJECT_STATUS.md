@@ -7,13 +7,13 @@
 
 - Date/time: `2026-08-12`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Verified main baseline before this status sync: `c8d28c1b82224d334abffa4e2b074d3c02f372e2`
-- Current milestone: Phase 3 — Operations: keys, parking and Hybrid Dispatch
-- Active task: VAL-005H — Phase 3 API / Integration / Employee Operations Gate
-- Tracking issue: #116
+- Verified Phase 3 implementation merge baseline: `489ca4421251b09cd6efccef74511a463e93c1b6`
+- Current milestone: **Phase 3 — Operations: keys, parking and Hybrid Dispatch — CLOSED / COMPLETED**
+- Final Phase 3 task: VAL-005H — Phase 3 API / Integration / Employee Operations Gate — completed
+- Tracking issue: #116 — completed
 - Accepted decision: DEC-038 (`docs/decisions/DEC-038_PHASE3_API_INTEGRATION_EMPLOYEE_OPERATIONS_GATE.md`)
 - Database baseline: exactly **20 forward-only migrations**
-- No fresh post-fix Standard Security Scan is claimed.
+- No fresh post-fix repository-wide Standard Security Scan is claimed.
 
 ## Phase 3 Status
 
@@ -25,61 +25,84 @@ VAL-005D  Task / Dispatch Persistence Foundation                   MERGED / COMP
 VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment   MERGED / COMPLETED
 VAL-005F  Start Parking                                            MERGED / COMPLETED
 VAL-005G  Confirm Parked                                           MERGED / COMPLETED
-VAL-005H  Phase 3 API / Integration / Employee Operations Gate     CURRENT / READY FOR IMPLEMENTATION
+VAL-005H  Phase 3 API / Integration / Employee Operations Gate     MERGED / COMPLETED
 ```
 
-## Recently Completed — VAL-005G
+**Phase 3 is closed.**
 
-- Issue: #111 — completed
-- Accepted decision: DEC-037
-- Implementation commit: `2935123f9272717bfa7e6df2b078ce655a45cf69`
-- Implementation PR: #114
-- Merge commit: `e03f4a75e2dcd59e0779e39a22a79a5276bb9979`
-- GitHub CI: run #145 — **SUCCESS**
-- Completion/status sync PR: #115
-- Result: atomic Confirm Parked moves the canonical Parking Task `IN_PROGRESS -> COMPLETED` and ValetSession `PARKING -> PARKED`, derives Zone from exact Spot, assigns current Zone/Spot, records `RETURNED_TO_SLOT`, `COMPLETED` Dispatch history and required Audit history, and preserves current KeySlot assignment.
-- Database: no Prisma schema change and no migration; migrations remain exactly 20.
+The current operational status in this file supersedes stale historical status labels that may remain inside older execution-plan prose. Those older plans continue to define sequence/invariants where still applicable; accepted DEC-031 through DEC-038 remain the behavioral contracts.
 
-## Current Task — VAL-005H
+## Final Phase 3 Gate — VAL-005H
 
-Issue: #116  
-Decision: DEC-038 — Accepted  
-Status: **CURRENT — READY FOR IMPLEMENTATION**
+- Issue: #116 — completed
+- Accepted decision: DEC-038
+- Implementation commit: `8455adf2bfa08af8a03c9f083eb45b125fe73581`
+- Implementation PR: #119
+- Implementation merge commit: `489ca4421251b09cd6efccef74511a463e93c1b6`
+- GitHub CI: run #153 — **SUCCESS**
+- Changed files: 2 test files only
+- Production code changes: none
+- Prisma schema changes: none
+- Migration changes: none
+- Dependency / package-manifest / lockfile changes: none
 
-VAL-005H is a closure/integration gate, not a new product workflow.
-
-It must prove one coherent authorized employee flow through the already accepted Phase 3 staff API:
+VAL-005H proves the production `AppModule` and real PostgreSQL-backed Staff bearer authority compose the accepted Phase 3 employee Parking workflow end-to-end:
 
 ```text
 AWAITING_PARKING
 -> KeySlot assignment
 -> Parking Task queue
--> Task assignment/self-claim
+-> Task self-claim / assignment
 -> Task acceptance
 -> Start Parking
 -> Confirm Parked
 -> PARKED
 ```
 
-The gate must verify:
+Final authoritative result:
 
-- production Phase 3 route/module wiring;
-- tenant and Location isolation;
-- DEC-032 operational Shift eligibility across protected operations;
-- returned optimistic versions can drive the next command;
-- canonical `Task.current_assignee_membership_id` ownership;
-- one active Parking Task per session;
-- no double current KeySlot or ParkingSpot occupancy;
-- expected Key custody sequence `SLOT_ASSIGNED -> CHECKED_OUT -> RETURNED_TO_SLOT`;
-- expected normal Dispatch sequence `QUEUED -> ASSIGNED -> ACCEPTED -> IN_PROGRESS -> COMPLETED`;
-- reassignment/decline history remains append-only and auditable;
-- required Audit/Black Box events and safe metadata;
-- exact KeySlot/Zone/Spot operational details stay out of guest-facing responses;
-- architecture/300-line, schema/migration, contracts, full regression and Linux CI gates.
+```text
+ValetSession.state = PARKED
+Parking Task.status = COMPLETED
+```
 
-VAL-005H may make only narrow integration/wiring fixes proven necessary by failing gate evidence and consistent with DEC-031 through DEC-037.
+The gate proved response-fed optimistic version propagation, canonical Task ownership, tenant/Location isolation, Shift eligibility, open-work Shift-end protection, semantic queue retry, guest operational-detail privacy, and authoritative append-only custody / Dispatch / Audit history.
 
-It must not add Retrieval, GPS/maps/tracking, parked-notification delivery, payment, handoff, payroll, UI, offline replay, generic configuration CRUD or later-phase behavior.
+Normal custody sequence proven:
+
+```text
+SLOT_ASSIGNED
+-> CHECKED_OUT
+-> RETURNED_TO_SLOT
+```
+
+Normal Parking Dispatch sequence proven:
+
+```text
+QUEUED
+-> ASSIGNED
+-> ACCEPTED
+-> IN_PROGRESS
+-> COMPLETED
+```
+
+A decline-history composition case also proved the previous assignee / actor / trimmed reason remain explainable without rewriting prior history.
+
+## Phase 3 Delivered Boundary
+
+The backend can now safely execute the post-check-in Parking operation through `PARKED` while preserving:
+
+- current operational employee/Task ownership;
+- current Shift and Location eligibility;
+- KeySlot assignment plus checkout/return custody history;
+- controlled Parking Zone/Spot assignment;
+- duplicate-active-Parking-Task prevention;
+- current KeySlot and ParkingSpot occupancy protection;
+- optimistic Task and ValetSession concurrency;
+- append-only Dispatch and Audit/Black Box history;
+- guest privacy from exact KeySlot / Zone / Spot / assignee / GPS detail.
+
+`Task.current_assignee_membership_id` remains canonical Hybrid Dispatch ownership. `ValetSession.current_assignee_membership_id` is not synchronized or treated as Task authority.
 
 ## Database / Migration Baseline
 
@@ -90,16 +113,28 @@ Exactly **20 forward-only migrations** exist:
 20  20260812002000_phase3_task_dispatch_persistence
 ```
 
-Migrations 1–20 and `packages/database/prisma/schema.prisma` are frozen for VAL-005H.
+Migrations 1–20 remain immutable unless a later Accepted decision explicitly authorizes a new forward-only migration.
 
-`Task.current_assignee_membership_id` remains canonical Hybrid Dispatch ownership. `ValetSession.current_assignee_membership_id` is not synchronized or treated as Task authority.
+`packages/database/prisma/schema.prisma` was unchanged by VAL-005H.
 
-## Phase 3 Closure Rule
+## Deferred / Not Claimed by Phase 3 Closure
 
-Phase 3 is complete only after VAL-005H implementation is reviewed, Linux CI is green, its PR is merged, Issue #116 is completed, and this status snapshot is synchronized to mark **VAL-005A through VAL-005H completed** and Phase 3 closed.
+Phase 3 closure does **not** claim completion of:
+
+- Retrieval / `PARKED -> REQUESTED` behavior;
+- GPS/maps/tracking/geofences;
+- parked-notification delivery;
+- payment/validation/refund workflows;
+- secure handoff / key `RELEASED` completion;
+- payroll/timekeeping;
+- Dashboard or Employee UI/PWA implementation;
+- offline replay/idempotency infrastructure;
+- a fresh repository-wide Standard Security Scan.
+
+These remain later-phase or production/pilot-hardening work according to the binding plans/decisions.
 
 ## Exact Next Step
 
-Implement **VAL-005H — Phase 3 API / Integration / Employee Operations Gate** on a focused branch from the current `main`, strictly against DEC-038 and the already accepted DEC-031 through DEC-037 contracts.
+Prepare the focused **Phase 4 — Retrieval, guest progression and secure handoff** execution contract before implementation.
 
-Do not begin Phase 4 behavior inside VAL-005H.
+Do not start Phase 4 implementation from chat assumptions. First review the binding Phase 4 scope, reconcile it against the completed Phase 3 Task/custody/guest foundations, create the focused Issue/decision/sequence, then branch from current `main`.
