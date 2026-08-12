@@ -24,6 +24,9 @@ import {
 } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessModule } from "../src/modules/guest-access/guest-access.module";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { KeyCustodyController } from "../src/modules/keys/key-custody.controller";
+import { KeyCustodyModule } from "../src/modules/keys/key-custody.module";
+import { KeyCustodyService } from "../src/modules/keys/key-custody.service";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
@@ -40,6 +43,16 @@ describe("accepted feature module ownership", () => {
       GuestAccessModule,
       CheckInModule,
       ShiftModule,
+      KeyCustodyModule,
+    ]);
+  });
+
+  it("keeps Key custody ownership focused", () => {
+    expect(metadata(KeyCustodyModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      KeyCustodyController,
+    ]);
+    expect(metadata(KeyCustodyModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      KeyCustodyService,
     ]);
   });
 

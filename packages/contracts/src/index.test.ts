@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   activeShiftQuerySchema,
   activeShiftResponseSchema,
+  assignKeySlotRequestSchema,
+  clearKeySlotRequestSchema,
+  keySlotAssignmentProjectionSchema,
   nonEmptyStringSchema,
   staffAuthAccessResponseSchema,
   staffLoginRequestSchema,
@@ -48,6 +51,53 @@ describe("Shift contracts", () => {
     expect(activeShiftResponseSchema.parse({ shift: null })).toEqual({
       shift: null,
     });
+  });
+});
+
+describe("Key custody contracts", () => {
+  it("trims the exact slot code and rejects authority fields", () => {
+    expect(
+      assignKeySlotRequestSchema.parse({
+        expectedVersion: 3,
+        keySlotCode: "  Board-A-01  ",
+      }),
+    ).toEqual({ expectedVersion: 3, keySlotCode: "Board-A-01" });
+    expect(
+      assignKeySlotRequestSchema.safeParse({
+        expectedVersion: 3,
+        keySlotCode: "Board-A-01",
+        locationId: "00000000-0000-4000-8000-000000000001",
+      }).success,
+    ).toBe(false);
+    expect(
+      clearKeySlotRequestSchema.safeParse({
+        expectedVersion: 3,
+        keySlotId: "00000000-0000-4000-8000-000000000002",
+      }).success,
+    ).toBe(false);
+    expect(
+      assignKeySlotRequestSchema.safeParse({
+        expectedVersion: 1.5,
+        keySlotCode: "Board-A-01",
+      }).success,
+    ).toBe(false);
+    expect(
+      assignKeySlotRequestSchema.safeParse({
+        expectedVersion: 1,
+        keySlotCode: "   ",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("locks the minimal authorized assignment projection", () => {
+    expect(
+      keySlotAssignmentProjectionSchema.parse({
+        keySlotCode: null,
+        sessionId: "00000000-0000-4000-8000-000000000001",
+        state: "AWAITING_PARKING",
+        version: 4,
+      }),
+    ).toBeDefined();
   });
 });
 

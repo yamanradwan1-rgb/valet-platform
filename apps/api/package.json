@@ -11,6 +11,7 @@
     "test": "vitest run test",
     "test:check-in-api": "vitest run test/check-in-api.integration.test.ts",
     "test:shifts": "vitest run test/shift-start.integration.test.ts test/shift-end.integration.test.ts test/shift-eligibility.integration.test.ts test/shift-api.integration.test.ts",
+    "test:keys": "vitest run test/key-assignment.integration.test.ts test/key-correction.integration.test.ts test/key-eligibility-concurrency.integration.test.ts test/key-custody-api.integration.test.ts",
     "staff:provision": "tsx tools/provision-staff.ts"
   },
   "dependencies": {
