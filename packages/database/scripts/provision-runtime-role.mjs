@@ -11,6 +11,8 @@ import {
   verifyMigrationConnectionTls,
 } from "./database-connection-policy.mjs";
 import { provisionAppendOnlyTablePrivileges } from "./provision-append-only-tables.mjs";
+import { provisionRuntimeTablePrivileges } from "./runtime-table-privileges.mjs";
+import { verifyRuntimeTablePrivileges } from "./verify-runtime-table-privileges.mjs";
 
 const { Client } = pg;
 
@@ -153,11 +155,6 @@ async function provisionRuntimeRole() {
       "REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM %I",
       [runtimeRole],
     );
-    await executeFormatted(
-      client,
-      "GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO %I",
-      [runtimeRole],
-    );
     await client.query(
       `REVOKE DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public FROM PUBLIC`,
     );
@@ -185,6 +182,11 @@ async function provisionRuntimeRole() {
     );
 
     await provisionAppendOnlyTablePrivileges(
+      client,
+      executeFormatted,
+      runtimeRole,
+    );
+    await provisionRuntimeTablePrivileges(
       client,
       executeFormatted,
       runtimeRole,
@@ -253,11 +255,6 @@ async function provisionRuntimeRole() {
     );
     await executeFormatted(
       client,
-      "ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT SELECT, INSERT, UPDATE ON TABLES TO %I",
-      [migrationRole, runtimeRole],
-    );
-    await executeFormatted(
-      client,
       "ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE ALL PRIVILEGES ON SEQUENCES FROM %I",
       [migrationRole, runtimeRole],
     );
@@ -271,6 +268,8 @@ async function provisionRuntimeRole() {
       "ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO %I",
       [migrationRole, runtimeRole],
     );
+
+    await verifyRuntimeTablePrivileges(client, runtimeRole);
 
     const roleSecurity = await client.query(
       `SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls

@@ -1,0 +1,96 @@
+const runtimeReadOnlyTables = [
+  "organizations",
+  "locations",
+  "users",
+  "organization_memberships",
+  "membership_location_access",
+  "parking_zones",
+  "parking_spots",
+  "key_slots",
+];
+
+const runtimeInsertOnlyTables = ["customers"];
+
+const runtimeOperationalTables = [
+  "vehicles",
+  "valet_sessions",
+  "shifts",
+  "tasks",
+];
+
+const runtimeLockColumns = [
+  ["users", "last_login_at"],
+  ["users", "updated_at"],
+  ["organizations", "updated_at"],
+  ["locations", "updated_at"],
+  ["organization_memberships", "updated_at"],
+  ["membership_location_access", "created_at"],
+  ["key_slots", "updated_at"],
+  ["parking_spots", "updated_at"],
+  ["parking_zones", "updated_at"],
+];
+
+const authorityColumnRevokes = [
+  `REVOKE INSERT (id, email, phone, password_hash, status, created_at,
+                  updated_at, last_login_at),
+          UPDATE (id, email, phone, password_hash, status, created_at,
+                  updated_at, last_login_at)
+   ON TABLE users FROM %I`,
+  `REVOKE INSERT (id, organization_id, user_id, role, status, created_at,
+                  updated_at),
+          UPDATE (id, organization_id, user_id, role, status, created_at,
+                  updated_at)
+   ON TABLE organization_memberships FROM %I`,
+  `REVOKE INSERT (organization_id, membership_id, location_id, created_at),
+          UPDATE (organization_id, membership_id, location_id, created_at)
+   ON TABLE membership_location_access FROM %I`,
+];
+
+export async function provisionRuntimeTablePrivileges(
+  client,
+  executeFormatted,
+  runtimeRole,
+) {
+  await client.query(
+    `REVOKE INSERT, UPDATE, DELETE, TRUNCATE
+     ON TABLE users, organization_memberships, membership_location_access
+     FROM PUBLIC`,
+  );
+  for (const statement of authorityColumnRevokes) {
+    await client.query(statement.replace("%I", "PUBLIC"));
+  }
+  await executeFormatted(
+    client,
+    "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE users, organization_memberships, membership_location_access FROM %I",
+    [runtimeRole],
+  );
+  for (const statement of authorityColumnRevokes) {
+    await executeFormatted(client, statement, [runtimeRole]);
+  }
+  for (const table of runtimeReadOnlyTables) {
+    await executeFormatted(client, "GRANT SELECT ON TABLE %I TO %I", [
+      table,
+      runtimeRole,
+    ]);
+  }
+  for (const table of runtimeInsertOnlyTables) {
+    await executeFormatted(client, "GRANT SELECT, INSERT ON TABLE %I TO %I", [
+      table,
+      runtimeRole,
+    ]);
+  }
+  for (const table of runtimeOperationalTables) {
+    await executeFormatted(
+      client,
+      "GRANT SELECT, INSERT, UPDATE ON TABLE %I TO %I",
+      [table, runtimeRole],
+    );
+  }
+  for (const [table, column] of runtimeLockColumns) {
+    await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE %I TO %I", [
+      column,
+      table,
+      runtimeRole,
+    ]);
+  }
+}
