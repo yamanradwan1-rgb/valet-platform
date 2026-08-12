@@ -722,7 +722,7 @@ Phase 2 now exposes two production-sensitive public boundaries that need shared 
 - staff password login at `POST /v1/staff/auth/login`;
 - guest bearer resolution at `GET /v1/guest/session`.
 
-DEC-023 already requires no more than five failed staff credential attempts per normalized identifier in a rolling 15-minute window and no more than 30 staff login attempts per trusted client address in a rolling 15-minute window. Guest access separately requires externally usable rate limiting without persisting or logging raw bearer tokens.
+DEC-023 already requires no more than five failed staff credential attempts per normalized identifier in a rolling 15-minute window and no more than 30 staff login attempts from one trusted client address in a rolling 15-minute window. Guest access separately requires externally usable rate limiting without persisting or logging raw bearer tokens.
 
 Process-local counters are rejected because they reset on restart and diverge across API replicas. PostgreSQL is already mandatory shared infrastructure for the pilot and both protected request paths already depend on it.
 
@@ -2143,3 +2143,125 @@ Consequences:
 - Existing Spot configuration remains Zone-null unless explicitly configured.
 - Current resource occupancy cannot be inferred from completed history rows.
 - Hybrid Dispatch remains a separate later persistence and command slice.
+
+---
+
+## DEC-032 — Shift Operational Eligibility
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+VAL-005B makes Shift the reusable, transaction-aware operational-eligibility boundary for field work. One active Shift is allowed per OrganizationMembership. Only persisted `VALET_EMPLOYEE` and `VALET_SUPERVISOR` memberships with current tenant/Location access and an active Shift are eligible for protected field operations; `ORG_ADMIN` and `LOCATION_MANAGER` do not inherit valet field authority.
+
+The slice owns staff self-start/self-end and own-active-Shift lookup only. Task assignment, Retrieval, GPS, payroll and supervisor force-end behavior remain outside DEC-032.
+
+Full binding contract:
+`docs/decisions/DEC-032_SHIFT_OPERATIONAL_ELIGIBILITY.md`
+
+---
+
+## DEC-033 — Key Assignment & Custody Commands
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+`ValetSession.key_slot_id` is the current mutable KeySlot assignment while `KeyCustodyEvent` is append-only custody history. VAL-005C implements initial assignment, reassignment and clear during `AWAITING_PARKING`, using DEC-032 operational eligibility, optimistic session versioning, tenant/Location-safe KeySlot-code resolution, and atomic Audit/KeyCustody history.
+
+KeySlot codes are operational resource identifiers only and never authenticate or authorize an actor. The accepted staff routes are the session-scoped key-slot assign and clear commands; later parking/retrieval commands reuse the custody primitives for `CHECKED_OUT` / `RETURNED_TO_SLOT` rather than inventing mutable custody status.
+
+Full binding contract:
+`docs/decisions/DEC-033_KEY_ASSIGNMENT_CUSTODY_COMMANDS.md`
+
+---
+
+## DEC-034 — Task / Dispatch Persistence Foundation
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+VAL-005D adds exactly migration 20 and establishes the authoritative `Task` current projection plus append-only `DispatchEvent` history. Task lifecycle remains separate from ValetSession physical state. Task types are exactly `PARKING` and `RETRIEVAL`; statuses are exactly `QUEUED`, `ASSIGNED`, `ACCEPTED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`.
+
+The database enforces the accepted tenant/Location/session/membership relationships, optimistic `Task.version`, and one active intended Task per `(valet_session_id, task_type)`. `RETRIEVAL` persistence is compatibility for Phase 4; DEC-034 itself exposes no dispatch command/API.
+
+Full binding contract:
+`docs/decisions/DEC-034_TASK_DISPATCH_PERSISTENCE_FOUNDATION.md`
+
+---
+
+## DEC-035 — Hybrid Dispatch Assignment / Acceptance / Reassignment
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+VAL-005E implements the Phase-3 `PARKING` Task queue/read surface, safe creation/queueing, deterministic basic assignment/suggestion, self-accept, self-decline and supervisor reassignment, with `Task.version`, append-only Dispatch history and required Audit history. `Task.current_assignee_membership_id` is the only canonical current Dispatch owner; ValetSession assignee data is not assignment authority.
+
+Assignment uses current persisted Location scope, DEC-032 operational eligibility, open Task load and deterministic tie-breaking. GPS/proximity, AI signals and Phase-4 Retrieval workflow are not introduced. Normal Shift end is blocked while the membership still owns accepted nonterminal work as defined by the full contract.
+
+Full binding contract:
+`docs/decisions/DEC-035_HYBRID_DISPATCH_ASSIGNMENT_ACCEPTANCE_REASSIGNMENT.md`
+
+---
+
+## DEC-036 — Start Parking
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+VAL-005F makes Start Parking one protected atomic operation: the accepted `PARKING` Task moves `ACCEPTED -> IN_PROGRESS`, the ValetSession moves `AWAITING_PARKING -> PARKING`, `parking_started_at` is server/database-authored, both optimistic versions advance exactly once, the assigned key is checked out through one append-only `KeyCustodyEvent(CHECKED_OUT)`, and matching Dispatch/Audit history is appended.
+
+The canonical route is `POST /v1/staff/valet-sessions/:sessionId/start-parking`. The active Parking Task is derived from persisted session/task state; no standalone key-checkout route or migration 21 is introduced.
+
+Full binding contract:
+`docs/decisions/DEC-036_START_PARKING.md`
+
+---
+
+## DEC-037 — Confirm Parked
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+VAL-005G makes Confirm Parked one protected atomic operation: exact ParkingSpot resolution by operator-visible code and derived Zone validation, occupancy protection, Parking Task `IN_PROGRESS -> COMPLETED`, ValetSession `PARKING -> PARKED`, current Zone/Spot assignment, server-authored `parked_at`, exactly one version increment per current projection, one `KeyCustodyEvent(RETURNED_TO_SLOT)`, one `DispatchEvent(COMPLETED)` and required Audit history.
+
+The canonical route is `POST /v1/staff/valet-sessions/:sessionId/confirm-parked`. Retrieval, maps, notification delivery, handoff, payment and UI remain outside this decision, and the database remains at 20 migrations.
+
+Full binding contract:
+`docs/decisions/DEC-037_CONFIRM_PARKED.md`
+
+---
+
+## DEC-038 — Phase 3 API / Integration / Employee Operations Gate
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+VAL-005H is the Phase-3 integration gate rather than a new product workflow. It proves the production employee API composition from `AWAITING_PARKING` through key assignment, Parking Task queue/assignment/acceptance, Start Parking and Confirm Parked to `PARKED` with the Parking Task `COMPLETED`.
+
+The gate preserves the existing public route surface while proving version propagation, tenant/Location/Shift isolation, canonical Task ownership, KeySlot/ParkingSpot occupancy, append-only KeyCustody/Dispatch/Audit chronology, decline/reassignment/open-work behavior, guest privacy and full architecture/schema/CI regression. Prisma and migrations 1–20 remain unchanged.
+
+Full binding contract:
+`docs/decisions/DEC-038_PHASE3_API_INTEGRATION_EMPLOYEE_OPERATIONS_GATE.md`
+
+---
+
+## DEC-039 — Phase 4 Retrieval & Handoff Persistence Hardening
+
+Status: Accepted  
+Date: 2026-08-12
+
+Decision:
+VAL-006A hardens and reuses the existing Phase-4 persistence rather than rebuilding it. The database remains at exactly 20 migrations: no migration 21, Prisma shape change, direct RetrievalRequest-to-Task foreign key or speculative active HandoffVerification index is authorized.
+
+RetrievalRequest stays `OPEN` through Retrieval Task queue/assignment/acceptance and becomes `ACCEPTED` only when physical Retrieval starts. The existing one-active-request boundary remains `status IN (OPEN, ACCEPTED)`, and the active Request/Task composition remains through ValetSession plus `Task.type = RETRIEVAL`.
+
+`HandoffVerification` is retained stateful security persistence: `verified_at` means proof accepted, while `consumed_at` means terminalized/non-reusable; successful verification alone does not release the vehicle. The ordinary runtime role must receive only `SELECT`, `INSERT` and `UPDATE` on existing `retrieval_requests` and `handoff_verifications`, with `DELETE`, `TRUNCATE`, DDL and ownership still denied. VAL-006A exposes no Retrieval/handoff feature API.
+
+Full binding contract:
+`docs/decisions/DEC-039_PHASE4_RETRIEVAL_HANDOFF_PERSISTENCE_HARDENING.md`
