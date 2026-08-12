@@ -78,7 +78,7 @@ Alternative task outcomes/events may later include:
 
 Never add ASSIGNED/REASSIGNED task states to ValetSession.
 
-`ValetSession.current_assignee_membership_id` is not the canonical Hybrid Dispatch model. A focused Task/Dispatch decision must define the source of truth and any safe denormalized read fields.
+`ValetSession.current_assignee_membership_id` is not the canonical Hybrid Dispatch model. DEC-034 now locks `Task.current_assignee_membership_id` as the authoritative current Task assignment projection and `DispatchEvent` as append-only assignment/lifecycle history. VAL-005D must not synchronize the legacy ValetSession assignee field as Task authority.
 
 ### 2. Employee UX is task-first and fast
 
@@ -177,7 +177,7 @@ The Blueprint's MVP assignment inputs are:
 
 Phase 3 implements Parking usage of the Task model.
 
-The shared Task model may support the Blueprint's Parking/Retrieval task types when the focused persistence decision proves that doing so avoids later schema churn, but Phase 3 must not implement Retrieval behavior early.
+DEC-034 locks one shared Task persistence model with exact `PARKING` and `RETRIEVAL` types. `RETRIEVAL` is persistence compatibility only in VAL-005D; Phase 3 must not create Retrieval tasks or implement Retrieval behavior early.
 
 GPS proximity is optional input, not a Phase 3 blocker. Maps/tracking are Phase 5.
 
@@ -195,6 +195,8 @@ If reassignment occurs after acceptance, preserve:
 
 Do not rewrite task history to hide the previous assignment.
 
+DEC-034 supplies append-only `DispatchEvent` fields for actor, previous assignee, new assignee and reason. VAL-005E owns the exact authorization, reason requirement and transition semantics.
+
 Timeout/requeue policy is configurable in the Blueprint, but exact timeout semantics must not be invented inside an unrelated task.
 
 ### 10. No duplicate active work
@@ -202,6 +204,8 @@ Timeout/requeue policy is configurable in the Blueprint, but exact timeout seman
 The system must prevent duplicate active work for the same intended operation.
 
 A parking operation for one ValetSession must not produce competing active Parking tasks or two simultaneous accepted/in-progress owners.
+
+DEC-034 locks the persistence boundary: a PostgreSQL partial unique index permits at most one active Task for one `(valet_session_id, task_type)` across `QUEUED`, `ASSIGNED`, `ACCEPTED`, and `IN_PROGRESS`. `COMPLETED` and `CANCELLED` are terminal for this uniqueness boundary.
 
 Concurrency protection must exist at the authoritative persistence/transaction boundary, not only in UI code.
 
@@ -329,18 +333,21 @@ No Parking state transition was introduced. VAL-005C changed neither Prisma sche
 
 ### VAL-005D - Task / Dispatch Persistence Foundation
 
-Status: NEXT — focused Issue/Accepted persistence decision required before implementation where semantics are not already locked.
+Status: ACTIVE / CURRENT — READY FOR IMPLEMENTATION
+
+Accepted contract: DEC-034 (`docs/decisions/DEC-034_TASK_DISPATCH_PERSISTENCE_FOUNDATION.md`). Issue #97 is open. DEC-034 authorizes exactly migration 20, `20260812002000_phase3_task_dispatch_persistence`; migrations 1–19 remain immutable.
 
 Purpose:
 
-- Task entity;
-- Task lifecycle/status persistence;
-- task type boundary compatible with Parking/Retrieval MVP;
-- Dispatch/assignment history entity or equivalent append-only event model;
-- one active intended operation protection;
-- tenant/location/session integrity.
+- authoritative Task current projection separate from ValetSession physical state;
+- exact Task types/statuses and Task optimistic `version`;
+- append-only DispatchEvent assignment/lifecycle history;
+- one active intended operation per ValetSession + Task type at the database boundary;
+- exact Organization/Location/ValetSession/membership integrity;
+- runtime-role append-only DispatchEvent enforcement and non-deleting Task lifecycle persistence;
+- Retrieval-compatible Task type persistence without implementing Retrieval behavior.
 
-No assignment algorithm yet. Do not pull VAL-005E behavior into this persistence slice.
+No assignment algorithm, accept/decline/reassign command, Task API, ValetSession transition, GPS/maps, Retrieval behavior, payment/handoff/payroll or UI behavior. Do not pull VAL-005E behavior into this persistence slice.
 
 ### VAL-005E - Hybrid Dispatch Assignment / Acceptance / Reassignment
 
