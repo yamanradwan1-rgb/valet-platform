@@ -429,11 +429,34 @@ Tests must prove:
 
 DEC-030 / `docs/17_AGENT_CODE_STRUCTURE_RULES.md` remain binding.
 
-The existing `guest-access.controller.ts` and `guest-access-command.ts` are legacy large files. VAL-006B must not append meaningful Retrieval behavior to an oversized file merely for convenience.
+The repository already contains `apps/api/src/modules/retrieval/` as the feature boundary reserved for Retrieval behavior. VAL-006B must implement the new business command inside that Retrieval boundary rather than turning Guest Access into a mixed authentication + Retrieval business module.
 
-Prefer a focused guest-retrieval command/service/controller responsibility split that keeps new authored code under 300 physical lines and preserves accepted dependency direction.
+The ownership split is binding:
 
-A narrow safe change to an existing small helper is allowed when it is genuinely shared behavior, but unrelated refactoring remains out of scope.
+- `guest-access` continues to own Guest Access credential issuance, revocation, resolution and the reusable guest authentication boundary;
+- `anti-abuse` continues to own the existing trusted-client-address and guest address/token quota machinery;
+- `retrieval` owns the `request-retrieval` transport/service/command behavior and the `PARKED -> REQUESTED` Retrieval business transaction;
+- `dispatch` continues to own reusable Task/Dispatch persistence and later Hybrid Dispatch assignment semantics;
+- `parking` / the PARKING-specific queue command do not become dependencies of guest Retrieval.
+
+The Retrieval feature may depend one-way on a narrow exported Guest Access resolution/authentication surface. Guest Access must not import Retrieval to make this route work. A circular feature dependency or feature ownership inversion is forbidden.
+
+The existing `queue-parking-task-command.ts` is not a generic queue command: it is coupled to staff identity, active Shift eligibility and `AWAITING_PARKING`. VAL-006B must not call it, wrap it, spoof a staff actor, or weaken its guards for Retrieval.
+
+To create the required `Task(type = RETRIEVAL, status = QUEUED)` and `DispatchEvent(QUEUED)`, implementation must either:
+
+1. reuse/extract a genuinely generic narrow Dispatch persistence primitive that accepts the already-authorized transaction/scope and preserves the current Task/Dispatch invariants; or
+2. add a focused Retrieval queue persistence unit that writes the existing shared Task/Dispatch schema without creating a second assignment system.
+
+If a generic Dispatch primitive is extracted, PARKING behavior, authorization, Shift guards, public routes, errors and transaction semantics must remain unchanged. The extraction is internal reuse only, not a redesign of Phase 3.
+
+The HTTP route may remain under the public `/v1/guest/session/...` namespace while its controller/provider ownership lives in the Retrieval module. URL namespace does not transfer business ownership to `guest-access`.
+
+The existing `guest-access.controller.ts` and `guest-access-command.ts` are legacy large files. VAL-006B must not append meaningful Retrieval behavior to an oversized file merely for convenience. A minimal export/wiring change is allowed only when needed to expose an already-existing guest resolution/authentication capability without moving Retrieval mutations into Guest Access.
+
+Prefer a focused Retrieval controller/service/command/persistence split. Every new authored code file must remain under 300 physical lines, existing <=300-line files must remain <=300, and legacy >300-line files must not grow. No line-count gaming or unrelated refactor is authorized.
+
+Before implementation commits, the agent must document its concrete file/module split and verify that dependency direction remains acyclic.
 
 ### 21. Explicitly out of scope
 
@@ -463,14 +486,17 @@ Positive:
 - repeated/stale presses are safe and guest-friendly;
 - existing anti-abuse quotas cannot be bypassed by switching between GET and POST;
 - guest privacy remains aligned with the current safe session contract;
-- Hybrid Dispatch remains one shared system rather than a guest-specific assignment path.
+- Retrieval business ownership now lands in the repository's existing `retrieval` feature boundary;
+- Hybrid Dispatch remains one shared system rather than a guest-specific assignment path;
+- Phase 3 PARKING-specific command semantics remain untouched.
 
 Trade-offs:
 
 - migration 21 intentionally relaxes one historical CUSTOMER-attribution CHECK while preserving every FK and STAFF requester guard;
 - `CUSTOMER` becomes an origin classification rather than proof that a Customer entity exists;
 - semantic retry logic must validate persistence coherence instead of simply returning success whenever state is not PARKED;
-- business execution must be composed carefully with the existing anti-abuse transaction/finalization semantics.
+- business execution must be composed carefully with the existing anti-abuse transaction/finalization semantics;
+- a small one-way module export or generic Dispatch persistence extraction may be required to compose existing capabilities without duplicating them.
 
 ## Implementation boundary
 
