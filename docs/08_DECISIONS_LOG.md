@@ -2265,3 +2265,22 @@ RetrievalRequest stays `OPEN` through Retrieval Task queue/assignment/acceptance
 
 Full binding contract:
 `docs/decisions/DEC-039_PHASE4_RETRIEVAL_HANDOFF_PERSISTENCE_HARDENING.md`
+
+---
+
+## DEC-040 — Guest Retrieval Request + Duplicate Protection
+
+Status: Accepted
+Date: 2026-08-13
+
+Decision:
+VAL-006B implements exactly one guest-originated `request-retrieval` command. A winning first request atomically moves the authoritative ValetSession `PARKED -> REQUESTED`, sets server-authored `retrieval_requested_at`, creates one `RetrievalRequest(status = OPEN)`, one unassigned `Task(task_type = RETRIEVAL, status = QUEUED)`, one `DispatchEvent(QUEUED)` and one `AuditEvent(RETRIEVAL_REQUESTED)`. Coherent repeated/stale guest presses are non-mutating HTTP 200 current-progression reads; inconsistent partial lifecycle fails closed.
+
+The canonical route is `POST /v1/guest/session/request-retrieval` with a strict empty JSON body. Session/tenant/location/customer/task/version authority is never accepted from guest input. The route reuses the existing Guest Access bearer and the shared DEC-024 guest address/token anti-abuse scopes and quotas. Customer persistence remains optional: migration 21 changes only `retrieval_requests_requester_consistency_check` so a `CUSTOMER`-originated request may have nullable `requested_by_customer_id` while STAFF requester semantics and existing tenant-safe foreign keys remain unchanged. No synthetic Customer is created.
+
+Retrieval business ownership lives in `apps/api/src/modules/retrieval/`. Guest Access retains credential/authentication ownership; Retrieval may depend one-way on a narrow Guest Access resolution boundary. The Phase-3 PARKING-specific queue command must not be reused, wrapped, spoofed or weakened for Retrieval. Shared Task/Dispatch schema and invariants remain authoritative; implementation may reuse a genuinely generic narrow Dispatch persistence primitive or add focused Retrieval queue persistence without creating a second dispatch system.
+
+VAL-006B does not implement Retrieval assignment/acceptance/reassignment, key checkout, `REQUESTED -> RETRIEVING`, READY progression, notifications delivery, secure handoff, release/completion, Maps/GPS, payments, UI or offline replay. DEC-030 code-structure limits remain binding.
+
+Full binding contract:
+`docs/decisions/DEC-040_GUEST_RETRIEVAL_REQUEST.md`
