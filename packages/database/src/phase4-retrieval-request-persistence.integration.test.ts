@@ -56,7 +56,7 @@ async function addCustomer(scope: TaskDispatchScope): Promise<string> {
     `INSERT INTO customers
        (id, organization_id, phone_normalized, updated_at)
      VALUES ($1, $2, $3, transaction_timestamp())`,
-    [customerId, scope.organizationId, `+96279${randomUUID().slice(0, 7)}`],
+    [customerId, scope.organizationId, "+962790000000"],
   );
   return customerId;
 }
@@ -89,9 +89,9 @@ afterAll(async () => {
 describe("VAL-006B retrieval requester persistence", () => {
   it("accepts CUSTOMER origin without a persisted Customer row", async () => {
     const scope = await createTaskDispatchScope(client);
-    await expect(insertRequest(scope, { type: "CUSTOMER" })).resolves.toMatchObject({
-      rowCount: 1,
-    });
+    await expect(
+      insertRequest(scope, { type: "CUSTOMER" }),
+    ).resolves.toMatchObject({ rowCount: 1 });
   });
 
   it("keeps optional same-Organization Customer attribution valid", async () => {
