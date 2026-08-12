@@ -19,4 +19,5 @@ export const expectedMigrationDirectories = [
   "20260810001800_shared_durable_anti_abuse",
   "20260811001900_phase3_key_parking_persistence",
   "20260812002000_phase3_task_dispatch_persistence",
+  "20260813002100_phase4_guest_retrieval_request",
 ] as const;
