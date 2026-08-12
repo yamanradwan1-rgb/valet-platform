@@ -1,3 +1,9 @@
+import { randomUUID } from "node:crypto";
+
+interface QueryClient {
+  query(query: string, parameters?: unknown[]): Promise<unknown>;
+}
+
 export const authorityColumnPrivileges = [
   ["users", "last_login_at", true],
   ["users", "updated_at", true],
@@ -22,6 +28,89 @@ interface LockIds {
   parkingSpotId: string;
   parkingZoneId: string;
   userId: string;
+}
+
+interface AuthorityIds {
+  locationId: string;
+  membershipId: string;
+  organizationId: string;
+  userId: string;
+}
+
+export function authorityMutationAttempts(
+  client: QueryClient,
+  ids: AuthorityIds,
+): Array<() => Promise<unknown>> {
+  return [
+    () =>
+      client.query(
+        `INSERT INTO users (id, email, password_hash, updated_at) VALUES ($1, $2, 'x', transaction_timestamp())`,
+        [randomUUID(), `${randomUUID()}@forbidden.test`],
+      ),
+    () =>
+      client.query(
+        `UPDATE users SET password_hash = 'forbidden' WHERE id = $1`,
+        [ids.userId],
+      ),
+    () =>
+      client.query(`UPDATE users SET status = 'DISABLED' WHERE id = $1`, [
+        ids.userId,
+      ]),
+    () =>
+      client.query(
+        `INSERT INTO organization_memberships (id, organization_id, user_id, role, updated_at) VALUES ($1, $2, $3, 'ORG_ADMIN', transaction_timestamp())`,
+        [randomUUID(), ids.organizationId, ids.userId],
+      ),
+    () =>
+      client.query(
+        `UPDATE organization_memberships SET role = 'ORG_ADMIN' WHERE id = $1`,
+        [ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `UPDATE organization_memberships SET status = 'INACTIVE' WHERE id = $1`,
+        [ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `INSERT INTO membership_location_access (organization_id, membership_id, location_id) VALUES ($1, $2, $3)`,
+        [ids.organizationId, ids.membershipId, ids.locationId],
+      ),
+    () =>
+      client.query(
+        `UPDATE organization_memberships SET organization_id = $1 WHERE id = $2`,
+        [randomUUID(), ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `UPDATE organization_memberships SET user_id = $1 WHERE id = $2`,
+        [randomUUID(), ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `UPDATE membership_location_access SET organization_id = $1 WHERE membership_id = $2`,
+        [randomUUID(), ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `UPDATE membership_location_access SET membership_id = $1 WHERE membership_id = $2`,
+        [randomUUID(), ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `UPDATE membership_location_access SET location_id = $1 WHERE membership_id = $2`,
+        [randomUUID(), ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `DELETE FROM membership_location_access WHERE membership_id = $1`,
+        [ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `TRUNCATE users, organization_memberships, membership_location_access`,
+      ),
+  ];
 }
 
 export function runtimeLockQueries(ids: LockIds): Array<[string, string[]]> {

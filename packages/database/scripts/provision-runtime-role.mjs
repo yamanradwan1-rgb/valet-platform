@@ -12,6 +12,7 @@ import {
 } from "./database-connection-policy.mjs";
 import { provisionAppendOnlyTablePrivileges } from "./provision-append-only-tables.mjs";
 import { provisionRuntimeTablePrivileges } from "./runtime-table-privileges.mjs";
+import { verifyRuntimeTablePrivileges } from "./verify-runtime-table-privileges.mjs";
 
 const { Client } = pg;
 
@@ -267,6 +268,8 @@ async function provisionRuntimeRole() {
       "ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO %I",
       [migrationRole, runtimeRole],
     );
+
+    await verifyRuntimeTablePrivileges(client, runtimeRole);
 
     const roleSecurity = await client.query(
       `SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls

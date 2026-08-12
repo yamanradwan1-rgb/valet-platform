@@ -6,9 +6,11 @@ import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  authorityMutationAttempts,
   authorityColumnPrivileges,
   runtimeLockQueries,
 } from "./runtime-authority-privilege-cases";
+import { verifyRuntimeTablePrivileges } from "../scripts/verify-runtime-table-privileges.mjs";
 
 interface PgError extends Error {
   code?: string;
@@ -189,82 +191,40 @@ describe("SEC-002 runtime authority privileges", () => {
   });
 
   it("denies all direct staff identity and authority writes", async () => {
-    const attempts = [
-      () =>
-        runtimePool.query(
-          `INSERT INTO users (id, email, password_hash, updated_at) VALUES ($1, $2, 'x', transaction_timestamp())`,
-          [randomUUID(), `${randomUUID()}@forbidden.test`],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE users SET password_hash = 'forbidden' WHERE id = $1`,
-          [userId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE users SET status = 'DISABLED' WHERE id = $1`,
-          [userId],
-        ),
-      () =>
-        runtimePool.query(
-          `INSERT INTO organization_memberships (id, organization_id, user_id, role, updated_at) VALUES ($1, $2, $3, 'ORG_ADMIN', transaction_timestamp())`,
-          [randomUUID(), organizationId, userId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE organization_memberships SET role = 'ORG_ADMIN' WHERE id = $1`,
-          [membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE organization_memberships SET status = 'INACTIVE' WHERE id = $1`,
-          [membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `INSERT INTO membership_location_access (organization_id, membership_id, location_id) VALUES ($1, $2, $3)`,
-          [organizationId, membershipId, locationId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE organization_memberships SET organization_id = $1 WHERE id = $2`,
-          [randomUUID(), membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE organization_memberships SET user_id = $1 WHERE id = $2`,
-          [randomUUID(), membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE membership_location_access SET organization_id = $1 WHERE membership_id = $2`,
-          [randomUUID(), membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE membership_location_access SET membership_id = $1 WHERE membership_id = $2`,
-          [randomUUID(), membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `UPDATE membership_location_access SET location_id = $1 WHERE membership_id = $2`,
-          [randomUUID(), membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `DELETE FROM membership_location_access WHERE membership_id = $1`,
-          [membershipId],
-        ),
-      () =>
-        runtimePool.query(
-          `TRUNCATE users, organization_memberships, membership_location_access`,
-        ),
-    ];
+    const attempts = authorityMutationAttempts(runtimePool, {
+      locationId,
+      membershipId,
+      organizationId,
+      userId,
+    });
     for (const attempt of attempts) await expectDenied(attempt());
+  });
+
+  it("fails closed on an unsafe effective privilege and rolls back", async () => {
+    const client = await adminPool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`GRANT INSERT ON users TO "${runtimeRole}"`);
+      await expect(
+        verifyRuntimeTablePrivileges(client, runtimeRole),
+      ).rejects.toThrow(
+        "Runtime database role effective privileges are unsafe.",
+      );
+      await client.query("ROLLBACK");
+    } finally {
+      client.release();
+    }
+    const result = await adminPool.query<{ allowed: boolean }>(
+      `SELECT has_table_privilege($1, 'users', 'INSERT') AS allowed`,
+      [runtimeRole],
+    );
+    expect(result.rows[0]?.allowed).toBe(false);
   });
 
   it("reconciles stale grants and keeps future migration-owned tables default-deny", async () => {
     await adminPool.query(`GRANT UPDATE ON users TO "${runtimeRole}"`);
+    await adminPool.query(`GRANT UPDATE (status) ON users TO PUBLIC`);
+    await adminPool.query(`GRANT INSERT ON organization_memberships TO PUBLIC`);
     await runScript(
       ["scripts/provision-runtime-role.mjs"],
       scopedUrl(runtimeRole, runtimePassword),
@@ -274,6 +234,18 @@ describe("SEC-002 runtime authority privileges", () => {
         userId,
       ]),
     );
+    const publicPrivileges = await adminPool.query<{
+      can_insert: boolean;
+      can_update_status: boolean;
+    }>(
+      `SELECT has_table_privilege($1, 'organization_memberships', 'INSERT') AS can_insert,
+              has_column_privilege($1, 'users', 'status', 'UPDATE') AS can_update_status`,
+      [runtimeRole],
+    );
+    expect(publicPrivileges.rows[0]).toEqual({
+      can_insert: false,
+      can_update_status: false,
+    });
     await adminPool.query(
       `CREATE TABLE sec002_future_table (id UUID PRIMARY KEY)`,
     );
