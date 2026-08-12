@@ -7,11 +7,9 @@
 
 - Date/time: `2026-08-12`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Verified main baseline before this status sync: `51b9ca53526deba2126c98e4b068f8f73d39dc9d`
+- Verified implementation merge baseline: `e03f4a75e2dcd59e0779e39a22a79a5276bb9979`
 - Current milestone: Phase 3 — Operations: keys, parking and Hybrid Dispatch
-- Active task: VAL-005G — Confirm Parked
-- Tracking issue: #111
-- Accepted decision: DEC-037 (`docs/decisions/DEC-037_CONFIRM_PARKED.md`)
+- Next focused task: VAL-005H — Phase 3 API / Integration / Employee Operations Gate
 - Database baseline: exactly **20 forward-only migrations**
 - No fresh post-fix Standard Security Scan is claimed.
 
@@ -24,75 +22,52 @@ VAL-005C  Key Assignment & Custody Commands                        MERGED / COMP
 VAL-005D  Task / Dispatch Persistence Foundation                   MERGED / COMPLETED
 VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment   MERGED / COMPLETED
 VAL-005F  Start Parking                                            MERGED / COMPLETED
-VAL-005G  Confirm Parked                                           CURRENT / READY FOR IMPLEMENTATION
+VAL-005G  Confirm Parked                                           MERGED / COMPLETED
 VAL-005H  Phase 3 API / Integration / Employee Operations Gate     NEXT
 ```
 
-## Recently Completed — VAL-005F
+## Recently Completed — VAL-005G
 
-- Issue: #106 — completed
-- Accepted decision: DEC-036 (`docs/decisions/DEC-036_START_PARKING.md`)
-- Implementation commit: `bc06db4696e0053d1b9aff7e7dddc2c97c3751fa`
-- Implementation PR: #109
-- Merge commit: `05e860423b2eb65cfd9e764f0ebda519d9a73d52`
-- GitHub CI: run #137 — **SUCCESS**
-- Completion/status sync PR: #110
-- Result: atomic Start Parking moves the accepted Parking Task to IN_PROGRESS and ValetSession to PARKING, records `parking_started_at`, `CHECKED_OUT`, `IN_PROGRESS` Dispatch history and required Audit history while preserving current KeySlot assignment.
+- Issue: #111 — completed
+- Accepted decision: DEC-037 (`docs/decisions/DEC-037_CONFIRM_PARKED.md`)
+- Implementation commit: `2935123f9272717bfa7e6df2b078ce655a45cf69`
+- Implementation PR: #114
+- Merge commit: `e03f4a75e2dcd59e0779e39a22a79a5276bb9979`
+- GitHub CI: run #145 — **SUCCESS**
+- Changed files: 23
 - Database: no Prisma schema change and no migration; migrations remain exactly 20.
 
-## Current Task — VAL-005G
+Delivered behavior:
 
-Issue: #111  
-Decision: DEC-037 — Accepted  
-Status: **CURRENT — READY FOR IMPLEMENTATION**
-
-VAL-005G owns exactly one coordinated Confirm Parked operation:
-
-```text
-Task:         IN_PROGRESS -> COMPLETED
-ValetSession: PARKING -> PARKED
-```
-
-The accepted contract requires:
-
-- canonical route `POST /v1/staff/valet-sessions/:sessionId/confirm-parked`;
-- strict request with `expectedSessionVersion`, `expectedTaskVersion`, and exact `parkingSpotCode`;
-- only the current IN_PROGRESS PARKING Task owner may confirm;
-- DEC-032 operational eligibility inside the same protected transaction;
-- exact active ParkingSpot code lookup in the session Organization + Location;
-- ParkingZone derived from the persisted Spot, never trusted from client input;
-- any existing preassigned session Zone must match the selected Spot Zone;
-- current Spot occupancy protected with existing database uniqueness as final authority;
-- session current `parking_zone_id` / `parking_spot_id` assigned consistently;
-- current KeySlot remains assigned and active;
-- exactly one `KeyCustodyEvent(RETURNED_TO_SLOT)` through DEC-033;
-- exactly one `DispatchEvent(COMPLETED)`;
-- exactly one `VALET_SESSION_PARKED` AuditEvent;
-- one PostgreSQL-authoritative operation time shared across `parked_at` and event history;
+- `POST /v1/staff/valet-sessions/:sessionId/confirm-parked`;
+- strict request with `expectedSessionVersion`, `expectedTaskVersion`, and exact trimmed `parkingSpotCode`;
+- self-owned authorization through canonical `Task.current_assignee_membership_id`;
+- DEC-032 operational eligibility inside the protected transaction;
+- exact active ParkingSpot lookup in the persisted Organization + Location;
+- ParkingZone derived from the persisted ParkingSpot rather than trusted from the client;
+- preassigned session Zone preserved only when it matches the selected Spot Zone;
+- existing database uniqueness remains final current ParkingSpot occupancy authority;
+- coordinated `Task: IN_PROGRESS -> COMPLETED` and `ValetSession: PARKING -> PARKED`;
+- `parked_at`, `parking_zone_id`, and `parking_spot_id` set atomically;
 - Task.version and ValetSession.version each increment exactly once;
-- atomic rollback across session/task/parking-resource/custody/dispatch/audit effects;
-- safe same-Spot concurrency and non-disclosing resource errors.
+- current `ValetSession.key_slot_id` remains unchanged;
+- append-only `KeyCustodyEvent(RETURNED_TO_SLOT)`;
+- append-only `DispatchEvent(COMPLETED)`;
+- required `VALET_SESSION_PARKED` AuditEvent;
+- one PostgreSQL-authoritative operation timestamp shared across the protected completion facts;
+- rollback coverage across Task/session/custody/dispatch/audit failures;
+- concurrency coverage for duplicate confirmation, same-Spot contention, Shift end and the existing IN_PROGRESS reassignment boundary;
+- tenant/Location/current-owner/resource concealment and narrow stable conflict mapping.
 
-Parking proof boundary:
+Explicit boundaries preserved:
 
-- `ParkingSpot.code` is the single submitted resource identifier;
-- scanner and permitted manual entry use the same exact code field;
-- no QR bearer secret, client-selected Spot UUID, or client-selected Zone authority;
-- VAL-005G does not invent a typed QR-vs-manual policy or migration.
-
-VAL-005G explicitly does **not** own:
-
-- Prisma schema or migrations;
-- RetrievalRequest / Retrieval Task behavior;
-- `PARKED -> REQUESTED`;
-- GPS/maps/tracking/geofences;
-- guest parked notification delivery;
-- parking management/configuration CRUD;
-- key release/handoff completion;
-- payment/handoff/payroll;
-- dashboard/employee UI;
-- offline replay;
-- IN_PROGRESS reassignment/handoff exception.
+- no `ValetSession.current_assignee_membership_id` synchronization;
+- no KeySlot clearing;
+- no RetrievalRequest or Retrieval Task behavior;
+- no `PARKED -> REQUESTED`;
+- no guest parked-notification delivery;
+- no GPS/maps/tracking/geofences;
+- no payment, handoff, payroll, dashboard, employee UI, or offline behavior.
 
 ## Database / Migration Baseline
 
@@ -103,14 +78,14 @@ Exactly **20 forward-only migrations** exist:
 20  20260812002000_phase3_task_dispatch_persistence
 ```
 
-Migrations 1–20 remain immutable for VAL-005G. DEC-037 requires no Prisma schema change and no migration.
+Migrations 1–20 remain immutable unless a later Accepted decision explicitly authorizes a new forward-only migration.
 
-`Task.current_assignee_membership_id` remains canonical Hybrid Dispatch ownership. `ValetSession.current_assignee_membership_id` is not synchronized or treated as Task authority.
+`Task.current_assignee_membership_id` remains canonical Hybrid Dispatch ownership. `ValetSession.current_assignee_membership_id` is not.
 
 ## Exact Next Step
 
-Implement **VAL-005G — Confirm Parked** on a focused branch from the current `main`, strictly against DEC-037 plus DEC-031/032/033/034/035/036 and the binding ValetSession state machine.
+Prepare and execute **VAL-005H — Phase 3 API / Integration / Employee Operations Gate**.
 
-After implementation is reviewed, Linux CI is green and the PR is merged, proceed to **VAL-005H — Phase 3 API / Integration / Employee Operations Gate**.
+VAL-005H is the final Phase 3 slice. It must verify the Phase 3 staff/employee operations surface end-to-end against the already accepted A–G contracts, close any narrowly proven integration/API gaps without inventing later-phase product behavior, run the required regression/security/architecture gates, and establish whether Phase 3 is ready to close.
 
-Do not pull Retrieval, GPS/maps/tracking, notification delivery, payment, handoff, payroll, UI or later-phase behavior into VAL-005G.
+Do not pull Retrieval, GPS/maps/tracking, notification delivery, payment, handoff, payroll, UI implementation, offline replay or later-phase behavior into VAL-005H unless a binding source explicitly places a specific gate/fix there.
