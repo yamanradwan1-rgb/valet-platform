@@ -111,7 +111,7 @@ export class GuestRetrievalController {
       }
 
       const outcome = await this.antiAbuse.transaction(async (transaction) => {
-        const guest = await this.guestAccess.resolveInTransaction(
+        const guest = await this.guestAccess.resolveForUpdateInTransaction(
           transaction,
           rawToken,
         );
