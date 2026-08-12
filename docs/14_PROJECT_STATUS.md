@@ -7,11 +7,12 @@
 
 - Date/time: `2026-08-12`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Current verified `main`: `b36f2b1ab76fdb539e1127f4fe4bd05d0903b81b`
-- Active task: VAL-005C — Key Assignment & Custody Commands
-- Tracking issue: #92
+- Current verified implementation `main`: `8c24b46dec32625f19de617783ba85cdf4922815`
+- Completed task: VAL-005C — Key Assignment & Custody Commands
+- Completed issue: #92
 - Accepted decision: DEC-033 (`docs/decisions/DEC-033_KEY_ASSIGNMENT_CUSTODY_COMMANDS.md`)
-- Verification basis: merged VAL-005A, merged VAL-005B implementation, merged DEC-033, and current Phase 3 execution plan
+- Next task: VAL-005D — Task / Dispatch Persistence Foundation
+- Verification basis: reviewed VAL-005C implementation, GitHub CI run #115 success, PR #95 merged, Issue #92 completed, and current Phase 3 execution plan
 
 ## Current Milestone
 
@@ -24,9 +25,10 @@ Phase 3 status:
 - VAL-005A — Key & Parking Persistence Foundation: **MERGED / COMPLETED** through PR #86, merge commit `3df5d9755e6c42a568c545fa2436c9a22506b41a`.
 - VAL-005B — Shift Operational Eligibility: **MERGED / COMPLETED** through PR #91, merge commit `928f992bb678c4e1fa268810ed42b279e0130cbd`; Issue #88 completed.
 - DEC-033 — Key Assignment & Custody Commands: **ACCEPTED / MERGED** through PR #93, merge commit `b36f2b1ab76fdb539e1127f4fe4bd05d0903b81b`.
-- VAL-005C — Key Assignment & Custody Commands implementation: **CURRENT / READY FOR IMPLEMENTATION**; Issue #92 is open.
+- VAL-005C — Key Assignment & Custody Commands: **MERGED / COMPLETED** through PR #95, implementation commit `2084ae6d5c9c0aea73d2a821238dcf266b6e5379`, merge commit `8c24b46dec32625f19de617783ba85cdf4922815`; Issue #92 completed.
+- VAL-005D — Task / Dispatch Persistence Foundation: **NEXT — DECISION/ISSUE PREPARATION REQUIRED BEFORE IMPLEMENTATION**.
 
-Exactly **19 forward-only migrations** exist. DEC-033 authorizes **no Prisma schema change and no migration** for VAL-005C; migrations 1–19 must remain unchanged.
+Exactly **19 forward-only migrations** exist. VAL-005C changed neither Prisma schema nor migrations; migrations 1–19 remain the baseline.
 
 ## Recently Completed Phase 3 Gates
 
@@ -47,44 +49,52 @@ Exactly **19 forward-only migrations** exist. DEC-033 authorizes **no Prisma sch
 - Result: staff Shift start/self-end/own-active lookup, dynamic Location-scoped operational eligibility, reusable transaction-aware eligibility locking, concurrency-safe lifecycle behavior, and atomic Shift audit events.
 - Database: no migration; migrations 1–19 unchanged.
 
-### DEC-033 — Key Assignment & Custody Commands
-
-- Issue #92 — open for implementation
-- PR #93 — decision only
-- Merge commit: `b36f2b1ab76fdb539e1127f4fe4bd05d0903b81b`
-- Status: **ACCEPTED / MERGED**
-- Database: no schema migration authorized.
-
-## Current Task
-
 ### VAL-005C — Key Assignment & Custody Commands
 
-- Issue: #92
-- Status: **CURRENT — READY FOR IMPLEMENTATION AGAINST ACCEPTED DEC-033**
-- Accepted decision: DEC-033
-- Database state: **19 forward-only migrations; no new migration authorized**
+- Issue #92 — completed
+- Decision PR #93 — DEC-033 accepted
+- Implementation PR #95
+- Implementation commit: `2084ae6d5c9c0aea73d2a821238dcf266b6e5379`
+- Merge commit: `8c24b46dec32625f19de617783ba85cdf4922815`
+- GitHub CI: run #115 — **SUCCESS**
+- Result:
+  - strict staff KeySlot assign/clear APIs;
+  - exact QR/manual `KeySlot.code` lookup with no bearer-authority semantics;
+  - DEC-032 transaction-aware operational eligibility reused inside the protected write transaction;
+  - exact `AWAITING_PARKING` + ValetSession version guards;
+  - initial assignment, same-slot semantic no-op, ordered A -> B correction/reassignment, and correction clear;
+  - database-backed single current KeySlot occupancy with safe conflict mapping;
+  - append-only custody plus atomic AuditEvent writes using PostgreSQL-authoritative operation time;
+  - internal transaction-aware `CHECKED_OUT` / `RETURNED_TO_SLOT` custody primitives for later VAL-005F/VAL-005G;
+  - no public checkout/return route and no physical ValetSession state transition.
+- Database: no Prisma schema change and no migration; migrations 1–19 unchanged.
+- Boundaries preserved: no Task/Dispatch, GPS/maps, Retrieval, handoff, payment, payroll or UI behavior.
 
-DEC-033 locks:
+## Next Task
 
-- public assign and clear KeySlot command routes under the staff ValetSession route family;
-- `KeySlot.code` as the canonical QR/manual resource identifier, never authentication or authorization;
-- current operational eligibility from DEC-032 inside the same protected transaction;
-- exact `AWAITING_PARKING` state guard and existing ValetSession `version` optimistic concurrency;
-- initial assignment, same-slot semantic no-op, A -> B reassignment, and explicit correction clear semantics;
-- database-enforced single current KeySlot occupancy and stable non-disclosing resource conflict mapping;
-- append-only `SLOT_ASSIGNED` / `SLOT_CLEARED` custody history with required AuditEvent atomicity;
-- reusable transaction-aware custody primitives for later `CHECKED_OUT` and `RETURNED_TO_SLOT` integration in VAL-005F/VAL-005G;
-- no standalone public checkout/return endpoint in VAL-005C;
-- no ValetSession physical state transition in VAL-005C;
-- no Task/Dispatch, GPS/maps, Retrieval, handoff, payment or payroll behavior;
-- no Prisma schema change and no migration.
+### VAL-005D — Task / Dispatch Persistence Foundation
+
+- Status: **NEXT — NOT YET AUTHORIZED FOR IMPLEMENTATION**
+- Required first step: create a focused Issue and Accepted persistence decision before coding where semantics are not already locked.
+- Database baseline entering the slice: **19 forward-only migrations**.
+
+VAL-005D purpose remains:
+
+- Task entity persistence;
+- Task lifecycle/status persistence compatible with the canonical task path;
+- task type boundary compatible with Parking/Retrieval MVP without implementing Retrieval behavior early;
+- append-only Dispatch/assignment history or equivalent accepted event model;
+- one-active-intended-operation protection;
+- exact tenant/Location/ValetSession integrity.
+
+VAL-005D must not implement the Hybrid Dispatch assignment algorithm, acceptance/reassignment commands, GPS proximity, parking physical-state transitions, Retrieval behavior, payment, handoff or UI early. Those remain later focused slices.
 
 ## Phase 3 Focused Task Sequence
 
 ```text
 VAL-005A  Key & Parking Persistence Foundation                     MERGED
 VAL-005B  Shift Operational Eligibility                            MERGED
-VAL-005C  Key Assignment & Custody Commands                        CURRENT
+VAL-005C  Key Assignment & Custody Commands                        MERGED
 VAL-005D  Task / Dispatch Persistence Foundation                   NEXT
 VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment
 VAL-005F  Start Parking
@@ -92,7 +102,7 @@ VAL-005G  Confirm Parked
 VAL-005H  Phase 3 API / Integration / Employee Operations Gate
 ```
 
-This sequence is dependency-oriented. Do not combine Phase 3 into one large PR and do not pull later slices into VAL-005C.
+This sequence is dependency-oriented. Do not combine Phase 3 into one large PR and do not pull VAL-005E behavior into VAL-005D.
 
 ## Migration Baseline
 
@@ -102,7 +112,7 @@ Phase 1 completed with exactly 14 forward-only migrations. Phase 2 added migrati
 19  20260811001900_phase3_key_parking_persistence
 ```
 
-VAL-005B added no migration. VAL-005C adds no migration. Do not modify migrations 1–19.
+VAL-005B added no migration. VAL-005C added no migration. The next migration number, if and only if an Accepted VAL-005D persistence decision requires one, is 20. Existing migrations 1–19 remain immutable.
 
 ## Current Product / Domain Baseline
 
@@ -143,7 +153,7 @@ Audit/Black Box history is append-only by contract. Protected domain mutations t
 
 - Staff Auth proves only persisted User identity; tenant, membership, Location and role authority remain server-derived.
 - Cross-tenant access is a critical defect and existing non-disclosing authorization mappings remain active.
-- DEC-032 operational eligibility must be reused rather than duplicated for VAL-005C field authority.
+- DEC-032 operational eligibility is the reusable field-operation eligibility boundary.
 - KeySlot QR/code identifies a resource only; it never grants authority.
 - KeyCustodyEvent history remains append-only.
 - Common/shared infrastructure must not import feature modules.
@@ -153,11 +163,9 @@ Audit/Black Box history is append-only by contract. Protected domain mutations t
 
 ## Exact Next Step
 
-Implement **VAL-005C** on a fresh focused branch from current `main`, strictly against Accepted DEC-033 and Issue #92.
+Prepare **VAL-005D — Task / Dispatch Persistence Foundation** as the next focused Phase 3 slice: create its scoped Issue, inspect the existing Task/Dispatch persistence baseline, and accept a focused decision before implementation if schema, lifecycle, history, uniqueness or concurrency semantics are not already fully locked.
 
-Do not change Prisma schema or migrations, do not implement Task/Dispatch early, do not perform Parking physical-state transitions, and do not create public standalone checkout/return endpoints.
-
-After VAL-005C implementation is reviewed, CI-green and merged, proceed to VAL-005D.
+Do not implement VAL-005E Hybrid Dispatch assignment/acceptance/reassignment behavior inside VAL-005D.
 
 ## Parallel UX/UI Track
 
