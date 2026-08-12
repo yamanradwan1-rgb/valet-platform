@@ -16,6 +16,7 @@ import {
   type OperationObserver,
 } from "../observability/operation-observability";
 import { resolveRequestId, type ApiRequest } from "./api-request";
+import { setNoStoreResponseHeaders } from "./no-store-response";
 
 interface FilterRequest extends ApiRequest {
   readonly method: string;
@@ -125,6 +126,12 @@ const operationRoutes: ReadonlyArray<{
   },
 ];
 
+const guestAccessOperations = new Set([
+  "CHECK_IN_GUEST_ACCESS_ISSUE",
+  "CHECK_IN_GUEST_ACCESS_REVOKE",
+  "GUEST_SESSION_READ",
+]);
+
 function routedOperation(request: FilterRequest): string | undefined {
   const path = request.originalUrl.split("?", 1)[0] ?? "";
   return operationRoutes.find(
@@ -168,6 +175,9 @@ export class ApiExceptionFilter implements ExceptionFilter {
     if (operation.startsWith("STAFF_AUTH_")) {
       response.setHeader("Cache-Control", "no-store");
       response.setHeader("Pragma", "no-cache");
+    }
+    if (guestAccessOperations.has(operation)) {
+      setNoStoreResponseHeaders(response);
     }
 
     if (request.operationMeasured === true) {
