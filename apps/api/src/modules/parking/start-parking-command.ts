@@ -1,0 +1,127 @@
+import type { PostgresPool } from "../../common/database/postgres";
+import { appendDispatchEvent } from "../dispatch/dispatch-event-writer";
+import {
+  inDispatchTransaction,
+  loadDispatchOperationTime,
+} from "../dispatch/dispatch-transaction";
+import { recordKeyCheckedOut } from "../keys/parking-key-custody";
+import { appendStartParkingAuditEvent } from "./start-parking-audit";
+import { assertStartParkingGuards } from "./start-parking-guards";
+import {
+  authorizeStartParkingOwner,
+  lockActiveCurrentKeySlot,
+  lockActiveParkingTask,
+  lockStartParkingSession,
+  resolveStartParkingActor,
+} from "./start-parking-locks";
+import {
+  startParkingSession,
+  startParkingTask,
+} from "./start-parking-mutations";
+import type { StartParkingResult } from "./start-parking-types";
+
+export interface StartParkingCommandRequest {
+  readonly authenticatedUserId: string;
+  readonly expectedSessionVersion: number;
+  readonly expectedTaskVersion: number;
+  readonly sessionId: string;
+}
+
+export interface StartParkingCommandOptions {
+  readonly auditEventIdFactory?: () => string;
+  readonly custodyEventIdFactory?: () => string;
+  readonly dispatchEventIdFactory?: () => string;
+}
+
+async function executeStartParking(
+  pool: PostgresPool,
+  request: StartParkingCommandRequest,
+  options: StartParkingCommandOptions,
+): Promise<StartParkingResult> {
+  return inDispatchTransaction(pool, async (transaction) => {
+    const session = await lockStartParkingSession(
+      transaction,
+      request.sessionId,
+    );
+    const actorMembershipId = await resolveStartParkingActor(
+      transaction,
+      session,
+      request.authenticatedUserId,
+    );
+    const task = await lockActiveParkingTask(transaction, session);
+    await authorizeStartParkingOwner(
+      transaction,
+      session,
+      task,
+      actorMembershipId,
+    );
+    assertStartParkingGuards(session, task, request);
+    const keySlotId = await lockActiveCurrentKeySlot(transaction, session);
+    const operationTime = await loadDispatchOperationTime(transaction);
+    const taskVersion = await startParkingTask(
+      transaction,
+      task,
+      operationTime,
+    );
+    const sessionVersion = await startParkingSession(
+      transaction,
+      session,
+      operationTime,
+    );
+    const custodyScope = {
+      actorMembershipId,
+      keySlotId,
+      locationId: session.location_id,
+      occurredAt: operationTime,
+      organizationId: session.organization_id,
+      sessionId: session.id,
+    };
+    await recordKeyCheckedOut(
+      transaction,
+      custodyScope,
+      options.custodyEventIdFactory,
+    );
+    await appendDispatchEvent(
+      transaction,
+      {
+        actorMembershipId,
+        eventType: "IN_PROGRESS",
+        newAssigneeMembershipId: actorMembershipId,
+        occurredAt: operationTime,
+        previousAssigneeMembershipId: null,
+        reason: null,
+        task,
+      },
+      options.dispatchEventIdFactory,
+    );
+    await appendStartParkingAuditEvent(
+      transaction,
+      {
+        actorMembershipId,
+        operationTime,
+        session,
+        sessionVersion,
+        task,
+        taskVersion,
+      },
+      options.auditEventIdFactory,
+    );
+    return {
+      parkingStartedAt: operationTime.toISOString(),
+      sessionId: session.id,
+      sessionVersion,
+      state: "PARKING",
+      taskId: task.id,
+      taskStatus: "IN_PROGRESS",
+      taskVersion,
+    };
+  });
+}
+
+export function createStartParkingCommandExecutor(
+  pool: PostgresPool,
+  options: StartParkingCommandOptions = {},
+) {
+  return (request: StartParkingCommandRequest) =>
+    executeStartParking(pool, request, options);
+}

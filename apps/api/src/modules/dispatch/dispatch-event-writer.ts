@@ -1,10 +1,21 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
-import type { LockedTaskRow } from "./dispatch-types";
+
+interface DispatchEventTaskScope {
+  readonly id: string;
+  readonly location_id: string;
+  readonly organization_id: string;
+  readonly valet_session_id: string;
+}
 
 export type Val005eDispatchEventType =
-  "QUEUED" | "ASSIGNED" | "ACCEPTED" | "DECLINED" | "REASSIGNED";
+  | "QUEUED"
+  | "ASSIGNED"
+  | "ACCEPTED"
+  | "DECLINED"
+  | "REASSIGNED"
+  | "IN_PROGRESS";
 
 export async function appendDispatchEvent(
   transaction: PostgresTransaction,
@@ -15,7 +26,7 @@ export async function appendDispatchEvent(
     readonly occurredAt: Date;
     readonly previousAssigneeMembershipId: string | null;
     readonly reason: string | null;
-    readonly task: LockedTaskRow;
+    readonly task: DispatchEventTaskScope;
   },
   eventIdFactory: () => string = randomUUID,
 ): Promise<string> {

@@ -9,6 +9,7 @@ async function recordParkingCustody(
   transaction: PostgresTransaction,
   input: KeyCustodyScope & { readonly occurredAt: Date },
   eventType: ParkingCustodyEventType,
+  eventIdFactory?: () => string,
 ): Promise<string> {
   const scope = await transaction.query<{ valid: boolean }>(
     `SELECT true AS valid
@@ -36,14 +37,24 @@ async function recordParkingCustody(
   if (scope.rows[0]?.valid !== true) {
     throw new Error("Key custody scope is invalid.");
   }
-  return appendKeyCustodyEvent(transaction, { ...input, eventType });
+  return appendKeyCustodyEvent(
+    transaction,
+    { ...input, eventType },
+    eventIdFactory,
+  );
 }
 
 export function recordKeyCheckedOut(
   transaction: PostgresTransaction,
   input: KeyCustodyScope & { readonly occurredAt: Date },
+  eventIdFactory?: () => string,
 ): Promise<string> {
-  return recordParkingCustody(transaction, input, "CHECKED_OUT");
+  return recordParkingCustody(
+    transaction,
+    input,
+    "CHECKED_OUT",
+    eventIdFactory,
+  );
 }
 
 export function recordKeyReturnedToSlot(
