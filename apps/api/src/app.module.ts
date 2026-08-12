@@ -7,6 +7,7 @@ import { CheckInModule } from "./modules/check-in-api/check-in.module";
 import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { GuestAccessModule } from "./modules/guest-access/guest-access.module";
 import { KeyCustodyModule } from "./modules/keys/key-custody.module";
+import { StartParkingModule } from "./modules/parking/start-parking.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
 
 @Module({
@@ -18,6 +19,7 @@ import { ShiftModule } from "./modules/shifts/shift.module";
     ShiftModule,
     KeyCustodyModule,
     DispatchModule,
+    StartParkingModule,
   ],
   controllers: [AppController],
 })

@@ -30,6 +30,9 @@ import { GuestAccessService } from "../src/modules/guest-access/guest-access.ser
 import { KeyCustodyController } from "../src/modules/keys/key-custody.controller";
 import { KeyCustodyModule } from "../src/modules/keys/key-custody.module";
 import { KeyCustodyService } from "../src/modules/keys/key-custody.service";
+import { StartParkingController } from "../src/modules/parking/start-parking.controller";
+import { StartParkingModule } from "../src/modules/parking/start-parking.module";
+import { StartParkingService } from "../src/modules/parking/start-parking.service";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
@@ -48,6 +51,16 @@ describe("accepted feature module ownership", () => {
       ShiftModule,
       KeyCustodyModule,
       DispatchModule,
+      StartParkingModule,
+    ]);
+  });
+
+  it("keeps Start Parking ownership focused", () => {
+    expect(metadata(StartParkingModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      StartParkingController,
+    ]);
+    expect(metadata(StartParkingModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      StartParkingService,
     ]);
   });
 
