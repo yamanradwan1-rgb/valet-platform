@@ -4,6 +4,7 @@ import { AppController } from "./app.controller";
 import { AntiAbuseModule } from "./modules/anti-abuse/anti-abuse.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CheckInModule } from "./modules/check-in-api/check-in.module";
+import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { GuestAccessModule } from "./modules/guest-access/guest-access.module";
 import { KeyCustodyModule } from "./modules/keys/key-custody.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
@@ -16,6 +17,7 @@ import { ShiftModule } from "./modules/shifts/shift.module";
     CheckInModule,
     ShiftModule,
     KeyCustodyModule,
+    DispatchModule,
   ],
   controllers: [AppController],
 })

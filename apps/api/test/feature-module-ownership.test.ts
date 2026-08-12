@@ -18,6 +18,9 @@ import { StaffCheckInController } from "../src/modules/check-in-api/check-in-api
 import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.service";
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
+import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
+import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
+import { DispatchService } from "../src/modules/dispatch/dispatch.service";
 import {
   GuestAccessController,
   StaffGuestAccessController,
@@ -44,6 +47,16 @@ describe("accepted feature module ownership", () => {
       CheckInModule,
       ShiftModule,
       KeyCustodyModule,
+      DispatchModule,
+    ]);
+  });
+
+  it("keeps Hybrid Dispatch ownership focused", () => {
+    expect(metadata(DispatchModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      DispatchController,
+    ]);
+    expect(metadata(DispatchModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      DispatchService,
     ]);
   });
 

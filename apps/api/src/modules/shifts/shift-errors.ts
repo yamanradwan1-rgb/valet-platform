@@ -2,6 +2,7 @@ export type ShiftOperationErrorCode =
   | "ACTIVE_SHIFT_CONFLICT"
   | "AUTHORIZATION_DENIED"
   | "LOCATION_ACCESS_DENIED"
+  | "OPEN_TASK_HANDOFF_REQUIRED"
   | "TENANT_ACCESS_DENIED";
 
 const messages: Record<ShiftOperationErrorCode, string> = {
@@ -9,6 +10,8 @@ const messages: Record<ShiftOperationErrorCode, string> = {
     "The membership already has an active Shift at another location.",
   AUTHORIZATION_DENIED: "The requested resource is not available.",
   LOCATION_ACCESS_DENIED: "The requested resource is not available.",
+  OPEN_TASK_HANDOFF_REQUIRED:
+    "Open Task ownership must be handed off before ending the Shift.",
   TENANT_ACCESS_DENIED: "The requested resource is not available.",
 };
 

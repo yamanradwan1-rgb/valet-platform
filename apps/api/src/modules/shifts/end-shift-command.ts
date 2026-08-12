@@ -25,6 +25,7 @@ interface EndShiftCommandOptions {
 }
 
 interface OwnedShiftScope {
+  readonly location_id: string;
   readonly membership_id: string;
   readonly organization_id: string;
 }
@@ -34,7 +35,8 @@ async function resolveOwnedShift(
   request: EndShiftCommandRequest,
 ): Promise<OwnedShiftScope> {
   const result = await transaction.query<OwnedShiftScope>(
-    `SELECT shift_row.organization_id::text, shift_row.membership_id::text
+    `SELECT shift_row.organization_id::text, shift_row.location_id::text,
+            shift_row.membership_id::text
      FROM shifts AS shift_row
      INNER JOIN organization_memberships AS membership
        ON membership.organization_id = shift_row.organization_id
@@ -47,6 +49,24 @@ async function resolveOwnedShift(
     throw new ShiftOperationError("TENANT_ACCESS_DENIED");
   }
   return scope;
+}
+
+async function requireNoCanonicalOpenTasks(
+  transaction: PostgresTransaction,
+  scope: OwnedShiftScope,
+): Promise<void> {
+  const result = await transaction.query<{ id: string }>(
+    `SELECT id::text
+     FROM tasks
+     WHERE organization_id = $1 AND location_id = $2
+       AND current_assignee_membership_id = $3
+       AND status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS')
+     LIMIT 1`,
+    [scope.organization_id, scope.location_id, scope.membership_id],
+  );
+  if (result.rows[0] !== undefined) {
+    throw new ShiftOperationError("OPEN_TASK_HANDOFF_REQUIRED");
+  }
 }
 
 async function lockOwnedMembership(
@@ -97,6 +117,7 @@ export function createEndShiftCommandExecutor(
       await lockOwnedMembership(transaction, request, scope);
       const shift = await lockOwnedShift(transaction, request, scope);
       if (shift.status === "ENDED") return toShiftResult(shift);
+      await requireNoCanonicalOpenTasks(transaction, scope);
 
       const operationTime = await loadShiftOperationTime(transaction);
       const result = await transaction.query<PersistedShiftRow>(
