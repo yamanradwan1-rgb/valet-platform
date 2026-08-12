@@ -106,7 +106,7 @@ The Blueprint's Shift Logic is binding operational behavior:
 
 Phase 1 created Shift persistence, but Phase 3 must not invent Hybrid Dispatch availability without a focused operational Shift/eligibility slice.
 
-Exact start/end/handoff command semantics require a focused Accepted decision before implementation.
+VAL-005B / DEC-032 now locks and implements staff self-start/self-end plus the reusable transaction-aware operational-eligibility boundary. Later Dispatch work must consume that boundary rather than recreating Shift eligibility.
 
 ### 4. QR Key Slots are sellable-MVP behavior
 
@@ -217,16 +217,17 @@ Important Phase 3 mutations must append their required custody/Task/Audit events
 
 Corrections append new events. They do not silently edit old history.
 
-### 12. Parking key checkout/return semantics must be explicitly decided
+### 12. Parking key checkout/return semantics are locked by DEC-033
 
-The Blueprint explicitly requires every Key checkout/return to be actor/time recorded. It explicitly names Key Checkout in Retrieval and also requires full key custody throughout Parking.
+DEC-033 locks the Phase 3 integration boundary without moving parking state transitions into VAL-005C:
 
-Before implementing `start-parking` / `confirm-parked`, a focused decision must lock whether Parking key checkout/return is:
+- VAL-005C supplies reusable transaction-aware custody primitives;
+- VAL-005F Start Parking records the required `CHECKED_OUT` custody event inside the same transaction as its accepted parking transition;
+- VAL-005G Confirm Parked records `RETURNED_TO_SLOT` inside the same transaction when the key is physically returned according to the accepted parking workflow;
+- there are no standalone public checkout/return endpoints in VAL-005C;
+- `RELEASED` remains later handoff/completion work.
 
-- a separate explicit command; or
-- an atomic side effect of the parking lifecycle command.
-
-Do not guess this inside implementation.
+Later 005F/005G focused decisions still own their exact state-specific guards and transition behavior.
 
 ### 13. Tracking is not Phase 3
 
@@ -293,9 +294,9 @@ No command/API/Dispatch behavior.
 
 ### VAL-005B - Shift Operational Eligibility
 
-Status: ACTIVE / CURRENT
+Status: COMPLETED / MERGED
 
-Accepted contract: DEC-032 (`docs/decisions/DEC-032_SHIFT_OPERATIONAL_ELIGIBILITY.md`). Issue #88 remains open pending implementation.
+Accepted contract: DEC-032 (`docs/decisions/DEC-032_SHIFT_OPERATIONAL_ELIGIBILITY.md`). Implementation merged through PR #91, merge commit `928f992bb678c4e1fa268810ed42b279e0130cbd`; Issue #88 is completed.
 
 Purpose:
 
@@ -308,6 +309,10 @@ Do not build payroll/timekeeping features.
 
 ### VAL-005C - Key Assignment & Custody Commands
 
+Status: ACTIVE / CURRENT
+
+Accepted contract: DEC-033 (`docs/decisions/DEC-033_KEY_ASSIGNMENT_CUSTODY_COMMANDS.md`). Issue #92 is open pending implementation.
+
 Purpose:
 
 - assign current KeySlot after check-in;
@@ -315,9 +320,10 @@ Purpose:
 - concurrency-safe single-slot occupancy;
 - actor/time custody history;
 - required Audit/Black Box event atomicity;
-- correction/reassignment semantics without history rewrite.
+- correction/reassignment semantics without history rewrite;
+- reusable transaction-aware custody primitives consumed by later parking commands.
 
-No Parking state transition yet.
+No Parking state transition yet. VAL-005C requires no schema migration and must leave migrations 1–19 and the Prisma schema unchanged.
 
 ### VAL-005D - Task / Dispatch Persistence Foundation
 
@@ -351,7 +357,7 @@ No GPS tracking implementation.
 Purpose:
 
 - authorized accepted Parking-task owner starts physical Parking;
-- lock required key-custody precondition/side effect according to the focused decision;
+- consume the DEC-033 custody boundary and record required key checkout in the parking transaction;
 - `AWAITING_PARKING -> PARKING`;
 - `parking_started_at`;
 - version/concurrency protections;
@@ -368,7 +374,7 @@ Purpose:
 - QR when used, manual fallback according to accepted policy;
 - exact same-tenant/same-Location Zone/Spot integrity;
 - responsible actor known;
-- key return/custody closure for the Parking operation according to the focused decision;
+- consume the DEC-033 custody boundary and record required key return according to the accepted parking workflow;
 - `PARKING -> PARKED`;
 - `parked_at`;
 - Parking Task COMPLETED;
