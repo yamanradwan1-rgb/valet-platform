@@ -15,7 +15,8 @@ export type Val005eDispatchEventType =
   | "ACCEPTED"
   | "DECLINED"
   | "REASSIGNED"
-  | "IN_PROGRESS";
+  | "IN_PROGRESS"
+  | "COMPLETED";
 
 export async function appendDispatchEvent(
   transaction: PostgresTransaction,
