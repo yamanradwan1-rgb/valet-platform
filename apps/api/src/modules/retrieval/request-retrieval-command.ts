@@ -45,10 +45,10 @@ interface StatusRow<T extends string> {
 }
 
 interface RetrievalLifecycle {
-  readonly activeRequest?: RetrievalRequestStatus;
-  readonly activeTask?: RetrievalTaskStatus;
-  readonly latestRequest?: RetrievalRequestStatus;
-  readonly latestTask?: RetrievalTaskStatus;
+  readonly activeRequest: RetrievalRequestStatus | undefined;
+  readonly activeTask: RetrievalTaskStatus | undefined;
+  readonly latestRequest: RetrievalRequestStatus | undefined;
+  readonly latestTask: RetrievalTaskStatus | undefined;
 }
 
 class RetrievalIntegrityError extends Error {
