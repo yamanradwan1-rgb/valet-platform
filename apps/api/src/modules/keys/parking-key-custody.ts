@@ -60,6 +60,12 @@ export function recordKeyCheckedOut(
 export function recordKeyReturnedToSlot(
   transaction: PostgresTransaction,
   input: KeyCustodyScope & { readonly occurredAt: Date },
+  eventIdFactory?: () => string,
 ): Promise<string> {
-  return recordParkingCustody(transaction, input, "RETURNED_TO_SLOT");
+  return recordParkingCustody(
+    transaction,
+    input,
+    "RETURNED_TO_SLOT",
+    eventIdFactory,
+  );
 }
