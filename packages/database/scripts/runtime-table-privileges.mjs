@@ -16,6 +16,8 @@ const runtimeOperationalTables = [
   "valet_sessions",
   "shifts",
   "tasks",
+  "retrieval_requests",
+  "handoff_verifications",
 ];
 
 const runtimeLockColumns = [
