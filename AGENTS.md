@@ -15,7 +15,7 @@ The product is not a generic parking marketplace and not an "Uber for valet".
 When instructions conflict, use this order:
 
 1. Explicit latest instruction from the project owner.
-2. `docs/08_DECISIONS_LOG.md` entries marked `Accepted`.
+2. Accepted project decisions: entries marked `Accepted` in `docs/08_DECISIONS_LOG.md` and focused files under `docs/decisions/DEC-*.md` whose own status is `Accepted`. When the same decision has both forms, the focused standalone DEC is the full contract and `docs/08_DECISIONS_LOG.md` is its canonical log/summary; any material conflict between them must stop implementation until reconciled.
 3. `docs/15_BLUEPRINT_V1_REBASELINE.md` for the approved Founder & Product Blueprint v1.0 implementation bridge.
 4. `docs/01_PRODUCT_SCOPE.md`.
 5. `docs/04_VALET_SESSION_STATE_MACHINE.md`.
@@ -31,13 +31,15 @@ When instructions conflict, use this order:
 
 The Founder & Product Blueprint v1.0 is the latest approved product direction. Until its PDF is committed into `docs/reference`, `docs/15_BLUEPRINT_V1_REBASELINE.md` is the repository-native bridge that records its implementation-relevant decisions.
 
+Focused Accepted decision files under `docs/decisions/` may contain the complete contract while `docs/08_DECISIONS_LOG.md` carries a shorter canonical summary. An Accepted focused DEC remains binding during a temporary mirror lag, but the mirror must be repaired in the next documentation synchronization task. Never treat mirror lag as permission to reinterpret the focused decision.
+
 Never silently resolve a material conflict. Record the resolution as a decision.
 
 ## 3. Mandatory pre-code protocol
 
 Before implementing a feature:
 
-1. Read the relevant docs, including `docs/17_AGENT_CODE_STRUCTURE_RULES.md` for every code-changing task.
+1. Read the relevant docs, including `docs/17_AGENT_CODE_STRUCTURE_RULES.md` for every code-changing task and every task-specific Accepted DEC under `docs/decisions/`.
 2. Name the affected entities.
 3. Name the affected ValetSession transitions and Task/Dispatch transitions, if any.
 4. Identify authorization/tenant/location impact.
