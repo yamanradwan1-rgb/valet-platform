@@ -57,6 +57,8 @@ export async function issueHandoffVerification(
   if (rotate && active?.verified_at !== null && active !== undefined) {
     throw new HandoffError("HANDOFF_VERIFICATION_ALREADY_VERIFIED");
   }
+  const material = generateHandoffMaterial(method);
+  const verifier = deriveHandoffVerifier(session.id, method, material);
   const issuanceKey = antiAbuse.key("v1:handoff-issuance-session", session.id);
   const decision = await antiAbuse.countInTransaction(
     transaction,
@@ -77,7 +79,6 @@ export async function issueHandoffVerification(
       [active.id, operationTime],
     );
   }
-  const material = generateHandoffMaterial(method);
   const expiresAt = new Date(
     operationTime.getTime() + (method === "PICKUP_CODE" ? 600_000 : 120_000),
   );
@@ -91,7 +92,7 @@ export async function issueHandoffVerification(
       session.organization_id,
       session.id,
       method,
-      deriveHandoffVerifier(session.id, method, material),
+      verifier,
       expiresAt,
       operationTime,
     ],
