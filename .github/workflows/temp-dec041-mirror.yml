@@ -1,0 +1,53 @@
+name: temp-dec041-mirror
+
+on:
+  push:
+    branches:
+      - docs/VAL-006C-dec041
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/VAL-006C-dec041
+          fetch-depth: 0
+      - name: Mirror DEC-041
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q '^## DEC-041 — Retrieval Dispatch Composition$' docs/08_DECISIONS_LOG.md; then
+            echo 'DEC-041 already mirrored.'
+            exit 0
+          fi
+          cat >> docs/08_DECISIONS_LOG.md <<'EOF'
+
+---
+
+## DEC-041 — Retrieval Dispatch Composition
+
+Status: Accepted
+Date: 2026-08-13
+
+Decision:
+VAL-006C intentionally extends the existing DEC-035 Hybrid Dispatch command surface from PARKING-only to the currently supported operational task types `PARKING` and `RETRIEVAL`. The same Location-scoped queue, assign, accept, decline and supervisor reassign contracts remain canonical; no Retrieval-specific dispatch system, route family, ranking model, Shift eligibility model or ownership projection is introduced.
+
+`Task.current_assignee_membership_id`, `Task.version`, DEC-032 transaction-aware operational eligibility, deterministic current-load ranking and append-only Dispatch/Audit history remain authoritative. Workload ranking composes owned PARKING + RETRIEVAL tasks. Existing Phase-3 PARKING semantics remain unchanged.
+
+Retrieval Dispatch mutations are assignment-only. While the Retrieval Task is `QUEUED`, `ASSIGNED` or `ACCEPTED`, the authoritative physical operation remains `ValetSession.state = REQUESTED` and `RetrievalRequest.status = OPEN`. VAL-006C does not set `retrieval_started_at`, create key-custody checkout events or perform `REQUESTED -> RETRIEVING`; those belong to VAL-006D.
+
+VAL-006C requires no Prisma change and no Migration 22. Migrations 1–21 remain immutable. GPS/maps, READY, handoff, release, payments, UI, offline and predictive/AI behavior remain out of scope.
+
+Full binding contract:
+`docs/decisions/DEC-041_RETRIEVAL_DISPATCH_COMPOSITION.md`
+EOF
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/08_DECISIONS_LOG.md
+          git commit -m 'docs(decisions): mirror DEC-041 retrieval dispatch composition'
+          git push origin HEAD:docs/VAL-006C-dec041
