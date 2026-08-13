@@ -69,23 +69,31 @@ describe("VAL-006E Mark Ready command", () => {
     );
   });
 
-  it.each(["ACCEPTED", "ASSIGNED", "QUEUED"] as const)(
-    "rejects a %s Retrieval Task",
-    async (status) => {
-      const fixture = await context.createMarkReadyFixture();
-      await context.adminPool.query(
-        `UPDATE tasks
+  it.each([
+    ["ACCEPTED", "TASK_INVALID_STATE"],
+    ["ASSIGNED", "TASK_INVALID_STATE"],
+    ["QUEUED", "TASK_NOT_FOUND_OR_FORBIDDEN"],
+  ] as const)("rejects a %s Retrieval Task", async (status, code) => {
+    const fixture = await context.createMarkReadyFixture();
+    await context.adminPool.query(
+      `UPDATE tasks
          SET status = $2,
              current_assignee_membership_id = CASE WHEN $2 = 'QUEUED' THEN NULL ELSE current_assignee_membership_id END
          WHERE id = $1`,
-        [fixture.retrievalTaskId, status],
-      );
-      await expectMarkReadyError(
-        context.markReady(fixture),
-        "TASK_INVALID_STATE",
-      );
-    },
-  );
+      [fixture.retrievalTaskId, status],
+    );
+    await expectMarkReadyError(context.markReady(fixture), code);
+    const effects = await context.readyEffects(fixture);
+    expect(effects.projection).toMatchObject({
+      ready_at: null,
+      request_status: "ACCEPTED",
+      session_state: "RETRIEVING",
+      session_version: 6,
+      task_status: status,
+      task_version: 4,
+    });
+    expect(effects.counts.ready_audit_count).toBe(0);
+  });
 
   it("conceals non-owner, foreign tenant, ended Shift, and revoked access", async () => {
     for (const mode of ["non-owner", "foreign", "ended", "revoked"] as const) {
