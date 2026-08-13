@@ -2284,3 +2284,22 @@ VAL-006B does not implement Retrieval assignment/acceptance/reassignment, key ch
 
 Full binding contract:
 `docs/decisions/DEC-040_GUEST_RETRIEVAL_REQUEST.md`
+
+---
+
+## DEC-041 — Retrieval Dispatch Composition
+
+Status: Accepted
+Date: 2026-08-13
+
+Decision:
+VAL-006C intentionally extends the existing DEC-035 Hybrid Dispatch command surface from PARKING-only to the currently supported operational task types `PARKING` and `RETRIEVAL`. The same Location-scoped queue, assign, accept, decline and supervisor reassign contracts remain canonical; no Retrieval-specific dispatch system, route family, ranking model, Shift eligibility model or ownership projection is introduced.
+
+`Task.current_assignee_membership_id`, `Task.version`, DEC-032 transaction-aware operational eligibility, deterministic current-load ranking and append-only Dispatch/Audit history remain authoritative. Workload ranking composes owned PARKING + RETRIEVAL tasks. Existing Phase-3 PARKING semantics remain unchanged.
+
+Retrieval Dispatch mutations are assignment-only. While the Retrieval Task is `QUEUED`, `ASSIGNED` or `ACCEPTED`, the authoritative physical operation remains `ValetSession.state = REQUESTED` and `RetrievalRequest.status = OPEN`. VAL-006C does not set `retrieval_started_at`, create key-custody checkout events or perform `REQUESTED -> RETRIEVING`; those belong to VAL-006D.
+
+VAL-006C requires no Prisma change and no Migration 22. Migrations 1–21 remain immutable. GPS/maps, READY, handoff, release, payments, UI, offline and predictive/AI behavior remain out of scope.
+
+Full binding contract:
+`docs/decisions/DEC-041_RETRIEVAL_DISPATCH_COMPOSITION.md`
