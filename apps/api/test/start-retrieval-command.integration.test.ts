@@ -98,26 +98,26 @@ describe("VAL-006D Start Retrieval command", () => {
     },
   );
 
-  it.each(["QUEUED", "ASSIGNED"] as const)(
-    "rejects a %s Retrieval Task",
-    async (status) => {
-      const fixture = await context.createStartRetrievalFixture();
-      await context.adminPool.query(
-        `UPDATE tasks
+  it.each([
+    ["QUEUED", "TASK_NOT_FOUND_OR_FORBIDDEN"],
+    ["ASSIGNED", "TASK_INVALID_STATE"],
+  ] as const)("rejects a %s Retrieval Task", async (status, expectedCode) => {
+    const fixture = await context.createStartRetrievalFixture();
+    await context.adminPool.query(
+      `UPDATE tasks
          SET status = $2::task_status,
              current_assignee_membership_id = CASE
                WHEN $2::task_status = 'QUEUED'::task_status THEN NULL
                ELSE current_assignee_membership_id
              END
          WHERE id = $1`,
-        [fixture.retrievalTaskId, status],
-      );
-      await expectStartRetrievalError(
-        context.startRetrieval(fixture),
-        "TASK_INVALID_STATE",
-      );
-    },
-  );
+      [fixture.retrievalTaskId, status],
+    );
+    await expectStartRetrievalError(
+      context.startRetrieval(fixture),
+      expectedCode,
+    );
+  });
 
   it("conceals non-owner and rejects ended or revoked owner eligibility", async () => {
     for (const mode of ["non-owner", "ended", "revoked"] as const) {

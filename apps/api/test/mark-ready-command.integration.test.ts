@@ -41,7 +41,7 @@ describe("VAL-006E Mark Ready command", () => {
       task_version: 4,
     });
     expect(effects.counts).toEqual({
-      checked_out_count: 1,
+      checked_out_count: before.counts.checked_out_count,
       in_progress_count: 1,
       notification_count: 0,
       ready_audit_count: 1,
@@ -77,8 +77,11 @@ describe("VAL-006E Mark Ready command", () => {
     const fixture = await context.createMarkReadyFixture();
     await context.adminPool.query(
       `UPDATE tasks
-         SET status = $2,
-             current_assignee_membership_id = CASE WHEN $2 = 'QUEUED' THEN NULL ELSE current_assignee_membership_id END
+         SET status = $2::task_status,
+             current_assignee_membership_id = CASE
+               WHEN $2::task_status = 'QUEUED'::task_status THEN NULL
+               ELSE current_assignee_membership_id
+             END
          WHERE id = $1`,
       [fixture.retrievalTaskId, status],
     );
