@@ -131,6 +131,11 @@ const operationRoutes: ReadonlyArray<{
   },
   {
     method: "POST",
+    operation: "MARK_READY",
+    path: /^\/v1\/staff\/valet-sessions\/[^/]+\/mark-ready$/,
+  },
+  {
+    method: "POST",
     operation: "START_RETRIEVAL",
     path: /^\/v1\/staff\/valet-sessions\/[^/]+\/start-retrieval$/,
   },

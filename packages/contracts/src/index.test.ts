@@ -9,6 +9,8 @@ import {
   nonEmptyStringSchema,
   staffAuthAccessResponseSchema,
   staffLoginRequestSchema,
+  markReadyRequestSchema,
+  markReadyResponseSchema,
   startShiftRequestSchema,
   startShiftResponseSchema,
   startRetrievalRequestSchema,
@@ -25,6 +27,13 @@ describe("Start Retrieval package exports", () => {
   it("exports request and response schemas", () => {
     expect(startRetrievalRequestSchema).toBeDefined();
     expect(startRetrievalResponseSchema).toBeDefined();
+  });
+});
+
+describe("Mark Ready package exports", () => {
+  it("exports request and response schemas", () => {
+    expect(markReadyRequestSchema).toBeDefined();
+    expect(markReadyResponseSchema).toBeDefined();
   });
 });
 

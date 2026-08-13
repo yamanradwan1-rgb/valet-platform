@@ -6,24 +6,34 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
 import { GuestAccessModule } from "../guest-access/guest-access.module";
 import { GuestRetrievalController } from "./guest-retrieval.controller";
+import { MarkReadyController } from "./mark-ready.controller";
+import { MarkReadyService } from "./mark-ready.service";
 import { RetrievalService } from "./retrieval.service";
 import { StartRetrievalController } from "./start-retrieval.controller";
 import { StartRetrievalService } from "./start-retrieval.service";
 
 @Module({
-  controllers: [GuestRetrievalController, StartRetrievalController],
+  controllers: [
+    GuestRetrievalController,
+    MarkReadyController,
+    StartRetrievalController,
+  ],
   imports: [
     AntiAbuseModule,
     GuestAccessModule,
     HttpInfrastructureModule,
     RuntimeDatabaseModule,
   ],
-  providers: [RetrievalService, StartRetrievalService],
+  providers: [RetrievalService, MarkReadyService, StartRetrievalService],
 })
 export class RetrievalModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(GuestRetrievalController, StartRetrievalController);
+      .forRoutes(
+        GuestRetrievalController,
+        MarkReadyController,
+        StartRetrievalController,
+      );
   }
 }
