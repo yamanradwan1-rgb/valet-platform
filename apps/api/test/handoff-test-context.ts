@@ -21,6 +21,7 @@ export interface HandoffFixture extends MarkReadyFixture {
 }
 
 export class HandoffTestContext extends MarkReadyTestContext {
+  private priorAntiAbuseSecret: string | undefined;
   private priorHandoffSecret: string | undefined;
 
   constructor(label: string) {
@@ -28,7 +29,10 @@ export class HandoffTestContext extends MarkReadyTestContext {
   }
 
   override async setup(): Promise<void> {
+    this.priorAntiAbuseSecret = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
     this.priorHandoffSecret = process.env.HANDOFF_VERIFIER_HMAC_SECRET_B64URL;
+    process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
+      randomBytes(32).toString("base64url");
     process.env.HANDOFF_VERIFIER_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
     await super.setup();
@@ -38,6 +42,11 @@ export class HandoffTestContext extends MarkReadyTestContext {
     try {
       await super.teardown();
     } finally {
+      if (this.priorAntiAbuseSecret === undefined) {
+        delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
+      } else {
+        process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = this.priorAntiAbuseSecret;
+      }
       if (this.priorHandoffSecret === undefined) {
         delete process.env.HANDOFF_VERIFIER_HMAC_SECRET_B64URL;
       } else {
