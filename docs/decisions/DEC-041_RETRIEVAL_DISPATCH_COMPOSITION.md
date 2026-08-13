@@ -1,6 +1,6 @@
 # DEC-041 — Retrieval Dispatch Composition
 
-Status: Proposed  
+Status: Accepted  
 Date: 2026-08-13  
 Issue: #139 (`VAL-006C — Retrieval Dispatch Composition`)
 
