@@ -14,8 +14,8 @@ const databaseName = `valet_006a_role_${suffix}`;
 const runtimeRole = `valet_006a_runtime_${suffix}`;
 const runtimePassword = `runtime-${randomUUID()}`;
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
-const prismaExecutable = fileURLToPath(
-  new URL("../node_modules/.bin/prisma", import.meta.url),
+const prismaCli = fileURLToPath(
+  new URL("../node_modules/prisma/build/index.js", import.meta.url),
 );
 let adminPool: Pool;
 
@@ -63,8 +63,8 @@ beforeAll(async () => {
   const migrationUrl = scopedUrl();
   const runtimeUrl = scopedUrl(runtimeRole, runtimePassword);
   await runDatabaseScript(
-    prismaExecutable,
-    ["migrate", "deploy"],
+    process.execPath,
+    [prismaCli, "migrate", "deploy"],
     migrationUrl,
   );
   await runDatabaseScript(
@@ -86,13 +86,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("DEC-039 Phase 4 runtime persistence privileges", () => {
-  it("keeps the schema at exactly 21 applied migrations", async () => {
+  it("keeps the schema at exactly 22 applied migrations", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(21);
+    expect(result.rows).toHaveLength(22);
   });
 
   it("allows only stateful runtime access on RetrievalRequest and HandoffVerification", async () => {

@@ -6,7 +6,9 @@ export type AntiAbuseScope =
   | "v1:staff-login-identifier"
   | "v1:staff-client-address"
   | "v1:guest-client-address"
-  | "v1:guest-token";
+  | "v1:guest-token"
+  | "v1:handoff-issuance-session"
+  | "v1:handoff-verification-session";
 
 export interface AntiAbuseKey {
   readonly keyHash: string;

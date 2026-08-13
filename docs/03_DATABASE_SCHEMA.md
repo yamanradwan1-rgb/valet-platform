@@ -87,6 +87,19 @@ This is a binding product requirement but does not authorize a speculative gener
 
 Introduce typed configuration entities/columns in focused tasks when the corresponding policy is implemented.
 
+DEC-042 adds typed Standard handoff policy:
+
+```text
+organizations.handoff_standard_method_policy
+  PICKUP_CODE | DYNAMIC_QR | EITHER
+  NOT NULL DEFAULT EITHER
+
+locations.handoff_standard_method_policy_override
+  PICKUP_CODE | DYNAMIC_QR | EITHER | NULL
+```
+
+Effective policy is Location override when non-null, otherwise Company default.
+
 ### Phase 1 migration policy
 
 - The first implemented schema task creates the initial migration.
@@ -789,6 +802,15 @@ Rules:
 - consumed verification cannot be reused
 - supervisor override requires authorized actor + non-empty reason + audit
 - normal Standard policy accepts Dynamic QR OR 4-digit pickup code; stronger policies are later/enterprise configuration
+- DEC-042 serializes active lifecycle through the locked ValetSession and permits
+  at most one unconsumed authoritative verification per session without adding a
+  speculative active-row index
+- pickup-code expiry is 10 minutes; Dynamic-QR expiry is 2 minutes; both use
+  `max_attempts = 5`
+- successful verification sets `verified_at` but remains unconsumed until release
+- abort, rotation, expiry, lockout and policy invalidation terminalize affected
+  verification material through `consumed_at`
+- final release re-evaluates the current effective Standard-method policy
 
 ## payments
 

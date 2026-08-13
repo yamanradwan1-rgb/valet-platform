@@ -321,7 +321,7 @@ On entry:
 
 Guard for HANDOFF_PENDING:
 
-- authorized releasing employee
+- current eligible Retrieval Task owner through the explicit initiate-handoff command
 - vehicle/session matches the intended guest handoff
 - payment/validation preconditions are satisfied when required by Location policy, or the workflow explicitly allows payment during HANDOFF_PENDING
 
@@ -335,6 +335,9 @@ Normal Standard handoff policy accepts either:
 - 4-digit pickup code
 
 Supervisor override is exceptional and requires permission, reason and audit.
+It is valid only while already `HANDOFF_PENDING`; it never performs
+`READY -> HANDOFF_PENDING`. If the current Task owner is unavailable, use the
+existing audited Dispatch/reassignment commands before initiation.
 
 Allowed:
 
@@ -344,7 +347,8 @@ Allowed:
 Guard for COMPLETED:
 
 - valid unconsumed handoff verification OR authorized audited supervisor override
-- verification method allowed by Location policy
+- Standard verification is still unexpired and its method remains allowed by
+  the current effective Company-default/Location-override policy at release time
 - releasing employee authorized
 - vehicle/session identity still matches
 - payment/validation policy satisfied

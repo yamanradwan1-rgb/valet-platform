@@ -7135,10 +7135,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all twenty-one forward-only migrations in order", () => {
+  it("applies exactly all twenty-two forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260813002100_guest_retrieval_requester_consistency",
+      "20260813002200_secure_handoff_policy_and_anti_abuse",
     );
   });
 

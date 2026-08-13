@@ -199,18 +199,35 @@ export class AntiAbuseService {
     key: AntiAbuseKey,
     threshold: number,
   ): Promise<AntiAbuseDecision> {
-    const result = await this.transaction(async (transaction) => {
-      const decision = await this.decision(transaction, key, threshold);
-      if (!decision.allowed) return decision;
-      await transaction.query(
-        `INSERT INTO anti_abuse_events (scope, key_hash, state)
-         VALUES ($1, $2, 'COUNTED')`,
-        [key.scope, key.keyHash],
-      );
-      return decision;
-    });
+    const result = await this.transaction((transaction) =>
+      this.countInTransaction(transaction, key, threshold),
+    );
     await this.cleanup();
     return result;
+  }
+
+  async countInTransaction(
+    transaction: PostgresTransaction,
+    key: AntiAbuseKey,
+    threshold: number,
+  ): Promise<AntiAbuseDecision> {
+    const decision = await this.decision(transaction, key, threshold);
+    if (!decision.allowed) return decision;
+    await transaction.query(
+      `INSERT INTO anti_abuse_events (scope, key_hash, state)
+       VALUES ($1, $2, 'COUNTED')`,
+      [key.scope, key.keyHash],
+    );
+    return decision;
+  }
+
+  async blockerInTransaction(
+    transaction: PostgresTransaction,
+    key: AntiAbuseKey,
+    threshold: number,
+  ): Promise<number | undefined> {
+    const decision = await this.decision(transaction, key, threshold);
+    return decision.allowed ? undefined : decision.retryAfter;
   }
 
   async reserve(
@@ -238,10 +255,9 @@ export class AntiAbuseService {
     key: AntiAbuseKey,
     threshold: number,
   ): Promise<number | undefined> {
-    return await this.transaction(async (transaction) => {
-      const decision = await this.decision(transaction, key, threshold);
-      return decision.allowed ? undefined : decision.retryAfter;
-    });
+    return await this.transaction((transaction) =>
+      this.blockerInTransaction(transaction, key, threshold),
+    );
   }
 
   async finalize(

@@ -166,7 +166,11 @@ It requires:
 - server-authoritative timestamp;
 - append-only Audit/Black Box evidence.
 
-The focused handoff decision must define whether Location Manager or Company Admin receive equivalent operational override authority; do not infer it from broad management visibility.
+DEC-042 limits override to an actively shifted, explicitly authorized
+same-Location `VALET_SUPERVISOR`. It is valid only after explicit initiation has
+placed the session in `HANDOFF_PENDING`; it never performs
+`READY -> HANDOFF_PENDING`. When the current Task owner is unavailable, existing
+audited Dispatch/reassignment commands establish a new owner before initiation.
 
 ### 9. Payment remains a separate lifecycle
 
@@ -296,13 +300,21 @@ Purpose:
 - allow safe abort `HANDOFF_PENDING -> READY` where the accepted contract permits;
 - preserve guest/staff privacy and audit requirements.
 
+DEC-042 locks typed Company default -> Location override method policy,
+guest-bearer issue/display, current Task-owner verification, 10-minute pickup
+code, 2-minute Dynamic QR, five attempts per proof and durable session-wide
+anti-abuse across rotations. Verification leaves Task `IN_PROGRESS` and
+RetrievalRequest `ACCEPTED`.
+
 This slice does not complete the custody session yet unless the focused decision explicitly combines verification and completion atomically; default planning keeps final release in VAL-006G for reviewability.
 
 ### VAL-006G — Vehicle Release + Session Completion
 
 Purpose:
 
-- require valid unconsumed allowed handoff verification or accepted audited override;
+- re-evaluate current effective handoff-method policy and require a still-valid,
+  unconsumed, unexpired, currently allowed Standard verification or a valid
+  unconsumed audited supervisor override;
 - enforce releasing employee authority and current vehicle/session identity;
 - enforce any already-authoritative payment/validation or blocking-incident guard without implementing those later feature lifecycles;
 - `HANDOFF_PENDING -> COMPLETED`;
