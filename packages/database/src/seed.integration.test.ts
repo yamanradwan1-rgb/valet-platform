@@ -219,19 +219,19 @@ afterAll(async () => {
 }, 60_000);
 
 describe("demo seed data foundation", () => {
-  it("applies all 20 forward-only migrations to a fresh database", async () => {
+  it("applies all 21 forward-only migrations to a fresh database", async () => {
     const result = await databaseClient.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(20);
+    expect(result.rows).toHaveLength(21);
     expect(result.rows[0]?.migration_name).toBe(
       "20260808000100_tenant_staff_foundation",
     );
     expect(result.rows.at(-1)?.migration_name).toBe(
-      "20260812002000_phase3_task_dispatch_persistence",
+      "20260813002100_guest_retrieval_requester_consistency",
     );
   });
 

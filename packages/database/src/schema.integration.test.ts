@@ -2787,14 +2787,12 @@ describe("retrieval request database foundation", () => {
     });
   });
 
-  it("rejects CUSTOMER with no customer requester", async () => {
+  it("accepts CUSTOMER with no customer requester", async () => {
     const fixture = await createRetrievalRequestTestFixture();
 
-    await expectPostgresError(
+    await expect(
       createRetrievalRequest(fixture, { requestedByType: "CUSTOMER" }),
-      "23514",
-      "retrieval_requests_requester_consistency_check",
-    );
+    ).resolves.toEqual(expect.any(String));
   });
 
   it("rejects CUSTOMER with only a staff requester", async () => {
@@ -7137,10 +7135,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all twenty forward-only migrations in order", () => {
+  it("applies exactly all twenty-one forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260812002000_phase3_task_dispatch_persistence",
+      "20260813002100_guest_retrieval_requester_consistency",
     );
   });
 
