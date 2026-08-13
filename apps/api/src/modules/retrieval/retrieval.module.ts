@@ -4,6 +4,7 @@ import { RuntimeDatabaseModule } from "../../common/database/runtime-database.mo
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
+import { AuthModule } from "../auth/auth.module";
 import { GuestAccessModule } from "../guest-access/guest-access.module";
 import { GuestRetrievalController } from "./guest-retrieval.controller";
 import { MarkReadyController } from "./mark-ready.controller";
@@ -20,6 +21,7 @@ import { StartRetrievalService } from "./start-retrieval.service";
   ],
   imports: [
     AntiAbuseModule,
+    AuthModule,
     GuestAccessModule,
     HttpInfrastructureModule,
     RuntimeDatabaseModule,
