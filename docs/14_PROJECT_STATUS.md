@@ -5,136 +5,152 @@
 
 ## Last Verified
 
-- Date/time: `2026-08-12`
+- Date/time: `2026-08-13`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Verified Phase 3 implementation merge baseline: `489ca4421251b09cd6efccef74511a463e93c1b6`
-- Current milestone: **Phase 3 — Operations: keys, parking and Hybrid Dispatch — CLOSED / COMPLETED**
-- Final Phase 3 task: VAL-005H — Phase 3 API / Integration / Employee Operations Gate — completed
-- Tracking issue: #116 — completed
-- Accepted decision: DEC-038 (`docs/decisions/DEC-038_PHASE3_API_INTEGRATION_EMPLOYEE_OPERATIONS_GATE.md`)
-- Database baseline: exactly **20 forward-only migrations**
+- Current `main` checkpoint: `3938257190dbd072ccfc2f906c944457ebb40525`
+- Current milestone: **Phase 4 — Retrieval, guest progression and secure handoff — IN PROGRESS**
+- Binding Phase 4 execution plan: `docs/19_PHASE4_RETRIEVAL_HANDOFF_EXECUTION_PLAN.md`
+- Current completed slice: **VAL-006B — Guest Retrieval Request + Duplicate Protection**
+- Next implementation slice: **VAL-006C — Retrieval Dispatch Composition**, which must start fresh under the normal workflow
+- Database baseline: exactly **21 forward-only migrations**
+- Security remediation findings SEC-002 and SEC-003 are merged; SEC-004 post-remediation Security Diff Verification remains open/tooling-blocked
 - No fresh post-fix repository-wide Standard Security Scan is claimed.
 
-## Phase 3 Status
+## Phase 4 Status
 
 ```text
-VAL-005A  Key & Parking Persistence Foundation                     MERGED / COMPLETED
-VAL-005B  Shift Operational Eligibility                            MERGED / COMPLETED
-VAL-005C  Key Assignment & Custody Commands                        MERGED / COMPLETED
-VAL-005D  Task / Dispatch Persistence Foundation                   MERGED / COMPLETED
-VAL-005E  Hybrid Dispatch Assignment / Acceptance / Reassignment   MERGED / COMPLETED
-VAL-005F  Start Parking                                            MERGED / COMPLETED
-VAL-005G  Confirm Parked                                           MERGED / COMPLETED
-VAL-005H  Phase 3 API / Integration / Employee Operations Gate     MERGED / COMPLETED
+VAL-006   Phase 4 Retrieval & Secure Handoff execution contract     MERGED / COMPLETED
+VAL-006A  Retrieval & Handoff Persistence Hardening / Contract Lock MERGED / COMPLETED
+VAL-006B  Guest Retrieval Request + Duplicate Protection            MERGED / COMPLETED
+VAL-006C  Retrieval Dispatch Composition                            NEXT / FRESH START REQUIRED
+VAL-006D  Start Retrieval + Key Checkout                            PENDING
+VAL-006E  Mark Vehicle Ready + Guest Progression Events             PENDING
+VAL-006F  Secure Handoff Verification                               PENDING
+VAL-006G  Vehicle Release + Session Completion                      PENDING
+VAL-006H  Phase 4 API / Integration / Guest + Employee E2E Gate     PENDING
 ```
 
-**Phase 3 is closed.**
+Phase 4 implementation has started and is complete through VAL-006B.
 
-The current operational status in this file supersedes stale historical status labels that may remain inside older execution-plan prose. Those older plans continue to define sequence/invariants where still applicable; accepted DEC-031 through DEC-038 remain the behavioral contracts.
+## Completed Phase 4 Foundation
 
-## Final Phase 3 Gate — VAL-005H
+### VAL-006 — execution contract
 
-- Issue: #116 — completed
-- Accepted decision: DEC-038
-- Implementation commit: `8455adf2bfa08af8a03c9f083eb45b125fe73581`
-- Implementation PR: #119
-- Implementation merge commit: `489ca4421251b09cd6efccef74511a463e93c1b6`
-- GitHub CI: run #153 — **SUCCESS**
-- Changed files: 2 test files only
-- Production code changes: none
-- Prisma schema changes: none
-- Migration changes: none
-- Dependency / package-manifest / lockfile changes: none
+- Tracking issue: #127
+- Planning PR: #128
+- Result: binding Phase 4 plan with exactly eight focused slices VAL-006A through VAL-006H.
 
-VAL-005H proves the production `AppModule` and real PostgreSQL-backed Staff bearer authority compose the accepted Phase 3 employee Parking workflow end-to-end:
+### VAL-006A — persistence hardening
+
+- Tracking issue: #129
+- Accepted decision: DEC-039
+- Implementation PR: #133
+- Result: existing `RetrievalRequest`, `HandoffVerification` and `Task(type=RETRIEVAL)` persistence is reused; runtime-role access was hardened for the two Phase 4 stateful tables without adding a migration.
+
+### VAL-006B — guest retrieval request
+
+- Tracking issue: #134
+- Accepted decision: DEC-040
+- Implementation PR: #138
+- Merge/checkpoint commit: `3938257190dbd072ccfc2f906c944457ebb40525`
+
+VAL-006B added the production guest Retrieval request boundary:
 
 ```text
-AWAITING_PARKING
--> KeySlot assignment
--> Parking Task queue
--> Task self-claim / assignment
--> Task acceptance
--> Start Parking
--> Confirm Parked
--> PARKED
+POST /v1/guest/session/request-retrieval
 ```
 
-Final authoritative result:
+A first valid guest request atomically performs:
 
 ```text
-ValetSession.state = PARKED
-Parking Task.status = COMPLETED
+ValetSession: PARKED -> REQUESTED
+RetrievalRequest: OPEN
+Retrieval Task: QUEUED / unassigned
+DispatchEvent: QUEUED
+AuditEvent: RETRIEVAL_REQUESTED
 ```
 
-The gate proved response-fed optimistic version propagation, canonical Task ownership, tenant/Location isolation, Shift eligibility, open-work Shift-end protection, semantic queue retry, guest operational-detail privacy, and authoritative append-only custody / Dispatch / Audit history.
+Repeated/coherent presses return current guest-safe progression without creating duplicate active RetrievalRequest/Task work.
 
-Normal custody sequence proven:
-
-```text
-SLOT_ASSIGNED
--> CHECKED_OUT
--> RETURNED_TO_SLOT
-```
-
-Normal Parking Dispatch sequence proven:
-
-```text
-QUEUED
--> ASSIGNED
--> ACCEPTED
--> IN_PROGRESS
--> COMPLETED
-```
-
-A decline-history composition case also proved the previous assignee / actor / trimmed reason remain explainable without rewriting prior history.
-
-## Phase 3 Delivered Boundary
-
-The backend can now safely execute the post-check-in Parking operation through `PARKED` while preserving:
-
-- current operational employee/Task ownership;
-- current Shift and Location eligibility;
-- KeySlot assignment plus checkout/return custody history;
-- controlled Parking Zone/Spot assignment;
-- duplicate-active-Parking-Task prevention;
-- current KeySlot and ParkingSpot occupancy protection;
-- optimistic Task and ValetSession concurrency;
-- append-only Dispatch and Audit/Black Box history;
-- guest privacy from exact KeySlot / Zone / Spot / assignee / GPS detail.
-
-`Task.current_assignee_membership_id` remains canonical Hybrid Dispatch ownership. `ValetSession.current_assignee_membership_id` is not synchronized or treated as Task authority.
+The guest response remains privacy-limited and does not expose internal tenant, Location, KeySlot, ParkingSpot/Zone, Task ownership or audit details.
 
 ## Database / Migration Baseline
 
-Exactly **20 forward-only migrations** exist:
+Exactly **21 forward-only migrations** are present.
+
+Latest migrations:
 
 ```text
 19  20260811001900_phase3_key_parking_persistence
 20  20260812002000_phase3_task_dispatch_persistence
+21  20260813002100_guest_retrieval_requester_consistency
 ```
 
-Migrations 1–20 remain immutable unless a later Accepted decision explicitly authorizes a new forward-only migration.
+Migration 21 narrowly updates RetrievalRequest requester consistency so guest/customer-originated requests may exist without a persisted Customer row while STAFF requester semantics remain constrained.
 
-`packages/database/prisma/schema.prisma` was unchanged by VAL-005H.
+Migrations 1–20 remain immutable. Migration 21 is now part of the accepted forward-only baseline and must also remain immutable after merge.
 
-## Deferred / Not Claimed by Phase 3 Closure
+## Current Retrieval Boundary
 
-Phase 3 closure does **not** claim completion of:
+The authoritative physical/session flow implemented so far is:
 
-- Retrieval / `PARKED -> REQUESTED` behavior;
-- GPS/maps/tracking/geofences;
-- parked-notification delivery;
-- payment/validation/refund workflows;
-- secure handoff / key `RELEASED` completion;
-- payroll/timekeeping;
+```text
+CHECKING_IN
+-> AWAITING_PARKING
+-> PARKING
+-> PARKED
+-> REQUESTED
+```
+
+The current Retrieval Task is created at `REQUESTED` but remains unassigned:
+
+```text
+QUEUED
+current_assignee_membership_id = NULL
+```
+
+`Task.current_assignee_membership_id` remains the canonical Hybrid Dispatch owner. ValetSession physical state remains separate from Task/Dispatch assignment state.
+
+## VAL-006C Reset / Historical Experiment
+
+A prior VAL-006C / DEC-041 experiment was cancelled by the project owner.
+
+- Issue #139 is closed `not_planned`.
+- PR #141 was cancelled and must not be reused.
+- PR #140 is historical only; its DEC-041 content is not current repository authority.
+- `main` was intentionally restored to the exact post-VAL-006B checkpoint `3938257190dbd072ccfc2f906c944457ebb40525`.
+
+Any new VAL-006C work must therefore be planned and implemented fresh from the current accepted repository state. Do not copy or resurrect the cancelled experiment as authority.
+
+## Security Checkpoint
+
+The Post-Phase-3 Standard Security Scan produced two validated findings and both remediation changes are merged:
+
+```text
+SEC-002  Runtime DB least privilege        FIXED / MERGED
+SEC-003  Guest sensitive response no-store FIXED / MERGED
+```
+
+Issue #126 / SEC-004 remains open because formal post-remediation Security Diff Scan finalization is blocked by Codex Security tooling failures. This is not recorded as a clean scan verdict and does not imply a newly discovered repository vulnerability.
+
+## Still Deferred / Not Claimed
+
+Phase 4 has not yet delivered:
+
+- Retrieval assignment / acceptance / decline / reassignment;
+- `REQUESTED -> RETRIEVING` and Retrieval key checkout;
+- `RETRIEVING -> READY`;
+- handoff verification / one-time QR / pickup code execution;
+- final key `RELEASED` custody and `COMPLETED` session;
+- Maps/GPS/tracking/geofences;
+- full messaging-provider delivery;
+- full payment/validation/refund workflows;
 - Dashboard or Employee UI/PWA implementation;
 - offline replay/idempotency infrastructure;
-- a fresh repository-wide Standard Security Scan.
-
-These remain later-phase or production/pilot-hardening work according to the binding plans/decisions.
+- V2/Enterprise capabilities.
 
 ## Exact Next Step
 
-Prepare the focused **Phase 4 — Retrieval, guest progression and secure handoff** execution contract before implementation.
+Prepare a **fresh focused decision and implementation issue for VAL-006C — Retrieval Dispatch Composition** from the current post-VAL-006B authority.
 
-Do not start Phase 4 implementation from chat assumptions. First review the binding Phase 4 scope, reconcile it against the completed Phase 3 Task/custody/guest foundations, create the focused Issue/decision/sequence, then branch from current `main`.
+VAL-006C must reuse the existing Hybrid Dispatch command surface and DEC-032/DEC-035 rules, extend it only as required for `Task.type = RETRIEVAL`, keep `ValetSession.state = REQUESTED` and `RetrievalRequest.status = OPEN` unchanged during assignment/acceptance/decline/reassignment, and introduce no GPS, key checkout, physical Retrieval transition, READY, handoff, payment or UI behavior.
