@@ -5,6 +5,8 @@ import {
   activeShiftResponseSchema,
   assignKeySlotRequestSchema,
   clearKeySlotRequestSchema,
+  guestHandoffMaterialResponseSchema,
+  handoffVersionRequestSchema,
   keySlotAssignmentProjectionSchema,
   nonEmptyStringSchema,
   staffAuthAccessResponseSchema,
@@ -34,6 +36,13 @@ describe("Mark Ready package exports", () => {
   it("exports request and response schemas", () => {
     expect(markReadyRequestSchema).toBeDefined();
     expect(markReadyResponseSchema).toBeDefined();
+  });
+});
+
+describe("Secure handoff package exports", () => {
+  it("exports staff and guest schemas", () => {
+    expect(handoffVersionRequestSchema).toBeDefined();
+    expect(guestHandoffMaterialResponseSchema).toBeDefined();
   });
 });
 

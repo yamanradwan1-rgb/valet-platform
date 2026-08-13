@@ -20,4 +20,5 @@ export const expectedMigrationDirectories = [
   "20260811001900_phase3_key_parking_persistence",
   "20260812002000_phase3_task_dispatch_persistence",
   "20260813002100_guest_retrieval_requester_consistency",
+  "20260813002200_secure_handoff_policy_and_anti_abuse",
 ] as const;

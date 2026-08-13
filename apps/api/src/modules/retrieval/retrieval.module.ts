@@ -7,6 +7,9 @@ import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
 import { AuthModule } from "../auth/auth.module";
 import { GuestAccessModule } from "../guest-access/guest-access.module";
 import { GuestRetrievalController } from "./guest-retrieval.controller";
+import { HandoffGuestController } from "./handoff-guest.controller";
+import { HandoffStaffController } from "./handoff-staff.controller";
+import { HandoffService } from "./handoff.service";
 import { MarkReadyController } from "./mark-ready.controller";
 import { MarkReadyService } from "./mark-ready.service";
 import { RetrievalService } from "./retrieval.service";
@@ -16,6 +19,8 @@ import { StartRetrievalService } from "./start-retrieval.service";
 @Module({
   controllers: [
     GuestRetrievalController,
+    HandoffGuestController,
+    HandoffStaffController,
     MarkReadyController,
     StartRetrievalController,
   ],
@@ -26,7 +31,12 @@ import { StartRetrievalService } from "./start-retrieval.service";
     HttpInfrastructureModule,
     RuntimeDatabaseModule,
   ],
-  providers: [RetrievalService, MarkReadyService, StartRetrievalService],
+  providers: [
+    HandoffService,
+    RetrievalService,
+    MarkReadyService,
+    StartRetrievalService,
+  ],
 })
 export class RetrievalModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
@@ -34,6 +44,8 @@ export class RetrievalModule implements NestModule {
       .apply(RequestIdMiddleware)
       .forRoutes(
         GuestRetrievalController,
+        HandoffGuestController,
+        HandoffStaffController,
         MarkReadyController,
         StartRetrievalController,
       );

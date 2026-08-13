@@ -16,6 +16,7 @@ import {
   type OperationObserver,
 } from "../observability/operation-observability";
 import { resolveRequestId, type ApiRequest } from "./api-request";
+import { handoffOperationRoutes } from "./handoff-operation-routes";
 import { setNoStoreResponseHeaders } from "./no-store-response";
 
 interface FilterRequest extends ApiRequest {
@@ -34,6 +35,7 @@ const operationRoutes: ReadonlyArray<{
   operation: string;
   path: RegExp;
 }> = [
+  ...handoffOperationRoutes,
   {
     method: "POST",
     operation: "STAFF_AUTH_LOGIN",
@@ -146,6 +148,8 @@ const guestAccessOperations = new Set([
   "CHECK_IN_GUEST_ACCESS_REVOKE",
   "GUEST_SESSION_READ",
   "GUEST_RETRIEVAL_REQUEST",
+  "ISSUE_HANDOFF_VERIFICATION",
+  "ROTATE_HANDOFF_VERIFICATION",
 ]);
 
 function routedOperation(request: FilterRequest): string | undefined {

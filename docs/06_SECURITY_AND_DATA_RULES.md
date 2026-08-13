@@ -194,12 +194,23 @@ Security controls:
 - consumed verification cannot be reused
 - no plaintext pickup code/QR secret in logs/audit metadata
 
+DEC-041 locks four-digit pickup-code expiry to 10 minutes and opaque 256-bit
+Dynamic-QR expiry to 2 minutes. Both allow five attempts per issued proof.
+Durable per-session limits allow five issue/rotation creations and ten failed
+proof submissions across rotations per 15 minutes. Persistence uses a dedicated
+32-byte handoff HMAC secret with method/session domain separation; it must not
+reuse Guest Access or general anti-abuse secrets. Standard method policy is
+evaluated again at verification and final release so policy changes fail closed.
+
 Supervisor override:
 
 - restricted role/permission
 - mandatory reason
 - explicit audit event
 - cannot silently bypass vehicle/session mismatch or other configured blocking controls without an explicit accepted policy
+- valid only after explicit `READY -> HANDOFF_PENDING` initiation
+- limited to an actively shifted, explicitly authorized same-Location
+  `VALET_SUPERVISOR`; manager/admin role names do not imply override authority
 
 Enhanced/high-security handoff policies are later configuration/enterprise work unless a pilot explicitly requires them.
 

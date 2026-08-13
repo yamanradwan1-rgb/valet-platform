@@ -6,6 +6,7 @@ export * from "./api-errors.js";
 export * from "./check-in.js";
 export * from "./confirm-parked.js";
 export * from "./dispatch.js";
+export * from "./handoff.js";
 export * from "./key-custody.js";
 export * from "./mark-ready.js";
 export * from "./shifts.js";

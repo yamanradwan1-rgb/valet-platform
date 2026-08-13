@@ -162,6 +162,14 @@ enum HandoffVerificationMethod {
   @@map("handoff_verification_method")
 }
 
+enum HandoffStandardMethodPolicy {
+  PICKUP_CODE
+  DYNAMIC_QR
+  EITHER
+
+  @@map("handoff_standard_method_policy")
+}
+
 enum PaymentServicePayer {
   CUSTOMER
   VENUE
@@ -253,13 +261,14 @@ enum NotificationStatus {
 }
 
 model Organization {
-  id                    String             @id @default(uuid()) @db.Uuid
-  name                  String
-  status                OrganizationStatus @default(ACTIVE)
-  timezone              String
-  checkInPhotosRequired Boolean            @default(false) @map("check_in_photos_required")
-  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt             DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                          String                      @id @default(uuid()) @db.Uuid
+  name                        String
+  status                      OrganizationStatus          @default(ACTIVE)
+  timezone                    String
+  checkInPhotosRequired       Boolean                     @default(false) @map("check_in_photos_required")
+  handoffStandardMethodPolicy HandoffStandardMethodPolicy @default(EITHER) @map("handoff_standard_method_policy")
+  createdAt                   DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                   DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   locations                Location[]
   memberships              OrganizationMembership[]
@@ -291,17 +300,18 @@ model Organization {
 }
 
 model Location {
-  id                            String         @id @default(uuid()) @db.Uuid
-  organizationId                String         @map("organization_id") @db.Uuid
-  name                          String
-  code                          String
-  addressText                   String         @map("address_text")
-  timezone                      String
-  currency                      String
-  status                        LocationStatus @default(ACTIVE)
-  checkInPhotosRequiredOverride Boolean?       @map("check_in_photos_required_override")
-  createdAt                     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt                     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id                                  String                       @id @default(uuid()) @db.Uuid
+  organizationId                      String                       @map("organization_id") @db.Uuid
+  name                                String
+  code                                String
+  addressText                         String                       @map("address_text")
+  timezone                            String
+  currency                            String
+  status                              LocationStatus               @default(ACTIVE)
+  checkInPhotosRequiredOverride       Boolean?                     @map("check_in_photos_required_override")
+  handoffStandardMethodPolicyOverride HandoffStandardMethodPolicy? @map("handoff_standard_method_policy_override")
+  createdAt                           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                           DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   organization             Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   membershipLocationAccess MembershipLocationAccess[]

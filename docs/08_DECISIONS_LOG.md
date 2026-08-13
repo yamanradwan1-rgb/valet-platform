@@ -2284,3 +2284,33 @@ VAL-006B does not implement Retrieval assignment/acceptance/reassignment, key ch
 
 Full binding contract:
 `docs/decisions/DEC-040_GUEST_RETRIEVAL_REQUEST.md`
+
+---
+
+## DEC-041 — Secure Handoff Verification
+
+Status: Accepted
+Date: 2026-08-13
+
+Decision:
+VAL-006F implements explicit staff-owned `READY -> HANDOFF_PENDING`, guest-bearer
+Standard proof issuance/rotation, separate staff pickup-code and Dynamic-QR
+verification commands, actively shifted same-Location `VALET_SUPERVISOR`-only
+override while already `HANDOFF_PENDING`, and reasoned owner/supervisor abort
+back to `READY`. Verification does not release the vehicle; Task remains
+`IN_PROGRESS` and RetrievalRequest remains `ACCEPTED`.
+
+Typed handoff policy is Company default -> nullable Location override with
+`PICKUP_CODE | DYNAMIC_QR | EITHER` and Company default `EITHER`. Pickup code
+expires after 10 minutes, Dynamic QR after 2 minutes, both permit five attempts,
+and durable session limits span rotations. Raw material is one-time response
+only; persistence uses a separate domain-separated HMAC verifier. Migration 22
+adds only typed policy columns/enum and durable handoff anti-abuse scopes;
+migrations 1–21 and the HandoffVerification table remain immutable.
+
+Supervisor override never performs initiation. VAL-006G must re-evaluate the
+effective method policy at release and accept only a still-valid, unconsumed,
+unexpired, currently allowed Standard proof or valid unconsumed override.
+
+Full binding contract:
+`docs/decisions/DEC-041_SECURE_HANDOFF_VERIFICATION.md`

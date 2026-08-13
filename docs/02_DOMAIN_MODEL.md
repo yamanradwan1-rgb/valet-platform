@@ -269,6 +269,16 @@ Either standard QR or pickup code may satisfy the normal handoff policy. Higher-
 
 Reusable plaintext verification secrets must never be stored.
 
+DEC-041 locks Standard handoff policy as typed `PICKUP_CODE | DYNAMIC_QR |
+EITHER` configuration with Company default `EITHER` and nullable Location
+override. Staff explicitly initiates `READY -> HANDOFF_PENDING`; a guest bearer
+issues/displays one-time material and the current Retrieval Task owner verifies
+it. Supervisor override is valid only after initiation and only for an actively
+shifted same-Location `VALET_SUPERVISOR`. Verification does not release the
+vehicle. Final release must re-evaluate current policy and require a still-valid,
+unconsumed, unexpired allowed Standard verification or valid unconsumed
+supervisor override.
+
 ## Payment
 
 The current financial aggregate for one ValetSession. At most one Payment exists per session. It is created when the session's financial policy is evaluated; absence is not equivalent to `NOT_REQUIRED`.
