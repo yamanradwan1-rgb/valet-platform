@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   assignTaskRequestSchema,
   declineTaskRequestSchema,
+  parkingTaskQueueResponseSchema,
   reassignTaskRequestSchema,
   taskQueueQuerySchema,
   taskProjectionSchema,
@@ -62,17 +63,25 @@ describe("VAL-005E strict shared contracts", () => {
   });
 
   it("bounds reasons and keeps projection minimal", () => {
+    const retrieval = {
+      createdAt: "2026-08-12T00:00:00.000Z",
+      currentAssigneeMembershipId: null,
+      sessionId: id,
+      status: "QUEUED",
+      taskId: id,
+      taskType: "RETRIEVAL",
+      version: 1,
+    } as const;
+    expect(taskProjectionSchema.parse(retrieval).taskType).toBe("RETRIEVAL");
     expect(
-      taskProjectionSchema.parse({
-        createdAt: "2026-08-12T00:00:00.000Z",
-        currentAssigneeMembershipId: null,
-        sessionId: id,
-        status: "QUEUED",
-        taskId: id,
-        taskType: "RETRIEVAL",
-        version: 1,
-      }).taskType,
-    ).toBe("RETRIEVAL");
+      parkingTaskQueueResponseSchema.safeParse({
+        ...retrieval,
+        taskType: "PARKING",
+      }).success,
+    ).toBe(true);
+    expect(parkingTaskQueueResponseSchema.safeParse(retrieval).success).toBe(
+      false,
+    );
     expect(
       declineTaskRequestSchema.safeParse({
         expectedVersion: 1,

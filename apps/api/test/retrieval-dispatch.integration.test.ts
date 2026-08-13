@@ -12,7 +12,6 @@ import { createEndShiftCommandExecutor } from "../src/modules/shifts/end-shift-c
 import {
   DispatchTestContext,
   expectDispatchError,
-  type DispatchFixture,
 } from "./dispatch-test-context";
 
 const context = new DispatchTestContext("retrieval_dispatch");
@@ -20,45 +19,17 @@ const context = new DispatchTestContext("retrieval_dispatch");
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
 
-async function retrievalFixture(
-  role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
-) {
-  const fixture = await context.createDispatchFixture({
-    role,
-    sessionState: "REQUESTED",
-  });
-  const retrieval = await context.createRetrievalTask(fixture);
-  return { fixture, retrieval };
-}
-
-async function assertPhysicalStateUnchanged(fixture: DispatchFixture) {
-  const result = await context.adminPool.query<{
-    checked_out: number;
-    request_status: string;
-    retrieval_started_at: Date | null;
-    session_state: string;
-  }>(
-    `SELECT session.state::text AS session_state, session.retrieval_started_at,
-            request.status::text AS request_status,
-            (SELECT count(*)::integer FROM key_custody_events
-             WHERE valet_session_id = session.id AND event_type = 'CHECKED_OUT')
-              AS checked_out
-     FROM valet_sessions AS session
-     INNER JOIN retrieval_requests AS request ON request.valet_session_id = session.id
-     WHERE session.id = $1 AND request.status = 'OPEN'`,
-    [fixture.sessionId],
-  );
-  expect(result.rows[0]).toEqual({
-    checked_out: 0,
-    request_status: "OPEN",
-    retrieval_started_at: null,
-    session_state: "REQUESTED",
-  });
-}
+const unchangedRetrievalPhysicalState = {
+  checked_out: 0,
+  request_status: "OPEN",
+  retrieval_started_at: null,
+  session_state: "REQUESTED",
+};
 
 describe("VAL-006C Retrieval Task dispatch composition", () => {
   it("queues, self-claims, accepts, and declines without physical Retrieval effects", async () => {
-    const { fixture, retrieval } = await retrievalFixture();
+    const { fixture, retrieval } =
+      await context.createRetrievalDispatchFixture();
     const queued = await createTaskQueueQuery(context.runtimePool)({
       authenticatedUserId: fixture.userId,
       locationId: fixture.locationId,
@@ -94,7 +65,7 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
       }),
       "TASK_INVALID_STATE",
     );
-    const requeued = await retrievalFixture();
+    const requeued = await context.createRetrievalDispatchFixture();
     await createAssignTaskCommandExecutor(context.runtimePool)({
       authenticatedUserId: requeued.fixture.userId,
       expectedVersion: 1,
@@ -122,13 +93,29 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
         }),
       ]),
     );
-    await assertPhysicalStateUnchanged(fixture);
-    await assertPhysicalStateUnchanged(requeued.fixture);
+    expect(await context.retrievalPhysicalState(fixture.sessionId)).toEqual(
+      unchangedRetrievalPhysicalState,
+    );
+    expect(
+      await context.retrievalPhysicalState(requeued.fixture.sessionId),
+    ).toEqual(unchangedRetrievalPhysicalState);
   });
 
   it("supports supervisor automatic assignment and reassignment across allowed states", async () => {
-    const { fixture, retrieval } = await retrievalFixture("VALET_SUPERVISOR");
+    const { fixture, retrieval } =
+      await context.createRetrievalDispatchFixture("VALET_SUPERVISOR");
     const target = await context.addMember(fixture);
+    const supervisorWork = await createQueueParkingTaskCommandExecutor(
+      context.runtimePool,
+    )({
+      authenticatedUserId: fixture.userId,
+      sessionId: await context.addSession(fixture),
+    });
+    await createAssignTaskCommandExecutor(context.runtimePool)({
+      authenticatedUserId: fixture.userId,
+      expectedVersion: 1,
+      taskId: supervisorWork.taskId,
+    });
     const assigned = await createAssignTaskCommandExecutor(context.runtimePool)(
       {
         assignmentMode: "AUTOMATIC",
@@ -137,24 +124,28 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
         taskId: retrieval.taskId,
       },
     );
-    expect(assigned).toMatchObject({ status: "ASSIGNED", version: 2 });
+    expect(assigned).toMatchObject({
+      currentAssigneeMembershipId: target.membershipId,
+      status: "ASSIGNED",
+      version: 2,
+    });
     const reassigned = await createReassignTaskCommandExecutor(
       context.runtimePool,
     )({
       authenticatedUserId: fixture.userId,
       expectedVersion: 2,
       reason: "shift handoff",
-      targetAssigneeMembershipId: target.membershipId,
+      targetAssigneeMembershipId: fixture.membershipId,
       taskId: retrieval.taskId,
     });
     expect(reassigned).toMatchObject({
-      currentAssigneeMembershipId: target.membershipId,
+      currentAssigneeMembershipId: fixture.membershipId,
       status: "ASSIGNED",
       version: 3,
     });
     const accepted = await createAcceptTaskCommandExecutor(context.runtimePool)(
       {
-        authenticatedUserId: target.userId,
+        authenticatedUserId: fixture.userId,
         expectedVersion: 3,
         taskId: retrieval.taskId,
       },
@@ -165,11 +156,11 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
       authenticatedUserId: fixture.userId,
       expectedVersion: accepted.version,
       reason: "supervisor takeover",
-      targetAssigneeMembershipId: fixture.membershipId,
+      targetAssigneeMembershipId: target.membershipId,
       taskId: retrieval.taskId,
     });
     expect(returned).toMatchObject({
-      currentAssigneeMembershipId: fixture.membershipId,
+      currentAssigneeMembershipId: target.membershipId,
       status: "ACCEPTED",
       version: 5,
     });
@@ -178,7 +169,7 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
         authenticatedUserId: fixture.userId,
         expectedVersion: 5,
         reason: "same person",
-        targetAssigneeMembershipId: fixture.membershipId,
+        targetAssigneeMembershipId: target.membershipId,
         taskId: retrieval.taskId,
       }),
       "TASK_ASSIGNMENT_CONFLICT",
@@ -193,16 +184,19 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
         authenticatedUserId: fixture.userId,
         expectedVersion: 5,
         reason: "in progress handoff",
-        targetAssigneeMembershipId: target.membershipId,
+        targetAssigneeMembershipId: fixture.membershipId,
         taskId: retrieval.taskId,
       }),
       "TASK_INVALID_STATE",
     );
-    await assertPhysicalStateUnchanged(fixture);
+    expect(await context.retrievalPhysicalState(fixture.sessionId)).toEqual(
+      unchangedRetrievalPhysicalState,
+    );
   });
 
   it("counts Parking and Retrieval ownership together for ranking and Shift end", async () => {
-    const { fixture, retrieval } = await retrievalFixture("VALET_SUPERVISOR");
+    const { fixture, retrieval } =
+      await context.createRetrievalDispatchFixture("VALET_SUPERVISOR");
     const lowerLoad = await context.addMember(fixture);
     await createAssignTaskCommandExecutor(context.runtimePool)({
       authenticatedUserId: fixture.userId,
@@ -245,12 +239,15 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
       }),
       "OPEN_TASK_HANDOFF_REQUIRED",
     );
-    await assertPhysicalStateUnchanged(fixture);
+    expect(await context.retrievalPhysicalState(fixture.sessionId)).toEqual(
+      unchangedRetrievalPhysicalState,
+    );
   });
 
   it("conceals foreign Retrieval Tasks and rejects stale or ineligible mutation", async () => {
-    const owner = await retrievalFixture("VALET_SUPERVISOR");
-    const foreign = await retrievalFixture();
+    const owner =
+      await context.createRetrievalDispatchFixture("VALET_SUPERVISOR");
+    const foreign = await context.createRetrievalDispatchFixture();
     await expectDispatchError(
       createAssignTaskCommandExecutor(context.runtimePool)({
         authenticatedUserId: foreign.fixture.userId,
@@ -290,6 +287,8 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
     expect(await context.dispatchEvents(owner.retrieval.taskId)).toHaveLength(
       2,
     );
-    await assertPhysicalStateUnchanged(owner.fixture);
+    expect(
+      await context.retrievalPhysicalState(owner.fixture.sessionId),
+    ).toEqual(unchangedRetrievalPhysicalState);
   });
 });

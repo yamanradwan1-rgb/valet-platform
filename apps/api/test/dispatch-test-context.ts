@@ -25,6 +25,18 @@ export interface RetrievalTaskFixture {
   readonly taskId: string;
 }
 
+export interface RetrievalDispatchFixture {
+  readonly fixture: DispatchFixture;
+  readonly retrieval: RetrievalTaskFixture;
+}
+
+export interface RetrievalPhysicalState {
+  readonly checked_out: number;
+  readonly request_status: string;
+  readonly retrieval_started_at: Date | null;
+  readonly session_state: string;
+}
+
 export class DispatchTestContext extends ShiftTestContext {
   constructor(label: string) {
     super(`005e_${label}`);
@@ -166,6 +178,33 @@ export class DispatchTestContext extends ShiftTestContext {
       ],
     );
     return { retrievalRequestId, taskId };
+  }
+
+  async createRetrievalDispatchFixture(
+    role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
+  ): Promise<RetrievalDispatchFixture> {
+    const fixture = await this.createDispatchFixture({
+      role,
+      sessionState: "REQUESTED",
+    });
+    return { fixture, retrieval: await this.createRetrievalTask(fixture) };
+  }
+
+  async retrievalPhysicalState(
+    sessionId: string,
+  ): Promise<RetrievalPhysicalState | undefined> {
+    const result = await this.adminPool.query<RetrievalPhysicalState>(
+      `SELECT session.state::text AS session_state, session.retrieval_started_at,
+              request.status::text AS request_status,
+              (SELECT count(*)::integer FROM key_custody_events
+               WHERE valet_session_id = session.id AND event_type = 'CHECKED_OUT')
+                AS checked_out
+       FROM valet_sessions AS session
+       INNER JOIN retrieval_requests AS request ON request.valet_session_id = session.id
+       WHERE session.id = $1 AND request.status = 'OPEN'`,
+      [sessionId],
+    );
+    return result.rows[0];
   }
 
   async dispatchEvents(taskId: string) {

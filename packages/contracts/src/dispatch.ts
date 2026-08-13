@@ -17,7 +17,9 @@ export const taskProjectionSchema = z
   .strict();
 
 export const parkingTaskQueueRequestSchema = z.object({}).strict();
-export const parkingTaskQueueResponseSchema = taskProjectionSchema;
+export const parkingTaskQueueResponseSchema = taskProjectionSchema.extend({
+  taskType: z.literal("PARKING"),
+});
 
 export const taskQueueQuerySchema = z
   .object({ locationId: uuidSchema })
