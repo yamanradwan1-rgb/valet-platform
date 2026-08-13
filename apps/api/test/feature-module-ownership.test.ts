@@ -35,6 +35,8 @@ import { StartParkingModule } from "../src/modules/parking/start-parking.module"
 import { StartParkingService } from "../src/modules/parking/start-parking.service";
 import { ConfirmParkedController } from "../src/modules/parking/confirm-parked.controller";
 import { ConfirmParkedService } from "../src/modules/parking/confirm-parked.service";
+import { CompleteHandoffController } from "../src/modules/retrieval/complete-handoff.controller";
+import { CompleteHandoffService } from "../src/modules/retrieval/complete-handoff.service";
 import { GuestRetrievalController } from "../src/modules/retrieval/guest-retrieval.controller";
 import { HandoffGuestController } from "../src/modules/retrieval/handoff-guest.controller";
 import { HandoffStaffController } from "../src/modules/retrieval/handoff-staff.controller";
@@ -90,6 +92,7 @@ describe("accepted feature module ownership", () => {
 
   it("keeps guest and staff Retrieval ownership separate from Guest Access", () => {
     expect(metadata(RetrievalModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      CompleteHandoffController,
       GuestRetrievalController,
       HandoffGuestController,
       HandoffStaffController,
@@ -97,6 +100,7 @@ describe("accepted feature module ownership", () => {
       StartRetrievalController,
     ]);
     expect(metadata(RetrievalModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      CompleteHandoffService,
       HandoffService,
       RetrievalService,
       MarkReadyService,

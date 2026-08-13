@@ -3,12 +3,13 @@ import {
   appendKeyCustodyEvent,
   type KeyCustodyScope,
   type ParkingCustodyEventType,
+  type ReleaseCustodyEventType,
 } from "./key-custody-event-writer";
 
-async function recordParkingCustody(
+async function recordCustody(
   transaction: PostgresTransaction,
   input: KeyCustodyScope & { readonly occurredAt: Date },
-  eventType: ParkingCustodyEventType,
+  eventType: ParkingCustodyEventType | ReleaseCustodyEventType,
   eventIdFactory?: () => string,
 ): Promise<string> {
   const scope = await transaction.query<{ valid: boolean }>(
@@ -49,12 +50,7 @@ export function recordKeyCheckedOut(
   input: KeyCustodyScope & { readonly occurredAt: Date },
   eventIdFactory?: () => string,
 ): Promise<string> {
-  return recordParkingCustody(
-    transaction,
-    input,
-    "CHECKED_OUT",
-    eventIdFactory,
-  );
+  return recordCustody(transaction, input, "CHECKED_OUT", eventIdFactory);
 }
 
 export function recordKeyReturnedToSlot(
@@ -62,10 +58,13 @@ export function recordKeyReturnedToSlot(
   input: KeyCustodyScope & { readonly occurredAt: Date },
   eventIdFactory?: () => string,
 ): Promise<string> {
-  return recordParkingCustody(
-    transaction,
-    input,
-    "RETURNED_TO_SLOT",
-    eventIdFactory,
-  );
+  return recordCustody(transaction, input, "RETURNED_TO_SLOT", eventIdFactory);
+}
+
+export function recordKeyReleased(
+  transaction: PostgresTransaction,
+  input: KeyCustodyScope & { readonly occurredAt: Date },
+  eventIdFactory?: () => string,
+): Promise<string> {
+  return recordCustody(transaction, input, "RELEASED", eventIdFactory);
 }

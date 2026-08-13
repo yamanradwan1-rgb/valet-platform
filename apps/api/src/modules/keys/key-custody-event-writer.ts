@@ -4,6 +4,7 @@ import type { PostgresTransaction } from "../../common/database/postgres";
 
 export type AssignmentCustodyEventType = "SLOT_ASSIGNED" | "SLOT_CLEARED";
 export type ParkingCustodyEventType = "CHECKED_OUT" | "RETURNED_TO_SLOT";
+export type ReleaseCustodyEventType = "RELEASED";
 
 export interface KeyCustodyScope {
   readonly actorMembershipId: string;
@@ -16,7 +17,10 @@ export interface KeyCustodyScope {
 export async function appendKeyCustodyEvent(
   transaction: PostgresTransaction,
   input: KeyCustodyScope & {
-    readonly eventType: AssignmentCustodyEventType | ParkingCustodyEventType;
+    readonly eventType:
+      | AssignmentCustodyEventType
+      | ParkingCustodyEventType
+      | ReleaseCustodyEventType;
     readonly occurredAt: Date;
   },
   eventIdFactory: () => string = randomUUID,

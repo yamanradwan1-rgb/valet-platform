@@ -6,6 +6,8 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
 import { AuthModule } from "../auth/auth.module";
 import { GuestAccessModule } from "../guest-access/guest-access.module";
+import { CompleteHandoffController } from "./complete-handoff.controller";
+import { CompleteHandoffService } from "./complete-handoff.service";
 import { GuestRetrievalController } from "./guest-retrieval.controller";
 import { HandoffGuestController } from "./handoff-guest.controller";
 import { HandoffStaffController } from "./handoff-staff.controller";
@@ -18,6 +20,7 @@ import { StartRetrievalService } from "./start-retrieval.service";
 
 @Module({
   controllers: [
+    CompleteHandoffController,
     GuestRetrievalController,
     HandoffGuestController,
     HandoffStaffController,
@@ -32,6 +35,7 @@ import { StartRetrievalService } from "./start-retrieval.service";
     RuntimeDatabaseModule,
   ],
   providers: [
+    CompleteHandoffService,
     HandoffService,
     RetrievalService,
     MarkReadyService,
@@ -44,6 +48,7 @@ export class RetrievalModule implements NestModule {
       .apply(RequestIdMiddleware)
       .forRoutes(
         GuestRetrievalController,
+        CompleteHandoffController,
         HandoffGuestController,
         HandoffStaffController,
         MarkReadyController,
