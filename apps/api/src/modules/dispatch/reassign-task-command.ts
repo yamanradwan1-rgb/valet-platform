@@ -1,6 +1,6 @@
 import type { PostgresPool } from "../../common/database/postgres";
 import {
-  lockParkingTask,
+  lockOperationalTask,
   requireEligibleAssignee,
   requireTaskActor,
 } from "./task-authorization";
@@ -27,7 +27,7 @@ export function createReassignTaskCommandExecutor(
     readonly taskId: string;
   }) =>
     inDispatchTransaction(pool, async (transaction) => {
-      const task = await lockParkingTask(transaction, request.taskId);
+      const task = await lockOperationalTask(transaction, request.taskId);
       const actor = await requireTaskActor(
         transaction,
         task,

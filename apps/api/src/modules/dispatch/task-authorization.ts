@@ -7,7 +7,7 @@ const taskColumns = `id::text, organization_id::text, location_id::text,
   valet_session_id::text, task_type::text, status::text,
   current_assignee_membership_id::text, version, created_at, updated_at`;
 
-export async function lockParkingTask(
+export async function lockOperationalTask(
   transaction: PostgresTransaction,
   taskId: string,
 ): Promise<LockedTaskRow> {
@@ -16,7 +16,10 @@ export async function lockParkingTask(
     [taskId],
   );
   const task = result.rows[0];
-  if (task === undefined || task.task_type !== "PARKING") {
+  if (
+    task === undefined ||
+    (task.task_type !== "PARKING" && task.task_type !== "RETRIEVAL")
+  ) {
     throw new DispatchOperationError("TASK_NOT_FOUND_OR_FORBIDDEN");
   }
   return task;
