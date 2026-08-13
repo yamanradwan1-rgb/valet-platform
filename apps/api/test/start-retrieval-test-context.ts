@@ -10,6 +10,7 @@ import {
 } from "./confirm-parked-test-context";
 
 export interface StartRetrievalFixture extends ConfirmParkedFixture {
+  readonly baselineKeyCustodyEventIds: readonly string[];
   readonly retrievalRequestId: string;
   readonly retrievalTaskId: string;
 }
@@ -40,8 +41,13 @@ export class StartRetrievalTestContext extends ConfirmParkedTestContext {
       expectedVersion: assigned.version,
       taskId: retrieval.taskId,
     });
+    const baselineCustody = await this.adminPool.query<{ id: string }>(
+      `SELECT id::text FROM key_custody_events WHERE valet_session_id = $1`,
+      [parked.sessionId],
+    );
     return {
       ...parked,
+      baselineKeyCustodyEventIds: baselineCustody.rows.map((event) => event.id),
       retrievalRequestId: retrieval.retrievalRequestId,
       retrievalTaskId: retrieval.taskId,
     };
@@ -101,6 +107,7 @@ export class StartRetrievalTestContext extends ConfirmParkedTestContext {
               key_slot_id::text, occurred_at
        FROM key_custody_events
        WHERE valet_session_id = $1 AND event_type = 'CHECKED_OUT'
+         AND NOT (id = ANY($3::uuid[]))
        UNION ALL
        SELECT actor_membership_id::text, event_type::text, NULL, occurred_at
        FROM dispatch_events
@@ -110,7 +117,11 @@ export class StartRetrievalTestContext extends ConfirmParkedTestContext {
        FROM audit_events
        WHERE valet_session_id = $1
          AND event_type = 'VALET_SESSION_RETRIEVAL_STARTED'`,
-      [fixture.sessionId, fixture.retrievalTaskId],
+      [
+        fixture.sessionId,
+        fixture.retrievalTaskId,
+        fixture.baselineKeyCustodyEventIds,
+      ],
     );
     const counts = await this.adminPool.query<{
       request_count: number;

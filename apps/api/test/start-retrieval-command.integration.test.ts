@@ -104,8 +104,11 @@ describe("VAL-006D Start Retrieval command", () => {
       const fixture = await context.createStartRetrievalFixture();
       await context.adminPool.query(
         `UPDATE tasks
-         SET status = $2,
-             current_assignee_membership_id = CASE WHEN $2 = 'QUEUED' THEN NULL ELSE current_assignee_membership_id END
+         SET status = $2::task_status,
+             current_assignee_membership_id = CASE
+               WHEN $2::task_status = 'QUEUED'::task_status THEN NULL
+               ELSE current_assignee_membership_id
+             END
          WHERE id = $1`,
         [fixture.retrievalTaskId, status],
       );

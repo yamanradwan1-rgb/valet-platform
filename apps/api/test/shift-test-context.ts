@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 
 import { Pool } from "pg";
@@ -80,9 +80,13 @@ export class ShiftTestContext {
   runtimePool!: Pool;
 
   constructor(label: string) {
-    const suffix = `${process.pid}_${Date.now()}_${randomBytes(3).toString("hex")}`;
-    this.databaseName = `vlt_005b_${label}_${suffix}`;
-    this.runtimeRole = `vlt_005b_${label}_role_${suffix}`;
+    const labelKey = createHash("sha256")
+      .update(label)
+      .digest("hex")
+      .slice(0, 10);
+    const suffix = `${process.pid.toString(36)}_${Date.now().toString(36)}_${randomBytes(6).toString("hex")}`;
+    this.databaseName = `vlt_005b_${labelKey}_${suffix}`;
+    this.runtimeRole = `vlt_005b_${labelKey}_role_${suffix}`;
     this.migrationUrl = targetUrl(this.databaseName);
     const runtimeUrl = new URL(this.migrationUrl);
     runtimeUrl.username = this.runtimeRole;
