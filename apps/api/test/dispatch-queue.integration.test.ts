@@ -90,10 +90,11 @@ describe("VAL-005E Parking Task queue", () => {
   });
 });
 
-describe("VAL-005E Location Task queue read", () => {
-  it("returns only same-Location nonterminal Parking projections", async () => {
+describe("Location operational Task queue read", () => {
+  it("returns same-Location nonterminal Parking and Retrieval projections", async () => {
     const fixture = await context.createDispatchFixture();
     const parking = await context.queue(fixture);
+    const retrievalTaskId = randomUUID();
     await context.adminPool.query(
       `INSERT INTO tasks
          (id, organization_id, location_id, valet_session_id, task_type,
@@ -101,7 +102,7 @@ describe("VAL-005E Location Task queue read", () => {
        VALUES ($1, $2, $3, $4, 'RETRIEVAL', 'QUEUED', 1,
                transaction_timestamp())`,
       [
-        randomUUID(),
+        retrievalTaskId,
         fixture.organizationId,
         fixture.locationId,
         fixture.sessionId,
@@ -111,7 +112,17 @@ describe("VAL-005E Location Task queue read", () => {
       authenticatedUserId: fixture.userId,
       locationId: fixture.locationId,
     });
-    expect(tasks).toEqual([parking]);
+    expect(tasks.map((task) => task.taskType).sort()).toEqual([
+      "PARKING",
+      "RETRIEVAL",
+    ]);
+    expect(tasks).toContainEqual(parking);
+    expect(tasks).toContainEqual(
+      expect.objectContaining({
+        taskId: retrievalTaskId,
+        taskType: "RETRIEVAL",
+      }),
+    );
     expect(tasks[0]).not.toHaveProperty("keySlotId");
     expect(tasks[0]).not.toHaveProperty("parkingZoneId");
     expect(tasks[0]).not.toHaveProperty("parkingSpotId");

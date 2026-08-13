@@ -20,6 +20,11 @@ export interface DispatchMember {
   readonly userId: string;
 }
 
+export interface RetrievalTaskFixture {
+  readonly retrievalRequestId: string;
+  readonly taskId: string;
+}
+
 export class DispatchTestContext extends ShiftTestContext {
   constructor(label: string) {
     super(`005e_${label}`);
@@ -119,6 +124,48 @@ export class DispatchTestContext extends ShiftTestContext {
       authenticatedUserId: fixture.userId,
       sessionId: fixture.sessionId,
     });
+  }
+
+  async createRetrievalTask(
+    fixture: DispatchFixture,
+  ): Promise<RetrievalTaskFixture> {
+    const retrievalRequestId = randomUUID();
+    const taskId = randomUUID();
+    await this.adminPool.query(
+      `INSERT INTO retrieval_requests
+         (id, organization_id, valet_session_id, requested_by_type,
+          requested_by_membership_id, status, requested_at)
+       VALUES ($1, $2, $3, 'STAFF', $4, 'OPEN', transaction_timestamp())`,
+      [
+        retrievalRequestId,
+        fixture.organizationId,
+        fixture.sessionId,
+        fixture.membershipId,
+      ],
+    );
+    await this.adminPool.query(
+      `INSERT INTO tasks
+         (id, organization_id, location_id, valet_session_id, task_type,
+          status, version, updated_at)
+       VALUES ($1, $2, $3, $4, 'RETRIEVAL', 'QUEUED', 1,
+               transaction_timestamp())`,
+      [taskId, fixture.organizationId, fixture.locationId, fixture.sessionId],
+    );
+    await this.adminPool.query(
+      `INSERT INTO dispatch_events
+         (id, organization_id, location_id, task_id, valet_session_id,
+          event_type, actor_membership_id, occurred_at)
+       VALUES ($1, $2, $3, $4, $5, 'QUEUED', NULL,
+               transaction_timestamp())`,
+      [
+        randomUUID(),
+        fixture.organizationId,
+        fixture.locationId,
+        taskId,
+        fixture.sessionId,
+      ],
+    );
+    return { retrievalRequestId, taskId };
   }
 
   async dispatchEvents(taskId: string) {

@@ -25,17 +25,17 @@ export interface TaskProjection {
   readonly sessionId: string;
   readonly status: OperationalTaskStatus;
   readonly taskId: string;
-  readonly taskType: "PARKING";
+  readonly taskType: "PARKING" | "RETRIEVAL";
   readonly version: number;
 }
 
 export function toTaskProjection(task: LockedTaskRow): TaskProjection {
   if (
-    task.task_type !== "PARKING" ||
+    (task.task_type !== "PARKING" && task.task_type !== "RETRIEVAL") ||
     task.status === "COMPLETED" ||
     task.status === "CANCELLED"
   ) {
-    throw new Error("Task is outside the Phase-3 operational projection.");
+    throw new Error("Task is outside the operational task projection.");
   }
   return {
     createdAt: task.created_at.toISOString(),
@@ -43,7 +43,7 @@ export function toTaskProjection(task: LockedTaskRow): TaskProjection {
     sessionId: task.valet_session_id,
     status: task.status,
     taskId: task.id,
-    taskType: "PARKING",
+    taskType: task.task_type,
     version: task.version,
   };
 }

@@ -11,7 +11,7 @@ export const taskProjectionSchema = z
     sessionId: uuidSchema,
     status: z.enum(["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS"]),
     taskId: uuidSchema,
-    taskType: z.literal("PARKING"),
+    taskType: z.enum(["PARKING", "RETRIEVAL"]),
     version: versionSchema,
   })
   .strict();

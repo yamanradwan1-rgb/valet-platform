@@ -63,6 +63,17 @@ describe("VAL-005E strict shared contracts", () => {
 
   it("bounds reasons and keeps projection minimal", () => {
     expect(
+      taskProjectionSchema.parse({
+        createdAt: "2026-08-12T00:00:00.000Z",
+        currentAssigneeMembershipId: null,
+        sessionId: id,
+        status: "QUEUED",
+        taskId: id,
+        taskType: "RETRIEVAL",
+        version: 1,
+      }).taskType,
+    ).toBe("RETRIEVAL");
+    expect(
       declineTaskRequestSchema.safeParse({
         expectedVersion: 1,
         reason: "x".repeat(501),

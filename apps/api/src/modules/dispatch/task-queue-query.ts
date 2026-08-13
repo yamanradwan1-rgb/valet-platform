@@ -35,7 +35,7 @@ export function createTaskQueueQuery(pool: PostgresPool) {
            valet_session_id::text, task_type::text, status::text,
            current_assignee_membership_id::text, version, created_at, updated_at
          FROM tasks
-         WHERE location_id = $1 AND task_type = 'PARKING'
+         WHERE location_id = $1 AND task_type IN ('PARKING', 'RETRIEVAL')
            AND status IN ('QUEUED', 'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS')
          ORDER BY created_at, id`,
         [request.locationId],
