@@ -2314,3 +2314,30 @@ unexpired, currently allowed Standard proof or valid unconsumed override.
 
 Full binding contract:
 `docs/decisions/DEC-042_SECURE_HANDOFF_VERIFICATION.md`
+
+---
+
+## DEC-043 — Vehicle Release & Session Completion
+
+Status: Accepted
+Date: 2026-08-14
+
+Decision:
+VAL-006G adds the explicit staff `complete-handoff` command for the atomic
+`HANDOFF_PENDING -> COMPLETED` physical release. The current eligible
+`VALET_EMPLOYEE` or `VALET_SUPERVISOR` Retrieval Task owner is the only ordinary
+release authority; a supervisor override replaces Standard guest proof but
+does not replace canonical Task ownership.
+
+Release reuses the DEC-042 transaction-aware guard to require a still-valid,
+unconsumed, unexpired, currently allowed Standard proof or valid unconsumed
+supervisor override. One transaction consumes that proof, appends the actual
+KeySlot `RELEASED` custody fact, clears current KeySlot occupancy, completes the
+RetrievalRequest and Retrieval Task, appends Dispatch completion, completes the
+ValetSession, and appends distinct vehicle-released/session-completed Audit
+history. Migrations 1–22 and Prisma remain unchanged. No speculative payment,
+validation, or incident release rule is introduced before an owning typed
+policy/guard exists.
+
+Full binding contract:
+`docs/decisions/DEC-043_VEHICLE_RELEASE_SESSION_COMPLETION.md`
