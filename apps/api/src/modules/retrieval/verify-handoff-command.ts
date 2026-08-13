@@ -88,7 +88,11 @@ async function recordFailedAttempt(
     terminalized = forceTerminalize || attempt >= verification.max_attempts;
     await transaction.query(
       `UPDATE handoff_verifications
-       SET attempt_count = $2, consumed_at = CASE WHEN $3 THEN $4 ELSE NULL END
+       SET attempt_count = $2,
+           consumed_at = CASE
+             WHEN $3 THEN $4::timestamptz
+             ELSE NULL::timestamptz
+           END
        WHERE id = $1 AND consumed_at IS NULL`,
       [verification.id, attempt, terminalized, operationTime],
     );

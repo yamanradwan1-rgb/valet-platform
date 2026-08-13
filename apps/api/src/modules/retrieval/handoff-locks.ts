@@ -103,15 +103,15 @@ export async function authorizeHandoffSupervisor(
   session: LockedHandoffSession,
   actor: HandoffActor,
 ): Promise<void> {
-  if (actor.role !== "VALET_SUPERVISOR") {
-    throw new HandoffError("HANDOFF_OVERRIDE_NOT_ALLOWED");
-  }
   const eligibility = await lockShiftOperationalEligibility(transaction, {
     locationId: session.location_id,
     membershipId: actor.membershipId,
   });
   if (eligibility === null)
+    throw new HandoffError("TASK_NOT_FOUND_OR_FORBIDDEN");
+  if (actor.role !== "VALET_SUPERVISOR") {
     throw new HandoffError("HANDOFF_OVERRIDE_NOT_ALLOWED");
+  }
 }
 
 export async function authorizeHandoffAbort(

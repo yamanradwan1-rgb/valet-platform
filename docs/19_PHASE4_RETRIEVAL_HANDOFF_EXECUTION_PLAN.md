@@ -166,7 +166,7 @@ It requires:
 - server-authoritative timestamp;
 - append-only Audit/Black Box evidence.
 
-DEC-041 limits override to an actively shifted, explicitly authorized
+DEC-042 limits override to an actively shifted, explicitly authorized
 same-Location `VALET_SUPERVISOR`. It is valid only after explicit initiation has
 placed the session in `HANDOFF_PENDING`; it never performs
 `READY -> HANDOFF_PENDING`. When the current Task owner is unavailable, existing
@@ -300,7 +300,7 @@ Purpose:
 - allow safe abort `HANDOFF_PENDING -> READY` where the accepted contract permits;
 - preserve guest/staff privacy and audit requirements.
 
-DEC-041 locks typed Company default -> Location override method policy,
+DEC-042 locks typed Company default -> Location override method policy,
 guest-bearer issue/display, current Task-owner verification, 10-minute pickup
 code, 2-minute Dynamic QR, five attempts per proof and durable session-wide
 anti-abuse across rotations. Verification leaves Task `IN_PROGRESS` and

@@ -1,4 +1,4 @@
-# DEC-041 — Secure Handoff Verification
+# DEC-042 — Secure Handoff Verification
 
 Status: Accepted
 Date: 2026-08-13

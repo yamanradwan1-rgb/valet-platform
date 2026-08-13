@@ -66,6 +66,35 @@ export class HandoffTestContext extends MarkReadyTestContext {
     return { ...fixture, guestToken };
   }
 
+  async addCrossTenantSupervisor() {
+    const actor = await this.createFixture({ role: "VALET_SUPERVISOR" });
+    await this.startShift(actor);
+    return actor;
+  }
+
+  async addWrongLocationSupervisor(fixture: HandoffFixture) {
+    const actor = await this.addMember(fixture, "VALET_SUPERVISOR", false);
+    await this.adminPool.query(
+      `DELETE FROM membership_location_access
+       WHERE membership_id = $1 AND location_id = $2`,
+      [actor.membershipId, fixture.locationId],
+    );
+    const wrongLocationId = await this.addLocation(fixture);
+    await this.adminPool.query(
+      `INSERT INTO membership_location_access
+         (organization_id, membership_id, location_id)
+       VALUES ($1, $2, $3)`,
+      [fixture.organizationId, actor.membershipId, wrongLocationId],
+    );
+    await this.startShift({
+      locationId: wrongLocationId,
+      membershipId: actor.membershipId,
+      organizationId: fixture.organizationId,
+      userId: actor.userId,
+    });
+    return actor;
+  }
+
   initiate(fixture: HandoffFixture, expectedSessionVersion = 7) {
     return createInitiateHandoffExecutor(this.runtimePool)({
       authenticatedUserId: fixture.userId,

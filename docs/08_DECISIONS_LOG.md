@@ -2287,7 +2287,7 @@ Full binding contract:
 
 ---
 
-## DEC-041 — Secure Handoff Verification
+## DEC-042 — Secure Handoff Verification
 
 Status: Accepted
 Date: 2026-08-13
@@ -2313,4 +2313,4 @@ effective method policy at release and accept only a still-valid, unconsumed,
 unexpired, currently allowed Standard proof or valid unconsumed override.
 
 Full binding contract:
-`docs/decisions/DEC-041_SECURE_HANDOFF_VERIFICATION.md`
+`docs/decisions/DEC-042_SECURE_HANDOFF_VERIFICATION.md`

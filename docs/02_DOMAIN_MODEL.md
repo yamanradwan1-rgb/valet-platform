@@ -269,7 +269,7 @@ Either standard QR or pickup code may satisfy the normal handoff policy. Higher-
 
 Reusable plaintext verification secrets must never be stored.
 
-DEC-041 locks Standard handoff policy as typed `PICKUP_CODE | DYNAMIC_QR |
+DEC-042 locks Standard handoff policy as typed `PICKUP_CODE | DYNAMIC_QR |
 EITHER` configuration with Company default `EITHER` and nullable Location
 override. Staff explicitly initiates `READY -> HANDOFF_PENDING`; a guest bearer
 issues/displays one-time material and the current Retrieval Task owner verifies

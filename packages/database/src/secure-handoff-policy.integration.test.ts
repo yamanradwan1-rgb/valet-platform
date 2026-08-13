@@ -42,19 +42,21 @@ afterAll(async () => {
   await bootstrap.end();
 }, 60_000);
 
-describe("DEC-041 secure handoff policy persistence", () => {
+describe("DEC-042 secure handoff policy persistence", () => {
   it("uses EITHER as Company default with nullable Location override", async () => {
     const organizationId = randomUUID();
     const locationId = randomUUID();
     await client.query(
-      `INSERT INTO organizations (id, name, timezone)
-       VALUES ($1, 'Handoff policy org', 'Asia/Amman')`,
+      `INSERT INTO organizations (id, name, timezone, updated_at)
+       VALUES ($1, 'Handoff policy org', 'Asia/Amman', transaction_timestamp())`,
       [organizationId],
     );
     await client.query(
       `INSERT INTO locations
-         (id, organization_id, name, code, address_text, timezone, currency)
-       VALUES ($1, $2, 'Pickup', 'PICKUP', 'Test', 'Asia/Amman', 'JOD')`,
+         (id, organization_id, name, code, address_text, timezone, currency,
+          updated_at)
+       VALUES ($1, $2, 'Pickup', 'PICKUP', 'Test', 'Asia/Amman', 'JOD',
+               transaction_timestamp())`,
       [locationId, organizationId],
     );
     const initial = await client.query<{

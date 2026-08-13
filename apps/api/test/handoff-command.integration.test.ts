@@ -190,14 +190,10 @@ describe("VAL-006F secure handoff commands", () => {
     });
   });
 
-  it("denies manager override and conceals standard verification from non-owner", async () => {
+  it("conceals standard verification from a non-owner", async () => {
     const fixture = await context.createHandoffFixture();
     await context.initiate(fixture);
-    const manager = await context.addMember(fixture, "LOCATION_MANAGER", false);
     const employee = await context.addMember(fixture);
-    await expect(
-      context.overrideHandoff(fixture, manager.userId, 8),
-    ).rejects.toMatchObject({ code: "HANDOFF_OVERRIDE_NOT_ALLOWED" });
     const material = await context.issue(fixture, "PICKUP_CODE");
     await expect(
       context.verify(

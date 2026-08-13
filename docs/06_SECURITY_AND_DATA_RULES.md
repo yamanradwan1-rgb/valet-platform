@@ -194,7 +194,7 @@ Security controls:
 - consumed verification cannot be reused
 - no plaintext pickup code/QR secret in logs/audit metadata
 
-DEC-041 locks four-digit pickup-code expiry to 10 minutes and opaque 256-bit
+DEC-042 locks four-digit pickup-code expiry to 10 minutes and opaque 256-bit
 Dynamic-QR expiry to 2 minutes. Both allow five attempts per issued proof.
 Durable per-session limits allow five issue/rotation creations and ten failed
 proof submissions across rotations per 15 minutes. Persistence uses a dedicated

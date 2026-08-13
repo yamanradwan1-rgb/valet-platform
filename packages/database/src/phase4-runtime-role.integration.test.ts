@@ -14,8 +14,8 @@ const databaseName = `valet_006a_role_${suffix}`;
 const runtimeRole = `valet_006a_runtime_${suffix}`;
 const runtimePassword = `runtime-${randomUUID()}`;
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
-const prismaExecutable = fileURLToPath(
-  new URL("../node_modules/.bin/prisma", import.meta.url),
+const prismaCli = fileURLToPath(
+  new URL("../node_modules/prisma/build/index.js", import.meta.url),
 );
 let adminPool: Pool;
 
@@ -63,8 +63,8 @@ beforeAll(async () => {
   const migrationUrl = scopedUrl();
   const runtimeUrl = scopedUrl(runtimeRole, runtimePassword);
   await runDatabaseScript(
-    prismaExecutable,
-    ["migrate", "deploy"],
+    process.execPath,
+    [prismaCli, "migrate", "deploy"],
     migrationUrl,
   );
   await runDatabaseScript(

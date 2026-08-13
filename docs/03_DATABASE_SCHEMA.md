@@ -87,7 +87,7 @@ This is a binding product requirement but does not authorize a speculative gener
 
 Introduce typed configuration entities/columns in focused tasks when the corresponding policy is implemented.
 
-DEC-041 adds typed Standard handoff policy:
+DEC-042 adds typed Standard handoff policy:
 
 ```text
 organizations.handoff_standard_method_policy
@@ -802,7 +802,7 @@ Rules:
 - consumed verification cannot be reused
 - supervisor override requires authorized actor + non-empty reason + audit
 - normal Standard policy accepts Dynamic QR OR 4-digit pickup code; stronger policies are later/enterprise configuration
-- DEC-041 serializes active lifecycle through the locked ValetSession and permits
+- DEC-042 serializes active lifecycle through the locked ValetSession and permits
   at most one unconsumed authoritative verification per session without adding a
   speculative active-row index
 - pickup-code expiry is 10 minutes; Dynamic-QR expiry is 2 minutes; both use
