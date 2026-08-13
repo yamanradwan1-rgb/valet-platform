@@ -129,6 +129,11 @@ const operationRoutes: ReadonlyArray<{
     operation: "KEY_SLOT_CLEAR",
     path: /^\/v1\/staff\/valet-sessions\/[^/]+\/key-slot\/clear$/,
   },
+  {
+    method: "POST",
+    operation: "START_RETRIEVAL",
+    path: /^\/v1\/staff\/valet-sessions\/[^/]+\/start-retrieval$/,
+  },
 ];
 
 const guestAccessOperations = new Set([
