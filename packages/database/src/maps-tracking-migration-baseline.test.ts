@@ -33,12 +33,13 @@ const baselineHashes = [
   "49F26DE013E98BFB0E2A590321BD52FE14133749C3B4D64E41F9D357997B4E6C",
   "B4C281AD766C7B1E494CBC32B9FD32150E97E12C937B9266B9FCDF7152582A21",
   "43FC46750D162D1B0E0F086D0D7884A405D5263E7839BEE212BA2270D7F0F9E6",
+  "A506B54D8CC209C5C4B2B3DE5854AC685834B9E474CE3E6FF08C026ADE382534",
 ] as const;
 
-describe("migration 23 baseline", () => {
-  it("keeps migrations 1-22 byte-for-byte unchanged", async () => {
+describe("migration 24 baseline", () => {
+  it("keeps migrations 1-23 byte-for-byte unchanged", async () => {
     const actual = await Promise.all(
-      expectedMigrationDirectories.slice(0, 22).map(async (directory) => {
+      expectedMigrationDirectories.slice(0, 23).map(async (directory) => {
         const bytes = await readFile(
           join(migrationsPath, directory, "migration.sql"),
         );

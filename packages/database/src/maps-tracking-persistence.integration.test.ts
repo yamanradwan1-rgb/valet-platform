@@ -75,8 +75,8 @@ afterAll(async () => {
 
 describe("DEC-046 maps and tracking persistence", () => {
   it("applies migration 23 with the accepted typed tables and policy defaults", async () => {
-    expect(expectedMigrationDirectories).toHaveLength(23);
-    expect(expectedMigrationDirectories.at(-1)).toBe(
+    expect(expectedMigrationDirectories).toHaveLength(24);
+    expect(expectedMigrationDirectories.at(22)).toBe(
       "20260814002300_phase5_maps_tracking_persistence",
     );
     const tables = await client.query<{ table_name: string }>(

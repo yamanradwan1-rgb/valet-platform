@@ -762,6 +762,19 @@ tracking sessions; and SELECT/INSERT-only raw GPS and geofence history. It has
 no UPDATE/DELETE/TRUNCATE over append-only tracking history. No cleanup
 function/job exists until the narrow VAL-007F mechanism is implemented.
 
+Migration 24 adds no table, enum, column or Prisma model. It adds five narrow
+map-setup mutation functions (`map_setup_create_point`,
+`map_setup_update_point`, `map_setup_create_area`, `map_setup_update_area` and
+`map_setup_replace_area_vertices`) plus private authorization/audit helpers.
+All use `SECURITY DEFINER` with fixed `search_path = pg_catalog, public`, remain
+migration-owner owned and deny PUBLIC execution. Runtime retains SELECT-only
+map-table grants and receives EXECUTE only on the five mutation functions.
+Each mutation revalidates an active `LOCATION_MANAGER` membership with explicit
+same-Organization Location access; polygon replacement locks its parent area
+and atomically replaces the full ordered vertex set. Mutations append safe
+AuditEvent facts in the same statement without copying coordinates or vertex
+arrays into audit metadata.
+
 ## retrieval_requests
 
 ```text

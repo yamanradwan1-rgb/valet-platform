@@ -30,6 +30,9 @@ import { GuestAccessService } from "../src/modules/guest-access/guest-access.ser
 import { KeyCustodyController } from "../src/modules/keys/key-custody.controller";
 import { KeyCustodyModule } from "../src/modules/keys/key-custody.module";
 import { KeyCustodyService } from "../src/modules/keys/key-custody.service";
+import { MapSetupController } from "../src/modules/map-setup/map-setup.controller";
+import { MapSetupModule } from "../src/modules/map-setup/map-setup.module";
+import { MapSetupService } from "../src/modules/map-setup/map-setup.service";
 import { StartParkingController } from "../src/modules/parking/start-parking.controller";
 import { StartParkingModule } from "../src/modules/parking/start-parking.module";
 import { StartParkingService } from "../src/modules/parking/start-parking.service";
@@ -64,9 +67,19 @@ describe("accepted feature module ownership", () => {
       CheckInModule,
       ShiftModule,
       KeyCustodyModule,
+      MapSetupModule,
       DispatchModule,
       StartParkingModule,
       RetrievalModule,
+    ]);
+  });
+
+  it("keeps map setup ownership focused", () => {
+    expect(metadata(MapSetupModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      MapSetupController,
+    ]);
+    expect(metadata(MapSetupModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      MapSetupService,
     ]);
   });
 

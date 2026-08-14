@@ -2407,3 +2407,31 @@ provider/API/UI/Guest behavior is implemented.
 
 Full binding contract:
 `docs/decisions/DEC-046_PHASE5_MAPS_TRACKING_PERSISTENCE.md`
+
+---
+
+## DEC-047 â€” Phase 5 Map Setup Write Authority
+
+Status: Accepted
+Date: 2026-08-14
+
+Decision:
+VAL-007B keeps ordinary runtime access to map point, area and vertex tables
+SELECT-only. Migration 24 adds only operation-specific `SECURITY DEFINER`
+functions for point create/update, area create/update and locked atomic polygon
+replacement. Functions use a fixed safe search path, deny PUBLIC execution,
+remain owned by the migration owner and receive narrow runtime EXECUTE grants
+through existing provisioning. Every function independently verifies an active
+Location Manager membership and explicit access to the exact active Location;
+linked ParkingZone scope must match exactly.
+
+Production map setup read/write authority is `LOCATION_MANAGER` only until
+server-validated MFA exists. `ORG_ADMIN` remains denied under DEC-023, as do
+supervisors, employees and Guest. Successful mutations append a same-transaction
+AuditEvent containing safe resource/configuration facts but no coordinates or
+vertex arrays. No second database credential, generic privileged SQL function,
+provider integration, GPS behavior, Guest geometry or parking-assignment
+authority is introduced.
+
+Full binding contract:
+`docs/decisions/DEC-047_PHASE5_MAP_SETUP_WRITE_AUTHORITY.md`

@@ -7,6 +7,7 @@ import { CheckInModule } from "./modules/check-in-api/check-in.module";
 import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { GuestAccessModule } from "./modules/guest-access/guest-access.module";
 import { KeyCustodyModule } from "./modules/keys/key-custody.module";
+import { MapSetupModule } from "./modules/map-setup/map-setup.module";
 import { StartParkingModule } from "./modules/parking/start-parking.module";
 import { RetrievalModule } from "./modules/retrieval/retrieval.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
@@ -19,6 +20,7 @@ import { ShiftModule } from "./modules/shifts/shift.module";
     CheckInModule,
     ShiftModule,
     KeyCustodyModule,
+    MapSetupModule,
     DispatchModule,
     StartParkingModule,
     RetrievalModule,

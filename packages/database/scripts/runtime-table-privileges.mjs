@@ -25,6 +25,14 @@ const runtimeOperationalTables = [
 
 const runtimeTrackingSessionTables = ["task_tracking_sessions"];
 
+export const runtimeMapSetupFunctions = [
+  "public.map_setup_create_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
+  "public.map_setup_update_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
+  "public.map_setup_create_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,numeric[],numeric[])",
+  "public.map_setup_update_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid)",
+  "public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[])",
+];
+
 const runtimeLockColumns = [
   ["users", "last_login_at"],
   ["users", "updated_at"],
@@ -108,6 +116,16 @@ export async function provisionRuntimeTablePrivileges(
     await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE %I TO %I", [
       column,
       table,
+      runtimeRole,
+    ]);
+  }
+  for (const functionName of runtimeMapSetupFunctions) {
+    await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
+      functionName,
+      runtimeRole,
+    ]);
+    await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
+      functionName,
       runtimeRole,
     ]);
   }
