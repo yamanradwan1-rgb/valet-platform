@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "pnpm --filter @valet/contracts build && next build",
     "dev": "next dev --port 3002",
     "start": "next start --port 3002",
     "lint": "eslint src --max-warnings=0",

@@ -1,97 +1,62 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { GuestSafeSession } from '../../lib/api/guest-api-types';
-import type { GuestApiClient } from '../../lib/api/guest-api-client';
+import { createInFlightLock } from '../../lib/async/in-flight-guard';
 
-describe('Retrieval in-flight synchronous protection', () => {
-  it('ensures two concurrent retrieval requests produce exactly one API mutation attempt', async () => {
-    const mockSession: GuestSafeSession = {
-      valetSessionId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-      state: 'REQUESTED',
-      vehicle: { make: 'Tesla', model: 'Model 3', color: 'White' },
-    };
+describe('Production in-flight locking guard (createInFlightLock)', () => {
+  it('ensures two synchronous concurrent calls execute the guarded mutation exactly once', async () => {
+    const lock = createInFlightLock();
+    let mutationCount = 0;
 
-    let apiCallCount = 0;
-    const mockClient = {
-      requestRetrieval: vi.fn().mockImplementation(async () => {
-        apiCallCount++;
-        // Simulate network latency
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        return mockSession;
-      }),
-      cancelRetrieval: vi.fn(),
-    } as unknown as GuestApiClient;
+    const guardedMutation = vi.fn().mockImplementation(async () => {
+      mutationCount++;
+      // Simulate network roundtrip
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      return { success: true, count: mutationCount };
+    });
 
-    // Simulate the synchronous ref locking mechanism used in useRetrieval
-    let isRequestingLock = false;
-
-    const requestVehicleWithLock = async (): Promise<boolean> => {
-      // Synchronous ref lock
-      if (isRequestingLock) return false;
-      isRequestingLock = true;
-
-      try {
-        await mockClient.requestRetrieval();
-        return true;
-      } finally {
-        isRequestingLock = false;
-      }
-    };
-
-    // Trigger two concurrent invocations synchronously
+    // Launch two calls concurrently without awaiting the first
     const [result1, result2] = await Promise.all([
-      requestVehicleWithLock(),
-      requestVehicleWithLock(),
+      lock.runGuarded(guardedMutation),
+      lock.runGuarded(guardedMutation),
     ]);
 
-    // Exactly one call succeeded and one was aborted by the synchronous lock
-    expect(result1).toBe(true);
-    expect(result2).toBe(false);
-    expect(apiCallCount).toBe(1);
-    expect(mockClient.requestRetrieval).toHaveBeenCalledTimes(1);
+    // The first call successfully executes and returns the result
+    expect(result1).toEqual({ success: true, count: 1 });
+
+    // The second concurrent call is synchronously rejected by the lock and returns null
+    expect(result2).toBeNull();
+
+    // The underlying mutation function was called exactly once
+    expect(mutationCount).toBe(1);
+    expect(guardedMutation).toHaveBeenCalledTimes(1);
+
+    // After the in-flight operation completes, the lock is released
+    expect(lock.isLocked()).toBe(false);
+
+    // A subsequent call can now execute normally
+    const result3 = await lock.runGuarded(guardedMutation);
+    expect(result3).toEqual({ success: true, count: 2 });
+    expect(mutationCount).toBe(2);
+    expect(guardedMutation).toHaveBeenCalledTimes(2);
   });
 
-  it('ensures two concurrent cancel requests produce exactly one API mutation attempt', async () => {
-    const mockSession: GuestSafeSession = {
-      valetSessionId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-      state: 'PARKED',
-      vehicle: { make: 'Tesla', model: 'Model 3', color: 'White' },
-    };
+  it('releases lock safely even when the guarded mutation throws an error', async () => {
+    const lock = createInFlightLock();
 
-    let apiCallCount = 0;
-    const mockClient = {
-      requestRetrieval: vi.fn(),
-      cancelRetrieval: vi.fn().mockImplementation(async () => {
-        apiCallCount++;
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        return mockSession;
-      }),
-    } as unknown as GuestApiClient;
+    const failingMutation = vi.fn().mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      throw new Error('Network timeout');
+    });
 
-    let isCancellingLock = false;
+    await expect(lock.runGuarded(failingMutation)).rejects.toThrow('Network timeout');
 
-    const cancelVehicleWithLock = async (): Promise<boolean> => {
-      // Synchronous ref lock
-      if (isCancellingLock) return false;
-      isCancellingLock = true;
+    // Lock is properly released in finally block
+    expect(lock.isLocked()).toBe(false);
 
-      try {
-        await mockClient.cancelRetrieval();
-        return true;
-      } finally {
-        isCancellingLock = false;
-      }
-    };
-
-    // Trigger two concurrent invocations synchronously
-    const [result1, result2] = await Promise.all([
-      cancelVehicleWithLock(),
-      cancelVehicleWithLock(),
-    ]);
-
-    expect(result1).toBe(true);
-    expect(result2).toBe(false);
-    expect(apiCallCount).toBe(1);
-    expect(mockClient.cancelRetrieval).toHaveBeenCalledTimes(1);
+    // Subsequent operation can proceed
+    const nextMutation = vi.fn().mockResolvedValue('ok');
+    const result = await lock.runGuarded(nextMutation);
+    expect(result).toBe('ok');
+    expect(nextMutation).toHaveBeenCalledTimes(1);
   });
 });
