@@ -7135,10 +7135,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all twenty-two forward-only migrations in order", () => {
+  it("applies exactly all twenty-three forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260813002200_secure_handoff_policy_and_anti_abuse",
+      "20260814002300_phase5_maps_tracking_persistence",
     );
   });
 

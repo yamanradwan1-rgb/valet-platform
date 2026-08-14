@@ -7,6 +7,9 @@ const runtimeReadOnlyTables = [
   "parking_zones",
   "parking_spots",
   "key_slots",
+  "location_map_points",
+  "location_map_areas",
+  "location_map_area_vertices",
 ];
 
 const runtimeInsertOnlyTables = ["customers"];
@@ -19,6 +22,8 @@ const runtimeOperationalTables = [
   "retrieval_requests",
   "handoff_verifications",
 ];
+
+const runtimeTrackingSessionTables = ["task_tracking_sessions"];
 
 const runtimeLockColumns = [
   ["users", "last_login_at"],
@@ -87,6 +92,17 @@ export async function provisionRuntimeTablePrivileges(
       "GRANT SELECT, INSERT, UPDATE ON TABLE %I TO %I",
       [table, runtimeRole],
     );
+  }
+  for (const table of runtimeTrackingSessionTables) {
+    await executeFormatted(client, "GRANT SELECT, INSERT ON TABLE %I TO %I", [
+      table,
+      runtimeRole,
+    ]);
+    await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE %I TO %I", [
+      "ended_at",
+      table,
+      runtimeRole,
+    ]);
   }
   for (const [table, column] of runtimeLockColumns) {
     await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE %I TO %I", [

@@ -66,15 +66,15 @@ afterAll(async () => {
 }, 60_000);
 
 describe("DEC-034 Task and DispatchEvent persistence", () => {
-  it("preserves Task/Dispatch enums through migration 22", async () => {
+  it("preserves Task/Dispatch enums through migration 23", async () => {
     const directories = (await readdir(migrationsPath, { withFileTypes: true }))
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual(expectedMigrationDirectories);
-    expect(directories).toHaveLength(22);
+    expect(directories).toHaveLength(23);
     expect(directories.at(-1)).toBe(
-      "20260813002200_secure_handoff_policy_and_anti_abuse",
+      "20260814002300_phase5_maps_tracking_persistence",
     );
     for (const [type, expected] of [
       ["task_type", ["PARKING", "RETRIEVAL"]],

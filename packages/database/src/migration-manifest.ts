@@ -21,4 +21,5 @@ export const expectedMigrationDirectories = [
   "20260812002000_phase3_task_dispatch_persistence",
   "20260813002100_guest_retrieval_requester_consistency",
   "20260813002200_secure_handoff_policy_and_anti_abuse",
+  "20260814002300_phase5_maps_tracking_persistence",
 ] as const;

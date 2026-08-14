@@ -112,6 +112,31 @@ enum DispatchEventType {
   @@map("dispatch_event_type")
 }
 
+enum LocationMapPointKind {
+  ENTRANCE
+  PICKUP
+  DROP_OFF
+
+  @@map("location_map_point_kind")
+}
+
+enum LocationMapAreaPurpose {
+  PARKING
+  OVERFLOW
+  STAGING
+  RESTRICTED
+
+  @@map("location_map_area_purpose")
+}
+
+enum GeofenceEventType {
+  ENTERED
+  EXITED
+  VIOLATION
+
+  @@map("geofence_event_type")
+}
+
 enum ValetSessionState {
   CHECKING_IN
   AWAITING_PARKING
@@ -267,6 +292,8 @@ model Organization {
   timezone                    String
   checkInPhotosRequired       Boolean                     @default(false) @map("check_in_photos_required")
   handoffStandardMethodPolicy HandoffStandardMethodPolicy @default(EITHER) @map("handoff_standard_method_policy")
+  trackingEnabled             Boolean                     @default(false) @map("tracking_enabled")
+  rawGpsRetentionDays         Int                         @default(30) @map("raw_gps_retention_days")
   createdAt                   DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -295,6 +322,11 @@ model Organization {
   conditionNotes           ConditionNote[]
   vehiclePhotos            VehiclePhoto[]
   intakeOperations         IntakeOperation[]
+  locationMapPoints        LocationMapPoint[]
+  locationMapAreas         LocationMapArea[]
+  taskTrackingSessions     TaskTrackingSession[]
+  rawGpsSamples            RawGpsSample[]
+  geofenceEvents           GeofenceEvent[]
 
   @@map("organizations")
 }
@@ -310,6 +342,8 @@ model Location {
   status                              LocationStatus               @default(ACTIVE)
   checkInPhotosRequiredOverride       Boolean?                     @map("check_in_photos_required_override")
   handoffStandardMethodPolicyOverride HandoffStandardMethodPolicy? @map("handoff_standard_method_policy_override")
+  trackingEnabledOverride             Boolean?                     @map("tracking_enabled_override")
+  rawGpsRetentionDaysOverride         Int?                         @map("raw_gps_retention_days_override")
   createdAt                           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                           DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -328,6 +362,11 @@ model Location {
   conditionNotes           ConditionNote[]
   vehiclePhotos            VehiclePhoto[]
   intakeOperations         IntakeOperation[]
+  locationMapPoints        LocationMapPoint[]
+  locationMapAreas         LocationMapArea[]
+  taskTrackingSessions     TaskTrackingSession[]
+  rawGpsSamples            RawGpsSample[]
+  geofenceEvents           GeofenceEvent[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
@@ -524,10 +563,11 @@ model ParkingZone {
   createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  location      Location       @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "parking_zones_org_location_id_fkey")
+  organization  Organization      @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location      Location          @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "parking_zones_org_location_id_fkey")
   parkingSpots  ParkingSpot[]
   valetSessions ValetSession[]
+  mapAreas      LocationMapArea[]
 
   @@unique([locationId, code], map: "parking_zones_location_id_code_key")
   @@unique([organizationId, locationId, id], map: "parking_zones_organization_id_location_id_id_key")
@@ -605,6 +645,9 @@ model ValetSession {
   intakeOperations            IntakeOperation[]
   keyCustodyEvents            KeyCustodyEvent[]
   tasks                       Task[]
+  taskTrackingSessions        TaskTrackingSession[]
+  rawGpsSamples               RawGpsSample[]
+  geofenceEvents              GeofenceEvent[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -647,11 +690,14 @@ model Task {
   createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization    Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_organization_id_fkey")
-  location        Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_id_fkey")
-  valetSession    ValetSession            @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_session_id_fkey")
-  currentAssignee OrganizationMembership? @relation("TaskCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_current_assignee_membership_id_fkey")
-  dispatchEvents  DispatchEvent[]
+  organization     Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_organization_id_fkey")
+  location         Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_id_fkey")
+  valetSession     ValetSession            @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_session_id_fkey")
+  currentAssignee  OrganizationMembership? @relation("TaskCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_current_assignee_membership_id_fkey")
+  dispatchEvents   DispatchEvent[]
+  trackingSessions TaskTrackingSession[]
+  rawGpsSamples    RawGpsSample[]
+  geofenceEvents   GeofenceEvent[]
 
   @@unique([organizationId, locationId, valetSessionId, id], map: "tasks_organization_id_location_id_valet_session_id_id_key")
   @@index([locationId, status, createdAt, id], map: "tasks_location_id_status_created_at_id_idx")
@@ -682,6 +728,137 @@ model DispatchEvent {
   @@index([taskId, occurredAt, id], map: "dispatch_events_task_id_occurred_at_id_idx")
   @@index([valetSessionId, occurredAt, id], map: "dispatch_events_valet_session_id_occurred_at_id_idx")
   @@map("dispatch_events")
+}
+
+model LocationMapPoint {
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  locationId     String               @map("location_id") @db.Uuid
+  kind           LocationMapPointKind
+  code           String
+  label          String
+  latitude       Decimal              @db.Decimal(9, 6)
+  longitude      Decimal              @db.Decimal(9, 6)
+  levelLabel     String?              @map("level_label")
+  active         Boolean              @default(true)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "location_map_points_organization_id_fkey")
+  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "location_map_points_org_location_id_fkey")
+
+  @@unique([locationId, code], map: "location_map_points_location_id_code_key")
+  @@map("location_map_points")
+}
+
+model LocationMapArea {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organizationId String                 @map("organization_id") @db.Uuid
+  locationId     String                 @map("location_id") @db.Uuid
+  parkingZoneId  String?                @map("parking_zone_id") @db.Uuid
+  purpose        LocationMapAreaPurpose
+  code           String
+  label          String
+  levelLabel     String?                @map("level_label")
+  active         Boolean                @default(true)
+  createdAt      DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "location_map_areas_organization_id_fkey")
+  location       Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "location_map_areas_org_location_id_fkey")
+  parkingZone    ParkingZone?            @relation(fields: [organizationId, locationId, parkingZoneId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "location_map_areas_org_location_parking_zone_id_fkey")
+  vertices       LocationMapAreaVertex[]
+  geofenceEvents GeofenceEvent[]
+
+  @@unique([locationId, code], map: "location_map_areas_location_id_code_key")
+  @@unique([organizationId, locationId, id], map: "location_map_areas_scope_id_key")
+  @@map("location_map_areas")
+}
+
+model LocationMapAreaVertex {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  locationId     String   @map("location_id") @db.Uuid
+  mapAreaId      String   @map("map_area_id") @db.Uuid
+  position       Int
+  latitude       Decimal  @db.Decimal(9, 6)
+  longitude      Decimal  @db.Decimal(9, 6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  mapArea LocationMapArea @relation(fields: [organizationId, locationId, mapAreaId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "location_map_area_vertices_scope_area_id_fkey")
+
+  @@unique([mapAreaId, position], map: "location_map_area_vertices_area_position_key")
+  @@map("location_map_area_vertices")
+}
+
+model TaskTrackingSession {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  locationId     String    @map("location_id") @db.Uuid
+  valetSessionId String    @map("valet_session_id") @db.Uuid
+  taskId         String    @map("task_id") @db.Uuid
+  startedAt      DateTime  @default(now()) @map("started_at") @db.Timestamptz(3)
+  endedAt        DateTime? @map("ended_at") @db.Timestamptz(3)
+
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_organization_id_fkey")
+  location       Location        @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_org_location_id_fkey")
+  valetSession   ValetSession    @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_org_location_session_id_fkey")
+  task           Task            @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_task_scope_id_fkey")
+  rawGpsSamples  RawGpsSample[]
+  geofenceEvents GeofenceEvent[]
+
+  @@unique([organizationId, locationId, valetSessionId, taskId, id], map: "task_tracking_sessions_scope_id_key")
+  @@index([valetSessionId, startedAt, id], map: "task_tracking_sessions_session_started_at_id_idx")
+  @@map("task_tracking_sessions")
+}
+
+model RawGpsSample {
+  id                String   @id @default(uuid()) @db.Uuid
+  organizationId    String   @map("organization_id") @db.Uuid
+  locationId        String   @map("location_id") @db.Uuid
+  valetSessionId    String   @map("valet_session_id") @db.Uuid
+  taskId            String   @map("task_id") @db.Uuid
+  trackingSessionId String   @map("tracking_session_id") @db.Uuid
+  clientSampleId    String   @map("client_sample_id") @db.Uuid
+  latitude          Decimal  @db.Decimal(9, 6)
+  longitude         Decimal  @db.Decimal(9, 6)
+  capturedAt        DateTime @map("captured_at") @db.Timestamptz(3)
+  receivedAt        DateTime @default(dbgenerated("clock_timestamp()")) @map("received_at") @db.Timestamptz(3)
+
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "raw_gps_samples_organization_id_fkey")
+  location        Location            @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "raw_gps_samples_org_location_id_fkey")
+  valetSession    ValetSession        @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "raw_gps_samples_org_location_session_id_fkey")
+  task            Task                @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "raw_gps_samples_task_scope_id_fkey")
+  trackingSession TaskTrackingSession @relation(fields: [organizationId, locationId, valetSessionId, taskId, trackingSessionId], references: [organizationId, locationId, valetSessionId, taskId, id], onDelete: Restrict, onUpdate: Restrict, map: "raw_gps_samples_tracking_scope_id_fkey")
+
+  @@unique([trackingSessionId, clientSampleId], map: "raw_gps_samples_tracking_client_sample_key")
+  @@index([trackingSessionId, capturedAt, id], map: "raw_gps_samples_tracking_captured_at_id_idx")
+  @@index([receivedAt], map: "raw_gps_samples_received_at_idx")
+  @@map("raw_gps_samples")
+}
+
+model GeofenceEvent {
+  id                String            @id @default(uuid()) @db.Uuid
+  organizationId    String            @map("organization_id") @db.Uuid
+  locationId        String            @map("location_id") @db.Uuid
+  valetSessionId    String            @map("valet_session_id") @db.Uuid
+  taskId            String            @map("task_id") @db.Uuid
+  trackingSessionId String            @map("tracking_session_id") @db.Uuid
+  mapAreaId         String            @map("map_area_id") @db.Uuid
+  eventType         GeofenceEventType @map("event_type")
+  occurredAt        DateTime          @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  recordedAt        DateTime          @default(dbgenerated("clock_timestamp()")) @map("recorded_at") @db.Timestamptz(3)
+
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_organization_id_fkey")
+  location        Location            @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_org_location_id_fkey")
+  valetSession    ValetSession        @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_org_location_session_id_fkey")
+  task            Task                @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_task_scope_id_fkey")
+  trackingSession TaskTrackingSession @relation(fields: [organizationId, locationId, valetSessionId, taskId, trackingSessionId], references: [organizationId, locationId, valetSessionId, taskId, id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_tracking_scope_id_fkey")
+  mapArea         LocationMapArea     @relation(fields: [organizationId, locationId, mapAreaId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "geofence_events_scope_map_area_id_fkey")
+
+  @@index([trackingSessionId, occurredAt, id], map: "geofence_events_tracking_occurred_at_id_idx")
+  @@index([mapAreaId, occurredAt, id], map: "geofence_events_area_occurred_at_id_idx")
+  @@map("geofence_events")
 }
 
 model IntakeOperation {
