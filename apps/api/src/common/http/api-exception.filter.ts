@@ -108,6 +108,11 @@ const operationRoutes: ReadonlyArray<{
   },
   {
     method: "POST",
+    operation: "GUEST_RETRIEVAL_CANCEL",
+    path: /^\/v1\/guest\/session\/cancel-retrieval$/,
+  },
+  {
+    method: "POST",
     operation: "SHIFT_START",
     path: /^\/v1\/staff\/shifts\/start$/,
   },
@@ -148,6 +153,7 @@ const guestAccessOperations = new Set([
   "CHECK_IN_GUEST_ACCESS_REVOKE",
   "GUEST_SESSION_READ",
   "GUEST_RETRIEVAL_REQUEST",
+  "GUEST_RETRIEVAL_CANCEL",
   "ISSUE_HANDOFF_VERIFICATION",
   "ROTATE_HANDOFF_VERIFICATION",
 ]);
