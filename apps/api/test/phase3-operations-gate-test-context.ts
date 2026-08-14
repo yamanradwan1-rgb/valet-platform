@@ -18,6 +18,7 @@ export interface GateFixture extends ConfirmParkedFixture {
 
 export interface HttpResult {
   readonly body: Record<string, unknown>;
+  readonly headers: Headers;
   readonly status: number;
 }
 
@@ -170,6 +171,7 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
     const text = await response.text();
     return {
       body: text === "" ? {} : (JSON.parse(text) as Record<string, unknown>),
+      headers: response.headers,
       status: response.status,
     };
   }

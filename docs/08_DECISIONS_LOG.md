@@ -2341,3 +2341,34 @@ policy/guard exists.
 
 Full binding contract:
 `docs/decisions/DEC-043_VEHICLE_RELEASE_SESSION_COMPLETION.md`
+
+---
+
+## DEC-044 — Guest Pre-Start Retrieval Cancellation
+
+Status: Accepted
+Date: 2026-08-14
+
+Decision:
+VAL-006H adds Guest bearer-owned pre-start cancellation at
+`POST /v1/guest/session/cancel-retrieval` with a strict empty body and the same
+Guest Access, shared anti-abuse, request-ID and no-store boundary as guest
+Retrieval request. It is valid only for Session `REQUESTED`, one OPEN
+RetrievalRequest and one RETRIEVAL Task in `QUEUED`, `ASSIGNED` or `ACCEPTED`.
+
+One session-first locked transaction changes the Request and Task to
+`CANCELLED`, sets `cancelled_at`, increments Task and Session versions once,
+preserves any current Task assignee and `retrieval_requested_at`, appends one
+guest-actor-null CANCELLED DispatchEvent and one safe `RETRIEVAL_CANCELLED`
+AuditEvent, and returns the Session to `PARKED` without changing key custody or
+later Retrieval/handoff state. Coherent repeated cancellation is a non-mutating
+guest-safe retry; a later request creates new active Request/Task rows while
+retaining cancelled history. Session locking serializes cancel/cancel and
+cancel/start-retrieval so only one coherent physical outcome wins.
+
+No Prisma schema change or migration 23 is authorized; migrations 1–22 remain
+immutable. Post-start `RETRIEVING -> PARKING` behavior remains outside this
+decision.
+
+Full binding contract:
+`docs/decisions/DEC-044_GUEST_PRE_START_RETRIEVAL_CANCELLATION.md`
