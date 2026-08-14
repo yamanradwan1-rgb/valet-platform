@@ -1,0 +1,128 @@
+import React from 'react';
+
+import { C } from '../../lib/theme/colors';
+import { Label } from './typography-primitives';
+
+export function PickupPIN({
+  code,
+  expiresInSeconds,
+  onRotate,
+  isRotating = false,
+}: {
+  readonly code: string;
+  readonly expiresInSeconds?: number | undefined;
+  readonly onRotate?: (() => void) | undefined;
+  readonly isRotating?: boolean | undefined;
+}) {
+  const digits = code.split('');
+
+  const formatExpiry = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const isExpired = expiresInSeconds !== undefined && expiresInSeconds <= 0;
+
+  return (
+    <div
+      style={{
+        borderRadius: 14,
+        overflow: 'hidden',
+        backgroundColor: C.ice,
+      }}
+    >
+      <div
+        style={{
+          padding: '20px 20px 8px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Label>Pickup code</Label>
+        {expiresInSeconds !== undefined && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: isExpired ? C.danger : C.grey,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {isExpired ? 'Expired' : `Expires in ${formatExpiry(expiresInSeconds)}`}
+          </span>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 12,
+          paddingBottom: 16,
+          paddingLeft: 16,
+          paddingRight: 16,
+        }}
+      >
+        {digits.map((d, i) => (
+          <div
+            key={i}
+            className="font-display"
+            style={{
+              width: 56,
+              height: 64,
+              borderRadius: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#FFFFFF',
+              fontSize: 32,
+              fontWeight: 700,
+              color: isExpired ? C.muted : C.navy,
+              border: `1px solid ${C.border}`,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          padding: '0 20px 20px 20px',
+          textAlign: 'center',
+        }}
+      >
+        <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
+          Show this code to the valet
+        </p>
+        <p style={{ fontSize: 12, marginTop: 4, marginBottom: 0, color: C.muted }}>
+          One-time verification · Expires after use
+        </p>
+
+        {onRotate && (
+          <button
+            type="button"
+            onClick={onRotate}
+            disabled={isRotating}
+            style={{
+              marginTop: 12,
+              background: 'none',
+              border: 'none',
+              color: C.blue,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: isRotating ? 'not-allowed' : 'pointer',
+              opacity: isRotating ? 0.5 : 1,
+              padding: '4px 8px',
+            }}
+          >
+            {isRotating ? 'Refreshing...' : 'Generate new code'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

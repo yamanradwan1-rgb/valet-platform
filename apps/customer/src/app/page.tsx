@@ -1,11 +1,17 @@
-import { AppShell } from "@valet/ui";
+'use client';
 
-import { appInfo } from "../lib/app-info";
+import React from 'react';
+
+import { GuestAuthProvider } from '../features/auth/guest-auth-context';
+import { GuestSessionProvider } from '../features/session/guest-session-provider';
+import { GuestAppRoot } from './guest-app-root';
 
 export default function Home() {
   return (
-    <AppShell title={appInfo.title}>
-      <p>{appInfo.description}</p>
-    </AppShell>
+    <GuestAuthProvider>
+      <GuestSessionProvider>
+        <GuestAppRoot />
+      </GuestSessionProvider>
+    </GuestAuthProvider>
   );
 }

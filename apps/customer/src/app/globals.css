@@ -1,15 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700&display=swap');
+
 :root {
-  color: #172033;
-  background: #f5f7fb;
-  font-family: Arial, sans-serif;
+  --color-v-navy: #07111F;
+  --color-v-navy2: #0B1626;
+  --color-v-navy3: #111E30;
+  --color-v-blue: #176BFF;
+  --color-v-blueh: #0F5EEA;
+  --color-v-ice: #EDF4FF;
+  --color-v-warm: #FAFAF8;
+  --color-v-grey: #6F7C91;
+  --color-v-muted: #8C98AA;
+  --color-v-border: #DDE4EC;
+  --color-v-success: #2F9B78;
+  --color-v-warning: #D89434;
+  --color-v-danger: #D95C63;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #FAFAF8;
+  color: #07111F;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
   margin: 0;
 }
 
-main {
-  max-width: 48rem;
-  margin: 0 auto;
-  padding: 4rem 1.5rem;
+.font-display {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.font-arabic {
+  font-family: 'Tajawal', sans-serif;
+}
+
+/* Scrollbar suppression */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+}
+
+/* Safe area helpers */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Animations */
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.screen-enter {
+  animation: screenEnter 220ms ease-out both;
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.sheet-enter {
+  animation: sheetUp 280ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fadeIn 200ms ease-out both;
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+}
+.pulse-dot {
+  animation: pulseDot 2.2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 1.1s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% center;
+  }
+  to {
+    background-position: 200% center;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, #EDF4FF 25%, #FAFAF8 50%, #EDF4FF 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* Tap highlight suppression */
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
