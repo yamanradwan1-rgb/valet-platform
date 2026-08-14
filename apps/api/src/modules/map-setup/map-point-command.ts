@@ -96,13 +96,14 @@ export async function updateMapPoint(
       await transaction.query(
         `SELECT map_setup_update_point(
            $1, $2, $3, $4::location_map_point_kind, $5, $6,
-           $7::numeric, $8::numeric, $9, $10
+           $7::numeric, $8::numeric, $9, $10, $11::timestamptz
          )`,
         [
           actor.membershipId,
           input.locationId,
           input.pointId,
           ...pointArguments(next),
+          current.updatedAt,
         ],
       );
     } catch (error) {

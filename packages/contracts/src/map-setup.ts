@@ -94,7 +94,7 @@ export const locationMapAreaSchema = z
     createdAt: z.string().datetime({ offset: true }),
     id: uuidSchema,
     updatedAt: z.string().datetime({ offset: true }),
-    vertices: z.array(locationMapVertexSchema).min(3),
+    vertices: z.array(locationMapVertexSchema).min(3).max(500),
   })
   .strict();
 export const locationMapAreaListResponseSchema = z

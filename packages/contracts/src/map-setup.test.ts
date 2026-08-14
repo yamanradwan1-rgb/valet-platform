@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createLocationMapAreaRequestSchema,
   createLocationMapPointRequestSchema,
+  locationMapAreaSchema,
   replaceLocationMapAreaVerticesRequestSchema,
   updateLocationMapAreaRequestSchema,
   updateLocationMapPointRequestSchema,
@@ -87,5 +88,25 @@ describe("Location map setup contracts", () => {
     expect(
       updateLocationMapAreaRequestSchema.safeParse({ vertices }).success,
     ).toBe(false);
+  });
+
+  it("caps persisted area response geometry at 500 vertices", () => {
+    const area = {
+      active: true,
+      code: "PARKING_MAIN",
+      createdAt: new Date().toISOString(),
+      id: crypto.randomUUID(),
+      label: "Main parking",
+      levelLabel: null,
+      parkingZoneId: null,
+      purpose: "PARKING",
+      updatedAt: new Date().toISOString(),
+      vertices: Array.from({ length: 501 }, (_, position) => ({
+        latitude: 1,
+        longitude: 1,
+        position,
+      })),
+    };
+    expect(locationMapAreaSchema.safeParse(area).success).toBe(false);
   });
 });

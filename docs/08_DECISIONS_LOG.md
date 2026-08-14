@@ -2410,7 +2410,7 @@ Full binding contract:
 
 ---
 
-## DEC-047 â€” Phase 5 Map Setup Write Authority
+## DEC-047 — Phase 5 Map Setup Write Authority
 
 Status: Accepted
 Date: 2026-08-14

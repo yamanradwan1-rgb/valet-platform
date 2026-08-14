@@ -110,13 +110,15 @@ export async function updateMapArea(
     try {
       await transaction.query(
         `SELECT map_setup_update_area(
-           $1, $2, $3, $4::location_map_area_purpose, $5, $6, $7, $8, $9
+           $1, $2, $3, $4::location_map_area_purpose, $5, $6, $7, $8, $9,
+           $10::timestamptz
          )`,
         [
           actor.membershipId,
           input.locationId,
           input.areaId,
           ...areaArguments(next),
+          current.updatedAt,
         ],
       );
     } catch (error) {

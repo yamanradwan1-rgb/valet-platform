@@ -31,12 +31,24 @@ const tablePrivileges = [
   ["public.location_map_points", "SELECT", true],
   ["public.location_map_points", "INSERT", false],
   ["public.location_map_points", "UPDATE", false],
+  ["public.location_map_points", "DELETE", false],
+  ["public.location_map_points", "TRUNCATE", false],
+  ["public.location_map_points", "REFERENCES", false],
+  ["public.location_map_points", "TRIGGER", false],
   ["public.location_map_areas", "SELECT", true],
   ["public.location_map_areas", "INSERT", false],
   ["public.location_map_areas", "UPDATE", false],
+  ["public.location_map_areas", "DELETE", false],
+  ["public.location_map_areas", "TRUNCATE", false],
+  ["public.location_map_areas", "REFERENCES", false],
+  ["public.location_map_areas", "TRIGGER", false],
   ["public.location_map_area_vertices", "SELECT", true],
   ["public.location_map_area_vertices", "INSERT", false],
   ["public.location_map_area_vertices", "UPDATE", false],
+  ["public.location_map_area_vertices", "DELETE", false],
+  ["public.location_map_area_vertices", "TRUNCATE", false],
+  ["public.location_map_area_vertices", "REFERENCES", false],
+  ["public.location_map_area_vertices", "TRIGGER", false],
   ["public.task_tracking_sessions", "SELECT", true],
   ["public.task_tracking_sessions", "INSERT", true],
   ["public.task_tracking_sessions", "UPDATE", false],
@@ -91,10 +103,16 @@ const anyColumnPrivileges = [
 
 const mapSetupFunctions = [
   "public.map_setup_create_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
-  "public.map_setup_update_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
+  "public.map_setup_update_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean,timestamp with time zone)",
   "public.map_setup_create_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,numeric[],numeric[])",
-  "public.map_setup_update_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid)",
+  "public.map_setup_update_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,timestamp with time zone)",
   "public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[])",
+];
+
+const privateMapSetupFunctions = [
+  "public.map_setup_authorized_organization(uuid,uuid)",
+  "public.map_setup_validate_labels(text,text,text)",
+  "public.map_setup_append_audit(uuid,uuid,uuid,text,text,uuid,text,boolean,boolean)",
 ];
 
 async function tablePrivilegeMatches(client, runtimeRole, policy) {
@@ -143,6 +161,10 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
   for (const functionName of mapSetupFunctions) {
     const result = await client.query(
       `SELECT has_function_privilege($1, $2, 'EXECUTE') AS runtime_allowed,
+              function.prosecdef AS security_definer,
+              owner.rolname <> $1 AS owner_safe,
+              function.proconfig = ARRAY['search_path=pg_catalog, public']::text[]
+                AS search_path_safe,
               NOT EXISTS (
                 SELECT 1
                 FROM pg_proc AS function
@@ -153,14 +175,29 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
                 WHERE function.oid = to_regprocedure($2)
                   AND privilege.grantee = 0
                   AND privilege.privilege_type = 'EXECUTE'
-              ) AS public_denied`,
+              ) AS public_denied
+       FROM pg_proc AS function
+       INNER JOIN pg_roles AS owner ON owner.oid = function.proowner
+       WHERE function.oid = to_regprocedure($2)`,
       [runtimeRole, functionName],
     );
     if (
       result.rows[0]?.runtime_allowed !== true ||
+      result.rows[0]?.security_definer !== true ||
+      result.rows[0]?.owner_safe !== true ||
+      result.rows[0]?.search_path_safe !== true ||
       result.rows[0]?.public_denied !== true
     ) {
       throw new Error("Runtime map-setup function privileges are unsafe.");
+    }
+  }
+  for (const functionName of privateMapSetupFunctions) {
+    const result = await client.query(
+      `SELECT has_function_privilege($1, $2, 'EXECUTE') AS runtime_allowed`,
+      [runtimeRole, functionName],
+    );
+    if (result.rows[0]?.runtime_allowed !== false) {
+      throw new Error("Runtime map-setup helper privileges are unsafe.");
     }
   }
 }

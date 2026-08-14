@@ -160,7 +160,8 @@ CREATE FUNCTION "map_setup_update_point"(
     "point_latitude" NUMERIC,
     "point_longitude" NUMERIC,
     "point_level_label" TEXT,
-    "point_active" BOOLEAN
+    "point_active" BOOLEAN,
+    "expected_updated_at" TIMESTAMPTZ
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -169,6 +170,7 @@ SET search_path = pg_catalog, public
 AS $$
 DECLARE
     authorized_organization_id UUID;
+    persisted_updated_at TIMESTAMPTZ(3);
 BEGIN
     authorized_organization_id := public.map_setup_authorized_organization(
         actor_membership_id, target_location_id
@@ -176,6 +178,23 @@ BEGIN
     PERFORM public.map_setup_validate_labels(
         point_code, point_label, point_level_label
     );
+    SELECT point.updated_at
+    INTO persisted_updated_at
+    FROM public.location_map_points AS point
+    WHERE point.id = point_id
+      AND point.organization_id = authorized_organization_id
+      AND point.location_id = target_location_id
+    FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '42501',
+            MESSAGE = 'Map setup resource is not available.';
+    END IF;
+    IF persisted_updated_at IS DISTINCT FROM expected_updated_at THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '40001',
+            MESSAGE = 'Map setup configuration conflict.';
+    END IF;
     UPDATE public.location_map_points AS point
     SET kind = point_kind,
         code = point_code,
@@ -184,15 +203,12 @@ BEGIN
         longitude = point_longitude,
         level_label = point_level_label,
         active = point_active,
-        updated_at = clock_timestamp()
+        updated_at = GREATEST(
+            clock_timestamp(), persisted_updated_at + INTERVAL '0.001 second'
+        )
     WHERE point.id = point_id
       AND point.organization_id = authorized_organization_id
       AND point.location_id = target_location_id;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION USING
-            ERRCODE = '42501',
-            MESSAGE = 'Map setup resource is not available.';
-    END IF;
     PERFORM public.map_setup_append_audit(
         authorized_organization_id, target_location_id, actor_membership_id,
         'POINT_UPDATED', 'LocationMapPoint', point_id, point_kind::TEXT,
@@ -229,7 +245,7 @@ BEGIN
     PERFORM public.map_setup_validate_labels(
         area_code, area_label, area_level_label
     );
-    IF COALESCE(array_length(vertex_latitudes, 1), 0) < 3
+    IF COALESCE(array_length(vertex_latitudes, 1), 0) NOT BETWEEN 3 AND 500
        OR array_length(vertex_latitudes, 1)
           IS DISTINCT FROM array_length(vertex_longitudes, 1) THEN
         RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'Invalid polygon.';
@@ -287,7 +303,8 @@ CREATE FUNCTION "map_setup_update_area"(
     "area_label" TEXT,
     "area_level_label" TEXT,
     "area_active" BOOLEAN,
-    "area_parking_zone_id" UUID
+    "area_parking_zone_id" UUID,
+    "expected_updated_at" TIMESTAMPTZ
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -296,6 +313,7 @@ SET search_path = pg_catalog, public
 AS $$
 DECLARE
     authorized_organization_id UUID;
+    persisted_updated_at TIMESTAMPTZ(3);
 BEGIN
     authorized_organization_id := public.map_setup_authorized_organization(
         actor_membership_id, target_location_id
@@ -303,7 +321,8 @@ BEGIN
     PERFORM public.map_setup_validate_labels(
         area_code, area_label, area_level_label
     );
-    PERFORM 1 FROM public.location_map_areas AS area
+    SELECT area.updated_at INTO persisted_updated_at
+    FROM public.location_map_areas AS area
     WHERE area.id = area_id
       AND area.organization_id = authorized_organization_id
       AND area.location_id = target_location_id
@@ -311,6 +330,11 @@ BEGIN
     IF NOT FOUND THEN
         RAISE EXCEPTION USING
             ERRCODE = '42501', MESSAGE = 'Map setup resource is not available.';
+    END IF;
+    IF persisted_updated_at IS DISTINCT FROM expected_updated_at THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '40001',
+            MESSAGE = 'Map setup configuration conflict.';
     END IF;
     IF area_parking_zone_id IS NOT NULL AND NOT EXISTS (
         SELECT 1 FROM public.parking_zones
@@ -328,7 +352,9 @@ BEGIN
         label = area_label,
         level_label = area_level_label,
         active = area_active,
-        updated_at = clock_timestamp()
+        updated_at = GREATEST(
+            clock_timestamp(), persisted_updated_at + INTERVAL '0.001 second'
+        )
     WHERE area.id = area_id;
     PERFORM public.map_setup_append_audit(
         authorized_organization_id, target_location_id, actor_membership_id,
@@ -355,13 +381,14 @@ DECLARE
     area_purpose public.location_map_area_purpose;
     area_active BOOLEAN;
     parking_zone_linked BOOLEAN;
-    mutation_time TIMESTAMPTZ(3) := clock_timestamp();
+    persisted_updated_at TIMESTAMPTZ(3);
+    mutation_time TIMESTAMPTZ(3);
 BEGIN
     authorized_organization_id := public.map_setup_authorized_organization(
         actor_membership_id, target_location_id
     );
-    SELECT purpose, active, parking_zone_id IS NOT NULL
-    INTO area_purpose, area_active, parking_zone_linked
+    SELECT purpose, active, parking_zone_id IS NOT NULL, updated_at
+    INTO area_purpose, area_active, parking_zone_linked, persisted_updated_at
     FROM public.location_map_areas AS area
     WHERE area.id = area_id
       AND area.organization_id = authorized_organization_id
@@ -371,7 +398,10 @@ BEGIN
         RAISE EXCEPTION USING
             ERRCODE = '42501', MESSAGE = 'Map setup resource is not available.';
     END IF;
-    IF COALESCE(array_length(vertex_latitudes, 1), 0) < 3
+    mutation_time := GREATEST(
+        clock_timestamp(), persisted_updated_at + INTERVAL '0.001 second'
+    );
+    IF COALESCE(array_length(vertex_latitudes, 1), 0) NOT BETWEEN 3 AND 500
        OR array_length(vertex_latitudes, 1)
           IS DISTINCT FROM array_length(vertex_longitudes, 1) THEN
         RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'Invalid polygon.';
@@ -423,7 +453,7 @@ REVOKE ALL ON FUNCTION public.map_setup_create_point(
 ) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.map_setup_update_point(
     UUID, UUID, UUID, public.location_map_point_kind,
-    TEXT, TEXT, NUMERIC, NUMERIC, TEXT, BOOLEAN
+    TEXT, TEXT, NUMERIC, NUMERIC, TEXT, BOOLEAN, TIMESTAMPTZ
 ) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.map_setup_create_area(
     UUID, UUID, UUID, public.location_map_area_purpose,
@@ -431,7 +461,7 @@ REVOKE ALL ON FUNCTION public.map_setup_create_area(
 ) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.map_setup_update_area(
     UUID, UUID, UUID, public.location_map_area_purpose,
-    TEXT, TEXT, TEXT, BOOLEAN, UUID
+    TEXT, TEXT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ
 ) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.map_setup_replace_area_vertices(
     UUID, UUID, UUID, NUMERIC[], NUMERIC[]
