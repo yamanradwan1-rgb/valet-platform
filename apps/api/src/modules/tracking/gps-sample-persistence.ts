@@ -8,6 +8,7 @@ import type {
   LockedGpsSession,
   LockedGpsTask,
   LockedTrackingSession,
+  PersistedGpsBatch,
 } from "./gps-ingestion-types";
 
 interface ExistingGpsRow {
@@ -115,7 +116,7 @@ export async function persistGpsSamples(
   task: LockedGpsTask,
   tracker: LockedTrackingSession,
   samples: readonly CanonicalGpsSample[],
-): Promise<readonly GpsSampleResult[]> {
+): Promise<PersistedGpsBatch> {
   const unique = uniqueSamples(samples);
   const existing = await loadExisting(transaction, tracker.id, unique);
   if ([...existing.values()].some((same) => !same)) {
@@ -144,7 +145,7 @@ export async function persistGpsSamples(
     }
   }
   const seen = new Set<string>();
-  return samples.map((sample) => {
+  const results: GpsSampleResult[] = samples.map((sample) => {
     const first = !seen.has(sample.clientSampleId);
     seen.add(sample.clientSampleId);
     return {
@@ -153,4 +154,10 @@ export async function persistGpsSamples(
         first && inserted.has(sample.clientSampleId) ? "ACCEPTED" : "DUPLICATE",
     };
   });
+  return {
+    acceptedSamples: unique.filter((sample) =>
+      inserted.has(sample.clientSampleId),
+    ),
+    results,
+  };
 }

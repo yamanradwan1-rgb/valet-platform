@@ -38,3 +38,8 @@ export interface CanonicalGpsSample {
   readonly longitude: string;
   readonly ordinal: number;
 }
+
+export interface PersistedGpsBatch {
+  readonly acceptedSamples: readonly CanonicalGpsSample[];
+  readonly results: readonly GpsSampleResult[];
+}

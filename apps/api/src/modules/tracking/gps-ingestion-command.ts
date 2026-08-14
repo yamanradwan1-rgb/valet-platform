@@ -5,6 +5,12 @@ import {
 } from "../dispatch/dispatch-transaction";
 import { canonicalizeGpsSamples } from "./gps-sample-canonicalization";
 import { persistGpsSamples } from "./gps-sample-persistence";
+import {
+  appendGeofenceEvents,
+  evaluateAcceptedGpsSamples,
+  loadActiveGeofenceAreas,
+  loadOperationalFrontier,
+} from "./geofence-evaluation";
 import { GpsIngestionError } from "./gps-ingestion-errors";
 import {
   assertGpsMovement,
@@ -48,6 +54,27 @@ export function createGpsIngestionCommandExecutor(pool: PostgresPool) {
         tracker.started_at,
         operationTime,
       );
-      return persistGpsSamples(transaction, session, task, tracker, samples);
+      const frontier = await loadOperationalFrontier(transaction, tracker.id);
+      const persisted = await persistGpsSamples(
+        transaction,
+        session,
+        task,
+        tracker,
+        samples,
+      );
+      if (persisted.acceptedSamples.length > 0) {
+        const areas = await loadActiveGeofenceAreas(
+          transaction,
+          session.organization_id,
+          session.location_id,
+        );
+        const events = evaluateAcceptedGpsSamples(
+          frontier,
+          areas,
+          persisted.acceptedSamples,
+        );
+        await appendGeofenceEvents(transaction, session, task, tracker, events);
+      }
+      return persisted.results;
     });
 }
