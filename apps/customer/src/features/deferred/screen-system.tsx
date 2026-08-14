@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { formatSessionState } from '../../i18n/format-session-state';
 import { useTranslation } from '../../i18n/use-translation';
 import { Btn } from '../../components/primitives/btn';
 import { IcAlert, IcClock, IcWifiOff } from '../../components/icons/status-icons';
@@ -14,6 +15,7 @@ export function ScreenNetworkUnavailable({
   readonly lastKnownState?: string | undefined;
 }) {
   const { t } = useTranslation();
+  const formattedState = lastKnownState ? formatSessionState(lastKnownState, t) : undefined;
 
   return (
     <div
@@ -58,7 +60,7 @@ export function ScreenNetworkUnavailable({
         </p>
       </div>
 
-      {lastKnownState && (
+      {formattedState && (
         <div
           style={{
             borderRadius: 14,
@@ -69,7 +71,7 @@ export function ScreenNetworkUnavailable({
           }}
         >
           <p style={{ fontSize: 14, fontWeight: 600, color: C.navy, margin: 0 }}>
-            {t('system.lastRecordedState', { state: lastKnownState })}
+            {t('system.lastRecordedState', { state: formattedState })}
           </p>
         </div>
       )}

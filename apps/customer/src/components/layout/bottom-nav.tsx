@@ -36,7 +36,7 @@ export function BottomNav({ tab, onTab }: BottomNavProps) {
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
       role="navigation"
-      aria-label={t('nav.vehicle')}
+      aria-label={t('nav.ariaLabel')}
     >
       {tabs.map((tabItem) => {
         const active = tab === tabItem.id;

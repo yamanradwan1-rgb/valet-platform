@@ -16,6 +16,7 @@ export const enTranslations: TranslationDictionary = {
   // Header & Nav
   'header.backAria': 'Go back',
   'header.moreAria': 'More options',
+  'nav.ariaLabel': 'Guest navigation',
   'nav.vehicle': 'Vehicle',
   'nav.payment': 'Payment (Preview)',
   'nav.help': 'Help (Preview)',
@@ -51,6 +52,17 @@ export const enTranslations: TranslationDictionary = {
   'journey.requested': 'Requested',
   'journey.onTheWay': 'On the way',
   'journey.ready': 'Ready',
+
+  // Lifecycle States Presentation
+  'states.CHECKING_IN': 'Checking in',
+  'states.AWAITING_PARKING': 'Awaiting parking',
+  'states.PARKING': 'Parking in progress',
+  'states.PARKED': 'Safely parked',
+  'states.REQUESTED': 'Vehicle requested',
+  'states.RETRIEVING': 'On the way',
+  'states.READY': 'Ready for pickup',
+  'states.HANDOFF_PENDING': 'Ready for handoff',
+  'states.COMPLETED': 'Completed',
 
   // Received Screen
   'received.statusReceived': 'Vehicle received',
@@ -95,6 +107,10 @@ export const enTranslations: TranslationDictionary = {
   'ready.cardSub':
     'Your one-time pickup code or QR will appear as soon as the valet begins verification.',
 
+  // Verifying Screen
+  'verifying.title': 'Verifying pickup',
+  'verifying.subtitle': 'Please wait while the valet completes release...',
+
   // Handoff PIN Screen
   'handoffPin.badge': 'Ready for pickup',
   'handoffPin.title': 'Your {vehicle} is ready.',
@@ -116,6 +132,8 @@ export const enTranslations: TranslationDictionary = {
   'handoffQr.refreshButton': 'Get new QR',
   'handoffQr.refreshing': 'Refreshing...',
   'handoffQr.switchToPin': 'Show pickup code instead',
+  'handoffQr.generationError': 'QR generation error',
+  'handoffQr.ariaLabel': 'Secure Dynamic QR Code',
 
   // Completed Screen
   'completed.badge': 'Session complete',
@@ -189,4 +207,21 @@ export const enTranslations: TranslationDictionary = {
   'help.emergency': 'Emergency',
   'help.emergencyValue': 'Contact hotel reception',
   'help.paymentInfo': 'Payment Information (Preview)',
+
+  // Dev Demo Navigator
+  'demo.navigatorTitle': 'Dev Preview Navigator',
+  'demo.expand': 'Expand',
+  'demo.collapse': 'Collapse',
+  'demo.live': '🟢 Live (API)',
+  'demo.received': '1. Received',
+  'demo.parked': '2. Parked',
+  'demo.requested': '3. Requested',
+  'demo.onTheWay': '4. On the way',
+  'demo.ready': '5. Ready (Wait)',
+  'demo.readyPin': '6. PIN Handoff',
+  'demo.readyQr': '7. QR Handoff',
+  'demo.verifying': '8. Verifying',
+  'demo.completed': '9. Completed',
+  'demo.networkUnavailable': 'Net Unavailable',
+  'demo.expired': 'Expired',
 };

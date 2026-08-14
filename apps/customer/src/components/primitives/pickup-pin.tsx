@@ -36,7 +36,7 @@ export function PickupPIN({
     >
       <div
         style={{
-          padding: '20px 20px 8px 20px',
+          padding: '16px 16px 8px 16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -64,10 +64,13 @@ export function PickupPIN({
         style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: 12,
+          gap: 'clamp(6px, 2.5vw, 12px)',
           paddingBottom: 16,
-          paddingLeft: 16,
-          paddingRight: 16,
+          paddingLeft: 12,
+          paddingRight: 12,
+          maxWidth: 280,
+          margin: '0 auto',
+          width: '100%',
         }}
       >
         {digits.map((digit, i) => (
@@ -75,14 +78,16 @@ export function PickupPIN({
             key={i}
             className="font-display"
             style={{
-              width: 56,
-              height: 64,
+              flex: 1,
+              maxWidth: 56,
+              minWidth: 40,
+              height: 56,
               borderRadius: 10,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: '#FFFFFF',
-              fontSize: 32,
+              fontSize: 'clamp(22px, 6vw, 32px)',
               fontWeight: 700,
               color: isExpired ? C.muted : C.navy,
               border: `1px solid ${C.border}`,
@@ -96,7 +101,7 @@ export function PickupPIN({
 
       <div
         style={{
-          padding: '0 20px 20px 20px',
+          padding: '0 16px 16px 16px',
           textAlign: 'center',
         }}
       >

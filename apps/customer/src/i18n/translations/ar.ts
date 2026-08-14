@@ -16,6 +16,7 @@ export const arTranslations: TranslationDictionary = {
   // Header & Nav
   'header.backAria': 'رجوع',
   'header.moreAria': 'خيارات إضافية',
+  'nav.ariaLabel': 'تنقل الضيف',
   'nav.vehicle': 'السيارة',
   'nav.payment': 'الدفع (معاينة)',
   'nav.help': 'المساعدة (معاينة)',
@@ -51,6 +52,17 @@ export const arTranslations: TranslationDictionary = {
   'journey.requested': 'تم الطلب',
   'journey.onTheWay': 'جاري الإحضار',
   'journey.ready': 'جاهزة للاستلام',
+
+  // Lifecycle States Presentation
+  'states.CHECKING_IN': 'تسجيل الدخول',
+  'states.AWAITING_PARKING': 'بانتظار الركن',
+  'states.PARKING': 'جاري الركن',
+  'states.PARKED': 'مركونة بأمان',
+  'states.REQUESTED': 'تم طلب السيارة',
+  'states.RETRIEVING': 'جاري الإحضار',
+  'states.READY': 'جاهزة للاستلام',
+  'states.HANDOFF_PENDING': 'جاهزة للتسليم',
+  'states.COMPLETED': 'اكتملت الخدمة',
 
   // Received Screen
   'received.statusReceived': 'تم استلام السيارة',
@@ -95,6 +107,10 @@ export const arTranslations: TranslationDictionary = {
   'ready.cardSub':
     'سيظهر رمز الاستلام أو رمز QR فور بدء موظف الخدمة بالتحقق.',
 
+  // Verifying Screen
+  'verifying.title': 'جاري التحقق من الاستلام',
+  'verifying.subtitle': 'يرجى الانتظار حتى يكمل مسؤول الاصطفاف تسليم السيارة...',
+
   // Handoff PIN Screen
   'handoffPin.badge': 'جاهزة للاستلام',
   'handoffPin.title': 'سيارتك {vehicle} جاهزة للاستلام.',
@@ -116,6 +132,8 @@ export const arTranslations: TranslationDictionary = {
   'handoffQr.refreshButton': 'تحديث رمز QR',
   'handoffQr.refreshing': 'جاري التحديث...',
   'handoffQr.switchToPin': 'إظهار رمز الاستلام بدلاً من ذلك',
+  'handoffQr.generationError': 'خطأ في إنشاء رمز QR',
+  'handoffQr.ariaLabel': 'رمز الاستجابة السريعة الآمن والمتغير',
 
   // Completed Screen
   'completed.badge': 'اكتملت الخدمة',
@@ -189,4 +207,21 @@ export const arTranslations: TranslationDictionary = {
   'help.emergency': 'طوارئ',
   'help.emergencyValue': 'الاتصال باستقبال الفندق',
   'help.paymentInfo': 'معلومات الدفع (معاينة)',
+
+  // Dev Demo Navigator
+  'demo.navigatorTitle': 'متصفح معاينة التطوير',
+  'demo.expand': 'توسيع',
+  'demo.collapse': 'طي',
+  'demo.live': '🟢 مباشر (النظام الفعلي)',
+  'demo.received': '1. تم الاستلام',
+  'demo.parked': '2. تم الاصطفاف',
+  'demo.requested': '3. تم الطلب',
+  'demo.onTheWay': '4. في الطريق',
+  'demo.ready': '5. جاهزة (انتظار)',
+  'demo.readyPin': '6. استلام بالرمز',
+  'demo.readyQr': '7. استلام برمز QR',
+  'demo.verifying': '8. جاري التحقق',
+  'demo.completed': '9. اكتملت الخدمة',
+  'demo.networkUnavailable': 'انقطاع الاتصال',
+  'demo.expired': 'انتهت الصلاحية',
 };

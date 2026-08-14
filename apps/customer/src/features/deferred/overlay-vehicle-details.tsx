@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { formatSessionState } from '../../i18n/format-session-state';
 import { useTranslation } from '../../i18n/use-translation';
 import { BottomSheet } from '../../components/layout/bottom-sheet';
 import { Btn } from '../../components/primitives/btn';
@@ -34,7 +35,7 @@ export function OverlayVehicleDetails({
         />
         <InfoRow
           label={t('vehicle.status')}
-          value={session?.state ?? t('vehicle.unknown')}
+          value={formatSessionState(session?.state, t)}
           showBorder={false}
         />
       </div>

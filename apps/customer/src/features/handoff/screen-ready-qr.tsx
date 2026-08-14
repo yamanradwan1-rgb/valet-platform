@@ -51,7 +51,7 @@ export function ScreenReadyQR({
       <div
         style={{
           borderRadius: 14,
-          padding: 24,
+          padding: '24px 16px',
           textAlign: 'center',
           backgroundColor: C.ice,
         }}
@@ -76,6 +76,7 @@ export function ScreenReadyQR({
                 backgroundColor: '#FFFFFF',
                 padding: 12,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                display: 'inline-flex',
               }}
             >
               <DynamicQRCode payload={qrPayload} size={180} />
@@ -111,7 +112,16 @@ export function ScreenReadyQR({
           </p>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 12,
+            marginTop: 16,
+          }}
+        >
           {onRotate && (
             <button
               type="button"
@@ -123,8 +133,10 @@ export function ScreenReadyQR({
                 color: C.blue,
                 background: 'none',
                 border: 'none',
-                cursor: 'pointer',
-                padding: '4px 8px',
+                cursor: isRotating ? 'not-allowed' : 'pointer',
+                padding: '6px 10px',
+                whiteSpace: 'normal',
+                textAlign: 'center',
               }}
             >
               {isRotating ? t('handoffQr.refreshing') : t('handoffQr.refreshButton')}
@@ -142,8 +154,10 @@ export function ScreenReadyQR({
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                padding: '4px 8px',
+                padding: '6px 10px',
                 textDecoration: 'underline',
+                whiteSpace: 'normal',
+                textAlign: 'center',
               }}
             >
               {t('handoffQr.switchToPin')}

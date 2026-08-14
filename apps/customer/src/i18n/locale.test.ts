@@ -91,7 +91,7 @@ describe('i18n Locale & Translation Dictionaries', () => {
     expect(getPersistedLocale()).toBe('en');
   });
 
-  it('correctly translates error codes for both English and Arabic', () => {
+  it('correctly translates known error codes for both English and Arabic', () => {
     const apiError = new GuestApiError({
       status: 400,
       code: 'RETRIEVAL_REQUEST_NOT_READY',
@@ -108,6 +108,22 @@ describe('i18n Locale & Translation Dictionaries', () => {
       'Retrieval request is not currently available for this vehicle.',
     );
     expect(arMessage).toBe('طلب استرجاع السيارة غير متاح حالياً.');
+  });
+
+  it('never surfaces raw English GuestApiError.message for unknown error codes in Arabic', () => {
+    const rawEnglishBackendMessage = 'Internal database constraint violation in worker thread';
+    const unknownApiError = new GuestApiError({
+      status: 500,
+      code: 'UNKNOWN_BACKEND_OR_ORACLE_ERROR',
+      message: rawEnglishBackendMessage,
+    });
+
+    const arTranslator = (k: TranslationKey) => arTranslations[k];
+    const arMessage = getLocalizedErrorMessage(unknownApiError, arTranslator);
+
+    // MUST return localized fallback, and MUST NOT contain raw English backend message
+    expect(arMessage).toBe('تعذر معالجة طلبك. يرجى إعادة المحاولة.');
+    expect(arMessage).not.toContain(rawEnglishBackendMessage);
   });
 
   it('handles network error objects in getLocalizedErrorMessage', () => {

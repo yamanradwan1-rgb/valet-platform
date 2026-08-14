@@ -6,9 +6,10 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
 } from 'react';
 
+import { interpolateTranslation } from './interpolate';
 import {
   DEFAULT_LOCALE,
   getDirectionForLocale,
@@ -37,6 +38,28 @@ const dictionaries: Readonly<Record<Locale, TranslationDictionary>> = {
 
 export const LocaleContext = createContext<LocaleContextValue | null>(null);
 
+const LOCALE_CHANGE_EVENT = 'vaylet_locale_change';
+
+function subscribeToLocale(callback: () => void): () => void {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+  window.addEventListener('storage', callback);
+  window.addEventListener(LOCALE_CHANGE_EVENT, callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener(LOCALE_CHANGE_EVENT, callback);
+  };
+}
+
+function getClientLocaleSnapshot(): Locale {
+  return getPersistedLocale();
+}
+
+function getServerLocaleSnapshot(): Locale {
+  return DEFAULT_LOCALE;
+}
+
 export function LocaleProvider({
   children,
   initialLocale,
@@ -44,10 +67,13 @@ export function LocaleProvider({
   readonly children: React.ReactNode;
   readonly initialLocale?: Locale | undefined;
 }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    return initialLocale ?? getPersistedLocale();
-  });
+  const storeLocale = useSyncExternalStore(
+    subscribeToLocale,
+    getClientLocaleSnapshot,
+    getServerLocaleSnapshot,
+  );
 
+  const locale: Locale = initialLocale ?? storeLocale;
   const direction = useMemo(() => getDirectionForLocale(locale), [locale]);
   const isRtl = direction === 'rtl';
 
@@ -60,8 +86,10 @@ export function LocaleProvider({
   }, [locale, direction]);
 
   const setLocale = useCallback((newLocale: Locale) => {
-    setLocaleState(newLocale);
     setPersistedLocale(newLocale);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(LOCALE_CHANGE_EVENT));
+    }
     if (typeof document !== 'undefined') {
       document.documentElement.lang = newLocale;
       document.documentElement.dir = getDirectionForLocale(newLocale);
@@ -76,15 +104,8 @@ export function LocaleProvider({
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>): string => {
       const dict = dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
-      let value = dict[key] ?? dictionaries[DEFAULT_LOCALE][key] ?? key;
-
-      if (params) {
-        Object.entries(params).forEach(([paramKey, paramValue]) => {
-          value = value.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramValue));
-        });
-      }
-
-      return value;
+      const template = dict[key] ?? dictionaries[DEFAULT_LOCALE][key] ?? key;
+      return interpolateTranslation(template, params);
     },
     [locale],
   );

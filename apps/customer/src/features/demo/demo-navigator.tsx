@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
+import type { TranslationKey } from '../../i18n/translations/types';
 import { C } from '../../lib/theme/colors';
 
 export type DemoScreenKey =
@@ -25,6 +27,7 @@ export function DemoNavigator({
   readonly activeScreen: DemoScreenKey;
   readonly onSelectScreen: (screen: DemoScreenKey) => void;
 }) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState<boolean>(true);
 
   // Strictly hidden in production
@@ -32,19 +35,19 @@ export function DemoNavigator({
     return null;
   }
 
-  const screens: { id: DemoScreenKey; label: string }[] = [
-    { id: 'live', label: '🟢 Live (API)' },
-    { id: 'demo-received', label: '1. Received' },
-    { id: 'demo-parked', label: '2. Parked' },
-    { id: 'demo-requested', label: '3. Requested' },
-    { id: 'demo-on-the-way', label: '4. On the way' },
-    { id: 'demo-ready', label: '5. Ready (Wait)' },
-    { id: 'demo-ready-pin', label: '6. PIN Handoff' },
-    { id: 'demo-ready-qr', label: '7. QR Handoff' },
-    { id: 'demo-verifying', label: '8. Verifying' },
-    { id: 'demo-completed', label: '9. Completed' },
-    { id: 'demo-network-unavailable', label: 'Net Unavailable' },
-    { id: 'demo-expired', label: 'Expired' },
+  const screens: { id: DemoScreenKey; labelKey: TranslationKey }[] = [
+    { id: 'live', labelKey: 'demo.live' },
+    { id: 'demo-received', labelKey: 'demo.received' },
+    { id: 'demo-parked', labelKey: 'demo.parked' },
+    { id: 'demo-requested', labelKey: 'demo.requested' },
+    { id: 'demo-on-the-way', labelKey: 'demo.onTheWay' },
+    { id: 'demo-ready', labelKey: 'demo.ready' },
+    { id: 'demo-ready-pin', labelKey: 'demo.readyPin' },
+    { id: 'demo-ready-qr', labelKey: 'demo.readyQr' },
+    { id: 'demo-verifying', labelKey: 'demo.verifying' },
+    { id: 'demo-completed', labelKey: 'demo.completed' },
+    { id: 'demo-network-unavailable', labelKey: 'demo.networkUnavailable' },
+    { id: 'demo-expired', labelKey: 'demo.expired' },
   ];
 
   return (
@@ -81,7 +84,7 @@ export function DemoNavigator({
             textTransform: 'uppercase',
           }}
         >
-          Dev Preview Navigator
+          {t('demo.navigatorTitle')}
         </span>
         <button
           type="button"
@@ -96,7 +99,7 @@ export function DemoNavigator({
             padding: '2px 6px',
           }}
         >
-          {collapsed ? 'Expand' : 'Collapse'}
+          {collapsed ? t('demo.expand') : t('demo.collapse')}
         </button>
       </div>
 
@@ -111,7 +114,7 @@ export function DemoNavigator({
             overflowY: 'auto',
           }}
         >
-          {screens.map(({ id, label }) => {
+          {screens.map(({ id, labelKey }) => {
             const isSelected = activeScreen === id;
             return (
               <button
@@ -129,7 +132,7 @@ export function DemoNavigator({
                   cursor: 'pointer',
                 }}
               >
-                {label}
+                {t(labelKey)}
               </button>
             );
           })}

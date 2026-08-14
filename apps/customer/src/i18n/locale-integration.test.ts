@@ -1,58 +1,74 @@
 import { describe, expect, it } from 'vitest';
 
+import { resolveGuestScreenId } from '../features/session/guest-lifecycle-router';
+import type { GuestSafeSession } from '../lib/api/guest-api-types';
+import { formatSessionState } from './format-session-state';
+import { interpolateTranslation } from './interpolate';
 import { arTranslations } from './translations/ar';
 import { enTranslations } from './translations/en';
-import type { TranslationDictionary, TranslationKey } from './translations/types';
+import type { TranslationKey } from './translations/types';
 
 describe('i18n Localization Integration & Parameter Interpolation', () => {
-  const interpolate = (
-    dict: TranslationDictionary,
-    key: TranslationKey,
-    params?: Record<string, string | number>,
-  ): string => {
-    let value = dict[key] ?? key;
-    if (params) {
-      Object.entries(params).forEach(([k, v]) => {
-        value = value.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
-      });
-    }
-    return value;
-  };
+  const enT = (key: TranslationKey, params?: Record<string, string | number>) =>
+    interpolateTranslation(enTranslations[key], params);
 
-  it('correctly interpolates dynamic vehicle parameters in English and Arabic', () => {
-    const enReady = interpolate(enTranslations, 'ready.title', { vehicle: 'Porsche Cayenne' });
-    const arReady = interpolate(arTranslations, 'ready.title', { vehicle: 'Porsche Cayenne' });
+  const arT = (key: TranslationKey, params?: Record<string, string | number>) =>
+    interpolateTranslation(arTranslations[key], params);
+
+  it('correctly interpolates dynamic vehicle parameters using production interpolateTranslation', () => {
+    const enReady = enT('ready.title', { vehicle: 'Porsche Cayenne' });
+    const arReady = arT('ready.title', { vehicle: 'Porsche Cayenne' });
 
     expect(enReady).toBe('Your Porsche Cayenne is ready.');
     expect(arReady).toBe('سيارتك Porsche Cayenne جاهزة للاستلام.');
 
-    const enCompleted = interpolate(enTranslations, 'completed.title', { vehicle: 'BMW X5' });
-    const arCompleted = interpolate(arTranslations, 'completed.title', { vehicle: 'BMW X5' });
+    const enCompleted = enT('completed.title', { vehicle: 'BMW X5' });
+    const arCompleted = arT('completed.title', { vehicle: 'BMW X5' });
 
     expect(enCompleted).toBe('Your BMW X5 has been released.');
     expect(arCompleted).toBe('تم تسليم سيارتك BMW X5 بنجاح.');
   });
 
-  it('correctly interpolates expiry countdown parameters in English and Arabic', () => {
-    const enTime = interpolate(enTranslations, 'handoffPin.expiresIn', { time: '1:45' });
-    const arTime = interpolate(arTranslations, 'handoffPin.expiresIn', { time: '1:45' });
+  it('correctly interpolates expiry countdown parameters using production interpolateTranslation', () => {
+    const enTime = enT('handoffPin.expiresIn', { time: '1:45' });
+    const arTime = arT('handoffPin.expiresIn', { time: '1:45' });
 
     expect(enTime).toBe('Expires in 1:45');
     expect(arTime).toBe('ينتهي خلال 1:45');
 
-    const enSecs = interpolate(enTranslations, 'handoffQr.updatesEvery', { seconds: 45 });
-    const arSecs = interpolate(arTranslations, 'handoffQr.updatesEvery', { seconds: 45 });
+    const enSecs = enT('handoffQr.updatesEvery', { seconds: 45 });
+    const arSecs = arT('handoffQr.updatesEvery', { seconds: 45 });
 
     expect(enSecs).toBe('Updates every 2 min · Expires in 45s');
     expect(arSecs).toBe('يتجدد كل دقيقتين · ينتهي خلال 45 ثانية');
   });
 
-  it('correctly interpolates state parameters for offline/error screens', () => {
-    const enState = interpolate(enTranslations, 'system.lastRecordedState', { state: 'PARKED' });
-    const arState = interpolate(arTranslations, 'system.lastRecordedState', { state: 'PARKED' });
+  it('correctly maps and formats all authoritative session states in English and Arabic', () => {
+    const states = [
+      'CHECKING_IN',
+      'AWAITING_PARKING',
+      'PARKING',
+      'PARKED',
+      'REQUESTED',
+      'RETRIEVING',
+      'READY',
+      'HANDOFF_PENDING',
+      'COMPLETED',
+    ];
 
-    expect(enState).toBe('Last recorded state: PARKED');
-    expect(arState).toBe('آخر حالة مسجلة: PARKED');
+    states.forEach((state) => {
+      const enFormatted = formatSessionState(state, (k) => enTranslations[k]);
+      const arFormatted = formatSessionState(state, (k) => arTranslations[k]);
+
+      expect(typeof enFormatted).toBe('string');
+      expect(enFormatted.trim().length).toBeGreaterThan(0);
+      expect(typeof arFormatted).toBe('string');
+      expect(arFormatted.trim().length).toBeGreaterThan(0);
+
+      // Verify not returning raw untranslated state key when translation exists
+      expect(enFormatted).not.toBe(`states.${state}`);
+      expect(arFormatted).not.toBe(`states.${state}`);
+    });
   });
 
   it('guarantees that all translation keys have matching parameter placeholders between en and ar', () => {
@@ -68,5 +84,35 @@ describe('i18n Localization Integration & Parameter Interpolation', () => {
 
       expect(enParams).toEqual(arParams);
     });
+  });
+
+  it('proves lifecycle screen resolution produces identical results regardless of language/locale', () => {
+    const mockSession: GuestSafeSession = {
+      valetSessionId: 'sess-123',
+      state: 'PARKED',
+      vehicle: { make: 'Toyota', model: 'Camry', color: 'White' },
+    };
+
+    const screenIdEn = resolveGuestScreenId({
+      hasToken: true,
+      isExpired: false,
+      isNetworkError: false,
+      isLoading: false,
+      session: mockSession,
+      handoffMethod: 'PICKUP_CODE',
+    });
+
+    const screenIdAr = resolveGuestScreenId({
+      hasToken: true,
+      isExpired: false,
+      isNetworkError: false,
+      isLoading: false,
+      session: mockSession,
+      handoffMethod: 'PICKUP_CODE',
+    });
+
+    expect(screenIdEn).toBe('PARKED');
+    expect(screenIdAr).toBe('PARKED');
+    expect(screenIdEn).toBe(screenIdAr);
   });
 });

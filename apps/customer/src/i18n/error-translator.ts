@@ -1,4 +1,6 @@
 import { GuestApiError } from '../lib/api/api-error';
+import { arTranslations } from './translations/ar';
+import { enTranslations } from './translations/en';
 import type { TranslationKey } from './translations/types';
 
 export function getLocalizedErrorMessage(
@@ -11,13 +13,13 @@ export function getLocalizedErrorMessage(
     }
 
     const key = `errors.${err.code}` as TranslationKey;
-    const translated = t(key);
-    // If translation key resolved to a valid string (not the raw key name), return it
-    if (translated !== key) {
-      return translated;
+    // Check if the code is actually a known translation key in our dictionary
+    if (key in enTranslations || key in arTranslations) {
+      return t(key);
     }
 
-    return err.message || t('errors.REQUEST_FAILED');
+    // NEVER return raw backend err.message for unknown error codes
+    return t('errors.REQUEST_FAILED');
   }
 
   if (err instanceof Error) {

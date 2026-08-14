@@ -14,6 +14,7 @@ export interface TranslationDictionary {
   // Header & Nav
   'header.backAria': string;
   'header.moreAria': string;
+  'nav.ariaLabel': string;
   'nav.vehicle': string;
   'nav.payment': string;
   'nav.help': string;
@@ -49,6 +50,17 @@ export interface TranslationDictionary {
   'journey.requested': string;
   'journey.onTheWay': string;
   'journey.ready': string;
+
+  // Lifecycle States Presentation
+  'states.CHECKING_IN': string;
+  'states.AWAITING_PARKING': string;
+  'states.PARKING': string;
+  'states.PARKED': string;
+  'states.REQUESTED': string;
+  'states.RETRIEVING': string;
+  'states.READY': string;
+  'states.HANDOFF_PENDING': string;
+  'states.COMPLETED': string;
 
   // Received Screen
   'received.statusReceived': string;
@@ -91,6 +103,10 @@ export interface TranslationDictionary {
   'ready.cardTitle': string;
   'ready.cardSub': string;
 
+  // Verifying Screen
+  'verifying.title': string;
+  'verifying.subtitle': string;
+
   // Handoff PIN Screen
   'handoffPin.badge': string;
   'handoffPin.title': string;
@@ -112,6 +128,8 @@ export interface TranslationDictionary {
   'handoffQr.refreshButton': string;
   'handoffQr.refreshing': string;
   'handoffQr.switchToPin': string;
+  'handoffQr.generationError': string;
+  'handoffQr.ariaLabel': string;
 
   // Completed Screen
   'completed.badge': string;
@@ -174,6 +192,23 @@ export interface TranslationDictionary {
   'help.emergency': string;
   'help.emergencyValue': string;
   'help.paymentInfo': string;
+
+  // Dev Demo Navigator
+  'demo.navigatorTitle': string;
+  'demo.expand': string;
+  'demo.collapse': string;
+  'demo.live': string;
+  'demo.received': string;
+  'demo.parked': string;
+  'demo.requested': string;
+  'demo.onTheWay': string;
+  'demo.ready': string;
+  'demo.readyPin': string;
+  'demo.readyQr': string;
+  'demo.verifying': string;
+  'demo.completed': string;
+  'demo.networkUnavailable': string;
+  'demo.expired': string;
 }
 
 export type TranslationKey = keyof TranslationDictionary;
