@@ -41,6 +41,7 @@ export function DemoNavigator({
         padding: '8px 14px',
         maxWidth: 420,
         width: '92%',
+        boxSizing: 'border-box',
         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
         border: '1px solid rgba(255,255,255,0.12)',
         color: '#FFFFFF',

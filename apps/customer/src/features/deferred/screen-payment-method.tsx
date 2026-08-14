@@ -17,11 +17,11 @@ export function ScreenPaymentMethod({
   const { t } = useTranslation();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('apple_pay');
 
-  const methods: { id: PaymentMethodId; label: string; icon: string }[] = [
-    { id: 'apple_pay', label: t('paymentMethod.applePay'), icon: '' },
-    { id: 'google_pay', label: t('paymentMethod.googlePay'), icon: 'G' },
-    { id: 'card', label: t('paymentMethod.card'), icon: '💳' },
-    { id: 'venue', label: t('paymentMethod.venue'), icon: '🏢' },
+  const methods: readonly { id: PaymentMethodId; label: string }[] = [
+    { id: 'apple_pay', label: t('paymentMethod.applePay') },
+    { id: 'google_pay', label: t('paymentMethod.googlePay') },
+    { id: 'card', label: t('paymentMethod.card') },
+    { id: 'venue', label: t('paymentMethod.venue') },
   ];
 
   return (
@@ -72,14 +72,9 @@ export function ScreenPaymentMethod({
                 transition: 'all 150ms ease',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <span style={{ fontSize: 20, width: 28, textAlign: 'center' }}>
-                  {method.icon}
-                </span>
-                <span style={{ fontSize: 15, fontWeight: 600 }}>
-                  {method.label}
-                </span>
-              </div>
+              <span style={{ fontSize: 15, fontWeight: 600 }}>
+                {method.label}
+              </span>
               <div
                 style={{
                   width: 20,
