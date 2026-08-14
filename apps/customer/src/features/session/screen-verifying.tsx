@@ -1,8 +1,11 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 
 export function ScreenVerifying() {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -37,10 +40,10 @@ export function ScreenVerifying() {
             margin: 0,
           }}
         >
-          Verifying pickup
+          {t('verifying.title')}
         </p>
         <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.grey }}>
-          Please wait while the valet completes release...
+          {t('verifying.subtitle')}
         </p>
       </div>
     </div>

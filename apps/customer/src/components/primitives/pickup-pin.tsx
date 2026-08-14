@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { Label } from './typography-primitives';
 
@@ -14,6 +15,7 @@ export function PickupPIN({
   readonly onRotate?: (() => void) | undefined;
   readonly isRotating?: boolean | undefined;
 }) {
+  const { t } = useTranslation();
   const digits = code.split('');
 
   const formatExpiry = (seconds: number) => {
@@ -34,13 +36,13 @@ export function PickupPIN({
     >
       <div
         style={{
-          padding: '20px 20px 8px 20px',
+          padding: '16px 16px 8px 16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
-        <Label>Pickup code</Label>
+        <Label>{t('handoffPin.pickupCodeLabel')}</Label>
         {expiresInSeconds !== undefined && (
           <span
             style={{
@@ -50,56 +52,64 @@ export function PickupPIN({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {isExpired ? 'Expired' : `Expires in ${formatExpiry(expiresInSeconds)}`}
+            {isExpired
+              ? t('handoffPin.expired')
+              : t('handoffPin.expiresIn', { time: formatExpiry(expiresInSeconds) })}
           </span>
         )}
       </div>
 
       <div
+        dir="ltr"
         style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: 12,
+          gap: 'clamp(6px, 2.5vw, 12px)',
           paddingBottom: 16,
-          paddingLeft: 16,
-          paddingRight: 16,
+          paddingLeft: 12,
+          paddingRight: 12,
+          maxWidth: 280,
+          margin: '0 auto',
+          width: '100%',
         }}
       >
-        {digits.map((d, i) => (
+        {digits.map((digit, i) => (
           <div
             key={i}
             className="font-display"
             style={{
-              width: 56,
-              height: 64,
+              flex: 1,
+              maxWidth: 56,
+              minWidth: 40,
+              height: 56,
               borderRadius: 10,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: '#FFFFFF',
-              fontSize: 32,
+              fontSize: 'clamp(22px, 6vw, 32px)',
               fontWeight: 700,
               color: isExpired ? C.muted : C.navy,
               border: `1px solid ${C.border}`,
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {d}
+            {digit}
           </div>
         ))}
       </div>
 
       <div
         style={{
-          padding: '0 20px 20px 20px',
+          padding: '0 16px 16px 16px',
           textAlign: 'center',
         }}
       >
         <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
-          Show this code to the valet
+          {t('handoffPin.showCodeSub')}
         </p>
         <p style={{ fontSize: 12, marginTop: 4, marginBottom: 0, color: C.muted }}>
-          One-time verification · Expires after use
+          {t('handoffPin.oneTime')}
         </p>
 
         {onRotate && (
@@ -119,7 +129,7 @@ export function PickupPIN({
               padding: '4px 8px',
             }}
           >
-            {isRotating ? 'Refreshing...' : 'Generate new code'}
+            {isRotating ? t('handoffPin.refreshing') : t('handoffPin.refreshButton')}
           </button>
         )}
       </div>

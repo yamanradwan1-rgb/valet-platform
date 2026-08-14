@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { StatusBadge } from '../../components/primitives/status-badge';
 import { VehicleHero } from '../../components/primitives/vehicle-hero';
 import { Btn } from '../../components/primitives/btn';
@@ -16,12 +17,14 @@ export function ScreenReceived({
   readonly onRefresh: () => void;
   readonly isRefreshing?: boolean;
 }) {
+  const { t } = useTranslation();
+
   const statusLabel =
     session.state === 'PARKING'
-      ? 'Parking in progress'
+      ? t('received.statusParking')
       : session.state === 'AWAITING_PARKING'
-        ? 'Awaiting parking'
-        : 'Vehicle received';
+        ? t('received.statusAwaiting')
+        : t('received.statusReceived');
 
   return (
     <div
@@ -58,10 +61,10 @@ export function ScreenReceived({
           </div>
           <div>
             <p style={{ fontSize: 14, fontWeight: 500, color: C.navy, margin: 0 }}>
-              We're checking in your vehicle.
+              {t('received.cardTitle')}
             </p>
             <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.grey }}>
-              We'll update you as soon as it's parked safely.
+              {t('received.cardSub')}
             </p>
           </div>
         </div>
@@ -69,7 +72,7 @@ export function ScreenReceived({
 
       <div style={{ paddingTop: 8 }}>
         <Btn onClick={onRefresh} variant="secondary" loading={isRefreshing}>
-          Refresh status
+          {t('common.refresh')}
         </Btn>
       </div>
     </div>

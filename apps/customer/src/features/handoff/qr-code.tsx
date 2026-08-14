@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import {
   computeQrMatrixWithQuietZone,
@@ -16,6 +17,7 @@ export function DynamicQRCode({
   readonly payload: string;
   readonly size?: number;
 }) {
+  const { t } = useTranslation();
   const qrData = useMemo(() => {
     return computeQrMatrixWithQuietZone(payload, QR_QUIET_ZONE_MODULES);
   }, [payload]);
@@ -36,7 +38,7 @@ export function DynamicQRCode({
           textAlign: 'center',
         }}
       >
-        QR generation error
+        {t('handoffQr.generationError')}
       </div>
     );
   }
@@ -51,7 +53,7 @@ export function DynamicQRCode({
       viewBox={`0 0 ${size} ${size}`}
       shapeRendering="crispEdges"
       role="img"
-      aria-label="Secure Dynamic QR Code"
+      aria-label={t('handoffQr.ariaLabel')}
     >
       <rect width={size} height={size} fill="#FFFFFF" />
       {matrix.map((row, y) =>

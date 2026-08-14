@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { IcX } from '../icons/action-icons';
 
@@ -14,6 +15,8 @@ export function BottomSheet({
   readonly children: React.ReactNode;
   readonly title?: string;
 }) {
+  const { t } = useTranslation();
+
   if (!open) return null;
 
   return (
@@ -23,7 +26,7 @@ export function BottomSheet({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 50,
+        zIndex: 150,
         display: 'flex',
         alignItems: 'flex-end',
         backgroundColor: 'rgba(7, 17, 31, 0.5)',
@@ -87,13 +90,15 @@ export function BottomSheet({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={t('common.close')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 32,
-                height: 32,
+                minWidth: 44,
+                minHeight: 44,
+                width: 44,
+                height: 44,
                 borderRadius: '50%',
                 background: 'none',
                 border: 'none',

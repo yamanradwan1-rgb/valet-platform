@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { JourneyProgress } from '../../components/primitives/journey-progress';
 import { SectionTitle } from '../../components/primitives/typography-primitives';
 import { StatusBadge } from '../../components/primitives/status-badge';
@@ -12,7 +13,8 @@ export function ScreenReady({
 }: {
   readonly session: GuestSafeSession;
 }) {
-  const vehicleName = `${session.vehicle.make ?? 'Vehicle'} ${session.vehicle.model ?? ''}`.trim();
+  const { t } = useTranslation();
+  const vehicleName = `${session.vehicle.make ?? t('vehicle.defaultMake')} ${session.vehicle.model ?? ''}`.trim();
 
   return (
     <div
@@ -27,10 +29,10 @@ export function ScreenReady({
         gap: 20,
       }}
     >
-      <StatusBadge status="success" label="Ready for pickup" />
+      <StatusBadge status="success" label={t('ready.badge')} />
 
       <div>
-        <SectionTitle>Your {vehicleName} is ready.</SectionTitle>
+        <SectionTitle>{t('ready.title', { vehicle: vehicleName })}</SectionTitle>
       </div>
 
       <div
@@ -41,10 +43,10 @@ export function ScreenReady({
         }}
       >
         <p style={{ fontSize: 14, fontWeight: 500, color: C.navy, margin: 0 }}>
-          Your valet is preparing secure handoff.
+          {t('ready.cardTitle')}
         </p>
         <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.grey }}>
-          Your one-time pickup code or QR will appear as soon as the valet begins verification.
+          {t('ready.cardSub')}
         </p>
       </div>
 

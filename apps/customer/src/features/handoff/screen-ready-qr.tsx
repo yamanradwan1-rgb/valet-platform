@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { JourneyProgress } from '../../components/primitives/journey-progress';
 import { StatusBadge } from '../../components/primitives/status-badge';
 import { TrustStrip } from '../../components/primitives/trust-strip';
@@ -25,7 +26,8 @@ export function ScreenReadyQR({
   readonly isRotating?: boolean | undefined;
   readonly error?: string | null | undefined;
 }) {
-  const vehicleName = `${session.vehicle.make ?? 'Vehicle'} ${session.vehicle.model ?? ''}`.trim();
+  const { t } = useTranslation();
+  const vehicleName = `${session.vehicle.make ?? t('vehicle.defaultMake')} ${session.vehicle.model ?? ''}`.trim();
 
   return (
     <div
@@ -40,22 +42,22 @@ export function ScreenReadyQR({
         gap: 20,
       }}
     >
-      <StatusBadge status="success" label="Ready for pickup" />
+      <StatusBadge status="success" label={t('handoffQr.badge')} />
 
       <div>
-        <SectionTitle>Your {vehicleName} is ready.</SectionTitle>
+        <SectionTitle>{t('handoffQr.title', { vehicle: vehicleName })}</SectionTitle>
       </div>
 
       <div
         style={{
           borderRadius: 14,
-          padding: 24,
+          padding: '24px 16px',
           textAlign: 'center',
           backgroundColor: C.ice,
         }}
       >
         <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.grey, margin: 0 }}>
-          Valet will scan this code to confirm handoff
+          {t('handoffQr.instruction')}
         </p>
 
         <div
@@ -74,6 +76,7 @@ export function ScreenReadyQR({
                 backgroundColor: '#FFFFFF',
                 padding: 12,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                display: 'inline-flex',
               }}
             >
               <DynamicQRCode payload={qrPayload} size={180} />
@@ -92,14 +95,14 @@ export function ScreenReadyQR({
                 fontSize: 13,
               }}
             >
-              Loading QR code...
+              {t('common.loadingQr')}
             </div>
           )}
         </div>
 
         {typeof secondsRemaining === 'number' && (
           <p style={{ fontSize: 12, color: secondsRemaining < 30 ? C.danger : C.grey, margin: 0 }}>
-            Updates every 2 min · Expires in {secondsRemaining}s
+            {t('handoffQr.updatesEvery', { seconds: secondsRemaining })}
           </p>
         )}
 
@@ -109,7 +112,16 @@ export function ScreenReadyQR({
           </p>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 12,
+            marginTop: 16,
+          }}
+        >
           {onRotate && (
             <button
               type="button"
@@ -121,11 +133,13 @@ export function ScreenReadyQR({
                 color: C.blue,
                 background: 'none',
                 border: 'none',
-                cursor: 'pointer',
-                padding: '4px 8px',
+                cursor: isRotating ? 'not-allowed' : 'pointer',
+                padding: '6px 10px',
+                whiteSpace: 'normal',
+                textAlign: 'center',
               }}
             >
-              {isRotating ? 'Refreshing...' : 'Get new QR'}
+              {isRotating ? t('handoffQr.refreshing') : t('handoffQr.refreshButton')}
             </button>
           )}
 
@@ -140,11 +154,13 @@ export function ScreenReadyQR({
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                padding: '4px 8px',
+                padding: '6px 10px',
                 textDecoration: 'underline',
+                whiteSpace: 'normal',
+                textAlign: 'center',
               }}
             >
-              Show pickup code instead
+              {t('handoffQr.switchToPin')}
             </button>
           )}
         </div>

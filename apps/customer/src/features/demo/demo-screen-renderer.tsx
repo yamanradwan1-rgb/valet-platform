@@ -9,7 +9,6 @@ import { ScreenCompleted } from '../session/screen-completed';
 import { ScreenRequested } from '../retrieval/screen-requested';
 import { ScreenReadyPIN } from '../handoff/screen-ready-pin';
 import { ScreenReadyQR } from '../handoff/screen-ready-qr';
-import { ScreenArParked, ScreenArRequested } from '../deferred/screen-arabic';
 import {
   ScreenNetworkUnavailable,
   ScreenExpired,
@@ -71,10 +70,6 @@ export function DemoScreenRenderer({
       return <ScreenNetworkUnavailable onRetry={() => {}} lastKnownState="PARKED" />;
     case 'demo-expired':
       return <ScreenExpired />;
-    case 'demo-arabic-parked':
-      return <ScreenArParked onRequestVehicle={() => {}} onViewDetails={() => {}} />;
-    case 'demo-arabic-requested':
-      return <ScreenArRequested />;
     default:
       return null;
   }

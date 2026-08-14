@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { JourneyProgress } from '../../components/primitives/journey-progress';
 import { TrustStrip } from '../../components/primitives/trust-strip';
 import { VehicleHero } from '../../components/primitives/vehicle-hero';
@@ -12,6 +13,8 @@ export function ScreenOnTheWay({
 }: {
   readonly session: GuestSafeSession;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -37,7 +40,7 @@ export function ScreenOnTheWay({
           }}
         />
         <span style={{ fontSize: 14, fontWeight: 500, color: C.blue }}>
-          On the way
+          {t('onTheWay.badge')}
         </span>
       </div>
 
@@ -55,14 +58,14 @@ export function ScreenOnTheWay({
         }}
       >
         <p style={{ fontSize: 14, fontWeight: 500, color: C.navy, margin: 0 }}>
-          Your vehicle is being retrieved.
+          {t('onTheWay.cardTitle')}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
           <div style={{ color: C.blue, display: 'flex' }}>
             <IcClock />
           </div>
           <span style={{ fontSize: 14, fontWeight: 600, color: C.blue }}>
-            Valet en route to staging area
+            {t('onTheWay.cardSub')}
           </span>
         </div>
       </div>

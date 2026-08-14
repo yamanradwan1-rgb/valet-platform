@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { getLocalizedErrorMessage } from '../../i18n/error-translator';
+import { useTranslation } from '../../i18n/use-translation';
 import { GuestApiError } from '../../lib/api/api-error';
 import type { GuestSafeSession } from '../../lib/api/guest-api-types';
 import { useGuestAuth } from '../auth/guest-auth-context';
@@ -16,6 +18,7 @@ export function GuestSessionProvider({
   readonly children: React.ReactNode;
   readonly initialSession?: GuestSafeSession | null | undefined;
 }) {
+  const { t } = useTranslation();
   const { client } = useGuestAuth();
   const [session, setSession] = useState<GuestSafeSession | null>(initialSession ?? null);
   const [isLoading, setIsLoading] = useState<boolean>(() => !initialSession && Boolean(client));
@@ -48,18 +51,14 @@ export function GuestSessionProvider({
           setIsNetworkError(true);
         } else if (err.code === 'GUEST_ACCESS_INVALID') {
           setIsExpired(true);
-          setError(err.message);
-        } else {
-          setError(err.message);
         }
-      } else {
-        setError('Unable to load vehicle status.');
       }
+      setError(getLocalizedErrorMessage(err, t));
     } finally {
       inFlightRef.current = false;
       setIsLoading(false);
     }
-  }, [client]);
+  }, [client, t]);
 
   const refreshSession = useCallback(async () => {
     await fetchSession();

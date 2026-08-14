@@ -1,9 +1,12 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { IcShieldCheck } from '../icons/status-icons';
 
 export function TrustStrip() {
+  const { t } = useTranslation();
+
   return (
     <div
       style={{
@@ -20,10 +23,10 @@ export function TrustStrip() {
       </div>
       <div>
         <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>
-          Protected handoff
+          {t('trust.title')}
         </div>
         <div style={{ fontSize: 12, marginTop: 2, color: C.grey }}>
-          One-time pickup verification
+          {t('trust.sub')}
         </div>
       </div>
     </div>

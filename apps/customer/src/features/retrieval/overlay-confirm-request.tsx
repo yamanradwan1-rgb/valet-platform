@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { BottomSheet } from '../../components/layout/bottom-sheet';
 import { Btn } from '../../components/primitives/btn';
 import { IcClock } from '../../components/icons/status-icons';
@@ -16,11 +17,13 @@ export function OverlayConfirmRequest({
   readonly onClose: () => void;
   readonly isLoading?: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
-    <BottomSheet open={open} onClose={onClose} title="Request your vehicle?">
+    <BottomSheet open={open} onClose={onClose} title={t('confirmRequest.title')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
         <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
-          Your request will be added to the retrieval queue. Keep this page open to see the latest vehicle status.
+          {t('confirmRequest.description')}
         </p>
 
         <div
@@ -37,19 +40,19 @@ export function OverlayConfirmRequest({
             <IcClock />
           </div>
           <div>
-            <span style={{ fontSize: 12, color: C.grey }}>Retrieval queue</span>
+            <span style={{ fontSize: 12, color: C.grey }}>{t('confirmRequest.queueLabel')}</span>
             <div style={{ fontWeight: 600, color: C.navy, fontSize: 14 }}>
-              Ready to be assigned
+              {t('confirmRequest.queueStatus')}
             </div>
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
           <Btn onClick={onConfirm} loading={isLoading} disabled={isLoading}>
-            Request vehicle
+            {t('confirmRequest.confirmButton')}
           </Btn>
           <Btn onClick={onClose} variant="ghost" disabled={isLoading}>
-            Not yet
+            {t('confirmRequest.cancelButton')}
           </Btn>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { InfoRow } from '../../components/primitives/info-row';
 import { StatusBadge } from '../../components/primitives/status-badge';
 import { TrustStrip } from '../../components/primitives/trust-strip';
@@ -17,6 +18,8 @@ export function ScreenParked({
   readonly onRequestClick: () => void;
   readonly onViewDetails: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -30,7 +33,7 @@ export function ScreenParked({
         gap: 20,
       }}
     >
-      <StatusBadge status="success" label="Safely parked" />
+      <StatusBadge status="success" label={t('parked.badge')} />
 
       <VehicleHero
         make={session.vehicle.make}
@@ -39,16 +42,16 @@ export function ScreenParked({
       />
 
       <div style={{ borderTop: `1px solid ${C.border}` }}>
-        <InfoRow label="Location" value="Secure parking" />
-        <InfoRow label="Status" value="Safely parked" showBorder={false} />
+        <InfoRow label={t('parked.locationLabel')} value={t('parked.locationValue')} />
+        <InfoRow label={t('parked.statusLabel')} value={t('parked.statusValue')} showBorder={false} />
       </div>
 
       <TrustStrip />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
-        <Btn onClick={onRequestClick}>Request vehicle</Btn>
+        <Btn onClick={onRequestClick}>{t('parked.requestButton')}</Btn>
         <Btn onClick={onViewDetails} variant="ghost">
-          View vehicle details
+          {t('vehicle.viewDetails')}
         </Btn>
       </div>
     </div>

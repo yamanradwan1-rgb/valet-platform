@@ -2,12 +2,14 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-import { GuestApiError } from '../../lib/api/api-error';
+import { getLocalizedErrorMessage } from '../../i18n/error-translator';
+import { useTranslation } from '../../i18n/use-translation';
 import { createInFlightLock, type InFlightLock } from '../../lib/async/in-flight-guard';
 import { useGuestAuth } from '../auth/guest-auth-context';
 import { useGuestSession } from '../session/use-guest-session';
 
 export function useRetrieval() {
+  const { t } = useTranslation();
   const { client } = useGuestAuth();
   const { session, updateSession, refreshSession } = useGuestSession();
 
@@ -45,11 +47,7 @@ export function useRetrieval() {
         updateSession(updated);
         return true;
       } catch (err: unknown) {
-        if (err instanceof GuestApiError) {
-          setActionError(err.message);
-        } else {
-          setActionError('Failed to request vehicle. Please try again.');
-        }
+        setActionError(getLocalizedErrorMessage(err, t));
         await refreshSession();
         return false;
       } finally {
@@ -58,7 +56,7 @@ export function useRetrieval() {
     });
 
     return result ?? false;
-  }, [client, getRequestLock, updateSession, refreshSession]);
+  }, [client, getRequestLock, t, updateSession, refreshSession]);
 
   const cancelRetrieval = useCallback(async (): Promise<boolean> => {
     if (!client) return false;
@@ -73,11 +71,7 @@ export function useRetrieval() {
         updateSession(updated);
         return true;
       } catch (err: unknown) {
-        if (err instanceof GuestApiError) {
-          setActionError(err.message);
-        } else {
-          setActionError('Failed to cancel retrieval. Please check current status.');
-        }
+        setActionError(getLocalizedErrorMessage(err, t));
         await refreshSession();
         return false;
       } finally {
@@ -86,7 +80,7 @@ export function useRetrieval() {
     });
 
     return result ?? false;
-  }, [client, getCancelLock, updateSession, refreshSession]);
+  }, [client, getCancelLock, t, updateSession, refreshSession]);
 
   return {
     isRequesting,

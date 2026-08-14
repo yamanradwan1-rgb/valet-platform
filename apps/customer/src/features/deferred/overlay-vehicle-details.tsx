@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { formatSessionState } from '../../i18n/format-session-state';
+import { useTranslation } from '../../i18n/use-translation';
 import { BottomSheet } from '../../components/layout/bottom-sheet';
 import { Btn } from '../../components/primitives/btn';
 import { InfoRow } from '../../components/primitives/info-row';
@@ -14,17 +16,32 @@ export function OverlayVehicleDetails({
   readonly onClose: () => void;
   readonly session: GuestSafeSession | null;
 }) {
+  const { t } = useTranslation();
+
   return (
-    <BottomSheet open={open} onClose={onClose} title="Vehicle details">
+    <BottomSheet open={open} onClose={onClose} title={t('vehicle.detailsTitle')}>
       <div style={{ paddingTop: 8 }}>
-        <InfoRow label="Make" value={session?.vehicle.make ?? 'Unknown'} />
-        <InfoRow label="Model" value={session?.vehicle.model ?? 'Unknown'} />
-        <InfoRow label="Color" value={session?.vehicle.color ?? 'Not specified'} />
-        <InfoRow label="Status" value={session?.state ?? 'Unknown'} showBorder={false} />
+        <InfoRow
+          label={t('vehicle.make')}
+          value={session?.vehicle.make ?? t('vehicle.unknown')}
+        />
+        <InfoRow
+          label={t('vehicle.model')}
+          value={session?.vehicle.model ?? t('vehicle.unknown')}
+        />
+        <InfoRow
+          label={t('vehicle.color')}
+          value={session?.vehicle.color ?? t('vehicle.notSpecified')}
+        />
+        <InfoRow
+          label={t('vehicle.status')}
+          value={formatSessionState(session?.state, t)}
+          showBorder={false}
+        />
       </div>
       <div style={{ paddingTop: 16 }}>
         <Btn onClick={onClose} variant="secondary">
-          Close
+          {t('common.close')}
         </Btn>
       </div>
     </BottomSheet>

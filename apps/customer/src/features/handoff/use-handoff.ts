@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { GuestApiError } from '../../lib/api/api-error';
+import { getLocalizedErrorMessage } from '../../i18n/error-translator';
+import { useTranslation } from '../../i18n/use-translation';
 import type {
   GuestHandoffMaterial,
   HandoffStandardMethod,
@@ -11,6 +12,7 @@ import { useGuestAuth } from '../auth/guest-auth-context';
 import { useGuestSession } from '../session/use-guest-session';
 
 export function useHandoff(preferredMethod: HandoffStandardMethod = 'PICKUP_CODE') {
+  const { t } = useTranslation();
   const { client } = useGuestAuth();
   const { session } = useGuestSession();
 
@@ -39,17 +41,13 @@ export function useHandoff(preferredMethod: HandoffStandardMethod = 'PICKUP_CODE
         setMaterial(result);
         setActiveMethod(result.method);
       } catch (err: unknown) {
-        if (err instanceof GuestApiError) {
-          setError(err.message);
-        } else {
-          setError('Failed to issue verification proof. Please try again.');
-        }
+        setError(getLocalizedErrorMessage(err, t));
       } finally {
         if (rotate) setIsRotating(false);
         else setIsLoading(false);
       }
     },
-    [client, isPending],
+    [client, isPending, t],
   );
 
   // Trigger initial fetch on transition into HANDOFF_PENDING
