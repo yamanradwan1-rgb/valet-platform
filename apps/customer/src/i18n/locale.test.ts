@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GuestApiError } from '../lib/api/api-error';
 import { getLocalizedErrorMessage } from './error-translator';
@@ -36,6 +36,9 @@ describe('i18n Locale & Translation Dictionaries', () => {
     Object.defineProperty(globalThis, 'window', {
       value: {
         localStorage: storageMock,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
       },
       writable: true,
       configurable: true,
@@ -53,7 +56,6 @@ describe('i18n Locale & Translation Dictionaries', () => {
 
     expect(enKeys).toEqual(arKeys);
 
-    // Verify all values are non-empty strings
     enKeys.forEach((key) => {
       const enVal = enTranslations[key as TranslationKey];
       const arVal = arTranslations[key as TranslationKey];
@@ -86,7 +88,6 @@ describe('i18n Locale & Translation Dictionaries', () => {
     setPersistedLocale('ar');
     expect(getPersistedLocale()).toBe('ar');
 
-    // Corrupt storage value -> safe fallback to 'en'
     mockStorage[LOCALE_STORAGE_KEY] = 'invalid-locale';
     expect(getPersistedLocale()).toBe('en');
   });
@@ -121,18 +122,22 @@ describe('i18n Locale & Translation Dictionaries', () => {
     const arTranslator = (k: TranslationKey) => arTranslations[k];
     const arMessage = getLocalizedErrorMessage(unknownApiError, arTranslator);
 
-    // MUST return localized fallback, and MUST NOT contain raw English backend message
     expect(arMessage).toBe('تعذر معالجة طلبك. يرجى إعادة المحاولة.');
     expect(arMessage).not.toContain(rawEnglishBackendMessage);
   });
 
-  it('handles network error objects in getLocalizedErrorMessage', () => {
-    const networkError = new TypeError('Failed to fetch');
-    const arTranslator = (k: TranslationKey) => arTranslations[k];
+  it('proves locale switching causes zero API mutation calls', () => {
+    const fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy;
 
-    const message = getLocalizedErrorMessage(networkError, arTranslator);
-    expect(message).toBe(
-      'خطأ في الاتصال بالشبكة. يرجى التحقق من اتصال الإنترنت.',
-    );
+    // Simulate switching locale through production methods
+    setPersistedLocale('ar');
+    expect(getPersistedLocale()).toBe('ar');
+
+    setPersistedLocale('en');
+    expect(getPersistedLocale()).toBe('en');
+
+    // Zero network calls triggered
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

@@ -86,33 +86,32 @@ describe('i18n Localization Integration & Parameter Interpolation', () => {
     });
   });
 
-  it('proves lifecycle screen resolution produces identical results regardless of language/locale', () => {
-    const mockSession: GuestSafeSession = {
+  it('proves lifecycle routing resolves all physical custody states deterministically without locale input', () => {
+    const createSession = (state: GuestSafeSession['state']): GuestSafeSession => ({
       valetSessionId: 'sess-123',
-      state: 'PARKED',
+      state,
       vehicle: { make: 'Toyota', model: 'Camry', color: 'White' },
-    };
-
-    const screenIdEn = resolveGuestScreenId({
-      hasToken: true,
-      isExpired: false,
-      isNetworkError: false,
-      isLoading: false,
-      session: mockSession,
-      handoffMethod: 'PICKUP_CODE',
     });
 
-    const screenIdAr = resolveGuestScreenId({
-      hasToken: true,
-      isExpired: false,
-      isNetworkError: false,
-      isLoading: false,
-      session: mockSession,
-      handoffMethod: 'PICKUP_CODE',
-    });
+    const route = (session: GuestSafeSession | null, method: 'PICKUP_CODE' | 'DYNAMIC_QR' = 'PICKUP_CODE') =>
+      resolveGuestScreenId({
+        hasToken: true,
+        isExpired: false,
+        isNetworkError: false,
+        isLoading: false,
+        session,
+        handoffMethod: method,
+      });
 
-    expect(screenIdEn).toBe('PARKED');
-    expect(screenIdAr).toBe('PARKED');
-    expect(screenIdEn).toBe(screenIdAr);
+    expect(route(createSession('CHECKING_IN'))).toBe('RECEIVED');
+    expect(route(createSession('AWAITING_PARKING'))).toBe('RECEIVED');
+    expect(route(createSession('PARKING'))).toBe('RECEIVED');
+    expect(route(createSession('PARKED'))).toBe('PARKED');
+    expect(route(createSession('REQUESTED'))).toBe('REQUESTED');
+    expect(route(createSession('RETRIEVING'))).toBe('RETRIEVING');
+    expect(route(createSession('READY'))).toBe('READY');
+    expect(route(createSession('HANDOFF_PENDING'), 'PICKUP_CODE')).toBe('HANDOFF_PENDING_PIN');
+    expect(route(createSession('HANDOFF_PENDING'), 'DYNAMIC_QR')).toBe('HANDOFF_PENDING_QR');
+    expect(route(createSession('COMPLETED'))).toBe('COMPLETED');
   });
 });

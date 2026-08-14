@@ -42,9 +42,9 @@ export function GuestAppRoot() {
   const [demoScreen, setDemoScreen] = useState<DemoScreenKey>('live');
 
   // Overlays
-  const [showConfirmRequest, setShowConfirmRequest] = useState(false);
-  const [showVehicleDetails, setShowVehicleDetails] = useState(false);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showConfirmRequest, setShowConfirmRequest] = useState<boolean>(false);
+  const [showVehicleDetails, setShowVehicleDetails] = useState<boolean>(false);
+  const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false);
 
   // Sub-screens for dev preview flows
   const [paymentSubScreen, setPaymentSubScreen] = useState<'overview' | 'tip' | 'receipt'>('overview');
@@ -59,15 +59,30 @@ export function GuestAppRoot() {
     if (ok) setShowConfirmRequest(false);
   };
 
+  const handleOpenMore = () => setShowMoreMenu(true);
+  const handleCloseMore = () => setShowMoreMenu(false);
+
   // 1. Dev Preview Screen Override (strictly dev-only)
   if (isDev && demoScreen !== 'live') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
         <DemoScreenRenderer
           demoScreen={demoScreen}
           onSelectScreen={setDemoScreen}
           onRequestClick={() => setShowConfirmRequest(true)}
           onViewDetails={() => setShowVehicleDetails(true)}
+        />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
+        <OverlayConfirmRequest
+          open={showConfirmRequest}
+          onClose={() => setShowConfirmRequest(false)}
+          onConfirm={handleRequestConfirm}
+          isLoading={retrieval.isRequesting}
+        />
+        <OverlayVehicleDetails
+          open={showVehicleDetails}
+          onClose={() => setShowVehicleDetails(false)}
+          session={session}
         />
         <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
       </AppShell>
@@ -77,7 +92,7 @@ export function GuestAppRoot() {
   // 2. Dev-only Tab: Payment Preview
   if (isDev && tab === 'payment') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
         {paymentSubScreen === 'overview' && (
           <ScreenPaymentOverview
             onAddTip={() => setPaymentSubScreen('tip')}
@@ -90,6 +105,7 @@ export function GuestAppRoot() {
         {paymentSubScreen === 'receipt' && (
           <ScreenReceipt onDone={() => setPaymentSubScreen('overview')} />
         )}
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
       </AppShell>
     );
@@ -98,13 +114,14 @@ export function GuestAppRoot() {
   // 3. Dev-only Tab: Help Preview
   if (isDev && tab === 'help') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
         {helpSubScreen === 'help' && (
           <ScreenHelp onPaymentHelp={() => setTab('payment')} />
         )}
         {helpSubScreen === 'rate' && (
           <ScreenRate onDone={() => setHelpSubScreen('help')} />
         )}
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
       </AppShell>
     );
@@ -122,8 +139,9 @@ export function GuestAppRoot() {
 
   if (screenId === 'UNAVAILABLE') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenExpired />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
       </AppShell>
     );
@@ -131,8 +149,9 @@ export function GuestAppRoot() {
 
   if (screenId === 'NETWORK_ERROR') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenNetworkUnavailable onRetry={() => void refreshSession()} />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
       </AppShell>
     );
@@ -140,7 +159,7 @@ export function GuestAppRoot() {
 
   if (screenId === 'LOADING') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <div
           style={{
             display: 'flex',
@@ -163,6 +182,7 @@ export function GuestAppRoot() {
           />
           <span style={{ fontSize: 14, color: C.grey }}>{t('common.loadingSession')}</span>
         </div>
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
       </AppShell>
     );
@@ -170,14 +190,15 @@ export function GuestAppRoot() {
 
   if (!session) {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenExpired />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
       </AppShell>
     );
   }
 
   return (
-    <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
+    <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
       <GuestLiveView
         screenId={screenId}
         session={session}
@@ -212,7 +233,7 @@ export function GuestAppRoot() {
 
       <OverlayMoreMenu
         open={showMoreMenu}
-        onClose={() => setShowMoreMenu(false)}
+        onClose={handleCloseMore}
       />
 
       {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}

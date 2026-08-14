@@ -77,11 +77,13 @@ export function LocaleProvider({
   const direction = useMemo(() => getDirectionForLocale(locale), [locale]);
   const isRtl = direction === 'rtl';
 
-  // Synchronize document direction and language attributes
+  // Synchronize document attributes and unmask pre-hydration visibility guard
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = locale;
       document.documentElement.dir = direction;
+      document.documentElement.classList.remove('vaylet-persisted-ar');
+      document.documentElement.classList.add('vaylet-hydrated');
     }
   }, [locale, direction]);
 

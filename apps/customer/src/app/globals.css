@@ -30,6 +30,16 @@ body {
   margin: 0;
 }
 
+/* Pre-hydration visibility guard: prevents English SSR text from flashing when Arabic is persisted */
+html.vaylet-persisted-ar body {
+  visibility: hidden;
+}
+
+html.vaylet-hydrated body,
+html:not(.vaylet-persisted-ar) body {
+  visibility: visible;
+}
+
 html[dir="rtl"] body {
   font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

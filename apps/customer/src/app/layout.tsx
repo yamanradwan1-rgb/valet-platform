@@ -24,23 +24,26 @@ export const viewport: Viewport = {
 };
 
 const initLocaleScript = `
-try {
-  var l = localStorage.getItem('vaylet_guest_locale');
-  if (l === 'ar') {
-    document.documentElement.lang = 'ar';
-    document.documentElement.dir = 'rtl';
-  } else {
-    document.documentElement.lang = 'en';
-    document.documentElement.dir = 'ltr';
-  }
-} catch (e) {}
+(function(){
+  try {
+    var l = localStorage.getItem('vaylet_guest_locale');
+    if (l === 'ar') {
+      document.documentElement.lang = 'ar';
+      document.documentElement.dir = 'rtl';
+      document.documentElement.classList.add('vaylet-persisted-ar');
+    } else {
+      document.documentElement.lang = 'en';
+      document.documentElement.dir = 'ltr';
+    }
+  } catch (e) {}
+})();
 `;
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html lang="en" dir="ltr">
       <head>
         <script dangerouslySetInnerHTML={{ __html: initLocaleScript }} />
         <link rel="manifest" href="/manifest.webmanifest" />
