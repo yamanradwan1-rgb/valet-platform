@@ -64,8 +64,12 @@ does not store an assignee or create a second ownership lifecycle;
 non-null value means ended; an end cannot precede its start. Partial unique
 indexes permit at most one active tracking session per Task and at most one
 active tracking session per physical ValetSession. Ended history remains
-append-only apart from the one-way setting of `ended_at`, which later command
-composition must guard transactionally.
+append-only apart from the one-way first setting of `ended_at`. A dedicated
+database trigger permits `NULL -> non-NULL`, permits an identical-value no-op,
+and rejects both `non-NULL -> NULL` reopening and `non-NULL -> different
+non-NULL` rewriting. The existing database check also rejects an end before
+the persisted start. Later command composition must still own authorization
+and transaction boundaries, but it cannot weaken this history invariant.
 
 This persistence does not start or stop tracking and adds no Task or
 ValetSession states.

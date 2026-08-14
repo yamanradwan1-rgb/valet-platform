@@ -5,8 +5,11 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { createMapsTrackingFixture } from "./maps-tracking-fixture.js";
+
 interface PgError extends Error {
   code?: string;
+  constraint?: string;
 }
 
 const adminUrl =
@@ -64,6 +67,19 @@ async function expectDenied(operation: Promise<unknown>): Promise<void> {
     throw new Error("Expected PostgreSQL privilege denial.");
   } catch (error) {
     expect((error as PgError).code).toBe("42501");
+  }
+}
+
+async function expectConstraint(
+  operation: Promise<unknown>,
+  constraint: string,
+): Promise<void> {
+  try {
+    await operation;
+    throw new Error(`Expected PostgreSQL constraint ${constraint}.`);
+  } catch (error) {
+    expect((error as PgError).code).toBe("23514");
+    expect((error as PgError).constraint).toBe(constraint);
   }
 }
 
@@ -165,7 +181,8 @@ describe("DEC-046 runtime role boundary", () => {
       `SELECT column_name,
               has_column_privilege($1, 'public.task_tracking_sessions',
                                    column_name, 'UPDATE') AS can_update
-       FROM unnest(ARRAY['ended_at', 'started_at', 'task_id', 'organization_id'])
+       FROM unnest(ARRAY['ended_at', 'started_at', 'task_id', 'organization_id',
+                         'valet_session_id'])
             AS column_name ORDER BY column_name`,
       [runtimeRole],
     );
@@ -174,12 +191,67 @@ describe("DEC-046 runtime role boundary", () => {
       { can_update: false, column_name: "organization_id" },
       { can_update: false, column_name: "started_at" },
       { can_update: false, column_name: "task_id" },
+      { can_update: false, column_name: "valet_session_id" },
     ]);
     await expectDenied(runtimePool.query(`TRUNCATE raw_gps_samples`));
     await expectDenied(runtimePool.query(`DELETE FROM geofence_events`));
     await expectDenied(
       runtimePool.query(`UPDATE raw_gps_samples SET latitude = 0`),
     );
+  });
+
+  it("enforces a one-way ended_at transition through the runtime role", async () => {
+    const fixture = await createMapsTrackingFixture(adminPool);
+    const firstEnd = await runtimePool.query<{ ended_at: Date }>(
+      `UPDATE task_tracking_sessions
+       SET ended_at = started_at + interval '1 second'
+       WHERE id = $1
+       RETURNING ended_at`,
+      [fixture.trackingSessionId],
+    );
+    expect(firstEnd.rowCount).toBe(1);
+    const endedAt = firstEnd.rows[0]?.ended_at;
+    expect(endedAt).toBeInstanceOf(Date);
+
+    const identical = await runtimePool.query(
+      `UPDATE task_tracking_sessions SET ended_at = $2 WHERE id = $1`,
+      [fixture.trackingSessionId, endedAt],
+    );
+    expect(identical.rowCount).toBe(1);
+
+    await expectConstraint(
+      runtimePool.query(
+        `UPDATE task_tracking_sessions SET ended_at = NULL WHERE id = $1`,
+        [fixture.trackingSessionId],
+      ),
+      "task_tracking_sessions_ended_at_once_check",
+    );
+    await expectConstraint(
+      runtimePool.query(
+        `UPDATE task_tracking_sessions
+         SET ended_at = ended_at + interval '1 second' WHERE id = $1`,
+        [fixture.trackingSessionId],
+      ),
+      "task_tracking_sessions_ended_at_once_check",
+    );
+
+    const active = await createMapsTrackingFixture(adminPool);
+    await expectConstraint(
+      runtimePool.query(
+        `UPDATE task_tracking_sessions
+         SET ended_at = started_at - interval '1 millisecond' WHERE id = $1`,
+        [active.trackingSessionId],
+      ),
+      "task_tracking_sessions_time_order_check",
+    );
+    for (const column of ["started_at", "task_id", "valet_session_id"]) {
+      await expectDenied(
+        runtimePool.query(
+          `UPDATE task_tracking_sessions SET ${column} = ${column} WHERE id = $1`,
+          [active.trackingSessionId],
+        ),
+      );
+    }
   });
 
   it("does not expand DDL, ownership, or unsafe role attributes", async () => {

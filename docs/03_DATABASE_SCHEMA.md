@@ -742,7 +742,10 @@ and longitude to `[-180, 180]`.
 database-authored start and nullable end. Its composite Task FK prevents
 cross-tenant, cross-Location and cross-session composition. `ended_at IS NULL`
 is active; partial unique indexes allow only one active row per Task and one
-per ValetSession. End time cannot precede start time. No assignee is stored.
+per ValetSession. End time cannot precede start time. A tracker-specific
+database trigger allows the first `NULL -> non-NULL` end and an identical-value
+no-op, while rejecting reopening to null or rewriting an already-set end time.
+No assignee is stored.
 
 `raw_gps_samples` stores exact tracking scope, client sample UUID, decimal
 coordinates, untrusted client capture time and database receive time. The

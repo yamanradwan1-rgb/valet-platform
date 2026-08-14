@@ -91,6 +91,30 @@ CREATE TABLE "task_tracking_sessions" (
         CHECK ("ended_at" IS NULL OR "ended_at" >= "started_at")
 );
 
+CREATE FUNCTION "enforce_task_tracking_session_ended_at_once"()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF OLD."ended_at" IS NOT NULL
+       AND NEW."ended_at" IS DISTINCT FROM OLD."ended_at" THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '23514',
+            CONSTRAINT = 'task_tracking_sessions_ended_at_once_check',
+            MESSAGE = 'An ended tracking session cannot be reopened or rewritten.';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION "enforce_task_tracking_session_ended_at_once"()
+FROM PUBLIC;
+
+CREATE TRIGGER "task_tracking_sessions_ended_at_once_trigger"
+BEFORE UPDATE OF "ended_at" ON "task_tracking_sessions"
+FOR EACH ROW
+EXECUTE FUNCTION "enforce_task_tracking_session_ended_at_once"();
+
 CREATE TABLE "raw_gps_samples" (
     "id" UUID NOT NULL,
     "organization_id" UUID NOT NULL,
