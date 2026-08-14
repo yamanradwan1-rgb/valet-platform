@@ -32,7 +32,7 @@ export function DynamicQRCode({
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: '#FFFFFF',
-          color: C.danger,
+          color: C.dangerSemantic,
           fontSize: 12,
           padding: 8,
           textAlign: 'center',
@@ -55,6 +55,7 @@ export function DynamicQRCode({
       role="img"
       aria-label={t('handoffQr.ariaLabel')}
     >
+      {/* High-contrast static white scan surface and dark modules */}
       <rect width={size} height={size} fill="#FFFFFF" />
       {matrix.map((row, y) =>
         row.map((filled, x) =>
@@ -65,7 +66,7 @@ export function DynamicQRCode({
               y={y * cellSize}
               width={cellSize}
               height={cellSize}
-              fill={C.navy}
+              fill={C.brandNavy}
             />
           ) : null,
         ),

@@ -27,8 +27,8 @@ export function ScreenRate({
         gap: 20,
       }}
     >
-      <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
-        <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
+      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
+        <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
           {t('help.rateBanner')}
         </span>
       </div>
@@ -46,7 +46,7 @@ export function ScreenRate({
               border: 'none',
               fontSize: 32,
               cursor: 'pointer',
-              color: star <= stars ? '#F59E0B' : C.border,
+              color: star <= stars ? '#F59E0B' : C.borderSemantic,
             }}
           >
             ★
@@ -87,7 +87,7 @@ export function ScreenHelp({
         style={{
           borderRadius: 14,
           padding: 20,
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
         <InfoRow label={t('help.valetDesk')} value={t('help.valetDeskValue')} />

@@ -35,11 +35,11 @@ export function ScreenOnTheWay({
             width: 8,
             height: 8,
             borderRadius: '50%',
-            backgroundColor: C.blue,
+            backgroundColor: C.accent,
             display: 'block',
           }}
         />
-        <span style={{ fontSize: 14, fontWeight: 500, color: C.blue }}>
+        <span style={{ fontSize: 14, fontWeight: 500, color: C.accent }}>
           {t('onTheWay.badge')}
         </span>
       </div>
@@ -54,17 +54,17 @@ export function ScreenOnTheWay({
         style={{
           borderRadius: 14,
           padding: 20,
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
-        <p style={{ fontSize: 14, fontWeight: 500, color: C.navy, margin: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: C.text, margin: 0 }}>
           {t('onTheWay.cardTitle')}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-          <div style={{ color: C.blue, display: 'flex' }}>
+          <div style={{ color: C.accent, display: 'flex' }}>
             <IcClock />
           </div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: C.blue }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: C.accent }}>
             {t('onTheWay.cardSub')}
           </span>
         </div>

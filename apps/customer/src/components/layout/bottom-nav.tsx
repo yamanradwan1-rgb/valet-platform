@@ -30,8 +30,8 @@ export function BottomNav({ tab, onTab }: BottomNavProps) {
     <nav
       style={{
         display: 'flex',
-        borderTop: `1px solid ${C.border}`,
-        backgroundColor: '#FFFFFF',
+        borderTop: `1px solid ${C.borderSemantic}`,
+        backgroundColor: C.surface,
         height: 64,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
@@ -40,6 +40,8 @@ export function BottomNav({ tab, onTab }: BottomNavProps) {
     >
       {tabs.map((tabItem) => {
         const active = tab === tabItem.id;
+        const itemColor = active ? C.accent : C.textSecondary;
+
         return (
           <button
             key={tabItem.id}
@@ -55,10 +57,10 @@ export function BottomNav({ tab, onTab }: BottomNavProps) {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: active ? C.navy : C.grey,
+              color: itemColor,
             }}
           >
-            <div style={{ color: active ? C.navy : C.grey, display: 'flex' }}>
+            <div style={{ color: itemColor, display: 'flex' }}>
               {tabItem.icon}
             </div>
             <span

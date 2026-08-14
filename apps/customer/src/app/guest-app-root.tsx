@@ -176,11 +176,11 @@ export function GuestAppRoot() {
               width: 36,
               height: 36,
               borderRadius: '50%',
-              border: `2px solid ${C.border}`,
-              borderTopColor: C.blue,
+              border: `2px solid ${C.borderSemantic}`,
+              borderTopColor: C.accent,
             }}
           />
-          <span style={{ fontSize: 14, color: C.grey }}>{t('common.loadingSession')}</span>
+          <span style={{ fontSize: 14, color: C.textSecondary }}>{t('common.loadingSession')}</span>
         </div>
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}

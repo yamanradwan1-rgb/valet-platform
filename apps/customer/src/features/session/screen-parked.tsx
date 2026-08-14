@@ -41,7 +41,7 @@ export function ScreenParked({
         color={session.vehicle.color}
       />
 
-      <div style={{ borderTop: `1px solid ${C.border}` }}>
+      <div style={{ borderTop: `1px solid ${C.borderSemantic}` }}>
         <InfoRow label={t('parked.locationLabel')} value={t('parked.locationValue')} />
         <InfoRow label={t('parked.statusLabel')} value={t('parked.statusValue')} showBorder={false} />
       </div>

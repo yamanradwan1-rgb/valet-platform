@@ -1,4 +1,13 @@
 export const C = {
+  // Static brand palette constants (fixed hex)
+  brandNavy: '#07111F',
+  brandNavy2: '#0B1626',
+  brandNavy3: '#111E30',
+  brandBlue: '#176BFF',
+  brandBlueHover: '#0F5EEA',
+  white: '#FFFFFF',
+
+  // Legacy static colors (retained for backward compatibility)
   navy: '#07111F',
   navy2: '#0B1626',
   navy3: '#111E30',
@@ -12,6 +21,32 @@ export const C = {
   success: '#2F9B78',
   warning: '#D89434',
   danger: '#D95C63',
+
+  // Theme-aware semantic tokens
+  bg: 'var(--v-bg)',
+  bgFrame: 'var(--v-bg-frame)',
+  surface: 'var(--v-surface)',
+  surfaceRaised: 'var(--v-surface-raised)',
+  surfaceMuted: 'var(--v-surface-muted)',
+  sheetBg: 'var(--v-sheet-bg)',
+  sheetBorder: 'var(--v-sheet-border)',
+  text: 'var(--v-text)',
+  textSecondary: 'var(--v-text-secondary)',
+  textMuted: 'var(--v-text-muted)',
+  borderSemantic: 'var(--v-border)',
+  borderSubtle: 'var(--v-border-subtle)',
+  selectedBorder: 'var(--v-selected-border)',
+  qrPlaceholderBorder: 'var(--v-qr-placeholder-border)',
+  accent: 'var(--v-blue)',
+  accentHover: 'var(--v-blue-hover)',
+  iceSemantic: 'var(--v-ice)',
+  overlay: 'var(--v-overlay)',
+  warningSurface: 'var(--v-warning-surface)',
+  warningText: 'var(--v-warning-text)',
+  dangerSurface: 'var(--v-danger-surface)',
+  successSemantic: 'var(--v-success)',
+  warningSemantic: 'var(--v-warning)',
+  dangerSemantic: 'var(--v-danger)',
 } as const;
 
 export type ColorKey = keyof typeof C;

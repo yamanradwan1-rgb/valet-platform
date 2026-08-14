@@ -1,0 +1,196 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { LOCALE_STORAGE_KEY, setPersistedLocale, getPersistedLocale } from '../i18n/locale';
+import {
+  applyThemeToDom,
+  commitThemeChange,
+  DEFAULT_THEME,
+  getPersistedTheme,
+  isSupportedTheme,
+  setPersistedTheme,
+  shouldSkipInitialThemeSync,
+  THEME_CHANGE_EVENT,
+  THEME_COLORS,
+  THEME_STORAGE_KEY,
+} from './theme';
+
+describe('Theme Domain & Persistence Layer', () => {
+  let mockStorage: Record<string, string> = {};
+
+  beforeEach(() => {
+    mockStorage = {};
+    const storageMock = {
+      getItem: (key: string) => mockStorage[key] ?? null,
+      setItem: (key: string, value: string) => {
+        mockStorage[key] = value;
+      },
+      removeItem: (key: string) => {
+        delete mockStorage[key];
+      },
+      clear: () => {
+        mockStorage = {};
+      },
+      length: 0,
+      key: () => null,
+    } as Storage;
+
+    const attributesMap: Record<string, string> = {};
+    const mockDocElement = {
+      getAttribute: (name: string) => attributesMap[name] ?? null,
+      setAttribute: (name: string, value: string) => {
+        attributesMap[name] = value;
+      },
+      removeAttribute: (name: string) => {
+        delete attributesMap[name];
+      },
+    };
+
+    const metaAttributesMap: Record<string, string> = {
+      id: 'vaylet-theme-color',
+      name: 'theme-color',
+      content: '#FAFAF8',
+    };
+    const mockMetaThemeColor = {
+      getAttribute: (name: string) => metaAttributesMap[name] ?? null,
+      setAttribute: (name: string, value: string) => {
+        metaAttributesMap[name] = value;
+      },
+    };
+
+    Object.defineProperty(globalThis, 'window', {
+      value: {
+        localStorage: storageMock,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    Object.defineProperty(globalThis, 'document', {
+      value: {
+        documentElement: mockDocElement,
+        getElementById: (id: string) => {
+          if (id === 'vaylet-theme-color') {
+            return mockMetaThemeColor;
+          }
+          return null;
+        },
+        querySelector: (selector: string) => {
+          if (selector === 'meta[name="theme-color"]') {
+            return mockMetaThemeColor;
+          }
+          return null;
+        },
+      },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    // @ts-expect-error Resetting global window mock in node test environment
+    delete globalThis.window;
+    // @ts-expect-error Resetting global document mock in node test environment
+    delete globalThis.document;
+  });
+
+  it('validates supported themes strictly', () => {
+    expect(isSupportedTheme('light')).toBe(true);
+    expect(isSupportedTheme('dark')).toBe(true);
+    expect(isSupportedTheme('dim')).toBe(false);
+    expect(isSupportedTheme(null)).toBe(false);
+    expect(isSupportedTheme(undefined)).toBe(false);
+    expect(isSupportedTheme('')).toBe(false);
+  });
+
+  it('handles local storage persistence with safe fallback on malformed input', () => {
+    expect(getPersistedTheme()).toBe(DEFAULT_THEME);
+
+    setPersistedTheme('dark');
+    expect(getPersistedTheme()).toBe('dark');
+
+    mockStorage[THEME_STORAGE_KEY] = 'invalid-theme-value';
+    expect(getPersistedTheme()).toBe(DEFAULT_THEME);
+  });
+
+  it('proves applyThemeToDom synchronizes root data-theme and authoritative theme-color meta tag', () => {
+    // 1. Apply Dark
+    applyThemeToDom('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    const darkMeta = document.getElementById('vaylet-theme-color');
+    expect(darkMeta?.getAttribute('content')).toBe(THEME_COLORS.dark);
+
+    // 2. Apply Light
+    applyThemeToDom('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    const lightMeta = document.getElementById('vaylet-theme-color');
+    expect(lightMeta?.getAttribute('content')).toBe(THEME_COLORS.light);
+  });
+
+  it('proves commitThemeChange synchronizes storage, DOM, meta tag, and event with 0 API calls', () => {
+    const fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy;
+
+    // 1. Commit switch to dark theme
+    commitThemeChange('dark');
+    expect(getPersistedTheme()).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(window.dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: THEME_CHANGE_EVENT }),
+    );
+
+    const meta = document.getElementById('vaylet-theme-color');
+    expect(meta?.getAttribute('content')).toBe(THEME_COLORS.dark);
+
+    // 2. Commit switch back to light theme
+    commitThemeChange('light');
+    expect(getPersistedTheme()).toBe('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    expect(meta?.getAttribute('content')).toBe(THEME_COLORS.light);
+
+    // 3. Proves zero network requests were triggered
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('proves shouldSkipInitialThemeSync guards initial SSR mismatch while allowing cross-tab storage sync', () => {
+    // 1. Initial SSR snapshot mismatch (DOM is dark, React is light, persisted is dark) -> MUST skip
+    expect(shouldSkipInitialThemeSync('dark', 'light', 'dark')).toBe(true);
+
+    // 2. Once React state matches persisted theme -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('dark', 'dark', 'dark')).toBe(false);
+
+    // 3. Cross-tab storage change to light (DOM is still dark, React became light, persisted is light) -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('dark', 'light', 'light')).toBe(false);
+
+    // 4. Cross-tab storage change to dark (DOM is light, React became dark, persisted is dark) -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('light', 'dark', 'dark')).toBe(false);
+
+    // 5. Default light user on initial mount -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('light', 'light', 'light')).toBe(false);
+  });
+
+  it('proves locale and theme preferences remain strictly independent', () => {
+    // Set locale to Arabic
+    setPersistedLocale('ar');
+    expect(getPersistedLocale()).toBe('ar');
+    expect(getPersistedTheme()).toBe('light');
+
+    // Set theme to dark
+    setPersistedTheme('dark');
+    expect(getPersistedLocale()).toBe('ar');
+    expect(getPersistedTheme()).toBe('dark');
+
+    // Reset locale to English
+    setPersistedLocale('en');
+    expect(getPersistedLocale()).toBe('en');
+    expect(getPersistedTheme()).toBe('dark');
+
+    // Storage only contains the two intended independent keys
+    expect(mockStorage).toEqual({
+      [LOCALE_STORAGE_KEY]: 'en',
+      [THEME_STORAGE_KEY]: 'dark',
+    });
+  });
+});

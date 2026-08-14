@@ -15,17 +15,17 @@ export function TrustStrip() {
         gap: 12,
         borderRadius: 12,
         padding: '12px 16px',
-        backgroundColor: C.ice,
+        backgroundColor: C.iceSemantic,
       }}
     >
-      <div style={{ color: C.blue, display: 'flex', flexShrink: 0 }}>
+      <div style={{ color: C.accent, display: 'flex', flexShrink: 0 }}>
         <IcShieldCheck />
       </div>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>
           {t('trust.title')}
         </div>
-        <div style={{ fontSize: 12, marginTop: 2, color: C.grey }}>
+        <div style={{ fontSize: 12, marginTop: 2, color: C.textSecondary }}>
           {t('trust.sub')}
         </div>
       </div>

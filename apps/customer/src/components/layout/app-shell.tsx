@@ -13,7 +13,7 @@ export function AppShell({
   headerTitle,
   showHeader = true,
   showNav = true,
-  dark = false,
+  dark,
   whiteLabel = true,
 }: {
   readonly children: React.ReactNode;
@@ -27,6 +27,8 @@ export function AppShell({
   readonly dark?: boolean | undefined;
   readonly whiteLabel?: boolean | undefined;
 }) {
+  const containerBg = dark === true ? C.brandNavy : dark === false ? C.warm : C.bg;
+
   return (
     <div
       style={{
@@ -34,7 +36,7 @@ export function AppShell({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-start',
-        backgroundColor: '#E8EDF4',
+        backgroundColor: C.bgFrame,
       }}
     >
       <div
@@ -44,7 +46,7 @@ export function AppShell({
           minHeight: '100dvh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: dark ? C.navy : C.warm,
+          backgroundColor: containerBg,
           boxShadow: '0 0 60px rgba(0, 0, 0, 0.15)',
           position: 'relative',
         }}

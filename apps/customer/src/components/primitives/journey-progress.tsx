@@ -28,7 +28,7 @@ export function JourneyProgress({ step }: { readonly step: 0 | 1 | 2 }) {
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                backgroundColor: i <= step ? C.blue : C.border,
+                backgroundColor: i <= step ? C.accent : C.borderSemantic,
               }}
             />
             <span
@@ -36,7 +36,7 @@ export function JourneyProgress({ step }: { readonly step: 0 | 1 | 2 }) {
                 fontSize: 10,
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
-                color: i <= step ? C.blue : C.muted,
+                color: i <= step ? C.accent : C.textMuted,
               }}
             >
               {s}
@@ -47,7 +47,7 @@ export function JourneyProgress({ step }: { readonly step: 0 | 1 | 2 }) {
               style={{
                 flex: 1,
                 height: 1,
-                backgroundColor: i < step ? C.blue : C.border,
+                backgroundColor: i < step ? C.accent : C.borderSemantic,
                 marginLeft: 6,
                 marginRight: 6,
                 marginBottom: 16,

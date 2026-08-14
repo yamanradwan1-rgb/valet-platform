@@ -22,7 +22,7 @@ export function OverlayConfirmRequest({
   return (
     <BottomSheet open={open} onClose={onClose} title={t('confirmRequest.title')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
-        <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
+        <p style={{ fontSize: 14, color: C.textSecondary, margin: 0 }}>
           {t('confirmRequest.description')}
         </p>
 
@@ -33,15 +33,15 @@ export function OverlayConfirmRequest({
             gap: 12,
             padding: '12px 16px',
             borderRadius: 12,
-            backgroundColor: C.ice,
+            backgroundColor: C.iceSemantic,
           }}
         >
-          <div style={{ color: C.blue, display: 'flex' }}>
+          <div style={{ color: C.accent, display: 'flex' }}>
             <IcClock />
           </div>
           <div>
-            <span style={{ fontSize: 12, color: C.grey }}>{t('confirmRequest.queueLabel')}</span>
-            <div style={{ fontWeight: 600, color: C.navy, fontSize: 14 }}>
+            <span style={{ fontSize: 12, color: C.textSecondary }}>{t('confirmRequest.queueLabel')}</span>
+            <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>
               {t('confirmRequest.queueStatus')}
             </div>
           </div>

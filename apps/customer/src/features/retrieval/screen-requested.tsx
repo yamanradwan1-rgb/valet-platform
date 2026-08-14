@@ -46,17 +46,17 @@ export function ScreenRequested({
         style={{
           borderRadius: 14,
           padding: 20,
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
-        <p style={{ fontSize: 14, fontWeight: 500, color: C.navy, margin: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: C.text, margin: 0 }}>
           {t('requested.cardTitle')}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-          <div style={{ color: C.blue, display: 'flex' }}>
+          <div style={{ color: C.accent, display: 'flex' }}>
             <IcClock />
           </div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: C.blue }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: C.accent }}>
             {t('requested.cardSub')}
           </span>
         </div>
@@ -71,8 +71,8 @@ export function ScreenRequested({
           style={{
             padding: 12,
             borderRadius: 10,
-            backgroundColor: `${C.danger}15`,
-            color: C.danger,
+            backgroundColor: C.dangerSurface,
+            color: C.dangerSemantic,
             fontSize: 13,
             fontWeight: 500,
           }}
@@ -92,9 +92,9 @@ export function ScreenRequested({
             padding: '12px 16px',
             fontSize: 14,
             fontWeight: 500,
-            color: isCancelling ? C.muted : C.grey,
+            color: isCancelling ? C.textMuted : C.textSecondary,
             background: 'none',
-            border: `1px solid ${C.border}`,
+            border: `1px solid ${C.borderSemantic}`,
             borderRadius: 10,
             cursor: isCancelling ? 'not-allowed' : 'pointer',
             transition: 'opacity 150ms ease',
