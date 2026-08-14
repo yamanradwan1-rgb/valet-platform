@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { JourneyProgress } from '../../components/primitives/journey-progress';
 import { PickupPIN } from '../../components/primitives/pickup-pin';
 import { StatusBadge } from '../../components/primitives/status-badge';
@@ -25,7 +26,8 @@ export function ScreenReadyPIN({
   readonly isRotating?: boolean | undefined;
   readonly error?: string | null | undefined;
 }) {
-  const vehicleName = `${session.vehicle.make ?? 'Vehicle'} ${session.vehicle.model ?? ''}`.trim();
+  const { t } = useTranslation();
+  const vehicleName = `${session.vehicle.make ?? t('vehicle.defaultMake')} ${session.vehicle.model ?? ''}`.trim();
 
   return (
     <div
@@ -40,10 +42,10 @@ export function ScreenReadyPIN({
         gap: 20,
       }}
     >
-      <StatusBadge status="success" label="Ready for pickup" />
+      <StatusBadge status="success" label={t('handoffPin.badge')} />
 
       <div>
-        <SectionTitle>Your {vehicleName} is ready.</SectionTitle>
+        <SectionTitle>{t('handoffPin.title', { vehicle: vehicleName })}</SectionTitle>
       </div>
 
       <div
@@ -55,7 +57,7 @@ export function ScreenReadyPIN({
         }}
       >
         <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.grey, margin: 0 }}>
-          Show this PIN to your valet
+          {t('handoffPin.instruction')}
         </p>
 
         <div style={{ marginTop: 16, marginBottom: 16 }}>
@@ -89,7 +91,7 @@ export function ScreenReadyPIN({
                 textDecoration: 'underline',
               }}
             >
-              Show QR code instead
+              {t('handoffPin.switchToQr')}
             </button>
           )}
         </div>

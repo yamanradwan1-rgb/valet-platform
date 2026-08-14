@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { Label } from './typography-primitives';
 
@@ -14,6 +15,7 @@ export function PickupPIN({
   readonly onRotate?: (() => void) | undefined;
   readonly isRotating?: boolean | undefined;
 }) {
+  const { t } = useTranslation();
   const digits = code.split('');
 
   const formatExpiry = (seconds: number) => {
@@ -40,7 +42,7 @@ export function PickupPIN({
           alignItems: 'center',
         }}
       >
-        <Label>Pickup code</Label>
+        <Label>{t('handoffPin.pickupCodeLabel')}</Label>
         {expiresInSeconds !== undefined && (
           <span
             style={{
@@ -50,12 +52,15 @@ export function PickupPIN({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {isExpired ? 'Expired' : `Expires in ${formatExpiry(expiresInSeconds)}`}
+            {isExpired
+              ? t('handoffPin.expired')
+              : t('handoffPin.expiresIn', { time: formatExpiry(expiresInSeconds) })}
           </span>
         )}
       </div>
 
       <div
+        dir="ltr"
         style={{
           display: 'flex',
           justifyContent: 'center',
@@ -65,7 +70,7 @@ export function PickupPIN({
           paddingRight: 16,
         }}
       >
-        {digits.map((d, i) => (
+        {digits.map((digit, i) => (
           <div
             key={i}
             className="font-display"
@@ -84,7 +89,7 @@ export function PickupPIN({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {d}
+            {digit}
           </div>
         ))}
       </div>
@@ -96,10 +101,10 @@ export function PickupPIN({
         }}
       >
         <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
-          Show this code to the valet
+          {t('handoffPin.showCodeSub')}
         </p>
         <p style={{ fontSize: 12, marginTop: 4, marginBottom: 0, color: C.muted }}>
-          One-time verification · Expires after use
+          {t('handoffPin.oneTime')}
         </p>
 
         {onRotate && (
@@ -119,7 +124,7 @@ export function PickupPIN({
               padding: '4px 8px',
             }}
           >
-            {isRotating ? 'Refreshing...' : 'Generate new code'}
+            {isRotating ? t('handoffPin.refreshing') : t('handoffPin.refreshButton')}
           </button>
         )}
       </div>

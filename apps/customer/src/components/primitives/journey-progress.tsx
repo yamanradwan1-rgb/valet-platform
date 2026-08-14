@@ -1,14 +1,20 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 
 export function JourneyProgress({ step }: { readonly step: 0 | 1 | 2 }) {
-  const steps = ['Requested', 'On the way', 'Ready'];
+  const { t } = useTranslation();
+  const steps = [
+    t('journey.requested'),
+    t('journey.onTheWay'),
+    t('journey.ready'),
+  ];
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
       {steps.map((s, i) => (
-        <React.Fragment key={s}>
+        <React.Fragment key={i}>
           <div
             style={{
               display: 'flex',

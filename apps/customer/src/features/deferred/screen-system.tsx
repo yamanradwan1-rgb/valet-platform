@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { Btn } from '../../components/primitives/btn';
 import { IcAlert, IcClock, IcWifiOff } from '../../components/icons/status-icons';
 import { IcRefresh } from '../../components/icons/action-icons';
@@ -12,6 +13,8 @@ export function ScreenNetworkUnavailable({
   readonly onRetry: () => void;
   readonly lastKnownState?: string | undefined;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -48,10 +51,10 @@ export function ScreenNetworkUnavailable({
           className="font-display"
           style={{ fontSize: 20, fontWeight: 600, color: C.navy, margin: 0 }}
         >
-          Network unavailable
+          {t('system.networkUnavailableTitle')}
         </p>
         <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.grey, maxWidth: 280 }}>
-          Connection lost. Your current vehicle status is preserved.
+          {t('system.networkUnavailableSub')}
         </p>
       </div>
 
@@ -62,18 +65,18 @@ export function ScreenNetworkUnavailable({
             padding: '16px 20px',
             width: '100%',
             border: `1px solid ${C.border}`,
-            textAlign: 'left',
+            textAlign: 'start',
           }}
         >
           <p style={{ fontSize: 14, fontWeight: 600, color: C.navy, margin: 0 }}>
-            Last recorded state: {lastKnownState}
+            {t('system.lastRecordedState', { state: lastKnownState })}
           </p>
         </div>
       )}
 
       <Btn onClick={onRetry} variant="secondary" fullWidth={false}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <IcRefresh /> Try again
+          <IcRefresh /> {t('common.tryAgain')}
         </span>
       </Btn>
     </div>
@@ -81,6 +84,8 @@ export function ScreenNetworkUnavailable({
 }
 
 export function ScreenExpired() {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -117,10 +122,10 @@ export function ScreenExpired() {
           className="font-display"
           style={{ fontSize: 20, fontWeight: 600, color: C.navy, margin: 0 }}
         >
-          Valet session unavailable
+          {t('system.expiredTitle')}
         </p>
         <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.grey, maxWidth: 280 }}>
-          This link is invalid or has expired. Please open the link sent to your phone during check-in.
+          {t('system.expiredSub')}
         </p>
       </div>
     </div>
@@ -134,6 +139,8 @@ export function ScreenRequestError({
   readonly message?: string | undefined;
   readonly onRetry: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -170,14 +177,14 @@ export function ScreenRequestError({
           className="font-display"
           style={{ fontSize: 20, fontWeight: 600, color: C.navy, margin: 0 }}
         >
-          Request could not be sent
+          {t('system.requestErrorTitle')}
         </p>
         <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.grey }}>
-          {message ?? 'Please try again or contact the valet desk.'}
+          {message ?? t('system.requestErrorDefault')}
         </p>
       </div>
       <div style={{ width: '100%' }}>
-        <Btn onClick={onRetry}>Try again</Btn>
+        <Btn onClick={onRetry}>{t('common.tryAgain')}</Btn>
       </div>
     </div>
   );

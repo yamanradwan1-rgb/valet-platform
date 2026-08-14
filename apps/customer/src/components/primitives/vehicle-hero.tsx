@@ -1,10 +1,11 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { Label } from './typography-primitives';
 
 export function VehicleHero({
-  make = 'Vehicle',
+  make,
   model = '',
   color = '',
   dim = false,
@@ -14,7 +15,8 @@ export function VehicleHero({
   readonly color?: string | null;
   readonly dim?: boolean;
 }) {
-  const displayMake = make ?? 'Vehicle';
+  const { t } = useTranslation();
+  const displayMake = make ?? t('vehicle.defaultMake');
   const displayModel = model ?? '';
   const displaySubtitle = color ? color : '';
 
@@ -31,7 +33,7 @@ export function VehicleHero({
       }}
     >
       <div>
-        <Label>Your vehicle</Label>
+        <Label>{t('vehicle.yourVehicle')}</Label>
         <div
           className="font-display"
           style={{

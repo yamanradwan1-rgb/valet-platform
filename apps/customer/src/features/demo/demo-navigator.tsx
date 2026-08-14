@@ -16,9 +16,7 @@ export type DemoScreenKey =
   | 'demo-verifying'
   | 'demo-completed'
   | 'demo-network-unavailable'
-  | 'demo-expired'
-  | 'demo-arabic-parked'
-  | 'demo-arabic-requested';
+  | 'demo-expired';
 
 export function DemoNavigator({
   activeScreen,
@@ -47,8 +45,6 @@ export function DemoNavigator({
     { id: 'demo-completed', label: '9. Completed' },
     { id: 'demo-network-unavailable', label: 'Net Unavailable' },
     { id: 'demo-expired', label: 'Expired' },
-    { id: 'demo-arabic-parked', label: 'AR: Parked' },
-    { id: 'demo-arabic-requested', label: 'AR: Requested' },
   ];
 
   return (

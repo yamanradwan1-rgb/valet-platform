@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { useTranslation } from '../i18n/use-translation';
 import { AppShell } from '../components/layout/app-shell';
 import type { CustomerTab } from '../components/layout/bottom-nav';
 import { useGuestSession } from '../features/session/use-guest-session';
@@ -15,7 +16,6 @@ import {
   ScreenReceipt,
 } from '../features/deferred/screen-payment';
 import { ScreenRate, ScreenHelp } from '../features/deferred/screen-service';
-import { ScreenArParked } from '../features/deferred/screen-arabic';
 import {
   ScreenNetworkUnavailable,
   ScreenExpired,
@@ -32,6 +32,7 @@ import { C } from '../lib/theme/colors';
 const isDev = process.env.NODE_ENV !== 'production';
 
 export function GuestAppRoot() {
+  const { t } = useTranslation();
   const { token } = useGuestAuth();
   const { session, isLoading, isNetworkError, isExpired, refreshSession } = useGuestSession();
   const retrieval = useRetrieval();
@@ -44,7 +45,6 @@ export function GuestAppRoot() {
   const [showConfirmRequest, setShowConfirmRequest] = useState(false);
   const [showVehicleDetails, setShowVehicleDetails] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [showArabicPreview, setShowArabicPreview] = useState(false);
 
   // Sub-screens for dev preview flows
   const [paymentSubScreen, setPaymentSubScreen] = useState<'overview' | 'tip' | 'receipt'>('overview');
@@ -110,26 +110,7 @@ export function GuestAppRoot() {
     );
   }
 
-  // 4. Dev-only Arabic RTL Preview
-  if (isDev && showArabicPreview) {
-    return (
-      <AppShell
-        tab={tab}
-        onTab={setTab}
-        onMore={() => setShowArabicPreview(false)}
-        onBack={() => setShowArabicPreview(false)}
-        headerTitle="عربي (معاينة)"
-      >
-        <ScreenArParked
-          onRequestVehicle={() => {}}
-          onViewDetails={() => setShowVehicleDetails(true)}
-        />
-        <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
-      </AppShell>
-    );
-  }
-
-  // 5. Authoritative Route Resolution
+  // 4. Authoritative Route Resolution
   const screenId = resolveGuestScreenId({
     hasToken: Boolean(token),
     isExpired,
@@ -180,7 +161,7 @@ export function GuestAppRoot() {
               borderTopColor: C.blue,
             }}
           />
-          <span style={{ fontSize: 14, color: C.grey }}>Loading valet session...</span>
+          <span style={{ fontSize: 14, color: C.grey }}>{t('common.loadingSession')}</span>
         </div>
         {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
       </AppShell>
@@ -232,7 +213,6 @@ export function GuestAppRoot() {
       <OverlayMoreMenu
         open={showMoreMenu}
         onClose={() => setShowMoreMenu(false)}
-        onOpenArabicPreview={isDev ? () => setShowArabicPreview(true) : undefined}
       />
 
       {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}

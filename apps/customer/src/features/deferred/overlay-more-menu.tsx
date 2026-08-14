@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { BottomSheet } from '../../components/layout/bottom-sheet';
 import {
   IcCamera,
@@ -13,44 +14,44 @@ import { C } from '../../lib/theme/colors';
 export function OverlayMoreMenu({
   open,
   onClose,
-  onOpenArabicPreview,
 }: {
   readonly open: boolean;
   readonly onClose: () => void;
-  readonly onOpenArabicPreview?: (() => void) | undefined;
 }) {
+  const { t, isRtl, toggleLocale } = useTranslation();
+
   const menuItems = [
     {
       Icon: IcLanguage,
-      label: 'عربي (Preview)',
-      sub: 'Arabic RTL interface preview',
+      label: t('menu.languageLabel'),
+      sub: t('menu.languageSub'),
       action: () => {
+        toggleLocale();
         onClose();
-        onOpenArabicPreview?.();
       },
     },
     {
       Icon: IcCamera,
-      label: 'Vehicle condition photos',
-      sub: 'Check-in photos preview',
+      label: t('menu.photosLabel'),
+      sub: t('menu.photosSub'),
       action: onClose,
     },
     {
       Icon: IcPrivacy,
-      label: 'Privacy & Terms',
-      sub: 'Data protection policies',
+      label: t('menu.privacyLabel'),
+      sub: t('menu.privacySub'),
       action: onClose,
     },
     {
       Icon: IcPhone,
-      label: 'Call valet desk',
-      sub: 'Direct operator contact',
+      label: t('menu.contactLabel'),
+      sub: t('menu.contactSub'),
       action: onClose,
     },
   ];
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="More options">
+    <BottomSheet open={open} onClose={onClose} title={t('menu.title')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
         {menuItems.map(({ Icon, label, sub, action }) => (
           <button
@@ -67,7 +68,7 @@ export function OverlayMoreMenu({
               border: `1px solid ${C.border}`,
               backgroundColor: 'transparent',
               cursor: 'pointer',
-              textAlign: 'left',
+              textAlign: 'start',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -79,7 +80,7 @@ export function OverlayMoreMenu({
                 <div style={{ fontSize: 12, color: C.grey }}>{sub}</div>
               </div>
             </div>
-            <div style={{ color: C.grey }}>
+            <div style={{ color: C.grey, display: 'flex', transform: isRtl ? 'scaleX(-1)' : undefined }}>
               <IcChevronRight />
             </div>
           </button>

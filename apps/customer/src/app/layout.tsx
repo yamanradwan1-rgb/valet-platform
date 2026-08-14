@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
+import { LocaleProvider } from '../i18n/locale-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -22,17 +23,33 @@ export const viewport: Viewport = {
   themeColor: '#07111F',
 };
 
+const initLocaleScript = `
+try {
+  var l = localStorage.getItem('vaylet_guest_locale');
+  if (l === 'ar') {
+    document.documentElement.lang = 'ar';
+    document.documentElement.dir = 'rtl';
+  } else {
+    document.documentElement.lang = 'en';
+    document.documentElement.dir = 'ltr';
+  }
+} catch (e) {}
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: initLocaleScript }} />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body>{children}</body>
+      <body>
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

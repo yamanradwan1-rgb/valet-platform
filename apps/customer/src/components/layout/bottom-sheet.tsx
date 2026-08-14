@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { IcX } from '../icons/action-icons';
 
@@ -14,6 +15,8 @@ export function BottomSheet({
   readonly children: React.ReactNode;
   readonly title?: string;
 }) {
+  const { t } = useTranslation();
+
   if (!open) return null;
 
   return (
@@ -87,7 +90,7 @@ export function BottomSheet({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={t('common.close')}
               style={{
                 display: 'flex',
                 alignItems: 'center',

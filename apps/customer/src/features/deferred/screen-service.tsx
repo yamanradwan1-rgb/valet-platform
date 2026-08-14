@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { Btn } from '../../components/primitives/btn';
 import { InfoRow } from '../../components/primitives/info-row';
 import { SectionTitle } from '../../components/primitives/typography-primitives';
@@ -10,6 +11,7 @@ export function ScreenRate({
 }: {
   readonly onDone: () => void;
 }) {
+  const { t } = useTranslation();
   const [stars, setStars] = useState(5);
 
   return (
@@ -27,11 +29,11 @@ export function ScreenRate({
     >
       <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
         <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
-          Preview Only · Guest feedback collection is deferred to customer portal phase.
+          {t('help.rateBanner')}
         </span>
       </div>
 
-      <SectionTitle>Rate Your Experience (Preview)</SectionTitle>
+      <SectionTitle>{t('help.rateTitle')}</SectionTitle>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
         {[1, 2, 3, 4, 5].map((star) => (
@@ -53,7 +55,7 @@ export function ScreenRate({
       </div>
 
       <Btn variant="primary" onClick={onDone}>
-        Done
+        {t('common.done')}
       </Btn>
     </div>
   );
@@ -64,6 +66,8 @@ export function ScreenHelp({
 }: {
   readonly onPaymentHelp?: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -77,7 +81,7 @@ export function ScreenHelp({
         gap: 20,
       }}
     >
-      <SectionTitle>Help & Support</SectionTitle>
+      <SectionTitle>{t('help.title')}</SectionTitle>
 
       <div
         style={{
@@ -86,13 +90,13 @@ export function ScreenHelp({
           backgroundColor: C.ice,
         }}
       >
-        <InfoRow label="Valet Desk" value="Speak to staff on site" />
-        <InfoRow label="Emergency" value="Contact hotel reception" />
+        <InfoRow label={t('help.valetDesk')} value={t('help.valetDeskValue')} />
+        <InfoRow label={t('help.emergency')} value={t('help.emergencyValue')} />
       </div>
 
       {onPaymentHelp && (
         <Btn variant="secondary" onClick={onPaymentHelp}>
-          Payment Information (Preview)
+          {t('help.paymentInfo')}
         </Btn>
       )}
     </div>

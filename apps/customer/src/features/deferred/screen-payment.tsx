@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { Btn } from '../../components/primitives/btn';
 import { InfoRow } from '../../components/primitives/info-row';
 import { SectionTitle } from '../../components/primitives/typography-primitives';
@@ -12,6 +13,8 @@ export function ScreenPaymentOverview({
   readonly onAddTip: () => void;
   readonly onPay: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -27,11 +30,11 @@ export function ScreenPaymentOverview({
     >
       <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
         <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
-          Preview Only · Payment phase is not yet connected to production backend.
+          {t('payment.previewBanner')}
         </span>
       </div>
 
-      <SectionTitle>Payment Preview</SectionTitle>
+      <SectionTitle>{t('payment.overviewTitle')}</SectionTitle>
 
       <div
         style={{
@@ -40,18 +43,18 @@ export function ScreenPaymentOverview({
           backgroundColor: C.ice,
         }}
       >
-        <InfoRow label="Valet Service" value="Complimentary" />
-        <InfoRow label="Tip" value="Not added" />
+        <InfoRow label={t('payment.serviceLabel')} value={t('payment.complimentary')} />
+        <InfoRow label={t('payment.tipLabel')} value={t('payment.notAdded')} />
         <div style={{ borderTop: `1px solid ${C.border}`, margin: '8px 0' }} />
-        <InfoRow label="Estimated Total" value="0.00" highlight />
+        <InfoRow label={t('payment.estimatedTotal')} value="0.00" highlight />
       </div>
 
       <Btn variant="secondary" onClick={onAddTip}>
-        Preview Add Tip
+        {t('payment.previewAddTip')}
       </Btn>
 
       <Btn variant="primary" onClick={onPay}>
-        Preview Receipt
+        {t('payment.previewReceipt')}
       </Btn>
     </div>
   );
@@ -62,6 +65,7 @@ export function ScreenAddTip({
 }: {
   readonly onContinue: () => void;
 }) {
+  const { t } = useTranslation();
   const [selectedTip, setSelectedTip] = useState<number | null>(null);
 
   return (
@@ -79,11 +83,11 @@ export function ScreenAddTip({
     >
       <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
         <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
-          Preview Only · Tip configuration is deferred to payments phase.
+          {t('payment.tipBanner')}
         </span>
       </div>
 
-      <SectionTitle>Add a Tip (Preview)</SectionTitle>
+      <SectionTitle>{t('payment.addTipTitle')}</SectionTitle>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {[1, 2, 5].map((amount) => (
@@ -108,7 +112,7 @@ export function ScreenAddTip({
       </div>
 
       <Btn variant="primary" onClick={onContinue}>
-        Done
+        {t('common.done')}
       </Btn>
     </div>
   );
@@ -119,6 +123,8 @@ export function ScreenReceipt({
 }: {
   readonly onDone: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="screen-enter"
@@ -134,11 +140,11 @@ export function ScreenReceipt({
     >
       <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
         <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
-          Preview Only · Receipts will be generated from backend settlement records.
+          {t('payment.receiptBanner')}
         </span>
       </div>
 
-      <SectionTitle>Receipt Preview</SectionTitle>
+      <SectionTitle>{t('payment.receiptTitle')}</SectionTitle>
 
       <div
         style={{
@@ -147,14 +153,14 @@ export function ScreenReceipt({
           backgroundColor: C.ice,
         }}
       >
-        <InfoRow label="Service" value="Standard Valet" />
-        <InfoRow label="Status" value="Complimentary" />
+        <InfoRow label={t('payment.service')} value={t('payment.standardValet')} />
+        <InfoRow label={t('payment.status')} value={t('payment.complimentary')} />
         <div style={{ borderTop: `1px solid ${C.border}`, margin: '8px 0' }} />
-        <InfoRow label="Total" value="0.00" highlight />
+        <InfoRow label={t('payment.total')} value="0.00" highlight />
       </div>
 
       <Btn variant="primary" onClick={onDone}>
-        Back
+        {t('common.back')}
       </Btn>
     </div>
   );

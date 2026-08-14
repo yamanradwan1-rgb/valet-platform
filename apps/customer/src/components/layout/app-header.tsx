@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { VayletLogo } from '../brand/vaylet-logo';
 import { IcArrowLeft, IcMore } from '../icons/action-icons';
@@ -17,6 +18,8 @@ export function AppHeader({
   readonly whiteLabel?: boolean | undefined;
   readonly dark?: boolean | undefined;
 }) {
+  const { t, isRtl } = useTranslation();
+
   return (
     <header
       style={{
@@ -36,7 +39,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={onBack}
-            aria-label="Go back"
+            aria-label={t('header.backAria')}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -51,7 +54,9 @@ export function AppHeader({
               padding: 0,
             }}
           >
-            <IcArrowLeft />
+            <div style={{ display: 'flex', transform: isRtl ? 'scaleX(-1)' : undefined }}>
+              <IcArrowLeft />
+            </div>
           </button>
         )}
         {!onBack && (
@@ -65,7 +70,7 @@ export function AppHeader({
                   color: dark ? 'rgba(255,255,255,0.5)' : C.muted,
                 }}
               >
-                Powered by VAYLET
+                {t('common.poweredBy')}
               </div>
             )}
           </div>
@@ -86,7 +91,7 @@ export function AppHeader({
       <button
         type="button"
         onClick={onMore}
-        aria-label="More options"
+        aria-label={t('header.moreAria')}
         style={{
           display: 'flex',
           alignItems: 'center',

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useTranslation } from '../../i18n/use-translation';
 import { JourneyProgress } from '../../components/primitives/journey-progress';
 import { StatusBadge } from '../../components/primitives/status-badge';
 import { TrustStrip } from '../../components/primitives/trust-strip';
@@ -25,7 +26,8 @@ export function ScreenReadyQR({
   readonly isRotating?: boolean | undefined;
   readonly error?: string | null | undefined;
 }) {
-  const vehicleName = `${session.vehicle.make ?? 'Vehicle'} ${session.vehicle.model ?? ''}`.trim();
+  const { t } = useTranslation();
+  const vehicleName = `${session.vehicle.make ?? t('vehicle.defaultMake')} ${session.vehicle.model ?? ''}`.trim();
 
   return (
     <div
@@ -40,10 +42,10 @@ export function ScreenReadyQR({
         gap: 20,
       }}
     >
-      <StatusBadge status="success" label="Ready for pickup" />
+      <StatusBadge status="success" label={t('handoffQr.badge')} />
 
       <div>
-        <SectionTitle>Your {vehicleName} is ready.</SectionTitle>
+        <SectionTitle>{t('handoffQr.title', { vehicle: vehicleName })}</SectionTitle>
       </div>
 
       <div
@@ -55,7 +57,7 @@ export function ScreenReadyQR({
         }}
       >
         <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.grey, margin: 0 }}>
-          Valet will scan this code to confirm handoff
+          {t('handoffQr.instruction')}
         </p>
 
         <div
@@ -92,14 +94,14 @@ export function ScreenReadyQR({
                 fontSize: 13,
               }}
             >
-              Loading QR code...
+              {t('common.loadingQr')}
             </div>
           )}
         </div>
 
         {typeof secondsRemaining === 'number' && (
           <p style={{ fontSize: 12, color: secondsRemaining < 30 ? C.danger : C.grey, margin: 0 }}>
-            Updates every 2 min · Expires in {secondsRemaining}s
+            {t('handoffQr.updatesEvery', { seconds: secondsRemaining })}
           </p>
         )}
 
@@ -125,7 +127,7 @@ export function ScreenReadyQR({
                 padding: '4px 8px',
               }}
             >
-              {isRotating ? 'Refreshing...' : 'Get new QR'}
+              {isRotating ? t('handoffQr.refreshing') : t('handoffQr.refreshButton')}
             </button>
           )}
 
@@ -144,7 +146,7 @@ export function ScreenReadyQR({
                 textDecoration: 'underline',
               }}
             >
-              Show pickup code instead
+              {t('handoffQr.switchToPin')}
             </button>
           )}
         </div>
