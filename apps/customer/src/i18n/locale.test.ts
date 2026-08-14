@@ -3,9 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GuestApiError } from '../lib/api/api-error';
 import { getLocalizedErrorMessage } from './error-translator';
 import {
+  commitLocaleChange,
   getDirectionForLocale,
   getPersistedLocale,
   isSupportedLocale,
+  LOCALE_CHANGE_EVENT,
   LOCALE_STORAGE_KEY,
   setPersistedLocale,
 } from './locale';
@@ -33,6 +35,11 @@ describe('i18n Locale & Translation Dictionaries', () => {
       key: () => null,
     } as Storage;
 
+    const mockDocElement = {
+      lang: 'en',
+      dir: 'ltr',
+    };
+
     Object.defineProperty(globalThis, 'window', {
       value: {
         localStorage: storageMock,
@@ -43,11 +50,21 @@ describe('i18n Locale & Translation Dictionaries', () => {
       writable: true,
       configurable: true,
     });
+
+    Object.defineProperty(globalThis, 'document', {
+      value: {
+        documentElement: mockDocElement,
+      },
+      writable: true,
+      configurable: true,
+    });
   });
 
   afterEach(() => {
     // @ts-expect-error Resetting global window mock in node test environment
     delete globalThis.window;
+    // @ts-expect-error Resetting global document mock in node test environment
+    delete globalThis.document;
   });
 
   it('proves English and Arabic dictionaries have complete 100% key parity', () => {
@@ -126,18 +143,29 @@ describe('i18n Locale & Translation Dictionaries', () => {
     expect(arMessage).not.toContain(rawEnglishBackendMessage);
   });
 
-  it('proves locale switching causes zero API mutation calls', () => {
+  it('proves production commitLocaleChange executes full locale lifecycle with zero API calls', () => {
     const fetchSpy = vi.fn();
     globalThis.fetch = fetchSpy;
 
-    // Simulate switching locale through production methods
-    setPersistedLocale('ar');
+    // 1. Commit switch to Arabic
+    commitLocaleChange('ar');
     expect(getPersistedLocale()).toBe('ar');
+    expect(document.documentElement.lang).toBe('ar');
+    expect(document.documentElement.dir).toBe('rtl');
+    expect(window.dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: LOCALE_CHANGE_EVENT }),
+    );
 
-    setPersistedLocale('en');
+    // 2. Commit switch back to English
+    commitLocaleChange('en');
     expect(getPersistedLocale()).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+    expect(document.documentElement.dir).toBe('ltr');
 
-    // Zero network calls triggered
+    // 3. Verify only the locale key was stored
+    expect(Object.keys(mockStorage)).toEqual([LOCALE_STORAGE_KEY]);
+
+    // 4. Verify zero network/API requests triggered
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

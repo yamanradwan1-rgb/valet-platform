@@ -11,10 +11,11 @@ import React, {
 
 import { interpolateTranslation } from './interpolate';
 import {
+  commitLocaleChange,
   DEFAULT_LOCALE,
   getDirectionForLocale,
   getPersistedLocale,
-  setPersistedLocale,
+  LOCALE_CHANGE_EVENT,
   type Direction,
   type Locale,
 } from './locale';
@@ -37,8 +38,6 @@ const dictionaries: Readonly<Record<Locale, TranslationDictionary>> = {
 };
 
 export const LocaleContext = createContext<LocaleContextValue | null>(null);
-
-const LOCALE_CHANGE_EVENT = 'vaylet_locale_change';
 
 function subscribeToLocale(callback: () => void): () => void {
   if (typeof window === 'undefined') {
@@ -77,31 +76,32 @@ export function LocaleProvider({
   const direction = useMemo(() => getDirectionForLocale(locale), [locale]);
   const isRtl = direction === 'rtl';
 
-  // Synchronize document attributes and unmask pre-hydration visibility guard
+  // Synchronize document attributes and unmask pre-hydration visibility guard only when locale matches
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = locale;
       document.documentElement.dir = direction;
-      document.documentElement.classList.remove('vaylet-persisted-ar');
-      document.documentElement.classList.add('vaylet-hydrated');
+
+      const hasPersistedArGuard = document.documentElement.classList.contains('vaylet-persisted-ar');
+      if (hasPersistedArGuard) {
+        if (locale === 'ar') {
+          document.documentElement.classList.remove('vaylet-persisted-ar');
+          document.documentElement.classList.add('vaylet-hydrated');
+        }
+      } else {
+        document.documentElement.classList.add('vaylet-hydrated');
+      }
     }
   }, [locale, direction]);
 
   const setLocale = useCallback((newLocale: Locale) => {
-    setPersistedLocale(newLocale);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event(LOCALE_CHANGE_EVENT));
-    }
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = newLocale;
-      document.documentElement.dir = getDirectionForLocale(newLocale);
-    }
+    commitLocaleChange(newLocale);
   }, []);
 
   const toggleLocale = useCallback(() => {
     const nextLocale: Locale = locale === 'en' ? 'ar' : 'en';
-    setLocale(nextLocale);
-  }, [locale, setLocale]);
+    commitLocaleChange(nextLocale);
+  }, [locale]);
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>): string => {

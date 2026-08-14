@@ -10,6 +10,7 @@ export const LOCALE_DIRECTIONS: Readonly<Record<Locale, Direction>> = {
 };
 
 export const LOCALE_STORAGE_KEY = 'vaylet_guest_locale';
+export const LOCALE_CHANGE_EVENT = 'vaylet_locale_change';
 
 export function isSupportedLocale(value: unknown): value is Locale {
   return typeof value === 'string' && (SUPPORTED_LOCALES as readonly string[]).includes(value);
@@ -48,4 +49,15 @@ export function setPersistedLocale(locale: Locale): void {
 
 export function getDirectionForLocale(locale: Locale): Direction {
   return LOCALE_DIRECTIONS[locale] ?? 'ltr';
+}
+
+export function commitLocaleChange(newLocale: Locale): void {
+  setPersistedLocale(newLocale);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(LOCALE_CHANGE_EVENT));
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = newLocale;
+    document.documentElement.dir = getDirectionForLocale(newLocale);
+  }
 }
