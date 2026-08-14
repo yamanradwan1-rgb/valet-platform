@@ -3,7 +3,9 @@ import {
   inDispatchTransaction,
   loadDispatchOperationTime,
 } from "../dispatch/dispatch-transaction";
+import { stopTaskTrackingForMovement } from "../tracking/task-tracking-lifecycle";
 import { appendMarkReadyAuditEvent } from "./mark-ready-audit";
+import { MarkReadyError } from "./mark-ready-errors";
 import {
   assertAcceptedRetrievalRequest,
   assertMarkReadySession,
@@ -65,6 +67,19 @@ export function createMarkReadyCommandExecutor(
         transaction,
         session,
         operationTime,
+      );
+      await stopTaskTrackingForMovement(
+        transaction,
+        {
+          locationId: session.location_id,
+          organizationId: session.organization_id,
+          sessionId: session.id,
+          taskId: task.id,
+        },
+        operationTime,
+        () => {
+          throw new MarkReadyError("TASK_INVALID_STATE");
+        },
       );
       await appendMarkReadyAuditEvent(
         transaction,

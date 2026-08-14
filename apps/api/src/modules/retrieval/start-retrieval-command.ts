@@ -5,7 +5,9 @@ import {
   loadDispatchOperationTime,
 } from "../dispatch/dispatch-transaction";
 import { recordKeyCheckedOut } from "../keys/parking-key-custody";
+import { startTaskTrackingIfEnabled } from "../tracking/task-tracking-lifecycle";
 import { appendStartRetrievalAuditEvent } from "./start-retrieval-audit";
+import { StartRetrievalError } from "./start-retrieval-errors";
 import {
   assertOpenRetrievalRequest,
   assertStartRetrievalGuards,
@@ -78,6 +80,19 @@ export function createStartRetrievalCommandExecutor(
         operationTime,
       );
       await acceptRetrievalRequest(transaction, retrievalRequest, session);
+      await startTaskTrackingIfEnabled(
+        transaction,
+        {
+          locationId: session.location_id,
+          organizationId: session.organization_id,
+          sessionId: session.id,
+          taskId: task.id,
+        },
+        operationTime,
+        () => {
+          throw new StartRetrievalError("TASK_INVALID_STATE");
+        },
+      );
       await recordKeyCheckedOut(
         transaction,
         {
