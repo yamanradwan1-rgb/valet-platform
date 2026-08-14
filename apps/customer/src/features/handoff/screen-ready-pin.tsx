@@ -2,10 +2,9 @@ import React from 'react';
 
 import { JourneyProgress } from '../../components/primitives/journey-progress';
 import { PickupPIN } from '../../components/primitives/pickup-pin';
-import { SectionTitle } from '../../components/primitives/typography-primitives';
 import { StatusBadge } from '../../components/primitives/status-badge';
-import { Btn } from '../../components/primitives/btn';
-import { IcMapPin } from '../../components/icons/status-icons';
+import { TrustStrip } from '../../components/primitives/trust-strip';
+import { SectionTitle } from '../../components/primitives/typography-primitives';
 import type { GuestSafeSession } from '../../lib/api/guest-api-types';
 import { C } from '../../lib/theme/colors';
 
@@ -15,13 +14,13 @@ export function ScreenReadyPIN({
   secondsRemaining,
   onSwitchToQR,
   onRotate,
-  isRotating = false,
+  isRotating,
   error,
 }: {
   readonly session: GuestSafeSession;
   readonly pickupCode?: string | undefined;
   readonly secondsRemaining?: number | undefined;
-  readonly onSwitchToQR: () => void;
+  readonly onSwitchToQR?: (() => void) | undefined;
   readonly onRotate?: (() => void) | undefined;
   readonly isRotating?: boolean | undefined;
   readonly error?: string | null | undefined;
@@ -45,76 +44,62 @@ export function ScreenReadyPIN({
 
       <div>
         <SectionTitle>Your {vehicleName} is ready.</SectionTitle>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-          <div style={{ color: C.blue, display: 'flex' }}>
-            <IcMapPin />
-          </div>
-          <span style={{ fontSize: 14, fontWeight: 500, color: C.grey }}>
-            Main Entrance · Pickup Area
-          </span>
-        </div>
       </div>
 
-      {pickupCode ? (
-        <PickupPIN
-          code={pickupCode}
-          expiresInSeconds={secondsRemaining}
-          onRotate={onRotate}
-          isRotating={isRotating}
-        />
-      ) : (
-        <div
-          style={{
-            borderRadius: 14,
-            padding: 24,
-            backgroundColor: C.ice,
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
-          <div
-            className="spin"
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              border: `2px solid ${C.border}`,
-              borderTopColor: C.blue,
-            }}
-          />
-          <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
-            Generating your secure pickup code...
-          </p>
-        </div>
-      )}
+      <div
+        style={{
+          borderRadius: 14,
+          padding: 24,
+          textAlign: 'center',
+          backgroundColor: C.ice,
+        }}
+      >
+        <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.grey, margin: 0 }}>
+          Show this PIN to your valet
+        </p>
 
-      {error && (
-        <div
-          style={{
-            padding: 12,
-            borderRadius: 10,
-            backgroundColor: `${C.danger}15`,
-            color: C.danger,
-            fontSize: 13,
-            fontWeight: 500,
-          }}
-        >
-          {error}
+        <div style={{ marginTop: 16, marginBottom: 16 }}>
+          <PickupPIN
+            code={pickupCode ?? '----'}
+            expiresInSeconds={secondsRemaining}
+            onRotate={onRotate}
+            isRotating={isRotating}
+          />
         </div>
-      )}
+
+        {error && (
+          <p style={{ fontSize: 12, color: C.danger, marginTop: 8, marginBottom: 0 }}>
+            {error}
+          </p>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
+          {onSwitchToQR && (
+            <button
+              type="button"
+              onClick={onSwitchToQR}
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: C.navy,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                textDecoration: 'underline',
+              }}
+            >
+              Show QR code instead
+            </button>
+          )}
+        </div>
+      </div>
 
       <div style={{ paddingTop: 4, paddingBottom: 4 }}>
         <JourneyProgress step={2} />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <Btn onClick={onSwitchToQR} variant="ghost" disabled={isRotating}>
-          Show QR code instead
-        </Btn>
-      </div>
+      <TrustStrip />
     </div>
   );
 }

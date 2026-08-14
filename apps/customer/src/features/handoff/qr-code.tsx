@@ -1,7 +1,13 @@
 import React, { useMemo } from 'react';
-import QRCode from 'qrcode';
 
 import { C } from '../../lib/theme/colors';
+import {
+  computeQrMatrixWithQuietZone,
+  QR_QUIET_ZONE_MODULES,
+} from './qr-matrix';
+
+export { QR_QUIET_ZONE_MODULES, computeQrMatrixWithQuietZone } from './qr-matrix';
+export type { QrMatrixResult } from './qr-matrix';
 
 export function DynamicQRCode({
   payload,
@@ -11,23 +17,7 @@ export function DynamicQRCode({
   readonly size?: number;
 }) {
   const qrData = useMemo(() => {
-    try {
-      const qr = QRCode.create(payload, {
-        errorCorrectionLevel: 'M',
-      });
-      const moduleCount = qr.modules.size;
-      const matrix: boolean[][] = [];
-      for (let row = 0; row < moduleCount; row++) {
-        const rowData: boolean[] = [];
-        for (let col = 0; col < moduleCount; col++) {
-          rowData.push(Boolean(qr.modules.get(row, col)));
-        }
-        matrix.push(rowData);
-      }
-      return { moduleCount, matrix };
-    } catch {
-      return null;
-    }
+    return computeQrMatrixWithQuietZone(payload, QR_QUIET_ZONE_MODULES);
   }, [payload]);
 
   if (!qrData) {
@@ -51,8 +41,8 @@ export function DynamicQRCode({
     );
   }
 
-  const { moduleCount, matrix } = qrData;
-  const cellSize = size / moduleCount;
+  const { totalGridSize, matrix } = qrData;
+  const cellSize = size / totalGridSize;
 
   return (
     <svg

@@ -4,7 +4,6 @@ import { JourneyProgress } from '../../components/primitives/journey-progress';
 import { SectionTitle } from '../../components/primitives/typography-primitives';
 import { StatusBadge } from '../../components/primitives/status-badge';
 import { TrustStrip } from '../../components/primitives/trust-strip';
-import { IcMapPin } from '../../components/icons/status-icons';
 import type { GuestSafeSession } from '../../lib/api/guest-api-types';
 import { C } from '../../lib/theme/colors';
 
@@ -32,14 +31,6 @@ export function ScreenReady({
 
       <div>
         <SectionTitle>Your {vehicleName} is ready.</SectionTitle>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-          <div style={{ color: C.blue, display: 'flex' }}>
-            <IcMapPin />
-          </div>
-          <span style={{ fontSize: 14, fontWeight: 500, color: C.grey }}>
-            Main Entrance · Pickup Area
-          </span>
-        </div>
       </div>
 
       <div

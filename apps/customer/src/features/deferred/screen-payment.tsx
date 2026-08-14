@@ -1,56 +1,9 @@
 import React, { useState } from 'react';
 
-import { Divider, Label, SectionTitle } from '../../components/primitives/typography-primitives';
 import { Btn } from '../../components/primitives/btn';
-import { VayletLogo } from '../../components/brand/vaylet-logo';
+import { InfoRow } from '../../components/primitives/info-row';
+import { SectionTitle } from '../../components/primitives/typography-primitives';
 import { C } from '../../lib/theme/colors';
-
-export function PaymentRow({
-  label,
-  amount,
-  sub = false,
-  total = false,
-  success = false,
-}: {
-  readonly label: string;
-  readonly amount: string;
-  readonly sub?: boolean | undefined;
-  readonly total?: boolean | undefined;
-  readonly success?: boolean | undefined;
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: 14,
-        paddingBottom: 14,
-        borderBottom: total ? 'none' : `1px solid ${C.border}`,
-      }}
-    >
-      <span
-        style={{
-          fontSize: 14,
-          fontWeight: total ? 600 : sub ? 400 : 500,
-          color: sub ? C.success : total ? C.navy : C.grey,
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontSize: total ? 16 : 14,
-          fontWeight: 600,
-          fontVariantNumeric: 'tabular-nums',
-          color: success ? C.success : sub ? C.success : C.navy,
-        }}
-      >
-        {amount}
-      </span>
-    </div>
-  );
-}
 
 export function ScreenPaymentOverview({
   onAddTip,
@@ -72,29 +25,34 @@ export function ScreenPaymentOverview({
         gap: 20,
       }}
     >
-      <SectionTitle>Payment</SectionTitle>
+      <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
+        <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
+          Preview Only · Payment phase is not yet connected to production backend.
+        </span>
+      </div>
+
+      <SectionTitle>Payment Preview</SectionTitle>
+
       <div
         style={{
           borderRadius: 14,
-          overflow: 'hidden',
-          border: `1px solid ${C.border}`,
+          padding: 20,
+          backgroundColor: C.ice,
         }}
       >
-        <div style={{ padding: '16px 20px 4px 20px' }}>
-          <Label>Service summary (Preview)</Label>
-        </div>
-        <div style={{ paddingLeft: 20, paddingRight: 20 }}>
-          <PaymentRow label="Valet service" amount="JOD 10.00" />
-          <PaymentRow label="Venue validation" amount="−JOD 5.00" sub />
-          <PaymentRow label="Total" amount="JOD 5.00" total />
-        </div>
+        <InfoRow label="Valet Service" value="Complimentary" />
+        <InfoRow label="Tip" value="Not added" />
+        <div style={{ borderTop: `1px solid ${C.border}`, margin: '8px 0' }} />
+        <InfoRow label="Estimated Total" value="0.00" highlight />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <Btn onClick={onAddTip}>Add a tip</Btn>
-        <Btn onClick={onPay} variant="secondary">
-          Pay JOD 5.00
-        </Btn>
-      </div>
+
+      <Btn variant="secondary" onClick={onAddTip}>
+        Preview Add Tip
+      </Btn>
+
+      <Btn variant="primary" onClick={onPay}>
+        Preview Receipt
+      </Btn>
     </div>
   );
 }
@@ -102,82 +60,10 @@ export function ScreenPaymentOverview({
 export function ScreenAddTip({
   onContinue,
 }: {
-  readonly onContinue: (total: number) => void;
+  readonly onContinue: () => void;
 }) {
-  const [tip, setTip] = useState<'none' | '10' | '15' | '20'>('none');
-  const tipAmounts = [
-    { id: 'none' as const, label: 'No tip' },
-    { id: '10' as const, label: '10%' },
-    { id: '15' as const, label: '15%' },
-    { id: '20' as const, label: '20%' },
-  ];
+  const [selectedTip, setSelectedTip] = useState<number | null>(null);
 
-  const tipValue = tip === 'none' ? 0 : (5 * parseInt(tip, 10)) / 100;
-  const total = 5 + tipValue;
-
-  return (
-    <div
-      className="screen-enter"
-      style={{
-        paddingLeft: 20,
-        paddingRight: 20,
-        paddingTop: 24,
-        paddingBottom: 32,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 24,
-      }}
-    >
-      <SectionTitle>Add a tip</SectionTitle>
-      <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
-        Tips are optional and go directly to the valet team.
-      </p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-        {tipAmounts.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTip(id)}
-            style={{
-              padding: '12px 0',
-              fontSize: 14,
-              fontWeight: 600,
-              borderRadius: 10,
-              backgroundColor: tip === id ? C.blue : 'transparent',
-              color: tip === id ? '#FFFFFF' : C.navy,
-              border: `1px solid ${tip === id ? C.blue : C.border}`,
-              cursor: 'pointer',
-              minHeight: 48,
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div
-        style={{
-          borderRadius: 12,
-          overflow: 'hidden',
-          border: `1px solid ${C.border}`,
-        }}
-      >
-        <div style={{ paddingLeft: 20, paddingRight: 20 }}>
-          <PaymentRow label="Service total" amount="JOD 5.00" />
-          {tip !== 'none' && (
-            <PaymentRow label={`Tip (${tip}%)`} amount={`JOD ${tipValue.toFixed(2)}`} />
-          )}
-          <PaymentRow label="Total" amount={`JOD ${total.toFixed(2)}`} total />
-        </div>
-      </div>
-
-      <Btn onClick={() => onContinue(total)}>Continue</Btn>
-    </div>
-  );
-}
-
-export function ScreenReceipt({ onDone }: { readonly onDone: () => void }) {
   return (
     <div
       className="screen-enter"
@@ -191,29 +77,85 @@ export function ScreenReceipt({ onDone }: { readonly onDone: () => void }) {
         gap: 20,
       }}
     >
-      <div style={{ textAlign: 'center', paddingTop: 12, paddingBottom: 12 }}>
-        <VayletLogo height={22} />
-        <p style={{ fontSize: 12, marginTop: 8, marginBottom: 0, color: C.muted }}>
-          Valet Service Receipt Preview
-        </p>
+      <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
+        <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
+          Preview Only · Tip configuration is deferred to payments phase.
+        </span>
       </div>
 
-      <Divider />
+      <SectionTitle>Add a Tip (Preview)</SectionTitle>
 
-      <div>
-        <Label>Charges</Label>
-        <div style={{ marginTop: 8 }}>
-          <PaymentRow label="Valet service" amount="JOD 10.00" />
-          <PaymentRow label="Venue validation" amount="−JOD 5.00" sub />
-          <PaymentRow label="Total paid" amount="JOD 5.00" total />
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        {[1, 2, 5].map((amount) => (
+          <button
+            key={amount}
+            type="button"
+            onClick={() => setSelectedTip(amount)}
+            style={{
+              padding: '16px 0',
+              borderRadius: 12,
+              border: `2px solid ${selectedTip === amount ? C.navy : C.border}`,
+              backgroundColor: selectedTip === amount ? C.ice : '#FFFFFF',
+              fontWeight: 600,
+              fontSize: 16,
+              color: C.navy,
+              cursor: 'pointer',
+            }}
+          >
+            +{amount}
+          </button>
+        ))}
       </div>
 
-      <Divider />
+      <Btn variant="primary" onClick={onContinue}>
+        Done
+      </Btn>
+    </div>
+  );
+}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <Btn onClick={onDone}>Done</Btn>
+export function ScreenReceipt({
+  onDone,
+}: {
+  readonly onDone: () => void;
+}) {
+  return (
+    <div
+      className="screen-enter"
+      style={{
+        paddingLeft: 20,
+        paddingRight: 20,
+        paddingTop: 24,
+        paddingBottom: 32,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 20,
+      }}
+    >
+      <div style={{ backgroundColor: '#FEF3C7', padding: '8px 12px', borderRadius: 8 }}>
+        <span style={{ fontSize: 12, color: '#92400E', fontWeight: 500 }}>
+          Preview Only · Receipts will be generated from backend settlement records.
+        </span>
       </div>
+
+      <SectionTitle>Receipt Preview</SectionTitle>
+
+      <div
+        style={{
+          borderRadius: 14,
+          padding: 20,
+          backgroundColor: C.ice,
+        }}
+      >
+        <InfoRow label="Service" value="Standard Valet" />
+        <InfoRow label="Status" value="Complimentary" />
+        <div style={{ borderTop: `1px solid ${C.border}`, margin: '8px 0' }} />
+        <InfoRow label="Total" value="0.00" highlight />
+      </div>
+
+      <Btn variant="primary" onClick={onDone}>
+        Back
+      </Btn>
     </div>
   );
 }

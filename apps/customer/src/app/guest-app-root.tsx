@@ -4,18 +4,11 @@ import React, { useEffect, useState } from 'react';
 
 import { AppShell } from '../components/layout/app-shell';
 import type { CustomerTab } from '../components/layout/bottom-nav';
-import { ScreenParked } from '../features/session/screen-parked';
-import { ScreenReceived } from '../features/session/screen-received';
-import { ScreenOnTheWay } from '../features/session/screen-on-the-way';
-import { ScreenReady } from '../features/session/screen-ready';
-import { ScreenCompleted } from '../features/session/screen-completed';
 import { useGuestSession } from '../features/session/use-guest-session';
+import { resolveGuestScreenId } from '../features/session/guest-lifecycle-router';
 import { useRetrieval } from '../features/retrieval/use-retrieval';
-import { ScreenRequested } from '../features/retrieval/screen-requested';
 import { OverlayConfirmRequest } from '../features/retrieval/overlay-confirm-request';
 import { useHandoff } from '../features/handoff/use-handoff';
-import { ScreenReadyPIN } from '../features/handoff/screen-ready-pin';
-import { ScreenReadyQR } from '../features/handoff/screen-ready-qr';
 import {
   ScreenPaymentOverview,
   ScreenAddTip,
@@ -29,13 +22,17 @@ import {
 } from '../features/deferred/screen-system';
 import { OverlayVehicleDetails } from '../features/deferred/overlay-vehicle-details';
 import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
+import { useGuestAuth } from '../features/auth/guest-auth-context';
 import { DemoNavigator, type DemoScreenKey } from '../features/demo/demo-navigator';
 import { DemoScreenRenderer } from '../features/demo/demo-screen-renderer';
-import { demoSessions } from '../features/demo/demo-fixtures';
+import { GuestLiveView } from './guest-live-view';
 import { registerServiceWorker } from '../lib/pwa/register-pwa';
 import { C } from '../lib/theme/colors';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 export function GuestAppRoot() {
+  const { token } = useGuestAuth();
   const { session, isLoading, isNetworkError, isExpired, refreshSession } = useGuestSession();
   const retrieval = useRetrieval();
   const handoff = useHandoff();
@@ -49,7 +46,7 @@ export function GuestAppRoot() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showArabicPreview, setShowArabicPreview] = useState(false);
 
-  // Sub-screens for preview flows
+  // Sub-screens for dev preview flows
   const [paymentSubScreen, setPaymentSubScreen] = useState<'overview' | 'tip' | 'receipt'>('overview');
   const [helpSubScreen, setHelpSubScreen] = useState<'help' | 'rate'>('help');
 
@@ -62,25 +59,8 @@ export function GuestAppRoot() {
     if (ok) setShowConfirmRequest(false);
   };
 
-  // 1. System state screens
-  if (isExpired && demoScreen === 'live') {
-    return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
-        <ScreenExpired />
-      </AppShell>
-    );
-  }
-
-  if (isNetworkError && !session && demoScreen === 'live') {
-    return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
-        <ScreenNetworkUnavailable onRetry={() => void refreshSession()} />
-      </AppShell>
-    );
-  }
-
-  // 2. Render Demo Screens if selected in Dev
-  if (demoScreen !== 'live') {
+  // 1. Dev Preview Screen Override (strictly dev-only)
+  if (isDev && demoScreen !== 'live') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
         <DemoScreenRenderer
@@ -94,8 +74,8 @@ export function GuestAppRoot() {
     );
   }
 
-  // 3. Tab: Payment Preview
-  if (tab === 'payment') {
+  // 2. Dev-only Tab: Payment Preview
+  if (isDev && tab === 'payment') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
         {paymentSubScreen === 'overview' && (
@@ -115,8 +95,8 @@ export function GuestAppRoot() {
     );
   }
 
-  // 4. Tab: Help Preview
-  if (tab === 'help') {
+  // 3. Dev-only Tab: Help Preview
+  if (isDev && tab === 'help') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
         {helpSubScreen === 'help' && (
@@ -130,8 +110,8 @@ export function GuestAppRoot() {
     );
   }
 
-  // 5. Arabic RTL Preview Overlay
-  if (showArabicPreview) {
+  // 4. Dev-only Arabic RTL Preview
+  if (isDev && showArabicPreview) {
     return (
       <AppShell
         tab={tab}
@@ -149,10 +129,37 @@ export function GuestAppRoot() {
     );
   }
 
-  // 6. Loading state
-  if (isLoading && !session) {
+  // 5. Authoritative Route Resolution
+  const screenId = resolveGuestScreenId({
+    hasToken: Boolean(token),
+    isExpired,
+    isNetworkError,
+    isLoading,
+    session,
+    handoffMethod: handoff.activeMethod,
+  });
+
+  if (screenId === 'UNAVAILABLE') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={() => {}}>
+      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
+        <ScreenExpired />
+        {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
+      </AppShell>
+    );
+  }
+
+  if (screenId === 'NETWORK_ERROR') {
+    return (
+      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
+        <ScreenNetworkUnavailable onRetry={() => void refreshSession()} />
+        {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
+      </AppShell>
+    );
+  }
+
+  if (screenId === 'LOADING') {
+    return (
+      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
         <div
           style={{
             display: 'flex',
@@ -175,88 +182,39 @@ export function GuestAppRoot() {
           />
           <span style={{ fontSize: 14, color: C.grey }}>Loading valet session...</span>
         </div>
+        {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
       </AppShell>
     );
   }
 
-  // 7. Authoritative Session Lifecycle Routing
+  if (!session) {
+    return (
+      <AppShell tab={tab} onTab={setTab} onMore={() => {}} showNav={false}>
+        <ScreenExpired />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell tab={tab} onTab={setTab} onMore={() => setShowMoreMenu(true)}>
-      {(!session ||
-        session.state === 'CHECKING_IN' ||
-        session.state === 'AWAITING_PARKING' ||
-        session.state === 'PARKING') && (
-        <ScreenReceived
-          session={session ?? demoSessions.received}
-          onRefresh={() => void refreshSession()}
-        />
-      )}
-
-      {session?.state === 'PARKED' && (
-        <ScreenParked
-          session={session}
-          onRequestClick={() => setShowConfirmRequest(true)}
-          onViewDetails={() => setShowVehicleDetails(true)}
-        />
-      )}
-
-      {session?.state === 'REQUESTED' && (
-        <ScreenRequested
-          session={session}
-          onCancel={() => void retrieval.cancelRetrieval()}
-          isCancelling={retrieval.isCancelling}
-          error={retrieval.actionError}
-        />
-      )}
-
-      {session?.state === 'RETRIEVING' && <ScreenOnTheWay session={session} />}
-
-      {session?.state === 'READY' && <ScreenReady session={session} />}
-
-      {session?.state === 'HANDOFF_PENDING' && (
-        <>
-          {handoff.activeMethod === 'PICKUP_CODE' ? (
-            <ScreenReadyPIN
-              session={session}
-              pickupCode={
-                handoff.material?.method === 'PICKUP_CODE'
-                  ? handoff.material.pickupCode
-                  : undefined
+      <GuestLiveView
+        screenId={screenId}
+        session={session}
+        retrieval={retrieval}
+        handoff={handoff}
+        onRefreshSession={() => void refreshSession()}
+        onRequestVehicle={() => setShowConfirmRequest(true)}
+        onViewDetails={() => setShowVehicleDetails(true)}
+        onViewReceipt={isDev ? () => setTab('payment') : undefined}
+        onRateExperience={
+          isDev
+            ? () => {
+                setTab('help');
+                setHelpSubScreen('rate');
               }
-              secondsRemaining={handoff.secondsRemaining}
-              onSwitchToQR={() => void handoff.switchMethod('DYNAMIC_QR')}
-              onRotate={() => void handoff.rotateCurrent()}
-              isRotating={handoff.isRotating}
-              error={handoff.error}
-            />
-          ) : (
-            <ScreenReadyQR
-              session={session}
-              qrPayload={
-                handoff.material?.method === 'DYNAMIC_QR'
-                  ? handoff.material.qrPayload
-                  : undefined
-              }
-              secondsRemaining={handoff.secondsRemaining}
-              onSwitchToPIN={() => void handoff.switchMethod('PICKUP_CODE')}
-              onRotate={() => void handoff.rotateCurrent()}
-              isRotating={handoff.isRotating}
-              error={handoff.error}
-            />
-          )}
-        </>
-      )}
-
-      {session?.state === 'COMPLETED' && (
-        <ScreenCompleted
-          session={session}
-          onViewReceipt={() => setTab('payment')}
-          onRateExperience={() => {
-            setTab('help');
-            setHelpSubScreen('rate');
-          }}
-        />
-      )}
+            : undefined
+        }
+      />
 
       <OverlayConfirmRequest
         open={showConfirmRequest}
@@ -274,10 +232,10 @@ export function GuestAppRoot() {
       <OverlayMoreMenu
         open={showMoreMenu}
         onClose={() => setShowMoreMenu(false)}
-        onOpenArabicPreview={() => setShowArabicPreview(true)}
+        onOpenArabicPreview={isDev ? () => setShowArabicPreview(true) : undefined}
       />
 
-      <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
+      {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
     </AppShell>
   );
 }
