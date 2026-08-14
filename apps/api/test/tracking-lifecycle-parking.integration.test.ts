@@ -133,6 +133,38 @@ describe("VAL-007C Parking tracking atomicity", () => {
     expect(await trackers(fixture.sessionId)).toHaveLength(1);
   });
 
+  it("rejects a policy-OFF start when an active tracker already exists", async () => {
+    const fixture = await context.createStartParkingFixture();
+    await setPolicy(fixture.organizationId, fixture.locationId, false, null);
+    await context.adminPool.query(
+      `INSERT INTO task_tracking_sessions
+         (id, organization_id, location_id, valet_session_id, task_id)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        randomUUID(),
+        fixture.organizationId,
+        fixture.locationId,
+        fixture.sessionId,
+        fixture.taskId,
+      ],
+    );
+    const trackerBefore = await trackers(fixture.sessionId);
+
+    await expectStartParkingError(context.start(fixture), "TASK_INVALID_STATE");
+
+    const effects = await context.effects(fixture);
+    expect(effects.projection).toMatchObject({
+      parking_started_at: null,
+      session_state: "AWAITING_PARKING",
+      session_version: 2,
+      task_status: "ACCEPTED",
+      task_version: 3,
+    });
+    expect(effects.events).toEqual([]);
+    expect(await trackers(fixture.sessionId)).toEqual(trackerBefore);
+    expect(trackerBefore[0]?.ended_at).toBeNull();
+  });
+
   it("rejects a wrong-Task tracker and rolls back PARKED effects", async () => {
     const fixture = await context.createConfirmParkedFixture();
     const wrong = await context.createRetrievalTask(fixture);

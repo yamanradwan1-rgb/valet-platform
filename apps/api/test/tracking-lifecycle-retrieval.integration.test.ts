@@ -6,6 +6,7 @@ import {
   expectMarkReadyError,
   MarkReadyTestContext,
 } from "./mark-ready-test-context";
+import { expectStartRetrievalError } from "./start-retrieval-test-context";
 
 const context = new MarkReadyTestContext("007c_tracking_retrieval");
 
@@ -84,6 +85,44 @@ describe("VAL-007C Retrieval tracking lifecycle", () => {
       [fixture.sessionId],
     );
     expect(count.rows[0]?.count).toBe(0);
+  });
+
+  it("rejects a policy-OFF start with an active prior-Task tracker", async () => {
+    const fixture = await context.createStartRetrievalFixture();
+    await setTracking(fixture.organizationId, fixture.locationId, false);
+    await context.adminPool.query(
+      `INSERT INTO task_tracking_sessions
+         (id, organization_id, location_id, valet_session_id, task_id)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        randomUUID(),
+        fixture.organizationId,
+        fixture.locationId,
+        fixture.sessionId,
+        fixture.taskId,
+      ],
+    );
+    const trackerBefore = await activeTracker(fixture.sessionId);
+
+    await expectStartRetrievalError(
+      context.startRetrieval(fixture),
+      "TASK_INVALID_STATE",
+    );
+
+    const effects = await context.retrievalEffects(fixture);
+    expect(effects.projection).toMatchObject({
+      parking_spot_id: fixture.parkingSpotId,
+      request_status: "OPEN",
+      retrieval_started_at: null,
+      session_state: "REQUESTED",
+      session_version: 5,
+      task_status: "ACCEPTED",
+      task_version: 3,
+    });
+    expect(effects.history).toEqual([]);
+    expect(await activeTracker(fixture.sessionId)).toEqual(trackerBefore);
+    expect(trackerBefore?.ended_at).toBeNull();
+    expect(trackerBefore?.task_id).toBe(fixture.taskId);
   });
 
   it("rolls back READY when the active tracker belongs to another Task", async () => {

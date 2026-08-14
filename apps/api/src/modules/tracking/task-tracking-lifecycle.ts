@@ -36,12 +36,6 @@ export async function startTaskTrackingIfEnabled(
   operationTime: Date,
   integrityConflict: IntegrityConflict,
 ): Promise<void> {
-  if (
-    !(await effectiveTrackingEnabled(transaction, scope, integrityConflict))
-  ) {
-    return;
-  }
-
   const active = await transaction.query(
     `SELECT id FROM task_tracking_sessions
      WHERE valet_session_id = $1 AND ended_at IS NULL
@@ -50,6 +44,12 @@ export async function startTaskTrackingIfEnabled(
   );
   if (active.rows[0] !== undefined) {
     integrityConflict();
+  }
+
+  if (
+    !(await effectiveTrackingEnabled(transaction, scope, integrityConflict))
+  ) {
+    return;
   }
 
   try {
