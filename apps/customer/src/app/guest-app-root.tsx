@@ -23,13 +23,12 @@ import {
 import { OverlayVehicleDetails } from '../features/deferred/overlay-vehicle-details';
 import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
 import { useGuestAuth } from '../features/auth/guest-auth-context';
-import { DemoNavigator } from '../features/demo/demo-navigator';
 import {
   type DemoNavigationKey,
   type DemoOverlayKey,
 } from '../features/demo/demo-registry';
 import { DemoScreenRenderer } from '../features/demo/demo-screen-renderer';
-import { DevPreviewOverlayHost } from '../features/demo/dev-preview-overlays';
+import { DevPreviewControls } from '../features/demo/dev-preview-controls';
 import { GuestLiveView } from './guest-live-view';
 import { registerServiceWorker } from '../lib/pwa/register-pwa';
 import { C } from '../lib/theme/colors';
@@ -81,11 +80,12 @@ export function GuestAppRoot() {
           onViewDetails={() => setDevOverlay('overlay-vehicle-details')}
         />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <DevPreviewOverlayHost overlay={devOverlay} onClose={() => setDevOverlay(null)} />
-        <DemoNavigator
+        <DevPreviewControls
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
+          overlay={devOverlay}
           onSelectOverlay={setDevOverlay}
+          onCloseOverlay={() => setDevOverlay(null)}
         />
       </AppShell>
     );
@@ -108,10 +108,12 @@ export function GuestAppRoot() {
           <ScreenReceipt onDone={() => setPaymentSubScreen('overview')} />
         )}
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <DemoNavigator
+        <DevPreviewControls
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
+          overlay={devOverlay}
           onSelectOverlay={setDevOverlay}
+          onCloseOverlay={() => setDevOverlay(null)}
         />
       </AppShell>
     );
@@ -128,10 +130,12 @@ export function GuestAppRoot() {
           <ScreenRate onDone={() => setHelpSubScreen('help')} />
         )}
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <DemoNavigator
+        <DevPreviewControls
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
+          overlay={devOverlay}
           onSelectOverlay={setDevOverlay}
+          onCloseOverlay={() => setDevOverlay(null)}
         />
       </AppShell>
     );
@@ -153,10 +157,12 @@ export function GuestAppRoot() {
         <ScreenExpired />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
-          <DemoNavigator
+          <DevPreviewControls
             activeScreen={demoScreen}
             onSelectScreen={setDemoScreen}
+            overlay={devOverlay}
             onSelectOverlay={setDevOverlay}
+            onCloseOverlay={() => setDevOverlay(null)}
           />
         )}
       </AppShell>
@@ -169,10 +175,12 @@ export function GuestAppRoot() {
         <ScreenNetworkUnavailable onRetry={() => void refreshSession()} />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
-          <DemoNavigator
+          <DevPreviewControls
             activeScreen={demoScreen}
             onSelectScreen={setDemoScreen}
+            overlay={devOverlay}
             onSelectOverlay={setDevOverlay}
+            onCloseOverlay={() => setDevOverlay(null)}
           />
         )}
       </AppShell>
@@ -206,10 +214,12 @@ export function GuestAppRoot() {
         </div>
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
-          <DemoNavigator
+          <DevPreviewControls
             activeScreen={demoScreen}
             onSelectScreen={setDemoScreen}
+            overlay={devOverlay}
             onSelectOverlay={setDevOverlay}
+            onCloseOverlay={() => setDevOverlay(null)}
           />
         )}
       </AppShell>
@@ -265,14 +275,14 @@ export function GuestAppRoot() {
         onClose={handleCloseMore}
       />
 
-      {/* Dedicated Dev-Only Preview Overlays */}
-      {isDev && <DevPreviewOverlayHost overlay={devOverlay} onClose={() => setDevOverlay(null)} />}
-
+      {/* Dedicated Dev-Only Preview Overlays and Navigator */}
       {isDev && (
-        <DemoNavigator
+        <DevPreviewControls
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
+          overlay={devOverlay}
           onSelectOverlay={setDevOverlay}
+          onCloseOverlay={() => setDevOverlay(null)}
         />
       )}
     </AppShell>

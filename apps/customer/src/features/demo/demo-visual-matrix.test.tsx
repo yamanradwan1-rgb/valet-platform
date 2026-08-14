@@ -37,7 +37,7 @@ describe('Dev Preview Visual Matrix across Locales & Themes', () => {
           expect(collapsedMarkup.length).toBeGreaterThan(0);
         });
 
-        it('renders all 19 preview screen states without crashing', () => {
+        it(`renders all ${allScreenKeys.length} renderable preview screen states without crashing`, () => {
           allScreenKeys.forEach((screenKey) => {
             const markup = renderToStaticMarkup(
               <LocaleProvider initialLocale={locale}>

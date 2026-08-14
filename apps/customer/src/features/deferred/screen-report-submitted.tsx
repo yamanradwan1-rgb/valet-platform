@@ -31,7 +31,7 @@ export function ScreenReportSubmitted({
     >
       <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
         <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
-          {t('payment.previewBanner')}
+          {t('issueSubmitted.previewBanner')}
         </span>
       </div>
 

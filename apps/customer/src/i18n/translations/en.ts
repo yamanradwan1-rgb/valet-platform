@@ -213,6 +213,7 @@ export const enTranslations: TranslationDictionary = {
   'reportIssue.submitButton': 'Submit Report',
   'issueSubmitted.badge': 'Report Received',
   'issueSubmitted.title': 'Report Submitted',
+  'issueSubmitted.previewBanner': 'Preview only · No report was submitted.',
   'issueSubmitted.referenceLabel': 'Reference Code',
   'issueSubmitted.message': 'Preview only · No report was submitted. In production, your report would be sent to the service team for review.',
   'issueSubmitted.doneButton': 'Done',

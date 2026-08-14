@@ -224,6 +224,7 @@ export interface TranslationDictionary {
 
   'issueSubmitted.badge': string;
   'issueSubmitted.title': string;
+  'issueSubmitted.previewBanner': string;
   'issueSubmitted.referenceLabel': string;
   'issueSubmitted.message': string;
   'issueSubmitted.doneButton': string;

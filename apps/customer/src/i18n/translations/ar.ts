@@ -206,6 +206,7 @@ export const arTranslations: TranslationDictionary = {
   'reportIssue.submitButton': 'إرسال البلاغ',
   'issueSubmitted.badge': 'تم استلام البلاغ',
   'issueSubmitted.title': 'تم إرسال بلاغك بنجاح',
+  'issueSubmitted.previewBanner': 'معاينة فقط · لم يتم إرسال أي بلاغ.',
   'issueSubmitted.referenceLabel': 'الرقم المرجعي',
   'issueSubmitted.message': 'معاينة فقط · لم يتم إرسال أي بلاغ. في بيئة الإنتاج الفعلية، سيتم إرسال بلاغك لفريق الخدمة لمراجعته.',
   'issueSubmitted.doneButton': 'تم',
