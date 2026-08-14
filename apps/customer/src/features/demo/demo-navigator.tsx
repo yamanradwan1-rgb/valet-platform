@@ -6,8 +6,8 @@ import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import {
   DEMO_GROUPS,
+  type DemoNavigationKey,
   type DemoOverlayKey,
-  type DemoScreenKey,
 } from './demo-registry';
 
 export function DemoNavigator({
@@ -15,8 +15,8 @@ export function DemoNavigator({
   onSelectScreen,
   onSelectOverlay,
 }: {
-  readonly activeScreen: DemoScreenKey;
-  readonly onSelectScreen: (screen: DemoScreenKey) => void;
+  readonly activeScreen: DemoNavigationKey;
+  readonly onSelectScreen: (screen: DemoNavigationKey) => void;
   readonly onSelectOverlay?: (overlay: DemoOverlayKey) => void;
 }) {
   const { t } = useTranslation();
@@ -125,7 +125,7 @@ export function DemoNavigator({
                 }}
               >
                 {group.items.map((item) => {
-                  if (item.kind === 'screen') {
+                  if (item.kind === 'live' || item.kind === 'screen') {
                     const isSelected = activeScreen === item.id;
                     return (
                       <button

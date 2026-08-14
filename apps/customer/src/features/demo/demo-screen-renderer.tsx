@@ -27,7 +27,7 @@ import {
   ScreenExpired,
 } from '../deferred/screen-system';
 import { demoSessions } from './demo-fixtures';
-import type { DemoScreenKey } from './demo-registry';
+import type { DemoRenderableScreenKey } from './demo-registry';
 
 export function DemoScreenRenderer({
   demoScreen,
@@ -35,15 +35,12 @@ export function DemoScreenRenderer({
   onRequestClick,
   onViewDetails,
 }: {
-  readonly demoScreen: DemoScreenKey;
-  readonly onSelectScreen: (screen: DemoScreenKey) => void;
+  readonly demoScreen: DemoRenderableScreenKey;
+  readonly onSelectScreen: (screen: DemoRenderableScreenKey) => void;
   readonly onRequestClick: () => void;
   readonly onViewDetails: () => void;
 }) {
   switch (demoScreen) {
-    case 'live':
-      return null;
-
     // --- Core / Vehicle ---
     case 'demo-received':
       return <ScreenReceived session={demoSessions.received} onRefresh={() => {}} />;

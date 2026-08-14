@@ -36,6 +36,12 @@ export function ScreenPaymentSuccess({
         gap: 20,
       }}
     >
+      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
+        <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
+          {t('payment.previewBanner')}
+        </span>
+      </div>
+
       <StatusBadge status="success" label={t('paymentSuccess.badge')} />
 
       <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 4 }}>

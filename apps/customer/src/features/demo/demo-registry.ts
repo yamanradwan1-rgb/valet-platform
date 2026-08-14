@@ -1,8 +1,7 @@
 import type { TranslationKey } from '../../i18n/translations/types';
 
-export type DemoScreenKey =
+export type DemoRenderableScreenKey =
   // Core / Vehicle
-  | 'live'
   | 'demo-received'
   | 'demo-parked'
   | 'demo-requested'
@@ -30,13 +29,17 @@ export type DemoScreenKey =
   | 'demo-request-error'
   | 'demo-expired';
 
+export type DemoScreenKey = DemoRenderableScreenKey;
+export type DemoNavigationKey = 'live' | DemoRenderableScreenKey;
+
 export type DemoOverlayKey =
   | 'overlay-confirm-request'
   | 'overlay-vehicle-details'
   | 'overlay-more-menu';
 
 export type DemoItem =
-  | { kind: 'screen'; id: DemoScreenKey; labelKey: TranslationKey }
+  | { kind: 'live'; id: 'live'; labelKey: TranslationKey }
+  | { kind: 'screen'; id: DemoRenderableScreenKey; labelKey: TranslationKey }
   | { kind: 'overlay'; id: DemoOverlayKey; labelKey: TranslationKey };
 
 export interface DemoGroup {
@@ -50,7 +53,7 @@ export const DEMO_GROUPS: readonly DemoGroup[] = [
     id: 'core',
     titleKey: 'demo.groupCore',
     items: [
-      { kind: 'screen', id: 'live', labelKey: 'demo.live' },
+      { kind: 'live', id: 'live', labelKey: 'demo.live' },
       { kind: 'screen', id: 'demo-received', labelKey: 'demo.received' },
       { kind: 'screen', id: 'demo-parked', labelKey: 'demo.parked' },
       { kind: 'screen', id: 'demo-requested', labelKey: 'demo.requested' },

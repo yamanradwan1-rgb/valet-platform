@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { LocaleProvider } from '../../i18n/locale-provider';
 import { ThemeProvider } from '../../theme/theme-provider';
 import type { Locale } from '../../i18n/locale';
-import type { Theme } from '../../theme/theme-provider';
+import type { Theme } from '../../theme/theme';
 import { DemoNavigator } from './demo-navigator';
 import { DemoScreenRenderer } from './demo-screen-renderer';
 import { DEMO_GROUPS, type DemoItem, type DemoScreenKey } from './demo-registry';
@@ -20,8 +20,7 @@ describe('Dev Preview Visual Matrix across Locales & Themes', () => {
 
   const allScreenKeys: DemoScreenKey[] = DEMO_GROUPS.flatMap((g) => g.items)
     .filter((i): i is DemoItem & { kind: 'screen' } => i.kind === 'screen')
-    .map((i) => i.id)
-    .filter((k) => k !== 'live');
+    .map((i) => i.id);
 
   locales.forEach((locale) => {
     themes.forEach((theme) => {

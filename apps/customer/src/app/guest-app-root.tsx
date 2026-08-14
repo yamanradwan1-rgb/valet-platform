@@ -24,12 +24,12 @@ import { OverlayVehicleDetails } from '../features/deferred/overlay-vehicle-deta
 import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
 import { useGuestAuth } from '../features/auth/guest-auth-context';
 import { DemoNavigator } from '../features/demo/demo-navigator';
-import { demoSessions } from '../features/demo/demo-fixtures';
 import {
+  type DemoNavigationKey,
   type DemoOverlayKey,
-  type DemoScreenKey,
 } from '../features/demo/demo-registry';
 import { DemoScreenRenderer } from '../features/demo/demo-screen-renderer';
+import { DevPreviewOverlayHost } from '../features/demo/dev-preview-overlays';
 import { GuestLiveView } from './guest-live-view';
 import { registerServiceWorker } from '../lib/pwa/register-pwa';
 import { C } from '../lib/theme/colors';
@@ -44,12 +44,15 @@ export function GuestAppRoot() {
   const handoff = useHandoff();
 
   const [tab, setTab] = useState<CustomerTab>('vehicle');
-  const [demoScreen, setDemoScreen] = useState<DemoScreenKey>('live');
+  const [demoScreen, setDemoScreen] = useState<DemoNavigationKey>('live');
 
-  // Overlays
+  // Production Overlays
   const [showConfirmRequest, setShowConfirmRequest] = useState<boolean>(false);
   const [showVehicleDetails, setShowVehicleDetails] = useState<boolean>(false);
   const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false);
+
+  // Dedicated Dev-Only Preview Overlays (Zero Production Side Effects)
+  const [devOverlay, setDevOverlay] = useState<DemoOverlayKey | null>(null);
 
   // Sub-screens for dev preview flows
   const [paymentSubScreen, setPaymentSubScreen] = useState<'overview' | 'tip' | 'receipt'>('overview');
@@ -67,16 +70,6 @@ export function GuestAppRoot() {
   const handleOpenMore = () => setShowMoreMenu(true);
   const handleCloseMore = () => setShowMoreMenu(false);
 
-  const handleSelectOverlay = (overlay: DemoOverlayKey) => {
-    if (overlay === 'overlay-confirm-request') {
-      setShowConfirmRequest(true);
-    } else if (overlay === 'overlay-vehicle-details') {
-      setShowVehicleDetails(true);
-    } else if (overlay === 'overlay-more-menu') {
-      setShowMoreMenu(true);
-    }
-  };
-
   // 1. Dev Preview Screen Override (strictly dev-only)
   if (isDev && demoScreen !== 'live') {
     return (
@@ -84,25 +77,15 @@ export function GuestAppRoot() {
         <DemoScreenRenderer
           demoScreen={demoScreen}
           onSelectScreen={setDemoScreen}
-          onRequestClick={() => setShowConfirmRequest(true)}
-          onViewDetails={() => setShowVehicleDetails(true)}
+          onRequestClick={() => setDevOverlay('overlay-confirm-request')}
+          onViewDetails={() => setDevOverlay('overlay-vehicle-details')}
         />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <OverlayConfirmRequest
-          open={showConfirmRequest}
-          onClose={() => setShowConfirmRequest(false)}
-          onConfirm={() => setShowConfirmRequest(false)}
-          isLoading={false}
-        />
-        <OverlayVehicleDetails
-          open={showVehicleDetails}
-          onClose={() => setShowVehicleDetails(false)}
-          session={session ?? demoSessions.parked}
-        />
+        <DevPreviewOverlayHost overlay={devOverlay} onClose={() => setDevOverlay(null)} />
         <DemoNavigator
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
-          onSelectOverlay={handleSelectOverlay}
+          onSelectOverlay={setDevOverlay}
         />
       </AppShell>
     );
@@ -128,7 +111,7 @@ export function GuestAppRoot() {
         <DemoNavigator
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
-          onSelectOverlay={handleSelectOverlay}
+          onSelectOverlay={setDevOverlay}
         />
       </AppShell>
     );
@@ -148,7 +131,7 @@ export function GuestAppRoot() {
         <DemoNavigator
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
-          onSelectOverlay={handleSelectOverlay}
+          onSelectOverlay={setDevOverlay}
         />
       </AppShell>
     );
@@ -173,7 +156,7 @@ export function GuestAppRoot() {
           <DemoNavigator
             activeScreen={demoScreen}
             onSelectScreen={setDemoScreen}
-            onSelectOverlay={handleSelectOverlay}
+            onSelectOverlay={setDevOverlay}
           />
         )}
       </AppShell>
@@ -189,7 +172,7 @@ export function GuestAppRoot() {
           <DemoNavigator
             activeScreen={demoScreen}
             onSelectScreen={setDemoScreen}
-            onSelectOverlay={handleSelectOverlay}
+            onSelectOverlay={setDevOverlay}
           />
         )}
       </AppShell>
@@ -226,7 +209,7 @@ export function GuestAppRoot() {
           <DemoNavigator
             activeScreen={demoScreen}
             onSelectScreen={setDemoScreen}
-            onSelectOverlay={handleSelectOverlay}
+            onSelectOverlay={setDevOverlay}
           />
         )}
       </AppShell>
@@ -263,6 +246,7 @@ export function GuestAppRoot() {
         }
       />
 
+      {/* Production Overlays */}
       <OverlayConfirmRequest
         open={showConfirmRequest}
         onClose={() => setShowConfirmRequest(false)}
@@ -281,11 +265,14 @@ export function GuestAppRoot() {
         onClose={handleCloseMore}
       />
 
+      {/* Dedicated Dev-Only Preview Overlays */}
+      {isDev && <DevPreviewOverlayHost overlay={devOverlay} onClose={() => setDevOverlay(null)} />}
+
       {isDev && (
         <DemoNavigator
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
-          onSelectOverlay={handleSelectOverlay}
+          onSelectOverlay={setDevOverlay}
         />
       )}
     </AppShell>

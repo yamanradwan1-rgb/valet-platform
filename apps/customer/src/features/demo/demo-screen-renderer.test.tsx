@@ -21,9 +21,8 @@ describe('Demo Screen Renderer & Previews Completeness', () => {
     .filter((i): i is DemoItem & { kind: 'screen' } => i.kind === 'screen')
     .map((i) => i.id);
 
-  it('renders every registered non-live DemoScreenKey successfully without returning null', () => {
+  it('renders every registered DemoRenderableScreenKey successfully without returning null', () => {
     allScreenKeys.forEach((key) => {
-      if (key === 'live') return;
 
       const markup = renderToStaticMarkup(
         <LocaleProvider initialLocale="en">

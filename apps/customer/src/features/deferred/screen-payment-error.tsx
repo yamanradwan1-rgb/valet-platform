@@ -32,6 +32,12 @@ export function ScreenPaymentError({
         textAlign: 'center',
       }}
     >
+      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8, width: '100%' }}>
+        <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
+          {t('payment.previewBanner')}
+        </span>
+      </div>
+
       <div
         style={{
           width: 64,
