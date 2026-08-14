@@ -196,10 +196,69 @@ export interface TranslationDictionary {
   'help.emergencyValue': string;
   'help.paymentInfo': string;
 
+  // Guest UI Preview Completeness
+  'paymentComplimentary.badge': string;
+  'paymentComplimentary.title': string;
+  'paymentComplimentary.notice': string;
+  'paymentComplimentary.valetFee': string;
+  'paymentComplimentary.venueValidation': string;
+  'paymentComplimentary.amountDue': string;
+  'paymentComplimentary.viewReceipt': string;
+
+  'paymentMethod.title': string;
+  'paymentMethod.subtitle': string;
+  'paymentMethod.applePay': string;
+  'paymentMethod.googlePay': string;
+  'paymentMethod.card': string;
+  'paymentMethod.venue': string;
+  'paymentMethod.payButton': string;
+
+  'paymentSuccess.badge': string;
+  'paymentSuccess.title': string;
+  'paymentSuccess.subtitle': string;
+  'paymentSuccess.serviceFee': string;
+  'paymentSuccess.tipFee': string;
+  'paymentSuccess.totalPaid': string;
+  'paymentSuccess.receiptNotice': string;
+  'paymentSuccess.viewReceipt': string;
+  'paymentSuccess.returnValet': string;
+
+  'paymentError.title': string;
+  'paymentError.subtitle': string;
+  'paymentError.tryAgain': string;
+  'paymentError.changeMethod': string;
+
+  'reportIssue.title': string;
+  'reportIssue.subtitle': string;
+  'reportIssue.categoryLabel': string;
+  'reportIssue.catCondition': string;
+  'reportIssue.catPayment': string;
+  'reportIssue.catHandoff': string;
+  'reportIssue.catService': string;
+  'reportIssue.catOther': string;
+  'reportIssue.descriptionLabel': string;
+  'reportIssue.descriptionPlaceholder': string;
+  'reportIssue.photoLabel': string;
+  'reportIssue.addPhoto': string;
+  'reportIssue.photoAdded': string;
+  'reportIssue.submitButton': string;
+
+  'issueSubmitted.badge': string;
+  'issueSubmitted.title': string;
+  'issueSubmitted.previewBanner': string;
+  'issueSubmitted.referenceLabel': string;
+  'issueSubmitted.message': string;
+  'issueSubmitted.doneButton': string;
+
   // Dev Demo Navigator
   'demo.navigatorTitle': string;
   'demo.expand': string;
   'demo.collapse': string;
+  'demo.groupCore': string;
+  'demo.groupPayment': string;
+  'demo.groupService': string;
+  'demo.groupErrors': string;
+  'demo.groupOverlays': string;
   'demo.live': string;
   'demo.received': string;
   'demo.parked': string;
@@ -210,8 +269,23 @@ export interface TranslationDictionary {
   'demo.readyQr': string;
   'demo.verifying': string;
   'demo.completed': string;
+  'demo.paymentOverview': string;
+  'demo.paymentComplimentary': string;
+  'demo.addTip': string;
+  'demo.paymentMethod': string;
+  'demo.paymentSuccess': string;
+  'demo.receipt': string;
+  'demo.rateExperience': string;
+  'demo.reportIssue': string;
+  'demo.issueSubmitted': string;
+  'demo.help': string;
   'demo.networkUnavailable': string;
+  'demo.paymentError': string;
+  'demo.requestError': string;
   'demo.expired': string;
+  'demo.overlayConfirmRequest': string;
+  'demo.overlayVehicleDetails': string;
+  'demo.overlayMoreMenu': string;
 }
 
 export type TranslationKey = keyof TranslationDictionary;

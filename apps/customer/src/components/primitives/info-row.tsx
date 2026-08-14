@@ -8,12 +8,14 @@ export function InfoRow({
   highlight = false,
   mono = false,
   showBorder = true,
+  valueDirection,
 }: {
   readonly label: string;
   readonly value: string;
   readonly highlight?: boolean;
   readonly mono?: boolean;
   readonly showBorder?: boolean;
+  readonly valueDirection?: 'ltr' | 'rtl';
 }) {
   return (
     <div
@@ -28,11 +30,13 @@ export function InfoRow({
     >
       <span style={{ fontSize: 14, color: C.textSecondary }}>{label}</span>
       <span
+        dir={valueDirection}
         style={{
           fontSize: 14,
           fontWeight: 500,
           color: highlight ? C.accent : C.text,
           fontVariantNumeric: mono ? 'tabular-nums' : 'normal',
+          unicodeBidi: valueDirection ? 'isolate' : undefined,
         }}
       >
         {value}

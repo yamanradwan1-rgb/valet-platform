@@ -1,4 +1,5 @@
 import type { TranslationDictionary } from './types';
+import { previewArTranslations } from './preview-ar';
 
 export const arTranslations: TranslationDictionary = {
   // Common
@@ -227,4 +228,7 @@ export const arTranslations: TranslationDictionary = {
   'demo.completed': '9. اكتملت الخدمة',
   'demo.networkUnavailable': 'انقطاع الاتصال',
   'demo.expired': 'انتهت الصلاحية',
+  ...previewArTranslations,
 };
+
+export const ar = arTranslations;

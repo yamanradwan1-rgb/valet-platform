@@ -1,4 +1,5 @@
 import type { TranslationDictionary } from './types';
+import { previewEnTranslations } from './preview-en';
 
 export const enTranslations: TranslationDictionary = {
   // Common
@@ -227,4 +228,7 @@ export const enTranslations: TranslationDictionary = {
   'demo.completed': '9. Completed',
   'demo.networkUnavailable': 'Net Unavailable',
   'demo.expired': 'Expired',
+  ...previewEnTranslations,
 };
+
+export const en = enTranslations;
