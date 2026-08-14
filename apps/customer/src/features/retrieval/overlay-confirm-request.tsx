@@ -20,7 +20,7 @@ export function OverlayConfirmRequest({
     <BottomSheet open={open} onClose={onClose} title="Request your vehicle?">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
         <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
-          Your request will be queued immediately and we will notify you when it is staged at the pickup point.
+          Your request will be added to the retrieval queue. Keep this page open to see the latest vehicle status.
         </p>
 
         <div
@@ -39,7 +39,7 @@ export function OverlayConfirmRequest({
           <div>
             <span style={{ fontSize: 12, color: C.grey }}>Retrieval queue</span>
             <div style={{ fontWeight: 600, color: C.navy, fontSize: 14 }}>
-              Dispatched to valet team
+              Ready to be assigned
             </div>
           </div>
         </div>

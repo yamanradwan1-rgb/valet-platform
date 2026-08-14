@@ -175,7 +175,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     expect(screen).not.toBe('HANDOFF_PENDING_QR');
   });
 
-  it('REQUESTED cancellation sends authoritative command with expected session version', async () => {
+  it('REQUESTED cancellation sends authoritative command with empty body and bearer', async () => {
     const mockReturnedSession: GuestSafeSession = {
       ...mockSessionBase,
       state: 'PARKED',
@@ -199,6 +199,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
         headers: expect.objectContaining({
           Authorization: 'Bearer test-token',
         }),
+        body: JSON.stringify({}),
       }),
     );
 

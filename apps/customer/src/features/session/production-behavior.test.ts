@@ -15,7 +15,7 @@ const mockSession: GuestSafeSession = {
 };
 
 describe('Production Guest UI Invariants and Security Behavior', () => {
-  it('PARKED retrieval request calls API with exact session version and bearer', async () => {
+  it('PARKED retrieval request calls API with empty body and bearer (server-derived authority)', async () => {
     const updatedSession: GuestSafeSession = {
       ...mockSession,
       state: 'REQUESTED',
@@ -40,6 +40,7 @@ describe('Production Guest UI Invariants and Security Behavior', () => {
         headers: expect.objectContaining({
           Authorization: 'Bearer prod-token-abc',
         }),
+        body: JSON.stringify({}),
       }),
     );
 
