@@ -12,7 +12,8 @@ import { DynamicQRCode } from '../features/handoff/qr-code';
 import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
 import { ScreenRequested } from '../features/retrieval/screen-requested';
 import { ScreenNetworkUnavailable } from '../features/deferred/screen-system';
-import { ScreenPaymentOverview } from '../features/deferred/screen-payment';
+import { ScreenPaymentOverview, ScreenAddTip } from '../features/deferred/screen-payment';
+import { ScreenReadyQR } from '../features/handoff/screen-ready-qr';
 import type { GuestSafeSession } from '../lib/api/guest-api-types';
 import type { Locale } from '../i18n/locale';
 import type { Theme } from './theme';
@@ -41,7 +42,7 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
         expect(markup).toContain('aria-label');
       });
 
-      it('renders BottomSheet with theme-appropriate background token', () => {
+      it('renders BottomSheet with theme-appropriate background and overlay token', () => {
         const markup = renderToStaticMarkup(
           <LocaleProvider initialLocale={locale}>
             <ThemeProvider initialTheme={theme}>
@@ -54,6 +55,7 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
 
         expect(markup).toContain('background-color:var(--v-sheet-bg)');
         expect(markup).toContain('border-top:var(--v-sheet-border)');
+        expect(markup).toContain('background-color:var(--v-overlay)');
       });
 
       it('renders secondary Btn with transparent background for exact Light parity', () => {
@@ -110,7 +112,7 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
         expect(markup).toContain(`aria-checked="${theme === 'dark'}"`);
       });
 
-      it('renders ScreenRequested cancel button with transparent background and no border', () => {
+      it('renders ScreenRequested cancel button with border and borderRadius for exact Light parity', () => {
         const mockSession: GuestSafeSession = {
           valetSessionId: 'test-session-id',
           state: 'REQUESTED',
@@ -120,13 +122,22 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
         const markup = renderToStaticMarkup(
           <LocaleProvider initialLocale={locale}>
             <ThemeProvider initialTheme={theme}>
-              <ScreenRequested session={mockSession} onCancel={() => {}} />
+              <ScreenRequested
+                session={mockSession}
+                onCancel={() => {}}
+                error="Sample error message"
+              />
             </ThemeProvider>
           </LocaleProvider>,
         );
 
+        // Cancel button has background none, border, and border-radius 10
         expect(markup).toContain('background:none');
-        expect(markup).toContain('border:none');
+        expect(markup).toContain('border:1px solid var(--v-border)');
+        expect(markup).toContain('border-radius:10px');
+
+        // Error box uses semantic danger surface
+        expect(markup).toContain('background-color:var(--v-danger-surface)');
       });
 
       it('renders ScreenNetworkUnavailable without extra background fill on last-state card', () => {
@@ -141,8 +152,8 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
         expect(markup).not.toContain('background-color:var(--v-surface-raised)');
       });
 
-      it('renders ScreenPaymentOverview warning banner with semantic warning tokens', () => {
-        const markup = renderToStaticMarkup(
+      it('renders ScreenPaymentOverview and ScreenAddTip with semantic warning and tip tokens', () => {
+        const markupOverview = renderToStaticMarkup(
           <LocaleProvider initialLocale={locale}>
             <ThemeProvider initialTheme={theme}>
               <ScreenPaymentOverview onAddTip={() => {}} onPay={() => {}} />
@@ -150,8 +161,36 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
           </LocaleProvider>,
         );
 
-        expect(markup).toContain('background-color:var(--v-warning-surface)');
-        expect(markup).toContain('color:var(--v-warning-text)');
+        expect(markupOverview).toContain('background-color:var(--v-warning-surface)');
+        expect(markupOverview).toContain('color:var(--v-warning-text)');
+
+        const markupTip = renderToStaticMarkup(
+          <LocaleProvider initialLocale={locale}>
+            <ThemeProvider initialTheme={theme}>
+              <ScreenAddTip onContinue={() => {}} />
+            </ThemeProvider>
+          </LocaleProvider>,
+        );
+
+        expect(markupTip).toContain('border:2px solid var(--v-border)');
+      });
+
+      it('renders ScreenReadyQR loading placeholder with qrPlaceholderBorder token', () => {
+        const mockSession: GuestSafeSession = {
+          valetSessionId: 'test-session-id',
+          state: 'HANDOFF_PENDING',
+          vehicle: { make: 'Tesla', model: 'Model S', color: 'White' },
+        };
+
+        const markup = renderToStaticMarkup(
+          <LocaleProvider initialLocale={locale}>
+            <ThemeProvider initialTheme={theme}>
+              <ScreenReadyQR session={mockSession} qrPayload={undefined} />
+            </ThemeProvider>
+          </LocaleProvider>,
+        );
+
+        expect(markup).toContain('border:var(--v-qr-placeholder-border)');
       });
     });
   });

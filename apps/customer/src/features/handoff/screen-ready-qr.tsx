@@ -93,7 +93,7 @@ export function ScreenReadyQR({
                 borderRadius: 12,
                 color: C.textSecondary,
                 fontSize: 13,
-                border: `1px solid ${C.borderSemantic}`,
+                border: C.qrPlaceholderBorder,
               }}
             >
               {t('common.loadingQr')}

@@ -71,7 +71,7 @@ export function ScreenRequested({
           style={{
             padding: 12,
             borderRadius: 10,
-            backgroundColor: `rgba(217, 92, 99, 0.15)`,
+            backgroundColor: C.dangerSurface,
             color: C.dangerSemantic,
             fontSize: 13,
             fontWeight: 500,
@@ -92,9 +92,10 @@ export function ScreenRequested({
             padding: '12px 16px',
             fontSize: 14,
             fontWeight: 500,
-            color: isCancelling ? C.textMuted : C.textSecondary,
+            color: isCancelling ? C.textMuted : C.text,
             background: 'none',
-            border: 'none',
+            border: `1px solid ${C.borderSemantic}`,
+            borderRadius: 10,
             cursor: isCancelling ? 'not-allowed' : 'pointer',
             transition: 'opacity 150ms ease',
           }}
