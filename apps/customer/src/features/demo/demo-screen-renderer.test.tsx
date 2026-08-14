@@ -6,7 +6,11 @@ import { LocaleProvider } from '../../i18n/locale-provider';
 import { ThemeProvider } from '../../theme/theme-provider';
 import { DemoScreenRenderer } from './demo-screen-renderer';
 import { DemoNavigator } from './demo-navigator';
-import { DEMO_GROUPS, type DemoItem, type DemoScreenKey } from './demo-registry';
+import {
+  DEMO_GROUPS,
+  type DemoItem,
+  type DemoScreenKey,
+} from './demo-registry';
 import { ScreenPaymentComplimentary } from '../deferred/screen-payment-complimentary';
 import { ScreenPaymentMethod } from '../deferred/screen-payment-method';
 import { ScreenPaymentSuccess } from '../deferred/screen-payment-success';
@@ -23,7 +27,6 @@ describe('Demo Screen Renderer & Previews Completeness', () => {
 
   it('renders every registered DemoRenderableScreenKey successfully without returning null', () => {
     allScreenKeys.forEach((key) => {
-
       const markup = renderToStaticMarkup(
         <LocaleProvider initialLocale="en">
           <ThemeProvider initialTheme="light">
@@ -47,7 +50,10 @@ describe('Demo Screen Renderer & Previews Completeness', () => {
     const compMarkup = renderToStaticMarkup(
       <LocaleProvider initialLocale="en">
         <ThemeProvider initialTheme="dark">
-          <ScreenPaymentComplimentary onViewReceipt={() => {}} onDone={() => {}} />
+          <ScreenPaymentComplimentary
+            onViewReceipt={() => {}}
+            onDone={() => {}}
+          />
         </ThemeProvider>
       </LocaleProvider>,
     );
@@ -97,7 +103,10 @@ describe('Demo Screen Renderer & Previews Completeness', () => {
     const markup = renderToStaticMarkup(
       <LocaleProvider initialLocale="en">
         <ThemeProvider initialTheme="light">
-          <ScreenReportIssue session={demoSessions.parked} onSubmit={() => {}} />
+          <ScreenReportIssue
+            session={demoSessions.parked}
+            onSubmit={() => {}}
+          />
         </ThemeProvider>
       </LocaleProvider>,
     );
@@ -124,6 +133,26 @@ describe('Demo Screen Renderer & Previews Completeness', () => {
 
     expect(markup).toContain('Report Submitted');
     expect(markup).toContain('PREVIEW-1042');
+    expect(markup).toContain('dir="ltr"');
+    expect(markup).toContain('unicode-bidi:isolate');
+  });
+
+  it('isolates preview money values from Arabic RTL flow', () => {
+    const screens = [
+      <ScreenPaymentComplimentary key="complimentary" />,
+      <ScreenPaymentMethod key="method" onPaySuccess={() => {}} />,
+      <ScreenPaymentSuccess key="success" />,
+    ];
+
+    for (const screen of screens) {
+      const markup = renderToStaticMarkup(
+        <LocaleProvider initialLocale="ar">
+          <ThemeProvider initialTheme="light">{screen}</ThemeProvider>
+        </LocaleProvider>,
+      );
+      expect(markup).toContain('dir="ltr"');
+      expect(markup).toContain('unicode-bidi:isolate');
+    }
   });
 
   it('reuses existing ScreenRequestError for error previews without duplication', () => {

@@ -29,7 +29,13 @@ export function ScreenReportSubmitted({
         gap: 20,
       }}
     >
-      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
+      <div
+        style={{
+          backgroundColor: C.warningSurface,
+          padding: '8px 12px',
+          borderRadius: 8,
+        }}
+      >
         <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
           {t('issueSubmitted.previewBanner')}
         </span>
@@ -66,11 +72,20 @@ export function ScreenReportSubmitted({
           textAlign: 'center',
         }}
       >
-        <p style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.textSecondary, margin: 0 }}>
+        <p
+          style={{
+            fontSize: 12,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            color: C.textSecondary,
+            margin: 0,
+          }}
+        >
           {t('issueSubmitted.referenceLabel')}
         </p>
         <p
           className="font-display"
+          dir="ltr"
           style={{
             fontSize: 22,
             fontWeight: 700,
@@ -78,11 +93,19 @@ export function ScreenReportSubmitted({
             letterSpacing: '0.08em',
             marginTop: 8,
             marginBottom: 8,
+            unicodeBidi: 'isolate',
           }}
         >
           {reference}
         </p>
-        <p style={{ fontSize: 13, color: C.textSecondary, margin: 0, lineHeight: 1.5 }}>
+        <p
+          style={{
+            fontSize: 13,
+            color: C.textSecondary,
+            margin: 0,
+            lineHeight: 1.5,
+          }}
+        >
           {t('issueSubmitted.message')}
         </p>
       </div>

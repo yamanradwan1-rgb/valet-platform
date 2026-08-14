@@ -1,4 +1,5 @@
 export interface TranslationDictionary {
+  // Common
   'common.appName': string;
   'common.poweredBy': string;
   'common.close': string;
@@ -10,6 +11,7 @@ export interface TranslationDictionary {
   'common.loadingSession': string;
   'common.loadingQr': string;
 
+  // Header & Nav
   'header.backAria': string;
   'header.moreAria': string;
   'nav.ariaLabel': string;
@@ -17,6 +19,7 @@ export interface TranslationDictionary {
   'nav.payment': string;
   'nav.help': string;
 
+  // More Menu
   'menu.title': string;
   'menu.languageLabel': string;
   'menu.languageSub': string;
@@ -30,6 +33,7 @@ export interface TranslationDictionary {
   'menu.contactLabel': string;
   'menu.contactSub': string;
 
+  // Vehicle
   'vehicle.yourVehicle': string;
   'vehicle.defaultMake': string;
   'vehicle.detailsTitle': string;
@@ -41,13 +45,16 @@ export interface TranslationDictionary {
   'vehicle.notSpecified': string;
   'vehicle.viewDetails': string;
 
+  // Trust Strip
   'trust.title': string;
   'trust.sub': string;
 
+  // Journey
   'journey.requested': string;
   'journey.onTheWay': string;
   'journey.ready': string;
 
+  // Lifecycle States Presentation
   'states.CHECKING_IN': string;
   'states.AWAITING_PARKING': string;
   'states.PARKING': string;
@@ -58,12 +65,14 @@ export interface TranslationDictionary {
   'states.HANDOFF_PENDING': string;
   'states.COMPLETED': string;
 
+  // Received Screen
   'received.statusReceived': string;
   'received.statusParking': string;
   'received.statusAwaiting': string;
   'received.cardTitle': string;
   'received.cardSub': string;
 
+  // Parked Screen
   'parked.badge': string;
   'parked.locationLabel': string;
   'parked.locationValue': string;
@@ -71,6 +80,7 @@ export interface TranslationDictionary {
   'parked.statusValue': string;
   'parked.requestButton': string;
 
+  // Confirm Request Overlay
   'confirmRequest.title': string;
   'confirmRequest.description': string;
   'confirmRequest.queueLabel': string;
@@ -78,24 +88,29 @@ export interface TranslationDictionary {
   'confirmRequest.confirmButton': string;
   'confirmRequest.cancelButton': string;
 
+  // Requested Screen
   'requested.badge': string;
   'requested.cardTitle': string;
   'requested.cardSub': string;
   'requested.cancelButton': string;
   'requested.cancelling': string;
 
+  // On the way Screen
   'onTheWay.badge': string;
   'onTheWay.cardTitle': string;
   'onTheWay.cardSub': string;
 
+  // Ready Screen (Waiting)
   'ready.badge': string;
   'ready.title': string;
   'ready.cardTitle': string;
   'ready.cardSub': string;
 
+  // Verifying Screen
   'verifying.title': string;
   'verifying.subtitle': string;
 
+  // Handoff PIN Screen
   'handoffPin.badge': string;
   'handoffPin.title': string;
   'handoffPin.instruction': string;
@@ -108,6 +123,7 @@ export interface TranslationDictionary {
   'handoffPin.refreshing': string;
   'handoffPin.switchToQr': string;
 
+  // Handoff QR Screen
   'handoffQr.badge': string;
   'handoffQr.title': string;
   'handoffQr.instruction': string;
@@ -118,6 +134,7 @@ export interface TranslationDictionary {
   'handoffQr.generationError': string;
   'handoffQr.ariaLabel': string;
 
+  // Completed Screen
   'completed.badge': string;
   'completed.title': string;
   'completed.subtitle': string;
@@ -127,6 +144,7 @@ export interface TranslationDictionary {
   'completed.receiptPreview': string;
   'completed.ratingPreview': string;
 
+  // System & Error Screens
   'system.networkUnavailableTitle': string;
   'system.networkUnavailableSub': string;
   'system.lastRecordedState': string;
@@ -135,6 +153,7 @@ export interface TranslationDictionary {
   'system.requestErrorTitle': string;
   'system.requestErrorDefault': string;
 
+  // API & Runtime Errors
   'errors.ANTI_ABUSE_UNAVAILABLE': string;
   'errors.GUEST_ACCESS_INVALID': string;
   'errors.GUEST_ACCESS_RATE_LIMITED': string;
@@ -149,6 +168,7 @@ export interface TranslationDictionary {
   'errors.NETWORK_ERROR': string;
   'errors.GENERIC_ERROR': string;
 
+  // Deferred Previews (Payment, Service)
   'payment.previewBanner': string;
   'payment.overviewTitle': string;
   'payment.serviceLabel': string;
@@ -176,6 +196,7 @@ export interface TranslationDictionary {
   'help.emergencyValue': string;
   'help.paymentInfo': string;
 
+  // Guest UI Preview Completeness
   'paymentComplimentary.badge': string;
   'paymentComplimentary.title': string;
   'paymentComplimentary.notice': string;
@@ -229,6 +250,7 @@ export interface TranslationDictionary {
   'issueSubmitted.message': string;
   'issueSubmitted.doneButton': string;
 
+  // Dev Demo Navigator
   'demo.navigatorTitle': string;
   'demo.expand': string;
   'demo.collapse': string;

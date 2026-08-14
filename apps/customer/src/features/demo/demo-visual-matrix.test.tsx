@@ -71,7 +71,7 @@ describe('Dev Preview Visual Matrix across Locales & Themes', () => {
             </LocaleProvider>,
           );
           expect(confirmMarkup).toContain(
-            locale === 'ar' ? 'هل ترغب في طلب سيارتك؟' : 'Request your vehicle?',
+            locale === 'ar' ? 'هل ترغب بطلب سيارتك؟' : 'Request your vehicle?',
           );
 
           // Vehicle Details

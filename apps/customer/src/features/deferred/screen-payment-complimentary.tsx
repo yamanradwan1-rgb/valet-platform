@@ -29,7 +29,13 @@ export function ScreenPaymentComplimentary({
         gap: 20,
       }}
     >
-      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
+      <div
+        style={{
+          backgroundColor: C.warningSurface,
+          padding: '8px 12px',
+          borderRadius: 8,
+        }}
+      >
         <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
           {t('payment.previewBanner')}
         </span>
@@ -70,16 +76,24 @@ export function ScreenPaymentComplimentary({
         <InfoRow
           label={t('paymentComplimentary.valetFee')}
           value="$25.00"
+          valueDirection="ltr"
         />
         <InfoRow
           label={t('paymentComplimentary.venueValidation')}
           value="-$25.00"
+          valueDirection="ltr"
         />
-        <div style={{ borderTop: `1px solid ${C.borderSemantic}`, margin: '8px 0' }} />
+        <div
+          style={{
+            borderTop: `1px solid ${C.borderSemantic}`,
+            margin: '8px 0',
+          }}
+        />
         <InfoRow
           label={t('paymentComplimentary.amountDue')}
           value="$0.00"
           highlight
+          valueDirection="ltr"
         />
       </div>
 

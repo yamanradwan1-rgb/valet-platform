@@ -36,7 +36,13 @@ export function ScreenPaymentSuccess({
         gap: 20,
       }}
     >
-      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
+      <div
+        style={{
+          backgroundColor: C.warningSurface,
+          padding: '8px 12px',
+          borderRadius: 8,
+        }}
+      >
         <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
           {t('payment.previewBanner')}
         </span>
@@ -63,7 +69,14 @@ export function ScreenPaymentSuccess({
           </div>
         </div>
         <SectionTitle>{t('paymentSuccess.title')}</SectionTitle>
-        <p style={{ fontSize: 14, color: C.textSecondary, marginTop: 6, marginBottom: 0 }}>
+        <p
+          style={{
+            fontSize: 14,
+            color: C.textSecondary,
+            marginTop: 6,
+            marginBottom: 0,
+          }}
+        >
           {t('paymentSuccess.subtitle')}
         </p>
       </div>
@@ -75,10 +88,28 @@ export function ScreenPaymentSuccess({
           backgroundColor: C.iceSemantic,
         }}
       >
-        <InfoRow label={t('paymentSuccess.serviceFee')} value={`$${serviceAmount}`} />
-        <InfoRow label={t('paymentSuccess.tipFee')} value={`$${tipAmount}`} />
-        <div style={{ borderTop: `1px solid ${C.borderSemantic}`, margin: '8px 0' }} />
-        <InfoRow label={t('paymentSuccess.totalPaid')} value={`$${totalAmount}`} highlight />
+        <InfoRow
+          label={t('paymentSuccess.serviceFee')}
+          value={`$${serviceAmount}`}
+          valueDirection="ltr"
+        />
+        <InfoRow
+          label={t('paymentSuccess.tipFee')}
+          value={`$${tipAmount}`}
+          valueDirection="ltr"
+        />
+        <div
+          style={{
+            borderTop: `1px solid ${C.borderSemantic}`,
+            margin: '8px 0',
+          }}
+        />
+        <InfoRow
+          label={t('paymentSuccess.totalPaid')}
+          value={`$${totalAmount}`}
+          highlight
+          valueDirection="ltr"
+        />
       </div>
 
       <div

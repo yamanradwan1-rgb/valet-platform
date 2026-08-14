@@ -1,6 +1,8 @@
 import type { TranslationDictionary } from './types';
+import { previewEnTranslations } from './preview-en';
 
 export const enTranslations: TranslationDictionary = {
+  // Common
   'common.appName': 'VAYLET',
   'common.poweredBy': 'Powered by VAYLET',
   'common.close': 'Close',
@@ -11,12 +13,16 @@ export const enTranslations: TranslationDictionary = {
   'common.loading': 'Loading...',
   'common.loadingSession': 'Loading valet session...',
   'common.loadingQr': 'Loading QR code...',
+
+  // Header & Nav
   'header.backAria': 'Go back',
   'header.moreAria': 'More options',
   'nav.ariaLabel': 'Guest navigation',
   'nav.vehicle': 'Vehicle',
   'nav.payment': 'Payment (Preview)',
   'nav.help': 'Help (Preview)',
+
+  // More Menu
   'menu.title': 'More options',
   'menu.languageLabel': 'العربية',
   'menu.languageSub': 'التبديل إلى اللغة العربية',
@@ -29,6 +35,8 @@ export const enTranslations: TranslationDictionary = {
   'menu.privacySub': 'Data protection policies',
   'menu.contactLabel': 'Call valet desk',
   'menu.contactSub': 'Direct operator contact',
+
+  // Vehicle
   'vehicle.yourVehicle': 'Your vehicle',
   'vehicle.defaultMake': 'Vehicle',
   'vehicle.detailsTitle': 'Vehicle details',
@@ -39,11 +47,17 @@ export const enTranslations: TranslationDictionary = {
   'vehicle.unknown': 'Unknown',
   'vehicle.notSpecified': 'Not specified',
   'vehicle.viewDetails': 'View vehicle details',
+
+  // Trust Strip
   'trust.title': 'Protected handoff',
   'trust.sub': 'One-time pickup verification',
+
+  // Journey
   'journey.requested': 'Requested',
   'journey.onTheWay': 'On the way',
   'journey.ready': 'Ready',
+
+  // Lifecycle States Presentation
   'states.CHECKING_IN': 'Checking in',
   'states.AWAITING_PARKING': 'Awaiting parking',
   'states.PARKING': 'Parking in progress',
@@ -53,17 +67,23 @@ export const enTranslations: TranslationDictionary = {
   'states.READY': 'Ready for pickup',
   'states.HANDOFF_PENDING': 'Ready for handoff',
   'states.COMPLETED': 'Completed',
+
+  // Received Screen
   'received.statusReceived': 'Vehicle received',
   'received.statusParking': 'Parking in progress',
   'received.statusAwaiting': 'Awaiting parking',
   'received.cardTitle': "We're checking in your vehicle.",
   'received.cardSub': "We'll update you as soon as it's parked safely.",
+
+  // Parked Screen
   'parked.badge': 'Safely parked',
   'parked.locationLabel': 'Location',
   'parked.locationValue': 'Secure parking',
   'parked.statusLabel': 'Status',
   'parked.statusValue': 'Safely parked',
   'parked.requestButton': 'Request vehicle',
+
+  // Confirm Request Overlay
   'confirmRequest.title': 'Request your vehicle?',
   'confirmRequest.description':
     'Your request will be added to the retrieval queue. Keep this page open to see the latest vehicle status.',
@@ -71,21 +91,31 @@ export const enTranslations: TranslationDictionary = {
   'confirmRequest.queueStatus': 'Ready to be assigned',
   'confirmRequest.confirmButton': 'Request vehicle',
   'confirmRequest.cancelButton': 'Not yet',
+
+  // Requested Screen
   'requested.badge': 'Vehicle requested',
   'requested.cardTitle': 'Your request has been received.',
   'requested.cardSub': 'Queued for valet retrieval',
   'requested.cancelButton': 'Cancel request',
   'requested.cancelling': 'Cancelling request...',
+
+  // On the way Screen
   'onTheWay.badge': 'On the way',
   'onTheWay.cardTitle': 'Your vehicle is being retrieved.',
   'onTheWay.cardSub': 'Valet en route to staging area',
+
+  // Ready Screen (Waiting)
   'ready.badge': 'Ready for pickup',
   'ready.title': 'Your {vehicle} is ready.',
   'ready.cardTitle': 'Your valet is preparing secure handoff.',
   'ready.cardSub':
     'Your one-time pickup code or QR will appear as soon as the valet begins verification.',
+
+  // Verifying Screen
   'verifying.title': 'Verifying pickup',
   'verifying.subtitle': 'Please wait while the valet completes release...',
+
+  // Handoff PIN Screen
   'handoffPin.badge': 'Ready for pickup',
   'handoffPin.title': 'Your {vehicle} is ready.',
   'handoffPin.instruction': 'Show this PIN to your valet',
@@ -97,6 +127,8 @@ export const enTranslations: TranslationDictionary = {
   'handoffPin.refreshButton': 'Generate new code',
   'handoffPin.refreshing': 'Refreshing...',
   'handoffPin.switchToQr': 'Show QR code instead',
+
+  // Handoff QR Screen
   'handoffQr.badge': 'Ready for pickup',
   'handoffQr.title': 'Your {vehicle} is ready.',
   'handoffQr.instruction': 'Valet will scan this code to confirm handoff',
@@ -106,6 +138,8 @@ export const enTranslations: TranslationDictionary = {
   'handoffQr.switchToPin': 'Show pickup code instead',
   'handoffQr.generationError': 'QR generation error',
   'handoffQr.ariaLabel': 'Secure Dynamic QR Code',
+
+  // Completed Screen
   'completed.badge': 'Session complete',
   'completed.title': 'Your {vehicle} has been released.',
   'completed.subtitle': 'Custody transfer is complete. Thank you for using VAYLET.',
@@ -114,6 +148,8 @@ export const enTranslations: TranslationDictionary = {
   'completed.devPreviews': 'Dev Previews (Future Phases)',
   'completed.receiptPreview': 'Receipt Preview',
   'completed.ratingPreview': 'Rating Preview',
+
+  // System & Error Screens
   'system.networkUnavailableTitle': 'Network unavailable',
   'system.networkUnavailableSub': 'Connection lost. Your current vehicle status is preserved.',
   'system.lastRecordedState': 'Last recorded state: {state}',
@@ -122,6 +158,8 @@ export const enTranslations: TranslationDictionary = {
     'This link is invalid or has expired. Please open the link sent to your phone during check-in.',
   'system.requestErrorTitle': 'Request could not be sent',
   'system.requestErrorDefault': 'Please try again or contact the valet desk.',
+
+  // API & Runtime Errors
   'errors.ANTI_ABUSE_UNAVAILABLE':
     'Service temporarily unavailable. Please try again in a few moments.',
   'errors.GUEST_ACCESS_INVALID': 'This valet session link is invalid or has expired.',
@@ -142,6 +180,8 @@ export const enTranslations: TranslationDictionary = {
   'errors.NETWORK_ERROR':
     'Network connection error. Please check your internet connection.',
   'errors.GENERIC_ERROR': 'An unexpected error occurred. Please try again.',
+
+  // Deferred Previews (Payment, Service)
   'payment.previewBanner':
     'Preview Only · Payment phase is not yet connected to production backend.',
   'payment.overviewTitle': 'Payment Preview',
@@ -161,6 +201,7 @@ export const enTranslations: TranslationDictionary = {
   'payment.standardValet': 'Standard Valet',
   'payment.status': 'Status',
   'payment.total': 'Total',
+
   'help.rateTitle': 'Rate Your Experience (Preview)',
   'help.rateBanner':
     'Preview Only · Guest feedback collection is deferred to customer portal phase.',
@@ -170,61 +211,11 @@ export const enTranslations: TranslationDictionary = {
   'help.emergency': 'Emergency',
   'help.emergencyValue': 'Contact hotel reception',
   'help.paymentInfo': 'Payment Information (Preview)',
-  'paymentComplimentary.badge': 'Complimentary Valet',
-  'paymentComplimentary.title': 'Payment',
-  'paymentComplimentary.notice': 'Valet service is covered by the venue',
-  'paymentComplimentary.valetFee': 'Standard Valet Service',
-  'paymentComplimentary.venueValidation': 'Venue Validation (100%)',
-  'paymentComplimentary.amountDue': 'Amount Due',
-  'paymentComplimentary.viewReceipt': 'View Receipt',
-  'paymentMethod.title': 'Payment Method (Preview)',
-  'paymentMethod.subtitle': 'Select your preferred payment method',
-  'paymentMethod.applePay': 'Apple Pay',
-  'paymentMethod.googlePay': 'Google Pay',
-  'paymentMethod.card': 'Credit / Debit Card',
-  'paymentMethod.venue': 'Pay at Venue Desk',
-  'paymentMethod.payButton': 'Pay {amount}',
-  'paymentSuccess.badge': 'Payment Complete',
-  'paymentSuccess.title': 'Payment Complete',
-  'paymentSuccess.subtitle': 'Preview only · This illustrates how a successful payment confirmation will appear.',
-  'paymentSuccess.serviceFee': 'Valet Fee',
-  'paymentSuccess.tipFee': 'Tip',
-  'paymentSuccess.totalPaid': 'Total Paid',
-  'paymentSuccess.receiptNotice': 'Preview only · Illustrative summary of valet charges.',
-  'paymentSuccess.viewReceipt': 'View Receipt',
-  'paymentSuccess.returnValet': 'Back to Valet',
-  'paymentError.title': 'Payment Failed',
-  'paymentError.subtitle': 'Preview only · This illustrates how a payment failure will appear. No payment was attempted.',
-  'paymentError.tryAgain': 'Try Again',
-  'paymentError.changeMethod': 'Choose Another Method',
-  'reportIssue.title': 'Report an Issue (Preview)',
-  'reportIssue.subtitle': 'Let our operations team know if anything went wrong.',
-  'reportIssue.categoryLabel': 'Issue Category',
-  'reportIssue.catCondition': 'Vehicle Condition',
-  'reportIssue.catPayment': 'Payment',
-  'reportIssue.catHandoff': 'Pickup / Handoff',
-  'reportIssue.catService': 'Service Experience',
-  'reportIssue.catOther': 'Other',
-  'reportIssue.descriptionLabel': 'Description',
-  'reportIssue.descriptionPlaceholder': 'Please describe the issue in detail...',
-  'reportIssue.photoLabel': 'Photo Evidence (Optional)',
-  'reportIssue.addPhoto': '+ Add Photo (Preview)',
-  'reportIssue.photoAdded': '1 photo attached (Preview only)',
-  'reportIssue.submitButton': 'Submit Report',
-  'issueSubmitted.badge': 'Report Received',
-  'issueSubmitted.title': 'Report Submitted',
-  'issueSubmitted.previewBanner': 'Preview only · No report was submitted.',
-  'issueSubmitted.referenceLabel': 'Reference Code',
-  'issueSubmitted.message': 'Preview only · No report was submitted. In production, your report would be sent to the service team for review.',
-  'issueSubmitted.doneButton': 'Done',
+
+  // Dev Demo Navigator
   'demo.navigatorTitle': 'Dev Preview Navigator',
   'demo.expand': 'Expand',
   'demo.collapse': 'Collapse',
-  'demo.groupCore': 'Core / Vehicle',
-  'demo.groupPayment': 'Payment',
-  'demo.groupService': 'Service',
-  'demo.groupErrors': 'Errors',
-  'demo.groupOverlays': 'Overlays',
   'demo.live': '🟢 Live (API)',
   'demo.received': '1. Received',
   'demo.parked': '2. Parked',
@@ -235,23 +226,9 @@ export const enTranslations: TranslationDictionary = {
   'demo.readyQr': '7. QR Handoff',
   'demo.verifying': '8. Verifying',
   'demo.completed': '9. Completed',
-  'demo.paymentOverview': 'Payment Overview',
-  'demo.paymentComplimentary': 'Complimentary',
-  'demo.addTip': 'Add Tip',
-  'demo.paymentMethod': 'Payment Method',
-  'demo.paymentSuccess': 'Payment Success',
-  'demo.receipt': 'Receipt',
-  'demo.rateExperience': 'Rate Experience',
-  'demo.reportIssue': 'Report Issue',
-  'demo.issueSubmitted': 'Issue Submitted',
-  'demo.help': 'Help',
   'demo.networkUnavailable': 'Net Unavailable',
-  'demo.paymentError': 'Payment Error',
-  'demo.requestError': 'Request Error',
   'demo.expired': 'Expired',
-  'demo.overlayConfirmRequest': 'Confirm Request',
-  'demo.overlayVehicleDetails': 'Vehicle Details',
-  'demo.overlayMoreMenu': 'More Menu',
+  ...previewEnTranslations,
 };
 
 export const en = enTranslations;

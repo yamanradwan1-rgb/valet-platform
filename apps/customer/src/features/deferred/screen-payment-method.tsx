@@ -15,7 +15,8 @@ export function ScreenPaymentMethod({
   readonly amount?: string | undefined;
 }) {
   const { t } = useTranslation();
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('apple_pay');
+  const [selectedMethod, setSelectedMethod] =
+    useState<PaymentMethodId>('apple_pay');
 
   const methods: readonly { id: PaymentMethodId; label: string }[] = [
     { id: 'apple_pay', label: t('paymentMethod.applePay') },
@@ -37,7 +38,13 @@ export function ScreenPaymentMethod({
         gap: 20,
       }}
     >
-      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
+      <div
+        style={{
+          backgroundColor: C.warningSurface,
+          padding: '8px 12px',
+          borderRadius: 8,
+        }}
+      >
         <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
           {t('payment.previewBanner')}
         </span>
@@ -45,7 +52,14 @@ export function ScreenPaymentMethod({
 
       <div>
         <SectionTitle>{t('paymentMethod.title')}</SectionTitle>
-        <p style={{ fontSize: 14, color: C.textSecondary, marginTop: 4, marginBottom: 0 }}>
+        <p
+          style={{
+            fontSize: 14,
+            color: C.textSecondary,
+            marginTop: 4,
+            marginBottom: 0,
+          }}
+        >
           {t('paymentMethod.subtitle')}
         </p>
       </div>
@@ -104,7 +118,12 @@ export function ScreenPaymentMethod({
       </div>
 
       <Btn variant="primary" onClick={onPaySuccess}>
-        {t('paymentMethod.payButton', { amount: `$${amount}` })}
+        <span>
+          {t('paymentMethod.payButton', { amount: '' })}
+          <bdi dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+            {`$${amount}`}
+          </bdi>
+        </span>
       </Btn>
     </div>
   );
