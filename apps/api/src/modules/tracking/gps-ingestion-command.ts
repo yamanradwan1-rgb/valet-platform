@@ -7,8 +7,9 @@ import { canonicalizeGpsSamples } from "./gps-sample-canonicalization";
 import { persistGpsSamples } from "./gps-sample-persistence";
 import {
   appendGeofenceEvents,
-  evaluateAcceptedGpsSamples,
+  evaluateAdvancingGpsSamples,
   loadActiveGeofenceAreas,
+  loadAdvancingAcceptedGpsSamples,
   loadOperationalFrontier,
 } from "./geofence-evaluation";
 import { GpsIngestionError } from "./gps-ingestion-errors";
@@ -63,15 +64,21 @@ export function createGpsIngestionCommandExecutor(pool: PostgresPool) {
         samples,
       );
       if (persisted.acceptedSamples.length > 0) {
+        const advancingSamples = await loadAdvancingAcceptedGpsSamples(
+          transaction,
+          tracker.id,
+          frontier,
+          persisted.acceptedSamples,
+        );
         const areas = await loadActiveGeofenceAreas(
           transaction,
           session.organization_id,
           session.location_id,
         );
-        const events = evaluateAcceptedGpsSamples(
+        const events = evaluateAdvancingGpsSamples(
           frontier,
           areas,
-          persisted.acceptedSamples,
+          advancingSamples,
         );
         await appendGeofenceEvents(transaction, session, task, tracker, events);
       }

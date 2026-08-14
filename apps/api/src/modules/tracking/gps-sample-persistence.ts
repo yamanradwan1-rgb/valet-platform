@@ -9,6 +9,7 @@ import type {
   LockedGpsTask,
   LockedTrackingSession,
   PersistedGpsBatch,
+  PersistedGpsSample,
 } from "./gps-ingestion-types";
 
 interface ExistingGpsRow {
@@ -80,20 +81,33 @@ async function insertNew(
   task: LockedGpsTask,
   tracker: LockedTrackingSession,
   samples: readonly CanonicalGpsSample[],
-): Promise<Set<string>> {
-  if (samples.length === 0) return new Set();
-  const result = await transaction.query<{ client_sample_id: string }>(
-    `INSERT INTO raw_gps_samples
-       (id, organization_id, location_id, valet_session_id, task_id,
-        tracking_session_id, client_sample_id, latitude, longitude, captured_at)
-     SELECT input.id, $1, $2, $3, $4, $5, input.client_sample_id,
-            input.latitude_text::numeric(9, 6),
-            input.longitude_text::numeric(9, 6), input.captured_at::timestamptz(3)
-     FROM unnest($6::uuid[], $7::uuid[], $8::text[], $9::text[],
-                 $10::timestamptz[])
-       AS input(id, client_sample_id, latitude_text, longitude_text, captured_at)
-     ON CONFLICT (tracking_session_id, client_sample_id) DO NOTHING
-     RETURNING client_sample_id::text`,
+): Promise<readonly PersistedGpsSample[]> {
+  if (samples.length === 0) return [];
+  const result = await transaction.query<{
+    captured_at: Date;
+    client_sample_id: string;
+    id: string;
+    latitude: string;
+    longitude: string;
+  }>(
+    `WITH inserted AS (
+       INSERT INTO raw_gps_samples
+         (id, organization_id, location_id, valet_session_id, task_id,
+          tracking_session_id, client_sample_id, latitude, longitude,
+          captured_at)
+       SELECT input.id, $1, $2, $3, $4, $5, input.client_sample_id,
+              input.latitude_text::numeric(9, 6),
+              input.longitude_text::numeric(9, 6),
+              input.captured_at::timestamptz(3)
+       FROM unnest($6::uuid[], $7::uuid[], $8::text[], $9::text[],
+                   $10::timestamptz[])
+         AS input(id, client_sample_id, latitude_text, longitude_text,
+                  captured_at)
+       ON CONFLICT (tracking_session_id, client_sample_id) DO NOTHING
+       RETURNING id, client_sample_id, latitude, longitude, captured_at
+     )
+     SELECT id::text, client_sample_id::text, latitude::text, longitude::text,
+            captured_at FROM inserted ORDER BY captured_at, id`,
     [
       session.organization_id,
       session.location_id,
@@ -107,7 +121,13 @@ async function insertNew(
       samples.map((sample) => sample.capturedAt),
     ],
   );
-  return new Set(result.rows.map((row) => row.client_sample_id));
+  return result.rows.map((row) => ({
+    capturedAt: row.captured_at,
+    clientSampleId: row.client_sample_id,
+    id: row.id,
+    latitude: row.latitude,
+    longitude: row.longitude,
+  }));
 }
 
 export async function persistGpsSamples(
@@ -125,16 +145,19 @@ export async function persistGpsSamples(
   const candidates = unique.filter(
     (sample) => !existing.has(sample.clientSampleId),
   );
-  const inserted = await insertNew(
+  const acceptedSamples = await insertNew(
     transaction,
     session,
     task,
     tracker,
     candidates,
   );
-  if (inserted.size !== candidates.length) {
+  const insertedIds = new Set(
+    acceptedSamples.map((sample) => sample.clientSampleId),
+  );
+  if (insertedIds.size !== candidates.length) {
     const raced = candidates.filter(
-      (sample) => !inserted.has(sample.clientSampleId),
+      (sample) => !insertedIds.has(sample.clientSampleId),
     );
     const racedExisting = await loadExisting(transaction, tracker.id, raced);
     if (
@@ -151,13 +174,13 @@ export async function persistGpsSamples(
     return {
       clientSampleId: sample.clientSampleId,
       status:
-        first && inserted.has(sample.clientSampleId) ? "ACCEPTED" : "DUPLICATE",
+        first && insertedIds.has(sample.clientSampleId)
+          ? "ACCEPTED"
+          : "DUPLICATE",
     };
   });
   return {
-    acceptedSamples: unique.filter((sample) =>
-      inserted.has(sample.clientSampleId),
-    ),
+    acceptedSamples,
     results,
   };
 }

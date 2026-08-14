@@ -2,10 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type {
-  CanonicalGpsSample,
   LockedGpsSession,
   LockedGpsTask,
   LockedTrackingSession,
+  PersistedGpsSample,
 } from "./gps-ingestion-types";
 import { pointInPolygon, type GeoPoint } from "./point-in-polygon";
 import type {
@@ -54,6 +54,43 @@ export async function loadOperationalFrontier(
       };
 }
 
+export async function loadAdvancingAcceptedGpsSamples(
+  transaction: PostgresTransaction,
+  trackerId: string,
+  frontier: OperationalFrontier | null,
+  acceptedSamples: readonly PersistedGpsSample[],
+): Promise<readonly PersistedGpsSample[]> {
+  if (acceptedSamples.length === 0) return [];
+  const result = await transaction.query<{
+    captured_at: Date;
+    client_sample_id: string;
+    id: string;
+    latitude: string;
+    longitude: string;
+  }>(
+    `SELECT id::text, client_sample_id::text, latitude::text, longitude::text,
+            captured_at
+     FROM raw_gps_samples
+     WHERE tracking_session_id = $1 AND id = ANY($2::uuid[])
+       AND ($3::timestamptz IS NULL
+            OR (captured_at, id) > ($3::timestamptz, $4::uuid))
+     ORDER BY captured_at, id`,
+    [
+      trackerId,
+      acceptedSamples.map((sample) => sample.id),
+      frontier?.capturedAt ?? null,
+      frontier?.id ?? null,
+    ],
+  );
+  return result.rows.map((row) => ({
+    capturedAt: row.captured_at,
+    clientSampleId: row.client_sample_id,
+    id: row.id,
+    latitude: row.latitude,
+    longitude: row.longitude,
+  }));
+}
+
 export async function loadActiveGeofenceAreas(
   transaction: PostgresTransaction,
   organizationId: string,
@@ -95,8 +132,8 @@ export async function loadActiveGeofenceAreas(
 }
 
 function transitions(
-  previous: OperationalFrontier | CanonicalGpsSample | null,
-  current: CanonicalGpsSample,
+  previous: OperationalFrontier | PersistedGpsSample | null,
+  current: PersistedGpsSample,
   areas: readonly GeofenceArea[],
 ): PendingGeofenceEvent[] {
   const events: PendingGeofenceEvent[] = [];
@@ -146,26 +183,15 @@ function transitions(
   return events;
 }
 
-export function evaluateAcceptedGpsSamples(
+export function evaluateAdvancingGpsSamples(
   initialFrontier: OperationalFrontier | null,
   areas: readonly GeofenceArea[],
-  samples: readonly CanonicalGpsSample[],
+  samples: readonly PersistedGpsSample[],
 ): readonly PendingGeofenceEvent[] {
-  let frontier: OperationalFrontier | CanonicalGpsSample | null =
+  let frontier: OperationalFrontier | PersistedGpsSample | null =
     initialFrontier;
   const events: PendingGeofenceEvent[] = [];
-  const ordered = [...samples].sort(
-    (left, right) =>
-      left.capturedAt.getTime() - right.capturedAt.getTime() ||
-      left.ordinal - right.ordinal,
-  );
-  for (const sample of ordered) {
-    if (
-      frontier !== null &&
-      sample.capturedAt.getTime() <= frontier.capturedAt.getTime()
-    ) {
-      continue;
-    }
+  for (const sample of samples) {
     events.push(...transitions(frontier, sample, areas));
     frontier = sample;
   }

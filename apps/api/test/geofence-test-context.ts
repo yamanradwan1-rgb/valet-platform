@@ -101,6 +101,50 @@ export class GeofenceTestContext extends GpsIngestionTestContext {
     return result.rows;
   }
 
+  async seedRawSample(
+    fixture: TrackingFixture,
+    input: {
+      capturedAt: Date;
+      id: string;
+      point: TestPoint;
+    },
+  ): Promise<string> {
+    const clientSampleId = randomUUID();
+    await this.adminPool.query(
+      `INSERT INTO raw_gps_samples
+       (id, organization_id, location_id, valet_session_id, task_id,
+        tracking_session_id, client_sample_id, latitude, longitude, captured_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        input.id,
+        fixture.organizationId,
+        fixture.locationId,
+        fixture.sessionId,
+        fixture.movementTaskId,
+        fixture.trackingSessionId,
+        clientSampleId,
+        input.point.latitude,
+        input.point.longitude,
+        input.capturedAt,
+      ],
+    );
+    return clientSampleId;
+  }
+
+  async rawRoute(fixture: TrackingFixture) {
+    const result = await this.adminPool.query<{
+      captured_at: Date;
+      client_sample_id: string;
+      id: string;
+    }>(
+      `SELECT id::text, client_sample_id::text, captured_at
+       FROM raw_gps_samples WHERE tracking_session_id = $1
+       ORDER BY captured_at, id`,
+      [fixture.trackingSessionId],
+    );
+    return result.rows;
+  }
+
   async protectedState(fixture: TrackingFixture) {
     const result = await this.adminPool.query<{
       assignee_id: string;

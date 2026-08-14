@@ -39,7 +39,15 @@ export interface CanonicalGpsSample {
   readonly ordinal: number;
 }
 
+export interface PersistedGpsSample {
+  readonly capturedAt: Date;
+  readonly clientSampleId: string;
+  readonly id: string;
+  readonly latitude: string;
+  readonly longitude: string;
+}
+
 export interface PersistedGpsBatch {
-  readonly acceptedSamples: readonly CanonicalGpsSample[];
+  readonly acceptedSamples: readonly PersistedGpsSample[];
   readonly results: readonly GpsSampleResult[];
 }

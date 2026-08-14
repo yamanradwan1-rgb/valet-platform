@@ -88,16 +88,62 @@ describe("VAL-007E operational frontier and GPS composition", () => {
     expect(await context.events(fixture)).toEqual([]);
   });
 
-  it("stores equal-time samples without retroactive events", async () => {
+  it("advances an equal-time sample whose persisted route key sorts after", async () => {
     const fixture = await context.createParkingTrackingFixture();
     await context.addArea(fixture, "PARKING");
     const now = await context.databaseTime();
-    const [frontier] = await context.samples([outside], now);
+    const frontierClientId = await context.seedRawSample(fixture, {
+      capturedAt: now,
+      id: "00000000-0000-0000-0000-000000000000",
+      point: outside,
+    });
     const [equal] = await context.samples([insideA], now);
-    await context.ingest(fixture, [frontier!]);
     await context.ingest(fixture, [equal!]);
-    expect(await context.rawSamples(fixture)).toHaveLength(2);
+    const route = await context.rawRoute(fixture);
+    expect(route.map((sample) => sample.client_sample_id)).toEqual([
+      frontierClientId,
+      equal!.clientSampleId,
+    ]);
+    expect(
+      (await context.events(fixture)).map((event) => event.event_type),
+    ).toEqual(["ENTERED"]);
+
+    const [later] = await context.samples(
+      [outside],
+      new Date(now.getTime() + 1_000),
+    );
+    await context.ingest(fixture, [later!]);
+    expect(
+      (await context.events(fixture)).map((event) => event.event_type),
+    ).toEqual(["ENTERED", "EXITED", "VIOLATION"]);
+  });
+
+  it("keeps an equal-time sample whose persisted route key sorts before as history", async () => {
+    const fixture = await context.createParkingTrackingFixture();
+    await context.addArea(fixture, "PARKING");
+    const now = await context.databaseTime();
+    const frontierClientId = await context.seedRawSample(fixture, {
+      capturedAt: now,
+      id: "ffffffff-ffff-ffff-ffff-ffffffffffff",
+      point: outside,
+    });
+    const [equal] = await context.samples([insideA], now);
+    await context.ingest(fixture, [equal!]);
+    const route = await context.rawRoute(fixture);
+    expect(route.map((sample) => sample.client_sample_id)).toEqual([
+      equal!.clientSampleId,
+      frontierClientId,
+    ]);
     expect(await context.events(fixture)).toEqual([]);
+
+    const [later] = await context.samples(
+      [insideA],
+      new Date(now.getTime() + 1_000),
+    );
+    await context.ingest(fixture, [later!]);
+    expect(
+      (await context.events(fixture)).map((event) => event.event_type),
+    ).toEqual(["ENTERED"]);
   });
 
   it("evaluates later movement from the prior frontier, not backfill", async () => {
