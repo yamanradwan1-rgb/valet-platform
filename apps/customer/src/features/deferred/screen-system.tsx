@@ -66,7 +66,6 @@ export function ScreenNetworkUnavailable({
             borderRadius: 14,
             padding: '16px 20px',
             width: '100%',
-            backgroundColor: C.surfaceRaised,
             border: `1px solid ${C.borderSemantic}`,
             textAlign: 'start',
           }}

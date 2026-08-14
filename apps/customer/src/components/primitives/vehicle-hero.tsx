@@ -67,7 +67,6 @@ export function VehicleHero({
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: C.iceSemantic,
-          border: `1px solid ${C.borderSubtle}`,
           width: 56,
           height: 56,
           flexShrink: 0,

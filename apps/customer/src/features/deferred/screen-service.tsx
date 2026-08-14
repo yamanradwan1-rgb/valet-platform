@@ -27,8 +27,8 @@ export function ScreenRate({
         gap: 20,
       }}
     >
-      <div style={{ backgroundColor: 'rgba(216, 148, 52, 0.15)', padding: '8px 12px', borderRadius: 8 }}>
-        <span style={{ fontSize: 12, color: C.warningSemantic, fontWeight: 500 }}>
+      <div style={{ backgroundColor: C.warningSurface, padding: '8px 12px', borderRadius: 8 }}>
+        <span style={{ fontSize: 12, color: C.warningText, fontWeight: 500 }}>
           {t('help.rateBanner')}
         </span>
       </div>

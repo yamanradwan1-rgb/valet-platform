@@ -46,6 +46,22 @@ export function setPersistedTheme(theme: Theme): void {
   }
 }
 
+export function applyThemeToDom(theme: Theme): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  document.documentElement.setAttribute('data-theme', theme);
+
+  // Authoritative single runtime theme-color meta target
+  const metaThemeColor =
+    document.getElementById('vaylet-theme-color') ??
+    document.querySelector('meta[name="theme-color"]');
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute('content', THEME_COLORS[theme]);
+  }
+}
+
 export function commitThemeChange(newTheme: Theme): void {
   setPersistedTheme(newTheme);
 
@@ -53,18 +69,5 @@ export function commitThemeChange(newTheme: Theme): void {
     window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }
 
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-
-    // Synchronize browser/PWA chrome theme-color meta tag if present
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', THEME_COLORS[newTheme]);
-    }
-  }
+  applyThemeToDom(newTheme);
 }

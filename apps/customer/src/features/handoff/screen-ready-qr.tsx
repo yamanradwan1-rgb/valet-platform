@@ -75,7 +75,7 @@ export function ScreenReadyQR({
                 overflow: 'hidden',
                 backgroundColor: '#FFFFFF',
                 padding: 12,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                 display: 'inline-flex',
               }}
             >

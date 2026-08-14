@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LOCALE_STORAGE_KEY, setPersistedLocale, getPersistedLocale } from '../i18n/locale';
 import {
+  applyThemeToDom,
   commitThemeChange,
   DEFAULT_THEME,
   getPersistedTheme,
@@ -32,9 +33,7 @@ describe('Theme Domain & Persistence Layer', () => {
       key: () => null,
     } as Storage;
 
-    const classListSet = new Set<string>();
     const attributesMap: Record<string, string> = {};
-
     const mockDocElement = {
       getAttribute: (name: string) => attributesMap[name] ?? null,
       setAttribute: (name: string, value: string) => {
@@ -43,16 +42,18 @@ describe('Theme Domain & Persistence Layer', () => {
       removeAttribute: (name: string) => {
         delete attributesMap[name];
       },
-      classList: {
-        add: (cls: string) => classListSet.add(cls),
-        remove: (cls: string) => classListSet.delete(cls),
-        contains: (cls: string) => classListSet.has(cls),
-      },
     };
 
+    const metaAttributesMap: Record<string, string> = {
+      id: 'vaylet-theme-color',
+      name: 'theme-color',
+      content: '#FAFAF8',
+    };
     const mockMetaThemeColor = {
-      getAttribute: vi.fn(),
-      setAttribute: vi.fn(),
+      getAttribute: (name: string) => metaAttributesMap[name] ?? null,
+      setAttribute: (name: string, value: string) => {
+        metaAttributesMap[name] = value;
+      },
     };
 
     Object.defineProperty(globalThis, 'window', {
@@ -69,6 +70,12 @@ describe('Theme Domain & Persistence Layer', () => {
     Object.defineProperty(globalThis, 'document', {
       value: {
         documentElement: mockDocElement,
+        getElementById: (id: string) => {
+          if (id === 'vaylet-theme-color') {
+            return mockMetaThemeColor;
+          }
+          return null;
+        },
         querySelector: (selector: string) => {
           if (selector === 'meta[name="theme-color"]') {
             return mockMetaThemeColor;
@@ -107,7 +114,21 @@ describe('Theme Domain & Persistence Layer', () => {
     expect(getPersistedTheme()).toBe(DEFAULT_THEME);
   });
 
-  it('proves commitThemeChange synchronizes storage, DOM attributes, meta tag, and event with 0 API calls', () => {
+  it('proves applyThemeToDom synchronizes root data-theme and authoritative theme-color meta tag', () => {
+    // 1. Apply Dark
+    applyThemeToDom('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    const darkMeta = document.getElementById('vaylet-theme-color');
+    expect(darkMeta?.getAttribute('content')).toBe(THEME_COLORS.dark);
+
+    // 2. Apply Light
+    applyThemeToDom('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    const lightMeta = document.getElementById('vaylet-theme-color');
+    expect(lightMeta?.getAttribute('content')).toBe(THEME_COLORS.light);
+  });
+
+  it('proves commitThemeChange synchronizes storage, DOM, meta tag, and event with 0 API calls', () => {
     const fetchSpy = vi.fn();
     globalThis.fetch = fetchSpy;
 
@@ -115,20 +136,18 @@ describe('Theme Domain & Persistence Layer', () => {
     commitThemeChange('dark');
     expect(getPersistedTheme()).toBe('dark');
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(window.dispatchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: THEME_CHANGE_EVENT }),
     );
 
-    const meta = document.querySelector('meta[name="theme-color"]');
-    expect(meta?.setAttribute).toHaveBeenCalledWith('content', THEME_COLORS.dark);
+    const meta = document.getElementById('vaylet-theme-color');
+    expect(meta?.getAttribute('content')).toBe(THEME_COLORS.dark);
 
     // 2. Commit switch back to light theme
     commitThemeChange('light');
     expect(getPersistedTheme()).toBe('light');
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(meta?.setAttribute).toHaveBeenCalledWith('content', THEME_COLORS.light);
+    expect(meta?.getAttribute('content')).toBe(THEME_COLORS.light);
 
     // 3. Proves zero network requests were triggered
     expect(fetchSpy).not.toHaveBeenCalled();

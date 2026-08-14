@@ -10,11 +10,11 @@ import React, {
 } from 'react';
 
 import {
+  applyThemeToDom,
   commitThemeChange,
   DEFAULT_THEME,
   getPersistedTheme,
   THEME_CHANGE_EVENT,
-  THEME_COLORS,
   type Theme,
 } from './theme';
 
@@ -66,17 +66,12 @@ export function ThemeProvider({
   // Synchronize document attributes on client mount / theme changes
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', theme);
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
+      const preHydrated = document.documentElement.getAttribute('data-theme');
+      // Do not allow initial 'light' SSR snapshot to clobber pre-hydrated 'dark' DOM
+      if (preHydrated === 'dark' && theme === 'light') {
+        return;
       }
-
-      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-      if (metaThemeColor) {
-        metaThemeColor.setAttribute('content', THEME_COLORS[theme]);
-      }
+      applyThemeToDom(theme);
     }
   }, [theme]);
 

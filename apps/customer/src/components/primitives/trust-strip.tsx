@@ -16,7 +16,6 @@ export function TrustStrip() {
         borderRadius: 12,
         padding: '12px 16px',
         backgroundColor: C.iceSemantic,
-        border: `1px solid ${C.borderSubtle}`,
       }}
     >
       <div style={{ color: C.accent, display: 'flex', flexShrink: 0 }}>

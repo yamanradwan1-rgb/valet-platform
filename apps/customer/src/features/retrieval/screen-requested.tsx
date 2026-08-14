@@ -93,9 +93,8 @@ export function ScreenRequested({
             fontSize: 14,
             fontWeight: 500,
             color: isCancelling ? C.textMuted : C.textSecondary,
-            backgroundColor: C.surfaceRaised,
-            border: `1px solid ${C.borderSemantic}`,
-            borderRadius: 10,
+            background: 'none',
+            border: 'none',
             cursor: isCancelling ? 'not-allowed' : 'pointer',
             transition: 'opacity 150ms ease',
           }}

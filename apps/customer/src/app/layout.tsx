@@ -21,10 +21,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAFAF8' },
-    { media: '(prefers-color-scheme: dark)', color: '#07111F' },
-  ],
 };
 
 const initBootstrapScript = `
@@ -43,12 +39,12 @@ const initBootstrapScript = `
 
     // 2. Theme pre-hydration setup
     var t = localStorage.getItem('vaylet_guest_theme');
-    if (t === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-      document.documentElement.classList.remove('dark');
+    var isDark = t === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+    var meta = document.getElementById('vaylet-theme-color') || document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute('content', isDark ? '#07111F' : '#FAFAF8');
     }
   } catch (e) {}
 })();
@@ -60,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="en" dir="ltr" data-theme="light" suppressHydrationWarning>
       <head>
+        <meta id="vaylet-theme-color" name="theme-color" content="#FAFAF8" />
         <script dangerouslySetInnerHTML={{ __html: initBootstrapScript }} />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

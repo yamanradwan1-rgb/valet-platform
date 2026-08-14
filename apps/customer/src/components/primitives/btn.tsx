@@ -46,7 +46,7 @@ export function Btn({
       color: '#FFFFFF',
     },
     secondary: {
-      backgroundColor: C.surfaceRaised,
+      backgroundColor: 'transparent',
       border: `1px solid ${C.borderSemantic}`,
       color: C.text,
     },
