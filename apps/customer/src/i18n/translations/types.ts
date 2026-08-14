@@ -23,6 +23,9 @@ export interface TranslationDictionary {
   'menu.title': string;
   'menu.languageLabel': string;
   'menu.languageSub': string;
+  'menu.darkModeLabel': string;
+  'menu.darkModeSub': string;
+  'menu.darkModeAria': string;
   'menu.photosLabel': string;
   'menu.photosSub': string;
   'menu.privacyLabel': string;

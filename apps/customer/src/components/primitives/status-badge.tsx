@@ -12,11 +12,11 @@ export function StatusBadge({
   readonly label: string;
 }) {
   const map: Record<StatusBadgeType, { dot: string; text: string }> = {
-    info: { dot: C.blue, text: C.blue },
-    success: { dot: C.success, text: C.success },
-    warning: { dot: C.warning, text: C.warning },
-    active: { dot: C.blue, text: C.blue },
-    neutral: { dot: C.muted, text: C.grey },
+    info: { dot: C.accent, text: C.accent },
+    success: { dot: C.successSemantic, text: C.successSemantic },
+    warning: { dot: C.warningSemantic, text: C.warningSemantic },
+    active: { dot: C.accent, text: C.accent },
+    neutral: { dot: C.textMuted, text: C.textSecondary },
   };
 
   const { dot, text } = map[status] ?? map.neutral;

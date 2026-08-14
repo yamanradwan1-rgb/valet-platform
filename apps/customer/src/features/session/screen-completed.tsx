@@ -38,7 +38,7 @@ export function ScreenCompleted({
 
       <div>
         <SectionTitle>{t('completed.title', { vehicle: vehicleName })}</SectionTitle>
-        <p style={{ fontSize: 14, color: C.grey, marginTop: 4, marginBottom: 0 }}>
+        <p style={{ fontSize: 14, color: C.textSecondary, marginTop: 4, marginBottom: 0 }}>
           {t('completed.subtitle')}
         </p>
       </div>
@@ -48,7 +48,7 @@ export function ScreenCompleted({
           borderRadius: 14,
           padding: 24,
           textAlign: 'center',
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
         <div
@@ -56,8 +56,8 @@ export function ScreenCompleted({
             width: 48,
             height: 48,
             borderRadius: '50%',
-            backgroundColor: '#DCFCE7',
-            color: '#16A34A',
+            backgroundColor: 'rgba(47, 155, 120, 0.15)',
+            color: C.successSemantic,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -66,10 +66,10 @@ export function ScreenCompleted({
         >
           <IcCheck />
         </div>
-        <p style={{ fontSize: 15, fontWeight: 600, color: C.navy, margin: 0 }}>
+        <p style={{ fontSize: 15, fontWeight: 600, color: C.text, margin: 0 }}>
           {t('completed.cardTitle')}
         </p>
-        <p style={{ fontSize: 13, color: C.grey, marginTop: 4, marginBottom: 0 }}>
+        <p style={{ fontSize: 13, color: C.textSecondary, marginTop: 4, marginBottom: 0 }}>
           {t('completed.cardSub')}
         </p>
       </div>
@@ -84,11 +84,11 @@ export function ScreenCompleted({
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
-            borderTop: `1px dashed ${C.border}`,
+            borderTop: `1px dashed ${C.borderSemantic}`,
             paddingTop: 16,
           }}
         >
-          <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.grey }}>
+          <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.textSecondary }}>
             {t('completed.devPreviews')}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -100,9 +100,9 @@ export function ScreenCompleted({
                   flex: 1,
                   padding: '8px 12px',
                   borderRadius: 8,
-                  border: `1px solid ${C.border}`,
-                  backgroundColor: '#FFFFFF',
-                  color: C.navy,
+                  border: `1px solid ${C.borderSemantic}`,
+                  backgroundColor: C.surface,
+                  color: C.text,
                   fontSize: 12,
                   fontWeight: 500,
                   cursor: 'pointer',
@@ -119,9 +119,9 @@ export function ScreenCompleted({
                   flex: 1,
                   padding: '8px 12px',
                   borderRadius: 8,
-                  border: `1px solid ${C.border}`,
-                  backgroundColor: '#FFFFFF',
-                  color: C.navy,
+                  border: `1px solid ${C.borderSemantic}`,
+                  backgroundColor: C.surface,
+                  color: C.text,
                   fontSize: 12,
                   fontWeight: 500,
                   cursor: 'pointer',

@@ -37,8 +37,8 @@ export function ScreenNetworkUnavailable({
           width: 64,
           height: 64,
           borderRadius: '50%',
-          backgroundColor: C.ice,
-          color: C.muted,
+          backgroundColor: C.iceSemantic,
+          color: C.textMuted,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -51,11 +51,11 @@ export function ScreenNetworkUnavailable({
       <div>
         <p
           className="font-display"
-          style={{ fontSize: 20, fontWeight: 600, color: C.navy, margin: 0 }}
+          style={{ fontSize: 20, fontWeight: 600, color: C.text, margin: 0 }}
         >
           {t('system.networkUnavailableTitle')}
         </p>
-        <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.grey, maxWidth: 280 }}>
+        <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.textSecondary, maxWidth: 280 }}>
           {t('system.networkUnavailableSub')}
         </p>
       </div>
@@ -66,11 +66,12 @@ export function ScreenNetworkUnavailable({
             borderRadius: 14,
             padding: '16px 20px',
             width: '100%',
-            border: `1px solid ${C.border}`,
+            backgroundColor: C.surfaceRaised,
+            border: `1px solid ${C.borderSemantic}`,
             textAlign: 'start',
           }}
         >
-          <p style={{ fontSize: 14, fontWeight: 600, color: C.navy, margin: 0 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: C.text, margin: 0 }}>
             {t('system.lastRecordedState', { state: formattedState })}
           </p>
         </div>
@@ -108,8 +109,8 @@ export function ScreenExpired() {
           width: 64,
           height: 64,
           borderRadius: '50%',
-          backgroundColor: C.ice,
-          color: C.muted,
+          backgroundColor: C.iceSemantic,
+          color: C.textMuted,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -122,11 +123,11 @@ export function ScreenExpired() {
       <div>
         <p
           className="font-display"
-          style={{ fontSize: 20, fontWeight: 600, color: C.navy, margin: 0 }}
+          style={{ fontSize: 20, fontWeight: 600, color: C.text, margin: 0 }}
         >
           {t('system.expiredTitle')}
         </p>
-        <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.grey, maxWidth: 280 }}>
+        <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.textSecondary, maxWidth: 280 }}>
           {t('system.expiredSub')}
         </p>
       </div>
@@ -163,8 +164,8 @@ export function ScreenRequestError({
           width: 64,
           height: 64,
           borderRadius: '50%',
-          backgroundColor: `${C.danger}12`,
-          color: C.danger,
+          backgroundColor: 'rgba(217, 92, 99, 0.15)',
+          color: C.dangerSemantic,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -177,11 +178,11 @@ export function ScreenRequestError({
       <div>
         <p
           className="font-display"
-          style={{ fontSize: 20, fontWeight: 600, color: C.navy, margin: 0 }}
+          style={{ fontSize: 20, fontWeight: 600, color: C.text, margin: 0 }}
         >
           {t('system.requestErrorTitle')}
         </p>
-        <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.grey }}>
+        <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.textSecondary }}>
           {message ?? t('system.requestErrorDefault')}
         </p>
       </div>

@@ -92,7 +92,7 @@ export function DemoNavigator({
           style={{
             background: 'none',
             border: 'none',
-            color: C.blue,
+            color: C.accent,
             fontSize: 11,
             fontWeight: 600,
             cursor: 'pointer',
@@ -126,7 +126,7 @@ export function DemoNavigator({
                   fontWeight: 600,
                   padding: '4px 8px',
                   borderRadius: 6,
-                  backgroundColor: isSelected ? C.blue : 'rgba(255,255,255,0.08)',
+                  backgroundColor: isSelected ? C.accent : 'rgba(255,255,255,0.08)',
                   color: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.7)',
                   border: 'none',
                   cursor: 'pointer',

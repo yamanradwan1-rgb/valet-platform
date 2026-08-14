@@ -42,7 +42,7 @@ export function VehicleHero({
             fontWeight: 600,
             lineHeight: 1.1,
             letterSpacing: '-0.02em',
-            color: C.navy,
+            color: C.text,
           }}
         >
           {displayMake} {displayModel}
@@ -52,7 +52,7 @@ export function VehicleHero({
             style={{
               marginTop: 6,
               fontSize: 14,
-              color: C.grey,
+              color: C.textSecondary,
               textTransform: 'capitalize',
             }}
           >
@@ -66,7 +66,8 @@ export function VehicleHero({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
+          border: `1px solid ${C.borderSubtle}`,
           width: 56,
           height: 56,
           flexShrink: 0,
@@ -77,7 +78,7 @@ export function VehicleHero({
           style={{
             fontWeight: 600,
             fontSize: 18,
-            color: C.blue,
+            color: C.accent,
           }}
         >
           {displayModel ? displayModel.slice(0, 3).toUpperCase() : 'VAL'}

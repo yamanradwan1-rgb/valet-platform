@@ -42,21 +42,21 @@ export function Btn({
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
-      backgroundColor: C.blue,
+      backgroundColor: C.accent,
       color: '#FFFFFF',
     },
     secondary: {
-      backgroundColor: 'transparent',
-      border: `1px solid ${C.border}`,
-      color: C.navy,
+      backgroundColor: C.surfaceRaised,
+      border: `1px solid ${C.borderSemantic}`,
+      color: C.text,
     },
     ghost: {
       backgroundColor: 'transparent',
-      color: C.blue,
+      color: C.accent,
     },
     danger: {
       backgroundColor: 'transparent',
-      color: C.danger,
+      color: C.dangerSemantic,
     },
   };
 

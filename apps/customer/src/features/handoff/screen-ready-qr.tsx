@@ -53,10 +53,10 @@ export function ScreenReadyQR({
           borderRadius: 14,
           padding: '24px 16px',
           textAlign: 'center',
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
-        <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.grey, margin: 0 }}>
+        <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.textSecondary, margin: 0 }}>
           {t('handoffQr.instruction')}
         </p>
 
@@ -75,7 +75,7 @@ export function ScreenReadyQR({
                 overflow: 'hidden',
                 backgroundColor: '#FFFFFF',
                 padding: 12,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                 display: 'inline-flex',
               }}
             >
@@ -89,10 +89,11 @@ export function ScreenReadyQR({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: C.surface,
                 borderRadius: 12,
-                color: C.grey,
+                color: C.textSecondary,
                 fontSize: 13,
+                border: `1px solid ${C.borderSemantic}`,
               }}
             >
               {t('common.loadingQr')}
@@ -101,13 +102,13 @@ export function ScreenReadyQR({
         </div>
 
         {typeof secondsRemaining === 'number' && (
-          <p style={{ fontSize: 12, color: secondsRemaining < 30 ? C.danger : C.grey, margin: 0 }}>
+          <p style={{ fontSize: 12, color: secondsRemaining < 30 ? C.dangerSemantic : C.textSecondary, margin: 0 }}>
             {t('handoffQr.updatesEvery', { seconds: secondsRemaining })}
           </p>
         )}
 
         {error && (
-          <p style={{ fontSize: 12, color: C.danger, marginTop: 8, marginBottom: 0 }}>
+          <p style={{ fontSize: 12, color: C.dangerSemantic, marginTop: 8, marginBottom: 0 }}>
             {error}
           </p>
         )}
@@ -130,10 +131,11 @@ export function ScreenReadyQR({
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: C.blue,
+                color: C.accent,
                 background: 'none',
                 border: 'none',
                 cursor: isRotating ? 'not-allowed' : 'pointer',
+                opacity: isRotating ? 0.5 : 1,
                 padding: '6px 10px',
                 whiteSpace: 'normal',
                 textAlign: 'center',
@@ -150,7 +152,7 @@ export function ScreenReadyQR({
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: C.navy,
+                color: C.text,
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',

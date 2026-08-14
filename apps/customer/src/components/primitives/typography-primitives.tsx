@@ -10,7 +10,7 @@ export function Label({ children }: { readonly children: React.ReactNode }) {
         fontWeight: 600,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
-        color: C.muted,
+        color: C.textMuted,
         display: 'inline-block',
       }}
     >
@@ -28,7 +28,7 @@ export function SectionTitle({ children }: { readonly children: React.ReactNode 
         fontWeight: 600,
         letterSpacing: '-0.02em',
         lineHeight: 1.2,
-        color: C.navy,
+        color: C.text,
         margin: 0,
       }}
     >
@@ -38,5 +38,5 @@ export function SectionTitle({ children }: { readonly children: React.ReactNode 
 }
 
 export function Divider() {
-  return <div style={{ height: 1, backgroundColor: C.border, width: '100%' }} />;
+  return <div style={{ height: 1, backgroundColor: C.borderSemantic, width: '100%' }} />;
 }

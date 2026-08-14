@@ -23,15 +23,15 @@ export function InfoRow({
         justifyContent: 'space-between',
         paddingTop: 16,
         paddingBottom: 16,
-        borderBottom: showBorder ? `1px solid ${C.border}` : 'none',
+        borderBottom: showBorder ? `1px solid ${C.borderSemantic}` : 'none',
       }}
     >
-      <span style={{ fontSize: 14, color: C.grey }}>{label}</span>
+      <span style={{ fontSize: 14, color: C.textSecondary }}>{label}</span>
       <span
         style={{
           fontSize: 14,
           fontWeight: 500,
-          color: highlight ? C.blue : C.navy,
+          color: highlight ? C.accent : C.text,
           fontVariantNumeric: mono ? 'tabular-nums' : 'normal',
         }}
       >

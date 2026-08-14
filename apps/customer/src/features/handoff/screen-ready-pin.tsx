@@ -53,10 +53,10 @@ export function ScreenReadyPIN({
           borderRadius: 14,
           padding: 24,
           textAlign: 'center',
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
-        <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.grey, margin: 0 }}>
+        <p style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.textSecondary, margin: 0 }}>
           {t('handoffPin.instruction')}
         </p>
 
@@ -70,7 +70,7 @@ export function ScreenReadyPIN({
         </div>
 
         {error && (
-          <p style={{ fontSize: 12, color: C.danger, marginTop: 8, marginBottom: 0 }}>
+          <p style={{ fontSize: 12, color: C.dangerSemantic, marginTop: 8, marginBottom: 0 }}>
             {error}
           </p>
         )}
@@ -83,7 +83,7 @@ export function ScreenReadyPIN({
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: C.navy,
+                color: C.text,
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',

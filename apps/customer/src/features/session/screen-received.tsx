@@ -52,18 +52,18 @@ export function ScreenReceived({
         style={{
           borderRadius: 14,
           padding: 20,
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ color: C.blue, display: 'flex', marginTop: 2 }}>
+          <div style={{ color: C.accent, display: 'flex', marginTop: 2 }}>
             <IcClock />
           </div>
           <div>
-            <p style={{ fontSize: 14, fontWeight: 500, color: C.navy, margin: 0 }}>
+            <p style={{ fontSize: 14, fontWeight: 500, color: C.text, margin: 0 }}>
               {t('received.cardTitle')}
             </p>
-            <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.grey }}>
+            <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.textSecondary }}>
               {t('received.cardSub')}
             </p>
           </div>

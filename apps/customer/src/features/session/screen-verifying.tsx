@@ -26,8 +26,8 @@ export function ScreenVerifying() {
           width: 40,
           height: 40,
           borderRadius: '50%',
-          border: `2px solid ${C.border}`,
-          borderTopColor: C.blue,
+          border: `2px solid ${C.borderSemantic}`,
+          borderTopColor: C.accent,
         }}
       />
       <div style={{ textAlign: 'center' }}>
@@ -36,13 +36,13 @@ export function ScreenVerifying() {
           style={{
             fontSize: 20,
             fontWeight: 600,
-            color: C.navy,
+            color: C.text,
             margin: 0,
           }}
         >
           {t('verifying.title')}
         </p>
-        <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.grey }}>
+        <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.textSecondary }}>
           {t('verifying.subtitle')}
         </p>
       </div>

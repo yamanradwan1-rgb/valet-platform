@@ -1,19 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap');
 
-:root {
-  --color-v-navy: #07111F;
-  --color-v-navy2: #0B1626;
-  --color-v-navy3: #111E30;
-  --color-v-blue: #176BFF;
-  --color-v-blueh: #0F5EEA;
-  --color-v-ice: #EDF4FF;
-  --color-v-warm: #FAFAF8;
-  --color-v-grey: #6F7C91;
-  --color-v-muted: #8C98AA;
-  --color-v-border: #DDE4EC;
-  --color-v-success: #2F9B78;
-  --color-v-warning: #D89434;
-  --color-v-danger: #D95C63;
+:root,
+[data-theme="light"] {
+  --v-bg: #FAFAF8;
+  --v-bg-frame: #E8EDF4;
+  --v-surface: #FFFFFF;
+  --v-surface-raised: #FFFFFF;
+  --v-surface-muted: #F1F4F9;
+  --v-text: #07111F;
+  --v-text-secondary: #6F7C91;
+  --v-text-muted: #8C98AA;
+  --v-border: #DDE4EC;
+  --v-border-subtle: #EDF2F7;
+  --v-ice: #EDF4FF;
+  --v-overlay: rgba(7, 17, 31, 0.5);
+  --v-blue: #176BFF;
+  --v-blue-hover: #0F5EEA;
+  --v-success: #2F9B78;
+  --v-warning: #D89434;
+  --v-danger: #D95C63;
+}
+
+[data-theme="dark"] {
+  --v-bg: #07111F;
+  --v-bg-frame: #03070E;
+  --v-surface: #0D1C2E;
+  --v-surface-raised: #132742;
+  --v-surface-muted: #182E4B;
+  --v-text: #F1F5F9;
+  --v-text-secondary: #94A3B8;
+  --v-text-muted: #64748B;
+  --v-border: #1E3654;
+  --v-border-subtle: #14253A;
+  --v-ice: #0E223D;
+  --v-overlay: rgba(2, 6, 12, 0.75);
+  --v-blue: #2575FC;
+  --v-blue-hover: #176BFF;
+  --v-success: #34D399;
+  --v-warning: #FBBF24;
+  --v-danger: #F87171;
 }
 
 html {
@@ -22,8 +47,8 @@ html {
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #FAFAF8;
-  color: #07111F;
+  background-color: var(--v-bg);
+  color: var(--v-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
@@ -38,6 +63,22 @@ html.vaylet-persisted-ar body {
 html.vaylet-hydrated body,
 html:not(.vaylet-persisted-ar) body {
   visibility: visible;
+}
+
+/* Hydration-stable VAYLET logo display */
+:root .vaylet-logo-light,
+[data-theme="light"] .vaylet-logo-light {
+  display: block !important;
+}
+:root .vaylet-logo-dark,
+[data-theme="light"] .vaylet-logo-dark {
+  display: none !important;
+}
+[data-theme="dark"] .vaylet-logo-light {
+  display: none !important;
+}
+[data-theme="dark"] .vaylet-logo-dark {
+  display: block !important;
 }
 
 html[dir="rtl"] body {
@@ -152,7 +193,7 @@ html[dir="rtl"] .font-display {
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, #EDF4FF 25%, #FAFAF8 50%, #EDF4FF 75%);
+  background: linear-gradient(90deg, var(--v-ice) 25%, var(--v-bg) 50%, var(--v-ice) 75%);
   background-size: 200% auto;
   animation: shimmer 1.5s linear infinite;
 }

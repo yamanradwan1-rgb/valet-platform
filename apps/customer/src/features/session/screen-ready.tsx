@@ -39,13 +39,13 @@ export function ScreenReady({
         style={{
           borderRadius: 14,
           padding: 20,
-          backgroundColor: C.ice,
+          backgroundColor: C.iceSemantic,
         }}
       >
-        <p style={{ fontSize: 14, fontWeight: 500, color: C.navy, margin: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: C.text, margin: 0 }}>
           {t('ready.cardTitle')}
         </p>
-        <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.grey }}>
+        <p style={{ fontSize: 14, marginTop: 4, marginBottom: 0, color: C.textSecondary }}>
           {t('ready.cardSub')}
         </p>
       </div>

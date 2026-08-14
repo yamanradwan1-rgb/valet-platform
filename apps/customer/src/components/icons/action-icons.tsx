@@ -154,3 +154,11 @@ export function IcQR({ className = '' }: { readonly className?: string }) {
     </SvgIcon>
   );
 }
+
+export function IcMoon({ className = '' }: { readonly className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M17.5 12.8A7.5 7.5 0 0 1 7.2 2.5a8 8 0 1 0 10.3 10.3z" />
+    </SvgIcon>
+  );
+}

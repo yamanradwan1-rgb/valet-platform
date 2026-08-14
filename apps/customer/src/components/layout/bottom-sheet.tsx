@@ -29,7 +29,7 @@ export function BottomSheet({
         zIndex: 150,
         display: 'flex',
         alignItems: 'flex-end',
-        backgroundColor: 'rgba(7, 17, 31, 0.5)',
+        backgroundColor: C.overlay,
       }}
     >
       <div
@@ -40,7 +40,8 @@ export function BottomSheet({
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           overflow: 'hidden',
-          backgroundColor: C.warm,
+          backgroundColor: C.surface,
+          borderTop: `1px solid ${C.borderSubtle}`,
           paddingBottom: 'env(safe-area-inset-bottom, 16px)',
           maxHeight: '90vh',
           overflowY: 'auto',
@@ -59,7 +60,7 @@ export function BottomSheet({
               width: 36,
               height: 4,
               borderRadius: 2,
-              backgroundColor: C.border,
+              backgroundColor: C.borderSemantic,
             }}
           />
         </div>
@@ -81,7 +82,7 @@ export function BottomSheet({
               style={{
                 fontSize: 18,
                 fontWeight: 600,
-                color: C.navy,
+                color: C.text,
                 margin: 0,
               }}
             >
@@ -102,7 +103,7 @@ export function BottomSheet({
                 borderRadius: '50%',
                 background: 'none',
                 border: 'none',
-                color: C.grey,
+                color: C.textSecondary,
                 cursor: 'pointer',
                 padding: 0,
               }}

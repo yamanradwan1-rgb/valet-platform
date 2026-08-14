@@ -31,7 +31,7 @@ export function PickupPIN({
       style={{
         borderRadius: 14,
         overflow: 'hidden',
-        backgroundColor: C.ice,
+        backgroundColor: C.iceSemantic,
       }}
     >
       <div
@@ -48,7 +48,7 @@ export function PickupPIN({
             style={{
               fontSize: 11,
               fontWeight: 600,
-              color: isExpired ? C.danger : C.grey,
+              color: isExpired ? C.dangerSemantic : C.textSecondary,
               fontVariantNumeric: 'tabular-nums',
             }}
           >
@@ -86,11 +86,11 @@ export function PickupPIN({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: C.surface,
               fontSize: 'clamp(22px, 6vw, 32px)',
               fontWeight: 700,
-              color: isExpired ? C.muted : C.navy,
-              border: `1px solid ${C.border}`,
+              color: isExpired ? C.textMuted : C.text,
+              border: `1px solid ${C.borderSemantic}`,
               fontVariantNumeric: 'tabular-nums',
             }}
           >
@@ -105,10 +105,10 @@ export function PickupPIN({
           textAlign: 'center',
         }}
       >
-        <p style={{ fontSize: 14, color: C.grey, margin: 0 }}>
+        <p style={{ fontSize: 14, color: C.textSecondary, margin: 0 }}>
           {t('handoffPin.showCodeSub')}
         </p>
-        <p style={{ fontSize: 12, marginTop: 4, marginBottom: 0, color: C.muted }}>
+        <p style={{ fontSize: 12, marginTop: 4, marginBottom: 0, color: C.textMuted }}>
           {t('handoffPin.oneTime')}
         </p>
 
@@ -121,7 +121,7 @@ export function PickupPIN({
               marginTop: 12,
               background: 'none',
               border: 'none',
-              color: C.blue,
+              color: C.accent,
               fontSize: 13,
               fontWeight: 600,
               cursor: isRotating ? 'not-allowed' : 'pointer',

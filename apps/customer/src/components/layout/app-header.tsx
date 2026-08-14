@@ -10,7 +10,7 @@ export function AppHeader({
   onBack,
   title,
   whiteLabel = false,
-  dark = false,
+  dark,
 }: {
   readonly onMore: () => void;
   readonly onBack?: (() => void) | undefined;
@@ -19,6 +19,11 @@ export function AppHeader({
   readonly dark?: boolean | undefined;
 }) {
   const { t, isRtl } = useTranslation();
+
+  const headerBg = dark === true ? C.brandNavy : dark === false ? C.warm : C.bg;
+  const textColor = dark === true ? '#FFFFFF' : C.text;
+  const iconColor = dark === true ? 'rgba(255,255,255,0.7)' : C.textSecondary;
+  const borderBottom = dark === true ? 'none' : `1px solid ${C.borderSemantic}`;
 
   return (
     <header
@@ -30,8 +35,8 @@ export function AppHeader({
         paddingRight: 20,
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         paddingBottom: 16,
-        backgroundColor: dark ? C.navy : C.warm,
-        borderBottom: dark ? 'none' : `1px solid ${C.border}`,
+        backgroundColor: headerBg,
+        borderBottom,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -51,7 +56,7 @@ export function AppHeader({
               borderRadius: '50%',
               background: 'none',
               border: 'none',
-              color: dark ? '#FFFFFF' : C.navy,
+              color: textColor,
               cursor: 'pointer',
               padding: 0,
             }}
@@ -69,7 +74,7 @@ export function AppHeader({
                 style={{
                   fontSize: 10,
                   marginTop: 2,
-                  color: dark ? 'rgba(255,255,255,0.5)' : C.muted,
+                  color: dark === true ? 'rgba(255,255,255,0.5)' : C.textMuted,
                 }}
               >
                 {t('common.poweredBy')}
@@ -82,7 +87,7 @@ export function AppHeader({
             style={{
               fontWeight: 600,
               fontSize: 17,
-              color: dark ? '#FFFFFF' : C.navy,
+              color: textColor,
             }}
           >
             {title}
@@ -105,7 +110,7 @@ export function AppHeader({
           borderRadius: '50%',
           background: 'none',
           border: 'none',
-          color: dark ? 'rgba(255,255,255,0.7)' : C.grey,
+          color: iconColor,
           cursor: 'pointer',
           padding: 0,
         }}
