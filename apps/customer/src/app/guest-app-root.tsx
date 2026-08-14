@@ -23,7 +23,12 @@ import {
 import { OverlayVehicleDetails } from '../features/deferred/overlay-vehicle-details';
 import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
 import { useGuestAuth } from '../features/auth/guest-auth-context';
-import { DemoNavigator, type DemoScreenKey } from '../features/demo/demo-navigator';
+import { DemoNavigator } from '../features/demo/demo-navigator';
+import { demoSessions } from '../features/demo/demo-fixtures';
+import {
+  type DemoOverlayKey,
+  type DemoScreenKey,
+} from '../features/demo/demo-registry';
 import { DemoScreenRenderer } from '../features/demo/demo-screen-renderer';
 import { GuestLiveView } from './guest-live-view';
 import { registerServiceWorker } from '../lib/pwa/register-pwa';
@@ -62,6 +67,16 @@ export function GuestAppRoot() {
   const handleOpenMore = () => setShowMoreMenu(true);
   const handleCloseMore = () => setShowMoreMenu(false);
 
+  const handleSelectOverlay = (overlay: DemoOverlayKey) => {
+    if (overlay === 'overlay-confirm-request') {
+      setShowConfirmRequest(true);
+    } else if (overlay === 'overlay-vehicle-details') {
+      setShowVehicleDetails(true);
+    } else if (overlay === 'overlay-more-menu') {
+      setShowMoreMenu(true);
+    }
+  };
+
   // 1. Dev Preview Screen Override (strictly dev-only)
   if (isDev && demoScreen !== 'live') {
     return (
@@ -76,15 +91,19 @@ export function GuestAppRoot() {
         <OverlayConfirmRequest
           open={showConfirmRequest}
           onClose={() => setShowConfirmRequest(false)}
-          onConfirm={handleRequestConfirm}
-          isLoading={retrieval.isRequesting}
+          onConfirm={() => setShowConfirmRequest(false)}
+          isLoading={false}
         />
         <OverlayVehicleDetails
           open={showVehicleDetails}
           onClose={() => setShowVehicleDetails(false)}
-          session={session}
+          session={session ?? demoSessions.parked}
         />
-        <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
+        <DemoNavigator
+          activeScreen={demoScreen}
+          onSelectScreen={setDemoScreen}
+          onSelectOverlay={handleSelectOverlay}
+        />
       </AppShell>
     );
   }
@@ -106,7 +125,11 @@ export function GuestAppRoot() {
           <ScreenReceipt onDone={() => setPaymentSubScreen('overview')} />
         )}
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
+        <DemoNavigator
+          activeScreen={demoScreen}
+          onSelectScreen={setDemoScreen}
+          onSelectOverlay={handleSelectOverlay}
+        />
       </AppShell>
     );
   }
@@ -122,7 +145,11 @@ export function GuestAppRoot() {
           <ScreenRate onDone={() => setHelpSubScreen('help')} />
         )}
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />
+        <DemoNavigator
+          activeScreen={demoScreen}
+          onSelectScreen={setDemoScreen}
+          onSelectOverlay={handleSelectOverlay}
+        />
       </AppShell>
     );
   }
@@ -142,7 +169,13 @@ export function GuestAppRoot() {
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenExpired />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
+        {isDev && (
+          <DemoNavigator
+            activeScreen={demoScreen}
+            onSelectScreen={setDemoScreen}
+            onSelectOverlay={handleSelectOverlay}
+          />
+        )}
       </AppShell>
     );
   }
@@ -152,7 +185,13 @@ export function GuestAppRoot() {
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenNetworkUnavailable onRetry={() => void refreshSession()} />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
+        {isDev && (
+          <DemoNavigator
+            activeScreen={demoScreen}
+            onSelectScreen={setDemoScreen}
+            onSelectOverlay={handleSelectOverlay}
+          />
+        )}
       </AppShell>
     );
   }
@@ -183,7 +222,13 @@ export function GuestAppRoot() {
           <span style={{ fontSize: 14, color: C.textSecondary }}>{t('common.loadingSession')}</span>
         </div>
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
+        {isDev && (
+          <DemoNavigator
+            activeScreen={demoScreen}
+            onSelectScreen={setDemoScreen}
+            onSelectOverlay={handleSelectOverlay}
+          />
+        )}
       </AppShell>
     );
   }
@@ -236,7 +281,13 @@ export function GuestAppRoot() {
         onClose={handleCloseMore}
       />
 
-      {isDev && <DemoNavigator activeScreen={demoScreen} onSelectScreen={setDemoScreen} />}
+      {isDev && (
+        <DemoNavigator
+          activeScreen={demoScreen}
+          onSelectScreen={setDemoScreen}
+          onSelectOverlay={handleSelectOverlay}
+        />
+      )}
     </AppShell>
   );
 }
