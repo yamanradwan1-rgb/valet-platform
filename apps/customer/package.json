@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "pnpm --filter @valet/contracts build && next build",
     "dev": "next dev --port 3002",
     "start": "next start --port 3002",
     "lint": "eslint src --max-warnings=0",
@@ -11,13 +11,17 @@
     "test": "vitest run src"
   },
   "dependencies": {
+    "@valet/contracts": "workspace:*",
     "@valet/ui": "workspace:*",
     "next": "16.2.11",
+    "qrcode": "^1.5.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "5.9.3",
