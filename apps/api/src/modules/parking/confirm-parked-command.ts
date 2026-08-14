@@ -5,6 +5,7 @@ import {
   loadDispatchOperationTime,
 } from "../dispatch/dispatch-transaction";
 import { recordKeyReturnedToSlot } from "../keys/parking-key-custody";
+import { stopTaskTrackingForMovement } from "../tracking/task-tracking-lifecycle";
 import { appendConfirmParkedAuditEvent } from "./confirm-parked-audit";
 import { ConfirmParkedError } from "./confirm-parked-errors";
 import { assertConfirmParkedGuards } from "./confirm-parked-guards";
@@ -68,6 +69,19 @@ async function executeConfirmParked(
       session,
       spot,
       operationTime,
+    );
+    await stopTaskTrackingForMovement(
+      transaction,
+      {
+        locationId: session.location_id,
+        organizationId: session.organization_id,
+        sessionId: session.id,
+        taskId: task.id,
+      },
+      operationTime,
+      () => {
+        throw new ConfirmParkedError("TASK_INVALID_STATE");
+      },
     );
     await recordKeyReturnedToSlot(
       transaction,

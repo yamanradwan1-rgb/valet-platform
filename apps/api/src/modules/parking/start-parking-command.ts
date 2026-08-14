@@ -5,7 +5,9 @@ import {
   loadDispatchOperationTime,
 } from "../dispatch/dispatch-transaction";
 import { recordKeyCheckedOut } from "../keys/parking-key-custody";
+import { startTaskTrackingIfEnabled } from "../tracking/task-tracking-lifecycle";
 import { appendStartParkingAuditEvent } from "./start-parking-audit";
+import { StartParkingError } from "./start-parking-errors";
 import { assertStartParkingGuards } from "./start-parking-guards";
 import {
   authorizeStartParkingOwner,
@@ -67,6 +69,19 @@ async function executeStartParking(
       transaction,
       session,
       operationTime,
+    );
+    await startTaskTrackingIfEnabled(
+      transaction,
+      {
+        locationId: session.location_id,
+        organizationId: session.organization_id,
+        sessionId: session.id,
+        taskId: task.id,
+      },
+      operationTime,
+      () => {
+        throw new StartParkingError("TASK_INVALID_STATE");
+      },
     );
     const custodyScope = {
       actorMembershipId,
