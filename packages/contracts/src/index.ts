@@ -9,6 +9,7 @@ export * from "./confirm-parked.js";
 export * from "./dispatch.js";
 export * from "./handoff.js";
 export * from "./key-custody.js";
+export * from "./map-setup.js";
 export * from "./mark-ready.js";
 export * from "./shifts.js";
 export * from "./start-parking.js";

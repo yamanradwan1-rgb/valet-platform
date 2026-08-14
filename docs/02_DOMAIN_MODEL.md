@@ -243,7 +243,29 @@ Optional operational tracking evidence for a Parking/Retrieval task when the Loc
 
 Tracking is task-scoped by default, not continuous for the entire Shift.
 
-Possible captured information includes start/end location, route history, duration/distance and zone/geofence events when configured.
+Typed policy uses Company default -> nullable Location override. Company
+tracking defaults OFF and Company raw-GPS retention defaults to 30 days.
+
+`LocationMapPoint` represents an active/inactive Entrance, Pickup or Drop-off.
+`LocationMapArea` represents an active/inactive Parking, Overflow, Staging or
+Restricted polygon through ordered `LocationMapAreaVertex` rows. A map area may
+reference an existing ParkingZone for map/geofence context, but never replaces
+ParkingZone/ParkingSpot as parking assignment authority.
+
+`TaskTrackingSession` is the current/ended movement-tracking projection anchored
+to the exact canonical Task and ValetSession. It has no assignee lifecycle;
+`Task.current_assignee_membership_id` remains authoritative. At most one active
+tracker exists per Task and per physical ValetSession.
+
+`RawGpsSample` stores privacy-sensitive append-oriented route observations with
+client capture time, database receive time and a per-tracking-session durable
+client sample UUID. `GeofenceEvent` stores non-raw ENTERED, EXITED or VIOLATION
+summary history. A violation is alert/history only and does not mutate physical,
+Task, Dispatch, assignment, release or handoff state.
+
+Raw samples follow the effective finite retention policy and are not permanent
+Black Box history. Cleanup execution belongs to VAL-007F and is not part of the
+persistence foundation.
 
 The Guest never receives exact coordinates.
 

@@ -136,6 +136,8 @@ name
 status
 timezone
 check_in_photos_required
+tracking_enabled
+raw_gps_retention_days
 created_at
 updated_at
 ```
@@ -151,6 +153,8 @@ Constraints/rules:
 - status required, default `ACTIVE`
 - `timezone` required for current Phase 1 compatibility and treated as the Company/default timezone, not as an override of each Location's timezone
 - `check_in_photos_required` is the typed Company default for check-in photo evidence, required and `false` by default
+- `tracking_enabled` is the typed Company tracking default, required and `false` by default
+- `raw_gps_retention_days` is the typed Company raw-route retention default, required, positive, and `30` by default
 - DB timestamps follow the global UTC/timestamptz convention
 
 A later typed configuration task may rename/refine Company-default semantics; do not block Location-specific timezone support on this field.
@@ -167,6 +171,8 @@ timezone
 currency
 status
 check_in_photos_required_override nullable
+tracking_enabled_override nullable
+raw_gps_retention_days_override nullable
 created_at
 updated_at
 ```
@@ -184,6 +190,8 @@ Constraints/rules:
 - `currency` required and follows uppercase ISO 4217 convention
 - status required, default `ACTIVE`
 - `check_in_photos_required_override` is nullable: null inherits the Organization default, while explicit `true` or `false` overrides it
+- `tracking_enabled_override` is nullable: null inherits the Organization default, while explicit `true` or `false` overrides it
+- `raw_gps_retention_days_override` is nullable and must be positive when present; null inherits the Organization default
 
 Phase 1 does not add a generic settings/policy JSON field. Location-specific typed configuration is added by focused tasks as approved MVP behavior requires it.
 
@@ -711,16 +719,61 @@ Rules:
 - history lookup is indexed by `(valet_session_id, occurred_at, id)`
 - rows are append-only; runtime receives only SELECT/INSERT and PUBLIC receives no mutation privilege
 
-## gps_route_events / geofences
+## Phase 5 maps / tracking persistence
 
-Maps/session tracking is approved MVP behavior when configured, but exact persistence is deferred to the Maps task.
+Migration 23 adds provider-neutral relational persistence only.
 
-Rules to preserve in later schema:
+`location_map_points` stores exact Organization/Location scope, typed
+`ENTRANCE | PICKUP | DROP_OFF`, code, label, decimal latitude/longitude,
+optional level label, active state and timestamps. Code is unique per Location.
 
-- task-scoped Parking/Retrieval tracking by default
-- not continuous employee tracking for whole Shift
-- Guest cannot access exact coordinates
-- route/geofence retention is configurable/legal-policy dependent
+`location_map_areas` stores exact Organization/Location scope, typed
+`PARKING | OVERFLOW | STAGING | RESTRICTED`, code, label, optional level label,
+active state and timestamps. Its optional ParkingZone composite FK requires the
+same Organization and Location and supplies context only; it is not parking
+assignment authority.
+
+`location_map_area_vertices` stores exact parent scope, zero-based non-negative
+position, decimal latitude/longitude and creation time. `(map_area_id,
+position)` is unique. Point and vertex latitude is constrained to `[-90, 90]`
+and longitude to `[-180, 180]`.
+
+`task_tracking_sessions` stores id, Organization, Location, ValetSession, Task,
+database-authored start and nullable end. Its composite Task FK prevents
+cross-tenant, cross-Location and cross-session composition. `ended_at IS NULL`
+is active; partial unique indexes allow only one active row per Task and one
+per ValetSession. End time cannot precede start time. A tracker-specific
+database trigger allows the first `NULL -> non-NULL` end and an identical-value
+no-op, while rejecting reopening to null or rewriting an already-set end time.
+No assignee is stored.
+
+`raw_gps_samples` stores exact tracking scope, client sample UUID, decimal
+coordinates, untrusted client capture time and database receive time. The
+durable retry key `(tracking_session_id, client_sample_id)` is unique.
+
+`geofence_events` stores exact tracking and map-area scope, typed
+`ENTERED | EXITED | VIOLATION`, occurrence time and database record time. It
+stores no raw coordinate. Violations are append-only history and never mutate
+ValetSession, Task, Dispatch, assignment, release or handoff projections.
+
+All operational FKs use restrictive delete/update behavior. Runtime has
+SELECT-only geometry; SELECT/INSERT plus column-only `ended_at` update for
+tracking sessions; and SELECT/INSERT-only raw GPS and geofence history. It has
+no UPDATE/DELETE/TRUNCATE over append-only tracking history. No cleanup
+function/job exists until the narrow VAL-007F mechanism is implemented.
+
+Migration 24 adds no table, enum, column or Prisma model. It adds five narrow
+map-setup mutation functions (`map_setup_create_point`,
+`map_setup_update_point`, `map_setup_create_area`, `map_setup_update_area` and
+`map_setup_replace_area_vertices`) plus private authorization/audit helpers.
+All use `SECURITY DEFINER` with fixed `search_path = pg_catalog, public`, remain
+migration-owner owned and deny PUBLIC execution. Runtime retains SELECT-only
+map-table grants and receives EXECUTE only on the five mutation functions.
+Each mutation revalidates an active `LOCATION_MANAGER` membership with explicit
+same-Organization Location access; polygon replacement locks its parent area
+and atomically replaces the full ordered vertex set. Mutations append safe
+AuditEvent facts in the same statement without copying coordinates or vertex
+arrays into audit metadata.
 
 ## retrieval_requests
 
@@ -1217,6 +1270,11 @@ At minimum as corresponding entities are implemented:
 - `retrieval_requests(valet_session_id, status)`
 - `shifts(location_id, status)`
 - `incidents(location_id, status)`
+- `task_tracking_sessions(valet_session_id, started_at, id)`
+- `raw_gps_samples(tracking_session_id, captured_at, id)`
+- `raw_gps_samples(received_at)` for later retention cleanup
+- `geofence_events(tracking_session_id, occurred_at, id)`
+- `geofence_events(map_area_id, occurred_at, id)`
 
 Task/Dispatch, key custody and route/geofence indexes are defined with their focused schema tasks.
 
@@ -1232,6 +1290,8 @@ Implement with reviewed SQL migrations where Prisma cannot express them cleanly:
 - one active retrieval request per `valet_session_id` where status is OPEN/ACCEPTED
 - one current Validation per `payment_id` where `is_current = true`
 - one CashEntry receipt per `payment_id` where `entry_type = RECEIPT`
+- one active TaskTrackingSession per `task_id` where `ended_at IS NULL`
+- one active TaskTrackingSession per `valet_session_id` where `ended_at IS NULL`
 
 ## Deletion policy
 
@@ -1277,7 +1337,6 @@ Current schema details intentionally not locked by this document include:
 - generic Configuration First storage model; typed config comes with focused feature tasks
 - exact OCR/ANPR provider payloads
 - exact map provider payloads
-- exact map/geofence/route storage
 - exact Task/Dispatch schema
 - provider-specific payment/refund fields and callback payload mapping beyond the accepted provider-neutral contract
 - provider-specific outbound operation idempotency/reference lifecycle and stale/superseded callback mapping

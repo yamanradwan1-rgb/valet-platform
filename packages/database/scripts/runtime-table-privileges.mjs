@@ -7,6 +7,9 @@ const runtimeReadOnlyTables = [
   "parking_zones",
   "parking_spots",
   "key_slots",
+  "location_map_points",
+  "location_map_areas",
+  "location_map_area_vertices",
 ];
 
 const runtimeInsertOnlyTables = ["customers"];
@@ -18,6 +21,16 @@ const runtimeOperationalTables = [
   "tasks",
   "retrieval_requests",
   "handoff_verifications",
+];
+
+const runtimeTrackingSessionTables = ["task_tracking_sessions"];
+
+export const runtimeMapSetupFunctions = [
+  "public.map_setup_create_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
+  "public.map_setup_update_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean,timestamp with time zone)",
+  "public.map_setup_create_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,numeric[],numeric[])",
+  "public.map_setup_update_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,timestamp with time zone)",
+  "public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[])",
 ];
 
 const runtimeLockColumns = [
@@ -88,10 +101,31 @@ export async function provisionRuntimeTablePrivileges(
       [table, runtimeRole],
     );
   }
+  for (const table of runtimeTrackingSessionTables) {
+    await executeFormatted(client, "GRANT SELECT, INSERT ON TABLE %I TO %I", [
+      table,
+      runtimeRole,
+    ]);
+    await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE %I TO %I", [
+      "ended_at",
+      table,
+      runtimeRole,
+    ]);
+  }
   for (const [table, column] of runtimeLockColumns) {
     await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE %I TO %I", [
       column,
       table,
+      runtimeRole,
+    ]);
+  }
+  for (const functionName of runtimeMapSetupFunctions) {
+    await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
+      functionName,
+      runtimeRole,
+    ]);
+    await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
+      functionName,
       runtimeRole,
     ]);
   }

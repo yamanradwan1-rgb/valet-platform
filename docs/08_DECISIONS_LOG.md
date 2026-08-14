@@ -2372,3 +2372,66 @@ decision.
 
 Full binding contract:
 `docs/decisions/DEC-044_GUEST_PRE_START_RETRIEVAL_CANCELLATION.md`
+
+---
+
+## DEC-046 — Phase 5 Maps & Tracking Persistence
+
+Status: Accepted
+Date: 2026-08-14
+
+Decision:
+VAL-007A adds exactly migration 23 and a provider-neutral relational
+persistence foundation for the DEC-045 policy. Typed policy uses Company
+`tracking_enabled = false` and `raw_gps_retention_days = 30`, with nullable
+Location overrides and positive-retention database checks.
+
+Operational geometry is normalized as typed Location map points, typed map
+areas, and ordered polygon vertices. A map area may reference an exact-scope
+ParkingZone for map/geofence context, but existing ParkingZone/ParkingSpot and
+ValetSession parking fields remain the sole parking assignment authority.
+
+TaskTrackingSession is anchored by a composite FK to the canonical Task and
+has no assignee field. `ended_at IS NULL` is active; partial unique indexes
+allow at most one active tracker per Task and per ValetSession. RawGpsSample is
+append-oriented, coordinate-constrained, and deduplicated by
+`(tracking_session_id, client_sample_id)`. GeofenceEvent records only typed
+ENTERED/EXITED/VIOLATION summary history and exact map-area scope; violations
+do not mutate operational state.
+
+Ordinary runtime gets SELECT-only geometry, SELECT/INSERT plus only
+column-scoped `ended_at` update for TaskTrackingSession, and SELECT/INSERT-only
+raw GPS/geofence history. No UPDATE/DELETE/TRUNCATE is granted on append-only
+tracking history, no cleanup primitive is added before VAL-007F, and no
+provider/API/UI/Guest behavior is implemented.
+
+Full binding contract:
+`docs/decisions/DEC-046_PHASE5_MAPS_TRACKING_PERSISTENCE.md`
+
+---
+
+## DEC-047 — Phase 5 Map Setup Write Authority
+
+Status: Accepted
+Date: 2026-08-14
+
+Decision:
+VAL-007B keeps ordinary runtime access to map point, area and vertex tables
+SELECT-only. Migration 24 adds only operation-specific `SECURITY DEFINER`
+functions for point create/update, area create/update and locked atomic polygon
+replacement. Functions use a fixed safe search path, deny PUBLIC execution,
+remain owned by the migration owner and receive narrow runtime EXECUTE grants
+through existing provisioning. Every function independently verifies an active
+Location Manager membership and explicit access to the exact active Location;
+linked ParkingZone scope must match exactly.
+
+Production map setup read/write authority is `LOCATION_MANAGER` only until
+server-validated MFA exists. `ORG_ADMIN` remains denied under DEC-023, as do
+supervisors, employees and Guest. Successful mutations append a same-transaction
+AuditEvent containing safe resource/configuration facts but no coordinates or
+vertex arrays. No second database credential, generic privileged SQL function,
+provider integration, GPS behavior, Guest geometry or parking-assignment
+authority is introduced.
+
+Full binding contract:
+`docs/decisions/DEC-047_PHASE5_MAP_SETUP_WRITE_AUTHORITY.md`
