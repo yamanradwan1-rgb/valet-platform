@@ -14,6 +14,7 @@ import {
   commitThemeChange,
   DEFAULT_THEME,
   getPersistedTheme,
+  shouldSkipInitialThemeSync,
   THEME_CHANGE_EVENT,
   type Theme,
 } from './theme';
@@ -66,9 +67,9 @@ export function ThemeProvider({
   // Synchronize document attributes on client mount / theme changes
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      const preHydrated = document.documentElement.getAttribute('data-theme');
+      const domTheme = document.documentElement.getAttribute('data-theme');
       // Do not allow initial 'light' SSR snapshot to clobber pre-hydrated 'dark' DOM
-      if (preHydrated === 'dark' && theme === 'light') {
+      if (shouldSkipInitialThemeSync(domTheme, theme)) {
         return;
       }
       applyThemeToDom(theme);

@@ -8,6 +8,7 @@ import {
   getPersistedTheme,
   isSupportedTheme,
   setPersistedTheme,
+  shouldSkipInitialThemeSync,
   THEME_CHANGE_EVENT,
   THEME_COLORS,
   THEME_STORAGE_KEY,
@@ -151,6 +152,23 @@ describe('Theme Domain & Persistence Layer', () => {
 
     // 3. Proves zero network requests were triggered
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('proves shouldSkipInitialThemeSync guards initial SSR mismatch while allowing cross-tab storage sync', () => {
+    // 1. Initial SSR snapshot mismatch (DOM is dark, React is light, persisted is dark) -> MUST skip
+    expect(shouldSkipInitialThemeSync('dark', 'light', 'dark')).toBe(true);
+
+    // 2. Once React state matches persisted theme -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('dark', 'dark', 'dark')).toBe(false);
+
+    // 3. Cross-tab storage change to light (DOM is still dark, React became light, persisted is light) -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('dark', 'light', 'light')).toBe(false);
+
+    // 4. Cross-tab storage change to dark (DOM is light, React became dark, persisted is dark) -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('light', 'dark', 'dark')).toBe(false);
+
+    // 5. Default light user on initial mount -> MUST NOT skip
+    expect(shouldSkipInitialThemeSync('light', 'light', 'light')).toBe(false);
   });
 
   it('proves locale and theme preferences remain strictly independent', () => {

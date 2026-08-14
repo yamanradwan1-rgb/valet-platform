@@ -92,7 +92,7 @@ export function ScreenRequested({
             padding: '12px 16px',
             fontSize: 14,
             fontWeight: 500,
-            color: isCancelling ? C.textMuted : C.text,
+            color: isCancelling ? C.textMuted : C.textSecondary,
             background: 'none',
             border: `1px solid ${C.borderSemantic}`,
             borderRadius: 10,

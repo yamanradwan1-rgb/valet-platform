@@ -71,3 +71,11 @@ export function commitThemeChange(newTheme: Theme): void {
 
   applyThemeToDom(newTheme);
 }
+
+export function shouldSkipInitialThemeSync(
+  domTheme: string | null,
+  reactTheme: Theme,
+  persistedTheme: Theme = getPersistedTheme(),
+): boolean {
+  return domTheme === 'dark' && reactTheme === 'light' && persistedTheme === 'dark';
+}

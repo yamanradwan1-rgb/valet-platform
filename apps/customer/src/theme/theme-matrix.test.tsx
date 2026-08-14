@@ -131,10 +131,11 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
           </LocaleProvider>,
         );
 
-        // Cancel button has background none, border, and border-radius 10
+        // Cancel button has background none, border, border-radius 10, and textSecondary color
         expect(markup).toContain('background:none');
         expect(markup).toContain('border:1px solid var(--v-border)');
         expect(markup).toContain('border-radius:10px');
+        expect(markup).toContain('color:var(--v-text-secondary)');
 
         // Error box uses semantic danger surface
         expect(markup).toContain('background-color:var(--v-danger-surface)');
