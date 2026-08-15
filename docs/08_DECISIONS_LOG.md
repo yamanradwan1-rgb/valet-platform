@@ -2435,3 +2435,36 @@ authority is introduced.
 
 Full binding contract:
 `docs/decisions/DEC-047_PHASE5_MAP_SETUP_WRITE_AUTHORITY.md`
+
+---
+
+## DEC-050 — Phase 6 Effective Financial Policy & Payment Core
+
+Status: Accepted
+Date: 2026-08-15
+
+Decision:
+VAL-008A adds typed financial Configuration-First persistence using Company
+defaults and nullable Location overrides for valet service fee, service payer,
+allowed payment methods, tips, validation and release-payment policy. Safe
+Company defaults are zero fee, `CUSTOMER`, `CASH_ONLY`, and false for tips,
+validation and release blocking. Location currency remains authoritative and
+is not duplicated in policy.
+
+One session-locked provider-neutral internal command creates or reads at most
+one canonical Payment. It snapshots effective policy, Location currency,
+initial zero tip and server-derived amounts. Zero due is exact
+`NONE / NOT_REQUIRED`; positive `CASH_ONLY` and `CASH_OR_DIGITAL` use
+`CASH / UNPAID`; positive `DIGITAL_ONLY` fails closed until a real provider is
+activated. Payment creation and one `PAYMENT_INITIALIZED` AuditEvent commit
+atomically, Organization-scoped creation idempotency cannot be reused for a
+different session, and later policy changes never rewrite historical Payment
+terms.
+
+Migration 26 adds only the typed policy enum/columns and non-negative fee
+checks. VAL-008A adds no HTTP/configuration write surface, provider behavior,
+Validation or tip mutation, CashEntry, Refund, release guard, or ValetSession,
+Task, Dispatch, handoff, or key-custody mutation.
+
+Full binding contract:
+`docs/decisions/DEC-050_PHASE6_FINANCIAL_POLICY_PAYMENT_CORE.md`

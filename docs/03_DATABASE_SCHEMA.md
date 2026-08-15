@@ -100,6 +100,30 @@ locations.handoff_standard_method_policy_override
 
 Effective policy is Location override when non-null, otherwise Company default.
 
+DEC-050 adds typed financial policy with the same inheritance rule:
+
+```text
+Organization defaults:
+  valet_service_fee = 0
+  payment_service_payer = CUSTOMER
+  payment_methods_policy = CASH_ONLY
+  tips_enabled = false
+  validation_enabled = false
+  release_requires_payment = false
+
+Location nullable overrides:
+  valet_service_fee_override
+  payment_service_payer_override
+  payment_methods_policy_override
+  tips_enabled_override
+  validation_enabled_override
+  release_requires_payment_override
+```
+
+`payment_methods_policy` is exactly `CASH_ONLY | DIGITAL_ONLY |
+CASH_OR_DIGITAL`. A null Location override inherits its Organization default.
+Location currency remains separate and authoritative.
+
 ### Phase 1 migration policy
 
 - The first implemented schema task creates the initial migration.
@@ -138,6 +162,12 @@ timezone
 check_in_photos_required
 tracking_enabled
 raw_gps_retention_days
+valet_service_fee
+payment_service_payer
+payment_methods_policy
+tips_enabled
+validation_enabled
+release_requires_payment
 created_at
 updated_at
 ```
@@ -155,6 +185,10 @@ Constraints/rules:
 - `check_in_photos_required` is the typed Company default for check-in photo evidence, required and `false` by default
 - `tracking_enabled` is the typed Company tracking default, required and `false` by default
 - `raw_gps_retention_days` is the typed Company raw-route retention default, required, positive, and `30` by default
+- `valet_service_fee` uses `numeric(14,3)`, is non-negative, required and `0` by default
+- `payment_service_payer` is `CUSTOMER | VENUE`, required and `CUSTOMER` by default
+- `payment_methods_policy` is `CASH_ONLY | DIGITAL_ONLY | CASH_OR_DIGITAL`, required and `CASH_ONLY` by default
+- `tips_enabled`, `validation_enabled` and `release_requires_payment` are typed Company defaults, required and `false` by default
 - DB timestamps follow the global UTC/timestamptz convention
 
 A later typed configuration task may rename/refine Company-default semantics; do not block Location-specific timezone support on this field.
@@ -173,6 +207,12 @@ status
 check_in_photos_required_override nullable
 tracking_enabled_override nullable
 raw_gps_retention_days_override nullable
+valet_service_fee_override nullable
+payment_service_payer_override nullable
+payment_methods_policy_override nullable
+tips_enabled_override nullable
+validation_enabled_override nullable
+release_requires_payment_override nullable
 created_at
 updated_at
 ```
@@ -192,6 +232,8 @@ Constraints/rules:
 - `check_in_photos_required_override` is nullable: null inherits the Organization default, while explicit `true` or `false` overrides it
 - `tracking_enabled_override` is nullable: null inherits the Organization default, while explicit `true` or `false` overrides it
 - `raw_gps_retention_days_override` is nullable and must be positive when present; null inherits the Organization default
+- `valet_service_fee_override` uses `numeric(14,3)`, must be non-negative when present, and null inherits the Organization default
+- each nullable payer, payment-method, tips, validation and release override uses the corresponding Organization value when null
 
 Phase 1 does not add a generic settings/policy JSON field. Location-specific typed configuration is added by focused tasks as approved MVP behavior requires it.
 
@@ -935,6 +977,11 @@ Rules:
 - after any collection or provider transaction has started, monetary responsibility/terms are not silently rewritten and returned value uses Refund where applicable
 - split tender, multiple successful collections and installment payment are not accepted MVP persistence behavior; one Payment has one collection method
 - no normal hard delete
+- initial creation snapshots current effective typed policy and authoritative Location currency; later policy changes do not rewrite the canonical Payment
+- initial `tip_amount = 0`; CUSTOMER owes the service amount, while VENUE keeps the service amount snapshot but owes zero customer service amount
+- zero due initializes as exact `NONE / NOT_REQUIRED`; positive `CASH_ONLY` and `CASH_OR_DIGITAL` initialize as `CASH / UNPAID`
+- positive `DIGITAL_ONLY` fails closed before any Payment or AuditEvent because no real provider is activated; zero-due `DIGITAL_ONLY` remains valid as `NONE / NOT_REQUIRED`
+- initialization locks the authoritative ValetSession and commits the first Payment plus one `PAYMENT_INITIALIZED` AuditEvent atomically; retries return the existing historical projection without rewriting it
 
 Required row-local Payment matrix:
 

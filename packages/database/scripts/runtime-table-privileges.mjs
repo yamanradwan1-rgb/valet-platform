@@ -12,7 +12,7 @@ const runtimeReadOnlyTables = [
   "location_map_area_vertices",
 ];
 
-const runtimeInsertOnlyTables = ["customers"];
+const runtimeInsertOnlyTables = ["customers", "payments"];
 
 const runtimeOperationalTables = [
   "vehicles",

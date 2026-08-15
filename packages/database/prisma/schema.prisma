@@ -202,6 +202,14 @@ enum PaymentServicePayer {
   @@map("payment_service_payer")
 }
 
+enum PaymentMethodsPolicy {
+  CASH_ONLY
+  DIGITAL_ONLY
+  CASH_OR_DIGITAL
+
+  @@map("payment_methods_policy")
+}
+
 enum PaymentCollectionMethod {
   NONE
   CASH
@@ -294,6 +302,12 @@ model Organization {
   handoffStandardMethodPolicy HandoffStandardMethodPolicy @default(EITHER) @map("handoff_standard_method_policy")
   trackingEnabled             Boolean                     @default(false) @map("tracking_enabled")
   rawGpsRetentionDays         Int                         @default(30) @map("raw_gps_retention_days")
+  valetServiceFee             Decimal                     @default(0) @map("valet_service_fee") @db.Decimal(14, 3)
+  paymentServicePayer         PaymentServicePayer         @default(CUSTOMER) @map("payment_service_payer")
+  paymentMethodsPolicy        PaymentMethodsPolicy        @default(CASH_ONLY) @map("payment_methods_policy")
+  tipsEnabled                 Boolean                     @default(false) @map("tips_enabled")
+  validationEnabled           Boolean                     @default(false) @map("validation_enabled")
+  releaseRequiresPayment      Boolean                     @default(false) @map("release_requires_payment")
   createdAt                   DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -344,6 +358,12 @@ model Location {
   handoffStandardMethodPolicyOverride HandoffStandardMethodPolicy? @map("handoff_standard_method_policy_override")
   trackingEnabledOverride             Boolean?                     @map("tracking_enabled_override")
   rawGpsRetentionDaysOverride         Int?                         @map("raw_gps_retention_days_override")
+  valetServiceFeeOverride             Decimal?                     @map("valet_service_fee_override") @db.Decimal(14, 3)
+  paymentServicePayerOverride         PaymentServicePayer?         @map("payment_service_payer_override")
+  paymentMethodsPolicyOverride        PaymentMethodsPolicy?        @map("payment_methods_policy_override")
+  tipsEnabledOverride                 Boolean?                     @map("tips_enabled_override")
+  validationEnabledOverride           Boolean?                     @map("validation_enabled_override")
+  releaseRequiresPaymentOverride      Boolean?                     @map("release_requires_payment_override")
   createdAt                           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                           DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
