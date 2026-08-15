@@ -115,6 +115,10 @@ const privateMapSetupFunctions = [
   "public.map_setup_append_audit(uuid,uuid,uuid,text,text,uuid,text,boolean,boolean)",
 ];
 
+const maintenanceFunctions = [
+  "public.cleanup_expired_raw_gps_samples(integer)",
+];
+
 async function tablePrivilegeMatches(client, runtimeRole, policy) {
   const [table, privilege, expected] = policy;
   const result = await client.query(
@@ -198,6 +202,34 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
     );
     if (result.rows[0]?.runtime_allowed !== false) {
       throw new Error("Runtime map-setup helper privileges are unsafe.");
+    }
+  }
+  for (const functionName of maintenanceFunctions) {
+    const result = await client.query(
+      `SELECT has_function_privilege($1, $2, 'EXECUTE') AS runtime_allowed,
+              function.prosecdef AS security_definer,
+              owner.rolname <> $1 AS owner_safe,
+              function.proconfig = ARRAY['search_path=pg_catalog, public']::text[]
+                AS search_path_safe,
+              NOT EXISTS (
+                SELECT 1 FROM aclexplode(
+                  COALESCE(function.proacl, acldefault('f', function.proowner))
+                ) AS privilege
+                WHERE privilege.grantee = 0
+                  AND privilege.privilege_type = 'EXECUTE'
+              ) AS public_denied
+       FROM pg_proc AS function
+       INNER JOIN pg_roles AS owner ON owner.oid = function.proowner
+       WHERE function.oid = to_regprocedure($2)`,
+      [runtimeRole, functionName],
+    );
+    const row = result.rows[0];
+    if (
+      row?.runtime_allowed !== true || row.security_definer !== true ||
+      row.owner_safe !== true || row.search_path_safe !== true ||
+      row.public_denied !== true
+    ) {
+      throw new Error("Runtime maintenance function privileges are unsafe.");
     }
   }
 }

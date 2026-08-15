@@ -33,6 +33,10 @@ export const runtimeMapSetupFunctions = [
   "public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[])",
 ];
 
+export const runtimeMaintenanceFunctions = [
+  "public.cleanup_expired_raw_gps_samples(integer)",
+];
+
 const runtimeLockColumns = [
   ["users", "last_login_at"],
   ["users", "updated_at"],
@@ -120,6 +124,16 @@ export async function provisionRuntimeTablePrivileges(
     ]);
   }
   for (const functionName of runtimeMapSetupFunctions) {
+    await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
+      functionName,
+      runtimeRole,
+    ]);
+    await executeFormatted(client, "GRANT EXECUTE ON FUNCTION %s TO %I", [
+      functionName,
+      runtimeRole,
+    ]);
+  }
+  for (const functionName of runtimeMaintenanceFunctions) {
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       functionName,
       runtimeRole,

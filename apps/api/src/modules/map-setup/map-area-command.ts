@@ -6,10 +6,10 @@ import type {
   UpdateLocationMapAreaRequest,
 } from "@valet/contracts";
 import type { PostgresPool } from "../../common/database/postgres";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { authorizeLocationMapSetup } from "./map-setup-authorization";
 import { MapSetupError, mapSetupDatabaseError } from "./map-setup-errors";
 import { loadMapAreas } from "./map-setup-projections";
-import { inMapSetupTransaction } from "./map-setup-transaction";
 
 interface AreaScope {
   readonly authenticatedUserId: string;
@@ -46,7 +46,7 @@ export async function createMapArea(
   pool: PostgresPool,
   input: AreaScope & CreateLocationMapAreaRequest,
 ): Promise<LocationMapArea> {
-  return inMapSetupTransaction(pool, async (transaction) => {
+  return inPostgresTransaction(pool, async (transaction) => {
     const actor = await authorizeLocationMapSetup(
       transaction,
       input.authenticatedUserId,
@@ -81,7 +81,7 @@ export async function updateMapArea(
   input: AreaScope &
     UpdateLocationMapAreaRequest & { readonly areaId: string },
 ): Promise<LocationMapArea> {
-  return inMapSetupTransaction(pool, async (transaction) => {
+  return inPostgresTransaction(pool, async (transaction) => {
     const actor = await authorizeLocationMapSetup(
       transaction,
       input.authenticatedUserId,
@@ -140,7 +140,7 @@ export async function replaceMapAreaVertices(
   input: AreaScope &
     ReplaceLocationMapAreaVerticesRequest & { readonly areaId: string },
 ): Promise<LocationMapArea> {
-  return inMapSetupTransaction(pool, async (transaction) => {
+  return inPostgresTransaction(pool, async (transaction) => {
     const actor = await authorizeLocationMapSetup(
       transaction,
       input.authenticatedUserId,

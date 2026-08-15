@@ -10,11 +10,11 @@ import {
   RUNTIME_POSTGRES_POOL,
 } from "../../common/database/runtime-database.module";
 import type { PostgresPool } from "../../common/database/postgres";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { createMapArea, replaceMapAreaVertices, updateMapArea } from "./map-area-command";
 import { createMapPoint, updateMapPoint } from "./map-point-command";
 import { authorizeLocationMapSetup } from "./map-setup-authorization";
 import { loadMapAreas, loadMapPoints } from "./map-setup-projections";
-import { inMapSetupTransaction } from "./map-setup-transaction";
 
 interface Scope {
   readonly authenticatedUserId: string;
@@ -28,7 +28,7 @@ export class MapSetupService {
   ) {}
 
   listPoints(input: Scope) {
-    return inMapSetupTransaction(this.pool, async (transaction) => {
+    return inPostgresTransaction(this.pool, async (transaction) => {
       const actor = await authorizeLocationMapSetup(
         transaction,
         input.authenticatedUserId,
@@ -54,7 +54,7 @@ export class MapSetupService {
   }
 
   listAreas(input: Scope) {
-    return inMapSetupTransaction(this.pool, async (transaction) => {
+    return inPostgresTransaction(this.pool, async (transaction) => {
       const actor = await authorizeLocationMapSetup(
         transaction,
         input.authenticatedUserId,
