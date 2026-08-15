@@ -25,6 +25,24 @@ const runtimeOperationalTables = [
 
 const runtimeTrackingSessionTables = ["task_tracking_sessions"];
 
+const runtimeFinancialEvidenceReadTables = [
+  "cash_entries",
+  "payment_provider_events",
+];
+
+const runtimeFinancialUpdateColumns = [
+  "service_payer",
+  "service_amount",
+  "tip_amount",
+  "amount_due",
+  "collection_method",
+  "status",
+  "provider",
+  "provider_reference",
+  "updated_at",
+  "paid_at",
+];
+
 export const runtimeMapSetupFunctions = [
   "public.map_setup_create_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
   "public.map_setup_update_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean,timestamp with time zone)",
@@ -98,6 +116,39 @@ export async function provisionRuntimeTablePrivileges(
       runtimeRole,
     ]);
   }
+  await executeFormatted(
+    client,
+    "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE payments, validations FROM %I",
+    [runtimeRole],
+  );
+  await executeFormatted(
+    client,
+    "GRANT SELECT, INSERT ON TABLE validations TO %I",
+    [runtimeRole],
+  );
+  for (const table of runtimeFinancialEvidenceReadTables) {
+    await executeFormatted(
+      client,
+      "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE %I FROM %I",
+      [table, runtimeRole],
+    );
+    await executeFormatted(client, "GRANT SELECT ON TABLE %I TO %I", [
+      table,
+      runtimeRole,
+    ]);
+  }
+  for (const column of runtimeFinancialUpdateColumns) {
+    await executeFormatted(
+      client,
+      "GRANT UPDATE (%I) ON TABLE payments TO %I",
+      [column, runtimeRole],
+    );
+  }
+  await executeFormatted(
+    client,
+    "GRANT UPDATE (is_current) ON TABLE validations TO %I",
+    [runtimeRole],
+  );
   for (const table of runtimeOperationalTables) {
     await executeFormatted(
       client,

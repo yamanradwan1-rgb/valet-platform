@@ -39,7 +39,10 @@ import { StartParkingService } from "../src/modules/parking/start-parking.servic
 import { ConfirmParkedController } from "../src/modules/parking/confirm-parked.controller";
 import { ConfirmParkedService } from "../src/modules/parking/confirm-parked.service";
 import { PaymentInitializationService } from "../src/modules/payments/payment-initialization.service";
+import { PaymentMutationService } from "../src/modules/payments/payment-mutation.service";
 import { PaymentsModule } from "../src/modules/payments/payments.module";
+import { GuestPaymentController } from "../src/modules/payments/guest-payment.controller";
+import { StaffPaymentController } from "../src/modules/payments/staff-payment.controller";
 import { CompleteHandoffController } from "../src/modules/retrieval/complete-handoff.controller";
 import { CompleteHandoffService } from "../src/modules/retrieval/complete-handoff.service";
 import { GuestRetrievalController } from "../src/modules/retrieval/guest-retrieval.controller";
@@ -85,13 +88,18 @@ describe("accepted feature module ownership", () => {
     ]);
   });
 
-  it("keeps the internal Payments boundary controller-free", () => {
-    expect(metadata(PaymentsModule, MODULE_METADATA.CONTROLLERS)).toEqual([]);
+  it("owns only the accepted narrow Payment mutation surfaces", () => {
+    expect(metadata(PaymentsModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      StaffPaymentController,
+      GuestPaymentController,
+    ]);
     expect(metadata(PaymentsModule, MODULE_METADATA.PROVIDERS)).toEqual([
       PaymentInitializationService,
+      PaymentMutationService,
     ]);
     expect(metadata(PaymentsModule, MODULE_METADATA.EXPORTS)).toEqual([
       PaymentInitializationService,
+      PaymentMutationService,
     ]);
   });
 
