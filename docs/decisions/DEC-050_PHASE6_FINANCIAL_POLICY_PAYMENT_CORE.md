@@ -1,6 +1,6 @@
 # DEC-050 — Phase 6 Effective Financial Policy & Payment Core
 
-Status: Proposed — requires Project Owner acceptance before implementation  
+Status: Accepted  
 Date: 2026-08-15  
 Task: VAL-008A — Effective Financial Policy + Payment Core  
 Issue: #170
@@ -15,9 +15,9 @@ Accepted DEC-004 keeps financial state outside `ValetSession`. DEC-017 defines C
 
 The Project Owner also approved Phase 6 sequencing in VAL-008: finish a provider-neutral `PROVIDER_READY` core before selecting/activating a real digital provider.
 
-This decision therefore must introduce only the smallest typed policy needed by VAL-008A, preserve current production behavior for existing tenants, and avoid inventing provider-specific or accounting behavior.
+This decision therefore introduces only the smallest typed policy needed by VAL-008A, preserves current production behavior for existing tenants, and avoids inventing provider-specific or accounting behavior.
 
-## Proposed decision
+## Decision
 
 ### 1. Typed financial policy uses Company default -> Location override
 
@@ -278,7 +278,7 @@ Audit must not contain card data, provider credentials, Authorization values, ra
 
 ### 17. Persistence impact
 
-If accepted, VAL-008A owns exactly one new forward-only migration for the typed Organization defaults, Location nullable overrides and payment-method policy enum required by this decision.
+VAL-008A owns exactly one new forward-only migration for the typed Organization defaults, Location nullable overrides and payment-method policy enum required by this decision.
 
 Migrations 1–25 remain immutable.
 
@@ -308,6 +308,6 @@ This decision does not implement or accept:
 
 ## Consequences
 
-If accepted, VAL-008A can implement a migration-safe, provider-neutral financial foundation without inventing a payment gateway or unexpectedly blocking existing operations.
+VAL-008A can implement a migration-safe, provider-neutral financial foundation without inventing a payment gateway or unexpectedly blocking existing operations.
 
 Existing tenants remain effectively free/non-blocking until financial settings are deliberately configured. Cash can be the first executable collection path. Digital-only policy remains representable but fails closed until a real provider is activated. Later Validation, Tips, Cash, Refund, release-guard and provider tasks compose around the same canonical Payment rather than redesigning the aggregate.
