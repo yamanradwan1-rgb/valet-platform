@@ -13,10 +13,7 @@ import {
   setRetentionPolicy,
   setTrackingPolicy,
 } from "./phase5-tracking-gate-database";
-import {
-  num,
-  Phase5TrackingGateContext,
-} from "./phase5-tracking-gate-test-context";
+import { Phase5TrackingGateContext } from "./phase5-tracking-gate-test-context";
 
 const context = new Phase5TrackingGateContext("retention_privacy");
 
