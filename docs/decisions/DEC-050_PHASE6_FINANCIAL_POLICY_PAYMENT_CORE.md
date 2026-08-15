@@ -200,7 +200,7 @@ No placeholder provider name such as `mock`, `test`, `generic` or `pending` may 
 
 ### 11. Tips and validation default OFF but are first-class policy
 
-`t tips_enabled` is conceptually `tips_enabled` and defaults false.
+`tips_enabled` defaults false.
 
 `validation_enabled` defaults false.
 
