@@ -9,6 +9,7 @@ import { GuestAccessModule } from "./modules/guest-access/guest-access.module";
 import { KeyCustodyModule } from "./modules/keys/key-custody.module";
 import { MapSetupModule } from "./modules/map-setup/map-setup.module";
 import { StartParkingModule } from "./modules/parking/start-parking.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
 import { RetrievalModule } from "./modules/retrieval/retrieval.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
 import { TrackingModule } from "./modules/tracking/tracking.module";
@@ -24,6 +25,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     MapSetupModule,
     DispatchModule,
     StartParkingModule,
+    PaymentsModule,
     RetrievalModule,
     TrackingModule,
   ],

@@ -28,6 +28,30 @@ const tablePrivileges = [
   ["public.handoff_verifications", "TRUNCATE", false],
   ["public.handoff_verifications", "REFERENCES", false],
   ["public.handoff_verifications", "TRIGGER", false],
+  ["public.payments", "SELECT", true],
+  ["public.payments", "INSERT", true],
+  ["public.payments", "UPDATE", false],
+  ["public.payments", "DELETE", false],
+  ["public.payments", "TRUNCATE", false],
+  ["public.payments", "REFERENCES", false],
+  ["public.payments", "TRIGGER", false],
+  ["public.validations", "SELECT", true],
+  ["public.validations", "INSERT", true],
+  ["public.validations", "UPDATE", false],
+  ["public.validations", "DELETE", false],
+  ["public.validations", "TRUNCATE", false],
+  ["public.validations", "REFERENCES", false],
+  ["public.validations", "TRIGGER", false],
+  ["public.cash_entries", "SELECT", true],
+  ["public.cash_entries", "INSERT", false],
+  ["public.cash_entries", "UPDATE", false],
+  ["public.cash_entries", "DELETE", false],
+  ["public.cash_entries", "TRUNCATE", false],
+  ["public.payment_provider_events", "SELECT", true],
+  ["public.payment_provider_events", "INSERT", false],
+  ["public.payment_provider_events", "UPDATE", false],
+  ["public.payment_provider_events", "DELETE", false],
+  ["public.payment_provider_events", "TRUNCATE", false],
   ["public.location_map_points", "SELECT", true],
   ["public.location_map_points", "INSERT", false],
   ["public.location_map_points", "UPDATE", false],
@@ -89,6 +113,21 @@ const columnPrivileges = [
   ["public.membership_location_access", "created_at", true],
   ["public.task_tracking_sessions", "ended_at", true],
   ["public.task_tracking_sessions", "started_at", false],
+  ["public.payments", "service_payer", true],
+  ["public.payments", "service_amount", true],
+  ["public.payments", "tip_amount", true],
+  ["public.payments", "amount_due", true],
+  ["public.payments", "collection_method", true],
+  ["public.payments", "status", true],
+  ["public.payments", "provider", true],
+  ["public.payments", "provider_reference", true],
+  ["public.payments", "updated_at", true],
+  ["public.payments", "paid_at", true],
+  ["public.payments", "amount_paid", false],
+  ["public.payments", "currency", false],
+  ["public.validations", "is_current", true],
+  ["public.validations", "amount", false],
+  ["public.validations", "mode", false],
 ];
 
 const anyColumnPrivileges = [
@@ -99,6 +138,8 @@ const anyColumnPrivileges = [
   ["public._prisma_migrations", "INSERT", false],
   ["public._prisma_migrations", "UPDATE", false],
   ["public._prisma_migrations", "REFERENCES", false],
+  ["public.payments", "UPDATE", true],
+  ["public.validations", "UPDATE", true],
 ];
 
 const mapSetupFunctions = [
@@ -225,8 +266,10 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
     );
     const row = result.rows[0];
     if (
-      row?.runtime_allowed !== true || row.security_definer !== true ||
-      row.owner_safe !== true || row.search_path_safe !== true ||
+      row?.runtime_allowed !== true ||
+      row.security_definer !== true ||
+      row.owner_safe !== true ||
+      row.search_path_safe !== true ||
       row.public_denied !== true
     ) {
       throw new Error("Runtime maintenance function privileges are unsafe.");

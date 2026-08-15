@@ -2435,3 +2435,71 @@ authority is introduced.
 
 Full binding contract:
 `docs/decisions/DEC-047_PHASE5_MAP_SETUP_WRITE_AUTHORITY.md`
+
+---
+
+## DEC-050 — Phase 6 Effective Financial Policy & Payment Core
+
+Status: Accepted
+Date: 2026-08-15
+
+Decision:
+VAL-008A adds typed financial Configuration-First persistence using Company
+defaults and nullable Location overrides for valet service fee, service payer,
+allowed payment methods, tips, validation and release-payment policy. Safe
+Company defaults are zero fee, `CUSTOMER`, `CASH_ONLY`, and false for tips,
+validation and release blocking. Location currency remains authoritative and
+is not duplicated in policy.
+
+One session-locked provider-neutral internal command creates or reads at most
+one canonical Payment. It snapshots effective policy, Location currency,
+initial zero tip and server-derived amounts. Zero due is exact
+`NONE / NOT_REQUIRED`; positive `CASH_ONLY` and `CASH_OR_DIGITAL` use
+`CASH / UNPAID`; positive `DIGITAL_ONLY` fails closed until a real provider is
+activated. Payment creation and one `PAYMENT_INITIALIZED` AuditEvent commit
+atomically, Organization-scoped creation idempotency cannot be reused for a
+different session, and later policy changes never rewrite historical Payment
+terms.
+
+Migration 26 adds only the typed policy enum/columns and non-negative fee
+checks. VAL-008A adds no HTTP/configuration write surface, provider behavior,
+Validation or tip mutation, CashEntry, Refund, release guard, or ValetSession,
+Task, Dispatch, handoff, or key-custody mutation.
+
+Full binding contract:
+`docs/decisions/DEC-050_PHASE6_FINANCIAL_POLICY_PAYMENT_CORE.md`
+
+---
+
+## DEC-051 — Phase 6 Validation, Tips & Pre-collection Authority
+
+Status: Accepted
+Date: 2026-08-15
+
+Decision:
+VAL-008B uses the existing Payment, Validation and AuditEvent persistence for
+Manager-authorized Validation and guarded pre-collection financial mutations.
+An active `LOCATION_MANAGER` with explicit access to the exact active Location
+may apply, replace or remove Validation, correct the service payer or base
+service amount, and correct tips when effective policy enables tips.
+`VALET_EMPLOYEE`, `VALET_SUPERVISOR` and password-only `ORG_ADMIN` receive no
+such authority in this slice.
+
+Validation is enabled by effective Company-default/Location-override policy,
+belongs only to CUSTOMER responsibility, and preserves immutable superseding
+history with at most one current row. Authenticated Guests may update only the
+tip on their own canonical Payment when tips are enabled. Guest audit uses a
+null staff actor plus safe `actor_class = GUEST` metadata.
+
+Every mutation locks the canonical Payment, rechecks collection evidence and
+effective policy, recomputes exact `numeric(14,3)` projections server-side, and
+commits the Payment/Validation effect with one focused AuditEvent atomically.
+Mutable terms freeze after collection starts. Positive `DIGITAL_ONLY`
+recomputation continues to fail closed until a real provider is activated.
+
+VAL-008B adds no migration, provider, CashEntry production write, Refund,
+release guard, financial configuration write API, or ValetSession/Task/Dispatch
+mutation. Employee cash receipt remains VAL-008C.
+
+Full binding contract:
+`docs/decisions/DEC-051_PHASE6_VALIDATION_TIPS_PRECOLLECTION_AUTHORITY.md`

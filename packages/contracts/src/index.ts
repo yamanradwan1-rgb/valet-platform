@@ -13,6 +13,7 @@ export * from "./key-custody.js";
 export * from "./live-operations-map.js";
 export * from "./map-setup.js";
 export * from "./mark-ready.js";
+export * from "./payments.js";
 export * from "./route-history.js";
 export * from "./shifts.js";
 export * from "./start-parking.js";
