@@ -244,6 +244,7 @@ export async function getProtectedStateSnapshot(
     dispatch_count: number;
     geofence_count: number;
     incident_count: number;
+    key_custody_count: number;
     notification_count: number;
     raw_count: number;
     session_state: string;
@@ -259,6 +260,7 @@ export async function getProtectedStateSnapshot(
             (SELECT count(*)::integer FROM incidents WHERE valet_session_id = session.id) AS incident_count,
             (SELECT count(*)::integer FROM notifications WHERE valet_session_id = session.id) AS notification_count,
             (SELECT count(*)::integer FROM dispatch_events WHERE task_id = task.id) AS dispatch_count,
+            (SELECT count(*)::integer FROM key_custody_events WHERE valet_session_id = session.id) AS key_custody_count,
             (SELECT count(*)::integer FROM audit_events WHERE valet_session_id = session.id) AS audit_count,
             (SELECT count(*)::integer FROM raw_gps_samples WHERE tracking_session_id = $3) AS raw_count,
             (SELECT count(*)::integer FROM geofence_events WHERE tracking_session_id = $3) AS geofence_count

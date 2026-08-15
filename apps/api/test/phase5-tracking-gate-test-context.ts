@@ -197,6 +197,8 @@ export class Phase5TrackingGateContext extends Phase4RetrievalHandoffGateContext
       `/v1/staff/locations/${locationId}/live-operations-map`,
     );
     expect(res.status).toBe(200);
+    const expectedSessionState =
+      expectedItem.taskType === "PARKING" ? "PARKING" : "RETRIEVING";
     expect(res.body).toMatchObject({
       items: [
         {
@@ -206,7 +208,7 @@ export class Phase5TrackingGateContext extends Phase4RetrievalHandoffGateContext
             latitude: expectedItem.latitude,
             longitude: expectedItem.longitude,
           },
-          sessionState: expectedItem.taskType,
+          sessionState: expectedSessionState,
           taskId: expectedItem.taskId,
           taskType: expectedItem.taskType,
           trackingSessionId: expectedItem.trackingSessionId,

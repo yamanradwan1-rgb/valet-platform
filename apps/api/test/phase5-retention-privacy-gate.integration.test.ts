@@ -39,14 +39,7 @@ describe("VAL-007H Phase 5 Retention and Privacy gate", () => {
 
     const sessionPath = `/v1/staff/valet-sessions/${fixture.sessionId}`;
     const flow = await context.queueAssignAcceptParking(fixture);
-    const started = await context.staffPost(
-      fixture.accessToken,
-      `${sessionPath}/start-parking`,
-      {
-        expectedSessionVersion: flow.keyAssignedSessionVersion,
-        expectedTaskVersion: flow.taskVersion,
-      },
-    );
+    const started = await context.startParking(fixture, flow);
     expect(started.status).toBe(200);
 
     const tracker = (
@@ -74,15 +67,7 @@ describe("VAL-007H Phase 5 Retention and Privacy gate", () => {
     );
     expect(geofenceBefore.length).toBeGreaterThanOrEqual(1);
 
-    await context.staffPost(
-      fixture.accessToken,
-      `${sessionPath}/confirm-parked`,
-      {
-        expectedSessionVersion: num(started.body, "sessionVersion"),
-        expectedTaskVersion: num(started.body, "taskVersion"),
-        parkingSpotCode: fixture.parkingSpotCode,
-      },
-    );
+    await context.confirmParked(fixture, started);
 
     const routeBefore = await context.staffGet(
       managerToken,
@@ -106,6 +91,7 @@ describe("VAL-007H Phase 5 Retention and Privacy gate", () => {
       flow.taskId,
       tracker.id,
     );
+    expect(preSnapshot.key_custody_count).toBeGreaterThan(0);
 
     const deleted = await executeRetentionCleanup(context.runtimePool, 1000);
     expect(deleted).toBe(1);
@@ -130,6 +116,7 @@ describe("VAL-007H Phase 5 Retention and Privacy gate", () => {
     expect(postSnapshot.tracker_ended_at).toEqual(preSnapshot.tracker_ended_at);
     expect(postSnapshot.audit_count).toBe(preSnapshot.audit_count);
     expect(postSnapshot.dispatch_count).toBe(preSnapshot.dispatch_count);
+    expect(postSnapshot.key_custody_count).toBe(preSnapshot.key_custody_count);
     expect(postSnapshot.geofence_count).toBe(preSnapshot.geofence_count);
     expect(postSnapshot.raw_count).toBe(preSnapshot.raw_count - 1);
   });
@@ -146,14 +133,7 @@ describe("VAL-007H Phase 5 Retention and Privacy gate", () => {
 
     const sessionPath = `/v1/staff/valet-sessions/${fixture.sessionId}`;
     const flow = await context.queueAssignAcceptParking(fixture);
-    await context.staffPost(
-      fixture.accessToken,
-      `${sessionPath}/start-parking`,
-      {
-        expectedSessionVersion: flow.keyAssignedSessionVersion,
-        expectedTaskVersion: flow.taskVersion,
-      },
-    );
+    await context.startParking(fixture, flow);
     const tracker = (
       await getTrackers(context.adminPool, fixture.sessionId)
     )[0]!;
@@ -198,20 +178,90 @@ describe("VAL-007H Phase 5 Retention and Privacy gate", () => {
     );
     expect(routeDenied.status).toBe(401);
 
-    const auditEvents = await context.adminPool.query<{
-      metadata_json: unknown;
-    }>(`SELECT metadata_json FROM audit_events WHERE valet_session_id = $1`, [
-      fixture.sessionId,
-    ]);
-    const auditStr = JSON.stringify(auditEvents.rows);
-    expect(auditStr).not.toContain(context.providerSecretSentinel);
-
-    const rawGps = await context.adminPool.query<{ id: string }>(
-      `SELECT id::text FROM raw_gps_samples WHERE tracking_session_id = $1`,
-      [tracker.id],
+    const manager = await context.addMember(fixture, "LOCATION_MANAGER", false);
+    const managerToken = await context.authorize(manager.userId);
+    const liveMap = await context.staffGet(
+      managerToken,
+      `/v1/staff/locations/${fixture.locationId}/live-operations-map`,
     );
-    expect(JSON.stringify(rawGps.rows)).not.toContain(
+    expect(liveMap.status).toBe(200);
+    expect(JSON.stringify(liveMap.body)).not.toContain(
       context.providerSecretSentinel,
     );
+
+    const rejectedGps = await context.staffPost(
+      fixture.accessToken,
+      `${sessionPath}/tracking/gps-samples`,
+      {
+        samples: [
+          {
+            accuracyMeters: -5,
+            capturedAt: "invalid",
+            clientSampleId: "not-uuid",
+            latitude: 999,
+            longitude: 999,
+          },
+        ],
+      },
+    );
+    expect(rejectedGps.status).toBe(400);
+    expect(JSON.stringify(rejectedGps.body)).not.toContain(
+      context.providerSecretSentinel,
+    );
+
+    const [tasks, sessions, trackers, rawSamples, geofenceRows, auditRows] =
+      await Promise.all([
+        context.adminPool.query(
+          `SELECT id::text, organization_id::text, location_id::text, valet_session_id::text,
+                  task_type::text, status::text, current_assignee_membership_id::text, version
+           FROM tasks WHERE id = $1`,
+          [flow.taskId],
+        ),
+        context.adminPool.query(
+          `SELECT id::text, organization_id::text, location_id::text, vehicle_id::text,
+                  customer_id::text, state::text, version, parking_zone_id::text,
+                  parking_spot_id::text, key_slot_id::text, current_assignee_membership_id::text
+           FROM valet_sessions WHERE id = $1`,
+          [fixture.sessionId],
+        ),
+        context.adminPool.query(
+          `SELECT id::text, organization_id::text, location_id::text, valet_session_id::text,
+                  task_id::text, started_at, ended_at
+           FROM task_tracking_sessions WHERE id = $1`,
+          [tracker.id],
+        ),
+        context.adminPool.query(
+          `SELECT id::text, organization_id::text, location_id::text, valet_session_id::text,
+                  task_id::text, tracking_session_id::text, client_sample_id::text,
+                  latitude::text, longitude::text, captured_at, received_at
+           FROM raw_gps_samples WHERE tracking_session_id = $1`,
+          [tracker.id],
+        ),
+        context.adminPool.query(
+          `SELECT id::text, organization_id::text, location_id::text, valet_session_id::text,
+                  task_id::text, tracking_session_id::text, map_area_id::text,
+                  event_type::text, occurred_at, recorded_at
+           FROM geofence_events WHERE tracking_session_id = $1`,
+          [tracker.id],
+        ),
+        context.adminPool.query(
+          `SELECT id::text, event_type::text, metadata_json
+           FROM audit_events WHERE valet_session_id = $1`,
+          [fixture.sessionId],
+        ),
+      ]);
+
+    for (const rows of [
+      tasks.rows,
+      sessions.rows,
+      trackers.rows,
+      rawSamples.rows,
+      geofenceRows.rows,
+      auditRows.rows,
+    ]) {
+      expect(JSON.stringify(rows)).not.toContain(
+        context.providerSecretSentinel,
+      );
+    }
   });
 });
