@@ -78,6 +78,38 @@ export class LiveMapTestContext extends RouteHistoryTestContext {
     );
   }
 
+  async seedSampleWithDatabaseOffset(
+    fixture: TrackingFixture,
+    input: {
+      latitude?: number;
+      longitude?: number;
+      offsetMilliseconds: number;
+    },
+  ) {
+    const id = randomUUID();
+    const result = await this.adminPool.query<{ capturedAt: Date }>(
+      `INSERT INTO raw_gps_samples
+       (id, organization_id, location_id, valet_session_id, task_id,
+        tracking_session_id, client_sample_id, latitude, longitude, captured_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
+               transaction_timestamp() + ($10::integer * interval '1 millisecond'))
+       RETURNING captured_at AS "capturedAt"`,
+      [
+        id,
+        fixture.organizationId,
+        fixture.locationId,
+        fixture.sessionId,
+        fixture.movementTaskId,
+        fixture.trackingSessionId,
+        randomUUID(),
+        input.latitude ?? 31.5,
+        input.longitude ?? 35.5,
+        input.offsetMilliseconds,
+      ],
+    );
+    return { capturedAt: result.rows[0]!.capturedAt, id };
+  }
+
   async addArea(
     fixture: TrackingFixture,
     options: {

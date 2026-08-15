@@ -124,6 +124,28 @@ describe("VAL-007G live map authorization and policy", () => {
     ).toHaveLength(1);
   });
 
+  it("inherits an explicit ON Organization default when Location override is NULL", async () => {
+    const fixture = await context.createParkingTrackingFixture();
+    const manager = await context.manager(fixture);
+    await context.adminPool.query(
+      `UPDATE organizations SET tracking_enabled = true,
+              updated_at = transaction_timestamp() WHERE id = $1`,
+      [fixture.organizationId],
+    );
+    await context.adminPool.query(
+      `UPDATE locations SET tracking_enabled_override = NULL,
+              updated_at = transaction_timestamp() WHERE id = $1`,
+      [fixture.locationId],
+    );
+
+    const result = await context.liveQuery({
+      authenticatedUserId: manager.userId,
+      locationId: fixture.locationId,
+    });
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]!.trackingSessionId).toBe(fixture.trackingSessionId);
+  });
+
   it.each(["user", "organization", "location"] as const)(
     "rejects an inactive %s through the same unavailable boundary",
     async (authority) => {

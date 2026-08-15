@@ -118,4 +118,59 @@ describe("VAL-007G live operations map API", () => {
       message: "The requested resource is not available.",
     });
   });
+
+  it("denies a Supervisor shifted only at another Location without disclosure", async () => {
+    const fixture = await context.createParkingTrackingFixture();
+    const otherLocationId = await context.createLocation(fixture);
+    const supervisor = await context.createActor(fixture, "VALET_SUPERVISOR", {
+      activeShift: true,
+      locationId: otherLocationId,
+    });
+    await context.adminPool.query(
+      `INSERT INTO membership_location_access
+         (organization_id, membership_id, location_id)
+       VALUES ($1, $2, $3)`,
+      [fixture.organizationId, supervisor.membershipId, fixture.locationId],
+    );
+    const token = randomUUID();
+    principals.set(`Bearer ${token}`, supervisor.userId);
+
+    const response = await get(fixture.locationId, "", token);
+    expect(response.status).toBe(404);
+    expect(response.body).toMatchObject({
+      code: "AUTHORIZATION_DENIED",
+      message: "The requested resource is not available.",
+    });
+  });
+
+  it("reauthorizes a Supervisor Shift on the next cursor page", async () => {
+    const fixture = await context.createParkingTrackingFixture();
+    const supervisor = await context.supervisor(fixture);
+    const startedAt = new Date(fixture.trackerStartedAt.getTime() + 1_000);
+    await context.addParkingWork(fixture, startedAt);
+    await context.addParkingWork(fixture, startedAt);
+    const token = randomUUID();
+    principals.set(`Bearer ${token}`, supervisor.userId);
+
+    const first = await get(fixture.locationId, "?limit=1", token);
+    expect(first.status).toBe(200);
+    const nextCursor = (first.body as { nextCursor?: unknown }).nextCursor;
+    expect(typeof nextCursor).toBe("string");
+    await context.adminPool.query(
+      `UPDATE shifts SET status = 'ENDED', ended_at = transaction_timestamp()
+       WHERE membership_id = $1 AND location_id = $2 AND status = 'ACTIVE'`,
+      [supervisor.membershipId, fixture.locationId],
+    );
+
+    const second = await get(
+      fixture.locationId,
+      `?limit=1&cursor=${encodeURIComponent(nextCursor as string)}`,
+      token,
+    );
+    expect(second.status).toBe(404);
+    expect(second.body).toMatchObject({
+      code: "AUTHORIZATION_DENIED",
+      message: "The requested resource is not available.",
+    });
+  });
 });
