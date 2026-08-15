@@ -1,9 +1,6 @@
-import type {
-  PostgresPool,
-  PostgresTransaction,
-} from "../../common/database/postgres";
+import type { PostgresPool, PostgresTransaction } from "./postgres";
 
-export async function inMapSetupTransaction<T>(
+export async function inPostgresTransaction<T>(
   pool: PostgresPool,
   operation: (transaction: PostgresTransaction) => Promise<T>,
 ): Promise<T> {

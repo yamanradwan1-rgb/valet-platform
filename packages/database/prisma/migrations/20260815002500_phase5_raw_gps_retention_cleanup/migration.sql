@@ -29,12 +29,12 @@ BEGIN
            AND location.id = sample.location_id
         INNER JOIN public.organizations AS organization
             ON organization.id = sample.organization_id
-        WHERE sample.received_at < cleanup_time - make_interval(
-            days => COALESCE(
+        WHERE EXTRACT(EPOCH FROM cleanup_time)
+              - EXTRACT(EPOCH FROM sample.received_at)
+            > COALESCE(
                 location.raw_gps_retention_days_override,
                 organization.raw_gps_retention_days
-            )
-        )
+              )::NUMERIC * 86400
         ORDER BY sample.received_at, sample.id
         FOR UPDATE OF sample SKIP LOCKED
         LIMIT batch_limit

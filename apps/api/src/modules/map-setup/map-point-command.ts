@@ -5,10 +5,10 @@ import type {
   UpdateLocationMapPointRequest,
 } from "@valet/contracts";
 import type { PostgresPool } from "../../common/database/postgres";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { authorizeLocationMapSetup } from "./map-setup-authorization";
 import { MapSetupError, mapSetupDatabaseError } from "./map-setup-errors";
 import { loadMapPoints } from "./map-setup-projections";
-import { inMapSetupTransaction } from "./map-setup-transaction";
 
 interface PointScope {
   readonly authenticatedUserId: string;
@@ -31,7 +31,7 @@ export async function createMapPoint(
   pool: PostgresPool,
   input: PointScope & CreateLocationMapPointRequest,
 ): Promise<LocationMapPoint> {
-  return inMapSetupTransaction(pool, async (transaction) => {
+  return inPostgresTransaction(pool, async (transaction) => {
     const actor = await authorizeLocationMapSetup(
       transaction,
       input.authenticatedUserId,
@@ -67,7 +67,7 @@ export async function updateMapPoint(
   input: PointScope &
     UpdateLocationMapPointRequest & { readonly pointId: string },
 ): Promise<LocationMapPoint> {
-  return inMapSetupTransaction(pool, async (transaction) => {
+  return inPostgresTransaction(pool, async (transaction) => {
     const actor = await authorizeLocationMapSetup(
       transaction,
       input.authenticatedUserId,

@@ -1,7 +1,7 @@
 import type { RouteHistoryResponse } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
-import { inMapSetupTransaction } from "../map-setup/map-setup-transaction";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { authorizeRouteHistory } from "./route-history-authorization";
 import {
   decodeRouteHistoryCursor,
@@ -26,7 +26,7 @@ export function createRouteHistoryQuery(pool: PostgresPool) {
     readonly limit: number;
     readonly trackingSessionId: string;
   }): Promise<RouteHistoryResponse> =>
-    inMapSetupTransaction(pool, async (transaction) => {
+    inPostgresTransaction(pool, async (transaction) => {
       const cursor = decodeRouteHistoryCursor(input.cursor);
       const authorization = await authorizeRouteHistory(
         transaction,

@@ -118,6 +118,47 @@ describe("VAL-007F raw GPS retention", () => {
     );
   });
 
+  it("lets normal cleanup proceed beside an extreme valid retention policy", async () => {
+    const normal = await context.fixture();
+    const extreme = await context.fixture();
+    const normalId = await context.sample(normal);
+    const extremeId = await context.sample(extreme);
+    await context.adminPool.query(
+      `UPDATE task_tracking_sessions
+       SET ended_at = started_at + interval '1 second'
+       WHERE id = ANY($1::uuid[])`,
+      [[normal.trackingSessionId, extreme.trackingSessionId]],
+    );
+    await context.adminPool.query(
+      `UPDATE organizations SET raw_gps_retention_days = 2147483647
+       WHERE id = $1`,
+      [extreme.organizationId],
+    );
+    await context.adminPool.query(
+      `UPDATE raw_gps_samples
+       SET received_at = transaction_timestamp() - interval '100 years'
+       WHERE id = $1`,
+      [extremeId],
+    );
+    await context.adminPool.query(
+      `UPDATE raw_gps_samples
+       SET received_at = transaction_timestamp() - interval '31 days'
+       WHERE id = $1`,
+      [normalId],
+    );
+
+    const cleanup = await context.runtimePool.query<{ deleted: number }>(
+      `SELECT cleanup_expired_raw_gps_samples(1000) AS deleted`,
+    );
+    expect(cleanup.rows[0]?.deleted).toBe(1);
+    const survivors = await context.adminPool.query<{ id: string }>(
+      `SELECT id::text FROM raw_gps_samples
+       WHERE id = ANY($1::uuid[]) ORDER BY id`,
+      [[normalId, extremeId]],
+    );
+    expect(survivors.rows).toEqual([{ id: extremeId }]);
+  });
+
   it("converges concurrently and preserves non-raw operational history", async () => {
     const fixture = await context.fixture();
     const sampleIds = await Promise.all(
