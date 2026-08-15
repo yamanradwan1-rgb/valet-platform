@@ -55,6 +55,8 @@ import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
 import { GpsIngestionController } from "../src/modules/tracking/gps-ingestion.controller";
 import { GpsIngestionService } from "../src/modules/tracking/gps-ingestion.service";
+import { RouteHistoryController } from "../src/modules/tracking/route-history.controller";
+import { RouteHistoryService } from "../src/modules/tracking/route-history.service";
 import { TrackingModule } from "../src/modules/tracking/tracking.module";
 
 function metadata<T>(module: object, key: string): T[] {
@@ -81,9 +83,11 @@ describe("accepted feature module ownership", () => {
   it("keeps GPS ingestion ownership focused", () => {
     expect(metadata(TrackingModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       GpsIngestionController,
+      RouteHistoryController,
     ]);
     expect(metadata(TrackingModule, MODULE_METADATA.PROVIDERS)).toEqual([
       GpsIngestionService,
+      RouteHistoryService,
     ]);
   });
 

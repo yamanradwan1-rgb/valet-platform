@@ -12,6 +12,7 @@ export * from "./handoff.js";
 export * from "./key-custody.js";
 export * from "./map-setup.js";
 export * from "./mark-ready.js";
+export * from "./route-history.js";
 export * from "./shifts.js";
 export * from "./start-parking.js";
 export * from "./start-retrieval.js";
