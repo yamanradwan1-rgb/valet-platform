@@ -53,6 +53,9 @@ import { MarkReadyService } from "../src/modules/retrieval/mark-ready.service";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
+import { GpsIngestionController } from "../src/modules/tracking/gps-ingestion.controller";
+import { GpsIngestionService } from "../src/modules/tracking/gps-ingestion.service";
+import { TrackingModule } from "../src/modules/tracking/tracking.module";
 
 function metadata<T>(module: object, key: string): T[] {
   return (Reflect.getMetadata(key, module) as T[] | undefined) ?? [];
@@ -71,6 +74,16 @@ describe("accepted feature module ownership", () => {
       DispatchModule,
       StartParkingModule,
       RetrievalModule,
+      TrackingModule,
+    ]);
+  });
+
+  it("keeps GPS ingestion ownership focused", () => {
+    expect(metadata(TrackingModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      GpsIngestionController,
+    ]);
+    expect(metadata(TrackingModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      GpsIngestionService,
     ]);
   });
 

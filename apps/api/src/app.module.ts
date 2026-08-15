@@ -11,6 +11,7 @@ import { MapSetupModule } from "./modules/map-setup/map-setup.module";
 import { StartParkingModule } from "./modules/parking/start-parking.module";
 import { RetrievalModule } from "./modules/retrieval/retrieval.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
+import { TrackingModule } from "./modules/tracking/tracking.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ShiftModule } from "./modules/shifts/shift.module";
     DispatchModule,
     StartParkingModule,
     RetrievalModule,
+    TrackingModule,
   ],
   controllers: [AppController],
 })
