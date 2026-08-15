@@ -153,11 +153,18 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
   async request(
     method: "GET" | "POST",
     path: string,
-    options: { readonly body?: unknown; readonly token?: string } = {},
+    options: {
+      readonly body?: unknown;
+      readonly origin?: string;
+      readonly token?: string;
+    } = {},
   ): Promise<HttpResult> {
     const headers: Record<string, string> = {};
     if (options.token !== undefined) {
       headers.authorization = `Bearer ${options.token}`;
+    }
+    if (options.origin !== undefined) {
+      headers.origin = options.origin;
     }
     if (options.body !== undefined)
       headers["content-type"] = "application/json";
