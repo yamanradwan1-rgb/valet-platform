@@ -10,6 +10,7 @@ export * from "./dispatch.js";
 export * from "./gps-ingestion.js";
 export * from "./handoff.js";
 export * from "./key-custody.js";
+export * from "./live-operations-map.js";
 export * from "./map-setup.js";
 export * from "./mark-ready.js";
 export * from "./route-history.js";

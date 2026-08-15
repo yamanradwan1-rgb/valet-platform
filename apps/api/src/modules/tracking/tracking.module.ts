@@ -6,18 +6,28 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { GpsIngestionController } from "./gps-ingestion.controller";
 import { GpsIngestionService } from "./gps-ingestion.service";
+import { LiveMapController } from "./live-map.controller";
+import { LiveMapService } from "./live-map.service";
 import { RouteHistoryController } from "./route-history.controller";
 import { RouteHistoryService } from "./route-history.service";
 
 @Module({
-  controllers: [GpsIngestionController, RouteHistoryController],
+  controllers: [
+    GpsIngestionController,
+    LiveMapController,
+    RouteHistoryController,
+  ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
-  providers: [GpsIngestionService, RouteHistoryService],
+  providers: [GpsIngestionService, LiveMapService, RouteHistoryService],
 })
 export class TrackingModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(GpsIngestionController, RouteHistoryController);
+      .forRoutes(
+        GpsIngestionController,
+        LiveMapController,
+        RouteHistoryController,
+      );
   }
 }
