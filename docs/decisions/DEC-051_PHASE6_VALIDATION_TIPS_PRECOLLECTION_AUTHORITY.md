@@ -57,7 +57,7 @@ Current safe default remains:
 
 Tip remains a supported typed capability and may be enabled later through the accepted Company-default -> Location-override configuration model. No code redesign or new Tip entity should be required merely to turn the feature on.
 
-When tips are enabled later, tip mutation is allowed only before financial collection begins. Once collection starts, the tip value is frozen for that Payment; returning collected tip value uses Refund rather than rewriting history.
+When tips are enabled later, the authenticated guest/customer for the canonical guest session may set or change their own tip before financial collection begins, and `LOCATION_MANAGER` may perform an authorized pre-collection tip correction within their Location. Once collection starts, the tip value is frozen for that Payment; returning collected tip value uses Refund rather than rewriting history.
 
 ### 4. Location Manager authority
 
@@ -108,9 +108,11 @@ At minimum:
 
 - `amount_paid = 0`;
 - no `CashEntry` exists;
-- no Validation history exists for payer correction;
+- no Validation history exists for payer/base-service-term correction;
 - no provider transaction/reference has started;
 - no settled/collected financial fact would be rewritten.
+
+Validation may itself be superseded before collection; its history does not prevent another Validation correction. Tip may be changed before collection while tip policy permits it.
 
 Once collection begins, mutable pre-collection terms freeze. Later financial correction uses append-only financial history and/or Refund as appropriate.
 
@@ -145,7 +147,7 @@ This keeps the first rollout operationally simple:
 
 ## Consequences
 
-- VAL-008B may implement Manager-only Validation and guarded pre-collection corrections using existing persistence.
+- VAL-008B may implement Manager-only Validation, guest/Manager tip mutation gated by `tipsEnabled`, and guarded pre-collection corrections using existing persistence.
 - VAL-008C must implement the actual employee cash-receipt / server-derived paid transition.
 - Tips remain dormant while `tipsEnabled = false` but the core must continue to respect that typed switch.
 - Digital payment remains dormant while effective policy is `CASH_ONLY`; later provider activation changes configuration/integration, not the Payment domain model.
