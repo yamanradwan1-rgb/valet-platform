@@ -30,7 +30,7 @@ import {
   TrustedClientAddressResolver,
 } from "../anti-abuse/client-address";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
-import { parsePaymentBody, paymentHttpProjection } from "./payment-http";
+import { guestPaymentHttpProjection, parsePaymentBody } from "./payment-http";
 import { PaymentMutationService } from "./payment-mutation.service";
 
 const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
@@ -72,7 +72,7 @@ export class GuestPaymentController {
         throw new ApiTransportValidationError();
       }
       const input = parsePaymentBody(paymentTipMutationRequestSchema, body);
-      return paymentHttpProjection(
+      return guestPaymentHttpProjection(
         await this.authorizeGuestOperation(
           request,
           authorization,

@@ -45,6 +45,17 @@ export const paymentMutationResponseSchema = z
   })
   .strict();
 
+export const guestPaymentMutationResponseSchema = z
+  .object({
+    amountDue: paymentMoneySchema,
+    collectionMethod: z.enum(["NONE", "CASH", "DIGITAL"]),
+    currency: z.string().regex(/^[A-Z]{3}$/),
+    status: z.enum(["NOT_REQUIRED", "UNPAID", "PENDING", "PAID", "FAILED"]),
+    tipAmount: paymentMoneySchema,
+    valetSessionId: z.string().uuid(),
+  })
+  .strict();
+
 export type ValidationMutationRequest = z.infer<
   typeof validationMutationRequestSchema
 >;
@@ -59,4 +70,7 @@ export type PaymentServiceAmountCorrectionRequest = z.infer<
 >;
 export type PaymentMutationResponse = z.infer<
   typeof paymentMutationResponseSchema
+>;
+export type GuestPaymentMutationResponse = z.infer<
+  typeof guestPaymentMutationResponseSchema
 >;

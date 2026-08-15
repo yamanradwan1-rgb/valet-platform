@@ -1,5 +1,8 @@
 import { UnauthorizedException } from "@nestjs/common";
-import { paymentMutationResponseSchema } from "@valet/contracts";
+import {
+  guestPaymentMutationResponseSchema,
+  paymentMutationResponseSchema,
+} from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { ApiRequest } from "../../common/http/api-request";
@@ -47,5 +50,18 @@ export function paymentHttpProjection(projection: PaymentMutationProjection) {
   return paymentMutationResponseSchema.parse({
     ...projection,
     updatedAt: projection.updatedAt.toISOString(),
+  });
+}
+
+export function guestPaymentHttpProjection(
+  projection: PaymentMutationProjection,
+) {
+  return guestPaymentMutationResponseSchema.parse({
+    amountDue: projection.amountDue,
+    collectionMethod: projection.collectionMethod,
+    currency: projection.currency,
+    status: projection.status,
+    tipAmount: projection.tipAmount,
+    valetSessionId: projection.valetSessionId,
   });
 }

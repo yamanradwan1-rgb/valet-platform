@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  guestPaymentMutationResponseSchema,
   paymentMutationResponseSchema,
   paymentPayerCorrectionRequestSchema,
   paymentServiceAmountCorrectionRequestSchema,
@@ -82,5 +83,30 @@ describe("VAL-008B Payment mutation contracts", () => {
     });
     expect(response).not.toHaveProperty("organizationId");
     expect(response).not.toHaveProperty("provider");
+  });
+
+  it("keeps the Guest projection free of internal Validation identifiers", () => {
+    const response = guestPaymentMutationResponseSchema.parse({
+      amountDue: "7.000",
+      collectionMethod: "CASH",
+      currency: "JOD",
+      status: "UNPAID",
+      tipAmount: "2.000",
+      valetSessionId: "00000000-0000-4000-8000-000000000001",
+    });
+    expect(response).not.toHaveProperty("currentValidation");
+    expect(response).not.toHaveProperty("serviceAmount");
+    expect(response).not.toHaveProperty("servicePayer");
+    expect(response).not.toHaveProperty("updatedAt");
+    expect(
+      guestPaymentMutationResponseSchema.safeParse({
+        ...response,
+        currentValidation: {
+          amount: "1.000",
+          id: "00000000-0000-4000-8000-000000000002",
+          mode: "PARTIAL",
+        },
+      }).success,
+    ).toBe(false);
   });
 });
