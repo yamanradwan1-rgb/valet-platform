@@ -308,6 +308,6 @@ This decision does not implement or accept:
 
 ## Consequences
 
-VAL-008A can implement a migration-safe, provider-neutral financial foundation without inventing a payment gateway or unexpectedly blocking existing operations.
+VAL-008A can now implement a migration-safe, provider-neutral financial foundation without inventing a payment gateway or unexpectedly blocking existing operations.
 
 Existing tenants remain effectively free/non-blocking until financial settings are deliberately configured. Cash can be the first executable collection path. Digital-only policy remains representable but fails closed until a real provider is activated. Later Validation, Tips, Cash, Refund, release-guard and provider tasks compose around the same canonical Payment rather than redesigning the aggregate.
