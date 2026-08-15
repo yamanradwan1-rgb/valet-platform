@@ -1,156 +1,177 @@
 # VAYLET — Current Project Status
 
 > Operational handoff snapshot only. This file is not a binding product/domain contract.
-> For current repository facts, GitHub wins. For accepted behavior, use the authority order in `AGENTS.md` and the binding docs/accepted decisions.
+> For current repository facts, GitHub wins. For accepted behavior, use the authority order in `AGENTS.md`, the Founder & Product Blueprint v1.0, binding docs and Accepted decisions.
 
 ## Last Verified
 
-- Date/time: `2026-08-13`
+- Date: `2026-08-15`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Current `main` checkpoint: `3938257190dbd072ccfc2f906c944457ebb40525`
-- Current milestone: **Phase 4 — Retrieval, guest progression and secure handoff — IN PROGRESS**
-- Binding Phase 4 execution plan: `docs/19_PHASE4_RETRIEVAL_HANDOFF_EXECUTION_PLAN.md`
-- Current completed slice: **VAL-006B — Guest Retrieval Request + Duplicate Protection**
-- Next implementation slice: **VAL-006C — Retrieval Dispatch Composition**, which must start fresh under the normal workflow
-- Database baseline: exactly **21 forward-only migrations**
-- Security remediation findings SEC-002 and SEC-003 are merged; SEC-004 post-remediation Security Diff Verification remains open/tooling-blocked
-- No fresh post-fix repository-wide Standard Security Scan is claimed.
+- Current merged `main` checkpoint: `ccd43a948c3dfe5cd2e4fdbe7bf096620e797985`
+- Completed product phases: **Phases 1–5 COMPLETE**
+- Phase 5 final slice: **VAL-007H — COMPLETE**
+- Phase 5 final PR: **#168 — MERGED**
+- Current planning task: **VAL-008 — Phase 6 Payments Core & Provider-Ready Execution Contract**
+- Current task issue: **#169**
+- Binding Phase 6 plan: `docs/21_PHASE6_PAYMENTS_EXECUTION_PLAN.md` on the VAL-008 task branch until merged
+- Database baseline: exactly **25 forward-only migrations**
+- Latest migration: `20260815002500_phase5_raw_gps_retention_cleanup`
+- Real digital payment provider: **NOT SELECTED / NOT ACTIVATED**
+- Phase 6 production implementation: **NOT STARTED**
 
-## Phase 4 Status
+## Current Product Checkpoint
 
-```text
-VAL-006   Phase 4 Retrieval & Secure Handoff execution contract     MERGED / COMPLETED
-VAL-006A  Retrieval & Handoff Persistence Hardening / Contract Lock MERGED / COMPLETED
-VAL-006B  Guest Retrieval Request + Duplicate Protection            MERGED / COMPLETED
-VAL-006C  Retrieval Dispatch Composition                            NEXT / FRESH START REQUIRED
-VAL-006D  Start Retrieval + Key Checkout                            PENDING
-VAL-006E  Mark Vehicle Ready + Guest Progression Events             PENDING
-VAL-006F  Secure Handoff Verification                               PENDING
-VAL-006G  Vehicle Release + Session Completion                      PENDING
-VAL-006H  Phase 4 API / Integration / Guest + Employee E2E Gate     PENDING
-```
+The backend has completed the Foundation, Core Check-in, Operations, Retrieval and Maps/task-scoped tracking phases.
 
-Phase 4 implementation has started and is complete through VAL-006B.
+The next Blueprint phase is **Payments**.
 
-## Completed Phase 4 Foundation
-
-### VAL-006 — execution contract
-
-- Tracking issue: #127
-- Planning PR: #128
-- Result: binding Phase 4 plan with exactly eight focused slices VAL-006A through VAL-006H.
-
-### VAL-006A — persistence hardening
-
-- Tracking issue: #129
-- Accepted decision: DEC-039
-- Implementation PR: #133
-- Result: existing `RetrievalRequest`, `HandoffVerification` and `Task(type=RETRIEVAL)` persistence is reused; runtime-role access was hardened for the two Phase 4 stateful tables without adding a migration.
-
-### VAL-006B — guest retrieval request
-
-- Tracking issue: #134
-- Accepted decision: DEC-040
-- Implementation PR: #138
-- Merge/checkpoint commit: `3938257190dbd072ccfc2f906c944457ebb40525`
-
-VAL-006B added the production guest Retrieval request boundary:
+Phase 6 starts from existing accepted financial persistence rather than from an empty schema. Current persistence already includes:
 
 ```text
-POST /v1/guest/session/request-retrieval
+Payment
+Validation
+CashEntry
+PaymentProviderEvent
+Refund
 ```
 
-A first valid guest request atomically performs:
+The production payments module is still effectively a placeholder boundary; the financial domain commands and API workflows are not yet implemented.
+
+## Phase 6 Sequencing
+
+The Project Owner approved a provider-ready sequencing strategy:
+
+1. finish the provider-neutral VAYLET financial core;
+2. reach a clearly named `PHASE 6 CORE = PROVIDER_READY` checkpoint;
+3. select/activate the real first-market provider later;
+4. run the real provider checkout/callback/refund/security gate before claiming digital-payments MVP completion.
+
+This sequencing does not remove the Blueprint requirement for at least one real digital gateway before Payments are production-complete for the sellable MVP.
+
+No provider is currently Accepted. Jordan research may inform a later provider decision, but APS, HyperPay, MEPS and other candidates are not authorized as production integrations by VAL-008.
+
+## Phase 6 Task Plan
 
 ```text
-ValetSession: PARKED -> REQUESTED
-RetrievalRequest: OPEN
-Retrieval Task: QUEUED / unassigned
-DispatchEvent: QUEUED
-AuditEvent: RETRIEVAL_REQUESTED
+Batch 1
+VAL-008   Phase 6 Payments Core & Provider-Ready Execution Contract
+VAL-008A  Effective Financial Policy + Payment Core
+VAL-008B  Validation + Tips + Guarded Pre-collection Corrections
+
+Batch 2
+VAL-008C  Cash Collection + Cash Reconciliation MVP Boundary
+VAL-008D  Provider-Neutral Digital Payment Boundary + Outbound Operation Identity
+VAL-008E  Provider Event / Normalization / Reconciliation Foundation
+
+Batch 3
+VAL-008F  Refund Core
+VAL-008G  Financial Handoff/Release Guard + Safe Financial Projections
+VAL-008H  Phase 6 Core API / Integration / E2E / Security Gate
+
+Deferred provider batch
+VAL-008I  Selected Provider Activation / Hosted or Tokenized Checkout
+VAL-008J  Real Provider Callbacks, Settlement/Failure & Digital Refund Wiring
+VAL-008K  Real Digital Provider E2E / Security / Production Gate
 ```
 
-Repeated/coherent presses return current guest-safe progression without creating duplicate active RetrievalRequest/Task work.
+VAL-008H may establish only:
 
-The guest response remains privacy-limited and does not expose internal tenant, Location, KeySlot, ParkingSpot/Zone, Task ownership or audit details.
+```text
+PHASE 6 CORE = PROVIDER_READY
+```
+
+Only successful VAL-008K with a selected real provider may establish:
+
+```text
+PHASE 6 DIGITAL PAYMENTS = MVP / PRODUCTION COMPLETE
+```
+
+## Binding Financial Foundation
+
+Key accepted repository contracts already include:
+
+- Payment lifecycle remains separate from the ValetSession physical state machine;
+- at most one Payment per ValetSession;
+- service payer `CUSTOMER | VENUE`;
+- collection method `NONE | CASH | DIGITAL`;
+- Payment status `NOT_REQUIRED | UNPAID | PENDING | PAID | FAILED`;
+- Validation `NONE | FULL | PARTIAL` for Customer-responsibility semantics;
+- tip stored on Payment rather than a payroll/allocation subsystem;
+- append-oriented CashEntry history;
+- provider-event callback deduplication foundation;
+- separate Refund lifecycle;
+- ordinary `VALET_EMPLOYEE` cannot refund;
+- Location currency is authoritative and snapshotted onto Payment;
+- provider integrations remain behind adapters;
+- final financial release policy, when implemented, composes at the existing protected final `complete-handoff` boundary rather than creating a second handoff state machine.
+
+Exact Phase 6 command authorization/policy fields that are not already Accepted remain focused decision gates in `docs/21_PHASE6_PAYMENTS_EXECUTION_PLAN.md`.
 
 ## Database / Migration Baseline
 
-Exactly **21 forward-only migrations** are present.
+Exactly **25 forward-only migrations** are present.
 
-Latest migrations:
-
-```text
-19  20260811001900_phase3_key_parking_persistence
-20  20260812002000_phase3_task_dispatch_persistence
-21  20260813002100_guest_retrieval_requester_consistency
-```
-
-Migration 21 narrowly updates RetrievalRequest requester consistency so guest/customer-originated requests may exist without a persisted Customer row while STAFF requester semantics remain constrained.
-
-Migrations 1–20 remain immutable. Migration 21 is now part of the accepted forward-only baseline and must also remain immutable after merge.
-
-## Current Retrieval Boundary
-
-The authoritative physical/session flow implemented so far is:
+Financial foundation migrations include:
 
 ```text
-CHECKING_IN
--> AWAITING_PARKING
--> PARKING
--> PARKED
--> REQUESTED
+10  20260809001000_payment_validation_tip_foundation
+11  20260809001100_cash_entry_provider_event_foundation
+12  20260809001200_refund_foundation
 ```
 
-The current Retrieval Task is created at `REQUESTED` but remains unassigned:
+The current latest migration is:
 
 ```text
-QUEUED
-current_assignee_membership_id = NULL
+25  20260815002500_phase5_raw_gps_retention_cleanup
 ```
 
-`Task.current_assignee_membership_id` remains the canonical Hybrid Dispatch owner. ValetSession physical state remains separate from Task/Dispatch assignment state.
+Migrations 1–25 are immutable. Never rewrite, renormalize or change historical migration hashes/line endings.
 
-## VAL-006C Reset / Historical Experiment
+VAL-008 is documentation only and adds no migration.
 
-A prior VAL-006C / DEC-041 experiment was cancelled by the project owner.
+A later Phase 6 task may add a new forward-only migration only when a concrete Accepted invariant cannot safely be represented by current persistence.
 
-- Issue #139 is closed `not_planned`.
-- PR #141 was cancelled and must not be reused.
-- PR #140 is historical only; its DEC-041 content is not current repository authority.
-- `main` was intentionally restored to the exact post-VAL-006B checkpoint `3938257190dbd072ccfc2f906c944457ebb40525`.
+## Current Security / Privacy Boundary
 
-Any new VAL-006C work must therefore be planned and implemented fresh from the current accepted repository state. Do not copy or resurrect the cancelled experiment as authority.
+Phase 6 must continue to preserve:
 
-## Security Checkpoint
+- persisted tenant and exact Location authority;
+- server-derived financial ownership and actor authority;
+- non-disclosing cross-tenant/cross-Location failures;
+- append/audit behavior for sensitive financial changes;
+- retry/concurrency safety for money-moving operations;
+- no raw PAN/CVV or provider secrets in normal persistence, AuditEvent, logs, errors or client responses;
+- Guest access limited to the financial projection for the Guest's own authorized session;
+- provider-specific statuses/SDK objects isolated from the core financial domain.
 
-The Post-Phase-3 Standard Security Scan produced two validated findings and both remediation changes are merged:
-
-```text
-SEC-002  Runtime DB least privilege        FIXED / MERGED
-SEC-003  Guest sensitive response no-store FIXED / MERGED
-```
-
-Issue #126 / SEC-004 remains open because formal post-remediation Security Diff Scan finalization is blocked by Codex Security tooling failures. This is not recorded as a clean scan verdict and does not imply a newly discovered repository vulnerability.
+The exact selected-provider PCI/security contract remains deferred until real provider activation.
 
 ## Still Deferred / Not Claimed
 
-Phase 4 has not yet delivered:
+The project does **not** currently claim:
 
-- Retrieval assignment / acceptance / decline / reassignment;
-- `REQUESTED -> RETRIEVING` and Retrieval key checkout;
-- `RETRIEVING -> READY`;
-- handoff verification / one-time QR / pickup code execution;
-- final key `RELEASED` custody and `COMPLETED` session;
-- Maps/GPS/tracking/geofences;
-- full messaging-provider delivery;
-- full payment/validation/refund workflows;
-- Dashboard or Employee UI/PWA implementation;
-- offline replay/idempotency infrastructure;
-- V2/Enterprise capabilities.
+- production Payment/Validation/Cash/Refund command APIs;
+- cash reconciliation runtime behavior;
+- provider-neutral digital initiation/runtime adapter implementation;
+- a selected or activated real digital provider;
+- real hosted checkout / 3DS / wallet payment flow;
+- real provider callback verification/reconciliation;
+- real digital refund execution;
+- Phase 6 provider-ready E2E/security completion;
+- Phase 7 full Dashboard implementation;
+- Reliability/offline sync framework;
+- Venue Client persistence;
+- POS/PMS integration;
+- payment orchestration/multiple live gateways;
+- accounting ledger/venue settlement/tip payroll;
+- V2/Enterprise payment intelligence.
 
 ## Exact Next Step
 
-Prepare a **fresh focused decision and implementation issue for VAL-006C — Retrieval Dispatch Composition** from the current post-VAL-006B authority.
+Complete and independently review **VAL-008** documentation on:
 
-VAL-006C must reuse the existing Hybrid Dispatch command surface and DEC-032/DEC-035 rules, extend it only as required for `Task.type = RETRIEVAL`, keep `ValetSession.state = REQUESTED` and `RetrievalRequest.status = OPEN` unchanged during assignment/acceptance/decline/reassignment, and introduce no GPS, key checkout, physical Retrieval transition, READY, handoff, payment or UI behavior.
+```text
+feat/VAL-008-phase6-payments-contract
+```
+
+After VAL-008 is approved for stack, create **VAL-008A — Effective Financial Policy + Payment Core** from the approved VAL-008 branch under the normal three-task batch workflow.
