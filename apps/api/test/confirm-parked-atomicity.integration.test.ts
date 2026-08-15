@@ -129,6 +129,7 @@ describe("VAL-005G concurrency", () => {
     const end = () =>
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: fixture.userId,
+        cashReported: "0",
         shiftId: shift.rows[0]!.id,
       });
     const results = await Promise.allSettled([context.confirm(fixture), end()]);

@@ -128,7 +128,7 @@ describe("VAL-005B Shift HTTP surface", () => {
     const ended = await request(
       "POST",
       `/v1/staff/shifts/${String(started.body.shiftId)}/end`,
-      { body: {}, token },
+      { body: { cashReported: "0" }, token },
     );
     expect(ended.status).toBe(200);
     expect(ended.body).toMatchObject({ status: "ENDED" });
@@ -162,7 +162,7 @@ describe("VAL-005B Shift HTTP surface", () => {
       "non-empty end body",
       "POST",
       `/v1/staff/shifts/${randomUUID()}/end`,
-      { override: true },
+      { cashReported: "0", override: true },
     ],
   ])(
     "rejects %s through strict shared contracts",
@@ -200,7 +200,7 @@ describe("VAL-005B Shift HTTP surface", () => {
     const result = await request(
       "POST",
       `/v1/staff/shifts/${String(started.body.shiftId)}/end`,
-      { body: {}, token: other.token },
+      { body: { cashReported: "0" }, token: other.token },
     );
     expect(result.status).toBe(404);
     expect(result.body.code).toBe("TENANT_ACCESS_DENIED");

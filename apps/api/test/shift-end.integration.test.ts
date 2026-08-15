@@ -28,6 +28,7 @@ describe("VAL-005B Shift self-end", () => {
     const active = await start(fixture);
     const ended = await createEndShiftCommandExecutor(context.runtimePool)({
       authenticatedUserId: fixture.userId,
+      cashReported: "0",
       shiftId: active.shiftId,
     });
 
@@ -50,6 +51,10 @@ describe("VAL-005B Shift self-end", () => {
     expect(audit.rows[0]?.actor_membership_id).toBe(fixture.membershipId);
     expect(audit.rows[0]?.valet_session_id).toBeNull();
     expect(audit.rows[0]?.metadata_json).toEqual({
+      cash_expected: "0.000",
+      cash_reported: "0.000",
+      cash_variance: "0.000",
+      currency: "JOD",
       fromStatus: "ACTIVE",
       toStatus: "ENDED",
     });
@@ -61,6 +66,7 @@ describe("VAL-005B Shift self-end", () => {
     const execute = createEndShiftCommandExecutor(context.runtimePool);
     const request = {
       authenticatedUserId: fixture.userId,
+      cashReported: "0",
       shiftId: active.shiftId,
     };
     const first = await execute(request);
@@ -75,8 +81,16 @@ describe("VAL-005B Shift self-end", () => {
     const active = await start(fixture);
     const execute = createEndShiftCommandExecutor(context.runtimePool);
     const results = await Promise.all([
-      execute({ authenticatedUserId: fixture.userId, shiftId: active.shiftId }),
-      execute({ authenticatedUserId: fixture.userId, shiftId: active.shiftId }),
+      execute({
+        authenticatedUserId: fixture.userId,
+        cashReported: "0",
+        shiftId: active.shiftId,
+      }),
+      execute({
+        authenticatedUserId: fixture.userId,
+        cashReported: "0",
+        shiftId: active.shiftId,
+      }),
     ]);
 
     expect(results[0]).toEqual(results[1]);
@@ -91,6 +105,7 @@ describe("VAL-005B Shift self-end", () => {
     await expectShiftError(
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: other.userId,
+        cashReported: "0",
         shiftId: active.shiftId,
       }),
       "TENANT_ACCESS_DENIED",
@@ -109,10 +124,6 @@ describe("VAL-005B Shift self-end", () => {
     [
       "inactive membership",
       `UPDATE organization_memberships SET status = 'INACTIVE' WHERE id = $1`,
-    ],
-    [
-      "changed role",
-      `UPDATE organization_memberships SET role = 'ORG_ADMIN' WHERE id = $1`,
     ],
     [
       "removed access",
@@ -139,9 +150,27 @@ describe("VAL-005B Shift self-end", () => {
 
     const ended = await createEndShiftCommandExecutor(context.runtimePool)({
       authenticatedUserId: fixture.userId,
+      cashReported: "0",
       shiftId: active.shiftId,
     });
     expect(ended.status).toBe("ENDED");
+  });
+
+  it("denies cash close after the owner is no longer an operational role", async () => {
+    const fixture = await context.createFixture();
+    const active = await start(fixture);
+    await context.adminPool.query(
+      `UPDATE organization_memberships SET role = 'ORG_ADMIN' WHERE id = $1`,
+      [fixture.membershipId],
+    );
+    await expectShiftError(
+      createEndShiftCommandExecutor(context.runtimePool)({
+        authenticatedUserId: fixture.userId,
+        cashReported: "0",
+        shiftId: active.shiftId,
+      }),
+      "TENANT_ACCESS_DENIED",
+    );
   });
 
   it("denies a disabled User without mutation or end audit", async () => {
@@ -155,6 +184,7 @@ describe("VAL-005B Shift self-end", () => {
     await expectShiftError(
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: fixture.userId,
+        cashReported: "0",
         shiftId: active.shiftId,
       }),
       "AUTHORIZATION_DENIED",
@@ -168,14 +198,22 @@ describe("VAL-005B Shift self-end", () => {
     const duplicateAuditId = randomUUID();
     await createEndShiftCommandExecutor(context.runtimePool, {
       auditEventIdFactory: () => duplicateAuditId,
-    })({ authenticatedUserId: first.userId, shiftId: firstShift.shiftId });
+    })({
+      authenticatedUserId: first.userId,
+      cashReported: "0",
+      shiftId: firstShift.shiftId,
+    });
 
     const second = await context.createFixture();
     const secondShift = await start(second);
     await expect(
       createEndShiftCommandExecutor(context.runtimePool, {
         auditEventIdFactory: () => duplicateAuditId,
-      })({ authenticatedUserId: second.userId, shiftId: secondShift.shiftId }),
+      })({
+        authenticatedUserId: second.userId,
+        cashReported: "0",
+        shiftId: secondShift.shiftId,
+      }),
     ).rejects.toMatchObject({ code: "23505" });
     const persisted = await context.adminPool.query<{ status: string }>(
       `SELECT status::text FROM shifts WHERE id = $1`,

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Headers,
+  HttpCode,
   Inject,
   Param,
   Patch,
@@ -9,6 +10,8 @@ import {
   Req,
 } from "@nestjs/common";
 import {
+  cashAdjustmentRequestSchema,
+  cashReceiptRequestSchema,
   paymentPayerCorrectionRequestSchema,
   paymentServiceAmountCorrectionRequestSchema,
   paymentTipMutationRequestSchema,
@@ -22,21 +25,60 @@ import {
   type StaffPrincipalResolver,
 } from "../auth/staff-principal";
 import {
+  cashHttpProjection,
   parsePaymentBody,
   parsePaymentUuid,
   paymentHttpProjection,
   resolvePaymentStaffPrincipal,
 } from "./payment-http";
+import { CashMutationService } from "./cash-mutation.service";
 import { PaymentMutationService } from "./payment-mutation.service";
 
 @Controller("v1/staff/valet-sessions/:sessionId/payment")
 export class StaffPaymentController {
   constructor(
     private readonly service: PaymentMutationService,
+    private readonly cash: CashMutationService,
     private readonly runner: ApiOperationRunner,
     @Inject(STAFF_PRINCIPAL_RESOLVER)
     private readonly principals: StaffPrincipalResolver,
   ) {}
+
+  @HttpCode(200)
+  @Post("cash-receipt")
+  cashReceipt(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("sessionId") sessionId: string,
+    @Body() body: unknown,
+  ) {
+    return this.runner.run("PAYMENT_CASH_RECEIVE", request, async () =>
+      cashHttpProjection(
+        await this.cash.receipt({
+          ...(await this.scope(request, authorization, sessionId)),
+          ...parsePaymentBody(cashReceiptRequestSchema, body),
+        }),
+      ),
+    );
+  }
+
+  @HttpCode(200)
+  @Post("cash-adjustments")
+  cashAdjustment(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("sessionId") sessionId: string,
+    @Body() body: unknown,
+  ) {
+    return this.runner.run("PAYMENT_CASH_ADJUST", request, async () =>
+      cashHttpProjection(
+        await this.cash.adjustment({
+          ...(await this.scope(request, authorization, sessionId)),
+          ...parsePaymentBody(cashAdjustmentRequestSchema, body),
+        }),
+      ),
+    );
+  }
 
   private async scope(
     request: ApiRequest,

@@ -18,7 +18,9 @@ export interface PaymentHttpResult {
 
 export interface PaymentStaffCredentials {
   readonly email: string;
+  readonly membershipId: string;
   readonly password: string;
+  readonly userId: string;
 }
 
 interface RequestOptions {
@@ -83,12 +85,17 @@ export class PaymentApiTestContext extends FinancialMutationTestContext {
        WHERE id = $1 RETURNING email`,
       [actor.userId, this.passwordHash],
     );
-    return { email: result.rows[0]!.email, password };
+    return {
+      email: result.rows[0]!.email,
+      membershipId: actor.membershipId,
+      password,
+      userId: actor.userId,
+    };
   }
 
   login(credentials: PaymentStaffCredentials): Promise<PaymentHttpResult> {
     return this.request("POST", "/v1/staff/auth/login", {
-      body: credentials,
+      body: { email: credentials.email, password: credentials.password },
       headers: { Origin: allowedOrigin },
     });
   }

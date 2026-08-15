@@ -194,6 +194,7 @@ describe("VAL-005F concurrency safety", () => {
     const end = () =>
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: fixture.userId,
+        cashReported: "0",
         shiftId: shift.rows[0]!.id,
       });
     const results = await Promise.allSettled([context.start(fixture), end()]);

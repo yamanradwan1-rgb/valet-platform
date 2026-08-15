@@ -25,4 +25,5 @@ export const expectedMigrationDirectories = [
   "20260814002400_phase5_map_setup_write_authority",
   "20260815002500_phase5_raw_gps_retention_cleanup",
   "20260815002600_phase6_financial_policy_payment_core",
+  "20260816002700_phase6_cash_reconciliation",
 ] as const;

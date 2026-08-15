@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
+import type { ShiftCashReconciliation } from "./shift-types";
 
 export type ShiftAuditEventType = "SHIFT_ENDED" | "SHIFT_STARTED";
 
@@ -8,6 +9,7 @@ export async function appendShiftAuditEvent(
   transaction: PostgresTransaction,
   input: {
     readonly eventType: ShiftAuditEventType;
+    readonly cashReconciliation?: ShiftCashReconciliation;
     readonly locationId: string;
     readonly membershipId: string;
     readonly occurredAt: Date;
@@ -20,7 +22,14 @@ export async function appendShiftAuditEvent(
   const metadata =
     input.eventType === "SHIFT_STARTED"
       ? { status: "ACTIVE" }
-      : { fromStatus: "ACTIVE", toStatus: "ENDED" };
+      : {
+          cash_expected: input.cashReconciliation?.cashExpected,
+          cash_reported: input.cashReconciliation?.cashReported,
+          cash_variance: input.cashReconciliation?.cashVariance,
+          currency: input.cashReconciliation?.currency,
+          fromStatus: "ACTIVE",
+          toStatus: "ENDED",
+        };
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,

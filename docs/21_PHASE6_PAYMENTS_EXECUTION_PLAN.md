@@ -435,6 +435,15 @@ Purpose:
 
 Required gate: cash receipt authority, expected/reported model and post-close correction authority.
 
+Accepted DEC-052 binds VAL-008C to full server-derived cash receipt, append-only
+Location-Manager corrections, and an immutable typed Shift close snapshot of
+expected cash, reported cash, variance, Location currency, close time and the
+reporting membership. Employee/Supervisor receipt requires their own active
+same-Location Shift; Shift close retains the existing open-task guard and
+accepts only `cashReported`. Migration 27 is the only schema change for this
+slice. No drawer, ledger, Refund execution, provider, release guard or UI is
+introduced.
+
 ### VAL-008D — Provider-Neutral Digital Payment Boundary + Outbound Operation Identity
 
 Purpose:
@@ -577,11 +586,11 @@ Each task gets its own branch. The next branch stacks only after the previous ta
 
 ## Database and migration rules
 
-Current accepted baseline is exactly **25 forward-only migrations**.
+After VAL-008C, the accepted baseline is exactly **27 forward-only migrations**.
 
 VAL-008 changes no schema and adds no migration.
 
-Migrations 1–25 remain immutable. Never rewrite, renormalize or change their historical contents/hashes.
+Migrations 1–27 remain immutable. Never rewrite, renormalize or change their historical contents/hashes.
 
 Future Phase 6 tasks add a new migration only when a focused accepted invariant demonstrably cannot be represented safely by current persistence. A migration is not added merely to prepare for an unspecified provider.
 

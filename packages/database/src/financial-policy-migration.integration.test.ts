@@ -104,8 +104,8 @@ afterAll(async () => {
 describe("migration 26 financial policy", () => {
   it("is exactly the next forward-only migration with exact enum values", async () => {
     expect(migrationDirectories).toEqual([...expectedMigrationDirectories]);
-    expect(migrationDirectories).toHaveLength(26);
-    expect(migrationDirectories.at(-1)).toBe(
+    expect(migrationDirectories).toHaveLength(27);
+    expect(migrationDirectories[25]).toBe(
       "20260815002600_phase6_financial_policy_payment_core",
     );
     const values = await databaseClient.query<{ enumlabel: string }>(

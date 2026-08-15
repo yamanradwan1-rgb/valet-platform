@@ -22,6 +22,23 @@ export const paymentServiceAmountCorrectionRequestSchema = z
   .object({ serviceAmount: paymentMoneySchema })
   .strict();
 
+const cashSubmissionKeySchema = z.string().min(1).max(200);
+
+export const cashReceiptRequestSchema = z
+  .object({ submissionIdempotencyKey: cashSubmissionKeySchema })
+  .strict();
+
+export const cashAdjustmentRequestSchema = z
+  .object({
+    amount: paymentMoneySchema.refine(
+      (value) => !/^0(?:\.0{1,3})?$/.test(value),
+    ),
+    entryType: z.enum(["ADJUSTMENT_INCREASE", "ADJUSTMENT_DECREASE"]),
+    reason: z.string().trim().min(1).max(500),
+    submissionIdempotencyKey: cashSubmissionKeySchema,
+  })
+  .strict();
+
 export const currentValidationSchema = z
   .object({
     amount: paymentMoneySchema,
@@ -56,6 +73,24 @@ export const guestPaymentMutationResponseSchema = z
   })
   .strict();
 
+export const cashMutationResponseSchema = z
+  .object({
+    amountDue: paymentMoneySchema,
+    amountPaid: paymentMoneySchema,
+    cashEntryAmount: paymentMoneySchema,
+    cashEntryId: z.string().uuid(),
+    currency: z.string().regex(/^[A-Z]{3}$/),
+    entryType: z.enum([
+      "RECEIPT",
+      "ADJUSTMENT_INCREASE",
+      "ADJUSTMENT_DECREASE",
+    ]),
+    occurredAt: z.string().datetime({ offset: true }),
+    status: z.enum(["UNPAID", "PAID"]),
+    valetSessionId: z.string().uuid(),
+  })
+  .strict();
+
 export type ValidationMutationRequest = z.infer<
   typeof validationMutationRequestSchema
 >;
@@ -68,6 +103,9 @@ export type PaymentPayerCorrectionRequest = z.infer<
 export type PaymentServiceAmountCorrectionRequest = z.infer<
   typeof paymentServiceAmountCorrectionRequestSchema
 >;
+export type CashReceiptRequest = z.infer<typeof cashReceiptRequestSchema>;
+export type CashAdjustmentRequest = z.infer<typeof cashAdjustmentRequestSchema>;
+export type CashMutationResponse = z.infer<typeof cashMutationResponseSchema>;
 export type PaymentMutationResponse = z.infer<
   typeof paymentMutationResponseSchema
 >;

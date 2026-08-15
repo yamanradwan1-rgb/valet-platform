@@ -22,7 +22,9 @@ export function createActiveShiftQuery(
         `SELECT shift_row.id::text, shift_row.organization_id::text,
                 shift_row.location_id::text, shift_row.membership_id::text,
                 shift_row.status::text, shift_row.started_at,
-                shift_row.ended_at
+                shift_row.ended_at, shift_row.cash_expected::text,
+                shift_row.cash_reported::text, shift_row.cash_variance::text,
+                shift_row.cash_currency, shift_row.cash_reported_at
          FROM shifts AS shift_row
          INNER JOIN organization_memberships AS membership
            ON membership.organization_id = shift_row.organization_id

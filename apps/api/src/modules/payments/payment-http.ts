@@ -1,5 +1,6 @@
 import { UnauthorizedException } from "@nestjs/common";
 import {
+  cashMutationResponseSchema,
   guestPaymentMutationResponseSchema,
   paymentMutationResponseSchema,
 } from "@valet/contracts";
@@ -7,6 +8,7 @@ import {
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { ApiRequest } from "../../common/http/api-request";
 import type { StaffPrincipalResolver } from "../auth/staff-principal";
+import type { CashMutationProjection } from "./cash-types";
 import type { PaymentMutationProjection } from "./payment-mutation-types";
 
 interface Schema<T> {
@@ -62,6 +64,20 @@ export function guestPaymentHttpProjection(
     currency: projection.currency,
     status: projection.status,
     tipAmount: projection.tipAmount,
+    valetSessionId: projection.valetSessionId,
+  });
+}
+
+export function cashHttpProjection(projection: CashMutationProjection) {
+  return cashMutationResponseSchema.parse({
+    amountDue: projection.amountDue,
+    amountPaid: projection.amountPaid,
+    cashEntryAmount: projection.cashEntry.amount,
+    cashEntryId: projection.cashEntry.id,
+    currency: projection.currency,
+    entryType: projection.cashEntry.type,
+    occurredAt: projection.cashEntry.occurredAt.toISOString(),
+    status: projection.status,
     valetSessionId: projection.valetSessionId,
   });
 }

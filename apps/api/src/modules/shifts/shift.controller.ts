@@ -19,6 +19,7 @@ import {
   startShiftRequestSchema,
   startShiftResponseSchema,
   type ActiveShiftQuery,
+  type EndShiftRequest,
   type StartShiftRequest,
 } from "@valet/contracts";
 
@@ -59,6 +60,23 @@ function serializeShift(shift: ShiftResult) {
     shiftId: shift.shiftId,
     startedAt: shift.startedAt.toISOString(),
     status: shift.status,
+  };
+}
+
+function serializeEndedShift(shift: ShiftResult) {
+  const reconciliation = shift.cashReconciliation;
+  if (reconciliation === null) {
+    throw new Error("Ended Shift did not return cash reconciliation.");
+  }
+  return {
+    ...serializeShift(shift),
+    cashReconciliation: {
+      cashExpected: reconciliation.cashExpected,
+      cashReported: reconciliation.cashReported,
+      cashVariance: reconciliation.cashVariance,
+      currency: reconciliation.currency,
+      reportedAt: reconciliation.reportedAt.toISOString(),
+    },
   };
 }
 
@@ -117,12 +135,13 @@ export class ShiftController {
   ) {
     return this.runner.run("SHIFT_END", request, async () => {
       const authenticatedUserId = await this.userId(request, authorization);
-      parse(endShiftRequestSchema, body === undefined ? {} : body);
+      const input = parse<EndShiftRequest>(endShiftRequestSchema, body);
       const shift = await this.service.executeEnd({
         authenticatedUserId,
+        cashReported: input.cashReported,
         shiftId: parseUuid(shiftIdRaw),
       });
-      return endShiftResponseSchema.parse(serializeShift(shift));
+      return endShiftResponseSchema.parse(serializeEndedShift(shift));
     });
   }
 

@@ -140,6 +140,7 @@ describe("VAL-005B active lookup and operational eligibility", () => {
     const active = await start(fixture);
     await createEndShiftCommandExecutor(context.runtimePool)({
       authenticatedUserId: fixture.userId,
+      cashReported: "0",
       shiftId: active.shiftId,
     });
     expect(
@@ -171,6 +172,7 @@ describe("VAL-005B active lookup and operational eligibility", () => {
     let settled = false;
     const end = createEndShiftCommandExecutor(context.runtimePool)({
       authenticatedUserId: fixture.userId,
+      cashReported: "0",
       shiftId: active.shiftId,
     }).finally(() => {
       settled = true;

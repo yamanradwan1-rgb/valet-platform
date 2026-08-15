@@ -43,7 +43,7 @@ const tablePrivileges = [
   ["public.validations", "REFERENCES", false],
   ["public.validations", "TRIGGER", false],
   ["public.cash_entries", "SELECT", true],
-  ["public.cash_entries", "INSERT", false],
+  ["public.cash_entries", "INSERT", true],
   ["public.cash_entries", "UPDATE", false],
   ["public.cash_entries", "DELETE", false],
   ["public.cash_entries", "TRUNCATE", false],
@@ -52,6 +52,11 @@ const tablePrivileges = [
   ["public.payment_provider_events", "UPDATE", false],
   ["public.payment_provider_events", "DELETE", false],
   ["public.payment_provider_events", "TRUNCATE", false],
+  ["public.shifts", "SELECT", true],
+  ["public.shifts", "INSERT", true],
+  ["public.shifts", "UPDATE", false],
+  ["public.shifts", "DELETE", false],
+  ["public.shifts", "TRUNCATE", false],
   ["public.location_map_points", "SELECT", true],
   ["public.location_map_points", "INSERT", false],
   ["public.location_map_points", "UPDATE", false],
@@ -123,11 +128,20 @@ const columnPrivileges = [
   ["public.payments", "provider_reference", true],
   ["public.payments", "updated_at", true],
   ["public.payments", "paid_at", true],
-  ["public.payments", "amount_paid", false],
+  ["public.payments", "amount_paid", true],
   ["public.payments", "currency", false],
   ["public.validations", "is_current", true],
   ["public.validations", "amount", false],
   ["public.validations", "mode", false],
+  ["public.shifts", "status", true],
+  ["public.shifts", "ended_at", true],
+  ["public.shifts", "cash_expected", true],
+  ["public.shifts", "cash_reported", true],
+  ["public.shifts", "cash_variance", true],
+  ["public.shifts", "cash_currency", true],
+  ["public.shifts", "cash_reported_at", true],
+  ["public.shifts", "cash_reported_by_membership_id", true],
+  ["public.shifts", "started_at", false],
 ];
 
 const anyColumnPrivileges = [
@@ -140,6 +154,7 @@ const anyColumnPrivileges = [
   ["public._prisma_migrations", "REFERENCES", false],
   ["public.payments", "UPDATE", true],
   ["public.validations", "UPDATE", true],
+  ["public.shifts", "UPDATE", true],
 ];
 
 const mapSetupFunctions = [

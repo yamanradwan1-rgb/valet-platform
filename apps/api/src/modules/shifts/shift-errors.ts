@@ -3,6 +3,8 @@ export type ShiftOperationErrorCode =
   | "AUTHORIZATION_DENIED"
   | "LOCATION_ACCESS_DENIED"
   | "OPEN_TASK_HANDOFF_REQUIRED"
+  | "SHIFT_CASH_REPORT_INVALID"
+  | "SHIFT_CASH_RECONCILIATION_UNAVAILABLE"
   | "TENANT_ACCESS_DENIED";
 
 const messages: Record<ShiftOperationErrorCode, string> = {
@@ -12,6 +14,9 @@ const messages: Record<ShiftOperationErrorCode, string> = {
   LOCATION_ACCESS_DENIED: "The requested resource is not available.",
   OPEN_TASK_HANDOFF_REQUIRED:
     "Open Task ownership must be handed off before ending the Shift.",
+  SHIFT_CASH_REPORT_INVALID: "The Shift cash report is invalid.",
+  SHIFT_CASH_RECONCILIATION_UNAVAILABLE:
+    "The Shift cash reconciliation is not available.",
   TENANT_ACCESS_DENIED: "The requested resource is not available.",
 };
 

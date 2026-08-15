@@ -27,6 +27,7 @@ export class ShiftService {
 
   executeEnd(request: {
     readonly authenticatedUserId: string;
+    readonly cashReported: string;
     readonly shiftId: string;
   }) {
     return this.endShift(request);

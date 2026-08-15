@@ -454,29 +454,30 @@ model OrganizationMembership {
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization             Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  user                     User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
-  membershipLocationAccess MembershipLocationAccess[]
-  shifts                   Shift[]
-  checkedInValetSessions   ValetSession[]             @relation("ValetSessionCheckedInBy")
-  assignedValetSessions    ValetSession[]             @relation("ValetSessionCurrentAssignee")
-  completedValetSessions   ValetSession[]             @relation("ValetSessionCompletedBy")
-  retrievalRequests        RetrievalRequest[]
-  verifiedHandoffs         HandoffVerification[]
-  auditEvents              AuditEvent[]
-  appliedValidations       Validation[]
-  cashEntries              CashEntry[]
-  authorizedRefunds        Refund[]
-  reportedIncidents        Incident[]                 @relation("IncidentReportedBy")
-  resolvedIncidents        Incident[]                 @relation("IncidentResolvedBy")
-  recordedConditionNotes   ConditionNote[]
-  capturedVehiclePhotos    VehiclePhoto[]
-  completedConditionChecks ValetSession[]             @relation("ValetSessionCheckInConditionCompletedBy")
-  keyCustodyEvents         KeyCustodyEvent[]
-  currentTasks             Task[]                     @relation("TaskCurrentAssignee")
-  actedDispatchEvents      DispatchEvent[]            @relation("DispatchEventActor")
-  previousDispatchEvents   DispatchEvent[]            @relation("DispatchEventPreviousAssignee")
-  newDispatchEvents        DispatchEvent[]            @relation("DispatchEventNewAssignee")
+  organization                Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  user                        User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  membershipLocationAccess    MembershipLocationAccess[]
+  shifts                      Shift[]                    @relation("ShiftOwner")
+  cashReconciliationsReported Shift[]                    @relation("ShiftCashReporter")
+  checkedInValetSessions      ValetSession[]             @relation("ValetSessionCheckedInBy")
+  assignedValetSessions       ValetSession[]             @relation("ValetSessionCurrentAssignee")
+  completedValetSessions      ValetSession[]             @relation("ValetSessionCompletedBy")
+  retrievalRequests           RetrievalRequest[]
+  verifiedHandoffs            HandoffVerification[]
+  auditEvents                 AuditEvent[]
+  appliedValidations          Validation[]
+  cashEntries                 CashEntry[]
+  authorizedRefunds           Refund[]
+  reportedIncidents           Incident[]                 @relation("IncidentReportedBy")
+  resolvedIncidents           Incident[]                 @relation("IncidentResolvedBy")
+  recordedConditionNotes      ConditionNote[]
+  capturedVehiclePhotos       VehiclePhoto[]
+  completedConditionChecks    ValetSession[]             @relation("ValetSessionCheckInConditionCompletedBy")
+  keyCustodyEvents            KeyCustodyEvent[]
+  currentTasks                Task[]                     @relation("TaskCurrentAssignee")
+  actedDispatchEvents         DispatchEvent[]            @relation("DispatchEventActor")
+  previousDispatchEvents      DispatchEvent[]            @relation("DispatchEventPreviousAssignee")
+  newDispatchEvents           DispatchEvent[]            @relation("DispatchEventNewAssignee")
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -498,18 +499,25 @@ model MembershipLocationAccess {
 }
 
 model Shift {
-  id             String      @id @default(uuid()) @db.Uuid
-  organizationId String      @map("organization_id") @db.Uuid
-  locationId     String      @map("location_id") @db.Uuid
-  membershipId   String      @map("membership_id") @db.Uuid
-  status         ShiftStatus @default(ACTIVE)
-  startedAt      DateTime    @map("started_at") @db.Timestamptz(3)
-  endedAt        DateTime?   @map("ended_at") @db.Timestamptz(3)
-  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  id                         String      @id @default(uuid()) @db.Uuid
+  organizationId             String      @map("organization_id") @db.Uuid
+  locationId                 String      @map("location_id") @db.Uuid
+  membershipId               String      @map("membership_id") @db.Uuid
+  status                     ShiftStatus @default(ACTIVE)
+  startedAt                  DateTime    @map("started_at") @db.Timestamptz(3)
+  endedAt                    DateTime?   @map("ended_at") @db.Timestamptz(3)
+  cashExpected               Decimal?    @map("cash_expected") @db.Decimal(14, 3)
+  cashReported               Decimal?    @map("cash_reported") @db.Decimal(14, 3)
+  cashVariance               Decimal?    @map("cash_variance") @db.Decimal(14, 3)
+  cashCurrency               String?     @map("cash_currency")
+  cashReportedAt             DateTime?   @map("cash_reported_at") @db.Timestamptz(3)
+  cashReportedByMembershipId String?     @map("cash_reported_by_membership_id") @db.Uuid
+  createdAt                  DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  location     Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
-  membership   OrganizationMembership @relation(fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict)
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location       Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+  membership     OrganizationMembership  @relation("ShiftOwner", fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict)
+  cashReportedBy OrganizationMembership? @relation("ShiftCashReporter", fields: [organizationId, cashReportedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "shifts_cash_reporter_fkey")
 
   @@index([locationId, status], map: "shifts_location_id_status_idx")
   @@map("shifts")

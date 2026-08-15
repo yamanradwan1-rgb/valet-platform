@@ -93,6 +93,7 @@ describe("VAL-005E Shift-end canonical open-work guard", () => {
       await expectDispatchError(
         createEndShiftCommandExecutor(context.runtimePool)({
           authenticatedUserId: fixture.userId,
+          cashReported: "0",
           shiftId: shift.rows[0]!.id,
         }),
         "OPEN_TASK_HANDOFF_REQUIRED",
@@ -126,6 +127,7 @@ describe("VAL-005E Shift-end canonical open-work guard", () => {
     });
     const ended = await createEndShiftCommandExecutor(context.runtimePool)({
       authenticatedUserId: fixture.userId,
+      cashReported: "0",
       shiftId: shift.rows[0]!.id,
     });
     expect(ended.status).toBe("ENDED");
@@ -146,6 +148,7 @@ describe("VAL-005E Shift-end canonical open-work guard", () => {
       }),
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: fixture.userId,
+        cashReported: "0",
         shiftId: shift.rows[0]!.id,
       }),
     ]);
