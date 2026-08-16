@@ -2,6 +2,7 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
+import { isCurrencyAmountRepresentable } from "../../common/financial/currency-minor-units";
 import { appendShiftAuditEvent } from "./shift-audit-event-writer";
 import { requireActiveShiftUser } from "./shift-authorization";
 import { ShiftOperationError } from "./shift-errors";
@@ -152,6 +153,9 @@ export function createEndShiftCommandExecutor(
         return toShiftResult(shift);
       }
       const cashReported = parseShiftMoney(request.cashReported);
+      if (!isCurrencyAmountRepresentable(scope.currency, cashReported)) {
+        throw new ShiftOperationError("SHIFT_CASH_REPORT_INVALID");
+      }
       await requireNoCanonicalOpenTasks(transaction, scope);
       const operationTime = await loadShiftOperationTime(transaction);
       const cashExpected = await deriveCashExpected(

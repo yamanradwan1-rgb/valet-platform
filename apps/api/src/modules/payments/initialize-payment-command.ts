@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresPool } from "../../common/database/postgres";
+import { isCurrencyAmountRepresentable } from "../../common/financial/currency-minor-units";
 import { resolveEffectiveFinancialPolicy } from "./financial-policy-resolver";
 import { appendPaymentInitializedAudit } from "./payment-audit";
 import { PaymentInitializationError } from "./payment-errors";
+import { parseMoney } from "./payment-money";
 import {
   assertCreationKeyAvailableForSession,
   findCanonicalPayment,
@@ -112,6 +114,19 @@ export function createInitializePaymentExecutor(
         );
         const existing = await findCanonicalPayment(transaction, scope);
         if (existing !== null) return existing;
+
+        const serviceAmountMills = parseMoney(
+          context.policy.valetServiceFee,
+          true,
+        );
+        if (
+          !isCurrencyAmountRepresentable(
+            context.currency,
+            serviceAmountMills,
+          )
+        ) {
+          throw new PaymentInitializationError("PAYMENT_INITIALIZATION_INVALID");
+        }
 
         const initial = deriveInitialState(
           context.policy.valetServiceFee,

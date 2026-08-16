@@ -6,7 +6,11 @@ import type { AuthoritativeFinancialContext } from "./payment-types";
 import { appendFinancialMutationAudit } from "./payment-mutation-audit";
 import { FinancialMutationError } from "./payment-mutation-errors";
 import { assertCollectionNotStarted } from "./payment-mutation-guards";
-import { formatMoney, parseMoney } from "./payment-money";
+import {
+  formatMoney,
+  parseCurrencyMoney,
+  parseMoney,
+} from "./payment-money";
 import {
   insertValidation,
   lockValidationHistory,
@@ -33,7 +37,7 @@ function desiredValidation(
     return { amount: formatMoney(service), mode: "FULL" };
   }
   if (request.mode === "NONE") return { amount: "0.000", mode: "NONE" };
-  const partial = parseMoney(request.amount);
+  const partial = parseCurrencyMoney(request.amount, payment.currency);
   if (partial <= 0n || partial >= service) {
     throw new FinancialMutationError("PAYMENT_VALIDATION_INVALID");
   }

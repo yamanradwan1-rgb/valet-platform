@@ -38,6 +38,7 @@ import { StartParkingModule } from "../src/modules/parking/start-parking.module"
 import { StartParkingService } from "../src/modules/parking/start-parking.service";
 import { ConfirmParkedController } from "../src/modules/parking/confirm-parked.controller";
 import { ConfirmParkedService } from "../src/modules/parking/confirm-parked.service";
+import { CashMutationService } from "../src/modules/payments/cash-mutation.service";
 import { PaymentInitializationService } from "../src/modules/payments/payment-initialization.service";
 import { PaymentMutationService } from "../src/modules/payments/payment-mutation.service";
 import { PaymentsModule } from "../src/modules/payments/payments.module";
@@ -94,10 +95,12 @@ describe("accepted feature module ownership", () => {
       GuestPaymentController,
     ]);
     expect(metadata(PaymentsModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      CashMutationService,
       PaymentInitializationService,
       PaymentMutationService,
     ]);
     expect(metadata(PaymentsModule, MODULE_METADATA.EXPORTS)).toEqual([
+      CashMutationService,
       PaymentInitializationService,
       PaymentMutationService,
     ]);

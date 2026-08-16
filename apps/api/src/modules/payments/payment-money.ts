@@ -1,3 +1,4 @@
+import { isCurrencyAmountRepresentable } from "../../common/financial/currency-minor-units";
 import { FinancialMutationError } from "./payment-mutation-errors";
 
 const inputPattern = /^(?:0|[1-9]\d{0,10})(?:\.\d{1,3})?$/;
@@ -11,6 +12,14 @@ export function parseMoney(value: string, persisted = false): bigint {
   const [whole = "0", fraction = ""] = value.split(".");
   const mills = BigInt(whole) * 1000n + BigInt(fraction.padEnd(3, "0") || "0");
   if (mills > maximumMills) {
+    throw new FinancialMutationError("PAYMENT_AMOUNT_INVALID");
+  }
+  return mills;
+}
+
+export function parseCurrencyMoney(value: string, currency: string): bigint {
+  const mills = parseMoney(value);
+  if (!isCurrencyAmountRepresentable(currency, mills)) {
     throw new FinancialMutationError("PAYMENT_AMOUNT_INVALID");
   }
   return mills;

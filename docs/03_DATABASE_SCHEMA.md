@@ -55,8 +55,8 @@ These conventions are binding for Phase 1 unless superseded by an accepted decis
 - All monetary values in the accepted MVP financial contract are non-negative. CashEntry type represents decreases without storing negative money.
 - Cross-row monetary invariants are enforced by locked transactional domain commands; do not claim a simple row CHECK can enforce aggregate totals.
 - A Payment copies the Location currency when created. The immutable copy preserves historical meaning if Location configuration changes later.
-- `numeric(14,3)` is the storage convention, not permission to accept unsupported fractional precision for every currency. Before persistence and before provider conversion, domain/provider commands must validate or deterministically quantize amounts to the Payment currency's supported minor-unit exponent.
-- Silent rounding that materially changes a user-entered or provider-authoritative amount is not allowed. The financial command/provider integration must use one documented deterministic precision rule and reject values that cannot be safely represented under that rule.
+- `numeric(14,3)` is the storage convention, not permission to accept unsupported fractional precision for every currency. Current Phase 6 monetary input boundaries validate exact representability against a reviewed checked-in registry derived from the SIX Financial Information ISO 4217 List One snapshot published `2026-01-01`; runtime network, `Intl`, CLDR/ICU, OS/browser locale data and provider defaults are not currency-precision authority.
+- For an authoritative minor-unit exponent from 0 through 3, fractional digits beyond that exponent are accepted only when all are zero. No rounding or truncation is permitted. Missing/non-numeric exponents and exponents above storage scale 3 fail closed before mutation, with no guessed default.
 - Provider adapters may convert validated decimal amounts to provider-specific minor units at integration boundaries.
 
 ### Tenant consistency

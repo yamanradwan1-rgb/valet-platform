@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresPool } from "../../common/database/postgres";
+import { isCurrencyAmountRepresentable } from "../../common/financial/currency-minor-units";
 import { appendCashMutationAudit } from "./cash-audit";
 import {
   authorizeCashMutation,
@@ -189,6 +190,9 @@ export function createCashAdjustmentExecutor(
       );
       const amountDue = requireCashPayment(payment);
       const amountMills = parseCashMoney(request.amount);
+      if (!isCurrencyAmountRepresentable(payment.currency, amountMills)) {
+        throw new CashMutationError("PAYMENT_AMOUNT_INVALID");
+      }
       const amount = formatCashMoney(amountMills);
       const reason = request.reason.trim();
       if (amountMills <= 0n || reason.length === 0 || reason.length > 500) {

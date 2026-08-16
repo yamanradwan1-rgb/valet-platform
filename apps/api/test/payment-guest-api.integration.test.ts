@@ -192,4 +192,30 @@ describe("VAL-008B production Guest Payment HTTP boundary", () => {
     expect(result.body).not.toHaveProperty("currentValidation");
     expect(await context.sessionSnapshot(fixture.sessionId)).toEqual(before);
   });
+
+  it("enforces USD minor units at the production Guest tip boundary", async () => {
+    const fixture = await context.createPaymentFixture({
+      currency: "USD",
+      organizationFee: "10.00",
+      organizationTips: true,
+    });
+    await context.initialize(fixture);
+    const token = await context.guestToken(fixture);
+    const before = await context.payment(fixture.sessionId);
+
+    const rejected = await guestTip(token, { tipAmount: "1.201" });
+    expect(rejected).toMatchObject({
+      body: { code: "PAYMENT_AMOUNT_INVALID" },
+      status: 400,
+    });
+    expectNoStore(rejected);
+    expect(await context.payment(fixture.sessionId)).toEqual(before);
+
+    const accepted = await guestTip(token, { tipAmount: "1.200" });
+    expect(accepted).toMatchObject({
+      body: { amountDue: "11.200", currency: "USD", tipAmount: "1.200" },
+      status: 200,
+    });
+    expectNoStore(accepted);
+  });
 });
