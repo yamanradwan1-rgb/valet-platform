@@ -35,16 +35,22 @@ const baselineHashes = [
   "6DFCA29A2F16988DD2B29048A62B0C09BA65ACC48280A1980CF025050D594CB1",
   "A506B54D8CC209C5C4B2B3DE5854AC685834B9E474CE3E6FF08C026ADE382534",
   "3FB7748107E0756A10CA29578AC3233688E80D04BB01A832250EF9A2CEEBB0BB",
+  "66DBA00DDA643A7EACE9BE3BEE177B6FC13FF34804439D3CBB83FC3B385764F5",
+  "213969EACA59D43BEF81FB63AA6A4018D28DBDBDA429934338D51AB4ED29A461",
 ] as const;
 
-describe("migration 25 baseline", () => {
-  it("keeps migrations 1-24 byte-for-byte unchanged", async () => {
+describe("migration 27 baseline", () => {
+  it("keeps migrations 1-26 byte-for-byte unchanged", async () => {
     const actual = await Promise.all(
-      expectedMigrationDirectories.slice(0, 24).map(async (directory) => {
-        const bytes = await readFile(
+      expectedMigrationDirectories.slice(0, 26).map(async (directory) => {
+        const text = await readFile(
           join(migrationsPath, directory, "migration.sql"),
+          "utf8",
         );
-        return createHash("sha256").update(bytes).digest("hex").toUpperCase();
+        return createHash("sha256")
+          .update(text.replaceAll("\r\n", "\n"))
+          .digest("hex")
+          .toUpperCase();
       }),
     );
     expect(actual).toEqual(baselineHashes);

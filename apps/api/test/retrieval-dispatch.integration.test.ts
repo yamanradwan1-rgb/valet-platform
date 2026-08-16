@@ -235,6 +235,7 @@ describe("VAL-006C Retrieval Task dispatch composition", () => {
     await expectDispatchError(
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: fixture.userId,
+        cashReported: "0",
         shiftId: shift.rows[0]!.id,
       }),
       "OPEN_TASK_HANDOFF_REQUIRED",

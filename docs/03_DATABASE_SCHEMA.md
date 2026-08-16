@@ -55,8 +55,8 @@ These conventions are binding for Phase 1 unless superseded by an accepted decis
 - All monetary values in the accepted MVP financial contract are non-negative. CashEntry type represents decreases without storing negative money.
 - Cross-row monetary invariants are enforced by locked transactional domain commands; do not claim a simple row CHECK can enforce aggregate totals.
 - A Payment copies the Location currency when created. The immutable copy preserves historical meaning if Location configuration changes later.
-- `numeric(14,3)` is the storage convention, not permission to accept unsupported fractional precision for every currency. Before persistence and before provider conversion, domain/provider commands must validate or deterministically quantize amounts to the Payment currency's supported minor-unit exponent.
-- Silent rounding that materially changes a user-entered or provider-authoritative amount is not allowed. The financial command/provider integration must use one documented deterministic precision rule and reject values that cannot be safely represented under that rule.
+- `numeric(14,3)` is the storage convention, not permission to accept unsupported fractional precision for every currency. Current Phase 6 monetary input boundaries validate exact representability against a reviewed checked-in registry derived from the SIX Financial Information ISO 4217 List One snapshot published `2026-01-01`; runtime network, `Intl`, CLDR/ICU, OS/browser locale data and provider defaults are not currency-precision authority.
+- For an authoritative minor-unit exponent from 0 through 3, fractional digits beyond that exponent are accepted only when all are zero. No rounding or truncation is permitted. Missing/non-numeric exponents and exponents above storage scale 3 fail closed before mutation, with no guessed default.
 - Provider adapters may convert validated decimal amounts to provider-specific minor units at integration boundaries.
 
 ### Tenant consistency
@@ -398,6 +398,12 @@ membership_id
 status
 started_at
 ended_at nullable
+cash_expected nullable
+cash_reported nullable
+cash_variance nullable
+cash_currency nullable
+cash_reported_at nullable
+cash_reported_by_membership_id nullable
 created_at
 ```
 
@@ -411,6 +417,11 @@ Constraints:
 - location and membership must belong to `organization_id`
 - `ended_at >= started_at` when `ended_at` is present
 - one active shift per membership
+- reconciliation uses `numeric(14,3)` for expected, reported and variance; expected and reported are non-negative while variance may be negative
+- legacy Shift rows may have no reconciliation snapshot; a new snapshot is complete-or-null and may exist only on an `ENDED` Shift
+- `cash_variance = cash_reported - cash_expected`, `cash_currency` snapshots the authoritative Location currency, and the reporting membership must be the Shift owner in the same Organization
+- `cash_reported_at` is the close timestamp and equals `ended_at`
+- once persisted, the close status/timestamp and all cash reconciliation fields are protected from rewrite by a database trigger
 
 For partial-unique protection, an active shift means exactly:
 
@@ -418,7 +429,7 @@ For partial-unique protection, an active shift means exactly:
 status = ACTIVE
 ```
 
-Future task rules must prevent normal Shift completion while the employee owns open tasks unless tasks are reassigned/handed off or an authorized override is used.
+Normal Shift completion is blocked while the employee owns open tasks. An operational employee/supervisor supplies only `cash_reported`; the server derives attributable expected cash and persists the immutable reconciliation snapshot atomically with Shift end.
 
 ## customers
 
@@ -1064,7 +1075,11 @@ Rules:
 - entries are append-only and never corrected or deleted in place
 - Payment `amount_paid` is the transactionally maintained net of receipt/increase less decrease entries and must remain between zero and `amount_due`
 - the command that inserts an entry also updates Payment status/amount and writes required AuditEvent atomically
-- Payment/CashEntry is sufficient for MVP receipt history and reconciliation reporting; shift close/reopen, cash drawer and settlement entities are deferred until a focused operational requirement exists
+- employee/supervisor receipts require their own active same-Location Shift; Location Managers may receive or correct cash only in an authorized Location
+- the one receipt is the full server-derived positive `amount_due` and atomically makes the Payment `PAID`; the caller cannot provide amount or status
+- adjustments are Location-Manager-only append entries whose resulting net remains within zero and the legitimately collectible one-payment amount
+- Shift cash expected aggregates the Shift owner's same-Location receipt cash and attributable corrections within the Shift window; close snapshots that net together with reported cash and variance
+- cash drawer, shift reopen, ledger, refund execution and settlement entities remain deferred
 
 ## payment_provider_events
 

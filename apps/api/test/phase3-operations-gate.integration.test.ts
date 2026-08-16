@@ -4,9 +4,7 @@ import {
   type GateFixture,
   Phase3OperationsGateContext,
 } from "./phase3-operations-gate-test-context";
-
 const context = new Phase3OperationsGateContext("flow");
-
 function number(body: Record<string, unknown>, key: string): number {
   const value = body[key];
   expect(typeof value).toBe("number");
@@ -75,7 +73,7 @@ describe("VAL-005H production API operations gate", () => {
     const blockedEnd = await post(
       fixture,
       `/v1/staff/shifts/${fixture.shiftId}/end`,
-      {},
+      { cashReported: "0" },
     );
     expect(blockedEnd).toMatchObject({
       status: 409,
@@ -200,7 +198,9 @@ describe("VAL-005H production API operations gate", () => {
       /keySlot|parkingZone|parkingSpot|assignee|coordinates|gps/i,
     );
     expect(
-      await post(fixture, `/v1/staff/shifts/${fixture.shiftId}/end`, {}),
+      await post(fixture, `/v1/staff/shifts/${fixture.shiftId}/end`, {
+        cashReported: "0",
+      }),
     ).toMatchObject({ status: 200, body: { status: "ENDED" } });
   });
 

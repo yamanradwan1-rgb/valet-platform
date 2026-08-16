@@ -2,6 +2,22 @@ import { z } from "zod";
 
 const uuidSchema = z.string().uuid();
 const utcTimestampSchema = z.string().datetime({ offset: false });
+const shiftMoneySchema = z
+  .string()
+  .regex(/^(?:0|[1-9]\d{0,10})(?:\.\d{1,3})?$/);
+const signedShiftMoneySchema = z
+  .string()
+  .regex(/^-?(?:0|[1-9]\d{0,10})(?:\.\d{1,3})?$/);
+
+export const shiftCashReconciliationSchema = z
+  .object({
+    cashExpected: shiftMoneySchema,
+    cashReported: shiftMoneySchema,
+    cashVariance: signedShiftMoneySchema,
+    currency: z.string().regex(/^[A-Z]{3}$/),
+    reportedAt: utcTimestampSchema,
+  })
+  .strict();
 
 export const shiftProjectionSchema = z
   .object({
@@ -17,14 +33,18 @@ export const startShiftRequestSchema = z
   .object({ targetLocationId: uuidSchema })
   .strict();
 
-export const endShiftRequestSchema = z.object({}).strict();
+export const endShiftRequestSchema = z
+  .object({ cashReported: shiftMoneySchema })
+  .strict();
 
 export const activeShiftQuerySchema = z
   .object({ locationId: uuidSchema })
   .strict();
 
 export const startShiftResponseSchema = shiftProjectionSchema;
-export const endShiftResponseSchema = shiftProjectionSchema;
+export const endShiftResponseSchema = shiftProjectionSchema.extend({
+  cashReconciliation: shiftCashReconciliationSchema,
+});
 
 export const activeShiftResponseSchema = z
   .object({ shift: shiftProjectionSchema.nullable() })
@@ -32,4 +52,5 @@ export const activeShiftResponseSchema = z
 
 export type ShiftProjection = z.infer<typeof shiftProjectionSchema>;
 export type StartShiftRequest = z.infer<typeof startShiftRequestSchema>;
+export type EndShiftRequest = z.infer<typeof endShiftRequestSchema>;
 export type ActiveShiftQuery = z.infer<typeof activeShiftQuerySchema>;

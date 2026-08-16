@@ -17,7 +17,6 @@ const runtimeInsertOnlyTables = ["customers", "payments"];
 const runtimeOperationalTables = [
   "vehicles",
   "valet_sessions",
-  "shifts",
   "tasks",
   "retrieval_requests",
   "handoff_verifications",
@@ -25,22 +24,31 @@ const runtimeOperationalTables = [
 
 const runtimeTrackingSessionTables = ["task_tracking_sessions"];
 
-const runtimeFinancialEvidenceReadTables = [
-  "cash_entries",
-  "payment_provider_events",
-];
+const runtimeFinancialEvidenceReadTables = ["payment_provider_events"];
 
 const runtimeFinancialUpdateColumns = [
   "service_payer",
   "service_amount",
   "tip_amount",
   "amount_due",
+  "amount_paid",
   "collection_method",
   "status",
   "provider",
   "provider_reference",
   "updated_at",
   "paid_at",
+];
+
+const runtimeShiftUpdateColumns = [
+  "status",
+  "ended_at",
+  "cash_expected",
+  "cash_reported",
+  "cash_variance",
+  "cash_currency",
+  "cash_reported_at",
+  "cash_reported_by_membership_id",
 ];
 
 export const runtimeMapSetupFunctions = [
@@ -137,6 +145,16 @@ export async function provisionRuntimeTablePrivileges(
       runtimeRole,
     ]);
   }
+  await executeFormatted(
+    client,
+    "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE cash_entries FROM %I",
+    [runtimeRole],
+  );
+  await executeFormatted(
+    client,
+    "GRANT SELECT, INSERT ON TABLE cash_entries TO %I",
+    [runtimeRole],
+  );
   for (const column of runtimeFinancialUpdateColumns) {
     await executeFormatted(
       client,
@@ -155,6 +173,20 @@ export async function provisionRuntimeTablePrivileges(
       "GRANT SELECT, INSERT, UPDATE ON TABLE %I TO %I",
       [table, runtimeRole],
     );
+  }
+  await executeFormatted(
+    client,
+    "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE shifts FROM %I",
+    [runtimeRole],
+  );
+  await executeFormatted(client, "GRANT SELECT, INSERT ON TABLE shifts TO %I", [
+    runtimeRole,
+  ]);
+  for (const column of runtimeShiftUpdateColumns) {
+    await executeFormatted(client, "GRANT UPDATE (%I) ON TABLE shifts TO %I", [
+      column,
+      runtimeRole,
+    ]);
   }
   for (const table of runtimeTrackingSessionTables) {
     await executeFormatted(client, "GRANT SELECT, INSERT ON TABLE %I TO %I", [

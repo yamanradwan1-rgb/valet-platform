@@ -6,7 +6,7 @@ import type {
 import { appendFinancialMutationAudit } from "./payment-mutation-audit";
 import { FinancialMutationError } from "./payment-mutation-errors";
 import { assertCollectionNotStarted } from "./payment-mutation-guards";
-import { formatMoney, parseMoney } from "./payment-money";
+import { formatMoney, parseCurrencyMoney } from "./payment-money";
 import {
   lockValidationHistory,
   projectMutation,
@@ -37,7 +37,9 @@ export async function mutateTip(
   const history = await lockValidationHistory(transaction, input.payment);
   const current = history.find((row) => row.isCurrent) ?? null;
   await assertCollectionNotStarted(transaction, input.payment);
-  const tipAmount = formatMoney(parseMoney(input.tipAmount));
+  const tipAmount = formatMoney(
+    parseCurrencyMoney(input.tipAmount, input.payment.currency),
+  );
   if (tipAmount === input.payment.tipAmount) {
     return projectMutation(input.payment, current);
   }
@@ -126,7 +128,9 @@ export async function correctServiceAmount(
   if (history.length > 0) {
     throw new FinancialMutationError("PRECOLLECTION_CORRECTION_NOT_ALLOWED");
   }
-  const serviceAmount = formatMoney(parseMoney(input.serviceAmount));
+  const serviceAmount = formatMoney(
+    parseCurrencyMoney(input.serviceAmount, input.payment.currency),
+  );
   if (serviceAmount === input.payment.serviceAmount) {
     return projectMutation(input.payment, null);
   }

@@ -1,6 +1,16 @@
 export const paymentOperationRoutes = [
   {
     method: "POST",
+    operation: "PAYMENT_CASH_RECEIVE",
+    path: /^\/v1\/staff\/valet-sessions\/[^/]+\/payment\/cash-receipt$/,
+  },
+  {
+    method: "POST",
+    operation: "PAYMENT_CASH_ADJUST",
+    path: /^\/v1\/staff\/valet-sessions\/[^/]+\/payment\/cash-adjustments$/,
+  },
+  {
+    method: "POST",
     operation: "PAYMENT_VALIDATION_MUTATE",
     path: /^\/v1\/staff\/valet-sessions\/[^/]+\/payment\/validation$/,
   },

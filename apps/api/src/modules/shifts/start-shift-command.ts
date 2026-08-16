@@ -40,7 +40,9 @@ async function loadActiveMembershipShift(
 ): Promise<PersistedShiftRow | undefined> {
   const result = await transaction.query<PersistedShiftRow>(
     `SELECT id::text, organization_id::text, location_id::text,
-            membership_id::text, status::text, started_at, ended_at
+            membership_id::text, status::text, started_at, ended_at,
+            cash_expected::text, cash_reported::text, cash_variance::text,
+            cash_currency, cash_reported_at
      FROM shifts
      WHERE membership_id = $1 AND status = 'ACTIVE'
      FOR UPDATE`,
@@ -71,7 +73,9 @@ async function createShift(
        (id, organization_id, location_id, membership_id, status, started_at)
      VALUES ($1, $2, $3, $4, 'ACTIVE', $5)
      RETURNING id::text, organization_id::text, location_id::text,
-               membership_id::text, status::text, started_at, ended_at`,
+               membership_id::text, status::text, started_at, ended_at,
+               cash_expected::text, cash_reported::text, cash_variance::text,
+               cash_currency, cash_reported_at`,
     [
       shiftId,
       scope.organizationId,

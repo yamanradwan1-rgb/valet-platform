@@ -7135,10 +7135,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all twenty-six forward-only migrations in order", () => {
+  it("applies exactly all twenty-seven forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260815002600_phase6_financial_policy_payment_core",
+      "20260816002700_phase6_cash_reconciliation",
     );
   });
 

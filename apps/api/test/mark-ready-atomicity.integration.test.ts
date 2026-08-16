@@ -73,6 +73,7 @@ describe("VAL-006E Mark Ready atomicity and concurrency", () => {
     const end = () =>
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: fixture.userId,
+        cashReported: "0",
         shiftId: shift.rows[0]!.id,
       });
     const results = await Promise.allSettled([

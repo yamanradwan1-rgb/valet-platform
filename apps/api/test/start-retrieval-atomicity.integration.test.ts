@@ -142,6 +142,7 @@ describe("VAL-006D atomic rollback and concurrency", () => {
     const end = () =>
       createEndShiftCommandExecutor(context.runtimePool)({
         authenticatedUserId: fixture.userId,
+        cashReported: "0",
         shiftId: shift.rows[0]!.id,
       });
     const results = await Promise.allSettled([

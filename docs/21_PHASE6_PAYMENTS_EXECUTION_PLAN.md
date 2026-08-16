@@ -41,7 +41,7 @@ This plan is reconciled against:
 - `docs/17_AGENT_CODE_STRUCTURE_RULES.md`;
 - `docs/19_PHASE4_RETRIEVAL_HANDOFF_EXECUTION_PLAN.md`;
 - `docs/20_PHASE5_MAPS_TRACKING_EXECUTION_PLAN.md`;
-- Accepted DEC-004, DEC-007, DEC-017, DEC-018, DEC-021, DEC-022 and DEC-043 where relevant.
+- Accepted DEC-004, DEC-007, DEC-017, DEC-018, DEC-021, DEC-022, DEC-043 and DEC-053 where relevant.
 
 Material behavior that remains unresolved is explicitly marked as a **REQUIRED DECISION GATE** below. This plan must not be used to silently invent those semantics.
 
@@ -168,7 +168,7 @@ Do not add payment/provider states to `ValetSession`, and do not use Payment sta
 - At most one canonical Payment exists per ValetSession.
 - Organization, Location and ValetSession ownership must be same-tenant and server-derived.
 - Location currency is authoritative and is snapshotted onto Payment so later configuration changes cannot alter historical meaning.
-- Money remains compatible with PostgreSQL `numeric(14,3)` storage. Currency minor-unit validation/quantization is command/provider-boundary behavior per DEC-022; silent material rounding is forbidden.
+- Money remains compatible with PostgreSQL `numeric(14,3)` storage. DEC-053 binds current Phase 6 monetary inputs to exact representability using the reviewed checked-in SIX/ISO 4217 minor-unit registry snapshot published `2026-01-01`; runtime locale/provider defaults, rounding, truncation and guessed exponents are forbidden, while unsupported or exponent-above-3 currencies fail closed.
 - `service_payer` is `CUSTOMER` or `VENUE` only.
 - One Payment has one collection method: `NONE`, `CASH` or `DIGITAL`.
 - Split tender, installments and multiple successful collections for one session remain out of MVP scope.
@@ -435,6 +435,22 @@ Purpose:
 
 Required gate: cash receipt authority, expected/reported model and post-close correction authority.
 
+Accepted DEC-052 binds VAL-008C to full server-derived cash receipt, append-only
+Location-Manager corrections, and an immutable typed Shift close snapshot of
+expected cash, reported cash, variance, Location currency, close time and the
+reporting membership. Employee/Supervisor receipt requires their own active
+same-Location Shift; Shift close retains the existing open-task guard and
+accepts only `cashReported`. Migration 27 is the only schema change for this
+slice. No drawer, ledger, Refund execution, provider, release guard or UI is
+introduced.
+
+Accepted DEC-053 remediates every current Phase 6 monetary input boundary with
+one deterministic checked-in ISO 4217/SIX minor-unit authority. Payment
+initialization, partial Validation, Manager/Guest tip, service-amount correction,
+cash adjustment and Shift `cashReported` reject non-representable or unsupported
+currency amounts before mutation. Server-derived financial arithmetic remains
+exact and migration count remains 27.
+
 ### VAL-008D — Provider-Neutral Digital Payment Boundary + Outbound Operation Identity
 
 Purpose:
@@ -577,11 +593,11 @@ Each task gets its own branch. The next branch stacks only after the previous ta
 
 ## Database and migration rules
 
-Current accepted baseline is exactly **25 forward-only migrations**.
+After VAL-008C, the accepted baseline is exactly **27 forward-only migrations**.
 
 VAL-008 changes no schema and adds no migration.
 
-Migrations 1–25 remain immutable. Never rewrite, renormalize or change their historical contents/hashes.
+Migrations 1–27 remain immutable. Never rewrite, renormalize or change their historical contents/hashes.
 
 Future Phase 6 tasks add a new migration only when a focused accepted invariant demonstrably cannot be represented safely by current persistence. A migration is not added merely to prepare for an unspecified provider.
 
