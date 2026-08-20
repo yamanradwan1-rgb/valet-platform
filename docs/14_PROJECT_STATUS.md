@@ -1,177 +1,144 @@
 # VAYLET — Current Project Status
 
 > Operational handoff snapshot only. This file is not a binding product/domain contract.
-> For current repository facts, GitHub wins. For accepted behavior, use the authority order in `AGENTS.md`, the Founder & Product Blueprint v1.0, binding docs and Accepted decisions.
+> For current repository facts, GitHub wins. For accepted behavior, use the authority order in `AGENTS.md`, the Founder & Product Blueprint v1.0, binding docs, and Accepted decisions.
 
 ## Last Verified
 
-- Date: `2026-08-15`
+- Date: `2026-08-21`
 - Repository: `veletpro0-lgtm/valet-platform`
-- Current merged `main` checkpoint: `ccd43a948c3dfe5cd2e4fdbe7bf096620e797985`
+- VAL-008H base: `bf4e7965770ec352be79776ae165fda7cb5637eb`
 - Completed product phases: **Phases 1–5 COMPLETE**
-- Phase 5 final slice: **VAL-007H — COMPLETE**
-- Phase 5 final PR: **#168 — MERGED**
-- Current planning task: **VAL-008 — Phase 6 Payments Core & Provider-Ready Execution Contract**
-- Current task issue: **#169**
-- Binding Phase 6 plan: `docs/21_PHASE6_PAYMENTS_EXECUTION_PLAN.md` on the VAL-008 task branch until merged
-- Database baseline: exactly **25 forward-only migrations**
-- Latest migration: `20260815002500_phase5_raw_gps_retention_cleanup`
-- Real digital payment provider: **NOT SELECTED / NOT ACTIVATED**
-- Phase 6 production implementation: **NOT STARTED**
+- Phase 6 provider-neutral Core A–H: **COMPLETE / LOCALLY VERIFIED**
+- Current checkpoint: **PHASE 6 CORE = PROVIDER_READY**
+- Real digital payment provider: **NOT YET ACTIVATED**
+- Digital Payments production/MVP completion: **NOT CLAIMED**
+- Database baseline: exactly **28 forward-only migrations**
+- Latest accepted migration: `20260816002800_phase6_payment_collection_operation`
+- Prisma schema: unchanged by VAL-008H
+- Next deferred payment task: **VAL-008I**, only after an explicit provider-selection gate
 
 ## Current Product Checkpoint
 
-The backend has completed the Foundation, Core Check-in, Operations, Retrieval and Maps/task-scoped tracking phases.
+The backend has completed the Foundation, Core Check-in, Operations, Retrieval,
+Maps/task-scoped tracking, and provider-neutral Phase 6 financial core.
 
-The next Blueprint phase is **Payments**.
+Phase 6 Core now composes and locally proves:
 
-Phase 6 starts from existing accepted financial persistence rather than from an empty schema. Current persistence already includes:
+- typed Company-default -> Location-override financial policy;
+- one canonical Payment projection per ValetSession;
+- CUSTOMER and VENUE service responsibility;
+- NONE, FULL, and PARTIAL Validation history;
+- guarded pre-collection corrections and tip freeze;
+- append-oriented cash receipts/corrections;
+- immutable Shift Cash Expected / Cash Reported reconciliation snapshots;
+- provider-neutral outbound collection identity and dispatch fencing;
+- authenticated normalized provider-event reconciliation;
+- cash and provider-neutral digital Refund core;
+- exact financial release guarding at the existing complete-handoff command;
+- Guest/staff-safe financial projections;
+- tenant/Location authorization, idempotency, concurrency, audit atomicity,
+  runtime-role least privilege, and sensitive-data boundaries.
+
+The successful checkpoint is exactly:
 
 ```text
-Payment
-Validation
-CashEntry
-PaymentProviderEvent
-Refund
+PHASE 6 CORE = PROVIDER_READY
+REAL DIGITAL PROVIDER = NOT YET ACTIVATED
 ```
 
-The production payments module is still effectively a placeholder boundary; the financial domain commands and API workflows are not yet implemented.
+This means VAYLET's financial core is ready for a selected provider adapter. It
+does not mean a real card, wallet, 3DS, callback, settlement, or digital-refund
+network flow is active in production.
 
 ## Phase 6 Sequencing
 
-The Project Owner approved a provider-ready sequencing strategy:
-
-1. finish the provider-neutral VAYLET financial core;
-2. reach a clearly named `PHASE 6 CORE = PROVIDER_READY` checkpoint;
-3. select/activate the real first-market provider later;
-4. run the real provider checkout/callback/refund/security gate before claiming digital-payments MVP completion.
-
-This sequencing does not remove the Blueprint requirement for at least one real digital gateway before Payments are production-complete for the sellable MVP.
-
-No provider is currently Accepted. Jordan research may inform a later provider decision, but APS, HyperPay, MEPS and other candidates are not authorized as production integrations by VAL-008.
-
-## Phase 6 Task Plan
+Completed provider-neutral core:
 
 ```text
-Batch 1
-VAL-008   Phase 6 Payments Core & Provider-Ready Execution Contract
 VAL-008A  Effective Financial Policy + Payment Core
 VAL-008B  Validation + Tips + Guarded Pre-collection Corrections
-
-Batch 2
 VAL-008C  Cash Collection + Cash Reconciliation MVP Boundary
-VAL-008D  Provider-Neutral Digital Payment Boundary + Outbound Operation Identity
+VAL-008D  Provider-Neutral Digital Boundary + Outbound Operation Identity
 VAL-008E  Provider Event / Normalization / Reconciliation Foundation
-
-Batch 3
 VAL-008F  Refund Core
-VAL-008G  Financial Handoff/Release Guard + Safe Financial Projections
+VAL-008G  Financial Release Guard + Safe Financial Projections
 VAL-008H  Phase 6 Core API / Integration / E2E / Security Gate
+```
 
-Deferred provider batch
+Deferred real-provider completion:
+
+```text
 VAL-008I  Selected Provider Activation / Hosted or Tokenized Checkout
 VAL-008J  Real Provider Callbacks, Settlement/Failure & Digital Refund Wiring
 VAL-008K  Real Digital Provider E2E / Security / Production Gate
 ```
 
-VAL-008H may establish only:
+VAL-008I must not begin until the Project Owner explicitly approves the
+provider-selection gate. No provider is selected or activated by Core A–H.
 
-```text
-PHASE 6 CORE = PROVIDER_READY
-```
-
-Only successful VAL-008K with a selected real provider may establish:
+Only successful VAL-008K may establish:
 
 ```text
 PHASE 6 DIGITAL PAYMENTS = MVP / PRODUCTION COMPLETE
 ```
 
-## Binding Financial Foundation
-
-Key accepted repository contracts already include:
-
-- Payment lifecycle remains separate from the ValetSession physical state machine;
-- at most one Payment per ValetSession;
-- service payer `CUSTOMER | VENUE`;
-- collection method `NONE | CASH | DIGITAL`;
-- Payment status `NOT_REQUIRED | UNPAID | PENDING | PAID | FAILED`;
-- Validation `NONE | FULL | PARTIAL` for Customer-responsibility semantics;
-- tip stored on Payment rather than a payroll/allocation subsystem;
-- append-oriented CashEntry history;
-- provider-event callback deduplication foundation;
-- separate Refund lifecycle;
-- ordinary `VALET_EMPLOYEE` cannot refund;
-- Location currency is authoritative and snapshotted onto Payment;
-- provider integrations remain behind adapters;
-- final financial release policy, when implemented, composes at the existing protected final `complete-handoff` boundary rather than creating a second handoff state machine.
-
-Exact Phase 6 command authorization/policy fields that are not already Accepted remain focused decision gates in `docs/21_PHASE6_PAYMENTS_EXECUTION_PLAN.md`.
-
 ## Database / Migration Baseline
 
-Exactly **25 forward-only migrations** are present.
+Exactly **28 forward-only migrations** are present. Migrations 1–28 are
+immutable.
 
-Financial foundation migrations include:
-
-```text
-10  20260809001000_payment_validation_tip_foundation
-11  20260809001100_cash_entry_provider_event_foundation
-12  20260809001200_refund_foundation
-```
-
-The current latest migration is:
+The latest accepted migration is:
 
 ```text
-25  20260815002500_phase5_raw_gps_retention_cleanup
+28  20260816002800_phase6_payment_collection_operation
 ```
 
-Migrations 1–25 are immutable. Never rewrite, renormalize or change historical migration hashes/line endings.
+VAL-008H adds no schema, migration, runtime privilege, dependency, lockfile, or
+provider-specific persistence change.
 
-VAL-008 is documentation only and adds no migration.
+## Current Security Boundary
 
-A later Phase 6 task may add a new forward-only migration only when a concrete Accepted invariant cannot safely be represented by current persistence.
+The provider-neutral core preserves:
 
-## Current Security / Privacy Boundary
+- server-derived tenant, exact Location, actor, money, currency, provider, and
+  historical correlation authority;
+- non-disclosing cross-tenant and wrong-Location failures;
+- append-oriented financial history and same-transaction AuditEvents;
+- retry/concurrency protection for cash, outbound collection, provider events,
+  Refunds, and final release;
+- an unconfigured fail-closed production provider registry;
+- no raw PAN/CVV, provider secrets, Authorization material, or raw callback
+  payload in financial persistence, AuditEvent metadata, safe errors, or client
+  projections;
+- least-privilege runtime database access with no broad financial mutation,
+  delete, truncate, ownership, DDL, or SECURITY DEFINER bypass added by VAL-008H.
 
-Phase 6 must continue to preserve:
-
-- persisted tenant and exact Location authority;
-- server-derived financial ownership and actor authority;
-- non-disclosing cross-tenant/cross-Location failures;
-- append/audit behavior for sensitive financial changes;
-- retry/concurrency safety for money-moving operations;
-- no raw PAN/CVV or provider secrets in normal persistence, AuditEvent, logs, errors or client responses;
-- Guest access limited to the financial projection for the Guest's own authorized session;
-- provider-specific statuses/SDK objects isolated from the core financial domain.
-
-The exact selected-provider PCI/security contract remains deferred until real provider activation.
+Real-provider signature algorithms, merchant/acquirer onboarding, credentials,
+hosted/tokenized checkout, callback routes, provider status mapping, settlement,
+wallet/3DS behavior, and outbound digital Refund execution remain VAL-008I/J/K.
 
 ## Still Deferred / Not Claimed
 
 The project does **not** currently claim:
 
-- production Payment/Validation/Cash/Refund command APIs;
-- cash reconciliation runtime behavior;
-- provider-neutral digital initiation/runtime adapter implementation;
-- a selected or activated real digital provider;
-- real hosted checkout / 3DS / wallet payment flow;
-- real provider callback verification/reconciliation;
-- real digital refund execution;
-- Phase 6 provider-ready E2E/security completion;
-- Phase 7 full Dashboard implementation;
-- Reliability/offline sync framework;
+- a selected or activated production digital provider;
+- real hosted/tokenized checkout or 3DS/wallet payment;
+- real provider callback or status-reconciliation wiring;
+- real digital Refund network execution;
+- digital Payments MVP/production completion;
+- full Dashboard implementation;
+- Reliability/offline synchronization framework;
 - Venue Client persistence;
 - POS/PMS integration;
-- payment orchestration/multiple live gateways;
-- accounting ledger/venue settlement/tip payroll;
+- payment orchestration across multiple live gateways;
+- accounting ledger, venue settlement, or tip payroll;
+- chargeback management platform;
 - V2/Enterprise payment intelligence.
 
 ## Exact Next Step
 
-Complete and independently review **VAL-008** documentation on:
-
-```text
-feat/VAL-008-phase6-payments-contract
-```
-
-After VAL-008 is approved for stack, create **VAL-008A — Effective Financial Policy + Payment Core** from the approved VAL-008 branch under the normal three-task batch workflow.
+The next payment task is **VAL-008I**, but only after explicit provider
+selection and approval. Dashboard remains the next normal Blueprint product
+phase after Payments; however, VAL-008I/J/K remain mandatory before Phase 6
+Digital Payments can be called MVP/production complete.
