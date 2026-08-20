@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
+  Param,
   Patch,
   Query,
   Req,
@@ -30,8 +32,14 @@ import {
   TrustedClientAddressResolver,
 } from "../anti-abuse/client-address";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
-import { guestPaymentHttpProjection, parsePaymentBody } from "./payment-http";
+import {
+  guestPaymentHttpProjection,
+  guestPaymentProjectionHttp,
+  parsePaymentBody,
+  parsePaymentUuid,
+} from "./payment-http";
 import { PaymentMutationService } from "./payment-mutation.service";
+import { PaymentProjectionService } from "./payment-projection.service";
 
 const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
 
@@ -49,16 +57,17 @@ function guestBearer(
   return bearerPattern.exec(authorization ?? "")?.[1];
 }
 
-@Controller("v1/guest/payment")
+@Controller("v1/guest")
 export class GuestPaymentController {
   constructor(
     private readonly service: PaymentMutationService,
+    private readonly projections: PaymentProjectionService,
     private readonly runner: ApiOperationRunner,
     private readonly antiAbuse: AntiAbuseService,
     private readonly clientAddresses: TrustedClientAddressResolver,
   ) {}
 
-  @Patch("tip")
+  @Patch("payment/tip")
   tip(
     @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
@@ -81,6 +90,35 @@ export class GuestPaymentController {
         ),
       );
     });
+  }
+
+  @Get("valet-sessions/:sessionId/payment")
+  payment(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("sessionId") sessionId: string,
+    @Query() query: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    setNoStoreResponseHeaders(response);
+    return this.runner.run(
+      "PAYMENT_GUEST_PROJECTION_READ",
+      request,
+      async () => {
+        if (!emptyRequestSchema.safeParse(query ?? {}).success) {
+          throw new ApiTransportValidationError();
+        }
+        const targetSessionId = parsePaymentUuid(sessionId);
+        return guestPaymentProjectionHttp(
+          await this.authorizeGuestOperation(
+            request,
+            authorization,
+            (reservation, rawToken) =>
+              this.projections.guest(reservation, rawToken, targetSessionId),
+          ),
+        );
+      },
+    );
   }
 
   private async authorizeGuestOperation<T>(

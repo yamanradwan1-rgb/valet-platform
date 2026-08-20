@@ -101,6 +101,65 @@ export const guestPaymentMutationResponseSchema = z
   })
   .strict();
 
+const projectionValidationSchema = z
+  .object({
+    amount: paymentMoneySchema,
+    mode: z.enum(["NONE", "FULL", "PARTIAL"]),
+  })
+  .strict();
+
+const guestProjectionPaymentSchema = z
+  .object({
+    amountDue: paymentMoneySchema,
+    amountPaid: paymentMoneySchema,
+    collectionMethod: z.enum(["NONE", "CASH", "DIGITAL"]),
+    currency: z.string().regex(/^[A-Z]{3}$/),
+    currentValidation: projectionValidationSchema.nullable(),
+    paidAt: z.string().datetime({ offset: true }).nullable(),
+    serviceAmount: paymentMoneySchema,
+    servicePayer: z.enum(["CUSTOMER", "VENUE"]),
+    status: z.enum(["NOT_REQUIRED", "UNPAID", "PENDING", "PAID", "FAILED"]),
+    tipAmount: paymentMoneySchema,
+  })
+  .strict();
+
+const guestProjectionRefundSchema = z
+  .object({
+    amount: paymentMoneySchema,
+    completedAt: z.string().datetime({ offset: true }).nullable(),
+    requestedAt: z.string().datetime({ offset: true }),
+    status: z.enum(["PENDING", "SUCCEEDED", "FAILED"]),
+  })
+  .strict();
+
+export const guestPaymentProjectionResponseSchema = z
+  .object({
+    payment: guestProjectionPaymentSchema.nullable(),
+    refunds: z.array(guestProjectionRefundSchema),
+    releaseRequiresPayment: z.boolean(),
+    releaseSatisfied: z.boolean(),
+  })
+  .strict();
+
+export const staffPaymentProjectionResponseSchema = z
+  .object({
+    payment: guestProjectionPaymentSchema
+      .extend({
+        paymentId: z.string().uuid(),
+        updatedAt: z.string().datetime({ offset: true }),
+      })
+      .strict()
+      .nullable(),
+    refunds: z.array(
+      guestProjectionRefundSchema
+        .extend({ refundId: z.string().uuid() })
+        .strict(),
+    ),
+    releaseRequiresPayment: z.boolean(),
+    releaseSatisfied: z.boolean(),
+  })
+  .strict();
+
 export const cashMutationResponseSchema = z
   .object({
     amountDue: paymentMoneySchema,
@@ -141,4 +200,10 @@ export type PaymentMutationResponse = z.infer<
 >;
 export type GuestPaymentMutationResponse = z.infer<
   typeof guestPaymentMutationResponseSchema
+>;
+export type GuestPaymentProjectionResponse = z.infer<
+  typeof guestPaymentProjectionResponseSchema
+>;
+export type StaffPaymentProjectionResponse = z.infer<
+  typeof staffPaymentProjectionResponseSchema
 >;

@@ -151,4 +151,31 @@ describe("VAL-006G complete handoff API", () => {
       /hash|verifier|pickup.?code|qr.?payload|expired|policy/i,
     );
   });
+
+  it("maps an unsatisfied financial release to the stable generic conflict", async () => {
+    const fixture = await context.prepareStandard("PICKUP_CODE");
+    await context.adminPool.query(
+      `UPDATE organizations SET release_requires_payment = true WHERE id = $1`,
+      [fixture.organizationId],
+    );
+    const before = await context.releaseEffects(fixture);
+    const token = `complete-${randomUUID()}`;
+    principals.set(`Bearer ${token}`, fixture.userId);
+    const response = await post(
+      fixture.sessionId,
+      { expectedSessionVersion: 9 },
+      token,
+    );
+    expect(response).toMatchObject({
+      body: {
+        code: "FINANCIAL_RELEASE_NOT_SATISFIED",
+        message: "The financial release requirement is not satisfied.",
+      },
+      status: 409,
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(
+      /amount|method|paid|payment|provider|refund|status/i,
+    );
+    expect(await context.releaseEffects(fixture)).toEqual(before);
+  });
 });

@@ -5,6 +5,7 @@ import {
   loadDispatchOperationTime,
 } from "../dispatch/dispatch-transaction";
 import { recordKeyReleased } from "../keys/parking-key-custody";
+import { assertFinancialReleaseSatisfied } from "../payments/financial-release-guard";
 import { appendCompleteHandoffAudit } from "./complete-handoff-audit";
 import { CompleteHandoffError } from "./complete-handoff-errors";
 import { assertCompleteHandoffLifecycle } from "./complete-handoff-guards";
@@ -69,6 +70,7 @@ export function createCompleteHandoffExecutor(
         input.expectedSessionVersion,
       );
       const operationTime = await loadDispatchOperationTime(transaction);
+      await assertFinancialReleaseSatisfied(transaction, session);
       const verification = await lockReleaseEligibleHandoffVerification(
         transaction,
         session,

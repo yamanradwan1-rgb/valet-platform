@@ -59,6 +59,7 @@ const statusByCode: Readonly<Record<string, number>> = {
   LOCATION_ACCESS_DENIED: HttpStatus.NOT_FOUND,
   MAP_SETUP_CONFLICT: HttpStatus.CONFLICT,
   DIGITAL_PAYMENT_PROVIDER_UNAVAILABLE: HttpStatus.CONFLICT,
+  FINANCIAL_RELEASE_NOT_SATISFIED: HttpStatus.CONFLICT,
   PAYMENT_AMOUNT_INVALID: HttpStatus.BAD_REQUEST,
   PAYMENT_NOT_AVAILABLE: HttpStatus.CONFLICT,
   PAYMENT_TIPS_DISABLED: HttpStatus.CONFLICT,
@@ -101,6 +102,8 @@ const safeMessages: Readonly<Record<string, string>> = {
   AUTHORIZATION_DENIED: "The requested resource is not available.",
   GUEST_ACCESS_INVALID: "Guest access is invalid.",
   GUEST_ACCESS_RATE_LIMITED: "Too many requests. Try again later.",
+  FINANCIAL_RELEASE_NOT_SATISFIED:
+    "The financial release requirement is not satisfied.",
   HANDOFF_SECURITY_UNAVAILABLE: "Service temporarily unavailable.",
   HANDOFF_VERIFICATION_FAILED: "Handoff verification failed.",
   HANDOFF_VERIFICATION_RATE_LIMITED: "Too many requests. Try again later.",

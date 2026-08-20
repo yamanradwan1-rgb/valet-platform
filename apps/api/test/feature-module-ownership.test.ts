@@ -46,6 +46,7 @@ import {
   UnconfiguredDigitalPaymentProviderRegistry,
 } from "../src/modules/payments/digital-payment-provider";
 import { PaymentMutationService } from "../src/modules/payments/payment-mutation.service";
+import { PaymentProjectionService } from "../src/modules/payments/payment-projection.service";
 import { RefundService } from "../src/modules/payments/refund.service";
 import { PaymentsModule } from "../src/modules/payments/payments.module";
 import { GuestPaymentController } from "../src/modules/payments/guest-payment.controller";
@@ -95,7 +96,7 @@ describe("accepted feature module ownership", () => {
     ]);
   });
 
-  it("owns only the accepted narrow Payment mutation surfaces", () => {
+  it("owns only the accepted narrow Payment mutation and projection surfaces", () => {
     expect(metadata(PaymentsModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffPaymentController,
       GuestPaymentController,
@@ -109,6 +110,7 @@ describe("accepted feature module ownership", () => {
       },
       PaymentInitializationService,
       PaymentMutationService,
+      PaymentProjectionService,
       RefundService,
     ]);
     expect(metadata(PaymentsModule, MODULE_METADATA.EXPORTS)).toEqual([

@@ -2,8 +2,10 @@ import { UnauthorizedException } from "@nestjs/common";
 import {
   cashMutationResponseSchema,
   guestPaymentMutationResponseSchema,
+  guestPaymentProjectionResponseSchema,
   paymentMutationResponseSchema,
   refundResponseSchema,
+  staffPaymentProjectionResponseSchema,
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
@@ -11,6 +13,7 @@ import type { ApiRequest } from "../../common/http/api-request";
 import type { StaffPrincipalResolver } from "../auth/staff-principal";
 import type { CashMutationProjection } from "./cash-types";
 import type { PaymentMutationProjection } from "./payment-mutation-types";
+import type { SafePaymentProjection } from "./payment-projection-types";
 import type { RefundProjection } from "./refund-types";
 
 interface Schema<T> {
@@ -92,5 +95,58 @@ export function refundHttpProjection(projection: RefundProjection) {
     refundId: projection.id,
     requestedAt: projection.requestedAt.toISOString(),
     status: projection.status,
+  });
+}
+
+function sharedSafeProjection(projection: SafePaymentProjection) {
+  return {
+    payment:
+      projection.payment === null
+        ? null
+        : {
+            amountDue: projection.payment.amountDue,
+            amountPaid: projection.payment.amountPaid,
+            collectionMethod: projection.payment.collectionMethod,
+            currency: projection.payment.currency,
+            currentValidation: projection.payment.currentValidation,
+            paidAt: projection.payment.paidAt?.toISOString() ?? null,
+            serviceAmount: projection.payment.serviceAmount,
+            servicePayer: projection.payment.servicePayer,
+            status: projection.payment.status,
+            tipAmount: projection.payment.tipAmount,
+          },
+    refunds: projection.refunds.map((refund) => ({
+      amount: refund.amount,
+      completedAt: refund.completedAt?.toISOString() ?? null,
+      requestedAt: refund.requestedAt.toISOString(),
+      status: refund.status,
+    })),
+    releaseRequiresPayment: projection.releaseRequiresPayment,
+    releaseSatisfied: projection.releaseSatisfied,
+  };
+}
+
+export function guestPaymentProjectionHttp(projection: SafePaymentProjection) {
+  return guestPaymentProjectionResponseSchema.parse(
+    sharedSafeProjection(projection),
+  );
+}
+
+export function staffPaymentProjectionHttp(projection: SafePaymentProjection) {
+  const shared = sharedSafeProjection(projection);
+  return staffPaymentProjectionResponseSchema.parse({
+    ...shared,
+    payment:
+      shared.payment === null || projection.payment === null
+        ? null
+        : {
+            ...shared.payment,
+            paymentId: projection.payment.paymentId,
+            updatedAt: projection.payment.updatedAt.toISOString(),
+          },
+    refunds: shared.refunds.map((refund, index) => ({
+      ...refund,
+      refundId: projection.refunds[index]!.refundId,
+    })),
   });
 }

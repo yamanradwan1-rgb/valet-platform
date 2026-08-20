@@ -2923,3 +2923,30 @@ migration change is required; migration count remains 28.
 
 Full binding contract:
 `docs/decisions/DEC-056_PHASE6_REFUND_AUTHORITY_AND_CORE.md`
+
+---
+
+## DEC-057 — Phase 6 Financial Release Guard & Safe Projections
+
+Status: Accepted
+Date: 2026-08-20
+
+Decision:
+VAL-008G evaluates the current Company-default/Location-override
+`release_requires_payment` policy inside the existing complete-handoff
+transaction before any terminal write. When required, release is satisfied only
+by the exact canonical Payment `NOT_REQUIRED` zero-due projection or a coherent,
+fully collected `PAID` CASH/DIGITAL projection. Missing or incoherent Payment
+state fails closed with `FINANCIAL_RELEASE_NOT_SATISFIED`; Refund state never
+changes the predicate.
+
+Read-only Guest and staff session-Payment routes expose narrow purpose-specific
+projections. Guest access remains bearer-owned, exact-session, anti-abuse, and
+no-store. Staff access permits Location Manager without a Shift and Employee or
+Supervisor only with their own active exact-Location Shift; ORG_ADMIN is denied.
+Provider, correlation, reason, authorizer, idempotency, operation/event, tenant,
+and audit internals remain private. No schema, migration, privilege, dependency,
+or lockfile change is required; migration count remains 28.
+
+Full binding contract:
+`docs/decisions/DEC-057_PHASE6_FINANCIAL_RELEASE_AND_PROJECTIONS.md`

@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   Inject,
   Param,
   Patch,
   Post,
+  Query,
   Req,
 } from "@nestjs/common";
 import {
@@ -17,6 +19,7 @@ import {
   paymentTipMutationRequestSchema,
   refundRequestSchema,
   validationMutationRequestSchema,
+  emptyRequestSchema,
 } from "@valet/contracts";
 
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
@@ -30,23 +33,49 @@ import {
   parsePaymentBody,
   parsePaymentUuid,
   paymentHttpProjection,
+  staffPaymentProjectionHttp,
   refundHttpProjection,
   resolvePaymentStaffPrincipal,
 } from "./payment-http";
 import { CashMutationService } from "./cash-mutation.service";
 import { PaymentMutationService } from "./payment-mutation.service";
+import { PaymentProjectionService } from "./payment-projection.service";
 import { RefundService } from "./refund.service";
 
 @Controller("v1/staff/valet-sessions/:sessionId/payment")
 export class StaffPaymentController {
   constructor(
     private readonly service: PaymentMutationService,
+    private readonly projections: PaymentProjectionService,
     private readonly cash: CashMutationService,
     private readonly refunds: RefundService,
     private readonly runner: ApiOperationRunner,
     @Inject(STAFF_PRINCIPAL_RESOLVER)
     private readonly principals: StaffPrincipalResolver,
   ) {}
+
+  @Get()
+  payment(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("sessionId") sessionId: string,
+    @Query() query: unknown,
+  ) {
+    return this.runner.run(
+      "PAYMENT_STAFF_PROJECTION_READ",
+      request,
+      async () => {
+        parsePaymentBody(emptyRequestSchema, query ?? {});
+        const scope = await this.scope(request, authorization, sessionId);
+        return staffPaymentProjectionHttp(
+          await this.projections.staff(
+            scope.authenticatedUserId,
+            scope.valetSessionId,
+          ),
+        );
+      },
+    );
+  }
 
   @HttpCode(200)
   @Post("refunds")
