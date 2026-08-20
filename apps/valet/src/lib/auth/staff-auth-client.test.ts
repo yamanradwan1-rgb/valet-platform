@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { EmployeeApiError } from "../api/employee-api-errors";
 import { StaffAuthClient } from "./staff-auth-client";
 
 const VALID_MOCK_TOKEN_1 = "vsa1.0123456789012345678901234567890123456789012";
@@ -77,7 +78,6 @@ describe("StaffAuthClient", () => {
 
     globalThis.fetch = vi.fn().mockImplementation(async () => {
       fetchCount++;
-      // Add slight delay to test concurrency
       await new Promise((r) => setTimeout(r, 20));
       return new Response(
         JSON.stringify({
@@ -105,6 +105,52 @@ describe("StaffAuthClient", () => {
     expect(client.getAccessToken()).toBe(VALID_MOCK_TOKEN_2);
   });
 
+  it("ensures one caller abort does not abort shared underlying refresh for concurrent callers", async () => {
+    let fetchCount = 0;
+
+    globalThis.fetch = vi.fn().mockImplementation(async () => {
+      fetchCount++;
+      // Delay response to allow aborting caller A while in-flight
+      await new Promise((r) => setTimeout(r, 40));
+      return new Response(
+        JSON.stringify({
+          accessToken: VALID_MOCK_TOKEN_2,
+          tokenType: "Bearer",
+          accessExpiresAt: "2026-08-21T04:00:00.000Z",
+          sessionExpiresAt: "2026-09-20T04:00:00.000Z",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    });
+
+    const client = new StaffAuthClient();
+    const abortControllerA = new AbortController();
+
+    // Caller A starts refresh with an AbortSignal
+    const promiseA = client.refresh(abortControllerA.signal);
+
+    // Caller B requests refresh while A is in-flight without aborting
+    const promiseB = client.refresh();
+
+    // Abort caller A while refresh is in-flight
+    setTimeout(() => {
+      abortControllerA.abort();
+    }, 10);
+
+    // Caller A should reject with abort error
+    await expect(promiseA).rejects.toThrow();
+
+    // Caller B should succeed with the refreshed tokens
+    const resultB = await promiseB;
+    expect(resultB.accessToken).toBe(VALID_MOCK_TOKEN_2);
+
+    // Only one network request occurred
+    expect(fetchCount).toBe(1);
+
+    // Shared in-memory session was updated successfully
+    expect(client.getAccessToken()).toBe(VALID_MOCK_TOKEN_2);
+  });
+
   it("clears in-memory session on refresh failure without throwing unhandled crash", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(
@@ -125,7 +171,7 @@ describe("StaffAuthClient", () => {
     expect(client.getSession()).toBeNull();
   });
 
-  it("clears in-memory token and sends credentials on logout", async () => {
+  it("handles 204 logout successfully and removes local in-memory session", async () => {
     let capturedUrl = "";
     let capturedInit: RequestInit | undefined;
 
@@ -138,6 +184,33 @@ describe("StaffAuthClient", () => {
       });
 
     const client = new StaffAuthClient();
+    // Seed in-memory token
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          accessToken: VALID_MOCK_TOKEN_1,
+          tokenType: "Bearer",
+          accessExpiresAt: "2026-08-21T03:00:00.000Z",
+          sessionExpiresAt: "2026-09-20T03:00:00.000Z",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    await client.login({
+      email: "valet@example.com",
+      password: "Password123!",
+    });
+    expect(client.getAccessToken()).toBe(VALID_MOCK_TOKEN_1);
+
+    // Perform 204 logout
+    globalThis.fetch = vi
+      .fn()
+      .mockImplementation(async (url: string, init: RequestInit) => {
+        capturedUrl = url;
+        capturedInit = init;
+        return new Response(null, { status: 204 });
+      });
+
     await client.logout();
 
     expect(capturedUrl).toBe("/v1/staff/auth/logout");
@@ -145,5 +218,79 @@ describe("StaffAuthClient", () => {
     expect(capturedInit?.credentials).toBe("include");
     expect(capturedInit?.body).toBe("{}");
     expect(client.getAccessToken()).toBeNull();
+    expect(client.getSession()).toBeNull();
+  });
+
+  it("surfaces 500 server logout failure as EmployeeApiError while still clearing local session", async () => {
+    const client = new StaffAuthClient();
+
+    // Seed session
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          accessToken: VALID_MOCK_TOKEN_1,
+          tokenType: "Bearer",
+          accessExpiresAt: "2026-08-21T03:00:00.000Z",
+          sessionExpiresAt: "2026-09-20T03:00:00.000Z",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    await client.login({
+      email: "valet@example.com",
+      password: "Password123!",
+    });
+    expect(client.getAccessToken()).toBe(VALID_MOCK_TOKEN_1);
+
+    // Mock 500 server error on logout
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database connection failed during session revocation.",
+          requestId: "req_logout_500",
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    await expect(client.logout()).rejects.toThrow(EmployeeApiError);
+
+    // Security invariant: Local session MUST still be cleared after logout attempt
+    expect(client.getAccessToken()).toBeNull();
+    expect(client.getSession()).toBeNull();
+  });
+
+  it("surfaces network failure during logout as EmployeeApiError while still clearing local session", async () => {
+    const client = new StaffAuthClient();
+
+    // Seed session
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          accessToken: VALID_MOCK_TOKEN_1,
+          tokenType: "Bearer",
+          accessExpiresAt: "2026-08-21T03:00:00.000Z",
+          sessionExpiresAt: "2026-09-20T03:00:00.000Z",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    await client.login({
+      email: "valet@example.com",
+      password: "Password123!",
+    });
+    expect(client.getAccessToken()).toBe(VALID_MOCK_TOKEN_1);
+
+    // Mock network failure on logout
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValue(new TypeError("Failed to fetch"));
+
+    await expect(client.logout()).rejects.toThrow(EmployeeApiError);
+
+    // Security invariant: Local session MUST still be cleared after logout attempt
+    expect(client.getAccessToken()).toBeNull();
+    expect(client.getSession()).toBeNull();
   });
 });

@@ -105,20 +105,48 @@ export class StaffAuthClient {
   async refresh(
     signal?: AbortSignal | undefined,
   ): Promise<StaffAuthAccessResponse> {
-    if (this.refreshPromise !== null) {
-      return this.refreshPromise;
+    if (signal?.aborted) {
+      throw (
+        signal.reason ??
+        new DOMException("The operation was aborted.", "AbortError")
+      );
     }
 
-    this.refreshPromise = this.performRefresh(signal).finally(() => {
-      this.refreshPromise = null;
-    });
+    if (this.refreshPromise === null) {
+      this.refreshPromise = this.performRefresh().finally(() => {
+        this.refreshPromise = null;
+      });
+    }
 
-    return this.refreshPromise;
+    const activeRefresh = this.refreshPromise;
+
+    if (!signal) {
+      return activeRefresh;
+    }
+
+    return new Promise<StaffAuthAccessResponse>((resolve, reject) => {
+      const onAbort = () => {
+        reject(
+          signal.reason ??
+            new DOMException("The operation was aborted.", "AbortError"),
+        );
+      };
+
+      signal.addEventListener("abort", onAbort, { once: true });
+
+      activeRefresh
+        .then((result) => {
+          signal.removeEventListener("abort", onAbort);
+          resolve(result);
+        })
+        .catch((error) => {
+          signal.removeEventListener("abort", onAbort);
+          reject(error);
+        });
+    });
   }
 
-  private async performRefresh(
-    signal?: AbortSignal | undefined,
-  ): Promise<StaffAuthAccessResponse> {
+  private async performRefresh(): Promise<StaffAuthAccessResponse> {
     const url = `${this.baseUrl}/v1/staff/auth/refresh`;
 
     const fetchInit: RequestInit = {
@@ -131,9 +159,6 @@ export class StaffAuthClient {
       credentials: "include",
       cache: "no-store",
     };
-    if (signal !== undefined) {
-      fetchInit.signal = signal;
-    }
 
     const response = await this.executeFetch(url, fetchInit);
     const payload = await this.parseJsonPayload(response);
@@ -186,7 +211,15 @@ export class StaffAuthClient {
     }
 
     try {
-      await this.executeFetch(url, fetchInit);
+      const response = await this.executeFetch(url, fetchInit);
+      if (!response.ok) {
+        const payload = await this.parseJsonPayload(response);
+        throw normalizeEmployeeApiError(
+          response.status,
+          payload,
+          "Staff logout failed.",
+        );
+      }
     } finally {
       this.setSession(null);
     }
