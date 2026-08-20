@@ -1,4 +1,7 @@
+import { paymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
+
 const tablePrivileges = [
+  ...paymentCollectionPrivileges.table,
   ["public.users", "SELECT", true],
   ["public.users", "INSERT", false],
   ["public.users", "DELETE", false],
@@ -103,6 +106,7 @@ const tablePrivileges = [
 ];
 
 const columnPrivileges = [
+  ...paymentCollectionPrivileges.column,
   ["public.users", "password_hash", false],
   ["public.users", "status", false],
   ["public.users", "last_login_at", true],
@@ -145,6 +149,7 @@ const columnPrivileges = [
 ];
 
 const anyColumnPrivileges = [
+  ...paymentCollectionPrivileges.anyColumn,
   ["public.users", "INSERT", false],
   ["public.organization_memberships", "INSERT", false],
   ["public.membership_location_access", "INSERT", false],

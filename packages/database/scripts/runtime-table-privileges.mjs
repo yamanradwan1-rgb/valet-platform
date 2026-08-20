@@ -1,3 +1,5 @@
+import { provisionPaymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
+
 const runtimeReadOnlyTables = [
   "organizations",
   "locations",
@@ -226,4 +228,9 @@ export async function provisionRuntimeTablePrivileges(
       runtimeRole,
     ]);
   }
+  await provisionPaymentCollectionPrivileges(
+    client,
+    executeFormatted,
+    runtimeRole,
+  );
 }

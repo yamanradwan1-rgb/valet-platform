@@ -2834,3 +2834,34 @@ VAYLET is designed for Location-owned currency and multi-country operation, so a
 - `apps/api/src/modules/shifts/**`
 - `packages/contracts/**` as needed for shared contracts/tests
 - focused Phase 6 Payment/Validation/tip/cash/Shift tests
+
+---
+
+## DEC-054 — Phase 6 Outbound Collection Operation Identity
+
+Status: Accepted
+Date: 2026-08-20
+
+Decision:
+VAL-008D adds the focused `PaymentCollectionOperation` child of canonical
+Payment because Payment creation identity and committed inbound provider-event
+deduplication cannot represent durable pre-dispatch intent, dispatch ownership,
+timeout/crash ambiguity, historical provider binding, or multiple terminal
+operation histories.
+
+The model separates Organization-scoped caller `submissionIdempotencyKey` from
+server-generated durable `operationId`. Its exact lifecycle is `PREPARED`,
+`OUTCOME_UNKNOWN`, `REFERENCE_ATTACHED`, `REJECTED`, and `RESOLVED`. A committed
+Organization-scoped PREPARED-to-OUTCOME_UNKNOWN compare-and-set plus atomic
+AuditEvent grants exactly one dispatch owner; provider I/O occurs only after
+commit and no ambiguous outcome is blindly retried.
+
+Migration 28 adds same-Organization Payment ownership, scoped submission and
+provider-reference uniqueness, one-unresolved-operation-per-Payment protection,
+exact state/data checks, and column-scoped runtime update authority. PREPARED
+starts permanent financial freeze evidence, initiation never marks Payment
+PAID, persisted provider identity is historical authority, and no real provider,
+checkout route, callback/reconciliation, refund, or release behavior is added.
+
+Full binding contract:
+`docs/decisions/DEC-054_PHASE6_OUTBOUND_COLLECTION_OPERATION_IDENTITY.md`

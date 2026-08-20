@@ -117,6 +117,9 @@ export async function hasCollectionEvidence(
      ) OR EXISTS (
        SELECT 1 FROM payment_provider_events
        WHERE organization_id = $1 AND payment_id = $2
+     ) OR EXISTS (
+       SELECT 1 FROM payment_collection_operations
+       WHERE organization_id = $1 AND payment_id = $2
      ) AS present`,
     [payment.organizationId, payment.id],
   );
