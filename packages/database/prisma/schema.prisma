@@ -228,6 +228,16 @@ enum PaymentStatus {
   @@map("payment_status")
 }
 
+enum PaymentCollectionOperationState {
+  PREPARED
+  OUTCOME_UNKNOWN
+  REFERENCE_ATTACHED
+  REJECTED
+  RESOLVED
+
+  @@map("payment_collection_operation_state")
+}
+
 enum ValidationMode {
   NONE
   FULL
@@ -311,36 +321,37 @@ model Organization {
   createdAt                   DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  locations                Location[]
-  memberships              OrganizationMembership[]
-  membershipLocationAccess MembershipLocationAccess[]
-  shifts                   Shift[]
-  customers                Customer[]
-  vehicles                 Vehicle[]
-  parkingZones             ParkingZone[]
-  parkingSpots             ParkingSpot[]
-  keySlots                 KeySlot[]
-  keyCustodyEvents         KeyCustodyEvent[]
-  tasks                    Task[]
-  valetSessions            ValetSession[]
-  retrievalRequests        RetrievalRequest[]
-  handoffVerifications     HandoffVerification[]
-  auditEvents              AuditEvent[]
-  payments                 Payment[]
-  validations              Validation[]
-  cashEntries              CashEntry[]
-  paymentProviderEvents    PaymentProviderEvent[]
-  refunds                  Refund[]
-  incidents                Incident[]
-  notifications            Notification[]
-  conditionNotes           ConditionNote[]
-  vehiclePhotos            VehiclePhoto[]
-  intakeOperations         IntakeOperation[]
-  locationMapPoints        LocationMapPoint[]
-  locationMapAreas         LocationMapArea[]
-  taskTrackingSessions     TaskTrackingSession[]
-  rawGpsSamples            RawGpsSample[]
-  geofenceEvents           GeofenceEvent[]
+  locations                   Location[]
+  memberships                 OrganizationMembership[]
+  membershipLocationAccess    MembershipLocationAccess[]
+  shifts                      Shift[]
+  customers                   Customer[]
+  vehicles                    Vehicle[]
+  parkingZones                ParkingZone[]
+  parkingSpots                ParkingSpot[]
+  keySlots                    KeySlot[]
+  keyCustodyEvents            KeyCustodyEvent[]
+  tasks                       Task[]
+  valetSessions               ValetSession[]
+  retrievalRequests           RetrievalRequest[]
+  handoffVerifications        HandoffVerification[]
+  auditEvents                 AuditEvent[]
+  payments                    Payment[]
+  validations                 Validation[]
+  cashEntries                 CashEntry[]
+  paymentProviderEvents       PaymentProviderEvent[]
+  paymentCollectionOperations PaymentCollectionOperation[]
+  refunds                     Refund[]
+  incidents                   Incident[]
+  notifications               Notification[]
+  conditionNotes              ConditionNote[]
+  vehiclePhotos               VehiclePhoto[]
+  intakeOperations            IntakeOperation[]
+  locationMapPoints           LocationMapPoint[]
+  locationMapAreas            LocationMapArea[]
+  taskTrackingSessions        TaskTrackingSession[]
+  rawGpsSamples               RawGpsSample[]
+  geofenceEvents              GeofenceEvent[]
 
   @@map("organizations")
 }
@@ -1010,19 +1021,45 @@ model Payment {
   updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
   paidAt                 DateTime?               @map("paid_at") @db.Timestamptz(3)
 
-  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "payments_organization_id_fkey")
-  location       Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "payments_org_location_id_fkey")
-  valetSession   ValetSession           @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "payments_org_location_valet_session_id_fkey")
-  validations    Validation[]
-  cashEntries    CashEntry[]
-  providerEvents PaymentProviderEvent[]
-  refunds        Refund[]
+  organization         Organization                 @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "payments_organization_id_fkey")
+  location             Location                     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "payments_org_location_id_fkey")
+  valetSession         ValetSession                 @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "payments_org_location_valet_session_id_fkey")
+  validations          Validation[]
+  cashEntries          CashEntry[]
+  providerEvents       PaymentProviderEvent[]
+  refunds              Refund[]
+  collectionOperations PaymentCollectionOperation[]
 
   @@unique([organizationId, valetSessionId], map: "payments_organization_id_valet_session_id_key")
   @@unique([organizationId, creationIdempotencyKey], map: "payments_organization_id_creation_idempotency_key")
   @@unique([organizationId, provider, providerReference], map: "payments_organization_id_provider_provider_reference_key")
   @@unique([organizationId, id], map: "payments_organization_id_id_key")
   @@map("payments")
+}
+
+model PaymentCollectionOperation {
+  id                       String                          @id @default(uuid()) @db.Uuid
+  organizationId           String                          @map("organization_id") @db.Uuid
+  paymentId                String                          @map("payment_id") @db.Uuid
+  submissionIdempotencyKey String                          @map("submission_idempotency_key")
+  amount                   Decimal                         @db.Decimal(14, 3)
+  currency                 String
+  provider                 String
+  state                    PaymentCollectionOperationState
+  providerReference        String?                         @map("provider_reference")
+  safeResultCode           String?                         @map("safe_result_code")
+  dispatchGuardedAt        DateTime?                       @map("dispatch_guarded_at") @db.Timestamptz(3)
+  resolvedAt               DateTime?                       @map("resolved_at") @db.Timestamptz(3)
+  createdAt                DateTime                        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "payment_collection_operations_organization_id_fkey")
+  payment      Payment      @relation(fields: [organizationId, paymentId], references: [organizationId, id], onDelete: Restrict, map: "payment_collection_operations_org_payment_id_fkey")
+
+  @@unique([organizationId, submissionIdempotencyKey], map: "payment_collection_operations_org_submission_key")
+  @@unique([organizationId, provider, providerReference], map: "payment_collection_operations_org_provider_reference_key")
+  @@index([organizationId, paymentId, createdAt, id], map: "payment_collection_operations_org_payment_history_idx")
+  @@map("payment_collection_operations")
 }
 
 model Validation {

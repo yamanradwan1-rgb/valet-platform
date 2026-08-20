@@ -1007,6 +1007,84 @@ Required row-local Payment matrix:
 
 Every field-to-field implication in this row-local matrix, together with the non-negative money and `amount_paid <= amount_due` rules, is intended to be enforced with database CHECK constraints. Provider/reference uniqueness is a database unique constraint. The current-Validation formula, guarded payer correction, allowed pre-collection correction transaction, cash aggregate and refund aggregate cross rows and must instead be enforced by locked transactional domain logic plus tests. Do not add a database trigger that makes payer absolutely immutable and thereby blocks the accepted guarded correction.
 
+## payment_collection_operations
+
+```text
+id
+organization_id
+payment_id
+submission_idempotency_key
+amount
+currency
+provider
+state
+provider_reference nullable
+safe_result_code nullable
+dispatch_guarded_at nullable
+resolved_at nullable
+created_at
+updated_at
+```
+
+State:
+
+- `PREPARED`
+- `OUTCOME_UNKNOWN`
+- `REFERENCE_ATTACHED`
+- `REJECTED`
+- `RESOLVED`
+
+Rules:
+
+- this is the focused durable identity/history for one logical outbound digital
+  collection; it is not a generic PaymentAttempt, ledger or provider event
+- `id` is the VAYLET/server-generated operation UUID persisted before provider
+  dispatch and is distinct from the caller submission key and provider reference
+- `submission_idempotency_key` is caller retry identity, required, nonblank and
+  unique within Organization; it never supplies financial or tenant authority
+- Payment belongs to the same Organization through a composite foreign key;
+  Location and ValetSession are derived from canonical Payment and are not
+  duplicated
+- `amount` is a positive immutable `numeric(14,3)` snapshot copied exactly from
+  locked canonical Payment `amount_due`
+- `currency` is the immutable uppercase three-letter Payment currency snapshot
+  and remains subject to DEC-053 exact minor-unit representability
+- `provider` is a required nonblank immutable internal provider identity;
+  persisted provider is historical authority for all retries
+- `(organization_id, provider, provider_reference)` is unique when a provider
+  reference exists through normal PostgreSQL null semantics
+- at most one unresolved operation exists for
+  `(organization_id, payment_id)` where state is `PREPARED`,
+  `OUTCOME_UNKNOWN` or `REFERENCE_ATTACHED`; `REJECTED` and `RESOLVED` are
+  terminal and excluded from that partial uniqueness rule
+- `PREPARED` requires null provider reference, dispatch guard and resolution
+  time
+- `OUTCOME_UNKNOWN` requires null provider reference, non-null dispatch guard
+  and null resolution time
+- `REFERENCE_ATTACHED` requires nonblank provider reference, non-null dispatch
+  guard and null resolution time
+- `REJECTED` requires null provider reference plus non-null dispatch guard and
+  resolution time
+- `RESOLVED` requires nonblank provider reference plus non-null dispatch guard
+  and resolution time
+- the application owns allowed transitions with guarded updates; no database
+  transition trigger is introduced
+- PREPARED creation is digital collection start and may project Payment to
+  `DIGITAL / UNPAID` with the persisted provider; provider initiation or a
+  reference alone never sets Payment PAID, amount paid or paid time
+- any operation history, including REJECTED/RESOLVED, permanently freezes
+  mutable pre-collection financial terms, while a fresh operation after
+  REJECTED remains allowed when all current initiation guards pass
+- required PREPARED, dispatch-guard, reference-attached and rejected AuditEvents
+  commit atomically with their owning mutation and contain normalized safe facts
+  only
+- ordinary runtime access is SELECT/INSERT plus column-scoped UPDATE of only
+  `state`, `provider_reference`, `safe_result_code`, `dispatch_guarded_at`,
+  `resolved_at` and `updated_at`; identity, scope, Payment, submission key,
+  money, provider and creation time are immutable to the runtime role
+- no normal delete; runtime receives no DELETE, TRUNCATE, REFERENCES or TRIGGER
+  privilege
+
 ## validations
 
 ```text

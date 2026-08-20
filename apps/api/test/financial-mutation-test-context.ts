@@ -180,7 +180,7 @@ export class FinancialMutationTestContext extends PaymentTestContext {
       `SELECT id::text, service_payer::text, service_amount::text,
               tip_amount::text, amount_due::text, amount_paid::text,
               collection_method::text, status::text, provider,
-              provider_reference, paid_at
+              provider_reference, paid_at, currency
        FROM payments WHERE valet_session_id = $1`,
       [sessionId],
     );
