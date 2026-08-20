@@ -1,7 +1,9 @@
 import { paymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
+import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...paymentCollectionPrivileges.table,
+  ...providerEventPrivileges.table,
   ["public.users", "SELECT", true],
   ["public.users", "INSERT", false],
   ["public.users", "DELETE", false],
@@ -50,11 +52,6 @@ const tablePrivileges = [
   ["public.cash_entries", "UPDATE", false],
   ["public.cash_entries", "DELETE", false],
   ["public.cash_entries", "TRUNCATE", false],
-  ["public.payment_provider_events", "SELECT", true],
-  ["public.payment_provider_events", "INSERT", false],
-  ["public.payment_provider_events", "UPDATE", false],
-  ["public.payment_provider_events", "DELETE", false],
-  ["public.payment_provider_events", "TRUNCATE", false],
   ["public.shifts", "SELECT", true],
   ["public.shifts", "INSERT", true],
   ["public.shifts", "UPDATE", false],
@@ -107,6 +104,7 @@ const tablePrivileges = [
 
 const columnPrivileges = [
   ...paymentCollectionPrivileges.column,
+  ...providerEventPrivileges.column,
   ["public.users", "password_hash", false],
   ["public.users", "status", false],
   ["public.users", "last_login_at", true],
@@ -150,6 +148,7 @@ const columnPrivileges = [
 
 const anyColumnPrivileges = [
   ...paymentCollectionPrivileges.anyColumn,
+  ...providerEventPrivileges.anyColumn,
   ["public.users", "INSERT", false],
   ["public.organization_memberships", "INSERT", false],
   ["public.membership_location_access", "INSERT", false],
