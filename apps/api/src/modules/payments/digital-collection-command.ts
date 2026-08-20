@@ -73,7 +73,7 @@ async function assertFreshEligible(
     .policy;
   const amount = parseMoney(payment.amountDue, true);
   if (
-    payment.status !== "UNPAID" ||
+    !["UNPAID", "FAILED"].includes(payment.status) ||
     parseMoney(payment.amountPaid, true) !== 0n ||
     amount <= 0n ||
     !["DIGITAL_ONLY", "CASH_OR_DIGITAL"].includes(
@@ -174,6 +174,7 @@ async function prepareOperation(
       collectionMethod: "DIGITAL",
       provider: configured,
       providerReference: null,
+      status: "UNPAID",
     },
   };
 }

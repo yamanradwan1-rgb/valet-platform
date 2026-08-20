@@ -139,11 +139,12 @@ export async function hasExternalCollectionEvidence(
     `SELECT EXISTS (
        SELECT 1 FROM cash_entries
        WHERE organization_id = $1 AND payment_id = $2
-     ) OR EXISTS (
+     ) OR ($3 <> 'FAILED' AND EXISTS (
        SELECT 1 FROM payment_provider_events
        WHERE organization_id = $1 AND payment_id = $2
-     ) AS present`,
-    [payment.organizationId, payment.id],
+         AND processing_status = 'PROCESSED'
+     )) AS present`,
+    [payment.organizationId, payment.id, payment.status],
   );
   return result.rows[0]?.present === true;
 }
@@ -203,10 +204,12 @@ export async function projectPreparedPayment(
 ): Promise<boolean> {
   const result = await transaction.query(
     `UPDATE payments
-     SET collection_method = 'DIGITAL', provider = $3,
-         provider_reference = NULL, updated_at = $4
+     SET collection_method = 'DIGITAL', status = 'UNPAID', provider = $3,
+         provider_reference = NULL, amount_paid = 0, paid_at = NULL,
+         updated_at = $4
      WHERE organization_id = $1 AND id = $2
-       AND status = 'UNPAID' AND amount_paid = 0 AND amount_due > 0`,
+       AND status IN ('UNPAID', 'FAILED')
+       AND amount_paid = 0 AND amount_due > 0`,
     [payment.organizationId, payment.id, provider, operationTime],
   );
   return result.rowCount === 1;

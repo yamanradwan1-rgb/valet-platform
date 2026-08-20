@@ -1,4 +1,5 @@
 import { provisionPaymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
+import { provisionProviderEventPrivileges } from "./provider-event-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -25,8 +26,6 @@ const runtimeOperationalTables = [
 ];
 
 const runtimeTrackingSessionTables = ["task_tracking_sessions"];
-
-const runtimeFinancialEvidenceReadTables = ["payment_provider_events"];
 
 const runtimeFinancialUpdateColumns = [
   "service_payer",
@@ -136,17 +135,6 @@ export async function provisionRuntimeTablePrivileges(
     "GRANT SELECT, INSERT ON TABLE validations TO %I",
     [runtimeRole],
   );
-  for (const table of runtimeFinancialEvidenceReadTables) {
-    await executeFormatted(
-      client,
-      "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE %I FROM %I",
-      [table, runtimeRole],
-    );
-    await executeFormatted(client, "GRANT SELECT ON TABLE %I TO %I", [
-      table,
-      runtimeRole,
-    ]);
-  }
   await executeFormatted(
     client,
     "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE cash_entries FROM %I",
@@ -233,4 +221,5 @@ export async function provisionRuntimeTablePrivileges(
     executeFormatted,
     runtimeRole,
   );
+  await provisionProviderEventPrivileges(client, executeFormatted, runtimeRole);
 }

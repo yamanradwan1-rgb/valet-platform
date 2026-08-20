@@ -2865,3 +2865,34 @@ checkout route, callback/reconciliation, refund, or release behavior is added.
 
 Full binding contract:
 `docs/decisions/DEC-054_PHASE6_OUTBOUND_COLLECTION_OPERATION_IDENTITY.md`
+
+---
+
+## DEC-055 — Phase 6 Provider Event Authority & Reconciliation
+
+Status: Accepted
+Date: 2026-08-20
+
+Decision:
+VAL-008E authenticates and normalizes provider transport before finance core,
+using a server-derived Organization/provider binding and no caller-controlled
+verification boolean. The normalized contract excludes callback money and raw
+provider material. Existing PaymentProviderEvent uniqueness remains the sole
+committed inbound deduplication boundary.
+
+Collection reconciliation is authoritative only for matching historical
+provider/correlation/reference and unresolved `OUTCOME_UNKNOWN` or
+`REFERENCE_ATTACHED` operations. PREPARED, REJECTED, RESOLVED, mismatched,
+superseded and PAID-downgrade events are ignored. Success resolves the operation
+and pays canonical persisted money; definitive failure resolves it to the
+FAILED unpaid projection and permits a later fresh guarded attempt.
+
+Existing PENDING digital Refund rows may be reconciled through trusted Refund
+ID/provider/reference correlation without rewriting Payment history. Runtime
+authority is limited to provider-event SELECT/INSERT and Refund SELECT plus
+column updates for status, provider reference and completion time. No schema,
+migration, public callback route, provider SDK or real/fake production provider
+is added.
+
+Full binding contract:
+`docs/decisions/DEC-055_PHASE6_PROVIDER_EVENT_AUTHORITY_AND_RECONCILIATION.md`
