@@ -4,6 +4,7 @@ import {
   isRefundReferenceOwnedElsewhere,
   lockReconciliationPayment,
   lockReconciliationRefund,
+  lockReconciliationSession,
   type ReconciliationPayment,
 } from "./provider-event-repository";
 import type {
@@ -32,6 +33,20 @@ export async function reconcileRefundEvent(
     input.event.refundId,
   );
   if (paymentId === null) {
+    return {
+      authoritative: false,
+      payment: null,
+      paymentId: null,
+      subjectId: null,
+    };
+  }
+  if (
+    !(await lockReconciliationSession(
+      transaction,
+      input.authenticated.binding.organizationId,
+      paymentId,
+    ))
+  ) {
     return {
       authoritative: false,
       payment: null,

@@ -137,7 +137,85 @@ describe("VAL-008G release races with real financial commands", () => {
       );
       await waitForWaiters("FROM payments", 1);
       const completion = settled(context.complete(fixture));
-      await waitForWaiters("FROM payments", 2);
+      await waitForWaiters("FROM valet_sessions", 1);
+      await blocker.query("COMMIT");
+      await expect(provider).resolves.toMatchObject({
+        kind: "FULFILLED",
+        value: { processingStatus: "PROCESSED" },
+      });
+      const completionResult = await completion;
+      if (completionResult.kind === "REJECTED") {
+        throw completionResult.error;
+      }
+      expect(completionResult).toMatchObject({
+        kind: "FULFILLED",
+        value: { state: "COMPLETED" },
+      });
+    } finally {
+      await blocker.query("ROLLBACK");
+      blocker.release();
+    }
+  });
+
+  it("does not deadlock with authenticated Refund reconciliation", async () => {
+    const fixture = await context.prepareStandard("PICKUP_CODE");
+    await configure(fixture, "10.000");
+    const payment = await initialize(fixture.sessionId);
+    const refundId = randomUUID();
+    await context.adminPool.query(
+      `UPDATE payments
+       SET status = 'PAID', amount_paid = amount_due,
+           paid_at = transaction_timestamp(), collection_method = 'DIGITAL',
+           provider = 'provider-a', provider_reference = $2
+       WHERE id = $1`,
+      [payment.id, `collection-${randomUUID()}`],
+    );
+    await context.adminPool.query(
+      `INSERT INTO refunds
+         (id, organization_id, payment_id, amount, reason, status,
+          authorized_by_membership_id, idempotency_key, provider, requested_at)
+       VALUES ($1, $2, $3, 1, 'release race', 'PENDING', $4, $5,
+               'provider-a', transaction_timestamp())`,
+      [
+        refundId,
+        fixture.organizationId,
+        payment.id,
+        fixture.membershipId,
+        randomUUID(),
+      ],
+    );
+    const authenticator: ProviderEventAuthenticator = {
+      authenticateAndNormalize: async (raw) => raw,
+    };
+    const ingress = createProviderEventIngress(
+      context.runtimePool,
+      authenticator,
+    );
+    const blocker = await context.adminPool.connect();
+    try {
+      await blocker.query("BEGIN");
+      await blocker.query(`SELECT id FROM payments WHERE id = $1 FOR UPDATE`, [
+        payment.id,
+      ]);
+      const provider = settled(
+        ingress({
+          binding: {
+            organizationId: fixture.organizationId,
+            provider: "provider-a",
+          },
+          event: {
+            kind: "REFUND_SUCCEEDED",
+            providerEventId: randomUUID(),
+            providerReference: `refund-${randomUUID()}`,
+            refundId,
+            safeResultCode: "SUCCEEDED",
+            subject: "REFUND",
+          },
+        }),
+      );
+      await waitForWaiters("FROM payments", 1);
+      const completion = settled(context.complete(fixture));
+      await waitForWaiters("FROM valet_sessions", 1);
       await blocker.query("COMMIT");
       await expect(provider).resolves.toMatchObject({
         kind: "FULFILLED",

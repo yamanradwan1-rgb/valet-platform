@@ -5,6 +5,7 @@ import {
   isCollectionReferenceOwnedElsewhere,
   lockReconciliationOperation,
   lockReconciliationPayment,
+  lockReconciliationSession,
   type ReconciliationOperation,
   type ReconciliationPayment,
 } from "./provider-event-repository";
@@ -62,6 +63,20 @@ export async function reconcileCollectionEvent(
     input.event.operationId,
   );
   if (paymentId === null) {
+    return {
+      authoritative: false,
+      payment: null,
+      paymentId: null,
+      subjectId: null,
+    };
+  }
+  if (
+    !(await lockReconciliationSession(
+      transaction,
+      input.authenticated.binding.organizationId,
+      paymentId,
+    ))
+  ) {
     return {
       authoritative: false,
       payment: null,

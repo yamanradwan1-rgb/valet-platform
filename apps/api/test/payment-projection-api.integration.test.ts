@@ -18,6 +18,7 @@ async function fixture(releaseRequiresPayment = true) {
   const paymentFixture = await context.createPaymentFixture({
     organizationFee: "10.000",
     organizationRelease: releaseRequiresPayment,
+    organizationTips: true,
     organizationValidation: true,
   });
   return paymentFixture;

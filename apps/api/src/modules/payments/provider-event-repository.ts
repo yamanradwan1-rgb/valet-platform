@@ -97,6 +97,24 @@ export async function findRefundPaymentId(
   return result.rows[0]?.payment_id ?? null;
 }
 
+export async function lockReconciliationSession(
+  transaction: PostgresTransaction,
+  organizationId: string,
+  paymentId: string,
+): Promise<boolean> {
+  const result = await transaction.query(
+    `SELECT session.id
+     FROM payments AS payment
+     INNER JOIN valet_sessions AS session
+       ON session.organization_id = payment.organization_id
+      AND session.id = payment.valet_session_id
+     WHERE payment.organization_id = $1 AND payment.id = $2
+     FOR KEY SHARE OF session`,
+    [organizationId, paymentId],
+  );
+  return result.rowCount === 1;
+}
+
 export async function lockReconciliationPayment(
   transaction: PostgresTransaction,
   organizationId: string,

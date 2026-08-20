@@ -110,7 +110,7 @@ describe("VAL-008G financial release serialization", () => {
           (value) => ({ kind: "FULFILLED" as const, value }),
           (error: unknown) => ({ error, kind: "REJECTED" as const }),
         );
-        await waitForLockWait("FROM organizations");
+        await waitForLockWait("FROM organization_memberships");
         await blocker.query(resolution);
         if (resolution === "COMMIT") {
           await expect(completion).resolves.toMatchObject({

@@ -124,9 +124,9 @@ describe("VAL-008G financial complete-handoff guard", () => {
         new_assignee_membership_id: fixture.membershipId,
       }),
     ]);
-    expect(effects.audits.map((event) => event.event_type)).toEqual([
-      "VALET_SESSION_VEHICLE_RELEASED",
+    expect(effects.audits.map((event) => event.event_type).sort()).toEqual([
       "VALET_SESSION_COMPLETED",
+      "VALET_SESSION_VEHICLE_RELEASED",
     ]);
   });
 
