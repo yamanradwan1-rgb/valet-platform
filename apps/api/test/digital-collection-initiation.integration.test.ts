@@ -164,6 +164,26 @@ describe("VAL-008D digital collection initiation", () => {
     );
   });
 
+  it("prioritizes unresolved history over current provider unavailability", async () => {
+    const fixture = await context.fixture();
+    const registry = new TestDigitalProviderRegistry();
+    const provider = new TestDigitalProvider();
+    registry.adapters.set("provider-a", provider);
+    const original = await context.collect(fixture, randomUUID(), registry);
+    const beforeRetry = await context.collectionEffects(fixture);
+
+    registry.configuredProvider = null;
+    await expectDigitalError(
+      context.collect(fixture, randomUUID(), registry),
+      "DIGITAL_COLLECTION_OPERATION_IN_PROGRESS",
+    );
+
+    const afterRetry = await context.collectionEffects(fixture);
+    expect(original.state).toBe("OUTCOME_UNKNOWN");
+    expect(provider.calls).toHaveLength(1);
+    expect(afterRetry.operations).toEqual(beforeRetry.operations);
+  });
+
   it("blocks fresh digital initiation after cash collection started", async () => {
     const fixture = await context.fixture();
     const payment = await context.payment(fixture.sessionId);

@@ -109,6 +109,11 @@ async function prepareOperation(
     return { operation: existing, payment };
   }
   await assertFreshEligible(transaction, payment);
+  if ((await findUnresolvedOperation(transaction, payment)) !== null) {
+    throw new DigitalCollectionError(
+      "DIGITAL_COLLECTION_OPERATION_IN_PROGRESS",
+    );
+  }
   const configured = resolveConfiguredProvider(registry, {
     locationId: payment.locationId,
     organizationId: payment.organizationId,
@@ -119,11 +124,6 @@ async function prepareOperation(
   }
   if (resolveDigitalProvider(registry, configured) === null) {
     throw new DigitalCollectionError("DIGITAL_PAYMENT_PROVIDER_UNAVAILABLE");
-  }
-  if ((await findUnresolvedOperation(transaction, payment)) !== null) {
-    throw new DigitalCollectionError(
-      "DIGITAL_COLLECTION_OPERATION_IN_PROGRESS",
-    );
   }
   const operationTime = await loadPaymentOperationTime(transaction);
   const inserted = await insertPreparedOperation(transaction, {
