@@ -1,0 +1,142 @@
+import type { JSX } from "react";
+
+import { CheckSmIcon } from "../../icons/employee-icons";
+import { BackHeader, Btn, VehicleIdentity } from "../../ui/employee-primitives";
+
+export function CheckInCustomerPhoneStep({
+  phone,
+  onChangePhone,
+  onContinue,
+  onBack,
+}: {
+  phone: string;
+  onChangePhone: (val: string) => void;
+  onContinue: () => void;
+  onBack: () => void;
+}): JSX.Element {
+  return (
+    <div>
+      <BackHeader title="Customer Contact" onBack={onBack} />
+      <div className="p-5 space-y-5">
+        <div className="bg-white rounded-2xl border border-vborder p-4">
+          <VehicleIdentity color="Black" />
+        </div>
+        <div>
+          <label className="text-navy font-semibold text-sm block mb-2">
+            Mobile Number
+          </label>
+          <div className="flex gap-2">
+            <div className="flex items-center gap-1.5 h-14 px-3 border border-vborder rounded-xl bg-white min-w-[84px] cursor-pointer">
+              <span className="text-base">🇯🇴</span>
+              <span className="text-navy font-semibold text-sm">+962</span>
+            </div>
+            <input
+              type="tel"
+              placeholder="79 000 0000"
+              value={phone}
+              onChange={(e) => onChangePhone(e.target.value)}
+              className="flex-1 h-14 border border-vborder rounded-xl px-4 text-navy text-base focus:outline-none focus:border-vblue transition-colors bg-white"
+            />
+          </div>
+          <p className="text-muted text-xs mt-2">
+            SMS or WhatsApp link will be sent automatically.
+          </p>
+        </div>
+        <Btn label="Continue" onClick={onContinue} />
+        <Btn label="No phone available" variant="ghost" size="md" />
+      </div>
+    </div>
+  );
+}
+
+export function CheckInVehicleConditionStep({
+  condition,
+  onSelectCondition,
+  onContinue,
+  onBack,
+}: {
+  condition: string;
+  onSelectCondition: (opt: string) => void;
+  onContinue: () => void;
+  onBack: () => void;
+}): JSX.Element {
+  const options = ["No visible issue", "Existing damage", "Needs review"];
+  return (
+    <div>
+      <BackHeader title="Vehicle Condition" onBack={onBack} />
+      <div className="p-5 space-y-5">
+        <div className="bg-white rounded-2xl border border-vborder p-4">
+          <VehicleIdentity color="Black" />
+        </div>
+        <div className="space-y-2">
+          {options.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => onSelectCondition(opt)}
+              className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl border-2 transition-all cursor-pointer text-left ${
+                condition === opt
+                  ? "border-vblue bg-ice"
+                  : "border-vborder bg-white hover:bg-gray-50"
+              }`}
+            >
+              <span
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  condition === opt ? "border-vblue bg-vblue" : "border-vborder"
+                }`}
+              >
+                {condition === opt && <CheckSmIcon />}
+              </span>
+              <span
+                className={`font-semibold text-sm ${
+                  condition === opt ? "text-vblue" : "text-navy"
+                }`}
+              >
+                {opt}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-3">
+          <button className="flex-1 h-11 rounded-xl border border-vborder bg-white text-navy text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-50">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect
+                x="1"
+                y="3"
+                width="14"
+                height="11"
+                rx="1.5"
+                stroke="#07111F"
+                strokeWidth="1.25"
+              />
+              <circle
+                cx="8"
+                cy="8.5"
+                r="2"
+                stroke="#07111F"
+                strokeWidth="1.25"
+              />
+              <path
+                d="M5 3V2a1 1 0 011-1h4a1 1 0 011 1v1"
+                stroke="#07111F"
+                strokeWidth="1.25"
+              />
+            </svg>
+            Add Photo
+          </button>
+          <button className="flex-1 h-11 rounded-xl border border-vborder bg-white text-navy text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-50">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M3 4h10M3 8h8M3 12h5"
+                stroke="#07111F"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+              />
+            </svg>
+            Add Note
+          </button>
+        </div>
+        <Btn label="Continue" onClick={onContinue} />
+      </div>
+    </div>
+  );
+}

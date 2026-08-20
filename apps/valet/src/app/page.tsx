@@ -1,11 +1,7 @@
-import { AppShell } from "@valet/ui";
+import type { JSX } from "react";
 
-import { appInfo } from "../lib/app-info";
+import { EmployeeApp } from "../components/employee-app";
 
-export default function Home() {
-  return (
-    <AppShell title={appInfo.title}>
-      <p>{appInfo.description}</p>
-    </AppShell>
-  );
+export default function Home(): JSX.Element {
+  return <EmployeeApp />;
 }

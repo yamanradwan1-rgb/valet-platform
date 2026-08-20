@@ -1,15 +1,43 @@
-:root {
-  color: #172033;
-  background: #f5f7fb;
-  font-family: Arial, sans-serif;
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-heading: "Space Grotesk", system-ui, sans-serif;
+  --color-navy: #07111f;
+  --color-navy-2: #0b1626;
+  --color-navy-3: #111e30;
+  --color-vblue: #176bff;
+  --color-ice: #edf4ff;
+  --color-warm: #fafaf8;
+  --color-neutral: #6f7c91;
+  --color-muted: #8c98aa;
+  --color-vborder: #dde4ec;
+  --color-vsuccess: #2f9b78;
+  --color-vwarning: #d89434;
+  --color-vdanger: #d95c63;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
 body {
-  margin: 0;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  background-color: #111e30;
+  -webkit-font-smoothing: antialiased;
 }
 
-main {
-  max-width: 48rem;
-  margin: 0 auto;
-  padding: 4rem 1.5rem;
+.font-heading {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
 }

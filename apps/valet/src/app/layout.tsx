@@ -1,12 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Valet Employee App",
-  description: "Phase 0 application scaffold",
+  title: "VAYLET — Valet Operations",
+  description: "VAYLET Digital Operating System for Valet Operations",
   manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
