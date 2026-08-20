@@ -1,0 +1,240 @@
+import {
+  staffAuthAccessResponseSchema,
+  staffLoginRequestSchema,
+  type StaffAuthAccessResponse,
+  type StaffLoginRequest,
+} from "@valet/contracts";
+
+import {
+  EmployeeApiError,
+  normalizeEmployeeApiError,
+} from "../api/employee-api-errors";
+import type { StaffAuthSession } from "./staff-auth-types";
+
+export type SessionChangeListener = (session: StaffAuthSession | null) => void;
+
+export interface StaffAuthClientOptions {
+  readonly baseUrl?: string | undefined;
+}
+
+export class StaffAuthClient {
+  private readonly baseUrl: string;
+  private session: StaffAuthSession | null = null;
+  private refreshPromise: Promise<StaffAuthAccessResponse> | null = null;
+  private readonly listeners = new Set<SessionChangeListener>();
+
+  constructor(options: StaffAuthClientOptions = {}) {
+    this.baseUrl = options.baseUrl ?? "";
+  }
+
+  getSession(): StaffAuthSession | null {
+    return this.session;
+  }
+
+  getAccessToken(): string | null {
+    return this.session?.accessToken ?? null;
+  }
+
+  isTokenFresh(bufferSeconds = 60): boolean {
+    if (!this.session) return false;
+    const expiresAt = new Date(this.session.accessExpiresAt).getTime();
+    return expiresAt - Date.now() > bufferSeconds * 1000;
+  }
+
+  subscribe(listener: SessionChangeListener): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private setSession(session: StaffAuthSession | null): void {
+    this.session = session;
+    for (const listener of this.listeners) {
+      try {
+        listener(this.session);
+      } catch {
+        // Prevent subscriber errors from disrupting auth client state
+      }
+    }
+  }
+
+  async login(
+    credentials: StaffLoginRequest,
+    signal?: AbortSignal | undefined,
+  ): Promise<StaffAuthAccessResponse> {
+    const validated = staffLoginRequestSchema.parse(credentials);
+    const url = `${this.baseUrl}/v1/staff/auth/login`;
+
+    const fetchInit: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(validated),
+      credentials: "include",
+      cache: "no-store",
+    };
+    if (signal !== undefined) {
+      fetchInit.signal = signal;
+    }
+
+    const response = await this.executeFetch(url, fetchInit);
+    const payload = await this.parseJsonPayload(response);
+
+    if (!response.ok) {
+      throw normalizeEmployeeApiError(
+        response.status,
+        payload,
+        "Staff authentication failed.",
+      );
+    }
+
+    const accessResponse = staffAuthAccessResponseSchema.parse(payload);
+    this.setSession({
+      accessToken: accessResponse.accessToken,
+      tokenType: accessResponse.tokenType,
+      accessExpiresAt: accessResponse.accessExpiresAt,
+      sessionExpiresAt: accessResponse.sessionExpiresAt,
+    });
+
+    return accessResponse;
+  }
+
+  async refresh(
+    signal?: AbortSignal | undefined,
+  ): Promise<StaffAuthAccessResponse> {
+    if (this.refreshPromise !== null) {
+      return this.refreshPromise;
+    }
+
+    this.refreshPromise = this.performRefresh(signal).finally(() => {
+      this.refreshPromise = null;
+    });
+
+    return this.refreshPromise;
+  }
+
+  private async performRefresh(
+    signal?: AbortSignal | undefined,
+  ): Promise<StaffAuthAccessResponse> {
+    const url = `${this.baseUrl}/v1/staff/auth/refresh`;
+
+    const fetchInit: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({}),
+      credentials: "include",
+      cache: "no-store",
+    };
+    if (signal !== undefined) {
+      fetchInit.signal = signal;
+    }
+
+    const response = await this.executeFetch(url, fetchInit);
+    const payload = await this.parseJsonPayload(response);
+
+    if (!response.ok) {
+      this.setSession(null);
+      throw normalizeEmployeeApiError(
+        response.status,
+        payload,
+        "Staff session refresh failed.",
+      );
+    }
+
+    const accessResponse = staffAuthAccessResponseSchema.parse(payload);
+    this.setSession({
+      accessToken: accessResponse.accessToken,
+      tokenType: accessResponse.tokenType,
+      accessExpiresAt: accessResponse.accessExpiresAt,
+      sessionExpiresAt: accessResponse.sessionExpiresAt,
+    });
+
+    return accessResponse;
+  }
+
+  async tryRefresh(
+    signal?: AbortSignal | undefined,
+  ): Promise<StaffAuthAccessResponse | null> {
+    try {
+      return await this.refresh(signal);
+    } catch {
+      return null;
+    }
+  }
+
+  async logout(signal?: AbortSignal | undefined): Promise<void> {
+    const url = `${this.baseUrl}/v1/staff/auth/logout`;
+
+    const fetchInit: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({}),
+      credentials: "include",
+      cache: "no-store",
+    };
+    if (signal !== undefined) {
+      fetchInit.signal = signal;
+    }
+
+    try {
+      await this.executeFetch(url, fetchInit);
+    } finally {
+      this.setSession(null);
+    }
+  }
+
+  async ensureFreshToken(
+    bufferSeconds = 60,
+    signal?: AbortSignal | undefined,
+  ): Promise<string | null> {
+    if (this.isTokenFresh(bufferSeconds)) {
+      return this.getAccessToken();
+    }
+
+    try {
+      const refreshed = await this.refresh(signal);
+      return refreshed.accessToken;
+    } catch {
+      return null;
+    }
+  }
+
+  private async executeFetch(
+    url: string,
+    init: RequestInit,
+  ): Promise<Response> {
+    try {
+      return await fetch(url, init);
+    } catch (error: unknown) {
+      if (init.signal?.aborted) {
+        throw error;
+      }
+      throw new EmployeeApiError({
+        status: 0,
+        code: "NETWORK_ERROR",
+        message:
+          "Network connection unavailable. Please check your internet connection.",
+        isNetworkError: true,
+      });
+    }
+  }
+
+  private async parseJsonPayload(response: Response): Promise<unknown> {
+    const text = await response.text();
+    if (text.length === 0) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  }
+}
