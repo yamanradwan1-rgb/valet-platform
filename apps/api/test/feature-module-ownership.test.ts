@@ -46,6 +46,7 @@ import {
   UnconfiguredDigitalPaymentProviderRegistry,
 } from "../src/modules/payments/digital-payment-provider";
 import { PaymentMutationService } from "../src/modules/payments/payment-mutation.service";
+import { RefundService } from "../src/modules/payments/refund.service";
 import { PaymentsModule } from "../src/modules/payments/payments.module";
 import { GuestPaymentController } from "../src/modules/payments/guest-payment.controller";
 import { StaffPaymentController } from "../src/modules/payments/staff-payment.controller";
@@ -108,12 +109,14 @@ describe("accepted feature module ownership", () => {
       },
       PaymentInitializationService,
       PaymentMutationService,
+      RefundService,
     ]);
     expect(metadata(PaymentsModule, MODULE_METADATA.EXPORTS)).toEqual([
       CashMutationService,
       DigitalCollectionService,
       PaymentInitializationService,
       PaymentMutationService,
+      RefundService,
     ]);
   });
 

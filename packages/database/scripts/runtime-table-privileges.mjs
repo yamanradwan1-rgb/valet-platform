@@ -52,6 +52,20 @@ const runtimeShiftUpdateColumns = [
   "cash_reported_by_membership_id",
 ];
 
+export const runtimeRefundInsertColumns = [
+  "id",
+  "organization_id",
+  "payment_id",
+  "amount",
+  "reason",
+  "status",
+  "authorized_by_membership_id",
+  "idempotency_key",
+  "provider",
+  "requested_at",
+  "completed_at",
+];
+
 export const runtimeMapSetupFunctions = [
   "public.map_setup_create_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
   "public.map_setup_update_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean,timestamp with time zone)",
@@ -222,4 +236,10 @@ export async function provisionRuntimeTablePrivileges(
     runtimeRole,
   );
   await provisionProviderEventPrivileges(client, executeFormatted, runtimeRole);
+  for (const column of runtimeRefundInsertColumns) {
+    await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
+      column,
+      runtimeRole,
+    ]);
+  }
 }

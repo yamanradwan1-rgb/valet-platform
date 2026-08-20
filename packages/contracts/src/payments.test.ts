@@ -9,6 +9,8 @@ import {
   paymentPayerCorrectionRequestSchema,
   paymentServiceAmountCorrectionRequestSchema,
   paymentTipMutationRequestSchema,
+  refundRequestSchema,
+  refundResponseSchema,
   validationMutationRequestSchema,
 } from "./payments.js";
 
@@ -163,6 +165,71 @@ describe("VAL-008C cash contracts", () => {
     expect(response).not.toHaveProperty("organizationId");
     expect(response).not.toHaveProperty("membershipId");
     expect(response).not.toHaveProperty("provider");
+    expect(response).not.toHaveProperty("reason");
+  });
+});
+
+describe("VAL-008F Refund contracts", () => {
+  it("accepts only caller-owned Refund request fields", () => {
+    expect(
+      refundRequestSchema.parse({
+        amount: "1.250",
+        idempotencyKey: "refund-1",
+        reason: "Customer service recovery",
+      }),
+    ).toEqual({
+      amount: "1.250",
+      idempotencyKey: "refund-1",
+      reason: "Customer service recovery",
+    });
+    expect(
+      refundRequestSchema.safeParse({
+        amount: "1.250",
+        authorizerMembershipId: "00000000-0000-4000-8000-000000000001",
+        idempotencyKey: "refund-1",
+        provider: "caller-provider",
+        reason: "Customer service recovery",
+        status: "SUCCEEDED",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects zero, unsafe reason text, and unbounded retry identity", () => {
+    for (const request of [
+      { amount: "0", idempotencyKey: "refund-1", reason: "Reason" },
+      { amount: "1.000", idempotencyKey: "refund-1", reason: "   " },
+      { amount: "1.000", idempotencyKey: "refund-1", reason: "bad\u0000text" },
+      { amount: "1.000", idempotencyKey: "x".repeat(201), reason: "Reason" },
+    ]) {
+      expect(refundRequestSchema.safeParse(request).success).toBe(false);
+    }
+  });
+
+  it("bounds Refund reason by Unicode code points", () => {
+    const request = {
+      amount: "1.000",
+      idempotencyKey: "refund-unicode",
+      reason: "😀".repeat(500),
+    };
+    expect(refundRequestSchema.safeParse(request).success).toBe(true);
+    expect(
+      refundRequestSchema.safeParse({ ...request, reason: "😀".repeat(501) })
+        .success,
+    ).toBe(false);
+  });
+
+  it("returns a narrow Refund projection", () => {
+    const response = refundResponseSchema.parse({
+      amount: "1.250",
+      completedAt: null,
+      currency: "JOD",
+      refundId: "00000000-0000-4000-8000-000000000001",
+      requestedAt: "2026-08-20T00:00:00.000Z",
+      status: "PENDING",
+    });
+    expect(response).not.toHaveProperty("organizationId");
+    expect(response).not.toHaveProperty("provider");
+    expect(response).not.toHaveProperty("authorizedByMembershipId");
     expect(response).not.toHaveProperty("reason");
   });
 });

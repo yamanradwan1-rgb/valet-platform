@@ -15,6 +15,7 @@ import {
   paymentPayerCorrectionRequestSchema,
   paymentServiceAmountCorrectionRequestSchema,
   paymentTipMutationRequestSchema,
+  refundRequestSchema,
   validationMutationRequestSchema,
 } from "@valet/contracts";
 
@@ -29,20 +30,41 @@ import {
   parsePaymentBody,
   parsePaymentUuid,
   paymentHttpProjection,
+  refundHttpProjection,
   resolvePaymentStaffPrincipal,
 } from "./payment-http";
 import { CashMutationService } from "./cash-mutation.service";
 import { PaymentMutationService } from "./payment-mutation.service";
+import { RefundService } from "./refund.service";
 
 @Controller("v1/staff/valet-sessions/:sessionId/payment")
 export class StaffPaymentController {
   constructor(
     private readonly service: PaymentMutationService,
     private readonly cash: CashMutationService,
+    private readonly refunds: RefundService,
     private readonly runner: ApiOperationRunner,
     @Inject(STAFF_PRINCIPAL_RESOLVER)
     private readonly principals: StaffPrincipalResolver,
   ) {}
+
+  @HttpCode(200)
+  @Post("refunds")
+  refund(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("sessionId") sessionId: string,
+    @Body() body: unknown,
+  ) {
+    return this.runner.run("PAYMENT_REFUND_CREATE", request, async () =>
+      refundHttpProjection(
+        await this.refunds.create({
+          ...(await this.scope(request, authorization, sessionId)),
+          ...parsePaymentBody(refundRequestSchema, body),
+        }),
+      ),
+    );
+  }
 
   @HttpCode(200)
   @Post("cash-receipt")

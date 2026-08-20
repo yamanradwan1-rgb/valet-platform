@@ -1,5 +1,9 @@
 import { paymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
+import {
+  runtimeMaintenanceFunctions as maintenanceFunctions,
+  runtimeMapSetupFunctions as mapSetupFunctions,
+} from "./runtime-table-privileges.mjs";
 
 const tablePrivileges = [
   ...paymentCollectionPrivileges.table,
@@ -161,22 +165,10 @@ const anyColumnPrivileges = [
   ["public.shifts", "UPDATE", true],
 ];
 
-const mapSetupFunctions = [
-  "public.map_setup_create_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean)",
-  "public.map_setup_update_point(uuid,uuid,uuid,location_map_point_kind,text,text,numeric,numeric,text,boolean,timestamp with time zone)",
-  "public.map_setup_create_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,numeric[],numeric[])",
-  "public.map_setup_update_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,timestamp with time zone)",
-  "public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[])",
-];
-
 const privateMapSetupFunctions = [
   "public.map_setup_authorized_organization(uuid,uuid)",
   "public.map_setup_validate_labels(text,text,text)",
   "public.map_setup_append_audit(uuid,uuid,uuid,text,text,uuid,text,boolean,boolean)",
-];
-
-const maintenanceFunctions = [
-  "public.cleanup_expired_raw_gps_samples(integer)",
 ];
 
 async function tablePrivilegeMatches(client, runtimeRole, policy) {
@@ -185,7 +177,12 @@ async function tablePrivilegeMatches(client, runtimeRole, policy) {
     `SELECT has_table_privilege($1, $2, $3) AS allowed`,
     [runtimeRole, table, privilege],
   );
-  return result.rows[0]?.allowed === expected;
+  return (
+    result.rows[0]?.allowed === expected &&
+    (table !== "public.refunds" ||
+      privilege !== "INSERT" ||
+      (await providerEventPrivileges.verifyRefundInsert(client, runtimeRole)))
+  );
 }
 
 async function columnPrivilegeMatches(client, runtimeRole, policy) {

@@ -15,6 +15,7 @@ import {
 } from "./digital-payment-provider";
 import { PaymentInitializationService } from "./payment-initialization.service";
 import { PaymentMutationService } from "./payment-mutation.service";
+import { RefundService } from "./refund.service";
 import { StaffPaymentController } from "./staff-payment.controller";
 
 @Module({
@@ -35,12 +36,14 @@ import { StaffPaymentController } from "./staff-payment.controller";
     },
     PaymentInitializationService,
     PaymentMutationService,
+    RefundService,
   ],
   exports: [
     CashMutationService,
     DigitalCollectionService,
     PaymentInitializationService,
     PaymentMutationService,
+    RefundService,
   ],
 })
 export class PaymentsModule implements NestModule {

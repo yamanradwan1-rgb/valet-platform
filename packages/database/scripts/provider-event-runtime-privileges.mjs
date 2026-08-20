@@ -28,6 +28,7 @@ const refundImmutableColumns = [
   "requested_at",
   "created_at",
 ];
+const refundColumns = [...refundMutableColumns, ...refundImmutableColumns];
 
 export const providerEventColumnPrivileges = [
   ...refundMutableColumns.map((column) => ["public.refunds", column, true]),
@@ -37,13 +38,42 @@ export const providerEventColumnPrivileges = [
 export const providerEventAnyColumnPrivileges = [
   ["public.payment_provider_events", "UPDATE", false],
   ["public.refunds", "UPDATE", true],
-  ["public.refunds", "INSERT", false],
+  ["public.refunds", "INSERT", true],
 ];
+
+export async function verifyRefundInsertColumnPrivileges(client, runtimeRole) {
+  const allowed = new Set([
+    "id",
+    "organization_id",
+    "payment_id",
+    "amount",
+    "reason",
+    "status",
+    "authorized_by_membership_id",
+    "idempotency_key",
+    "provider",
+    "requested_at",
+    "completed_at",
+  ]);
+  const result = await client.query(
+    `SELECT column_name,
+            has_column_privilege($1, 'public.refunds', column_name, 'INSERT')
+              AS allowed
+     FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = 'refunds'`,
+    [runtimeRole],
+  );
+  return (
+    result.rows.length === refundColumns.length &&
+    result.rows.every((row) => row.allowed === allowed.has(row.column_name))
+  );
+}
 
 export const providerEventPrivileges = {
   anyColumn: providerEventAnyColumnPrivileges,
   column: providerEventColumnPrivileges,
   table: providerEventTablePrivileges,
+  verifyRefundInsert: verifyRefundInsertColumnPrivileges,
 };
 
 export async function provisionProviderEventPrivileges(
@@ -57,6 +87,22 @@ export async function provisionProviderEventPrivileges(
       table,
       runtimeRole,
     ]);
+  }
+  for (const grantee of ["PUBLIC", runtimeRole]) {
+    for (const column of refundColumns) {
+      if (grantee === "PUBLIC") {
+        await client.query(
+          `REVOKE INSERT (${column}), UPDATE (${column})
+           ON TABLE refunds FROM PUBLIC`,
+        );
+      } else {
+        await executeFormatted(
+          client,
+          "REVOKE INSERT (%I), UPDATE (%I) ON TABLE refunds FROM %I",
+          [column, column, runtimeRole],
+        );
+      }
+    }
   }
   await executeFormatted(
     client,

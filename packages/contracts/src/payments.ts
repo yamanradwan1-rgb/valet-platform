@@ -24,6 +24,13 @@ export const paymentServiceAmountCorrectionRequestSchema = z
 
 const cashSubmissionKeySchema = z.string().min(1).max(200);
 
+const refundReasonSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(1000)
+  .refine((value) => [...value].length <= 500 && !/\p{Cc}/u.test(value));
+
 export const cashReceiptRequestSchema = z
   .object({ submissionIdempotencyKey: cashSubmissionKeySchema })
   .strict();
@@ -36,6 +43,27 @@ export const cashAdjustmentRequestSchema = z
     entryType: z.enum(["ADJUSTMENT_INCREASE", "ADJUSTMENT_DECREASE"]),
     reason: z.string().trim().min(1).max(500),
     submissionIdempotencyKey: cashSubmissionKeySchema,
+  })
+  .strict();
+
+export const refundRequestSchema = z
+  .object({
+    amount: paymentMoneySchema.refine(
+      (value) => !/^0(?:\.0{1,3})?$/.test(value),
+    ),
+    idempotencyKey: cashSubmissionKeySchema,
+    reason: refundReasonSchema,
+  })
+  .strict();
+
+export const refundResponseSchema = z
+  .object({
+    amount: paymentMoneySchema,
+    completedAt: z.string().datetime({ offset: true }).nullable(),
+    currency: z.string().regex(/^[A-Z]{3}$/),
+    refundId: z.string().uuid(),
+    requestedAt: z.string().datetime({ offset: true }),
+    status: z.enum(["PENDING", "SUCCEEDED", "FAILED"]),
   })
   .strict();
 
@@ -105,6 +133,8 @@ export type PaymentServiceAmountCorrectionRequest = z.infer<
 >;
 export type CashReceiptRequest = z.infer<typeof cashReceiptRequestSchema>;
 export type CashAdjustmentRequest = z.infer<typeof cashAdjustmentRequestSchema>;
+export type RefundRequest = z.infer<typeof refundRequestSchema>;
+export type RefundResponse = z.infer<typeof refundResponseSchema>;
 export type CashMutationResponse = z.infer<typeof cashMutationResponseSchema>;
 export type PaymentMutationResponse = z.infer<
   typeof paymentMutationResponseSchema

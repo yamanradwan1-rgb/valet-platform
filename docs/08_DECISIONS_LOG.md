@@ -2896,3 +2896,30 @@ is added.
 
 Full binding contract:
 `docs/decisions/DEC-055_PHASE6_PROVIDER_EVENT_AUTHORITY_AND_RECONCILIATION.md`
+
+---
+
+## DEC-056 — Phase 6 Refund Authority & Core
+
+Status: Accepted
+Date: 2026-08-20
+
+Decision:
+VAL-008F authorizes only an active, explicitly Location-scoped
+`LOCATION_MANAGER` to create Refund history. Employee, Supervisor and ORG_ADMIN
+authority are denied; ORG_ADMIN remains deferred until an Accepted MFA-aware
+production boundary exists. Creation locks canonical Payment and reserves from
+`amount_paid - SUM(PENDING, SUCCEEDED)` using exact DEC-053 currency precision.
+Failed Refunds free exposure. Exact same-key retries return the immutable row
+without another audit; material reuse conflicts.
+
+Cash creates immediate `SUCCEEDED` history with no provider fields. Digital
+creates only `PENDING` history using the canonical historical provider and no
+provider call. Refund never rewrites Payment or CashEntry history. First
+creation and one safe `PAYMENT_REFUND_CREATED` AuditEvent commit atomically.
+Runtime authority adds only column-scoped Refund INSERT, retaining DEC-055's
+three lifecycle UPDATE columns and denying broad mutation/deletion. No schema or
+migration change is required; migration count remains 28.
+
+Full binding contract:
+`docs/decisions/DEC-056_PHASE6_REFUND_AUTHORITY_AND_CORE.md`

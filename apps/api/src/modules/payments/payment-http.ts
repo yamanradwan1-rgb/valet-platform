@@ -3,6 +3,7 @@ import {
   cashMutationResponseSchema,
   guestPaymentMutationResponseSchema,
   paymentMutationResponseSchema,
+  refundResponseSchema,
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
@@ -10,6 +11,7 @@ import type { ApiRequest } from "../../common/http/api-request";
 import type { StaffPrincipalResolver } from "../auth/staff-principal";
 import type { CashMutationProjection } from "./cash-types";
 import type { PaymentMutationProjection } from "./payment-mutation-types";
+import type { RefundProjection } from "./refund-types";
 
 interface Schema<T> {
   safeParse(
@@ -79,5 +81,16 @@ export function cashHttpProjection(projection: CashMutationProjection) {
     occurredAt: projection.cashEntry.occurredAt.toISOString(),
     status: projection.status,
     valetSessionId: projection.valetSessionId,
+  });
+}
+
+export function refundHttpProjection(projection: RefundProjection) {
+  return refundResponseSchema.parse({
+    amount: projection.amount,
+    completedAt: projection.completedAt?.toISOString() ?? null,
+    currency: projection.currency,
+    refundId: projection.id,
+    requestedAt: projection.requestedAt.toISOString(),
+    status: projection.status,
   });
 }

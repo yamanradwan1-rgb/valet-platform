@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { expectRefundInsertAuthority } from "./refund-runtime-role-assertions";
+
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.MIGRATION_DATABASE_URL ??
@@ -231,7 +233,7 @@ describe("VAL-008E runtime provider-event privileges", () => {
     ]);
   });
 
-  it("allows only exact Refund reconciliation columns", async () => {
+  it("allows exact Refund creation and reconciliation columns only", async () => {
     const fixture = await createFixture();
     await expect(
       runtimePool.query(`SELECT id FROM refunds WHERE id = $1`, [
@@ -249,17 +251,21 @@ describe("VAL-008E runtime provider-event privileges", () => {
         fixture.refundId,
       ]),
     );
-    await expectDenied(
-      runtimePool.query(
-        `INSERT INTO refunds
+    const insertedId = randomUUID();
+    await runtimePool.query(
+      `INSERT INTO refunds
          (id, organization_id, payment_id, amount, reason, status,
-          authorized_by_membership_id, idempotency_key, provider, requested_at)
-       SELECT $2, organization_id, payment_id, 1, 'forbidden', 'PENDING',
-              authorized_by_membership_id, $3, provider, transaction_timestamp()
+          authorized_by_membership_id, idempotency_key, provider,
+          requested_at, completed_at)
+       SELECT $2, organization_id, payment_id, 1, 'allowed', 'PENDING',
+              authorized_by_membership_id, $3, provider,
+              transaction_timestamp(), NULL
        FROM refunds WHERE id = $1`,
-        [fixture.refundId, randomUUID(), randomUUID()],
-      ),
+      [fixture.refundId, insertedId, randomUUID()],
     );
+    await expect(
+      runtimePool.query(`SELECT id FROM refunds WHERE id = $1`, [insertedId]),
+    ).resolves.toMatchObject({ rowCount: 1 });
     await expectDenied(
       runtimePool.query(`DELETE FROM refunds WHERE id = $1`, [
         fixture.refundId,
@@ -283,5 +289,6 @@ describe("VAL-008E runtime provider-event privileges", () => {
         [runtimeRole],
       ),
     ).toMatchObject({ rows: [{ broad: false }] });
+    await expectRefundInsertAuthority(adminPool, runtimeRole);
   });
 });
