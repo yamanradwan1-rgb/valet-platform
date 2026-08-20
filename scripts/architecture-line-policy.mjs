@@ -20,7 +20,6 @@ export const TRANSITIONAL_PATHS = new Set([
 ]);
 
 const EXCLUDED_SEGMENTS = new Set([
-  ".agents",
   ".git",
   ".next",
   ".turbo",
@@ -28,7 +27,6 @@ const EXCLUDED_SEGMENTS = new Set([
   "coverage",
   "dist",
   "node_modules",
-  "reference",
 ]);
 
 export function countPhysicalLines(content) {
