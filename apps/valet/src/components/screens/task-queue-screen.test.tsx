@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { StaffTaskQueueItem } from "@valet/contracts";
 
 import { TaskQueueScreen } from "./task-queue-screen";
@@ -124,7 +124,10 @@ describe("TaskQueueScreen Component", () => {
   });
 
   it("renders prototype fallback baseline when mode is prototype", () => {
-    const markup = renderToStaticMarkup(<TaskQueueScreen mode="prototype" />);
+    const nav = vi.fn();
+    const markup = renderToStaticMarkup(
+      <TaskQueueScreen mode="prototype" nav={nav} />,
+    );
     expect(markup).toContain("Tasks");
     expect(markup).toContain("New Vehicle");
     expect(markup).toContain("Shift active");

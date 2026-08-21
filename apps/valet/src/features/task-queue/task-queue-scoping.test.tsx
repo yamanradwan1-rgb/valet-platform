@@ -9,7 +9,7 @@ import { StaffAuthProvider } from "../../lib/auth/staff-auth-context";
 import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import type {
   EmployeeApiClient,
-  EmployeeApiRequestOptions,
+  EmployeeRequestOptions,
 } from "../../lib/api/employee-api-client";
 
 describe("Task Queue Scoping & Hard-Stop Invariants", () => {
@@ -80,7 +80,7 @@ describe("Task Queue Scoping & Hard-Stop Invariants", () => {
       request: vi
         .fn()
         .mockImplementation(
-          (_path: string, options?: EmployeeApiRequestOptions) => {
+          (_path: string, options?: EmployeeRequestOptions) => {
             const loc = options?.params?.["locationId"];
             if (loc === "loc-forbidden") {
               return Promise.reject(

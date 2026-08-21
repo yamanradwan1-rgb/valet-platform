@@ -40,6 +40,7 @@ function formatShiftStartTime(isoString?: string | undefined): string {
 
 export function TaskQueueScreen({
   mode,
+  nav,
   locationId,
   locationName,
   shiftStartedAt,
@@ -85,6 +86,7 @@ export function TaskQueueScreen({
           <h1 className="text-navy font-bold text-2xl">Tasks</h1>
           <button
             type="button"
+            onClick={!isLiveMode ? () => nav?.("check-in") : undefined}
             className="bg-vblue text-white text-sm font-bold px-4 h-9 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-[0.98] transition-all shadow-sm"
           >
             <PlusIcon />
@@ -94,8 +96,11 @@ export function TaskQueueScreen({
 
         {/* Priority task card */}
         {!isLiveMode ? (
-          // Prototype fallback representation for component baseline tests
-          <div className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow">
+          // Prototype fallback representation with restored base prototype interactions
+          <div
+            onClick={() => nav?.("retrieval")}
+            className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+          >
             <div className="h-1 bg-vblue" />
             <div className="p-5">
               <div className="flex items-start justify-between mb-4">
@@ -122,14 +127,21 @@ export function TaskQueueScreen({
                     Main Entrance
                   </p>
                 </div>
-                <button className="bg-vblue text-white text-sm font-bold px-5 h-10 rounded-xl cursor-pointer active:scale-[0.98] transition-all">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nav?.("retrieval");
+                  }}
+                  className="bg-vblue text-white text-sm font-bold px-5 h-10 rounded-xl cursor-pointer active:scale-[0.98] transition-all"
+                >
                   Accept Task
                 </button>
               </div>
             </div>
           </div>
         ) : priorityTask ? (
-          // Live Priority Task Card using approved AGE and STATUS slots with exact base visual classes
+          // Live Priority Task Card (inert actions in live mode)
           <div className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow">
             <div className="h-1 bg-vblue" />
             <div className="p-5">
@@ -189,14 +201,14 @@ export function TaskQueueScreen({
           </p>
           <div className="space-y-2">
             {!isLiveMode
-              ? // Prototype fallback representation for component baseline tests
-                [
+              ? [
                   {
                     type: "checkin" as const,
                     model: "Toyota Camry",
                     plate: "87-65432",
                     info: "just now",
                     meta: "Check-in",
+                    screen: "check-in" as Screen,
                   },
                   {
                     type: "parking" as const,
@@ -204,6 +216,7 @@ export function TaskQueueScreen({
                     plate: "45-88231",
                     info: "5 min ago",
                     meta: "Zone A",
+                    screen: "parking" as Screen,
                   },
                   {
                     type: "handoff" as const,
@@ -211,10 +224,12 @@ export function TaskQueueScreen({
                     plate: "99-12345",
                     info: "waiting",
                     meta: "Main Entrance",
+                    screen: "retrieval" as Screen,
                   },
                 ].map((task, i) => (
                   <div
                     key={i}
+                    onClick={() => nav?.(task.screen)}
                     className="bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex-1 min-w-0">

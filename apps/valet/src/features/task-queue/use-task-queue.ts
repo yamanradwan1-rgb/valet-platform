@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { StaffTaskQueueItem } from "@valet/contracts";
 
 import { EmployeeApiClient } from "../../lib/api/employee-api-client";
@@ -24,7 +24,6 @@ export interface UseTaskQueueResult {
   readonly isRefreshing: boolean;
   readonly isHardStopped: boolean;
   readonly error: Error | null;
-  readonly refresh: () => Promise<void>;
 }
 
 interface ScopedQueueState {
@@ -72,83 +71,12 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     onAuthLossRef.current = onAuthorizationLoss;
   }, [onAuthorizationLoss]);
 
-  const poll = useCallback(
-    async (isInitial = false): Promise<void> => {
-      if (status !== "authenticated" || !locationId) {
-        setQueueState({
-          scopeLocationId: null,
-          tasks: [],
-          hardStoppedLocationId: null,
-        });
-        setIsLoading(false);
-        setIsRefreshing(false);
-        setError(null);
-        return;
-      }
-
-      if (inFlightRef.current) {
-        return;
-      }
-      inFlightRef.current = true;
-
-      const currentSeq = ++sequenceRef.current;
-      const abortController = new AbortController();
-      activeAbortRef.current = abortController;
-
-      if (isInitial && queueState.tasks.length === 0) {
-        setIsLoading(true);
-      } else {
-        setIsRefreshing(true);
-      }
-
-      try {
-        const response = await fetchTaskQueue(apiClient, locationId, {
-          signal: abortController.signal,
-        });
-
-        if (
-          !abortController.signal.aborted &&
-          currentSeq > latestCompletedSeqRef.current
-        ) {
-          latestCompletedSeqRef.current = currentSeq;
-          setQueueState({
-            scopeLocationId: locationId,
-            tasks: response.tasks,
-            hardStoppedLocationId: null,
-          });
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (!abortController.signal.aborted) {
-          if (
-            err instanceof EmployeeApiError &&
-            (err.status === 401 || err.status === 403 || err.status === 404)
-          ) {
-            // Hard auth / scope revocation: clear tasks, record hard stop for locationId, notify owner
-            setQueueState({
-              scopeLocationId: null,
-              tasks: [],
-              hardStoppedLocationId: locationId,
-            });
-            setError(err);
-            onAuthLossRef.current?.();
-          } else if (currentSeq > latestCompletedSeqRef.current) {
-            setError(err instanceof Error ? err : new Error(String(err)));
-          }
-        }
-      } finally {
-        inFlightRef.current = false;
-        if (!abortController.signal.aborted) {
-          setIsLoading(false);
-          setIsRefreshing(false);
-        }
-      }
-    },
-    [status, locationId, apiClient, queueState.tasks.length],
-  );
-
   useEffect(() => {
     if (status !== "authenticated" || !locationId) {
+      if (activeAbortRef.current) {
+        activeAbortRef.current.abort();
+        activeAbortRef.current = null;
+      }
       return undefined;
     }
 
@@ -271,12 +199,6 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     };
   }, [status, locationId, pollingIntervalMs, apiClient]);
 
-  const refresh = useCallback(async () => {
-    setQueueState((prev) => ({ ...prev, hardStoppedLocationId: null }));
-    await poll(false);
-  }, [poll]);
-
-  // Synchronously enforce that effective tasks match current scope locationId
   const effectiveTasks =
     status === "authenticated" &&
     locationId !== null &&
@@ -294,6 +216,5 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       status === "authenticated" && locationId ? isRefreshing : false,
     isHardStopped,
     error: status === "authenticated" && locationId ? error : null,
-    refresh,
   };
 }
