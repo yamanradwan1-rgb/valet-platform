@@ -4,6 +4,8 @@ import { RuntimeDatabaseModule } from "../../common/database/runtime-database.mo
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
+import { StaffCheckInContinuationsController } from "./staff-check-in-continuations.controller";
+import { StaffCheckInContinuationsService } from "./staff-check-in-continuations.service";
 import { StaffCheckInDraftsController } from "./staff-check-in-drafts.controller";
 import { StaffCheckInDraftsService } from "./staff-check-in-drafts.service";
 import { StaffOperationalContextController } from "./staff-operational-context.controller";
@@ -13,12 +15,14 @@ import { StaffValetSessionService } from "./staff-valet-session.service";
 
 @Module({
   controllers: [
+    StaffCheckInContinuationsController,
     StaffCheckInDraftsController,
     StaffOperationalContextController,
     StaffValetSessionController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
+    StaffCheckInContinuationsService,
     StaffCheckInDraftsService,
     StaffOperationalContextService,
     StaffValetSessionService,
@@ -29,6 +33,7 @@ export class StaffModule implements NestModule {
     consumer
       .apply(RequestIdMiddleware)
       .forRoutes(
+        StaffCheckInContinuationsController,
         StaffCheckInDraftsController,
         StaffOperationalContextController,
         StaffValetSessionController,
