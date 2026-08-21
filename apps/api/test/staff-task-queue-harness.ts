@@ -112,7 +112,9 @@ export function createStaffTaskQueueHarness(): StaffTaskQueueHarness {
       return { fixture, token };
     },
     async rawDuplicateAuthRequest(locationId: string, token: string) {
-      const url = new URL(`${baseUrl}/v1/staff/tasks/queue?locationId=${locationId}`);
+      const url = new URL(
+        `${baseUrl}/v1/staff/tasks/queue?locationId=${locationId}`,
+      );
       const { request: httpRequest } = await import("node:http");
       return new Promise((resolve, reject) => {
         const req = httpRequest(

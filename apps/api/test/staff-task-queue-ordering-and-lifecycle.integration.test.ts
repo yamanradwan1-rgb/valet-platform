@@ -115,7 +115,13 @@ describe("VUI-003A2 staff task queue ordering, lifecycle & mutations", () => {
         `INSERT INTO tasks
            (id, organization_id, location_id, valet_session_id, task_type, status, version, updated_at)
          VALUES ($1, $2, $3, $4, 'PARKING', $5, 1, transaction_timestamp())`,
-        [taskId, actor.fixture.organizationId, actor.fixture.locationId, sId, status],
+        [
+          taskId,
+          actor.fixture.organizationId,
+          actor.fixture.locationId,
+          sId,
+          status,
+        ],
       );
     }
 
