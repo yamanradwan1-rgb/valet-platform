@@ -13,39 +13,44 @@ import {
 } from "../../features/task-queue/task-queue-view-model";
 
 export interface TaskQueueScreenProps {
+  readonly mode?: "live" | "prototype" | undefined;
   readonly nav?: ((s: Screen) => void) | undefined;
   readonly locationId?: string | null | undefined;
   readonly locationName?: string | undefined;
   readonly shiftStartedAt?: string | undefined;
   readonly membershipId?: string | undefined;
   readonly initialTasks?: StaffTaskQueueItem[] | undefined;
+  readonly onAuthorizationLoss?: (() => void) | undefined;
 }
 
 function formatShiftStartTime(isoString?: string | undefined): string {
-  if (!isoString) return "6:00 PM";
+  if (!isoString) return "";
   try {
     const d = new Date(isoString);
-    if (isNaN(d.getTime())) return "6:00 PM";
+    if (isNaN(d.getTime())) return "";
     return d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
   } catch {
-    return "6:00 PM";
+    return "";
   }
 }
 
 export function TaskQueueScreen({
+  mode,
   locationId,
-  locationName = "Four Seasons Amman",
+  locationName,
   shiftStartedAt,
   membershipId,
   initialTasks,
+  onAuthorizationLoss,
 }: TaskQueueScreenProps): JSX.Element {
-  const isLiveMode = Boolean(locationId || initialTasks);
+  const isLiveMode = mode === "live" || Boolean(locationId || initialTasks);
   const { tasks: liveTasks } = useTaskQueue({
-    locationId: locationId ?? null,
+    locationId: isLiveMode ? (locationId ?? null) : null,
+    onAuthorizationLoss,
   });
 
   const viewModels = useMemo<StaffTaskQueueItemViewModel[]>(() => {
@@ -57,7 +62,12 @@ export function TaskQueueScreen({
   const priorityTask = viewModels[0] ?? null;
   const queueTasks = viewModels.slice(1);
 
-  const formattedShiftTime = formatShiftStartTime(shiftStartedAt);
+  const formattedShiftTime = isLiveMode
+    ? formatShiftStartTime(shiftStartedAt)
+    : "6:00 PM";
+  const displayLocation = isLiveMode
+    ? (locationName ?? "")
+    : (locationName ?? "Four Seasons Amman");
 
   return (
     <div>
@@ -66,7 +76,7 @@ export function TaskQueueScreen({
         <span className="w-2 h-2 rounded-full bg-vsuccess animate-pulse" />
         <span className="text-white text-xs font-semibold">Shift active</span>
         <span className="text-muted text-xs">
-          · {formattedShiftTime} – now · {locationName}
+          · {formattedShiftTime} – now · {displayLocation}
         </span>
       </div>
 
@@ -119,8 +129,8 @@ export function TaskQueueScreen({
             </div>
           </div>
         ) : priorityTask ? (
-          // Live Priority Task Card using approved AGE and STATUS slots
-          <div className="bg-white rounded-2xl border border-vborder overflow-hidden shadow-sm">
+          // Live Priority Task Card using approved AGE and STATUS slots with exact base visual classes
+          <div className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow">
             <div className="h-1 bg-vblue" />
             <div className="p-5">
               <div className="flex items-start justify-between mb-4">
@@ -156,9 +166,9 @@ export function TaskQueueScreen({
                   className={`${
                     priorityTask.status === "ACCEPTED" ||
                     priorityTask.status === "IN_PROGRESS"
-                      ? "bg-vsuccess"
-                      : "bg-vblue"
-                  } text-white text-sm font-bold px-5 h-10 rounded-xl cursor-default transition-all`}
+                      ? "bg-vsuccess px-4"
+                      : "bg-vblue px-5"
+                  } text-white text-sm font-bold h-10 rounded-xl cursor-pointer active:scale-[0.98] transition-all`}
                 >
                   {priorityTask.status === "ACCEPTED" ||
                   priorityTask.status === "IN_PROGRESS"
@@ -170,13 +180,7 @@ export function TaskQueueScreen({
               </div>
             </div>
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-vborder p-6 text-center shadow-sm">
-            <p className="text-neutral font-semibold text-sm">
-              No active priority task
-            </p>
-          </div>
-        )}
+        ) : null}
 
         {/* Queue list */}
         <div>
@@ -184,78 +188,74 @@ export function TaskQueueScreen({
             Queue
           </p>
           <div className="space-y-2">
-            {!isLiveMode ? (
-              // Prototype fallback representation for component baseline tests
-              [
-                {
-                  type: "checkin" as const,
-                  model: "Toyota Camry",
-                  plate: "87-65432",
-                  info: "just now",
-                  meta: "Check-in",
-                },
-                {
-                  type: "parking" as const,
-                  model: "Mercedes E-Class",
-                  plate: "45-88231",
-                  info: "5 min ago",
-                  meta: "Zone A",
-                },
-                {
-                  type: "handoff" as const,
-                  model: "Audi Q7",
-                  plate: "99-12345",
-                  info: "waiting",
-                  meta: "Main Entrance",
-                },
-              ].map((task, i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant={task.type} />
-                      <span className="text-muted text-xs">{task.info}</span>
+            {!isLiveMode
+              ? // Prototype fallback representation for component baseline tests
+                [
+                  {
+                    type: "checkin" as const,
+                    model: "Toyota Camry",
+                    plate: "87-65432",
+                    info: "just now",
+                    meta: "Check-in",
+                  },
+                  {
+                    type: "parking" as const,
+                    model: "Mercedes E-Class",
+                    plate: "45-88231",
+                    info: "5 min ago",
+                    meta: "Zone A",
+                  },
+                  {
+                    type: "handoff" as const,
+                    model: "Audi Q7",
+                    plate: "99-12345",
+                    info: "waiting",
+                    meta: "Main Entrance",
+                  },
+                ].map((task, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant={task.type} />
+                        <span className="text-muted text-xs">{task.info}</span>
+                      </div>
+                      <p className="font-heading font-bold text-navy text-[15px] leading-tight">
+                        {task.model}
+                      </p>
+                      <p className="text-neutral text-xs mt-0.5">
+                        {task.plate} · {task.meta}
+                      </p>
                     </div>
-                    <p className="font-heading font-bold text-navy text-[15px] leading-tight">
-                      {task.model}
-                    </p>
-                    <p className="text-neutral text-xs mt-0.5">
-                      {task.plate} · {task.meta}
-                    </p>
+                    <ChevronRight />
                   </div>
-                  <ChevronRight />
-                </div>
-              ))
-            ) : queueTasks.length > 0 ? (
-              queueTasks.map((task) => (
-                <div
-                  key={task.taskId}
-                  className="bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant={task.badgeVariant} />
-                      <span className="text-muted text-xs">
-                        {task.timeText}
-                      </span>
+                ))
+              : queueTasks.length > 0
+                ? queueTasks.map((task) => (
+                    <div
+                      key={task.taskId}
+                      className="bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant={task.badgeVariant} />
+                          <span className="text-muted text-xs">
+                            {task.timeText}
+                          </span>
+                        </div>
+                        <p className="font-heading font-bold text-navy text-[15px] leading-tight">
+                          {task.vehicleHeading}
+                        </p>
+                        <p className="text-neutral text-xs mt-0.5">
+                          {task.vehicleIdentifier} · {task.metaText}
+                        </p>
+                      </div>
+                      <ChevronRight />
                     </div>
-                    <p className="font-heading font-bold text-navy text-[15px] leading-tight">
-                      {task.vehicleHeading}
-                    </p>
-                    <p className="text-neutral text-xs mt-0.5">
-                      {task.vehicleIdentifier} · {task.metaText}
-                    </p>
-                  </div>
-                  <ChevronRight />
-                </div>
-              ))
-            ) : (
-              <div className="bg-white rounded-xl border border-vborder px-4 py-4 text-center">
-                <p className="text-neutral text-xs">No tasks in queue</p>
-              </div>
-            )}
+                  ))
+                : null}
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import type { StaffOperationalRole } from "@valet/contracts";
 
 export interface AppHeaderProps {
+  readonly mode?: "live" | "prototype" | undefined;
   readonly locationName?: string | undefined;
   readonly locationCode?: string | undefined;
   readonly role?: StaffOperationalRole | undefined;
@@ -9,13 +10,29 @@ export interface AppHeaderProps {
 }
 
 export function AppHeader({
-  locationName = "Four Seasons Amman",
-  locationCode = "Main Entrance",
+  mode = "prototype",
+  locationName,
+  locationCode,
   role,
   onAvatarTap,
 }: AppHeaderProps): JSX.Element {
-  const avatarInitials =
-    role === "VALET_EMPLOYEE"
+  const isLive = mode === "live";
+
+  const displayLocation = isLive
+    ? (locationName ?? "")
+    : (locationName ?? "Four Seasons Amman");
+
+  const displayCode = isLive
+    ? (locationCode ?? "")
+    : (locationCode ?? "Main Entrance");
+
+  const displayInitials = isLive
+    ? role === "VALET_EMPLOYEE"
+      ? "VE"
+      : role === "VALET_SUPERVISOR"
+        ? "VS"
+        : ""
+    : role === "VALET_EMPLOYEE"
       ? "VE"
       : role === "VALET_SUPERVISOR"
         ? "VS"
@@ -32,19 +49,20 @@ export function AppHeader({
         <div className="h-5 w-px bg-vborder" />
         <div>
           <p className="text-navy text-[13px] font-semibold leading-tight">
-            {locationName}
+            {displayLocation}
           </p>
           <p className="text-neutral text-[11px] leading-tight">
-            {locationCode}
+            {displayCode}
           </p>
         </div>
       </div>
       <button
+        type="button"
         onClick={onAvatarTap}
         className="w-9 h-9 rounded-full bg-navy-3 flex items-center justify-center cursor-pointer active:opacity-70"
       >
         <span className="font-heading font-bold text-white text-[11px]">
-          {avatarInitials}
+          {displayInitials}
         </span>
       </button>
     </header>

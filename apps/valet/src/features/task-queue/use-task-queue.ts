@@ -15,14 +15,22 @@ export interface UseTaskQueueOptions {
   readonly locationId: string | null;
   readonly client?: EmployeeApiClient | undefined;
   readonly pollingIntervalMs?: number | undefined;
+  readonly onAuthorizationLoss?: (() => void) | undefined;
 }
 
 export interface UseTaskQueueResult {
   readonly tasks: StaffTaskQueueItem[];
   readonly isLoading: boolean;
   readonly isRefreshing: boolean;
+  readonly isHardStopped: boolean;
   readonly error: Error | null;
   readonly refresh: () => Promise<void>;
+}
+
+interface ScopedQueueState {
+  readonly scopeLocationId: string | null;
+  readonly tasks: StaffTaskQueueItem[];
+  readonly isHardStopped: boolean;
 }
 
 export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
@@ -30,12 +38,17 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     locationId,
     client: customClient,
     pollingIntervalMs = 5000,
+    onAuthorizationLoss,
   } = options;
   const auth = useOptionalStaffAuth();
   const status = auth?.status ?? "unauthenticated";
   const authClient = auth?.client;
 
-  const [tasks, setTasks] = useState<StaffTaskQueueItem[]>([]);
+  const [queueState, setQueueState] = useState<ScopedQueueState>({
+    scopeLocationId: null,
+    tasks: [],
+    isHardStopped: false,
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -53,11 +66,20 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   const sequenceRef = useRef<number>(0);
   const latestCompletedSeqRef = useRef<number>(0);
   const activeAbortRef = useRef<AbortController | null>(null);
+  const onAuthLossRef = useRef<(() => void) | undefined>(onAuthorizationLoss);
+
+  useEffect(() => {
+    onAuthLossRef.current = onAuthorizationLoss;
+  }, [onAuthorizationLoss]);
 
   const poll = useCallback(
     async (isInitial = false): Promise<void> => {
       if (status !== "authenticated" || !locationId) {
-        setTasks([]);
+        setQueueState({
+          scopeLocationId: null,
+          tasks: [],
+          isHardStopped: false,
+        });
         setIsLoading(false);
         setIsRefreshing(false);
         setError(null);
@@ -73,7 +95,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       const abortController = new AbortController();
       activeAbortRef.current = abortController;
 
-      if (isInitial && tasks.length === 0) {
+      if (isInitial && queueState.tasks.length === 0) {
         setIsLoading(true);
       } else {
         setIsRefreshing(true);
@@ -89,7 +111,11 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
           currentSeq > latestCompletedSeqRef.current
         ) {
           latestCompletedSeqRef.current = currentSeq;
-          setTasks(response.tasks);
+          setQueueState({
+            scopeLocationId: locationId,
+            tasks: response.tasks,
+            isHardStopped: false,
+          });
           setError(null);
         }
       } catch (err: unknown) {
@@ -98,8 +124,14 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
             err instanceof EmployeeApiError &&
             (err.status === 401 || err.status === 403 || err.status === 404)
           ) {
-            setTasks([]);
+            // Hard auth / scope revocation: clear tasks, set hard-stop, notify owner
+            setQueueState({
+              scopeLocationId: null,
+              tasks: [],
+              isHardStopped: true,
+            });
             setError(err);
+            onAuthLossRef.current?.();
           } else if (currentSeq > latestCompletedSeqRef.current) {
             setError(err instanceof Error ? err : new Error(String(err)));
           }
@@ -112,7 +144,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
         }
       }
     },
-    [status, locationId, apiClient, tasks.length],
+    [status, locationId, apiClient, queueState.tasks.length],
   );
 
   useEffect(() => {
@@ -121,11 +153,12 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     }
 
     let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let localHardStopped = false;
     const abortController = new AbortController();
     activeAbortRef.current = abortController;
 
     const executePoll = async (isInitial: boolean) => {
-      if (inFlightRef.current) return;
+      if (inFlightRef.current || localHardStopped) return;
       inFlightRef.current = true;
       const currentSeq = ++sequenceRef.current;
 
@@ -144,7 +177,11 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
           currentSeq > latestCompletedSeqRef.current
         ) {
           latestCompletedSeqRef.current = currentSeq;
-          setTasks(response.tasks);
+          setQueueState({
+            scopeLocationId: locationId,
+            tasks: response.tasks,
+            isHardStopped: false,
+          });
           setError(null);
         }
       } catch (err: unknown) {
@@ -153,8 +190,18 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
             err instanceof EmployeeApiError &&
             (err.status === 401 || err.status === 403 || err.status === 404)
           ) {
-            setTasks([]);
+            localHardStopped = true;
+            setQueueState({
+              scopeLocationId: null,
+              tasks: [],
+              isHardStopped: true,
+            });
             setError(err);
+            if (pollTimer) {
+              clearInterval(pollTimer);
+              pollTimer = null;
+            }
+            onAuthLossRef.current?.();
           } else if (currentSeq > latestCompletedSeqRef.current) {
             setError(err instanceof Error ? err : new Error(String(err)));
           }
@@ -172,7 +219,12 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
 
     const startTimer = () => {
       if (pollTimer) clearInterval(pollTimer);
+      if (localHardStopped) return;
       pollTimer = setInterval(() => {
+        if (localHardStopped) {
+          if (pollTimer) clearInterval(pollTimer);
+          return;
+        }
         void executePoll(false);
       }, pollingIntervalMs);
     };
@@ -187,7 +239,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     startTimer();
 
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && !localHardStopped) {
         void executePoll(false);
         startTimer();
       } else {
@@ -196,8 +248,10 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     };
 
     const onOnline = () => {
-      void executePoll(false);
-      startTimer();
+      if (!localHardStopped) {
+        void executePoll(false);
+        startTimer();
+      }
     };
 
     const onOffline = () => {
@@ -217,15 +271,29 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     };
   }, [status, locationId, pollingIntervalMs, apiClient]);
 
-  const refresh = useCallback(() => poll(false), [poll]);
+  const refresh = useCallback(async () => {
+    await poll(false);
+  }, [poll]);
 
-  const effectiveTasks = status === "authenticated" && locationId ? tasks : [];
+  // Synchronously enforce that effective tasks match current scope locationId
+  const effectiveTasks =
+    status === "authenticated" &&
+    locationId !== null &&
+    queueState.scopeLocationId === locationId
+      ? queueState.tasks
+      : [];
+
+  const isHardStopped =
+    queueState.scopeLocationId === locationId
+      ? queueState.isHardStopped
+      : false;
 
   return {
     tasks: effectiveTasks,
     isLoading: status === "authenticated" && locationId ? isLoading : false,
     isRefreshing:
       status === "authenticated" && locationId ? isRefreshing : false,
+    isHardStopped,
     error: status === "authenticated" && locationId ? error : null,
     refresh,
   };

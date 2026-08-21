@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type JSX } from "react";
+import { useState, type JSX } from "react";
 
 import type { Screen, Tab } from "../types/employee-ui";
 import { CheckInFlow } from "./screens/check-in-flow";
@@ -25,29 +25,29 @@ function getActiveTab(s: Screen): Tab {
 }
 
 export function EmployeeApp(): JSX.Element {
-  const { resolution } = useStaffOperationalContext();
+  const { resolution, refresh: refreshContext } = useStaffOperationalContext();
   const [screenOverride, setScreenOverride] = useState<Screen | null>(null);
-  const [isOffline, setIsOffline] = useState(false);
+  const [isPrototypeOffline, setIsPrototypeOffline] = useState(false);
 
-  const initialScreen = useMemo<Screen>(() => {
-    return resolution.kind === "RESOLVED" ? "task-queue" : "shift-start";
-  }, [resolution.kind]);
-
+  const isLive = resolution.kind === "RESOLVED";
+  const initialScreen: Screen = isLive ? "task-queue" : "shift-start";
   const screen: Screen = screenOverride ?? initialScreen;
   const nav = (s: Screen) => setScreenOverride(s);
 
-  const activeScope = resolution.kind === "RESOLVED" ? resolution.scope : null;
+  const activeScope = isLive ? resolution.scope : null;
 
   const renderScreen = () => {
     switch (screen) {
       case "task-queue":
         return (
           <TaskQueueScreen
+            mode={isLive ? "live" : "prototype"}
             nav={nav}
             locationId={activeScope?.locationId}
             locationName={activeScope?.locationName}
             shiftStartedAt={activeScope?.shiftStartedAt}
             membershipId={activeScope?.membershipId}
+            onAuthorizationLoss={refreshContext}
           />
         );
       case "check-in":
@@ -76,7 +76,7 @@ export function EmployeeApp(): JSX.Element {
         <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
           <ShiftStartScreen
             onStart={() => {
-              if (resolution.kind === "RESOLVED") {
+              if (isLive) {
                 nav("task-queue");
               }
             }}
@@ -90,8 +90,10 @@ export function EmployeeApp(): JSX.Element {
   return (
     <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
       <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
-        {isOffline && <OfflineBanner />}
+        {/* OfflineBanner is strictly for prototype demonstration, NEVER rendered in live operational mode */}
+        {!isLive && isPrototypeOffline && <OfflineBanner />}
         <AppHeader
+          mode={isLive ? "live" : "prototype"}
           locationName={activeScope?.locationName}
           locationCode={activeScope?.locationCode}
           role={activeScope?.role}
@@ -109,13 +111,15 @@ export function EmployeeApp(): JSX.Element {
           }}
         />
 
-        {/* Demo utility: offline toggle */}
-        <button
-          onClick={() => setIsOffline((o) => !o)}
-          className="absolute top-[72px] right-3 text-[9px] text-muted font-bold uppercase tracking-wider opacity-30 hover:opacity-80 cursor-pointer transition-opacity px-2 py-1"
-        >
-          {isOffline ? "online" : "offline"}
-        </button>
+        {/* Demo utility: offline toggle strictly in prototype mode */}
+        {!isLive && (
+          <button
+            onClick={() => setIsPrototypeOffline((o) => !o)}
+            className="absolute top-[72px] right-3 text-[9px] text-muted font-bold uppercase tracking-wider opacity-30 hover:opacity-80 cursor-pointer transition-opacity px-2 py-1"
+          >
+            {isPrototypeOffline ? "online" : "offline"}
+          </button>
+        )}
       </div>
     </div>
   );

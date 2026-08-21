@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import type { TaskQueueResponse } from "@valet/contracts";
+import { describe, expect, it, vi } from "vitest";
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { EmployeeApiError } from "../../lib/api/employee-api-errors";
@@ -30,5 +30,27 @@ describe("useTaskQueue hook logic and API integration", () => {
     await expect(fetchTaskQueue(mockClient, "loc-401")).rejects.toThrow(
       "Authentication required",
     );
+  });
+
+  it("enforces location isolation logic by validating locationId parameter", async () => {
+    const mockClient = {
+      request: vi.fn().mockResolvedValue({ tasks: [] }),
+    } as unknown as EmployeeApiClient;
+
+    await fetchTaskQueue(mockClient, "loc-A");
+    expect(mockClient.request).toHaveBeenCalledWith("/v1/staff/tasks/queue", {
+      method: "GET",
+      params: { locationId: "loc-A" },
+      signal: undefined,
+      requireAuth: true,
+    });
+
+    await fetchTaskQueue(mockClient, "loc-B");
+    expect(mockClient.request).toHaveBeenCalledWith("/v1/staff/tasks/queue", {
+      method: "GET",
+      params: { locationId: "loc-B" },
+      signal: undefined,
+      requireAuth: true,
+    });
   });
 });
