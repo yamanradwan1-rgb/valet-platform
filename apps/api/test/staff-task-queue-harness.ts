@@ -24,13 +24,19 @@ import {
 } from "./dispatch-test-context";
 
 export interface StaffTaskQueueHarness {
+  readonly baseUrl: () => string;
   readonly context: DispatchTestContext;
   readonly principals: Map<string, string>;
   close(): Promise<void>;
+  createSameOrgLocation(fixture: DispatchFixture): Promise<string>;
   fixtureWithToken(role?: "VALET_EMPLOYEE" | "VALET_SUPERVISOR"): Promise<{
     fixture: DispatchFixture;
     token: string;
   }>;
+  rawDuplicateAuthRequest(
+    locationId: string,
+    token: string,
+  ): Promise<{ body: Record<string, unknown>; status: number }>;
   request(
     method: string,
     path: string,
@@ -78,11 +84,24 @@ export function createStaffTaskQueueHarness(): StaffTaskQueueHarness {
   let baseUrl = "";
 
   return {
+    baseUrl: () => baseUrl,
     context,
     principals,
     async close() {
       if (app !== undefined) await app.close();
       await context.teardown();
+    },
+    async createSameOrgLocation(fixture: DispatchFixture) {
+      const locationId = randomUUID();
+      await context.adminPool.query(
+        `INSERT INTO locations
+           (id, organization_id, name, code, address_text, timezone, currency,
+            status, updated_at)
+         VALUES ($1, $2, 'Location Same Org 2', $3, 'Address', 'Asia/Amman',
+                 'JOD', 'ACTIVE', clock_timestamp())`,
+        [locationId, fixture.organizationId, `loc-${randomUUID().slice(0, 8)}`],
+      );
+      return locationId;
     },
     async fixtureWithToken(
       role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
@@ -91,6 +110,43 @@ export function createStaffTaskQueueHarness(): StaffTaskQueueHarness {
       const token = `queue-${randomUUID()}`;
       principals.set(`Bearer ${token}`, fixture.userId);
       return { fixture, token };
+    },
+    async rawDuplicateAuthRequest(locationId: string, token: string) {
+      const url = new URL(`${baseUrl}/v1/staff/tasks/queue?locationId=${locationId}`);
+      const { request: httpRequest } = await import("node:http");
+      return new Promise((resolve, reject) => {
+        const req = httpRequest(
+          {
+            headers: [
+              "Authorization",
+              `Bearer ${token}`,
+              "Authorization",
+              `Bearer ${token}`,
+            ] as unknown as Record<string, string>,
+            hostname: url.hostname,
+            method: "GET",
+            path: `${url.pathname}${url.search}`,
+            port: Number(url.port),
+          },
+          (r) => {
+            let data = "";
+            r.on("data", (chunk: Buffer | string) => {
+              data += chunk.toString();
+            });
+            r.on("end", () => {
+              let body: Record<string, unknown> = {};
+              try {
+                body = JSON.parse(data) as Record<string, unknown>;
+              } catch {
+                body = { raw: data };
+              }
+              resolve({ body, status: r.statusCode ?? 0 });
+            });
+          },
+        );
+        req.on("error", reject);
+        req.end();
+      });
     },
     async request(
       method: string,

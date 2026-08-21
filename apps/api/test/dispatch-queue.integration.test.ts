@@ -116,7 +116,14 @@ describe("Location operational Task queue read", () => {
       "PARKING",
       "RETRIEVAL",
     ]);
-    expect(tasks).toContainEqual(parking);
+    expect(tasks).toContainEqual(
+      expect.objectContaining({
+        ...parking,
+        parkingSpot: null,
+        parkingZone: null,
+        retrievalRequestedAt: null,
+      }),
+    );
     expect(tasks).toContainEqual(
       expect.objectContaining({
         taskId: retrievalTaskId,
