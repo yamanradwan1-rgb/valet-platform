@@ -1,15 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { StaffOperationalContextResponse } from "@valet/contracts";
 
 import { EmployeeApiClient } from "../../lib/api/employee-api-client";
-import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import {
   getDefaultStaffAuthClient,
   useOptionalStaffAuth,
 } from "../../lib/auth/staff-auth-context";
-import { fetchStaffOperationalContext } from "./staff-operational-context-api";
+import {
+  StaffOperationalContextController,
+  type StaffOperationalContextState,
+} from "./staff-operational-context-controller";
 import {
   resolveOperationalScope,
   type OperationalScopeResolution,
@@ -32,16 +34,6 @@ export function useStaffOperationalContext(
   const accessToken = auth?.session?.accessToken ?? null;
   const authClient = auth?.client;
 
-  const [storedResponse, setStoredResponse] = useState<{
-    token: string | null;
-    data: StaffOperationalContextResponse | null;
-  }>({
-    token: null,
-    data: null,
-  });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
-
   const apiClient = useMemo(
     () =>
       customApiClient ??
@@ -51,150 +43,40 @@ export function useStaffOperationalContext(
     [customApiClient, authClient],
   );
 
-  const sequenceRef = useRef<number>(0);
-  const latestCompletedSeqRef = useRef<number>(0);
-  const activeAbortRef = useRef<AbortController | null>(null);
+  const [controllerState, setControllerState] =
+    useState<StaffOperationalContextState>({
+      response: null,
+      isLoading: false,
+      error: null,
+    });
 
-  const loadContext = useCallback(
-    async (isAuthLossRevalidation = false): Promise<void> => {
-      if (status !== "authenticated" || !accessToken) {
-        if (activeAbortRef.current) {
-          activeAbortRef.current.abort();
-          activeAbortRef.current = null;
-        }
-        sequenceRef.current++;
-        return;
-      }
-
-      if (activeAbortRef.current) {
-        activeAbortRef.current.abort();
-      }
-      const abortController = new AbortController();
-      activeAbortRef.current = abortController;
-
-      const currentSeq = ++sequenceRef.current;
-
-      if (isAuthLossRevalidation) {
-        setStoredResponse({ token: null, data: null });
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await fetchStaffOperationalContext(apiClient, {
-          signal: abortController.signal,
-        });
-
-        if (
-          !abortController.signal.aborted &&
-          currentSeq === sequenceRef.current &&
-          currentSeq > latestCompletedSeqRef.current
-        ) {
-          latestCompletedSeqRef.current = currentSeq;
-          setStoredResponse({ token: accessToken, data });
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (
-          !abortController.signal.aborted &&
-          currentSeq === sequenceRef.current
-        ) {
-          if (
-            err instanceof EmployeeApiError &&
-            (err.status === 401 || err.status === 403 || err.status === 404)
-          ) {
-            setStoredResponse({ token: null, data: null });
-          }
-          setError(err instanceof Error ? err : new Error(String(err)));
-        }
-      } finally {
-        if (
-          !abortController.signal.aborted &&
-          currentSeq === sequenceRef.current
-        ) {
-          setIsLoading(false);
-        }
-      }
-    },
-    [status, accessToken, apiClient],
+  const [controller] = useState(
+    () =>
+      new StaffOperationalContextController({
+        apiClient,
+        onStateChange: (nextState) => {
+          setControllerState(nextState);
+        },
+      }),
   );
 
   useEffect(() => {
-    if (status !== "authenticated" || !accessToken) {
-      if (activeAbortRef.current) {
-        activeAbortRef.current.abort();
-        activeAbortRef.current = null;
-      }
-      sequenceRef.current++;
-      return undefined;
-    }
-
-    const abortController = new AbortController();
-    activeAbortRef.current = abortController;
-    const currentSeq = ++sequenceRef.current;
-
-    const run = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const data = await fetchStaffOperationalContext(apiClient, {
-          signal: abortController.signal,
-        });
-
-        if (
-          !abortController.signal.aborted &&
-          currentSeq === sequenceRef.current &&
-          currentSeq > latestCompletedSeqRef.current
-        ) {
-          latestCompletedSeqRef.current = currentSeq;
-          setStoredResponse({ token: accessToken, data });
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (
-          !abortController.signal.aborted &&
-          currentSeq === sequenceRef.current
-        ) {
-          if (
-            err instanceof EmployeeApiError &&
-            (err.status === 401 || err.status === 403 || err.status === 404)
-          ) {
-            setStoredResponse({ token: null, data: null });
-          }
-          setError(err instanceof Error ? err : new Error(String(err)));
-        }
-      } finally {
-        if (
-          !abortController.signal.aborted &&
-          currentSeq === sequenceRef.current
-        ) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void run();
-
-    return () => {
-      abortController.abort();
-    };
-  }, [status, accessToken, apiClient]);
+    controller.setApiClient(apiClient);
+  }, [controller, apiClient]);
 
   useEffect(() => {
-    if (status !== "authenticated") {
-      return undefined;
-    }
+    controller.setAuth(status, accessToken);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        void loadContext(false);
+        controller.handleVisibilityChange(true);
+      } else {
+        controller.handleVisibilityChange(false);
       }
     };
 
     const onOnline = () => {
-      void loadContext(false);
+      controller.handleOnline();
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
@@ -204,24 +86,25 @@ export function useStaffOperationalContext(
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("online", onOnline);
     };
-  }, [status, loadContext]);
+  }, [controller, status, accessToken]);
+
+  useEffect(() => {
+    return () => {
+      controller.destroy();
+    };
+  }, [controller]);
 
   const refresh = useCallback(async (): Promise<void> => {
-    await loadContext(false);
-  }, [loadContext]);
+    await controller.refresh();
+  }, [controller]);
 
   const revalidateOnAuthLoss = useCallback(async (): Promise<void> => {
-    await loadContext(true);
-  }, [loadContext]);
+    await controller.revalidateOnAuthLoss();
+  }, [controller]);
 
-  // Synchronous fail-closed protection:
-  // Data is ONLY effective if status is authenticated AND stored token matches current accessToken
+  // Synchronous fail-closed protection
   const effectiveResponse =
-    status === "authenticated" &&
-    accessToken !== null &&
-    storedResponse.token === accessToken
-      ? storedResponse.data
-      : null;
+    status === "authenticated" && accessToken ? controllerState.response : null;
 
   const resolution = useMemo<OperationalScopeResolution>(() => {
     if (!effectiveResponse) {
@@ -233,8 +116,8 @@ export function useStaffOperationalContext(
   return {
     response: effectiveResponse,
     resolution,
-    isLoading: status === "authenticated" ? isLoading : false,
-    error: status === "authenticated" ? error : null,
+    isLoading: status === "authenticated" ? controllerState.isLoading : false,
+    error: status === "authenticated" ? controllerState.error : null,
     refresh,
     revalidateOnAuthLoss,
   };
