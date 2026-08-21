@@ -12,6 +12,7 @@ import { StartParkingModule } from "./modules/parking/start-parking.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { RetrievalModule } from "./modules/retrieval/retrieval.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
+import { StaffModule } from "./modules/staff/staff.module";
 import { TrackingModule } from "./modules/tracking/tracking.module";
 
 @Module({
@@ -21,6 +22,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     GuestAccessModule,
     CheckInModule,
     ShiftModule,
+    StaffModule,
     KeyCustodyModule,
     MapSetupModule,
     DispatchModule,

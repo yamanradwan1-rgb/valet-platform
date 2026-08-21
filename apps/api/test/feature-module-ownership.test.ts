@@ -66,6 +66,9 @@ import { MarkReadyService } from "../src/modules/retrieval/mark-ready.service";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
+import { StaffOperationalContextController } from "../src/modules/staff/staff-operational-context.controller";
+import { StaffOperationalContextService } from "../src/modules/staff/staff-operational-context.service";
+import { StaffModule } from "../src/modules/staff/staff.module";
 import { GpsIngestionController } from "../src/modules/tracking/gps-ingestion.controller";
 import { GpsIngestionService } from "../src/modules/tracking/gps-ingestion.service";
 import { LiveMapController } from "../src/modules/tracking/live-map.controller";
@@ -86,6 +89,7 @@ describe("accepted feature module ownership", () => {
       GuestAccessModule,
       CheckInModule,
       ShiftModule,
+      StaffModule,
       KeyCustodyModule,
       MapSetupModule,
       DispatchModule,
@@ -246,6 +250,15 @@ describe("accepted feature module ownership", () => {
     ]) {
       expect(method in CheckInApiService.prototype).toBe(false);
     }
+  });
+
+  it("keeps Staff ownership focused on operational context read", () => {
+    expect(metadata(StaffModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      StaffOperationalContextController,
+    ]);
+    expect(metadata(StaffModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      StaffOperationalContextService,
+    ]);
   });
 
   it("provides the neutral runner and one global exception filter", () => {
