@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  assertQueueMatchesQueuedTask,
   type GateFixture,
   number,
   Phase3OperationsGateContext,
@@ -44,23 +45,7 @@ describe("VAL-005H production API operations gate", () => {
       `/v1/staff/tasks/queue?locationId=${fixture.locationId}`,
       { token: fixture.accessToken },
     );
-    expect(queue.body).toMatchObject({
-      tasks: [
-        {
-          ...queued.body,
-          parkingSpot: null,
-          parkingZone: null,
-          retrievalRequestedAt: null,
-          vehicle: {
-            color: null,
-            make: null,
-            model: null,
-            plateNumberRaw: null,
-            temporaryDescriptor: expect.stringMatching(/^Dispatch /),
-          },
-        },
-      ],
-    });
+    assertQueueMatchesQueuedTask(queue.body, queued.body);
 
     const assigned = await post(fixture, `/v1/staff/tasks/${taskId}/assign`, {
       expectedVersion: taskVersion,

@@ -74,7 +74,7 @@ describe("VUI-003A2 staff task queue ordering, lifecycle & mutations", () => {
     const tasks = res.body.tasks as Array<{ taskId: string }>;
     const matchedTaskIds = tasks
       .map((t) => t.taskId)
-      .filter((id) => ids.includes(id));
+      .filter((id) => (ids as string[]).includes(id));
     expect(matchedTaskIds).toEqual(ids);
   });
 

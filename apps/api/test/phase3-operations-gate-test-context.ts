@@ -5,6 +5,7 @@ import { NestFactory } from "@nestjs/core";
 
 import { AppModule } from "../src/app.module";
 import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
+import { expect } from "vitest";
 import {
   ConfirmParkedTestContext,
   type ConfirmParkedFixture,
@@ -36,6 +37,29 @@ export function text(body: Record<string, unknown>, key: string): string {
   const value = body[key];
   if (typeof value !== "string") throw new Error(`Expected string for ${key}`);
   return value;
+}
+
+export function assertQueueMatchesQueuedTask(
+  queueBody: Record<string, unknown>,
+  queuedBody: Record<string, unknown>,
+): void {
+  expect(queueBody).toMatchObject({
+    tasks: [
+      {
+        ...queuedBody,
+        parkingSpot: null,
+        parkingZone: null,
+        retrievalRequestedAt: null,
+        vehicle: {
+          color: null,
+          make: null,
+          model: null,
+          plateNumberRaw: null,
+          temporaryDescriptor: expect.stringMatching(/^Dispatch /),
+        },
+      },
+    ],
+  });
 }
 
 export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
