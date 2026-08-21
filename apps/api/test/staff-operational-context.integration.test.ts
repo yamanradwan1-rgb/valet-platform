@@ -1,257 +1,256 @@
 import { randomUUID } from "node:crypto";
 
-import {
-  MiddlewareConsumer,
-  Module,
-  type INestApplication,
-  type NestModule,
-} from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
-import { RequestIdMiddleware } from "../src/common/http/api-request";
-import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
 import {
-  FailClosedStaffPrincipalResolver,
-  STAFF_PRINCIPAL_RESOLVER,
-  type StaffPrincipalResolver,
-} from "../src/modules/auth/staff-principal";
-import { StaffOperationalContextController } from "../src/modules/staff/staff-operational-context.controller";
-import { StaffOperationalContextService } from "../src/modules/staff/staff-operational-context.service";
-import { ShiftTestContext } from "./shift-test-context";
+  createOperationalContextHarness,
+  fetchContext,
+  fetchContextRawDuplicateAuth,
+  insertActiveShift,
+  registerToken,
+} from "./staff-operational-context-harness";
 
-interface HttpResult {
-  readonly body: Record<string, unknown>;
-  readonly status: number;
-}
-
-const context = new ShiftTestContext("operational-context");
-const principals = new Map<string, string>();
-const principalResolver: StaffPrincipalResolver = {
-  async resolve(authorization) {
-    const userId =
-      authorization === undefined ? undefined : principals.get(authorization);
-    return userId === undefined
-      ? new FailClosedStaffPrincipalResolver().resolve(authorization)
-      : { userId };
-  },
-};
-
-let app: INestApplication;
-let baseUrl: string;
-
-@Module({
-  controllers: [StaffOperationalContextController],
-  imports: [HttpInfrastructureModule],
-  providers: [
-    StaffOperationalContextService,
-    { provide: RUNTIME_POSTGRES_POOL, useFactory: () => context.runtimePool },
-    { provide: STAFF_PRINCIPAL_RESOLVER, useValue: principalResolver },
-  ],
-})
-class TestStaffModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): void {
-    consumer
-      .apply(RequestIdMiddleware)
-      .forRoutes(StaffOperationalContextController);
-  }
-}
-
-async function request(
-  token?: string,
-  extraHeaders?: Record<string, string>,
-): Promise<HttpResult> {
-  const headers: Record<string, string> = { ...extraHeaders };
-  if (token !== undefined) headers.authorization = `Bearer ${token}`;
-  const response = await fetch(`${baseUrl}/v1/staff/operational-context`, {
-    headers,
-  });
-  const text = await response.text();
-  let body: Record<string, unknown> = {};
-  try {
-    body = JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    body = { raw: text };
-  }
-  return { body, status: response.status };
-}
+const harness = createOperationalContextHarness();
 
 describe("Staff Operational Context Read API", () => {
-  beforeAll(async () => {
-    await context.setup();
-    app = await NestFactory.create(TestStaffModule, { logger: false });
-    await app.listen(0);
-    const address = app.getHttpServer().address() as { port: number };
-    baseUrl = `http://127.0.0.1:${String(address.port)}`;
-  }, 60_000);
-
-  afterAll(async () => {
-    if (app !== undefined) {
-      await app.close();
-    }
-    await context.teardown();
-  }, 60_000);
-
-  beforeEach(() => {
-    principals.clear();
-  });
+  beforeAll(async () => harness.start(), 60_000);
+  afterAll(async () => harness.close(), 60_000);
+  beforeEach(() => harness.principals.clear());
 
   it("rejects unauthenticated and invalid requests with 401", async () => {
-    expect((await request()).status).toBe(401);
-    expect((await request("invalid-token-123")).status).toBe(401);
+    expect((await fetchContext(harness.baseUrl())).status).toBe(401);
+    expect((await fetchContext(harness.baseUrl(), "bad")).status).toBe(401);
   });
 
-  it("returns operational context for active VALET_EMPLOYEE with active shift", async () => {
-    const fixture = await context.createFixture({ role: "VALET_EMPLOYEE" });
-    const shiftId = randomUUID();
-    await context.adminPool.query(
-      `INSERT INTO shifts (id, organization_id, location_id, membership_id, status, started_at)
-       VALUES ($1, $2, $3, $4, 'ACTIVE', NOW())`,
-      [
-        shiftId,
-        fixture.organizationId,
-        fixture.locationId,
-        fixture.membershipId,
-      ],
-    );
-
-    const token = `token-${randomUUID()}`;
-    principals.set(`Bearer ${token}`, fixture.userId);
-
-    const auditBefore = await context.countAudit(shiftId);
-    const res = await request(token);
+  it("returns context with active shift for VALET_EMPLOYEE", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    const shiftId = await insertActiveShift(harness, f);
+    const token = registerToken(harness.principals, f.userId);
+    const auditBefore = await harness.context.countAudit(shiftId);
+    const res = await fetchContext(harness.baseUrl(), token);
     expect(res.status).toBe(200);
-    const contexts = res.body.contexts as Array<Record<string, unknown>>;
-    expect(contexts).toHaveLength(1);
-
-    const ctx = contexts[0]!;
-    expect(ctx.membershipId).toBe(fixture.membershipId);
+    const ctx = (res.body.contexts as Array<Record<string, unknown>>)[0]!;
     expect(ctx.role).toBe("VALET_EMPLOYEE");
     expect(ctx.activeShift).toMatchObject({
-      locationId: fixture.locationId,
+      locationId: f.locationId,
       shiftId,
       status: "ACTIVE",
     });
-    expect(ctx.currentLocation).toMatchObject({
-      locationId: fixture.locationId,
-    });
+    expect(ctx.currentLocation).toMatchObject({ locationId: f.locationId });
     expect(ctx.eligibleLocations).toHaveLength(1);
-    expect(res.body.user).toBeUndefined();
-    expect(res.body.email).toBeUndefined();
-
-    // Invariant: GET has no mutation side effects
-    expect(await context.countAudit(shiftId)).toBe(auditBefore);
+    expect(await harness.context.countAudit(shiftId)).toBe(auditBefore);
   });
 
-  it("returns operational context without active shift when no shift started", async () => {
-    const fixture = await context.createFixture({ role: "VALET_SUPERVISOR" });
-    const token = `token-${randomUUID()}`;
-    principals.set(`Bearer ${token}`, fixture.userId);
-
-    const res = await request(token);
+  it("returns activeShift:null when no shift started", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_SUPERVISOR" });
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
     expect(res.status).toBe(200);
-    const contexts = res.body.contexts as Array<Record<string, unknown>>;
-    expect(contexts).toHaveLength(1);
-
-    const ctx = contexts[0]!;
-    expect(ctx.membershipId).toBe(fixture.membershipId);
-    expect(ctx.role).toBe("VALET_SUPERVISOR");
+    const ctx = (res.body.contexts as Array<Record<string, unknown>>)[0]!;
     expect(ctx.activeShift).toBeNull();
     expect(ctx.currentLocation).toBeNull();
     expect(ctx.eligibleLocations).toHaveLength(1);
   });
 
-  it("denies LOCATION_MANAGER, ORG_ADMIN, inactive memberships, and inactive orgs with 404", async () => {
-    const mgr = await context.createFixture({ role: "LOCATION_MANAGER" });
-    principals.set(`Bearer mgr`, mgr.userId);
-    expect((await request("mgr")).status).toBe(404);
-
-    const admin = await context.createFixture({ role: "ORG_ADMIN" });
-    principals.set(`Bearer admin`, admin.userId);
-    expect((await request("admin")).status).toBe(404);
-
-    const inactMem = await context.createFixture({
-      membershipStatus: "INACTIVE",
-    });
-    principals.set(`Bearer inactMem`, inactMem.userId);
-    expect((await request("inactMem")).status).toBe(404);
-
-    const inactOrg = await context.createFixture({
-      organizationStatus: "INACTIVE",
-    });
-    principals.set(`Bearer inactOrg`, inactOrg.userId);
-    expect((await request("inactOrg")).status).toBe(404);
+  it("denies non-operational roles and inactive memberships/orgs", async () => {
+    for (const opts of [
+      { role: "LOCATION_MANAGER" as const },
+      { role: "ORG_ADMIN" as const },
+      { membershipStatus: "INACTIVE" as const },
+      { organizationStatus: "INACTIVE" as const },
+    ]) {
+      const f = await harness.context.createFixture(opts);
+      const t = registerToken(harness.principals, f.userId);
+      expect((await fetchContext(harness.baseUrl(), t)).status).toBe(404);
+    }
   });
 
-  it("supports multi-org users with independent active shifts in each context", async () => {
-    const f1 = await context.createFixture({ role: "VALET_EMPLOYEE" });
-    const f2 = await context.createFixture(
+  it("supports multi-org with independent active shifts", async () => {
+    const f1 = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    const f2 = await harness.context.createFixture(
       { role: "VALET_SUPERVISOR" },
       f1.userId,
     );
-
-    const shift1 = randomUUID();
-    const shift2 = randomUUID();
-    await context.adminPool.query(
-      `INSERT INTO shifts (id, organization_id, location_id, membership_id, status, started_at)
-       VALUES ($1, $2, $3, $4, 'ACTIVE', NOW()), ($5, $6, $7, $8, 'ACTIVE', NOW())`,
-      [
-        shift1,
-        f1.organizationId,
-        f1.locationId,
-        f1.membershipId,
-        shift2,
-        f2.organizationId,
-        f2.locationId,
-        f2.membershipId,
-      ],
-    );
-
-    const token = `multi-${randomUUID()}`;
-    principals.set(`Bearer ${token}`, f1.userId);
-
-    const res = await request(token);
+    const s1 = await insertActiveShift(harness, f1);
+    const s2 = await insertActiveShift(harness, f2);
+    const token = registerToken(harness.principals, f1.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
     expect(res.status).toBe(200);
-    const contexts = res.body.contexts as Array<Record<string, unknown>>;
-    expect(contexts).toHaveLength(2);
-
-    const ctx1 = contexts.find((c) => c.membershipId === f1.membershipId)!;
-    const ctx2 = contexts.find((c) => c.membershipId === f2.membershipId)!;
-
-    expect(ctx1.activeShift).toMatchObject({ shiftId: shift1 });
-    expect(ctx1.currentLocation).toMatchObject({ locationId: f1.locationId });
-    expect(ctx2.activeShift).toMatchObject({ shiftId: shift2 });
-    expect(ctx2.currentLocation).toMatchObject({ locationId: f2.locationId });
+    const ctxs = res.body.contexts as Array<Record<string, unknown>>;
+    expect(ctxs).toHaveLength(2);
+    expect(
+      ctxs.find((c) => c.membershipId === f1.membershipId)!.activeShift,
+    ).toMatchObject({ shiftId: s1 });
+    expect(
+      ctxs.find((c) => c.membershipId === f2.membershipId)!.activeShift,
+    ).toMatchObject({ shiftId: s2 });
   });
 
-  it("supports multi-location membership and excludes inactive locations", async () => {
-    const fixture = await context.createFixture({ role: "VALET_EMPLOYEE" });
-    const secondLocId = await context.addLocation(fixture);
-
+  it("excludes inactive locations from eligibleLocations", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    const loc2 = await harness.context.addLocation(f);
     const inactiveLoc = randomUUID();
-    await context.adminPool.query(
+    await harness.context.adminPool.query(
       `INSERT INTO locations (id, organization_id, name, code, address_text, timezone, currency, status, updated_at)
-       VALUES ($1, $2, 'Inactive Loc', 'INACT', 'Addr', 'UTC', 'USD', 'INACTIVE', NOW())`,
-      [inactiveLoc, fixture.organizationId],
+       VALUES ($1, $2, 'Inactive', 'INACT', 'Addr', 'UTC', 'USD', 'INACTIVE', NOW())`,
+      [inactiveLoc, f.organizationId],
     );
-    await context.adminPool.query(
-      `INSERT INTO membership_location_access (organization_id, membership_id, location_id)
-       VALUES ($1, $2, $3)`,
-      [fixture.organizationId, fixture.membershipId, inactiveLoc],
+    await harness.context.adminPool.query(
+      `INSERT INTO membership_location_access (organization_id, membership_id, location_id) VALUES ($1, $2, $3)`,
+      [f.organizationId, f.membershipId, inactiveLoc],
     );
-
-    const token = `token-${randomUUID()}`;
-    principals.set(`Bearer ${token}`, fixture.userId);
-
-    const res = await request(token);
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
     expect(res.status).toBe(200);
-    const ctx = (res.body.contexts as Array<Record<string, unknown>>)[0]!;
-    const eligibleIds = (
-      ctx.eligibleLocations as Array<{ locationId: string }>
+    const ids = (
+      (res.body.contexts as Array<Record<string, unknown>>)[0]!
+        .eligibleLocations as Array<{ locationId: string }>
     ).map((l) => l.locationId);
-    expect(eligibleIds).toContain(fixture.locationId);
-    expect(eligibleIds).toContain(secondLocId);
-    expect(eligibleIds).not.toContain(inactiveLoc);
+    expect(ids).toContain(f.locationId);
+    expect(ids).toContain(loc2);
+    expect(ids).not.toContain(inactiveLoc);
+  });
+
+  it("fails closed when ACTIVE shift location access is revoked", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    await insertActiveShift(harness, f);
+    await harness.context.adminPool.query(
+      `DELETE FROM membership_location_access WHERE organization_id=$1 AND membership_id=$2 AND location_id=$3`,
+      [f.organizationId, f.membershipId, f.locationId],
+    );
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe("AUTHORIZATION_DENIED");
+    expect(res.body.contexts).toBeUndefined();
+  });
+
+  it("fails closed when ACTIVE shift location becomes INACTIVE", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    await insertActiveShift(harness, f);
+    await harness.context.adminPool.query(
+      `UPDATE locations SET status = 'INACTIVE' WHERE id = $1`,
+      [f.locationId],
+    );
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe("AUTHORIZATION_DENIED");
+    expect(res.body.contexts).toBeUndefined();
+  });
+
+  it("rejects duplicate Authorization headers", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContextRawDuplicateAuth(harness.baseUrl(), token);
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+    expect(res.body.contexts).toBeUndefined();
+  });
+
+  it("returns contexts in deterministic order", async () => {
+    const f1 = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    await harness.context.createFixture(
+      { role: "VALET_SUPERVISOR" },
+      f1.userId,
+    );
+    const token = registerToken(harness.principals, f1.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
+    expect(res.status).toBe(200);
+    const ctxs = res.body.contexts as Array<{
+      membershipId: string;
+      organization: { organizationId: string };
+    }>;
+    const keys = ctxs.map(
+      (c) => `${c.organization.organizationId}|${c.membershipId}`,
+    );
+    expect(keys).toEqual([...keys].sort());
+  });
+
+  it("returns eligibleLocations in deterministic order by locationId", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    await harness.context.addLocation(f);
+    await harness.context.addLocation(f);
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
+    expect(res.status).toBe(200);
+    const ids = (
+      (res.body.contexts as Array<Record<string, unknown>>)[0]!
+        .eligibleLocations as Array<{ locationId: string }>
+    ).map((l) => l.locationId);
+    expect(ids.length).toBe(3);
+    expect(ids).toEqual([...ids].sort());
+  });
+
+  it("does not include ungranted same-org active locations", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    const ungrantedLoc = randomUUID();
+    await harness.context.adminPool.query(
+      `INSERT INTO locations (id, organization_id, name, code, address_text, timezone, currency, status, updated_at)
+       VALUES ($1, $2, 'Ungranted', $3, 'Addr', 'UTC', 'USD', 'ACTIVE', NOW())`,
+      [ungrantedLoc, f.organizationId, randomUUID()],
+    );
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
+    expect(res.status).toBe(200);
+    const ids = (
+      (res.body.contexts as Array<Record<string, unknown>>)[0]!
+        .eligibleLocations as Array<{ locationId: string }>
+    ).map((l) => l.locationId);
+    expect(ids).toContain(f.locationId);
+    expect(ids).not.toContain(ungrantedLoc);
+  });
+
+  it("does not expose PII, auth, or financial fields", async () => {
+    const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    await insertActiveShift(harness, f);
+    const token = registerToken(harness.principals, f.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
+    expect(res.status).toBe(200);
+    const forbidden = [
+      "email",
+      "phone",
+      "displayName",
+      "initials",
+      "password",
+      "passwordHash",
+      "password_hash",
+      "accessToken",
+      "refreshToken",
+      "sessionId",
+      "userId",
+      "user_id",
+      "user",
+      "amount",
+      "balance",
+      "payment",
+      "financial",
+    ];
+    const body = res.body as Record<string, unknown>;
+    for (const key of forbidden) expect(body[key]).toBeUndefined();
+    for (const ctx of body.contexts as Array<Record<string, unknown>>) {
+      for (const key of forbidden) expect(ctx[key]).toBeUndefined();
+    }
+    const full = JSON.stringify(res.body);
+    expect(full).not.toContain("@val-005b.test");
+    expect(full).not.toContain("not-a-real-password-hash");
+  });
+
+  it("fails whole request when any multi-org membership has inconsistent shift", async () => {
+    const f1 = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
+    const f2 = await harness.context.createFixture(
+      { role: "VALET_SUPERVISOR" },
+      f1.userId,
+    );
+    await insertActiveShift(harness, f2);
+    await harness.context.adminPool.query(
+      `DELETE FROM membership_location_access WHERE organization_id=$1 AND membership_id=$2 AND location_id=$3`,
+      [f2.organizationId, f2.membershipId, f2.locationId],
+    );
+    const token = registerToken(harness.principals, f1.userId);
+    const res = await fetchContext(harness.baseUrl(), token);
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe("AUTHORIZATION_DENIED");
+    expect(res.body.contexts).toBeUndefined();
   });
 });

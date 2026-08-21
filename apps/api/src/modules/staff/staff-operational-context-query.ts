@@ -31,7 +31,13 @@ interface LocationRow {
   readonly name: string;
 }
 
-interface ActiveShiftRow {
+interface RawActiveShiftRow {
+  readonly location_id: string;
+  readonly shift_id: string;
+  readonly started_at: Date;
+}
+
+interface ProjectableShiftRow {
   readonly code: string;
   readonly location_id: string;
   readonly name: string;
@@ -92,42 +98,67 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
         [membership.organization_id, membership.membership_id],
       );
 
-      const shiftResult = await pool.query<ActiveShiftRow>(
+      // Step A: detect persisted ACTIVE shift existence (unconditional)
+      const rawShiftResult = await pool.query<RawActiveShiftRow>(
         `SELECT shift.id::text AS shift_id,
                 shift.location_id::text AS location_id,
-                shift.started_at,
-                location.name,
-                location.code
+                shift.started_at
          FROM shifts AS shift
-         INNER JOIN locations AS location
-           ON location.id = shift.location_id
-          AND location.organization_id = shift.organization_id
-         INNER JOIN membership_location_access AS access
-           ON access.organization_id = shift.organization_id
-          AND access.membership_id = shift.membership_id
-          AND access.location_id = shift.location_id
          WHERE shift.organization_id = $1
            AND shift.membership_id = $2
-           AND shift.status = 'ACTIVE'
-           AND location.status = 'ACTIVE'`,
+           AND shift.status = 'ACTIVE'`,
         [membership.organization_id, membership.membership_id],
       );
 
-      const shiftRow = shiftResult.rows[0];
+      const rawShift = rawShiftResult.rows[0];
       let activeShift: StaffOperationalShift | null = null;
       let currentLocation: StaffOperationalLocation | null = null;
 
-      if (shiftRow !== undefined) {
+      if (rawShift !== undefined) {
+        // Step B: validate projection eligibility for the detected shift
+        const projectableResult = await pool.query<ProjectableShiftRow>(
+          `SELECT shift.id::text AS shift_id,
+                  shift.location_id::text AS location_id,
+                  shift.started_at,
+                  location.name,
+                  location.code
+           FROM shifts AS shift
+           INNER JOIN locations AS location
+             ON location.id = shift.location_id
+            AND location.organization_id = shift.organization_id
+           INNER JOIN membership_location_access AS access
+             ON access.organization_id = shift.organization_id
+            AND access.membership_id = shift.membership_id
+            AND access.location_id = shift.location_id
+           WHERE shift.id = $1
+             AND shift.organization_id = $2
+             AND shift.membership_id = $3
+             AND shift.status = 'ACTIVE'
+             AND location.status = 'ACTIVE'`,
+          [
+            rawShift.shift_id,
+            membership.organization_id,
+            membership.membership_id,
+          ],
+        );
+
+        const projectable = projectableResult.rows[0];
+        if (projectable === undefined) {
+          // ACTIVE shift exists but fails projection eligibility.
+          // Fail closed: do not misrepresent as activeShift=null.
+          throw new StaffOperationalContextError("AUTHORIZATION_DENIED");
+        }
+
         activeShift = {
-          locationId: shiftRow.location_id,
-          shiftId: shiftRow.shift_id,
-          startedAt: shiftRow.started_at.toISOString(),
+          locationId: projectable.location_id,
+          shiftId: projectable.shift_id,
+          startedAt: projectable.started_at.toISOString(),
           status: "ACTIVE",
         };
         currentLocation = {
-          code: shiftRow.code,
-          locationId: shiftRow.location_id,
-          name: shiftRow.name,
+          code: projectable.code,
+          locationId: projectable.location_id,
+          name: projectable.name,
         };
       }
 
