@@ -66,6 +66,8 @@ import { MarkReadyService } from "../src/modules/retrieval/mark-ready.service";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
+import { StaffCheckInDraftsController } from "../src/modules/staff/staff-check-in-drafts.controller";
+import { StaffCheckInDraftsService } from "../src/modules/staff/staff-check-in-drafts.service";
 import { StaffOperationalContextController } from "../src/modules/staff/staff-operational-context.controller";
 import { StaffOperationalContextService } from "../src/modules/staff/staff-operational-context.service";
 import { StaffValetSessionController } from "../src/modules/staff/staff-valet-session.controller";
@@ -256,10 +258,12 @@ describe("accepted feature module ownership", () => {
 
   it("keeps Staff ownership focused on operational context and session detail reads", () => {
     expect(metadata(StaffModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      StaffCheckInDraftsController,
       StaffOperationalContextController,
       StaffValetSessionController,
     ]);
     expect(metadata(StaffModule, MODULE_METADATA.PROVIDERS)).toEqual([
+      StaffCheckInDraftsService,
       StaffOperationalContextService,
       StaffValetSessionService,
     ]);
