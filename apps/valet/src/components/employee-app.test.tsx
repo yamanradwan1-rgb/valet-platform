@@ -14,6 +14,8 @@ import { VehiclesListScreen } from "./screens/vehicles-list-screen";
 import { AppHeader } from "./shell/app-header";
 import { BottomNav } from "./shell/bottom-nav";
 import { OfflineBanner } from "./ui/employee-primitives";
+import { StaffAuthProvider } from "../lib/auth/staff-auth-context";
+import { StaffAuthClient } from "../lib/auth/staff-auth-client";
 
 describe("EmployeeApp & Screen Component Baseline", () => {
   it("renders ShiftStartScreen as the initial state of EmployeeApp", () => {
@@ -134,5 +136,26 @@ describe("EmployeeApp & Screen Component Baseline", () => {
   it("renders OfflineBanner with sync guarantee notice", () => {
     const markup = renderToStaticMarkup(<OfflineBanner />);
     expect(markup).toContain("Actions will sync when connection returns");
+  });
+
+  it("fails closed to shift-start when operational context is NO_ACTIVE_SHIFT", () => {
+    const authClient = new StaffAuthClient();
+    vi.spyOn(authClient, "getSession").mockReturnValue({
+      accessToken: "vsa1_token",
+      tokenType: "Bearer",
+      accessExpiresAt: new Date(Date.now() + 3600000).toISOString(),
+      sessionExpiresAt: new Date(Date.now() + 86400000).toISOString(),
+    });
+    vi.spyOn(authClient, "tryRefresh").mockResolvedValue(null);
+
+    const markup = renderToStaticMarkup(
+      <StaffAuthProvider client={authClient}>
+        <EmployeeApp />
+      </StaffAuthProvider>,
+    );
+
+    // Synchronously fails closed to shift-start
+    expect(markup).toContain("Welcome back");
+    expect(markup).toContain("Start Shift");
   });
 });

@@ -2,6 +2,7 @@ import type { StaffOperationalContextResponse } from "@valet/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import { fetchStaffOperationalContext } from "./staff-operational-context-api";
 import { resolveOperationalScope } from "./staff-operational-context-resolver";
 
@@ -200,6 +201,22 @@ describe("Staff Operational Context", () => {
       } as unknown as EmployeeApiClient;
 
       await expect(fetchStaffOperationalContext(mockClient)).rejects.toThrow();
+    });
+
+    it("propagates EmployeeApiError without modification", async () => {
+      const error500 = new EmployeeApiError({
+        status: 500,
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Server database outage",
+      });
+
+      const mockClient = {
+        request: vi.fn().mockRejectedValue(error500),
+      } as unknown as EmployeeApiClient;
+
+      await expect(fetchStaffOperationalContext(mockClient)).rejects.toThrow(
+        "Server database outage",
+      );
     });
   });
 });

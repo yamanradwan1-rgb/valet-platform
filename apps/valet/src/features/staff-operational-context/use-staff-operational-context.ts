@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { StaffOperationalContextResponse } from "@valet/contracts";
 
 import { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import {
   getDefaultStaffAuthClient,
   useOptionalStaffAuth,
@@ -20,6 +21,7 @@ export interface UseStaffOperationalContextResult {
   readonly isLoading: boolean;
   readonly error: Error | null;
   readonly refresh: () => Promise<void>;
+  readonly revalidateOnAuthLoss: () => Promise<void>;
 }
 
 export function useStaffOperationalContext(
@@ -71,7 +73,14 @@ export function useStaffOperationalContext(
       }
     } catch (err: unknown) {
       if (!abortController.signal.aborted) {
-        setResponse(null);
+        if (
+          err instanceof EmployeeApiError &&
+          (err.status === 401 || err.status === 403 || err.status === 404)
+        ) {
+          // Hard authorization/scope failure: fail closed, clear context
+          setResponse(null);
+        }
+        // For transient errors (network / 500), retain prior valid response
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     } finally {
@@ -99,7 +108,12 @@ export function useStaffOperationalContext(
           }
         } catch (err: unknown) {
           if (!abortController.signal.aborted) {
-            setResponse(null);
+            if (
+              err instanceof EmployeeApiError &&
+              (err.status === 401 || err.status === 403 || err.status === 404)
+            ) {
+              setResponse(null);
+            }
             setError(err instanceof Error ? err : new Error(String(err)));
           }
         } finally {
@@ -143,6 +157,16 @@ export function useStaffOperationalContext(
     };
   }, [status, loadContext]);
 
+  const revalidateOnAuthLoss = useCallback(async (): Promise<void> => {
+    // Security wins: immediately invalidate prior scope
+    setResponse(null);
+    if (status !== "authenticated") {
+      setError(null);
+      return;
+    }
+    await loadContext();
+  }, [status, loadContext]);
+
   const effectiveResponse = status === "authenticated" ? response : null;
 
   const resolution = useMemo<OperationalScopeResolution>(() => {
@@ -158,5 +182,6 @@ export function useStaffOperationalContext(
     isLoading: status === "authenticated" ? isLoading : false,
     error: status === "authenticated" ? error : null,
     refresh: loadContext,
+    revalidateOnAuthLoss,
   };
 }

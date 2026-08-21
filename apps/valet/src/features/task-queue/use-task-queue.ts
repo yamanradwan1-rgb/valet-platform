@@ -30,7 +30,7 @@ export interface UseTaskQueueResult {
 interface ScopedQueueState {
   readonly scopeLocationId: string | null;
   readonly tasks: StaffTaskQueueItem[];
-  readonly isHardStopped: boolean;
+  readonly hardStoppedLocationId: string | null;
 }
 
 export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
@@ -47,7 +47,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   const [queueState, setQueueState] = useState<ScopedQueueState>({
     scopeLocationId: null,
     tasks: [],
-    isHardStopped: false,
+    hardStoppedLocationId: null,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -78,7 +78,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
         setQueueState({
           scopeLocationId: null,
           tasks: [],
-          isHardStopped: false,
+          hardStoppedLocationId: null,
         });
         setIsLoading(false);
         setIsRefreshing(false);
@@ -114,7 +114,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
           setQueueState({
             scopeLocationId: locationId,
             tasks: response.tasks,
-            isHardStopped: false,
+            hardStoppedLocationId: null,
           });
           setError(null);
         }
@@ -124,11 +124,11 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
             err instanceof EmployeeApiError &&
             (err.status === 401 || err.status === 403 || err.status === 404)
           ) {
-            // Hard auth / scope revocation: clear tasks, set hard-stop, notify owner
+            // Hard auth / scope revocation: clear tasks, record hard stop for locationId, notify owner
             setQueueState({
               scopeLocationId: null,
               tasks: [],
-              isHardStopped: true,
+              hardStoppedLocationId: locationId,
             });
             setError(err);
             onAuthLossRef.current?.();
@@ -180,7 +180,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
           setQueueState({
             scopeLocationId: locationId,
             tasks: response.tasks,
-            isHardStopped: false,
+            hardStoppedLocationId: null,
           });
           setError(null);
         }
@@ -194,7 +194,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
             setQueueState({
               scopeLocationId: null,
               tasks: [],
-              isHardStopped: true,
+              hardStoppedLocationId: locationId,
             });
             setError(err);
             if (pollTimer) {
@@ -272,6 +272,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   }, [status, locationId, pollingIntervalMs, apiClient]);
 
   const refresh = useCallback(async () => {
+    setQueueState((prev) => ({ ...prev, hardStoppedLocationId: null }));
     await poll(false);
   }, [poll]);
 
@@ -284,9 +285,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       : [];
 
   const isHardStopped =
-    queueState.scopeLocationId === locationId
-      ? queueState.isHardStopped
-      : false;
+    locationId !== null && queueState.hardStoppedLocationId === locationId;
 
   return {
     tasks: effectiveTasks,
