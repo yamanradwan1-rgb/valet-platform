@@ -1,9 +1,13 @@
 # Phase 7 Dashboard Execution Plan
 
-Status: Binding execution plan  
-Version: 1.0  
-Date: 2026-08-21  
-Task: VAL-009  
+Status: Binding execution plan
+
+Version: 1.1 (VAL-009 review corrections applied)
+
+Date: 2026-08-21
+
+Task: VAL-009
+
 Issue: #179
 
 ## Purpose
@@ -59,7 +63,7 @@ Verified against the actual working tree at branch creation, not inferred from d
 branch          = docs/VAL-009-phase7-dashboard-execution-plan
 base HEAD       = 58dc4c69515c725e11eb8acc3343e64d555b078d
                 ("test: prove phase 6 provider-ready core gate")
-working tree    = clean (except the untracked local task-brief folder)
+working tree    = clean
 migrations      = exactly 28 forward-only migrations; latest =
                   20260816002800_phase6_payment_collection_operation
 phases complete = Foundation, Core Check-in, Operations, Retrieval,
@@ -184,6 +188,7 @@ Consequence for Phase 7, recorded explicitly:
 | G5 | Exact KPI formulas, attribution and time-boundary semantics for each supported metric | VAL-009D | Formula catalog must be accepted in the slice decision/contract before aggregation ships. |
 | G6 | Automated report delivery composition: scheduling/background-job ownership (partly Reliability), email/messaging channel activation | VAL-009E documents composition; implementation deferred | Report definitions and manual CSV/PDF download are Phase 7; automated delivery needs the scheduling decision plus messaging-provider activation. |
 | G7 | Export/PDF generation dependency and data-export authority matrix (who may export what, retention of generated artifacts, artifact access control) | VAL-009E | New dependency = lockfile/hot-zone coordination + package-security review; export actions audited. |
+| G8 | Founder sellable-MVP placement of basic white-label branding and basic subscription/billing admin controls (exact slice/persistence) | Focused Accepted decision required before Phase 7 backend is declared fully complete or the Dashboard UI stream begins | Basic white label is part of the Founder product direction and basic subscription/admin controls are part of the sellable MVP; advanced white label remains V2. Must not be silently deferred without gate/resolution. |
 
 Unresolved items must not become accepted behavior through prose in implementation PRs. Prefer documenting the gate and assigning it to the correct slice.
 
@@ -234,11 +239,13 @@ Category **B — Founder-required but not yet represented by accepted typed pers
 
 operating hours; language defaults; plate scan settings (OCR assistive configuration); key system policy (QR key system is currently fixed MVP behavior, not a configurable policy); parking spot requirement; geofence alert enablement policy (geofence evaluation/alerting exists operationally, typed on/off policy does not); notification templates (Notification rows record sends with `template_key`; template content/management is not persisted); SLA target (G4); allowed-roles policy (membership/location access is operational; a Location-level "allowed roles" policy is not persisted).
 
-Category **C — deferred / V2 / Enterprise or separately phased** (not in VAL-009A–E): Branding/White Label (advanced white label V2; basic white label is a later commercial-capability task), Billing/Subscription administration (basic subscription/admin controls remain a later focused sellable-MVP task), Integrations (POS/PMS V2 unless pilot-required), Roles & Permissions engine (generic permission-set engine excluded by AGENTS.md), Audit Log UI surface (audit reads for managers would need their own slice assignment; not silently added here).
+Category **C — Founder sellable-MVP obligations pending accepted placement (REQUIRED DECISION GATE G8)**: basic white-label branding (part of the Founder product direction) and basic subscription/billing admin controls (part of the sellable MVP). Their exact implementation placement — including whether any part belongs inside VAL-009A–E — is not yet accepted; they are therefore registered under gate G8 rather than implemented opportunistically or silently deferred. Phase 7 backend must not be declared fully complete, and the Dashboard UI stream must not begin, while these obligations remain unresolved without gate/resolution.
+
+Category **D — deferred / V2 / Enterprise or separately phased** (not in VAL-009A–E): Advanced white label (V2; basic white label is not deferred — see Category C/G8), Integrations (POS/PMS V2 unless pilot-required), Roles & Permissions engine (generic permission-set engine excluded by AGENTS.md), Audit Log UI surface (audit reads for managers would need their own slice assignment; not silently added here).
 
 ## Missing Founder settings / decision register summary
 
-Every Category-B/C item above is registered, with owning gate, in the decision-gate register (G3–G7). None may be implemented opportunistically inside VAL-009A–E. If a Phase 7 slice discovers a new material gap, it stops for a focused decision instead of expanding scope.
+Every Category-B/C/D item above is registered, with owning gate where applicable, in the decision-gate register (G3–G8). None may be implemented opportunistically inside VAL-009A–E. If a Phase 7 slice discovers a new material gap, it stops for a focused decision instead of expanding scope.
 
 ## Operational Dashboard overview boundary (VAL-009C scope)
 
@@ -272,8 +279,9 @@ Source-supported KPI candidates (facts already persisted; exact formulas locked 
 |---|---|---|
 | Check-in duration | `valet_sessions.created_at -> checking_in_completed_at` (already instrumented) | per-session; aggregated over report day |
 | Parking duration | `parking_started_at -> parked_at` | per-session |
-| Retrieval wait / ready latency | `retrieval_requested_at -> retrieval_started_at`; `retrieval_requested_at -> ready_at` | per-session |
-| Handoff time | `handoff_pending_at -> completed_at` | per-session |
+| Retrieval wait (official) | `retrieval_requested_at -> ready_at` | per-session |
+| Retrieval start latency (auxiliary only) | `retrieval_requested_at -> retrieval_started_at` | per-session; auxiliary metric only — must never be labeled Retrieval Wait |
+| Handoff time (official) | `ready_at -> completed_at` | per-session |
 | Sessions by state (incl. active count) | `valet_sessions(location_id, state)` index | point-in-time snapshot |
 | Retrieval queue depth/age | RetrievalRequest OPEN/ACCEPTED + RETRIEVAL Task lifecycle | point-in-time + requested-time age |
 | Cars handled per day | session counts completed in period (`completed_at`) | Location-timezone day |
@@ -336,7 +344,7 @@ No binding numeric latency target exists for Dashboard reads (the 15–20s targe
 
 ## Parallel-stream / shared-hot-zone coordination
 
-Stream A (Employee UI / Antigravity) develops in parallel on a separate remote stack; Stream B owns Phase 7 Dashboard backend. Both streams remain BRANCH-ONLY; there is NO automatic merge to main after a normal batch; any merge to main requires an explicit Project Owner-approved SYNC POINT.
+Stream A (Employee UI / Antigravity) develops in parallel on a separate remote stack; Stream B owns Phase 7 Dashboard backend. Both streams remain BRANCH-ONLY branch stacks; task count never triggers a PR or merge; any integration/merge to main requires an explicit Project Owner-approved SYNC POINT.
 
 Shared hot zones include at minimum:
 
@@ -438,8 +446,8 @@ Required proof: period-boundary correctness (timezone edges), authorization + au
 
 ```text
 VAL-009A -> VAL-009B -> VAL-009C -> VAL-009D -> VAL-009E
-   (each stacks only after independent review/approval; three-task batches
-    per docs/13 workflow, one PR per reviewed batch, CI must pass)
+   (each stacks only after independent review/approval on the branch stack;
+    CI must pass; task count never triggers a PR or merge)
 ```
 
 Every slice additionally proves: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm architecture:check`; 300-line structure policy; tenant/location negative tests; non-disclosing failures; audit atomicity where mutations/exports occur; no migration/schema/lockfile change unless its gate authorizes it (then: focused decision, forward-only migration, single migration owner, fixture/doc updates per AGENTS.md §11).
@@ -451,6 +459,7 @@ Every slice additionally proves: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pn
 - Venue Client and VAYLET Super Admin persistence/access.
 - Generic permission-set engine; generic untyped settings storage.
 - Category-B Founder-setting persistence (G3) and SLA semantics (G4).
+- Basic white-label branding and basic subscription/billing admin controls pending gate G8 (Founder sellable-MVP obligations; placement decision required — must not be silently deferred past Phase 7 completion or Dashboard UI start).
 - Automated report scheduling/email delivery (G6; Reliability composition).
 - Real digital-payment provider activation (VAL-008I/J/K remain mandatory before Phase 6 can be called MVP-complete; unrelated to Phase 7 sequencing).
 - POS/PMS/SSO integrations; advanced BI/data warehouse; predictive analytics; SmartStack AI; Predictive Retrieval; Demand Autopilot; ClaimShield; NFC/BLE keys; smart-key vault hardware; microservices/Kubernetes/event streaming; multi-region infrastructure.
@@ -459,16 +468,17 @@ Every slice additionally proves: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pn
 
 ## Repository contradiction check
 
-No material contradiction between the VAL-009 contract, binding docs, Accepted DECs and the actual repository state was found during preparation of this plan. Two non-blocking observations are recorded honestly:
+This plan is aligned/reconciled with GitHub Issue #179 and the VAL-009 execution contract supplied by the Project Owner.
 
-1. GitHub Issue #179 could not be fetched directly from this environment (private repo; `gh` CLI unavailable). The Project Owner's VAL-009 execution contract file was treated as the authoritative statement of the Issue's acceptance criteria, and this document's structure mirrors it section-for-section. If the live Issue text differs materially, STOP-and-report applies before implementation slices begin.
-2. Focused Accepted files exist for DEC-045 through DEC-049 and DEC-050 through DEC-057 while `docs/08_DECISIONS_LOG.md` carries their canonical summaries; no material conflict was found between the two forms for the topics this plan relies on.
+No material contradiction between the VAL-009 contract, binding docs, Accepted DECs and the actual repository state was found during preparation of this plan. One non-blocking observation is recorded honestly:
+
+1. Focused Accepted files exist for DEC-045 through DEC-049 and DEC-050 through DEC-057 while `docs/08_DECISIONS_LOG.md` carries their canonical summaries; no material conflict was found between the two forms for the topics this plan relies on.
 
 ## Phase 7 completion gate
 
 Phase 7 backend is complete only when:
 
-- VAL-009A through VAL-009E are merged through reviewed batches with CI green;
+- VAL-009A through VAL-009E are complete on the branch stack with CI green; integration to main happens only at an explicit Project Owner-approved SYNC POINT;
 - the role matrix and MFA gates are proven by tests (including ORG_ADMIN fail-closed assertions);
 - configuration default/override/effective behavior is proven end to end without redeployment;
 - overview, KPI and report backends prove tenant/location isolation, timezone correctness, absence-not-zero semantics and audited exports;
@@ -476,11 +486,11 @@ Phase 7 backend is complete only when:
 - no Dashboard UI exists yet;
 - all decision gates opened by this plan are either closed by focused Accepted decisions or remain explicitly tracked with owners.
 
-Only after VAL-009E review may the Dashboard UI stream begin as a separate frontend sequence consuming these backend contracts. Reliability is the next phase after Phase 7 backend; Pilot Hardening follows Reliability.
+Only after VAL-009E review, and once gate G8 is either closed by a focused Accepted decision or explicitly resolved by the Project Owner, may the Dashboard UI stream begin as a separate frontend sequence consuming these backend contracts. Reliability is the next phase after Phase 7 backend; Pilot Hardening follows Reliability.
 
 ## Merge discipline
 
-There is **NO automatic merge to main** during the current parallel streams. Any merge to main requires an explicit Project Owner-approved SYNC POINT. Work proceeds branch-only per `docs/13_COLLABORATION_WORKFLOW.md`.
+There is **NO automatic PR or merge to main** during the current parallel streams. Task count never triggers a PR or merge. Stream B remains branch-stack only; any integration/merge to main happens only at an explicit Project Owner-approved SYNC POINT. Work proceeds branch-only per `docs/13_COLLABORATION_WORKFLOW.md`.
 
 ---
 
