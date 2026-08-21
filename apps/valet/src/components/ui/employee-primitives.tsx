@@ -127,9 +127,9 @@ export function VehicleIdentity({
   plate = "12-34567",
   color,
 }: {
-  model?: string;
-  plate?: string;
-  color?: string;
+  model?: string | undefined;
+  plate?: string | undefined;
+  color?: string | undefined;
 }): JSX.Element {
   return (
     <div>

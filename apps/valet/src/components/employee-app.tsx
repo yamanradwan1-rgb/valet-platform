@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
 
 import type { Screen, Tab } from "../types/employee-ui";
 import { CheckInFlow } from "./screens/check-in-flow";
@@ -15,6 +15,7 @@ import { VehiclesListScreen } from "./screens/vehicles-list-screen";
 import { AppHeader } from "./shell/app-header";
 import { BottomNav } from "./shell/bottom-nav";
 import { OfflineBanner } from "./ui/employee-primitives";
+import { useStaffOperationalContext } from "../features/staff-operational-context";
 
 function getActiveTab(s: Screen): Tab {
   if (s === "vehicles-list") return "vehicles";
@@ -24,15 +25,31 @@ function getActiveTab(s: Screen): Tab {
 }
 
 export function EmployeeApp(): JSX.Element {
-  const [screen, setScreen] = useState<Screen>("shift-start");
+  const { resolution } = useStaffOperationalContext();
+  const [screenOverride, setScreenOverride] = useState<Screen | null>(null);
   const [isOffline, setIsOffline] = useState(false);
 
-  const nav = (s: Screen) => setScreen(s);
+  const initialScreen = useMemo<Screen>(() => {
+    return resolution.kind === "RESOLVED" ? "task-queue" : "shift-start";
+  }, [resolution.kind]);
+
+  const screen: Screen = screenOverride ?? initialScreen;
+  const nav = (s: Screen) => setScreenOverride(s);
+
+  const activeScope = resolution.kind === "RESOLVED" ? resolution.scope : null;
 
   const renderScreen = () => {
     switch (screen) {
       case "task-queue":
-        return <TaskQueueScreen nav={nav} />;
+        return (
+          <TaskQueueScreen
+            nav={nav}
+            locationId={activeScope?.locationId}
+            locationName={activeScope?.locationName}
+            shiftStartedAt={activeScope?.shiftStartedAt}
+            membershipId={activeScope?.membershipId}
+          />
+        );
       case "check-in":
         return <CheckInFlow nav={nav} />;
       case "parking":
@@ -57,7 +74,13 @@ export function EmployeeApp(): JSX.Element {
     return (
       <div className="min-h-screen bg-navy-2 flex items-center justify-center">
         <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-          <ShiftStartScreen onStart={() => nav("task-queue")} />
+          <ShiftStartScreen
+            onStart={() => {
+              if (resolution.kind === "RESOLVED") {
+                nav("task-queue");
+              }
+            }}
+          />
         </div>
       </div>
     );
@@ -68,7 +91,11 @@ export function EmployeeApp(): JSX.Element {
     <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
       <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
         {isOffline && <OfflineBanner />}
-        <AppHeader />
+        <AppHeader
+          locationName={activeScope?.locationName}
+          locationCode={activeScope?.locationCode}
+          role={activeScope?.role}
+        />
 
         <main className="flex-1 overflow-y-auto">{renderScreen()}</main>
 

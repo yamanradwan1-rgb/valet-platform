@@ -26,7 +26,7 @@ const StaffAuthContext = createContext<StaffAuthContextValue | null>(null);
 
 let defaultStaffAuthClient: StaffAuthClient | null = null;
 
-function getDefaultStaffAuthClient(): StaffAuthClient {
+export function getDefaultStaffAuthClient(): StaffAuthClient {
   if (!defaultStaffAuthClient) {
     defaultStaffAuthClient = new StaffAuthClient();
   }
@@ -111,6 +111,10 @@ export function StaffAuthProvider({
       {children}
     </StaffAuthContext.Provider>
   );
+}
+
+export function useOptionalStaffAuth(): StaffAuthContextValue | null {
+  return useContext(StaffAuthContext);
 }
 
 export function useStaffAuth(): StaffAuthContextValue {
