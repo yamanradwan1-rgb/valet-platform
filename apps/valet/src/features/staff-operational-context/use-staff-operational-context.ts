@@ -16,6 +16,7 @@ import {
   resolveOperationalScope,
   type OperationalScopeResolution,
 } from "./staff-operational-context-resolver";
+import { selectEffectiveOperationalResponse } from "./staff-operational-context-selectors";
 
 export interface UseStaffOperationalContextResult {
   readonly response: StaffOperationalContextResponse | null;
@@ -32,6 +33,7 @@ export function useStaffOperationalContext(
   const auth = useOptionalStaffAuth();
   const status = auth?.status ?? "unauthenticated";
   const accessToken = auth?.session?.accessToken ?? null;
+  const sessionGeneration = auth?.sessionGeneration ?? 0;
   const authClient = auth?.client;
 
   const apiClient = useMemo(
@@ -45,6 +47,7 @@ export function useStaffOperationalContext(
 
   const [controllerState, setControllerState] =
     useState<StaffOperationalContextState>({
+      sessionGeneration: null,
       response: null,
       isLoading: false,
       error: null,
@@ -65,7 +68,7 @@ export function useStaffOperationalContext(
   }, [controller, apiClient]);
 
   useEffect(() => {
-    controller.setAuth(status, accessToken);
+    controller.setAuth(status, accessToken, sessionGeneration);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -86,7 +89,7 @@ export function useStaffOperationalContext(
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("online", onOnline);
     };
-  }, [controller, status, accessToken]);
+  }, [controller, status, accessToken, sessionGeneration]);
 
   useEffect(() => {
     return () => {
@@ -102,9 +105,13 @@ export function useStaffOperationalContext(
     await controller.revalidateOnAuthLoss();
   }, [controller]);
 
-  // Synchronous fail-closed protection
-  const effectiveResponse =
-    status === "authenticated" && accessToken ? controllerState.response : null;
+  // Synchronous pre-effect render gating bound to exact sessionGeneration
+  const effectiveResponse = selectEffectiveOperationalResponse(
+    status,
+    accessToken,
+    sessionGeneration,
+    controllerState,
+  );
 
   const resolution = useMemo<OperationalScopeResolution>(() => {
     if (!effectiveResponse) {

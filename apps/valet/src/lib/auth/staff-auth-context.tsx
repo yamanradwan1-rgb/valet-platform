@@ -16,6 +16,7 @@ import type { StaffAuthSession, StaffAuthStatus } from "./staff-auth-types";
 export interface StaffAuthContextValue {
   readonly status: StaffAuthStatus;
   readonly session: StaffAuthSession | null;
+  readonly sessionGeneration: number;
   readonly client: StaffAuthClient;
   readonly login: (credentials: StaffLoginRequest) => Promise<void>;
   readonly logout: () => Promise<void>;
@@ -50,12 +51,16 @@ export function StaffAuthProvider({
   const [session, setSession] = useState<StaffAuthSession | null>(() =>
     client.getSession(),
   );
+  const [sessionGeneration, setSessionGeneration] = useState<number>(() =>
+    client.getSessionGeneration(),
+  );
   const [status, setStatus] = useState<StaffAuthStatus>("initializing");
 
   useEffect(() => {
     // Subscribe to auth client session changes
-    const unsubscribe = client.subscribe((newSession) => {
+    const unsubscribe = client.subscribe((newSession, newGen) => {
       setSession(newSession);
+      setSessionGeneration(newGen);
       setStatus(newSession ? "authenticated" : "unauthenticated");
     });
 
@@ -65,6 +70,7 @@ export function StaffAuthProvider({
       if (!active) return;
       if (refreshed) {
         setSession(client.getSession());
+        setSessionGeneration(client.getSessionGeneration());
         setStatus("authenticated");
       } else {
         setStatus("unauthenticated");
@@ -97,12 +103,13 @@ export function StaffAuthProvider({
     () => ({
       status,
       session,
+      sessionGeneration,
       client,
       login,
       logout,
       refresh,
     }),
-    [status, session, client, login, logout, refresh],
+    [status, session, sessionGeneration, client, login, logout, refresh],
   );
 
   // Renders children directly with ZERO visual or layout difference

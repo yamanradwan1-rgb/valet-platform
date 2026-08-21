@@ -72,7 +72,7 @@ describe("StaffOperationalContextController Refresh & Invalidation", () => {
       apiClient: mockApiClient,
     });
 
-    controller.setAuth("authenticated", "token_123");
+    controller.setAuth("authenticated", "token_123", 1);
     await flushAsync();
     expect(controller.getState().response).toEqual(validContext);
 
@@ -112,7 +112,7 @@ describe("StaffOperationalContextController Refresh & Invalidation", () => {
         apiClient: mockApiClient,
       });
 
-      controller.setAuth("authenticated", "token_123");
+      controller.setAuth("authenticated", "token_123", 1);
       await flushAsync();
       expect(controller.getState().response).toEqual(validContext);
 
@@ -152,7 +152,7 @@ describe("StaffOperationalContextController Refresh & Invalidation", () => {
       apiClient: mockApiClient,
     });
 
-    controller.setAuth("authenticated", "token_123");
+    controller.setAuth("authenticated", "token_123", 1);
     await flushAsync();
     expect(controller.getState().response).toEqual(validContext);
 
@@ -206,7 +206,7 @@ describe("StaffOperationalContextController Refresh & Invalidation", () => {
       apiClient: mockApiClient,
     });
 
-    controller.setAuth("authenticated", "token_123");
+    controller.setAuth("authenticated", "token_123", 1);
     await flushAsync();
 
     // Start a normal refresh that stalls

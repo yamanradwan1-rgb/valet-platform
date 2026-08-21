@@ -72,11 +72,11 @@ describe("StaffOperationalContextController Auth Transitions", () => {
       apiClient: mockApiClient,
     });
 
-    controller.setAuth("authenticated", "token_user_A");
+    controller.setAuth("authenticated", "token_user_A", 1);
     expect(controller.getState().isLoading).toBe(true);
 
     // User A logs out before resolution
-    controller.setAuth("unauthenticated", null);
+    controller.setAuth("unauthenticated", null, 2);
     expect(controller.getState().response).toBeNull();
     expect(controller.getState().isLoading).toBe(false);
     expect(capturedSignal?.aborted).toBe(true);
@@ -115,17 +115,17 @@ describe("StaffOperationalContextController Auth Transitions", () => {
       apiClient: mockApiClient,
     });
 
-    // 1. Initial auth loads context
-    controller.setAuth("authenticated", "token_same_123");
+    // 1. Initial auth loads context under generation 1
+    controller.setAuth("authenticated", "token_same_123", 1);
     await flushAsync();
     expect(controller.getState().response).toEqual(contextA);
 
-    // 2. Logout immediately destroys stored context
-    controller.setAuth("unauthenticated", null);
+    // 2. Logout immediately destroys stored context (generation 2)
+    controller.setAuth("unauthenticated", null, 2);
     expect(controller.getState().response).toBeNull();
 
-    // 3. Reauthenticate with SAME token value
-    controller.setAuth("authenticated", "token_same_123");
+    // 3. Reauthenticate with SAME token value under new generation 3
+    controller.setAuth("authenticated", "token_same_123", 3);
 
     // INVARIANT: Response is strictly null during fetch, NOT resurrected!
     expect(controller.getState().response).toBeNull();
@@ -168,12 +168,12 @@ describe("StaffOperationalContextController Auth Transitions", () => {
       apiClient: mockApiClient,
     });
 
-    controller.setAuth("authenticated", "token_A");
+    controller.setAuth("authenticated", "token_A", 1);
     await flushAsync();
     expect(controller.getState().response).toEqual(contextA);
 
-    // Switch to User B
-    controller.setAuth("authenticated", "token_B");
+    // Switch to User B with generation 2
+    controller.setAuth("authenticated", "token_B", 2);
 
     // Old User A context is destroyed immediately
     expect(controller.getState().response).toBeNull();
@@ -190,5 +190,40 @@ describe("StaffOperationalContextController Auth Transitions", () => {
     expect(controller.getState().response).toEqual(contextB);
 
     controller.destroy();
+  });
+
+  it("does not trigger callbacks or state changes after destroy on late resolution", async () => {
+    let resolvePending: (
+      val: StaffOperationalContextResponse,
+    ) => void = () => {};
+    const onStateChange = vi.fn();
+
+    const mockApiClient = {
+      request: vi.fn().mockImplementation(() => {
+        return new Promise((res) => {
+          resolvePending = res;
+        });
+      }),
+    } as unknown as EmployeeApiClient;
+
+    const controller = new StaffOperationalContextController({
+      apiClient: mockApiClient,
+      onStateChange,
+    });
+
+    controller.setAuth("authenticated", "token_123", 1);
+    onStateChange.mockClear();
+
+    // Destroy controller
+    controller.destroy();
+
+    // Late resolution
+    resolvePending(
+      makeContext("44444444-4444-4444-8444-444444444444", "Hotel Alpha"),
+    );
+    await flushAsync();
+
+    expect(onStateChange).not.toHaveBeenCalled();
+    expect(controller.getState().response).toBeNull();
   });
 });

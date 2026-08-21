@@ -11,7 +11,10 @@ import {
 } from "../api/employee-api-errors";
 import type { StaffAuthSession } from "./staff-auth-types";
 
-export type SessionChangeListener = (session: StaffAuthSession | null) => void;
+export type SessionChangeListener = (
+  session: StaffAuthSession | null,
+  sessionGeneration: number,
+) => void;
 
 export interface StaffAuthClientOptions {
   readonly baseUrl?: string | undefined;
@@ -20,6 +23,7 @@ export interface StaffAuthClientOptions {
 export class StaffAuthClient {
   private readonly baseUrl: string;
   private session: StaffAuthSession | null = null;
+  private sessionGeneration = 0;
   private refreshPromise: Promise<StaffAuthAccessResponse> | null = null;
   private readonly listeners = new Set<SessionChangeListener>();
 
@@ -29,6 +33,10 @@ export class StaffAuthClient {
 
   getSession(): StaffAuthSession | null {
     return this.session;
+  }
+
+  getSessionGeneration(): number {
+    return this.sessionGeneration;
   }
 
   getAccessToken(): string | null {
@@ -50,9 +58,10 @@ export class StaffAuthClient {
 
   private setSession(session: StaffAuthSession | null): void {
     this.session = session;
+    this.sessionGeneration++;
     for (const listener of this.listeners) {
       try {
-        listener(this.session);
+        listener(this.session, this.sessionGeneration);
       } catch {
         // Prevent subscriber errors from disrupting auth client state
       }

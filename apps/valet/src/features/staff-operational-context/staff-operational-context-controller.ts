@@ -1,20 +1,15 @@
-import type { StaffOperationalContextResponse } from "@valet/contracts";
-
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import { fetchStaffOperationalContext } from "./staff-operational-context-api";
+import type {
+  StaffOperationalContextControllerOptions,
+  StaffOperationalContextState,
+} from "./staff-operational-context-types";
 
-export interface StaffOperationalContextState {
-  readonly response: StaffOperationalContextResponse | null;
-  readonly isLoading: boolean;
-  readonly error: Error | null;
-}
-
-export interface StaffOperationalContextControllerOptions {
-  readonly apiClient: EmployeeApiClient;
-  readonly onStateChange?:
-    ((state: StaffOperationalContextState) => void) | undefined;
-}
+export type {
+  StaffOperationalContextControllerOptions,
+  StaffOperationalContextState,
+};
 
 export class StaffOperationalContextController {
   private apiClient: EmployeeApiClient;
@@ -24,12 +19,17 @@ export class StaffOperationalContextController {
   private status: "authenticated" | "unauthenticated" | "initializing" =
     "unauthenticated";
   private accessToken: string | null = null;
+  private sessionGeneration = 0;
 
   private sequenceNumber = 0;
   private latestCompletedSeq = 0;
+  private activeRequestId: number | null = null;
   private activeAbortController: AbortController | null = null;
+  private activeAbortRequestId: number | null = null;
+  private isDestroyed = false;
 
   private state: StaffOperationalContextState = {
+    sessionGeneration: null,
     response: null,
     isLoading: false,
     error: null,
@@ -51,20 +51,20 @@ export class StaffOperationalContextController {
   public setAuth(
     status: "authenticated" | "unauthenticated" | "initializing",
     accessToken: string | null,
+    sessionGeneration: number,
   ): void {
-    const prevStatus = this.status;
-    const prevToken = this.accessToken;
+    if (this.isDestroyed) return;
 
+    const prevGen = this.sessionGeneration;
     this.status = status;
     this.accessToken = accessToken;
+    this.sessionGeneration = sessionGeneration;
 
     if (status !== "authenticated" || !accessToken) {
-      if (this.activeAbortController) {
-        this.activeAbortController.abort();
-        this.activeAbortController = null;
-      }
+      this.clearActiveRequest();
       this.sequenceNumber++;
       this.updateState({
+        sessionGeneration: null,
         response: null,
         isLoading: false,
         error: null,
@@ -72,89 +72,122 @@ export class StaffOperationalContextController {
       return;
     }
 
-    // Authenticated transition: if token changed or response was destroyed, start fresh with null
+    // Authenticated transition: if sessionGeneration changed or state is empty, fetch fresh
     if (
-      prevStatus !== "authenticated" ||
-      prevToken !== accessToken ||
+      prevGen !== sessionGeneration ||
+      this.state.sessionGeneration !== sessionGeneration ||
       this.state.response === null
     ) {
+      this.clearActiveRequest();
       this.sequenceNumber++;
       this.updateState({
+        sessionGeneration,
         response: null,
         isLoading: true,
         error: null,
       });
-      void this.executeFetch(false);
+      void this.executeFetch(false, sessionGeneration);
     }
   }
 
   public async refresh(): Promise<void> {
-    if (this.status !== "authenticated" || !this.accessToken) {
+    if (
+      this.isDestroyed ||
+      this.status !== "authenticated" ||
+      !this.accessToken
+    ) {
       return;
     }
-    await this.executeFetch(false);
+    await this.executeFetch(false, this.sessionGeneration);
   }
 
   public async revalidateOnAuthLoss(): Promise<void> {
-    if (this.activeAbortController) {
-      this.activeAbortController.abort();
-      this.activeAbortController = null;
-    }
+    if (this.isDestroyed) return;
+
+    this.clearActiveRequest();
+    const currentGen = this.sessionGeneration;
     this.sequenceNumber++;
 
     // Auth loss invalidation: immediately destroy prior stored context
     this.updateState({
+      sessionGeneration: currentGen,
       response: null,
       isLoading: this.status === "authenticated",
       error: null,
     });
 
     if (this.status === "authenticated" && this.accessToken) {
-      await this.executeFetch(true);
+      await this.executeFetch(true, currentGen);
     }
   }
 
   public handleVisibilityChange(visible: boolean): void {
-    if (visible && this.status === "authenticated" && this.accessToken) {
-      void this.executeFetch(false);
+    if (
+      !this.isDestroyed &&
+      visible &&
+      this.status === "authenticated" &&
+      this.accessToken
+    ) {
+      void this.executeFetch(false, this.sessionGeneration);
     }
   }
 
   public handleOnline(): void {
-    if (this.status === "authenticated" && this.accessToken) {
-      void this.executeFetch(false);
+    if (
+      !this.isDestroyed &&
+      this.status === "authenticated" &&
+      this.accessToken
+    ) {
+      void this.executeFetch(false, this.sessionGeneration);
     }
   }
 
   public destroy(): void {
-    if (this.activeAbortController) {
-      this.activeAbortController.abort();
-      this.activeAbortController = null;
-    }
+    this.isDestroyed = true;
+    this.clearActiveRequest();
     this.sequenceNumber++;
     this.onStateChange = undefined;
-    this.updateState({
+    this.state = {
+      sessionGeneration: null,
       response: null,
       isLoading: false,
       error: null,
-    });
+    };
   }
 
-  private async executeFetch(isAuthLossRevalidation: boolean): Promise<void> {
-    if (this.status !== "authenticated" || !this.accessToken) {
+  private clearActiveRequest(): void {
+    this.activeRequestId = null;
+    if (this.activeAbortController) {
+      this.activeAbortController.abort();
+      this.activeAbortController = null;
+      this.activeAbortRequestId = null;
+    }
+  }
+
+  private async executeFetch(
+    isAuthLossRevalidation: boolean,
+    targetGeneration: number,
+  ): Promise<void> {
+    if (
+      this.isDestroyed ||
+      this.status !== "authenticated" ||
+      !this.accessToken
+    ) {
       return;
     }
 
     if (this.activeAbortController) {
       this.activeAbortController.abort();
     }
+    const requestId = ++this.sequenceNumber;
+    this.activeRequestId = requestId;
+
     const abortController = new AbortController();
     this.activeAbortController = abortController;
-
-    const currentSeq = ++this.sequenceNumber;
-    const currentToken = this.accessToken;
+    this.activeAbortRequestId = requestId;
 
     this.updateState({
+      sessionGeneration: targetGeneration,
       response: isAuthLossRevalidation ? null : this.state.response,
       isLoading: true,
       error: null,
@@ -166,14 +199,16 @@ export class StaffOperationalContextController {
       });
 
       if (
+        !this.isDestroyed &&
         !abortController.signal.aborted &&
-        currentSeq === this.sequenceNumber &&
-        currentSeq > this.latestCompletedSeq &&
+        requestId === this.sequenceNumber &&
+        requestId > this.latestCompletedSeq &&
         this.status === "authenticated" &&
-        this.accessToken === currentToken
+        this.sessionGeneration === targetGeneration
       ) {
-        this.latestCompletedSeq = currentSeq;
+        this.latestCompletedSeq = requestId;
         this.updateState({
+          sessionGeneration: targetGeneration,
           response: data,
           isLoading: false,
           error: null,
@@ -181,21 +216,25 @@ export class StaffOperationalContextController {
       }
     } catch (err: unknown) {
       if (
+        !this.isDestroyed &&
         !abortController.signal.aborted &&
-        currentSeq === this.sequenceNumber &&
-        this.status === "authenticated"
+        requestId === this.sequenceNumber &&
+        this.status === "authenticated" &&
+        this.sessionGeneration === targetGeneration
       ) {
         if (
           err instanceof EmployeeApiError &&
           (err.status === 401 || err.status === 403 || err.status === 404)
         ) {
           this.updateState({
+            sessionGeneration: targetGeneration,
             response: null,
             isLoading: false,
             error: err,
           });
-        } else if (currentSeq > this.latestCompletedSeq) {
+        } else if (requestId > this.latestCompletedSeq) {
           this.updateState({
+            sessionGeneration: targetGeneration,
             response: this.state.response,
             isLoading: false,
             error: err instanceof Error ? err : new Error(String(err)),
@@ -203,10 +242,19 @@ export class StaffOperationalContextController {
         }
       }
     } finally {
+      if (this.activeRequestId === requestId) {
+        this.activeRequestId = null;
+      }
+      if (this.activeAbortRequestId === requestId) {
+        this.activeAbortController = null;
+        this.activeAbortRequestId = null;
+      }
       if (
+        !this.isDestroyed &&
         !abortController.signal.aborted &&
-        currentSeq === this.sequenceNumber &&
-        this.status === "authenticated"
+        requestId === this.sequenceNumber &&
+        this.status === "authenticated" &&
+        this.sessionGeneration === targetGeneration
       ) {
         if (this.state.isLoading) {
           this.updateState({
@@ -219,6 +267,7 @@ export class StaffOperationalContextController {
   }
 
   private updateState(nextState: StaffOperationalContextState): void {
+    if (this.isDestroyed) return;
     this.state = nextState;
     this.onStateChange?.(this.state);
   }

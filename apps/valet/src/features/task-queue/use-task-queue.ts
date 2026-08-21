@@ -12,6 +12,7 @@ import {
   TaskQueueController,
   type TaskQueueState,
 } from "./task-queue-controller";
+import { selectEffectiveTaskQueueItems } from "./task-queue-selectors";
 
 export interface UseTaskQueueOptions {
   readonly locationId: string | null;
@@ -37,6 +38,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   } = options;
   const auth = useOptionalStaffAuth();
   const status = auth?.status ?? "unauthenticated";
+  const sessionGeneration = auth?.sessionGeneration ?? 0;
   const authClient = auth?.client;
 
   const apiClient = useMemo(
@@ -49,6 +51,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   );
 
   const [controllerState, setControllerState] = useState<TaskQueueState>({
+    sessionGeneration: null,
     scopeLocationId: null,
     tasks: [],
     isLoading: false,
@@ -75,7 +78,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   }, [controller, apiClient, onAuthorizationLoss]);
 
   useEffect(() => {
-    controller.setScope(status, locationId);
+    controller.setScope(status, sessionGeneration, locationId);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -102,7 +105,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
     };
-  }, [controller, status, locationId]);
+  }, [controller, status, sessionGeneration, locationId]);
 
   useEffect(() => {
     return () => {
@@ -110,12 +113,13 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     };
   }, [controller]);
 
-  const effectiveTasks =
-    status === "authenticated" &&
-    locationId !== null &&
-    controllerState.scopeLocationId === locationId
-      ? controllerState.tasks
-      : [];
+  // Synchronous pre-effect render gating bound to exact sessionGeneration and scopeLocationId
+  const effectiveTasks = selectEffectiveTaskQueueItems(
+    status,
+    sessionGeneration,
+    locationId,
+    controllerState,
+  );
 
   return {
     tasks: effectiveTasks,

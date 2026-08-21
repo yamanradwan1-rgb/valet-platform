@@ -11,6 +11,7 @@ export interface StaffAuthSession {
 export interface StaffAuthState {
   readonly status: StaffAuthStatus;
   readonly session: StaffAuthSession | null;
+  readonly sessionGeneration: number;
 }
 
 export interface StaffAuthCredentials {

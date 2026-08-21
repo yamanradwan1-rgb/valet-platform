@@ -1,42 +1,34 @@
-import type { StaffTaskQueueItem } from "@valet/contracts";
-
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
-import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import { fetchTaskQueue } from "./task-queue-api";
+import { handleTaskQueuePollError } from "./task-queue-controller-helpers";
+import { TaskQueueTimer } from "./task-queue-timer";
+import type {
+  TaskQueueControllerOptions,
+  TaskQueueState,
+} from "./task-queue-types";
 
-export interface TaskQueueState {
-  readonly scopeLocationId: string | null;
-  readonly tasks: StaffTaskQueueItem[];
-  readonly isLoading: boolean;
-  readonly isRefreshing: boolean;
-  readonly isHardStopped: boolean;
-  readonly error: Error | null;
-}
-
-export interface TaskQueueControllerOptions {
-  readonly apiClient: EmployeeApiClient;
-  readonly pollingIntervalMs?: number | undefined;
-  readonly onAuthorizationLoss?: (() => void) | undefined;
-  readonly onStateChange?: ((state: TaskQueueState) => void) | undefined;
-}
+export type { TaskQueueControllerOptions, TaskQueueState };
 
 export class TaskQueueController {
   private apiClient: EmployeeApiClient;
-  private pollingIntervalMs: number;
   private onAuthorizationLoss?: (() => void) | undefined;
   private onStateChange?: ((state: TaskQueueState) => void) | undefined;
+  private timer: TaskQueueTimer;
 
   private status: "authenticated" | "unauthenticated" | "initializing" =
     "unauthenticated";
+  private sessionGeneration = 0;
   private locationId: string | null = null;
 
-  private inFlight = false;
   private sequenceNumber = 0;
   private latestCompletedSeq = 0;
+  private activeRequestId: number | null = null;
   private activeAbortController: AbortController | null = null;
-  private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private activeAbortRequestId: number | null = null;
+  private isDestroyed = false;
 
   private state: TaskQueueState = {
+    sessionGeneration: null,
     scopeLocationId: null,
     tasks: [],
     isLoading: false,
@@ -47,9 +39,11 @@ export class TaskQueueController {
 
   constructor(options: TaskQueueControllerOptions) {
     this.apiClient = options.apiClient;
-    this.pollingIntervalMs = options.pollingIntervalMs ?? 5000;
     this.onAuthorizationLoss = options.onAuthorizationLoss;
     this.onStateChange = options.onStateChange;
+    this.timer = new TaskQueueTimer(options.pollingIntervalMs ?? 5000, () =>
+      this.handleTimerTick(),
+    );
   }
 
   public getState(): TaskQueueState {
@@ -66,23 +60,25 @@ export class TaskQueueController {
 
   public setScope(
     status: "authenticated" | "unauthenticated" | "initializing",
+    sessionGeneration: number,
     locationId: string | null,
   ): void {
+    if (this.isDestroyed) return;
+
     const prevStatus = this.status;
-    const prevLocationId = this.locationId;
+    const prevGen = this.sessionGeneration;
+    const prevLoc = this.locationId;
 
     this.status = status;
+    this.sessionGeneration = sessionGeneration;
     this.locationId = locationId;
 
     if (status !== "authenticated" || !locationId) {
-      this.stopTimer();
-      if (this.activeAbortController) {
-        this.activeAbortController.abort();
-        this.activeAbortController = null;
-      }
-      this.inFlight = false;
+      this.timer.stop();
+      this.clearActiveRequest();
       this.sequenceNumber++;
       this.updateState({
+        sessionGeneration: null,
         scopeLocationId: null,
         tasks: [],
         isLoading: false,
@@ -93,15 +89,16 @@ export class TaskQueueController {
       return;
     }
 
-    if (prevStatus !== "authenticated" || prevLocationId !== locationId) {
-      this.stopTimer();
-      if (this.activeAbortController) {
-        this.activeAbortController.abort();
-        this.activeAbortController = null;
-      }
-      this.inFlight = false;
+    if (
+      prevStatus !== "authenticated" ||
+      prevGen !== sessionGeneration ||
+      prevLoc !== locationId
+    ) {
+      this.timer.stop();
+      this.clearActiveRequest();
       this.sequenceNumber++;
       this.updateState({
+        sessionGeneration,
         scopeLocationId: locationId,
         tasks: [],
         isLoading: true,
@@ -109,100 +106,123 @@ export class TaskQueueController {
         isHardStopped: false,
         error: null,
       });
-      void this.executePoll(true);
-      this.startTimer();
+      void this.executePoll(true, sessionGeneration, locationId);
+      this.timer.start();
     }
   }
 
   public handleVisibilityChange(visible: boolean): void {
     if (
+      !this.isDestroyed &&
       visible &&
       !this.state.isHardStopped &&
-      this.status === "authenticated" &&
-      this.locationId
+      this.isActiveScope()
     ) {
-      void this.executePoll(false);
-      this.startTimer();
+      void this.executePoll(false, this.sessionGeneration, this.locationId!);
+      this.timer.start();
     } else {
-      this.stopTimer();
+      this.timer.stop();
     }
   }
 
   public handleOnline(): void {
     if (
+      !this.isDestroyed &&
       !this.state.isHardStopped &&
-      this.status === "authenticated" &&
-      this.locationId
+      this.isActiveScope()
     ) {
-      void this.executePoll(false);
-      this.startTimer();
+      void this.executePoll(false, this.sessionGeneration, this.locationId!);
+      this.timer.start();
     }
   }
 
   public handleOffline(): void {
-    this.stopTimer();
+    this.timer.stop();
   }
 
   public destroy(): void {
-    this.stopTimer();
-    if (this.activeAbortController) {
-      this.activeAbortController.abort();
-      this.activeAbortController = null;
-    }
-    this.inFlight = false;
+    this.isDestroyed = true;
+    this.timer.stop();
+    this.clearActiveRequest();
     this.sequenceNumber++;
     this.onStateChange = undefined;
-    this.updateState({
+    this.state = {
+      sessionGeneration: null,
       scopeLocationId: null,
       tasks: [],
       isLoading: false,
       isRefreshing: false,
       isHardStopped: false,
       error: null,
-    });
+    };
   }
 
-  public async executePoll(isInitial: boolean): Promise<void> {
+  private isActiveScope(): boolean {
+    return this.status === "authenticated" && this.locationId !== null;
+  }
+
+  private handleTimerTick(): void {
+    if (this.isDestroyed || this.state.isHardStopped || !this.isActiveScope()) {
+      this.timer.stop();
+      return;
+    }
+    void this.executePoll(false, this.sessionGeneration, this.locationId!);
+  }
+
+  private clearActiveRequest(): void {
+    this.activeRequestId = null;
+    if (this.activeAbortController) {
+      this.activeAbortController.abort();
+      this.activeAbortController = null;
+      this.activeAbortRequestId = null;
+    }
+  }
+
+  public async executePoll(
+    isInitial: boolean,
+    targetGen: number,
+    targetLoc: string,
+  ): Promise<void> {
     if (
-      this.inFlight ||
+      this.isDestroyed ||
+      this.activeRequestId !== null ||
       this.state.isHardStopped ||
-      this.status !== "authenticated" ||
-      !this.locationId
+      !this.isActiveScope()
     ) {
       return;
     }
 
-    this.inFlight = true;
-    const currentSeq = ++this.sequenceNumber;
-    const targetLocationId = this.locationId;
+    const requestId = ++this.sequenceNumber;
+    this.activeRequestId = requestId;
 
     if (this.activeAbortController) {
       this.activeAbortController.abort();
     }
     const abortController = new AbortController();
     this.activeAbortController = abortController;
+    this.activeAbortRequestId = requestId;
 
     this.updateState({
       ...this.state,
+      sessionGeneration: targetGen,
+      scopeLocationId: targetLoc,
       isLoading: isInitial && this.state.tasks.length === 0,
       isRefreshing: !isInitial || this.state.tasks.length > 0,
       error: null,
     });
 
     try {
-      const response = await fetchTaskQueue(this.apiClient, targetLocationId, {
+      const response = await fetchTaskQueue(this.apiClient, targetLoc, {
         signal: abortController.signal,
       });
 
       if (
-        !abortController.signal.aborted &&
-        currentSeq > this.latestCompletedSeq &&
-        this.status === "authenticated" &&
-        this.locationId === targetLocationId
+        this.isCurrentRequest(requestId, abortController, targetGen, targetLoc)
       ) {
-        this.latestCompletedSeq = currentSeq;
+        this.latestCompletedSeq = requestId;
         this.updateState({
-          scopeLocationId: targetLocationId,
+          sessionGeneration: targetGen,
+          scopeLocationId: targetLoc,
           tasks: response.tasks,
           isLoading: false,
           isRefreshing: false,
@@ -212,81 +232,59 @@ export class TaskQueueController {
       }
     } catch (err: unknown) {
       if (
-        !abortController.signal.aborted &&
-        this.status === "authenticated" &&
-        this.locationId === targetLocationId
+        this.isCurrentRequest(requestId, abortController, targetGen, targetLoc)
       ) {
-        if (
-          err instanceof EmployeeApiError &&
-          (err.status === 401 || err.status === 403 || err.status === 404)
-        ) {
-          this.stopTimer();
-          this.updateState({
-            scopeLocationId: null,
-            tasks: [],
-            isLoading: false,
-            isRefreshing: false,
-            isHardStopped: true,
-            error: err,
-          });
-          this.onAuthorizationLoss?.();
-        } else if (currentSeq > this.latestCompletedSeq) {
-          this.updateState({
-            ...this.state,
-            isLoading: false,
-            isRefreshing: false,
-            error: err instanceof Error ? err : new Error(String(err)),
-          });
-        }
+        const { nextState, shouldStopTimer } = handleTaskQueuePollError(
+          err,
+          requestId,
+          this.latestCompletedSeq,
+          targetGen,
+          this.state,
+          this.onAuthorizationLoss,
+        );
+        if (shouldStopTimer) this.timer.stop();
+        this.updateState(nextState);
       }
     } finally {
-      this.inFlight = false;
+      if (this.activeRequestId === requestId) this.activeRequestId = null;
+      if (this.activeAbortRequestId === requestId) {
+        this.activeAbortController = null;
+        this.activeAbortRequestId = null;
+      }
       if (
+        !this.isDestroyed &&
         !abortController.signal.aborted &&
-        this.locationId === targetLocationId &&
-        this.status === "authenticated"
+        requestId === this.sequenceNumber &&
+        this.locationId === targetLoc &&
+        this.status === "authenticated" &&
+        (this.state.isLoading || this.state.isRefreshing)
       ) {
-        if (this.state.isLoading || this.state.isRefreshing) {
-          this.updateState({
-            ...this.state,
-            isLoading: false,
-            isRefreshing: false,
-          });
-        }
+        this.updateState({
+          ...this.state,
+          isLoading: false,
+          isRefreshing: false,
+        });
       }
     }
   }
 
-  private startTimer(): void {
-    this.stopTimer();
-    if (
-      this.state.isHardStopped ||
-      this.status !== "authenticated" ||
-      !this.locationId
-    ) {
-      return;
-    }
-    this.pollTimer = setInterval(() => {
-      if (
-        this.state.isHardStopped ||
-        this.status !== "authenticated" ||
-        !this.locationId
-      ) {
-        this.stopTimer();
-        return;
-      }
-      void this.executePoll(false);
-    }, this.pollingIntervalMs);
-  }
-
-  private stopTimer(): void {
-    if (this.pollTimer !== null) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
-    }
+  private isCurrentRequest(
+    reqId: number,
+    ctrl: AbortController,
+    gen: number,
+    loc: string,
+  ): boolean {
+    return (
+      !this.isDestroyed &&
+      !ctrl.signal.aborted &&
+      reqId === this.sequenceNumber &&
+      this.sessionGeneration === gen &&
+      this.locationId === loc
+    );
   }
 
   private updateState(nextState: TaskQueueState): void {
+    if (this.isDestroyed) return;
     this.state = nextState;
     this.onStateChange?.(this.state);
   }

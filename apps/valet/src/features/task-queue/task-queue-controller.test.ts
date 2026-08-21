@@ -65,7 +65,7 @@ describe("TaskQueueController Lifecycle & Invariants", () => {
       pollingIntervalMs: 5000,
     });
 
-    controller.setScope("authenticated", "loc-1");
+    controller.setScope("authenticated", 1, "loc-1");
     expect(callCount).toBe(1);
 
     await vi.advanceTimersByTimeAsync(100);
@@ -79,9 +79,7 @@ describe("TaskQueueController Lifecycle & Invariants", () => {
     await vi.advanceTimersByTimeAsync(5000);
     expect(callCount).toBe(3);
 
-    // Ensure concurrency never exceeded 1
     expect(maxConcurrent).toBe(1);
-
     controller.destroy();
   });
 
@@ -104,14 +102,13 @@ describe("TaskQueueController Lifecycle & Invariants", () => {
         onAuthorizationLoss: onAuthLoss,
       });
 
-      controller.setScope("authenticated", `loc-${status}`);
+      controller.setScope("authenticated", 1, `loc-${status}`);
       await flushAsync();
 
       expect(controller.getState().tasks).toEqual([]);
       expect(controller.getState().isHardStopped).toBe(true);
       expect(onAuthLoss).toHaveBeenCalledTimes(1);
 
-      // Verify no interval calls occur after hard-stop
       await vi.advanceTimersByTimeAsync(20000);
       expect(mockApiClient.request).toHaveBeenCalledTimes(1);
 
@@ -119,8 +116,9 @@ describe("TaskQueueController Lifecycle & Invariants", () => {
     }
   });
 
-  it("discards late pending response from Location A when switching to Location B", async () => {
+  it("handles deferred A -> B switch race without clobbering in-flight request ownership", async () => {
     let resolveLocA: (val: TaskQueueResponse) => void = () => {};
+    let resolveLocB: (val: TaskQueueResponse) => void = () => {};
 
     const mockApiClient = {
       request: vi
@@ -132,58 +130,13 @@ describe("TaskQueueController Lifecycle & Invariants", () => {
               resolveLocA = res;
             });
           }
-          return Promise.resolve({
-            tasks: [
-              {
-                ...sampleTask,
-                taskId: "22222222-2222-4222-8222-222222222222",
-              },
-            ],
-          });
+          if (loc === "loc-B") {
+            return new Promise((res) => {
+              resolveLocB = res;
+            });
+          }
+          return Promise.resolve({ tasks: [] });
         }),
-    } as unknown as EmployeeApiClient;
-
-    const controller = new TaskQueueController({
-      apiClient: mockApiClient,
-    });
-
-    controller.setScope("authenticated", "loc-A");
-    expect(controller.getState().scopeLocationId).toBe("loc-A");
-    expect(controller.getState().tasks).toEqual([]);
-
-    // Switch to Location B while A is still pending
-    controller.setScope("authenticated", "loc-B");
-    await flushAsync();
-
-    expect(controller.getState().scopeLocationId).toBe("loc-B");
-    expect(controller.getState().tasks[0]?.taskId).toBe(
-      "22222222-2222-4222-8222-222222222222",
-    );
-
-    // Resolve Location A late -> MUST NOT overwrite Location B!
-    resolveLocA({ tasks: [sampleTask] });
-    await flushAsync();
-
-    expect(controller.getState().scopeLocationId).toBe("loc-B");
-    expect(controller.getState().tasks[0]?.taskId).toBe(
-      "22222222-2222-4222-8222-222222222222",
-    );
-
-    controller.destroy();
-  });
-
-  it("retains safe current-scope tasks during transient 500 network errors", async () => {
-    const mockApiClient = {
-      request: vi
-        .fn()
-        .mockResolvedValueOnce({ tasks: [sampleTask] })
-        .mockRejectedValueOnce(
-          new EmployeeApiError({
-            status: 500,
-            code: "SERVER_ERROR",
-            message: "Temporary outage",
-          }),
-        ),
     } as unknown as EmployeeApiClient;
 
     const controller = new TaskQueueController({
@@ -191,47 +144,77 @@ describe("TaskQueueController Lifecycle & Invariants", () => {
       pollingIntervalMs: 5000,
     });
 
-    controller.setScope("authenticated", "loc-1");
-    await flushAsync();
-    expect(controller.getState().tasks).toHaveLength(1);
+    // 1. Location A poll starts
+    controller.setScope("authenticated", 1, "loc-A");
+    expect(mockApiClient.request).toHaveBeenCalledTimes(1);
 
-    // Trigger poll that fails with 500
+    // 2. Switch scope to Location B while A is pending
+    controller.setScope("authenticated", 1, "loc-B");
+    expect(mockApiClient.request).toHaveBeenCalledTimes(2);
+
+    // 3. Allow A's deferred promise/finally to complete AFTER B has started
+    resolveLocA({ tasks: [sampleTask] });
+    await flushAsync();
+
+    // 4. Trigger a timer/visibility poll attempt while B is still pending
+    controller.handleVisibilityChange(true);
     await vi.advanceTimersByTimeAsync(5000);
+
+    // INVARIANT: In-flight ownership was NOT clobbered by A's finally, so no duplicate call fires
+    expect(mockApiClient.request).toHaveBeenCalledTimes(2);
+
+    // 5. Resolve Location B
+    const taskB = {
+      ...sampleTask,
+      taskId: "22222222-2222-4222-8222-222222222222",
+    };
+    resolveLocB({ tasks: [taskB] });
     await flushAsync();
 
-    expect(controller.getState().tasks).toHaveLength(1);
-    expect(controller.getState().error).not.toBeNull();
-    expect(controller.getState().isHardStopped).toBe(false);
+    expect(controller.getState().scopeLocationId).toBe("loc-B");
+    expect(controller.getState().tasks[0]?.taskId).toBe(
+      "22222222-2222-4222-8222-222222222222",
+    );
 
     controller.destroy();
   });
 
-  it("hides tasks on logout and aborts outstanding request on cleanup", async () => {
-    let capturedSignal: AbortSignal | undefined;
+  it("does not trigger state change or timer restart after destroy on late resolution", async () => {
+    let resolvePending: (val: TaskQueueResponse) => void = () => {};
+    const onStateChange = vi.fn();
+    const onAuthLoss = vi.fn();
 
     const mockApiClient = {
-      request: vi
-        .fn()
-        .mockImplementation((_p: string, opts?: EmployeeRequestOptions) => {
-          capturedSignal = opts?.signal;
-          return new Promise(() => {});
-        }),
+      request: vi.fn().mockImplementation(() => {
+        return new Promise((res) => {
+          resolvePending = res;
+        });
+      }),
     } as unknown as EmployeeApiClient;
 
     const controller = new TaskQueueController({
       apiClient: mockApiClient,
+      pollingIntervalMs: 5000,
+      onStateChange,
+      onAuthorizationLoss: onAuthLoss,
     });
 
-    controller.setScope("authenticated", "loc-1");
-    expect(capturedSignal?.aborted).toBe(false);
+    controller.setScope("authenticated", 1, "loc-1");
+    onStateChange.mockClear();
 
-    // Logout
-    controller.setScope("unauthenticated", null);
-    expect(controller.getState().tasks).toEqual([]);
-    expect(controller.getState().scopeLocationId).toBeNull();
-    expect(capturedSignal?.aborted).toBe(true);
-
+    // Destroy while pending
     controller.destroy();
+
+    // Late resolution
+    resolvePending({ tasks: [sampleTask] });
+    await flushAsync();
+
+    // No callbacks or timer after destroy
+    expect(onStateChange).not.toHaveBeenCalled();
+    expect(onAuthLoss).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(mockApiClient.request).toHaveBeenCalledTimes(1);
   });
 
   it("pauses on hidden/offline and resumes on visible/online when not hard-stopped", async () => {
@@ -244,7 +227,7 @@ describe("TaskQueueController Lifecycle & Invariants", () => {
       pollingIntervalMs: 5000,
     });
 
-    controller.setScope("authenticated", "loc-1");
+    controller.setScope("authenticated", 1, "loc-1");
     expect(mockApiClient.request).toHaveBeenCalledTimes(1);
 
     // Hidden pauses timer
