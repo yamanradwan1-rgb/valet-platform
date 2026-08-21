@@ -113,7 +113,23 @@ describe("VAL-005E exact Hybrid Dispatch HTTP surface", () => {
       `/v1/staff/tasks/queue?locationId=${supervisor.fixture.locationId}`,
       { token: supervisor.token },
     );
-    expect(read.body.tasks).toEqual([queued.body]);
+    expect(read.body).toMatchObject({
+      tasks: [
+        {
+          ...queued.body,
+          parkingSpot: null,
+          parkingZone: null,
+          retrievalRequestedAt: null,
+          vehicle: {
+            color: null,
+            make: null,
+            model: null,
+            plateNumberRaw: null,
+            temporaryDescriptor: expect.stringMatching(/^Dispatch /),
+          },
+        },
+      ],
+    });
 
     const assigned = await request(
       "POST",

@@ -26,6 +26,18 @@ function accessHash(token: string): string {
   return `staff-access-sha256:v1:${createHash("sha256").update(token).digest("hex")}`;
 }
 
+export function number(body: Record<string, unknown>, key: string): number {
+  const value = body[key];
+  if (typeof value !== "number") throw new Error(`Expected number for ${key}`);
+  return value;
+}
+
+export function text(body: Record<string, unknown>, key: string): string {
+  const value = body[key];
+  if (typeof value !== "string") throw new Error(`Expected string for ${key}`);
+  return value;
+}
+
 export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
   private app?: INestApplication;
   private baseUrl = "";

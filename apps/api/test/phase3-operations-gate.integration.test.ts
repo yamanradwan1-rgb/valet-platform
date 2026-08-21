@@ -2,20 +2,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   type GateFixture,
+  number,
   Phase3OperationsGateContext,
+  text,
 } from "./phase3-operations-gate-test-context";
 const context = new Phase3OperationsGateContext("flow");
-function number(body: Record<string, unknown>, key: string): number {
-  const value = body[key];
-  expect(typeof value).toBe("number");
-  return value as number;
-}
-
-function text(body: Record<string, unknown>, key: string): string {
-  const value = body[key];
-  expect(typeof value).toBe("string");
-  return value as string;
-}
 
 const post = (fixture: GateFixture, path: string, body: unknown) =>
   context.request("POST", path, { body, token: fixture.accessToken });
@@ -53,7 +44,23 @@ describe("VAL-005H production API operations gate", () => {
       `/v1/staff/tasks/queue?locationId=${fixture.locationId}`,
       { token: fixture.accessToken },
     );
-    expect(queue.body.tasks).toEqual([queued.body]);
+    expect(queue.body).toMatchObject({
+      tasks: [
+        {
+          ...queued.body,
+          parkingSpot: null,
+          parkingZone: null,
+          retrievalRequestedAt: null,
+          vehicle: {
+            color: null,
+            make: null,
+            model: null,
+            plateNumberRaw: null,
+            temporaryDescriptor: expect.stringMatching(/^Dispatch /),
+          },
+        },
+      ],
+    });
 
     const assigned = await post(fixture, `/v1/staff/tasks/${taskId}/assign`, {
       expectedVersion: taskVersion,

@@ -5,8 +5,11 @@ import {
   declineTaskRequestSchema,
   parkingTaskQueueResponseSchema,
   reassignTaskRequestSchema,
-  taskQueueQuerySchema,
+  staffTaskQueueItemSchema,
+  staffTaskQueueItemVehicleSchema,
   taskProjectionSchema,
+  taskQueueQuerySchema,
+  taskQueueResponseSchema,
 } from "./dispatch.js";
 
 const id = "00000000-0000-4000-8000-000000000001";
@@ -105,6 +108,49 @@ describe("VAL-005E strict shared contracts", () => {
         taskId: id,
         taskType: "PARKING",
         version: 1,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates staff task queue item and response schema", () => {
+    const item = {
+      createdAt: "2026-08-12T00:00:00.000Z",
+      currentAssigneeMembershipId: null,
+      parkingSpot: "Spot 12",
+      parkingZone: "Zone A",
+      retrievalRequestedAt: "2026-08-12T00:05:00.000Z",
+      sessionId: id,
+      status: "QUEUED" as const,
+      taskId: id,
+      taskType: "RETRIEVAL" as const,
+      vehicle: {
+        color: "Black",
+        make: "Toyota",
+        model: "Camry",
+        plateNumberRaw: "87-65432",
+        temporaryDescriptor: null,
+      },
+      version: 1,
+    };
+    const parsed = staffTaskQueueItemSchema.parse(item);
+    expect(parsed.vehicle.plateNumberRaw).toBe("87-65432");
+    expect(parsed.parkingZone).toBe("Zone A");
+    expect(parsed.retrievalRequestedAt).toBe("2026-08-12T00:05:00.000Z");
+
+    const response = taskQueueResponseSchema.parse({ tasks: [item] });
+    expect(response.tasks).toHaveLength(1);
+
+    // Rejects extra fields (e.g. plateCountry, plateNumberNormalized, slaDeadline)
+    expect(
+      staffTaskQueueItemVehicleSchema.safeParse({
+        ...item.vehicle,
+        plateCountry: "JO",
+      }).success,
+    ).toBe(false);
+    expect(
+      staffTaskQueueItemSchema.safeParse({
+        ...item,
+        slaDeadline: "2026-08-12T00:15:00.000Z",
       }).success,
     ).toBe(false);
   });
