@@ -1,0 +1,88 @@
+import { z } from "zod";
+
+const uuidSchema = z.string().uuid();
+const utcTimestampSchema = z.string().datetime({ offset: false });
+const positiveVersionSchema = z.number().int().positive();
+
+export const staffValetSessionStateSchema = z.enum([
+  "CHECKING_IN",
+  "AWAITING_PARKING",
+  "PARKING",
+  "PARKED",
+  "REQUESTED",
+  "RETRIEVING",
+  "READY",
+  "HANDOFF_PENDING",
+  "COMPLETED",
+]);
+
+export type StaffValetSessionState = z.infer<
+  typeof staffValetSessionStateSchema
+>;
+
+export const staffValetSessionVehicleSchema = z
+  .object({
+    color: z.string().nullable(),
+    make: z.string().nullable(),
+    model: z.string().nullable(),
+    plateCountry: z.string().nullable(),
+    plateNumberRaw: z.string().nullable(),
+    temporaryDescriptor: z.string().nullable(),
+    vehicleId: uuidSchema,
+    vehicleUpdatedAt: utcTimestampSchema,
+  })
+  .strict();
+
+export type StaffValetSessionVehicle = z.infer<
+  typeof staffValetSessionVehicleSchema
+>;
+
+export const staffValetSessionCheckInSchema = z
+  .object({
+    conditionCompletedAt: utcTimestampSchema.nullable(),
+  })
+  .strict();
+
+export type StaffValetSessionCheckIn = z.infer<
+  typeof staffValetSessionCheckInSchema
+>;
+
+export const staffValetSessionKeySlotSchema = z
+  .object({
+    code: z.string().min(1),
+  })
+  .strict();
+
+export type StaffValetSessionKeySlot = z.infer<
+  typeof staffValetSessionKeySlotSchema
+>;
+
+export const staffValetSessionParkingSchema = z
+  .object({
+    parkedAt: utcTimestampSchema.nullable(),
+    parkingSpotCode: z.string().nullable(),
+    parkingStartedAt: utcTimestampSchema.nullable(),
+    parkingZoneCode: z.string().nullable(),
+  })
+  .strict();
+
+export type StaffValetSessionParking = z.infer<
+  typeof staffValetSessionParkingSchema
+>;
+
+export const staffValetSessionDetailResponseSchema = z
+  .object({
+    checkIn: staffValetSessionCheckInSchema,
+    keySlot: staffValetSessionKeySlotSchema.nullable(),
+    locationId: uuidSchema,
+    parking: staffValetSessionParkingSchema,
+    sessionId: uuidSchema,
+    state: staffValetSessionStateSchema,
+    vehicle: staffValetSessionVehicleSchema,
+    version: positiveVersionSchema,
+  })
+  .strict();
+
+export type StaffValetSessionDetailResponse = z.infer<
+  typeof staffValetSessionDetailResponseSchema
+>;

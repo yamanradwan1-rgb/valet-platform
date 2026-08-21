@@ -68,6 +68,8 @@ import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
 import { StaffOperationalContextController } from "../src/modules/staff/staff-operational-context.controller";
 import { StaffOperationalContextService } from "../src/modules/staff/staff-operational-context.service";
+import { StaffValetSessionController } from "../src/modules/staff/staff-valet-session.controller";
+import { StaffValetSessionService } from "../src/modules/staff/staff-valet-session.service";
 import { StaffModule } from "../src/modules/staff/staff.module";
 import { GpsIngestionController } from "../src/modules/tracking/gps-ingestion.controller";
 import { GpsIngestionService } from "../src/modules/tracking/gps-ingestion.service";
@@ -252,12 +254,14 @@ describe("accepted feature module ownership", () => {
     }
   });
 
-  it("keeps Staff ownership focused on operational context read", () => {
+  it("keeps Staff ownership focused on operational context and session detail reads", () => {
     expect(metadata(StaffModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffOperationalContextController,
+      StaffValetSessionController,
     ]);
     expect(metadata(StaffModule, MODULE_METADATA.PROVIDERS)).toEqual([
       StaffOperationalContextService,
+      StaffValetSessionService,
     ]);
   });
 
