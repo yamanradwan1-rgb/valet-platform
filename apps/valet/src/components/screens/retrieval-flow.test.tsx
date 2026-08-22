@@ -1,0 +1,114 @@
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+
+import { RetrievalFlow } from "./retrieval-flow";
+import type { ActiveRetrievalSession } from "../../features/retrieval";
+
+describe("RetrievalFlow Component", () => {
+  const activeRequestedSession: ActiveRetrievalSession = {
+    expectedKeySlotCode: "K-900",
+    isKeyConfirmed: false,
+    locationId: "11111111-1111-4111-8111-111111111111",
+    parkingSpotCode: "P-42",
+    parkingZoneCode: "North",
+    readyAt: null,
+    retrievalStartedAt: null,
+    sessionId: "22222222-2222-4222-8222-222222222222",
+    sessionVersion: 4,
+    state: "REQUESTED",
+    taskId: "33333333-3333-4333-8333-333333333333",
+    taskStatus: "ACCEPTED",
+    taskVersion: 2,
+    vehicle: {
+      color: "Silver",
+      make: "Audi",
+      model: "A6",
+      plateCountry: "JO",
+      plateNumberRaw: "77-99999",
+      temporaryDescriptor: null,
+    },
+  };
+
+  const activeRetrievingSession: ActiveRetrievalSession = {
+    ...activeRequestedSession,
+    isKeyConfirmed: true,
+    retrievalStartedAt: new Date(Date.now() - 45000).toISOString(),
+    sessionVersion: 5,
+    state: "RETRIEVING",
+    taskStatus: "IN_PROGRESS",
+    taskVersion: 3,
+  };
+
+  const activeReadySession: ActiveRetrievalSession = {
+    ...activeRetrievingSession,
+    readyAt: new Date().toISOString(),
+    sessionVersion: 6,
+    state: "READY",
+  };
+
+  it("renders live key-checkout step with expected key and without demo scan buttons or hardcoded fixtures", () => {
+    const nav = vi.fn();
+    const markup = renderToStaticMarkup(
+      <RetrievalFlow
+        mode="live"
+        nav={nav}
+        initialSession={activeRequestedSession}
+      />,
+    );
+
+    expect(markup).toContain("Expected key slot");
+    expect(markup).toContain("K-900");
+    expect(markup).toContain("Audi A6 · 77-99999");
+    expect(markup).toContain("Zone North · Spot P-42");
+    expect(markup).toContain("Verify Key Slot");
+    expect(markup).not.toContain("Scan key QR — correct key");
+    expect(markup).not.toContain("Scan wrong key (demo)");
+    expect(markup).not.toContain("BMW X5");
+    expect(markup).not.toContain("B-214");
+  });
+
+  it("renders live in-progress step without unproven TrackingPill or Report Issue button", () => {
+    const nav = vi.fn();
+    const markup = renderToStaticMarkup(
+      <RetrievalFlow
+        mode="live"
+        nav={nav}
+        initialSession={activeRetrievingSession}
+      />,
+    );
+
+    expect(markup).toContain("Retrieving Audi A6");
+    expect(markup).toContain("Audi A6 · 77-99999");
+    expect(markup).toContain("K-900");
+    expect(markup).toContain("Vehicle Ready");
+    expect(markup).not.toContain("Report Issue");
+    expect(markup).not.toContain("Location active for this task");
+    expect(markup).not.toContain("TrackingPill");
+  });
+
+  it("renders live vehicle-ready step with Done button and without handoff / guest-notified claims", () => {
+    const nav = vi.fn();
+    const markup = renderToStaticMarkup(
+      <RetrievalFlow
+        mode="live"
+        nav={nav}
+        initialSession={activeReadySession}
+      />,
+    );
+
+    expect(markup).toContain("Vehicle ready");
+    expect(markup).toContain("Ready for guest");
+    expect(markup).toContain("Audi A6 · 77-99999");
+    expect(markup).toContain("Done");
+    expect(markup).not.toContain("Guest notified");
+    expect(markup).not.toContain("Verify Guest");
+    expect(markup).not.toContain("Secure Handoff");
+  });
+
+  it("renders prototype mode with demo controls and handoff actions", () => {
+    const nav = vi.fn();
+    const markup = renderToStaticMarkup(<RetrievalFlow mode="prototype" nav={nav} />);
+    expect(markup).toContain("Retrieval Task");
+    expect(markup).toContain("Accept Task");
+  });
+});

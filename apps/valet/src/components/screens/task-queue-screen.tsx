@@ -5,15 +5,21 @@ import type { StaffTaskQueueItem } from "@valet/contracts";
 
 import type { Screen } from "../../types/employee-ui";
 import { ChevronRight, PlusIcon } from "../icons/employee-icons";
-import { Badge, VehicleIdentity } from "../ui/employee-primitives";
+import { Badge } from "../ui/employee-primitives";
 import { useTaskQueue } from "../../features/task-queue/use-task-queue";
 import {
   toStaffTaskQueueItemViewModel,
   type StaffTaskQueueItemViewModel,
 } from "../../features/task-queue/task-queue-view-model";
 import { executeParkingTaskAction } from "../../features/parking/parking-task-runner";
+import { executeRetrievalTaskAction } from "../../features/retrieval/retrieval-task-runner";
 import type { StartParkingPayload } from "../../features/check-in/check-in-types";
-import { LivePriorityTaskCard, LiveQueueItem } from "./task-queue-cards";
+import {
+  LivePriorityTaskCard,
+  LiveQueueItem,
+  PROTOTYPE_QUEUE_ITEMS,
+  PrototypePriorityTaskCard,
+} from "./task-queue-cards";
 
 export interface TaskQueueScreenProps {
   readonly initialTasks?: StaffTaskQueueItem[] | undefined;
@@ -27,6 +33,14 @@ export interface TaskQueueScreenProps {
     | ((task: {
         sessionId: string;
         taskId: string;
+        taskVersion: number;
+      }) => void)
+    | undefined;
+  readonly onSelectRetrievalTask?:
+    | ((task: {
+        sessionId: string;
+        taskId: string;
+        taskStatus: "ACCEPTED" | "IN_PROGRESS";
         taskVersion: number;
       }) => void)
     | undefined;
@@ -61,6 +75,7 @@ export function TaskQueueScreen({
   initialTasks,
   onAuthorizationLoss,
   onSelectParkingTask,
+  onSelectRetrievalTask,
   onStartParkingSuccess,
 }: TaskQueueScreenProps): JSX.Element {
   const isLiveMode = mode === "live" || Boolean(locationId || initialTasks);
@@ -121,6 +136,38 @@ export function TaskQueueScreen({
         } else if (result.kind === "DENIED") {
           setActionError("This task is assigned to another valet employee.");
         }
+      } else if (task.taskType === "RETRIEVAL") {
+        const result = await executeRetrievalTaskAction(
+          taskQueueClient,
+          {
+            currentAssigneeMembershipId: task.currentAssigneeMembershipId,
+            sessionId: task.sessionId,
+            status: task.status,
+            taskId: task.taskId,
+            version: task.version,
+          },
+          membershipId,
+        );
+
+        if (result.kind === "NAVIGATE_ACCEPTED") {
+          onSelectRetrievalTask?.({
+            sessionId: result.sessionId,
+            taskId: result.taskId,
+            taskStatus: "ACCEPTED",
+            taskVersion: result.taskVersion,
+          });
+          nav?.("retrieval");
+        } else if (result.kind === "NAVIGATE_IN_PROGRESS") {
+          onSelectRetrievalTask?.({
+            sessionId: result.sessionId,
+            taskId: result.taskId,
+            taskStatus: "IN_PROGRESS",
+            taskVersion: result.taskVersion,
+          });
+          nav?.("retrieval");
+        } else if (result.kind === "DENIED") {
+          setActionError("This task is assigned to another valet employee.");
+        }
       } else {
         nav?.("retrieval");
       }
@@ -163,49 +210,7 @@ export function TaskQueueScreen({
         )}
 
         {!isLiveMode ? (
-          <div
-            onClick={() => nav?.("retrieval")}
-            className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="h-1 bg-vblue" />
-            <div className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <Badge variant="retrieval" />
-                <div className="text-right">
-                  <p className="text-[10px] text-neutral font-semibold uppercase tracking-wider">
-                    SLA
-                  </p>
-                  <span className="font-heading tabular-nums text-xl font-bold text-vdanger">
-                    02:14
-                  </span>
-                </div>
-              </div>
-              <VehicleIdentity model="BMW X5" plate="12-34567" color="Black" />
-              <p className="text-neutral text-[13px] mt-1.5">
-                Requested 2 min ago
-              </p>
-              <div className="mt-4 pt-4 border-t border-vborder flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-neutral uppercase tracking-wider">
-                    Pickup
-                  </p>
-                  <p className="text-navy font-semibold text-sm mt-0.5">
-                    Main Entrance
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    nav?.("retrieval");
-                  }}
-                  className="bg-vblue text-white text-sm font-bold px-5 h-10 rounded-xl cursor-pointer active:scale-[0.98] transition-all"
-                >
-                  Accept Task
-                </button>
-              </div>
-            </div>
-          </div>
+          <PrototypePriorityTaskCard nav={nav} />
         ) : priorityTask ? (
           <LivePriorityTaskCard
             priorityTask={priorityTask}
@@ -221,32 +226,7 @@ export function TaskQueueScreen({
           </p>
           <div className="space-y-2">
             {!isLiveMode
-              ? [
-                  {
-                    type: "checkin" as const,
-                    model: "Toyota Camry",
-                    plate: "87-65432",
-                    info: "just now",
-                    meta: "Check-in",
-                    screen: "check-in" as Screen,
-                  },
-                  {
-                    type: "parking" as const,
-                    model: "Mercedes E-Class",
-                    plate: "45-88231",
-                    info: "5 min ago",
-                    meta: "Zone A",
-                    screen: "parking" as Screen,
-                  },
-                  {
-                    type: "handoff" as const,
-                    model: "Audi Q7",
-                    plate: "99-12345",
-                    info: "waiting",
-                    meta: "Main Entrance",
-                    screen: "retrieval" as Screen,
-                  },
-                ].map((task, i) => (
+              ? PROTOTYPE_QUEUE_ITEMS.map((task, i) => (
                   <div
                     key={i}
                     onClick={() => nav?.(task.screen)}

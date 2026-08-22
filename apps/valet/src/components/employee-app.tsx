@@ -41,12 +41,20 @@ export function EmployeeApp(): JSX.Element {
     taskVersion: number;
   } | null>(null);
 
+  const [activeRetrievalTarget, setActiveRetrievalTarget] = useState<{
+    sessionId: string;
+    taskId: string;
+    taskStatus: "ACCEPTED" | "IN_PROGRESS";
+    taskVersion: number;
+  } | null>(null);
+
   const isLive = resolution.kind === "RESOLVED";
 
   const livePermittedScreens = new Set<Screen>([
     "task-queue",
     "check-in",
     "parking",
+    "retrieval",
   ]);
 
   const effectiveScreen: Screen = isLive
@@ -90,6 +98,21 @@ export function EmployeeApp(): JSX.Element {
   const handleParkingComplete = () => {
     setActiveParkingPayload(null);
     setActiveParkingTarget(null);
+    setScreenOverride("task-queue");
+  };
+
+  const handleSelectRetrievalTaskFromQueue = (target: {
+    sessionId: string;
+    taskId: string;
+    taskStatus: "ACCEPTED" | "IN_PROGRESS";
+    taskVersion: number;
+  }) => {
+    setActiveRetrievalTarget(target);
+    setScreenOverride("retrieval");
+  };
+
+  const handleRetrievalComplete = () => {
+    setActiveRetrievalTarget(null);
     setScreenOverride("task-queue");
   };
 
@@ -143,6 +166,19 @@ export function EmployeeApp(): JSX.Element {
           />
         );
       }
+      case "retrieval":
+        return (
+          <RetrievalFlow
+            membershipId={activeScope?.membershipId}
+            mode="live"
+            sessionId={activeRetrievalTarget?.sessionId}
+            taskId={activeRetrievalTarget?.taskId}
+            taskVersion={activeRetrievalTarget?.taskVersion}
+            nav={nav}
+            onAuthorizationLoss={revalidateOnAuthLoss}
+            onComplete={handleRetrievalComplete}
+          />
+        );
       case "task-queue":
       default:
         return (
@@ -155,6 +191,7 @@ export function EmployeeApp(): JSX.Element {
             membershipId={activeScope?.membershipId}
             onAuthorizationLoss={revalidateOnAuthLoss}
             onSelectParkingTask={handleSelectParkingTaskFromQueue}
+            onSelectRetrievalTask={handleSelectRetrievalTaskFromQueue}
             onStartParkingSuccess={handleStartParkingSuccess}
           />
         );
