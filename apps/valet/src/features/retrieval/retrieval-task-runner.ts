@@ -7,12 +7,14 @@ import {
 export type RetrievalTaskActionResult =
   | { readonly kind: "DENIED" }
   | {
+      readonly assigneeMembershipId: string | null;
       readonly kind: "NAVIGATE_ACCEPTED";
       readonly sessionId: string;
       readonly taskId: string;
       readonly taskVersion: number;
     }
   | {
+      readonly assigneeMembershipId: string | null;
       readonly kind: "NAVIGATE_IN_PROGRESS";
       readonly sessionId: string;
       readonly taskId: string;
@@ -41,6 +43,7 @@ export async function executeRetrievalTaskAction(
 
   if (task.status === "IN_PROGRESS") {
     return {
+      assigneeMembershipId: task.currentAssigneeMembershipId,
       kind: "NAVIGATE_IN_PROGRESS",
       sessionId: task.sessionId,
       taskId: task.taskId,
@@ -50,6 +53,7 @@ export async function executeRetrievalTaskAction(
 
   if (task.status === "ACCEPTED") {
     return {
+      assigneeMembershipId: task.currentAssigneeMembershipId,
       kind: "NAVIGATE_ACCEPTED",
       sessionId: task.sessionId,
       taskId: task.taskId,
@@ -72,6 +76,7 @@ export async function executeRetrievalTaskAction(
       currentTaskVersion,
     );
     return {
+      assigneeMembershipId: currentMembershipId ?? null,
       kind: "NAVIGATE_ACCEPTED",
       sessionId: task.sessionId,
       taskId: task.taskId,
@@ -86,6 +91,7 @@ export async function executeRetrievalTaskAction(
       currentTaskVersion,
     );
     return {
+      assigneeMembershipId: currentMembershipId ?? null,
       kind: "NAVIGATE_ACCEPTED",
       sessionId: task.sessionId,
       taskId: task.taskId,

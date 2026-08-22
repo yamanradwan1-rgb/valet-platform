@@ -49,6 +49,7 @@ describe("Retrieval Task Runner Lifecycle & Ownership", () => {
     );
 
     expect(result).toEqual({
+      assigneeMembershipId: myMembershipId,
       kind: "NAVIGATE_ACCEPTED",
       sessionId,
       taskId,
@@ -96,6 +97,7 @@ describe("Retrieval Task Runner Lifecycle & Ownership", () => {
     );
 
     expect(result).toEqual({
+      assigneeMembershipId: myMembershipId,
       kind: "NAVIGATE_ACCEPTED",
       sessionId,
       taskId,
@@ -127,6 +129,34 @@ describe("Retrieval Task Runner Lifecycle & Ownership", () => {
     );
 
     expect(result).toEqual({
+      assigneeMembershipId: myMembershipId,
+      kind: "NAVIGATE_ACCEPTED",
+      sessionId,
+      taskId,
+      taskVersion: 5,
+    });
+    expect(mockClient.request).not.toHaveBeenCalled();
+  });
+
+  it("preserves authoritative queue assignee without fallback for already ACCEPTED navigation", async () => {
+    const mockClient = {
+      request: vi.fn(),
+    } as unknown as EmployeeApiClient;
+
+    const result = await executeRetrievalTaskAction(
+      mockClient,
+      {
+        currentAssigneeMembershipId: null,
+        sessionId,
+        status: "ACCEPTED",
+        taskId,
+        version: 5,
+      },
+      myMembershipId,
+    );
+
+    expect(result).toEqual({
+      assigneeMembershipId: null,
       kind: "NAVIGATE_ACCEPTED",
       sessionId,
       taskId,
@@ -153,6 +183,7 @@ describe("Retrieval Task Runner Lifecycle & Ownership", () => {
     );
 
     expect(result).toEqual({
+      assigneeMembershipId: myMembershipId,
       kind: "NAVIGATE_IN_PROGRESS",
       sessionId,
       taskId,

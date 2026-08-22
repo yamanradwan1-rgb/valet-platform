@@ -104,75 +104,70 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
   useEffect(() => {
     if (initialSession) {
       controller.setActiveSession(initialSession);
-    } else if (
-      sessionId &&
-      taskId &&
-      taskVersion !== null &&
-      taskVersion !== undefined
-    ) {
-      void controller.hydrateSession(
-        sessionId,
-        taskId,
-        taskVersion,
-        taskStatus,
-        currentAssigneeMembershipId ?? membershipId,
-      );
+    } else if (sessionId && taskId) {
+      if (
+        taskVersion !== null && taskVersion !== undefined &&
+        taskStatus && currentAssigneeMembershipId
+      ) {
+        void controller.hydrateSession(
+          sessionId,
+          taskId,
+          taskVersion,
+          taskStatus,
+          currentAssigneeMembershipId,
+        );
+      } else {
+        controller.setHydrationError(
+          "Retrieval task assignment details are incomplete. Reload the task from the Task Queue.",
+        );
+      }
     }
   }, [
-    controller,
-    initialSession,
-    sessionId,
-    taskId,
-    taskVersion,
-    taskStatus,
-    currentAssigneeMembershipId,
-    membershipId,
+    controller, initialSession, sessionId, taskId,
+    taskVersion, taskStatus, currentAssigneeMembershipId, membershipId,
   ]);
 
   const confirmKey = useCallback(
-    (inputKeySlotCode: string) => {
-      return controller.confirmKey(inputKeySlotCode);
-    },
+    (inputKeySlotCode: string) => controller.confirmKey(inputKeySlotCode),
     [controller],
   );
 
-  const startRetrieval = useCallback(async () => {
-    await controller.startRetrieval();
-  }, [controller]);
+  const startRetrieval = useCallback(
+    async () => { await controller.startRetrieval(); },
+    [controller],
+  );
 
-  const markReady = useCallback(async () => {
-    await controller.markReady();
-  }, [controller]);
+  const markReady = useCallback(
+    async () => { await controller.markReady(); },
+    [controller],
+  );
 
   const retry = useCallback(async () => {
-    if (
-      sessionId &&
-      taskId &&
-      taskVersion !== null &&
-      taskVersion !== undefined
-    ) {
-      await controller.hydrateSession(
-        sessionId,
-        taskId,
-        taskVersion,
-        taskStatus,
-        currentAssigneeMembershipId ?? membershipId,
-      );
+    if (sessionId && taskId) {
+      if (
+        taskVersion !== null && taskVersion !== undefined &&
+        taskStatus && currentAssigneeMembershipId
+      ) {
+        await controller.hydrateSession(
+          sessionId,
+          taskId,
+          taskVersion,
+          taskStatus,
+          currentAssigneeMembershipId,
+        );
+      } else {
+        controller.setHydrationError(
+          "Retrieval task assignment details are incomplete. Reload the task from the Task Queue.",
+        );
+      }
     }
   }, [
-    controller,
-    sessionId,
-    taskId,
-    taskVersion,
-    taskStatus,
-    currentAssigneeMembershipId,
-    membershipId,
+    controller, sessionId, taskId, taskVersion,
+    taskStatus, currentAssigneeMembershipId,
   ]);
 
   const setStep = useCallback(
-    (step: RetrievalFlowStep) => {
-      controller.setStep(step);
-    },
+    (step: RetrievalFlowStep) => { controller.setStep(step); },
     [controller],
   );
 

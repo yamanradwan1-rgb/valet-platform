@@ -96,9 +96,6 @@ export function authorizeSessionAccess(
           "Corrupted state: in-progress retrieval task in REQUESTED state.",
         );
       }
-      if (retTask.status === "QUEUED") {
-        return; // Authorized for on-shift employee
-      }
       if (
         retTask.current_assignee_membership_id === actorMembershipId ||
         isParkingOwner

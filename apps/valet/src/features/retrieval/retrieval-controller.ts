@@ -20,6 +20,15 @@ function resolveInitialStep(state?: string): RetrievalFlowStep {
   return "key-checkout";
 }
 
+const VALID_STATUS_MAP: Record<
+  "READY" | "REQUESTED" | "RETRIEVING",
+  "ACCEPTED" | "IN_PROGRESS"
+> = {
+  READY: "IN_PROGRESS",
+  REQUESTED: "ACCEPTED",
+  RETRIEVING: "IN_PROGRESS",
+};
+
 export class RetrievalController {
   private membershipId: string | null = null;
   private state: RetrievalState = {
@@ -79,20 +88,31 @@ export class RetrievalController {
     });
   }
 
+  setHydrationError(message: string): void {
+    this.update({ activeSession: null, error: message, isHydrating: false });
+  }
+
   async hydrateSession(
     sessionId: string,
     taskId: string,
     taskVersion: number,
-    taskStatus?: "ACCEPTED" | "IN_PROGRESS" | null,
-    assigneeMembershipId?: string | null,
+    taskStatus: "ACCEPTED" | "IN_PROGRESS",
+    assigneeMembershipId: string,
   ): Promise<void> {
     this.update({ error: null, isHydrating: true });
     try {
       if (!this.membershipId) throw new Error("No active staff membership.");
-      if (
-        assigneeMembershipId &&
-        assigneeMembershipId !== this.membershipId
-      ) {
+      if (!assigneeMembershipId) {
+        throw new Error(
+          "Retrieval task assignee metadata is missing; reload the task from the Task Queue.",
+        );
+      }
+      if (!taskStatus) {
+        throw new Error(
+          "Retrieval task status metadata is missing; reload the task from the Task Queue.",
+        );
+      }
+      if (assigneeMembershipId !== this.membershipId) {
         throw new Error(
           "Retrieval task is assigned to another valet employee.",
         );
@@ -109,23 +129,12 @@ export class RetrievalController {
         );
       }
 
-      if (detail.state === "REQUESTED" && taskStatus && taskStatus !== "ACCEPTED") {
+      const expectedStatus = VALID_STATUS_MAP[detail.state];
+      if (taskStatus !== expectedStatus) {
         throw new Error(
-          "Task status is incompatible with REQUESTED session state.",
+          `Task status ${taskStatus} is incompatible with ${detail.state} session state.`,
         );
       }
-      if (
-        (detail.state === "RETRIEVING" || detail.state === "READY") &&
-        taskStatus &&
-        taskStatus !== "IN_PROGRESS"
-      ) {
-        throw new Error(
-          `Task status is incompatible with ${detail.state} session state.`,
-        );
-      }
-
-      const resolvedTaskStatus =
-        detail.state === "REQUESTED" ? "ACCEPTED" : "IN_PROGRESS";
 
       const activeSession: ActiveRetrievalSession = {
         expectedKeySlotCode: detail.keySlot?.code ?? null,
@@ -139,7 +148,7 @@ export class RetrievalController {
         sessionVersion: detail.version,
         state: detail.state,
         taskId,
-        taskStatus: resolvedTaskStatus,
+        taskStatus,
         taskVersion,
         vehicle: {
           color: detail.vehicle.color,
@@ -168,11 +177,9 @@ export class RetrievalController {
   confirmKey(inputKeySlotCode: string): boolean {
     const session = this.state.activeSession;
     if (!session) return false;
-
     const expected = session.expectedKeySlotCode?.trim().toUpperCase() ?? "";
     const input = inputKeySlotCode.trim().toUpperCase();
     const isMatch = expected !== "" && expected === input;
-
     this.update({
       activeSession: { ...session, isKeyConfirmed: isMatch },
       error: isMatch ? null : "Key slot does not match expected key.",
@@ -188,31 +195,23 @@ export class RetrievalController {
       return;
     }
     if (session.state !== "REQUESTED") {
-      this.update({
-        error: "Session must be in REQUESTED state to start retrieval.",
-      });
+      this.update({ error: "Session must be in REQUESTED state to start retrieval." });
       return;
     }
     if (!session.isKeyConfirmed) {
-      this.update({
-        error: "Key slot must be verified before starting retrieval.",
-      });
+      this.update({ error: "Key slot must be verified before starting retrieval." });
       return;
     }
 
     this.update({ error: null, isSubmitting: true });
     try {
       const res = await startRetrievalSession(
-        this.apiClient,
-        session.sessionId,
-        session.sessionVersion,
-        session.taskVersion,
+        this.apiClient, session.sessionId, session.sessionVersion, session.taskVersion,
       );
-
       this.update({
         activeSession: {
           ...session,
-          parkingSpotCode: null, // Released
+          parkingSpotCode: null,
           parkingZoneCode: null,
           retrievalStartedAt: res.retrievalStartedAt,
           sessionVersion: res.sessionVersion,
@@ -224,10 +223,7 @@ export class RetrievalController {
         step: "in-progress",
       });
     } catch (err: unknown) {
-      this.update({
-        error: getErrMsg(err, "Failed to start retrieval."),
-        isSubmitting: false,
-      });
+      this.update({ error: getErrMsg(err, "Failed to start retrieval."), isSubmitting: false });
     }
   }
 
@@ -239,20 +235,15 @@ export class RetrievalController {
       return;
     }
     if (session.state !== "RETRIEVING") {
-      this.update({
-        error: "Session must be in RETRIEVING state to mark ready.",
-      });
+      this.update({ error: "Session must be in RETRIEVING state to mark ready." });
       return;
     }
 
     this.update({ error: null, isSubmitting: true });
     try {
       const res = await markReadySession(
-        this.apiClient,
-        session.sessionId,
-        session.sessionVersion,
+        this.apiClient, session.sessionId, session.sessionVersion,
       );
-
       this.update({
         activeSession: {
           ...session,
@@ -268,10 +259,7 @@ export class RetrievalController {
         step: "vehicle-ready",
       });
     } catch (err: unknown) {
-      this.update({
-        error: getErrMsg(err, "Failed to mark vehicle ready."),
-        isSubmitting: false,
-      });
+      this.update({ error: getErrMsg(err, "Failed to mark vehicle ready."), isSubmitting: false });
     }
   }
 }

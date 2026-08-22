@@ -152,7 +152,7 @@ export function TaskQueueScreen({
 
         if (result.kind === "NAVIGATE_ACCEPTED") {
           onSelectRetrievalTask?.({
-            currentAssigneeMembershipId: membershipId ?? null,
+            currentAssigneeMembershipId: result.assigneeMembershipId,
             sessionId: result.sessionId,
             taskId: result.taskId,
             taskStatus: "ACCEPTED",
@@ -161,7 +161,7 @@ export function TaskQueueScreen({
           nav?.("retrieval");
         } else if (result.kind === "NAVIGATE_IN_PROGRESS") {
           onSelectRetrievalTask?.({
-            currentAssigneeMembershipId: membershipId ?? null,
+            currentAssigneeMembershipId: result.assigneeMembershipId,
             sessionId: result.sessionId,
             taskId: result.taskId,
             taskStatus: "IN_PROGRESS",
