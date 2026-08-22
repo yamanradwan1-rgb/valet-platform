@@ -16,7 +16,9 @@ import { StaffAuthController } from "../src/modules/auth/staff-auth.controller";
 import { STAFF_PRINCIPAL_RESOLVER } from "../src/modules/auth/staff-principal";
 import { StaffCheckInController } from "../src/modules/check-in-api/check-in-api.controller";
 import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.service";
-import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
+import { CheckInModule } from
+"../src/modules/check-in-api/check-in.module";
+import { DashboardModule } from "../src/modules/dashboard/dashboard.module";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
 import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
 import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
@@ -85,6 +87,7 @@ describe("accepted feature module ownership", () => {
       AntiAbuseModule,
       GuestAccessModule,
       CheckInModule,
+      DashboardModule,
       ShiftModule,
       KeyCustodyModule,
       MapSetupModule,

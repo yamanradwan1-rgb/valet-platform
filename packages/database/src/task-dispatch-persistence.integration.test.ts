@@ -72,8 +72,8 @@ describe("DEC-034 Task and DispatchEvent persistence", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual(expectedMigrationDirectories);
-    expect(directories).toHaveLength(28);
-    expect(directories.at(-1)).toBe(
+    expect(directories).toHaveLength(29);
+    expect(directories.at(-2)).toBe(
       "20260816002800_phase6_payment_collection_operation",
     );
     for (const [type, expected] of [

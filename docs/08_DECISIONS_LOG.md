@@ -2950,3 +2950,32 @@ or lockfile change is required; migration count remains 28.
 
 Full binding contract:
 `docs/decisions/DEC-057_PHASE6_FINANCIAL_RELEASE_AND_PROJECTIONS.md`
+
+## DEC-058 — Phase 7 Typed Location Configuration Authority
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+VAL-009B exposes the ten already-typed Company-default / nullable
+Location-override pairs (`checkInPhotosRequired`, `handoffStandardMethodPolicy`,
+`trackingEnabled`, `rawGpsRetentionDays`, `valetServiceFee`,
+`paymentServicePayer`, `paymentMethodsPolicy`, `tipsEnabled`, `validationEnabled`,
+`releaseRequiresPayment`) plus read-only Location timezone/currency. An ACTIVE
+`LOCATION_MANAGER` with explicit persisted access to the exact ACTIVE Location may
+read effective configuration and SET/CLEAR one Location override without a Shift;
+resolution stays `Company default -> optional Location override -> effective`
+with `default/overridePresent/override/effective` distinguished. ORG_ADMIN,
+supervisors, employees and Guests are denied; password-only ORG_ADMIN remains
+denied pre-MFA under DEC-023, and no principal mutates Company defaults.
+
+Mutations go through narrow DEC-047-style SECURITY DEFINER functions (migration
+29 only) that revalidate persisted authority in-database, enforce optimistic
+concurrency on `locations.updated_at` via `expectedUpdatedAt`, and commit exactly
+one same-transaction AuditEvent per success; stale-token, authorization and
+validation failures mutate nothing and audit nothing. Runtime privileges keep no
+generic UPDATE on `organizations`/`locations`; EXECUTE is granted explicitly on
+the two functions only with PUBLIC denied.
+
+Full binding contract:
+`docs/decisions/DEC-058_PHASE7_TYPED_LOCATION_CONFIGURATION_AUTHORITY.md`

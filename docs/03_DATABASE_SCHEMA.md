@@ -237,6 +237,24 @@ Constraints/rules:
 
 Phase 1 does not add a generic settings/policy JSON field. Location-specific typed configuration is added by focused tasks as approved MVP behavior requires it.
 
+Location-override mutation authority (migration 29, DEC-058): the ten typed
+override columns above mutate only through narrow `SECURITY DEFINER` functions
+(`location_configuration_set_override`,
+`location_configuration_clear_override`) plus private authorization/state/audit
+helpers. All are migration-owner owned with fixed `search_path = pg_catalog,
+public` and PUBLIC execution revoked; the runtime role receives EXECUTE only on
+the two mutation functions and keeps SELECT-only access to `organizations` /
+`locations` (no generic UPDATE). Each call revalidates an ACTIVE
+`LOCATION_MANAGER` membership with explicit same-Organization Location access
+inside the database, rejects unknown settings/values (`22023`), compares the
+caller's `expected_updated_at` against the locked `locations.updated_at`
+(`40001` conflict), advances `updated_at` monotonically, changes exactly one
+override column, and commits exactly one safe Location-scoped AuditEvent
+(scope `LOCATION_OVERRIDE`, operation `SET`/`CLEAR`, old/new override presence,
+value and effective value) in the same transaction. Failed calls write no
+configuration change and no audit. Organization default columns are not writable
+through this surface.
+
 ## users
 
 ```text

@@ -1,5 +1,6 @@
 import { paymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
+import { verifyLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
 import {
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
@@ -291,4 +292,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
       throw new Error("Runtime maintenance function privileges are unsafe.");
     }
   }
+  await verifyLocationConfigurationPrivileges(client, runtimeRole);
 }
