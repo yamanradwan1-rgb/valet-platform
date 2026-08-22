@@ -3073,3 +3073,42 @@ runtime-privilege change.
 
 Full binding contract:
 `docs/decisions/DEC-061_PHASE7_REPORT_EXPORT_AND_DELIVERY_COMPOSITION.md`
+
+## DEC-062 — Phase 7 Basic Branding and Subscription Entitlements
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+Closes gate G8. Basic branding = exactly brandDisplayName (Company default is
+the existing Organization.name) and brandPrimaryColor (new non-null
+organizations.brand_primary_color backfilled to #176BFF), each with optional
+locations.brand_*_override columns; effective resolution stays Company
+default -> optional Location override. Strict validation: display name
+trimmed/1-120 code points/no Cc controls (Arabic preserved); colors canonical
+uppercase ^#[0-9A-F]{6}$, database CHECK-enforced. Logo customization is
+deferred until a server-controlled verified asset-storage boundary exists;
+VehiclePhoto is never reused for logos. Reads/writes use the VAL-009A
+exact-Location manager scope (no Shift); ORG_ADMIN pre-MFA and all other
+non-manager paths fail closed non-disclosingly; no Company-default branding
+mutation endpoint. Overrides mutate only through four narrow SECURITY DEFINER
+functions (migration 30 only) that revalidate authority in-database, recheck
+expectedUpdatedAt on locations.updated_at, advance it monotonically, and write
+exactly one DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED AuditEvent per
+success; stale/validation/auth failures mutate nothing and audit nothing.
+
+Subscription state is a dedicated one-to-one organization_subscriptions table
+(organization_id PK/FK restrictive, opaque uppercase plan_code
+^[A-Z0-9][A-Z0-9_-]{0,63}$, status enum TRIAL|ACTIVE|SUSPENDED only, three
+typed booleans dashboard_access_enabled/report_exports_enabled/
+basic_branding_enabled, timestamps). Zero or one row per Organization; no row
+means subscription null; no fabricated defaults; no billing/price/provider/
+invoice/renewal fields. Customer surface is read-only:
+GET .../dashboard/locations/:id/subscription under the same manager scope.
+Entitlement state is typed but does NOT gate VAL-009A-E routes in Phase 7;
+composition requires a future focused decision. Runtime role: SELECT only on
+organization_subscriptions; EXECUTE only on the four branding functions; no
+generic UPDATE on organizations/locations.
+
+Full binding contract:
+`docs/decisions/DEC-062_PHASE7_BASIC_BRANDING_AND_SUBSCRIPTION_ENTITLEMENTS.md`
