@@ -14,12 +14,11 @@ import {
 import { executeParkingTaskAction } from "../../features/parking/parking-task-runner";
 import { executeRetrievalTaskAction } from "../../features/retrieval/retrieval-task-runner";
 import type { StartParkingPayload } from "../../features/check-in/check-in-types";
+import { LivePriorityTaskCard, LiveQueueItem } from "./task-queue-cards";
 import {
-  LivePriorityTaskCard,
-  LiveQueueItem,
   PROTOTYPE_QUEUE_ITEMS,
   PrototypePriorityTaskCard,
-} from "./task-queue-cards";
+} from "./task-queue-cards.prototype";
 
 export interface TaskQueueScreenProps {
   readonly initialTasks?: StaffTaskQueueItem[] | undefined;
