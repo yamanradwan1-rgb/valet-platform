@@ -63,6 +63,7 @@ describe("CheckInController Mutations Lifecycle", () => {
     };
     const detailPayload = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:05:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: "North-A" },
@@ -157,6 +158,7 @@ describe("CheckInController Mutations Lifecycle", () => {
   it("handles CHECKING_IN draft with conditionCompletedAt without skipping complete-check-in", async () => {
     const detailPayload = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:05:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: null,
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
@@ -224,6 +226,7 @@ describe("CheckInController Mutations Lifecycle", () => {
     };
     const detailPayload = {
       checkIn: { conditionCompletedAt: null },
+      handoff: { pendingAt: null, verification: null },
       keySlot: null,
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },

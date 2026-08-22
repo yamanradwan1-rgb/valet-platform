@@ -17,6 +17,7 @@ describe("Retrieval API client wrappers", () => {
   it("fetches session detail via GET", async () => {
     const mockDetail = {
       checkIn: { conditionCompletedAt: null },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: {

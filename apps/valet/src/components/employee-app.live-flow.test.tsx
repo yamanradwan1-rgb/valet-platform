@@ -44,6 +44,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
     };
     const detailPayload = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: "North-A" },
@@ -204,6 +205,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
         .fn()
         .mockResolvedValueOnce({
           checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
+          handoff: { pendingAt: null, verification: null },
           keySlot: null,
           locationId,
           parking: {

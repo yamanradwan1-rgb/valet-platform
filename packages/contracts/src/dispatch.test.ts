@@ -123,6 +123,8 @@ describe("VAL-005E strict shared contracts", () => {
       status: "QUEUED" as const,
       taskId: id,
       taskType: "RETRIEVAL" as const,
+      valetSessionState: "REQUESTED" as const,
+      valetSessionVersion: 4,
       vehicle: {
         color: "Black",
         make: "Toyota",

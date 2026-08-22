@@ -44,6 +44,8 @@ export interface StaffTaskQueueItemRow {
   readonly retrieval_requested_at: Date | null;
   readonly session_parking_spot_id: string | null;
   readonly session_parking_zone_id: string | null;
+  readonly session_state: string;
+  readonly session_version: number;
   readonly status: OperationalTaskStatus | "COMPLETED" | "CANCELLED";
   readonly task_type: "PARKING" | "RETRIEVAL";
   readonly updated_at: Date;
@@ -101,6 +103,8 @@ export function toStaffTaskQueueItem(
     status: row.status,
     taskId: row.id,
     taskType: row.task_type,
+    valetSessionState: toStaffSessionState(row.session_state),
+    valetSessionVersion: row.session_version,
     vehicle: {
       color: row.vehicle_color,
       make: row.vehicle_make,
@@ -110,4 +114,21 @@ export function toStaffTaskQueueItem(
     },
     version: row.version,
   };
+}
+
+function toStaffSessionState(state: string): StaffTaskQueueItem["valetSessionState"] {
+  if (
+    state === "CHECKING_IN" ||
+    state === "AWAITING_PARKING" ||
+    state === "PARKING" ||
+    state === "PARKED" ||
+    state === "REQUESTED" ||
+    state === "RETRIEVING" ||
+    state === "READY" ||
+    state === "HANDOFF_PENDING" ||
+    state === "COMPLETED"
+  ) {
+    return state;
+  }
+  throw new Error("Task is outside the operational task projection.");
 }

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { staffValetSessionStateSchema } from "./staff-valet-session.js";
+
 const uuidSchema = z.string().uuid();
 const versionSchema = z.number().int().positive();
 const reasonSchema = z.string().trim().max(500);
@@ -42,6 +44,8 @@ export const staffTaskQueueItemSchema = z
     status: z.enum(["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS"]),
     taskId: uuidSchema,
     taskType: z.enum(["PARKING", "RETRIEVAL"]),
+    valetSessionState: staffValetSessionStateSchema,
+    valetSessionVersion: versionSchema,
     vehicle: staffTaskQueueItemVehicleSchema,
     version: versionSchema,
   })

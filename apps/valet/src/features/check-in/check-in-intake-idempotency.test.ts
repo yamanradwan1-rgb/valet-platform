@@ -176,6 +176,7 @@ describe("CheckInController stable intake idempotency", () => {
     };
     const detail = {
       checkIn: { conditionCompletedAt: "2026-08-21T17:55:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: null,
       locationId,
       parking: {

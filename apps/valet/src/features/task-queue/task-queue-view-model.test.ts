@@ -40,6 +40,8 @@ describe("Task Queue View Model", () => {
   it("transforms a complete retrieval task into a view model", () => {
     const task: StaffTaskQueueItem = {
       taskId: "11111111-1111-4111-8111-111111111111",
+      valetSessionState: "REQUESTED",
+      valetSessionVersion: 4,
       sessionId: "22222222-2222-4222-8222-222222222222",
       taskType: "RETRIEVAL",
       status: "ASSIGNED",
@@ -81,6 +83,8 @@ describe("Task Queue View Model", () => {
   it("handles null vehicle make/model by falling back to temporaryDescriptor", () => {
     const task: StaffTaskQueueItem = {
       taskId: "11111111-1111-4111-8111-111111111111",
+      valetSessionState: "REQUESTED",
+      valetSessionVersion: 4,
       sessionId: "22222222-2222-4222-8222-222222222222",
       taskType: "PARKING",
       status: "QUEUED",
@@ -113,6 +117,8 @@ describe("Task Queue View Model", () => {
   it("handles completely empty vehicle fields without inventing mock data", () => {
     const task: StaffTaskQueueItem = {
       taskId: "11111111-1111-4111-8111-111111111111",
+      valetSessionState: "REQUESTED",
+      valetSessionVersion: 4,
       sessionId: "22222222-2222-4222-8222-222222222222",
       taskType: "PARKING",
       status: "QUEUED",

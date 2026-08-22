@@ -31,6 +31,8 @@ describe("Live Retrieval End-to-End Operational Lifecycle", () => {
     status: "QUEUED",
     taskId,
     taskType: "RETRIEVAL",
+    valetSessionState: "REQUESTED",
+    valetSessionVersion: 4,
     vehicle: {
       color: "Black",
       make: "BMW",
@@ -63,6 +65,7 @@ describe("Live Retrieval End-to-End Operational Lifecycle", () => {
 
   const requestedDetail: StaffValetSessionDetailResponse = {
     checkIn: { conditionCompletedAt: "2026-08-21T17:50:00.000Z" },
+    handoff: { pendingAt: null, verification: null },
     keySlot: { code: "B-214" },
     locationId,
     parking: {

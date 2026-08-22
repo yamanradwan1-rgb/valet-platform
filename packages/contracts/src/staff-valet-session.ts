@@ -70,9 +70,39 @@ export type StaffValetSessionParking = z.infer<
   typeof staffValetSessionParkingSchema
 >;
 
+export const staffValetSessionHandoffVerificationSchema = z
+  .object({
+    method: z.enum(["DYNAMIC_QR", "PICKUP_CODE", "SUPERVISOR_OVERRIDE"]),
+    status: z.enum(["PENDING", "VERIFIED"]),
+    verifiedAt: utcTimestampSchema.nullable(),
+  })
+  .strict();
+
+export type StaffValetSessionHandoffVerification = z.infer<
+  typeof staffValetSessionHandoffVerificationSchema
+>;
+
+/**
+ * Safe handoff projection for the staff A1 read. Contains only operational
+ * facts; never proof material, secret hashes, attempts, expiry, override
+ * reasons, or anti-abuse internals. Verification facts are populated only
+ * while state is HANDOFF_PENDING; terminal COMPLETED proves itself.
+ */
+export const staffValetSessionHandoffSchema = z
+  .object({
+    pendingAt: utcTimestampSchema.nullable(),
+    verification: staffValetSessionHandoffVerificationSchema.nullable(),
+  })
+  .strict();
+
+export type StaffValetSessionHandoff = z.infer<
+  typeof staffValetSessionHandoffSchema
+>;
+
 export const staffValetSessionDetailResponseSchema = z
   .object({
     checkIn: staffValetSessionCheckInSchema,
+    handoff: staffValetSessionHandoffSchema,
     keySlot: staffValetSessionKeySlotSchema.nullable(),
     locationId: uuidSchema,
     parking: staffValetSessionParkingSchema,

@@ -10,6 +10,7 @@ describe("executeParkingTaskAction", () => {
 
   const sessionDetail = {
     checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
+    handoff: { pendingAt: null, verification: null },
     keySlot: { code: "K-1" },
     locationId: "55555555-5555-4555-8555-555555555555",
     parking: {

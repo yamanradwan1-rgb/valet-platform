@@ -46,6 +46,8 @@ export function createTaskQueueQuery(pool: PostgresPool) {
            task.updated_at AS updated_at,
            session.parking_zone_id::text AS session_parking_zone_id,
            session.parking_spot_id::text AS session_parking_spot_id,
+           session.state::text AS session_state,
+           session.version AS session_version,
            vehicle.make AS vehicle_make,
            vehicle.model AS vehicle_model,
            vehicle.color AS vehicle_color,

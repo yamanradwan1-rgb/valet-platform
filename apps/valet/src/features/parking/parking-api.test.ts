@@ -22,6 +22,7 @@ describe("Parking API Client", () => {
   it("fetchSessionDetail parses valid session detail", async () => {
     const payload: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: {

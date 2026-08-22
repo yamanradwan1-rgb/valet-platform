@@ -4,6 +4,7 @@ import { CustodyStaffAuthorizationError } from "./custody-staff-authorizer";
 export interface SessionScopeRow {
   check_in_condition_completed_at: Date | null;
   checked_in_by_membership_id: string;
+  handoff_pending_at: Date | null;
   id: string;
   key_slot_id: string | null;
   location_id: string;
@@ -50,7 +51,7 @@ export async function loadSessionScope(
             checked_in_by_membership_id::text,
             check_in_condition_completed_at, key_slot_id::text,
             parking_spot_id::text, parking_zone_id::text,
-            parking_started_at, parked_at
+            parking_started_at, parked_at, handoff_pending_at
      FROM valet_sessions
      WHERE id = $1
      FOR SHARE`,
@@ -151,4 +152,37 @@ export async function loadParking(
     throw new Error("Corrupted state: referenced spot/zone invalid.");
   }
   return { spotCode: row.spot_code, zoneCode: row.zone_code };
+}
+
+export interface HandoffVerificationFact {
+  readonly method: "DYNAMIC_QR" | "PICKUP_CODE" | "SUPERVISOR_OVERRIDE";
+  readonly verifiedAt: Date | null;
+}
+
+/**
+ * Safe handoff verification fact for the staff A1 read. Reads only the
+ * authoritative unconsumed verification row; never exposes secret hash,
+ * raw proof, attempts, expiry, or override reason.
+ */
+export async function loadHandoffVerification(
+  client: PostgresTransaction,
+  session: SessionScopeRow,
+): Promise<HandoffVerificationFact | null> {
+  if (session.state !== "HANDOFF_PENDING") return null;
+  const result = await client.query<{
+    method: HandoffVerificationFact["method"];
+    verified_at: Date | null;
+  }>(
+    `SELECT method::text AS method, verified_at
+     FROM handoff_verifications
+     WHERE organization_id = $1 AND valet_session_id = $2
+       AND consumed_at IS NULL
+     ORDER BY created_at DESC, id DESC
+     LIMIT 1
+     FOR SHARE`,
+    [session.organization_id, session.id],
+  );
+  const row = result.rows[0];
+  if (row === undefined) return null;
+  return { method: row.method, verifiedAt: row.verified_at };
 }

@@ -11,6 +11,8 @@ describe("staffValetSession contracts", () => {
       checkIn: {
         conditionCompletedAt: "2026-08-21T18:00:00.000Z",
       },
+    handoff: { pendingAt: null, verification: null },
+
       keySlot: {
         code: "B-214",
       },
@@ -45,6 +47,8 @@ describe("staffValetSession contracts", () => {
       checkIn: {
         conditionCompletedAt: null,
       },
+    handoff: { pendingAt: null, verification: null },
+
       keySlot: null,
       locationId: "11111111-1111-4111-8111-111111111111",
       parking: {
@@ -79,6 +83,8 @@ describe("staffValetSession contracts", () => {
       checkIn: {
         conditionCompletedAt: null,
       },
+    handoff: { pendingAt: null, verification: null },
+
       customerPhone: "+962790000000",
       keySlot: null,
       locationId: "11111111-1111-4111-8111-111111111111",

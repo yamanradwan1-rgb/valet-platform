@@ -52,6 +52,7 @@ describe("CheckInController Discovery & Hydration", () => {
     };
     const detailRes: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: null },
+      handoff: { pendingAt: null, verification: null },
       keySlot: null,
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
@@ -98,6 +99,7 @@ describe("CheckInController Discovery & Hydration", () => {
     };
     const detailRes: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
@@ -125,6 +127,7 @@ describe("CheckInController Discovery & Hydration", () => {
   it("fails closed to hydration-error when A1 AWAITING_PARKING lacks conditionCompletedAt", async () => {
     const detailRes: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: null },
+      handoff: { pendingAt: null, verification: null },
       keySlot: null,
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
@@ -152,6 +155,7 @@ describe("CheckInController Discovery & Hydration", () => {
   it("fails closed when A1 shows session advanced beyond check-in lifecycle (e.g. PARKED)", async () => {
     const detailRes: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "K-1" },
       locationId,
       parking: { parkedAt: "2026-08-21T18:05:00.000Z", parkingSpotCode: "P-101", parkingStartedAt: "2026-08-21T18:03:00.000Z", parkingZoneCode: "North" },

@@ -13,6 +13,7 @@ describe("ParkingController", () => {
   it("hydrates active parking session from A1 session detail", async () => {
     const detailPayload: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: {
@@ -54,6 +55,7 @@ describe("ParkingController", () => {
   it("fails closed when session detail is not in PARKING state or parkingStartedAt is null", async () => {
     const detailPayload: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: {
@@ -106,6 +108,7 @@ describe("ParkingController", () => {
 
     const updatedDetailPayload: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
       keySlot: { code: "B-214" },
       locationId,
       parking: {

@@ -11,6 +11,8 @@ import { useTaskQueue } from "./use-task-queue";
 
 const sampleTask: StaffTaskQueueItem = {
   taskId: "11111111-1111-4111-8111-111111111111",
+  valetSessionState: "REQUESTED",
+  valetSessionVersion: 4,
   sessionId: "22222222-2222-4222-8222-222222222222",
   taskType: "PARKING",
   status: "QUEUED",

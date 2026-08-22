@@ -20,6 +20,8 @@ const sampleTask: StaffTaskQueueItem = {
   taskType: "PARKING",
   status: "QUEUED",
   currentAssigneeMembershipId: null,
+  valetSessionState: "AWAITING_PARKING",
+  valetSessionVersion: 2,
   version: 1,
   createdAt: "2026-08-21T18:00:00.000Z",
   parkingZone: "Zone A",

@@ -17,6 +17,7 @@ import {
   validateTemporalInvariants,
 } from "./staff-valet-session-authorization";
 import {
+  loadHandoffVerification,
   loadKeySlot,
   loadParking,
   loadParkingTasks,
@@ -58,12 +59,13 @@ export class StaffValetSessionService {
       }
 
       const tasks = await loadParkingTasks(client, session);
-      authorizeSessionAccess(session, tasks, actor.membershipId);
+      authorizeSessionAccess(session, tasks, actor.membershipId, actor.role);
       validateTemporalInvariants(session);
 
       const vehicle = await loadVehicle(client, session);
       const keySlot = await loadKeySlot(client, session);
       const parking = await loadParking(client, session);
+      const verification = await loadHandoffVerification(client, session);
 
       await client.query("COMMIT");
 
@@ -72,6 +74,24 @@ export class StaffValetSessionService {
           conditionCompletedAt: session.check_in_condition_completed_at
             ? session.check_in_condition_completed_at.toISOString()
             : null,
+        },
+        handoff: {
+          pendingAt:
+            session.state === "HANDOFF_PENDING" &&
+            session.handoff_pending_at !== null
+              ? session.handoff_pending_at.toISOString()
+              : null,
+          verification:
+            verification === null
+              ? null
+              : {
+                  method: verification.method,
+                  status: verification.verifiedAt === null ? "PENDING" : "VERIFIED",
+                  verifiedAt:
+                    verification.verifiedAt === null
+                      ? null
+                      : verification.verifiedAt.toISOString(),
+                },
         },
         keySlot: keySlot ? { code: keySlot.code } : null,
         locationId: session.location_id,

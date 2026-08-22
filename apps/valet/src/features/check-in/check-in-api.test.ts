@@ -91,6 +91,7 @@ describe("Check-In API Client", () => {
   it("fetchSessionDetail parses valid session detail", async () => {
     const payload: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: null },
+      handoff: { pendingAt: null, verification: null },
       keySlot: null,
       locationId,
       parking: {

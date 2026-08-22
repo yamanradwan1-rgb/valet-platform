@@ -1,4 +1,5 @@
 import { CustodyStaffAuthorizationError } from "./custody-staff-authorizer";
+import type { MembershipRole } from "./custody-staff-authorizer";
 import type {
   SessionScopeRow,
   TaskRow,
@@ -8,6 +9,7 @@ export function authorizeSessionAccess(
   session: SessionScopeRow,
   tasks: TaskRow[],
   actorMembershipId: string,
+  actorRole?: MembershipRole | undefined,
 ): void {
   const parkingTasks = tasks.filter((t) => t.task_type === "PARKING");
   const activeParkingTasks = parkingTasks.filter((t) =>
@@ -127,17 +129,45 @@ export function authorizeSessionAccess(
     return;
   }
 
-  if (session.state === "HANDOFF_PENDING" || session.state === "COMPLETED") {
+  if (session.state === "HANDOFF_PENDING") {
+    // Canonical post-retrieval ownership is the RETRIEVAL Task; parking
+    // ownership grants no read authority once retrieval custody began. The
+    // narrow supervisor read supports only the accepted override UX.
+    if (
+      activeRetrievalTasks.length !== 1 ||
+      activeRetrievalTasks[0]?.status !== "IN_PROGRESS"
+    ) {
+      throw new Error(
+        "Corrupted state: expected 1 in-progress retrieval task.",
+      );
+    }
     if (completedParkingTasks.length !== 1) {
       throw new Error("Corrupted state: expected 1 completed parking task.");
     }
     if (
-      completedParkingTasks[0]?.current_assignee_membership_id !==
+      activeRetrievalTasks[0].current_assignee_membership_id ===
+        actorMembershipId ||
+      actorRole === "VALET_SUPERVISOR"
+    ) {
+      return;
+    }
+    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+  }
+
+  if (session.state === "COMPLETED") {
+    const completedRetrievalTasks = retrievalTasks.filter(
+      (t) => t.status === "COMPLETED",
+    );
+    if (completedRetrievalTasks.length !== 1) {
+      throw new Error("Corrupted state: expected 1 completed retrieval task.");
+    }
+    if (
+      completedRetrievalTasks[0]?.current_assignee_membership_id ===
       actorMembershipId
     ) {
-      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+      return;
     }
-    return;
+    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
   }
 
   throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");

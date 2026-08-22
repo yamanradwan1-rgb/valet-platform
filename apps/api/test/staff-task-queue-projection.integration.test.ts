@@ -100,6 +100,8 @@ describe("VUI-003A2 staff task queue projection & vehicle attributes", () => {
       parkingZone: "Zone Alpha",
       retrievalRequestedAt: "2026-08-20T10:15:30.000Z",
       status: "QUEUED",
+      valetSessionState: "REQUESTED",
+      valetSessionVersion: 1,
       taskId: retrievalTaskId,
       taskType: "RETRIEVAL",
       vehicle: {
@@ -177,6 +179,8 @@ describe("VUI-003A2 staff task queue projection & vehicle attributes", () => {
       parkingZone: null,
       retrievalRequestedAt: null,
       status: "QUEUED",
+      valetSessionState: "AWAITING_PARKING",
+      valetSessionVersion: 1,
       taskId,
       taskType: "PARKING",
       vehicle: {
@@ -203,6 +207,8 @@ describe("VUI-003A2 staff task queue projection & vehicle attributes", () => {
         retrieval_requested_at: null,
         session_parking_spot_id: null,
         session_parking_zone_id: randomUUID(),
+        session_state: "REQUESTED",
+        session_version: 4,
         status: "QUEUED",
         task_type: "RETRIEVAL",
         updated_at: new Date(),
