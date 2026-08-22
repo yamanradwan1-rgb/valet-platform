@@ -8,6 +8,7 @@ describe("ParkingFlow Component", () => {
     const nav = vi.fn();
     const markup = renderToStaticMarkup(
       <ParkingFlow
+        mode="live"
         nav={nav}
         initialSession={{
           keySlotCode: "A-101",
@@ -38,11 +39,13 @@ describe("ParkingFlow Component", () => {
     expect(markup).toContain("A-101");
     expect(markup).toContain("Zone A");
     expect(markup).toContain("Park Vehicle");
+    expect(markup).not.toContain("Report Issue");
+    expect(markup).not.toContain("Simulate Spot Scan");
   });
 
-  it("renders prototype fallback correctly", () => {
+  it("renders prototype mode with simulation and incident controls", () => {
     const nav = vi.fn();
-    const markup = renderToStaticMarkup(<ParkingFlow nav={nav} />);
+    const markup = renderToStaticMarkup(<ParkingFlow mode="prototype" nav={nav} />);
     expect(markup).toContain("Parking Vehicle");
     expect(markup).toContain("Park Vehicle");
     expect(markup).toContain("Report Issue");

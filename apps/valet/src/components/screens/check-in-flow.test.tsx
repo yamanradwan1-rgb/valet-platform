@@ -18,14 +18,17 @@ import {
 } from "./check-in/check-in-plate-steps";
 
 describe("CheckInFlow Component Steps", () => {
-  it("renders CheckInFlow root component", () => {
-    const markup = renderToStaticMarkup(<CheckInFlow nav={vi.fn()} />);
+  it("renders CheckInFlow root component in live mode without simulation buttons", () => {
+    const markup = renderToStaticMarkup(<CheckInFlow mode="live" nav={vi.fn()} />);
     expect(markup).toContain("Scan Plate");
+    expect(markup).not.toContain("Simulate Plate Detection");
+    expect(markup).toContain("Enter manually");
   });
 
-  it("renders CheckInPlateScanStep", () => {
+  it("renders CheckInPlateScanStep in prototype mode with simulation", () => {
     const markup = renderToStaticMarkup(
       <CheckInPlateScanStep
+        mode="prototype"
         scanDone={false}
         onSimulateScan={vi.fn()}
         onManualEntry={vi.fn()}
@@ -34,6 +37,20 @@ describe("CheckInFlow Component Steps", () => {
     );
     expect(markup).toContain("Scan Plate");
     expect(markup).toContain("Simulate Plate Detection");
+    expect(markup).toContain("Enter manually");
+  });
+
+  it("renders CheckInPlateScanStep in live mode without simulation", () => {
+    const markup = renderToStaticMarkup(
+      <CheckInPlateScanStep
+        mode="live"
+        scanDone={false}
+        onManualEntry={vi.fn()}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(markup).toContain("Scan Plate");
+    expect(markup).not.toContain("Simulate Plate Detection");
     expect(markup).toContain("Enter manually");
   });
 
@@ -55,9 +72,10 @@ describe("CheckInFlow Component Steps", () => {
     expect(markup).toContain("No plate / unreadable plate");
   });
 
-  it("renders CheckInPlateConfirmStep with detected plate", () => {
-    const markup = renderToStaticMarkup(
+  it("renders CheckInPlateConfirmStep with detected plate vs manual entry truthfulness", () => {
+    const detectedMarkup = renderToStaticMarkup(
       <CheckInPlateConfirmStep
+        isManualEntry={false}
         plateNumber="12-34567"
         plateCountry="JO"
         make="Porsche"
@@ -68,10 +86,25 @@ describe("CheckInFlow Component Steps", () => {
         onBack={vi.fn()}
       />,
     );
-    expect(markup).toContain("Confirm Plate");
-    expect(markup).toContain("12-34567");
-    expect(markup).toContain("Porsche Taycan");
-    expect(markup).toContain("White");
+    expect(detectedMarkup).toContain("Detected");
+    expect(detectedMarkup).toContain("High confidence · JO plate");
+
+    const manualMarkup = renderToStaticMarkup(
+      <CheckInPlateConfirmStep
+        isManualEntry={true}
+        plateNumber="12-34567"
+        plateCountry="JO"
+        make="Porsche"
+        model="Taycan"
+        color="White"
+        onConfirm={vi.fn()}
+        onEdit={vi.fn()}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(manualMarkup).toContain("Manual Entry");
+    expect(manualMarkup).toContain("Entered plate · JO plate");
+    expect(manualMarkup).not.toContain("High confidence");
   });
 
   it("renders CheckInCustomerPhoneStep", () => {
@@ -113,26 +146,37 @@ describe("CheckInFlow Component Steps", () => {
     expect(markup).toContain("Needs review");
   });
 
-  it("renders CheckInKeyScanStep with key slot input", () => {
-    const markup = renderToStaticMarkup(
+  it("renders CheckInKeyScanStep live mode without simulation button", () => {
+    const liveMarkup = renderToStaticMarkup(
       <CheckInKeyScanStep
-        keyScanDone={true}
-        keySlotCode="B-214"
-        make="Porsche"
-        model="Taycan"
-        color="White"
-        plate="12-34567"
-        onChangeKeySlotCode={vi.fn()}
-        onSimulateScan={vi.fn()}
-        onManualEntry={vi.fn()}
+        mode="live"
+        keyScanDone={false}
+        keySlotCode=""
         onAssignKey={vi.fn()}
-        onScanAnother={vi.fn()}
         onBack={vi.fn()}
+        onChangeKeySlotCode={vi.fn()}
+        onManualEntry={vi.fn()}
+        onScanAnother={vi.fn()}
       />,
     );
-    expect(markup).toContain("Assign Key");
-    expect(markup).toContain("Key Slot");
-    expect(markup).toContain("B-214");
+    expect(liveMarkup).toContain("Assign Key");
+    expect(liveMarkup).not.toContain("Simulate Key QR Scan");
+    expect(liveMarkup).toContain("Enter key slot manually");
+
+    const protoMarkup = renderToStaticMarkup(
+      <CheckInKeyScanStep
+        mode="prototype"
+        keyScanDone={false}
+        keySlotCode=""
+        onAssignKey={vi.fn()}
+        onBack={vi.fn()}
+        onChangeKeySlotCode={vi.fn()}
+        onManualEntry={vi.fn()}
+        onScanAnother={vi.fn()}
+        onSimulateScan={vi.fn()}
+      />,
+    );
+    expect(protoMarkup).toContain("Simulate Key QR Scan");
   });
 
   it("renders CheckInKeyAssignedStep and CheckInParkingTaskStep", () => {

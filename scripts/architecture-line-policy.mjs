@@ -27,6 +27,7 @@ const EXCLUDED_SEGMENTS = new Set([
   "coverage",
   "dist",
   "node_modules",
+  "reference",
 ]);
 
 export function countPhysicalLines(content) {

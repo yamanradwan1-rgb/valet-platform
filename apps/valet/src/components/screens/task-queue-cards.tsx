@@ -6,8 +6,10 @@ import { Badge, VehicleIdentity } from "../ui/employee-primitives";
 export function LivePriorityTaskCard({
   priorityTask,
   membershipId,
+  isActionInFlight = false,
   onAction,
 }: {
+  readonly isActionInFlight?: boolean | undefined;
   readonly membershipId?: string | undefined;
   readonly onAction: () => void;
   readonly priorityTask: StaffTaskQueueItemViewModel;
@@ -17,8 +19,12 @@ export function LivePriorityTaskCard({
     membershipId !== undefined &&
     priorityTask.currentAssigneeMembershipId !== membershipId;
 
+  const isDisabled = isAssignedToOther || isActionInFlight;
+
   let buttonText = "Accept Task";
-  if (priorityTask.taskType === "PARKING") {
+  if (isActionInFlight) {
+    buttonText = "Processing...";
+  } else if (priorityTask.taskType === "PARKING") {
     if (isAssignedToOther) {
       buttonText = "Assigned";
     } else if (priorityTask.status === "QUEUED") {
@@ -36,7 +42,7 @@ export function LivePriorityTaskCard({
 
   return (
     <div
-      onClick={!isAssignedToOther ? onAction : undefined}
+      onClick={!isDisabled ? onAction : undefined}
       className={
         !isAssignedToOther
           ? "bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
@@ -75,13 +81,13 @@ export function LivePriorityTaskCard({
           </div>
           <button
             type="button"
-            disabled={isAssignedToOther}
+            disabled={isDisabled}
             onClick={(e) => {
               e.stopPropagation();
-              if (!isAssignedToOther) onAction();
+              if (!isDisabled) onAction();
             }}
             className={`${
-              isAssignedToOther
+              isDisabled
                 ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                 : priorityTask.status === "ACCEPTED" || priorityTask.status === "IN_PROGRESS"
                   ? "bg-vsuccess text-white cursor-pointer active:scale-[0.98]"
@@ -99,8 +105,10 @@ export function LivePriorityTaskCard({
 export function LiveQueueItem({
   task,
   membershipId,
+  isActionInFlight = false,
   onClick,
 }: {
+  readonly isActionInFlight?: boolean | undefined;
   readonly membershipId?: string | undefined;
   readonly onClick?: () => void;
   readonly task: StaffTaskQueueItemViewModel;
@@ -110,9 +118,11 @@ export function LiveQueueItem({
     membershipId !== undefined &&
     task.currentAssigneeMembershipId !== membershipId;
 
+  const isDisabled = isAssignedToOther || isActionInFlight;
+
   return (
     <div
-      onClick={!isAssignedToOther ? onClick : undefined}
+      onClick={!isDisabled ? onClick : undefined}
       className={
         !isAssignedToOther
           ? "bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"

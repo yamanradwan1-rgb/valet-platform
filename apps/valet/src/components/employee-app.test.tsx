@@ -52,7 +52,7 @@ describe("EmployeeApp & Screen Component Baseline", () => {
 
   it("renders CheckInFlow initial plate-scan step", () => {
     const nav = vi.fn();
-    const markup = renderToStaticMarkup(<CheckInFlow nav={nav} />);
+    const markup = renderToStaticMarkup(<CheckInFlow mode="prototype" nav={nav} />);
     expect(markup).toContain("Scan Plate");
     expect(markup).toContain("Simulate Plate Detection");
     expect(markup).toContain("Enter manually");
@@ -60,7 +60,7 @@ describe("EmployeeApp & Screen Component Baseline", () => {
 
   it("renders ParkingFlow in-progress view", () => {
     const nav = vi.fn();
-    const markup = renderToStaticMarkup(<ParkingFlow nav={nav} />);
+    const markup = renderToStaticMarkup(<ParkingFlow mode="prototype" nav={nav} />);
     expect(markup).toContain("Parking Vehicle");
     expect(markup).toContain("Park Vehicle");
     expect(markup).toContain("Report Issue");

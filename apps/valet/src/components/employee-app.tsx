@@ -99,6 +99,7 @@ export function EmployeeApp(): JSX.Element {
         return (
           <CheckInFlow
             locationId={activeScope?.locationId}
+            mode="live"
             nav={nav}
             onAuthorizationLoss={revalidateOnAuthLoss}
             onStartParkingSuccess={handleStartParkingSuccess}
@@ -124,6 +125,7 @@ export function EmployeeApp(): JSX.Element {
         return (
           <ParkingFlow
             initialSession={initialSession}
+            mode="live"
             sessionId={
               activeParkingTarget?.sessionId ?? activeParkingPayload?.sessionId
             }
@@ -167,9 +169,9 @@ export function EmployeeApp(): JSX.Element {
       case "task-queue":
         return <TaskQueueScreen mode="prototype" nav={nav} />;
       case "check-in":
-        return <CheckInFlow nav={nav} />;
+        return <CheckInFlow mode="prototype" nav={nav} />;
       case "parking":
-        return <ParkingFlow nav={nav} />;
+        return <ParkingFlow mode="prototype" nav={nav} />;
       case "retrieval":
         return <RetrievalFlow nav={nav} />;
       case "incident":

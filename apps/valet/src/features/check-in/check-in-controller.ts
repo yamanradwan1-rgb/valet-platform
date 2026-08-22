@@ -59,6 +59,14 @@ export class CheckInController {
   }
 
   setStep(step: CheckInFlowStep): void {
+    if (
+      this.state.activeSession?.state === "AWAITING_PARKING" &&
+      (step === "plate-scan" ||
+        step === "customer-phone" ||
+        step === "vehicle-condition")
+    ) {
+      return;
+    }
     this.update({ error: null, step });
   }
 
@@ -104,13 +112,19 @@ export class CheckInController {
     if (this.state.isSubmitting) return;
     const session = this.state.activeSession;
     if (session !== null) {
+      if (session.state !== "CHECKING_IN") {
+        this.update({
+          error: "Vehicle identity cannot be modified after check-in is complete.",
+        });
+        return;
+      }
       this.update({ error: null, isSubmitting: true });
       try {
         const res = await runUpdateVehicleIdentityMutation(this.apiClient, session, vehicleData);
         this.update({
           activeSession: { ...session, vehicle: res.vehicle, vehicleUpdatedAt: res.vehicleUpdatedAt },
           isSubmitting: false,
-          step: session.state === "CHECKING_IN" ? "vehicle-condition" : "key-scan",
+          step: "vehicle-condition",
         });
       } catch (err: unknown) {
         this.update({ error: getErrMsg(err, "Failed to update vehicle identity."), isSubmitting: false });

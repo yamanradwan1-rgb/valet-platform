@@ -42,9 +42,8 @@ export async function hydrateDraftSession(
     vehicleUpdatedAt: detail.vehicle.vehicleUpdatedAt,
   };
 
-  const step: CheckInFlowStep = detail.checkIn.conditionCompletedAt
-    ? "key-scan"
-    : "vehicle-condition";
+  // CHECKING_IN draft must complete check-in before reaching key assignment
+  const step: CheckInFlowStep = "vehicle-condition";
 
   return { activeSession, step };
 }

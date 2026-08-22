@@ -19,6 +19,7 @@ import {
 
 export interface ParkingFlowProps {
   readonly initialSession?: ActiveParkingSession | null | undefined;
+  readonly mode?: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
   readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onComplete?: (() => void) | undefined;
@@ -30,6 +31,7 @@ export interface ParkingFlowProps {
 export function ParkingFlow({
   nav,
   initialSession = null,
+  mode = "live",
   sessionId = null,
   taskId = null,
   taskVersion = null,
@@ -123,12 +125,14 @@ export function ParkingFlow({
             label="Park Vehicle"
             onClick={() => parking.setStep("spot-scan")}
           />
-          <Btn
-            label="Report Issue"
-            variant="secondary"
-            size="md"
-            onClick={() => nav("incident")}
-          />
+          {mode === "prototype" && (
+            <Btn
+              label="Report Issue"
+              variant="secondary"
+              size="md"
+              onClick={() => nav("incident")}
+            />
+          )}
         </div>
       </div>
     );
@@ -153,16 +157,18 @@ export function ParkingFlow({
               sublabel="Or choose manually below"
             />
             <div className="p-5 space-y-3">
-              <Btn
-                label="Simulate Spot Scan"
-                onClick={() => {
-                  setSelectedSpot("P-101");
-                  setSpotScanned(true);
-                }}
-              />
+              {mode === "prototype" && (
+                <Btn
+                  label="Simulate Spot Scan"
+                  onClick={() => {
+                    setSelectedSpot("P-101");
+                    setSpotScanned(true);
+                  }}
+                />
+              )}
               <Btn
                 label="Enter spot code manually"
-                variant="secondary"
+                variant={mode === "prototype" ? "secondary" : "primary"}
                 onClick={() => setSpotScanned(true)}
               />
             </div>

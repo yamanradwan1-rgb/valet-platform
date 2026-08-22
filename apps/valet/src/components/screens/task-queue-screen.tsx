@@ -70,6 +70,7 @@ export function TaskQueueScreen({
   });
 
   const [actionError, setActionError] = useState<string | null>(null);
+  const [inFlightTaskId, setInFlightTaskId] = useState<string | null>(null);
 
   const viewModels = useMemo<StaffTaskQueueItemViewModel[]>(() => {
     if (!isLiveMode) return [];
@@ -88,9 +89,11 @@ export function TaskQueueScreen({
     : (locationName ?? "Four Seasons Amman");
 
   const handleTaskAction = async (task: StaffTaskQueueItemViewModel) => {
+    if (inFlightTaskId !== null) return;
+    setInFlightTaskId(task.taskId);
     setActionError(null);
-    if (task.taskType === "PARKING") {
-      try {
+    try {
+      if (task.taskType === "PARKING") {
         const result = await executeParkingTaskAction(
           taskQueueClient,
           {
@@ -116,12 +119,14 @@ export function TaskQueueScreen({
         } else if (result.kind === "DENIED") {
           setActionError("This task is assigned to another valet employee.");
         }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Failed to operate task.";
-        setActionError(msg);
+      } else {
+        nav?.("retrieval");
       }
-    } else {
-      nav?.("retrieval");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to operate task.";
+      setActionError(msg);
+    } finally {
+      setInFlightTaskId(null);
     }
   };
 
@@ -202,6 +207,7 @@ export function TaskQueueScreen({
           <LivePriorityTaskCard
             priorityTask={priorityTask}
             membershipId={membershipId}
+            isActionInFlight={inFlightTaskId === priorityTask.taskId}
             onAction={() => void handleTaskAction(priorityTask)}
           />
         ) : null}
@@ -264,6 +270,7 @@ export function TaskQueueScreen({
                       key={task.taskId}
                       task={task}
                       membershipId={membershipId}
+                      isActionInFlight={inFlightTaskId === task.taskId}
                       onClick={() => void handleTaskAction(task)}
                     />
                   ))

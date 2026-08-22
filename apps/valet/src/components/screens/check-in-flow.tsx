@@ -20,10 +20,12 @@ import {
   CheckInPlateConfirmStep,
   CheckInPlateScanStep,
 } from "./check-in/check-in-plate-steps";
+import { CheckInRecoverableStep } from "./check-in/check-in-recoverable-step";
 import { BackHeader, Btn } from "../ui/employee-primitives";
 
 export interface CheckInFlowProps {
   readonly locationId?: string | null | undefined;
+  readonly mode?: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
   readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onStartParkingSuccess?: (payload: StartParkingPayload) => void;
@@ -32,6 +34,7 @@ export interface CheckInFlowProps {
 export function CheckInFlow({
   nav,
   locationId = null,
+  mode = "live",
   onAuthorizationLoss,
   onStartParkingSuccess,
 }: CheckInFlowProps): JSX.Element | null {
@@ -45,6 +48,7 @@ export function CheckInFlow({
   const [condition, setCondition] = useState("No visible issue");
   const [phone, setPhone] = useState("");
   const [keySlotCode, setKeySlotCode] = useState("");
+  const [isManualEntry, setIsManualEntry] = useState(false);
 
   const activeVehicle = checkIn.activeSession?.vehicle ?? checkIn.pendingVehicle;
   const displayPlate =
@@ -84,44 +88,24 @@ export function CheckInFlow({
 
   if (checkIn.step === "multiple-recoverable") {
     return (
-      <div>
-        <BackHeader title="Recoverable Sessions" onBack={() => nav("task-queue")} />
-        <div className="p-5 space-y-4">
-          <p className="text-neutral text-xs font-semibold uppercase tracking-wider">Multiple Incomplete Check-Ins Found</p>
-          {checkIn.drafts.map((draft) => (
-            <div
-              key={draft.sessionId}
-              onClick={() => void checkIn.resumeDraft(draft)}
-              className="bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
-            >
-              <span className="text-[10px] font-bold uppercase text-vblue bg-ice px-2 py-0.5 rounded">Draft</span>
-              <p className="font-heading font-bold text-navy text-base mt-2">{draft.vehicle.make ?? "Vehicle"} {draft.vehicle.model ?? ""}</p>
-              <p className="text-neutral text-xs">{draft.vehicle.plateNumberRaw ?? draft.vehicle.temporaryDescriptor ?? "No Plate"}</p>
-            </div>
-          ))}
-          {checkIn.continuations.map((cont) => (
-            <div
-              key={cont.sessionId}
-              onClick={() => void checkIn.resumeContinuation(cont)}
-              className="bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
-            >
-              <span className="text-[10px] font-bold uppercase text-vsuccess bg-green-50 px-2 py-0.5 rounded">Awaiting Parking</span>
-              <p className="font-heading font-bold text-navy text-base mt-2">{cont.vehicle.make ?? "Vehicle"} {cont.vehicle.model ?? ""}</p>
-              <p className="text-neutral text-xs">{cont.vehicle.plateNumberRaw ?? cont.vehicle.temporaryDescriptor ?? "No Plate"}</p>
-            </div>
-          ))}
-          <Btn label="Back to Task Queue" variant="secondary" onClick={() => nav("task-queue")} />
-        </div>
-      </div>
+      <CheckInRecoverableStep
+        drafts={checkIn.drafts}
+        continuations={checkIn.continuations}
+        onResumeDraft={(d) => void checkIn.resumeDraft(d)}
+        onResumeContinuation={(c) => void checkIn.resumeContinuation(c)}
+        onBack={() => nav("task-queue")}
+      />
     );
   }
 
   if (checkIn.step === "plate-scan") {
     return (
       <CheckInPlateScanStep
+        mode={mode}
         scanDone={scanDone}
         onSimulateScan={() => {
           setScanDone(true);
+          setIsManualEntry(false);
           setTemporaryDescriptor(null);
           setPlateNumber("12-34567");
           setTimeout(() => {
@@ -129,7 +113,10 @@ export function CheckInFlow({
             checkIn.setStep("plate-confirm");
           }, 400);
         }}
-        onManualEntry={() => checkIn.setStep("manual-plate")}
+        onManualEntry={() => {
+          setIsManualEntry(true);
+          checkIn.setStep("manual-plate");
+        }}
         onBack={() => nav("task-queue")}
       />
     );
@@ -159,6 +146,7 @@ export function CheckInFlow({
   if (checkIn.step === "plate-confirm") {
     return (
       <CheckInPlateConfirmStep
+        isManualEntry={isManualEntry}
         plateNumber={plateNumber}
         plateCountry={plateCountry}
         temporaryDescriptor={temporaryDescriptor}
@@ -219,7 +207,15 @@ export function CheckInFlow({
         onContinue={async () => {
           await checkIn.completeCondition(condition);
         }}
-        onBack={() => checkIn.setStep(checkIn.activeSession?.state === "CHECKING_IN" ? "plate-confirm" : "customer-phone")}
+        onBack={() => {
+          if (checkIn.activeSession?.state === "AWAITING_PARKING") {
+            nav("task-queue");
+          } else if (checkIn.activeSession?.state === "CHECKING_IN") {
+            checkIn.setStep("plate-confirm");
+          } else {
+            checkIn.setStep("customer-phone");
+          }
+        }}
       />
     );
   }
@@ -227,6 +223,7 @@ export function CheckInFlow({
   if (checkIn.step === "key-scan") {
     return (
       <CheckInKeyScanStep
+        mode={mode}
         keyScanDone={keyScanDone}
         keySlotCode={keySlotCode}
         make={displayMake}
@@ -245,7 +242,13 @@ export function CheckInFlow({
           await checkIn.assignKey(keySlotCode);
         }}
         onScanAnother={() => setKeyScanDone(false)}
-        onBack={() => checkIn.setStep("vehicle-condition")}
+        onBack={() => {
+          if (checkIn.activeSession?.state === "AWAITING_PARKING") {
+            nav("task-queue");
+          } else {
+            checkIn.setStep("vehicle-condition");
+          }
+        }}
       />
     );
   }

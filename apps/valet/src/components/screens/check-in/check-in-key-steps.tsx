@@ -11,6 +11,7 @@ import {
 } from "../../ui/employee-primitives";
 
 export function CheckInKeyScanStep({
+  mode = "live",
   keyScanDone,
   keySlotCode,
   make,
@@ -32,13 +33,14 @@ export function CheckInKeyScanStep({
   readonly keyScanDone: boolean;
   readonly keySlotCode: string;
   readonly make?: string | null | undefined;
+  readonly mode?: "live" | "prototype" | undefined;
   readonly model?: string | null | undefined;
   readonly onAssignKey: () => void;
   readonly onBack: () => void;
   readonly onChangeKeySlotCode: (code: string) => void;
   readonly onManualEntry: () => void;
   readonly onScanAnother: () => void;
-  readonly onSimulateScan: () => void;
+  readonly onSimulateScan?: (() => void) | undefined;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
   const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
@@ -58,10 +60,12 @@ export function CheckInKeyScanStep({
             sublabel="Position the QR within the frame"
           />
           <div className="p-5 space-y-3">
-            <Btn label="Simulate Key QR Scan" onClick={onSimulateScan} />
+            {mode === "prototype" && onSimulateScan && (
+              <Btn label="Simulate Key QR Scan" onClick={onSimulateScan} />
+            )}
             <Btn
               label="Enter key slot manually"
-              variant="secondary"
+              variant={mode === "prototype" ? "secondary" : "primary"}
               onClick={onManualEntry}
             />
           </div>

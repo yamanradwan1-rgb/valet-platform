@@ -1,14 +1,13 @@
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { executeParkingTaskAction } from "../parking/parking-task-runner";
 import {
-  acceptParkingTask,
-  assignParkingTask,
   assignSessionKeySlot,
   completeCheckInSession,
   completeConditionStep,
   createIntakeSession,
   createSessionConditionNote,
+  fetchSessionDetail,
   queueSessionParkingTask,
-  startParkingSession,
   updateSessionVehicleIdentity,
 } from "./check-in-api";
 import type {
@@ -80,6 +79,9 @@ export async function runUpdateVehicleIdentityMutation(
   session: CheckInActiveSession,
   newVehicleData: CheckInVehicleData,
 ): Promise<{ vehicle: CheckInVehicleData; vehicleUpdatedAt: string }> {
+  if (session.state !== "CHECKING_IN") {
+    throw new Error("Vehicle identity cannot be modified after check-in is complete.");
+  }
   if (!session.vehicleUpdatedAt) {
     throw new Error("Missing vehicleUpdatedAt on session.");
   }
@@ -98,20 +100,32 @@ export async function runConditionCompletionMutation(
   session: CheckInActiveSession,
   conditionNote?: string | null,
 ): Promise<{ conditionCompletedAt: string; sessionVersion: number }> {
-  const note = conditionNote?.trim() || "";
-  if (note && note !== "No visible issue") {
+  if (session.state === "AWAITING_PARKING") {
+    return {
+      conditionCompletedAt: session.conditionCompletedAt ?? new Date().toISOString(),
+      sessionVersion: session.sessionVersion,
+    };
+  }
+
+  let conditionCompletedAt = session.conditionCompletedAt;
+
+  if (!conditionCompletedAt) {
+    const note = conditionNote?.trim() || "No visible issue";
     await createSessionConditionNote(client, session.sessionId, {
       content: note,
     });
+    const condRes = await completeConditionStep(client, session.sessionId);
+    conditionCompletedAt = condRes.completedAt;
   }
-  const condRes = await completeConditionStep(client, session.sessionId);
+
   const completeRes = await completeCheckInSession(
     client,
     session.sessionId,
     session.sessionVersion,
   );
+
   return {
-    conditionCompletedAt: condRes.completedAt,
+    conditionCompletedAt,
     sessionVersion: completeRes.version,
   };
 }
@@ -121,6 +135,9 @@ export async function runKeyAssignmentMutation(
   session: CheckInActiveSession,
   keySlotCode: string,
 ): Promise<{ keySlotCode: string | null; sessionVersion: number }> {
+  if (session.state !== "AWAITING_PARKING") {
+    throw new Error("Key slot assignment requires session in AWAITING_PARKING state.");
+  }
   const assignRes = await assignSessionKeySlot(
     client,
     session.sessionId,
@@ -136,9 +153,11 @@ export async function runKeyAssignmentMutation(
 export async function runQueueParkingTaskMutation(
   client: EmployeeApiClient,
   session: CheckInActiveSession,
-): Promise<{ taskId: string; version: number }> {
+): Promise<{ currentAssigneeMembershipId: string | null; status: "QUEUED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS"; taskId: string; version: number }> {
   const queueRes = await queueSessionParkingTask(client, session.sessionId);
   return {
+    currentAssigneeMembershipId: queueRes.currentAssigneeMembershipId,
+    status: queueRes.status,
     taskId: queueRes.taskId,
     version: queueRes.version,
   };
@@ -147,37 +166,36 @@ export async function runQueueParkingTaskMutation(
 export async function runStartParkingMutation(
   client: EmployeeApiClient,
   session: CheckInActiveSession,
+  membershipId?: string,
 ): Promise<StartParkingPayload> {
-  let taskId = session.parkingTaskId;
-  let taskVersion = session.parkingTaskVersion;
-
-  if (!taskId || taskVersion === null) {
-    const queueRes = await queueSessionParkingTask(client, session.sessionId);
-    taskId = queueRes.taskId;
-    taskVersion = queueRes.version;
-  }
-
-  if (!taskId || taskVersion === null) {
-    throw new Error("Unable to obtain parking task.");
-  }
-
-  const assignRes = await assignParkingTask(client, taskId, taskVersion);
-  const acceptRes = await acceptParkingTask(client, taskId, assignRes.version);
-  const startRes = await startParkingSession(
-    client,
-    session.sessionId,
-    session.sessionVersion,
-    acceptRes.version,
-  );
-
-  return {
-    keySlotCode: session.keySlotCode,
-    locationId: session.locationId,
-    parkingStartedAt: startRes.parkingStartedAt,
-    sessionId: session.sessionId,
-    sessionVersion: startRes.sessionVersion,
-    taskId: startRes.taskId,
-    taskVersion: startRes.taskVersion,
-    vehicle: session.vehicle,
+  const queueRes = await queueSessionParkingTask(client, session.sessionId);
+  const taskInfo = {
+    currentAssigneeMembershipId: queueRes.currentAssigneeMembershipId,
+    sessionId: queueRes.sessionId,
+    status: queueRes.status,
+    taskId: queueRes.taskId,
+    version: queueRes.version,
   };
+
+  const result = await executeParkingTaskAction(client, taskInfo, membershipId);
+  if (result.kind === "START_PARKING_SUCCESS") {
+    return result.payload;
+  }
+  if (result.kind === "NAVIGATE_IN_PROGRESS") {
+    const detail = await fetchSessionDetail(client, session.sessionId);
+    if (detail.state === "PARKING" && detail.parking.parkingStartedAt) {
+      return {
+        keySlotCode: detail.keySlot?.code ?? session.keySlotCode,
+        locationId: detail.locationId,
+        parkingStartedAt: detail.parking.parkingStartedAt,
+        sessionId: session.sessionId,
+        sessionVersion: detail.version,
+        taskId: taskInfo.taskId,
+        taskVersion: taskInfo.version,
+        vehicle: session.vehicle,
+      };
+    }
+    throw new Error("Session is not in active parking state.");
+  }
+  throw new Error("Parking task is assigned to another staff member.");
 }

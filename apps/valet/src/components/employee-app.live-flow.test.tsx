@@ -42,6 +42,25 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       taskType: "PARKING",
       version: 1,
     };
+    const detailPayload = {
+      checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
+      keySlot: { code: "B-214" },
+      locationId,
+      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: "North-A" },
+      sessionId,
+      state: "AWAITING_PARKING" as const,
+      vehicle: {
+        color: "Black",
+        make: "BMW",
+        model: "X5",
+        plateCountry: "JO",
+        plateNumberRaw: "12-34567",
+        temporaryDescriptor: null,
+        vehicleId: "44444444-4444-4444-8444-444444444444",
+        vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
+      },
+      version: 3,
+    };
     const assignTaskPayload: AssignTaskResponse = {
       createdAt: "2026-08-21T18:05:30.000Z",
       currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
@@ -98,6 +117,8 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
         }) // complete check-in
         .mockResolvedValueOnce(assignKeyPayload) // assign key
         .mockResolvedValueOnce(queueTaskPayload) // queue task
+        .mockResolvedValueOnce(queueTaskPayload) // queue task again on startParking
+        .mockResolvedValueOnce(detailPayload) // session detail for startParking
         .mockResolvedValueOnce(assignTaskPayload) // assign task to self
         .mockResolvedValueOnce({
           createdAt: "2026-08-21T18:05:45.000Z",

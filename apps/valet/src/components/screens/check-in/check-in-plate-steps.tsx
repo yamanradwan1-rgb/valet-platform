@@ -8,14 +8,16 @@ import {
 } from "../../ui/employee-primitives";
 
 export function CheckInPlateScanStep({
+  mode = "live",
   scanDone,
   onSimulateScan,
   onManualEntry,
   onBack,
 }: {
+  readonly mode?: "live" | "prototype" | undefined;
   readonly onBack: () => void;
   readonly onManualEntry: () => void;
-  readonly onSimulateScan: () => void;
+  readonly onSimulateScan?: (() => void) | undefined;
   readonly scanDone: boolean;
 }): JSX.Element {
   return (
@@ -29,10 +31,12 @@ export function CheckInPlateScanStep({
       <div className="p-5 space-y-3">
         {!scanDone ? (
           <>
-            <Btn label="Simulate Plate Detection" onClick={onSimulateScan} />
+            {mode === "prototype" && onSimulateScan && (
+              <Btn label="Simulate Plate Detection" onClick={onSimulateScan} />
+            )}
             <Btn
               label="Enter manually"
-              variant="secondary"
+              variant={mode === "prototype" ? "secondary" : "primary"}
               onClick={onManualEntry}
             />
           </>
@@ -110,6 +114,7 @@ export function CheckInManualPlateStep({
 }
 
 export function CheckInPlateConfirmStep({
+  isManualEntry = false,
   plateNumber,
   plateCountry,
   temporaryDescriptor,
@@ -124,6 +129,7 @@ export function CheckInPlateConfirmStep({
 }: {
   readonly color?: string | null | undefined;
   readonly error?: string | null | undefined;
+  readonly isManualEntry?: boolean | undefined;
   readonly isSubmitting?: boolean | undefined;
   readonly make?: string | null | undefined;
   readonly model?: string | null | undefined;
@@ -135,8 +141,15 @@ export function CheckInPlateConfirmStep({
   readonly temporaryDescriptor?: string | null | undefined;
 }): JSX.Element {
   const displayPlate = temporaryDescriptor || plateNumber || "No plate";
-  const displayCountry = plateCountry ? `${plateCountry} plate` : "Detected plate";
+  const displayCountry = plateCountry ? `${plateCountry} plate` : "Plate";
   const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+
+  let statusBadgeText = "Detected";
+  if (temporaryDescriptor) {
+    statusBadgeText = "Temporary Descriptor";
+  } else if (isManualEntry) {
+    statusBadgeText = "Manual Entry";
+  }
 
   return (
     <div>
@@ -149,16 +162,23 @@ export function CheckInPlateConfirmStep({
         )}
         <div className="bg-ice rounded-2xl p-6 text-center">
           <p className="text-neutral text-xs font-semibold uppercase tracking-wider mb-2">
-            {temporaryDescriptor ? "Temporary Descriptor" : "Detected"}
+            {statusBadgeText}
           </p>
           <p className="font-heading font-bold text-[36px] text-navy tracking-widest break-all">
             {displayPlate}
           </p>
-          {!temporaryDescriptor && (
+          {!temporaryDescriptor && !isManualEntry && (
             <div className="flex items-center justify-center gap-1.5 mt-2">
               <span className="w-1.5 h-1.5 rounded-full bg-vsuccess" />
               <span className="text-vsuccess text-xs font-semibold">
                 High confidence · {displayCountry}
+              </span>
+            </div>
+          )}
+          {!temporaryDescriptor && isManualEntry && (
+            <div className="flex items-center justify-center gap-1.5 mt-2">
+              <span className="text-neutral text-xs font-semibold">
+                Entered plate · {displayCountry}
               </span>
             </div>
           )}
