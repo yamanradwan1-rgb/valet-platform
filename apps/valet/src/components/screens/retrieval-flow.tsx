@@ -26,6 +26,7 @@ import {
 import { BackHeader, Btn } from "../ui/employee-primitives";
 
 export interface RetrievalFlowProps {
+  readonly currentAssigneeMembershipId?: string | null | undefined;
   readonly initialSession?: ActiveRetrievalSession | null | undefined;
   readonly membershipId?: string | null | undefined;
   readonly mode?: "live" | "prototype" | undefined;
@@ -34,6 +35,7 @@ export interface RetrievalFlowProps {
   readonly onComplete?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
+  readonly taskStatus?: "ACCEPTED" | "IN_PROGRESS" | null | undefined;
   readonly taskVersion?: number | null | undefined;
 }
 
@@ -41,9 +43,11 @@ export function RetrievalFlow({
   nav,
   initialSession = null,
   membershipId = null,
+  currentAssigneeMembershipId = null,
   mode,
   sessionId = null,
   taskId = null,
+  taskStatus = null,
   taskVersion = null,
   onAuthorizationLoss,
   onComplete,
@@ -51,11 +55,13 @@ export function RetrievalFlow({
   const isLive = mode === "live" || Boolean(sessionId || initialSession);
 
   const retrieval = useRetrieval({
+    currentAssigneeMembershipId,
     initialSession,
     membershipId,
     onAuthorizationLoss,
     sessionId: isLive ? sessionId : null,
     taskId: isLive ? taskId : null,
+    taskStatus: isLive ? taskStatus : null,
     taskVersion: isLive ? taskVersion : null,
   });
 
@@ -98,7 +104,7 @@ export function RetrievalFlow({
       ? `Zone ${session.parkingZoneCode}${session.parkingSpotCode ? ` · Spot ${session.parkingSpotCode}` : ""}`
       : session?.parkingSpotCode
         ? `Spot ${session.parkingSpotCode}`
-        : "Parking area";
+        : null;
 
     if (retrieval.isHydrating) {
       return (

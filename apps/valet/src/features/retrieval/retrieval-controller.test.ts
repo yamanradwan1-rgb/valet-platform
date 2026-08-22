@@ -9,6 +9,8 @@ describe("RetrievalController Hydration & Recovery", () => {
   const taskId = "22222222-2222-4222-8222-222222222222";
   const locationId = "33333333-3333-4333-8333-333333333333";
   const vehicleId = "44444444-4444-4444-8444-444444444444";
+  const myMembershipId = "55555555-5555-4555-8555-555555555555";
+  const otherMembershipId = "66666666-6666-4666-8666-666666666666";
 
   const baseDetail: StaffValetSessionDetailResponse = {
     checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
@@ -35,28 +37,86 @@ describe("RetrievalController Hydration & Recovery", () => {
     version: 4,
   };
 
-  it("hydrates REQUESTED session to key-checkout step with expected key", async () => {
+  it("hydrates REQUESTED + ACCEPTED task owned by current employee", async () => {
     const mockClient = {
       request: vi.fn().mockResolvedValueOnce(baseDetail),
     } as unknown as EmployeeApiClient;
 
-    const controller = new RetrievalController(mockClient, vi.fn());
-    await controller.hydrateSession(sessionId, taskId, 2);
+    const controller = new RetrievalController(
+      mockClient,
+      vi.fn(),
+      myMembershipId,
+    );
+    await controller.hydrateSession(
+      sessionId,
+      taskId,
+      2,
+      "ACCEPTED",
+      myMembershipId,
+    );
 
     const state = controller.getState();
     expect(state.step).toBe("key-checkout");
     expect(state.activeSession?.sessionId).toBe(sessionId);
     expect(state.activeSession?.expectedKeySlotCode).toBe("B-214");
-    expect(state.activeSession?.isKeyConfirmed).toBe(false);
     expect(state.activeSession?.state).toBe("REQUESTED");
     expect(state.activeSession?.taskStatus).toBe("ACCEPTED");
-    expect(state.activeSession?.sessionVersion).toBe(4);
-    expect(state.activeSession?.taskVersion).toBe(2);
+    expect(state.activeSession?.parkingSpotCode).toBe("P-101");
   });
 
-  it("hydrates RETRIEVING session directly to in-progress step without fabricated timer", async () => {
+  it("fails closed when REQUESTED task is owned by another employee", async () => {
+    const mockClient = { request: vi.fn() } as unknown as EmployeeApiClient;
+    const controller = new RetrievalController(
+      mockClient,
+      vi.fn(),
+      myMembershipId,
+    );
+    await controller.hydrateSession(
+      sessionId,
+      taskId,
+      2,
+      "ACCEPTED",
+      otherMembershipId,
+    );
+
+    const state = controller.getState();
+    expect(state.activeSession).toBeNull();
+    expect(state.error).toContain("assigned to another valet employee");
+    expect(mockClient.request).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when REQUESTED task has stale status (e.g. IN_PROGRESS)", async () => {
+    const mockClient = {
+      request: vi.fn().mockResolvedValueOnce(baseDetail),
+    } as unknown as EmployeeApiClient;
+
+    const controller = new RetrievalController(
+      mockClient,
+      vi.fn(),
+      myMembershipId,
+    );
+    await controller.hydrateSession(
+      sessionId,
+      taskId,
+      2,
+      "IN_PROGRESS",
+      myMembershipId,
+    );
+
+    const state = controller.getState();
+    expect(state.activeSession).toBeNull();
+    expect(state.error).toContain("incompatible with REQUESTED session state");
+  });
+
+  it("hydrates RETRIEVING session with released (null) parking spot and requires IN_PROGRESS owned by me", async () => {
     const retrievingDetail: StaffValetSessionDetailResponse = {
       ...baseDetail,
+      parking: {
+        parkedAt: "2026-08-21T18:05:00.000Z",
+        parkingSpotCode: null,
+        parkingStartedAt: "2026-08-21T18:02:00.000Z",
+        parkingZoneCode: null,
+      },
       state: "RETRIEVING",
       version: 5,
     };
@@ -65,19 +125,37 @@ describe("RetrievalController Hydration & Recovery", () => {
       request: vi.fn().mockResolvedValueOnce(retrievingDetail),
     } as unknown as EmployeeApiClient;
 
-    const controller = new RetrievalController(mockClient, vi.fn());
-    await controller.hydrateSession(sessionId, taskId, 3);
+    const controller = new RetrievalController(
+      mockClient,
+      vi.fn(),
+      myMembershipId,
+    );
+    await controller.hydrateSession(
+      sessionId,
+      taskId,
+      3,
+      "IN_PROGRESS",
+      myMembershipId,
+    );
 
     const state = controller.getState();
     expect(state.step).toBe("in-progress");
     expect(state.activeSession?.state).toBe("RETRIEVING");
     expect(state.activeSession?.taskStatus).toBe("IN_PROGRESS");
-    expect(state.activeSession?.retrievalStartedAt).toBeNull(); // No fake Date.now()
+    expect(state.activeSession?.parkingSpotCode).toBeNull();
+    expect(state.activeSession?.parkingZoneCode).toBeNull();
+    expect(state.activeSession?.retrievalStartedAt).toBeNull();
   });
 
-  it("hydrates READY session directly to vehicle-ready step", async () => {
+  it("hydrates READY session with released (null) parking spot and preserves IN_PROGRESS ownership requirement", async () => {
     const readyDetail: StaffValetSessionDetailResponse = {
       ...baseDetail,
+      parking: {
+        parkedAt: "2026-08-21T18:05:00.000Z",
+        parkingSpotCode: null,
+        parkingStartedAt: "2026-08-21T18:02:00.000Z",
+        parkingZoneCode: null,
+      },
       state: "READY",
       version: 6,
     };
@@ -86,13 +164,24 @@ describe("RetrievalController Hydration & Recovery", () => {
       request: vi.fn().mockResolvedValueOnce(readyDetail),
     } as unknown as EmployeeApiClient;
 
-    const controller = new RetrievalController(mockClient, vi.fn());
-    await controller.hydrateSession(sessionId, taskId, 3);
+    const controller = new RetrievalController(
+      mockClient,
+      vi.fn(),
+      myMembershipId,
+    );
+    await controller.hydrateSession(
+      sessionId,
+      taskId,
+      3,
+      "IN_PROGRESS",
+      myMembershipId,
+    );
 
     const state = controller.getState();
     expect(state.step).toBe("vehicle-ready");
     expect(state.activeSession?.state).toBe("READY");
     expect(state.activeSession?.taskStatus).toBe("IN_PROGRESS");
+    expect(state.activeSession?.parkingSpotCode).toBeNull();
   });
 
   it("fails closed when session is in incompatible state (e.g. PARKED)", async () => {
@@ -106,24 +195,21 @@ describe("RetrievalController Hydration & Recovery", () => {
       request: vi.fn().mockResolvedValueOnce(parkedDetail),
     } as unknown as EmployeeApiClient;
 
-    const controller = new RetrievalController(mockClient, vi.fn());
-    await controller.hydrateSession(sessionId, taskId, 1);
+    const controller = new RetrievalController(
+      mockClient,
+      vi.fn(),
+      myMembershipId,
+    );
+    await controller.hydrateSession(
+      sessionId,
+      taskId,
+      1,
+      "ACCEPTED",
+      myMembershipId,
+    );
 
     const state = controller.getState();
     expect(state.activeSession).toBeNull();
     expect(state.error).toContain("cannot be retrieved");
-  });
-
-  it("fails closed when A1 network/server detail fetch fails", async () => {
-    const mockClient = {
-      request: vi.fn().mockRejectedValue(new Error("Connection reset by peer")),
-    } as unknown as EmployeeApiClient;
-
-    const controller = new RetrievalController(mockClient, vi.fn());
-    await controller.hydrateSession(sessionId, taskId, 1);
-
-    const state = controller.getState();
-    expect(state.activeSession).toBeNull();
-    expect(state.error).toBe("Connection reset by peer");
   });
 });

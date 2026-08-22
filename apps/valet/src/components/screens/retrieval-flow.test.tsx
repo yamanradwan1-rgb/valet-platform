@@ -32,6 +32,8 @@ describe("RetrievalFlow Component", () => {
   const activeRetrievingSession: ActiveRetrievalSession = {
     ...activeRequestedSession,
     isKeyConfirmed: true,
+    parkingSpotCode: null, // Released
+    parkingZoneCode: null, // Released
     retrievalStartedAt: new Date(Date.now() - 45000).toISOString(),
     sessionVersion: 5,
     state: "RETRIEVING",
@@ -41,6 +43,8 @@ describe("RetrievalFlow Component", () => {
 
   const activeReadySession: ActiveRetrievalSession = {
     ...activeRetrievingSession,
+    parkingSpotCode: null, // Released
+    parkingZoneCode: null, // Released
     readyAt: new Date().toISOString(),
     sessionVersion: 6,
     state: "READY",
@@ -67,7 +71,7 @@ describe("RetrievalFlow Component", () => {
     expect(markup).not.toContain("B-214");
   });
 
-  it("renders live in-progress step without unproven TrackingPill or Report Issue button", () => {
+  it("renders live in-progress step without fabricated location or unproven TrackingPill / Report Issue button", () => {
     const nav = vi.fn();
     const markup = renderToStaticMarkup(
       <RetrievalFlow
@@ -81,12 +85,16 @@ describe("RetrievalFlow Component", () => {
     expect(markup).toContain("Audi A6 · 77-99999");
     expect(markup).toContain("K-900");
     expect(markup).toContain("Vehicle Ready");
+    // Verifies released spot is not fabricated
+    expect(markup).not.toContain("Spot P-42");
+    expect(markup).not.toContain("Zone North");
+    expect(markup).not.toContain("Parking area");
     expect(markup).not.toContain("Report Issue");
     expect(markup).not.toContain("Location active for this task");
     expect(markup).not.toContain("TrackingPill");
   });
 
-  it("renders live vehicle-ready step with Done button and without handoff / guest-notified claims", () => {
+  it("renders live vehicle-ready step with Done button and without fabricated location / handoff claims", () => {
     const nav = vi.fn();
     const markup = renderToStaticMarkup(
       <RetrievalFlow
@@ -100,6 +108,9 @@ describe("RetrievalFlow Component", () => {
     expect(markup).toContain("Ready for guest");
     expect(markup).toContain("Audi A6 · 77-99999");
     expect(markup).toContain("Done");
+    // Verifies released spot is not fabricated
+    expect(markup).not.toContain("Spot P-42");
+    expect(markup).not.toContain("Zone North");
     expect(markup).not.toContain("Guest notified");
     expect(markup).not.toContain("Verify Guest");
     expect(markup).not.toContain("Secure Handoff");
@@ -107,7 +118,9 @@ describe("RetrievalFlow Component", () => {
 
   it("renders prototype mode with demo controls and handoff actions", () => {
     const nav = vi.fn();
-    const markup = renderToStaticMarkup(<RetrievalFlow mode="prototype" nav={nav} />);
+    const markup = renderToStaticMarkup(
+      <RetrievalFlow mode="prototype" nav={nav} />,
+    );
     expect(markup).toContain("Retrieval Task");
     expect(markup).toContain("Accept Task");
   });

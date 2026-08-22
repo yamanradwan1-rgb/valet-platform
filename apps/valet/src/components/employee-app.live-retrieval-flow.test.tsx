@@ -137,17 +137,26 @@ describe("Live Retrieval End-to-End Operational Lifecycle", () => {
 
     expect(runnerResult.taskVersion).toBe(3);
 
-    // 2. Retrieval Controller hydration on navigation
-    const controller = new RetrievalController(mockClient, vi.fn(), membershipId);
+    // 2. Retrieval Controller hydration on navigation with ownership check
+    const controller = new RetrievalController(
+      mockClient,
+      vi.fn(),
+      membershipId,
+    );
     await controller.hydrateSession(
       runnerResult.sessionId,
       runnerResult.taskId,
       runnerResult.taskVersion,
+      "ACCEPTED",
+      membershipId,
     );
 
     expect(controller.getState().step).toBe("key-checkout");
-    expect(controller.getState().activeSession?.expectedKeySlotCode).toBe("B-214");
+    expect(controller.getState().activeSession?.expectedKeySlotCode).toBe(
+      "B-214",
+    );
     expect(controller.getState().activeSession?.isKeyConfirmed).toBe(false);
+    expect(controller.getState().activeSession?.parkingSpotCode).toBe("P-101");
 
     // 3. Key Confirmation: employee verifies key code
     const isVerified = controller.confirmKey("B-214");
@@ -162,6 +171,8 @@ describe("Live Retrieval End-to-End Operational Lifecycle", () => {
     expect(controller.getState().activeSession?.sessionVersion).toBe(5);
     expect(controller.getState().activeSession?.taskVersion).toBe(4);
     expect(controller.getState().activeSession?.taskStatus).toBe("IN_PROGRESS");
+    expect(controller.getState().activeSession?.parkingSpotCode).toBeNull(); // Released spot
+    expect(controller.getState().activeSession?.parkingZoneCode).toBeNull();
     expect(controller.getState().activeSession?.retrievalStartedAt).toBe(
       "2026-08-21T18:02:00.000Z",
     );
@@ -174,6 +185,7 @@ describe("Live Retrieval End-to-End Operational Lifecycle", () => {
     expect(controller.getState().activeSession?.sessionVersion).toBe(6);
     expect(controller.getState().activeSession?.taskVersion).toBe(4);
     expect(controller.getState().activeSession?.taskStatus).toBe("IN_PROGRESS");
+    expect(controller.getState().activeSession?.parkingSpotCode).toBeNull();
     expect(controller.getState().activeSession?.readyAt).toBe(
       "2026-08-21T18:05:00.000Z",
     );

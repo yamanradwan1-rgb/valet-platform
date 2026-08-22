@@ -4,24 +4,23 @@ import type {
   TaskRow,
 } from "./staff-valet-session-queries";
 
-const postParkingStates = [
-  "PARKED",
-  "REQUESTED",
-  "RETRIEVING",
-  "READY",
-  "HANDOFF_PENDING",
-  "COMPLETED",
-] as const;
-
 export function authorizeSessionAccess(
   session: SessionScopeRow,
   tasks: TaskRow[],
   actorMembershipId: string,
 ): void {
-  const activeTasks = tasks.filter((t) =>
+  const parkingTasks = tasks.filter((t) => t.task_type === "PARKING");
+  const activeParkingTasks = parkingTasks.filter((t) =>
     ["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS"].includes(t.status),
   );
-  const completedTasks = tasks.filter((t) => t.status === "COMPLETED");
+  const completedParkingTasks = parkingTasks.filter(
+    (t) => t.status === "COMPLETED",
+  );
+
+  const retrievalTasks = tasks.filter((t) => t.task_type === "RETRIEVAL");
+  const activeRetrievalTasks = retrievalTasks.filter((t) =>
+    ["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS"].includes(t.status),
+  );
 
   if (session.state === "CHECKING_IN") {
     if (session.checked_in_by_membership_id !== actorMembershipId) {
@@ -31,10 +30,10 @@ export function authorizeSessionAccess(
   }
 
   if (session.state === "AWAITING_PARKING") {
-    if (activeTasks.length > 1) {
+    if (activeParkingTasks.length > 1) {
       throw new Error("Corrupted state: multiple active parking tasks.");
     }
-    const task = activeTasks[0];
+    const task = activeParkingTasks[0];
     if (!task) {
       if (session.checked_in_by_membership_id !== actorMembershipId) {
         throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
@@ -54,21 +53,90 @@ export function authorizeSessionAccess(
   }
 
   if (session.state === "PARKING") {
-    if (activeTasks.length !== 1 || activeTasks[0]?.status !== "IN_PROGRESS") {
+    if (
+      activeParkingTasks.length !== 1 ||
+      activeParkingTasks[0]?.status !== "IN_PROGRESS"
+    ) {
       throw new Error("Corrupted state: expected 1 in-progress parking task.");
     }
-    if (activeTasks[0].current_assignee_membership_id !== actorMembershipId) {
+    if (activeParkingTasks[0].current_assignee_membership_id !== actorMembershipId) {
       throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
     }
     return;
   }
 
-  if (postParkingStates.includes(session.state as (typeof postParkingStates)[number])) {
-    if (completedTasks.length !== 1) {
+  if (session.state === "PARKED") {
+    if (completedParkingTasks.length !== 1) {
       throw new Error("Corrupted state: expected 1 completed parking task.");
     }
     if (
-      completedTasks[0]?.current_assignee_membership_id !== actorMembershipId
+      completedParkingTasks[0]?.current_assignee_membership_id !==
+      actorMembershipId
+    ) {
+      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+    }
+    return;
+  }
+
+  if (session.state === "REQUESTED") {
+    if (completedParkingTasks.length !== 1) {
+      throw new Error("Corrupted state: expected 1 completed parking task.");
+    }
+    if (activeRetrievalTasks.length > 1) {
+      throw new Error("Corrupted state: multiple active retrieval tasks.");
+    }
+    const retTask = activeRetrievalTasks[0];
+    const isParkingOwner =
+      completedParkingTasks[0]?.current_assignee_membership_id ===
+      actorMembershipId;
+
+    if (retTask) {
+      if (retTask.status === "IN_PROGRESS") {
+        throw new Error(
+          "Corrupted state: in-progress retrieval task in REQUESTED state.",
+        );
+      }
+      if (retTask.status === "QUEUED") {
+        return; // Authorized for on-shift employee
+      }
+      if (
+        retTask.current_assignee_membership_id === actorMembershipId ||
+        isParkingOwner
+      ) {
+        return;
+      }
+      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+    }
+
+    if (isParkingOwner) return;
+    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+  }
+
+  if (session.state === "RETRIEVING" || session.state === "READY") {
+    if (completedParkingTasks.length !== 1) {
+      throw new Error("Corrupted state: expected 1 completed parking task.");
+    }
+    if (
+      activeRetrievalTasks.length !== 1 ||
+      activeRetrievalTasks[0]?.status !== "IN_PROGRESS"
+    ) {
+      throw new Error("Corrupted state: expected 1 in-progress retrieval task.");
+    }
+    if (
+      activeRetrievalTasks[0].current_assignee_membership_id !== actorMembershipId
+    ) {
+      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+    }
+    return;
+  }
+
+  if (session.state === "HANDOFF_PENDING" || session.state === "COMPLETED") {
+    if (completedParkingTasks.length !== 1) {
+      throw new Error("Corrupted state: expected 1 completed parking task.");
+    }
+    if (
+      completedParkingTasks[0]?.current_assignee_membership_id !==
+      actorMembershipId
     ) {
       throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
     }
@@ -85,6 +153,7 @@ export function validateTemporalInvariants(session: SessionScopeRow): void {
   ) {
     throw new Error("Corrupted state: condition completion missing.");
   }
+
   if (session.state === "PARKING") {
     if (
       session.parking_started_at === null ||
@@ -94,7 +163,8 @@ export function validateTemporalInvariants(session: SessionScopeRow): void {
       throw new Error("Corrupted state: invalid parking timestamps/spot.");
     }
   }
-  if (postParkingStates.includes(session.state as (typeof postParkingStates)[number])) {
+
+  if (session.state === "PARKED" || session.state === "REQUESTED") {
     if (
       session.parking_started_at === null ||
       session.parked_at === null ||
@@ -102,6 +172,25 @@ export function validateTemporalInvariants(session: SessionScopeRow): void {
       session.parking_zone_id === null
     ) {
       throw new Error("Corrupted state: invalid post-parking state.");
+    }
+  }
+
+  if (session.state === "RETRIEVING" || session.state === "READY") {
+    if (
+      session.parking_started_at === null ||
+      session.parked_at === null ||
+      session.parking_spot_id !== null
+    ) {
+      throw new Error("Corrupted state: invalid retrieving/ready state.");
+    }
+  }
+
+  if (session.state === "HANDOFF_PENDING" || session.state === "COMPLETED") {
+    if (
+      session.parking_started_at === null ||
+      session.parked_at === null
+    ) {
+      throw new Error("Corrupted state: invalid handoff/completed state.");
     }
   }
 }

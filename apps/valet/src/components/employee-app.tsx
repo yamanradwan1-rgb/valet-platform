@@ -42,6 +42,7 @@ export function EmployeeApp(): JSX.Element {
   } | null>(null);
 
   const [activeRetrievalTarget, setActiveRetrievalTarget] = useState<{
+    currentAssigneeMembershipId?: string | null | undefined;
     sessionId: string;
     taskId: string;
     taskStatus: "ACCEPTED" | "IN_PROGRESS";
@@ -102,6 +103,7 @@ export function EmployeeApp(): JSX.Element {
   };
 
   const handleSelectRetrievalTaskFromQueue = (target: {
+    currentAssigneeMembershipId?: string | null | undefined;
     sessionId: string;
     taskId: string;
     taskStatus: "ACCEPTED" | "IN_PROGRESS";
@@ -169,10 +171,14 @@ export function EmployeeApp(): JSX.Element {
       case "retrieval":
         return (
           <RetrievalFlow
+            currentAssigneeMembershipId={
+              activeRetrievalTarget?.currentAssigneeMembershipId
+            }
             membershipId={activeScope?.membershipId}
             mode="live"
             sessionId={activeRetrievalTarget?.sessionId}
             taskId={activeRetrievalTarget?.taskId}
+            taskStatus={activeRetrievalTarget?.taskStatus}
             taskVersion={activeRetrievalTarget?.taskVersion}
             nav={nav}
             onAuthorizationLoss={revalidateOnAuthLoss}

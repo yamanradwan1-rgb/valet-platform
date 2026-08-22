@@ -21,6 +21,7 @@ export interface TaskRow {
   current_assignee_membership_id: string | null;
   id: string;
   status: string;
+  task_type: string;
 }
 
 export interface VehicleRow {
@@ -67,13 +68,13 @@ export async function loadParkingTasks(
   session: SessionScopeRow,
 ): Promise<TaskRow[]> {
   const result = await client.query<TaskRow>(
-    `SELECT id::text, status::text,
+    `SELECT id::text, status::text, task_type::text,
             current_assignee_membership_id::text
      FROM tasks
      WHERE organization_id = $1
        AND location_id = $2
        AND valet_session_id = $3
-       AND task_type = 'PARKING'
+       AND task_type IN ('PARKING', 'RETRIEVAL')
      FOR SHARE`,
     [session.organization_id, session.location_id, session.id],
   );

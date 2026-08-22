@@ -54,7 +54,7 @@ describe("Retrieval Mutations & Double-Submit Protection", () => {
     expect(controller.getState().error).toBeNull();
   });
 
-  it("executes startRetrieval with exact expectedSessionVersion and expectedTaskVersion", async () => {
+  it("executes startRetrieval, clears released parking spot, and updates versions", async () => {
     const startRes: StartRetrievalResponse = {
       retrievalStartedAt: "2026-08-21T18:10:00.000Z",
       sessionId,
@@ -92,6 +92,8 @@ describe("Retrieval Mutations & Double-Submit Protection", () => {
     expect(state.activeSession?.sessionVersion).toBe(5);
     expect(state.activeSession?.taskVersion).toBe(3);
     expect(state.activeSession?.taskStatus).toBe("IN_PROGRESS");
+    expect(state.activeSession?.parkingSpotCode).toBeNull(); // Released
+    expect(state.activeSession?.parkingZoneCode).toBeNull(); // Released
     expect(state.activeSession?.retrievalStartedAt).toBe(
       "2026-08-21T18:10:00.000Z",
     );
@@ -182,6 +184,8 @@ describe("Retrieval Mutations & Double-Submit Protection", () => {
     controller.setActiveSession({
       ...activeRequestedSession,
       isKeyConfirmed: true,
+      parkingSpotCode: null,
+      parkingZoneCode: null,
       retrievalStartedAt: "2026-08-21T18:10:00.000Z",
       sessionVersion: 5,
       state: "RETRIEVING",
@@ -206,6 +210,7 @@ describe("Retrieval Mutations & Double-Submit Protection", () => {
     expect(state.activeSession?.taskStatus).toBe("IN_PROGRESS");
     expect(state.activeSession?.sessionVersion).toBe(6);
     expect(state.activeSession?.readyAt).toBe("2026-08-21T18:12:00.000Z");
+    expect(state.activeSession?.parkingSpotCode).toBeNull();
   });
 
   it("handles markReady failure without advancing to vehicle-ready", async () => {
@@ -223,7 +228,7 @@ describe("Retrieval Mutations & Double-Submit Protection", () => {
 
     await controller.markReady();
 
-    expect(controller.getState().step).toBe("in-progress"); // remains on in-progress
+    expect(controller.getState().step).toBe("in-progress");
     expect(controller.getState().error).toBe("Invalid session state.");
     expect(controller.getState().activeSession?.state).toBe("RETRIEVING");
   });

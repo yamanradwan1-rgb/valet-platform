@@ -14,6 +14,12 @@ function getErrMsg(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
+function resolveInitialStep(state?: string): RetrievalFlowStep {
+  if (state === "RETRIEVING") return "in-progress";
+  if (state === "READY") return "vehicle-ready";
+  return "key-checkout";
+}
+
 export class RetrievalController {
   private membershipId: string | null = null;
   private state: RetrievalState = {
@@ -32,15 +38,12 @@ export class RetrievalController {
   ) {
     this.membershipId = membershipId ?? null;
     if (initialSession) {
-      let initialStep: RetrievalFlowStep = "key-checkout";
-      if (initialSession.state === "RETRIEVING") initialStep = "in-progress";
-      else if (initialSession.state === "READY") initialStep = "vehicle-ready";
       this.state = {
         activeSession: initialSession,
         error: null,
         isHydrating: false,
         isSubmitting: false,
-        step: initialStep,
+        step: resolveInitialStep(initialSession.state),
       };
     }
   }
@@ -67,16 +70,12 @@ export class RetrievalController {
   }
 
   setActiveSession(session: ActiveRetrievalSession): void {
-    let initialStep: RetrievalFlowStep = "key-checkout";
-    if (session.state === "RETRIEVING") initialStep = "in-progress";
-    else if (session.state === "READY") initialStep = "vehicle-ready";
-
     this.update({
       activeSession: session,
       error: null,
       isHydrating: false,
       isSubmitting: false,
-      step: initialStep,
+      step: resolveInitialStep(session.state),
     });
   }
 
@@ -84,11 +83,22 @@ export class RetrievalController {
     sessionId: string,
     taskId: string,
     taskVersion: number,
+    taskStatus?: "ACCEPTED" | "IN_PROGRESS" | null,
+    assigneeMembershipId?: string | null,
   ): Promise<void> {
     this.update({ error: null, isHydrating: true });
     try {
-      const detail = await fetchSessionDetail(this.apiClient, sessionId);
+      if (!this.membershipId) throw new Error("No active staff membership.");
+      if (
+        assigneeMembershipId &&
+        assigneeMembershipId !== this.membershipId
+      ) {
+        throw new Error(
+          "Retrieval task is assigned to another valet employee.",
+        );
+      }
 
+      const detail = await fetchSessionDetail(this.apiClient, sessionId);
       if (
         detail.state !== "REQUESTED" &&
         detail.state !== "RETRIEVING" &&
@@ -99,16 +109,23 @@ export class RetrievalController {
         );
       }
 
-      let step: RetrievalFlowStep = "key-checkout";
-      let taskStatus: "ACCEPTED" | "IN_PROGRESS" = "ACCEPTED";
-
-      if (detail.state === "RETRIEVING") {
-        step = "in-progress";
-        taskStatus = "IN_PROGRESS";
-      } else if (detail.state === "READY") {
-        step = "vehicle-ready";
-        taskStatus = "IN_PROGRESS";
+      if (detail.state === "REQUESTED" && taskStatus && taskStatus !== "ACCEPTED") {
+        throw new Error(
+          "Task status is incompatible with REQUESTED session state.",
+        );
       }
+      if (
+        (detail.state === "RETRIEVING" || detail.state === "READY") &&
+        taskStatus &&
+        taskStatus !== "IN_PROGRESS"
+      ) {
+        throw new Error(
+          `Task status is incompatible with ${detail.state} session state.`,
+        );
+      }
+
+      const resolvedTaskStatus =
+        detail.state === "REQUESTED" ? "ACCEPTED" : "IN_PROGRESS";
 
       const activeSession: ActiveRetrievalSession = {
         expectedKeySlotCode: detail.keySlot?.code ?? null,
@@ -122,7 +139,7 @@ export class RetrievalController {
         sessionVersion: detail.version,
         state: detail.state,
         taskId,
-        taskStatus,
+        taskStatus: resolvedTaskStatus,
         taskVersion,
         vehicle: {
           color: detail.vehicle.color,
@@ -137,10 +154,11 @@ export class RetrievalController {
       this.update({
         activeSession,
         isHydrating: false,
-        step,
+        step: resolveInitialStep(detail.state),
       });
     } catch (err: unknown) {
       this.update({
+        activeSession: null,
         error: getErrMsg(err, "Failed to load retrieval session detail."),
         isHydrating: false,
       });
@@ -156,13 +174,9 @@ export class RetrievalController {
     const isMatch = expected !== "" && expected === input;
 
     this.update({
-      activeSession: {
-        ...session,
-        isKeyConfirmed: isMatch,
-      },
+      activeSession: { ...session, isKeyConfirmed: isMatch },
       error: isMatch ? null : "Key slot does not match expected key.",
     });
-
     return isMatch;
   }
 
@@ -173,14 +187,16 @@ export class RetrievalController {
       this.update({ error: "No active retrieval session found." });
       return;
     }
-
     if (session.state !== "REQUESTED") {
-      this.update({ error: "Session must be in REQUESTED state to start retrieval." });
+      this.update({
+        error: "Session must be in REQUESTED state to start retrieval.",
+      });
       return;
     }
-
     if (!session.isKeyConfirmed) {
-      this.update({ error: "Key slot must be verified before starting retrieval." });
+      this.update({
+        error: "Key slot must be verified before starting retrieval.",
+      });
       return;
     }
 
@@ -196,6 +212,8 @@ export class RetrievalController {
       this.update({
         activeSession: {
           ...session,
+          parkingSpotCode: null, // Released
+          parkingZoneCode: null,
           retrievalStartedAt: res.retrievalStartedAt,
           sessionVersion: res.sessionVersion,
           state: "RETRIEVING",
@@ -220,9 +238,10 @@ export class RetrievalController {
       this.update({ error: "No active retrieval session found." });
       return;
     }
-
     if (session.state !== "RETRIEVING") {
-      this.update({ error: "Session must be in RETRIEVING state to mark ready." });
+      this.update({
+        error: "Session must be in RETRIEVING state to mark ready.",
+      });
       return;
     }
 
@@ -237,6 +256,8 @@ export class RetrievalController {
       this.update({
         activeSession: {
           ...session,
+          parkingSpotCode: null,
+          parkingZoneCode: null,
           readyAt: res.readyAt,
           sessionVersion: res.sessionVersion,
           state: "READY",

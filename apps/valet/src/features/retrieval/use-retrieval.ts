@@ -16,11 +16,13 @@ import type {
 
 export interface UseRetrievalOptions {
   readonly client?: EmployeeApiClient | undefined;
+  readonly currentAssigneeMembershipId?: string | null | undefined;
   readonly initialSession?: ActiveRetrievalSession | null | undefined;
   readonly membershipId?: string | null | undefined;
   readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
+  readonly taskStatus?: "ACCEPTED" | "IN_PROGRESS" | null | undefined;
   readonly taskVersion?: number | null | undefined;
 }
 
@@ -52,6 +54,8 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
     sessionId,
     taskId,
     taskVersion,
+    taskStatus,
+    currentAssigneeMembershipId,
     membershipId,
     client: customClient,
     onAuthorizationLoss,
@@ -106,9 +110,24 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
       taskVersion !== null &&
       taskVersion !== undefined
     ) {
-      void controller.hydrateSession(sessionId, taskId, taskVersion);
+      void controller.hydrateSession(
+        sessionId,
+        taskId,
+        taskVersion,
+        taskStatus,
+        currentAssigneeMembershipId ?? membershipId,
+      );
     }
-  }, [controller, initialSession, sessionId, taskId, taskVersion]);
+  }, [
+    controller,
+    initialSession,
+    sessionId,
+    taskId,
+    taskVersion,
+    taskStatus,
+    currentAssigneeMembershipId,
+    membershipId,
+  ]);
 
   const confirmKey = useCallback(
     (inputKeySlotCode: string) => {
@@ -132,9 +151,23 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
       taskVersion !== null &&
       taskVersion !== undefined
     ) {
-      await controller.hydrateSession(sessionId, taskId, taskVersion);
+      await controller.hydrateSession(
+        sessionId,
+        taskId,
+        taskVersion,
+        taskStatus,
+        currentAssigneeMembershipId ?? membershipId,
+      );
     }
-  }, [controller, sessionId, taskId, taskVersion]);
+  }, [
+    controller,
+    sessionId,
+    taskId,
+    taskVersion,
+    taskStatus,
+    currentAssigneeMembershipId,
+    membershipId,
+  ]);
 
   const setStep = useCallback(
     (step: RetrievalFlowStep) => {

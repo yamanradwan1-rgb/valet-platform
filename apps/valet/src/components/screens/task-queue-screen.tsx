@@ -38,6 +38,7 @@ export interface TaskQueueScreenProps {
     | undefined;
   readonly onSelectRetrievalTask?:
     | ((task: {
+        currentAssigneeMembershipId?: string | null | undefined;
         sessionId: string;
         taskId: string;
         taskStatus: "ACCEPTED" | "IN_PROGRESS";
@@ -151,6 +152,7 @@ export function TaskQueueScreen({
 
         if (result.kind === "NAVIGATE_ACCEPTED") {
           onSelectRetrievalTask?.({
+            currentAssigneeMembershipId: membershipId ?? null,
             sessionId: result.sessionId,
             taskId: result.taskId,
             taskStatus: "ACCEPTED",
@@ -159,6 +161,7 @@ export function TaskQueueScreen({
           nav?.("retrieval");
         } else if (result.kind === "NAVIGATE_IN_PROGRESS") {
           onSelectRetrievalTask?.({
+            currentAssigneeMembershipId: membershipId ?? null,
             sessionId: result.sessionId,
             taskId: result.taskId,
             taskStatus: "IN_PROGRESS",

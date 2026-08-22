@@ -28,7 +28,7 @@ export function LiveRetrievalKeyCheckoutStep({
   readonly onBack: () => void;
   readonly onConfirmKey: (input: string) => boolean;
   readonly onStartRetrieval: () => Promise<void>;
-  readonly parkingLocation: string;
+  readonly parkingLocation: string | null;
   readonly vehicleInfo: string;
 }): JSX.Element {
   const [inputKey, setInputKey] = useState(expectedKey ?? "");
@@ -58,7 +58,9 @@ export function LiveRetrievalKeyCheckoutStep({
 
         <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
           <InfoRow label="Vehicle" value={vehicleInfo} />
-          <InfoRow label="Location" value={parkingLocation} />
+          {parkingLocation && (
+            <InfoRow label="Location" value={parkingLocation} />
+          )}
         </div>
 
         {!isKeyConfirmed ? (
@@ -114,7 +116,7 @@ export function LiveRetrievalInProgressStep({
   readonly isSubmitting: boolean;
   readonly keyInfo: string;
   readonly onMarkReady: () => Promise<void>;
-  readonly parkingLocation: string;
+  readonly parkingLocation: string | null;
   readonly retrievalStartedAt: string | null;
   readonly vehicleHeading: string;
   readonly vehicleInfo: string;
@@ -146,7 +148,9 @@ export function LiveRetrievalInProgressStep({
         <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
           <InfoRow label="Vehicle" value={vehicleInfo} />
           <InfoRow label="Key" value={keyInfo} />
-          <InfoRow label="Location" value={parkingLocation} />
+          {parkingLocation && (
+            <InfoRow label="Location" value={parkingLocation} />
+          )}
         </div>
         <Btn
           label={isSubmitting ? "Marking Ready..." : "Vehicle Ready"}
@@ -166,7 +170,7 @@ export function LiveRetrievalVehicleReadyStep({
 }: {
   readonly keyInfo: string;
   readonly onDone: () => void;
-  readonly parkingLocation: string;
+  readonly parkingLocation: string | null;
   readonly vehicleInfo: string;
 }): JSX.Element {
   return (
@@ -183,7 +187,9 @@ export function LiveRetrievalVehicleReadyStep({
       <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">
         <InfoRow label="Vehicle" value={vehicleInfo} />
         <InfoRow label="Key" value={keyInfo} />
-        <InfoRow label="Location" value={parkingLocation} />
+        {parkingLocation && (
+          <InfoRow label="Location" value={parkingLocation} />
+        )}
       </div>
       <div className="w-full">
         <Btn label="Done" onClick={onDone} />
