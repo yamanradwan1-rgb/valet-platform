@@ -16,9 +16,13 @@ export interface ActiveRetrievalTarget {
 
 /**
  * Identity-bound transient workflow targets. Every stored value is stamped
- * with the auth identity it was created under; readers treat any value whose
- * stamp does not match the current identity as absent, so Employee B can
- * never inherit Employee A's in-memory operational workflow.
+ * with the authenticated identity epoch it was created under; readers treat
+ * any value whose stamp does not match the current epoch as absent, so
+ * Employee B can never inherit Employee A's in-memory operational workflow.
+ *
+ * The stamp MUST use the stable identityGeneration (session-presence
+ * transitions), NOT sessionGeneration: a same-user access-token refresh bumps
+ * sessionGeneration but must keep in-flight workflows intact.
  */
 export interface EmployeeWorkspaceTargets {
   readonly activeParkingPayload: StartParkingPayload | null;
@@ -33,14 +37,17 @@ export interface ScopedEmployeeWorkspace {
 }
 
 export interface WorkspaceIdentityInput {
+  /** Stable epoch from StaffAuthContext (identity-presence transitions). */
+  readonly identityGeneration: number;
   readonly authenticated: boolean;
-  readonly sessionGeneration: number;
 }
 
 export function makeWorkspaceStamp(
   identity: WorkspaceIdentityInput,
 ): string {
-  return identity.authenticated ? `gen:${String(identity.sessionGeneration)}` : "anonymous";
+  return identity.authenticated
+    ? `identity:${String(identity.identityGeneration)}`
+    : "anonymous";
 }
 
 export function emptyWorkspaceTargets(): EmployeeWorkspaceTargets {

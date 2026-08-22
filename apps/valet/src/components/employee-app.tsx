@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, type JSX } from "react";
-import type { StaffLoginRequest } from "@valet/contracts";
+import { useEffect, useState, type JSX } from "react";
 
 import type { Screen, Tab } from "../types/employee-ui";
 import {
+  createEmployeeAccessActions,
+} from "./shell/employee-access-actions";
+import { buildEmployeeAccessGateProps } from "./shell/employee-access-view";
+import {
   EmployeeAccessGate,
-  type EmployeeAccessPhase,
 } from "./shell/employee-access-gate";
 import {
   EmployeeOperationalGate,
@@ -65,13 +67,38 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     revalidateOnAuthLoss,
   } = useStaffOperationalContext();
   const [isPrototypeOffline, setIsPrototypeOffline] = useState(false);
-  const [signInError, setSignInError] = useState<string | null>(null);
   const [workspace, setWorkspace] = useState(initialScopedWorkspace);
+  const [signInError, setSignInError] = useState<string | null>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isRetryingRestore, setIsRetryingRestore] = useState(false);
+
+  // Headless access actions keep SYNCHRONOUS duplicate-submit guards; the
+  // latest auth methods are bound from an effect, never captured in render.
+  const [accessActions] = useState(createEmployeeAccessActions);
+  useEffect(() => {
+    return accessActions.subscribe((state) => {
+      setSignInError(state.loginError);
+      setIsSigningIn(state.isSigningIn);
+      setIsRetryingRestore(state.isRetryingRestore);
+    });
+  }, [accessActions]);
+  useEffect(() => {
+    accessActions.bind({
+      login: async (credentials) => {
+        await auth?.login(credentials);
+      },
+      restoreSession: async () => {
+        await auth?.restoreSession();
+      },
+    });
+  }, [accessActions, auth]);
 
   const authStatus = auth?.status ?? "initializing";
+  // Workspace scoping keys on the STABLE identity epoch, not
+  // sessionGeneration: a same-user token refresh must keep workflows alive.
   const identity: WorkspaceIdentityInput = {
     authenticated: authStatus === "authenticated",
-    sessionGeneration: auth?.sessionGeneration ?? 0,
+    identityGeneration: auth?.identityGeneration ?? 0,
   };
   // An identity change (logout/login/generation bump) synchronously
   // discards every transient target so no workflow can leak across users.
@@ -123,19 +150,6 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     patchTargets({ activeRetrievalTarget: null, screenOverride: "task-queue" });
   };
 
-  const handleSignIn = async (credentials: StaffLoginRequest): Promise<void> => {
-    setSignInError(null);
-    try {
-      await auth?.login(credentials);
-    } catch (error: unknown) {
-      setSignInError(
-        error instanceof Error
-          ? error.message
-          : "Staff sign-in failed. Please try again.",
-      );
-    }
-  };
-
   const handleSignOut = async (): Promise<void> => {
     await auth?.logout();
   };
@@ -154,15 +168,22 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   const liveScope = resolution.kind === "RESOLVED" ? resolution.scope : null;
 
   if (authStatus !== "authenticated") {
-    const accessPhase: EmployeeAccessPhase = authStatus;
+    const gateProps = buildEmployeeAccessGateProps({
+      actionsState: {
+        isRetryingRestore,
+        isSigningIn,
+        loginError: signInError,
+      },
+      handlers: {
+        retryRestore: () => accessActions.retryRestore(),
+        signIn: (credentials) => accessActions.signIn(credentials),
+      },
+      phase: authStatus,
+    });
     return (
       <div className="min-h-screen bg-navy-2 flex items-center justify-center">
         <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-          <EmployeeAccessGate
-            loginError={signInError}
-            onLogin={(credentials) => void handleSignIn(credentials)}
-            phase={accessPhase}
-          />
+          <EmployeeAccessGate {...gateProps} />
         </div>
       </div>
     );

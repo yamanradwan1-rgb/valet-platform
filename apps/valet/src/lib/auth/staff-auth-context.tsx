@@ -6,6 +6,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type { StaffLoginRequest } from "@valet/contracts";
@@ -21,6 +22,17 @@ export interface StaffAuthContextValue {
   readonly status: StaffAuthStatus;
   readonly session: StaffAuthSession | null;
   readonly sessionGeneration: number;
+  /**
+   * Stable authenticated-identity epoch derived from session-presence
+   * transitions. It advances on sign-in/sign-out/definitive-invalidation and
+   * is intentionally IMMUNE to same-user access-token refreshes.
+   *
+   * Distinction: sessionGeneration changes on EVERY session mutation
+   * (including normal token refresh) and remains the stale-response gate for
+   * operational context / task queue async work. Identity-scoped UI state
+   * must key on identityGeneration, never on sessionGeneration.
+   */
+  readonly identityGeneration: number;
   readonly client: StaffAuthClient;
   readonly login: (credentials: StaffLoginRequest) => Promise<void>;
   readonly logout: () => Promise<void>;
@@ -60,13 +72,39 @@ export function StaffAuthProvider({
     client.getSessionGeneration(),
   );
   const [status, setStatus] = useState<StaffAuthStatus>("initializing");
+  const [identityGeneration, setIdentityGeneration] = useState(0);
+  const authenticatedPresenceRef = useRef<boolean>(
+    client.getSession() !== null,
+  );
+
+  // Single funnel for every auth snapshot so the identity epoch is derived
+  // from authenticated-presence transitions only.
+  const applyAuthSnapshot = useCallback(
+    (
+      nextSession: StaffAuthSession | null,
+      nextGen: number,
+      nextStatus: StaffAuthStatus,
+    ): void => {
+      setSession(nextSession);
+      setSessionGeneration(nextGen);
+      setStatus(nextStatus);
+      const presence = nextSession !== null;
+      if (presence !== authenticatedPresenceRef.current) {
+        authenticatedPresenceRef.current = presence;
+        setIdentityGeneration((epoch) => epoch + 1);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     // Subscribe to auth client session changes
     const unsubscribe = client.subscribe((newSession, newGen) => {
-      setSession(newSession);
-      setSessionGeneration(newGen);
-      setStatus(newSession ? "authenticated" : "unauthenticated");
+      applyAuthSnapshot(
+        newSession,
+        newGen,
+        newSession ? "authenticated" : "unauthenticated",
+      );
     });
 
     // Attempt silent bootstrap from HttpOnly refresh cookie.
@@ -75,15 +113,15 @@ export function StaffAuthProvider({
     let active = true;
     const applyOutcome = (result: StaffSessionRestoreResult): void => {
       if (!active) return;
-      setSession(client.getSession());
-      setSessionGeneration(client.getSessionGeneration());
-      if (result.kind === "AUTHENTICATED") {
-        setStatus("authenticated");
-      } else if (result.kind === "DEFINITIVE_INVALID") {
-        setStatus("unauthenticated");
-      } else {
-        setStatus("refresh-unavailable");
-      }
+      applyAuthSnapshot(
+        client.getSession(),
+        client.getSessionGeneration(),
+        result.kind === "AUTHENTICATED"
+          ? "authenticated"
+          : result.kind === "DEFINITIVE_INVALID"
+            ? "unauthenticated"
+            : "refresh-unavailable",
+      );
     };
     void restoreStaffSession(client).then(applyOutcome);
 
@@ -91,7 +129,7 @@ export function StaffAuthProvider({
       active = false;
       unsubscribe();
     };
-  }, [client]);
+  }, [applyAuthSnapshot, client]);
 
   const login = useCallback(
     async (credentials: StaffLoginRequest): Promise<void> => {
@@ -111,9 +149,9 @@ export function StaffAuthProvider({
 
   const restoreSession = useCallback(async (): Promise<StaffSessionRestoreResult> => {
     const result = await restoreStaffSession(client);
-    setSession(client.getSession());
-    setSessionGeneration(client.getSessionGeneration());
-    setStatus(
+    applyAuthSnapshot(
+      client.getSession(),
+      client.getSessionGeneration(),
       result.kind === "AUTHENTICATED"
         ? "authenticated"
         : result.kind === "DEFINITIVE_INVALID"
@@ -121,20 +159,24 @@ export function StaffAuthProvider({
           : "refresh-unavailable",
     );
     return result;
-  }, [client]);
+  }, [applyAuthSnapshot, client]);
 
   const contextValue = useMemo<StaffAuthContextValue>(
     () => ({
       status,
       session,
       sessionGeneration,
+      identityGeneration,
       client,
       login,
       logout,
       refresh,
       restoreSession,
     }),
-    [status, session, sessionGeneration, client, login, logout, refresh, restoreSession],
+    [
+      status, session, sessionGeneration, identityGeneration, client,
+      login, logout, refresh, restoreSession,
+    ],
   );
 
   // Renders children directly with ZERO visual or layout difference

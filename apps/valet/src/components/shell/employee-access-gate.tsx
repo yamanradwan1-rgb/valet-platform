@@ -3,19 +3,20 @@
 import { useState, type JSX } from "react";
 import type { StaffLoginRequest } from "@valet/contracts";
 
-export type EmployeeAccessPhase =
-  | "initializing"
-  | "refresh-unavailable"
-  | "unauthenticated";
-
-export interface EmployeeAccessGateProps {
-  readonly isSigningIn?: boolean | undefined;
-  readonly loginError?: string | null | undefined;
-  readonly onLogin: (credentials: StaffLoginRequest) => void;
-  readonly phase: EmployeeAccessPhase;
-  readonly restoreMessage?: string | null | undefined;
-  readonly onRetryRestore?: (() => void) | undefined;
-}
+export type EmployeeAccessGateProps =
+  | { readonly phase: "initializing" }
+  | {
+      readonly isRetryingRestore?: boolean | undefined;
+      readonly onRetryRestore: () => void;
+      readonly phase: "refresh-unavailable";
+      readonly restoreMessage?: string | null | undefined;
+    }
+  | {
+      readonly isSigningIn?: boolean | undefined;
+      readonly loginError?: string | null | undefined;
+      readonly onLogin: (credentials: StaffLoginRequest) => void;
+      readonly phase: "unauthenticated";
+    };
 
 function AccessShell({ children }: { children: React.ReactNode }): JSX.Element {
   return (
@@ -40,19 +41,17 @@ function AccessShell({ children }: { children: React.ReactNode }): JSX.Element {
  * Truthful access gate for the production Employee app. It renders only
  * identity/session facts: no employee persona, location, zone, or shift
  * actions that this UI does not authoritatively own.
+ *
+ * Props are a discriminated union so a refresh-unavailable render REQUIRES
+ * its retry handler — a dead Retry button cannot be expressed.
  */
-export function EmployeeAccessGate({
-  isSigningIn = false,
-  loginError = null,
-  onLogin,
-  onRetryRestore,
-  phase,
-  restoreMessage = null,
-}: EmployeeAccessGateProps): JSX.Element {
+export function EmployeeAccessGate(
+  props: EmployeeAccessGateProps,
+): JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  if (phase === "initializing") {
+  if (props.phase === "initializing") {
     return (
       <AccessShell>
         <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin mb-6" />
@@ -63,7 +62,7 @@ export function EmployeeAccessGate({
     );
   }
 
-  if (phase === "refresh-unavailable") {
+  if (props.phase === "refresh-unavailable") {
     return (
       <AccessShell>
         <div className="w-full bg-white/[0.06] border border-white/10 rounded-3xl p-6 mb-6 backdrop-blur-sm">
@@ -71,23 +70,25 @@ export function EmployeeAccessGate({
             Connection issue
           </p>
           <p className="text-muted text-sm leading-relaxed">
-            {restoreMessage ??
+            {props.restoreMessage ??
               "The staff sign-in service is temporarily unavailable. Your session was not signed out."}
           </p>
         </div>
         <div className="w-full space-y-3">
           <button
             type="button"
-            onClick={onRetryRestore}
-            disabled={isSigningIn}
+            onClick={props.onRetryRestore}
+            disabled={props.isRetryingRestore === true}
             className="w-full h-14 bg-vblue text-white font-bold text-base rounded-2xl flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-vblue/30 disabled:opacity-60"
           >
-            Retry
+            {props.isRetryingRestore === true ? "Retrying…" : "Retry"}
           </button>
         </div>
       </AccessShell>
     );
   }
+
+  const { isSigningIn = false, loginError = null, onLogin } = props;
 
   return (
     <AccessShell>
