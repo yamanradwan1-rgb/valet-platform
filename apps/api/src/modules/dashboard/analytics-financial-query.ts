@@ -1,5 +1,4 @@
 import type {
-  AnalyticsRate,
   FinancialAnalyticsResponse,
 } from "@valet/contracts";
 
@@ -157,6 +156,20 @@ export async function financialAnalytics(
     const validationByCurrency = new Map(
       validations.rows.map((row) => [row.currency, row] as const),
     );
+    const paidByCurrency = new Map(
+      paidGroups.rows.map((row) => [row.currency, row] as const),
+    );
+    // The three financial cohorts are independent (DEC-060): validation rate
+    // keys off completed-session Payments and succeeded refunds key off their
+    // own completion window, so the response must cover the UNION of currency
+    // keys, not only currencies that happen to have a paid-cohort row.
+    const currencyKeys = [
+      ...new Set<string>([
+        ...paidGroups.rows.map((row) => row.currency),
+        ...refunds.rows.map((row) => row.currency),
+        ...validations.rows.map((row) => row.currency),
+      ]),
+    ].sort((left, right) => left.localeCompare(right));
     return {
       cashReconciliation: cash.rows
         .slice()
@@ -169,43 +182,41 @@ export async function financialAnalytics(
           cashVarianceTotal: row.cashVarianceTotal,
           currency: row.cashCurrency,
         })),
-      currencies: paidGroups.rows
-        .slice()
-        .sort((left, right) => left.currency.localeCompare(right.currency))
-        .map((row) => {
-          const validation = validationByCurrency.get(row.currency);
-          const digitalPaymentRate: AnalyticsRate = {
-            denominator: row.cashOrDigitalCount,
-            numerator: row.digitalCount,
+      currencies: currencyKeys.map((currency) => {
+        const paid = paidByCurrency.get(currency);
+        const validation = validationByCurrency.get(currency);
+        const digitalNumerator = paid?.digitalCount ?? 0;
+        const digitalDenominator = paid?.cashOrDigitalCount ?? 0;
+        const validationDenominator =
+          validation?.cohortCount ?? 0;
+        const validationNumerator = validation?.validatedCount ?? 0;
+        return {
+          collectedAmountTotal: paid?.collectedAmountTotal ?? "0.000",
+          currency,
+          currentValidationAmountTotal:
+            validation?.currentValidationAmountTotal ?? "0.000",
+          digitalPaymentRate: {
+            denominator: digitalDenominator,
+            numerator: digitalNumerator,
             percentage: analyticsPercentage(
-              row.digitalCount,
-              row.cashOrDigitalCount,
+              digitalNumerator,
+              digitalDenominator,
             ),
-          };
-          const validationDenominator =
-            validation?.cohortCount ?? 0;
-          const validationNumerator = validation?.validatedCount ?? 0;
-          const validationRate: AnalyticsRate = {
+          },
+          paidPaymentCount: paid?.paidPaymentCount ?? 0,
+          succeededRefundAmountTotal:
+            refundByCurrency.get(currency) ?? "0.000",
+          tipAmountTotal: paid?.tipAmountTotal ?? "0.000",
+          validationRate: {
             denominator: validationDenominator,
             numerator: validationNumerator,
             percentage: analyticsPercentage(
               validationNumerator,
               validationDenominator,
             ),
-          };
-          return {
-            collectedAmountTotal: row.collectedAmountTotal,
-            currency: row.currency,
-            currentValidationAmountTotal:
-              validation?.currentValidationAmountTotal ?? "0.000",
-            digitalPaymentRate,
-            paidPaymentCount: row.paidPaymentCount,
-            succeededRefundAmountTotal:
-              refundByCurrency.get(row.currency) ?? "0.000",
-            tipAmountTotal: row.tipAmountTotal,
-            validationRate,
-          };
-        }),
+          },
+        };
+      }),
       from: input.period.from,
       locationId: scope.locationId,
       timezone,

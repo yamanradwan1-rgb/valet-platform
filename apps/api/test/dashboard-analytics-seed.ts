@@ -100,7 +100,7 @@ export async function analyticsSeedSession(
 export async function analyticsSeedPayment(
   context: DashboardOverviewTestContext,
   input: {
-    currency: "JOD" | "USD";
+    currency: string;
     method?: "CASH" | "DIGITAL";
     paidAtIso?: string;
     sessionId: string;
