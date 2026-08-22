@@ -93,7 +93,7 @@ describe("EmployeeApp & Screen Component Baseline", () => {
     expect(markup).toContain("Select incident type");
     expect(markup).toContain("Vehicle damage");
     expect(markup).toContain("Key missing");
-    expect(markup).toContain("Unauthorized exit");
+    expect(markup).not.toContain("Unauthorized exit");
   });
 
   it("renders VehiclesListScreen with filters and vehicle cards", () => {

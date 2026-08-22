@@ -5,19 +5,23 @@ import type { JSX } from "react";
 import type { Screen } from "../../types/employee-ui";
 import { CheckInFlow } from "../screens/check-in-flow";
 import { ParkingFlow } from "../screens/parking-flow";
+import { IncidentFlow } from "../screens/incident-flow";
 import { RetrievalFlow } from "../screens/retrieval-flow";
 import { TaskQueueScreen } from "../screens/task-queue-screen";
 import type { StartParkingPayload } from "../../features/check-in";
 import type { ActiveParkingSession } from "../../features/parking";
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
 import type {
+  ActiveIncidentTarget,
   ActiveParkingTarget,
-  ActiveRetrievalTarget,
-} from "./employee-workspace";
+  ActiveRetrievalTarget,} from "./employee-workspace";
 
 export interface EmployeeLiveRouterProps {
   readonly activeScope: ResolvedOperationalScope;
   readonly effectiveScreen: Screen;
+  readonly incidentTarget: ActiveIncidentTarget | null;
+  readonly onOpenIncident: (sessionId: string, from: Screen) => void;
+
   readonly nav: (s: Screen) => void;
   readonly onAuthorizationLoss: () => Promise<void>;
   readonly onParkingComplete: () => void;
@@ -33,7 +37,12 @@ export interface EmployeeLiveRouterProps {
 export function EmployeeLiveRouter({
   activeScope,
   effectiveScreen,
+
+  incidentTarget,
+  onOpenIncident,
+
   nav,
+
   onAuthorizationLoss,
   onParkingComplete,
   onRetrievalComplete,
@@ -84,9 +93,27 @@ export function EmployeeLiveRouter({
           nav={nav}
           onAuthorizationLoss={onAuthorizationLoss}
           onComplete={onParkingComplete}
+          onReportIssue={() => {
+            const sessionId =
+              parkingTarget?.sessionId ?? parkingPayload?.sessionId;
+            if (sessionId !== undefined && sessionId !== null) {
+              onOpenIncident(sessionId, "parking");
+            }
+          }}
         />
       );
     }
+    case "incident":
+      return incidentTarget === null ? (
+        <div />
+      ) : (
+        <IncidentFlow
+          mode="live"
+          nav={nav}
+          returnScreen={incidentTarget.returnScreen}
+          sessionId={incidentTarget.sessionId}
+        />
+      );
     case "retrieval":
       return (
         <RetrievalFlow
@@ -103,6 +130,12 @@ export function EmployeeLiveRouter({
           nav={nav}
           onAuthorizationLoss={onAuthorizationLoss}
           onComplete={onRetrievalComplete}
+          onReportIssue={() => {
+            const sessionId = retrievalTarget?.sessionId;
+            if (sessionId !== undefined && sessionId !== null) {
+              onOpenIncident(sessionId, "retrieval");
+            }
+          }}
         />
       );
     case "task-queue":

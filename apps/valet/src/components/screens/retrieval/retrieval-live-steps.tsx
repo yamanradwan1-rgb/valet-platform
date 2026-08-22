@@ -111,11 +111,15 @@ export function LiveRetrievalInProgressStep({
   isSubmitting,
   error,
   onMarkReady,
+
+  onReportIssue,
 }: {
   readonly error: string | null;
   readonly isSubmitting: boolean;
   readonly keyInfo: string;
   readonly onMarkReady: () => Promise<void>;
+
+  readonly onReportIssue?: (() => void) | undefined;
   readonly parkingLocation: string | null;
   readonly retrievalStartedAt: string | null;
   readonly vehicleHeading: string;
@@ -157,6 +161,9 @@ export function LiveRetrievalInProgressStep({
           onClick={() => void onMarkReady()}
           disabled={isSubmitting}
         />
+        {onReportIssue && (
+          <Btn label="Report Issue" variant="secondary" onClick={onReportIssue} />
+        )}
       </div>
     </div>
   );

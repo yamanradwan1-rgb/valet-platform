@@ -23,6 +23,7 @@ export interface ParkingFlowProps {
   readonly nav: (s: Screen) => void;
   readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onComplete?: (() => void) | undefined;
+  readonly onReportIssue?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
   readonly taskVersion?: number | null | undefined;
@@ -36,7 +37,10 @@ export function ParkingFlow({
   taskId = null,
   taskVersion = null,
   onAuthorizationLoss,
+
   onComplete,
+
+  onReportIssue,
 }: ParkingFlowProps): JSX.Element | null {
   const parking = useParking({
     initialSession,
@@ -125,6 +129,9 @@ export function ParkingFlow({
             label="Park Vehicle"
             onClick={() => parking.setStep("spot-scan")}
           />
+          {mode === "live" && onReportIssue && (
+            <Btn label="Report Issue" variant="secondary" onClick={onReportIssue} />
+          )}
           {mode === "prototype" && (
             <Btn
               label="Report Issue"

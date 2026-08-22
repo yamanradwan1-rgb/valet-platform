@@ -23,6 +23,7 @@ import {
   makeWorkspaceStamp,
   rescopeWorkspace,
   type ActiveParkingTarget,
+
   type ActiveRetrievalTarget,
   type EmployeeWorkspaceTargets,
   type WorkspaceIdentityInput,
@@ -44,6 +45,7 @@ const livePermittedScreens = new Set<Screen>([
   "task-queue",
   "check-in",
   "parking",
+  "incident",
   "retrieval",
 ]);
 
@@ -150,6 +152,14 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     patchTargets({ activeRetrievalTarget: null, screenOverride: "task-queue" });
   };
 
+  const handleOpenIncident = (sessionId: string, from: Screen) => {
+    patchTargets({
+      activeIncidentTarget: { returnScreen: from, sessionId },
+      screenOverride: "incident",
+    });
+  };
+
+
   const handleSignOut = async (): Promise<void> => {
     await auth?.logout();
   };
@@ -234,8 +244,10 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           <EmployeeLiveRouter
             activeScope={liveScope}
             effectiveScreen={effectiveScreen}
+            incidentTarget={targets.activeIncidentTarget}
             nav={nav}
             onAuthorizationLoss={revalidateOnAuthLoss}
+            onOpenIncident={handleOpenIncident}
             onParkingComplete={handleParkingComplete}
             onRetrievalComplete={handleRetrievalComplete}
             onSelectParkingTask={handleSelectParkingTaskFromQueue}

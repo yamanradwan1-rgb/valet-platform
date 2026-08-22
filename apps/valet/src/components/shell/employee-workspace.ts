@@ -6,6 +6,11 @@ export interface ActiveParkingTarget {
   readonly taskVersion: number;
 }
 
+export interface ActiveIncidentTarget {
+  readonly returnScreen: import("../../types/employee-ui").Screen;
+  readonly sessionId: string;
+}
+
 export interface ActiveRetrievalTarget {
   readonly currentAssigneeMembershipId?: string | null | undefined;
   readonly sessionId: string;
@@ -25,6 +30,8 @@ export interface ActiveRetrievalTarget {
  * sessionGeneration but must keep in-flight workflows intact.
  */
 export interface EmployeeWorkspaceTargets {
+  readonly activeIncidentTarget: ActiveIncidentTarget | null;
+
   readonly activeParkingPayload: StartParkingPayload | null;
   readonly activeParkingTarget: ActiveParkingTarget | null;
   readonly activeRetrievalTarget: ActiveRetrievalTarget | null;
@@ -52,6 +59,7 @@ export function makeWorkspaceStamp(
 
 export function emptyWorkspaceTargets(): EmployeeWorkspaceTargets {
   return {
+    activeIncidentTarget: null,
     activeParkingPayload: null,
     activeParkingTarget: null,
     activeRetrievalTarget: null,

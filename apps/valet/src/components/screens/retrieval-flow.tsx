@@ -41,6 +41,8 @@ export interface RetrievalFlowProps {
   readonly role?: StaffOperationalRole | null | undefined;
   readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onComplete?: (() => void) | undefined;
+
+  readonly onReportIssue?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
   readonly taskStatus?: "ACCEPTED" | "IN_PROGRESS" | null | undefined;
@@ -59,7 +61,10 @@ export function RetrievalFlow({
   taskStatus = null,
   taskVersion = null,
   onAuthorizationLoss,
+
   onComplete,
+
+  onReportIssue,
 }: RetrievalFlowProps): JSX.Element | null {
   const isLive = mode === "live" || Boolean(sessionId || initialSession);
 
@@ -186,6 +191,7 @@ export function RetrievalFlow({
           retrievalStartedAt={session?.retrievalStartedAt ?? null}
           isSubmitting={retrieval.isSubmitting}
           error={retrieval.error}
+          onReportIssue={onReportIssue}
           onMarkReady={async () => {
             await retrieval.markReady();
           }}
