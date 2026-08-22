@@ -226,12 +226,12 @@ describe("demo seed data foundation", () => {
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(29);
+    expect(result.rows).toHaveLength(30);
     expect(result.rows[0]?.migration_name).toBe(
       "20260808000100_tenant_staff_foundation",
     );
     expect(result.rows.at(-1)?.migration_name).toBe(
-      "20260822002900_phase7_location_configuration_authority",
+      "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
   });
 

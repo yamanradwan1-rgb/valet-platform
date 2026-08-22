@@ -282,7 +282,7 @@ describe("runtime PostgreSQL role boundary", () => {
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(29);
+    expect(result.rows).toHaveLength(30);
   });
 
   it("rejects a real plaintext migration preflight without applying a migration", async () => {

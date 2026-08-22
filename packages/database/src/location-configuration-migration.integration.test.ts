@@ -108,9 +108,9 @@ describe("migration 29 location configuration authority", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(29);
-    expect(directories[28]).toBe(
-      "20260822002900_phase7_location_configuration_authority",
+    expect(directories).toHaveLength(30);
+    expect(directories.at(-1)).toBe(
+      "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
   });
 

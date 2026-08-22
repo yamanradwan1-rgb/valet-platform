@@ -98,15 +98,6 @@ export async function readLocationBranding(
   return loadBrandingRow(pool, input);
 }
 
-function projectionFor(
-  setting: BrandingSetRequest["setting"] | BrandingClearRequest["setting"],
-  response: BrandingReadResponse,
-) {
-  return setting === "brandDisplayName"
-    ? response.displayName
-    : response.primaryColor;
-}
-
 export async function setBrandingOverride(
   pool: PostgresPool,
   input: BrandingSetRequest & {

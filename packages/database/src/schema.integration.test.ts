@@ -7135,10 +7135,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all twenty-nine forward-only migrations in order", () => {
+  it("applies exactly all thirty forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260822002900_phase7_location_configuration_authority",
+      "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
   });
 

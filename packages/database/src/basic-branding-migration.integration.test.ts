@@ -23,8 +23,8 @@ const databaseUrl = new URL(baseDatabaseUrl);
 databaseUrl.pathname = `/${databaseName}`;
 
 let client: Client;
-let organizationId = randomUUID();
-let locationId = randomUUID();
+const organizationId = randomUUID();
+const locationId = randomUUID();
 const membershipId = randomUUID();
 
 async function applyMigration(name: string): Promise<void> {
