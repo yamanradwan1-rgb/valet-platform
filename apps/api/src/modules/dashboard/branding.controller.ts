@@ -7,7 +7,7 @@ import {
   Param,
   Post,
   Put,
-  Query,
+
   Req,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -15,7 +15,6 @@ import {
   brandingClearRequestSchema,
   brandingReadResponseSchema,
   brandingSetRequestSchema,
-  locationSubscriptionResponseSchema,
 } from "@valet/contracts";
 import type { PostgresPool } from "../../common/database/postgres";
 import {
