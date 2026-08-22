@@ -7,6 +7,8 @@ import { RuntimeDatabaseModule } from "../src/common/database/runtime-database.m
 import { ApiExceptionFilter } from "../src/common/http/api-exception.filter";
 import { ApiOperationRunner } from "../src/common/http/api-operation-runner";
 import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
+import { IncidentReportingController } from "../src/modules/incidents/incident-reporting.controller";
+import { IncidentReportingService } from "../src/modules/incidents/incident-reporting.service";
 import { AntiAbuseModule } from "../src/modules/anti-abuse/anti-abuse.module";
 import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
@@ -258,18 +260,20 @@ describe("accepted feature module ownership", () => {
     }
   });
 
-  it("keeps Staff ownership focused on operational context and session detail reads", () => {
+  it("keeps Staff ownership focused on operational context, session detail reads, and incident reporting", () => {
     expect(metadata(StaffModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffCheckInContinuationsController,
       StaffCheckInDraftsController,
       StaffOperationalContextController,
       StaffValetSessionController,
+      IncidentReportingController,
     ]);
     expect(metadata(StaffModule, MODULE_METADATA.PROVIDERS)).toEqual([
       StaffCheckInContinuationsService,
       StaffCheckInDraftsService,
       StaffOperationalContextService,
       StaffValetSessionService,
+      IncidentReportingService,
     ]);
   });
 

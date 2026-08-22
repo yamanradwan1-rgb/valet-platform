@@ -4,6 +4,8 @@ import { RuntimeDatabaseModule } from "../../common/database/runtime-database.mo
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
+import { IncidentReportingController } from "../incidents/incident-reporting.controller";
+import { IncidentReportingService } from "../incidents/incident-reporting.service";
 import { StaffCheckInContinuationsController } from "./staff-check-in-continuations.controller";
 import { StaffCheckInContinuationsService } from "./staff-check-in-continuations.service";
 import { StaffCheckInDraftsController } from "./staff-check-in-drafts.controller";
@@ -19,6 +21,7 @@ import { StaffValetSessionService } from "./staff-valet-session.service";
     StaffCheckInDraftsController,
     StaffOperationalContextController,
     StaffValetSessionController,
+    IncidentReportingController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
@@ -26,6 +29,7 @@ import { StaffValetSessionService } from "./staff-valet-session.service";
     StaffCheckInDraftsService,
     StaffOperationalContextService,
     StaffValetSessionService,
+    IncidentReportingService,
   ],
 })
 export class StaffModule implements NestModule {
@@ -37,6 +41,7 @@ export class StaffModule implements NestModule {
         StaffCheckInDraftsController,
         StaffOperationalContextController,
         StaffValetSessionController,
+        IncidentReportingController,
       );
   }
 }

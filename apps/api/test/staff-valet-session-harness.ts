@@ -17,6 +17,8 @@ import {
   type StaffPrincipalResolver,
 } from "../src/modules/auth/staff-principal";
 import { StaffValetSessionController } from "../src/modules/staff/staff-valet-session.controller";
+import { IncidentReportingController } from "../src/modules/incidents/incident-reporting.controller";
+import { IncidentReportingService } from "../src/modules/incidents/incident-reporting.service";
 import { StaffValetSessionService } from "../src/modules/staff/staff-valet-session.service";
 import {
   addMemberHelper,
@@ -111,10 +113,11 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
   };
 
   @Module({
-    controllers: [StaffValetSessionController],
+    controllers: [StaffValetSessionController, IncidentReportingController],
     imports: [HttpInfrastructureModule],
     providers: [
       StaffValetSessionService,
+      IncidentReportingService,
       {
         provide: RUNTIME_POSTGRES_POOL,
         useFactory: () => context.runtimePool,
@@ -129,7 +132,7 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
     configure(consumer: MiddlewareConsumer): void {
       consumer
         .apply(RequestIdMiddleware)
-        .forRoutes(StaffValetSessionController);
+        .forRoutes(StaffValetSessionController, IncidentReportingController);
     }
   }
 

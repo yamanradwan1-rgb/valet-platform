@@ -23,3 +23,4 @@ export * from "./staff-context.js";
 export * from "./staff-check-in-continuations.js";
 export * from "./staff-check-in-drafts.js";
 export * from "./staff-valet-session.js";
+export * from "./incidents.js";
