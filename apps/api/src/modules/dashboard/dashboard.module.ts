@@ -5,9 +5,10 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { DashboardConfigurationController } from "./dashboard-configuration.controller";
 import { DashboardConfigurationService } from "./dashboard-configuration-command";
+import { DashboardOverviewController } from "./overview.controller";
 
 @Module({
-  controllers: [DashboardConfigurationController],
+  controllers: [DashboardConfigurationController, DashboardOverviewController],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [DashboardConfigurationService],
 })
@@ -15,6 +16,6 @@ export class DashboardModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(DashboardConfigurationController);
+      .forRoutes(DashboardConfigurationController, DashboardOverviewController);
   }
 }

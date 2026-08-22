@@ -5,10 +5,10 @@ import { NestFactory } from "@nestjs/core";
 import argon2 from "argon2";
 
 import { AppModule } from "../src/app.module";
+import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 import type { ShiftFixture } from "./shift-test-context";
 import type { TestRole } from "./shift-test-context";
 import {
-  DashboardTestContext,
   type DashboardActor,
 } from "./dashboard-test-context";
 
@@ -34,7 +34,7 @@ interface RequestOptions {
 const allowedOrigin = "https://dashboard.valet.test";
 const password = "exact dashboard api password";
 
-export class DashboardApiTestContext extends DashboardTestContext {
+export class DashboardApiTestContext extends DashboardOverviewTestContext {
   private app!: INestApplication;
   private baseUrl = "";
   private passwordHash = "";
