@@ -16,7 +16,7 @@ import type {
   StartParkingPayload,
 } from "./check-in-types";
 
-function generateUuid(): string {
+export function generateUuid(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
   }
@@ -49,11 +49,12 @@ export async function runIntakeMutation(
   client: EmployeeApiClient,
   locationId: string,
   vehicleData: CheckInVehicleData,
-  customerPhone?: string | null,
+  customerPhone: string | null | undefined,
+  intakeOperationId: string,
 ): Promise<CheckInActiveSession> {
   const phoneVal = customerPhone?.trim() || "";
   const intakeRes = await createIntakeSession(client, {
-    intakeOperationId: generateUuid(),
+    intakeOperationId,
     targetLocationId: locationId,
     vehicleIdentity: buildIdentityInput(vehicleData),
     ...(phoneVal ? { customer: { phone: phoneVal } } : {}),

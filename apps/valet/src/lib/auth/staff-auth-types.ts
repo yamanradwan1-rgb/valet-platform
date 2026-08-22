@@ -1,5 +1,8 @@
 export type StaffAuthStatus =
-  "initializing" | "authenticated" | "unauthenticated";
+  | "initializing"
+  | "authenticated"
+  | "refresh-unavailable"
+  | "unauthenticated";
 
 export interface StaffAuthSession {
   readonly accessToken: string;

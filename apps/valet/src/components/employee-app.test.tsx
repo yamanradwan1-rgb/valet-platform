@@ -18,13 +18,23 @@ import { StaffAuthProvider } from "../lib/auth/staff-auth-context";
 import { StaffAuthClient } from "../lib/auth/staff-auth-client";
 
 describe("EmployeeApp & Screen Component Baseline", () => {
-  it("renders ShiftStartScreen as the initial state of EmployeeApp", () => {
-    const markup = renderToStaticMarkup(<EmployeeApp />);
+  it("renders ShiftStartScreen as the initial state of explicit prototype mode", () => {
+    const markup = renderToStaticMarkup(<EmployeeApp mode="prototype" />);
     expect(markup).toContain("Start Shift");
     expect(markup).toContain("Mohammed Khalil");
     expect(markup).toContain("Four Seasons Amman");
     expect(markup).toContain("Main Entrance");
     expect(markup).toContain("/brand/VAYLET_Logo_Dark_Background.png");
+  });
+
+  it("never renders the prototype persona or shift actions while auth is initializing in production mode", () => {
+    const markup = renderToStaticMarkup(<EmployeeApp />);
+    expect(markup).toContain("Checking staff session");
+    expect(markup).not.toContain("Mohammed Khalil");
+    expect(markup).not.toContain("Four Seasons Amman");
+    expect(markup).not.toContain("Main Entrance");
+    expect(markup).not.toContain("Start Shift");
+    expect(markup).not.toContain("Change Location");
   });
 
   it("renders ShiftStartScreen with all actions and branding", () => {
@@ -138,14 +148,9 @@ describe("EmployeeApp & Screen Component Baseline", () => {
     expect(markup).toContain("Actions will sync when connection returns");
   });
 
-  it("fails closed to shift-start when operational context is NO_ACTIVE_SHIFT", () => {
+  it("fails closed to the truthful access gate instead of prototype shift-start when unauthenticated", () => {
     const authClient = new StaffAuthClient();
-    vi.spyOn(authClient, "getSession").mockReturnValue({
-      accessToken: "vsa1_token",
-      tokenType: "Bearer",
-      accessExpiresAt: new Date(Date.now() + 3600000).toISOString(),
-      sessionExpiresAt: new Date(Date.now() + 86400000).toISOString(),
-    });
+    vi.spyOn(authClient, "getSession").mockReturnValue(null);
     vi.spyOn(authClient, "tryRefresh").mockResolvedValue(null);
 
     const markup = renderToStaticMarkup(
@@ -154,8 +159,11 @@ describe("EmployeeApp & Screen Component Baseline", () => {
       </StaffAuthProvider>,
     );
 
-    // Synchronously fails closed to shift-start
-    expect(markup).toContain("Welcome back");
-    expect(markup).toContain("Start Shift");
+    // Synchronous SSR state is initializing: truthful loading gate only.
+    expect(markup).toContain("Checking staff session");
+    expect(markup).not.toContain("Welcome back");
+    expect(markup).not.toContain("Start Shift");
+    expect(markup).not.toContain("Mohammed Khalil");
+    expect(markup).not.toContain("BMW X5");
   });
 });

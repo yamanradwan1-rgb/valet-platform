@@ -1,3 +1,4 @@
+import type { StaffAuthStatus } from "../../lib/auth/staff-auth-types";
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { fetchTaskQueue } from "./task-queue-api";
 import { handleTaskQueuePollError } from "./task-queue-controller-helpers";
@@ -15,8 +16,7 @@ export class TaskQueueController {
   private onStateChange?: ((state: TaskQueueState) => void) | undefined;
   private timer: TaskQueueTimer;
 
-  private status: "authenticated" | "unauthenticated" | "initializing" =
-    "unauthenticated";
+  private status: StaffAuthStatus = "unauthenticated";
   private sessionGeneration = 0;
   private locationId: string | null = null;
 
@@ -59,7 +59,7 @@ export class TaskQueueController {
   }
 
   public setScope(
-    status: "authenticated" | "unauthenticated" | "initializing",
+    status: StaffAuthStatus,
     sessionGeneration: number,
     locationId: string | null,
   ): void {

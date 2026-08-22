@@ -10,6 +10,7 @@ import {
   hydrateDraftSession,
 } from "./check-in-hydration";
 import {
+  generateUuid,
   runConditionCompletionMutation,
   runIntakeMutation,
   runKeyAssignmentMutation,
@@ -30,6 +31,7 @@ function getErrMsg(err: unknown, fallback: string): string {
 
 export class CheckInController {
   private membershipId: string | null = null;
+  private pendingIntakeOperationId: string | null = null;
   private state: CheckInState = {
     activeSession: null,
     continuations: [],
@@ -97,6 +99,7 @@ export class CheckInController {
   }
 
   async hydrateFromDraft(locationId: string, draft: StaffCheckInDraftSummary): Promise<void> {
+    this.pendingIntakeOperationId = null;
     this.update({ error: null, isHydrating: true });
     try {
       const res = await hydrateDraftSession(this.apiClient, locationId, draft);
@@ -107,6 +110,7 @@ export class CheckInController {
   }
 
   async hydrateFromContinuation(locationId: string, continuation: StaffCheckInContinuationSummary): Promise<void> {
+    this.pendingIntakeOperationId = null;
     this.update({ error: null, isHydrating: true });
     try {
       const res = await hydrateContinuationSession(this.apiClient, locationId, continuation);
@@ -140,7 +144,20 @@ export class CheckInController {
       return;
     }
 
+    this.pendingIntakeOperationId = null;
     this.update({ error: null, pendingVehicle: vehicleData, step: "customer-phone" });
+  }
+
+  /**
+   * One logical intake = one stable intakeOperationId, reused across
+   * lost-response retries until authoritative success or a genuinely new
+   * vehicle capture replaces the pending flow.
+   */
+  private nextIntakeOperationId(): string {
+    if (this.pendingIntakeOperationId === null) {
+      this.pendingIntakeOperationId = generateUuid();
+    }
+    return this.pendingIntakeOperationId;
   }
 
   async submitCustomerPhone(locationId: string, phone: string): Promise<void> {
@@ -159,7 +176,14 @@ export class CheckInController {
 
     this.update({ error: null, isSubmitting: true });
     try {
-      const activeSession = await runIntakeMutation(this.apiClient, locationId, pending, phone);
+      const activeSession = await runIntakeMutation(
+        this.apiClient,
+        locationId,
+        pending,
+        phone,
+        this.nextIntakeOperationId(),
+      );
+      this.pendingIntakeOperationId = null;
       this.update({ activeSession, isSubmitting: false, pendingVehicle: null, step: "vehicle-condition" });
     } catch (err: unknown) {
       this.update({ error: getErrMsg(err, "Failed to create vehicle intake."), isSubmitting: false });

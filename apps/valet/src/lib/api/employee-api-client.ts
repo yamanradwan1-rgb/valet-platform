@@ -3,6 +3,20 @@ import {
   normalizeEmployeeApiError,
 } from "./employee-api-errors";
 import type { StaffAuthClient } from "../auth/staff-auth-client";
+import {
+  ensureAccessTokenDetailed,
+  StaffAuthRefreshError,
+} from "../auth/staff-auth-recovery";
+
+function sessionServiceUnavailableError(): EmployeeApiError {
+  return new EmployeeApiError({
+    code: "STAFF_SESSION_SERVICE_UNAVAILABLE",
+    isNetworkError: true,
+    message:
+      "Staff sign-in service is temporarily unavailable. Please try again.",
+    status: 503,
+  });
+}
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD";
 
@@ -61,7 +75,12 @@ export class EmployeeApiClient {
 
     if (requireAuth) {
       if (!skipProactiveRefresh) {
-        token = await this.authClient.ensureFreshToken(60, signal);
+        const ensured = await ensureAccessTokenDetailed(this.authClient, 60, signal);
+        token = ensured.token;
+        // A transient refresh outage must not be reported as auth loss.
+        if (!token && ensured.failureKind === "transient") {
+          throw sessionServiceUnavailableError();
+        }
       } else {
         token = this.authClient.getAccessToken();
       }
@@ -130,7 +149,13 @@ export class EmployeeApiClient {
         try {
           await this.authClient.refresh(signal);
           return await this.executeRequest<T>(path, options, true);
-        } catch {
+        } catch (refreshError: unknown) {
+          if (
+            refreshError instanceof StaffAuthRefreshError &&
+            refreshError.kind === "transient"
+          ) {
+            throw sessionServiceUnavailableError();
+          }
           this.onAuthorizationLoss?.();
         }
       } else if (response.status === 401 || response.status === 403) {

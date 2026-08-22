@@ -171,6 +171,67 @@ describe("StaffAuthClient", () => {
     expect(client.getSession()).toBeNull();
   });
 
+  async function seedSession(client: StaffAuthClient): Promise<void> {
+    globalThis.fetch = vi.fn().mockImplementationOnce(async () =>
+      new Response(
+        JSON.stringify({
+          accessToken: VALID_MOCK_TOKEN_1,
+          tokenType: "Bearer",
+          accessExpiresAt: "2020-01-01T00:00:00.000Z",
+          sessionExpiresAt: "2026-09-20T03:00:00.000Z",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+    await client.login({
+      email: "valet.driver@example.com",
+      password: "SuperSecretPassword123!",
+    });
+  }
+
+  it("preserves the authenticated session when a transient 5xx refresh fails and tags the error as transient", async () => {
+    const client = new StaffAuthClient();
+    await seedSession(client);
+
+    globalThis.fetch = vi.fn().mockImplementationOnce(async () => {
+      throw new Error("socket hang up");
+    });
+
+    await expect(client.refresh()).rejects.toMatchObject({ kind: "transient" });
+    expect(client.getSession()).not.toBeNull();
+    expect(client.getAccessToken()).toBe(VALID_MOCK_TOKEN_1);
+  });
+
+  it("preserves the session on a 503 refresh and still clears it on a definitive 401", async () => {
+    const client = new StaffAuthClient();
+    await seedSession(client);
+
+    globalThis.fetch = vi.fn().mockImplementationOnce(async () =>
+      new Response(
+        JSON.stringify({ code: "SERVICE_UNAVAILABLE", message: "down" }),
+        { status: 503 },
+      ),
+    );
+    await expect(client.refresh()).rejects.toMatchObject({
+      code: "SERVICE_UNAVAILABLE",
+      kind: "transient",
+    });
+    expect(client.getAccessToken()).toBe(VALID_MOCK_TOKEN_1);
+
+    globalThis.fetch = vi.fn().mockImplementationOnce(async () =>
+      new Response(
+        JSON.stringify({
+          code: "STAFF_AUTHENTICATION_FAILED",
+          message: "Refresh token rejected.",
+        }),
+        { status: 401 },
+      ),
+    );
+    await expect(client.refresh()).rejects.toMatchObject({ kind: "definitive" });
+    expect(client.getAccessToken()).toBeNull();
+    expect(client.getSession()).toBeNull();
+  });
+
   it("handles 204 logout successfully and removes local in-memory session", async () => {
     let capturedUrl = "";
     let capturedInit: RequestInit | undefined;

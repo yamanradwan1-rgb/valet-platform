@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StaffAuthClient } from "../auth/staff-auth-client";
+import { StaffAuthRefreshError } from "../auth/staff-auth-recovery";
 import { EmployeeApiClient } from "./employee-api-client";
 import { EmployeeApiError } from "./employee-api-errors";
 
@@ -53,12 +54,19 @@ describe("EmployeeApiClient", () => {
     );
   });
 
-  it("throws error when requiring auth but no active session exists", async () => {
-    vi.spyOn(authClient, "ensureFreshToken").mockResolvedValue(null);
+  it("surfaces retryable unavailability when the proactive refresh fails transiently without a session", async () => {
+    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(false);
+    vi.spyOn(authClient, "refresh").mockRejectedValue(
+      new EmployeeApiError({
+        code: "NETWORK_ERROR",
+        message: "offline",
+        status: 0,
+      }),
+    );
 
     await expect(
       apiClient.request("/v1/staff/tasks", { method: "GET" }),
-    ).rejects.toThrow(EmployeeApiError);
+    ).rejects.toMatchObject({ code: "STAFF_SESSION_SERVICE_UNAVAILABLE" });
   });
 
   it("DOES NOT automatically replay non-idempotent mutations on 401", async () => {
@@ -95,6 +103,54 @@ describe("EmployeeApiClient", () => {
     // CRITICAL: Must not issue refresh and must not replay the POST mutation!
     expect(postCallCount).toBe(1);
     expect(refreshSpy).not.toHaveBeenCalled();
+  });
+
+  it("reports definitive refresh loss to onAuthorizationLoss when the token cannot be refreshed", async () => {
+    const authLoss = vi.fn();
+    const clientWithLoss = new EmployeeApiClient({
+      authClient,
+      onAuthorizationLoss: authLoss,
+    });
+    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(false);
+    vi.spyOn(authClient, "refresh").mockRejectedValue(
+      new StaffAuthRefreshError(
+        "definitive",
+        new EmployeeApiError({
+          code: "STAFF_AUTHENTICATION_FAILED",
+          message: "Refresh rejected.",
+          status: 401,
+        }),
+      ),
+    );
+
+    await expect(
+      clientWithLoss.request("/v1/staff/tasks", { method: "GET" }),
+    ).rejects.toMatchObject({ code: "STAFF_AUTHENTICATION_REQUIRED" });
+    expect(authLoss).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT report authorization loss on transient refresh failure and surfaces a retryable error", async () => {
+    const authLoss = vi.fn();
+    const clientWithLoss = new EmployeeApiClient({
+      authClient,
+      onAuthorizationLoss: authLoss,
+    });
+    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(false);
+    vi.spyOn(authClient, "refresh").mockRejectedValue(
+      new StaffAuthRefreshError(
+        "transient",
+        new EmployeeApiError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "down",
+          status: 500,
+        }),
+      ),
+    );
+
+    await expect(
+      clientWithLoss.request("/v1/staff/tasks", { method: "GET" }),
+    ).rejects.toMatchObject({ code: "STAFF_SESSION_SERVICE_UNAVAILABLE" });
+    expect(authLoss).not.toHaveBeenCalled();
   });
 
   it("safely retries idempotent GET read requests once after 401 refresh", async () => {

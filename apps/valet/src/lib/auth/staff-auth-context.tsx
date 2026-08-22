@@ -11,6 +11,10 @@ import React, {
 import type { StaffLoginRequest } from "@valet/contracts";
 
 import { StaffAuthClient } from "./staff-auth-client";
+import {
+  restoreStaffSession,
+  type StaffSessionRestoreResult,
+} from "./staff-auth-recovery";
 import type { StaffAuthSession, StaffAuthStatus } from "./staff-auth-types";
 
 export interface StaffAuthContextValue {
@@ -21,6 +25,7 @@ export interface StaffAuthContextValue {
   readonly login: (credentials: StaffLoginRequest) => Promise<void>;
   readonly logout: () => Promise<void>;
   readonly refresh: () => Promise<boolean>;
+  readonly restoreSession: () => Promise<StaffSessionRestoreResult>;
 }
 
 const StaffAuthContext = createContext<StaffAuthContextValue | null>(null);
@@ -64,18 +69,23 @@ export function StaffAuthProvider({
       setStatus(newSession ? "authenticated" : "unauthenticated");
     });
 
-    // Attempt silent bootstrap from HttpOnly refresh cookie
+    // Attempt silent bootstrap from HttpOnly refresh cookie.
+    // A transient refresh outage keeps status "refresh-unavailable" instead
+    // of claiming the user is signed out.
     let active = true;
-    void client.tryRefresh().then((refreshed) => {
+    const applyOutcome = (result: StaffSessionRestoreResult): void => {
       if (!active) return;
-      if (refreshed) {
-        setSession(client.getSession());
-        setSessionGeneration(client.getSessionGeneration());
+      setSession(client.getSession());
+      setSessionGeneration(client.getSessionGeneration());
+      if (result.kind === "AUTHENTICATED") {
         setStatus("authenticated");
-      } else {
+      } else if (result.kind === "DEFINITIVE_INVALID") {
         setStatus("unauthenticated");
+      } else {
+        setStatus("refresh-unavailable");
       }
-    });
+    };
+    void restoreStaffSession(client).then(applyOutcome);
 
     return () => {
       active = false;
@@ -99,6 +109,20 @@ export function StaffAuthProvider({
     return res !== null;
   }, [client]);
 
+  const restoreSession = useCallback(async (): Promise<StaffSessionRestoreResult> => {
+    const result = await restoreStaffSession(client);
+    setSession(client.getSession());
+    setSessionGeneration(client.getSessionGeneration());
+    setStatus(
+      result.kind === "AUTHENTICATED"
+        ? "authenticated"
+        : result.kind === "DEFINITIVE_INVALID"
+          ? "unauthenticated"
+          : "refresh-unavailable",
+    );
+    return result;
+  }, [client]);
+
   const contextValue = useMemo<StaffAuthContextValue>(
     () => ({
       status,
@@ -108,8 +132,9 @@ export function StaffAuthProvider({
       login,
       logout,
       refresh,
+      restoreSession,
     }),
-    [status, session, sessionGeneration, client, login, logout, refresh],
+    [status, session, sessionGeneration, client, login, logout, refresh, restoreSession],
   );
 
   // Renders children directly with ZERO visual or layout difference

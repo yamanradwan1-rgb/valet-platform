@@ -9,6 +9,11 @@ import {
   EmployeeApiError,
   normalizeEmployeeApiError,
 } from "../api/employee-api-errors";
+import {
+  classifyRefreshFailure,
+  ensureAccessTokenDetailed,
+  StaffAuthRefreshError,
+} from "./staff-auth-recovery";
 import type { StaffAuthSession } from "./staff-auth-types";
 
 export type SessionChangeListener = (
@@ -156,40 +161,67 @@ export class StaffAuthClient {
   }
 
   private async performRefresh(): Promise<StaffAuthAccessResponse> {
-    const url = `${this.baseUrl}/v1/staff/auth/refresh`;
+    try {
+      const url = `${this.baseUrl}/v1/staff/auth/refresh`;
 
-    const fetchInit: RequestInit = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({}),
-      credentials: "include",
-      cache: "no-store",
-    };
+      const fetchInit: RequestInit = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({}),
+        credentials: "include",
+        cache: "no-store",
+      };
 
-    const response = await this.executeFetch(url, fetchInit);
-    const payload = await this.parseJsonPayload(response);
+      const response = await this.executeFetch(url, fetchInit);
+      const payload = await this.parseJsonPayload(response);
 
-    if (!response.ok) {
-      this.setSession(null);
-      throw normalizeEmployeeApiError(
-        response.status,
-        payload,
-        "Staff session refresh failed.",
+      if (!response.ok) {
+        // A transient refresh failure (5xx/network) is NOT evidence that the
+        // authenticated session ended; only definitive rejections may clear it.
+        const normalized = normalizeEmployeeApiError(
+          response.status,
+          payload,
+          "Staff session refresh failed.",
+        );
+        const kind = classifyRefreshFailure(normalized);
+        if (kind === "definitive") {
+          this.setSession(null);
+        }
+        throw new StaffAuthRefreshError(kind, normalized);
+      }
+
+      const accessResponse = staffAuthAccessResponseSchema.parse(payload);
+      this.setSession({
+        accessToken: accessResponse.accessToken,
+        tokenType: accessResponse.tokenType,
+        accessExpiresAt: accessResponse.accessExpiresAt,
+        sessionExpiresAt: accessResponse.sessionExpiresAt,
+      });
+
+      return accessResponse;
+    } catch (error: unknown) {
+      if (error instanceof StaffAuthRefreshError) {
+        throw error;
+      }
+      // Network-level refresh outages are transient by definition.
+      const normalized =
+        error instanceof EmployeeApiError
+          ? error
+          : new EmployeeApiError({
+              code: "NETWORK_ERROR",
+              isNetworkError: true,
+              message:
+                "Network connection unavailable. Please check your internet connection.",
+              status: 0,
+            });
+      throw new StaffAuthRefreshError(
+        classifyRefreshFailure(normalized),
+        normalized,
       );
     }
-
-    const accessResponse = staffAuthAccessResponseSchema.parse(payload);
-    this.setSession({
-      accessToken: accessResponse.accessToken,
-      tokenType: accessResponse.tokenType,
-      accessExpiresAt: accessResponse.accessExpiresAt,
-      sessionExpiresAt: accessResponse.sessionExpiresAt,
-    });
-
-    return accessResponse;
   }
 
   async tryRefresh(
@@ -238,16 +270,12 @@ export class StaffAuthClient {
     bufferSeconds = 60,
     signal?: AbortSignal | undefined,
   ): Promise<string | null> {
-    if (this.isTokenFresh(bufferSeconds)) {
-      return this.getAccessToken();
-    }
-
-    try {
-      const refreshed = await this.refresh(signal);
-      return refreshed.accessToken;
-    } catch {
-      return null;
-    }
+    const outcome = await ensureAccessTokenDetailed(
+      this,
+      bufferSeconds,
+      signal,
+    );
+    return outcome.token;
   }
 
   private async executeFetch(

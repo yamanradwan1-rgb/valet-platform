@@ -1,3 +1,4 @@
+import type { StaffAuthStatus } from "../../lib/auth/staff-auth-types";
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import { fetchStaffOperationalContext } from "./staff-operational-context-api";
@@ -16,8 +17,7 @@ export class StaffOperationalContextController {
   private onStateChange?:
     ((state: StaffOperationalContextState) => void) | undefined;
 
-  private status: "authenticated" | "unauthenticated" | "initializing" =
-    "unauthenticated";
+  private status: StaffAuthStatus = "unauthenticated";
   private accessToken: string | null = null;
   private sessionGeneration = 0;
 
@@ -49,7 +49,7 @@ export class StaffOperationalContextController {
   }
 
   public setAuth(
-    status: "authenticated" | "unauthenticated" | "initializing",
+    status: StaffAuthStatus,
     accessToken: string | null,
     sessionGeneration: number,
   ): void {

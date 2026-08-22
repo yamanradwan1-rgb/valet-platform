@@ -1,24 +1,35 @@
 "use client";
 
 import { useState, type JSX } from "react";
+import type { StaffLoginRequest } from "@valet/contracts";
 
 import type { Screen, Tab } from "../types/employee-ui";
-import { CheckInFlow } from "./screens/check-in-flow";
-import { IncidentFlow } from "./screens/incident-flow";
-import { ParkingFlow } from "./screens/parking-flow";
-import { RetrievalFlow } from "./screens/retrieval-flow";
-import { ScanHubScreen } from "./screens/scan-hub-screen";
-import { ShiftStartScreen } from "./screens/shift-start-screen";
-import { ShiftSummaryScreen } from "./screens/shift-summary-screen";
-import { TaskQueueScreen } from "./screens/task-queue-screen";
-import { VehiclesListScreen } from "./screens/vehicles-list-screen";
+import {
+  EmployeeAccessGate,
+  type EmployeeAccessPhase,
+} from "./shell/employee-access-gate";
+import {
+  EmployeeOperationalGate,
+  type OperationalGateModel,
+} from "./shell/employee-operational-gate";
+import { EmployeeLiveRouter } from "./shell/employee-live-router";
+import { EmployeePrototypeFrame } from "./shell/employee-prototype-frame";
+import {
+  emptyWorkspaceTargets,
+  initialScopedWorkspace,
+  isWorkspaceCurrent,
+  makeWorkspaceStamp,
+  rescopeWorkspace,
+  type ActiveParkingTarget,
+  type ActiveRetrievalTarget,
+  type EmployeeWorkspaceTargets,
+  type WorkspaceIdentityInput,
+} from "./shell/employee-workspace";
 import { AppHeader } from "./shell/app-header";
 import { BottomNav } from "./shell/bottom-nav";
-import { OfflineBanner } from "./ui/employee-primitives";
 import { useStaffOperationalContext } from "../features/staff-operational-context";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
 import type { StartParkingPayload } from "../features/check-in";
-import type { ActiveParkingSession } from "../features/parking";
 
 function getActiveTab(s: Screen): Tab {
   if (s === "vehicles-list") return "vehicles";
@@ -27,261 +38,200 @@ function getActiveTab(s: Screen): Tab {
   return "home";
 }
 
-export function EmployeeApp(): JSX.Element {
+const livePermittedScreens = new Set<Screen>([
+  "task-queue",
+  "check-in",
+  "parking",
+  "retrieval",
+]);
+
+export interface EmployeeAppProps {
+  /**
+   * Prototype rendering is an explicit opt-in. The production app never
+   * falls back to prototype screens because auth expired, context is
+   * loading, no active shift exists, or the context API failed.
+   */
+  readonly mode?: "live" | "prototype" | undefined;
+}
+
+export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
+  const isPrototypeMode = mode === "prototype";
   const auth = useOptionalStaffAuth();
-  const { resolution, revalidateOnAuthLoss } = useStaffOperationalContext();
-  const [screenOverride, setScreenOverride] = useState<Screen | null>(null);
+  const {
+    resolution,
+    response: operationalResponse,
+    error: contextError,
+    refresh: refreshContext,
+    revalidateOnAuthLoss,
+  } = useStaffOperationalContext();
   const [isPrototypeOffline, setIsPrototypeOffline] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
+  const [workspace, setWorkspace] = useState(initialScopedWorkspace);
 
-  const [activeParkingPayload, setActiveParkingPayload] =
-    useState<StartParkingPayload | null>(null);
-  const [activeParkingTarget, setActiveParkingTarget] = useState<{
-    sessionId: string;
-    taskId: string;
-    taskVersion: number;
-  } | null>(null);
+  const authStatus = auth?.status ?? "initializing";
+  const identity: WorkspaceIdentityInput = {
+    authenticated: authStatus === "authenticated",
+    sessionGeneration: auth?.sessionGeneration ?? 0,
+  };
+  // An identity change (logout/login/generation bump) synchronously
+  // discards every transient target so no workflow can leak across users.
+  const scoped = rescopeWorkspace(workspace, identity);
+  const targets = isWorkspaceCurrent(workspace, identity)
+    ? workspace.targets
+    : scoped.targets;
 
-  const [activeRetrievalTarget, setActiveRetrievalTarget] = useState<{
-    currentAssigneeMembershipId?: string | null | undefined;
-    sessionId: string;
-    taskId: string;
-    taskStatus: "ACCEPTED" | "IN_PROGRESS";
-    taskVersion: number;
-  } | null>(null);
-
-  const isLive = resolution.kind === "RESOLVED";
-
-  const livePermittedScreens = new Set<Screen>([
-    "task-queue",
-    "check-in",
-    "parking",
-    "retrieval",
-  ]);
-
-  const effectiveScreen: Screen = isLive
-    ? screenOverride && livePermittedScreens.has(screenOverride)
-      ? screenOverride
-      : "task-queue"
-    : auth?.status === "authenticated"
-      ? "shift-start"
-      : (screenOverride ?? "shift-start");
-
-  const activeScope = isLive ? resolution.scope : null;
+  const patchTargets = (patch: Partial<EmployeeWorkspaceTargets>): void => {
+    setWorkspace({
+      identityStamp: makeWorkspaceStamp(identity),
+      targets: { ...targets, ...patch },
+    });
+  };
 
   const nav = (s: Screen) => {
-    if (isLive) {
-      if (livePermittedScreens.has(s)) {
-        setScreenOverride(s);
-      } else {
-        setScreenOverride("task-queue");
-      }
-    } else {
-      setScreenOverride(s);
-    }
+    if (!isPrototypeMode && !livePermittedScreens.has(s)) return;
+    patchTargets({ screenOverride: s });
   };
 
   const handleStartParkingSuccess = (payload: StartParkingPayload) => {
-    setActiveParkingPayload(payload);
-    setActiveParkingTarget(null);
-    setScreenOverride("parking");
+    patchTargets({
+      activeParkingPayload: payload,
+      activeParkingTarget: null,
+      activeRetrievalTarget: null,
+      screenOverride: "parking",
+    });
   };
 
-  const handleSelectParkingTaskFromQueue = (target: {
-    sessionId: string;
-    taskId: string;
-    taskVersion: number;
-  }) => {
-    setActiveParkingTarget(target);
-    setActiveParkingPayload(null);
-    setScreenOverride("parking");
+  const handleSelectParkingTaskFromQueue = (target: ActiveParkingTarget) => {
+    patchTargets({
+      activeParkingPayload: null,
+      activeParkingTarget: target,
+      screenOverride: "parking",
+    });
   };
 
   const handleParkingComplete = () => {
-    setActiveParkingPayload(null);
-    setActiveParkingTarget(null);
-    setScreenOverride("task-queue");
+    patchTargets({ ...emptyWorkspaceTargets(), screenOverride: "task-queue" });
   };
 
-  const handleSelectRetrievalTaskFromQueue = (target: {
-    currentAssigneeMembershipId?: string | null | undefined;
-    sessionId: string;
-    taskId: string;
-    taskStatus: "ACCEPTED" | "IN_PROGRESS";
-    taskVersion: number;
-  }) => {
-    setActiveRetrievalTarget(target);
-    setScreenOverride("retrieval");
+  const handleSelectRetrievalTaskFromQueue = (
+    target: ActiveRetrievalTarget,
+  ) => {
+    patchTargets({ activeRetrievalTarget: target, screenOverride: "retrieval" });
   };
 
   const handleRetrievalComplete = () => {
-    setActiveRetrievalTarget(null);
-    setScreenOverride("task-queue");
+    patchTargets({ activeRetrievalTarget: null, screenOverride: "task-queue" });
   };
 
-  const renderLiveScreen = () => {
-    switch (effectiveScreen) {
-      case "check-in":
-        return (
-          <CheckInFlow
-            locationId={activeScope?.locationId}
-            membershipId={activeScope?.membershipId}
-            mode="live"
-            nav={nav}
-            onAuthorizationLoss={revalidateOnAuthLoss}
-            onStartParkingSuccess={handleStartParkingSuccess}
-          />
-        );
-      case "parking": {
-        const initialSession: ActiveParkingSession | null =
-          activeParkingPayload
-            ? {
-                keySlotCode: activeParkingPayload.keySlotCode,
-                locationId: activeParkingPayload.locationId,
-                parkedAt: null,
-                parkingSpotCode: null,
-                parkingStartedAt: activeParkingPayload.parkingStartedAt,
-                parkingZoneCode: null,
-                sessionId: activeParkingPayload.sessionId,
-                sessionVersion: activeParkingPayload.sessionVersion,
-                taskId: activeParkingPayload.taskId,
-                taskVersion: activeParkingPayload.taskVersion,
-                vehicle: activeParkingPayload.vehicle,
-              }
-            : null;
-        return (
-          <ParkingFlow
-            initialSession={initialSession}
-            mode="live"
-            sessionId={
-              activeParkingTarget?.sessionId ?? activeParkingPayload?.sessionId
-            }
-            taskId={
-              activeParkingTarget?.taskId ?? activeParkingPayload?.taskId
-            }
-            taskVersion={
-              activeParkingTarget?.taskVersion ??
-              activeParkingPayload?.taskVersion
-            }
-            nav={nav}
-            onAuthorizationLoss={revalidateOnAuthLoss}
-            onComplete={handleParkingComplete}
-          />
-        );
-      }
-      case "retrieval":
-        return (
-          <RetrievalFlow
-            currentAssigneeMembershipId={
-              activeRetrievalTarget?.currentAssigneeMembershipId
-            }
-            membershipId={activeScope?.membershipId}
-            mode="live"
-            sessionId={activeRetrievalTarget?.sessionId}
-            taskId={activeRetrievalTarget?.taskId}
-            taskStatus={activeRetrievalTarget?.taskStatus}
-            taskVersion={activeRetrievalTarget?.taskVersion}
-            nav={nav}
-            onAuthorizationLoss={revalidateOnAuthLoss}
-            onComplete={handleRetrievalComplete}
-          />
-        );
-      case "task-queue":
-      default:
-        return (
-          <TaskQueueScreen
-            mode="live"
-            nav={nav}
-            locationId={activeScope?.locationId}
-            locationName={activeScope?.locationName}
-            shiftStartedAt={activeScope?.shiftStartedAt}
-            membershipId={activeScope?.membershipId}
-            onAuthorizationLoss={revalidateOnAuthLoss}
-            onSelectParkingTask={handleSelectParkingTaskFromQueue}
-            onSelectRetrievalTask={handleSelectRetrievalTaskFromQueue}
-            onStartParkingSuccess={handleStartParkingSuccess}
-          />
-        );
+  const handleSignIn = async (credentials: StaffLoginRequest): Promise<void> => {
+    setSignInError(null);
+    try {
+      await auth?.login(credentials);
+    } catch (error: unknown) {
+      setSignInError(
+        error instanceof Error
+          ? error.message
+          : "Staff sign-in failed. Please try again.",
+      );
     }
   };
 
-  const renderScreen = () => {
-    if (isLive) {
-      return renderLiveScreen();
-    }
-
-    switch (effectiveScreen) {
-      case "task-queue":
-        return <TaskQueueScreen mode="prototype" nav={nav} />;
-      case "check-in":
-        return <CheckInFlow mode="prototype" nav={nav} />;
-      case "parking":
-        return <ParkingFlow mode="prototype" nav={nav} />;
-      case "retrieval":
-        return <RetrievalFlow nav={nav} />;
-      case "incident":
-        return <IncidentFlow nav={nav} />;
-      case "vehicles-list":
-        return <VehiclesListScreen />;
-      case "scan-hub":
-        return <ScanHubScreen nav={nav} />;
-      case "shift-summary":
-        return <ShiftSummaryScreen />;
-      default:
-        return null;
-    }
+  const handleSignOut = async (): Promise<void> => {
+    await auth?.logout();
   };
 
-  if (effectiveScreen === "shift-start") {
+  if (isPrototypeMode) {
+    return (
+      <EmployeePrototypeFrame
+        isOffline={isPrototypeOffline}
+        nav={nav}
+        onToggleOffline={() => setIsPrototypeOffline((o) => !o)}
+        screen={(targets.screenOverride as Screen | null) ?? "shift-start"}
+      />
+    );
+  }
+
+  const liveScope = resolution.kind === "RESOLVED" ? resolution.scope : null;
+
+  if (authStatus !== "authenticated") {
+    const accessPhase: EmployeeAccessPhase = authStatus;
     return (
       <div className="min-h-screen bg-navy-2 flex items-center justify-center">
         <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-          <ShiftStartScreen
-            onStart={() => {
-              if (isLive) {
-                nav("task-queue");
-              }
-            }}
+          <EmployeeAccessGate
+            loginError={signInError}
+            onLogin={(credentials) => void handleSignIn(credentials)}
+            phase={accessPhase}
           />
         </div>
       </div>
     );
   }
 
+  if (liveScope === null) {
+    let gateModel: OperationalGateModel;
+    if (contextError !== null && contextError !== undefined) {
+      gateModel = { kind: "CONTEXT_ERROR", message: contextError.message };
+    } else if (operationalResponse === null) {
+      gateModel = { kind: "LOADING" };
+    } else if (resolution.kind === "AMBIGUOUS_ACTIVE_SHIFTS") {
+      gateModel = { kind: "AMBIGUOUS_ACTIVE_SHIFTS", count: resolution.count };
+    } else {
+      gateModel = { kind: "NO_ACTIVE_SHIFT" };
+    }
+
+    return (
+      <div className="min-h-screen bg-navy-2 flex items-center justify-center">
+        <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
+          <EmployeeOperationalGate
+            model={gateModel}
+            onRetry={() => void refreshContext()}
+            onSignOut={() => void handleSignOut()}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const effectiveScreen: Screen =
+    targets.screenOverride !== null &&
+    livePermittedScreens.has(targets.screenOverride as Screen)
+      ? (targets.screenOverride as Screen)
+      : "task-queue";
+
   return (
     <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
       <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
-        {!isLive && isPrototypeOffline && <OfflineBanner />}
         <AppHeader
-          mode={isLive ? "live" : "prototype"}
-          locationName={activeScope?.locationName}
-          locationCode={activeScope?.locationCode}
-          role={activeScope?.role}
+          locationCode={liveScope.locationCode}
+          locationName={liveScope.locationName}
+          mode="live"
+          role={liveScope.role}
         />
 
-        <main className="flex-1 overflow-y-auto">{renderScreen()}</main>
+        <main className="flex-1 overflow-y-auto">
+          <EmployeeLiveRouter
+            activeScope={liveScope}
+            effectiveScreen={effectiveScreen}
+            nav={nav}
+            onAuthorizationLoss={revalidateOnAuthLoss}
+            onParkingComplete={handleParkingComplete}
+            onRetrievalComplete={handleRetrievalComplete}
+            onSelectParkingTask={handleSelectParkingTaskFromQueue}
+            onSelectRetrievalTask={handleSelectRetrievalTaskFromQueue}
+            onStartParkingSuccess={handleStartParkingSuccess}
+            parkingPayload={targets.activeParkingPayload}
+            parkingTarget={targets.activeParkingTarget}
+            retrievalTarget={targets.activeRetrievalTarget}
+          />
+        </main>
 
         <BottomNav
           active={getActiveTab(effectiveScreen)}
           onTab={(t) => {
-            if (isLive) {
-              if (t === "home") nav("task-queue");
-            } else {
-              if (t === "home") nav("task-queue");
-              if (t === "vehicles") nav("vehicles-list");
-              if (t === "scan") nav("scan-hub");
-              if (t === "shift") nav("shift-summary");
-            }
+            if (t === "home") nav("task-queue");
           }}
         />
-
-        {!isLive && (
-          <button
-            onClick={() => setIsPrototypeOffline((o) => !o)}
-            className="absolute top-[72px] right-3 text-[9px] text-muted font-bold uppercase tracking-wider opacity-30 hover:opacity-80 cursor-pointer transition-opacity px-2 py-1"
-          >
-            {isPrototypeOffline ? "online" : "offline"}
-          </button>
-        )}
       </div>
     </div>
   );
