@@ -7,12 +7,14 @@ import { DashboardConfigurationController } from "./dashboard-configuration.cont
 import { DashboardConfigurationService } from "./dashboard-configuration-command";
 import { DashboardAnalyticsController } from "./analytics.controller";
 import { DashboardOverviewController } from "./overview.controller";
+import { DashboardReportController } from "./report.controller";
 
 @Module({
   controllers: [
     DashboardConfigurationController,
     DashboardOverviewController,
     DashboardAnalyticsController,
+    DashboardReportController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [DashboardConfigurationService],
@@ -25,6 +27,7 @@ export class DashboardModule implements NestModule {
         DashboardConfigurationController,
         DashboardOverviewController,
         DashboardAnalyticsController,
+        DashboardReportController,
       );
   }
 }

@@ -36,7 +36,7 @@ const password = "exact dashboard api password";
 
 export class DashboardApiTestContext extends DashboardOverviewTestContext {
   private app!: INestApplication;
-  private baseUrl = "";
+  protected baseUrl = "";
   private passwordHash = "";
   private readonly previousEnvironment = new Map<string, string | undefined>();
 
