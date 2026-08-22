@@ -11,6 +11,7 @@ const runtimeReadOnlyTables = [
   "parking_zones",
   "parking_spots",
   "key_slots",
+  "incidents",
   "location_map_points",
   "location_map_areas",
   "location_map_area_vertices",
@@ -77,6 +78,16 @@ export const runtimeMapSetupFunctions = [
 
 export const runtimeMaintenanceFunctions = [
   "public.cleanup_expired_raw_gps_samples(integer)",
+];
+
+export const incidentReadPolicies = [
+  ["public.incidents", "SELECT", true],
+  ["public.incidents", "INSERT", false],
+  ["public.incidents", "UPDATE", false],
+  ["public.incidents", "DELETE", false],
+  ["public.incidents", "TRUNCATE", false],
+  ["public.incidents", "REFERENCES", false],
+  ["public.incidents", "TRIGGER", false],
 ];
 
 const runtimeLockColumns = [

@@ -2981,3 +2981,24 @@ granted explicitly on the two functions only with PUBLIC denied.
 
 Full binding contract:
 `docs/decisions/DEC-058_PHASE7_TYPED_LOCATION_CONFIGURATION_AUTHORITY.md`
+
+## DEC-059 — Phase 7 Incident Runtime Read Authority
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+VAL-009C keeps the incidents overview in scope. The API runtime role receives
+**SELECT only** on `public.incidents` through the established
+`runtime-table-privileges.mjs` provisioning allowlist, with deterministic
+verification that SELECT is present and INSERT/UPDATE/DELETE/TRUNCATE/
+REFERENCES/TRIGGER remain absent and PUBLIC receives nothing. The privilege
+exists solely to support server-authorized exact-Location management reads;
+the Dashboard route still requires the VAL-009A `LOCATION_MANAGER` scope and
+stays non-disclosing and read-only with no Incident lifecycle semantics added.
+This is an environment-specific runtime-role provisioning-policy change, not a
+Prisma schema or persistence-object change: no migration 30, migrations 1–29
+unchanged.
+
+Full binding contract:
+`docs/decisions/DEC-059_PHASE7_INCIDENT_RUNTIME_READ_AUTHORITY.md`

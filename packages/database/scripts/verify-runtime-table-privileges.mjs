@@ -2,11 +2,14 @@ import { paymentCollectionPrivileges } from "./payment-collection-runtime-privil
 import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
 import { verifyLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
 import {
+  incidentReadPolicies,
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
 } from "./runtime-table-privileges.mjs";
 
 const tablePrivileges = [
+  ...incidentReadPolicies,
+  ...paymentCollectionPrivileges.table,
   ...paymentCollectionPrivileges.table,
   ...providerEventPrivileges.table,
   ["public.users", "SELECT", true],

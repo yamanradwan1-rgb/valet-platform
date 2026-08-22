@@ -1330,6 +1330,10 @@ Rules:
 - status, type and severity required
 - corrections/evidence additions do not rewrite original audit facts
 - full ClaimShield packaging remains V2
+- runtime role authority (DEC-059): SELECT only through the provisioning
+  allowlist; no INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER and no PUBLIC
+  privilege; Dashboard incident reads stay exact-Location authorized,
+  non-disclosing and read-only with no schema/migration change
 
 ## notifications
 
