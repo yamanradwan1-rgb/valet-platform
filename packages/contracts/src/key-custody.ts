@@ -30,3 +30,4 @@ export type ClearKeySlotRequest = z.infer<typeof clearKeySlotRequestSchema>;
 export type KeySlotAssignmentProjection = z.infer<
   typeof keySlotAssignmentProjectionSchema
 >;
+export type AssignKeySlotResponse = KeySlotAssignmentProjection;

@@ -11,16 +11,24 @@ import {
   toStaffTaskQueueItemViewModel,
   type StaffTaskQueueItemViewModel,
 } from "../../features/task-queue/task-queue-view-model";
+import { LivePriorityTaskCard, LiveQueueItem } from "./task-queue-cards";
 
 export interface TaskQueueScreenProps {
-  readonly mode?: "live" | "prototype" | undefined;
-  readonly nav?: ((s: Screen) => void) | undefined;
+  readonly initialTasks?: StaffTaskQueueItem[] | undefined;
   readonly locationId?: string | null | undefined;
   readonly locationName?: string | undefined;
-  readonly shiftStartedAt?: string | undefined;
   readonly membershipId?: string | undefined;
-  readonly initialTasks?: StaffTaskQueueItem[] | undefined;
+  readonly mode?: "live" | "prototype" | undefined;
+  readonly nav?: ((s: Screen) => void) | undefined;
   readonly onAuthorizationLoss?: (() => void) | undefined;
+  readonly onSelectParkingTask?:
+    | ((task: {
+        sessionId: string;
+        taskId: string;
+        taskVersion: number;
+      }) => void)
+    | undefined;
+  readonly shiftStartedAt?: string | undefined;
 }
 
 function formatShiftStartTime(isoString?: string | undefined): string {
@@ -47,6 +55,7 @@ export function TaskQueueScreen({
   membershipId,
   initialTasks,
   onAuthorizationLoss,
+  onSelectParkingTask,
 }: TaskQueueScreenProps): JSX.Element {
   const isLiveMode = mode === "live" || Boolean(locationId || initialTasks);
   const { tasks: liveTasks } = useTaskQueue({
@@ -70,9 +79,24 @@ export function TaskQueueScreen({
     ? (locationName ?? "")
     : (locationName ?? "Four Seasons Amman");
 
+  const handlePriorityTaskAction = () => {
+    if (!priorityTask) return;
+    if (priorityTask.taskType === "PARKING") {
+      if (onSelectParkingTask) {
+        onSelectParkingTask({
+          sessionId: priorityTask.sessionId,
+          taskId: priorityTask.taskId,
+          taskVersion: priorityTask.version,
+        });
+      }
+      nav?.("parking");
+    } else {
+      nav?.("retrieval");
+    }
+  };
+
   return (
     <div>
-      {/* Shift active status banner */}
       <div className="bg-navy-3 px-5 py-2.5 flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-vsuccess animate-pulse" />
         <span className="text-white text-xs font-semibold">Shift active</span>
@@ -86,7 +110,7 @@ export function TaskQueueScreen({
           <h1 className="text-navy font-bold text-2xl">Tasks</h1>
           <button
             type="button"
-            onClick={!isLiveMode ? () => nav?.("check-in") : undefined}
+            onClick={() => nav?.("check-in")}
             className="bg-vblue text-white text-sm font-bold px-4 h-9 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-[0.98] transition-all shadow-sm"
           >
             <PlusIcon />
@@ -94,9 +118,7 @@ export function TaskQueueScreen({
           </button>
         </div>
 
-        {/* Priority task card */}
         {!isLiveMode ? (
-          // Prototype fallback representation with restored base prototype interactions
           <div
             onClick={() => nav?.("retrieval")}
             className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
@@ -141,60 +163,12 @@ export function TaskQueueScreen({
             </div>
           </div>
         ) : priorityTask ? (
-          // Live Priority Task Card (inert actions in live mode)
-          <div className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow">
-            <div className="h-1 bg-vblue" />
-            <div className="p-5">
-              <div className="flex items-start justify-between mb-4">
-                <Badge variant={priorityTask.badgeVariant} />
-                <div className="text-right">
-                  <p className="text-[10px] text-neutral font-semibold uppercase tracking-wider">
-                    AGE
-                  </p>
-                  <span className="font-heading tabular-nums text-xl font-bold text-vdanger">
-                    {priorityTask.elapsedAge}
-                  </span>
-                </div>
-              </div>
-              <VehicleIdentity
-                model={priorityTask.vehicleHeading}
-                plate={priorityTask.vehicleIdentifier}
-                color={priorityTask.vehicleColor}
-              />
-              <p className="text-neutral text-[13px] mt-1.5">
-                {priorityTask.timeText}
-              </p>
-              <div className="mt-4 pt-4 border-t border-vborder flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-neutral uppercase tracking-wider">
-                    STATUS
-                  </p>
-                  <p className="text-navy font-semibold text-sm mt-0.5">
-                    {priorityTask.status}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={`${
-                    priorityTask.status === "ACCEPTED" ||
-                    priorityTask.status === "IN_PROGRESS"
-                      ? "bg-vsuccess px-4"
-                      : "bg-vblue px-5"
-                  } text-white text-sm font-bold h-10 rounded-xl cursor-pointer active:scale-[0.98] transition-all`}
-                >
-                  {priorityTask.status === "ACCEPTED" ||
-                  priorityTask.status === "IN_PROGRESS"
-                    ? priorityTask.taskType === "RETRIEVAL"
-                      ? "Start Retrieval"
-                      : "Start Parking"
-                    : "Accept Task"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <LivePriorityTaskCard
+            priorityTask={priorityTask}
+            onAction={handlePriorityTaskAction}
+          />
         ) : null}
 
-        {/* Queue list */}
         <div>
           <p className="text-muted text-[10px] font-bold uppercase tracking-widest mb-3">
             Queue
@@ -249,26 +223,22 @@ export function TaskQueueScreen({
                 ))
               : queueTasks.length > 0
                 ? queueTasks.map((task) => (
-                    <div
+                    <LiveQueueItem
                       key={task.taskId}
-                      className="bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant={task.badgeVariant} />
-                          <span className="text-muted text-xs">
-                            {task.timeText}
-                          </span>
-                        </div>
-                        <p className="font-heading font-bold text-navy text-[15px] leading-tight">
-                          {task.vehicleHeading}
-                        </p>
-                        <p className="text-neutral text-xs mt-0.5">
-                          {task.vehicleIdentifier} · {task.metaText}
-                        </p>
-                      </div>
-                      <ChevronRight />
-                    </div>
+                      task={task}
+                      onClick={() => {
+                        if (task.taskType === "PARKING") {
+                          if (onSelectParkingTask) {
+                            onSelectParkingTask({
+                              sessionId: task.sessionId,
+                              taskId: task.taskId,
+                              taskVersion: task.version,
+                            });
+                          }
+                          nav?.("parking");
+                        }
+                      }}
+                    />
                   ))
                 : null}
           </div>

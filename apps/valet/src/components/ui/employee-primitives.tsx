@@ -230,14 +230,31 @@ export function ScannerFrame({
 
 export function ElapsedTimer({
   offsetSeconds = 0,
+  startTimeIso,
 }: {
-  offsetSeconds?: number;
+  offsetSeconds?: number | undefined;
+  startTimeIso?: string | null | undefined;
 }): JSX.Element {
   const [elapsed, setElapsed] = useState(offsetSeconds);
   useEffect(() => {
-    const t = setInterval(() => setElapsed((s) => s + 1), 1000);
+    const getElapsed = () => {
+      if (startTimeIso) {
+        try {
+          const started = new Date(startTimeIso).getTime();
+          if (!isNaN(started)) {
+            return Math.max(0, Math.floor((Date.now() - started) / 1000));
+          }
+        } catch {
+          // fallback
+        }
+      }
+      return offsetSeconds;
+    };
+    const t = setInterval(() => {
+      setElapsed((prev) => (startTimeIso ? getElapsed() : prev + 1));
+    }, 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [startTimeIso, offsetSeconds]);
   const m = Math.floor(elapsed / 60)
     .toString()
     .padStart(2, "0");

@@ -22,3 +22,4 @@ export const startParkingResponseSchema = z
   .strict();
 
 export type StartParkingRequest = z.infer<typeof startParkingRequestSchema>;
+export type StartParkingResponse = z.infer<typeof startParkingResponseSchema>;

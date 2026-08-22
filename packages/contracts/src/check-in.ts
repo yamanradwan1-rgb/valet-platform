@@ -180,14 +180,21 @@ export const guestSafeSessionResponseSchema = z
   .strict();
 
 export type IntakeRequest = z.infer<typeof intakeRequestSchema>;
+export type IntakeResponse = z.infer<typeof intakeResponseSchema>;
 export type VehicleIdentityRequest = z.infer<
   typeof vehicleIdentityRequestSchema
 >;
 export type ConditionNoteRequest = z.infer<typeof conditionNoteRequestSchema>;
 export type ConditionPhotoRequest = z.infer<typeof conditionPhotoRequestSchema>;
+export type ConditionCompletionResponse = z.infer<
+  typeof conditionCompletionResponseSchema
+>;
 export type GuestAccessIssueRequest = z.infer<
   typeof guestAccessIssueRequestSchema
 >;
 export type CompleteCheckInRequest = z.infer<
   typeof completeCheckInRequestSchema
+>;
+export type CompleteCheckInResponse = z.infer<
+  typeof completeCheckInResponseSchema
 >;

@@ -1,6 +1,11 @@
-import { useState, type JSX } from "react";
+"use client";
 
-import type { ParkingStep, Screen } from "../../types/employee-ui";
+import { useState, type JSX } from "react";
+import type { Screen } from "../../types/employee-ui";
+import {
+  useParking,
+  type ActiveParkingSession,
+} from "../../features/parking";
 import {
   BackHeader,
   Badge,
@@ -12,39 +17,93 @@ import {
   TrackingPill,
 } from "../ui/employee-primitives";
 
+export interface ParkingFlowProps {
+  readonly initialSession?: ActiveParkingSession | null | undefined;
+  readonly nav: (s: Screen) => void;
+  readonly onComplete?: (() => void) | undefined;
+  readonly sessionId?: string | null | undefined;
+  readonly taskId?: string | null | undefined;
+  readonly taskVersion?: number | null | undefined;
+}
+
 export function ParkingFlow({
   nav,
-}: {
-  nav: (s: Screen) => void;
-}): JSX.Element | null {
-  const [step, setStep] = useState<ParkingStep>("in-progress");
-  const [spotScanned, setSpotScanned] = useState(false);
+  initialSession = null,
+  sessionId = null,
+  taskId = null,
+  taskVersion = null,
+  onComplete,
+}: ParkingFlowProps): JSX.Element | null {
+  const parking = useParking({
+    initialSession,
+    sessionId,
+    taskId,
+    taskVersion,
+  });
 
-  if (step === "in-progress") {
+  const [spotScanned, setSpotScanned] = useState(false);
+  const [selectedSpot, setSelectedSpot] = useState("B-17");
+
+  const session = parking.activeSession;
+  const vehicle = session?.vehicle;
+
+  const vehicleHeading = vehicle
+    ? `${vehicle.make ?? ""} ${vehicle.model ?? "Vehicle"}`.trim()
+    : "Vehicle";
+
+  const vehiclePlate =
+    vehicle?.plateNumberRaw ??
+    vehicle?.temporaryDescriptor ??
+    "No Plate";
+
+  const vehicleInfo = `${vehicleHeading} · ${vehiclePlate}`;
+  const keyInfo = session?.keySlotCode ?? "None";
+  const destination = session?.parkingZoneCode ?? "Zone B";
+
+  if (parking.isHydrating) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
+        <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
+        <p className="text-navy font-semibold text-sm">
+          Loading parking session details...
+        </p>
+      </div>
+    );
+  }
+
+  if (parking.step === "in-progress") {
     return (
       <div>
         <div className="bg-white border-b border-vborder px-5 py-4 flex items-center justify-between">
           <div>
             <Badge variant="parking" />
             <p className="font-heading font-bold text-xl text-navy mt-2">
-              Parking BMW X5
+              Parking {vehicleHeading}
             </p>
           </div>
           <TrackingPill />
         </div>
         <div className="p-5 space-y-4">
+          {parking.error && (
+            <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
+              {parking.error}
+            </div>
+          )}
           <div className="bg-white rounded-2xl border border-vborder p-5 flex flex-col items-center gap-1">
             <p className="text-muted text-xs uppercase tracking-wider">
               Elapsed
             </p>
-            <ElapsedTimer offsetSeconds={102} />
+            <ElapsedTimer startTimeIso={session?.parkingStartedAt} />
           </div>
           <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-            <InfoRow label="Vehicle" value="BMW X5 · 12-34567" />
-            <InfoRow label="Key" value="B-214" />
-            <InfoRow label="Destination" value="Zone B" />
+            <InfoRow label="Vehicle" value={vehicleInfo} />
+            <InfoRow label="Key" value={keyInfo} />
+            <InfoRow label="Destination" value={destination} />
           </div>
-          <Btn label="Park Vehicle" onClick={() => setStep("spot-scan")} />
+          <Btn
+            label="Park Vehicle"
+            onClick={() => parking.setStep("spot-scan")}
+          />
           <Btn
             label="Report Issue"
             variant="secondary"
@@ -56,13 +115,18 @@ export function ParkingFlow({
     );
   }
 
-  if (step === "spot-scan") {
+  if (parking.step === "spot-scan") {
     return (
       <div>
         <BackHeader
           title="Parking Spot"
-          onBack={() => setStep("in-progress")}
+          onBack={() => parking.setStep("in-progress")}
         />
+        {parking.error && (
+          <div className="mx-5 mt-3 p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
+            {parking.error}
+          </div>
+        )}
         {!spotScanned ? (
           <>
             <ScannerFrame
@@ -72,12 +136,18 @@ export function ParkingFlow({
             <div className="p-5 space-y-3">
               <Btn
                 label="Simulate Spot Scan"
-                onClick={() => setSpotScanned(true)}
+                onClick={() => {
+                  setSelectedSpot("B-17");
+                  setSpotScanned(true);
+                }}
               />
               <Btn
                 label="Choose manually"
                 variant="secondary"
-                onClick={() => setSpotScanned(true)}
+                onClick={() => {
+                  setSelectedSpot("B-17");
+                  setSpotScanned(true);
+                }}
               />
             </div>
           </>
@@ -88,22 +158,36 @@ export function ParkingFlow({
                 Confirmed location
               </p>
               <p className="font-heading font-bold text-3xl text-navy">
-                Zone B
+                {destination}
               </p>
-              <p className="font-heading font-semibold text-lg text-neutral mt-1">
-                Spot B-17
-              </p>
+              <div className="mt-2">
+                <label className="text-neutral text-xs font-semibold uppercase tracking-wider block mb-1">
+                  Spot Code
+                </label>
+                <input
+                  value={selectedSpot}
+                  onChange={(e) => setSelectedSpot(e.target.value)}
+                  placeholder="B-17"
+                  className="w-full text-center font-heading font-semibold text-xl text-navy bg-white border border-vborder rounded-xl h-12 focus:outline-none focus:border-vblue"
+                />
+              </div>
             </div>
             <Btn
-              label="Confirm Parking"
-              onClick={() => setStep("success")}
+              label={
+                parking.isSubmitting ? "Confirming..." : "Confirm Parking"
+              }
+              onClick={async () => {
+                await parking.confirmParked(selectedSpot);
+              }}
               variant="success"
+              disabled={parking.isSubmitting || selectedSpot.trim() === ""}
             />
             <Btn
               label="Scan again"
               variant="secondary"
               size="md"
               onClick={() => setSpotScanned(false)}
+              disabled={parking.isSubmitting}
             />
           </div>
         )}
@@ -111,7 +195,9 @@ export function ParkingFlow({
     );
   }
 
-  if (step === "success") {
+  if (parking.step === "success") {
+    const confirmedZone = session?.parkingZoneCode ?? destination;
+    const confirmedSpot = session?.parkingSpotCode ?? selectedSpot;
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] p-6 space-y-6">
         <SuccessCircle />
@@ -124,12 +210,23 @@ export function ParkingFlow({
           </p>
         </div>
         <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-          <InfoRow label="Vehicle" value="BMW X5 · 12-34567" />
-          <InfoRow label="Zone / Spot" value="Zone B · B-17" />
-          <InfoRow label="Key" value="B-214" />
+          <InfoRow label="Vehicle" value={vehicleInfo} />
+          <InfoRow
+            label="Zone / Spot"
+            value={`${confirmedZone} · ${confirmedSpot}`}
+          />
+          <InfoRow label="Key" value={keyInfo} />
         </div>
         <div className="w-full">
-          <Btn label="Done" onClick={() => nav("task-queue")} />
+          <Btn
+            label="Done"
+            onClick={() => {
+              if (onComplete) {
+                onComplete();
+              }
+              nav("task-queue");
+            }}
+          />
         </div>
       </div>
     );

@@ -5,21 +5,33 @@ import { BackHeader, Btn, VehicleIdentity } from "../../ui/employee-primitives";
 
 export function CheckInCustomerPhoneStep({
   phone,
+  make,
+  model,
+  color,
+  plate,
   onChangePhone,
   onContinue,
   onBack,
 }: {
-  phone: string;
-  onChangePhone: (val: string) => void;
-  onContinue: () => void;
-  onBack: () => void;
+  readonly color?: string | null | undefined;
+  readonly make?: string | null | undefined;
+  readonly model?: string | null | undefined;
+  readonly onBack: () => void;
+  readonly onChangePhone: (val: string) => void;
+  readonly onContinue: () => void;
+  readonly phone: string;
+  readonly plate?: string | null | undefined;
 }): JSX.Element {
   return (
     <div>
       <BackHeader title="Customer Contact" onBack={onBack} />
       <div className="p-5 space-y-5">
         <div className="bg-white rounded-2xl border border-vborder p-4">
-          <VehicleIdentity color="Black" />
+          <VehicleIdentity
+            color={color ?? "Black"}
+            model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
+            plate={plate ?? "12-34567"}
+          />
         </div>
         <div>
           <label className="text-navy font-semibold text-sm block mb-2">
@@ -43,7 +55,12 @@ export function CheckInCustomerPhoneStep({
           </p>
         </div>
         <Btn label="Continue" onClick={onContinue} />
-        <Btn label="No phone available" variant="ghost" size="md" />
+        <Btn
+          label="No phone available"
+          variant="ghost"
+          size="md"
+          onClick={onContinue}
+        />
       </div>
     </div>
   );
@@ -51,22 +68,43 @@ export function CheckInCustomerPhoneStep({
 
 export function CheckInVehicleConditionStep({
   condition,
+  make,
+  model,
+  color,
+  plate,
+  isSubmitting,
+  error,
   onSelectCondition,
   onContinue,
   onBack,
 }: {
-  condition: string;
-  onSelectCondition: (opt: string) => void;
-  onContinue: () => void;
-  onBack: () => void;
+  readonly color?: string | null | undefined;
+  readonly condition: string;
+  readonly error?: string | null | undefined;
+  readonly isSubmitting?: boolean | undefined;
+  readonly make?: string | null | undefined;
+  readonly model?: string | null | undefined;
+  readonly onBack: () => void;
+  readonly onContinue: () => void;
+  readonly onSelectCondition: (opt: string) => void;
+  readonly plate?: string | null | undefined;
 }): JSX.Element {
   const options = ["No visible issue", "Existing damage", "Needs review"];
   return (
     <div>
       <BackHeader title="Vehicle Condition" onBack={onBack} />
       <div className="p-5 space-y-5">
+        {error && (
+          <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
+            {error}
+          </div>
+        )}
         <div className="bg-white rounded-2xl border border-vborder p-4">
-          <VehicleIdentity color="Black" />
+          <VehicleIdentity
+            color={color ?? "Black"}
+            model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
+            plate={plate ?? "12-34567"}
+          />
         </div>
         <div className="space-y-2">
           {options.map((opt) => (
@@ -135,7 +173,11 @@ export function CheckInVehicleConditionStep({
             Add Note
           </button>
         </div>
-        <Btn label="Continue" onClick={onContinue} />
+        <Btn
+          label={isSubmitting ? "Completing Condition..." : "Continue"}
+          onClick={onContinue}
+          disabled={isSubmitting ?? false}
+        />
       </div>
     </div>
   );

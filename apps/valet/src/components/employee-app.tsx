@@ -17,6 +17,8 @@ import { BottomNav } from "./shell/bottom-nav";
 import { OfflineBanner } from "./ui/employee-primitives";
 import { useStaffOperationalContext } from "../features/staff-operational-context";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
+import type { StartParkingPayload } from "../features/check-in";
+import type { ActiveParkingSession } from "../features/parking";
 
 function getActiveTab(s: Screen): Tab {
   if (s === "vehicles-list") return "vehicles";
@@ -31,14 +33,27 @@ export function EmployeeApp(): JSX.Element {
   const [screenOverride, setScreenOverride] = useState<Screen | null>(null);
   const [isPrototypeOffline, setIsPrototypeOffline] = useState(false);
 
+  const [activeParkingPayload, setActiveParkingPayload] =
+    useState<StartParkingPayload | null>(null);
+  const [activeParkingTarget, setActiveParkingTarget] = useState<{
+    sessionId: string;
+    taskId: string;
+    taskVersion: number;
+  } | null>(null);
+
   const isLive = resolution.kind === "RESOLVED";
 
-  // FAIL CLOSED SYNCHRONOUSLY:
-  // When resolution.kind === "RESOLVED", Task Queue is the ONLY screen permitted.
-  // When resolution.kind !== "RESOLVED" in an authenticated session, effective screen MUST be "shift-start".
-  // Prototype tests without active auth can use screenOverride.
+  // In live mode, permitted operational screens are task-queue, check-in, parking.
+  const livePermittedScreens = new Set<Screen>([
+    "task-queue",
+    "check-in",
+    "parking",
+  ]);
+
   const effectiveScreen: Screen = isLive
-    ? "task-queue"
+    ? screenOverride && livePermittedScreens.has(screenOverride)
+      ? screenOverride
+      : "task-queue"
     : auth?.status === "authenticated"
       ? "shift-start"
       : (screenOverride ?? "shift-start");
@@ -47,8 +62,9 @@ export function EmployeeApp(): JSX.Element {
 
   const nav = (s: Screen) => {
     if (isLive) {
-      // In live mode, only task-queue is allowed. No mock screens!
-      if (s === "task-queue") {
+      if (livePermittedScreens.has(s)) {
+        setScreenOverride(s);
+      } else {
         setScreenOverride("task-queue");
       }
     } else {
@@ -56,23 +72,95 @@ export function EmployeeApp(): JSX.Element {
     }
   };
 
+  const handleStartParkingFromCheckIn = (payload: StartParkingPayload) => {
+    setActiveParkingPayload(payload);
+    setActiveParkingTarget(null);
+    setScreenOverride("parking");
+  };
+
+  const handleSelectParkingTaskFromQueue = (target: {
+    sessionId: string;
+    taskId: string;
+    taskVersion: number;
+  }) => {
+    setActiveParkingTarget(target);
+    setActiveParkingPayload(null);
+    setScreenOverride("parking");
+  };
+
+  const handleParkingComplete = () => {
+    setActiveParkingPayload(null);
+    setActiveParkingTarget(null);
+    setScreenOverride("task-queue");
+  };
+
+  const renderLiveScreen = () => {
+    switch (effectiveScreen) {
+      case "check-in":
+        return (
+          <CheckInFlow
+            locationId={activeScope?.locationId}
+            nav={nav}
+            onStartParkingSuccess={handleStartParkingFromCheckIn}
+          />
+        );
+      case "parking": {
+        const initialSession: ActiveParkingSession | null =
+          activeParkingPayload
+            ? {
+                keySlotCode: activeParkingPayload.keySlotCode,
+                locationId: activeParkingPayload.locationId,
+                parkedAt: null,
+                parkingSpotCode: null,
+                parkingStartedAt: activeParkingPayload.parkingStartedAt,
+                parkingZoneCode: null,
+                sessionId: activeParkingPayload.sessionId,
+                sessionVersion: activeParkingPayload.sessionVersion,
+                taskId: activeParkingPayload.taskId,
+                taskVersion: activeParkingPayload.taskVersion,
+                vehicle: activeParkingPayload.vehicle,
+              }
+            : null;
+        return (
+          <ParkingFlow
+            initialSession={initialSession}
+            sessionId={
+              activeParkingTarget?.sessionId ?? activeParkingPayload?.sessionId
+            }
+            taskId={
+              activeParkingTarget?.taskId ?? activeParkingPayload?.taskId
+            }
+            taskVersion={
+              activeParkingTarget?.taskVersion ??
+              activeParkingPayload?.taskVersion
+            }
+            nav={nav}
+            onComplete={handleParkingComplete}
+          />
+        );
+      }
+      case "task-queue":
+      default:
+        return (
+          <TaskQueueScreen
+            mode="live"
+            nav={nav}
+            locationId={activeScope?.locationId}
+            locationName={activeScope?.locationName}
+            shiftStartedAt={activeScope?.shiftStartedAt}
+            membershipId={activeScope?.membershipId}
+            onAuthorizationLoss={revalidateOnAuthLoss}
+            onSelectParkingTask={handleSelectParkingTaskFromQueue}
+          />
+        );
+    }
+  };
+
   const renderScreen = () => {
-    // In live mode, TaskQueueScreen is the ONLY screen rendered
     if (isLive) {
-      return (
-        <TaskQueueScreen
-          mode="live"
-          nav={nav}
-          locationId={activeScope?.locationId}
-          locationName={activeScope?.locationName}
-          shiftStartedAt={activeScope?.shiftStartedAt}
-          membershipId={activeScope?.membershipId}
-          onAuthorizationLoss={revalidateOnAuthLoss}
-        />
-      );
+      return renderLiveScreen();
     }
 
-    // Prototype mode screens
     switch (effectiveScreen) {
       case "task-queue":
         return <TaskQueueScreen mode="prototype" nav={nav} />;
@@ -95,7 +183,6 @@ export function EmployeeApp(): JSX.Element {
     }
   };
 
-  // Shift start — full-screen dark shell
   if (effectiveScreen === "shift-start") {
     return (
       <div className="min-h-screen bg-navy-2 flex items-center justify-center">
@@ -112,11 +199,9 @@ export function EmployeeApp(): JSX.Element {
     );
   }
 
-  // Main operational UI
   return (
     <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
       <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
-        {/* OfflineBanner is strictly for prototype demonstration, NEVER rendered in live operational mode */}
         {!isLive && isPrototypeOffline && <OfflineBanner />}
         <AppHeader
           mode={isLive ? "live" : "prototype"}
@@ -131,7 +216,6 @@ export function EmployeeApp(): JSX.Element {
           active={getActiveTab(effectiveScreen)}
           onTab={(t) => {
             if (isLive) {
-              // In live mode, only home (task-queue) is active; others are non-operative
               if (t === "home") nav("task-queue");
             } else {
               if (t === "home") nav("task-queue");
@@ -142,7 +226,6 @@ export function EmployeeApp(): JSX.Element {
           }}
         />
 
-        {/* Demo utility: offline toggle strictly in prototype mode */}
         {!isLive && (
           <button
             onClick={() => setIsPrototypeOffline((o) => !o)}

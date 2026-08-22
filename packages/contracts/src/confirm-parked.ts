@@ -26,3 +26,4 @@ export const confirmParkedResponseSchema = z
   .strict();
 
 export type ConfirmParkedRequest = z.infer<typeof confirmParkedRequestSchema>;
+export type ConfirmParkedResponse = z.infer<typeof confirmParkedResponseSchema>;

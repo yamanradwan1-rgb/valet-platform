@@ -101,3 +101,7 @@ export type StaffTaskQueueItemVehicle = z.infer<
 >;
 export type TaskQueueQuery = z.infer<typeof taskQueueQuerySchema>;
 export type TaskQueueResponse = z.infer<typeof taskQueueResponseSchema>;
+export type ParkingTaskQueueResponse = z.infer<
+  typeof parkingTaskQueueResponseSchema
+>;
+export type AcceptTaskResponse = z.infer<typeof acceptTaskResponseSchema>;
