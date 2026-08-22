@@ -13,7 +13,8 @@ describe("Retrieval Mutations & Double-Submit Protection", () => {
   const locationId = "33333333-3333-4333-8333-333333333333";
 
   const activeRequestedSession: ActiveRetrievalSession = {
-    expectedKeySlotCode: "B-214",
+    handoff: { pendingAt: null, verification: null },
+expectedKeySlotCode: "B-214",
     isKeyConfirmed: false,
     locationId,
     parkingSpotCode: "P-101",

@@ -17,13 +17,21 @@ function getErrMsg(err: unknown, fallback: string): string {
 function resolveInitialStep(state?: string): RetrievalFlowStep {
   if (state === "RETRIEVING") return "in-progress";
   if (state === "READY") return "vehicle-ready";
+  if (state === "HANDOFF_PENDING") return "handoff";
+  if (state === "COMPLETED") return "handoff-completed";
   return "key-checkout";
 }
 
 const VALID_STATUS_MAP: Record<
-  "READY" | "REQUESTED" | "RETRIEVING",
-  "ACCEPTED" | "IN_PROGRESS"
+  | "COMPLETED"
+  | "READY"
+  | "REQUESTED"
+  | "RETRIEVING"
+  | "HANDOFF_PENDING",
+  "ACCEPTED" | "COMPLETED" | "IN_PROGRESS"
 > = {
+  COMPLETED: "COMPLETED",
+  HANDOFF_PENDING: "IN_PROGRESS",
   READY: "IN_PROGRESS",
   REQUESTED: "ACCEPTED",
   RETRIEVING: "IN_PROGRESS",
@@ -96,13 +104,14 @@ export class RetrievalController {
     sessionId: string,
     taskId: string,
     taskVersion: number,
-    taskStatus: "ACCEPTED" | "IN_PROGRESS",
+    taskStatus: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED",
     assigneeMembershipId: string,
+    actorRole?: "VALET_SUPERVISOR" | undefined,
   ): Promise<void> {
     this.update({ error: null, isHydrating: true });
     try {
       if (!this.membershipId) throw new Error("No active staff membership.");
-      if (!assigneeMembershipId) {
+      if (!assigneeMembershipId && actorRole !== "VALET_SUPERVISOR") {
         throw new Error(
           "Retrieval task assignee metadata is missing; reload the task from the Task Queue.",
         );
@@ -112,7 +121,10 @@ export class RetrievalController {
           "Retrieval task status metadata is missing; reload the task from the Task Queue.",
         );
       }
-      if (assigneeMembershipId !== this.membershipId) {
+      // Same-user token refreshes must not look like ownership loss.
+      const ownershipMatches =
+        assigneeMembershipId === this.membershipId;
+      if (!ownershipMatches && actorRole !== "VALET_SUPERVISOR") {
         throw new Error(
           "Retrieval task is assigned to another valet employee.",
         );
@@ -122,7 +134,9 @@ export class RetrievalController {
       if (
         detail.state !== "REQUESTED" &&
         detail.state !== "RETRIEVING" &&
-        detail.state !== "READY"
+        detail.state !== "READY" &&
+        detail.state !== "HANDOFF_PENDING" &&
+        detail.state !== "COMPLETED"
       ) {
         throw new Error(
           `Session is in state ${detail.state}, which cannot be retrieved.`,
@@ -138,6 +152,7 @@ export class RetrievalController {
 
       const activeSession: ActiveRetrievalSession = {
         expectedKeySlotCode: detail.keySlot?.code ?? null,
+        handoff: detail.handoff,
         isKeyConfirmed: false,
         locationId: detail.locationId,
         parkingSpotCode: detail.parking.parkingSpotCode,

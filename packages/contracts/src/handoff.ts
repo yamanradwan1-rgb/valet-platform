@@ -111,3 +111,10 @@ export type VerifyPickupCodeRequest = z.infer<
 export type VerifyDynamicQrRequest = z.infer<
   typeof verifyDynamicQrRequestSchema
 >;
+export type InitiateHandoffResponse = z.infer<
+  typeof initiateHandoffResponseSchema
+>;
+export type VerifiedHandoffResponse = z.infer<
+  typeof verifiedHandoffResponseSchema
+>;
+export type AbortHandoffResponse = z.infer<typeof abortHandoffResponseSchema>;

@@ -1,16 +1,23 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
+
+import type { StaffOperationalRole } from "@valet/contracts";
 
 import type { RetrievalStep, Screen } from "../../types/employee-ui";
 import {
   useRetrieval,
   type ActiveRetrievalSession,
 } from "../../features/retrieval";
+import { useHandoff as useHandoffLifecycle } from "../../features/handoff";
+import {
+  RetrievalHandoffGate,
+  supervisorCanOverride,
+} from "./retrieval/retrieval-handoff-gate";
+import { LiveHandoffCompletedStep } from "./retrieval/retrieval-handoff-live-release-steps";
 import {
   LiveRetrievalInProgressStep,
   LiveRetrievalKeyCheckoutStep,
-  LiveRetrievalVehicleReadyStep,
 } from "./retrieval/retrieval-live-steps";
 import {
   RetrievalGuestVerifiedStep,
@@ -31,6 +38,7 @@ export interface RetrievalFlowProps {
   readonly membershipId?: string | null | undefined;
   readonly mode?: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
+  readonly role?: StaffOperationalRole | null | undefined;
   readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onComplete?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
@@ -45,6 +53,7 @@ export function RetrievalFlow({
   membershipId = null,
   currentAssigneeMembershipId = null,
   mode,
+  role = null,
   sessionId = null,
   taskId = null,
   taskStatus = null,
@@ -55,6 +64,7 @@ export function RetrievalFlow({
   const isLive = mode === "live" || Boolean(sessionId || initialSession);
 
   const retrieval = useRetrieval({
+    actorRole: role === "VALET_SUPERVISOR" ? "VALET_SUPERVISOR" : undefined,
     currentAssigneeMembershipId,
     initialSession,
     membershipId,
@@ -64,6 +74,21 @@ export function RetrievalFlow({
     taskStatus: isLive ? taskStatus : null,
     taskVersion: isLive ? taskVersion : null,
   });
+  const handoff = useHandoffLifecycle({
+    onComplete,
+  });
+
+  // Seed the authoritative handoff lifecycle when entering HANDOFF_PENDING.
+  useEffect(() => {
+    if (retrieval.step !== "handoff") return;
+    const session = retrieval.activeSession;
+    if (session === null) return;
+    if (handoff.state.phase !== "idle") return;
+    handoff.controller.seed({
+      sessionVersion: session.sessionVersion,
+      verification: session.handoff.verification,
+    });
+  }, [handoff, retrieval.step, retrieval.activeSession]);
 
   // Prototype state
   const [protoStep, setProtoStep] = useState<RetrievalStep>("task");
@@ -168,20 +193,35 @@ export function RetrievalFlow({
       );
     }
 
-    if (retrieval.step === "vehicle-ready") {
+    if (
+      (retrieval.step === "vehicle-ready" || retrieval.step === "handoff") &&
+      session !== null
+    ) {
       return (
-        <LiveRetrievalVehicleReadyStep
-          vehicleInfo={vehicleInfo}
-          keyInfo={keyInfo}
-          parkingLocation={parkingLocation}
-          onDone={() => {
+        <RetrievalHandoffGate
+          handoff={handoff}
+          isSupervisor={supervisorCanOverride(role)}
+          onComplete={() => {
             onComplete?.();
             nav("task-queue");
           }}
+          onReturnToReady={() => void retrieval.retry()}
+          session={session}
         />
       );
     }
 
+    if (retrieval.step === "handoff-completed") {
+      return (
+        <LiveHandoffCompletedStep
+          onDone={() => {
+            onComplete?.();
+            nav("task-queue");
+          }}
+          vehicleInfo={vehicleInfo}
+        />
+      );
+    }
     return null;
   }
 

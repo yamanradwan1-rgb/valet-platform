@@ -6,7 +6,8 @@ import type { ActiveRetrievalSession } from "../../features/retrieval";
 
 describe("RetrievalFlow Component", () => {
   const activeRequestedSession: ActiveRetrievalSession = {
-    expectedKeySlotCode: "K-900",
+    handoff: { pendingAt: null, verification: null },
+expectedKeySlotCode: "K-900",
     isKeyConfirmed: false,
     locationId: "11111111-1111-4111-8111-111111111111",
     parkingSpotCode: "P-42",
@@ -94,26 +95,24 @@ describe("RetrievalFlow Component", () => {
     expect(markup).not.toContain("TrackingPill");
   });
 
-  it("renders live vehicle-ready step with Done button and without fabricated location / handoff claims", () => {
+  it("renders live vehicle-ready step with handoff launch and without fabricated claims", () => {
     const nav = vi.fn();
     const markup = renderToStaticMarkup(
       <RetrievalFlow
         mode="live"
         nav={nav}
         initialSession={activeReadySession}
-      />,
+      />
     );
-
-    expect(markup).toContain("Vehicle ready");
-    expect(markup).toContain("Ready for guest");
-    expect(markup).toContain("Audi A6 · 77-99999");
-    expect(markup).toContain("Done");
+    expect(markup).toContain("Ready for pickup");
+    expect(markup).toContain("Audi A6");
+    expect(markup).toContain("77-99999");
+    expect(markup).toContain("Begin Guest Handoff");
     // Verifies released spot is not fabricated
     expect(markup).not.toContain("Spot P-42");
     expect(markup).not.toContain("Zone North");
     expect(markup).not.toContain("Guest notified");
     expect(markup).not.toContain("Verify Guest");
-    expect(markup).not.toContain("Secure Handoff");
   });
 
   it("renders prototype mode with demo controls and handoff actions", () => {

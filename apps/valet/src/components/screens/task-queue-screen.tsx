@@ -26,6 +26,7 @@ export interface TaskQueueScreenProps {
   readonly locationId?: string | null | undefined;
   readonly locationName?: string | undefined;
   readonly membershipId?: string | undefined;
+  readonly role?: "VALET_SUPERVISOR" | "VALET_EMPLOYEE" | null | undefined;
   readonly mode?: "live" | "prototype" | undefined;
   readonly nav?: ((s: Screen) => void) | undefined;
   readonly onAuthorizationLoss?: (() => void) | undefined;
@@ -67,6 +68,7 @@ function formatShiftStartTime(isoString?: string | undefined): string {
 }
 
 export function TaskQueueScreen({
+  role,
   mode,
   nav,
   locationId,
@@ -138,6 +140,24 @@ export function TaskQueueScreen({
           setActionError("This task is assigned to another valet employee.");
         }
       } else if (task.taskType === "RETRIEVAL") {
+        // Supervisor non-owner override entry: authoritative state/version
+        // come from the enriched queue projection; ownership stays with the
+        // retrieval owner for final release.
+        if (
+          role === "VALET_SUPERVISOR" &&
+          task.status === "IN_PROGRESS" &&
+          task.valetSessionState === "HANDOFF_PENDING"
+        ) {
+          onSelectRetrievalTask?.({
+            currentAssigneeMembershipId: null,
+            sessionId: task.sessionId,
+            taskId: task.taskId,
+            taskStatus: "IN_PROGRESS",
+            taskVersion: task.version,
+          });
+          nav?.("retrieval");
+          return;
+        }
         const result = await executeRetrievalTaskAction(
           taskQueueClient,
           {

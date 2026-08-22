@@ -13,6 +13,8 @@ export interface StaffTaskQueueItemViewModel {
   readonly taskId: string;
   readonly taskType: "PARKING" | "RETRIEVAL";
   readonly timeText: string;
+  readonly valetSessionState: StaffTaskQueueItem["valetSessionState"];
+  readonly valetSessionVersion: number;
   readonly vehicleColor?: string | undefined;
   readonly vehicleHeading: string;
   readonly vehicleIdentifier: string;
@@ -121,6 +123,8 @@ export function toStaffTaskQueueItemViewModel(
     taskId: task.taskId,
     taskType: task.taskType,
     timeText,
+    valetSessionState: task.valetSessionState,
+    valetSessionVersion: task.valetSessionVersion,
     vehicleColor: task.vehicle.color?.trim() || undefined,
     vehicleHeading,
     vehicleIdentifier,

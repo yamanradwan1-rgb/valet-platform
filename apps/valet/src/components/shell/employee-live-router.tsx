@@ -95,6 +95,7 @@ export function EmployeeLiveRouter({
           }
           membershipId={activeScope.membershipId}
           mode="live"
+          role={activeScope.role}
           sessionId={retrievalTarget?.sessionId}
           taskId={retrievalTarget?.taskId}
           taskStatus={retrievalTarget?.taskStatus}
@@ -114,6 +115,7 @@ export function EmployeeLiveRouter({
           locationName={activeScope.locationName}
           shiftStartedAt={activeScope.shiftStartedAt}
           membershipId={activeScope.membershipId}
+          role={activeScope.role}
           onAuthorizationLoss={onAuthorizationLoss}
           onSelectParkingTask={onSelectParkingTask}
           onSelectRetrievalTask={onSelectRetrievalTask}

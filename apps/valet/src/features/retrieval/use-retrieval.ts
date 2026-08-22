@@ -15,6 +15,7 @@ import type {
 } from "./retrieval-types";
 
 export interface UseRetrievalOptions {
+  readonly actorRole?: "VALET_SUPERVISOR" | undefined;
   readonly client?: EmployeeApiClient | undefined;
   readonly currentAssigneeMembershipId?: string | null | undefined;
   readonly initialSession?: ActiveRetrievalSession | null | undefined;
@@ -50,6 +51,7 @@ function getInitialStep(
 
 export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
   const {
+    actorRole,
     initialSession,
     sessionId,
     taskId,
@@ -107,14 +109,16 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
     } else if (sessionId && taskId) {
       if (
         taskVersion !== null && taskVersion !== undefined &&
-        taskStatus && currentAssigneeMembershipId
+        taskStatus &&
+        (currentAssigneeMembershipId || actorRole === "VALET_SUPERVISOR")
       ) {
         void controller.hydrateSession(
           sessionId,
           taskId,
           taskVersion,
           taskStatus,
-          currentAssigneeMembershipId,
+          currentAssigneeMembershipId ?? "",
+          actorRole,
         );
       } else {
         controller.setHydrationError(
@@ -123,7 +127,7 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
       }
     }
   }, [
-    controller, initialSession, sessionId, taskId,
+    actorRole, controller, initialSession, sessionId, taskId,
     taskVersion, taskStatus, currentAssigneeMembershipId, membershipId,
   ]);
 
@@ -146,14 +150,16 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
     if (sessionId && taskId) {
       if (
         taskVersion !== null && taskVersion !== undefined &&
-        taskStatus && currentAssigneeMembershipId
+        taskStatus &&
+        (currentAssigneeMembershipId || actorRole === "VALET_SUPERVISOR")
       ) {
         await controller.hydrateSession(
           sessionId,
           taskId,
           taskVersion,
           taskStatus,
-          currentAssigneeMembershipId,
+          currentAssigneeMembershipId ?? "",
+          actorRole,
         );
       } else {
         controller.setHydrationError(
@@ -162,7 +168,7 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
       }
     }
   }, [
-    controller, sessionId, taskId, taskVersion,
+    actorRole, controller, sessionId, taskId, taskVersion,
     taskStatus, currentAssigneeMembershipId,
   ]);
 
