@@ -46,6 +46,7 @@ function getInitialStep(
   if (!session) return "key-checkout";
   if (session.state === "RETRIEVING") return "in-progress";
   if (session.state === "READY") return "vehicle-ready";
+  if (session.state === "HANDOFF_PENDING") return "handoff";
   return "key-checkout";
 }
 

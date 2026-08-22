@@ -5,7 +5,9 @@ import {
   type ReportIncidentResponse,
 } from "@valet/contracts";
 
-import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import {
+  getDefaultStaffAuthClient,} from "../../lib/auth/staff-auth-context";
 
 export type ReportIncidentApiInput = ReportIncidentRequest;
 
@@ -26,4 +28,15 @@ export async function reportIncident(
     },
   );
   return reportIncidentResponseSchema.parse(raw);
+}
+
+/**
+ * Production A1 client used by the live incident flow. Built with the same
+ * authenticated construction pattern as every other live feature hook so the
+ * router never needs to inject a client.
+ */
+export function createDefaultIncidentApiClient(): EmployeeApiClient {
+  return new EmployeeApiClient({
+    authClient: getDefaultStaffAuthClient(),
+  });
 }

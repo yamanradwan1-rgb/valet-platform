@@ -90,8 +90,7 @@ expectedKeySlotCode: "K-900",
     expect(markup).not.toContain("Spot P-42");
     expect(markup).not.toContain("Zone North");
     expect(markup).not.toContain("Parking area");
-    expect(markup).not.toContain("Report Issue");
-    expect(markup).not.toContain("Location active for this task");
+        expect(markup).not.toContain("Location active for this task");
     expect(markup).not.toContain("TrackingPill");
   });
 
@@ -122,5 +121,78 @@ expectedKeySlotCode: "K-900",
     );
     expect(markup).toContain("Retrieval Task");
     expect(markup).toContain("Accept Task");
+  });
+});
+
+describe("RetrievalFlow incident entry through real wiring", () => {
+  const retrievingSession: ActiveRetrievalSession = {
+    handoff: { pendingAt: null, verification: null },
+    expectedKeySlotCode: "K-900",
+    isKeyConfirmed: true,
+    locationId: "11111111-1111-4111-8111-111111111111",
+    parkingSpotCode: null,
+    parkingZoneCode: null,
+    readyAt: null,
+    retrievalStartedAt: new Date().toISOString(),
+    sessionId: "22222222-2222-4222-8222-222222222222",
+    sessionVersion: 5,
+    state: "RETRIEVING",
+    taskId: "33333333-3333-4333-8333-333333333333",
+    taskStatus: "IN_PROGRESS",
+    taskVersion: 3,
+    vehicle: {
+      color: "Silver",
+      make: "Audi",
+      model: "A6",
+      plateCountry: "JO",
+      plateNumberRaw: "77-99999",
+      temporaryDescriptor: null,
+    },
+  };
+
+  const readyHandoffPendingSession: ActiveRetrievalSession = {
+    ...retrievingSession,
+    readyAt: new Date().toISOString(),
+    sessionVersion: 6,
+    state: "HANDOFF_PENDING",
+    handoff: {
+      pendingAt: "2026-08-22T10:00:00.000Z",
+      verification: null,
+    },
+  };
+
+  it("exposes Report Issue on live RETRIEVING when onOpenIncident is wired", () => {
+    const markup = renderToStaticMarkup(
+      <RetrievalFlow
+        mode="live"
+        nav={vi.fn()}
+        initialSession={retrievingSession}
+        onOpenIncident={vi.fn()}
+      />,
+    );
+    expect(markup).toContain("Report Issue");
+  });
+
+  it("exposes Report Issue on READY/handoff path via the same onOpenIncident wiring", () => {
+    const markup = renderToStaticMarkup(
+      <RetrievalFlow
+        mode="live"
+        nav={vi.fn()}
+        initialSession={readyHandoffPendingSession}
+        onOpenIncident={vi.fn()}
+      />,
+    );
+    expect(markup).toContain("Report Issue");
+  });
+
+  it("hides Report Issue when no incident callback is provided", () => {
+    const markup = renderToStaticMarkup(
+      <RetrievalFlow
+        mode="live"
+        nav={vi.fn()}
+        initialSession={retrievingSession}
+      />,
+    );
+    expect(markup).not.toContain("Report Issue");
   });
 });
