@@ -184,7 +184,13 @@ export type IntakeResponse = z.infer<typeof intakeResponseSchema>;
 export type VehicleIdentityRequest = z.infer<
   typeof vehicleIdentityRequestSchema
 >;
+export type VehicleIdentityResponse = z.infer<
+  typeof vehicleIdentityResponseSchema
+>;
 export type ConditionNoteRequest = z.infer<typeof conditionNoteRequestSchema>;
+export type ConditionNoteResponse = z.infer<
+  typeof conditionNoteResponseSchema
+>;
 export type ConditionPhotoRequest = z.infer<typeof conditionPhotoRequestSchema>;
 export type ConditionCompletionResponse = z.infer<
   typeof conditionCompletionResponseSchema

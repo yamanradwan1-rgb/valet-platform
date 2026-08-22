@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
 import type { StaffTaskQueueItem } from "@valet/contracts";
 
 import type { Screen } from "../../types/employee-ui";
@@ -11,6 +11,8 @@ import {
   toStaffTaskQueueItemViewModel,
   type StaffTaskQueueItemViewModel,
 } from "../../features/task-queue/task-queue-view-model";
+import { executeParkingTaskAction } from "../../features/parking/parking-task-runner";
+import type { StartParkingPayload } from "../../features/check-in/check-in-types";
 import { LivePriorityTaskCard, LiveQueueItem } from "./task-queue-cards";
 
 export interface TaskQueueScreenProps {
@@ -27,6 +29,9 @@ export interface TaskQueueScreenProps {
         taskId: string;
         taskVersion: number;
       }) => void)
+    | undefined;
+  readonly onStartParkingSuccess?:
+    | ((payload: StartParkingPayload) => void)
     | undefined;
   readonly shiftStartedAt?: string | undefined;
 }
@@ -56,12 +61,15 @@ export function TaskQueueScreen({
   initialTasks,
   onAuthorizationLoss,
   onSelectParkingTask,
+  onStartParkingSuccess,
 }: TaskQueueScreenProps): JSX.Element {
   const isLiveMode = mode === "live" || Boolean(locationId || initialTasks);
-  const { tasks: liveTasks } = useTaskQueue({
+  const { tasks: liveTasks, client: taskQueueClient } = useTaskQueue({
     locationId: isLiveMode ? (locationId ?? null) : null,
     onAuthorizationLoss,
   });
+
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const viewModels = useMemo<StaffTaskQueueItemViewModel[]>(() => {
     if (!isLiveMode) return [];
@@ -79,17 +87,39 @@ export function TaskQueueScreen({
     ? (locationName ?? "")
     : (locationName ?? "Four Seasons Amman");
 
-  const handlePriorityTaskAction = () => {
-    if (!priorityTask) return;
-    if (priorityTask.taskType === "PARKING") {
-      if (onSelectParkingTask) {
-        onSelectParkingTask({
-          sessionId: priorityTask.sessionId,
-          taskId: priorityTask.taskId,
-          taskVersion: priorityTask.version,
-        });
+  const handleTaskAction = async (task: StaffTaskQueueItemViewModel) => {
+    setActionError(null);
+    if (task.taskType === "PARKING") {
+      try {
+        const result = await executeParkingTaskAction(
+          taskQueueClient,
+          {
+            currentAssigneeMembershipId: task.currentAssigneeMembershipId,
+            sessionId: task.sessionId,
+            status: task.status,
+            taskId: task.taskId,
+            version: task.version,
+          },
+          membershipId,
+        );
+
+        if (result.kind === "START_PARKING_SUCCESS") {
+          onStartParkingSuccess?.(result.payload);
+          nav?.("parking");
+        } else if (result.kind === "NAVIGATE_IN_PROGRESS") {
+          onSelectParkingTask?.({
+            sessionId: result.sessionId,
+            taskId: result.taskId,
+            taskVersion: result.version,
+          });
+          nav?.("parking");
+        } else if (result.kind === "DENIED") {
+          setActionError("This task is assigned to another valet employee.");
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to operate task.";
+        setActionError(msg);
       }
-      nav?.("parking");
     } else {
       nav?.("retrieval");
     }
@@ -117,6 +147,12 @@ export function TaskQueueScreen({
             New Vehicle
           </button>
         </div>
+
+        {actionError && (
+          <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
+            {actionError}
+          </div>
+        )}
 
         {!isLiveMode ? (
           <div
@@ -165,7 +201,8 @@ export function TaskQueueScreen({
         ) : priorityTask ? (
           <LivePriorityTaskCard
             priorityTask={priorityTask}
-            onAction={handlePriorityTaskAction}
+            membershipId={membershipId}
+            onAction={() => void handleTaskAction(priorityTask)}
           />
         ) : null}
 
@@ -226,18 +263,8 @@ export function TaskQueueScreen({
                     <LiveQueueItem
                       key={task.taskId}
                       task={task}
-                      onClick={() => {
-                        if (task.taskType === "PARKING") {
-                          if (onSelectParkingTask) {
-                            onSelectParkingTask({
-                              sessionId: task.sessionId,
-                              taskId: task.taskId,
-                              taskVersion: task.version,
-                            });
-                          }
-                          nav?.("parking");
-                        }
-                      }}
+                      membershipId={membershipId}
+                      onClick={() => void handleTaskAction(task)}
                     />
                   ))
                 : null}

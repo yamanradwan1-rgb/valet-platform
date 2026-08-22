@@ -34,7 +34,22 @@ describe("CheckInController Discovery & Hydration", () => {
     expect(controller.getState().isHydrating).toBe(false);
   });
 
-  it("resumes single draft (A2) and hydrates via A1", async () => {
+  it("fails closed to discovery-error step when discovery API fails", async () => {
+    const mockClient = {
+      request: vi.fn().mockRejectedValue(new Error("Network connection lost.")),
+    } as unknown as EmployeeApiClient;
+
+    const controller = new CheckInController(mockClient, vi.fn());
+    await controller.initialize(locationId);
+
+    const state = controller.getState();
+    expect(state.step).toBe("discovery-error");
+    expect(state.error).toBe("Network connection lost.");
+    expect(state.activeSession).toBeNull();
+    expect(state.isHydrating).toBe(false);
+  });
+
+  it("resumes single draft (A2) and hydrates via A1 to vehicle-condition step", async () => {
     const draftsRes: StaffCheckInDraftsResponse = {
       drafts: [
         {
@@ -92,11 +107,48 @@ describe("CheckInController Discovery & Hydration", () => {
     await controller.initialize(locationId);
 
     const state = controller.getState();
-    expect(state.step).toBe("customer-phone");
+    expect(state.step).toBe("vehicle-condition");
     expect(state.activeSession?.sessionId).toBe(sessionId);
     expect(state.activeSession?.vehicle.make).toBe("Porsche");
-    expect(state.activeSession?.vehicle.model).toBe("Taycan");
+    expect(state.activeSession?.vehicleUpdatedAt).toBe("2026-08-21T18:00:00.000Z");
     expect(state.activeSession?.state).toBe("CHECKING_IN");
+  });
+
+  it("fails closed to hydration-error when A1 hydration fails", async () => {
+    const draftsRes: StaffCheckInDraftsResponse = {
+      drafts: [
+        {
+          conditionCompletedAt: null,
+          createdAt: "2026-08-21T18:00:00.000Z",
+          sessionId,
+          vehicle: {
+            color: "Black",
+            make: "Porsche",
+            model: "Taycan",
+            plateCountry: "JO",
+            plateNumberRaw: "12-34567",
+            temporaryDescriptor: null,
+          },
+        },
+      ],
+    };
+    const continuationsRes: StaffCheckInContinuationsResponse = { continuations: [] };
+
+    const mockClient = {
+      request: vi
+        .fn()
+        .mockResolvedValueOnce(draftsRes)
+        .mockResolvedValueOnce(continuationsRes)
+        .mockRejectedValueOnce(new Error("Session not found.")),
+    } as unknown as EmployeeApiClient;
+
+    const controller = new CheckInController(mockClient, vi.fn());
+    await controller.initialize(locationId);
+
+    const state = controller.getState();
+    expect(state.step).toBe("hydration-error");
+    expect(state.error).toBe("Session not found.");
+    expect(state.activeSession).toBeNull();
   });
 
   it("resumes single continuation (A3) with assigned key slot to parking-task step", async () => {

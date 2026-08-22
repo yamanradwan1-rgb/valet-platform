@@ -25,34 +25,36 @@ import { BackHeader, Btn } from "../ui/employee-primitives";
 export interface CheckInFlowProps {
   readonly locationId?: string | null | undefined;
   readonly nav: (s: Screen) => void;
+  readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onStartParkingSuccess?: (payload: StartParkingPayload) => void;
 }
 
 export function CheckInFlow({
   nav,
   locationId = null,
+  onAuthorizationLoss,
   onStartParkingSuccess,
 }: CheckInFlowProps): JSX.Element | null {
-  const checkIn = useCheckIn({ locationId });
+  const checkIn = useCheckIn({ locationId, onAuthorizationLoss });
 
   const [scanDone, setScanDone] = useState(false);
   const [keyScanDone, setKeyScanDone] = useState(false);
-  const [plateNumber, setPlateNumber] = useState("12-34567");
+  const [plateNumber, setPlateNumber] = useState("");
   const [plateCountry, setPlateCountry] = useState("JO");
   const [temporaryDescriptor, setTemporaryDescriptor] = useState<string | null>(null);
   const [condition, setCondition] = useState("No visible issue");
   const [phone, setPhone] = useState("");
-  const [keySlotCode, setKeySlotCode] = useState("B-214");
+  const [keySlotCode, setKeySlotCode] = useState("");
 
-  const activeVehicle = checkIn.activeSession?.vehicle;
+  const activeVehicle = checkIn.activeSession?.vehicle ?? checkIn.pendingVehicle;
   const displayPlate =
     activeVehicle?.temporaryDescriptor ??
     activeVehicle?.plateNumberRaw ??
     temporaryDescriptor ??
     plateNumber;
-  const displayMake = activeVehicle?.make ?? "BMW";
-  const displayModel = activeVehicle?.model ?? "X5";
-  const displayColor = activeVehicle?.color ?? "Black";
+  const displayMake = activeVehicle?.make ?? null;
+  const displayModel = activeVehicle?.model ?? null;
+  const displayColor = activeVehicle?.color ?? null;
   const displayKeySlot = checkIn.activeSession?.keySlotCode ?? keySlotCode;
 
   if (checkIn.isHydrating && checkIn.step === "discovery") {
@@ -60,6 +62,22 @@ export function CheckInFlow({
       <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
         <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
         <p className="text-navy font-semibold text-sm">Checking for existing check-in drafts...</p>
+      </div>
+    );
+  }
+
+  if (checkIn.step === "discovery-error" || checkIn.step === "hydration-error") {
+    return (
+      <div>
+        <BackHeader title="Check-In Discovery" onBack={() => nav("task-queue")} />
+        <div className="p-5 space-y-4">
+          <div className="p-4 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-sm">
+            <p className="font-bold">Failed to load check-in session</p>
+            <p className="text-xs mt-1">{checkIn.error ?? "An unexpected network or server error occurred."}</p>
+          </div>
+          <Btn label="Retry Discovery" onClick={() => void checkIn.retry()} />
+          <Btn label="Back to Task Queue" variant="secondary" onClick={() => nav("task-queue")} />
+        </div>
       </div>
     );
   }
@@ -92,7 +110,7 @@ export function CheckInFlow({
               <p className="text-neutral text-xs">{cont.vehicle.plateNumberRaw ?? cont.vehicle.temporaryDescriptor ?? "No Plate"}</p>
             </div>
           ))}
-          <Btn label="Start Fresh Check-In" variant="secondary" onClick={checkIn.startFresh} />
+          <Btn label="Back to Task Queue" variant="secondary" onClick={() => nav("task-queue")} />
         </div>
       </div>
     );
@@ -105,6 +123,7 @@ export function CheckInFlow({
         onSimulateScan={() => {
           setScanDone(true);
           setTemporaryDescriptor(null);
+          setPlateNumber("12-34567");
           setTimeout(() => {
             setScanDone(false);
             checkIn.setStep("plate-confirm");
@@ -125,6 +144,7 @@ export function CheckInFlow({
         onChangePlateCountry={setPlateCountry}
         onNoPlate={() => {
           setTemporaryDescriptor("UNPLATED-VEHICLE");
+          setPlateNumber("");
           checkIn.setStep("plate-confirm");
         }}
         onContinue={() => {
@@ -171,8 +191,15 @@ export function CheckInFlow({
         model={displayModel}
         color={displayColor}
         plate={displayPlate}
+        isSubmitting={checkIn.isSubmitting}
+        error={checkIn.error}
         onChangePhone={setPhone}
-        onContinue={() => checkIn.saveCustomerPhone(phone)}
+        onContinue={async () => {
+          await checkIn.submitCustomerPhone(phone);
+        }}
+        onNoPhone={async () => {
+          await checkIn.submitCustomerPhone("");
+        }}
         onBack={() => checkIn.setStep("plate-confirm")}
       />
     );
@@ -190,9 +217,9 @@ export function CheckInFlow({
         error={checkIn.error}
         onSelectCondition={setCondition}
         onContinue={async () => {
-          await checkIn.completeCondition();
+          await checkIn.completeCondition(condition);
         }}
-        onBack={() => checkIn.setStep("customer-phone")}
+        onBack={() => checkIn.setStep(checkIn.activeSession?.state === "CHECKING_IN" ? "plate-confirm" : "customer-phone")}
       />
     );
   }
@@ -253,9 +280,7 @@ export function CheckInFlow({
         onStartParking={async () => {
           const payload = await checkIn.startParking();
           if (payload) {
-            if (onStartParkingSuccess) {
-              onStartParkingSuccess(payload);
-            }
+            onStartParkingSuccess?.(payload);
             nav("parking");
           }
         }}

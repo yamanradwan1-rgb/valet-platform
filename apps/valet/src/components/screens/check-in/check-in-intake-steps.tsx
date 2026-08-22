@@ -9,28 +9,40 @@ export function CheckInCustomerPhoneStep({
   model,
   color,
   plate,
+  isSubmitting,
+  error,
   onChangePhone,
   onContinue,
+  onNoPhone,
   onBack,
 }: {
   readonly color?: string | null | undefined;
+  readonly error?: string | null | undefined;
+  readonly isSubmitting?: boolean | undefined;
   readonly make?: string | null | undefined;
   readonly model?: string | null | undefined;
   readonly onBack: () => void;
   readonly onChangePhone: (val: string) => void;
   readonly onContinue: () => void;
+  readonly onNoPhone: () => void;
   readonly phone: string;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
+  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
   return (
     <div>
       <BackHeader title="Customer Contact" onBack={onBack} />
       <div className="p-5 space-y-5">
+        {error && (
+          <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
+            {error}
+          </div>
+        )}
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <VehicleIdentity
-            color={color ?? "Black"}
-            model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
-            plate={plate ?? "12-34567"}
+            color={color ?? "Not specified"}
+            model={displayModel}
+            plate={plate ?? "No plate"}
           />
         </div>
         <div>
@@ -54,12 +66,17 @@ export function CheckInCustomerPhoneStep({
             SMS or WhatsApp link will be sent automatically.
           </p>
         </div>
-        <Btn label="Continue" onClick={onContinue} />
+        <Btn
+          label={isSubmitting ? "Creating Intake..." : "Continue"}
+          onClick={onContinue}
+          disabled={isSubmitting ?? false}
+        />
         <Btn
           label="No phone available"
           variant="ghost"
           size="md"
-          onClick={onContinue}
+          onClick={onNoPhone}
+          disabled={isSubmitting ?? false}
         />
       </div>
     </div>
@@ -90,6 +107,8 @@ export function CheckInVehicleConditionStep({
   readonly plate?: string | null | undefined;
 }): JSX.Element {
   const options = ["No visible issue", "Existing damage", "Needs review"];
+  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+
   return (
     <div>
       <BackHeader title="Vehicle Condition" onBack={onBack} />
@@ -101,15 +120,16 @@ export function CheckInVehicleConditionStep({
         )}
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <VehicleIdentity
-            color={color ?? "Black"}
-            model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
-            plate={plate ?? "12-34567"}
+            color={color ?? "Not specified"}
+            model={displayModel}
+            plate={plate ?? "No plate"}
           />
         </div>
         <div className="space-y-2">
           {options.map((opt) => (
             <button
               key={opt}
+              type="button"
               onClick={() => onSelectCondition(opt)}
               className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl border-2 transition-all cursor-pointer text-left ${
                 condition === opt
@@ -134,44 +154,8 @@ export function CheckInVehicleConditionStep({
             </button>
           ))}
         </div>
-        <div className="flex gap-3">
-          <button className="flex-1 h-11 rounded-xl border border-vborder bg-white text-navy text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-50">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <rect
-                x="1"
-                y="3"
-                width="14"
-                height="11"
-                rx="1.5"
-                stroke="#07111F"
-                strokeWidth="1.25"
-              />
-              <circle
-                cx="8"
-                cy="8.5"
-                r="2"
-                stroke="#07111F"
-                strokeWidth="1.25"
-              />
-              <path
-                d="M5 3V2a1 1 0 011-1h4a1 1 0 011 1v1"
-                stroke="#07111F"
-                strokeWidth="1.25"
-              />
-            </svg>
-            Add Photo
-          </button>
-          <button className="flex-1 h-11 rounded-xl border border-vborder bg-white text-navy text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-gray-50">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M3 4h10M3 8h8M3 12h5"
-                stroke="#07111F"
-                strokeWidth="1.25"
-                strokeLinecap="round"
-              />
-            </svg>
-            Add Note
-          </button>
+        <div className="p-3 bg-gray-50 border border-vborder rounded-xl text-muted text-xs text-center">
+          Photos optional by location policy
         </div>
         <Btn
           label={isSubmitting ? "Completing Condition..." : "Continue"}

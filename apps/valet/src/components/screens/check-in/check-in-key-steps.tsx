@@ -41,6 +41,8 @@ export function CheckInKeyScanStep({
   readonly onSimulateScan: () => void;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
+  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+
   return (
     <div>
       <BackHeader title="Assign Key" onBack={onBack} />
@@ -73,21 +75,15 @@ export function CheckInKeyScanStep({
             <input
               value={keySlotCode}
               onChange={(e) => onChangeKeySlotCode(e.target.value)}
-              placeholder="B-214"
+              placeholder="Enter slot"
               className="w-full text-center font-heading font-bold text-[40px] text-navy bg-transparent focus:outline-none"
             />
-            <div className="flex items-center justify-center gap-1.5 mt-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-vsuccess" />
-              <span className="text-vsuccess text-sm font-semibold">
-                Available
-              </span>
-            </div>
           </div>
           <div className="bg-white rounded-xl border border-vborder p-4">
             <VehicleIdentity
-              color={color ?? "Black"}
-              model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
-              plate={plate ?? "12-34567"}
+              color={color ?? "Not specified"}
+              model={displayModel}
+              plate={plate ?? "No plate"}
             />
           </div>
           <Btn
@@ -128,6 +124,8 @@ export function CheckInKeyAssignedStep({
   readonly onCreateParkingTask: () => void;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
+  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[500px] p-6 space-y-6">
       <SuccessCircle />
@@ -146,9 +144,9 @@ export function CheckInKeyAssignedStep({
       )}
       <div className="w-full bg-white rounded-2xl border border-vborder p-5">
         <VehicleIdentity
-          color={color ?? "Black"}
-          model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
-          plate={plate ?? "12-34567"}
+          color={color ?? "Not specified"}
+          model={displayModel}
+          plate={plate ?? "No plate"}
         />
         <div className="flex items-center justify-between pt-4 mt-4 border-t border-vborder">
           <span className="text-neutral text-sm">Key slot</span>
@@ -189,6 +187,8 @@ export function CheckInParkingTaskStep({
   readonly onStartParking: () => void;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
+  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+
   return (
     <div>
       <BackHeader title="Parking Task" onBack={onBack} />
@@ -200,14 +200,12 @@ export function CheckInParkingTaskStep({
         )}
         <Badge variant="parking" />
         <VehicleIdentity
-          color={color ?? "Black"}
-          model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
-          plate={plate ?? "12-34567"}
+          color={color ?? "Not specified"}
+          model={displayModel}
+          plate={plate ?? "No plate"}
         />
         <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-          <InfoRow label="Key slot" value={keySlotCode || "B-214"} />
-          <InfoRow label="Destination" value="Zone B" />
-          <InfoRow label="Pickup point" value="Main Entrance" />
+          <InfoRow label="Key slot" value={keySlotCode || "Not assigned"} />
         </div>
         <div className="bg-ice rounded-xl px-4 py-3 flex items-center gap-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-vblue flex-shrink-0 mt-px" />

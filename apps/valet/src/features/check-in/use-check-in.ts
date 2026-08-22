@@ -23,12 +23,13 @@ import type {
 export interface UseCheckInOptions {
   readonly client?: EmployeeApiClient | undefined;
   readonly locationId: string | null;
+  readonly onAuthorizationLoss?: (() => void) | undefined;
 }
 
 export interface UseCheckInResult {
   readonly activeSession: CheckInActiveSession | null;
   readonly assignKey: (keySlotCode: string) => Promise<void>;
-  readonly completeCondition: () => Promise<void>;
+  readonly completeCondition: (conditionNote?: string) => Promise<void>;
   readonly confirmPlate: (vehicleData: CheckInVehicleData) => Promise<void>;
   readonly continuations: StaffCheckInContinuationSummary[];
   readonly createParkingTask: () => Promise<void>;
@@ -36,19 +37,20 @@ export interface UseCheckInResult {
   readonly error: string | null;
   readonly isHydrating: boolean;
   readonly isSubmitting: boolean;
+  readonly pendingVehicle: CheckInVehicleData | null;
   readonly resumeContinuation: (
     continuation: StaffCheckInContinuationSummary,
   ) => Promise<void>;
   readonly resumeDraft: (draft: StaffCheckInDraftSummary) => Promise<void>;
-  readonly saveCustomerPhone: (phone: string) => void;
+  readonly retry: () => Promise<void>;
   readonly setStep: (step: CheckInFlowStep) => void;
-  readonly startFresh: () => void;
   readonly startParking: () => Promise<StartParkingPayload | null>;
   readonly step: CheckInFlowStep;
+  readonly submitCustomerPhone: (phone: string) => Promise<void>;
 }
 
 export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
-  const { locationId, client: customClient } = options;
+  const { locationId, client: customClient, onAuthorizationLoss } = options;
   const auth = useOptionalStaffAuth();
   const authClient = auth?.client;
 
@@ -57,8 +59,9 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
       customClient ??
       new EmployeeApiClient({
         authClient: authClient ?? getDefaultStaffAuthClient(),
+        onAuthorizationLoss,
       }),
-    [customClient, authClient],
+    [customClient, authClient, onAuthorizationLoss],
   );
 
   const [controllerState, setControllerState] = useState<CheckInState>({
@@ -68,6 +71,7 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
     error: null,
     isHydrating: locationId !== null,
     isSubmitting: false,
+    pendingVehicle: null,
     step: locationId ? "discovery" : "plate-scan",
   });
 
@@ -92,23 +96,26 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
 
   const confirmPlate = useCallback(
     async (vehicleData: CheckInVehicleData) => {
+      await controller.confirmPlate(vehicleData);
+    },
+    [controller],
+  );
+
+  const submitCustomerPhone = useCallback(
+    async (phone: string) => {
       if (locationId) {
-        await controller.confirmPlate(locationId, vehicleData);
+        await controller.submitCustomerPhone(locationId, phone);
       }
     },
     [controller, locationId],
   );
 
-  const saveCustomerPhone = useCallback(
-    (phone: string) => {
-      controller.saveCustomerPhone(phone);
+  const completeCondition = useCallback(
+    async (conditionNote?: string) => {
+      await controller.completeCondition(conditionNote);
     },
     [controller],
   );
-
-  const completeCondition = useCallback(async () => {
-    await controller.completeCondition();
-  }, [controller]);
 
   const assignKey = useCallback(
     async (keySlotCode: string) => {
@@ -143,9 +150,11 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
     [controller, locationId],
   );
 
-  const startFresh = useCallback(() => {
-    controller.startFresh();
-  }, [controller]);
+  const retry = useCallback(async () => {
+    if (locationId) {
+      await controller.initialize(locationId);
+    }
+  }, [controller, locationId]);
 
   const setStep = useCallback(
     (step: CheckInFlowStep) => {
@@ -165,12 +174,13 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
     error: controllerState.error,
     isHydrating: controllerState.isHydrating,
     isSubmitting: controllerState.isSubmitting,
+    pendingVehicle: controllerState.pendingVehicle,
     resumeContinuation,
     resumeDraft,
-    saveCustomerPhone,
+    retry,
     setStep,
-    startFresh,
     startParking,
     step: controllerState.step,
+    submitCustomerPhone,
   };
 }

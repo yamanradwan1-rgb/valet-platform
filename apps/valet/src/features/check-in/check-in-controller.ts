@@ -15,6 +15,7 @@ import {
   runKeyAssignmentMutation,
   runQueueParkingTaskMutation,
   runStartParkingMutation,
+  runUpdateVehicleIdentityMutation,
 } from "./check-in-mutations";
 import type {
   CheckInFlowStep,
@@ -35,6 +36,7 @@ export class CheckInController {
     error: null,
     isHydrating: false,
     isSubmitting: false,
+    pendingVehicle: null,
     step: "discovery",
   };
 
@@ -60,16 +62,6 @@ export class CheckInController {
     this.update({ error: null, step });
   }
 
-  startFresh(): void {
-    this.update({
-      activeSession: null,
-      error: null,
-      isHydrating: false,
-      isSubmitting: false,
-      step: "plate-scan",
-    });
-  }
-
   async initialize(locationId: string): Promise<void> {
     this.update({ error: null, isHydrating: true, step: "discovery" });
     try {
@@ -84,7 +76,7 @@ export class CheckInController {
         await this.hydrateFromContinuation(locationId, outcome.continuation);
       }
     } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to load check-in drafts."), isHydrating: false, step: "plate-scan" });
+      this.update({ error: getErrMsg(err, "Failed to load check-in drafts."), isHydrating: false, step: "discovery-error" });
     }
   }
 
@@ -94,7 +86,7 @@ export class CheckInController {
       const res = await hydrateDraftSession(this.apiClient, locationId, draft);
       this.update({ activeSession: res.activeSession, isHydrating: false, step: res.step });
     } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to resume check-in draft."), isHydrating: false, step: "plate-scan" });
+      this.update({ error: getErrMsg(err, "Failed to resume check-in draft."), isHydrating: false, step: "hydration-error" });
     }
   }
 
@@ -104,47 +96,65 @@ export class CheckInController {
       const res = await hydrateContinuationSession(this.apiClient, locationId, continuation);
       this.update({ activeSession: res.activeSession, isHydrating: false, step: res.step });
     } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to resume check-in continuation."), isHydrating: false, step: "plate-scan" });
+      this.update({ error: getErrMsg(err, "Failed to resume check-in continuation."), isHydrating: false, step: "hydration-error" });
     }
   }
 
-  async confirmPlate(locationId: string, vehicleData: CheckInVehicleData): Promise<void> {
+  async confirmPlate(vehicleData: CheckInVehicleData): Promise<void> {
     if (this.state.isSubmitting) return;
-    if (this.state.activeSession !== null) {
-      this.update({ activeSession: { ...this.state.activeSession, vehicle: vehicleData }, error: null, step: "customer-phone" });
+    const session = this.state.activeSession;
+    if (session !== null) {
+      this.update({ error: null, isSubmitting: true });
+      try {
+        const res = await runUpdateVehicleIdentityMutation(this.apiClient, session, vehicleData);
+        this.update({
+          activeSession: { ...session, vehicle: res.vehicle, vehicleUpdatedAt: res.vehicleUpdatedAt },
+          isSubmitting: false,
+          step: session.state === "CHECKING_IN" ? "vehicle-condition" : "key-scan",
+        });
+      } catch (err: unknown) {
+        this.update({ error: getErrMsg(err, "Failed to update vehicle identity."), isSubmitting: false });
+      }
       return;
     }
+
+    this.update({ error: null, pendingVehicle: vehicleData, step: "customer-phone" });
+  }
+
+  async submitCustomerPhone(locationId: string, phone: string): Promise<void> {
+    if (this.state.isSubmitting) return;
+    const session = this.state.activeSession;
+    if (session !== null) {
+      this.update({ step: "vehicle-condition" });
+      return;
+    }
+
+    const pending = this.state.pendingVehicle;
+    if (!pending) {
+      this.update({ error: "No vehicle captured.", step: "plate-scan" });
+      return;
+    }
+
     this.update({ error: null, isSubmitting: true });
     try {
-      const activeSession = await runIntakeMutation(this.apiClient, locationId, vehicleData);
-      this.update({ activeSession, isSubmitting: false, step: "customer-phone" });
+      const activeSession = await runIntakeMutation(this.apiClient, locationId, pending, phone);
+      this.update({ activeSession, isSubmitting: false, pendingVehicle: null, step: "vehicle-condition" });
     } catch (err: unknown) {
       this.update({ error: getErrMsg(err, "Failed to create vehicle intake."), isSubmitting: false });
     }
   }
 
-  saveCustomerPhone(phone: string): void {
-    if (!this.state.activeSession) {
-      this.update({ step: "vehicle-condition" });
-      return;
-    }
-    this.update({
-      activeSession: { ...this.state.activeSession, customerPhone: phone.trim() !== "" ? phone.trim() : null },
-      error: null,
-      step: "vehicle-condition",
-    });
-  }
-
-  async completeCondition(): Promise<void> {
+  async completeCondition(conditionNote?: string): Promise<void> {
     if (this.state.isSubmitting) return;
     const session = this.state.activeSession;
     if (!session) {
       this.update({ step: "key-scan" });
       return;
     }
+
     this.update({ error: null, isSubmitting: true });
     try {
-      const res = await runConditionCompletionMutation(this.apiClient, session);
+      const res = await runConditionCompletionMutation(this.apiClient, session, conditionNote);
       this.update({
         activeSession: { ...session, conditionCompletedAt: res.conditionCompletedAt, sessionVersion: res.sessionVersion, state: "AWAITING_PARKING" },
         isSubmitting: false,
@@ -162,6 +172,7 @@ export class CheckInController {
       this.update({ error: "No active check-in session found." });
       return;
     }
+
     this.update({ error: null, isSubmitting: true });
     try {
       const res = await runKeyAssignmentMutation(this.apiClient, session, keySlotCode);
@@ -182,6 +193,7 @@ export class CheckInController {
       this.update({ error: "No active check-in session found." });
       return;
     }
+
     this.update({ error: null, isSubmitting: true });
     try {
       const res = await runQueueParkingTaskMutation(this.apiClient, session);
@@ -202,6 +214,7 @@ export class CheckInController {
       this.update({ error: "No active check-in session found." });
       return null;
     }
+
     this.update({ error: null, isSubmitting: true });
     try {
       const payload = await runStartParkingMutation(this.apiClient, session);

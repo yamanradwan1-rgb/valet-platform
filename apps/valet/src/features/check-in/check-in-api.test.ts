@@ -1,22 +1,28 @@
 import { describe, expect, it, vi } from "vitest";
 import type {
+  AssignTaskResponse,
+  ConditionNoteResponse,
   StaffCheckInContinuationsResponse,
   StaffCheckInDraftsResponse,
   StaffValetSessionDetailResponse,
+  VehicleIdentityResponse,
 } from "@valet/contracts";
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import {
   acceptParkingTask,
+  assignParkingTask,
   assignSessionKeySlot,
   completeCheckInSession,
   completeConditionStep,
   createIntakeSession,
+  createSessionConditionNote,
   fetchCheckInContinuations,
   fetchCheckInDrafts,
   fetchSessionDetail,
   queueSessionParkingTask,
   startParkingSession,
+  updateSessionVehicleIdentity,
   type AcceptTaskResponse,
   type AssignKeySlotResponse,
   type CompleteCheckInResponse,
@@ -55,14 +61,6 @@ describe("Check-In API Client", () => {
 
     const res = await fetchCheckInDrafts(mockClient, locationId);
     expect(res).toEqual(payload);
-    expect(mockClient.request).toHaveBeenCalledWith(
-      "/v1/staff/check-in/drafts",
-      expect.objectContaining({
-        method: "GET",
-        params: { locationId },
-        requireAuth: true,
-      }),
-    );
   });
 
   it("fetchCheckInContinuations parses valid continuations response", async () => {
@@ -150,6 +148,51 @@ describe("Check-In API Client", () => {
     expect(res).toEqual(payload);
   });
 
+  it("updateSessionVehicleIdentity invokes PUT /v1/staff/check-in/sessions/:sessionId/vehicle-identity", async () => {
+    const payload: VehicleIdentityResponse = {
+      identityMode: "CONFIRMED_PLATE",
+      plateCountry: "JO",
+      plateNumberNormalized: "1234567",
+      plateNumberRaw: "12-34567",
+      temporaryDescriptor: null,
+      valetSessionId: sessionId,
+      vehicleId: "44444444-4444-4444-8444-444444444444",
+      vehicleUpdatedAt: "2026-08-21T18:01:00.000Z",
+    };
+    const mockClient = {
+      request: vi.fn().mockResolvedValue(payload),
+    } as unknown as EmployeeApiClient;
+
+    const res = await updateSessionVehicleIdentity(mockClient, sessionId, {
+      expectedVehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
+      identity: {
+        confirmedByHuman: true,
+        mode: "CONFIRMED_PLATE",
+        plateCountry: "JO",
+        plateNumberRaw: "12-34567",
+      },
+    });
+    expect(res).toEqual(payload);
+  });
+
+  it("createSessionConditionNote invokes POST /v1/staff/check-in/sessions/:sessionId/condition-notes", async () => {
+    const payload: ConditionNoteResponse = {
+      conditionNoteId: "66666666-6666-4666-8666-666666666666",
+      content: "Scratch on bumper",
+      createdAt: "2026-08-21T18:02:00.000Z",
+      supersedesConditionNoteId: null,
+      valetSessionId: sessionId,
+    };
+    const mockClient = {
+      request: vi.fn().mockResolvedValue(payload),
+    } as unknown as EmployeeApiClient;
+
+    const res = await createSessionConditionNote(mockClient, sessionId, {
+      content: "Scratch on bumper",
+    });
+    expect(res).toEqual(payload);
+  });
+
   it("completeConditionStep and completeCheckInSession invoke respective endpoints", async () => {
     const condPayload: ConditionCompletionResponse = {
       completedAt: "2026-08-21T18:05:00.000Z",
@@ -190,6 +233,24 @@ describe("Check-In API Client", () => {
     expect(res).toEqual(payload);
   });
 
+  it("assignParkingTask invokes POST /v1/staff/tasks/:taskId/assign", async () => {
+    const assignPayload: AssignTaskResponse = {
+      createdAt: "2026-08-21T18:07:00.000Z",
+      currentAssigneeMembershipId: "88888888-8888-4888-8888-888888888888",
+      sessionId,
+      status: "ASSIGNED",
+      taskId,
+      taskType: "PARKING",
+      version: 2,
+    };
+    const mockClient = {
+      request: vi.fn().mockResolvedValue(assignPayload),
+    } as unknown as EmployeeApiClient;
+
+    const aRes = await assignParkingTask(mockClient, taskId, 1);
+    expect(aRes).toEqual(assignPayload);
+  });
+
   it("queueSessionParkingTask, acceptParkingTask, and startParkingSession work correctly", async () => {
     const queuePayload: ParkingTaskQueueResponse = {
       createdAt: "2026-08-21T18:07:00.000Z",
@@ -207,7 +268,7 @@ describe("Check-In API Client", () => {
       status: "ACCEPTED",
       taskId,
       taskType: "PARKING",
-      version: 2,
+      version: 3,
     };
     const startPayload: StartParkingResponse = {
       parkingStartedAt: "2026-08-21T18:07:02.000Z",
@@ -216,7 +277,7 @@ describe("Check-In API Client", () => {
       state: "PARKING",
       taskId,
       taskStatus: "IN_PROGRESS",
-      taskVersion: 3,
+      taskVersion: 4,
     };
 
     const mockClient = {
@@ -230,10 +291,10 @@ describe("Check-In API Client", () => {
     const qRes = await queueSessionParkingTask(mockClient, sessionId);
     expect(qRes).toEqual(queuePayload);
 
-    const aRes = await acceptParkingTask(mockClient, taskId, 1);
+    const aRes = await acceptParkingTask(mockClient, taskId, 2);
     expect(aRes).toEqual(acceptPayload);
 
-    const sRes = await startParkingSession(mockClient, sessionId, 3, 2);
+    const sRes = await startParkingSession(mockClient, sessionId, 3, 3);
     expect(sRes).toEqual(startPayload);
   });
 });

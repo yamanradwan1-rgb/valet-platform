@@ -9,6 +9,10 @@ import type {
   ParkingState,
 } from "./parking-types";
 
+function getErrMsg(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
+
 export class ParkingController {
   private state: ParkingState = {
     activeSession: null,
@@ -58,13 +62,16 @@ export class ParkingController {
     this.update({ error: null, isHydrating: true });
     try {
       const detail = await fetchSessionDetail(this.apiClient, sessionId);
+      if (detail.state !== "PARKING" || !detail.parking.parkingStartedAt) {
+        throw new Error("Session is not in active parking state.");
+      }
+
       const activeSession: ActiveParkingSession = {
         keySlotCode: detail.keySlot?.code ?? null,
         locationId: detail.locationId,
         parkedAt: detail.parking.parkedAt,
         parkingSpotCode: detail.parking.parkingSpotCode,
-        parkingStartedAt:
-          detail.parking.parkingStartedAt ?? new Date().toISOString(),
+        parkingStartedAt: detail.parking.parkingStartedAt,
         parkingZoneCode: detail.parking.parkingZoneCode,
         sessionId: detail.sessionId,
         sessionVersion: detail.version,
@@ -86,11 +93,10 @@ export class ParkingController {
         step: "in-progress",
       });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Failed to load parking session detail.";
-      this.update({ error: message, isHydrating: false });
+      this.update({
+        error: getErrMsg(err, "Failed to load parking session detail."),
+        isHydrating: false,
+      });
     }
   }
 
@@ -112,11 +118,23 @@ export class ParkingController {
         parkingSpotCode,
       );
 
+      let authoritativeZone = session.parkingZoneCode;
+      let authoritativeSpot = confirmRes.parkingSpotCode;
+
+      try {
+        const detail = await fetchSessionDetail(this.apiClient, session.sessionId);
+        if (detail.parking.parkingZoneCode) authoritativeZone = detail.parking.parkingZoneCode;
+        if (detail.parking.parkingSpotCode) authoritativeSpot = detail.parking.parkingSpotCode;
+      } catch {
+        // Fall back to returned spot code without fabricating zone
+      }
+
       this.update({
         activeSession: {
           ...session,
           parkedAt: confirmRes.parkedAt,
-          parkingSpotCode: confirmRes.parkingSpotCode,
+          parkingSpotCode: authoritativeSpot,
+          parkingZoneCode: authoritativeZone,
           sessionVersion: confirmRes.sessionVersion,
           taskVersion: confirmRes.taskVersion,
         },
@@ -124,9 +142,10 @@ export class ParkingController {
         step: "success",
       });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to confirm parking.";
-      this.update({ error: message, isSubmitting: false });
+      this.update({
+        error: getErrMsg(err, "Failed to confirm parking."),
+        isSubmitting: false,
+      });
     }
   }
 }

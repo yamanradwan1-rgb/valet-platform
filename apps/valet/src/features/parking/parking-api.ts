@@ -1,9 +1,11 @@
 import {
   acceptTaskResponseSchema,
+  assignTaskResponseSchema,
   confirmParkedResponseSchema,
   staffValetSessionDetailResponseSchema,
   startParkingResponseSchema,
   type AcceptTaskResponse,
+  type AssignTaskResponse,
   type ConfirmParkedResponse,
   type StaffValetSessionDetailResponse,
   type StartParkingResponse,
@@ -11,7 +13,12 @@ import {
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 
-export type { AcceptTaskResponse, ConfirmParkedResponse, StartParkingResponse };
+export type {
+  AcceptTaskResponse,
+  AssignTaskResponse,
+  ConfirmParkedResponse,
+  StartParkingResponse,
+};
 
 export interface ParkingApiRequestOptions {
   readonly signal?: AbortSignal | undefined;
@@ -31,6 +38,24 @@ export async function fetchSessionDetail(
     },
   );
   return staffValetSessionDetailResponseSchema.parse(raw);
+}
+
+export async function assignParkingTask(
+  client: EmployeeApiClient,
+  taskId: string,
+  expectedVersion: number,
+  options: ParkingApiRequestOptions = {},
+): Promise<AssignTaskResponse> {
+  const raw = await client.request<unknown>(
+    `/v1/staff/tasks/${taskId}/assign`,
+    {
+      method: "POST",
+      body: { expectedVersion },
+      signal: options.signal,
+      requireAuth: true,
+    },
+  );
+  return assignTaskResponseSchema.parse(raw);
 }
 
 export async function acceptParkingTask(

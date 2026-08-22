@@ -39,11 +39,12 @@ export async function hydrateDraftSession(
       plateNumberRaw: detail.vehicle.plateNumberRaw ?? "",
       temporaryDescriptor: detail.vehicle.temporaryDescriptor,
     },
+    vehicleUpdatedAt: detail.vehicle.vehicleUpdatedAt,
   };
 
   const step: CheckInFlowStep = detail.checkIn.conditionCompletedAt
     ? "key-scan"
-    : "customer-phone";
+    : "vehicle-condition";
 
   return { activeSession, step };
 }
@@ -72,6 +73,7 @@ export async function hydrateContinuationSession(
       plateNumberRaw: detail.vehicle.plateNumberRaw ?? "",
       temporaryDescriptor: detail.vehicle.temporaryDescriptor,
     },
+    vehicleUpdatedAt: detail.vehicle.vehicleUpdatedAt,
   };
 
   const step: CheckInFlowStep =

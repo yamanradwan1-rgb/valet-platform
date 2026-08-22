@@ -20,6 +20,7 @@ import {
 export interface ParkingFlowProps {
   readonly initialSession?: ActiveParkingSession | null | undefined;
   readonly nav: (s: Screen) => void;
+  readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onComplete?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
@@ -32,23 +33,25 @@ export function ParkingFlow({
   sessionId = null,
   taskId = null,
   taskVersion = null,
+  onAuthorizationLoss,
   onComplete,
 }: ParkingFlowProps): JSX.Element | null {
   const parking = useParking({
     initialSession,
+    onAuthorizationLoss,
     sessionId,
     taskId,
     taskVersion,
   });
 
   const [spotScanned, setSpotScanned] = useState(false);
-  const [selectedSpot, setSelectedSpot] = useState("B-17");
+  const [selectedSpot, setSelectedSpot] = useState("");
 
   const session = parking.activeSession;
   const vehicle = session?.vehicle;
 
   const vehicleHeading = vehicle
-    ? `${vehicle.make ?? ""} ${vehicle.model ?? "Vehicle"}`.trim()
+    ? `${vehicle.make ?? ""} ${vehicle.model ?? "Vehicle"}`.trim() || "Vehicle"
     : "Vehicle";
 
   const vehiclePlate =
@@ -57,8 +60,8 @@ export function ParkingFlow({
     "No Plate";
 
   const vehicleInfo = `${vehicleHeading} · ${vehiclePlate}`;
-  const keyInfo = session?.keySlotCode ?? "None";
-  const destination = session?.parkingZoneCode ?? "Zone B";
+  const keyInfo = session?.keySlotCode ?? "Not assigned";
+  const destination = session?.parkingZoneCode ? `Zone ${session.parkingZoneCode}` : "Parking area";
 
   if (parking.isHydrating) {
     return (
@@ -67,6 +70,22 @@ export function ParkingFlow({
         <p className="text-navy font-semibold text-sm">
           Loading parking session details...
         </p>
+      </div>
+    );
+  }
+
+  if (parking.error && !session) {
+    return (
+      <div>
+        <BackHeader title="Parking Operation" onBack={() => nav("task-queue")} />
+        <div className="p-5 space-y-4">
+          <div className="p-4 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-sm">
+            <p className="font-bold">Cannot resume parking flow</p>
+            <p className="text-xs mt-1">{parking.error}</p>
+          </div>
+          <Btn label="Retry" onClick={() => void parking.retry()} />
+          <Btn label="Back to Task Queue" variant="secondary" onClick={() => nav("task-queue")} />
+        </div>
       </div>
     );
   }
@@ -137,17 +156,14 @@ export function ParkingFlow({
               <Btn
                 label="Simulate Spot Scan"
                 onClick={() => {
-                  setSelectedSpot("B-17");
+                  setSelectedSpot("P-101");
                   setSpotScanned(true);
                 }}
               />
               <Btn
-                label="Choose manually"
+                label="Enter spot code manually"
                 variant="secondary"
-                onClick={() => {
-                  setSelectedSpot("B-17");
-                  setSpotScanned(true);
-                }}
+                onClick={() => setSpotScanned(true)}
               />
             </div>
           </>
@@ -155,7 +171,7 @@ export function ParkingFlow({
           <div className="p-5 space-y-5">
             <div className="bg-[#EEFBF5] border border-vsuccess/20 rounded-2xl p-5 text-center">
               <p className="text-muted text-xs font-semibold uppercase tracking-wider mb-2">
-                Confirmed location
+                Location
               </p>
               <p className="font-heading font-bold text-3xl text-navy">
                 {destination}
@@ -167,7 +183,7 @@ export function ParkingFlow({
                 <input
                   value={selectedSpot}
                   onChange={(e) => setSelectedSpot(e.target.value)}
-                  placeholder="B-17"
+                  placeholder="Enter spot code"
                   className="w-full text-center font-heading font-semibold text-xl text-navy bg-white border border-vborder rounded-xl h-12 focus:outline-none focus:border-vblue"
                 />
               </div>
@@ -196,8 +212,10 @@ export function ParkingFlow({
   }
 
   if (parking.step === "success") {
-    const confirmedZone = session?.parkingZoneCode ?? destination;
+    const confirmedZone = session?.parkingZoneCode ? `Zone ${session.parkingZoneCode}` : "";
     const confirmedSpot = session?.parkingSpotCode ?? selectedSpot;
+    const spotDisplay = confirmedZone ? `${confirmedZone} · Spot ${confirmedSpot}` : `Spot ${confirmedSpot}`;
+
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] p-6 space-y-6">
         <SuccessCircle />
@@ -211,19 +229,14 @@ export function ParkingFlow({
         </div>
         <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">
           <InfoRow label="Vehicle" value={vehicleInfo} />
-          <InfoRow
-            label="Zone / Spot"
-            value={`${confirmedZone} · ${confirmedSpot}`}
-          />
+          <InfoRow label="Location" value={spotDisplay} />
           <InfoRow label="Key" value={keyInfo} />
         </div>
         <div className="w-full">
           <Btn
             label="Done"
             onClick={() => {
-              if (onComplete) {
-                onComplete();
-              }
+              onComplete?.();
               nav("task-queue");
             }}
           />

@@ -64,7 +64,7 @@ describe("EmployeeApp & Screen Component Baseline", () => {
     expect(markup).toContain("Parking Vehicle");
     expect(markup).toContain("Park Vehicle");
     expect(markup).toContain("Report Issue");
-    expect(markup).toContain("Zone B");
+    expect(markup).toContain("Parking area");
   });
 
   it("renders RetrievalFlow task view", () => {

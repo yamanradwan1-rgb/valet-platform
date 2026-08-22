@@ -5,15 +5,43 @@ import { Badge, VehicleIdentity } from "../ui/employee-primitives";
 
 export function LivePriorityTaskCard({
   priorityTask,
+  membershipId,
   onAction,
 }: {
+  readonly membershipId?: string | undefined;
   readonly onAction: () => void;
   readonly priorityTask: StaffTaskQueueItemViewModel;
 }): JSX.Element {
+  const isAssignedToOther =
+    priorityTask.currentAssigneeMembershipId !== null &&
+    membershipId !== undefined &&
+    priorityTask.currentAssigneeMembershipId !== membershipId;
+
+  let buttonText = "Accept Task";
+  if (priorityTask.taskType === "PARKING") {
+    if (isAssignedToOther) {
+      buttonText = "Assigned";
+    } else if (priorityTask.status === "QUEUED") {
+      buttonText = "Claim & Park";
+    } else if (priorityTask.status === "ASSIGNED") {
+      buttonText = "Accept & Park";
+    } else if (priorityTask.status === "ACCEPTED") {
+      buttonText = "Start Parking";
+    } else if (priorityTask.status === "IN_PROGRESS") {
+      buttonText = "Continue Parking";
+    }
+  } else if (priorityTask.taskType === "RETRIEVAL") {
+    buttonText = priorityTask.status === "IN_PROGRESS" ? "Start Retrieval" : "Accept Task";
+  }
+
   return (
     <div
-      onClick={onAction}
-      className="bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+      onClick={!isAssignedToOther ? onAction : undefined}
+      className={
+        !isAssignedToOther
+          ? "bg-white rounded-2xl border border-vborder overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+          : "bg-white rounded-2xl border border-vborder overflow-hidden opacity-75 shadow-sm transition-shadow"
+      }
     >
       <div className="h-1 bg-vblue" />
       <div className="p-5">
@@ -47,23 +75,20 @@ export function LivePriorityTaskCard({
           </div>
           <button
             type="button"
+            disabled={isAssignedToOther}
             onClick={(e) => {
               e.stopPropagation();
-              onAction();
+              if (!isAssignedToOther) onAction();
             }}
             className={`${
-              priorityTask.status === "ACCEPTED" ||
-              priorityTask.status === "IN_PROGRESS"
-                ? "bg-vsuccess px-4"
-                : "bg-vblue px-5"
-            } text-white text-sm font-bold h-10 rounded-xl cursor-pointer active:scale-[0.98] transition-all`}
+              isAssignedToOther
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : priorityTask.status === "ACCEPTED" || priorityTask.status === "IN_PROGRESS"
+                  ? "bg-vsuccess text-white cursor-pointer active:scale-[0.98]"
+                  : "bg-vblue text-white cursor-pointer active:scale-[0.98]"
+            } text-sm font-bold h-10 px-4 rounded-xl transition-all`}
           >
-            {priorityTask.status === "ACCEPTED" ||
-            priorityTask.status === "IN_PROGRESS"
-              ? priorityTask.taskType === "RETRIEVAL"
-                ? "Start Retrieval"
-                : "Start Parking"
-              : "Accept Task"}
+            {buttonText}
           </button>
         </div>
       </div>
@@ -73,20 +98,36 @@ export function LivePriorityTaskCard({
 
 export function LiveQueueItem({
   task,
+  membershipId,
   onClick,
 }: {
+  readonly membershipId?: string | undefined;
   readonly onClick?: () => void;
   readonly task: StaffTaskQueueItemViewModel;
 }): JSX.Element {
+  const isAssignedToOther =
+    task.currentAssigneeMembershipId !== null &&
+    membershipId !== undefined &&
+    task.currentAssigneeMembershipId !== membershipId;
+
   return (
     <div
-      onClick={onClick}
-      className="bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
+      onClick={!isAssignedToOther ? onClick : undefined}
+      className={
+        !isAssignedToOther
+          ? "bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
+          : "bg-white rounded-xl border border-vborder px-4 py-3 flex items-center gap-3 opacity-60 cursor-not-allowed transition-colors"
+      }
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <Badge variant={task.badgeVariant} />
           <span className="text-muted text-xs">{task.timeText}</span>
+          {isAssignedToOther && (
+            <span className="text-[10px] bg-gray-100 text-neutral px-1.5 py-0.5 rounded font-medium">
+              Other staff
+            </span>
+          )}
         </div>
         <p className="font-heading font-bold text-navy text-[15px] leading-tight">
           {task.vehicleHeading}
@@ -95,7 +136,7 @@ export function LiveQueueItem({
           {task.vehicleIdentifier} · {task.metaText}
         </p>
       </div>
-      <ChevronRight />
+      {!isAssignedToOther && <ChevronRight />}
     </div>
   );
 }

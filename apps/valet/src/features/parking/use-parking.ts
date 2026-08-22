@@ -17,6 +17,7 @@ import type {
 export interface UseParkingOptions {
   readonly client?: EmployeeApiClient | undefined;
   readonly initialSession?: ActiveParkingSession | null | undefined;
+  readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
   readonly taskVersion?: number | null | undefined;
@@ -28,6 +29,7 @@ export interface UseParkingResult {
   readonly error: string | null;
   readonly isHydrating: boolean;
   readonly isSubmitting: boolean;
+  readonly retry: () => Promise<void>;
   readonly setStep: (step: ParkingFlowStep) => void;
   readonly step: ParkingFlowStep;
 }
@@ -39,6 +41,7 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
     taskId,
     taskVersion,
     client: customClient,
+    onAuthorizationLoss,
   } = options;
   const auth = useOptionalStaffAuth();
   const authClient = auth?.client;
@@ -48,8 +51,9 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
       customClient ??
       new EmployeeApiClient({
         authClient: authClient ?? getDefaultStaffAuthClient(),
+        onAuthorizationLoss,
       }),
-    [customClient, authClient],
+    [customClient, authClient, onAuthorizationLoss],
   );
 
   const [controllerState, setControllerState] = useState<ParkingState>({
@@ -86,6 +90,12 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
     [controller],
   );
 
+  const retry = useCallback(async () => {
+    if (sessionId && taskId && taskVersion !== null && taskVersion !== undefined) {
+      await controller.hydrateSession(sessionId, taskId, taskVersion);
+    }
+  }, [controller, sessionId, taskId, taskVersion]);
+
   const setStep = useCallback(
     (step: ParkingFlowStep) => {
       controller.setStep(step);
@@ -99,6 +109,7 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
     error: controllerState.error,
     isHydrating: controllerState.isHydrating,
     isSubmitting: controllerState.isSubmitting,
+    retry,
     setStep,
     step: controllerState.step,
   };

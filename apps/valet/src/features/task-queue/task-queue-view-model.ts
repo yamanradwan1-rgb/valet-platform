@@ -2,19 +2,20 @@ import type { StaffTaskQueueItem } from "@valet/contracts";
 import type { BadgeVariant } from "../../types/employee-ui";
 
 export interface StaffTaskQueueItemViewModel {
-  readonly taskId: string;
-  readonly sessionId: string;
-  readonly taskType: "PARKING" | "RETRIEVAL";
   readonly badgeVariant: BadgeVariant;
+  readonly currentAssigneeMembershipId: string | null;
+  readonly elapsedAge: string;
+  readonly isAssignedToMe: boolean;
+  readonly metaText: string;
+  readonly parkingContext: string | null;
+  readonly sessionId: string;
   readonly status: "QUEUED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS";
+  readonly taskId: string;
+  readonly taskType: "PARKING" | "RETRIEVAL";
+  readonly timeText: string;
+  readonly vehicleColor?: string | undefined;
   readonly vehicleHeading: string;
   readonly vehicleIdentifier: string;
-  readonly vehicleColor?: string | undefined;
-  readonly timeText: string;
-  readonly elapsedAge: string;
-  readonly parkingContext: string | null;
-  readonly metaText: string;
-  readonly isAssignedToMe: boolean;
   readonly version: number;
 }
 
@@ -109,19 +110,20 @@ export function toStaffTaskQueueItemViewModel(
   );
 
   return {
-    taskId: task.taskId,
-    sessionId: task.sessionId,
-    taskType: task.taskType,
     badgeVariant: task.taskType === "PARKING" ? "parking" : "retrieval",
+    currentAssigneeMembershipId: task.currentAssigneeMembershipId,
+    elapsedAge: formatElapsedAge(task.createdAt, nowMs),
+    isAssignedToMe,
+    metaText,
+    parkingContext,
+    sessionId: task.sessionId,
     status: task.status,
+    taskId: task.taskId,
+    taskType: task.taskType,
+    timeText,
+    vehicleColor: task.vehicle.color?.trim() || undefined,
     vehicleHeading,
     vehicleIdentifier,
-    vehicleColor: task.vehicle.color?.trim() || undefined,
-    timeText,
-    elapsedAge: formatElapsedAge(task.createdAt, nowMs),
-    parkingContext,
-    metaText,
-    isAssignedToMe,
     version: task.version,
   };
 }

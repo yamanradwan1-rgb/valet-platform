@@ -15,18 +15,19 @@ import {
 import { selectEffectiveTaskQueueItems } from "./task-queue-selectors";
 
 export interface UseTaskQueueOptions {
-  readonly locationId: string | null;
   readonly client?: EmployeeApiClient | undefined;
-  readonly pollingIntervalMs?: number | undefined;
+  readonly locationId: string | null;
   readonly onAuthorizationLoss?: (() => void) | undefined;
+  readonly pollingIntervalMs?: number | undefined;
 }
 
 export interface UseTaskQueueResult {
-  readonly tasks: StaffTaskQueueItem[];
+  readonly client: EmployeeApiClient;
+  readonly error: Error | null;
+  readonly isHardStopped: boolean;
   readonly isLoading: boolean;
   readonly isRefreshing: boolean;
-  readonly isHardStopped: boolean;
-  readonly error: Error | null;
+  readonly tasks: StaffTaskQueueItem[];
 }
 
 export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
@@ -46,29 +47,30 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       customClient ??
       new EmployeeApiClient({
         authClient: authClient ?? getDefaultStaffAuthClient(),
+        onAuthorizationLoss,
       }),
-    [customClient, authClient],
+    [customClient, authClient, onAuthorizationLoss],
   );
 
   const [controllerState, setControllerState] = useState<TaskQueueState>({
-    sessionGeneration: null,
-    scopeLocationId: null,
-    tasks: [],
+    error: null,
+    isHardStopped: false,
     isLoading: false,
     isRefreshing: false,
-    isHardStopped: false,
-    error: null,
+    scopeLocationId: null,
+    sessionGeneration: null,
+    tasks: [],
   });
 
   const [controller] = useState(
     () =>
       new TaskQueueController({
         apiClient,
-        pollingIntervalMs,
         onAuthorizationLoss,
         onStateChange: (nextState) => {
           setControllerState(nextState);
         },
+        pollingIntervalMs,
       }),
   );
 
@@ -122,7 +124,10 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   );
 
   return {
-    tasks: effectiveTasks,
+    client: apiClient,
+    error:
+      status === "authenticated" && locationId ? controllerState.error : null,
+    isHardStopped: controllerState.isHardStopped,
     isLoading:
       status === "authenticated" && locationId
         ? controllerState.isLoading
@@ -131,8 +136,6 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       status === "authenticated" && locationId
         ? controllerState.isRefreshing
         : false,
-    isHardStopped: controllerState.isHardStopped,
-    error:
-      status === "authenticated" && locationId ? controllerState.error : null,
+    tasks: effectiveTasks,
   };
 }

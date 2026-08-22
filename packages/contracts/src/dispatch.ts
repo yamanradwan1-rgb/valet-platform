@@ -104,4 +104,5 @@ export type TaskQueueResponse = z.infer<typeof taskQueueResponseSchema>;
 export type ParkingTaskQueueResponse = z.infer<
   typeof parkingTaskQueueResponseSchema
 >;
+export type AssignTaskResponse = z.infer<typeof assignTaskResponseSchema>;
 export type AcceptTaskResponse = z.infer<typeof acceptTaskResponseSchema>;

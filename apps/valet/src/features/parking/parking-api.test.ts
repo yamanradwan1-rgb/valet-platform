@@ -4,10 +4,12 @@ import type { StaffValetSessionDetailResponse } from "@valet/contracts";
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import {
   acceptParkingTask,
+  assignParkingTask,
   confirmParkedSession,
   fetchSessionDetail,
   startParkingSession,
   type AcceptTaskResponse,
+  type AssignTaskResponse,
   type ConfirmParkedResponse,
   type StartParkingResponse,
 } from "./parking-api";
@@ -50,12 +52,12 @@ describe("Parking API Client", () => {
     expect(res).toEqual(payload);
   });
 
-  it("acceptParkingTask invokes task accept endpoint", async () => {
-    const payload: AcceptTaskResponse = {
+  it("assignParkingTask invokes task assign endpoint", async () => {
+    const payload: AssignTaskResponse = {
       createdAt: "2026-08-21T18:05:00.000Z",
       currentAssigneeMembershipId: "55555555-5555-4555-8555-555555555555",
       sessionId,
-      status: "ACCEPTED",
+      status: "ASSIGNED",
       taskId,
       taskType: "PARKING",
       version: 2,
@@ -64,7 +66,25 @@ describe("Parking API Client", () => {
       request: vi.fn().mockResolvedValue(payload),
     } as unknown as EmployeeApiClient;
 
-    const res = await acceptParkingTask(mockClient, taskId, 1);
+    const res = await assignParkingTask(mockClient, taskId, 1);
+    expect(res).toEqual(payload);
+  });
+
+  it("acceptParkingTask invokes task accept endpoint", async () => {
+    const payload: AcceptTaskResponse = {
+      createdAt: "2026-08-21T18:05:00.000Z",
+      currentAssigneeMembershipId: "55555555-5555-4555-8555-555555555555",
+      sessionId,
+      status: "ACCEPTED",
+      taskId,
+      taskType: "PARKING",
+      version: 3,
+    };
+    const mockClient = {
+      request: vi.fn().mockResolvedValue(payload),
+    } as unknown as EmployeeApiClient;
+
+    const res = await acceptParkingTask(mockClient, taskId, 2);
     expect(res).toEqual(payload);
   });
 
@@ -76,13 +96,13 @@ describe("Parking API Client", () => {
       state: "PARKING",
       taskId,
       taskStatus: "IN_PROGRESS",
-      taskVersion: 3,
+      taskVersion: 4,
     };
     const mockClient = {
       request: vi.fn().mockResolvedValue(payload),
     } as unknown as EmployeeApiClient;
 
-    const res = await startParkingSession(mockClient, sessionId, 3, 2);
+    const res = await startParkingSession(mockClient, sessionId, 3, 3);
     expect(res).toEqual(payload);
   });
 
@@ -97,13 +117,13 @@ describe("Parking API Client", () => {
       state: "PARKED",
       taskId,
       taskStatus: "COMPLETED",
-      taskVersion: 4,
+      taskVersion: 5,
     };
     const mockClient = {
       request: vi.fn().mockResolvedValue(payload),
     } as unknown as EmployeeApiClient;
 
-    const res = await confirmParkedSession(mockClient, sessionId, 4, 3, "B-17");
+    const res = await confirmParkedSession(mockClient, sessionId, 4, 4, "B-17");
     expect(res).toEqual(payload);
   });
 });

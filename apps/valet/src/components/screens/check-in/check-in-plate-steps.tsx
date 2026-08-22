@@ -76,7 +76,7 @@ export function CheckInManualPlateStep({
           <input
             value={plateNumber}
             onChange={(e) => onChangePlateNumber(e.target.value)}
-            placeholder="12-34567"
+            placeholder="e.g. 12-34567"
             className="w-full h-14 border border-vborder rounded-2xl px-4 font-heading font-bold text-xl text-center text-navy focus:outline-none focus:border-vblue transition-colors bg-white"
           />
         </div>
@@ -134,8 +134,9 @@ export function CheckInPlateConfirmStep({
   readonly plateNumber?: string | undefined;
   readonly temporaryDescriptor?: string | null | undefined;
 }): JSX.Element {
-  const displayPlate = temporaryDescriptor || plateNumber || "12-34567";
-  const displayCountry = plateCountry ? `${plateCountry} plate` : "Jordan plate";
+  const displayPlate = temporaryDescriptor || plateNumber || "No plate";
+  const displayCountry = plateCountry ? `${plateCountry} plate` : "Detected plate";
+  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
 
   return (
     <div>
@@ -164,16 +165,16 @@ export function CheckInPlateConfirmStep({
         </div>
         <div className="bg-white rounded-2xl border border-vborder p-4 space-y-1">
           <p className="text-muted text-xs uppercase tracking-wider mb-3">
-            Vehicle detected
+            Vehicle details
           </p>
           <VehicleIdentity
-            color={color ?? "Black"}
-            model={make && model ? `${make} ${model}` : (model ?? "BMW X5")}
+            color={color ?? "Not specified"}
+            model={displayModel}
             plate={displayPlate}
           />
         </div>
         <Btn
-          label={isSubmitting ? "Registering Vehicle..." : "Confirm Plate"}
+          label={isSubmitting ? "Confirming..." : "Confirm Plate"}
           onClick={onConfirm}
           disabled={isSubmitting ?? false}
         />

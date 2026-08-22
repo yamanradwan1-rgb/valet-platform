@@ -5,6 +5,8 @@ import type {
 
 export type CheckInFlowStep =
   | "discovery"
+  | "discovery-error"
+  | "hydration-error"
   | "plate-scan"
   | "manual-plate"
   | "plate-confirm"
@@ -35,6 +37,7 @@ export interface CheckInActiveSession {
   readonly sessionVersion: number;
   readonly state: "CHECKING_IN" | "AWAITING_PARKING";
   readonly vehicle: CheckInVehicleData;
+  readonly vehicleUpdatedAt: string | null;
 }
 
 export interface CheckInState {
@@ -44,6 +47,7 @@ export interface CheckInState {
   readonly error: string | null;
   readonly isHydrating: boolean;
   readonly isSubmitting: boolean;
+  readonly pendingVehicle: CheckInVehicleData | null;
   readonly step: CheckInFlowStep;
 }
 

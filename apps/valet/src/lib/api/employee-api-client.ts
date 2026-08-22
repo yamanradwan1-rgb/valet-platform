@@ -7,28 +7,32 @@ import type { StaffAuthClient } from "../auth/staff-auth-client";
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD";
 
 export interface EmployeeRequestOptions {
-  readonly method?: HttpMethod | undefined;
   readonly body?: unknown | undefined;
-  readonly params?:
-    Record<string, string | number | boolean | undefined | null> | undefined;
   readonly headers?: Record<string, string> | undefined;
-  readonly signal?: AbortSignal | undefined;
+  readonly method?: HttpMethod | undefined;
+  readonly params?:
+    | Record<string, string | number | boolean | undefined | null>
+    | undefined;
   readonly requireAuth?: boolean | undefined;
+  readonly signal?: AbortSignal | undefined;
   readonly skipProactiveRefresh?: boolean | undefined;
 }
 
 export interface EmployeeApiClientOptions {
   readonly authClient: StaffAuthClient;
   readonly baseUrl?: string | undefined;
+  readonly onAuthorizationLoss?: (() => void) | undefined;
 }
 
 export class EmployeeApiClient {
   private readonly authClient: StaffAuthClient;
   private readonly baseUrl: string;
+  private readonly onAuthorizationLoss?: (() => void) | undefined;
 
   constructor(options: EmployeeApiClientOptions) {
     this.authClient = options.authClient;
     this.baseUrl = options.baseUrl ?? "";
+    this.onAuthorizationLoss = options.onAuthorizationLoss;
   }
 
   async request<T>(
@@ -63,10 +67,11 @@ export class EmployeeApiClient {
       }
 
       if (!token) {
+        this.onAuthorizationLoss?.();
         throw new EmployeeApiError({
-          status: 401,
           code: "STAFF_AUTHENTICATION_REQUIRED",
           message: "Staff authentication required.",
+          status: 401,
         });
       }
     }
@@ -87,10 +92,10 @@ export class EmployeeApiClient {
     }
 
     const fetchInit: RequestInit = {
-      method,
       cache: "no-store",
       credentials: "include",
       headers,
+      method,
     };
 
     if (signal !== undefined) {
@@ -109,26 +114,27 @@ export class EmployeeApiClient {
         throw networkError;
       }
       throw new EmployeeApiError({
-        status: 0,
         code: "NETWORK_ERROR",
+        isNetworkError: true,
         message:
           "Network connection unavailable. Please check your internet connection.",
-        isNetworkError: true,
+        status: 0,
       });
     }
 
     const payload = await this.parseJsonPayload(response);
 
     if (!response.ok) {
-      // Safe retry rule: Only safe, idempotent read methods (GET/HEAD) may be retried ONCE after 401 refresh
       const isReadMethod = method === "GET" || method === "HEAD";
       if (response.status === 401 && isReadMethod && !isRetry && requireAuth) {
         try {
           await this.authClient.refresh(signal);
           return await this.executeRequest<T>(path, options, true);
         } catch {
-          // If refresh fails during 401 retry, normalize original error
+          this.onAuthorizationLoss?.();
         }
+      } else if (response.status === 401 || response.status === 403) {
+        this.onAuthorizationLoss?.();
       }
 
       throw normalizeEmployeeApiError(response.status, payload);

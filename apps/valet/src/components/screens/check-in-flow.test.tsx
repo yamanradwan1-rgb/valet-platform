@@ -84,12 +84,14 @@ describe("CheckInFlow Component Steps", () => {
         plate="12-34567"
         onChangePhone={vi.fn()}
         onContinue={vi.fn()}
+        onNoPhone={vi.fn()}
         onBack={vi.fn()}
       />,
     );
     expect(markup).toContain("Customer Contact");
     expect(markup).toContain("Mobile Number");
     expect(markup).toContain("+962");
+    expect(markup).toContain("No phone available");
   });
 
   it("renders CheckInVehicleConditionStep with condition options", () => {
@@ -131,7 +133,6 @@ describe("CheckInFlow Component Steps", () => {
     expect(markup).toContain("Assign Key");
     expect(markup).toContain("Key Slot");
     expect(markup).toContain("B-214");
-    expect(markup).toContain("Available");
   });
 
   it("renders CheckInKeyAssignedStep and CheckInParkingTaskStep", () => {

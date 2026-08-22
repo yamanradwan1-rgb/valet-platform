@@ -1,12 +1,15 @@
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import {
   acceptParkingTask,
+  assignParkingTask,
   assignSessionKeySlot,
   completeCheckInSession,
   completeConditionStep,
   createIntakeSession,
+  createSessionConditionNote,
   queueSessionParkingTask,
   startParkingSession,
+  updateSessionVehicleIdentity,
 } from "./check-in-api";
 import type {
   CheckInActiveSession,
@@ -25,32 +28,41 @@ function generateUuid(): string {
   });
 }
 
+function buildIdentityInput(vehicleData: CheckInVehicleData) {
+  if (
+    vehicleData.temporaryDescriptor !== null &&
+    vehicleData.plateNumberRaw.trim() === ""
+  ) {
+    return {
+      mode: "TEMPORARY_DESCRIPTOR" as const,
+      temporaryDescriptor: vehicleData.temporaryDescriptor,
+    };
+  }
+  return {
+    confirmedByHuman: true,
+    mode: "CONFIRMED_PLATE" as const,
+    plateCountry: vehicleData.plateCountry,
+    plateNumberRaw: vehicleData.plateNumberRaw,
+  };
+}
+
 export async function runIntakeMutation(
   client: EmployeeApiClient,
   locationId: string,
   vehicleData: CheckInVehicleData,
+  customerPhone?: string | null,
 ): Promise<CheckInActiveSession> {
+  const phoneVal = customerPhone?.trim() || "";
   const intakeRes = await createIntakeSession(client, {
     intakeOperationId: generateUuid(),
     targetLocationId: locationId,
-    vehicleIdentity:
-      vehicleData.temporaryDescriptor !== null &&
-      vehicleData.plateNumberRaw.trim() === ""
-        ? {
-            mode: "TEMPORARY_DESCRIPTOR",
-            temporaryDescriptor: vehicleData.temporaryDescriptor,
-          }
-        : {
-            confirmedByHuman: true,
-            mode: "CONFIRMED_PLATE",
-            plateCountry: vehicleData.plateCountry,
-            plateNumberRaw: vehicleData.plateNumberRaw,
-          },
+    vehicleIdentity: buildIdentityInput(vehicleData),
+    ...(phoneVal ? { customer: { phone: phoneVal } } : {}),
   });
 
   return {
     conditionCompletedAt: null,
-    customerPhone: null,
+    customerPhone: phoneVal || null,
     keySlotCode: null,
     locationId,
     parkingTaskId: null,
@@ -59,21 +71,47 @@ export async function runIntakeMutation(
     sessionVersion: intakeRes.version,
     state: "CHECKING_IN",
     vehicle: vehicleData,
+    vehicleUpdatedAt: intakeRes.vehicleUpdatedAt,
+  };
+}
+
+export async function runUpdateVehicleIdentityMutation(
+  client: EmployeeApiClient,
+  session: CheckInActiveSession,
+  newVehicleData: CheckInVehicleData,
+): Promise<{ vehicle: CheckInVehicleData; vehicleUpdatedAt: string }> {
+  if (!session.vehicleUpdatedAt) {
+    throw new Error("Missing vehicleUpdatedAt on session.");
+  }
+  const res = await updateSessionVehicleIdentity(client, session.sessionId, {
+    expectedVehicleUpdatedAt: session.vehicleUpdatedAt,
+    identity: buildIdentityInput(newVehicleData),
+  });
+  return {
+    vehicle: newVehicleData,
+    vehicleUpdatedAt: res.vehicleUpdatedAt,
   };
 }
 
 export async function runConditionCompletionMutation(
   client: EmployeeApiClient,
   session: CheckInActiveSession,
+  conditionNote?: string | null,
 ): Promise<{ conditionCompletedAt: string; sessionVersion: number }> {
-  await completeConditionStep(client, session.sessionId);
+  const note = conditionNote?.trim() || "";
+  if (note && note !== "No visible issue") {
+    await createSessionConditionNote(client, session.sessionId, {
+      content: note,
+    });
+  }
+  const condRes = await completeConditionStep(client, session.sessionId);
   const completeRes = await completeCheckInSession(
     client,
     session.sessionId,
     session.sessionVersion,
   );
   return {
-    conditionCompletedAt: new Date().toISOString(),
+    conditionCompletedAt: condRes.completedAt,
     sessionVersion: completeRes.version,
   };
 }
@@ -123,12 +161,13 @@ export async function runStartParkingMutation(
     throw new Error("Unable to obtain parking task.");
   }
 
-  await acceptParkingTask(client, taskId, taskVersion);
+  const assignRes = await assignParkingTask(client, taskId, taskVersion);
+  const acceptRes = await acceptParkingTask(client, taskId, assignRes.version);
   const startRes = await startParkingSession(
     client,
     session.sessionId,
     session.sessionVersion,
-    taskVersion,
+    acceptRes.version,
   );
 
   return {

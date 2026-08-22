@@ -43,7 +43,6 @@ export function EmployeeApp(): JSX.Element {
 
   const isLive = resolution.kind === "RESOLVED";
 
-  // In live mode, permitted operational screens are task-queue, check-in, parking.
   const livePermittedScreens = new Set<Screen>([
     "task-queue",
     "check-in",
@@ -72,7 +71,7 @@ export function EmployeeApp(): JSX.Element {
     }
   };
 
-  const handleStartParkingFromCheckIn = (payload: StartParkingPayload) => {
+  const handleStartParkingSuccess = (payload: StartParkingPayload) => {
     setActiveParkingPayload(payload);
     setActiveParkingTarget(null);
     setScreenOverride("parking");
@@ -101,7 +100,8 @@ export function EmployeeApp(): JSX.Element {
           <CheckInFlow
             locationId={activeScope?.locationId}
             nav={nav}
-            onStartParkingSuccess={handleStartParkingFromCheckIn}
+            onAuthorizationLoss={revalidateOnAuthLoss}
+            onStartParkingSuccess={handleStartParkingSuccess}
           />
         );
       case "parking": {
@@ -135,6 +135,7 @@ export function EmployeeApp(): JSX.Element {
               activeParkingPayload?.taskVersion
             }
             nav={nav}
+            onAuthorizationLoss={revalidateOnAuthLoss}
             onComplete={handleParkingComplete}
           />
         );
@@ -151,6 +152,7 @@ export function EmployeeApp(): JSX.Element {
             membershipId={activeScope?.membershipId}
             onAuthorizationLoss={revalidateOnAuthLoss}
             onSelectParkingTask={handleSelectParkingTaskFromQueue}
+            onStartParkingSuccess={handleStartParkingSuccess}
           />
         );
     }
