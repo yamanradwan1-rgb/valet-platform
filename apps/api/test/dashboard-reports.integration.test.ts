@@ -17,6 +17,7 @@ import {
   analyticsSeedCashShift,
   analyticsSeedIncident,
   analyticsSeedPayment,
+  analyticsSeedRefund,
   analyticsSeedSession,
   analyticsSeedValidationPair,
 } from "./dashboard-analytics-seed";
@@ -112,6 +113,34 @@ beforeAll(async () => {
     sessionId: completed,
   });
   await analyticsSeedValidationPair(context, { paymentId: jodPayment });
+
+  // Validation-only currency: completed in-period, canonical UNPAID Payment.
+  const eurSession = await analyticsSeedSession(context, {
+    state: "COMPLETED",
+    completedAtIso: "2026-07-10T09:30:00Z",
+  });
+  const eurPayment = await analyticsSeedPayment(context, {
+    currency: "EUR",
+    sessionId: eurSession,
+    status: "UNPAID",
+  });
+  await analyticsSeedValidationPair(context, { paymentId: eurPayment });
+
+  // Refund-only currency: no paid-at-in-period row for this currency.
+  const gbpSession = await analyticsSeedSession(context, {
+    state: "PARKED",
+  });
+  const gbpPayment = await analyticsSeedPayment(context, {
+    currency: "GBP",
+    sessionId: gbpSession,
+    status: "UNPAID",
+  });
+  await analyticsSeedRefund(context, {
+    amount: "3.250",
+    completedAtIso: "2026-07-10T12:00:00Z",
+    paymentId: gbpPayment,
+    status: "SUCCEEDED",
+  });
   await analyticsSeedCashShift(context, { endedAtIso: "2026-07-10T18:00:00Z" });
   await analyticsSeedIncident(context, {
     createdAtIso: "2026-07-10T09:00:00Z",
@@ -174,7 +203,24 @@ describe("VAL-009E daily report composition", () => {
       sampleCount: 0,
     });
     expect(report.summary.metrics.checkInTime.sampleCount).toBe(1);
-    expect(report.summary.currencies.map((g) => g.currency)).toEqual(["JOD"]);
+    expect(report.summary.currencies.map((g) => g.currency)).toEqual([
+      "EUR",
+      "GBP",
+      "JOD",
+    ]);
+    const eur = report.summary.currencies.find((g) => g.currency === "EUR")!;
+    expect(eur.validationRate).toEqual({
+      denominator: 1,
+      numerator: 1,
+      percentage: "100.00",
+    });
+    expect(eur.paidPaymentCount).toBe(0);
+    expect(eur.currentValidationAmountTotal).toBe("4.000");
+    const gbp = report.summary.currencies.find((g) => g.currency === "GBP")!;
+    expect(gbp.succeededRefundAmountTotal).toBe("3.250");
+    expect(gbp.paidPaymentCount).toBe(0);
+    const jod = report.summary.currencies.find((g) => g.currency === "JOD")!;
+    expect(jod.paidPaymentCount).toBe(1);
     expect(report.summary.incidents.incidentCount).toBe(1);
     expect(report.dailyActivity).toMatchObject({
       retrievalRequestedCount: 1,

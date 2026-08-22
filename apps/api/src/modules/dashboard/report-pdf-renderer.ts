@@ -15,7 +15,11 @@ function line(
   text: string,
   y: number,
 ): number {
-  page.drawText(text, { font, size: 10, x: 40, y });
+  // StandardFonts use WinAnsi encoding: strip C0 controls and anything
+  // outside printable ASCII deterministically so bounded summary text is
+  // always encodable.
+  const safe = text.replace(/[^\x20-\x7E]/g, "");
+  page.drawText(safe, { font, size: 10, x: 40, y });
   return y - 14;
 }
 
@@ -26,6 +30,13 @@ export async function renderReportPdf(
   periodTo: string,
 ): Promise<RenderedArtifact> {
   const document = await PDFDocument.create();
+  // Explicitly pin dynamic metadata so identical reports render identical
+  // bytes (logical byte-determinism) instead of embedding render timestamps.
+  const fixedMetadataDate = new Date(0);
+  document.setCreationDate(fixedMetadataDate);
+  document.setModificationDate(fixedMetadataDate);
+  document.setProducer("VAYLET Dashboard");
+  document.setCreator("VAYLET Dashboard");
   const font = await document.embedFont(StandardFonts.Helvetica);
   let page = document.addPage([595, 842]);
   let y = 800;

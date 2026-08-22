@@ -14,10 +14,18 @@ export interface RenderedArtifact {
 
 const maximumArtifactBytes = 5 * 1024 * 1024;
 
+// Injection-hardening: strip non-tab/CR/LF C0 controls outright.
+// eslint-disable-next-line no-control-regex -- injection hardening targets control characters
+const controlStripPattern = /[\x00-\x08\x0B\x0C\x0E-\x1F]/g;
+const leadingControlPattern = /^[\t\r\n]+/;
+const dangerousPrefixPattern = /^[=+\-@\t\r\n]/;
+
 function sanitizeCell(value: string): string {
-  // eslint-disable-next-line no-control-regex -- injection hardening targets control characters
-  const stripped = value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
-  return /^[=+\-@\t]/.test(stripped) ? `'${stripped}` : stripped;
+  const stripped = value.replace(controlStripPattern, "");
+  const withoutLeadingControls = stripped.replace(leadingControlPattern, "");
+  return dangerousPrefixPattern.test(withoutLeadingControls)
+    ? `'${withoutLeadingControls}`
+    : withoutLeadingControls;
 }
 
 function csvCell(value: string): string {
@@ -82,10 +90,12 @@ function reportRows(report: ComposedReport): Row[] {
   }
   rows.push(["INCIDENTS", "count", "", "", String(report.summary.incidents.incidentCount)]);
   for (const severity of report.summary.incidents.severityCounts) {
-    rows.push(["INCIDENTS", `severity:${severity.severity}`, "", "", String(severity.count)]);
+    rows.push(["INCIDENTS_SEVERITY", severity.severity, "", "", String(severity.count)]);
   }
+  // Free-text persisted values lead their own cell so injection hardening
+  // applies visibly at the cell boundary.
   for (const type of report.summary.incidents.typeCounts) {
-    rows.push(["INCIDENTS", `type:${type.type}`, "", "", String(type.count)]);
+    rows.push(["INCIDENTS_TYPE", type.type, "", "", String(type.count)]);
   }
   rows.push(
     ["INCIDENTS", "per1000Numerator", "", "", String(report.summary.incidents.incidentsPer1000.numerator)],

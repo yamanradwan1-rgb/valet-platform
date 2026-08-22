@@ -1,11 +1,21 @@
 import { createHash } from "node:crypto";
 
-import type { ReportExportRequest, ReportKind } from "@valet/contracts";
+import type {
+  ReportExportRequest,
+  ReportKind,
+} from "@valet/contracts";
 
-import type { PostgresPool } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import type { AnalyticsPeriod } from "./analytics-period";
-import { assertExportWithinBounds } from "./dashboard-overview-error";
+import {
+  assertExportWithinBounds,
+  DashboardOverviewError,
+} from "./dashboard-overview-error";
+import { authorizeDashboardLocation } from "./dashboard-location-authorization";
 import {
   renderReportCsv,
   type RenderedArtifact,
@@ -41,6 +51,71 @@ function derivePeriod(request: ReportExportRequest): AnalyticsPeriod {
   }
 }
 
+/**
+ * Final authorized audit transaction boundary for a rendered artifact.
+ * Runs on the caller-provided transaction client: re-derives exact-Location
+ * authorization against THIS transaction so a revocation between pre-render
+ * checks and audit fails closed with zero AuditEvents, re-derives the
+ * accepted request period to prove it matches the rendered artifact, and
+ * writes the single export AuditEvent using the fresh transaction-derived
+ * scope.
+ */
+export async function finalizeAuditedExport(
+  transaction: PostgresTransaction,
+  input: {
+    artifact: Pick<RenderedArtifact, "bytes"> & { format: "CSV" | "PDF" };
+    authenticatedUserId: string;
+    kind: ReportKind;
+    locationId: string;
+    renderedPeriodFrom: string;
+    renderedPeriodTo: string;
+    request: ReportExportRequest;
+  },
+): Promise<ReportExportResult> {
+  const freshScope = await authorizeDashboardLocation(
+    transaction,
+    input.authenticatedUserId,
+    input.locationId,
+  );
+  if (freshScope === null) {
+    throw new DashboardOverviewError("AUTHORIZATION_DENIED");
+  }
+  const freshPeriod = derivePeriod(input.request);
+  if (
+    freshPeriod.from !== input.renderedPeriodFrom ||
+    freshPeriod.to !== input.renderedPeriodTo
+  ) {
+    throw new DashboardOverviewError("AUTHORIZATION_DENIED");
+  }
+  const contentSha256 = createHash("sha256")
+    .update(input.artifact.bytes)
+    .digest("hex");
+  await appendReportExportAuditEvent(transaction, {
+    contentLength: input.artifact.bytes.byteLength,
+    contentSha256,
+    format: input.artifact.format,
+    kind: input.kind,
+    locationId: freshScope.locationId,
+    membershipId: freshScope.membershipId,
+    organizationId: freshScope.organizationId,
+    periodFrom: freshPeriod.from,
+    periodTo: freshPeriod.to,
+  });
+  return {
+    bytes: input.artifact.bytes,
+    contentType:
+      input.artifact.format === "CSV"
+        ? "text/csv; charset=utf-8"
+        : "application/pdf",
+    filename: `report-${input.kind.toLowerCase()}-${input.renderedPeriodFrom}.${
+      input.artifact.format.toLowerCase()
+    }`,
+    kind: input.kind,
+    periodFrom: input.renderedPeriodFrom,
+    periodTo: input.renderedPeriodTo,
+  };
+}
+
 export async function generateReportExport(
   pool: PostgresPool,
   input: {
@@ -49,6 +124,7 @@ export async function generateReportExport(
     request: ReportExportRequest;
   },
 ): Promise<ReportExportResult> {
+  // Fail-fast pre-render authorization/composition boundary.
   const scope = await requireAuthorizedScope(
     pool,
     input.authenticatedUserId,
@@ -80,28 +156,17 @@ export async function generateReportExport(
           period.from,
           period.to,
         );
-  const contentSha256 = createHash("sha256")
-    .update(artifact.bytes)
-    .digest("hex");
-  await inPostgresTransaction(pool, async (transaction) => {
-    await appendReportExportAuditEvent(transaction, {
-      contentLength: artifact.bytes.byteLength,
-      contentSha256,
-      format: input.request.format,
+  void scope.membershipId;
+  // Final audited transaction re-derives authorization and scope.
+  return inPostgresTransaction(pool, async (transaction) =>
+    finalizeAuditedExport(transaction, {
+      artifact: { bytes: artifact.bytes, format: input.request.format },
+      authenticatedUserId: input.authenticatedUserId,
       kind: input.request.kind,
-      locationId: scope.locationId,
-      membershipId: scope.membershipId,
-      organizationId: scope.organizationId,
-      periodFrom: period.from,
-      periodTo: period.to,
-    });
-  });
-  return {
-    bytes: artifact.bytes,
-    contentType: artifact.contentType,
-    filename: artifact.filename,
-    kind: input.request.kind,
-    periodFrom: period.from,
-    periodTo: period.to,
-  };
+      locationId: input.locationId,
+      renderedPeriodFrom: period.from,
+      renderedPeriodTo: period.to,
+      request: input.request,
+    }),
+  );
 }

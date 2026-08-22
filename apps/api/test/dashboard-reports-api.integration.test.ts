@@ -19,7 +19,10 @@ class DashboardOverviewApiTestContext extends DashboardApiTestContext {
   async rawRequest(
     method: string,
     path: string,
-    options: { authorization?: string; body?: unknown } = {},
+    options: {
+      authorization?: string | undefined;
+      body?: unknown;
+    } = {},
   ): Promise<{ headers: Headers; status: number; text: string }> {
     const response = await fetch(`${this.baseUrl}${path}`, {
       ...(options.body === undefined
@@ -179,6 +182,77 @@ describe("VAL-009E reports HTTP boundary", () => {
         body: { date: "2026-07-10", format: "CSV", kind: "DAILY" },
       });
       expect(exported.status).toBe(404);
+    }
+  });
+
+  it("enforces the exact management matrix on all four report routes", async () => {
+    const fixture = await context.managerFixture();
+    const ungrantedLocation = await context.addLocation(fixture, {
+      access: false,
+    });
+    const inactiveLocation = await context.addLocation(fixture, {
+      status: "INACTIVE",
+    });
+    const employeeAuthorization = await (async () => {
+      const staff = await context.createStaff(fixture, "VALET_EMPLOYEE");
+      const login = await context.login(staff);
+      return `Bearer ${String(login.body?.accessToken)}`;
+    })();
+    const routes: Array<{
+      method: string;
+      path: string;
+      body?: unknown;
+    }> = [
+      { method: "GET", path: "/daily?date=2026-07-10" },
+      { method: "GET", path: "/weekly?weekStart=2026-07-06" },
+      { method: "GET", path: "/monthly?month=2026-07" },
+      {
+        body: { date: "2026-07-10", format: "CSV", kind: "DAILY" },
+        method: "POST",
+        path: "/exports",
+      },
+    ];
+    async function attempt(
+      authorization: string | undefined,
+      locationId: string,
+      routeIndex: number,
+    ) {
+      const route = routes[routeIndex]!;
+      return context.rawRequest(
+        route.method,
+        `/v1/staff/dashboard/locations/${locationId}/reports${route.path}`,
+        {
+          authorization,
+          ...(route.body === undefined ? {} : { body: route.body }),
+        },
+      );
+    }
+    // Authorized manager succeeds without a Shift on every route.
+    const managerAuth = (await context.authenticated(fixture)).authorization;
+    for (let index = 0; index < routes.length; index += 1) {
+      const ok = await attempt(managerAuth, fixture.locationId, index);
+      expect(ok.status, `manager route ${index}`).toBe(200);
+    }
+    // Employee denied everywhere.
+    for (let index = 0; index < routes.length; index += 1) {
+      const denied = await attempt(
+        employeeAuthorization,
+        fixture.locationId,
+        index,
+      );
+      expect(denied.status, `employee route ${index}`).toBe(404);
+    }
+    // Same-org ungranted / nonexistent / inactive Locations denied.
+    for (const target of [ungrantedLocation, randomUUID(), inactiveLocation]) {
+      for (let index = 0; index < routes.length; index += 1) {
+        const denied = await attempt(managerAuth, target, index);
+        expect(denied.status, `${target} route ${index}`).toBe(404);
+      }
+    }
+    // Unauthenticated staff boundary.
+    for (let index = 0; index < routes.length; index += 1) {
+      const unauthorized = await attempt(undefined, fixture.locationId, index);
+      expect(unauthorized.status, `unauthenticated route ${index}`).toBe(401);
     }
   });
 });
