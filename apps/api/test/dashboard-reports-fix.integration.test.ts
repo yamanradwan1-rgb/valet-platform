@@ -6,6 +6,10 @@ import {
   generateReportExport,
 } from "../src/modules/dashboard/report-export-service";
 import { renderReportCsv } from "../src/modules/dashboard/report-csv-renderer";
+import {
+  pdfSafeText,
+  renderReportPdf,
+} from "../src/modules/dashboard/report-pdf-renderer";
 import { composeReport } from "../src/modules/dashboard/report-read-service";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 import {
@@ -146,7 +150,6 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
             format: "CSV",
           },
           authenticatedUserId: fixture.userId,
-          kind: "DAILY",
           locationId: fixture.locationId,
           renderedPeriodFrom: PERIOD.from,
           renderedPeriodTo: PERIOD.to,
@@ -179,12 +182,21 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
     expect(first.contentType).toBe("text/csv; charset=utf-8");
     expect(second.contentType).toBe("application/pdf");
     const rows = await context.adminPool.query<{
+      actor_membership_id: string;
+      entity_id: string;
       entity_type: string;
+      id: string;
       metadata_keys: string[];
+      organization_id: string;
       valet_session_id: string | null;
     }>(
-      `SELECT entity_type,
+      `SELECT id,
+              organization_id,
+              location_id,
+              actor_membership_id,
               valet_session_id,
+              entity_type,
+              entity_id,
               (SELECT array_agg(key ORDER BY key) FROM jsonb_each(metadata_json))
                 AS "metadata_keys"
        FROM audit_events
@@ -194,8 +206,12 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
     );
     const relevant = rows.rows.slice(before);
     expect(relevant).toHaveLength(2);
+    expect(relevant[0]!.id).not.toBe(relevant[1]!.id);
     for (const row of relevant) {
       expect(row.entity_type).toBe("Location");
+      expect(row.entity_id).toBe(fixture.locationId);
+      expect(row.organization_id).toBe(fixture.organizationId);
+      expect(row.actor_membership_id).toBe(fixture.membershipId);
       expect(row.valet_session_id).toBeNull();
       expect(row.metadata_keys!.sort()).toEqual([
         "contentLength",
@@ -206,5 +222,63 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
         "reportKind",
       ]);
     }
+  });
+});
+
+describe("VAL-009E fix: PDF Unicode preservation", () => {
+  it("preserves non-ASCII persisted values losslessly as escapes", () => {
+    expect(pdfSafeText("مفتاح مفقود")).toBe(
+      "\\u{645}\\u{641}\\u{62a}\\u{627}\\u{62d} \\u{645}\\u{641}\\u{642}\\u{648}\\u{62f}",
+    );
+    expect(pdfSafeText("KEY")).toBe("KEY");
+    expect(pdfSafeText("a\u0001b")).toBe("ab");
+    expect(pdfSafeText("مفتاح")).not.toBe(pdfSafeText("مفتاح٢"));
+    expect(pdfSafeText("مفتاح")).toBe(pdfSafeText("مفتاح"));
+  });
+
+  it("renders deterministic PDFs where distinct Arabic types stay distinguishable", async () => {
+    const fixture = await manager();
+    await analyticsSeedIncident(context, {
+      createdAtIso: "2026-07-10T14:00:00Z",
+      severity: "HIGH",
+      type: "مفتاح مفقود",
+    });
+    const report = await composeReport(context.runtimePool, {
+      authenticatedUserId: fixture.userId,
+      includeDailyActivity: false,
+      locationId: fixture.locationId,
+      period: PERIOD,
+    });
+    const first = await renderReportPdf(
+      report,
+      "DAILY",
+      PERIOD.from,
+      PERIOD.to,
+    );
+    const second = await renderReportPdf(
+      report,
+      "DAILY",
+      PERIOD.from,
+      PERIOD.to,
+    );
+    expect(first.contentType).toBe("application/pdf");
+    expect(new TextDecoder().decode(first.bytes.slice(0, 5))).toBe("%PDF-");
+    // Identical logical input stays byte-deterministic after pinned metadata.
+    expect(Buffer.from(second.bytes).equals(Buffer.from(first.bytes))).toBe(
+      true,
+    );
+    // Distinct persisted Unicode values must remain distinguishable in the
+    // rendered artifact instead of silently collapsing to the same text.
+    const differing = JSON.parse(JSON.stringify(report));
+    differing.summary.incidents.typeCounts[0]!.type = "مفتاح ثانٍ";
+    const different = await renderReportPdf(
+      differing,
+      "DAILY",
+      PERIOD.from,
+      PERIOD.to,
+    );
+    expect(
+      Buffer.from(different.bytes).equals(Buffer.from(first.bytes)),
+    ).toBe(false);
   });
 });

@@ -1,9 +1,6 @@
 import { createHash } from "node:crypto";
 
-import type {
-  ReportExportRequest,
-  ReportKind,
-} from "@valet/contracts";
+import type { ReportExportRequest } from "@valet/contracts";
 
 import type {
   PostgresPool,
@@ -33,7 +30,7 @@ import {
 } from "./report-period";
 
 export interface ReportExportResult extends RenderedArtifact {
-  readonly kind: ReportKind;
+  readonly kind: ReportExportRequest["kind"];
   readonly periodFrom: string;
   readonly periodTo: string;
 }
@@ -65,7 +62,6 @@ export async function finalizeAuditedExport(
   input: {
     artifact: Pick<RenderedArtifact, "bytes"> & { format: "CSV" | "PDF" };
     authenticatedUserId: string;
-    kind: ReportKind;
     locationId: string;
     renderedPeriodFrom: string;
     renderedPeriodTo: string;
@@ -94,7 +90,7 @@ export async function finalizeAuditedExport(
     contentLength: input.artifact.bytes.byteLength,
     contentSha256,
     format: input.artifact.format,
-    kind: input.kind,
+    kind: input.request.kind,
     locationId: freshScope.locationId,
     membershipId: freshScope.membershipId,
     organizationId: freshScope.organizationId,
@@ -107,10 +103,10 @@ export async function finalizeAuditedExport(
       input.artifact.format === "CSV"
         ? "text/csv; charset=utf-8"
         : "application/pdf",
-    filename: `report-${input.kind.toLowerCase()}-${input.renderedPeriodFrom}.${
+    filename: `report-${input.request.kind.toLowerCase()}-${input.renderedPeriodFrom}.${
       input.artifact.format.toLowerCase()
     }`,
-    kind: input.kind,
+    kind: input.request.kind,
     periodFrom: input.renderedPeriodFrom,
     periodTo: input.renderedPeriodTo,
   };
@@ -162,7 +158,6 @@ export async function generateReportExport(
     finalizeAuditedExport(transaction, {
       artifact: { bytes: artifact.bytes, format: input.request.format },
       authenticatedUserId: input.authenticatedUserId,
-      kind: input.request.kind,
       locationId: input.locationId,
       renderedPeriodFrom: period.from,
       renderedPeriodTo: period.to,

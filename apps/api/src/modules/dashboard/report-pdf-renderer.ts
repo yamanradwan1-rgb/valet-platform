@@ -8,6 +8,27 @@ import type { RenderedArtifact } from "./report-csv-renderer";
 
 const maximumArtifactBytes = 5 * 1024 * 1024;
 
+/**
+ * Deterministic ASCII-safe representation for StandardFont (WinAnsi)
+ * rendering: printable ASCII passes through, C0/DEL controls are removed,
+ * and every other Unicode code point is preserved losslessly as a visible
+ * `\u{hex}` escape so distinct persisted values never collapse.
+ */
+export function pdfSafeText(text: string): string {
+  let safe = "";
+  for (const character of text) {
+    const codePoint = character.codePointAt(0)!;
+    if (codePoint >= 0x20 && codePoint <= 0x7e) {
+      safe += character;
+    } else if (codePoint === 0x7f || codePoint < 0x20) {
+      continue;
+    } else {
+      safe += `\\u{${codePoint.toString(16)}}`;
+    }
+  }
+  return safe;
+}
+
 function line(
   document: Awaited<ReturnType<typeof PDFDocument.create>>,
   font: Awaited<ReturnType<PDFDocument["embedFont"]>>,
@@ -15,10 +36,10 @@ function line(
   text: string,
   y: number,
 ): number {
-  // StandardFonts use WinAnsi encoding: strip C0 controls and anything
-  // outside printable ASCII deterministically so bounded summary text is
-  // always encodable.
-  const safe = text.replace(/[^\x20-\x7E]/g, "");
+  // StandardFonts use WinAnsi encoding: pdfSafeText() deterministically
+  // preserves Unicode identity as visible escapes instead of deleting
+  // persisted non-ASCII values.
+  const safe = pdfSafeText(text);
   page.drawText(safe, { font, size: 10, x: 40, y });
   return y - 14;
 }

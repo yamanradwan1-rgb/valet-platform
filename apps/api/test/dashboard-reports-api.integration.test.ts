@@ -193,10 +193,22 @@ describe("VAL-009E reports HTTP boundary", () => {
     const inactiveLocation = await context.addLocation(fixture, {
       status: "INACTIVE",
     });
-    const employeeAuthorization = await (async () => {
-      const staff = await context.createStaff(fixture, "VALET_EMPLOYEE");
-      const login = await context.login(staff);
-      return `Bearer ${String(login.body?.accessToken)}`;
+    const otherTenant = await context.createFixture({
+      role: "LOCATION_MANAGER",
+    });
+    const staffBearers = await (async () => {
+      const bearers: Record<string, string> = {};
+      for (const role of [
+        "ORG_ADMIN",
+        "VALET_SUPERVISOR",
+        "VALET_EMPLOYEE",
+      ] as const) {
+        const staff = await context.createStaff(fixture, role);
+        const login = await context.login(staff);
+        expect(login.status).toBe(200);
+        bearers[role] = `Bearer ${String(login.body?.accessToken)}`;
+      }
+      return bearers;
     })();
     const routes: Array<{
       method: string;
@@ -233,17 +245,25 @@ describe("VAL-009E reports HTTP boundary", () => {
       const ok = await attempt(managerAuth, fixture.locationId, index);
       expect(ok.status, `manager route ${index}`).toBe(200);
     }
-    // Employee denied everywhere.
-    for (let index = 0; index < routes.length; index += 1) {
-      const denied = await attempt(
-        employeeAuthorization,
-        fixture.locationId,
-        index,
-      );
-      expect(denied.status, `employee route ${index}`).toBe(404);
+    // ORG_ADMIN pre-MFA, Supervisor, and Employee denied on every route.
+    for (const role of ["ORG_ADMIN", "VALET_SUPERVISOR", "VALET_EMPLOYEE"]) {
+      for (let index = 0; index < routes.length; index += 1) {
+        const denied = await attempt(
+          staffBearers[role]!,
+          fixture.locationId,
+          index,
+        );
+        expect(denied.status, `${role} route ${index}`).toBe(404);
+      }
     }
-    // Same-org ungranted / nonexistent / inactive Locations denied.
-    for (const target of [ungrantedLocation, randomUUID(), inactiveLocation]) {
+    // Same-org ungranted / cross-tenant / nonexistent / inactive denied.
+    const deniedLocations = [
+      ungrantedLocation,
+      otherTenant.locationId,
+      randomUUID(),
+      inactiveLocation,
+    ];
+    for (const target of deniedLocations) {
       for (let index = 0; index < routes.length; index += 1) {
         const denied = await attempt(managerAuth, target, index);
         expect(denied.status, `${target} route ${index}`).toBe(404);
