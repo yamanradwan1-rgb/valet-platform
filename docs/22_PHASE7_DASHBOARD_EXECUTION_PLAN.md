@@ -2,7 +2,7 @@
 
 Status: Binding execution plan
 
-Version: 1.1 (VAL-009 review corrections applied)
+Version: 1.2 (dashboard common-action latency target restored)
 
 Date: 2026-08-21
 
@@ -335,7 +335,13 @@ Preserved unchanged through Phase 7:
 
 ## Performance / query design expectations
 
-No binding numeric latency target exists for Dashboard reads (the 15–20s target is the employee check-in KPI, not a Dashboard bound). Binding expectations:
+Per the Founder & Product Blueprint v1.0 preliminary NFR target, common
+Dashboard actions usually target completion in under 2 seconds. This is a
+distinct product-level target: it is not the employee check-in KPI of roughly
+15–20 seconds, and it is unrelated to the DEC-049 live-data freshness/staleness
+intervals. Long-running report/export generation is not a "common Dashboard
+action" and remains governed by VAL-009E and gates G6/G7 bounded execution
+behavior rather than this target. Binding query-design expectations:
 
 - Use existing required indexes (`valet_sessions(location_id, state)`, `valet_sessions(location_id, retrieval_requested_at)`, `shifts(location_id, status)`, `incidents(location_id, status)`, etc.); new aggregate queries must be EXPLAIN-checked against indexes during the owning slice.
 - List-style reads follow the established keyset-cursor pattern (`tracking/live-map-cursor.ts`, `route-history-cursor.ts`); bounded page sizes; no unbounded scans; no N+1 fan-outs.
