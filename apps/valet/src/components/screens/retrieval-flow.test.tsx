@@ -173,7 +173,7 @@ describe("RetrievalFlow incident entry through real wiring", () => {
     expect(markup).toContain("Report Issue");
   });
 
-  it("exposes Report Issue on READY/handoff path via the same onOpenIncident wiring", () => {
+  it("exposes Report Issue on HANDOFF_PENDING unverified via the same wiring", () => {
     const markup = renderToStaticMarkup(
       <RetrievalFlow
         mode="live"

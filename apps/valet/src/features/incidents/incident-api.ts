@@ -6,8 +6,7 @@ import {
 } from "@valet/contracts";
 
 import { EmployeeApiClient } from "../../lib/api/employee-api-client";
-import {
-  getDefaultStaffAuthClient,} from "../../lib/auth/staff-auth-context";
+import { getDefaultStaffAuthClient } from "../../lib/auth/staff-auth-context";
 
 export type ReportIncidentApiInput = ReportIncidentRequest;
 

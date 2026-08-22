@@ -1,15 +1,27 @@
-import { describe, expect, it, vi } from "vitest";
-import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import type { StaffValetSessionDetailResponse } from "@valet/contracts";
 
-const fetchSessionDetailMock = vi.fn();
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react")>();
+  return {
+    ...actual,
+    useCallback: (callback: unknown) => callback,
+    useEffect: (effect: () => void | (() => void)) => {
+      effect();
+    },
+    useState: (initial: unknown) => [
+      typeof initial === "function" ? (initial as () => unknown)() : initial,
+      vi.fn(),
+    ],
+  };
+});
 
-vi.mock("../../features/retrieval/retrieval-api", () => ({
-  fetchSessionDetail: (...args: unknown[]) =>
-    fetchSessionDetailMock(...(args as [])),
+vi.mock("../../features/incidents/use-incident", () => ({
+  useIncident: () => ({}),
 }));
 
-const { hydrateIncidentContext } = await import("./incident-flow");
+const { IncidentFlow, hydrateIncidentContext } = await import("./incident-flow");
 
 const sessionId = "11111111-1111-4111-8111-111111111111";
 
@@ -45,21 +57,43 @@ function detail(state: string): StaffValetSessionDetailResponse {
 }
 
 describe("hydrateIncidentContext — A1 request boundary", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("issues the A1 request for the exact incident session and accepts HANDOFF_PENDING as reportable", async () => {
-    fetchSessionDetailMock.mockResolvedValue(detail("HANDOFF_PENDING"));
-    const client = {} as EmployeeApiClient;
+    const request = vi.fn().mockResolvedValue(detail("HANDOFF_PENDING"));
+    const client = { request } as unknown as EmployeeApiClient;
 
     const result = await hydrateIncidentContext(client, sessionId);
 
-    expect(fetchSessionDetailMock).toHaveBeenCalledTimes(1);
-    expect(fetchSessionDetailMock).toHaveBeenCalledWith(client, sessionId);
+    expect(request).toHaveBeenCalledWith(
+      `/v1/staff/valet-sessions/${sessionId}`,
+      { method: "GET", requireAuth: true, signal: undefined },
+    );
     expect(result.state).toBe("ready");
     expect(result.detail?.state).toBe("HANDOFF_PENDING");
   });
 
+  it("uses the default authenticated client and reaches A1 when live IncidentFlow has no apiClient prop", async () => {
+    const request = vi
+      .spyOn(EmployeeApiClient.prototype, "request")
+      .mockResolvedValue(detail("READY"));
+
+    IncidentFlow({ mode: "live", nav: vi.fn(), sessionId });
+    await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1));
+
+    expect(request.mock.instances[0]).toBeInstanceOf(EmployeeApiClient);
+    expect(request).toHaveBeenCalledWith(
+      `/v1/staff/valet-sessions/${sessionId}`,
+      { method: "GET", requireAuth: true, signal: undefined },
+    );
+  });
+
   it("rejects COMPLETED sessions as non-reportable", async () => {
-    fetchSessionDetailMock.mockResolvedValue(detail("COMPLETED"));
-    const client = {} as EmployeeApiClient;
+    const client = {
+      request: vi.fn().mockResolvedValue(detail("COMPLETED")),
+    } as unknown as EmployeeApiClient;
 
     const result = await hydrateIncidentContext(client, sessionId);
 
@@ -68,8 +102,9 @@ describe("hydrateIncidentContext — A1 request boundary", () => {
   });
 
   it("maps transport failure to error without leaking details", async () => {
-    fetchSessionDetailMock.mockRejectedValue(new Error("offline"));
-    const client = {} as EmployeeApiClient;
+    const client = {
+      request: vi.fn().mockRejectedValue(new Error("offline")),
+    } as unknown as EmployeeApiClient;
 
     const result = await hydrateIncidentContext(client, sessionId);
 

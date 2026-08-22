@@ -2,13 +2,8 @@
 
 import { useEffect, useState, type JSX } from "react";
 
-import type { StaffOperationalRole } from "@valet/contracts";
-
-import type { RetrievalStep, Screen } from "../../types/employee-ui";
-import {
-  useRetrieval,
-  type ActiveRetrievalSession,
-} from "../../features/retrieval";
+import type { RetrievalStep } from "../../types/employee-ui";
+import { useRetrieval } from "../../features/retrieval";
 import { useHandoff as useHandoffLifecycle } from "../../features/handoff";
 import {
   RetrievalHandoffGate,
@@ -31,21 +26,9 @@ import {
   RetrievalVehicleReadyStep,
 } from "./retrieval/retrieval-task-steps";
 import { BackHeader, Btn } from "../ui/employee-primitives";
+import type { RetrievalFlowProps } from "./retrieval/retrieval-flow-types";
 
-export interface RetrievalFlowProps {
-  readonly currentAssigneeMembershipId?: string | null | undefined;
-  readonly initialSession?: ActiveRetrievalSession | null | undefined;
-  readonly membershipId?: string | null | undefined;
-  readonly mode?: "live" | "prototype" | undefined;
-  readonly nav: (s: Screen) => void;
-  readonly onOpenIncident?: ((sessionId: string) => void) | undefined;
-  readonly onComplete?: (() => void) | undefined;
-  readonly role?: StaffOperationalRole | null | undefined;
-  readonly onAuthorizationLoss?: (() => void) | undefined;  readonly sessionId?: string | null | undefined;
-  readonly taskId?: string | null | undefined;
-  readonly taskStatus?: "ACCEPTED" | "IN_PROGRESS" | null | undefined;
-  readonly taskVersion?: number | null | undefined;
-}
+export type { RetrievalFlowProps } from "./retrieval/retrieval-flow-types";
 
 export function RetrievalFlow({
   nav,

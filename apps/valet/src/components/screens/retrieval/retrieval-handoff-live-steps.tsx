@@ -13,6 +13,7 @@ export interface LiveReadyHandoffLaunchProps {
   readonly isInitiating: boolean;
   readonly keyInfo: string;
   readonly onBeginHandoff: () => void;
+  readonly onOpenIncident?: (() => void) | undefined;
   readonly vehicleInfo: string;
 }
 
@@ -21,6 +22,7 @@ export function LiveReadyHandoffLaunchStep({
   isInitiating,
   keyInfo,
   onBeginHandoff,
+  onOpenIncident,
   vehicleInfo,
 }: LiveReadyHandoffLaunchProps): JSX.Element {
   return (
@@ -48,6 +50,15 @@ export function LiveReadyHandoffLaunchStep({
           label={isInitiating ? "Starting handoff…" : "Begin Guest Handoff"}
           onClick={onBeginHandoff}
         />
+        {onOpenIncident && (
+          <button
+            type="button"
+            className="w-full h-11 text-muted text-sm font-semibold cursor-pointer hover:text-white transition-colors"
+            onClick={onOpenIncident}
+          >
+            Report Issue
+          </button>
+        )}
       </div>
     </div>
   );

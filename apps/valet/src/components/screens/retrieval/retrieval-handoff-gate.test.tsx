@@ -35,6 +35,31 @@ const pendingSession: ActiveRetrievalSession = {
   },
 };
 
+const readySession: ActiveRetrievalSession = {
+  expectedKeySlotCode: "K-7",
+  handoff: { pendingAt: null, verification: null },
+  isKeyConfirmed: true,
+  locationId: "33333333-3333-4333-8333-333333333333",
+  parkingSpotCode: null,
+  parkingZoneCode: null,
+  readyAt: "2026-08-22T09:55:00.000Z",
+  retrievalStartedAt: "2026-08-22T09:50:00.000Z",
+  sessionId,
+  sessionVersion: 9,
+  state: "READY",
+  taskId: "22222222-2222-4222-8222-222222222222",
+  taskStatus: "IN_PROGRESS",
+  taskVersion: 6,
+  vehicle: {
+    color: "Black",
+    make: "Audi",
+    model: "A6",
+    plateCountry: "JO",
+    plateNumberRaw: "77-99999",
+    temporaryDescriptor: null,
+  },
+};
+
 function stubHandoff(verification: {
   method: "SUPERVISOR_OVERRIDE" | "PICKUP_CODE";
   status: "VERIFIED";
@@ -143,7 +168,7 @@ describe("RetrievalHandoffGate release authority", () => {
     onOpenIncident(sessionId);
     expect(onOpenIncident).toHaveBeenCalledWith(sessionId);
   });
-  it("idle phase shows the explicit Begin Guest Handoff launch only", () => {
+  it("READY with no pending handoff and idle controller shows handoff and incident entry", () => {
     const handoff = stubHandoff({
       method: "PICKUP_CODE",
       status: "VERIFIED",
@@ -156,16 +181,14 @@ describe("RetrievalHandoffGate release authority", () => {
         canRelease
         handoff={handoff}
         isSupervisor={false}
+        onOpenIncident={vi.fn()}
         onComplete={vi.fn()}
         onReturnToReady={vi.fn()}
-        session={{
-          ...pendingSession,
-          handoff: { pendingAt: null, verification: null },
-          state: "READY",
-        }}
+        session={readySession}
       />,
     );
     expect(markup).toContain("Begin Guest Handoff");
+    expect(markup).toContain("Report Issue");
     expect(markup).not.toContain("Release Vehicle");
   });
 });

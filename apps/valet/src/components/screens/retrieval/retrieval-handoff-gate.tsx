@@ -109,6 +109,7 @@ export function RetrievalHandoffGate({
         onBeginHandoff={() => {
           void handoff.initiate(session.sessionId, session.sessionVersion);
         }}
+        onOpenIncident={openIncident}
         vehicleInfo={vehicleInfo}
       />
     );
@@ -121,6 +122,7 @@ export function RetrievalHandoffGate({
         isInitiating
         keyInfo={session.expectedKeySlotCode ?? "Not assigned"}
         onBeginHandoff={() => undefined}
+        onOpenIncident={openIncident}
         vehicleInfo={vehicleInfo}
       />
     );
