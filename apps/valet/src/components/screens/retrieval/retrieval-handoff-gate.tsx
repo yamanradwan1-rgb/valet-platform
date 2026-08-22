@@ -15,6 +15,7 @@ import {
 } from "./retrieval-handoff-live-release-steps";
 
 export interface RetrievalHandoffGateProps {
+  readonly canRelease: boolean;
   readonly handoff: UseHandoffResult;
   readonly isSupervisor: boolean;
   readonly onComplete: () => void;
@@ -28,6 +29,7 @@ export interface RetrievalHandoffGateProps {
  * responses; abort returns to READY through an A1 re-hydration.
  */
 export function RetrievalHandoffGate({
+  canRelease,
   handoff,
   isSupervisor,
   onComplete,
@@ -81,6 +83,7 @@ export function RetrievalHandoffGate({
       handoff.state.errorMeta.code === "FINANCIAL_RELEASE_NOT_SATISFIED";
     return (
       <LiveHandoffVerifiedStep
+        canRelease={canRelease}
         error={financialBlocked ? null : handoff.state.error}
         financialBlocked={financialBlocked}
         isReleasing={handoff.state.phase === "releasing"}

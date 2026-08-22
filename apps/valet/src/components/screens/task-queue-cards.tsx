@@ -9,18 +9,32 @@ export function LivePriorityTaskCard({
   membershipId,
   isActionInFlight = false,
   onAction,
+  onOverrideHandoff,
+  role,
 }: {
   readonly isActionInFlight?: boolean | undefined;
   readonly membershipId?: string | undefined;
   readonly onAction: () => void;
+  readonly onOverrideHandoff?: (() => void) | undefined;
   readonly priorityTask: StaffTaskQueueItemViewModel;
+  readonly role?: "VALET_SUPERVISOR" | "VALET_EMPLOYEE" | null | undefined;
 }): JSX.Element {
   const isAssignedToOther =
     priorityTask.currentAssigneeMembershipId !== null &&
     membershipId !== undefined &&
     priorityTask.currentAssigneeMembershipId !== membershipId;
 
-  const isDisabled = isAssignedToOther || isActionInFlight;
+  // Narrow supervisor affordance: ONLY a RETRIEVAL task that is already
+  // IN_PROGRESS against a HANDOFF_PENDING session, even when assigned to
+  // another employee. No other assigned-to-other task becomes clickable.
+  const supervisorOverrideEligible =
+    role === "VALET_SUPERVISOR" &&
+    priorityTask.taskType === "RETRIEVAL" &&
+    priorityTask.status === "IN_PROGRESS" &&
+    priorityTask.valetSessionState === "HANDOFF_PENDING" &&
+    isAssignedToOther;
+
+  const isDisabled = (isAssignedToOther && !supervisorOverrideEligible) || isActionInFlight;
 
   let buttonText = "Accept Task";
   if (isActionInFlight) {
@@ -90,23 +104,37 @@ export function LivePriorityTaskCard({
               {priorityTask.status}
             </p>
           </div>
-          <button
-            type="button"
-            disabled={isDisabled}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isDisabled) onAction();
-            }}
-            className={`${
-              isDisabled
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : priorityTask.status === "ACCEPTED" || priorityTask.status === "IN_PROGRESS"
-                  ? "bg-vsuccess text-white cursor-pointer active:scale-[0.98]"
-                  : "bg-vblue text-white cursor-pointer active:scale-[0.98]"
-            } text-sm font-bold h-10 px-4 rounded-xl transition-all`}
-          >
-            {buttonText}
-          </button>
+          {supervisorOverrideEligible ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isActionInFlight) return;
+                onOverrideHandoff?.();
+              }}
+              className="bg-vdanger text-white text-sm font-bold h-10 px-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all"
+            >
+              Override Handoff
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isDisabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isDisabled) onAction();
+              }}
+              className={`${
+                isDisabled
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : priorityTask.status === "ACCEPTED" || priorityTask.status === "IN_PROGRESS"
+                    ? "bg-vsuccess text-white cursor-pointer active:scale-[0.98]"
+                    : "bg-vblue text-white cursor-pointer active:scale-[0.98]"
+              } text-sm font-bold h-10 px-4 rounded-xl transition-all`}
+            >
+              {buttonText}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -118,10 +146,14 @@ export function LiveQueueItem({
   membershipId,
   isActionInFlight = false,
   onClick,
+  onOverrideHandoff,
+  role,
 }: {
   readonly isActionInFlight?: boolean | undefined;
   readonly membershipId?: string | undefined;
   readonly onClick?: () => void;
+  readonly onOverrideHandoff?: (() => void) | undefined;
+  readonly role?: "VALET_SUPERVISOR" | "VALET_EMPLOYEE" | null | undefined;
   readonly task: StaffTaskQueueItemViewModel;
 }): JSX.Element {
   const isAssignedToOther =
@@ -129,7 +161,15 @@ export function LiveQueueItem({
     membershipId !== undefined &&
     task.currentAssigneeMembershipId !== membershipId;
 
-  const isDisabled = isAssignedToOther || isActionInFlight;
+  const supervisorOverrideEligible =
+    role === "VALET_SUPERVISOR" &&
+    task.taskType === "RETRIEVAL" &&
+    task.status === "IN_PROGRESS" &&
+    task.valetSessionState === "HANDOFF_PENDING" &&
+    isAssignedToOther;
+
+  const isDisabled =
+    (isAssignedToOther && !supervisorOverrideEligible) || isActionInFlight;
 
   return (
     <div
@@ -157,7 +197,21 @@ export function LiveQueueItem({
           {task.vehicleIdentifier} · {task.metaText}
         </p>
       </div>
-      {!isAssignedToOther && <ChevronRight />}
+      {supervisorOverrideEligible ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isActionInFlight) return;
+            onOverrideHandoff?.();
+          }}
+          className="bg-vdanger text-white text-xs font-bold h-9 px-3 rounded-xl cursor-pointer active:scale-[0.98] transition-all"
+        >
+          Override Handoff
+        </button>
+      ) : (
+        !isAssignedToOther && <ChevronRight />
+      )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { BackHeader, Btn } from "../../ui/employee-primitives";
 import type { HandoffVerificationSnapshot } from "../../../features/handoff/handoff-types";
 
 export interface LiveHandoffVerifiedProps {
+  readonly canRelease: boolean;
   readonly error: string | null;
   readonly financialBlocked: boolean;
   readonly isReleasing: boolean;
@@ -15,6 +16,7 @@ export interface LiveHandoffVerifiedProps {
 }
 
 export function LiveHandoffVerifiedStep({
+  canRelease,
   error,
   financialBlocked,
   isReleasing,
@@ -54,19 +56,32 @@ export function LiveHandoffVerifiedStep({
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-vborder p-4 space-y-2">
-          <p className="text-navy text-sm font-bold">Release vehicle</p>
-          <p className="text-neutral text-xs leading-relaxed">
-            This hands the vehicle and key to the guest and closes the task
-            permanently. It cannot be undone.
-          </p>
-        </div>
+        {canRelease ? (
+          <>
+            <div className="bg-white rounded-2xl border border-vborder p-4 space-y-2">
+              <p className="text-navy text-sm font-bold">Release vehicle</p>
+              <p className="text-neutral text-xs leading-relaxed">
+                This hands the vehicle and key to the guest and closes the task
+                permanently. It cannot be undone.
+              </p>
+            </div>
 
-        <Btn
-          disabled={isReleasing}
-          label={isReleasing ? "Releasing…" : "Release Vehicle"}
-          onClick={onRelease}
-        />
+            <Btn
+              disabled={isReleasing}
+              label={isReleasing ? "Releasing…" : "Release Vehicle"}
+              onClick={onRelease}
+            />
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl border border-vborder p-4 space-y-2">
+            <p className="text-navy text-sm font-bold">
+              Override recorded — awaiting task owner
+            </p>
+            <p className="text-neutral text-xs leading-relaxed">
+              The Retrieval task owner must complete the vehicle release.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

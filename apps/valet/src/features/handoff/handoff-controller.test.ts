@@ -5,6 +5,51 @@ import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { HandoffController } from "./handoff-controller";
 
 const sessionId = "11111111-1111-4111-8111-111111111111";
+const locationId = "33333333-3333-4333-8333-333333333333";
+
+function detail(state: string, version: number, verification: unknown = null) {
+  return {
+    checkIn: { conditionCompletedAt: "2026-08-22T09:00:00.000Z" },
+    handoff:
+      state === "HANDOFF_PENDING"
+        ? { pendingAt: "2026-08-22T10:00:00.000Z", verification }
+        : { pendingAt: null, verification: null },
+    keySlot: null,
+    locationId,
+    parking: {
+      parkedAt: "2026-08-22T09:05:00.000Z",
+      parkingSpotCode: null,
+      parkingStartedAt: "2026-08-22T09:02:00.000Z",
+      parkingZoneCode: null,
+    },
+    sessionId,
+    state,
+    vehicle: {
+      color: "Black",
+      make: "Audi",
+      model: "A6",
+      plateCountry: "JO",
+      plateNumberRaw: "77-99999",
+      temporaryDescriptor: null,
+      vehicleId: "44444444-4444-4444-8444-444444444444",
+      vehicleUpdatedAt: "2026-08-22T09:00:00.000Z",
+    },
+    version,
+  };
+}
+const readyDetail = (version: number) => detail("READY", version);
+const pendingDetail = (
+  version: number,
+  verification: unknown = null,
+) => detail("HANDOFF_PENDING", version, verification);
+const verifiedDetail = (version: number) =>
+  pendingDetail(version, {
+    method: "PICKUP_CODE",
+    status: "VERIFIED",
+    verifiedAt: "2026-08-22T10:01:00.000Z",
+  });
+const completedDetail = (version: number) => detail("COMPLETED", version);
+
 const initiateOk = {
   handoffPendingAt: "2026-08-22T10:00:00.000Z",
   sessionId,
@@ -52,17 +97,95 @@ function setup(responses: Array<unknown | Error>) {
 }
 
 describe("HandoffController lifecycle guards", () => {
-  it("initiate failure leaves READY version truthfully and does not fabricate pending", async () => {
+  it("initiate transport loss rehydrates A1 and adopts authoritative READY", async () => {
     const { controller, request } = setup([
       new Error("Network connection lost."),
+      readyDetail(7),
     ]);
-    const first = await controller.initiate(sessionId, 7);
-    expect(first).toBe(true);
+    await controller.initiate(sessionId, 7);
     const state = controller.getState();
     expect(state.phase).toBe("idle");
     expect(state.sessionVersion).toBe(7);
-    expect(state.error).toContain("Network");
-    expect(request).toHaveBeenCalledTimes(1);
+    // Adoption clears the stale failure once A1 proves READY.
+    expect(state.error).toBeNull();
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("recovers initiate response loss into HANDOFF_PENDING from A1", async () => {
+    const { controller } = setup([
+      new EmployeeApiError({ code: "NETWORK_ERROR", message: "offline", status: 0 }),
+      pendingDetail(8),
+    ]);
+    await controller.initiate(sessionId, 7);
+    const state = controller.getState();
+    expect(state.phase).toBe("pending-unverified");
+    expect(state.sessionVersion).toBe(8);
+    expect(state.error).toBeNull();
+  });
+
+  it("recovers verify response loss into VERIFIED without re-entry", async () => {
+    const { controller } = setup([
+      initiateOk,
+      new EmployeeApiError({ code: "NETWORK_ERROR", message: "offline", status: 0 }),
+      verifiedDetail(9),
+    ]);
+    await controller.initiate(sessionId, 7);
+    await controller.verifyPickupCode(sessionId, "0482");
+    const state = controller.getState();
+    expect(state.phase).toBe("verified");
+    expect(state.verification).toEqual({
+      method: "PICKUP_CODE",
+      status: "VERIFIED",
+      verifiedAt: "2026-08-22T10:01:00.000Z",
+    });
+    expect(state.sessionVersion).toBe(9);
+  });
+
+  it("recovers complete response loss into COMPLETED without offering release again", async () => {
+    const { controller, onComplete } = setup([
+      initiateOk,
+      verifiedOk,
+      new EmployeeApiError({ code: "VERSION_CONFLICT", message: "stale", status: 409 }),
+      completedDetail(10),
+    ]);
+    await controller.initiate(sessionId, 7);
+    await controller.verifyPickupCode(sessionId, "0482");
+    await controller.complete(sessionId);
+    expect(controller.getState().phase).toBe("completed");
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    // Release cannot be attempted again from a completed phase.
+    await controller.complete(sessionId);
+    expect(controller.getState().phase).toBe("completed");
+  });
+
+  it("recovers abort response loss back to READY from A1", async () => {
+    const { controller } = setup([
+      initiateOk,
+      new EmployeeApiError({ code: "STAFF_SESSION_SERVICE_UNAVAILABLE", message: "down", status: 503 }),
+      readyDetail(10),
+    ]);
+    await controller.initiate(sessionId, 7);
+    await controller.abort(sessionId, "Guest left");
+    const state = controller.getState();
+    expect(state.phase).toBe("idle");
+    expect(state.sessionVersion).toBe(10);
+    expect(state.verification).toBeNull();
+  });
+
+  it("does NOT attempt A1 recovery for authoritative business errors", async () => {
+    const { controller, request } = setup([
+      initiateOk,
+      new EmployeeApiError({
+        code: "HANDOFF_VERIFICATION_FAILED",
+        message: "failed",
+        status: 409,
+      }),
+    ]);
+    await controller.initiate(sessionId, 7);
+    await controller.verifyPickupCode(sessionId, "0482");
+    expect(controller.getState().phase).toBe("pending-unverified");
+    // Only the verification mutation ran; no A1 probe for business errors.
+    expect(request).toHaveBeenCalledTimes(2);
   });
 
   it("double initiate issues exactly one request; success adopts pending + version", async () => {

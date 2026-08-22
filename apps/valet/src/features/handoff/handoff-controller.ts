@@ -1,4 +1,3 @@
-import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import {
   abortHandoff,
@@ -9,35 +8,16 @@ import {
   verifyPickupCode,
 } from "./handoff-api";
 import {
-  describeHandoffError,
-  type HandoffState,
-  type HandoffVerificationSnapshot,
+  adoptAuthoritativeHandoff,
+  isPossibleResponseLoss,
+  toHandoffErrorMeta,
+} from "./handoff-recovery";
+import type {
+  HandoffPhase,
+  HandoffState,
+  HandoffVerificationMethod,
+  HandoffVerificationSnapshot,
 } from "./handoff-types";
-
-function errorMeta(error: unknown): {
-  code: string;
-  message: string;
-  retryAfterSeconds: number | null;
-} {
-  if (error instanceof EmployeeApiError) {
-    return {
-      code: error.code,
-      message: describeHandoffError(
-        error.code,
-        error.retryAfter ?? null,
-      ),
-      retryAfterSeconds: error.retryAfter ?? null,
-    };
-  }
-  return {
-    code: "UNKNOWN",
-    message:
-      error instanceof Error
-        ? error.message
-        : "Handoff operation failed. Please try again.",
-    retryAfterSeconds: null,
-  };
-}
 
 export interface HandoffControllerOptions {
   apiClient: EmployeeApiClient;
@@ -45,21 +25,25 @@ export interface HandoffControllerOptions {
   readonly onStateChange: (state: HandoffState) => void;
 }
 
+const INITIAL_STATE: HandoffState = {
+  error: null,
+  errorMeta: { code: null, retryAfterSeconds: null },
+  phase: "idle",
+  sessionVersion: null,
+  verification: null,
+};
+
 /**
- * Owns the post-READY handoff lifecycle. Every phase transition is adopted
- * from an authoritative backend response; failures never advance the phase.
- * A single synchronous mutation guard covers all six mutations so double
- * submits cannot issue parallel requests.
+ * Owns the post-READY handoff lifecycle. Phase transitions are adopted from
+ * authoritative backend responses only. On transport-level failures or
+ * VERSION_CONFLICT — where the backend may have committed while the response
+ * was lost — the controller rehydrates the staff A1 read and adopts the
+ * authoritative state instead of trusting local guesses. Business
+ * rejections never trigger recovery and never advance the phase.
  */
 export class HandoffController {
   private readonly options: HandoffControllerOptions;
-  private state: HandoffState = {
-    error: null,
-    errorMeta: { code: null, retryAfterSeconds: null },
-    phase: "idle",
-    sessionVersion: null,
-    verification: null,
-  };
+  private state: HandoffState = INITIAL_STATE;
   private mutationInFlight = false;
 
   constructor(options: HandoffControllerOptions) {
@@ -74,13 +58,12 @@ export class HandoffController {
     this.options.apiClient = client;
   }
 
-  /** Seeds authoritative facts (from A1 recovery or initiate response). */
+  /** Seeds authoritative facts (from A1 recovery). */
   seed(input: {
     sessionVersion: number;
     verification?: HandoffVerificationSnapshot | null | undefined;
   }): void {
-    this.state = {
-      ...this.state,
+    this.patch({
       error: null,
       errorMeta: { code: null, retryAfterSeconds: null },
       phase:
@@ -91,28 +74,21 @@ export class HandoffController {
             : this.state.phase,
       sessionVersion: input.sessionVersion,
       verification: input.verification ?? null,
-    };
-    this.emit();
+    });
   }
 
   reset(): void {
-    this.state = {
-      error: null,
-      errorMeta: { code: null, retryAfterSeconds: null },
-      phase: "idle",
-      sessionVersion: null,
-      verification: null,
-    };
+    this.state = INITIAL_STATE;
     this.emit();
   }
 
-  private applyError(error: unknown): void {
-    const meta = errorMeta(error);
-    this.state = {
-      ...this.state,
-      error: meta.message,
-      errorMeta: { code: meta.code, retryAfterSeconds: meta.retryAfterSeconds },
-    };
+  private patch(state: HandoffState): void {
+    this.state = state;
+    this.emit();
+  }
+
+  private setPhase(phase: HandoffPhase): void {
+    this.state = { ...this.state, phase };
     this.emit();
   }
 
@@ -120,9 +96,7 @@ export class HandoffController {
     this.options.onStateChange(this.state);
   }
 
-  private async mutate(
-    operation: () => Promise<void>,
-  ): Promise<boolean> {
+  private async mutate(operation: () => Promise<void>): Promise<boolean> {
     if (this.mutationInFlight) return false;
     this.mutationInFlight = true;
     try {
@@ -133,103 +107,118 @@ export class HandoffController {
     }
   }
 
+  /**
+   * Surfaces the failure, then rehydrates A1 when the server may have
+   * committed (network/unknown/VERSION_CONFLICT). Adoption replaces the
+   * error state; otherwise `fallbackPhase` applies.
+   */
+  private async recoverOrFail(
+    sessionId: string | null,
+    fallbackPhase: HandoffPhase,
+    error: unknown,
+    onComplete?: () => void,
+  ): Promise<void> {
+    const meta = toHandoffErrorMeta(error);
+    this.state = {
+      ...this.state,
+      error: meta.message,
+      errorMeta: { code: meta.code, retryAfterSeconds: meta.retryAfterSeconds },
+    };
+    if (!isPossibleResponseLoss(error) || sessionId === null) {
+      this.setPhase(fallbackPhase);
+      return;
+    }
+    const adoption = await adoptAuthoritativeHandoff(
+      this.options.apiClient,
+      sessionId,
+      this.state,
+      () => {
+        this.options.onComplete?.();
+        onComplete?.();
+      },
+    );
+    if (adoption !== null) {
+      this.state = adoption.state;
+      this.emit();
+      return;
+    }
+    this.setPhase(fallbackPhase);
+  }
+
   initiate(sessionId: string, expectedSessionVersion: number): Promise<boolean> {
     return this.mutate(async () => {
-      this.state = { ...this.state, error: null, phase: "initiating" };
-      this.emit();
+      this.setPhase("initiating");
       try {
         const res = await initiateHandoff(
           this.options.apiClient,
           sessionId,
           expectedSessionVersion,
         );
-        this.state = {
+        this.patch({
           ...this.state,
           error: null,
           errorMeta: { code: null, retryAfterSeconds: null },
           phase: "pending-unverified",
           sessionVersion: res.sessionVersion,
           verification: null,
-        };
+        });
       } catch (error: unknown) {
-        this.applyError(error);
-        // Failure leaves READY truthfully.
-        this.state = { ...this.state, phase: "idle", sessionVersion: expectedSessionVersion };
+        await this.recoverOrFail(sessionId, "idle", error, () => undefined);
+        if (this.state.phase === "initiating") {
+          this.state = {
+            ...this.state,
+            sessionVersion: expectedSessionVersion,
+          };
+          this.setPhase("idle");
+        }
       }
-      this.emit();
     });
   }
 
-  verifyPickupCode(
+  verifyPickupCode(sessionId: string, pickupCode: string): Promise<boolean> {
+    return this.performVerify(sessionId, "PICKUP_CODE", pickupCode);
+  }
+
+  verifyDynamicQr(sessionId: string, qrPayload: string): Promise<boolean> {
+    return this.performVerify(sessionId, "DYNAMIC_QR", qrPayload);
+  }
+
+  supervisorOverride(sessionId: string, reason: string): Promise<boolean> {
+    return this.performVerify(sessionId, "SUPERVISOR_OVERRIDE", reason);
+  }
+
+  private performVerify(
     sessionId: string,
-    pickupCode: string,
+    kind: Exclude<HandoffVerificationMethod, never>,
+    materialOrReason: string,
   ): Promise<boolean> {
     return this.mutate(async () => {
       const version = this.state.sessionVersion;
       if (version === null) {
-        this.applyError(new Error("No active handoff to verify."));
+        this.recoverOrFail(null, this.state.phase, new Error("No active handoff to verify."));
         return;
       }
-      this.state = { ...this.state, error: null, phase: "verifying" };
-      this.emit();
+      this.setPhase("verifying");
       try {
-        const res = await verifyPickupCode(this.options.apiClient, sessionId, {
-          expectedSessionVersion: version,
-          pickupCode,
-        });
+        const res =
+          kind === "PICKUP_CODE"
+            ? await verifyPickupCode(this.options.apiClient, sessionId, {
+                expectedSessionVersion: version,
+                pickupCode: materialOrReason,
+              })
+            : kind === "DYNAMIC_QR"
+              ? await verifyDynamicQr(this.options.apiClient, sessionId, {
+                  expectedSessionVersion: version,
+                  qrPayload: materialOrReason,
+                })
+              : await supervisorOverrideHandoff(this.options.apiClient, sessionId, {
+                  expectedSessionVersion: version,
+                  reason: materialOrReason,
+                });
         this.adoptVerified(res.method, res.verifiedAt, res.sessionVersion);
       } catch (error: unknown) {
-        this.applyError(error);
-        this.state = { ...this.state, phase: "pending-unverified" };
+        await this.recoverOrFail(sessionId, "pending-unverified", error, () => undefined);
       }
-      this.emit();
-    });
-  }
-
-  verifyDynamicQr(sessionId: string, qrPayload: string): Promise<boolean> {
-    return this.mutate(async () => {
-      const version = this.state.sessionVersion;
-      if (version === null) {
-        this.applyError(new Error("No active handoff to verify."));
-        return;
-      }
-      this.state = { ...this.state, error: null, phase: "verifying" };
-      this.emit();
-      try {
-        const res = await verifyDynamicQr(this.options.apiClient, sessionId, {
-          expectedSessionVersion: version,
-          qrPayload,
-        });
-        this.adoptVerified(res.method, res.verifiedAt, res.sessionVersion);
-      } catch (error: unknown) {
-        this.applyError(error);
-        this.state = { ...this.state, phase: "pending-unverified" };
-      }
-      this.emit();
-    });
-  }
-
-  supervisorOverride(sessionId: string, reason: string): Promise<boolean> {
-    return this.mutate(async () => {
-      const version = this.state.sessionVersion;
-      if (version === null) {
-        this.applyError(new Error("No active handoff to override."));
-        return;
-      }
-      this.state = { ...this.state, error: null, phase: "verifying" };
-      this.emit();
-      try {
-        const res = await supervisorOverrideHandoff(
-          this.options.apiClient,
-          sessionId,
-          { expectedSessionVersion: version, reason },
-        );
-        this.adoptVerified(res.method, res.verifiedAt, res.sessionVersion);
-      } catch (error: unknown) {
-        this.applyError(error);
-        this.state = { ...this.state, phase: "pending-unverified" };
-      }
-      this.emit();
     });
   }
 
@@ -237,29 +226,26 @@ export class HandoffController {
     return this.mutate(async () => {
       const version = this.state.sessionVersion;
       if (version === null) {
-        this.applyError(new Error("No active handoff to abort."));
+        this.recoverOrFail(null, this.state.phase, new Error("No active handoff to abort."));
         return;
       }
-      this.state = { ...this.state, error: null, phase: "aborting" };
-      this.emit();
+      this.setPhase("aborting");
       try {
         const res = await abortHandoff(this.options.apiClient, sessionId, {
           expectedSessionVersion: version,
           reason,
         });
-        this.state = {
+        this.patch({
           ...this.state,
           error: null,
           errorMeta: { code: null, retryAfterSeconds: null },
           phase: "idle",
           sessionVersion: res.sessionVersion,
           verification: null,
-        };
+        });
       } catch (error: unknown) {
-        this.applyError(error);
-        this.state = { ...this.state, phase: "pending-unverified" };
+        await this.recoverOrFail(sessionId, "pending-unverified", error, () => undefined);
       }
-      this.emit();
     });
   }
 
@@ -267,47 +253,44 @@ export class HandoffController {
     return this.mutate(async () => {
       const version = this.state.sessionVersion;
       if (version === null || this.state.phase !== "verified") {
-        this.applyError(new Error("Handoff is not verified for release."));
+        this.recoverOrFail(null, this.state.phase, new Error("Handoff is not verified for release."));
         return;
       }
-      this.state = { ...this.state, error: null, phase: "releasing" };
-      this.emit();
+      this.setPhase("releasing");
       try {
         const res = await completeHandoff(
           this.options.apiClient,
           sessionId,
           version,
         );
-        this.state = {
+        this.patch({
           ...this.state,
           error: null,
           errorMeta: { code: null, retryAfterSeconds: null },
           phase: "completed",
           sessionVersion: res.sessionVersion,
           verification: null,
-        };
+        });
         this.options.onComplete?.();
       } catch (error: unknown) {
-        this.applyError(error);
-        // Financial guard and conflicts keep VERIFIED HANDOFF_PENDING.
-        this.state = { ...this.state, phase: "verified" };
+        // Financial/business blocks keep VERIFIED HANDOFF_PENDING.
+        await this.recoverOrFail(sessionId, "verified", error);
       }
-      this.emit();
     });
   }
 
   private adoptVerified(
-    method: HandoffVerificationSnapshot["method"],
+    method: HandoffVerificationMethod,
     verifiedAt: string,
     sessionVersion: number,
   ): void {
-    this.state = {
+    this.patch({
       ...this.state,
       error: null,
       errorMeta: { code: null, retryAfterSeconds: null },
       phase: "verified",
       sessionVersion,
       verification: { method, status: "VERIFIED", verifiedAt },
-    };
+    });
   }
 }

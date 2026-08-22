@@ -124,7 +124,13 @@ export function LiveHandoffPendingStep({
           <Btn
             disabled={!codeValid || isMutating}
             label="Verify Code"
-            onClick={() => onVerifyPickupCode(code)}
+            onClick={() => {
+              // Raw proof is ephemeral: cleared after every submission,
+              // success or failure alike.
+              const submitted = code;
+              setCode("");
+              onVerifyPickupCode(submitted);
+            }}
           />
         </div>
 
@@ -141,7 +147,11 @@ export function LiveHandoffPendingStep({
           <Btn
             disabled={!qrValid || isMutating}
             label="Verify QR"
-            onClick={() => onVerifyQrPayload(qrPayload)}
+            onClick={() => {
+              const submitted = qrPayload;
+              setQrPayload("");
+              onVerifyQrPayload(submitted);
+            }}
           />
         </div>
 

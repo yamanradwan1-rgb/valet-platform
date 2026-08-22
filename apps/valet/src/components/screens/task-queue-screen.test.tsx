@@ -138,6 +138,80 @@ describe("TaskQueueScreen Component", () => {
     expect(markup).toContain("Pickup");
   });
 
+  const supervisorHandoffTask: StaffTaskQueueItem = {
+    taskId: "aaaaaaa1-1111-4111-8111-111111111111",
+    sessionId: "bbbbbbb1-2222-4222-8222-222222222222",
+    taskType: "RETRIEVAL",
+    status: "IN_PROGRESS",
+    currentAssigneeMembershipId: "ccccccc1-3333-4333-8333-333333333333",
+    valetSessionState: "HANDOFF_PENDING",
+    valetSessionVersion: 9,
+    version: 6,
+    createdAt: "2026-08-21T18:00:00.000Z",
+    parkingZone: null,
+    parkingSpot: null,
+    retrievalRequestedAt: "2026-08-21T18:05:00.000Z",
+    vehicle: {
+      make: "Audi",
+      model: "A6",
+      color: "Black",
+      plateNumberRaw: "77-99999",
+      temporaryDescriptor: null,
+    },
+  };
+
+  const nonEligibleRetrieval: StaffTaskQueueItem = {
+    ...supervisorHandoffTask,
+    taskId: "aaaaaaa2-1111-4111-8111-111111111111",
+    valetSessionState: "READY",
+    version: 5,
+  };
+
+  it("offers Override Handoff ONLY to a supervisor on RETRIEVAL IN_PROGRESS HANDOFF_PENDING tasks assigned to others", () => {
+    const supervisorMarkup = renderToStaticMarkup(
+      <TaskQueueScreen
+        mode="live"
+        locationId="loc-sup"
+        membershipId="ddddddd1-4444-4444-8444-444444444444"
+        role="VALET_SUPERVISOR"
+        initialTasks={[supervisorHandoffTask, nonEligibleRetrieval]}
+      />,
+    );
+    expect(supervisorMarkup).toContain("Override Handoff");
+    // Non-HANDOFF_PENDING assigned-to-other task stays locked.
+    expect(supervisorMarkup).toContain("Other staff");
+
+    const employeeMarkup = renderToStaticMarkup(
+      <TaskQueueScreen
+        mode="live"
+        locationId="loc-emp"
+        membershipId="ddddddd1-4444-4444-8444-444444444444"
+        role="VALET_EMPLOYEE"
+        initialTasks={[supervisorHandoffTask]}
+      />,
+    );
+    expect(employeeMarkup).not.toContain("Override Handoff");
+    expect(employeeMarkup).toContain("Assigned");
+  });
+
+  it("never offers Override Handoff to an employee who owns the task", () => {
+    const ownTask: StaffTaskQueueItem = {
+      ...supervisorHandoffTask,
+      currentAssigneeMembershipId: "ddddddd1-4444-4444-8444-444444444444",
+    };
+    const markup = renderToStaticMarkup(
+      <TaskQueueScreen
+        mode="live"
+        locationId="loc-own"
+        membershipId="ddddddd1-4444-4444-8444-444444444444"
+        role="VALET_EMPLOYEE"
+        initialTasks={[ownTask]}
+      />,
+    );
+    expect(markup).not.toContain("Override Handoff");
+    expect(markup).toContain("Continue Retrieval");
+  });
+
   it("synchronously locks TaskQueueScreen against double-submit on rapid concurrent action invocations", async () => {
     let resolveFirstRunner!: (val: {
       kind: "START_PARKING_SUCCESS";

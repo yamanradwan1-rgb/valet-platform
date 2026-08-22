@@ -197,10 +197,14 @@ export function RetrievalFlow({
       (retrieval.step === "vehicle-ready" || retrieval.step === "handoff") &&
       session !== null
     ) {
+      const isSupervisor = supervisorCanOverride(role);
+      const canRelease =
+        !isSupervisor || currentAssigneeMembershipId === membershipId;
       return (
         <RetrievalHandoffGate
+          canRelease={canRelease}
           handoff={handoff}
-          isSupervisor={supervisorCanOverride(role)}
+          isSupervisor={isSupervisor}
           onComplete={() => {
             onComplete?.();
             nav("task-queue");

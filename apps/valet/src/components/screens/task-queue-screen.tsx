@@ -107,6 +107,21 @@ export function TaskQueueScreen({
     ? (locationName ?? "")
     : (locationName ?? "Four Seasons Amman");
 
+  const handleOverrideHandoff = (task: StaffTaskQueueItemViewModel) => {
+    if (actionInFlightRef.current) return;
+    // Dedicated supervisor entry: navigates straight to the handoff flow
+    // with authoritative queue state/version; ownership is NOT claimed and
+    // the runner (assign/accept) is never invoked.
+    onSelectRetrievalTask?.({
+      currentAssigneeMembershipId: null,
+      sessionId: task.sessionId,
+      taskId: task.taskId,
+      taskStatus: "IN_PROGRESS",
+      taskVersion: task.version,
+    });
+    nav?.("retrieval");
+  };
+
   const handleTaskAction = async (task: StaffTaskQueueItemViewModel) => {
     if (actionInFlightRef.current) return;
     actionInFlightRef.current = true;
@@ -140,24 +155,6 @@ export function TaskQueueScreen({
           setActionError("This task is assigned to another valet employee.");
         }
       } else if (task.taskType === "RETRIEVAL") {
-        // Supervisor non-owner override entry: authoritative state/version
-        // come from the enriched queue projection; ownership stays with the
-        // retrieval owner for final release.
-        if (
-          role === "VALET_SUPERVISOR" &&
-          task.status === "IN_PROGRESS" &&
-          task.valetSessionState === "HANDOFF_PENDING"
-        ) {
-          onSelectRetrievalTask?.({
-            currentAssigneeMembershipId: null,
-            sessionId: task.sessionId,
-            taskId: task.taskId,
-            taskStatus: "IN_PROGRESS",
-            taskVersion: task.version,
-          });
-          nav?.("retrieval");
-          return;
-        }
         const result = await executeRetrievalTaskAction(
           taskQueueClient,
           {
@@ -238,7 +235,9 @@ export function TaskQueueScreen({
           <LivePriorityTaskCard
             priorityTask={priorityTask}
             membershipId={membershipId}
+            role={role}
             isActionInFlight={inFlightTaskId === priorityTask.taskId}
+            onOverrideHandoff={() => handleOverrideHandoff(priorityTask)}
             onAction={() => void handleTaskAction(priorityTask)}
           />
         ) : null}
@@ -276,7 +275,9 @@ export function TaskQueueScreen({
                       key={task.taskId}
                       task={task}
                       membershipId={membershipId}
+                      role={role}
                       isActionInFlight={inFlightTaskId === task.taskId}
+                      onOverrideHandoff={() => handleOverrideHandoff(task)}
                       onClick={() => void handleTaskAction(task)}
                     />
                   ))
