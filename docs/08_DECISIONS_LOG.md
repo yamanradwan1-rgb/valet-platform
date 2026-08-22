@@ -3092,7 +3092,7 @@ VehiclePhoto is never reused for logos. Reads/writes use the VAL-009A
 exact-Location manager scope (no Shift); ORG_ADMIN pre-MFA and all other
 non-manager paths fail closed non-disclosingly; no Company-default branding
 mutation endpoint. Overrides mutate only through four narrow SECURITY DEFINER
-functions (migration 30 only) that revalidate authority in-database, recheck
+functions (migration 30 foundation + migration 31 hardening) that revalidate authority in-database, recheck
 expectedUpdatedAt on locations.updated_at, advance it monotonically, and write
 exactly one DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED AuditEvent per
 success; stale/validation/auth failures mutate nothing and audit nothing.

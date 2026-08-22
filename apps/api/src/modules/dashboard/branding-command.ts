@@ -10,19 +10,14 @@ import type {
   PostgresTransaction,
 } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
+import {
+  mapDashboardConfigurationDatabaseError,
+} from "./dashboard-configuration-errors";
 import { authorizeDashboardLocation } from "./dashboard-location-authorization";
-import { assertAuthorized, DashboardOverviewError } from "./dashboard-overview-error";
-
-interface PgError {
-  readonly code?: string;
-}
+import { assertAuthorized } from "./dashboard-overview-error";
 
 function mapBrandingDatabaseError(error: unknown): never {
-  const code = (error as PgError).code;
-  if (code === "40001") {
-    throw new DashboardOverviewError("CONFIGURATION_OVERRIDE_CONFLICT");
-  }
-  throw error;
+  mapDashboardConfigurationDatabaseError(error);
 }
 
 async function requireAuthorizedScope(

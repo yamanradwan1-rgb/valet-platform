@@ -67,7 +67,10 @@ branding are out of scope.
 ### Branding persistence authority
 
 Migration `20260822003000_phase7_basic_branding_subscription_entitlements`
-is the only migration; migrations 1–29 are immutable. Overrides mutate only
+introduced the G8 persistence foundation; migrations 1–29 are immutable.
+Forward-only Migration 31
+(`20260823003100_phase7_basic_branding_hardening`) is a reviewed hardening
+correction; no other migration is authorized. Overrides mutate only
 through narrow DEC-047/DEC-058-style `SECURITY DEFINER` functions — one per
 operation (set/clear × display name/color) — each with fixed safe
 `search_path`, owner-owned, PUBLIC EXECUTE revoked, EXECUTE granted solely to
@@ -144,7 +147,7 @@ verified asset boundary, billing execution) each require focused decisions.
 
 Independent review identified three narrow corrections that the Project
 Owner approved as forward-only Migration 31
-(60823003100_phase7_basic_branding_hardening). Migration 30 remains the
+(`20260823003100_phase7_basic_branding_hardening`). Migration 30 remains the
 immutable G8 foundation; this decision records both migrations together:
 
 - Migration 30 introduced the accepted G8 foundation (columns, table, enum,
@@ -160,5 +163,4 @@ immutable G8 foundation; this decision records both migrations together:
   same transaction that performed the mutation.
 
 Status stays Accepted; G8 stays closed; product scope is unchanged.
-
-0Full binding contract: this file.
+Full binding contract: this file.
