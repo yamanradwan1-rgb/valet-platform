@@ -3040,3 +3040,36 @@ structurally absent, never zero-filled.
 
 Full binding contract:
 `docs/decisions/DEC-060_PHASE7_OPERATIONAL_KPI_FORMULA_CATALOG.md`
+
+## DEC-061 — Phase 7 Report Export and Delivery Composition
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+VAL-009E ships manual authenticated DAILY/WEEKLY/MONTHLY Location reports and
+synchronous CSV/PDF downloads under the VAL-009A exact-Location manager scope.
+No scheduler, worker, queue or email/SMS/WhatsApp sending exists in VAL-009E;
+Reliability owns future automated delivery and MUST reuse this composer. No
+artifacts are persisted — bytes are generated in bounded memory (500 unique
+free-text group rows per section family; 5 MiB artifact ceiling, fail-closed
+before audit) and discarded. Each successful generation writes exactly one
+`DASHBOARD_REPORT_EXPORT_GENERATED` AuditEvent (Location entity, NULL session,
+authorized membership actor, safe metadata: reportKind/format/periodFrom/
+periodTo/contentLength/optional contentSha256); regeneration creates a new
+event; invalid/unauthorized/render/size failures write none. CSV is UTF-8
+RFC4180 with header `section,key,subkey,currency,value`, deterministic
+ordering, exact decimals, and deterministic formula-injection hardening beyond
+quoting; filenames are server-generated ASCII. PDF uses `pdf-lib` as the sole
+approved new dependency (no native/headless/browser runtime). Periods use the
+persisted Location timezone via `AT TIME ZONE` (DAILY strict date, WEEKLY
+strict Monday start ×7 days, MONTHLY calendar month incl. leap years) with no
+caller timezone. Reports contain only historically reconstructable facts
+(RetrievalRequest counts by requested_at, DispatchEvent grouped counts,
+KeyCustodyEvent grouped counts for DAILY) and never reconstruct historical
+queue/task/key state; unsupported metrics stay structurally absent; financial
+sections keep the DEC-060 currency union behavior. No schema/migration/
+runtime-privilege change.
+
+Full binding contract:
+`docs/decisions/DEC-061_PHASE7_REPORT_EXPORT_AND_DELIVERY_COMPOSITION.md`
