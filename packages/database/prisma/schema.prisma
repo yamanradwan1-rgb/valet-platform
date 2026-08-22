@@ -318,6 +318,7 @@ model Organization {
   tipsEnabled                 Boolean                     @default(false) @map("tips_enabled")
   validationEnabled           Boolean                     @default(false) @map("validation_enabled")
   releaseRequiresPayment      Boolean                     @default(false) @map("release_requires_payment")
+  brandPrimaryColor           String                      @default("#176BFF") @map("brand_primary_color")
   createdAt                   DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -332,6 +333,7 @@ model Organization {
   keySlots                    KeySlot[]
   keyCustodyEvents            KeyCustodyEvent[]
   tasks                       Task[]
+  subscription                OrganizationSubscription?
   valetSessions               ValetSession[]
   retrievalRequests           RetrievalRequest[]
   handoffVerifications        HandoffVerification[]
@@ -375,6 +377,8 @@ model Location {
   tipsEnabledOverride                 Boolean?                     @map("tips_enabled_override")
   validationEnabledOverride           Boolean?                     @map("validation_enabled_override")
   releaseRequiresPaymentOverride      Boolean?                     @map("release_requires_payment_override")
+  brandDisplayNameOverride            String?                      @map("brand_display_name_override")
+  brandPrimaryColorOverride           String?                      @map("brand_primary_color_override")
   createdAt                           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                           DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -1229,4 +1233,27 @@ model AntiAbuseEvent {
   @@index([scope, keyHash, occurredAt], map: "anti_abuse_events_scope_key_hash_occurred_at_idx")
   @@index([occurredAt], map: "anti_abuse_events_occurred_at_idx")
   @@map("anti_abuse_events")
+}
+
+enum OrganizationSubscriptionStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+
+  @@map("organization_subscription_status")
+}
+
+model OrganizationSubscription {
+  organizationId         String                         @id @db.Uuid @map("organization_id")
+  planCode               String                         @map("plan_code")
+  status                 OrganizationSubscriptionStatus
+  dashboardAccessEnabled Boolean                        @map("dashboard_access_enabled")
+  reportExportsEnabled   Boolean                        @map("report_exports_enabled")
+  basicBrandingEnabled   Boolean                        @map("basic_branding_enabled")
+  createdAt              DateTime                       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime                       @default(now()) @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("organization_subscriptions")
 }

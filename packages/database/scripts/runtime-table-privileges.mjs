@@ -1,6 +1,10 @@
 import { provisionPaymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { provisionProviderEventPrivileges } from "./provider-event-runtime-privileges.mjs";
 import { provisionLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
+import {
+  organizationSubscriptionTablePolicies,
+  provisionBasicBrandingPrivileges,
+} from "./basic-branding-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -253,6 +257,7 @@ export async function provisionRuntimeTablePrivileges(
     executeFormatted,
     runtimeRole,
   );
+  await provisionBasicBrandingPrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

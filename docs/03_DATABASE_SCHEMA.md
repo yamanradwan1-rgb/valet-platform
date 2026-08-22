@@ -1335,6 +1335,32 @@ Rules:
   privilege; Dashboard incident reads stay exact-Location authorized,
   non-disclosing and read-only with no schema/migration change
 
+## organization_subscriptions
+
+One-to-one typed subscription/entitlement state for an Organization (DEC-062).
+
+`	ext
+organization_id PK/FK -> organizations (restrictive)
+plan_code
+status: TRIAL | ACTIVE | SUSPENDED
+dashboard_access_enabled
+report_exports_enabled
+basic_branding_enabled
+created_at
+updated_at
+`
+
+Constraints/rules:
+
+- at most one row per Organization (PK on organization_id); zero rows means no subscription (no fabricated default plan)
+- plan_code CHECK: uppercase canonical ^[A-Z0-9][A-Z0-9_-]{0,63}$; opaque internal identifier, never marketing copy, entitlement behavior never derived from it
+- status enum limited to TRIAL | ACTIVE | SUSPENDED; no billing lifecycle values
+- three explicit boolean entitlement columns; no generic JSON entitlements
+- runtime role holds SELECT only (INSERT/UPDATE/DELETE/TRUNCATE denied); provisioning/change is an internal platform concern outside the customer API
+- no price/billing-interval/amount/currency/invoice/payment-method/Stripe/renewal/cancellation/trial-end/seat-count fields
+
+Basic branding columns (DEC-062): organizations.brand_primary_color TEXT NOT NULL DEFAULT #176BFF with uppercase-hex CHECK; locations.brand_display_name_override / brand_primary_color_override nullable with CHECKs (trimmed non-empty <=120 code points without control characters; uppercase hex). Overrides mutate only through narrow SECURITY DEFINER functions (set/clear x display-name/color) that revalidate the VAL-009A manager boundary in-database, recheck expectedUpdatedAt against locked locations.updated_at (40001 conflict), advance updated_at monotonically, and commit exactly one DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED AuditEvent per success. Failures write no mutation and no audit. Runtime role gains EXECUTE only on these four functions and keeps no generic UPDATE on organizations/locations.
+
 ## notifications
 
 ```text

@@ -6,10 +6,10 @@ import {
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
 } from "./runtime-table-privileges.mjs";
+import { verifyBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentReadPolicies,
-  ...paymentCollectionPrivileges.table,
   ...paymentCollectionPrivileges.table,
   ...providerEventPrivileges.table,
   ["public.users", "SELECT", true],
@@ -296,4 +296,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
     }
   }
   await verifyLocationConfigurationPrivileges(client, runtimeRole);
+  await verifyBasicBrandingPrivileges(client, runtimeRole);
 }
