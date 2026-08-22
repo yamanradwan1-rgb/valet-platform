@@ -19,6 +19,8 @@ export * from "./location-financial-overview.js";
 export * from "./location-configuration.js";
 export * from "./location-overview.js";
 export * from "./location-overview-pagination.js";
+export * from "./location-report-common.js";
+export * from "./location-report.js";
 export * from "./map-setup.js";
 export * from "./mark-ready.js";
 export * from "./payments.js";
