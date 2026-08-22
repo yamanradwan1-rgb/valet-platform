@@ -226,7 +226,7 @@ describe("demo seed data foundation", () => {
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(30);
+    expect(result.rows).toHaveLength(31);
     expect(result.rows[0]?.migration_name).toBe(
       "20260808000100_tenant_staff_foundation",
     );

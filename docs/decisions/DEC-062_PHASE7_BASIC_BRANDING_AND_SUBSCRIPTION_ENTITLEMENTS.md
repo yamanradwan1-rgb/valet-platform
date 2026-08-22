@@ -140,4 +140,25 @@ authorized, audited branding and read-only subscription surfaces. Future work
 (entitlement enforcement composition, automated provisioning, logo behind a
 verified asset boundary, billing execution) each require focused decisions.
 
-Full binding contract: this file.
+## Hardening amendment (Migration 31)
+
+Independent review identified three narrow corrections that the Project
+Owner approved as forward-only Migration 31
+(60823003100_phase7_basic_branding_hardening). Migration 30 remains the
+immutable G8 foundation; this decision records both migrations together:
+
+- Migration 30 introduced the accepted G8 foundation (columns, table, enum,
+  initial SECURITY DEFINER functions, privilege boundary).
+- Migration 31 is a reviewed hardening correction: it replaces the
+  primary-color SET function so an explicit SQL NULL fails closed with 22023
+  (NULL-as-clear is impossible through SET; dedicated CLEAR functions remain
+  the only clear path), and it enforces canonical persisted display-name
+  overrides (non-null stored values equal their outer-trimmed form, still
+  non-empty, <=120 characters, control-character free). Existing rows are
+  canonicalized in-place during the migration without business AuditEvents.
+- A successful SET/CLEAR returns its projection and mutation token from the
+  same transaction that performed the mutation.
+
+Status stays Accepted; G8 stays closed; product scope is unchanged.
+
+0Full binding contract: this file.

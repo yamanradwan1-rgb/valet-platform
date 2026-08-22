@@ -1360,6 +1360,11 @@ Constraints/rules:
 - no price/billing-interval/amount/currency/invoice/payment-method/Stripe/renewal/cancellation/trial-end/seat-count fields
 
 Basic branding columns (DEC-062): organizations.brand_primary_color TEXT NOT NULL DEFAULT #176BFF with uppercase-hex CHECK; locations.brand_display_name_override / brand_primary_color_override nullable with CHECKs (trimmed non-empty <=120 code points without control characters; uppercase hex). Overrides mutate only through narrow SECURITY DEFINER functions (set/clear x display-name/color) that revalidate the VAL-009A manager boundary in-database, recheck expectedUpdatedAt against locked locations.updated_at (40001 conflict), advance updated_at monotonically, and commit exactly one DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED AuditEvent per success. Failures write no mutation and no audit. Runtime role gains EXECUTE only on these four functions and keeps no generic UPDATE on organizations/locations.
+Migration 31 hardening: the primary-color SET function explicitly rejects
+NULL (22023) so NULL-as-clear is impossible through SET; non-null
+display-name overrides are canonical outer-trimmed values enforced by
+CHECK, with migration-time in-place canonicalization and no business
+AuditEvents for it.
 
 ## notifications
 

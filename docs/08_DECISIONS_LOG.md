@@ -3112,3 +3112,12 @@ generic UPDATE on organizations/locations.
 
 Full binding contract:
 `docs/decisions/DEC-062_PHASE7_BASIC_BRANDING_AND_SUBSCRIPTION_ENTITLEMENTS.md`
+
+Hardening amendment (Migration 31, forward-only): the primary-color SET
+function now rejects an explicit SQL NULL fail-closed with 22023 (NULL-as-clear
+is impossible through SET; dedicated CLEAR functions remain the only clear
+path), non-null persisted display-name overrides are canonical outer-trimmed
+values enforced by a stricter CHECK with in-place migration-time
+canonicalization (no business AuditEvents), and a successful SET/CLEAR returns
+its projection/token from the same transaction as the mutation. Migration 30
+remains immutable; no new decision number; G8 stays closed.

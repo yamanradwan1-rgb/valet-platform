@@ -5,7 +5,10 @@ import type {
 } from "@valet/contracts";
 import { brandingReadResponseSchema } from "@valet/contracts";
 
-import type { PostgresPool } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { authorizeDashboardLocation } from "./dashboard-location-authorization";
 import { assertAuthorized, DashboardOverviewError } from "./dashboard-overview-error";
@@ -22,6 +25,20 @@ function mapBrandingDatabaseError(error: unknown): never {
   throw error;
 }
 
+async function requireAuthorizedScope(
+  transaction: PostgresTransaction,
+  authenticatedUserId: string,
+  locationId: string,
+): Promise<{ locationId: string; membershipId: string }> {
+  const scope = await authorizeDashboardLocation(
+    transaction,
+    authenticatedUserId,
+    locationId,
+  );
+  assertAuthorized(scope);
+  return { locationId: scope.locationId, membershipId: scope.membershipId };
+}
+
 interface BrandingRow {
   readonly name: string;
   readonly brandPrimaryColor: string;
@@ -31,63 +48,55 @@ interface BrandingRow {
 }
 
 async function loadBrandingRow(
-  pool: PostgresPool,
-  input: { authenticatedUserId: string; locationId: string },
+  transaction: PostgresTransaction,
+  locationId: string,
 ): Promise<BrandingReadResponse> {
-  return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
-    assertAuthorized(scope);
-    const rows = await transaction.query<BrandingRow>(
-      `SELECT organization.name AS "name",
-              organization.brand_primary_color AS "brandPrimaryColor",
-              location.brand_display_name_override
-                AS "brandDisplayNameOverride",
-              location.brand_primary_color_override
-                AS "brandPrimaryColorOverride",
-              location.updated_at AS "updatedAt"
-       FROM locations AS location
-       INNER JOIN organizations AS organization
-         ON organization.id = location.organization_id
-       WHERE location.id = $1 AND location.organization_id = $2`,
-      [scope.locationId, scope.organizationId],
-    );
-    const row = rows.rows[0];
-    if (row === undefined) {
-      throw new Error("Location branding scope is missing.");
-    }
-    const response: BrandingReadResponse = {
-      displayName: {
-        default: row.name,
-        effective:
-          row.brandDisplayNameOverride === null
-            ? row.name
-            : row.brandDisplayNameOverride,
-        override:
-          row.brandDisplayNameOverride === null
-            ? null
-            : row.brandDisplayNameOverride,
-        overridePresent: row.brandDisplayNameOverride !== null,
-      },
-      locationId: input.locationId,
-      primaryColor: {
-        default: row.brandPrimaryColor,
-        effective:
-          row.brandPrimaryColorOverride === null
-            ? row.brandPrimaryColor
-            : row.brandPrimaryColorOverride,
-        override:
-          row.brandPrimaryColorOverride === null
-            ? null
-            : row.brandPrimaryColorOverride,
-        overridePresent: row.brandPrimaryColorOverride !== null,
-      },
-      updatedAt: row.updatedAt.toISOString(),
-    };
-    return brandingReadResponseSchema.parse(response);
+  const result = await transaction.query<BrandingRow>(
+    `SELECT organization.name AS "name",
+            organization.brand_primary_color AS "brandPrimaryColor",
+            location.brand_display_name_override
+              AS "brandDisplayNameOverride",
+            location.brand_primary_color_override
+              AS "brandPrimaryColorOverride",
+            location.updated_at AS "updatedAt"
+     FROM locations AS location
+     INNER JOIN organizations AS organization
+       ON organization.id = location.organization_id
+     WHERE location.id = $1 AND organization.status = 'ACTIVE'
+       AND location.status = 'ACTIVE'`,
+    [locationId],
+  );
+  const row = result.rows[0];
+  if (row === undefined) {
+    throw new Error("Location branding scope is missing.");
+  }
+  return brandingReadResponseSchema.parse({
+    displayName: {
+      default: row.name,
+      effective:
+        row.brandDisplayNameOverride === null
+          ? row.name
+          : row.brandDisplayNameOverride,
+      override:
+        row.brandDisplayNameOverride === null
+          ? null
+          : row.brandDisplayNameOverride,
+      overridePresent: row.brandDisplayNameOverride !== null,
+    },
+    locationId,
+    primaryColor: {
+      default: row.brandPrimaryColor,
+      effective:
+        row.brandPrimaryColorOverride === null
+          ? row.brandPrimaryColor
+          : row.brandPrimaryColorOverride,
+      override:
+        row.brandPrimaryColorOverride === null
+          ? null
+          : row.brandPrimaryColorOverride,
+      overridePresent: row.brandPrimaryColorOverride !== null,
+    },
+    updatedAt: row.updatedAt.toISOString(),
   });
 }
 
@@ -95,7 +104,14 @@ export async function readLocationBranding(
   pool: PostgresPool,
   input: { authenticatedUserId: string; locationId: string },
 ): Promise<BrandingReadResponse> {
-  return loadBrandingRow(pool, input);
+  return inPostgresTransaction(pool, async (transaction) => {
+    await requireAuthorizedScope(
+      transaction,
+      input.authenticatedUserId,
+      input.locationId,
+    );
+    return loadBrandingRow(transaction, input.locationId);
+  });
 }
 
 export async function setBrandingOverride(
@@ -105,13 +121,12 @@ export async function setBrandingOverride(
     locationId: string;
   },
 ): Promise<BrandingReadResponse> {
-  await inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
+  return inPostgresTransaction(pool, async (transaction) => {
+    const scope = await requireAuthorizedScope(
       transaction,
       input.authenticatedUserId,
       input.locationId,
     );
-    assertAuthorized(scope);
     try {
       if (input.setting === "brandDisplayName") {
         await transaction.query(
@@ -139,10 +154,9 @@ export async function setBrandingOverride(
     } catch (error) {
       mapBrandingDatabaseError(error);
     }
-  });
-  return readLocationBranding(pool, {
-    authenticatedUserId: input.authenticatedUserId,
-    locationId: input.locationId,
+    // Projection is read inside the same transaction as the mutation so the
+    // response token/state can never diverge from the committed mutation.
+    return loadBrandingRow(transaction, scope.locationId);
   });
 }
 
@@ -153,13 +167,12 @@ export async function clearBrandingOverride(
     locationId: string;
   },
 ): Promise<BrandingReadResponse> {
-  await inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
+  return inPostgresTransaction(pool, async (transaction) => {
+    const scope = await requireAuthorizedScope(
       transaction,
       input.authenticatedUserId,
       input.locationId,
     );
-    assertAuthorized(scope);
     try {
       if (input.setting === "brandDisplayName") {
         await transaction.query(
@@ -177,9 +190,7 @@ export async function clearBrandingOverride(
     } catch (error) {
       mapBrandingDatabaseError(error);
     }
-  });
-  return readLocationBranding(pool, {
-    authenticatedUserId: input.authenticatedUserId,
-    locationId: input.locationId,
+    // Projection is read inside the same transaction as the mutation.
+    return loadBrandingRow(transaction, scope.locationId);
   });
 }
