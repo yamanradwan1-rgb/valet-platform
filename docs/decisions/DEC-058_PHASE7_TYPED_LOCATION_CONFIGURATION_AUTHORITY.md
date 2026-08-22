@@ -68,7 +68,11 @@ runtime table privileges.
    exact money in the repository's decimal convention and must be exactly
    representable in the authoritative Location currency under DEC-053 with no
    silent rounding; enums accept existing controlled values only. Invalid input
-   fails closed with no mutation and no audit.
+   fails closed with no mutation and no audit. DEC-053 representability is
+   enforced independently inside the SECURITY DEFINER boundary against the
+   persisted Location currency through the deterministic checked-in
+   minor-unit exponent authority (`location_configuration_minor_unit_exponent`),
+   so direct runtime-role calls cannot bypass API-side validation.
 10. **Prospective effect.** Persisted configuration affects subsequent policy
     evaluation immediately, without deployment or restart, and never rewrites
     historical Payment, Validation, session, task or audit facts.

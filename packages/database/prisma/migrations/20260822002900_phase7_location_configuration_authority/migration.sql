@@ -121,6 +121,184 @@ AS $$
       )
 $$;
 
+CREATE FUNCTION "location_configuration_minor_unit_exponent"(
+    "currency_code" TEXT
+)
+RETURNS INTEGER
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+    SELECT CASE currency_code
+        WHEN 'AED' THEN 2
+        WHEN 'AFN' THEN 2
+        WHEN 'ALL' THEN 2
+        WHEN 'AMD' THEN 2
+        WHEN 'AOA' THEN 2
+        WHEN 'ARS' THEN 2
+        WHEN 'AUD' THEN 2
+        WHEN 'AWG' THEN 2
+        WHEN 'AZN' THEN 2
+        WHEN 'BAM' THEN 2
+        WHEN 'BBD' THEN 2
+        WHEN 'BDT' THEN 2
+        WHEN 'BHD' THEN 3
+        WHEN 'BIF' THEN 0
+        WHEN 'BMD' THEN 2
+        WHEN 'BND' THEN 2
+        WHEN 'BOB' THEN 2
+        WHEN 'BOV' THEN 2
+        WHEN 'BRL' THEN 2
+        WHEN 'BSD' THEN 2
+        WHEN 'BTN' THEN 2
+        WHEN 'BWP' THEN 2
+        WHEN 'BYN' THEN 2
+        WHEN 'BZD' THEN 2
+        WHEN 'CAD' THEN 2
+        WHEN 'CDF' THEN 2
+        WHEN 'CHE' THEN 2
+        WHEN 'CHF' THEN 2
+        WHEN 'CHW' THEN 2
+        WHEN 'CLF' THEN 4
+        WHEN 'CLP' THEN 0
+        WHEN 'CNY' THEN 2
+        WHEN 'COP' THEN 2
+        WHEN 'COU' THEN 2
+        WHEN 'CRC' THEN 2
+        WHEN 'CUP' THEN 2
+        WHEN 'CVE' THEN 2
+        WHEN 'CZK' THEN 2
+        WHEN 'DJF' THEN 0
+        WHEN 'DKK' THEN 2
+        WHEN 'DOP' THEN 2
+        WHEN 'DZD' THEN 2
+        WHEN 'EGP' THEN 2
+        WHEN 'ERN' THEN 2
+        WHEN 'ETB' THEN 2
+        WHEN 'EUR' THEN 2
+        WHEN 'FJD' THEN 2
+        WHEN 'FKP' THEN 2
+        WHEN 'GBP' THEN 2
+        WHEN 'GEL' THEN 2
+        WHEN 'GHS' THEN 2
+        WHEN 'GIP' THEN 2
+        WHEN 'GMD' THEN 2
+        WHEN 'GNF' THEN 0
+        WHEN 'GTQ' THEN 2
+        WHEN 'GYD' THEN 2
+        WHEN 'HKD' THEN 2
+        WHEN 'HNL' THEN 2
+        WHEN 'HTG' THEN 2
+        WHEN 'HUF' THEN 2
+        WHEN 'IDR' THEN 2
+        WHEN 'ILS' THEN 2
+        WHEN 'INR' THEN 2
+        WHEN 'IQD' THEN 3
+        WHEN 'IRR' THEN 2
+        WHEN 'ISK' THEN 0
+        WHEN 'JMD' THEN 2
+        WHEN 'JOD' THEN 3
+        WHEN 'JPY' THEN 0
+        WHEN 'KES' THEN 2
+        WHEN 'KGS' THEN 2
+        WHEN 'KHR' THEN 2
+        WHEN 'KMF' THEN 0
+        WHEN 'KPW' THEN 2
+        WHEN 'KRW' THEN 0
+        WHEN 'KWD' THEN 3
+        WHEN 'KYD' THEN 2
+        WHEN 'KZT' THEN 2
+        WHEN 'LAK' THEN 2
+        WHEN 'LBP' THEN 2
+        WHEN 'LKR' THEN 2
+        WHEN 'LRD' THEN 2
+        WHEN 'LSL' THEN 2
+        WHEN 'LYD' THEN 3
+        WHEN 'MAD' THEN 2
+        WHEN 'MDL' THEN 2
+        WHEN 'MGA' THEN 2
+        WHEN 'MKD' THEN 2
+        WHEN 'MMK' THEN 2
+        WHEN 'MNT' THEN 2
+        WHEN 'MOP' THEN 2
+        WHEN 'MRU' THEN 2
+        WHEN 'MUR' THEN 2
+        WHEN 'MVR' THEN 2
+        WHEN 'MWK' THEN 2
+        WHEN 'MXN' THEN 2
+        WHEN 'MXV' THEN 2
+        WHEN 'MYR' THEN 2
+        WHEN 'MZN' THEN 2
+        WHEN 'NAD' THEN 2
+        WHEN 'NGN' THEN 2
+        WHEN 'NIO' THEN 2
+        WHEN 'NOK' THEN 2
+        WHEN 'NPR' THEN 2
+        WHEN 'NZD' THEN 2
+        WHEN 'OMR' THEN 3
+        WHEN 'PAB' THEN 2
+        WHEN 'PEN' THEN 2
+        WHEN 'PGK' THEN 2
+        WHEN 'PHP' THEN 2
+        WHEN 'PKR' THEN 2
+        WHEN 'PLN' THEN 2
+        WHEN 'PYG' THEN 0
+        WHEN 'QAR' THEN 2
+        WHEN 'RON' THEN 2
+        WHEN 'RSD' THEN 2
+        WHEN 'RUB' THEN 2
+        WHEN 'RWF' THEN 0
+        WHEN 'SAR' THEN 2
+        WHEN 'SBD' THEN 2
+        WHEN 'SCR' THEN 2
+        WHEN 'SDG' THEN 2
+        WHEN 'SEK' THEN 2
+        WHEN 'SGD' THEN 2
+        WHEN 'SHP' THEN 2
+        WHEN 'SLE' THEN 2
+        WHEN 'SOS' THEN 2
+        WHEN 'SRD' THEN 2
+        WHEN 'SSP' THEN 2
+        WHEN 'STN' THEN 2
+        WHEN 'SVC' THEN 2
+        WHEN 'SYP' THEN 2
+        WHEN 'SZL' THEN 2
+        WHEN 'THB' THEN 2
+        WHEN 'TJS' THEN 2
+        WHEN 'TMT' THEN 2
+        WHEN 'TND' THEN 3
+        WHEN 'TOP' THEN 2
+        WHEN 'TRY' THEN 2
+        WHEN 'TTD' THEN 2
+        WHEN 'TWD' THEN 2
+        WHEN 'TZS' THEN 2
+        WHEN 'UAH' THEN 2
+        WHEN 'UGX' THEN 0
+        WHEN 'USD' THEN 2
+        WHEN 'USN' THEN 2
+        WHEN 'UYI' THEN 0
+        WHEN 'UYU' THEN 2
+        WHEN 'UYW' THEN 4
+        WHEN 'UZS' THEN 2
+        WHEN 'VED' THEN 2
+        WHEN 'VES' THEN 2
+        WHEN 'VND' THEN 0
+        WHEN 'VUV' THEN 0
+        WHEN 'WST' THEN 2
+        WHEN 'XAD' THEN 2
+        WHEN 'XAF' THEN 0
+        WHEN 'XCD' THEN 2
+        WHEN 'XCG' THEN 2
+        WHEN 'XOF' THEN 0
+        WHEN 'XPF' THEN 0
+        WHEN 'YER' THEN 2
+        WHEN 'ZAR' THEN 2
+        WHEN 'ZMW' THEN 2
+        WHEN 'ZWG' THEN 2
+        ELSE NULL
+    END
+$$;
+
 CREATE FUNCTION "location_configuration_append_audit"(
     "organization_id" UUID,
     "location_id" UUID,
@@ -180,6 +358,8 @@ AS $$
 DECLARE
     authorized_organization_id UUID;
     persisted_updated_at TIMESTAMPTZ(3);
+    persisted_currency TEXT;
+    minor_unit_exponent INTEGER;
     mutation_time TIMESTAMPTZ(3);
     old_state RECORD;
     new_state RECORD;
@@ -257,8 +437,8 @@ BEGIN
             MESSAGE = 'Invalid location configuration value.';
     END IF;
 
-    SELECT location.updated_at
-    INTO persisted_updated_at
+    SELECT location.updated_at, location.currency
+    INTO persisted_updated_at, persisted_currency
     FROM public.locations AS location
     WHERE location.id = target_location_id
       AND location.organization_id = authorized_organization_id
@@ -270,6 +450,28 @@ BEGIN
     IF persisted_updated_at IS DISTINCT FROM expected_updated_at THEN
         RAISE EXCEPTION USING ERRCODE = '40001',
             MESSAGE = 'Location configuration conflict.';
+    END IF;
+
+    IF setting_key = 'valetServiceFee' THEN
+        minor_unit_exponent :=
+            public.location_configuration_minor_unit_exponent(
+                persisted_currency
+        );
+        IF minor_unit_exponent IS NULL
+           OR minor_unit_exponent NOT BETWEEN 0 AND 3 THEN
+            RAISE EXCEPTION USING ERRCODE = '22023',
+                MESSAGE = 'Invalid location configuration value.';
+        END IF;
+        IF ((v_numeric * 1000)::BIGINT
+            % CASE (3 - minor_unit_exponent)
+                  WHEN 0 THEN 1::BIGINT
+                  WHEN 1 THEN 10::BIGINT
+                  WHEN 2 THEN 100::BIGINT
+                  ELSE 1000::BIGINT
+              END) <> 0 THEN
+            RAISE EXCEPTION USING ERRCODE = '22023',
+                MESSAGE = 'Invalid location configuration value.';
+        END IF;
     END IF;
 
     old_state :=
@@ -468,6 +670,8 @@ $$;
 REVOKE ALL ON FUNCTION public.location_configuration_authorized_organization(UUID, UUID)
 FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.location_configuration_setting_state(UUID, TEXT)
+FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.location_configuration_minor_unit_exponent(TEXT)
 FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.location_configuration_append_audit(
     UUID, UUID, UUID, TEXT, TEXT, BOOLEAN, TEXT, TEXT, BOOLEAN, TEXT, TEXT

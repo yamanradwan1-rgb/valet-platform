@@ -2971,11 +2971,13 @@ denied pre-MFA under DEC-023, and no principal mutates Company defaults.
 
 Mutations go through narrow DEC-047-style SECURITY DEFINER functions (migration
 29 only) that revalidate persisted authority in-database, enforce optimistic
-concurrency on `locations.updated_at` via `expectedUpdatedAt`, and commit exactly
-one same-transaction AuditEvent per success; stale-token, authorization and
-validation failures mutate nothing and audit nothing. Runtime privileges keep no
-generic UPDATE on `organizations`/`locations`; EXECUTE is granted explicitly on
-the two functions only with PUBLIC denied.
+concurrency on `locations.updated_at` via `expectedUpdatedAt`, independently
+enforce DEC-053 fee representability against the persisted Location currency
+through a deterministic checked-in minor-unit exponent mapping, and commit
+exactly one same-transaction AuditEvent per success; stale-token,
+authorization and validation failures mutate nothing and audit nothing. Runtime
+privileges keep no generic UPDATE on `organizations`/`locations`; EXECUTE is
+granted explicitly on the two functions only with PUBLIC denied.
 
 Full binding contract:
 `docs/decisions/DEC-058_PHASE7_TYPED_LOCATION_CONFIGURATION_AUTHORITY.md`

@@ -251,7 +251,11 @@ caller's `expected_updated_at` against the locked `locations.updated_at`
 (`40001` conflict), advances `updated_at` monotonically, changes exactly one
 override column, and commits exactly one safe Location-scoped AuditEvent
 (scope `LOCATION_OVERRIDE`, operation `SET`/`CLEAR`, old/new override presence,
-value and effective value) in the same transaction. Failed calls write no
+value and effective value) in the same transaction. For `valetServiceFee` the
+SET function independently enforces DEC-053 exact representability against the
+persisted Location currency using the private checked-in
+`location_configuration_minor_unit_exponent` mapping (unknown or unusable
+precision fails closed; no silent rounding). Failed calls write no
 configuration change and no audit. Organization default columns are not writable
 through this surface.
 
