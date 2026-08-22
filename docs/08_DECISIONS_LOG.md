@@ -3002,3 +3002,41 @@ unchanged.
 
 Full binding contract:
 `docs/decisions/DEC-059_PHASE7_INCIDENT_RUNTIME_READ_AUTHORITY.md`
+
+## DEC-060 — Phase 7 Operational KPI Formula Catalog
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+Closes Phase 7 gate G5. VAL-009D analytics compute from committed authoritative
+rows only, read-only, no audit on read, one exact Location under the VAL-009A
+manager scope. Period contract: `from`/`to` inclusive local dates in the
+persisted Location IANA timezone (no caller timezone), UTC interval
+`[from-midnight, day-after-to-midnight)` via `AT TIME ZONE`, max 31 inclusive
+local days, DST-correct, invalid input `REQUEST_INVALID`. Durations count only
+valid non-negative complete intervals with end-timestamp cohorting:
+Check-in `checking_in_completed_at-created_at`; Parking
+`parked_at-parking_started_at`; Retrieval Wait OFFICIAL
+`ready_at-retrieval_requested_at` (the sole metric allowed to carry that name);
+Retrieval Start Latency AUXILIARY `retrieval_started_at-retrieval_requested_at`
+(never aliased to Retrieval Wait); Handoff `completed_at-ready_at`. Output =
+`sampleCount` + nullable `averageSeconds` decimal string (3 fractional digits,
+half-away-from-zero; null when zero samples). Cars handled per local day counts
+`completed_at` local-day buckets including zero days. Queue snapshot: depth +
+server-clock `oldestAgeSeconds`, null when empty. Financial: PAID-by-`paid_at`
+cohort per immutable Payment currency (count/collected/tips); Digital Payment
+Rate DIGITAL/(CASH+DIGITAL), NONE excluded, nullable/"0.00" rules; SUCCEEDED
+refunds by `completed_at` joined for location+currency; Validation Rate over
+completed-session canonical Payments with current FULL/PARTIAL validation
+(amount irrelevant, superseded excluded) plus per-currency current validation
+totals; cash reconciliation from ENDED Shift close snapshots grouped by
+`cash_currency` with signed variance. Incidents: period count, persisted
+severity and raw type counts, `incidentsPer1000` over completed sessions with
+echoed numerator/denominator. Explicitly absent: SLA compliance (G4),
+Cars per Employee, Key Exceptions, Guest Rating/Repeat Guest,
+adoption/friction, manager reliance, predictive analytics, pre-MFA rollups —
+structurally absent, never zero-filled.
+
+Full binding contract:
+`docs/decisions/DEC-060_PHASE7_OPERATIONAL_KPI_FORMULA_CATALOG.md`
