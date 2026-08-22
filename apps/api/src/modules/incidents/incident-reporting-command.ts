@@ -116,6 +116,12 @@ export function createReportIncidentCommandExecutor(pool: PostgresPool) {
       );
       const prior = existing.rows[0];
       if (prior !== undefined) {
+        // The stable incidentId is bound to its original reporter: a
+        // different (even otherwise-authorized) actor must never receive
+        // another actor's report as a successful retry.
+        if (prior.reported_by_membership_id !== actor.membershipId) {
+          throw new IncidentReportingError("IDEMPOTENCY_CONFLICT");
+        }
         const samePayload =
           prior.valet_session_id === session.id &&
           prior.type === request.type &&

@@ -1,5 +1,3 @@
-import { randomUUID } from "node:crypto";
-
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import type {
   IncidentSeverity,
@@ -48,10 +46,15 @@ export const INCIDENT_SEVERITIES: ReadonlyArray<{
 ];
 
 function newIncidentId(): string {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
+  // Fail closed: a stable secure UUID is mandatory for the idempotent
+  // submission boundary; never fall back to weak randomness.
+  const uuid = globalThis.crypto?.randomUUID?.();
+  if (uuid === undefined || uuid === null) {
+    throw new Error(
+      "Secure UUID generation is unavailable; incident cannot be submitted.",
+    );
   }
-  return randomUUID();
+  return uuid;
 }
 
 /**

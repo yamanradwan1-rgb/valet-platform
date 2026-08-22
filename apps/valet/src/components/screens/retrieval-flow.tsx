@@ -38,10 +38,10 @@ export interface RetrievalFlowProps {
   readonly membershipId?: string | null | undefined;
   readonly mode?: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
+  readonly onOpenIncident?: ((sessionId: string) => void) | undefined;
+  readonly onComplete?: (() => void) | undefined;
   readonly role?: StaffOperationalRole | null | undefined;
   readonly onAuthorizationLoss?: (() => void) | undefined;
-  readonly onComplete?: (() => void) | undefined;
-
   readonly onReportIssue?: (() => void) | undefined;
   readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
@@ -61,9 +61,8 @@ export function RetrievalFlow({
   taskStatus = null,
   taskVersion = null,
   onAuthorizationLoss,
-
+  onOpenIncident,
   onComplete,
-
   onReportIssue,
 }: RetrievalFlowProps): JSX.Element | null {
   const isLive = mode === "live" || Boolean(sessionId || initialSession);
@@ -211,6 +210,9 @@ export function RetrievalFlow({
           canRelease={canRelease}
           handoff={handoff}
           isSupervisor={isSupervisor}
+          onOpenIncident={
+            onOpenIncident ? () => onOpenIncident(session.sessionId) : undefined
+          }
           onComplete={() => {
             onComplete?.();
             nav("task-queue");

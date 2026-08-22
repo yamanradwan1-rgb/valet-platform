@@ -1,45 +1,49 @@
 "use client";
 
-import { useState, type JSX } from "react";
-import type {
-  IncidentSeverity,
-  IncidentType,
-} from "@valet/contracts";
+import { useCallback, useEffect, useState, type JSX } from "react";
+import type { StaffValetSessionDetailResponse } from "@valet/contracts";
 
 import type { Screen } from "../../types/employee-ui";
 import { AlertIcon } from "../icons/employee-icons";
-import {
-  BackHeader,
-  Btn,
-  InfoRow,
-  VehicleIdentity,
-} from "../ui/employee-primitives";
+import { BackHeader, Btn, InfoRow } from "../ui/employee-primitives";
+import { INCIDENT_TYPES } from "../../features/incidents/incident-controller";
+import { IncidentLiveForm } from "./incident-live-form";
 import { useIncident } from "../../features/incidents/use-incident";
-import {
-  INCIDENT_SEVERITIES,
-  INCIDENT_TYPES,
-} from "../../features/incidents/incident-controller";
+import { fetchSessionDetail } from "../../features/retrieval/retrieval-api";
+import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 
 export interface IncidentFlowProps {
+  readonly apiClient?: EmployeeApiClient | undefined;
   readonly mode?: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
   /** Authoritative operational context for the live report. */
   readonly returnScreen?: Screen | undefined;
   readonly sessionId?: string | null | undefined;
-  readonly vehicleInfo?: string | null | undefined;
+}
+
+type ContextState = "loading" | "ready" | "error";
+
+function vehicleLine(detail: StaffValetSessionDetailResponse): string {
+  const v = detail.vehicle;
+  const heading = `${v.make ?? ""} ${v.model ?? ""}`.trim();
+  const identifier = v.plateNumberRaw ?? v.temporaryDescriptor ?? "";
+  return [heading || null, identifier || null]
+    .filter((part): part is string => part !== null && part !== "")
+    .join(" · ");
 }
 
 /**
  * Live mode submits through the canonical staff endpoint with a stable
- * client-generated incidentId per logical report. Prototype mode keeps the
- * demo flow (fake reference, Add Photo) exactly as before.
+ * client-generated incidentId per logical report, against an AUTHORITATIVE
+ * session/vehicle context hydrated from the staff A1 read. Prototype mode
+ * keeps the demo flow (fake reference, Add Photo) exactly as before.
  */
 export function IncidentFlow({
+  apiClient,
   mode,
   nav,
   returnScreen = "task-queue",
   sessionId = null,
-  vehicleInfo = null,
 }: IncidentFlowProps): JSX.Element | null {
   const isLive = mode === "live" || Boolean(sessionId);
   const incident = useIncident();
@@ -50,11 +54,100 @@ export function IncidentFlow({
   );
   const [protoType, setProtoType] = useState("");
 
-  const [selected, setSelected] = useState<IncidentType | null>(null);
-  const [severity, setSeverity] = useState<IncidentSeverity>("LOW");
-  const [description, setDescription] = useState("");
+  const [contextState, setContextState] =
+    useState<ContextState>("loading");
+  const [detail, setDetail] =
+    useState<StaffValetSessionDetailResponse | null>(null);
+
+  const loadContext = useCallback(async () => {
+    if (sessionId === null) {
+      setContextState("error");
+      return;
+    }    try {
+      const res = await fetchSessionDetail(
+        apiClient as EmployeeApiClient,
+        sessionId,
+      );
+      if (res.state === "COMPLETED" || res.state === "HANDOFF_PENDING") {
+        // Context must reflect a live operational custody state; terminal or
+        // post-release states are not valid reporting subjects here.
+        setDetail(res);
+        setContextState("error");
+        return;
+      }
+      setDetail(res);
+      setContextState("ready");
+    } catch {
+      setDetail(null);
+      setContextState("error");
+    }
+  }, [apiClient, sessionId]);
+
+  useEffect(() => {
+    if (!isLive) return;
+    let active = true;
+    queueMicrotask(() => {
+      if (active) void loadContext();
+    });
+    return () => {
+      active = false;
+    };
+  }, [isLive, loadContext]);
 
   if (isLive) {
+    if (contextState === "loading") {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
+          <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
+          <p className="text-navy font-semibold text-sm">
+            Loading session context…
+          </p>
+        </div>
+      );
+    }
+
+    if (contextState === "error") {
+      return (
+        <div>
+          <BackHeader title="Report Incident" onBack={() => nav(returnScreen)} />
+          <div className="p-5 space-y-4">
+            <div className="p-4 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-sm">
+              <p className="font-bold">Cannot establish session context</p>
+              <p className="text-xs mt-1">
+                The authoritative vehicle/session context could not be loaded.
+              </p>
+            </div>
+            <Btn
+              label="Retry"
+              onClick={() => {
+                setContextState("loading");
+                void loadContext();
+              }}
+            />
+            <Btn
+              label="Back"
+              variant="secondary"
+              onClick={() => nav(returnScreen)}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // detail === null && !error → initial loading.
+    if (detail === null) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
+          <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
+          <p className="text-navy font-semibold text-sm">
+            Loading session context…
+          </p>
+        </div>
+      );
+    }
+
+    const liveVehicleInfo = vehicleLine(detail);
+
     if (incident.state.phase === "reported" && incident.state.report) {
       const report = incident.state.report;
       return (
@@ -73,9 +166,7 @@ export function IncidentFlow({
           <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">
             <InfoRow label="Type" value={report.type} />
             <InfoRow label="Severity" value={report.severity} />
-            {vehicleInfo !== null && (
-              <InfoRow label="Vehicle" value={vehicleInfo} />
-            )}
+            <InfoRow label="Vehicle" value={liveVehicleInfo} />
           </div>
           <div className="w-full">
             <Btn label="Return" onClick={() => nav(returnScreen)} />
@@ -88,79 +179,16 @@ export function IncidentFlow({
       <div>
         <BackHeader title="Report Incident" onBack={() => nav(returnScreen)} />
         <div className="p-5 space-y-4">
-          <div className="bg-white rounded-xl border border-vborder p-4">`r`n            <p className="font-heading font-bold text-navy">{vehicleInfo}</p>`r`n          </div>
-
-          <p className="text-navy font-semibold text-sm">Select type</p>
-          <div className="grid grid-cols-2 gap-2">
-            {INCIDENT_TYPES.map((type) => (
-              <button
-                key={type.value}
-                onClick={() => setSelected(type.value)}
-                className={`text-left px-3 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all cursor-pointer leading-tight ${
-                  selected === type.value
-                    ? "border-vdanger bg-[#FFF0F0] text-vdanger"
-                    : "border-vborder bg-white text-navy hover:bg-gray-50"
-                }`}
-              >
-                {type.label}
-              </button>
-            ))}
+          <div className="bg-white rounded-xl border border-vborder p-4">
+            <p className="font-heading font-bold text-navy">{liveVehicleInfo}</p>
+            <p className="text-neutral text-xs mt-1">Session {detail.sessionId.slice(0, 8)}…</p>
           </div>
-
-          <p className="text-navy font-semibold text-sm">Severity</p>
-          <div className="grid grid-cols-4 gap-2">
-            {INCIDENT_SEVERITIES.map((sev) => (
-              <button
-                key={sev.value}
-                onClick={() => setSeverity(sev.value)}
-                className={`px-2 py-2 rounded-xl border-2 text-xs font-bold transition-all cursor-pointer ${
-                  severity === sev.value
-                    ? "border-vdanger bg-[#FFF0F0] text-vdanger"
-                    : "border-vborder bg-white text-navy"
-                }`}
-              >
-                {sev.label}
-              </button>
-            ))}
-          </div>
-
-          <textarea
-            maxLength={500}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Briefly describe what happened..."
-            rows={4}
-            value={description}
-            className="w-full border border-vborder rounded-xl px-4 py-3 text-navy text-sm focus:outline-none focus:border-vblue transition-colors resize-none bg-white"
-          />
-
-          {incident.state.error !== null && (
-            <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
-              {incident.state.error}
-            </div>
-          )}
-
-          <Btn
-            disabled={
-              incident.state.phase === "submitting" ||
-              selected === null ||
-              description.trim().length === 0 ||
-              sessionId === null
+          <IncidentLiveForm
+            detail={detail}
+            onSubmit={(input) =>
+              incident.submit({ ...input, sessionId: detail.sessionId })
             }
-            label={
-              incident.state.phase === "submitting"
-                ? "Opening…"
-                : "Open Incident"
-            }
-            variant="danger"
-            onClick={() => {
-              if (sessionId === null || selected === null) return;
-              void incident.submit({
-                description,
-                sessionId,
-                severity,
-                type: selected,
-              });
-            }}
+            state={incident.state}
           />
 
           {/* Live mode intentionally has NO photo upload: no accepted
@@ -176,7 +204,6 @@ export function IncidentFlow({
         <BackHeader title="Report Incident" onBack={() => nav("task-queue")} />
         <div className="p-5 space-y-5">
           <div className="bg-white rounded-xl border border-vborder p-4">
-            <VehicleIdentity />
           </div>
           <p className="text-navy font-semibold text-sm">Select incident type</p>
           <div className="grid grid-cols-2 gap-2">
@@ -214,7 +241,6 @@ export function IncidentFlow({
             <span className="text-vdanger font-semibold text-sm">{protoType}</span>
           </div>
           <div className="bg-white rounded-xl border border-vborder p-4">
-            <VehicleIdentity />
           </div>
           <textarea
             placeholder="Briefly describe what happened..."

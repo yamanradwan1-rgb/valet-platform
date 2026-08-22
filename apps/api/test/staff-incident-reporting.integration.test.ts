@@ -153,6 +153,16 @@ describe("Staff Incident Reporting Integration", () => {
     expect(conflict.status).toBe(409);
     expect(conflict.body.code).toBe("IDEMPOTENCY_CONFLICT");
 
+    // Cross-actor reuse of the SAME payload also conflicts: the stable id is
+    // bound to its original reporter and never replayed for another actor.
+    const crossActor = await harness.request(
+      "POST",
+      `/v1/staff/valet-sessions/${composed.sessionId}/incidents`,
+      { body: incidentInput(incidentId), token: composed.tokenS },
+    );
+    expect(crossActor.status).toBe(409);
+    expect(crossActor.body.code).toBe("IDEMPOTENCY_CONFLICT");
+
     const rows = await harness.context.adminPool.query<{ id: string }>(
       `SELECT id::text AS id FROM incidents
        WHERE organization_id = $1 AND valet_session_id = $2`,

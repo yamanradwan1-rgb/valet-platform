@@ -14,7 +14,7 @@ import type { ResolvedOperationalScope } from "../../features/staff-operational-
 import type {
   ActiveIncidentTarget,
   ActiveParkingTarget,
-  ActiveRetrievalTarget,} from "./employee-workspace";
+  ActiveRetrievalTarget,} from "./employee-workspace";
 
 export interface EmployeeLiveRouterProps {
   readonly activeScope: ResolvedOperationalScope;

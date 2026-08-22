@@ -113,6 +113,36 @@ describe("RetrievalHandoffGate release authority", () => {
     expect(markup).not.toContain("awaiting task owner");
   });
 
+  it("exposes Report Issue on pending/verified handoff without touching handoff state", () => {
+    const onOpenIncident = vi.fn();
+    const handoff = stubHandoff({
+      method: "PICKUP_CODE",
+      status: "VERIFIED",
+      verifiedAt: "2026-08-22T10:05:00.000Z",
+    });
+    const markup = renderToStaticMarkup(
+      <RetrievalHandoffGate
+        canRelease
+        handoff={handoff}
+        isSupervisor={false}
+        onOpenIncident={onOpenIncident}
+        onComplete={vi.fn()}
+        onReturnToReady={vi.fn()}
+        session={pendingSession}
+      />,
+    );
+    expect(markup).toContain("Report Issue");
+    expect(markup).toContain("Release Vehicle");
+    // Navigation callback is pure: no handoff mutation methods exist on it.
+    expect(onOpenIncident).not.toHaveBeenCalled();
+    expect(handoff.abort).not.toHaveBeenCalled();
+    expect(handoff.override).not.toHaveBeenCalled();
+    expect(handoff.complete).not.toHaveBeenCalled();
+
+    // Owner path: invoking the callback targets the authoritative session.
+    onOpenIncident(sessionId);
+    expect(onOpenIncident).toHaveBeenCalledWith(sessionId);
+  });
   it("idle phase shows the explicit Begin Guest Handoff launch only", () => {
     const handoff = stubHandoff({
       method: "PICKUP_CODE",

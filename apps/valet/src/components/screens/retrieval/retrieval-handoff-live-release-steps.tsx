@@ -10,6 +10,8 @@ export interface LiveHandoffVerifiedProps {
   readonly error: string | null;
   readonly financialBlocked: boolean;
   readonly isReleasing: boolean;
+
+  readonly onOpenIncident?: (() => void) | undefined;
   readonly onRelease: () => void;
   readonly verification: HandoffVerificationSnapshot;
   readonly vehicleInfo: string;
@@ -21,6 +23,8 @@ export function LiveHandoffVerifiedStep({
   financialBlocked,
   isReleasing,
   onRelease,
+
+  onOpenIncident,
   verification,
   vehicleInfo,
 }: LiveHandoffVerifiedProps): JSX.Element {
@@ -81,6 +85,14 @@ export function LiveHandoffVerifiedStep({
               The Retrieval task owner must complete the vehicle release.
             </p>
           </div>
+        )}
+
+        {onOpenIncident && (
+          <Btn
+            label="Report Issue"
+            variant="secondary"
+            onClick={onOpenIncident}
+          />
         )}
       </div>
     </div>

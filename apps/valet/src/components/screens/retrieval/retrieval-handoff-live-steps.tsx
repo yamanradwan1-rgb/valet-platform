@@ -59,6 +59,8 @@ export interface LiveHandoffPendingProps {
   readonly isMutating: boolean;
   readonly isSupervisor: boolean;
   readonly onAbort: (reason: string) => void;
+  readonly onOpenIncident?: (() => void) | undefined;
+
   readonly onOverride: (reason: string) => void;
   readonly onVerifyPickupCode: (pickupCode: string) => void;
   readonly onVerifyQrPayload: (qrPayload: string) => void;
@@ -73,6 +75,8 @@ export function LiveHandoffPendingStep({
   isSupervisor,
   onAbort,
   onOverride,
+
+  onOpenIncident,
   onVerifyPickupCode,
   onVerifyQrPayload,
   retryAfterSeconds,
@@ -174,6 +178,22 @@ export function LiveHandoffPendingStep({
             />
           </div>
         )}
+
+        {onOpenIncident && (
+
+
+          <button type="button" onClick={onOpenIncident} className="w-full h-11 text-muted text-sm font-semibold cursor-pointer hover:text-white transition-colors">
+
+
+            Report Issue
+
+
+          </button>
+
+
+        )}
+
+
 
         <div className="bg-white rounded-2xl border border-vborder p-4 space-y-3">
           <label className="block text-navy text-sm font-bold">Abort</label>

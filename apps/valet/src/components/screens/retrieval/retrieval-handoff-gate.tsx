@@ -18,6 +18,7 @@ export interface RetrievalHandoffGateProps {
   readonly canRelease: boolean;
   readonly handoff: UseHandoffResult;
   readonly isSupervisor: boolean;
+  readonly onOpenIncident?: ((sessionId: string) => void) | undefined;
   readonly onComplete: () => void;
   readonly onReturnToReady: () => void;
   readonly session: ActiveRetrievalSession;
@@ -32,6 +33,7 @@ export function RetrievalHandoffGate({
   canRelease,
   handoff,
   isSupervisor,
+  onOpenIncident,
   onComplete,
   onReturnToReady,
   session,
@@ -87,6 +89,9 @@ export function RetrievalHandoffGate({
         error={financialBlocked ? null : handoff.state.error}
         financialBlocked={financialBlocked}
         isReleasing={handoff.state.phase === "releasing"}
+        onOpenIncident={
+          onOpenIncident ? () => onOpenIncident(session.sessionId) : undefined
+        }
         onRelease={() => void handoff.complete(session.sessionId)}
         verification={handoff.state.verification}
         vehicleInfo={vehicleInfo}
@@ -109,6 +114,9 @@ export function RetrievalHandoffGate({
         });
       }}
       onOverride={(reason) => void handoff.override(session.sessionId, reason)}
+      onOpenIncident={
+        onOpenIncident ? () => onOpenIncident(session.sessionId) : undefined
+      }
       onVerifyPickupCode={(code) =>
         void handoff.verifyPickupCode(session.sessionId, code)
       }
