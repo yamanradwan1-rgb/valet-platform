@@ -139,6 +139,16 @@ describe("VAL-009F G8 complete HTTP authorization matrix", () => {
       }
 
       // Location-scope denials using the authorized manager.
+      // All four surfaces exercised per denied target scope.
+      const deniedProbeBody = {
+        setting: "brandDisplayName" as const,
+        value: "Denied Matrix Probe",
+        expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
+      };
+      const deniedClearBody = {
+        setting: "brandPrimaryColor" as const,
+        expectedUpdatedAt: "2026-01-01T00:00:00.000Z",
+      };
       for (const target of [
         ungrantedLocation,
         crossTenantFixture.locationId,
@@ -150,7 +160,19 @@ describe("VAL-009F G8 complete HTTP authorization matrix", () => {
           `${base(target)}/branding`,
           { authorization: managerBearer },
         );
-        expect(getDenied.status, `target ${target} GET`).toBe(404);
+        expect(getDenied.status, `target ${target} GET branding`).toBe(404);
+        const putDenied = await context.request(
+          "PUT",
+          `${base(target)}/branding/override`,
+          { authorization: managerBearer, body: deniedProbeBody },
+        );
+        expect(putDenied.status, `target ${target} PUT`).toBe(404);
+        const clearDenied = await context.request(
+          "POST",
+          `${base(target)}/branding/override/clear`,
+          { authorization: managerBearer, body: deniedClearBody },
+        );
+        expect(clearDenied.status, `target ${target} CLEAR`).toBe(404);
         const subDenied = await context.request(
           "GET",
           `${base(target)}/subscription`,
