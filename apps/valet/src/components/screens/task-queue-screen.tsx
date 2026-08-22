@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type JSX } from "react";
+import { useMemo, useRef, useState, type JSX } from "react";
 import type { StaffTaskQueueItem } from "@valet/contracts";
 
 import type { Screen } from "../../types/employee-ui";
@@ -71,6 +71,7 @@ export function TaskQueueScreen({
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [inFlightTaskId, setInFlightTaskId] = useState<string | null>(null);
+  const actionInFlightRef = useRef<boolean>(false);
 
   const viewModels = useMemo<StaffTaskQueueItemViewModel[]>(() => {
     if (!isLiveMode) return [];
@@ -89,7 +90,8 @@ export function TaskQueueScreen({
     : (locationName ?? "Four Seasons Amman");
 
   const handleTaskAction = async (task: StaffTaskQueueItemViewModel) => {
-    if (inFlightTaskId !== null) return;
+    if (actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
     setInFlightTaskId(task.taskId);
     setActionError(null);
     try {
@@ -126,6 +128,7 @@ export function TaskQueueScreen({
       const msg = err instanceof Error ? err.message : "Failed to operate task.";
       setActionError(msg);
     } finally {
+      actionInFlightRef.current = false;
       setInFlightTaskId(null);
     }
   };

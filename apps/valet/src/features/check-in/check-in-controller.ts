@@ -29,6 +29,7 @@ function getErrMsg(err: unknown, fallback: string): string {
 }
 
 export class CheckInController {
+  private membershipId: string | null = null;
   private state: CheckInState = {
     activeSession: null,
     continuations: [],
@@ -43,10 +44,17 @@ export class CheckInController {
   constructor(
     private apiClient: EmployeeApiClient,
     private readonly onStateChange: (state: CheckInState) => void,
-  ) {}
+    membershipId?: string | null,
+  ) {
+    this.membershipId = membershipId ?? null;
+  }
 
   setApiClient(client: EmployeeApiClient): void {
     this.apiClient = client;
+  }
+
+  setMembershipId(membershipId?: string | null): void {
+    this.membershipId = membershipId ?? null;
   }
 
   getState(): CheckInState {
@@ -221,7 +229,7 @@ export class CheckInController {
     }
   }
 
-  async startParking(): Promise<StartParkingPayload | null> {
+  async startParking(membershipId?: string | null): Promise<StartParkingPayload | null> {
     if (this.state.isSubmitting) return null;
     const session = this.state.activeSession;
     if (!session) {
@@ -229,9 +237,10 @@ export class CheckInController {
       return null;
     }
 
+    const targetMembership = membershipId ?? this.membershipId;
     this.update({ error: null, isSubmitting: true });
     try {
-      const payload = await runStartParkingMutation(this.apiClient, session);
+      const payload = await runStartParkingMutation(this.apiClient, session, targetMembership);
       this.update({ isSubmitting: false });
       return payload;
     } catch (err: unknown) {

@@ -23,6 +23,7 @@ import type {
 export interface UseCheckInOptions {
   readonly client?: EmployeeApiClient | undefined;
   readonly locationId: string | null;
+  readonly membershipId?: string | null | undefined;
   readonly onAuthorizationLoss?: (() => void) | undefined;
 }
 
@@ -50,7 +51,12 @@ export interface UseCheckInResult {
 }
 
 export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
-  const { locationId, client: customClient, onAuthorizationLoss } = options;
+  const {
+    locationId,
+    membershipId,
+    client: customClient,
+    onAuthorizationLoss,
+  } = options;
   const auth = useOptionalStaffAuth();
   const authClient = auth?.client;
 
@@ -77,14 +83,22 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
 
   const [controller] = useState(
     () =>
-      new CheckInController(apiClient, (nextState) => {
-        setControllerState(nextState);
-      }),
+      new CheckInController(
+        apiClient,
+        (nextState) => {
+          setControllerState(nextState);
+        },
+        membershipId,
+      ),
   );
 
   useEffect(() => {
     controller.setApiClient(apiClient);
   }, [controller, apiClient]);
+
+  useEffect(() => {
+    controller.setMembershipId(membershipId);
+  }, [controller, membershipId]);
 
   useEffect(() => {
     if (locationId) {
@@ -129,8 +143,8 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
   }, [controller]);
 
   const startParking = useCallback(async () => {
-    return controller.startParking();
-  }, [controller]);
+    return controller.startParking(membershipId);
+  }, [controller, membershipId]);
 
   const resumeDraft = useCallback(
     async (draft: StaffCheckInDraftSummary) => {

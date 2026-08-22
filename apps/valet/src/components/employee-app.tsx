@@ -99,6 +99,7 @@ export function EmployeeApp(): JSX.Element {
         return (
           <CheckInFlow
             locationId={activeScope?.locationId}
+            membershipId={activeScope?.membershipId}
             mode="live"
             nav={nav}
             onAuthorizationLoss={revalidateOnAuthLoss}

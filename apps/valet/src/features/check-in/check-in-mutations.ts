@@ -101,8 +101,13 @@ export async function runConditionCompletionMutation(
   conditionNote?: string | null,
 ): Promise<{ conditionCompletedAt: string; sessionVersion: number }> {
   if (session.state === "AWAITING_PARKING") {
+    if (!session.conditionCompletedAt) {
+      throw new Error(
+        "Missing authoritative conditionCompletedAt on AWAITING_PARKING session.",
+      );
+    }
     return {
-      conditionCompletedAt: session.conditionCompletedAt ?? new Date().toISOString(),
+      conditionCompletedAt: session.conditionCompletedAt,
       sessionVersion: session.sessionVersion,
     };
   }
@@ -166,7 +171,7 @@ export async function runQueueParkingTaskMutation(
 export async function runStartParkingMutation(
   client: EmployeeApiClient,
   session: CheckInActiveSession,
-  membershipId?: string,
+  membershipId?: string | null,
 ): Promise<StartParkingPayload> {
   const queueRes = await queueSessionParkingTask(client, session.sessionId);
   const taskInfo = {
@@ -177,7 +182,11 @@ export async function runStartParkingMutation(
     version: queueRes.version,
   };
 
-  const result = await executeParkingTaskAction(client, taskInfo, membershipId);
+  const result = await executeParkingTaskAction(
+    client,
+    taskInfo,
+    membershipId ?? undefined,
+  );
   if (result.kind === "START_PARKING_SUCCESS") {
     return result.payload;
   }

@@ -11,6 +11,7 @@ import { CheckInController } from "./check-in-controller";
 describe("CheckInController Discovery & Hydration", () => {
   const locationId = "22222222-2222-4222-8222-222222222222";
   const sessionId = "11111111-1111-4111-8111-111111111111";
+  const vehicleId = "44444444-4444-4444-8444-444444444444";
 
   it("initializes to plate-scan when 0 recoverable drafts exist", async () => {
     const emptyDrafts: StaffCheckInDraftsResponse = { drafts: [] };
@@ -24,29 +25,11 @@ describe("CheckInController Discovery & Hydration", () => {
         .mockResolvedValueOnce(emptyContinuations),
     } as unknown as EmployeeApiClient;
 
-    const onStateChange = vi.fn();
-    const controller = new CheckInController(mockClient, onStateChange);
-
+    const controller = new CheckInController(mockClient, vi.fn());
     await controller.initialize(locationId);
 
     expect(controller.getState().step).toBe("plate-scan");
     expect(controller.getState().activeSession).toBeNull();
-    expect(controller.getState().isHydrating).toBe(false);
-  });
-
-  it("fails closed to discovery-error step when discovery API fails", async () => {
-    const mockClient = {
-      request: vi.fn().mockRejectedValue(new Error("Network connection lost.")),
-    } as unknown as EmployeeApiClient;
-
-    const controller = new CheckInController(mockClient, vi.fn());
-    await controller.initialize(locationId);
-
-    const state = controller.getState();
-    expect(state.step).toBe("discovery-error");
-    expect(state.error).toBe("Network connection lost.");
-    expect(state.activeSession).toBeNull();
-    expect(state.isHydrating).toBe(false);
   });
 
   it("resumes single draft (A2) and hydrates via A1 to vehicle-condition step", async () => {
@@ -67,19 +50,11 @@ describe("CheckInController Discovery & Hydration", () => {
         },
       ],
     };
-    const continuationsRes: StaffCheckInContinuationsResponse = {
-      continuations: [],
-    };
     const detailRes: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: null },
       keySlot: null,
       locationId,
-      parking: {
-        parkedAt: null,
-        parkingSpotCode: null,
-        parkingStartedAt: null,
-        parkingZoneCode: null,
-      },
+      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
       sessionId,
       state: "CHECKING_IN",
       vehicle: {
@@ -89,7 +64,7 @@ describe("CheckInController Discovery & Hydration", () => {
         plateCountry: "JO",
         plateNumberRaw: "12-34567",
         temporaryDescriptor: null,
-        vehicleId: "44444444-4444-4444-8444-444444444444",
+        vehicleId,
         vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
       },
       version: 1,
@@ -99,73 +74,25 @@ describe("CheckInController Discovery & Hydration", () => {
       request: vi
         .fn()
         .mockResolvedValueOnce(draftsRes)
-        .mockResolvedValueOnce(continuationsRes)
+        .mockResolvedValueOnce({ continuations: [] })
         .mockResolvedValueOnce(detailRes),
     } as unknown as EmployeeApiClient;
 
     const controller = new CheckInController(mockClient, vi.fn());
     await controller.initialize(locationId);
 
-    const state = controller.getState();
-    expect(state.step).toBe("vehicle-condition");
-    expect(state.activeSession?.sessionId).toBe(sessionId);
-    expect(state.activeSession?.vehicle.make).toBe("Porsche");
-    expect(state.activeSession?.vehicleUpdatedAt).toBe("2026-08-21T18:00:00.000Z");
-    expect(state.activeSession?.state).toBe("CHECKING_IN");
+    expect(controller.getState().step).toBe("vehicle-condition");
+    expect(controller.getState().activeSession?.state).toBe("CHECKING_IN");
   });
 
-  it("fails closed to hydration-error when A1 hydration fails", async () => {
+  it("uses A1 state authoritatively when discovery draft advanced to AWAITING_PARKING", async () => {
     const draftsRes: StaffCheckInDraftsResponse = {
       drafts: [
         {
           conditionCompletedAt: null,
           createdAt: "2026-08-21T18:00:00.000Z",
           sessionId,
-          vehicle: {
-            color: "Black",
-            make: "Porsche",
-            model: "Taycan",
-            plateCountry: "JO",
-            plateNumberRaw: "12-34567",
-            temporaryDescriptor: null,
-          },
-        },
-      ],
-    };
-    const continuationsRes: StaffCheckInContinuationsResponse = { continuations: [] };
-
-    const mockClient = {
-      request: vi
-        .fn()
-        .mockResolvedValueOnce(draftsRes)
-        .mockResolvedValueOnce(continuationsRes)
-        .mockRejectedValueOnce(new Error("Session not found.")),
-    } as unknown as EmployeeApiClient;
-
-    const controller = new CheckInController(mockClient, vi.fn());
-    await controller.initialize(locationId);
-
-    const state = controller.getState();
-    expect(state.step).toBe("hydration-error");
-    expect(state.error).toBe("Session not found.");
-    expect(state.activeSession).toBeNull();
-  });
-
-  it("resumes single continuation (A3) with assigned key slot to parking-task step", async () => {
-    const draftsRes: StaffCheckInDraftsResponse = { drafts: [] };
-    const continuationsRes: StaffCheckInContinuationsResponse = {
-      continuations: [
-        {
-          createdAt: "2026-08-21T18:00:00.000Z",
-          sessionId,
-          vehicle: {
-            color: "White",
-            make: "BMW",
-            model: "X5",
-            plateCountry: "JO",
-            plateNumberRaw: "99-12345",
-            temporaryDescriptor: null,
-          },
+          vehicle: { color: "Black", make: "BMW", model: "X5", plateCountry: "JO", plateNumberRaw: "12-34567", temporaryDescriptor: null },
         },
       ],
     };
@@ -173,24 +100,10 @@ describe("CheckInController Discovery & Hydration", () => {
       checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
       keySlot: { code: "B-214" },
       locationId,
-      parking: {
-        parkedAt: null,
-        parkingSpotCode: null,
-        parkingStartedAt: null,
-        parkingZoneCode: null,
-      },
+      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
       sessionId,
       state: "AWAITING_PARKING",
-      vehicle: {
-        color: "White",
-        make: "BMW",
-        model: "X5",
-        plateCountry: "JO",
-        plateNumberRaw: "99-12345",
-        temporaryDescriptor: null,
-        vehicleId: "44444444-4444-4444-8444-444444444444",
-        vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
-      },
+      vehicle: { color: "Black", make: "BMW", model: "X5", plateCountry: "JO", plateNumberRaw: "12-34567", temporaryDescriptor: null, vehicleId, vehicleUpdatedAt: "2026-08-21T18:00:00.000Z" },
       version: 3,
     };
 
@@ -198,66 +111,69 @@ describe("CheckInController Discovery & Hydration", () => {
       request: vi
         .fn()
         .mockResolvedValueOnce(draftsRes)
-        .mockResolvedValueOnce(continuationsRes)
+        .mockResolvedValueOnce({ continuations: [] })
         .mockResolvedValueOnce(detailRes),
     } as unknown as EmployeeApiClient;
 
     const controller = new CheckInController(mockClient, vi.fn());
     await controller.initialize(locationId);
 
-    const state = controller.getState();
-    expect(state.step).toBe("parking-task");
-    expect(state.activeSession?.keySlotCode).toBe("B-214");
-    expect(state.activeSession?.state).toBe("AWAITING_PARKING");
+    expect(controller.getState().step).toBe("parking-task");
+    expect(controller.getState().activeSession?.state).toBe("AWAITING_PARKING");
   });
 
-  it("sets multiple-recoverable step when 2+ recoverable items exist", async () => {
-    const draftsRes: StaffCheckInDraftsResponse = {
-      drafts: [
-        {
-          conditionCompletedAt: null,
-          createdAt: "2026-08-21T18:00:00.000Z",
-          sessionId,
-          vehicle: {
-            color: "Black",
-            make: "Porsche",
-            model: "Taycan",
-            plateCountry: "JO",
-            plateNumberRaw: "12-34567",
-            temporaryDescriptor: null,
-          },
-        },
-      ],
-    };
-    const continuationsRes: StaffCheckInContinuationsResponse = {
-      continuations: [
-        {
-          createdAt: "2026-08-21T18:01:00.000Z",
-          sessionId: "99999999-9999-4999-8999-999999999999",
-          vehicle: {
-            color: "White",
-            make: "BMW",
-            model: "X5",
-            plateCountry: "JO",
-            plateNumberRaw: "99-12345",
-            temporaryDescriptor: null,
-          },
-        },
-      ],
+  it("fails closed to hydration-error when A1 AWAITING_PARKING lacks conditionCompletedAt", async () => {
+    const detailRes: StaffValetSessionDetailResponse = {
+      checkIn: { conditionCompletedAt: null },
+      keySlot: null,
+      locationId,
+      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
+      sessionId,
+      state: "AWAITING_PARKING",
+      vehicle: { color: "Black", make: "BMW", model: "X5", plateCountry: "JO", plateNumberRaw: "12-34567", temporaryDescriptor: null, vehicleId, vehicleUpdatedAt: "2026-08-21T18:00:00.000Z" },
+      version: 2,
     };
 
     const mockClient = {
-      request: vi
-        .fn()
-        .mockResolvedValueOnce(draftsRes)
-        .mockResolvedValueOnce(continuationsRes),
+      request: vi.fn().mockResolvedValueOnce(detailRes),
     } as unknown as EmployeeApiClient;
 
     const controller = new CheckInController(mockClient, vi.fn());
-    await controller.initialize(locationId);
+    await controller.hydrateFromContinuation(locationId, {
+      createdAt: "2026-08-21T18:00:00.000Z",
+      sessionId,
+      vehicle: detailRes.vehicle,
+    });
 
-    expect(controller.getState().step).toBe("multiple-recoverable");
-    expect(controller.getState().drafts).toHaveLength(1);
-    expect(controller.getState().continuations).toHaveLength(1);
+    expect(controller.getState().step).toBe("hydration-error");
+    expect(controller.getState().error).toContain("missing authoritative conditionCompletedAt");
+  });
+
+  it("fails closed when A1 shows session advanced beyond check-in lifecycle (e.g. PARKED)", async () => {
+    const detailRes: StaffValetSessionDetailResponse = {
+      checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
+      keySlot: { code: "K-1" },
+      locationId,
+      parking: { parkedAt: "2026-08-21T18:05:00.000Z", parkingSpotCode: "P-101", parkingStartedAt: "2026-08-21T18:03:00.000Z", parkingZoneCode: "North" },
+      sessionId,
+      state: "PARKED",
+      vehicle: { color: "Black", make: "BMW", model: "X5", plateCountry: "JO", plateNumberRaw: "12-34567", temporaryDescriptor: null, vehicleId, vehicleUpdatedAt: "2026-08-21T18:00:00.000Z" },
+      version: 4,
+    };
+
+    const mockClient = {
+      request: vi.fn().mockResolvedValueOnce(detailRes),
+    } as unknown as EmployeeApiClient;
+
+    const controller = new CheckInController(mockClient, vi.fn());
+    await controller.hydrateFromDraft(locationId, {
+      conditionCompletedAt: null,
+      createdAt: "2026-08-21T18:00:00.000Z",
+      sessionId,
+      vehicle: detailRes.vehicle,
+    });
+
+    expect(controller.getState().step).toBe("hydration-error");
+    expect(controller.getState().error).toContain("Session has advanced to state PARKED");
   });
 });

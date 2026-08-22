@@ -102,7 +102,7 @@ export function ParkingFlow({
               Parking {vehicleHeading}
             </p>
           </div>
-          <TrackingPill />
+          {mode === "prototype" && <TrackingPill />}
         </div>
         <div className="p-5 space-y-4">
           {parking.error && (
@@ -230,7 +230,9 @@ export function ParkingFlow({
             Vehicle parked
           </p>
           <p className="text-vsuccess text-sm font-semibold mt-1">
-            Tracking stopped · Guest notified
+            {mode === "prototype"
+              ? "Tracking stopped · Guest notified"
+              : "Parking confirmed"}
           </p>
         </div>
         <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">

@@ -25,6 +25,7 @@ import { BackHeader, Btn } from "../ui/employee-primitives";
 
 export interface CheckInFlowProps {
   readonly locationId?: string | null | undefined;
+  readonly membershipId?: string | null | undefined;
   readonly mode?: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
   readonly onAuthorizationLoss?: (() => void) | undefined;
@@ -34,11 +35,12 @@ export interface CheckInFlowProps {
 export function CheckInFlow({
   nav,
   locationId = null,
+  membershipId = null,
   mode = "live",
   onAuthorizationLoss,
   onStartParkingSuccess,
 }: CheckInFlowProps): JSX.Element | null {
-  const checkIn = useCheckIn({ locationId, onAuthorizationLoss });
+  const checkIn = useCheckIn({ locationId, membershipId, onAuthorizationLoss });
 
   const [scanDone, setScanDone] = useState(false);
   const [keyScanDone, setKeyScanDone] = useState(false);
