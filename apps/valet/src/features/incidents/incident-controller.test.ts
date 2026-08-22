@@ -151,3 +151,57 @@ describe("IncidentController stable retry identity", () => {
     expect(controller.getState().error).toContain("unavailable");
   });
 });
+
+describe("IncidentController secure-UUID fail-closed guard", () => {
+  const input = {
+    description: "Scratched rim.",
+    sessionId: "11111111-1111-4111-8111-111111111111",
+    severity: "MEDIUM" as const,
+    type: "VEHICLE_DAMAGE" as const,
+  };
+
+  function withCrypto(
+    randomUUID?: () => string,
+  ): () => void {
+    const original = globalThis.crypto;
+    Object.defineProperty(globalThis, "crypto", {
+      configurable: true,
+      value:
+        randomUUID === undefined
+          ? undefined
+          : { ...original, randomUUID },
+    });
+    return () => {
+      Object.defineProperty(globalThis, "crypto", {
+        configurable: true,
+        value: original,
+      });
+    };
+  }
+
+  it("sends no request, releases the guard, and sets truthful error when secure UUID is unavailable", async () => {
+    const restore = withCrypto(undefined);
+    try {
+      const request = vi.fn();
+      const controller = new IncidentController(
+        { request } as unknown as EmployeeApiClient,
+        () => undefined,
+      );
+
+      await controller.submit(input);
+
+      expect(request).not.toHaveBeenCalled();
+      expect(controller.getState().phase).toBe("idle");
+      expect(controller.getState().error).toContain("Secure UUID");
+      expect(controller.getState().report).toBeNull();
+
+      // Retry remains possible once secure UUID returns.
+      restore();
+      request.mockResolvedValueOnce(okResponse);
+      await controller.submit(input);
+      expect(controller.getState().phase).toBe("reported");
+    } finally {
+      restore();
+    }
+  });
+});

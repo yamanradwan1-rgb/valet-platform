@@ -41,9 +41,7 @@ export interface RetrievalFlowProps {
   readonly onOpenIncident?: ((sessionId: string) => void) | undefined;
   readonly onComplete?: (() => void) | undefined;
   readonly role?: StaffOperationalRole | null | undefined;
-  readonly onAuthorizationLoss?: (() => void) | undefined;
-  readonly onReportIssue?: (() => void) | undefined;
-  readonly sessionId?: string | null | undefined;
+  readonly onAuthorizationLoss?: (() => void) | undefined;  readonly sessionId?: string | null | undefined;
   readonly taskId?: string | null | undefined;
   readonly taskStatus?: "ACCEPTED" | "IN_PROGRESS" | null | undefined;
   readonly taskVersion?: number | null | undefined;
@@ -63,8 +61,7 @@ export function RetrievalFlow({
   onAuthorizationLoss,
   onOpenIncident,
   onComplete,
-  onReportIssue,
-}: RetrievalFlowProps): JSX.Element | null {
+  }: RetrievalFlowProps): JSX.Element | null {
   const isLive = mode === "live" || Boolean(sessionId || initialSession);
 
   const retrieval = useRetrieval({
@@ -190,7 +187,11 @@ export function RetrievalFlow({
           retrievalStartedAt={session?.retrievalStartedAt ?? null}
           isSubmitting={retrieval.isSubmitting}
           error={retrieval.error}
-          onReportIssue={onReportIssue}
+          onReportIssue={
+            onOpenIncident && session !== null
+              ? () => onOpenIncident(session.sessionId)
+              : undefined
+          }
           onMarkReady={async () => {
             await retrieval.markReady();
           }}

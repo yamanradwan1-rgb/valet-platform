@@ -130,14 +130,8 @@ export function EmployeeLiveRouter({
           nav={nav}
           onAuthorizationLoss={onAuthorizationLoss}
           onComplete={onRetrievalComplete}
-          onReportIssue={() => {
-            const sessionId = retrievalTarget?.sessionId;
-            if (sessionId !== undefined && sessionId !== null) {
-              onOpenIncident(sessionId, "retrieval");
-            }
-          }}
-        />
-      );
+          onOpenIncident={(id: string) => onOpenIncident(id, "retrieval")}
+        />      );
     case "task-queue":
     default:
       return (

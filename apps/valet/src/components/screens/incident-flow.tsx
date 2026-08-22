@@ -5,8 +5,14 @@ import type { StaffValetSessionDetailResponse } from "@valet/contracts";
 
 import type { Screen } from "../../types/employee-ui";
 import { AlertIcon } from "../icons/employee-icons";
-import { BackHeader, Btn, InfoRow } from "../ui/employee-primitives";
+import {
+  BackHeader,
+  Btn,
+  InfoRow,
+  VehicleIdentity,
+} from "../ui/employee-primitives";
 import { INCIDENT_TYPES } from "../../features/incidents/incident-controller";
+import { createDefaultIncidentApiClient } from "../../features/incidents/incident-api";
 import { IncidentLiveForm } from "./incident-live-form";
 import { useIncident } from "../../features/incidents/use-incident";
 import { fetchSessionDetail } from "../../features/retrieval/retrieval-api";
@@ -22,6 +28,34 @@ export interface IncidentFlowProps {
 }
 
 type ContextState = "loading" | "ready" | "error";
+
+export interface IncidentContextResult {
+  readonly state: ContextState;
+  readonly detail: StaffValetSessionDetailResponse | null;
+}
+
+/**
+ * Hydrates the authoritative session/vehicle context through the staff A1
+ * read. Exported for direct testing of the exact A1 request boundary.
+ */
+export async function hydrateIncidentContext(
+  apiClient: EmployeeApiClient,
+  sessionId: string | null,
+): Promise<IncidentContextResult> {
+  if (sessionId === null) {
+    return { detail: null, state: "error" };
+  }
+  try {
+    const res = await fetchSessionDetail(apiClient, sessionId);
+    if (res.state === "COMPLETED") {
+      // Terminal sessions are not reportable from the Employee UI.
+      return { detail: null, state: "error" };
+    }
+    return { detail: res, state: "ready" };
+  } catch {
+    return { detail: null, state: "error" };
+  }
+}
 
 function vehicleLine(detail: StaffValetSessionDetailResponse): string {
   const v = detail.vehicle;
@@ -48,6 +82,12 @@ export function IncidentFlow({
   const isLive = mode === "live" || Boolean(sessionId);
   const incident = useIncident();
 
+  const [defaultApiClient] = useState(() =>
+
+    mode === "live" || sessionId ? createDefaultIncidentApiClient() : null,
+
+  );
+
   // Prototype demo state (hooks stay unconditional across modes).
   const [protoStep, setProtoStep] = useState<"type" | "details" | "submitted">(
     "type",
@@ -60,28 +100,13 @@ export function IncidentFlow({
     useState<StaffValetSessionDetailResponse | null>(null);
 
   const loadContext = useCallback(async () => {
-    if (sessionId === null) {
-      setContextState("error");
-      return;
-    }    try {
-      const res = await fetchSessionDetail(
-        apiClient as EmployeeApiClient,
-        sessionId,
-      );
-      if (res.state === "COMPLETED" || res.state === "HANDOFF_PENDING") {
-        // Context must reflect a live operational custody state; terminal or
-        // post-release states are not valid reporting subjects here.
-        setDetail(res);
-        setContextState("error");
-        return;
-      }
-      setDetail(res);
-      setContextState("ready");
-    } catch {
-      setDetail(null);
-      setContextState("error");
-    }
-  }, [apiClient, sessionId]);
+    const result = await hydrateIncidentContext(
+      (apiClient ?? defaultApiClient) as EmployeeApiClient,
+      sessionId,
+    );
+    setDetail(result.detail);
+    setContextState(result.state);
+  }, [apiClient, defaultApiClient, sessionId]);
 
   useEffect(() => {
     if (!isLive) return;
@@ -204,7 +229,11 @@ export function IncidentFlow({
         <BackHeader title="Report Incident" onBack={() => nav("task-queue")} />
         <div className="p-5 space-y-5">
           <div className="bg-white rounded-xl border border-vborder p-4">
+
+            <VehicleIdentity />
+
           </div>
+
           <p className="text-navy font-semibold text-sm">Select incident type</p>
           <div className="grid grid-cols-2 gap-2">
             {INCIDENT_TYPES.map((type) => (
@@ -241,6 +270,9 @@ export function IncidentFlow({
             <span className="text-vdanger font-semibold text-sm">{protoType}</span>
           </div>
           <div className="bg-white rounded-xl border border-vborder p-4">
+
+            <VehicleIdentity />
+
           </div>
           <textarea
             placeholder="Briefly describe what happened..."

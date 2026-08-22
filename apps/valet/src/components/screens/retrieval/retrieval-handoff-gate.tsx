@@ -2,6 +2,7 @@
 
 import type { JSX } from "react";
 import type { StaffOperationalRole } from "@valet/contracts";
+import type { HandoffVerificationSnapshot } from "../../../features/handoff/handoff-types";
 
 import type { UseHandoffResult } from "../../../features/handoff/use-handoff";
 import type { ActiveRetrievalSession } from "../../../features/retrieval/retrieval-types";
@@ -27,7 +28,9 @@ export interface RetrievalHandoffGateProps {
 /**
  * Routes the live post-READY handoff lifecycle. Every branch reflects the
  * authoritative HandoffController state, which only advances from backend
- * responses; abort returns to READY through an A1 re-hydration.
+ * responses; abort returns to READY through an A1 re-hydration. Before the
+ * lifecycle seeds (first render after A1 recovery), the hydrated session's
+ * own handoff projection drives pending/verified rendering.
  */
 export function RetrievalHandoffGate({
   canRelease,
@@ -44,6 +47,58 @@ export function RetrievalHandoffGate({
   const vehiclePlate =
     vehicle?.plateNumberRaw ?? vehicle?.temporaryDescriptor ?? "No Plate";
   const vehicleInfo = `${vehicleHeading} · ${vehiclePlate}`;
+
+  const openIncident =
+    onOpenIncident !== undefined
+      ? () => onOpenIncident(session.sessionId)
+      : undefined;
+
+  if (
+    handoff.state.phase === "idle" &&
+    session.state === "HANDOFF_PENDING"
+  ) {
+    // First render after A1 recovery, before the lifecycle seeds.
+    const verification = session.handoff.verification;
+    if (verification?.status === "VERIFIED") {
+      return (
+        <LiveHandoffVerifiedStep
+          canRelease={canRelease}
+          error={null}
+          financialBlocked={false}
+          isReleasing={false}
+          onOpenIncident={openIncident}
+          onRelease={() => void handoff.complete(session.sessionId)}
+          verification={verification}
+          vehicleInfo={vehicleInfo}
+        />
+      );
+    }
+    return (
+      <LiveHandoffPendingStep
+        abortError={null}
+        error={null}
+        isMutating={false}
+        isSupervisor={isSupervisor}
+        onAbort={(reason: string) => {
+          void handoff.abort(session.sessionId, reason).then((done: boolean) => {
+            if (done) onReturnToReady();
+          });
+        }}
+        onOpenIncident={openIncident}
+        onOverride={(reason: string) =>
+          void handoff.override(session.sessionId, reason)
+        }
+        onVerifyPickupCode={(code: string) =>
+          void handoff.verifyPickupCode(session.sessionId, code)
+        }
+        onVerifyQrPayload={(payload: string) =>
+          void handoff.verifyDynamicQr(session.sessionId, payload)
+        }
+        retryAfterSeconds={null}
+        vehicleInfo={vehicleInfo}
+      />
+    );
+  }
 
   if (handoff.state.phase === "idle") {
     return (
@@ -89,9 +144,7 @@ export function RetrievalHandoffGate({
         error={financialBlocked ? null : handoff.state.error}
         financialBlocked={financialBlocked}
         isReleasing={handoff.state.phase === "releasing"}
-        onOpenIncident={
-          onOpenIncident ? () => onOpenIncident(session.sessionId) : undefined
-        }
+        onOpenIncident={openIncident}
         onRelease={() => void handoff.complete(session.sessionId)}
         verification={handoff.state.verification}
         vehicleInfo={vehicleInfo}
@@ -113,14 +166,14 @@ export function RetrievalHandoffGate({
           if (done) onReturnToReady();
         });
       }}
-      onOverride={(reason) => void handoff.override(session.sessionId, reason)}
-      onOpenIncident={
-        onOpenIncident ? () => onOpenIncident(session.sessionId) : undefined
+      onOpenIncident={openIncident}
+      onOverride={(reason: string) =>
+        void handoff.override(session.sessionId, reason)
       }
-      onVerifyPickupCode={(code) =>
+      onVerifyPickupCode={(code: string) =>
         void handoff.verifyPickupCode(session.sessionId, code)
       }
-      onVerifyQrPayload={(payload) =>
+      onVerifyQrPayload={(payload: string) =>
         void handoff.verifyDynamicQr(session.sessionId, payload)
       }
       retryAfterSeconds={handoff.state.errorMeta.retryAfterSeconds}
@@ -134,3 +187,5 @@ export function supervisorCanOverride(
 ): boolean {
   return role === "VALET_SUPERVISOR";
 }
+
+export type { HandoffVerificationSnapshot };

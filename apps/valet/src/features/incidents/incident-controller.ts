@@ -104,36 +104,55 @@ export class IncidentController {
   }): Promise<boolean> {
     if (this.submitInFlight) return false;
     this.submitInFlight = true;
-    if (this.pendingIncidentId === null) {
-      this.pendingIncidentId = newIncidentId();
-    }
-    const stableId = this.pendingIncidentId;
-    this.state = { ...this.state, error: null, phase: "submitting" };
-    this.emit();
     try {
-      const { reportIncident } = await import("./incident-api");
-      const report = await reportIncident(this.apiClient, input.sessionId, {
-        description: input.description.trim(),
-        incidentId: stableId,
-        severity: input.severity,
-        type: input.type,
-      });
-      this.pendingIncidentId = null;
-      this.state = { error: null, phase: "reported", report };
+      let stableId: string;
+      try {
+        if (this.pendingIncidentId === null) {
+          this.pendingIncidentId = newIncidentId();
+        }
+        stableId = this.pendingIncidentId;
+      } catch (uuidError: unknown) {
+        // Fail closed BEFORE any request; guard released so a retry remains
+        // possible if secure UUID generation becomes available again.
+        this.submitInFlight = false;
+        this.state = {
+          ...this.state,
+          error:
+            uuidError instanceof Error
+              ? uuidError.message
+              : "Secure UUID generation is unavailable.",
+          phase: "idle",
+        };
+        this.emit();
+        return false;
+      }
+      this.state = { ...this.state, error: null, phase: "submitting" };
       this.emit();
-      return true;
-    } catch (error: unknown) {
-      // Keep pendingIncidentId so retry reuses the exact same submission id.
-      this.state = {
-        ...this.state,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to open incident. Please retry.",
-        phase: "idle",
-      };
-      this.emit();
-      return false;
+      try {
+        const { reportIncident } = await import("./incident-api");
+        const report = await reportIncident(this.apiClient, input.sessionId, {
+          description: input.description.trim(),
+          incidentId: stableId,
+          severity: input.severity,
+          type: input.type,
+        });
+        this.pendingIncidentId = null;
+        this.state = { error: null, phase: "reported", report };
+        this.emit();
+        return true;
+      } catch (error: unknown) {
+        // Keep pendingIncidentId so retry reuses the exact same submission id.
+        this.state = {
+          ...this.state,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to open incident. Please retry.",
+          phase: "idle",
+        };
+        this.emit();
+        return false;
+      }
     } finally {
       this.submitInFlight = false;
     }
