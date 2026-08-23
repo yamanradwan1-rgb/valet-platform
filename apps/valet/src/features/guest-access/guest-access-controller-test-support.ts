@@ -11,6 +11,7 @@ export const TOKEN_B = "ZYXWVUTSRQPONMLKJIHGFEDCBA9876543210zyxwvut";
 
 export function detail(
   guestAccess: StaffValetSessionDetailResponse["guestAccess"],
+  forSessionId: string = sessionId,
 ): StaffValetSessionDetailResponse {
   return {
     checkIn: { conditionCompletedAt: null },
@@ -24,7 +25,7 @@ export function detail(
       parkingStartedAt: null,
       parkingZoneCode: null,
     },
-    sessionId,
+    sessionId: forSessionId,
     state: "AWAITING_PARKING",
     vehicle: {
       color: null,
@@ -49,6 +50,16 @@ export const active = () =>
     revokedAt: null,
     status: "ACTIVE",
   });
+
+export const activeFor = (forSessionId: string) =>
+  detail(
+    {
+      expiresAt: "2026-08-22T18:05:00.000Z",
+      revokedAt: null,
+      status: "ACTIVE",
+    },
+    forSessionId,
+  );
 
 export const expired = () =>
   detail({

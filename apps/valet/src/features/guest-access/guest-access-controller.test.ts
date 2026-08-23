@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import {
   TOKEN_A,
   TOKEN_B,
@@ -76,5 +77,33 @@ describe("GuestAccessController state", () => {
     expect(h.controller.getState().shareableUrl).toBe(
       `https://customer.example.com/#guestToken=${TOKEN_B}`,
     );
+  });
+
+  it("discards a held link before rehydrating after an ambiguous rotation", async () => {
+    const networkFailure = new EmployeeApiError({
+      code: "NETWORK_ERROR",
+      isNetworkError: true,
+      message: "Network connection unavailable.",
+      status: 0,
+    });
+    const h = makeHarness([
+      notIssued(),
+      issueBody(TOKEN_A),
+      networkFailure,
+      active(),
+    ]);
+
+    await h.controller.load(sessionId);
+    await h.controller.create(sessionId);
+    expect(h.controller.getState().shareableUrl).toBe(
+      `https://customer.example.com/#guestToken=${TOKEN_A}`,
+    );
+
+    // Ambiguous rotation: the held TOKEN_A link must not survive rehydrate.
+    await h.controller.create(sessionId);
+
+    expect(h.controller.getState().status).toBe("ACTIVE");
+    expect(h.controller.getState().shareableUrl).toBeNull();
+    expect(h.controller.getState().mutationError).not.toBeNull();
   });
 });

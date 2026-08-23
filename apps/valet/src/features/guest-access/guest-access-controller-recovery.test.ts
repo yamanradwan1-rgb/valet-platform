@@ -7,6 +7,7 @@ import type { GuestAccessView } from "./guest-access-types";
 import {
   TOKEN_A,
   active,
+  activeFor,
   expired,
   issueBody,
   makeHarness,
@@ -95,6 +96,28 @@ describe("GuestAccessController recovery and boundaries", () => {
 
     expect(h.requestPaths).toHaveLength(1); // only the authoritative load
     expect(h.controller.getState().mutationError).toMatch(/configuration/i);
+  });
+
+  it("never lets session B inherit session A's shareable URL", async () => {
+    const sessionB = "99999999-9999-4999-8999-999999999999";
+    const h = makeHarness([
+      notIssued(),
+      issueBody(TOKEN_A),
+      activeFor(sessionB),
+    ]);
+
+    await h.controller.load(sessionId);
+    await h.controller.create(sessionId);
+    expect(h.controller.getState().shareableUrl).toBe(
+      `https://customer.example.com/#guestToken=${TOKEN_A}`,
+    );
+
+    // Target change (hook discards before loading the new session).
+    h.controller.discardTransientCredential();
+    await h.controller.load(sessionB);
+
+    expect(h.controller.getState().status).toBe("ACTIVE");
+    expect(h.controller.getState().shareableUrl).toBeNull();
   });
 
   it("discards the credential before any REVOKED state becomes visible", async () => {

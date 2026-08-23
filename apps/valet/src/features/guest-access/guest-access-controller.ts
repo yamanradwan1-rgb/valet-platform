@@ -22,6 +22,11 @@ function defaultOrigin(): CustomerAppOriginResult {
   });
 }
 
+/** Single authoritative origin/config read for Guest Access consumers. */
+export function currentCustomerAppOrigin(): CustomerAppOriginResult {
+  return defaultOrigin();
+}
+
 function getErrMsg(err: unknown, fallback: string): string {
   return err instanceof Error && err.message ? err.message : fallback;
 }
@@ -58,6 +63,12 @@ export class GuestAccessController {
 
   getState(): GuestAccessView {
     return this.state;
+  }
+
+  /** Discards any transient shareable URL (e.g. before loading a different
+   * session) so one session's credential can never reach another. */
+  discardTransientCredential(): void {
+    this.patch({ shareableUrl: null });
   }
 
   private patch(partial: Partial<GuestAccessView>): void {
@@ -150,6 +161,10 @@ export class GuestAccessController {
     } catch (err: unknown) {
       this.patch({ isMutating: false });
       if (isAmbiguousOutcome(err)) {
+        // The credential may already have been rotated or invalidated: the
+        // previously held link must be discarded BEFORE authoritative
+        // rehydrate so a stale URL can never survive an ambiguous outcome.
+        this.patch({ mutationError: null, shareableUrl: null });
         await this.load(sessionId);
         this.patch({
           mutationError:

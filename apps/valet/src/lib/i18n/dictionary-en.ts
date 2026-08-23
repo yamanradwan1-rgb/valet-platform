@@ -233,6 +233,8 @@ export const employeeEnglishDictionary = {
   guestAccessActiveNoLink:
     "Guest access is active. The previous link cannot be shown again. Reissue to get a new shareable link.",
   guestAccessCopyFailed: "Copying failed. Try again.",
+  guestAccessConfigError:
+    "Guest access is unavailable because the Customer app address is not configured correctly.",
   guestAccessCopyLink: "Copy Guest Link",
   guestAccessCopied: "Guest link copied",
   guestAccessCreate: "Create Guest Access",

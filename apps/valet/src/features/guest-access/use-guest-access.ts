@@ -55,6 +55,9 @@ export function useGuestAccess(options: UseGuestAccessOptions): {
 
   useEffect(() => {
     if (sessionId !== null) {
+      // A different session target must never inherit a prior session's
+      // transient shareable URL.
+      controller.discardTransientCredential();
       void controller.load(sessionId);
     }
   }, [controller, sessionId]);

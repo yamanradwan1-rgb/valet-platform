@@ -235,6 +235,8 @@ export const employeeArabicDictionary = {
   guestAccessActiveNoLink:
     "وصول الضيف نشط. لا يمكن عرض الرابط السابق مرة أخرى. أعد الإصدار للحصول على رابط جديد للمشاركة.",
   guestAccessCopyFailed: "فشل النسخ. حاول مرة أخرى.",
+  guestAccessConfigError:
+    "وصول الضيف غير متاح لأن عنوان تطبيق العميل غير مهيأ بشكل صحيح.",
   guestAccessCopyLink: "نسخ رابط الضيف",
   guestAccessCopied: "تم نسخ رابط الضيف",
   guestAccessCreate: "إنشاء وصول الضيف",

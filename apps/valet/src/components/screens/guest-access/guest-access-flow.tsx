@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
+import type { StaffValetSessionDetailResponse } from "@valet/contracts";
 
-import { useGuestAccess } from "../../../features/guest-access";
+import {
+  currentCustomerAppOrigin,
+  useGuestAccess,
+} from "../../../features/guest-access";
 import { useOnlineStatus } from "../../../lib/connectivity/use-online-status";
 import { BackHeader, Btn } from "../../ui/employee-primitives";
 import { useEmployeeI18n } from "../../shell/employee-i18n";
@@ -11,6 +15,51 @@ import { ConfirmSheet } from "./guest-access-sheets";
 import { GuestAccessStatusCard } from "./guest-access-status-card";
 
 const isDevLike = process.env.NODE_ENV !== "production";
+
+type GuestAccessStatusValue =
+  StaffValetSessionDetailResponse["guestAccess"]["status"];
+
+export type GuestAccessPrimaryActionKind = "CREATE" | "CREATE_NEW" | "REISSUE";
+
+export interface GuestAccessActions {
+  readonly primary: {
+    readonly kind: GuestAccessPrimaryActionKind;
+    /** Reissue of a still-ACTIVE credential must be confirmed first. */
+    readonly requiresConfirm: boolean;
+  } | null;
+  readonly showRevoke: boolean;
+}
+
+/**
+ * Authoritative action mapping. NOT_ISSUED creates; ACTIVE (with or without
+ * a fresh link) reissues through confirmation; EXPIRED reissues directly;
+ * REVOKED creates new access using the exact revokedAt.
+ */
+export function deriveGuestAccessActions(
+  status: GuestAccessStatusValue | null,
+): GuestAccessActions {
+  switch (status) {
+    case "NOT_ISSUED":
+      return { primary: { kind: "CREATE", requiresConfirm: false }, showRevoke: false };
+    case "ACTIVE":
+      return {
+        primary: { kind: "REISSUE", requiresConfirm: true },
+        showRevoke: true,
+      };
+    case "EXPIRED":
+      return {
+        primary: { kind: "REISSUE", requiresConfirm: false },
+        showRevoke: false,
+      };
+    case "REVOKED":
+      return {
+        primary: { kind: "CREATE_NEW", requiresConfirm: false },
+        showRevoke: false,
+      };
+    default:
+      return { primary: null, showRevoke: false };
+  }
+}
 
 function copyGuestLink(url: string): Promise<boolean> {
   if (typeof navigator === "undefined" || navigator.clipboard === undefined) {
@@ -52,24 +101,35 @@ export function GuestAccessFlow({
     null,
   );
 
+  // Origin configuration is validated once on entry. Invalid/missing config
+  // surfaces immediately, blocks Create/Reissue and every credential
+  // surface, but keeps the authoritative read and Revoke available.
+  const originFailure = useMemo(() => {
+    const resolved = currentCustomerAppOrigin();
+    return resolved.ok ? null : resolved.reason;
+  }, []);
+  const configInvalid = originFailure !== null;
+
   const mutationsOffline = !isOnline;
   const hasFreshLink = view.shareableUrl !== null;
-  const showCreate =
-    view.status === "NOT_ISSUED" ||
-    view.status === "EXPIRED" ||
-    view.status === "REVOKED" ||
-    (view.status === "ACTIVE" && !hasFreshLink);
-  const showRevoke = view.status === "ACTIVE";
-  // Reissue of an ACTIVE credential replaces it; surfaced as explicit confirm.
-  const reissueActive = view.status === "ACTIVE" && hasFreshLink;
+  const actions = deriveGuestAccessActions(view.status);
+  const primary = actions.primary;
+  const primaryBlocked =
+    mutationsOffline || view.isMutating || (configInvalid && primary !== null);
+
+  const primaryLabel = primary === null ? "" :
+    view.isMutating ? t.guestAccessCreating :
+    primary.kind === "CREATE" ? t.guestAccessCreate :
+    primary.kind === "CREATE_NEW" ? t.guestAccessCreateNew :
+    t.guestAccessReissue;
 
   const openDevGuestApp = () => {
-    if (!isDevLike || view.shareableUrl === null) return;
+    if (!isDevLike || configInvalid || view.shareableUrl === null) return;
     window.open(view.shareableUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleCopy = () => {
-    if (view.shareableUrl === null) return;
+    if (configInvalid || view.shareableUrl === null) return;
     // Copying an in-memory link stays available offline; it never implies
     // that the Customer app or API is reachable.
     void copyGuestLink(view.shareableUrl).then((ok) =>
@@ -84,6 +144,15 @@ export function GuestAccessFlow({
         onBack={() => (onClose ? onClose() : nav(returnScreen))}
       />
       <div className="p-5 space-y-5">
+        {configInvalid && (
+          <p
+            className="text-vdanger text-xs bg-red-50 border border-vdanger/20 rounded-xl p-3"
+            role="alert"
+          >
+            {t.guestAccessConfigError}
+          </p>
+        )}
+
         {view.phase === "loading" && (
           <p className="text-neutral text-sm text-center py-10">
             {t.loadingSession}
@@ -112,37 +181,27 @@ export function GuestAccessFlow({
             <GuestAccessStatusCard
               copyFeedback={copyFeedback}
               onCopy={handleCopy}
+              suppressCredentialSurfaces={configInvalid}
               view={view}
             />
 
-            {showCreate && (
+            {primary !== null && (
               <Btn
-                disabled={
-                  mutationsOffline || view.isMutating
+                disabled={primaryBlocked}
+                label={primaryLabel}
+                onClick={() => {
+                  if (primary.requiresConfirm) setConfirmKind("reissue");
+                  else void create();
+                }}
+                variant={
+                  primary.kind === "REISSUE" && hasFreshLink
+                    ? "secondary"
+                    : "primary"
                 }
-                label={
-                  view.isMutating
-                    ? t.guestAccessCreating
-                    : view.status === "REVOKED"
-                      ? t.guestAccessCreateNew
-                      : t.guestAccessCreate
-                }
-                onClick={() => void create()}
               />
             )}
 
-            {reissueActive && (
-              <Btn
-                disabled={mutationsOffline || view.isMutating}
-                label={
-                  view.isMutating ? t.guestAccessCreating : t.guestAccessReissue
-                }
-                onClick={() => setConfirmKind("reissue")}
-                variant="secondary"
-              />
-            )}
-
-            {showRevoke && (
+            {actions.showRevoke && (
               <Btn
                 disabled={mutationsOffline || view.isMutating}
                 label={t.guestAccessRevoke}
@@ -157,7 +216,7 @@ export function GuestAccessFlow({
               </p>
             )}
 
-            {isDevLike && hasFreshLink && (
+            {isDevLike && !configInvalid && hasFreshLink && (
               <Btn
                 disabled={!isOnline || view.isMutating}
                 label={t.guestAccessOpenApp}

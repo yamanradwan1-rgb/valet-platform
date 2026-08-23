@@ -6,6 +6,7 @@ export {
   type CustomerAppOriginResult,
 } from "./customer-app-origin";
 export {
+  currentCustomerAppOrigin,
   GuestAccessController,
   type GuestAccessControllerOptions,
 } from "./guest-access-controller";

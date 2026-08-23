@@ -16,17 +16,23 @@ import { GuestAccessQr } from "./guest-access-qr";
 export function GuestAccessStatusCard({
   copyFeedback,
   onCopy,
+  suppressCredentialSurfaces = false,
   view,
 }: {
   readonly copyFeedback: "copied" | "failed" | null;
   readonly onCopy: () => void;
+  readonly suppressCredentialSurfaces?: boolean | undefined;
   readonly view: GuestAccessView;
 }): JSX.Element | null {
   const { locale, t } = useEmployeeI18n();
 
   if (view.status === null) return null;
 
-  if (view.status === "ACTIVE" && view.shareableUrl !== null) {
+  if (
+    view.status === "ACTIVE" &&
+    view.shareableUrl !== null &&
+    !suppressCredentialSurfaces
+  ) {
     return (
       <div className="bg-white rounded-2xl border border-vborder p-5 space-y-4">
         <div className="text-center">
