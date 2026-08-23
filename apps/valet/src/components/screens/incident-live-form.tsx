@@ -46,10 +46,10 @@ export function IncidentLiveForm({
     <div className="p-5 space-y-4">
       <div className="bg-white rounded-xl border border-vborder p-4">
         <p className="font-heading font-bold text-navy">
-          {[heading, identifier].filter(Boolean).join(" · ")}
+          <bdi>{[heading, identifier].filter(Boolean).join(" · ")}</bdi>
         </p>
         <p className="text-neutral text-xs mt-1">
-          Session {detail.sessionId.slice(0, 8)}…
+          Session <bdi>{detail.sessionId.slice(0, 8)}</bdi>...
         </p>
       </div>
 
