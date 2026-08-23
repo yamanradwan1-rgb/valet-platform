@@ -1,4 +1,3 @@
-import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";

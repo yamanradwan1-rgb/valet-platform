@@ -2,7 +2,9 @@ import { cookies } from "next/headers";
 import type { JSX } from "react";
 
 import { EmployeeApp } from "../components/employee-app";
-import { EmployeeI18nProvider } from "../components/shell/employee-i18n";
+import {
+  EmployeeI18nProvider,
+} from "../components/shell/employee-i18n";
 import {
   isEmployeeLocale,
   LOCALE_COOKIE,
@@ -15,10 +17,10 @@ export default async function Home(): Promise<JSX.Element> {
   const locale = isEmployeeLocale(raw) ? raw : "en";
 
   return (
-    <StaffAuthProvider>
-      <EmployeeI18nProvider locale={locale}>
+    <EmployeeI18nProvider key={locale}>
+      <StaffAuthProvider>
         <EmployeeApp />
-      </EmployeeI18nProvider>
-    </StaffAuthProvider>
+      </StaffAuthProvider>
+    </EmployeeI18nProvider>
   );
 }
