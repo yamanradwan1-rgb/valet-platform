@@ -30,6 +30,7 @@ import {
 } from "./shell/employee-workspace";
 import { AppHeader } from "./shell/app-header";
 import { BottomNav } from "./shell/bottom-nav";
+import { ConnectivityBanner } from "./shell/connectivity-banner";
 import { useStaffOperationalContext } from "../features/staff-operational-context";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
 import type { StartParkingPayload } from "../features/check-in";
@@ -233,6 +234,7 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   return (
     <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
       <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
+        <ConnectivityBanner onReconnect={() => void refreshContext()} />
         <AppHeader
           locationCode={liveScope.locationCode}
           locationName={liveScope.locationName}
