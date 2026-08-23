@@ -5,6 +5,7 @@ import type { StaffTaskQueueItem } from "@valet/contracts";
 
 import type { Screen } from "../../types/employee-ui";
 import { ChevronRight, PlusIcon } from "../icons/employee-icons";
+import { useEmployeeI18n } from "../shell/employee-i18n";
 import { Badge } from "../ui/employee-primitives";
 import { useTaskQueue } from "../../features/task-queue/use-task-queue";
 import {
@@ -80,6 +81,8 @@ export function TaskQueueScreen({
   onSelectRetrievalTask,
   onStartParkingSuccess,
 }: TaskQueueScreenProps): JSX.Element {
+  const { t } = useEmployeeI18n();
+
   const isLiveMode = mode === "live" || Boolean(locationId || initialTasks);
   const { tasks: liveTasks, client: taskQueueClient } = useTaskQueue({
     locationId: isLiveMode ? (locationId ?? null) : null,
@@ -203,7 +206,7 @@ export function TaskQueueScreen({
     <div>
       <div className="bg-navy-3 px-5 py-2.5 flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-vsuccess animate-pulse" />
-        <span className="text-white text-xs font-semibold">Shift active</span>
+        <span className="text-white text-xs font-semibold">{t.shiftActive}</span>
         <span className="text-muted text-xs">
           · {formattedShiftTime} – now · {displayLocation}
         </span>
@@ -211,15 +214,13 @@ export function TaskQueueScreen({
 
       <div className="px-5 py-5 space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-navy font-bold text-2xl">Tasks</h1>
+          <h1 className="text-navy font-bold text-2xl">{t.tasksTitle}</h1>
           <button
             type="button"
             onClick={() => nav?.("check-in")}
             className="bg-vblue text-white text-sm font-bold px-4 h-9 rounded-xl flex items-center gap-1.5 cursor-pointer active:scale-[0.98] transition-all shadow-sm"
           >
-            <PlusIcon />
-            New Vehicle
-          </button>
+            <PlusIcon />{t.newVehicle}</button>
         </div>
 
         {actionError && (
