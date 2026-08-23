@@ -104,6 +104,6 @@ describe("GuestAccessController state", () => {
 
     expect(h.controller.getState().status).toBe("ACTIVE");
     expect(h.controller.getState().shareableUrl).toBeNull();
-    expect(h.controller.getState().mutationError).not.toBeNull();
+    expect(h.controller.getState().mutationErrorCode).toBe("OUTCOME_UNKNOWN");
   });
 });

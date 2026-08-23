@@ -259,4 +259,15 @@ export const employeeEnglishDictionary = {
   guestAccessRevokeConfirmTitle: "Revoke guest access?",
   guestAccessShareHint: "Let the guest scan this QR or share the copied link.",
   guestAccessTitle: "Guest Access",
+  guestAccessErrorIntentConflict:
+    "Guest access changed elsewhere. Showing the current state.",
+  guestAccessErrorInvalidCredential:
+    "Generated guest access was invalid.",
+  guestAccessErrorLoadFailed:
+    "The guest access state could not be loaded.",
+  guestAccessErrorOffline: "You appear to be offline.",
+  guestAccessErrorOutcomeUnknown:
+    "The outcome is unknown. Showing the current server state.",
+  guestAccessErrorRevokeFailed: "Revocation failed.",
+  guestAccessErrorUpdateFailed: "Guest access could not be updated.",
 } as const;

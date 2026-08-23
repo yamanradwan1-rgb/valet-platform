@@ -260,4 +260,14 @@ export const employeeArabicDictionary = {
   guestAccessRevokeConfirmTitle: "إلغاء وصول الضيف؟",
   guestAccessShareHint: "دع الضيف يمسح رمز QR هذا أو شارك الرابط المنسوخ.",
   guestAccessTitle: "وصول الضيف",
+  guestAccessErrorIntentConflict:
+    "تغيّر وصول الضيف من مكان آخر. يتم عرض الحالة الحالية.",
+  guestAccessErrorInvalidCredential:
+    "بيانات وصول الضيف التي تم إنشاؤها غير صالحة.",
+  guestAccessErrorLoadFailed: "تعذّر تحميل حالة وصول الضيف.",
+  guestAccessErrorOffline: "يبدو أنك غير متصل بالإنترنت.",
+  guestAccessErrorOutcomeUnknown:
+    "النتيجة غير معروفة. يتم عرض حالة الخادم الحالية.",
+  guestAccessErrorRevokeFailed: "فشل إلغاء الوصول.",
+  guestAccessErrorUpdateFailed: "تعذّر تحديث وصول الضيف.",
 } satisfies EmployeeDictionary;

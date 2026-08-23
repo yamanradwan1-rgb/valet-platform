@@ -1,7 +1,13 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import type { GuestAccessView } from "../../../features/guest-access";
+import type {
+  GuestAccessErrorCode,
+  GuestAccessView,
+} from "../../../features/guest-access";
+import { presentGuestAccessError } from "../../../features/guest-access/guest-access-error-presentation";
+import { employeeDictionary } from "../../../lib/i18n/dictionary";
+import { EmployeeI18nProvider } from "../../shell/employee-i18n";
 import { GuestAccessFlow, deriveGuestAccessActions } from "./guest-access-flow";
 
 const sessionId = "11111111-1111-4111-8111-111111111111";
@@ -18,12 +24,23 @@ vi.mock("../../../features/guest-access", async (importOriginal) => {
 
 const { useGuestAccess } = await import("../../../features/guest-access");
 
+const ALL_CODES: GuestAccessErrorCode[] = [
+  "CONFIG_INVALID",
+  "GENERATED_CREDENTIAL_INVALID",
+  "INTENT_CONFLICT",
+  "LOAD_FAILED",
+  "OFFLINE",
+  "OUTCOME_UNKNOWN",
+  "REVOKE_FAILED",
+  "UPDATE_FAILED",
+];
+
 function stubView(overrides: Partial<GuestAccessView>): GuestAccessView {
   return {
     expiresAt: "2026-08-22T18:05:00.000Z",
     isMutating: false,
-    loadError: null,
-    mutationError: null,
+    loadErrorCode: null,
+    mutationErrorCode: null,
     phase: "ready",
     shareableUrl: null,
     revokedAt: null,
@@ -32,15 +49,22 @@ function stubView(overrides: Partial<GuestAccessView>): GuestAccessView {
   };
 }
 
-function renderWith(view: GuestAccessView): string {
+function renderWith(
+  view: GuestAccessView,
+  locale?: "ar" | "en",
+): string {
   vi.mocked(useGuestAccess).mockReturnValue({
     view,
     create: vi.fn(),
     load: vi.fn(),
     revoke: vi.fn(),
   });
+  const flow = (
+    <GuestAccessFlow nav={vi.fn()} returnScreen="task-queue" sessionId={sessionId} />
+  );
+  if (locale === undefined) return renderToStaticMarkup(flow);
   return renderToStaticMarkup(
-    <GuestAccessFlow nav={vi.fn()} returnScreen="task-queue" sessionId={sessionId} />,
+    <EmployeeI18nProvider initialLocale={locale}>{flow}</EmployeeI18nProvider>,
   );
 }
 
@@ -124,6 +148,64 @@ describe("GuestAccessFlow action labels and origin config", () => {
       expect(markup).toContain("not configured correctly");
       expect(markup).not.toContain("Copy Guest Link");
       expect(markup).not.toContain("Open Guest App");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+});
+
+describe("Guest Access error localization", () => {
+  const ENGLISH_CONTROLLER_WORDBY = [
+    "You appear to be offline.",
+    "Guest link configuration is invalid.",
+    "Generated guest access was invalid.",
+    "changed elsewhere",
+    "outcome is unknown",
+    "could not be updated",
+    "Revocation failed.",
+    "state could not be loaded.",
+  ];
+
+  it("maps every error code to distinct bilingual dictionary copy", () => {
+    const en = employeeDictionary("en");
+    const ar = employeeDictionary("ar");
+    for (const code of ALL_CODES) {
+      const enText = presentGuestAccessError(code, en);
+      const arText = presentGuestAccessError(code, ar);
+      expect(enText.length).toBeGreaterThan(0);
+      expect(arText).not.toBe(enText);
+      // Arabic copy is Arabic-script and never echoes the English wording.
+      expect(arText).toMatch(/[\u0600-\u06FF]/);
+      expect(ENGLISH_CONTROLLER_WORDBY.some((w) => arText.includes(w))).toBe(
+        false,
+      );
+    }
+  });
+
+  it("renders Arabic Guest Access errors without any English controller message", () => {
+    vi.stubEnv("NEXT_PUBLIC_CUSTOMER_APP_ORIGIN", "https://customer.example.com");
+    try {
+      const markup = renderWith(
+        stubView({ mutationErrorCode: "INTENT_CONFLICT" }),
+        "ar",
+      );
+      expect(markup).toContain("تغيّر وصول الضيف");
+      expect(markup).not.toContain("changed elsewhere");
+      expect(markup).not.toContain("You appear to be offline");
+      expect(markup).not.toContain("not configured correctly");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it("renders the English safe wording for English locale", () => {
+    vi.stubEnv("NEXT_PUBLIC_CUSTOMER_APP_ORIGIN", "https://customer.example.com");
+    try {
+      const markup = renderWith(
+        stubView({ mutationErrorCode: "INTENT_CONFLICT" }),
+        "en",
+      );
+      expect(markup).toContain("changed elsewhere");
     } finally {
       vi.unstubAllEnvs();
     }

@@ -45,7 +45,7 @@ describe("GuestAccessController recovery and boundaries", () => {
 
     expect(h.controller.getState().status).toBe("EXPIRED");
     expect(h.controller.getState().isMutating).toBe(false);
-    expect(h.controller.getState().mutationError).not.toBeNull();
+    expect(h.controller.getState().mutationErrorCode).toBe("INTENT_CONFLICT");
     expect(h.controller.getState().shareableUrl).toBeNull();
   });
 
@@ -65,7 +65,7 @@ describe("GuestAccessController recovery and boundaries", () => {
     expect(h.requestPaths).toHaveLength(3);
     expect(h.controller.getState().status).toBe("ACTIVE");
     expect(h.controller.getState().shareableUrl).toBeNull();
-    expect(h.controller.getState().mutationError).not.toBeNull();
+    expect(h.controller.getState().mutationErrorCode).toBe("OUTCOME_UNKNOWN");
   });
 
   it("refuses mutations while offline without queue or sync wording", async () => {
@@ -80,10 +80,9 @@ describe("GuestAccessController recovery and boundaries", () => {
     await h.controller.revoke(sessionId);
 
     expect(h.requestPaths).toHaveLength(0);
-    const message = (h.controller.getState().mutationError ?? "").toLowerCase();
-    expect(message).toContain("offline");
-    expect(message).not.toContain("queued");
-    expect(message).not.toContain("sync");
+    // Locale-neutral codes only: wording (and any queue/sync promise) is
+    // owned exclusively by the bilingual dictionaries.
+    expect(h.controller.getState().mutationErrorCode).toBe("OFFLINE");
   });
 
   it("blocks mutations when the customer origin configuration fails closed", async () => {
@@ -95,7 +94,7 @@ describe("GuestAccessController recovery and boundaries", () => {
     await h.controller.create(sessionId);
 
     expect(h.requestPaths).toHaveLength(1); // only the authoritative load
-    expect(h.controller.getState().mutationError).toMatch(/configuration/i);
+    expect(h.controller.getState().mutationErrorCode).toBe("CONFIG_INVALID");
   });
 
   it("never lets session B inherit session A's shareable URL", async () => {

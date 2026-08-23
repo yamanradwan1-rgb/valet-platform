@@ -5,6 +5,7 @@ import type { StaffValetSessionDetailResponse } from "@valet/contracts";
 
 import {
   currentCustomerAppOrigin,
+  presentGuestAccessError,
   useGuestAccess,
 } from "../../../features/guest-access";
 import { useOnlineStatus } from "../../../lib/connectivity/use-online-status";
@@ -162,7 +163,8 @@ export function GuestAccessFlow({
         {view.phase === "error" && (
           <>
             <p className="text-vdanger text-xs bg-red-50 border border-vdanger/20 rounded-xl p-3">
-              {view.loadError ?? t.sessionContextError}
+              {view.loadErrorCode !== null &&
+              presentGuestAccessError(view.loadErrorCode, t)}
             </p>
             <Btn label={t.retry} onClick={() => void load()} />
           </>
@@ -170,12 +172,12 @@ export function GuestAccessFlow({
 
         {view.phase === "ready" && (
           <>
-            {view.mutationError !== null && (
+            {view.mutationErrorCode !== null && (
               <p
                 className="text-vdanger text-xs bg-red-50 border border-vdanger/20 rounded-xl p-3"
                 role="alert"
               >
-                {view.mutationError}
+                {presentGuestAccessError(view.mutationErrorCode, t)}
               </p>
             )}
             <GuestAccessStatusCard

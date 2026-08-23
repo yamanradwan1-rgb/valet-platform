@@ -17,6 +17,8 @@ export {
 } from "./guest-access-api";
 export {
   initialGuestAccessView,
+  type GuestAccessErrorCode,
   type GuestAccessView,
 } from "./guest-access-types";
+export { presentGuestAccessError } from "./guest-access-error-presentation";
 export { useGuestAccess, type UseGuestAccessOptions } from "./use-guest-access";
