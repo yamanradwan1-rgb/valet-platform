@@ -12,7 +12,6 @@ import {
 
 import {
   employeeDictionary,
-  isEmployeeLocale,
   localeDir,
   LOCALE_COOKIE,
   type EmployeeDictionary,
@@ -28,26 +27,21 @@ export interface EmployeeI18nValue {
 
 const EmployeeI18nContext = createContext<EmployeeI18nValue | null>(null);
 
-function readLocaleCookie(): EmployeeLocale {
-  if (typeof document === "undefined") return "en";
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${LOCALE_COOKIE}=`));
-  const value = match?.split("=")[1];
-  return isEmployeeLocale(value) ? value : "en";
-}
-
 /**
- * Single authoritative locale boundary. Owns locale state, direction,
- * dictionary, and persistence. All components consume via useEmployeeI18n().
+ * Single authoritative locale boundary. The server resolves the locale from
+ * the cookie and passes it as initialLocale; the provider owns all subsequent
+ * state transitions (cookie write + html lang/dir + re-render). This prevents
+ * server-EN / client-AR hydration divergence.
  */
 export function EmployeeI18nProvider({
   children,
+  initialLocale,
 }: {
   children: ReactNode;
+  initialLocale: EmployeeLocale;
 }): JSX.Element {
   const [locale, setLocaleState] =
-    useState<EmployeeLocale>(readLocaleCookie);
+    useState<EmployeeLocale>(initialLocale);
 
   const setLocale = useCallback((next: EmployeeLocale): void => {
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
@@ -56,7 +50,6 @@ export function EmployeeI18nProvider({
     setLocaleState(next);
   }, []);
 
-  // Sync <html> on mount from cookie (SSR hydration alignment).
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = localeDir(locale);
@@ -79,8 +72,12 @@ export function EmployeeI18nProvider({
 export function useEmployeeI18n(): EmployeeI18nValue {
   const ctx = useContext(EmployeeI18nContext);
   if (ctx !== null) return ctx;
-  const fallback: EmployeeI18nValue = { dir: "ltr", locale: "en", setLocale: () => undefined, t: employeeDictionary("en") };
-  return fallback;
+  return {
+    dir: "ltr",
+    locale: "en",
+    setLocale: () => undefined,
+    t: employeeDictionary("en"),
+  };
 }
 
 /** Compact EN/AR switch reachable in live mode including pre-auth. */

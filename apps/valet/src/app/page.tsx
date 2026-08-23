@@ -8,16 +8,17 @@ import {
 import {
   isEmployeeLocale,
   LOCALE_COOKIE,
+  type EmployeeLocale,
 } from "../lib/i18n/dictionary";
 import { StaffAuthProvider } from "../lib/auth/staff-auth-context";
 
 export default async function Home(): Promise<JSX.Element> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(LOCALE_COOKIE)?.value;
-  const locale = isEmployeeLocale(raw) ? raw : "en";
+  const locale: EmployeeLocale = isEmployeeLocale(raw) ? raw : "en";
 
   return (
-    <EmployeeI18nProvider key={locale}>
+    <EmployeeI18nProvider initialLocale={locale}>
       <StaffAuthProvider>
         <EmployeeApp />
       </StaffAuthProvider>

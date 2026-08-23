@@ -3,6 +3,8 @@
 import { useState, type JSX } from "react";
 import type { StaffLoginRequest } from "@valet/contracts";
 
+import { LocaleToggle, useEmployeeI18n } from "./employee-i18n";
+
 export type EmployeeAccessGateProps =
   | { readonly phase: "initializing" }
   | {
@@ -38,16 +40,13 @@ function AccessShell({ children }: { children: React.ReactNode }): JSX.Element {
 }
 
 /**
- * Truthful access gate for the production Employee app. It renders only
- * identity/session facts: no employee persona, location, zone, or shift
- * actions that this UI does not authoritatively own.
- *
- * Props are a discriminated union so a refresh-unavailable render REQUIRES
- * its retry handler — a dead Retry button cannot be expressed.
+ * Truthful access gate for the production Employee app. LocaleToggle is
+ * rendered pre-auth so the user can switch EN/AR before signing in.
  */
 export function EmployeeAccessGate(
   props: EmployeeAccessGateProps,
 ): JSX.Element {
+  const { t } = useEmployeeI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -55,9 +54,7 @@ export function EmployeeAccessGate(
     return (
       <AccessShell>
         <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin mb-6" />
-        <p className="text-white font-semibold text-sm">
-          Checking staff session…
-        </p>
+        <p className="text-white font-semibold text-sm">{t.checkingSession}</p>
       </AccessShell>
     );
   }
@@ -71,7 +68,7 @@ export function EmployeeAccessGate(
           </p>
           <p className="text-muted text-sm leading-relaxed">
             {props.restoreMessage ??
-              "The staff sign-in service is temporarily unavailable. Your session was not signed out."}
+              "The staff sign-in service is temporarily unavailable."}
           </p>
         </div>
         <div className="w-full space-y-3">
@@ -81,8 +78,11 @@ export function EmployeeAccessGate(
             disabled={props.isRetryingRestore === true}
             className="w-full h-14 bg-vblue text-white font-bold text-base rounded-2xl flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-vblue/30 disabled:opacity-60"
           >
-            {props.isRetryingRestore === true ? "Retrying…" : "Retry"}
+            {props.isRetryingRestore === true ? "Retrying…" : t.retry}
           </button>
+        </div>
+        <div className="mt-4">
+          <LocaleToggle />
         </div>
       </AccessShell>
     );
@@ -102,10 +102,10 @@ export function EmployeeAccessGate(
       >
         <div className="w-full bg-white/[0.06] border border-white/10 rounded-3xl p-6 mb-6 backdrop-blur-sm">
           <p className="font-heading font-bold text-white text-xl mb-5">
-            Staff sign in
+            {t.staffSignIn}
           </p>
           <label className="block text-muted text-xs font-bold uppercase tracking-wider mb-2">
-            Work email
+            {t.workEmail}
           </label>
           <input
             autoComplete="username"
@@ -116,7 +116,7 @@ export function EmployeeAccessGate(
             value={email}
           />
           <label className="block text-muted text-xs font-bold uppercase tracking-wider mb-2">
-            Password
+            {t.password}
           </label>
           <input
             autoComplete="current-password"
@@ -137,9 +137,12 @@ export function EmployeeAccessGate(
           disabled={isSigningIn}
           className="w-full h-14 bg-vblue text-white font-bold text-base rounded-2xl flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-vblue/30 disabled:opacity-60"
         >
-          {isSigningIn ? "Signing in…" : "Sign In"}
+          {isSigningIn ? t.signingIn : t.signIn}
         </button>
       </form>
+      <div className="mt-4">
+        <LocaleToggle />
+      </div>
     </AccessShell>
   );
 }

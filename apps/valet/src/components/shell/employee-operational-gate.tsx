@@ -2,6 +2,8 @@
 
 import type { JSX } from "react";
 
+import { LocaleToggle, useEmployeeI18n } from "./employee-i18n";
+
 export type OperationalGateModel =
   | { kind: "CONTEXT_ERROR"; message: string }
   | { kind: "LOADING" }
@@ -40,10 +42,8 @@ const gateSecondaryButtonClass =
   "w-full h-11 text-muted text-sm font-semibold cursor-pointer hover:text-white transition-colors";
 
 /**
- * Truthful operational-context gate for authenticated staff. It states the
- * real context outcome and offers only actions this UI actually owns
- * (retry context refresh, sign out). It never fabricates a persona,
- * location, zone, or shift-start success.
+ * Truthful operational-context gate for authenticated staff.
+ * Localized via the i18n dictionary; LocaleToggle is available pre-auth.
  */
 export function EmployeeOperationalGate({
   isRetrying = false,
@@ -51,13 +51,14 @@ export function EmployeeOperationalGate({
   onRetry,
   onSignOut,
 }: EmployeeOperationalGateProps): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <GateShell>
       {model.kind === "LOADING" && (
         <>
           <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin mb-6" />
           <p className="text-white font-semibold text-sm">
-            Preparing your operational view…
+            Loading operational context...
           </p>
         </>
       )}
@@ -66,7 +67,7 @@ export function EmployeeOperationalGate({
         <>
           <div className="w-full bg-white/[0.06] border border-white/10 rounded-3xl p-6 mb-6 backdrop-blur-sm">
             <p className="font-heading font-bold text-white text-xl mb-2">
-              No active shift
+              {t.noActiveShift}
             </p>
             <p className="text-muted text-sm leading-relaxed">
               You do not have an active shift at any location right now.
@@ -74,6 +75,7 @@ export function EmployeeOperationalGate({
             </p>
           </div>
           <div className="w-full space-y-3">
+            <LocaleToggle />
             {onRetry && (
               <button
                 type="button"
@@ -81,12 +83,16 @@ export function EmployeeOperationalGate({
                 disabled={isRetrying}
                 className={gateButtonClass}
               >
-                Refresh status
+                {t.retry}
               </button>
             )}
             {onSignOut && (
-              <button type="button" onClick={onSignOut} className={gateSecondaryButtonClass}>
-                Sign Out
+              <button
+                type="button"
+                onClick={onSignOut}
+                className={gateSecondaryButtonClass}
+              >
+                {t.signOut}
               </button>
             )}
           </div>
@@ -105,6 +111,7 @@ export function EmployeeOperationalGate({
             </p>
           </div>
           <div className="w-full space-y-3">
+            <LocaleToggle />
             {onRetry && (
               <button
                 type="button"
@@ -112,12 +119,16 @@ export function EmployeeOperationalGate({
                 disabled={isRetrying}
                 className={gateButtonClass}
               >
-                Refresh status
+                {t.retry}
               </button>
             )}
             {onSignOut && (
-              <button type="button" onClick={onSignOut} className={gateSecondaryButtonClass}>
-                Sign Out
+              <button
+                type="button"
+                onClick={onSignOut}
+                className={gateSecondaryButtonClass}
+              >
+                {t.signOut}
               </button>
             )}
           </div>
@@ -142,12 +153,16 @@ export function EmployeeOperationalGate({
                 disabled={isRetrying}
                 className={gateButtonClass}
               >
-                Retry
+                {t.retry}
               </button>
             )}
             {onSignOut && (
-              <button type="button" onClick={onSignOut} className={gateSecondaryButtonClass}>
-                Sign Out
+              <button
+                type="button"
+                onClick={onSignOut}
+                className={gateSecondaryButtonClass}
+              >
+                {t.signOut}
               </button>
             )}
           </div>
