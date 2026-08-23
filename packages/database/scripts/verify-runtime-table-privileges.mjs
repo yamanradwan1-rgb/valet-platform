@@ -1,11 +1,15 @@
 import { paymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
+import { verifyLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
 import {
+  incidentReadPolicies,
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
 } from "./runtime-table-privileges.mjs";
+import { verifyBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
 
 const tablePrivileges = [
+  ...incidentReadPolicies,
   ...paymentCollectionPrivileges.table,
   ...providerEventPrivileges.table,
   ["public.users", "SELECT", true],
@@ -44,13 +48,6 @@ const tablePrivileges = [
   ["public.payments", "TRUNCATE", false],
   ["public.payments", "REFERENCES", false],
   ["public.payments", "TRIGGER", false],
-  ["public.incidents", "SELECT", true],
-  ["public.incidents", "INSERT", true],
-  ["public.incidents", "UPDATE", false],
-  ["public.incidents", "DELETE", false],
-  ["public.incidents", "TRUNCATE", false],
-  ["public.incidents", "REFERENCES", false],
-  ["public.incidents", "TRIGGER", false],
   ["public.validations", "SELECT", true],
   ["public.validations", "INSERT", true],
   ["public.validations", "UPDATE", false],
@@ -298,4 +295,6 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
       throw new Error("Runtime maintenance function privileges are unsafe.");
     }
   }
+  await verifyLocationConfigurationPrivileges(client, runtimeRole);
+  await verifyBasicBrandingPrivileges(client, runtimeRole);
 }

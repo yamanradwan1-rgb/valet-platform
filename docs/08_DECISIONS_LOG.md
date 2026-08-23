@@ -2950,3 +2950,200 @@ or lockfile change is required; migration count remains 28.
 
 Full binding contract:
 `docs/decisions/DEC-057_PHASE6_FINANCIAL_RELEASE_AND_PROJECTIONS.md`
+
+## DEC-058 — Phase 7 Typed Location Configuration Authority
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+VAL-009B exposes the ten already-typed Company-default / nullable
+Location-override pairs (`checkInPhotosRequired`, `handoffStandardMethodPolicy`,
+`trackingEnabled`, `rawGpsRetentionDays`, `valetServiceFee`,
+`paymentServicePayer`, `paymentMethodsPolicy`, `tipsEnabled`, `validationEnabled`,
+`releaseRequiresPayment`) plus read-only Location timezone/currency. An ACTIVE
+`LOCATION_MANAGER` with explicit persisted access to the exact ACTIVE Location may
+read effective configuration and SET/CLEAR one Location override without a Shift;
+resolution stays `Company default -> optional Location override -> effective`
+with `default/overridePresent/override/effective` distinguished. ORG_ADMIN,
+supervisors, employees and Guests are denied; password-only ORG_ADMIN remains
+denied pre-MFA under DEC-023, and no principal mutates Company defaults.
+
+Mutations go through narrow DEC-047-style SECURITY DEFINER functions (migration
+29 only) that revalidate persisted authority in-database, enforce optimistic
+concurrency on `locations.updated_at` via `expectedUpdatedAt`, independently
+enforce DEC-053 fee representability against the persisted Location currency
+through a deterministic checked-in minor-unit exponent mapping, and commit
+exactly one same-transaction AuditEvent per success; stale-token,
+authorization and validation failures mutate nothing and audit nothing. Runtime
+privileges keep no generic UPDATE on `organizations`/`locations`; EXECUTE is
+granted explicitly on the two functions only with PUBLIC denied.
+
+Full binding contract:
+`docs/decisions/DEC-058_PHASE7_TYPED_LOCATION_CONFIGURATION_AUTHORITY.md`
+
+## DEC-059 — Phase 7 Incident Runtime Read Authority
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+VAL-009C keeps the incidents overview in scope. The API runtime role retains
+`SELECT` on `public.incidents` for server-authorized exact-Location Dashboard
+reads and independently retains `INSERT` for accepted Employee Incident
+Reporting. That existing INSERT privilege is not Dashboard mutation authority
+and creates no Dashboard mutation route. Runtime UPDATE/DELETE/TRUNCATE/
+REFERENCES/TRIGGER remain denied, and PUBLIC receives no incident privilege.
+The Dashboard route still requires the VAL-009A `LOCATION_MANAGER` scope and
+stays non-disclosing and read-only. Employee incident authorization, Shift,
+Location, idempotency, and audit rules remain unchanged. This reconciliation
+adds no incident schema, persistence object, or migration.
+
+Full binding contract:
+`docs/decisions/DEC-059_PHASE7_INCIDENT_RUNTIME_READ_AUTHORITY.md`
+
+## DEC-060 — Phase 7 Operational KPI Formula Catalog
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+Closes Phase 7 gate G5. VAL-009D analytics compute from committed authoritative
+rows only, read-only, no audit on read, one exact Location under the VAL-009A
+manager scope. Period contract: `from`/`to` inclusive local dates in the
+persisted Location IANA timezone (no caller timezone), UTC interval
+`[from-midnight, day-after-to-midnight)` via `AT TIME ZONE`, max 31 inclusive
+local days, DST-correct, invalid input `REQUEST_INVALID`. Durations count only
+valid non-negative complete intervals with end-timestamp cohorting:
+Check-in `checking_in_completed_at-created_at`; Parking
+`parked_at-parking_started_at`; Retrieval Wait OFFICIAL
+`ready_at-retrieval_requested_at` (the sole metric allowed to carry that name);
+Retrieval Start Latency AUXILIARY `retrieval_started_at-retrieval_requested_at`
+(never aliased to Retrieval Wait); Handoff `completed_at-ready_at`. Output =
+`sampleCount` + nullable `averageSeconds` decimal string (3 fractional digits,
+half-away-from-zero; null when zero samples). Cars handled per local day counts
+`completed_at` local-day buckets including zero days. Queue snapshot: depth +
+server-clock `oldestAgeSeconds`, null when empty. Financial: PAID-by-`paid_at`
+cohort per immutable Payment currency (count/collected/tips); Digital Payment
+Rate DIGITAL/(CASH+DIGITAL), NONE excluded, nullable/"0.00" rules; SUCCEEDED
+refunds by `completed_at` joined for location+currency; Validation Rate over
+completed-session canonical Payments with current FULL/PARTIAL validation
+(amount irrelevant, superseded excluded) plus per-currency current validation
+totals; cash reconciliation from ENDED Shift close snapshots grouped by
+`cash_currency` with signed variance. Incidents: period count, persisted
+severity and raw type counts, `incidentsPer1000` over completed sessions with
+echoed numerator/denominator. Explicitly absent: SLA compliance (G4),
+Cars per Employee, Key Exceptions, Guest Rating/Repeat Guest,
+adoption/friction, manager reliance, predictive analytics, pre-MFA rollups —
+structurally absent, never zero-filled.
+
+Full binding contract:
+`docs/decisions/DEC-060_PHASE7_OPERATIONAL_KPI_FORMULA_CATALOG.md`
+
+## DEC-061 — Phase 7 Report Export and Delivery Composition
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+VAL-009E ships manual authenticated DAILY/WEEKLY/MONTHLY Location reports and
+synchronous CSV/PDF downloads under the VAL-009A exact-Location manager scope.
+No scheduler, worker, queue or email/SMS/WhatsApp sending exists in VAL-009E;
+Reliability owns future automated delivery and MUST reuse this composer. No
+artifacts are persisted — bytes are generated in bounded memory (500 unique
+free-text group rows per section family; 5 MiB artifact ceiling, fail-closed
+before audit) and discarded. Each successful generation writes exactly one
+`DASHBOARD_REPORT_EXPORT_GENERATED` AuditEvent (Location entity, NULL session,
+authorized membership actor, safe metadata: reportKind/format/periodFrom/
+periodTo/contentLength/optional contentSha256); regeneration creates a new
+event; invalid/unauthorized/render/size failures write none. CSV is UTF-8
+RFC4180 with header `section,key,subkey,currency,value`, deterministic
+ordering, exact decimals, and deterministic formula-injection hardening beyond
+quoting; filenames are server-generated ASCII. PDF uses `pdf-lib` as the sole
+approved new dependency (no native/headless/browser runtime). Periods use the
+persisted Location timezone via `AT TIME ZONE` (DAILY strict date, WEEKLY
+strict Monday start ×7 days, MONTHLY calendar month incl. leap years) with no
+caller timezone. Reports contain only historically reconstructable facts
+(RetrievalRequest counts by requested_at, DispatchEvent grouped counts,
+KeyCustodyEvent grouped counts for DAILY) and never reconstruct historical
+queue/task/key state; unsupported metrics stay structurally absent; financial
+sections keep the DEC-060 currency union behavior. No schema/migration/
+runtime-privilege change.
+
+Full binding contract:
+`docs/decisions/DEC-061_PHASE7_REPORT_EXPORT_AND_DELIVERY_COMPOSITION.md`
+
+## DEC-062 — Phase 7 Basic Branding and Subscription Entitlements
+
+Status: Accepted
+Date: 2026-08-22
+
+Decision:
+Closes gate G8. Basic branding = exactly brandDisplayName (Company default is
+the existing Organization.name) and brandPrimaryColor (new non-null
+organizations.brand_primary_color backfilled to #176BFF), each with optional
+locations.brand_*_override columns; effective resolution stays Company
+default -> optional Location override. Strict validation: display name
+trimmed/1-120 code points/no Cc controls (Arabic preserved); colors canonical
+uppercase ^#[0-9A-F]{6}$, database CHECK-enforced. Logo customization is
+deferred until a server-controlled verified asset-storage boundary exists;
+VehiclePhoto is never reused for logos. Reads/writes use the VAL-009A
+exact-Location manager scope (no Shift); ORG_ADMIN pre-MFA and all other
+non-manager paths fail closed non-disclosingly; no Company-default branding
+mutation endpoint. Overrides mutate only through four narrow SECURITY DEFINER
+functions (migration 30 foundation + migration 31 hardening) that revalidate authority in-database, recheck
+expectedUpdatedAt on locations.updated_at, advance it monotonically, and write
+exactly one DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED AuditEvent per
+success; stale/validation/auth failures mutate nothing and audit nothing.
+
+Subscription state is a dedicated one-to-one organization_subscriptions table
+(organization_id PK/FK restrictive, opaque uppercase plan_code
+^[A-Z0-9][A-Z0-9_-]{0,63}$, status enum TRIAL|ACTIVE|SUSPENDED only, three
+typed booleans dashboard_access_enabled/report_exports_enabled/
+basic_branding_enabled, timestamps). Zero or one row per Organization; no row
+means subscription null; no fabricated defaults; no billing/price/provider/
+invoice/renewal fields. Customer surface is read-only:
+GET .../dashboard/locations/:id/subscription under the same manager scope.
+Entitlement state is typed but does NOT gate VAL-009A-E routes in Phase 7;
+composition requires a future focused decision. Runtime role: SELECT only on
+organization_subscriptions; EXECUTE only on the four branding functions; no
+generic UPDATE on organizations/locations.
+
+Full binding contract:
+`docs/decisions/DEC-062_PHASE7_BASIC_BRANDING_AND_SUBSCRIPTION_ENTITLEMENTS.md`
+
+Hardening amendment (Migration 31, forward-only): the primary-color SET
+function now rejects an explicit SQL NULL fail-closed with 22023 (NULL-as-clear
+is impossible through SET; dedicated CLEAR functions remain the only clear
+path), non-null persisted display-name overrides are canonical outer-trimmed
+values enforced by a stricter CHECK with in-place migration-time
+canonicalization (no business AuditEvents), and a successful SET/CLEAR returns
+its projection/token from the same transaction as the mutation. Migration 30
+remains immutable; no new decision number; G8 stays closed.
+
+---
+
+## DEC-063 — Employee Offline Operation Policy
+
+Status: Accepted
+Date: 2026-08-23
+
+Decision:
+The Employee MVP is offline-friendly through truthful connectivity status,
+transient in-memory drafts where safe, server-authoritative rehydration, and
+manual retries under each command's existing idempotency, version, and recovery
+contract. It does not approve a persistent mutation outbox, durable draft
+storage, Background Sync, generic automatic replay, or fabricated offline
+success.
+
+Protected commands retain their accepted authorization and concurrency rules.
+Authentication, pickup-code and Dynamic-QR verification, supervisor override,
+and final vehicle release remain online-only. Check-in intake and incident
+reporting may be manually retried only with their existing stable logical
+operation identities; stale operational commands must rehydrate or fail closed.
+Authentication, guest, handoff, payment, and other release proofs must never be
+persisted as offline material. Durable offline synchronization remains a later
+Reliability decision.
+
+Full binding contract:
+`docs/decisions/DEC-063_EMPLOYEE_OFFLINE_OPERATION_POLICY.md`

@@ -14,6 +14,10 @@ import {
   ensureAccessTokenDetailed,
   StaffAuthRefreshError,
 } from "./staff-auth-recovery";
+import {
+  executeStaffAuthFetch,
+  parseStaffAuthJsonPayload,
+} from "./staff-auth-transport";
 import type { StaffAuthSession } from "./staff-auth-types";
 
 export type SessionChangeListener = (
@@ -94,8 +98,8 @@ export class StaffAuthClient {
       fetchInit.signal = signal;
     }
 
-    const response = await this.executeFetch(url, fetchInit);
-    const payload = await this.parseJsonPayload(response);
+    const response = await executeStaffAuthFetch(url, fetchInit);
+    const payload = await parseStaffAuthJsonPayload(response);
 
     if (!response.ok) {
       throw normalizeEmployeeApiError(
@@ -175,8 +179,8 @@ export class StaffAuthClient {
         cache: "no-store",
       };
 
-      const response = await this.executeFetch(url, fetchInit);
-      const payload = await this.parseJsonPayload(response);
+      const response = await executeStaffAuthFetch(url, fetchInit);
+      const payload = await parseStaffAuthJsonPayload(response);
 
       if (!response.ok) {
         // A transient refresh failure (5xx/network) is NOT evidence that the
@@ -252,9 +256,9 @@ export class StaffAuthClient {
     }
 
     try {
-      const response = await this.executeFetch(url, fetchInit);
+      const response = await executeStaffAuthFetch(url, fetchInit);
       if (!response.ok) {
-        const payload = await this.parseJsonPayload(response);
+        const payload = await parseStaffAuthJsonPayload(response);
         throw normalizeEmployeeApiError(
           response.status,
           payload,
@@ -276,35 +280,5 @@ export class StaffAuthClient {
       signal,
     );
     return outcome.token;
-  }
-
-  private async executeFetch(
-    url: string,
-    init: RequestInit,
-  ): Promise<Response> {
-    try {
-      return await fetch(url, init);
-    } catch (error: unknown) {
-      if (init.signal?.aborted) {
-        throw error;
-      }
-      throw new EmployeeApiError({
-        status: 0,
-        code: "NETWORK_ERROR",
-        message:
-          "Network connection unavailable. Please check your internet connection.",
-        isNetworkError: true,
-      });
-    }
-  }
-
-  private async parseJsonPayload(response: Response): Promise<unknown> {
-    const text = await response.text();
-    if (text.length === 0) return {};
-    try {
-      return JSON.parse(text);
-    } catch {
-      return text;
-    }
   }
 }

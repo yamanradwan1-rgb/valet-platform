@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type {
   AssignTaskResponse,
   ConditionNoteResponse,
@@ -8,7 +8,6 @@ import type {
   VehicleIdentityResponse,
 } from "@valet/contracts";
 
-import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import {
   acceptParkingTask,
   assignParkingTask,
@@ -31,6 +30,7 @@ import {
   type ParkingTaskQueueResponse,
   type StartParkingResponse,
 } from "./check-in-api";
+import { createCheckInApiTestClient } from "./check-in-api-test-client";
 
 describe("Check-In API Client", () => {
   const sessionId = "11111111-1111-4111-8111-111111111111";
@@ -55,9 +55,7 @@ describe("Check-In API Client", () => {
         },
       ],
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(payload);
 
     const res = await fetchCheckInDrafts(mockClient, locationId);
     expect(res).toEqual(payload);
@@ -80,9 +78,7 @@ describe("Check-In API Client", () => {
         },
       ],
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(payload);
 
     const res = await fetchCheckInContinuations(mockClient, locationId);
     expect(res).toEqual(payload);
@@ -114,9 +110,7 @@ describe("Check-In API Client", () => {
       },
       version: 1,
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(payload);
 
     const res = await fetchSessionDetail(mockClient, sessionId);
     expect(res).toEqual(payload);
@@ -132,9 +126,7 @@ describe("Check-In API Client", () => {
       vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
       version: 1,
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(payload);
 
     const res = await createIntakeSession(mockClient, {
       intakeOperationId: "55555555-5555-4555-8555-555555555555",
@@ -160,9 +152,7 @@ describe("Check-In API Client", () => {
       vehicleId: "44444444-4444-4444-8444-444444444444",
       vehicleUpdatedAt: "2026-08-21T18:01:00.000Z",
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(payload);
 
     const res = await updateSessionVehicleIdentity(mockClient, sessionId, {
       expectedVehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
@@ -184,9 +174,7 @@ describe("Check-In API Client", () => {
       supersedesConditionNoteId: null,
       valetSessionId: sessionId,
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(payload);
 
     const res = await createSessionConditionNote(mockClient, sessionId, {
       content: "Scratch on bumper",
@@ -205,12 +193,7 @@ describe("Check-In API Client", () => {
       valetSessionId: sessionId,
       version: 2,
     };
-    const mockClient = {
-      request: vi
-        .fn()
-        .mockResolvedValueOnce(condPayload)
-        .mockResolvedValueOnce(completePayload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(condPayload, completePayload);
 
     const condRes = await completeConditionStep(mockClient, sessionId);
     expect(condRes).toEqual(condPayload);
@@ -226,9 +209,7 @@ describe("Check-In API Client", () => {
       state: "AWAITING_PARKING",
       version: 3,
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(payload);
 
     const res = await assignSessionKeySlot(mockClient, sessionId, 2, "B-214");
     expect(res).toEqual(payload);
@@ -244,9 +225,7 @@ describe("Check-In API Client", () => {
       taskType: "PARKING",
       version: 2,
     };
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(assignPayload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(assignPayload);
 
     const aRes = await assignParkingTask(mockClient, taskId, 1);
     expect(aRes).toEqual(assignPayload);
@@ -281,13 +260,11 @@ describe("Check-In API Client", () => {
       taskVersion: 4,
     };
 
-    const mockClient = {
-      request: vi
-        .fn()
-        .mockResolvedValueOnce(queuePayload)
-        .mockResolvedValueOnce(acceptPayload)
-        .mockResolvedValueOnce(startPayload),
-    } as unknown as EmployeeApiClient;
+    const mockClient = createCheckInApiTestClient(
+      queuePayload,
+      acceptPayload,
+      startPayload,
+    );
 
     const qRes = await queueSessionParkingTask(mockClient, sessionId);
     expect(qRes).toEqual(queuePayload);

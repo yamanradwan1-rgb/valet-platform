@@ -1,4 +1,4 @@
-# DEC-058 — Employee Offline Operation Policy
+# DEC-063 — Employee Offline Operation Policy
 
 Status: Accepted
 Date: 2026-08-23
@@ -57,7 +57,7 @@ Such a draft:
 - must not mutate Task, ValetSession, custody, handoff, incident, payment, or audit state;
 - must remain scoped to the current authenticated Employee workspace.
 
-DEC-058 does **not** approve durable persistence of these drafts across browser restarts. A later durable-draft decision must define storage, retention, encryption/privacy stance, identity/location scoping, purge behavior, and conflict UX first.
+DEC-063 does **not** approve durable persistence of these drafts across browser restarts. A later durable-draft decision must define storage, retention, encryption/privacy stance, identity/location scoping, purge behavior, and conflict UX first.
 
 ### 4. Identity, tenant, Location, and Shift boundary
 
@@ -189,7 +189,7 @@ Parking, retrieval, custody and handoff operate in a multi-actor system. A comma
 
 ## Affected docs/code
 
-- `docs/decisions/DEC-058_EMPLOYEE_OFFLINE_OPERATION_POLICY.md`
+- `docs/decisions/DEC-063_EMPLOYEE_OFFLINE_OPERATION_POLICY.md`
 - `docs/08_DECISIONS_LOG.md` summary/index mirror when updated
 - `apps/valet/**` Employee connectivity/recovery behavior
 - future Reliability/offline architecture work

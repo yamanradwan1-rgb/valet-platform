@@ -27,4 +27,7 @@ export const expectedMigrationDirectories = [
   "20260815002600_phase6_financial_policy_payment_core",
   "20260816002700_phase6_cash_reconciliation",
   "20260816002800_phase6_payment_collection_operation",
+  "20260822002900_phase7_location_configuration_authority",
+  "20260822003000_phase7_basic_branding_subscription_entitlements",
+  "20260823003100_phase7_basic_branding_hardening",
 ] as const;

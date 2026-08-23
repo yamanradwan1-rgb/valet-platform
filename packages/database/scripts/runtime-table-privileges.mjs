@@ -1,5 +1,10 @@
 import { provisionPaymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { provisionProviderEventPrivileges } from "./provider-event-runtime-privileges.mjs";
+import { provisionLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
+import {
+  organizationSubscriptionTablePolicies,
+  provisionBasicBrandingPrivileges,
+} from "./basic-branding-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -10,6 +15,7 @@ const runtimeReadOnlyTables = [
   "parking_zones",
   "parking_spots",
   "key_slots",
+  "incidents",
   "location_map_points",
   "location_map_areas",
   "location_map_area_vertices",
@@ -76,6 +82,16 @@ export const runtimeMapSetupFunctions = [
 
 export const runtimeMaintenanceFunctions = [
   "public.cleanup_expired_raw_gps_samples(integer)",
+];
+
+export const incidentReadPolicies = [
+  ["public.incidents", "SELECT", true],
+  ["public.incidents", "INSERT", true],
+  ["public.incidents", "UPDATE", false],
+  ["public.incidents", "DELETE", false],
+  ["public.incidents", "TRUNCATE", false],
+  ["public.incidents", "REFERENCES", false],
+  ["public.incidents", "TRIGGER", false],
 ];
 
 const runtimeLockColumns = [
@@ -236,6 +252,12 @@ export async function provisionRuntimeTablePrivileges(
     runtimeRole,
   );
   await provisionProviderEventPrivileges(client, executeFormatted, runtimeRole);
+  await provisionLocationConfigurationPrivileges(
+    client,
+    executeFormatted,
+    runtimeRole,
+  );
+  await provisionBasicBrandingPrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,
