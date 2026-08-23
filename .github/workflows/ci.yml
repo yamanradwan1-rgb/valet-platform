@@ -81,10 +81,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+      DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@localhost:5432/valet
       MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       TEST_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       API_ORIGIN: http://localhost:3001
+      E2E_APPROVED_DATABASE: valet
+      E2E_FIXTURE_CONFIRM: employee-e2e
+      E2E_LOCATION_ID: e2e00000-0000-4000-8000-000000000001
+      E2E_STAFF_EMAIL: e2e-driver@valet.test
+      E2E_STAFF_PASSWORD: e2e-secure-password-123
 
     services:
       postgres:
@@ -129,8 +134,18 @@ jobs:
       - name: Provision runtime role
         run: pnpm --filter @valet/database runtime:provision
         env:
-          DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+          DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@localhost:5432/valet
           MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+
+      - name: Provision E2E fixtures
+        run: pnpm --filter @valet/api exec tsx tools/e2e/provision-employee-e2e.ts
+        env:
+          DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+          NODE_ENV: test
+          E2E_APPROVED_DATABASE: valet
+          E2E_FIXTURE_CONFIRM: employee-e2e
+          E2E_STAFF_EMAIL: e2e-driver@valet.test
+          E2E_STAFF_PASSWORD: e2e-secure-password-123
 
       - name: Install Playwright Chromium
         run: pnpm --filter @valet/valet exec playwright install chromium
@@ -138,20 +153,28 @@ jobs:
       - name: Start API server
         run: |
           pnpm --filter @valet/api dev &
-          echo "Waiting for API..."
+          ready=0
           for i in $(seq 1 30); do
-            curl -sf http://localhost:3001/api/health > /dev/null 2>&1 && break
+            if curl -sf http://localhost:3001/ >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
             sleep 1
           done
+          test "$ready" = "1"
 
       - name: Start Valet app
         run: |
           pnpm --filter @valet/valet dev &
-          echo "Waiting for Valet..."
+          vready=0
           for i in $(seq 1 30); do
-            curl -sf http://localhost:3000 > /dev/null 2>&1 && break
+            if curl -sf http://localhost:3000 >/dev/null 2>&1; then
+              vready=1
+              break
+            fi
             sleep 1
           done
+          test "$vready" = "1"
 
       - name: Run E2E tests
         run: pnpm --filter @valet/valet test:e2e
