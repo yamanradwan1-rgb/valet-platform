@@ -2950,3 +2950,30 @@ or lockfile change is required; migration count remains 28.
 
 Full binding contract:
 `docs/decisions/DEC-057_PHASE6_FINANCIAL_RELEASE_AND_PROJECTIONS.md`
+
+---
+
+## DEC-063 — Employee Offline Operation Policy
+
+Status: Accepted
+Date: 2026-08-23
+
+Decision:
+The Employee MVP is offline-friendly through truthful connectivity status,
+transient in-memory drafts where safe, server-authoritative rehydration, and
+manual retries under each command's existing idempotency, version, and recovery
+contract. It does not approve a persistent mutation outbox, durable draft
+storage, Background Sync, generic automatic replay, or fabricated offline
+success.
+
+Protected commands retain their accepted authorization and concurrency rules.
+Authentication, pickup-code and Dynamic-QR verification, supervisor override,
+and final vehicle release remain online-only. Check-in intake and incident
+reporting may be manually retried only with their existing stable logical
+operation identities; stale operational commands must rehydrate or fail closed.
+Authentication, guest, handoff, payment, and other release proofs must never be
+persisted as offline material. Durable offline synchronization remains a later
+Reliability decision.
+
+Full binding contract:
+`docs/decisions/DEC-063_EMPLOYEE_OFFLINE_OPERATION_POLICY.md`
