@@ -38,6 +38,7 @@ export function GuestSessionProvider({
     if (sessionStateRef.current === 'COMPLETED') return;
 
     inFlightRef.current = true;
+    setIsLoading(true);
 
     try {
       const data = await client.loadSession();
@@ -114,7 +115,7 @@ export function GuestSessionProvider({
 
   const value = {
     session,
-    isLoading,
+    isLoading: isLoading || Boolean(client && !session && !error),
     error,
     isNetworkError,
     isExpired,
