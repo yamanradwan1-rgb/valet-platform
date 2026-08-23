@@ -214,7 +214,7 @@ export function CheckInParkingTaskStep({
           plate={plate ?? t.noPlate}
         />
         <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-          <InfoRow label={t.keySlot} value={keySlotCode || t.notAssigned} />
+          <InfoRow label={t.keySlot} value={<bdi dir="ltr">{keySlotCode || t.notAssigned}</bdi>} />
         </div>
         <div className="bg-ice rounded-xl px-4 py-3 flex items-center gap-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-vblue flex-shrink-0 mt-px" />

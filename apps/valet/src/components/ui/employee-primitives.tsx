@@ -169,9 +169,11 @@ export function InfoRow({
 }
 
 export function BackHeader({
+  disabled = false,
   title,
   onBack,
 }: {
+  disabled?: boolean | undefined;
   title: string;
   onBack?: () => void;
 }): JSX.Element {
@@ -179,7 +181,8 @@ export function BackHeader({
     <div className="flex items-center gap-2 px-5 h-14 bg-warm border-b border-vborder flex-shrink-0">
       <button
         onClick={onBack}
-        className="p-1.5 -ml-1.5 cursor-pointer rounded-xl active:bg-vborder"
+        disabled={disabled}
+        className="p-1.5 -ml-1.5 cursor-pointer rounded-xl active:bg-vborder disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <ChevronLeft />
       </button>
