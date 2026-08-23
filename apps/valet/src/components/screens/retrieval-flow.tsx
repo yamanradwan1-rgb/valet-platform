@@ -61,9 +61,7 @@ export function RetrievalFlow({
     taskStatus: isLive ? taskStatus : null,
     taskVersion: isLive ? taskVersion : null,
   });
-  const handoff = useHandoffLifecycle({
-    onComplete,
-  });
+  const handoff = useHandoffLifecycle();
 
   // Seed the authoritative handoff lifecycle when entering HANDOFF_PENDING.
   useEffect(() => {

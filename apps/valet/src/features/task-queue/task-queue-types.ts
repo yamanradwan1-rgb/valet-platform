@@ -17,3 +17,15 @@ export interface TaskQueueControllerOptions {
   readonly onAuthorizationLoss?: (() => void) | undefined;
   readonly onStateChange?: ((state: TaskQueueState) => void) | undefined;
 }
+
+export function createEmptyTaskQueueState(): TaskQueueState {
+  return {
+    sessionGeneration: null,
+    scopeLocationId: null,
+    tasks: [],
+    isLoading: false,
+    isRefreshing: false,
+    isHardStopped: false,
+    error: null,
+  };
+}

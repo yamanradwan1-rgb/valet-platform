@@ -24,6 +24,7 @@ export async function staffLogin(
   const ctx = await getApiContext();
   const res = await ctx.post("/v1/staff/auth/login", {
     data: { email, password },
+    headers: { Origin: process.env.E2E_BASE_URL ?? "http://localhost:3000" },
   });
   if (res.status() !== 200) {
     throw new Error(`Staff login failed: ${String(res.status())}`);

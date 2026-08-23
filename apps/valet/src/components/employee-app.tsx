@@ -111,9 +111,12 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     : scoped.targets;
 
   const patchTargets = (patch: Partial<EmployeeWorkspaceTargets>): void => {
-    setWorkspace({
-      identityStamp: makeWorkspaceStamp(identity),
-      targets: { ...targets, ...patch },
+    setWorkspace((current) => {
+      const currentScope = rescopeWorkspace(current, identity);
+      return {
+        identityStamp: makeWorkspaceStamp(identity),
+        targets: { ...currentScope.targets, ...patch },
+      };
     });
   };
 

@@ -8,16 +8,30 @@ export async function signInViaUi(
   page: Page,
   email: string,
   password: string,
-): Promise<void> {
+): Promise<string> {
   await page.goto("/");
   // Wait for sign-in form to appear.
   await page.waitForSelector("text=Staff sign in", { timeout: 15_000 });
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
+  const loginResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/v1/staff/auth/login") &&
+      response.request().method() === "POST",
+  );
   await page.click('button:has-text("Sign In")');
+  const response = await loginResponse;
+  if (response.status() !== 200) {
+    throw new Error(`Staff UI login failed: ${String(response.status())}`);
+  }
+  const body = (await response.json()) as { accessToken?: unknown };
+  if (typeof body.accessToken !== "string") {
+    throw new Error("Staff UI login returned no access token.");
+  }
   await expect(page.getByRole("heading", { name: "Tasks" })).toBeVisible({
     timeout: 20_000,
   });
+  return body.accessToken;
 }
 
 export async function createParkingTaskViaUi(

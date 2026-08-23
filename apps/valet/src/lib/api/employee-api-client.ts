@@ -158,7 +158,11 @@ export class EmployeeApiClient {
           }
           this.onAuthorizationLoss?.();
         }
-      } else if (response.status === 401 || response.status === 403) {
+      } else if (
+        response.status === 401 ||
+        response.status === 403 ||
+        response.status === 404
+      ) {
         this.onAuthorizationLoss?.();
       }
 

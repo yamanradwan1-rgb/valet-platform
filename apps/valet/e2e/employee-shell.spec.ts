@@ -12,10 +12,12 @@ test.describe("Employee live shell truthfulness", () => {
   }) => {
     await page.goto("/");
     // Wait for either the initializing spinner or the sign-in form.
-    await page.waitForSelector(
-      '[data-testid="access-gate"], text=Checking staff session, text=Staff sign in',
-      { timeout: 15_000 },
-    );
+    await expect(
+      page
+        .getByTestId("access-gate")
+        .or(page.getByText("Checking staff session"))
+        .or(page.getByText("Staff sign in")),
+    ).toBeVisible({ timeout: 15_000 });
     const body = await page.textContent("body");
     // Prototype-only fixtures must never appear.
     expect(body).not.toContain("Mohammed Khalil");

@@ -75,6 +75,13 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
   );
 
   useEffect(() => {
+    controller.activate(setControllerState);
+    return () => {
+      controller.destroy();
+    };
+  }, [controller]);
+
+  useEffect(() => {
     controller.setApiClient(apiClient);
     controller.setOnAuthorizationLoss(onAuthorizationLoss);
   }, [controller, apiClient, onAuthorizationLoss]);
@@ -108,12 +115,6 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       window.removeEventListener("offline", onOffline);
     };
   }, [controller, status, sessionGeneration, locationId]);
-
-  useEffect(() => {
-    return () => {
-      controller.destroy();
-    };
-  }, [controller]);
 
   // Synchronous pre-effect render gating bound to exact sessionGeneration and scopeLocationId
   const effectiveTasks = selectEffectiveTaskQueueItems(

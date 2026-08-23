@@ -129,6 +129,33 @@ describe("EmployeeApiClient", () => {
     expect(authLoss).toHaveBeenCalledTimes(1);
   });
 
+  it("revalidates operational authority after a non-disclosing mutation 404", async () => {
+    const authLoss = vi.fn();
+    const clientWithLoss = new EmployeeApiClient({
+      authClient,
+      onAuthorizationLoss: authLoss,
+    });
+    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(true);
+    vi.spyOn(authClient, "getAccessToken").mockReturnValue(VALID_MOCK_TOKEN_1);
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: "AUTHORIZATION_DENIED",
+          message: "The requested resource is not available.",
+        }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    await expect(
+      clientWithLoss.request("/v1/staff/valet-sessions/session/key-slot/assign", {
+        method: "POST",
+        body: { expectedVersion: 1, keySlotCode: "E2E-KEY-G1" },
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(authLoss).toHaveBeenCalledTimes(1);
+  });
+
   it("does NOT report authorization loss on transient refresh failure and surfaces a retryable error", async () => {
     const authLoss = vi.fn();
     const clientWithLoss = new EmployeeApiClient({

@@ -31,7 +31,9 @@ test("keeps authenticated Arabic live UI truthful through offline recovery", asy
   await expect(plateInput).toHaveAttribute("dir", "ltr");
   await plateInput.fill(plate);
   await page.getByRole("button", { name: "متابعة", exact: true }).click();
-  await expect(page.locator('bdi[dir="ltr"]', { hasText: plate })).toBeVisible();
+  await expect(
+    page.locator('bdi[dir="ltr"]', { hasText: plate }).first(),
+  ).toBeVisible();
   await page.getByRole("button", { name: "تأكيد اللوحة" }).click();
   await page.locator('input[type="tel"]').fill("+962790000003");
   await page.getByRole("button", { name: "متابعة", exact: true }).click();
@@ -63,7 +65,7 @@ test("keeps authenticated Arabic live UI truthful through offline recovery", asy
   ).toBeVisible();
   await page.getByRole("button", { name: "تأكيد موقع الإيقاف" }).click();
   await expect(page.getByText("تم تأكيد الإيقاف")).not.toBeVisible();
-  const offlineBody = await page.textContent("body");
+  const offlineBody = await page.locator("body").innerText();
   expect(offlineBody).not.toMatch(/sync|queue|تلقائي/i);
 
   await cdp.send("Network.emulateNetworkConditions", {
@@ -75,10 +77,10 @@ test("keeps authenticated Arabic live UI truthful through offline recovery", asy
   await expect(
     page.getByText("لا يوجد اتصال بالشبكة. أعد الاتصال للتحديث والمتابعة."),
   ).not.toBeVisible({ timeout: 10_000 });
-  await expect(page.getByRole("button", { name: "تأكيد موقع الإيقاف" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "اركن المركبة" })).toBeVisible();
   await expect(page.getByText("تم تأكيد الإيقاف")).not.toBeVisible();
 
-  await page.getByRole("button", { name: "EN" }).click();
+  await page.getByRole("button", { name: "EN", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
 });

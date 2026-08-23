@@ -33,7 +33,11 @@ export function CheckInCustomerPhoneStep({
   const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
   return (
     <div>
-      <BackHeader title={t.customerContact} onBack={onBack} />
+      <BackHeader
+        disabled={isSubmitting}
+        title={t.customerContact}
+        onBack={onBack}
+      />
       <div className="p-5 space-y-5">
         {error && (
           <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">

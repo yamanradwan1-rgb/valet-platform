@@ -90,6 +90,9 @@ jobs:
       E2E_LOCATION_ID: e2e00000-0000-4000-8000-000000000001
       E2E_STAFF_EMAIL: e2e-driver@valet.test
       E2E_STAFF_PASSWORD: e2e-secure-password-123
+      STAFF_AUTH_ALLOWED_ORIGINS: http://localhost:3000
+      ANTI_ABUSE_HMAC_SECRET_B64URL: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      HANDOFF_VERIFIER_HMAC_SECRET_B64URL: AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE
 
     services:
       postgres:
@@ -147,12 +150,15 @@ jobs:
           E2E_STAFF_EMAIL: e2e-driver@valet.test
           E2E_STAFF_PASSWORD: e2e-secure-password-123
 
+      - name: Build API
+        run: pnpm --filter @valet/api build
+
       - name: Install Playwright Chromium
         run: pnpm --filter @valet/valet exec playwright install chromium
 
       - name: Start API server
         run: |
-          pnpm --filter @valet/api dev &
+          pnpm --filter @valet/api start &
           ready=0
           for i in $(seq 1 30); do
             if curl -sf http://localhost:3001/ >/dev/null 2>&1; then

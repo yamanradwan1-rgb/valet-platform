@@ -7,6 +7,7 @@ import type {
   TaskQueueControllerOptions,
   TaskQueueState,
 } from "./task-queue-types";
+import { createEmptyTaskQueueState } from "./task-queue-types";
 
 export type { TaskQueueControllerOptions, TaskQueueState };
 
@@ -27,15 +28,7 @@ export class TaskQueueController {
   private activeAbortRequestId: number | null = null;
   private isDestroyed = false;
 
-  private state: TaskQueueState = {
-    sessionGeneration: null,
-    scopeLocationId: null,
-    tasks: [],
-    isLoading: false,
-    isRefreshing: false,
-    isHardStopped: false,
-    error: null,
-  };
+  private state: TaskQueueState = createEmptyTaskQueueState();
 
   constructor(options: TaskQueueControllerOptions) {
     this.apiClient = options.apiClient;
@@ -48,6 +41,13 @@ export class TaskQueueController {
 
   public getState(): TaskQueueState {
     return this.state;
+  }
+
+  public activate(
+    onStateChange: (state: TaskQueueState) => void,
+  ): void {
+    this.isDestroyed = false;
+    this.onStateChange = onStateChange;
   }
 
   public setApiClient(apiClient: EmployeeApiClient): void {
@@ -145,16 +145,11 @@ export class TaskQueueController {
     this.timer.stop();
     this.clearActiveRequest();
     this.sequenceNumber++;
+    this.status = "unauthenticated";
+    this.sessionGeneration = 0;
+    this.locationId = null;
     this.onStateChange = undefined;
-    this.state = {
-      sessionGeneration: null,
-      scopeLocationId: null,
-      tasks: [],
-      isLoading: false,
-      isRefreshing: false,
-      isHardStopped: false,
-      error: null,
-    };
+    this.state = createEmptyTaskQueueState();
   }
 
   private isActiveScope(): boolean {
