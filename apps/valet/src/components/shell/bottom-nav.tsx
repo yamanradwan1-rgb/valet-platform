@@ -7,6 +7,7 @@ import {
   ScanIcon,
   ShiftIcon,
 } from "../icons/employee-icons";
+import { useEmployeeI18n } from "./employee-i18n";
 
 export function BottomNav({
   active,
@@ -15,15 +16,16 @@ export function BottomNav({
   active: Tab;
   onTab: (t: Tab) => void;
 }): JSX.Element {
+  const { t } = useEmployeeI18n();
   const tabs: {
     id: Tab;
     label: string;
     Icon: (p: { active?: boolean }) => JSX.Element | null;
   }[] = [
-    { id: "home", label: "Tasks", Icon: HomeIcon },
-    { id: "vehicles", label: "Vehicles", Icon: CarIcon },
-    { id: "scan", label: "Scan", Icon: ScanIcon },
-    { id: "shift", label: "Shift", Icon: ShiftIcon },
+    { id: "home", label: t.tasksTitle, Icon: HomeIcon },
+    { id: "vehicles", label: t.vehiclesNav, Icon: CarIcon },
+    { id: "scan", label: t.scanNav, Icon: ScanIcon },
+    { id: "shift", label: t.shiftNav, Icon: ShiftIcon },
   ];
   return (
     <nav className="bg-white border-t border-vborder flex-shrink-0 flex items-end h-[72px] px-2">

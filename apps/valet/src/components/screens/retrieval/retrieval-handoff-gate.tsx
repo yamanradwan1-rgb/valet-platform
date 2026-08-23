@@ -6,6 +6,7 @@ import type { HandoffVerificationSnapshot } from "../../../features/handoff/hand
 
 import type { UseHandoffResult } from "../../../features/handoff/use-handoff";
 import type { ActiveRetrievalSession } from "../../../features/retrieval/retrieval-types";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 import {
   LiveReadyHandoffLaunchStep,
   LiveHandoffPendingStep,
@@ -41,11 +42,12 @@ export function RetrievalHandoffGate({
   onReturnToReady,
   session,
 }: RetrievalHandoffGateProps): JSX.Element {
+  const { t } = useEmployeeI18n();
   const vehicle = session.vehicle;
   const vehicleHeading =
-    `${vehicle.make ?? ""} ${vehicle.model ?? "Vehicle"}`.trim() || "Vehicle";
+    `${vehicle.make ?? ""} ${vehicle.model ?? t.vehicle}`.trim() || t.vehicle;
   const vehiclePlate =
-    vehicle?.plateNumberRaw ?? vehicle?.temporaryDescriptor ?? "No Plate";
+    vehicle?.plateNumberRaw ?? vehicle?.temporaryDescriptor ?? t.noPlateTitle;
   const vehicleInfo = `${vehicleHeading} · ${vehiclePlate}`;
 
   const openIncident =
@@ -105,7 +107,7 @@ export function RetrievalHandoffGate({
       <LiveReadyHandoffLaunchStep
         error={handoff.state.error}
         isInitiating={false}
-        keyInfo={session.expectedKeySlotCode ?? "Not assigned"}
+        keyInfo={session.expectedKeySlotCode ?? t.notAssigned}
         onBeginHandoff={() => {
           void handoff.initiate(session.sessionId, session.sessionVersion);
         }}
@@ -120,7 +122,7 @@ export function RetrievalHandoffGate({
       <LiveReadyHandoffLaunchStep
         error={null}
         isInitiating
-        keyInfo={session.expectedKeySlotCode ?? "Not assigned"}
+        keyInfo={session.expectedKeySlotCode ?? t.notAssigned}
         onBeginHandoff={() => undefined}
         onOpenIncident={openIncident}
         vehicleInfo={vehicleInfo}

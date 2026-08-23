@@ -2,6 +2,11 @@ import type { JSX } from "react";
 import type { StaffTaskQueueItemViewModel } from "../../features/task-queue/task-queue-view-model";
 import { ChevronRight } from "../icons/employee-icons";
 import { Badge, VehicleIdentity } from "../ui/employee-primitives";
+import { useEmployeeI18n } from "../shell/employee-i18n";
+import {
+  presentTaskStatus,
+  presentTaskTime,
+} from "../../lib/i18n/live-presentation";
 
 /**
  * Sole gate for the card/container-level normal action. The supervisor
@@ -31,6 +36,7 @@ export function LivePriorityTaskCard({
   readonly priorityTask: StaffTaskQueueItemViewModel;
   readonly role?: "VALET_SUPERVISOR" | "VALET_EMPLOYEE" | null | undefined;
 }): JSX.Element {
+  const { locale, t } = useEmployeeI18n();
   const isAssignedToOther =
     priorityTask.currentAssigneeMembershipId !== null &&
     membershipId !== undefined &&
@@ -52,32 +58,32 @@ export function LivePriorityTaskCard({
   });
   const isDisabled = (isAssignedToOther && !supervisorOverrideEligible) || isActionInFlight;
 
-  let buttonText = "Accept Task";
+  let buttonText = t.acceptTask;
   if (isActionInFlight) {
-    buttonText = "Processing...";
+    buttonText = t.processing;
   } else if (priorityTask.taskType === "PARKING") {
     if (isAssignedToOther) {
-      buttonText = "Assigned";
+      buttonText = t.assigned;
     } else if (priorityTask.status === "QUEUED") {
-      buttonText = "Claim & Park";
+      buttonText = t.claimAndPark;
     } else if (priorityTask.status === "ASSIGNED") {
-      buttonText = "Accept & Park";
+      buttonText = t.acceptAndPark;
     } else if (priorityTask.status === "ACCEPTED") {
-      buttonText = "Start Parking";
+      buttonText = t.startParkingAction;
     } else if (priorityTask.status === "IN_PROGRESS") {
-      buttonText = "Continue Parking";
+      buttonText = t.continueParking;
     }
   } else if (priorityTask.taskType === "RETRIEVAL") {
     if (isAssignedToOther) {
-      buttonText = "Assigned";
+      buttonText = t.assigned;
     } else if (priorityTask.status === "QUEUED") {
-      buttonText = "Accept Task";
+      buttonText = t.acceptTask;
     } else if (priorityTask.status === "ASSIGNED") {
-      buttonText = "Accept Task";
+      buttonText = t.acceptTask;
     } else if (priorityTask.status === "ACCEPTED") {
-      buttonText = "Open Retrieval";
+      buttonText = t.openRetrieval;
     } else if (priorityTask.status === "IN_PROGRESS") {
-      buttonText = "Continue Retrieval";
+      buttonText = t.continueRetrieval;
     }
   }
 
@@ -96,7 +102,7 @@ export function LivePriorityTaskCard({
           <Badge variant={priorityTask.badgeVariant} />
           <div className="text-right">
             <p className="text-[10px] text-neutral font-semibold uppercase tracking-wider">
-              AGE
+              {t.ageLabel}
             </p>
             <span className="font-heading tabular-nums text-xl font-bold text-vdanger">
               {priorityTask.elapsedAge}
@@ -109,15 +115,20 @@ export function LivePriorityTaskCard({
           color={priorityTask.vehicleColor}
         />
         <p className="text-neutral text-[13px] mt-1.5">
-          {priorityTask.timeText}
+          {presentTaskTime(
+            priorityTask.retrievalRequestedAt ?? priorityTask.createdAt,
+            priorityTask.retrievalRequestedAt ? "requested" : "queued",
+            locale,
+            t,
+          )}
         </p>
         <div className="mt-4 pt-4 border-t border-vborder flex items-center justify-between">
           <div>
             <p className="text-[10px] text-neutral uppercase tracking-wider">
-              STATUS
+              {t.statusLabel}
             </p>
             <p className="text-navy font-semibold text-sm mt-0.5">
-              {priorityTask.status}
+              {presentTaskStatus(priorityTask.status, t)}
             </p>
           </div>
           {supervisorOverrideEligible ? (
@@ -130,7 +141,7 @@ export function LivePriorityTaskCard({
               }}
               className="bg-vdanger text-white text-sm font-bold h-10 px-4 rounded-xl cursor-pointer active:scale-[0.98] transition-all"
             >
-              Override Handoff
+              {t.overrideHandoff}
             </button>
           ) : (
             <button
@@ -172,6 +183,7 @@ export function LiveQueueItem({
   readonly role?: "VALET_SUPERVISOR" | "VALET_EMPLOYEE" | null | undefined;
   readonly task: StaffTaskQueueItemViewModel;
 }): JSX.Element {
+  const { locale, t } = useEmployeeI18n();
   const isAssignedToOther =
     task.currentAssigneeMembershipId !== null &&
     membershipId !== undefined &&
@@ -201,10 +213,17 @@ export function LiveQueueItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <Badge variant={task.badgeVariant} />
-          <span className="text-muted text-xs">{task.timeText}</span>
+          <span className="text-muted text-xs">
+            {presentTaskTime(
+              task.retrievalRequestedAt ?? task.createdAt,
+              task.retrievalRequestedAt ? "requested" : "queued",
+              locale,
+              t,
+            )}
+          </span>
           {isAssignedToOther && (
             <span className="text-[10px] bg-gray-100 text-neutral px-1.5 py-0.5 rounded font-medium">
-              Other staff
+              {t.otherStaff}
             </span>
           )}
         </div>
@@ -212,7 +231,7 @@ export function LiveQueueItem({
           {task.vehicleHeading}
         </p>
         <p className="text-neutral text-xs mt-0.5">
-          {task.vehicleIdentifier} · {task.metaText}
+          <bdi dir="ltr">{task.vehicleIdentifier}</bdi> · {task.parkingContext ?? presentTaskStatus(task.status, t)}
         </p>
       </div>
       {supervisorOverrideEligible ? (
@@ -225,7 +244,7 @@ export function LiveQueueItem({
           }}
           className="bg-vdanger text-white text-xs font-bold h-9 px-3 rounded-xl cursor-pointer active:scale-[0.98] transition-all"
         >
-          Override Handoff
+          {t.overrideHandoff}
         </button>
       ) : (
         !isAssignedToOther && <ChevronRight />

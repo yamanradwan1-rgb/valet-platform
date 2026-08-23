@@ -13,6 +13,12 @@ import {
   INCIDENT_TYPES,
 } from "../../features/incidents/incident-controller";
 import type { IncidentUiState } from "../../features/incidents/incident-controller";
+import {
+  presentIncidentSeverity,
+  presentIncidentType,
+} from "../../features/incidents/incident-presentation";
+import { presentLiveError } from "../../lib/i18n/live-presentation";
+import { useEmployeeI18n } from "../shell/employee-i18n";
 
 export interface IncidentLiveFormProps {
   readonly detail: StaffValetSessionDetailResponse;
@@ -34,6 +40,7 @@ export function IncidentLiveForm({
   onSubmit,
   state,
 }: IncidentLiveFormProps): JSX.Element {
+  const { locale, t } = useEmployeeI18n();
   const [selected, setSelected] = useState<IncidentType | null>(null);
   const [severity, setSeverity] = useState<IncidentSeverity>("LOW");
   const [description, setDescription] = useState("");
@@ -46,14 +53,14 @@ export function IncidentLiveForm({
     <div className="p-5 space-y-4">
       <div className="bg-white rounded-xl border border-vborder p-4">
         <p className="font-heading font-bold text-navy">
-          <bdi>{[heading, identifier].filter(Boolean).join(" · ")}</bdi>
+          {heading} · <bdi dir="ltr">{identifier}</bdi>
         </p>
         <p className="text-neutral text-xs mt-1">
-          Session <bdi>{detail.sessionId.slice(0, 8)}</bdi>...
+          {t.sessionLabel} <bdi dir="ltr">{detail.sessionId.slice(0, 8)}</bdi>...
         </p>
       </div>
 
-      <p className="text-navy font-semibold text-sm">Select type</p>
+      <p className="text-navy font-semibold text-sm">{t.selectType}</p>
       <div className="grid grid-cols-2 gap-2">
         {INCIDENT_TYPES.map((type) => (
           <button
@@ -65,12 +72,12 @@ export function IncidentLiveForm({
                 : "border-vborder bg-white text-navy hover:bg-gray-50"
             }`}
           >
-            {type.label}
+            {presentIncidentType(type.value, t)}
           </button>
         ))}
       </div>
 
-      <p className="text-navy font-semibold text-sm">Severity</p>
+      <p className="text-navy font-semibold text-sm">{t.severityLabel}</p>
       <div className="grid grid-cols-4 gap-2">
         {INCIDENT_SEVERITIES.map((sev) => (
           <button
@@ -82,7 +89,7 @@ export function IncidentLiveForm({
                 : "border-vborder bg-white text-navy"
             }`}
           >
-            {sev.label}
+            {presentIncidentSeverity(sev.value, t)}
           </button>
         ))}
       </div>
@@ -90,7 +97,7 @@ export function IncidentLiveForm({
       <textarea
         maxLength={500}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Briefly describe what happened..."
+        placeholder={t.describeIncident}
         rows={4}
         value={description}
         className="w-full border border-vborder rounded-xl px-4 py-3 text-navy text-sm focus:outline-none focus:border-vblue transition-colors resize-none bg-white"
@@ -98,7 +105,7 @@ export function IncidentLiveForm({
 
       {state.error !== null && (
         <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
-          {state.error}
+          {presentLiveError(new Error(state.error), locale, t)}
         </div>
       )}
 
@@ -108,7 +115,7 @@ export function IncidentLiveForm({
           selected === null ||
           description.trim().length === 0
         }
-        label={state.phase === "submitting" ? "Opening…" : "Open Incident"}
+        label={state.phase === "submitting" ? t.opening : t.openIncident}
         variant="danger"
         onClick={() => {
           if (selected === null) return;

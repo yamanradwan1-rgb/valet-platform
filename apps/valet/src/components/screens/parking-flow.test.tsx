@@ -32,7 +32,8 @@ describe("ParkingFlow Component", () => {
     );
 
     expect(markup).toContain("Parking Mercedes C200");
-    expect(markup).toContain("Mercedes C200 · 55-88888");
+    expect(markup).toContain("Mercedes C200 · ");
+    expect(markup).toContain('<bdi dir="ltr">55-88888</bdi>');
     expect(markup).toContain("Key");
     expect(markup).toContain("A-101");
     expect(markup).toContain("Zone A");

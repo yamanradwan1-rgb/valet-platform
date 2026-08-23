@@ -21,7 +21,12 @@ import {
   CheckInPlateScanStep,
 } from "./check-in/check-in-plate-steps";
 import { CheckInRecoverableStep } from "./check-in/check-in-recoverable-step";
-import { BackHeader, Btn } from "../ui/employee-primitives";
+import {
+  CheckInDiscoveryError,
+  CheckInDiscoveryLoading,
+} from "./check-in/check-in-discovery-state";
+import { useEmployeeI18n } from "../shell/employee-i18n";
+import { presentLiveError } from "../../lib/i18n/live-presentation";
 
 export interface CheckInFlowProps {
   readonly locationId?: string | null | undefined;
@@ -40,6 +45,7 @@ export function CheckInFlow({
   onAuthorizationLoss,
   onStartParkingSuccess,
 }: CheckInFlowProps): JSX.Element | null {
+  const { locale, t } = useEmployeeI18n();
   const checkIn = useCheckIn({ locationId, membershipId, onAuthorizationLoss });
 
   const [scanDone, setScanDone] = useState(false);
@@ -62,29 +68,21 @@ export function CheckInFlow({
   const displayModel = activeVehicle?.model ?? null;
   const displayColor = activeVehicle?.color ?? null;
   const displayKeySlot = checkIn.activeSession?.keySlotCode ?? keySlotCode;
+  const localizedError = checkIn.error
+    ? presentLiveError(new Error(checkIn.error), locale, t)
+    : null;
 
   if (checkIn.isHydrating && checkIn.step === "discovery") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
-        <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
-        <p className="text-navy font-semibold text-sm">Checking for existing check-in drafts...</p>
-      </div>
-    );
+    return <CheckInDiscoveryLoading />;
   }
 
   if (checkIn.step === "discovery-error" || checkIn.step === "hydration-error") {
     return (
-      <div>
-        <BackHeader title="Check-In Discovery" onBack={() => nav("task-queue")} />
-        <div className="p-5 space-y-4">
-          <div className="p-4 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-sm">
-            <p className="font-bold">Failed to load check-in session</p>
-            <p className="text-xs mt-1">{checkIn.error ?? "An unexpected network or server error occurred."}</p>
-          </div>
-          <Btn label="Retry Discovery" onClick={() => void checkIn.retry()} />
-          <Btn label="Back to Task Queue" variant="secondary" onClick={() => nav("task-queue")} />
-        </div>
-      </div>
+      <CheckInDiscoveryError
+        message={localizedError ?? t.unexpectedError}
+        nav={nav}
+        onRetry={() => void checkIn.retry()}
+      />
     );
   }
 
@@ -156,7 +154,7 @@ export function CheckInFlow({
         model={displayModel}
         color={displayColor}
         isSubmitting={checkIn.isSubmitting}
-        error={checkIn.error}
+        error={localizedError}
         onConfirm={async () => {
           await checkIn.confirmPlate({
             color: displayColor,
@@ -182,7 +180,7 @@ export function CheckInFlow({
         color={displayColor}
         plate={displayPlate}
         isSubmitting={checkIn.isSubmitting}
-        error={checkIn.error}
+        error={localizedError}
         onChangePhone={setPhone}
         onContinue={async () => {
           await checkIn.submitCustomerPhone(phone);
@@ -204,7 +202,7 @@ export function CheckInFlow({
         color={displayColor}
         plate={displayPlate}
         isSubmitting={checkIn.isSubmitting}
-        error={checkIn.error}
+        error={localizedError}
         onSelectCondition={setCondition}
         onContinue={async () => {
           await checkIn.completeCondition(condition);
@@ -233,7 +231,7 @@ export function CheckInFlow({
         color={displayColor}
         plate={displayPlate}
         isSubmitting={checkIn.isSubmitting}
-        error={checkIn.error}
+        error={localizedError}
         onChangeKeySlotCode={setKeySlotCode}
         onSimulateScan={() => {
           setKeySlotCode("B-214");
@@ -264,7 +262,7 @@ export function CheckInFlow({
         color={displayColor}
         plate={displayPlate}
         isSubmitting={checkIn.isSubmitting}
-        error={checkIn.error}
+        error={localizedError}
         onCreateParkingTask={async () => {
           await checkIn.createParkingTask();
         }}
@@ -281,7 +279,7 @@ export function CheckInFlow({
         color={displayColor}
         plate={displayPlate}
         isSubmitting={checkIn.isSubmitting}
-        error={checkIn.error}
+        error={localizedError}
         onStartParking={async () => {
           const payload = await checkIn.startParking();
           if (payload) {

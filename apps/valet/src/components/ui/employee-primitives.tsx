@@ -1,7 +1,9 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useState, type JSX, type ReactNode } from "react";
 
 import type { BadgeVariant } from "../../types/employee-ui";
+import { presentBadge } from "../../lib/i18n/live-presentation";
 import { BigCheckIcon, ChevronLeft } from "../icons/employee-icons";
+import { useEmployeeI18n } from "../shell/employee-i18n";
 
 export function Btn({
   label,
@@ -40,6 +42,7 @@ export function Btn({
 }
 
 export function Badge({ variant }: { variant: BadgeVariant }): JSX.Element {
+  const { t } = useEmployeeI18n();
   const map: Record<
     BadgeVariant,
     { label: string; bg: string; text: string; dot: string }
@@ -111,13 +114,13 @@ export function Badge({ variant }: { variant: BadgeVariant }): JSX.Element {
       dot: "bg-neutral",
     },
   };
-  const { label, bg, text, dot } = map[variant];
+  const { bg, text, dot } = map[variant];
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider ${bg} ${text}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dot}`} />
-      {label}
+      {presentBadge(variant, t)}
     </span>
   );
 }
@@ -137,7 +140,7 @@ export function VehicleIdentity({
         {model}
       </p>
       <p className="text-neutral text-sm mt-0.5">
-        {plate}
+        <bdi dir="ltr">{plate}</bdi>
         {color ? ` · ${color}` : ""}
       </p>
     </div>
@@ -150,7 +153,7 @@ export function InfoRow({
   accent,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   accent?: boolean;
 }): JSX.Element {
   return (
@@ -267,22 +270,24 @@ export function ElapsedTimer({
 }
 
 export function TrackingPill(): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <div className="inline-flex items-center gap-1.5 bg-vblue/10 px-3 py-1.5 rounded-full">
       <span className="w-1.5 h-1.5 rounded-full bg-vblue animate-pulse flex-shrink-0" />
       <span className="text-vblue text-[11px] font-semibold">
-        Location active for this task
+        {t.locationActiveForTask}
       </span>
     </div>
   );
 }
 
 export function OfflineBanner(): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <div className="bg-[#FFF4E0] border-b border-vwarning/20 px-5 py-2.5 flex items-center gap-2 flex-shrink-0">
       <span className="w-2 h-2 rounded-full bg-vwarning flex-shrink-0" />
       <span className="text-vwarning font-semibold text-xs">
-        {"You're offline — Actions will sync when connection returns"}
+        {t.noNetworkMessage}
       </span>
     </div>
   );

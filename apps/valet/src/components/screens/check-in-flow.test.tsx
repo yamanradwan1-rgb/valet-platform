@@ -190,7 +190,9 @@ describe("CheckInFlow Component Steps", () => {
         onCreateParkingTask={vi.fn()}
       />,
     );
-    expect(assignedMarkup).toContain("Key B-214 assigned");
+    expect(assignedMarkup).toContain("Key ");
+    expect(assignedMarkup).toContain('<bdi dir="ltr">B-214</bdi>');
+    expect(assignedMarkup).toContain(" assigned");
     expect(assignedMarkup).toContain("Create Parking Task");
 
     const taskMarkup = renderToStaticMarkup(

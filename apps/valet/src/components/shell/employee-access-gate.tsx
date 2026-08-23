@@ -46,7 +46,7 @@ function AccessShell({ children }: { children: React.ReactNode }): JSX.Element {
 export function EmployeeAccessGate(
   props: EmployeeAccessGateProps,
 ): JSX.Element {
-  const { t } = useEmployeeI18n();
+  const { locale, t } = useEmployeeI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -64,11 +64,12 @@ export function EmployeeAccessGate(
       <AccessShell>
         <div className="w-full bg-white/[0.06] border border-white/10 rounded-3xl p-6 mb-6 backdrop-blur-sm">
           <p className="font-heading font-bold text-white text-xl mb-2">
-            Connection issue
+            {t.connectionIssue}
           </p>
           <p className="text-muted text-sm leading-relaxed">
-            {props.restoreMessage ??
-              "The staff sign-in service is temporarily unavailable."}
+            {locale === "ar"
+              ? t.signInUnavailable
+              : (props.restoreMessage ?? t.signInUnavailable)}
           </p>
         </div>
         <div className="w-full space-y-3">
@@ -78,7 +79,7 @@ export function EmployeeAccessGate(
             disabled={props.isRetryingRestore === true}
             className="w-full h-14 bg-vblue text-white font-bold text-base rounded-2xl flex items-center justify-center active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-vblue/30 disabled:opacity-60"
           >
-            {props.isRetryingRestore === true ? "Retrying…" : t.retry}
+            {props.isRetryingRestore === true ? t.retrying : t.retry}
           </button>
         </div>
         <div className="mt-4">
@@ -129,7 +130,7 @@ export function EmployeeAccessGate(
         </div>
         {loginError !== null && loginError !== "" && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-400/30 rounded-xl text-red-300 text-xs">
-            {loginError}
+            {locale === "ar" ? t.operationFailed : loginError}
           </div>
         )}
         <button

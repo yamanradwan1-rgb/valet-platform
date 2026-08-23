@@ -26,6 +26,8 @@ import {
   RetrievalVehicleReadyStep,
 } from "./retrieval/retrieval-task-steps";
 import { BackHeader, Btn } from "../ui/employee-primitives";
+import { useEmployeeI18n } from "../shell/employee-i18n";
+import { presentLiveError } from "../../lib/i18n/live-presentation";
 import type { RetrievalFlowProps } from "./retrieval/retrieval-flow-types";
 
 export type { RetrievalFlowProps } from "./retrieval/retrieval-flow-types";
@@ -45,6 +47,7 @@ export function RetrievalFlow({
   onOpenIncident,
   onComplete,
   }: RetrievalFlowProps): JSX.Element | null {
+  const { locale, t } = useEmployeeI18n();
   const isLive = mode === "live" || Boolean(sessionId || initialSession);
 
   const retrieval = useRetrieval({
@@ -99,28 +102,31 @@ export function RetrievalFlow({
     const vehicle = session?.vehicle;
 
     const vehicleHeading = vehicle
-      ? `${vehicle.make ?? ""} ${vehicle.model ?? "Vehicle"}`.trim() || "Vehicle"
-      : "Vehicle";
+      ? `${vehicle.make ?? ""} ${vehicle.model ?? t.vehicle}`.trim() || t.vehicle
+      : t.vehicle;
 
     const vehiclePlate =
       vehicle?.plateNumberRaw ??
       vehicle?.temporaryDescriptor ??
-      "No Plate";
+      t.noPlateTitle;
 
     const vehicleInfo = `${vehicleHeading} · ${vehiclePlate}`;
-    const keyInfo = session?.expectedKeySlotCode ?? "Not assigned";
+    const keyInfo = session?.expectedKeySlotCode ?? t.notAssigned;
     const parkingLocation = session?.parkingZoneCode
-      ? `Zone ${session.parkingZoneCode}${session.parkingSpotCode ? ` · Spot ${session.parkingSpotCode}` : ""}`
+      ? `${t.zone} ${session.parkingZoneCode}${session.parkingSpotCode ? ` · ${t.spot} ${session.parkingSpotCode}` : ""}`
       : session?.parkingSpotCode
-        ? `Spot ${session.parkingSpotCode}`
+        ? `${t.spot} ${session.parkingSpotCode}`
         : null;
+    const liveError = retrieval.error
+      ? presentLiveError(new Error(retrieval.error), locale, t)
+      : null;
 
     if (retrieval.isHydrating) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
           <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
           <p className="text-navy font-semibold text-sm">
-            Loading retrieval session details...
+            {t.loadingRetrieval}
           </p>
         </div>
       );
@@ -129,14 +135,14 @@ export function RetrievalFlow({
     if (retrieval.error && !session) {
       return (
         <div>
-          <BackHeader title="Retrieval Operation" onBack={() => nav("task-queue")} />
+          <BackHeader title={t.retrievalOperation} onBack={() => nav("task-queue")} />
           <div className="p-5 space-y-4">
             <div className="p-4 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-sm">
-              <p className="font-bold">Cannot resume retrieval flow</p>
-              <p className="text-xs mt-1">{retrieval.error}</p>
+              <p className="font-bold">{t.cannotResumeRetrieval}</p>
+              <p className="text-xs mt-1">{liveError}</p>
             </div>
-            <Btn label="Retry" onClick={() => void retrieval.retry()} />
-            <Btn label="Back to Task Queue" variant="secondary" onClick={() => nav("task-queue")} />
+            <Btn label={t.retry} onClick={() => void retrieval.retry()} />
+            <Btn label={t.backToQueue} variant="secondary" onClick={() => nav("task-queue")} />
           </div>
         </div>
       );
@@ -148,7 +154,7 @@ export function RetrievalFlow({
           expectedKey={session?.expectedKeySlotCode ?? null}
           isKeyConfirmed={session?.isKeyConfirmed ?? false}
           isSubmitting={retrieval.isSubmitting}
-          error={retrieval.error}
+          error={liveError}
           vehicleInfo={vehicleInfo}
           parkingLocation={parkingLocation}
           onConfirmKey={(code) => retrieval.confirmKey(code)}
@@ -169,7 +175,7 @@ export function RetrievalFlow({
           parkingLocation={parkingLocation}
           retrievalStartedAt={session?.retrievalStartedAt ?? null}
           isSubmitting={retrieval.isSubmitting}
-          error={retrieval.error}
+          error={liveError}
           onReportIssue={
             onOpenIncident && session !== null
               ? () => onOpenIncident(session.sessionId)

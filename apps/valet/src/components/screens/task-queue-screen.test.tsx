@@ -69,9 +69,9 @@ describe("TaskQueueScreen Component", () => {
     expect(markup).toContain("Grand Hotel Amman");
 
     // Priority card assertions (Approved live AGE and STATUS slots)
-    expect(markup).toContain("AGE");
-    expect(markup).toContain("STATUS");
-    expect(markup).toContain("ASSIGNED");
+    expect(markup).toContain("Age");
+    expect(markup).toContain("Status");
+    expect(markup).toContain("Assigned");
     expect(markup).toContain("Porsche Cayenne");
     expect(markup).toContain("55-12345");
     expect(markup).toContain("Accept Task");

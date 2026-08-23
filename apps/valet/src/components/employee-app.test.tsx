@@ -143,9 +143,10 @@ describe("EmployeeApp & Screen Component Baseline", () => {
     expect(navMarkup).toContain("Shift");
   });
 
-  it("renders OfflineBanner with sync guarantee notice", () => {
+  it("renders OfflineBanner with a truthful reconnect notice", () => {
     const markup = renderToStaticMarkup(<OfflineBanner />);
-    expect(markup).toContain("Actions will sync when connection returns");
+    expect(markup).toContain("Reconnect to refresh and continue");
+    expect(markup).not.toContain("sync");
   });
 
   it("fails closed to the truthful access gate instead of prototype shift-start when unauthenticated", () => {

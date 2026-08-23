@@ -12,6 +12,11 @@ import { IncidentPrototypeFlow } from "./incident-prototype-flow";
 import { useIncident } from "../../features/incidents/use-incident";
 import { fetchSessionDetail } from "../../features/retrieval/retrieval-api";
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { useEmployeeI18n } from "../shell/employee-i18n";
+import {
+  presentIncidentSeverity,
+  presentIncidentType,
+} from "../../features/incidents/incident-presentation";
 
 export interface IncidentFlowProps {
   readonly apiClient?: EmployeeApiClient | undefined;
@@ -75,6 +80,7 @@ export function IncidentFlow({
   returnScreen = "task-queue",
   sessionId = null,
 }: IncidentFlowProps): JSX.Element | null {
+  const { t } = useEmployeeI18n();
   const isLive = mode === "live" || Boolean(sessionId);
   const incident = useIncident();
 
@@ -106,7 +112,7 @@ export function IncidentFlow({
         <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
           <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
           <p className="text-navy font-semibold text-sm">
-            Loading session context…
+            {t.loadingSession}
           </p>
         </div>
       );
@@ -115,23 +121,23 @@ export function IncidentFlow({
     if (contextState === "error") {
       return (
         <div>
-          <BackHeader title="Report Incident" onBack={() => nav(returnScreen)} />
+          <BackHeader title={t.reportIncident} onBack={() => nav(returnScreen)} />
           <div className="p-5 space-y-4">
             <div className="p-4 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-sm">
-              <p className="font-bold">Cannot establish session context</p>
+              <p className="font-bold">{t.cannotEstablishSession}</p>
               <p className="text-xs mt-1">
-                The authoritative vehicle/session context could not be loaded.
+                {t.sessionContextError}
               </p>
             </div>
             <Btn
-              label="Retry"
+              label={t.retry}
               onClick={() => {
                 setContextState("loading");
                 void loadContext();
               }}
             />
             <Btn
-              label="Back"
+              label={t.back}
               variant="secondary"
               onClick={() => nav(returnScreen)}
             />
@@ -146,7 +152,7 @@ export function IncidentFlow({
         <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
           <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
           <p className="text-navy font-semibold text-sm">
-            Loading session context…
+            {t.loadingSession}
           </p>
         </div>
       );
@@ -163,19 +169,19 @@ export function IncidentFlow({
           </div>
           <div className="text-center">
             <p className="font-heading font-bold text-2xl text-navy">
-              Incident opened
+              {t.incidentOpened}
             </p>
             <p className="text-neutral text-sm mt-1 break-all">
-              Reference: {report.incidentId}
+              {t.reference}: <bdi dir="ltr">{report.incidentId}</bdi>
             </p>
           </div>
           <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-            <InfoRow label="Type" value={report.type} />
-            <InfoRow label="Severity" value={report.severity} />
-            <InfoRow label="Vehicle" value={liveVehicleInfo} />
+            <InfoRow label={t.typeLabel} value={presentIncidentType(report.type, t)} />
+            <InfoRow label={t.severityLabel} value={presentIncidentSeverity(report.severity, t)} />
+            <InfoRow label={t.vehicle} value={<bdi dir="ltr">{liveVehicleInfo}</bdi>} />
           </div>
           <div className="w-full">
-            <Btn label="Return" onClick={() => nav(returnScreen)} />
+            <Btn label={t.returnLabel} onClick={() => nav(returnScreen)} />
           </div>
         </div>
       );
@@ -183,11 +189,11 @@ export function IncidentFlow({
 
     return (
       <div>
-        <BackHeader title="Report Incident" onBack={() => nav(returnScreen)} />
+        <BackHeader title={t.reportIncident} onBack={() => nav(returnScreen)} />
         <div className="p-5 space-y-4">
           <div className="bg-white rounded-xl border border-vborder p-4">
-            <p className="font-heading font-bold text-navy">{liveVehicleInfo}</p>
-            <p className="text-neutral text-xs mt-1">Session {detail.sessionId.slice(0, 8)}…</p>
+            <p className="font-heading font-bold text-navy"><bdi dir="ltr">{liveVehicleInfo}</bdi></p>
+            <p className="text-neutral text-xs mt-1">{t.sessionLabel} <bdi dir="ltr">{detail.sessionId.slice(0, 8)}</bdi>…</p>
           </div>
           <IncidentLiveForm
             detail={detail}

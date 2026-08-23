@@ -4,10 +4,12 @@ import type { BadgeVariant } from "../../types/employee-ui";
 export interface StaffTaskQueueItemViewModel {
   readonly badgeVariant: BadgeVariant;
   readonly currentAssigneeMembershipId: string | null;
+  readonly createdAt: string;
   readonly elapsedAge: string;
   readonly isAssignedToMe: boolean;
   readonly metaText: string;
   readonly parkingContext: string | null;
+  readonly retrievalRequestedAt: string | null;
   readonly sessionId: string;
   readonly status: "QUEUED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS";
   readonly taskId: string;
@@ -114,10 +116,12 @@ export function toStaffTaskQueueItemViewModel(
   return {
     badgeVariant: task.taskType === "PARKING" ? "parking" : "retrieval",
     currentAssigneeMembershipId: task.currentAssigneeMembershipId,
+    createdAt: task.createdAt,
     elapsedAge: formatElapsedAge(task.createdAt, nowMs),
     isAssignedToMe,
     metaText,
     parkingContext,
+    retrievalRequestedAt: task.retrievalRequestedAt,
     sessionId: task.sessionId,
     status: task.status,
     taskId: task.taskId,

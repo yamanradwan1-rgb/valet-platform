@@ -2,6 +2,7 @@ import type { JSX } from "react";
 
 import { CheckSmIcon } from "../../icons/employee-icons";
 import { BackHeader, Btn, VehicleIdentity } from "../../ui/employee-primitives";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 
 export function CheckInCustomerPhoneStep({
   phone,
@@ -28,10 +29,11 @@ export function CheckInCustomerPhoneStep({
   readonly phone: string;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
-  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+  const { t } = useEmployeeI18n();
+  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
   return (
     <div>
-      <BackHeader title="Customer Contact" onBack={onBack} />
+      <BackHeader title={t.customerContact} onBack={onBack} />
       <div className="p-5 space-y-5">
         {error && (
           <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
@@ -40,14 +42,14 @@ export function CheckInCustomerPhoneStep({
         )}
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <VehicleIdentity
-            color={color ?? "Not specified"}
+            color={color ?? t.notSpecified}
             model={displayModel}
-            plate={plate ?? "No plate"}
+            plate={plate ?? t.noPlate}
           />
         </div>
         <div>
           <label className="text-navy font-semibold text-sm block mb-2">
-            Mobile Number
+            {t.mobileNumber}
           </label>
           <div className="flex gap-2">
             <div className="flex items-center gap-1.5 h-14 px-3 border border-vborder rounded-xl bg-white min-w-[84px] cursor-pointer">
@@ -58,21 +60,22 @@ export function CheckInCustomerPhoneStep({
               type="tel"
               placeholder="79 000 0000"
               value={phone}
+              dir="ltr"
               onChange={(e) => onChangePhone(e.target.value)}
               className="flex-1 h-14 border border-vborder rounded-xl px-4 text-navy text-base focus:outline-none focus:border-vblue transition-colors bg-white"
             />
           </div>
           <p className="text-muted text-xs mt-2">
-            SMS or WhatsApp link will be sent automatically.
+            {t.smsNotice}
           </p>
         </div>
         <Btn
-          label={isSubmitting ? "Creating Intake..." : "Continue"}
+          label={isSubmitting ? t.creatingIntake : t.continueLabel}
           onClick={onContinue}
           disabled={isSubmitting ?? false}
         />
         <Btn
-          label="No phone available"
+          label={t.noPhone}
           variant="ghost"
           size="md"
           onClick={onNoPhone}
@@ -106,12 +109,17 @@ export function CheckInVehicleConditionStep({
   readonly onSelectCondition: (opt: string) => void;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
-  const options = ["No visible issue", "Existing damage", "Needs review"];
-  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+  const { t } = useEmployeeI18n();
+  const options = [
+    { label: t.noVisibleIssue, value: "No visible issue" },
+    { label: t.existingDamage, value: "Existing damage" },
+    { label: t.needsReview, value: "Needs review" },
+  ];
+  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
 
   return (
     <div>
-      <BackHeader title="Vehicle Condition" onBack={onBack} />
+      <BackHeader title={t.vehicleCondition} onBack={onBack} />
       <div className="p-5 space-y-5">
         {error && (
           <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
@@ -120,45 +128,45 @@ export function CheckInVehicleConditionStep({
         )}
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <VehicleIdentity
-            color={color ?? "Not specified"}
+            color={color ?? t.notSpecified}
             model={displayModel}
-            plate={plate ?? "No plate"}
+            plate={plate ?? t.noPlate}
           />
         </div>
         <div className="space-y-2">
           {options.map((opt) => (
             <button
-              key={opt}
+              key={opt.value}
               type="button"
-              onClick={() => onSelectCondition(opt)}
+              onClick={() => onSelectCondition(opt.value)}
               className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl border-2 transition-all cursor-pointer text-left ${
-                condition === opt
+                condition === opt.value
                   ? "border-vblue bg-ice"
                   : "border-vborder bg-white hover:bg-gray-50"
               }`}
             >
               <span
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                  condition === opt ? "border-vblue bg-vblue" : "border-vborder"
+                  condition === opt.value ? "border-vblue bg-vblue" : "border-vborder"
                 }`}
               >
-                {condition === opt && <CheckSmIcon />}
+                {condition === opt.value && <CheckSmIcon />}
               </span>
               <span
                 className={`font-semibold text-sm ${
-                  condition === opt ? "text-vblue" : "text-navy"
+                  condition === opt.value ? "text-vblue" : "text-navy"
                 }`}
               >
-                {opt}
+                {opt.label}
               </span>
             </button>
           ))}
         </div>
         <div className="p-3 bg-gray-50 border border-vborder rounded-xl text-muted text-xs text-center">
-          Photos optional by location policy
+          {t.photosOptional}
         </div>
         <Btn
-          label={isSubmitting ? "Completing Condition..." : "Continue"}
+          label={isSubmitting ? t.completingCondition : t.continueLabel}
           onClick={onContinue}
           disabled={isSubmitting ?? false}
         />

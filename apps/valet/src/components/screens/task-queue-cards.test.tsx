@@ -10,10 +10,12 @@ import {
 const baseTask: StaffTaskQueueItemViewModel = {
   badgeVariant: "retrieval",
   currentAssigneeMembershipId: "cccccccc-3333-4333-8333-333333333333",
+  createdAt: "2026-01-01T00:00:00.000Z",
   elapsedAge: "01:00",
   isAssignedToMe: false,
   metaText: "IN_PROGRESS",
   parkingContext: null,
+  retrievalRequestedAt: "2026-01-01T00:00:00.000Z",
   sessionId: "bbbbbbbb-2222-4222-8222-222222222222",
   status: "IN_PROGRESS",
   taskId: "aaaaaaaa-1111-4111-8111-111111111111",

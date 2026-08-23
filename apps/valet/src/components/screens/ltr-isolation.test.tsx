@@ -48,7 +48,7 @@ describe("LTR isolation for direction-sensitive values", () => {
         }}
       />,
     );
-    expect(markup).toContain("<bdi>");
+    expect(markup).toContain('<bdi dir="ltr">');
     expect(markup).toContain("77-99999");
   });
 
@@ -65,13 +65,14 @@ describe("LTR isolation for direction-sensitive values", () => {
         onVerifyPickupCode={vi.fn()}
         onVerifyQrPayload={vi.fn()}
         retryAfterSeconds={null}
-        vehicleInfo="Audi A6 · <bdi>77-99999</bdi>"
+        vehicleInfo="Audi A6 · 77-99999"
       />,
     );
-    expect(markup).toContain("<bdi>");
+    expect(markup).toContain('<bdi dir="ltr">');
     expect(markup).toContain("77-99999");
     // Pickup code input preserves leading zeros logically.
     expect(markup).toContain('maxLength="4"');
     expect(markup).toContain('inputMode="numeric"');
+    expect(markup).toContain('dir="ltr"');
   });
 });

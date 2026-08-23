@@ -119,7 +119,7 @@ describe("EmployeeOperationalGate truthful states", () => {
       />,
     );
     expect(markup).toContain("Multiple active shifts");
-    expect(markup).toContain("3 active shifts were found");
+    expect(markup).toContain('<bdi dir="ltr">3</bdi> active shifts were found');
     expect(markup).toContain("locked until only one active shift remains");
     expect(markup).not.toContain("Task Queue");
   });

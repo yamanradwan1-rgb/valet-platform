@@ -9,6 +9,7 @@ import {
   SuccessCircle,
   VehicleIdentity,
 } from "../../ui/employee-primitives";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 
 export function CheckInKeyScanStep({
   mode = "live",
@@ -43,11 +44,12 @@ export function CheckInKeyScanStep({
   readonly onSimulateScan?: (() => void) | undefined;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
-  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+  const { t } = useEmployeeI18n();
+  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
 
   return (
     <div>
-      <BackHeader title="Assign Key" onBack={onBack} />
+      <BackHeader title={t.assignKey} onBack={onBack} />
       {error && (
         <div className="mx-5 mt-3 p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
           {error}
@@ -56,15 +58,15 @@ export function CheckInKeyScanStep({
       {!keyScanDone ? (
         <>
           <ScannerFrame
-            label="Scan key slot QR"
-            sublabel="Position the QR within the frame"
+            label={t.scanKeyQr}
+            sublabel={t.positionQr}
           />
           <div className="p-5 space-y-3">
             {mode === "prototype" && onSimulateScan && (
-              <Btn label="Simulate Key QR Scan" onClick={onSimulateScan} />
+              <Btn label={t.simulateKeyQr} onClick={onSimulateScan} />
             )}
             <Btn
-              label="Enter key slot manually"
+              label={t.enterKeyManually}
               variant={mode === "prototype" ? "secondary" : "primary"}
               onClick={onManualEntry}
             />
@@ -74,30 +76,31 @@ export function CheckInKeyScanStep({
         <div className="p-5 space-y-5">
           <div className="bg-[#EEFBF5] border border-vsuccess/20 rounded-2xl p-5 text-center">
             <p className="text-muted text-xs font-semibold uppercase tracking-wider mb-2">
-              Key Slot
+              {t.keySlot}
             </p>
             <input
               value={keySlotCode}
+              dir="ltr"
               onChange={(e) => onChangeKeySlotCode(e.target.value)}
-              placeholder="Enter slot"
+              placeholder={t.enterKeySlotCode}
               className="w-full text-center font-heading font-bold text-[40px] text-navy bg-transparent focus:outline-none"
             />
           </div>
           <div className="bg-white rounded-xl border border-vborder p-4">
             <VehicleIdentity
-              color={color ?? "Not specified"}
+              color={color ?? t.notSpecified}
               model={displayModel}
-              plate={plate ?? "No plate"}
+              plate={plate ?? t.noPlate}
             />
           </div>
           <Btn
-            label={isSubmitting ? "Assigning Key..." : "Assign Key"}
+            label={isSubmitting ? t.assigningKey : t.assignKey}
             onClick={onAssignKey}
             variant="success"
             disabled={Boolean(isSubmitting) || keySlotCode.trim() === ""}
           />
           <Btn
-            label="Scan another key"
+            label={t.scanAnotherKey}
             variant="secondary"
             size="md"
             onClick={onScanAnother}
@@ -128,17 +131,18 @@ export function CheckInKeyAssignedStep({
   readonly onCreateParkingTask: () => void;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
-  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+  const { t } = useEmployeeI18n();
+  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[500px] p-6 space-y-6">
       <SuccessCircle />
       <div className="text-center">
         <p className="font-heading font-bold text-2xl text-navy">
-          Key {keySlotCode} assigned
+          {t.key} <bdi dir="ltr">{keySlotCode}</bdi> {t.assignedKey}
         </p>
         <p className="text-neutral text-sm mt-1">
-          Successfully linked to this vehicle
+          {t.keySlotLinked}
         </p>
       </div>
       {error && (
@@ -148,20 +152,20 @@ export function CheckInKeyAssignedStep({
       )}
       <div className="w-full bg-white rounded-2xl border border-vborder p-5">
         <VehicleIdentity
-          color={color ?? "Not specified"}
+          color={color ?? t.notSpecified}
           model={displayModel}
-          plate={plate ?? "No plate"}
+          plate={plate ?? t.noPlate}
         />
         <div className="flex items-center justify-between pt-4 mt-4 border-t border-vborder">
-          <span className="text-neutral text-sm">Key slot</span>
-          <span className="bg-navy-3 text-white font-heading font-bold text-sm px-3 py-1.5 rounded-lg">
+          <span className="text-neutral text-sm">{t.keySlot}</span>
+          <span dir="ltr" className="bg-navy-3 text-white font-heading font-bold text-sm px-3 py-1.5 rounded-lg">
             {keySlotCode}
           </span>
         </div>
       </div>
       <div className="w-full">
         <Btn
-          label={isSubmitting ? "Creating Task..." : "Create Parking Task"}
+          label={isSubmitting ? t.creatingTask : t.createParkingTask}
           onClick={onCreateParkingTask}
           disabled={isSubmitting ?? false}
         />
@@ -191,11 +195,12 @@ export function CheckInParkingTaskStep({
   readonly onStartParking: () => void;
   readonly plate?: string | null | undefined;
 }): JSX.Element {
-  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+  const { t } = useEmployeeI18n();
+  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
 
   return (
     <div>
-      <BackHeader title="Parking Task" onBack={onBack} />
+      <BackHeader title={t.parkingTask} onBack={onBack} />
       <div className="p-5 space-y-5">
         {error && (
           <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
@@ -204,21 +209,21 @@ export function CheckInParkingTaskStep({
         )}
         <Badge variant="parking" />
         <VehicleIdentity
-          color={color ?? "Not specified"}
+          color={color ?? t.notSpecified}
           model={displayModel}
-          plate={plate ?? "No plate"}
+          plate={plate ?? t.noPlate}
         />
         <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-          <InfoRow label="Key slot" value={keySlotCode || "Not assigned"} />
+          <InfoRow label={t.keySlot} value={keySlotCode || t.notAssigned} />
         </div>
         <div className="bg-ice rounded-xl px-4 py-3 flex items-center gap-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-vblue flex-shrink-0 mt-px" />
           <p className="text-vblue text-xs font-semibold">
-            Location tracking will activate for this parking task
+            {t.locationTrackingParking}
           </p>
         </div>
         <Btn
-          label={isSubmitting ? "Starting Parking..." : "Start Parking"}
+          label={isSubmitting ? t.startingParking : t.startParkingAction}
           onClick={onStartParking}
           disabled={isSubmitting ?? false}
         />

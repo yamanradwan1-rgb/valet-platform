@@ -21,7 +21,7 @@ vi.mock("../../features/incidents/use-incident", () => ({
   useIncident: () => ({}),
 }));
 
-const { IncidentFlow, hydrateIncidentContext } = await import("./incident-flow");
+const { hydrateIncidentContext } = await import("./incident-flow");
 
 const sessionId = "11111111-1111-4111-8111-111111111111";
 
@@ -80,9 +80,10 @@ describe("hydrateIncidentContext — A1 request boundary", () => {
       .spyOn(EmployeeApiClient.prototype, "request")
       .mockResolvedValue(detail("READY"));
 
-    IncidentFlow({ mode: "live", nav: vi.fn(), sessionId });
-    await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1));
+    const result = await hydrateIncidentContext(undefined, sessionId);
 
+    expect(result.state).toBe("ready");
+    expect(request).toHaveBeenCalledTimes(1);
     expect(request.mock.instances[0]).toBeInstanceOf(EmployeeApiClient);
     expect(request).toHaveBeenCalledWith(
       `/v1/staff/valet-sessions/${sessionId}`,

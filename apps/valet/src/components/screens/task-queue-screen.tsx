@@ -6,6 +6,10 @@ import type { StaffTaskQueueItem } from "@valet/contracts";
 import type { Screen } from "../../types/employee-ui";
 import { ChevronRight, PlusIcon } from "../icons/employee-icons";
 import { useEmployeeI18n } from "../shell/employee-i18n";
+import {
+  formatEmployeeTime,
+  presentLiveError,
+} from "../../lib/i18n/live-presentation";
 import { Badge } from "../ui/employee-primitives";
 import { useTaskQueue } from "../../features/task-queue/use-task-queue";
 import {
@@ -52,21 +56,6 @@ export interface TaskQueueScreenProps {
   readonly shiftStartedAt?: string | undefined;
 }
 
-function formatShiftStartTime(isoString?: string | undefined): string {
-  if (!isoString) return "";
-  try {
-    const d = new Date(isoString);
-    if (isNaN(d.getTime())) return "";
-    return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  } catch {
-    return "";
-  }
-}
-
 export function TaskQueueScreen({
   role,
   mode,
@@ -81,7 +70,7 @@ export function TaskQueueScreen({
   onSelectRetrievalTask,
   onStartParkingSuccess,
 }: TaskQueueScreenProps): JSX.Element {
-  const { t } = useEmployeeI18n();
+  const { locale, t } = useEmployeeI18n();
 
   const isLiveMode = mode === "live" || Boolean(locationId || initialTasks);
   const { tasks: liveTasks, client: taskQueueClient } = useTaskQueue({
@@ -103,7 +92,7 @@ export function TaskQueueScreen({
   const queueTasks = viewModels.slice(1);
 
   const formattedShiftTime = isLiveMode
-    ? formatShiftStartTime(shiftStartedAt)
+    ? formatEmployeeTime(shiftStartedAt, locale)
     : "6:00 PM";
   const displayLocation = isLiveMode
     ? (locationName ?? "")
@@ -154,7 +143,7 @@ export function TaskQueueScreen({
           });
           nav?.("parking");
         } else if (result.kind === "DENIED") {
-          setActionError("This task is assigned to another valet employee.");
+          setActionError(t.assignedOtherError);
         }
       } else if (task.taskType === "RETRIEVAL") {
         const result = await executeRetrievalTaskAction(
@@ -188,14 +177,13 @@ export function TaskQueueScreen({
           });
           nav?.("retrieval");
         } else if (result.kind === "DENIED") {
-          setActionError("This task is assigned to another valet employee.");
+          setActionError(t.assignedOtherError);
         }
       } else {
         nav?.("retrieval");
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to operate task.";
-      setActionError(msg);
+      setActionError(presentLiveError(err, locale, t));
     } finally {
       actionInFlightRef.current = false;
       setInFlightTaskId(null);
@@ -208,7 +196,7 @@ export function TaskQueueScreen({
         <span className="w-2 h-2 rounded-full bg-vsuccess animate-pulse" />
         <span className="text-white text-xs font-semibold">{t.shiftActive}</span>
         <span className="text-muted text-xs">
-          · {formattedShiftTime} – now · {displayLocation}
+          · {formattedShiftTime} – {t.now} · {displayLocation}
         </span>
       </div>
 
@@ -244,7 +232,7 @@ export function TaskQueueScreen({
 
         <div>
           <p className="text-muted text-[10px] font-bold uppercase tracking-widest mb-3">
-            Queue
+            {t.queueLabel}
           </p>
           <div className="space-y-2">
             {!isLiveMode

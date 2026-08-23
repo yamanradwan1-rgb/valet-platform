@@ -7,6 +7,7 @@ import {
   DYNAMIC_QR_PATTERN,
   PICKUP_CODE_PATTERN,
 } from "../../../features/handoff/handoff-types";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 
 export interface LiveReadyHandoffLaunchProps {
   readonly error: string | null;
@@ -25,18 +26,19 @@ export function LiveReadyHandoffLaunchStep({
   onOpenIncident,
   vehicleInfo,
 }: LiveReadyHandoffLaunchProps): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <div>
-      <BackHeader title="Vehicle Ready" />
+      <BackHeader title={t.vehicleReadyTitle} />
       <div className="p-5 space-y-4">
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <p className="text-muted text-[10px] font-bold uppercase tracking-widest">
-            Ready for pickup
+            {t.readyForPickup}
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            <bdi>{vehicleInfo}</bdi>
+            <bdi dir="ltr">{vehicleInfo}</bdi>
           </p>
-          <p className="text-neutral text-xs mt-1">Key · <bdi>{keyInfo}</bdi></p>
+          <p className="text-neutral text-xs mt-1">{t.key} · <bdi dir="ltr">{keyInfo}</bdi></p>
         </div>
 
         {error !== null && (
@@ -47,7 +49,7 @@ export function LiveReadyHandoffLaunchStep({
 
         <Btn
           disabled={isInitiating}
-          label={isInitiating ? "Starting handoff…" : "Begin Guest Handoff"}
+          label={isInitiating ? t.startingHandoff : t.beginGuestHandoff}
           onClick={onBeginHandoff}
         />
         {onOpenIncident && (
@@ -56,7 +58,7 @@ export function LiveReadyHandoffLaunchStep({
             className="w-full h-11 text-muted text-sm font-semibold cursor-pointer hover:text-white transition-colors"
             onClick={onOpenIncident}
           >
-            Report Issue
+            {t.reportIssue}
           </button>
         )}
       </div>
@@ -93,6 +95,7 @@ export function LiveHandoffPendingStep({
   retryAfterSeconds,
   vehicleInfo,
 }: LiveHandoffPendingProps): JSX.Element {
+  const { t } = useEmployeeI18n();
   const [code, setCode] = useState("");
   const [qrPayload, setQrPayload] = useState("");
   const [reason, setReason] = useState("");
@@ -101,14 +104,14 @@ export function LiveHandoffPendingStep({
 
   return (
     <div>
-      <BackHeader title="Guest Handoff" />
+      <BackHeader title={t.guestHandoffTitle} />
       <div className="p-5 space-y-4">
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <p className="text-muted text-[10px] font-bold uppercase tracking-widest">
-            Awaiting guest proof
+            {t.awaitingGuestProof}
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            <bdi>{vehicleInfo}</bdi>
+            <bdi dir="ltr">{vehicleInfo}</bdi>
           </p>
         </div>
 
@@ -116,19 +119,20 @@ export function LiveHandoffPendingStep({
           <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
             {error}
             {retryAfterSeconds !== null && retryAfterSeconds > 0
-              ? ` Retry in ${String(retryAfterSeconds)}s.`
+              ? ` ${t.retryIn} ${String(retryAfterSeconds)}s.`
               : ""}
           </div>
         )}
 
         <div className="bg-white rounded-2xl border border-vborder p-4 space-y-3">
           <label className="block text-navy text-sm font-bold">
-            Pickup code
+            {t.pickupCodeLabel}
           </label>
           <input
             autoComplete="one-time-code"
             className="w-full h-12 rounded-xl bg-warm border border-vborder px-4 text-navy text-lg tracking-[0.3em] outline-none focus:border-vblue"
             inputMode="numeric"
+            dir="ltr"
             maxLength={4}
             onChange={(e) =>
               setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))
@@ -138,7 +142,7 @@ export function LiveHandoffPendingStep({
           />
           <Btn
             disabled={!codeValid || isMutating}
-            label="Verify Code"
+            label={t.verifyCode}
             onClick={() => {
               // Raw proof is ephemeral: cleared after every submission,
               // success or failure alike.
@@ -151,17 +155,18 @@ export function LiveHandoffPendingStep({
 
         <div className="bg-white rounded-2xl border border-vborder p-4 space-y-3">
           <label className="block text-navy text-sm font-bold">
-            Guest QR code
+            {t.guestQrCode}
           </label>
           <input
             className="w-full h-12 rounded-xl bg-warm border border-vborder px-4 text-navy text-xs outline-none focus:border-vblue"
+            dir="ltr"
             onChange={(e) => setQrPayload(e.target.value.trim())}
             placeholder="vhq1.…"
             value={qrPayload}
           />
           <Btn
             disabled={!qrValid || isMutating}
-            label="Verify QR"
+            label={t.verifyQr}
             onClick={() => {
               const submitted = qrPayload;
               setQrPayload("");
@@ -173,18 +178,18 @@ export function LiveHandoffPendingStep({
         {isSupervisor && (
           <div className="bg-white rounded-2xl border border-vborder p-4 space-y-3">
             <label className="block text-navy text-sm font-bold">
-              Supervisor override
+              {t.supervisorOverrideLabel}
             </label>
             <textarea
               className="w-full h-20 rounded-xl bg-warm border border-vborder p-3 text-navy text-sm outline-none focus:border-vblue"
               maxLength={500}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Reason (required)"
+              placeholder={t.reasonRequired}
               value={reason}
             />
             <Btn
               disabled={reason.trim().length === 0 || isMutating}
-              label="Override Verification"
+              label={t.overrideVerification}
               onClick={() => onOverride(reason.trim())}
             />
           </div>
@@ -196,7 +201,7 @@ export function LiveHandoffPendingStep({
           <button type="button" onClick={onOpenIncident} className="w-full h-11 text-muted text-sm font-semibold cursor-pointer hover:text-white transition-colors">
 
 
-            Report Issue
+            {t.reportIssue}
 
 
           </button>
@@ -207,12 +212,12 @@ export function LiveHandoffPendingStep({
 
 
         <div className="bg-white rounded-2xl border border-vborder p-4 space-y-3">
-          <label className="block text-navy text-sm font-bold">Abort</label>
+          <label className="block text-navy text-sm font-bold">{t.abort}</label>
           <textarea
             className="w-full h-16 rounded-xl bg-warm border border-vborder p-3 text-navy text-sm outline-none focus:border-vblue"
             maxLength={500}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Reason (required)"
+            placeholder={t.reasonRequired}
             value={reason}
           />
           {abortError !== null && (
@@ -220,7 +225,7 @@ export function LiveHandoffPendingStep({
           )}
           <Btn
             disabled={reason.trim().length === 0 || isMutating}
-            label="Abort Handoff"
+            label={t.abortHandoff}
             onClick={() => onAbort(reason.trim())}
           />
         </div>

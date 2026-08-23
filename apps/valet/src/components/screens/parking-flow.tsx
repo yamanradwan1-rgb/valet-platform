@@ -2,6 +2,7 @@
 
 import { useState, type JSX } from "react";
 import type { Screen } from "../../types/employee-ui";
+import { presentLiveError } from "../../lib/i18n/live-presentation";
 import {
   useParking,
   type ActiveParkingSession,
@@ -16,6 +17,7 @@ import {
   SuccessCircle,
   TrackingPill,
 } from "../ui/employee-primitives";
+import { useEmployeeI18n } from "../shell/employee-i18n";
 
 export interface ParkingFlowProps {
   readonly initialSession?: ActiveParkingSession | null | undefined;
@@ -42,6 +44,7 @@ export function ParkingFlow({
 
   onReportIssue,
 }: ParkingFlowProps): JSX.Element | null {
+  const { locale, t } = useEmployeeI18n();
   const parking = useParking({
     initialSession,
     onAuthorizationLoss,
@@ -57,24 +60,26 @@ export function ParkingFlow({
   const vehicle = session?.vehicle;
 
   const vehicleHeading = vehicle
-    ? `${vehicle.make ?? ""} ${vehicle.model ?? "Vehicle"}`.trim() || "Vehicle"
-    : "Vehicle";
+    ? `${vehicle.make ?? ""} ${vehicle.model ?? t.vehicle}`.trim() || t.vehicle
+    : t.vehicle;
 
   const vehiclePlate =
     vehicle?.plateNumberRaw ??
     vehicle?.temporaryDescriptor ??
-    "No Plate";
+    t.noPlateTitle;
 
-  const vehicleInfo = `${vehicleHeading} · ${vehiclePlate}`;
-  const keyInfo = session?.keySlotCode ?? "Not assigned";
-  const destination = session?.parkingZoneCode ? `Zone ${session.parkingZoneCode}` : "Parking area";
+  const keyInfo = session?.keySlotCode ?? t.notAssigned;
+  const destination = session?.parkingZoneCode ? `${t.zone} ${session.parkingZoneCode}` : t.parkingArea;
+  const liveError = parking.error
+    ? presentLiveError(new Error(parking.error), locale, t)
+    : null;
 
   if (parking.isHydrating) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] p-6 space-y-4">
         <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin" />
         <p className="text-navy font-semibold text-sm">
-          Loading parking session details...
+          {t.loadingParking}
         </p>
       </div>
     );
@@ -83,14 +88,14 @@ export function ParkingFlow({
   if (parking.error && !session) {
     return (
       <div>
-        <BackHeader title="Parking Operation" onBack={() => nav("task-queue")} />
+        <BackHeader title={t.parkingOperation} onBack={() => nav("task-queue")} />
         <div className="p-5 space-y-4">
           <div className="p-4 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-sm">
-            <p className="font-bold">Cannot resume parking flow</p>
-            <p className="text-xs mt-1">{parking.error}</p>
+            <p className="font-bold">{t.cannotResumeParking}</p>
+            <p className="text-xs mt-1">{liveError}</p>
           </div>
-          <Btn label="Retry" onClick={() => void parking.retry()} />
-          <Btn label="Back to Task Queue" variant="secondary" onClick={() => nav("task-queue")} />
+          <Btn label={t.retry} onClick={() => void parking.retry()} />
+          <Btn label={t.backToQueue} variant="secondary" onClick={() => nav("task-queue")} />
         </div>
       </div>
     );
@@ -103,7 +108,7 @@ export function ParkingFlow({
           <div>
             <Badge variant="parking" />
             <p className="font-heading font-bold text-xl text-navy mt-2">
-              Parking {vehicleHeading}
+              {t.parkingState} {vehicleHeading}
             </p>
           </div>
           {mode === "prototype" && <TrackingPill />}
@@ -111,26 +116,26 @@ export function ParkingFlow({
         <div className="p-5 space-y-4">
           {parking.error && (
             <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
-              {parking.error}
+              {liveError}
             </div>
           )}
           <div className="bg-white rounded-2xl border border-vborder p-5 flex flex-col items-center gap-1">
             <p className="text-muted text-xs uppercase tracking-wider">
-              Elapsed
+              {t.elapsed}
             </p>
             <ElapsedTimer startTimeIso={session?.parkingStartedAt} />
           </div>
           <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-            <InfoRow label="Vehicle" value={vehicleInfo} />
-            <InfoRow label="Key" value={keyInfo} />
-            <InfoRow label="Destination" value={destination} />
+            <InfoRow label={t.vehicle} value={<>{vehicleHeading} · <bdi dir="ltr">{vehiclePlate}</bdi></>} />
+            <InfoRow label={t.key} value={<bdi dir="ltr">{keyInfo}</bdi>} />
+            <InfoRow label={t.destination} value={<bdi dir="ltr">{destination}</bdi>} />
           </div>
           <Btn
-            label="Park Vehicle"
+            label={t.parkVehicle}
             onClick={() => parking.setStep("spot-scan")}
           />
           {mode === "live" && onReportIssue && (
-            <Btn label="Report Issue" variant="secondary" onClick={onReportIssue} />
+            <Btn label={t.reportIssue} variant="secondary" onClick={onReportIssue} />
           )}
           {mode === "prototype" && (
             <Btn
@@ -149,24 +154,24 @@ export function ParkingFlow({
     return (
       <div>
         <BackHeader
-          title="Parking Spot"
+          title={t.parkingSpot}
           onBack={() => parking.setStep("in-progress")}
         />
         {parking.error && (
           <div className="mx-5 mt-3 p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
-            {parking.error}
+            {liveError}
           </div>
         )}
         {!spotScanned ? (
           <>
             <ScannerFrame
-              label="Scan parking spot QR"
-              sublabel="Or choose manually below"
+              label={t.scanParkingQr}
+              sublabel={t.chooseManually}
             />
             <div className="p-5 space-y-3">
               {mode === "prototype" && (
                 <Btn
-                  label="Simulate Spot Scan"
+                  label={t.simulateSpotScan}
                   onClick={() => {
                     setSelectedSpot("P-101");
                     setSpotScanned(true);
@@ -174,7 +179,7 @@ export function ParkingFlow({
                 />
               )}
               <Btn
-                label="Enter spot code manually"
+                label={t.enterSpotManually}
                 variant={mode === "prototype" ? "secondary" : "primary"}
                 onClick={() => setSpotScanned(true)}
               />
@@ -184,26 +189,27 @@ export function ParkingFlow({
           <div className="p-5 space-y-5">
             <div className="bg-[#EEFBF5] border border-vsuccess/20 rounded-2xl p-5 text-center">
               <p className="text-muted text-xs font-semibold uppercase tracking-wider mb-2">
-                Location
+                {t.location}
               </p>
               <p className="font-heading font-bold text-3xl text-navy">
-                {destination}
+                <bdi dir="ltr">{destination}</bdi>
               </p>
               <div className="mt-2">
                 <label className="text-neutral text-xs font-semibold uppercase tracking-wider block mb-1">
-                  Spot Code
+                  {t.spotCode}
                 </label>
                 <input
                   value={selectedSpot}
+                  dir="ltr"
                   onChange={(e) => setSelectedSpot(e.target.value)}
-                  placeholder="Enter spot code"
+                  placeholder={t.enterSpotCode}
                   className="w-full text-center font-heading font-semibold text-xl text-navy bg-white border border-vborder rounded-xl h-12 focus:outline-none focus:border-vblue"
                 />
               </div>
             </div>
             <Btn
               label={
-                parking.isSubmitting ? "Confirming..." : "Confirm Parking"
+                parking.isSubmitting ? t.confirming : t.confirmParking
               }
               onClick={async () => {
                 await parking.confirmParked(selectedSpot);
@@ -212,7 +218,7 @@ export function ParkingFlow({
               disabled={parking.isSubmitting || selectedSpot.trim() === ""}
             />
             <Btn
-              label="Scan again"
+              label={t.scanAgain}
               variant="secondary"
               size="md"
               onClick={() => setSpotScanned(false)}
@@ -225,31 +231,31 @@ export function ParkingFlow({
   }
 
   if (parking.step === "success") {
-    const confirmedZone = session?.parkingZoneCode ? `Zone ${session.parkingZoneCode}` : "";
+    const confirmedZone = session?.parkingZoneCode ? `${t.zone} ${session.parkingZoneCode}` : "";
     const confirmedSpot = session?.parkingSpotCode ?? selectedSpot;
-    const spotDisplay = confirmedZone ? `${confirmedZone} · Spot ${confirmedSpot}` : `Spot ${confirmedSpot}`;
+    const spotDisplay = confirmedZone ? `${confirmedZone} · ${t.spot} ${confirmedSpot}` : `${t.spot} ${confirmedSpot}`;
 
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] p-6 space-y-6">
         <SuccessCircle />
         <div className="text-center">
           <p className="font-heading font-bold text-2xl text-navy">
-            Vehicle parked
+            {t.vehicleParked}
           </p>
           <p className="text-vsuccess text-sm font-semibold mt-1">
             {mode === "prototype"
               ? "Tracking stopped · Guest notified"
-              : "Parking confirmed"}
+              : t.parkingConfirmed}
           </p>
         </div>
         <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-          <InfoRow label="Vehicle" value={vehicleInfo} />
-          <InfoRow label="Location" value={spotDisplay} />
-          <InfoRow label="Key" value={keyInfo} />
+          <InfoRow label={t.vehicle} value={<>{vehicleHeading} · <bdi dir="ltr">{vehiclePlate}</bdi></>} />
+          <InfoRow label={t.location} value={<bdi dir="ltr">{spotDisplay}</bdi>} />
+          <InfoRow label={t.key} value={<bdi dir="ltr">{keyInfo}</bdi>} />
         </div>
         <div className="w-full">
           <Btn
-            label="Done"
+            label={t.done}
             onClick={() => {
               onComplete?.();
               nav("task-queue");

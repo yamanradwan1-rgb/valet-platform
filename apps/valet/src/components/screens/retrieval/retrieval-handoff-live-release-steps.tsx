@@ -4,6 +4,7 @@ import type { JSX } from "react";
 
 import { BackHeader, Btn } from "../../ui/employee-primitives";
 import type { HandoffVerificationSnapshot } from "../../../features/handoff/handoff-types";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 
 export interface LiveHandoffVerifiedProps {
   readonly canRelease: boolean;
@@ -28,29 +29,29 @@ export function LiveHandoffVerifiedStep({
   verification,
   vehicleInfo,
 }: LiveHandoffVerifiedProps): JSX.Element {
+  const { t } = useEmployeeI18n();
   const methodLabel =
     verification.method === "SUPERVISOR_OVERRIDE"
-      ? "Supervisor override"
+      ? t.supervisorOverrideLabel
       : verification.method === "PICKUP_CODE"
-        ? "Pickup code"
-        : "Guest QR";
+        ? t.pickupCodeLabel
+        : t.guestQr;
   return (
     <div>
-      <BackHeader title="Identity Verified" />
+      <BackHeader title={t.identityVerified} />
       <div className="p-5 space-y-4">
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <p className="text-muted text-[10px] font-bold uppercase tracking-widest">
-            Identity verified · {methodLabel}
+            {t.identityVerified} · {methodLabel}
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            <bdi>{vehicleInfo}</bdi>
+            <bdi dir="ltr">{vehicleInfo}</bdi>
           </p>
         </div>
 
         {financialBlocked && (
           <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-800 text-xs font-semibold">
-            Release blocked: the outstanding payment requirement is not
-            satisfied yet. Refresh once payment completes.
+            {t.releaseBlocked}
           </div>
         )}
 
@@ -63,33 +64,32 @@ export function LiveHandoffVerifiedStep({
         {canRelease ? (
           <>
             <div className="bg-white rounded-2xl border border-vborder p-4 space-y-2">
-              <p className="text-navy text-sm font-bold">Release vehicle</p>
+              <p className="text-navy text-sm font-bold">{t.releaseVehicle}</p>
               <p className="text-neutral text-xs leading-relaxed">
-                This hands the vehicle and key to the guest and closes the task
-                permanently. It cannot be undone.
+                {t.cannotUndo}
               </p>
             </div>
 
             <Btn
               disabled={isReleasing}
-              label={isReleasing ? "Releasing…" : "Release Vehicle"}
+              label={isReleasing ? t.releasing : t.releaseVehicle}
               onClick={onRelease}
             />
           </>
         ) : (
           <div className="bg-white rounded-2xl border border-vborder p-4 space-y-2">
             <p className="text-navy text-sm font-bold">
-              Override recorded — awaiting task owner
+              {t.awaitingTaskOwner}
             </p>
             <p className="text-neutral text-xs leading-relaxed">
-              The Retrieval task owner must complete the vehicle release.
+              {t.releaseOwnerRequired}
             </p>
           </div>
         )}
 
         {onOpenIncident && (
           <Btn
-            label="Report Issue"
+            label={t.reportIssue}
             variant="secondary"
             onClick={onOpenIncident}
           />
@@ -108,22 +108,23 @@ export function LiveHandoffCompletedStep({
   onDone,
   vehicleInfo,
 }: LiveHandoffCompletedProps): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <div>
-      <BackHeader title="Handoff Complete" />
+      <BackHeader title={t.handoffComplete} />
       <div className="p-5 space-y-4">
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <p className="text-muted text-[10px] font-bold uppercase tracking-widest">
-            Handoff complete
+            {t.handoffComplete}
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            <bdi>{vehicleInfo}</bdi>
+            <bdi dir="ltr">{vehicleInfo}</bdi>
           </p>
           <p className="text-neutral text-xs mt-1">
-            Task completed and custody handed over.
+            {t.completedCustody}
           </p>
         </div>
-        <Btn label="Next Task" onClick={onDone} />
+        <Btn label={t.nextTask} onClick={onDone} />
       </div>
     </div>
   );

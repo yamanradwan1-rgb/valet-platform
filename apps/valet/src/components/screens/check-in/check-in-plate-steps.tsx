@@ -6,6 +6,7 @@ import {
   ScannerFrame,
   VehicleIdentity,
 } from "../../ui/employee-primitives";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 
 export function CheckInPlateScanStep({
   mode = "live",
@@ -20,22 +21,23 @@ export function CheckInPlateScanStep({
   readonly onSimulateScan?: (() => void) | undefined;
   readonly scanDone: boolean;
 }): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <div>
-      <BackHeader title="Scan Plate" onBack={onBack} />
+      <BackHeader title={t.scanPlate} onBack={onBack} />
       <ScannerFrame
-        label="Scan license plate"
-        sublabel="Position the plate within the frame"
+        label={t.scanLicensePlate}
+        sublabel={t.positionPlate}
         scanned={scanDone}
       />
       <div className="p-5 space-y-3">
         {!scanDone ? (
           <>
             {mode === "prototype" && onSimulateScan && (
-              <Btn label="Simulate Plate Detection" onClick={onSimulateScan} />
+              <Btn label={t.simulatePlate} onClick={onSimulateScan} />
             )}
             <Btn
-              label="Enter manually"
+              label={t.enterManually}
               variant={mode === "prototype" ? "secondary" : "primary"}
               onClick={onManualEntry}
             />
@@ -43,7 +45,7 @@ export function CheckInPlateScanStep({
         ) : (
           <div className="text-center py-3">
             <p className="text-vsuccess font-semibold text-sm">
-              Plate detected — confirming...
+              {t.plateDetected}
             </p>
           </div>
         )}
@@ -69,16 +71,18 @@ export function CheckInManualPlateStep({
   readonly plateCountry: string;
   readonly plateNumber: string;
 }): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <div>
-      <BackHeader title="Enter Plate" onBack={onBack} />
+      <BackHeader title={t.enterPlate} onBack={onBack} />
       <div className="p-5 space-y-5">
         <div>
           <label className="text-navy font-semibold text-sm block mb-2">
-            License Plate
+            {t.licensePlate}
           </label>
           <input
             value={plateNumber}
+            dir="ltr"
             onChange={(e) => onChangePlateNumber(e.target.value)}
             placeholder="e.g. 12-34567"
             className="w-full h-14 border border-vborder rounded-2xl px-4 font-heading font-bold text-xl text-center text-navy focus:outline-none focus:border-vblue transition-colors bg-white"
@@ -86,24 +90,24 @@ export function CheckInManualPlateStep({
         </div>
         <div>
           <label className="text-navy font-semibold text-sm block mb-2">
-            Country / Region
+            {t.countryRegion}
           </label>
           <select
             value={plateCountry}
             onChange={(e) => onChangePlateCountry(e.target.value)}
             className="w-full h-12 border border-vborder rounded-xl px-4 text-navy text-sm focus:outline-none bg-white cursor-pointer"
           >
-            <option value="JO">Jordan (JO)</option>
-            <option value="AE">UAE (AE)</option>
-            <option value="SA">Saudi Arabia (SA)</option>
-            <option value="KW">Kuwait (KW)</option>
-            <option value="BH">Bahrain (BH)</option>
-            <option value="OTHER">Other</option>
+            <option value="JO">{t.jordan} (JO)</option>
+            <option value="AE">{t.uae} (AE)</option>
+            <option value="SA">{t.saudiArabia} (SA)</option>
+            <option value="KW">{t.kuwait} (KW)</option>
+            <option value="BH">{t.bahrain} (BH)</option>
+            <option value="OTHER">{t.other}</option>
           </select>
         </div>
-        <Btn label="Continue" onClick={onContinue} />
+        <Btn label={t.continueLabel} onClick={onContinue} />
         <Btn
-          label="No plate / unreadable plate"
+          label={t.noPlateUnreadable}
           variant="ghost"
           size="md"
           onClick={onNoPlate}
@@ -140,20 +144,21 @@ export function CheckInPlateConfirmStep({
   readonly plateNumber?: string | undefined;
   readonly temporaryDescriptor?: string | null | undefined;
 }): JSX.Element {
-  const displayPlate = temporaryDescriptor || plateNumber || "No plate";
-  const displayCountry = plateCountry ? `${plateCountry} plate` : "Plate";
-  const displayModel = make && model ? `${make} ${model}` : (make || model || "Vehicle");
+  const { t } = useEmployeeI18n();
+  const displayPlate = temporaryDescriptor || plateNumber || t.noPlate;
+  const displayCountry = plateCountry ? `${plateCountry} ${t.plateCountry}` : t.plate;
+  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
 
-  let statusBadgeText = "Detected";
+  let statusBadgeText = t.detected;
   if (temporaryDescriptor) {
-    statusBadgeText = "Temporary Descriptor";
+    statusBadgeText = t.temporaryDescriptor;
   } else if (isManualEntry) {
-    statusBadgeText = "Manual Entry";
+    statusBadgeText = t.manualEntry;
   }
 
   return (
     <div>
-      <BackHeader title="Confirm Plate" onBack={onBack} />
+      <BackHeader title={t.confirmPlate} onBack={onBack} />
       <div className="p-5 space-y-5">
         {error && (
           <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
@@ -165,41 +170,41 @@ export function CheckInPlateConfirmStep({
             {statusBadgeText}
           </p>
           <p className="font-heading font-bold text-[36px] text-navy tracking-widest break-all">
-            {displayPlate}
+            <bdi dir="ltr">{displayPlate}</bdi>
           </p>
           {!temporaryDescriptor && !isManualEntry && (
             <div className="flex items-center justify-center gap-1.5 mt-2">
               <span className="w-1.5 h-1.5 rounded-full bg-vsuccess" />
               <span className="text-vsuccess text-xs font-semibold">
-                High confidence · {displayCountry}
+                {t.highConfidence} · {displayCountry}
               </span>
             </div>
           )}
           {!temporaryDescriptor && isManualEntry && (
             <div className="flex items-center justify-center gap-1.5 mt-2">
               <span className="text-neutral text-xs font-semibold">
-                Entered plate · {displayCountry}
+                {t.enteredPlate} · {displayCountry}
               </span>
             </div>
           )}
         </div>
         <div className="bg-white rounded-2xl border border-vborder p-4 space-y-1">
           <p className="text-muted text-xs uppercase tracking-wider mb-3">
-            Vehicle details
+            {t.vehicleDetails}
           </p>
           <VehicleIdentity
-            color={color ?? "Not specified"}
+            color={color ?? t.notSpecified}
             model={displayModel}
             plate={displayPlate}
           />
         </div>
         <Btn
-          label={isSubmitting ? "Confirming..." : "Confirm Plate"}
+          label={isSubmitting ? t.confirmingPlate : t.confirmPlate}
           onClick={onConfirm}
           disabled={isSubmitting ?? false}
         />
         <Btn
-          label="Edit"
+          label={t.edit}
           variant="secondary"
           size="md"
           onClick={onEdit}

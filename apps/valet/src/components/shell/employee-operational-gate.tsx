@@ -51,14 +51,14 @@ export function EmployeeOperationalGate({
   onRetry,
   onSignOut,
 }: EmployeeOperationalGateProps): JSX.Element {
-  const { t } = useEmployeeI18n();
+  const { locale, t } = useEmployeeI18n();
   return (
     <GateShell>
       {model.kind === "LOADING" && (
         <>
           <div className="w-8 h-8 border-4 border-vblue border-t-transparent rounded-full animate-spin mb-6" />
           <p className="text-white font-semibold text-sm">
-            Loading operational context...
+            {t.loadingContext}
           </p>
         </>
       )}
@@ -70,8 +70,7 @@ export function EmployeeOperationalGate({
               {t.noActiveShift}
             </p>
             <p className="text-muted text-sm leading-relaxed">
-              You do not have an active shift at any location right now.
-              Operational tasks appear once a shift is active.
+              {t.noActiveShiftDetail}
             </p>
           </div>
           <div className="w-full space-y-3">
@@ -103,11 +102,11 @@ export function EmployeeOperationalGate({
         <>
           <div className="w-full bg-white/[0.06] border border-white/10 rounded-3xl p-6 mb-6 backdrop-blur-sm">
             <p className="font-heading font-bold text-white text-xl mb-2">
-              Multiple active shifts
+              {t.multipleActiveShifts}
             </p>
             <p className="text-muted text-sm leading-relaxed">
-              {model.count} active shifts were found for your account.
-              Operations are locked until only one active shift remains.
+              <bdi dir="ltr">{model.count}</bdi> {t.activeShiftsFound}{" "}
+              {t.ambiguousShiftDetail}
             </p>
           </div>
           <div className="w-full space-y-3">
@@ -139,10 +138,10 @@ export function EmployeeOperationalGate({
         <>
           <div className="w-full bg-red-500/10 border border-red-400/30 rounded-3xl p-6 mb-6">
             <p className="font-heading font-bold text-red-200 text-xl mb-2">
-              Could not load operational context
+              {t.couldNotLoadContext}
             </p>
             <p className="text-red-200/80 text-sm leading-relaxed">
-              {model.message}
+              {locale === "ar" ? t.operationFailed : model.message}
             </p>
           </div>
           <div className="w-full space-y-3">

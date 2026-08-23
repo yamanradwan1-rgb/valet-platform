@@ -4,6 +4,7 @@ import type {
   StaffCheckInDraftSummary,
 } from "@valet/contracts";
 import { BackHeader, Btn } from "../../ui/employee-primitives";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 
 export function CheckInRecoverableStep({
   drafts,
@@ -18,12 +19,13 @@ export function CheckInRecoverableStep({
   readonly onResumeContinuation: (cont: StaffCheckInContinuationSummary) => void;
   readonly onResumeDraft: (draft: StaffCheckInDraftSummary) => void;
 }): JSX.Element {
+  const { t } = useEmployeeI18n();
   return (
     <div>
-      <BackHeader title="Recoverable Sessions" onBack={onBack} />
+      <BackHeader title={t.recoverableSessions} onBack={onBack} />
       <div className="p-5 space-y-4">
         <p className="text-neutral text-xs font-semibold uppercase tracking-wider">
-          Multiple Incomplete Check-Ins Found
+          {t.multipleCheckIns}
         </p>
         {drafts.map((draft) => (
           <div
@@ -32,15 +34,15 @@ export function CheckInRecoverableStep({
             className="bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
           >
             <span className="text-[10px] font-bold uppercase text-vblue bg-ice px-2 py-0.5 rounded">
-              Draft
+              {t.draft}
             </span>
             <p className="font-heading font-bold text-navy text-base mt-2">
-              {draft.vehicle.make ?? "Vehicle"} {draft.vehicle.model ?? ""}
+              {draft.vehicle.make ?? t.vehicle} {draft.vehicle.model ?? ""}
             </p>
             <p className="text-neutral text-xs">
               {draft.vehicle.plateNumberRaw ??
                 draft.vehicle.temporaryDescriptor ??
-                "No Plate"}
+                t.noPlateTitle}
             </p>
           </div>
         ))}
@@ -51,19 +53,19 @@ export function CheckInRecoverableStep({
             className="bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
           >
             <span className="text-[10px] font-bold uppercase text-vsuccess bg-green-50 px-2 py-0.5 rounded">
-              Awaiting Parking
+              {t.awaitingParking}
             </span>
             <p className="font-heading font-bold text-navy text-base mt-2">
-              {cont.vehicle.make ?? "Vehicle"} {cont.vehicle.model ?? ""}
+              {cont.vehicle.make ?? t.vehicle} {cont.vehicle.model ?? ""}
             </p>
             <p className="text-neutral text-xs">
               {cont.vehicle.plateNumberRaw ??
                 cont.vehicle.temporaryDescriptor ??
-                "No Plate"}
+                t.noPlateTitle}
             </p>
           </div>
         ))}
-        <Btn label="Back to Task Queue" variant="secondary" onClick={onBack} />
+        <Btn label={t.backToQueue} variant="secondary" onClick={onBack} />
       </div>
     </div>
   );
