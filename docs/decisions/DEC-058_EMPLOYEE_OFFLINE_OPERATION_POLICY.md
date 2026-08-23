@@ -1,7 +1,7 @@
 # DEC-058 — Employee Offline Operation Policy
 
-Status: Accepted  
-Date: 2026-08-23  
+Status: Accepted
+Date: 2026-08-23
 Task: VUI-008 — MVP Hardening + E2E Gate
 
 ## Context
