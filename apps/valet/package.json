@@ -8,7 +8,8 @@
     "start": "next start --port 3000",
     "lint": "eslint src --max-warnings=0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run src"
+    "test": "vitest run src",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@valet/contracts": "workspace:*",
@@ -18,10 +19,11 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@tailwindcss/postcss": "^4.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
