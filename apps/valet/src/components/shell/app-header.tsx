@@ -1,6 +1,8 @@
 import type { JSX } from "react";
 import type { StaffOperationalRole } from "@valet/contracts";
 
+import { LocaleToggle } from "./employee-i18n";
+
 export interface AppHeaderProps {
   readonly mode?: "live" | "prototype" | undefined;
   readonly locationName?: string | undefined;
@@ -56,15 +58,18 @@ export function AppHeader({
           </p>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={onAvatarTap}
-        className="w-9 h-9 rounded-full bg-navy-3 flex items-center justify-center cursor-pointer active:opacity-70"
-      >
-        <span className="font-heading font-bold text-white text-[11px]">
-          {displayInitials}
-        </span>
-      </button>
+      <div className="flex items-center gap-2">
+        {isLive && <LocaleToggle />}
+        <button
+          type="button"
+          onClick={onAvatarTap}
+          className="w-9 h-9 rounded-full bg-navy-3 flex items-center justify-center cursor-pointer active:opacity-70"
+        >
+          <span className="font-heading font-bold text-white text-[11px]">
+            {displayInitials}
+          </span>
+        </button>
+      </div>
     </header>
   );
 }

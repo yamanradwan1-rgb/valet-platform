@@ -1,53 +1,51 @@
 "use client";
 
-import { useEffect, useRef, useState, type JSX } from "react";
+import { useEffect, useRef, useSyncExternalStore, type JSX } from "react";
+
+import { useEmployeeI18n } from "./employee-i18n";
 
 export interface ConnectivityBannerProps {
-  /** Called once when connectivity is restored, for safe revalidation. */
   readonly onReconnect?: (() => void) | undefined;
   /** Test/SSR override of navigator.onLine. Undefined = browser-driven. */
   readonly onlineOverride?: boolean | undefined;
 }
 
-function useBrowserOnline(): boolean {
-  const [online, setOnline] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const goOffline = () => setOnline(false);
-    const goOnline = () => {
-      setOnline(true);
-    };
-    window.addEventListener("offline", goOffline);
-    window.addEventListener("online", goOnline);
-    return () => {
-      window.removeEventListener("offline", goOffline);
-      window.removeEventListener("online", goOnline);
-    };
-  }, []);
-
-  return online !== false;
+function subscribe(callback: () => void): () => void {
+  window.addEventListener("offline", callback);
+  window.addEventListener("online", callback);
+  return () => {
+    window.removeEventListener("offline", callback);
+    window.removeEventListener("online", callback);
+  };
 }
+
+const getSnapshot = (): boolean => navigator.onLine;
+const getServerSnapshot = (): boolean => true;
 
 /**
  * DEC-058 §7: truthful connectivity HINT only. Never claims actions were
  * queued, will auto-sync, or that the server is healthy because the browser
- * reports online again. Reconnect triggers existing authoritative
- * revalidation; it never marks any operation successful.
+ * reports online again. Uses useSyncExternalStore so the initial mount reads
+ * navigator.onLine immediately without a cascading-render effect.
  */
 export function ConnectivityBanner({
   onReconnect,
   onlineOverride,
 }: ConnectivityBannerProps): JSX.Element | null {
-  const browserOnline = useBrowserOnline();
+  const { t } = useEmployeeI18n();
+  const browserOnline = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
   const online = onlineOverride ?? browserOnline;
-  const wasOfflineRef = useRef(false);
 
+  // Track offline→online transition to fire revalidation exactly once.
+  const wasOfflineRef = useRef(false);
   useEffect(() => {
-    if (!online) {
+    if (online === false) {
       wasOfflineRef.current = true;
-      return;
-    }
-    if (wasOfflineRef.current) {
+    } else if (wasOfflineRef.current) {
       wasOfflineRef.current = false;
       onReconnect?.();
     }
@@ -60,7 +58,7 @@ export function ConnectivityBanner({
       className="bg-vdanger text-white text-xs font-semibold text-center px-4 py-2"
       role="status"
     >
-      No network connection. Reconnect to refresh and continue.
+      {t.noNetworkMessage}
     </div>
   );
 }
