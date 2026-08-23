@@ -43,7 +43,7 @@ export function LiveHandoffVerifiedStep({
             Identity verified · {methodLabel}
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            {vehicleInfo}
+            <bdi>{vehicleInfo}</bdi>
           </p>
         </div>
 
@@ -117,7 +117,7 @@ export function LiveHandoffCompletedStep({
             Handoff complete
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            {vehicleInfo}
+            <bdi>{vehicleInfo}</bdi>
           </p>
           <p className="text-neutral text-xs mt-1">
             Task completed and custody handed over.

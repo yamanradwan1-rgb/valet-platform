@@ -34,9 +34,9 @@ export function LiveReadyHandoffLaunchStep({
             Ready for pickup
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            {vehicleInfo}
+            <bdi>{vehicleInfo}</bdi>
           </p>
-          <p className="text-neutral text-xs mt-1">Key · {keyInfo}</p>
+          <p className="text-neutral text-xs mt-1">Key · <bdi>{keyInfo}</bdi></p>
         </div>
 
         {error !== null && (
@@ -108,7 +108,7 @@ export function LiveHandoffPendingStep({
             Awaiting guest proof
           </p>
           <p className="font-heading font-bold text-navy text-lg mt-1">
-            {vehicleInfo}
+            <bdi>{vehicleInfo}</bdi>
           </p>
         </div>
 

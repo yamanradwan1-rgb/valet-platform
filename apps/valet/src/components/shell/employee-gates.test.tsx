@@ -89,7 +89,7 @@ describe("EmployeeOperationalGate truthful states", () => {
     const markup = renderToStaticMarkup(
       <EmployeeOperationalGate model={{ kind: "LOADING" }} />,
     );
-    expect(markup).toContain("Preparing your operational view");
+    expect(markup).toContain("Loading operational context");
     expect(markup).not.toContain("No active shift");
     expect(markup).not.toContain("Start Shift");
   });
@@ -103,7 +103,7 @@ describe("EmployeeOperationalGate truthful states", () => {
       />,
     );
     expect(markup).toContain("No active shift");
-    expect(markup).toContain("Refresh status");
+    expect(markup).toContain("Retry");
     expect(markup).toContain("Sign Out");
     for (const fabricated of ["Mohammed Khalil", "Zone", "Start Shift"]) {
       expect(markup).not.toContain(fabricated);
