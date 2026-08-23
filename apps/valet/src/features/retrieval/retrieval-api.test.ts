@@ -18,6 +18,7 @@ describe("Retrieval API client wrappers", () => {
     const mockDetail = {
       checkIn: { conditionCompletedAt: null },
       handoff: { pendingAt: null, verification: null },
+      guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
       keySlot: { code: "B-214" },
       locationId,
       parking: {

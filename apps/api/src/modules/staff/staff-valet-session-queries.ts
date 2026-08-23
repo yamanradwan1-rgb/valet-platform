@@ -41,6 +41,84 @@ export interface ParkingRow {
   zoneCode: string;
 }
 
+export type GuestAccessStatus = "ACTIVE" | "EXPIRED" | "NOT_ISSUED" | "REVOKED";
+
+export interface GuestAccessFact {
+  readonly expiresAt: Date | null;
+  readonly revokedAt: Date | null;
+  readonly status: GuestAccessStatus;
+}
+
+/**
+ * Safe Guest Access status derivation for the staff detail read.
+ * Placeholder detection takes precedence over the deliberately populated
+ * disabled-marker revocation/expiry metadata; revocation then takes
+ * precedence over expiry; expiry is compared against database time.
+ */
+export function deriveGuestAccessFact(
+  credential: {
+    customer_access_expires_at: Date | null;
+    customer_access_revoked_at: Date | null;
+    customer_access_token_hash: string;
+  },
+  databaseNow: Date,
+): GuestAccessFact {
+  if (credential.customer_access_token_hash.startsWith("disabled:intake:")) {
+    return { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" };
+  }
+  if (credential.customer_access_revoked_at !== null) {
+    return {
+      expiresAt: credential.customer_access_expires_at,
+      revokedAt: credential.customer_access_revoked_at,
+      status: "REVOKED",
+    };
+  }
+  if (
+    credential.customer_access_expires_at === null ||
+    credential.customer_access_expires_at.getTime() <= databaseNow.getTime()
+  ) {
+    return {
+      expiresAt: credential.customer_access_expires_at,
+      revokedAt: null,
+      status: "EXPIRED",
+    };
+  }
+  return {
+    expiresAt: credential.customer_access_expires_at,
+    revokedAt: null,
+    status: "ACTIVE",
+  };
+}
+
+/**
+ * Reads only the persisted Guest Access facts needed internally plus the
+ * authoritative comparison time. Never selects or exposes the raw token;
+ * the token hash stays internal to this transaction-scoped read.
+ */
+export async function loadGuestAccess(
+  client: PostgresTransaction,
+  session: SessionScopeRow,
+): Promise<GuestAccessFact> {
+  const result = await client.query<{
+    customer_access_expires_at: Date | null;
+    customer_access_revoked_at: Date | null;
+    customer_access_token_hash: string;
+    database_now: Date;
+  }>(
+    `SELECT customer_access_token_hash, customer_access_expires_at,
+            customer_access_revoked_at, clock_timestamp() AS database_now
+     FROM valet_sessions
+     WHERE id = $1
+     FOR SHARE`,
+    [session.id],
+  );
+  const row = result.rows[0];
+  if (row === undefined) {
+    throw new Error("Corrupted state: guest access row missing.");
+  }
+  return deriveGuestAccessFact(row, row.database_now);
+}
+
 export async function loadSessionScope(
   client: PostgresTransaction,
   sessionId: string,

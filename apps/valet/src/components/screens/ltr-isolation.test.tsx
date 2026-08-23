@@ -9,6 +9,11 @@ import {
 describe("LTR isolation for direction-sensitive values", () => {
   const detail = {
     checkIn: { conditionCompletedAt: null },
+    guestAccess: {
+      expiresAt: null,
+      revokedAt: null,
+      status: "NOT_ISSUED" as const,
+    },
     handoff: {
       pendingAt: "2026-08-22T10:00:00.000Z",
       verification: null,

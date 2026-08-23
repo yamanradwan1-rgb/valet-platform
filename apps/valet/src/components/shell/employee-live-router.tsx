@@ -4,6 +4,7 @@ import type { JSX } from "react";
 
 import type { Screen } from "../../types/employee-ui";
 import { CheckInFlow } from "../screens/check-in-flow";
+import { GuestAccessFlow } from "../screens/guest-access/guest-access-flow";
 import { ParkingFlow } from "../screens/parking-flow";
 import { IncidentFlow } from "../screens/incident-flow";
 import { RetrievalFlow } from "../screens/retrieval-flow";
@@ -14,16 +15,21 @@ import type { ResolvedOperationalScope } from "../../features/staff-operational-
 import type {
   ActiveIncidentTarget,
   ActiveParkingTarget,
-  ActiveRetrievalTarget,} from "./employee-workspace";
+  ActiveRetrievalTarget,
+  GuestAccessTarget,
+} from "./employee-workspace";
 
 export interface EmployeeLiveRouterProps {
   readonly activeScope: ResolvedOperationalScope;
   readonly effectiveScreen: Screen;
+  readonly guestAccessTarget: GuestAccessTarget | null;
   readonly incidentTarget: ActiveIncidentTarget | null;
   readonly onOpenIncident: (sessionId: string, from: Screen) => void;
 
   readonly nav: (s: Screen) => void;
   readonly onAuthorizationLoss: () => Promise<void>;
+  readonly onGuestAccessClose: (returnScreen: Screen) => void;
+  readonly onOpenGuestAccess: (sessionId: string, from: Screen) => void;
   readonly onParkingComplete: () => void;
   readonly onRetrievalComplete: () => void;
   readonly onSelectParkingTask: (target: ActiveParkingTarget) => void;
@@ -38,12 +44,15 @@ export function EmployeeLiveRouter({
   activeScope,
   effectiveScreen,
 
+  guestAccessTarget,
   incidentTarget,
   onOpenIncident,
 
   nav,
 
   onAuthorizationLoss,
+  onGuestAccessClose,
+  onOpenGuestAccess,
   onParkingComplete,
   onRetrievalComplete,
   onSelectParkingTask,
@@ -62,6 +71,9 @@ export function EmployeeLiveRouter({
           mode="live"
           nav={nav}
           onAuthorizationLoss={onAuthorizationLoss}
+          onOpenGuestAccess={(sessionId) =>
+            onOpenGuestAccess(sessionId, "check-in")
+          }
           onStartParkingSuccess={onStartParkingSuccess}
         />
       );
@@ -112,6 +124,18 @@ export function EmployeeLiveRouter({
           nav={nav}
           returnScreen={incidentTarget.returnScreen}
           sessionId={incidentTarget.sessionId}
+        />
+      );
+    case "guest-access":
+      return guestAccessTarget === null ? (
+        <div />
+      ) : (
+        <GuestAccessFlow
+          nav={nav}
+          onClose={() => onGuestAccessClose(guestAccessTarget.returnScreen)}
+          onAuthorizationLoss={onAuthorizationLoss}
+          returnScreen={guestAccessTarget.returnScreen}
+          sessionId={guestAccessTarget.sessionId}
         />
       );
     case "retrieval":

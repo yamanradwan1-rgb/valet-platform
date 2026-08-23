@@ -88,6 +88,7 @@ describe("Check-In API Client", () => {
     const payload: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: null },
       handoff: { pendingAt: null, verification: null },
+      guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
       keySlot: null,
       locationId,
       parking: {

@@ -26,6 +26,7 @@ import {
 
   type ActiveRetrievalTarget,
   type EmployeeWorkspaceTargets,
+  type GuestAccessTarget,
   type WorkspaceIdentityInput,
 } from "./shell/employee-workspace";
 import { AppHeader } from "./shell/app-header";
@@ -48,6 +49,7 @@ const livePermittedScreens = new Set<Screen>([
   "parking",
   "incident",
   "retrieval",
+  "guest-access",
 ]);
 
 export interface EmployeeAppProps {
@@ -163,6 +165,18 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     });
   };
 
+  const handleOpenGuestAccess = (sessionId: string, from: Screen) => {
+    const target: GuestAccessTarget = { returnScreen: from, sessionId };
+    patchTargets({ guestAccessTarget: target, screenOverride: "guest-access" });
+  };
+
+  const handleGuestAccessClose = (returnScreen: Screen) => {
+    patchTargets({
+      guestAccessTarget: null,
+      screenOverride: returnScreen,
+    });
+  };
+
 
   const handleSignOut = async (): Promise<void> => {
     await auth?.logout();
@@ -249,9 +263,12 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           <EmployeeLiveRouter
             activeScope={liveScope}
             effectiveScreen={effectiveScreen}
+            guestAccessTarget={targets.guestAccessTarget}
             incidentTarget={targets.activeIncidentTarget}
             nav={nav}
             onAuthorizationLoss={revalidateOnAuthLoss}
+            onGuestAccessClose={handleGuestAccessClose}
+            onOpenGuestAccess={handleOpenGuestAccess}
             onOpenIncident={handleOpenIncident}
             onParkingComplete={handleParkingComplete}
             onRetrievalComplete={handleRetrievalComplete}

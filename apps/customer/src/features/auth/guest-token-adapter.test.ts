@@ -1,70 +1,78 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { extractDevFragmentToken } from './guest-token-adapter';
+import { extractGuestFragmentToken } from './guest-token-adapter';
 
-describe('extractDevFragmentToken', () => {
-  beforeEach(() => {
-    vi.stubEnv('NODE_ENV', 'development');
+const VALID_TOKEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_';
+
+function stubBrowser(hash: string, replaceState: () => void = vi.fn()) {
+  const replaceStateSpy = vi.fn(replaceState);
+  vi.stubGlobal('window', {
+    location: {
+      hash,
+      pathname: '/app',
+      search: '?foo=bar',
+    },
+    history: {
+      replaceState: replaceStateSpy,
+    },
   });
+  return replaceStateSpy;
+}
 
+describe('extractGuestFragmentToken', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
-  it('extracts token from hash and scrubs history in development mode', () => {
-    const replaceStateSpy = vi.fn();
-    vi.stubGlobal('window', {
-      location: {
-        hash: '#guestToken=dev_secret_token_123',
-        pathname: '/app',
-        search: '?foo=bar',
-      },
-      history: {
-        replaceState: replaceStateSpy,
-      },
-    });
+  it('returns null during SSR and never touches history', () => {
+    const scrub = vi.fn();
+    vi.stubGlobal('window', undefined);
+    // A window-less (server) environment must not read any document state.
+    expect(extractGuestFragmentToken()).toBeNull();
+    expect(scrub).not.toHaveBeenCalled();
+  });
 
-    const token = extractDevFragmentToken();
+  it('adopts an exact production fragment and scrubs it immediately', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const replaceStateSpy = stubBrowser(`#guestToken=${VALID_TOKEN}`);
 
-    expect(token).toBe('dev_secret_token_123');
+    const token = extractGuestFragmentToken();
+
+    expect(token).toBe(VALID_TOKEN);
     expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/app?foo=bar');
   });
 
-  it('returns null and does not extract token in production mode', () => {
-    vi.stubEnv('NODE_ENV', 'production');
+  it('rejects a malformed guest token but still scrubs the fragment', () => {
+    const replaceStateSpy = stubBrowser('#guestToken=too_short');
 
-    const replaceStateSpy = vi.fn();
-    vi.stubGlobal('window', {
-      location: {
-        hash: '#guestToken=prod_secret_token_123',
-        pathname: '/app',
-        search: '',
-      },
-      history: {
-        replaceState: replaceStateSpy,
-      },
-    });
-
-    const token = extractDevFragmentToken();
+    const token = extractGuestFragmentToken();
 
     expect(token).toBeNull();
-    expect(replaceStateSpy).not.toHaveBeenCalled();
+    expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/app?foo=bar');
   });
 
-  it('returns null when hash does not contain guestToken', () => {
-    vi.stubGlobal('window', {
-      location: {
-        hash: '#section-1',
-        pathname: '/app',
-        search: '',
-      },
-      history: {
-        replaceState: vi.fn(),
-      },
+  it('rejects extra content after the token', () => {
+    const replaceStateSpy = stubBrowser(
+      `#guestToken=${VALID_TOKEN}&extra=1`,
+    );
+
+    expect(extractGuestFragmentToken()).toBeNull();
+    expect(replaceStateSpy).toHaveBeenCalledOnce();
+  });
+
+  it('fails closed when safe scrubbing does not succeed', () => {
+    stubBrowser(`#guestToken=${VALID_TOKEN}`, () => {
+      throw new Error('replaceState unavailable');
     });
 
-    const token = extractDevFragmentToken();
-    expect(token).toBeNull();
+    expect(extractGuestFragmentToken()).toBeNull();
+  });
+
+  it('ignores unrelated hash fragments without scrubbing them', () => {
+    const replaceStateSpy = stubBrowser('#section-1');
+
+    expect(extractGuestFragmentToken()).toBeNull();
+    expect(replaceStateSpy).not.toHaveBeenCalled();
   });
 });

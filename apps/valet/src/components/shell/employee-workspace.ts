@@ -20,6 +20,16 @@ export interface ActiveRetrievalTarget {
 }
 
 /**
+ * Narrow Guest Access navigation target. It carries only safe operational
+ * reference data — never credential material such as a raw guest token or a
+ * generated shareable URL; those live only inside the mounted flow.
+ */
+export interface GuestAccessTarget {
+  readonly returnScreen: import("../../types/employee-ui").Screen;
+  readonly sessionId: string;
+}
+
+/**
  * Identity-bound transient workflow targets. Every stored value is stamped
  * with the authenticated identity epoch it was created under; readers treat
  * any value whose stamp does not match the current epoch as absent, so
@@ -35,6 +45,7 @@ export interface EmployeeWorkspaceTargets {
   readonly activeParkingPayload: StartParkingPayload | null;
   readonly activeParkingTarget: ActiveParkingTarget | null;
   readonly activeRetrievalTarget: ActiveRetrievalTarget | null;
+  readonly guestAccessTarget: GuestAccessTarget | null;
   readonly screenOverride: string | null;
 }
 
@@ -63,6 +74,7 @@ export function emptyWorkspaceTargets(): EmployeeWorkspaceTargets {
     activeParkingPayload: null,
     activeParkingTarget: null,
     activeRetrievalTarget: null,
+    guestAccessTarget: null,
     screenOverride: null,
   };
 }

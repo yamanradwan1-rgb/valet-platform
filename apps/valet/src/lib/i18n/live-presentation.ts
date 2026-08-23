@@ -16,6 +16,20 @@ export function formatEmployeeTime(
   }).format(date);
 }
 
+/** Locale-aware date+time presentation using the device timezone. */
+export function formatEmployeeDateTime(
+  isoString: string | null | undefined,
+  locale: EmployeeLocale,
+): string {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
 export function presentLiveError(
   error: unknown,
   locale: EmployeeLocale,

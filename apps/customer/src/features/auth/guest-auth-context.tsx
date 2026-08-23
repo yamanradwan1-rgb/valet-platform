@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 
 import { GuestApiClient } from '../../lib/api/guest-api-client';
-import { extractDevFragmentToken } from './guest-token-adapter';
+import { extractGuestFragmentToken } from './guest-token-adapter';
 
 interface GuestAuthContextValue {
   readonly token: string | null;
@@ -45,7 +45,7 @@ export function GuestAuthProvider({
     queueMicrotask(() => {
       if (!isActive) return;
       setBootstrap({
-        token: extractDevFragmentToken(),
+        token: extractGuestFragmentToken(),
         isComplete: true,
       });
     });

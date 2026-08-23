@@ -32,6 +32,7 @@ function detail(state: string): StaffValetSessionDetailResponse {
       state === "HANDOFF_PENDING"
         ? { pendingAt: "2026-08-22T10:00:00.000Z", verification: null }
         : { pendingAt: null, verification: null },
+    guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
     keySlot: { code: "K-1" },
     locationId: "33333333-3333-4333-8333-333333333333",
     parking: {

@@ -78,6 +78,13 @@ export const completeCheckInRequestSchema = z
   .object({ expectedVersion: z.number().int().positive() })
   .strict();
 
+// Guest bearer tokens are exactly 32 CSPRNG bytes as unpadded base64url
+// (43 characters). The issue response is the only transport of the raw
+// token; the strict shape rejects any other credential material.
+export const guestAccessRawTokenSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{43}$/);
+
 export const intakeResponseSchema = z
   .object({
     createdAt: utcTimestampSchema,
@@ -134,7 +141,7 @@ export const guestAccessIssueResponseSchema = z
     expiresAt: utcTimestampSchema,
     issuedAt: utcTimestampSchema,
     mutationKind: z.enum(["ISSUED", "ROTATED"]),
-    rawToken: z.string(),
+    rawToken: guestAccessRawTokenSchema,
     valetSessionId: uuidSchema,
   })
   .strict();
@@ -197,6 +204,12 @@ export type ConditionCompletionResponse = z.infer<
 >;
 export type GuestAccessIssueRequest = z.infer<
   typeof guestAccessIssueRequestSchema
+>;
+export type GuestAccessIssueResponse = z.infer<
+  typeof guestAccessIssueResponseSchema
+>;
+export type GuestAccessRevokeResponse = z.infer<
+  typeof guestAccessRevokeResponseSchema
 >;
 export type CompleteCheckInRequest = z.infer<
   typeof completeCheckInRequestSchema
