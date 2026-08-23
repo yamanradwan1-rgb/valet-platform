@@ -237,6 +237,28 @@ Constraints/rules:
 
 Phase 1 does not add a generic settings/policy JSON field. Location-specific typed configuration is added by focused tasks as approved MVP behavior requires it.
 
+Location-override mutation authority (migration 29, DEC-058): the ten typed
+override columns above mutate only through narrow `SECURITY DEFINER` functions
+(`location_configuration_set_override`,
+`location_configuration_clear_override`) plus private authorization/state/audit
+helpers. All are migration-owner owned with fixed `search_path = pg_catalog,
+public` and PUBLIC execution revoked; the runtime role receives EXECUTE only on
+the two mutation functions and keeps SELECT-only access to `organizations` /
+`locations` (no generic UPDATE). Each call revalidates an ACTIVE
+`LOCATION_MANAGER` membership with explicit same-Organization Location access
+inside the database, rejects unknown settings/values (`22023`), compares the
+caller's `expected_updated_at` against the locked `locations.updated_at`
+(`40001` conflict), advances `updated_at` monotonically, changes exactly one
+override column, and commits exactly one safe Location-scoped AuditEvent
+(scope `LOCATION_OVERRIDE`, operation `SET`/`CLEAR`, old/new override presence,
+value and effective value) in the same transaction. For `valetServiceFee` the
+SET function independently enforces DEC-053 exact representability against the
+persisted Location currency using the private checked-in
+`location_configuration_minor_unit_exponent` mapping (unknown or unusable
+precision fails closed; no silent rounding). Failed calls write no
+configuration change and no audit. Organization default columns are not writable
+through this surface.
+
 ## users
 
 ```text
@@ -1308,6 +1330,41 @@ Rules:
 - status, type and severity required
 - corrections/evidence additions do not rewrite original audit facts
 - full ClaimShield packaging remains V2
+- runtime role authority (DEC-059): SELECT only through the provisioning
+  allowlist; no INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER and no PUBLIC
+  privilege; Dashboard incident reads stay exact-Location authorized,
+  non-disclosing and read-only with no schema/migration change
+
+## organization_subscriptions
+
+One-to-one typed subscription/entitlement state for an Organization (DEC-062).
+
+`	ext
+organization_id PK/FK -> organizations (restrictive)
+plan_code
+status: TRIAL | ACTIVE | SUSPENDED
+dashboard_access_enabled
+report_exports_enabled
+basic_branding_enabled
+created_at
+updated_at
+`
+
+Constraints/rules:
+
+- at most one row per Organization (PK on organization_id); zero rows means no subscription (no fabricated default plan)
+- plan_code CHECK: uppercase canonical ^[A-Z0-9][A-Z0-9_-]{0,63}$; opaque internal identifier, never marketing copy, entitlement behavior never derived from it
+- status enum limited to TRIAL | ACTIVE | SUSPENDED; no billing lifecycle values
+- three explicit boolean entitlement columns; no generic JSON entitlements
+- runtime role holds SELECT only (INSERT/UPDATE/DELETE/TRUNCATE denied); provisioning/change is an internal platform concern outside the customer API
+- no price/billing-interval/amount/currency/invoice/payment-method/Stripe/renewal/cancellation/trial-end/seat-count fields
+
+Basic branding columns (DEC-062): organizations.brand_primary_color TEXT NOT NULL DEFAULT #176BFF with uppercase-hex CHECK; locations.brand_display_name_override / brand_primary_color_override nullable with CHECKs (trimmed non-empty <=120 code points without control characters; uppercase hex). Overrides mutate only through narrow SECURITY DEFINER functions (set/clear x display-name/color) that revalidate the VAL-009A manager boundary in-database, recheck expectedUpdatedAt against locked locations.updated_at (40001 conflict), advance updated_at monotonically, and commit exactly one DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED AuditEvent per success. Failures write no mutation and no audit. Runtime role gains EXECUTE only on these four functions and keeps no generic UPDATE on organizations/locations.
+Migration 31 hardening: the primary-color SET function explicitly rejects
+NULL (22023) so NULL-as-clear is impossible through SET; non-null
+display-name overrides are canonical outer-trimmed values enforced by
+CHECK, with migration-time in-place canonicalization and no business
+AuditEvents for it.
 
 ## notifications
 

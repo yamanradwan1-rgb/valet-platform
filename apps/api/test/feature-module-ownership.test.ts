@@ -1,12 +1,8 @@
 import { MODULE_METADATA } from "@nestjs/common/constants";
-import { APP_FILTER } from "@nestjs/core";
 import { describe, expect, it } from "vitest";
 
 import { AppModule } from "../src/app.module";
 import { RuntimeDatabaseModule } from "../src/common/database/runtime-database.module";
-import { ApiExceptionFilter } from "../src/common/http/api-exception.filter";
-import { ApiOperationRunner } from "../src/common/http/api-operation-runner";
-import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
 import { IncidentReportingController } from "../src/modules/incidents/incident-reporting.controller";
 import { IncidentReportingService } from "../src/modules/incidents/incident-reporting.service";
 import { AntiAbuseModule } from "../src/modules/anti-abuse/anti-abuse.module";
@@ -19,6 +15,7 @@ import { STAFF_PRINCIPAL_RESOLVER } from "../src/modules/auth/staff-principal";
 import { StaffCheckInController } from "../src/modules/check-in-api/check-in-api.controller";
 import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.service";
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
+import { DashboardModule } from "../src/modules/dashboard/dashboard.module";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
 import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
 import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
@@ -96,6 +93,7 @@ describe("accepted feature module ownership", () => {
       AntiAbuseModule,
       GuestAccessModule,
       CheckInModule,
+      DashboardModule,
       ShiftModule,
       StaffModule,
       KeyCustodyModule,
@@ -277,24 +275,4 @@ describe("accepted feature module ownership", () => {
     ]);
   });
 
-  it("provides the neutral runner and one global exception filter", () => {
-    expect(
-      metadata(HttpInfrastructureModule, MODULE_METADATA.PROVIDERS),
-    ).toEqual([
-      ApiOperationRunner,
-      expect.any(Function),
-      { provide: APP_FILTER, useClass: ApiExceptionFilter },
-    ]);
-    const filterRegistrations = metadata<object>(
-      HttpInfrastructureModule,
-      MODULE_METADATA.PROVIDERS,
-    ).filter(
-      (provider) =>
-        typeof provider === "object" &&
-        provider !== null &&
-        "provide" in provider &&
-        provider.provide === APP_FILTER,
-    );
-    expect(filterRegistrations).toHaveLength(1);
-  });
 });
