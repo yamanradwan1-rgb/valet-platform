@@ -232,9 +232,9 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
       : "task-queue";
 
   return (
-    <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
-      <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
-        <ConnectivityBanner onReconnect={() => void refreshContext()} />
+      <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
+        <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
+$4<ConnectivityBanner onReconnect={() => void refreshContext()} />
         <AppHeader
           locationCode={liveScope.locationCode}
           locationName={liveScope.locationName}
