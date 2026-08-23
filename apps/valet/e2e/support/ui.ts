@@ -15,6 +15,41 @@ export async function signInViaUi(
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
   await page.click('button:has-text("Sign In")');
+  await expect(page.getByRole("heading", { name: "Tasks" })).toBeVisible({
+    timeout: 20_000,
+  });
+}
+
+export async function createParkingTaskViaUi(
+  page: Page,
+  input: { keySlot: string; phone: string; plate: string },
+): Promise<void> {
+  await page.getByRole("button", { name: "New Vehicle" }).click();
+  await page.getByRole("button", { name: "Enter manually" }).click();
+  await page.locator('input[placeholder="e.g. 12-34567"]').fill(input.plate);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm Plate" }).click();
+  await page.locator('input[type="tel"]').fill(input.phone);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "No visible issue" }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Enter key slot manually" }).click();
+  await page.locator('input[placeholder="Enter Key Slot Code"]').fill(input.keySlot);
+  await page.getByRole("button", { name: "Assign Key", exact: true }).click();
+  await page.getByRole("button", { name: "Create Parking Task" }).click();
+  await expect(page.getByRole("button", { name: "Start Parking" })).toBeVisible();
+}
+
+export async function completeParkingViaUi(
+  page: Page,
+  spotCode: string,
+): Promise<void> {
+  await page.getByRole("button", { name: "Start Parking" }).click();
+  await page.getByRole("button", { name: "Park Vehicle" }).click();
+  await page.getByRole("button", { name: "Enter spot code manually" }).click();
+  await page.locator('input[placeholder="Enter spot code"]').fill(spotCode);
+  await page.getByRole("button", { name: "Confirm Parking" }).click();
+  await expect(page.getByText("Parking confirmed")).toBeVisible({ timeout: 15_000 });
 }
 
 /** Asserts that no prototype fixture leaks into live markup. */

@@ -1,11 +1,17 @@
 export const EMPLOYEE_E2E = {
   email: process.env.E2E_STAFF_EMAIL ?? "e2e-driver@valet.test",
-  keySlots: ["E2E-KEY-L", "E2E-KEY-I", "E2E-KEY-R"],
+  keySlots: [
+    "E2E-KEY-L0", "E2E-KEY-L1", "E2E-KEY-I0",
+    "E2E-KEY-I1", "E2E-KEY-R0", "E2E-KEY-R1",
+  ],
   locationCode: "E2E",
   locationId: "e2e00000-0000-4000-8000-000000000001",
   membershipId: "e2e00000-0000-4000-8000-000000000003",
   organizationId: "e2e00000-0000-4000-8000-000000000000",
-  parkingSpots: ["E2E-SPOT-L", "E2E-SPOT-I", "E2E-SPOT-R"],
+  parkingSpots: [
+    "E2E-SPOT-L0", "E2E-SPOT-L1", "E2E-SPOT-I0",
+    "E2E-SPOT-I1", "E2E-SPOT-R0", "E2E-SPOT-R1",
+  ],
   parkingZoneCode: "E2E-ZONE",
   parkingZoneId: "e2e00000-0000-4000-8000-000000000005",
   shiftId: "e2e00000-0000-4000-8000-000000000004",

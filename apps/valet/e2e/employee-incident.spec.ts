@@ -1,53 +1,48 @@
 import { expect, test } from "@playwright/test";
 
-import { assertNoPrototypeLeaks, signInViaUi } from "./support/ui";
+import {
+  assertNoPrototypeLeaks,
+  createParkingTaskViaUi,
+  signInViaUi,
+} from "./support/ui";
 
-/**
- * Incident reporting E2E: active operation -> Report Issue -> submit
- * incident -> authoritative returned ID -> return to originating workflow.
- * No INC-1042 / fake notification / fake photo.
- */
-test.describe("Employee incident reporting", () => {
-  test("reports incident from live retrieval and shows real returned ID", async ({
-    page,
-  }) => {
-    test.info().setTimeout(60_000);
-    const staffEmail = process.env.E2E_STAFF_EMAIL ?? "e2e-driver@valet.test";
-    const staffPassword =
-      process.env.E2E_STAFF_PASSWORD ?? "e2e-secure-password-123";
+const STAFF_EMAIL = process.env.E2E_STAFF_EMAIL ?? "e2e-driver@valet.test";
+const STAFF_PASSWORD =
+  process.env.E2E_STAFF_PASSWORD ?? "e2e-secure-password-123";
 
-    await signInViaUi(page, staffEmail, staffPassword);
-
-    // Navigate to an active retrieval operation.
-    // (Requires a RETRIEVING task in queue from prior setup.)
-    await page.waitForSelector('button:has-text("Continue Retrieval")', {
-      timeout: 20_000,
-    });
-    await page.click('button:has-text("Continue Retrieval")');
-
-    // Click Report Issue.
-    await page.click('button:has-text("Report Issue")');
-
-    // Select type and severity from canonical categories.
-    await page.click('button:has-text("Vehicle damage")');
-    await page.click('button:has-text("Medium")');
-
-    // Fill description.
-    await page.fill("textarea", "E2E incident description for testing.");
-
-    // Submit — only one click due to synchronous guard.
-    await page.click('button:has-text("Open Incident")');
-
-    // Assert real returned incident UUID appears (not INC-1042).
-    await expect(page.locator("text=Incident opened")).toBeVisible({
-      timeout: 10_000,
-    });
-    const body = await page.textContent("body");
-    expect(body).toContain("Reference:");
-    expect(body).not.toContain("INC-1042");
-
-    // Return to originating operation.
-    await page.click('button:has-text("Return")');
-    await assertNoPrototypeLeaks(page);
+test("reports an order-independent incident from a real operation", async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90_000);
+  const plate = `E2E-I-${String(Date.now()).slice(-7)}`;
+  await signInViaUi(page, STAFF_EMAIL, STAFF_PASSWORD);
+  await createParkingTaskViaUi(page, {
+    keySlot: `E2E-KEY-I${testInfo.retry}`,
+    phone: "+962790000002",
+    plate,
   });
+  await page.getByRole("button", { name: "Start Parking" }).click();
+  await page.getByRole("button", { name: "Report Issue" }).click();
+
+  await page.getByRole("button", { name: "Vehicle damage" }).click();
+  await page.getByRole("button", { name: "Medium" }).click();
+  await page
+    .locator("textarea")
+    .fill("Independent Employee E2E incident from active parking.");
+  await page.getByRole("button", { name: "Open Incident" }).click();
+
+  await expect(page.getByText("Incident opened")).toBeVisible({
+    timeout: 15_000,
+  });
+  const body = await page.textContent("body");
+  expect(body).toMatch(
+    /Reference:\s*[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i,
+  );
+  expect(body).not.toContain("INC-1042");
+  expect(body).not.toContain("Supervisor notified");
+  expect(body).not.toContain("Add Photo");
+
+  await page.getByRole("button", { name: "Return" }).click();
+  await expect(page.getByRole("button", { name: "Park Vehicle" })).toBeVisible();
+  await assertNoPrototypeLeaks(page);
 });
