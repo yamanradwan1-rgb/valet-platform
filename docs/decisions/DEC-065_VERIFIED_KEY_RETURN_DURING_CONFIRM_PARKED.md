@@ -1,6 +1,6 @@
 # DEC-065 — Verified Key Return During Confirm Parked
 
-Status: Proposed
+Status: Accepted
 Date: 2026-08-25
 
 ## Context
