@@ -12,7 +12,10 @@
     "test:check-in-api": "vitest run test/check-in-api.integration.test.ts",
     "test:shifts": "vitest run test/shift-start.integration.test.ts test/shift-end.integration.test.ts test/shift-eligibility.integration.test.ts test/shift-api.integration.test.ts",
     "test:keys": "vitest run test/key-assignment.integration.test.ts test/key-correction.integration.test.ts test/key-eligibility-concurrency.integration.test.ts test/key-custody-api.integration.test.ts",
-    "staff:provision": "tsx tools/provision-staff.ts"
+    "staff:provision": "tsx tools/provision-staff.ts",
+    "local:bootstrap": "tsx tools/local-dev/bootstrap.ts",
+    "local:status": "tsx tools/local-dev/status.ts",
+    "local:smoke": "tsx tools/local-dev/smoke.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.1.28",
@@ -22,6 +25,7 @@
     "@valet/contracts": "workspace:*",
     "argon2": "0.45.1",
     "cookie": "1.0.2",
+    "dotenv": "^17.0.0",
     "pdf-lib": "^1.17.1",
     "pg": "^8.0.0",
     "reflect-metadata": "^0.2.0",
