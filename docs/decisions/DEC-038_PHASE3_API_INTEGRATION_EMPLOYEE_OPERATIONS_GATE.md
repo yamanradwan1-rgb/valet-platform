@@ -4,6 +4,12 @@ Status: Accepted
 Date: 2026-08-12  
 Issue: #116 (`VAL-005H — Phase 3 API / Integration / Employee Operations Gate`)
 
+> Amendment notice (2026-08-25): `DEC-065` — Verified Key Return During Confirm
+> Parked (`Proposed`) amends §11 (Key custody proof) once Accepted so that
+> `RETURNED_TO_SLOT` succeeds only after server-verified scanned KeySlot
+> evidence during Confirm Parked. Until then this decision remains fully
+> binding.
+
 ## Context
 
 VAL-005A through VAL-005G are merged and establish the complete Phase 3 Parking backend primitives:

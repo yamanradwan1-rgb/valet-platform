@@ -3147,3 +3147,46 @@ Reliability decision.
 
 Full binding contract:
 `docs/decisions/DEC-063_EMPLOYEE_OFFLINE_OPERATION_POLICY.md`
+
+---
+
+## DEC-065 — Verified Key Return During Confirm Parked
+
+Status: Proposed
+Date: 2026-08-25
+
+Decision:
+Confirm Parked stops assuming physical key return and starts requiring
+evidence. The strict request body gains one required `keySlotCode` field
+(scanned resource evidence, never client authority; trim-only, exact match, no
+case folding) which the command must resolve inside the same protected
+transaction to an ACTIVE KeySlot in the persisted Organization + Location whose
+ID equals the persisted `ValetSession.key_slot_id`, before any mutation.
+`ValetSession.key_slot_id` remains the designated/assigned home slot; custody
+truth remains append-only `KeyCustodyEvent` history; Start Parking keeps
+recording `CHECKED_OUT` under DEC-036. On verified match, Confirm Parked still
+commits atomically: `PARKING -> PARKED`, Parking Task `IN_PROGRESS ->
+COMPLETED`, exactly one `RETURNED_TO_SLOT`, DispatchEvent `COMPLETED`,
+AuditEvent `VALET_SESSION_PARKED`. Any wrong, missing, inactive, wrong-scope
+or non-matching scan returns the existing `KEY_CUSTODY_NOT_READY` with zero
+side effects; no new public error code is added. MVP unavailable-slot policy is
+STRICT FAIL — no silent reassignment during Confirm Parked; supervisor/post-
+start reassignment requires a later focused decision. No standalone return-key
+endpoint, no new ValetSession state, no schema/migration/column change, no
+mutable key-custody status field. Employee flow becomes spot confirmation ->
+"Return key to {code}" instruction -> key-slot scan -> single POST; transient
+in-memory holding of the spot code follows DEC-063. EN/AR copy direction locked
+("Assigned key slot", "Return key to {code}", "Scan key slot", "Vehicle parked
+and key returned" / Arabic equivalents), codes visually LTR-isolated in
+Arabic; no Guest KeySlot exposure. Accepted MVP timestamp trade-off:
+`parked_at` is authored at combined-commit time, shortly after physical
+parking. Retrieval/release custody semantics unchanged; canonical history order
+remains `SLOT_ASSIGNED -> CHECKED_OUT -> RETURNED_TO_SLOT`.
+
+This decision amends only DEC-037 §3, §4, §11, §12, §13, §18, §24 and §33 and
+the DEC-038 §11 gate wording (RETURNED_TO_SLOT succeeds only after
+server-verified scanned KeySlot evidence). All other DEC-036/037/038 clauses
+remain binding as written. Until Accepted, DEC-037 remains fully binding.
+
+Full binding contract:
+`docs/decisions/DEC-065_VERIFIED_KEY_RETURN_DURING_CONFIRM_PARKED.md`

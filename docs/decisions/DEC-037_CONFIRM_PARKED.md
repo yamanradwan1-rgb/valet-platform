@@ -4,6 +4,12 @@ Status: Accepted
 Date: 2026-08-12  
 Issue: #111 (`VAL-005G — Confirm Parked`)
 
+> Amendment notice (2026-08-25): `DEC-065` — Verified Key Return During Confirm
+> Parked (`Proposed`) amends this decision's request body (§3), resource-code
+> scope (§4), error precedence (§11), key-custody readiness (§12), return-
+> evidence wording (§13, §18), atomicity proof set (§24) and related required
+> proofs (§33) once Accepted. Until then this decision remains fully binding.
+
 ## Context
 
 Phase 3 now has every prerequisite required to finish a Parking operation safely:
