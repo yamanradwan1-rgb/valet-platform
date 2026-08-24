@@ -14,6 +14,7 @@ function detail(state: string, version: number, verification: unknown = null) {
       state === "HANDOFF_PENDING"
         ? { pendingAt: "2026-08-22T10:00:00.000Z", verification }
         : { pendingAt: null, verification: null },
+    guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
     keySlot: null,
     locationId,
     parking: {

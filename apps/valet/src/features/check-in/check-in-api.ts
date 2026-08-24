@@ -9,7 +9,6 @@ import {
   parkingTaskQueueResponseSchema,
   staffCheckInContinuationsResponseSchema,
   staffCheckInDraftsResponseSchema,
-  staffValetSessionDetailResponseSchema,
   startParkingResponseSchema,
   vehicleIdentityResponseSchema,
   type AcceptTaskResponse,
@@ -30,6 +29,7 @@ import {
   type VehicleIdentityResponse,
 } from "@valet/contracts";
 
+import { fetchStaffSessionDetail } from "../staff-session";
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 
 export type {
@@ -84,12 +84,9 @@ export async function fetchSessionDetail(
   sessionId: string,
   options: CheckInApiRequestOptions = {},
 ): Promise<StaffValetSessionDetailResponse> {
-  const raw = await client.request<unknown>(`/v1/staff/valet-sessions/${sessionId}`, {
-    method: "GET",
-    signal: options.signal,
-    requireAuth: true,
-  });
-  return staffValetSessionDetailResponseSchema.parse(raw);
+  // Delegates to the reusable staff-session boundary; the Check-In public
+  // contract is unchanged.
+  return fetchStaffSessionDetail(client, sessionId, options);
 }
 
 export async function createIntakeSession(

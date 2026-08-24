@@ -10,11 +10,7 @@ import {
   CheckInCustomerPhoneStep,
   CheckInVehicleConditionStep,
 } from "./check-in/check-in-intake-steps";
-import {
-  CheckInKeyAssignedStep,
-  CheckInKeyScanStep,
-  CheckInParkingTaskStep,
-} from "./check-in/check-in-key-steps";
+import { CheckInLateSteps } from "./check-in/check-in-late-steps";
 import {
   CheckInManualPlateStep,
   CheckInPlateConfirmStep,
@@ -34,6 +30,7 @@ export interface CheckInFlowProps {
   readonly mode?: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
   readonly onAuthorizationLoss?: (() => void) | undefined;
+  readonly onOpenGuestAccess?: ((sessionId: string) => void) | undefined;
   readonly onStartParkingSuccess?: (payload: StartParkingPayload) => void;
 }
 
@@ -43,6 +40,7 @@ export function CheckInFlow({
   membershipId = null,
   mode = "live",
   onAuthorizationLoss,
+  onOpenGuestAccess,
   onStartParkingSuccess,
 }: CheckInFlowProps): JSX.Element | null {
   const { locale, t } = useEmployeeI18n();
@@ -220,77 +218,23 @@ export function CheckInFlow({
     );
   }
 
-  if (checkIn.step === "key-scan") {
-    return (
-      <CheckInKeyScanStep
-        mode={mode}
-        keyScanDone={keyScanDone}
-        keySlotCode={keySlotCode}
-        make={displayMake}
-        model={displayModel}
-        color={displayColor}
-        plate={displayPlate}
-        isSubmitting={checkIn.isSubmitting}
-        error={localizedError}
-        onChangeKeySlotCode={setKeySlotCode}
-        onSimulateScan={() => {
-          setKeySlotCode("B-214");
-          setKeyScanDone(true);
-        }}
-        onManualEntry={() => setKeyScanDone(true)}
-        onAssignKey={async () => {
-          await checkIn.assignKey(keySlotCode);
-        }}
-        onScanAnother={() => setKeyScanDone(false)}
-        onBack={() => {
-          if (checkIn.activeSession?.state === "AWAITING_PARKING") {
-            nav("task-queue");
-          } else {
-            checkIn.setStep("vehicle-condition");
-          }
-        }}
-      />
-    );
-  }
-
-  if (checkIn.step === "key-assigned") {
-    return (
-      <CheckInKeyAssignedStep
-        keySlotCode={displayKeySlot}
-        make={displayMake}
-        model={displayModel}
-        color={displayColor}
-        plate={displayPlate}
-        isSubmitting={checkIn.isSubmitting}
-        error={localizedError}
-        onCreateParkingTask={async () => {
-          await checkIn.createParkingTask();
-        }}
-      />
-    );
-  }
-
-  if (checkIn.step === "parking-task") {
-    return (
-      <CheckInParkingTaskStep
-        keySlotCode={displayKeySlot}
-        make={displayMake}
-        model={displayModel}
-        color={displayColor}
-        plate={displayPlate}
-        isSubmitting={checkIn.isSubmitting}
-        error={localizedError}
-        onStartParking={async () => {
-          const payload = await checkIn.startParking();
-          if (payload) {
-            onStartParkingSuccess?.(payload);
-            nav("parking");
-          }
-        }}
-        onBack={() => checkIn.setStep("key-assigned")}
-      />
-    );
-  }
-
-  return null;
+  return (
+    <CheckInLateSteps
+      checkIn={checkIn}
+      displayColor={displayColor}
+      displayKeySlot={displayKeySlot ?? ""}
+      displayMake={displayMake}
+      displayModel={displayModel}
+      displayPlate={displayPlate}
+      keyScanDone={keyScanDone}
+      keySlotCode={keySlotCode}
+      localizedError={localizedError}
+      mode={mode}
+      nav={nav}
+      onOpenGuestAccess={onOpenGuestAccess}
+      onStartParkingSuccess={onStartParkingSuccess}
+      setKeyScanDone={setKeyScanDone}
+      setKeySlotCode={setKeySlotCode}
+    />
+  );
 }

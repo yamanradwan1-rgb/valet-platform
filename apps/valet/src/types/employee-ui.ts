@@ -5,6 +5,7 @@ export type Screen =
   | "parking"
   | "retrieval"
   | "incident"
+  | "guest-access"
   | "vehicles-list"
   | "scan-hub"
   | "shift-summary";

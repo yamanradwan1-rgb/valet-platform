@@ -96,6 +96,7 @@ describe("recovery boundaries: shift-end / stale-state fail-closed", () => {
     const readyDetail = {
       checkIn: { conditionCompletedAt: "2026-08-22T09:00:00.000Z" },
       handoff: { pendingAt: null, verification: null },
+      guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
       keySlot: null,
       locationId: "33333333-3333-4333-8333-333333333333",
       parking: {

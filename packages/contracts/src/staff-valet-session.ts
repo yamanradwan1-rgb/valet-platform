@@ -99,9 +99,28 @@ export type StaffValetSessionHandoff = z.infer<
   typeof staffValetSessionHandoffSchema
 >;
 
+/**
+ * Safe Guest Access projection for the staff detail read. Contains only
+ * operational status facts; never the raw token, token hash, credential
+ * material, or authorization headers. NOT_ISSUED reports null timestamps
+ * even when a disabled intake placeholder populated revocation metadata.
+ */
+export const staffValetSessionGuestAccessSchema = z
+  .object({
+    expiresAt: utcTimestampSchema.nullable(),
+    revokedAt: utcTimestampSchema.nullable(),
+    status: z.enum(["ACTIVE", "EXPIRED", "NOT_ISSUED", "REVOKED"]),
+  })
+  .strict();
+
+export type StaffValetSessionGuestAccess = z.infer<
+  typeof staffValetSessionGuestAccessSchema
+>;
+
 export const staffValetSessionDetailResponseSchema = z
   .object({
     checkIn: staffValetSessionCheckInSchema,
+    guestAccess: staffValetSessionGuestAccessSchema,
     handoff: staffValetSessionHandoffSchema,
     keySlot: staffValetSessionKeySlotSchema.nullable(),
     locationId: uuidSchema,

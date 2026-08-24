@@ -15,6 +15,7 @@ describe("RetrievalController Hydration — Strict Metadata Requirements", () =>
   const baseDetail: StaffValetSessionDetailResponse = {
     checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
     handoff: { pendingAt: null, verification: null },
+    guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
     keySlot: { code: "B-214" },
     locationId,
     parking: {

@@ -3150,6 +3150,34 @@ Full binding contract:
 
 ---
 
+## DEC-064 — Guest Browser Entry Transport
+
+Status: Accepted
+Date: 2026-08-23
+
+Decision:
+The production one-time Guest browser entry transport is exactly
+`#guestToken=<43-character-base64url-token>` appended to the canonical
+Customer application origin. The fragment is read browser-only after mount,
+validated against the exact token shape, immediately scrubbed with
+`history.replaceState`, and adopted only when safe scrubbing succeeds.
+Malformed guest fragments are scrubbed and rejected; scrubbing failure fails
+closed; unrelated hashes are untouched. The raw token and its derived URL are
+memory-only inside the mounted Customer flow — never persisted or logged —
+and a reload after scrubbing intentionally loses access until the original
+link is reopened/rescanned or Staff reissues.
+
+Every Employee shareable surface (QR, copied link, dev/test Open Guest App)
+builds from one centrally validated canonical origin,
+`NEXT_PUBLIC_CUSTOMER_APP_ORIGIN` (absolute clean origin; production HTTPS;
+development localhost HTTP allowed; missing/malformed fails closed). This
+transport changes no ValetSession/Task lifecycle state, no schema, and no
+existing guest command semantics; mutations remain online-only under
+DEC-063.
+
+Full binding contract:
+`docs/decisions/DEC-064_GUEST_BROWSER_ENTRY_TRANSPORT.md`
+
 ## DEC-065 — Verified Key Return During Confirm Parked
 
 Status: Proposed

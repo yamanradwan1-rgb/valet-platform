@@ -17,6 +17,7 @@ import {
   validateTemporalInvariants,
 } from "./staff-valet-session-authorization";
 import {
+  loadGuestAccess,
   loadHandoffVerification,
   loadKeySlot,
   loadParking,
@@ -66,6 +67,7 @@ export class StaffValetSessionService {
       const keySlot = await loadKeySlot(client, session);
       const parking = await loadParking(client, session);
       const verification = await loadHandoffVerification(client, session);
+      const guestAccess = await loadGuestAccess(client, session);
 
       await client.query("COMMIT");
 
@@ -74,6 +76,15 @@ export class StaffValetSessionService {
           conditionCompletedAt: session.check_in_condition_completed_at
             ? session.check_in_condition_completed_at.toISOString()
             : null,
+        },
+        guestAccess: {
+          expiresAt: guestAccess.expiresAt
+            ? guestAccess.expiresAt.toISOString()
+            : null,
+          revokedAt: guestAccess.revokedAt
+            ? guestAccess.revokedAt.toISOString()
+            : null,
+          status: guestAccess.status,
         },
         handoff: {
           pendingAt:

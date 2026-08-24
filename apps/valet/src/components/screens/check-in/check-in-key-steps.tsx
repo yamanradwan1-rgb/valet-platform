@@ -182,6 +182,8 @@ export function CheckInParkingTaskStep({
   plate,
   isSubmitting,
   error,
+  sessionId,
+  onOpenGuestAccess,
   onStartParking,
   onBack,
 }: {
@@ -192,8 +194,10 @@ export function CheckInParkingTaskStep({
   readonly make?: string | null | undefined;
   readonly model?: string | null | undefined;
   readonly onBack: () => void;
+  readonly onOpenGuestAccess?: (() => void) | undefined;
   readonly onStartParking: () => void;
   readonly plate?: string | null | undefined;
+  readonly sessionId?: string | null | undefined;
 }): JSX.Element {
   const { t } = useEmployeeI18n();
   const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
@@ -227,6 +231,19 @@ export function CheckInParkingTaskStep({
           onClick={onStartParking}
           disabled={isSubmitting ?? false}
         />
+        {sessionId !== undefined &&
+        sessionId !== null &&
+        sessionId !== "" &&
+        onOpenGuestAccess !== undefined && (
+          <button
+            type="button"
+            onClick={onOpenGuestAccess}
+            className="w-full bg-white border border-vborder rounded-2xl p-4 text-left active:bg-gray-50 transition-colors cursor-pointer"
+          >
+            <p className="font-semibold text-sm text-navy">{t.guestAccessTitle}</p>
+            <p className="text-muted text-xs mt-0.5">{t.guestAccessEntryHint}</p>
+          </button>
+        )}
       </div>
     </div>
   );

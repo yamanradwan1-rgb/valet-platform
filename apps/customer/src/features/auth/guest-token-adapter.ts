@@ -1,32 +1,40 @@
 /**
- * Development-only token acquisition adapter.
- * The production repository does not yet define a permanent browser URL/cookie
- * entry transport. In development/testing mode, tokens may be supplied via
- * memory or a one-time URL fragment (`#guestToken=<token>`) which is immediately
- * scrubbed from browser history and kept only in memory.
+ * One-time Guest credential transport for the Customer browser entry.
+ *
+ * The owner-approved production transport is exactly
+ * `#guestToken=<43-character-base64url-token>`: read browser-only after
+ * mount, validated against the exact token shape, immediately scrubbed from
+ * the address bar via history.replaceState, and adopted only when safe
+ * scrubbing succeeds. The credential stays memory-only; any full reload
+ * after scrubbing intentionally loses access until the original link is
+ * reopened or Staff reissues Guest Access.
+ *
+ * Malformed guest fragments are scrubbed and rejected (fail closed). A
+ * scrubbing failure never adopts the token. No logging, no persistence.
  */
-export function extractDevFragmentToken(): string | null {
-  if (typeof window === 'undefined') return null;
 
-  // Fragment token transport is strictly disabled in production
-  if (process.env.NODE_ENV === 'production') return null;
+export const GUEST_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
+export const GUEST_FRAGMENT_PREFIX = "#guestToken=";
 
-  const hash = window.location.hash;
-  if (!hash || !hash.includes('guestToken=')) return null;
-
-  const match = /#guestToken=([A-Za-z0-9_-]+)/.exec(hash);
-  if (!match || !match[1]) return null;
-
-  const token = match[1];
-
-  // Immediately scrub the fragment from URL and history
+function scrubFragment(): boolean {
   try {
     const cleanUrl = window.location.pathname + window.location.search;
-    window.history.replaceState(null, '', cleanUrl);
+    window.history.replaceState(null, "", cleanUrl);
+    return true;
   } catch {
-    // If replaceState fails, at least clear the hash
-    window.location.hash = '';
+    // Fail closed: never adopt a credential whose scrubbing failed.
+    return false;
   }
+}
 
-  return token;
+export function extractGuestFragmentToken(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const hash = window.location.hash;
+  if (!hash.startsWith(GUEST_FRAGMENT_PREFIX)) return null;
+
+  const candidate = hash.slice(GUEST_FRAGMENT_PREFIX.length);
+  if (!scrubFragment()) return null;
+
+  return GUEST_TOKEN_PATTERN.test(candidate) ? candidate : null;
 }
