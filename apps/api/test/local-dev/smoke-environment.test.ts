@@ -51,6 +51,44 @@ describe("smoke child environment resolution", () => {
     );
   });
 
+  it("exposes explicitly populated secrets to the API child only", () => {
+    const existingAntiAbuse = "A".repeat(43);
+    const existingHandoff = "B".repeat(43);
+    const resolved = resolveSmokeChildEnvironments(
+      environmentWith({
+        ANTI_ABUSE_HMAC_SECRET_B64URL: existingAntiAbuse,
+        HANDOFF_VERIFIER_HMAC_SECRET_B64URL: existingHandoff,
+      }),
+    );
+    expect(resolved.employeeEnv.ANTI_ABUSE_HMAC_SECRET_B64URL).toBeUndefined();
+    expect(
+      resolved.employeeEnv.HANDOFF_VERIFIER_HMAC_SECRET_B64URL,
+    ).toBeUndefined();
+    expect(resolved.customerEnv.ANTI_ABUSE_HMAC_SECRET_B64URL).toBeUndefined();
+    expect(
+      resolved.customerEnv.HANDOFF_VERIFIER_HMAC_SECRET_B64URL,
+    ).toBeUndefined();
+  });
+
+  it("keeps the migration credential and runtime database URL separated", () => {
+    const resolved = resolveSmokeChildEnvironments(
+      environmentWith({
+        DATABASE_URL: "postgresql://valet_runtime:pw@127.0.0.1:5432/valet",
+        MIGRATION_DATABASE_URL: "postgresql://valet:pw@127.0.0.1:5432/valet",
+      }),
+    );
+    for (const childEnv of [
+      resolved.apiEnv,
+      resolved.employeeEnv,
+      resolved.customerEnv,
+    ]) {
+      expect(childEnv.MIGRATION_DATABASE_URL).toBeUndefined();
+    }
+    expect(resolved.apiEnv.DATABASE_URL).toBe(
+      "postgresql://valet_runtime:pw@127.0.0.1:5432/valet",
+    );
+  });
+
   it("rejects malformed non-blank secrets instead of masking them", () => {
     expect(() =>
       resolveSmokeChildEnvironments(

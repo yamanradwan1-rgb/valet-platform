@@ -56,24 +56,25 @@ export function resolveSmokeChildEnvironments(
     environment.HANDOFF_VERIFIER_HMAC_SECRET_B64URL,
     "HANDOFF_VERIFIER_HMAC_SECRET_B64URL",
   );
-  const sharedEnv: NodeJS.ProcessEnv = {
-    ...environment,
-    NODE_ENV: "development",
-  };
+  const runtimeEnv: NodeJS.ProcessEnv = { ...environment };
+  delete runtimeEnv.ANTI_ABUSE_HMAC_SECRET_B64URL;
+  delete runtimeEnv.HANDOFF_VERIFIER_HMAC_SECRET_B64URL;
+  delete runtimeEnv.MIGRATION_DATABASE_URL;
+  runtimeEnv.NODE_ENV = "development";
   return {
     apiEnv: {
-      ...sharedEnv,
+      ...runtimeEnv,
       ANTI_ABUSE_HMAC_SECRET_B64URL: antiAbuseSecret,
       HANDOFF_VERIFIER_HMAC_SECRET_B64URL: handoffSecret,
       PORT: "3001",
       STAFF_AUTH_ALLOWED_ORIGINS: LOCAL_EMPLOYEE_ORIGIN,
     },
     customerEnv: {
-      ...sharedEnv,
+      ...runtimeEnv,
       API_ORIGIN: LOCAL_SERVICE_URLS.api,
     },
     employeeEnv: {
-      ...sharedEnv,
+      ...runtimeEnv,
       API_ORIGIN: LOCAL_SERVICE_URLS.api,
       NEXT_PUBLIC_CUSTOMER_APP_ORIGIN: LOCAL_SERVICE_URLS.customer,
     },
