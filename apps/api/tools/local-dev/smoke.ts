@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -16,32 +17,67 @@ import {
 import { renderBootstrapSummary, runBootstrap } from "./bootstrap";
 
 const API_DIST_ENTRY = join("apps", "api", "dist", "main.js");
+const SMOKE_HMAC_SECRET_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
-export function validateSmokeApiEnvironment(
-  environment: NodeJS.ProcessEnv,
-): void {
-  const problems: string[] = [];
-  const configuredOrigins = (environment.STAFF_AUTH_ALLOWED_ORIGINS ?? "")
-    .split(",")
-    .map((origin) => origin.trim());
-  if (!configuredOrigins.includes(LOCAL_EMPLOYEE_ORIGIN)) {
-    problems.push(
-      `Add ${LOCAL_EMPLOYEE_ORIGIN} to STAFF_AUTH_ALLOWED_ORIGINS in the repository .env so Employee sign-in works.`,
-    );
+function generateSmokeHmacSecret(): string {
+  return randomBytes(32).toString("base64url");
+}
+
+function resolveSmokeHmacSecret(
+  value: string | undefined,
+  variableName: string,
+): string {
+  const trimmed = (value ?? "").trim();
+  if (trimmed === "") {
+    return generateSmokeHmacSecret();
   }
-  if ((environment.ANTI_ABUSE_HMAC_SECRET_B64URL ?? "").trim() === "") {
-    problems.push("Set ANTI_ABUSE_HMAC_SECRET_B64URL in the repository .env.");
-  }
-  if ((environment.HANDOFF_VERIFIER_HMAC_SECRET_B64URL ?? "").trim() === "") {
-    problems.push(
-      "Set HANDOFF_VERIFIER_HMAC_SECRET_B64URL in the repository .env.",
-    );
-  }
-  if (problems.length > 0) {
+  if (!SMOKE_HMAC_SECRET_PATTERN.test(trimmed)) {
     throw new Error(
-      `Local smoke prerequisites are incomplete:\n- ${problems.join("\n- ")}`,
+      `${variableName} must be an unpadded base64url-encoded 32-byte secret.`,
     );
   }
+  return trimmed;
+}
+
+export interface SmokeChildEnvironments {
+  readonly apiEnv: NodeJS.ProcessEnv;
+  readonly customerEnv: NodeJS.ProcessEnv;
+  readonly employeeEnv: NodeJS.ProcessEnv;
+}
+
+export function resolveSmokeChildEnvironments(
+  environment: NodeJS.ProcessEnv,
+): SmokeChildEnvironments {
+  const antiAbuseSecret = resolveSmokeHmacSecret(
+    environment.ANTI_ABUSE_HMAC_SECRET_B64URL,
+    "ANTI_ABUSE_HMAC_SECRET_B64URL",
+  );
+  const handoffSecret = resolveSmokeHmacSecret(
+    environment.HANDOFF_VERIFIER_HMAC_SECRET_B64URL,
+    "HANDOFF_VERIFIER_HMAC_SECRET_B64URL",
+  );
+  const sharedEnv: NodeJS.ProcessEnv = {
+    ...environment,
+    NODE_ENV: "development",
+  };
+  return {
+    apiEnv: {
+      ...sharedEnv,
+      ANTI_ABUSE_HMAC_SECRET_B64URL: antiAbuseSecret,
+      HANDOFF_VERIFIER_HMAC_SECRET_B64URL: handoffSecret,
+      PORT: "3001",
+      STAFF_AUTH_ALLOWED_ORIGINS: LOCAL_EMPLOYEE_ORIGIN,
+    },
+    customerEnv: {
+      ...sharedEnv,
+      API_ORIGIN: LOCAL_SERVICE_URLS.api,
+    },
+    employeeEnv: {
+      ...sharedEnv,
+      API_ORIGIN: LOCAL_SERVICE_URLS.api,
+      NEXT_PUBLIC_CUSTOMER_APP_ORIGIN: LOCAL_SERVICE_URLS.customer,
+    },
+  };
 }
 
 function buildWorkspaceArtifacts(repositoryRoot: string): void {
@@ -55,10 +91,6 @@ function buildWorkspaceArtifacts(repositoryRoot: string): void {
     ["--filter", "@valet/api", "run", "build"],
     "API build",
   );
-}
-
-export interface SmokeLaunchPlan {
-  readonly apiEntryPath: string;
 }
 
 export function resolveApiEntryPath(repositoryRoot: string): string {
@@ -82,7 +114,7 @@ async function main(): Promise<void> {
       process.stdout.write(`${line}\n`);
     }
 
-    validateSmokeApiEnvironment(process.env);
+    const childEnvironments = resolveSmokeChildEnvironments(process.env);
     buildWorkspaceArtifacts(repositoryRoot);
     const apiEntry = resolveApiEntryPath(repositoryRoot);
 
@@ -90,25 +122,19 @@ async function main(): Promise<void> {
     children = [
       startManagedProcess("api", process.execPath, [apiEntry], {
         cwd: repositoryRoot,
-        env: { ...process.env, NODE_ENV: "development", PORT: "3001" },
+        env: childEnvironments.apiEnv,
       }),
       startManagedProcess(
         "employee",
         "pnpm",
         ["--filter", "@valet/valet", "run", "dev"],
-        {
-          cwd: repositoryRoot,
-          env: { ...process.env, API_ORIGIN: LOCAL_SERVICE_URLS.api },
-        },
+        { cwd: repositoryRoot, env: childEnvironments.employeeEnv },
       ),
       startManagedProcess(
         "customer",
         "pnpm",
         ["--filter", "@valet/customer", "run", "dev"],
-        {
-          cwd: repositoryRoot,
-          env: { ...process.env, API_ORIGIN: LOCAL_SERVICE_URLS.api },
-        },
+        { cwd: repositoryRoot, env: childEnvironments.customerEnv },
       ),
     ];
 

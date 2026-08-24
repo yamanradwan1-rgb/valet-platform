@@ -208,6 +208,11 @@ corepack pnpm local:smoke
 - `local:smoke` bootstraps, builds contracts and the API, then starts the
   compiled API on port 3001 plus the Employee (3000) and Customer (3002) apps,
   tagging each process's output and stopping everything if any process fails.
+  It supplies local-only child configuration itself (`NODE_ENV=development`,
+  localhost staff origin, localhost API/customer origins) and generates
+  in-memory local HMAC secrets when the repository `.env` leaves them blank;
+  generated secrets are never written to disk or printed, and production
+  validation/defaults are untouched.
 
 All lifecycle smoke actions (Check-In, Parking, Retrieval, Guest Access,
 Handoff) remain web-only product flows; this tooling only bootstraps the local
