@@ -180,3 +180,40 @@ Application development ports:
 - API and Swagger: `http://localhost:3001` and `http://localhost:3001/docs`
 - Customer experience: `http://localhost:3002`
 - Management dashboard: `http://localhost:3003`
+
+## Deterministic local smoke harness
+
+For local Employee/Customer smoke testing, three development-only commands
+remove manual database inspection and fixing:
+
+```text
+corepack pnpm local:bootstrap
+corepack pnpm local:status
+corepack pnpm local:smoke
+```
+
+- `local:bootstrap` verifies safety guards (`NODE_ENV=development`, loopback
+  PostgreSQL host, database exactly `valet`; it aborts before any destructive
+  action otherwise), ensures the Compose `postgres` service is running, resets
+  the local schema, applies migrations, provisions the runtime role, loads the
+  canonical demo seed, makes `valet@vaylet.demo.invalid` login-capable with
+  password `VayletPassword123!` using the official staff provisioning hashing,
+  clears stale staff auth/anti-abuse state, and prints the deterministic
+  KeySlot/parking-spot occupancy summary. Repeated runs converge to the same
+  state; `K-03` and `K-04` are guaranteed FREE afterwards.
+- `local:status` is strictly read-only (executed inside a `READ ONLY`
+  transaction) and prints database identity, demo employee login health,
+  KeySlot/parking-spot occupancy, and staff auth session / anti-abuse event
+  counts without ever printing hashes or tokens.
+- `local:smoke` bootstraps, builds contracts and the API, then starts the
+  compiled API on port 3001 plus the Employee (3000) and Customer (3002) apps,
+  tagging each process's output and stopping everything if any process fails.
+  It supplies local-only child configuration itself (`NODE_ENV=development`,
+  localhost staff origin, localhost API/customer origins) and generates
+  in-memory local HMAC secrets when the repository `.env` leaves them blank;
+  generated secrets are never written to disk or printed, and production
+  validation/defaults are untouched.
+
+All lifecycle smoke actions (Check-In, Parking, Retrieval, Guest Access,
+Handoff) remain web-only product flows; this tooling only bootstraps the local
+environment and reports read-only diagnostics.
