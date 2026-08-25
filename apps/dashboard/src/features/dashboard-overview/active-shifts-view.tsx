@@ -37,11 +37,12 @@ export function ActiveShiftsView() {
 
   const list = useOverviewCursorList<ActiveShiftOverviewEntry>({
     enabled: locationId !== null,
-    fetchPage: (cursor) => {
+    resetKey: locationId,
+    fetchPage: (cursor, signal) => {
       if (locationId === null) {
         return Promise.reject(new Error("overview location unconfigured"));
       }
-      return fetchActiveShiftsPage(client, locationId, cursor);
+      return fetchActiveShiftsPage(client, locationId, cursor, signal);
     },
   });
 

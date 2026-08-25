@@ -3,9 +3,9 @@
 import { useEffect, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { AppShell } from "../../components/shell/app-shell";
 import { FullscreenLoader } from "../../components/ui/skeleton";
 import { useAuth } from "../../features/auth/use-auth";
+import { LocationGate } from "../../features/location/location-gate";
 import { LocationProvider } from "../../features/location/location-context";
 import { useTranslation } from "../../i18n/locale-provider";
 
@@ -15,6 +15,9 @@ import { useTranslation } from "../../i18n/locale-provider";
  * - restoring: silent refresh against the httpOnly staff cookie is in flight
  * - unauthenticated: no session -> sign-in
  * - expired: refresh cookie rejected/expired -> explicit expired screen
+ *
+ * After authentication, D2-005 LocationGate runs the production
+ * authorized-location bootstrap (loading / no-access / failure / ready).
  */
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { status } = useAuth();
@@ -37,7 +40,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <LocationProvider>
-      <AppShell>{children}</AppShell>
+      <LocationGate>{children}</LocationGate>
     </LocationProvider>
   );
 }

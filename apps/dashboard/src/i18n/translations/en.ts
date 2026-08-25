@@ -4,6 +4,7 @@ import { activeShiftsEn } from "./sections/active-shifts-strings";
 import { foundationEn } from "./sections/foundation-strings";
 import { incidentsEn } from "./sections/incidents-strings";
 import { keysEn } from "./sections/keys-strings";
+import { locationEn } from "./sections/location-strings";
 import { overviewEn } from "./sections/overview-strings";
 import { retrievalQueueEn } from "./sections/retrieval-queue-strings";
 import { sessionsEn } from "./sections/sessions-strings";
@@ -18,6 +19,7 @@ export const enTranslations: TranslationDictionary = {
   ...foundationEn,
   ...incidentsEn,
   ...keysEn,
+  ...locationEn,
   ...overviewEn,
   ...retrievalQueueEn,
   ...sessionsEn,

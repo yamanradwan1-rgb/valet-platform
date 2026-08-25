@@ -122,13 +122,23 @@ describe("VAL-009A authorized dashboard Location enumeration", () => {
     const fixture = await context.createFixture({ role: "LOCATION_MANAGER" });
     const second = await context.addLocation(fixture, { name: "A Second" });
     await context.addLocation(fixture, { access: false, name: "C Hidden" });
+    // D2-005: the enumeration also projects the location's currency and
+    // timezone (both NOT NULL backend columns) for the public endpoint.
     const firstPass = await context.enumerate(fixture.userId);
     expect(firstPass).toEqual([
-      { locationId: second, name: "A Second", organizationId: fixture.organizationId },
       {
+        currency: "JOD",
+        locationId: second,
+        name: "A Second",
+        organizationId: fixture.organizationId,
+        timezone: "Asia/Amman",
+      },
+      {
+        currency: "JOD",
         locationId: fixture.locationId,
         name: "Shift location",
         organizationId: fixture.organizationId,
+        timezone: "Asia/Amman",
       },
     ]);
     const secondPass = await context.enumerate(fixture.userId);

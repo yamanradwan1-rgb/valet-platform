@@ -37,11 +37,12 @@ export function KeysCustodyView() {
 
   const list = useOverviewCursorList<KeySlotOverviewEntry>({
     enabled: locationId !== null,
-    fetchPage: (cursor) => {
+    resetKey: locationId,
+    fetchPage: (cursor, signal) => {
       if (locationId === null) {
         return Promise.reject(new Error("overview location unconfigured"));
       }
-      return fetchKeySlotsPage(client, locationId, cursor);
+      return fetchKeySlotsPage(client, locationId, cursor, signal);
     },
   });
 

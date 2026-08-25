@@ -140,7 +140,7 @@ export const foundationEn: FoundationStrings = {
     "This surface is part of the dashboard foundation. Backend data wiring arrives in a later integration task.",
   "placeholder.emptyState": "No data is wired yet for this surface.",
   "placeholder.locationMissingNote":
-    "No development location is configured. Set NEXT_PUBLIC_DEV_LOCATION_ID for local development; real location bootstrap awaits a backend enumeration endpoint.",
+    "No authorized location is currently selected.",
   "page.liveOperations.title": "Live Operations",
   "page.liveOperations.description":
     "Task-scoped live vehicle positions during Parking or Retrieval tasks.",
@@ -227,8 +227,7 @@ export const foundationAr: FoundationStrings = {
   "placeholder.foundationNote":
     "هذه الصفحة جزء من أساس لوحة الإدارة. سيتم ربط بيانات الخادم في مهمة تكامل لاحقة.",
   "placeholder.emptyState": "لم يتم ربط أي بيانات لهذه الصفحة بعد.",
-  "placeholder.locationMissingNote":
-    "لم يتم إعداد موقع للتطوير. عيّن NEXT_PUBLIC_DEV_LOCATION_ID للتطوير المحلي؛ ومصدر مواقع حقيقي ينتظر نقطة نهاية للتصريح من الخادم.",
+  "placeholder.locationMissingNote": "لا يوجد موقع مصرّح به محدد حاليًا.",
   "page.liveOperations.title": "العمليات المباشرة",
   "page.liveOperations.description":
     "مواقع السيارات المباشرة أثناء مهام الركن أو الإحضار فقط.",

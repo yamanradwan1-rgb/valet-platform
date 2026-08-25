@@ -5,12 +5,6 @@ function readNumberEnv(name: string, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function readOptionalEnv(name: string): string | null {
-  const raw = process.env[name];
-  if (raw === undefined || raw.trim() === "") return null;
-  return raw.trim();
-}
-
 /**
  * Development map tile/style provider. OpenFreeMap requires no API key and no
  * billing account. A production provider decision may replace this constant
@@ -31,30 +25,13 @@ export const DEV_MAP_CENTER = {
 export const DEV_MAP_ZOOM = readNumberEnv("NEXT_PUBLIC_MAP_CENTER_ZOOM", 17.6);
 
 /**
- * Development-only single-location bootstrap.
+ * D2-005: the former development-only single-location bootstrap
+ * (`NEXT_PUBLIC_DEV_LOCATION_ID` and friends) was REMOVED.
  *
- * The backend currently has NO public endpoint that enumerates the Locations a
- * LOCATION_MANAGER may manage (only an internal query helper exists). Until a
- * real bootstrap contract ships, the dashboard keeps a single-location posture
- * driven by explicit local configuration. This value is NEVER authorization:
- * every API call remains authorized server-side by exact Location ID.
+ * The dashboard now derives its available locations exclusively from the
+ * authenticated backend endpoint GET /v1/staff/dashboard/locations through
+ * the LocationProvider bootstrap. There is deliberately no environment-based
+ * fallback: a hard-coded or env-provided location could never be more than a
+ * UX default, and after real authorized bootstrap it would risk diverging
+ * from server-side authorization truth.
  */
-export interface DevLocationBootstrap {
-  readonly locationId: string;
-  readonly organizationId: string | null;
-  readonly name: string | null;
-  readonly currency: string | null;
-  readonly timezone: string | null;
-}
-
-export function getDevLocationBootstrap(): DevLocationBootstrap | null {
-  const locationId = readOptionalEnv("NEXT_PUBLIC_DEV_LOCATION_ID");
-  if (locationId === null) return null;
-  return {
-    locationId,
-    organizationId: readOptionalEnv("NEXT_PUBLIC_DEV_ORGANIZATION_ID"),
-    name: readOptionalEnv("NEXT_PUBLIC_DEV_LOCATION_NAME"),
-    currency: readOptionalEnv("NEXT_PUBLIC_DEV_LOCATION_CURRENCY"),
-    timezone: readOptionalEnv("NEXT_PUBLIC_DEV_LOCATION_TIMEZONE"),
-  };
-}

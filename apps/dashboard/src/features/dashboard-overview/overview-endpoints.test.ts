@@ -13,6 +13,7 @@ const LOCATION_ID = "0f0c8a5e-6b2f-4a17-9a55-3ef2b7c9d001";
 class RecordingTransport {
   public readonly calls: Array<{
     argumentCount: number;
+    optionKeys: string[];
     path: string;
   }> = [];
 
@@ -25,7 +26,12 @@ class RecordingTransport {
   async request<T>(...args: unknown[]): Promise<T> {
     const path = args[0];
     if (typeof path !== "string") throw new Error("path required");
-    this.calls.push({ argumentCount: args.length, path });
+    const options = args[1] as Record<string, unknown> | undefined;
+    const optionKeys =
+      typeof options === "object" && options !== null
+        ? Object.keys(options)
+        : [];
+    this.calls.push({ argumentCount: args.length, optionKeys, path });
     const next = this.responses.shift();
     if (next === undefined) throw new Error("no stubbed response left");
     if (next instanceof Error) throw next;
@@ -35,6 +41,7 @@ class RecordingTransport {
 
 function lastCall(transport: RecordingTransport): {
   argumentCount: number;
+  optionKeys: string[];
   path: string;
 } {
   const call = transport.calls.at(-1);
@@ -63,18 +70,21 @@ describe("overview endpoints transport shape", () => {
     );
   });
 
-  it("only ever issues bare GET requests: no options object, therefore no method or body override", async () => {
+  it("only ever issues GET requests whose sole option is the abort signal", async () => {
+    // D2-005 threads an AbortSignal for location-switch aborts; it is the
+    // ONLY permitted request option — method/body overrides stay impossible.
     const transport = new RecordingTransport([
       { items: [], nextCursor: null },
       { items: [], nextCursor: null },
       { items: [], nextCursor: null },
     ]);
-    await fetchActiveShiftsPage(transport, LOCATION_ID, null);
-    await fetchKeySlotsPage(transport, LOCATION_ID, "abc_123-cursor");
-    await fetchIncidentsPage(transport, LOCATION_ID, null);
+    const signal = new AbortController().signal;
+    await fetchActiveShiftsPage(transport, LOCATION_ID, null, signal);
+    await fetchKeySlotsPage(transport, LOCATION_ID, "cursor", signal);
+    await fetchIncidentsPage(transport, LOCATION_ID, null, signal);
     for (const call of transport.calls) {
-      // StaffApiClient defaults to GET with no body when options are omitted.
-      expect(call.argumentCount).toBe(1);
+      expect(call.argumentCount).toBe(2);
+      expect(call.optionKeys).toEqual(["signal"]);
     }
   });
 

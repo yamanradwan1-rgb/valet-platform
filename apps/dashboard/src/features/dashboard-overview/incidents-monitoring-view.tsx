@@ -48,11 +48,12 @@ export function IncidentsMonitoringView() {
 
   const list = useOverviewCursorList<IncidentOverviewEntry>({
     enabled: locationId !== null,
-    fetchPage: (cursor) => {
+    resetKey: locationId,
+    fetchPage: (cursor, signal) => {
       if (locationId === null) {
         return Promise.reject(new Error("overview location unconfigured"));
       }
-      return fetchIncidentsPage(client, locationId, cursor);
+      return fetchIncidentsPage(client, locationId, cursor, signal);
     },
   });
 

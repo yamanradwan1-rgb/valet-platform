@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { useDashboardLocation } from "../../features/location/location-context";
 import { useAuth } from "../../features/auth/use-auth";
 import { useTranslation } from "../../i18n/locale-provider";
 import { useTheme } from "../../theme/theme-provider";
+import { LocationSwitcher } from "./location-switcher";
 
 interface TopBarProps {
   onMenuToggle: () => void;
@@ -15,7 +15,6 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
   const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const { session, signOut } = useAuth();
-  const location = useDashboardLocation();
   const [userOpen, setUserOpen] = useState(false);
   const userAreaRef = useRef<HTMLDivElement | null>(null);
 
@@ -32,11 +31,6 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
     document.addEventListener("mousedown", onDocumentClick);
     return () => document.removeEventListener("mousedown", onDocumentClick);
   }, [userOpen]);
-
-  const locationLabel =
-    location === null
-      ? t("shell.noLocationConfigured")
-      : (location.name ?? `Location · ${shortId(location.locationId)}`);
 
   const email = session?.email ?? "";
   const initial = email.length > 0 ? email.charAt(0).toUpperCase() : "•";
@@ -65,13 +59,7 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
         </svg>
       </button>
 
-      <div className={`topbar-location ${location === null ? "is-unset" : ""}`}>
-        <span className="topbar-location-dot" aria-hidden="true" />
-        <span className="topbar-location-label">{locationLabel}</span>
-        {location?.currency !== null && location !== null && (
-          <span className="topbar-location-currency">{location.currency}</span>
-        )}
-      </div>
+      <LocationSwitcher />
 
       <div className="topbar-actions">
         <button
@@ -133,10 +121,6 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
       </div>
     </header>
   );
-}
-
-function shortId(id: string): string {
-  return `${id.slice(0, 8)}\u2026${id.slice(-4)}`;
 }
 
 function LanguageOption({

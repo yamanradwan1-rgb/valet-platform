@@ -52,11 +52,13 @@ export async function fetchActiveShiftsPage(
   transport: OverviewTransport,
   locationId: string,
   cursor: string | null,
+  signal?: AbortSignal,
 ): Promise<OverviewListPage<ActiveShiftOverviewEntry>> {
-  // Options are intentionally omitted: StaffApiClient defaults to GET with
-  // no body, which is the only method these read surfaces may ever use.
+  // Options intentionally carry only the abort signal: StaffApiClient
+  // defaults to GET with no body, the only method these read surfaces use.
   const payload = await transport.request<unknown>(
     overviewResourcePath(locationId, "active-shifts", cursor),
+    { signal },
   );
   const parsed = activeShiftOverviewResponseSchema.safeParse(payload);
   if (!parsed.success) throw invalidResponseError();
@@ -67,9 +69,11 @@ export async function fetchKeySlotsPage(
   transport: OverviewTransport,
   locationId: string,
   cursor: string | null,
+  signal?: AbortSignal,
 ): Promise<OverviewListPage<KeySlotOverviewEntry>> {
   const payload = await transport.request<unknown>(
     overviewResourcePath(locationId, "keys", cursor),
+    { signal },
   );
   const parsed = keySlotOverviewResponseSchema.safeParse(payload);
   if (!parsed.success) throw invalidResponseError();
@@ -80,9 +84,11 @@ export async function fetchIncidentsPage(
   transport: OverviewTransport,
   locationId: string,
   cursor: string | null,
+  signal?: AbortSignal,
 ): Promise<OverviewListPage<IncidentOverviewEntry>> {
   const payload = await transport.request<unknown>(
     overviewResourcePath(locationId, "incidents", cursor),
+    { signal },
   );
   const parsed = incidentOverviewResponseSchema.safeParse(payload);
   if (!parsed.success) throw invalidResponseError();

@@ -4,6 +4,7 @@ import { activeShiftsAr } from "./sections/active-shifts-strings";
 import { foundationAr } from "./sections/foundation-strings";
 import { incidentsAr } from "./sections/incidents-strings";
 import { keysAr } from "./sections/keys-strings";
+import { locationAr } from "./sections/location-strings";
 import { overviewAr } from "./sections/overview-strings";
 import { retrievalQueueAr } from "./sections/retrieval-queue-strings";
 import { sessionsAr } from "./sections/sessions-strings";
@@ -18,6 +19,7 @@ export const arTranslations: TranslationDictionary = {
   ...foundationAr,
   ...incidentsAr,
   ...keysAr,
+  ...locationAr,
   ...overviewAr,
   ...retrievalQueueAr,
   ...sessionsAr,

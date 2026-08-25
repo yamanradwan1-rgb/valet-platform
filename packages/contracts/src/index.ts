@@ -6,6 +6,7 @@ export * from "./api-errors.js";
 export * from "./check-in.js";
 export * from "./complete-handoff.js";
 export * from "./confirm-parked.js";
+export * from "./dashboard-authorized-locations.js";
 export * from "./dispatch.js";
 export * from "./gps-ingestion.js";
 export * from "./handoff.js";
