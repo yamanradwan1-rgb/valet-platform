@@ -14,6 +14,8 @@ export const livePermittedScreens = new Set<Screen>([
   "retrieval",
   "guest-access",
   "shift-summary",
+  // VUI-011B: truthful context-aware Scan Hub (DEC-066 §5).
+  "scan-hub",
 ]);
 
 /** Operational workflows pin the bottom navigation while effective. */
@@ -25,9 +27,13 @@ export const liveWorkflowScreens = new Set<Screen>([
   "guest-access",
 ]);
 
-/** DEC-066 §1: only surfaces with truthful Live implementations in VUI-011A. */
+/**
+ * DEC-066 §1: only surfaces with truthful Live implementations are enabled.
+ * VUI-011A activated Tasks/Shift; VUI-011B activates Scan; Vehicles stays
+ * gated until VUI-011C.
+ */
 export const liveEnabledTabs: Partial<Record<Tab, boolean>> = {
-  scan: false,
+  scan: true,
   vehicles: false,
 };
 
@@ -38,9 +44,11 @@ export function getActiveTab(s: Screen): Tab {
   return "home";
 }
 
-/** Bottom-nav tab target screen; null tabs (Vehicles/Scan) are not yet Live. */
+/** Bottom-nav tab target screen; null tabs (Vehicles) are not yet Live. */
 export function topLevelScreenForTab(tab: Tab): Screen | null {
   if (tab === "home") return "task-queue";
   if (tab === "shift") return "shift-summary";
+  // VUI-011B: the Scan tab now routes to its truthful Live surface.
+  if (tab === "scan") return "scan-hub";
   return null;
 }

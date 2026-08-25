@@ -8,6 +8,7 @@ import { GuestAccessFlow } from "../screens/guest-access/guest-access-flow";
 import { ParkingFlow } from "../screens/parking-flow";
 import { IncidentFlow } from "../screens/incident-flow";
 import { RetrievalFlow } from "../screens/retrieval-flow";
+import { ScanHubLive } from "../screens/scan-hub-live";
 import { ShiftSummaryLive } from "../screens/shift-summary-live";
 import { TaskQueueScreen } from "../screens/task-queue-screen";
 import type { StartParkingPayload } from "../../features/check-in";
@@ -174,6 +175,18 @@ export function EmployeeLiveRouter({
           endShiftPhase={endShiftPhase}
           retryUncertainEndShift={onRetryUncertainEndShift}
           scope={activeScope}
+        />
+      );
+    case "scan-hub":
+      // VUI-011B: the hub receives the app's existing identity-bound
+      // targets/payloads unchanged; its gates decide resumability and every
+      // launch goes through nav into an already-permitted workflow.
+      return (
+        <ScanHubLive
+          nav={nav}
+          parkingPayload={parkingPayload}
+          parkingTarget={parkingTarget}
+          retrievalTarget={retrievalTarget}
         />
       );
     case "task-queue":

@@ -63,14 +63,24 @@ describe("VUI-011A live routing", () => {
     expect(markup).not.toContain("Check-ins");
   });
 
-  it("does not expose the prototype Vehicles or Scan screens in Live mode", () => {
-    for (const screen of ["vehicles-list", "scan-hub"] as const) {
-      const markup = renderRouter(screen);
-      // Falls back to the Tasks surface; no mock operational data leaks.
-      expect(markup).not.toContain("BMW X5");
-      expect(markup).not.toContain("License Plate");
-      expect(markup).not.toContain("Search plate or vehicle...");
-    }
+  it("keeps prototype Vehicles content out of Live mode", () => {
+    const markup = renderRouter("vehicles-list");
+    // Falls back to the Tasks surface; no mock operational data leaks.
+    expect(markup).not.toContain("BMW X5");
+    expect(markup).not.toContain("License Plate");
+    expect(markup).not.toContain("Search plate or vehicle...");
+  });
+
+  it("renders Scan Hub on its truthful Live surface, never the prototype", () => {
+    // VUI-011B activates the context-aware hub; prototype copy and mock
+    // operational data stay unreachable.
+    const markup = renderRouter("scan-hub");
+    expect(markup).not.toContain("BMW X5");
+    expect(markup).not.toContain("Check-in new vehicle");
+    expect(markup).not.toContain("Key QR");
+    expect(markup).not.toContain("Pickup QR");
+    expect(markup).not.toContain("Search plate or vehicle...");
+    expect(markup).toContain("License Plate");
   });
 
   it("keeps unknown overrides safe on the Tasks surface", () => {
