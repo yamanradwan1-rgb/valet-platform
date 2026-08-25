@@ -24,11 +24,7 @@ const sampleContextA: StaffOperationalContextResponse = {
         startedAt: "2026-08-21T18:00:00.000Z",
         status: "ACTIVE",
       },
-      currentLocation: {
-        locationId: "44444444-4444-4444-8444-444444444444",
-        name: "Hotel Alpha",
-        code: "LOC-01",
-      },
+      currentLocation: { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Hotel Alpha", code: "LOC-01" },
       eligibleLocations: [],
     },
   ],

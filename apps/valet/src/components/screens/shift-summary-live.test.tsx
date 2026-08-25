@@ -17,6 +17,7 @@ const { useOnlineStatus } = await import(
 
 const SCOPE: ResolvedOperationalScope = {
   activeContext: {} as ResolvedOperationalScope["activeContext"],
+  currency: "JOD",
   locationCode: "AMM-01",
   locationId: "22222222-2222-4222-8222-222222222222",
   locationName: "Amman Ridge Hotel",
@@ -39,6 +40,7 @@ function renderWith(
     locale?: "ar" | "en";
     online?: boolean;
     phase?: EndShiftPhase;
+    scopeOverrides?: Partial<ResolvedOperationalScope>;
   } = {},
 ): string {
   const controls = stubControls(options.phase ?? { kind: "idle" });
@@ -48,7 +50,7 @@ function renderWith(
       endShift={controls.endShift}
       endShiftPhase={controls.phase}
       retryUncertainEndShift={controls.retryUncertainEndShift}
-      scope={SCOPE}
+      scope={{ ...SCOPE, ...options.scopeOverrides }}
     />
   );
   if (options.locale === undefined) return renderToStaticMarkup(screen);
@@ -95,7 +97,44 @@ describe("DEC-066 §3 Live Shift screen", () => {
     expect(markup).toContain(ar.startedAtLabel);
     expect(markup).toContain(ar.endShiftAction);
     expect(markup).toContain(ar.cashReportedLabel);
+    expect(markup).toContain(ar.cashAmountPlaceholder);
+    expect(markup).toContain(ar.cashReportedHelper);
     expect(markup).not.toContain(ar.parkingState);
+  });
+
+  it("never shows raw ISO timestamps for the shift start time", () => {
+    const markup = renderWith();
+    expect(markup).not.toContain(SCOPE.shiftStartedAt);
+    expect(markup).not.toContain("T10:00:00");
+    // Authoritative ISO stays internal; a locale-formatted value renders.
+    expect(markup).toMatch(/2026/);
+  });
+
+  it("renders the authoritative Location currency next to the cash input", () => {
+    const markup = renderWith();
+    expect(markup).toContain('<bdi dir="ltr">JOD</bdi>');
+    // No hardcoded currency: a different authoritative value renders as-is.
+    const other = renderWith({ scopeOverrides: { currency: "KWD" } });
+    expect(other).toContain('<bdi dir="ltr">KWD</bdi>');
+    expect(other).not.toContain(">JOD<");
+  });
+
+  it("uses truthful copy instead of a fake numeric placeholder", () => {
+    const markup = renderWith();
+    expect(markup).toContain("Enter cash amount");
+    expect(markup).toContain(
+      "Cash physically held at the end of this shift.",
+    );
+    expect(markup).not.toContain('placeholder="0.000"');
+  });
+
+  it("keeps the Location code LTR-isolated on its own non-breaking line", () => {
+    const markup = renderWith();
+    const codeIdx = markup.indexOf('<bdi dir="ltr">AMM-01</bdi>');
+    expect(codeIdx).toBeGreaterThan(-1);
+    // Code sits inside a block-level span so it never splits mid-identifier.
+    const wrapper = markup.slice(markup.lastIndexOf("<span", codeIdx));
+    expect(wrapper).toMatch(/^<span class="block/);
   });
 
   it("blocks the mutation truthfully while offline", () => {

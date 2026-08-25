@@ -44,17 +44,20 @@ describe("Staff Operational Context Contracts", () => {
         locationId: MOCK_LOCATION_ID_1,
         name: "Main Entrance",
         code: "MAIN",
+        currency: "JOD",
       },
       eligibleLocations: [
         {
           locationId: MOCK_LOCATION_ID_1,
           name: "Main Entrance",
           code: "MAIN",
+        currency: "JOD",
         },
         {
           locationId: MOCK_LOCATION_ID_2,
           name: "VIP Lounge",
           code: "VIP",
+          currency: "JOD",
         },
       ],
     };
@@ -81,6 +84,7 @@ describe("Staff Operational Context Contracts", () => {
           locationId: MOCK_LOCATION_ID_1,
           name: "Main Entrance",
           code: "MAIN",
+        currency: "JOD",
         },
       ],
     };

@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
 import type { EndShiftPhase } from "../../features/shift";
 import { endShiftRequestSchema } from "@valet/contracts";
-import { presentLiveError } from "../../lib/i18n/live-presentation";
+import {
+  formatEmployeeDateTime,
+  formatShiftDuration,
+  presentLiveError,
+} from "../../lib/i18n/live-presentation";
+import type { ShiftDurationUnitLabels } from "../../lib/i18n/live-presentation";
 import { useOnlineStatus } from "../../lib/connectivity/use-online-status";
 import { useEmployeeI18n } from "../shell/employee-i18n";
 import {
   Badge,
   Btn,
-  ElapsedTimer,
   InfoRow,
 } from "../ui/employee-primitives";
 
@@ -21,6 +25,37 @@ export interface ShiftSummaryLiveProps {
   readonly endShiftPhase: EndShiftPhase;
   readonly retryUncertainEndShift: () => void;
   readonly scope: ResolvedOperationalScope;
+}
+
+function ShiftElapsed({
+  locale,
+  startedIso,
+  unitLabels,
+}: {
+  readonly locale: "ar" | "en";
+  readonly startedIso: string;
+  readonly unitLabels: ShiftDurationUnitLabels;
+}): JSX.Element {
+  const [elapsedSeconds, setElapsedSeconds] = useState(() =>
+    computeElapsedSeconds(startedIso),
+  );
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsedSeconds(computeElapsedSeconds(startedIso));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [startedIso]);
+  return (
+    <span className="font-heading font-bold text-navy text-sm">
+      {formatShiftDuration(elapsedSeconds, locale, unitLabels)}
+    </span>
+  );
+}
+
+function computeElapsedSeconds(startedIso: string): number {
+  const started = new Date(startedIso).getTime();
+  if (Number.isNaN(started)) return 0;
+  return Math.max(0, Math.floor((Date.now() - started) / 1000));
 }
 
 /**
@@ -84,24 +119,33 @@ export function ShiftSummaryLive({
           </span>
         </div>
         <InfoRow label={t.organizationLabel} value={scope.organizationName} />
-        <InfoRow
-          label={t.location}
-          value={
-            <>
-              {scope.locationName} · <bdi dir="ltr">{scope.locationCode}</bdi>
-            </>
-          }
-        />
+        <div className="flex items-start justify-between py-3 border-b border-vborder">
+          <span className="text-neutral text-sm">{t.location}</span>
+          <span className="text-right font-semibold text-sm text-navy max-w-[60%]">
+            <span className="block">{scope.locationName}</span>
+            <span className="block text-xs text-muted">
+              <bdi dir="ltr">{scope.locationCode}</bdi>
+            </span>
+          </span>
+        </div>
         <InfoRow label={t.roleLabel} value={roleLabel} />
         <InfoRow
           label={t.startedAtLabel}
-          value={<bdi dir="ltr">{scope.shiftStartedAt}</bdi>}
+          value={formatEmployeeDateTime(scope.shiftStartedAt, locale)}
         />
         <div className="pt-3 border-t border-vborder flex items-center justify-between">
           <span className="text-muted text-xs uppercase tracking-wider">
             {t.elapsed}
           </span>
-          <ElapsedTimer startTimeIso={scope.shiftStartedAt} />
+          <ShiftElapsed
+            locale={locale}
+            startedIso={scope.shiftStartedAt}
+            unitLabels={{
+              day: t.durationDayShort,
+              hour: t.durationHourShort,
+              minute: t.durationMinuteShort,
+            }}
+          />
         </div>
       </div>
 
@@ -139,14 +183,18 @@ export function ShiftSummaryLive({
       ) : (
         <div className="bg-white rounded-2xl border border-vborder p-5 space-y-4">
           <label className="text-neutral text-xs font-semibold uppercase tracking-wider block">
-            {t.cashReportedLabel}
+            {t.cashReportedLabel}{" "}
+            <bdi dir="ltr">{scope.currency}</bdi>
           </label>
+          <p className="text-muted text-xs leading-relaxed">
+            {t.cashReportedHelper}
+          </p>
           <input
             value={cashInput}
             dir="ltr"
             inputMode="decimal"
             onChange={(e) => setCashInput(e.target.value)}
-            placeholder="0.000"
+            placeholder={t.cashAmountPlaceholder}
             className="w-full text-center font-heading font-semibold text-xl text-navy bg-warm border border-vborder rounded-xl h-12 focus:outline-none focus:border-vblue"
           />
           {!isOnline && (

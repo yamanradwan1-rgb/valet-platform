@@ -11,6 +11,9 @@ export const staffOperationalRoleSchema = z.enum([
 export const staffOperationalLocationSchema = z
   .object({
     code: z.string(),
+    // Authoritative Location currency (ISO 4217), server-derived per exact
+    // Location. Additive projection for Employee cash-entry UX (DEC-052).
+    currency: z.string().regex(/^[A-Z]{3}$/),
     locationId: uuidSchema,
     name: z.string(),
   })

@@ -30,6 +30,7 @@ const makeContext = (
         status: "ACTIVE",
       },
       currentLocation: {
+        currency: "JOD",
         locationId,
         name: locationName,
         code: "LOC-01",

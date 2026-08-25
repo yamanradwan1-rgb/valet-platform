@@ -7,6 +7,7 @@ import { EmployeeLiveRouter } from "./employee-live-router";
 
 const SCOPE: ResolvedOperationalScope = {
   activeContext: {} as ResolvedOperationalScope["activeContext"],
+  currency: "JOD",
   locationCode: "AMM-01",
   locationId: "22222222-2222-4222-8222-222222222222",
   locationName: "Amman Ridge Hotel",

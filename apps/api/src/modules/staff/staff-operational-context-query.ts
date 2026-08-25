@@ -27,6 +27,7 @@ interface MembershipRow {
 
 interface LocationRow {
   readonly code: string;
+  readonly currency: string;
   readonly location_id: string;
   readonly name: string;
 }
@@ -38,6 +39,7 @@ interface RawActiveShiftRow {
 }
 
 interface ProjectableShiftRow {
+  readonly currency: string;
   readonly code: string;
   readonly location_id: string;
   readonly name: string;
@@ -86,7 +88,8 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
       const locationsResult = await pool.query<LocationRow>(
         `SELECT location.id::text AS location_id,
                 location.name,
-                location.code
+                location.code,
+                location.currency
          FROM membership_location_access AS access
          INNER JOIN locations AS location
            ON location.id = access.location_id
@@ -121,7 +124,8 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
                   shift.location_id::text AS location_id,
                   shift.started_at,
                   location.name,
-                  location.code
+                  location.code,
+                  location.currency
            FROM shifts AS shift
            INNER JOIN locations AS location
              ON location.id = shift.location_id
@@ -157,6 +161,7 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
         };
         currentLocation = {
           code: projectable.code,
+          currency: projectable.currency,
           locationId: projectable.location_id,
           name: projectable.name,
         };
@@ -167,6 +172,7 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
         currentLocation,
         eligibleLocations: locationsResult.rows.map((loc) => ({
           code: loc.code,
+          currency: loc.currency,
           locationId: loc.location_id,
           name: loc.name,
         })),

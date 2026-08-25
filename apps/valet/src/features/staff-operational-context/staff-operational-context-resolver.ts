@@ -6,6 +6,8 @@ import type {
 
 export interface ResolvedOperationalScope {
   readonly activeContext: StaffOperationalMembershipContext;
+  /** Authoritative Location currency (ISO 4217), server-derived. */
+  readonly currency: string;
   readonly locationId: string;
   readonly locationName: string;
   readonly locationCode: string;
@@ -38,6 +40,7 @@ export function resolveOperationalScope(
         locationId: ctx.currentLocation!.locationId,
         locationName: ctx.currentLocation!.name,
         locationCode: ctx.currentLocation!.code,
+        currency: ctx.currentLocation!.currency,
         membershipId: ctx.membershipId,
         organizationId: ctx.organization.organizationId,
         organizationName: ctx.organization.name,

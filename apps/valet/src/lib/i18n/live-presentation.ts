@@ -39,6 +39,45 @@ export function presentLiveError(
   return error instanceof Error ? error.message : t.operationFailed;
 }
 
+export interface ShiftDurationUnitLabels {
+  readonly day: string;
+  readonly hour: string;
+  readonly minute: string;
+}
+
+const SHIFT_DURATION_UNITS: Record<
+  EmployeeLocale,
+  ShiftDurationUnitLabels
+> = {
+  ar: { day: "يوم", hour: "س", minute: "د" },
+  en: { day: "d", hour: "h", minute: "m" },
+};
+
+/**
+ * Human-readable Shift elapsed duration (VUI-011A UX correction):
+ * under 24h -> compact hours/minutes; 24h or more -> days + hours + minutes.
+ * Deterministic given elapsedSeconds so it is directly unit-testable.
+ */
+export function formatShiftDuration(
+  elapsedSeconds: number,
+  locale: EmployeeLocale,
+  unitLabels?: ShiftDurationUnitLabels | undefined,
+): string {
+  const total = Math.max(0, Math.floor(elapsedSeconds));
+  const days = Math.floor(total / 86400);
+  const hours = Math.floor((total % 86400) / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const units = unitLabels ?? SHIFT_DURATION_UNITS[locale];
+  const arabic = locale === "ar";
+  const part = (value: number, suffix: string): string =>
+    arabic ? `${value} ${suffix}` : `${value}${suffix}`;
+  const parts: string[] = [];
+  if (days > 0) parts.push(part(days, units.day));
+  parts.push(part(hours, units.hour));
+  parts.push(part(minutes, units.minute));
+  return parts.join(" ");
+}
+
 export function presentBadge(
   badge: string,
   t: EmployeeDictionary,
