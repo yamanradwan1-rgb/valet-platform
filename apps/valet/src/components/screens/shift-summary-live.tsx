@@ -3,7 +3,7 @@
 import { useState, type JSX } from "react";
 
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
-import { useEndShift } from "../../features/shift";
+import type { EndShiftPhase } from "../../features/shift";
 import { endShiftRequestSchema } from "@valet/contracts";
 import { presentLiveError } from "../../lib/i18n/live-presentation";
 import { useOnlineStatus } from "../../lib/connectivity/use-online-status";
@@ -14,21 +14,26 @@ import {
   ElapsedTimer,
   InfoRow,
 } from "../ui/employee-primitives";
-;
 
 export interface ShiftSummaryLiveProps {
+  /** App-owned End Shift mutation (DEC-066 §4 ambiguous-outcome survival). */
+  readonly endShift: (shiftId: string, cashReported: string) => void;
+  readonly endShiftPhase: EndShiftPhase;
   readonly onAuthorizationLoss?: (() => void) | undefined;
   /** Authoritative context refresh after confirmed End Shift success. */
   readonly onRefreshContext?: (() => void) | undefined;
+  readonly retryUncertainEndShift: () => void;
   readonly scope: ResolvedOperationalScope;
 }
+
 /**
  * Truthful Live Shift surface per DEC-066 §3/§4: authoritative operational
  * context only; no raw Shift UUID, no employee identity, no counters.
  */
 export function ShiftSummaryLive({
-  onAuthorizationLoss,
-  onRefreshContext,
+  endShift,
+  endShiftPhase,
+  retryUncertainEndShift,
   scope,
 }: ShiftSummaryLiveProps): JSX.Element {
   const { locale, t } = useEmployeeI18n();
@@ -37,10 +42,7 @@ export function ShiftSummaryLive({
   const [cashInput, setCashInput] = useState("");
   const [confirming, setConfirming] = useState(false);
 
-  const { endShift, phase, retryUncertain } = useEndShift({
-    onAuthorizationLoss,
-    onEnded: () => onRefreshContext?.(),
-  });
+  const phase = endShiftPhase;
 
   const parsedCash = endShiftRequestSchema.safeParse({
     cashReported: cashInput.trim(),
@@ -79,7 +81,7 @@ export function ShiftSummaryLive({
 
       <div className="bg-white rounded-2xl border border-vborder p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <Badge variant="parking" />
+          <Badge variant="active" />
           <span className="text-vsuccess text-xs font-semibold">
             {t.activeShiftLabel}
           </span>
@@ -162,7 +164,7 @@ export function ShiftSummaryLive({
               </p>
               <Btn
                 label={t.retryEndShift}
-                onClick={() => retryUncertain()}
+                onClick={() => retryUncertainEndShift()}
                 variant="secondary"
                 size="md"
                 disabled={!isOnline}

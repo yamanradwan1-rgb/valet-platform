@@ -12,6 +12,9 @@ import { ShiftSummaryLive } from "../screens/shift-summary-live";
 import { TaskQueueScreen } from "../screens/task-queue-screen";
 import type { StartParkingPayload } from "../../features/check-in";
 import type { ActiveParkingSession } from "../../features/parking";
+import type {
+  EndShiftPhase,
+} from "../../features/shift";
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
 import type {
   ActiveIncidentTarget,
@@ -23,6 +26,9 @@ import type {
 export interface EmployeeLiveRouterProps {
   readonly activeScope: ResolvedOperationalScope;
   readonly effectiveScreen: Screen;
+  /** App-owned End Shift mutation (DEC-066 §4 ambiguous-outcome survival). */
+  readonly endShift: (shiftId: string, cashReported: string) => void;
+  readonly endShiftPhase: EndShiftPhase;
   readonly guestAccessTarget: GuestAccessTarget | null;
   readonly incidentTarget: ActiveIncidentTarget | null;
   readonly onOpenIncident: (sessionId: string, from: Screen) => void;
@@ -32,9 +38,8 @@ export interface EmployeeLiveRouterProps {
   readonly onGuestAccessClose: (returnScreen: Screen) => void;
   readonly onOpenGuestAccess: (sessionId: string, from: Screen) => void;
   readonly onParkingComplete: () => void;
-  /** Authoritative context refresh (DEC-066 §4 End Shift success path). */
-  readonly onRefreshOperationalContext?: (() => void) | undefined;
   readonly onRetrievalComplete: () => void;
+  readonly onRetryUncertainEndShift: () => void;
   readonly onSelectParkingTask: (target: ActiveParkingTarget) => void;
   readonly onSelectRetrievalTask: (target: ActiveRetrievalTarget) => void;
   readonly onStartParkingSuccess: (payload: StartParkingPayload) => void;
@@ -46,6 +51,8 @@ export interface EmployeeLiveRouterProps {
 export function EmployeeLiveRouter({
   activeScope,
   effectiveScreen,
+  endShift,
+  endShiftPhase,
 
   guestAccessTarget,
   incidentTarget,
@@ -57,8 +64,8 @@ export function EmployeeLiveRouter({
   onGuestAccessClose,
   onOpenGuestAccess,
   onParkingComplete,
-  onRefreshOperationalContext,
   onRetrievalComplete,
+  onRetryUncertainEndShift,
   onSelectParkingTask,
   onSelectRetrievalTask,
   onStartParkingSuccess,
@@ -163,10 +170,12 @@ export function EmployeeLiveRouter({
     case "shift-summary":
       return (
         <ShiftSummaryLive
+          endShift={endShift}
+          endShiftPhase={endShiftPhase}
           onAuthorizationLoss={() => {
             void onAuthorizationLoss();
           }}
-          onRefreshContext={onRefreshOperationalContext}
+          retryUncertainEndShift={onRetryUncertainEndShift}
           scope={activeScope}
         />
       );

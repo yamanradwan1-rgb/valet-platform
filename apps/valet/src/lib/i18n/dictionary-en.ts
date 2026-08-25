@@ -57,6 +57,7 @@ export const employeeEnglishDictionary = {
     "End this shift now? The reported cash amount is recorded permanently and this cannot be undone.",
   endShiftUncertain:
     "The connection dropped before the result was confirmed. Your shift may or may not have ended. Reconnect and retry the same end shift action; do not start assuming it succeeded.",
+  endShiftUncertainTitle: "Confirm your end shift result",
   enterKeyManually: "Enter key slot manually",
   enterManually: "Enter manually",
   enterPlate: "Enter Plate",

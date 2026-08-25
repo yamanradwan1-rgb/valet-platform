@@ -15,6 +15,7 @@ import {
   type OperationalGateModel,
 } from "./shell/employee-operational-gate";
 import { EmployeeLiveRouter } from "./shell/employee-live-router";
+import { EndShiftRecoveryPanel } from "./shell/end-shift-recovery-panel";
 import { EmployeePrototypeFrame } from "./shell/employee-prototype-frame";
 import {
   emptyWorkspaceTargets,
@@ -40,6 +41,7 @@ import { AppHeader } from "./shell/app-header";
 import { BottomNav } from "./shell/bottom-nav";
 import { ConnectivityBanner } from "./shell/connectivity-banner";
 import { useStaffOperationalContext } from "../features/staff-operational-context";
+import { useEndShift } from "../features/shift";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
 import type { StartParkingPayload } from "../features/check-in";
 
@@ -173,6 +175,22 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     await auth?.logout();
   };
 
+  // DEC-066 §4: the End Shift controller lives at app level so an ambiguous
+  // outcome's transient same-command retry intent survives authoritative
+  // context revalidation (including a NO_ACTIVE_SHIFT result) and identity
+  // changes discard it with the rest of the workspace.
+  const {
+    endShift,
+    phase: endShiftPhase,
+    resetEndShift,
+    retryUncertain: retryUncertainEndShift,
+  } = useEndShift({
+    onEnded: () => void refreshContext(),
+  });
+  useEffect(() => {
+    resetEndShift();
+  }, [resetEndShift, identity.authenticated, identity.identityGeneration]);
+
   if (isPrototypeMode) {
     return (
       <EmployeePrototypeFrame
@@ -209,6 +227,20 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   }
 
   if (liveScope === null) {
+    // Uncertain End Shift recovery outranks the No Active Shift gate:
+    // absence of an active shift is not mutation-success proof.
+    if (endShiftPhase.kind === "uncertain") {
+      return (
+        <div className="min-h-screen bg-navy-2 flex items-center justify-center">
+          <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
+            <EndShiftRecoveryPanel
+              onRetry={retryUncertainEndShift}
+              onSignOut={() => void handleSignOut()}
+            />
+          </div>
+        </div>
+      );
+    }
     let gateModel: OperationalGateModel;
     if (contextError !== null && contextError !== undefined) {
       gateModel = { kind: "CONTEXT_ERROR", message: contextError.message };
@@ -254,6 +286,8 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           <EmployeeLiveRouter
           activeScope={liveScope}
           effectiveScreen={effectiveScreen}
+          endShift={endShift}
+          endShiftPhase={endShiftPhase}
           guestAccessTarget={targets.guestAccessTarget}
           incidentTarget={targets.activeIncidentTarget}
           nav={nav}
@@ -262,7 +296,6 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           onOpenGuestAccess={handleOpenGuestAccess}
           onOpenIncident={handleOpenIncident}
           onParkingComplete={handleParkingComplete}
-          onRefreshOperationalContext={() => void refreshContext()}
           onRetrievalComplete={handleRetrievalComplete}
           onSelectParkingTask={handleSelectParkingTaskFromQueue}
           onSelectRetrievalTask={handleSelectRetrievalTaskFromQueue}
@@ -270,6 +303,7 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           parkingPayload={targets.activeParkingPayload}
           parkingTarget={targets.activeParkingTarget}
           retrievalTarget={targets.activeRetrievalTarget}
+          onRetryUncertainEndShift={retryUncertainEndShift}
         />
         </main>
 

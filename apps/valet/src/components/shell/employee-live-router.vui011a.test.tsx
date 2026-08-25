@@ -20,6 +20,9 @@ const SCOPE: ResolvedOperationalScope = {
 
 const baseProps = {
   activeScope: SCOPE,
+  effectiveScreen: "task-queue" as Screen,
+  endShift: vi.fn(),
+  endShiftPhase: { kind: "idle" } as import("../../features/shift").EndShiftPhase,
   guestAccessTarget: null,
   incidentTarget: null,
   nav: vi.fn(),
@@ -28,8 +31,8 @@ const baseProps = {
   onOpenGuestAccess: vi.fn(),
   onOpenIncident: vi.fn(),
   onParkingComplete: vi.fn(),
-  onRefreshOperationalContext: vi.fn(),
   onRetrievalComplete: vi.fn(),
+  onRetryUncertainEndShift: vi.fn(),
   onSelectParkingTask: vi.fn(),
   onSelectRetrievalTask: vi.fn(),
   onStartParkingSuccess: vi.fn(),

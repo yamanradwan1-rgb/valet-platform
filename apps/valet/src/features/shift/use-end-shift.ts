@@ -19,6 +19,7 @@ export interface UseEndShiftOptions {
 export interface UseEndShiftResult {
   readonly endShift: (shiftId: string, cashReported: string) => void;
   readonly phase: EndShiftPhase;
+  readonly resetEndShift: () => void;
   readonly retryUncertain: () => void;
 }
 
@@ -68,5 +69,9 @@ export function useEndShift(
     controller.retry();
   }, [controller]);
 
-  return { endShift, phase, retryUncertain };
+  const resetEndShift = useCallback(() => {
+    controller.reset();
+  }, [controller]);
+
+  return { endShift, phase, resetEndShift, retryUncertain };
 }

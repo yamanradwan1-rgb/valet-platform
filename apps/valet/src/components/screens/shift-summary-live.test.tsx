@@ -15,17 +15,6 @@ const { useOnlineStatus } = await import(
   "../../lib/connectivity/use-online-status"
 );
 
-const { useEndShift } = await import("../../features/shift");
-
-vi.mock("../../features/shift", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("../../features/shift")>();
-  return {
-    ...actual,
-    useEndShift: vi.fn(),
-  };
-});
-
 const SCOPE: ResolvedOperationalScope = {
   activeContext: {} as ResolvedOperationalScope["activeContext"],
   locationCode: "AMM-01",
@@ -39,15 +28,10 @@ const SCOPE: ResolvedOperationalScope = {
   shiftStartedAt: "2026-08-25T10:00:00.000Z",
 };
 
-function stubHook(phase: EndShiftPhase) {
+function stubControls(phase: EndShiftPhase) {
   const endShift = vi.fn();
-  const retryUncertain = vi.fn();
-  vi.mocked(useEndShift).mockReturnValue({
-    endShift,
-    phase,
-    retryUncertain,
-  });
-  return { endShift, retryUncertain };
+  const retryUncertainEndShift = vi.fn();
+  return { endShift, phase, retryUncertainEndShift };
 }
 
 function renderWith(
@@ -57,11 +41,13 @@ function renderWith(
     phase?: EndShiftPhase;
   } = {},
 ): string {
-  stubHook(options.phase ?? { kind: "idle" });
+  const controls = stubControls(options.phase ?? { kind: "idle" });
   vi.mocked(useOnlineStatus).mockReturnValue(options.online ?? true);
   const screen = (
     <ShiftSummaryLive
-      onRefreshContext={vi.fn()}
+      endShift={controls.endShift}
+      endShiftPhase={controls.phase}
+      retryUncertainEndShift={controls.retryUncertainEndShift}
       scope={SCOPE}
     />
   );
@@ -93,6 +79,12 @@ describe("DEC-066 §3 Live Shift screen", () => {
     expect(markup).not.toContain("Incidents");
   });
 
+  it("shows the Active badge, never Parking, while the shift is active", () => {
+    const markup = renderWith();
+    expect(markup).toContain(">Active<");
+    expect(markup).not.toContain(">PARKING<");
+  });
+
   it("supports Arabic rendering of all live labels", () => {
     const ar = employeeDictionary("ar");
     const markup = renderWith({ locale: "ar" });
@@ -103,6 +95,7 @@ describe("DEC-066 §3 Live Shift screen", () => {
     expect(markup).toContain(ar.startedAtLabel);
     expect(markup).toContain(ar.endShiftAction);
     expect(markup).toContain(ar.cashReportedLabel);
+    expect(markup).not.toContain(ar.parkingState);
   });
 
   it("blocks the mutation truthfully while offline", () => {
@@ -134,20 +127,25 @@ describe("DEC-066 §3 Live Shift screen", () => {
   });
 
   it("shows the uncertain outcome state without any success claim and offers explicit same-command retry", () => {
-    const { retryUncertain } = stubHook({
+    const controls = stubControls({
       cashReported: "12.500",
       kind: "uncertain",
       shiftId: SCOPE.shiftId,
     });
     vi.mocked(useOnlineStatus).mockReturnValue(true);
     const markup = renderToStaticMarkup(
-      <ShiftSummaryLive onRefreshContext={vi.fn()} scope={SCOPE} />,
+      <ShiftSummaryLive
+        endShift={controls.endShift}
+        endShiftPhase={controls.phase}
+        retryUncertainEndShift={controls.retryUncertainEndShift}
+        scope={SCOPE}
+      />,
     );
     expect(markup).toContain("may or may not have ended");
     expect(markup).not.toContain("Shift ended");
     const retryIdx = markup.indexOf(">Retry end shift</button>");
     expect(retryIdx).toBeGreaterThan(-1);
-    expect(retryUncertain).not.toHaveBeenCalled();
+    expect(controls.retryUncertainEndShift).not.toHaveBeenCalled();
   });
 
   it("renders the authoritative cash reconciliation after confirmed success", () => {
