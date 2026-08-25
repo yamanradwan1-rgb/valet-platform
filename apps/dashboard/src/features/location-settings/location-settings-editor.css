@@ -1,0 +1,131 @@
+/* Location Settings (D4-003) editor sheet + clear dialog styles. Split from
+   location-settings.css to keep both feature files small; all rules use
+   logical properties so EN/AR and RTL mirror correctly. */
+
+.config-editor-panel {
+  position: absolute;
+  inset-inline: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 460px;
+  max-height: min(88vh, 640px);
+  margin-inline: auto;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-popover);
+  padding: 20px;
+}
+
+.config-editor-panel.is-compact {
+  max-width: 420px;
+}
+
+@media (min-width: 640px) {
+  .config-editor-panel {
+    inset-inline: 0;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    margin-inline-start: 0;
+  }
+
+  [dir="rtl"] .config-editor-panel {
+    inset-inline-start: 0;
+    inset-inline-end: 50%;
+    transform: translate(50%, -50%);
+  }
+}
+
+.config-editor-panel h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.config-editor-subtitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.config-editor-facts {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  padding: 10px 12px;
+  margin: 0 0 14px;
+  font-size: 12.5px;
+}
+
+.config-editor-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.config-editor-facts dt {
+  color: var(--text-muted);
+}
+
+.config-editor-facts dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: end;
+}
+
+.config-toggle-row {
+  display: flex;
+  gap: 8px;
+}
+
+.config-toggle {
+  flex: 1;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.config-toggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.config-toggle:disabled,
+.config-toggle-row button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.config-fee-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.config-currency-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding-inline: 10px;
+}
+
+.config-field-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

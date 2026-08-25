@@ -1,14 +1,13 @@
-﻿"use client";
+"use client";
 
-import { FoundationPlaceholder } from "../../../components/ui/foundation-placeholder";
+import { LocationSettingsView } from "../../../features/location-settings/location-settings-view";
 
+/**
+ * Location Settings route (D4-003). Real typed Location Configuration
+ * against the backend contracts reverified in
+ * apps/api/src/modules/dashboard/dashboard-configuration.controller.ts,
+ * replacing the former foundation placeholder.
+ */
 export default function Page() {
-  return (
-    <div className="page-shell">
-      <FoundationPlaceholder
-        titleKey="page.locationSettings.title"
-        descriptionKey="page.locationSettings.description"
-      />
-    </div>
-  );
+  return <LocationSettingsView />;
 }

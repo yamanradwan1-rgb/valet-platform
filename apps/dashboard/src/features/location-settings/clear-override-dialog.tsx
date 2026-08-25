@@ -1,0 +1,76 @@
+"use client";
+
+import { useEffect } from "react";
+
+import { useTranslation } from "../../i18n/locale-provider";
+import "./location-settings-editor.css";
+
+interface ClearOverrideDialogProps {
+  readonly busy: boolean;
+  readonly onCancel: () => void;
+  readonly onConfirm: () => void;
+  readonly settingLabel: string;
+}
+
+/**
+ * Explicit confirmation before clearing a location override. Clearing is an
+ * explicit backend operation and reverting to the company default changes the
+ * applied behavior, so it never happens without this dialog.
+ */
+export function ClearOverrideDialog({
+  busy,
+  onCancel,
+  onConfirm,
+  settingLabel,
+}: ClearOverrideDialogProps) {
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key === "Escape") onCancel();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel]);
+
+  return (
+    <div
+      className="detail-overlay"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label={t("config.clear.title")}
+    >
+      <button
+        type="button"
+        className="detail-backdrop"
+        onClick={onCancel}
+        tabIndex={-1}
+        aria-label={t("config.actions.cancel")}
+      />
+      <div className="config-editor-panel is-compact">
+        <h3>{t("config.clear.title")}</h3>
+        <p>
+          {settingLabel} — {t("config.clear.body")}
+        </p>
+        <div className="map-setup-form-actions">
+          <button
+            type="button"
+            className="btn-secondary"
+            disabled={busy}
+            onClick={onCancel}
+          >
+            {t("config.actions.cancel")}
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            disabled={busy}
+            onClick={onConfirm}
+          >
+            {busy ? t("config.editor.saving") : t("config.clear.confirm")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

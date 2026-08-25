@@ -8,6 +8,7 @@ import type { IncidentsStrings } from "./sections/incidents-strings";
 import type { KeysStrings } from "./sections/keys-strings";
 import type { LiveOperationsStrings } from "./sections/live-operations-strings";
 import type { LocationStrings } from "./sections/location-strings";
+import type { LocationSettingsStrings } from "./sections/location-settings-strings";
 import type { MapSetupStrings } from "./sections/map-setup-strings";
 import type { OverviewStrings } from "./sections/overview-strings";
 import type { RetrievalQueueStrings } from "./sections/retrieval-queue-strings";
@@ -33,6 +34,7 @@ export interface TranslationDictionary
     KeysStrings,
     LiveOperationsStrings,
     LocationStrings,
+    LocationSettingsStrings,
     MapSetupStrings,
     OverviewStrings,
     RetrievalQueueStrings,

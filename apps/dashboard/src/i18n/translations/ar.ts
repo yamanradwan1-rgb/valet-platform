@@ -8,6 +8,7 @@ import { incidentsAr } from "./sections/incidents-strings";
 import { keysAr } from "./sections/keys-strings";
 import { liveOperationsAr } from "./sections/live-operations-strings";
 import { locationAr } from "./sections/location-strings";
+import { locationSettingsAr } from "./sections/location-settings-strings";
 import { mapSetupAr } from "./sections/map-setup-strings";
 import { overviewAr } from "./sections/overview-strings";
 import { retrievalQueueAr } from "./sections/retrieval-queue-strings";
@@ -27,6 +28,7 @@ export const arTranslations: TranslationDictionary = {
   ...keysAr,
   ...liveOperationsAr,
   ...locationAr,
+  ...locationSettingsAr,
   ...mapSetupAr,
   ...overviewAr,
   ...retrievalQueueAr,

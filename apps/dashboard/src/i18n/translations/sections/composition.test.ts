@@ -16,6 +16,10 @@ import {
   liveOperationsEn,
 } from "./live-operations-strings";
 import { locationAr, locationEn } from "./location-strings";
+import {
+  locationSettingsAr,
+  locationSettingsEn,
+} from "./location-settings-strings";
 import { mapSetupAr, mapSetupEn } from "./map-setup-strings";
 import { overviewAr, overviewEn } from "./overview-strings";
 import {
@@ -45,6 +49,7 @@ const EN_FRAGMENTS = [
   ["keys", keysEn],
   ["liveOperations", liveOperationsEn],
   ["location", locationEn],
+  ["locationSettings", locationSettingsEn],
   ["mapSetup", mapSetupEn],
   ["overview", overviewEn],
   ["retrievalQueue", retrievalQueueEn],
@@ -62,6 +67,7 @@ const AR_FRAGMENTS = [
   ["keys", keysAr],
   ["liveOperations", liveOperationsAr],
   ["location", locationAr],
+  ["locationSettings", locationSettingsAr],
   ["mapSetup", mapSetupAr],
   ["overview", overviewAr],
   ["retrievalQueue", retrievalQueueAr],

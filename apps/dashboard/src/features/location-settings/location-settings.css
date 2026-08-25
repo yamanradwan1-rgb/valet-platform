@@ -1,0 +1,241 @@
+/* Location Settings (D4-003) feature styles. Feature-local on purpose:
+   globals.css must not grow for this task. All rules use logical properties
+   so EN/AR and RTL mirror correctly. */
+
+.config-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.config-metadata span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.config-metadata p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.config-loading {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  color: var(--text-muted);
+  padding: 40px 16px;
+  font-size: 14px;
+  background: var(--surface);
+}
+
+.config-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.config-banner.is-conflict {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.config-banner strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.config-banner p {
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.config-banner-intent {
+  font-weight: 600;
+}
+
+.config-banner .btn-secondary {
+  min-height: 36px;
+  padding-inline: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Column legend for wide screens; rows stack their own labels below it. */
+.config-columns {
+  display: none;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.6fr) minmax(0, 1.4fr) minmax(0, auto);
+  gap: 8px 16px;
+  padding-inline: 16px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@media (min-width: 900px) {
+  .config-columns,
+  .config-row {
+    grid-template-columns:
+      minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1.6fr) minmax(0, 1.4fr)
+      minmax(0, auto);
+  }
+
+  .config-row {
+    align-items: start;
+  }
+}
+
+.config-rows {
+  display: grid;
+  gap: 10px;
+}
+
+.config-row {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.config-row-name h3 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.config-row-name p,
+.config-row-hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.config-row-hint {
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.config-cell-label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@media (min-width: 900px) {
+  .config-cell-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .config-row-cell {
+    position: relative;
+  }
+}
+
+.config-value,
+.config-applied {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.config-value.is-override {
+  font-weight: 600;
+}
+
+.config-applied {
+  font-weight: 700;
+}
+
+.config-present-tag {
+  margin-inline-start: 6px;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.config-absent {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.config-readonly-tag {
+  display: inline-block;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 1px 8px;
+}
+
+.config-row-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+@media (min-width: 900px) {
+  .config-row-actions {
+    justify-content: flex-end;
+  }
+}
+
+.config-clear-button {
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding-inline: 12px;
+}
+
+.config-clear-button:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
+.config-clear-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
