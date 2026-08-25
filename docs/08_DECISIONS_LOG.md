@@ -3338,3 +3338,65 @@ decision as it required; DEC-033/037/042/063/065 remain fully binding.
 
 Full binding contract:
 `docs/decisions/DEC-067_EMPLOYEE_CAMERA_QR_ARCHITECTURE.md`
+
+---
+
+## DEC-068 — Post-Parking Key Slot Binding
+
+Status: Accepted
+Date: 2026-08-26
+
+Decision:
+Removes pre-Parking Key Slot assignment from the normal valet workflow. The
+Employee receives the key with the vehicle, starts Parking with
+`ValetSession.key_slot_id` NULL (no slot-specific custody event — no fake
+pre-Parking `CHECKED_OUT`), keeps the physical key while driving, parks,
+scans the Parking Spot, deposits the key into any visibly free physical Key
+Slot on the FIRST cabinet visit, scans that slot, and Confirm Parked then
+atomically resolves the submitted `keySlotCode` (trim-only exact code, ACTIVE,
+persisted Organization + Location, transactionally locked, proven unoccupied),
+binds it to the session alongside Spot/Zone, transitions `PARKING -> PARKED`
+and Parking Task `IN_PROGRESS -> COMPLETED`, stops tracking, appends custody
+(`SLOT_ASSIGNED` then `RETURNED_TO_SLOT`), Dispatch `COMPLETED`, and BOTH
+audits (`VALET_SESSION_KEY_SLOT_ASSIGNED` + `VALET_SESSION_PARKED`) — all or
+nothing. Canonical NEW custody sequence:
+`SLOT_ASSIGNED -> RETURNED_TO_SLOT -> CHECKED_OUT(retrieval) ->
+RELEASED(handoff)`. A dual-mode rule based purely on persisted state keeps
+in-flight compatibility: non-null `key_slot_id` sessions continue current
+accepted behavior end-to-end (assignment already recorded; `CHECKED_OUT` at
+Start Parking; submitted Confirm Parked slot MUST equal the persisted slot;
+no double `SLOT_ASSIGNED`/assignment audit); NULL sessions use post-parking
+binding. Same-slot concurrency has exactly one winner via row locking plus
+the existing unique `valet_sessions_key_slot_id_key` index as final authority
+with the established `23505` classification pattern; the loser gets the
+existing `KEY_CUSTODY_NOT_READY` (HTTP 409, no new public error code) and
+commits zero effects. No availability picker or available-slots endpoint;
+manual fallback mandatory; camera QR decode only fills inputs (DEC-067
+mechanics unchanged); EN/AR/RTL with LTR-isolated codes. No standalone
+return-key endpoint, no new lifecycle state, no reservation primitive, no new
+audit type, no Guest Key Slot exposure, DEC-063 offline policy unchanged.
+
+No schema/migration: no Prisma change, no migration, no new table/column/
+enum value, no mutable custody status, no duplicate occupancy projection;
+the repository remains at its then-current forward-only migration count.
+Dashboard key accountability stays derivable from current `key_slot_id`
+and becomes more physically truthful (slots show held only from physical
+deposit until release).
+
+This decision supersedes/amends exactly: DEC-033 §13's assigned-slot framing
+for later parking commands (assign/clear remain administrative/legacy/
+correction capabilities; all other contracts intact), DEC-036 §10/§11/§13/
+§19/§20/§24/§26/§28 (mandatory slot readiness and unconditional
+`CHECKED_OUT` become legacy-branch only), DEC-037 §11/§12/§13/§18/§24/§33
+(key readiness, RETURNED_TO_SLOT-only assumption, guarded equality for the
+new path), DEC-038 §5/§11 (canonical flow and gate proof become branch-
+aware), DEC-065 §6 step 4/§8/§9/§10/§13/§16 for NEW sessions (equality
+verification, designated-slot STRICT FAIL, old flow/copy/order superseded;
+evidence principle, exact-code semantics, atomicity, privacy and transient
+drafts preserved; LEGACY sessions keep its equality behavior), and the
+guard wording of `docs/04_VALET_SESSION_STATE_MACHINE.md`
+(`AWAITING_PARKING -> PARKING` needs no Key Slot for new sessions;
+`PARKING -> PARKED` key readiness is branch-aware).
+
+Full binding contract:
+`docs/decisions/DEC-068_POST_PARKING_KEY_SLOT_BINDING.md`

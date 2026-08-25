@@ -4,6 +4,15 @@ Status: Accepted
 Date: 2026-08-12  
 Issue: #106 (`VAL-005F — Start Parking`)
 
+> Amendment notice (2026-08-26): `DEC-068` — Post-Parking Key Slot Binding
+> (`Accepted`) amends §10 (error precedence), §11 (key custody readiness),
+> §13 (`CHECKED_OUT` custody fact), §19 (atomicity), §20 (lock ordering),
+> §24 (public error contract) and §28 (required proofs): a ValetSession whose
+> persisted `key_slot_id` is NULL may start Parking without any slot-specific
+> key custody event, while sessions carrying a preassigned slot retain the
+> original validation and `CHECKED_OUT` behavior unchanged. See
+> `docs/decisions/DEC-068_POST_PARKING_KEY_SLOT_BINDING.md` §6, §14 and §28.
+
 ## Context
 
 Phase 3 now has the prerequisites needed to start physical Parking safely:

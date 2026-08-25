@@ -4,6 +4,18 @@ Status: Accepted
 Date: 2026-08-12
 Issue: #92 (`VAL-005C — Key Assignment & Custody Commands`)
 
+> Amendment notice (2026-08-26): `DEC-068` — Post-Parking Key Slot Binding
+> (`Accepted`) amends this decision's §13 parking checkout/return framing:
+> describing VAL-005F `CHECKED_OUT` / VAL-005G `RETURNED_TO_SLOT` as
+> operating against "the assigned slot" now describes the legacy/preassigned
+> branch only. Under DEC-068, Key Slot assignment is no longer a prerequisite
+> of Start Parking for new normal-path sessions; Confirm Parked may bind a
+> resolved free slot for unbound sessions. The assign/clear commands remain
+> valid administrative/legacy/correction capabilities with their accepted
+> contracts unchanged; exact-code/scoping rules, state/version guards,
+> optimistic concurrency and the append-only custody model remain fully
+> binding.
+
 ## Context
 
 VAL-005A / DEC-031 established the Phase 3 key persistence boundary: `ValetSession.key_slot_id` is the mutable current KeySlot assignment, every non-null current slot is database-unique across sessions, and immutable custody history is recorded through append-only `KeyCustodyEvent` rows. The exact persisted event enum is `SLOT_ASSIGNED`, `CHECKED_OUT`, `RETURNED_TO_SLOT`, `SLOT_CLEARED`, and `RELEASED`.

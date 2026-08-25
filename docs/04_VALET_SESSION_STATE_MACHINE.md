@@ -218,8 +218,10 @@ Check-in is complete; vehicle/key are ready for the Parking task to start.
 
 Typical activities:
 
-- QR key-slot assignment or permitted manual fallback
 - create/queue/assign Parking task through Hybrid Dispatch
+- optional (legacy/correction only): QR key-slot assignment or permitted
+  manual fallback per DEC-033; the normal path does NOT assign a Key Slot
+  before Parking (DEC-068)
 
 Allowed:
 
@@ -228,7 +230,11 @@ Allowed:
 Guard for PARKING:
 
 - authorized employee/task ownership according to Dispatch rules
-- key custody assignment satisfies current location policy
+- valid optimistic versions against both current projections
+- key custody satisfies current location policy: either an ACTIVE assigned
+  KeySlot (legacy/preassigned sessions), or — for new normal-path sessions —
+  physical employee custody of the guest key with Key Slot binding deferred
+  to the Confirm Parked operation per DEC-068 (no slot required to start)
 
 ## PARKING
 
@@ -244,7 +250,10 @@ Guard for PARKED:
 
 - permitted Zone/Spot assigned according to Location policy
 - QR proof used when required; manual fallback allowed when policy permits
-- key/vehicle custody remains valid
+- key/vehicle custody remains valid: legacy/preassigned sessions verify the
+  returned key against the persisted assigned KeySlot; new normal-path
+  sessions resolve an ACTIVE, same-scope, currently available KeySlot from
+  submitted evidence and bind it atomically with this transition (DEC-068)
 - responsible actor known
 
 On PARKED:

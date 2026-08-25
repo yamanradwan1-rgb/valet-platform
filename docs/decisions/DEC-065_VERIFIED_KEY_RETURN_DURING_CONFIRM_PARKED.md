@@ -3,6 +3,28 @@
 Status: Accepted
 Date: 2026-08-25
 
+> Amendment notice (2026-08-26): `DEC-068` — Post-Parking Key Slot Binding
+> (`Accepted`) supersedes parts of this decision for NEW sessions whose
+> persisted `key_slot_id` is NULL at Confirm Parked time: §6 step 4
+> (equality against a persisted assignment — replaced by resolution of an
+> ACTIVE, same-scope, currently free slot that is then atomically bound);
+> §8 STRICT FAIL designated-slot policy (there is no designated slot on the
+> new path; occupied/inactive/wrong-scope chosen slots fail closed via
+> `KEY_CUSTODY_NOT_READY` with zero side effects, and no other session's
+> slot is ever silently taken); §9 normal-flow narrative; §10's pre-parking
+> "Assigned key slot" / "Return key to {code}" copy direction for the normal
+> path; §13's unconditional canonical history order; and the corresponding
+> §16 proofs. The canonical NEW normal sequence becomes
+> `SLOT_ASSIGNED -> RETURNED_TO_SLOT` (both at Confirm Parked), then
+> retrieval `CHECKED_OUT`, then handoff `RELEASED`. PRESERVED in full:
+> scanned/entered evidence before any mutation, trim-only exact-code
+> semantics, single-transaction atomicity, no standalone key-return
+> endpoint, no new lifecycle state, no schema/migration/status column, no
+> Guest exposure, transient in-memory codes per DEC-063. LEGACY sessions
+> (non-null persisted slot) remain governed by this decision's equality-
+> verification behavior unchanged. See
+> `docs/decisions/DEC-068_POST_PARKING_KEY_SLOT_BINDING.md`.
+
 ## Context
 
 Real-world valet custody requires the employee to physically keep the customer

@@ -9,6 +9,16 @@ Issue: #116 (`VAL-005H — Phase 3 API / Integration / Employee Operations Gate`
 > `RETURNED_TO_SLOT` succeeds only after server-verified scanned KeySlot
 > evidence during Confirm Parked. Until then this decision remains fully
 > binding.
+>
+> Amendment notice (2026-08-26): `DEC-068` — Post-Parking Key Slot Binding
+> (`Accepted`) amends §5 (canonical composed flow) and §11 (key custody
+> proof) so the gate becomes branch-aware: NEW normal-path sessions execute
+> Check-In -> Parking Task -> Start Parking -> Confirm Parked with
+> post-parking Key Slot binding (custody sequence
+> `SLOT_ASSIGNED -> RETURNED_TO_SLOT` at Confirm Parked, then retrieval
+> `CHECKED_OUT`, then handoff `RELEASED`), while preassigned-session
+> behavior remains covered by the original sequence as regression. See
+> `docs/decisions/DEC-068_POST_PARKING_KEY_SLOT_BINDING.md` §28 and §29.
 
 ## Context
 

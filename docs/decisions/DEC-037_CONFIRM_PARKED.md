@@ -9,6 +9,18 @@ Issue: #111 (`VAL-005G — Confirm Parked`)
 > scope (§4), error precedence (§11), key-custody readiness (§12), return-
 > evidence wording (§13, §18), atomicity proof set (§24) and related required
 > proofs (§33) once Accepted. Until then this decision remains fully binding.
+>
+> Amendment notice (2026-08-26): `DEC-068` — Post-Parking Key Slot Binding
+> (`Accepted`) further amends this decision for sessions whose persisted
+> `key_slot_id` is NULL at confirmation time: §11 (KEY_CUSTODY_NOT_READY
+> widened to cover new-path resolution/availability/lost-race outcomes),
+> §12 (key readiness no longer requires a preexisting assignment),
+> §13 (the binding may be CREATED by this command), §18 (SLOT_ASSIGNED is
+> appended before RETURNED_TO_SLOT on the new path), §24 (branch-aware
+> atomic effect set) and §33 (required proofs). Sessions with a non-null
+> persisted `key_slot_id` remain governed by the DEC-065-amended equality
+> behavior unchanged. See
+> `docs/decisions/DEC-068_POST_PARKING_KEY_SLOT_BINDING.md` §8, §12–§15 and §28.
 
 ## Context
 
