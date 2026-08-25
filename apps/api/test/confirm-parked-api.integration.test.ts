@@ -100,6 +100,7 @@ describe("VAL-005G exact Confirm Parked API", () => {
         body: {
           expectedSessionVersion: 3,
           expectedTaskVersion: 4,
+          keySlotCode: fixture.keySlotCode,
           parkingSpotCode: fixture.parkingSpotCode,
         },
         token,
@@ -123,14 +124,16 @@ describe("VAL-005G exact Confirm Parked API", () => {
   });
 
   it.each([
-    ["session version", { expectedTaskVersion: 4, parkingSpotCode: "A-1" }],
-    ["task version", { expectedSessionVersion: 3, parkingSpotCode: "A-1" }],
-    ["Spot code", { expectedSessionVersion: 3, expectedTaskVersion: 4 }],
+    ["session version", { expectedTaskVersion: 4, keySlotCode: "K-1", parkingSpotCode: "A-1" }],
+    ["task version", { expectedSessionVersion: 3, keySlotCode: "K-1", parkingSpotCode: "A-1" }],
+    ["Key Slot code", { expectedSessionVersion: 3, expectedTaskVersion: 4 }],
+    ["Spot code", { expectedSessionVersion: 3, expectedTaskVersion: 4, keySlotCode: "K-1" }],
     [
       "unknown Zone authority",
       {
         expectedSessionVersion: 3,
         expectedTaskVersion: 4,
+        keySlotCode: "K-1",
         parkingSpotCode: "A-1",
         parkingZoneId: randomUUID(),
       },
@@ -160,6 +163,7 @@ describe("VAL-005G exact Confirm Parked API", () => {
         body: {
           expectedSessionVersion: 3,
           expectedTaskVersion: 4,
+          keySlotCode: fixture.keySlotCode,
           parkingSpotCode: randomUUID(),
         },
         token,

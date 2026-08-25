@@ -86,18 +86,20 @@ export async function authorizeConfirmOwner(
 export async function lockConfirmKeySlot(
   transaction: PostgresTransaction,
   session: LockedConfirmSession,
+  scannedKeySlotCode: string,
 ): Promise<string> {
   if (session.key_slot_id === null) {
     throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");
   }
   const result = await transaction.query<{ id: string }>(
     `SELECT id::text FROM key_slots
-     WHERE id = $1 AND organization_id = $2 AND location_id = $3
-       AND status = 'ACTIVE' FOR UPDATE`,
-    [session.key_slot_id, session.organization_id, session.location_id],
+     WHERE organization_id = $1 AND location_id = $2
+       AND code = $3 AND status = 'ACTIVE'
+     FOR UPDATE`,
+    [session.organization_id, session.location_id, scannedKeySlotCode],
   );
   const keySlotId = result.rows[0]?.id;
-  if (keySlotId === undefined) {
+  if (keySlotId === undefined || keySlotId !== session.key_slot_id) {
     throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");
   }
   return keySlotId;

@@ -25,7 +25,10 @@ export interface UseParkingOptions {
 
 export interface UseParkingResult {
   readonly activeSession: ActiveParkingSession | null;
-  readonly confirmParked: (parkingSpotCode: string) => Promise<void>;
+  readonly confirmParked: (
+    parkingSpotCode: string,
+    keySlotCode: string,
+  ) => Promise<void>;
   readonly error: string | null;
   readonly isHydrating: boolean;
   readonly isSubmitting: boolean;
@@ -84,8 +87,8 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
   }, [controller, initialSession, sessionId, taskId, taskVersion]);
 
   const confirmParked = useCallback(
-    async (parkingSpotCode: string) => {
-      await controller.confirmParked(parkingSpotCode);
+    async (parkingSpotCode: string, keySlotCode: string) => {
+      await controller.confirmParked(parkingSpotCode, keySlotCode);
     },
     [controller],
   );

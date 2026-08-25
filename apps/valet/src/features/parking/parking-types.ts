@@ -1,4 +1,4 @@
-export type ParkingFlowStep = "in-progress" | "spot-scan" | "success";
+export type ParkingFlowStep = "in-progress" | "spot-scan" | "key-return" | "success";
 
 export interface ParkingVehicleInfo {
   readonly color: string | null;

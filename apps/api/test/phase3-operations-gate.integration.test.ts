@@ -106,6 +106,7 @@ describe("VAL-005H production API operations gate", () => {
     const parked = await post(fixture, `${sessionPath}/confirm-parked`, {
       expectedSessionVersion: sessionVersion,
       expectedTaskVersion: taskVersion,
+      keySlotCode: fixture.keySlotCode,
       parkingSpotCode: fixture.parkingSpotCode,
     });
     expect(parked).toMatchObject({
@@ -126,6 +127,7 @@ describe("VAL-005H production API operations gate", () => {
     const stale = await post(fixture, `${sessionPath}/confirm-parked`, {
       expectedSessionVersion: sessionVersion,
       expectedTaskVersion: taskVersion,
+      keySlotCode: fixture.keySlotCode,
       parkingSpotCode: fixture.parkingSpotCode,
     });
     expect(stale).toMatchObject({
@@ -275,6 +277,7 @@ describe("VAL-005H production API operations gate", () => {
             body: {
               expectedSessionVersion: 1,
               expectedTaskVersion: 1,
+              keySlotCode: target.keySlotCode,
               parkingSpotCode: target.parkingSpotCode,
             },
             token,

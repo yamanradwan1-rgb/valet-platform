@@ -7,6 +7,8 @@ import {
   useParking,
   type ActiveParkingSession,
 } from "../../features/parking";
+import { useOnlineStatus } from "../../lib/connectivity/use-online-status";
+import { ParkingKeyReturnStep } from "./parking-key-return-step";
 import {
   BackHeader,
   Badge,
@@ -55,6 +57,8 @@ export function ParkingFlow({
 
   const [spotScanned, setSpotScanned] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState("");
+  const [selectedKeySlot, setSelectedKeySlot] = useState("");
+  const isOnline = useOnlineStatus();
 
   const session = parking.activeSession;
   const vehicle = session?.vehicle;
@@ -208,14 +212,10 @@ export function ParkingFlow({
               </div>
             </div>
             <Btn
-              label={
-                parking.isSubmitting ? t.confirming : t.confirmParking
-              }
-              onClick={async () => {
-                await parking.confirmParked(selectedSpot);
-              }}
+              label={t.continueLabel}
+              onClick={() => parking.setStep("key-return")}
               variant="success"
-              disabled={parking.isSubmitting || selectedSpot.trim() === ""}
+              disabled={!isOnline || selectedSpot.trim() === ""}
             />
             <Btn
               label={t.scanAgain}
@@ -230,6 +230,24 @@ export function ParkingFlow({
     );
   }
 
+  if (parking.step === "key-return") {
+    return (
+      <ParkingKeyReturnStep
+        assignedKeySlotCode={session?.keySlotCode ?? null}
+        error={parking.error}
+        isOnline={isOnline}
+        isSubmitting={parking.isSubmitting}
+        keySlotCodeInput={selectedKeySlot}
+        mode={mode}
+        onChangeKeySlotCode={setSelectedKeySlot}
+        onBack={() => parking.setStep("spot-scan")}
+        onConfirm={async () => {
+          await parking.confirmParked(selectedSpot, selectedKeySlot);
+        }}
+      />
+    );
+  }
+
   if (parking.step === "success") {
     const confirmedZone = session?.parkingZoneCode ? `${t.zone} ${session.parkingZoneCode}` : "";
     const confirmedSpot = session?.parkingSpotCode ?? selectedSpot;
@@ -240,7 +258,7 @@ export function ParkingFlow({
         <SuccessCircle />
         <div className="text-center">
           <p className="font-heading font-bold text-2xl text-navy">
-            {t.vehicleParked}
+            {t.vehicleParkedAndKeyReturned}
           </p>
           <p className="text-vsuccess text-sm font-semibold mt-1">
             {mode === "prototype"

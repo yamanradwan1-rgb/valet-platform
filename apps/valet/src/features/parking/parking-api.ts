@@ -101,6 +101,7 @@ export async function confirmParkedSession(
   expectedSessionVersion: number,
   expectedTaskVersion: number,
   parkingSpotCode: string,
+  keySlotCode: string,
   options: ParkingApiRequestOptions = {},
 ): Promise<ConfirmParkedResponse> {
   const raw = await client.request<unknown>(
@@ -110,6 +111,7 @@ export async function confirmParkedSession(
       body: {
         expectedSessionVersion,
         expectedTaskVersion,
+        keySlotCode,
         parkingSpotCode,
       },
       signal: options.signal,

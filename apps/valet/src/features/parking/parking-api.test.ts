@@ -122,10 +122,25 @@ describe("Parking API Client", () => {
       taskVersion: 5,
     };
     const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
+      request: vi.fn().mockImplementation((_, init) => {
+        expect(init.body).toEqual({
+          expectedSessionVersion: 4,
+          expectedTaskVersion: 4,
+          keySlotCode: "K-03",
+          parkingSpotCode: "B-17",
+        });
+        return Promise.resolve(payload);
+      }),
     } as unknown as EmployeeApiClient;
 
-    const res = await confirmParkedSession(mockClient, sessionId, 4, 4, "B-17");
+    const res = await confirmParkedSession(
+      mockClient,
+      sessionId,
+      4,
+      4,
+      "B-17",
+      "K-03",
+    );
     expect(res).toEqual(payload);
   });
 });

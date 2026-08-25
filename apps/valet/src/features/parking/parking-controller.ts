@@ -100,7 +100,10 @@ export class ParkingController {
     }
   }
 
-  async confirmParked(parkingSpotCode: string): Promise<void> {
+  async confirmParked(
+    parkingSpotCode: string,
+    keySlotCode: string,
+  ): Promise<void> {
     if (this.state.isSubmitting) return;
     const session = this.state.activeSession;
     if (!session) {
@@ -116,6 +119,7 @@ export class ParkingController {
         session.sessionVersion,
         session.taskVersion,
         parkingSpotCode,
+        keySlotCode,
       );
 
       let authoritativeZone = session.parkingZoneCode;

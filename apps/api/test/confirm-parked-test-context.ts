@@ -124,6 +124,7 @@ export class ConfirmParkedTestContext extends StartParkingTestContext {
     fixture: ConfirmParkedFixture,
     input: {
       readonly code?: string;
+      readonly keySlotCode?: string;
       readonly sessionVersion?: number;
       readonly taskVersion?: number;
     } = {},
@@ -136,6 +137,7 @@ export class ConfirmParkedTestContext extends StartParkingTestContext {
       authenticatedUserId: fixture.userId,
       expectedSessionVersion: input.sessionVersion ?? 3,
       expectedTaskVersion: input.taskVersion ?? 4,
+      keySlotCode: input.keySlotCode ?? fixture.keySlotCode,
       parkingSpotCode: input.code ?? fixture.parkingSpotCode,
       sessionId: fixture.sessionId,
     });

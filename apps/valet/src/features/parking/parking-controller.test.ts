@@ -138,8 +138,18 @@ describe("ParkingController", () => {
     const mockClient = {
       request: vi
         .fn()
-        .mockResolvedValueOnce(confirmPayload)
-        .mockResolvedValueOnce(updatedDetailPayload),
+        .mockImplementation((path, init) => {
+          if (String(path).endsWith("/confirm-parked")) {
+            expect(init.body).toEqual({
+              expectedSessionVersion: 4,
+              expectedTaskVersion: 3,
+              keySlotCode: "B-214",
+              parkingSpotCode: "P-101",
+            });
+            return Promise.resolve(confirmPayload);
+          }
+          return Promise.resolve(updatedDetailPayload);
+        }),
     } as unknown as EmployeeApiClient;
 
     const controller = new ParkingController(mockClient, vi.fn());
@@ -164,7 +174,7 @@ describe("ParkingController", () => {
       },
     });
 
-    await controller.confirmParked("P-101");
+    await controller.confirmParked("P-101", "B-214");
 
     const state = controller.getState();
     expect(state.step).toBe("success");
@@ -202,7 +212,7 @@ describe("ParkingController", () => {
       },
     });
 
-    await controller.confirmParked("B-17");
+    await controller.confirmParked("B-17", "B-214");
 
     const state = controller.getState();
     expect(state.step).toBe("in-progress");

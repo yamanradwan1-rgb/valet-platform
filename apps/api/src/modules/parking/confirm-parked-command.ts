@@ -27,6 +27,7 @@ export interface ConfirmParkedCommandRequest {
   readonly authenticatedUserId: string;
   readonly expectedSessionVersion: number;
   readonly expectedTaskVersion: number;
+  readonly keySlotCode: string;
   readonly parkingSpotCode: string;
   readonly sessionId: string;
 }
@@ -52,7 +53,11 @@ async function executeConfirmParked(
     const task = await lockConfirmParkingTask(transaction, session);
     await authorizeConfirmOwner(transaction, session, task, actorMembershipId);
     assertConfirmParkedGuards(session, task, request);
-    const keySlotId = await lockConfirmKeySlot(transaction, session);
+    const keySlotId = await lockConfirmKeySlot(
+      transaction,
+      session,
+      request.keySlotCode.trim(),
+    );
     const spot = await lockConfirmParkingSpot(
       transaction,
       session,

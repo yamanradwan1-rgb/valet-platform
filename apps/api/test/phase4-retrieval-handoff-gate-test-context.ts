@@ -117,6 +117,7 @@ export class Phase4RetrievalHandoffGateContext extends Phase3OperationsGateConte
       {
         expectedSessionVersion: number(started.body, "sessionVersion"),
         expectedTaskVersion: number(started.body, "taskVersion"),
+        keySlotCode: fixture.keySlotCode,
         parkingSpotCode: fixture.parkingSpotCode,
       },
     );

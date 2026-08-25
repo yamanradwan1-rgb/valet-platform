@@ -76,6 +76,7 @@ export class ConfirmParkedController {
           authenticatedUserId,
           expectedSessionVersion: input.expectedSessionVersion,
           expectedTaskVersion: input.expectedTaskVersion,
+          keySlotCode: input.keySlotCode,
           parkingSpotCode: input.parkingSpotCode,
           sessionId: parseSessionId(sessionIdRaw),
         }),

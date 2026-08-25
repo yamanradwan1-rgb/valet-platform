@@ -164,6 +164,7 @@ export class Phase5TrackingGateContext extends Phase4RetrievalHandoffGateContext
   confirmParked(
     fixture: {
       readonly accessToken: string;
+      readonly keySlotCode: string;
       readonly parkingSpotCode: string;
       readonly sessionId: string;
     },
@@ -175,6 +176,7 @@ export class Phase5TrackingGateContext extends Phase4RetrievalHandoffGateContext
       {
         expectedSessionVersion: num(started.body, "sessionVersion"),
         expectedTaskVersion: num(started.body, "taskVersion"),
+        keySlotCode: fixture.keySlotCode,
         parkingSpotCode: fixture.parkingSpotCode,
       },
     );

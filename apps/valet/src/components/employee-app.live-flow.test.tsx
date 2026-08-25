@@ -191,7 +191,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       vehicle: parkingPayload!.vehicle,
     });
 
-    await parkingController.confirmParked("P-101");
+    await parkingController.confirmParked("P-101", "B-214");
 
     const parkingState = parkingController.getState();
     expect(parkingState.step).toBe("success");

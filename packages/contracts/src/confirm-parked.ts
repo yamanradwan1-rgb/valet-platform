@@ -6,6 +6,7 @@ export const confirmParkedRequestSchema = z
   .object({
     expectedSessionVersion: positiveVersionSchema,
     expectedTaskVersion: positiveVersionSchema,
+    keySlotCode: z.string().trim().min(1),
     parkingSpotCode: z.string().trim().min(1),
   })
   .strict();
