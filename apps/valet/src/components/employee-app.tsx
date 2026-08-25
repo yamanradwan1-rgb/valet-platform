@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type JSX } from "react";
 
-import type { Screen, Tab } from "../types/employee-ui";
+import type { Screen } from "../types/employee-ui";
 import {
   createEmployeeAccessActions,
 } from "./shell/employee-access-actions";
@@ -29,28 +29,19 @@ import {
   type GuestAccessTarget,
   type WorkspaceIdentityInput,
 } from "./shell/employee-workspace";
+import {
+  getActiveTab,
+  liveEnabledTabs,
+  livePermittedScreens,
+  liveWorkflowScreens,
+  topLevelScreenForTab,
+} from "./shell/employee-navigation";
 import { AppHeader } from "./shell/app-header";
 import { BottomNav } from "./shell/bottom-nav";
 import { ConnectivityBanner } from "./shell/connectivity-banner";
 import { useStaffOperationalContext } from "../features/staff-operational-context";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
 import type { StartParkingPayload } from "../features/check-in";
-
-function getActiveTab(s: Screen): Tab {
-  if (s === "vehicles-list") return "vehicles";
-  if (s === "scan-hub") return "scan";
-  if (s === "shift-summary") return "shift";
-  return "home";
-}
-
-const livePermittedScreens = new Set<Screen>([
-  "task-queue",
-  "check-in",
-  "parking",
-  "incident",
-  "retrieval",
-  "guest-access",
-]);
 
 export interface EmployeeAppProps {
   /**
@@ -261,31 +252,35 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
 
         <main className="flex-1 overflow-y-auto">
           <EmployeeLiveRouter
-            activeScope={liveScope}
-            effectiveScreen={effectiveScreen}
-            guestAccessTarget={targets.guestAccessTarget}
-            incidentTarget={targets.activeIncidentTarget}
-            nav={nav}
-            onAuthorizationLoss={revalidateOnAuthLoss}
-            onGuestAccessClose={handleGuestAccessClose}
-            onOpenGuestAccess={handleOpenGuestAccess}
-            onOpenIncident={handleOpenIncident}
-            onParkingComplete={handleParkingComplete}
-            onRetrievalComplete={handleRetrievalComplete}
-            onSelectParkingTask={handleSelectParkingTaskFromQueue}
-            onSelectRetrievalTask={handleSelectRetrievalTaskFromQueue}
-            onStartParkingSuccess={handleStartParkingSuccess}
-            parkingPayload={targets.activeParkingPayload}
-            parkingTarget={targets.activeParkingTarget}
-            retrievalTarget={targets.activeRetrievalTarget}
-          />
+          activeScope={liveScope}
+          effectiveScreen={effectiveScreen}
+          guestAccessTarget={targets.guestAccessTarget}
+          incidentTarget={targets.activeIncidentTarget}
+          nav={nav}
+          onAuthorizationLoss={revalidateOnAuthLoss}
+          onGuestAccessClose={handleGuestAccessClose}
+          onOpenGuestAccess={handleOpenGuestAccess}
+          onOpenIncident={handleOpenIncident}
+          onParkingComplete={handleParkingComplete}
+          onRefreshOperationalContext={() => void refreshContext()}
+          onRetrievalComplete={handleRetrievalComplete}
+          onSelectParkingTask={handleSelectParkingTaskFromQueue}
+          onSelectRetrievalTask={handleSelectRetrievalTaskFromQueue}
+          onStartParkingSuccess={handleStartParkingSuccess}
+          parkingPayload={targets.activeParkingPayload}
+          parkingTarget={targets.activeParkingTarget}
+          retrievalTarget={targets.activeRetrievalTarget}
+        />
         </main>
 
         <BottomNav
           active={getActiveTab(effectiveScreen)}
-          onTab={(t) => {
-            if (t === "home") nav("task-queue");
+          enabledTabs={liveEnabledTabs}
+          onTab={(tab) => {
+            const target = topLevelScreenForTab(tab);
+            if (target !== null) nav(target);
           }}
+          pinned={liveWorkflowScreens.has(effectiveScreen)}
         />
       </div>
     </div>

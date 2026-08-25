@@ -8,6 +8,7 @@ import { GuestAccessFlow } from "../screens/guest-access/guest-access-flow";
 import { ParkingFlow } from "../screens/parking-flow";
 import { IncidentFlow } from "../screens/incident-flow";
 import { RetrievalFlow } from "../screens/retrieval-flow";
+import { ShiftSummaryLive } from "../screens/shift-summary-live";
 import { TaskQueueScreen } from "../screens/task-queue-screen";
 import type { StartParkingPayload } from "../../features/check-in";
 import type { ActiveParkingSession } from "../../features/parking";
@@ -31,6 +32,8 @@ export interface EmployeeLiveRouterProps {
   readonly onGuestAccessClose: (returnScreen: Screen) => void;
   readonly onOpenGuestAccess: (sessionId: string, from: Screen) => void;
   readonly onParkingComplete: () => void;
+  /** Authoritative context refresh (DEC-066 §4 End Shift success path). */
+  readonly onRefreshOperationalContext?: (() => void) | undefined;
   readonly onRetrievalComplete: () => void;
   readonly onSelectParkingTask: (target: ActiveParkingTarget) => void;
   readonly onSelectRetrievalTask: (target: ActiveRetrievalTarget) => void;
@@ -54,6 +57,7 @@ export function EmployeeLiveRouter({
   onGuestAccessClose,
   onOpenGuestAccess,
   onParkingComplete,
+  onRefreshOperationalContext,
   onRetrievalComplete,
   onSelectParkingTask,
   onSelectRetrievalTask,
@@ -156,6 +160,16 @@ export function EmployeeLiveRouter({
           onComplete={onRetrievalComplete}
           onOpenIncident={(id: string) => onOpenIncident(id, "retrieval")}
         />      );
+    case "shift-summary":
+      return (
+        <ShiftSummaryLive
+          onAuthorizationLoss={() => {
+            void onAuthorizationLoss();
+          }}
+          onRefreshContext={onRefreshOperationalContext}
+          scope={activeScope}
+        />
+      );
     case "task-queue":
     default:
       return (
