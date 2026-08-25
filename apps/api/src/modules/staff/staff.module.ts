@@ -14,6 +14,7 @@ import { StaffOperationalContextController } from "./staff-operational-context.c
 import { StaffOperationalContextService } from "./staff-operational-context.service";
 import { StaffValetSessionController } from "./staff-valet-session.controller";
 import { StaffValetSessionService } from "./staff-valet-session.service";
+import { StaffVehicleDirectoryService } from "./staff-vehicle-directory.service";
 
 @Module({
   controllers: [
@@ -29,6 +30,7 @@ import { StaffValetSessionService } from "./staff-valet-session.service";
     StaffCheckInDraftsService,
     StaffOperationalContextService,
     StaffValetSessionService,
+    StaffVehicleDirectoryService,
     IncidentReportingService,
   ],
 })

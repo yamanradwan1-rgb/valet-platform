@@ -5,12 +5,34 @@ import type {
   TaskRow,
 } from "./staff-valet-session-queries";
 
-export function authorizeSessionAccess(
-  session: SessionScopeRow,
-  tasks: TaskRow[],
+/**
+ * Minimal persisted session facts consumed by access classification. Keeps
+ * the classifier reusable for batched projections that do not carry the full
+ * custody row.
+ */
+export interface StaffValetSessionAccessInput {
+  readonly checked_in_by_membership_id: string;
+  readonly state: string;
+}
+
+export type StaffValetSessionAccessDecision = "ACCESS_ALLOWED" | "ACCESS_DENIED";
+
+/**
+ * Pure, non-throwing (except corrupted-state invariants) derivation of the
+ * accepted state-by-state task ownership semantics shared by the custody
+ * detail read and the vehicle-directory row filter. Denial is expressed as a
+ * decision instead of an authorization error so callers choose how to act.
+ *
+ * Evaluation order and every corrupted-state Error are identical to the
+ * historical throwing implementation; only the denial outcome representation
+ * changed.
+ */
+export function classifyStaffValetSessionAccess(
+  session: StaffValetSessionAccessInput,
+  tasks: readonly TaskRow[],
   actorMembershipId: string,
   actorRole?: MembershipRole | undefined,
-): void {
+): StaffValetSessionAccessDecision {
   const parkingTasks = tasks.filter((t) => t.task_type === "PARKING");
   const activeParkingTasks = parkingTasks.filter((t) =>
     ["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS"].includes(t.status),
@@ -26,9 +48,9 @@ export function authorizeSessionAccess(
 
   if (session.state === "CHECKING_IN") {
     if (session.checked_in_by_membership_id !== actorMembershipId) {
-      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+      return "ACCESS_DENIED";
     }
-    return;
+    return "ACCESS_ALLOWED";
   }
 
   if (session.state === "AWAITING_PARKING") {
@@ -38,20 +60,20 @@ export function authorizeSessionAccess(
     const task = activeParkingTasks[0];
     if (!task) {
       if (session.checked_in_by_membership_id !== actorMembershipId) {
-        throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+        return "ACCESS_DENIED";
       }
-      return;
+      return "ACCESS_ALLOWED";
     }
     if (task.status === "IN_PROGRESS") {
       throw new Error("Corrupted state: in-progress task in awaiting parking.");
     }
     if (task.status === "QUEUED") {
-      return; // Authorized for any active on-shift employee.
+      return "ACCESS_ALLOWED"; // Authorized for any active on-shift employee.
     }
     if (task.current_assignee_membership_id !== actorMembershipId) {
-      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+      return "ACCESS_DENIED";
     }
-    return;
+    return "ACCESS_ALLOWED";
   }
 
   if (session.state === "PARKING") {
@@ -62,9 +84,9 @@ export function authorizeSessionAccess(
       throw new Error("Corrupted state: expected 1 in-progress parking task.");
     }
     if (activeParkingTasks[0].current_assignee_membership_id !== actorMembershipId) {
-      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+      return "ACCESS_DENIED";
     }
-    return;
+    return "ACCESS_ALLOWED";
   }
 
   if (session.state === "PARKED") {
@@ -75,9 +97,9 @@ export function authorizeSessionAccess(
       completedParkingTasks[0]?.current_assignee_membership_id !==
       actorMembershipId
     ) {
-      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+      return "ACCESS_DENIED";
     }
-    return;
+    return "ACCESS_ALLOWED";
   }
 
   if (session.state === "REQUESTED") {
@@ -102,13 +124,13 @@ export function authorizeSessionAccess(
         retTask.current_assignee_membership_id === actorMembershipId ||
         isParkingOwner
       ) {
-        return;
+        return "ACCESS_ALLOWED";
       }
-      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+      return "ACCESS_DENIED";
     }
 
-    if (isParkingOwner) return;
-    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+    if (isParkingOwner) return "ACCESS_ALLOWED";
+    return "ACCESS_DENIED";
   }
 
   if (session.state === "RETRIEVING" || session.state === "READY") {
@@ -124,9 +146,9 @@ export function authorizeSessionAccess(
     if (
       activeRetrievalTasks[0].current_assignee_membership_id !== actorMembershipId
     ) {
-      throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+      return "ACCESS_DENIED";
     }
-    return;
+    return "ACCESS_ALLOWED";
   }
 
   if (session.state === "HANDOFF_PENDING") {
@@ -149,9 +171,9 @@ export function authorizeSessionAccess(
         actorMembershipId ||
       actorRole === "VALET_SUPERVISOR"
     ) {
-      return;
+      return "ACCESS_ALLOWED";
     }
-    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+    return "ACCESS_DENIED";
   }
 
   if (session.state === "COMPLETED") {
@@ -165,12 +187,35 @@ export function authorizeSessionAccess(
       completedRetrievalTasks[0]?.current_assignee_membership_id ===
       actorMembershipId
     ) {
-      return;
+      return "ACCESS_ALLOWED";
     }
-    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+    return "ACCESS_DENIED";
   }
 
-  throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+  return "ACCESS_DENIED";
+}
+
+/**
+ * Throwing custody-read authorization over the shared pure classifier.
+ * External behavior is unchanged: identical denials, error code, message,
+ * and corrupted-state failures as before the extraction.
+ */
+export function authorizeSessionAccess(
+  session: SessionScopeRow,
+  tasks: TaskRow[],
+  actorMembershipId: string,
+  actorRole?: MembershipRole | undefined,
+): void {
+  if (
+    classifyStaffValetSessionAccess(
+      session,
+      tasks,
+      actorMembershipId,
+      actorRole,
+    ) === "ACCESS_DENIED"
+  ) {
+    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
+  }
 }
 
 export function validateTemporalInvariants(session: SessionScopeRow): void {

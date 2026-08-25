@@ -20,6 +20,7 @@ import { StaffValetSessionController } from "../src/modules/staff/staff-valet-se
 import { IncidentReportingController } from "../src/modules/incidents/incident-reporting.controller";
 import { IncidentReportingService } from "../src/modules/incidents/incident-reporting.service";
 import { StaffValetSessionService } from "../src/modules/staff/staff-valet-session.service";
+import { StaffVehicleDirectoryService } from "../src/modules/staff/staff-vehicle-directory.service";
 import {
   addMemberHelper,
   createKeySlotHelper,
@@ -117,6 +118,7 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
     imports: [HttpInfrastructureModule],
     providers: [
       StaffValetSessionService,
+      StaffVehicleDirectoryService,
       IncidentReportingService,
       {
         provide: RUNTIME_POSTGRES_POOL,
