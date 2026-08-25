@@ -101,6 +101,9 @@ const ids = {
   sessionD: "00000000-0000-4000-8000-000000000083",
   retrievalB: "00000000-0000-4000-8000-000000000090",
   handoffB: "00000000-0000-4000-8000-000000000091",
+  taskAParking: "00000000-0000-4000-8000-000000000092",
+  taskBParking: "00000000-0000-4000-8000-000000000093",
+  taskBRetrieval: "00000000-0000-4000-8000-000000000094",
   auditSessionA: "00000000-0000-4000-8000-0000000000a0",
   auditPaymentD: "00000000-0000-4000-8000-0000000000a1",
   cashPayment: "00000000-0000-4000-8000-0000000000b0",
@@ -504,6 +507,43 @@ async function seed() {
           session.retrievalStartedAt,
           session.readyAt,
           session.completedAt,
+        ],
+      );
+    }
+
+    // Lifecycle-coherent dispatch rows for the ACTIVE demo sessions. Real
+    // flows always create these via the accepted Parking/Retrieval task
+    // lifecycle (DEC-034/DEC-035); strict custody reads treat a PARKED or
+    // READY session without them as corrupted state, so the demo fixtures
+    // must carry the same task facts a real shift would produce.
+    const demoTasks = [
+      [ids.taskAParking, ids.sessionA, "PARKING", "COMPLETED",
+        timestamps.sessionACreated, timestamps.sessionAParked],
+      [ids.taskBParking, ids.sessionB, "PARKING", "COMPLETED",
+        timestamps.sessionBCreated, timestamps.sessionBRequested],
+      [ids.taskBRetrieval, ids.sessionB, "RETRIEVAL", "IN_PROGRESS",
+        timestamps.sessionBRequested, timestamps.sessionBReady],
+    ];
+    for (const [taskId, sessionId, taskType, status, createdAt, updatedAt] of demoTasks) {
+      await query(
+        `INSERT INTO tasks
+           (id, organization_id, location_id, valet_session_id, task_type, status,
+            current_assignee_membership_id, version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5::text::"task_type", $6::text::"task_status", $7, 1, $8, $9)
+         ON CONFLICT (id) DO UPDATE SET
+           status = EXCLUDED.status,
+           current_assignee_membership_id = EXCLUDED.current_assignee_membership_id,
+           updated_at = EXCLUDED.updated_at`,
+        [
+          taskId,
+          ids.organization,
+          ids.ammanLocation,
+          sessionId,
+          taskType,
+          status,
+          ids.valetMembership,
+          createdAt,
+          updatedAt,
         ],
       );
     }
