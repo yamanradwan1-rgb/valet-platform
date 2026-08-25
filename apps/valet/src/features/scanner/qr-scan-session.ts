@@ -4,7 +4,11 @@
  * Owns the mandatory lifecycle obligations: all camera resources are released
  * on close, on an accepted decode, and before any failure is reported;
  * duplicate decodes stay suppressed until the consumer deliberately re-arms.
- * React integration lives in use-qr-scanner-capture.ts.
+ * A monotonic start-generation token guarantees an asynchronous openCamera()
+ * resolution can never reactivate or retain resources after close(), unmount,
+ * an identity change, an accepted decode during startup, or a newer lifecycle
+ * invalidating the original begin(). React integration lives in
+ * use-qr-scanner-capture.ts.
  */
 
 import {
@@ -47,6 +51,12 @@ export class QrScanSession<TValue> {
   private suppressed = false;
   private decoderHandle: QrDecoderHandle | null = null;
   private lastRejectedText: string | null = null;
+  /**
+   * Monotonic attempt token. Every invalidating event (close, accepted decode,
+   * a newer lifecycle) bumps it so an in-flight openCamera() resolution is
+   * recognized as stale BEFORE its handle can be adopted.
+   */
+  private startGeneration = 0;
 
   private readonly options: QrScanSessionOptions<TValue>;
 
@@ -65,10 +75,14 @@ export class QrScanSession<TValue> {
   /**
    * Starts the camera and continuous decoding. A failed start releases every
    * resource BEFORE the failure state is reported — never a half-open camera.
+   * If the attempt is invalidated while openCamera() is pending (close,
+   * accepted decode, newer lifecycle), the eventually-returned decoder handle
+   * is stopped immediately and no scanning phase or extra result is produced.
    */
   async begin(): Promise<void> {
     if (this.phase !== "idle") return;
     this.setPhase("starting");
+    const generation = ++this.startGeneration;
     const availability = evaluateCameraAvailability(
       this.options.probeEnvironment(),
     );
@@ -78,22 +92,41 @@ export class QrScanSession<TValue> {
       return;
     }
     try {
-      this.decoderHandle = await this.options.openCamera((text) => {
+      const handle = await this.options.openCamera((text) => {
         this.handleDecodedText(text);
       });
+      const attemptIsCurrent =
+        generation === this.startGeneration &&
+        this.getPhase() === "starting" &&
+        !this.suppressed;
+      if (!attemptIsCurrent) {
+        handle.stop();
+        stopAllStreamTracks(this.options.previewStream());
+        return;
+      }
       this.lastRejectedText = null;
+      this.decoderHandle = handle;
       this.setPhase("scanning");
     } catch (error) {
+      if (
+        generation !== this.startGeneration ||
+        this.getPhase() !== "starting"
+      ) {
+        stopAllStreamTracks(this.options.previewStream());
+        return;
+      }
       this.releaseResources();
       this.options.onFailure(classifyCameraStartError(error));
     }
   }
 
   /**
-   * Full consumer-initiated close: releases resources and clears suppression
-   * so a later explicit start scans fresh.
+   * Full consumer-initiated close: invalidates any in-flight start attempt
+   * BEFORE/while releasing resources, and clears suppression so a later
+   * explicit start scans fresh.
    */
   close(): void {
+    this.startGeneration += 1;
     this.releaseResources();
     this.suppressed = false;
     this.lastRejectedText = null;
@@ -108,6 +141,8 @@ export class QrScanSession<TValue> {
   /**
    * One decoded frame. Accepted frames stop the camera FIRST and are then
    * delivered exactly once; further frames stay suppressed until re-arm.
+   * An acceptance also invalidates any in-flight start attempt so its future
+   * returned handle cannot reactivate the camera or revert to scanning.
    * Rejected frames never touch inputs and are deduplicated consecutively so
    * a stationary wrong label cannot spam the UI.
    */
@@ -126,6 +161,7 @@ export class QrScanSession<TValue> {
     }
 
     this.suppressed = true;
+    this.startGeneration += 1;
     this.releaseResources();
     this.options.onAccepted(result.value);
   }
