@@ -1,6 +1,8 @@
 import type {
   DashboardSessionState,
   DashboardTaskStatus,
+  LocationMapArea,
+  LocationMapPoint,
 } from "@valet/contracts";
 
 import type { TranslationKey } from "./translations/types";
@@ -159,4 +161,27 @@ export function freshnessLabelKey(freshness: FreshnessValue): TranslationKey {
     STALE: "enum.freshness.STALE",
   };
   return keys[freshness];
+}
+
+export function pointKindLabelKey(
+  kind: LocationMapPoint["kind"],
+): TranslationKey {
+  const keys: Record<LocationMapPoint["kind"], TranslationKey> = {
+    DROP_OFF: "enum.pointKind.DROP_OFF",
+    ENTRANCE: "enum.pointKind.ENTRANCE",
+    PICKUP: "enum.pointKind.PICKUP",
+  };
+  return keys[kind];
+}
+
+export function areaPurposeLabelKey(
+  purpose: LocationMapArea["purpose"],
+): TranslationKey {
+  const keys: Record<LocationMapArea["purpose"], TranslationKey> = {
+    OVERFLOW: "enum.areaPurpose.OVERFLOW",
+    PARKING: "enum.areaPurpose.PARKING",
+    RESTRICTED: "enum.areaPurpose.RESTRICTED",
+    STAGING: "enum.areaPurpose.STAGING",
+  };
+  return keys[purpose];
 }

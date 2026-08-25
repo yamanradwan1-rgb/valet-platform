@@ -1,21 +1,13 @@
-﻿"use client";
+"use client";
 
-import { MapContainer } from "../../../components/maps/map-container";
-import { FoundationPlaceholder } from "../../../components/ui/foundation-placeholder";
+import { MapsZonesView } from "../../../features/map-setup/maps-zones-view";
 
 /**
- * Map Setup foundation. The D1 grid/schematic placeholder is NOT preserved;
- * this route renders the real provider-neutral map surface instead. Point and
- * area CRUD wiring arrives with the Map Setup integration task.
+ * Map Setup route (D3-002). Real point/area CRUD against the backend
+ * contracts reverified in apps/api/src/modules/map-setup; rendering goes
+ * through the provider-neutral map abstraction. The former smoke-test
+ * MapContainer mount is superseded by the feature's interactive surface.
  */
 export default function MapsZonesPage() {
-  return (
-    <div className="page-shell">
-      <FoundationPlaceholder
-        titleKey="page.mapsZones.title"
-        descriptionKey="page.mapsZones.description"
-      />
-      <MapContainer ariaLabel="Map setup development map" />
-    </div>
-  );
+  return <MapsZonesView />;
 }

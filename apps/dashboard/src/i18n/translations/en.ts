@@ -6,6 +6,7 @@ import { incidentsEn } from "./sections/incidents-strings";
 import { keysEn } from "./sections/keys-strings";
 import { liveOperationsEn } from "./sections/live-operations-strings";
 import { locationEn } from "./sections/location-strings";
+import { mapSetupEn } from "./sections/map-setup-strings";
 import { overviewEn } from "./sections/overview-strings";
 import { retrievalQueueEn } from "./sections/retrieval-queue-strings";
 import { sessionsEn } from "./sections/sessions-strings";
@@ -22,6 +23,7 @@ export const enTranslations: TranslationDictionary = {
   ...keysEn,
   ...liveOperationsEn,
   ...locationEn,
+  ...mapSetupEn,
   ...overviewEn,
   ...retrievalQueueEn,
   ...sessionsEn,

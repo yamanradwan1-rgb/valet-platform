@@ -1,0 +1,277 @@
+/* Map Setup (D3-002) feature styles. Feature-local on purpose: globals.css is
+   a legacy >300-line shared surface and must not grow for this task. All
+   rules use logical properties so EN/AR and RTL mirror correctly. */
+
+.map-setup-map {
+  height: 360px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 639px) {
+  .map-setup-map {
+    height: 280px;
+  }
+}
+
+.map-setup-refresh-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  border: 1px solid var(--warning-soft);
+  border-radius: 10px;
+  background: var(--warning-soft);
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.map-setup-refresh-banner span {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.map-setup-refresh-banner .btn-secondary {
+  min-height: 36px;
+  padding-inline: 12px;
+  font-size: 13px;
+}
+
+.map-setup-loading {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  color: var(--text-muted);
+  padding: 40px 16px;
+  font-size: 14px;
+  background: var(--surface);
+}
+
+.map-setup-grid {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .map-setup-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
+
+.map-setup-row-list {
+  display: grid;
+  gap: 8px;
+}
+
+.map-setup-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 12px;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.map-setup-row:hover {
+  background: var(--accent-soft);
+}
+
+.map-setup-row.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.map-setup-row-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.map-setup-row-sub {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.map-setup-detail-empty p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.status-badge.is-active-state {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.status-badge.is-inactive-state {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.map-setup-card-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-setup-link-button {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.map-setup-link-button:hover {
+  text-decoration: underline;
+}
+
+.map-setup-link-button.is-caution {
+  color: var(--danger);
+}
+
+.map-setup-coordinate-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.map-setup-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.map-setup-toggle {
+  min-height: 36px;
+  min-width: 88px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding-inline: 10px;
+}
+
+.map-setup-toggle.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.map-setup-toggle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.map-setup-vertex-textarea {
+  min-height: 150px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.map-setup-context-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  border-radius: 9px;
+  background: var(--surface-muted);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.map-setup-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.map-setup-confirm-panel {
+  position: absolute;
+  inset-inline: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 420px;
+  margin-inline: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-popover);
+  padding: 20px;
+}
+
+@media (min-width: 640px) {
+  .map-setup-confirm-panel {
+    inset-inline: 0;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    margin-inline-start: 0;
+  }
+  [dir="rtl"] .map-setup-confirm-panel {
+    inset-inline-start: 0;
+    inset-inline-end: 50%;
+    transform: translate(50%, -50%);
+  }
+}
+
+.map-setup-confirm-panel h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.map-setup-confirm-panel p {
+  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.map-setup-vertex-box {
+  display: grid;
+  gap: 4px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.map-setup-vertex-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+}

@@ -40,6 +40,13 @@ export interface MapProviderAdapter {
   ): Promise<MapInstance>;
 }
 
+/* ---------------------------------------------------------------------------
+ * Provider-neutral live-marker capability (D3-001).
+ *
+ * Live Operations renders positioned task markers as accessible controls:
+ * glyph, tone and selection are semantic, and adapters own rendering.
+ * ------------------------------------------------------------------------- */
+
 /**
  * Provider-neutral marker description. Domain code expresses WHAT to show;
  * adapters decide HOW to render it. Only backend-reported coordinates may be
@@ -78,4 +85,79 @@ export function supportsMarkers(
     typeof (instance as Partial<MarkerCapableMapInstance>).replaceMarkers ===
     "function"
   );
+}
+
+/* ---------------------------------------------------------------------------
+ * Provider-neutral setup primitives (D3-002).
+ *
+ * Generic point/polygon/click concepts shared by dashboard surfaces that
+ * render configured map content. They intentionally carry no Live Operations
+ * or Map Setup domain semantics: colors and selection are presentation hints
+ * supplied by the calling feature.
+ *
+ * This capability intentionally coexists with the live-marker capability
+ * above instead of being merged into it: live markers are accessible DOM
+ * controls with selection/focus behavior driven by operations state, while
+ * setup layers are provider-rendered geometry with surface click capture.
+ * Adapters implement each family through disjoint mechanisms so neither
+ * feature's lifecycle interferes with the other.
+ * ------------------------------------------------------------------------- */
+
+/** One clickable rendered point marker. */
+export interface MapMarkerDefinition {
+  readonly id: string;
+  readonly latitude: number;
+  readonly longitude: number;
+  /** Presentation hint; adapters map it onto provider styling capability. */
+  readonly color?: string;
+  readonly selected?: boolean;
+}
+
+/**
+ * One rendered polygon. `vertices` is authoritative order; adapters may close
+ * the ring visually at render time only — stored data is never rewritten.
+ */
+export interface MapPolygonDefinition {
+  readonly id: string;
+  readonly vertices: readonly MapCenter[];
+  readonly color?: string;
+  readonly selected?: boolean;
+}
+
+/** A click/tap on the map surface, with any rendered feature that was hit. */
+export interface MapClick {
+  readonly coordinate: MapCenter;
+  readonly markerId: string | null;
+  readonly polygonId: string | null;
+}
+
+export type MapClickHandler = (click: MapClick) => void;
+
+/**
+ * Map instance with additive rendering for configured points and polygons.
+ * Adapters that only support basic mounting still satisfy `MapInstance`.
+ */
+export interface InteractiveMapInstance extends MapInstance {
+  /** Replaces every rendered marker with the given definitions. */
+  setMarkers(markers: readonly MapMarkerDefinition[]): void;
+  /** Replaces every rendered polygon with the given definitions. */
+  setPolygons(polygons: readonly MapPolygonDefinition[]): void;
+  /** Registers the single map-click handler; null removes it. */
+  setClickHandler(handler: MapClickHandler | null): void;
+}
+
+/**
+ * Runtime capability probe so features degrade honestly on adapters that
+ * only support basic mounting.
+ */
+export function asInteractiveMapInstance(
+  instance: MapInstance,
+): InteractiveMapInstance | null {
+  if (
+    typeof (instance as Partial<InteractiveMapInstance>).setMarkers !==
+    "function"
+  ) {
+    return null;
+  }
+  return instance as InteractiveMapInstance;
 }
