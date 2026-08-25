@@ -1,4 +1,4 @@
-import type { GeoJSONSource, LngLatLike, Marker } from "maplibre-gl";
+import type { GeoJSONSource, LngLatLike } from "maplibre-gl";
 
 import { OPENFREEMAP_LIBERTY_STYLE_URL } from "../app-config";
 import {
@@ -6,11 +6,14 @@ import {
   polygonFeature,
   toDomainCoordinate,
 } from "./map-geo";
+import {
+  createMarkerElement,
+  type RenderedMarker,
+} from "./openfreemap-maplibre-live-markers";
 import type {
   InteractiveMapInstance,
   MapClickHandler,
   MapInitOptions,
-  MapInstance,
   MapMarkerDescriptor,
   MapMarkerDefinition,
   MapPolygonDefinition,
@@ -31,44 +34,6 @@ function loadMaplibre(): Promise<MaplibreModule> {
     maplibrePromise = import("maplibre-gl");
   }
   return maplibrePromise;
-}
-
-/* ---------------------------------------------------------------------------
- * Live-marker capability plumbing (D3-001).
- *
- * Live Operations markers are accessible DOM buttons owned by a per-instance
- * registry so replacement and disposal always detach every element.
- * ------------------------------------------------------------------------- */
-
-interface RenderedMarker {
-  readonly marker: Marker;
-  readonly element: HTMLButtonElement;
-  readonly descriptor: MapMarkerDescriptor;
-}
-
-function createMarkerElement(
-  descriptor: MapMarkerDescriptor,
-  onSelectMarker: ((markerId: string) => void) | undefined,
-): HTMLButtonElement {
-  const element = document.createElement("button");
-  element.type = "button";
-  element.className = "live-op-marker";
-  element.classList.add(
-    descriptor.tone === "positive" ? "is-live" : "is-stale",
-  );
-  if (descriptor.selected) element.classList.add("is-selected");
-  element.setAttribute("aria-label", descriptor.ariaLabel);
-  const glyph = document.createElement("span");
-  glyph.setAttribute("aria-hidden", "true");
-  glyph.textContent = descriptor.glyph;
-  element.appendChild(glyph);
-  if (onSelectMarker !== undefined) {
-    const selectMarker = onSelectMarker;
-    element.addEventListener("click", () => {
-      selectMarker(descriptor.id);
-    });
-  }
-  return element;
 }
 
 /* ---------------------------------------------------------------------------
