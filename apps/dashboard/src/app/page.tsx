@@ -1,11 +1,5 @@
-import { AppShell } from "@valet/ui";
-
-import { appInfo } from "../lib/app-info";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <AppShell title={appInfo.title}>
-      <p>{appInfo.description}</p>
-    </AppShell>
-  );
+  redirect("/overview");
 }
