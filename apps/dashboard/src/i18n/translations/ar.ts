@@ -76,6 +76,45 @@ export const arTranslations: TranslationDictionary = {
   // Overview
   "page.overview.title": "نظرة عامة",
   "page.overview.description": "ملخص تشغيلي مباشر للموقع المحدد.",
+  "overview.infoNote":
+    "ملخص إداري مباشر للموقع المحدد. تُعرض المقاييس المتاحة حاليًا لهذا الموقع فقط.",
+  "overview.loading": "جارٍ تحميل النظرة العامة…",
+  "overview.action.retry": "إعادة المحاولة",
+  "overview.error.loadFailed": "تعذر تحميل النظرة العامة الآن. حاول مرة أخرى.",
+  "overview.error.network":
+    "اتصال الشبكة غير متاح. تحقق من اتصالك وحاول مرة أخرى.",
+  "overview.error.accessDenied":
+    "ليس لديك صلاحية الوصول إلى نظرة عامة لهذا الموقع.",
+  "overview.kpi.vehiclesInService": "المركبات في الخدمة",
+  "overview.kpi.vehiclesInServiceSub": "جميع حالات الجلسات عدا المكتملة",
+  "overview.kpi.activeRetrievals": "طلبات الاسترجاع النشطة",
+  "overview.kpi.queueSub": "لقطة حالية لقائمة الاسترجاع",
+  "overview.kpi.oldestWait": "أطول انتظار لطلب",
+  "overview.kpi.locationCurrency": "عملة الموقع",
+  "overview.states.title": "حالات خدمة المركبات",
+  "overview.states.viewSessions": "عرض الجلسات",
+  "overview.financial.snapshotTitle": "لمحة مالية",
+  "overview.financial.payments": "المدفوعات",
+  "overview.financial.amountDue": "المبلغ المستحق",
+  "overview.financial.amountPaid": "المبلغ المدفوع",
+  "overview.financial.tips": "الإكراميات",
+  "overview.financial.details": "التفاصيل",
+  "overview.financial.empty":
+    "لا يوجد نشاط مدفوعات مسجل لهذا الموقع بعد.",
+  "overview.empty.noActivity": "لا يوجد نشاط حالي للمركبات في هذا الموقع الآن.",
+  "overview.sections.title": "الأقسام التشغيلية",
+  "overview.sections.sessionsDescription": "المركبات الحالية وحالة الخدمة.",
+  "overview.sections.retrievalQueueDescription":
+    "طلبات الاسترجاع المفتوحة والمقبولة.",
+  "overview.sections.tasksDescription": "بيانات مهام الركن والاسترجاع.",
+  "overview.sections.activeShiftsDescription":
+    "المناوبات النشطة حاليًا في هذا الموقع.",
+  "overview.sections.keysDescription":
+    "حالة خلايا المفاتيح وجلسة الخدمة المرتبطة.",
+  "overview.sections.incidentsDescription": "نظرة عامة على الحوادث الحالية.",
+  "overview.duration.minutesUnit": "د",
+  "overview.duration.secondsUnit": "ث",
+  "overview.value.unavailable": "—",
 
   // Live operations
   "page.liveOperations.title": "العمليات المباشرة",

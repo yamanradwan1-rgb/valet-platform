@@ -1,0 +1,238 @@
+/* Overview page composition — scoped styles for /overview only.
+   Tokens come from the shared D1 visual layer in app/globals.css.
+   Layout rules use logical properties so RTL/LTR both stay correct. */
+
+.overview-note {
+  margin: 0 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 12px 16px;
+}
+
+/* ---------- KPI row ---------- */
+
+.overview-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 1024px) {
+  .overview-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.overview-kpi-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+
+@media (min-width: 640px) {
+  .overview-kpi-card {
+    padding: 18px 20px;
+  }
+}
+
+.overview-kpi-label {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 640px) {
+  .overview-kpi-label {
+    font-size: 12px;
+  }
+}
+
+.overview-kpi-value {
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+  font-family: "Space Grotesk", "Plus Jakarta Sans", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 640px) {
+  .overview-kpi-value {
+    font-size: 30px;
+  }
+}
+
+.overview-kpi-value.is-warning {
+  color: var(--warning);
+}
+
+.overview-kpi-sub {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ---------- Main two-column composition ---------- */
+
+.overview-columns {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1280px) {
+  .overview-columns {
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr);
+  }
+}
+
+.overview-state-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 480px) {
+  .overview-state-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.overview-state-tile {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.overview-state-count {
+  margin: 12px 0 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.overview-financial-stack {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.overview-fact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.overview-fact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-block: 8px;
+}
+
+.overview-fact-row:last-child {
+  border-bottom: none;
+}
+
+.overview-fact-label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.overview-fact-value {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: end;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Operational sections (quick links) ---------- */
+
+.overview-sections {
+  margin-top: 16px;
+}
+
+.overview-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .overview-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .overview-quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.overview-quick-tile {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 120ms ease;
+}
+
+.overview-quick-tile:hover {
+  background: var(--accent-soft);
+}
+
+.overview-quick-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.overview-quick-description {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.overview-link-action {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.overview-link-action:hover {
+  color: var(--accent-hover);
+}
+
+.overview-stack-gap {
+  display: grid;
+  gap: 16px;
+}

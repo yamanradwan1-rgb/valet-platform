@@ -82,6 +82,38 @@ export interface TranslationDictionary {
   // Overview
   "page.overview.title": string;
   "page.overview.description": string;
+  "overview.infoNote": string;
+  "overview.loading": string;
+  "overview.action.retry": string;
+  "overview.error.loadFailed": string;
+  "overview.error.network": string;
+  "overview.error.accessDenied": string;
+  "overview.kpi.vehiclesInService": string;
+  "overview.kpi.vehiclesInServiceSub": string;
+  "overview.kpi.activeRetrievals": string;
+  "overview.kpi.queueSub": string;
+  "overview.kpi.oldestWait": string;
+  "overview.kpi.locationCurrency": string;
+  "overview.states.title": string;
+  "overview.states.viewSessions": string;
+  "overview.financial.snapshotTitle": string;
+  "overview.financial.payments": string;
+  "overview.financial.amountDue": string;
+  "overview.financial.amountPaid": string;
+  "overview.financial.tips": string;
+  "overview.financial.details": string;
+  "overview.financial.empty": string;
+  "overview.empty.noActivity": string;
+  "overview.sections.title": string;
+  "overview.sections.sessionsDescription": string;
+  "overview.sections.retrievalQueueDescription": string;
+  "overview.sections.tasksDescription": string;
+  "overview.sections.activeShiftsDescription": string;
+  "overview.sections.keysDescription": string;
+  "overview.sections.incidentsDescription": string;
+  "overview.duration.minutesUnit": string;
+  "overview.duration.secondsUnit": string;
+  "overview.value.unavailable": string;
 
   // Live operations
   "page.liveOperations.title": string;

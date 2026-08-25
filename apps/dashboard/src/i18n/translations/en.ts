@@ -77,6 +77,48 @@ export const enTranslations: TranslationDictionary = {
   "page.overview.title": "Overview",
   "page.overview.description":
     "Live management summary for the selected location.",
+  "overview.infoNote":
+    "A live management summary for the selected location. Only metrics currently available for this location are shown.",
+  "overview.loading": "Loading overview…",
+  "overview.action.retry": "Retry",
+  "overview.error.loadFailed":
+    "We couldn't load the overview right now. Please try again.",
+  "overview.error.network":
+    "Network connection unavailable. Check your connection and try again.",
+  "overview.error.accessDenied":
+    "You don't have access to this location's overview.",
+  "overview.kpi.vehiclesInService": "Vehicles in service",
+  "overview.kpi.vehiclesInServiceSub": "All session states except Completed",
+  "overview.kpi.activeRetrievals": "Active retrieval requests",
+  "overview.kpi.queueSub": "Current queue snapshot",
+  "overview.kpi.oldestWait": "Oldest request wait",
+  "overview.kpi.locationCurrency": "Location currency",
+  "overview.states.title": "Vehicle service states",
+  "overview.states.viewSessions": "View sessions",
+  "overview.financial.snapshotTitle": "Financial snapshot",
+  "overview.financial.payments": "Payments",
+  "overview.financial.amountDue": "Amount due",
+  "overview.financial.amountPaid": "Amount paid",
+  "overview.financial.tips": "Tips",
+  "overview.financial.details": "Details",
+  "overview.financial.empty":
+    "No payment activity recorded for this location yet.",
+  "overview.empty.noActivity":
+    "No current vehicle activity at this location right now.",
+  "overview.sections.title": "Operational sections",
+  "overview.sections.sessionsDescription":
+    "Current vehicles and service status.",
+  "overview.sections.retrievalQueueDescription":
+    "Open and accepted retrieval requests.",
+  "overview.sections.tasksDescription": "Parking and retrieval task facts.",
+  "overview.sections.activeShiftsDescription":
+    "Current active shifts at this location.",
+  "overview.sections.keysDescription":
+    "Key-slot status and linked service session.",
+  "overview.sections.incidentsDescription": "Current incident overview.",
+  "overview.duration.minutesUnit": "m",
+  "overview.duration.secondsUnit": "s",
+  "overview.value.unavailable": "—",
 
   // Live operations
   "page.liveOperations.title": "Live Operations",
