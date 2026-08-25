@@ -3218,3 +3218,67 @@ remain binding as written. Until Accepted, DEC-037 remains fully binding.
 
 Full binding contract:
 `docs/decisions/DEC-065_VERIFIED_KEY_RETURN_DURING_CONFIRM_PARKED.md`
+
+---
+
+## DEC-066 — Employee Bottom Navigation Production Wiring
+
+Status: Proposed
+Date: 2026-08-25
+
+Decision:
+Locks production behavior for the Employee bottom navigation (Tasks, Vehicles,
+Scan, Shift) and the authorization/privacy boundaries for its implementation
+slices VUI-011A–D and VUI-012. Prototype/mock screens can never be promoted
+into Live mode: a tab becomes Live-reachable only when it renders a truthful
+live-safe screen with zero hardcoded operational data; routing alone never
+activates a tab. BottomNav navigates freely between top-level surfaces only
+(task-queue, vehicles-list, scan-hub, shift-summary) and MUST NOT navigate away
+while check-in/parking/retrieval/incident/guest-access workflows are active —
+stronger than isSubmitting-only blocking — because workflow-local transient
+in-memory intent must not be silently discarded; no persistence workaround of
+any kind; DEC-063 remains binding. The Live Shift screen shows only
+authoritative operational context (Organization/Location/role/start/elapsed/
+status), never the raw Shift UUID, never a fake or email-derived identity
+(omitted when none is available), and never prototype counters or Dashboard
+analytics. End Shift stays the existing authoritative command
+`POST /v1/staff/shifts/:shiftId/end` with strict `cashReported`, explicit
+confirmation, ONLINE_ONLY, truthful `OPEN_TASK_HANDOFF_REQUIRED`, transient
+in-memory retry intent, rehydrate-before-retry on ambiguous outcomes, reliance
+on server idempotency for an already-ended self-owned Shift, success only from
+a confirmed authoritative response followed by an operational-context refresh
+to the No Active Shift gate; missing Live Start Shift UI is recorded as
+VUI-011D, not absorbed here. The Scan Hub is a context-aware launcher only:
+License Plate may launch Check-In; Key Slot/Parking Spot/Pickup-Handoff tiles
+launch only with sufficient existing authoritative workflow context, else
+disabled with truthful localized reasons; no camera/getUserMedia/
+BarcodeDetector/scanner dependency, no fake scanner, no QR-as-authority, no
+scan-first session discovery; real capture is deferred to VUI-012 with its own
+focused decision. VUI-011C may add exactly ONE narrow Employee operational
+read (`GET /v1/staff/valet-sessions/directory?locationId=<uuid>`, final shared
+contract in packages/contracts; no schema/migration expected): server-derived
+tenant/Organization/Location/eligibility/role authority; COMPLETED excluded;
+supervisors read all active/non-COMPLETED sessions in the exact authorized
+Location; employees read only sessions where existing lifecycle/task ownership
+semantics establish a relation (derived from current per-state authorization,
+not a second model); row visibility grants NO command authority and every
+later operation re-proves its own authorization; row vs field authorization
+are separate with fail-closed Key Slot masking for VALET_EMPLOYEE (null unless
+existing state-specific authorization justifies disclosure); supervisor
+Key Slot detail allowed within the exact Location; capped response with a
+`truncated` flag and no misleading global search over a loaded page; row taps
+perform no mutation and open workflows only with pre-existing authoritative
+targets; two-principal negative IDOR tests required. All new copy EN/AR via
+the existing i18n architecture with RTL and LTR-isolated plates/spot/slot/
+currency identifiers.
+
+DEC-066 supersedes nothing: DEC-032/033/036/037/052/063/065 remain fully
+binding; this decision composes them into the production navigation/read
+boundaries above. Non-goals include Dashboard analytics reuse, employee Shift
+statistics, profile/display-name backend work, camera dependencies,
+scan-first discovery, persistent mutation queues, new lifecycle states,
+schema changes, migrations, Guest changes, and any weakening of command
+authorization.
+
+Full binding contract:
+`docs/decisions/DEC-066_EMPLOYEE_BOTTOM_NAV_PRODUCTION_WIRING.md`
