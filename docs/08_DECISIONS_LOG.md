@@ -3223,7 +3223,7 @@ Full binding contract:
 
 ## DEC-066 — Employee Bottom Navigation Production Wiring
 
-Status: Proposed
+Status: Accepted
 Date: 2026-08-25
 
 Decision:
