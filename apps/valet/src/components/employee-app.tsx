@@ -40,7 +40,11 @@ import {
   selectStartableLocations,
   useStaffOperationalContext,
 } from "../features/staff-operational-context";
-import { useEndShift, useStartShift } from "../features/shift";
+import {
+  shouldReconcileUncertainStart,
+  useEndShift,
+  useStartShift,
+} from "../features/shift";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
 
 export interface EmployeeAppProps {
@@ -169,6 +173,21 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   useEffect(() => {
     resetStartShift();
   }, [resetStartShift, identity.authenticated, identity.identityGeneration]);
+
+  // VUI-011D reconciliation: an authoritative context proving an ACTIVE
+  // Shift at the SAME retained target Location resolves the ambiguous Start
+  // outcome, so a later End Shift cannot resurface the stale retry panel.
+  // Nothing else clears it: NO_ACTIVE_SHIFT, reconnects, refreshes and
+  // unrelated-location contexts all leave the retained intent untouched.
+  const shouldReconcileStaleStartIntent = shouldReconcileUncertainStart(
+    startShiftPhase,
+    resolution,
+  );
+  useEffect(() => {
+    if (shouldReconcileStaleStartIntent) {
+      resetStartShift();
+    }
+  }, [shouldReconcileStaleStartIntent, resetStartShift]);
 
   if (isPrototypeMode) {
     return (
