@@ -9,13 +9,13 @@ import {
 } from "../../features/parking";
 import { useOnlineStatus } from "../../lib/connectivity/use-online-status";
 import { ParkingKeyReturnStep } from "./parking-key-return-step";
+import { ParkingSpotConfirmStep } from "./parking-spot-confirm-step";
 import {
   BackHeader,
   Badge,
   Btn,
   ElapsedTimer,
   InfoRow,
-  ScannerFrame,
   SuccessCircle,
   TrackingPill,
 } from "../ui/employee-primitives";
@@ -156,77 +156,23 @@ export function ParkingFlow({
 
   if (parking.step === "spot-scan") {
     return (
-      <div>
-        <BackHeader
-          title={t.parkingSpot}
-          onBack={() => parking.setStep("in-progress")}
-        />
-        {parking.error && (
-          <div className="mx-5 mt-3 p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
-            {liveError}
-          </div>
-        )}
-        {!spotScanned ? (
-          <>
-            <ScannerFrame
-              label={t.scanParkingQr}
-              sublabel={t.chooseManually}
-            />
-            <div className="p-5 space-y-3">
-              {mode === "prototype" && (
-                <Btn
-                  label={t.simulateSpotScan}
-                  onClick={() => {
-                    setSelectedSpot("P-101");
-                    setSpotScanned(true);
-                  }}
-                />
-              )}
-              <Btn
-                label={t.enterSpotManually}
-                variant={mode === "prototype" ? "secondary" : "primary"}
-                onClick={() => setSpotScanned(true)}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="p-5 space-y-5">
-            <div className="bg-[#EEFBF5] border border-vsuccess/20 rounded-2xl p-5 text-center">
-              <p className="text-muted text-xs font-semibold uppercase tracking-wider mb-2">
-                {t.location}
-              </p>
-              <p className="font-heading font-bold text-3xl text-navy">
-                <bdi dir="ltr">{destination}</bdi>
-              </p>
-              <div className="mt-2">
-                <label className="text-neutral text-xs font-semibold uppercase tracking-wider block mb-1">
-                  {t.spotCode}
-                </label>
-                <input
-                  value={selectedSpot}
-                  dir="ltr"
-                  onChange={(e) => setSelectedSpot(e.target.value)}
-                  placeholder={t.enterSpotCode}
-                  className="w-full text-center font-heading font-semibold text-xl text-navy bg-white border border-vborder rounded-xl h-12 focus:outline-none focus:border-vblue"
-                />
-              </div>
-            </div>
-            <Btn
-              label={t.continueLabel}
-              onClick={() => parking.setStep("key-return")}
-              variant="success"
-              disabled={!isOnline || selectedSpot.trim() === ""}
-            />
-            <Btn
-              label={t.scanAgain}
-              variant="secondary"
-              size="md"
-              onClick={() => setSpotScanned(false)}
-              disabled={parking.isSubmitting}
-            />
-          </div>
-        )}
-      </div>
+      <ParkingSpotConfirmStep
+        destination={destination}
+        error={liveError}
+        isSubmitting={parking.isSubmitting}
+        mode={mode}
+        onChangeSpot={setSelectedSpot}
+        onContinue={() => parking.setStep("key-return")}
+        onBack={() => parking.setStep("in-progress")}
+        onEnterManually={() => setSpotScanned(true)}
+        onRescan={() => setSpotScanned(false)}
+        onSimulateScan={() => {
+          setSelectedSpot("P-101");
+          setSpotScanned(true);
+        }}
+        spotScanned={spotScanned}
+        value={selectedSpot}
+      />
     );
   }
 
@@ -234,7 +180,7 @@ export function ParkingFlow({
     return (
       <ParkingKeyReturnStep
         assignedKeySlotCode={session?.keySlotCode ?? null}
-        error={parking.error}
+        error={liveError}
         isOnline={isOnline}
         isSubmitting={parking.isSubmitting}
         keySlotCodeInput={selectedKeySlot}

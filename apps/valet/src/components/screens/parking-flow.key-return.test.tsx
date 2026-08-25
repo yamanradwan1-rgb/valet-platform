@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { ParkingFlow } from "./parking-flow";
+import { ParkingSpotConfirmStep } from "./parking-spot-confirm-step";
 import type { ActiveParkingSession } from "../../features/parking";
 import { employeeDictionary } from "../../lib/i18n/dictionary";
 import { EmployeeI18nProvider } from "../shell/employee-i18n";
@@ -98,6 +99,33 @@ describe("DEC-065 verified key return Employee flow", () => {
     expect(stub.confirmParked).not.toHaveBeenCalled();
   });
 
+  it("keeps Spot -> Key Return available while offline without any POST", () => {
+    const stub = stubbedUseParking({
+      activeSession: assignedSession,
+      step: "spot-scan",
+    });
+    const markup = renderToStaticMarkup(
+      <ParkingSpotConfirmStep
+        destination="Zone North-A"
+        spotScanned={true}
+        value="A-03"
+        onChangeSpot={() => {}}
+        onContinue={() => stub.setStep("key-return")}
+        onBack={() => {}}
+        onEnterManually={() => {}}
+        onRescan={() => {}}
+      />,
+    );
+    // Continue stays enabled offline: it is only an in-memory draft action.
+    expect(markup).toContain("Continue");
+    const continueIdx = markup.indexOf(">Continue</button>");
+    expect(continueIdx).toBeGreaterThan(-1);
+    const continueTagStart = markup.lastIndexOf("<button", continueIdx);
+    const continueButtonMarkup = markup.slice(continueTagStart, continueIdx);
+    expect(continueButtonMarkup).not.toContain('disabled=""');
+    expect(stub.confirmParked).not.toHaveBeenCalled();
+  });
+
   it("renders the assigned slot instruction with LTR-isolated code", () => {
     const markup = renderWith({
       activeSession: assignedSession,
@@ -138,6 +166,22 @@ describe("DEC-065 verified key return Employee flow", () => {
     expect(ar.assignedKeySlotLabel).toBe("خانة المفتاح المخصصة");
     expect(markup).toContain(ar.assignedKeySlotLabel);
     expect(markup).toContain('<bdi dir="ltr">K-03</bdi>');
+  });
+
+  it("localizes Key Return operation errors in Arabic instead of raw server text", () => {
+    const ar = employeeDictionary("ar");
+    const markup = renderWith(
+      {
+        activeSession: assignedSession,
+        error: "Key custody is not ready for parking completion.",
+        step: "key-return",
+      },
+      { locale: "ar" },
+    );
+    expect(markup).toContain(ar.operationFailed);
+    expect(markup).not.toContain(
+      "Key custody is not ready for parking completion.",
+    );
   });
 
   it("shows the combined success copy after confirmation", () => {
