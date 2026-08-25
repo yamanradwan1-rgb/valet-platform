@@ -226,6 +226,92 @@ export interface TranslationDictionary {
   "enum.keySlot.INACTIVE": string;
   "enum.freshness.LIVE": string;
   "enum.freshness.STALE": string;
+
+  // Shared operations controls (D2-003)
+  "common.loadMore": string;
+  "common.retry": string;
+  "common.loading": string;
+  "common.loadingMore": string;
+  "common.close": string;
+
+  // Shared error surfaces (D2-003); raw backend codes are never rendered
+  "errors.requestFailed": string;
+  "errors.moreFailed": string;
+  "errors.accessDenied": string;
+  "errors.sessionExpired": string;
+  "errors.rateLimited": string;
+
+  // Shared nullability fallbacks (D2-003)
+  "fallback.unassigned": string;
+  "fallback.notAssigned": string;
+
+  // Sessions / Vehicles in Service (D2-003)
+  "page.sessions.contractNote": string;
+  "sessions.filterGroup": string;
+  "sessions.filterAll": string;
+  "sessions.filterScopeHint": string;
+  "sessions.column.vehicle": string;
+  "sessions.column.state": string;
+  "sessions.column.created": string;
+  "sessions.column.updated": string;
+  "sessions.column.parkingSpotId": string;
+  "sessions.column.keySlotId": string;
+  "sessions.column.assignee": string;
+  "sessions.empty": string;
+  "sessions.detail.title": string;
+  "sessions.detail.sessionId": string;
+  "sessions.detail.vehicleId": string;
+  "sessions.detail.plateNumber": string;
+  "sessions.detail.plateCountry": string;
+  "sessions.detail.temporaryDescriptor": string;
+  "sessions.detail.state": string;
+  "sessions.detail.createdAt": string;
+  "sessions.detail.updatedAt": string;
+  "sessions.detail.parkingSpotId": string;
+  "sessions.detail.keySlotId": string;
+  "sessions.detail.assigneeMembershipId": string;
+  "sessions.fallback.unnamedVehicle": string;
+
+  // Retrieval queue (D2-003)
+  "page.retrievalQueue.contractNote": string;
+  "retrievalQueue.column.requestId": string;
+  "retrievalQueue.column.requestedAt": string;
+  "retrievalQueue.column.status": string;
+  "retrievalQueue.column.requester": string;
+  "retrievalQueue.column.sessionId": string;
+  "retrievalQueue.column.taskStatus": string;
+  "retrievalQueue.column.assignee": string;
+  "retrievalQueue.empty": string;
+  "retrievalQueue.detail.title": string;
+  "retrievalQueue.detail.requestId": string;
+  "retrievalQueue.detail.valetSessionId": string;
+  "retrievalQueue.detail.requestedAt": string;
+  "retrievalQueue.detail.status": string;
+  "retrievalQueue.detail.requester": string;
+  "retrievalQueue.detail.requesterTypeCode": string;
+  "retrievalQueue.detail.taskId": string;
+  "retrievalQueue.detail.taskStatus": string;
+  "retrievalQueue.detail.assigneeMembershipId": string;
+
+  // Tasks (D2-003)
+  "page.tasks.contractNote": string;
+  "tasks.column.taskId": string;
+  "tasks.column.type": string;
+  "tasks.column.status": string;
+  "tasks.column.sessionId": string;
+  "tasks.column.assignee": string;
+  "tasks.column.created": string;
+  "tasks.column.updated": string;
+  "tasks.empty": string;
+  "tasks.detail.title": string;
+  "tasks.detail.taskId": string;
+  "tasks.detail.taskType": string;
+  "tasks.detail.taskTypeCode": string;
+  "tasks.detail.status": string;
+  "tasks.detail.valetSessionId": string;
+  "tasks.detail.assigneeMembershipId": string;
+  "tasks.detail.createdAt": string;
+  "tasks.detail.updatedAt": string;
 }
 
 export type TranslationKey = keyof TranslationDictionary;

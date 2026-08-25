@@ -47,6 +47,16 @@ export function taskStatusLabelKey(
   return keys[status];
 }
 
+export type DashboardTaskType = "PARKING" | "RETRIEVAL";
+
+export function taskTypeLabelKey(taskType: DashboardTaskType): TranslationKey {
+  const keys: Record<DashboardTaskType, TranslationKey> = {
+    PARKING: "enum.taskType.PARKING",
+    RETRIEVAL: "enum.taskType.RETRIEVAL",
+  };
+  return keys[taskType];
+}
+
 export type PaymentStatusValue =
   "NOT_REQUIRED" | "UNPAID" | "PENDING" | "PAID" | "FAILED";
 

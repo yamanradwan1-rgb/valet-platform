@@ -238,4 +238,98 @@ export const enTranslations: TranslationDictionary = {
   "enum.keySlot.INACTIVE": "Inactive",
   "enum.freshness.LIVE": "LIVE",
   "enum.freshness.STALE": "STALE",
+
+  // Shared operations controls (D2-003)
+  "common.loadMore": "Load more",
+  "common.retry": "Retry",
+  "common.loading": "Loading…",
+  "common.loadingMore": "Loading more…",
+  "common.close": "Close",
+
+  // Shared error surfaces (D2-003); raw backend codes are never rendered
+  "errors.requestFailed":
+    "This data could not be loaded. Please try again.",
+  "errors.moreFailed": "Additional entries could not be loaded.",
+  "errors.accessDenied":
+    "You don't have access to this location's data.",
+  "errors.sessionExpired": "Your session has expired. Please sign in again.",
+  "errors.rateLimited":
+    "Too many requests. Please wait a moment and try again.",
+
+  // Shared nullability fallbacks (D2-003)
+  "fallback.unassigned": "Unassigned",
+  "fallback.notAssigned": "Not assigned",
+
+  // Sessions / Vehicles in Service (D2-003)
+  "page.sessions.contractNote":
+    "Shows each current service session, vehicle reference, status, parking spot, key slot and current assignee when available. Customer details and the full session timeline are not shown here; completed sessions are not part of this view.",
+  "sessions.filterGroup": "Filter by state",
+  "sessions.filterAll": "All states",
+  "sessions.filterScopeHint":
+    "State filters apply to the sessions already loaded below.",
+  "sessions.column.vehicle": "Vehicle",
+  "sessions.column.state": "State",
+  "sessions.column.created": "Created",
+  "sessions.column.updated": "Updated",
+  "sessions.column.parkingSpotId": "Parking spot ID",
+  "sessions.column.keySlotId": "Key slot ID",
+  "sessions.column.assignee": "Assignee membership ID",
+  "sessions.empty": "No matching service sessions in the loaded results.",
+  "sessions.detail.title": "Service Session Detail",
+  "sessions.detail.sessionId": "Session ID",
+  "sessions.detail.vehicleId": "Vehicle ID",
+  "sessions.detail.plateNumber": "Plate number",
+  "sessions.detail.plateCountry": "Plate country",
+  "sessions.detail.temporaryDescriptor": "Temporary descriptor",
+  "sessions.detail.state": "State",
+  "sessions.detail.createdAt": "Created at",
+  "sessions.detail.updatedAt": "Updated at",
+  "sessions.detail.parkingSpotId": "Parking spot ID",
+  "sessions.detail.keySlotId": "Key slot ID",
+  "sessions.detail.assigneeMembershipId": "Current assignee membership ID",
+  "sessions.fallback.unnamedVehicle": "Unnamed vehicle",
+
+  // Retrieval queue (D2-003)
+  "page.retrievalQueue.contractNote":
+    "Shows current vehicle retrieval requests, who requested them, the related service session and the current task when one exists. Queue-wide wait information is available in Analytics.",
+  "retrievalQueue.column.requestId": "Request ID",
+  "retrievalQueue.column.requestedAt": "Requested at",
+  "retrievalQueue.column.status": "Status",
+  "retrievalQueue.column.requester": "Requester",
+  "retrievalQueue.column.sessionId": "Session ID",
+  "retrievalQueue.column.taskStatus": "Task status",
+  "retrievalQueue.column.assignee": "Assignee membership ID",
+  "retrievalQueue.empty": "No active vehicle retrieval requests.",
+  "retrievalQueue.detail.title": "Retrieval Request Detail",
+  "retrievalQueue.detail.requestId": "Request ID",
+  "retrievalQueue.detail.valetSessionId": "Valet session ID",
+  "retrievalQueue.detail.requestedAt": "Requested at",
+  "retrievalQueue.detail.status": "Status",
+  "retrievalQueue.detail.requester": "Requester",
+  "retrievalQueue.detail.requesterTypeCode": "Requester type code",
+  "retrievalQueue.detail.taskId": "Task ID",
+  "retrievalQueue.detail.taskStatus": "Task status",
+  "retrievalQueue.detail.assigneeMembershipId":
+    "Current assignee membership ID",
+
+  // Tasks (D2-003)
+  "page.tasks.contractNote":
+    "This overview shows current task facts only. Reassignment reasons and history belong to dispatch history and are not reconstructed here.",
+  "tasks.column.taskId": "Task ID",
+  "tasks.column.type": "Type",
+  "tasks.column.status": "Status",
+  "tasks.column.sessionId": "Session ID",
+  "tasks.column.assignee": "Assignee membership ID",
+  "tasks.column.created": "Created",
+  "tasks.column.updated": "Updated",
+  "tasks.empty": "No tasks to show yet.",
+  "tasks.detail.title": "Task Detail",
+  "tasks.detail.taskId": "Task ID",
+  "tasks.detail.taskType": "Task type",
+  "tasks.detail.taskTypeCode": "Task type code",
+  "tasks.detail.status": "Status",
+  "tasks.detail.valetSessionId": "Valet session ID",
+  "tasks.detail.assigneeMembershipId": "Current assignee membership ID",
+  "tasks.detail.createdAt": "Created at",
+  "tasks.detail.updatedAt": "Updated at",
 };

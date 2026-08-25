@@ -938,3 +938,266 @@ textarea:focus-visible {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Operations lists (D2-003: sessions, retrieval queue, tasks) ----------
+   Additive styles only; everything above belongs to the shared foundation. */
+
+.contract-note {
+  margin: 0 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 12px 16px;
+}
+
+.filter-chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  min-height: 40px;
+  flex-shrink: 0;
+  align-items: center;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  padding-inline: 12px;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.filter-chip:hover {
+  background: var(--accent-soft);
+}
+
+.filter-chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.list-scope-hint {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.data-table tbody tr.is-clickable-row {
+  cursor: pointer;
+}
+
+.data-table tbody tr.is-clickable-row:hover {
+  background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+}
+
+.cell-primary {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cell-stack {
+  display: block;
+}
+
+.cell-id {
+  display: block;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+}
+
+/* Desktop table vs. mobile cards (D1 breakpoint behavior) */
+@media (max-width: 767px) {
+  .is-desktop-table {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .is-mobile-list {
+    display: none !important;
+  }
+}
+
+.load-more-row {
+  margin-top: 16px;
+}
+
+.load-more-button {
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.load-more-button:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.load-more-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Clickable mobile list cards (button reset on top of .mobile-data-row) */
+.mobile-data-row.is-clickable-card {
+  display: block;
+  width: 100%;
+  text-align: start;
+  cursor: pointer;
+}
+
+.mobile-data-row.is-clickable-card:hover {
+  background: var(--accent-soft);
+}
+
+.mobile-data-row-title-wrap {
+  display: block;
+  min-width: 0;
+}
+
+.mobile-data-field-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobile-data-field-value {
+  display: block;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.inline-fallback {
+  color: var(--text-muted);
+}
+
+/* Detail sheet (D1 pattern; logical properties keep it RTL/LTR agnostic) */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.detail-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(7, 17, 31, 0.45);
+  cursor: default;
+}
+
+.detail-sheet {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  max-height: 82%;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-popover);
+  padding: 20px;
+}
+
+@media (min-width: 640px) {
+  .detail-sheet {
+    inset-inline: auto 16px;
+    top: auto;
+    bottom: 16px;
+    width: 360px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.detail-close {
+  display: inline-flex;
+  height: 44px;
+  width: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.detail-close:hover {
+  background: var(--accent-soft);
+}
+
+.detail-fields {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-field-label {
+  margin: 0 0 2px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-field-value {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.detail-field-value.is-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}

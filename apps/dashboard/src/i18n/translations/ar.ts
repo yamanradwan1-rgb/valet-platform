@@ -232,4 +232,95 @@ export const arTranslations: TranslationDictionary = {
   "enum.keySlot.INACTIVE": "غير نشط",
   "enum.freshness.LIVE": "مباشر",
   "enum.freshness.STALE": "غير حديث",
+
+  // Shared operations controls (D2-003)
+  "common.loadMore": "تحميل المزيد",
+  "common.retry": "إعادة المحاولة",
+  "common.loading": "جارٍ التحميل…",
+  "common.loadingMore": "جارٍ تحميل المزيد…",
+  "common.close": "إغلاق",
+
+  // Shared error surfaces (D2-003); raw backend codes are never rendered
+  "errors.requestFailed": "تعذر تحميل هذه البيانات. حاول مرة أخرى.",
+  "errors.moreFailed": "تعذر تحميل إدخالات إضافية.",
+  "errors.accessDenied": "لا تملك صلاحية الوصول إلى بيانات هذا الموقع.",
+  "errors.sessionExpired": "انتهت صلاحية جلستك. سجّل الدخول مرة أخرى.",
+  "errors.rateLimited":
+    "طلبات كثيرة جدًا. انتظر قليلًا ثم حاول مرة أخرى.",
+
+  // Shared nullability fallbacks (D2-003)
+  "fallback.unassigned": "غير معيَّن",
+  "fallback.notAssigned": "لا توجد مهمة",
+
+  // Sessions / Vehicles in Service (D2-003)
+  "page.sessions.contractNote":
+    "يعرض كل عملية خدمة حالية ومرجع السيارة وحالتها وموقفها وخانة المفتاح والموظف المُسند عند توفره. تفاصيل العميل والتسلسل الزمني الكامل للعملية لا يظهران هنا؛ والعمليات المكتملة ليست جزءًا من هذا العرض.",
+  "sessions.filterGroup": "تصفية حسب الحالة",
+  "sessions.filterAll": "كل الحالات",
+  "sessions.filterScopeHint":
+    "تُطبَّق تصفية الحالة على العمليات المحمَّلة أدناه فقط.",
+  "sessions.column.vehicle": "السيارة",
+  "sessions.column.state": "الحالة",
+  "sessions.column.created": "أُنشئت",
+  "sessions.column.updated": "آخر تحديث",
+  "sessions.column.parkingSpotId": "معرّف الموقف",
+  "sessions.column.keySlotId": "معرّف خانة المفتاح",
+  "sessions.column.assignee": "معرّف الموظف المُسند",
+  "sessions.empty": "لا توجد عمليات خدمة مطابقة ضمن النتائج المحمَّلة.",
+  "sessions.detail.title": "تفاصيل عملية الخدمة",
+  "sessions.detail.sessionId": "معرّف العملية",
+  "sessions.detail.vehicleId": "معرّف السيارة",
+  "sessions.detail.plateNumber": "رقم اللوحة",
+  "sessions.detail.plateCountry": "دولة اللوحة",
+  "sessions.detail.temporaryDescriptor": "الوصف المؤقت",
+  "sessions.detail.state": "الحالة",
+  "sessions.detail.createdAt": "وقت الإنشاء",
+  "sessions.detail.updatedAt": "وقت آخر تحديث",
+  "sessions.detail.parkingSpotId": "معرّف الموقف",
+  "sessions.detail.keySlotId": "معرّف خانة المفتاح",
+  "sessions.detail.assigneeMembershipId": "معرّف الموظف المُسند الحالي",
+  "sessions.fallback.unnamedVehicle": "سيارة بدون بيانات لوحة",
+
+  // Retrieval queue (D2-003)
+  "page.retrievalQueue.contractNote":
+    "يعرض طلبات إحضار السيارات الحالية ومَن طلبها وعملية الخدمة المرتبطة بها والمهمة الحالية إن وجدت. معلومات الانتظار على مستوى الطابور متاحة في التحليلات.",
+  "retrievalQueue.column.requestId": "معرّف الطلب",
+  "retrievalQueue.column.requestedAt": "وقت الطلب",
+  "retrievalQueue.column.status": "الحالة",
+  "retrievalQueue.column.requester": "مقدِّم الطلب",
+  "retrievalQueue.column.sessionId": "معرّف العملية",
+  "retrievalQueue.column.taskStatus": "حالة المهمة",
+  "retrievalQueue.column.assignee": "معرّف الموظف المُسند",
+  "retrievalQueue.empty": "لا توجد طلبات إحضار سيارات نشطة.",
+  "retrievalQueue.detail.title": "تفاصيل طلب الإحضار",
+  "retrievalQueue.detail.requestId": "معرّف الطلب",
+  "retrievalQueue.detail.valetSessionId": "معرّف عملية الخدمة",
+  "retrievalQueue.detail.requestedAt": "وقت الطلب",
+  "retrievalQueue.detail.status": "الحالة",
+  "retrievalQueue.detail.requester": "مقدِّم الطلب",
+  "retrievalQueue.detail.requesterTypeCode": "رمز نوع مقدِّم الطلب",
+  "retrievalQueue.detail.taskId": "معرّف المهمة",
+  "retrievalQueue.detail.taskStatus": "حالة المهمة",
+  "retrievalQueue.detail.assigneeMembershipId": "معرّف الموظف المُسند الحالي",
+
+  // Tasks (D2-003)
+  "page.tasks.contractNote":
+    "تعرض هذه النظرة حقول المهام الحالية فقط. أسباب إعادة الإسناد والسجل التاريخي ضمن سجل الإسناد ولا يُعاد بناؤها هنا.",
+  "tasks.column.taskId": "معرّف المهمة",
+  "tasks.column.type": "النوع",
+  "tasks.column.status": "الحالة",
+  "tasks.column.sessionId": "معرّف العملية",
+  "tasks.column.assignee": "معرّف الموظف المُسند",
+  "tasks.column.created": "أُنشئت",
+  "tasks.column.updated": "آخر تحديث",
+  "tasks.empty": "لا توجد مهام لعرضها بعد.",
+  "tasks.detail.title": "تفاصيل المهمة",
+  "tasks.detail.taskId": "معرّف المهمة",
+  "tasks.detail.taskType": "نوع المهمة",
+  "tasks.detail.taskTypeCode": "رمز نوع المهمة",
+  "tasks.detail.status": "الحالة",
+  "tasks.detail.valetSessionId": "معرّف عملية الخدمة",
+  "tasks.detail.assigneeMembershipId": "معرّف الموظف المُسند الحالي",
+  "tasks.detail.createdAt": "وقت الإنشاء",
+  "tasks.detail.updatedAt": "وقت آخر تحديث",
 };
