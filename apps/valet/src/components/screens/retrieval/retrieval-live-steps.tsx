@@ -10,6 +10,10 @@ import {
   SuccessCircle,
 } from "../../ui/employee-primitives";
 import { useEmployeeI18n } from "../../shell/employee-i18n";
+import {
+  resourceQrScanLabels,
+  ResourceQrScanSection,
+} from "../../scanner/resource-qr-scan-section";
 
 export function LiveRetrievalKeyCheckoutStep({
   expectedKey,
@@ -67,6 +71,13 @@ export function LiveRetrievalKeyCheckoutStep({
 
         {!isKeyConfirmed ? (
           <div className="space-y-3">
+            {/* DEC-067: camera capture fills the existing key-slot input;
+                Verify Key Slot remains the only mutation trigger. */}
+            <ResourceQrScanSection
+              expectedKind="key-slot"
+              labels={resourceQrScanLabels(t, "key-slot")}
+              onDecoded={setInputKey}
+            />
             <div>
               <label className="text-neutral text-xs font-semibold uppercase tracking-wider block mb-1">
                 {t.enterKeySlotCode}

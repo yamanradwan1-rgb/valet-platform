@@ -7,6 +7,10 @@ import {
   ScannerFrame,
 } from "../ui/employee-primitives";
 import { useEmployeeI18n } from "../shell/employee-i18n";
+import {
+  resourceQrScanLabels,
+  ResourceQrScanSection,
+} from "../scanner/resource-qr-scan-section";
 
 export interface ParkingKeyReturnStepProps {
   readonly assignedKeySlotCode: string | null;
@@ -70,7 +74,17 @@ export function ParkingKeyReturnStep({
             )}
           </p>
         </div>
-        <ScannerFrame label={t.scanKeySlot} sublabel={t.chooseManually} />
+        {mode === "live" ? (
+          // DEC-067: real camera capture fills the existing key-slot input;
+          // the verified key return submission below is unchanged (DEC-065).
+          <ResourceQrScanSection
+            expectedKind="key-slot"
+            labels={resourceQrScanLabels(t, "key-slot")}
+            onDecoded={onChangeKeySlotCode}
+          />
+        ) : (
+          <ScannerFrame label={t.scanKeySlot} sublabel={t.chooseManually} />
+        )}
         {mode === "prototype" && (
           <Btn
             label={t.simulateKeyQr}

@@ -10,6 +10,10 @@ import {
   VehicleIdentity,
 } from "../../ui/employee-primitives";
 import { useEmployeeI18n } from "../../shell/employee-i18n";
+import {
+  resourceQrScanLabels,
+  ResourceQrScanSection,
+} from "../../scanner/resource-qr-scan-section";
 
 export function CheckInKeyScanStep({
   mode = "live",
@@ -56,22 +60,45 @@ export function CheckInKeyScanStep({
         </div>
       )}
       {!keyScanDone ? (
-        <>
-          <ScannerFrame
-            label={t.scanKeyQr}
-            sublabel={t.positionQr}
-          />
-          <div className="p-5 space-y-3">
-            {mode === "prototype" && onSimulateScan && (
-              <Btn label={t.simulateKeyQr} onClick={onSimulateScan} />
-            )}
-            <Btn
-              label={t.enterKeyManually}
-              variant={mode === "prototype" ? "secondary" : "primary"}
-              onClick={onManualEntry}
+        mode === "live" ? (
+          <div>
+            {/* DEC-067: real camera capture fills the existing key-slot input
+                and reveals it via the existing manual-entry path; Assign Key
+                below remains the only mutation trigger. */}
+            <ResourceQrScanSection
+              expectedKind="key-slot"
+              labels={resourceQrScanLabels(t, "key-slot")}
+              onDecoded={(code) => {
+                onChangeKeySlotCode(code);
+                onManualEntry();
+              }}
             />
+            <div className="p-5 space-y-3">
+              <Btn
+                label={t.enterKeyManually}
+                variant="secondary"
+                onClick={onManualEntry}
+              />
+            </div>
           </div>
-        </>
+        ) : (
+          <>
+            <ScannerFrame
+              label={t.scanKeyQr}
+              sublabel={t.positionQr}
+            />
+            <div className="p-5 space-y-3">
+              {mode === "prototype" && onSimulateScan && (
+                <Btn label={t.simulateKeyQr} onClick={onSimulateScan} />
+              )}
+              <Btn
+                label={t.enterKeyManually}
+                variant={mode === "prototype" ? "secondary" : "primary"}
+                onClick={onManualEntry}
+              />
+            </div>
+          </>
+        )
       ) : (
         <div className="p-5 space-y-5">
           <div className="bg-[#EEFBF5] border border-vsuccess/20 rounded-2xl p-5 text-center">

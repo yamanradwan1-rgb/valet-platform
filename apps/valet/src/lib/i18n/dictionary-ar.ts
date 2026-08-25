@@ -1,10 +1,12 @@
 import type { EmployeeDictionary } from "./dictionary";
 import { employeeArabicScanHubDictionary } from "./dictionary-ar-scan-hub";
+import { employeeArabicScannerDictionary } from "./dictionary-ar-scanner";
 import { employeeArabicShiftDictionary } from "./dictionary-ar-shift";
 
-export const employeeArabicDictionary = {
+export const employeeArabicDictionary: EmployeeDictionary = {
   ...employeeArabicScanHubDictionary,
   ...employeeArabicShiftDictionary,
+  ...employeeArabicScannerDictionary,
   abortHandoff: "إلغاء التسليم",
   acceptAndPark: "قبول وبدء الإيقاف",
   acceptTask: "قبول المهمة",

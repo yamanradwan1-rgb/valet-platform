@@ -8,6 +8,7 @@ import {
   PICKUP_CODE_PATTERN,
 } from "../../../features/handoff/handoff-types";
 import { useEmployeeI18n } from "../../shell/employee-i18n";
+import { HandoffQrScanSection } from "../../scanner/handoff-qr-scan-section";
 
 export interface LiveReadyHandoffLaunchProps {
   readonly error: string | null;
@@ -157,6 +158,11 @@ export function LiveHandoffPendingStep({
           <label className="block text-navy text-sm font-bold">
             {t.guestQrCode}
           </label>
+          {/* DEC-067: camera capture fills the existing raw vhq1.* proof
+              input; the existing Verify QR action below stays the only
+              verification trigger and keeps clearing the proof after every
+              submission. Scanning never marks the handoff verified. */}
+          <HandoffQrScanSection onCaptured={setQrPayload} t={t} />
           <input
             className="w-full h-12 rounded-xl bg-warm border border-vborder px-4 text-navy text-xs outline-none focus:border-vblue"
             dir="ltr"

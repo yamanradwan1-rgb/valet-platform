@@ -94,7 +94,10 @@ describe("DEC-065 verified key return Employee flow", () => {
       step: "spot-scan",
     });
     const markup = renderWith({ activeSession: assignedSession, step: "spot-scan" });
-    expect(markup).toContain("Scan parking spot QR");
+    // VUI-012/DEC-067: live mode offers real camera capture plus manual entry;
+    // the step itself stays submission-free.
+    expect(markup).toContain("Scan QR code");
+    expect(markup).toContain("Enter spot code manually");
     expect(markup).not.toContain("Confirm Parked");
     expect(stub.confirmParked).not.toHaveBeenCalled();
   });
@@ -134,7 +137,7 @@ describe("DEC-065 verified key return Employee flow", () => {
     expect(markup).toContain("Assigned key slot");
     expect(markup).toContain("Return key to");
     expect(markup).toContain('<bdi dir="ltr">K-03</bdi>');
-    expect(markup).toContain("Scan key slot");
+    expect(markup).toContain("Scan QR code");
     expect(markup).toContain("Enter Key Slot Code");
   });
 

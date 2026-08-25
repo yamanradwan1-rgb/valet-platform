@@ -6,6 +6,10 @@ import {
   ScannerFrame,
 } from "../ui/employee-primitives";
 import { useEmployeeI18n } from "../shell/employee-i18n";
+import {
+  resourceQrScanLabels,
+  ResourceQrScanSection,
+} from "../scanner/resource-qr-scan-section";
 
 export interface ParkingSpotConfirmStepProps {
   readonly destination: string;
@@ -53,22 +57,46 @@ export function ParkingSpotConfirmStep({
         </div>
       )}
       {!spotScanned ? (
-        <>
-          <ScannerFrame
-            label={t.scanParkingQr}
-            sublabel={t.chooseManually}
-          />
-          <div className="p-5 space-y-3">
-            {mode === "prototype" && onSimulateScan && (
-              <Btn label={t.simulateSpotScan} onClick={onSimulateScan} />
-            )}
-            <Btn
-              label={t.enterSpotManually}
-              variant={mode === "prototype" ? "secondary" : "primary"}
-              onClick={onEnterManually}
+        mode === "live" ? (
+          <div>
+            {/* DEC-067: real camera capture fills the existing spot input;
+                decoding alone performs no mutation — the employee still
+                presses the existing Continue action. Manual entry stays
+                available beside the camera at all times. */}
+            <ResourceQrScanSection
+              expectedKind="parking-spot"
+              labels={resourceQrScanLabels(t, "parking-spot")}
+              onDecoded={(code) => {
+                onChangeSpot(code);
+                onEnterManually();
+              }}
             />
+            <div className="p-5 space-y-3">
+              <Btn
+                label={t.enterSpotManually}
+                variant="secondary"
+                onClick={onEnterManually}
+              />
+            </div>
           </div>
-        </>
+        ) : (
+          <>
+            <ScannerFrame
+              label={t.scanParkingQr}
+              sublabel={t.chooseManually}
+            />
+            <div className="p-5 space-y-3">
+              {mode === "prototype" && onSimulateScan && (
+                <Btn label={t.simulateSpotScan} onClick={onSimulateScan} />
+              )}
+              <Btn
+                label={t.enterSpotManually}
+                variant={mode === "prototype" ? "secondary" : "primary"}
+                onClick={onEnterManually}
+              />
+            </div>
+          </>
+        )
       ) : (
         <div className="p-5 space-y-5">
           <div className="bg-[#EEFBF5] border border-vsuccess/20 rounded-2xl p-5 text-center">
