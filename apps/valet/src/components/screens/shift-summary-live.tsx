@@ -19,9 +19,6 @@ export interface ShiftSummaryLiveProps {
   /** App-owned End Shift mutation (DEC-066 §4 ambiguous-outcome survival). */
   readonly endShift: (shiftId: string, cashReported: string) => void;
   readonly endShiftPhase: EndShiftPhase;
-  readonly onAuthorizationLoss?: (() => void) | undefined;
-  /** Authoritative context refresh after confirmed End Shift success. */
-  readonly onRefreshContext?: (() => void) | undefined;
   readonly retryUncertainEndShift: () => void;
   readonly scope: ResolvedOperationalScope;
 }

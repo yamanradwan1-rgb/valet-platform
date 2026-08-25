@@ -8,18 +8,31 @@ const endShift = vi.fn();
 const resetEndShift = vi.fn();
 const retryUncertain = vi.fn();
 let hookPhase: EndShiftPhase = { kind: "idle" };
+const capturedHookOptions: {
+  onAuthorizationLoss?: (() => void) | undefined;
+  onEnded?: (() => void) | undefined;
+} = {};
+const revalidateOnAuthLoss = vi.fn(async () => {});
+const refreshContext = vi.fn();
 
 vi.mock("../features/shift", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("../features/shift")>();
   return {
     ...actual,
-    useEndShift: vi.fn(() => ({
-      endShift,
-      phase: hookPhase,
-      resetEndShift,
-      retryUncertain,
-    })),
+    useEndShift: vi.fn((options?: {
+      onAuthorizationLoss?: (() => void) | undefined;
+      onEnded?: (() => void) | undefined;
+    }) => {
+      capturedHookOptions.onAuthorizationLoss = options?.onAuthorizationLoss;
+      capturedHookOptions.onEnded = options?.onEnded;
+      return {
+        endShift,
+        phase: hookPhase,
+        resetEndShift,
+        retryUncertain,
+      };
+    }),
   };
 });
 
@@ -34,8 +47,8 @@ vi.mock("../features/staff-operational-context", async (importOriginal) => {
       resolution: { kind: "NO_ACTIVE_SHIFT" },
       response: { contexts: [] },
       error: null,
-      refresh: vi.fn(),
-      revalidateOnAuthLoss: vi.fn(async () => {}),
+      refresh: refreshContext,
+      revalidateOnAuthLoss,
     })),
   };
 });
@@ -89,5 +102,21 @@ describe("DEC-066 §4 ambiguous End Shift reconnect recovery", () => {
     const markup = renderApp();
     expect(markup).toContain("No active shift");
     expect(markup).not.toContain("Confirm your end shift result");
+  });
+
+  it("wires End Shift into the existing Staff auth-loss recovery boundary", () => {
+    hookPhase = { kind: "idle" };
+    renderApp();
+
+    // The app-level hook received the authorization-loss recovery callback...
+    expect(typeof capturedHookOptions.onAuthorizationLoss).toBe("function");
+    // ...and invoking it triggers the authoritative revalidation callback.
+    capturedHookOptions.onAuthorizationLoss?.();
+    expect(revalidateOnAuthLoss).toHaveBeenCalledTimes(1);
+
+    // Success keeps refreshing operational context as before.
+    expect(typeof capturedHookOptions.onEnded).toBe("function");
+    capturedHookOptions.onEnded?.();
+    expect(refreshContext).toHaveBeenCalledTimes(1);
   });
 });

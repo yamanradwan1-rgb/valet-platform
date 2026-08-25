@@ -172,9 +172,6 @@ export function EmployeeLiveRouter({
         <ShiftSummaryLive
           endShift={endShift}
           endShiftPhase={endShiftPhase}
-          onAuthorizationLoss={() => {
-            void onAuthorizationLoss();
-          }}
           retryUncertainEndShift={onRetryUncertainEndShift}
           scope={activeScope}
         />

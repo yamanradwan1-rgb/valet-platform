@@ -185,6 +185,13 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     resetEndShift,
     retryUncertain: retryUncertainEndShift,
   } = useEndShift({
+    // Same Staff auth-loss recovery semantics as every other live flow:
+    // missing token and 401/403/404 End Shift responses route through the
+    // authoritative revalidation boundary. Transport/network ambiguity is
+    // handled separately as DEC-066 §4 uncertainty, never as auth loss.
+    onAuthorizationLoss: () => {
+      void revalidateOnAuthLoss();
+    },
     onEnded: () => void refreshContext(),
   });
   useEffect(() => {
