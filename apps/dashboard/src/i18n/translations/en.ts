@@ -144,14 +144,63 @@ export const enTranslations: TranslationDictionary = {
   // Active shifts
   "page.activeShifts.title": "Active Shifts",
   "page.activeShifts.description": "Current active shifts at this location.",
+  "page.activeShifts.empty": "No active shifts at this location right now.",
+  "page.activeShifts.kpiLabel": "Active shifts shown",
+  "page.activeShifts.kpiSub":
+    "Counts rows loaded so far; Load more extends the list.",
+  "page.activeShifts.scopeNote":
+    "Lists active shifts with their shift ID, membership ID and start time only. Employee names, performance and task totals are not part of this backend view.",
+  "page.activeShifts.column.shiftId": "Shift ID",
+  "page.activeShifts.column.membershipId": "Membership ID",
+  "page.activeShifts.column.startedAt": "Started at",
+  "page.activeShifts.rowSubtitle": "Active shift",
 
   // Keys
   "page.keys.title": "Key Custody Board",
   "page.keys.description": "Key-slot status and linked service sessions.",
+  "page.keys.empty": "No key slots are configured for this location yet.",
+  "page.keys.kpiSlots": "Key slots loaded",
+  "page.keys.kpiActiveSlots": "Active among loaded",
+  "page.keys.kpiHoldingSession": "Holding a session (loaded)",
+  "page.keys.scopeNote":
+    "Shows each key slot's current status and the service session currently linked to it. Custody history is kept separately and is never guessed from this snapshot.",
+  "page.keys.holdingSessionIdLabel": "Holding session ID",
+  "page.keys.noHoldingSession": "No holding session",
+  "page.keys.detailTitle": "Key slot detail",
+  "page.keys.field.keySlotId": "Key slot ID",
+  "page.keys.field.code": "Code",
+  "page.keys.field.status": "Status",
 
   // Incidents
   "page.incidents.title": "Incidents",
-  "page.incidents.description": "Read-only incident overview.",
+  "page.incidents.description":
+    "Current open and investigating incidents at this location. Read-only monitoring.",
+  "page.incidents.empty": "No open or investigating incidents right now.",
+  "page.incidents.kpiVisible": "Incidents currently listed",
+  "page.incidents.kpiHighCritical": "High / critical among listed",
+  "page.incidents.monitoringNote":
+    "Read-only monitoring of current incidents: this view lists OPEN and INVESTIGATING cases only, and resolved or closed incidents leave it. Creation, evidence, resolution and closing are handled outside the Management Dashboard.",
+  "page.incidents.column.incidentId": "Incident ID",
+  "page.incidents.column.sessionId": "Session ID",
+  "page.incidents.column.status": "Status",
+  "page.incidents.column.severity": "Severity",
+  "page.incidents.column.type": "Type",
+  "page.incidents.column.createdAt": "Created",
+  "page.incidents.column.resolvedAt": "Resolved",
+  "page.incidents.detailTitle": "Incident detail",
+  "page.incidents.field.description": "Description",
+  "page.incidents.field.rawType": "Recorded type",
+  "page.incidents.unresolved": "Unresolved",
+
+  // Shared data-surface actions and states (D2 integration pages)
+  "actions.loadMore": "Load more",
+  "actions.retry": "Retry",
+  "states.loading": "Loading…",
+  "states.errorGeneric": "This data could not be loaded.",
+  "states.networkError":
+    "Network connection unavailable. Check your connection and try again.",
+  "states.accessDenied":
+    "Your account does not have access to this location's data.",
 
   // Maps & zones
   "page.mapsZones.title": "Map Setup",

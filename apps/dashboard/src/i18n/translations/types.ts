@@ -137,14 +137,56 @@ export interface TranslationDictionary {
   // Active shifts
   "page.activeShifts.title": string;
   "page.activeShifts.description": string;
+  "page.activeShifts.empty": string;
+  "page.activeShifts.kpiLabel": string;
+  "page.activeShifts.kpiSub": string;
+  "page.activeShifts.scopeNote": string;
+  "page.activeShifts.column.shiftId": string;
+  "page.activeShifts.column.membershipId": string;
+  "page.activeShifts.column.startedAt": string;
+  "page.activeShifts.rowSubtitle": string;
 
   // Keys
   "page.keys.title": string;
   "page.keys.description": string;
+  "page.keys.empty": string;
+  "page.keys.kpiSlots": string;
+  "page.keys.kpiActiveSlots": string;
+  "page.keys.kpiHoldingSession": string;
+  "page.keys.scopeNote": string;
+  "page.keys.holdingSessionIdLabel": string;
+  "page.keys.noHoldingSession": string;
+  "page.keys.detailTitle": string;
+  "page.keys.field.keySlotId": string;
+  "page.keys.field.code": string;
+  "page.keys.field.status": string;
 
   // Incidents
   "page.incidents.title": string;
   "page.incidents.description": string;
+  "page.incidents.empty": string;
+  "page.incidents.kpiVisible": string;
+  "page.incidents.kpiHighCritical": string;
+  "page.incidents.monitoringNote": string;
+  "page.incidents.column.incidentId": string;
+  "page.incidents.column.sessionId": string;
+  "page.incidents.column.status": string;
+  "page.incidents.column.severity": string;
+  "page.incidents.column.type": string;
+  "page.incidents.column.createdAt": string;
+  "page.incidents.column.resolvedAt": string;
+  "page.incidents.detailTitle": string;
+  "page.incidents.field.description": string;
+  "page.incidents.field.rawType": string;
+  "page.incidents.unresolved": string;
+
+  // Shared data-surface actions and states (D2 integration pages)
+  "actions.loadMore": string;
+  "actions.retry": string;
+  "states.loading": string;
+  "states.errorGeneric": string;
+  "states.networkError": string;
+  "states.accessDenied": string;
 
   // Maps & zones
   "page.mapsZones.title": string;

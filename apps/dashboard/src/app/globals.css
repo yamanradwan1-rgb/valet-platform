@@ -1201,3 +1201,329 @@ textarea:focus-visible {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
+
+/* ---------- Overview integration surfaces (D2-004: active shifts / keys / incidents) ----------
+   Additive-only styles. Visual language mirrors the final D1 reference:
+   KPI stat cards, honest scope notes, key custody card board, detail sheet. */
+
+.scope-note {
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 12px 16px;
+}
+
+.overview-kpi-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.overview-kpi-grid.is-single-column {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .overview-kpi-grid.is-sm-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .overview-kpi-grid.is-sm-four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.overview-kpi-label {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.overview-kpi-value {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.overview-kpi-value.is-danger {
+  color: var(--danger);
+}
+
+.overview-kpi-sub {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Desktop table / mobile list switching (D1 md breakpoint). */
+.responsive-table-block {
+  display: none;
+}
+
+.responsive-list-block {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .responsive-table-block {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .responsive-list-block {
+    display: none;
+  }
+}
+
+.data-table tr.is-clickable {
+  cursor: pointer;
+}
+
+.data-table tr.is-clickable:hover td {
+  background: var(--accent-soft);
+}
+
+.btn-load-more {
+  display: inline-flex;
+  min-height: 44px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.btn-load-more:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.btn-load-more:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pagination-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.pagination-error .btn-secondary {
+  min-height: 36px;
+  padding-inline: 12px;
+  font-size: 13px;
+}
+
+/* Key custody board cards. */
+.key-board-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .key-board-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .key-board-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.key-card {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.key-card:hover,
+.key-card:focus-visible {
+  background: var(--accent-soft);
+}
+
+.key-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.key-card-code {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.key-card-id {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.key-card-holding-label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.key-card-holding-value {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.key-card-holding-value.is-text {
+  font-family: inherit;
+}
+
+/* Detail sheet (keys / incidents read-only details). */
+.detail-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.detail-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(7, 17, 31, 0.45);
+  cursor: default;
+}
+
+.detail-sheet-panel {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  max-height: 82%;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-popover);
+  padding: 20px;
+  outline: none;
+}
+
+@media (min-width: 640px) {
+  .detail-sheet-panel {
+    inset-inline: auto;
+    inset-inline-end: 16px;
+    bottom: 16px;
+    width: 360px;
+    border-bottom: 1px solid var(--border);
+    border-radius: 16px;
+  }
+}
+
+.detail-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.detail-sheet-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.detail-sheet-close {
+  display: inline-flex;
+  height: 44px;
+  width: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.detail-sheet-close:hover {
+  background: var(--accent-soft);
+}
+
+.detail-sheet-panel .detail-fields {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.detail-field dt {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-field dd {
+  margin: 4px 0 0;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.detail-field dd.is-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}

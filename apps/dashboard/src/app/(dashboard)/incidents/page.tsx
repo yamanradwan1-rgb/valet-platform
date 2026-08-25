@@ -1,14 +1,9 @@
-﻿"use client";
-
-import { FoundationPlaceholder } from "../../../components/ui/foundation-placeholder";
+import { IncidentsMonitoringView } from "../../../features/dashboard-overview/incidents-monitoring-view";
 
 export default function Page() {
   return (
     <div className="page-shell">
-      <FoundationPlaceholder
-        titleKey="page.incidents.title"
-        descriptionKey="page.incidents.description"
-      />
+      <IncidentsMonitoringView />
     </div>
   );
 }

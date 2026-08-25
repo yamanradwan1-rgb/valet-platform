@@ -1,14 +1,9 @@
-﻿"use client";
-
-import { FoundationPlaceholder } from "../../../components/ui/foundation-placeholder";
+import { KeysCustodyView } from "../../../features/dashboard-overview/keys-custody-view";
 
 export default function Page() {
   return (
     <div className="page-shell">
-      <FoundationPlaceholder
-        titleKey="page.keys.title"
-        descriptionKey="page.keys.description"
-      />
+      <KeysCustodyView />
     </div>
   );
 }

@@ -140,14 +140,63 @@ export const arTranslations: TranslationDictionary = {
   // Active shifts
   "page.activeShifts.title": "المناوبات النشطة",
   "page.activeShifts.description": "المناوبات النشطة حاليًا في هذا الموقع.",
+  "page.activeShifts.empty": "لا توجد مناوبات نشطة في هذا الموقع حاليًا.",
+  "page.activeShifts.kpiLabel": "المناوبات النشطة المعروضة",
+  "page.activeShifts.kpiSub":
+    "تحسب الصفوف المحمّلة حتى الآن؛ «تحميل المزيد» يوسّع القائمة.",
+  "page.activeShifts.scopeNote":
+    "تعرض هذه الصفحة المناوبات النشطة بمعرّف المناوبة ومعرّف العضوية ووقت البدء فقط. أسماء الموظفين ومؤشرات الأداء وإجماليات المهام ليست جزءًا من هذه الواجهة الخلفية.",
+  "page.activeShifts.column.shiftId": "معرّف المناوبة",
+  "page.activeShifts.column.membershipId": "معرّف العضوية",
+  "page.activeShifts.column.startedAt": "بدأت في",
+  "page.activeShifts.rowSubtitle": "مناوبة نشطة",
 
   // Keys
   "page.keys.title": "لوحة عهدة المفاتيح",
   "page.keys.description": "حالة خانات المفاتيح وعمليات الخدمة المرتبطة بها.",
+  "page.keys.empty": "لم يتم إعداد خانات مفاتيح لهذا الموقع بعد.",
+  "page.keys.kpiSlots": "خانات المفاتيح المحمّلة",
+  "page.keys.kpiActiveSlots": "نشطة ضمن المحمّلة",
+  "page.keys.kpiHoldingSession": "تحمل عملية خدمة ضمن المحمّل",
+  "page.keys.scopeNote":
+    "تعرض حالة كل خانة مفتاح وعملية الخدمة المرتبطة بها حاليًا. يُحفظ سجل العهدة في مكان منفصل ولا يُستنتج أبدًا من هذه اللقطة.",
+  "page.keys.holdingSessionIdLabel": "معرّف عملية الخدمة الحاملة",
+  "page.keys.noHoldingSession": "لا توجد عملية خدمة حاملة",
+  "page.keys.detailTitle": "تفاصيل خانة المفتاح",
+  "page.keys.field.keySlotId": "معرّف خانة المفتاح",
+  "page.keys.field.code": "الرمز",
+  "page.keys.field.status": "الحالة",
 
   // Incidents
   "page.incidents.title": "الحوادث",
-  "page.incidents.description": "نظرة على الحوادث للقراءة فقط.",
+  "page.incidents.description":
+    "الحوادث المفتوحة وقيد المراجعة حاليًا في هذا الموقع. مراقبة للقراءة فقط.",
+  "page.incidents.empty": "لا توجد حوادث مفتوحة أو قيد المراجعة حاليًا.",
+  "page.incidents.kpiVisible": "الحوادث المعروضة حاليًا",
+  "page.incidents.kpiHighCritical": "مرتفعة / حرجة ضمن المعروض",
+  "page.incidents.monitoringNote":
+    "عرض مباشر للقراءة فقط للحوادث الحالية: تعرض هذه الواجهة الحالات المفتوحة وقيد المراجعة فقط، وتخرج منها الحوادث المعالجة أو المغلقة. إنشاء الحوادث والأدلة والمعالجة والإغلاق تُدار خارج لوحة الإدارة.",
+  "page.incidents.column.incidentId": "معرّف الحادث",
+  "page.incidents.column.sessionId": "معرّف العملية",
+  "page.incidents.column.status": "الحالة",
+  "page.incidents.column.severity": "الخطورة",
+  "page.incidents.column.type": "النوع",
+  "page.incidents.column.createdAt": "أُنشئ في",
+  "page.incidents.column.resolvedAt": "عولجت في",
+  "page.incidents.detailTitle": "تفاصيل الحادث",
+  "page.incidents.field.description": "الوصف",
+  "page.incidents.field.rawType": "النوع المسجّل",
+  "page.incidents.unresolved": "غير معالجة",
+
+  // Shared data-surface actions and states (D2 integration pages)
+  "actions.loadMore": "تحميل المزيد",
+  "actions.retry": "إعادة المحاولة",
+  "states.loading": "جارٍ التحميل…",
+  "states.errorGeneric": "تعذر تحميل هذه البيانات.",
+  "states.networkError":
+    "اتصال الشبكة غير متاح. تحقق من اتصالك وحاول مرة أخرى.",
+  "states.accessDenied":
+    "حسابك لا يملك صلاحية الوصول إلى بيانات هذا الموقع.",
 
   // Maps & zones
   "page.mapsZones.title": "إعداد الخريطة",

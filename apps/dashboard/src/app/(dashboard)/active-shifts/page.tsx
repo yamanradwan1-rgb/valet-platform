@@ -1,14 +1,9 @@
-﻿"use client";
-
-import { FoundationPlaceholder } from "../../../components/ui/foundation-placeholder";
+import { ActiveShiftsView } from "../../../features/dashboard-overview/active-shifts-view";
 
 export default function Page() {
   return (
     <div className="page-shell">
-      <FoundationPlaceholder
-        titleKey="page.activeShifts.title"
-        descriptionKey="page.activeShifts.description"
-      />
+      <ActiveShiftsView />
     </div>
   );
 }
