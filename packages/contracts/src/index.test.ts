@@ -5,6 +5,7 @@ import {
   activeShiftResponseSchema,
   assignKeySlotRequestSchema,
   clearKeySlotRequestSchema,
+  endShiftRequestSchema,
   guestHandoffMaterialResponseSchema,
   handoffVersionRequestSchema,
   keySlotAssignmentProjectionSchema,
@@ -78,6 +79,21 @@ describe("Shift contracts", () => {
     expect(activeShiftResponseSchema.parse({ shift: null })).toEqual({
       shift: null,
     });
+  });
+
+  it("accepts an explicitly reported zero cash amount but never an empty one", () => {
+    expect(endShiftRequestSchema.parse({ cashReported: "0" })).toEqual({
+      cashReported: "0",
+    });
+    expect(endShiftRequestSchema.parse({ cashReported: "0.000" })).toEqual({
+      cashReported: "0.000",
+    });
+    expect(
+      endShiftRequestSchema.safeParse({ cashReported: "" }).success,
+    ).toBe(false);
+    expect(
+      endShiftRequestSchema.safeParse({ cashReported: "-1" }).success,
+    ).toBe(false);
   });
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 
 import type { Screen } from "../types/employee-ui";
 import {
@@ -10,26 +10,22 @@ import { buildEmployeeAccessGateProps } from "./shell/employee-access-view";
 import {
   EmployeeAccessGate,
 } from "./shell/employee-access-gate";
-import {
-  EmployeeOperationalGate,
-  type OperationalGateModel,
-} from "./shell/employee-operational-gate";
 import { EmployeeLiveRouter } from "./shell/employee-live-router";
-import { EndShiftRecoveryPanel } from "./shell/end-shift-recovery-panel";
+import {
+  EmployeeOperationalScreen,
+} from "./shell/employee-operational-screen";
 import { EmployeePrototypeFrame } from "./shell/employee-prototype-frame";
 import {
-  emptyWorkspaceTargets,
   initialScopedWorkspace,
   isWorkspaceCurrent,
   makeWorkspaceStamp,
   rescopeWorkspace,
-  type ActiveParkingTarget,
-
-  type ActiveRetrievalTarget,
   type EmployeeWorkspaceTargets,
-  type GuestAccessTarget,
   type WorkspaceIdentityInput,
 } from "./shell/employee-workspace";
+import {
+  createEmployeeWorkspaceHandlers,
+} from "./shell/employee-workspace-handlers";
 import {
   getActiveTab,
   liveEnabledTabs,
@@ -40,10 +36,12 @@ import {
 import { AppHeader } from "./shell/app-header";
 import { BottomNav } from "./shell/bottom-nav";
 import { ConnectivityBanner } from "./shell/connectivity-banner";
-import { useStaffOperationalContext } from "../features/staff-operational-context";
-import { useEndShift } from "../features/shift";
+import {
+  selectStartableLocations,
+  useStaffOperationalContext,
+} from "../features/staff-operational-context";
+import { useEndShift, useStartShift } from "../features/shift";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
-import type { StartParkingPayload } from "../features/check-in";
 
 export interface EmployeeAppProps {
   /**
@@ -105,6 +103,14 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     ? workspace.targets
     : scoped.targets;
 
+  // VUI-011D: startable Locations come exclusively from the authoritative
+  // operational-context eligibleLocations projection (server-derived,
+  // membership-scoped per DEC-033), deduplicated across memberships by ID.
+  const startableLocations = useMemo(
+    () => selectStartableLocations(operationalResponse),
+    [operationalResponse],
+  );
+
   const patchTargets = (patch: Partial<EmployeeWorkspaceTargets>): void => {
     setWorkspace((current) => {
       const currentScope = rescopeWorkspace(current, identity);
@@ -115,61 +121,10 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     });
   };
 
-  const nav = (s: Screen) => {
-    if (!isPrototypeMode && !livePermittedScreens.has(s)) return;
-    patchTargets({ screenOverride: s });
-  };
-
-  const handleStartParkingSuccess = (payload: StartParkingPayload) => {
-    patchTargets({
-      activeParkingPayload: payload,
-      activeParkingTarget: null,
-      activeRetrievalTarget: null,
-      screenOverride: "parking",
-    });
-  };
-
-  const handleSelectParkingTaskFromQueue = (target: ActiveParkingTarget) => {
-    patchTargets({
-      activeParkingPayload: null,
-      activeParkingTarget: target,
-      screenOverride: "parking",
-    });
-  };
-
-  const handleParkingComplete = () => {
-    patchTargets({ ...emptyWorkspaceTargets(), screenOverride: "task-queue" });
-  };
-
-  const handleSelectRetrievalTaskFromQueue = (
-    target: ActiveRetrievalTarget,
-  ) => {
-    patchTargets({ activeRetrievalTarget: target, screenOverride: "retrieval" });
-  };
-
-  const handleRetrievalComplete = () => {
-    patchTargets({ activeRetrievalTarget: null, screenOverride: "task-queue" });
-  };
-
-  const handleOpenIncident = (sessionId: string, from: Screen) => {
-    patchTargets({
-      activeIncidentTarget: { returnScreen: from, sessionId },
-      screenOverride: "incident",
-    });
-  };
-
-  const handleOpenGuestAccess = (sessionId: string, from: Screen) => {
-    const target: GuestAccessTarget = { returnScreen: from, sessionId };
-    patchTargets({ guestAccessTarget: target, screenOverride: "guest-access" });
-  };
-
-  const handleGuestAccessClose = (returnScreen: Screen) => {
-    patchTargets({
-      guestAccessTarget: null,
-      screenOverride: returnScreen,
-    });
-  };
-
+  const handlers = createEmployeeWorkspaceHandlers({
+    isPrototypeMode,
+    patchTargets,
+  });
 
   const handleSignOut = async (): Promise<void> => {
     await auth?.logout();
@@ -198,11 +153,28 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     resetEndShift();
   }, [resetEndShift, identity.authenticated, identity.identityGeneration]);
 
+  // VUI-011D: Live Start Shift shares the app-level controller pattern so an
+  // ambiguous outcome's same-command retry intent also survives revalidation.
+  const {
+    phase: startShiftPhase,
+    resetStartShift,
+    retryUncertain: retryUncertainStartShift,
+    startShift,
+  } = useStartShift({
+    onAuthorizationLoss: () => {
+      void revalidateOnAuthLoss();
+    },
+    onStarted: () => void refreshContext(),
+  });
+  useEffect(() => {
+    resetStartShift();
+  }, [resetStartShift, identity.authenticated, identity.identityGeneration]);
+
   if (isPrototypeMode) {
     return (
       <EmployeePrototypeFrame
         isOffline={isPrototypeOffline}
-        nav={nav}
+        nav={handlers.nav}
         onToggleOffline={() => setIsPrototypeOffline((o) => !o)}
         screen={(targets.screenOverride as Screen | null) ?? "shift-start"}
       />
@@ -234,41 +206,21 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   }
 
   if (liveScope === null) {
-    // Uncertain End Shift recovery outranks the No Active Shift gate:
-    // absence of an active shift is not mutation-success proof.
-    if (endShiftPhase.kind === "uncertain") {
-      return (
-        <div className="min-h-screen bg-navy-2 flex items-center justify-center">
-          <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-            <EndShiftRecoveryPanel
-              onRetry={retryUncertainEndShift}
-              onSignOut={() => void handleSignOut()}
-            />
-          </div>
-        </div>
-      );
-    }
-    let gateModel: OperationalGateModel;
-    if (contextError !== null && contextError !== undefined) {
-      gateModel = { kind: "CONTEXT_ERROR", message: contextError.message };
-    } else if (operationalResponse === null) {
-      gateModel = { kind: "LOADING" };
-    } else if (resolution.kind === "AMBIGUOUS_ACTIVE_SHIFTS") {
-      gateModel = { kind: "AMBIGUOUS_ACTIVE_SHIFTS", count: resolution.count };
-    } else {
-      gateModel = { kind: "NO_ACTIVE_SHIFT" };
-    }
-
     return (
-      <div className="min-h-screen bg-navy-2 flex items-center justify-center">
-        <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-          <EmployeeOperationalGate
-            model={gateModel}
-            onRetry={() => void refreshContext()}
-            onSignOut={() => void handleSignOut()}
-          />
-        </div>
-      </div>
+      <EmployeeOperationalScreen
+        contextError={contextError}
+        endShiftPhase={endShiftPhase}
+        hasContextResponse={operationalResponse !== null}
+        onDismissStartIntent={() => resetStartShift()}
+        onRefreshContext={() => void refreshContext()}
+        onRetryEndShift={retryUncertainEndShift}
+        onRetryStartShift={retryUncertainStartShift}
+        onSignOut={() => void handleSignOut()}
+        onStartShift={startShift}
+        resolution={resolution}
+        startPhase={startShiftPhase}
+        startableLocations={startableLocations}
+      />
     );
   }
 
@@ -297,16 +249,16 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           endShiftPhase={endShiftPhase}
           guestAccessTarget={targets.guestAccessTarget}
           incidentTarget={targets.activeIncidentTarget}
-          nav={nav}
+          nav={handlers.nav}
           onAuthorizationLoss={revalidateOnAuthLoss}
-          onGuestAccessClose={handleGuestAccessClose}
-          onOpenGuestAccess={handleOpenGuestAccess}
-          onOpenIncident={handleOpenIncident}
-          onParkingComplete={handleParkingComplete}
-          onRetrievalComplete={handleRetrievalComplete}
-          onSelectParkingTask={handleSelectParkingTaskFromQueue}
-          onSelectRetrievalTask={handleSelectRetrievalTaskFromQueue}
-          onStartParkingSuccess={handleStartParkingSuccess}
+          onGuestAccessClose={handlers.closeGuestAccess}
+          onOpenGuestAccess={handlers.openGuestAccess}
+          onOpenIncident={handlers.openIncident}
+          onParkingComplete={handlers.completeParking}
+          onRetrievalComplete={handlers.completeRetrieval}
+          onSelectParkingTask={handlers.selectParkingTask}
+          onSelectRetrievalTask={handlers.selectRetrievalTask}
+          onStartParkingSuccess={handlers.startParkingSuccess}
           parkingPayload={targets.activeParkingPayload}
           parkingTarget={targets.activeParkingTarget}
           retrievalTarget={targets.activeRetrievalTarget}
@@ -319,7 +271,7 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           enabledTabs={liveEnabledTabs}
           onTab={(tab) => {
             const target = topLevelScreenForTab(tab);
-            if (target !== null) nav(target);
+            if (target !== null) handlers.nav(target);
           }}
           pinned={liveWorkflowScreens.has(effectiveScreen)}
         />

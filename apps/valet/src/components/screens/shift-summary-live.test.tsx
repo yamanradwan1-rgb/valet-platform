@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { ShiftSummaryLive } from "./shift-summary-live";
+import { isCashEntryValid } from "./cash-entry";
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
 import type { EndShiftPhase } from "../../features/shift";
 import { employeeDictionary } from "../../lib/i18n/dictionary";
@@ -126,6 +127,19 @@ describe("DEC-066 §3 Live Shift screen", () => {
       "Cash physically held at the end of this shift.",
     );
     expect(markup).not.toContain('placeholder="0.000"');
+  });
+
+  it("never prefills the cash entry, so only an explicitly typed amount submits", () => {
+    const markup = renderWith();
+    // Empty entry is invalid: the End Shift action stays disabled...
+    expect(markup).toContain('value=""');
+    const endIdx = markup.indexOf(">End Shift</button>");
+    const endTag = markup.slice(markup.lastIndexOf("<button", endIdx), endIdx);
+    expect(endTag).toContain('disabled=""');
+    // ...while the money contract itself accepts a deliberately typed zero.
+    expect(isCashEntryValid("0")).toBe(true);
+    expect(isCashEntryValid("0.000")).toBe(true);
+    expect(isCashEntryValid("")).toBe(false);
   });
 
   it("keeps the Location code LTR-isolated on its own non-breaking line", () => {

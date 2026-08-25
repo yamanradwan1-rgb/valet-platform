@@ -4,7 +4,6 @@ import { useEffect, useState, type JSX } from "react";
 
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
 import type { EndShiftPhase } from "../../features/shift";
-import { endShiftRequestSchema } from "@valet/contracts";
 import {
   formatEmployeeDateTime,
   formatShiftDuration,
@@ -13,6 +12,7 @@ import {
 import type { ShiftDurationUnitLabels } from "../../lib/i18n/live-presentation";
 import { useOnlineStatus } from "../../lib/connectivity/use-online-status";
 import { useEmployeeI18n } from "../shell/employee-i18n";
+import { isCashEntryValid, normalizeCashEntry } from "./cash-entry";
 import {
   Badge,
   Btn,
@@ -76,10 +76,7 @@ export function ShiftSummaryLive({
 
   const phase = endShiftPhase;
 
-  const parsedCash = endShiftRequestSchema.safeParse({
-    cashReported: cashInput.trim(),
-  });
-  const cashValid = parsedCash.success;
+  const cashValid = isCashEntryValid(cashInput);
 
   const roleLabel =
     scope.role === "VALET_SUPERVISOR" ? t.roleValetSupervisor : t.roleValetEmployee;
@@ -90,7 +87,7 @@ export function ShiftSummaryLive({
   const cancelConfirm = (): void => setConfirming(false);
   const submitEndShift = (): void => {
     if (!cashValid || mutationsLocked) return;
-    endShift(scope.shiftId, cashInput.trim());
+    endShift(scope.shiftId, normalizeCashEntry(cashInput));
     setConfirming(false);
   };
 

@@ -52,6 +52,7 @@ export const activeShiftResponseSchema = z
 
 export type ShiftProjection = z.infer<typeof shiftProjectionSchema>;
 export type StartShiftRequest = z.infer<typeof startShiftRequestSchema>;
+export type StartShiftResponse = z.infer<typeof startShiftResponseSchema>;
 export type EndShiftRequest = z.infer<typeof endShiftRequestSchema>;
 export type EndShiftResponse = z.infer<typeof endShiftResponseSchema>;
 export type ActiveShiftQuery = z.infer<typeof activeShiftQuerySchema>;

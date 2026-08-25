@@ -110,6 +110,41 @@ describe("EmployeeOperationalGate truthful states", () => {
     }
   });
 
+  it("offers Start Shift when the server context authorizes a startable Location", () => {
+    const markup = renderToStaticMarkup(
+      <EmployeeOperationalGate
+        model={{ kind: "NO_ACTIVE_SHIFT" }}
+        onStartShift={vi.fn()}
+        startableLocations={[
+          {
+            code: "AMM-01",
+            currency: "JOD",
+            locationId: "11111111-1111-4111-8111-111111111111",
+            name: "Amman Ridge Hotel",
+          },
+        ]}
+      />,
+    );
+    expect(markup).toContain("No active shift");
+    expect(markup).toContain("Amman Ridge Hotel");
+    expect(markup).toContain('<bdi dir="ltr">AMM-01</bdi>');
+    expect(markup).toContain(">Start Shift</button>");
+  });
+
+  it("states truthfully when the server context authorizes no startable Location", () => {
+    const markup = renderToStaticMarkup(
+      <EmployeeOperationalGate
+        model={{ kind: "NO_ACTIVE_SHIFT" }}
+        onStartShift={vi.fn()}
+        startableLocations={[]}
+      />,
+    );
+    expect(markup).not.toContain(">Start Shift</button>");
+    expect(markup).toContain(
+      "No startable location is available for your account right now.",
+    );
+  });
+
   it("fails closed with an explicit multi-shift explanation for ambiguous shifts", () => {
     const markup = renderToStaticMarkup(
       <EmployeeOperationalGate

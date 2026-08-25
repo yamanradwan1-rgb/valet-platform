@@ -2,7 +2,12 @@
 
 import type { JSX } from "react";
 
+import type { StartShiftPhase } from "../../features/shift";
+import type {
+  StaffOperationalLocation,
+} from "@valet/contracts";
 import { LocaleToggle, useEmployeeI18n } from "./employee-i18n";
+import { StartShiftGatePanel } from "./employee-start-shift-panel";
 
 export type OperationalGateModel =
   | { kind: "CONTEXT_ERROR"; message: string }
@@ -13,8 +18,14 @@ export type OperationalGateModel =
 export interface EmployeeOperationalGateProps {
   readonly isRetrying?: boolean | undefined;
   readonly model: OperationalGateModel;
+  /** Authoritative startable Locations (server-derived eligibleLocations). */
+  readonly onStartShift?: ((targetLocationId: string) => void) | undefined;
+  readonly onRetryStart?: (() => void) | undefined;
+  readonly onDismissStartIntent?: (() => void) | undefined;
   readonly onRetry?: (() => void) | undefined;
   readonly onSignOut?: (() => void) | undefined;
+  readonly startPhase?: StartShiftPhase | null | undefined;
+  readonly startableLocations?: readonly StaffOperationalLocation[] | undefined;
 }
 
 function GateShell({ children }: { children: React.ReactNode }): JSX.Element {
@@ -48,8 +59,13 @@ const gateSecondaryButtonClass =
 export function EmployeeOperationalGate({
   isRetrying = false,
   model,
+  onDismissStartIntent,
   onRetry,
+  onRetryStart,
   onSignOut,
+  onStartShift,
+  startPhase = null,
+  startableLocations,
 }: EmployeeOperationalGateProps): JSX.Element {
   const { locale, t } = useEmployeeI18n();
   return (
@@ -70,17 +86,24 @@ export function EmployeeOperationalGate({
               {t.noActiveShift}
             </p>
             <p className="text-muted text-sm leading-relaxed">
-              {t.noActiveShiftDetail}
+              {t.startShiftPrompt}
             </p>
           </div>
           <div className="w-full space-y-3">
             <LocaleToggle />
+            <StartShiftGatePanel
+              locations={startableLocations ?? []}
+              onDismissIntent={onDismissStartIntent}
+              onRetryStart={onRetryStart}
+              onStartShift={onStartShift}
+              phase={startPhase}
+            />
             {onRetry && (
               <button
                 type="button"
                 onClick={onRetry}
                 disabled={isRetrying}
-                className={gateButtonClass}
+                className={gateSecondaryButtonClass}
               >
                 {t.retry}
               </button>
