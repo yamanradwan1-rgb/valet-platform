@@ -11,6 +11,7 @@ import { RetrievalFlow } from "../screens/retrieval-flow";
 import { ScanHubLive } from "../screens/scan-hub-live";
 import { ShiftSummaryLive } from "../screens/shift-summary-live";
 import { TaskQueueScreen } from "../screens/task-queue-screen";
+import { VehiclesListLive } from "../screens/vehicles-list-live";
 import type { StartParkingPayload } from "../../features/check-in";
 import type { ActiveParkingSession } from "../../features/parking";
 import type {
@@ -187,6 +188,15 @@ export function EmployeeLiveRouter({
           parkingPayload={parkingPayload}
           parkingTarget={parkingTarget}
           retrievalTarget={retrievalTarget}
+        />
+      );
+    case "vehicles-list":
+      // VUI-011C: read-only directory bound to the authoritative active
+      // Location scope; auth loss follows the shared revalidation boundary.
+      return (
+        <VehiclesListLive
+          activeScope={activeScope}
+          onAuthorizationLoss={onAuthorizationLoss}
         />
       );
     case "task-queue":

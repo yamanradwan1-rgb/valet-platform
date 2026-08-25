@@ -9,17 +9,14 @@ import {
 } from "./employee-navigation";
 
 describe("VUI-011B Scan tab activation (DEC-066 §1/§2)", () => {
-  it("enables the Scan tab while Vehicles stays gated for VUI-011C", () => {
+  it("enables the Scan tab", () => {
     expect(liveEnabledTabs.scan).toBe(true);
-    expect(liveEnabledTabs.vehicles).toBe(false);
   });
 
   it("maps the Scan tab to scan-hub and keeps every other mapping intact", () => {
     expect(topLevelScreenForTab("scan")).toBe("scan-hub");
     expect(topLevelScreenForTab("home")).toBe("task-queue");
     expect(topLevelScreenForTab("shift")).toBe("shift-summary");
-    // Vehicles remains a dead null tab in Live mode.
-    expect(topLevelScreenForTab("vehicles")).toBeNull();
   });
 
   it("permits scan-hub as a top-level Live surface with its own active tab", () => {

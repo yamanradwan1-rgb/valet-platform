@@ -1,11 +1,13 @@
 import { employeeEnglishScanHubDictionary } from "./dictionary-en-scan-hub";
 import { employeeEnglishScannerDictionary } from "./dictionary-en-scanner";
 import { employeeEnglishShiftDictionary } from "./dictionary-en-shift";
+import { employeeEnglishVehiclesDictionary } from "./dictionary-en-vehicles";
 
 export const employeeEnglishDictionary = {
   ...employeeEnglishShiftDictionary,
   ...employeeEnglishScanHubDictionary,
   ...employeeEnglishScannerDictionary,
+  ...employeeEnglishVehiclesDictionary,
   abortHandoff: "Abort Handoff",
   acceptAndPark: "Accept & Park",
   acceptTask: "Accept Task",
