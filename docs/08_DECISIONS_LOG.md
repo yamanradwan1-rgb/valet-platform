@@ -3282,3 +3282,59 @@ authorization.
 
 Full binding contract:
 `docs/decisions/DEC-066_EMPLOYEE_BOTTOM_NAV_PRODUCTION_WIRING.md`
+
+## DEC-067 — Employee Camera & QR Capture Architecture
+
+Status: Accepted
+Date: 2026-08-25
+
+Decision:
+Implements the real camera/QR capture architecture deferred to VUI-012 by
+DEC-066 §5. Mechanism/library is locked to `@zxing/browser@0.2.1` with its
+`@zxing/library@^0.23.0` peer — the official ZXing browser port (ESM+CJS,
+typed, no React peer dependency, React 19 compatible), loaded only through a
+lazy dynamic import inside `"use client"` code so it never touches SSR
+(Next.js 16 compatible); `BarcodeDetector` may return only as a documented
+optional optimization behind the same interface, never a second protocol.
+Camera permission UX exposes distinct truthful localized states
+(idle/starting/scanning/unsupported including insecure context/denied/busy/
+no-device/error) with a mobile-first viewport and a large Close control; a
+failed start never fakes success and always leaves manual entry operable.
+Full MediaStream lifecycle obligations: all tracks stopped — no LED left
+running, no background capture — on explicit close, successful accepted
+decode, unmount, Live route change away from the workflow, workflow
+completion, and authentication identity change; the decoder stop handle AND a
+defensive stop of every preview `MediaStream` track are both applied; audio is
+never requested. Resource QR V1 payloads are EXACTLY
+`vaylet:key-slot:<RESOURCE_CODE>` and `vaylet:parking-spot:<RESOURCE_CODE>`:
+typed, non-secret, NON-AUTHORITATIVE, with no sessionId/taskId/membershipId/
+organization/location/token/pickup-secret/proof fields; the strict parser
+accepts only these exact prefixes, trims surrounding whitespace only (never
+case-folds), preserves the resource code byte-exact, rejects empty/overlong
+(>120)/URL/JSON/garbage payloads without touching any input. Decoding alone
+performs ZERO business mutation: the decoded code fills the EXISTING manual
+input of the current step and the employee performs the existing explicit
+action while the server re-proves everything (Confirm Parked keeps DEC-065
+verified key return; resource codes never authorize; no scan-first session
+discovery; Key Slot capture exists only inside Check-In key assignment,
+Parking verified key return and Retrieval key checkout — no generic top-level
+key lookup). Dynamic Handoff scans the RAW existing `vhq1.*` payload validated
+against the existing `DYNAMIC_QR_PATTERN`, reused exactly — never wrapped, no
+second protocol; scanning never marks verification locally and the raw proof
+stays memory-only transient input cleared promptly after submission
+(success or failure), never persisted to storage/logs/URLs/navigation state,
+with no scan history. Duplicate-decode suppression is a client obligation:
+after one accepted decode the scanner stops and stays suppressed until the
+consumer re-arms it — never repeat-submitting proof or overwriting
+employee-edited input, independent of backend rate limits; rejected payloads
+show truthful localized messages and are consecutively deduplicated. Manual
+fallback is mandatory and visible in EVERY camera workflow including every
+failure state. No License Plate OCR in VUI-012. Offline behavior stays under
+DEC-063: decoded values fill transient current-screen drafts offline;
+protected mutations remain online-only; no persistent queues/outboxes/replay.
+
+DEC-067 supersedes nothing: DEC-066 §5's deferral is resolved by this focused
+decision as it required; DEC-033/037/042/063/065 remain fully binding.
+
+Full binding contract:
+`docs/decisions/DEC-067_EMPLOYEE_CAMERA_QR_ARCHITECTURE.md`
