@@ -6,6 +6,10 @@ import { activeShiftsAr, activeShiftsEn } from "./active-shifts-strings";
 import { foundationAr, foundationEn } from "./foundation-strings";
 import { incidentsAr, incidentsEn } from "./incidents-strings";
 import { keysAr, keysEn } from "./keys-strings";
+import {
+  liveOperationsAr,
+  liveOperationsEn,
+} from "./live-operations-strings";
 import { locationAr, locationEn } from "./location-strings";
 import { overviewAr, overviewEn } from "./overview-strings";
 import {
@@ -31,6 +35,7 @@ const EN_FRAGMENTS = [
   ["foundation", foundationEn],
   ["incidents", incidentsEn],
   ["keys", keysEn],
+  ["liveOperations", liveOperationsEn],
   ["location", locationEn],
   ["overview", overviewEn],
   ["retrievalQueue", retrievalQueueEn],
@@ -44,6 +49,7 @@ const AR_FRAGMENTS = [
   ["foundation", foundationAr],
   ["incidents", incidentsAr],
   ["keys", keysAr],
+  ["liveOperations", liveOperationsAr],
   ["location", locationAr],
   ["overview", overviewAr],
   ["retrievalQueue", retrievalQueueAr],

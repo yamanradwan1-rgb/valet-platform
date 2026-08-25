@@ -4,6 +4,7 @@ import type { ActiveShiftsStrings } from "./sections/active-shifts-strings";
 import type { FoundationStrings } from "./sections/foundation-strings";
 import type { IncidentsStrings } from "./sections/incidents-strings";
 import type { KeysStrings } from "./sections/keys-strings";
+import type { LiveOperationsStrings } from "./sections/live-operations-strings";
 import type { LocationStrings } from "./sections/location-strings";
 import type { OverviewStrings } from "./sections/overview-strings";
 import type { RetrievalQueueStrings } from "./sections/retrieval-queue-strings";
@@ -25,6 +26,7 @@ export interface TranslationDictionary
     FoundationStrings,
     IncidentsStrings,
     KeysStrings,
+    LiveOperationsStrings,
     LocationStrings,
     OverviewStrings,
     RetrievalQueueStrings,
