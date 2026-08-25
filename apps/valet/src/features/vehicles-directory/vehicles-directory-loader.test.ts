@@ -165,3 +165,89 @@ describe("VehicleDirectoryLoader read-model semantics", () => {
     loader.destroy();
   });
 });
+
+describe("VehicleDirectoryLoader StrictMode reset recovery", () => {
+  it("recovers after reset: state cleared to non-loading initial and a subsequent load issues a NEW request through the fresh client", async () => {
+    let releaseFirst!: (value: StaffVehicleDirectoryResponse) => void;
+    const first = new Promise<StaffVehicleDirectoryResponse>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const firstClient = {
+      request: vi.fn(() => first),
+    } as unknown as EmployeeApiClient;
+    const loader = new VehicleDirectoryLoader({ client: firstClient });
+
+    // Mount cycle 1: load goes in-flight.
+    const pending = loader.load(LOCATION_ID);
+    expect(loader.getState().isLoading).toBe(true);
+
+    // Effect cleanup between StrictMode mount cycles must stay recoverable.
+    loader.reset();
+    expect(loader.getState()).toEqual(initialVehicleDirectoryState());
+    expect(loader.getState().isLoading).toBe(false);
+
+    // Simulated remount binds a fresh client and reloads successfully —
+    // reset() must not have poisoned further loads (destroyed stays false).
+    const secondClient = {
+      request: vi.fn().mockResolvedValue(page({ truncated: true })),
+    } as unknown as EmployeeApiClient;
+    loader.setClient(secondClient);
+    await loader.load(LOCATION_ID);
+
+    expect(secondClient.request).toHaveBeenCalledTimes(1);
+    expect(loader.getState().error).toBeNull();
+    expect(loader.getState().isLoading).toBe(false);
+    expect(loader.getState().response?.truncated).toBe(true);
+
+    releaseFirst(page({ truncated: false }));
+    await pending;
+    // The aborted pre-reset response arriving late is still ignored.
+    expect(loader.getState().response?.truncated).toBe(true);
+    loader.destroy();
+  });
+
+  it("ignores a first response that arrives after reset (sequence guard intact)", async () => {
+    let releaseFirst!: (value: StaffVehicleDirectoryResponse) => void;
+    const first = new Promise<StaffVehicleDirectoryResponse>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const onStateChange = vi.fn();
+    const loader = new VehicleDirectoryLoader({
+      client: { request: vi.fn(() => first) } as unknown as EmployeeApiClient,
+      onStateChange,
+    });
+
+    const pending = loader.load(LOCATION_ID);
+    loader.reset();
+
+    releaseFirst(page());
+    await pending;
+
+    // The late pre-reset response must not land in the cleared state.
+    expect(loader.getState()).toEqual(initialVehicleDirectoryState());
+    loader.destroy();
+  });
+
+  it("keeps notifying React state after reset so the remounted cycle observes fresh loads", async () => {
+    const onStateChange = vi.fn();
+    const loader = new VehicleDirectoryLoader({
+      client: clientResolving(page()),
+      onStateChange,
+    });
+
+    await loader.load(LOCATION_ID);
+    const callsBeforeReset = onStateChange.mock.calls.length;
+
+    loader.reset();
+    expect(onStateChange.mock.calls.length).toBeGreaterThanOrEqual(
+      callsBeforeReset,
+    );
+
+    await loader.load(LOCATION_ID);
+    // A notification strictly after reset proves the callback stayed attached
+    // (the destroy()-style detach would freeze the bound React state).
+    expect(onStateChange.mock.calls.length).toBeGreaterThan(callsBeforeReset);
+    expect(loader.getState().response).not.toBeNull();
+    loader.destroy();
+  });
+});

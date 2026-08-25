@@ -70,8 +70,13 @@ export function useVehicleDirectory(
   }, [loader, apiClient]);
 
   useEffect(() => {
+    // Effect cleanup must stay RECOVERABLE for the same component instance:
+    // React StrictMode (Next dev default) runs mount→cleanup→remount, and a
+    // permanent destroy here would poison the remounted cycle into an
+    // eternal loading state. reset() only aborts the in-flight request and
+    // clears held state; destroy() remains reserved for real teardown.
     return () => {
-      loader.destroy();
+      loader.reset();
     };
   }, [loader]);
 

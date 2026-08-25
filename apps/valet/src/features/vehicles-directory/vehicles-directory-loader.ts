@@ -127,6 +127,19 @@ export class VehicleDirectoryLoader {
     }
   }
 
+  /**
+   * Recovers the loader for the SAME component instance after an effect
+   * cleanup cycle (React StrictMode mount→cleanup→remount in Next dev):
+   * drops any in-flight request and clears held state while remaining fully
+   * usable — onStateChange stays attached and later load() calls are
+   * accepted. Genuine permanent teardown keeps using destroy().
+   */
+  public reset(): void {
+    this.abortActiveRequest();
+    this.activeSeq++;
+    this.state = initialVehicleDirectoryState();
+  }
+
   public destroy(): void {
     this.destroyed = true;
     this.abortActiveRequest();
