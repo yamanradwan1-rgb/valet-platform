@@ -34,7 +34,29 @@ type SettledOutcome = Exclude<OverviewLoadState, { phase: "loading" }>;
 
 interface SettledResult {
   readonly attempt: number;
+  readonly locationId: string;
   readonly outcome: SettledOutcome;
+}
+
+/**
+ * Derives what the UI may render. Any identity mismatch (a newer attempt or a
+ * different location) collapses to `loading`, so a slow Location A response
+ * can never replace Location B data even if an abort were lost. Mirrors
+ * selectSetupLoadState in features/map-setup/map-setup-state.ts.
+ */
+export function selectOverviewLoadState(
+  settled: SettledResult | null,
+  requestLocationId: string,
+  attempt: number,
+): OverviewLoadState {
+  if (
+    settled === null ||
+    settled.attempt !== attempt ||
+    settled.locationId !== requestLocationId
+  ) {
+    return { phase: "loading" };
+  }
+  return settled.outcome;
 }
 
 function toDashboardApiError(error: unknown): DashboardApiError {
@@ -57,9 +79,10 @@ const ABORT_ERROR_NAME = "AbortError";
  * truly over, the auth provider flips status -> the dashboard layout redirects
  * to /session-expired. This hook simply surfaces the final error.
  *
- * Loading is DERIVED from the request identity (`settled.attempt !== attempt`)
- * instead of being written synchronously inside the effect, so a reload never
- * renders stale data and effects stay free of cascading setState calls.
+ * Loading is DERIVED from the request identity (attempt + location, see
+ * selectOverviewLoadState) instead of being written synchronously inside
+ * the effect, so a reload or location switch never renders stale data and
+ * effects stay free of cascading setState calls.
  */
 export function useOverviewData(
   client: OverviewClient,
@@ -79,7 +102,11 @@ export function useOverviewData(
     void loadOverviewComposition(client, locationId, controller.signal)
       .then((data) => {
         if (!cancelled) {
-          setSettled({ attempt, outcome: { data, phase: "ready" } });
+          setSettled({
+            attempt,
+            locationId,
+            outcome: { data, phase: "ready" },
+          });
         }
       })
       .catch((error: unknown) => {
@@ -88,6 +115,7 @@ export function useOverviewData(
         if (error instanceof Error && error.name === ABORT_ERROR_NAME) return;
         setSettled({
           attempt,
+          locationId,
           outcome: { error: toDashboardApiError(error), phase: "error" },
         });
       });
@@ -97,10 +125,9 @@ export function useOverviewData(
     };
   }, [attempt, client, locationId]);
 
-  const state: OverviewLoadState =
-    settled !== null && settled.attempt === attempt
-      ? settled.outcome
-      : { phase: "loading" };
+  // Render-time identity collapse: a settled payload from another location
+  // or a superseded attempt renders as loading, never as current truth.
+  const state = selectOverviewLoadState(settled, locationId, attempt);
 
   return { reload, state };
 }
