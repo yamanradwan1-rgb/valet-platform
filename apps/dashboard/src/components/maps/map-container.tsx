@@ -64,6 +64,7 @@ export function MapContainer({
   return (
     <div
       className="map-container"
+      role="region"
       aria-label={ariaLabel ?? t("map.smokeTitle")}
     >
       <div ref={containerRef} className="map-canvas" />

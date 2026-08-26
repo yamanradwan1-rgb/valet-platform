@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DashboardApiError } from "./api-error";
+import { StaffApiClient } from "./staff-api-client";
 import {
   BASE,
   binaryResponse,
@@ -112,7 +113,7 @@ describe("binary auth recovery semantics", () => {
     expect(recoveryCalls).toHaveLength(1);
   });
 
-  it("rethrows the original 401 when recovery resolves null — no retry", async () => {
+  it("surfaces RETRYABLE server failure when recovery declines but the session is still live", async () => {
     const { calls } = stubFetch(() =>
       jsonResponse(401, { code: "STAFF_AUTHENTICATION_REQUIRED" }),
     );
@@ -120,9 +121,34 @@ describe("binary auth recovery semantics", () => {
 
     const thrown = await caught(client.requestBinary("/dashboard/artifact"));
     expect(thrown).toBeInstanceOf(DashboardApiError);
-    expect((thrown as DashboardApiError).kind).toBe("session-expired");
+    const apiError = thrown as DashboardApiError;
+    // "retry-later": session survived the transient refresh failure, so the
+    // stale 401 must not masquerade as authoritative expiry.
+    expect(apiError.kind).toBe("server");
+    expect(apiError.code).toBe("SESSION_RECOVERY_RETRY_SCHEDULED");
     expect(calls).toHaveLength(1);
     expect(recoveryCalls).toHaveLength(1);
+  });
+
+  it("rethrows the original 401 when recovery ended the session — no retry", async () => {
+    const { calls } = stubFetch(() =>
+      jsonResponse(401, { code: "STAFF_AUTHENTICATION_REQUIRED" }),
+    );
+    let liveToken: string | null = "stale";
+    const client = new StaffApiClient({
+      baseUrl: BASE,
+      getAccessToken: () => liveToken,
+      recoverFromUnauthorized: () => {
+        // Authoritative end: runtime teardown cleared the token first.
+        liveToken = null;
+        return Promise.resolve(null);
+      },
+    });
+
+    const thrown = await caught(client.requestBinary("/dashboard/artifact"));
+    expect(thrown).toBeInstanceOf(DashboardApiError);
+    expect((thrown as DashboardApiError).kind).toBe("session-expired");
+    expect(calls).toHaveLength(1);
   });
 
   it("never loops when the retried download is rejected with 401 again", async () => {

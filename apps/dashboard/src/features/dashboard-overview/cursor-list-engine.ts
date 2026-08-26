@@ -19,11 +19,22 @@ export type FetchScopedPage<T> = (
 
 interface EngineOptions<T> {
   readonly fetchPage: FetchScopedPage<T>;
-  readonly onState: (state: CursorListState<T>) => void;
+  /**
+   * Receives every applied state transition together with the data scope
+   * currently owning the engine (see syncOwner), so adapters can stamp
+   * snapshots for render-time scope selection without touching refs.
+   */
+  readonly onState: (state: CursorListState<T>, owner: string | null) => void;
 }
 
 export interface CursorListEngine<T> {
   getState(): CursorListState<T>;
+  /**
+   * Declares the data scope that subsequent load()/loadMore() attempts
+   * belong to (the selected location). Purely informational: it never
+   * resets or emits by itself — call reset()/load() as before.
+   */
+  syncOwner(owner: string | null): void;
   /**
    * Replaces the page fetcher (the React hook syncs its latest closure here
    * from an effect). Never resets state: scope switches go through reset().
@@ -72,6 +83,7 @@ export function createCursorListEngine<T>(
   options: EngineOptions<T>,
 ): CursorListEngine<T> {
   let state: CursorListState<T> = createIdleCursorListState<T>();
+  let owner: string | null = null;
   let fetchPage = options.fetchPage;
   let attempt = 0;
   let inFlight = false;
@@ -79,11 +91,15 @@ export function createCursorListEngine<T>(
 
   const apply = (next: CursorListState<T>): void => {
     state = next;
-    options.onState(next);
+    options.onState(next, owner);
   };
 
   const setFetcher = (next: FetchScopedPage<T>): void => {
     fetchPage = next;
+  };
+
+  const syncOwner = (next: string | null): void => {
+    owner = next;
   };
 
   /**
@@ -159,6 +175,7 @@ export function createCursorListEngine<T>(
 
   return {
     getState: () => state,
+    syncOwner,
     setFetcher,
     load,
     loadMore,

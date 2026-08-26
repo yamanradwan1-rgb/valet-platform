@@ -91,9 +91,15 @@ export class StaffApiClient {
   }
 
   async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    return this.runWithUnauthorizedRecovery(() =>
-      this.requestOnce<T>(path, options),
-    );
+    const send = (): Promise<T> => this.requestOnce<T>(path, options);
+    // Auth boundary endpoints own their own 401s: refresh()'s rejection is
+    // the provider's authoritative decision INPUT, and a login/logout 401
+    // must surface verbatim — routing them through unauthorized recovery
+    // would re-enter the very single-flight refresh whose request failed
+    // (a promise cycle that never settles) or nest-acquire the held auth
+    // mutation Web Lock on invalid credentials.
+    if (options.skipAuthorization === true) return send();
+    return this.runWithUnauthorizedRecovery(send);
   }
 
   /**
@@ -125,7 +131,24 @@ export class StaffApiClient {
       if (!(error instanceof DashboardApiError)) throw error;
       if (error.kind !== "session-expired") throw error;
       const token = await this.recoverFromUnauthorized();
-      if (token === null) throw error;
+      if (token === null) {
+        // Recovery resolved "do not retry" for exactly one of two reasons:
+        // - AUTHORITATIVE END: the runtime session was torn down; surface
+        //   the original expiry so shells reach the expired posture.
+        // - TRANSIENT REFRESH FAILURE with the session still LIVE
+        //   ("retry-later"): rethrowing the stale 401 would fake "session
+        //   expired" copy and strand surfaces on restoring skeletons that
+        //   no redirect will ever resolve; an honestly retryable server
+        //   failure keeps manual retry working until the scheduled
+        //   near-term refresh succeeds.
+        if (this.getAccessToken() === null) throw error;
+        throw new DashboardApiError({
+          kind: "server",
+          status: 0,
+          code: "SESSION_RECOVERY_RETRY_SCHEDULED",
+          message: "Session recovery is retrying; please try again.",
+        });
+      }
       return operation();
     }
   }

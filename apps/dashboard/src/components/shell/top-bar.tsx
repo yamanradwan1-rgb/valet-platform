@@ -40,7 +40,7 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
       <button
         type="button"
         onClick={onMenuToggle}
-        className="topbar-icon-button lg-only-hidden"
+        className="topbar-icon-button lg-desktop-hidden"
         aria-label={t("shell.openNavigation")}
       >
         <svg

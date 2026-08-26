@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { useTranslation } from "../../i18n/locale-provider";
 
@@ -8,6 +8,11 @@ import { useTranslation } from "../../i18n/locale-provider";
  * D1 detail sheet for list surfaces: bottom sheet on small screens, floating
  * panel on the inline-end side from sm up. Closes on Escape or backdrop tap.
  * Direction-aware via logical CSS properties only.
+ *
+ * Initial focus moves inside the panel on mount (D5-001), mirroring the
+ * accepted dashboard-overview DetailSheet pattern: without it, keyboard and
+ * screen-reader users stay focused on the triggering row BEHIND the modal
+ * while every editor field opens unfocused.
  */
 export function ListDetailSheet(props: {
   title: string;
@@ -16,6 +21,11 @@ export function ListDetailSheet(props: {
 }) {
   const { title, onClose, children } = props;
   const { t } = useTranslation();
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
@@ -39,7 +49,7 @@ export function ListDetailSheet(props: {
         aria-label={t("common.close")}
         tabIndex={-1}
       />
-      <div className="detail-sheet">
+      <div ref={panelRef} className="detail-sheet" tabIndex={-1}>
         <div className="detail-head">
           <h3 className="detail-title">{title}</h3>
           <button

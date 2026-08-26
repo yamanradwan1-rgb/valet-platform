@@ -102,7 +102,11 @@ export function SetupMap({
   }, [polygons]);
 
   return (
-    <div className="map-container map-setup-map" aria-label={ariaLabel}>
+    <div
+      className="map-container map-setup-map"
+      role="region"
+      aria-label={ariaLabel}
+    >
       <div ref={containerRef} className="map-canvas" />
       {status === "loading" && (
         <div className="map-overlay" role="status">

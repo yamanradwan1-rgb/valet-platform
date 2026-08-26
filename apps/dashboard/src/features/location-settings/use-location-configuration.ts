@@ -6,6 +6,10 @@ import type {
   ConfigurationSettingKey,
 } from "@valet/contracts";
 
+import {
+  selectScopedValue,
+  stampScope,
+} from "../../lib/api/scoped-view";
 import { useAuth } from "../auth/use-auth";
 import { useDashboardLocation } from "../location/location-context";
 import {
@@ -91,6 +95,16 @@ export function useLocationConfiguration(): UseLocationConfigurationResult {
     };
   }, [controller]);
 
+  // Render-time scope selection (D5-001): controller snapshots carry the
+  // locationId they were produced for, so a snapshot from the previous
+  // location collapses to this location's neutral loading posture
+  // SYNCHRONOUSLY — before the effect that runs load(B) can discard it.
+  const visibleSnapshot = selectScopedValue(
+    stampScope(snapshot.locationId, snapshot),
+    locationId.length > 0 ? locationId : null,
+    initialSnapshot(),
+  );
+
   return useMemo(
     () => ({
       clearOverride: (setting) => controller.clearOverride(setting),
@@ -98,8 +112,8 @@ export function useLocationConfiguration(): UseLocationConfigurationResult {
       locationId,
       reload: () => controller.reload(),
       setOverride: (input) => controller.setOverride(input),
-      snapshot,
+      snapshot: visibleSnapshot,
     }),
-    [controller, locationId, snapshot],
+    [controller, locationId, visibleSnapshot],
   );
 }

@@ -13,6 +13,11 @@ import {
   pageAppended,
   type CursorListSnapshot,
 } from "./cursor-list-reducer";
+import {
+  selectScopedValue,
+  stampScope,
+  type ScopedValue,
+} from "./scoped-view";
 
 export interface CursorPageFetcher<Item> {
   (params: {
@@ -46,7 +51,20 @@ export interface CursorListController<Item>
  * - the fetcher/key function are synced through effects, so callers may pass
  *   inline closures without retriggering loads (also keeps React dev
  *   double-effects from issuing duplicate requests)
+ *
+ * D5-001 cross-location visibility: every state write is stamped with the
+ * data scope captured at REQUEST start (the scope effect's closure), and
+ * the returned snapshot is selected during render against the CURRENT
+ * scope. A location switch therefore renders B's neutral loading posture
+ * synchronously — before the reset effect runs — and a late response from
+ * the previous location stays hidden even if it lands inside the
+ * render-to-effect window.
  */
+interface CursorStateFields<Item> {
+  readonly snapshot: CursorListSnapshot<Item>;
+  readonly error: unknown;
+}
+
 export function useCursorList<Item>(options: {
   fetchPage: CursorPageFetcher<Item> | null;
   keyOf: (item: Item) => string;
@@ -54,17 +72,28 @@ export function useCursorList<Item>(options: {
   resetKey: string | null;
 }): CursorListController<Item> {
   const { fetchPage, keyOf, resetKey } = options;
-  const [snapshot, setSnapshot] = useState<CursorListSnapshot<Item>>(() =>
-    emptyCursorList<Item>(),
+  const [state, setState] = useState<ScopedValue<CursorStateFields<Item>>>(
+    () =>
+      stampScope(null, {
+        snapshot: emptyCursorList<Item>(),
+        error: null,
+      }),
   );
-  const [error, setError] = useState<unknown>(null);
 
   const latestRef = useRef({ fetchPage, keyOf });
-  const snapshotRef = useRef(snapshot);
+  const snapshotRef = useRef(state.value.snapshot);
   useEffect(() => {
     latestRef.current = { fetchPage, keyOf };
-    snapshotRef.current = snapshot;
-  }, [fetchPage, keyOf, snapshot]);
+    snapshotRef.current = state.value.snapshot;
+  }, [fetchPage, keyOf, state]);
+
+  /**
+   * Request-time data scope. Updated ONLY inside the scope effect (never
+   * during render), so a response from the previous location that lands in
+   * the window between the B render and A's cleanup is still stamped A and
+   * stays invisible under B.
+   */
+  const scopeRef = useRef<string | null>(null);
 
   const sequenceRef = useRef(0);
   const runningRequestRef = useRef<AbortController | null>(null);
@@ -86,26 +115,42 @@ export function useCursorList<Item>(options: {
   const runInitial = useCallback(async () => {
     const fetchPageByIdentity = latestRef.current.fetchPage;
     if (fetchPageByIdentity === null) return;
+    // Stamped at request start: every publish below belongs to THIS scope,
+    // even if it lands after the current selection moved on.
+    const scopeAtStart = scopeRef.current;
     sequenceRef.current += 1;
     abortRunningRequest();
     loadMoreInFlightRef.current = false;
     const sequence = sequenceRef.current;
     const controller = new AbortController();
     runningRequestRef.current = controller;
-    setSnapshot(emptyCursorList<Item>());
-    setError(null);
+    setState(
+      stampScope(scopeAtStart, {
+        snapshot: emptyCursorList<Item>(),
+        error: null,
+      }),
+    );
     try {
       const page = await fetchPageByIdentity({
         cursor: null,
         signal: controller.signal,
       });
       if (sequenceRef.current === sequence) {
-        setSnapshot(initialPageLoaded(page, latestRef.current.keyOf));
+        setState(
+          stampScope(scopeAtStart, {
+            snapshot: initialPageLoaded(page, latestRef.current.keyOf),
+            error: null,
+          }),
+        );
       }
     } catch (requestError: unknown) {
       if (sequenceRef.current === sequence) {
-        setSnapshot(initialLoadFailed<Item>());
-        setError(requestError);
+        setState(
+          stampScope(scopeAtStart, {
+            snapshot: initialLoadFailed<Item>(),
+            error: requestError,
+          }),
+        );
       }
     }
   }, []);
@@ -126,24 +171,44 @@ export function useCursorList<Item>(options: {
     // failure naturally reuses it because failures never advance state.
     const intendedCursor: string = nextCursor;
     loadMoreInFlightRef.current = true;
+    const scopeAtStart = scopeRef.current;
     const sequence = ++sequenceRef.current;
     const controller = new AbortController();
     runningRequestRef.current = controller;
-    setSnapshot((state) => loadMoreStarted(state));
+    setState((prev) =>
+      stampScope(scopeAtStart, {
+        snapshot: loadMoreStarted(prev.value.snapshot),
+        error: prev.value.error,
+      }),
+    );
     try {
       const page = await fetchPageByIdentity({
         cursor: intendedCursor,
         signal: controller.signal,
       });
       if (sequenceRef.current === sequence) {
-        setSnapshot((state) =>
-          pageAppended(state, page, latestRef.current.keyOf),
+        setState((prev) =>
+          stampScope(
+            scopeAtStart,
+            {
+              snapshot: pageAppended(
+                prev.value.snapshot,
+                page,
+                latestRef.current.keyOf,
+              ),
+              error: prev.value.error,
+            },
+          ),
         );
       }
     } catch (requestError: unknown) {
       if (sequenceRef.current === sequence) {
-        setSnapshot((state) => loadMoreFailed(state));
-        setError(requestError);
+        setState((prev) =>
+          stampScope(scopeAtStart, {
+            snapshot: loadMoreFailed(prev.value.snapshot),
+            error: requestError,
+          }),
+        );
       }
     } finally {
       loadMoreInFlightRef.current = false;
@@ -153,6 +218,7 @@ export function useCursorList<Item>(options: {
   const enabled = fetchPage !== null;
   useEffect(() => {
     if (resetKey === null || !enabled) return;
+    scopeRef.current = resetKey;
     void runInitial();
     return () => {
       sequenceRef.current += 1;
@@ -168,5 +234,17 @@ export function useCursorList<Item>(options: {
     void runLoadMore();
   }, [runLoadMore]);
 
-  return { ...snapshot, error, reload, loadMore };
+  // Render-time scope selection: a snapshot stamped for a previous location
+  // (or an unscoped initial value) collapses to B's neutral loading posture
+  // SYNCHRONOUSLY, before any effect can reset the underlying state.
+  const visible = selectScopedValue<CursorStateFields<Item>>(
+    state,
+    resetKey ?? null,
+    emptyStateFields<Item>(),
+  );
+  return { ...visible.snapshot, error: visible.error, reload, loadMore };
+}
+
+function emptyStateFields<Item>(): CursorStateFields<Item> {
+  return { snapshot: emptyCursorList<Item>(), error: null };
 }

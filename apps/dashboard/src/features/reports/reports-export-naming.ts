@@ -83,11 +83,15 @@ export function exportErrorMessageKey(
     return "reports.export.errorTooLarge";
   }
   if (error.isNetworkError) return "reports.error.network";
-  if (error.kind === "authorization-masked" || error.kind === "forbidden") {
+  if (
+    error.kind === "authorization-masked" ||
+    error.kind === "forbidden"
+  ) {
     // Honest shared authorization failure wording — no fabricated
     // entitlement product logic and no upgrade links.
     return "errors.accessDenied";
   }
+  if (error.kind === "rate-limited") return "errors.rateLimited";
   if (error.kind === "session-expired") return "errors.sessionExpired";
   return GENERIC_ERROR_KEY;
 }

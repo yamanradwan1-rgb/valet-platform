@@ -100,7 +100,11 @@ export function LiveOperationsMap({
   }, [selectedMarkerId, status]);
 
   return (
-    <div className="map-container" aria-label={t("liveOperations.map.title")}>
+    <div
+      className="map-container"
+      role="region"
+      aria-label={t("liveOperations.map.title")}
+    >
       <div ref={containerRef} className="map-canvas" />
       {status === "loading" && (
         <div className="map-overlay" role="status">

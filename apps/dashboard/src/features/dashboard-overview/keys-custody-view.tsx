@@ -158,7 +158,7 @@ export function KeysCustodyView() {
       {selected !== undefined && (
         <DetailSheet
           title={t("page.keys.detailTitle")}
-          closeLabel={t("shell.closeNavigation")}
+          closeLabel={t("common.close")}
           onClose={() => setSelectedSlotId(null)}
         >
           <DetailField

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -89,7 +89,11 @@ export default function SignInPage() {
           >
             {showPassword ? t("signIn.hidePassword") : t("signIn.showPassword")}
           </button>
-          {errorKey !== null && <p className="form-error">{t(errorKey)}</p>}
+          {errorKey !== null && (
+            <p className="form-error" role="alert">
+              {t(errorKey)}
+            </p>
+          )}
           <button type="submit" className="btn-primary" disabled={busy}>
             {busy ? t("signIn.inProgress") : t("signIn.action")}
           </button>

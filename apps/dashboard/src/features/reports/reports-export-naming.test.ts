@@ -118,6 +118,19 @@ describe("export error wording", () => {
         }),
       ),
     ).toBe("errors.accessDenied");
+    // D5-001: 429 keeps its dedicated shared wording instead of collapsing
+    // into the generic export error.
+    expect(
+      exportErrorMessageKey(
+        new DashboardApiError({
+          code: "RATE_LIMITED",
+          kind: "rate-limited",
+          message: "",
+          retryAfter: 30,
+          status: 429,
+        }),
+      ),
+    ).toBe("errors.rateLimited");
     expect(
       exportErrorMessageKey(
         new DashboardApiError({

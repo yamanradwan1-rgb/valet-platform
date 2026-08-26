@@ -192,6 +192,10 @@ function BrandingSurface(props: { branding: UseBrandingResult }) {
 
       {editorProjection !== null && ui.editorOpenFor !== null && (
         <BrandingEditorDialog
+          // Remount per setting (D5-001): the editor holds its draft in
+          // mount state; switching settings without a close must never
+          // carry the previous setting's draft into this one.
+          key={ui.editorOpenFor}
           onClose={() => dispatchUi({ type: "editor-dismissed" })}
           onSave={(value) => {
             if (ui.editorOpenFor === null) return;

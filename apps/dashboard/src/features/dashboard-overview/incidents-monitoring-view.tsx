@@ -213,7 +213,7 @@ export function IncidentsMonitoringView() {
       {selected !== undefined && (
         <DetailSheet
           title={t("page.incidents.detailTitle")}
-          closeLabel={t("shell.closeNavigation")}
+          closeLabel={t("common.close")}
           onClose={() => setSelectedIncidentId(null)}
         >
           <DetailField label={t("page.incidents.column.incidentId")} mono>

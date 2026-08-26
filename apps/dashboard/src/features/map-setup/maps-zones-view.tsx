@@ -202,7 +202,7 @@ export function MapsZonesView() {
       />
 
       {(setup.refreshFailed || actionError !== null) && (
-        <div className="map-setup-refresh-banner" role="status">
+        <div className="map-setup-refresh-banner" role="alert">
           <span>
             {actionError !== null
               ? actionError

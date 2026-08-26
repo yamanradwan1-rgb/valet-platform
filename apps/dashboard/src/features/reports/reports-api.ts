@@ -202,20 +202,19 @@ export interface ResolvedReportExport {
 }
 
 /**
- * True when contentType's media type IS exactly the family (parameters like
- * charset tolerated; near-miss families such as text/csvx rejected).
+ * True when contentType's TOP-LEVEL media type IS exactly the family.
+ *
+ * Parameters are split off BEFORE comparison, so a family token hiding
+ * inside a parameter (`multipart/mixed; boundary=text/csv`) or a media
+ * type prefix (`x-text/csv`) can never masquerade as the requested
+ * artifact family; near-miss suffixes such as text/csvx stay rejected.
  */
 export function contentTypeMatchesFamily(
   contentType: string,
   family: "application/pdf" | "text/csv",
 ): boolean {
-  const lower = contentType.toLowerCase();
-  const index = lower.indexOf(family);
-  if (index < 0) return false;
-  const afterFamily = index + family.length;
-  return (
-    afterFamily === lower.length || /[\s;]/u.test(lower[afterFamily] as string)
-  );
+  const mediaType = contentType.split(";", 1)[0] ?? "";
+  return mediaType.trim().toLowerCase() === family;
 }
 
 /**

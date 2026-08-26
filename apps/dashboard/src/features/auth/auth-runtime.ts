@@ -37,8 +37,10 @@ type UnauthorizedRecovery = () => Promise<string | null>;
 /**
  * Recovery contract shared with StaffApiClient:
  * - resolves a fresh access token  -> the failed request is retried once;
- * - resolves `null`                -> the client rethrows the ORIGINAL
- *   unauthorized error (authoritative session end);
+ * - resolves `null`                -> the client inspects the runtime: a
+ *   torn-down session (authoritative end) rethrows the ORIGINAL
+ *   unauthorized error, while a STILL-LIVE session (transient "retry-later"
+ *   failure) surfaces an honestly retryable server error instead;
  * - throws                         -> that error surfaces verbatim instead,
  *   which is how transient refresh failures (network/server) reach feature
  *   surfaces as retryable errors rather than as fake session expiry.

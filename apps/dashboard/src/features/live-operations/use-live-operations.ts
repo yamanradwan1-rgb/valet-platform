@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { StaffApiClient } from "../../lib/api/staff-api-client";
+import {
+  selectScopedValue,
+  stampScope,
+  type ScopedValue,
+} from "../../lib/api/scoped-view";
 import { fetchLiveOperationsPage } from "./live-operations-api";
 import {
   createLiveOperationsController,
@@ -41,8 +46,8 @@ export function useLiveOperations(
   retry: () => void;
   loadMore: () => void;
 } {
-  const [snapshot, setSnapshot] = useState<LiveOperationsSnapshot>(
-    initialSnapshot,
+  const [scoped, setScoped] = useState<ScopedValue<LiveOperationsSnapshot>>(
+    () => stampScope(null, initialSnapshot()),
   );
   const clientRef = useRef(client);
   useEffect(() => {
@@ -52,6 +57,11 @@ export function useLiveOperations(
 
   useEffect(() => {
     if (locationId === null) return;
+    // Stamped from THIS effect's closure (request-time scope): a late
+    // response the old controller emits stays previous-scoped and therefore
+    // invisible under the new location, even inside the render-to-effect
+    // window before this cleanup runs.
+    const scope = locationId;
     const controller = createLiveOperationsController({
       fetcher: (params) =>
         fetchLiveOperationsPage(
@@ -60,7 +70,7 @@ export function useLiveOperations(
           params.cursor,
           params.signal,
         ),
-      onChange: setSnapshot,
+      onChange: (snapshot) => setScoped(stampScope(scope, snapshot)),
     });
     controllerRef.current = controller;
     controller.load(locationId);
@@ -81,6 +91,14 @@ export function useLiveOperations(
   const loadMore = useCallback(() => {
     controllerRef.current?.loadMore();
   }, []);
+
+  // Render-time scope selection (D5-001): a previous-location snapshot
+  // collapses to B's loading posture synchronously, before effects run.
+  const snapshot = selectScopedValue(
+    scoped,
+    locationId,
+    initialSnapshot(),
+  );
 
   return { snapshot, refresh, retry, loadMore };
 }

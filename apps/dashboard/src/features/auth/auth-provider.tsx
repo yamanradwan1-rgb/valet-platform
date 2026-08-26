@@ -143,8 +143,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * so two tabs can never race one rotation into a replay revocation.
    *
    * Recovery contract (see registerUnauthorizedRecovery): resolves a fresh
-   * token to retry once, or `null` when the original request error should
-   * surface; only an authoritative backend rejection ends the session here —
+   * token to retry once, or `null`; on `null` the transport inspects the
+   * runtime — a torn-down session (authoritative end) surfaces the original
+   * expiry, a still-live session (transient failure kept alive by
+   * retry-later) surfaces an honestly retryable server error instead.
+   * Only an authoritative backend rejection ends the session here —
    * transient failures keep it alive and retry shortly after.
    */
   const refreshSession = useCallback(

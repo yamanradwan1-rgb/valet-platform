@@ -94,7 +94,9 @@ export function VerticesSheet({
           <p className="form-error">
             {vertexFormatError
               ? t("mapSetup.validation.verticesFormat")
-              : t("mapSetup.validation.verticesMinimum")}
+              : vertexCount < MIN_VERTICES
+                ? t("mapSetup.validation.verticesMinimum")
+                : t("mapSetup.validation.verticesMaximum")}
           </p>
         )}
       </div>

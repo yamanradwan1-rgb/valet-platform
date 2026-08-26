@@ -47,6 +47,13 @@ export interface MapSetupSheetsProps {
  * Mounts the open editor sheet for the current editor state. Sheets keep
  * their own form drafts; they resolve fresh authoritative snapshots for
  * display while mutations target the captured id.
+ *
+ * REMOUNT KEYS ARE MANDATORY on every sheet element (D5-001): sheets hold
+ * their drafts in mount state, and keyboard focus can move between board
+ * rows behind the modal backdrop, so `editor` can change from one entity
+ * to another WITHOUT an intervening close. Without a key, React reconciles
+ * the same component type at the same position and the previous entity's
+ * draft survives — a save would then PATCH entity A's values onto B.
  */
 export function MapSetupSheets(props: MapSetupSheetsProps) {
   const { editor } = props;
@@ -61,6 +68,7 @@ export function MapSetupSheets(props: MapSetupSheetsProps) {
     case "point.create":
       return (
         <PointEditorSheet
+          key="point:create"
           errorMessage={props.sheetError}
           onClose={props.onClose}
           onCreate={props.onCreatePoint}
@@ -73,6 +81,7 @@ export function MapSetupSheets(props: MapSetupSheetsProps) {
     case "point.edit":
       return (
         <PointEditorSheet
+          key={`point:${editor.point.id}`}
           errorMessage={props.sheetError}
           onClose={props.onClose}
           onCreate={() => undefined}
@@ -85,6 +94,7 @@ export function MapSetupSheets(props: MapSetupSheetsProps) {
     case "area.create":
       return (
         <AreaCreateSheet
+          key="area:create"
           errorMessage={props.sheetError}
           onClose={props.onClose}
           onCreate={props.onCreateArea}
@@ -94,6 +104,7 @@ export function MapSetupSheets(props: MapSetupSheetsProps) {
     case "area.fields":
       return (
         <AreaFieldsSheet
+          key={`area-fields:${editor.area.id}`}
           errorMessage={props.sheetError}
           onClose={props.onClose}
           onUpdate={props.onUpdateArea}
@@ -104,6 +115,7 @@ export function MapSetupSheets(props: MapSetupSheetsProps) {
     case "area.vertices":
       return (
         <VerticesSheet
+          key={`area-vertices:${editor.area.id}`}
           area={findArea(editor.area.id) ?? editor.area}
           errorMessage={props.sheetError}
           onClose={props.onClose}

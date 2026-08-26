@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import {
+  selectScopedValue,
+  stampScope,
+  type ScopedValue,
+} from "../../lib/api/scoped-view";
+import {
   createCursorListEngine,
   type CursorListEngine,
   type FetchScopedPage,
@@ -49,8 +54,12 @@ export function useOverviewCursorList<T>({
   fetchPage,
   resetKey,
 }: Options<T>): OverviewCursorList<T> {
-  const [state, setState] = useState<CursorListState<T>>(
-    createIdleCursorListState<T>,
+  // Scope-stamped mirror of the engine state (D5-001): the owner travels
+  // with every engine emission (see syncOwner), so an in-flight response
+  // from the previous location stays previous-scoped even when it lands in
+  // the window between the B render and A's cleanup effect.
+  const [scoped, setScoped] = useState<ScopedValue<CursorListState<T>>>(() =>
+    stampScope(null, createIdleCursorListState<T>()),
   );
   // Created exactly once per hook lifetime; the latest page fetcher is
   // synced through an effect below (inline closures stay safe).
@@ -58,7 +67,7 @@ export function useOverviewCursorList<T>({
     createCursorListEngine<T>({
       fetchPage: () =>
         Promise.reject(new Error("Cursor list fetcher is not configured.")),
-      onState: setState,
+      onState: (next, owner) => setScoped(stampScope(owner, next)),
     }),
   );
 
@@ -68,10 +77,12 @@ export function useOverviewCursorList<T>({
     engine.setFetcher(fetchPage);
   }, [engine, fetchPage]);
 
-  // Scope activation/change/unmount: reset first so old rows disappear and
-  // superseded attempts can no longer land, then request page 1.
+  // Scope activation/change/unmount: declare the new owner FIRST so every
+  // emission from the reset/load below is stamped for THIS location, then
+  // invalidate superseded attempts and request page 1.
   useEffect(() => {
     if (!enabled || resetKey === null) return undefined;
+    engine.syncOwner(resetKey ?? null);
     engine.reset();
     engine.load();
     return () => engine.reset();
@@ -85,5 +96,12 @@ export function useOverviewCursorList<T>({
     engine.loadMore();
   }, [engine]);
 
-  return { ...state, load, loadMore };
+  // Render-time scope selection: a previous-location snapshot collapses to
+  // the idle/loading posture SYNCHRONOUSLY, before effects reset the state.
+  const visible = selectScopedValue(
+    scoped,
+    resetKey ?? null,
+    createIdleCursorListState<T>(),
+  );
+  return { ...visible, load, loadMore };
 }

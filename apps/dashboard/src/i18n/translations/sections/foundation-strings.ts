@@ -56,8 +56,6 @@ export interface FoundationStrings {
   "noAccess.title": string;
   "noAccess.subtitle": string;
   "noAccess.action": string;
-  "placeholder.foundationNote": string;
-  "placeholder.emptyState": string;
   "placeholder.locationMissingNote": string;
   "page.liveOperations.title": string;
   "page.liveOperations.description": string;
@@ -136,9 +134,6 @@ export const foundationEn: FoundationStrings = {
   "noAccess.subtitle":
     "You don't have access to this area. Please contact your administrator.",
   "noAccess.action": "Sign out",
-  "placeholder.foundationNote":
-    "This surface is part of the dashboard foundation. Backend data wiring arrives in a later integration task.",
-  "placeholder.emptyState": "No data is wired yet for this surface.",
   "placeholder.locationMissingNote":
     "No authorized location is currently selected.",
   "page.liveOperations.title": "Live Operations",
@@ -224,9 +219,6 @@ export const foundationAr: FoundationStrings = {
   "noAccess.subtitle":
     "ليس لديك صلاحية الوصول إلى هذه المنطقة. تواصل مع مسؤول النظام.",
   "noAccess.action": "تسجيل الخروج",
-  "placeholder.foundationNote":
-    "هذه الصفحة جزء من أساس لوحة الإدارة. سيتم ربط بيانات الخادم في مهمة تكامل لاحقة.",
-  "placeholder.emptyState": "لم يتم ربط أي بيانات لهذه الصفحة بعد.",
   "placeholder.locationMissingNote": "لا يوجد موقع مصرّح به محدد حاليًا.",
   "page.liveOperations.title": "العمليات المباشرة",
   "page.liveOperations.description":
