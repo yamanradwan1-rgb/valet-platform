@@ -49,6 +49,59 @@ export function taskStatusLabelKey(
   return keys[status];
 }
 
+/**
+ * Dispatch event types carried by report daily activity (D4-002). The
+ * backend union (packages/contracts location-report.ts) is a superset of
+ * the dashboard task-status labels; DECLINED and REASSIGNED gained their
+ * shared `enum.task.*` labels with this feature.
+ */
+export type ReportDispatchEventType =
+  | "QUEUED"
+  | "ASSIGNED"
+  | "ACCEPTED"
+  | "DECLINED"
+  | "REASSIGNED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED";
+
+export function reportDispatchEventLabelKey(
+  eventType: ReportDispatchEventType,
+): TranslationKey {
+  const keys: Record<ReportDispatchEventType, TranslationKey> = {
+    ACCEPTED: "enum.task.ACCEPTED",
+    ASSIGNED: "enum.task.ASSIGNED",
+    CANCELLED: "enum.task.CANCELLED",
+    COMPLETED: "enum.task.COMPLETED",
+    DECLINED: "enum.task.DECLINED",
+    IN_PROGRESS: "enum.task.IN_PROGRESS",
+    QUEUED: "enum.task.QUEUED",
+    REASSIGNED: "enum.task.REASSIGNED",
+  };
+  return keys[eventType];
+}
+
+/** Key custody event types carried by report daily activity (D4-002). */
+export type ReportKeyCustodyEventType =
+  | "SLOT_ASSIGNED"
+  | "CHECKED_OUT"
+  | "RETURNED_TO_SLOT"
+  | "SLOT_CLEARED"
+  | "RELEASED";
+
+export function reportKeyCustodyEventLabelKey(
+  eventType: ReportKeyCustodyEventType,
+): TranslationKey {
+  const keys: Record<ReportKeyCustodyEventType, TranslationKey> = {
+    CHECKED_OUT: "enum.keyCustody.CHECKED_OUT",
+    RELEASED: "enum.keyCustody.RELEASED",
+    RETURNED_TO_SLOT: "enum.keyCustody.RETURNED_TO_SLOT",
+    SLOT_ASSIGNED: "enum.keyCustody.SLOT_ASSIGNED",
+    SLOT_CLEARED: "enum.keyCustody.SLOT_CLEARED",
+  };
+  return keys[eventType];
+}
+
 export type DashboardTaskType = "PARKING" | "RETRIEVAL";
 
 export function taskTypeLabelKey(taskType: DashboardTaskType): TranslationKey {

@@ -1,0 +1,487 @@
+/*
+ * Reports (D4-002) feature styles.
+ *
+ * Feature-local on purpose: shared globals.css is untouched so parallel
+ * feature work cannot collide. All spacing/positioning uses logical CSS
+ * properties so the surface mirrors correctly in Arabic RTL.
+ */
+
+.rep-note {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 12px 16px;
+  margin-block-end: 16px;
+}
+
+/* Report request controls */
+
+.rep-period-card {
+  padding: 16px;
+  margin-block-end: 12px;
+}
+
+.rep-kind-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.rep-kind-legend {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin-block-end: 6px;
+}
+
+.rep-kind-options {
+  display: inline-flex;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 4px;
+}
+
+.rep-kind-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 38px;
+  white-space: nowrap;
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rep-kind-option input[type="radio"] {
+  accent-color: var(--accent);
+  inline-size: 15px;
+  block-size: 15px;
+}
+
+.rep-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin-block-end: 12px;
+}
+
+.rep-date-field input {
+  min-block-size: 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+.rep-load-button {
+  min-block-size: 40px;
+}
+
+.rep-load-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rep-period-meta {
+  display: grid;
+  gap: 2px;
+  margin-block-start: 10px;
+}
+
+.rep-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.rep-error {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rep-envelope {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-block-end: 12px;
+}
+
+/* Shared metric blocks */
+
+.rep-section-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.rep-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .rep-metric-grid-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .rep-metric-grid-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.rep-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 9px;
+  background: var(--surface-muted);
+  padding: 12px;
+}
+
+.rep-metric-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rep-metric-value {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.rep-metric-value.is-emphasized {
+  font-size: 22px;
+}
+
+.rep-metric-sub {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.rep-subheader {
+  margin-block-start: 14px;
+}
+
+/* Cars handled per local day bars */
+
+.rep-bar-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.rep-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rep-bar-date {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 88px;
+}
+
+.rep-bar-track {
+  block-size: 8px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-muted);
+}
+
+.rep-bar-fill {
+  block-size: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.rep-bar-count {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 28px;
+  text-align: end;
+}
+
+/* Currency groups and cash reconciliation */
+
+.rep-currency-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1000px) {
+  .rep-currency-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rep-currency-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.rep-currency-code {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-block-end: 8px;
+}
+
+.rep-fact-list {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.rep-fact-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rep-fact-row dt {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.rep-fact-row dd {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  text-align: end;
+}
+
+.rep-rate-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rep-rate-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.rep-rate-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rep-rate-value {
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-block-start: 4px;
+}
+
+.rep-rate-sub,
+.rep-rate-extra {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-block-start: 2px;
+  overflow-wrap: anywhere;
+}
+
+.rep-cash-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+}
+
+.rep-cash-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+@media (min-width: 720px) {
+  .rep-cash-row {
+    grid-template-columns: 64px repeat(3, minmax(0, 1fr));
+  }
+}
+
+.rep-cash-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rep-cash-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rep-cash-value {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.rep-cash-currency {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  align-self: center;
+}
+
+/* Count lists / incident summary */
+
+.rep-count-columns {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-block-start: 14px;
+}
+
+@media (min-width: 1000px) {
+  .rep-count-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rep-count-title {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  margin-block-end: 8px;
+}
+
+.rep-count-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.rep-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.rep-method-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.rep-count-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Daily activity event tables */
+
+.rep-event-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rep-table-caption {
+  text-align: start;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding-block-end: 6px;
+}
+
+.rep-event-table th[scope="col"] {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: start;
+  border-block-end: 1px solid var(--border);
+  padding: 6px 8px;
+}
+
+.rep-event-table th[scope="row"] {
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: start;
+  border-block-end: 1px solid var(--border);
+  padding: 8px;
+}
+
+.rep-event-table td {
+  border-block-end: 1px solid var(--border);
+  padding: 8px;
+}
+
+.rep-number-col {
+  text-align: end;
+}
+
+.rep-event-cell {
+  overflow-wrap: anywhere;
+}
+
+/* Export card */
+
+.rep-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rep-export-button {
+  min-block-size: 40px;
+}
+
+.rep-export-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rep-export-status {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-block-start: 10px;
+}
+
+.rep-export-error {
+  margin-block-start: 10px;
+}

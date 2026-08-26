@@ -21,9 +21,16 @@ export interface SharedStrings {
   "enum.task.QUEUED": string;
   "enum.task.ASSIGNED": string;
   "enum.task.ACCEPTED": string;
+  "enum.task.DECLINED": string;
+  "enum.task.REASSIGNED": string;
   "enum.task.IN_PROGRESS": string;
   "enum.task.COMPLETED": string;
   "enum.task.CANCELLED": string;
+  "enum.keyCustody.SLOT_ASSIGNED": string;
+  "enum.keyCustody.CHECKED_OUT": string;
+  "enum.keyCustody.RETURNED_TO_SLOT": string;
+  "enum.keyCustody.SLOT_CLEARED": string;
+  "enum.keyCustody.RELEASED": string;
   "enum.taskType.PARKING": string;
   "enum.taskType.RETRIEVAL": string;
   "enum.retrieval.OPEN": string;
@@ -85,9 +92,16 @@ export const sharedEn: SharedStrings = {
   "enum.task.QUEUED": "Queued",
   "enum.task.ASSIGNED": "Assigned",
   "enum.task.ACCEPTED": "Accepted",
+  "enum.task.DECLINED": "Declined",
+  "enum.task.REASSIGNED": "Reassigned",
   "enum.task.IN_PROGRESS": "In progress",
   "enum.task.COMPLETED": "Completed",
   "enum.task.CANCELLED": "Cancelled",
+  "enum.keyCustody.SLOT_ASSIGNED": "Slot assigned",
+  "enum.keyCustody.CHECKED_OUT": "Key checked out",
+  "enum.keyCustody.RETURNED_TO_SLOT": "Returned to slot",
+  "enum.keyCustody.SLOT_CLEARED": "Slot cleared",
+  "enum.keyCustody.RELEASED": "Key released",
   "enum.taskType.PARKING": "Parking task",
   "enum.taskType.RETRIEVAL": "Vehicle retrieval task",
   "enum.retrieval.OPEN": "Open",
@@ -149,9 +163,16 @@ export const sharedAr: SharedStrings = {
   "enum.task.QUEUED": "في الانتظار",
   "enum.task.ASSIGNED": "مُسند",
   "enum.task.ACCEPTED": "مقبول",
+  "enum.task.DECLINED": "مرفوض",
+  "enum.task.REASSIGNED": "مُعاد إسناده",
   "enum.task.IN_PROGRESS": "قيد التنفيذ",
   "enum.task.COMPLETED": "مكتمل",
   "enum.task.CANCELLED": "ملغي",
+  "enum.keyCustody.SLOT_ASSIGNED": "تم تعيين خانة",
+  "enum.keyCustody.CHECKED_OUT": "تم سحب المفتاح",
+  "enum.keyCustody.RETURNED_TO_SLOT": "أُعيد المفتاح إلى الخانة",
+  "enum.keyCustody.SLOT_CLEARED": "تم إفراغ الخانة",
+  "enum.keyCustody.RELEASED": "تم إنهاء عهدة المفتاح",
   "enum.taskType.PARKING": "مهمة ركن",
   "enum.taskType.RETRIEVAL": "مهمة إحضار سيارة",
   "enum.retrieval.OPEN": "مفتوح",

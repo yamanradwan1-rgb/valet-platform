@@ -11,6 +11,7 @@ import { locationAr } from "./sections/location-strings";
 import { locationSettingsAr } from "./sections/location-settings-strings";
 import { mapSetupAr } from "./sections/map-setup-strings";
 import { overviewAr } from "./sections/overview-strings";
+import { reportsAr } from "./sections/reports-strings";
 import { retrievalQueueAr } from "./sections/retrieval-queue-strings";
 import { sessionsAr } from "./sections/sessions-strings";
 import { sharedAr } from "./sections/shared-strings";
@@ -31,6 +32,7 @@ export const arTranslations: TranslationDictionary = {
   ...locationSettingsAr,
   ...mapSetupAr,
   ...overviewAr,
+  ...reportsAr,
   ...retrievalQueueAr,
   ...sessionsAr,
   ...sharedAr,

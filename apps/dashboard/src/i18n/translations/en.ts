@@ -11,6 +11,7 @@ import { locationEn } from "./sections/location-strings";
 import { locationSettingsEn } from "./sections/location-settings-strings";
 import { mapSetupEn } from "./sections/map-setup-strings";
 import { overviewEn } from "./sections/overview-strings";
+import { reportsEn } from "./sections/reports-strings";
 import { retrievalQueueEn } from "./sections/retrieval-queue-strings";
 import { sessionsEn } from "./sections/sessions-strings";
 import { sharedEn } from "./sections/shared-strings";
@@ -31,6 +32,7 @@ export const enTranslations: TranslationDictionary = {
   ...locationSettingsEn,
   ...mapSetupEn,
   ...overviewEn,
+  ...reportsEn,
   ...retrievalQueueEn,
   ...sessionsEn,
   ...sharedEn,

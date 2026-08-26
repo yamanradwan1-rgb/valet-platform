@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { arTranslations } from "./translations/ar";
 import { enTranslations } from "./translations/en";
@@ -28,6 +28,15 @@ const REQUIRED_LABEL_KEYS: readonly TranslationKey[] = [
   // Freshness
   "enum.freshness.LIVE",
   "enum.freshness.STALE",
+  // Report dispatch event types (D4-002; superset of task statuses)
+  "enum.task.DECLINED",
+  "enum.task.REASSIGNED",
+  // Report key custody event types (D4-002)
+  "enum.keyCustody.SLOT_ASSIGNED",
+  "enum.keyCustody.CHECKED_OUT",
+  "enum.keyCustody.RETURNED_TO_SLOT",
+  "enum.keyCustody.SLOT_CLEARED",
+  "enum.keyCustody.RELEASED",
 ];
 
 describe("dictionary parity", () => {

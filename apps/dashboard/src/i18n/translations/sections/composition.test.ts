@@ -22,6 +22,7 @@ import {
 } from "./location-settings-strings";
 import { mapSetupAr, mapSetupEn } from "./map-setup-strings";
 import { overviewAr, overviewEn } from "./overview-strings";
+import { reportsAr, reportsEn } from "./reports-strings";
 import {
   retrievalQueueAr,
   retrievalQueueEn,
@@ -52,6 +53,7 @@ const EN_FRAGMENTS = [
   ["locationSettings", locationSettingsEn],
   ["mapSetup", mapSetupEn],
   ["overview", overviewEn],
+  ["reports", reportsEn],
   ["retrievalQueue", retrievalQueueEn],
   ["sessions", sessionsEn],
   ["shared", sharedEn],
@@ -70,6 +72,7 @@ const AR_FRAGMENTS = [
   ["locationSettings", locationSettingsAr],
   ["mapSetup", mapSetupAr],
   ["overview", overviewAr],
+  ["reports", reportsAr],
   ["retrievalQueue", retrievalQueueAr],
   ["sessions", sessionsAr],
   ["shared", sharedAr],

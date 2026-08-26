@@ -9,6 +9,7 @@ import {
 import {
   fetchLocationFinancialOverview,
 } from "../../features/financial-overview/financial-overview-api";
+import { loadReport } from "../../features/reports/reports-api";
 import { StaffApiClient } from "./staff-api-client";
 
 /**
@@ -142,5 +143,152 @@ describe("D4-001 final request URL resolution (real StaffApiClient)", () => {
     // The destination re-attaches the SAME prefix on the API origin, so the
     // backend receives /v1/staff/dashboard/... exactly once.
     expect(staffRule?.destination.endsWith("/v1/staff/:path*")).toBe(true);
+  });
+});
+
+/**
+ * D4-002 pre-commit review §2: the four REPORT endpoints driven through
+ * the REAL StaffApiClient boundary, proving exactly ONE /v1/staff prefix
+ * for reads AND the binary export POST.
+ */
+describe("D4-002 final request URL resolution (real StaffApiClient)", () => {
+  const REPORT_ENVELOPE = {
+    locationId: LOCATION_ID,
+    periodFrom: FROM,
+    periodTo: FROM,
+    timezone: "Asia/Amman",
+  };
+  const ZERO_SUMMARY = {
+    carsHandledPerDay: [],
+    cashReconciliation: [],
+    currencies: [],
+    incidents: {
+      incidentCount: 0,
+      incidentsPer1000: { denominator: 0, numerator: 0, value: null },
+      severityCounts: [],
+      typeCounts: [],
+    },
+    metrics: {
+      checkInTime: { averageSeconds: null, sampleCount: 0 },
+      handoffTime: { averageSeconds: null, sampleCount: 0 },
+      parkingTime: { averageSeconds: null, sampleCount: 0 },
+      retrievalStartLatencyAuxiliary: { averageSeconds: null, sampleCount: 0 },
+      retrievalWait: { averageSeconds: null, sampleCount: 0 },
+    },
+  };
+
+  function stubBinaryFetch(): { requestedUrls: string[] } {
+    const requestedUrls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL): Promise<Response> => {
+        const rawUrl =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        requestedUrls.push(rawUrl);
+        const parsed = new URL(rawUrl, "http://localhost");
+        const isDaily = parsed.pathname.endsWith("/reports/daily");
+        const body = isDaily
+          ? {
+              ...REPORT_ENVELOPE,
+              dailyActivity: {
+                dispatchEventCounts: [],
+                keyCustodyEventCounts: [],
+                retrievalRequestedCount: 0,
+              },
+              kind: "DAILY",
+              periodFrom: FROM,
+              periodTo: FROM,
+              summary: ZERO_SUMMARY,
+            }
+          : {
+              ...REPORT_ENVELOPE,
+              kind: "WEEKLY",
+              summary: ZERO_SUMMARY,
+            };
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: () => "application/json" },
+          text: async () => JSON.stringify(body),
+          arrayBuffer: async () => new ArrayBuffer(0),
+        } as unknown as Response;
+      }),
+    );
+    return { requestedUrls };
+  }
+
+  function stubExportFetch(): { requestedUrls: string[] } {
+    const requestedUrls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL): Promise<Response> => {
+        const rawUrl =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        requestedUrls.push(rawUrl);
+        return {
+          ok: true,
+          status: 200,
+          headers: {
+            get: (name: string) =>
+              name.toLowerCase() === "content-type"
+                ? "text/csv; charset=utf-8"
+                : null,
+          },
+          arrayBuffer: async () => new Uint8Array([1]).buffer as ArrayBuffer,
+        } as unknown as Response;
+      }),
+    );
+    return { requestedUrls };
+  }
+
+  it("resolves all three report reads to exactly one /v1/staff prefix", async () => {
+    const { requestedUrls } = stubBinaryFetch();
+    const client = realClient();
+
+    await loadReport(client, {
+      kind: "DAILY",
+      locationId: LOCATION_ID,
+      periodValue: FROM,
+    });
+    await loadReport(client, {
+      kind: "WEEKLY",
+      locationId: LOCATION_ID,
+      periodValue: FROM,
+    });
+    await loadReport(client, {
+      kind: "MONTHLY",
+      locationId: LOCATION_ID,
+      periodValue: "2026-08",
+    });
+
+    expect(requestedUrls.sort()).toEqual([
+      `${FINAL_BASE}/reports/daily?date=${FROM}`,
+      `${FINAL_BASE}/reports/monthly?month=2026-08`,
+      `${FINAL_BASE}/reports/weekly?weekStart=${FROM}`,
+    ]);
+    for (const url of requestedUrls) {
+      expect(url.startsWith("/v1/staff/v1/staff/")).toBe(false);
+    }
+  });
+
+  it("resolves the binary export POST to exactly one /v1/staff prefix", async () => {
+    const { requestedUrls } = stubExportFetch();
+    const client = realClient();
+    await client.requestBinary(
+      `/dashboard/locations/${LOCATION_ID}/reports/exports`,
+      { body: { format: "CSV", kind: "DAILY", date: FROM }, method: "POST" },
+    );
+    expect(requestedUrls).toEqual([
+      `${FINAL_BASE}/reports/exports`,
+    ]);
+    expect(requestedUrls[0]?.startsWith("/v1/staff/v1/staff/")).toBe(false);
   });
 });

@@ -11,6 +11,7 @@ import type { LocationStrings } from "./sections/location-strings";
 import type { LocationSettingsStrings } from "./sections/location-settings-strings";
 import type { MapSetupStrings } from "./sections/map-setup-strings";
 import type { OverviewStrings } from "./sections/overview-strings";
+import type { ReportsStrings } from "./sections/reports-strings";
 import type { RetrievalQueueStrings } from "./sections/retrieval-queue-strings";
 import type { SessionsStrings } from "./sections/sessions-strings";
 import type { SharedStrings } from "./sections/shared-strings";
@@ -37,6 +38,7 @@ export interface TranslationDictionary
     LocationSettingsStrings,
     MapSetupStrings,
     OverviewStrings,
+    ReportsStrings,
     RetrievalQueueStrings,
     SessionsStrings,
     SharedStrings,
