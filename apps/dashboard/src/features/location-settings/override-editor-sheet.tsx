@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   ConfigurationSettingProjection,
   ConfigurationSettingKey,
@@ -58,6 +58,14 @@ export function OverrideEditorSheet({
 
   const [draft, setDraft] = useState<ConfiguredValue>(initial);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+  // Accepted dialog baseline (map-setup ConfirmDialog / overview detail
+  // sheet): opening the sheet moves keyboard focus INSIDE the dialog — the
+  // actual editor field when one exists (select/number/fee branches), the
+  // non-destructive Cancel button otherwise (boolean toggles render no
+  // labelable field). Escape handling and the accessible name stay
+  // unchanged; no focus trap is introduced here.
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
@@ -66,6 +74,13 @@ export function OverrideEditorSheet({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
+
+  useEffect(() => {
+    const field = panelRef.current?.querySelector<HTMLElement>(
+      "input, select",
+    );
+    (field ?? cancelButtonRef.current)?.focus();
+  }, []);
 
   function submit(): void {
     const outcome = parseSettingInput(projection.setting, draft);
@@ -98,7 +113,7 @@ export function OverrideEditorSheet({
         tabIndex={-1}
         aria-label={t("config.actions.cancel")}
       />
-      <div className="config-editor-panel">
+      <div className="config-editor-panel" ref={panelRef}>
         <h3>{t(titleKey)}</h3>
         <p className="config-editor-subtitle">
           {t(settingLabelKey(projection.setting))} — {t("config.editor.subtitle")}
@@ -120,11 +135,28 @@ export function OverrideEditorSheet({
         </dl>
 
         <div className="form-field">
-          <label htmlFor="config-editor-input">
-            {t("config.editor.newValue")}
-          </label>
           {BOOLEAN_SETTINGS.has(projection.setting) ? (
-            <div className="config-toggle-row">
+            // Boolean mode renders NO labelable control, so the field text
+            // must not point at an id nothing owns: it becomes neutral text
+            // that NAMES the toggle group below (role="group" +
+            // aria-labelledby). No fake hidden input is created for it.
+            <span
+              id="config-editor-value-label"
+              className="config-editor-value-label"
+            >
+              {t("config.editor.newValue")}
+            </span>
+          ) : (
+            <label htmlFor="config-editor-input">
+              {t("config.editor.newValue")}
+            </label>
+          )}
+          {BOOLEAN_SETTINGS.has(projection.setting) ? (
+            <div
+              className="config-toggle-row"
+              role="group"
+              aria-labelledby="config-editor-value-label"
+            >
               <button
                 type="button"
                 className="config-toggle"
@@ -208,6 +240,7 @@ export function OverrideEditorSheet({
             className="btn-secondary"
             disabled={pending}
             onClick={onClose}
+            ref={cancelButtonRef}
           >
             {t("config.actions.cancel")}
           </button>

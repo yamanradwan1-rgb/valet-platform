@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useTranslation } from "../../i18n/locale-provider";
 import "./location-settings-editor.css";
@@ -24,6 +24,14 @@ export function ClearOverrideDialog({
   settingLabel,
 }: ClearOverrideDialogProps) {
   const { t } = useTranslation();
+  // Initial focus on the NON-destructive action (Cancel), matching the
+  // accepted mount-effect focus pattern of the map-setup ConfirmDialog:
+  // keyboard users start inside the dialog and focus never sits behind it.
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    cancelButtonRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
@@ -58,6 +66,7 @@ export function ClearOverrideDialog({
             className="btn-secondary"
             disabled={busy}
             onClick={onCancel}
+            ref={cancelButtonRef}
           >
             {t("config.actions.cancel")}
           </button>

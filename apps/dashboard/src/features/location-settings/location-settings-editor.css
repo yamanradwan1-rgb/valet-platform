@@ -82,6 +82,15 @@
   gap: 8px;
 }
 
+/* Boolean-mode field text. Deliberately NOT a <label>: the boolean editor
+   renders no labelable control, so this span only NAMES the toggle group
+   (aria-labelledby). Mirrors the `.form-field label` visuals exactly. */
+.config-editor-value-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .config-toggle {
   flex: 1;
   min-height: 38px;
