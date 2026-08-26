@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { PageHeader } from "../../components/ui/page-header";
 import { useTranslation } from "../../i18n/locale-provider";
@@ -10,21 +16,18 @@ import { useDashboardLocation } from "../location/location-context";
 import { ConfirmDialog } from "./confirm-dialog";
 import { buildAreaPolygons, buildPointMarkers, mapSetupStats } from "./map-geometry";
 import { setupFailureMessageKey } from "./map-setup-state";
+import {
+  resetTransientOnLocationChange,
+  type DeactivateTarget,
+  type EditorState,
+} from "./map-setup-transient-state";
 import { SetupBoard } from "./setup-board";
 import { SetupMap } from "./setup-map";
 import { useMapSetup } from "./use-map-setup";
-import {
-  MapSetupSheets,
-  type EditorState,
-} from "./editor-sheets";
+import { MapSetupSheets } from "./editor-sheets";
 import "./map-setup.css";
 
 type Tab = "points" | "areas";
-
-type DeactivateTarget =
-  | { readonly kind: "point"; readonly id: string }
-  | { readonly kind: "area"; readonly id: string }
-  | null;
 
 /**
  * /maps-zones orchestrator: real Map Setup CRUD against the verified backend
@@ -44,9 +47,45 @@ export function MapsZonesView() {
   const [deactivateTarget, setDeactivateTarget] = useState<DeactivateTarget>(null);
   const [sheetError, setSheetError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [pickedCoordinate, setPickedCoordinate] = useState<MapCenter | null>(
-    null,
-  );
+  const [pickedCoordinate, setPickedCoordinate] = useState<MapCenter | null>(null);
+
+  // THE location-identity boundary for transient UI (semantics in
+  // map-setup-transient-state.ts): the moment the requested location differs
+  // from the one the current interaction state belongs to, every A-scoped
+  // piece of transient UI — editors and their drafts, the deactivation
+  // confirmation, selections, picked coordinate, A-raised errors — is
+  // discarded synchronously during this render so B never paints an A fact.
+  // Adjusting state during render is React's exactly-once pattern here.
+  const [transientLocationId, setTransientLocationId] = useState(locationId);
+  /** Committed-location mirror for async outcome ownership checks; a layout
+   * effect keeps it exact BEFORE any pending promise continuation runs. */
+  const activeLocationRef = useRef(locationId);
+  useLayoutEffect(() => {
+    activeLocationRef.current = locationId;
+  }, [locationId]);
+  if (transientLocationId !== locationId) {
+    const neutral = resetTransientOnLocationChange(
+      transientLocationId,
+      locationId,
+      {
+        actionError,
+        deactivateTarget,
+        editor,
+        pickedCoordinate,
+        selectedAreaId,
+        selectedPointId,
+        sheetError,
+      },
+    );
+    setTransientLocationId(locationId);
+    setSelectedAreaId(neutral.selectedAreaId);
+    setSelectedPointId(neutral.selectedPointId);
+    setEditor(neutral.editor);
+    setDeactivateTarget(neutral.deactivateTarget);
+    setPickedCoordinate(neutral.pickedCoordinate);
+    setActionError(neutral.actionError);
+    setSheetError(neutral.sheetError);
+  }
 
   const data = setup.state.phase === "ready" ? setup.state.data : null;
   const points = useMemo(() => data?.points ?? [], [data]);
@@ -82,30 +121,34 @@ export function MapsZonesView() {
     setPickedCoordinate(null);
   }, []);
 
-  const runSheetMutation = useCallback(
-    async (action: () => Promise<unknown>) => {
-      setSheetError(null);
-      try {
-        await action();
-        closeEditor();
-      } catch (error) {
-        setSheetError(t(setupFailureMessageKey(error)));
-      }
-    },
-    [closeEditor, t],
-  );
+  // Mutation outcomes are owned by the location they were invoked for: each
+  // runner stamps the committed location synchronously at invocation and
+  // ignores its own late settlement after a switch — a Location-A response
+  // may still succeed server-side, but under B it can neither close/reset UI
+  // nor present A success/error text as B state. Request identity/race
+  // protection inside use-map-setup remains untouched and authoritative.
+  const runSheetMutation = async (action: () => Promise<unknown>): Promise<void> => {
+    const invokedFor = activeLocationRef.current;
+    setSheetError(null);
+    try {
+      await action();
+      if (activeLocationRef.current === invokedFor) closeEditor();
+    } catch (error) {
+      if (activeLocationRef.current !== invokedFor) return;
+      setSheetError(t(setupFailureMessageKey(error)));
+    }
+  };
 
-  const runActionMutation = useCallback(
-    async (action: () => Promise<unknown>) => {
-      setActionError(null);
-      try {
-        await action();
-      } catch (error) {
-        setActionError(t(setupFailureMessageKey(error)));
-      }
-    },
-    [t],
-  );
+  const runActionMutation = async (action: () => Promise<unknown>): Promise<void> => {
+    const invokedFor = activeLocationRef.current;
+    setActionError(null);
+    try {
+      await action();
+    } catch (error) {
+      if (activeLocationRef.current !== invokedFor) return;
+      setActionError(t(setupFailureMessageKey(error)));
+    }
+  };
 
   function requestToggleActive(action: {
     kind: "point" | "area";

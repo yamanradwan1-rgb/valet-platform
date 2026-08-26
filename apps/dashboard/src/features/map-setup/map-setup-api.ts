@@ -23,14 +23,19 @@ import type { StaffApiClient } from "../../lib/api/staff-api-client";
 /**
  * Typed data access for Map Setup (D3-002).
  *
+ * Paths below are STAFF-API-CLIENT-RELATIVE: StaffApiClient owns the
+ * `/v1/staff` prefix (same-origin Next.js rewrite in the browser, API_ORIGIN
+ * server-side) and resolves `${baseUrl}${path}`, so this module supplies
+ * prefix-less paths exactly like the auth/overview/live-operations modules.
+ *
  * Endpoints re-verified against apps/api/src/modules/map-setup:
- * - GET    /v1/staff/locations/:locationId/map/points
- * - POST   /v1/staff/locations/:locationId/map/points
- * - PATCH  /v1/staff/locations/:locationId/map/points/:pointId
- * - GET    /v1/staff/locations/:locationId/map/areas
- * - POST   /v1/staff/locations/:locationId/map/areas
- * - PATCH  /v1/staff/locations/:locationId/map/areas/:areaId
- * - PUT    /v1/staff/locations/:locationId/map/areas/:areaId/vertices
+ * - GET    /locations/:locationId/map/points
+ * - POST   /locations/:locationId/map/points
+ * - PATCH  /locations/:locationId/map/points/:pointId
+ * - GET    /locations/:locationId/map/areas
+ * - POST   /locations/:locationId/map/areas
+ * - PATCH  /locations/:locationId/map/areas/:areaId
+ * - PUT    /locations/:locationId/map/areas/:areaId/vertices
  *
  * There is deliberately NO delete endpoint: DEC-047 mandates soft
  * activation/deactivation through PATCH (`active`). Area field updates and
@@ -56,7 +61,8 @@ interface ContractSchema<TData> {
 }
 
 function mapPath(locationId: string, suffix: string): string {
-  return `/v1/staff/locations/${encodeURIComponent(locationId)}/map/${suffix}`;
+  // Prefix-less on purpose: StaffApiClient already owns the "/v1/staff" base.
+  return `/locations/${encodeURIComponent(locationId)}/map/${suffix}`;
 }
 
 function entityIdPath(

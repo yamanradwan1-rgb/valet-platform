@@ -37,7 +37,13 @@ export function createMarkerElement(
   element.appendChild(glyph);
   if (onSelectMarker !== undefined) {
     const selectMarker = onSelectMarker;
-    element.addEventListener("click", () => {
+    element.addEventListener("click", (event) => {
+      // A live-marker activation belongs to Live Operations alone. Swallowing
+      // the DOM event keeps it from bubbling into MapLibre's map-surface
+      // click listener, so the InteractiveMapInstance capability of the SAME
+      // adapter instance can never misread a marker tap as an empty-map
+      // click if both capability families were ever mounted on one map.
+      event.stopPropagation();
       selectMarker(descriptor.id);
     });
   }

@@ -10,18 +10,14 @@ import { AreaCreateSheet } from "./area-create-sheet";
 import { AreaFieldsSheet } from "./area-fields-sheet";
 import { PointEditorSheet } from "./point-editor-sheet";
 import { VerticesSheet } from "./vertices-sheet";
+import type { EditorState } from "./map-setup-transient-state";
 import type { ReplaceLocationMapAreaVerticesRequest } from "@valet/contracts";
 import type { CreateLocationMapAreaRequest } from "@valet/contracts";
 import type { CreateLocationMapPointRequest } from "@valet/contracts";
 import type { UpdateLocationMapAreaRequest } from "@valet/contracts";
 import type { UpdateLocationMapPointRequest } from "@valet/contracts";
 
-export type EditorState =
-  | { readonly type: "point.create" }
-  | { readonly type: "point.edit"; readonly point: LocationMapPoint }
-  | { readonly type: "area.create" }
-  | { readonly type: "area.fields"; readonly area: LocationMapArea }
-  | { readonly type: "area.vertices"; readonly area: LocationMapArea };
+export type { EditorState };
 
 export interface MapSetupSheetsProps {
   readonly editor: EditorState | null;

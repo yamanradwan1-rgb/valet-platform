@@ -20,7 +20,8 @@ const LOCATION_ID = "5f0f3f4e-9d6a-4a1c-8f2e-1b2c3d4e5f60";
 const POINT_ID = "11111111-2222-4333-8444-555555555555";
 const AREA_ID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
 
-const BASE = `/v1/staff/locations/${LOCATION_ID}/map`;
+// StaffApiClient-relative path: the client owns the "/v1/staff" base.
+const BASE = `/locations/${LOCATION_ID}/map`;
 
 interface RecordedRequestOptions {
   readonly body?: unknown;

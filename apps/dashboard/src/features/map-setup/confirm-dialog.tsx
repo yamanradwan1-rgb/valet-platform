@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useTranslation } from "../../i18n/locale-provider";
 
@@ -25,6 +25,15 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
+  // Initial focus on the NON-destructive action, matching the accepted
+  // mount-effect focus pattern of the overview detail sheet: keyboard users
+  // start inside the dialog, one Tab reaches the destructive confirmation,
+  // and focus never sits behind the open dialog.
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    cancelButtonRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
@@ -52,7 +61,12 @@ export function ConfirmDialog({
         <h3>{title}</h3>
         <p>{body}</p>
         <div className="map-setup-form-actions">
-          <button type="button" className="btn-secondary" onClick={onCancel}>
+          <button
+            type="button"
+            ref={cancelButtonRef}
+            className="btn-secondary"
+            onClick={onCancel}
+          >
             {t("mapSetup.action.cancel")}
           </button>
           <button

@@ -98,11 +98,14 @@ describe("map setup contract enforcement", () => {
     expect(requests).toHaveLength(0);
   });
 
-  it("encodes the location id into every path", async () => {
+  it("encodes the location id into every prefix-less path", async () => {
     const oddLocationId = "5f0f3f4e-9d6a-4a1c-8f2e-1b2c3d4e5f60";
     const { client, requests } = recordingClient(() => pointPayload());
     await fetchMapPoints(client, oddLocationId);
-    expect(requests[0]?.path.startsWith("/v1/staff/locations/")).toBe(true);
+    // StaffApiClient-relative: "/v1/staff" is owned by the client base and
+    // must never be repeated inside the feature-supplied path.
+    expect(requests[0]?.path.startsWith("/locations/")).toBe(true);
+    expect(requests[0]?.path.includes("/v1/staff")).toBe(false);
     expect(decodeURIComponent(requests[0]?.path ?? "")).toContain(oddLocationId);
   });
 });
