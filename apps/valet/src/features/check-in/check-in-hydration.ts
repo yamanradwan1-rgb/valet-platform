@@ -70,9 +70,10 @@ function buildActiveSessionFromDetail(
       },
       vehicleUpdatedAt: detail.vehicle.vehicleUpdatedAt,
     };
-    const step: CheckInFlowStep =
-      detail.keySlot?.code != null ? "parking-task" : "key-scan";
-    return { activeSession, step };
+    // DEC-068 §5: hydration treats a persisted NULL key_slot_id on an
+    // AWAITING_PARKING session as ready for the Parking Task step; no
+    // pre-Parking Key Slot step exists on the normal path.
+    return { activeSession, step: "parking-task" };
   }
 
   throw new Error(

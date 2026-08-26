@@ -13,7 +13,6 @@ import {
   generateUuid,
   runConditionCompletionMutation,
   runIntakeMutation,
-  runKeyAssignmentMutation,
   runQueueParkingTaskMutation,
   runStartParkingMutation,
   runUpdateVehicleIdentityMutation,
@@ -194,7 +193,9 @@ export class CheckInController {
     if (this.state.isSubmitting) return;
     const session = this.state.activeSession;
     if (!session) {
-      this.update({ step: "key-scan" });
+      // DEC-068 §5: no pre-Parking Key Slot step exists; a completed
+      // condition leads straight to the Parking Task step.
+      this.update({ step: "parking-task" });
       return;
     }
 
@@ -204,31 +205,10 @@ export class CheckInController {
       this.update({
         activeSession: { ...session, conditionCompletedAt: res.conditionCompletedAt, sessionVersion: res.sessionVersion, state: "AWAITING_PARKING" },
         isSubmitting: false,
-        step: "key-scan",
+        step: "parking-task",
       });
     } catch (err: unknown) {
       this.update({ error: getErrMsg(err, "Failed to complete condition."), isSubmitting: false });
-    }
-  }
-
-  async assignKey(keySlotCode: string): Promise<void> {
-    if (this.state.isSubmitting) return;
-    const session = this.state.activeSession;
-    if (!session) {
-      this.update({ error: "No active check-in session found." });
-      return;
-    }
-
-    this.update({ error: null, isSubmitting: true });
-    try {
-      const res = await runKeyAssignmentMutation(this.apiClient, session, keySlotCode);
-      this.update({
-        activeSession: { ...session, keySlotCode: res.keySlotCode, sessionVersion: res.sessionVersion },
-        isSubmitting: false,
-        step: "key-assigned",
-      });
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to assign key slot."), isSubmitting: false });
     }
   }
 

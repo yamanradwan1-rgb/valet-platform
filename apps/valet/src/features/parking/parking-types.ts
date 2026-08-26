@@ -26,6 +26,8 @@ export interface ActiveParkingSession {
 export interface ParkingState {
   readonly activeSession: ActiveParkingSession | null;
   readonly error: string | null;
+  /** Stable public API error code of the last failure, when known (DEC-068 §25). */
+  readonly errorCode: string | null;
   readonly isHydrating: boolean;
   readonly isSubmitting: boolean;
   readonly step: ParkingFlowStep;

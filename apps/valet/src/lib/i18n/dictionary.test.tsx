@@ -29,6 +29,26 @@ describe("employee i18n dictionary", () => {
     expect(isEmployeeLocale("fr")).toBe(false);
     expect(isEmployeeLocale(undefined)).toBe(false);
   });
+
+  it("carries the DEC-068 post-parking key binding copy in both locales", () => {
+    const en = employeeDictionary("en");
+    const ar = employeeDictionary("ar");
+    // Physical instruction: place key into ANY free slot, then scan/enter it.
+    expect(en.returnKeyAvailable).toContain("available free slot");
+    expect(ar.returnKeyAvailable).toContain("خانة");
+    // Lost-race/unavailable retry hint locked by DEC-068 §23.
+    expect(en.keySlotUnavailableRetry).toBe(
+      "This key slot is no longer available. Scan another slot.",
+    );
+    expect(ar.keySlotUnavailableRetry).toBe(
+      "هذه الخانة لم تعد متاحة. امسح خانة أخرى.",
+    );
+    // Established terminology stays intact.
+    expect(en.scanKeySlot).toBe("Scan key slot");
+    expect(ar.scanKeySlot).toBe("امسح رمز خانة المفتاح");
+    expect(en.vehicleParkedAndKeyReturned).toBe("Vehicle parked and key returned");
+    expect(ar.vehicleParkedAndKeyReturned).toBe("تم صف السيارة وإعادة المفتاح");
+  });
 });
 
 describe("locale rendering", () => {

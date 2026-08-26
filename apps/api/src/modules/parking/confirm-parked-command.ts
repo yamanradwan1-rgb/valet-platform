@@ -4,6 +4,8 @@ import {
   inDispatchTransaction,
   loadDispatchOperationTime,
 } from "../dispatch/dispatch-transaction";
+import { appendKeyAuditEvent } from "../keys/key-audit-event-writer";
+import { appendKeyCustodyEvent } from "../keys/key-custody-event-writer";
 import { recordKeyReturnedToSlot } from "../keys/parking-key-custody";
 import { stopTaskTrackingForMovement } from "../tracking/task-tracking-lifecycle";
 import { appendConfirmParkedAuditEvent } from "./confirm-parked-audit";
@@ -53,7 +55,7 @@ async function executeConfirmParked(
     const task = await lockConfirmParkingTask(transaction, session);
     await authorizeConfirmOwner(transaction, session, task, actorMembershipId);
     assertConfirmParkedGuards(session, task, request);
-    const keySlotId = await lockConfirmKeySlot(
+    const lockedKeySlot = await lockConfirmKeySlot(
       transaction,
       session,
       request.keySlotCode.trim(),
@@ -74,6 +76,7 @@ async function executeConfirmParked(
       session,
       spot,
       operationTime,
+      lockedKeySlot,
     );
     await stopTaskTrackingForMovement(
       transaction,
@@ -88,11 +91,26 @@ async function executeConfirmParked(
         throw new ConfirmParkedError("TASK_INVALID_STATE");
       },
     );
+    if (lockedKeySlot.mode === "binding") {
+      await appendKeyCustodyEvent(
+        transaction,
+        {
+          actorMembershipId,
+          eventType: "SLOT_ASSIGNED",
+          keySlotId: lockedKeySlot.newKeySlotId,
+          locationId: session.location_id,
+          occurredAt: operationTime,
+          organizationId: session.organization_id,
+          sessionId: session.id,
+        },
+        options.custodyEventIdFactory,
+      );
+    }
     await recordKeyReturnedToSlot(
       transaction,
       {
         actorMembershipId,
-        keySlotId,
+        keySlotId: lockedKeySlot.newKeySlotId,
         locationId: session.location_id,
         occurredAt: operationTime,
         organizationId: session.organization_id,
@@ -113,6 +131,24 @@ async function executeConfirmParked(
       },
       options.dispatchEventIdFactory,
     );
+    if (lockedKeySlot.mode === "binding") {
+      await appendKeyAuditEvent(
+        transaction,
+        {
+          actorMembershipId,
+          currentKeySlotId: lockedKeySlot.newKeySlotId,
+          eventType: "VALET_SESSION_KEY_SLOT_ASSIGNED",
+          fromVersion: session.version,
+          locationId: session.location_id,
+          occurredAt: operationTime,
+          organizationId: session.organization_id,
+          previousKeySlotId: null,
+          sessionId: session.id,
+          toVersion: sessionVersion,
+        },
+        options.auditEventIdFactory,
+      );
+    }
     await appendConfirmParkedAuditEvent(
       transaction,
       {
@@ -155,6 +191,12 @@ export function createConfirmParkedCommandExecutor(
         postgres.constraint === "valet_sessions_parking_spot_id_key"
       ) {
         throw new ConfirmParkedError("PARKING_SPOT_NOT_FOUND_OR_UNAVAILABLE");
+      }
+      if (
+        postgres.code === "23505" &&
+        postgres.constraint === "valet_sessions_key_slot_id_key"
+      ) {
+        throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");
       }
       throw error;
     }

@@ -11,7 +11,6 @@ import type {
 import {
   acceptParkingTask,
   assignParkingTask,
-  assignSessionKeySlot,
   completeCheckInSession,
   completeConditionStep,
   createIntakeSession,
@@ -23,7 +22,6 @@ import {
   startParkingSession,
   updateSessionVehicleIdentity,
   type AcceptTaskResponse,
-  type AssignKeySlotResponse,
   type CompleteCheckInResponse,
   type ConditionCompletionResponse,
   type IntakeResponse,
@@ -201,19 +199,6 @@ describe("Check-In API Client", () => {
 
     const compRes = await completeCheckInSession(mockClient, sessionId, 1);
     expect(compRes).toEqual(completePayload);
-  });
-
-  it("assignSessionKeySlot invokes key slot assignment", async () => {
-    const payload: AssignKeySlotResponse = {
-      keySlotCode: "B-214",
-      sessionId,
-      state: "AWAITING_PARKING",
-      version: 3,
-    };
-    const mockClient = createCheckInApiTestClient(payload);
-
-    const res = await assignSessionKeySlot(mockClient, sessionId, 2, "B-214");
-    expect(res).toEqual(payload);
   });
 
   it("assignParkingTask invokes POST /v1/staff/tasks/:taskId/assign", async () => {

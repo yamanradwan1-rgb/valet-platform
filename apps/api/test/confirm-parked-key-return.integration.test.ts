@@ -117,18 +117,25 @@ describe("DEC-065 verified Key Slot return", () => {
     await expectUntouchedEffects(foreign);
   });
 
-  it("rejects a missing current assignment even with a valid scan", async () => {
+  it("binds a cleared assignment through post-parking evidence (DEC-068)", async () => {
     const fixture = await context.createConfirmParkedFixture();
     await context.adminPool.query(
       `UPDATE valet_sessions SET key_slot_id = NULL WHERE id = $1`,
       [fixture.sessionId],
     );
-    await expectConfirmError(
-      context.confirm(fixture),
-      "KEY_CUSTODY_NOT_READY",
-    );
+    await context.confirm(fixture);
     const effects = await context.completionEffects(fixture);
-    expect(effects.events).toEqual([]);
+    expect(effects.projection).toMatchObject({
+      key_slot_id: fixture.keySlotId,
+      session_state: "PARKED",
+      task_status: "COMPLETED",
+    });
+    expect(
+      effects.events.filter((event) => event.event_type === "RETURNED_TO_SLOT"),
+    ).toHaveLength(1);
+    // Projection proves the submitted code (fixture.keySlotCode) resolved to
+    // fixture.keySlotId and was atomically bound by this confirmation.
+    expect(effects.projection.key_slot_id).toBe(fixture.keySlotId);
   });
 
   it("keeps exactly one RETURNED_TO_SLOT bound to the persisted assignment on success", async () => {

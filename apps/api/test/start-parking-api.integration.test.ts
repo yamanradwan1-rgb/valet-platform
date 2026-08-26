@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { startParkingResponseSchema } from "@valet/contracts";
 
 import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
 import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
@@ -140,7 +141,7 @@ describe("VAL-005F exact Start Parking API", () => {
     expect(result.body.code).toBe("REQUEST_INVALID");
   });
 
-  it("requires Staff Auth and maps key readiness to safe 409", async () => {
+  it("requires Staff Auth and starts an unbound session without key custody", async () => {
     const fixture = await context.createStartParkingFixture({
       assignKey: false,
     });
@@ -151,10 +152,50 @@ describe("VAL-005F exact Start Parking API", () => {
     expect(unauthenticated.status).toBe(401);
     const token = `parking-${randomUUID()}`;
     principals.set(`Bearer ${token}`, fixture.userId);
-    const conflict = await request(
+    const started = await request(
       `/v1/staff/valet-sessions/${fixture.sessionId}/start-parking`,
       {
         body: { expectedSessionVersion: 1, expectedTaskVersion: 3 },
+        token,
+      },
+    );
+    expect(started.status).toBe(200);
+    expect(startParkingResponseSchema.parse(started.body)).toEqual({
+      parkingStartedAt: expect.any(String),
+      sessionId: fixture.sessionId,
+      sessionVersion: 2,
+      state: "PARKING",
+      taskId: fixture.taskId,
+      taskStatus: "IN_PROGRESS",
+      taskVersion: 4,
+    });
+    expect(started.body).not.toHaveProperty("keySlotId");
+    const projection = await context.adminPool.query<{
+      key_slot_id: string | null;
+    }>(
+      `SELECT key_slot_id::text FROM valet_sessions WHERE id = $1`,
+      [fixture.sessionId],
+    );
+    expect(projection.rows[0]?.key_slot_id).toBeNull();
+    const custody = await context.adminPool.query<{ id: string }>(
+      `SELECT id FROM key_custody_events WHERE valet_session_id = $1`,
+      [fixture.sessionId],
+    );
+    expect(custody.rows).toEqual([]);
+  });
+
+  it("maps an unusable assigned slot to safe 409", async () => {
+    const fixture = await context.createStartParkingFixture();
+    await context.adminPool.query(
+      `UPDATE key_slots SET status = 'INACTIVE' WHERE id = $1`,
+      [fixture.keySlotId],
+    );
+    const token = `parking-${randomUUID()}`;
+    principals.set(`Bearer ${token}`, fixture.userId);
+    const conflict = await request(
+      `/v1/staff/valet-sessions/${fixture.sessionId}/start-parking`,
+      {
+        body: { expectedSessionVersion: 2, expectedTaskVersion: 3 },
         token,
       },
     );

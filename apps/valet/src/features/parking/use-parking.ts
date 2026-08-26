@@ -30,6 +30,7 @@ export interface UseParkingResult {
     keySlotCode: string,
   ) => Promise<void>;
   readonly error: string | null;
+  readonly errorCode: string | null;
   readonly isHydrating: boolean;
   readonly isSubmitting: boolean;
   readonly retry: () => Promise<void>;
@@ -62,6 +63,7 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
   const [controllerState, setControllerState] = useState<ParkingState>({
     activeSession: initialSession ?? null,
     error: null,
+    errorCode: null,
     isHydrating: !initialSession && Boolean(sessionId && taskId),
     isSubmitting: false,
     step: "in-progress",
@@ -110,6 +112,7 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
     activeSession: controllerState.activeSession,
     confirmParked,
     error: controllerState.error,
+    errorCode: controllerState.errorCode,
     isHydrating: controllerState.isHydrating,
     isSubmitting: controllerState.isSubmitting,
     retry,

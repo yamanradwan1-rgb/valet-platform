@@ -30,11 +30,31 @@ export function formatEmployeeDateTime(
   }).format(date);
 }
 
+/**
+ * Stable public API error codes with dedicated localized Employee copy
+ * (DEC-068 §23/§25): the value is calm, actionable retry direction, never
+ * raw server text and never resource-existence detail.
+ */
+const LOCALIZED_ERROR_CODE_KEYS = {
+  KEY_CUSTODY_NOT_READY: "keySlotUnavailableRetry",
+} as const;
+
 export function presentLiveError(
   error: unknown,
   locale: EmployeeLocale,
   t: EmployeeDictionary,
+  errorCode?: string | null | undefined,
 ): string {
+  if (
+    typeof errorCode === "string" &&
+    errorCode in LOCALIZED_ERROR_CODE_KEYS
+  ) {
+    const key =
+      LOCALIZED_ERROR_CODE_KEYS[
+        errorCode as keyof typeof LOCALIZED_ERROR_CODE_KEYS
+      ];
+    return t[key];
+  }
   if (locale === "ar") return t.operationFailed;
   return error instanceof Error ? error.message : t.operationFailed;
 }

@@ -206,14 +206,44 @@ describe("VAL-005F authorization and guard precedence", () => {
     );
   });
 
-  it("requires an active exact current KeySlot", async () => {
-    const missing = await context.createStartParkingFixture({
+  it("starts without any Key Slot when none is assigned (DEC-068)", async () => {
+    const unbound = await context.createStartParkingFixture({
       assignKey: false,
     });
-    await expectStartParkingError(
-      context.start(missing, { session: 1 }),
-      "KEY_CUSTODY_NOT_READY",
+    const result = await context.start(unbound, { session: 1 });
+    expect(result).toEqual({
+      parkingStartedAt: expect.any(String),
+      sessionId: unbound.sessionId,
+      sessionVersion: 2,
+      state: "PARKING",
+      taskId: unbound.taskId,
+      taskStatus: "IN_PROGRESS",
+      taskVersion: 4,
+    });
+    const effects = await context.effects(unbound);
+    expect(effects.projection).toMatchObject({
+      key_slot_id: null,
+      session_state: "PARKING",
+      session_version: 2,
+      task_status: "IN_PROGRESS",
+      task_version: 4,
+    });
+    expect(effects.projection.parking_started_at?.toISOString()).toBe(
+      result.parkingStartedAt,
     );
+    const custody = await context.adminPool.query(
+      `SELECT event_type::text FROM key_custody_events
+       WHERE valet_session_id = $1`,
+      [unbound.sessionId],
+    );
+    expect(custody.rows).toEqual([]);
+    expect(effects.events.map((event) => event.event_type).sort()).toEqual([
+      "IN_PROGRESS",
+      "VALET_SESSION_PARKING_STARTED",
+    ]);
+  });
+
+  it("requires the assigned KeySlot to be active and exact", async () => {
     const inactive = await context.createStartParkingFixture();
     await context.adminPool.query(
       `UPDATE key_slots SET status = 'INACTIVE' WHERE id = $1`,

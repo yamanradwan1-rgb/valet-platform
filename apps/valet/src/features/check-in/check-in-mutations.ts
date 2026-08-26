@@ -1,7 +1,6 @@
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { executeParkingTaskAction } from "../parking/parking-task-runner";
 import {
-  assignSessionKeySlot,
   completeCheckInSession,
   completeConditionStep,
   createIntakeSession,
@@ -133,26 +132,6 @@ export async function runConditionCompletionMutation(
   return {
     conditionCompletedAt,
     sessionVersion: completeRes.version,
-  };
-}
-
-export async function runKeyAssignmentMutation(
-  client: EmployeeApiClient,
-  session: CheckInActiveSession,
-  keySlotCode: string,
-): Promise<{ keySlotCode: string | null; sessionVersion: number }> {
-  if (session.state !== "AWAITING_PARKING") {
-    throw new Error("Key slot assignment requires session in AWAITING_PARKING state.");
-  }
-  const assignRes = await assignSessionKeySlot(
-    client,
-    session.sessionId,
-    session.sessionVersion,
-    keySlotCode,
-  );
-  return {
-    keySlotCode: assignRes.keySlotCode,
-    sessionVersion: assignRes.version,
   };
 }
 

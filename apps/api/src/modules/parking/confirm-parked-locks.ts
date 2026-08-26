@@ -1,10 +1,7 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 import { ConfirmParkedError } from "./confirm-parked-errors";
-import type {
-  LockedConfirmSession,
-  LockedConfirmTask,
-} from "./confirm-parked-types";
+import type { LockedConfirmKeySlot, LockedConfirmSession, LockedConfirmTask } from "./confirm-parked-types";
 
 export async function lockConfirmSession(
   transaction: PostgresTransaction,
@@ -83,14 +80,11 @@ export async function authorizeConfirmOwner(
   }
 }
 
-export async function lockConfirmKeySlot(
+async function resolveScannedKeySlot(
   transaction: PostgresTransaction,
   session: LockedConfirmSession,
   scannedKeySlotCode: string,
 ): Promise<string> {
-  if (session.key_slot_id === null) {
-    throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");
-  }
   const result = await transaction.query<{ id: string }>(
     `SELECT id::text FROM key_slots
      WHERE organization_id = $1 AND location_id = $2
@@ -99,8 +93,49 @@ export async function lockConfirmKeySlot(
     [session.organization_id, session.location_id, scannedKeySlotCode],
   );
   const keySlotId = result.rows[0]?.id;
-  if (keySlotId === undefined || keySlotId !== session.key_slot_id) {
+  if (keySlotId === undefined) {
     throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");
   }
   return keySlotId;
+}
+
+export async function lockConfirmKeySlot(
+  transaction: PostgresTransaction,
+  session: LockedConfirmSession,
+  scannedKeySlotCode: string,
+): Promise<LockedConfirmKeySlot> {
+  if (session.key_slot_id === null) {
+    const keySlotId = await resolveScannedKeySlot(
+      transaction,
+      session,
+      scannedKeySlotCode,
+    );
+    const occupancy = await transaction.query<{ id: string }>(
+      `SELECT id::text FROM valet_sessions
+       WHERE organization_id = $1 AND location_id = $2
+         AND key_slot_id = $3 AND id <> $4 LIMIT 1`,
+      [session.organization_id, session.location_id, keySlotId, session.id],
+    );
+    if (occupancy.rows[0] !== undefined) {
+      throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");
+    }
+    return {
+      expectedCurrentKeySlotId: null,
+      newKeySlotId: keySlotId,
+      mode: "binding",
+    };
+  }
+  const keySlotId = await resolveScannedKeySlot(
+    transaction,
+    session,
+    scannedKeySlotCode,
+  );
+  if (keySlotId !== session.key_slot_id) {
+    throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");
+  }
+  return {
+    expectedCurrentKeySlotId: session.key_slot_id,
+    newKeySlotId: keySlotId,
+    mode: "legacy",
+  };
 }

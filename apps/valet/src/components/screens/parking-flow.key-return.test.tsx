@@ -51,6 +51,7 @@ function stubParking(overrides: Record<string, unknown>) {
     activeSession: null,
     confirmParked: vi.fn(async () => {}),
     error: null,
+    errorCode: null,
     isHydrating: false,
     isSubmitting: false,
     retry: vi.fn(async () => {}),
@@ -87,7 +88,7 @@ function renderWith(
   );
 }
 
-describe("DEC-065 verified key return Employee flow", () => {
+describe("DEC-068 post-parking key slot binding Employee flow", () => {
   it("keeps the spot step submission-free before key return", () => {
     const stub = stubbedUseParking({
       activeSession: assignedSession,
@@ -129,16 +130,23 @@ describe("DEC-065 verified key return Employee flow", () => {
     expect(stub.confirmParked).not.toHaveBeenCalled();
   });
 
-  it("renders the assigned slot instruction with LTR-isolated code", () => {
+  it("gives the physical free-slot instruction with no assigned-slot framing or prefill", () => {
     const markup = renderWith({
       activeSession: assignedSession,
       step: "key-return",
     });
-    expect(markup).toContain("Assigned key slot");
-    expect(markup).toContain("Return key to");
-    expect(markup).toContain('<bdi dir="ltr">K-03</bdi>');
+    // DEC-068 §23: place key into ANY free slot, then scan/enter THAT slot.
+    // (Prefix asserted because React SSR-escapes the apostrophe in "slot's".)
+    expect(markup).toContain(
+      "Place the key into any available free slot",
+    );
     expect(markup).toContain("Scan QR code");
     expect(markup).toContain("Enter Key Slot Code");
+    // No pre-assigned slot display, no "return to <code>" instruction, and
+    // no prefilled code from the session.
+    expect(markup).not.toContain("Assigned key slot");
+    expect(markup).not.toContain("Return key to");
+    expect(markup).not.toContain('value="K-03"');
   });
 
   it("blocks the final submission truthfully while offline", () => {
@@ -157,18 +165,46 @@ describe("DEC-065 verified key return Employee flow", () => {
     expect(stub.confirmParked).not.toHaveBeenCalled();
   });
 
-  it("uses the accepted Arabic copy with isolated operational code", () => {
+  it("uses the accepted Arabic copy for the physical deposit flow", () => {
     const ar = employeeDictionary("ar");
     const markup = renderWith(
       { activeSession: assignedSession, step: "key-return" },
       { locale: "ar" },
     );
-    expect(ar.returnKeyTo).toBe("أعد المفتاح إلى الخانة");
+    // Physical meaning locked by DEC-068 §23: ضع المفتاح في خانة متاحة /
+    // امسح رمز خانة المفتاح / أكد ركن السيارة.
+    expect(ar.returnKeyAvailable).toBe(
+      "ضع المفتاح في أي خانة فارغة متاحة، ثم امسح رمزها أو أدخل رمز الخانة.",
+    );
     expect(ar.scanKeySlot).toBe("امسح رمز خانة المفتاح");
+    expect(ar.confirmParked).toBe("تأكيد الإيقاف");
     expect(ar.vehicleParkedAndKeyReturned).toBe("تم صف السيارة وإعادة المفتاح");
-    expect(ar.assignedKeySlotLabel).toBe("خانة المفتاح المخصصة");
-    expect(markup).toContain(ar.assignedKeySlotLabel);
-    expect(markup).toContain('<bdi dir="ltr">K-03</bdi>');
+    expect(markup).toContain(ar.returnKeyAvailable);
+    expect(markup).not.toContain('<bdi dir="ltr">K-03</bdi>');
+  });
+
+  it("localizes KEY_CUSTODY_NOT_READY as a calm scan-another-slot retry hint", () => {
+    const en = employeeDictionary("en");
+    const stub = stubbedUseParking({
+      activeSession: assignedSession,
+      error: "Key slot is currently occupied by another session.",
+      errorCode: "KEY_CUSTODY_NOT_READY",
+      step: "key-return",
+    });
+    const markup = renderWith({
+      activeSession: assignedSession,
+      error: "Key slot is currently occupied by another session.",
+      errorCode: "KEY_CUSTODY_NOT_READY",
+      step: "key-return",
+    });
+    expect(en.keySlotUnavailableRetry).toBe(
+      "This key slot is no longer available. Scan another slot.",
+    );
+    expect(markup).toContain(en.keySlotUnavailableRetry);
+    expect(markup).not.toContain(
+      "Key slot is currently occupied by another session.",
+    );
+    expect(stub.confirmParked).not.toHaveBeenCalled();
   });
 
   it("localizes Key Return operation errors in Arabic instead of raw server text", () => {

@@ -11,8 +11,8 @@ import { StartParkingError } from "./start-parking-errors";
 import { assertStartParkingGuards } from "./start-parking-guards";
 import {
   authorizeStartParkingOwner,
-  lockActiveCurrentKeySlot,
   lockActiveParkingTask,
+  lockOptionalCurrentKeySlot,
   lockStartParkingSession,
   resolveStartParkingActor,
 } from "./start-parking-locks";
@@ -58,7 +58,7 @@ async function executeStartParking(
       actorMembershipId,
     );
     assertStartParkingGuards(session, task, request);
-    const keySlotId = await lockActiveCurrentKeySlot(transaction, session);
+    const keySlotId = await lockOptionalCurrentKeySlot(transaction, session);
     const operationTime = await loadDispatchOperationTime(transaction);
     const taskVersion = await startParkingTask(
       transaction,
@@ -83,19 +83,20 @@ async function executeStartParking(
         throw new StartParkingError("TASK_INVALID_STATE");
       },
     );
-    const custodyScope = {
-      actorMembershipId,
-      keySlotId,
-      locationId: session.location_id,
-      occurredAt: operationTime,
-      organizationId: session.organization_id,
-      sessionId: session.id,
-    };
-    await recordKeyCheckedOut(
-      transaction,
-      custodyScope,
-      options.custodyEventIdFactory,
-    );
+    if (keySlotId !== null) {
+      await recordKeyCheckedOut(
+        transaction,
+        {
+          actorMembershipId,
+          keySlotId,
+          locationId: session.location_id,
+          occurredAt: operationTime,
+          organizationId: session.organization_id,
+          sessionId: session.id,
+        },
+        options.custodyEventIdFactory,
+      );
+    }
     await appendDispatchEvent(
       transaction,
       {

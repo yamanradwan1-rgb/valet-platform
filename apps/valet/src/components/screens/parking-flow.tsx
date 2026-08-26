@@ -74,8 +74,10 @@ export function ParkingFlow({
 
   const keyInfo = session?.keySlotCode ?? t.notAssigned;
   const destination = session?.parkingZoneCode ? `${t.zone} ${session.parkingZoneCode}` : t.parkingArea;
+  // DEC-068 §25: a KEY_CUSTODY_NOT_READY confirm failure surfaces as a calm
+  // localized retry instruction instead of raw server text.
   const liveError = parking.error
-    ? presentLiveError(new Error(parking.error), locale, t)
+    ? presentLiveError(new Error(parking.error), locale, t, parking.errorCode)
     : null;
 
   if (parking.isHydrating) {
@@ -179,7 +181,6 @@ export function ParkingFlow({
   if (parking.step === "key-return") {
     return (
       <ParkingKeyReturnStep
-        assignedKeySlotCode={session?.keySlotCode ?? null}
         error={liveError}
         isOnline={isOnline}
         isSubmitting={parking.isSubmitting}

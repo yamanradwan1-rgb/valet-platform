@@ -27,8 +27,9 @@ test.describe("Employee full lifecycle", () => {
     test.setTimeout(120_000);
     const plate = `E2E-L-${String(Date.now()).slice(-7)}`;
     const staffToken = await signInViaUi(page, STAFF_EMAIL, STAFF_PASSWORD);
+    // DEC-068: Check-In completes WITHOUT key entry; the key slot is bound
+    // later, during parking completion.
     await createParkingTaskViaUi(page, {
-      keySlot: `E2E-KEY-L${testInfo.retry}`,
       phone: "+962790000001",
       plate,
     });
@@ -40,7 +41,11 @@ test.describe("Employee full lifecycle", () => {
     );
     const guestToken = await issueGuestAccess(staffToken, sessionId);
 
-    await completeParkingViaUi(page, `E2E-SPOT-L${testInfo.retry}`);
+    await completeParkingViaUi(
+      page,
+      `E2E-SPOT-L${testInfo.retry}`,
+      `E2E-KEY-D${testInfo.retry}`,
+    );
     await guestRequestRetrieval(guestToken);
     await page.getByRole("button", { name: "Done" }).click();
     const retrievalPlate = page.getByText(plate, { exact: true }).first();

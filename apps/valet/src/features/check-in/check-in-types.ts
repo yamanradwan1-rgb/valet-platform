@@ -12,8 +12,6 @@ export type CheckInFlowStep =
   | "plate-confirm"
   | "customer-phone"
   | "vehicle-condition"
-  | "key-scan"
-  | "key-assigned"
   | "parking-task"
   | "multiple-recoverable";
 

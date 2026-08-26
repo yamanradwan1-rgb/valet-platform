@@ -34,9 +34,13 @@ export async function signInViaUi(
   return body.accessToken;
 }
 
+/**
+ * DEC-068 §5/§23: Check-In completes WITHOUT any key entry — a completed
+ * vehicle condition leads straight to the Parking Task creation screen.
+ */
 export async function createParkingTaskViaUi(
   page: Page,
-  input: { keySlot: string; phone: string; plate: string },
+  input: { phone: string; plate: string },
 ): Promise<void> {
   await page.getByRole("button", { name: "New Vehicle" }).click();
   await page.getByRole("button", { name: "Enter manually" }).click();
@@ -47,22 +51,33 @@ export async function createParkingTaskViaUi(
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "No visible issue" }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByRole("button", { name: "Enter key slot manually" }).click();
-  await page.locator('input[placeholder="Enter Key Slot Code"]').fill(input.keySlot);
-  await page.getByRole("button", { name: "Assign Key", exact: true }).click();
+  // No key-slot step exists on the normal path anymore.
+  await expect(
+    page.getByRole("button", { name: "Assign Key", exact: true }),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "Create Parking Task" }).click();
   await expect(page.getByRole("button", { name: "Start Parking" })).toBeVisible();
 }
 
+/**
+ * DEC-068 §3 canonical physical order during parking completion: scan/enter
+ * the Parking Spot, then place the key into any free slot and enter THAT
+ * slot's code, then Confirm Parked.
+ */
 export async function completeParkingViaUi(
   page: Page,
   spotCode: string,
+  keySlotCode: string,
 ): Promise<void> {
   await page.getByRole("button", { name: "Start Parking" }).click();
   await page.getByRole("button", { name: "Park Vehicle" }).click();
   await page.getByRole("button", { name: "Enter spot code manually" }).click();
   await page.locator('input[placeholder="Enter spot code"]').fill(spotCode);
-  await page.getByRole("button", { name: "Confirm Parking" }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  const keyInput = page.locator('input[placeholder="Enter Key Slot Code"]');
+  await expect(keyInput).toBeVisible();
+  await keyInput.fill(keySlotCode);
+  await page.getByRole("button", { name: "Confirm Parked" }).click();
   await expect(page.getByText("Parking confirmed")).toBeVisible({ timeout: 15_000 });
 }
 

@@ -6,11 +6,7 @@ import {
   CheckInCustomerPhoneStep,
   CheckInVehicleConditionStep,
 } from "./check-in/check-in-intake-steps";
-import {
-  CheckInKeyAssignedStep,
-  CheckInKeyScanStep,
-  CheckInParkingTaskStep,
-} from "./check-in/check-in-key-steps";
+import { CheckInParkingTaskStep } from "./check-in/check-in-late-steps";
 import {
   CheckInManualPlateStep,
   CheckInPlateConfirmStep,
@@ -146,55 +142,7 @@ describe("CheckInFlow Component Steps", () => {
     expect(markup).toContain("Needs review");
   });
 
-  it("renders CheckInKeyScanStep live mode without simulation button", () => {
-    const liveMarkup = renderToStaticMarkup(
-      <CheckInKeyScanStep
-        mode="live"
-        keyScanDone={false}
-        keySlotCode=""
-        onAssignKey={vi.fn()}
-        onBack={vi.fn()}
-        onChangeKeySlotCode={vi.fn()}
-        onManualEntry={vi.fn()}
-        onScanAnother={vi.fn()}
-      />,
-    );
-    expect(liveMarkup).toContain("Assign Key");
-    expect(liveMarkup).not.toContain("Simulate Key QR Scan");
-    expect(liveMarkup).toContain("Enter key slot manually");
-
-    const protoMarkup = renderToStaticMarkup(
-      <CheckInKeyScanStep
-        mode="prototype"
-        keyScanDone={false}
-        keySlotCode=""
-        onAssignKey={vi.fn()}
-        onBack={vi.fn()}
-        onChangeKeySlotCode={vi.fn()}
-        onManualEntry={vi.fn()}
-        onScanAnother={vi.fn()}
-        onSimulateScan={vi.fn()}
-      />,
-    );
-    expect(protoMarkup).toContain("Simulate Key QR Scan");
-  });
-
-  it("renders CheckInKeyAssignedStep and CheckInParkingTaskStep", () => {
-    const assignedMarkup = renderToStaticMarkup(
-      <CheckInKeyAssignedStep
-        keySlotCode="B-214"
-        make="Porsche"
-        model="Taycan"
-        color="White"
-        plate="12-34567"
-        onCreateParkingTask={vi.fn()}
-      />,
-    );
-    expect(assignedMarkup).toContain("Key ");
-    expect(assignedMarkup).toContain('<bdi dir="ltr">B-214</bdi>');
-    expect(assignedMarkup).toContain(" assigned");
-    expect(assignedMarkup).toContain("Create Parking Task");
-
+  it("renders CheckInParkingTaskStep with and without a legacy bound slot", () => {
     const taskMarkup = renderToStaticMarkup(
       <CheckInParkingTaskStep
         keySlotCode="B-214"
@@ -207,7 +155,25 @@ describe("CheckInFlow Component Steps", () => {
       />,
     );
     expect(taskMarkup).toContain("Parking Task");
-    expect(taskMarkup).toContain("B-214");
+    expect(taskMarkup).toContain('<bdi dir="ltr">B-214</bdi>');
     expect(taskMarkup).toContain("Start Parking");
+
+    // DEC-068 §5/§23: the normal path has NO pre-Parking key assignment;
+    // the launch screen truthfully reports the unbound slot instead of any
+    // "Assign Key" framing.
+    const unboundMarkup = renderToStaticMarkup(
+      <CheckInParkingTaskStep
+        keySlotCode=""
+        make="Porsche"
+        model="Taycan"
+        color="White"
+        plate="12-34567"
+        onStartParking={vi.fn()}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(unboundMarkup).toContain("Not assigned");
+    expect(unboundMarkup).not.toContain("Assign Key");
+    expect(unboundMarkup).toContain('<bdi dir="ltr">Not assigned</bdi>');
   });
 });

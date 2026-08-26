@@ -146,6 +146,63 @@ describe("VAL-005G concurrency", () => {
     }).not.toEqual({ session: "PARKED", shift: "ACTIVE" });
   });
 
+  it("serializes a binding-mode confirmation with Shift end (DEC-068 §29.13)", async () => {
+    const fixture = await context.createPostBindingFixture();
+    const shift = await context.adminPool.query<{ id: string }>(
+      `SELECT id::text FROM shifts WHERE membership_id = $1 AND status = 'ACTIVE'`,
+      [fixture.membershipId],
+    );
+    const end = () =>
+      createEndShiftCommandExecutor(context.runtimePool)({
+        authenticatedUserId: fixture.userId,
+        cashReported: "0",
+        shiftId: shift.rows[0]!.id,
+      });
+    const results = await Promise.allSettled([
+      context.confirm(fixture, { sessionVersion: 2, taskVersion: 4 }),
+      end(),
+    ]);
+    if (results[0]?.status === "fulfilled") {
+      await expect(end()).resolves.toBeDefined();
+      const effects = await context.completionEffects(fixture);
+      expect(effects.projection.task_status).toBe("COMPLETED");
+    }
+    const finalEffects = await context.completionEffects(fixture);
+    const shiftState = await context.adminPool.query<{ status: string }>(
+      `SELECT status::text FROM shifts WHERE id = $1`,
+      [shift.rows[0]!.id],
+    );
+    // Exactly one operation wins: a PARKED session never coexists with an
+    // ACTIVE Shift owned by the same acting membership.
+    expect({
+      session: finalEffects.projection.session_state,
+      shift: shiftState.rows[0]?.status,
+    }).not.toEqual({ session: "PARKED", shift: "ACTIVE" });
+  });
+
+  it("appends exactly one slot-assignment audit on legacy confirmation", async () => {
+    const fixture = await context.createConfirmParkedFixture();
+    await context.confirm(fixture);
+    const audits = await context.adminPool.query<{
+      count: number;
+      event_type: string;
+    }>(
+      `SELECT event_type::text, count(*)::integer AS count
+       FROM audit_events
+       WHERE valet_session_id = $1
+         AND event_type IN
+           ('VALET_SESSION_KEY_SLOT_ASSIGNED', 'VALET_SESSION_PARKED')
+       GROUP BY 1 ORDER BY 1`,
+      [fixture.sessionId],
+    );
+    // One assignment audit from the original DEC-033 assign command only;
+    // legacy Confirm Parked must not duplicate it (DEC-068 §17).
+    expect(audits.rows).toEqual([
+      { count: 1, event_type: "VALET_SESSION_KEY_SLOT_ASSIGNED" },
+      { count: 1, event_type: "VALET_SESSION_PARKED" },
+    ]);
+  });
+
   it("preserves the IN_PROGRESS reassignment boundary", async () => {
     const fixture = await context.createConfirmParkedFixture();
     const supervisor = await context.addMember(fixture, "VALET_SUPERVISOR");

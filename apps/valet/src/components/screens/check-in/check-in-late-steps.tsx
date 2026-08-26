@@ -3,10 +3,13 @@
 import { type JSX } from "react";
 
 import {
-  CheckInKeyAssignedStep,
-  CheckInKeyScanStep,
-  CheckInParkingTaskStep,
-} from "./check-in-key-steps";
+  BackHeader,
+  Badge,
+  Btn,
+  InfoRow,
+  VehicleIdentity,
+} from "../../ui/employee-primitives";
+import { useEmployeeI18n } from "../../shell/employee-i18n";
 import type {
   StartParkingPayload,
   UseCheckInResult,
@@ -20,21 +23,18 @@ export interface CheckInLateStepsProps {
   readonly displayMake: string | null;
   readonly displayModel: string | null;
   readonly displayPlate: string;
-  readonly keyScanDone: boolean;
-  readonly keySlotCode: string;
   readonly localizedError: string | null;
-  readonly mode: "live" | "prototype" | undefined;
   readonly nav: (s: Screen) => void;
   readonly onOpenGuestAccess?: ((sessionId: string) => void) | undefined;
   readonly onStartParkingSuccess?: ((payload: StartParkingPayload) => void) | undefined;
-  readonly setKeyScanDone: (done: boolean) => void;
-  readonly setKeySlotCode: (code: string) => void;
 }
 
 /**
- * Late Check-In composition: key scan/assignment and the parking-task launch
- * step with its secondary, non-blocking Guest Access entry point. Start
- * Parking remains the primary action and works without Guest Access.
+ * Late Check-In composition (DEC-068 §5/§23): the normal path has NO
+ * pre-Parking Key Slot step, so a completed condition lands directly on the
+ * Parking Task launch step with its secondary, non-blocking Guest Access
+ * entry point. Start Parking remains the primary action and works without
+ * Guest Access.
  */
 export function CheckInLateSteps({
   checkIn,
@@ -43,66 +43,11 @@ export function CheckInLateSteps({
   displayMake,
   displayModel,
   displayPlate,
-  keyScanDone,
-  keySlotCode,
   localizedError,
-  mode = "live",
   nav,
   onOpenGuestAccess,
   onStartParkingSuccess,
-  setKeyScanDone,
-  setKeySlotCode,
 }: CheckInLateStepsProps): JSX.Element | null {
-  if (checkIn.step === "key-scan") {
-    return (
-      <CheckInKeyScanStep
-        mode={mode}
-        keyScanDone={keyScanDone}
-        keySlotCode={keySlotCode}
-        make={displayMake}
-        model={displayModel}
-        color={displayColor}
-        plate={displayPlate}
-        isSubmitting={checkIn.isSubmitting}
-        error={localizedError}
-        onChangeKeySlotCode={setKeySlotCode}
-        onSimulateScan={() => {
-          setKeySlotCode("B-214");
-          setKeyScanDone(true);
-        }}
-        onManualEntry={() => setKeyScanDone(true)}
-        onAssignKey={async () => {
-          await checkIn.assignKey(keySlotCode);
-        }}
-        onScanAnother={() => setKeyScanDone(false)}
-        onBack={() => {
-          if (checkIn.activeSession?.state === "AWAITING_PARKING") {
-            nav("task-queue");
-          } else {
-            checkIn.setStep("vehicle-condition");
-          }
-        }}
-      />
-    );
-  }
-
-  if (checkIn.step === "key-assigned") {
-    return (
-      <CheckInKeyAssignedStep
-        keySlotCode={displayKeySlot}
-        make={displayMake}
-        model={displayModel}
-        color={displayColor}
-        plate={displayPlate}
-        isSubmitting={checkIn.isSubmitting}
-        error={localizedError}
-        onCreateParkingTask={async () => {
-          await checkIn.createParkingTask();
-        }}
-      />
-    );
-  }
-
   if (checkIn.step === "parking-task") {
     return (
       <CheckInParkingTaskStep
@@ -129,10 +74,91 @@ export function CheckInLateSteps({
             nav("parking");
           }
         }}
-        onBack={() => checkIn.setStep("key-assigned")}
+        onBack={() => {
+          if (checkIn.activeSession?.state === "AWAITING_PARKING") {
+            nav("task-queue");
+          } else {
+            checkIn.setStep("vehicle-condition");
+          }
+        }}
       />
     );
   }
 
   return null;
+}
+
+export function CheckInParkingTaskStep({
+  keySlotCode,
+  make,
+  model,
+  color,
+  plate,
+  isSubmitting,
+  error,
+  sessionId,
+  onOpenGuestAccess,
+  onStartParking,
+  onBack,
+}: {
+  readonly color?: string | null | undefined;
+  readonly error?: string | null | undefined;
+  readonly isSubmitting?: boolean | undefined;
+  readonly keySlotCode: string;
+  readonly make?: string | null | undefined;
+  readonly model?: string | null | undefined;
+  readonly onBack: () => void;
+  readonly onOpenGuestAccess?: (() => void) | undefined;
+  readonly onStartParking: () => void;
+  readonly plate?: string | null | undefined;
+  readonly sessionId?: string | null | undefined;
+}): JSX.Element {
+  const { t } = useEmployeeI18n();
+  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
+
+  return (
+    <div>
+      <BackHeader title={t.parkingTask} onBack={onBack} />
+      <div className="p-5 space-y-5">
+        {error && (
+          <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
+            {error}
+          </div>
+        )}
+        <Badge variant="parking" />
+        <VehicleIdentity
+          color={color ?? t.notSpecified}
+          model={displayModel}
+          plate={plate ?? t.noPlate}
+        />
+        <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
+          <InfoRow label={t.keySlot} value={<bdi dir="ltr">{keySlotCode || t.notAssigned}</bdi>} />
+        </div>
+        <div className="bg-ice rounded-xl px-4 py-3 flex items-center gap-2.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-vblue flex-shrink-0 mt-px" />
+          <p className="text-vblue text-xs font-semibold">
+            {t.locationTrackingParking}
+          </p>
+        </div>
+        <Btn
+          label={isSubmitting ? t.startingParking : t.startParkingAction}
+          onClick={onStartParking}
+          disabled={isSubmitting ?? false}
+        />
+        {sessionId !== undefined &&
+        sessionId !== null &&
+        sessionId !== "" &&
+        onOpenGuestAccess !== undefined && (
+          <button
+            type="button"
+            onClick={onOpenGuestAccess}
+            className="w-full bg-white border border-vborder rounded-2xl p-4 text-left active:bg-gray-50 transition-colors cursor-pointer"
+          >
+            <p className="font-semibold text-sm text-navy">{t.guestAccessTitle}</p>
+            <p className="text-muted text-xs mt-0.5">{t.guestAccessEntryHint}</p>
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }

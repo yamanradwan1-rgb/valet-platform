@@ -13,10 +13,23 @@ function getErrMsg(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
+function getErrCode(err: unknown): string | null {
+  if (
+    err !== null &&
+    typeof err === "object" &&
+    "code" in err &&
+    typeof (err as { code: unknown }).code === "string"
+  ) {
+    return (err as { code: string }).code;
+  }
+  return null;
+}
+
 export class ParkingController {
   private state: ParkingState = {
     activeSession: null,
     error: null,
+    errorCode: null,
     isHydrating: false,
     isSubmitting: false,
     step: "in-progress",
@@ -95,6 +108,7 @@ export class ParkingController {
     } catch (err: unknown) {
       this.update({
         error: getErrMsg(err, "Failed to load parking session detail."),
+        errorCode: getErrCode(err),
         isHydrating: false,
       });
     }
@@ -124,11 +138,16 @@ export class ParkingController {
 
       let authoritativeZone = session.parkingZoneCode;
       let authoritativeSpot = confirmRes.parkingSpotCode;
+      // DEC-068 §12/§23: the confirmation bound the deposited slot; the
+      // authoritative refresh carries it so the success screen shows the
+      // truthful post-deposit key slot instead of a stale "not assigned".
+      let authoritativeKeySlot = session.keySlotCode;
 
       try {
         const detail = await fetchSessionDetail(this.apiClient, session.sessionId);
         if (detail.parking.parkingZoneCode) authoritativeZone = detail.parking.parkingZoneCode;
         if (detail.parking.parkingSpotCode) authoritativeSpot = detail.parking.parkingSpotCode;
+        if (detail.keySlot?.code) authoritativeKeySlot = detail.keySlot.code;
       } catch {
         // Fall back to returned spot code without fabricating zone
       }
@@ -136,6 +155,7 @@ export class ParkingController {
       this.update({
         activeSession: {
           ...session,
+          keySlotCode: authoritativeKeySlot,
           parkedAt: confirmRes.parkedAt,
           parkingSpotCode: authoritativeSpot,
           parkingZoneCode: authoritativeZone,
@@ -148,6 +168,10 @@ export class ParkingController {
     } catch (err: unknown) {
       this.update({
         error: getErrMsg(err, "Failed to confirm parking."),
+        // DEC-068 §25: KEY_CUSTODY_NOT_READY covers occupied/lost-race slot
+        // binding with zero side effects; the UI maps it to a localized
+        // "scan another slot" retry hint.
+        errorCode: getErrCode(err),
         isSubmitting: false,
       });
     }

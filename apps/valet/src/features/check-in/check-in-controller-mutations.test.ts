@@ -3,7 +3,6 @@ import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { CheckInController } from "./check-in-controller";
 import type {
   AcceptTaskResponse,
-  AssignKeySlotResponse,
   AssignTaskResponse,
   CompleteCheckInResponse,
   ConditionCompletionResponse,
@@ -13,6 +12,17 @@ import type {
   StartParkingResponse,
   VehicleIdentityResponse,
 } from "./check-in-api";
+
+function expectZeroKeySlotAssignmentCalls(client: EmployeeApiClient): void {
+  const calls = (client.request as unknown as { mock: { calls: unknown[][] } })
+    .mock.calls;
+  const keySlotCalls = calls.filter((call) =>
+    String(call[0]).includes("/key-slot/"),
+  );
+  // DEC-068 §5: Check-In reaches the Parking Task step without any Key Slot
+  // assignment mutation.
+  expect(keySlotCalls).toHaveLength(0);
+}
 
 describe("CheckInController Mutations Lifecycle", () => {
   const locationId = "22222222-2222-4222-8222-222222222222";
@@ -46,12 +56,6 @@ describe("CheckInController Mutations Lifecycle", () => {
       valetSessionId: sessionId,
       version: 2,
     };
-    const assignKeyPayload: AssignKeySlotResponse = {
-      keySlotCode: "B-214",
-      sessionId,
-      state: "AWAITING_PARKING",
-      version: 3,
-    };
     const queuePayload: ParkingTaskQueueResponse = {
       createdAt: "2026-08-21T18:07:00.000Z",
       currentAssigneeMembershipId: null,
@@ -65,7 +69,7 @@ describe("CheckInController Mutations Lifecycle", () => {
       checkIn: { conditionCompletedAt: "2026-08-21T18:05:00.000Z" },
       handoff: { pendingAt: null, verification: null },
       guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
-      keySlot: { code: "B-214" },
+      keySlot: null,
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: "North-A" },
       sessionId,
@@ -117,7 +121,6 @@ describe("CheckInController Mutations Lifecycle", () => {
         .mockResolvedValueOnce(notePayload)
         .mockResolvedValueOnce(condPayload)
         .mockResolvedValueOnce(compPayload)
-        .mockResolvedValueOnce(assignKeyPayload)
         .mockResolvedValueOnce(queuePayload)
         .mockResolvedValueOnce(queuePayload)
         .mockResolvedValueOnce(detailPayload)
@@ -142,11 +145,11 @@ describe("CheckInController Mutations Lifecycle", () => {
     expect(controller.getState().step).toBe("vehicle-condition");
 
     await controller.completeCondition("Existing damage on fender");
-    expect(controller.getState().step).toBe("key-scan");
+    expect(controller.getState().step).toBe("parking-task");
     expect(controller.getState().activeSession?.state).toBe("AWAITING_PARKING");
 
-    await controller.assignKey("B-214");
-    expect(controller.getState().step).toBe("key-assigned");
+    // DEC-068 §5: completed Check-In reaches Parking Task with ZERO key-slot calls.
+    expectZeroKeySlotAssignmentCalls(mockClient);
 
     await controller.createParkingTask();
     expect(controller.getState().step).toBe("parking-task");
@@ -154,6 +157,7 @@ describe("CheckInController Mutations Lifecycle", () => {
     const payload = await controller.startParking();
     expect(payload?.taskId).toBe(taskId);
     expect(payload?.sessionVersion).toBe(4);
+    expectZeroKeySlotAssignmentCalls(mockClient);
   });
 
   it("handles CHECKING_IN draft with conditionCompletedAt without skipping complete-check-in", async () => {
@@ -200,7 +204,7 @@ describe("CheckInController Mutations Lifecycle", () => {
       vehicle: detailPayload.vehicle,
     });
 
-    // Proves CHECKING_IN + conditionCompletedAt does NOT expose key-scan step before complete-check-in
+    // Proves CHECKING_IN + conditionCompletedAt does NOT skip complete-check-in
     expect(controller.getState().step).toBe("vehicle-condition");
     expect(controller.getState().activeSession?.state).toBe("CHECKING_IN");
 
@@ -211,8 +215,9 @@ describe("CheckInController Mutations Lifecycle", () => {
       `/v1/staff/check-in/sessions/${sessionId}/complete`,
       expect.objectContaining({ body: { expectedVersion: 1 }, method: "POST" }),
     );
-    expect(controller.getState().step).toBe("key-scan");
+    expect(controller.getState().step).toBe("parking-task");
     expect(controller.getState().activeSession?.state).toBe("AWAITING_PARKING");
+    expectZeroKeySlotAssignmentCalls(mockClient);
   });
 
   it("updates vehicle identity with expectedVehicleUpdatedAt when editing resumed session", async () => {

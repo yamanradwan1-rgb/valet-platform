@@ -126,6 +126,38 @@ describe("CheckInController Discovery & Hydration", () => {
     expect(controller.getState().activeSession?.state).toBe("AWAITING_PARKING");
   });
 
+  it("treats AWAITING_PARKING with NULL keySlotCode as valid parking-task state (DEC-068 §5)", async () => {
+    const detailRes: StaffValetSessionDetailResponse = {
+      checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
+      handoff: { pendingAt: null, verification: null },
+      guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
+      keySlot: null,
+      locationId,
+      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
+      sessionId,
+      state: "AWAITING_PARKING",
+      vehicle: { color: "Black", make: "BMW", model: "X5", plateCountry: "JO", plateNumberRaw: "12-34567", temporaryDescriptor: null, vehicleId, vehicleUpdatedAt: "2026-08-21T18:00:00.000Z" },
+      version: 2,
+    };
+
+    const mockClient = {
+      request: vi.fn().mockResolvedValueOnce(detailRes),
+    } as unknown as EmployeeApiClient;
+
+    const controller = new CheckInController(mockClient, vi.fn());
+    await controller.hydrateFromContinuation(locationId, {
+      createdAt: "2026-08-21T18:00:00.000Z",
+      sessionId,
+      vehicle: detailRes.vehicle,
+    });
+
+    const state = controller.getState();
+    expect(state.step).toBe("parking-task");
+    expect(state.error).toBeNull();
+    expect(state.activeSession?.state).toBe("AWAITING_PARKING");
+    expect(state.activeSession?.keySlotCode).toBeNull();
+  });
+
   it("fails closed to hydration-error when A1 AWAITING_PARKING lacks conditionCompletedAt", async () => {
     const detailRes: StaffValetSessionDetailResponse = {
       checkIn: { conditionCompletedAt: null },

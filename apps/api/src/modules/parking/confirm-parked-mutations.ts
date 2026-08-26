@@ -1,6 +1,7 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { ConfirmParkedError } from "./confirm-parked-errors";
 import type {
+  ConfirmParkedKeyBinding,
   LockedConfirmSession,
   LockedConfirmTask,
   LockedParkingSpot,
@@ -29,14 +30,17 @@ export async function parkValetSession(
   session: LockedConfirmSession,
   spot: LockedParkingSpot,
   operationTime: Date,
+  keyBinding: ConfirmParkedKeyBinding,
 ): Promise<number> {
   const result = await transaction.query<{ version: number }>(
     `UPDATE valet_sessions
      SET state = 'PARKED', parked_at = $3, parking_zone_id = $4,
-         parking_spot_id = $5, version = version + 1, updated_at = $3
+         parking_spot_id = $5, key_slot_id = $6, version = version + 1,
+         updated_at = $3
      WHERE id = $1 AND version = $2 AND state = 'PARKING'
        AND parking_started_at IS NOT NULL AND parked_at IS NULL
-       AND parking_spot_id IS NULL AND key_slot_id = $6
+       AND parking_spot_id IS NULL
+       AND key_slot_id IS NOT DISTINCT FROM $7
        AND (parking_zone_id IS NULL OR parking_zone_id = $4)
      RETURNING version`,
     [
@@ -45,7 +49,8 @@ export async function parkValetSession(
       operationTime,
       spot.parking_zone_id,
       spot.id,
-      session.key_slot_id,
+      keyBinding.newKeySlotId,
+      keyBinding.expectedCurrentKeySlotId,
     ],
   );
   const version = result.rows[0]?.version;

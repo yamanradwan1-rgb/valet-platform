@@ -47,13 +47,11 @@ export function CheckInFlow({
   const checkIn = useCheckIn({ locationId, membershipId, onAuthorizationLoss });
 
   const [scanDone, setScanDone] = useState(false);
-  const [keyScanDone, setKeyScanDone] = useState(false);
   const [plateNumber, setPlateNumber] = useState("");
   const [plateCountry, setPlateCountry] = useState("JO");
   const [temporaryDescriptor, setTemporaryDescriptor] = useState<string | null>(null);
   const [condition, setCondition] = useState("No visible issue");
   const [phone, setPhone] = useState("");
-  const [keySlotCode, setKeySlotCode] = useState("");
   const [isManualEntry, setIsManualEntry] = useState(false);
 
   const activeVehicle = checkIn.activeSession?.vehicle ?? checkIn.pendingVehicle;
@@ -65,7 +63,7 @@ export function CheckInFlow({
   const displayMake = activeVehicle?.make ?? null;
   const displayModel = activeVehicle?.model ?? null;
   const displayColor = activeVehicle?.color ?? null;
-  const displayKeySlot = checkIn.activeSession?.keySlotCode ?? keySlotCode;
+  const displayKeySlot = checkIn.activeSession?.keySlotCode ?? "";
   const localizedError = checkIn.error
     ? presentLiveError(new Error(checkIn.error), locale, t)
     : null;
@@ -222,19 +220,14 @@ export function CheckInFlow({
     <CheckInLateSteps
       checkIn={checkIn}
       displayColor={displayColor}
-      displayKeySlot={displayKeySlot ?? ""}
+      displayKeySlot={displayKeySlot}
       displayMake={displayMake}
       displayModel={displayModel}
       displayPlate={displayPlate}
-      keyScanDone={keyScanDone}
-      keySlotCode={keySlotCode}
       localizedError={localizedError}
-      mode={mode}
       nav={nav}
       onOpenGuestAccess={onOpenGuestAccess}
       onStartParkingSuccess={onStartParkingSuccess}
-      setKeyScanDone={setKeyScanDone}
-      setKeySlotCode={setKeySlotCode}
     />
   );
 }

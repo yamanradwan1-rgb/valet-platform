@@ -1,6 +1,5 @@
 import {
   acceptTaskResponseSchema,
-  assignKeySlotResponseSchema,
   assignTaskResponseSchema,
   completeCheckInResponseSchema,
   conditionCompletionResponseSchema,
@@ -12,7 +11,6 @@ import {
   startParkingResponseSchema,
   vehicleIdentityResponseSchema,
   type AcceptTaskResponse,
-  type AssignKeySlotResponse,
   type AssignTaskResponse,
   type CompleteCheckInResponse,
   type ConditionCompletionResponse,
@@ -34,7 +32,6 @@ import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 
 export type {
   AcceptTaskResponse,
-  AssignKeySlotResponse,
   AssignTaskResponse,
   CompleteCheckInResponse,
   ConditionCompletionResponse,
@@ -160,22 +157,6 @@ export async function completeCheckInSession(
     requireAuth: true,
   });
   return completeCheckInResponseSchema.parse(raw);
-}
-
-export async function assignSessionKeySlot(
-  client: EmployeeApiClient,
-  sessionId: string,
-  expectedVersion: number,
-  keySlotCode: string,
-  options: CheckInApiRequestOptions = {},
-): Promise<AssignKeySlotResponse> {
-  const raw = await client.request<unknown>(`/v1/staff/valet-sessions/${sessionId}/key-slot/assign`, {
-    method: "POST",
-    body: { expectedVersion, keySlotCode },
-    signal: options.signal,
-    requireAuth: true,
-  });
-  return assignKeySlotResponseSchema.parse(raw);
 }
 
 export async function queueSessionParkingTask(

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { afterAll, beforeAll, describe, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   ConfirmParkedTestContext,
@@ -95,13 +95,36 @@ describe("VAL-005G Task and session guards", () => {
     },
   );
 
-  it("requires a present active current KeySlot", async () => {
-    const missing = await context.createConfirmParkedFixture();
+  it("binds an unbound session from free-slot evidence and rejects unusable assignments", async () => {
+    const unbound = await context.createConfirmParkedFixture();
     await context.adminPool.query(
       `UPDATE valet_sessions SET key_slot_id = NULL WHERE id = $1`,
-      [missing.sessionId],
+      [unbound.sessionId],
     );
-    await expectConfirmError(context.confirm(missing), "KEY_CUSTODY_NOT_READY");
+    await context.confirm(unbound);
+    const boundEffects = await context.completionEffects(unbound);
+    expect(boundEffects.projection).toMatchObject({
+      key_slot_id: unbound.keySlotId,
+      session_state: "PARKED",
+      session_version: 4,
+      task_status: "COMPLETED",
+      task_version: 5,
+    });
+    expect(
+      boundEffects.events.filter(
+        (event) => event.event_type === "RETURNED_TO_SLOT",
+      ),
+    ).toHaveLength(1);
+    // The original key-slot/assign command already appended one SLOT_ASSIGNED;
+    // Confirm Parked must add exactly one more for the re-binding.
+    const assignedAfterRebinding = await context.adminPool.query<{
+      count: number;
+    }>(
+      `SELECT count(*)::integer AS count FROM key_custody_events
+       WHERE valet_session_id = $1 AND event_type = 'SLOT_ASSIGNED'`,
+      [unbound.sessionId],
+    );
+    expect(assignedAfterRebinding.rows[0]?.count).toBe(2);
     const inactive = await context.createConfirmParkedFixture();
     await context.adminPool.query(
       `UPDATE key_slots SET status = 'INACTIVE' WHERE id = $1`,
@@ -111,6 +134,14 @@ describe("VAL-005G Task and session guards", () => {
       context.confirm(inactive),
       "KEY_CUSTODY_NOT_READY",
     );
+    const untouchedEffects = await context.completionEffects(inactive);
+    expect(untouchedEffects.projection).toMatchObject({
+      key_slot_id: inactive.keySlotId,
+      session_state: "PARKING",
+      session_version: 3,
+      task_status: "IN_PROGRESS",
+      task_version: 4,
+    });
   });
 });
 

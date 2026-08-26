@@ -93,7 +93,6 @@ describe("DEC-067 live parking scanner integrations", () => {
     const onConfirm = vi.fn();
     renderToStaticMarkup(
       <ParkingKeyReturnStep
-        assignedKeySlotCode="K-03"
         error={null}
         isOnline={true}
         isSubmitting={false}

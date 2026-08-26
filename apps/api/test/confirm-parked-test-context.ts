@@ -83,6 +83,35 @@ export class ConfirmParkedTestContext extends StartParkingTestContext {
     };
   }
 
+  /**
+   * DEC-068 post-Parking binding fixture: an unbound PARKING session
+   * (`key_slot_id IS NULL`) plus its physically free KeySlot row and a Parking
+   * Spot. Reuses `createStartParkingFixture({ assignKey: false })` and the
+   * real dual-mode Start Parking command (no key assignment step, no
+   * CHECKED_OUT); each version therefore advances exactly once and expected
+   * confirm versions are session 2 / task 4.
+   */
+  async createPostBindingFixture(
+    options: ShiftFixtureOptions & {
+      readonly spotStatus?: "ACTIVE" | "INACTIVE";
+      readonly withZone?: boolean;
+      readonly zoneStatus?: "ACTIVE" | "INACTIVE";
+    } = {},
+  ): Promise<ConfirmParkedFixture> {
+    const fixture = await this.createStartParkingFixture({
+      ...options,
+      assignKey: false,
+    });
+    await this.start(fixture, { session: 1, task: 3 });
+    const resource = await this.addParkingResource(fixture, options);
+    return {
+      ...fixture,
+      parkingSpotCode: resource.spot.code,
+      parkingSpotId: resource.spot.id,
+      parkingZoneId: resource.zone.id,
+    };
+  }
+
   async createCompetingFixture(
     base: ConfirmParkedFixture,
   ): Promise<ConfirmParkedFixture> {

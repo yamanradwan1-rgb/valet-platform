@@ -151,6 +151,10 @@ describe("VAL-005H production API operations gate", () => {
     expect(
       new Date(String(projection.parking_started_at)).getTime(),
     ).toBeLessThanOrEqual(new Date(String(projection.parked_at)).getTime());
+    // DEC-068 §28: this gate pins the LEGACY/preassigned branch sequence;
+    // the NEW binding-mode branch (NULL key_slot_id: SLOT_ASSIGNED ->
+    // RETURNED_TO_SLOT at Confirm Parked, then retrieval CHECKED_OUT and
+    // handoff RELEASED) is proven by the confirm-parked-post-binding* suites.
     expect(
       await context.eventTypes("key_custody_events", fixture.sessionId),
     ).toEqual(["SLOT_ASSIGNED", "CHECKED_OUT", "RETURNED_TO_SLOT"]);

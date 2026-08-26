@@ -25,14 +25,14 @@ export type BadgeVariant =
   | "ready"
   | "completed";
 
+// DEC-068 §5/§23: the normal Check-In flow has no key-scan/key-assigned
+// steps; a completed condition leads directly to the parking-task step.
 export type CheckInStep =
   | "plate-scan"
   | "plate-confirm"
   | "manual-plate"
   | "customer-phone"
   | "vehicle-condition"
-  | "key-scan"
-  | "key-assigned"
   | "parking-task";
 
 export type ParkingStep = "in-progress" | "spot-scan" | "success";

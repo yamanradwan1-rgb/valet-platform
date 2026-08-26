@@ -80,12 +80,12 @@ export async function authorizeStartParkingOwner(
   }
 }
 
-export async function lockActiveCurrentKeySlot(
+export async function lockOptionalCurrentKeySlot(
   transaction: PostgresTransaction,
   session: LockedStartParkingSession,
-): Promise<string> {
+): Promise<string | null> {
   if (session.key_slot_id === null) {
-    throw new StartParkingError("KEY_CUSTODY_NOT_READY");
+    return null;
   }
   const result = await transaction.query<{ id: string }>(
     `SELECT id::text FROM key_slots

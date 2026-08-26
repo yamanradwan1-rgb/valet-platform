@@ -29,7 +29,6 @@ export interface UseCheckInOptions {
 
 export interface UseCheckInResult {
   readonly activeSession: CheckInActiveSession | null;
-  readonly assignKey: (keySlotCode: string) => Promise<void>;
   readonly completeCondition: (conditionNote?: string) => Promise<void>;
   readonly confirmPlate: (vehicleData: CheckInVehicleData) => Promise<void>;
   readonly continuations: StaffCheckInContinuationSummary[];
@@ -131,13 +130,6 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
     [controller],
   );
 
-  const assignKey = useCallback(
-    async (keySlotCode: string) => {
-      await controller.assignKey(keySlotCode);
-    },
-    [controller],
-  );
-
   const createParkingTask = useCallback(async () => {
     await controller.createParkingTask();
   }, [controller]);
@@ -179,7 +171,6 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
 
   return {
     activeSession: controllerState.activeSession,
-    assignKey,
     completeCondition,
     confirmPlate,
     continuations: controllerState.continuations,

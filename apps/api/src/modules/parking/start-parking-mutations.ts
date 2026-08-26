@@ -33,7 +33,8 @@ export async function startParkingSession(
      SET state = 'PARKING', parking_started_at = $3,
          version = version + 1, updated_at = $3
      WHERE id = $1 AND version = $2 AND state = 'AWAITING_PARKING'
-       AND parking_started_at IS NULL AND key_slot_id = $4
+       AND parking_started_at IS NULL
+       AND key_slot_id IS NOT DISTINCT FROM $4
      RETURNING version`,
     [session.id, session.version, operationTime, session.key_slot_id],
   );

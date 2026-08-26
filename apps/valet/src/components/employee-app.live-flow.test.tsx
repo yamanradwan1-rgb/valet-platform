@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import type {
-  AssignKeySlotResponse,
   AssignTaskResponse,
   ConfirmParkedResponse,
   IntakeResponse,
@@ -17,7 +16,17 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
   const sessionId = "22222222-2222-4222-8222-222222222222";
   const taskId = "33333333-3333-4333-8333-333333333333";
 
-  it("proves end-to-end connected lifecycle without local simulation", async () => {
+  function expectZeroKeySlotCalls(client: EmployeeApiClient): void {
+    const calls = (client.request as unknown as { mock: { calls: unknown[][] } })
+      .mock.calls;
+    const keySlotCalls = calls.filter((call) =>
+      String(call[0]).includes("/key-slot/"),
+    );
+    // DEC-068 §5: the normal path never calls key-slot assign/clear.
+    expect(keySlotCalls).toHaveLength(0);
+  }
+
+  it("proves end-to-end connected lifecycle without local simulation or key pre-assignment", async () => {
     const intakePayload: IntakeResponse = {
       createdAt: "2026-08-21T18:00:00.000Z",
       customerId: "99999999-9999-4999-8999-999999999999",
@@ -26,12 +35,6 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       vehicleId: "44444444-4444-4444-8444-444444444444",
       vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
       version: 1,
-    };
-    const assignKeyPayload: AssignKeySlotResponse = {
-      keySlotCode: "B-214",
-      sessionId,
-      state: "AWAITING_PARKING",
-      version: 3,
     };
     const queueTaskPayload: ParkingTaskQueueResponse = {
       createdAt: "2026-08-21T18:05:00.000Z",
@@ -46,7 +49,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       checkIn: { conditionCompletedAt: "2026-08-21T18:02:00.000Z" },
       handoff: { pendingAt: null, verification: null },
       guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
-      keySlot: { code: "B-214" },
+      keySlot: null,
       locationId,
       parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: "North-A" },
       sessionId,
@@ -61,7 +64,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
         vehicleId: "44444444-4444-4444-8444-444444444444",
         vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
       },
-      version: 3,
+      version: 2,
     };
     const assignTaskPayload: AssignTaskResponse = {
       createdAt: "2026-08-21T18:05:30.000Z",
@@ -75,7 +78,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
     const startParkingPayload: StartParkingResponse = {
       parkingStartedAt: "2026-08-21T18:06:00.000Z",
       sessionId,
-      sessionVersion: 4,
+      sessionVersion: 3,
       state: "PARKING",
       taskId,
       taskStatus: "IN_PROGRESS",
@@ -87,7 +90,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       parkingSpotId: "55555555-5555-4555-8555-555555555555",
       parkingZoneId: "66666666-6666-4666-8666-666666666666",
       sessionId,
-      sessionVersion: 5,
+      sessionVersion: 4,
       state: "PARKED",
       taskId,
       taskStatus: "COMPLETED",
@@ -116,8 +119,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
           state: "AWAITING_PARKING",
           valetSessionId: sessionId,
           version: 2,
-        }) // complete check-in
-        .mockResolvedValueOnce(assignKeyPayload) // assign key
+        }) // complete check-in -> straight to Parking Task (DEC-068 §5)
         .mockResolvedValueOnce(queueTaskPayload) // queue task
         .mockResolvedValueOnce(queueTaskPayload) // queue task again on startParking
         .mockResolvedValueOnce(detailPayload) // session detail for startParking
@@ -156,26 +158,29 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
     await checkInController.submitCustomerPhone(locationId, "+962791234567");
     expect(checkInController.getState().activeSession?.sessionId).toBe(sessionId);
     expect(checkInController.getState().activeSession?.state).toBe("CHECKING_IN");
+    expect(checkInController.getState().activeSession?.keySlotCode).toBeNull();
 
-    // 3. Condition completion transitions to AWAITING_PARKING
+    // 3. Condition completion transitions to AWAITING_PARKING and directly
+    //    to the Parking Task step — no key-scan step exists anymore.
     await checkInController.completeCondition("No scratches");
     expect(checkInController.getState().activeSession?.state).toBe("AWAITING_PARKING");
+    expect(checkInController.getState().step).toBe("parking-task");
+    expect(checkInController.getState().activeSession?.keySlotCode).toBeNull();
+    expectZeroKeySlotCalls(mockClient);
 
-    // 4. Assign key slot
-    await checkInController.assignKey("B-214");
-    expect(checkInController.getState().activeSession?.keySlotCode).toBe("B-214");
-
-    // 5. Create parking task
+    // 4. Create parking task
     await checkInController.createParkingTask();
     expect(checkInController.getState().activeSession?.parkingTaskId).toBe(taskId);
 
-    // 6. Start parking transitions to ParkingFlow payload
+    // 5. Start parking transitions to ParkingFlow payload with NULL keySlotCode
     const parkingPayload = await checkInController.startParking();
     expect(parkingPayload).not.toBeNull();
     expect(parkingPayload?.taskId).toBe(taskId);
-    expect(parkingPayload?.sessionVersion).toBe(4);
+    expect(parkingPayload?.sessionVersion).toBe(3);
+    expect(parkingPayload?.keySlotCode).toBeNull();
+    expectZeroKeySlotCalls(mockClient);
 
-    // 7. Parking controller confirms parked
+    // 6. Parking controller confirms parked with spot + deposited slot code
     const parkingController = new ParkingController(mockClient, vi.fn());
     parkingController.setActiveSession({
       keySlotCode: parkingPayload!.keySlotCode,
@@ -191,46 +196,43 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       vehicle: parkingPayload!.vehicle,
     });
 
-    await parkingController.confirmParked("P-101", "B-214");
+    await parkingController.confirmParked("P-101", "K-07");
 
     const parkingState = parkingController.getState();
     expect(parkingState.step).toBe("success");
     expect(parkingState.activeSession?.parkingSpotCode).toBe("P-101");
-    expect(parkingState.activeSession?.sessionVersion).toBe(5);
+    expect(parkingState.activeSession?.sessionVersion).toBe(4);
     expect(parkingState.activeSession?.taskVersion).toBe(5);
   });
 
-  it("handles key conflict without showing false success", async () => {
+  it("hydrates a NULL-slot AWAITING_PARKING continuation straight to parking-task without any key-slot call", async () => {
     const mockClient = {
-      request: vi
-        .fn()
-        .mockResolvedValueOnce({
-          checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
-          handoff: { pendingAt: null, verification: null },
-          guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
-          keySlot: null,
-          locationId,
-          parking: {
-            parkedAt: null,
-            parkingSpotCode: null,
-            parkingStartedAt: null,
-            parkingZoneCode: null,
-          },
-          sessionId,
-          state: "AWAITING_PARKING",
-          vehicle: {
-            color: "Black",
-            make: "BMW",
-            model: "X5",
-            plateCountry: "JO",
-            plateNumberRaw: "12-34567",
-            temporaryDescriptor: null,
-            vehicleId: "44444444-4444-4444-8444-444444444444",
-            vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
-          },
-          version: 2,
-        })
-        .mockRejectedValueOnce(new Error("Key slot already occupied.")),
+      request: vi.fn().mockResolvedValueOnce({
+        checkIn: { conditionCompletedAt: "2026-08-21T18:00:00.000Z" },
+        handoff: { pendingAt: null, verification: null },
+        guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
+        keySlot: null,
+        locationId,
+        parking: {
+          parkedAt: null,
+          parkingSpotCode: null,
+          parkingStartedAt: null,
+          parkingZoneCode: null,
+        },
+        sessionId,
+        state: "AWAITING_PARKING",
+        vehicle: {
+          color: "Black",
+          make: "BMW",
+          model: "X5",
+          plateCountry: "JO",
+          plateNumberRaw: "12-34567",
+          temporaryDescriptor: null,
+          vehicleId: "44444444-4444-4444-8444-444444444444",
+          vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
+        },
+        version: 2,
+      }),
     } as unknown as EmployeeApiClient;
 
     const controller = new CheckInController(mockClient, vi.fn());
@@ -247,12 +249,14 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       },
     });
 
-    expect(controller.getState().step).toBe("key-scan");
+    const state = controller.getState();
+    expect(state.step).toBe("parking-task");
+    expect(state.error).toBeNull();
+    expect(state.activeSession?.state).toBe("AWAITING_PARKING");
+    expect(state.activeSession?.keySlotCode).toBeNull();
 
-    await controller.assignKey("B-214");
-
-    expect(controller.getState().step).toBe("key-scan");
-    expect(controller.getState().error).toBe("Key slot already occupied.");
-    expect(controller.getState().activeSession?.keySlotCode).toBeNull();
+    // Only the single authoritative detail fetch happened; no mutation at all.
+    expect(mockClient.request).toHaveBeenCalledTimes(1);
+    expectZeroKeySlotCalls(mockClient);
   });
 });

@@ -27,6 +27,17 @@ export interface LockedParkingSpot {
   readonly parking_zone_id: string;
 }
 
+export type ConfirmKeySlotMode = "binding" | "legacy";
+
+export interface ConfirmParkedKeyBinding {
+  readonly expectedCurrentKeySlotId: string | null;
+  readonly newKeySlotId: string;
+}
+
+export interface LockedConfirmKeySlot extends ConfirmParkedKeyBinding {
+  readonly mode: ConfirmKeySlotMode;
+}
+
 export interface ConfirmParkedResult {
   readonly parkedAt: string;
   readonly parkingSpotCode: string;
