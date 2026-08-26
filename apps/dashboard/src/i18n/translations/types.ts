@@ -2,6 +2,7 @@ import type { DashboardSessionState } from "@valet/contracts";
 
 import type { ActiveShiftsStrings } from "./sections/active-shifts-strings";
 import type { AnalyticsStrings } from "./sections/analytics-strings";
+import type { BrandingStrings } from "./sections/branding-strings";
 import type { FoundationStrings } from "./sections/foundation-strings";
 import type { FinancialOverviewStrings } from "./sections/financial-overview-strings";
 import type { IncidentsStrings } from "./sections/incidents-strings";
@@ -15,6 +16,7 @@ import type { ReportsStrings } from "./sections/reports-strings";
 import type { RetrievalQueueStrings } from "./sections/retrieval-queue-strings";
 import type { SessionsStrings } from "./sections/sessions-strings";
 import type { SharedStrings } from "./sections/shared-strings";
+import type { SubscriptionStrings } from "./sections/subscription-strings";
 import type { TasksStrings } from "./sections/tasks-strings";
 
 /**
@@ -29,6 +31,7 @@ export interface TranslationDictionary
   extends
     ActiveShiftsStrings,
     AnalyticsStrings,
+    BrandingStrings,
     FoundationStrings,
     FinancialOverviewStrings,
     IncidentsStrings,
@@ -42,6 +45,7 @@ export interface TranslationDictionary
     RetrievalQueueStrings,
     SessionsStrings,
     SharedStrings,
+    SubscriptionStrings,
     TasksStrings {}
 
 export type TranslationKey = keyof TranslationDictionary;

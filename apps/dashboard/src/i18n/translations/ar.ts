@@ -2,6 +2,7 @@ import type { TranslationDictionary } from "./types";
 
 import { activeShiftsAr } from "./sections/active-shifts-strings";
 import { analyticsAr } from "./sections/analytics-strings";
+import { brandingAr } from "./sections/branding-strings";
 import { foundationAr } from "./sections/foundation-strings";
 import { financialOverviewAr } from "./sections/financial-overview-strings";
 import { incidentsAr } from "./sections/incidents-strings";
@@ -15,6 +16,7 @@ import { reportsAr } from "./sections/reports-strings";
 import { retrievalQueueAr } from "./sections/retrieval-queue-strings";
 import { sessionsAr } from "./sections/sessions-strings";
 import { sharedAr } from "./sections/shared-strings";
+import { subscriptionAr } from "./sections/subscription-strings";
 import { tasksAr } from "./sections/tasks-strings";
 
 /**
@@ -23,6 +25,7 @@ import { tasksAr } from "./sections/tasks-strings";
 export const arTranslations: TranslationDictionary = {
   ...activeShiftsAr,
   ...analyticsAr,
+  ...brandingAr,
   ...foundationAr,
   ...financialOverviewAr,
   ...incidentsAr,
@@ -36,5 +39,6 @@ export const arTranslations: TranslationDictionary = {
   ...retrievalQueueAr,
   ...sessionsAr,
   ...sharedAr,
+  ...subscriptionAr,
   ...tasksAr,
 };

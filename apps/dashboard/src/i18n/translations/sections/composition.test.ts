@@ -4,6 +4,7 @@ import { arTranslations } from "../ar";
 import { enTranslations } from "../en";
 import { activeShiftsAr, activeShiftsEn } from "./active-shifts-strings";
 import { analyticsAr, analyticsEn } from "./analytics-strings";
+import { brandingAr, brandingEn } from "./branding-strings";
 import { foundationAr, foundationEn } from "./foundation-strings";
 import {
   financialOverviewAr,
@@ -29,6 +30,10 @@ import {
 } from "./retrieval-queue-strings";
 import { sessionsAr, sessionsEn } from "./sessions-strings";
 import { sharedAr, sharedEn } from "./shared-strings";
+import {
+  subscriptionAr,
+  subscriptionEn,
+} from "./subscription-strings";
 import { tasksAr, tasksEn } from "./tasks-strings";
 
 /**
@@ -44,6 +49,7 @@ import { tasksAr, tasksEn } from "./tasks-strings";
 const EN_FRAGMENTS = [
   ["activeShifts", activeShiftsEn],
   ["analytics", analyticsEn],
+  ["branding", brandingEn],
   ["financialOverview", financialOverviewEn],
   ["foundation", foundationEn],
   ["incidents", incidentsEn],
@@ -57,12 +63,14 @@ const EN_FRAGMENTS = [
   ["retrievalQueue", retrievalQueueEn],
   ["sessions", sessionsEn],
   ["shared", sharedEn],
+  ["subscription", subscriptionEn],
   ["tasks", tasksEn],
 ] as const;
 
 const AR_FRAGMENTS = [
   ["activeShifts", activeShiftsAr],
   ["analytics", analyticsAr],
+  ["branding", brandingAr],
   ["financialOverview", financialOverviewAr],
   ["foundation", foundationAr],
   ["incidents", incidentsAr],
@@ -76,6 +84,7 @@ const AR_FRAGMENTS = [
   ["retrievalQueue", retrievalQueueAr],
   ["sessions", sessionsAr],
   ["shared", sharedAr],
+  ["subscription", subscriptionAr],
   ["tasks", tasksAr],
 ] as const;
 

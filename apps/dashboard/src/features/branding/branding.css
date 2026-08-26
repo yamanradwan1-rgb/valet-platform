@@ -1,0 +1,445 @@
+/* Branding (D4-004) feature styles. Feature-local on purpose: globals.css
+   must not grow for this task. All rules use logical properties so EN/AR and
+   RTL mirror correctly. */
+
+.branding-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.branding-metadata span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.branding-metadata p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.branding-loading {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  color: var(--text-muted);
+  padding: 40px 16px;
+  font-size: 14px;
+  background: var(--surface);
+}
+
+.branding-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.branding-banner.is-conflict {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.branding-banner strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.branding-banner p {
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.branding-banner-intent {
+  font-weight: 600;
+}
+
+.branding-banner .btn-secondary {
+  min-height: 36px;
+  padding-inline: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.branding-preview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.branding-preview h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.branding-preview-band {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  background: var(--surface-muted);
+}
+
+.branding-preview-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.branding-preview-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.branding-preview-caption {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.branding-preview-facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.branding-preview-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.branding-preview-facts dt {
+  color: var(--text-muted);
+}
+
+.branding-preview-facts dd {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.branding-swatch {
+  display: inline-block;
+  inline-size: 16px;
+  block-size: 16px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  vertical-align: -3px;
+}
+
+.branding-mono {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.95em;
+}
+
+/* Column legend for wide screens; rows stack their own labels below it. */
+.branding-columns {
+  display: none;
+  gap: 8px 16px;
+  padding-inline: 16px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  grid-template-columns:
+    minmax(0, 1.6fr) minmax(0, 1.6fr) minmax(0, 1.8fr)
+    minmax(0, 1.8fr) minmax(0, auto);
+}
+
+@media (min-width: 900px) {
+  .branding-columns,
+  .branding-row {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.6fr) minmax(0, 1.6fr) minmax(0, 1.8fr)
+      minmax(0, 1.8fr) minmax(0, auto);
+  }
+
+  .branding-row {
+    align-items: start;
+  }
+}
+
+.branding-rows {
+  display: grid;
+  gap: 10px;
+}
+
+.branding-row {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.branding-row-name h3 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.branding-row-name p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.branding-cell-label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@media (min-width: 900px) {
+  .branding-cell-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .branding-row-cell {
+    position: relative;
+  }
+}
+
+.branding-value,
+.branding-applied {
+  font-size: 14px;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.branding-value.is-override {
+  font-weight: 600;
+}
+
+.branding-applied {
+  font-weight: 700;
+}
+
+.branding-present-tag {
+  margin-inline-start: 6px;
+  color: var(--success);
+  font-weight: 700;
+}
+
+.branding-absent {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.branding-readonly-tag {
+  display: inline-block;
+  margin-top: 4px;
+  margin-inline-start: 6px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 1px 8px;
+}
+
+.branding-row-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+@media (min-width: 900px) {
+  .branding-row-actions {
+    justify-content: flex-end;
+  }
+}
+
+.branding-clear-button {
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding-inline: 12px;
+}
+
+.branding-clear-button:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
+.branding-clear-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Editor dialog + clear dialog panel (mirrors the reviewed Location Settings
+   editor sheet geometry). */
+.branding-editor-panel {
+  position: absolute;
+  inset-inline: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 460px;
+  max-height: min(88vh, 640px);
+  margin-inline: auto;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-popover);
+  padding: 20px;
+}
+
+.branding-editor-panel.is-compact {
+  max-width: 420px;
+}
+
+@media (min-width: 640px) {
+  .branding-editor-panel {
+    inset-inline: 0;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    margin-inline-start: 0;
+  }
+
+  [dir="rtl"] .branding-editor-panel {
+    inset-inline-start: 0;
+    inset-inline-end: 50%;
+    transform: translate(50%, -50%);
+  }
+}
+
+.branding-editor-panel h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.branding-editor-subtitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.branding-editor-facts {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  padding: 10px 12px;
+  margin: 0 0 14px;
+  font-size: 12.5px;
+}
+
+.branding-editor-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.branding-editor-facts dt {
+  color: var(--text-muted);
+}
+
+.branding-editor-facts dd {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: end;
+}
+
+.branding-color-row {
+  display: flex;
+  gap: 8px;
+}
+
+.branding-color-row .form-input {
+  flex: 1;
+}
+
+.branding-color-picker {
+  inline-size: 42px;
+  block-size: 38px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  cursor: pointer;
+}
+
+.branding-field-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

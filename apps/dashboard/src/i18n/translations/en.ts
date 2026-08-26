@@ -2,6 +2,7 @@ import type { TranslationDictionary } from "./types";
 
 import { activeShiftsEn } from "./sections/active-shifts-strings";
 import { analyticsEn } from "./sections/analytics-strings";
+import { brandingEn } from "./sections/branding-strings";
 import { foundationEn } from "./sections/foundation-strings";
 import { financialOverviewEn } from "./sections/financial-overview-strings";
 import { incidentsEn } from "./sections/incidents-strings";
@@ -15,6 +16,7 @@ import { reportsEn } from "./sections/reports-strings";
 import { retrievalQueueEn } from "./sections/retrieval-queue-strings";
 import { sessionsEn } from "./sections/sessions-strings";
 import { sharedEn } from "./sections/shared-strings";
+import { subscriptionEn } from "./sections/subscription-strings";
 import { tasksEn } from "./sections/tasks-strings";
 
 /**
@@ -23,6 +25,7 @@ import { tasksEn } from "./sections/tasks-strings";
 export const enTranslations: TranslationDictionary = {
   ...activeShiftsEn,
   ...analyticsEn,
+  ...brandingEn,
   ...foundationEn,
   ...financialOverviewEn,
   ...incidentsEn,
@@ -36,5 +39,6 @@ export const enTranslations: TranslationDictionary = {
   ...retrievalQueueEn,
   ...sessionsEn,
   ...sharedEn,
+  ...subscriptionEn,
   ...tasksEn,
 };
