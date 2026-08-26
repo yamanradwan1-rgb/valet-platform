@@ -11,7 +11,9 @@ import {
 
 const LOCATION_ID = "5f0f3f4e-9d6a-4a1c-8f2e-1b2c3d4e5f60";
 
-const BASE = `/v1/staff/dashboard/locations/${LOCATION_ID}`;
+// Paths supplied to StaffApiClient are RELATIVE to its `/v1/staff` base;
+// see overview-url-resolution.test.ts for the resolved-URL proof.
+const BASE = `/dashboard/locations/${LOCATION_ID}`;
 const STATE_COUNTS_PATH = `${BASE}/overview/session-state-counts`;
 const QUEUE_PATH = `${BASE}/analytics/queue`;
 const FINANCIAL_PATH = `${BASE}/overview/financial`;

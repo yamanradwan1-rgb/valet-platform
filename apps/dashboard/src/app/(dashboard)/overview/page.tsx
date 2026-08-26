@@ -104,9 +104,10 @@ export default function OverviewPage() {
   const { state, reload } = useOverviewData(client, locationId);
 
   if (location === null) {
-    // No dev bootstrap configured: without a location ID no authorized
-    // backend call can be made. This stays an explicit local-development
-    // posture until the real authorized-location bootstrap endpoint exists.
+    // Defensive only since D2-005: LocationGate renders children solely for
+    // ready bootstraps holding at least one authorized location, so a real
+    // location ID always exists here. Without one no authorized backend
+    // call may be made, so the page stays honestly empty.
     return (
       <div className="page-shell">
         <PageHeader

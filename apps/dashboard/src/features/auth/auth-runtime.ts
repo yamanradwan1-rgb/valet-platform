@@ -16,16 +16,33 @@ interface RuntimeState {
   accessToken: string | null;
   session: StaffSessionView | null;
   refreshTimerId: number | null;
+  /**
+   * Wall-clock instant at which the CURRENT session was claimed by this tab
+   * (login or successful cold-restore apply). Rotations preserve it; teardown
+   * clears it. Non-secret, memory-only coordination metadata used solely to
+   * reject sibling events that predate the local claim.
+   */
+  claimedAtMs: number | null;
 }
 
 const runtime: RuntimeState = {
   accessToken: null,
+  claimedAtMs: null,
   session: null,
   refreshTimerId: null,
 };
 
 type UnauthorizedRecovery = () => Promise<string | null>;
 
+/**
+ * Recovery contract shared with StaffApiClient:
+ * - resolves a fresh access token  -> the failed request is retried once;
+ * - resolves `null`                -> the client rethrows the ORIGINAL
+ *   unauthorized error (authoritative session end);
+ * - throws                         -> that error surfaces verbatim instead,
+ *   which is how transient refresh failures (network/server) reach feature
+ *   surfaces as retryable errors rather than as fake session expiry.
+ */
 let unauthorizedRecovery: UnauthorizedRecovery = () => Promise.resolve(null);
 let refreshTrigger: UnauthorizedRecovery = () => Promise.resolve(null);
 let refreshInFlight: Promise<string | null> | null = null;
@@ -84,9 +101,28 @@ export function setStaffSession(
   runtime.accessToken = accessToken;
 }
 
+/**
+ * Records that THIS tab just claimed the browser session (login or restore
+ * completion). Distinct from rotations: a rotation keeps the original claim
+ * instant so late sibling events from before the claim stay rejectable.
+ */
+export function claimStaffSession(
+  view: StaffSessionView,
+  accessToken: string,
+  claimedAtMs: number,
+): void {
+  setStaffSession(view, accessToken);
+  runtime.claimedAtMs = claimedAtMs;
+}
+
+export function getStaffSessionClaimedAtMs(): number | null {
+  return runtime.claimedAtMs;
+}
+
 export function clearStaffSession(): void {
   runtime.session = null;
   runtime.accessToken = null;
+  runtime.claimedAtMs = null;
 }
 
 export function clearRefreshTimer(): void {

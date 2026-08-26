@@ -10,12 +10,27 @@ import React, {
 } from "react";
 
 import { getStaffApiBaseUrl } from "../../lib/api/api-config";
-import { DashboardApiError } from "../../lib/api/api-error";
 import { StaffApiClient } from "../../lib/api/staff-api-client";
-import { computeRefreshDelayMs, hasSessionEnded } from "./access-schedule";
+import {
+  MIN_REFRESH_DELAY_MS,
+  computeRefreshDelayMs,
+  hasSessionEnded,
+} from "./access-schedule";
+import {
+  publishSessionEvent,
+  runInAuthMutationLock,
+} from "./cross-tab-session";
+import {
+  decideAuthRefreshResult,
+  type AuthRefreshMode,
+  type RefreshOutcome,
+} from "./refresh-decision";
+import { shouldSkipQueuedRefresh } from "./sibling-session";
+import { useSiblingSessionEvents } from "./use-sibling-session";
 import {
   clearRefreshTimer,
   clearStaffSession,
+  claimStaffSession,
   getStaffAccessToken,
   getStaffSession,
   recoverStaffUnauthorized,
@@ -47,14 +62,6 @@ interface StoredTokens {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function isSessionOver(error: unknown): boolean {
-  return (
-    error instanceof DashboardApiError &&
-    (error.kind === "session-expired" ||
-      error.code === "STAFF_AUTHENTICATION_FAILED")
-  );
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("restoring");
   const [session, setSession] = useState<StaffSessionView | null>(() =>
@@ -72,47 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }),
   );
 
-  const storeTokens = useCallback((tokens: StoredTokens, email: string) => {
-    const view: StaffSessionView = {
-      email,
-      accessExpiresAt: tokens.accessExpiresAt,
-      sessionExpiresAt: tokens.sessionExpiresAt,
-    };
-    setStaffSession(view, tokens.accessToken);
-    setSession(view);
-  }, []);
-
-  /**
-   * Single-flight refresh shared by the proactive timer and 401 recovery.
-   * Resolves with the new access token, or null when the session is over.
-   */
-  const refreshSession = useCallback((): Promise<string | null> => {
-    return runSingleFlightRefresh(async () => {
-      try {
-        const current = getStaffSession();
-        const tokens = await client.refresh();
-        if (current === null) return null;
-        storeTokens(tokens, current.email);
-        setStatus("authenticated");
-        scheduleNextRefresh(tokens);
-        return tokens.accessToken;
-      } catch (error) {
-        clearStaffSession();
-        setSession(null);
-        setStatus(isSessionOver(error) ? "expired" : "unauthenticated");
-        return null;
-      }
-    });
-  }, [client, storeTokens]);
-
-  useEffect(() => {
-    registerUnauthorizedRecovery(refreshSession);
-    registerRefreshTrigger(refreshSession);
-  }, [refreshSession]);
-
-  useEffect(() => clearRefreshTimer, []);
-
-  function scheduleNextRefresh(tokens: StoredTokens): void {
+  const scheduleNextRefresh = useCallback((tokens: StoredTokens): void => {
     if (hasSessionEnded(Date.now(), Date.parse(tokens.sessionExpiresAt))) {
       return;
     }
@@ -121,48 +88,188 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       Date.parse(tokens.accessExpiresAt),
     );
     scheduleProactiveRefresh(delay, () => void triggerStaffRefresh());
-  }
+  }, []);
+
+  /** Applies rotated tokens for the SAME claimed session lineage. */
+  const applyTokens = useCallback(
+    (tokens: StoredTokens, email: string): string => {
+      const view: StaffSessionView = {
+        email,
+        accessExpiresAt: tokens.accessExpiresAt,
+        sessionExpiresAt: tokens.sessionExpiresAt,
+      };
+      setStaffSession(view, tokens.accessToken);
+      setSession(view);
+      setStatus("authenticated");
+      scheduleNextRefresh(tokens);
+      return tokens.accessToken;
+    },
+    [scheduleNextRefresh],
+  );
+
+  /** Records a NEW local claim of the browser session (login / restore). */
+  const claimTokens = useCallback(
+    (tokens: StoredTokens, email: string): string => {
+      const view: StaffSessionView = {
+        email,
+        accessExpiresAt: tokens.accessExpiresAt,
+        sessionExpiresAt: tokens.sessionExpiresAt,
+      };
+      claimStaffSession(view, tokens.accessToken, Date.now());
+      setSession(view);
+      setStatus("authenticated");
+      scheduleNextRefresh(tokens);
+      return tokens.accessToken;
+    },
+    [scheduleNextRefresh],
+  );
+
+  const endSession = useCallback((reason: "expired"): void => {
+    clearRefreshTimer();
+    clearStaffSession();
+    setSession(null);
+    setStatus(reason);
+    // Authoritative family death concerns every tab of this browser.
+    publishSessionEvent({
+      occurredAtMs: Date.now(),
+      reason,
+      type: "ended",
+    });
+  }, []);
+
+  /**
+   * Single-flight refresh shared by the proactive timer, 401 recovery and
+   * cold restore. Serialized across browser tabs by DEC-023's Web Locks rule
+   * so two tabs can never race one rotation into a replay revocation.
+   *
+   * Recovery contract (see registerUnauthorizedRecovery): resolves a fresh
+   * token to retry once, or `null` when the original request error should
+   * surface; only an authoritative backend rejection ends the session here —
+   * transient failures keep it alive and retry shortly after.
+   */
+  const refreshSession = useCallback(
+    (mode: AuthRefreshMode): Promise<string | null> =>
+      runSingleFlightRefresh(() => {
+        const tokenBeforeQueue = getStaffAccessToken();
+        return runInAuthMutationLock(async () => {
+          // A sibling tab may have rotated while this tab waited on the
+          // cross-tab lock; its broadcast already installed the newer token.
+          if (
+            shouldSkipQueuedRefresh({
+              before: getStaffSession(),
+              mode,
+              tokenChangedWhileQueued:
+                getStaffAccessToken() !== tokenBeforeQueue,
+            })
+          ) {
+            return getStaffAccessToken();
+          }
+          const before = getStaffSession();
+          let outcome: RefreshOutcome;
+          try {
+            outcome = { ok: true, tokens: await client.refresh() };
+          } catch (error) {
+            outcome = { ok: false, error };
+          }
+          const decision = decideAuthRefreshResult({
+            after: getStaffSession(),
+            before,
+            mode,
+            outcome,
+          });
+          switch (decision.action) {
+            case "apply": {
+              // "apply" is produced from successful outcomes only; the guard
+              // keeps the compiler honest about the outcome union shape.
+              if (!outcome.ok) return null;
+              const accessToken = applyTokens(outcome.tokens, decision.email);
+              // Only the tab that actually performed the rotation informs
+              // its siblings; adopters never rebroadcast.
+              publishSessionEvent({
+                accessToken,
+                accessExpiresAt: outcome.tokens.accessExpiresAt,
+                sessionExpiresAt: outcome.tokens.sessionExpiresAt,
+                type: "refreshed",
+              });
+              return accessToken;
+            }
+            case "end-expired":
+              endSession("expired");
+              return null;
+            case "end-unauthenticated":
+              clearStaffSession();
+              setSession(null);
+              setStatus("unauthenticated");
+              return null;
+            case "retry-later":
+              scheduleProactiveRefresh(
+                MIN_REFRESH_DELAY_MS,
+                () => void triggerStaffRefresh(),
+              );
+              return null;
+            default:
+              return null;
+          }
+        });
+      }),
+    [applyTokens, client, endSession],
+  );
+
+  useEffect(() => {
+    const refresh = (): Promise<string | null> => refreshSession("refresh");
+    registerUnauthorizedRecovery(refresh);
+    registerRefreshTrigger(refresh);
+  }, [refreshSession]);
+
+  useEffect(() => clearRefreshTimer, []);
 
   // Restore an existing browser session from the httpOnly refresh cookie.
   useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const tokens = await client.refresh();
-        if (cancelled) return;
-        storeTokens(tokens, "");
-        setStatus("authenticated");
-        scheduleNextRefresh(tokens);
-      } catch {
-        if (!cancelled) setStatus("unauthenticated");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [client, storeTokens]);
+    void refreshSession("restore");
+  }, [refreshSession]);
+
+  // Sibling-tab coordination. Arrival order is never trusted: freshness and
+  // dominance rules plus adoption/teardown behavior live in
+  // useSiblingSessionEvents / reduceSiblingEvent (pure, unit-tested).
+  useSiblingSessionEvents({ setSession, setStatus });
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      const tokens = await client.login({ email, password });
-      storeTokens(tokens, email);
-      setStatus("authenticated");
-      scheduleNextRefresh(tokens);
+      // Under the same browser-wide auth-mutation lock as refresh/logout:
+      // a delayed in-flight refresh must not overwrite this login's cookie
+      // or resurrect the previous credential family over the new principal.
+      await runInAuthMutationLock(async () => {
+        const tokens = await client.login({ email, password });
+        claimTokens(tokens, email);
+        // The shared cookie now belongs to this newer login: every sibling
+        // tab ends its previous-principal UI immediately instead of silently
+        // rotating onto these credentials later behind a stale identity.
+        publishSessionEvent({ occurredAtMs: Date.now(), type: "replaced" });
+      });
     },
-    [client, storeTokens],
+    [claimTokens, client],
   );
 
   const signOut = useCallback(async () => {
-    clearRefreshTimer();
-    try {
-      await client.logout();
-    } catch {
-      // Logout is best-effort; on success the server clears the cookie and a
-      // stale cookie simply expires together with the session.
-    }
-    clearStaffSession();
-    setSession(null);
-    setStatus("unauthenticated");
+    // Same lock: a queued/in-flight refresh can neither resurrect the cookie
+    // after the backend clears it nor race the revocation window.
+    await runInAuthMutationLock(async () => {
+      clearRefreshTimer();
+      try {
+        await client.logout();
+      } catch {
+        // Logout is best-effort locally; see the sign-out posture notes —
+        // the truthful server state is only known from the response.
+      }
+      clearStaffSession();
+      setSession(null);
+      setStatus("unauthenticated");
+      publishSessionEvent({
+        occurredAtMs: Date.now(),
+        reason: "signed-out",
+        type: "ended",
+      });
+    });
   }, [client]);
 
   const value = useMemo<AuthContextValue>(

@@ -12,13 +12,18 @@ import type { StaffApiClient } from "../../lib/api/staff-api-client";
  * Typed data access for the Management Dashboard `/overview` composition.
  *
  * Endpoints verified against the current backend (apps/api dashboard module):
- * - GET /v1/staff/dashboard/locations/:locationId/overview/session-state-counts
+ * - GET /dashboard/locations/:locationId/overview/session-state-counts
  *   -> sessionStateCountsResponseSchema (exactly the nine canonical states,
  *      zero-filled, COMPLETED included)
- * - GET /v1/staff/dashboard/locations/:locationId/analytics/queue
+ * - GET /dashboard/locations/:locationId/analytics/queue
  *   -> queueSnapshotResponseSchema ({ depth, oldestAgeSeconds: string | null })
- * - GET /v1/staff/dashboard/locations/:locationId/overview/financial
+ * - GET /dashboard/locations/:locationId/overview/financial
  *   -> financialOverviewResponseSchema (per-currency exact decimal strings)
+ *
+ * Paths are supplied RELATIVE to the shared StaffApiClient base (`/v1/staff`
+ * in the browser via the same-origin rewrite), exactly like every other D2
+ * feature module — never with a full `/v1/staff/...` prefix, which would
+ * double-prefix the resolved URL.
  *
  * FAILURE MODEL (deterministic, single coherent page state): the Overview
  * loads all three requests together. If any request fails - transport error,
@@ -38,8 +43,9 @@ export interface OverviewComposition {
   readonly stateCounts: SessionStateCountsResponse;
 }
 
+/** Relative to the StaffApiClient base (`/v1/staff` in the browser). */
 function locationsPath(locationId: string, suffix: string): string {
-  return `/v1/staff/dashboard/locations/${encodeURIComponent(locationId)}/${suffix}`;
+  return `/dashboard/locations/${encodeURIComponent(locationId)}/${suffix}`;
 }
 
 /**
