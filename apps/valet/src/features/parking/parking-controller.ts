@@ -138,10 +138,12 @@ export class ParkingController {
 
       let authoritativeZone = session.parkingZoneCode;
       let authoritativeSpot = confirmRes.parkingSpotCode;
-      // DEC-068 §12/§23: the confirmation bound the deposited slot; the
-      // authoritative refresh carries it so the success screen shows the
-      // truthful post-deposit key slot instead of a stale "not assigned".
-      let authoritativeKeySlot = session.keySlotCode;
+      // DEC-068 review fix: on the new path session.keySlotCode is still null
+      // here even though the confirm just bound the submitted slot, so the
+      // immediate fallback is the successfully submitted normalized code; the
+      // authoritative detail refresh (when it succeeds) replaces it with the
+      // server-returned value.
+      let authoritativeKeySlot = keySlotCode.trim();
 
       try {
         const detail = await fetchSessionDetail(this.apiClient, session.sessionId);
@@ -149,7 +151,7 @@ export class ParkingController {
         if (detail.parking.parkingSpotCode) authoritativeSpot = detail.parking.parkingSpotCode;
         if (detail.keySlot?.code) authoritativeKeySlot = detail.keySlot.code;
       } catch {
-        // Fall back to returned spot code without fabricating zone
+        // Keep the submitted slot code; never fabricate zone/slot detail.
       }
 
       this.update({

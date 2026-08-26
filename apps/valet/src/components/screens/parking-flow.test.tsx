@@ -43,6 +43,29 @@ describe("ParkingFlow Component", () => {
     expect(markup).not.toContain("Location active for this task");
   });
 
+  it("renders no Key row on the in-progress screen for a NULL new-path slot", () => {
+    // DEC-068 review fix: while driving an unbound session the employee holds
+    // the physical key; the UI must not show a "Key — Not assigned" placeholder.
+    const nav = vi.fn();
+    const markup = renderToStaticMarkup(
+      <ParkingFlow
+        mode="live"
+        nav={nav}
+        initialSession={{ ...activeSession, keySlotCode: null }}
+      />,
+    );
+
+    expect(markup).toContain("Parking Mercedes C200");
+    expect(markup).toContain("Zone A");
+    expect(markup).toContain("Park Vehicle");
+    expect(markup).not.toContain(">Key<");
+    expect(markup).not.toContain("A-101");
+    expect(markup).not.toContain("Not assigned");
+    // Spot -> Key Slot -> Confirm Parked order intact: the deposit step only
+    // appears after Park Vehicle begins the spot-scan flow.
+    expect(markup).not.toContain("Scan key slot");
+  });
+
   it("renders prototype mode with demo tracking pill and incident controls", () => {
     const nav = vi.fn();
     const markup = renderToStaticMarkup(<ParkingFlow mode="prototype" nav={nav} />);

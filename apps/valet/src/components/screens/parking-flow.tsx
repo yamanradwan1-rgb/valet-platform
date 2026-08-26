@@ -72,7 +72,11 @@ export function ParkingFlow({
     vehicle?.temporaryDescriptor ??
     t.noPlateTitle;
 
-  const keyInfo = session?.keySlotCode ?? t.notAssigned;
+  // DEC-068 review fix: Key Slot has NO pre-parking presence. A NULL
+  // keySlotCode (the new normal path while driving) renders no Key row at
+  // all; only a genuinely bound slot (legacy preassignment, or post-confirm
+  // binding) is displayed. Absence is intentional — no "not assigned" copy.
+  const boundKeySlotCode = session?.keySlotCode ?? null;
   const destination = session?.parkingZoneCode ? `${t.zone} ${session.parkingZoneCode}` : t.parkingArea;
   // DEC-068 §25: a KEY_CUSTODY_NOT_READY confirm failure surfaces as a calm
   // localized retry instruction instead of raw server text.
@@ -133,7 +137,9 @@ export function ParkingFlow({
           </div>
           <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
             <InfoRow label={t.vehicle} value={<>{vehicleHeading} · <bdi dir="ltr">{vehiclePlate}</bdi></>} />
-            <InfoRow label={t.key} value={<bdi dir="ltr">{keyInfo}</bdi>} />
+            {boundKeySlotCode !== null && (
+              <InfoRow label={t.key} value={<bdi dir="ltr">{boundKeySlotCode}</bdi>} />
+            )}
             <InfoRow label={t.destination} value={<bdi dir="ltr">{destination}</bdi>} />
           </div>
           <Btn
@@ -216,7 +222,9 @@ export function ParkingFlow({
         <div className="w-full bg-white rounded-2xl border border-vborder divide-y divide-vborder">
           <InfoRow label={t.vehicle} value={<>{vehicleHeading} · <bdi dir="ltr">{vehiclePlate}</bdi></>} />
           <InfoRow label={t.location} value={<bdi dir="ltr">{spotDisplay}</bdi>} />
-          <InfoRow label={t.key} value={<bdi dir="ltr">{keyInfo}</bdi>} />
+          {boundKeySlotCode !== null && (
+            <InfoRow label={t.key} value={<bdi dir="ltr">{boundKeySlotCode}</bdi>} />
+          )}
         </div>
         <div className="w-full">
           <Btn

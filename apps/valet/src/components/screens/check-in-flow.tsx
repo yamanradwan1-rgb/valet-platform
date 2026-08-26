@@ -63,7 +63,6 @@ export function CheckInFlow({
   const displayMake = activeVehicle?.make ?? null;
   const displayModel = activeVehicle?.model ?? null;
   const displayColor = activeVehicle?.color ?? null;
-  const displayKeySlot = checkIn.activeSession?.keySlotCode ?? "";
   const localizedError = checkIn.error
     ? presentLiveError(new Error(checkIn.error), locale, t)
     : null;
@@ -220,7 +219,6 @@ export function CheckInFlow({
     <CheckInLateSteps
       checkIn={checkIn}
       displayColor={displayColor}
-      displayKeySlot={displayKeySlot}
       displayMake={displayMake}
       displayModel={displayModel}
       displayPlate={displayPlate}

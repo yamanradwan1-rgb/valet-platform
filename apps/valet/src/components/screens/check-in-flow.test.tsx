@@ -142,10 +142,12 @@ describe("CheckInFlow Component Steps", () => {
     expect(markup).toContain("Needs review");
   });
 
-  it("renders CheckInParkingTaskStep with and without a legacy bound slot", () => {
+  it("renders CheckInParkingTaskStep with no Key Slot presence at all", () => {
+    // DEC-068 review fix: Key Slot has NO presence in the pre-parking
+    // experience — neither an assigned code nor a "Not assigned" placeholder.
+    // Its first UI appearance is the post-parking deposit/scan step.
     const taskMarkup = renderToStaticMarkup(
       <CheckInParkingTaskStep
-        keySlotCode="B-214"
         make="Porsche"
         model="Taycan"
         color="White"
@@ -155,25 +157,10 @@ describe("CheckInFlow Component Steps", () => {
       />,
     );
     expect(taskMarkup).toContain("Parking Task");
-    expect(taskMarkup).toContain('<bdi dir="ltr">B-214</bdi>');
     expect(taskMarkup).toContain("Start Parking");
-
-    // DEC-068 §5/§23: the normal path has NO pre-Parking key assignment;
-    // the launch screen truthfully reports the unbound slot instead of any
-    // "Assign Key" framing.
-    const unboundMarkup = renderToStaticMarkup(
-      <CheckInParkingTaskStep
-        keySlotCode=""
-        make="Porsche"
-        model="Taycan"
-        color="White"
-        plate="12-34567"
-        onStartParking={vi.fn()}
-        onBack={vi.fn()}
-      />,
-    );
-    expect(unboundMarkup).toContain("Not assigned");
-    expect(unboundMarkup).not.toContain("Assign Key");
-    expect(unboundMarkup).toContain('<bdi dir="ltr">Not assigned</bdi>');
+    expect(taskMarkup).not.toContain("B-214");
+    expect(taskMarkup).not.toContain("Key Slot");
+    expect(taskMarkup).not.toContain("Not assigned");
+    expect(taskMarkup).not.toContain('<bdi dir="ltr">Not assigned</bdi>');
   });
 });

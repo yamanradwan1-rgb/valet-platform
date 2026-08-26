@@ -6,7 +6,6 @@ import {
   BackHeader,
   Badge,
   Btn,
-  InfoRow,
   VehicleIdentity,
 } from "../../ui/employee-primitives";
 import { useEmployeeI18n } from "../../shell/employee-i18n";
@@ -19,7 +18,6 @@ import type { Screen } from "../../../types/employee-ui";
 export interface CheckInLateStepsProps {
   readonly checkIn: UseCheckInResult;
   readonly displayColor: string | null;
-  readonly displayKeySlot: string;
   readonly displayMake: string | null;
   readonly displayModel: string | null;
   readonly displayPlate: string;
@@ -34,12 +32,12 @@ export interface CheckInLateStepsProps {
  * pre-Parking Key Slot step, so a completed condition lands directly on the
  * Parking Task launch step with its secondary, non-blocking Guest Access
  * entry point. Start Parking remains the primary action and works without
- * Guest Access.
+ * Guest Access. Key Slot intentionally has NO presence here: its first UI
+ * appearance is the post-parking deposit/scan step (DEC-068 review fix).
  */
 export function CheckInLateSteps({
   checkIn,
   displayColor,
-  displayKeySlot,
   displayMake,
   displayModel,
   displayPlate,
@@ -51,7 +49,6 @@ export function CheckInLateSteps({
   if (checkIn.step === "parking-task") {
     return (
       <CheckInParkingTaskStep
-        keySlotCode={displayKeySlot}
         make={displayMake}
         model={displayModel}
         color={displayColor}
@@ -89,7 +86,6 @@ export function CheckInLateSteps({
 }
 
 export function CheckInParkingTaskStep({
-  keySlotCode,
   make,
   model,
   color,
@@ -104,7 +100,6 @@ export function CheckInParkingTaskStep({
   readonly color?: string | null | undefined;
   readonly error?: string | null | undefined;
   readonly isSubmitting?: boolean | undefined;
-  readonly keySlotCode: string;
   readonly make?: string | null | undefined;
   readonly model?: string | null | undefined;
   readonly onBack: () => void;
@@ -131,9 +126,6 @@ export function CheckInParkingTaskStep({
           model={displayModel}
           plate={plate ?? t.noPlate}
         />
-        <div className="bg-white rounded-2xl border border-vborder divide-y divide-vborder">
-          <InfoRow label={t.keySlot} value={<bdi dir="ltr">{keySlotCode || t.notAssigned}</bdi>} />
-        </div>
         <div className="bg-ice rounded-xl px-4 py-3 flex items-center gap-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-vblue flex-shrink-0 mt-px" />
           <p className="text-vblue text-xs font-semibold">
