@@ -1,0 +1,323 @@
+/*
+ * Analytics (D4-001) feature styles.
+ *
+ * Feature-local on purpose: shared globals.css is untouched so parallel
+ * feature work cannot collide. All spacing/positioning uses logical CSS
+ * properties so the surface mirrors correctly in Arabic RTL.
+ */
+
+.ana-note {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 12px 16px;
+  margin-block-end: 16px;
+}
+
+/* Period selector */
+
+.ana-period-card {
+  padding: 16px;
+  margin-block-end: 12px;
+}
+
+.ana-period-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.ana-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ana-date-field input {
+  min-block-size: 40px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+.ana-apply-button {
+  min-block-size: 40px;
+}
+
+.ana-apply-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ana-period-meta {
+  display: grid;
+  gap: 2px;
+  margin-block-start: 10px;
+}
+
+.ana-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.ana-error {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ana-envelope {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-block-end: 12px;
+}
+
+/* Tabs */
+
+.ana-tabs {
+  display: inline-flex;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 4px;
+  margin-block-end: 16px;
+}
+
+.ana-tab {
+  min-block-size: 38px;
+  white-space: nowrap;
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+}
+
+.ana-tab.is-active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+/* Shared metric blocks */
+
+.ana-section-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.ana-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .ana-metric-grid-4,
+  .ana-metric-grid-5 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .ana-metric-grid-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.ana-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 9px;
+  background: var(--surface-muted);
+  padding: 12px;
+}
+
+.ana-metric-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ana-metric-value {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.ana-metric-value.is-emphasized {
+  font-size: 22px;
+}
+
+.ana-metric-sub {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.ana-two-column {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1000px) {
+  .ana-two-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Backend rates */
+
+.ana-rate-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-block-start: 16px;
+}
+
+@media (min-width: 720px) {
+  .ana-rate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ana-rate-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.ana-rate-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ana-rate-value {
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-block-start: 4px;
+}
+
+.ana-rate-sub,
+.ana-rate-extra {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-block-start: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* Cars handled per local day bars */
+
+.ana-bar-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.ana-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ana-bar-date {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 88px;
+}
+
+.ana-bar-track {
+  block-size: 8px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-muted);
+}
+
+.ana-bar-fill {
+  block-size: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.ana-bar-count {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 28px;
+  text-align: end;
+}
+
+/* Severity / type counts and cash rows */
+
+.ana-count-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.ana-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.ana-method-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.ana-count-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ana-cash-list {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+}
+
+.ana-cash-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+@media (min-width: 720px) {
+  .ana-cash-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

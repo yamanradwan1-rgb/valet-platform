@@ -1,7 +1,9 @@
 import type { TranslationDictionary } from "./types";
 
 import { activeShiftsAr } from "./sections/active-shifts-strings";
+import { analyticsAr } from "./sections/analytics-strings";
 import { foundationAr } from "./sections/foundation-strings";
+import { financialOverviewAr } from "./sections/financial-overview-strings";
 import { incidentsAr } from "./sections/incidents-strings";
 import { keysAr } from "./sections/keys-strings";
 import { liveOperationsAr } from "./sections/live-operations-strings";
@@ -18,7 +20,9 @@ import { tasksAr } from "./sections/tasks-strings";
  */
 export const arTranslations: TranslationDictionary = {
   ...activeShiftsAr,
+  ...analyticsAr,
   ...foundationAr,
+  ...financialOverviewAr,
   ...incidentsAr,
   ...keysAr,
   ...liveOperationsAr,

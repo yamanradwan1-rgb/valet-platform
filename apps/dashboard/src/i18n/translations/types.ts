@@ -1,7 +1,9 @@
 import type { DashboardSessionState } from "@valet/contracts";
 
 import type { ActiveShiftsStrings } from "./sections/active-shifts-strings";
+import type { AnalyticsStrings } from "./sections/analytics-strings";
 import type { FoundationStrings } from "./sections/foundation-strings";
+import type { FinancialOverviewStrings } from "./sections/financial-overview-strings";
 import type { IncidentsStrings } from "./sections/incidents-strings";
 import type { KeysStrings } from "./sections/keys-strings";
 import type { LiveOperationsStrings } from "./sections/live-operations-strings";
@@ -24,7 +26,9 @@ import type { TasksStrings } from "./sections/tasks-strings";
 export interface TranslationDictionary
   extends
     ActiveShiftsStrings,
+    AnalyticsStrings,
     FoundationStrings,
+    FinancialOverviewStrings,
     IncidentsStrings,
     KeysStrings,
     LiveOperationsStrings,

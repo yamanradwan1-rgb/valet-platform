@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { arTranslations } from "../ar";
 import { enTranslations } from "../en";
 import { activeShiftsAr, activeShiftsEn } from "./active-shifts-strings";
+import { analyticsAr, analyticsEn } from "./analytics-strings";
 import { foundationAr, foundationEn } from "./foundation-strings";
+import {
+  financialOverviewAr,
+  financialOverviewEn,
+} from "./financial-overview-strings";
 import { incidentsAr, incidentsEn } from "./incidents-strings";
 import { keysAr, keysEn } from "./keys-strings";
 import {
@@ -33,6 +38,8 @@ import { tasksAr, tasksEn } from "./tasks-strings";
 
 const EN_FRAGMENTS = [
   ["activeShifts", activeShiftsEn],
+  ["analytics", analyticsEn],
+  ["financialOverview", financialOverviewEn],
   ["foundation", foundationEn],
   ["incidents", incidentsEn],
   ["keys", keysEn],
@@ -48,6 +55,8 @@ const EN_FRAGMENTS = [
 
 const AR_FRAGMENTS = [
   ["activeShifts", activeShiftsAr],
+  ["analytics", analyticsAr],
+  ["financialOverview", financialOverviewAr],
   ["foundation", foundationAr],
   ["incidents", incidentsAr],
   ["keys", keysAr],

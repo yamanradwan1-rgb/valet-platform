@@ -1,0 +1,142 @@
+/*
+ * Financial Overview (D4-001) feature styles.
+ *
+ * Feature-local on purpose: shared globals.css is untouched so parallel
+ * feature work cannot collide. All spacing/positioning uses logical CSS
+ * properties so the surface mirrors correctly in Arabic RTL.
+ */
+
+.finov-note {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 12px 16px;
+  margin-block-end: 20px;
+}
+
+.finov-stack {
+  display: grid;
+  gap: 20px;
+}
+
+.finov-card {
+  padding: 20px;
+}
+
+.finov-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 16px;
+}
+
+.finov-group-eyebrow {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.finov-group-currency {
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  margin-block-start: 4px;
+}
+
+.finov-current-badge {
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.finov-fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .finov-fact-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.finov-fact {
+  border-radius: 10px;
+  background: var(--surface-muted);
+  padding: 12px;
+}
+
+.finov-fact-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.finov-fact-value {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-block-start: 4px;
+  overflow-wrap: anywhere;
+}
+
+.finov-count-columns {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-block-start: 20px;
+}
+
+@media (min-width: 900px) {
+  .finov-count-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.finov-count-title {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  margin-block-end: 8px;
+}
+
+.finov-count-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.finov-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.finov-method-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.finov-count-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

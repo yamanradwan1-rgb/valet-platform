@@ -1,7 +1,9 @@
 import type { TranslationDictionary } from "./types";
 
 import { activeShiftsEn } from "./sections/active-shifts-strings";
+import { analyticsEn } from "./sections/analytics-strings";
 import { foundationEn } from "./sections/foundation-strings";
+import { financialOverviewEn } from "./sections/financial-overview-strings";
 import { incidentsEn } from "./sections/incidents-strings";
 import { keysEn } from "./sections/keys-strings";
 import { liveOperationsEn } from "./sections/live-operations-strings";
@@ -18,7 +20,9 @@ import { tasksEn } from "./sections/tasks-strings";
  */
 export const enTranslations: TranslationDictionary = {
   ...activeShiftsEn,
+  ...analyticsEn,
   ...foundationEn,
+  ...financialOverviewEn,
   ...incidentsEn,
   ...keysEn,
   ...liveOperationsEn,
