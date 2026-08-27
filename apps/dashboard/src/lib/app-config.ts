@@ -14,15 +14,21 @@ export const OPENFREEMAP_LIBERTY_STYLE_URL =
   "https://tiles.openfreemap.org/styles/liberty";
 
 /**
- * Development map center: hotel + surrounding parking areas.
- * Overridable for local development only; never a production secret.
+ * Development-only smoke fallback for the MapContainer smoke harness.
+ *
+ * D6-004: production surfaces (Map Setup, Live Operations) derive their
+ * initial viewport from authoritative geometry belonging to the selected
+ * Location. These constants are NOT a production initial viewport and MUST
+ * NOT be imported by Map Setup or Live Operations. They exist solely so
+ * the local smoke MapContainer can mount a provider instance when no
+ * authoritative geometry has been supplied.
  */
-export const DEV_MAP_CENTER = {
+export const SMOKE_MAP_CENTER = {
   latitude: readNumberEnv("NEXT_PUBLIC_MAP_CENTER_LAT", 32.562703),
   longitude: readNumberEnv("NEXT_PUBLIC_MAP_CENTER_LNG", 35.880055),
 } as const;
 
-export const DEV_MAP_ZOOM = readNumberEnv("NEXT_PUBLIC_MAP_CENTER_ZOOM", 17.6);
+export const SMOKE_MAP_ZOOM = readNumberEnv("NEXT_PUBLIC_MAP_CENTER_ZOOM", 17.6);
 
 /**
  * D2-005: the former development-only single-location bootstrap

@@ -17,6 +17,7 @@ export interface MapSetupStrings {
   "mapSetup.empty.all": string;
   "mapSetup.empty.points": string;
   "mapSetup.empty.areas": string;
+  "mapSetup.noGeometryHint": string;
   "mapSetup.action.addPoint": string;
   "mapSetup.action.addArea": string;
   "mapSetup.action.edit": string;
@@ -92,7 +93,7 @@ export const mapSetupEn: MapSetupStrings = {
   "mapSetup.note":
     "Configure the operational map points and polygon areas staff rely on. Supported point types are Entrance, Pickup and Drop-off; area purposes are Parking, Overflow, Staging and Restricted. Entries are deactivated rather than deleted.",
   "mapSetup.viewportNote":
-    "Development viewport: the map starts at a fixed development center and zoom. It is not stored configuration.",
+    "The map starts centered on this location's configured points and polygon areas. Until the first point or area exists, it shows the world view so the first coordinate can be picked.",
   "mapSetup.tab.points": "Points",
   "mapSetup.tab.areas": "Areas",
   "mapSetup.kpi.points": "Points",
@@ -101,11 +102,9 @@ export const mapSetupEn: MapSetupStrings = {
   "mapSetup.kpi.activeAreas": "Active areas",
   "mapSetup.list.pointsTitle": "Configured points",
   "mapSetup.list.areasTitle": "Configured polygon areas",
-  "mapSetup.empty.all":
-    "No map points or areas are configured for this location yet.",
+  "mapSetup.empty.all": "No map points or areas are configured for this location yet.",
   "mapSetup.empty.points": "No map points are configured for this location yet.",
-  "mapSetup.empty.areas":
-    "No polygon areas are configured for this location yet.",
+  "mapSetup.empty.areas": "No polygon areas are configured for this location yet.",
   "mapSetup.action.addPoint": "Add point",
   "mapSetup.action.addArea": "Add area",
   "mapSetup.action.edit": "Edit",
@@ -122,13 +121,11 @@ export const mapSetupEn: MapSetupStrings = {
   "mapSetup.confirm.deactivateBody":
     "Deactivating removes it from the operational map and setup lists while keeping its record. You can activate it again later.",
   "mapSetup.confirm.replaceTitle": "Replace the vertex list?",
-  "mapSetup.confirm.replaceBody":
-    "This replaces the entire ordered vertex list of the area in one backend operation. The previous geometry is kept until the backend confirms the replacement.",
+  "mapSetup.confirm.replaceBody": "This replaces the entire ordered vertex list of the area in one backend operation. The previous geometry is kept until the backend confirms the replacement.",
   "mapSetup.confirm.confirm": "Confirm",
   "mapSetup.map.ariaLabel":
     "Map preview of configured points and polygon areas",
-  "mapSetup.refresh.failed":
-    "Refreshing the saved data after your change failed. The shown values may be outdated.",
+  "mapSetup.refresh.failed": "Refreshing the saved data after your change failed. The shown values may be outdated.",
   "mapSetup.field.id": "ID",
   "mapSetup.field.code": "Code",
   "mapSetup.field.label": "Label",
@@ -163,11 +160,9 @@ export const mapSetupEn: MapSetupStrings = {
   "mapSetup.editor.areaCreateNote":
     "Create the area with its fields and 3–500 ordered coordinates. Vertex order is saved exactly as listed.",
   "mapSetup.editor.areaFieldsTitle": "Edit area fields",
-  "mapSetup.editor.areaFieldsNote":
-    "Update the area metadata. Vertices are replaced through their own separate operation.",
+  "mapSetup.editor.areaFieldsNote": "Update the area metadata. Vertices are replaced through their own separate operation.",
   "mapSetup.editor.verticesTitle": "Replace area vertices",
-  "mapSetup.editor.verticesNote":
-    "Provide the complete ordered vertex list. Order is authoritative; no closing vertex is added for you.",
+  "mapSetup.editor.verticesNote": "Provide the complete ordered vertex list. Order is authoritative; no closing vertex is added for you.",
   "mapSetup.editor.verticesFormat":
     "One latitude,longitude pair per line, in order.",
   "mapSetup.editor.currentVertexCount": "Current vertex count",
@@ -185,21 +180,20 @@ export const mapSetupEn: MapSetupStrings = {
     "Enter a latitude between -90 and 90.",
   "mapSetup.validation.longitudeInvalid":
     "Enter a longitude between -180 and 180.",
-  "mapSetup.validation.verticesFormat":
-    "Each line needs exactly one latitude,longitude pair with valid values.",
+  "mapSetup.validation.verticesFormat": "Each line needs exactly one latitude,longitude pair with valid values.",
   "mapSetup.validation.verticesMinimum": "At least 3 vertices are required.",
   "mapSetup.validation.verticesMaximum": "No more than 500 vertices are allowed.",
   "mapSetup.errors.conflict":
     "This map setup change conflicts with the current saved state — for example the code may already be in use or another change was saved at the same time. The saved configuration was not changed. Review the latest data and try again.",
   "mapSetup.errors.actionFailed":
     "The change could not be saved. The saved configuration was not altered.",
+  "mapSetup.noGeometryHint":
+    "No points or areas yet. Click the map to add the first point for this location.",
 };
 
 export const mapSetupAr: MapSetupStrings = {
-  "mapSetup.note":
-    "قم بإعداد نقاط الخريطة التشغيلية ومناطق المضلعات التي يعتمد عليها الموظفون. أنواع النقاط المدعومة هي المدخل والاستلام والتسليم؛ وأغراض المناطق هي ركن، فائض، تجهيز، ومقيَّد. يتم تعطيل الإدخالات بدلًا من حذفها.",
-  "mapSetup.viewportNote":
-    "إطار عرض للتطوير: تبدأ الخريطة من مركز ومستوى تكبير ثابتين للتطوير، وهو ليس إعدادًا محفوظًا.",
+  "mapSetup.note": "قم بإعداد نقاط الخريطة التشغيلية ومناطق المضلعات التي يعتمد عليها الموظفون. أنواع النقاط المدعومة هي المدخل والاستلام والتسليم؛ وأغراض المناطق هي ركن، فائض، تجهيز، ومقيَّد. يتم تعطيل الإدخالات بدلًا من حذفها.",
+  "mapSetup.viewportNote": "تبدأ الخريطة مُتمركزة على النقاط ومناطق المضلعات المُعدّة لهذا الموقع. وحين لا توجد نقطة أو منطقة بعد، تعرض عرضًا عالميًا ليتم اختيار الإحداثي الأول.",
   "mapSetup.tab.points": "النقاط",
   "mapSetup.tab.areas": "المناطق",
   "mapSetup.kpi.points": "النقاط",
@@ -208,8 +202,7 @@ export const mapSetupAr: MapSetupStrings = {
   "mapSetup.kpi.activeAreas": "المناطق النشطة",
   "mapSetup.list.pointsTitle": "النقاط المُعدّة",
   "mapSetup.list.areasTitle": "مناطق المضلعات المُعدّة",
-  "mapSetup.empty.all":
-    "لا توجد نقاط أو مناطق مُعدّة للخريطة في هذا الموقع حتى الآن.",
+  "mapSetup.empty.all": "لا توجد نقاط أو مناطق مُعدّة للخريطة في هذا الموقع حتى الآن.",
   "mapSetup.empty.points": "لا توجد نقاط خريطة مُعدّة في هذا الموقع حتى الآن.",
   "mapSetup.empty.areas": "لا توجد مناطق مضلعات مُعدّة في هذا الموقع حتى الآن.",
   "mapSetup.action.addPoint": "إضافة نقطة",
@@ -228,12 +221,10 @@ export const mapSetupAr: MapSetupStrings = {
   "mapSetup.confirm.deactivateBody":
     "يؤدي التعطيل إلى إخفائه من الخريطة التشغيلية وقوائم الإعداد مع الاحتفاظ بسجله. يمكنك تفعيله لاحقًا.",
   "mapSetup.confirm.replaceTitle": "استبدال قائمة الرؤوس؟",
-  "mapSetup.confirm.replaceBody":
-    "سيؤدي هذا إلى استبدال قائمة الرؤوس المرتبة بالكامل للمنطقة في عملية واحدة بالخادم. تبقى الهندسة السابقة محفوظة حتى يؤكد الخادم الاستبدال.",
+  "mapSetup.confirm.replaceBody": "سيؤدي هذا إلى استبدال قائمة الرؤوس المرتبة بالكامل للمنطقة في عملية واحدة بالخادم. تبقى الهندسة السابقة محفوظة حتى يؤكد الخادم الاستبدال.",
   "mapSetup.confirm.confirm": "تأكيد",
   "mapSetup.map.ariaLabel": "معاينة الخريطة للنقاط والمناطق المضلعة المُعدّة",
-  "mapSetup.refresh.failed":
-    "فشل تحديث البيانات المحفوظة بعد تغييرك. قد تكون القيم المعروضة قديمة.",
+  "mapSetup.refresh.failed": "فشل تحديث البيانات المحفوظة بعد تغييرك. قد تكون القيم المعروضة قديمة.",
   "mapSetup.field.id": "المعرّف",
   "mapSetup.field.code": "الرمز",
   "mapSetup.field.label": "العنوان",
@@ -268,11 +259,9 @@ export const mapSetupAr: MapSetupStrings = {
   "mapSetup.editor.areaCreateNote":
     "أنشئ المنطقة بحقولها وثلاثة إلى خمسمئة إحداثي مرتب. يُحفظ ترتيب الرؤوس تمامًا كما يُدرج.",
   "mapSetup.editor.areaFieldsTitle": "تعديل حقول المنطقة",
-  "mapSetup.editor.areaFieldsNote":
-    "حدّث بيانات المنطقة الأساسية. أما الرؤوس فتُستبدل عبر عملية منفصلة خاصة بها.",
+  "mapSetup.editor.areaFieldsNote": "حدّث بيانات المنطقة الأساسية. أما الرؤوس فتُستبدل عبر عملية منفصلة خاصة بها.",
   "mapSetup.editor.verticesTitle": "استبدال رؤوس المنطقة",
-  "mapSetup.editor.verticesNote":
-    "قدّم قائمة الرؤوس المرتبة كاملة. الترتيب هو المرجع، ولا يُضاف أي رأس إغلاق تلقائيًا.",
+  "mapSetup.editor.verticesNote": "قدّم قائمة الرؤوس المرتبة كاملة. الترتيب هو المرجع، ولا يُضاف أي رأس إغلاق تلقائيًا.",
   "mapSetup.editor.verticesFormat": "زوج خط عرض,خط طول واحد في كل سطر وبالترتيب.",
   "mapSetup.editor.currentVertexCount": "عدد الرؤوس الحالي",
   "mapSetup.editor.save": "حفظ",
@@ -285,12 +274,12 @@ export const mapSetupAr: MapSetupStrings = {
   "mapSetup.validation.levelTooLong": "يجب ألا يتجاوز اسم الطابق 64 حرفًا.",
   "mapSetup.validation.latitudeInvalid": "أدخل خط عرض بين -90 و90.",
   "mapSetup.validation.longitudeInvalid": "أدخل خط طول بين -180 و180.",
-  "mapSetup.validation.verticesFormat":
-    "كل سطر يحتاج زوجًا واحدًا بصيغة خط عرض,خط طول بقيم صحيحة.",
+  "mapSetup.validation.verticesFormat": "كل سطر يحتاج زوجًا واحدًا بصيغة خط عرض,خط طول بقيم صحيحة.",
   "mapSetup.validation.verticesMinimum": "يلزم ثلاثة رؤوس على الأقل.",
   "mapSetup.validation.verticesMaximum": "لا يُسمح بأكثر من 500 رأس.",
-  "mapSetup.errors.conflict":
-    "يتعارض هذا التغيير مع الحالة المحفوظة الحالية لإعداد الخريطة — فقد يكون الرمز مستخدمًا بالفعل أو تم حفظ تغيير آخر في الوقت نفسه. لم يتم تغيير الإعداد المحفوظ. راجع أحدث البيانات وحاول مجددًا.",
+  "mapSetup.errors.conflict": "يتعارض هذا التغيير مع الحالة المحفوظة الحالية لإعداد الخريطة — فقد يكون الرمز مستخدمًا بالفعل أو تم حفظ تغيير آخر في الوقت نفسه. لم يتم تغيير الإعداد المحفوظ. راجع أحدث البيانات وحاول مجددًا.",
   "mapSetup.errors.actionFailed":
     "تعذر حفظ التغيير. لم يُعدَّل الإعداد المحفوظ.",
+  "mapSetup.noGeometryHint":
+    "لا توجد نقاط أو مناطق بعد. انقر على الخريطة لإضافة أول نقطة لهذا الموقع.",
 };

@@ -197,6 +197,7 @@ export function LiveOperationsView() {
                 <SectionHeader title={t("liveOperations.map.title")} />
                 <LiveOperationsMap
                   describeMarker={describeMarker}
+                  locationId={locationId}
                   markers={markerDrafts}
                   selectedMarkerId={effectiveSelectedId}
                   onSelectMarker={onSelectMarker}

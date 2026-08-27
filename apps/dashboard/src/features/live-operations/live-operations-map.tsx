@@ -2,14 +2,18 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { DEV_MAP_CENTER, DEV_MAP_ZOOM } from "../../lib/app-config";
+import { useTranslation } from "../../i18n/locale-provider";
 import { createActiveMapProvider } from "../../lib/maps/active-map-provider";
 import {
   supportsMarkers,
+  type MapInitOptions,
   type MapInstance,
   type MapMarkerDescriptor,
 } from "../../lib/maps/map-provider";
-import { useTranslation } from "../../i18n/locale-provider";
+import {
+  computeMapViewport,
+  type MapViewport,
+} from "../../lib/maps/map-viewport";
 
 type MapStatus = "loading" | "ready" | "failed" | "unsupported";
 
@@ -20,24 +24,42 @@ interface LiveOperationsMapProps {
   describeMarker: (marker: Omit<MapMarkerDescriptor, "ariaLabel">) => string;
   selectedMarkerId: string | null;
   onSelectMarker: (markerId: string) => void;
+  /**
+   * Authority-scope key. When this value changes the map is destroyed
+   * and a fresh instance is initialized from the next marker snapshot.
+   * Server authorization remains authoritative; this is purely a
+   * client-side viewport-reset signal.
+   */
+  locationId: string;
 }
+
+/**
+ * World-only fallback used when the snapshot is empty at mount time. NOT
+ * a Location center — it is the natural no-bias view so subsequent
+ * snapshots can establish the viewport from real coordinates when they
+ * arrive. The empty-state overlay above the canvas is the honest UX.
+ */
+const NO_GEOMETRY_CENTER = { latitude: 0, longitude: 0 } as const;
+const NO_GEOMETRY_ZOOM = 1;
 
 /**
  * Live Operations map panel.
  *
- * Feature-owned boundary over the MapProvider abstraction so the shared smoke
- * MapContainer stays untouched during parallel D3-002 work. The component
- * depends only on the provider interface; all MapLibre specifics live in the
- * adapter behind `createActiveMapProvider()`.
+ * The initial viewport is derived from the first non-empty marker snapshot
+ * (D6-004). After that, marker updates render in place WITHOUT re-panning
+ * the manager's manual viewport. Location changes force a fresh
+ * initialization through the `locationId` key.
  *
- * Markers are rendered exclusively from backend-reported coordinates passed
- * via `markers`; when the list is empty no marker exists on the map.
+ * Markers are rendered exclusively from backend-reported coordinates
+ * passed via `markers`; when the list is empty no marker exists on the
+ * map and the existing empty-state overlay is shown.
  */
 export function LiveOperationsMap({
   markers,
   describeMarker,
   selectedMarkerId,
   onSelectMarker,
+  locationId,
 }: LiveOperationsMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const instanceRef = useRef<MapInstance | null>(null);
@@ -50,35 +72,45 @@ export function LiveOperationsMap({
     selectRef.current = onSelectMarker;
   }, [onSelectMarker]);
 
+  // Frozen initial viewport for the current location. We compute it once
+  // from the FIRST non-empty snapshot, or fall back to a world-only
+  // default. The view is then owned by the manager's panning/zooming; we
+  // never re-derive it on later marker updates.
+  const initialViewport = useMemo<MapViewport>(() => {
+    const fromGeometry = computeMapViewport({ points: markers, polygons: [] });
+    if (fromGeometry !== null) return fromGeometry;
+    return { center: NO_GEOMETRY_CENTER, zoom: NO_GEOMETRY_ZOOM };
+    // The viewport is bound to the location, not to later snapshots.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationId]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (container === null) return;
     let cancelled = false;
     setStatus("loading");
     const adapter = createActiveMapProvider();
-    adapter
-      .createMap(container, {
-        center: DEV_MAP_CENTER,
-        zoom: DEV_MAP_ZOOM,
-        onSelectMarker: (id) => selectRef.current(id),
-      })
-      .then((instance) => {
-        if (cancelled) {
-          instance.destroy();
-          return;
-        }
-        instanceRef.current = instance;
-        setStatus(supportsMarkers(instance) ? "ready" : "unsupported");
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("failed");
-      });
+    const initOptions: MapInitOptions = {
+      center: initialViewport.center,
+      onSelectMarker: (id) => selectRef.current(id),
+      zoom: initialViewport.zoom,
+    };
+    adapter.createMap(container, initOptions).then((instance) => {
+      if (cancelled) {
+        instance.destroy();
+        return;
+      }
+      instanceRef.current = instance;
+      setStatus(supportsMarkers(instance) ? "ready" : "unsupported");
+    }).catch(() => {
+      if (!cancelled) setStatus("failed");
+    });
     return () => {
       cancelled = true;
       instanceRef.current?.destroy();
       instanceRef.current = null;
     };
-  }, []);
+  }, [initialViewport, locationId]);
 
   const descriptors = useMemo<readonly MapMarkerDescriptor[]>(
     () =>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { DEV_MAP_CENTER, DEV_MAP_ZOOM } from "../../lib/app-config";
+import { SMOKE_MAP_CENTER, SMOKE_MAP_ZOOM } from "../../lib/app-config";
 import { createActiveMapProvider } from "../../lib/maps/active-map-provider";
 import type { MapInitOptions, MapInstance } from "../../lib/maps/map-provider";
 import { useTranslation } from "../../i18n/locale-provider";
@@ -20,8 +20,8 @@ interface MapContainerProps {
  * this container and never touch a provider SDK directly.
  */
 export function MapContainer({
-  center = DEV_MAP_CENTER,
-  zoom = DEV_MAP_ZOOM,
+  center = SMOKE_MAP_CENTER,
+  zoom = SMOKE_MAP_ZOOM,
   ariaLabel,
 }: MapContainerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
