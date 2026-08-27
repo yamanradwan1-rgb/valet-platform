@@ -1,9 +1,16 @@
 import type { NextConfig } from "next";
 
-const apiOrigin = process.env.API_ORIGIN || "http://localhost:3000";
+import {
+  STAFF_API_REWRITE_SOURCE,
+  staffApiRewriteDestination,
+} from "./src/lib/api/api-origin";
+
+const staffApiDestination = staffApiRewriteDestination({
+  apiOrigin: process.env.API_ORIGIN,
+  nodeEnv: process.env.NODE_ENV,
+});
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   transpilePackages: ["@valet/ui"],
   turbopack: {
     resolveAlias: {
@@ -16,8 +23,8 @@ const nextConfig: NextConfig = {
         // Same-origin staff proxy. The path prefix `/v1/staff` is preserved
         // exactly so the backend's httpOnly refresh cookie (Path=/v1/staff/auth)
         // is sent back by the browser on refresh/logout calls.
-        source: "/v1/staff/:path*",
-        destination: `${apiOrigin}/v1/staff/:path*`,
+        source: STAFF_API_REWRITE_SOURCE,
+        destination: staffApiDestination,
       },
     ];
   },

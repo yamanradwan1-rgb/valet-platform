@@ -1,3 +1,5 @@
+import { resolveDashboardApiOrigin, staffApiBaseUrl } from "./api-origin";
+
 /**
  * Staff API base URL resolution.
  *
@@ -14,6 +16,10 @@ export function getStaffApiBaseUrl(): string {
   if (typeof window !== "undefined") {
     return STAFF_API_BROWSER_BASE_PATH;
   }
-  const apiOrigin = process.env.API_ORIGIN || "http://localhost:3000";
-  return `${apiOrigin}/v1/staff`;
+  return staffApiBaseUrl(
+    resolveDashboardApiOrigin({
+      apiOrigin: process.env.API_ORIGIN,
+      nodeEnv: process.env.NODE_ENV,
+    }),
+  );
 }
