@@ -196,6 +196,7 @@ export function MapsZonesView() {
 
       <SetupMap
         ariaLabel={t("mapSetup.map.ariaLabel")}
+        locationId={locationId}
         markers={markers}
         polygons={polygons}
         onMapClick={handleMapClick}

@@ -6,14 +6,12 @@ import { useTranslation } from "../../i18n/locale-provider";
 import { createActiveMapProvider } from "../../lib/maps/active-map-provider";
 import {
   supportsMarkers,
-  type MapInitOptions,
   type MapInstance,
+  type MapInitOptions,
   type MapMarkerDescriptor,
 } from "../../lib/maps/map-provider";
-import {
-  computeMapViewport,
-  type MapViewport,
-} from "../../lib/maps/map-viewport";
+import { createMapController } from "../../lib/maps/map-lifecycle";
+import { computeMapViewport } from "../../lib/maps/map-viewport";
 
 type MapStatus = "loading" | "ready" | "failed" | "unsupported";
 
@@ -25,30 +23,55 @@ interface LiveOperationsMapProps {
   selectedMarkerId: string | null;
   onSelectMarker: (markerId: string) => void;
   /**
-   * Authority-scope key. When this value changes the map is destroyed
-   * and a fresh instance is initialized from the next marker snapshot.
-   * Server authorization remains authoritative; this is purely a
-   * client-side viewport-reset signal.
+   * Authority-scope key. When this value changes the established
+   * viewport is cleared and a fresh instance is initialized from the
+   * next non-empty marker snapshot. Server authorization remains
+   * authoritative; this is purely a client-side viewport-reset signal.
    */
   locationId: string;
 }
 
 /**
- * World-only fallback used when the snapshot is empty at mount time. NOT
- * a Location center — it is the natural no-bias view so subsequent
- * snapshots can establish the viewport from real coordinates when they
- * arrive. The empty-state overlay above the canvas is the honest UX.
+ * World-only fallback used when the snapshot is empty. NOT a Location
+ * center — it is the natural no-bias view so subsequent snapshots can
+ * establish the viewport from real coordinates when they arrive. The
+ * empty-state overlay above the canvas is the honest UX.
  */
 const NO_GEOMETRY_CENTER = { latitude: 0, longitude: 0 } as const;
 const NO_GEOMETRY_ZOOM = 1;
 
+/** See setup-map.tsx for the rationale behind quantization. */
+function quantize(value: number): string {
+  return value.toFixed(6);
+}
+
+function hasPositionedMarker(
+  markers: readonly Omit<MapMarkerDescriptor, "ariaLabel">[],
+): boolean {
+  for (const marker of markers) {
+    if (
+      Number.isFinite(marker.latitude) &&
+      Number.isFinite(marker.longitude) &&
+      marker.latitude >= -90 &&
+      marker.latitude <= 90 &&
+      marker.longitude >= -180 &&
+      marker.longitude <= 180
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Live Operations map panel.
  *
- * The initial viewport is derived from the first non-empty marker snapshot
- * (D6-004). After that, marker updates render in place WITHOUT re-panning
- * the manager's manual viewport. Location changes force a fresh
- * initialization through the `locationId` key.
+ * The authoritative viewport is established ONCE per Location, from the
+ * first non-empty valid marker snapshot. Before the first snapshot
+ * arrives the map mounts at a world-only fallback; after establishment
+ * the viewport is frozen and later marker updates render in place WITHOUT
+ * re-panning the manager's manual viewport. Location changes clear the
+ * established viewport and force a fresh instance.
  *
  * Markers are rendered exclusively from backend-reported coordinates
  * passed via `markers`; when the list is empty no marker exists on the
@@ -62,6 +85,9 @@ export function LiveOperationsMap({
   locationId,
 }: LiveOperationsMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const controllerRef = useRef<ReturnType<typeof createMapController> | null>(
+    null,
+  );
   const instanceRef = useRef<MapInstance | null>(null);
   const [status, setStatus] = useState<MapStatus>("loading");
   const { t } = useTranslation();
@@ -72,45 +98,97 @@ export function LiveOperationsMap({
     selectRef.current = onSelectMarker;
   }, [onSelectMarker]);
 
-  // Frozen initial viewport for the current location. We compute it once
-  // from the FIRST non-empty snapshot, or fall back to a world-only
-  // default. The view is then owned by the manager's panning/zooming; we
-  // never re-derive it on later marker updates.
-  const initialViewport = useMemo<MapViewport>(() => {
-    const fromGeometry = computeMapViewport({ points: markers, polygons: [] });
-    if (fromGeometry !== null) return fromGeometry;
-    return { center: NO_GEOMETRY_CENTER, zoom: NO_GEOMETRY_ZOOM };
-    // The viewport is bound to the location, not to later snapshots.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locationId]);
+  // The authoritative viewport is keyed by `locationId`. A Location
+  // switch naturally resolves a fresh viewport because the state entry
+  // for the new id is independent. We track which locationIds have
+  // already established their viewport, and use a paired Map to remember
+  // the established viewport per Location.
+  type ViewportSnapshot = {
+    readonly center: { readonly latitude: number; readonly longitude: number };
+    readonly zoom: number;
+  };
+  const [establishedViewports, setEstablishedViewports] = useState<
+    ReadonlyMap<string, ViewportSnapshot>
+  >(() => new Map());
+
+  // The current Location's authoritative viewport, derived from state.
+  // `undefined` means "not yet established for this Location" — either
+  // the snapshot is still empty/loading, or we just switched to it.
+  const currentEstablished = establishedViewports.get(locationId);
+
+  // On a Location change, when a non-empty valid marker snapshot is
+  // present, derive the viewport and remember it for this Location.
+  // Markers are read here in render (not in an effect) so the first
+  // snapshot taken AFTER the Location change immediately establishes
+  // the viewport without an intermediate effect cycle.
+  if (
+    currentEstablished === undefined &&
+    hasPositionedMarker(markers)
+  ) {
+    const derived = computeMapViewport({ points: markers, polygons: [] });
+    if (derived !== null) {
+      const next = new Map(establishedViewports);
+      next.set(locationId, { center: derived.center, zoom: derived.zoom });
+      // Schedule the state update; React's "adjust state during render"
+      // pattern is the documented way to derive state from props.
+      setEstablishedViewports(next);
+    }
+  }
+
+  const activeCenter = currentEstablished?.center ?? NO_GEOMETRY_CENTER;
+  const activeZoom = currentEstablished?.zoom ?? NO_GEOMETRY_ZOOM;
+  const establishedFor = currentEstablished === undefined ? "pending" : "set";
+  const viewportKey =
+    `${locationId}|${establishedFor}|` +
+    `${quantize(activeCenter.latitude)}|` +
+    `${quantize(activeCenter.longitude)}|` +
+    `${String(activeZoom)}`;
 
   useEffect(() => {
     const container = containerRef.current;
     if (container === null) return;
+    if (controllerRef.current === null) {
+      const adapter = createActiveMapProvider();
+      controllerRef.current = createMapController({
+        adapter,
+        getContainer: () => containerRef.current,
+      });
+    }
+    const controller = controllerRef.current;
     let cancelled = false;
     setStatus("loading");
-    const adapter = createActiveMapProvider();
     const initOptions: MapInitOptions = {
-      center: initialViewport.center,
+      center: activeCenter,
       onSelectMarker: (id) => selectRef.current(id),
-      zoom: initialViewport.zoom,
+      zoom: activeZoom,
     };
-    adapter.createMap(container, initOptions).then((instance) => {
-      if (cancelled) {
-        instance.destroy();
-        return;
-      }
-      instanceRef.current = instance;
-      setStatus(supportsMarkers(instance) ? "ready" : "unsupported");
-    }).catch(() => {
-      if (!cancelled) setStatus("failed");
-    });
+    controller
+      .ensure(viewportKey, initOptions)
+      .then((decision) => {
+        if (cancelled) return;
+        if (decision.kind === "noop-disposed") {
+          setStatus("failed");
+          return;
+        }
+        instanceRef.current = decision.instance;
+        setStatus(supportsMarkers(decision.instance) ? "ready" : "unsupported");
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("failed");
+      });
     return () => {
       cancelled = true;
-      instanceRef.current?.destroy();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewportKey]);
+
+  useEffect(() => {
+    return () => {
+      controllerRef.current?.dispose();
+      controllerRef.current = null;
       instanceRef.current = null;
     };
-  }, [initialViewport, locationId]);
+  }, []);
 
   const descriptors = useMemo<readonly MapMarkerDescriptor[]>(
     () =>
