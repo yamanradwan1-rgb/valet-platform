@@ -110,7 +110,7 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
                 className="sign-out-item"
                 onClick={() => {
                   setUserOpen(false);
-                  void signOut();
+                  void signOut().catch(() => undefined);
                 }}
               >
                 {t("shell.signOut")}

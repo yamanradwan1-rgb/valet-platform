@@ -33,6 +33,10 @@ export interface FoundationStrings {
   "shell.switchToLightTheme": string;
   "shell.switchToDarkTheme": string;
   "shell.signOut": string;
+  "signOut.inProgress": string;
+  "signOut.failedTitle": string;
+  "signOut.failedMessage": string;
+  "signOut.retry": string;
   "shell.noLocationConfigured": string;
   "session.restoring": string;
   "signIn.title": string;
@@ -109,6 +113,11 @@ export const foundationEn: FoundationStrings = {
   "shell.switchToLightTheme": "Switch to light theme",
   "shell.switchToDarkTheme": "Switch to dark theme",
   "shell.signOut": "Sign out",
+  "signOut.inProgress": "Signing out…",
+  "signOut.failedTitle": "Sign-out could not be confirmed",
+  "signOut.failedMessage":
+    "Your server session may still be active. Retry sign-out before leaving this device.",
+  "signOut.retry": "Retry sign-out",
   "shell.noLocationConfigured": "No location configured",
   "session.restoring": "Restoring your session…",
   "signIn.title": "Management Dashboard",
@@ -194,6 +203,11 @@ export const foundationAr: FoundationStrings = {
   "shell.switchToLightTheme": "تفعيل الوضع الفاتح",
   "shell.switchToDarkTheme": "تفعيل الوضع الداكن",
   "shell.signOut": "تسجيل الخروج",
+  "signOut.inProgress": "جارٍ تسجيل الخروج…",
+  "signOut.failedTitle": "تعذر تأكيد تسجيل الخروج",
+  "signOut.failedMessage":
+    "قد تظل جلستك على الخادم نشطة. أعد محاولة تسجيل الخروج قبل مغادرة هذا الجهاز.",
+  "signOut.retry": "إعادة محاولة تسجيل الخروج",
   "shell.noLocationConfigured": "لم يتم إعداد موقع",
   "session.restoring": "جارٍ استعادة جلستك…",
   "signIn.title": "لوحة الإدارة",

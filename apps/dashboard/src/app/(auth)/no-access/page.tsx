@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "../../../features/auth/use-auth";
+import { SignOutRecovery } from "../../../features/auth/sign-out-recovery";
 import { useTranslation } from "../../../i18n/locale-provider";
 
 /**
@@ -12,8 +13,12 @@ import { useTranslation } from "../../../i18n/locale-provider";
  */
 export default function NoAccessPage() {
   const { t, isRtl } = useTranslation();
-  const { signOut } = useAuth();
+  const { signOut, status } = useAuth();
   const router = useRouter();
+
+  if (status === "signing-out" || status === "logout-failed") {
+    return <SignOutRecovery />;
+  }
   return (
     <div className="auth-shell" dir={isRtl ? "rtl" : "ltr"}>
       <main className="card auth-card">
@@ -24,7 +29,9 @@ export default function NoAccessPage() {
           className="btn-secondary"
           style={{ width: "100%" }}
           onClick={() => {
-            void signOut().then(() => router.replace("/sign-in"));
+            void signOut()
+              .then(() => router.replace("/sign-in"))
+              .catch(() => undefined);
           }}
         >
           {t("noAccess.action")}

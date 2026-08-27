@@ -27,6 +27,13 @@ import {
 } from "./refresh-decision";
 import { shouldSkipQueuedRefresh } from "./sibling-session";
 import { useSiblingSessionEvents } from "./use-sibling-session";
+import { runTruthfulLogout } from "./logout-lifecycle";
+import type {
+  AuthContextValue,
+  AuthStatus,
+  SessionTiming,
+  StoredTokens,
+} from "./auth-types";
 import {
   clearRefreshTimer,
   clearStaffSession,
@@ -42,23 +49,6 @@ import {
   triggerStaffRefresh,
   type StaffSessionView,
 } from "./auth-runtime";
-
-export type AuthStatus =
-  "restoring" | "authenticated" | "unauthenticated" | "expired";
-
-interface AuthContextValue {
-  readonly status: AuthStatus;
-  readonly session: StaffSessionView | null;
-  readonly client: StaffApiClient;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-}
-
-interface StoredTokens {
-  accessToken: string;
-  accessExpiresAt: string;
-  sessionExpiresAt: string;
-}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -79,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }),
   );
 
-  const scheduleNextRefresh = useCallback((tokens: StoredTokens): void => {
+  const scheduleNextRefresh = useCallback((tokens: SessionTiming): void => {
     if (hasSessionEnded(Date.now(), Date.parse(tokens.sessionExpiresAt))) {
       return;
     }
@@ -254,24 +244,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    // Same lock: a queued/in-flight refresh can neither resurrect the cookie
-    // after the backend clears it nor race the revocation window.
-    await runInAuthMutationLock(async () => {
-      clearRefreshTimer();
-      try {
-        await client.logout();
-      } catch {
-        // Logout is best-effort locally; see the sign-out posture notes —
-        // the truthful server state is only known from the response.
-      }
-      clearStaffSession();
-      setSession(null);
-      setStatus("unauthenticated");
-      publishSessionEvent({
-        occurredAtMs: Date.now(),
-        reason: "signed-out",
-        type: "ended",
-      });
+    await runTruthfulLogout({
+      clearRefreshTimer,
+      clearSession: clearStaffSession,
+      markFailed: () => {
+        setSession(null);
+        setStatus("logout-failed");
+      },
+      markSignedOut: () => {
+        setSession(null);
+        setStatus("unauthenticated");
+      },
+      markStarted: () => setStatus("signing-out"),
+      publishSignedOut: () =>
+        publishSessionEvent({
+          occurredAtMs: Date.now(),
+          reason: "signed-out",
+          type: "ended",
+        }),
+      runLocked: runInAuthMutationLock,
+      serverLogout: () => client.logout(),
     });
   }, [client]);
 
