@@ -9,17 +9,22 @@ export type SupportedFormatLocale = "en" | "ar";
 export function formatTimestamp(
   isoTimestamp: string,
   locale: SupportedFormatLocale,
-  timeZone?: string | undefined,
+  timeZone: string | null | undefined,
 ): string {
   const instant = Date.parse(isoTimestamp);
-  if (Number.isNaN(instant)) return isoTimestamp;
-  const formatter = new Intl.DateTimeFormat(locale, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    ...(timeZone === undefined ? {} : { timeZone }),
-  });
-  return formatter.format(instant);
+  if (Number.isNaN(instant) || timeZone === null || timeZone === undefined) {
+    return "—";
+  }
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone,
+    }).format(instant);
+  } catch {
+    return "—";
+  }
 }

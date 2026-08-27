@@ -44,6 +44,7 @@ export function SessionsView() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const locationId = location?.locationId ?? null;
+  const timeZone = location?.timezone;
   const list = useCursorList({
     fetchPage:
       locationId === null
@@ -140,8 +141,8 @@ export function SessionsView() {
                     <td>
                       <StatusBadge variant="session" value={row.state} />
                     </td>
-                    <td>{formatTimestamp(row.createdAt, locale)}</td>
-                    <td>{formatTimestamp(row.updatedAt, locale)}</td>
+                    <td>{formatTimestamp(row.createdAt, locale, timeZone)}</td>
+                    <td>{formatTimestamp(row.updatedAt, locale, timeZone)}</td>
                     <td className="cell-mono">
                       {optionalIdOrDash(row.parkingSpotId)}
                     </td>
@@ -177,11 +178,11 @@ export function SessionsView() {
                   fields={[
                     {
                       label: t("sessions.column.created"),
-                      value: formatTimestamp(row.createdAt, locale),
+                      value: formatTimestamp(row.createdAt, locale, timeZone),
                     },
                     {
                       label: t("sessions.column.updated"),
-                      value: formatTimestamp(row.updatedAt, locale),
+                      value: formatTimestamp(row.updatedAt, locale, timeZone),
                     },
                     {
                       label: t("sessions.column.parkingSpotId"),
@@ -216,6 +217,7 @@ export function SessionsView() {
       {selected !== null && (
         <SessionDetailSheet
           entry={selected}
+          timeZone={timeZone}
           onClose={() => setSelectedId(null)}
         />
       )}

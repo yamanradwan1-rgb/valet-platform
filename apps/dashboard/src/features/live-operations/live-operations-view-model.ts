@@ -108,12 +108,23 @@ export function toMarkerDrafts(
  * Time-of-day rendering for snapshot/captured timestamps (D1 shows times on
  * this surface). Localized; invalid input renders as an em dash.
  */
-export function formatTimeOfDay(iso: string, locale: string): string {
+export function formatTimeOfDay(
+  iso: string,
+  locale: string,
+  timeZone: string | null | undefined,
+): string {
   const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return "—";
-  return new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(parsed);
+  if (Number.isNaN(parsed.getTime()) || timeZone === null || timeZone === undefined) {
+    return "—";
+  }
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone,
+    }).format(parsed);
+  } catch {
+    return "—";
+  }
 }

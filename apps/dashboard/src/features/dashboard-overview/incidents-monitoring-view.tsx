@@ -42,6 +42,7 @@ export function IncidentsMonitoringView() {
   const { client } = useAuth();
   const location = useDashboardLocation();
   const locationId = location?.locationId ?? null;
+  const timeZone = location?.timezone;
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(
     null,
   );
@@ -158,12 +159,12 @@ export function IncidentsMonitoringView() {
                   </DataCell>
                   <DataCell>{humanizeIncidentType(incident.type)}</DataCell>
                   <DataCell>
-                    {formatTimestamp(incident.createdAt, locale)}
+                    {formatTimestamp(incident.createdAt, locale, timeZone)}
                   </DataCell>
                   <DataCell>
                     {incident.resolvedAt === null
                       ? UNRESOLVED_MARKER
-                      : formatTimestamp(incident.resolvedAt, locale)}
+                      : formatTimestamp(incident.resolvedAt, locale, timeZone)}
                   </DataCell>
                 </tr>
               ))}
@@ -188,14 +189,14 @@ export function IncidentsMonitoringView() {
                   },
                   {
                     label: t("page.incidents.column.createdAt"),
-                    value: formatTimestamp(incident.createdAt, locale),
+                    value: formatTimestamp(incident.createdAt, locale, timeZone),
                   },
                   {
                     label: t("page.incidents.column.resolvedAt"),
                     value:
                       incident.resolvedAt === null
                         ? UNRESOLVED_MARKER
-                        : formatTimestamp(incident.resolvedAt, locale),
+                        : formatTimestamp(incident.resolvedAt, locale, timeZone),
                   },
                 ]}
               />
@@ -246,12 +247,12 @@ export function IncidentsMonitoringView() {
             {selected.description}
           </DetailField>
           <DetailField label={t("page.incidents.column.createdAt")}>
-            {formatTimestamp(selected.createdAt, locale)}
+            {formatTimestamp(selected.createdAt, locale, timeZone)}
           </DetailField>
           <DetailField label={t("page.incidents.column.resolvedAt")}>
             {selected.resolvedAt === null
               ? t("page.incidents.unresolved")
-              : formatTimestamp(selected.resolvedAt, locale)}
+              : formatTimestamp(selected.resolvedAt, locale, timeZone)}
           </DetailField>
         </DetailSheet>
       )}

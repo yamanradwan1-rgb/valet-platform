@@ -41,6 +41,7 @@ export function LiveOperationsView() {
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
   const locationId = location?.locationId ?? null;
+  const timeZone = location?.timezone;
   const { snapshot, refresh, retry, loadMore } = useLiveOperations(
     client,
     locationId,
@@ -134,7 +135,7 @@ export function LiveOperationsView() {
             {snapshot.observedAt !== null && (
               <span className="liveops-observed tabular-nums">
                 {t("liveOperations.observedAt")}:{" "}
-                {formatTimestamp(snapshot.observedAt, locale)}
+                {formatTimestamp(snapshot.observedAt, locale, timeZone)}
               </span>
             )}
             <button
@@ -208,6 +209,7 @@ export function LiveOperationsView() {
                     <LiveVehicleCard
                       key={item.trackingSessionId}
                       item={item}
+                      timeZone={timeZone}
                       selected={
                         item.position !== null &&
                         item.trackingSessionId === effectiveSelectedId

@@ -20,9 +20,10 @@ import {
  */
 export function TaskDetailSheet(props: {
   entry: TaskOverviewEntry;
+  timeZone: string | null | undefined;
   onClose: () => void;
 }) {
-  const { entry, onClose } = props;
+  const { entry, onClose, timeZone } = props;
   const { t, locale } = useTranslation();
   return (
     <ListDetailSheet title={t("tasks.detail.title")} onClose={onClose}>
@@ -51,11 +52,11 @@ export function TaskDetailSheet(props: {
       />
       <DetailField
         label={t("tasks.detail.createdAt")}
-        value={formatTimestamp(entry.createdAt, locale)}
+        value={formatTimestamp(entry.createdAt, locale, timeZone)}
       />
       <DetailField
         label={t("tasks.detail.updatedAt")}
-        value={formatTimestamp(entry.updatedAt, locale)}
+        value={formatTimestamp(entry.updatedAt, locale, timeZone)}
       />
     </ListDetailSheet>
   );

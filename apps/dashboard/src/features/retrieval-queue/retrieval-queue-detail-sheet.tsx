@@ -23,9 +23,10 @@ import {
  */
 export function RetrievalQueueDetailSheet(props: {
   entry: RetrievalQueueEntry;
+  timeZone: string | null | undefined;
   onClose: () => void;
 }) {
-  const { entry, onClose } = props;
+  const { entry, onClose, timeZone } = props;
   const { t, locale } = useTranslation();
   return (
     <ListDetailSheet title={t("retrievalQueue.detail.title")} onClose={onClose}>
@@ -37,7 +38,7 @@ export function RetrievalQueueDetailSheet(props: {
       </DetailField>
       <DetailField
         label={t("retrievalQueue.detail.requestedAt")}
-        value={formatTimestamp(entry.requestedAt, locale)}
+        value={formatTimestamp(entry.requestedAt, locale, timeZone)}
       />
       <DetailField label={t("retrievalQueue.detail.status")}>
         <StatusBadge variant="retrieval" value={entry.status} size="md" />

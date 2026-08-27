@@ -7,6 +7,7 @@ import { DetailField } from "../../components/ui/list-detail-sheet";
 import { areaPurposeLabelKey, pointKindLabelKey } from "../../i18n/enum-labels";
 import { useTranslation } from "../../i18n/locale-provider";
 import { formatTimestamp } from "../../lib/format/datetime-format";
+import { useDashboardLocation } from "../location/location-context";
 
 interface EntityActions {
   readonly onEdit: () => void;
@@ -22,6 +23,7 @@ export function PointDetailCard({
   actions: EntityActions;
 }) {
   const { t, locale } = useTranslation();
+  const location = useDashboardLocation();
   return (
     <Card>
       <div className="card-section-header">
@@ -66,11 +68,11 @@ export function PointDetailCard({
         </DetailField>
         <DetailField
           label={t("mapSetup.field.createdAt")}
-          value={formatTimestamp(point.createdAt, locale)}
+          value={formatTimestamp(point.createdAt, locale, location?.timezone)}
         />
         <DetailField
           label={t("mapSetup.field.updatedAt")}
-          value={formatTimestamp(point.updatedAt, locale)}
+          value={formatTimestamp(point.updatedAt, locale, location?.timezone)}
         />
       </div>
     </Card>
@@ -85,6 +87,7 @@ export function AreaDetailCard({
   actions: EntityActions;
 }) {
   const { t, locale } = useTranslation();
+  const location = useDashboardLocation();
   const vertices = orderAreaVertices(area);
   return (
     <Card>
@@ -140,11 +143,11 @@ export function AreaDetailCard({
         />
         <DetailField
           label={t("mapSetup.field.createdAt")}
-          value={formatTimestamp(area.createdAt, locale)}
+          value={formatTimestamp(area.createdAt, locale, location?.timezone)}
         />
         <DetailField
           label={t("mapSetup.field.updatedAt")}
-          value={formatTimestamp(area.updatedAt, locale)}
+          value={formatTimestamp(area.updatedAt, locale, location?.timezone)}
         />
       </div>
       <div className="map-setup-vertex-box">

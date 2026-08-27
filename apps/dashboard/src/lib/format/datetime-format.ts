@@ -17,10 +17,21 @@ function intlLocale(locale: Locale): string {
  * backend ISO-8601 strings and are formatted at render time in the active
  * locale; invalid input renders as an em dash instead of "Invalid Date".
  */
-export function formatTimestamp(iso: string, locale: Locale): string {
+export function formatTimestamp(
+  iso: string,
+  locale: Locale,
+  timeZone: string | null | undefined,
+): string {
   const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return "—";
-  return new Intl.DateTimeFormat(intlLocale(locale), DATE_TIME_OPTIONS).format(
-    parsed,
-  );
+  if (Number.isNaN(parsed.getTime()) || timeZone === null || timeZone === undefined) {
+    return "—";
+  }
+  try {
+    return new Intl.DateTimeFormat(intlLocale(locale), {
+      ...DATE_TIME_OPTIONS,
+      timeZone,
+    }).format(parsed);
+  } catch {
+    return "—";
+  }
 }

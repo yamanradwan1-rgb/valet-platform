@@ -10,6 +10,7 @@ import { PageHeader } from "../../components/ui/page-header";
 import { useTranslation } from "../../i18n/locale-provider";
 import type { TranslationKey } from "../../i18n/translations/types";
 import { formatTimestamp } from "../../lib/format/datetime-format";
+import { useDashboardLocation } from "../location/location-context";
 import {
   BRANDING_SETTING_ORDER,
   brandingFailureMessageKey,
@@ -62,6 +63,7 @@ export function BrandingView() {
 
 function BrandingSurface(props: { branding: UseBrandingResult }) {
   const { t, locale } = useTranslation();
+  const location = useDashboardLocation();
   const { branding } = props;
   const { snapshot } = branding;
 
@@ -117,7 +119,7 @@ function BrandingSurface(props: { branding: UseBrandingResult }) {
           <div className="branding-metadata">
             <div>
               <span>{t("branding.metadata.updatedAt")}</span>
-              <p>{formatTimestamp(data.updatedAt, locale)}</p>
+              <p>{formatTimestamp(data.updatedAt, locale, location?.timezone)}</p>
             </div>
           </div>
 

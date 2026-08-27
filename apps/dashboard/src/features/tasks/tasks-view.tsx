@@ -36,6 +36,7 @@ export function TasksView() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const locationId = location?.locationId ?? null;
+  const timeZone = location?.timezone;
   const list = useCursorList({
     fetchPage:
       locationId === null ? null : createTasksFetcher(client, locationId),
@@ -108,8 +109,8 @@ export function TasksView() {
                         t("fallback.unassigned"),
                       )}
                     </td>
-                    <td>{formatTimestamp(row.createdAt, locale)}</td>
-                    <td>{formatTimestamp(row.updatedAt, locale)}</td>
+                    <td>{formatTimestamp(row.createdAt, locale, timeZone)}</td>
+                    <td>{formatTimestamp(row.updatedAt, locale, timeZone)}</td>
                   </tr>
                 ))
               )}
@@ -141,11 +142,11 @@ export function TasksView() {
                     },
                     {
                       label: t("tasks.column.created"),
-                      value: formatTimestamp(row.createdAt, locale),
+                      value: formatTimestamp(row.createdAt, locale, timeZone),
                     },
                     {
                       label: t("tasks.column.updated"),
-                      value: formatTimestamp(row.updatedAt, locale),
+                      value: formatTimestamp(row.updatedAt, locale, timeZone),
                     },
                   ]}
                 />
@@ -170,7 +171,7 @@ export function TasksView() {
       )}
 
       {selected !== null && (
-        <TaskDetailSheet entry={selected} onClose={() => setSelectedId(null)} />
+        <TaskDetailSheet entry={selected} timeZone={timeZone} onClose={() => setSelectedId(null)} />
       )}
     </>
   );

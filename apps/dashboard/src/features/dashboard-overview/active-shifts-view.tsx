@@ -34,6 +34,7 @@ export function ActiveShiftsView() {
   const { client } = useAuth();
   const location = useDashboardLocation();
   const locationId = location?.locationId ?? null;
+  const timeZone = location?.timezone;
 
   const list = useOverviewCursorList<ActiveShiftOverviewEntry>({
     enabled: locationId !== null,
@@ -106,7 +107,7 @@ export function ActiveShiftsView() {
                   <DataCell mono>{shift.shiftId}</DataCell>
                   <DataCell mono>{shift.membershipId}</DataCell>
                   <DataCell>
-                    {formatTimestamp(shift.startedAt, locale)}
+                    {formatTimestamp(shift.startedAt, locale, timeZone)}
                   </DataCell>
                 </tr>
               ))}
@@ -125,7 +126,7 @@ export function ActiveShiftsView() {
                   },
                   {
                     label: t("page.activeShifts.column.startedAt"),
-                    value: formatTimestamp(shift.startedAt, locale),
+                    value: formatTimestamp(shift.startedAt, locale, timeZone),
                   },
                 ]}
               />

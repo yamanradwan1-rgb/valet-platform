@@ -16,6 +16,7 @@ import {
 
 interface LiveVehicleCardProps {
   item: LiveOperationsItem;
+  timeZone: string | null | undefined;
   selected: boolean;
   onSelect: (trackingSessionId: string) => void;
 }
@@ -30,6 +31,7 @@ interface LiveVehicleCardProps {
  */
 export function LiveVehicleCard({
   item,
+  timeZone,
   selected,
   onSelect,
 }: LiveVehicleCardProps) {
@@ -73,7 +75,9 @@ export function LiveVehicleCard({
           label={t("liveOperations.item.capturedAt")}
           mono={false}
           value={
-            position === null ? "—" : formatTimeOfDay(position.capturedAt, locale)
+            position === null
+              ? "—"
+              : formatTimeOfDay(position.capturedAt, locale, timeZone)
           }
         />
         <Fact

@@ -200,10 +200,10 @@ describe("marker drafts", () => {
 
 describe("time-of-day rendering", () => {
   it("renders valid timestamps and an em dash for invalid input", () => {
-    const rendered = formatTimeOfDay("2026-08-24T20:21:42+03:00", "en");
+    const rendered = formatTimeOfDay("2026-08-24T20:21:42+03:00", "en", "Asia/Amman");
     expect(rendered).not.toBe("—");
     expect(rendered).toMatch(/\d{1,2}:\d{2}:\d{2}/);
-    expect(formatTimeOfDay("not-a-date", "en")).toBe("—");
+    expect(formatTimeOfDay("not-a-date", "en", "Asia/Amman")).toBe("—");
   });
 });
 

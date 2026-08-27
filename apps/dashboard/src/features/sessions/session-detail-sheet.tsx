@@ -17,9 +17,10 @@ import { UNSET_VALUE_FALLBACK } from "./sessions-display";
  */
 export function SessionDetailSheet(props: {
   entry: SessionOverviewEntry;
+  timeZone: string | null | undefined;
   onClose: () => void;
 }) {
-  const { entry, onClose } = props;
+  const { entry, onClose, timeZone } = props;
   const { t, locale } = useTranslation();
   const vehicle = entry.vehicle;
   return (
@@ -47,11 +48,11 @@ export function SessionDetailSheet(props: {
       </DetailField>
       <DetailField
         label={t("sessions.detail.createdAt")}
-        value={formatTimestamp(entry.createdAt, locale)}
+        value={formatTimestamp(entry.createdAt, locale, timeZone)}
       />
       <DetailField
         label={t("sessions.detail.updatedAt")}
-        value={formatTimestamp(entry.updatedAt, locale)}
+        value={formatTimestamp(entry.updatedAt, locale, timeZone)}
       />
       <DetailField
         label={t("sessions.detail.parkingSpotId")}

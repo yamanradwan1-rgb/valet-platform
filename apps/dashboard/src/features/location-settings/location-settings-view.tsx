@@ -130,7 +130,7 @@ function LocationSettingsSurface(props: {
             </div>
             <div>
               <span>{t("config.metadata.updatedAt")}</span>
-              <p>{formatTimestamp(data.updatedAt, locale)}</p>
+              <p>{formatTimestamp(data.updatedAt, locale, data.timezone)}</p>
             </div>
           </div>
 

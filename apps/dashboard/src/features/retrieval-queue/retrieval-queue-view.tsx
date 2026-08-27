@@ -37,6 +37,7 @@ export function RetrievalQueueView() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const locationId = location?.locationId ?? null;
+  const timeZone = location?.timezone;
   const list = useCursorList({
     fetchPage:
       locationId === null
@@ -103,7 +104,7 @@ export function RetrievalQueueView() {
                       onClick={() => setSelectedId(row.requestId)}
                     >
                       <td className="cell-mono">{requestIdCell(row)}</td>
-                      <td>{formatTimestamp(row.requestedAt, locale)}</td>
+                      <td>{formatTimestamp(row.requestedAt, locale, timeZone)}</td>
                       <td>
                         <StatusBadge variant="retrieval" value={row.status} />
                       </td>
@@ -136,7 +137,7 @@ export function RetrievalQueueView() {
                 <ListCardButton
                   key={row.requestId}
                   title={requestIdCell(row)}
-                  subtitle={formatTimestamp(row.requestedAt, locale)}
+                  subtitle={formatTimestamp(row.requestedAt, locale, timeZone)}
                   trailing={
                     <StatusBadge variant="retrieval" value={row.status} />
                   }
@@ -188,6 +189,7 @@ export function RetrievalQueueView() {
       {selected !== null && (
         <RetrievalQueueDetailSheet
           entry={selected}
+          timeZone={timeZone}
           onClose={() => setSelectedId(null)}
         />
       )}

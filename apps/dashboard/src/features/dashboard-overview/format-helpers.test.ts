@@ -19,8 +19,9 @@ describe("formatTimestamp", () => {
     expect(arabic).toMatch(/[\u0600-\u06FF]/u);
   });
 
-  it("echoes an unparseable value verbatim instead of inventing a time", () => {
-    expect(formatTimestamp("not-a-timestamp", "en")).toBe("not-a-timestamp");
+  it("uses an em dash for unparseable timestamps or an invalid timezone", () => {
+    expect(formatTimestamp("not-a-timestamp", "en", "UTC")).toBe("—");
+    expect(formatTimestamp(instant, "en", "Not/AZone")).toBe("—");
   });
 });
 
