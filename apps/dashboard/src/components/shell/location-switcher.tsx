@@ -38,7 +38,9 @@ export function LocationSwitcher() {
     return (
       <div className="topbar-location">
         <span className="topbar-location-dot" aria-hidden="true" />
-        <span className="topbar-location-label">{location.name}</span>
+        <span className="topbar-location-label" title={location.name}>
+          {location.name}
+        </span>
         <span className="topbar-location-currency">{location.currency}</span>
       </div>
     );
@@ -46,7 +48,9 @@ export function LocationSwitcher() {
 
   const labels = authorizedLocationLabels(locations);
 
-  function onSelectionChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+  function onSelectionChange(
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ): void {
     selectLocation(event.target.value);
   }
 
@@ -58,6 +62,7 @@ export function LocationSwitcher() {
         value={location.locationId}
         onChange={onSelectionChange}
         aria-label={t("location.selectorLabel")}
+        title={labels.get(location.locationId) ?? location.name}
       >
         {locations.map((entry) => (
           <option key={entry.locationId} value={entry.locationId}>

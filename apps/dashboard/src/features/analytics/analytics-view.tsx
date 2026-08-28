@@ -20,10 +20,9 @@ import {
 } from "./analytics-period";
 import { AnalyticsFinancialSection } from "./analytics-financial-section";
 import { AnalyticsIncidentsSection } from "./analytics-incidents-section";
-import {
-  AnalyticsMetricSkeleton,
-} from "./analytics-metric-cards";
+import { AnalyticsMetricSkeleton } from "./analytics-metric-cards";
 import { AnalyticsOperationsSection } from "./analytics-operations-section";
+import { AnalyticsTabs, type AnalyticsTab } from "./analytics-tabs";
 import { useAnalyticsData } from "./use-analytics-data";
 
 /**
@@ -36,14 +35,6 @@ import { useAnalyticsData } from "./use-analytics-data";
  * before the first B request leaves. Data loading itself goes through the
  * race-safe (location, period)-identity loader.
  */
-
-type AnalyticsTab = "operations" | "financial" | "incidents";
-
-const TAB_LABEL_KEYS: Record<AnalyticsTab, TranslationKey> = {
-  financial: "analytics.tab.financial",
-  incidents: "analytics.tab.incidents",
-  operations: "analytics.tab.operations",
-};
 
 /** Exported for error-semantics tests; raw backend codes stay diagnostic. */
 export function errorMessageKey(error: DashboardApiError): TranslationKey {
@@ -73,7 +64,9 @@ export function AnalyticsView() {
   const location = useDashboardLocation();
 
   if (location === null) {
-    return <p className="foundation-note">{t("placeholder.locationMissingNote")}</p>;
+    return (
+      <p className="foundation-note">{t("placeholder.locationMissingNote")}</p>
+    );
   }
 
   // Remounting per location resets period drafts to that location's local
@@ -97,16 +90,12 @@ function AnalyticsWorkspace({
   const { t } = useTranslation();
   const { client } = useAuth();
   const [tab, setTab] = useState<AnalyticsTab>("operations");
-  const defaults = useMemo(
-    () => defaultAnalyticsPeriod(timezone),
-    [timezone],
-  );
+  const defaults = useMemo(() => defaultAnalyticsPeriod(timezone), [timezone]);
   const [draft, setDraft] = useState(defaults);
   const [applied, setApplied] = useState(defaults);
 
   const draftError = validateAnalyticsPeriodInput(draft.from, draft.to);
-  const unchanged =
-    draft.from === applied.from && draft.to === applied.to;
+  const unchanged = draft.from === applied.from && draft.to === applied.to;
   const { snapshot, retry } = useAnalyticsData(client, {
     from: applied.from,
     locationId,
@@ -178,63 +167,50 @@ function AnalyticsWorkspace({
         </p>
       ) : null}
 
-      <div className="ana-tabs" role="tablist">
-        {(Object.keys(TAB_LABEL_KEYS) as AnalyticsTab[]).map((key) => (
-          <button
-            aria-selected={tab === key}
-            className={`ana-tab${tab === key ? " is-active" : ""}`}
-            key={key}
-            onClick={() => setTab(key)}
-            role="tab"
-            type="button"
-          >
-            {t(TAB_LABEL_KEYS[key])}
-          </button>
-        ))}
-      </div>
+      <AnalyticsTabs activeTab={tab} onSelect={setTab}>
+        {snapshot.phase === "error" &&
+        snapshot.error.kind === "session-expired" ? (
+          <FullscreenLoader label={t("session.restoring")} />
+        ) : null}
 
-      {snapshot.phase === "error" &&
-      snapshot.error.kind === "session-expired" ? (
-        <FullscreenLoader label={t("session.restoring")} />
-      ) : null}
+        {snapshot.phase === "error" &&
+        snapshot.error.kind !== "session-expired" ? (
+          <ErrorState
+            message={t(errorMessageKey(snapshot.error))}
+            onRetry={canRetry(snapshot.error) ? retry : undefined}
+            retryLabel={
+              canRetry(snapshot.error) ? t("analytics.action.retry") : undefined
+            }
+          />
+        ) : null}
 
-      {snapshot.phase === "error" &&
-      snapshot.error.kind !== "session-expired" ? (
-        <ErrorState
-          message={t(errorMessageKey(snapshot.error))}
-          onRetry={canRetry(snapshot.error) ? retry : undefined}
-          retryLabel={
-            canRetry(snapshot.error) ? t("analytics.action.retry") : undefined
-          }
-        />
-      ) : null}
-
-      {snapshot.phase === "loading" || snapshot.phase === "idle" ? (
-        <div className="ana-section-stack" aria-live="polite">
-          <div className="ana-metric-grid ana-metric-grid-5">
-            {[0, 1, 2, 3, 4].map((key) => (
-              <AnalyticsMetricSkeleton key={key} />
-            ))}
+        {snapshot.phase === "loading" || snapshot.phase === "idle" ? (
+          <div className="ana-section-stack" aria-live="polite">
+            <div className="ana-metric-grid ana-metric-grid-5">
+              {[0, 1, 2, 3, 4].map((key) => (
+                <AnalyticsMetricSkeleton key={key} />
+              ))}
+            </div>
+            <Card>
+              <Skeleton label={t("analytics.loading")} lines={6} />
+            </Card>
           </div>
-          <Card>
-            <Skeleton label={t("analytics.loading")} lines={6} />
-          </Card>
-        </div>
-      ) : null}
+        ) : null}
 
-      {snapshot.phase === "ready" ? (
-        <>
-          {tab === "operations" ? (
-            <AnalyticsOperationsSection composition={snapshot.data} />
-          ) : null}
-          {tab === "financial" ? (
-            <AnalyticsFinancialSection composition={snapshot.data} />
-          ) : null}
-          {tab === "incidents" ? (
-            <AnalyticsIncidentsSection composition={snapshot.data} />
-          ) : null}
-        </>
-      ) : null}
+        {snapshot.phase === "ready" ? (
+          <>
+            {tab === "operations" ? (
+              <AnalyticsOperationsSection composition={snapshot.data} />
+            ) : null}
+            {tab === "financial" ? (
+              <AnalyticsFinancialSection composition={snapshot.data} />
+            ) : null}
+            {tab === "incidents" ? (
+              <AnalyticsIncidentsSection composition={snapshot.data} />
+            ) : null}
+          </>
+        ) : null}
+      </AnalyticsTabs>
     </>
   );
 }

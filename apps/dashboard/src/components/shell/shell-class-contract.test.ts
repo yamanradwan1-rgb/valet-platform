@@ -30,9 +30,9 @@ describe("nav toggle desktop visibility", () => {
   it("uses the defined lg-desktop-hidden class and nothing similar", () => {
     expect(TOP_BAR_SOURCE.includes("lg-desktop-hidden")).toBe(true);
     expect(TOP_BAR_SOURCE.includes("lg-only-hidden")).toBe(false);
-    expect(
-      /\.topbar-icon-button\.lg-desktop-hidden\b/u.test(GLOBALS_CSS),
-    ).toBe(true);
+    expect(/\.topbar-icon-button\.lg-desktop-hidden\b/u.test(GLOBALS_CSS)).toBe(
+      true,
+    );
   });
 });
 
@@ -40,5 +40,22 @@ describe("shared skeleton styles exist", () => {
   it("defines .skeleton and .skeleton-line in authored CSS", () => {
     expect(GLOBALS_CSS.includes(".skeleton {")).toBe(true);
     expect(GLOBALS_CSS.includes(".skeleton-line {")).toBe(true);
+  });
+});
+
+describe("narrow TopBar Location priority", () => {
+  it("keeps Location flexible while hiding only secondary currency below tablet", () => {
+    expect(GLOBALS_CSS).toMatch(
+      /@media \(max-width: 1023px\)[\s\S]*?\.topbar-location\s*\{[^}]*flex:\s*1 1 auto;/u,
+    );
+    expect(GLOBALS_CSS).toMatch(
+      /\.topbar-location-currency\s*\{[^}]*display:\s*none;/u,
+    );
+    expect(GLOBALS_CSS).toMatch(
+      /@media \(min-width: 768px\)[\s\S]*?\.topbar-location-currency\s*\{[^}]*display:\s*inline;/u,
+    );
+    expect(GLOBALS_CSS).toMatch(
+      /@media \(max-width: 480px\)[\s\S]*?\.dashboard-topbar\s*\{[^}]*gap:\s*4px;/u,
+    );
   });
 });

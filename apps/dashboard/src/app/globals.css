@@ -438,7 +438,9 @@ textarea:focus-visible {
 
 .topbar-location {
   display: flex;
+  flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
   height: 44px;
   align-items: center;
   gap: 8px;
@@ -466,7 +468,14 @@ textarea:focus-visible {
   background: var(--success);
 }
 
+@media (max-width: 1023px) {
+  .topbar-location {
+    flex: 1 1 auto;
+  }
+}
+
 .topbar-location-label {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -474,6 +483,8 @@ textarea:focus-visible {
 }
 
 .topbar-location-currency {
+  display: none;
+  flex-shrink: 0;
   color: var(--text-muted);
   font-size: 12px;
 }
@@ -488,6 +499,8 @@ textarea:focus-visible {
    A native select keeps keyboard accessibility, RTL mirroring and mobile
    behavior for free; only the visual integration is styled here. */
 .topbar-location-select {
+  flex: 1 1 auto;
+  inline-size: 100%;
   min-width: 0;
   max-width: 240px;
   border: 0;
@@ -507,8 +520,19 @@ textarea:focus-visible {
 }
 
 @media (max-width: 480px) {
+  .dashboard-topbar {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+  .topbar-location {
+    gap: 6px;
+    padding-inline: 8px;
+  }
   .topbar-location-select {
-    max-width: 140px;
+    max-width: none;
+  }
+  .topbar-actions {
+    gap: 2px;
   }
 }
 
