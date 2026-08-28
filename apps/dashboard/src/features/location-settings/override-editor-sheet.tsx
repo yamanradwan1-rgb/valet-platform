@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type {
   ConfigurationSettingProjection,
   ConfigurationSettingKey,
 } from "@valet/contracts";
 
 import { useTranslation } from "../../i18n/locale-provider";
+import { ModalPortal } from "../../components/ui/modal-portal";
+import { useModalA11y } from "../../components/ui/use-modal-a11y";
 import type { TranslationKey } from "../../i18n/translations/types";
 import {
   enumOptions,
@@ -67,20 +69,7 @@ export function OverrideEditorSheet({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  useEffect(() => {
-    const field = panelRef.current?.querySelector<HTMLElement>(
-      "input, select",
-    );
-    (field ?? cancelButtonRef.current)?.focus();
-  }, []);
+  useModalA11y(panelRef, onClose, cancelButtonRef);
 
   function submit(): void {
     const outcome = parseSettingInput(projection.setting, draft);
@@ -100,6 +89,7 @@ export function OverrideEditorSheet({
     settingDisplayText(settingValueDisplay(projection.setting, value, currency), t);
 
   return (
+    <ModalPortal>
     <div
       className="detail-overlay"
       role="dialog"
@@ -255,5 +245,6 @@ export function OverrideEditorSheet({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

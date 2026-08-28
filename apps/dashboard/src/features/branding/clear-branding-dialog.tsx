@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 import { useTranslation } from "../../i18n/locale-provider";
+import { ModalPortal } from "../../components/ui/modal-portal";
+import { useModalA11y } from "../../components/ui/use-modal-a11y";
 
 interface ClearBrandingDialogProps {
   readonly busy: boolean;
@@ -28,19 +30,11 @@ export function ClearBrandingDialog({
   const { t } = useTranslation();
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    cancelButtonRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape") onCancel();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  useModalA11y(panelRef, onCancel, cancelButtonRef);
 
   return (
+    <ModalPortal>
     <div
       aria-label={t("branding.clear.title")}
       aria-modal="true"
@@ -54,7 +48,7 @@ export function ClearBrandingDialog({
         tabIndex={-1}
         type="button"
       />
-      <div className="branding-editor-panel is-compact">
+      <div className="branding-editor-panel is-compact" ref={panelRef} tabIndex={-1}>
         <h3>{t("branding.clear.title")}</h3>
         <p>
           {settingLabel} — {t("branding.clear.body")}
@@ -80,5 +74,6 @@ export function ClearBrandingDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

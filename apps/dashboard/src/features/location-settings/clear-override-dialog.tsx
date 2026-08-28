@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 import { useTranslation } from "../../i18n/locale-provider";
+import { ModalPortal } from "../../components/ui/modal-portal";
+import { useModalA11y } from "../../components/ui/use-modal-a11y";
 import "./location-settings-editor.css";
 
 interface ClearOverrideDialogProps {
@@ -29,19 +31,11 @@ export function ClearOverrideDialog({
   // keyboard users start inside the dialog and focus never sits behind it.
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    cancelButtonRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape") onCancel();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  useModalA11y(panelRef, onCancel, cancelButtonRef);
 
   return (
+    <ModalPortal>
     <div
       className="detail-overlay"
       role="alertdialog"
@@ -55,7 +49,7 @@ export function ClearOverrideDialog({
         tabIndex={-1}
         aria-label={t("config.actions.cancel")}
       />
-      <div className="config-editor-panel is-compact">
+      <div className="config-editor-panel is-compact" ref={panelRef} tabIndex={-1}>
         <h3>{t("config.clear.title")}</h3>
         <p>
           {settingLabel} — {t("config.clear.body")}
@@ -81,5 +75,6 @@ export function ClearOverrideDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

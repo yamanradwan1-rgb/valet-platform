@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
+import { ModalPortal } from "../../components/ui/modal-portal";
+import { useModalA11y } from "../../components/ui/use-modal-a11y";
 
 interface DetailSheetProps {
   title: string;
@@ -22,19 +24,10 @@ export function DetailSheet({
 }: DetailSheetProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    panelRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  useModalA11y(panelRef, onClose);
 
   return (
+    <ModalPortal>
     <div
       className="detail-sheet-backdrop"
       role="dialog"
@@ -57,6 +50,7 @@ export function DetailSheet({
         <dl className="detail-fields">{children}</dl>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 import { useTranslation } from "../../i18n/locale-provider";
+import { ModalPortal } from "./modal-portal";
+import { useModalA11y } from "./use-modal-a11y";
 
 /**
  * D1 detail sheet for list surfaces: bottom sheet on small screens, floating
@@ -23,19 +25,10 @@ export function ListDetailSheet(props: {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    panelRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  useModalA11y(panelRef, onClose);
 
   return (
+    <ModalPortal>
     <div
       className="detail-overlay"
       role="dialog"
@@ -64,6 +57,7 @@ export function ListDetailSheet(props: {
         <div className="detail-fields">{children}</div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

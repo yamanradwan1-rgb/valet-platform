@@ -28,6 +28,15 @@ class FakeElement {
   parentNode: FakeElement | null = null;
   childNodes: FakeElement[] = [];
   style: Record<string, string> = {};
+  className = "";
+  inert = false;
+  disabled = false;
+  get isConnected(): boolean {
+    return this.parentNode !== null || this === this.ownerDocument?.documentElement;
+  }
+  get offsetParent(): FakeElement | null {
+    return this.parentNode;
+  }
   // React 19's getActiveElementDeep does
   // `element instanceof containerInfo.HTMLIFrameElement`. The fake
   // element exposes a class so the instanceof check resolves to
@@ -45,7 +54,36 @@ class FakeElement {
   insertBefore!: (newChild: FakeElement, refChild: FakeElement | null) => FakeElement;
   setAttribute!: (name: string, value: string) => void;
   getAttribute!: (name: string) => string | null;
+  hasAttribute!: (name: string) => boolean;
   removeAttribute!: (name: string) => void;
+
+  focus(): void {
+    if (this.ownerDocument !== null) this.ownerDocument.activeElement = this;
+  }
+
+  contains(target: unknown): boolean {
+    return target === this || this.childNodes.some((child) => child.contains(target));
+  }
+
+  querySelectorAll<T extends FakeElement = FakeElement>(selector: string): T[] {
+    const matches: FakeElement[] = [];
+    const visit = (node: FakeElement): void => {
+      for (const child of node.childNodes) {
+        const tag = child.tagName.toLowerCase();
+        const tabbable =
+          ((tag === "a" && child.getAttribute("href") !== null) ||
+            ["button", "input", "select", "textarea"].includes(tag) ||
+            child.getAttribute("tabindex") !== null) &&
+          !child.disabled &&
+          child.getAttribute("tabindex") !== "-1";
+        const classMatch = selector.startsWith(".") && child.className.split(" ").includes(selector.slice(1));
+        if (classMatch || (selector.includes("button") && tabbable)) matches.push(child);
+        visit(child);
+      }
+    };
+    visit(this);
+    return matches as T[];
+  }
 
   constructor(tagName: string) {
     this.tagName = tagName.toUpperCase();
@@ -101,6 +139,9 @@ class FakeElement {
     this.getAttribute = function (name) {
       return self.attributes.get(name) ?? null;
     };
+    this.hasAttribute = function (name) {
+      return self.attributes.has(name);
+    };
     this.removeAttribute = function (name) {
       self.attributes.delete(name);
     };
@@ -112,6 +153,7 @@ class FakeDocument {
   readonly head: FakeElement;
   readonly documentElement: FakeElement;
   nodeType = 9 as const;
+  activeElement: FakeElement | null = null;
   private readonly listeners = new Map<string, EventHandler[]>();
 
   addEventListener!: (type: string, handler: EventHandler) => void;
@@ -160,6 +202,10 @@ class FakeDocument {
     (node as unknown as { nodeValue: string }).nodeValue = text;
     return node;
   }
+
+  querySelector<T extends FakeElement = FakeElement>(selector: string): T | null {
+    return this.documentElement.querySelectorAll<T>(selector)[0] ?? null;
+  }
 }
 
 export function installMinimalBrowser(): () => void {
@@ -172,12 +218,24 @@ export function installMinimalBrowser(): () => void {
   };
   const document = new FakeDocument();
   (globalThis as { document: unknown }).document = document;
+  (globalThis as { Element: unknown }).Element = FakeElement;
+  (globalThis as { HTMLElement: unknown }).HTMLElement = FakeElement;
+  (globalThis as { Node: unknown }).Node = FakeElement;
+  const windowListeners = new Map<string, EventHandler[]>();
   const fakeWindow = {
     HTMLIFrameElement: class {} as unknown as HTMLElement,
-    addEventListener: (): void => undefined,
+    addEventListener: (type: string, handler: EventHandler): void => {
+      windowListeners.set(type, [...(windowListeners.get(type) ?? []), handler]);
+    },
+    dispatchEvent: (event: { type: string } & Record<string, unknown>): boolean => {
+      for (const handler of windowListeners.get(event.type) ?? []) handler(event);
+      return true;
+    },
     document,
     navigator: { userAgent: "node-test" },
-    removeEventListener: (): void => undefined,
+    removeEventListener: (type: string, handler: EventHandler): void => {
+      windowListeners.set(type, (windowListeners.get(type) ?? []).filter((item) => item !== handler));
+    },
   };
   (globalThis as { window: unknown }).window = fakeWindow;
   return () => {

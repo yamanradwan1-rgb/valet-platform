@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 import { useTranslation } from "../../i18n/locale-provider";
+import { ModalPortal } from "../../components/ui/modal-portal";
+import { useModalA11y } from "../../components/ui/use-modal-a11y";
 
 interface ConfirmDialogProps {
   readonly title: string;
@@ -31,19 +33,11 @@ export function ConfirmDialog({
   // and focus never sits behind the open dialog.
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    cancelButtonRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape") onCancel();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  useModalA11y(panelRef, onCancel, cancelButtonRef);
 
   return (
+    <ModalPortal>
     <div
       className="detail-overlay"
       role="alertdialog"
@@ -57,7 +51,7 @@ export function ConfirmDialog({
         tabIndex={-1}
         aria-label={t("common.close")}
       />
-      <div className="map-setup-confirm-panel">
+      <div className="map-setup-confirm-panel" ref={panelRef} tabIndex={-1}>
         <h3>{title}</h3>
         <p>{body}</p>
         <div className="map-setup-form-actions">
@@ -80,5 +74,6 @@ export function ConfirmDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

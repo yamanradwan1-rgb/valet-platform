@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { BrandingSetting } from "@valet/contracts";
 
 import { useTranslation } from "../../i18n/locale-provider";
+import { ModalPortal } from "../../components/ui/modal-portal";
+import { useModalA11y } from "../../components/ui/use-modal-a11y";
 import type { TranslationKey } from "../../i18n/translations/types";
 import { brandingSettingLabelKey } from "./branding-labels";
 import {
@@ -54,20 +56,7 @@ export function BrandingEditorDialog({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  useEffect(() => {
-    const field = panelRef.current?.querySelector<HTMLElement>(
-      "input, select",
-    );
-    (field ?? cancelButtonRef.current)?.focus();
-  }, []);
+  useModalA11y(panelRef, onClose, cancelButtonRef);
 
   function submit(): void {
     const outcome = parseBrandingInput(setting, draft);
@@ -92,6 +81,7 @@ export function BrandingEditorDialog({
   const showDraftSwatch = COLOR_INPUT_PATTERN.test(draft);
 
   return (
+    <ModalPortal>
     <div
       aria-label={t(titleKey)}
       aria-modal="true"
@@ -251,5 +241,6 @@ export function BrandingEditorDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

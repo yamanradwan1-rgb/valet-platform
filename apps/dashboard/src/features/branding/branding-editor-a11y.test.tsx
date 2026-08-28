@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -86,7 +85,6 @@ describe("branding editor dialog labeling", () => {
     expect(markup.includes("aria-modal")).toBe(true);
   });
 });
-
 describe("clear branding dialog static rendering", () => {
   it("renders an accessible alertdialog with Cancel ahead of confirm", () => {
     const markup = renderToStaticMarkup(
@@ -109,38 +107,3 @@ describe("clear branding dialog static rendering", () => {
   });
 });
 
-/**
- * Source invariants pinning the accepted mount-focus baseline (the node test
- * environment cannot execute DOM effects).
- */
-describe("dialog initial focus pattern", () => {
-  const editorSource = readFileSync(
-    new URL("./branding-editor-dialog.tsx", import.meta.url),
-    "utf8",
-  );
-  const clearSource = readFileSync(
-    new URL("./clear-branding-dialog.tsx", import.meta.url),
-    "utf8",
-  );
-
-  it("editor focuses its first field, falling back to Cancel", () => {
-    expect(
-      /querySelector<HTMLElement>\(\s*"input, select",?\s*\)/u.test(
-        editorSource,
-      ),
-    ).toBe(true);
-    expect(
-      /\(\s*field \?\? cancelButtonRef\.current\s*\)\?\.focus\(\)/u.test(
-        editorSource,
-      ),
-    ).toBe(true);
-    expect(editorSource).toContain('"Escape"');
-    expect(editorSource).toContain('role="alert"');
-  });
-
-  it("clear dialog focuses the non-destructive Cancel action", () => {
-    expect(clearSource).toContain("cancelButtonRef.current?.focus()");
-    expect(clearSource).toContain('ref={cancelButtonRef}');
-    expect(clearSource).toContain('"Escape"');
-  });
-});

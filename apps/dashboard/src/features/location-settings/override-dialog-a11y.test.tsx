@@ -112,33 +112,10 @@ describe("override editor sheet field labeling", () => {
  * because the node test environment cannot execute DOM effects.
  */
 describe("dialog initial focus pattern", () => {
-  const sheetSource = readFileSync(
-    new URL("./override-editor-sheet.tsx", import.meta.url),
-    "utf8",
-  );
   const dialogSource = readFileSync(
     new URL("./clear-override-dialog.tsx", import.meta.url),
     "utf8",
   );
-
-  it("override editor focuses its field, falling back to Cancel", () => {
-    expect(
-      /querySelector<HTMLElement>\(\s*"input, select",?\s*\)/u.test(sheetSource),
-    ).toBe(true);
-    expect(
-      /\(\s*field \?\? cancelButtonRef\.current\s*\)\?\.focus\(\)/u.test(
-        sheetSource,
-      ),
-    ).toBe(true);
-    // Escape behavior stays intact alongside the focus effect.
-    expect(sheetSource).toContain('"Escape"');
-  });
-
-  it("clear dialog focuses the non-destructive Cancel action", () => {
-    expect(dialogSource).toContain("cancelButtonRef.current?.focus()");
-    expect(dialogSource).toContain("ref={cancelButtonRef}");
-    expect(dialogSource).toContain('"Escape"');
-  });
 
   it("clear dialog keeps Cancel ahead of the destructive confirm", () => {
     const cancelIndex = dialogSource.indexOf('className="btn-secondary"');
