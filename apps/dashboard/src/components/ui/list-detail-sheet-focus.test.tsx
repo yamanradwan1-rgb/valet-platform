@@ -1,4 +1,4 @@
-import { act } from "react";
+import { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +8,8 @@ vi.mock("../../i18n/locale-provider", () => ({
 
 import { installMinimalBrowser } from "../../features/map-setup/setup-map.integration.test-double";
 import { ListDetailSheet } from "./list-detail-sheet";
+import { ModalPortal } from "./modal-portal";
+import { useModalA11y } from "./use-modal-a11y";
 
 type ElementLike = HTMLElement & { childNodes: ElementLike[] };
 let restore: () => void = () => undefined;
@@ -26,6 +28,18 @@ function byAttribute(name: string, value: string): ElementLike {
 
 function keydown(key: string, shiftKey = false): void {
   window.dispatchEvent(Object.assign(new Event("keydown"), { key, shiftKey }));
+}
+
+function BareModal({ onClose }: { onClose: () => void }) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  useModalA11y(panelRef, onClose);
+  return (
+    <ModalPortal>
+      <div role="dialog">
+        <div ref={panelRef} tabIndex={-1} />
+      </div>
+    </ModalPortal>
+  );
 }
 
 describe("ListDetailSheet modal behavior", () => {
@@ -81,5 +95,30 @@ describe("ListDetailSheet modal behavior", () => {
     act(() => root.unmount());
     expect(shell.inert).toBe(false);
     expect(document.activeElement).toBe(opener);
+  });
+
+  it("handles rerenders, no tabbables, and a disconnected opener safely", () => {
+    const shell = document.createElement("div");
+    shell.className = "dashboard-shell";
+    const opener = document.createElement("button");
+    const container = document.createElement("div");
+    shell.appendChild(opener);
+    shell.appendChild(container);
+    document.body.appendChild(shell);
+    opener.focus();
+    const onClose = vi.fn();
+    const root = createRoot(container);
+    act(() => root.render(<BareModal onClose={onClose} />));
+    const dialog = byAttribute("role", "dialog");
+    const panel = (dialog as unknown as ElementLike).childNodes[0]!;
+    expect(document.activeElement).toBe(panel);
+    keydown("Tab");
+    expect(document.activeElement).toBe(panel);
+    act(() => root.render(<BareModal onClose={onClose} />));
+    keydown("Escape");
+    expect(onClose).toHaveBeenCalledTimes(1);
+    shell.removeChild(opener);
+    expect(() => act(() => root.unmount())).not.toThrow();
+    expect(shell.inert).toBe(false);
   });
 });
