@@ -183,6 +183,7 @@ describe("LiveOperationsMap integration — A → B → A resets viewport establ
     );
     const last = newest.replacedMarkers.at(-1);
     expect(last?.map((entry) => entry.id)).toEqual(["a2"]);
+    expect(last?.[0]?.ariaLabel).toBe("a2");
     harness.unmount();
   });
 });

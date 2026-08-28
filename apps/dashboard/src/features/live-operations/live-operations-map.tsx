@@ -99,18 +99,22 @@ export function LiveOperationsMap({
   const onSelectMarkerRef = useRef(onSelectMarker);
   // The latest marker set; read by the post-ensure push so the freshly
   // adopted instance is always initialized with the current data.
-  const markersRef = useRef(markers);
+  const markersRef = useRef<readonly MapMarkerDescriptor[]>([]);
   // The latest selected marker; read by the focus effect below.
   const selectedMarkerIdRef = useRef(selectedMarkerId);
   const [status, setStatus] = useState<MapStatus>("loading");
   const { t } = useTranslation();
+  const descriptors = useMemo<readonly MapMarkerDescriptor[]>(
+    () => markers.map((marker) => ({ ...marker, ariaLabel: describeMarker(marker) })),
+    [markers, describeMarker],
+  );
 
   useEffect(() => {
     onSelectMarkerRef.current = onSelectMarker;
   }, [onSelectMarker]);
   useEffect(() => {
-    markersRef.current = markers;
-  }, [markers]);
+    markersRef.current = descriptors;
+  }, [descriptors]);
   useEffect(() => {
     selectedMarkerIdRef.current = selectedMarkerId;
   }, [selectedMarkerId]);
@@ -129,6 +133,11 @@ export function LiveOperationsMap({
   const [locatedViewport, setLocatedViewport] = useState<LocatedViewport | null>(
     null,
   );
+  const [activeLocationId, setActiveLocationId] = useState(locationId);
+  if (activeLocationId !== locationId) {
+    setActiveLocationId(locationId);
+    setLocatedViewport(null);
+  }
   const establishedViewport: ViewportSnapshot | null =
     locatedViewport !== null && locatedViewport.forLocationId === locationId
       ? locatedViewport
@@ -221,14 +230,8 @@ export function LiveOperationsMap({
   useEffect(() => {
     const controller = controllerRef.current;
     if (controller === null) return;
-    controller.pushData({ liveMarkers: markers });
-  }, [markers]);
-
-  const descriptors = useMemo<readonly MapMarkerDescriptor[]>(
-    () =>
-      markers.map((marker) => ({ ...marker, ariaLabel: describeMarker(marker) })),
-    [markers, describeMarker],
-  );
+    controller.pushData({ liveMarkers: descriptors });
+  }, [descriptors]);
 
   // The focus effect is the only remaining direct instance use, and
   // it is gated by both `supportsMarkers` and a non-null `instanceRef`.

@@ -134,6 +134,28 @@ describe("MapController — first render", () => {
 });
 
 describe("MapController — stable on equivalent viewport key", () => {
+  it("lets a synchronous reuse supersede an older in-flight create", async () => {
+    const harness = makeHarness();
+    const original = expectCreated(await harness.controller.ensure("A", {
+      center: { latitude: 0, longitude: 0 }, zoom: 1,
+    }));
+    harness.adapter.nextCreateDelayMs = 10;
+    const pendingB = harness.controller.ensure("B", {
+      center: { latitude: 1, longitude: 1 }, zoom: 2,
+    });
+    const reuseA = await harness.controller.ensure("A", {
+      center: { latitude: 0, longitude: 0 }, zoom: 1,
+    });
+    expect(expectReused(reuseA)).toBe(original);
+    expect((await pendingB).kind).toBe("noop-stale");
+    const lateB = globalState.allCreated.at(-1);
+    expect(lateB?.destroyed).toBe(true);
+    expect(original.destroyed).toBe(false);
+    expect(harness.controller.currentKey).toBe("A");
+    expect(harness.controller.currentInstance).toBe(original);
+    harness.controller.dispose();
+  });
+
   it("does NOT recreate the map when the same key is observed again", async () => {
     const harness = makeHarness();
     const first = await harness.controller.ensure("loc-A|geom", {

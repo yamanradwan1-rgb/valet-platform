@@ -32,6 +32,7 @@
  * assert on the call sequence.
  */
 
+import { supportsMarkers } from "./map-provider";
 import type {
   InteractiveMapInstance,
   MapClickHandler,
@@ -45,15 +46,8 @@ import type {
 
 export interface MapDataInput {
   readonly markers?: readonly MapMarkerDefinition[];
-  /**
-   * Live Operations marker drafts (the `ariaLabel` is filled in by
-   * the Live Operations component on push). Accepted as
-   * `Omit<MapMarkerDescriptor, "ariaLabel">` to match the
-   * feature-level draft type.
-   */
-  readonly liveMarkers?: ReadonlyArray<
-    Omit<MapMarkerDescriptor, "ariaLabel">
-  >;
+  /** Live Operations markers, including their localized accessible names. */
+  readonly liveMarkers?: readonly MapMarkerDescriptor[];
   readonly polygons?: readonly MapPolygonDefinition[];
   readonly clickHandler?: MapClickHandler | null;
 }
@@ -180,6 +174,9 @@ export function createMapController(deps: MapControllerDeps): MapController {
     },
     async ensure(key, options) {
       if (state.disposed) return { kind: "noop-disposed" };
+      // Every invocation claims latest-request authority, including reuse.
+      const myToken = state.requestToken + 1;
+      state.requestToken = myToken;
       // Synchronous reuse: the current instance is already on the right
       // key. This is the cheap path and is independent of the
       // requestToken race below.
@@ -193,8 +190,6 @@ export function createMapController(deps: MapControllerDeps): MapController {
       // monotonically increasing and is bumped on every invocation,
       // including synchronous failures (e.g. no container) so a
       // subsequent caller can always claim ownership.
-      const myToken = state.requestToken + 1;
-      state.requestToken = myToken;
       const container = getContainer();
       if (container === null) {
         return { kind: "noop-stale" };
@@ -221,24 +216,16 @@ export function createMapController(deps: MapControllerDeps): MapController {
       if (state.disposed) return;
       const instance = state.currentInstance;
       if (instance === null) return;
-      if (!isInteractive(instance)) return;
-      if (markers !== undefined) instance.setMarkers([...markers]);
-      if (polygons !== undefined) instance.setPolygons([...polygons]);
-      if (clickHandler !== undefined) {
-        instance.setClickHandler(clickHandler);
+      if (isInteractive(instance)) {
+        if (markers !== undefined) instance.setMarkers([...markers]);
+        if (polygons !== undefined) instance.setPolygons([...polygons]);
+        if (clickHandler !== undefined) instance.setClickHandler(clickHandler);
       }
       // Live Operations uses a different marker descriptor shape.
       // When the liveMarkers payload is present, route it to the
       // marker-capable `replaceMarkers` API.
       if (liveMarkers !== undefined) {
-        const markerCapable = instance as Partial<{
-          replaceMarkers: (
-            markers: ReadonlyArray<Omit<MapMarkerDescriptor, "ariaLabel">>,
-          ) => void;
-        }>;
-        if (typeof markerCapable.replaceMarkers === "function") {
-          markerCapable.replaceMarkers(liveMarkers);
-        }
+        if (supportsMarkers(instance)) instance.replaceMarkers(liveMarkers);
       }
     },
     dispose() {
