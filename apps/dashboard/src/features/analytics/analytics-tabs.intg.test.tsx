@@ -81,6 +81,38 @@ function selectedTab(): TestElement {
   )!;
 }
 
+function assertTabState(activeTab: AnalyticsTab): void {
+  const tabs = allByAttribute("role", "tab");
+  const panels = allByAttribute("role", "tabpanel");
+  expect(tabs).toHaveLength(3);
+  expect(panels).toHaveLength(3);
+
+  for (const tab of tabs) {
+    const tabName = tab
+      .getAttribute("id")!
+      .replace(/^analytics-/u, "")
+      .replace(/-tab$/u, "");
+    const panelId = tab.getAttribute("aria-controls")!;
+    expect(panelId).toBe(`analytics-${tabName}-panel`);
+    const panel = byAttribute("id", panelId);
+    expect(panel.getAttribute("aria-labelledby")).toBe(tab.getAttribute("id"));
+    expect(panel.getAttribute("hidden") === null).toBe(tabName === activeTab);
+    expect(
+      descendants(panel).filter((element) =>
+        element.getAttribute("data-testid")?.endsWith("-content"),
+      ),
+    ).toHaveLength(tabName === activeTab ? 1 : 0);
+  }
+
+  expect(
+    panels.filter((panel) => panel.getAttribute("hidden") === null),
+  ).toHaveLength(1);
+  expect(
+    panels.filter((panel) => panel.getAttribute("hidden") !== null),
+  ).toHaveLength(2);
+  expect(byAttribute("data-testid", `${activeTab}-content`)).toBeDefined();
+}
+
 beforeEach(() => {
   restore = installMinimalBrowser();
   (
@@ -114,31 +146,28 @@ describe.each(["en", "ar"] as const)("Analytics tabs in %s", (locale) => {
     expect(
       tabs.filter((tab) => tab.getAttribute("tabindex") === "-1"),
     ).toHaveLength(2);
-
-    for (const tab of tabs) {
-      expect(tab.getAttribute("aria-controls")).toBe(
-        tab.getAttribute("id")!.replace(/-tab$/u, "-panel"),
-      );
-    }
-    expect(allByAttribute("role", "tabpanel")).toHaveLength(1);
-    expect(
-      byAttribute("role", "tabpanel").getAttribute("aria-labelledby"),
-    ).toBe("analytics-operations-tab");
-    expect(byAttribute("data-testid", "operations-content")).toBeDefined();
+    assertTabState("operations");
 
     pressKey(selectedTab(), "ArrowRight");
     expect(selectedTab().getAttribute("id")).toBe("analytics-financial-tab");
     expect(document.activeElement).toBe(selectedTab());
-    expect(byAttribute("data-testid", "financial-content")).toBeDefined();
+    assertTabState("financial");
     pressKey(selectedTab(), "ArrowLeft");
     expect(selectedTab().getAttribute("id")).toBe("analytics-operations-tab");
+    expect(document.activeElement).toBe(selectedTab());
+    assertTabState("operations");
     pressKey(selectedTab(), "Home");
     expect(selectedTab().getAttribute("id")).toBe("analytics-financial-tab");
+    expect(document.activeElement).toBe(selectedTab());
+    assertTabState("financial");
     pressKey(selectedTab(), "End");
     expect(selectedTab().getAttribute("id")).toBe("analytics-operations-tab");
+    expect(document.activeElement).toBe(selectedTab());
+    assertTabState("operations");
     pressKey(selectedTab(), "ArrowLeft");
     expect(selectedTab().getAttribute("id")).toBe("analytics-incidents-tab");
-    expect(byAttribute("data-testid", "incidents-content")).toBeDefined();
+    expect(document.activeElement).toBe(selectedTab());
+    assertTabState("incidents");
 
     const authority = byAttribute("data-testid", "analytics-authority");
     expect(authority.getAttribute("data-location")).toBe("location-a");

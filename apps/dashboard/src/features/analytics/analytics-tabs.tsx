@@ -85,13 +85,20 @@ export function AnalyticsTabs({
           </button>
         ))}
       </div>
-      <div
-        id={panelId(activeTab)}
-        role="tabpanel"
-        aria-labelledby={tabId(activeTab)}
-      >
-        {children}
-      </div>
+      {TABS.map((tab) => {
+        const isActive = activeTab === tab;
+        return (
+          <div
+            id={panelId(tab)}
+            aria-labelledby={tabId(tab)}
+            hidden={!isActive}
+            key={tab}
+            role="tabpanel"
+          >
+            {isActive ? children : null}
+          </div>
+        );
+      })}
     </>
   );
 }
