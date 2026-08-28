@@ -129,6 +129,43 @@ describe("LocationProvider principal isolation", () => {
     harness.unmount();
   });
 
+  it("keeps an authorized same-principal selection through a reload", async () => {
+    const first = deferred<readonly AuthorizedDashboardLocation[]>();
+    const refreshed = deferred<readonly AuthorizedDashboardLocation[]>();
+    vi.mocked(fetchAuthorizedLocations)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(refreshed.promise);
+    const harness = mount();
+    first.resolve([location("A-1"), location("A-2")]);
+    await settle();
+    act(() => snapshot().selectLocation("A-2"));
+
+    act(() => snapshot().reloadLocations());
+    expect(snapshot()).toMatchObject({ locations: [], location: null, status: "loading" });
+    refreshed.resolve([location("A-1"), location("A-2")]);
+    await settle();
+    expect(snapshot().location?.locationId).toBe("A-2");
+    harness.unmount();
+  });
+
+  it("falls back when a same-principal reload no longer authorizes the preference", async () => {
+    const first = deferred<readonly AuthorizedDashboardLocation[]>();
+    const refreshed = deferred<readonly AuthorizedDashboardLocation[]>();
+    vi.mocked(fetchAuthorizedLocations)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(refreshed.promise);
+    const harness = mount();
+    first.resolve([location("A-1"), location("A-2")]);
+    await settle();
+    act(() => snapshot().selectLocation("A-2"));
+
+    act(() => snapshot().reloadLocations());
+    refreshed.resolve([location("A-1")]);
+    await settle();
+    expect(snapshot().location?.locationId).toBe("A-1");
+    harness.unmount();
+  });
+
   it("cannot let a superseded A request overwrite B, and hides state outside authentication", async () => {
     const a = deferred<readonly AuthorizedDashboardLocation[]>();
     const b = deferred<readonly AuthorizedDashboardLocation[]>();

@@ -106,7 +106,11 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       setState({ owner: null, outcome: null, preference: null });
       return;
     }
-    setState({ owner: sessionEmail, outcome: null, preference: null });
+    setState((current) =>
+      current.owner === sessionEmail
+        ? { ...current, outcome: null }
+        : { owner: sessionEmail, outcome: null, preference: null },
+    );
     let cancelled = false;
     const controller = new AbortController();
     void (async () => {
