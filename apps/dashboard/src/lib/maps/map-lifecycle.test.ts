@@ -6,6 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { MapInstance, MapMarkerDescriptor, MapProviderAdapter } from "./map-provider";
 
 import {
   createMapController,
@@ -222,5 +223,30 @@ describe("MapController — viewport change recreates the map", () => {
     expect(globalState.destroyedCount).toBe(1);
 
     harness.controller.dispose();
+  });
+});
+
+describe("MapController — marker capability separation", () => {
+  it("forwards live markers to a marker-only instance without interactive setup APIs", async () => {
+    const received: MapMarkerDescriptor[][] = [];
+    const markerOnly: MapInstance = {
+      destroy: () => undefined,
+      focusMarker: () => false,
+      replaceMarkers: (markers: readonly MapMarkerDescriptor[]) => received.push([...markers]),
+    } as MapInstance;
+    const adapter: MapProviderAdapter = {
+      name: "marker-only", requiresApiKey: false,
+      createMap: async () => markerOnly,
+    };
+    const controller = createMapController({ adapter, getContainer: makeContainer });
+    await controller.ensure("marker-only", { center: { latitude: 0, longitude: 0 }, zoom: 1 });
+    const descriptor: MapMarkerDescriptor = {
+      id: "marker", latitude: 1, longitude: 2, glyph: "P", tone: "positive", selected: false, ariaLabel: "Vehicle A",
+    };
+    expect(() => controller.pushData({
+      liveMarkers: [descriptor], markers: [], polygons: [], clickHandler: null,
+    })).not.toThrow();
+    expect(received).toEqual([[descriptor]]);
+    controller.dispose();
   });
 });

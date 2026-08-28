@@ -61,6 +61,7 @@ interface MountHandle {
   rerender: (next: {
     locationId?: string;
     markers?: readonly MarkerDraft[];
+    describeMarker?: (marker: MarkerDraft) => string;
     selectedMarkerId?: string | null;
   }) => void;
   unmount: () => void;
@@ -70,21 +71,24 @@ function mountLiveOps(initial: {
   locationId: string;
   markers: readonly MarkerDraft[];
   selectedMarkerId?: string | null;
+  describeMarker?: (marker: MarkerDraft) => string;
 }): MountHandle {
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
-  const describeMarker = (marker: MarkerDraft): string => `${marker.id}`;
+  let current = initial;
   const rerender: MountHandle["rerender"] = (next) => {
     act(() => {
+      current = { ...current, ...next };
+      const describeMarker = current.describeMarker ?? ((marker: MarkerDraft) => marker.id);
       root.render(
         <LocaleProvider>
           <LiveOperationsMap
             describeMarker={describeMarker}
-            locationId={next.locationId ?? initial.locationId}
-            markers={next.markers ?? initial.markers}
+            locationId={current.locationId}
+            markers={current.markers}
             onSelectMarker={() => undefined}
-            selectedMarkerId={next.selectedMarkerId ?? initial.selectedMarkerId ?? null}
+            selectedMarkerId={current.selectedMarkerId ?? null}
           />
         </LocaleProvider>,
       );
@@ -108,6 +112,30 @@ async function flushMicrotasks(): Promise<void> {
 }
 
 describe("LiveOperationsMap integration — A → B → A resets viewport establishment", () => {
+  it("does not revive A1 after B remains empty and establishes only from A2", async () => {
+    const harness = mountLiveOps({ locationId: "loc-A", markers: [] });
+    await flushMicrotasks();
+    harness.rerender({ markers: [makeMarker("a1", 40.7, -74)] });
+    await flushMicrotasks();
+    const a1 = asMockMap(globalState.allCreated.at(-1)!);
+    harness.rerender({ locationId: "loc-B", markers: [] });
+    await flushMicrotasks();
+    harness.rerender({ locationId: "loc-B", markers: [] });
+    await flushMicrotasks();
+    harness.rerender({ locationId: "loc-A", markers: [] });
+    await flushMicrotasks();
+    const pendingA = asMockMap(globalState.allCreated.at(-1)!);
+    expect(a1.destroyed).toBe(true);
+    expect(pendingA.replacedMarkers.at(-1)).toEqual([]);
+    const pendingCreate = globalState.allCreated.length;
+    harness.rerender({ markers: [makeMarker("a2", 41, -75)] });
+    await flushMicrotasks();
+    const a2 = asMockMap(globalState.allCreated.at(-1)!);
+    expect(globalState.allCreated.length).toBeGreaterThan(pendingCreate);
+    expect(a2.replacedMarkers.at(-1)?.map((marker) => marker.id)).toEqual(["a2"]);
+    expect(a2.replacedMarkers.at(-1)?.[0]?.latitude).toBe(41);
+    harness.unmount();
+  });
   it("returns to the pending fallback when the original Location is re-entered", async () => {
     const harness = mountLiveOps({
       locationId: "loc-A",
@@ -184,6 +212,28 @@ describe("LiveOperationsMap integration — A → B → A resets viewport establ
     const last = newest.replacedMarkers.at(-1);
     expect(last?.map((entry) => entry.id)).toEqual(["a2"]);
     expect(last?.[0]?.ariaLabel).toBe("a2");
+    harness.unmount();
+  });
+});
+
+describe("LiveOperationsMap integration — localized descriptor updates", () => {
+  it("pushes a new ariaLabel without recreating the map", async () => {
+    const marker = makeMarker("vehicle-a", 40.7, -74);
+    const harness = mountLiveOps({
+      locationId: "loc-A", markers: [marker], describeMarker: () => "Vehicle A",
+    });
+    await flushMicrotasks();
+    const map = asMockMap(globalState.allCreated.at(-1)!);
+    const created = globalState.createdCount;
+    expect(map.replacedMarkers.at(-1)?.[0]?.ariaLabel).toBe("Vehicle A");
+    harness.rerender({ describeMarker: () => "مركبة أ" });
+    await flushMicrotasks();
+    const updated = map.replacedMarkers.at(-1)?.[0];
+    expect(updated?.ariaLabel).toBe("مركبة أ");
+    expect(updated?.id).toBe(marker.id);
+    expect(updated?.latitude).toBe(marker.latitude);
+    expect(globalState.createdCount).toBe(created);
+    expect(map.destroyed).toBe(false);
     harness.unmount();
   });
 });
