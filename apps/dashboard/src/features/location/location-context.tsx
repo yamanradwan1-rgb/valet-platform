@@ -69,6 +69,8 @@ type BootstrapOutcome =
   | { readonly ok: false; readonly error: unknown };
 
 interface ProviderState {
+  /** Authenticated principal that owns this scoped bootstrap outcome. */
+  readonly owner: string | null;
   /** Null while the current attempt has not settled yet (= loading). */
   readonly outcome: BootstrapOutcome | null;
   /** In-memory selection preference; revalidated on every fresh list. */
@@ -90,19 +92,21 @@ function toMetaList(
 }
 
 export function LocationProvider({ children }: { children: React.ReactNode }) {
-  const { client, status, session } = useAuth();
+  const { client, status: authStatus, session } = useAuth();
   const sessionEmail = session?.email ?? null;
   const [state, setState] = useState<ProviderState>({
+    owner: null,
     outcome: null,
     preference: null,
   });
   const [reloadNonce, setReloadNonce] = useState(0);
 
   useEffect(() => {
-    if (status !== "authenticated") {
-      setState({ outcome: null, preference: null });
+    if (authStatus !== "authenticated") {
+      setState({ owner: null, outcome: null, preference: null });
       return;
     }
+    setState({ owner: sessionEmail, outcome: null, preference: null });
     let cancelled = false;
     const controller = new AbortController();
     void (async () => {
@@ -112,19 +116,21 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
           controller.signal,
         );
         if (!cancelled) {
-          setState((current) => ({
-            ...current,
-            outcome: { locations, ok: true },
-          }));
+          setState((current) =>
+            current.owner === sessionEmail
+              ? { ...current, outcome: { locations, ok: true } }
+              : current,
+          );
         }
       } catch (error: unknown) {
         // Aborts happen only when this attempt was superseded/unmounted; the
         // newer attempt owns the state then.
         if (!cancelled && !controller.signal.aborted) {
-          setState((current) => ({
-            ...current,
-            outcome: { error, ok: false },
-          }));
+          setState((current) =>
+            current.owner === sessionEmail
+              ? { ...current, outcome: { error, ok: false } }
+              : current,
+          );
         }
       }
     })();
@@ -132,7 +138,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
       controller.abort();
     };
-  }, [client, reloadNonce, sessionEmail, status]);
+  }, [authStatus, client, reloadNonce, sessionEmail]);
 
   const selectLocation = useCallback((locationId: string): void => {
     setState((current) => {
@@ -155,7 +161,10 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo<LocationContextValue>(() => {
-    const outcome = state.outcome;
+    const outcome =
+      authStatus === "authenticated" && state.owner === sessionEmail
+        ? state.outcome
+        : null;
     const status: LocationContextStatus =
       outcome === null ? "loading" : outcome.ok ? "ready" : "error";
     const locations = outcome?.ok === true ? toMetaList(outcome.locations) : [];
@@ -178,7 +187,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       selectLocation,
       status,
     };
-  }, [state, reloadLocations, selectLocation]);
+  }, [authStatus, state, reloadLocations, selectLocation, sessionEmail]);
 
   return (
     <LocationContext.Provider value={value}>

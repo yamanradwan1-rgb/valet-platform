@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "../../../features/auth/use-auth";
@@ -16,6 +16,14 @@ import { safeDashboardNext } from "../../../features/auth/safe-dashboard-next";
  * Prototype demo credentials are intentionally NOT rendered here.
  */
 export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInForm />
+    </Suspense>
+  );
+}
+
+function SignInForm() {
   const { t, isRtl } = useTranslation();
   const { signIn, status } = useAuth();
   const router = useRouter();

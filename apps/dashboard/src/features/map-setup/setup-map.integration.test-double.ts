@@ -27,6 +27,7 @@ class FakeElement {
   ownerDocument: FakeDocument | null = null;
   parentNode: FakeElement | null = null;
   childNodes: FakeElement[] = [];
+  style: Record<string, string> = {};
   // React 19's getActiveElementDeep does
   // `element instanceof containerInfo.HTMLIFrameElement`. The fake
   // element exposes a class so the instanceof check resolves to
@@ -44,6 +45,7 @@ class FakeElement {
   insertBefore!: (newChild: FakeElement, refChild: FakeElement | null) => FakeElement;
   setAttribute!: (name: string, value: string) => void;
   getAttribute!: (name: string) => string | null;
+  removeAttribute!: (name: string) => void;
 
   constructor(tagName: string) {
     this.tagName = tagName.toUpperCase();
@@ -98,6 +100,9 @@ class FakeElement {
     };
     this.getAttribute = function (name) {
       return self.attributes.get(name) ?? null;
+    };
+    this.removeAttribute = function (name) {
+      self.attributes.delete(name);
     };
   }
 }
