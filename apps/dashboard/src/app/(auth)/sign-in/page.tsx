@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "../../../features/auth/use-auth";
 import { DashboardApiError } from "../../../lib/api/api-error";
 import { useTranslation } from "../../../i18n/locale-provider";
 import type { TranslationKey } from "../../../i18n/translations/types";
+import { safeDashboardNext } from "../../../features/auth/safe-dashboard-next";
 
 /**
  * Staff sign-in against the real backend endpoint
@@ -18,6 +19,7 @@ export default function SignInPage() {
   const { t, isRtl } = useTranslation();
   const { signIn, status } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +40,7 @@ export default function SignInPage() {
     setSubmitting(true);
     try {
       await signIn(email.trim(), password);
-      router.replace("/overview");
+      router.replace(safeDashboardNext(searchParams.get("next")));
     } catch (error) {
       setErrorKey(signInErrorKey(error));
     } finally {

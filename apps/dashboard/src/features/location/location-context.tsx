@@ -90,7 +90,8 @@ function toMetaList(
 }
 
 export function LocationProvider({ children }: { children: React.ReactNode }) {
-  const { client } = useAuth();
+  const { client, status, session } = useAuth();
+  const sessionEmail = session?.email ?? null;
   const [state, setState] = useState<ProviderState>({
     outcome: null,
     preference: null,
@@ -98,6 +99,10 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [reloadNonce, setReloadNonce] = useState(0);
 
   useEffect(() => {
+    if (status !== "authenticated") {
+      setState({ outcome: null, preference: null });
+      return;
+    }
     let cancelled = false;
     const controller = new AbortController();
     void (async () => {
@@ -127,7 +132,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
       controller.abort();
     };
-  }, [client, reloadNonce]);
+  }, [client, reloadNonce, sessionEmail, status]);
 
   const selectLocation = useCallback((locationId: string): void => {
     setState((current) => {
