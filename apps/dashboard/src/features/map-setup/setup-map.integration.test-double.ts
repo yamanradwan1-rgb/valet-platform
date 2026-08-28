@@ -105,8 +105,17 @@ class FakeElement {
       self.listeners.set(type, existing);
     };
     this.dispatchEvent = function (event) {
+      if (!("target" in event) || event.target === null) {
+        Object.defineProperty(event, "target", { value: self });
+      }
       const handlers = self.listeners.get(event.type) ?? [];
       for (const handler of handlers) handler(event);
+      if (
+        (event as { bubbles?: boolean }).bubbles &&
+        self.parentNode !== null
+      ) {
+        self.parentNode.dispatchEvent(event);
+      }
       return true;
     };
     this.appendChild = function (child) {
@@ -135,6 +144,7 @@ class FakeElement {
     };
     this.setAttribute = function (name, value) {
       self.attributes.set(name, value);
+      if (name === "class") self.className = value;
     };
     this.getAttribute = function (name) {
       return self.attributes.get(name) ?? null;
@@ -144,6 +154,7 @@ class FakeElement {
     };
     this.removeAttribute = function (name) {
       self.attributes.delete(name);
+      if (name === "class") self.className = "";
     };
   }
 }
@@ -203,6 +214,10 @@ class FakeDocument {
     return node;
   }
 
+  createElementNS(_namespace: string, tagName: string): FakeElement {
+    return this.createElement(tagName);
+  }
+
   querySelector<T extends FakeElement = FakeElement>(selector: string): T | null {
     return this.documentElement.querySelectorAll<T>(selector)[0] ?? null;
   }
@@ -232,6 +247,13 @@ export function installMinimalBrowser(): () => void {
       return true;
     },
     document,
+    location: { pathname: "/overview" },
+    matchMedia: (query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    }),
     navigator: { userAgent: "node-test" },
     removeEventListener: (type: string, handler: EventHandler): void => {
       windowListeners.set(type, (windowListeners.get(type) ?? []).filter((item) => item !== handler));

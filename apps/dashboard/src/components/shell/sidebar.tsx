@@ -7,100 +7,96 @@ import { useTranslation } from "../../i18n/locale-provider";
 import type { NavSection } from "./nav-config";
 import { NAV_SECTIONS, type IconName } from "./nav-config";
 
-interface SidebarProps {
+interface DesktopSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
-  mobileOpen: boolean;
-  onMobileClose: () => void;
 }
 
-export function Sidebar({
-  collapsed,
-  onToggle,
-  mobileOpen,
-  onMobileClose,
-}: SidebarProps) {
+export function DesktopSidebar({ collapsed, onToggle }: DesktopSidebarProps) {
   const { t } = useTranslation();
   return (
-    <>
-      <button
-        type="button"
-        aria-label={t("shell.closeNavigation")}
-        onClick={onMobileClose}
-        className={`sidebar-backdrop ${mobileOpen ? "is-open" : ""}`}
-      />
-      <aside
-        data-collapsed={collapsed ? "true" : "false"}
-        className={`dashboard-sidebar ${mobileOpen ? "is-mobile-open" : ""}`}
-        aria-label={t("shell.managementNavigation")}
-      >
-        <div className="sidebar-brand">
-          <img
-            src="/brand/VAYLET_Logo_Dark_Background.png"
-            alt="VAYLET"
-            className={`sidebar-logo-full ${collapsed ? "is-desktop-hidden" : ""}`}
-          />
-          <span
-            className={`sidebar-logo-mark ${collapsed ? "is-desktop-visible" : ""}`}
+    <aside
+      data-collapsed={collapsed ? "true" : "false"}
+      data-testid="desktop-sidebar"
+      className="dashboard-sidebar desktop-sidebar"
+      aria-label={t("shell.managementNavigation")}
+    >
+      <SidebarBrand collapsed={collapsed} />
+      <NavigationContent collapsed={collapsed} />
+      <div className="sidebar-footer">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="sidebar-collapse-button"
+          aria-label={
+            collapsed ? t("shell.expandSidebar") : t("shell.collapseSidebar")
+          }
+        >
+          <svg
+            width={16}
+            height={16}
+            viewBox="0 0 16 16"
+            fill="none"
             aria-hidden="true"
+            style={{ transform: collapsed ? "scaleX(-1)" : undefined }}
           >
-            V
-          </span>
-          <button
-            type="button"
-            onClick={onMobileClose}
-            className="sidebar-close"
-            aria-label={t("shell.closeNavigation")}
-          >
-            <NavIcon name="close" size={20} color="currentColor" />
-          </button>
-        </div>
-        <nav className="sidebar-nav">
-          {NAV_SECTIONS.map((section) => (
-            <SidebarGroup
-              key={section.labelKey}
-              section={section}
-              collapsed={collapsed}
-              onNavigate={onMobileClose}
+            <path
+              d="M10 4L6 8L10 12"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <button
-            type="button"
-            onClick={onToggle}
-            className="sidebar-collapse-button"
-            aria-label={
-              collapsed ? t("shell.expandSidebar") : t("shell.collapseSidebar")
-            }
-          >
-            <svg
-              width={16}
-              height={16}
-              viewBox="0 0 16 16"
-              fill="none"
-              aria-hidden="true"
-              style={{ transform: collapsed ? "scaleX(-1)" : undefined }}
-            >
-              <path
-                d="M10 4L6 8L10 12"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </aside>
-    </>
+          </svg>
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function SidebarBrand({ collapsed }: { collapsed: boolean }) {
+  return (
+    <div className="sidebar-brand">
+      <img
+        src="/brand/VAYLET_Logo_Dark_Background.png"
+        alt="VAYLET"
+        className={`sidebar-logo-full ${collapsed ? "is-desktop-hidden" : ""}`}
+      />
+      <span
+        className={`sidebar-logo-mark ${collapsed ? "is-desktop-visible" : ""}`}
+        aria-hidden="true"
+      >
+        V
+      </span>
+    </div>
+  );
+}
+
+export function NavigationContent({
+  collapsed = false,
+  onNavigate,
+}: {
+  collapsed?: boolean;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="sidebar-nav">
+      {NAV_SECTIONS.map((section) => (
+        <SidebarGroup
+          key={section.labelKey}
+          section={section}
+          collapsed={collapsed}
+          {...(onNavigate === undefined ? {} : { onNavigate })}
+        />
+      ))}
+    </nav>
   );
 }
 
 interface SidebarGroupProps {
   section: NavSection;
   collapsed: boolean;
-  onNavigate: () => void;
+  onNavigate?: () => void;
 }
 
 function SidebarGroup({ section, collapsed, onNavigate }: SidebarGroupProps) {
@@ -120,7 +116,7 @@ function SidebarGroup({ section, collapsed, onNavigate }: SidebarGroupProps) {
           <Link
             key={item.path}
             href={item.path}
-            onClick={onNavigate}
+            {...(onNavigate === undefined ? {} : { onClick: onNavigate })}
             aria-current={active ? "page" : undefined}
             title={collapsed ? t(item.labelKey) : undefined}
             className={`sidebar-link ${active ? "is-active" : ""} ${
@@ -201,7 +197,7 @@ const ICON_PATHS: Record<IconName, string> = {
   close: "M5 5L15 15M15 5L5 15",
 };
 
-function NavIcon({
+export function NavIcon({
   name,
   size,
   color,

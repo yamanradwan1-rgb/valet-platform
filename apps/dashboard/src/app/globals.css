@@ -213,18 +213,13 @@ textarea:focus-visible {
 }
 
 @media (max-width: 1023px) {
-  .dashboard-sidebar {
+  .desktop-sidebar {
+    display: none;
+  }
+  .mobile-navigation-drawer {
     position: fixed;
     inset-block: 0;
     inset-inline-start: 0;
-    transform: translateX(-100%);
-  }
-  [dir="rtl"] .dashboard-sidebar {
-    transform: translateX(100%);
-  }
-  .dashboard-sidebar.is-mobile-open,
-  [dir="rtl"] .dashboard-sidebar.is-mobile-open {
-    transform: translateX(0);
   }
 }
 
@@ -238,12 +233,12 @@ textarea:focus-visible {
   .dashboard-sidebar[data-collapsed="true"] {
     width: 72px;
   }
-  /* Desktop-only visibility helpers */
-  .is-desktop-hidden {
+  .mobile-navigation-drawer,
+  .mobile-navigation-backdrop {
     display: none !important;
   }
-  .sidebar-close,
-  .sidebar-backdrop {
+  /* Desktop-only visibility helpers */
+  .is-desktop-hidden {
     display: none !important;
   }
   .sidebar-logo-mark {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 import { useAuth } from "../../features/auth/use-auth";
 import { useTranslation } from "../../i18n/locale-provider";
@@ -8,10 +8,18 @@ import { useTheme } from "../../theme/theme-provider";
 import { LocationSwitcher } from "./location-switcher";
 
 interface TopBarProps {
+  menuButtonRef: RefObject<HTMLButtonElement | null>;
+  mobileNavOpen: boolean;
+  mobileNavControls: string;
   onMenuToggle: () => void;
 }
 
-export function TopBar({ onMenuToggle }: TopBarProps) {
+export function TopBar({
+  menuButtonRef,
+  mobileNavOpen,
+  mobileNavControls,
+  onMenuToggle,
+}: TopBarProps) {
   const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const { session, signOut } = useAuth();
@@ -38,10 +46,13 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
   return (
     <header className="dashboard-topbar">
       <button
+        ref={menuButtonRef}
         type="button"
         onClick={onMenuToggle}
         className="topbar-icon-button lg-desktop-hidden"
         aria-label={t("shell.openNavigation")}
+        aria-expanded={mobileNavOpen}
+        aria-controls={mobileNavControls}
       >
         <svg
           width={20}
