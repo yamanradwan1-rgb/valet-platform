@@ -106,4 +106,3 @@ describe("clear branding dialog static rendering", () => {
     expect(confirmIndex).toBeGreaterThan(cancelIndex);
   });
 });
-
