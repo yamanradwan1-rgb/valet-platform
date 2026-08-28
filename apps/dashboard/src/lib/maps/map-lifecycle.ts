@@ -1,5 +1,5 @@
 /**
- * Map instance lifecycle (D6-004A).
+ * Map instance lifecycle (D6-004A + D6-004B).
  *
  * Pure, testable controller for the dashboard's map instance lifecycle.
  * The SetupMap and LiveOperationsMap components wrap this controller
@@ -19,6 +19,14 @@
  * numeric value) is a recreation. The data push is a cheap forward to
  * the active instance and never recreates the map.
  *
+ * D6-004B: stale `ensure` race — an obsolete asynchronous `ensure`
+ * result can never replace a newer requested lifecycle owner. Every
+ * `ensure` call increments a synchronous `requestToken` and captures
+ * its own value. After the adapter resolves, the call only adopts the
+ * instance when its own token still matches the controller's latest
+ * token. Otherwise the late instance is destroyed in isolation and
+ * the existing owner (or the newer request) is preserved untouched.
+ *
  * The actual `createMap` / `destroy` calls go through the injected
  * `MapProviderAdapter` so tests can swap in a recording double and
  * assert on the call sequence.
@@ -26,27 +34,41 @@
 
 import type {
   InteractiveMapInstance,
+  MapClickHandler,
   MapInitOptions,
   MapInstance,
   MapMarkerDefinition,
+  MapMarkerDescriptor,
   MapPolygonDefinition,
   MapProviderAdapter,
 } from "./map-provider";
 
 export interface MapDataInput {
   readonly markers?: readonly MapMarkerDefinition[];
+  /**
+   * Live Operations marker drafts (the `ariaLabel` is filled in by
+   * the Live Operations component on push). Accepted as
+   * `Omit<MapMarkerDescriptor, "ariaLabel">` to match the
+   * feature-level draft type.
+   */
+  readonly liveMarkers?: ReadonlyArray<
+    Omit<MapMarkerDescriptor, "ariaLabel">
+  >;
   readonly polygons?: readonly MapPolygonDefinition[];
-  readonly clickHandler?: ((click: unknown) => void) | null;
+  readonly clickHandler?: MapClickHandler | null;
 }
 
 export type MapLifecycleAction =
   | { readonly kind: "create"; readonly instance: MapInstance }
   | { readonly kind: "reuse"; readonly instance: MapInstance }
-  | { readonly kind: "noop-disposed" };
+  | { readonly kind: "noop-disposed" }
+  | { readonly kind: "noop-stale" };
 
 interface MapControllerState {
   currentKey: string | null;
   currentInstance: MapInstance | null;
+  /** Monotonically increasing token of the latest requested `ensure` call. */
+  requestToken: number;
   disposed: boolean;
 }
 
@@ -61,17 +83,30 @@ export interface MapController {
    * caller awaits the result and may use the returned instance. The
    * controller owns the instance after the call; the caller must not
    * call `destroy()` on it.
+   *
+   * Multiple in-flight `ensure` calls are safe: only the latest one
+   * adopts its instance. Older calls that resolve after a newer one
+   * destroy their own returned instance in isolation and report
+   * `noop-stale`.
    */
   ensure(
     key: string,
     options: MapInitOptions,
   ): Promise<MapLifecycleAction>;
-  /** Cheap forward of markers / polygons / click handler. */
+  /**
+   * Cheap forward of markers / polygons / click handler. The
+   * components use this after every successful `ensure` resolution so
+   * the freshly adopted instance is always initialized with the
+   * CURRENT data and click handler — no stacked handlers, no missed
+   * initial push.
+   */
   pushData(input: MapDataInput): void;
   /**
    * Destroys the owned instance (if any) and locks the controller. All
    * subsequent `ensure()` calls return `noop-disposed`. The component
    * calls this from its effect cleanup; tests call it directly.
+   * Stale `ensure` resolutions that arrive after dispose destroy their
+   * own returned instance in isolation and report `noop-stale`.
    */
   dispose(): void;
 }
@@ -129,6 +164,7 @@ export function createMapController(deps: MapControllerDeps): MapController {
   const state: MapControllerState = {
     currentInstance: null,
     currentKey: null,
+    requestToken: 0,
     disposed: false,
   };
 
@@ -144,29 +180,44 @@ export function createMapController(deps: MapControllerDeps): MapController {
     },
     async ensure(key, options) {
       if (state.disposed) return { kind: "noop-disposed" };
+      // Synchronous reuse: the current instance is already on the right
+      // key. This is the cheap path and is independent of the
+      // requestToken race below.
       if (state.currentKey === key && state.currentInstance !== null) {
         return { kind: "reuse", instance: state.currentInstance };
       }
+      // Record this call as the latest requested owner BEFORE awaiting.
+      // Any later ensure() will bump the token; if the current call
+      // resolves after that, myToken !== state.requestToken and the
+      // late instance is destroyed in isolation. The token is
+      // monotonically increasing and is bumped on every invocation,
+      // including synchronous failures (e.g. no container) so a
+      // subsequent caller can always claim ownership.
+      const myToken = state.requestToken + 1;
+      state.requestToken = myToken;
       const container = getContainer();
       if (container === null) {
-        // Without a container we cannot drive the adapter. Treat as a
-        // disposed no-op so the component can re-try on the next render
-        // when its ref is populated.
-        return { kind: "noop-disposed" };
+        return { kind: "noop-stale" };
       }
       const next = await adapter.createMap(container, options);
+      // Stale-completion check: a newer ensure() has been issued while
+      // the adapter was resolving. The newer request has bumped the
+      // token; our myToken is no longer the latest. Destroy ONLY the
+      // late instance; never touch the current owner.
       if (state.disposed) {
-        // The controller was disposed while the adapter was resolving.
-        // Destroy the late instance and do not adopt it.
         safeDestroy(next);
         return { kind: "noop-disposed" };
+      }
+      if (state.requestToken !== myToken) {
+        safeDestroy(next);
+        return { kind: "noop-stale" };
       }
       safeDestroy(state.currentInstance);
       state.currentInstance = next;
       state.currentKey = key;
       return { kind: "create", instance: next };
     },
-    pushData({ markers, polygons, clickHandler }) {
+    pushData({ markers, liveMarkers, polygons, clickHandler }) {
       if (state.disposed) return;
       const instance = state.currentInstance;
       if (instance === null) return;
@@ -174,12 +225,28 @@ export function createMapController(deps: MapControllerDeps): MapController {
       if (markers !== undefined) instance.setMarkers([...markers]);
       if (polygons !== undefined) instance.setPolygons([...polygons]);
       if (clickHandler !== undefined) {
-        instance.setClickHandler(clickHandler as never);
+        instance.setClickHandler(clickHandler);
+      }
+      // Live Operations uses a different marker descriptor shape.
+      // When the liveMarkers payload is present, route it to the
+      // marker-capable `replaceMarkers` API.
+      if (liveMarkers !== undefined) {
+        const markerCapable = instance as Partial<{
+          replaceMarkers: (
+            markers: ReadonlyArray<Omit<MapMarkerDescriptor, "ariaLabel">>,
+          ) => void;
+        }>;
+        if (typeof markerCapable.replaceMarkers === "function") {
+          markerCapable.replaceMarkers(liveMarkers);
+        }
       }
     },
     dispose() {
       if (state.disposed) return;
       state.disposed = true;
+      // Bump the token so any in-flight stale call reports noop-stale
+      // and destroys its own returned instance.
+      state.requestToken = state.requestToken + 1;
       safeDestroy(state.currentInstance);
       state.currentInstance = null;
       state.currentKey = null;

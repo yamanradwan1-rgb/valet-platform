@@ -116,14 +116,18 @@ describe("MapController — first render", () => {
     harness.controller.dispose();
   });
 
-  it("returns noop-disposed when the container is not yet attached", async () => {
+  it("returns noop-stale when the container is not yet attached (component will retry on the next render)", async () => {
     const harness = makeHarness();
     harness.setContainer(null);
     const decision = await harness.controller.ensure("key-1", {
       center: { latitude: 0, longitude: 0 },
       zoom: 1,
     });
-    expect(decision.kind).toBe("noop-disposed");
+    // The container is missing so no adapter call was made; the
+    // component is expected to retry on the next render. From the
+    // controller's point of view this is a "no instance produced"
+    // outcome, not a disposal.
+    expect(decision.kind).toBe("noop-stale");
     expect(globalState.createdCount).toBe(0);
     harness.controller.dispose();
   });

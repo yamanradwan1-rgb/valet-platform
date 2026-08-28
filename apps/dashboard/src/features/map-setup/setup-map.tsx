@@ -52,8 +52,12 @@ function quantize(value: number): string {
  * geometry never recreates the map; an actual viewport change or a
  * Location switch does.
  *
- * The controller is testable in isolation; this component is a thin
- * React wrapper that wires the controller to the local container ref.
+ * D6-004B: every freshly adopted instance is initialized with the
+ * CURRENT markers / polygons / click handler via `controller.pushData`
+ * — no stacked handlers, no missed initial push. Marker, polygon, and
+ * click-handler updates use the same push path, so the controller is
+ * the single owner of the instance's data and the component does not
+ * race its `instanceRef` against the controller's `currentInstance`.
  *
  * Fixed development coordinates are not a production initial viewport.
  * When no persisted geometry exists the surface renders at a world-only
@@ -72,9 +76,25 @@ export function SetupMap({
     null,
   );
   const instanceRef = useRef<InteractiveMapInstance | null>(null);
-  const clickRef = useRef<MapClickHandler | null>(onMapClick ?? null);
+  // Refs hold the LATEST data and click handler so the post-`ensure`
+  // push sees the most current values even when the `ensure` effect
+  // has stale closure values.
+  const markersRef = useRef(markers);
+  const polygonsRef = useRef(polygons);
+  const clickHandlerRef = useRef<MapClickHandler | null>(onMapClick ?? null);
   const [status, setStatus] = useState<MapStatus>("loading");
   const { t } = useTranslation();
+
+  // Keep refs in sync with props outside the `ensure` effect.
+  useEffect(() => {
+    markersRef.current = markers;
+  }, [markers]);
+  useEffect(() => {
+    polygonsRef.current = polygons;
+  }, [polygons]);
+  useEffect(() => {
+    clickHandlerRef.current = onMapClick ?? null;
+  }, [onMapClick]);
 
   const hasGeometry =
     markers.length > 0 || polygons.some((p) => p.vertices.length > 0);
@@ -89,10 +109,6 @@ export function SetupMap({
     `${quantize(effectiveCenter.longitude)}|` +
     `${String(effectiveZoom)}|` +
     (hasGeometry ? "geom" : "empty");
-
-  useEffect(() => {
-    clickRef.current = onMapClick ?? null;
-  }, [onMapClick]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -115,10 +131,16 @@ export function SetupMap({
       .ensure(viewportKey, initOptions)
       .then((decision) => {
         if (cancelled) return;
-        if (decision.kind === "noop-disposed") {
+        if (decision.kind === "noop-disposed" || decision.kind === "noop-stale") {
           setStatus("failed");
           return;
         }
+        // Whether this is a fresh `create` or a cheap `reuse`, push
+        // the CURRENT data and click handler onto the adopted
+        // instance. D6-004B: a freshly created instance always
+        // receives the initial markers, polygons, and click handler;
+        // a reused instance receives the latest data so the cheap
+        // path does not skip a missed push either.
         const interactive = asInteractiveMapInstance(decision.instance);
         if (interactive === null) {
           instanceRef.current = null;
@@ -126,6 +148,11 @@ export function SetupMap({
           return;
         }
         instanceRef.current = interactive;
+        controller.pushData({
+          clickHandler: clickHandlerRef.current,
+          markers: markersRef.current,
+          polygons: polygonsRef.current,
+        });
         setStatus("ready");
       })
       .catch(() => {
@@ -134,12 +161,31 @@ export function SetupMap({
     return () => {
       cancelled = true;
     };
-    // viewportKey is a stable string built from primitives + the
-    // explicit locationId. Marker/polygon data is pushed through a
-    // dedicated effect so a re-render with unchanged geometry never
-    // recreates the underlying map.
+    // The controller owns instance lifecycle. Marker/polygon data and
+    // the click handler are pushed through a single path
+    // (controller.pushData) so the component does not race its
+    // instanceRef against the controller's currentInstance.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewportKey]);
+
+  // Push the latest data whenever it changes — the controller will
+  // forward it to whichever instance is currently owned. This is the
+  // cheap update path and never recreates the map.
+  useEffect(() => {
+    const controller = controllerRef.current;
+    if (controller === null) return;
+    controller.pushData({ markers });
+  }, [markers]);
+  useEffect(() => {
+    const controller = controllerRef.current;
+    if (controller === null) return;
+    controller.pushData({ polygons });
+  }, [polygons]);
+  useEffect(() => {
+    const controller = controllerRef.current;
+    if (controller === null) return;
+    controller.pushData({ clickHandler: onMapClick ?? null });
+  }, [onMapClick]);
 
   // The controller is created once and disposed exactly on unmount.
   useEffect(() => {
@@ -149,16 +195,6 @@ export function SetupMap({
       instanceRef.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    if (instanceRef.current === null) return;
-    instanceRef.current.setMarkers([...markers]);
-  }, [markers]);
-
-  useEffect(() => {
-    if (instanceRef.current === null) return;
-    instanceRef.current.setPolygons([...polygons]);
-  }, [polygons]);
 
   return (
     <div

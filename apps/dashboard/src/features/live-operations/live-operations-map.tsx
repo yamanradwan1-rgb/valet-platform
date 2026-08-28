@@ -66,16 +66,20 @@ function hasPositionedMarker(
 /**
  * Live Operations map panel.
  *
- * The authoritative viewport is established ONCE per Location, from the
- * first non-empty valid marker snapshot. Before the first snapshot
- * arrives the map mounts at a world-only fallback; after establishment
- * the viewport is frozen and later marker updates render in place WITHOUT
- * re-panning the manager's manual viewport. Location changes clear the
- * established viewport and force a fresh instance.
+ * The authoritative viewport is established ONCE per active Location,
+ * from the first non-empty valid marker snapshot. Before the first
+ * snapshot arrives the map mounts at a world-only fallback; after
+ * establishment the viewport is frozen and later marker updates render
+ * in place WITHOUT re-panning the manager's manual viewport. Location
+ * changes always reset viewport establishment — there is no per-id
+ * cache, so A → B → A always starts with the pending fallback and
+ * re-establishes A from the first fresh snapshot.
  *
- * Markers are rendered exclusively from backend-reported coordinates
- * passed via `markers`; when the list is empty no marker exists on the
- * map and the existing empty-state overlay is shown.
+ * D6-004B: every freshly adopted instance is initialized with the
+ * CURRENT markers through `controller.pushData`. Marker updates and
+ * click-handler swaps also use the same push path; the controller
+ * owns the instance's data and the component does not race its
+ * `instanceRef` against the controller's `currentInstance`.
  */
 export function LiveOperationsMap({
   markers,
@@ -89,55 +93,67 @@ export function LiveOperationsMap({
     null,
   );
   const instanceRef = useRef<MapInstance | null>(null);
+  // The current callback for the controller. A ref keeps the ensure
+  // effect's closure stable so it does not churn on callback identity
+  // changes; controller.pushData is invoked from a dedicated effect.
+  const onSelectMarkerRef = useRef(onSelectMarker);
+  // The latest marker set; read by the post-ensure push so the freshly
+  // adopted instance is always initialized with the current data.
+  const markersRef = useRef(markers);
+  // The latest selected marker; read by the focus effect below.
+  const selectedMarkerIdRef = useRef(selectedMarkerId);
   const [status, setStatus] = useState<MapStatus>("loading");
   const { t } = useTranslation();
 
-  // Stable select callback identity keeps map init effects free of churn.
-  const selectRef = useRef(onSelectMarker);
   useEffect(() => {
-    selectRef.current = onSelectMarker;
+    onSelectMarkerRef.current = onSelectMarker;
   }, [onSelectMarker]);
+  useEffect(() => {
+    markersRef.current = markers;
+  }, [markers]);
+  useEffect(() => {
+    selectedMarkerIdRef.current = selectedMarkerId;
+  }, [selectedMarkerId]);
 
-  // The authoritative viewport is keyed by `locationId`. A Location
-  // switch naturally resolves a fresh viewport because the state entry
-  // for the new id is independent. We track which locationIds have
-  // already established their viewport, and use a paired Map to remember
-  // the established viewport per Location.
+  // The authoritative viewport for the ACTIVE Location. The
+  // `forLocationId` field is part of the state so the establishment
+  // check below can compare against the active Location without
+  // touching a ref. There is intentionally no per-locationId cache:
+  // A → B → A must start pending on the return leg so A's first
+  // fresh snapshot re-establishes the viewport.
   type ViewportSnapshot = {
     readonly center: { readonly latitude: number; readonly longitude: number };
     readonly zoom: number;
   };
-  const [establishedViewports, setEstablishedViewports] = useState<
-    ReadonlyMap<string, ViewportSnapshot>
-  >(() => new Map());
+  type LocatedViewport = ViewportSnapshot & { readonly forLocationId: string };
+  const [locatedViewport, setLocatedViewport] = useState<LocatedViewport | null>(
+    null,
+  );
+  const establishedViewport: ViewportSnapshot | null =
+    locatedViewport !== null && locatedViewport.forLocationId === locationId
+      ? locatedViewport
+      : null;
 
-  // The current Location's authoritative viewport, derived from state.
-  // `undefined` means "not yet established for this Location" — either
-  // the snapshot is still empty/loading, or we just switched to it.
-  const currentEstablished = establishedViewports.get(locationId);
-
-  // On a Location change, when a non-empty valid marker snapshot is
-  // present, derive the viewport and remember it for this Location.
-  // Markers are read here in render (not in an effect) so the first
-  // snapshot taken AFTER the Location change immediately establishes
-  // the viewport without an intermediate effect cycle.
-  if (
-    currentEstablished === undefined &&
-    hasPositionedMarker(markers)
-  ) {
+  // Establish the authoritative viewport the moment a non-empty valid
+  // marker snapshot appears for the current Location. React's
+  // documented "adjust state during render" pattern. Comparing
+  // `locatedViewport` against the active `locationId` keeps a stale
+  // snapshot arriving after a Location switch from silently
+  // re-establishing the old Location's viewport.
+  if (establishedViewport === null && hasPositionedMarker(markers)) {
     const derived = computeMapViewport({ points: markers, polygons: [] });
     if (derived !== null) {
-      const next = new Map(establishedViewports);
-      next.set(locationId, { center: derived.center, zoom: derived.zoom });
-      // Schedule the state update; React's "adjust state during render"
-      // pattern is the documented way to derive state from props.
-      setEstablishedViewports(next);
+      setLocatedViewport({
+        center: derived.center,
+        forLocationId: locationId,
+        zoom: derived.zoom,
+      });
     }
   }
 
-  const activeCenter = currentEstablished?.center ?? NO_GEOMETRY_CENTER;
-  const activeZoom = currentEstablished?.zoom ?? NO_GEOMETRY_ZOOM;
-  const establishedFor = currentEstablished === undefined ? "pending" : "set";
+  const activeCenter = establishedViewport?.center ?? NO_GEOMETRY_CENTER;
+  const activeZoom = establishedViewport?.zoom ?? NO_GEOMETRY_ZOOM;
+  const establishedFor = establishedViewport === null ? "pending" : "set";
   const viewportKey =
     `${locationId}|${establishedFor}|` +
     `${quantize(activeCenter.latitude)}|` +
@@ -159,18 +175,23 @@ export function LiveOperationsMap({
     setStatus("loading");
     const initOptions: MapInitOptions = {
       center: activeCenter,
-      onSelectMarker: (id) => selectRef.current(id),
+      onSelectMarker: (id) => onSelectMarkerRef.current(id),
       zoom: activeZoom,
     };
     controller
       .ensure(viewportKey, initOptions)
       .then((decision) => {
         if (cancelled) return;
-        if (decision.kind === "noop-disposed") {
+        if (decision.kind === "noop-disposed" || decision.kind === "noop-stale") {
           setStatus("failed");
           return;
         }
         instanceRef.current = decision.instance;
+        // Push the CURRENT markers onto the freshly adopted instance.
+        // For Live Operations this is a marker-capable instance so the
+        // InteractiveMapInstance path applies; for non-marker providers
+        // pushData is a no-op.
+        controller.pushData({ liveMarkers: markersRef.current });
         setStatus(supportsMarkers(decision.instance) ? "ready" : "unsupported");
       })
       .catch(() => {
@@ -179,9 +200,14 @@ export function LiveOperationsMap({
     return () => {
       cancelled = true;
     };
+    // The controller owns instance lifecycle. Markers and the
+    // select-marker callback are pushed through a single path
+    // (controller.pushData) so the component does not race its
+    // instanceRef against the controller's currentInstance.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewportKey]);
 
+  // The controller is created once and disposed exactly on unmount.
   useEffect(() => {
     return () => {
       controllerRef.current?.dispose();
@@ -190,18 +216,22 @@ export function LiveOperationsMap({
     };
   }, []);
 
+  // Push the latest marker set whenever it changes — the controller
+  // will forward it to whichever instance is currently owned.
+  useEffect(() => {
+    const controller = controllerRef.current;
+    if (controller === null) return;
+    controller.pushData({ liveMarkers: markers });
+  }, [markers]);
+
   const descriptors = useMemo<readonly MapMarkerDescriptor[]>(
     () =>
       markers.map((marker) => ({ ...marker, ariaLabel: describeMarker(marker) })),
     [markers, describeMarker],
   );
 
-  useEffect(() => {
-    const instance = instanceRef.current;
-    if (instance === null || !supportsMarkers(instance)) return;
-    instance.replaceMarkers(descriptors);
-  }, [descriptors, status]);
-
+  // The focus effect is the only remaining direct instance use, and
+  // it is gated by both `supportsMarkers` and a non-null `instanceRef`.
   useEffect(() => {
     const instance = instanceRef.current;
     if (selectedMarkerId === null || instance === null) return;
