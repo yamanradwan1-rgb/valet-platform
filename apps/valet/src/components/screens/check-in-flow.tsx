@@ -207,6 +207,9 @@ export function CheckInFlow({
     return (
       <CheckInVehicleDetailsStep
         initialDetails={checkIn.pendingVehicle}
+        initialTemporaryDescriptor={
+          checkIn.pendingVehicle.temporaryDescriptor ?? ""
+        }
         isNoPlate={noPlate}
         plate={noPlate ? t.noPlate : checkIn.pendingVehicle.plateNumberRaw}
         onBack={() => checkIn.setStep("plate-confirm")}

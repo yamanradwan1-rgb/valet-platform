@@ -75,7 +75,12 @@ export async function applyVehicleDetailsCorrection(
   );
   return {
     ...session,
-    vehicle: { ...session.vehicle, ...details },
+    vehicle: {
+      ...session.vehicle,
+      color: response.color,
+      make: response.make,
+      model: response.model,
+    },
     vehicleUpdatedAt: response.vehicleUpdatedAt,
   };
 }

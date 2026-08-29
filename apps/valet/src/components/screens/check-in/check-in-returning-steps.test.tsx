@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { EmployeeI18nProvider } from "../../shell/employee-i18n";
 import { CheckInReturningVehicleStep } from "./check-in-returning-vehicle-step";
-import { CheckInVehicleDetailFields } from "./check-in-vehicle-detail-fields";
+import {
+  CheckInVehicleDetailFields,
+  optionalVehicleDetail,
+} from "./check-in-vehicle-detail-fields";
 import { CheckInVehicleDetailsStep } from "./check-in-vehicle-details-step";
 
 const vehicle = {
@@ -78,6 +81,7 @@ describe("returning Check-In screens", () => {
     const markup = renderToStaticMarkup(
       <CheckInVehicleDetailsStep
         initialDetails={{ color: null, make: null, model: null }}
+        initialTemporaryDescriptor="Silver Toyota SUV"
         isNoPlate
         onBack={vi.fn()}
         onContinue={vi.fn()}
@@ -86,9 +90,16 @@ describe("returning Check-In screens", () => {
     );
     expect(markup).toContain("Vehicle details");
     expect(markup).toContain("Vehicle description");
-    expect(markup).toContain("Silver Toyota SUV");
+    expect(markup).toContain('value="Silver Toyota SUV"');
     expect(markup).toContain("Skip vehicle details");
     expect(markup).toContain("disabled");
+  });
+
+  it("maps localized Unknown to null without changing free text or Other", () => {
+    expect(optionalVehicleDetail("Unknown", "Unknown")).toBeNull();
+    expect(optionalVehicleDetail("غير معروف", "غير معروف")).toBeNull();
+    expect(optionalVehicleDetail(" Other ", "Unknown")).toBe("Other");
+    expect(optionalVehicleDetail(" BMW AG ", "Unknown")).toBe("BMW AG");
   });
 
   it("filters model suggestions by selected make and keeps Other/Unknown", () => {

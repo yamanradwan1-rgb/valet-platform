@@ -5,22 +5,20 @@ import { useEmployeeI18n } from "../../shell/employee-i18n";
 import { BackHeader, Btn, VehicleIdentity } from "../../ui/employee-primitives";
 import {
   CheckInVehicleDetailFields,
+  optionalVehicleDetail,
   type VehicleDetailFieldValues,
 } from "./check-in-vehicle-detail-fields";
-
-function nullableValue(value: string, unknownLabel: string): string | null {
-  const trimmed = value.trim();
-  return !trimmed || trimmed === unknownLabel ? null : trimmed;
-}
 
 export function CheckInVehicleDetailsStep({
   isNoPlate,
   plate,
   initialDetails,
+  initialTemporaryDescriptor,
   onBack,
   onContinue,
 }: {
   readonly initialDetails: CheckInVehicleDetailsDraft;
+  readonly initialTemporaryDescriptor: string;
   readonly isNoPlate: boolean;
   readonly onBack: () => void;
   readonly onContinue: (
@@ -30,7 +28,7 @@ export function CheckInVehicleDetailsStep({
   readonly plate: string;
 }): JSX.Element {
   const { t } = useEmployeeI18n();
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initialTemporaryDescriptor);
   const [values, setValues] = useState<VehicleDetailFieldValues>({
     color: initialDetails.color ?? "",
     make: initialDetails.make ?? "",
@@ -41,9 +39,9 @@ export function CheckInVehicleDetailsStep({
     if (!descriptionValid) return;
     onContinue(
       {
-        color: nullableValue(values.color, t.unknown),
-        make: nullableValue(values.make, t.unknown),
-        model: nullableValue(values.model, t.unknown),
+        color: optionalVehicleDetail(values.color, t.unknown),
+        make: optionalVehicleDetail(values.make, t.unknown),
+        model: optionalVehicleDetail(values.model, t.unknown),
       },
       isNoPlate ? description.trim() : undefined,
     );

@@ -33,18 +33,25 @@ export async function recognizePreIntakeVehicle(
   vehicle: CheckInVehicleData,
 ): Promise<void> {
   context.clearIntakeOperationId();
+  context.update({
+    correctionConflict: false,
+    customerOrigin: "plate-confirm",
+    customerResolved: false,
+    error: null,
+    pendingCorrection: null,
+    pendingCorrectionExpectedAt: null,
+    pendingVehicle: vehicle,
+    recognizedVehicle: null,
+    recognitionFailed: false,
+  });
   if (vehicle.temporaryDescriptor !== null) {
     context.update({
       customerOrigin: "vehicle-details",
-      error: null,
-      pendingVehicle: vehicle,
-      recognizedVehicle: null,
-      recognitionFailed: false,
       step: "vehicle-details",
     });
     return;
   }
-  context.update({ error: null, isSubmitting: true, recognitionFailed: false });
+  context.update({ isSubmitting: true });
   try {
     const recognized = await runVehicleRecognition(
       context.client,

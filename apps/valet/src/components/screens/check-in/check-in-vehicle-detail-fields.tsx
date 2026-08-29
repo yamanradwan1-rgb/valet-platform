@@ -13,6 +13,14 @@ export interface VehicleDetailFieldValues {
   readonly model: string;
 }
 
+export function optionalVehicleDetail(
+  value: string,
+  unknownLabel: string,
+): string | null {
+  const trimmed = value.trim();
+  return !trimmed || trimmed === unknownLabel ? null : trimmed;
+}
+
 export function CheckInVehicleDetailFields({
   values,
   onChange,

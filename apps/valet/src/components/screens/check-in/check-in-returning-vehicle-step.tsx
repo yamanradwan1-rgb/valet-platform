@@ -8,6 +8,7 @@ import { useEmployeeI18n } from "../../shell/employee-i18n";
 import { BackHeader, Btn, VehicleIdentity } from "../../ui/employee-primitives";
 import {
   CheckInVehicleDetailFields,
+  optionalVehicleDetail,
   type VehicleDetailFieldValues,
 } from "./check-in-vehicle-detail-fields";
 
@@ -55,9 +56,9 @@ export function CheckInReturningVehicleStep({
 
   const save = () => {
     onSaveCorrection({
-      color: values.color.trim() || null,
-      make: values.make.trim() || null,
-      model: values.model.trim() || null,
+      color: optionalVehicleDetail(values.color, t.unknown),
+      make: optionalVehicleDetail(values.make, t.unknown),
+      model: optionalVehicleDetail(values.model, t.unknown),
     });
     setEditing(false);
   };
