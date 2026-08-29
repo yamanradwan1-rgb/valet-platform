@@ -58,6 +58,14 @@ export class ParkingController {
   }
 
   setActiveSession(session: ActiveParkingSession): void {
+    const current = this.state.activeSession;
+    if (
+      current?.sessionId === session.sessionId &&
+      current.taskId === session.taskId
+    ) {
+      return;
+    }
+
     this.update({
       activeSession: session,
       error: null,

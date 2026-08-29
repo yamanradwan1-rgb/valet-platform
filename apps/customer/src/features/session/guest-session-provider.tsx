@@ -7,9 +7,21 @@ import { useTranslation } from '../../i18n/use-translation';
 import { GuestApiError } from '../../lib/api/api-error';
 import type { GuestSafeSession } from '../../lib/api/guest-api-types';
 import { useGuestAuth } from '../auth/guest-auth-context';
+import { attemptGuestReadyAlertAudio } from '../ready-alert/guest-ready-alert-audio';
+import {
+  createGuestReadyAlertTracker,
+  observeGuestReadySnapshot,
+  resetGuestReadyAlertTracker,
+} from '../ready-alert/guest-ready-alert-tracker';
+import { GuestVehicleReadyAlert } from '../ready-alert/guest-vehicle-ready-alert';
 import { GuestSessionContext } from './use-guest-session';
 
 const POLLING_INTERVAL_MS = 5_000;
+
+interface ClientBoundSession {
+  readonly client: ReturnType<typeof useGuestAuth>['client'];
+  readonly value: GuestSafeSession | null;
+}
 
 export function GuestSessionProvider({
   children,
@@ -20,56 +32,96 @@ export function GuestSessionProvider({
 }) {
   const { t } = useTranslation();
   const { client } = useGuestAuth();
-  const [session, setSession] = useState<GuestSafeSession | null>(initialSession ?? null);
+  const [sessionEnvelope, setSessionEnvelope] = useState<ClientBoundSession>(() => ({
+    client,
+    value: initialSession ?? null,
+  }));
+  const [readyAlertEnvelope, setReadyAlertEnvelope] = useState<{
+    readonly client: typeof client;
+    readonly identity: string | null;
+  }>(() => ({ client, identity: null }));
   const [isLoading, setIsLoading] = useState<boolean>(() => !initialSession && Boolean(client));
   const [error, setError] = useState<string | null>(null);
   const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
   const [isExpired, setIsExpired] = useState<boolean>(false);
 
-  const inFlightRef = useRef<boolean>(false);
+  const inFlightClientRef = useRef<typeof client>(null);
+  const session = sessionEnvelope.client === client ? sessionEnvelope.value : null;
+  const readyAlertIdentity =
+    readyAlertEnvelope.client === client ? readyAlertEnvelope.identity : null;
+  const readyTrackerRef = useRef(
+    createGuestReadyAlertTracker(initialSession ?? null),
+  );
+  const activeClientRef = useRef(client);
   const sessionStateRef = useRef<string | undefined>(session?.state);
 
   useEffect(() => {
+    if (activeClientRef.current !== client) {
+      resetGuestReadyAlertTracker(readyTrackerRef.current);
+    }
+    activeClientRef.current = client;
     sessionStateRef.current = session?.state;
-  }, [session?.state]);
+  }, [client, session?.state]);
+
+  const applyAuthorizedSessionSnapshot = useCallback((newSession: GuestSafeSession) => {
+    if (activeClientRef.current !== client) return;
+
+    const decision = observeGuestReadySnapshot(
+      readyTrackerRef.current,
+      newSession,
+    );
+    setSessionEnvelope({ client, value: newSession });
+    if (newSession.state === 'COMPLETED' || decision.kind === 'BASELINE') {
+      setReadyAlertEnvelope({ client, identity: null });
+    } else if (decision.kind === 'PRESENT') {
+      attemptGuestReadyAlertAudio();
+      setReadyAlertEnvelope({ client, identity: decision.identity });
+    }
+  }, [client]);
 
   const fetchSession = useCallback(async () => {
-    if (!client || inFlightRef.current) return;
+    if (!client || inFlightClientRef.current === client) return;
     if (sessionStateRef.current === 'COMPLETED') return;
 
-    inFlightRef.current = true;
+    inFlightClientRef.current = client;
     setIsLoading(true);
 
     try {
       const data = await client.loadSession();
-      setSession(data);
+      if (activeClientRef.current !== client) return;
+      applyAuthorizedSessionSnapshot(data);
       setError(null);
       setIsNetworkError(false);
       setIsExpired(false);
     } catch (err: unknown) {
+      if (activeClientRef.current !== client) return;
       if (err instanceof GuestApiError) {
         if (err.isNetworkError) {
           setIsNetworkError(true);
         } else if (err.code === 'GUEST_ACCESS_INVALID') {
           setIsExpired(true);
+          resetGuestReadyAlertTracker(readyTrackerRef.current);
+          setReadyAlertEnvelope({ client, identity: null });
         }
       }
       setError(getLocalizedErrorMessage(err, t));
     } finally {
-      inFlightRef.current = false;
-      setIsLoading(false);
+      if (inFlightClientRef.current === client) {
+        inFlightClientRef.current = null;
+      }
+      if (activeClientRef.current === client) setIsLoading(false);
     }
-  }, [client, t]);
+  }, [applyAuthorizedSessionSnapshot, client, t]);
 
   const refreshSession = useCallback(async () => {
     await fetchSession();
   }, [fetchSession]);
 
   const updateSession = useCallback((newSession: GuestSafeSession) => {
-    setSession(newSession);
+    applyAuthorizedSessionSnapshot(newSession);
     setError(null);
     setIsNetworkError(false);
-  }, []);
+  }, [applyAuthorizedSessionSnapshot]);
 
   // Initial load via asynchronous trigger
   useEffect(() => {
@@ -124,8 +176,15 @@ export function GuestSessionProvider({
   };
 
   return (
-    <GuestSessionContext.Provider value={value}>
-      {children}
-    </GuestSessionContext.Provider>
+    <>
+      <GuestSessionContext.Provider value={value}>
+        {children}
+      </GuestSessionContext.Provider>
+      {readyAlertIdentity !== null && (
+        <GuestVehicleReadyAlert
+          onDismiss={() => setReadyAlertEnvelope({ client, identity: null })}
+        />
+      )}
+    </>
   );
 }

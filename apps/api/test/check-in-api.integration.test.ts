@@ -890,6 +890,7 @@ describe("VAL-004I Check-In HTTP integration", () => {
     expect(guest.status).toBe(200);
     const guestBody = (await guest.json()) as Record<string, unknown>;
     expect(Object.keys(guestBody).sort()).toEqual([
+      "readyAt",
       "state",
       "valetSessionId",
       "vehicle",
@@ -899,7 +900,6 @@ describe("VAL-004I Check-In HTTP integration", () => {
       body: Record<string, unknown>;
       status: number;
     }> = [];
-
     const rotatedIssue = await http(
       "POST",
       `/v1/staff/check-in/sessions/${sessionId}/guest-access/issue`,

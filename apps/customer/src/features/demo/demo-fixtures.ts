@@ -11,6 +11,7 @@ export type DemoSessionKey =
 
 export const demoSessions: Record<DemoSessionKey, GuestSafeSession> = {
   received: {
+    readyAt: null,
     valetSessionId: '11111111-1111-4111-8111-111111111111',
     state: 'CHECKING_IN',
     vehicle: {
@@ -20,6 +21,7 @@ export const demoSessions: Record<DemoSessionKey, GuestSafeSession> = {
     },
   },
   parked: {
+    readyAt: null,
     valetSessionId: '22222222-2222-4222-8222-222222222222',
     state: 'PARKED',
     vehicle: {
@@ -29,6 +31,7 @@ export const demoSessions: Record<DemoSessionKey, GuestSafeSession> = {
     },
   },
   requested: {
+    readyAt: null,
     valetSessionId: '33333333-3333-4333-8333-333333333333',
     state: 'REQUESTED',
     vehicle: {
@@ -38,6 +41,7 @@ export const demoSessions: Record<DemoSessionKey, GuestSafeSession> = {
     },
   },
   retrieving: {
+    readyAt: null,
     valetSessionId: '44444444-4444-4444-8444-444444444444',
     state: 'RETRIEVING',
     vehicle: {
@@ -47,6 +51,7 @@ export const demoSessions: Record<DemoSessionKey, GuestSafeSession> = {
     },
   },
   ready: {
+    readyAt: '2026-08-29T12:00:00.000Z',
     valetSessionId: '55555555-5555-4555-8555-555555555555',
     state: 'READY',
     vehicle: {
@@ -56,6 +61,7 @@ export const demoSessions: Record<DemoSessionKey, GuestSafeSession> = {
     },
   },
   handoff_pending: {
+    readyAt: '2026-08-29T12:00:00.000Z',
     valetSessionId: '66666666-6666-4666-8666-666666666666',
     state: 'HANDOFF_PENDING',
     vehicle: {
@@ -65,6 +71,7 @@ export const demoSessions: Record<DemoSessionKey, GuestSafeSession> = {
     },
   },
   completed: {
+    readyAt: '2026-08-29T12:00:00.000Z',
     valetSessionId: '77777777-7777-4777-8777-777777777777',
     state: 'COMPLETED',
     vehicle: {

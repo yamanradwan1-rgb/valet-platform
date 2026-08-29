@@ -114,6 +114,7 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
 
       it('renders ScreenRequested cancel button with border and borderRadius for exact Light parity', () => {
         const mockSession: GuestSafeSession = {
+          readyAt: null,
           valetSessionId: 'test-session-id',
           state: 'REQUESTED',
           vehicle: { make: 'Tesla', model: 'Model S', color: 'White' },
@@ -178,6 +179,7 @@ describe('4-Mode Visual & Accessibility Verification Matrix', () => {
 
       it('renders ScreenReadyQR loading placeholder with qrPlaceholderBorder token', () => {
         const mockSession: GuestSafeSession = {
+          readyAt: '2026-08-29T12:00:00.000Z',
           valetSessionId: 'test-session-id',
           state: 'HANDOFF_PENDING',
           vehicle: { make: 'Tesla', model: 'Model S', color: 'White' },

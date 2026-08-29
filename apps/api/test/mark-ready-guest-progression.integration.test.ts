@@ -23,9 +23,9 @@ import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-a
 import { GuestAccessController } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
 import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
-import { MarkReadyTestContext } from "./mark-ready-test-context";
+import { CompleteHandoffTestContext } from "./complete-handoff-test-context";
 
-const context = new MarkReadyTestContext("guest");
+const context = new CompleteHandoffTestContext("guest_progression");
 let app: INestApplication;
 let baseUrl: string;
 
@@ -61,6 +61,19 @@ async function guestSession(rawToken: string) {
   };
 }
 
+async function authorizeGuest(sessionId: string): Promise<string> {
+  const rawToken = randomBytes(32).toString("base64url");
+  await context.adminPool.query(
+    `UPDATE valet_sessions
+     SET customer_access_token_hash = $2,
+         customer_access_expires_at = clock_timestamp() + interval '1 hour',
+         customer_access_revoked_at = NULL
+     WHERE id = $1`,
+    [sessionId, hashGuestAccessToken(rawToken)],
+  );
+  return rawToken;
+}
+
 beforeAll(async () => {
   process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
     randomBytes(32).toString("base64url");
@@ -79,19 +92,53 @@ afterAll(async () => {
 describe("VAL-006E guest READY progression", () => {
   it("exposes READY through the existing guest-safe, no-store read boundary", async () => {
     const fixture = await context.createMarkReadyFixture();
-    const rawToken = randomBytes(32).toString("base64url");
-    await context.adminPool.query(
-      `UPDATE valet_sessions
-       SET customer_access_token_hash = $2,
-           customer_access_expires_at = clock_timestamp() + interval '1 hour',
-           customer_access_revoked_at = NULL
-       WHERE id = $1`,
-      [fixture.sessionId, hashGuestAccessToken(rawToken)],
-    );
+    const rawToken = await authorizeGuest(fixture.sessionId);
+    expect(await guestSession(rawToken)).toMatchObject({
+      body: { readyAt: null, state: "RETRIEVING" },
+      status: 200,
+    });
     await context.markReady(fixture);
+    const persisted = await context.adminPool.query<{ ready_at: Date }>(
+      `SELECT ready_at FROM valet_sessions WHERE id = $1`,
+      [fixture.sessionId],
+    );
+    const expectedReadyAt = persisted.rows[0]!.ready_at.toISOString();
     const guest = await guestSession(rawToken);
     expect(guest).toMatchObject({
-      body: { state: "READY", valetSessionId: fixture.sessionId },
+      body: {
+        readyAt: expectedReadyAt,
+        state: "READY",
+        valetSessionId: fixture.sessionId,
+      },
+      status: 200,
+    });
+    expect((await guestSession(rawToken)).body.readyAt).toBe(expectedReadyAt);
+
+    const handoffFixture = { ...fixture, guestToken: rawToken };
+    await context.initiate(handoffFixture);
+    expect(await guestSession(rawToken)).toMatchObject({
+      body: { readyAt: expectedReadyAt, state: "HANDOFF_PENDING" },
+      status: 200,
+    });
+    await context.abort(handoffFixture);
+    expect(await guestSession(rawToken)).toMatchObject({
+      body: { readyAt: expectedReadyAt, state: "READY" },
+      status: 200,
+    });
+    await context.initiate(handoffFixture, 9);
+    const material = await context.issue(handoffFixture, "PICKUP_CODE");
+    if (material.method !== "PICKUP_CODE") {
+      throw new Error("Expected pickup-code handoff material.");
+    }
+    await context.verify(
+      handoffFixture,
+      "PICKUP_CODE",
+      material.pickupCode,
+      10,
+    );
+    await context.complete(handoffFixture, fixture.userId, 11);
+    expect(await guestSession(rawToken)).toMatchObject({
+      body: { readyAt: expectedReadyAt, state: "COMPLETED" },
       status: 200,
     });
     expect(guest.headers.get("cache-control")).toContain("no-store");
@@ -99,5 +146,30 @@ describe("VAL-006E guest READY progression", () => {
     expect(JSON.stringify(guest.body)).not.toMatch(
       /keySlot|parkingSpot|parkingZone|assignee|taskId|audit|latitude|longitude/i,
     );
+  });
+
+  it("never exposes another session's READY identity", async () => {
+    const owned = await context.createMarkReadyFixture();
+    const foreign = await context.createMarkReadyFixture();
+    const ownedToken = await authorizeGuest(owned.sessionId);
+    const foreignToken = await authorizeGuest(foreign.sessionId);
+    await context.markReady(foreign);
+    const foreignGuest = await guestSession(foreignToken);
+
+    expect(foreignGuest.body.readyAt).toEqual(expect.any(String));
+    expect(await guestSession(ownedToken)).toMatchObject({
+      body: {
+        readyAt: null,
+        valetSessionId: owned.sessionId,
+      },
+      status: 200,
+    });
+    expect((await guestSession(ownedToken)).body.readyAt).not.toBe(
+      foreignGuest.body.readyAt,
+    );
+
+    const invalid = await guestSession(randomBytes(32).toString("base64url"));
+    expect(invalid.status).toBe(401);
+    expect(invalid.body).not.toHaveProperty("readyAt");
   });
 });

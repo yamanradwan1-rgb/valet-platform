@@ -11,7 +11,9 @@ import {
   presentLiveError,
 } from "../../lib/i18n/live-presentation";
 import { Badge } from "../ui/employee-primitives";
-import { useTaskQueue } from "../../features/task-queue/use-task-queue";
+import type { UseTaskQueueResult } from "../../features/task-queue/use-task-queue";
+import { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { getDefaultStaffAuthClient } from "../../lib/auth/staff-auth-context";
 import {
   toStaffTaskQueueItemViewModel,
   type StaffTaskQueueItemViewModel,
@@ -54,6 +56,7 @@ export interface TaskQueueScreenProps {
     | ((payload: StartParkingPayload) => void)
     | undefined;
   readonly shiftStartedAt?: string | undefined;
+  readonly taskQueue?: UseTaskQueueResult | undefined;
 }
 
 export function TaskQueueScreen({
@@ -69,14 +72,21 @@ export function TaskQueueScreen({
   onSelectParkingTask,
   onSelectRetrievalTask,
   onStartParkingSuccess,
+  taskQueue,
 }: TaskQueueScreenProps): JSX.Element {
   const { locale, t } = useEmployeeI18n();
 
   const isLiveMode = mode === "live" || Boolean(locationId || initialTasks);
-  const { tasks: liveTasks, client: taskQueueClient } = useTaskQueue({
-    locationId: isLiveMode ? (locationId ?? null) : null,
-    onAuthorizationLoss,
-  });
+  const fallbackClient = useMemo(
+    () =>
+      new EmployeeApiClient({
+        authClient: getDefaultStaffAuthClient(),
+        onAuthorizationLoss,
+      }),
+    [onAuthorizationLoss],
+  );
+  const liveTasks = taskQueue?.tasks;
+  const taskQueueClient = taskQueue?.client ?? fallbackClient;
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [inFlightTaskId, setInFlightTaskId] = useState<string | null>(null);
@@ -84,7 +94,7 @@ export function TaskQueueScreen({
 
   const viewModels = useMemo<StaffTaskQueueItemViewModel[]>(() => {
     if (!isLiveMode) return [];
-    const items = initialTasks ?? (locationId ? liveTasks : []);
+    const items = initialTasks ?? (locationId ? (liveTasks ?? []) : []);
     return items.map((t) => toStaffTaskQueueItemViewModel(t, membershipId));
   }, [isLiveMode, initialTasks, locationId, liveTasks, membershipId]);
 

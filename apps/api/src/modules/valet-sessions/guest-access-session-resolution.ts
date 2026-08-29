@@ -1,9 +1,9 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { GuestAccessError, hashGuestAccessToken } from "./guest-access-command";
 import {
-  GuestAccessError,
-  hashGuestAccessToken,
+  projectGuestSafeSession,
   type GuestSafeSession,
-} from "./guest-access-command";
+} from "./guest-safe-session";
 
 export interface LockedGuestAccessSessionScope extends GuestSafeSession {
   readonly customerId: string | null;
@@ -29,6 +29,7 @@ export async function resolveAndLockGuestAccessSession(
     make: string | null;
     model: string | null;
     organization_id: string;
+    ready_at: Date | null;
     retrieval_requested_at: Date | null;
     state: GuestSafeSession["state"];
     valet_session_id: string;
@@ -37,6 +38,7 @@ export async function resolveAndLockGuestAccessSession(
     `SELECT session.id::text AS valet_session_id, session.organization_id::text,
             session.location_id::text, session.customer_id::text,
             session.state::text, session.version, session.retrieval_requested_at,
+            session.ready_at,
             vehicle.make, vehicle.model, vehicle.color
        FROM valet_sessions AS session
        INNER JOIN vehicles AS vehicle
@@ -55,9 +57,7 @@ export async function resolveAndLockGuestAccessSession(
     locationId: session.location_id,
     organizationId: session.organization_id,
     retrievalRequestedAt: session.retrieval_requested_at,
-    state: session.state,
-    valetSessionId: session.valet_session_id,
+    ...projectGuestSafeSession(session),
     version: session.version,
-    vehicle: { color: session.color, make: session.make, model: session.model },
   };
 }

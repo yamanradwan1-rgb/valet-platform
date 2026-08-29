@@ -3459,3 +3459,24 @@ decision task; the repository remains at 31 forward-only migrations.
 
 Full binding contract:
 `docs/decisions/DEC-069_RETURNING_CHECK_IN_RECOGNITION.md`
+
+---
+
+## DEC-070 — Retrieval Request and Vehicle Ready Foreground Notification MVP
+
+Status: Accepted
+Date: 2026-08-29
+
+Decision:
+Issue #192 MVP adds exactly two foreground in-app operational notifications without creating a general notification platform. A genuinely new guest retrieval request may notify eligible Employee users only after the canonical transaction creates a new unassigned `QUEUED` `RETRIEVAL` Task; the stable presentation identity is the Task ID. The Guest/Customer dashboard may notify only after the first authoritative `RETRIEVING -> READY` Mark Ready transition; the stable presentation identity is `ValetSession.id + ready_at`.
+
+Employee recipients reuse the existing persisted exact-Location queue/Shift authorization boundary: active User, active membership and Organization/Location, explicit Location access, `VALET_EMPLOYEE` or `VALET_SUPERVISOR`, and an ACTIVE Shift at that exact Location. Guest presentation remains scoped only through the existing bearer-authorized GuestAccess session boundary. Notification presentation grants no domain authority.
+
+The selected MVP transport is the existing five-second canonical polling/refetch in Employee and Guest applications with client transition detection and baseline/dedupe semantics. No SSE, WebSocket, event bus, notification endpoint, or dedicated notification persistence is added. Existing Task/Dispatch/RetrievalRequest/ValetSession/Audit state remains authoritative, the external SMS/WhatsApp/Email `notifications` table is not reused, and missed presentation signals recover from canonical persisted state.
+
+Two distinct foreground sounds are required: `RETRIEVAL_TASK_ALERT` for `EMPLOYEE_RETRIEVAL_REQUESTED` using the Product-selected Mixkit “Digital quick tone” candidate, and `VEHICLE_READY_ALERT` for `GUEST_VEHICLE_READY` using the Product-selected Mixkit “Happy bells notification” candidate. Implementation must verify and record asset/license provenance before committing local static audio. Browser autoplay failure degrades to visual-only presentation and never affects business success or causes disruptive retries.
+
+Implementation is split into T2 `readyAt` guest-safe projection/contract, T3 Employee retrieval notification UX/sound/navigation/dedupe, and T4 Guest READY notification UX/sound/dedupe. No schema, migration, dependency, lifecycle redesign, Web Push, background OS notification, or generic notification-center scope is approved by this decision.
+
+Full binding contract:
+`docs/decisions/DEC-070_RETRIEVAL_NOTIFICATION_MVP.md`

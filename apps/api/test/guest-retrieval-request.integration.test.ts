@@ -164,7 +164,7 @@ describe("VAL-006B guest Retrieval request", () => {
     expect(retry).toMatchObject({ body: { state: "REQUESTED", valetSessionId: fixture.sessionId }, status: 200 });
     expect(first.headers.get("cache-control")).toBe("no-store");
     expect(first.headers.get("pragma")).toBe("no-cache");
-    expect(Object.keys(first.body).sort()).toEqual(["state", "valetSessionId", "vehicle"]);
+    expect(Object.keys(first.body).sort()).toEqual(["readyAt", "state", "valetSessionId", "vehicle"]);
     expect(Object.keys(first.body.vehicle as Record<string, unknown>).sort()).toEqual(["color", "make", "model"]);
     expect(afterFirst).toMatchObject({ audit_actor: null, audit_count: 1, dispatch_actor: null, dispatch_count: 1, request_count: 1, session_state: "REQUESTED", session_version: 5, task_assignee: null, task_count: 1, task_status: "QUEUED" });
     expect(afterFirst.requested_at).toBeInstanceOf(Date);

@@ -11,10 +11,8 @@ import {
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
-import {
-  GuestAccessError,
-  type GuestSafeSession,
-} from "../valet-sessions/guest-access-command";
+import { GuestAccessError } from "../valet-sessions/guest-access-command";
+import type { GuestSafeSession } from "../valet-sessions/guest-safe-session";
 import type { LockedGuestAccessSessionScope } from "../valet-sessions/guest-access-session-resolution";
 import {
   cancelGuestRetrieval,
@@ -41,6 +39,7 @@ type GuestRetrievalOperation = (
 
 function guestSafeSession(session: GuestSafeSession): GuestSafeSession {
   return {
+    readyAt: session.readyAt,
     state: session.state,
     valetSessionId: session.valetSessionId,
     vehicle: session.vehicle,

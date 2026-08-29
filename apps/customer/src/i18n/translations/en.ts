@@ -110,6 +110,8 @@ export const enTranslations: TranslationDictionary = {
   'ready.cardTitle': 'Your valet is preparing secure handoff.',
   'ready.cardSub':
     'Your one-time pickup code or QR will appear as soon as the valet begins verification.',
+  'readyAlert.title': 'Your vehicle is ready',
+  'readyAlert.body': 'Your vehicle has arrived at the pickup area.',
 
   // Verifying Screen
   'verifying.title': 'Verifying pickup',

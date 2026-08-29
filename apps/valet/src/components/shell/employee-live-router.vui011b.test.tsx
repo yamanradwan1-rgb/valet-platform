@@ -77,6 +77,15 @@ const baseProps = {
   parkingPayload: null,
   parkingTarget: null,
   retrievalTarget: null,
+  taskQueue: {
+    client: {} as never,
+    error: null,
+    isHardStopped: false,
+    isLoading: false,
+    isRefreshing: false,
+    successfulSnapshotCount: 1,
+    tasks: [] as never[],
+  },
 } as const;
 
 function renderRouter(overrides: {

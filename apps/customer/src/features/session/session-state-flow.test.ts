@@ -5,6 +5,7 @@ import { GuestApiClient } from '../../lib/api/guest-api-client';
 import { resolveGuestScreenId } from './guest-lifecycle-router';
 
 const mockSessionBase: GuestSafeSession = {
+  readyAt: null,
   valetSessionId: '123e4567-e89b-12d3-a456-426614174000',
   state: 'PARKED',
   vehicle: {

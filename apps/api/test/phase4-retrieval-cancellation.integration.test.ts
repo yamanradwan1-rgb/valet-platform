@@ -49,6 +49,7 @@ describe("VAL-006H guest pre-start Retrieval cancellation", () => {
       expect(cancelled.headers.get("cache-control")).toBe("no-store");
       expect(cancelled.headers.get("pragma")).toBe("no-cache");
       expect(Object.keys(cancelled.body).sort()).toEqual([
+        "readyAt",
         "state",
         "valetSessionId",
         "vehicle",

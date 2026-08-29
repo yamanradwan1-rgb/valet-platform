@@ -465,7 +465,6 @@ describe("VAL-004F guest secure access", () => {
     );
     expect(foreignError.message).toBe(missingError.message);
   });
-
   it("resolves a valid token to only the minimal guest-safe representation", async () => {
     const fixture = await createFixture();
     const issue = await createIssueGuestAccessCommandExecutor(runtimePool)(
@@ -473,11 +472,13 @@ describe("VAL-004F guest secure access", () => {
     );
     const guest = await createGuestAccessResolver(runtimePool)(issue.rawToken);
     expect(guest).toEqual({
+      readyAt: null,
       state: "CHECKING_IN",
       valetSessionId: fixture.sessionId,
       vehicle: { color: "Black", make: "Toyota", model: "Camry" },
     });
     expect(Object.keys(guest).sort()).toEqual([
+      "readyAt",
       "state",
       "valetSessionId",
       "vehicle",
@@ -504,7 +505,6 @@ describe("VAL-004F guest secure access", () => {
       expect(serialized).not.toContain(forbidden);
     }
   });
-
   it("uses one non-disclosing guest error for malformed, random, expired, revoked, and rotated-old tokens", async () => {
     const resolveGuest = createGuestAccessResolver(runtimePool);
     const errors: Array<Error & { code: string }> = [];

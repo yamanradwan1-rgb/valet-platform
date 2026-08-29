@@ -78,6 +78,7 @@ export class TaskQueueController {
       this.clearActiveRequest();
       this.sequenceNumber++;
       this.updateState({
+        successfulSnapshotCount: 0,
         sessionGeneration: null,
         scopeLocationId: null,
         tasks: [],
@@ -98,6 +99,7 @@ export class TaskQueueController {
       this.clearActiveRequest();
       this.sequenceNumber++;
       this.updateState({
+        successfulSnapshotCount: this.state.successfulSnapshotCount ?? 0,
         sessionGeneration,
         scopeLocationId: locationId,
         tasks: [],
@@ -216,6 +218,8 @@ export class TaskQueueController {
       ) {
         this.latestCompletedSeq = requestId;
         this.updateState({
+          successfulSnapshotCount:
+            (this.state.successfulSnapshotCount ?? 0) + 1,
           sessionGeneration: targetGen,
           scopeLocationId: targetLoc,
           tasks: response.tasks,
