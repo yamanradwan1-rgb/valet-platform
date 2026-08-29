@@ -131,12 +131,12 @@ describe("DEC-066 §3 Live Shift screen", () => {
 
   it("never prefills the cash entry, so only an explicitly typed amount submits", () => {
     const markup = renderWith();
-    // Empty entry is invalid: the End Shift action stays disabled...
+    // Empty entry remains empty, but the action reaches client validation.
     expect(markup).toContain('value=""');
     const endIdx = markup.indexOf(">End Shift</button>");
     const endTag = markup.slice(markup.lastIndexOf("<button", endIdx), endIdx);
-    expect(endTag).toContain('disabled=""');
-    // ...while the money contract itself accepts a deliberately typed zero.
+    expect(endTag).not.toContain('disabled=""');
+    // The money contract accepts only a deliberately typed valid amount.
     expect(isCashEntryValid("0")).toBe(true);
     expect(isCashEntryValid("0.000")).toBe(true);
     expect(isCashEntryValid("")).toBe(false);

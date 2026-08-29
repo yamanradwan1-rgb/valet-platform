@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
 import type { EndShiftPhase } from "../../features/shift";
@@ -18,6 +18,10 @@ import {
   Btn,
   InfoRow,
 } from "../ui/employee-primitives";
+
+const CASH_INPUT_ID = "end-shift-cash-reported";
+const CASH_HELPER_ID = "end-shift-cash-reported-helper";
+const CASH_ERROR_ID = "end-shift-cash-reported-error";
 
 export interface ShiftSummaryLiveProps {
   /** App-owned End Shift mutation (DEC-066 §4 ambiguous-outcome survival). */
@@ -73,6 +77,8 @@ export function ShiftSummaryLive({
 
   const [cashInput, setCashInput] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [cashValidationVisible, setCashValidationVisible] = useState(false);
+  const cashInputRef = useRef<HTMLInputElement>(null);
 
   const phase = endShiftPhase;
 
@@ -83,7 +89,19 @@ export function ShiftSummaryLive({
 
   const mutationsLocked = !isOnline || phase.kind === "submitting";
 
-  const openConfirm = (): void => setConfirming(true);
+  const updateCashInput = (value: string): void => {
+    setCashInput(value);
+    if (isCashEntryValid(value)) setCashValidationVisible(false);
+  };
+  const openConfirm = (): void => {
+    if (!cashValid) {
+      setCashValidationVisible(true);
+      cashInputRef.current?.focus();
+      return;
+    }
+    setCashValidationVisible(false);
+    setConfirming(true);
+  };
   const cancelConfirm = (): void => setConfirming(false);
   const submitEndShift = (): void => {
     if (!cashValid || mutationsLocked) return;
@@ -179,21 +197,41 @@ export function ShiftSummaryLive({
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-vborder p-5 space-y-4">
-          <label className="text-neutral text-xs font-semibold uppercase tracking-wider block">
+          <label
+            htmlFor={CASH_INPUT_ID}
+            className="text-neutral text-xs font-semibold uppercase tracking-wider block"
+          >
             {t.cashReportedLabel}{" "}
             <bdi dir="ltr">{scope.currency}</bdi>
           </label>
-          <p className="text-muted text-xs leading-relaxed">
+          <p id={CASH_HELPER_ID} className="text-muted text-xs leading-relaxed">
             {t.cashReportedHelper}
           </p>
           <input
+            ref={cashInputRef}
+            id={CASH_INPUT_ID}
             value={cashInput}
             dir="ltr"
             inputMode="decimal"
-            onChange={(e) => setCashInput(e.target.value)}
+            aria-invalid={cashValidationVisible || undefined}
+            aria-describedby={
+              cashValidationVisible
+                ? `${CASH_HELPER_ID} ${CASH_ERROR_ID}`
+                : CASH_HELPER_ID
+            }
+            onChange={(e) => updateCashInput(e.target.value)}
             placeholder={t.cashAmountPlaceholder}
             className="w-full text-center font-heading font-semibold text-xl text-navy bg-warm border border-vborder rounded-xl h-12 focus:outline-none focus:border-vblue"
           />
+          {cashValidationVisible && (
+            <p
+              id={CASH_ERROR_ID}
+              role="alert"
+              className="text-vdanger text-xs font-semibold"
+            >
+              {t.cashReportedValidation}
+            </p>
+          )}
           {!isOnline && (
             <p className="text-vdanger text-xs font-semibold">
               {t.noNetworkMessage}
@@ -227,7 +265,7 @@ export function ShiftSummaryLive({
               label={phase.kind === "submitting" ? t.endingShift : t.endShiftAction}
               onClick={openConfirm}
               variant="danger"
-              disabled={mutationsLocked || !cashValid || phase.kind === "uncertain"}
+              disabled={mutationsLocked || phase.kind === "uncertain"}
             />
           ) : (
             <div className="space-y-3">
