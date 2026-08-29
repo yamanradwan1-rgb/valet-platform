@@ -23,6 +23,19 @@ const runtimeReadOnlyTables = [
 
 const runtimeInsertOnlyTables = ["customers", "payments", "incidents"];
 
+export const customerPrivileges = {
+  anyColumn: [["public.customers", "UPDATE", false]],
+  table: [
+    ["public.customers", "SELECT", true],
+    ["public.customers", "INSERT", true],
+    ["public.customers", "UPDATE", false],
+    ["public.customers", "DELETE", false],
+    ["public.customers", "TRUNCATE", false],
+    ["public.customers", "REFERENCES", false],
+    ["public.customers", "TRIGGER", false],
+  ],
+};
+
 const runtimeOperationalTables = [
   "vehicles",
   "valet_sessions",
@@ -127,6 +140,15 @@ export async function provisionRuntimeTablePrivileges(
   executeFormatted,
   runtimeRole,
 ) {
+  await client.query(
+    `REVOKE UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+     ON TABLE customers FROM PUBLIC`,
+  );
+  await executeFormatted(
+    client,
+    "REVOKE UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLE customers FROM %I",
+    [runtimeRole],
+  );
   await client.query(
     `REVOKE INSERT, UPDATE, DELETE, TRUNCATE
      ON TABLE users, organization_memberships, membership_location_access

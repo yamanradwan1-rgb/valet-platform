@@ -284,7 +284,6 @@ describe("runtime PostgreSQL role boundary", () => {
     );
     expect(result.rows).toHaveLength(31);
   });
-
   it("rejects a real plaintext migration preflight without applying a migration", async () => {
     const before = await adminPool.query<{ count: string }>(
       `SELECT count(*)::text AS count FROM _prisma_migrations`,
@@ -303,7 +302,6 @@ describe("runtime PostgreSQL role boundary", () => {
     );
     expect(after.rows[0]?.count).toBe(before.rows[0]?.count);
   });
-
   it("can rotate retained auth rows but cannot delete or truncate them", async () => {
     const privileges = await adminPool.query<{
       can_delete: boolean;
@@ -459,30 +457,35 @@ describe("runtime PostgreSQL role boundary", () => {
     );
     expect(ownership.rows[0]?.count).toBe("0");
   });
-
   it("allows the required operational reads and writes but not administrative tables", async () => {
     const currentUser = await runtimePool.query(`SELECT current_user`);
     expect(currentUser.rows[0]?.current_user).toBe(runtimeRole);
     const fixture = await createAuditFixture();
     const customerId = randomUUID();
     await runtimePool.query(
-      `INSERT INTO customers
-         (id, organization_id, phone_normalized, updated_at)
-       VALUES ($1, $2, '+962790000000',
-               transaction_timestamp())`,
+      `INSERT INTO customers (id, organization_id, phone_normalized, updated_at)
+       VALUES ($1, $2, '+962790000000', transaction_timestamp())`,
       [customerId, fixture.organizationId],
     );
     await runtimePool.query(
-      `UPDATE vehicles SET temporary_descriptor = 'Runtime update',
-                           updated_at = transaction_timestamp()
-       WHERE organization_id = $1`,
+      `UPDATE vehicles SET temporary_descriptor = 'Runtime update', updated_at = transaction_timestamp() WHERE organization_id = $1`,
       [fixture.organizationId],
     );
-    const persisted = await adminPool.query(
+    const persisted = await runtimePool.query(
       `SELECT phone_normalized FROM customers WHERE id = $1`,
       [customerId],
     );
     expect(persisted.rows[0]?.phone_normalized).toBe("+962790000000");
+    await expectPostgresDenial(
+      runtimePool.query(
+        `UPDATE customers SET display_name = 'forbidden' WHERE id = $1`,
+        [customerId],
+      ),
+    );
+    await expectPostgresDenial(
+      runtimePool.query(`DELETE FROM customers WHERE id = $1`, [customerId]),
+    );
+    await expectPostgresDenial(runtimePool.query(`TRUNCATE customers`));
     await expectPostgresDenial(
       runtimePool.query(
         `INSERT INTO organizations
@@ -492,7 +495,6 @@ describe("runtime PostgreSQL role boundary", () => {
       ),
     );
   });
-
   it("reconciles stale sequence privileges and deterministic future defaults", async () => {
     const migrationRole = decodeURIComponent(
       new URL(testMigrationUrl).username,

@@ -49,8 +49,7 @@ async function resolveSavedCustomer(
     `SELECT id::text AS customer_id
      FROM customers
      WHERE organization_id = $1
-       AND id = $2
-     FOR SHARE`,
+       AND id = $2`,
     [input.organizationId, input.customerId],
   );
   if (customer.rows[0]?.customer_id !== input.customerId) {
@@ -76,8 +75,7 @@ async function resolveDifferentCustomer(
      WHERE organization_id = $1
        AND phone_normalized = $2
      ORDER BY id
-     LIMIT 2
-     FOR UPDATE`,
+     LIMIT 2`,
     [organizationId, input.phoneNormalized],
   );
   if (matches.rows.length > 1) {

@@ -2,6 +2,7 @@ import { paymentCollectionPrivileges } from "./payment-collection-runtime-privil
 import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
 import { verifyLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
 import {
+  customerPrivileges,
   incidentReadPolicies,
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
@@ -12,6 +13,7 @@ const tablePrivileges = [
   ...incidentReadPolicies,
   ...paymentCollectionPrivileges.table,
   ...providerEventPrivileges.table,
+  ...customerPrivileges.table,
   ["public.users", "SELECT", true],
   ["public.users", "INSERT", false],
   ["public.users", "DELETE", false],
@@ -109,7 +111,6 @@ const tablePrivileges = [
   ["public._prisma_migrations", "REFERENCES", false],
   ["public._prisma_migrations", "TRIGGER", false],
 ];
-
 const columnPrivileges = [
   ...paymentCollectionPrivileges.column,
   ...providerEventPrivileges.column,
@@ -153,10 +154,10 @@ const columnPrivileges = [
   ["public.shifts", "cash_reported_by_membership_id", true],
   ["public.shifts", "started_at", false],
 ];
-
 const anyColumnPrivileges = [
   ...paymentCollectionPrivileges.anyColumn,
   ...providerEventPrivileges.anyColumn,
+  ...customerPrivileges.anyColumn,
   ["public.users", "INSERT", false],
   ["public.organization_memberships", "INSERT", false],
   ["public.membership_location_access", "INSERT", false],
@@ -168,7 +169,6 @@ const anyColumnPrivileges = [
   ["public.validations", "UPDATE", true],
   ["public.shifts", "UPDATE", true],
 ];
-
 const privateMapSetupFunctions = [
   "public.map_setup_authorized_organization(uuid,uuid)",
   "public.map_setup_validate_labels(text,text,text)",
