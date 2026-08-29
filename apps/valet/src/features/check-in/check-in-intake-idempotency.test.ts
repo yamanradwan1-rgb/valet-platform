@@ -94,13 +94,15 @@ describe("CheckInController stable intake idempotency", () => {
 
   it("reuses the same intakeOperationId across a lost-response retry and hydrates the authoritative session on success", async () => {
     mock.requestMock
+      .mockResolvedValueOnce({ vehicle: null })
       .mockRejectedValueOnce(
         new Error("Network connection lost after server commit."),
       )
       .mockResolvedValueOnce(intakeResponse(sessionIdA));
 
     const controller = new CheckInController(mock.client, vi.fn());
-    await controller.confirmPlate(vehicleA);
+    await controller.confirmPlate(locationId, vehicleA);
+    controller.continueToCustomer("vehicle-details");
 
     await controller.submitCustomerPhone(locationId, "+962791234567");
     expect(controller.getState().activeSession).toBeNull();
@@ -143,18 +145,23 @@ describe("CheckInController stable intake idempotency", () => {
       if (path === "/v1/staff/check-in/intakes") {
         return intakeResponse(sessionIdA);
       }
+      if (path === "/v1/staff/check-in/vehicle-recognition") {
+        return { vehicle: null };
+      }
       throw new Error(`Unexpected path ${String(path)}`);
     });
 
     const controller = new CheckInController(mock.client, vi.fn());
-    await controller.confirmPlate(vehicleA);
+    await controller.confirmPlate(locationId, vehicleA);
+    controller.continueToCustomer("vehicle-details");
     await controller.submitCustomerPhone(locationId, "");
     const firstId = mock.intakeBodies()[0]!.body!.intakeOperationId;
 
     // Authoritative flow ends; employee begins a genuinely new intake.
     await controller.initialize(locationId);
     expect(controller.getState().step).toBe("plate-scan");
-    await controller.confirmPlate(vehicleB);
+    await controller.confirmPlate(locationId, vehicleB);
+    controller.continueToCustomer("vehicle-details");
     await controller.submitCustomerPhone(locationId, "");
 
     const bodies = mock.intakeBodies();
@@ -221,6 +228,9 @@ describe("CheckInController stable intake idempotency", () => {
           }
           return intakeResponse(sessionIdA);
         }
+        if (path === "/v1/staff/check-in/vehicle-recognition") {
+          return { vehicle: null };
+        }
         if (path === `/v1/staff/valet-sessions/${sessionIdB}`) {
           return detail;
         }
@@ -229,7 +239,8 @@ describe("CheckInController stable intake idempotency", () => {
     );
 
     const controller = new CheckInController(mock.client, vi.fn());
-    await controller.confirmPlate(vehicleA);
+    await controller.confirmPlate(locationId, vehicleA);
+    controller.continueToCustomer("vehicle-details");
     await controller.submitCustomerPhone(locationId, "");
     const staleId = mock.intakeBodies()[0]!.body!.intakeOperationId;
 
@@ -240,7 +251,8 @@ describe("CheckInController stable intake idempotency", () => {
 
     // A later genuinely-new intake must not reuse the stale id.
     await controller.initialize(locationId);
-    await controller.confirmPlate(vehicleB);
+    await controller.confirmPlate(locationId, vehicleB);
+    controller.continueToCustomer("vehicle-details");
     allowIntakeSuccess = true;
     await controller.submitCustomerPhone(locationId, "");
 
@@ -254,11 +266,13 @@ describe("CheckInController stable intake idempotency", () => {
     const pending = new Promise<IntakeResponse>((resolve) => {
       releaseFirst = resolve;
     });
+    mock.requestMock.mockResolvedValueOnce({ vehicle: null });
     mock.requestMock.mockImplementationOnce(async () => pending);
     mock.requestMock.mockResolvedValue(intakeResponse(sessionIdA));
 
     const controller = new CheckInController(mock.client, vi.fn());
-    await controller.confirmPlate(vehicleA);
+    await controller.confirmPlate(locationId, vehicleA);
+    controller.continueToCustomer("vehicle-details");
 
     const first = controller.submitCustomerPhone(locationId, "");
     const second = controller.submitCustomerPhone(locationId, "");

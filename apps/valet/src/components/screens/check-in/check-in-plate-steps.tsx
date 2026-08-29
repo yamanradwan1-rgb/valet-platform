@@ -129,6 +129,7 @@ export function CheckInPlateConfirmStep({
   error,
   onConfirm,
   onEdit,
+  onContinueWithoutRecognition,
   onBack,
 }: {
   readonly color?: string | null | undefined;
@@ -139,6 +140,7 @@ export function CheckInPlateConfirmStep({
   readonly model?: string | null | undefined;
   readonly onBack: () => void;
   readonly onConfirm: () => void;
+  readonly onContinueWithoutRecognition?: (() => void) | undefined;
   readonly onEdit: () => void;
   readonly plateCountry?: string | undefined;
   readonly plateNumber?: string | undefined;
@@ -146,8 +148,11 @@ export function CheckInPlateConfirmStep({
 }): JSX.Element {
   const { t } = useEmployeeI18n();
   const displayPlate = temporaryDescriptor || plateNumber || t.noPlate;
-  const displayCountry = plateCountry ? `${plateCountry} ${t.plateCountry}` : t.plate;
-  const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
+  const displayCountry = plateCountry
+    ? `${plateCountry} ${t.plateCountry}`
+    : t.plate;
+  const displayModel =
+    make && model ? `${make} ${model}` : make || model || t.vehicle;
 
   let statusBadgeText = t.detected;
   if (temporaryDescriptor) {
@@ -158,7 +163,11 @@ export function CheckInPlateConfirmStep({
 
   return (
     <div>
-      <BackHeader disabled={isSubmitting} title={t.confirmPlate} onBack={onBack} />
+      <BackHeader
+        disabled={isSubmitting}
+        title={t.confirmPlate}
+        onBack={onBack}
+      />
       <div className="p-5 space-y-5">
         {error && (
           <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
@@ -203,6 +212,15 @@ export function CheckInPlateConfirmStep({
           onClick={onConfirm}
           disabled={isSubmitting ?? false}
         />
+        {error && onContinueWithoutRecognition && (
+          <Btn
+            label={t.continueWithoutRecognition}
+            variant="secondary"
+            size="md"
+            onClick={onContinueWithoutRecognition}
+            disabled={isSubmitting ?? false}
+          />
+        )}
         <Btn
           label={t.edit}
           variant="secondary"

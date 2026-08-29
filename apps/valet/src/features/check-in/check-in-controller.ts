@@ -4,29 +4,36 @@ import type {
 } from "@valet/contracts";
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
-import { runCheckInDiscovery } from "./check-in-discovery";
-import {
-  hydrateContinuationSession,
-  hydrateDraftSession,
-} from "./check-in-hydration";
 import {
   generateUuid,
-  runConditionCompletionMutation,
-  runIntakeMutation,
-  runQueueParkingTaskMutation,
-  runStartParkingMutation,
   runUpdateVehicleIdentityMutation,
 } from "./check-in-mutations";
+import {
+  completeCheckInCondition,
+  createCheckInParkingTask,
+  startCheckInParking,
+  type CheckInLifecycleContext,
+} from "./check-in-controller-lifecycle";
+import {
+  hydrateCheckInContinuation,
+  hydrateCheckInDraft,
+  initializeCheckIn,
+} from "./check-in-controller-recovery";
+import {
+  continueResolvedCheckIn,
+  createPreIntakeSession,
+  recognizePreIntakeVehicle,
+  setKnownVehicleCorrection,
+  setVehicleDetailDraft,
+  type ReturningCheckInActionContext,
+} from "./check-in-returning-vehicle";
 import type {
   CheckInFlowStep,
   CheckInState,
   CheckInVehicleData,
+  CheckInVehicleDetailsDraft,
   StartParkingPayload,
 } from "./check-in-types";
-
-function getErrMsg(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
-}
 
 export class CheckInController {
   private membershipId: string | null = null;
@@ -36,9 +43,16 @@ export class CheckInController {
     continuations: [],
     drafts: [],
     error: null,
+    correctionConflict: false,
+    customerOrigin: "plate-confirm",
+    customerResolved: false,
     isHydrating: false,
     isSubmitting: false,
+    pendingCorrection: null,
+    pendingCorrectionExpectedAt: null,
     pendingVehicle: null,
+    recognizedVehicle: null,
+    recognitionFailed: false,
     step: "discovery",
   };
 
@@ -67,6 +81,26 @@ export class CheckInController {
     this.onStateChange(this.state);
   }
 
+  private returningContext(): ReturningCheckInActionContext {
+    return {
+      client: this.apiClient,
+      clearIntakeOperationId: () => {
+        this.pendingIntakeOperationId = null;
+      },
+      getIntakeOperationId: () => this.nextIntakeOperationId(),
+      getState: () => this.state,
+      update: (patch) => this.update(patch),
+    };
+  }
+
+  private lifecycleContext(): CheckInLifecycleContext {
+    return {
+      client: this.apiClient,
+      getState: () => this.state,
+      update: (patch) => this.update(patch),
+    };
+  }
+
   setStep(step: CheckInFlowStep): void {
     if (
       this.state.activeSession?.state === "AWAITING_PARKING" &&
@@ -80,71 +114,91 @@ export class CheckInController {
   }
 
   async initialize(locationId: string): Promise<void> {
-    this.update({ error: null, isHydrating: true, step: "discovery" });
-    try {
-      const outcome = await runCheckInDiscovery(this.apiClient, locationId);
-      if (outcome.kind === "EMPTY") {
-        this.update({ activeSession: null, continuations: [], drafts: [], isHydrating: false, step: "plate-scan" });
-      } else if (outcome.kind === "MULTIPLE") {
-        this.update({ activeSession: null, continuations: outcome.continuations, drafts: outcome.drafts, isHydrating: false, step: "multiple-recoverable" });
-      } else if (outcome.kind === "SINGLE_DRAFT") {
-        await this.hydrateFromDraft(locationId, outcome.draft);
-      } else if (outcome.kind === "SINGLE_CONTINUATION") {
-        await this.hydrateFromContinuation(locationId, outcome.continuation);
-      }
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to load check-in drafts."), isHydrating: false, step: "discovery-error" });
-    }
-  }
-
-  async hydrateFromDraft(locationId: string, draft: StaffCheckInDraftSummary): Promise<void> {
     this.pendingIntakeOperationId = null;
-    this.update({ error: null, isHydrating: true });
-    try {
-      const res = await hydrateDraftSession(this.apiClient, locationId, draft);
-      this.update({ activeSession: res.activeSession, isHydrating: false, step: res.step });
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to resume check-in draft."), isHydrating: false, step: "hydration-error" });
-    }
+    await initializeCheckIn(this.lifecycleContext(), locationId);
   }
 
-  async hydrateFromContinuation(locationId: string, continuation: StaffCheckInContinuationSummary): Promise<void> {
+  async hydrateFromDraft(
+    locationId: string,
+    draft: StaffCheckInDraftSummary,
+  ): Promise<void> {
     this.pendingIntakeOperationId = null;
-    this.update({ error: null, isHydrating: true });
-    try {
-      const res = await hydrateContinuationSession(this.apiClient, locationId, continuation);
-      this.update({ activeSession: res.activeSession, isHydrating: false, step: res.step });
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to resume check-in continuation."), isHydrating: false, step: "hydration-error" });
-    }
+    await hydrateCheckInDraft(this.lifecycleContext(), locationId, draft);
   }
 
-  async confirmPlate(vehicleData: CheckInVehicleData): Promise<void> {
+  async hydrateFromContinuation(
+    locationId: string,
+    continuation: StaffCheckInContinuationSummary,
+  ): Promise<void> {
+    this.pendingIntakeOperationId = null;
+    await hydrateCheckInContinuation(
+      this.lifecycleContext(),
+      locationId,
+      continuation,
+    );
+  }
+
+  async confirmPlate(
+    locationIdOrVehicle: string | CheckInVehicleData,
+    maybeVehicle?: CheckInVehicleData,
+  ): Promise<void> {
+    const locationId =
+      typeof locationIdOrVehicle === "string" ? locationIdOrVehicle : null;
+    const vehicleData =
+      typeof locationIdOrVehicle === "string"
+        ? maybeVehicle
+        : locationIdOrVehicle;
+    if (!vehicleData) return;
     if (this.state.isSubmitting) return;
     const session = this.state.activeSession;
     if (session !== null) {
       if (session.state !== "CHECKING_IN") {
         this.update({
-          error: "Vehicle identity cannot be modified after check-in is complete.",
+          error:
+            "Vehicle identity cannot be modified after check-in is complete.",
         });
         return;
       }
       this.update({ error: null, isSubmitting: true });
       try {
-        const res = await runUpdateVehicleIdentityMutation(this.apiClient, session, vehicleData);
+        const res = await runUpdateVehicleIdentityMutation(
+          this.apiClient,
+          session,
+          vehicleData,
+        );
         this.update({
-          activeSession: { ...session, vehicle: res.vehicle, vehicleUpdatedAt: res.vehicleUpdatedAt },
+          activeSession: {
+            ...session,
+            vehicle: res.vehicle,
+            vehicleUpdatedAt: res.vehicleUpdatedAt,
+          },
           isSubmitting: false,
           step: "vehicle-condition",
         });
       } catch (err: unknown) {
-        this.update({ error: getErrMsg(err, "Failed to update vehicle identity."), isSubmitting: false });
+        this.update({
+          error:
+            err instanceof Error
+              ? err.message
+              : "Failed to update vehicle identity.",
+          isSubmitting: false,
+        });
       }
       return;
     }
 
-    this.pendingIntakeOperationId = null;
-    this.update({ error: null, pendingVehicle: vehicleData, step: "customer-phone" });
+    if (!locationId) {
+      this.update({
+        error: "Missing target location for vehicle recognition.",
+      });
+      return;
+    }
+
+    await recognizePreIntakeVehicle(
+      this.returningContext(),
+      locationId,
+      vehicleData,
+    );
   }
 
   /**
@@ -159,97 +213,74 @@ export class CheckInController {
     return this.pendingIntakeOperationId;
   }
 
+  continueWithoutRecognition(): void {
+    this.update({
+      customerOrigin: "plate-confirm",
+      error: null,
+      recognitionFailed: false,
+      step: "customer-phone",
+    });
+  }
+
+  continueToCustomer(origin: "returning-vehicle" | "vehicle-details"): void {
+    this.update({
+      customerOrigin: origin,
+      error: null,
+      step: "customer-phone",
+    });
+  }
+
+  setVehicleDetails(
+    details: CheckInVehicleDetailsDraft,
+    temporaryDescriptor?: string,
+  ): void {
+    setVehicleDetailDraft(
+      this.returningContext(),
+      details,
+      temporaryDescriptor,
+    );
+  }
+
+  setPendingCorrection(details: CheckInVehicleDetailsDraft): void {
+    setKnownVehicleCorrection(this.returningContext(), details);
+  }
+
+  async useSavedCustomer(locationId: string): Promise<void> {
+    const customer = this.state.recognizedVehicle?.returningCustomer;
+    if (!customer) return;
+    await createPreIntakeSession(this.returningContext(), locationId, {
+      customerId: customer.customerId,
+      intent: "USE_SAVED_CUSTOMER",
+    });
+  }
+
+  async continueAfterCustomerResolution(): Promise<void> {
+    await continueResolvedCheckIn(this.returningContext());
+  }
+
   async submitCustomerPhone(locationId: string, phone: string): Promise<void> {
-    if (this.state.isSubmitting) return;
-    const session = this.state.activeSession;
-    if (session !== null) {
-      this.update({ step: "vehicle-condition" });
-      return;
-    }
-
-    const pending = this.state.pendingVehicle;
-    if (!pending) {
-      this.update({ error: "No vehicle captured.", step: "plate-scan" });
-      return;
-    }
-
-    this.update({ error: null, isSubmitting: true });
-    try {
-      const activeSession = await runIntakeMutation(
-        this.apiClient,
-        locationId,
-        pending,
-        phone,
-        this.nextIntakeOperationId(),
-      );
-      this.pendingIntakeOperationId = null;
-      this.update({ activeSession, isSubmitting: false, pendingVehicle: null, step: "vehicle-condition" });
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to create vehicle intake."), isSubmitting: false });
-    }
+    const normalized = phone.trim();
+    await createPreIntakeSession(
+      this.returningContext(),
+      locationId,
+      normalized
+        ? { intent: "DIFFERENT_CUSTOMER", phone: normalized }
+        : undefined,
+    );
   }
 
   async completeCondition(conditionNote?: string): Promise<void> {
-    if (this.state.isSubmitting) return;
-    const session = this.state.activeSession;
-    if (!session) {
-      // DEC-068 §5: no pre-Parking Key Slot step exists; a completed
-      // condition leads straight to the Parking Task step.
-      this.update({ step: "parking-task" });
-      return;
-    }
-
-    this.update({ error: null, isSubmitting: true });
-    try {
-      const res = await runConditionCompletionMutation(this.apiClient, session, conditionNote);
-      this.update({
-        activeSession: { ...session, conditionCompletedAt: res.conditionCompletedAt, sessionVersion: res.sessionVersion, state: "AWAITING_PARKING" },
-        isSubmitting: false,
-        step: "parking-task",
-      });
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to complete condition."), isSubmitting: false });
-    }
+    await completeCheckInCondition(this.lifecycleContext(), conditionNote);
   }
 
   async createParkingTask(): Promise<void> {
-    if (this.state.isSubmitting) return;
-    const session = this.state.activeSession;
-    if (!session) {
-      this.update({ error: "No active check-in session found." });
-      return;
-    }
-
-    this.update({ error: null, isSubmitting: true });
-    try {
-      const res = await runQueueParkingTaskMutation(this.apiClient, session);
-      this.update({
-        activeSession: { ...session, parkingTaskId: res.taskId, parkingTaskVersion: res.version },
-        isSubmitting: false,
-        step: "parking-task",
-      });
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to queue parking task."), isSubmitting: false });
-    }
+    await createCheckInParkingTask(this.lifecycleContext());
   }
 
-  async startParking(membershipId?: string | null): Promise<StartParkingPayload | null> {
-    if (this.state.isSubmitting) return null;
-    const session = this.state.activeSession;
-    if (!session) {
-      this.update({ error: "No active check-in session found." });
-      return null;
-    }
-
+  async startParking(
+    membershipId?: string | null,
+  ): Promise<StartParkingPayload | null> {
     const targetMembership = membershipId ?? this.membershipId;
-    this.update({ error: null, isSubmitting: true });
-    try {
-      const payload = await runStartParkingMutation(this.apiClient, session, targetMembership);
-      this.update({ isSubmitting: false });
-      return payload;
-    } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to start parking."), isSubmitting: false });
-      return null;
-    }
+    return startCheckInParking(this.lifecycleContext(), targetMembership);
   }
 }

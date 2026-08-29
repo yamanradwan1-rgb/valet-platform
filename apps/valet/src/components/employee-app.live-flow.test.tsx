@@ -111,6 +111,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
         .fn()
         .mockResolvedValueOnce({ drafts: [] }) // drafts
         .mockResolvedValueOnce({ continuations: [] }) // continuations
+        .mockResolvedValueOnce({ vehicle: null }) // exact recognition: unknown
         .mockResolvedValueOnce(intakePayload) // intake
         .mockResolvedValueOnce({
           conditionNoteId: "88888888-8888-4888-8888-888888888888",
@@ -152,7 +153,7 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
     expect(checkInController.getState().step).toBe("plate-scan");
 
     // 1. Confirm plate stores pendingVehicle locally
-    await checkInController.confirmPlate({
+    await checkInController.confirmPlate(locationId, {
       color: "Black",
       make: "BMW",
       model: "X5",
@@ -160,7 +161,8 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       plateNumberRaw: "12-34567",
       temporaryDescriptor: null,
     });
-    expect(checkInController.getState().step).toBe("customer-phone");
+    expect(checkInController.getState().step).toBe("vehicle-details");
+    checkInController.continueToCustomer("vehicle-details");
     expect(checkInController.getState().pendingVehicle?.plateNumberRaw).toBe(
       "12-34567",
     );

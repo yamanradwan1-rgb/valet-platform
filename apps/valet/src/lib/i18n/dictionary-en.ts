@@ -1,9 +1,11 @@
+import { employeeEnglishCheckInDictionary } from "./dictionary-en-check-in";
 import { employeeEnglishScanHubDictionary } from "./dictionary-en-scan-hub";
 import { employeeEnglishScannerDictionary } from "./dictionary-en-scanner";
 import { employeeEnglishShiftDictionary } from "./dictionary-en-shift";
 import { employeeEnglishVehiclesDictionary } from "./dictionary-en-vehicles";
 
 export const employeeEnglishDictionary = {
+  ...employeeEnglishCheckInDictionary,
   ...employeeEnglishShiftDictionary,
   ...employeeEnglishScanHubDictionary,
   ...employeeEnglishScannerDictionary,
@@ -25,7 +27,8 @@ export const employeeEnglishDictionary = {
   cannotEstablishSession: "Cannot establish session context",
   cannotResumeParking: "Cannot resume parking flow",
   cannotResumeRetrieval: "Cannot resume retrieval flow",
-  cannotUndo: "This hands the vehicle and key to the guest and closes the task permanently. It cannot be undone.",
+  cannotUndo:
+    "This hands the vehicle and key to the guest and closes the task permanently. It cannot be undone.",
   checkInDiscovery: "Check-In Discovery",
   checkingDrafts: "Checking for existing check-in drafts...",
   checkingSession: "Checking staff session...",
@@ -74,8 +77,10 @@ export const employeeEnglishDictionary = {
   keyLockedInside: "Key locked inside",
   keyMissing: "Key missing",
   keySlot: "Key slot",
-  keySlotUnavailableRetry: "This key slot is no longer available. Scan another slot.",
-  returnKeyAvailable: "Place the key into any available free slot, then scan or enter that slot's code.",
+  keySlotUnavailableRetry:
+    "This key slot is no longer available. Scan another slot.",
+  returnKeyAvailable:
+    "Place the key into any available free slot, then scan or enter that slot's code.",
   loadingContext: "Loading operational context...",
   loadingParking: "Loading parking session details...",
   loadingRetrieval: "Loading retrieval session details...",
@@ -140,7 +145,8 @@ export const employeeEnglishDictionary = {
   scanParkingQr: "Scan parking spot QR",
   scanPlate: "Scan Plate",
   selectType: "Select type",
-  sessionContextError: "The authoritative vehicle/session context could not be loaded.",
+  sessionContextError:
+    "The authoritative vehicle/session context could not be loaded.",
   sessionLabel: "Session",
   severityLabel: "Severity",
   shiftActive: "Shift active",
@@ -205,10 +211,10 @@ export const employeeEnglishDictionary = {
   saudiArabia: "Saudi Arabia",
   scanLicensePlate: "Scan license plate",
   simulatePlate: "Simulate Plate Detection",
-  smsNotice:
-    "Guest Access can be shared by QR or copied link after check-in.",
+  smsNotice: "Guest Access can be shared by QR or copied link after check-in.",
   uae: "UAE",
-  locationTrackingParking: "Location tracking will activate for this parking task",
+  locationTrackingParking:
+    "Location tracking will activate for this parking task",
   noPlateTitle: "No Plate",
   recoverableSessions: "Recoverable Sessions",
   simulateKeyQr: "Simulate Key QR Scan",
@@ -221,16 +227,19 @@ export const employeeEnglishDictionary = {
   guestQr: "Guest QR",
   keySlotVerified: "Key slot verified",
   readyForGuest: "Ready for guest",
-  releaseOwnerRequired: "The Retrieval task owner must complete the vehicle release.",
+  releaseOwnerRequired:
+    "The Retrieval task owner must complete the vehicle release.",
   retryIn: "Retry in",
   startingRetrieval: "Starting Retrieval...",
   describeIncident: "Briefly describe what happened...",
   typeLabel: "Type",
   inProgressState: "In progress",
-  ambiguousShiftDetail: "Operations are locked until only one active shift remains.",
+  ambiguousShiftDetail:
+    "Operations are locked until only one active shift remains.",
   couldNotLoadContext: "Could not load operational context",
   multipleActiveShifts: "Multiple active shifts",
-  noActiveShiftDetail: "You do not have an active shift at any location right now. Operational tasks appear once a shift is active.",
+  noActiveShiftDetail:
+    "You do not have an active shift at any location right now. Operational tasks appear once a shift is active.",
   retrying: "Retrying…",
   scanNav: "Scan",
   shiftNav: "Shift",
@@ -270,10 +279,8 @@ export const employeeEnglishDictionary = {
   guestAccessTitle: "Guest Access",
   guestAccessErrorIntentConflict:
     "Guest access changed elsewhere. Showing the current state.",
-  guestAccessErrorInvalidCredential:
-    "Generated guest access was invalid.",
-  guestAccessErrorLoadFailed:
-    "The guest access state could not be loaded.",
+  guestAccessErrorInvalidCredential: "Generated guest access was invalid.",
+  guestAccessErrorLoadFailed: "The guest access state could not be loaded.",
   guestAccessErrorOffline: "You appear to be offline.",
   guestAccessErrorOutcomeUnknown:
     "The outcome is unknown. Showing the current server state.",

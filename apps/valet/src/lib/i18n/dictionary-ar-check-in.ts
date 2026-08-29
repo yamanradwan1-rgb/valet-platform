@@ -1,0 +1,18 @@
+export const employeeArabicCheckInDictionary = {
+  color: "اللون",
+  continueToCustomer: "متابعة لإدخال رقم العميل",
+  continueWithoutRecognition: "متابعة بدون التحقق من المركبة",
+  correctVehicleDetails: "تصحيح بيانات المركبة",
+  differentCustomer: "عميل مختلف",
+  make: "الشركة المصنّعة",
+  model: "الطراز",
+  phoneEnding: "رقم الهاتف ينتهي بـ",
+  returningCustomer: "عميل عائد",
+  skipVehicleDetails: "تخطي بيانات المركبة",
+  unknown: "غير معروف",
+  useSavedCustomer: "استخدام العميل المحفوظ",
+  vehicleDescription: "وصف المركبة",
+  vehicleDescriptionExample: "سيارة تويوتا فضية",
+  vehicleDetailsUpdated: "تم تحديث بيانات المركبة. راجع أحدث البيانات.",
+  vehicleFound: "تم العثور على المركبة",
+} as const;

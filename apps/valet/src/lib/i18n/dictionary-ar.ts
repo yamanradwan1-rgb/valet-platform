@@ -1,10 +1,12 @@
 import type { EmployeeDictionary } from "./dictionary";
+import { employeeArabicCheckInDictionary } from "./dictionary-ar-check-in";
 import { employeeArabicScanHubDictionary } from "./dictionary-ar-scan-hub";
 import { employeeArabicScannerDictionary } from "./dictionary-ar-scanner";
 import { employeeArabicShiftDictionary } from "./dictionary-ar-shift";
 import { employeeArabicVehiclesDictionary } from "./dictionary-ar-vehicles";
 
 export const employeeArabicDictionary: EmployeeDictionary = {
+  ...employeeArabicCheckInDictionary,
   ...employeeArabicScanHubDictionary,
   ...employeeArabicShiftDictionary,
   ...employeeArabicScannerDictionary,
@@ -26,7 +28,8 @@ export const employeeArabicDictionary: EmployeeDictionary = {
   cannotEstablishSession: "تعذر إنشاء سياق الجلسة",
   cannotResumeParking: "تعذر استئناف عملية الإيقاف",
   cannotResumeRetrieval: "تعذر استئناف عملية الاسترجاع",
-  cannotUndo: "سيتم تسليم المركبة والمفتاح للضيف وإغلاق المهمة نهائياً. لا يمكن التراجع.",
+  cannotUndo:
+    "سيتم تسليم المركبة والمفتاح للضيف وإغلاق المهمة نهائياً. لا يمكن التراجع.",
   checkInDiscovery: "استعادة تسجيل الدخول",
   checkingDrafts: "جارٍ التحقق من عمليات التسجيل غير المكتملة...",
   checkingSession: "جارٍ التحقق من جلسة الموظف...",
@@ -76,7 +79,8 @@ export const employeeArabicDictionary: EmployeeDictionary = {
   keyMissing: "المفتاح مفقود",
   keySlot: "خانة المفتاح",
   keySlotUnavailableRetry: "هذه الخانة لم تعد متاحة. امسح خانة أخرى.",
-  returnKeyAvailable: "ضع المفتاح في أي خانة فارغة متاحة، ثم امسح رمزها أو أدخل رمز الخانة.",
+  returnKeyAvailable:
+    "ضع المفتاح في أي خانة فارغة متاحة، ثم امسح رمزها أو أدخل رمز الخانة.",
   loadingContext: "جارٍ تحميل السياق التشغيلي...",
   loadingParking: "جارٍ تحميل تفاصيل جلسة الإيقاف...",
   loadingRetrieval: "جارٍ تحميل تفاصيل جلسة الاسترجاع...",
@@ -231,7 +235,8 @@ export const employeeArabicDictionary: EmployeeDictionary = {
   ambiguousShiftDetail: "العمليات مقفلة حتى تبقى مناوبة نشطة واحدة فقط.",
   couldNotLoadContext: "تعذر تحميل سياق العمليات",
   multipleActiveShifts: "مناوبات نشطة متعددة",
-  noActiveShiftDetail: "لا توجد لديك مناوبة نشطة في أي موقع الآن. تظهر المهام التشغيلية عند تفعيل مناوبة.",
+  noActiveShiftDetail:
+    "لا توجد لديك مناوبة نشطة في أي موقع الآن. تظهر المهام التشغيلية عند تفعيل مناوبة.",
   retrying: "جارٍ إعادة المحاولة…",
   scanNav: "مسح",
   shiftNav: "المناوبة",

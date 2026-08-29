@@ -1,3 +1,5 @@
+import type { IntakeCustomerIntent } from "@valet/contracts";
+
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 import { executeParkingTaskAction } from "../parking/parking-task-runner";
 import {
@@ -48,22 +50,26 @@ export async function runIntakeMutation(
   client: EmployeeApiClient,
   locationId: string,
   vehicleData: CheckInVehicleData,
-  customerPhone: string | null | undefined,
+  customer: IntakeCustomerIntent | undefined,
   intakeOperationId: string,
+  includeVehicleDetails: boolean,
 ): Promise<CheckInActiveSession> {
-  const phoneVal = customerPhone?.trim() || "";
+  const phoneVal =
+    customer?.intent === "DIFFERENT_CUSTOMER" ? customer.phone.trim() : "";
   const intakeRes = await createIntakeSession(client, {
+    ...(customer ? { customer } : {}),
     intakeOperationId,
     targetLocationId: locationId,
-    vehicleDetails: {
-      color: vehicleData.color,
-      make: vehicleData.make,
-      model: vehicleData.model,
-    },
-    vehicleIdentity: buildIdentityInput(vehicleData),
-    ...(phoneVal
-      ? { customer: { intent: "DIFFERENT_CUSTOMER" as const, phone: phoneVal } }
+    ...(includeVehicleDetails
+      ? {
+          vehicleDetails: {
+            color: vehicleData.color,
+            make: vehicleData.make,
+            model: vehicleData.model,
+          },
+        }
       : {}),
+    vehicleIdentity: buildIdentityInput(vehicleData),
   });
 
   return {

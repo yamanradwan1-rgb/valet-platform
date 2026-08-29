@@ -2,10 +2,7 @@
 
 import { useState, type JSX } from "react";
 import type { Screen } from "../../types/employee-ui";
-import {
-  useCheckIn,
-  type StartParkingPayload,
-} from "../../features/check-in";
+import { useCheckIn, type StartParkingPayload } from "../../features/check-in";
 import {
   CheckInCustomerPhoneStep,
   CheckInVehicleConditionStep,
@@ -17,6 +14,8 @@ import {
   CheckInPlateScanStep,
 } from "./check-in/check-in-plate-steps";
 import { CheckInRecoverableStep } from "./check-in/check-in-recoverable-step";
+import { CheckInReturningVehicleStep } from "./check-in/check-in-returning-vehicle-step";
+import { CheckInVehicleDetailsStep } from "./check-in/check-in-vehicle-details-step";
 import {
   CheckInDiscoveryError,
   CheckInDiscoveryLoading,
@@ -49,12 +48,15 @@ export function CheckInFlow({
   const [scanDone, setScanDone] = useState(false);
   const [plateNumber, setPlateNumber] = useState("");
   const [plateCountry, setPlateCountry] = useState("JO");
-  const [temporaryDescriptor, setTemporaryDescriptor] = useState<string | null>(null);
+  const [temporaryDescriptor, setTemporaryDescriptor] = useState<string | null>(
+    null,
+  );
   const [condition, setCondition] = useState("No visible issue");
   const [phone, setPhone] = useState("");
   const [isManualEntry, setIsManualEntry] = useState(false);
 
-  const activeVehicle = checkIn.activeSession?.vehicle ?? checkIn.pendingVehicle;
+  const activeVehicle =
+    checkIn.activeSession?.vehicle ?? checkIn.pendingVehicle;
   const displayPlate =
     activeVehicle?.temporaryDescriptor ??
     activeVehicle?.plateNumberRaw ??
@@ -71,7 +73,10 @@ export function CheckInFlow({
     return <CheckInDiscoveryLoading />;
   }
 
-  if (checkIn.step === "discovery-error" || checkIn.step === "hydration-error") {
+  if (
+    checkIn.step === "discovery-error" ||
+    checkIn.step === "hydration-error"
+  ) {
     return (
       <CheckInDiscoveryError
         message={localizedError ?? t.unexpectedError}
@@ -125,9 +130,16 @@ export function CheckInFlow({
         onChangePlateNumber={setPlateNumber}
         onChangePlateCountry={setPlateCountry}
         onNoPlate={() => {
-          setTemporaryDescriptor("UNPLATED-VEHICLE");
+          setTemporaryDescriptor("");
           setPlateNumber("");
-          checkIn.setStep("plate-confirm");
+          void checkIn.confirmPlate({
+            color: null,
+            make: null,
+            model: null,
+            plateCountry,
+            plateNumberRaw: "",
+            temporaryDescriptor: "",
+          });
         }}
         onContinue={() => {
           setTemporaryDescriptor(null);
@@ -150,6 +162,11 @@ export function CheckInFlow({
         color={displayColor}
         isSubmitting={checkIn.isSubmitting}
         error={localizedError}
+        onContinueWithoutRecognition={
+          checkIn.recognitionFailed
+            ? checkIn.continueWithoutRecognition
+            : undefined
+        }
         onConfirm={async () => {
           await checkIn.confirmPlate({
             color: displayColor,
@@ -162,6 +179,40 @@ export function CheckInFlow({
         }}
         onEdit={() => checkIn.setStep("manual-plate")}
         onBack={() => checkIn.setStep("plate-scan")}
+      />
+    );
+  }
+
+  if (checkIn.step === "returning-vehicle" && checkIn.recognizedVehicle) {
+    return (
+      <CheckInReturningVehicleStep
+        vehicle={checkIn.recognizedVehicle}
+        correctionConflict={checkIn.correctionConflict}
+        customerResolved={checkIn.customerResolved}
+        isSubmitting={checkIn.isSubmitting}
+        error={localizedError}
+        onBack={() => checkIn.setStep("plate-confirm")}
+        onContinue={() => void checkIn.continueAfterCustomerResolution()}
+        onDifferentCustomer={() =>
+          checkIn.continueToCustomer("returning-vehicle")
+        }
+        onSaveCorrection={checkIn.setPendingCorrection}
+        onUseSavedCustomer={() => void checkIn.useSavedCustomer()}
+      />
+    );
+  }
+
+  if (checkIn.step === "vehicle-details" && checkIn.pendingVehicle) {
+    const noPlate = checkIn.pendingVehicle.temporaryDescriptor !== null;
+    return (
+      <CheckInVehicleDetailsStep
+        initialDetails={checkIn.pendingVehicle}
+        isNoPlate={noPlate}
+        plate={noPlate ? t.noPlate : checkIn.pendingVehicle.plateNumberRaw}
+        onBack={() => checkIn.setStep("plate-confirm")}
+        onContinue={(details, descriptor) => {
+          checkIn.setVehicleDetails(details, descriptor);
+        }}
       />
     );
   }
@@ -183,7 +234,7 @@ export function CheckInFlow({
         onNoPhone={async () => {
           await checkIn.submitCustomerPhone("");
         }}
-        onBack={() => checkIn.setStep("plate-confirm")}
+        onBack={() => checkIn.setStep(checkIn.customerOrigin)}
       />
     );
   }

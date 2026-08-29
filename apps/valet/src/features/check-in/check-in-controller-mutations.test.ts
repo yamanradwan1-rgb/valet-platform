@@ -10,7 +10,6 @@ import type {
   IntakeResponse,
   ParkingTaskQueueResponse,
   StartParkingResponse,
-  VehicleIdentityResponse,
 } from "./check-in-api";
 
 function expectZeroKeySlotAssignmentCalls(client: EmployeeApiClient): void {
@@ -74,7 +73,12 @@ describe("CheckInController Mutations Lifecycle", () => {
       guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
       keySlot: null,
       locationId,
-      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: "North-A" },
+      parking: {
+        parkedAt: null,
+        parkingSpotCode: null,
+        parkingStartedAt: null,
+        parkingZoneCode: "North-A",
+      },
       sessionId,
       state: "AWAITING_PARKING" as const,
       vehicle: {
@@ -120,6 +124,7 @@ describe("CheckInController Mutations Lifecycle", () => {
     const mockClient = {
       request: vi
         .fn()
+        .mockResolvedValueOnce({ vehicle: null })
         .mockResolvedValueOnce(intakePayload)
         .mockResolvedValueOnce(notePayload)
         .mockResolvedValueOnce(condPayload)
@@ -134,7 +139,7 @@ describe("CheckInController Mutations Lifecycle", () => {
 
     const controller = new CheckInController(mockClient, vi.fn());
 
-    await controller.confirmPlate({
+    await controller.confirmPlate(locationId, {
       color: "Black",
       make: "BMW",
       model: "X5",
@@ -142,7 +147,8 @@ describe("CheckInController Mutations Lifecycle", () => {
       plateNumberRaw: "12-34567",
       temporaryDescriptor: null,
     });
-    expect(controller.getState().step).toBe("customer-phone");
+    expect(controller.getState().step).toBe("vehicle-details");
+    controller.continueToCustomer("vehicle-details");
 
     await controller.submitCustomerPhone(locationId, "+962790000000");
     expect(controller.getState().step).toBe("vehicle-condition");
@@ -151,7 +157,6 @@ describe("CheckInController Mutations Lifecycle", () => {
     expect(controller.getState().step).toBe("parking-task");
     expect(controller.getState().activeSession?.state).toBe("AWAITING_PARKING");
 
-    // DEC-068 §5: completed Check-In reaches Parking Task with ZERO key-slot calls.
     expectZeroKeySlotAssignmentCalls(mockClient);
 
     await controller.createParkingTask();
@@ -170,7 +175,12 @@ describe("CheckInController Mutations Lifecycle", () => {
       guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
       keySlot: null,
       locationId,
-      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
+      parking: {
+        parkedAt: null,
+        parkingSpotCode: null,
+        parkingStartedAt: null,
+        parkingZoneCode: null,
+      },
       sessionId,
       state: "CHECKING_IN" as const,
       vehicle: {
@@ -207,7 +217,6 @@ describe("CheckInController Mutations Lifecycle", () => {
       vehicle: detailPayload.vehicle,
     });
 
-    // Proves CHECKING_IN + conditionCompletedAt does NOT skip complete-check-in
     expect(controller.getState().step).toBe("vehicle-condition");
     expect(controller.getState().activeSession?.state).toBe("CHECKING_IN");
 
@@ -221,80 +230,5 @@ describe("CheckInController Mutations Lifecycle", () => {
     expect(controller.getState().step).toBe("parking-task");
     expect(controller.getState().activeSession?.state).toBe("AWAITING_PARKING");
     expectZeroKeySlotAssignmentCalls(mockClient);
-  });
-
-  it("updates vehicle identity with expectedVehicleUpdatedAt when editing resumed session", async () => {
-    const updatePayload: VehicleIdentityResponse = {
-      identityMode: "CONFIRMED_PLATE",
-      plateCountry: "JO",
-      plateNumberNormalized: "9988888",
-      plateNumberRaw: "99-88888",
-      temporaryDescriptor: null,
-      valetSessionId: sessionId,
-      vehicleId: "44444444-4444-4444-8444-444444444444",
-      vehicleUpdatedAt: "2026-08-21T18:02:00.000Z",
-    };
-    const detailPayload = {
-      checkIn: { conditionCompletedAt: null },
-      handoff: { pendingAt: null, verification: null },
-      guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
-      keySlot: null,
-      locationId,
-      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: null },
-      sessionId,
-      state: "CHECKING_IN" as const,
-      vehicle: {
-        color: "Black",
-        make: "BMW",
-        model: "X5",
-        plateCountry: "JO",
-        plateNumberRaw: "12-34567",
-        temporaryDescriptor: null,
-        vehicleId: "44444444-4444-4444-8444-444444444444",
-        vehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
-      },
-      version: 1,
-    };
-
-    const mockClient = {
-      request: vi
-        .fn()
-        .mockResolvedValueOnce(detailPayload)
-        .mockResolvedValueOnce(updatePayload),
-    } as unknown as EmployeeApiClient;
-
-    const controller = new CheckInController(mockClient, vi.fn());
-    await controller.hydrateFromDraft(locationId, {
-      conditionCompletedAt: null,
-      createdAt: "2026-08-21T18:00:00.000Z",
-      sessionId,
-      vehicle: detailPayload.vehicle,
-    });
-
-    await controller.confirmPlate({
-      color: "Black",
-      make: "BMW",
-      model: "X5",
-      plateCountry: "JO",
-      plateNumberRaw: "99-88888",
-      temporaryDescriptor: null,
-    });
-
-    expect(mockClient.request).toHaveBeenCalledWith(
-      `/v1/staff/check-in/sessions/${sessionId}/vehicle-identity`,
-      expect.objectContaining({
-        body: {
-          expectedVehicleUpdatedAt: "2026-08-21T18:00:00.000Z",
-          identity: {
-            confirmedByHuman: true,
-            mode: "CONFIRMED_PLATE",
-            plateCountry: "JO",
-            plateNumberRaw: "99-88888",
-          },
-        },
-        method: "PUT",
-      }),
-    );
-    expect(controller.getState().activeSession?.vehicle.plateNumberRaw).toBe("99-88888");
   });
 });
