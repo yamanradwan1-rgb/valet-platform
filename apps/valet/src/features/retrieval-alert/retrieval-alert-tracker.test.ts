@@ -95,6 +95,18 @@ describe("Retrieval foreground alert tracking", () => {
     ).toEqual([TASK_ID_A, TASK_ID_B]);
   });
 
+  it("keeps a visually dismissed alert observed across later polling", () => {
+    const tracker = createRetrievalAlertTracker();
+    observeRetrievalSnapshot(tracker, [], 1);
+    let visibleIds = observeRetrievalSnapshot(tracker, [task(TASK_ID_A)], 2);
+    expect(visibleIds).toEqual([TASK_ID_A]);
+
+    visibleIds = visibleIds.filter((taskId) => taskId !== TASK_ID_A);
+    expect(visibleIds).toEqual([]);
+    expect(tracker.observedTaskIds.has(TASK_ID_A)).toBe(true);
+    expect(observeRetrievalSnapshot(tracker, [task(TASK_ID_A)], 3)).toEqual([]);
+  });
+
   it("a new workspace tracker baselines instead of carrying old seen state", () => {
     const oldWorkspace = createRetrievalAlertTracker();
     observeRetrievalSnapshot(oldWorkspace, [], 1);

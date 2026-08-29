@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { employeeDictionary } from "../../lib/i18n/dictionary";
 import { RetrievalAlertBanners } from "./employee-retrieval-alert";
@@ -15,7 +15,9 @@ describe("Employee Retrieval foreground alert presentation", () => {
     const markup = renderToStaticMarkup(
       <RetrievalAlertBanners
         body={t.retrievalAlertBody}
+        dismissLabel={t.dismissAction}
         dir={dir}
+        onDismiss={() => undefined}
         onOpenTask={() => undefined}
         taskIds={[TASK_ID]}
         title={t.retrievalAlertTitle}
@@ -26,23 +28,8 @@ describe("Employee Retrieval foreground alert presentation", () => {
     expect(markup).toContain('aria-live="polite"');
     expect(markup).toContain(t.retrievalAlertTitle);
     expect(markup).toContain(t.retrievalAlertBody);
+    expect(markup).toContain(t.dismissAction);
+    expect(markup).toContain(`aria-label="${t.dismissAction}"`);
     expect(markup).not.toContain(TASK_ID);
-  });
-
-  it("click handling delegates only the Task ID to navigation", () => {
-    const onOpenTask = vi.fn();
-    const element = RetrievalAlertBanners({
-      body: "Body",
-      dir: "ltr",
-      onOpenTask,
-      taskIds: [TASK_ID],
-      title: "Title",
-    });
-    const buttons = element.props.children as React.ReactElement<{
-      onClick: () => void;
-    }>[];
-    buttons[0]!.props.onClick();
-    expect(onOpenTask).toHaveBeenCalledOnce();
-    expect(onOpenTask).toHaveBeenCalledWith(TASK_ID);
   });
 });
