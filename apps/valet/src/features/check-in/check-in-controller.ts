@@ -4,6 +4,7 @@ import type {
 } from "@valet/contracts";
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
+import { normalizeJordanCustomerPhone } from "./check-in-customer-phone";
 import {
   generateUuid,
   runUpdateVehicleIdentityMutation,
@@ -259,7 +260,7 @@ export class CheckInController {
   }
 
   async submitCustomerPhone(locationId: string, phone: string): Promise<void> {
-    const normalized = phone.trim();
+    const normalized = normalizeJordanCustomerPhone(phone);
     await createPreIntakeSession(
       this.returningContext(),
       locationId,
