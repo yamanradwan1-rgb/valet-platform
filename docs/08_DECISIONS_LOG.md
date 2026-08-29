@@ -3400,3 +3400,62 @@ guard wording of `docs/04_VALET_SESSION_STATE_MACHINE.md`
 
 Full binding contract:
 `docs/decisions/DEC-068_POST_PARKING_KEY_SLOT_BINDING.md`
+
+---
+
+## DEC-069 — Exact Returning Vehicle Recognition, Organization-Wide Returning Customer Suggestion, and Check-In Vehicle Details
+
+Status: Accepted
+Date: 2026-08-29
+
+Decision:
+After explicit Employee plate confirmation, Check-In may perform only an exact
+Organization-scoped Vehicle lookup by `organization_id + plate_country +
+plate_number_normalized`; fuzzy, partial, substring, approximate-OCR, broad
+Vehicle enumeration and generic Customer search are prohibited. The current
+Check-In remains authorized at the Employee's persisted Location, but the exact
+Vehicle is Organization-scoped.
+
+For that exact Vehicle only, returning-Customer association is intentionally
+Organization-wide across all same-Organization Locations. Eligible evidence is
+limited to `COMPLETED` ValetSessions with non-null Customer. The server suggests
+a Customer only when all eligible Organization-wide history resolves to exactly
+one distinct Customer ID: zero means no suggestion and more than one means no
+suggestion. It never guesses newest/most frequent, infers ownership, or treats a
+plate as authentication.
+
+The suggestion projection is limited to an opaque confirmation reference,
+nullable display name and masked phone suffix. Full phone and history remain
+private. The Employee must explicitly choose `USE_SAVED_CUSTOMER` or
+`DIFFERENT_CUSTOMER`; final intake treats any Customer ID as intent only and
+re-proves current Check-In authority, exact Vehicle identity and the complete
+Organization-wide single-Customer rule before attachment. A stale/invalid
+suggestion fails safely and requires current Customer entry.
+
+Different-Customer input uses the existing phone normalization and exact
+same-Organization `phone_normalized` resolution: zero rows creates a Customer,
+exactly one reuses it, and more than one returns an explicit ambiguity outcome
+without guessing, merging or rewriting history. Phone remains non-unique and is
+not proof of identity or ownership.
+
+Vehicle `make`, `model` and `color` remain nullable optional descriptive fields.
+Recognition pre-fills them; new intake may persist them; explicit corrections
+use authoritative backend logic, Vehicle optimistic concurrency and appropriate
+safe atomic audit history. A versioned licensed/provenance-reviewed local
+Make/Model dataset provides searchable Make then Model, Other and Unknown/Skip
+UX with no runtime network dependency; it is UI assistance, not relational
+identity.
+
+DEC-020 no-plate flow remains: stable distinct Vehicle UUID, useful confirmed
+temporary descriptor, no descriptor matching and no returning-Customer
+recognition. Ordinary recognition roles are `VALET_EMPLOYEE` and
+`VALET_SUPERVISOR`; Manager/Admin roles do not inherit field authority. The
+cross-Location suggestion reveals no source Location or operational history,
+and all cross-Organization access remains prohibited and non-disclosing.
+
+No Customer/Vehicle ownership table or cache is added. No lifecycle changes,
+Prisma change, migration 32, dependency, or production code are part of this
+decision task; the repository remains at 31 forward-only migrations.
+
+Full binding contract:
+`docs/decisions/DEC-069_RETURNING_CHECK_IN_RECOGNITION.md`
