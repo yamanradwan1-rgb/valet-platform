@@ -1,6 +1,6 @@
 # DEC-070 — Retrieval Request and Vehicle Ready Foreground Notification MVP
 
-Status: Proposed
+Status: Accepted
 Date: 2026-08-29
 Issue: #192
 
@@ -17,9 +17,8 @@ notification platform, duplicating lifecycle truth, weakening tenant/Location
 or GuestAccess boundaries, or replaying disruptive sound on ordinary polling,
 rendering, reconnect, or idempotent domain retries.
 
-This decision is Proposed. It is not binding and implementation must not begin
-until owner/independent review marks it Accepted and its accepted summary is
-mirrored into `docs/08_DECISIONS_LOG.md`.
+This decision is Accepted after owner/independent review. Its accepted summary
+must be mirrored into `docs/08_DECISIONS_LOG.md` before implementation begins.
 
 ## 2. Product scope
 
