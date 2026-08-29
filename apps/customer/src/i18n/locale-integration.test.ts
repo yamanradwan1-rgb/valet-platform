@@ -88,6 +88,9 @@ describe('i18n Localization Integration & Parameter Interpolation', () => {
 
   it('proves lifecycle routing resolves all physical custody states deterministically without locale input', () => {
     const createSession = (state: GuestSafeSession['state']): GuestSafeSession => ({
+      readyAt: ['READY', 'HANDOFF_PENDING', 'COMPLETED'].includes(state)
+        ? '2026-08-29T12:00:00.000Z'
+        : null,
       valetSessionId: 'sess-123',
       state,
       vehicle: { make: 'Toyota', model: 'Camry', color: 'White' },

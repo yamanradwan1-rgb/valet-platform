@@ -19,6 +19,7 @@ describe('GuestApiClient', () => {
 
   it('sends Authorization header and no-store cache control on loadSession', async () => {
     const mockSession = {
+      readyAt: null,
       valetSessionId: validUuid,
       state: 'PARKED',
       vehicle: {
@@ -54,6 +55,7 @@ describe('GuestApiClient', () => {
 
   it('sends POST with empty JSON body for requestRetrieval', async () => {
     const mockSession = {
+      readyAt: null,
       valetSessionId: validUuid,
       state: 'REQUESTED',
       vehicle: { make: 'Porsche', model: 'Taycan', color: 'Blue' },
@@ -85,6 +87,7 @@ describe('GuestApiClient', () => {
 
   it('sends POST with empty JSON body for cancelRetrieval (DEC-044)', async () => {
     const mockSession = {
+      readyAt: null,
       valetSessionId: validUuid,
       state: 'PARKED',
       vehicle: { make: 'Porsche', model: 'Taycan', color: 'Blue' },

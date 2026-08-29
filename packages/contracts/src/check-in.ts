@@ -165,6 +165,7 @@ export const completeCheckInResponseSchema = z
 
 export const guestSafeSessionResponseSchema = z
   .object({
+    readyAt: utcTimestampSchema.nullable(),
     state: z.enum([
       "AWAITING_PARKING",
       "CHECKING_IN",

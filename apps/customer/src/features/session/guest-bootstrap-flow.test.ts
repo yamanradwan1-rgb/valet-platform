@@ -4,6 +4,7 @@ import type { GuestSafeSession } from '../../lib/api/guest-api-types';
 import { resolveGuestScreenId } from './guest-lifecycle-router';
 
 const parkingSession: GuestSafeSession = {
+  readyAt: null,
   valetSessionId: 'f93d3d2e-94d8-41c8-b54e-98ddc0e3c8c9',
   state: 'PARKING',
   vehicle: { make: 'Toyota', model: 'Camry', color: 'White' },

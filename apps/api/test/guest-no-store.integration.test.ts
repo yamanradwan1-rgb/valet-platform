@@ -57,6 +57,7 @@ const service = {
     if (guestMode === "UNEXPECTED") throw new Error("test failure");
     if (guestMode === "INVALID" || revoked) return undefined;
     return {
+      readyAt: null,
       state: "PARKED" as const,
       valetSessionId: sessionId,
       vehicle: { color: "Black", make: "Toyota", model: "Camry" },

@@ -12,6 +12,13 @@ import {
   CustodyStaffAuthorizationError,
   requireActiveCustodyUser,
 } from "../staff/custody-staff-authorizer";
+import {
+  projectGuestSafeSession,
+  type GuestSafeSession,
+  type GuestSafeSessionRow,
+} from "./guest-safe-session";
+
+export type { GuestSafeSession, GuestSafeVehicle } from "./guest-safe-session";
 
 export const guestAccessContract = {
   hashPrefix: "sha256:v1:",
@@ -69,27 +76,6 @@ export interface RevokeGuestAccessResult {
   readonly valetSessionId: string;
 }
 
-export interface GuestSafeVehicle {
-  readonly color: string | null;
-  readonly make: string | null;
-  readonly model: string | null;
-}
-
-export interface GuestSafeSession {
-  readonly state:
-    | "AWAITING_PARKING"
-    | "CHECKING_IN"
-    | "COMPLETED"
-    | "HANDOFF_PENDING"
-    | "PARKED"
-    | "PARKING"
-    | "READY"
-    | "REQUESTED"
-    | "RETRIEVING";
-  readonly valetSessionId: string;
-  readonly vehicle: GuestSafeVehicle;
-}
-
 interface GuestAccessScope {
   customer_access_expires_at: Date;
   customer_access_revoked_at: Date | null;
@@ -102,14 +88,6 @@ interface GuestAccessScope {
 interface GuestAccessCommandOptions {
   readonly auditEventIdFactory?: () => string;
   readonly tokenBytesFactory?: () => Buffer;
-}
-
-interface GuestSafeSessionRow {
-  color: string | null;
-  make: string | null;
-  model: string | null;
-  state: GuestSafeSession["state"];
-  valet_session_id: string;
 }
 
 const uuidPattern =
@@ -500,6 +478,7 @@ export async function resolveGuestAccessWithDatabase(
   const tokenHash = hashGuestAccessToken(rawToken);
   const result = await database.query<GuestSafeSessionRow>(
     `SELECT session.id::text AS valet_session_id, session.state::text,
+              session.ready_at,
               vehicle.make, vehicle.model, vehicle.color
        FROM valet_sessions AS session
        INNER JOIN vehicles AS vehicle
@@ -514,13 +493,5 @@ export async function resolveGuestAccessWithDatabase(
   if (session === undefined) {
     throw new GuestAccessError("GUEST_ACCESS_INVALID");
   }
-  return {
-    state: session.state,
-    valetSessionId: session.valet_session_id,
-    vehicle: {
-      color: session.color,
-      make: session.make,
-      model: session.model,
-    },
-  };
+  return projectGuestSafeSession(session);
 }
