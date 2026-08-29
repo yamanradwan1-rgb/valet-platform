@@ -24,6 +24,14 @@ import {
   createVehicleIdentityCommandExecutor,
   type VehicleIdentityCommandRequest,
 } from "../vehicles/vehicle-identity-command";
+import {
+  createVehicleDetailsCommandExecutor,
+  type VehicleDetailsCommandRequest,
+} from "../vehicles/vehicle-details-command";
+import {
+  createReturningVehicleRecognitionQuery,
+  type ReturningVehicleRecognitionRequest,
+} from "../vehicles/returning-vehicle-recognition";
 
 @Injectable()
 export class CheckInApiService {
@@ -33,6 +41,8 @@ export class CheckInApiService {
   private readonly intake;
   private readonly recordConditionNote;
   private readonly registerConditionPhoto;
+  private readonly returningVehicleRecognition;
+  private readonly updateVehicleDetails;
   private readonly updateVehicleIdentity;
 
   constructor(
@@ -48,6 +58,9 @@ export class CheckInApiService {
       createRecordCheckInConditionNoteCommandExecutor(pool);
     this.registerConditionPhoto =
       createRegisterCheckInConditionPhotoCommandExecutor(pool);
+    this.returningVehicleRecognition =
+      createReturningVehicleRecognitionQuery(pool);
+    this.updateVehicleDetails = createVehicleDetailsCommandExecutor(pool);
     this.updateVehicleIdentity = createVehicleIdentityCommandExecutor(pool);
   }
 
@@ -57,6 +70,14 @@ export class CheckInApiService {
 
   executeVehicleIdentity(request: VehicleIdentityCommandRequest) {
     return this.updateVehicleIdentity(request);
+  }
+
+  recognizeReturningVehicle(request: ReturningVehicleRecognitionRequest) {
+    return this.returningVehicleRecognition(request);
+  }
+
+  correctVehicleDetails(request: VehicleDetailsCommandRequest) {
+    return this.updateVehicleDetails(request);
   }
 
   executeConditionNote(request: RecordCheckInConditionNoteRequest) {
@@ -101,23 +122,5 @@ export class CheckInApiService {
       // The committed command result is authoritative; KPI reads are optional.
     }
     return { checkInElapsedMs, result };
-  }
-
-  async loadVehicleUpdatedAt(input: {
-    organizationId: string;
-    vehicleId: string;
-  }): Promise<Date> {
-    const result = await this.pool.query<{ updated_at: Date }>(
-      `SELECT updated_at
-       FROM vehicles
-       WHERE organization_id = $1
-         AND id = $2`,
-      [input.organizationId, input.vehicleId],
-    );
-    const updatedAt = result.rows[0]?.updated_at;
-    if (updatedAt === undefined) {
-      throw new Error("Authorized intake Vehicle token was not available.");
-    }
-    return updatedAt;
   }
 }

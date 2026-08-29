@@ -1,45 +1,43 @@
 import { z } from "zod";
 
-const uuidSchema = z.string().uuid();
-const utcTimestampSchema = z.string().datetime({ offset: false });
+import {
+  checkInUtcTimestampSchema as utcTimestampSchema,
+  checkInUuidSchema as uuidSchema,
+  confirmedPlateIdentitySchema,
+  temporaryVehicleIdentitySchema,
+  vehicleDetailsInputSchema,
+  vehicleIdentitySchema,
+} from "./check-in-common.js";
 
-const plateCandidateSchema = z
-  .object({
-    plateCountry: z.string().optional(),
-    plateNumberRaw: z.string(),
-    source: z.enum(["ANPR", "OCR"]),
-  })
-  .strict();
+export {
+  confirmedPlateIdentitySchema,
+  temporaryVehicleIdentitySchema,
+  vehicleDetailsInputSchema,
+  vehicleIdentitySchema,
+};
 
-export const vehicleIdentitySchema = z.discriminatedUnion("mode", [
+export const intakeCustomerIntentSchema = z.discriminatedUnion("intent", [
   z
     .object({
-      confirmedByHuman: z.boolean(),
-      mode: z.literal("CONFIRMED_PLATE"),
-      plateCandidate: plateCandidateSchema.optional(),
-      plateCountry: z.string(),
-      plateNumberRaw: z.string(),
+      customerId: uuidSchema,
+      intent: z.literal("USE_SAVED_CUSTOMER"),
     })
     .strict(),
   z
     .object({
-      mode: z.literal("TEMPORARY_DESCRIPTOR"),
-      temporaryDescriptor: z.string(),
+      displayName: z.string().optional(),
+      intent: z.literal("DIFFERENT_CUSTOMER"),
+      phone: z.string(),
     })
     .strict(),
 ]);
 
 export const intakeRequestSchema = z
   .object({
-    customer: z
-      .object({
-        displayName: z.string().optional(),
-        phone: z.string(),
-      })
-      .strict()
-      .optional(),
+    customer: intakeCustomerIntentSchema.optional(),
     intakeOperationId: z.string(),
     targetLocationId: uuidSchema,
+    vehicleDetails: vehicleDetailsInputSchema.optional(),
     vehicleIdentity: vehicleIdentitySchema,
   })
   .strict();
@@ -88,7 +86,10 @@ export const guestAccessRawTokenSchema = z
 export const intakeResponseSchema = z
   .object({
     createdAt: utcTimestampSchema,
+    color: z.string().nullable(),
     customerId: uuidSchema.nullable(),
+    make: z.string().nullable(),
+    model: z.string().nullable(),
     state: z.literal("CHECKING_IN"),
     valetSessionId: uuidSchema,
     vehicleId: uuidSchema,
@@ -188,6 +189,7 @@ export const guestSafeSessionResponseSchema = z
 
 export type IntakeRequest = z.infer<typeof intakeRequestSchema>;
 export type IntakeResponse = z.infer<typeof intakeResponseSchema>;
+export type IntakeCustomerIntent = z.infer<typeof intakeCustomerIntentSchema>;
 export type VehicleIdentityRequest = z.infer<
   typeof vehicleIdentityRequestSchema
 >;
@@ -195,9 +197,7 @@ export type VehicleIdentityResponse = z.infer<
   typeof vehicleIdentityResponseSchema
 >;
 export type ConditionNoteRequest = z.infer<typeof conditionNoteRequestSchema>;
-export type ConditionNoteResponse = z.infer<
-  typeof conditionNoteResponseSchema
->;
+export type ConditionNoteResponse = z.infer<typeof conditionNoteResponseSchema>;
 export type ConditionPhotoRequest = z.infer<typeof conditionPhotoRequestSchema>;
 export type ConditionCompletionResponse = z.infer<
   typeof conditionCompletionResponseSchema

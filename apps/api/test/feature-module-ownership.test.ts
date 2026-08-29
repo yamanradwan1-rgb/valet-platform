@@ -17,6 +17,7 @@ import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.serv
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { DashboardModule } from "../src/modules/dashboard/dashboard.module";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
+import { ReturningCheckInController } from "../src/modules/check-in-api/returning-check-in.controller";
 import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
 import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
 import { DispatchService } from "../src/modules/dispatch/dispatch.service";
@@ -243,6 +244,7 @@ describe("accepted feature module ownership", () => {
   it("keeps Check-In limited to staff Check-In ownership", () => {
     expect(metadata(CheckInModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffCheckInController,
+      ReturningCheckInController,
     ]);
     expect(metadata(CheckInModule, MODULE_METADATA.PROVIDERS)).toEqual([
       CheckInApiService,

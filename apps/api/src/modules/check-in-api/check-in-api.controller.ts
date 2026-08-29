@@ -8,7 +8,6 @@ import {
   Post,
   Put,
   Req,
-  UnauthorizedException,
 } from "@nestjs/common";
 import {
   completeCheckInRequestSchema,
@@ -35,40 +34,18 @@ import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
 } from "../auth/staff-principal";
-import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { CheckInApiService } from "./check-in-api.service";
+import {
+  checkInIso as iso,
+  parseCheckInBody as parse,
+  parseCheckInEmptyBody as parseAbsentOrEmptyBody,
+  parseCheckInUuid as parseUuid,
+  resolveCheckInUserId,
+} from "./check-in-controller-support";
 import {
   CheckInOperationRunner,
   type CheckInApiRequest,
 } from "./check-in-operation-runner";
-
-interface ParseSchema<T> {
-  safeParse(
-    value: unknown,
-  ): { readonly data: T; readonly success: true } | { readonly success: false };
-}
-
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function parse<T>(schema: ParseSchema<T>, value: unknown): T {
-  const parsed = schema.safeParse(value);
-  if (!parsed.success) throw new ApiTransportValidationError();
-  return parsed.data;
-}
-
-function parseAbsentOrEmptyBody(body: unknown): void {
-  parse(emptyRequestSchema, body === undefined ? {} : body);
-}
-
-function parseUuid(value: string): string {
-  if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
-  return value;
-}
-
-function iso(value: Date): string {
-  return value.toISOString();
-}
 
 @Controller("v1/staff/check-in")
 export class StaffCheckInController {
@@ -79,22 +56,11 @@ export class StaffCheckInController {
     private readonly principals: StaffPrincipalResolver,
   ) {}
 
-  private async userId(
+  private userId(
     request: CheckInApiRequest,
     authorization: string | undefined,
   ): Promise<string> {
-    const rawHeaders = request.rawHeaders;
-    let authorizationCount = 0;
-    if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) {
-      throw new UnauthorizedException();
-    }
-    for (let index = 0; index < rawHeaders.length; index += 2) {
-      if (rawHeaders[index]?.toLowerCase() === "authorization") {
-        authorizationCount += 1;
-      }
-    }
-    if (authorizationCount !== 1) throw new UnauthorizedException();
-    return (await this.principals.resolve(authorization)).userId;
+    return resolveCheckInUserId(this.principals, request, authorization);
   }
 
   @Post("intakes")
@@ -111,25 +77,46 @@ export class StaffCheckInController {
         ...(input.customer === undefined
           ? {}
           : {
-              customer: {
-                ...(input.customer.displayName === undefined
-                  ? {}
-                  : { displayName: input.customer.displayName }),
-                phone: input.customer.phone,
-              },
+              customer:
+                input.customer.intent === "USE_SAVED_CUSTOMER"
+                  ? input.customer
+                  : {
+                      ...(input.customer.displayName === undefined
+                        ? {}
+                        : { displayName: input.customer.displayName }),
+                      intent: input.customer.intent,
+                      phone: input.customer.phone,
+                    },
             }),
         intakeOperationId: input.intakeOperationId,
         targetLocationId: input.targetLocationId,
+        ...(input.vehicleDetails === undefined
+          ? {}
+          : {
+              vehicleDetails: {
+                ...(input.vehicleDetails.color === undefined
+                  ? {}
+                  : { color: input.vehicleDetails.color }),
+                ...(input.vehicleDetails.make === undefined
+                  ? {}
+                  : { make: input.vehicleDetails.make }),
+                ...(input.vehicleDetails.model === undefined
+                  ? {}
+                  : { model: input.vehicleDetails.model }),
+              },
+            }),
         vehicleIdentity: input.vehicleIdentity as VehicleIdentityInput,
       });
-      const vehicleUpdatedAt = await this.service.loadVehicleUpdatedAt(result);
       return intakeResponseSchema.parse({
+        color: result.color,
         createdAt: iso(result.createdAt),
         customerId: result.customerId,
+        make: result.make,
+        model: result.model,
         state: result.state,
         valetSessionId: result.valetSessionId,
         vehicleId: result.vehicleId,
-        vehicleUpdatedAt: iso(vehicleUpdatedAt),
+        vehicleUpdatedAt: iso(result.vehicleUpdatedAt),
         version: result.version,
       });
     });
@@ -271,7 +258,7 @@ export class StaffCheckInController {
       request,
       async () => {
         const principalUserId = await this.userId(request, authorization);
-        parseAbsentOrEmptyBody(body);
+        parseAbsentOrEmptyBody(emptyRequestSchema, body);
         const result = await this.service.executeConditionCompletion({
           authenticatedUserId: principalUserId,
           valetSessionId: parseUuid(sessionIdRaw),

@@ -55,8 +55,15 @@ export async function runIntakeMutation(
   const intakeRes = await createIntakeSession(client, {
     intakeOperationId,
     targetLocationId: locationId,
+    vehicleDetails: {
+      color: vehicleData.color,
+      make: vehicleData.make,
+      model: vehicleData.model,
+    },
     vehicleIdentity: buildIdentityInput(vehicleData),
-    ...(phoneVal ? { customer: { phone: phoneVal } } : {}),
+    ...(phoneVal
+      ? { customer: { intent: "DIFFERENT_CUSTOMER" as const, phone: phoneVal } }
+      : {}),
   });
 
   return {
@@ -69,7 +76,12 @@ export async function runIntakeMutation(
     sessionId: intakeRes.valetSessionId,
     sessionVersion: intakeRes.version,
     state: "CHECKING_IN",
-    vehicle: vehicleData,
+    vehicle: {
+      ...vehicleData,
+      color: intakeRes.color,
+      make: intakeRes.make,
+      model: intakeRes.model,
+    },
     vehicleUpdatedAt: intakeRes.vehicleUpdatedAt,
   };
 }
@@ -80,7 +92,9 @@ export async function runUpdateVehicleIdentityMutation(
   newVehicleData: CheckInVehicleData,
 ): Promise<{ vehicle: CheckInVehicleData; vehicleUpdatedAt: string }> {
   if (session.state !== "CHECKING_IN") {
-    throw new Error("Vehicle identity cannot be modified after check-in is complete.");
+    throw new Error(
+      "Vehicle identity cannot be modified after check-in is complete.",
+    );
   }
   if (!session.vehicleUpdatedAt) {
     throw new Error("Missing vehicleUpdatedAt on session.");
@@ -138,7 +152,12 @@ export async function runConditionCompletionMutation(
 export async function runQueueParkingTaskMutation(
   client: EmployeeApiClient,
   session: CheckInActiveSession,
-): Promise<{ currentAssigneeMembershipId: string | null; status: "QUEUED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS"; taskId: string; version: number }> {
+): Promise<{
+  currentAssigneeMembershipId: string | null;
+  status: "QUEUED" | "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS";
+  taskId: string;
+  version: number;
+}> {
   const queueRes = await queueSessionParkingTask(client, session.sessionId);
   return {
     currentAssigneeMembershipId: queueRes.currentAssigneeMembershipId,

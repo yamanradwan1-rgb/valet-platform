@@ -72,7 +72,10 @@ function buildClientMock(): {
 function intakeResponse(sessionId: string): IntakeResponse {
   return {
     createdAt: "2026-08-21T18:00:00.000Z",
+    color: null,
     customerId: "77777777-7777-4777-8777-777777777777",
+    make: null,
+    model: null,
     state: "CHECKING_IN",
     valetSessionId: sessionId,
     vehicleId: "44444444-4444-4444-8444-444444444444",
@@ -117,7 +120,10 @@ describe("CheckInController stable intake idempotency", () => {
     );
     expect(second.intakeOperationId).toBe(first.intakeOperationId);
     expect(second.targetLocationId).toBe(locationId);
-    expect(second.customer).toEqual({ phone: "+962791234567" });
+    expect(second.customer).toEqual({
+      intent: "DIFFERENT_CUSTOMER",
+      phone: "+962791234567",
+    });
 
     const state = controller.getState();
     expect(state.activeSession?.sessionId).toBe(sessionIdA);

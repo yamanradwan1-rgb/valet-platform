@@ -118,7 +118,10 @@ describe("Check-In API Client", () => {
   it("createIntakeSession invokes POST /v1/staff/check-in/intakes", async () => {
     const payload: IntakeResponse = {
       createdAt: "2026-08-21T18:00:00.000Z",
+      color: null,
       customerId: null,
+      make: null,
+      model: null,
       state: "CHECKING_IN",
       valetSessionId: sessionId,
       vehicleId: "44444444-4444-4444-8444-444444444444",

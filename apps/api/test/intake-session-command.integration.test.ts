@@ -11,6 +11,7 @@ import {
   createIntakeSessionCommandExecutor,
   type IntakeSessionCommandRequest,
 } from "../src/modules/valet-sessions/intake-session-command";
+import { differentCustomer } from "./returning-check-in-test-context";
 
 interface Fixture {
   locationId: string;
@@ -376,7 +377,7 @@ describe("VAL-004E intake session creation", () => {
         metadata_json: {
           customerPresent: false,
           identityMode: "TEMPORARY_DESCRIPTOR",
-          intakeContractVersion: "V1",
+          intakeContractVersion: "V2",
         },
       },
     ]);
@@ -466,17 +467,17 @@ describe("VAL-004E intake session creation", () => {
     expect(foreignError.message).toBe(missingError.message);
   });
 
-  it("normalizes E.164-compatible customer input and never merges customers by phone", async () => {
+  it("normalizes E.164-compatible customer input and reuses one exact match", async () => {
     const fixture = await createFixture();
     const execute = createIntakeSessionCommandExecutor(runtimePool);
-    const customer = {
-      displayName: "  Ｊｏｒｄａｎ  ",
-      phone: "  ＋９６２ (７９) １２３-４５６７  ",
-    };
+    const customer = differentCustomer(
+      "  ＋９６２ (７９) １２３-４５６７  ",
+      "  Ｊｏｒｄａｎ  ",
+    );
     const first = await execute(temporaryRequest(fixture, { customer }));
     const second = await execute(temporaryRequest(fixture, { customer }));
     expect(first.customerId).not.toBeNull();
-    expect(second.customerId).not.toBe(first.customerId);
+    expect(second.customerId).toBe(first.customerId);
     const customers = await adminPool.query<{
       display_name: string | null;
       phone_normalized: string;
@@ -487,7 +488,6 @@ describe("VAL-004E intake session creation", () => {
     );
     expect(customers.rows).toEqual([
       { display_name: "Jordan", phone_normalized: "+962791234567" },
-      { display_name: "Jordan", phone_normalized: "+962791234567" },
     ]);
   });
 
@@ -497,7 +497,7 @@ describe("VAL-004E intake session creation", () => {
     await expectCommandError(
       createIntakeSessionCommandExecutor(runtimePool)(
         temporaryRequest(fixture, {
-          customer: { phone: "0791234567" },
+          customer: differentCustomer("0791234567"),
         }),
       ),
       "INTAKE_INPUT_INVALID",
@@ -534,7 +534,7 @@ describe("VAL-004E intake session creation", () => {
     const firstFixture = await createFixture();
     const secondFixture = await createFixture();
     const execute = createIntakeSessionCommandExecutor(runtimePool);
-    const customer = { phone: "+962791234567" };
+    const customer = differentCustomer("+962791234567");
     const first = await execute({ ...confirmedRequest(firstFixture), customer });
     const second = await execute({
       ...confirmedRequest(secondFixture),
@@ -589,7 +589,7 @@ describe("VAL-004E intake session creation", () => {
     const fixture = await createFixture();
     const execute = createIntakeSessionCommandExecutor(runtimePool);
     const request = temporaryRequest(fixture, {
-      customer: { displayName: "Guest", phone: "+962791234567" },
+      customer: differentCustomer("+962791234567", "Guest"),
     });
     const first = await execute(request);
     const counts = await readCounts(fixture.organizationId);
@@ -709,7 +709,7 @@ describe("VAL-004E intake session creation", () => {
         auditEventIdFactory: () => duplicateAuditId,
       })(
         temporaryRequest(fixture, {
-          customer: { phone: "+962791234567" },
+          customer: differentCustomer("+962791234567"),
         }),
       ),
     ).rejects.toMatchObject({ code: "23505" });

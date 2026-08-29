@@ -17,8 +17,9 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
   const taskId = "33333333-3333-4333-8333-333333333333";
 
   function expectZeroKeySlotCalls(client: EmployeeApiClient): void {
-    const calls = (client.request as unknown as { mock: { calls: unknown[][] } })
-      .mock.calls;
+    const calls = (
+      client.request as unknown as { mock: { calls: unknown[][] } }
+    ).mock.calls;
     const keySlotCalls = calls.filter((call) =>
       String(call[0]).includes("/key-slot/"),
     );
@@ -29,7 +30,10 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
   it("proves end-to-end connected lifecycle without local simulation or key pre-assignment", async () => {
     const intakePayload: IntakeResponse = {
       createdAt: "2026-08-21T18:00:00.000Z",
+      color: null,
       customerId: "99999999-9999-4999-8999-999999999999",
+      make: null,
+      model: null,
       state: "CHECKING_IN",
       valetSessionId: sessionId,
       vehicleId: "44444444-4444-4444-8444-444444444444",
@@ -51,7 +55,12 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
       keySlot: null,
       locationId,
-      parking: { parkedAt: null, parkingSpotCode: null, parkingStartedAt: null, parkingZoneCode: "North-A" },
+      parking: {
+        parkedAt: null,
+        parkingSpotCode: null,
+        parkingStartedAt: null,
+        parkingZoneCode: "North-A",
+      },
       sessionId,
       state: "AWAITING_PARKING" as const,
       vehicle: {
@@ -152,25 +161,35 @@ describe("Employee Live Operational Check-In and Parking Flow", () => {
       temporaryDescriptor: null,
     });
     expect(checkInController.getState().step).toBe("customer-phone");
-    expect(checkInController.getState().pendingVehicle?.plateNumberRaw).toBe("12-34567");
+    expect(checkInController.getState().pendingVehicle?.plateNumberRaw).toBe(
+      "12-34567",
+    );
 
     // 2. Submit customer phone creates authoritative intake
     await checkInController.submitCustomerPhone(locationId, "+962791234567");
-    expect(checkInController.getState().activeSession?.sessionId).toBe(sessionId);
-    expect(checkInController.getState().activeSession?.state).toBe("CHECKING_IN");
+    expect(checkInController.getState().activeSession?.sessionId).toBe(
+      sessionId,
+    );
+    expect(checkInController.getState().activeSession?.state).toBe(
+      "CHECKING_IN",
+    );
     expect(checkInController.getState().activeSession?.keySlotCode).toBeNull();
 
     // 3. Condition completion transitions to AWAITING_PARKING and directly
     //    to the Parking Task step — no key-scan step exists anymore.
     await checkInController.completeCondition("No scratches");
-    expect(checkInController.getState().activeSession?.state).toBe("AWAITING_PARKING");
+    expect(checkInController.getState().activeSession?.state).toBe(
+      "AWAITING_PARKING",
+    );
     expect(checkInController.getState().step).toBe("parking-task");
     expect(checkInController.getState().activeSession?.keySlotCode).toBeNull();
     expectZeroKeySlotCalls(mockClient);
 
     // 4. Create parking task
     await checkInController.createParkingTask();
-    expect(checkInController.getState().activeSession?.parkingTaskId).toBe(taskId);
+    expect(checkInController.getState().activeSession?.parkingTaskId).toBe(
+      taskId,
+    );
 
     // 5. Start parking transitions to ParkingFlow payload with NULL keySlotCode
     const parkingPayload = await checkInController.startParking();

@@ -23,10 +23,6 @@
       "maxLines": 526
     },
     {
-      "path": "apps/api/src/modules/valet-sessions/intake-session-command.ts",
-      "maxLines": 499
-    },
-    {
       "path": "apps/api/src/modules/vehicles/vehicle-identity-command.ts",
       "maxLines": 504
     },
