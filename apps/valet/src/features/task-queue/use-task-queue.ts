@@ -27,6 +27,7 @@ export interface UseTaskQueueResult {
   readonly isHardStopped: boolean;
   readonly isLoading: boolean;
   readonly isRefreshing: boolean;
+  readonly successfulSnapshotCount: number;
   readonly tasks: StaffTaskQueueItem[];
 }
 
@@ -59,6 +60,7 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
     isRefreshing: false,
     scopeLocationId: null,
     sessionGeneration: null,
+    successfulSnapshotCount: 0,
     tasks: [],
   });
 
@@ -137,6 +139,14 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       status === "authenticated" && locationId
         ? controllerState.isRefreshing
         : false,
+    successfulSnapshotCount:
+      status === "authenticated" &&
+      locationId !== null &&
+      controllerState.sessionGeneration === sessionGeneration &&
+      controllerState.scopeLocationId === locationId &&
+      !controllerState.isLoading
+        ? (controllerState.successfulSnapshotCount ?? 0)
+        : 0,
     tasks: effectiveTasks,
   };
 }

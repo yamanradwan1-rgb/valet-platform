@@ -286,4 +286,6 @@ export const employeeEnglishDictionary = {
     "The outcome is unknown. Showing the current server state.",
   guestAccessErrorRevokeFailed: "Revocation failed.",
   guestAccessErrorUpdateFailed: "Guest access could not be updated.",
+  retrievalAlertBody: "A guest has requested their vehicle.",
+  retrievalAlertTitle: "Vehicle requested",
 } as const;

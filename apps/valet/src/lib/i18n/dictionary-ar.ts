@@ -283,4 +283,6 @@ export const employeeArabicDictionary: EmployeeDictionary = {
     "النتيجة غير معروفة. يتم عرض حالة الخادم الحالية.",
   guestAccessErrorRevokeFailed: "فشل إلغاء الوصول.",
   guestAccessErrorUpdateFailed: "تعذّر تحديث وصول الضيف.",
+  retrievalAlertBody: "طلب أحد الضيوف استرجاع مركبته.",
+  retrievalAlertTitle: "تم طلب المركبة",
 } satisfies EmployeeDictionary;

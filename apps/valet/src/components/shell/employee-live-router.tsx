@@ -18,6 +18,7 @@ import type {
   EndShiftPhase,
 } from "../../features/shift";
 import type { ResolvedOperationalScope } from "../../features/staff-operational-context";
+import type { UseTaskQueueResult } from "../../features/task-queue/use-task-queue";
 import type {
   ActiveIncidentTarget,
   ActiveParkingTarget,
@@ -48,6 +49,7 @@ export interface EmployeeLiveRouterProps {
   readonly parkingPayload: StartParkingPayload | null;
   readonly parkingTarget: ActiveParkingTarget | null;
   readonly retrievalTarget: ActiveRetrievalTarget | null;
+  readonly taskQueue: UseTaskQueueResult;
 }
 
 export function EmployeeLiveRouter({
@@ -74,6 +76,7 @@ export function EmployeeLiveRouter({
   parkingPayload,
   parkingTarget,
   retrievalTarget,
+  taskQueue,
 }: EmployeeLiveRouterProps): JSX.Element {
   switch (effectiveScreen) {
     case "check-in":
@@ -214,6 +217,7 @@ export function EmployeeLiveRouter({
           onSelectParkingTask={onSelectParkingTask}
           onSelectRetrievalTask={onSelectRetrievalTask}
           onStartParkingSuccess={onStartParkingSuccess}
+          taskQueue={taskQueue}
         />
       );
   }

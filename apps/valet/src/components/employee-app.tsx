@@ -27,15 +27,9 @@ import {
   createEmployeeWorkspaceHandlers,
 } from "./shell/employee-workspace-handlers";
 import {
-  getActiveTab,
-  liveEnabledTabs,
   livePermittedScreens,
-  liveWorkflowScreens,
-  topLevelScreenForTab,
 } from "./shell/employee-navigation";
-import { AppHeader } from "./shell/app-header";
-import { BottomNav } from "./shell/bottom-nav";
-import { ConnectivityBanner } from "./shell/connectivity-banner";
+import { EmployeeActiveShell } from "./shell/employee-active-shell";
 import {
   selectStartableLocations,
   useStaffOperationalContext,
@@ -46,6 +40,7 @@ import {
   useStartShift,
 } from "../features/shift";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
+import { useTaskQueue } from "../features/task-queue/use-task-queue";
 
 export interface EmployeeAppProps {
   /**
@@ -94,6 +89,11 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   }, [accessActions, auth]);
 
   const authStatus = auth?.status ?? "initializing";
+  const liveScope = resolution.kind === "RESOLVED" ? resolution.scope : null;
+  const taskQueue = useTaskQueue({
+    locationId: liveScope?.locationId ?? null,
+    onAuthorizationLoss: revalidateOnAuthLoss,
+  });
   // Workspace scoping keys on the STABLE identity epoch, not
   // sessionGeneration: a same-user token refresh must keep workflows alive.
   const identity: WorkspaceIdentityInput = {
@@ -200,8 +200,6 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     );
   }
 
-  const liveScope = resolution.kind === "RESOLVED" ? resolution.scope : null;
-
   if (authStatus !== "authenticated") {
     const gateProps = buildEmployeeAccessGateProps({
       actionsState: {
@@ -250,18 +248,15 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
       : "task-queue";
 
   return (
-    <div className="min-h-screen bg-navy-3 flex items-start justify-center md:items-center">
-      <div className="relative w-full max-w-[390px] h-screen md:h-[844px] bg-warm flex flex-col overflow-hidden md:rounded-[44px] md:shadow-2xl">
-        <ConnectivityBanner onReconnect={() => void refreshContext()} />
-        <AppHeader
-          locationCode={liveScope.locationCode}
-          locationName={liveScope.locationName}
-          mode="live"
-          role={liveScope.role}
-        />
-
-        <main className="flex-1 overflow-y-auto">
-          <EmployeeLiveRouter
+    <EmployeeActiveShell
+      effectiveScreen={effectiveScreen}
+      key={`${identity.identityGeneration}:${liveScope.membershipId}:${liveScope.locationId}:${liveScope.shiftId}`}
+      nav={handlers.nav}
+      onReconnect={() => void refreshContext()}
+      scope={liveScope}
+      taskQueue={taskQueue}
+    >
+      <EmployeeLiveRouter
           activeScope={liveScope}
           effectiveScreen={effectiveScreen}
           endShift={endShift}
@@ -282,19 +277,8 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           parkingTarget={targets.activeParkingTarget}
           retrievalTarget={targets.activeRetrievalTarget}
           onRetryUncertainEndShift={retryUncertainEndShift}
-        />
-        </main>
-
-        <BottomNav
-          active={getActiveTab(effectiveScreen)}
-          enabledTabs={liveEnabledTabs}
-          onTab={(tab) => {
-            const target = topLevelScreenForTab(tab);
-            if (target !== null) handlers.nav(target);
-          }}
-          pinned={liveWorkflowScreens.has(effectiveScreen)}
-        />
-      </div>
-    </div>
+          taskQueue={taskQueue}
+      />
+    </EmployeeActiveShell>
   );
 }
