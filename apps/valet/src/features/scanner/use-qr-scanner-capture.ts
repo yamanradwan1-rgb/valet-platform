@@ -106,8 +106,17 @@ export function useQrScannerCapture<TValue>(
     session.armNextScan();
     setRejectionReason(null);
     setUiState("starting");
-    await session.begin();
   }, [ensureSession]);
+
+  // ResourceQrScanSection and HandoffQrScanSection mount the preview only in
+  // non-idle states. Opening the camera in start() races that React commit and
+  // observes a null videoRef; effects run after the preview ref is attached.
+  useEffect(() => {
+    if (uiState !== "starting") return;
+    const session = ensureSession();
+    if (session.getPhase() !== "idle") return;
+    void session.begin();
+  }, [ensureSession, uiState]);
 
   const close = useCallback((): void => {
     const session = sessionRef.current;
