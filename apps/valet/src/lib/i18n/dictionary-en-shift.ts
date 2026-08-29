@@ -11,6 +11,8 @@ export const employeeEnglishShiftDictionary = {
   cashReportedHelper:
     "Cash physically held at the end of this shift.",
   cashReportedLabel: "Cash reported",
+  cashReportedValidation:
+    "Enter a valid non-negative cash amount using up to three decimal places.",
   cashVarianceLabel: "Variance",
   chooseLocationLabel: "Choose your shift location",
   confirmEndShift: "Confirm end shift",

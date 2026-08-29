@@ -59,6 +59,30 @@ describe("DEC-066 §4 EndShiftController", () => {
     expect(onEnded.result).toEqual(endedPayload);
   });
 
+  it("ignores repeated submissions while the first request is active", async () => {
+    let resolveRequest: ((value: typeof endedPayload) => void) | undefined;
+    const requests: string[] = [];
+    const apiClient = {
+      request: (path: string) => {
+        requests.push(path);
+        return new Promise<typeof endedPayload>((resolve) => {
+          resolveRequest = resolve;
+        });
+      },
+    } as unknown as EmployeeApiClient;
+    const controller = new EndShiftController({ apiClient });
+
+    controller.submit(SHIFT_ID, "0.000");
+    controller.submit(SHIFT_ID, "0.000");
+
+    expect(controller.getPhase().kind).toBe("submitting");
+    expect(requests).toEqual([`/v1/staff/shifts/${SHIFT_ID}/end`]);
+
+    resolveRequest?.(endedPayload);
+    await flush();
+    expect(controller.getPhase().kind).toBe("ended");
+  });
+
   it("never claims success on a network failure and retains same-command retry intent in memory only", async () => {
     const { EmployeeApiError } = await import("../../lib/api/employee-api-errors");
     let attempts = 0;

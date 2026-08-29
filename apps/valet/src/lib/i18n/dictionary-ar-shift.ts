@@ -10,6 +10,8 @@ export const employeeArabicShiftDictionary = {
   cashReportedHelper:
     "المبلغ النقدي الموجود معك فعليًا عند إنهاء المناوبة.",
   cashReportedLabel: "المبلغ النقدي المبلغ عنه",
+  cashReportedValidation:
+    "أدخل مبلغًا نقديًا صالحًا غير سالب بحد أقصى ثلاث منازل عشرية.",
   cashVarianceLabel: "الفارق",
   chooseLocationLabel: "اختر موقع مناوبتك",
   confirmEndShift: "تأكيد إنهاء المناوبة",
