@@ -110,6 +110,8 @@ export const arTranslations: TranslationDictionary = {
   'ready.cardTitle': 'مسؤول الخدمة يجهز عملية التسليم الآمن.',
   'ready.cardSub':
     'سيظهر رمز الاستلام أو رمز QR فور بدء موظف الخدمة بالتحقق.',
+  'readyAlert.title': 'سيارتك جاهزة',
+  'readyAlert.body': 'وصلت مركبتك إلى منطقة الاستلام وهي جاهزة لك.',
 
   // Verifying Screen
   'verifying.title': 'جاري التحقق من الاستلام',

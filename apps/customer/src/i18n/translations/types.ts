@@ -105,6 +105,8 @@ export interface TranslationDictionary {
   'ready.title': string;
   'ready.cardTitle': string;
   'ready.cardSub': string;
+  'readyAlert.title': string;
+  'readyAlert.body': string;
 
   // Verifying Screen
   'verifying.title': string;
