@@ -55,6 +55,19 @@ export function CheckInFlow({
   const [phone, setPhone] = useState("");
   const [isManualEntry, setIsManualEntry] = useState(false);
 
+  const confirmNoPlate = (): void => {
+    setTemporaryDescriptor("");
+    setPlateNumber("");
+    void checkIn.confirmPlate({
+      color: null,
+      make: null,
+      model: null,
+      plateCountry,
+      plateNumberRaw: "",
+      temporaryDescriptor: "",
+    });
+  };
+
   const activeVehicle =
     checkIn.activeSession?.vehicle ?? checkIn.pendingVehicle;
   const displayPlate =
@@ -101,7 +114,18 @@ export function CheckInFlow({
   if (checkIn.step === "plate-scan") {
     return (
       <CheckInPlateScanStep
+        identityKey={`${membershipId ?? ""}:${locationId ?? ""}`}
         mode={mode}
+        onCapturedContinue={() => {
+          setIsManualEntry(true);
+          setTemporaryDescriptor(null);
+          checkIn.setStep("plate-confirm");
+        }}
+        onChangePlateCountry={setPlateCountry}
+        onChangePlateNumber={setPlateNumber}
+        onNoPlate={confirmNoPlate}
+        plateCountry={plateCountry}
+        plateNumber={plateNumber}
         scanDone={scanDone}
         onSimulateScan={() => {
           setScanDone(true);
@@ -129,18 +153,7 @@ export function CheckInFlow({
         plateCountry={plateCountry}
         onChangePlateNumber={setPlateNumber}
         onChangePlateCountry={setPlateCountry}
-        onNoPlate={() => {
-          setTemporaryDescriptor("");
-          setPlateNumber("");
-          void checkIn.confirmPlate({
-            color: null,
-            make: null,
-            model: null,
-            plateCountry,
-            plateNumberRaw: "",
-            temporaryDescriptor: "",
-          });
-        }}
+        onNoPlate={confirmNoPlate}
         onContinue={() => {
           setTemporaryDescriptor(null);
           checkIn.setStep("plate-confirm");

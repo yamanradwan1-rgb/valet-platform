@@ -26,6 +26,12 @@ describe("CheckInFlow Component Steps", () => {
       <CheckInPlateScanStep
         mode="prototype"
         scanDone={false}
+        plateCountry="JO"
+        plateNumber=""
+        onCapturedContinue={vi.fn()}
+        onChangePlateCountry={vi.fn()}
+        onChangePlateNumber={vi.fn()}
+        onNoPlate={vi.fn()}
         onSimulateScan={vi.fn()}
         onManualEntry={vi.fn()}
         onBack={vi.fn()}
@@ -41,6 +47,12 @@ describe("CheckInFlow Component Steps", () => {
       <CheckInPlateScanStep
         mode="live"
         scanDone={false}
+        plateCountry="JO"
+        plateNumber=""
+        onCapturedContinue={vi.fn()}
+        onChangePlateCountry={vi.fn()}
+        onChangePlateNumber={vi.fn()}
+        onNoPlate={vi.fn()}
         onManualEntry={vi.fn()}
         onBack={vi.fn()}
       />,
