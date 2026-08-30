@@ -1,6 +1,6 @@
 # DEC-071 — Background Web Push Architecture
 
-Status: Proposed
+Status: Accepted
 Date: 2026-08-30
 Issue: #197
 
@@ -33,7 +33,7 @@ ValetSession, RetrievalRequest, handoff, release, payment, or audit truth.
 
 ## 2. Scope and non-goals
 
-This proposal supports exactly:
+This decision supports exactly:
 
 1. `EMPLOYEE_RETRIEVAL_REQUESTED`
 2. `GUEST_VEHICLE_READY`
@@ -507,8 +507,8 @@ After a valid vehicle-ready push click:
    GuestAccess credential, hidden session authority, or credential-bearing URL.
 
 This resolution preserves DEC-064 unchanged. It intentionally does not provide
-direct closed-page session restoration. DEC-071 remains Proposed and does not
-authorize implementation until it is separately Accepted.
+direct closed-page session restoration. It is binding within this Accepted
+decision.
 
 ## 21. Foreground/background coexistence
 
@@ -709,7 +709,9 @@ authorization was re-proved after click.
 
 ## 28. Future implementation slices
 
-U-001 is resolved. No slice may start until DEC-071 is Accepted.
+U-001 is resolved and DEC-071 is Accepted. T1 is ready for implementation.
+T2 through T7 remain the sequenced implementation plan and are not authorized
+as one combined implementation change by this verdict.
 
 1. **T1 — persistence/contracts/config foundation:** GuestAccess generation,
    encrypted/tombstoned subscription model, two-type delivery intent/delivery
@@ -756,16 +758,21 @@ U-001 is resolved. No slice may start until DEC-071 is Accepted.
 ## 30. Ready-to-implement verdict
 
 ```text
-DECISION REQUIRED
+READY TO IMPLEMENT
 ```
 
-Reason: U-001 is resolved, but this decision remains Proposed. Formal
-acceptance of DEC-071 is still required before production implementation.
+This verdict applies only to T1, the persistence/contracts/config foundation:
+GuestAccess generation metadata, encrypted/tombstoned push-subscription
+persistence, focused delivery intent/delivery persistence, strict contracts,
+VAPID/config validation, storage-encryption key-version/rotation foundation,
+and migration/docs/runtime privileges. It does not authorize one combined
+T1-through-T7 implementation or claim production readiness. T1 is not
+implemented by this decision commit.
 
 ## Planning-guardian classification appendix
 
-This appendix classifies the proposal for implementation review. It does not
-make the Proposed decision binding.
+This appendix classifies the Accepted architecture for implementation review.
+The focused decision and its canonical decision-log entry are binding.
 
 ### Repository facts discovered
 
@@ -856,9 +863,8 @@ owner's safe degraded re-entry instruction, which preserves DEC-064 unchanged.
 
 ### UNRESOLVED decisions
 
-- None within the proposed architecture. U-001 is resolved as defined in
-  section 20. DEC-071 remains Proposed and still requires formal acceptance
-  before implementation.
+- None within the Accepted architecture. U-001 is resolved as defined in
+  section 20.
 
 ### Risks / boundary violations
 
@@ -878,8 +884,9 @@ owner's safe degraded re-entry instruction, which preserves DEC-064 unchanged.
 
 ### Proposed implementation plan
 
-The future slices are section 28. They are not READY while DEC-071 remains
-Proposed. The reusable downstream boundaries are:
+The T1-through-T7 sequence is section 28. This acceptance makes T1 ready for
+implementation; it does not make T2 through T7 ready as one combined change.
+The reusable downstream boundaries across the accepted sequence are:
 
 - a subscription-specific StaffAuthSession identity resolver;
 - an exact current GuestAccess-generation guard;
@@ -897,14 +904,16 @@ unknown post-remote-accept outcome without claiming exactly-once delivery.
 
 ### Files expected to change
 
-While the verdict is DECISION REQUIRED:
-
-- **Definitely relevant:** this DEC, decision log, database/schema docs in a
-  later persistence slice, API auth/guest/retrieval/dispatch module families,
-  shared contracts, both app PWA/foreground-notification boundaries, tests,
-  and environment documentation.
-- **Definitely relevant to T5:** the credential-free Customer re-entry screen
-  and open-client focus/refetch bridge described by the U-001 resolution.
+- **T1 definitely relevant:** database/schema documentation, forward-only
+  migration and Prisma schema, shared contracts/configuration, focused
+  persistence tests, runtime-database privileges, and environment/configuration
+  documentation.
+- **T2 through T7, not part of the T1 implementation:** API
+  auth/guest/retrieval/dispatch module families, both app PWA and foreground
+  notification boundaries, sender/reconciler runtime, integration tests, and
+  real-device hardening.
+- **T5 specifically:** the credential-free Customer re-entry screen and
+  open-client focus/refetch bridge described by the U-001 resolution.
 - **Not justified yet:** exact route filenames, exact table/column names beyond
   the conceptual model, selected sender dependency, generic queue/event-bus
   infrastructure, SMS/WhatsApp/Email changes, and Dashboard administration.
@@ -913,13 +922,14 @@ While the verdict is DECISION REQUIRED:
 
 Section 2 is controlling. No domain transition, push-triggered mutation,
 notification center, marketing/escalation class, generic event platform,
-custom background sound, or production secret generation is proposed.
+custom background sound, or production secret generation is included.
 
 ### Ready-to-implement verdict
 
 ```text
-DECISION REQUIRED
+READY TO IMPLEMENT
 ```
 
-U-001 is resolved. DEC-071 must be explicitly Accepted before code, schema,
-migration, dependency, Service Worker, or production VAPID work starts.
+This verdict authorizes T1 only: the persistence/contracts/config foundation
+listed in section 28 and section 30. T2 through T7 remain sequenced later slices
+and must not be implemented as one combined change under this T1 verdict.
