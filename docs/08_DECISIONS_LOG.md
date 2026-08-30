@@ -3480,3 +3480,40 @@ Implementation is split into T2 `readyAt` guest-safe projection/contract, T3 Emp
 
 Full binding contract:
 `docs/decisions/DEC-070_RETRIEVAL_NOTIFICATION_MVP.md`
+
+---
+
+## DEC-071 — Background Web Push Architecture
+
+Status: Proposed
+Date: 2026-08-30
+
+Proposed decision:
+Add optional background Web Push only for
+`EMPLOYEE_RETRIEVAL_REQUESTED` and `GUEST_VEHICLE_READY`, preserving DEC-070
+foreground behavior and stable identities. Delivery remains non-authoritative
+and uses focused durable delivery intent, send-time recipient authorization,
+per-subscription idempotency, bounded retry, and safe Service Worker click
+routing. Employee subscriptions bind to the existing StaffAuthSession and
+re-prove exact-Location Task queue eligibility. Guest subscriptions require a
+new opaque GuestAccess generation binding so token rotation/revocation removes
+old delivery authority without storing a raw bearer.
+
+The proposal does not reuse the external SMS/WhatsApp/Email `notifications`
+table and does not introduce a generic event bus or custom background sound.
+Push endpoints and key material are operational credentials; VAPID private and
+storage-encryption keys remain server-only deployment secrets.
+
+Owner resolution for U-001:
+Use safe degraded Customer re-entry while keeping DEC-064 unchanged. Push
+payloads and click URLs remain credential-free. An already-authorized open
+Customer client is focused and refetches through its existing in-memory
+GuestAccess context. A fully closed client with no GuestAccess opens a
+credential-free screen that asks the guest to reopen the original secure link
+or rescan the VAYLET QR. Raw bearers, duplicate verifiers, restorable
+GuestAccess credentials, hidden session authority, and credential-bearing click
+URLs remain forbidden. DEC-071 remains Proposed and requires separate formal
+acceptance before implementation.
+
+Full proposed contract:
+`docs/decisions/DEC-071_BACKGROUND_WEB_PUSH_ARCHITECTURE.md`
