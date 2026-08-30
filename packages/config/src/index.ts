@@ -4,3 +4,5 @@ export const workspaceNames = [
   "customer",
   "dashboard",
 ] as const;
+
+export * from "./web-push.js";

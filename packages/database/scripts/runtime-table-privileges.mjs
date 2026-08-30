@@ -5,6 +5,7 @@ import {
   organizationSubscriptionTablePolicies,
   provisionBasicBrandingPrivileges,
 } from "./basic-branding-runtime-privileges.mjs";
+import { provisionWebPushPrivileges } from "./web-push-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -280,6 +281,7 @@ export async function provisionRuntimeTablePrivileges(
     runtimeRole,
   );
   await provisionBasicBrandingPrivileges(client, executeFormatted, runtimeRole);
+  await provisionWebPushPrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

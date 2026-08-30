@@ -598,6 +598,7 @@ id
 customer_access_token_hash
 customer_access_expires_at
 customer_access_revoked_at nullable
+customer_access_generation nullable
 organization_id
 location_id
 vehicle_id
@@ -637,6 +638,11 @@ Customer-access rules:
 - `customer_access_token_hash` unique.
 - `customer_access_expires_at` required; exact lifetime is defined by the customer-access implementation task.
 - `customer_access_revoked_at` supports explicit revocation.
+- `customer_access_generation` is opaque server-generated UUID metadata for
+  the currently issued GuestAccess credential lineage. It is null for the
+  disabled intake placeholder and changes atomically on every issue, rotation,
+  or revoked-access reissue. It is neither a bearer nor sufficient Guest
+  authority by itself.
 - Raw customer access tokens must never be logged or placed in audit metadata.
 
 Canonical state contract aligned to Blueprint v1.0:
@@ -1402,6 +1408,38 @@ Rules:
 - FAILED requires `failed_at`
 - notification callbacks must be retry-safe/idempotent when implemented
 - first-market primary messaging channel depends on provider availability/contract; do not hard-code product logic to one provider
+
+## web_push_subscriptions
+
+Dedicated DEC-071 Web Push persistence is separate from `notifications`.
+Each row stores one `EMPLOYEE` binding to a `StaffAuthSession`, or one `GUEST`
+binding to an exact `ValetSession` plus its current opaque GuestAccess
+generation. Active endpoint ownership is exclusive through a keyed,
+non-reversible fingerprint; endpoints and browser `p256dh`/`auth` material are
+stored only as authenticated ciphertext with a non-secret key version.
+The fingerprint uses a separate stable server-only HMAC key so encryption-key
+rotation does not silently change endpoint ownership identity.
+
+Disabled rows are tombstones: they retain safe identity, fingerprint, binding,
+and delivery history linkage while ciphertext and key-version fields are
+cleared. Database CHECK constraints enforce the audience/principal and active
+credential shapes. A partial unique index permits only one active row for an
+endpoint fingerprint, which prevents silent principal transfer while allowing
+multiple devices through distinct Service Worker registrations.
+
+## web_push_delivery_intents / web_push_deliveries
+
+The focused delivery outbox supports exactly
+`EMPLOYEE_RETRIEVAL_REQUESTED` (stable Task ID) and
+`GUEST_VEHICLE_READY` (stable ValetSession ID plus `ready_at`). Partial unique
+indexes enforce one logical intent per accepted stable identity. A delivery row
+is unique per intent/subscription pair and contains only future sender state:
+bounded attempt count, next-attempt time, paired lease token/expiry, accepted,
+terminal or suppressed outcome timestamps, and a bounded coarse failure class.
+
+T1 creates persistence only. Retrieval Request and Mark Ready do not write
+these rows, and no push is sent until later DEC-071 slices implement the
+post-commit reconciler and leased sender with send-time authority checks.
 
 ## audit_events / Black Box
 
