@@ -104,6 +104,9 @@ const statusByCode: Readonly<Record<string, number>> = {
   VEHICLE_IDENTITY_SESSION_NOT_MUTABLE: HttpStatus.CONFLICT,
   VEHICLE_IDENTITY_VERSION_CONFLICT: HttpStatus.CONFLICT,
   VERSION_CONFLICT: HttpStatus.CONFLICT,
+  WEB_PUSH_SUBSCRIPTION_CONFLICT: HttpStatus.CONFLICT,
+  WEB_PUSH_SUBSCRIPTION_NOT_AVAILABLE: HttpStatus.NOT_FOUND,
+  WEB_PUSH_UNAVAILABLE: HttpStatus.SERVICE_UNAVAILABLE,
 };
 
 const safeMessages: Readonly<Record<string, string>> = {
@@ -121,6 +124,9 @@ const safeMessages: Readonly<Record<string, string>> = {
   STAFF_AUTHENTICATION_RATE_LIMITED: "Too many requests. Try again later.",
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: "The request origin is not allowed.",
   TENANT_ACCESS_DENIED: "The requested resource is not available.",
+  WEB_PUSH_SUBSCRIPTION_NOT_AVAILABLE:
+    "The requested resource is not available.",
+  WEB_PUSH_UNAVAILABLE: "Service temporarily unavailable.",
 };
 
 export function mapApiError(error: unknown): MappedApiError {

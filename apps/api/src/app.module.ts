@@ -15,6 +15,7 @@ import { RetrievalModule } from "./modules/retrieval/retrieval.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
 import { StaffModule } from "./modules/staff/staff.module";
 import { TrackingModule } from "./modules/tracking/tracking.module";
+import { WebPushSubscriptionModule } from "./modules/web-push/web-push-subscription.module";
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     PaymentsModule,
     RetrievalModule,
     TrackingModule,
+    WebPushSubscriptionModule,
   ],
   controllers: [AppController],
 })
