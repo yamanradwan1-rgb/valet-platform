@@ -117,18 +117,31 @@ export function loadWebPushServerConfig(
   if (previous?.version === activeVersion) {
     throw new Error("Active and previous Web Push key versions must differ.");
   }
+  const activeKey = decodeKey(
+    required(environment, "WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL"),
+    "WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL",
+  );
+  const fingerprintKey = decodeKey(
+    required(environment, "WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL"),
+    "WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL",
+  );
+  if (previous?.key.equals(activeKey)) {
+    throw new Error("Active and previous Web Push storage keys must differ.");
+  }
+  if (
+    fingerprintKey.equals(activeKey) ||
+    (previous !== undefined && fingerprintKey.equals(previous.key))
+  ) {
+    throw new Error(
+      "Web Push endpoint fingerprint and storage keys must differ.",
+    );
+  }
   return {
     enabled: true,
-    endpointFingerprintKey: decodeKey(
-      required(environment, "WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL"),
-      "WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL",
-    ),
+    endpointFingerprintKey: fingerprintKey,
     storageKeys: {
       active: {
-        key: decodeKey(
-          required(environment, "WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL"),
-          "WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL",
-        ),
+        key: activeKey,
         version: activeVersion,
       },
       ...(previous === undefined ? {} : { previous }),

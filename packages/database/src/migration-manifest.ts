@@ -31,4 +31,5 @@ export const expectedMigrationDirectories = [
   "20260822003000_phase7_basic_branding_subscription_entitlements",
   "20260823003100_phase7_basic_branding_hardening",
   "20260830003200_web_push_persistence_foundation",
+  "20260830003300_web_push_envelope_key_version_consistency",
 ] as const;

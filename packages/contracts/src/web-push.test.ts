@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  parseWebPushEncryptedValue,
+  serializeWebPushEncryptedValue,
   webPushAudienceSchema,
+  WebPushEncryptedValueParseError,
   webPushEncryptedValueSchema,
   webPushLocaleSchema,
   webPushPresentationTypeSchema,
@@ -33,5 +36,33 @@ describe("Web Push foundation contracts", () => {
       webPushEncryptedValueSchema.safeParse({ ...envelope, plaintext: "no" })
         .success,
     ).toBe(false);
+  });
+
+  it("serializes one canonical persisted envelope representation", () => {
+    const envelope = {
+      authTag: "a".repeat(22),
+      ciphertext: "ciphertext",
+      iv: "i".repeat(16),
+      keyVersion: "2026-08-a",
+      version: 1 as const,
+    };
+    const serialized = serializeWebPushEncryptedValue(envelope);
+    expect(serialized).toBe(
+      '{"version":1,"keyVersion":"2026-08-a","iv":"iiiiiiiiiiiiiiii","authTag":"aaaaaaaaaaaaaaaaaaaaaa","ciphertext":"ciphertext"}',
+    );
+    expect(parseWebPushEncryptedValue(serialized)).toEqual(envelope);
+  });
+
+  it.each([
+    "not-json",
+    "null",
+    "{}",
+    '{"version":1}',
+    '{"version":1,"keyVersion":"k","iv":"iiiiiiiiiiiiiiii","authTag":"aaaaaaaaaaaaaaaaaaaaaa","ciphertext":"ciphertext","plaintext":"no"}',
+    '{ "version": 1, "keyVersion": "k", "iv": "iiiiiiiiiiiiiiii", "authTag": "aaaaaaaaaaaaaaaaaaaaaa", "ciphertext": "ciphertext" }',
+  ])("fails closed for non-canonical persisted envelope %s", (serialized) => {
+    expect(() => parseWebPushEncryptedValue(serialized)).toThrow(
+      WebPushEncryptedValueParseError,
+    );
   });
 });

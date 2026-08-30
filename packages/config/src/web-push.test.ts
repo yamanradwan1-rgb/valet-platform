@@ -48,6 +48,7 @@ describe("Web Push configuration", () => {
     "WEB_PUSH_VAPID_PUBLIC_KEY",
     "WEB_PUSH_VAPID_SUBJECT",
     "WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL",
+    "WEB_PUSH_STORAGE_KEY_ACTIVE_VERSION",
     "WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL",
   ])("fails closed when %s is missing", (name) => {
     const environment = { ...valid } as Record<string, string>;
@@ -74,5 +75,35 @@ describe("Web Push configuration", () => {
         WEB_PUSH_STORAGE_KEY_PREVIOUS_VERSION: "previous-1",
       }),
     ).toThrow();
+  });
+
+  it("rejects reused key bytes across cryptographic roles", () => {
+    expect(() =>
+      loadWebPushServerConfig({
+        ...valid,
+        WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL:
+          valid.WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL,
+      }),
+    ).toThrow(/must differ/);
+    expect(() =>
+      loadWebPushServerConfig({
+        ...valid,
+        WEB_PUSH_STORAGE_KEY_PREVIOUS_B64URL:
+          valid.WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL,
+        WEB_PUSH_STORAGE_KEY_PREVIOUS_VERSION: "previous-1",
+      }),
+    ).toThrow(/must differ/);
+    expect(() =>
+      loadWebPushServerConfig({
+        ...valid,
+        WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL: Buffer.alloc(32, 4).toString(
+          "base64url",
+        ),
+        WEB_PUSH_STORAGE_KEY_PREVIOUS_B64URL: Buffer.alloc(32, 4).toString(
+          "base64url",
+        ),
+        WEB_PUSH_STORAGE_KEY_PREVIOUS_VERSION: "previous-1",
+      }),
+    ).toThrow(/must differ/);
   });
 });

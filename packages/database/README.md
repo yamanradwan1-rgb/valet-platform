@@ -31,6 +31,8 @@ DEC-071 Web Push subscription, intent, and delivery rows are mutable only for
 their focused lifecycle; disabled subscription tombstones remain retained and
 recoverable endpoint/key/auth ciphertext can be cleared without deleting the
 row.
+Active Web Push credential envelopes are canonical serialized values whose
+embedded key versions must all match the row-level encryption key version.
 It receives no access to `_prisma_migrations`; sequence privileges reconcile to
 `USAGE` and `SELECT` without `UPDATE`/`setval` authority.
 

@@ -1420,6 +1420,15 @@ stored only as authenticated ciphertext with a non-secret key version.
 The fingerprint uses a separate stable server-only HMAC key so encryption-key
 rotation does not silently change endpoint ownership identity.
 
+Each credential is persisted in one canonical compact JSON envelope with the
+fixed fields `version`, `keyVersion`, `iv`, `authTag`, and `ciphertext`.
+Encryption authenticates versioned AAD containing only the immutable
+`WebPushSubscription.id` and exact credential field (`ENDPOINT`, `P256DH`, or
+`AUTH`). Strict parsing rejects malformed or non-canonical text without
+exposing its contents. All three active envelopes must agree with the row's
+`encryption_key_version`; create and rotation/re-encryption write the complete
+credential set and row version coherently, never one recoverable field alone.
+
 Disabled rows are tombstones: they retain safe identity, fingerprint, binding,
 and delivery history linkage while ciphertext and key-version fields are
 cleared. Database CHECK constraints enforce the audience/principal and active

@@ -17,6 +17,44 @@ export const webPushEncryptedValueSchema = z
   })
   .strict();
 
+export class WebPushEncryptedValueParseError extends Error {
+  constructor() {
+    super("Persisted Web Push credential envelope is invalid.");
+    this.name = "WebPushEncryptedValueParseError";
+  }
+}
+
+export function serializeWebPushEncryptedValue(
+  value: WebPushEncryptedValue,
+): string {
+  try {
+    const parsed = webPushEncryptedValueSchema.parse(value);
+    return JSON.stringify({
+      version: parsed.version,
+      keyVersion: parsed.keyVersion,
+      iv: parsed.iv,
+      authTag: parsed.authTag,
+      ciphertext: parsed.ciphertext,
+    });
+  } catch {
+    throw new WebPushEncryptedValueParseError();
+  }
+}
+
+export function parseWebPushEncryptedValue(
+  serialized: string,
+): WebPushEncryptedValue {
+  try {
+    const parsed = webPushEncryptedValueSchema.parse(JSON.parse(serialized));
+    if (serializeWebPushEncryptedValue(parsed) !== serialized) {
+      throw new Error();
+    }
+    return parsed;
+  } catch {
+    throw new WebPushEncryptedValueParseError();
+  }
+}
+
 export type WebPushAudience = z.infer<typeof webPushAudienceSchema>;
 export type WebPushEncryptedValue = z.infer<typeof webPushEncryptedValueSchema>;
 export type WebPushLocale = z.infer<typeof webPushLocaleSchema>;

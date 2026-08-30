@@ -11,6 +11,9 @@ and must remain available while retained tombstones participate in duplicate
 detection. Encryption always uses the active key; previous keys are
 decrypt-only until records are re-encrypted or disabled and resubscribed.
 There is no plaintext fallback and no production key is committed here.
+Active and previous storage key bytes must differ, and the endpoint-fingerprint
+key bytes must differ from every configured storage key. Validation errors do
+not include key material.
 T1 validates the structural uncompressed P-256 public-key and 32-byte private-
 key shapes only; T3 must use the selected sender library to validate the VAPID
 pair before any remote delivery is enabled.

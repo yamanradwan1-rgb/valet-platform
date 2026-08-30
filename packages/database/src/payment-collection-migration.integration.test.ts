@@ -9,8 +9,8 @@ afterAll(() => context.teardown(), 60_000);
 
 describe("migration 28 payment collection operation", () => {
   it("is the sole 28th migration with the exact lifecycle enum", async () => {
-    expect(context.migrationDirectories).toHaveLength(32);
-    expect(context.migrationDirectories.at(-5)).toBe(
+    expect(context.migrationDirectories).toHaveLength(33);
+    expect(context.migrationDirectories.at(-6)).toBe(
       "20260816002800_phase6_payment_collection_operation",
     );
     const values = await context.client.query<{ enumlabel: string }>(

@@ -48,6 +48,14 @@ async function foundationFixture() {
 
 async function insertSubscription(input: {
   audience: "EMPLOYEE" | "GUEST";
+  credentials?: {
+    auth: string | null;
+    endpoint: string | null;
+    keyVersion: string | null;
+    p256dh: string | null;
+  };
+  disabledAt?: Date | null;
+  disabledReason?: string | null;
   endpointFingerprint?: string;
   guestGeneration?: string | null;
   guestSessionId?: string | null;
@@ -55,22 +63,42 @@ async function insertSubscription(input: {
   staffSessionId?: string | null;
 }) {
   const id = input.id ?? randomUUID();
+  const envelope = (keyVersion: string, marker: string) =>
+    JSON.stringify({
+      version: 1,
+      keyVersion,
+      iv: marker.repeat(16),
+      authTag: marker.repeat(22),
+      ciphertext: marker.repeat(24),
+    });
+  const credentials = input.credentials ?? {
+    auth: envelope("active-1", "a"),
+    endpoint: envelope("active-1", "e"),
+    keyVersion: "active-1",
+    p256dh: envelope("active-1", "p"),
+  };
   await context.client.query(
     `INSERT INTO web_push_subscriptions
        (id, audience, endpoint_fingerprint, endpoint_ciphertext,
         p256dh_ciphertext, auth_ciphertext, encryption_key_version, locale,
         staff_auth_session_id, guest_valet_session_id,
-        guest_access_generation, updated_at)
-     VALUES ($1, $2, $3, 'encrypted-endpoint', 'encrypted-p256dh',
-             'encrypted-auth', 'active-1', 'en', $4, $5, $6, now())`,
+        guest_access_generation, disabled_at, disabled_reason, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'en', $8, $9, $10, $11, $12,
+             now())`,
     [
       id,
       input.audience,
       input.endpointFingerprint ??
         `hmac-sha256:v1:${randomUUID().replaceAll("-", "")}${"a".repeat(32)}`,
+      credentials.endpoint,
+      credentials.p256dh,
+      credentials.auth,
+      credentials.keyVersion,
       input.staffSessionId ?? null,
       input.guestSessionId ?? null,
       input.guestGeneration ?? null,
+      input.disabledAt ?? null,
+      input.disabledReason ?? null,
     ],
   );
   return id;
@@ -191,5 +219,24 @@ describe("DEC-071 Web Push persistence foundation", () => {
       );
     await insertDelivery(randomUUID());
     await expectRejected(insertDelivery(randomUUID()), "23505");
+  });
+
+  it("enforces Guest ready intent uniqueness by session and ready_at", async () => {
+    const fixture = await foundationFixture();
+    const readyAt = new Date("2026-08-30T12:00:00.000Z");
+    const insertIntent = (id: string, at: Date) =>
+      context.client.query(
+        `INSERT INTO web_push_delivery_intents
+         (id, presentation_type, valet_session_id, guest_ready_at,
+            occurred_at, expires_at)
+         VALUES ($1, 'GUEST_VEHICLE_READY', $2, $3::timestamptz,
+                 $3::timestamptz, $3::timestamptz + interval '5 minutes')`,
+        [id, fixture.sessionId, at],
+      );
+    await insertIntent(randomUUID(), readyAt);
+    await expectRejected(insertIntent(randomUUID(), readyAt), "23505");
+    await expect(
+      insertIntent(randomUUID(), new Date(readyAt.getTime() + 1_000)),
+    ).resolves.toBeDefined();
   });
 });
