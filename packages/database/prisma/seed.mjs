@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import pg from "pg";
 
+import { seedDemoShifts, seedDemoTasks } from "./demo-operational-seed.mjs";
 import { seedPhase3Resources } from "./phase3-resource-seed.mjs";
 
 const { Client } = pg;
@@ -75,6 +76,7 @@ const ids = {
   supervisorMembership: "00000000-0000-4000-8000-000000000022",
   valetMembership: "00000000-0000-4000-8000-000000000023",
   valetShift: "00000000-0000-4000-8000-000000000030",
+  supervisorShift: "00000000-0000-4000-8000-000000000031",
   customerA: "00000000-0000-4000-8000-000000000040",
   customerB: "00000000-0000-4000-8000-000000000041",
   customerC: "00000000-0000-4000-8000-000000000042",
@@ -278,23 +280,7 @@ async function seed() {
       );
     }
 
-    await query(
-      `INSERT INTO shifts
-         (id, organization_id, location_id, membership_id, status, started_at, ended_at, created_at)
-       VALUES ($1, $2, $3, $4, 'ACTIVE', $5, NULL, $6)
-       ON CONFLICT (id) DO UPDATE SET
-         status = EXCLUDED.status,
-         started_at = EXCLUDED.started_at,
-         ended_at = EXCLUDED.ended_at`,
-      [
-        ids.valetShift,
-        ids.organization,
-        ids.ammanLocation,
-        ids.valetMembership,
-        timestamps.shiftStarted,
-        timestamps.created,
-      ],
-    );
+    await seedDemoShifts(query, ids, timestamps);
 
     const customers = [
       [ids.customerA, "+962790000101", "Demo Customer A"],
@@ -511,42 +497,7 @@ async function seed() {
       );
     }
 
-    // Lifecycle-coherent dispatch rows for the ACTIVE demo sessions. Real
-    // flows always create these via the accepted Parking/Retrieval task
-    // lifecycle (DEC-034/DEC-035); strict custody reads treat a PARKED or
-    // READY session without them as corrupted state, so the demo fixtures
-    // must carry the same task facts a real shift would produce.
-    const demoTasks = [
-      [ids.taskAParking, ids.sessionA, "PARKING", "COMPLETED",
-        timestamps.sessionACreated, timestamps.sessionAParked],
-      [ids.taskBParking, ids.sessionB, "PARKING", "COMPLETED",
-        timestamps.sessionBCreated, timestamps.sessionBRequested],
-      [ids.taskBRetrieval, ids.sessionB, "RETRIEVAL", "IN_PROGRESS",
-        timestamps.sessionBRequested, timestamps.sessionBReady],
-    ];
-    for (const [taskId, sessionId, taskType, status, createdAt, updatedAt] of demoTasks) {
-      await query(
-        `INSERT INTO tasks
-           (id, organization_id, location_id, valet_session_id, task_type, status,
-            current_assignee_membership_id, version, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5::text::"task_type", $6::text::"task_status", $7, 1, $8, $9)
-         ON CONFLICT (id) DO UPDATE SET
-           status = EXCLUDED.status,
-           current_assignee_membership_id = EXCLUDED.current_assignee_membership_id,
-           updated_at = EXCLUDED.updated_at`,
-        [
-          taskId,
-          ids.organization,
-          ids.ammanLocation,
-          sessionId,
-          taskType,
-          status,
-          ids.valetMembership,
-          createdAt,
-          updatedAt,
-        ],
-      );
-    }
+    await seedDemoTasks(query, ids, timestamps);
 
     await query(
       `INSERT INTO retrieval_requests

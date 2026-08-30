@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { readDemoOperationalFixtureState } from "./seed-operational-fixture-state";
+
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.MIGRATION_DATABASE_URL ??
@@ -21,10 +23,9 @@ const adminMembershipId = "00000000-0000-4000-8000-000000000020";
 const managerMembershipId = "00000000-0000-4000-8000-000000000021";
 const supervisorMembershipId = "00000000-0000-4000-8000-000000000022";
 const valetMembershipId = "00000000-0000-4000-8000-000000000023";
+const taskBRetrievalId = "00000000-0000-4000-8000-000000000094";
 const sessionAId = "00000000-0000-4000-8000-000000000080";
 const sessionBId = "00000000-0000-4000-8000-000000000081";
-const sessionCId = "00000000-0000-4000-8000-000000000082";
-const sessionDId = "00000000-0000-4000-8000-000000000083";
 const cashPaymentId = "00000000-0000-4000-8000-0000000000b0";
 const digitalPaymentId = "00000000-0000-4000-8000-0000000000b1";
 
@@ -379,7 +380,7 @@ describe("demo seed data foundation", () => {
       users: 4,
       organization_memberships: 4,
       membership_location_access: 5,
-      shifts: 1,
+      shifts: 2,
       customers: 4,
       vehicles: 4,
       parking_spots: 5,
@@ -469,14 +470,6 @@ describe("demo seed data foundation", () => {
 
     expect(
       await scalarNumber(
-        `SELECT count(*)::text AS count FROM shifts
-         WHERE organization_id = $1 AND location_id = $2 AND membership_id = $3 AND status = 'ACTIVE'`,
-        [demoOrganizationId, ammanLocationId, valetMembershipId],
-      ),
-    ).toBe(1);
-
-    expect(
-      await scalarNumber(
         `SELECT count(*)::text AS count FROM vehicles
          WHERE organization_id = $1 AND plate_country = 'JO'
            AND plate_number_raw IS NOT NULL AND plate_number_normalized IS NOT NULL`,
@@ -493,16 +486,30 @@ describe("demo seed data foundation", () => {
       ),
     ).toBe(1);
 
-    const sessions = await databaseClient.query<{ id: string; state: string }>(
-      `SELECT id::text, state::text FROM valet_sessions
-       WHERE id = ANY($1::uuid[]) ORDER BY id`,
-      [[sessionAId, sessionBId, sessionCId, sessionDId]],
-    );
-    expect(sessions.rows).toEqual([
-      { id: sessionAId, state: "PARKED" },
-      { id: sessionBId, state: "READY" },
-      { id: sessionCId, state: "COMPLETED" },
-      { id: sessionDId, state: "COMPLETED" },
+    const lifecycle = await readDemoOperationalFixtureState(databaseClient, {
+      ammanLocation: ammanLocationId,
+      parkedSession: sessionAId,
+      readySession: sessionBId,
+      retrievalTask: taskBRetrievalId,
+      supervisorMembership: supervisorMembershipId,
+      valetMembership: valetMembershipId,
+    });
+    expect(lifecycle).toEqual([
+      {
+        handoff_present: true,
+        parked_state: "PARKED",
+        request_status: "ACCEPTED",
+        session_state: "READY",
+        supervisor_access: true,
+        supervisor_active_shifts: 1,
+        supervisor_role: "VALET_SUPERVISOR",
+        supervisor_status: "ACTIVE",
+        task_id: taskBRetrievalId,
+        task_owner: supervisorMembershipId,
+        task_status: "IN_PROGRESS",
+        valet_active_shifts: 1,
+        valet_open_tasks: 0,
+      },
     ]);
 
     const activeConflicts = await databaseClient.query(
@@ -516,15 +523,6 @@ describe("demo seed data foundation", () => {
        GROUP BY key_slot_id HAVING count(*) > 1`,
     );
     expect(activeConflicts.rows).toEqual([]);
-
-    expect(
-      await scalarNumber(
-        `SELECT count(*)::text AS count FROM retrieval_requests
-         WHERE organization_id = $1 AND valet_session_id = $2
-           AND requested_by_type = 'CUSTOMER' AND status = 'ACCEPTED'`,
-        [demoOrganizationId, sessionBId],
-      ),
-    ).toBe(1);
 
     const handoff = await databaseClient.query<{ secret_hash: string }>(
       `SELECT secret_hash FROM handoff_verifications
