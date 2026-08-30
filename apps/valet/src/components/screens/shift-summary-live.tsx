@@ -13,6 +13,7 @@ import type { ShiftDurationUnitLabels } from "../../lib/i18n/live-presentation";
 import { useOnlineStatus } from "../../lib/connectivity/use-online-status";
 import { useEmployeeI18n } from "../shell/employee-i18n";
 import { isCashEntryValid, normalizeCashEntry } from "./cash-entry";
+import { ShiftEndError } from "./shift-end-error";
 import {
   Badge,
   Btn,
@@ -27,6 +28,7 @@ export interface ShiftSummaryLiveProps {
   /** App-owned End Shift mutation (DEC-066 §4 ambiguous-outcome survival). */
   readonly endShift: (shiftId: string, cashReported: string) => void;
   readonly endShiftPhase: EndShiftPhase;
+  readonly onReviewOpenWork?: (() => void) | undefined;
   readonly retryUncertainEndShift: () => void;
   readonly scope: ResolvedOperationalScope;
 }
@@ -69,6 +71,7 @@ function computeElapsedSeconds(startedIso: string): number {
 export function ShiftSummaryLive({
   endShift,
   endShiftPhase,
+  onReviewOpenWork,
   retryUncertainEndShift,
   scope,
 }: ShiftSummaryLiveProps): JSX.Element {
@@ -251,15 +254,12 @@ export function ShiftSummaryLive({
               />
             </div>
           )}
-          {liveError !== null && (
-            <p
-              className={`text-xs font-semibold ${
-                openWorkBlocked ? "text-navy" : "text-vdanger"
-              }`}
-            >
-              {liveError}
-            </p>
-          )}
+          <ShiftEndError
+            message={liveError}
+            onReviewOpenWork={onReviewOpenWork}
+            openWorkBlocked={openWorkBlocked}
+            reviewOpenWorkLabel={t.reviewAssignedTasks}
+          />
           {!confirming ? (
             <Btn
               label={phase.kind === "submitting" ? t.endingShift : t.endShiftAction}

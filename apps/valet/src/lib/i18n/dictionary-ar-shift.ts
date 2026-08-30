@@ -31,6 +31,7 @@ export const employeeArabicShiftDictionary = {
     "لا يوجد موقع قابل للبدء متاح لحسابك حالياً.",
   openWorkBlocksEndShift:
     "يجب تسليم العمل الجاري قبل إنهاء المناوبة. أكمل مهامك المعينة أو سلمها أولاً.",
+  reviewAssignedTasks: "مراجعة المهام المعينة",
   retryEndShift: "إعادة محاولة إنهاء المناوبة",
   retryStartShift: "إعادة محاولة بدء المناوبة",
   shiftEndedTitle: "تم إنهاء المناوبة",

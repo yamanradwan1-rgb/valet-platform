@@ -32,6 +32,7 @@ export const employeeEnglishShiftDictionary = {
     "No startable location is available for your account right now.",
   openWorkBlocksEndShift:
     "Open work must be handed over before the shift can end. Complete or hand over your assigned tasks first.",
+  reviewAssignedTasks: "Review assigned tasks",
   retryEndShift: "Retry end shift",
   retryStartShift: "Retry start shift",
   shiftEndedTitle: "Shift ended",

@@ -177,6 +177,7 @@ export function EmployeeLiveRouter({
         <ShiftSummaryLive
           endShift={endShift}
           endShiftPhase={endShiftPhase}
+          onReviewOpenWork={() => nav("task-queue")}
           retryUncertainEndShift={onRetryUncertainEndShift}
           scope={activeScope}
         />

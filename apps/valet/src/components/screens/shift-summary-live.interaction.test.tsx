@@ -79,6 +79,7 @@ vi.doMock("../shell/employee-i18n", () => ({
 
 const React = await import("react");
 const { ShiftSummaryLive } = await import("./shift-summary-live");
+const { ShiftEndError } = await import("./shift-end-error");
 
 const SCOPE: ResolvedOperationalScope = {
   activeContext: {} as ResolvedOperationalScope["activeContext"],
@@ -124,12 +125,14 @@ function textIn(node: ReactNode): string {
 
 function renderScreen(options: {
   endShift?: (shiftId: string, cashReported: string) => void;
+  onReviewOpenWork?: () => void;
   phase?: EndShiftPhase;
 } = {}): ReactNode {
   runtime.beginRender();
   return ShiftSummaryLive({
     endShift: options.endShift ?? vi.fn(),
     endShiftPhase: options.phase ?? { kind: "idle" },
+    onReviewOpenWork: options.onReviewOpenWork ?? vi.fn(),
     retryUncertainEndShift: vi.fn(),
     scope: SCOPE,
   });
@@ -217,6 +220,28 @@ describe("Issue #200 End Shift interaction", () => {
 
     expect(textIn(tree)).not.toContain("End this shift now?");
     expect(endShift).not.toHaveBeenCalled();
+  });
+
+  it("makes the seeded open-work block actionable instead of appearing inert", () => {
+    const onReviewOpenWork = vi.fn();
+    const tree = renderScreen({
+      onReviewOpenWork,
+      phase: {
+        code: "OPEN_TASK_HANDOFF_REQUIRED",
+        kind: "error",
+        message: "Open Task handoff is required before ending this Shift.",
+        openWorkBlocked: true,
+      },
+    });
+
+    const error = elementsIn(tree).find((element) => element.type === ShiftEndError);
+    expect(error).toBeDefined();
+    const errorTree = ShiftEndError(
+      error!.props as unknown as React.ComponentProps<typeof ShiftEndError>,
+    );
+    expect(findByLabel(errorTree, "Review assigned tasks")).toBeDefined();
+    clickAction(errorTree, "Review assigned tasks");
+    expect(onReviewOpenWork).toHaveBeenCalledOnce();
   });
 
   it("keeps offline, submitting, and uncertain actions locked", () => {
