@@ -303,6 +303,56 @@ enum NotificationStatus {
   @@map("notification_status")
 }
 
+enum WebPushAudience {
+  EMPLOYEE
+  GUEST
+
+  @@map("web_push_audience")
+}
+
+enum WebPushPresentationType {
+  EMPLOYEE_RETRIEVAL_REQUESTED
+  GUEST_VEHICLE_READY
+
+  @@map("web_push_presentation_type")
+}
+
+enum WebPushDeliveryStatus {
+  PENDING
+  ACCEPTED
+  TERMINAL
+  SUPPRESSED
+
+  @@map("web_push_delivery_status")
+}
+
+enum WebPushDisabledReason {
+  UNSUBSCRIBED
+  IDENTITY_CHANGED
+  SESSION_REVOKED
+  SESSION_EXPIRED
+  GUEST_ACCESS_CHANGED
+  VALET_SESSION_COMPLETED
+  ENDPOINT_GONE
+  DECRYPTION_FAILED
+  REPLACED
+
+  @@map("web_push_disabled_reason")
+}
+
+enum WebPushFailureClass {
+  NETWORK
+  RATE_LIMITED
+  PUSH_SERVICE
+  CONFIGURATION
+  PAYLOAD
+  ENDPOINT_GONE
+  DECRYPTION
+  AUTHORITY
+
+  @@map("web_push_failure_class")
+}
+
 model Organization {
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
@@ -434,8 +484,9 @@ model StaffAuthSession {
   createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   lastRotatedAt          DateTime  @map("last_rotated_at") @db.Timestamptz(3)
 
-  user               User                     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  refreshCredentials StaffRefreshCredential[]
+  user                 User                     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  refreshCredentials   StaffRefreshCredential[]
+  webPushSubscriptions WebPushSubscription[]
 
   @@index([userId, revokedAt, absoluteExpiresAt], map: "staff_auth_sessions_user_id_status_idx")
   @@map("staff_auth_sessions")
@@ -641,6 +692,7 @@ model ValetSession {
   customerAccessTokenHash                 String            @unique(map: "valet_sessions_customer_access_token_hash_key") @map("customer_access_token_hash")
   customerAccessExpiresAt                 DateTime          @map("customer_access_expires_at") @db.Timestamptz(3)
   customerAccessRevokedAt                 DateTime?         @map("customer_access_revoked_at") @db.Timestamptz(3)
+  customerAccessGeneration                String?           @map("customer_access_generation") @db.Uuid
   organizationId                          String            @map("organization_id") @db.Uuid
   locationId                              String            @map("location_id") @db.Uuid
   vehicleId                               String            @map("vehicle_id") @db.Uuid
@@ -691,6 +743,8 @@ model ValetSession {
   taskTrackingSessions        TaskTrackingSession[]
   rawGpsSamples               RawGpsSample[]
   geofenceEvents              GeofenceEvent[]
+  webPushSubscriptions        WebPushSubscription[]
+  webPushDeliveryIntents      WebPushDeliveryIntent[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -733,14 +787,15 @@ model Task {
   createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  organization     Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_organization_id_fkey")
-  location         Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_id_fkey")
-  valetSession     ValetSession            @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_session_id_fkey")
-  currentAssignee  OrganizationMembership? @relation("TaskCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_current_assignee_membership_id_fkey")
-  dispatchEvents   DispatchEvent[]
-  trackingSessions TaskTrackingSession[]
-  rawGpsSamples    RawGpsSample[]
-  geofenceEvents   GeofenceEvent[]
+  organization           Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_organization_id_fkey")
+  location               Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_id_fkey")
+  valetSession           ValetSession            @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_session_id_fkey")
+  currentAssignee        OrganizationMembership? @relation("TaskCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_current_assignee_membership_id_fkey")
+  dispatchEvents         DispatchEvent[]
+  trackingSessions       TaskTrackingSession[]
+  rawGpsSamples          RawGpsSample[]
+  geofenceEvents         GeofenceEvent[]
+  webPushDeliveryIntents WebPushDeliveryIntent[]
 
   @@unique([organizationId, locationId, valetSessionId, id], map: "tasks_organization_id_location_id_valet_session_id_id_key")
   @@index([locationId, status, createdAt, id], map: "tasks_location_id_status_created_at_id_idx")
@@ -1200,6 +1255,76 @@ model Notification {
   @@map("notifications")
 }
 
+model WebPushSubscription {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  audience              WebPushAudience
+  endpointFingerprint   String                 @map("endpoint_fingerprint")
+  endpointCiphertext    String?                @map("endpoint_ciphertext")
+  p256dhCiphertext      String?                @map("p256dh_ciphertext")
+  authCiphertext        String?                @map("auth_ciphertext")
+  encryptionKeyVersion  String?                @map("encryption_key_version")
+  browserExpiresAt      DateTime?              @map("browser_expires_at") @db.Timestamptz(3)
+  locale                String
+  staffAuthSessionId    String?                @map("staff_auth_session_id") @db.Uuid
+  guestValetSessionId   String?                @map("guest_valet_session_id") @db.Uuid
+  guestAccessGeneration String?                @map("guest_access_generation") @db.Uuid
+  disabledAt            DateTime?              @map("disabled_at") @db.Timestamptz(3)
+  disabledReason        WebPushDisabledReason? @map("disabled_reason")
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  staffAuthSession  StaffAuthSession? @relation(fields: [staffAuthSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "web_push_subscriptions_staff_auth_session_id_fkey")
+  guestValetSession ValetSession?     @relation(fields: [guestValetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "web_push_subscriptions_guest_session_id_fkey")
+  deliveries        WebPushDelivery[]
+
+  @@index([staffAuthSessionId, disabledAt], map: "web_push_subscriptions_staff_session_status_idx")
+  @@index([guestValetSessionId, guestAccessGeneration, disabledAt], map: "web_push_subscriptions_guest_context_status_idx")
+  @@map("web_push_subscriptions")
+}
+
+model WebPushDeliveryIntent {
+  id               String                  @id @default(uuid()) @db.Uuid
+  presentationType WebPushPresentationType @map("presentation_type")
+  taskId           String?                 @map("task_id") @db.Uuid
+  valetSessionId   String?                 @map("valet_session_id") @db.Uuid
+  guestReadyAt     DateTime?               @map("guest_ready_at") @db.Timestamptz(3)
+  occurredAt       DateTime                @map("occurred_at") @db.Timestamptz(3)
+  expiresAt        DateTime                @map("expires_at") @db.Timestamptz(3)
+  createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  task         Task?             @relation(fields: [taskId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "web_push_delivery_intents_task_id_fkey")
+  valetSession ValetSession?     @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "web_push_delivery_intents_valet_session_id_fkey")
+  deliveries   WebPushDelivery[]
+
+  @@index([expiresAt], map: "web_push_delivery_intents_expires_at_idx")
+  @@map("web_push_delivery_intents")
+}
+
+model WebPushDelivery {
+  id                 String                @id @default(uuid()) @db.Uuid
+  intentId           String                @map("intent_id") @db.Uuid
+  pushSubscriptionId String                @map("push_subscription_id") @db.Uuid
+  status             WebPushDeliveryStatus @default(PENDING)
+  attemptCount       Int                   @default(0) @map("attempt_count")
+  nextAttemptAt      DateTime              @map("next_attempt_at") @db.Timestamptz(3)
+  leaseToken         String?               @map("lease_token") @db.Uuid
+  leaseExpiresAt     DateTime?             @map("lease_expires_at") @db.Timestamptz(3)
+  acceptedAt         DateTime?             @map("accepted_at") @db.Timestamptz(3)
+  terminalAt         DateTime?             @map("terminal_at") @db.Timestamptz(3)
+  suppressedAt       DateTime?             @map("suppressed_at") @db.Timestamptz(3)
+  lastFailureClass   WebPushFailureClass?  @map("last_failure_class")
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  intent           WebPushDeliveryIntent @relation(fields: [intentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "web_push_deliveries_intent_id_fkey")
+  pushSubscription WebPushSubscription   @relation(fields: [pushSubscriptionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "web_push_deliveries_subscription_id_fkey")
+
+  @@unique([intentId, pushSubscriptionId], map: "web_push_deliveries_intent_id_subscription_id_key")
+  @@index([status, nextAttemptAt], map: "web_push_deliveries_status_next_attempt_at_idx")
+  @@index([leaseExpiresAt], map: "web_push_deliveries_lease_expires_at_idx")
+  @@map("web_push_deliveries")
+}
+
 model AuditEvent {
   id                String   @id @default(uuid()) @db.Uuid
   organizationId    String   @map("organization_id") @db.Uuid
@@ -1244,7 +1369,7 @@ enum OrganizationSubscriptionStatus {
 }
 
 model OrganizationSubscription {
-  organizationId         String                         @id @db.Uuid @map("organization_id")
+  organizationId         String                         @id @map("organization_id") @db.Uuid
   planCode               String                         @map("plan_code")
   status                 OrganizationSubscriptionStatus
   dashboardAccessEnabled Boolean                        @map("dashboard_access_enabled")

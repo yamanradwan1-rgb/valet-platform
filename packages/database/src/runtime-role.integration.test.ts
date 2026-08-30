@@ -276,13 +276,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("runtime PostgreSQL role boundary", () => {
-  it("applies all 28 migrations through migration credentials only", async () => {
+  it("applies all 33 migrations through migration credentials only", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(31);
+    expect(result.rows).toHaveLength(33);
   });
   it("rejects a real plaintext migration preflight without applying a migration", async () => {
     const before = await adminPool.query<{ count: string }>(

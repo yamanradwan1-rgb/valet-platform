@@ -33,6 +33,7 @@ interface FixtureOptions {
 }
 
 interface AccessRow {
+  customer_access_generation: string | null;
   customer_access_expires_at: Date;
   customer_access_revoked_at: Date | null;
   customer_access_token_hash: string;
@@ -233,7 +234,7 @@ function staffRequest(fixture: Fixture) {
 async function readAccess(sessionId: string): Promise<AccessRow> {
   const result = await adminPool.query<AccessRow>(
     `SELECT customer_access_token_hash, customer_access_expires_at,
-            customer_access_revoked_at, state::text, version, updated_at
+            customer_access_revoked_at, customer_access_generation::text, state::text, version, updated_at
      FROM valet_sessions WHERE id = $1`,
     [sessionId],
   );
@@ -365,24 +366,18 @@ describe("VAL-004F guest secure access", () => {
     });
     expect(result.rawToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(Buffer.from(result.rawToken, "base64url")).toHaveLength(32);
-    expect(access.customer_access_token_hash).toBe(
-      hashGuestAccessToken(result.rawToken),
-    );
+    expect(access.customer_access_token_hash).toBe(hashGuestAccessToken(result.rawToken));
     expect(access.customer_access_token_hash).not.toBe(result.rawToken);
-    expect(access.customer_access_token_hash).toMatch(
-      /^sha256:v1:[a-f0-9]{64}$/,
-    );
+    expect(access.customer_access_token_hash).toMatch(/^sha256:v1:[a-f0-9]{64}$/);
     expect(access.customer_access_revoked_at).toBeNull();
-    expect(result.expiresAt.getTime() - result.issuedAt.getTime()).toBe(
-      guestAccessContract.lifetimeMilliseconds,
-    );
+    expect(access.customer_access_generation).toMatch(/^[0-9a-f]{8}-[0-9a-f-]{27}$/);
+    expect(JSON.stringify(result)).not.toContain(access.customer_access_generation!);
+    expect(result.expiresAt.getTime() - result.issuedAt.getTime()).toBe(guestAccessContract.lifetimeMilliseconds);
     expect(result.expiresAt.getTime()).toBeGreaterThan(Date.now());
     expect(access.customer_access_expires_at).toEqual(result.expiresAt);
     expect(access.state).toBe(before.state);
     expect(access.version).toBe(before.version);
-    expect(access.updated_at.getTime()).toBeGreaterThanOrEqual(
-      before.updated_at.getTime(),
-    );
+    expect(access.updated_at.getTime()).toBeGreaterThanOrEqual(before.updated_at.getTime());
 
     const audits = await auditRows(fixture.sessionId);
     expect(audits).toEqual([
@@ -578,6 +573,7 @@ describe("VAL-004F guest secure access", () => {
     const fixture = await createFixture();
     const issue = createIssueGuestAccessCommandExecutor(runtimePool);
     const first = await issue(staffRequest(fixture));
+    const firstGeneration = (await readAccess(fixture.sessionId)).customer_access_generation;
     const second = await issue(staffRequest(fixture));
     expect(second.mutationKind).toBe("ROTATED");
     expect(second.rawToken).not.toBe(first.rawToken);
@@ -589,6 +585,7 @@ describe("VAL-004F guest secure access", () => {
       createGuestAccessResolver(runtimePool)(second.rawToken),
     ).resolves.toMatchObject({ valetSessionId: fixture.sessionId });
     const access = await readAccess(fixture.sessionId);
+    expect(access.customer_access_generation).not.toBe(firstGeneration);
     expect(access.customer_access_token_hash).toBe(
       hashGuestAccessToken(second.rawToken),
     );
@@ -627,10 +624,12 @@ describe("VAL-004F guest secure access", () => {
     );
     const resolveGuest = createGuestAccessResolver(runtimePool);
     await expect(resolveGuest(issued.rawToken)).resolves.toBeDefined();
+    const issuedGeneration = (await readAccess(fixture.sessionId)).customer_access_generation;
     const revoke = createRevokeGuestAccessCommandExecutor(runtimePool);
     const first = await revoke(staffRequest(fixture));
     const second = await revoke(staffRequest(fixture));
     expect(second).toEqual(first);
+    expect((await readAccess(fixture.sessionId)).customer_access_generation).toBe(issuedGeneration);
     await expectErrorCode(resolveGuest(issued.rawToken), "GUEST_ACCESS_INVALID");
     expect((await auditRows(fixture.sessionId)).map((row) => row.event_type)).toEqual([
       "GUEST_ACCESS_ISSUED",
@@ -660,6 +659,7 @@ describe("VAL-004F guest secure access", () => {
       ...staffRequest(fixture),
       intent: "REISSUE_REVOKED",
     });
+    expect((await readAccess(fixture.sessionId)).customer_access_generation).not.toBe(afterRevoke.customer_access_generation);
     expect(reissued.mutationKind).toBe("ROTATED");
     await expectErrorCode(
       createGuestAccessResolver(runtimePool)(first.rawToken),

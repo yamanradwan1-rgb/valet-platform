@@ -115,7 +115,7 @@ describe("migration 27 cash reconciliation", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(31);
+    expect(directories).toHaveLength(33);
     expect(directories[26]).toBe("20260816002700_phase6_cash_reconciliation");
     const columns = await client.query(
       `SELECT column_name, data_type, numeric_precision, numeric_scale,

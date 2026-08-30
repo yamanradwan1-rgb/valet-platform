@@ -7135,10 +7135,13 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all thirty-one forward-only migrations in order", () => {
+  it("applies exactly all thirty-three forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories.at(-2)).toBe(
+      "20260830003200_web_push_persistence_foundation",
+    );
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260823003100_phase7_basic_branding_hardening",
+      "20260830003300_web_push_envelope_key_version_consistency",
     );
   });
 

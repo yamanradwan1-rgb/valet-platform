@@ -1,19 +1,16 @@
 import { paymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
 import { verifyLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
-import {
-  customerPrivileges,
-  incidentReadPolicies,
-  runtimeMaintenanceFunctions as maintenanceFunctions,
-  runtimeMapSetupFunctions as mapSetupFunctions,
-} from "./runtime-table-privileges.mjs";
+import { customerPrivileges, incidentReadPolicies, runtimeMaintenanceFunctions as maintenanceFunctions, runtimeMapSetupFunctions as mapSetupFunctions } from "./runtime-table-privileges.mjs";
 import { verifyBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
+import { webPushAnyColumnPrivileges, webPushColumnPrivileges, webPushTablePrivileges } from "./web-push-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentReadPolicies,
   ...paymentCollectionPrivileges.table,
   ...providerEventPrivileges.table,
   ...customerPrivileges.table,
+  ...webPushTablePrivileges,
   ["public.users", "SELECT", true],
   ["public.users", "INSERT", false],
   ["public.users", "DELETE", false],
@@ -112,6 +109,7 @@ const tablePrivileges = [
   ["public._prisma_migrations", "TRIGGER", false],
 ];
 const columnPrivileges = [
+  ...webPushColumnPrivileges,
   ...paymentCollectionPrivileges.column,
   ...providerEventPrivileges.column,
   ["public.users", "password_hash", false],
@@ -155,6 +153,7 @@ const columnPrivileges = [
   ["public.shifts", "started_at", false],
 ];
 const anyColumnPrivileges = [
+  ...webPushAnyColumnPrivileges,
   ...paymentCollectionPrivileges.anyColumn,
   ...providerEventPrivileges.anyColumn,
   ...customerPrivileges.anyColumn,
