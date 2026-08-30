@@ -186,8 +186,14 @@ Conceptually, each subscription contains only:
 - optional last accepted-send / last failure code and timestamp, with no raw
   provider response body.
 
-Multiple active subscriptions per principal are supported. Each browser
-profile/device is independent.
+One browser PushSubscription belongs to one Service Worker registration. The
+browser normally returns that registration's existing subscription rather than
+creating an independent subscription for each authenticated app principal or
+Guest context.
+
+Multiple active subscriptions per principal are supported only across distinct
+Service Worker registrations/browser profiles/devices. A single registration
+does not create one independent PushSubscription per principal.
 
 The endpoint is unique across active rows. A same-principal resubscribe may
 replace endpoint/key material atomically. An endpoint already bound to another
@@ -200,6 +206,47 @@ material should be cryptographically erased or cleared while retaining only a
 keyed endpoint fingerprint needed for safe duplicate detection. Endpoint,
 `auth`, and related material are operational credentials and require an
 approved encryption-at-rest key boundary before production rollout.
+
+### Browser registration ownership and principal switching
+
+An active endpoint is exclusive to its current binding. It never silently
+transfers between StaffAuthSessions, ValetSessions, or GuestAccess generations.
+Conflicts with an endpoint still actively owned by another principal/context
+are rejected non-disclosingly; the existing binding is not revealed or changed.
+
+Employee identity switching follows these rules:
+
+- successful Employee logout or server-side StaffAuthSession revocation makes
+  the old server binding immediately delivery-ineligible;
+- when changing authenticated identity, the client should disable the old
+  server binding and call browser `PushSubscription.unsubscribe()` while the
+  old context is available; either cleanup failure must not transfer authority;
+- a newly authenticated StaffAuthSession must establish a fresh browser
+  PushSubscription before registering its server binding; and
+- if the browser/provider returns an endpoint previously associated only with a
+  disabled, revoked, or expired binding, the authenticated subscribe flow may
+  create a new active binding under this decision's endpoint-uniqueness rules.
+  If another principal still actively owns it, the flow rejects
+  non-disclosingly and never silently rebinds it.
+
+Guest context switching follows these rules:
+
+- GuestAccess rotation or reissue invalidates the prior generation binding;
+- session completion, GuestAccess expiry, or revocation disables the prior
+  server binding and makes it delivery-ineligible;
+- a new GuestAccess context may register only through the normal
+  bearer-authorized subscribe flow for its exact ValetSession and current
+  generation; and
+- an existing browser PushSubscription actively owned by another Guest context
+  is never stolen, replaced, or rebound silently.
+
+The MVP supports **one active Guest push binding per Customer Service Worker
+registration/browser profile at a time**. If another simultaneous Guest
+ValetSession is opened in the same browser, background push for both sessions is
+not supported. The new context must not silently replace the existing active
+binding; DEC-070 foreground behavior remains available. Supporting concurrent
+Guest sessions on one registration would require a focused future decision and
+is not designed by Issue #197.
 
 ## 10. Subscribe, replace, and unsubscribe boundaries
 
@@ -324,6 +371,27 @@ or storage-encryption configuration. Local development defaults to disabled;
 an explicit local opt-in may use developer-only keys that are never committed.
 VAPID key rotation requires resubscription because restricted subscriptions
 are bound to the corresponding public key.
+
+### Storage-encryption key rotation
+
+T1 must define bounded operational rotation for the encryption-at-rest key used
+for Push endpoint, `auth`, and related recoverable subscription material:
+
+- ciphertext that may survive a rotation carries non-secret key-version or
+  key-identifier metadata;
+- deployment supports an active plus previous-key decryption window, or an
+  equivalent bounded migration approach, only for the time needed to migrate;
+- records are re-encrypted under the active key before the previous key retires,
+  or their bindings are safely disabled and must resubscribe;
+- plaintext fallback is prohibited;
+- decrypted endpoint/key/auth material is never logged, traced, audited, or
+  included in an error; and
+- a decryption failure suppresses delivery and safely disables the affected
+  binding rather than exposing, reconstructing, or guessing credential
+  material.
+
+This decision requires those rotation semantics but does not select or design a
+full KMS system.
 
 ## 15. Minimum push payload and privacy contract
 
@@ -597,12 +665,19 @@ OS/browser controls whether its default notification sound or vibration occurs.
 
 Future automated tests must cover:
 
-- subscription validation, endpoint uniqueness, multiple devices, rotation,
-  self-only unsubscribe, and cross-principal/tenant/session denial;
+- subscription validation, endpoint uniqueness, multiple devices, self-only
+  unsubscribe, and cross-principal/tenant/session denial;
+- Employee logout/revocation eligibility, identity-switch cleanup, fresh
+  browser subscription registration, disabled-endpoint reuse, and active-owner
+  non-disclosing rejection without silent rebind;
 - Employee current User/session/membership/Organization/Location/access/role/
   Shift/Task eligibility and revocation races;
-- Guest exact ValetSession, generation, expiry, revocation, rotation, and
-  completion suppression;
+- Guest exact ValetSession, generation, expiry, revocation, rotation,
+  completion suppression, active-owner denial, and one-active-binding behavior
+  when two ValetSessions share one Customer Service Worker registration;
+- storage-key version selection, active/previous-key rotation, re-encryption or
+  disable-and-resubscribe, decryption failure suppression, no plaintext
+  fallback, and no decrypted endpoint/auth material in telemetry;
 - domain success while delivery-intent persistence is unavailable, followed by
   reconciler recovery of exactly one intent from committed canonical state;
 - sender lease claim, two-worker exclusion, lease expiry, commit/rollback,
@@ -639,20 +714,22 @@ U-001 is resolved. No slice may start until DEC-071 is Accepted.
 1. **T1 — persistence/contracts/config foundation:** GuestAccess generation,
    encrypted/tombstoned subscription model, two-type delivery intent/delivery
    model, shared strict payload/subscription contracts, VAPID/config validation,
-   migration/docs/runtime privileges.
+   bounded storage-key rotation semantics, migration/docs/runtime privileges.
 2. **T2 — server subscription lifecycle APIs:** subscription-specific
    StaffAuthSession resolver, Guest exact-generation resolution, self-only
-   subscribe/replace/unsubscribe, multi-device and lifecycle cleanup.
+   subscribe/replace/unsubscribe, exclusive active-endpoint ownership,
+   one-active-Guest-binding-per-registration, multi-device, and lifecycle
+   cleanup.
 3. **T3 — durable intent/reconciler/sender/retry worker:** post-commit canonical
    fact reconciliation, dynamic recipient resolution, leased worker, sender
    adapter, bounded retry/terminal cleanup, sensitive observability.
 4. **T4 — Employee Service Worker and permission UX:** root worker,
-   subscription controls, locale update, safe click routing, DEC-070 identity
-   bridge.
+   subscription controls, authenticated identity-switch cleanup and fresh
+   subscribe, locale update, safe click routing, DEC-070 identity bridge.
 5. **T5 — Customer Service Worker and permission UX:** extend existing worker,
-   exact-generation subscription, open-client in-memory refetch,
-   credential-free closed-client re-entry screen, locale, and DEC-070 identity
-   bridge.
+   exact-generation and single-active-context subscription behavior,
+   open-client in-memory refetch, credential-free closed-client re-entry screen,
+   locale, and DEC-070 identity bridge.
 6. **T6 — integration/dedupe/click routing:** foreground/background race tests,
    logout/rotation/revocation cleanup, production Next.js/service-worker gates.
 7. **T7 — real-device smoke and hardening:** Android/iOS/desktop matrix,
@@ -664,12 +741,15 @@ U-001 is resolved. No slice may start until DEC-071 is Accepted.
 - Background presentation remains subordinate to canonical domain state.
 - Employee delivery remains exact-Location and current-Shift eligible.
 - Guest delivery cannot survive GuestAccess rotation by accident.
-- Multiple devices are supported without pretending delivery is exactly once.
+- Multiple devices are supported without pretending delivery is exactly once;
+  concurrent Guest bindings in one Customer Service Worker registration are not
+  supported.
 - Reliability requires focused durable persistence and a lease-aware sender;
   safe post-commit fire-and-forget is insufficient.
 - The existing external-channel Notification table remains unchanged.
 - A new encryption/key-management operational condition is required before
-  recoverable Push endpoint/auth material is production-ready.
+  recoverable Push endpoint/auth material is production-ready, including
+  bounded key rotation without plaintext fallback.
 - A closed Customer page cannot restore exact-session access; the guest must
   reopen the original secure link or rescan the VAYLET QR.
 
@@ -733,6 +813,14 @@ make the Proposed decision binding.
    forbidden from payload/log/routing state.
 8. Background mutation replay remains prohibited.
 9. Existing external-channel Notification persistence is not reused.
+10. Active endpoints never transfer silently between StaffAuthSessions or Guest
+    contexts; an active-owner conflict rejects non-disclosingly.
+11. The MVP allows one active Guest binding per Customer Service Worker
+    registration/browser profile, not simultaneous background push for multiple
+    Guest ValetSessions in that registration.
+12. Recoverable subscription ciphertext requires bounded key rotation,
+    no-plaintext fallback, secret-safe failure, and re-encryption or
+    disable-and-resubscribe behavior.
 
 ### DERIVED conclusions
 
@@ -752,13 +840,15 @@ make the Proposed decision binding.
    success/failure determine the domain result.
 7. Send-time authority and current Task/session state must suppress stale
    employee, expired/revoked Guest, and completed-session deliveries.
-8. Multiple PushSubscription rows are needed for independent devices/sessions.
+8. Multiple PushSubscription rows are needed across independent Service Worker
+   registrations/devices, but a browser registration does not create an
+   independent subscription for every principal/context.
 9. Service Worker locale cannot depend on mounted React state; a bounded locale
    snapshot must accompany the device subscription.
 10. A newly opened closed Customer page cannot refetch the session under
     DEC-064 because no bearer remains available.
 
-Falsification coverage: 19 / 19 LOCKED + DERIVED conclusions checked against
+Falsification coverage: 22 / 22 LOCKED + DERIVED conclusions checked against
 DEC-023, DEC-032, DEC-040, DEC-063, DEC-064, DEC-070, Prisma schema, GuestAccess
 commands, Task queue query, Mark Ready, foreground trackers, PWA registration,
 and current Web Push searches. No falsifier was found. U-001 is resolved by the
@@ -775,11 +865,15 @@ owner's safe degraded re-entry instruction, which preserves DEC-064 unchanged.
 - Binding only to User would leak notifications across logged-out/shared-device
   session boundaries.
 - Binding Guest subscription only to ValetSession would survive token rotation.
+- Silently rebinding a registration-owned endpoint would transfer background
+  delivery authority across Employee or Guest identities.
 - Holding database authorization locks over remote push HTTP would couple
   domain availability and create unsafe contention.
 - A non-leased in-flight worker state would lose work after SIGKILL/OOM.
 - Raw endpoint/auth storage without approved encryption/key management would
   leave recoverable operational credentials exposed at rest.
+- Plaintext fallback or unbounded previous-key retention would turn storage-key
+  rotation failures into credential exposure or permanent secret sprawl.
 - Silent-push assumptions would conflict with browser user-visible policies.
 
 ### Proposed implementation plan

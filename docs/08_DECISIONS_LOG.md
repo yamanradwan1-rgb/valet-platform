@@ -3504,6 +3504,16 @@ table and does not introduce a generic event bus or custom background sound.
 Push endpoints and key material are operational credentials; VAPID private and
 storage-encryption keys remain server-only deployment secrets.
 
+A browser PushSubscription belongs to its Service Worker registration and must
+never transfer silently between active Employee or Guest principals. Employee
+identity changes clean up the old binding and establish a fresh browser
+subscription. Customer MVP permits one active Guest binding per Service Worker
+registration/browser profile; simultaneous background push for multiple Guest
+ValetSessions in that registration is unsupported, while DEC-070 foreground
+behavior remains available. Storage encryption requires versioned, bounded key
+rotation with re-encryption or disable-and-resubscribe, no plaintext fallback,
+no decrypted credential logging, and safe suppression on decryption failure.
+
 Owner resolution for U-001:
 Use safe degraded Customer re-entry while keeping DEC-064 unchanged. Push
 payloads and click URLs remain credential-free. An already-authorized open
