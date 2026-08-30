@@ -8,6 +8,7 @@ import {
   webPushEncryptedValueSchema,
   webPushLocaleSchema,
   webPushPresentationTypeSchema,
+  webPushSubscriptionRequestSchema,
 } from "./web-push";
 
 describe("Web Push foundation contracts", () => {
@@ -63,6 +64,41 @@ describe("Web Push foundation contracts", () => {
   ])("fails closed for non-canonical persisted envelope %s", (serialized) => {
     expect(() => parseWebPushEncryptedValue(serialized)).toThrow(
       WebPushEncryptedValueParseError,
+    );
+  });
+});
+
+describe("Web Push subscription transport", () => {
+  const valid = {
+    auth: Buffer.alloc(16, 7).toString("base64url"),
+    browserExpiresAt: "2026-09-01T00:00:00.000Z",
+    endpoint: "https://push.example.test/subscription?id=opaque",
+    locale: "ar",
+    p256dh: Buffer.concat([Buffer.from([4]), Buffer.alloc(64, 8)]).toString(
+      "base64url",
+    ),
+  };
+
+  it("accepts only browser presentation and credential material", () => {
+    expect(webPushSubscriptionRequestSchema.parse(valid)).toEqual(valid);
+    expect(
+      webPushSubscriptionRequestSchema.safeParse({
+        ...valid,
+        staffAuthSessionId: "fef11499-51df-45de-9053-a874005576e1",
+      }).success,
+    ).toBe(false);
+  });
+
+  it.each([
+    { ...valid, endpoint: "http://push.example.test/subscription" },
+    { ...valid, endpoint: "https://user@push.example.test/subscription" },
+    { ...valid, endpoint: "https://push.example.test/subscription#secret" },
+    { ...valid, auth: "short" },
+    { ...valid, p256dh: Buffer.alloc(65, 8).toString("base64url") },
+    { ...valid, locale: "fr" },
+  ])("rejects malformed subscription material", (candidate) => {
+    expect(webPushSubscriptionRequestSchema.safeParse(candidate).success).toBe(
+      false,
     );
   });
 });

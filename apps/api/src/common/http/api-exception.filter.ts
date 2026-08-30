@@ -18,6 +18,7 @@ import {
 import { resolveRequestId, type ApiRequest } from "./api-request";
 import { handoffOperationRoutes } from "./handoff-operation-routes";
 import { paymentOperationRoutes } from "./payment-operation-routes";
+import { webPushOperationRoutes } from "./web-push-operation-routes";
 import { setNoStoreResponseHeaders } from "./no-store-response";
 
 interface FilterRequest extends ApiRequest {
@@ -38,6 +39,7 @@ const operationRoutes: ReadonlyArray<{
 }> = [
   ...handoffOperationRoutes,
   ...paymentOperationRoutes,
+  ...webPushOperationRoutes,
   {
     method: "POST",
     operation: "STAFF_AUTH_LOGIN",
@@ -169,6 +171,9 @@ const guestAccessOperations = new Set([
   "PAYMENT_GUEST_TIP_UPDATE",
   "ISSUE_HANDOFF_VERIFICATION",
   "ROTATE_HANDOFF_VERIFICATION",
+  "WEB_PUSH_SUBSCRIBE",
+  "WEB_PUSH_REPLACE",
+  "WEB_PUSH_UNSUBSCRIBE",
 ]);
 
 function routedOperation(request: FilterRequest): string | undefined {
