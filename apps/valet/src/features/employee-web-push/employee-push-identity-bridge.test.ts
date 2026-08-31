@@ -52,6 +52,22 @@ describe("Employee push identity bridge", () => {
     expect(onTasks).toHaveBeenCalledOnce();
   });
 
+  it("rejects messages carrying extra authority-looking fields", () => {
+    const onTasks = vi.fn();
+    expect(
+      handleEmployeePushClientMessage(
+        {
+          identity: TASK_ID,
+          locationId: "22222222-2222-4222-8222-222222222222",
+          route: "TASKS",
+          type: "VAYLET_EMPLOYEE_NOTIFICATION_CLICK",
+        },
+        onTasks,
+      ),
+    ).toBe(false);
+    expect(onTasks).not.toHaveBeenCalled();
+  });
+
   it("routes clicks and refetches the canonical queue without a domain mutation", () => {
     const navigate = vi.fn();
     const refresh = vi.fn();

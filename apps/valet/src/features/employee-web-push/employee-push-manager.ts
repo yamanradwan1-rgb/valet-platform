@@ -9,10 +9,20 @@ import {
   type EmployeePushCapabilityState,
 } from "./employee-push-capability";
 import type { EmployeePushPublicConfig } from "./employee-push-config";
+import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import {
   base64UrlToUint8Array,
   toEmployeePushSubscriptionRequest,
 } from "./employee-push-subscription";
+
+function isWebPushSubscriptionNotAvailable(error: unknown): boolean {
+  return (
+    error instanceof EmployeeApiError &&
+    error.status === 404 &&
+    (error.code === "WEB_PUSH_SUBSCRIPTION_NOT_AVAILABLE" ||
+      error.code === "NOT_FOUND")
+  );
+}
 
 export interface EmployeePushApi {
   create(input: WebPushSubscriptionRequest): Promise<{ readonly id: string }>;
@@ -173,12 +183,19 @@ export class EmployeePushManager {
       const serverId = this.storage.read();
 
       if (subscription && serverId) {
-        const response = await this.api.replace(
-          serverId,
-          toEmployeePushSubscriptionRequest(subscription, locale),
-        );
-        this.storage.write(response.id);
-        return "SUBSCRIBED";
+        try {
+          const response = await this.api.replace(
+            serverId,
+            toEmployeePushSubscriptionRequest(subscription, locale),
+          );
+          this.storage.write(response.id);
+          return "SUBSCRIBED";
+        } catch (error: unknown) {
+          if (!isWebPushSubscriptionNotAvailable(error)) throw error;
+          this.storage.clear();
+          if (!(await subscription.unsubscribe())) return "RECOVERABLE_ERROR";
+          subscription = null;
+        }
       }
 
       if (serverId && !subscription) {
