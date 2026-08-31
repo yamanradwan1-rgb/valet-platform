@@ -1,58 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap");
 
 :root,
 [data-theme="light"] {
-  --v-bg: #FAFAF8;
-  --v-bg-frame: #E8EDF4;
-  --v-surface: #FFFFFF;
-  --v-surface-raised: #FFFFFF;
-  --v-surface-muted: #F1F4F9;
-  --v-sheet-bg: #FAFAF8;
+  --v-bg: #fafaf8;
+  --v-bg-frame: #e8edf4;
+  --v-surface: #ffffff;
+  --v-surface-raised: #ffffff;
+  --v-surface-muted: #f1f4f9;
+  --v-sheet-bg: #fafaf8;
   --v-sheet-border: none;
-  --v-text: #07111F;
-  --v-text-secondary: #6F7C91;
-  --v-text-muted: #8C98AA;
-  --v-border: #DDE4EC;
-  --v-border-subtle: #EDF2F7;
-  --v-selected-border: #07111F;
+  --v-text: #07111f;
+  --v-text-secondary: #6f7c91;
+  --v-text-muted: #8c98aa;
+  --v-border: #dde4ec;
+  --v-border-subtle: #edf2f7;
+  --v-selected-border: #07111f;
   --v-qr-placeholder-border: none;
-  --v-ice: #EDF4FF;
+  --v-ice: #edf4ff;
   --v-overlay: rgba(7, 17, 31, 0.5);
-  --v-blue: #176BFF;
-  --v-blue-hover: #0F5EEA;
-  --v-warning-surface: #FEF3C7;
-  --v-warning-text: #92400E;
-  --v-danger-surface: #D95C6315;
-  --v-success: #2F9B78;
-  --v-warning: #D89434;
-  --v-danger: #D95C63;
+  --v-blue: #176bff;
+  --v-blue-hover: #0f5eea;
+  --v-warning-surface: #fef3c7;
+  --v-warning-text: #92400e;
+  --v-danger-surface: #d95c6315;
+  --v-success: #2f9b78;
+  --v-warning: #d89434;
+  --v-danger: #d95c63;
 }
 
 [data-theme="dark"] {
-  --v-bg: #07111F;
-  --v-bg-frame: #03070E;
-  --v-surface: #0D1C2E;
+  --v-bg: #07111f;
+  --v-bg-frame: #03070e;
+  --v-surface: #0d1c2e;
   --v-surface-raised: #132742;
-  --v-surface-muted: #182E4B;
-  --v-sheet-bg: #0D1C2E;
-  --v-sheet-border: 1px solid #14253A;
-  --v-text: #F1F5F9;
-  --v-text-secondary: #94A3B8;
-  --v-text-muted: #64748B;
-  --v-border: #1E3654;
-  --v-border-subtle: #14253A;
-  --v-selected-border: #F1F5F9;
-  --v-qr-placeholder-border: 1px solid #1E3654;
-  --v-ice: #0E223D;
+  --v-surface-muted: #182e4b;
+  --v-sheet-bg: #0d1c2e;
+  --v-sheet-border: 1px solid #14253a;
+  --v-text: #f1f5f9;
+  --v-text-secondary: #94a3b8;
+  --v-text-muted: #64748b;
+  --v-border: #1e3654;
+  --v-border-subtle: #14253a;
+  --v-selected-border: #f1f5f9;
+  --v-qr-placeholder-border: 1px solid #1e3654;
+  --v-ice: #0e223d;
   --v-overlay: rgba(2, 6, 12, 0.75);
-  --v-blue: #2575FC;
-  --v-blue-hover: #176BFF;
+  --v-blue: #2575fc;
+  --v-blue-hover: #176bff;
   --v-warning-surface: rgba(216, 148, 52, 0.15);
-  --v-warning-text: #FBBF24;
+  --v-warning-text: #fbbf24;
   --v-danger-surface: rgba(217, 92, 99, 0.15);
-  --v-success: #34D399;
-  --v-warning: #FBBF24;
-  --v-danger: #F87171;
+  --v-success: #34d399;
+  --v-warning: #fbbf24;
+  --v-danger: #f87171;
 }
 
 html {
@@ -60,7 +60,13 @@ html {
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Plus Jakarta Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   background-color: var(--v-bg);
   color: var(--v-text);
   -webkit-font-smoothing: antialiased;
@@ -96,19 +102,33 @@ html:not(.vaylet-persisted-ar) body {
 }
 
 html[dir="rtl"] body {
-  font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Tajawal",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
 }
 
 .font-display {
-  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Space Grotesk",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 html[dir="rtl"] .font-display {
-  font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Tajawal",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 .font-arabic {
-  font-family: 'Tajawal', sans-serif;
+  font-family: "Tajawal", sans-serif;
 }
 
 /* Scrollbar suppression */
@@ -173,7 +193,8 @@ html[dir="rtl"] .font-display {
 }
 
 @keyframes pulseDot {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -207,7 +228,12 @@ html[dir="rtl"] .font-display {
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, var(--v-ice) 25%, var(--v-bg) 50%, var(--v-ice) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--v-ice) 25%,
+    var(--v-bg) 50%,
+    var(--v-ice) 75%
+  );
   background-size: 200% auto;
   animation: shimmer 1.5s linear infinite;
 }
