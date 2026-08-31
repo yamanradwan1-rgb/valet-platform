@@ -14,6 +14,13 @@ export function createRetrievalAlertTracker(): RetrievalAlertTracker {
   };
 }
 
+export function observeRetrievalIdentity(
+  tracker: RetrievalAlertTracker,
+  taskId: string,
+): void {
+  tracker.observedTaskIds.add(taskId);
+}
+
 function isActionableRetrieval(task: StaffTaskQueueItem): boolean {
   return (
     task.taskType === "RETRIEVAL" &&

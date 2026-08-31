@@ -60,7 +60,9 @@ const baseProps = {
   activeScope: SCOPE,
   effectiveScreen: "scan-hub" as Screen,
   endShift: vi.fn(),
-  endShiftPhase: { kind: "idle" } as import("../../features/shift").EndShiftPhase,
+  endShiftPhase: {
+    kind: "idle",
+  } as import("../../features/shift").EndShiftPhase,
   guestAccessTarget: null,
   incidentTarget: null,
   nav: vi.fn(),
@@ -83,6 +85,7 @@ const baseProps = {
     isHardStopped: false,
     isLoading: false,
     isRefreshing: false,
+    refresh: vi.fn(),
     successfulSnapshotCount: 1,
     tasks: [] as never[],
   },
