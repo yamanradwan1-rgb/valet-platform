@@ -1,4 +1,4 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createECDH, createHash, randomBytes, randomUUID } from "node:crypto";
 
 import type { WebPushSubscriptionRequest } from "@valet/contracts";
 
@@ -23,13 +23,14 @@ export const webPushTestActiveKey = {
 export function configureWebPushTestEnvironment(enabled: boolean): void {
   process.env.WEB_PUSH_ENABLED = String(enabled);
   if (!enabled) return;
-  process.env.WEB_PUSH_VAPID_PUBLIC_KEY = Buffer.concat([
-    Buffer.from([4]),
-    Buffer.alloc(64, 1),
-  ]).toString("base64url");
-  process.env.WEB_PUSH_VAPID_PRIVATE_KEY = Buffer.alloc(32, 2).toString(
-    "base64url",
-  );
+  const vapid = createECDH("prime256v1");
+  vapid.generateKeys();
+  process.env.WEB_PUSH_VAPID_PUBLIC_KEY = vapid
+    .getPublicKey()
+    .toString("base64url");
+  process.env.WEB_PUSH_VAPID_PRIVATE_KEY = vapid
+    .getPrivateKey()
+    .toString("base64url");
   process.env.WEB_PUSH_VAPID_SUBJECT = "mailto:push@vaylet.test";
   process.env.WEB_PUSH_STORAGE_KEY_ACTIVE_VERSION =
     webPushTestActiveKey.version;

@@ -1,3 +1,5 @@
+import { createECDH, timingSafeEqual } from "node:crypto";
+
 const base64urlPattern = /^[A-Za-z0-9_-]+$/;
 const keyVersionPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
@@ -63,6 +65,18 @@ function parseVersion(value: string, name: string): string {
   return value;
 }
 
+function assertVapidKeyPair(publicKey: string, privateKey: string): void {
+  try {
+    const curve = createECDH("prime256v1");
+    curve.setPrivateKey(Buffer.from(privateKey, "base64url"));
+    const derived = curve.getPublicKey(undefined, "uncompressed");
+    const configured = Buffer.from(publicKey, "base64url");
+    if (!timingSafeEqual(derived, configured)) throw new Error();
+  } catch {
+    throw new Error("WEB_PUSH_VAPID key pair is invalid.");
+  }
+}
+
 export function loadWebPushServerConfig(
   environment: NodeJS.ProcessEnv = process.env,
 ): WebPushServerConfig {
@@ -91,6 +105,7 @@ export function loadWebPushServerConfig(
   ) {
     throw new Error("WEB_PUSH_VAPID_PRIVATE_KEY is malformed.");
   }
+  assertVapidKeyPair(publicKey, privateKey);
 
   const activeVersion = parseVersion(
     required(environment, "WEB_PUSH_STORAGE_KEY_ACTIVE_VERSION"),

@@ -7,6 +7,7 @@ import {
   WebPushEncryptedValueParseError,
   webPushEncryptedValueSchema,
   webPushLocaleSchema,
+  webPushPayloadSchema,
   webPushPresentationTypeSchema,
   webPushSubscriptionRequestSchema,
 } from "./web-push";
@@ -22,6 +23,28 @@ describe("Web Push foundation contracts", () => {
     expect(webPushPresentationTypeSchema.safeParse("MARKETING").success).toBe(
       false,
     );
+  });
+
+  it("accepts only the strict versioned presentation payload", () => {
+    const payload = {
+      audience: "EMPLOYEE",
+      body: "A new retrieval request is waiting in the task queue.",
+      direction: "ltr",
+      identity: "10000000-0000-4000-8000-000000000001",
+      locale: "en",
+      presentationType: "EMPLOYEE_RETRIEVAL_REQUESTED",
+      route: "TASKS",
+      title: "New retrieval request",
+      version: 1,
+    };
+    expect(webPushPayloadSchema.safeParse(payload).success).toBe(true);
+    expect(
+      webPushPayloadSchema.safeParse({ ...payload, token: "forbidden" })
+        .success,
+    ).toBe(false);
+    expect(
+      webPushPayloadSchema.safeParse({ ...payload, direction: "rtl" }).success,
+    ).toBe(false);
   });
 
   it("keeps encrypted envelopes strict and versioned", () => {
