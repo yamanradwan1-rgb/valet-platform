@@ -3,6 +3,7 @@ import type {
   WebPushSubscriptionRequest,
 } from "@valet/contracts";
 
+import { GuestApiError } from "../../lib/api/api-error";
 import {
   resolveCustomerPushCapability,
   type CustomerPushCapabilitySnapshot,
@@ -13,6 +14,15 @@ import {
   base64UrlToUint8Array,
   toCustomerPushSubscriptionRequest,
 } from "./customer-push-subscription";
+
+function isWebPushSubscriptionNotAvailable(error: unknown): boolean {
+  return (
+    error instanceof GuestApiError &&
+    error.status === 404 &&
+    (error.code === "WEB_PUSH_SUBSCRIPTION_NOT_AVAILABLE" ||
+      error.code === "REQUEST_FAILED")
+  );
+}
 
 export interface CustomerPushApi {
   create(input: WebPushSubscriptionRequest): Promise<{ readonly id: string }>;
@@ -129,14 +139,22 @@ export class CustomerPushManager {
     if (!key) return "UNAVAILABLE";
     try {
       let browser = await this.options.runtime.getSubscription();
-      const serverId = this.options.storage.read();
+      let serverId = this.options.storage.read();
       if (browser && serverId) {
-        const response = await this.options.api.replace(
-          serverId,
-          toCustomerPushSubscriptionRequest(browser, locale),
-        );
-        this.options.storage.write(response.id);
-        return "SUBSCRIBED";
+        try {
+          const response = await this.options.api.replace(
+            serverId,
+            toCustomerPushSubscriptionRequest(browser, locale),
+          );
+          this.options.storage.write(response.id);
+          return "SUBSCRIBED";
+        } catch (error: unknown) {
+          if (!isWebPushSubscriptionNotAvailable(error)) throw error;
+          this.options.storage.clear();
+          serverId = null;
+          if (!(await browser.unsubscribe())) return "RECOVERABLE_ERROR";
+          browser = null;
+        }
       }
       if (serverId && !browser) {
         await this.disableKnownBinding();
