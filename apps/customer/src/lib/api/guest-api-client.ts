@@ -1,18 +1,21 @@
 import {
   guestHandoffMaterialResponseSchema,
   guestSafeSessionResponseSchema,
-} from '@valet/contracts';
+  webPushSubscriptionResponseSchema,
+  type WebPushSubscriptionRequest,
+  type WebPushSubscriptionResponse,
+} from "@valet/contracts";
 
-import { getGuestApiBaseUrl } from './api-config';
-import { GuestApiError, mapToGuestSafeMessage } from './api-error';
+import { getGuestApiBaseUrl } from "./api-config";
+import { GuestApiError, mapToGuestSafeMessage } from "./api-error";
 import type {
   GuestHandoffMaterial,
   GuestSafeSession,
   HandoffStandardMethod,
-} from './guest-api-types';
+} from "./guest-api-types";
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | undefined;
+  method?: "DELETE" | "GET" | "POST" | "PUT" | undefined;
   body?: unknown;
   signal?: AbortSignal | undefined;
 }
@@ -30,20 +33,20 @@ export class GuestApiClient {
     path: string,
     options: RequestOptions = {},
   ): Promise<T> {
-    const { method = 'GET', body, signal } = options;
+    const { method = "GET", body, signal } = options;
     const url = `${this.baseUrl}${path}`;
 
     const headers: Record<string, string> = {
-      Accept: 'application/json',
+      Accept: "application/json",
       Authorization: `Bearer ${this.bearerToken}`,
     };
     if (body !== undefined) {
-      headers['Content-Type'] = 'application/json';
+      headers["Content-Type"] = "application/json";
     }
 
     const fetchInit: RequestInit = {
       method,
-      cache: 'no-store',
+      cache: "no-store",
       headers,
     };
     if (signal !== undefined) {
@@ -62,8 +65,9 @@ export class GuestApiClient {
       }
       throw new GuestApiError({
         status: 0,
-        code: 'NETWORK_ERROR',
-        message: 'Network connection unavailable. Please check your internet connection.',
+        code: "NETWORK_ERROR",
+        message:
+          "Network connection unavailable. Please check your internet connection.",
         isNetworkError: true,
       });
     }
@@ -91,41 +95,81 @@ export class GuestApiClient {
     return payload as T;
   }
 
-  async loadSession(signal?: AbortSignal | undefined): Promise<GuestSafeSession> {
-    const raw = await this.request<unknown>('/session', {
-      method: 'GET',
+  async loadSession(
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestSafeSession> {
+    const raw = await this.request<unknown>("/session", {
+      method: "GET",
       signal,
     });
     return guestSafeSessionResponseSchema.parse(raw);
   }
 
-  async requestRetrieval(signal?: AbortSignal | undefined): Promise<GuestSafeSession> {
-    const raw = await this.request<unknown>('/session/request-retrieval', {
-      method: 'POST',
+  async requestRetrieval(
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestSafeSession> {
+    const raw = await this.request<unknown>("/session/request-retrieval", {
+      method: "POST",
       body: {},
       signal,
     });
     return guestSafeSessionResponseSchema.parse(raw);
   }
 
-  async cancelRetrieval(signal?: AbortSignal | undefined): Promise<GuestSafeSession> {
-    const raw = await this.request<unknown>('/session/cancel-retrieval', {
-      method: 'POST',
+  async cancelRetrieval(
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestSafeSession> {
+    const raw = await this.request<unknown>("/session/cancel-retrieval", {
+      method: "POST",
       body: {},
       signal,
     });
     return guestSafeSessionResponseSchema.parse(raw);
+  }
+
+  async createWebPushSubscription(
+    input: WebPushSubscriptionRequest,
+  ): Promise<WebPushSubscriptionResponse> {
+    const raw = await this.request<unknown>("/web-push/subscriptions", {
+      method: "POST",
+      body: input,
+    });
+    return webPushSubscriptionResponseSchema.parse(raw);
+  }
+
+  async replaceWebPushSubscription(
+    id: string,
+    input: WebPushSubscriptionRequest,
+  ): Promise<WebPushSubscriptionResponse> {
+    const raw = await this.request<unknown>(
+      `/web-push/subscriptions/${encodeURIComponent(id)}`,
+      { method: "PUT", body: input },
+    );
+    return webPushSubscriptionResponseSchema.parse(raw);
+  }
+
+  async disableWebPushSubscription(
+    id: string,
+  ): Promise<WebPushSubscriptionResponse> {
+    const raw = await this.request<unknown>(
+      `/web-push/subscriptions/${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    );
+    return webPushSubscriptionResponseSchema.parse(raw);
   }
 
   async issueHandoff(
     method: HandoffStandardMethod,
     signal?: AbortSignal | undefined,
   ): Promise<GuestHandoffMaterial> {
-    const raw = await this.request<unknown>('/session/handoff-verification/issue', {
-      method: 'POST',
-      body: { method },
-      signal,
-    });
+    const raw = await this.request<unknown>(
+      "/session/handoff-verification/issue",
+      {
+        method: "POST",
+        body: { method },
+        signal,
+      },
+    );
     return guestHandoffMaterialResponseSchema.parse(raw);
   }
 
@@ -133,11 +177,14 @@ export class GuestApiClient {
     method: HandoffStandardMethod,
     signal?: AbortSignal | undefined,
   ): Promise<GuestHandoffMaterial> {
-    const raw = await this.request<unknown>('/session/handoff-verification/rotate', {
-      method: 'POST',
-      body: { method },
-      signal,
-    });
+    const raw = await this.request<unknown>(
+      "/session/handoff-verification/rotate",
+      {
+        method: "POST",
+        body: { method },
+        signal,
+      },
+    );
     return guestHandoffMaterialResponseSchema.parse(raw);
   }
 }
