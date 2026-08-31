@@ -58,10 +58,17 @@ export class WebPushDeliveryProcessor {
       return;
     }
     const now = this.now();
-    const ttlSeconds = Math.max(
-      1,
-      Math.floor((delivery.expiresAt.getTime() - now.getTime()) / 1_000),
-    );
+    const remainingMilliseconds = delivery.expiresAt.getTime() - now.getTime();
+    if (remainingMilliseconds <= 0) {
+      await finalizeWebPushDelivery(this.pool, {
+        claim,
+        failure: "AUTHORITY",
+        status: "TERMINAL",
+      });
+      this.logOutcome(claim, delivery, "AUTHORITY", 0);
+      return;
+    }
+    const ttlSeconds = Math.floor(remainingMilliseconds / 1_000);
     const started = Date.now();
     const result = await this.sender.send({
       auth: delivery.auth,
