@@ -6,6 +6,7 @@ import {
   type EmployeePushRuntime,
   type EmployeePushStorage,
 } from "./employee-push-manager";
+import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 
 const SERVER_ID = "11111111-1111-4111-8111-111111111111";
 const PUBLIC_KEY = Buffer.concat([
@@ -123,6 +124,30 @@ describe("Employee Web Push reconciliation", () => {
     expect(subject.runtime.requestPermission).not.toHaveBeenCalled();
   });
 
+  it("best-effort disables a known binding when permission changes to denied", async () => {
+    const existing = subscription();
+    const subject = setup({ existing, serverId: SERVER_ID });
+    vi.mocked(subject.runtime.capability).mockReturnValue({
+      isIosLike: false,
+      isStandalone: false,
+      notification: true,
+      permission: "denied",
+      pushManager: true,
+      serviceWorker: true,
+    });
+    await expect(subject.manager.reconcile("en")).resolves.toBe("DENIED");
+    expect(subject.api.disable).toHaveBeenCalledWith(SERVER_ID);
+    expect(subject.runtime.requestPermission).not.toHaveBeenCalled();
+  });
+
+  it("repairs a missing browser subscription without prompting again", async () => {
+    const subject = setup({ existing: null, serverId: SERVER_ID });
+    await expect(subject.manager.reconcile("en")).resolves.toBe("SUBSCRIBED");
+    expect(subject.api.disable).toHaveBeenCalledWith(SERVER_ID);
+    expect(subject.runtime.subscribe).toHaveBeenCalledOnce();
+    expect(subject.runtime.requestPermission).not.toHaveBeenCalled();
+  });
+
   it("creates and registers a missing browser subscription with only T2 fields", async () => {
     const subject = setup();
     await subject.manager.reconcile("ar");
@@ -181,6 +206,43 @@ describe("Employee Web Push reconciliation", () => {
     expect(old.unsubscribe).toHaveBeenCalledOnce();
     expect(subject.runtime.subscribe).toHaveBeenCalledOnce();
     expect(subject.api.create).toHaveBeenCalledOnce();
+  });
+
+  it("replaces a stale binding hint with a fresh browser subscription after a bounded 404", async () => {
+    const old = subscription("https://push.example.test/old-session");
+    const subject = setup({ existing: old, serverId: SERVER_ID });
+    vi.mocked(subject.api.replace).mockRejectedValue(
+      new EmployeeApiError({
+        code: "WEB_PUSH_SUBSCRIPTION_NOT_AVAILABLE",
+        message: "Not available",
+        status: 404,
+      }),
+    );
+    await expect(subject.manager.reconcile("en")).resolves.toBe("SUBSCRIBED");
+    expect(subject.storage.clear).toHaveBeenCalled();
+    expect(old.unsubscribe).toHaveBeenCalledOnce();
+    expect(subject.runtime.subscribe).toHaveBeenCalledOnce();
+    expect(subject.api.create).toHaveBeenCalledWith(
+      expect.objectContaining({ endpoint: "https://push.example.test/fresh" }),
+    );
+  });
+
+  it("does not destructively recover a conflict from another active principal", async () => {
+    const old = subscription("https://push.example.test/active-owner");
+    const subject = setup({ existing: old, serverId: SERVER_ID });
+    vi.mocked(subject.api.replace).mockRejectedValue(
+      new EmployeeApiError({
+        code: "CONFLICT",
+        message: "Conflict",
+        status: 409,
+      }),
+    );
+    await expect(subject.manager.reconcile("en")).resolves.toBe(
+      "RECOVERABLE_ERROR",
+    );
+    expect(subject.storage.clear).not.toHaveBeenCalled();
+    expect(old.unsubscribe).not.toHaveBeenCalled();
+    expect(subject.api.create).not.toHaveBeenCalled();
   });
 
   it("keeps server conflicts bounded and non-disclosing", async () => {

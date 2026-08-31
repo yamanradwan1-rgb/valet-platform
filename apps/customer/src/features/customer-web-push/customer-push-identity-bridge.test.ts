@@ -83,4 +83,35 @@ describe("Customer push identity bridge", () => {
       ),
     ).toBe(false);
   });
+
+  it("rejects messages and probes carrying extra authority-looking fields", () => {
+    const refresh = vi.fn();
+    const port = { postMessage: vi.fn() };
+    expect(
+      handleCustomerPushClientMessage(
+        {
+          guestAccess: "forbidden",
+          identity: IDENTITY,
+          route: "GUEST_HOME",
+          type: "VAYLET_CUSTOMER_NOTIFICATION_CLICK",
+        },
+        createGuestReadyAlertTracker(null),
+        SESSION,
+        refresh,
+      ),
+    ).toBe(false);
+    expect(
+      respondToCustomerAuthProbe(
+        {
+          generation: "forbidden",
+          identity: IDENTITY,
+          type: "VAYLET_CUSTOMER_AUTH_PROBE",
+        },
+        [port],
+        SESSION,
+      ),
+    ).toBe(false);
+    expect(refresh).not.toHaveBeenCalled();
+    expect(port.postMessage).not.toHaveBeenCalled();
+  });
 });

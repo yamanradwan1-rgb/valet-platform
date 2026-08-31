@@ -141,6 +141,17 @@ describe("Employee root Service Worker", () => {
     );
   });
 
+  it("rejects click data with extra fields", async () => {
+    const subject = harness();
+    await dispatch(subject.handlers.get("notificationclick"), {
+      notification: {
+        close: vi.fn(),
+        data: { identity: TASK_ID, memberId: "forbidden", route: "TASKS" },
+      },
+    });
+    expect(subject.openWindow).not.toHaveBeenCalled();
+  });
+
   it("has no fetch handler or credential/domain mutation behavior", () => {
     const subject = harness();
     expect(subject.handlers.has("fetch")).toBe(false);

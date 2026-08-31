@@ -78,6 +78,25 @@ describe("CustomerPushManager", () => {
     expect(item.runtime.requestPermission).not.toHaveBeenCalled();
   });
 
+  it("best-effort disables a known binding when permission changes to denied", async () => {
+    const item = subject(subscription(), ID);
+    item.runtime.capability.mockReturnValue({
+      ...item.runtime.capability(),
+      permission: "denied",
+    });
+    await expect(item.manager.reconcile("en")).resolves.toBe("DENIED");
+    expect(item.api.disable).toHaveBeenCalledWith(ID);
+    expect(item.runtime.requestPermission).not.toHaveBeenCalled();
+  });
+
+  it("repairs a missing browser subscription without prompting again", async () => {
+    const item = subject(null, ID);
+    await expect(item.manager.reconcile("en")).resolves.toBe("SUBSCRIBED");
+    expect(item.api.disable).toHaveBeenCalledWith(ID);
+    expect(item.runtime.subscribe).toHaveBeenCalledOnce();
+    expect(item.runtime.requestPermission).not.toHaveBeenCalled();
+  });
+
   it("shows iOS Home Screen guidance without requesting permission in browser mode", async () => {
     const item = subject(null, null);
     item.runtime.capability.mockReturnValue({
