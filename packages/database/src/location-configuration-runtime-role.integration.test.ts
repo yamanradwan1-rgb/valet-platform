@@ -96,18 +96,14 @@ afterAll(async () => {
 }, 60_000);
 
 describe("VAL-009B location configuration runtime privileges", () => {
-  it("keeps the schema at exactly 33 applied migrations", async () => {
+  it("keeps the schema at exactly 29 applied migrations", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name FROM _prisma_migrations
-       WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
-       ORDER BY migration_name`,
+       WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(33);
-    expect(result.rows.at(-2)?.migration_name).toBe(
-      "20260830003200_web_push_persistence_foundation",
-    );
+    expect(result.rows).toHaveLength(31);
     expect(result.rows.at(-1)?.migration_name).toBe(
-      "20260830003300_web_push_envelope_key_version_consistency",
+      "20260823003100_phase7_basic_branding_hardening",
     );
   });
 

@@ -23,7 +23,6 @@
     "@nestjs/platform-express": "11.1.28",
     "@nestjs/swagger": "^11.0.0",
     "@valet/contracts": "workspace:*",
-    "@valet/config": "workspace:*",
     "argon2": "0.45.1",
     "cookie": "1.0.2",
     "dotenv": "^17.0.0",

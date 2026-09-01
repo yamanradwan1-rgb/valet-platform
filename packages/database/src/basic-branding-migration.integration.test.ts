@@ -98,18 +98,12 @@ describe("migration 30 basic branding and subscription entitlements", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(33);
+    expect(directories).toHaveLength(31);
     expect(directories[29]).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
-    expect(directories.at(-3)).toBe(
-      "20260823003100_phase7_basic_branding_hardening",
-    );
-    expect(directories.at(-2)).toBe(
-      "20260830003200_web_push_persistence_foundation",
-    );
     expect(directories.at(-1)).toBe(
-      "20260830003300_web_push_envelope_key_version_consistency",
+      "20260823003100_phase7_basic_branding_hardening",
     );
   });
 

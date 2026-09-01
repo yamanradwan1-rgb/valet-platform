@@ -77,7 +77,6 @@ export interface RevokeGuestAccessResult {
 }
 
 interface GuestAccessScope {
-  customer_access_generation: string | null;
   customer_access_expires_at: Date;
   customer_access_revoked_at: Date | null;
   customer_access_token_hash: string;
@@ -88,7 +87,6 @@ interface GuestAccessScope {
 
 interface GuestAccessCommandOptions {
   readonly auditEventIdFactory?: () => string;
-  readonly generationIdFactory?: () => string;
   readonly tokenBytesFactory?: () => Buffer;
 }
 
@@ -188,14 +186,6 @@ function generateRawToken(tokenBytesFactory: () => Buffer): string {
   return rawToken;
 }
 
-function generateGuestAccessGeneration(generationIdFactory: () => string) {
-  const generationId = generationIdFactory();
-  if (typeof generationId !== "string" || !uuidPattern.test(generationId)) {
-    throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
-  }
-  return generationId.toLowerCase();
-}
-
 export function hashGuestAccessToken(rawToken: string): string {
   return `${guestAccessContract.hashPrefix}${createHash("sha256")
     .update(rawToken, "utf8")
@@ -237,8 +227,7 @@ async function lockSessionScope(
   const result = await transaction.query<GuestAccessScope>(
     `SELECT id::text AS valet_session_id, organization_id::text,
             location_id::text, customer_access_token_hash,
-            customer_access_expires_at, customer_access_revoked_at,
-            customer_access_generation::text
+            customer_access_expires_at, customer_access_revoked_at
      FROM valet_sessions
      WHERE id = $1 AND organization_id = $2 AND location_id = $3
      FOR UPDATE`,
@@ -352,28 +341,15 @@ export function createIssueGuestAccessCommandExecutor(
       const expiresAt = new Date(
         operationTime.getTime() + guestAccessContract.lifetimeMilliseconds,
       );
-      const generationId = generateGuestAccessGeneration(
-        options.generationIdFactory ?? randomUUID,
-      );
-      if (generationId === scope.customer_access_generation) {
-        throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
-      }
       const mutationResult = await transaction.query<{ expires_at: Date }>(
         `UPDATE valet_sessions
          SET customer_access_token_hash = $2,
              customer_access_expires_at = $4,
              customer_access_revoked_at = NULL,
-             customer_access_generation = $5,
              updated_at = $3
          WHERE id = $1
          RETURNING customer_access_expires_at AS expires_at`,
-        [
-          scope.valet_session_id,
-          tokenHash,
-          operationTime,
-          expiresAt,
-          generationId,
-        ],
+        [scope.valet_session_id, tokenHash, operationTime, expiresAt],
       );
       const persistedExpiresAt = mutationResult.rows[0]?.expires_at;
       if (persistedExpiresAt === undefined) {

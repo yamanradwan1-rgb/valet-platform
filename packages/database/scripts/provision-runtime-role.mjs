@@ -193,11 +193,6 @@ async function provisionRuntimeRole() {
     );
 
     await client.query(
-      `REVOKE DELETE, TRUNCATE ON TABLE web_push_subscriptions,
-       web_push_delivery_intents, web_push_deliveries FROM PUBLIC`,
-    );
-
-    await client.query(
       `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE staff_auth_sessions, staff_refresh_credentials FROM PUBLIC`,
     );
     await executeFormatted(
