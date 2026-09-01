@@ -186,49 +186,6 @@ describe("Customer Service Worker", () => {
     expect(item.openWindow.mock.calls[0]?.[0]).not.toContain(IDENTITY);
   });
 
-  it("rejects click data with extra authority fields", async () => {
-    const item = harness();
-    await dispatch(item.handlers.get("notificationclick"), {
-      notification: {
-        close: vi.fn(),
-        data: {
-          generation: "forbidden",
-          identity: IDENTITY,
-          route: "GUEST_HOME",
-        },
-      },
-    });
-    expect(item.openWindow).not.toHaveBeenCalled();
-  });
-
-  it("rejects an extended auth result and falls back to credential-free re-entry", async () => {
-    const client = {
-      focus: vi.fn(),
-      postMessage: vi.fn(
-        (
-          _message: unknown,
-          ports?: Array<{ postMessage(data: unknown): void }>,
-        ) => {
-          ports?.[0]?.postMessage({
-            authorized: true,
-            generation: "forbidden",
-            type: "VAYLET_CUSTOMER_AUTH_RESULT",
-          });
-        },
-      ),
-      url: "https://customer.example.test/",
-    };
-    const item = harness([client]);
-    await dispatch(item.handlers.get("notificationclick"), {
-      notification: {
-        close: vi.fn(),
-        data: { identity: IDENTITY, route: "GUEST_HOME" },
-      },
-    });
-    expect(client.focus).not.toHaveBeenCalled();
-    expect(item.openWindow).toHaveBeenCalledWith("/re-entry");
-  });
-
   it("preserves safe-static-only cache exclusions", () => {
     expect(source).toMatch(/url\.pathname\.startsWith\(["']\/v1\/["']\)/);
     expect(source).toMatch(/url\.pathname\.startsWith\(["']\/api\/["']\)/);

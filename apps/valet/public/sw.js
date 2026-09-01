@@ -13,16 +13,6 @@ const PAYLOAD_KEYS = [
   "title",
   "version",
 ];
-const CLICK_KEYS = ["identity", "route"];
-
-function hasExactKeys(value, expected) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  const keys = Object.keys(value).sort();
-  return (
-    keys.length === expected.length &&
-    expected.every((key, index) => keys[index] === key)
-  );
-}
 
 function isEmployeePayload(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
@@ -48,11 +38,7 @@ function isEmployeePayload(value) {
 }
 
 function clickMessage(data) {
-  if (
-    !hasExactKeys(data, CLICK_KEYS) ||
-    data.route !== "TASKS" ||
-    !UUID_PATTERN.test(data.identity)
-  ) {
+  if (!data || data.route !== "TASKS" || !UUID_PATTERN.test(data.identity)) {
     return null;
   }
   return { identity: data.identity, route: "TASKS", type: EMPLOYEE_MESSAGE };

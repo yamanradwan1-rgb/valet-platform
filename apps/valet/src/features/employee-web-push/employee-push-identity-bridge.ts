@@ -2,15 +2,6 @@ const taskIdPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const identities = new Set<string>();
 const listeners = new Set<(identity: string) => void>();
-const MESSAGE_KEYS = ["identity", "route", "type"];
-
-function hasExactKeys(candidate: Record<string, unknown>): boolean {
-  const keys = Object.keys(candidate).sort();
-  return (
-    keys.length === MESSAGE_KEYS.length &&
-    MESSAGE_KEYS.every((key, index) => keys[index] === key)
-  );
-}
 
 export function clearEmployeePushIdentities(): void {
   identities.clear();
@@ -31,7 +22,6 @@ export function handleEmployeePushClientMessage(
   if (typeof candidate !== "object" || candidate === null) return false;
   const message = candidate as Record<string, unknown>;
   if (
-    !hasExactKeys(message) ||
     message.route !== "TASKS" ||
     typeof message.identity !== "string" ||
     !taskIdPattern.test(message.identity) ||

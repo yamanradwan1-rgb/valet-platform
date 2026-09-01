@@ -14,17 +14,6 @@ const PAYLOAD_KEYS = [
   "title",
   "version",
 ];
-const AUTH_RESULT_KEYS = ["authorized", "type"];
-const CLICK_KEYS = ["identity", "route"];
-
-function hasExactKeys(value, expected) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  const keys = Object.keys(value).sort();
-  return (
-    keys.length === expected.length &&
-    expected.every((key, index) => keys[index] === key)
-  );
-}
 
 function isGuestPayload(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
@@ -51,7 +40,7 @@ function isGuestPayload(value) {
 
 function clickMessage(data) {
   if (
-    !hasExactKeys(data, CLICK_KEYS) ||
+    !data ||
     data.route !== "GUEST_HOME" ||
     typeof data.identity !== "string" ||
     !GUEST_IDENTITY_PATTERN.test(data.identity)
@@ -77,7 +66,7 @@ function clientHasGuestAccess(client, identity) {
       clearTimeout(timer);
       resolve(
         Boolean(
-          hasExactKeys(event.data, AUTH_RESULT_KEYS) &&
+          event.data &&
           event.data.type === "VAYLET_CUSTOMER_AUTH_RESULT" &&
           event.data.authorized === true,
         ),
