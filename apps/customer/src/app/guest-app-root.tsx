@@ -1,52 +1,49 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { AppShell } from "../components/layout/app-shell";
-import type { CustomerTab } from "../components/layout/bottom-nav";
-import { useGuestSession } from "../features/session/use-guest-session";
-import { resolveGuestScreenId } from "../features/session/guest-lifecycle-router";
-import { useRetrieval } from "../features/retrieval/use-retrieval";
-import { OverlayConfirmRequest } from "../features/retrieval/overlay-confirm-request";
-import { useHandoff } from "../features/handoff/use-handoff";
+import { useTranslation } from '../i18n/use-translation';
+import { AppShell } from '../components/layout/app-shell';
+import type { CustomerTab } from '../components/layout/bottom-nav';
+import { useGuestSession } from '../features/session/use-guest-session';
+import { resolveGuestScreenId } from '../features/session/guest-lifecycle-router';
+import { useRetrieval } from '../features/retrieval/use-retrieval';
+import { OverlayConfirmRequest } from '../features/retrieval/overlay-confirm-request';
+import { useHandoff } from '../features/handoff/use-handoff';
 import {
   ScreenPaymentOverview,
   ScreenAddTip,
   ScreenReceipt,
-} from "../features/deferred/screen-payment";
-import { ScreenRate, ScreenHelp } from "../features/deferred/screen-service";
+} from '../features/deferred/screen-payment';
+import { ScreenRate, ScreenHelp } from '../features/deferred/screen-service';
 import {
   ScreenNetworkUnavailable,
   ScreenExpired,
-} from "../features/deferred/screen-system";
-import { OverlayVehicleDetails } from "../features/deferred/overlay-vehicle-details";
-import { OverlayMoreMenu } from "../features/deferred/overlay-more-menu";
-import { useGuestAuth } from "../features/auth/guest-auth-context";
+} from '../features/deferred/screen-system';
+import { OverlayVehicleDetails } from '../features/deferred/overlay-vehicle-details';
+import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
+import { useGuestAuth } from '../features/auth/guest-auth-context';
 import {
   type DemoNavigationKey,
   type DemoOverlayKey,
-} from "../features/demo/demo-registry";
-import { DemoScreenRenderer } from "../features/demo/demo-screen-renderer";
-import { DevPreviewControls } from "../features/demo/dev-preview-controls";
-import { GuestLiveView } from "./guest-live-view";
-import { useCustomerWebPush } from "../features/customer-web-push/customer-web-push-provider";
-import { CustomerPushOffer } from "../features/customer-web-push/customer-push-offer";
-import { useCustomerRetrievalPushOffer } from "../features/customer-web-push/use-customer-retrieval-push-offer";
-import { useCustomerPushLifecycle } from "../features/customer-web-push/use-customer-push-lifecycle";
-import { GuestLoadingScreen } from "../features/session/guest-loading-screen";
+} from '../features/demo/demo-registry';
+import { DemoScreenRenderer } from '../features/demo/demo-screen-renderer';
+import { DevPreviewControls } from '../features/demo/dev-preview-controls';
+import { GuestLiveView } from './guest-live-view';
+import { registerServiceWorker } from '../lib/pwa/register-pwa';
+import { C } from '../lib/theme/colors';
 
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = process.env.NODE_ENV !== 'production';
 
 export function GuestAppRoot() {
+  const { t } = useTranslation();
   const { token, isTokenBootstrapComplete } = useGuestAuth();
-  const { session, isLoading, isNetworkError, isExpired, refreshSession } =
-    useGuestSession();
+  const { session, isLoading, isNetworkError, isExpired, refreshSession } = useGuestSession();
   const retrieval = useRetrieval();
   const handoff = useHandoff();
-  const customerPush = useCustomerWebPush();
 
-  const [tab, setTab] = useState<CustomerTab>("vehicle");
-  const [demoScreen, setDemoScreen] = useState<DemoNavigationKey>("live");
+  const [tab, setTab] = useState<CustomerTab>('vehicle');
+  const [demoScreen, setDemoScreen] = useState<DemoNavigationKey>('live');
 
   // Production Overlays
   const [showConfirmRequest, setShowConfirmRequest] = useState<boolean>(false);
@@ -57,31 +54,30 @@ export function GuestAppRoot() {
   const [devOverlay, setDevOverlay] = useState<DemoOverlayKey | null>(null);
 
   // Sub-screens for dev preview flows
-  const [paymentSubScreen, setPaymentSubScreen] = useState<
-    "overview" | "tip" | "receipt"
-  >("overview");
-  const [helpSubScreen, setHelpSubScreen] = useState<"help" | "rate">("help");
+  const [paymentSubScreen, setPaymentSubScreen] = useState<'overview' | 'tip' | 'receipt'>('overview');
+  const [helpSubScreen, setHelpSubScreen] = useState<'help' | 'rate'>('help');
 
-  useCustomerPushLifecycle(session?.state, customerPush.offerAfterRetrieval);
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
 
-  const handleRequestConfirm = useCustomerRetrievalPushOffer(
-    retrieval.requestVehicle,
-    () => setShowConfirmRequest(false),
-    customerPush.offerAfterRetrieval,
-  );
+  const handleRequestConfirm = async () => {
+    const ok = await retrieval.requestVehicle();
+    if (ok) setShowConfirmRequest(false);
+  };
 
   const handleOpenMore = () => setShowMoreMenu(true);
   const handleCloseMore = () => setShowMoreMenu(false);
 
   // 1. Dev Preview Screen Override (strictly dev-only)
-  if (isDev && demoScreen !== "live") {
+  if (isDev && demoScreen !== 'live') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
         <DemoScreenRenderer
           demoScreen={demoScreen}
           onSelectScreen={setDemoScreen}
-          onRequestClick={() => setDevOverlay("overlay-confirm-request")}
-          onViewDetails={() => setDevOverlay("overlay-vehicle-details")}
+          onRequestClick={() => setDevOverlay('overlay-confirm-request')}
+          onViewDetails={() => setDevOverlay('overlay-vehicle-details')}
         />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         <DevPreviewControls
@@ -96,20 +92,20 @@ export function GuestAppRoot() {
   }
 
   // 2. Dev-only Tab: Payment Preview
-  if (isDev && tab === "payment") {
+  if (isDev && tab === 'payment') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
-        {paymentSubScreen === "overview" && (
+        {paymentSubScreen === 'overview' && (
           <ScreenPaymentOverview
-            onAddTip={() => setPaymentSubScreen("tip")}
-            onPay={() => setPaymentSubScreen("receipt")}
+            onAddTip={() => setPaymentSubScreen('tip')}
+            onPay={() => setPaymentSubScreen('receipt')}
           />
         )}
-        {paymentSubScreen === "tip" && (
-          <ScreenAddTip onContinue={() => setPaymentSubScreen("overview")} />
+        {paymentSubScreen === 'tip' && (
+          <ScreenAddTip onContinue={() => setPaymentSubScreen('overview')} />
         )}
-        {paymentSubScreen === "receipt" && (
-          <ScreenReceipt onDone={() => setPaymentSubScreen("overview")} />
+        {paymentSubScreen === 'receipt' && (
+          <ScreenReceipt onDone={() => setPaymentSubScreen('overview')} />
         )}
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         <DevPreviewControls
@@ -124,14 +120,14 @@ export function GuestAppRoot() {
   }
 
   // 3. Dev-only Tab: Help Preview
-  if (isDev && tab === "help") {
+  if (isDev && tab === 'help') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
-        {helpSubScreen === "help" && (
-          <ScreenHelp onPaymentHelp={() => setTab("payment")} />
+        {helpSubScreen === 'help' && (
+          <ScreenHelp onPaymentHelp={() => setTab('payment')} />
         )}
-        {helpSubScreen === "rate" && (
-          <ScreenRate onDone={() => setHelpSubScreen("help")} />
+        {helpSubScreen === 'rate' && (
+          <ScreenRate onDone={() => setHelpSubScreen('help')} />
         )}
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         <DevPreviewControls
@@ -156,14 +152,9 @@ export function GuestAppRoot() {
     handoffMethod: handoff.activeMethod,
   });
 
-  if (screenId === "UNAVAILABLE") {
+  if (screenId === 'UNAVAILABLE') {
     return (
-      <AppShell
-        tab={tab}
-        onTab={setTab}
-        onMore={handleOpenMore}
-        showNav={false}
-      >
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenExpired />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
@@ -179,14 +170,9 @@ export function GuestAppRoot() {
     );
   }
 
-  if (screenId === "NETWORK_ERROR") {
+  if (screenId === 'NETWORK_ERROR') {
     return (
-      <AppShell
-        tab={tab}
-        onTab={setTab}
-        onMore={handleOpenMore}
-        showNav={false}
-      >
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenNetworkUnavailable onRetry={() => void refreshSession()} />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
@@ -202,15 +188,31 @@ export function GuestAppRoot() {
     );
   }
 
-  if (screenId === "LOADING") {
+  if (screenId === 'LOADING') {
     return (
-      <AppShell
-        tab={tab}
-        onTab={setTab}
-        onMore={handleOpenMore}
-        showNav={false}
-      >
-        <GuestLoadingScreen />
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
+            gap: 16,
+          }}
+        >
+          <div
+            className="spin"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              border: `2px solid ${C.borderSemantic}`,
+              borderTopColor: C.accent,
+            }}
+          />
+          <span style={{ fontSize: 14, color: C.textSecondary }}>{t('common.loadingSession')}</span>
+        </div>
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
           <DevPreviewControls
@@ -227,12 +229,7 @@ export function GuestAppRoot() {
 
   if (!session) {
     return (
-      <AppShell
-        tab={tab}
-        onTab={setTab}
-        onMore={handleOpenMore}
-        showNav={false}
-      >
+      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenExpired />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
       </AppShell>
@@ -249,18 +246,16 @@ export function GuestAppRoot() {
         onRefreshSession={() => void refreshSession()}
         onRequestVehicle={() => setShowConfirmRequest(true)}
         onViewDetails={() => setShowVehicleDetails(true)}
-        onViewReceipt={isDev ? () => setTab("payment") : undefined}
+        onViewReceipt={isDev ? () => setTab('payment') : undefined}
         onRateExperience={
           isDev
             ? () => {
-                setTab("help");
-                setHelpSubScreen("rate");
+                setTab('help');
+                setHelpSubScreen('rate');
               }
             : undefined
         }
       />
-
-      <CustomerPushOffer />
 
       {/* Production Overlays */}
       <OverlayConfirmRequest
@@ -276,7 +271,10 @@ export function GuestAppRoot() {
         session={session}
       />
 
-      <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
+      <OverlayMoreMenu
+        open={showMoreMenu}
+        onClose={handleCloseMore}
+      />
 
       {/* Dedicated Dev-Only Preview Overlays and Navigator */}
       {isDev && (

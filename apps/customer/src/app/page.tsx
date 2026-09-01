@@ -1,20 +1,17 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
-import { GuestAuthProvider } from "../features/auth/guest-auth-context";
-import { GuestSessionProvider } from "../features/session/guest-session-provider";
-import { CustomerWebPushProvider } from "../features/customer-web-push/customer-web-push-provider";
-import { GuestAppRoot } from "./guest-app-root";
+import { GuestAuthProvider } from '../features/auth/guest-auth-context';
+import { GuestSessionProvider } from '../features/session/guest-session-provider';
+import { GuestAppRoot } from './guest-app-root';
 
 export default function Home() {
   return (
     <GuestAuthProvider>
-      <CustomerWebPushProvider>
-        <GuestSessionProvider>
-          <GuestAppRoot />
-        </GuestSessionProvider>
-      </CustomerWebPushProvider>
+      <GuestSessionProvider>
+        <GuestAppRoot />
+      </GuestSessionProvider>
     </GuestAuthProvider>
   );
 }
