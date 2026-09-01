@@ -3598,3 +3598,66 @@ decision task.
 
 Full binding contract:
 `docs/decisions/DEC-072_NATIVE_STAFF_AUTHENTICATION_ARCHITECTURE.md`
+
+---
+
+## DEC-073 — Native Push Architecture
+
+Status: Accepted
+Date: 2026-09-02
+
+Decision:
+Employee Native push is a best-effort attention signal and never authentication,
+authorization, synchronization, Task/Dispatch/ValetSession authority or a
+mutation trigger. Receipt/tap must complete current Staff auth restoration,
+refetch the canonical Task queue and require an explicit protected command for
+any action. Existing five-second Employee Web polling and foreground DEC-070
+behavior remain unchanged and are the recovery truth when push is delayed,
+duplicated, suppressed or lost.
+
+The only initially Accepted kind is `EMPLOYEE_RETRIEVAL_REQUESTED`, created
+when the canonical guest-request transaction genuinely creates a new unassigned
+`QUEUED` `RETRIEVAL` Task. That same transaction writes one deduplicated intent
+and per-registration delivery rows only for current exact-Location queue/Shift
+eligible Staff. The sender rechecks active User/session, membership,
+Organization/Location, explicit access, Employee/Supervisor role, ACTIVE Shift
+at the exact Location, registration/token version and still-unassigned queued Task
+before provider I/O. New registrations are not backfilled. Guest-ready,
+assignment, reassignment and general-operation native push remain unaccepted.
+
+MOB-020 must add dedicated provider-neutral Staff push registration, intent and
+delivery persistence; it must not reuse the external SMS/WhatsApp/Email
+`notifications` table or create a generic event/outbox platform. Registrations
+bind server-side to the exact authenticated `StaffAuthSession`, support
+multiple devices, and use ACTIVE plus terminal
+DISABLED/PROVIDER_INVALID/SUPERSEDED lifecycle semantics with atomic token
+rotation/account-switch supersession.
+Provider tokens are sensitive operational identifiers: the server retains the
+raw usable value under least privilege plus a versioned hash for equality; no
+token or hash enters logs, payloads, AuditEvent, analytics, errors or metric
+labels.
+
+Delivery uses PENDING, LEASED, RETRY_WAIT, PROVIDER_ACCEPTED, SUPPRESSED,
+PERMANENT_FAILURE and EXPIRED states. Atomic short claims commit a unique lease
+before external I/O; finalization is fenced by the exact lease token. TTL,
+attempts and exponential full-jitter retry are finite typed deployment policy,
+provider timeout is shorter than the lease, and no work starts after expiry.
+A crash or database failure after provider acceptance can cause a bounded
+duplicate attempt; exactly-once device display is not promised.
+
+The Android implementation sends directly through an FCM HTTP v1 adapter and
+may use Expo Notifications to obtain the native device token; Expo Push Service
+is not selected. Shared entities/contracts remain provider-neutral and admit a
+later direct APNs adapter. Payloads contain only schema version, push kind,
+opaque intent ID and Task-queue route intent with fixed generic EN/AR copy; no
+tenant, Location, Task/session, guest, vehicle, plate, phone, key, parking,
+handoff, payment, GPS, auth or provider secret is sent.
+
+MOB-020 owns backend persistence/contracts/worker/FCM/observability; MOB-021
+owns native permission/token registration/rotation/logout/channel integration;
+MOB-022 owns foreground/background/terminated tap/refetch proof. MOB-003 makes
+no code, dependency, Firebase/APNs project, credential, schema, migration,
+worker, Web Push, service-worker or Employee Web change.
+
+Full binding contract:
+`docs/decisions/DEC-073_NATIVE_PUSH_ARCHITECTURE.md`

@@ -106,16 +106,26 @@ Customer:
 
 Application-level notification abstraction.
 
-Initial channels:
+External guest/contact channels:
 
 - SMS
 - future WhatsApp adapter
+
+Employee Native push:
+
+- provider-neutral registration, intent, delivery and result concepts
+- direct FCM HTTP v1 adapter for the initial Android implementation
+- Expo Notifications native-device-token and client lifecycle boundary; Expo
+  Push Service is not selected
+- later direct APNs adapter compatibility without changing shared domain
+  concepts
+- best-effort attention only; canonical API polling/refetch remains truth
 
 For local development:
 
 - mock/logging provider
 
-Commercial provider selection is TBD.
+Commercial SMS/WhatsApp provider selection is TBD.
 
 ## Payments
 

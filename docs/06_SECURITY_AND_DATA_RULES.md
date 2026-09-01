@@ -90,6 +90,26 @@ fail-closed 503 behavior; process-local counters are never authoritative.
 
 Enterprise SSO is deferred until its approved later phase.
 
+## Native push
+
+Accepted DEC-073 makes Employee Native push a best-effort attention signal,
+never authentication, authorization, synchronization or mutation authority.
+The backend derives identity from the current `StaffAuthSession`, derives
+tenant/Location/role/Shift/Task eligibility from persisted facts when creating
+delivery rows and again before provider I/O, and suppresses ineligible sends.
+Every receipt or tap authenticates/restores, refetches canonical server state
+and requires a separate explicit protected command for any mutation.
+
+Provider tokens are sensitive operational identifiers. A raw usable value may
+exist only in dedicated least-privilege registration persistence because the
+sender needs it; its versioned hash is equality/uniqueness support, not a send
+substitute. Raw tokens, token hashes, provider credentials, Staff/session
+identity and domain/guest/vehicle data must not enter payloads, ordinary logs,
+AuditEvent, analytics, errors or metrics labels. Payloads use only the fixed
+generic EN/AR allowlist in DEC-073. Provider credentials remain deployment
+secrets, and push permission/delivery failure never weakens Employee workflows
+or canonical polling.
+
 ## Roles and authorization
 
 Follow least privilege.

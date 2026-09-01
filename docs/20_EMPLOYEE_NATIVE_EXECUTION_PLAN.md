@@ -18,9 +18,9 @@ The source planning file used to prepare this document is reference material,
 not repository authority. Its useful execution detail is retained only where it
 is consistent with current Accepted Decisions and direct repository evidence.
 
-This is a planning document. It does not authorize MOB-002 implementation,
-application scaffolding, dependency installation, database work, CI changes,
-Firebase provisioning, signing, or distribution.
+This is a planning document. The MOB-003 architecture synchronization does not
+authorize application scaffolding, dependency installation, database work, CI
+changes, Firebase provisioning, signing, distribution, or MOB-004 execution.
 
 ## 2. Program outcome and non-negotiable boundaries
 
@@ -114,8 +114,8 @@ MOB-009 proof-of-concept hard gate.
   workflow. This is not repository-level `DONE` under `docs/07_DEFINITION_OF_DONE.md`.
 - `DONE`: merged through the repository workflow with required CI/evidence.
 
-Current program status is MOB-001 `DONE`; MOB-002 is
-`DONE LOCALLY / PENDING COMMIT`; MOB-003 through MOB-027 are `NOT STARTED`.
+Current program status is MOB-001 and MOB-002 `DONE`; MOB-003 is
+`DONE LOCALLY / PENDING COMMIT`; MOB-004 through MOB-027 are `NOT STARTED`.
 
 ## 6. Batch map, gates, and progression
 
@@ -195,19 +195,18 @@ manual fallback, and camera cleanup; logout/revocation/purge; restart still
 logged out; and English/Arabic RTL/LTR behavior. FCM delivery is explicitly
 outside this hard gate.
 
-## 10. Decision and scope gates still open
+## 10. Decision and scope gates
 
-The following are deferred gates, not silently selected architecture:
+DEC-073 closes the native push architecture gate. The following remain
+deferred gates, not silently selected architecture:
 
-1. MOB-003: native push eligibility, persistence, delivery, lease/retry, and
-   safe-payload contract.
-2. MOB-011: no new production photo-byte upload/object-storage pipeline is
+1. MOB-011: no new production photo-byte upload/object-storage pipeline is
    included. If the pilot requires parity the current server cannot provide,
    approve a separate explicit scope/decision first.
-3. MOB-019: GPS is excluded from the first pilot by default unless a focused
+2. MOB-019: GPS is excluded from the first pilot by default unless a focused
    Accepted Decision includes it; whole-shift tracking remains prohibited.
-4. MOB-025: owner-approved SLOs and capacity thresholds.
-5. MOB-026: environment/provisioning details and named operational custody for
+3. MOB-025: owner-approved SLOs and capacity thresholds.
+4. MOB-026: environment/provisioning details and named operational custody for
    organization-controlled accounts/signing. DEC-071 ownership policy is
    Accepted; provisioning is later work and is not a POC blocker.
 
@@ -311,16 +310,16 @@ must respect high-contention ownership.
 
 ## Explicitly out of scope
 
-The anti-scope list in §12 is binding for this program. This canonicalization
-task itself changes only documentation and starts no MOB-002 implementation.
+The anti-scope list in §12 is binding for this program. The current MOB-003 task
+changes only documentation and starts no MOB-004 or push implementation.
 
 ## Ready-to-implement verdict
 
 **READY TO IMPLEMENT only where all stated dependencies are closed.** Native
 authentication architecture is Accepted by DEC-072, but MOB-007 still depends
-on MOB-005 and MOB-006. Native push remains `DECISION REQUIRED`: MOB-020 cannot
-begin until MOB-003 is Accepted. All other progression remains subject to the
-stated dependencies and gates.
+on MOB-005 and MOB-006. Native push architecture is Accepted by DEC-073, while
+MOB-020 still depends on MOB-018 and single migration ownership. All other
+progression remains subject to the stated dependencies and gates.
 
 # Batch 1 — Accepted architecture
 
@@ -380,7 +379,7 @@ stated dependencies and gates.
 
 - **TASK ID:** MOB-003
 - **TITLE:** Accept the native Push Architecture
-- **STATUS:** NOT STARTED
+- **STATUS:** DONE LOCALLY / PENDING COMMIT
 - **OBJECTIVE:** Accept provider-neutral device registration, notification eligibility, safe payload, persistence, delivery, retry/lease, revocation, privacy, and observability semantics.
 - **WHY:** DEC-070 is foreground Web notification behavior, not native push authority or infrastructure.
 - **DEPENDENCIES:** MOB-001; may research in parallel with MOB-002 but must be Accepted before MOB-020.
@@ -390,8 +389,8 @@ stated dependencies and gates.
 - **ARCHITECTURE INVARIANTS:** Backend determines eligibility from current persisted scope; push is replaceable provider adapter and never operational authority; polling/refresh remains truth.
 - **SECURITY INVARIANTS:** No guest/auth/handoff/payment secret or unnecessary PII in payloads; revoked/disabled/logged-out devices become ineligible; tap reauthorizes.
 - **EXPECTED FILE AREAS:** Focused decision file and synchronized docs only.
-- **DB IMPACT:** Expected later persistence, but exact shape is an MOB-003 decision; no DB change now.
-- **DEPENDENCY IMPACT:** Provider SDK/server dependency classes may be approved; no install now.
+- **DB IMPACT:** DEC-073 accepts dedicated Staff push registration, intent and delivery persistence for MOB-020; no DB change now.
+- **DEPENDENCY IMPACT:** Direct FCM server and Expo-compatible native notification dependency classes are approved behind adapters; no install now.
 - **ANDROID REQUIREMENTS:** FCM path, notification permission behavior, token rotation, app states, channels, and Doze/OEM limits addressed without promising delivery.
 - **IOS PORTABILITY:** Provider-neutral concepts and APNs-compatible adapter boundary; no FCM naming in shared contracts.
 - **REQUIRED IMPLEMENTATION PROOF:** Accepted focused DEC with eligibility matrix, state machine, idempotency/deduplication, lease race analysis, safe payload examples, failure/recovery and observability.
@@ -399,7 +398,7 @@ stated dependencies and gates.
 - **MANUAL/PHYSICAL DEVICE PROOF:** Deferred; define real-device expectations for MOB-021/022.
 - **VALIDATION COMMANDS:** Prettier check, plan/decision audit, `git diff --check`, no runtime diff.
 - **REVIEW RISKS:** Push as authority, cross-tenant notification, duplicate sends, stale token reuse, secret payload, unbounded retries, provider lock-in.
-- **DEFINITION OF DONE:** Native push DEC is Accepted and leaves MOB-020–022 no material delivery semantic to invent.
+- **DEFINITION OF DONE:** DEC-073 is Accepted and mirrored locally; repository-level DONE still requires commit/PR/CI/merge. MOB-020–022 have no material push semantic left to invent.
 - **RELATIVE SIZE:** Medium-to-large architecture/security decision.
 
 # Batch 2 — Repository and client foundation
@@ -838,13 +837,13 @@ stated dependencies and gates.
 - **OBJECTIVE:** Implement the Accepted MOB-003 provider-neutral registration persistence, eligibility composition, delivery, retry/lease, and observability backend.
 - **WHY:** Push needs durable, concurrency-safe backend ownership before clients register.
 - **DEPENDENCIES:** MOB-003 Accepted; MOB-018; coordinate single migration ownership.
-- **READ FIRST:** Accepted push DEC; DEC-007/014/023/024/063/070/071; notification/dispatch/authorization/observability/database patterns.
+- **READ FIRST:** DEC-073; DEC-007/014/023/024/063/070/071/072; notification/dispatch/authorization/observability/database patterns.
 - **IN SCOPE:** Exact Accepted schema/migration; registration/revocation endpoints; eligible-event composition; provider adapter; delivery worker/executor; dedupe; bounded retry/lease; telemetry.
 - **OUT OF SCOPE:** Client registration/UI/lifecycle, notification as authority, secret payloads, unapproved worker infrastructure, guaranteed delivery.
 - **ARCHITECTURE INVARIANTS:** Modular monolith and provider adapter; business event/eligibility separate from provider attempt; server state canonical.
 - **SECURITY INVARIANTS:** Current scope/role/device eligibility; safe payload; credentials server-only; logout/disable/revoke enforcement; authorization before mutation.
 - **EXPECTED FILE AREAS:** `apps/api` push/notification adapter/module, contracts, database schema/new migration/fixtures/tests, observability/runbook docs.
-- **DB IMPACT:** Expected and governed exactly by MOB-003; forward-only migration, FKs/unique/check/partial indexes/least privilege/invariant tests.
+- **DB IMPACT:** Add the exact DEC-073 registration, intent and delivery model; forward-only migration, FKs/unique/check/partial indexes/least privilege/invariant tests.
 - **DEPENDENCY IMPACT:** Only Accepted provider/server dependencies; pin, audit, and isolate behind adapter.
 - **ANDROID REQUIREMENTS:** FCM-compatible delivery path and token semantics without FCM concepts leaking into shared domain.
 - **IOS PORTABILITY:** APNs adapter can satisfy the same provider-neutral contracts later.
@@ -864,7 +863,7 @@ stated dependencies and gates.
 - **OBJECTIVE:** Register/revoke native installations and receive safe attention-only notifications end to end.
 - **WHY:** Backend delivery is useful only when device identity and Staff lifecycle are correctly bound.
 - **DEPENDENCIES:** MOB-020; organization-controlled Firebase provisioning available for the test environment.
-- **READ FIRST:** Accepted MOB-003; MOB-020 contracts; DEC-023/063/070/071; native auth/lifecycle adapters.
+- **READ FIRST:** DEC-073; MOB-020 contracts; DEC-023/063/070/071/072; native auth/lifecycle adapters.
 - **IN SCOPE:** Permission UX, provider token acquisition, authorized registration/rotation/revocation, logout/auth-change cleanup, receipt handler, authoritative refresh and safe route intent.
 - **OUT OF SCOPE:** Business mutation on receipt/tap, background data sync, sensitive payload, final terminated-state matrix assigned to MOB-022.
 - **ARCHITECTURE INVARIANTS:** Portable notification intent with platform adapter; every open refreshes/re-authorizes; polling remains fallback.
@@ -892,7 +891,7 @@ stated dependencies and gates.
 - **OBJECTIVE:** Prove deterministic, safe notification behavior across all app states and navigation/auth races.
 - **WHY:** Mobile notification bugs concentrate in background/terminated lifecycle and stale route context.
 - **DEPENDENCIES:** MOB-021.
-- **READ FIRST:** Accepted push DEC; DEC-063/070/071; native auth/router/notification adapters and Android lifecycle guidance recorded by implementation.
+- **READ FIRST:** DEC-073; DEC-063/070/071/072; native auth/router/notification adapters and Android lifecycle guidance recorded by implementation.
 - **IN SCOPE:** Foreground presentation/sound policy, background tap, cold start, locked/logged-out state, duplicate/stale intents, current-state refresh, permission/channel changes.
 - **OUT OF SCOPE:** Silent business execution, background mutation replay, exact-delivery promise, OTA.
 - **ARCHITECTURE INVARIANTS:** Notification intent is non-authoritative and idempotent; router/auth bootstrap orders safely; server state wins.
@@ -1077,16 +1076,18 @@ append-only history, test, and 300-line rules.
 ## 13. Program status and immediate next action
 
 - MOB-001: `DONE`
-- MOB-002: `DONE LOCALLY / PENDING COMMIT`
-- MOB-003 through MOB-027: `NOT STARTED`
-- Current gate: MOB-002 local documentation awaits commit/PR workflow.
-- Next task: `MOB-003 — Accept the Native Push Architecture`.
+- MOB-002: `DONE`
+- MOB-003: `DONE LOCALLY / PENDING COMMIT`
+- MOB-004 through MOB-027: `NOT STARTED`
+- Current gate: MOB-003 local documentation awaits commit/PR workflow.
+- Next task: `MOB-004 — Repository Architecture Gate and Mobile/Portable Boundaries`.
 
 ## Unresolved decisions
 
-- MOB-003 must settle push eligibility, exact persistence, registration,
-  retry/lease/concurrency, retention, safe payload, and provider boundaries
-  before MOB-020.
+- DEC-073 settles push eligibility, exact logical persistence, registration,
+  retry/lease/concurrency, retention, safe payload and provider boundaries for
+  MOB-020 through MOB-022. Exact bounded operational policy values remain
+  required deployment configuration rather than invented product semantics.
 - MOB-019 must accept GPS inclusion before location implementation. MOB-025
   requires owner-approved SLO/capacity thresholds. Any newly required photo-byte
   pipeline or release environment design needs its own accepted scope.
