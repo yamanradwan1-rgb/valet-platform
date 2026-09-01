@@ -13,10 +13,8 @@ import {
 import type { UseTaskQueueResult } from "../../features/task-queue/use-task-queue";
 import {
   createRetrievalAlertTracker,
-  observeRetrievalIdentity,
   observeRetrievalSnapshot,
 } from "../../features/retrieval-alert/retrieval-alert-tracker";
-import { subscribeEmployeePushIdentity } from "../../features/employee-web-push/employee-push-identity-bridge";
 import { attemptRetrievalTaskAlertAudio } from "../../features/retrieval-alert/retrieval-alert-audio";
 import {
   completeAlertSwipe,
@@ -79,10 +77,7 @@ export function RetrievalAlertBanner({
     resetGesture();
   };
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>): void => {
-    if (
-      gesture.current !== null &&
-      gesture.current.pointerId !== event.pointerId
-    ) {
+    if (gesture.current !== null && gesture.current.pointerId !== event.pointerId) {
       cancelGesture();
       return;
     }
@@ -145,16 +140,14 @@ export function RetrievalAlertBanner({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      style={
-        {
-          "--retrieval-alert-drag-y": `${dragOffsetY}px`,
-          "--retrieval-alert-opacity": Math.max(
-            0.55,
-            1 - Math.abs(dragOffsetY) / 120,
-          ),
-          touchAction: "pan-x pan-down pinch-zoom",
-        } as CSSProperties
-      }
+      style={{
+        "--retrieval-alert-drag-y": `${dragOffsetY}px`,
+        "--retrieval-alert-opacity": Math.max(
+          0.55,
+          1 - Math.abs(dragOffsetY) / 120,
+        ),
+        touchAction: "pan-x pan-down pinch-zoom",
+      } as CSSProperties}
     >
       <button
         className="min-w-0 flex-1 px-4 py-3 text-start"
@@ -220,14 +213,6 @@ export function EmployeeRetrievalAlert({
   const { dir, t } = useEmployeeI18n();
   const tracker = useRef(createRetrievalAlertTracker());
   const [alertTaskIds, setAlertTaskIds] = useState<readonly string[]>([]);
-
-  useEffect(
-    () =>
-      subscribeEmployeePushIdentity((identity) =>
-        observeRetrievalIdentity(tracker.current, identity),
-      ),
-    [],
-  );
 
   useEffect(() => {
     if (taskQueue.isHardStopped) {

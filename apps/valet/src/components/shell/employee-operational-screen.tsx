@@ -11,7 +11,6 @@ import {
 } from "./employee-operational-gate";
 import type { EndShiftPhase, StartShiftPhase } from "../../features/shift";
 import type { OperationalScopeResolution } from "../../features/staff-operational-context";
-import { EmployeePushPermissionCard } from "./employee-push-permission-card";
 
 export interface EmployeeOperationalScreenProps {
   readonly contextError: Error | null;
@@ -73,7 +72,6 @@ export function EmployeeOperationalScreen({
     return (
       <div className="min-h-screen bg-navy-2 flex items-center justify-center">
         <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-          <EmployeePushPermissionCard />
           <EndShiftRecoveryPanel
             onRetry={onRetryEndShift}
             onSignOut={onSignOut}
@@ -92,7 +90,6 @@ export function EmployeeOperationalScreen({
   return (
     <div className="min-h-screen bg-navy-2 flex items-center justify-center">
       <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-        <EmployeePushPermissionCard />
         <EmployeeOperationalGate
           model={gateModel}
           onDismissStartIntent={onDismissStartIntent}

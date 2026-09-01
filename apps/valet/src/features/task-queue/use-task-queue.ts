@@ -27,7 +27,6 @@ export interface UseTaskQueueResult {
   readonly isHardStopped: boolean;
   readonly isLoading: boolean;
   readonly isRefreshing: boolean;
-  readonly refresh: () => Promise<void>;
   readonly successfulSnapshotCount: number;
   readonly tasks: StaffTaskQueueItem[];
 }
@@ -140,7 +139,6 @@ export function useTaskQueue(options: UseTaskQueueOptions): UseTaskQueueResult {
       status === "authenticated" && locationId
         ? controllerState.isRefreshing
         : false,
-    refresh: () => controller.refresh(),
     successfulSnapshotCount:
       status === "authenticated" &&
       locationId !== null &&

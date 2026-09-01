@@ -43,7 +43,9 @@ export class TaskQueueController {
     return this.state;
   }
 
-  public activate(onStateChange: (state: TaskQueueState) => void): void {
+  public activate(
+    onStateChange: (state: TaskQueueState) => void,
+  ): void {
     this.isDestroyed = false;
     this.onStateChange = onStateChange;
   }
@@ -138,11 +140,6 @@ export class TaskQueueController {
 
   public handleOffline(): void {
     this.timer.stop();
-  }
-
-  public async refresh(): Promise<void> {
-    if (!this.isActiveScope()) return;
-    await this.executePoll(false, this.sessionGeneration, this.locationId!);
   }
 
   public destroy(): void {

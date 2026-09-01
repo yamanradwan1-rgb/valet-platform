@@ -4,7 +4,6 @@ import { employeeArabicScanHubDictionary } from "./dictionary-ar-scan-hub";
 import { employeeArabicScannerDictionary } from "./dictionary-ar-scanner";
 import { employeeArabicShiftDictionary } from "./dictionary-ar-shift";
 import { employeeArabicVehiclesDictionary } from "./dictionary-ar-vehicles";
-import { employeeArabicWebPushDictionary } from "./dictionary-ar-web-push";
 
 export const employeeArabicDictionary: EmployeeDictionary = {
   ...employeeArabicCheckInDictionary,
@@ -12,7 +11,6 @@ export const employeeArabicDictionary: EmployeeDictionary = {
   ...employeeArabicShiftDictionary,
   ...employeeArabicScannerDictionary,
   ...employeeArabicVehiclesDictionary,
-  ...employeeArabicWebPushDictionary,
   abortHandoff: "إلغاء التسليم",
   acceptAndPark: "قبول وبدء الإيقاف",
   acceptTask: "قبول المهمة",

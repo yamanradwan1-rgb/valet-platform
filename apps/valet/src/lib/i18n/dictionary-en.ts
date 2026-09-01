@@ -3,7 +3,6 @@ import { employeeEnglishScanHubDictionary } from "./dictionary-en-scan-hub";
 import { employeeEnglishScannerDictionary } from "./dictionary-en-scanner";
 import { employeeEnglishShiftDictionary } from "./dictionary-en-shift";
 import { employeeEnglishVehiclesDictionary } from "./dictionary-en-vehicles";
-import { employeeEnglishWebPushDictionary } from "./dictionary-en-web-push";
 
 export const employeeEnglishDictionary = {
   ...employeeEnglishCheckInDictionary,
@@ -11,7 +10,6 @@ export const employeeEnglishDictionary = {
   ...employeeEnglishScanHubDictionary,
   ...employeeEnglishScannerDictionary,
   ...employeeEnglishVehiclesDictionary,
-  ...employeeEnglishWebPushDictionary,
   abortHandoff: "Abort Handoff",
   acceptAndPark: "Accept & Park",
   acceptTask: "Accept Task",

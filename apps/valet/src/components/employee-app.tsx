@@ -3,11 +3,17 @@
 import { useEffect, useMemo, useState, type JSX } from "react";
 
 import type { Screen } from "../types/employee-ui";
-import { createEmployeeAccessActions } from "./shell/employee-access-actions";
+import {
+  createEmployeeAccessActions,
+} from "./shell/employee-access-actions";
 import { buildEmployeeAccessGateProps } from "./shell/employee-access-view";
-import { EmployeeAccessGate } from "./shell/employee-access-gate";
+import {
+  EmployeeAccessGate,
+} from "./shell/employee-access-gate";
 import { EmployeeLiveRouter } from "./shell/employee-live-router";
-import { EmployeeOperationalScreen } from "./shell/employee-operational-screen";
+import {
+  EmployeeOperationalScreen,
+} from "./shell/employee-operational-screen";
 import { EmployeePrototypeFrame } from "./shell/employee-prototype-frame";
 import {
   initialScopedWorkspace,
@@ -17,8 +23,12 @@ import {
   type EmployeeWorkspaceTargets,
   type WorkspaceIdentityInput,
 } from "./shell/employee-workspace";
-import { createEmployeeWorkspaceHandlers } from "./shell/employee-workspace-handlers";
-import { livePermittedScreens } from "./shell/employee-navigation";
+import {
+  createEmployeeWorkspaceHandlers,
+} from "./shell/employee-workspace-handlers";
+import {
+  livePermittedScreens,
+} from "./shell/employee-navigation";
 import { EmployeeActiveShell } from "./shell/employee-active-shell";
 import {
   selectStartableLocations,
@@ -31,8 +41,6 @@ import {
 } from "../features/shift";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
 import { useTaskQueue } from "../features/task-queue/use-task-queue";
-import { useEmployeeWebPush } from "../features/employee-web-push/employee-web-push-provider";
-import { logoutWithEmployeePushCleanup } from "../features/employee-web-push/employee-push-logout";
 
 export interface EmployeeAppProps {
   /**
@@ -46,7 +54,6 @@ export interface EmployeeAppProps {
 export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   const isPrototypeMode = mode === "prototype";
   const auth = useOptionalStaffAuth();
-  const employeePush = useEmployeeWebPush();
   const {
     resolution,
     response: operationalResponse,
@@ -124,12 +131,7 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   });
 
   const handleSignOut = async (): Promise<void> => {
-    if (auth) {
-      await logoutWithEmployeePushCleanup(
-        employeePush.cleanupBeforeLogout,
-        auth.logout,
-      );
-    }
+    await auth?.logout();
   };
 
   // DEC-066 §4: the End Shift controller lives at app level so an ambiguous
@@ -255,27 +257,27 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
       taskQueue={taskQueue}
     >
       <EmployeeLiveRouter
-        activeScope={liveScope}
-        effectiveScreen={effectiveScreen}
-        endShift={endShift}
-        endShiftPhase={endShiftPhase}
-        guestAccessTarget={targets.guestAccessTarget}
-        incidentTarget={targets.activeIncidentTarget}
-        nav={handlers.nav}
-        onAuthorizationLoss={revalidateOnAuthLoss}
-        onGuestAccessClose={handlers.closeGuestAccess}
-        onOpenGuestAccess={handlers.openGuestAccess}
-        onOpenIncident={handlers.openIncident}
-        onParkingComplete={handlers.completeParking}
-        onRetrievalComplete={handlers.completeRetrieval}
-        onSelectParkingTask={handlers.selectParkingTask}
-        onSelectRetrievalTask={handlers.selectRetrievalTask}
-        onStartParkingSuccess={handlers.startParkingSuccess}
-        parkingPayload={targets.activeParkingPayload}
-        parkingTarget={targets.activeParkingTarget}
-        retrievalTarget={targets.activeRetrievalTarget}
-        onRetryUncertainEndShift={retryUncertainEndShift}
-        taskQueue={taskQueue}
+          activeScope={liveScope}
+          effectiveScreen={effectiveScreen}
+          endShift={endShift}
+          endShiftPhase={endShiftPhase}
+          guestAccessTarget={targets.guestAccessTarget}
+          incidentTarget={targets.activeIncidentTarget}
+          nav={handlers.nav}
+          onAuthorizationLoss={revalidateOnAuthLoss}
+          onGuestAccessClose={handlers.closeGuestAccess}
+          onOpenGuestAccess={handlers.openGuestAccess}
+          onOpenIncident={handlers.openIncident}
+          onParkingComplete={handlers.completeParking}
+          onRetrievalComplete={handlers.completeRetrieval}
+          onSelectParkingTask={handlers.selectParkingTask}
+          onSelectRetrievalTask={handlers.selectRetrievalTask}
+          onStartParkingSuccess={handlers.startParkingSuccess}
+          parkingPayload={targets.activeParkingPayload}
+          parkingTarget={targets.activeParkingTarget}
+          retrievalTarget={targets.activeRetrievalTarget}
+          onRetryUncertainEndShift={retryUncertainEndShift}
+          taskQueue={taskQueue}
       />
     </EmployeeActiveShell>
   );
