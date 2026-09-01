@@ -3,6 +3,18 @@
 > Operational handoff snapshot only. This file is not a binding product/domain contract.
 > For current repository facts, GitHub wins. For accepted behavior, use the authority order in `AGENTS.md`, the Founder & Product Blueprint v1.0, binding docs, and Accepted decisions.
 
+## Employee Native Program
+
+The canonical Employee Native order, scope, gates, evidence, and status plan is
+[`docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`](20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md).
+
+- Program scope: exactly MOB-001 through MOB-027 in nine batches.
+- MOB-001: **DONE LOCALLY / PENDING COMMIT**.
+- MOB-002 through MOB-027: **NOT STARTED**.
+- Next task: **MOB-002 — Accept the native Staff authentication transport**.
+- No native implementation, scaffold, dependency, database, migration, CI,
+  Firebase, signing, or distribution work has started under this plan.
+
 ## Last Verified
 
 - Date: `2026-08-21`

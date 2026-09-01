@@ -3480,3 +3480,64 @@ Implementation is split into T2 `readyAt` guest-safe projection/contract, T3 Emp
 
 Full binding contract:
 `docs/decisions/DEC-070_RETRIEVAL_NOTIFICATION_MVP.md`
+
+---
+
+## DEC-071 — Mobile Platform and Repository Architecture
+
+Status: Accepted
+Date: 2026-09-01
+
+Decision:
+The VAYLET Employee native application will use the Expo SDK 57 generation
+with React Native 0.86, Hermes and React Native New Architecture; Expo
+Development Builds are required for native-capability testing and Expo Go is
+not production evidence. Expo Router is the navigation mechanism. Continuous
+Native Generation is the default: `android/` and `ios/` are generated,
+short-lived native projects that are not hand-maintained in Git unless a later
+Accepted Decision explicitly changes that policy; customization should use app
+configuration/config plugins and narrow platform adapters.
+
+The application belongs at `apps/valet-native` inside the existing pnpm/Turbo
+monorepo as a sibling of `apps/valet`. Android is implemented, physically
+tested and piloted first with Expo SDK 57's compile/target API 36, but business
+and client workflow logic must remain platform-neutral. The same Expo
+application is intended to produce the later iOS app, and an iOS
+configuration/build smoke is required before final Android pilot completion.
+Provider-neutral domain/database/portable concepts must not use Android- or
+FCM-specific naming.
+
+Employee Web remains available through development and the controlled mobile
+pilot. Native-primary cutover and Web retirement are later evidence-based owner
+decisions; no WebView wrapper is permitted. Shareable workflow/client logic may
+later move behind a pure-TypeScript portable boundary, but UI remains
+platform-specific and MOB-001 creates no package or application scaffold. The
+existing API/database/contracts remain authoritative and require no mobile
+rewrite. DEC-063 remains binding; no generic durable offline synchronization,
+mutation outbox or automatic background replay is introduced.
+
+Android and iOS use the stable product identifier `com.vaylet.employee`.
+Android supports a product minimum of Android 11 / API 30 and compiles/targets
+API 36. Initial validation covers Android 11, 13, 15 and 16 across Samsung,
+Pixel/reference behavior and representative mid-range physical hardware;
+emulators cannot replace required physical proof for native capabilities.
+
+Google Play, Firebase, Android signing/upload credentials and future Apple
+distribution are organization-controlled, with accountable ownership,
+recovery and least-privilege policy. Credentials and signing secrets do not
+belong in the mobile application, source or Git. Operational provisioning and
+signing configuration remain later push/iOS/release work and do not block
+scaffolding.
+
+Expo Updates / OTA delivery is disabled for the initial Android pilot. Pilot
+releases use deterministic native binaries with bundled JavaScript; any later
+OTA adoption requires a focused Accepted Decision governing runtime
+compatibility, rollout/rollback, channels, native/JavaScript compatibility and
+emergency disablement.
+
+No runtime code, dependency, database, migration, auth, push, camera/QR, GPS,
+photo-upload, signing/distribution implementation or architecture-gate work is
+authorized by this decision.
+
+Full binding contract:
+`docs/decisions/DEC-071_MOBILE_PLATFORM_REPOSITORY_ARCHITECTURE.md`

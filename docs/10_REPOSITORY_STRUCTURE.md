@@ -1,7 +1,7 @@
 # Repository Structure
 
 Status: Binding  
-Version: 0.2
+Version: 0.3
 
 ```text
 valet-platform/
@@ -107,6 +107,31 @@ valet-platform/
 
 The Founder & Product Blueprint v1.0 PDF is the newest approved product source supplied by the project owner. Until the binary PDF is committed under `docs/reference`, `docs/15_BLUEPRINT_V1_REBASELINE.md` is the repository-native implementation bridge.
 
+## Accepted mobile application boundary
+
+DEC-071 accepts this mobile addition to the existing monorepo:
+
+```text
+apps/
+├── valet/          # existing Employee Web fallback
+└── valet-native/   # VAYLET Employee native application
+```
+
+`apps/valet-native` is a sibling of `apps/valet`; it is not a separate
+repository and does not fork the API, database or shared contracts. MOB-001
+does not create the directory. Workspace/Turbo wiring and application
+scaffolding belong to MOB-005.
+
+The native application uses Expo Continuous Native Generation. Its generated
+`android/` and `ios/` projects are short-lived build products rather than
+hand-maintained Git sources unless a later Accepted Decision changes that
+policy.
+
+Portable Employee workflow/client logic may later move to a focused pure
+TypeScript package, provisionally `packages/employee-client`, but MOB-006 owns
+the final boundary, name and extraction. Web and React Native UI remain
+platform-specific; `packages/ui` is not assumed to be cross-platform.
+
 ## Current module ownership
 
 The API application composes four feature modules directly:
@@ -133,6 +158,7 @@ base-main-derived `scripts/architecture-line-baseline.json`: new authored code
 over 300 lines and growth of grandfathered debt fail the same gate.
 
 ### auth
+
 Staff authentication, session/token lifecycle, Origin policy and the shared
 staff-principal resolution boundary.
 
@@ -143,26 +169,32 @@ Runtime modules must not import them; the tool uses the administrative migration
 connection boundary to create new staff identities under DEC-029.
 
 ### anti-abuse
+
 Shared durable staff-login and guest-access anti-abuse services, limiter-key
 derivation and trusted client-address resolution.
 
 ### guest-access
+
 Staff issue/revoke and guest-safe session-read API/application behavior. The
 existing `/v1/staff/check-in/.../guest-access/...` paths remain public route
 contracts and do not place ownership in Check-In.
 
 ### check-in-api
+
 Staff Check-In API/application behavior only, including intake, vehicle
 identity, condition evidence/completion, `CHECKING_IN -> AWAITING_PARKING`, and
 Check-In-specific KPI enrichment.
 
 ### organizations
+
 Organization/Company tenant boundary and Company-level defaults as typed configuration is introduced.
 
 ### locations
+
 Physical operating Locations and Location-owned operational context such as timezone/currency plus approved typed policy overrides.
 
 ### staff
+
 Organization memberships, roles and location access.
 
 Current tenant membership roles are:
@@ -175,49 +207,63 @@ Current tenant membership roles are:
 Venue Client and VAYLET Super Admin persistence are not to be invented inside this module without their dedicated accepted schema decisions.
 
 ### shifts
+
 Employee shift lifecycle at a Location.
 
 ### customers
+
 Minimal Guest/customer contact model and secure access relationship where implemented. No mandatory persistent customer account in sellable MVP.
 
 ### vehicles
+
 Reusable vehicle identity with multi-country plate assumptions. OCR/ANPR remains assistive input with confirm/edit/manual fallback.
 
 ### valet-sessions
+
 Core physical-custody aggregate and explicit legal state transitions.
 
 Hybrid Dispatch assignment/acceptance/reassignment is not a ValetSession state.
 
 ### vehicle-photos
+
 Private condition/evidence metadata and object-storage integration. Photo requirement is policy-driven and optional by default.
 
 ### parking
+
 Parking Zones/Spots and occupancy/location rules. Exact Zone/Map persistence is introduced by focused tasks.
 
 ### keys
+
 QR Key Slots and key-custody/location rules. Append-only custody-event persistence may be added in the focused Operations task.
 
 ### retrieval
+
 RetrievalRequest lifecycle, duplicate-request protection and customer/staff request semantics.
 
 Task assignment/reassignment belongs to a separate Dispatch/Task responsibility when that module is introduced; do not place assignment state in ValetSession or RetrievalRequest merely because a dedicated module does not exist yet.
 
 ### handoff
+
 Dynamic one-time QR / 4-digit pickup-code verification, supervisor override controls and secure completion authorization.
 
 ### notifications
+
 SMS/WhatsApp/email abstraction and delivery records.
 
 ### payments
+
 Payment lifecycle and provider adapters. Focused later work may add validation, tips, cash reconciliation and refunds without putting those states into ValetSession.
 
 ### incidents
+
 Operational exceptions/disputes and basic incident evidence integrity. Full ClaimShield remains later work.
 
 ### audit
+
 Append-only Black Box/audit history.
 
 ### reporting
+
 Read/query layer for operational Dashboard metrics/reports.
 
 ## Planned focused capabilities do not require premature folders

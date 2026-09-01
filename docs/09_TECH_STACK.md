@@ -1,7 +1,7 @@
 # Locked Tech Stack
 
 Status: Binding  
-Version: 0.1
+Version: 0.2
 
 This document defines technologies the AI agent may not replace without an accepted decision.
 
@@ -22,9 +22,33 @@ This document defines technologies the AI agent may not replace without an accep
 - explicit domain services for state-machine behavior
 - no external workflow/state-machine platform required
 
+## Mobile application
+
+### VAYLET Employee native app
+
+- repository location: `apps/valet-native` as a sibling of `apps/valet`
+- Expo SDK 57 generation with React Native 0.86
+- Hermes enabled
+- React Native New Architecture enabled
+- Expo Router
+- Expo Development Builds / real native binaries for native-capability proof;
+  Expo Go is not production evidence
+- Expo Continuous Native Generation; generated `android/` and `ios/`
+  projects are not hand-maintained in Git without a later Accepted Decision
+- Android-first delivery with minimum Android 11 / API 30 and compile/target
+  API 36
+- Android application/package ID: `com.vaylet.employee`
+- iOS bundle ID: `com.vaylet.employee` from the same application architecture
+- Expo Updates / OTA delivery disabled for the initial Android pilot;
+  deterministic native binaries bundle their JavaScript
+
+Employee Web remains operational through native development and the controlled
+Android pilot. Native-primary cutover is evidence-gated, and Web retirement is
+a separate later decision.
+
 ## Web applications
 
-### Valet Employee App
+### Employee Web
 
 - Next.js
 - React
