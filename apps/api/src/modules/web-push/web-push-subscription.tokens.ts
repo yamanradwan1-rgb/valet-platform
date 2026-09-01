@@ -1,1 +1,0 @@
-export const WEB_PUSH_SERVER_CONFIG = Symbol("WEB_PUSH_SERVER_CONFIG");

@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import argon2 from "argon2";
@@ -16,7 +16,6 @@ import {
   type StaffPrincipal,
   type StaffPrincipalResolver,
 } from "./staff-principal";
-import { hashStaffCredential } from "./staff-auth-credential";
 
 export const STAFF_PASSWORD_VERIFIER = Symbol("STAFF_PASSWORD_VERIFIER");
 
@@ -114,6 +113,13 @@ function generateCredential(prefix: "vsa1." | "vsr1."): string {
   return `${prefix}${randomBytes(32).toString("base64url")}`;
 }
 
+function credentialHash(
+  type: "access" | "refresh",
+  credential: string,
+): string {
+  return `staff-${type}-sha256:v1:${createHash("sha256").update(credential, "utf8").digest("hex")}`;
+}
+
 async function inTransaction<T>(
   pool: PostgresPool,
   action: (transaction: PostgresTransaction) => Promise<T>,
@@ -171,7 +177,7 @@ export class DatabaseStaffPrincipalResolver implements StaffPrincipalResolver {
          AND clock_timestamp() < session.access_expires_at
          AND clock_timestamp() < session.absolute_expires_at
          AND staff_user.status = 'ACTIVE'`,
-      [hashStaffCredential("access", accessToken)],
+      [credentialHash("access", accessToken)],
     );
     const userId = result.rows[0]?.user_id;
     if (result.rowCount !== 1 || userId === undefined) {
@@ -254,7 +260,7 @@ export class StaffAuthService {
         [
           sessionId,
           user.id,
-          hashStaffCredential("access", accessToken),
+          credentialHash("access", accessToken),
           databaseNow,
         ],
       );
@@ -265,7 +271,7 @@ export class StaffAuthService {
         [
           refreshId,
           sessionId,
-          hashStaffCredential("refresh", refreshToken),
+          credentialHash("refresh", refreshToken),
           databaseNow,
         ],
       );
@@ -331,7 +337,7 @@ export class StaffAuthService {
          INNER JOIN users AS staff_user ON staff_user.id = session.user_id
          WHERE refresh.token_hash = $1
          FOR UPDATE OF refresh, session, staff_user`,
-        [hashStaffCredential("refresh", refreshToken)],
+        [credentialHash("refresh", refreshToken)],
       );
       const credential = locked.rows[0];
       if (credential === undefined) throw new StaffAuthenticationError();
@@ -379,7 +385,7 @@ export class StaffAuthService {
         [
           replacementId,
           credential.session_id,
-          hashStaffCredential("refresh", replacementRefreshToken),
+          credentialHash("refresh", replacementRefreshToken),
           credential.generation + 1,
           databaseNow,
           credential.absolute_expires_at,
@@ -406,7 +412,7 @@ export class StaffAuthService {
                      FLOOR(EXTRACT(EPOCH FROM (absolute_expires_at - $3::timestamptz)))::integer
                    ) AS refresh_cookie_max_age_seconds`,
         [
-          hashStaffCredential("access", accessToken),
+          credentialHash("access", accessToken),
           credential.session_id,
           databaseNow,
         ],
@@ -436,7 +442,7 @@ export class StaffAuthService {
          INNER JOIN staff_auth_sessions AS session ON session.id = refresh.session_id
          WHERE refresh.token_hash = $1
          FOR UPDATE OF refresh, session`,
-        [hashStaffCredential("refresh", refreshToken)],
+        [credentialHash("refresh", refreshToken)],
       );
       const sessionId = locked.rows[0]?.session_id;
       if (sessionId !== undefined) {
