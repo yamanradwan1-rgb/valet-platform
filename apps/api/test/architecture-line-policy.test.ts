@@ -1,6 +1,8 @@
+import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
+import { promisify } from "node:util";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -19,6 +21,7 @@ import {
 } from "../../../scripts/architecture-line-policy.mjs";
 
 const temporaryRoots: string[] = [];
+const executeFile = promisify(execFile);
 
 function baseline(
   grandfathered: Array<{ path: string; maxLines: number }> = [],
@@ -37,6 +40,7 @@ function content(lines: number, newline = "\n") {
 async function fixture(files: Record<string, string>) {
   const root = await mkdtemp(resolve(tmpdir(), "valet-line-policy-"));
   temporaryRoots.push(root);
+  await executeFile("git", ["init", "--quiet"], { cwd: root });
   for (const [path, value] of Object.entries(files)) {
     const target = resolve(root, path);
     await mkdir(dirname(target), { recursive: true });

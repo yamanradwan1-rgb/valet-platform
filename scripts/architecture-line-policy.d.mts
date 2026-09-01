@@ -1,3 +1,5 @@
+import type { RepositoryOwnership } from "./architecture-repository-files.mjs";
+
 export interface GrandfatherEntry {
   readonly maxLines: number;
   readonly path: string;
@@ -25,6 +27,7 @@ export function isExcludedRepositoryPath(repositoryPath: string): boolean;
 export function isAuthoredRepositoryPath(repositoryPath: string): boolean;
 export function collectAuthoredFiles(
   repositoryRoot: string,
+  ownership?: RepositoryOwnership,
 ): Promise<Map<string, string>>;
 export function parseLineBaseline(content: string): LineBaseline;
 export function evaluateLinePolicy(
@@ -46,4 +49,5 @@ export function checkLinePolicy(
     sourceCommit: string,
     paths: string[],
   ) => Promise<Map<string, string | undefined>>,
+  currentFiles?: ReadonlyMap<string, string>,
 ): Promise<LinePolicyResult>;

@@ -180,4 +180,11 @@ Repository enforcement is owned by `pnpm architecture:check`, with the focused
 line policy in `scripts/architecture-line-policy.mjs` and the deterministic
 grandfather baseline in `scripts/architecture-line-baseline.json`.
 
+Current-working-tree discovery follows Git's repository-ownership semantics.
+It covers tracked authored files plus new non-ignored authored files before
+`git add`, excludes Git-ignored local/generated material, and intentionally
+handles deleted tracked files without treating a missing working-tree file as
+an unreadable source. The historical grandfather baseline remains commit-based
+and independent from current-working-tree discovery.
+
 Any future exception requires an explicit Accepted decision. An agent may not grant itself an exception.

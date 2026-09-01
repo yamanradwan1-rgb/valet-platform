@@ -1,13 +1,18 @@
+import { execFile } from "node:child_process";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
+import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
 import { checkArchitecture } from "../../../scripts/architecture-check.mjs";
 
+const executeFile = promisify(execFile);
+
 async function runFixture(files: Record<string, string>) {
   const fixtureRoot = await mkdtemp(resolve(tmpdir(), "valet-architecture-"));
   try {
+    await executeFile("git", ["init", "--quiet"], { cwd: fixtureRoot });
     const fixtureFiles = {
       "scripts/architecture-line-baseline.json": JSON.stringify({
         grandfathered: [],
@@ -89,7 +94,7 @@ describe("architecture check", () => {
     const result = await runFixture(
       source(
         "modules/check-in-api",
-        'export * from "..\\auth\\..\\guest-access\\guest";',
+        'export * from "..\\\\auth\\\\..\\\\guest-access\\\\guest";',
       ),
     );
     expect(result.code).toBe(1);

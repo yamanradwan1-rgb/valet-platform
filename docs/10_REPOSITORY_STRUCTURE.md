@@ -127,10 +127,25 @@ The native application uses Expo Continuous Native Generation. Its generated
 hand-maintained Git sources unless a later Accepted Decision changes that
 policy.
 
+Repository architecture gates use Git's repository-ownership view: tracked
+authored source and new non-ignored authored source are covered, while ignored
+local/generated material is not. The generated paths are precisely
+`apps/valet-native/android/**` and `apps/valet-native/ios/**`; the rest of
+`apps/valet-native/**`, including `src/**`, remains authored source.
+
 Portable Employee workflow/client logic may later move to a focused pure
 TypeScript package, provisionally `packages/employee-client`, but MOB-006 owns
 the final boundary, name and extraction. Web and React Native UI remain
 platform-specific; `packages/ui` is not assumed to be cross-platform.
+
+The architecture gate enforces module-import separation before those paths are
+created: portable Employee client code cannot import Web, Native, API/server,
+Next.js, React DOM, React Native, Expo, Node-runtime, Android, or iOS
+implementation dependencies; Native cannot import Employee Web or API/server
+implementation; and Employee Web cannot import Native implementation. The
+portable package's DOM-free type/global environment is completed by its
+DOM-free TypeScript configuration in MOB-006, because import inspection alone
+cannot prove absence of globals such as `window` or `document`.
 
 ## Current module ownership
 

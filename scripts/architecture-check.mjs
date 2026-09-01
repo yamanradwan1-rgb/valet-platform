@@ -1,67 +1,60 @@
-import { readdir, readFile } from "node:fs/promises";
-import { dirname, relative, resolve, sep } from "node:path";
+import { dirname, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { importViolation } from "./architecture-import-policy.mjs";
+import {
+  readJavaScriptEscape,
+  readTemplateLiteral,
+  skipLineComment,
+} from "./architecture-js-literal.mjs";
+import {
+  checkLinePolicy,
+  isAuthoredRepositoryPath,
+} from "./architecture-line-policy.mjs";
+import {
+  collectRepositoryOwnedPaths,
+  isGeneratedNativePath,
+  readRepositoryOwnedTextFiles,
+} from "./architecture-repository-files.mjs";
 
-import { checkLinePolicy } from "./architecture-line-policy.mjs";
-
-const SOURCE_DIRECTORY = ["apps", "api", "src"];
-const SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
 const RETIRED_SYMBOLS = [
   "CheckInApiModule",
   "CHECK_IN_POSTGRES_POOL",
   "GuestCheckInController",
 ];
 
-function toRepositoryPath(repositoryRoot, targetPath) {
-  return relative(repositoryRoot, targetPath).split(sep).join("/");
+function isWorkspaceManifestPath(path) {
+  return /^(apps|packages)\/[^/]+\/package\.json$/.test(path);
 }
 
-function normalizeSpecifier(specifier) {
-  return specifier.replace(/[\\/]+/g, sep);
-}
-
-function isRelativeSpecifier(specifier) {
-  return specifier.startsWith(".");
-}
-
-function classifyArchitectureArea(repositoryPath) {
-  if (repositoryPath.startsWith("apps/api/src/common/")) {
-    return "common";
+async function loadWorkspacePackageRoots(repositoryRoot, ownership) {
+  const roots = new Map();
+  const manifests = await readRepositoryOwnedTextFiles(
+    repositoryRoot,
+    ownership,
+    isWorkspaceManifestPath,
+  );
+  for (const [manifestPath, content] of manifests) {
+    let manifest;
+    try {
+      manifest = JSON.parse(content);
+    } catch (error) {
+      throw new Error(
+        `${manifestPath}: cannot parse workspace package identity: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+    if (typeof manifest?.name !== "string" || manifest.name.length === 0) {
+      throw new Error(`${manifestPath}: workspace package name is missing`);
+    }
+    if (roots.has(manifest.name)) {
+      throw new Error(
+        `${manifestPath}: duplicate workspace package ${manifest.name}`,
+      );
+    }
+    roots.set(manifest.name, posix.dirname(manifestPath));
   }
-  if (repositoryPath.startsWith("apps/api/src/modules/anti-abuse/")) {
-    return "anti-abuse";
-  }
-  if (repositoryPath.startsWith("apps/api/src/modules/auth/")) {
-    return "auth";
-  }
-  if (repositoryPath.startsWith("apps/api/src/modules/guest-access/")) {
-    return "guest-access";
-  }
-  if (repositoryPath.startsWith("apps/api/src/modules/check-in-api/")) {
-    return "check-in";
-  }
-  if (repositoryPath.startsWith("apps/api/src/modules/")) {
-    return "module";
-  }
-  return undefined;
-}
-
-function violationForEdge(sourceArea, targetArea) {
-  if (sourceArea === "common" && targetArea !== "common") {
-    return "common must not import application modules";
-  }
-
-  const forbiddenTargets = {
-    "anti-abuse": new Set(["auth", "guest-access", "check-in"]),
-    auth: new Set(["guest-access", "check-in"]),
-    "guest-access": new Set(["check-in"]),
-    "check-in": new Set(["guest-access", "anti-abuse"]),
-  };
-
-  if (forbiddenTargets[sourceArea]?.has(targetArea)) {
-    return `${sourceArea} must not import ${targetArea}`;
-  }
-  return undefined;
+  return roots;
 }
 
 export function collectModuleSpecifiers(source) {
@@ -69,19 +62,16 @@ export function collectModuleSpecifiers(source) {
   const tokens = tokenizeModuleSyntax(source);
   for (let index = 0; index < tokens.length; index += 1) {
     const token = tokens[index];
-    if (token.kind !== "identifier") {
-      continue;
-    }
+    if (token.kind !== "identifier") continue;
     if (token.value === "import") {
       const specifier = importSpecifier(tokens, index + 1);
-      if (specifier !== undefined) {
-        specifiers.push(specifier);
-      }
+      if (specifier !== undefined) specifiers.push(specifier);
     } else if (token.value === "export") {
       const specifier = exportSpecifier(tokens, index + 1);
-      if (specifier !== undefined) {
-        specifiers.push(specifier);
-      }
+      if (specifier !== undefined) specifiers.push(specifier);
+    } else if (token.value === "require") {
+      const specifier = callSpecifier(tokens, index + 1);
+      if (specifier !== undefined) specifiers.push(specifier);
     }
   }
   return specifiers;
@@ -95,46 +85,33 @@ function tokenizeModuleSyntax(source) {
     const next = source[index + 1];
     if (/\s/.test(character)) {
       index += 1;
-      continue;
-    }
-    if (character === "/" && next === "/") {
+    } else if (character === "/" && next === "/") {
       index = skipLineComment(source, index + 2);
-      continue;
-    }
-    if (character === "/" && next === "*") {
+    } else if (character === "/" && next === "*") {
       index = skipBlockComment(source, index + 2);
-      continue;
-    }
-    if (character === '"' || character === "'") {
-      const stringToken = readStringToken(source, index, character);
-      tokens.push({ kind: "string", value: stringToken.value });
-      index = stringToken.end;
-      continue;
-    }
-    if (character === "`") {
-      index = skipTemplateLiteral(source, index + 1);
-      continue;
-    }
-    if (/[A-Za-z_$]/.test(character)) {
+    } else if (character === '"' || character === "'") {
+      const token = readStaticLiteral(source, index, character);
+      tokens.push({ kind: "string", value: token.value });
+      index = token.end;
+    } else if (character === "`") {
+      const token = readTemplateLiteral(source, index);
+      if (token.value !== undefined) {
+        tokens.push({ kind: "string", value: token.value });
+      }
+      index = token.end;
+    } else if (/[A-Za-z_$]/.test(character)) {
       const start = index;
       index += 1;
       while (index < source.length && /[A-Za-z0-9_$]/.test(source[index])) {
         index += 1;
       }
       tokens.push({ kind: "identifier", value: source.slice(start, index) });
-      continue;
+    } else {
+      tokens.push({ kind: "punctuator", value: character });
+      index += 1;
     }
-    tokens.push({ kind: "punctuator", value: character });
-    index += 1;
   }
   return tokens;
-}
-
-function skipLineComment(source, index) {
-  while (index < source.length && source[index] !== "\n") {
-    index += 1;
-  }
-  return index;
 }
 
 function skipBlockComment(source, index) {
@@ -147,30 +124,16 @@ function skipBlockComment(source, index) {
   return Math.min(index + 2, source.length);
 }
 
-function skipTemplateLiteral(source, index) {
-  while (index < source.length) {
-    if (source[index] === "\\") {
-      index += 2;
-    } else if (source[index] === "`") {
-      return index + 1;
-    } else {
-      index += 1;
-    }
-  }
-  return index;
-}
-
-function readStringToken(source, index, quote) {
+function readStaticLiteral(source, start, quote) {
+  let index = start + 1;
   let value = "";
-  index += 1;
   while (index < source.length) {
     const character = source[index];
-    if (character === quote) {
-      return { end: index + 1, value };
-    }
-    if (character === "\\" && index + 1 < source.length) {
-      value += character + source[index + 1];
-      index += 2;
+    if (character === quote) return { end: index + 1, value };
+    if (character === "\\") {
+      const escape = readJavaScriptEscape(source, index);
+      value += escape.value;
+      index = escape.end;
     } else {
       value += character;
       index += 1;
@@ -180,23 +143,14 @@ function readStringToken(source, index, quote) {
 }
 
 function importSpecifier(tokens, start) {
-  if (tokens[start]?.kind === "string") {
-    return tokens[start].value;
-  }
-  if (tokens[start]?.value === "(") {
-    return undefined;
-  }
-
+  if (tokens[start]?.kind === "string") return tokens[start].value;
+  if (tokens[start]?.value === "(") return callSpecifier(tokens, start);
   let depth = 0;
   for (let index = start; index < tokens.length; index += 1) {
     const token = tokens[index];
     if (token.value === "{" || token.value === "[" || token.value === "(") {
       depth += 1;
-    } else if (
-      token.value === "}" ||
-      token.value === "]" ||
-      token.value === ")"
-    ) {
+    } else if (["}", "]", ")"].includes(token.value)) {
       depth = Math.max(0, depth - 1);
     } else if (depth === 0 && token.value === ";") {
       return undefined;
@@ -212,11 +166,15 @@ function importSpecifier(tokens, start) {
   return undefined;
 }
 
+function callSpecifier(tokens, start) {
+  return tokens[start]?.value === "(" && tokens[start + 1]?.kind === "string"
+    ? tokens[start + 1].value
+    : undefined;
+}
+
 function exportSpecifier(tokens, start) {
   let index = start;
-  if (tokens[index]?.value === "type") {
-    index += 1;
-  }
+  if (tokens[index]?.value === "type") index += 1;
   if (tokens[index]?.value === "{") {
     let depth = 1;
     index += 1;
@@ -227,88 +185,96 @@ function exportSpecifier(tokens, start) {
     }
   } else if (tokens[index]?.value === "*") {
     index += 1;
-    if (tokens[index]?.value === "as") {
-      index += 2;
-    }
+    if (tokens[index]?.value === "as") index += 2;
   } else {
     return undefined;
   }
-  if (tokens[index]?.value === "from" && tokens[index + 1]?.kind === "string") {
-    return tokens[index + 1].value;
-  }
-  return undefined;
+  return tokens[index]?.value === "from" && tokens[index + 1]?.kind === "string"
+    ? tokens[index + 1].value
+    : undefined;
 }
 
 export async function checkArchitecture(repositoryRoot, historicalLoader) {
-  const sourceRoot = resolve(repositoryRoot, ...SOURCE_DIRECTORY);
-  const files = await collectSourceFiles(sourceRoot);
   const violations = [];
   const warnings = [];
-
-  for (const filePath of files) {
-    const source = await readFile(filePath, "utf8");
-    const repositoryPath = toRepositoryPath(repositoryRoot, filePath);
-    const sourceArea = classifyArchitectureArea(repositoryPath);
-    for (const symbol of RETIRED_SYMBOLS) {
-      if (new RegExp(`\\b${symbol}\\b`).test(source)) {
-        violations.push(
-          `${repositoryPath}: retired architecture symbol ${symbol}`,
-        );
-      }
-    }
-
-    if (sourceArea === undefined) {
-      continue;
-    }
-
-    for (const specifier of collectModuleSpecifiers(source)) {
-      if (!isRelativeSpecifier(specifier)) {
-        continue;
-      }
-      const targetPath = resolve(
-        dirname(filePath),
-        normalizeSpecifier(specifier),
-      );
-      const targetArea = classifyArchitectureArea(
-        toRepositoryPath(repositoryRoot, targetPath),
-      );
-      const rule =
-        targetArea === undefined
-          ? undefined
-          : violationForEdge(sourceArea, targetArea);
-      if (rule !== undefined) {
-        violations.push(`${repositoryPath}: ${specifier} violates ${rule}`);
-      }
-    }
+  try {
+    const ownership = await collectRepositoryOwnedPaths(repositoryRoot);
+    const workspacePackageRoots = await loadWorkspacePackageRoots(
+      repositoryRoot,
+      ownership,
+    );
+    const authoredFiles = await readRepositoryOwnedTextFiles(
+      repositoryRoot,
+      ownership,
+      isAuthoredRepositoryPath,
+    );
+    violations.push(
+      ...checkGeneratedNativeOwnership(ownership.paths),
+      ...checkImportBoundaries(authoredFiles, workspacePackageRoots),
+      ...checkRetiredSymbols(authoredFiles),
+    );
+    const linePolicy = await checkLinePolicy(
+      repositoryRoot,
+      resolve(repositoryRoot, "scripts", "architecture-line-baseline.json"),
+      historicalLoader,
+      authoredFiles,
+    );
+    violations.push(...linePolicy.violations);
+    warnings.push(...linePolicy.warnings);
+  } catch (error) {
+    violations.push(error instanceof Error ? error.message : String(error));
   }
-
-  const linePolicy = await checkLinePolicy(
-    repositoryRoot,
-    resolve(repositoryRoot, "scripts", "architecture-line-baseline.json"),
-    historicalLoader,
-  );
-  violations.push(...linePolicy.violations);
-  warnings.push(...linePolicy.warnings);
   return { violations: violations.sort(), warnings: warnings.sort() };
 }
 
-async function collectSourceFiles(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const entryPath = resolve(directory, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await collectSourceFiles(entryPath)));
-    } else if (entry.isFile() && SOURCE_EXTENSIONS.has(extension(entry.name))) {
-      files.push(entryPath);
-    }
-  }
-  return files.sort();
+function checkGeneratedNativeOwnership(repositoryPaths) {
+  return repositoryPaths
+    .filter(isGeneratedNativePath)
+    .map(
+      (path) =>
+        `${path}: generated Native project content must not be repository-owned`,
+    );
 }
 
-function extension(fileName) {
-  const lastDot = fileName.lastIndexOf(".");
-  return lastDot === -1 ? "" : fileName.slice(lastDot);
+function checkImportBoundaries(files, workspacePackageRoots) {
+  const violations = [];
+  for (const [sourcePath, source] of files) {
+    let specifiers;
+    try {
+      specifiers = collectModuleSpecifiers(source);
+    } catch (error) {
+      violations.push(
+        `${sourcePath}: cannot inspect module specifiers: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      continue;
+    }
+    for (const specifier of specifiers) {
+      const rule = importViolation(
+        sourcePath,
+        specifier,
+        workspacePackageRoots,
+      );
+      if (rule !== undefined) {
+        violations.push(`${sourcePath}: ${specifier} violates ${rule}`);
+      }
+    }
+  }
+  return violations;
+}
+
+function checkRetiredSymbols(files) {
+  const violations = [];
+  for (const [path, source] of files) {
+    if (!/^apps\/api\/src\/.*\.tsx?$/.test(path)) continue;
+    for (const symbol of RETIRED_SYMBOLS) {
+      if (new RegExp(`\\b${symbol}\\b`).test(source)) {
+        violations.push(`${path}: retired architecture symbol ${symbol}`);
+      }
+    }
+  }
+  return violations;
 }
 
 async function main() {
@@ -318,21 +284,16 @@ async function main() {
   if (rootOptionIndex !== -1 && requestedRoot === undefined) {
     throw new Error("--root requires a repository path");
   }
-
   const repositoryRoot = resolve(
     requestedRoot ?? dirname(fileURLToPath(import.meta.url)),
     requestedRoot === undefined ? ".." : ".",
   );
   const { violations, warnings } = await checkArchitecture(repositoryRoot);
-  for (const warning of warnings) {
-    console.warn(`WARNING ${warning}`);
-  }
+  for (const warning of warnings) console.warn(`WARNING ${warning}`);
   for (const violation of violations) {
     console.error(`ARCHITECTURE VIOLATION ${violation}`);
   }
-  if (violations.length > 0) {
-    process.exitCode = 1;
-  }
+  if (violations.length > 0) process.exitCode = 1;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

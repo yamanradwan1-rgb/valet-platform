@@ -1,7 +1,15 @@
-import { readdir, readFile } from "node:fs/promises";
-import { isAbsolute, posix, relative, resolve, sep } from "node:path";
+import { readFile } from "node:fs/promises";
+import { isAbsolute } from "node:path";
 
 import { loadHistoricalBaselineFiles } from "./architecture-line-baseline.mjs";
+import {
+  collectRepositoryOwnedPaths,
+  isGeneratedNativePath,
+  normalizeRepositoryPath,
+  readRepositoryOwnedTextFiles,
+} from "./architecture-repository-files.mjs";
+
+export { normalizeRepositoryPath } from "./architecture-repository-files.mjs";
 
 export const AUTHORED_EXTENSIONS = new Set([
   ".ts",
@@ -35,11 +43,8 @@ export function countPhysicalLines(content) {
   return lines.at(-1) === "" ? lines.length - 1 : lines.length;
 }
 
-export function normalizeRepositoryPath(value) {
-  return posix.normalize(value.replaceAll("\\", "/"));
-}
-
 export function isExcludedRepositoryPath(repositoryPath) {
+  if (isGeneratedNativePath(repositoryPath)) return true;
   return normalizeRepositoryPath(repositoryPath)
     .split("/")
     .some((segment) => EXCLUDED_SEGMENTS.has(segment));
@@ -54,30 +59,14 @@ export function isAuthoredRepositoryPath(repositoryPath) {
   return AUTHORED_EXTENSIONS.has(extension);
 }
 
-export async function collectAuthoredFiles(repositoryRoot) {
-  const files = new Map();
-  await collectDirectory(repositoryRoot, repositoryRoot, files);
-  return new Map(
-    [...files].sort(([left], [right]) => comparePaths(left, right)),
+export async function collectAuthoredFiles(repositoryRoot, ownership) {
+  const repositoryOwnership =
+    ownership ?? (await collectRepositoryOwnedPaths(repositoryRoot));
+  return readRepositoryOwnedTextFiles(
+    repositoryRoot,
+    repositoryOwnership,
+    isAuthoredRepositoryPath,
   );
-}
-
-async function collectDirectory(repositoryRoot, directory, files) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  for (const entry of entries.sort((left, right) =>
-    comparePaths(left.name, right.name),
-  )) {
-    const entryPath = resolve(directory, entry.name);
-    const repositoryPath = normalizeRepositoryPath(
-      relative(repositoryRoot, entryPath).split(sep).join("/"),
-    );
-    if (isExcludedRepositoryPath(repositoryPath)) continue;
-    if (entry.isDirectory()) {
-      await collectDirectory(repositoryRoot, entryPath, files);
-    } else if (entry.isFile() && isAuthoredRepositoryPath(repositoryPath)) {
-      files.set(repositoryPath, await readFile(entryPath, "utf8"));
-    }
-  }
 }
 
 export function parseLineBaseline(content) {
@@ -262,10 +251,11 @@ export async function checkLinePolicy(
   repositoryRoot,
   baselinePath,
   historicalLoader = loadHistoricalBaselineFiles,
+  currentFiles,
 ) {
   try {
     const [files, baselineContent] = await Promise.all([
-      collectAuthoredFiles(repositoryRoot),
+      currentFiles ?? collectAuthoredFiles(repositoryRoot),
       readFile(baselinePath, "utf8"),
     ]);
     const baseline = parseLineBaseline(baselineContent);

@@ -114,8 +114,8 @@ MOB-009 proof-of-concept hard gate.
   workflow. This is not repository-level `DONE` under `docs/07_DEFINITION_OF_DONE.md`.
 - `DONE`: merged through the repository workflow with required CI/evidence.
 
-Current program status is MOB-001 and MOB-002 `DONE`; MOB-003 is
-`DONE LOCALLY / PENDING COMMIT`; MOB-004 through MOB-027 are `NOT STARTED`.
+Current program status is MOB-001 through MOB-003 `DONE`; MOB-004 is
+`DONE LOCALLY / PENDING COMMIT`; MOB-005 through MOB-027 are `NOT STARTED`.
 
 ## 6. Batch map, gates, and progression
 
@@ -353,7 +353,7 @@ progression remains subject to the stated dependencies and gates.
 
 - **TASK ID:** MOB-002
 - **TITLE:** Accept the native Staff authentication transport
-- **STATUS:** DONE LOCALLY / PENDING COMMIT
+- **STATUS:** DONE
 - **OBJECTIVE:** Accept the exact native login, refresh, secure-storage, rotation, replay, restore, logout, revocation, purge, and device-loss contract while reusing StaffAuthSession.
 - **WHY:** DEC-023’s HttpOnly cookie transport is browser-specific and cannot be improvised in native code.
 - **DEPENDENCIES:** MOB-001.
@@ -379,7 +379,7 @@ progression remains subject to the stated dependencies and gates.
 
 - **TASK ID:** MOB-003
 - **TITLE:** Accept the native Push Architecture
-- **STATUS:** DONE LOCALLY / PENDING COMMIT
+- **STATUS:** DONE
 - **OBJECTIVE:** Accept provider-neutral device registration, notification eligibility, safe payload, persistence, delivery, retry/lease, revocation, privacy, and observability semantics.
 - **WHY:** DEC-070 is foreground Web notification behavior, not native push authority or infrastructure.
 - **DEPENDENCIES:** MOB-001; may research in parallel with MOB-002 but must be Accepted before MOB-020.
@@ -407,7 +407,7 @@ progression remains subject to the stated dependencies and gates.
 
 - **TASK ID:** MOB-004
 - **TITLE:** Repository Architecture Gate and Mobile/Portable Boundaries
-- **STATUS:** NOT STARTED
+- **STATUS:** DONE LOCALLY / PENDING COMMIT
 - **OBJECTIVE:** Establish a truthful tracked repository baseline and enforce native/portable import and file-structure boundaries.
 - **WHY:** The current scanner recursively inspects the local filesystem, including Git-ignored reference material, so its result is not a truthful tracked-repository gate.
 - **DEPENDENCIES:** MOB-001; coordinate with MOB-002/003 documentation but do not wait for implementation.
@@ -1077,10 +1077,11 @@ append-only history, test, and 300-line rules.
 
 - MOB-001: `DONE`
 - MOB-002: `DONE`
-- MOB-003: `DONE LOCALLY / PENDING COMMIT`
-- MOB-004 through MOB-027: `NOT STARTED`
-- Current gate: MOB-003 local documentation awaits commit/PR workflow.
-- Next task: `MOB-004 — Repository Architecture Gate and Mobile/Portable Boundaries`.
+- MOB-003: `DONE`
+- MOB-004: `DONE LOCALLY / PENDING COMMIT`
+- MOB-005 through MOB-027: `NOT STARTED`
+- Current gate: MOB-004 is locally complete and awaits commit/PR workflow.
+- Next task: `MOB-005 — Expo Native Application Foundation`.
 
 ## Unresolved decisions
 

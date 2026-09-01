@@ -16,3 +16,5 @@ uploads/
 *.local
 *.tsbuildinfo
 .turbo/
+apps/valet-native/android/
+apps/valet-native/ios/
