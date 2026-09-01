@@ -7,54 +7,6 @@ export const webPushPresentationTypeSchema = z.enum([
 export const webPushAudienceSchema = z.enum(["EMPLOYEE", "GUEST"]);
 export const webPushLocaleSchema = z.enum(["en", "ar"]);
 
-const employeePayloadSchema = z
-  .object({
-    audience: z.literal("EMPLOYEE"),
-    body: z.string().min(1).max(160),
-    direction: z.enum(["ltr", "rtl"]),
-    identity: z.string().uuid(),
-    locale: webPushLocaleSchema,
-    presentationType: z.literal("EMPLOYEE_RETRIEVAL_REQUESTED"),
-    route: z.literal("TASKS"),
-    title: z.string().min(1).max(80),
-    version: z.literal(1),
-  })
-  .strict();
-
-const guestPayloadSchema = z
-  .object({
-    audience: z.literal("GUEST"),
-    body: z.string().min(1).max(160),
-    direction: z.enum(["ltr", "rtl"]),
-    identity: z
-      .string()
-      .regex(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/i,
-      ),
-    locale: webPushLocaleSchema,
-    presentationType: z.literal("GUEST_VEHICLE_READY"),
-    route: z.literal("GUEST_HOME"),
-    title: z.string().min(1).max(80),
-    version: z.literal(1),
-  })
-  .strict();
-
-export const webPushPayloadSchema = z
-  .discriminatedUnion("presentationType", [
-    employeePayloadSchema,
-    guestPayloadSchema,
-  ])
-  .superRefine((payload, context) => {
-    const expectedDirection = payload.locale === "ar" ? "rtl" : "ltr";
-    if (payload.direction !== expectedDirection) {
-      context.addIssue({
-        code: "custom",
-        message: "Web Push locale and direction do not match.",
-        path: ["direction"],
-      });
-    }
-  });
-
 const canonicalBase64UrlTail = "AEIMQUYcgkosw048";
 const webPushAuthSchema = z
   .string()
@@ -155,7 +107,6 @@ export type WebPushLocale = z.infer<typeof webPushLocaleSchema>;
 export type WebPushPresentationType = z.infer<
   typeof webPushPresentationTypeSchema
 >;
-export type WebPushPayload = z.infer<typeof webPushPayloadSchema>;
 export type WebPushSubscriptionRequest = z.infer<
   typeof webPushSubscriptionRequestSchema
 >;

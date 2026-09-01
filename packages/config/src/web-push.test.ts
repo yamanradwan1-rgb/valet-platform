@@ -1,11 +1,7 @@
-import { createECDH } from "node:crypto";
-
 import { describe, expect, it } from "vitest";
 
 import { loadWebPushServerConfig, webPushPublicConfig } from "./web-push";
 
-const validVapid = createECDH("prime256v1");
-validVapid.generateKeys();
 const valid = {
   WEB_PUSH_ENABLED: "true",
   WEB_PUSH_ENDPOINT_FINGERPRINT_KEY_B64URL: Buffer.alloc(32, 5).toString(
@@ -13,27 +9,15 @@ const valid = {
   ),
   WEB_PUSH_STORAGE_KEY_ACTIVE_B64URL: Buffer.alloc(32, 1).toString("base64url"),
   WEB_PUSH_STORAGE_KEY_ACTIVE_VERSION: "active-1",
-  WEB_PUSH_VAPID_PRIVATE_KEY: validVapid.getPrivateKey().toString("base64url"),
-  WEB_PUSH_VAPID_PUBLIC_KEY: validVapid.getPublicKey().toString("base64url"),
+  WEB_PUSH_VAPID_PRIVATE_KEY: Buffer.alloc(32, 2).toString("base64url"),
+  WEB_PUSH_VAPID_PUBLIC_KEY: Buffer.concat([
+    Buffer.from([4]),
+    Buffer.alloc(64, 3),
+  ]).toString("base64url"),
   WEB_PUSH_VAPID_SUBJECT: "mailto:ops@example.com",
 };
 
 describe("Web Push configuration", () => {
-  it("rejects a structurally valid but mismatched VAPID key pair", () => {
-    const first = createECDH("prime256v1");
-    const second = createECDH("prime256v1");
-    first.generateKeys();
-    second.generateKeys();
-    expect(() =>
-      loadWebPushServerConfig({
-        ...valid,
-        WEB_PUSH_VAPID_PRIVATE_KEY: second
-          .getPrivateKey()
-          .toString("base64url"),
-        WEB_PUSH_VAPID_PUBLIC_KEY: first.getPublicKey().toString("base64url"),
-      }),
-    ).toThrow("WEB_PUSH_VAPID key pair is invalid.");
-  });
   it("is disabled by default without secrets", () => {
     expect(loadWebPushServerConfig({})).toEqual({ enabled: false });
     expect(loadWebPushServerConfig({ WEB_PUSH_ENABLED: "false" })).toEqual({

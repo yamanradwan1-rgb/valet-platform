@@ -16,7 +16,6 @@ import { ShiftModule } from "./modules/shifts/shift.module";
 import { StaffModule } from "./modules/staff/staff.module";
 import { TrackingModule } from "./modules/tracking/tracking.module";
 import { WebPushSubscriptionModule } from "./modules/web-push/web-push-subscription.module";
-import { WebPushDeliveryModule } from "./modules/web-push-delivery/web-push-delivery.module";
 
 @Module({
   imports: [
@@ -35,7 +34,6 @@ import { WebPushDeliveryModule } from "./modules/web-push-delivery/web-push-deli
     RetrievalModule,
     TrackingModule,
     WebPushSubscriptionModule,
-    WebPushDeliveryModule,
   ],
   controllers: [AppController],
 })

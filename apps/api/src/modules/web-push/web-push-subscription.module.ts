@@ -22,7 +22,6 @@ import { WEB_PUSH_SERVER_CONFIG } from "./web-push-subscription.tokens";
     WebPushSubscriptionService,
     { provide: WEB_PUSH_SERVER_CONFIG, useFactory: loadWebPushServerConfig },
   ],
-  exports: [WEB_PUSH_SERVER_CONFIG],
 })
 export class WebPushSubscriptionModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
