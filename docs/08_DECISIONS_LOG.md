@@ -3541,3 +3541,60 @@ authorized by this decision.
 
 Full binding contract:
 `docs/decisions/DEC-071_MOBILE_PLATFORM_REPOSITORY_ARCHITECTURE.md`
+
+---
+
+## DEC-072 — Native Staff Authentication Architecture
+
+Status: Accepted
+Date: 2026-09-02
+
+Decision:
+Employee Native uses dedicated strict-JSON auth routes at
+`POST /v1/staff/auth/native/login`, `/refresh` and `/logout`. Those routes
+delegate to the existing `StaffAuthService`, `StaffAuthSession`, User and
+refresh-credential lineage; they create no second User/session authority and
+require no database change. Authentication still yields only `{ userId }`, and
+current Organization, Location, membership, role, Shift, Task ownership and
+command authorization remain authoritative server facts.
+
+Native access credentials use the existing exact Bearer mechanism and are held
+only in process memory. Native refresh credentials are exchanged only in the
+dedicated route JSON bodies over HTTPS and are stored durably only behind the
+DEC-071 platform secure-storage adapter. No raw credential may enter ordinary
+storage, offline queues, logs, URLs, navigation, analytics, crash metadata or
+push payloads. No compiled client secret, package identity, installation or
+device identifier becomes Staff authentication authority.
+
+DEC-023 rotation, one-current-credential integrity, replay-family revocation,
+absolute expiry, disabled-User handling and idempotent session logout remain
+unchanged. One process coalesces refresh. A lost rotation response is initially
+transient, but authoritative retry may produce replay/revocation and require
+login; there is no reuse grace. Secure replacement must succeed before the new
+access credential is published, otherwise the client fails closed, blocks
+restore, purges identity state and best-effort revokes the new session.
+
+Logout immediately blocks old-identity work and independently records local
+restore blocking, secure deletion and confirmed server revocation. Identity
+change purges all operational context and transient state. A non-secret local
+installation generation prevents any secure credential surviving reinstall
+from silently restoring an old identity; it is never sent as authority.
+
+The existing Web routes retain their exact-Origin requirement and host-only
+`Secure`, `HttpOnly`, `SameSite=Strict` refresh cookie. Native routes do not
+forge Origin, accept the Web cookie, weaken CORS or expose browser refresh
+credentials to JavaScript. Production native traffic is HTTPS-only and Android
+release builds must disallow cleartext; certificate pinning is not required.
+
+Safe reads may retry once after successful coalesced refresh. The generic auth
+layer never blindly replays protected mutations; ambiguous outcomes continue
+to require canonical rehydration and command-specific idempotency/version rules
+under DEC-063. MOB-007 owns implementation and the automated/physical-device
+security evidence enumerated in the focused decision.
+
+No runtime code, route, contract, dependency, schema, migration, Expo scaffold,
+SecureStore implementation, Web auth change or MOB-003 work is part of this
+decision task.
+
+Full binding contract:
+`docs/decisions/DEC-072_NATIVE_STAFF_AUTHENTICATION_ARCHITECTURE.md`

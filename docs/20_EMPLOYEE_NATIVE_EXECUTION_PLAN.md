@@ -2,7 +2,7 @@
 
 Status: Canonical execution plan  
 Program: Employee Native migration  
-Last synchronized: 2026-09-01  
+Last synchronized: 2026-09-02
 Scope: MOB-001 through MOB-027
 
 ## 1. Authority and use
@@ -70,11 +70,11 @@ concept.
 ## 4. Security, authentication, offline, camera, and push invariants
 
 Native authentication must reuse the current StaffAuthSession family and
-current persisted authorization. MOB-002 must first accept the exact native
-refresh transport, SecureStore boundary, rotation serialization, replay,
-logout, revocation, app-restart, device-loss, and purge contract. Access tokens
-remain memory-only. Long-lived raw refresh material may exist only in the
-Accepted native secure-storage boundary. Passwords, access tokens, refresh
+current persisted authorization. Accepted DEC-072 locks the exact dedicated
+native JSON transport, SecureStore boundary, rotation serialization, replay,
+logout, revocation, app-restart, reinstall, device-loss, and purge contract.
+Access tokens remain memory-only. Long-lived raw refresh material may exist
+only in the Accepted native secure-storage boundary. Passwords, access tokens, refresh
 tokens, token hashes, pickup codes, Dynamic QR proofs, guest tokens, and payment
 secrets never enter logs, analytics, URLs, navigation state, ordinary storage,
 or offline queues.
@@ -114,21 +114,21 @@ MOB-009 proof-of-concept hard gate.
   workflow. This is not repository-level `DONE` under `docs/07_DEFINITION_OF_DONE.md`.
 - `DONE`: merged through the repository workflow with required CI/evidence.
 
-Current program status is MOB-001 `DONE LOCALLY / PENDING COMMIT`; MOB-002
-through MOB-027 are `NOT STARTED`.
+Current program status is MOB-001 `DONE`; MOB-002 is
+`DONE LOCALLY / PENDING COMMIT`; MOB-003 through MOB-027 are `NOT STARTED`.
 
 ## 6. Batch map, gates, and progression
 
-| Batch | Tasks | Exit gate |
-| --- | --- | --- |
-| 1 — Accepted architecture | MOB-001–MOB-003 | Platform, native auth, and native push Decisions are Accepted |
-| 2 — Foundation | MOB-004–MOB-006 | Repository/mobile boundaries and reproducible native/portable foundation are green |
-| 3 — Proof of concept | MOB-007–MOB-009 | Physical Android POC hard gate passes in a Development Build |
-| 4 — Intake and parking | MOB-010–MOB-012 | Check-in, vehicle/condition, parking, and key-custody parity proven |
-| 5 — Retrieval, release, shift | MOB-013–MOB-015 | Retrieval through secure release plus Shift parity proven |
-| 6 — Supporting Employee UX | MOB-016–MOB-018 | Directory, incident/guest access, localization, accessibility parity proven |
-| 7 — Optional tracking and push | MOB-019–MOB-021 | Accepted tracking boundary and end-to-end attention-only push proven |
-| 8 — Lifecycle and operations | MOB-022–MOB-024 | Lifecycle, failure recovery, observability, and runbook gate passes |
+| Batch                              | Tasks           | Exit gate                                                                                 |
+| ---------------------------------- | --------------- | ----------------------------------------------------------------------------------------- |
+| 1 — Accepted architecture          | MOB-001–MOB-003 | Platform, native auth, and native push Decisions are Accepted                             |
+| 2 — Foundation                     | MOB-004–MOB-006 | Repository/mobile boundaries and reproducible native/portable foundation are green        |
+| 3 — Proof of concept               | MOB-007–MOB-009 | Physical Android POC hard gate passes in a Development Build                              |
+| 4 — Intake and parking             | MOB-010–MOB-012 | Check-in, vehicle/condition, parking, and key-custody parity proven                       |
+| 5 — Retrieval, release, shift      | MOB-013–MOB-015 | Retrieval through secure release plus Shift parity proven                                 |
+| 6 — Supporting Employee UX         | MOB-016–MOB-018 | Directory, incident/guest access, localization, accessibility parity proven               |
+| 7 — Optional tracking and push     | MOB-019–MOB-021 | Accepted tracking boundary and end-to-end attention-only push proven                      |
+| 8 — Lifecycle and operations       | MOB-022–MOB-024 | Lifecycle, failure recovery, observability, and runbook gate passes                       |
 | 9 — Proof, release, pilot, cutover | MOB-025–MOB-027 | Full quality gate, signed distribution, controlled pilot, and owner cutover decision pass |
 
 Progression is gate-based, not calendar-based. Indicative relative ranges are:
@@ -199,16 +199,15 @@ outside this hard gate.
 
 The following are deferred gates, not silently selected architecture:
 
-1. MOB-002: native Staff authentication transport and SecureStore lifecycle.
-2. MOB-003: native push eligibility, persistence, delivery, lease/retry, and
+1. MOB-003: native push eligibility, persistence, delivery, lease/retry, and
    safe-payload contract.
-3. MOB-011: no new production photo-byte upload/object-storage pipeline is
+2. MOB-011: no new production photo-byte upload/object-storage pipeline is
    included. If the pilot requires parity the current server cannot provide,
    approve a separate explicit scope/decision first.
-4. MOB-019: GPS is excluded from the first pilot by default unless a focused
+3. MOB-019: GPS is excluded from the first pilot by default unless a focused
    Accepted Decision includes it; whole-shift tracking remains prohibited.
-5. MOB-025: owner-approved SLOs and capacity thresholds.
-6. MOB-026: environment/provisioning details and named operational custody for
+4. MOB-025: owner-approved SLOs and capacity thresholds.
+5. MOB-026: environment/provisioning details and named operational custody for
    organization-controlled accounts/signing. DEC-071 ownership policy is
    Accepted; provisioning is later work and is not a POC blocker.
 
@@ -261,6 +260,9 @@ The following are deferred gates, not silently selected architecture:
   `com.vaylet.employee`, API 30 product floor/API 36 target, Android-first/iOS
   shared architecture, OTA disabled, organization-controlled release ownership,
   and Employee Web fallback are locked by DEC-071.
+- Dedicated native JSON Staff login/refresh/logout routes, memory-only access,
+  secure-storage-only refresh, rotation/replay recovery, identity purge and Web
+  transport non-regression are locked by DEC-072.
 - Server domain, authorization, concurrency, financial, custody, and audit
   authority is retained. No task in this plan may reinterpret that boundary.
 
@@ -314,10 +316,11 @@ task itself changes only documentation and starts no MOB-002 implementation.
 
 ## Ready-to-implement verdict
 
-**DECISION REQUIRED for native authentication implementation and later push
-implementation.** MOB-002 is ready for decision work only. MOB-007 cannot begin
-until MOB-002 is Accepted; MOB-020 cannot begin until MOB-003 is Accepted; all
-other progression remains subject to the stated dependencies and gates.
+**READY TO IMPLEMENT only where all stated dependencies are closed.** Native
+authentication architecture is Accepted by DEC-072, but MOB-007 still depends
+on MOB-005 and MOB-006. Native push remains `DECISION REQUIRED`: MOB-020 cannot
+begin until MOB-003 is Accepted. All other progression remains subject to the
+stated dependencies and gates.
 
 # Batch 1 — Accepted architecture
 
@@ -325,7 +328,7 @@ other progression remains subject to the stated dependencies and gates.
 
 - **TASK ID:** MOB-001
 - **TITLE:** Mobile Platform and Repository Architecture
-- **STATUS:** DONE LOCALLY / PENDING COMMIT
+- **STATUS:** DONE
 - **OBJECTIVE:** Accept the native platform, repository placement, runtime generation, product identifiers, ownership, OTA, support, and fallback boundaries.
 - **WHY:** All later native work needs one stable platform and repository contract.
 - **DEPENDENCIES:** Owner architecture decisions; no earlier MOB task.
@@ -344,14 +347,14 @@ other progression remains subject to the stated dependencies and gates.
 - **MANUAL/PHYSICAL DEVICE PROOF:** None for this documentation task.
 - **VALIDATION COMMANDS:** `corepack pnpm exec prettier --check docs/08_DECISIONS_LOG.md docs/09_TECH_STACK.md docs/10_REPOSITORY_STRUCTURE.md docs/decisions/DEC-071_MOBILE_PLATFORM_REPOSITORY_ARCHITECTURE.md`; targeted `git diff --check`.
 - **REVIEW RISKS:** Hidden runtime work, unresolved owner values, conflict between focused DEC and log mirror.
-- **DEFINITION OF DONE:** Local MOB-001 docs satisfy owner decisions; repository-level DONE still requires commit/PR/CI/merge.
+- **DEFINITION OF DONE:** DEC-071 and the canonical execution plan were committed and merged through the repository workflow.
 - **RELATIVE SIZE:** Medium documentation decision.
 
 ## MOB-002 — Accept the native Staff authentication transport
 
 - **TASK ID:** MOB-002
 - **TITLE:** Accept the native Staff authentication transport
-- **STATUS:** NOT STARTED
+- **STATUS:** DONE LOCALLY / PENDING COMMIT
 - **OBJECTIVE:** Accept the exact native login, refresh, secure-storage, rotation, replay, restore, logout, revocation, purge, and device-loss contract while reusing StaffAuthSession.
 - **WHY:** DEC-023’s HttpOnly cookie transport is browser-specific and cannot be improvised in native code.
 - **DEPENDENCIES:** MOB-001.
@@ -361,7 +364,7 @@ other progression remains subject to the stated dependencies and gates.
 - **ARCHITECTURE INVARIANTS:** Existing StaffAuthSession family and `{ userId }` principal; persisted authorization; no tenant/role claims as authority; one portable client contract with platform storage adapter.
 - **SECURITY INVARIANTS:** Access memory-only; refresh only in accepted secure storage; rotation/replay fail closed; logout/revocation/identity change purge; secrets never logged or queued.
 - **EXPECTED FILE AREAS:** Focused `docs/decisions/DEC-*`, decision log, security/stack/schema mirrors only if the Accepted contract requires them.
-- **DB IMPACT:** Decision must state whether existing persistence is sufficient; no DB change in MOB-002.
+- **DB IMPACT:** DEC-072 confirms existing persistence is sufficient; no DB change in MOB-002.
 - **DEPENDENCY IMPACT:** Decision records allowed Expo secure-storage dependency class; installs nothing.
 - **ANDROID REQUIREMENTS:** Android Keystore-backed Expo SecureStore behavior, process death, reinstall/device-lock/error behavior, and API 30 floor addressed.
 - **IOS PORTABILITY:** Keychain-backed adapter and equivalent lifecycle semantics designed from day one.
@@ -370,7 +373,7 @@ other progression remains subject to the stated dependencies and gates.
 - **MANUAL/PHYSICAL DEVICE PROOF:** None; identify required MOB-007 device proof.
 - **VALIDATION COMMANDS:** Prettier check, plan/decision audit, `git diff --check`, no runtime diff.
 - **REVIEW RISKS:** Raw refresh exposure, two simultaneous refresh winners, replay-family revocation drift, Web regression, client authority fields.
-- **DEFINITION OF DONE:** Focused native auth DEC is Accepted and mirrored; MOB-007 has no material auth semantic left to invent.
+- **DEFINITION OF DONE:** DEC-072 is Accepted and mirrored locally; repository-level DONE still requires commit/PR/CI/merge. MOB-007 has no material auth semantic left to invent.
 - **RELATIVE SIZE:** Medium security decision.
 
 ## MOB-003 — Accept the native Push Architecture
@@ -1073,16 +1076,14 @@ append-only history, test, and 300-line rules.
 
 ## 13. Program status and immediate next action
 
-- MOB-001: `DONE LOCALLY / PENDING COMMIT`
-- MOB-002 through MOB-027: `NOT STARTED`
-- Current gate: MOB-001 local documentation awaits commit/PR workflow.
-- Next task after MOB-001 is committed and the branch workflow is ready:
-  `MOB-002 — Accept the native Staff authentication transport`.
+- MOB-001: `DONE`
+- MOB-002: `DONE LOCALLY / PENDING COMMIT`
+- MOB-003 through MOB-027: `NOT STARTED`
+- Current gate: MOB-002 local documentation awaits commit/PR workflow.
+- Next task: `MOB-003 — Accept the Native Push Architecture`.
 
 ## Unresolved decisions
 
-- MOB-002 must settle native refresh transport, SecureStore lifecycle, replay,
-  purge, and restore semantics before MOB-007.
 - MOB-003 must settle push eligibility, exact persistence, registration,
   retry/lease/concurrency, retention, safe payload, and provider boundaries
   before MOB-020.

@@ -9,9 +9,10 @@ The canonical Employee Native order, scope, gates, evidence, and status plan is
 [`docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`](20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md).
 
 - Program scope: exactly MOB-001 through MOB-027 in nine batches.
-- MOB-001: **DONE LOCALLY / PENDING COMMIT**.
-- MOB-002 through MOB-027: **NOT STARTED**.
-- Next task: **MOB-002 — Accept the native Staff authentication transport**.
+- MOB-001: **DONE**.
+- MOB-002: **DONE LOCALLY / PENDING COMMIT**.
+- MOB-003 through MOB-027: **NOT STARTED**.
+- Next task: **MOB-003 — Accept the Native Push Architecture**.
 - No native implementation, scaffold, dependency, database, migration, CI,
   Firebase, signing, or distribution work has started under this plan.
 

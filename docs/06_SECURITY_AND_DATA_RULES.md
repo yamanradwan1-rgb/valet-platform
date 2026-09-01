@@ -73,6 +73,14 @@ membership, Organization, Location, role and permission remain server-resolved
 authorization facts. Alternate client identity headers never override the
 bearer credential and are not an authentication convention.
 
+Accepted DEC-072 adds a separate native JSON transport under
+`/v1/staff/auth/native/*` without changing that browser boundary. Native access
+tokens are memory-only, and native refresh credentials may be stored only
+behind the platform secure-storage adapter; native routes neither use the Web
+cookie nor treat browser Origin, device metadata or a compiled client secret as
+authentication authority. Both transports reuse the same `StaffAuthSession`,
+rotation, replay, revocation and current server authorization authority.
+
 Password-only sessions do not assert MFA. Production Company Admin and VAYLET
 Super Admin capabilities requiring MFA remain unavailable. VAL-004M implements
 accepted DEC-024 as the shared PostgreSQL-backed anti-abuse boundary for staff
