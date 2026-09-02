@@ -1,0 +1,43 @@
+import { describe, expect, it } from "vitest";
+import manifest from "../package.json";
+
+const forbiddenDependencies = [
+  "@valet/ui",
+  "@valet/employee-client",
+  "expo-camera",
+  "expo-location",
+  "expo-notifications",
+  "expo-secure-store",
+  "expo-updates",
+  "next",
+  "react-dom",
+  "react-native-web",
+];
+
+describe("Native package contract", () => {
+  it("uses Expo Router as the entry point", () => {
+    expect(manifest.name).toBe("@valet/valet-native");
+    expect(manifest.engines.node).toBe(">=22.13.0");
+    expect(manifest.main).toBe("expo-router/entry");
+  });
+
+  it("pins the official Expo SDK 57 runtime envelope", () => {
+    expect(manifest.dependencies.expo).toBe("~57.0.19");
+    expect(manifest.dependencies.react).toBe("19.2.3");
+    expect(manifest.dependencies["react-native"]).toBe("0.86.3");
+    expect(manifest.dependencies["expo-dev-client"]).toBe("~57.0.18");
+  });
+
+  it("provides truthful Dev Client and local Android scripts", () => {
+    expect(manifest.scripts.dev).toBe("expo start --dev-client");
+    expect(manifest.scripts.start).toBe("expo start --dev-client");
+    expect(manifest.scripts.android).toBe("expo run:android");
+  });
+
+  it("does not introduce later-scope or Web-only dependencies", () => {
+    for (const dependency of forbiddenDependencies) {
+      expect(manifest.dependencies).not.toHaveProperty(dependency);
+      expect(manifest.devDependencies).not.toHaveProperty(dependency);
+    }
+  });
+});

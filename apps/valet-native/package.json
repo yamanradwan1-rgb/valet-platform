@@ -1,0 +1,40 @@
+{
+  "name": "@valet/valet-native",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start --dev-client",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "prebuild:android": "expo prebuild --platform android --clean --no-install",
+    "config:public": "expo config --type public",
+    "lint": "eslint app src test --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run test"
+  },
+  "dependencies": {
+    "expo": "~57.0.19",
+    "expo-build-properties": "~57.0.16",
+    "expo-constants": "~57.0.17",
+    "expo-dev-client": "~57.0.18",
+    "expo-linking": "~57.0.9",
+    "expo-router": "~57.0.18",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-worklets": "0.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3",
+    "vitest": "4.1.10"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "VAYLET Employee",
+    "slug": "vaylet-employee",
+    "version": "1.0.0",
+    "platforms": ["ios", "android"],
+    "orientation": "portrait",
+    "scheme": "vaylet-employee",
+    "ios": {
+      "bundleIdentifier": "com.vaylet.employee",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.vaylet.employee"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 30,
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "usesCleartextTraffic": false
+          }
+        }
+      ]
+    ]
+  }
+}

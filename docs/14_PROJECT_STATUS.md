@@ -12,16 +12,19 @@ The canonical Employee Native order, scope, gates, evidence, and status plan is
 - MOB-001: **DONE**.
 - MOB-002: **DONE**.
 - MOB-003: **DONE**.
-- MOB-004: **DONE LOCALLY / PENDING COMMIT**.
-- MOB-005 through MOB-027: **NOT STARTED**.
-- Next task: **MOB-005 — Expo Native Application Foundation**.
-- No native code, scaffold, dependency, database, migration, CI, Firebase,
-  signing, or distribution implementation has started under this plan. DEC-073
-  accepts architecture only.
+- MOB-004: **DONE**.
+- MOB-005: **IMPLEMENTED / PHYSICAL PROOF PENDING**.
+- MOB-006 through MOB-027: **NOT STARTED**.
+- Next task: **MOB-006 — Portable Employee Client Foundation**.
+- The Expo Native foundation now exists without database, migration, CI,
+  Firebase, auth, push, signing, OTA, or distribution implementation. A physical
+  Android Development Build remains required before MOB-005 can be `DONE`; the
+  current machine also cannot complete the root database integration gate
+  because its test-database credential is rejected.
 
 ## Last Verified
 
-- Date: `2026-08-21`
+- Date: `2026-09-02`
 - Repository: `veletpro0-lgtm/valet-platform`
 - VAL-008H base: `bf4e7965770ec352be79776ae165fda7cb5637eb`
 - Completed product phases: **Phases 1–5 COMPLETE**

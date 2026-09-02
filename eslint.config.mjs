@@ -76,7 +76,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["apps/{valet,customer,dashboard}/**/*.{ts,tsx}"],
+    files: ["apps/{valet,valet-native,customer,dashboard}/**/*.{ts,tsx}"],
     plugins: {
       "react-hooks": reactHooks,
     },

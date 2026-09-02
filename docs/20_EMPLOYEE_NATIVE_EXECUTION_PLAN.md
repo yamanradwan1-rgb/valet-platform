@@ -109,13 +109,17 @@ MOB-009 proof-of-concept hard gate.
 - `BLOCKED — DECISION REQUIRED`: a material semantic is not Accepted.
 - `BLOCKED — EVIDENCE REQUIRED`: implementation exists but a required gate
   proof is absent or failed.
+- `IMPLEMENTED / PHYSICAL PROOF PENDING`: the scoped implementation and
+  focused repository evidence exist, but required physical-device evidence is
+  unavailable and the task is not `DONE`.
 - `DONE LOCALLY / PENDING COMMIT`: task-local requirements are complete in the
   current working tree but have not passed the repository commit/PR/merge
   workflow. This is not repository-level `DONE` under `docs/07_DEFINITION_OF_DONE.md`.
 - `DONE`: merged through the repository workflow with required CI/evidence.
 
-Current program status is MOB-001 through MOB-003 `DONE`; MOB-004 is
-`DONE LOCALLY / PENDING COMMIT`; MOB-005 through MOB-027 are `NOT STARTED`.
+Current program status is MOB-001 through MOB-004 `DONE`; MOB-005 is
+`IMPLEMENTED / PHYSICAL PROOF PENDING`; MOB-006 through MOB-027 are
+`NOT STARTED`.
 
 ## 6. Batch map, gates, and progression
 
@@ -407,7 +411,7 @@ progression remains subject to the stated dependencies and gates.
 
 - **TASK ID:** MOB-004
 - **TITLE:** Repository Architecture Gate and Mobile/Portable Boundaries
-- **STATUS:** DONE LOCALLY / PENDING COMMIT
+- **STATUS:** DONE
 - **OBJECTIVE:** Establish a truthful tracked repository baseline and enforce native/portable import and file-structure boundaries.
 - **WHY:** The current scanner recursively inspects the local filesystem, including Git-ignored reference material, so its result is not a truthful tracked-repository gate.
 - **DEPENDENCIES:** MOB-001; coordinate with MOB-002/003 documentation but do not wait for implementation.
@@ -433,7 +437,7 @@ progression remains subject to the stated dependencies and gates.
 
 - **TASK ID:** MOB-005
 - **TITLE:** Expo Native Application Foundation
-- **STATUS:** NOT STARTED
+- **STATUS:** IMPLEMENTED / PHYSICAL PROOF PENDING
 - **OBJECTIVE:** Create the reproducible Expo native app shell at `apps/valet-native` under DEC-071.
 - **WHY:** Later physical-device work needs a real Development Build and stable repository integration.
 - **DEPENDENCIES:** MOB-002/003 Accepted; MOB-004 green.
@@ -1078,10 +1082,13 @@ append-only history, test, and 300-line rules.
 - MOB-001: `DONE`
 - MOB-002: `DONE`
 - MOB-003: `DONE`
-- MOB-004: `DONE LOCALLY / PENDING COMMIT`
-- MOB-005 through MOB-027: `NOT STARTED`
-- Current gate: MOB-004 is locally complete and awaits commit/PR workflow.
-- Next task: `MOB-005 — Expo Native Application Foundation`.
+- MOB-004: `DONE`
+- MOB-005: `IMPLEMENTED / PHYSICAL PROOF PENDING`
+- MOB-006 through MOB-027: `NOT STARTED`
+- Current gate: MOB-005 implementation and focused repository evidence exist;
+  Android build/physical-device evidence and the root database integration gate
+  remain unavailable in the current environment.
+- Next task: `MOB-006 — Portable Employee Client Foundation`.
 
 ## Unresolved decisions
 
