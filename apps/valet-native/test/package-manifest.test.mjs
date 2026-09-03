@@ -3,7 +3,6 @@ import manifest from "../package.json";
 
 const forbiddenDependencies = [
   "@valet/ui",
-  "@valet/employee-client",
   "expo-camera",
   "expo-location",
   "expo-notifications",
@@ -26,6 +25,10 @@ describe("Native package contract", () => {
     expect(manifest.dependencies.react).toBe("19.2.3");
     expect(manifest.dependencies["react-native"]).toBe("0.86.3");
     expect(manifest.dependencies["expo-dev-client"]).toBe("~57.0.18");
+  });
+
+  it("uses the MOB-006 portable Employee client boundary", () => {
+    expect(manifest.dependencies["@valet/employee-client"]).toBe("workspace:*");
   });
 
   it("provides truthful Dev Client and local Android scripts", () => {

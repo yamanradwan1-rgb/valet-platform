@@ -1,6 +1,12 @@
-export const FOUNDATION_LOCALES = ["en", "ar"] as const;
+import {
+  EMPLOYEE_LOCALES,
+  employeeLocaleDirection,
+  type EmployeeLocale,
+} from "@valet/employee-client";
 
-export type FoundationLocale = (typeof FOUNDATION_LOCALES)[number];
+export const FOUNDATION_LOCALES = EMPLOYEE_LOCALES;
+
+export type FoundationLocale = EmployeeLocale;
 
 type FoundationDirection = "ltr" | "rtl";
 type FoundationTextAlign = "left" | "right";
@@ -45,7 +51,7 @@ export function getFoundationPresentation(
   const isArabic = locale === "ar";
   return {
     copy: FOUNDATION_COPY[locale],
-    direction: isArabic ? "rtl" : "ltr",
+    direction: employeeLocaleDirection(locale),
     textAlign: isArabic ? "right" : "left",
   };
 }

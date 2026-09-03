@@ -1,15 +1,12 @@
 import { dirname, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { importViolation } from "./architecture-import-policy.mjs";
-import {
-  readJavaScriptEscape,
-  readTemplateLiteral,
-  skipLineComment,
-} from "./architecture-js-literal.mjs";
+import { tokenizeJavaScript } from "./architecture-js-tokenizer.mjs";
 import {
   checkLinePolicy,
   isAuthoredRepositoryPath,
 } from "./architecture-line-policy.mjs";
+import { checkPortableGlobals } from "./architecture-portable-globals.mjs";
 import {
   collectRepositoryOwnedPaths,
   isGeneratedNativePath,
@@ -59,7 +56,7 @@ async function loadWorkspacePackageRoots(repositoryRoot, ownership) {
 
 export function collectModuleSpecifiers(source) {
   const specifiers = [];
-  const tokens = tokenizeModuleSyntax(source);
+  const tokens = tokenizeJavaScript(source);
   for (let index = 0; index < tokens.length; index += 1) {
     const token = tokens[index];
     if (token.kind !== "identifier") continue;
@@ -75,71 +72,6 @@ export function collectModuleSpecifiers(source) {
     }
   }
   return specifiers;
-}
-
-function tokenizeModuleSyntax(source) {
-  const tokens = [];
-  let index = 0;
-  while (index < source.length) {
-    const character = source[index];
-    const next = source[index + 1];
-    if (/\s/.test(character)) {
-      index += 1;
-    } else if (character === "/" && next === "/") {
-      index = skipLineComment(source, index + 2);
-    } else if (character === "/" && next === "*") {
-      index = skipBlockComment(source, index + 2);
-    } else if (character === '"' || character === "'") {
-      const token = readStaticLiteral(source, index, character);
-      tokens.push({ kind: "string", value: token.value });
-      index = token.end;
-    } else if (character === "`") {
-      const token = readTemplateLiteral(source, index);
-      if (token.value !== undefined) {
-        tokens.push({ kind: "string", value: token.value });
-      }
-      index = token.end;
-    } else if (/[A-Za-z_$]/.test(character)) {
-      const start = index;
-      index += 1;
-      while (index < source.length && /[A-Za-z0-9_$]/.test(source[index])) {
-        index += 1;
-      }
-      tokens.push({ kind: "identifier", value: source.slice(start, index) });
-    } else {
-      tokens.push({ kind: "punctuator", value: character });
-      index += 1;
-    }
-  }
-  return tokens;
-}
-
-function skipBlockComment(source, index) {
-  while (
-    index < source.length &&
-    !(source[index] === "*" && source[index + 1] === "/")
-  ) {
-    index += 1;
-  }
-  return Math.min(index + 2, source.length);
-}
-
-function readStaticLiteral(source, start, quote) {
-  let index = start + 1;
-  let value = "";
-  while (index < source.length) {
-    const character = source[index];
-    if (character === quote) return { end: index + 1, value };
-    if (character === "\\") {
-      const escape = readJavaScriptEscape(source, index);
-      value += escape.value;
-      index = escape.end;
-    } else {
-      value += character;
-      index += 1;
-    }
-  }
-  return { end: index, value };
 }
 
 function importSpecifier(tokens, start) {
@@ -211,6 +143,7 @@ export async function checkArchitecture(repositoryRoot, historicalLoader) {
     violations.push(
       ...checkGeneratedNativeOwnership(ownership.paths),
       ...checkImportBoundaries(authoredFiles, workspacePackageRoots),
+      ...checkPortableGlobals(authoredFiles),
       ...checkRetiredSymbols(authoredFiles),
     );
     const linePolicy = await checkLinePolicy(

@@ -18,7 +18,7 @@ export function importViolation(sourcePath, specifier, workspacePackageRoots) {
   if (apiViolation !== undefined) return apiViolation;
 
   if (sourceArea === "portable") {
-    if (["web", "native", "api", "server"].includes(targetArea)) {
+    if (["web", "native", "api", "server", "ui"].includes(targetArea)) {
       return `portable Employee client must not import ${targetArea} implementation`;
     }
     const dependency = forbiddenPortableDependency(specifier);
@@ -76,6 +76,7 @@ function classifyArea(repositoryPath) {
   if (inRoot(repositoryPath, "apps/valet")) return "web";
   if (inRoot(repositoryPath, "packages/employee-client")) return "portable";
   if (inRoot(repositoryPath, "packages/database")) return "server";
+  if (inRoot(repositoryPath, "packages/ui")) return "ui";
   return undefined;
 }
 
@@ -113,6 +114,7 @@ function forbiddenPortableDependency(specifier) {
   }
   if (isPackageOrSubpath(normalized, "next")) return "Next.js";
   if (isPackageOrSubpath(normalized, "react-dom")) return "React DOM";
+  if (isPackageOrSubpath(normalized, "react")) return "React/UI dependency";
   if (
     isPackageOrSubpath(normalized, "react-native") ||
     normalized.startsWith("@react-native/") ||

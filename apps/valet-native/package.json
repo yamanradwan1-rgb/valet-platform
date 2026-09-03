@@ -17,6 +17,7 @@
     "test": "vitest run test"
   },
   "dependencies": {
+    "@valet/employee-client": "workspace:*",
     "expo": "~57.0.19",
     "expo-build-properties": "~57.0.16",
     "expo-constants": "~57.0.17",

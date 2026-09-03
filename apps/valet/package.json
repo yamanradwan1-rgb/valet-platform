@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@valet/contracts": "workspace:*",
+    "@valet/employee-client": "workspace:*",
     "@valet/ui": "workspace:*",
     "@zxing/browser": "^0.2.1",
     "@zxing/library": "^0.23.0",

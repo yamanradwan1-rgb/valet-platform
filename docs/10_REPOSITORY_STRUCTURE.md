@@ -133,19 +133,21 @@ local/generated material is not. The generated paths are precisely
 `apps/valet-native/android/**` and `apps/valet-native/ios/**`; the rest of
 `apps/valet-native/**`, including `src/**`, remains authored source.
 
-Portable Employee workflow/client logic may later move to a focused pure
-TypeScript package, provisionally `packages/employee-client`, but MOB-006 owns
-the final boundary, name and extraction. Web and React Native UI remain
-platform-specific; `packages/ui` is not assumed to be cross-platform.
+Portable Employee workflow/client logic now has the focused pure-TypeScript
+boundary at `packages/employee-client`, named `@valet/employee-client` in the
+workspace. MOB-006 finalizes this package path, name and focused extraction.
+Web and React Native UI remain platform-specific; `packages/ui` is not assumed
+to be cross-platform.
 
-The architecture gate enforces module-import separation before those paths are
-created: portable Employee client code cannot import Web, Native, API/server,
+The architecture gate enforces module-import separation across those paths:
+portable Employee client code cannot import Web, Native, API/server,
 Next.js, React DOM, React Native, Expo, Node-runtime, Android, or iOS
 implementation dependencies; Native cannot import Employee Web or API/server
 implementation; and Employee Web cannot import Native implementation. The
-portable package's DOM-free type/global environment is completed by its
-DOM-free TypeScript configuration in MOB-006, because import inspection alone
-cannot prove absence of globals such as `window` or `document`.
+portable package's DOM-free type/global environment is enforced by its DOM-free
+TypeScript configuration and the repository architecture checker, because
+import inspection alone cannot prove absence of globals such as `window` or
+`document`.
 
 ## Current module ownership
 

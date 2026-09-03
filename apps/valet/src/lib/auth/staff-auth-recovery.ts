@@ -1,12 +1,11 @@
-import { EmployeeApiError } from "../api/employee-api-errors";
 import type { StaffAuthAccessResponse } from "@valet/contracts";
+import {
+  classifyEmployeeAuthorizationRefreshFailure,
+  type EmployeeAuthorizationRefreshFailureKind,
+} from "@valet/employee-client";
+import { EmployeeApiError } from "../api/employee-api-errors";
 
-export type StaffRefreshFailureKind = "definitive" | "transient";
-
-const DEFINITIVE_REFRESH_CODES = new Set([
-  "STAFF_AUTHENTICATION_FAILED",
-  "STAFF_AUTHENTICATION_REQUIRED",
-]);
+export type StaffRefreshFailureKind = EmployeeAuthorizationRefreshFailureKind;
 
 export class StaffAuthRefreshError extends Error {
   readonly code: string;
@@ -25,15 +24,14 @@ export class StaffAuthRefreshError extends Error {
 export function classifyRefreshFailure(
   error: unknown,
 ): StaffRefreshFailureKind {
-  if (error instanceof EmployeeApiError) {
-    if (error.status === 401) return "definitive";
-    if (DEFINITIVE_REFRESH_CODES.has(error.code)) return "definitive";
-  }
-  return "transient";
+  return classifyEmployeeAuthorizationRefreshFailure(error);
 }
 
 export type StaffSessionRestoreResult =
-  | { readonly kind: "AUTHENTICATED"; readonly response: StaffAuthAccessResponse }
+  | {
+      readonly kind: "AUTHENTICATED";
+      readonly response: StaffAuthAccessResponse;
+    }
   | { readonly kind: "DEFINITIVE_INVALID" }
   | {
       readonly kind: "REFRESH_UNAVAILABLE";

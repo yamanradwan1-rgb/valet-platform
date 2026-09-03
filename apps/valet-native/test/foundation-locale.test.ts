@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  EMPLOYEE_LOCALES,
+  employeeLocaleDirection,
+} from "@valet/employee-client";
+import {
   FOUNDATION_LOCALES,
   getFoundationPresentation,
 } from "../src/foundation/foundation-locale";
@@ -26,4 +30,13 @@ describe("foundation locale presentation", () => {
   it("limits the foundation shell to the accepted locales", () => {
     expect(FOUNDATION_LOCALES).toEqual(["en", "ar"]);
   });
+
+  it.each(EMPLOYEE_LOCALES)(
+    "keeps the Native consumer on the portable %s direction contract",
+    (locale) => {
+      expect(getFoundationPresentation(locale).direction).toBe(
+        employeeLocaleDirection(locale),
+      );
+    },
+  );
 });

@@ -111,7 +111,8 @@ describe("EmployeeApiClient", () => {
       authClient,
       onAuthorizationLoss: authLoss,
     });
-    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(false);
+    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(true);
+    vi.spyOn(authClient, "getAccessToken").mockReturnValue(VALID_MOCK_TOKEN_1);
     vi.spyOn(authClient, "refresh").mockRejectedValue(
       new StaffAuthRefreshError(
         "definitive",
@@ -122,6 +123,14 @@ describe("EmployeeApiClient", () => {
         }),
       ),
     );
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ code: "STAFF_AUTHENTICATION_REQUIRED" }),
+          { status: 401, headers: { "Content-Type": "application/json" } },
+        ),
+      );
 
     await expect(
       clientWithLoss.request("/v1/staff/tasks", { method: "GET" }),
@@ -148,10 +157,13 @@ describe("EmployeeApiClient", () => {
     );
 
     await expect(
-      clientWithLoss.request("/v1/staff/valet-sessions/session/key-slot/assign", {
-        method: "POST",
-        body: { expectedVersion: 1, keySlotCode: "E2E-KEY-G1" },
-      }),
+      clientWithLoss.request(
+        "/v1/staff/valet-sessions/session/key-slot/assign",
+        {
+          method: "POST",
+          body: { expectedVersion: 1, keySlotCode: "E2E-KEY-G1" },
+        },
+      ),
     ).rejects.toMatchObject({ status: 404 });
     expect(authLoss).toHaveBeenCalledTimes(1);
   });
@@ -162,7 +174,8 @@ describe("EmployeeApiClient", () => {
       authClient,
       onAuthorizationLoss: authLoss,
     });
-    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(false);
+    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(true);
+    vi.spyOn(authClient, "getAccessToken").mockReturnValue(VALID_MOCK_TOKEN_1);
     vi.spyOn(authClient, "refresh").mockRejectedValue(
       new StaffAuthRefreshError(
         "transient",
@@ -173,6 +186,14 @@ describe("EmployeeApiClient", () => {
         }),
       ),
     );
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({ code: "STAFF_AUTHENTICATION_REQUIRED" }),
+          { status: 401, headers: { "Content-Type": "application/json" } },
+        ),
+      );
 
     await expect(
       clientWithLoss.request("/v1/staff/tasks", { method: "GET" }),

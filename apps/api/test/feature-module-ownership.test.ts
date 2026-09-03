@@ -74,6 +74,7 @@ import { StaffOperationalContextController } from "../src/modules/staff/staff-op
 import { StaffOperationalContextService } from "../src/modules/staff/staff-operational-context.service";
 import { StaffValetSessionController } from "../src/modules/staff/staff-valet-session.controller";
 import { StaffValetSessionService } from "../src/modules/staff/staff-valet-session.service";
+import { StaffVehicleDirectoryService } from "../src/modules/staff/staff-vehicle-directory.service";
 import { StaffModule } from "../src/modules/staff/staff.module";
 import { GpsIngestionController } from "../src/modules/tracking/gps-ingestion.controller";
 import { GpsIngestionService } from "../src/modules/tracking/gps-ingestion.service";
@@ -260,7 +261,7 @@ describe("accepted feature module ownership", () => {
     }
   });
 
-  it("keeps Staff ownership focused on operational context, session detail reads, and incident reporting", () => {
+  it("keeps Staff ownership focused on operational context, session and vehicle-directory reads, and incident reporting", () => {
     expect(metadata(StaffModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffCheckInContinuationsController,
       StaffCheckInDraftsController,
@@ -273,8 +274,8 @@ describe("accepted feature module ownership", () => {
       StaffCheckInDraftsService,
       StaffOperationalContextService,
       StaffValetSessionService,
+      StaffVehicleDirectoryService,
       IncidentReportingService,
     ]);
   });
-
 });

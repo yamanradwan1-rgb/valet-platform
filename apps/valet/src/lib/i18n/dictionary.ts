@@ -1,7 +1,13 @@
 import { employeeArabicDictionary } from "./dictionary-ar";
 import { employeeEnglishDictionary } from "./dictionary-en";
+import {
+  employeeLocaleDirection,
+  isEmployeeLocale,
+  type EmployeeLocale,
+} from "@valet/employee-client";
 
-export type EmployeeLocale = "en" | "ar";
+export { isEmployeeLocale };
+export type { EmployeeLocale };
 export type EmployeeDictionary = Record<
   keyof typeof employeeEnglishDictionary,
   string
@@ -9,12 +15,8 @@ export type EmployeeDictionary = Record<
 
 export const LOCALE_COOKIE = "vaylet_employee_locale";
 
-export function isEmployeeLocale(value: unknown): value is EmployeeLocale {
-  return value === "en" || value === "ar";
-}
-
 export function localeDir(locale: EmployeeLocale): "ltr" | "rtl" {
-  return locale === "ar" ? "rtl" : "ltr";
+  return employeeLocaleDirection(locale);
 }
 
 export function readEmployeeLocale(cookieHeader?: string): EmployeeLocale {

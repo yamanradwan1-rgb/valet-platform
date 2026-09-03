@@ -10,6 +10,12 @@
       "import": "./src/index.ts",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./api-errors": {
+      "types": "./src/api-errors.ts",
+      "import": "./src/api-errors.ts",
+      "require": "./dist/api-errors.js",
+      "default": "./dist/api-errors.js"
     }
   },
   "scripts": {

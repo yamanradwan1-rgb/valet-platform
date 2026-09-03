@@ -1,11 +1,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-
 import {
-  employeeDictionary,
-  isEmployeeLocale,
-  localeDir,
-} from "./dictionary";
+  EMPLOYEE_LOCALES,
+  employeeLocaleDirection,
+} from "@valet/employee-client";
+
+import { employeeDictionary, isEmployeeLocale, localeDir } from "./dictionary";
 
 describe("employee i18n dictionary", () => {
   it("provides en and ar dictionaries with identical key sets", () => {
@@ -22,6 +22,13 @@ describe("employee i18n dictionary", () => {
     expect(localeDir("ar")).toBe("rtl");
     expect(localeDir("en")).toBe("ltr");
   });
+
+  it.each(EMPLOYEE_LOCALES)(
+    "keeps the Web consumer on the portable %s direction contract",
+    (locale) => {
+      expect(localeDir(locale)).toBe(employeeLocaleDirection(locale));
+    },
+  );
 
   it("validates the locale cookie value strictly", () => {
     expect(isEmployeeLocale("ar")).toBe(true);
@@ -46,7 +53,9 @@ describe("employee i18n dictionary", () => {
     // Established terminology stays intact.
     expect(en.scanKeySlot).toBe("Scan key slot");
     expect(ar.scanKeySlot).toBe("امسح رمز خانة المفتاح");
-    expect(en.vehicleParkedAndKeyReturned).toBe("Vehicle parked and key returned");
+    expect(en.vehicleParkedAndKeyReturned).toBe(
+      "Vehicle parked and key returned",
+    );
     expect(ar.vehicleParkedAndKeyReturned).toBe("تم صف السيارة وإعادة المفتاح");
   });
 });

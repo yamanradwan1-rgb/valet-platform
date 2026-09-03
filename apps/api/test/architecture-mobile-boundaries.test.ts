@@ -18,6 +18,7 @@ const packageFiles = {
   "packages/contracts/package.json": '{"name":"@valet/contracts"}',
   "packages/database/package.json": '{"name":"@valet/database"}',
   "packages/employee-client/package.json": '{"name":"@example/portable"}',
+  "packages/ui/package.json": '{"name":"@valet/ui"}',
 };
 
 async function runFixture(files: Record<string, string>) {
@@ -63,6 +64,8 @@ describe("portable Employee client boundary", () => {
     ["API relative", 'import "../../../apps/api/src/main";'],
     ["API package", 'import "@valet/api/server";'],
     ["database/server package", 'import "@valet/database";'],
+    ["shared UI package", 'import "@valet/ui";'],
+    ["React UI runtime", 'import "react";'],
   ])("rejects %s", async (_name, source) => {
     const result = await runFixture({
       "packages/employee-client/src/example.ts": source,
@@ -72,12 +75,57 @@ describe("portable Employee client boundary", () => {
     );
   });
 
-  it("allows contracts and ordinary platform-neutral TypeScript dependencies", async () => {
+  it("allows contracts root and subpath platform-neutral dependencies", async () => {
     const result = await runFixture({
       "packages/employee-client/src/example.ts":
-        'import { z } from "zod";\nexport type { StaffPrincipal } from "@valet/contracts";\nexport const schema = z.string();',
+        'import { apiErrorSchema } from "@valet/contracts/api-errors";\nimport { z } from "zod";\nexport type { StaffPrincipal } from "@valet/contracts";\nexport const schema = z.string();\nvoid apiErrorSchema;',
     });
     expect(result.violations).toEqual([]);
+  });
+
+  it.each([
+    "window",
+    "document",
+    "navigator",
+    "localStorage",
+    "sessionStorage",
+    "DOMException",
+    "Request",
+    "Response",
+    "RequestInit",
+    "fetch",
+  ])("rejects the browser global %s", async (globalName) => {
+    const result = await runFixture({
+      "packages/employee-client/src/example.ts": `void ${globalName};`,
+    });
+    expect(result.violations.join("\n")).toContain(
+      "portable Employee client global boundary",
+    );
+  });
+
+  it.each([
+    ["plain window", "void window;", true],
+    [
+      "window in template interpolation",
+      "const value = `${window.location}`;",
+      true,
+    ],
+    [
+      "globalThis.fetch in template interpolation",
+      "const value = `${globalThis.fetch}`;",
+      true,
+    ],
+    ["window in an ordinary string", 'const value = "window";', false],
+    ["window in a line comment", "// window\nconst value = 1;", false],
+    ["window in static template text", "const value = `window`;", false],
+  ])("handles %s as executable code only", async (_name, source, rejected) => {
+    const result = await runFixture({
+      "packages/employee-client/src/example.ts": source,
+    });
+    const hasPortableGlobalViolation = result.violations.some((violation) =>
+      violation.includes("portable Employee client global boundary"),
+    );
+    expect(hasPortableGlobalViolation).toBe(rejected);
   });
 
   it("covers dynamic import and CommonJS require forms", async () => {
@@ -115,7 +163,7 @@ describe("portable Employee client boundary", () => {
   it("does not treat a template expression as a known static module target", async () => {
     const result = await runFixture({
       "packages/employee-client/src/example.ts":
-        "const dependency = 'next';\nvoid import(`${dependency}`);",
+        'const dependency = "next";\nvoid import(`${dependency}`);\nvoid import(`${"next"}`);',
     });
     expect(result.violations).toEqual([]);
   });

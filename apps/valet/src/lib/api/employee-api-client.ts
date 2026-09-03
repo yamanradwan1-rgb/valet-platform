@@ -1,32 +1,26 @@
 import {
-  EmployeeApiError,
-  normalizeEmployeeApiError,
-} from "./employee-api-errors";
+  EmployeeClient,
+  employeeAuthenticationRequiredError,
+  employeeSessionServiceUnavailableError,
+  type EmployeeAuthorizationRefreshResult,
+  type EmployeeHttpMethod,
+} from "@valet/employee-client";
+
 import type { StaffAuthClient } from "../auth/staff-auth-client";
 import {
   ensureAccessTokenDetailed,
   StaffAuthRefreshError,
 } from "../auth/staff-auth-recovery";
+import { EmployeeApiBrowserTransport } from "./employee-api-browser-transport";
 
-function sessionServiceUnavailableError(): EmployeeApiError {
-  return new EmployeeApiError({
-    code: "STAFF_SESSION_SERVICE_UNAVAILABLE",
-    isNetworkError: true,
-    message:
-      "Staff sign-in service is temporarily unavailable. Please try again.",
-    status: 503,
-  });
-}
-
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD";
+export type HttpMethod = EmployeeHttpMethod;
 
 export interface EmployeeRequestOptions {
   readonly body?: unknown | undefined;
   readonly headers?: Record<string, string> | undefined;
   readonly method?: HttpMethod | undefined;
   readonly params?:
-    | Record<string, string | number | boolean | undefined | null>
-    | undefined;
+    Record<string, string | number | boolean | undefined | null> | undefined;
   readonly requireAuth?: boolean | undefined;
   readonly signal?: AbortSignal | undefined;
   readonly skipProactiveRefresh?: boolean | undefined;
@@ -38,6 +32,10 @@ export interface EmployeeApiClientOptions {
   readonly onAuthorizationLoss?: (() => void) | undefined;
 }
 
+/**
+ * Web wiring for the portable Employee client. Browser transport, cookies,
+ * AbortSignal, and the Web StaffAuthClient stay on this side of the boundary.
+ */
 export class EmployeeApiClient {
   private readonly authClient: StaffAuthClient;
   private readonly baseUrl: string;
@@ -53,150 +51,76 @@ export class EmployeeApiClient {
     path: string,
     options: EmployeeRequestOptions = {},
   ): Promise<T> {
-    return this.executeRequest<T>(path, options, false);
-  }
-
-  private async executeRequest<T>(
-    path: string,
-    options: EmployeeRequestOptions,
-    isRetry: boolean,
-  ): Promise<T> {
     const {
       method = "GET",
       body,
       params,
-      headers: customHeaders = {},
+      headers,
       signal,
       requireAuth = true,
       skipProactiveRefresh = false,
     } = options;
 
-    let token: string | null = null;
-
     if (requireAuth) {
-      if (!skipProactiveRefresh) {
-        const ensured = await ensureAccessTokenDetailed(this.authClient, 60, signal);
-        token = ensured.token;
-        // A transient refresh outage must not be reported as auth loss.
-        if (!token && ensured.failureKind === "transient") {
-          throw sessionServiceUnavailableError();
-        }
-      } else {
-        token = this.authClient.getAccessToken();
-      }
-
-      if (!token) {
+      const token = await this.resolveInitialAccessToken(
+        skipProactiveRefresh,
+        signal,
+      );
+      if (token === null) {
         this.onAuthorizationLoss?.();
-        throw new EmployeeApiError({
-          code: "STAFF_AUTHENTICATION_REQUIRED",
-          message: "Staff authentication required.",
-          status: 401,
-        });
+        throw employeeAuthenticationRequiredError();
       }
     }
 
-    const url = this.buildUrl(path, params);
+    const client = new EmployeeClient({
+      transport: new EmployeeApiBrowserTransport({
+        baseUrl: this.baseUrl,
+        getAccessToken: () => this.authClient.getAccessToken(),
+        requireAuth,
+        signal,
+      }),
+      authorizationRecovery: {
+        allowRefresh: requireAuth,
+        onAuthorizationLoss: this.onAuthorizationLoss,
+        refreshAuthorization: () => this.refreshAuthorization(signal),
+      },
+    });
 
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      ...customHeaders,
-    };
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    if (body !== undefined) {
-      headers["Content-Type"] = "application/json";
-    }
-
-    const fetchInit: RequestInit = {
-      cache: "no-store",
-      credentials: "include",
-      headers,
-      method,
-    };
-
-    if (signal !== undefined) {
-      fetchInit.signal = signal;
-    }
-
-    if (body !== undefined) {
-      fetchInit.body = JSON.stringify(body);
-    }
-
-    let response: Response;
-    try {
-      response = await fetch(url, fetchInit);
-    } catch (networkError: unknown) {
-      if (signal?.aborted) {
-        throw networkError;
-      }
-      throw new EmployeeApiError({
-        code: "NETWORK_ERROR",
-        isNetworkError: true,
-        message:
-          "Network connection unavailable. Please check your internet connection.",
-        status: 0,
-      });
-    }
-
-    const payload = await this.parseJsonPayload(response);
-
-    if (!response.ok) {
-      const isReadMethod = method === "GET" || method === "HEAD";
-      if (response.status === 401 && isReadMethod && !isRetry && requireAuth) {
-        try {
-          await this.authClient.refresh(signal);
-          return await this.executeRequest<T>(path, options, true);
-        } catch (refreshError: unknown) {
-          if (
-            refreshError instanceof StaffAuthRefreshError &&
-            refreshError.kind === "transient"
-          ) {
-            throw sessionServiceUnavailableError();
-          }
-          this.onAuthorizationLoss?.();
-        }
-      } else if (
-        response.status === 401 ||
-        response.status === 403 ||
-        response.status === 404
-      ) {
-        this.onAuthorizationLoss?.();
-      }
-
-      throw normalizeEmployeeApiError(response.status, payload);
-    }
-
-    return payload as T;
+    return client.request<T>({ body, headers, method, params, path });
   }
 
-  private buildUrl(
-    path: string,
-    params?: Record<string, string | number | boolean | undefined | null>,
-  ): string {
-    const fullPath = `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-    if (!params) return fullPath;
+  private async resolveInitialAccessToken(
+    skipProactiveRefresh: boolean,
+    signal?: AbortSignal | undefined,
+  ): Promise<string | null> {
+    if (skipProactiveRefresh) return this.authClient.getAccessToken();
 
-    const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== null) {
-        searchParams.append(key, String(value));
-      }
+    const ensured = await ensureAccessTokenDetailed(
+      this.authClient,
+      60,
+      signal,
+    );
+    if (ensured.token === null && ensured.failureKind === "transient") {
+      throw employeeSessionServiceUnavailableError();
     }
-
-    const query = searchParams.toString();
-    return query ? `${fullPath}?${query}` : fullPath;
+    return ensured.token;
   }
 
-  private async parseJsonPayload(response: Response): Promise<unknown> {
-    const text = await response.text();
-    if (text.length === 0) return {};
+  private async refreshAuthorization(
+    signal?: AbortSignal | undefined,
+  ): Promise<EmployeeAuthorizationRefreshResult> {
     try {
-      return JSON.parse(text);
-    } catch {
-      return text;
+      await this.authClient.refresh(signal);
+      return "refreshed";
+    } catch (error: unknown) {
+      if (error instanceof StaffAuthRefreshError) {
+        return error.kind === "definitive"
+          ? "definitive-failure"
+          : "transient-failure";
+      }
+      // Preserve the pre-extraction fallback: only an explicitly classified
+      // transient refresh failure suppresses authorization-loss handling.
+      return "definitive-failure";
     }
   }
 }
