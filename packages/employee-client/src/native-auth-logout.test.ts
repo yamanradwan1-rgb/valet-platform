@@ -17,6 +17,42 @@ import {
 } from "./native-auth-test-fixture";
 
 describe("native Staff authentication logout and identity isolation", () => {
+  it("ignores definitive-loss requests belonging to an older auth generation", async () => {
+    const test = fixture();
+    authenticatedStorage(test.secure, test.installation);
+    await test.session.start();
+    const before = test.session.current();
+
+    await test.session.handleDefinitiveAuthorizationLoss(
+      before.authGeneration - 1,
+    );
+
+    expect(test.session.current()).toEqual(before);
+    expect(test.session.getAccessToken()).toBeDefined();
+    expect(test.purges).toHaveLength(0);
+  });
+
+  it("applies an immediate definitive-loss barrier to protected request rejection", async () => {
+    const test = fixture();
+    authenticatedStorage(test.secure, test.installation);
+    await test.session.start();
+    expect(test.session.current().phase).toBe("authenticated");
+
+    const loss = test.session.handleDefinitiveAuthorizationLoss(
+      test.session.current().authGeneration,
+    );
+    expect(test.session.current()).toMatchObject({
+      phase: "unauthenticated",
+      reason: "definitive-auth-loss",
+    });
+    expect(test.session.getAccessToken()).toBeUndefined();
+    await loss;
+
+    expect(test.purges).toHaveLength(1);
+    expect(test.installation.value).toMatchObject({ restoreBlocked: true });
+    expect(test.secure.value).toBeNull();
+  });
+
   it("serializes logout behind an in-progress secure refresh replacement", async () => {
     const test = fixture();
     authenticatedStorage(test.secure, test.installation);

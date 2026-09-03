@@ -8,53 +8,18 @@ import {
   type NativeStaffAuthTransport,
 } from "@valet/employee-client";
 
+import {
+  readNativeResponsePayload,
+  validateNativeApiOrigin,
+} from "./native-api-http";
+
 export const nativeDebugApiOrigin = "http://10.0.2.2:3001";
-
-function validatedApiOrigin(value: string): string {
-  let parsed: URL;
-  try {
-    parsed = new URL(value);
-  } catch {
-    throw new Error("Native API origin is not configured safely.");
-  }
-  if (
-    parsed.username !== "" ||
-    parsed.password !== "" ||
-    parsed.search !== "" ||
-    parsed.hash !== "" ||
-    parsed.pathname !== "/"
-  ) {
-    throw new Error("Native API origin is not configured safely.");
-  }
-  if (
-    parsed.protocol !== "https:" &&
-    !(__DEV__ && parsed.protocol === "http:")
-  ) {
-    throw new Error("Native release authentication requires HTTPS.");
-  }
-  return parsed.origin;
-}
-
-async function responsePayload(response: Response): Promise<unknown> {
-  let text: string;
-  try {
-    text = await response.text();
-  } catch {
-    throw employeeNetworkError();
-  }
-  if (text === "") return undefined;
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return undefined;
-  }
-}
 
 export class NativeAuthHttpTransport implements NativeStaffAuthTransport {
   private readonly apiOrigin: string;
 
   constructor(apiOrigin: string) {
-    this.apiOrigin = validatedApiOrigin(apiOrigin);
+    this.apiOrigin = validateNativeApiOrigin(apiOrigin);
   }
 
   login(request: StaffLoginRequest): Promise<StaffNativeAuthResponse> {
@@ -67,7 +32,7 @@ export class NativeAuthHttpTransport implements NativeStaffAuthTransport {
 
   async logout(refreshToken: string): Promise<void> {
     const response = await this.post("logout", { refreshToken });
-    const payload = await responsePayload(response);
+    const payload = await readNativeResponsePayload(response);
     if (response.status !== 204) {
       throw normalizeEmployeeApiError(response.status, payload);
     }
@@ -78,7 +43,7 @@ export class NativeAuthHttpTransport implements NativeStaffAuthTransport {
     body: unknown,
   ): Promise<StaffNativeAuthResponse> {
     const response = await this.post(route, body);
-    const payload = await responsePayload(response);
+    const payload = await readNativeResponsePayload(response);
     if (!response.ok) {
       throw normalizeEmployeeApiError(response.status, payload);
     }

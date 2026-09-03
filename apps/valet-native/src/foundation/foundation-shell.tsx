@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type {
-  NativeAuthSession,
+  EmployeeOperationalSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
 
 import { getNativeAuthCopy } from "../auth/native-auth-copy";
 import { NativeAuthPanel } from "../auth/native-auth-panel";
-import { createNativeAuthSession } from "../auth/native-auth-runtime";
+import {
+  createNativeEmployeeRuntime,
+  type NativeEmployeeRuntime,
+} from "../auth/native-auth-runtime";
+import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import {
   FOUNDATION_LOCALES,
   type FoundationLocale,
@@ -17,17 +21,32 @@ import {
 import { styles } from "./foundation-styles";
 
 interface AuthBootstrap {
-  readonly session: NativeAuthSession | undefined;
+  readonly operationalSnapshot: EmployeeOperationalSnapshot;
+  readonly runtime: NativeEmployeeRuntime | undefined;
   readonly snapshot: NativeAuthSnapshot;
 }
 
 function createAuthBootstrap(): AuthBootstrap {
   try {
-    const session = createNativeAuthSession();
-    return { session, snapshot: session.current() };
+    const runtime = createNativeEmployeeRuntime();
+    return {
+      operationalSnapshot: runtime.operations.current(),
+      runtime,
+      snapshot: runtime.auth.current(),
+    };
   } catch {
     return {
-      session: undefined,
+      operationalSnapshot: {
+        contextFailure: null,
+        identityGeneration: null,
+        mutation: { phase: "idle" },
+        phase: "inactive",
+        queueFailure: null,
+        queueLoading: false,
+        scope: null,
+        tasks: [],
+      },
+      runtime: undefined,
       snapshot: {
         authGeneration: 0,
         phase: "fatal",
@@ -41,14 +60,33 @@ export function FoundationShell() {
   const [locale, setLocale] = useState<FoundationLocale>("en");
   const [auth] = useState(createAuthBootstrap);
   const [snapshot, setSnapshot] = useState(auth.snapshot);
+  const [operationalSnapshot, setOperationalSnapshot] = useState(
+    auth.operationalSnapshot,
+  );
   const presentation = getFoundationPresentation(locale);
 
   useEffect(() => {
-    if (auth.session === undefined) return;
-    const unsubscribe = auth.session.subscribe(setSnapshot);
-    void auth.session.start();
-    return unsubscribe;
+    if (auth.runtime === undefined) return;
+    const unsubscribeAuth = auth.runtime.auth.subscribe(setSnapshot);
+    const unsubscribeOperations = auth.runtime.operations.subscribe(
+      setOperationalSnapshot,
+    );
+    void auth.runtime.auth.start();
+    return () => {
+      unsubscribeAuth();
+      unsubscribeOperations();
+      auth.runtime?.dispose();
+    };
   }, [auth]);
+
+  useEffect(() => {
+    if (auth.runtime === undefined) return;
+    if (snapshot.phase === "authenticated") {
+      void auth.runtime.operations.activate(snapshot.authGeneration);
+    } else {
+      auth.runtime.operations.clear();
+    }
+  }, [auth, snapshot.authGeneration, snapshot.phase]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -72,10 +110,19 @@ export function FoundationShell() {
 
         <NativeAuthPanel
           copy={getNativeAuthCopy(locale)}
-          session={auth.session}
+          session={auth.runtime?.auth}
           snapshot={snapshot}
           textAlign={presentation.textAlign}
         />
+
+        {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
+          <NativeTasksPanel
+            locale={locale}
+            operations={auth.runtime.operations}
+            snapshot={operationalSnapshot}
+            textAlign={presentation.textAlign}
+          />
+        ) : null}
 
         <View
           accessibilityLabel={presentation.copy.chooseLanguage}

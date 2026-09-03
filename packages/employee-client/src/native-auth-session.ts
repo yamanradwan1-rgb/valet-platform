@@ -188,6 +188,10 @@ export class NativeAuthSession {
     return logout.localLogoutComplete ? this.login(credentials) : false;
   }
 
+  handleDefinitiveAuthorizationLoss(expectedGeneration: number): Promise<void> {
+    return this.recovery.handleDefinitiveAuthorizationLoss(expectedGeneration);
+  }
+
   private async readAndRefresh(
     operationGeneration: number,
   ): Promise<RefreshResult> {

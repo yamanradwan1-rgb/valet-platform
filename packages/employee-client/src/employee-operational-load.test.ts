@@ -1,0 +1,111 @@
+import { describe, expect, it } from "vitest";
+
+import { EmployeeApiError } from "./api-error";
+import { EmployeeOperationalSession } from "./employee-operational-session";
+import {
+  deferred,
+  ids,
+  operationalContext,
+  parkingTask,
+  StubOperationalTransport,
+} from "./employee-operational-test-fixture";
+
+describe("Employee operational context and queue", () => {
+  it("loads authoritative context and the selected Location queue", async () => {
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext()));
+    transport.queueResults.push(Promise.resolve({ tasks: [parkingTask()] }));
+    const session = new EmployeeOperationalSession({ transport });
+
+    await session.activate(7);
+
+    expect(session.current()).toMatchObject({
+      identityGeneration: 7,
+      phase: "ready",
+      scope: {
+        locationId: ids.location,
+        membershipId: ids.membership,
+        organizationName: "VAYLET Operator",
+        role: "VALET_EMPLOYEE",
+      },
+    });
+    expect(transport.queueCalls).toEqual([ids.location]);
+    expect(session.current().tasks).toHaveLength(1);
+  });
+
+  it("reports no active Shift without loading a queue", async () => {
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext(false)));
+    const session = new EmployeeOperationalSession({ transport });
+
+    await session.activate(1);
+
+    expect(session.current().phase).toBe("no-active-shift");
+    expect(transport.queueCalls).toEqual([]);
+  });
+
+  it("keeps context load failure truthful", async () => {
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(
+      Promise.reject(
+        new EmployeeApiError({
+          code: "AUTHORIZATION_DENIED",
+          message: "Denied",
+          status: 404,
+        }),
+      ),
+    );
+    const session = new EmployeeOperationalSession({ transport });
+
+    await session.activate(2);
+
+    expect(session.current()).toMatchObject({
+      contextFailure: { code: "AUTHORIZATION_DENIED" },
+      phase: "error",
+      tasks: [],
+    });
+  });
+
+  it("filters Retrieval work out of the MOB-008 Parking slice", async () => {
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext()));
+    transport.queueResults.push(
+      Promise.resolve({
+        tasks: [
+          parkingTask(),
+          parkingTask({
+            taskId: "77777777-7777-4777-8777-777777777777",
+            taskType: "RETRIEVAL",
+          }),
+        ],
+      }),
+    );
+    const session = new EmployeeOperationalSession({ transport });
+
+    await session.activate(3);
+
+    expect(session.current().tasks.map((task) => task.taskType)).toEqual([
+      "PARKING",
+    ]);
+  });
+
+  it("prevents an earlier queue response from overwriting a newer refresh", async () => {
+    const first = deferred<{ tasks: ReturnType<typeof parkingTask>[] }>();
+    const second = deferred<{ tasks: ReturnType<typeof parkingTask>[] }>();
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext()));
+    transport.queueResults.push(first.promise, second.promise);
+    const session = new EmployeeOperationalSession({ transport });
+
+    const activation = session.activate(4);
+    await Promise.resolve();
+    await Promise.resolve();
+    const refresh = session.refreshQueue();
+    second.resolve({ tasks: [parkingTask({ version: 8 })] });
+    await refresh;
+    first.resolve({ tasks: [parkingTask({ version: 2 })] });
+    await activation;
+
+    expect(session.current().tasks[0]?.version).toBe(8);
+  });
+});

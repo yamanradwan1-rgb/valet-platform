@@ -74,6 +74,27 @@ export class NativeAuthFailureRecovery {
     private readonly transport: NativeAuthSessionOptions["transport"],
   ) {}
 
+  async handleDefinitiveAuthorizationLoss(
+    operationGeneration: number,
+  ): Promise<void> {
+    if (!this.state.isCurrent(operationGeneration)) return;
+    if (this.state.current().phase !== "authenticated") return;
+    const lossGeneration = this.state.beginBarrier(
+      operationGeneration,
+      "definitive-auth-loss",
+    );
+    if (lossGeneration === undefined) return;
+    let stored;
+    try {
+      stored = await this.local.read(this.state.fence(lossGeneration));
+    } catch {
+      await this.failFatal(lossGeneration);
+      return;
+    }
+    if (stored.status === "stale") return;
+    await this.finishDefinitiveLoss(lossGeneration, stored.value.installation);
+  }
+
   async definitiveLoss(
     expectedGeneration: number,
     installation: InstallationAuthState | undefined,
@@ -81,6 +102,13 @@ export class NativeAuthFailureRecovery {
   ): Promise<boolean> {
     const lossGeneration = this.state.beginBarrier(expectedGeneration, reason);
     if (lossGeneration === undefined) return false;
+    return this.finishDefinitiveLoss(lossGeneration, installation);
+  }
+
+  private async finishDefinitiveLoss(
+    lossGeneration: number,
+    installation: InstallationAuthState | undefined,
+  ): Promise<boolean> {
     const cleanup = await this.local.cleanup(
       installation,
       this.state.fence(lossGeneration),

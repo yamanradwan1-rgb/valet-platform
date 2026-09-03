@@ -78,7 +78,7 @@ describe("portable Employee client boundary", () => {
   it("allows contracts root and subpath platform-neutral dependencies", async () => {
     const result = await runFixture({
       "packages/employee-client/src/example.ts":
-        'import { apiErrorSchema } from "@valet/contracts/api-errors";\nimport { staffNativeAuthResponseSchema } from "@valet/contracts/staff-auth";\nimport { z } from "zod";\nexport type { StaffPrincipal } from "@valet/contracts";\nexport const schema = z.string();\nvoid apiErrorSchema;\nvoid staffNativeAuthResponseSchema;',
+        'import { apiErrorSchema } from "@valet/contracts/api-errors";\nimport { staffNativeAuthResponseSchema } from "@valet/contracts/staff-auth";\nimport { staffOperationalContextResponseSchema } from "@valet/contracts/staff-context";\nimport { z } from "zod";\nexport type { StaffPrincipal, StaffTaskQueueItem } from "@valet/contracts";\nexport const schema = z.string();\nvoid apiErrorSchema;\nvoid staffNativeAuthResponseSchema;\nvoid staffOperationalContextResponseSchema;',
     });
     expect(result.violations).toEqual([]);
   });

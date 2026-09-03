@@ -22,6 +22,12 @@
       "import": "./src/staff-auth.ts",
       "require": "./dist/staff-auth.js",
       "default": "./dist/staff-auth.js"
+    },
+    "./staff-context": {
+      "types": "./src/staff-context.ts",
+      "import": "./src/staff-context.ts",
+      "require": "./dist/staff-context.js",
+      "default": "./dist/staff-context.js"
     }
   },
   "scripts": {
