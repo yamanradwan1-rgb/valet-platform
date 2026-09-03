@@ -6,7 +6,6 @@ const forbiddenDependencies = [
   "expo-camera",
   "expo-location",
   "expo-notifications",
-  "expo-secure-store",
   "expo-updates",
   "next",
   "react-dom",
@@ -29,6 +28,11 @@ describe("Native package contract", () => {
 
   it("uses the MOB-006 portable Employee client boundary", () => {
     expect(manifest.dependencies["@valet/employee-client"]).toBe("workspace:*");
+  });
+
+  it("pins only the accepted native auth persistence modules", () => {
+    expect(manifest.dependencies["expo-secure-store"]).toBe("~57.0.3");
+    expect(manifest.dependencies["expo-file-system"]).toBe("~57.0.6");
   });
 
   it("provides truthful Dev Client and local Android scripts", () => {

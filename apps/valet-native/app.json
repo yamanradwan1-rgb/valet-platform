@@ -25,7 +25,8 @@
             "usesCleartextTraffic": false
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }

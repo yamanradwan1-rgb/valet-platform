@@ -27,6 +27,11 @@ describe("Expo application configuration", () => {
     ]);
   });
 
+  it("configures SecureStore while keeping release cleartext disabled", () => {
+    expect(expo.plugins).toContain("expo-secure-store");
+    expect(buildProperties[1].android.usesCleartextTraffic).toBe(false);
+  });
+
   it("does not configure OTA, Firebase, EAS, or production credentials", () => {
     expect(expo).not.toHaveProperty("updates");
     expect(expo).not.toHaveProperty("runtimeVersion");

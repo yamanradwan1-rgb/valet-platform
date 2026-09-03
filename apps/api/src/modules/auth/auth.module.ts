@@ -4,7 +4,9 @@ import { RuntimeDatabaseModule } from "../../common/database/runtime-database.mo
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
+import { NativeStaffAuthController } from "./native-staff-auth.controller";
 import { StaffAuthController } from "./staff-auth.controller";
+import { StaffLoginService } from "./staff-login.service";
 import { StaffAuthOriginPolicy } from "./staff-auth.origin";
 import {
   Argon2StaffPasswordVerifier,
@@ -15,10 +17,11 @@ import {
 import { STAFF_PRINCIPAL_RESOLVER } from "./staff-principal";
 
 @Module({
-  controllers: [StaffAuthController],
+  controllers: [StaffAuthController, NativeStaffAuthController],
   imports: [AntiAbuseModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
     StaffAuthService,
+    StaffLoginService,
     StaffAuthOriginPolicy,
     DatabaseStaffPrincipalResolver,
     Argon2StaffPasswordVerifier,
@@ -35,6 +38,8 @@ import { STAFF_PRINCIPAL_RESOLVER } from "./staff-principal";
 })
 export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestIdMiddleware).forRoutes(StaffAuthController);
+    consumer
+      .apply(RequestIdMiddleware)
+      .forRoutes(StaffAuthController, NativeStaffAuthController);
   }
 }

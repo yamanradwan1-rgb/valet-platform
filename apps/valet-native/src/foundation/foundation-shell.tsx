@@ -1,15 +1,54 @@
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import type {
+  NativeAuthSession,
+  NativeAuthSnapshot,
+} from "@valet/employee-client";
+
+import { getNativeAuthCopy } from "../auth/native-auth-copy";
+import { NativeAuthPanel } from "../auth/native-auth-panel";
+import { createNativeAuthSession } from "../auth/native-auth-runtime";
 import {
   FOUNDATION_LOCALES,
   type FoundationLocale,
   getFoundationPresentation,
 } from "./foundation-locale";
+import { styles } from "./foundation-styles";
+
+interface AuthBootstrap {
+  readonly session: NativeAuthSession | undefined;
+  readonly snapshot: NativeAuthSnapshot;
+}
+
+function createAuthBootstrap(): AuthBootstrap {
+  try {
+    const session = createNativeAuthSession();
+    return { session, snapshot: session.current() };
+  } catch {
+    return {
+      session: undefined,
+      snapshot: {
+        authGeneration: 0,
+        phase: "fatal",
+        reason: "configuration-failure",
+      },
+    };
+  }
+}
 
 export function FoundationShell() {
   const [locale, setLocale] = useState<FoundationLocale>("en");
+  const [auth] = useState(createAuthBootstrap);
+  const [snapshot, setSnapshot] = useState(auth.snapshot);
   const presentation = getFoundationPresentation(locale);
+
+  useEffect(() => {
+    if (auth.session === undefined) return;
+    const unsubscribe = auth.session.subscribe(setSnapshot);
+    void auth.session.start();
+    return unsubscribe;
+  }, [auth]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -31,12 +70,12 @@ export function FoundationShell() {
           </Text>
         </View>
 
-        <Text
-          accessibilityLiveRegion="polite"
-          style={[styles.status, { textAlign: presentation.textAlign }]}
-        >
-          {presentation.copy.status}
-        </Text>
+        <NativeAuthPanel
+          copy={getNativeAuthCopy(locale)}
+          session={auth.session}
+          snapshot={snapshot}
+          textAlign={presentation.textAlign}
+        />
 
         <View
           accessibilityLabel={presentation.copy.chooseLanguage}
@@ -63,10 +102,10 @@ export function FoundationShell() {
 }
 
 interface LocaleButtonProps {
-  activeLocale: FoundationLocale;
-  label: string;
-  locale: FoundationLocale;
-  onSelect: (locale: FoundationLocale) => void;
+  readonly activeLocale: FoundationLocale;
+  readonly label: string;
+  readonly locale: FoundationLocale;
+  readonly onSelect: (locale: FoundationLocale) => void;
 }
 
 function LocaleButton({
@@ -93,62 +132,3 @@ function LocaleButton({
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: "#111B31",
-    flex: 1,
-  },
-  screen: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingHorizontal: 28,
-    paddingVertical: 36,
-  },
-  brandBlock: {
-    gap: 4,
-  },
-  brand: {
-    color: "#FFFFFF",
-    fontSize: 38,
-    fontWeight: "800",
-    letterSpacing: 4,
-  },
-  audience: {
-    color: "#9FB2D8",
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  status: {
-    color: "#FFFFFF",
-    fontSize: 28,
-    fontWeight: "700",
-    lineHeight: 38,
-  },
-  localeControls: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  localeButton: {
-    alignItems: "center",
-    borderColor: "#60769F",
-    borderRadius: 14,
-    borderWidth: 1,
-    justifyContent: "center",
-    minHeight: 48,
-    minWidth: 64,
-    paddingHorizontal: 18,
-  },
-  localeButtonSelected: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#FFFFFF",
-  },
-  localeLabel: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  localeLabelSelected: {
-    color: "#111B31",
-  },
-});

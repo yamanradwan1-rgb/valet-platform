@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const accessTokenPattern = /^vsa1\.[A-Za-z0-9_-]{43}$/;
+const refreshTokenPattern = /^vsr1\.[A-Za-z0-9_-]{43}$/;
 
 function utf8ByteLength(value: string): number {
   let bytes = 0;
@@ -37,7 +38,30 @@ export const staffAuthAccessResponseSchema = z
   })
   .strict();
 
+export const staffNativeAuthResponseSchema = staffAuthAccessResponseSchema
+  .extend({
+    refreshToken: z.string().regex(refreshTokenPattern),
+  })
+  .strict();
+
+export const staffNativeRefreshRequestSchema = z
+  .object({
+    refreshToken: z.string().regex(refreshTokenPattern),
+  })
+  .strict();
+
+export const staffNativeLogoutRequestSchema = staffNativeRefreshRequestSchema;
+
 export type StaffLoginRequest = z.infer<typeof staffLoginRequestSchema>;
 export type StaffAuthAccessResponse = z.infer<
   typeof staffAuthAccessResponseSchema
+>;
+export type StaffNativeAuthResponse = z.infer<
+  typeof staffNativeAuthResponseSchema
+>;
+export type StaffNativeRefreshRequest = z.infer<
+  typeof staffNativeRefreshRequestSchema
+>;
+export type StaffNativeLogoutRequest = z.infer<
+  typeof staffNativeLogoutRequestSchema
 >;

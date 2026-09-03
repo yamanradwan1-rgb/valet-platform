@@ -16,6 +16,12 @@
       "import": "./src/api-errors.ts",
       "require": "./dist/api-errors.js",
       "default": "./dist/api-errors.js"
+    },
+    "./staff-auth": {
+      "types": "./src/staff-auth.ts",
+      "import": "./src/staff-auth.ts",
+      "require": "./dist/staff-auth.js",
+      "default": "./dist/staff-auth.js"
     }
   },
   "scripts": {

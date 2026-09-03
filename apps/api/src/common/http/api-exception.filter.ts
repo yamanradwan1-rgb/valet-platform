@@ -19,6 +19,7 @@ import { resolveRequestId, type ApiRequest } from "./api-request";
 import { handoffOperationRoutes } from "./handoff-operation-routes";
 import { paymentOperationRoutes } from "./payment-operation-routes";
 import { setNoStoreResponseHeaders } from "./no-store-response";
+import { staffAuthOperationRoutes } from "./staff-auth-operation-routes";
 
 interface FilterRequest extends ApiRequest {
   readonly method: string;
@@ -38,21 +39,7 @@ const operationRoutes: ReadonlyArray<{
 }> = [
   ...handoffOperationRoutes,
   ...paymentOperationRoutes,
-  {
-    method: "POST",
-    operation: "STAFF_AUTH_LOGIN",
-    path: /^\/v1\/staff\/auth\/login$/,
-  },
-  {
-    method: "POST",
-    operation: "STAFF_AUTH_REFRESH",
-    path: /^\/v1\/staff\/auth\/refresh$/,
-  },
-  {
-    method: "POST",
-    operation: "STAFF_AUTH_LOGOUT",
-    path: /^\/v1\/staff\/auth\/logout$/,
-  },
+  ...staffAuthOperationRoutes,
   {
     method: "POST",
     operation: "CHECK_IN_INTAKE",

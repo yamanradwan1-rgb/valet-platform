@@ -10,6 +10,7 @@ import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { AuthModule } from "../src/modules/auth/auth.module";
+import { NativeStaffAuthController } from "../src/modules/auth/native-staff-auth.controller";
 import { StaffAuthController } from "../src/modules/auth/staff-auth.controller";
 import { STAFF_PRINCIPAL_RESOLVER } from "../src/modules/auth/staff-principal";
 import { StaffCheckInController } from "../src/modules/check-in-api/check-in-api.controller";
@@ -215,6 +216,7 @@ describe("accepted feature module ownership", () => {
   it("keeps Auth ownership and exports only staff principal resolution", () => {
     expect(metadata(AuthModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffAuthController,
+      NativeStaffAuthController,
     ]);
     expect(metadata(AuthModule, MODULE_METADATA.EXPORTS)).toEqual([
       STAFF_PRINCIPAL_RESOLVER,
