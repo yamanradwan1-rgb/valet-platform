@@ -1,4 +1,6 @@
 import {
+  createEmployeeCheckInTransport,
+  EmployeeCheckInSession,
   EmployeeOperationalSession,
   NativeAuthSession,
 } from "@valet/employee-client";
@@ -10,11 +12,15 @@ import {
   ExpoInstallationAuthStateStore,
   ExpoSecureRefreshStore,
 } from "./native-auth-storage";
-import { createNativeOperationalTransport } from "../tasks/native-operational-http";
+import {
+  createNativeEmployeeClient,
+  createNativeOperationalTransport,
+} from "../tasks/native-operational-http";
 
 export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
   readonly auth: NativeAuthSession;
+  readonly checkIn: EmployeeCheckInSession;
   readonly dispose: () => void;
   readonly operations: EmployeeOperationalSession;
 }
@@ -44,6 +50,26 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const operations = new EmployeeOperationalSession({
     transport: createNativeOperationalTransport(apiOrigin, auth),
   });
-  const dispose = nativeIdentityState.register(() => operations.clear());
-  return { apiOrigin, auth, dispose, operations };
+  const checkIn = new EmployeeCheckInSession({
+    createOperationId: createNativeOperationId,
+    transport: createEmployeeCheckInTransport(() =>
+      createNativeEmployeeClient(apiOrigin, auth),
+    ),
+  });
+  const dispose = nativeIdentityState.register(() => {
+    operations.clear();
+    checkIn.clear();
+  });
+  return { apiOrigin, auth, checkIn, dispose, operations };
+}
+
+function createNativeOperationId(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (value) => {
+    const random = Math.floor(Math.random() * 16);
+    const digit = value === "x" ? random : (random & 0x3) | 0x8;
+    return digit.toString(16);
+  });
 }

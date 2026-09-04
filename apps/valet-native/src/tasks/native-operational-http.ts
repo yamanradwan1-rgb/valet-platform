@@ -65,6 +65,42 @@ class NativeBearerTransport implements EmployeeTransport {
   }
 }
 
+export function createNativeEmployeeClient(
+  apiOrigin: string,
+  auth: NativeAuthSession,
+): EmployeeClient {
+  const requestGeneration = auth.current().authGeneration;
+  const isCurrent = () => auth.current().authGeneration === requestGeneration;
+  let responseStatus: number | undefined;
+  return new EmployeeClient({
+    authorizationRecovery: {
+      allowRefresh: true,
+      onAuthorizationLoss: () => {
+        if (responseStatus === 401 && isCurrent()) {
+          void auth.handleDefinitiveAuthorizationLoss(requestGeneration);
+        }
+      },
+      refreshAuthorization: async () => {
+        if (!isCurrent()) return "definitive-failure";
+        const result = await auth.refresh();
+        if (!isCurrent()) return "definitive-failure";
+        return result === "refreshed"
+          ? "refreshed"
+          : result === "transient-failure"
+            ? "transient-failure"
+            : "definitive-failure";
+      },
+    },
+    transport: new NativeBearerTransport(
+      apiOrigin,
+      () => (isCurrent() ? auth.getAccessToken() : undefined),
+      (status) => {
+        responseStatus = status;
+      },
+    ),
+  });
+}
+
 function invalidResponse(): EmployeeApiError {
   return new EmployeeApiError({
     code: "NATIVE_OPERATIONAL_RESPONSE_INVALID",
@@ -78,36 +114,7 @@ export function createNativeOperationalTransport(
   auth: NativeAuthSession,
 ): EmployeeOperationalTransport {
   function request<T>(input: EmployeeTransportRequest): Promise<T> {
-    const requestGeneration = auth.current().authGeneration;
-    const isCurrent = () => auth.current().authGeneration === requestGeneration;
-    let responseStatus: number | undefined;
-    const client = new EmployeeClient({
-      authorizationRecovery: {
-        allowRefresh: true,
-        onAuthorizationLoss: () => {
-          if (responseStatus === 401 && isCurrent()) {
-            void auth.handleDefinitiveAuthorizationLoss(requestGeneration);
-          }
-        },
-        refreshAuthorization: async () => {
-          if (!isCurrent()) return "definitive-failure";
-          const result = await auth.refresh();
-          if (!isCurrent()) return "definitive-failure";
-          return result === "refreshed"
-            ? "refreshed"
-            : result === "transient-failure"
-              ? "transient-failure"
-              : "definitive-failure";
-        },
-      },
-      transport: new NativeBearerTransport(
-        apiOrigin,
-        () => (isCurrent() ? auth.getAccessToken() : undefined),
-        (status) => {
-          responseStatus = status;
-        },
-      ),
-    });
+    const client = createNativeEmployeeClient(apiOrigin, auth);
     return client.request<T>(input);
   }
 

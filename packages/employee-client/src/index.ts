@@ -12,6 +12,13 @@ export { staffOperationalContextResponseSchema } from "@valet/contracts/staff-co
 
 export * from "./api-error";
 export * from "./employee-client";
+export * from "./employee-check-in-session";
+export * from "./employee-check-in-domain";
+export * from "./employee-check-in-discovery";
+export * from "./employee-check-in-intake";
+export * from "./employee-check-in-state";
+export * from "./employee-check-in-transport";
+export * from "./employee-check-in-types";
 export * from "./employee-locale";
 export * from "./employee-operational-session";
 export * from "./employee-operational-recovery";

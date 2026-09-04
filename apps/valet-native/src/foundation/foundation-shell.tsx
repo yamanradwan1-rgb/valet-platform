@@ -15,6 +15,7 @@ import {
 } from "../auth/native-auth-runtime";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeQrPanel } from "../scanner/native-qr-panel";
+import { NativeCheckInPanel } from "../check-in/native-check-in-panel";
 import {
   FOUNDATION_LOCALES,
   type FoundationLocale,
@@ -126,6 +127,15 @@ export function FoundationShell() {
             key={snapshot.authGeneration}
             auth={auth.runtime.auth}
             locale={locale}
+          />
+        ) : null}
+
+        {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
+          <NativeCheckInPanel
+            key={`${snapshot.authGeneration}:${operationalSnapshot.scope?.membershipId}:${operationalSnapshot.scope?.locationId}:${operationalSnapshot.scope?.shiftId}`}
+            checkIn={auth.runtime.checkIn}
+            locale={locale}
+            operations={operationalSnapshot}
           />
         ) : null}
 
