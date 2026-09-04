@@ -61,8 +61,12 @@ describe("Native package contract", () => {
   });
 
   it("provides truthful Dev Client and local Android scripts", () => {
-    expect(manifest.scripts.dev).toBe("expo start --dev-client");
-    expect(manifest.scripts.start).toBe("expo start --dev-client");
+    expect(manifest.scripts.dev).toBe(
+      "pnpm --filter @valet/contracts build && expo start --dev-client",
+    );
+    expect(manifest.scripts.start).toBe(
+      "pnpm --filter @valet/contracts build && expo start --dev-client",
+    );
     expect(manifest.scripts.android).toBe("expo run:android");
   });
 

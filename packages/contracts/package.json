@@ -7,24 +7,28 @@
   "exports": {
     ".": {
       "types": "./src/index.ts",
+      "react-native": "./dist/index.js",
       "import": "./src/index.ts",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./api-errors": {
       "types": "./src/api-errors.ts",
+      "react-native": "./dist/api-errors.js",
       "import": "./src/api-errors.ts",
       "require": "./dist/api-errors.js",
       "default": "./dist/api-errors.js"
     },
     "./staff-auth": {
       "types": "./src/staff-auth.ts",
+      "react-native": "./dist/staff-auth.js",
       "import": "./src/staff-auth.ts",
       "require": "./dist/staff-auth.js",
       "default": "./dist/staff-auth.js"
     },
     "./staff-context": {
       "types": "./src/staff-context.ts",
+      "react-native": "./dist/staff-context.js",
       "import": "./src/staff-context.ts",
       "require": "./dist/staff-context.js",
       "default": "./dist/staff-context.js"
