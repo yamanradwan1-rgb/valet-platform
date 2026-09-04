@@ -11,12 +11,12 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   canAcceptNativeTask,
   nativeMutationMessage,
-  nativeOperationalFacts,
   nativeTaskVehicleLabel,
 } from "./native-task-presentation";
 import { getNativeTasksCopy, type NativeTasksCopy } from "./native-tasks-copy";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeCard } from "../employee-ui/employee-feedback";
+import { NativeTaskShiftStrip } from "./native-task-shift-strip";
 
 interface NativeTasksPanelProps {
   readonly locale: FoundationLocale;
@@ -88,10 +88,13 @@ export function NativeTasksPanel({
       </View>
     );
   }
-  const facts = nativeOperationalFacts(snapshot.scope);
-
   return (
     <View style={styles.tasksPanel}>
+      <NativeTaskShiftStrip
+        activeLabel={copy.activeShift}
+        scope={snapshot.scope}
+        textAlign={textAlign}
+      />
       <View style={styles.taskHeader}>
         <Text
           accessibilityRole="header"
@@ -108,20 +111,6 @@ export function NativeTasksPanel({
           />
         </View>
       </View>
-      <EmployeeCard>
-        <Fact
-          label={copy.organization}
-          value={facts.organization}
-          textAlign={textAlign}
-        />
-        <Fact
-          label={copy.location}
-          value={facts.location}
-          textAlign={textAlign}
-        />
-        <Fact label={copy.role} value={facts.role} textAlign={textAlign} />
-        <Fact label={copy.shift} value={facts.shift} textAlign={textAlign} />
-      </EmployeeCard>
       {snapshot.queueFailure ? (
         <Status copy={copy.error} textAlign={textAlign} />
       ) : null}
@@ -198,22 +187,6 @@ function MutationStatus({
 }) {
   const message = nativeMutationMessage(copy, snapshot.mutation.phase);
   return message ? <Status copy={message} textAlign={textAlign} /> : null;
-}
-
-function Fact({
-  label,
-  value,
-  textAlign,
-}: {
-  readonly label: string;
-  readonly value: string;
-  readonly textAlign: "left" | "right";
-}) {
-  return (
-    <Text style={[styles.contextFact, { textAlign }]}>
-      {label}: {value}
-    </Text>
-  );
 }
 
 function Status({

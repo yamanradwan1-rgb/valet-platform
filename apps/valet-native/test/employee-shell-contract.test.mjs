@@ -58,5 +58,38 @@ describe("Employee shell composition contract", () => {
     expect(panel).toContain(
       '<EmployeeFrame direction={locale === "ar" ? "rtl" : "ltr"}>',
     );
+    expect(panel).toContain("<EmployeeAppHeader");
+    expect(panel).toContain("scope={scope}");
+    expect(panel).toContain("utilities={null}");
+    expect(panel.indexOf("<EmployeeAppHeader")).toBeLessThan(
+      panel.indexOf("<NativeCheckInWorkflow"),
+    );
+    expect(read("../src/check-in/native-check-in-primitives.tsx")).toContain(
+      "<EmployeeBackHeader",
+    );
+  });
+
+  it("uses one compact alternate-locale control without duplicating locale state", () => {
+    expect(shell).toContain('locale === "en" ? "ar" : "en"');
+    expect(shell.match(/<LocaleButton/g)).toHaveLength(1);
+    expect(shell).not.toContain("FOUNDATION_LOCALES.map");
+  });
+
+  it("replaces the production facts card with the focused shift strip", () => {
+    const tasks = read("../src/tasks/native-tasks-panel.tsx");
+    const strip = read("../src/tasks/native-task-shift-strip.tsx");
+    expect(tasks).toContain("<NativeTaskShiftStrip");
+    expect(tasks).not.toContain("nativeOperationalFacts");
+    expect(tasks).not.toContain("<Fact");
+    expect(strip).toContain("scope.locationName");
+    for (const forbidden of [
+      "organizationName",
+      "role",
+      "shiftId",
+      "shiftStartedAt",
+      "locationCode",
+    ]) {
+      expect(strip).not.toContain(forbidden);
+    }
   });
 });

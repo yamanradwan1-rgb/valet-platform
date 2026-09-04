@@ -1,20 +1,10 @@
 import {
-  type EmployeeOperationalScope,
   type EmployeeOperationalSnapshot,
   type StaffTaskQueueItem,
   isEmployeeMutationUnresolved,
 } from "@valet/employee-client";
 
 import type { NativeTasksCopy } from "./native-tasks-copy";
-
-export function nativeOperationalFacts(scope: EmployeeOperationalScope) {
-  return {
-    location: `${scope.locationName} (${scope.locationCode})`,
-    organization: scope.organizationName,
-    role: scope.role,
-    shift: scope.shiftStartedAt,
-  };
-}
 
 export function nativeMutationMessage(
   copy: NativeTasksCopy,

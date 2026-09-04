@@ -16,7 +16,6 @@ import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeQrPanel } from "../scanner/native-qr-panel";
 import { NativeCheckInPanel } from "../check-in/native-check-in-panel";
 import {
-  FOUNDATION_LOCALES,
   type FoundationLocale,
   getFoundationPresentation,
 } from "./foundation-locale";
@@ -70,6 +69,7 @@ export function FoundationShell() {
     auth.operationalSnapshot,
   );
   const presentation = getFoundationPresentation(locale);
+  const alternateLocale: FoundationLocale = locale === "en" ? "ar" : "en";
 
   useEffect(() => {
     if (auth.runtime === undefined) return;
@@ -101,25 +101,15 @@ export function FoundationShell() {
         textAlign={presentation.textAlign}
         utilities={
           <>
-            <View
-              accessibilityLabel={presentation.copy.chooseLanguage}
-              accessibilityRole="tablist"
-              style={styles.localeControls}
-            >
-              {FOUNDATION_LOCALES.map((option) => (
-                <LocaleButton
-                  key={option}
-                  activeLocale={locale}
-                  label={
-                    option === "en"
-                      ? presentation.copy.english
-                      : presentation.copy.arabic
-                  }
-                  locale={option}
-                  onSelect={setLocale}
-                />
-              ))}
-            </View>
+            <LocaleButton
+              accessibilityLabel={`${presentation.copy.chooseLanguage}: ${
+                alternateLocale === "en"
+                  ? presentation.copy.english
+                  : presentation.copy.arabic
+              }`}
+              locale={alternateLocale}
+              onSelect={setLocale}
+            />
             {snapshot.phase === "authenticated" ? (
               <NativeAuthPanel
                 compact
@@ -181,33 +171,25 @@ export function FoundationShell() {
 }
 
 interface LocaleButtonProps {
-  readonly activeLocale: FoundationLocale;
-  readonly label: string;
+  readonly accessibilityLabel: string;
   readonly locale: FoundationLocale;
   readonly onSelect: (locale: FoundationLocale) => void;
 }
 
 function LocaleButton({
-  activeLocale,
-  label,
+  accessibilityLabel,
   locale,
   onSelect,
 }: LocaleButtonProps) {
-  const selected = activeLocale === locale;
   return (
     <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="tab"
-      accessibilityState={{ selected }}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
       hitSlop={8}
       onPress={() => onSelect(locale)}
-      style={[styles.localeButton, selected && styles.localeButtonSelected]}
+      style={styles.localeButton}
     >
-      <Text
-        style={[styles.localeLabel, selected && styles.localeLabelSelected]}
-      >
-        {locale.toUpperCase()}
-      </Text>
+      <Text style={styles.localeLabel}>{locale.toUpperCase()}</Text>
     </Pressable>
   );
 }

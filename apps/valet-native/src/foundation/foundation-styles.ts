@@ -25,10 +25,6 @@ export const styles = StyleSheet.create({
   authPanel: {
     gap: employeeSpacing.lg,
   },
-  contextFact: {
-    ...employeeTypography.small,
-    color: c.neutral,
-  },
   devDiagnostics: {
     backgroundColor: c.white,
     borderColor: c.border,
@@ -80,26 +76,17 @@ export const styles = StyleSheet.create({
   },
   localeButton: {
     alignItems: "center",
+    backgroundColor: c.ice,
     borderRadius: employeeRadius.form,
     justifyContent: "center",
     minHeight: employeeMinimumTouchTarget,
     minWidth: employeeMinimumTouchTarget,
     paddingHorizontal: employeeSpacing.compact,
   },
-  localeButtonSelected: {
-    backgroundColor: c.ice,
-  },
-  localeControls: {
-    flexDirection: "row",
-    gap: employeeSpacing.xs,
-  },
   localeLabel: {
     ...employeeTypography.small,
     color: c.neutral,
     fontWeight: "600",
-  },
-  localeLabelSelected: {
-    color: c.blue,
   },
   safeArea: {
     backgroundColor: c.warm,

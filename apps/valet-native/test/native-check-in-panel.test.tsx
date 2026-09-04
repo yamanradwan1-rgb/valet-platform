@@ -18,6 +18,7 @@ vi.mock("react", () => ({
     current(),
 }));
 vi.mock("react-native", () => ({
+  Image: "Image",
   Modal: "Modal",
   Pressable: "Pressable",
   ScrollView: "ScrollView",
@@ -29,6 +30,7 @@ vi.mock("react-native", () => ({
 vi.mock("react-native-safe-area-context", () => ({
   SafeAreaView: "SafeAreaView",
 }));
+vi.mock("expo-status-bar", () => ({ StatusBar: "StatusBar" }));
 vi.mock("../src/check-in/native-plate-camera-step", () => ({
   NativePlateCameraStep: "NativePlateCameraStep",
 }));
@@ -36,6 +38,8 @@ const auth = {} as NativeAuthSession;
 
 const { NativeCheckInPanel } =
   await import("../src/check-in/native-check-in-panel");
+const { EmployeeAppHeader, EmployeeFrame } =
+  await import("../src/employee-ui/employee-frame");
 
 type Element = ReactElement<Record<string, unknown>>;
 function elements(value: unknown): Element[] {
@@ -129,6 +133,30 @@ describe("Native Check-In production entry", () => {
       7,
       "11111111-1111-4111-8111-111111111111",
     );
+  });
+
+  it("keeps the branded AppHeader above Check-In using authoritative scope", () => {
+    hooks.open = true;
+    const operationalSnapshot = operations();
+    const nodes = elements(
+      NativeCheckInPanel({
+        auth,
+        checkIn: checkIn("customer"),
+        locale: "ar",
+        operations: operationalSnapshot,
+      }),
+    );
+    const frame = nodes.find((node) => node.type === EmployeeFrame)!;
+    const children = frame.props.children as Element[];
+    const header = children[0]!;
+
+    expect(header.type).toBe(EmployeeAppHeader);
+    expect(header.props).toMatchObject({
+      scope: operationalSnapshot.scope,
+      textAlign: "right",
+      utilities: null,
+    });
+    expect(children[1]).toBeTruthy();
   });
 
   it.each(["capture", "customer", "intake-ambiguous", "created"])(

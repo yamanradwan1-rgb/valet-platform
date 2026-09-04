@@ -7,7 +7,6 @@ import type {
 import {
   canAcceptNativeTask,
   nativeMutationMessage,
-  nativeOperationalFacts,
   nativeTaskVehicleLabel,
 } from "../src/tasks/native-task-presentation";
 import { getNativeTasksCopy } from "../src/tasks/native-tasks-copy";
@@ -94,15 +93,6 @@ describe("Native Tasks presentation", () => {
     expect(getNativeTasksCopy("en").tasks).toBe("Parking Tasks");
     expect(getNativeTasksCopy("ar").tasks).toBe("مهام صف المركبات");
     expect(getNativeTasksCopy("ar").reconcile).toContain("الخادم");
-  });
-
-  it("projects the server-derived Organization, Location, role, and Shift facts", () => {
-    expect(nativeOperationalFacts(snapshot().scope!)).toEqual({
-      location: "Amman Hotel (AMM-1)",
-      organization: "Operator",
-      role: "VALET_EMPLOYEE",
-      shift: "2026-09-03T08:00:00.000Z",
-    });
   });
 
   it("presents truthful no-Shift, error, accepted, and recovery states", () => {

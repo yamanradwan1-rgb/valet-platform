@@ -11,7 +11,10 @@ import { NativeCheckInWorkflow } from "./native-check-in-workflow";
 import { getNativeCheckInCopy } from "./native-check-in-copy";
 import { checkInBackBlocked } from "./native-check-in-presentation";
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import { EmployeeFrame } from "../employee-ui/employee-frame";
+import {
+  EmployeeAppHeader,
+  EmployeeFrame,
+} from "../employee-ui/employee-frame";
 import { EmployeePlusIcon } from "../employee-ui/employee-icons";
 
 interface NativeCheckInPanelProps {
@@ -33,14 +36,16 @@ export function NativeCheckInPanel({
     () => checkIn.current(),
   );
   useEffect(() => () => checkIn.clear(), [checkIn]);
+  const scope = operations.scope;
   if (
     operations.phase !== "ready" ||
-    operations.scope === null ||
+    scope === null ||
     operations.identityGeneration === null
   ) {
     return null;
   }
   const copy = getNativeCheckInCopy(locale);
+  const textAlign = locale === "ar" ? "right" : "left";
   const close = () => {
     if (checkInBackBlocked(checkIn.current().phase)) return;
     checkIn.clear();
@@ -48,10 +53,7 @@ export function NativeCheckInPanel({
   };
   const launch = () => {
     setOpen(true);
-    void checkIn.activate(
-      operations.identityGeneration!,
-      operations.scope!.locationId,
-    );
+    void checkIn.activate(operations.identityGeneration!, scope.locationId);
   };
   return (
     <>
@@ -69,6 +71,11 @@ export function NativeCheckInPanel({
         visible={open}
       >
         <EmployeeFrame direction={locale === "ar" ? "rtl" : "ltr"}>
+          <EmployeeAppHeader
+            scope={scope}
+            textAlign={textAlign}
+            utilities={null}
+          />
           <NativeCheckInWorkflow
             auth={auth}
             locale={locale}

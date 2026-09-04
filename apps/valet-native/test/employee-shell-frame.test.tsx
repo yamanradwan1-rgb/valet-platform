@@ -91,6 +91,9 @@ describe("Employee production frame", () => {
       height: 64,
       paddingHorizontal: 20,
     });
+    expect(employeeFrameStyles.brandContext.minWidth).toBe(0);
+    expect(employeeFrameStyles.brandLogo.flexShrink).toBe(1);
+    expect(employeeFrameStyles.context.minWidth).toBe(0);
     expect(logo.props.accessibilityLabel).toBe("VAYLET");
     expect(logo.props.source).toBeTruthy();
     expect(style(logo.props.style).transform).toBeUndefined();
