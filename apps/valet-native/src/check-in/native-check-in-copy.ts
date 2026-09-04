@@ -7,6 +7,7 @@ export interface NativeCheckInCopy {
   readonly confirmDescription: string;
   readonly confirmPlate: string;
   readonly continueLabel: string;
+  readonly continueToCustomer: string;
   readonly continueWithoutRecognition: string;
   readonly country: string;
   readonly createdBody: string;
@@ -33,6 +34,7 @@ export interface NativeCheckInCopy {
   readonly previousAssociation: string;
   readonly recognitionError: string;
   readonly recognizing: string;
+  readonly recoverableSessions: string;
   readonly recoverableContinuation: string;
   readonly recoverableDraft: string;
   readonly retry: string;
@@ -44,6 +46,7 @@ export interface NativeCheckInCopy {
   readonly temporaryDescriptor: string;
   readonly unreadable: string;
   readonly useSavedCustomer: string;
+  readonly returningCustomer: string;
   readonly vehicle: string;
   readonly vehicleFound: string;
   readonly awaitingParkingBody: string;
@@ -61,6 +64,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     confirmDescription: "Confirm Vehicle Description",
     confirmPlate: "Confirm Plate",
     continueLabel: "Continue",
+    continueToCustomer: "Continue to customer",
     continueWithoutRecognition: "Continue without recognition",
     country: "Country / Region",
     createdBody:
@@ -76,7 +80,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
       "The server result is unknown. Check authoritative state before retrying the same intake.",
     loading: "Checking saved check-ins…",
     manualEntry: "Manual Entry",
-    multiple: "Choose the check-in you want to resume.",
+    multiple: "Multiple Incomplete Check-Ins Found",
     newVehicle: "New vehicle",
     noPhone: "Continue without phone",
     noPlate: "No / unreadable plate",
@@ -93,6 +97,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     recognitionError:
       "Exact recognition is unavailable. You may retry or continue with current input.",
     recognizing: "Checking exact returning vehicle…",
+    recoverableSessions: "Recoverable Sessions",
     recoverableContinuation: "Awaiting parking",
     recoverableDraft: "Draft",
     retry: "Retry",
@@ -105,6 +110,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     temporaryDescriptor: "Temporary Descriptor",
     unreadable: "Vehicle description",
     useSavedCustomer: "Use saved customer",
+    returningCustomer: "Returning customer",
     vehicle: "Vehicle",
     vehicleFound: "Vehicle found",
     awaitingParkingBody:
@@ -126,6 +132,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     confirmDescription: "تأكيد وصف المركبة",
     confirmPlate: "تأكيد اللوحة",
     continueLabel: "متابعة",
+    continueToCustomer: "متابعة لإدخال رقم العميل",
     continueWithoutRecognition: "المتابعة دون تعرّف",
     country: "الدولة / المنطقة",
     createdBody:
@@ -141,7 +148,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
       "نتيجة الخادم غير معروفة. تحقق من الحالة المعتمدة قبل إعادة محاولة نفس الاستلام.",
     loading: "جارٍ التحقق من عمليات الاستلام المحفوظة…",
     manualEntry: "إدخال يدوي",
-    multiple: "اختر عملية تسجيل الوصول التي تريد متابعتها.",
+    multiple: "تم العثور على عدة عمليات غير مكتملة",
     newVehicle: "مركبة جديدة",
     noPhone: "المتابعة دون رقم هاتف",
     noPlate: "لا توجد لوحة / غير مقروءة",
@@ -158,6 +165,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     recognitionError:
       "التعرّف الدقيق غير متاح. يمكنك إعادة المحاولة أو المتابعة بالبيانات الحالية.",
     recognizing: "جارٍ التحقق من المركبة المطابقة بدقة…",
+    recoverableSessions: "الجلسات القابلة للاستئناف",
     recoverableContinuation: "بانتظار الاصطفاف",
     recoverableDraft: "مسودة",
     retry: "إعادة المحاولة",
@@ -169,6 +177,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     temporaryDescriptor: "وصف مؤقت",
     unreadable: "وصف المركبة",
     useSavedCustomer: "استخدام العميل المحفوظ",
+    returningCustomer: "عميل عائد",
     vehicle: "المركبة",
     vehicleFound: "تم العثور على المركبة",
     awaitingParkingBody:

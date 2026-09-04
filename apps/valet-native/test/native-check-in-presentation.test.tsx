@@ -205,7 +205,7 @@ describe("Native Check-In presentation", () => {
       }),
     );
     expect(labels(nodes)).not.toContain("Use saved customer");
-    expect(labels(nodes)).toContain("Continue");
+    expect(labels(nodes)).toContain("Continue to customer");
   });
 
   it("shows truthful loading, validation, and rehydrate-before-retry states", () => {

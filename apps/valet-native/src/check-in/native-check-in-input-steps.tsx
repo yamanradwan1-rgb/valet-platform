@@ -9,7 +9,7 @@ import {
   CheckInButton,
   CheckInError,
   CheckInField,
-  CheckInStatus,
+  DraftVehicleCard,
   type NativeTextAlign,
   VehicleCard,
 } from "./native-check-in-primitives";
@@ -37,21 +37,22 @@ export function NativeReturningStep({
   const suggestion = vehicle.returningCustomer;
   return (
     <>
-      <Text accessibilityRole="header" style={[s.title, { textAlign }]}>
-        {copy.vehicleFound}
-      </Text>
       <VehicleCard
         fallback={copy.vehicle}
         textAlign={textAlign}
         vehicle={vehicle}
       />
       {suggestion ? (
-        <View style={s.card}>
-          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
-            {copy.previousAssociation}
+        <View
+          accessible
+          accessibilityLabel={`${copy.returningCustomer}, ${suggestion.displayName ? `${suggestion.displayName}, ` : ""}${copy.phoneEnding} ${suggestion.phoneSuffix}`}
+          style={s.card}
+        >
+          <Text style={[s.eyebrow, checkInTextStyle("human", textAlign)]}>
+            {copy.returningCustomer}
           </Text>
           {suggestion.displayName ? (
-            <Text style={[s.fieldLabel, { textAlign }]}>
+            <Text style={[s.fieldLabel, checkInTextStyle("human", textAlign)]}>
               {suggestion.displayName}
             </Text>
           ) : null}
@@ -61,7 +62,12 @@ export function NativeReturningStep({
               {suggestion.phoneSuffix}
             </Text>
           </Text>
-          <CheckInStatus textAlign={textAlign}>{copy.savedBody}</CheckInStatus>
+          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
+            {copy.previousAssociation}
+          </Text>
+          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
+            {copy.savedBody}
+          </Text>
         </View>
       ) : null}
       {suggestion ? (
@@ -71,14 +77,14 @@ export function NativeReturningStep({
         />
       ) : null}
       <CheckInButton
-        label={suggestion ? copy.differentCustomer : copy.continueLabel}
+        label={suggestion ? copy.differentCustomer : copy.continueToCustomer}
         onPress={() => session.chooseDifferentCustomer()}
         secondary={suggestion !== null}
       />
       <CheckInButton
         label={copy.edit}
         onPress={() => session.editIdentity()}
-        secondary
+        variant="ghost"
       />
     </>
   );
@@ -94,16 +100,20 @@ export function NativeCustomerStep({
   const vehicle = snapshot.recognizedVehicle;
   return (
     <>
-      <Text accessibilityRole="header" style={[s.title, { textAlign }]}>
-        {copy.customerContact}
-      </Text>
       {vehicle ? (
         <VehicleCard
           fallback={copy.vehicle}
           textAlign={textAlign}
           vehicle={vehicle}
         />
-      ) : null}
+      ) : (
+        <DraftVehicleCard
+          fallback={copy.vehicle}
+          newVehicleLabel={copy.newVehicle}
+          textAlign={textAlign}
+          vehicle={snapshot.vehicle}
+        />
+      )}
       <CheckInField
         accessibilityLabel={copy.phone}
         kind="identifier"
@@ -130,12 +140,12 @@ export function NativeCustomerStep({
           session.setCustomerPhone("");
           void session.submitCustomer();
         }}
-        secondary
+        variant="ghost"
       />
       <CheckInButton
         label={copy.edit}
         onPress={() => session.editIdentity()}
-        secondary
+        variant="ghost"
       />
     </>
   );

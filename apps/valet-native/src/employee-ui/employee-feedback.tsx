@@ -51,6 +51,7 @@ export function EmployeeCard({
 }) {
   return (
     <View
+      accessible={accessibilityLabel !== undefined}
       accessibilityLabel={accessibilityLabel}
       style={[employeeFeedbackStyles.card, { gap: employeeSpacing.compact }]}
     >

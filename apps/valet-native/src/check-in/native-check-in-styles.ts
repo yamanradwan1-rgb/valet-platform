@@ -14,7 +14,21 @@ export { employeeColors as checkInColors } from "../employee-ui/employee-tokens"
 export const checkInStyles = StyleSheet.create({
   body: { flexGrow: 1, gap: space.lg, padding: space.screen },
   card: { ...employeeFeedbackStyles.card, gap: space.compact },
+  eyebrow: {
+    ...typography.badge,
+    color: c.neutral,
+    textTransform: "uppercase",
+  },
   fieldLabel: employeeFieldStyles.label,
+  recoverableCard: {
+    ...employeeFeedbackStyles.card,
+    elevation: 1,
+    gap: space.compact,
+    shadowColor: c.navy,
+    shadowOffset: { height: 1, width: 0 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+  },
   successCircle: {
     alignItems: "center",
     alignSelf: "center",

@@ -30,6 +30,9 @@ export function checkInHeaderTitle(
       ? copy.confirmPlate
       : copy.confirmDescription;
   }
+  if (snapshot.phase === "returning") return copy.vehicleFound;
+  if (snapshot.phase === "customer") return copy.customerContact;
+  if (snapshot.phase === "recoverables") return copy.recoverableSessions;
   return copy.title;
 }
 

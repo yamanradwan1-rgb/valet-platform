@@ -5,6 +5,7 @@ import type {
 } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
+import { checkInTextStyle } from "./native-check-in-presentation";
 import {
   CheckInButton,
   CheckInError,
@@ -52,7 +53,7 @@ export function NativeRecoverablesStep({
 }: StateStepProps) {
   return (
     <>
-      <Text accessibilityRole="header" style={[s.title, { textAlign }]}>
+      <Text style={[s.eyebrow, checkInTextStyle("human", textAlign)]}>
         {copy.multiple}
       </Text>
       {snapshot.recoverables.map((recoverable) => (

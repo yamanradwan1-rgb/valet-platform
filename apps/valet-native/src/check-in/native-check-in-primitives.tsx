@@ -3,6 +3,7 @@ import type {
   EmployeeCheckInAuthoritativeSession,
   EmployeeCheckInRecognizedVehicle,
   EmployeeCheckInRecoverable,
+  EmployeeCheckInVehicleDraft,
 } from "@valet/employee-client";
 
 import { checkInStyles as s } from "./native-check-in-styles";
@@ -147,6 +148,36 @@ export function VehicleCard({
   );
 }
 
+export function DraftVehicleCard({
+  fallback,
+  newVehicleLabel,
+  textAlign,
+  vehicle,
+}: {
+  readonly fallback: string;
+  readonly newVehicleLabel: string;
+  readonly textAlign: NativeTextAlign;
+  readonly vehicle: EmployeeCheckInVehicleDraft;
+}) {
+  const hasPlate = vehicle.mode === "CONFIRMED_PLATE";
+  const identifier = hasPlate
+    ? vehicle.plateNumberRaw || fallback
+    : vehicle.temporaryDescriptor || fallback;
+  return (
+    <EmployeeCard accessibilityLabel={`${newVehicleLabel}, ${identifier}`}>
+      <Text style={[s.title, { textAlign }]}>{newVehicleLabel}</Text>
+      <Text
+        style={[
+          s.text,
+          checkInTextStyle(hasPlate ? "identifier" : "human", textAlign),
+        ]}
+      >
+        {identifier}
+      </Text>
+    </EmployeeCard>
+  );
+}
+
 export function RecoverableCard({
   label,
   onPress,
@@ -170,9 +201,13 @@ export function RecoverableCard({
       accessibilityLabel={`${label}, ${name}, ${identifier}`}
       accessibilityRole="button"
       onPress={onPress}
-      style={s.card}
+      style={s.recoverableCard}
     >
-      <EmployeeBadge label={label} textAlign={textAlign} />
+      <EmployeeBadge
+        label={label}
+        textAlign={textAlign}
+        variant={recoverable.kind === "DRAFT" ? "primary" : "success"}
+      />
       <Text style={[s.title, { fontSize: 18, textAlign }]}>{name}</Text>
       <Text
         style={[
