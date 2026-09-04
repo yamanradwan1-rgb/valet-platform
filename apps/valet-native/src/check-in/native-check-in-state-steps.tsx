@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Text } from "react-native";
 import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
@@ -8,14 +8,20 @@ import type { NativeCheckInCopy } from "./native-check-in-copy";
 import { checkInTextStyle } from "./native-check-in-presentation";
 import {
   CheckInButton,
-  CheckInError,
+  CheckInErrorNotice,
   CheckInStatus,
+  DraftVehicleCard,
   type NativeTextAlign,
   RecoverableCard,
   VehicleCard,
 } from "./native-check-in-primitives";
 import { checkInStyles as s } from "./native-check-in-styles";
-import { EmployeeProgress } from "../employee-ui/employee-feedback";
+import {
+  EmployeeBadge,
+  EmployeeCard,
+  EmployeeProgress,
+} from "../employee-ui/employee-feedback";
+import { NativeCheckInIdentityContext } from "./native-check-in-identity-context";
 
 interface StateStepProps {
   readonly copy: NativeCheckInCopy;
@@ -31,16 +37,23 @@ export function NativeLoadingStep({ copy, textAlign }: StateStepProps) {
 
 export function NativeDiscoveryErrorStep({
   copy,
+  onClose,
   session,
   textAlign,
 }: StateStepProps) {
   return (
     <>
-      <CheckInError textAlign={textAlign}>{copy.discoveryError}</CheckInError>
+      <CheckInErrorNotice
+        textAlign={textAlign}
+        title={copy.discoveryErrorTitle}
+      >
+        {copy.discoveryError}
+      </CheckInErrorNotice>
       <CheckInButton
-        label={copy.retry}
+        label={copy.retryDiscovery}
         onPress={() => void session.retryDiscovery()}
       />
+      <CheckInButton label={copy.close} onPress={onClose} variant="secondary" />
     </>
   );
 }
@@ -75,10 +88,41 @@ export function NativeRecoverablesStep({
 }
 
 export function NativeBusyStep({ copy, snapshot, textAlign }: StateStepProps) {
+  if (snapshot.phase === "recognizing") {
+    return (
+      <>
+        <NativeCheckInIdentityContext
+          copy={copy}
+          snapshot={snapshot}
+          textAlign={textAlign}
+        />
+        <CheckInButton
+          busy
+          label={copy.recognizing}
+          onPress={() => undefined}
+        />
+      </>
+    );
+  }
+  const recognized = snapshot.recognizedVehicle;
   return (
-    <CheckInStatus textAlign={textAlign}>
-      {snapshot.phase === "recognizing" ? copy.recognizing : copy.submitting}
-    </CheckInStatus>
+    <>
+      {recognized ? (
+        <VehicleCard
+          fallback={copy.vehicle}
+          textAlign={textAlign}
+          vehicle={recognized}
+        />
+      ) : (
+        <DraftVehicleCard
+          fallback={copy.vehicle}
+          newVehicleLabel={copy.newVehicle}
+          textAlign={textAlign}
+          vehicle={snapshot.vehicle}
+        />
+      )}
+      <CheckInButton busy label={copy.submitting} onPress={() => undefined} />
+    </>
   );
 }
 
@@ -88,11 +132,14 @@ export function NativeAmbiguousStep({
   snapshot,
   textAlign,
 }: StateStepProps) {
+  const checking = !snapshot.recoveryChecked && snapshot.error === null;
   return (
     <>
-      <CheckInError textAlign={textAlign}>{copy.intakeUnknown}</CheckInError>
+      <CheckInErrorNotice textAlign={textAlign} title={copy.intakeUnknownTitle}>
+        {copy.intakeUnknown}
+      </CheckInErrorNotice>
       <CheckInButton
-        disabled={!snapshot.recoveryChecked && snapshot.error === null}
+        busy={checking}
         label={copy.checkServer}
         onPress={() => void session.recoverAmbiguous()}
       />
@@ -114,16 +161,16 @@ export function NativeCompleteStep({
   textAlign,
 }: StateStepProps) {
   const continuation = snapshot.phase === "continuation";
-  const title = continuation ? copy.awaitingParkingTitle : copy.createdTitle;
   const body = continuation ? copy.awaitingParkingBody : copy.createdBody;
   return (
     <>
-      <View accessibilityLabel={title} style={s.successCircle}>
-        <Text style={s.successMark}>✓</Text>
-      </View>
-      <Text accessibilityRole="header" style={[s.title, { textAlign }]}>
-        {title}
-      </Text>
+      <EmployeeBadge
+        label={
+          continuation ? copy.recoverableContinuation : copy.intakeSavedStatus
+        }
+        textAlign={textAlign}
+        variant={continuation ? "success" : "primary"}
+      />
       {snapshot.active ? (
         <VehicleCard
           fallback={copy.vehicle}
@@ -131,7 +178,9 @@ export function NativeCompleteStep({
           vehicle={snapshot.active.vehicle}
         />
       ) : null}
-      <CheckInStatus textAlign={textAlign}>{body}</CheckInStatus>
+      <EmployeeCard>
+        <CheckInStatus textAlign={textAlign}>{body}</CheckInStatus>
+      </EmployeeCard>
       <CheckInButton label={copy.close} onPress={onClose} />
     </>
   );

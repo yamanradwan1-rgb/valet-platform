@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
@@ -56,6 +57,7 @@ export function EmployeeButton({
   disabled = false,
   role = "button",
   accessibilityState,
+  busy = false,
   leading,
 }: {
   readonly label: string;
@@ -65,10 +67,12 @@ export function EmployeeButton({
   readonly disabled?: boolean;
   readonly role?: AccessibilityRole;
   readonly accessibilityState?: AccessibilityState;
+  readonly busy?: boolean;
   readonly leading?: ReactNode;
 }) {
   const height = employeeButtonHeights[size];
   const hitExtension = Math.max(0, (employeeMinimumTouchTarget - height) / 2);
+  const isDisabled = disabled || busy;
   return (
     // Reserve the hit area in layout so compact siblings never overlap it.
     <View
@@ -80,18 +84,25 @@ export function EmployeeButton({
       <Pressable
         accessibilityLabel={label}
         accessibilityRole={role}
-        accessibilityState={{ ...accessibilityState, disabled }}
-        disabled={disabled}
+        accessibilityState={{
+          ...accessibilityState,
+          ...(busy ? { busy: true } : {}),
+          disabled: isDisabled,
+        }}
+        disabled={isDisabled}
         hitSlop={hitExtension}
         onPress={() => {
-          if (!disabled) onPress();
+          if (!isDisabled) onPress();
         }}
         style={({ pressed }) => [
           employeeControlStyles.button,
           employeeControlStyles[variant],
           { minHeight: height, minWidth: employeeMinimumTouchTarget },
-          pressed && !disabled && { backgroundColor: pressedColors[variant] },
-          disabled && employeeControlStyles.disabled,
+          pressed &&
+            !isDisabled && {
+              backgroundColor: pressedColors[variant],
+            },
+          isDisabled && employeeControlStyles.disabled,
         ]}
       >
         <View
@@ -101,7 +112,15 @@ export function EmployeeButton({
             gap: employeeSpacing.compact,
           }}
         >
-          {leading}
+          {busy ? (
+            <ActivityIndicator
+              accessible={false}
+              color={variant === "primary" ? c.white : c.blue}
+              size="small"
+            />
+          ) : (
+            leading
+          )}
           <Text
             style={[
               employeeControlStyles.buttonLabel,

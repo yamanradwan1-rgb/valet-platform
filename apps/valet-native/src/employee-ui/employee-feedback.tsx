@@ -39,6 +39,27 @@ export const employeeFeedbackStyles = StyleSheet.create({
     color: c.danger,
     padding: employeeSpacing.md,
   },
+  errorBody: { ...employeeTypography.small, color: c.danger },
+  errorNotice: {
+    backgroundColor: employeeFeedbackColors.errorSurface,
+    borderColor: employeeFeedbackColors.errorBorder,
+    borderRadius: employeeRadius.form,
+    borderWidth: 1,
+    gap: employeeSpacing.xs,
+    padding: employeeSpacing.md,
+  },
+  errorTitle: {
+    ...employeeTypography.body,
+    color: c.danger,
+    fontWeight: "700",
+  },
+  progress: {
+    alignItems: "center",
+    flex: 1,
+    gap: employeeSpacing.lg,
+    justifyContent: "center",
+    minHeight: 320,
+  },
   status: { ...employeeTypography.body, color: c.neutral },
 });
 
@@ -102,6 +123,42 @@ export function EmployeeError({ children, textAlign }: FeedbackProps) {
   );
 }
 
+export function EmployeeErrorNotice({
+  children,
+  textAlign,
+  title,
+}: Omit<FeedbackProps, "children"> & {
+  readonly children: string;
+  readonly title: string;
+}) {
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${title}. ${children}`}
+      accessibilityLiveRegion="assertive"
+      accessibilityRole="alert"
+      style={employeeFeedbackStyles.errorNotice}
+    >
+      <Text
+        style={[
+          employeeFeedbackStyles.errorTitle,
+          employeeTextStyle("human", textAlign),
+        ]}
+      >
+        {title}
+      </Text>
+      <Text
+        style={[
+          employeeFeedbackStyles.errorBody,
+          employeeTextStyle("human", textAlign),
+        ]}
+      >
+        {children}
+      </Text>
+    </View>
+  );
+}
+
 export function EmployeeStatus({ children, textAlign }: FeedbackProps) {
   return (
     <Text
@@ -131,7 +188,7 @@ export function EmployeeProgress({
       accessibilityRole="progressbar"
       accessibilityLiveRegion="polite"
       accessibilityState={{ busy: true }}
-      style={{ alignItems: "center", gap: employeeSpacing.lg }}
+      style={employeeFeedbackStyles.progress}
     >
       <ActivityIndicator accessible={false} color={c.blue} size="large" />
       <Text

@@ -29,16 +29,6 @@ export const checkInStyles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 2,
   },
-  successCircle: {
-    alignItems: "center",
-    alignSelf: "center",
-    backgroundColor: c.success,
-    borderRadius: 40,
-    height: 80,
-    justifyContent: "center",
-    width: 80,
-  },
-  successMark: { color: c.white, fontSize: 38, fontWeight: "700" },
   text: employeeFeedbackStyles.status,
   title: { ...typography.vehicle, color: c.navy },
 });

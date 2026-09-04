@@ -15,10 +15,14 @@ export interface NativeCheckInCopy {
   readonly customerContact: string;
   readonly differentCustomer: string;
   readonly discoveryError: string;
+  readonly discoveryErrorTitle: string;
+  readonly discoveryTitle: string;
   readonly edit: string;
   readonly enterManually: string;
   readonly enterPlate: string;
   readonly intakeUnknown: string;
+  readonly intakeUnknownTitle: string;
+  readonly intakeSavedStatus: string;
   readonly loading: string;
   readonly manualEntry: string;
   readonly multiple: string;
@@ -34,14 +38,16 @@ export interface NativeCheckInCopy {
   readonly previousAssociation: string;
   readonly recognitionError: string;
   readonly recognizing: string;
+  readonly recognizingTitle: string;
   readonly recoverableSessions: string;
   readonly recoverableContinuation: string;
   readonly recoverableDraft: string;
-  readonly retry: string;
+  readonly retryDiscovery: string;
   readonly retrySame: string;
   readonly savedBody: string;
   readonly scanPlate: string;
   readonly submitting: string;
+  readonly submittingTitle: string;
   readonly title: string;
   readonly temporaryDescriptor: string;
   readonly unreadable: string;
@@ -68,16 +74,20 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     continueWithoutRecognition: "Continue without recognition",
     country: "Country / Region",
     createdBody:
-      "The authoritative intake is saved. Vehicle Condition is the next step. Continue in Employee Web until that Native workflow is available.",
+      "The authoritative intake is saved. Vehicle Condition is next and is not implemented in the current Native scope. Continue that workflow in Employee Web.",
     createdTitle: "Intake saved",
     customerContact: "Customer contact",
     differentCustomer: "Different customer",
     discoveryError: "Check-in state is temporarily unavailable.",
+    discoveryErrorTitle: "Failed to load check-in session",
+    discoveryTitle: "Check-In Discovery",
     edit: "Edit",
     enterManually: "Enter manually",
     enterPlate: "Enter Plate",
     intakeUnknown:
       "The server result is unknown. Check authoritative state before retrying the same intake.",
+    intakeUnknownTitle: "Intake result unknown",
+    intakeSavedStatus: "Saved",
     loading: "Checking saved check-ins…",
     manualEntry: "Manual Entry",
     multiple: "Multiple Incomplete Check-Ins Found",
@@ -97,15 +107,17 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     recognitionError:
       "Exact recognition is unavailable. You may retry or continue with current input.",
     recognizing: "Checking exact returning vehicle…",
+    recognizingTitle: "Checking vehicle",
     recoverableSessions: "Recoverable Sessions",
     recoverableContinuation: "Awaiting parking",
     recoverableDraft: "Draft",
-    retry: "Retry",
+    retryDiscovery: "Retry Discovery",
     retrySame: "Retry same check-in",
     savedBody:
       "Use this previous association only if it matches the customer in front of you.",
     scanPlate: "Scan Plate",
     submitting: "Creating authoritative intake…",
+    submittingTitle: "Saving intake",
     title: "New vehicle check-in",
     temporaryDescriptor: "Temporary Descriptor",
     unreadable: "Vehicle description",
@@ -114,7 +126,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     vehicle: "Vehicle",
     vehicleFound: "Vehicle found",
     awaitingParkingBody:
-      "This check-in is already complete and awaiting the Native parking workflow. No state was changed locally.",
+      "This authoritative check-in is awaiting parking. Native parking parity is not implemented yet, and no state was changed locally.",
     awaitingParkingTitle: "Ready for parking",
     countryNames: {
       JO: "Jordan",
@@ -136,16 +148,20 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     continueWithoutRecognition: "المتابعة دون تعرّف",
     country: "الدولة / المنطقة",
     createdBody:
-      "تم حفظ الاستلام المعتمد. فحص حالة المركبة هو الخطوة التالية. تابع في تطبيق الموظف على الويب حتى يتوفر هذا المسار هنا.",
+      "تم حفظ الاستلام المعتمد. فحص حالة المركبة هو الخطوة التالية وغير متاح ضمن النطاق الحالي لتطبيق الموظف على الأجهزة المحمولة. تابع هذا المسار في تطبيق الموظف على الويب.",
     createdTitle: "تم حفظ الاستلام",
     customerContact: "بيانات تواصل العميل",
     differentCustomer: "عميل مختلف",
     discoveryError: "حالة تسجيل الوصول غير متاحة مؤقتاً.",
+    discoveryErrorTitle: "تعذر تحميل جلسة تسجيل المركبة",
+    discoveryTitle: "استعادة تسجيل الوصول",
     edit: "تعديل",
     enterManually: "إدخال يدوي",
     enterPlate: "إدخال اللوحة",
     intakeUnknown:
       "نتيجة الخادم غير معروفة. تحقق من الحالة المعتمدة قبل إعادة محاولة نفس الاستلام.",
+    intakeUnknownTitle: "نتيجة الاستلام غير معروفة",
+    intakeSavedStatus: "محفوظ",
     loading: "جارٍ التحقق من عمليات الاستلام المحفوظة…",
     manualEntry: "إدخال يدوي",
     multiple: "تم العثور على عدة عمليات غير مكتملة",
@@ -165,14 +181,16 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     recognitionError:
       "التعرّف الدقيق غير متاح. يمكنك إعادة المحاولة أو المتابعة بالبيانات الحالية.",
     recognizing: "جارٍ التحقق من المركبة المطابقة بدقة…",
+    recognizingTitle: "جارٍ التحقق من المركبة",
     recoverableSessions: "الجلسات القابلة للاستئناف",
     recoverableContinuation: "بانتظار الاصطفاف",
     recoverableDraft: "مسودة",
-    retry: "إعادة المحاولة",
+    retryDiscovery: "إعادة محاولة الاستعادة",
     retrySame: "إعادة محاولة نفس الاستلام",
     savedBody: "استخدم الارتباط السابق فقط إذا كان يطابق العميل الموجود أمامك.",
     scanPlate: "مسح اللوحة",
     submitting: "جارٍ إنشاء الاستلام المعتمد…",
+    submittingTitle: "جارٍ حفظ الاستلام",
     title: "تسجيل وصول مركبة جديدة",
     temporaryDescriptor: "وصف مؤقت",
     unreadable: "وصف المركبة",
@@ -181,7 +199,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     vehicle: "المركبة",
     vehicleFound: "تم العثور على المركبة",
     awaitingParkingBody:
-      "اكتمل تسجيل الوصول وهو بانتظار مسار الاصطفاف الأصلي. لم يتم تغيير أي حالة محلياً.",
+      "تسجيل الوصول المعتمد بانتظار الاصطفاف. لم يكتمل بعد مسار الاصطفاف في تطبيق الموظف على الأجهزة المحمولة، ولم يتم تغيير أي حالة محلياً.",
     awaitingParkingTitle: "جاهزة للاصطفاف",
     countryNames: {
       JO: "الأردن",

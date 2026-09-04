@@ -17,6 +17,7 @@ vi.mock("react", () => ({
   ],
 }));
 vi.mock("react-native", () => ({
+  ActivityIndicator: "ActivityIndicator",
   Modal: "Modal",
   Pressable: "Pressable",
   Text: "Text",

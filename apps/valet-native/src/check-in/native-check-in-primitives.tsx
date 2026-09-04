@@ -20,6 +20,7 @@ import type { EmployeeTextAlign as NativeTextAlign } from "../employee-ui/employ
 export type { EmployeeTextAlign as NativeTextAlign } from "../employee-ui/employee-typography";
 export {
   EmployeeError as CheckInError,
+  EmployeeErrorNotice as CheckInErrorNotice,
   EmployeeStatus as CheckInStatus,
 } from "../employee-ui/employee-feedback";
 
@@ -51,6 +52,7 @@ export function CheckInHeader({
 }
 
 export function CheckInButton({
+  busy = false,
   disabled = false,
   label,
   onPress,
@@ -60,6 +62,7 @@ export function CheckInButton({
   size,
   variant,
 }: {
+  readonly busy?: boolean;
   readonly disabled?: boolean;
   readonly label: string;
   readonly onPress: () => void;
@@ -75,6 +78,7 @@ export function CheckInButton({
       label={label}
       role={role}
       accessibilityState={{ disabled, selected }}
+      busy={busy}
       disabled={disabled}
       onPress={onPress}
       variant={resolvedVariant}

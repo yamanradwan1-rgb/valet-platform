@@ -33,6 +33,13 @@ export function checkInHeaderTitle(
   if (snapshot.phase === "returning") return copy.vehicleFound;
   if (snapshot.phase === "customer") return copy.customerContact;
   if (snapshot.phase === "recoverables") return copy.recoverableSessions;
+  if (snapshot.phase === "discovering" || snapshot.phase === "discovery-error")
+    return copy.discoveryTitle;
+  if (snapshot.phase === "recognizing") return copy.recognizingTitle;
+  if (snapshot.phase === "submitting") return copy.submittingTitle;
+  if (snapshot.phase === "intake-ambiguous") return copy.intakeUnknownTitle;
+  if (snapshot.phase === "created") return copy.createdTitle;
+  if (snapshot.phase === "continuation") return copy.awaitingParkingTitle;
   return copy.title;
 }
 
