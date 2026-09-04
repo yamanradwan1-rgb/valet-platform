@@ -14,6 +14,7 @@ import {
   VehicleCard,
 } from "./native-check-in-primitives";
 import { checkInStyles as s } from "./native-check-in-styles";
+import { EmployeeProgress } from "../employee-ui/employee-feedback";
 
 interface StateStepProps {
   readonly copy: NativeCheckInCopy;
@@ -24,7 +25,7 @@ interface StateStepProps {
 }
 
 export function NativeLoadingStep({ copy, textAlign }: StateStepProps) {
-  return <CheckInStatus textAlign={textAlign}>{copy.loading}</CheckInStatus>;
+  return <EmployeeProgress textAlign={textAlign} label={copy.loading} />;
 }
 
 export function NativeDiscoveryErrorStep({

@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type {
   EmployeeCheckInAuthoritativeSession,
   EmployeeCheckInRecognizedVehicle,
@@ -8,8 +7,19 @@ import type {
 
 import { checkInStyles as s } from "./native-check-in-styles";
 import { checkInTextStyle } from "./native-check-in-presentation";
+import { EmployeeButton } from "../employee-ui/employee-controls";
+import {
+  EmployeeField,
+  type EmployeeFieldProps,
+} from "../employee-ui/employee-fields";
+import { EmployeeBadge, EmployeeCard } from "../employee-ui/employee-feedback";
 
-export type NativeTextAlign = "left" | "right";
+import type { EmployeeTextAlign as NativeTextAlign } from "../employee-ui/employee-typography";
+export type { EmployeeTextAlign as NativeTextAlign } from "../employee-ui/employee-typography";
+export {
+  EmployeeError as CheckInError,
+  EmployeeStatus as CheckInStatus,
+} from "../employee-ui/employee-feedback";
 
 export function CheckInHeader({
   back,
@@ -62,105 +72,31 @@ export function CheckInButton({
   readonly selected?: boolean;
 }) {
   return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole={role}
+    <EmployeeButton
+      label={label}
+      role={role}
       accessibilityState={{ disabled, selected }}
       disabled={disabled}
       onPress={onPress}
-      style={[
-        s.button,
-        secondary && s.secondaryButton,
-        disabled && s.buttonDisabled,
-      ]}
-    >
-      <Text style={[s.buttonLabel, secondary && s.secondaryLabel]}>
-        {label}
-      </Text>
-    </Pressable>
+      variant={secondary ? "secondary" : "primary"}
+      size={role === "tab" ? "large" : secondary ? "standard" : "large"}
+    />
   );
 }
 
-export function CheckInField({
-  accessibilityLabel,
-  inputMode,
-  maxLength,
-  onChangeText,
-  placeholder,
-  value,
-  kind,
-  textAlign,
-  prefix,
-}: {
-  readonly accessibilityLabel: string;
-  readonly inputMode?: "tel" | "text";
-  readonly maxLength: number;
-  readonly onChangeText: (value: string) => void;
-  readonly placeholder?: string;
-  readonly value: string;
-  readonly kind: "identifier" | "human";
-  readonly textAlign: NativeTextAlign;
-  readonly prefix?: string;
-}) {
+export function CheckInField(props: EmployeeFieldProps) {
   return (
-    <View style={{ gap: 7 }}>
-      <Text style={[s.fieldLabel, { textAlign }]}>{accessibilityLabel}</Text>
-      <View style={{ flexDirection: "row", direction: "ltr", gap: 8 }}>
-        {prefix ? (
-          <Text
-            style={[
-              s.field,
-              {
-                textAlign: "left",
-                writingDirection: "ltr",
-                textAlignVertical: "center",
-              },
-            ]}
-          >
-            {prefix}
-          </Text>
-        ) : null}
-        <TextInput
-          accessibilityLabel={accessibilityLabel}
-          autoCapitalize={kind === "identifier" ? "characters" : "sentences"}
-          autoCorrect={false}
-          inputMode={inputMode}
-          maxLength={maxLength}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          style={[s.field, { flex: 1 }, checkInTextStyle(kind, textAlign)]}
-          value={value}
-        />
-      </View>
-    </View>
-  );
-}
-
-export function CheckInError({
-  children,
-  textAlign,
-}: {
-  readonly children: ReactNode;
-  readonly textAlign: NativeTextAlign;
-}) {
-  return (
-    <Text accessibilityLiveRegion="assertive" style={[s.error, { textAlign }]}>
-      {children}
-    </Text>
-  );
-}
-
-export function CheckInStatus({
-  children,
-  textAlign,
-}: {
-  readonly children: ReactNode;
-  readonly textAlign: NativeTextAlign;
-}) {
-  return (
-    <Text accessibilityLiveRegion="polite" style={[s.text, { textAlign }]}>
-      {children}
-    </Text>
+    <EmployeeField
+      {...props}
+      visualRole={
+        props.visualRole ??
+        (props.prefix
+          ? "phone"
+          : props.kind === "identifier"
+            ? "plate"
+            : "standard")
+      }
+    />
   );
 }
 
@@ -182,8 +118,8 @@ export function VehicleCard({
     ("temporaryDescriptor" in vehicle ? vehicle.temporaryDescriptor : null) ??
     fallback;
   return (
-    <View accessibilityLabel={`${name}, ${identifier}`} style={s.card}>
-      <Text style={[s.title, { fontSize: 22, textAlign }]}>{name}</Text>
+    <EmployeeCard accessibilityLabel={`${name}, ${identifier}`}>
+      <Text style={[s.title, { textAlign }]}>{name}</Text>
       <Text
         style={[
           s.text,
@@ -200,7 +136,7 @@ export function VehicleCard({
           {vehicle.color}
         </Text>
       ) : null}
-    </View>
+    </EmployeeCard>
   );
 }
 
@@ -229,7 +165,7 @@ export function RecoverableCard({
       onPress={onPress}
       style={s.card}
     >
-      <Text style={s.badge}>{label}</Text>
+      <EmployeeBadge label={label} textAlign={textAlign} />
       <Text style={[s.title, { fontSize: 18, textAlign }]}>{name}</Text>
       <Text
         style={[

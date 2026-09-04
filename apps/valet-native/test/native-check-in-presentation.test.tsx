@@ -14,6 +14,7 @@ vi.mock("../src/check-in/native-plate-camera-step", () => ({
 const auth = {} as NativeAuthSession;
 
 vi.mock("react-native", () => ({
+  ActivityIndicator: "ActivityIndicator",
   Pressable: "Pressable",
   ScrollView: "ScrollView",
   Text: "Text",

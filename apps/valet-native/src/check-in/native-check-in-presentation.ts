@@ -4,6 +4,7 @@ import type {
 } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
+import { employeeTextStyle } from "../employee-ui/employee-typography";
 
 export function checkInFailureMessage(
   copy: NativeCheckInCopy,
@@ -40,13 +41,7 @@ export function checkInTextStyle(
   kind: "identifier" | "human",
   textAlign: "left" | "right",
 ) {
-  return {
-    textAlign: kind === "identifier" ? ("left" as const) : textAlign,
-    writingDirection:
-      kind === "human" && textAlign === "right"
-        ? ("rtl" as const)
-        : ("ltr" as const),
-  };
+  return employeeTextStyle(kind, textAlign);
 }
 
 export function checkInIdentityLabel(

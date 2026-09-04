@@ -112,7 +112,9 @@ export function NativeReturningStep({
       />
       {suggestion ? (
         <View style={s.card}>
-          <Text style={s.badge}>{copy.previousAssociation}</Text>
+          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
+            {copy.previousAssociation}
+          </Text>
           {suggestion.displayName ? (
             <Text style={[s.fieldLabel, { textAlign }]}>
               {suggestion.displayName}
