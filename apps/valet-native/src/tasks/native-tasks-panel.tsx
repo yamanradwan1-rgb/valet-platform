@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { AppState, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, type ReactNode } from "react";
+import { AppState, ScrollView, Text, View } from "react-native";
 import type {
   EmployeeOperationalSession,
   EmployeeOperationalSnapshot,
@@ -15,12 +15,16 @@ import {
   nativeTaskVehicleLabel,
 } from "./native-task-presentation";
 import { getNativeTasksCopy, type NativeTasksCopy } from "./native-tasks-copy";
+import { EmployeeButton } from "../employee-ui/employee-controls";
+import { EmployeeCard } from "../employee-ui/employee-feedback";
 
 interface NativeTasksPanelProps {
   readonly locale: FoundationLocale;
   readonly operations: EmployeeOperationalSession;
   readonly snapshot: EmployeeOperationalSnapshot;
   readonly textAlign: "left" | "right";
+  readonly heading?: string;
+  readonly headerAction?: ReactNode;
 }
 
 export function NativeTasksPanel({
@@ -28,6 +32,8 @@ export function NativeTasksPanel({
   operations,
   snapshot,
   textAlign,
+  heading,
+  headerAction,
 }: NativeTasksPanelProps) {
   const copy = getNativeTasksCopy(locale);
 
@@ -86,7 +92,23 @@ export function NativeTasksPanel({
 
   return (
     <View style={styles.tasksPanel}>
-      <View style={styles.contextCard}>
+      <View style={styles.taskHeader}>
+        <Text
+          accessibilityRole="header"
+          style={[styles.taskHeading, { textAlign }]}
+        >
+          {heading ?? copy.tasks}
+        </Text>
+        <View style={styles.taskHeaderActions}>
+          {headerAction}
+          <TaskButton
+            disabled={snapshot.queueLoading}
+            label={copy.refresh}
+            onPress={() => void operations.refreshQueue()}
+          />
+        </View>
+      </View>
+      <EmployeeCard>
         <Fact
           label={copy.organization}
           value={facts.organization}
@@ -99,17 +121,7 @@ export function NativeTasksPanel({
         />
         <Fact label={copy.role} value={facts.role} textAlign={textAlign} />
         <Fact label={copy.shift} value={facts.shift} textAlign={textAlign} />
-      </View>
-      <View style={styles.taskHeader}>
-        <Text accessibilityRole="header" style={styles.taskHeading}>
-          {copy.tasks}
-        </Text>
-        <TaskButton
-          disabled={snapshot.queueLoading}
-          label={copy.refresh}
-          onPress={() => void operations.refreshQueue()}
-        />
-      </View>
+      </EmployeeCard>
       {snapshot.queueFailure ? (
         <Status copy={copy.error} textAlign={textAlign} />
       ) : null}
@@ -154,10 +166,7 @@ function TaskCard({
     snapshot.mutation.taskId === task.taskId &&
     snapshot.mutation.phase === "submitting";
   return (
-    <View
-      accessibilityLabel={nativeTaskVehicleLabel(task)}
-      style={styles.taskCard}
-    >
+    <EmployeeCard accessibilityLabel={nativeTaskVehicleLabel(task)}>
       <Text style={[styles.taskTitle, { textAlign }]}>
         {nativeTaskVehicleLabel(task)}
       </Text>
@@ -174,7 +183,7 @@ function TaskCard({
           onPress={onAccept}
         />
       ) : null}
-    </View>
+    </EmployeeCard>
   );
 }
 
@@ -234,15 +243,12 @@ function TaskButton({
   readonly onPress: () => void;
 }) {
   return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
+    <EmployeeButton
       disabled={disabled}
+      label={label}
       onPress={onPress}
-      style={[styles.smallActionButton, disabled && styles.disabledButton]}
-    >
-      <Text style={styles.smallActionLabel}>{label}</Text>
-    </Pressable>
+      size="compact"
+      variant="ghost"
+    />
   );
 }

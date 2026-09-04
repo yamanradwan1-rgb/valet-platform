@@ -18,6 +18,7 @@ interface FoundationCopy {
   chooseLanguage: string;
   english: string;
   arabic: string;
+  tasks: string;
 }
 
 interface FoundationPresentation {
@@ -34,6 +35,7 @@ const FOUNDATION_COPY: Record<FoundationLocale, FoundationCopy> = {
     chooseLanguage: "Choose language",
     english: "English",
     arabic: "Arabic",
+    tasks: "Tasks",
   },
   ar: {
     appName: "VAYLET",
@@ -42,6 +44,7 @@ const FOUNDATION_COPY: Record<FoundationLocale, FoundationCopy> = {
     chooseLanguage: "اختر اللغة",
     english: "الإنجليزية",
     arabic: "العربية",
+    tasks: "المهام",
   },
 };
 

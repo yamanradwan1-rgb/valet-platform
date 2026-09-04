@@ -119,9 +119,10 @@ describe("Native Check-In production entry", () => {
         operations: operations(),
       }),
     );
-    const launch = nodes.find(
-      (node) => node.props.accessibilityLabel === "New vehicle check-in",
-    )!;
+    const launch = nodes.find((node) => node.props.label === "New vehicle")!;
+    expect(launch.props.variant).toBe("primary");
+    expect(launch.props.size).toBe("compact");
+    expect(launch.props.leading).toBeTruthy();
     (launch.props.onPress as () => void)();
     expect(hooks.setOpen).toHaveBeenCalledWith(true);
     expect(session.activate).toHaveBeenCalledWith(

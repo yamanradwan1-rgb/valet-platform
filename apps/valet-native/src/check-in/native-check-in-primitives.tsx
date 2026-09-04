@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 import type {
   EmployeeCheckInAuthoritativeSession,
   EmployeeCheckInRecognizedVehicle,
@@ -8,6 +8,7 @@ import type {
 import { checkInStyles as s } from "./native-check-in-styles";
 import { checkInTextStyle } from "./native-check-in-presentation";
 import { EmployeeButton } from "../employee-ui/employee-controls";
+import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
 import {
   EmployeeField,
   type EmployeeFieldProps,
@@ -23,6 +24,7 @@ export {
 
 export function CheckInHeader({
   back,
+  direction,
   onBack,
   textAlign,
   title,
@@ -32,27 +34,18 @@ export function CheckInHeader({
   readonly onBack: () => void;
   readonly textAlign: NativeTextAlign;
   readonly title: string;
+  readonly direction: "ltr" | "rtl";
   readonly disabled?: boolean;
 }) {
   return (
-    <View style={s.header}>
-      <Pressable
-        accessibilityLabel={back}
-        accessibilityRole="button"
-        hitSlop={8}
-        accessibilityState={{ disabled }}
-        disabled={disabled}
-        onPress={() => {
-          if (!disabled) onBack();
-        }}
-        style={[s.headerButton, disabled && s.buttonDisabled]}
-      >
-        <Text style={s.headerButtonLabel}>{back}</Text>
-      </Pressable>
-      <Text accessibilityRole="header" style={[s.headerTitle, { textAlign }]}>
-        {title}
-      </Text>
-    </View>
+    <EmployeeBackHeader
+      accessibilityLabel={back}
+      disabled={disabled}
+      direction={direction}
+      onBack={onBack}
+      textAlign={textAlign}
+      title={title}
+    />
   );
 }
 

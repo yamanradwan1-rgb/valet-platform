@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import type {
   NativeAuthSession,
   NativeAuthSnapshot,
@@ -7,12 +7,15 @@ import type {
 
 import type { NativeAuthCopy } from "./native-auth-copy";
 import { styles } from "../foundation/foundation-styles";
+import { EmployeeButton } from "../employee-ui/employee-controls";
+import { employeeColors } from "../employee-ui/employee-tokens";
 
 interface NativeAuthPanelProps {
   readonly copy: NativeAuthCopy;
   readonly session: NativeAuthSession | undefined;
   readonly snapshot: NativeAuthSnapshot;
   readonly textAlign: "left" | "right";
+  readonly compact?: boolean;
 }
 
 export function NativeAuthPanel({
@@ -20,6 +23,7 @@ export function NativeAuthPanel({
   session,
   snapshot,
   textAlign,
+  compact = false,
 }: NativeAuthPanelProps) {
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState("");
@@ -54,6 +58,17 @@ export function NativeAuthPanel({
     );
   }
   if (snapshot.phase === "authenticated") {
+    if (compact) {
+      return (
+        <EmployeeButton
+          disabled={busy}
+          label={copy.logout}
+          onPress={() => void run(() => session.logout())}
+          size="compact"
+          variant="ghost"
+        />
+      );
+    }
     return (
       <View style={styles.authPanel}>
         <StatusText copy={copy.authenticated} textAlign={textAlign} />
@@ -84,7 +99,7 @@ export function NativeAuthPanel({
         keyboardType="email-address"
         onChangeText={setEmail}
         placeholder={copy.email}
-        placeholderTextColor="#8498BC"
+        placeholderTextColor={employeeColors.muted}
         style={[styles.input, { textAlign }]}
         value={email}
       />
@@ -94,7 +109,7 @@ export function NativeAuthPanel({
         autoComplete="current-password"
         onChangeText={setPassword}
         placeholder={copy.password}
-        placeholderTextColor="#8498BC"
+        placeholderTextColor={employeeColors.muted}
         secureTextEntry
         style={[styles.input, { textAlign }]}
         value={password}
@@ -138,14 +153,5 @@ function ActionButton({
   label: string;
   onPress: () => void;
 }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={disabled}
-      onPress={onPress}
-      style={[styles.actionButton, disabled && styles.disabledButton]}
-    >
-      <Text style={styles.actionLabel}>{label}</Text>
-    </Pressable>
-  );
+  return <EmployeeButton label={label} disabled={disabled} onPress={onPress} />;
 }

@@ -20,6 +20,7 @@ export interface NativeCheckInCopy {
   readonly loading: string;
   readonly manualOnly: string;
   readonly multiple: string;
+  readonly newVehicle: string;
   readonly noPhone: string;
   readonly noPlate: string;
   readonly noPlateExample: string;
@@ -71,6 +72,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     manualOnly:
       "Enter and confirm the plate, or describe the vehicle if the plate is unreadable.",
     multiple: "Choose the check-in you want to resume.",
+    newVehicle: "New vehicle",
     noPhone: "Continue without phone",
     noPlate: "No / unreadable plate",
     noPlateExample: "Example: Silver Toyota SUV",
@@ -126,6 +128,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     manualOnly:
       "أدخل اللوحة وأكّدها، أو صِف المركبة إذا كانت اللوحة غير مقروءة.",
     multiple: "اختر عملية تسجيل الوصول التي تريد متابعتها.",
+    newVehicle: "مركبة جديدة",
     noPhone: "المتابعة دون رقم هاتف",
     noPlate: "لا توجد لوحة / غير مقروءة",
     noPlateExample: "مثال: تويوتا فضية دفع رباعي",

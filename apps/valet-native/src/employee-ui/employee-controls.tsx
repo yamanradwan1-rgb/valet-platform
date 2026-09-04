@@ -6,6 +6,7 @@ import {
   type AccessibilityRole,
   type AccessibilityState,
 } from "react-native";
+import type { ReactNode } from "react";
 
 import {
   employeeButtonHeights,
@@ -55,6 +56,7 @@ export function EmployeeButton({
   disabled = false,
   role = "button",
   accessibilityState,
+  leading,
 }: {
   readonly label: string;
   readonly onPress: () => void;
@@ -63,6 +65,7 @@ export function EmployeeButton({
   readonly disabled?: boolean;
   readonly role?: AccessibilityRole;
   readonly accessibilityState?: AccessibilityState;
+  readonly leading?: ReactNode;
 }) {
   const height = employeeButtonHeights[size];
   const hitExtension = Math.max(0, (employeeMinimumTouchTarget - height) / 2);
@@ -91,15 +94,26 @@ export function EmployeeButton({
           disabled && employeeControlStyles.disabled,
         ]}
       >
-        <Text
-          style={[
-            employeeControlStyles.buttonLabel,
-            { color: labelColors[variant] },
-            size !== "large" && { fontSize: employeeTypography.body.fontSize },
-          ]}
+        <View
+          style={{
+            alignItems: "center",
+            flexDirection: "row",
+            gap: employeeSpacing.compact,
+          }}
         >
-          {label}
-        </Text>
+          {leading}
+          <Text
+            style={[
+              employeeControlStyles.buttonLabel,
+              { color: labelColors[variant] },
+              size !== "large" && {
+                fontSize: employeeTypography.body.fontSize,
+              },
+            ]}
+          >
+            {label}
+          </Text>
+        </View>
       </Pressable>
     </View>
   );

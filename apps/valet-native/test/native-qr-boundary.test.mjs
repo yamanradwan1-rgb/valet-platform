@@ -86,7 +86,7 @@ describe("MOB-009 native capture wiring", () => {
     expect(source).toContain('accessibilityLiveRegion="polite"');
     expect(source).toContain("key={snapshot.rejectionCount}");
     expect(read("../src/foundation/foundation-styles.ts")).toContain(
-      "minHeight: 52",
+      "minHeight: employeeButtonHeights.large",
     );
   });
   it("exposes exactly the two resource modes and no Dynamic handoff tab", () => {

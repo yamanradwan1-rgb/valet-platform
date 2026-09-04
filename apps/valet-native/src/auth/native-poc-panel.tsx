@@ -19,6 +19,7 @@ export function NativePocPanel({ apiOrigin, auth }: NativePocPanelProps) {
   const mounted = useRef(true);
   const [probes, setProbes] = useState(initialNativePocProbeSnapshot);
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const presentation = getNativePocPresentation(
     __DEV__,
     apiOrigin,
@@ -35,6 +36,23 @@ export function NativePocPanel({ apiOrigin, auth }: NativePocPanelProps) {
 
   if (presentation === null) return null;
 
+  if (!expanded) {
+    return (
+      <Pressable
+        accessibilityLabel={presentation.title}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: false }}
+        onPress={() => setExpanded(true)}
+        style={styles.devDiagnosticsButton}
+        testID="native-poc-diagnostics-toggle"
+      >
+        <Text style={styles.devDiagnosticsButtonLabel}>
+          {presentation.title}
+        </Text>
+      </Pressable>
+    );
+  }
+
   const runChecks = async () => {
     if (busy) return;
     setBusy(true);
@@ -47,7 +65,11 @@ export function NativePocPanel({ apiOrigin, auth }: NativePocPanelProps) {
   };
 
   return (
-    <View style={styles.devDiagnostics} testID="native-poc-diagnostics">
+    <View
+      accessibilityState={{ expanded: true }}
+      style={styles.devDiagnostics}
+      testID="native-poc-diagnostics"
+    >
       <Text style={styles.devDiagnosticsTitle}>{presentation.title}</Text>
       <Diagnostic label="API" value={presentation.apiOrigin} />
       <Diagnostic
@@ -69,6 +91,14 @@ export function NativePocPanel({ apiOrigin, auth }: NativePocPanelProps) {
         style={[styles.devDiagnosticsButton, busy && styles.disabledButton]}
       >
         <Text style={styles.devDiagnosticsButtonLabel}>Run POC checks</Text>
+      </Pressable>
+      <Pressable
+        accessibilityLabel="Hide POC diagnostics"
+        accessibilityRole="button"
+        onPress={() => setExpanded(false)}
+        style={styles.devDiagnosticsButton}
+      >
+        <Text style={styles.devDiagnosticsButtonLabel}>Hide</Text>
       </Pressable>
     </View>
   );

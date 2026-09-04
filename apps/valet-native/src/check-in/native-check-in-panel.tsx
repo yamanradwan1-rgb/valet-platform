@@ -1,6 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Modal, Pressable, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Modal } from "react-native";
 import type {
   EmployeeCheckInSession,
   EmployeeLocale,
@@ -10,8 +9,10 @@ import type {
 
 import { NativeCheckInWorkflow } from "./native-check-in-workflow";
 import { getNativeCheckInCopy } from "./native-check-in-copy";
-import { checkInStyles as s } from "./native-check-in-styles";
 import { checkInBackBlocked } from "./native-check-in-presentation";
+import { EmployeeButton } from "../employee-ui/employee-controls";
+import { EmployeeFrame } from "../employee-ui/employee-frame";
+import { EmployeePlusIcon } from "../employee-ui/employee-icons";
 
 interface NativeCheckInPanelProps {
   readonly auth: NativeAuthSession;
@@ -54,21 +55,20 @@ export function NativeCheckInPanel({
   };
   return (
     <>
-      <Pressable
-        accessibilityLabel={copy.title}
-        accessibilityRole="button"
+      <EmployeeButton
+        label={copy.newVehicle}
+        leading={<EmployeePlusIcon />}
         onPress={launch}
-        style={s.button}
-      >
-        <Text style={s.buttonLabel}>{copy.title}</Text>
-      </Pressable>
+        size="compact"
+        variant="primary"
+      />
       <Modal
         animationType="slide"
         onRequestClose={close}
         presentationStyle="fullScreen"
         visible={open}
       >
-        <SafeAreaView style={s.modal}>
+        <EmployeeFrame direction={locale === "ar" ? "rtl" : "ltr"}>
           <NativeCheckInWorkflow
             auth={auth}
             locale={locale}
@@ -76,7 +76,7 @@ export function NativeCheckInPanel({
             session={checkIn}
             snapshot={snapshot}
           />
-        </SafeAreaView>
+        </EmployeeFrame>
       </Modal>
     </>
   );

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import type {
   EmployeeOperationalSnapshot,
   NativeAuthSnapshot,
@@ -22,6 +21,10 @@ import {
   getFoundationPresentation,
 } from "./foundation-locale";
 import { styles } from "./foundation-styles";
+import {
+  EmployeeAppHeader,
+  EmployeeFrame,
+} from "../employee-ui/employee-frame";
 
 interface AuthBootstrap {
   readonly operationalSnapshot: EmployeeOperationalSnapshot;
@@ -92,34 +95,73 @@ export function FoundationShell() {
   }, [auth, snapshot.authGeneration, snapshot.phase]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <EmployeeFrame direction={presentation.direction}>
+      <EmployeeAppHeader
+        scope={operationalSnapshot.scope}
+        textAlign={presentation.textAlign}
+        utilities={
+          <>
+            <View
+              accessibilityLabel={presentation.copy.chooseLanguage}
+              accessibilityRole="tablist"
+              style={styles.localeControls}
+            >
+              {FOUNDATION_LOCALES.map((option) => (
+                <LocaleButton
+                  key={option}
+                  activeLocale={locale}
+                  label={
+                    option === "en"
+                      ? presentation.copy.english
+                      : presentation.copy.arabic
+                  }
+                  locale={option}
+                  onSelect={setLocale}
+                />
+              ))}
+            </View>
+            {snapshot.phase === "authenticated" ? (
+              <NativeAuthPanel
+                compact
+                copy={getNativeAuthCopy(locale)}
+                session={auth.runtime?.auth}
+                snapshot={snapshot}
+                textAlign={presentation.textAlign}
+              />
+            ) : null}
+          </>
+        }
+      />
       <View
         style={[styles.screen, { direction: presentation.direction }]}
         testID="foundation-shell"
       >
-        <View style={styles.brandBlock}>
-          <Text
-            accessibilityRole="header"
-            style={[styles.brand, { textAlign: presentation.textAlign }]}
-          >
-            {presentation.copy.appName}
-          </Text>
-          <Text
-            style={[styles.audience, { textAlign: presentation.textAlign }]}
-          >
-            {presentation.copy.audience}
-          </Text>
-        </View>
+        {snapshot.phase !== "authenticated" ? (
+          <NativeAuthPanel
+            copy={getNativeAuthCopy(locale)}
+            session={auth.runtime?.auth}
+            snapshot={snapshot}
+            textAlign={presentation.textAlign}
+          />
+        ) : null}
 
-        <NativeAuthPanel
-          copy={getNativeAuthCopy(locale)}
-          session={auth.runtime?.auth}
-          snapshot={snapshot}
-          textAlign={presentation.textAlign}
-        />
-
-        {__DEV__ ? (
-          <NativePocPanel apiOrigin={auth.runtime?.apiOrigin} auth={snapshot} />
+        {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
+          <NativeTasksPanel
+            heading={presentation.copy.tasks}
+            headerAction={
+              <NativeCheckInPanel
+                auth={auth.runtime.auth}
+                key={`${snapshot.authGeneration}:${operationalSnapshot.scope?.membershipId}:${operationalSnapshot.scope?.locationId}:${operationalSnapshot.scope?.shiftId}`}
+                checkIn={auth.runtime.checkIn}
+                locale={locale}
+                operations={operationalSnapshot}
+              />
+            }
+            locale={locale}
+            operations={auth.runtime.operations}
+            snapshot={operationalSnapshot}
+            textAlign={presentation.textAlign}
+          />
         ) : null}
 
         {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
@@ -130,46 +172,11 @@ export function FoundationShell() {
           />
         ) : null}
 
-        {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
-          <NativeCheckInPanel
-            auth={auth.runtime.auth}
-            key={`${snapshot.authGeneration}:${operationalSnapshot.scope?.membershipId}:${operationalSnapshot.scope?.locationId}:${operationalSnapshot.scope?.shiftId}`}
-            checkIn={auth.runtime.checkIn}
-            locale={locale}
-            operations={operationalSnapshot}
-          />
+        {__DEV__ ? (
+          <NativePocPanel apiOrigin={auth.runtime?.apiOrigin} auth={snapshot} />
         ) : null}
-
-        {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
-          <NativeTasksPanel
-            locale={locale}
-            operations={auth.runtime.operations}
-            snapshot={operationalSnapshot}
-            textAlign={presentation.textAlign}
-          />
-        ) : null}
-
-        <View
-          accessibilityLabel={presentation.copy.chooseLanguage}
-          accessibilityRole="tablist"
-          style={styles.localeControls}
-        >
-          {FOUNDATION_LOCALES.map((option) => (
-            <LocaleButton
-              key={option}
-              activeLocale={locale}
-              label={
-                option === "en"
-                  ? presentation.copy.english
-                  : presentation.copy.arabic
-              }
-              locale={option}
-              onSelect={setLocale}
-            />
-          ))}
-        </View>
       </View>
-    </SafeAreaView>
+    </EmployeeFrame>
   );
 }
 

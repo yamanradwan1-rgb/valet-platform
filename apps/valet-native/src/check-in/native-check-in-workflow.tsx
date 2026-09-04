@@ -54,6 +54,7 @@ export function NativeCheckInWorkflow({
         onBack={onClose}
         textAlign={textAlign}
         title={copy.title}
+        direction={locale === "ar" ? "rtl" : "ltr"}
       />
       <ScrollView
         contentContainerStyle={[

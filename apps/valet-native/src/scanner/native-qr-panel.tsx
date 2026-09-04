@@ -27,6 +27,7 @@ import {
 import { NativeQrController } from "./native-qr-controller";
 import { bindNativeQrLifecycle } from "./native-qr-lifecycle";
 import { getNativeQrCopy } from "./native-qr-copy";
+import { EmployeeButton } from "../employee-ui/employee-controls";
 
 interface PanelProps {
   readonly locale: EmployeeLocale;
@@ -40,7 +41,12 @@ export function NativeQrPanel({ locale, auth }: PanelProps) {
   useFocusEffect(useCallback(() => () => setOpen(false), []));
   return (
     <>
-      <ScanButton label={copy.title} onPress={() => setOpen(true)} />
+      <EmployeeButton
+        label={copy.title}
+        onPress={() => setOpen(true)}
+        size="standard"
+        variant="secondary"
+      />
       {open ? (
         <ScanWorkflow
           key={kind}
