@@ -50,11 +50,25 @@ function elements(value: unknown): Element[] {
   const node = value as Element;
   return [node, ...elements(node.props.children)];
 }
-function fixture(granted = true, locale: "en" | "ar" = "en") {
+function style(node: Element): Record<string, unknown> {
+  return Object.assign(
+    {},
+    ...[node.props.style].flat(Infinity).filter(Boolean),
+  );
+}
+function fixture(
+  granted = true,
+  locale: "en" | "ar" = "en",
+  deferPermission = false,
+) {
   hooks.focus = [];
   const permission = { granted, canAskAgain: false };
+  let resolvePermission: (value: typeof permission) => void = () => undefined;
+  const pendingPermission = new Promise<typeof permission>((resolve) => {
+    resolvePermission = resolve;
+  });
   const controller = new NativePlateCameraController({
-    get: async () => permission,
+    get: async () => (deferPermission ? pendingPermission : permission),
     request: async () => permission,
   });
   hooks.controller = controller;
@@ -90,7 +104,15 @@ function fixture(granted = true, locale: "en" | "ar" = "en") {
       render().find((node) => node.props.label === label)!.props
         .onPress as () => void
     )();
-  return { controller, onManual, onNoPlate, render, press, cleanup };
+  return {
+    controller,
+    onManual,
+    onNoPlate,
+    render,
+    press,
+    cleanup,
+    resolvePermission,
+  };
 }
 
 describe("Native assistive plate camera presentation", () => {
@@ -100,13 +122,32 @@ describe("Native assistive plate camera presentation", () => {
       render()
         .filter((node) => node.props.label)
         .map((node) => node.props.label),
-    ).toEqual(["Open camera", "Enter plate manually", "No / unreadable plate"]);
+    ).toEqual(["Open camera", "Enter manually", "No / unreadable plate"]);
+    const buttons = render().filter((node) => node.props.label);
+    expect(buttons.map((node) => node.props.variant)).toEqual([
+      "primary",
+      "secondary",
+      "ghost",
+    ]);
     expect(render().some((node) => node.type === "CameraView")).toBe(false);
   });
   it("mounts only a muted rear preview with no scan/capture/data callback", async () => {
     const context = fixture();
     await context.controller.open();
-    const camera = context.render().find((node) => node.type === "CameraView")!;
+    const starting = context.render();
+    const camera = starting.find((node) => node.type === "CameraView")!;
+    const viewport = starting.find(
+      (node) => node.type === "View" && style(node).height === 260,
+    )!;
+    expect(style(viewport)).toMatchObject({
+      backgroundColor: "#0B1626",
+      borderRadius: 16,
+      height: 260,
+      overflow: "hidden",
+    });
+    expect(
+      starting.some((node) => node.props.message === "Starting rear camera…"),
+    ).toBe(true);
     expect(camera.props).toMatchObject({ facing: "back", mute: true });
     expect(camera.props.onBarcodeScanned).toBeUndefined();
     expect(camera.props.ref).toBeUndefined();
@@ -117,7 +158,25 @@ describe("Native assistive plate camera presentation", () => {
       false,
     );
   });
-  it.each(["Enter plate manually", "No / unreadable plate", "Close camera"])(
+  it("keeps requesting permission inside the same camera viewport shell", async () => {
+    const context = fixture(true, "en", true);
+    const opening = context.controller.open();
+    expect(context.controller.current().phase).toBe("requesting");
+    const requesting = context.render();
+    expect(
+      requesting.some(
+        (node) => node.type === "View" && style(node).height === 260,
+      ),
+    ).toBe(true);
+    expect(
+      requesting.some(
+        (node) => node.props.message === "Requesting camera permission…",
+      ),
+    ).toBe(true);
+    context.resolvePermission({ granted: true, canAskAgain: false });
+    await opening;
+  });
+  it.each(["Enter manually", "No / unreadable plate", "Close camera"])(
     "%s removes preview before transition",
     async (label) => {
       const context = fixture();
@@ -144,9 +203,7 @@ describe("Native assistive plate camera presentation", () => {
         false,
       );
       expect(
-        context
-          .render()
-          .some((node) => node.props.label === "Enter plate manually"),
+        context.render().some((node) => node.props.label === "Enter manually"),
       ).toBe(true);
       expect(
         context
@@ -156,6 +213,18 @@ describe("Native assistive plate camera presentation", () => {
       expect(context.controller.current().phase).toBe(
         failure === "denied" ? "denied" : "error",
       );
+      const failed = context.render();
+      expect(
+        failed.some(
+          (node) => node.type === "View" && style(node).height === 260,
+        ),
+      ).toBe(true);
+      expect(
+        failed.some((node) => typeof node.props.message === "string"),
+      ).toBe(true);
+      expect(
+        context.render().some((node) => node.props.label === "Retry camera"),
+      ).toBe(true);
       if (failure === "denied")
         expect(
           context

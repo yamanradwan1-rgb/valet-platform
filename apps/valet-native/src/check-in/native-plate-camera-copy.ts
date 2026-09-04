@@ -5,6 +5,7 @@ const COPY = {
     open: "Open camera",
     close: "Close camera",
     enter: "Enter the plate I can see",
+    retry: "Retry camera",
     settings: "Open camera settings",
     phases: {
       idle: "Use the camera to read the plate, or enter it manually. No automatic recognition or photo is taken.",
@@ -22,6 +23,7 @@ const COPY = {
     open: "فتح الكاميرا",
     close: "إغلاق الكاميرا",
     enter: "إدخال اللوحة التي أراها",
+    retry: "إعادة محاولة الكاميرا",
     settings: "فتح إعدادات الكاميرا",
     phases: {
       idle: "استخدم الكاميرا لقراءة اللوحة أو أدخلها يدوياً. لا يوجد تعرّف تلقائي ولا يتم التقاط صورة.",

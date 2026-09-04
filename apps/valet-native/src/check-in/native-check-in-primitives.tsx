@@ -56,6 +56,8 @@ export function CheckInButton({
   role = "button",
   secondary = false,
   selected,
+  size,
+  variant,
 }: {
   readonly disabled?: boolean;
   readonly label: string;
@@ -63,7 +65,10 @@ export function CheckInButton({
   readonly role?: "button" | "tab";
   readonly secondary?: boolean;
   readonly selected?: boolean;
+  readonly size?: "large" | "standard" | "compact";
+  readonly variant?: "primary" | "secondary" | "ghost";
 }) {
+  const resolvedVariant = variant ?? (secondary ? "secondary" : "primary");
   return (
     <EmployeeButton
       label={label}
@@ -71,8 +76,17 @@ export function CheckInButton({
       accessibilityState={{ disabled, selected }}
       disabled={disabled}
       onPress={onPress}
-      variant={secondary ? "secondary" : "primary"}
-      size={role === "tab" ? "large" : secondary ? "standard" : "large"}
+      variant={resolvedVariant}
+      size={
+        size ??
+        (role === "tab"
+          ? "large"
+          : resolvedVariant === "primary"
+            ? "large"
+            : resolvedVariant === "secondary"
+              ? "standard"
+              : "compact")
+      }
     />
   );
 }

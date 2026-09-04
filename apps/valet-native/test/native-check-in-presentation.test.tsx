@@ -6,7 +6,12 @@ import type {
   NativeAuthSession,
 } from "@valet/employee-client";
 vi.mock("react", () => ({
-  useState: (init: () => unknown) => [init(), vi.fn()],
+  useEffect: vi.fn(),
+  useRef: (initial: unknown) => ({ current: initial }),
+  useState: (init: unknown) => [
+    typeof init === "function" ? (init as () => unknown)() : init,
+    vi.fn(),
+  ],
 }));
 vi.mock("../src/check-in/native-plate-camera-step", () => ({
   NativePlateCameraStep: "NativePlateCameraStep",
@@ -15,6 +20,7 @@ const auth = {} as NativeAuthSession;
 
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
+  Modal: "Modal",
   Pressable: "Pressable",
   ScrollView: "ScrollView",
   Text: "Text",
@@ -109,21 +115,17 @@ describe("Native Check-In presentation", () => {
     expect(labels(nodes)).toEqual(
       expect.arrayContaining([
         "Back",
-        "Enter plate manually",
+        "Country / Region: Jordan (JO)",
         "No / unreadable plate",
-        "License plate",
-        "Plate country",
+        "License Plate",
         "Continue",
       ]),
     );
     expect(labels(nodes)).not.toContain("Mobile number");
     expect(nodes.filter((node) => node.type === "TextInput")).toHaveLength(1);
-    const selectedTab = nodes.find(
-      (node) =>
-        node.props.accessibilityRole === "tab" &&
-        (node.props.accessibilityState as { selected?: boolean }).selected,
+    expect(nodes.some((node) => node.props.accessibilityRole === "tab")).toBe(
+      false,
     );
-    expect(selectedTab?.props.accessibilityLabel).toBe("Enter plate manually");
   });
 
   it("shows descriptor-only manual fallback for a no-plate vehicle", () => {
@@ -224,9 +226,7 @@ describe("Native Check-In presentation", () => {
       }),
     );
     expect(
-      invalid.nodes.some(
-        (node) => node.props.children === "Enter plate manually",
-      ),
+      invalid.nodes.some((node) => node.props.children === "Enter Plate"),
     ).toBe(true);
     const first = render(snapshot({ phase: "intake-ambiguous" }));
     expect(labels(first.nodes)).toContain("Check server state");
@@ -245,10 +245,10 @@ describe("Native Check-In presentation", () => {
     });
     for (const input of nodes.filter((node) => node.type === "TextInput")) {
       expect(input.props.style).toContainEqual({
-        textAlign: "left",
+        textAlign: "center",
         writingDirection: "ltr",
       });
     }
-    expect(labels(nodes)).toContain("إدخال اللوحة يدوياً");
+    expect(labels(nodes)).toContain("لوحة المركبة");
   });
 });

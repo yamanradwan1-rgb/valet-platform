@@ -15,7 +15,6 @@ import {
 } from "./native-check-in-primitives";
 import {
   checkInFailureMessage,
-  checkInIdentityLabel,
   checkInTextStyle,
 } from "./native-check-in-presentation";
 import { checkInStyles as s } from "./native-check-in-styles";
@@ -25,70 +24,6 @@ interface StepProps {
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
-}
-
-export function NativeConfirmStep({
-  copy,
-  session,
-  snapshot,
-  textAlign,
-}: StepProps) {
-  const error = checkInFailureMessage(copy, snapshot.error);
-  const confirmation =
-    snapshot.vehicle.mode === "CONFIRMED_PLATE"
-      ? copy.confirmPlate
-      : copy.confirmDescription;
-  return (
-    <>
-      <Text accessibilityRole="header" style={[s.title, { textAlign }]}>
-        {confirmation}
-      </Text>
-      <View style={s.hero}>
-        <Text style={s.badge}>
-          {snapshot.vehicle.mode === "CONFIRMED_PLATE"
-            ? copy.enterPlate
-            : copy.noPlate}
-        </Text>
-        <Text
-          style={[
-            s.heroPlate,
-            snapshot.vehicle.mode === "TEMPORARY_DESCRIPTOR" && {
-              letterSpacing: 0,
-            },
-            checkInTextStyle(
-              snapshot.vehicle.mode === "CONFIRMED_PLATE"
-                ? "identifier"
-                : "human",
-              textAlign,
-            ),
-          ]}
-        >
-          {checkInIdentityLabel(snapshot, copy.vehicle)}
-        </Text>
-      </View>
-      {error ? (
-        <CheckInError textAlign={textAlign}>
-          {copy.recognitionError}
-        </CheckInError>
-      ) : null}
-      <CheckInButton
-        label={confirmation}
-        onPress={() => void session.confirmIdentity()}
-      />
-      {error ? (
-        <CheckInButton
-          label={copy.continueWithoutRecognition}
-          onPress={() => session.continueWithoutRecognition()}
-          secondary
-        />
-      ) : null}
-      <CheckInButton
-        label={copy.edit}
-        onPress={() => session.editIdentity()}
-        secondary
-      />
-    </>
-  );
 }
 
 export function NativeReturningStep({

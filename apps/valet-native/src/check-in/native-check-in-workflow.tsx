@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import type {
   EmployeeCheckInSession,
@@ -7,13 +8,17 @@ import type {
 } from "@valet/employee-client";
 
 import { getNativeCheckInCopy } from "./native-check-in-copy";
+import { NativeConfirmStep } from "./native-check-in-confirm-step";
 import {
-  NativeConfirmStep,
   NativeCustomerStep,
   NativeReturningStep,
 } from "./native-check-in-input-steps";
 import { NativeCaptureStep } from "./native-check-in-capture-step";
-import { checkInBackBlocked } from "./native-check-in-presentation";
+import {
+  checkInBackBlocked,
+  checkInHeaderTitle,
+  initialCheckInCapturePresentation,
+} from "./native-check-in-presentation";
 import {
   CheckInHeader,
   type NativeTextAlign,
@@ -45,15 +50,51 @@ export function NativeCheckInWorkflow({
 }: NativeCheckInWorkflowProps) {
   const copy = getNativeCheckInCopy(locale);
   const textAlign: NativeTextAlign = locale === "ar" ? "right" : "left";
-  const props = { auth, copy, onClose, session, snapshot, textAlign };
+  const [capturePresentation, setCapturePresentation] = useState(() =>
+    initialCheckInCapturePresentation(snapshot),
+  );
+  const previousPhase = useRef(snapshot.phase);
+  useEffect(() => {
+    if (snapshot.phase === "capture" && previousPhase.current !== "capture") {
+      setCapturePresentation(initialCheckInCapturePresentation(snapshot));
+    }
+    previousPhase.current = snapshot.phase;
+  }, [snapshot]);
+  const back = () => {
+    if (snapshot.phase === "capture" && capturePresentation !== "camera") {
+      if (capturePresentation === "descriptor") {
+        session.setVehicle({ mode: "CONFIRMED_PLATE" });
+        setCapturePresentation("manual");
+      } else {
+        setCapturePresentation("camera");
+      }
+      return;
+    }
+    if (snapshot.phase === "confirm") {
+      setCapturePresentation(initialCheckInCapturePresentation(snapshot));
+      session.editIdentity();
+      return;
+    }
+    onClose();
+  };
+  const props = {
+    auth,
+    copy,
+    onClose,
+    onPresentationChange: setCapturePresentation,
+    presentation: capturePresentation,
+    session,
+    snapshot,
+    textAlign,
+  };
   return (
     <>
       <CheckInHeader
         back={copy.back}
         disabled={checkInBackBlocked(snapshot.phase)}
-        onBack={onClose}
+        onBack={back}
         textAlign={textAlign}
-        title={copy.title}
+        title={checkInHeaderTitle(copy, snapshot, capturePresentation)}
         direction={locale === "ar" ? "rtl" : "ltr"}
       />
       <ScrollView

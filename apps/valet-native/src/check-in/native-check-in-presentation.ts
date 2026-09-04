@@ -6,6 +6,33 @@ import type {
 import type { NativeCheckInCopy } from "./native-check-in-copy";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 
+export type NativeCapturePresentation = "camera" | "manual" | "descriptor";
+
+export function initialCheckInCapturePresentation(
+  snapshot: EmployeeCheckInSnapshot,
+): NativeCapturePresentation {
+  if (snapshot.vehicle.mode === "TEMPORARY_DESCRIPTOR") return "descriptor";
+  return snapshot.vehicle.plateNumberRaw === "" ? "camera" : "manual";
+}
+
+export function checkInHeaderTitle(
+  copy: NativeCheckInCopy,
+  snapshot: EmployeeCheckInSnapshot,
+  presentation: NativeCapturePresentation,
+): string {
+  if (snapshot.phase === "capture") {
+    if (presentation === "manual") return copy.enterPlate;
+    if (presentation === "descriptor") return copy.temporaryDescriptor;
+    return copy.scanPlate;
+  }
+  if (snapshot.phase === "confirm") {
+    return snapshot.vehicle.mode === "CONFIRMED_PLATE"
+      ? copy.confirmPlate
+      : copy.confirmDescription;
+  }
+  return copy.title;
+}
+
 export function checkInFailureMessage(
   copy: NativeCheckInCopy,
   failure: EmployeeOperationalFailure | null,

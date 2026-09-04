@@ -9,9 +9,15 @@ import type {
 
 const hooks = vi.hoisted(() => ({ setManual: vi.fn() }));
 vi.mock("react", () => ({
-  useState: (init: () => unknown) => [init(), hooks.setManual],
+  useEffect: vi.fn(),
+  useRef: (initial: unknown) => ({ current: initial }),
+  useState: (init: unknown) => [
+    typeof init === "function" ? (init as () => unknown)() : init,
+    hooks.setManual,
+  ],
 }));
 vi.mock("react-native", () => ({
+  Modal: "Modal",
   Pressable: "Pressable",
   Text: "Text",
   TextInput: "TextInput",
@@ -51,6 +57,9 @@ function render(
   locale: "en" | "ar" = "ar",
 ) {
   const session = {
+    confirmIdentity: vi.fn(),
+    continueWithoutRecognition: vi.fn(),
+    editIdentity: vi.fn(),
     setVehicle: vi.fn(),
     reviewIdentity: vi.fn(),
     resume: vi.fn(),
@@ -84,7 +93,6 @@ const direction = (rtl: boolean) => ({
   textAlign: rtl ? "right" : "left",
   writingDirection: rtl ? "rtl" : "ltr",
 });
-
 describe("Native Check-In review regressions", () => {
   it("offers camera-first assistance before fields, with no implicit confirmation", () => {
     const { nodes, session } = render({
@@ -97,31 +105,10 @@ describe("Native Check-In review regressions", () => {
     expect(session.reviewIdentity).not.toHaveBeenCalled();
     const camera = nodes.find((node) => node.type === "NativePlateCameraStep")!;
     (camera.props.onNoPlate as () => void)();
-    expect(hooks.setManual).toHaveBeenCalledWith(true);
+    expect(hooks.setManual).toHaveBeenCalledWith("descriptor");
     expect(session.setVehicle).toHaveBeenCalledWith({
       mode: "TEMPORARY_DESCRIPTOR",
     });
-  });
-  it("offers exactly the Web countries, default JO and selectable OTHER", () => {
-    const { nodes, session } = render({});
-    const choices = nodes.filter(
-      (node) => node.props.accessibilityRole === "radio",
-    );
-    expect(choices.map((node) => node.props.accessibilityLabel)).toEqual([
-      "JO",
-      "AE",
-      "SA",
-      "KW",
-      "BH",
-      "OTHER",
-    ]);
-    expect(choices[0]!.props.accessibilityState).toEqual({ checked: true });
-    (choices.at(-1)!.props.onPress as () => void)();
-    expect(session.setVehicle).toHaveBeenCalledWith({ plateCountry: "OTHER" });
-    const selected = render({
-      vehicle: { ...vehicle, plateCountry: "OTHER" },
-    }).nodes.find((node) => node.props.accessibilityLabel === "OTHER")!;
-    expect(selected.props.accessibilityState).toEqual({ checked: true });
   });
   it.each(["en", "ar"] as const)(
     "uses semantic descriptor direction in %s entry and confirmation",
@@ -142,18 +129,25 @@ describe("Native Check-In review regressions", () => {
       ).nodes.find(
         (node) => node.props.children === draft.temporaryDescriptor,
       )!;
-      expect(confirmation.props.style).toContainEqual(
-        direction(locale === "ar"),
-      );
+      expect(confirmation.props.style).toContainEqual({
+        textAlign: "center",
+        writingDirection: locale === "ar" ? "rtl" : "ltr",
+      });
     },
   );
   it("keeps Arabic plate entry/confirmation and phone LTR, with separate +962", () => {
     const plate = render({}).nodes.find((node) => node.type === "TextInput")!;
-    expect(plate.props.style).toContainEqual(direction(false));
+    expect(plate.props.style).toContainEqual({
+      textAlign: "center",
+      writingDirection: "ltr",
+    });
     const confirmation = render({ phase: "confirm" }).nodes.find(
       (node) => node.props.children === vehicle.plateNumberRaw,
     )!;
-    expect(confirmation.props.style).toContainEqual(direction(false));
+    expect(confirmation.props.style).toContainEqual({
+      textAlign: "center",
+      writingDirection: "ltr",
+    });
     const phone = render({ phase: "customer" }).nodes;
     expect(
       phone.find((node) => node.type === "TextInput")!.props.style,

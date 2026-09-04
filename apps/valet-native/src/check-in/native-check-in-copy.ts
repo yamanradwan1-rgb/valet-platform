@@ -15,10 +15,11 @@ export interface NativeCheckInCopy {
   readonly differentCustomer: string;
   readonly discoveryError: string;
   readonly edit: string;
+  readonly enterManually: string;
   readonly enterPlate: string;
   readonly intakeUnknown: string;
   readonly loading: string;
-  readonly manualOnly: string;
+  readonly manualEntry: string;
   readonly multiple: string;
   readonly newVehicle: string;
   readonly noPhone: string;
@@ -40,12 +41,16 @@ export interface NativeCheckInCopy {
   readonly scanPlate: string;
   readonly submitting: string;
   readonly title: string;
+  readonly temporaryDescriptor: string;
   readonly unreadable: string;
   readonly useSavedCustomer: string;
   readonly vehicle: string;
   readonly vehicleFound: string;
   readonly awaitingParkingBody: string;
   readonly awaitingParkingTitle: string;
+  readonly countryNames: Readonly<
+    Record<"JO" | "AE" | "SA" | "KW" | "BH" | "OTHER", string>
+  >;
 }
 
 const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
@@ -53,11 +58,11 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     back: "Back",
     checkServer: "Check server state",
     close: "Back to tasks",
-    confirmDescription: "Confirm vehicle description",
-    confirmPlate: "Confirm plate",
+    confirmDescription: "Confirm Vehicle Description",
+    confirmPlate: "Confirm Plate",
     continueLabel: "Continue",
     continueWithoutRecognition: "Continue without recognition",
-    country: "Plate country",
+    country: "Country / Region",
     createdBody:
       "The authoritative intake is saved. Vehicle Condition is the next step. Continue in Employee Web until that Native workflow is available.",
     createdTitle: "Intake saved",
@@ -65,12 +70,12 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     differentCustomer: "Different customer",
     discoveryError: "Check-in state is temporarily unavailable.",
     edit: "Edit",
-    enterPlate: "Enter plate manually",
+    enterManually: "Enter manually",
+    enterPlate: "Enter Plate",
     intakeUnknown:
       "The server result is unknown. Check authoritative state before retrying the same intake.",
     loading: "Checking saved check-ins…",
-    manualOnly:
-      "Enter and confirm the plate, or describe the vehicle if the plate is unreadable.",
+    manualEntry: "Manual Entry",
     multiple: "Choose the check-in you want to resume.",
     newVehicle: "New vehicle",
     noPhone: "Continue without phone",
@@ -82,7 +87,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     savedCustomerStale:
       "The saved customer association is no longer valid. Enter the current customer's phone or continue without a phone.",
     phoneEnding: "Phone ending",
-    plate: "License plate",
+    plate: "License Plate",
     previousAssociation:
       "Previously associated with this vehicle during a completed VAYLET visit.",
     recognitionError:
@@ -94,9 +99,10 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     retrySame: "Retry same check-in",
     savedBody:
       "Use this previous association only if it matches the customer in front of you.",
-    scanPlate: "Vehicle identification",
+    scanPlate: "Scan Plate",
     submitting: "Creating authoritative intake…",
     title: "New vehicle check-in",
+    temporaryDescriptor: "Temporary Descriptor",
     unreadable: "Vehicle description",
     useSavedCustomer: "Use saved customer",
     vehicle: "Vehicle",
@@ -104,6 +110,14 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     awaitingParkingBody:
       "This check-in is already complete and awaiting the Native parking workflow. No state was changed locally.",
     awaitingParkingTitle: "Ready for parking",
+    countryNames: {
+      JO: "Jordan",
+      AE: "United Arab Emirates",
+      SA: "Saudi Arabia",
+      KW: "Kuwait",
+      BH: "Bahrain",
+      OTHER: "Other",
+    },
   },
   ar: {
     back: "رجوع",
@@ -113,7 +127,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     confirmPlate: "تأكيد اللوحة",
     continueLabel: "متابعة",
     continueWithoutRecognition: "المتابعة دون تعرّف",
-    country: "بلد اللوحة",
+    country: "الدولة / المنطقة",
     createdBody:
       "تم حفظ الاستلام المعتمد. فحص حالة المركبة هو الخطوة التالية. تابع في تطبيق الموظف على الويب حتى يتوفر هذا المسار هنا.",
     createdTitle: "تم حفظ الاستلام",
@@ -121,12 +135,12 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     differentCustomer: "عميل مختلف",
     discoveryError: "حالة تسجيل الوصول غير متاحة مؤقتاً.",
     edit: "تعديل",
-    enterPlate: "إدخال اللوحة يدوياً",
+    enterManually: "إدخال يدوي",
+    enterPlate: "إدخال اللوحة",
     intakeUnknown:
       "نتيجة الخادم غير معروفة. تحقق من الحالة المعتمدة قبل إعادة محاولة نفس الاستلام.",
     loading: "جارٍ التحقق من عمليات الاستلام المحفوظة…",
-    manualOnly:
-      "أدخل اللوحة وأكّدها، أو صِف المركبة إذا كانت اللوحة غير مقروءة.",
+    manualEntry: "إدخال يدوي",
     multiple: "اختر عملية تسجيل الوصول التي تريد متابعتها.",
     newVehicle: "مركبة جديدة",
     noPhone: "المتابعة دون رقم هاتف",
@@ -138,7 +152,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     savedCustomerStale:
       "لم يعد ارتباط العميل المحفوظ صالحاً. أدخل رقم العميل الحالي أو تابع دون رقم هاتف.",
     phoneEnding: "رقم الهاتف المنتهي بـ",
-    plate: "رقم اللوحة",
+    plate: "لوحة المركبة",
     previousAssociation:
       "ارتبط هذا العميل سابقاً بهذه المركبة خلال زيارة مكتملة في VAYLET.",
     recognitionError:
@@ -149,9 +163,10 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     retry: "إعادة المحاولة",
     retrySame: "إعادة محاولة نفس الاستلام",
     savedBody: "استخدم الارتباط السابق فقط إذا كان يطابق العميل الموجود أمامك.",
-    scanPlate: "تعريف المركبة",
+    scanPlate: "مسح اللوحة",
     submitting: "جارٍ إنشاء الاستلام المعتمد…",
     title: "تسجيل وصول مركبة جديدة",
+    temporaryDescriptor: "وصف مؤقت",
     unreadable: "وصف المركبة",
     useSavedCustomer: "استخدام العميل المحفوظ",
     vehicle: "المركبة",
@@ -159,6 +174,14 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     awaitingParkingBody:
       "اكتمل تسجيل الوصول وهو بانتظار مسار الاصطفاف الأصلي. لم يتم تغيير أي حالة محلياً.",
     awaitingParkingTitle: "جاهزة للاصطفاف",
+    countryNames: {
+      JO: "الأردن",
+      AE: "الإمارات",
+      SA: "السعودية",
+      KW: "الكويت",
+      BH: "البحرين",
+      OTHER: "أخرى",
+    },
   },
 };
 
