@@ -35,7 +35,7 @@ This document defines technologies the AI agent may not replace without an accep
   Expo Go is not production evidence
 - Expo Continuous Native Generation; generated `android/` and `ios/`
   projects are not hand-maintained in Git without a later Accepted Decision
-- Android-first delivery with minimum Android 11 / API 30 and compile/target
+- Android-first delivery with minimum Android 10 / API 29 and compile/target
   API 36
 - Android application/package ID: `com.vaylet.employee`
 - iOS bundle ID: `com.vaylet.employee` from the same application architecture

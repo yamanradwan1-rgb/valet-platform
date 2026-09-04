@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import appConfig from "../app.json";
 
 const expo = appConfig.expo;
-const buildProperties = expo.plugins.find(Array.isArray);
+const buildProperties = expo.plugins.find(
+  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-build-properties",
+);
+const cameraPlugin = expo.plugins.find(
+  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-camera",
+);
 
 describe("Expo application configuration", () => {
   it("uses the accepted Employee identity", () => {
@@ -18,7 +23,7 @@ describe("Expo application configuration", () => {
       "expo-build-properties",
       {
         android: {
-          minSdkVersion: 30,
+          minSdkVersion: 29,
           compileSdkVersion: 36,
           targetSdkVersion: 36,
           usesCleartextTraffic: false,
@@ -30,6 +35,19 @@ describe("Expo application configuration", () => {
   it("configures SecureStore while keeping release cleartext disabled", () => {
     expect(expo.plugins).toContain("expo-secure-store");
     expect(buildProperties[1].android.usesCleartextTraffic).toBe(false);
+  });
+
+  it("keeps camera permission without introducing audio recording", () => {
+    expect(cameraPlugin).toEqual([
+      "expo-camera",
+      {
+        cameraPermission:
+          "Allow VAYLET Employee to scan resource and handoff QR codes.",
+        microphonePermission: false,
+        recordAudioAndroid: false,
+        barcodeScannerEnabled: true,
+      },
+    ]);
   });
 
   it("does not configure OTA, Firebase, EAS, or production credentials", () => {

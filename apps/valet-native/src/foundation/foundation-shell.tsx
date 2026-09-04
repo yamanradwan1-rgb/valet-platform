@@ -8,11 +8,13 @@ import type {
 
 import { getNativeAuthCopy } from "../auth/native-auth-copy";
 import { NativeAuthPanel } from "../auth/native-auth-panel";
+import { NativePocPanel } from "../auth/native-poc-panel";
 import {
   createNativeEmployeeRuntime,
   type NativeEmployeeRuntime,
 } from "../auth/native-auth-runtime";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
+import { NativeQrPanel } from "../scanner/native-qr-panel";
 import {
   FOUNDATION_LOCALES,
   type FoundationLocale,
@@ -114,6 +116,18 @@ export function FoundationShell() {
           snapshot={snapshot}
           textAlign={presentation.textAlign}
         />
+
+        {__DEV__ ? (
+          <NativePocPanel apiOrigin={auth.runtime?.apiOrigin} auth={snapshot} />
+        ) : null}
+
+        {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
+          <NativeQrPanel
+            key={snapshot.authGeneration}
+            auth={auth.runtime.auth}
+            locale={locale}
+          />
+        ) : null}
 
         {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
           <NativeTasksPanel

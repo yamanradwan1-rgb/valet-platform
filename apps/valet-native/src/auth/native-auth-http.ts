@@ -13,8 +13,6 @@ import {
   validateNativeApiOrigin,
 } from "./native-api-http";
 
-export const nativeDebugApiOrigin = "http://10.0.2.2:3001";
-
 export class NativeAuthHttpTransport implements NativeStaffAuthTransport {
   private readonly apiOrigin: string;
 

@@ -19,21 +19,23 @@ describe("Native repository contract", () => {
     expect(readFileSync(indexPath, "utf8")).toContain("<FoundationShell />");
   });
 
-  it.each(["android/build.gradle", "ios/Podfile"])(
-    "keeps generated native path %s ignored",
-    (generatedPath) => {
-      expect(() =>
-        execFileSync(
-          "git",
-          [
-            "check-ignore",
-            "--quiet",
-            "--no-index",
-            `apps/valet-native/${generatedPath}`,
-          ],
-          { cwd: repositoryRoot },
-        ),
-      ).not.toThrow();
-    },
-  );
+  it.each([
+    ".expo/devices.json",
+    "android/build.gradle",
+    "ios/Podfile",
+    "../../.tmp/mobile-poc/api.stdout.log",
+  ])("keeps generated local path %s ignored", (generatedPath) => {
+    expect(() =>
+      execFileSync(
+        "git",
+        [
+          "check-ignore",
+          "--quiet",
+          "--no-index",
+          `apps/valet-native/${generatedPath}`,
+        ],
+        { cwd: repositoryRoot },
+      ),
+    ).not.toThrow();
+  });
 });

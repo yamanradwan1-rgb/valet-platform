@@ -3,7 +3,6 @@ import manifest from "../package.json";
 
 const forbiddenDependencies = [
   "@valet/ui",
-  "expo-camera",
   "expo-location",
   "expo-notifications",
   "expo-updates",
@@ -28,6 +27,32 @@ describe("Native package contract", () => {
 
   it("uses the MOB-006 portable Employee client boundary", () => {
     expect(manifest.dependencies["@valet/employee-client"]).toBe("workspace:*");
+  });
+
+  it("adds only the accepted SDK-compatible MOB-009 camera module", () => {
+    expect(manifest.dependencies["expo-camera"]).toBe("~57.0.4");
+    expect(Object.keys(manifest.dependencies).sort()).toEqual(
+      [
+        "@valet/employee-client",
+        "expo",
+        "expo-build-properties",
+        "expo-camera",
+        "expo-constants",
+        "expo-dev-client",
+        "expo-file-system",
+        "expo-linking",
+        "expo-router",
+        "expo-secure-store",
+        "expo-status-bar",
+        "react",
+        "react-native",
+        "react-native-gesture-handler",
+        "react-native-reanimated",
+        "react-native-safe-area-context",
+        "react-native-screens",
+        "react-native-worklets",
+      ].sort(),
+    );
   });
 
   it("pins only the accepted native auth persistence modules", () => {

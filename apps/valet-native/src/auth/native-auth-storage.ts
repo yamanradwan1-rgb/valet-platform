@@ -7,13 +7,15 @@ import type {
   SecureRefreshStore,
 } from "@valet/employee-client";
 
-const refreshKey = "vaylet.employee.staff-auth.refresh.v1";
-const refreshOptions: SecureStore.SecureStoreOptions = {
+export const nativeRefreshStorageKey = "vaylet.employee.staff-auth.refresh.v1";
+export const nativeSecureStoreOptions: SecureStore.SecureStoreOptions = {
   keychainService: "com.vaylet.employee.staff-auth",
 };
+export const nativeInstallationAuthFileName =
+  "vaylet-installation-auth-state-v1.json";
 const installationFile = new File(
   Paths.document,
-  "vaylet-installation-auth-state-v1.json",
+  nativeInstallationAuthFileName,
 );
 
 function parseStoredJson(value: string): unknown {
@@ -26,20 +28,26 @@ function parseStoredJson(value: string): unknown {
 
 export class ExpoSecureRefreshStore implements SecureRefreshStore {
   async read(): Promise<unknown | null> {
-    const stored = await SecureStore.getItemAsync(refreshKey, refreshOptions);
+    const stored = await SecureStore.getItemAsync(
+      nativeRefreshStorageKey,
+      nativeSecureStoreOptions,
+    );
     return stored === null ? null : parseStoredJson(stored);
   }
 
   async write(envelope: SecureRefreshEnvelope): Promise<void> {
     await SecureStore.setItemAsync(
-      refreshKey,
+      nativeRefreshStorageKey,
       JSON.stringify(envelope),
-      refreshOptions,
+      nativeSecureStoreOptions,
     );
   }
 
   async delete(): Promise<void> {
-    await SecureStore.deleteItemAsync(refreshKey, refreshOptions);
+    await SecureStore.deleteItemAsync(
+      nativeRefreshStorageKey,
+      nativeSecureStoreOptions,
+    );
   }
 }
 

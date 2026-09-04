@@ -3,9 +3,7 @@ export interface HandoffApiRequestOptions {
 }
 
 export type HandoffVerificationMethod =
-  | "DYNAMIC_QR"
-  | "PICKUP_CODE"
-  | "SUPERVISOR_OVERRIDE";
+  "DYNAMIC_QR" | "PICKUP_CODE" | "SUPERVISOR_OVERRIDE";
 
 export interface HandoffVerificationSnapshot {
   readonly method: HandoffVerificationMethod;
@@ -68,4 +66,4 @@ export function describeHandoffError(
 }
 
 export const PICKUP_CODE_PATTERN = /^\d{4}$/;
-export const DYNAMIC_QR_PATTERN = /^vhq1\.[A-Za-z0-9_-]{43}$/;
+export { DYNAMIC_QR_PATTERN } from "@valet/employee-client";

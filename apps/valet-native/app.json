@@ -19,14 +19,23 @@
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 30,
+            "minSdkVersion": 29,
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
             "usesCleartextTraffic": false
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow VAYLET Employee to scan resource and handoff QR codes.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ]
     ]
   }
 }

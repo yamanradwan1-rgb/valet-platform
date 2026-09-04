@@ -16,6 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "local:bootstrap": "pnpm --filter @valet/api local:bootstrap",
+    "mobile:poc": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/mobile-poc.ps1",
     "local:status": "pnpm --filter @valet/api local:status",
     "local:smoke": "pnpm --filter @valet/api local:smoke"
   },

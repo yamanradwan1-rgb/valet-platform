@@ -23,3 +23,6 @@ export * from "./native-auth-state";
 export * from "./native-auth-storage";
 export * from "./native-auth-types";
 export * from "./recovery-policy";
+export * from "./qr-resource-payload";
+export * from "./qr-input";
+export * from "./qr-capture-session";

@@ -4,10 +4,8 @@ import {
 } from "@valet/employee-client";
 
 import { nativeIdentityState } from "./identity-state-boundary";
-import {
-  nativeDebugApiOrigin,
-  NativeAuthHttpTransport,
-} from "./native-auth-http";
+import { resolveNativeApiOrigin } from "./native-api-http";
+import { NativeAuthHttpTransport } from "./native-auth-http";
 import {
   ExpoInstallationAuthStateStore,
   ExpoSecureRefreshStore,
@@ -15,6 +13,7 @@ import {
 import { createNativeOperationalTransport } from "../tasks/native-operational-http";
 
 export interface NativeEmployeeRuntime {
+  readonly apiOrigin: string;
   readonly auth: NativeAuthSession;
   readonly dispose: () => void;
   readonly operations: EmployeeOperationalSession;
@@ -27,20 +26,8 @@ function installationGeneration(): string {
   return `install-${Date.now().toString(36)}-${randomPart}`.slice(0, 128);
 }
 
-function resolveApiOrigin(): string {
-  const configuredOrigin = process.env.EXPO_PUBLIC_API_ORIGIN;
-  const apiOrigin =
-    configuredOrigin ?? (__DEV__ ? nativeDebugApiOrigin : undefined);
-  if (apiOrigin === undefined) {
-    throw new Error(
-      "Native API origin is required for release authentication.",
-    );
-  }
-  return apiOrigin;
-}
-
 export function createNativeAuthSession(
-  apiOrigin = resolveApiOrigin(),
+  apiOrigin = resolveNativeApiOrigin(),
 ): NativeAuthSession {
   return new NativeAuthSession({
     createInstallationGeneration: installationGeneration,
@@ -52,11 +39,11 @@ export function createNativeAuthSession(
 }
 
 export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
-  const apiOrigin = resolveApiOrigin();
+  const apiOrigin = resolveNativeApiOrigin();
   const auth = createNativeAuthSession(apiOrigin);
   const operations = new EmployeeOperationalSession({
     transport: createNativeOperationalTransport(apiOrigin, auth),
   });
   const dispose = nativeIdentityState.register(() => operations.clear());
-  return { auth, dispose, operations };
+  return { apiOrigin, auth, dispose, operations };
 }

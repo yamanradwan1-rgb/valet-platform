@@ -171,7 +171,7 @@ tests; physical-device workflow/lifecycle tests; then signed-build pilot
 evidence. Mocks prove failure handling, not provider/device success. Emulator
 evidence is supplementary.
 
-Physical coverage must include Android 11, 13, 15, and 16; Samsung,
+Physical coverage must include Android 10, 11, 13, 15, and 16; Samsung,
 Pixel/reference behavior, and representative mid-range hardware. At least one
 real Samsung/mid-range-class device is mandatory. Real devices are required for
 camera/QR, permissions, SecureStore, background/terminated lifecycle,
@@ -260,7 +260,7 @@ deferred gates, not silently selected architecture:
 
 - Expo SDK 57 / React Native 0.86, Hermes, New Architecture, Expo Router,
   Development Builds, CNG, `apps/valet-native`, package/bundle
-  `com.vaylet.employee`, API 30 product floor/API 36 target, Android-first/iOS
+  `com.vaylet.employee`, API 29 product floor/API 36 target, Android-first/iOS
   shared architecture, OTA disabled, organization-controlled release ownership,
   and Employee Web fallback are locked by DEC-071.
 - Dedicated native JSON Staff login/refresh/logout routes, memory-only access,
@@ -343,7 +343,7 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** `docs/08_DECISIONS_LOG.md`, `docs/09_TECH_STACK.md`, `docs/10_REPOSITORY_STRUCTURE.md`, `docs/decisions/DEC-071_*`.
 - **DB IMPACT:** None.
 - **DEPENDENCY IMPACT:** None.
-- **ANDROID REQUIREMENTS:** Package `com.vaylet.employee`; min API 30; compile/target API 36; Android-first.
+- **ANDROID REQUIREMENTS:** Package `com.vaylet.employee`; min API 29; compile/target API 36; Android-first.
 - **IOS PORTABILITY:** Bundle `com.vaylet.employee`; same Expo app; iOS smoke before pilot completion.
 - **REQUIRED IMPLEMENTATION PROOF:** Accepted DEC text and synchronized mirrors; no runtime footprint.
 - **AUTOMATED TESTS:** Documentation formatting and decision/status consistency checks only.
@@ -369,7 +369,7 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** Focused `docs/decisions/DEC-*`, decision log, security/stack/schema mirrors only if the Accepted contract requires them.
 - **DB IMPACT:** DEC-072 confirms existing persistence is sufficient; no DB change in MOB-002.
 - **DEPENDENCY IMPACT:** Decision records allowed Expo secure-storage dependency class; installs nothing.
-- **ANDROID REQUIREMENTS:** Android Keystore-backed Expo SecureStore behavior, process death, reinstall/device-lock/error behavior, and API 30 floor addressed.
+- **ANDROID REQUIREMENTS:** Android Keystore-backed Expo SecureStore behavior, process death, reinstall/device-lock/error behavior, and API 29 floor addressed.
 - **IOS PORTABILITY:** Keychain-backed adapter and equivalent lifecycle semantics designed from day one.
 - **REQUIRED IMPLEMENTATION PROOF:** Accepted focused DEC with misuse cases, sequence/race analysis, route compatibility, purge matrix, and rollback/failure behavior.
 - **AUTOMATED TESTS:** Decision consistency/audit only; implementation tests deferred to MOB-007.
@@ -449,7 +449,7 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** `apps/valet-native/**`, workspace/Turbo/root lockfile, targeted docs/scripts.
 - **DB IMPACT:** None.
 - **DEPENDENCY IMPACT:** Pin only Expo-compatible minimum scaffold dependencies and lockfile changes; security/license review required.
-- **ANDROID REQUIREMENTS:** `com.vaylet.employee`; API 30 product floor; API 36 compile/target; physical Development Build launch.
+- **ANDROID REQUIREMENTS:** `com.vaylet.employee`; API 29 product floor; API 36 compile/target; physical Development Build launch.
 - **IOS PORTABILITY:** Matching bundle ID/config; platform-neutral routes/tokens; CNG prebuild smoke where toolchain permits.
 - **REQUIRED IMPLEMENTATION PROOF:** Fresh-install commands produce and launch a Development Build; no Expo Go evidence substituted.
 - **AUTOMATED TESTS:** App config, route shell, locale direction, scripts, and workspace/build/type/lint tests.
@@ -503,7 +503,7 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** Native auth feature/adapters, portable client, existing auth API only if Accepted contract requires a narrow compatible endpoint, contracts/tests.
 - **DB IMPACT:** Only if MOB-002 Accepted an explicit forward-only change; then docs/schema/migration/fixtures/invariant tests are mandatory.
 - **DEPENDENCY IMPACT:** Only MOB-002-approved Expo secure-storage/runtime dependencies.
-- **ANDROID REQUIREMENTS:** Physical API 30+ SecureStore, process kill/restart, clock/network failure, reinstall/device-lock cases.
+- **ANDROID REQUIREMENTS:** Physical API 29+ SecureStore, process kill/restart, clock/network failure, reinstall/device-lock cases.
 - **IOS PORTABILITY:** Keychain adapter contract and compile/config smoke.
 - **REQUIRED IMPLEMENTATION PROOF:** Login, restore, refresh rotation, concurrent refresh handling, revocation, logout purge, and restart-logged-out against real API.
 - **AUTOMATED TESTS:** Parser/transport, lifecycle/races, secret-redaction, API integration, revocation, negative authorization, component tests.
@@ -555,7 +555,8 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** Native camera/scanner adapter/components, portable parser/tests, app permission config.
 - **DB IMPACT:** None.
 - **DEPENDENCY IMPACT:** Minimal Expo SDK-compatible camera/scanner package with lockfile/security review.
-- **ANDROID REQUIREMENTS:** Physical API 30+ rear camera, deny/allow/busy/no-device paths, background/foreground and process lifecycle.
+- **ANDROID REQUIREMENTS:** Physical API 29+ rear camera, deny/allow/busy/no-device paths, background/foreground and process lifecycle. A real Android 10 / API 29 Development Build is accepted for MOB-009 physical proof.
+- **DEVELOPMENT POC WORKFLOW:** `corepack pnpm mobile:poc` reuses the installed Development Build and starts the local API plus LAN Metro without rebuilding the APK. JS/TS/UI-only changes use Metro reload; native dependency, plugin, generated configuration, or Android SDK-floor changes require a rebuilt Development APK.
 - **IOS PORTABILITY:** Narrow camera/permission adapter and shared parser; iOS configuration compatibility.
 - **REQUIRED IMPLEMENTATION PROOF:** Exact valid scan, invalid→valid, duplicate suppression, manual fallback, cleanup, logout cleanup, plus every POC hard-gate item in §9.
 - **AUTOMATED TESTS:** Parser corpus, permission state machine, suppression/re-arm, cleanup, no-mutation-on-decode, component and integration tests.
@@ -823,7 +824,7 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** Focused decision/docs; conditional native location adapter and existing tracking contracts/API/tests.
 - **DB IMPACT:** Existing persistence preferred; any change requires docs03, migration, fixtures, constraints and focused acceptance.
 - **DEPENDENCY IMPACT:** Only Accepted Expo-compatible location dependency; none if pilot exclusion remains.
-- **ANDROID REQUIREMENTS:** Permission states, OEM battery restrictions, foreground/background limits, task stop, API 30–36 behavior.
+- **ANDROID REQUIREMENTS:** Permission states, OEM battery restrictions, foreground/background limits, task stop, API 29–36 behavior.
 - **IOS PORTABILITY:** Core Location-compatible adapter semantics; no Android-only public API.
 - **REQUIRED IMPLEMENTATION PROOF:** Decision recorded. If excluded, feature absent and no permission requested. If included, task-only start/stop/privacy/ingestion evidence.
 - **AUTOMATED TESTS:** Decision/audit; conditional eligibility, authorization, precision, lifecycle, ingestion idempotency tests.
@@ -907,7 +908,7 @@ progression remains subject to the stated dependencies and gates.
 - **IOS PORTABILITY:** Shared intent/state machine; platform notification-response adapter.
 - **REQUIRED IMPLEMENTATION PROOF:** Every lifecycle state; duplicate/tap race; logged-out cold start; revoked scope; stale task; authoritative refresh.
 - **AUTOMATED TESTS:** Lifecycle state machine, auth/router ordering, duplicate intent, stale/unauthorized response, telemetry safety.
-- **MANUAL/PHYSICAL DEVICE PROOF:** Physical Android 11/13/15/16 coverage with Samsung/reference/mid-range across foreground/background/terminated paths.
+- **MANUAL/PHYSICAL DEVICE PROOF:** Physical Android 10/11/13/15/16 coverage with Samsung/reference/mid-range across foreground/background/terminated paths.
 - **VALIDATION COMMANDS:** Focused native/push tests and Development Build; root gates.
 - **REVIEW RISKS:** Deep-link authority, protected flash, duplicate navigation, lost cold-start intent, OEM-specific false claims.
 - **DEFINITION OF DONE:** Notification lifecycle matrix is evidence-complete and never changes operational state locally.
@@ -983,7 +984,7 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** Test/load/chaos harnesses, fixtures, evidence/runbooks; production fixes only through separately scoped corrective tasks.
 - **DB IMPACT:** Test data only; no schema change hidden in gate work.
 - **DEPENDENCY IMPACT:** Prefer k6 if discovery confirms fit; pin/audit any approved test-only dependency.
-- **ANDROID REQUIREMENTS:** Complete API 30/33/35/36-equivalent OS matrix and required physical device families; Development Build and release-like binary.
+- **ANDROID REQUIREMENTS:** Complete API 29/30/33/35/36-equivalent OS matrix and required physical device families; Development Build and release-like binary.
 - **IOS PORTABILITY:** Compile/config and representative simulator/device smoke; document measured reuse against 85–95% target.
 - **REQUIRED IMPLEMENTATION PROOF:** Approved SLOs met; no hard-zero violation; chaos recovery; no duplicate protected effect; full-shift workflow; traceable evidence bundle.
 - **AUTOMATED TESTS:** Full repo plus load/chaos/security/concurrency/E2E suites.
@@ -1009,7 +1010,7 @@ progression remains subject to the stated dependencies and gates.
 - **EXPECTED FILE AREAS:** Release-safe app/build config, CI/release runbook if approved, secret references—not secret values—evidence docs.
 - **DB IMPACT:** None.
 - **DEPENDENCY IMPACT:** Only approved build/distribution tooling; no OTA runtime.
-- **ANDROID REQUIREMENTS:** `com.vaylet.employee`, API 30 floor/API 36 target, signed internal artifact, install/upgrade/uninstall/rollback checks.
+- **ANDROID REQUIREMENTS:** `com.vaylet.employee`, API 29 floor/API 36 target, signed internal artifact, install/upgrade/uninstall/rollback checks.
 - **IOS PORTABILITY:** Preserve shared config; Apple provisioning remains later but organization-control policy stays intact.
 - **REQUIRED IMPLEMENTATION PROOF:** Artifact provenance/hash, signing verification, owner/recovery drill, internal install/upgrade, crash symbols, rollback.
 - **AUTOMATED TESTS:** Release config/secret scan, build, artifact/signature inspection, smoke suite.

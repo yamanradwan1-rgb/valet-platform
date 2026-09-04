@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { EmployeeApiError } from "@valet/employee-client";
+import { NativeAuthHttpTransport } from "../src/auth/native-auth-http";
 import {
   nativeDebugApiOrigin,
-  NativeAuthHttpTransport,
-} from "../src/auth/native-auth-http";
+  resolveNativeApiOrigin,
+} from "../src/auth/native-api-http";
 
 const accessToken = `vsa1.${"a".repeat(43)}`;
 const refreshToken = `vsr1.${"b".repeat(43)}`;
@@ -76,6 +77,9 @@ describe("Native Staff auth HTTP transport", () => {
     expect(
       () => new NativeAuthHttpTransport(nativeDebugApiOrigin),
     ).not.toThrow();
+    expect(resolveNativeApiOrigin("http://192.168.1.67:3001/")).toBe(
+      "http://192.168.1.67:3001",
+    );
   });
 
   it("normalizes network and malformed responses without credential leakage", async () => {

@@ -3487,6 +3487,7 @@ Full binding contract:
 
 Status: Accepted
 Date: 2026-09-01
+Amended: 2026-09-04 — Project Owner set the Android product minimum to Android 10 / API 29.
 
 Decision:
 The VAYLET Employee native application will use the Expo SDK 57 generation
@@ -3517,8 +3518,8 @@ rewrite. DEC-063 remains binding; no generic durable offline synchronization,
 mutation outbox or automatic background replay is introduced.
 
 Android and iOS use the stable product identifier `com.vaylet.employee`.
-Android supports a product minimum of Android 11 / API 30 and compiles/targets
-API 36. Initial validation covers Android 11, 13, 15 and 16 across Samsung,
+Android supports a product minimum of Android 10 / API 29 and compiles/targets
+API 36. Initial validation covers Android 10, 11, 13, 15 and 16 across Samsung,
 Pixel/reference behavior and representative mid-range physical hardware;
 emulators cannot replace required physical proof for native capabilities.
 

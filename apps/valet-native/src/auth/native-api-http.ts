@@ -1,5 +1,7 @@
 import { employeeNetworkError } from "@valet/employee-client";
 
+export const nativeDebugApiOrigin = "http://10.0.2.2:3001";
+
 export function validateNativeApiOrigin(value: string): string {
   let parsed: URL;
   try {
@@ -23,6 +25,19 @@ export function validateNativeApiOrigin(value: string): string {
     throw new Error("Native release authentication requires HTTPS.");
   }
   return parsed.origin;
+}
+
+export function resolveNativeApiOrigin(
+  configuredOrigin = process.env.EXPO_PUBLIC_API_ORIGIN,
+): string {
+  const apiOrigin =
+    configuredOrigin ?? (__DEV__ ? nativeDebugApiOrigin : undefined);
+  if (apiOrigin === undefined) {
+    throw new Error(
+      "Native API origin is required for release authentication.",
+    );
+  }
+  return validateNativeApiOrigin(apiOrigin);
 }
 
 export async function readNativeResponsePayload(

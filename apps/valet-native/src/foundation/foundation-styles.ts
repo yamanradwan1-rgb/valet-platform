@@ -34,6 +34,39 @@ export const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.45,
   },
+  devDiagnostics: {
+    backgroundColor: "#17233C",
+    borderColor: "#60769F",
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 2,
+    padding: 10,
+  },
+  devDiagnosticsButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    marginTop: 5,
+    minHeight: 34,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  devDiagnosticsButtonLabel: {
+    color: "#111B31",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  devDiagnosticsFact: {
+    color: "#DCE6FA",
+    fontSize: 11,
+    lineHeight: 15,
+  },
+  devDiagnosticsTitle: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+  },
   contextCard: {
     backgroundColor: "#1B2945",
     borderRadius: 14,

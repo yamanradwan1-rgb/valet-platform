@@ -2,6 +2,7 @@
 
 Status: Accepted
 Date: 2026-09-01
+Amended: 2026-09-04 — Project Owner set the Android product minimum to Android 10 / API 29.
 
 Canonical decision log entry: `docs/08_DECISIONS_LOG.md` (DEC-071).
 
@@ -152,7 +153,7 @@ Kotlin or Java may contain only technically unavoidable, narrowly isolated
 platform integration approved by the relevant later task. Server/domain rules
 must not migrate into Android code.
 
-The commercially supported product minimum is Android 11 / API 30. The initial
+The commercially supported product minimum is Android 10 / API 29. The initial
 device/OS validation policy is binding as recorded in section 15. Expo's wider
 technical support does not lower this product floor.
 
@@ -287,9 +288,10 @@ not automatically VAYLET's commercial support promise.
 
 The accepted product and validation policy is:
 
-- minimum supported Android 11 / API 30;
+- minimum supported Android 10 / API 29;
 - compile and target Android API 36;
-- validation coverage for Android 11, Android 13, Android 15 and Android 16;
+- validation coverage for Android 10, Android 11, Android 13, Android 15 and
+  Android 16;
 - device-family coverage for Samsung, Pixel/reference Android behavior and
   representative mid-range physical Android hardware; and
 - at least one real Samsung/mid-range-class device in physical pilot testing.
@@ -431,8 +433,8 @@ release evidence and do not reopen the architecture decision.
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | Android application/package ID | `com.vaylet.employee`; production-stable and permanent                                                                                                                                                | Environment-specific production IDs require a later Accepted release decision                                           |
 | iOS bundle ID                  | `com.vaylet.employee`; same VAYLET Employee product identity and shared architecture                                                                                                                  | Platform-specific configuration may differ during iOS implementation                                                    |
-| Android support                | Minimum Android 11 / API 30; compile/target API 36                                                                                                                                                    | Do not lower the product floor because Expo supports older versions                                                     |
-| Android validation             | Android 11, 13, 15 and 16; Samsung, Pixel/reference behavior and representative mid-range physical hardware                                                                                           | Record exact deployed models in the pilot/release task; emulators supplement but do not replace required physical proof |
+| Android support                | Minimum Android 10 / API 29; compile/target API 36                                                                                                                                                    | Owner-approved product floor; further changes require an Accepted owner amendment                                       |
+| Android validation             | Android 10, 11, 13, 15 and 16; Samsung, Pixel/reference behavior and representative mid-range physical hardware                                                                                       | Record exact deployed models in the pilot/release task; emulators supplement but do not replace required physical proof |
 | Google Play                    | Organization-controlled developer account, accountable primary owner, organization-controlled recovery, least privilege and documented pre-production recovery                                        | Provision during release operations; not a scaffold blocker                                                             |
 | Firebase                       | Organization-controlled project, accountable primary owner, organization-controlled recovery, least privilege, later-approved environment separation and no service credentials in the app/repository | Provision during native-push/release work; not a current blocker                                                        |
 | Android signing/upload         | Organization-controlled custody, no Git/source secrets, primary owner, independent recovery, documented custody/recovery and least-privilege CI/release access                                        | Generate and configure during release work                                                                              |
