@@ -2,6 +2,7 @@
 
 Status: Accepted
 Date: 2026-09-05
+Amended: 2026-09-05 — no-migration OCR cost-guard policy locked for MOB-010A
 Task: MOB-010A — Assistive Plate OCR / ANPR Native Integration
 
 ## 1. Context and decision scope
@@ -273,7 +274,7 @@ provider I/O and cost, the API must:
 - validate the supported plate-country value;
 - re-prove the required current Organization/Location operational eligibility
   using existing server authority; and
-- apply the narrowest existing applicable anti-abuse/cost control.
+- apply the cost-guard policy in §22 before provider I/O.
 
 OCR itself causes zero Vehicle, Customer, ValetSession, Task, custody, financial,
 or audit-domain mutation.
@@ -378,8 +379,9 @@ MOB-010A is not complete until automated evidence proves at minimum:
 - transient image cleanup occurs on success, no-match, failure, and
   cancellation;
 - late responses from invalid generations cannot mutate presentation/session;
-- QR scanner behavior and camera cleanup regressions remain green; and
-- EN/AR and identifier RTL/LTR behavior remain correct.
+- QR scanner behavior and camera cleanup regressions remain green;
+- EN/AR and identifier RTL/LTR behavior remain correct; and
+- the §22 cost guard is proven for its accepted deployment modes.
 
 Physical proof requires at least a real-plate automatic-read happy path, edit
 before confirmation, unreadable/no-read fallback, provider-unavailable fallback,
@@ -409,3 +411,100 @@ DEC-067's earlier scoped OCR deferral while preserving the established VAYLET
 trust boundary: machine vision accelerates plate entry, but the employee remains
 the only authority that confirms the plate before returning recognition or
 intake.
+
+## 22. No-migration OCR cost guard
+
+Repository inspection found that the existing durable anti-abuse table is
+constrained to its already-Accepted login, guest, and handoff scopes. MOB-010A
+must not reuse one of those scopes for OCR because doing so would change the
+scope's accepted meaning and couple unrelated security quotas. MOB-010A also
+retains the explicit no-schema/no-migration boundary.
+
+Therefore the cost policy is split by deployment mode.
+
+### 22.1 Cost identity
+
+Every OCR cost decision is keyed from **server-derived** authority, not request
+claims. The logical cost identity is:
+
+```text
+organizationId + membershipId + targetLocationId
+```
+
+The API derives Organization and Membership from current persisted Staff
+authorization and re-proves Location eligibility before consulting the cost
+guard. A client may not choose or override this key with user/member/tenant
+fields.
+
+### 22.2 Controlled development / physical-smoke mode
+
+A process-local ephemeral limiter is authorized only for development, test, and
+a controlled single-API-process physical OCR smoke. It is not production
+anti-abuse authority.
+
+For each server-derived cost identity, before provider I/O:
+
+- maximum one provider call in flight;
+- maximum five provider calls in any 10-second window; and
+- maximum 20 provider calls in any 60-second window.
+
+Exhaustion returns provider-neutral `UNAVAILABLE` without calling the provider.
+The Native five-attempt generation remains independently binding and does not
+replace the server cost guard.
+
+The ephemeral limiter may use in-process memory and a monotonic clock. Its state
+must be bounded/expired and must not contain images, raw credentials, plate
+numbers, provider tokens, or other unnecessary PII. Tests must use an injected
+clock or equivalent deterministic boundary rather than sleeps.
+
+Process restart resets this ephemeral state, and separate API replicas do not
+share it. Those limitations are Accepted only for non-production controlled
+smoke and must be stated honestly in evidence.
+
+### 22.3 Production / multi-replica behavior
+
+MOB-010A does **not** have an Accepted durable/shared OCR limiter because adding
+an OCR scope to the current database limiter requires a new forward-only
+migration, and no external shared limiter has been selected.
+
+Therefore a real OCR provider must remain **fail-closed unavailable in
+production** under MOB-010A. Production requests must resolve to provider-neutral
+`UNAVAILABLE` **before provider I/O** unless a later Accepted implementation
+adds a shared/durable cost guard.
+
+A configured provider endpoint/token alone is not permission to bypass this
+rule. Process-local counters, Native attempt limits, provider-side quotas, and
+single-replica assumptions must not be represented as production shared
+anti-abuse protection.
+
+A later production-enablement slice may extend the existing durable anti-abuse
+persistence with an OCR-specific scope or select another shared mechanism. That
+slice must preserve at least the following public policy unless a later Owner
+Decision changes it:
+
+- key: server-derived Organization + Membership + target Location;
+- one provider call in flight per key;
+- no more than five provider calls per 10 seconds per key;
+- no more than 20 provider calls per 60 seconds per key;
+- fail closed before provider I/O when authoritative limiter state is
+  unavailable.
+
+The later mechanism must work across API replicas and process restarts. It may
+not reuse the accepted meaning of login, guest, or handoff limiter scopes.
+
+### 22.4 Observability and response behavior
+
+Cost-guard denial is an assistive-feature availability outcome, not a Check-In
+business failure. It returns the same provider-neutral `UNAVAILABLE` response
+used for provider/network unavailability so Manual Entry and No Plate remain
+usable.
+
+Safe telemetry may distinguish an internal bounded `cost_guard_denied` outcome
+without logging the limiter key, plate, image, provider token, or raw request.
+
+### 22.5 Database and existing limiter freeze
+
+MOB-010A makes no Prisma change, migration, limiter-table constraint change, or
+new durable limiter table. Existing DEC-024 and handoff limiter scopes,
+thresholds, HMAC semantics, retention, transaction/advisory-lock behavior, and
+public error contracts remain unchanged.
