@@ -60,6 +60,7 @@ function fixture(
   granted = true,
   locale: "en" | "ar" = "en",
   deferPermission = false,
+  textAlign: "left" | "right" = locale === "ar" ? "right" : "left",
 ) {
   hooks.focus = [];
   const permission = { granted, canAskAgain: false };
@@ -92,7 +93,8 @@ function fixture(
           subscribe: () => vi.fn(),
         } as unknown as EmployeeCheckInSession,
         copy: getNativeCheckInCopy(locale),
-        textAlign: locale === "ar" ? "right" : "left",
+        locale,
+        textAlign,
         onManual,
         onNoPlate,
       }),
@@ -104,6 +106,8 @@ function fixture(
       render().find((node) => node.props.label === label)!.props
         .onPress as () => void
     )();
+  const hasMessage = (message: string) =>
+    render().some((node) => node.props.message === message);
   return {
     controller,
     onManual,
@@ -111,6 +115,7 @@ function fixture(
     render,
     press,
     cleanup,
+    hasMessage,
     resolvePermission,
   };
 }
@@ -122,7 +127,7 @@ describe("Native assistive plate camera presentation", () => {
       render()
         .filter((node) => node.props.label)
         .map((node) => node.props.label),
-    ).toEqual(["Open camera", "Enter manually", "No / unreadable plate"]);
+    ).toEqual(["Open camera", "Enter manually", "No plate / unreadable plate"]);
     const buttons = render().filter((node) => node.props.label);
     expect(buttons.map((node) => node.props.variant)).toEqual([
       "primary",
@@ -176,7 +181,7 @@ describe("Native assistive plate camera presentation", () => {
     context.resolvePermission({ granted: true, canAskAgain: false });
     await opening;
   });
-  it.each(["Enter manually", "No / unreadable plate", "Close camera"])(
+  it.each(["Enter manually", "No plate / unreadable plate", "Close camera"])(
     "%s removes preview before transition",
     async (label) => {
       const context = fixture();
@@ -208,7 +213,7 @@ describe("Native assistive plate camera presentation", () => {
       expect(
         context
           .render()
-          .some((node) => node.props.label === "No / unreadable plate"),
+          .some((node) => node.props.label === "No plate / unreadable plate"),
       ).toBe(true);
       expect(context.controller.current().phase).toBe(
         failure === "denied" ? "denied" : "error",
@@ -234,7 +239,7 @@ describe("Native assistive plate camera presentation", () => {
     },
   );
   it("uses localized Arabic entry and cleanup removes preview on focus/unmount exit", async () => {
-    const context = fixture(true, "ar");
+    const context = fixture(true, "ar", false, "left");
     expect(
       context.render().some((node) => node.props.label === "فتح الكاميرا"),
     ).toBe(true);
@@ -243,5 +248,47 @@ describe("Native assistive plate camera presentation", () => {
     expect(context.render().some((node) => node.type === "CameraView")).toBe(
       false,
     );
+  });
+
+  it("localizes every Arabic camera phase independently of alignment", async () => {
+    const requesting = fixture(true, "ar", true, "left");
+    const opening = requesting.controller.open();
+    expect(requesting.hasMessage("جارٍ طلب إذن الكاميرا…")).toBe(true);
+    requesting.resolvePermission({ granted: true, canAskAgain: false });
+    await opening;
+    expect(requesting.hasMessage("جارٍ تشغيل الكاميرا الخلفية…")).toBe(true);
+    const camera = requesting
+      .render()
+      .find((node) => node.type === "CameraView")!;
+    (camera.props.onCameraReady as () => void)();
+    expect(
+      requesting
+        .render()
+        .some(
+          (node) =>
+            node.props.children ===
+            "اقرأ اللوحة ثم أدخلها وأكّدها. تُغلق الكاميرا قبل الإدخال.",
+        ),
+    ).toBe(true);
+
+    const denied = fixture(false, "ar", false, "left");
+    await denied.controller.open();
+    expect(
+      denied.hasMessage(
+        "تم رفض إذن الكاميرا. يمكنك إدخال اللوحة يدوياً أو المتابعة دون لوحة مقروءة.",
+      ),
+    ).toBe(true);
+
+    const failed = fixture(true, "ar", false, "left");
+    await failed.controller.open();
+    const failedCamera = failed
+      .render()
+      .find((node) => node.type === "CameraView")!;
+    (failedCamera.props.onMountError as () => void)();
+    expect(
+      failed.hasMessage(
+        "الكاميرا غير متاحة؛ قد تكون مشغولة أو غير موجودة. أعد المحاولة أو أدخل اللوحة يدوياً.",
+      ),
+    ).toBe(true);
   });
 });

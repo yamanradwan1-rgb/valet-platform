@@ -80,6 +80,7 @@ export function NativeCheckInWorkflow({
   const props = {
     auth,
     copy,
+    locale,
     onClose,
     onPresentationChange: setCapturePresentation,
     presentation: capturePresentation,

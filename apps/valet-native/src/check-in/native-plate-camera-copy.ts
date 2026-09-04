@@ -1,7 +1,21 @@
-import type { NativeTextAlign } from "./native-check-in-primitives";
+import type { EmployeeLocale } from "@valet/employee-client";
 
-const COPY = {
-  left: {
+export interface NativePlateCameraCopy {
+  readonly open: string;
+  readonly close: string;
+  readonly enter: string;
+  readonly retry: string;
+  readonly settings: string;
+  readonly phases: Readonly<
+    Record<
+      "idle" | "requesting" | "starting" | "preview" | "denied" | "error",
+      string
+    >
+  >;
+}
+
+const COPY: Record<EmployeeLocale, NativePlateCameraCopy> = {
+  en: {
     open: "Open camera",
     close: "Close camera",
     enter: "Enter the plate I can see",
@@ -19,7 +33,7 @@ const COPY = {
         "Camera unavailable. It may be busy or missing. Retry or enter the plate manually.",
     },
   },
-  right: {
+  ar: {
     open: "فتح الكاميرا",
     close: "إغلاق الكاميرا",
     enter: "إدخال اللوحة التي أراها",
@@ -38,6 +52,6 @@ const COPY = {
   },
 };
 
-export function getNativePlateCameraCopy(textAlign: NativeTextAlign) {
-  return COPY[textAlign];
+export function getNativePlateCameraCopy(locale: EmployeeLocale) {
+  return COPY[locale];
 }

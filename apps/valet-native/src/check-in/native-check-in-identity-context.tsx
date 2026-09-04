@@ -99,11 +99,23 @@ function CountryContext({
     ? copy.countryNames[country]
     : country;
   return (
-    <Text
-      style={[styles.context, employeeTextStyle("human", textAlign, "center")]}
+    <View
+      accessible={false}
+      style={[
+        styles.countryContext,
+        textAlign === "right" && styles.countryContextRtl,
+      ]}
     >
-      {countryName} <Text style={styles.code}>({country})</Text>
-    </Text>
+      <Text
+        style={[
+          styles.context,
+          employeeTextStyle("human", textAlign, "center"),
+        ]}
+      >
+        {countryName}
+      </Text>
+      <Text style={[styles.context, styles.code]}>({country})</Text>
+    </View>
   );
 }
 
@@ -117,6 +129,13 @@ const styles = StyleSheet.create({
   },
   code: { writingDirection: "ltr" },
   context: { ...type.small, color: c.neutral, fontWeight: "600" },
+  countryContext: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: space.xs,
+    justifyContent: "center",
+  },
+  countryContextRtl: { flexDirection: "row-reverse" },
   descriptor: { ...type.vehicle, color: c.navy },
   hero: {
     alignItems: "center",

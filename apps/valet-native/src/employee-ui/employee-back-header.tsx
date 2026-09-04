@@ -14,10 +14,10 @@ export const employeeBackHeaderStyles = StyleSheet.create({
     backgroundColor: c.warm,
     borderBottomColor: c.border,
     borderBottomWidth: 1,
-    flexDirection: "row",
     gap: space.sm,
-    height: 56,
+    minHeight: 56,
     paddingHorizontal: space.screen,
+    paddingVertical: space.xs,
   },
   button: {
     alignItems: "center",
@@ -26,7 +26,7 @@ export const employeeBackHeaderStyles = StyleSheet.create({
     width: employeeMinimumTouchTarget,
   },
   disabled: { opacity: 0.4 },
-  title: { ...type.header, color: c.navy, flex: 1 },
+  title: { ...type.header, color: c.navy, flex: 1, flexShrink: 1 },
 });
 
 export function EmployeeBackHeader({
@@ -45,7 +45,12 @@ export function EmployeeBackHeader({
   readonly title: string;
 }) {
   return (
-    <View style={employeeBackHeaderStyles.header}>
+    <View
+      style={[
+        employeeBackHeaderStyles.header,
+        { flexDirection: direction === "rtl" ? "row-reverse" : "row" },
+      ]}
+    >
       <Pressable
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"

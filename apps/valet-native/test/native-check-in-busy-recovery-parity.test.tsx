@@ -113,7 +113,7 @@ function content(nodes: Element[]) {
 describe("MOB-010 Patch 5 loading and recovery presentation", () => {
   it.each([
     ["en", "Check-In Discovery", "Checking saved check-ins…"],
-    ["ar", "استعادة تسجيل الوصول", "جارٍ التحقق من عمليات الاستلام المحفوظة…"],
+    ["ar", "استعادة تسجيل الوصول", "جارٍ التحقق من سجلات الوصول المحفوظة…"],
   ] as const)(
     "centers localized discovery progress in %s",
     (locale, title, label) => {
@@ -191,7 +191,7 @@ describe("MOB-010 Patch 5 loading and recovery presentation", () => {
 
   it.each([
     ["recognized", "Toyota Camry", "12-34567", "ltr"],
-    ["draft", "New vehicle", "12-34567", "ltr"],
+    ["draft", "New Vehicle", "12-34567", "ltr"],
     ["descriptor", "مركبة جديدة", "تويوتا فضية", "rtl"],
   ] as const)(
     "retains %s vehicle context while submitting",
@@ -243,7 +243,7 @@ describe("MOB-010 Patch 5 loading and recovery presentation", () => {
       const busy = button(
         nodes,
         kind === "descriptor"
-          ? "جارٍ إنشاء الاستلام المعتمد…"
+          ? "جارٍ إنشاء سجل الوصول المعتمد…"
           : "Creating authoritative intake…",
       )!;
       expect(busy.props.accessibilityState).toMatchObject({

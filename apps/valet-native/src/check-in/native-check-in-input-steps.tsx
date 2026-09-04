@@ -56,7 +56,7 @@ export function NativeReturningStep({
               {suggestion.displayName}
             </Text>
           ) : null}
-          <Text style={[s.text, { textAlign }]}>
+          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
             {copy.phoneEnding}{" "}
             <Text style={{ writingDirection: "ltr" }}>
               {suggestion.phoneSuffix}

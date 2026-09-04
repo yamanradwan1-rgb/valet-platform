@@ -29,9 +29,10 @@ export const employeeFrameStyles = StyleSheet.create({
     borderBottomColor: c.border,
     borderBottomWidth: 1,
     flexDirection: "row",
-    height: 64,
     justifyContent: "space-between",
+    minHeight: 64,
     paddingHorizontal: space.screen,
+    paddingVertical: space.sm,
   },
   brandContext: {
     alignItems: "center",

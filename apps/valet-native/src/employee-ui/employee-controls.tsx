@@ -27,7 +27,11 @@ export const employeeControlStyles = StyleSheet.create({
     paddingHorizontal: employeeSpacing.lg,
     paddingVertical: employeeSpacing.sm,
   },
-  buttonLabel: { ...employeeTypography.button, textAlign: "center" },
+  buttonLabel: {
+    ...employeeTypography.button,
+    flexShrink: 1,
+    textAlign: "center",
+  },
   disabled: { opacity: 0.4 },
   primary: { backgroundColor: c.blue },
   secondary: {
@@ -109,7 +113,9 @@ export function EmployeeButton({
           style={{
             alignItems: "center",
             flexDirection: "row",
+            flexShrink: 1,
             gap: employeeSpacing.compact,
+            justifyContent: "center",
           }}
         >
           {busy ? (

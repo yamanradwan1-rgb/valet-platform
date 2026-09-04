@@ -4,6 +4,7 @@ import { CameraView } from "expo-camera";
 import { useFocusEffect } from "expo-router";
 import type {
   EmployeeCheckInSession,
+  EmployeeLocale,
   NativeAuthSession,
 } from "@valet/employee-client";
 
@@ -32,6 +33,7 @@ export function NativePlateCameraStep({
   auth,
   session,
   copy,
+  locale,
   onManual,
   onNoPlate,
   textAlign,
@@ -39,6 +41,7 @@ export function NativePlateCameraStep({
   readonly auth: NativeAuthSession;
   readonly session: EmployeeCheckInSession;
   readonly copy: NativeCheckInCopy;
+  readonly locale: EmployeeLocale;
   readonly onManual: () => void;
   readonly onNoPlate: () => void;
   readonly textAlign: NativeTextAlign;
@@ -50,7 +53,7 @@ export function NativePlateCameraStep({
     controller.subscribe,
     controller.current,
   );
-  const camera = getNativePlateCameraCopy(textAlign);
+  const camera = getNativePlateCameraCopy(locale);
   useFocusEffect(
     useCallback(
       () =>

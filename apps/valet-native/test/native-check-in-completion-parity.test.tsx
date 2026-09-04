@@ -106,7 +106,7 @@ describe("MOB-010 Patch 5 truthful completion presentation", () => {
   it.each([
     ["created", "en", "Intake saved", "#EDF4FF", "#176BFF"],
     ["continuation", "en", "Ready for parking", "#EEFBF5", "#2F9B78"],
-    ["created", "ar", "تم حفظ الاستلام", "#EDF4FF", "#176BFF"],
+    ["created", "ar", "تم حفظ سجل الوصول", "#EDF4FF", "#176BFF"],
     ["continuation", "ar", "جاهزة للاصطفاف", "#EEFBF5", "#2F9B78"],
   ] as const)(
     "renders %s as a distinct localized operational state in %s",

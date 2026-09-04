@@ -208,13 +208,13 @@ describe("MOB-010 Patch 4 returning and customer presentation", () => {
 
   it.each([
     ["recognized", recognized, "Toyota Camry, 12-34567"],
-    ["new plate", null, "New vehicle, 12-34567"],
-    ["descriptor", null, "New vehicle, Silver SUV"],
+    ["new plate", null, "New Vehicle, 12-34567"],
+    ["descriptor", null, "New Vehicle, Silver SUV"],
   ] as const)(
     "keeps truthful %s vehicle context on Customer contact",
     (_, known, label) => {
       const draft =
-        label === "New vehicle, Silver SUV"
+        label === "New Vehicle, Silver SUV"
           ? {
               mode: "TEMPORARY_DESCRIPTOR" as const,
               plateCountry: "JO",
@@ -237,7 +237,7 @@ describe("MOB-010 Patch 4 returning and customer presentation", () => {
         nodes.filter(
           (node) =>
             node.props.accessibilityRole === "header" &&
-            node.props.children === "Customer contact",
+            node.props.children === "Customer Contact",
         ),
       ).toHaveLength(1);
       expect(session.submitCustomer).not.toHaveBeenCalled();

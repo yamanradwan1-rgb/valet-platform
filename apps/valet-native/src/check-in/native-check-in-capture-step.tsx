@@ -1,6 +1,7 @@
 import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
+  EmployeeLocale,
   NativeAuthSession,
 } from "@valet/employee-client";
 
@@ -21,6 +22,7 @@ import { NativePlateCountrySelector } from "./native-plate-country-selector";
 interface CaptureProps {
   readonly auth: NativeAuthSession;
   readonly copy: NativeCheckInCopy;
+  readonly locale: EmployeeLocale;
   readonly onPresentationChange: (value: NativeCapturePresentation) => void;
   readonly presentation: NativeCapturePresentation;
   readonly session: EmployeeCheckInSession;
@@ -40,6 +42,7 @@ export function NativeCaptureStep(props: CaptureProps) {
   return (
     <NativePlateCameraStep
       auth={auth}
+      locale={props.locale}
       session={session}
       textAlign={textAlign}
       copy={copy}

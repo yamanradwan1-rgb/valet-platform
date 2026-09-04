@@ -131,7 +131,9 @@ export function VehicleCard({
     fallback;
   return (
     <EmployeeCard accessibilityLabel={`${name}, ${identifier}`}>
-      <Text style={[s.title, { textAlign }]}>{name}</Text>
+      <Text style={[s.title, checkInTextStyle("human", textAlign)]}>
+        {name}
+      </Text>
       <Text
         style={[
           s.text,
@@ -169,7 +171,9 @@ export function DraftVehicleCard({
     : vehicle.temporaryDescriptor || fallback;
   return (
     <EmployeeCard accessibilityLabel={`${newVehicleLabel}, ${identifier}`}>
-      <Text style={[s.title, { textAlign }]}>{newVehicleLabel}</Text>
+      <Text style={[s.title, checkInTextStyle("human", textAlign)]}>
+        {newVehicleLabel}
+      </Text>
       <Text
         style={[
           s.text,
@@ -212,7 +216,15 @@ export function RecoverableCard({
         textAlign={textAlign}
         variant={recoverable.kind === "DRAFT" ? "primary" : "success"}
       />
-      <Text style={[s.title, { fontSize: 18, textAlign }]}>{name}</Text>
+      <Text
+        style={[
+          s.title,
+          { fontSize: 18 },
+          checkInTextStyle("human", textAlign),
+        ]}
+      >
+        {name}
+      </Text>
       <Text
         style={[
           s.text,

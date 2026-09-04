@@ -138,12 +138,17 @@ function CountryLabel({
   readonly textAlign: NativeTextAlign;
 }) {
   return (
-    <Text style={[styles.value, employeeTextStyle("human", textAlign)]}>
-      {copy.countryNames[country]}
+    <View
+      accessible={false}
+      style={[styles.countryLabel, textAlign === "right" && styles.rowReverse]}
+    >
+      <Text style={[styles.value, employeeTextStyle("human", textAlign)]}>
+        {copy.countryNames[country]}
+      </Text>
       {country === "OTHER" ? null : (
-        <Text style={styles.code}> ({country})</Text>
+        <Text style={styles.code}>({country})</Text>
       )}
-    </Text>
+    </View>
   );
 }
 
@@ -158,6 +163,12 @@ const styles = StyleSheet.create({
   check: { ...type.header, color: c.blue, writingDirection: "ltr" },
   chevron: { color: c.neutral, fontSize: 16, writingDirection: "ltr" },
   code: { color: c.neutral, writingDirection: "ltr" },
+  countryLabel: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: space.xs,
+  },
   field: {
     alignItems: "center",
     backgroundColor: c.white,
@@ -200,5 +211,5 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: c.ice },
   rowReverse: { flexDirection: "row-reverse" },
   selectedOption: { backgroundColor: c.ice },
-  value: { ...type.body, color: c.navy, flex: 1 },
+  value: { ...type.body, color: c.navy, flexShrink: 1 },
 });

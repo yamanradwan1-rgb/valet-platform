@@ -116,12 +116,12 @@ describe("Native Check-In presentation", () => {
       expect.arrayContaining([
         "Back",
         "Country / Region: Jordan (JO)",
-        "No / unreadable plate",
+        "No plate / unreadable plate",
         "License Plate",
         "Continue",
       ]),
     );
-    expect(labels(nodes)).not.toContain("Mobile number");
+    expect(labels(nodes)).not.toContain("Mobile Number");
     expect(nodes.filter((node) => node.type === "TextInput")).toHaveLength(1);
     expect(nodes.some((node) => node.props.accessibilityRole === "tab")).toBe(
       false,

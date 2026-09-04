@@ -123,7 +123,7 @@ describe("Native Check-In production entry", () => {
         operations: operations(),
       }),
     );
-    const launch = nodes.find((node) => node.props.label === "New vehicle")!;
+    const launch = nodes.find((node) => node.props.label === "New Vehicle")!;
     expect(launch.props.variant).toBe("primary");
     expect(launch.props.size).toBe("compact");
     expect(launch.props.leading).toBeTruthy();

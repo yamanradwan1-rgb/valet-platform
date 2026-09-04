@@ -88,8 +88,9 @@ describe("Employee production frame", () => {
       backgroundColor: employeeColors.white,
       borderBottomColor: employeeColors.border,
       borderBottomWidth: 1,
-      height: 64,
+      minHeight: 64,
       paddingHorizontal: 20,
+      paddingVertical: 8,
     });
     expect(employeeFrameStyles.brandContext.minWidth).toBe(0);
     expect(employeeFrameStyles.brandLogo.flexShrink).toBe(1);
@@ -159,8 +160,10 @@ describe("Employee production frame", () => {
       backgroundColor: employeeColors.warm,
       borderBottomColor: employeeColors.border,
       borderBottomWidth: 1,
-      height: 56,
+      flexDirection: "row-reverse",
+      minHeight: 56,
       paddingHorizontal: 20,
+      paddingVertical: 4,
     });
     const disabled = nodes.find((node) => node.type === "Pressable")!;
     (disabled.props.onPress as () => void)();
