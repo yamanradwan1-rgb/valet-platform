@@ -44,7 +44,12 @@ export const employeeFrameStyles = StyleSheet.create({
   brandLogo: { flexShrink: 1, height: 28, resizeMode: "contain", width: 118 },
   context: { flexShrink: 1, minWidth: 0 },
   divider: { backgroundColor: c.border, height: 20, width: 1 },
-  locationCode: { color: c.neutral, fontSize: 11, lineHeight: 14 },
+  locationCode: {
+    ...type.small,
+    color: c.neutral,
+    fontSize: 11,
+    lineHeight: 14,
+  },
   locationName: { ...type.label, color: c.navy, fontSize: 13, lineHeight: 16 },
   headerUtilities: {
     alignItems: "center",

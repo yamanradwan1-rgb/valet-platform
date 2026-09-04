@@ -29,10 +29,12 @@ describe("Native package contract", () => {
     expect(manifest.dependencies["@valet/employee-client"]).toBe("workspace:*");
   });
 
-  it("adds only the accepted SDK-compatible MOB-009 camera module", () => {
+  it("owns only the accepted SDK-compatible native modules", () => {
     expect(manifest.dependencies["expo-camera"]).toBe("~57.0.4");
     expect(Object.keys(manifest.dependencies).sort()).toEqual(
       [
+        "@expo-google-fonts/plus-jakarta-sans",
+        "@expo-google-fonts/space-grotesk",
         "@valet/employee-client",
         "expo",
         "expo-build-properties",
@@ -40,6 +42,7 @@ describe("Native package contract", () => {
         "expo-constants",
         "expo-dev-client",
         "expo-file-system",
+        "expo-font",
         "expo-linking",
         "expo-router",
         "expo-secure-store",

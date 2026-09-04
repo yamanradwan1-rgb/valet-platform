@@ -17,7 +17,10 @@ import {
   employeeRadius,
   employeeSpacing,
 } from "../src/employee-ui/employee-tokens";
-import { employeeTypography } from "../src/employee-ui/employee-typography";
+import {
+  employeeFontFamilies,
+  employeeTypography,
+} from "../src/employee-ui/employee-typography";
 import { EmployeeButton } from "../src/employee-ui/employee-controls";
 import {
   EmployeeBadge,
@@ -82,25 +85,34 @@ describe("Employee visual tokens (Employee Web authority)", () => {
       phone: 56,
     });
   });
-  it("defines typography roles without claiming final embedded fonts", () => {
-    expect(employeeTypography.body).toEqual({ fontSize: 14, lineHeight: 20 });
-    expect(employeeTypography.small).toEqual({ fontSize: 12, lineHeight: 16 });
+  it("maps UI and identity roles to the approved embedded font families", () => {
+    expect(employeeTypography.body).toMatchObject({
+      fontFamily: employeeFontFamilies.ui,
+      fontSize: 14,
+      fontWeight: "400",
+      lineHeight: 20,
+    });
+    expect(employeeTypography.small).toMatchObject({
+      fontFamily: employeeFontFamilies.ui,
+      fontSize: 12,
+      fontWeight: "400",
+      lineHeight: 16,
+    });
     expect(employeeTypography.header).toMatchObject({
+      fontFamily: employeeFontFamilies.ui,
       fontSize: 17,
       fontWeight: "600",
     });
     expect(employeeTypography.vehicle).toMatchObject({
+      fontFamily: employeeFontFamilies.display,
       fontSize: 26,
       fontWeight: "700",
     });
     expect(employeeTypography.plate).toMatchObject({
+      fontFamily: employeeFontFamilies.display,
       fontSize: 36,
       fontWeight: "700",
     });
-    for (const role of Object.values(employeeTypography)) {
-      expect(role).not.toHaveProperty("fontFamily");
-      expect(role).not.toHaveProperty("fontWeight", "800");
-    }
   });
 });
 

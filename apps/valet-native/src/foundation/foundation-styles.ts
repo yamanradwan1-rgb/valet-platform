@@ -48,6 +48,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
   },
   devDiagnosticsFact: {
+    ...employeeTypography.small,
     color: c.neutral,
     fontSize: 11,
     lineHeight: 15,
@@ -99,6 +100,7 @@ export const styles = StyleSheet.create({
     paddingVertical: employeeSpacing.lg,
   },
   status: {
+    ...employeeTypography.header,
     color: c.navy,
     fontSize: 20,
     fontWeight: "600",
@@ -116,6 +118,7 @@ export const styles = StyleSheet.create({
     gap: employeeSpacing.xs,
   },
   taskHeading: {
+    ...employeeTypography.header,
     color: c.navy,
     fontSize: 24,
     fontWeight: "700",

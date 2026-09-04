@@ -1,18 +1,76 @@
 import type { TextStyle } from "react-native";
 
-// Temporary system fonts: fontFamily is intentionally UNSET until Patch 7.
-// body/controls -> Plus Jakarta Sans; identity/plate -> Space Grotesk.
+export const employeeFontFamilies = {
+  display: "Space Grotesk",
+  ui: "Plus Jakarta Sans",
+} as const;
+
+export const employeeFontWeights = {
+  bold: "700",
+  extraBold: "800",
+  medium: "500",
+  regular: "400",
+  semiBold: "600",
+} as const satisfies Record<string, NonNullable<TextStyle["fontWeight"]>>;
+
 export const employeeTypography = {
-  body: { fontSize: 14, lineHeight: 20 },
-  small: { fontSize: 12, lineHeight: 16 },
-  label: { fontSize: 14, lineHeight: 20, fontWeight: "600" },
-  header: { fontSize: 17, fontWeight: "600" },
-  vehicle: { fontSize: 26, lineHeight: 32.5, fontWeight: "700" },
-  plate: { fontSize: 36, fontWeight: "700" },
-  button: { fontSize: 15, fontWeight: "600" },
-  plateField: { fontSize: 20, lineHeight: 28, fontWeight: "700" },
-  phoneField: { fontSize: 16, lineHeight: 24 },
-  badge: { fontSize: 10, fontWeight: "700", letterSpacing: 0.5 },
+  body: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 14,
+    fontWeight: employeeFontWeights.regular,
+    lineHeight: 20,
+  },
+  small: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 12,
+    fontWeight: employeeFontWeights.regular,
+    lineHeight: 16,
+  },
+  label: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 14,
+    fontWeight: employeeFontWeights.semiBold,
+    lineHeight: 20,
+  },
+  header: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 17,
+    fontWeight: employeeFontWeights.semiBold,
+  },
+  vehicle: {
+    fontFamily: employeeFontFamilies.display,
+    fontSize: 26,
+    fontWeight: employeeFontWeights.bold,
+    lineHeight: 32.5,
+  },
+  plate: {
+    fontFamily: employeeFontFamilies.display,
+    fontSize: 36,
+    fontWeight: employeeFontWeights.bold,
+  },
+  button: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 15,
+    fontWeight: employeeFontWeights.semiBold,
+  },
+  plateField: {
+    fontFamily: employeeFontFamilies.display,
+    fontSize: 20,
+    fontWeight: employeeFontWeights.bold,
+    lineHeight: 28,
+  },
+  phoneField: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 16,
+    fontWeight: employeeFontWeights.regular,
+    lineHeight: 24,
+  },
+  badge: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 10,
+    fontWeight: employeeFontWeights.bold,
+    letterSpacing: 0.5,
+  },
 } as const satisfies Record<string, TextStyle>;
 
 export type EmployeeTextAlign = "left" | "right";
