@@ -67,6 +67,57 @@ to force unsafe abstraction. No public domain contract, persistence concept, or
 portable API may use Android- or FCM-specific naming for a cross-platform
 concept.
 
+### Employee Native visual parity covenant
+
+The existing Employee Web application in `apps/valet` is the visual source of
+truth for production Employee Native UI. This is adaptation, not redesign.
+This covenant applies to MOB-010 through MOB-018 and all later Employee Native
+UI work. Beginning with MOB-010, before implementing a Native screen or flow,
+the implementer must inspect the corresponding existing Employee Web screen or
+flow and preserve, as closely as practical:
+
+- existing VAYLET visual identity;
+- color system;
+- typography hierarchy;
+- card appearance;
+- button appearance and emphasis;
+- spacing rhythm;
+- border radius conventions;
+- visual grouping;
+- information hierarchy;
+- icon language where applicable;
+- loading, empty, error and success state language;
+- form-field visual treatment;
+- operational status presentation;
+- EN/AR visual consistency;
+- RTL/LTR behavior; and
+- interaction wording and action hierarchy.
+
+Native may deviate only where required by mobile ergonomics, smaller-screen
+constraints, touch interaction, safe areas, native navigation conventions,
+Android/iOS platform behavior, accessibility, keyboard behavior,
+camera/scanner presentation, performance or technical platform limitations.
+Every deviation must preserve the same product identity and information
+hierarchy and be attributable to one of those reasons or an explicit Accepted
+Owner/product decision.
+
+Native UI remains platform-specific. Implementers must not reuse Web DOM
+components, mechanically copy CSS, embed Employee Web in a WebView, force
+desktop layouts onto mobile, introduce a Native-only design language without
+Owner approval, or redesign an existing Employee flow merely because Native is
+a new client. Preserve each flow's action priority, content hierarchy, visual
+grouping, semantic colors, typography hierarchy, component emphasis, state
+language and EN/AR presentation intent during its own MOB-010 through MOB-017
+implementation; do not defer visual parity to MOB-018.
+
+The temporary foundation, authentication, task and scanner UI created in
+MOB-005 through MOB-009 was permitted for architecture and physical POC proof
+and is not the final visual target or reference for later product screens.
+Production flows must converge toward Employee Web visual parity from MOB-010
+onward. Development-only POC diagnostics may remain utilitarian because they
+are not production UI. MOB-018 is the final cross-flow visual, localization and
+accessibility consistency audit and closure, not the first visual-parity step.
+
 ## 4. Security, authentication, offline, camera, and push invariants
 
 Native authentication must reuse the current StaffAuthSession family and
@@ -785,25 +836,25 @@ progression remains subject to the stated dependencies and gates.
 - **TASK ID:** MOB-018
 - **TITLE:** Employee Native UI / Localization / Accessibility Parity
 - **STATUS:** NOT STARTED
-- **OBJECTIVE:** Close cross-flow native usability, EN/AR, RTL/LTR, accessibility, loading/error, and visual-consistency gaps.
-- **WHY:** Operational correctness is unusable if field staff cannot read, navigate, or recover quickly.
+- **OBJECTIVE:** Audit and close remaining cross-flow native visual-parity, usability, EN/AR, RTL/LTR, accessibility, loading/error/empty-state, typography, spacing and component-consistency gaps after MOB-010–017 apply the visual parity covenant during implementation.
+- **WHY:** Visual parity begins with each production flow in MOB-010; this final closure ensures operationally correct flows remain consistent, readable, navigable and recoverable together.
 - **DEPENDENCIES:** MOB-010–017.
-- **READ FIRST:** DEC-066/067/071; docs 01/15; current i18n dictionaries, primitives, accessibility tests and native design tokens.
-- **IN SCOPE:** Full copy inventory, RTL/LTR identifier isolation, focus/touch/labels, dynamic text, contrast, reduced motion, truthful empty/loading/error states.
+- **READ FIRST:** DEC-066/067/071; docs 01/15; this plan's visual parity covenant; corresponding Employee Web screens/flows; current i18n dictionaries, primitives, accessibility tests and native design tokens.
+- **IN SCOPE:** Cross-flow audit and closure of remaining visual consistency, localization, accessibility, typography, spacing, component, RTL/LTR, visual-polish and truthful loading/empty/error-state gaps.
 - **OUT OF SCOPE:** Product redesign, Dashboard/Guest UI migration, invented analytics, business-semantic changes.
-- **ARCHITECTURE INVARIANTS:** Platform-specific native UI; shared localization/formatting where portable; no DOM component reuse.
+- **ARCHITECTURE INVARIANTS:** Employee Web remains the visual reference; Native remains platform-specific; shared localization/formatting stays portable; no DOM component reuse or CSS copying.
 - **SECURITY INVARIANTS:** Accessibility labels/previews do not expose secrets or masked data; screenshots/diagnostics remain safe.
 - **EXPECTED FILE AREAS:** Native UI/theme/i18n/accessibility tests; portable formatting; no unrelated Web refactor.
 - **DB IMPACT:** None.
 - **DEPENDENCY IMPACT:** Prefer platform accessibility primitives; additions require focused review.
 - **ANDROID REQUIREMENTS:** TalkBack, font scaling, touch targets, dark/light and RTL across supported OS/device classes.
 - **IOS PORTABILITY:** VoiceOver-compatible semantics and shared tokens/copy architecture.
-- **REQUIRED IMPLEMENTATION PROOF:** All Employee paths complete in EN/AR at large text with keyboard/scanner/manual alternatives and truthful errors.
-- **AUTOMATED TESTS:** Copy-key completeness, RTL isolation, accessibility roles/labels, visual/state regression where stable.
-- **MANUAL/PHYSICAL DEVICE PROOF:** TalkBack, font scaling, RTL, one-handed/touch, sunlight/contrast review on real Android.
+- **REQUIRED IMPLEMENTATION PROOF:** All previously implemented Employee paths preserve the Web-referenced visual and action hierarchy, complete in EN/AR at large text with keyboard/scanner/manual alternatives, and present consistent truthful loading/empty/error/success states.
+- **AUTOMATED TESTS:** Copy-key completeness, RTL isolation, accessibility roles/labels, component/state consistency and visual regression where stable.
+- **MANUAL/PHYSICAL DEVICE PROOF:** Cross-flow visual consistency plus TalkBack, font scaling, RTL, one-handed/touch and sunlight/contrast review on real Android.
 - **VALIDATION COMMANDS:** Focused UI/i18n/a11y tests; native build; root gates.
 - **REVIEW RISKS:** Missing Arabic, reversed codes, inaccessible scanner fallback, hidden error recovery, secret labels.
-- **DEFINITION OF DONE:** Core native flows meet documented EN/AR and accessibility evidence with no semantic regression.
+- **DEFINITION OF DONE:** Remaining cross-flow visual, localization and accessibility gaps are closed across the MOB-010–017 production flows with no semantic regression.
 - **RELATIVE SIZE:** Large cross-cutting.
 
 # Batch 7 — Optional tracking and native push

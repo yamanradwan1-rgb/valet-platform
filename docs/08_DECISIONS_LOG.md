@@ -3487,7 +3487,7 @@ Full binding contract:
 
 Status: Accepted
 Date: 2026-09-01
-Amended: 2026-09-04 — Project Owner set the Android product minimum to Android 10 / API 29.
+Amended: 2026-09-04 — Project Owner set the Android product minimum to Android 10 / API 29 and designated Employee Web as the visual reference for Employee Native.
 
 Decision:
 The VAYLET Employee native application will use the Expo SDK 57 generation
@@ -3516,6 +3516,15 @@ platform-specific and MOB-001 creates no package or application scaffold. The
 existing API/database/contracts remain authoritative and require no mobile
 rewrite. DEC-063 remains binding; no generic durable offline synchronization,
 mutation outbox or automatic background replay is introduced.
+
+Employee Web is also the visual source of truth for production Employee Native
+UI. Beginning with MOB-010, each Native flow must preserve the established
+VAYLET visual language, action and information hierarchy, state language, and
+EN/AR RTL/LTR intent as closely as practical. Native remains a platform-specific
+adaptation rather than a DOM/CSS copy, WebView, desktop layout, or independent
+redesign. Deviations require native ergonomics, accessibility, platform or
+smaller-screen constraints, or another explicit accepted Owner/product
+decision, while preserving product identity and information hierarchy.
 
 Android and iOS use the stable product identifier `com.vaylet.employee`.
 Android supports a product minimum of Android 10 / API 29 and compiles/targets

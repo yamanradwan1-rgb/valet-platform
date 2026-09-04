@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-09-01
-Amended: 2026-09-04 — Project Owner set the Android product minimum to Android 10 / API 29.
+Amended: 2026-09-04 — Project Owner set the Android product minimum to Android 10 / API 29 and designated Employee Web as the visual reference for Employee Native.
 
 Canonical decision log entry: `docs/08_DECISIONS_LOG.md` (DEC-071).
 
@@ -184,7 +184,7 @@ An iOS configuration/build smoke is required before final Android pilot
 completion, although full physical-device implementation and QA remain
 Android-first.
 
-## 10. Employee Web fallback and cutover boundary
+## 10. Employee Web visual reference, fallback and cutover boundary
 
 The existing Employee Web application remains available during native
 development and the controlled Android pilot.
@@ -198,6 +198,28 @@ development and the controlled Android pilot.
 
 Canonical server state permits Web and native clients to coexist without a
 client-to-client data migration.
+
+The existing Employee Web application is the visual source of truth for the
+production Employee Native application. Native must preserve, as closely as
+practical, the existing VAYLET visual identity, color system, typography
+hierarchy, card and button appearance and emphasis, spacing rhythm, border
+radius conventions, visual grouping, information hierarchy, applicable icon
+language, loading/empty/error/success state language, form-field treatment,
+operational status presentation, EN/AR consistency, RTL/LTR behavior, and
+interaction wording and action hierarchy.
+
+This is adaptation, not redesign. Native may deviate only where required by
+mobile ergonomics, smaller screens, touch interaction, safe areas, native
+navigation conventions, Android/iOS behavior, accessibility, keyboard
+behavior, camera/scanner presentation, performance, or technical platform
+limitations. Every deviation must retain the same product identity and
+information hierarchy.
+
+Native UI remains platform-specific. It must not reuse Web DOM components,
+mechanically copy CSS, embed Employee Web in a WebView, force desktop layouts
+onto mobile, introduce a Native-only design language without Project Owner
+approval, or redesign an existing Employee flow merely because Native is a new
+client.
 
 ## 11. Portable shared-code boundary
 
@@ -419,8 +441,9 @@ for acceptance:
    policies for Google Play, Firebase, Android signing and Apple distribution;
 4. an initial OTA-disabled pilot policy;
 5. continued Employee Web operation through the evidence-based cutover gate;
-   and
-6. synchronization of the canonical decisions log, technology stack and
+6. Employee Web as the visual source of truth for production Employee Native
+   UI, with platform-specific adaptation rather than redesign; and
+7. synchronization of the canonical decisions log, technology stack and
    repository structure in this documentation task.
 
 No credential, account identifier, signing material or secret is recorded in
@@ -441,3 +464,4 @@ release evidence and do not reopen the architecture decision.
 | Apple distribution             | Organization-controlled Apple Developer team; no permanent dependency on one developer's personal account                                                                                             | Implement bundle signing/provisioning during iOS/release work                                                           |
 | Initial OTA                    | Disabled for the initial Android pilot; deterministic native binaries with bundled JavaScript                                                                                                         | Reconsider only through a focused Accepted Decision with the controls in section 17                                     |
 | Employee Web fallback          | Remains operational during native development and the controlled Android pilot; native-primary cutover is evidence-gated                                                                              | Web retirement is a separate later decision                                                                             |
+| Employee Native visual reference | Employee Web is the visual source of truth; Native preserves its product identity and hierarchy through platform-specific adaptation rather than redesign                                             | Applies from MOB-010; MOB-018 is the cross-flow visual/localization/accessibility closure                               |
