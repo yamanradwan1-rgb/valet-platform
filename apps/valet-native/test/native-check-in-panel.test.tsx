@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInSession,
   EmployeeOperationalSnapshot,
+  NativeAuthSession,
 } from "@valet/employee-client";
 
 const hooks = vi.hoisted(() => ({
@@ -28,6 +29,10 @@ vi.mock("react-native", () => ({
 vi.mock("react-native-safe-area-context", () => ({
   SafeAreaView: "SafeAreaView",
 }));
+vi.mock("../src/check-in/native-plate-camera-step", () => ({
+  NativePlateCameraStep: "NativePlateCameraStep",
+}));
+const auth = {} as NativeAuthSession;
 
 const { NativeCheckInPanel } =
   await import("../src/check-in/native-check-in-panel");
@@ -40,11 +45,11 @@ function elements(value: unknown): Element[] {
   return [node, ...elements(node.props.children)];
 }
 
-function checkIn() {
+function checkIn(phase = "inactive") {
   return {
     activate: vi.fn(),
     clear: vi.fn(),
-    current: () => ({ phase: "inactive" }),
+    current: () => ({ phase }),
     subscribe: () => vi.fn(),
   } as unknown as EmployeeCheckInSession;
 }
@@ -82,6 +87,7 @@ describe("Native Check-In production entry", () => {
     hooks.cleanups = [];
     const session = checkIn();
     NativeCheckInPanel({
+      auth,
       checkIn: session,
       locale: "en",
       operations: operations(),
@@ -93,6 +99,7 @@ describe("Native Check-In production entry", () => {
     hooks.open = false;
     expect(
       NativeCheckInPanel({
+        auth,
         checkIn: checkIn(),
         locale: "en",
         operations: operations("no-active-shift"),
@@ -106,6 +113,7 @@ describe("Native Check-In production entry", () => {
     const session = checkIn();
     const nodes = elements(
       NativeCheckInPanel({
+        auth,
         checkIn: session,
         locale: "en",
         operations: operations(),
@@ -122,19 +130,70 @@ describe("Native Check-In production entry", () => {
     );
   });
 
-  it("clears transient Check-In state before closing the Native modal", () => {
+  it.each(["capture", "customer", "intake-ambiguous", "created"])(
+    "clears transient state before closing the modal in safe phase %s",
+    (phase) => {
+      hooks.open = true;
+      hooks.setOpen.mockClear();
+      const session = checkIn(phase);
+      const modal = elements(
+        NativeCheckInPanel({
+          auth,
+          checkIn: session,
+          locale: "ar",
+          operations: operations(),
+        }),
+      ).find((node) => node.type === "Modal")!;
+      (modal.props.onRequestClose as () => void)();
+      expect(session.clear).toHaveBeenCalledOnce();
+      expect(hooks.setOpen).toHaveBeenCalledWith(false);
+    },
+  );
+
+  it.each(["submitting", "recognizing"])(
+    "blocks hardware and visible close callbacks during %s",
+    (phase) => {
+      hooks.open = true;
+      hooks.setOpen.mockClear();
+      const session = checkIn(phase);
+      const nodes = elements(
+        NativeCheckInPanel({
+          auth,
+          checkIn: session,
+          locale: "en",
+          operations: operations(),
+        }),
+      );
+      const modal = nodes.find((node) => node.type === "Modal")!;
+      (modal.props.onRequestClose as () => void)();
+      const workflow = nodes.find(
+        (node) => typeof node.props.onClose === "function",
+      )!;
+      (workflow.props.onClose as () => void)();
+      expect(session.clear).not.toHaveBeenCalled();
+      expect(hooks.setOpen).not.toHaveBeenCalled();
+    },
+  );
+
+  it("checks live phase even when Back was rendered before submission started", () => {
     hooks.open = true;
     hooks.setOpen.mockClear();
-    const session = checkIn();
-    const modal = elements(
+    const session = checkIn("customer");
+    const nodes = elements(
       NativeCheckInPanel({
+        auth,
         checkIn: session,
-        locale: "ar",
+        locale: "en",
         operations: operations(),
       }),
-    ).find((node) => node.type === "Modal")!;
+    );
+    const modal = nodes.find((node) => node.type === "Modal")!;
+    vi.spyOn(session, "current").mockReturnValue({
+      ...session.current(),
+      phase: "submitting",
+    });
     (modal.props.onRequestClose as () => void)();
-    expect(session.clear).toHaveBeenCalledOnce();
-    expect(hooks.setOpen).toHaveBeenCalledWith(false);
+    expect(session.clear).not.toHaveBeenCalled();
+    expect(hooks.setOpen).not.toHaveBeenCalled();
   });
 });

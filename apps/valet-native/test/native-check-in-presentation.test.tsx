@@ -3,7 +3,15 @@ import { describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
+  NativeAuthSession,
 } from "@valet/employee-client";
+vi.mock("react", () => ({
+  useState: (init: () => unknown) => [init(), vi.fn()],
+}));
+vi.mock("../src/check-in/native-plate-camera-step", () => ({
+  NativePlateCameraStep: "NativePlateCameraStep",
+}));
+const auth = {} as NativeAuthSession;
 
 vi.mock("react-native", () => ({
   Pressable: "Pressable",
@@ -45,7 +53,7 @@ function snapshot(
     vehicle: {
       mode: "CONFIRMED_PLATE",
       plateCountry: "JO",
-      plateNumberRaw: "",
+      plateNumberRaw: "12-34567",
       temporaryDescriptor: "",
     },
     ...patch,
@@ -79,6 +87,7 @@ function render(
   controller = session(),
 ) {
   const tree = NativeCheckInWorkflow({
+    auth,
     locale,
     onClose: vi.fn(),
     session: controller,
@@ -107,7 +116,7 @@ describe("Native Check-In presentation", () => {
       ]),
     );
     expect(labels(nodes)).not.toContain("Mobile number");
-    expect(nodes.filter((node) => node.type === "TextInput")).toHaveLength(2);
+    expect(nodes.filter((node) => node.type === "TextInput")).toHaveLength(1);
     const selectedTab = nodes.find(
       (node) =>
         node.props.accessibilityRole === "tab" &&
@@ -200,6 +209,7 @@ describe("Native Check-In presentation", () => {
     expect(
       expand(
         NativeCheckInWorkflow({
+          auth,
           locale: "en",
           onClose: vi.fn(),
           session: session(),

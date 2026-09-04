@@ -3,15 +3,17 @@ import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
   EmployeeLocale,
+  NativeAuthSession,
 } from "@valet/employee-client";
 
 import { getNativeCheckInCopy } from "./native-check-in-copy";
 import {
-  NativeCaptureStep,
   NativeConfirmStep,
   NativeCustomerStep,
   NativeReturningStep,
 } from "./native-check-in-input-steps";
+import { NativeCaptureStep } from "./native-check-in-capture-step";
+import { checkInBackBlocked } from "./native-check-in-presentation";
 import {
   CheckInHeader,
   type NativeTextAlign,
@@ -27,6 +29,7 @@ import {
 import { checkInStyles as s } from "./native-check-in-styles";
 
 interface NativeCheckInWorkflowProps {
+  readonly auth: NativeAuthSession;
   readonly locale: EmployeeLocale;
   readonly onClose: () => void;
   readonly session: EmployeeCheckInSession;
@@ -34,6 +37,7 @@ interface NativeCheckInWorkflowProps {
 }
 
 export function NativeCheckInWorkflow({
+  auth,
   locale,
   onClose,
   session,
@@ -41,11 +45,12 @@ export function NativeCheckInWorkflow({
 }: NativeCheckInWorkflowProps) {
   const copy = getNativeCheckInCopy(locale);
   const textAlign: NativeTextAlign = locale === "ar" ? "right" : "left";
-  const props = { copy, onClose, session, snapshot, textAlign };
+  const props = { auth, copy, onClose, session, snapshot, textAlign };
   return (
     <>
       <CheckInHeader
         back={copy.back}
+        disabled={checkInBackBlocked(snapshot.phase)}
         onBack={onClose}
         textAlign={textAlign}
         title={copy.title}

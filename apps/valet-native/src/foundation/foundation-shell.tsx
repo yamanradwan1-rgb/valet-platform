@@ -132,6 +132,7 @@ export function FoundationShell() {
 
         {snapshot.phase === "authenticated" && auth.runtime !== undefined ? (
           <NativeCheckInPanel
+            auth={auth.runtime.auth}
             key={`${snapshot.authGeneration}:${operationalSnapshot.scope?.membershipId}:${operationalSnapshot.scope?.locationId}:${operationalSnapshot.scope?.shiftId}`}
             checkIn={auth.runtime.checkIn}
             locale={locale}

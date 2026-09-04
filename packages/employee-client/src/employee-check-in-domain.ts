@@ -1,6 +1,5 @@
 import type { IntakeRequest, IntakeResponse } from "@valet/contracts";
 
-import { EmployeeApiError } from "./api-error";
 import type {
   EmployeeCheckInAuthoritativeSession,
   EmployeeCheckInVehicleDraft,
@@ -16,14 +15,11 @@ export function validateCheckInVehicle(
 ): CheckInVehicleValidation {
   if (vehicle.mode === "CONFIRMED_PLATE") {
     const plateCountry = vehicle.plateCountry.trim().toUpperCase();
-    if (
-      !/^[A-Z]{2}$/.test(plateCountry) ||
-      vehicle.plateNumberRaw.trim() === ""
-    ) {
+    if (plateCountry === "" || vehicle.plateNumberRaw.trim() === "") {
       return {
         error: {
           code: "PLATE_REQUIRED",
-          message: "Enter a plate and two-letter country code.",
+          message: "Enter a plate and select its country.",
         },
         vehicle,
       };
@@ -77,11 +73,4 @@ export function createdCheckInSession(
       vehicleUpdatedAt: result.vehicleUpdatedAt,
     },
   };
-}
-
-export function isAmbiguousCheckInFailure(error: unknown): boolean {
-  return (
-    error instanceof EmployeeApiError &&
-    (error.isNetworkError || [408, 502, 503, 504].includes(error.status))
-  );
 }

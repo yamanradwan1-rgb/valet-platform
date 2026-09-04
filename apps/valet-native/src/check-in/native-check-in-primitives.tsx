@@ -7,6 +7,7 @@ import type {
 } from "@valet/employee-client";
 
 import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInTextStyle } from "./native-check-in-presentation";
 
 export type NativeTextAlign = "left" | "right";
 
@@ -15,11 +16,13 @@ export function CheckInHeader({
   onBack,
   textAlign,
   title,
+  disabled = false,
 }: {
   readonly back: string;
   readonly onBack: () => void;
   readonly textAlign: NativeTextAlign;
   readonly title: string;
+  readonly disabled?: boolean;
 }) {
   return (
     <View style={s.header}>
@@ -27,8 +30,12 @@ export function CheckInHeader({
         accessibilityLabel={back}
         accessibilityRole="button"
         hitSlop={8}
-        onPress={onBack}
-        style={s.headerButton}
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        onPress={() => {
+          if (!disabled) onBack();
+        }}
+        style={[s.headerButton, disabled && s.buttonDisabled]}
       >
         <Text style={s.headerButtonLabel}>{back}</Text>
       </Pressable>
@@ -81,6 +88,9 @@ export function CheckInField({
   onChangeText,
   placeholder,
   value,
+  kind,
+  textAlign,
+  prefix,
 }: {
   readonly accessibilityLabel: string;
   readonly inputMode?: "tel" | "text";
@@ -88,21 +98,40 @@ export function CheckInField({
   readonly onChangeText: (value: string) => void;
   readonly placeholder?: string;
   readonly value: string;
+  readonly kind: "identifier" | "human";
+  readonly textAlign: NativeTextAlign;
+  readonly prefix?: string;
 }) {
   return (
     <View style={{ gap: 7 }}>
-      <Text style={s.fieldLabel}>{accessibilityLabel}</Text>
-      <TextInput
-        accessibilityLabel={accessibilityLabel}
-        autoCapitalize="characters"
-        autoCorrect={false}
-        inputMode={inputMode}
-        maxLength={maxLength}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        style={[s.field, { textAlign: "left", writingDirection: "ltr" }]}
-        value={value}
-      />
+      <Text style={[s.fieldLabel, { textAlign }]}>{accessibilityLabel}</Text>
+      <View style={{ flexDirection: "row", direction: "ltr", gap: 8 }}>
+        {prefix ? (
+          <Text
+            style={[
+              s.field,
+              {
+                textAlign: "left",
+                writingDirection: "ltr",
+                textAlignVertical: "center",
+              },
+            ]}
+          >
+            {prefix}
+          </Text>
+        ) : null}
+        <TextInput
+          accessibilityLabel={accessibilityLabel}
+          autoCapitalize={kind === "identifier" ? "characters" : "sentences"}
+          autoCorrect={false}
+          inputMode={inputMode}
+          maxLength={maxLength}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          style={[s.field, { flex: 1 }, checkInTextStyle(kind, textAlign)]}
+          value={value}
+        />
+      </View>
     </View>
   );
 }
@@ -155,10 +184,22 @@ export function VehicleCard({
   return (
     <View accessibilityLabel={`${name}, ${identifier}`} style={s.card}>
       <Text style={[s.title, { fontSize: 22, textAlign }]}>{name}</Text>
-      <Text style={[s.text, { textAlign: "left", writingDirection: "ltr" }]}>
+      <Text
+        style={[
+          s.text,
+          checkInTextStyle(
+            vehicle.plateNumberRaw !== null ? "identifier" : "human",
+            textAlign,
+          ),
+        ]}
+      >
         {identifier}
-        {vehicle.color ? ` · ${vehicle.color}` : ""}
       </Text>
+      {vehicle.color ? (
+        <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
+          {vehicle.color}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -190,7 +231,15 @@ export function RecoverableCard({
     >
       <Text style={s.badge}>{label}</Text>
       <Text style={[s.title, { fontSize: 18, textAlign }]}>{name}</Text>
-      <Text style={[s.text, { textAlign: "left", writingDirection: "ltr" }]}>
+      <Text
+        style={[
+          s.text,
+          checkInTextStyle(
+            vehicle.plateNumberRaw !== null ? "identifier" : "human",
+            textAlign,
+          ),
+        ]}
+      >
         {identifier}
       </Text>
     </Pressable>

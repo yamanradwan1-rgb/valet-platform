@@ -24,6 +24,8 @@ export interface NativeCheckInCopy {
   readonly noPlate: string;
   readonly noPlateExample: string;
   readonly phone: string;
+  readonly phoneAmbiguous: string;
+  readonly savedCustomerStale: string;
   readonly phoneEnding: string;
   readonly plate: string;
   readonly previousAssociation: string;
@@ -73,6 +75,10 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     noPlate: "No / unreadable plate",
     noPlateExample: "Example: Silver Toyota SUV",
     phone: "Mobile number",
+    phoneAmbiguous:
+      "This phone matches more than one customer. Enter another phone or continue without a phone; no customer was selected.",
+    savedCustomerStale:
+      "The saved customer association is no longer valid. Enter the current customer's phone or continue without a phone.",
     phoneEnding: "Phone ending",
     plate: "License plate",
     previousAssociation:
@@ -124,6 +130,10 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     noPlate: "لا توجد لوحة / غير مقروءة",
     noPlateExample: "مثال: تويوتا فضية دفع رباعي",
     phone: "رقم الهاتف المحمول",
+    phoneAmbiguous:
+      "يطابق هذا الرقم أكثر من عميل. أدخل رقماً آخر أو تابع دون رقم هاتف؛ لم يتم اختيار أي عميل.",
+    savedCustomerStale:
+      "لم يعد ارتباط العميل المحفوظ صالحاً. أدخل رقم العميل الحالي أو تابع دون رقم هاتف.",
     phoneEnding: "رقم الهاتف المنتهي بـ",
     plate: "رقم اللوحة",
     previousAssociation:

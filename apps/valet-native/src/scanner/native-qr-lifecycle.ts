@@ -1,5 +1,4 @@
 import type { NativeAuthSnapshot } from "@valet/employee-client";
-import type { NativeQrController } from "./native-qr-controller";
 
 interface LifecyclePorts {
   auth: {
@@ -16,9 +15,9 @@ interface LifecyclePorts {
   };
 }
 
-/** Subscribes directly, not through delayed React auth/AppState effects. */
+/** Shared camera eligibility: subscribes directly, not through delayed React effects. */
 export function bindNativeQrLifecycle(
-  controller: NativeQrController,
+  controller: { setEligible(eligible: boolean): void },
   ports: LifecyclePorts,
 ): () => void {
   const generation = ports.auth.current().authGeneration;

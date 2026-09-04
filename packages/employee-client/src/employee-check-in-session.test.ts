@@ -132,26 +132,94 @@ describe("EmployeeCheckInSession", () => {
     );
   });
 
-  it("rehydrates before an explicit exact retry and keeps one operation identity", async () => {
+  it.each([0, 408, 500, 501, 502, 503, 504, 599])(
+    "rehydrates before an exact retry after status %s and keeps one operation identity",
+    async (status) => {
+      const create = vi
+        .fn()
+        .mockRejectedValueOnce(
+          status === 0
+            ? employeeNetworkError()
+            : new EmployeeApiError({
+                status,
+                code: "INTAKE_FAILURE",
+                message: "Unknown outcome",
+              }),
+        )
+        .mockResolvedValueOnce(intake());
+      const client = transport(create);
+      const session = await ready(client);
+      plate(session);
+      await session.confirmIdentity();
+      await session.submitCustomer();
+      expect(session.current().phase).toBe("intake-ambiguous");
+      expect(session.current().recoveryChecked).toBe(false);
+      expect(create.mock.calls[0]?.[0].intakeOperationId).toBe("intake:1");
+      session.setCustomerPhone("079 999 9999");
+      session.editIdentity();
+      await session.submitCustomer();
+      await session.retryIntake();
+      expect(create).toHaveBeenCalledTimes(1);
+      await session.recoverAmbiguous();
+      expect(client.loadDrafts).toHaveBeenCalledTimes(2);
+      expect(client.loadContinuations).toHaveBeenCalledTimes(2);
+      expect(session.current().recoveryChecked).toBe(true);
+      await session.retryIntake();
+      expect(session.current().phase).toBe("created");
+      expect(create.mock.calls[0]?.[0].intakeOperationId).toBe(
+        create.mock.calls[1]?.[0].intakeOperationId,
+      );
+      expect(create.mock.calls[1]?.[0]).toEqual(create.mock.calls[0]?.[0]);
+    },
+  );
+
+  it.each(["JO", "OTHER"])(
+    "preserves accepted %s country semantics through recognition and intake",
+    async (plateCountry) => {
+      const client = transport();
+      const session = await ready(client);
+      expect(session.current().vehicle.plateCountry).toBe("JO");
+      session.setVehicle({ plateCountry, plateNumberRaw: "12-34567" });
+      session.reviewIdentity();
+      expect(session.current().phase).toBe("confirm");
+      await session.confirmIdentity();
+      await session.submitCustomer();
+      for (const command of [client.recognize, client.createIntake]) {
+        expect(command).toHaveBeenCalledWith(
+          expect.objectContaining({
+            vehicleIdentity: expect.objectContaining({ plateCountry }),
+          }),
+        );
+      }
+    },
+  );
+
+  it("keeps definitive phone ambiguity on the current-customer correction path", async () => {
     const create = vi
       .fn()
-      .mockRejectedValueOnce(employeeNetworkError())
+      .mockRejectedValueOnce(
+        new EmployeeApiError({
+          status: 409,
+          code: "CUSTOMER_PHONE_AMBIGUOUS",
+          message: "Ambiguous",
+        }),
+      )
       .mockResolvedValueOnce(intake());
-    const client = transport(create);
-    const session = await ready(client);
+    const session = await ready(transport(create));
     plate(session);
     await session.confirmIdentity();
+    session.setCustomerPhone("079 000 0000");
     await session.submitCustomer();
-    expect(session.current().phase).toBe("intake-ambiguous");
+    expect(session.current()).toMatchObject({
+      phase: "customer",
+      error: { code: "CUSTOMER_PHONE_AMBIGUOUS" },
+    });
     await session.retryIntake();
     expect(create).toHaveBeenCalledTimes(1);
-    await session.recoverAmbiguous();
-    expect(session.current().recoveryChecked).toBe(true);
-    await session.retryIntake();
-    expect(session.current().phase).toBe("created");
-    expect(create.mock.calls[0]?.[0].intakeOperationId).toBe(
-      create.mock.calls[1]?.[0].intakeOperationId,
-    );
+    session.setCustomerPhone("");
+    await session.submitCustomer();
+    expect(create.mock.calls[1]?.[0].intakeOperationId).toBe("intake:2");
+    expect(create.mock.calls[1]?.[0].customer).toBeUndefined();
   });
 
   it("drops a stale saved-Customer suggestion and requires current input", async () => {

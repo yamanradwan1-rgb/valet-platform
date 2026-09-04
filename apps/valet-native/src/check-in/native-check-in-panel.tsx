@@ -5,19 +5,23 @@ import type {
   EmployeeCheckInSession,
   EmployeeLocale,
   EmployeeOperationalSnapshot,
+  NativeAuthSession,
 } from "@valet/employee-client";
 
 import { NativeCheckInWorkflow } from "./native-check-in-workflow";
 import { getNativeCheckInCopy } from "./native-check-in-copy";
 import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInBackBlocked } from "./native-check-in-presentation";
 
 interface NativeCheckInPanelProps {
+  readonly auth: NativeAuthSession;
   readonly checkIn: EmployeeCheckInSession;
   readonly locale: EmployeeLocale;
   readonly operations: EmployeeOperationalSnapshot;
 }
 
 export function NativeCheckInPanel({
+  auth,
   checkIn,
   locale,
   operations,
@@ -37,6 +41,7 @@ export function NativeCheckInPanel({
   }
   const copy = getNativeCheckInCopy(locale);
   const close = () => {
+    if (checkInBackBlocked(checkIn.current().phase)) return;
     checkIn.clear();
     setOpen(false);
   };
@@ -65,6 +70,7 @@ export function NativeCheckInPanel({
       >
         <SafeAreaView style={s.modal}>
           <NativeCheckInWorkflow
+            auth={auth}
             locale={locale}
             onClose={close}
             session={checkIn}

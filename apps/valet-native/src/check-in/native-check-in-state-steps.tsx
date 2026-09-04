@@ -68,11 +68,6 @@ export function NativeRecoverablesStep({
           vehicleFallback={copy.vehicle}
         />
       ))}
-      <CheckInButton
-        label={copy.scanPlate}
-        onPress={() => session.startNew()}
-        secondary
-      />
     </>
   );
 }

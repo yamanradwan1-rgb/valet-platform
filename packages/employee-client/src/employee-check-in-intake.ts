@@ -1,12 +1,14 @@
 import type { IntakeRequest } from "@valet/contracts";
 
-import { isAmbiguousCheckInFailure } from "./employee-check-in-domain";
 import type {
   EmployeeCheckInSessionOptions,
   EmployeeCheckInTransport,
   EmployeeCheckInVehicleDraft,
 } from "./employee-check-in-types";
-import { operationalFailure } from "./employee-operational-recovery";
+import {
+  isAmbiguousMutationFailure,
+  operationalFailure,
+} from "./employee-operational-recovery";
 
 export type EmployeeCheckInIntakeOutcome =
   | {
@@ -32,7 +34,7 @@ export async function runEmployeeCheckInIntake(
     return { kind: "SUCCESS", result: await transport.createIntake(input) };
   } catch (error) {
     const failure = operationalFailure(error);
-    return isAmbiguousCheckInFailure(error)
+    return isAmbiguousMutationFailure(error)
       ? { failure, kind: "AMBIGUOUS" }
       : { failure, kind: "FAILURE" };
   }
