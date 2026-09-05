@@ -1,4 +1,5 @@
 import type { PlateOcrResponse } from "@valet/employee-client";
+import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 
 export const NATIVE_PLATE_OCR_INTERVAL_MS = 1200;
 export const NATIVE_PLATE_OCR_MAX_ATTEMPTS = 5;
@@ -63,7 +64,11 @@ export class NativePlateOcrLoop {
 
   private async run(generation: number, attempt: number): Promise<void> {
     this.timer = undefined;
-    if (!this.current(generation) || this.operation !== undefined) return;
+    if (!this.current(generation)) {
+      logNativePlateOcr("generation-stale");
+      return;
+    }
+    if (this.operation !== undefined) return;
     const operation: NonNullable<NativePlateOcrLoop["operation"]> = {
       abort: new AbortController(),
     };
@@ -87,13 +92,17 @@ export class NativePlateOcrLoop {
       }
       this.operation = undefined;
     }
-    if (!this.current(generation)) return;
+    if (!this.current(generation)) {
+      logNativePlateOcr("generation-stale");
+      return;
+    }
     if (
       result.status === "NO_MATCH" &&
       attempt < NATIVE_PLATE_OCR_MAX_ATTEMPTS
     ) {
       this.schedule(generation, attempt + 1);
     } else {
+      logNativePlateOcr("loop-finish", { status: result.status });
       this.finish(generation, result);
     }
   }

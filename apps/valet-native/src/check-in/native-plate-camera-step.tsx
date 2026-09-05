@@ -10,6 +10,7 @@ import type {
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { createNativePlateOcrBinding } from "./native-plate-ocr-adapter";
+import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 import { bindNativePlateCameraLifecycle } from "./native-plate-camera-lifecycle";
 import { getNativePlateCameraCopy } from "./native-plate-camera-copy";
 import type { NativeCheckInCopy } from "./native-check-in-copy";
@@ -86,7 +87,10 @@ export function NativePlateCameraStep({
               pictureSize={snapshot.pictureSize}
               style={styles.camera}
               accessible={false}
-              onCameraReady={() => void cameraReady(snapshot.generation)}
+              onCameraReady={() => {
+                logNativePlateOcr("camera-ready");
+                void cameraReady(snapshot.generation);
+              }}
               onMountError={() => controller.fail(snapshot.generation)}
             />
           ) : null}

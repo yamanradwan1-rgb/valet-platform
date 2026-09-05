@@ -3,6 +3,7 @@ import {
   NativePlateOcrLoop,
   type NativePlateOcrPorts,
 } from "./native-plate-ocr-loop";
+import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 
 export interface NativePlateCameraSnapshot {
   readonly generation: number;
@@ -88,6 +89,8 @@ export class NativePlateCameraController {
   ready(generation: number): void {
     if (this.isCurrent(generation) && this.snapshot.phase === "starting") {
       this.publish({ ...this.snapshot, phase: "preview" });
+      logNativePlateOcr("preview-ready");
+      logNativePlateOcr("loop-start");
       this.ocr?.start(generation);
     }
   }

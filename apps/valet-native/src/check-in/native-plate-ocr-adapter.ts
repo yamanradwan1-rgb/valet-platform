@@ -7,6 +7,7 @@ import type {
 import { PLATE_OCR_MAX_IMAGE_BYTES } from "@valet/employee-client";
 import { resolveNativeApiOrigin } from "../auth/native-api-http";
 import { recognizeNativePlate } from "./native-plate-ocr-client";
+import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 import type { NativePlateOcrPorts } from "./native-plate-ocr-loop";
 import { NativePlateCameraController } from "./native-plate-camera-controller";
 import { nativeCameraPermissions } from "../scanner/native-camera-adapter";
@@ -23,27 +24,51 @@ function removeCapture(uri: string): void {
   if (file.exists) file.delete();
 }
 
-function uploadable(uri: string): boolean {
+function captureFile(
+  uri: string,
+  kind: "primary" | "fallback",
+): { exists: boolean; size: number } {
   const file = new File(uri);
-  return file.exists && file.size <= PLATE_OCR_MAX_IMAGE_BYTES;
+  if (!file.exists) {
+    logNativePlateOcr(`${kind}-file-missing`);
+    return { exists: false, size: file.size };
+  }
+  if (file.size > PLATE_OCR_MAX_IMAGE_BYTES) {
+    logNativePlateOcr(`${kind}-file-oversize`, { bytes: file.size });
+  } else {
+    logNativePlateOcr(`${kind}-file-uploadable`, { bytes: file.size });
+  }
+  return { exists: true, size: file.size };
 }
 
 async function capture(
   camera: CameraView,
   quality: number,
   signal: AbortSignal,
+  kind: "primary" | "fallback",
 ): Promise<string> {
-  const picture = await camera.takePictureAsync({
-    quality,
-    exif: false,
-    base64: false,
-  });
-  if (!picture?.uri) throw unavailable();
-  if (signal.aborted) {
-    removeCapture(picture.uri);
-    throw unavailable();
+  logNativePlateOcr(`${kind}-capture-start`, { quality });
+  try {
+    const picture = await camera.takePictureAsync({
+      quality,
+      exif: false,
+      base64: false,
+    });
+    if (!picture?.uri) {
+      logNativePlateOcr(`${kind}-capture-no-uri`);
+      throw unavailable();
+    }
+    logNativePlateOcr(`${kind}-capture-success`);
+    if (signal.aborted) {
+      removeCapture(picture.uri);
+      throw unavailable();
+    }
+    return picture.uri;
+  } catch (error) {
+    if (signal.aborted) logNativePlateOcr("capture-aborted");
+    else logNativePlateOcr("capture-exception");
+    throw error;
   }
-  return picture.uri;
 }
 
 export function createNativePlateOcrBinding(
@@ -70,14 +95,23 @@ export function createNativePlateOcrBinding(
       }
       let selected: string | undefined;
       try {
-        selected = selectNativePlatePictureSize(
-          (await camera?.getAvailablePictureSizesAsync()) ?? [],
-        );
+        const supported = (await camera?.getAvailablePictureSizesAsync()) ?? [];
+        logNativePlateOcr("picture-sizes-loaded", {
+          count: supported.length,
+        });
+        selected = selectNativePlatePictureSize(supported);
       } catch {
         selected = undefined;
       }
-      if (selected && controller.configurePictureSize(generation, selected))
+      if (selected) {
+        logNativePlateOcr("picture-size-selected", { value: selected });
+      } else {
+        logNativePlateOcr("picture-size-none");
+      }
+      if (selected && controller.configurePictureSize(generation, selected)) {
+        logNativePlateOcr("picture-size-remount");
         return;
+      }
       controller.ready(generation);
     },
   };
@@ -91,40 +125,70 @@ export function createNativePlateOcrPorts(
   return {
     async capture(signal) {
       const active = camera();
-      if (!active) throw unavailable();
+      if (!active) {
+        logNativePlateOcr("capture-exception");
+        throw unavailable();
+      }
       const first = await capture(
         active,
         NATIVE_PLATE_PRIMARY_JPEG_QUALITY,
         signal,
+        "primary",
       );
-      if (uploadable(first)) return first;
+      const primary = captureFile(first, "primary");
+      if (primary.exists && primary.size <= PLATE_OCR_MAX_IMAGE_BYTES)
+        return first;
       removeCapture(first);
-      if (signal.aborted) throw unavailable();
+      if (signal.aborted) {
+        logNativePlateOcr("capture-aborted");
+        throw unavailable();
+      }
       const fallback = await capture(
         active,
         NATIVE_PLATE_FALLBACK_JPEG_QUALITY,
         signal,
+        "fallback",
       );
-      if (uploadable(fallback)) return fallback;
+      const second = captureFile(fallback, "fallback");
+      if (second.exists && second.size <= PLATE_OCR_MAX_IMAGE_BYTES)
+        return fallback;
       removeCapture(fallback);
       throw unavailable();
     },
     async recognize(uri, signal) {
+      logNativePlateOcr("recognize-preflight");
       const file = new File(uri);
-      if (!file.exists || file.size > PLATE_OCR_MAX_IMAGE_BYTES)
+      if (!file.exists) {
+        logNativePlateOcr("recognize-file-missing");
         return { status: "UNAVAILABLE" };
+      }
+      if (file.size > PLATE_OCR_MAX_IMAGE_BYTES) {
+        logNativePlateOcr("recognize-file-oversize", { bytes: file.size });
+        return { status: "UNAVAILABLE" };
+      }
       const current = session.current();
-      if (current.locationId === null) return { status: "UNAVAILABLE" };
-      return recognizeNativePlate(
-        resolveNativeApiOrigin(),
-        auth,
-        {
-          targetLocationId: current.locationId,
-          plateCountry: current.vehicle.plateCountry,
-        },
-        uri,
-        signal,
-      );
+      if (current.locationId === null) {
+        logNativePlateOcr("recognize-location-missing");
+        return { status: "UNAVAILABLE" };
+      }
+      logNativePlateOcr("http-dispatch");
+      try {
+        const result = await recognizeNativePlate(
+          resolveNativeApiOrigin(),
+          auth,
+          {
+            targetLocationId: current.locationId,
+            plateCountry: current.vehicle.plateCountry,
+          },
+          uri,
+          signal,
+        );
+        logNativePlateOcr("http-result", { status: result.status });
+        return result;
+      } catch (error) {
+        logNativePlateOcr("http-exception");
+        throw error;
+      }
     },
     async remove(uri) {
       removeCapture(uri);
