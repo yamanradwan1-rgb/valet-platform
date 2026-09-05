@@ -8,36 +8,42 @@
 The canonical Employee Native order, scope, gates, evidence, and status plan is
 [`docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`](20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md).
 
-- Native synchronization: **2026-09-05**, merged baseline
-  `6c965a17fcc1a699270a189c38c52ec67079099a`. Fresh main and the MOB-010 feature
-  ref were equal before the rebaseline branch was created.
+- Native synchronization: **2026-09-06**. The v2 rebaseline application baseline
+  remains `6c965a17fcc1a699270a189c38c52ec67079099a`; current merged `main` is
+  `1cca7a4a40bb604dc0fcbe208bfd51feff42170d` after MOB-028 implementation and its
+  focused lifecycle/visual repair.
 - Plan v2 preserves MOB-001–027 and MOB-010A history, splits remaining work into
   bounded children, and adds MOB-028 production shell and MOB-029 queue closure.
 - MOB-001–004 policy/architecture work is historical baseline. MOB-005–010A
-  now have merged implementation: Expo, portable client, Native auth, operational
+  have merged implementation: Expo, portable client, Native auth, operational
   tasks, QR, intake/returning, shared presentation and assistive OCR repairs.
-  Required current device/render/failure evidence remains explicitly open where
-  no matching artifact has been established; merged code is not production proof.
-- MOB-010B merged-baseline evidence closure was executed 2026-09-05 on
-  `codex/mob-010b-native-evidence-closure` from audited `origin/main`
-  `7e9b888b385e7081d0afad1363034df0e600857d`. Its ledger in the plan records the
-  non-device evidence reconciliation of every merged task to separated evidence
-  levels, confirms production OCR fail-closed, and records one Sep-5
-  development-harness OCR runtime trace. G0 remains EVIDENCE OPEN for the
-  consolidated physical checklist in the plan's §1 MOB-010B ledger; MOB-028
-  follows only after G0 closes.
-- Production navigation and downstream condition/custody/supporting flows,
-  durable push, integrated hardening, release and pilot gates remain unfinished.
-- DEC-074 production OCR stays fail-closed until an accepted shared/durable
+- MOB-010B non-device reconciliation remains recorded from
+  `codex/mob-010b-native-evidence-closure`, audited from
+  `7e9b888b385e7081d0afad1363034df0e600857d`. The owner has now closed the G0
+  baseline physical checklist using a Development Build on device `V2302A`, Android
+  10, build `X690B-H691DE-Q-GL-220215V356`, against reviewed SHA
+  `932dee4f6867ff609d0446e41ce0084e9a2215b8`, launched through
+  `corepack pnpm mobile:poc`. The required G0 physical checklist is owner-reported
+  PASS. This closes G0 physical evidence; it does not promote later signed-release,
+  full-device-matrix, soak, or production evidence.
+- MOB-028 — Production shell, access and context routing — is merged. Initial
+  implementation commit: `29ae0a8a239751afdb3d4d6e00143b4348a8f14f`; focused
+  lifecycle/visual repair and current merged main: `1cca7a4a40bb604dc0fcbe208bfd51feff42170d`.
+  Independent GitHub review passed after the repair, and owner physical verification
+  passed. Final reported local validation was employee-client 147/147 tests,
+  valet-native 418/418 tests, both lint/typecheck suites green, architecture check
+  green with only existing grandfathered warnings, targeted Prettier green and
+  `git diff --check` green. No API, DB, schema, migration or dependency change was
+  part of MOB-028.
+- Remote CI is **not verified green**. Push CI run #307 at `932dee4...` and push CI
+  run #308 at `1cca7a4...` both completed with conclusion `failure`. No failure cause
+  is inferred here. MOB-028 therefore remains **IMPLEMENTED — EVIDENCE OPEN** with
+  CI VERIFIED as its named remaining evidence; G1 is not complete.
+- Production OCR remains fail-closed under DEC-074 until an accepted shared/durable
   cost-guard implementation exists; manual/no-plate remains available.
-- Next work: the G0 owner physical checklist, then **MOB-028 — Production
-  shell, access and context routing** as the next application-code slice.
-- Local Native tests passed 43 files / 373 tests; portable employee-client tests
-  passed 15 files / 143 tests; API OCR suites 5 files / 65 tests and
-  staff-auth/check-in/returning suites 9 files / 189 tests against real
-  PostgreSQL, rerun by MOB-010B at the evidence branch SHA. No current physical,
-  signed release, load/soak or remote CI success is claimed by this
-  documentation update.
+- Next application-code slice: **MOB-029 — Production task queue and foreground
+  attention**. **MOB-015A — Production Shift start and active-Shift presentation**
+  remains separately required with MOB-029 before G1 can close.
 - The older product checkpoint below retains its own verification date and
   historical database count; it is not the current Native baseline (31 migrations).
 
