@@ -9,8 +9,7 @@ import type {
 } from "@valet/employee-client";
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
-import { nativeCameraPermissions } from "../scanner/native-camera-adapter";
-import { NativePlateCameraController } from "./native-plate-camera-controller";
+import { createNativePlateOcrBinding } from "./native-plate-ocr-adapter";
 import { bindNativePlateCameraLifecycle } from "./native-plate-camera-lifecycle";
 import { getNativePlateCameraCopy } from "./native-plate-camera-copy";
 import type { NativeCheckInCopy } from "./native-check-in-copy";
@@ -46,8 +45,8 @@ export function NativePlateCameraStep({
   readonly onNoPlate: () => void;
   readonly textAlign: NativeTextAlign;
 }) {
-  const [controller] = useState(
-    () => new NativePlateCameraController(nativeCameraPermissions),
+  const [{ controller, cameraRef }] = useState(() =>
+    createNativePlateOcrBinding(auth, session),
   );
   const snapshot = useSyncExternalStore(
     controller.subscribe,
@@ -67,7 +66,9 @@ export function NativePlateCameraStep({
   );
   const mounted = snapshot.phase === "starting" || snapshot.phase === "preview";
   const opened = snapshot.phase !== "idle";
-  const failed = snapshot.phase === "denied" || snapshot.phase === "error";
+  const failed = ["denied", "error", "no-match", "unavailable"].includes(
+    snapshot.phase,
+  );
   const closeThen = (action: () => void) => {
     controller.close();
     action();
@@ -78,6 +79,7 @@ export function NativePlateCameraStep({
         <View style={styles.viewport}>
           {mounted ? (
             <CameraView
+              ref={cameraRef}
               key={snapshot.generation}
               facing="back"
               mute

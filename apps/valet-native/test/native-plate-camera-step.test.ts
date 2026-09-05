@@ -13,10 +13,16 @@ const hooks = vi.hoisted(() => ({
   focus: [] as (() => () => void)[],
 }));
 vi.mock("react", () => ({
-  useState: () => [hooks.controller, vi.fn()],
+  useState: () => [
+    { controller: hooks.controller, cameraRef: vi.fn() },
+    vi.fn(),
+  ],
   useCallback: (callback: unknown) => callback,
   useSyncExternalStore: (_subscribe: unknown, current: () => unknown) =>
     current(),
+}));
+vi.mock("../src/check-in/native-plate-ocr-adapter", () => ({
+  createNativePlateOcrBinding: vi.fn(),
 }));
 vi.mock("react-native", () => ({
   AppState: {
@@ -136,7 +142,7 @@ describe("Native assistive plate camera presentation", () => {
     ]);
     expect(render().some((node) => node.type === "CameraView")).toBe(false);
   });
-  it("mounts only a muted rear preview with no scan/capture/data callback", async () => {
+  it("mounts a muted rear camera ref with no QR callback or Capture button", async () => {
     const context = fixture();
     await context.controller.open();
     const starting = context.render();
@@ -155,9 +161,9 @@ describe("Native assistive plate camera presentation", () => {
     ).toBe(true);
     expect(camera.props).toMatchObject({ facing: "back", mute: true });
     expect(camera.props.onBarcodeScanned).toBeUndefined();
-    expect(camera.props.ref).toBeUndefined();
+    expect(camera.props.ref).toEqual(expect.any(Function));
     (camera.props.onCameraReady as () => void)();
-    context.press("Enter the plate I can see");
+    context.press("Enter manually");
     expect(context.onManual).toHaveBeenCalledOnce();
     expect(context.render().some((node) => node.type === "CameraView")).toBe(
       false,
@@ -228,7 +234,7 @@ describe("Native assistive plate camera presentation", () => {
         failed.some((node) => typeof node.props.message === "string"),
       ).toBe(true);
       expect(
-        context.render().some((node) => node.props.label === "Retry camera"),
+        context.render().some((node) => node.props.label === "Retry Scan"),
       ).toBe(true);
       if (failure === "denied")
         expect(
@@ -267,7 +273,7 @@ describe("Native assistive plate camera presentation", () => {
         .some(
           (node) =>
             node.props.children ===
-            "اقرأ اللوحة ثم أدخلها وأكّدها. تُغلق الكاميرا قبل الإدخال.",
+            "جارٍ قراءة اللوحة… أبقِ اللوحة داخل الإطار.",
         ),
     ).toBe(true);
 

@@ -1,13 +1,24 @@
 import type { NativeCameraPermissionPort } from "../scanner/native-qr-controller";
+import {
+  NativePlateOcrLoop,
+  type NativePlateOcrPorts,
+} from "./native-plate-ocr-loop";
 
 export interface NativePlateCameraSnapshot {
   readonly generation: number;
   readonly phase:
-    "idle" | "requesting" | "starting" | "preview" | "denied" | "error";
+    | "idle"
+    | "requesting"
+    | "starting"
+    | "preview"
+    | "denied"
+    | "error"
+    | "no-match"
+    | "unavailable";
   readonly canAskAgain: boolean;
 }
 
-/** Visual assistance only: no frames, decoding, files, or vehicle identity. */
+/** Camera ownership plus generation-fenced assistive acquisition only. */
 export class NativePlateCameraController {
   private eligible = false;
   private snapshot: NativePlateCameraSnapshot = {
@@ -17,7 +28,31 @@ export class NativePlateCameraController {
   };
   private readonly listeners = new Set<() => void>();
 
-  constructor(private readonly permissions: NativeCameraPermissionPort) {}
+  private readonly ocr: NativePlateOcrLoop | undefined;
+  constructor(
+    private readonly permissions: NativeCameraPermissionPort,
+    ports?: NativePlateOcrPorts,
+  ) {
+    if (ports)
+      this.ocr = new NativePlateOcrLoop(
+        ports,
+        (generation) =>
+          this.isCurrent(generation) && this.snapshot.phase === "preview",
+        (generation, result) => {
+          if (!this.isCurrent(generation)) return;
+          this.close();
+          if (!this.eligible || this.snapshot.generation !== generation + 1)
+            return;
+          if (result.status === "MATCH")
+            ports.accept(result.candidate.plateNumberRaw);
+          else
+            this.publish({
+              ...this.snapshot,
+              phase: result.status === "NO_MATCH" ? "no-match" : "unavailable",
+            });
+        },
+      );
+  }
 
   current = (): NativePlateCameraSnapshot => this.snapshot;
   subscribe = (listener: () => void): (() => void) => {
@@ -52,11 +87,13 @@ export class NativePlateCameraController {
   ready(generation: number): void {
     if (this.isCurrent(generation) && this.snapshot.phase === "starting") {
       this.publish({ ...this.snapshot, phase: "preview" });
+      this.ocr?.start(generation);
     }
   }
 
   fail(generation: number): void {
     if (!this.isCurrent(generation)) return;
+    this.ocr?.cancel();
     // Expo mount errors do not reliably distinguish busy/missing hardware.
     this.publish({
       ...this.snapshot,
@@ -66,6 +103,7 @@ export class NativePlateCameraController {
   }
 
   close(): void {
+    this.ocr?.cancel();
     this.publish({
       ...this.snapshot,
       generation: this.snapshot.generation + 1,

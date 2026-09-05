@@ -38,3 +38,4 @@ export * from "./staff-check-in-drafts.js";
 export * from "./staff-valet-session.js";
 export * from "./staff-vehicle-directory.js";
 export * from "./incidents.js";
+export * from "./plate-ocr.js";

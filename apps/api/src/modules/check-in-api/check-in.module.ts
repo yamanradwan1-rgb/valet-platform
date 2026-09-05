@@ -8,15 +8,42 @@ import { StaffCheckInController } from "./check-in-api.controller";
 import { CheckInApiService } from "./check-in-api.service";
 import { CheckInOperationRunner } from "./check-in-operation-runner";
 import { ReturningCheckInController } from "./returning-check-in.controller";
+import { PlateOcrController } from "./plate-ocr.controller";
+import { PlateOcrAuthGuard } from "./plate-ocr-auth.guard";
+import { PlateOcrService } from "./plate-ocr.service";
+import { PlateOcrCostGuard } from "./plate-ocr-cost-guard";
+import { PLATE_OCR_PROVIDER } from "./plate-ocr-provider";
+import { readPlateOcrConfig } from "./plate-ocr-config";
+import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.provider";
 
 @Module({
-  controllers: [StaffCheckInController, ReturningCheckInController],
+  controllers: [
+    StaffCheckInController,
+    ReturningCheckInController,
+    PlateOcrController,
+  ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
-  providers: [CheckInApiService, CheckInOperationRunner],
+  providers: [
+    CheckInApiService,
+    CheckInOperationRunner,
+    PlateOcrAuthGuard,
+    PlateOcrService,
+    {
+      provide: PlateOcrCostGuard,
+      useFactory: () =>
+        new PlateOcrCostGuard(process.env.NODE_ENV, () => performance.now()),
+    },
+    {
+      provide: PLATE_OCR_PROVIDER,
+      useFactory: () =>
+        new PlateRecognizerSnapshotProvider(readPlateOcrConfig(process.env)),
+    },
+  ],
 })
 export class CheckInModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(RequestIdMiddleware).forRoutes(StaffCheckInController);
     consumer.apply(RequestIdMiddleware).forRoutes(ReturningCheckInController);
+    consumer.apply(RequestIdMiddleware).forRoutes(PlateOcrController);
   }
 }

@@ -8,7 +8,14 @@ export interface NativePlateCameraCopy {
   readonly settings: string;
   readonly phases: Readonly<
     Record<
-      "idle" | "requesting" | "starting" | "preview" | "denied" | "error",
+      | "idle"
+      | "requesting"
+      | "starting"
+      | "preview"
+      | "denied"
+      | "error"
+      | "no-match"
+      | "unavailable",
       string
     >
   >;
@@ -18,15 +25,17 @@ const COPY: Record<EmployeeLocale, NativePlateCameraCopy> = {
   en: {
     open: "Open camera",
     close: "Close camera",
-    enter: "Enter the plate I can see",
-    retry: "Retry camera",
+    enter: "Enter manually",
+    retry: "Retry Scan",
     settings: "Open camera settings",
     phases: {
-      idle: "Use the camera to read the plate, or enter it manually. No automatic recognition or photo is taken.",
+      idle: "Open the camera to read the plate, or enter it manually.",
       requesting: "Requesting camera permission…",
       starting: "Starting rear camera…",
-      preview:
-        "Read the plate, then enter and confirm it. The camera closes before entry.",
+      preview: "Reading plate… Hold the plate inside the frame.",
+      "no-match": "Couldn't read the plate. Try again or enter it manually.",
+      unavailable:
+        "Automatic plate reading is unavailable. Enter the plate manually or continue without a readable plate.",
       denied:
         "Camera permission was denied. You can enter the plate manually or continue without a readable plate.",
       error:
@@ -36,14 +45,17 @@ const COPY: Record<EmployeeLocale, NativePlateCameraCopy> = {
   ar: {
     open: "فتح الكاميرا",
     close: "إغلاق الكاميرا",
-    enter: "إدخال اللوحة التي أراها",
-    retry: "إعادة محاولة الكاميرا",
+    enter: "إدخال يدوي",
+    retry: "إعادة المسح",
     settings: "فتح إعدادات الكاميرا",
     phases: {
-      idle: "استخدم الكاميرا لقراءة اللوحة أو أدخلها يدوياً. لا يوجد تعرّف تلقائي ولا يتم التقاط صورة.",
+      idle: "افتح الكاميرا لقراءة اللوحة أو أدخلها يدوياً.",
       requesting: "جارٍ طلب إذن الكاميرا…",
       starting: "جارٍ تشغيل الكاميرا الخلفية…",
-      preview: "اقرأ اللوحة ثم أدخلها وأكّدها. تُغلق الكاميرا قبل الإدخال.",
+      preview: "جارٍ قراءة اللوحة… أبقِ اللوحة داخل الإطار.",
+      "no-match": "تعذر قراءة اللوحة. حاول مرة أخرى أو أدخلها يدويًا.",
+      unavailable:
+        "قراءة اللوحة تلقائيًا غير متاحة. أدخل اللوحة يدويًا أو تابع دون لوحة مقروءة.",
       denied:
         "تم رفض إذن الكاميرا. يمكنك إدخال اللوحة يدوياً أو المتابعة دون لوحة مقروءة.",
       error:

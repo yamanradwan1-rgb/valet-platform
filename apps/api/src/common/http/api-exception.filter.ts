@@ -51,6 +51,11 @@ const operationRoutes: ReadonlyArray<{
     path: /^\/v1\/staff\/check-in\/vehicle-recognition$/,
   },
   {
+    method: "POST",
+    operation: "CHECK_IN_PLATE_OCR",
+    path: /^\/v1\/staff\/check-in\/plate-ocr$/,
+  },
+  {
     method: "PUT",
     operation: "CHECK_IN_VEHICLE_DETAILS",
     path: /^\/v1\/staff\/check-in\/sessions\/[^/]+\/vehicle-details$/,

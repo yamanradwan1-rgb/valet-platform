@@ -18,6 +18,11 @@ import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.serv
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { DashboardModule } from "../src/modules/dashboard/dashboard.module";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
+import { PlateOcrAuthGuard } from "../src/modules/check-in-api/plate-ocr-auth.guard";
+import { PlateOcrController } from "../src/modules/check-in-api/plate-ocr.controller";
+import { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
+import { PLATE_OCR_PROVIDER } from "../src/modules/check-in-api/plate-ocr-provider";
+import { PlateOcrService } from "../src/modules/check-in-api/plate-ocr.service";
 import { ReturningCheckInController } from "../src/modules/check-in-api/returning-check-in.controller";
 import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
 import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
@@ -248,10 +253,15 @@ describe("accepted feature module ownership", () => {
     expect(metadata(CheckInModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffCheckInController,
       ReturningCheckInController,
+      PlateOcrController,
     ]);
     expect(metadata(CheckInModule, MODULE_METADATA.PROVIDERS)).toEqual([
       CheckInApiService,
       CheckInOperationRunner,
+      PlateOcrAuthGuard,
+      PlateOcrService,
+      expect.objectContaining({ provide: PlateOcrCostGuard }),
+      expect.objectContaining({ provide: PLATE_OCR_PROVIDER }),
     ]);
     for (const method of [
       "executeGuestIssue",

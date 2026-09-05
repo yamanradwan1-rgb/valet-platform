@@ -94,17 +94,17 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
     });
   });
 
-  it("keeps every camera phase localized and preview-only truthful", () => {
+  it("keeps every camera phase localized and assistive-only truthful", () => {
     const forbidden =
       /plate (?:captured|detected)|high confidence|تم (?:التقاط|اكتشاف) اللوحة|ثقة عالية/i;
     for (const locale of ["en", "ar"] as const) {
       const copy = getNativePlateCameraCopy(locale);
       expect(Object.values(copy.phases).join(" ")).not.toMatch(forbidden);
-      expect(copy.phases.idle).toMatch(
-        locale === "en" ? /no automatic recognition/i : /لا يوجد تعرّف تلقائي/,
+      expect(copy.phases.preview).toMatch(
+        locale === "en" ? /reading plate/i : /جارٍ قراءة اللوحة/,
       );
       expect(copy.enter).toMatch(
-        locale === "en" ? /enter.*plate/i : /إدخال اللوحة/,
+        locale === "en" ? /enter manually/i : /إدخال يدوي/,
       );
       expect(copy.retry).toMatch(locale === "en" ? /retry/i : /إعادة/);
       expect(copy.settings).toMatch(locale === "en" ? /settings/i : /إعدادات/);

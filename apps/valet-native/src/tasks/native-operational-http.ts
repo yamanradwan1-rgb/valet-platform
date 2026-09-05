@@ -24,6 +24,7 @@ class NativeBearerTransport implements EmployeeTransport {
     apiOrigin: string,
     private readonly accessToken: () => string | undefined,
     private readonly onResponse: (status: number) => void,
+    private readonly signal?: AbortSignal,
   ) {
     this.apiOrigin = validateNativeApiOrigin(apiOrigin);
   }
@@ -42,13 +43,20 @@ class NativeBearerTransport implements EmployeeTransport {
       Authorization: `Bearer ${accessToken}`,
       ...request.headers,
     };
-    if (request.body !== undefined)
+    const multipart =
+      typeof FormData !== "undefined" && request.body instanceof FormData;
+    if (request.body !== undefined && !multipart)
       headers["Content-Type"] = "application/json";
     try {
       const response = await fetch(url.toString(), {
         ...(request.body === undefined
           ? {}
-          : { body: JSON.stringify(request.body) }),
+          : {
+              body: multipart
+                ? (request.body as FormData)
+                : JSON.stringify(request.body),
+            }),
+        ...(this.signal === undefined ? {} : { signal: this.signal }),
         credentials: "omit",
         headers,
         method: request.method,
@@ -68,6 +76,7 @@ class NativeBearerTransport implements EmployeeTransport {
 export function createNativeEmployeeClient(
   apiOrigin: string,
   auth: NativeAuthSession,
+  signal?: AbortSignal,
 ): EmployeeClient {
   const requestGeneration = auth.current().authGeneration;
   const isCurrent = () => auth.current().authGeneration === requestGeneration;
@@ -97,6 +106,7 @@ export function createNativeEmployeeClient(
       (status) => {
         responseStatus = status;
       },
+      signal,
     ),
   });
 }

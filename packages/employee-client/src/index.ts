@@ -9,6 +9,13 @@ export {
   type StaffNativeAuthResponse,
 } from "@valet/contracts/staff-auth";
 export { staffOperationalContextResponseSchema } from "@valet/contracts/staff-context";
+export {
+  plateOcrRequestSchema,
+  plateOcrResponseSchema,
+  PLATE_OCR_MAX_IMAGE_BYTES,
+  type PlateOcrRequest,
+  type PlateOcrResponse,
+} from "@valet/contracts";
 
 export * from "./api-error";
 export * from "./employee-client";
