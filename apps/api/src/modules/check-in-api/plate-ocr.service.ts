@@ -9,6 +9,7 @@ import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.mo
 import { CustodyStaffAuthorizationError } from "../staff/custody-staff-authorizer";
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 import { authorizeCheckInLocation } from "./check-in-location-authorization";
+import { logPlateOcrBoundary } from "./plate-ocr-boundary-diagnostics";
 import { PlateOcrCostGuard } from "./plate-ocr-cost-guard";
 import {
   PLATE_OCR_PROVIDER,
@@ -37,12 +38,16 @@ export class PlateOcrService {
         userId,
         input.targetLocationId,
       );
+      logPlateOcrBoundary("location-authorized");
       const eligible = await lockShiftOperationalEligibility(transaction, {
         membershipId: scope.actor.membershipId,
         locationId: scope.locationId,
       });
-      if (eligible === null)
+      if (eligible === null) {
+        logPlateOcrBoundary("shift-ineligible");
         throw new CustodyStaffAuthorizationError("AUTHORIZATION_DENIED");
+      }
+      logPlateOcrBoundary("shift-eligible");
       await transaction.query("COMMIT");
     } catch (error) {
       await transaction.query("ROLLBACK").catch(() => undefined);
@@ -56,8 +61,13 @@ export class PlateOcrService {
       membershipId: scope.actor.membershipId,
       targetLocationId: scope.locationId,
     });
-    if (release === undefined) return { status: "UNAVAILABLE" };
+    if (release === undefined) {
+      logPlateOcrBoundary("cost-guard-denied");
+      return { status: "UNAVAILABLE" };
+    }
+    logPlateOcrBoundary("cost-guard-acquired");
     try {
+      logPlateOcrBoundary("provider-dispatch");
       return plateOcrResponseSchema.parse(
         await this.provider.recognize({
           image,

@@ -29,6 +29,7 @@ import {
   PlateOcrAuthGuard,
   type PlateOcrApiRequest,
 } from "./plate-ocr-auth.guard";
+import { logPlateOcrBoundary } from "./plate-ocr-boundary-diagnostics";
 import { PlateOcrService } from "./plate-ocr.service";
 
 interface TransientJpeg {
@@ -42,17 +43,21 @@ class PlateOcrUploadErrorInterceptor implements NestInterceptor {
     _context: ExecutionContext,
     next: CallHandler,
   ): Observable<unknown> {
+    logPlateOcrBoundary("request-authenticated");
     return next.handle().pipe(
       catchError((error: unknown) => {
-        const uploadLimit =
+        const uploadCode =
           error instanceof Error &&
           "code" in error &&
           typeof error.code === "string" &&
-          error.code.startsWith("LIMIT_");
-        if (
-          uploadLimit ||
-          (error instanceof HttpException && error.getStatus() === 413)
-        ) {
+          error.code;
+        const payloadTooLarge =
+          error instanceof HttpException && error.getStatus() === 413;
+        if (uploadCode === "LIMIT_FILE_SIZE" || payloadTooLarge)
+          logPlateOcrBoundary("image-size-invalid");
+        const uploadLimit =
+          typeof uploadCode === "string" && uploadCode.startsWith("LIMIT_");
+        if (uploadLimit || payloadTooLarge) {
           throw new BadRequestException();
         }
         throw error;
@@ -83,8 +88,10 @@ export class PlateOcrController {
         parts: 4,
       },
       fileFilter: (_request, file, done) => {
-        if (file.mimetype !== "image/jpeg")
+        if (file.mimetype !== "image/jpeg") {
+          logPlateOcrBoundary("image-mime-invalid");
           return done(new BadRequestException(), false);
+        }
         done(null, true);
       },
     }),
@@ -97,21 +104,40 @@ export class PlateOcrController {
   ) {
     return this.runner.run("CHECK_IN_PLATE_OCR", request, async () => {
       try {
+        logPlateOcrBoundary("multipart-accepted");
         parseCheckInBody(emptyRequestSchema, query);
         const input = parseCheckInBody(plateOcrRequestSchema, body);
+        logPlateOcrBoundary("metadata-valid");
+        if (!image) {
+          logPlateOcrBoundary("image-missing");
+          throw new ApiTransportValidationError();
+        }
+        if (image.mimetype !== "image/jpeg") {
+          logPlateOcrBoundary("image-mime-invalid");
+          throw new ApiTransportValidationError();
+        }
+        if (image.size > PLATE_OCR_MAX_IMAGE_BYTES) {
+          logPlateOcrBoundary("image-size-invalid");
+          throw new ApiTransportValidationError();
+        }
+        if (image.buffer.length !== image.size) {
+          logPlateOcrBoundary("image-buffer-size-invalid");
+          throw new ApiTransportValidationError();
+        }
+        if (image.size < 4) {
+          logPlateOcrBoundary("image-size-invalid");
+          throw new ApiTransportValidationError();
+        }
         if (
-          !image ||
-          image.mimetype !== "image/jpeg" ||
-          image.size > PLATE_OCR_MAX_IMAGE_BYTES ||
-          image.buffer.length !== image.size ||
-          image.size < 4 ||
           image.buffer[0] !== 0xff ||
           image.buffer[1] !== 0xd8 ||
           image.buffer[image.size - 2] !== 0xff ||
           image.buffer[image.size - 1] !== 0xd9
         ) {
+          logPlateOcrBoundary("image-jpeg-magic-invalid");
           throw new ApiTransportValidationError();
         }
+        logPlateOcrBoundary("controller-to-service");
         return await this.service.recognize(
           request.plateOcrUserId,
           input,

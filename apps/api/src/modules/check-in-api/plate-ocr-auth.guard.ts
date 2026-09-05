@@ -13,6 +13,7 @@ import {
   CheckInOperationRunner,
   type CheckInApiRequest,
 } from "./check-in-operation-runner";
+import { logPlateOcrBoundary } from "./plate-ocr-boundary-diagnostics";
 
 export interface PlateOcrApiRequest extends CheckInApiRequest {
   plateOcrUserId: string;
@@ -40,10 +41,12 @@ export class PlateOcrAuthGuard implements CanActivate {
         typeof header === "string" ? header : undefined,
       );
     } catch (error) {
+      logPlateOcrBoundary("auth-failure");
       return this.runner.run("CHECK_IN_PLATE_OCR", request, async () => {
         throw error;
       });
     }
+    logPlateOcrBoundary("auth-success");
     return true;
   }
 }
