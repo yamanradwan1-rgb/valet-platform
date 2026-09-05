@@ -182,20 +182,35 @@ describe("Native camera capture resolution fallback", () => {
   it("keeps the JPEG quality fallback after a camera-size fallback", async () => {
     mocks.sizes.set("large.jpg", 1_048_577);
     mocks.sizes.set("compressed.jpg", 700_000);
-    const takePictureAsync = vi
+    const preferredCapture = vi
       .fn()
-      .mockRejectedValueOnce(new Error("device failure"))
+      .mockRejectedValueOnce(new Error("device failure"));
+    const fallbackCapture = vi
+      .fn()
       .mockResolvedValueOnce({ uri: "large.jpg" })
       .mockResolvedValueOnce({ uri: "compressed.jpg" });
-    const { binding } = setup(takePictureAsync);
+    const { binding } = setup(preferredCapture);
 
     const generation = await start(binding);
+    binding.cameraRef({
+      takePictureAsync: fallbackCapture,
+    } as unknown as CameraView);
     await binding.cameraReady(generation);
     await vi.advanceTimersByTimeAsync(0);
 
+    expect(preferredCapture).toHaveBeenCalledExactlyOnceWith({
+      quality: 0.6,
+      exif: false,
+      base64: false,
+    });
     expect(
-      takePictureAsync.mock.calls.map(([options]) => options?.quality),
-    ).toEqual([0.6, 0.6, 0.45]);
+      fallbackCapture.mock.calls.map(([options]) => options?.quality),
+    ).toEqual([0.6, 0.45]);
     expect(mocks.recognize).toHaveBeenCalledOnce();
+    expect(
+      info.mock.calls
+        .flat()
+        .filter((value: unknown) => String(value).includes("http-dispatch")),
+    ).toHaveLength(1);
   });
 });

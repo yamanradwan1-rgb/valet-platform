@@ -186,8 +186,10 @@ export function createNativePlateOcrPorts(
         logNativePlateOcr("capture-aborted");
         throw unavailable();
       }
+      const compressionCamera = camera();
+      if (!compressionCamera || signal.aborted) throw unavailable();
       const fallback = await capture(
-        active,
+        compressionCamera,
         NATIVE_PLATE_FALLBACK_JPEG_QUALITY,
         signal,
         "fallback",
