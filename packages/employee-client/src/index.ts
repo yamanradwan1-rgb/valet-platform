@@ -1,7 +1,13 @@
 export type {
   AcceptTaskResponse,
+  AssignTaskResponse,
   StaffTaskQueueItem,
   TaskQueueResponse,
+} from "@valet/contracts";
+export {
+  acceptTaskResponseSchema,
+  assignTaskResponseSchema,
+  taskQueueResponseSchema,
 } from "@valet/contracts";
 export {
   staffNativeAuthResponseSchema,
@@ -32,6 +38,9 @@ export * from "./employee-operational-recovery";
 export * from "./employee-operational-scope";
 export * from "./employee-operational-state";
 export * from "./employee-operational-types";
+export * from "./employee-task-queue-owner";
+export * from "./employee-task-action-runner";
+export * from "./employee-retrieval-attention";
 export * from "./native-auth-session";
 export * from "./native-auth-state";
 export * from "./native-auth-storage";

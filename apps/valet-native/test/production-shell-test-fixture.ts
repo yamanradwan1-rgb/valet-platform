@@ -41,7 +41,10 @@ export function operations(
     mutation: { phase: "idle" },
     phase,
     queueFailure: null,
+    queueHardStopped: false,
     queueLoading: false,
+    queueRefreshing: false,
+    successfulQueueSnapshotCount: 0,
     scope:
       options.retainedScope === undefined
         ? phase === "ready"

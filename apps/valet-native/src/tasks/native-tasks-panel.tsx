@@ -1,21 +1,23 @@
 import type { ReactNode } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import type {
   EmployeeOperationalSession,
   EmployeeOperationalSnapshot,
-  StaffTaskQueueItem,
 } from "@valet/employee-client";
 
 import { styles } from "../foundation/foundation-styles";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
-  canAcceptNativeTask,
   nativeMutationMessage,
-  nativeTaskVehicleLabel,
+  nativeQueueFailureMessage,
 } from "./native-task-presentation";
 import { getNativeTasksCopy, type NativeTasksCopy } from "./native-tasks-copy";
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import { EmployeeCard } from "../employee-ui/employee-feedback";
+import {
+  EmployeeError,
+  EmployeeStatus,
+} from "../employee-ui/employee-feedback";
+import { NativeTaskCard } from "./native-task-card";
 import { NativeTaskShiftStrip } from "./native-task-shift-strip";
 
 interface NativeTasksPanelProps {
@@ -36,51 +38,28 @@ export function NativeTasksPanel({
   headerAction,
 }: NativeTasksPanelProps) {
   const copy = getNativeTasksCopy(locale);
+  const unavailable = statusForUnavailablePhase(snapshot, copy);
 
-  if (snapshot.phase === "loading-context" || snapshot.phase === "inactive") {
+  if (unavailable !== null || snapshot.scope === null) {
     return (
       <View style={styles.tasksPanel}>
         <MutationStatus copy={copy} snapshot={snapshot} textAlign={textAlign} />
-        <Status copy={copy.loading} textAlign={textAlign} />
+        <EmployeeStatus textAlign={textAlign}>
+          {unavailable ?? copy.error}
+        </EmployeeStatus>
+        {snapshot.phase !== "inactive" &&
+        snapshot.phase !== "loading-context" ? (
+          <EmployeeButton
+            label={copy.refresh}
+            onPress={() => void operations.refresh()}
+            size="standard"
+            variant="secondary"
+          />
+        ) : null}
       </View>
     );
   }
-  if (snapshot.phase === "no-active-shift") {
-    return (
-      <View style={styles.tasksPanel}>
-        <MutationStatus copy={copy} snapshot={snapshot} textAlign={textAlign} />
-        <Status copy={copy.noShift} textAlign={textAlign} />
-        <TaskButton
-          label={copy.refresh}
-          onPress={() => void operations.refresh()}
-        />
-      </View>
-    );
-  }
-  if (snapshot.phase === "ambiguous-active-shifts") {
-    return (
-      <View style={styles.tasksPanel}>
-        <MutationStatus copy={copy} snapshot={snapshot} textAlign={textAlign} />
-        <Status copy={copy.ambiguousShifts} textAlign={textAlign} />
-        <TaskButton
-          label={copy.refresh}
-          onPress={() => void operations.refresh()}
-        />
-      </View>
-    );
-  }
-  if (snapshot.phase === "error" || snapshot.scope === null) {
-    return (
-      <View style={styles.tasksPanel}>
-        <MutationStatus copy={copy} snapshot={snapshot} textAlign={textAlign} />
-        <Status copy={copy.error} textAlign={textAlign} />
-        <TaskButton
-          label={copy.refresh}
-          onPress={() => void operations.refresh()}
-        />
-      </View>
-    );
-  }
+
   return (
     <View style={styles.tasksPanel}>
       <NativeTaskShiftStrip
@@ -97,76 +76,79 @@ export function NativeTasksPanel({
         </Text>
         <View style={styles.taskHeaderActions}>
           {headerAction}
-          <TaskButton
-            disabled={snapshot.queueLoading}
+          <EmployeeButton
+            busy={snapshot.queueRefreshing}
+            disabled={snapshot.queueLoading || snapshot.queueRefreshing}
             label={copy.refresh}
             onPress={() => void operations.refreshQueue()}
+            size="standard"
+            variant="ghost"
           />
         </View>
       </View>
+      {snapshot.queueRefreshing ? (
+        <EmployeeStatus textAlign={textAlign}>{copy.refreshing}</EmployeeStatus>
+      ) : null}
       {snapshot.queueFailure ? (
-        <Status copy={copy.error} textAlign={textAlign} />
+        <EmployeeError textAlign={textAlign}>
+          {nativeQueueFailureMessage(
+            copy,
+            snapshot.queueFailure,
+            snapshot.queueHardStopped,
+            snapshot.tasks.length > 0,
+          )}
+        </EmployeeError>
       ) : null}
       <MutationStatus copy={copy} snapshot={snapshot} textAlign={textAlign} />
-      <ScrollView contentContainerStyle={styles.taskList}>
-        {snapshot.tasks.length === 0 && !snapshot.queueLoading ? (
-          <Status copy={copy.empty} textAlign={textAlign} />
-        ) : null}
-        {snapshot.tasks.map((task) => (
-          <TaskCard
+      <FlatList
+        contentContainerStyle={styles.taskList}
+        data={snapshot.tasks}
+        initialNumToRender={8}
+        keyExtractor={(task) => task.taskId}
+        ListEmptyComponent={
+          !snapshot.queueLoading ? (
+            <EmployeeStatus textAlign={textAlign}>{copy.empty}</EmployeeStatus>
+          ) : null
+        }
+        maxToRenderPerBatch={8}
+        renderItem={({ item, index }) => (
+          <NativeTaskCard
             copy={copy}
-            key={task.taskId}
-            onAccept={() => void operations.acceptTask(task.taskId)}
+            operations={operations}
+            priority={index === 0}
             snapshot={snapshot}
-            task={task}
+            task={item}
             textAlign={textAlign}
           />
-        ))}
-      </ScrollView>
+        )}
+        testID="native-production-task-queue"
+        windowSize={7}
+      />
     </View>
   );
 }
 
-function TaskCard({
-  copy,
-  onAccept,
-  snapshot,
-  task,
-  textAlign,
-}: {
-  readonly copy: NativeTasksCopy;
-  readonly onAccept: () => void;
-  readonly snapshot: EmployeeOperationalSnapshot;
-  readonly task: StaffTaskQueueItem;
-  readonly textAlign: "left" | "right";
-}) {
-  const actionable = canAcceptNativeTask(snapshot, task);
-  const retry =
-    snapshot.mutation.taskId === task.taskId &&
-    snapshot.mutation.phase === "retry-available";
-  const busy =
-    snapshot.mutation.taskId === task.taskId &&
-    snapshot.mutation.phase === "submitting";
-  return (
-    <EmployeeCard accessibilityLabel={nativeTaskVehicleLabel(task)}>
-      <Text style={[styles.taskTitle, { textAlign }]}>
-        {nativeTaskVehicleLabel(task)}
-      </Text>
-      <Text style={[styles.taskMeta, { textAlign }]}>
-        {copy.status}: {task.status}
-      </Text>
-      <Text style={[styles.taskMeta, { textAlign }]}>
-        {copy.version}: {task.version}
-      </Text>
-      {actionable || retry ? (
-        <TaskButton
-          disabled={busy}
-          label={busy ? copy.processing : retry ? copy.retry : copy.accept}
-          onPress={onAccept}
-        />
-      ) : null}
-    </EmployeeCard>
-  );
+function statusForUnavailablePhase(
+  snapshot: EmployeeOperationalSnapshot,
+  copy: NativeTasksCopy,
+): string | null {
+  if (snapshot.queueHardStopped) return copy.accessChanged;
+  if (
+    snapshot.phase === "inactive" ||
+    (snapshot.phase === "loading-context" && snapshot.tasks.length === 0)
+  ) {
+    return copy.loading;
+  }
+  if (snapshot.phase === "no-active-shift") return copy.noShift;
+  if (snapshot.phase === "ambiguous-active-shifts") return copy.ambiguousShifts;
+  if (
+    snapshot.phase !== "ready" &&
+    !(snapshot.phase === "loading-context" && snapshot.tasks.length > 0)
+  ) {
+    return copy.error;
+  }
+  if (snapshot.queueLoading && snapshot.tasks.length === 0) return copy.loading;
+  return null;
 }
 
 function MutationStatus({
@@ -179,42 +161,7 @@ function MutationStatus({
   readonly textAlign: "left" | "right";
 }) {
   const message = nativeMutationMessage(copy, snapshot.mutation.phase);
-  return message ? <Status copy={message} textAlign={textAlign} /> : null;
-}
-
-function Status({
-  copy,
-  textAlign,
-}: {
-  readonly copy: string;
-  readonly textAlign: "left" | "right";
-}) {
-  return (
-    <Text
-      accessibilityLiveRegion="polite"
-      style={[styles.taskStatus, { textAlign }]}
-    >
-      {copy}
-    </Text>
-  );
-}
-
-function TaskButton({
-  disabled = false,
-  label,
-  onPress,
-}: {
-  readonly disabled?: boolean;
-  readonly label: string;
-  readonly onPress: () => void;
-}) {
-  return (
-    <EmployeeButton
-      disabled={disabled}
-      label={label}
-      onPress={onPress}
-      size="compact"
-      variant="ghost"
-    />
-  );
+  return message ? (
+    <EmployeeStatus textAlign={textAlign}>{message}</EmployeeStatus>
+  ) : null;
 }

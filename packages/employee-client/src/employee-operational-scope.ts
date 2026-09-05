@@ -2,6 +2,18 @@ import type { StaffOperationalContextResponse } from "@valet/contracts/staff-con
 
 import type { EmployeeOperationalScope } from "./employee-operational-types";
 
+export function isSameEmployeeOperationalScope(
+  left: EmployeeOperationalScope | null,
+  right: EmployeeOperationalScope,
+): boolean {
+  return (
+    left?.organizationId === right.organizationId &&
+    left.membershipId === right.membershipId &&
+    left.locationId === right.locationId &&
+    left.shiftId === right.shiftId
+  );
+}
+
 export type EmployeeOperationalScopeResolution =
   | {
       readonly phase:

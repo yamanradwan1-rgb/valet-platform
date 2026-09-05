@@ -102,4 +102,43 @@ describe("Employee operational identity generation", () => {
       tasks: [],
     });
   });
+
+  it("discards an in-flight action after same-login Shift replacement", async () => {
+    const accept = deferred<ReturnType<typeof acceptedProjection>>();
+    const replacement = operationalContext();
+    const nextShiftId = "99999999-9999-4999-8999-999999999999";
+    const shifted = {
+      contexts: replacement.contexts.map((context) => ({
+        ...context,
+        activeShift: context.activeShift
+          ? { ...context.activeShift, shiftId: nextShiftId }
+          : null,
+      })),
+    };
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(
+      Promise.resolve(operationalContext()),
+      Promise.resolve(shifted),
+    );
+    transport.queueResults.push(
+      Promise.resolve({ tasks: [parkingTask()] }),
+      Promise.resolve({ tasks: [] }),
+    );
+    transport.acceptResults.push(accept.promise);
+    const session = new EmployeeOperationalSession({ transport });
+    await session.activate(1);
+
+    const mutation = session.acceptTask(ids.task);
+    await session.refresh();
+    accept.resolve(acceptedProjection());
+    await mutation;
+
+    expect(session.current()).toMatchObject({
+      identityGeneration: 1,
+      mutation: { phase: "idle" },
+      scope: { shiftId: nextShiftId },
+      tasks: [],
+    });
+    expect(transport.queueCalls).toHaveLength(2);
+  });
 });

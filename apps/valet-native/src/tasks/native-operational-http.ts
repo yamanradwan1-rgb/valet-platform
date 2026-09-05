@@ -1,6 +1,7 @@
 import {
   EmployeeApiError,
   EmployeeClient,
+  assignTaskResponseSchema,
   employeeAuthenticationRequiredError,
   employeeNetworkError,
   type AcceptTaskResponse,
@@ -9,6 +10,8 @@ import {
   type EmployeeTransportRequest,
   type NativeAuthSession,
   staffOperationalContextResponseSchema,
+  taskQueueResponseSchema,
+  type AssignTaskResponse,
   type TaskQueueResponse,
 } from "@valet/employee-client";
 
@@ -123,12 +126,25 @@ export function createNativeOperationalTransport(
   apiOrigin: string,
   auth: NativeAuthSession,
 ): EmployeeOperationalTransport {
-  function request<T>(input: EmployeeTransportRequest): Promise<T> {
-    const client = createNativeEmployeeClient(apiOrigin, auth);
+  function request<T>(
+    input: EmployeeTransportRequest,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    const client = createNativeEmployeeClient(apiOrigin, auth, signal);
     return client.request<T>(input);
   }
 
   return {
+    async assignTask(taskId, expectedVersion) {
+      const value = await request<unknown>({
+        body: { expectedVersion },
+        method: "POST",
+        path: `/v1/staff/tasks/${taskId}/assign`,
+      });
+      const parsed = assignTaskResponseSchema.safeParse(value);
+      if (!parsed.success) throw invalidResponse();
+      return parsed.data as AssignTaskResponse;
+    },
     async acceptTask(taskId, expectedVersion) {
       return request<AcceptTaskResponse>({
         body: { expectedVersion },
@@ -145,12 +161,18 @@ export function createNativeOperationalTransport(
       if (!parsed.success) throw invalidResponse();
       return parsed.data;
     },
-    async loadTaskQueue(locationId) {
-      return request<TaskQueueResponse>({
-        method: "GET",
-        params: { locationId },
-        path: "/v1/staff/tasks/queue",
-      });
+    async loadTaskQueue(locationId, signal) {
+      const value = await request<unknown>(
+        {
+          method: "GET",
+          params: { locationId },
+          path: "/v1/staff/tasks/queue",
+        },
+        signal,
+      );
+      const parsed = taskQueueResponseSchema.safeParse(value);
+      if (!parsed.success) throw invalidResponse();
+      return parsed.data as TaskQueueResponse;
     },
   };
 }

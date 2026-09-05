@@ -7,6 +7,12 @@ import type {
 import {
   canAcceptNativeTask,
   nativeMutationMessage,
+  nativeQueueFailureMessage,
+  nativeTaskActionLabel,
+  nativeTaskAge,
+  nativeTaskParkingContext,
+  nativeTaskStatusLabel,
+  nativeTaskTypeLabel,
   nativeTaskVehicleLabel,
 } from "../src/tasks/native-task-presentation";
 import { getNativeTasksCopy } from "../src/tasks/native-tasks-copy";
@@ -43,7 +49,10 @@ function snapshot(
     mutation,
     phase: "ready",
     queueFailure: null,
+    queueHardStopped: false,
     queueLoading: false,
+    queueRefreshing: false,
+    successfulQueueSnapshotCount: 1,
     scope: {
       locationCode: "AMM-1",
       locationId: "11111111-1111-4111-8111-111111111111",
@@ -60,7 +69,7 @@ function snapshot(
 }
 
 describe("Native Tasks presentation", () => {
-  it("shows Accept only for the current ASSIGNED Parking Task owner", () => {
+  it("shows Accept only for the current ASSIGNED Task owner", () => {
     expect(canAcceptNativeTask(snapshot(), task)).toBe(true);
     expect(
       canAcceptNativeTask(snapshot(), {
@@ -71,6 +80,14 @@ describe("Native Tasks presentation", () => {
     expect(
       canAcceptNativeTask(snapshot(), { ...task, status: "ACCEPTED" }),
     ).toBe(false);
+    expect(
+      canAcceptNativeTask(snapshot(), {
+        ...task,
+        currentAssigneeMembershipId: null,
+        status: "QUEUED",
+        taskType: "RETRIEVAL",
+      }),
+    ).toBe(true);
   });
 
   it.each(["submitting", "reconciling", "recovery-unavailable"] as const)(
@@ -90,9 +107,38 @@ describe("Native Tasks presentation", () => {
 
   it("uses real vehicle facts and localized EN/AR operational copy", () => {
     expect(nativeTaskVehicleLabel(task)).toBe("Toyota Camry");
-    expect(getNativeTasksCopy("en").tasks).toBe("Parking Tasks");
-    expect(getNativeTasksCopy("ar").tasks).toBe("مهام صف المركبات");
+    expect(getNativeTasksCopy("en").tasks).toBe("Tasks");
+    expect(getNativeTasksCopy("ar").tasks).toBe("المهام");
     expect(getNativeTasksCopy("ar").reconcile).toContain("الخادم");
+  });
+
+  it("localizes task type, status, and queue-owned actions", () => {
+    const en = getNativeTasksCopy("en");
+    const ar = getNativeTasksCopy("ar");
+    expect(nativeTaskTypeLabel(en, "PARKING")).toBe("Parking");
+    expect(nativeTaskTypeLabel(ar, "RETRIEVAL")).toBe("استرجاع المركبة");
+    expect(nativeTaskStatusLabel(en, "IN_PROGRESS")).toBe("In progress");
+    expect(nativeTaskStatusLabel(ar, "QUEUED")).toBe("في قائمة الانتظار");
+    expect(
+      nativeTaskActionLabel(en, {
+        ...task,
+        currentAssigneeMembershipId: null,
+        status: "QUEUED",
+      }),
+    ).toBe("Claim task");
+  });
+
+  it("formats age and parking context from canonical task facts", () => {
+    expect(nativeTaskAge(task, Date.parse("2026-09-03T08:06:05.000Z"))).toBe(
+      "1m",
+    );
+    expect(
+      nativeTaskParkingContext({
+        ...task,
+        parkingSpot: "P-12",
+        parkingZone: "North",
+      }),
+    ).toBe("North · P-12");
   });
 
   it("presents truthful no-Shift, error, accepted, and recovery states", () => {
@@ -104,6 +150,21 @@ describe("Native Tasks presentation", () => {
     expect(nativeMutationMessage(copy, "conflict")).toContain("changed");
     expect(nativeMutationMessage(copy, "recovery-unavailable")).toBe(
       copy.unknownResult,
+    );
+  });
+
+  it("distinguishes retained stale, rate-limit, and scope-loss queue failures", () => {
+    const copy = getNativeTasksCopy("en");
+    const network = { code: "NETWORK_ERROR", message: "Offline", status: 0 };
+    const limited = { code: "RATE_LIMITED", message: "Wait", status: 429 };
+    expect(nativeQueueFailureMessage(copy, network, false, true)).toBe(
+      copy.stale,
+    );
+    expect(nativeQueueFailureMessage(copy, limited, false, true)).toBe(
+      copy.rateLimited,
+    );
+    expect(nativeQueueFailureMessage(copy, network, true, false)).toBe(
+      copy.accessChanged,
     );
   });
 });

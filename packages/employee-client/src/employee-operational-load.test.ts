@@ -96,7 +96,7 @@ describe("Employee operational context and queue", () => {
     });
   });
 
-  it("filters Retrieval work out of the MOB-008 Parking slice", async () => {
+  it("keeps both Parking and Retrieval work in the production queue", async () => {
     const transport = new StubOperationalTransport();
     transport.contextResults.push(Promise.resolve(operationalContext()));
     transport.queueResults.push(
@@ -116,25 +116,24 @@ describe("Employee operational context and queue", () => {
 
     expect(session.current().tasks.map((task) => task.taskType)).toEqual([
       "PARKING",
+      "RETRIEVAL",
     ]);
   });
 
-  it("prevents an earlier queue response from overwriting a newer refresh", async () => {
+  it("coalesces refresh with an in-flight read instead of overlapping it", async () => {
     const first = deferred<{ tasks: ReturnType<typeof parkingTask>[] }>();
-    const second = deferred<{ tasks: ReturnType<typeof parkingTask>[] }>();
     const transport = new StubOperationalTransport();
     transport.contextResults.push(Promise.resolve(operationalContext()));
-    transport.queueResults.push(first.promise, second.promise);
+    transport.queueResults.push(first.promise);
     const session = new EmployeeOperationalSession({ transport });
 
     const activation = session.activate(4);
     await Promise.resolve();
     await Promise.resolve();
     const refresh = session.refreshQueue();
-    second.resolve({ tasks: [parkingTask({ version: 8 })] });
-    await refresh;
-    first.resolve({ tasks: [parkingTask({ version: 2 })] });
-    await activation;
+    expect(transport.queueCalls).toEqual([ids.location]);
+    first.resolve({ tasks: [parkingTask({ version: 8 })] });
+    await Promise.all([activation, refresh]);
 
     expect(session.current().tasks[0]?.version).toBe(8);
   });

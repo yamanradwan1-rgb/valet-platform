@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { AppState, Pressable, Text, View } from "react-native";
 import type {
   EmployeeOperationalSnapshot,
   NativeAuthSnapshot,
@@ -47,7 +47,10 @@ function createAuthBootstrap(): AuthBootstrap {
         mutation: { phase: "idle" },
         phase: "inactive",
         queueFailure: null,
+        queueHardStopped: false,
         queueLoading: false,
+        queueRefreshing: false,
+        successfulQueueSnapshotCount: 0,
         scope: null,
         tasks: [],
       },
@@ -93,6 +96,20 @@ export function FoundationShell() {
       auth.runtime.operations.clear();
     }
   }, [auth, snapshot.authGeneration, snapshot.phase]);
+
+  useEffect(() => {
+    if (auth.runtime === undefined) return;
+    void auth.runtime.operations.setForeground(
+      AppState.currentState === "active",
+    );
+    const subscription = AppState.addEventListener("change", (state) => {
+      void auth.runtime?.operations.setForeground(state === "active");
+    });
+    return () => {
+      subscription.remove();
+      void auth.runtime?.operations.setForeground(false);
+    };
+  }, [auth]);
 
   return (
     <EmployeeFrame direction={presentation.direction}>

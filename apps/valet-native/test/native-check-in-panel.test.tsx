@@ -67,7 +67,10 @@ function operations(
     mutation: { phase: "idle" },
     phase,
     queueFailure: null,
+    queueHardStopped: false,
     queueLoading: false,
+    queueRefreshing: false,
+    successfulQueueSnapshotCount: 0,
     scope:
       phase === "ready"
         ? {

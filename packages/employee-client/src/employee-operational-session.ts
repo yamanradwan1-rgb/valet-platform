@@ -1,33 +1,53 @@
-import { EmployeeApiError } from "./api-error";
 import {
-  isAmbiguousMutationFailure,
+  createEmployeeQueueAttempt,
+  isEmployeeAttemptScope,
   operationalFailure,
   reconcileAcceptAttempt,
 } from "./employee-operational-recovery";
-import { resolveEmployeeOperationalScope } from "./employee-operational-scope";
 import {
+  isSameEmployeeOperationalScope,
+  resolveEmployeeOperationalScope,
+} from "./employee-operational-scope";
+import {
+  applyEmployeeOperationalScope,
+  applyEmployeeQueueEvent,
   emptyEmployeeOperationalSnapshot,
   resetEmployeeOperationalContext,
 } from "./employee-operational-state";
+import {
+  EmployeeTaskQueueOwner,
+  type EmployeeQueueSnapshotEvent,
+} from "./employee-task-queue-owner";
+import { executeEmployeeTaskAction } from "./employee-task-action-runner";
 import type {
   EmployeeAcceptAttempt as AcceptAttempt,
-  EmployeeOperationalScope,
   EmployeeOperationalSessionOptions,
   EmployeeOperationalSnapshot,
 } from "./employee-operational-types";
 
 export class EmployeeOperationalSession {
   private activeAccept: Promise<void> | undefined;
+  private activeContext:
+    | { readonly generation: number; readonly promise: Promise<void> }
+    | undefined;
   private contextSequence = 0;
+  private foreground: boolean;
   private generation: number | null = null;
   private pendingAttempt: AcceptAttempt | undefined;
-  private queueSequence = 0;
+  private readonly queue: EmployeeTaskQueueOwner;
   private snapshot = emptyEmployeeOperationalSnapshot();
   private readonly subscribers = new Set<
     (snapshot: EmployeeOperationalSnapshot) => void
   >();
-
-  constructor(private readonly options: EmployeeOperationalSessionOptions) {}
+  constructor(private readonly options: EmployeeOperationalSessionOptions) {
+    this.foreground = options.initialForeground ?? true;
+    this.queue = new EmployeeTaskQueueOwner({
+      intervalMs: options.pollingIntervalMs ?? 5000,
+      onSnapshot: (event) => this.handleQueueEvent(event),
+      transport: options.transport,
+    });
+    this.queue.setForeground(this.foreground);
+  }
 
   current(): EmployeeOperationalSnapshot {
     return this.snapshot;
@@ -42,27 +62,47 @@ export class EmployeeOperationalSession {
   }
 
   activate(identityGeneration: number): Promise<void> {
-    if (this.generation !== identityGeneration) {
+    if (this.generation !== identityGeneration)
       this.invalidate(identityGeneration);
-    }
     return this.loadContext(identityGeneration);
+  }
+
+  setForeground(foreground: boolean): Promise<void> {
+    if (this.foreground === foreground) return Promise.resolve();
+    this.foreground = foreground;
+    if (!foreground) {
+      this.queue.setForeground(false);
+      return Promise.resolve();
+    }
+
+    return this.refresh().then(async () => {
+      if (!this.foreground) return;
+      this.queue.setForeground(true);
+      await this.queue.refresh(
+        this.snapshot.successfulQueueSnapshotCount === 0,
+      );
+    });
   }
 
   clear(): void {
     this.invalidate(null);
   }
 
+  dispose(): void {
+    this.invalidate(null);
+    this.queue.dispose();
+    this.subscribers.clear();
+  }
+
   refresh(): Promise<void> {
     const generation = this.generation;
-    if (generation === null) return Promise.resolve();
-    return this.loadContext(generation);
+    return generation === null
+      ? Promise.resolve()
+      : this.loadContext(generation);
   }
 
   refreshQueue(): Promise<void> {
-    const generation = this.generation;
-    const scope = this.snapshot.scope;
-    if (generation === null || scope === null) return Promise.resolve();
-    return this.loadQueue(generation, scope);
+    return this.queue.refresh();
   }
 
   acceptTask(taskId: string): Promise<void> {
@@ -70,32 +110,36 @@ export class EmployeeOperationalSession {
       return this.activeAccept ?? Promise.resolve();
     }
     const generation = this.generation;
-    const scope = this.snapshot.scope;
-    const task = this.snapshot.tasks.find(
-      (candidate) => candidate.taskId === taskId,
-    );
-    if (
-      generation === null ||
-      scope === null ||
-      task?.taskType !== "PARKING" ||
-      task.status !== "ASSIGNED" ||
-      task.currentAssigneeMembershipId !== scope.membershipId
-    ) {
-      return Promise.resolve();
-    }
-    const attempt: AcceptAttempt = {
-      assigneeMembershipId: scope.membershipId,
-      expectedVersion: task.version,
+    const attempt = createEmployeeQueueAttempt(
+      this.snapshot,
       generation,
       taskId,
-    };
+    );
+    if (attempt === undefined) return Promise.resolve();
     const operation = this.runAccept(attempt);
     this.activeAccept = operation;
     return operation;
   }
 
-  private async loadContext(generation: number): Promise<void> {
+  private loadContext(generation: number): Promise<void> {
+    if (this.activeContext?.generation === generation) {
+      return this.activeContext.promise;
+    }
     const request = ++this.contextSequence;
+    const operation = this.executeContextLoad(generation, request).finally(
+      () => {
+        if (this.activeContext?.promise === operation)
+          this.activeContext = undefined;
+      },
+    );
+    this.activeContext = { generation, promise: operation };
+    return operation;
+  }
+
+  private async executeContextLoad(
+    generation: number,
+    request: number,
+  ): Promise<void> {
     this.publish({
       ...this.snapshot,
       contextFailure: null,
@@ -104,29 +148,43 @@ export class EmployeeOperationalSession {
     });
     try {
       const response = await this.options.transport.loadOperationalContext();
-      if (!this.isCurrent(generation) || request !== this.contextSequence)
+      if (this.generation !== generation || request !== this.contextSequence)
         return;
       const resolution = resolveEmployeeOperationalScope(response);
       if (resolution.phase !== "ready") {
+        this.clearPendingAction();
+        this.queue.clear();
         this.publish(
           resetEmployeeOperationalContext(
-            this.snapshot,
+            { ...this.snapshot, mutation: { phase: "idle" } },
             generation,
             resolution.phase,
           ),
         );
         return;
       }
-      const scope = resolution.scope;
-      this.publish({
-        ...resetEmployeeOperationalContext(this.snapshot, generation, "ready"),
-        queueLoading: true,
-        scope,
-      });
-      await this.loadQueue(generation, scope);
+      const retained =
+        isSameEmployeeOperationalScope(this.snapshot.scope, resolution.scope) ||
+        isEmployeeAttemptScope(
+          this.pendingAttempt,
+          generation,
+          resolution.scope,
+        );
+      if (!retained) this.clearPendingAction();
+      this.publish(
+        applyEmployeeOperationalScope(
+          this.snapshot,
+          generation,
+          resolution.scope,
+          retained,
+          this.foreground,
+        ),
+      );
+      await this.queue.setScope(generation, resolution.scope).promise;
     } catch (error) {
-      if (!this.isCurrent(generation) || request !== this.contextSequence)
+      if (this.generation !== generation || request !== this.contextSequence)
         return;
+      this.queue.clear();
       this.publish({
         ...resetEmployeeOperationalContext(this.snapshot, generation, "error"),
         contextFailure: operationalFailure(error),
@@ -134,96 +192,58 @@ export class EmployeeOperationalSession {
     }
   }
 
-  private async loadQueue(
-    generation: number,
-    scope: EmployeeOperationalScope,
-  ): Promise<void> {
-    const request = ++this.queueSequence;
-    this.publish({ ...this.snapshot, queueFailure: null, queueLoading: true });
-    try {
-      const response = await this.options.transport.loadTaskQueue(
-        scope.locationId,
-      );
-      if (!this.isCurrentScope(generation, scope, request)) return;
-      this.publish({
-        ...this.snapshot,
-        queueFailure: null,
-        queueLoading: false,
-        tasks: response.tasks.filter((task) => task.taskType === "PARKING"),
-      });
-      this.reconcilePendingAttempt();
-    } catch (error) {
-      if (!this.isCurrentScope(generation, scope, request)) return;
-      this.publish({
-        ...this.snapshot,
-        mutation:
-          this.pendingAttempt === undefined ||
-          this.snapshot.mutation.phase === "submitting"
-            ? this.snapshot.mutation
-            : {
-                ...this.snapshot.mutation,
-                failure: operationalFailure(error),
-                phase: "recovery-unavailable",
-              },
-        queueFailure: operationalFailure(error),
-        queueLoading: false,
-      });
-    }
-  }
-
   private async runAccept(attempt: AcceptAttempt): Promise<void> {
     this.pendingAttempt = attempt;
+    this.publishMutation(attempt, "submitting");
+    const result = await executeEmployeeTaskAction(
+      attempt,
+      this.options.transport,
+      () =>
+        !this.snapshot.queueHardStopped &&
+        isEmployeeAttemptScope(attempt, this.generation, this.snapshot.scope),
+    );
+    if (result.kind === "stale") return;
+    if (result.kind === "reconcile") {
+      this.publishMutation(attempt, "reconciling");
+      await this.queue.refresh(false, true);
+      return;
+    }
+    this.pendingAttempt = undefined;
+    this.activeAccept = undefined;
     this.publish({
       ...this.snapshot,
       mutation: {
         expectedVersion: attempt.expectedVersion,
-        phase: "submitting",
+        failure: result.failure,
+        phase: "failed",
         taskId: attempt.taskId,
       },
     });
-    try {
-      await this.options.transport.acceptTask(
-        attempt.taskId,
-        attempt.expectedVersion,
-      );
-      if (!this.isCurrent(attempt.generation)) return;
-      this.publishReconciling(attempt);
-      await this.refreshQueue();
-    } catch (error) {
-      if (!this.isCurrent(attempt.generation)) return;
-      if (
-        error instanceof EmployeeApiError &&
-        error.code === "VERSION_CONFLICT"
-      ) {
-        this.publishReconciling(attempt);
-        await this.refreshQueue();
-        return;
-      }
-      if (isAmbiguousMutationFailure(error)) {
-        this.publishReconciling(attempt);
-        await this.refreshQueue();
-        return;
-      }
-      this.pendingAttempt = undefined;
-      this.activeAccept = undefined;
-      this.publish({
-        ...this.snapshot,
-        mutation: {
-          expectedVersion: attempt.expectedVersion,
-          failure: operationalFailure(error),
-          phase: "failed",
-          taskId: attempt.taskId,
-        },
-      });
-    }
   }
 
-  private publishReconciling(attempt: AcceptAttempt): void {
+  private handleQueueEvent(event: EmployeeQueueSnapshotEvent): void {
+    if (!isSameEmployeeOperationalScope(this.snapshot.scope, event.scope))
+      return;
+    if (event.hardStopped) this.clearPendingAction();
+    this.publish(
+      applyEmployeeQueueEvent(
+        this.snapshot,
+        event,
+        this.pendingAttempt !== undefined,
+      ),
+    );
+    if (event.tasks !== undefined) this.reconcilePendingAttempt();
+  }
+
+  private publishMutation(
+    attempt: AcceptAttempt,
+    phase: "reconciling" | "submitting",
+  ): void {
     this.publish({
       ...this.snapshot,
       mutation: {
         expectedVersion: attempt.expectedVersion,
-        phase: "reconciling",
+        phase,
         taskId: attempt.taskId,
       },
     });
@@ -233,20 +253,16 @@ export class EmployeeOperationalSession {
     const attempt = this.pendingAttempt;
     if (
       attempt === undefined ||
-      !this.isCurrent(attempt.generation) ||
+      this.generation !== attempt.generation ||
       (this.snapshot.mutation.phase !== "reconciling" &&
         this.snapshot.mutation.phase !== "recovery-unavailable")
     ) {
       return;
     }
     const task = this.snapshot.tasks.find(
-      (candidate) => candidate.taskId === attempt.taskId,
+      (item) => item.taskId === attempt.taskId,
     );
-    const phase = reconcileAcceptAttempt({
-      assigneeMembershipId: attempt.assigneeMembershipId,
-      expectedVersion: attempt.expectedVersion,
-      task,
-    });
+    const phase = reconcileAcceptAttempt({ ...attempt, task });
     this.pendingAttempt = undefined;
     this.activeAccept = undefined;
     this.publish({
@@ -261,30 +277,19 @@ export class EmployeeOperationalSession {
 
   private invalidate(generation: number | null): void {
     this.contextSequence += 1;
-    this.queueSequence += 1;
     this.generation = generation;
-    this.pendingAttempt = undefined;
-    this.activeAccept = undefined;
+    this.activeContext = undefined;
+    this.clearPendingAction();
+    this.queue.clear();
     this.publish({
       ...emptyEmployeeOperationalSnapshot(),
       identityGeneration: generation,
     });
   }
 
-  private isCurrent(generation: number): boolean {
-    return this.generation === generation;
-  }
-
-  private isCurrentScope(
-    generation: number,
-    scope: EmployeeOperationalScope,
-    request: number,
-  ): boolean {
-    return (
-      this.isCurrent(generation) &&
-      this.snapshot.scope?.locationId === scope.locationId &&
-      request === this.queueSequence
-    );
+  private clearPendingAction(): void {
+    this.pendingAttempt = undefined;
+    this.activeAccept = undefined;
   }
 
   private publish(snapshot: EmployeeOperationalSnapshot): void {

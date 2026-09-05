@@ -73,6 +73,7 @@ describe("Employee single unresolved accept barrier", () => {
 
     const operation = session.acceptTask(ids.task);
     await Promise.resolve();
+    await Promise.resolve();
     expect(session.current().mutation.phase).toBe("reconciling");
     expect(session.acceptTask(otherTaskId)).toBe(operation);
     expect(transport.acceptCalls).toHaveLength(1);

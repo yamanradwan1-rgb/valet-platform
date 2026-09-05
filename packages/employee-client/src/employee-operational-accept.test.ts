@@ -145,4 +145,128 @@ describe("Employee self-accept recovery", () => {
     expect(session.current().mutation.phase).toBe("recovery-unavailable");
     expect(transport.acceptCalls).toHaveLength(1);
   });
+
+  it("self-claims a queued task and accepts with the assigned server version", async () => {
+    const queued = parkingTask({
+      currentAssigneeMembershipId: null,
+      status: "QUEUED",
+      taskType: "RETRIEVAL",
+    });
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext()));
+    transport.queueResults.push(
+      Promise.resolve({ tasks: [queued] }),
+      Promise.resolve({
+        tasks: [
+          parkingTask({
+            status: "ACCEPTED",
+            taskType: "RETRIEVAL",
+            version: 4,
+          }),
+        ],
+      }),
+    );
+    transport.assignResults.push(
+      Promise.resolve({
+        ...acceptedProjection(),
+        status: "ASSIGNED",
+        taskType: "RETRIEVAL",
+        version: 3,
+      }),
+    );
+    transport.acceptResults.push(
+      Promise.resolve({
+        ...acceptedProjection(),
+        taskType: "RETRIEVAL",
+        version: 4,
+      }),
+    );
+    const session = new EmployeeOperationalSession({ transport });
+    await session.activate(1);
+
+    await session.acceptTask(ids.task);
+
+    expect(transport.assignCalls).toEqual([
+      { expectedVersion: 2, taskId: ids.task },
+    ]);
+    expect(transport.acceptCalls).toEqual([
+      { expectedVersion: 3, taskId: ids.task },
+    ]);
+    expect(session.current().mutation.phase).toBe("accepted");
+  });
+
+  it("coalesces repeated claim taps through the complete two-command action", async () => {
+    const queued = parkingTask({
+      currentAssigneeMembershipId: null,
+      status: "QUEUED",
+    });
+    const assign = deferred<ReturnType<typeof acceptedProjection>>();
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext()));
+    transport.queueResults.push(
+      Promise.resolve({ tasks: [queued] }),
+      Promise.resolve({
+        tasks: [parkingTask({ status: "ACCEPTED", version: 4 })],
+      }),
+    );
+    transport.assignResults.push(assign.promise);
+    transport.acceptResults.push(
+      Promise.resolve({ ...acceptedProjection(), version: 4 }),
+    );
+    const session = new EmployeeOperationalSession({ transport });
+    await session.activate(1);
+
+    const first = session.acceptTask(ids.task);
+    const second = session.acceptTask(ids.task);
+    expect(first).toBe(second);
+    assign.resolve({ ...acceptedProjection(), status: "ASSIGNED", version: 3 });
+    await first;
+
+    expect(transport.assignCalls).toHaveLength(1);
+    expect(transport.acceptCalls).toHaveLength(1);
+  });
+
+  it("requires an explicit retry after an uncertain claim resolves to assigned", async () => {
+    const queued = parkingTask({
+      currentAssigneeMembershipId: null,
+      status: "QUEUED",
+    });
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext()));
+    transport.queueResults.push(
+      Promise.resolve({ tasks: [queued] }),
+      Promise.resolve({ tasks: [parkingTask({ version: 3 })] }),
+    );
+    transport.assignResults.push(Promise.reject(employeeNetworkError()));
+    const session = new EmployeeOperationalSession({ transport });
+    await session.activate(1);
+
+    await session.acceptTask(ids.task);
+
+    expect(session.current().mutation.phase).toBe("retry-available");
+    expect(transport.assignCalls).toHaveLength(1);
+    expect(transport.acceptCalls).toHaveLength(0);
+  });
+
+  it("does not claim a queued task already assigned to another membership", async () => {
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve(operationalContext()));
+    transport.queueResults.push(
+      Promise.resolve({
+        tasks: [
+          parkingTask({
+            currentAssigneeMembershipId: "88888888-8888-4888-8888-888888888888",
+            status: "QUEUED",
+          }),
+        ],
+      }),
+    );
+    const session = new EmployeeOperationalSession({ transport });
+    await session.activate(1);
+
+    await session.acceptTask(ids.task);
+
+    expect(transport.assignCalls).toHaveLength(0);
+    expect(transport.acceptCalls).toHaveLength(0);
+  });
 });

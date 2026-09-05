@@ -1,5 +1,6 @@
 import type {
   AcceptTaskResponse,
+  AssignTaskResponse,
   StaffTaskQueueItem,
   TaskQueueResponse,
 } from "@valet/contracts";
@@ -43,6 +44,8 @@ export type EmployeeTaskMutationPhase =
 export interface EmployeeOperationalFailure {
   readonly code: string;
   readonly message: string;
+  readonly retryAfter?: number | undefined;
+  readonly status?: number | undefined;
 }
 
 export interface EmployeeTaskMutationState {
@@ -56,6 +59,9 @@ export interface EmployeeAcceptAttempt {
   readonly assigneeMembershipId: string;
   readonly expectedVersion: number;
   readonly generation: number;
+  readonly kind: "accept" | "claim-and-accept";
+  readonly locationId: string;
+  readonly shiftId: string;
   readonly taskId: string;
 }
 
@@ -65,7 +71,10 @@ export interface EmployeeOperationalSnapshot {
   readonly mutation: EmployeeTaskMutationState;
   readonly phase: EmployeeOperationalPhase;
   readonly queueFailure: EmployeeOperationalFailure | null;
+  readonly queueHardStopped: boolean;
   readonly queueLoading: boolean;
+  readonly queueRefreshing: boolean;
+  readonly successfulQueueSnapshotCount: number;
   readonly scope: EmployeeOperationalScope | null;
   readonly tasks: readonly StaffTaskQueueItem[];
 }
@@ -75,12 +84,21 @@ export interface EmployeeOperationalTransport {
     taskId: string,
     expectedVersion: number,
   ): Promise<AcceptTaskResponse>;
+  assignTask(
+    taskId: string,
+    expectedVersion: number,
+  ): Promise<AssignTaskResponse>;
   loadOperationalContext(): Promise<StaffOperationalContextResponse>;
-  loadTaskQueue(locationId: string): Promise<TaskQueueResponse>;
+  loadTaskQueue(
+    locationId: string,
+    signal?: AbortSignal,
+  ): Promise<TaskQueueResponse>;
 }
 
 export interface EmployeeOperationalSessionOptions {
+  readonly initialForeground?: boolean | undefined;
   readonly onStateChange?:
     ((snapshot: EmployeeOperationalSnapshot) => void) | undefined;
+  readonly pollingIntervalMs?: number | undefined;
   readonly transport: EmployeeOperationalTransport;
 }

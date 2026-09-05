@@ -36,6 +36,7 @@ import {
   getFoundationPresentation,
 } from "../foundation/foundation-locale";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
+import { NativeRetrievalAttention } from "../tasks/native-retrieval-attention";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeProductionNavigation } from "./native-production-navigation";
 import { NativeShellGate } from "./native-shell-gate";
@@ -73,7 +74,10 @@ function createBootstrap(): Bootstrap {
         mutation: { phase: "idle" },
         phase: "inactive",
         queueFailure: null,
+        queueHardStopped: false,
         queueLoading: false,
+        queueRefreshing: false,
+        successfulQueueSnapshotCount: 0,
         scope: null,
         tasks: [],
       },
@@ -131,15 +135,14 @@ export function NativeProductionShell({
 
   useEffect(() => {
     if (runtime === undefined) return;
+    void runtime.operations.setForeground(AppState.currentState === "active");
     const subscription = AppState.addEventListener("change", (state) => {
-      if (
-        state === "active" &&
-        runtime.auth.current().phase === "authenticated"
-      ) {
-        void runtime.operations.refresh();
-      }
+      void runtime.operations.setForeground(state === "active");
     });
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+      void runtime.operations.setForeground(false);
+    };
   }, [runtime]);
 
   const navigate = (destination: ProductionDestination) => {
@@ -206,6 +209,13 @@ export function NativeProductionShell({
         }
       />
       <View style={styles.content} testID="native-production-shell">
+        <NativeRetrievalAttention
+          locale={locale}
+          onOpenQueue={() => navigate("tasks")}
+          operations={runtime.operations}
+          snapshot={operations}
+          textAlign={presentation.textAlign}
+        />
         {shell.destination === "check-in" ? (
           <NativeCheckInRoute
             auth={runtime.auth}
@@ -268,7 +278,7 @@ function LocaleButton({
 }
 
 const styles = StyleSheet.create({
-  content: { flex: 1, minHeight: 0 },
+  content: { flex: 1, minHeight: 0, position: "relative" },
   localeButton: {
     alignItems: "center",
     backgroundColor: c.ice,

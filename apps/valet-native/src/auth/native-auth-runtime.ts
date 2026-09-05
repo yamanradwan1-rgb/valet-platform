@@ -48,6 +48,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const apiOrigin = resolveNativeApiOrigin();
   const auth = createNativeAuthSession(apiOrigin);
   const operations = new EmployeeOperationalSession({
+    initialForeground: false,
     transport: createNativeOperationalTransport(apiOrigin, auth),
   });
   const checkIn = new EmployeeCheckInSession({
@@ -56,10 +57,15 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
-  const dispose = nativeIdentityState.register(() => {
+  const unregisterIdentityPurge = nativeIdentityState.register(() => {
     operations.clear();
     checkIn.clear();
   });
+  const dispose = () => {
+    unregisterIdentityPurge();
+    operations.dispose();
+    checkIn.clear();
+  };
   return { apiOrigin, auth, checkIn, dispose, operations };
 }
 

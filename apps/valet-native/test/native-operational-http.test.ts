@@ -121,6 +121,44 @@ describe("Native operational HTTP transport", () => {
     );
   });
 
+  it("sends self-assignment once with only the current expectedVersion", async () => {
+    vi.stubGlobal("__DEV__", false);
+    const fetchMock = vi.fn(async () =>
+      Response.json({ ...acceptedResponse(), status: "ASSIGNED" }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const transport = createNativeOperationalTransport(
+      "https://api.example.com",
+      auth(),
+    );
+
+    await transport.assignTask(ids.task, 2);
+
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      `https://api.example.com/v1/staff/tasks/${ids.task}/assign`,
+      expect.objectContaining({
+        body: JSON.stringify({ expectedVersion: 2 }),
+        method: "POST",
+      }),
+    );
+  });
+
+  it("rejects a malformed queue projection instead of fabricating empty state", async () => {
+    vi.stubGlobal("__DEV__", false);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ tasks: [{ taskId: ids.task }] })),
+    );
+    const transport = createNativeOperationalTransport(
+      "https://api.example.com",
+      auth(),
+    );
+
+    await expect(transport.loadTaskQueue(ids.location)).rejects.toMatchObject({
+      code: "NATIVE_OPERATIONAL_RESPONSE_INVALID",
+    });
+  });
+
   it("refreshes and retries a safe GET exactly once", async () => {
     vi.stubGlobal("__DEV__", false);
     const fetchMock = vi

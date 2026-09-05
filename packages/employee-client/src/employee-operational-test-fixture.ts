@@ -1,5 +1,6 @@
 import type {
   AcceptTaskResponse,
+  AssignTaskResponse,
   StaffTaskQueueItem,
   TaskQueueResponse,
 } from "@valet/contracts";
@@ -101,6 +102,8 @@ export function deferred<T>() {
 export class StubOperationalTransport implements EmployeeOperationalTransport {
   readonly acceptCalls: Array<{ expectedVersion: number; taskId: string }> = [];
   acceptResults: Array<Promise<AcceptTaskResponse>> = [];
+  readonly assignCalls: Array<{ expectedVersion: number; taskId: string }> = [];
+  assignResults: Array<Promise<AssignTaskResponse>> = [];
   contextResults: Array<Promise<StaffOperationalContextResponse>> = [];
   readonly queueCalls: string[] = [];
   queueResults: Array<Promise<TaskQueueResponse>> = [];
@@ -108,6 +111,11 @@ export class StubOperationalTransport implements EmployeeOperationalTransport {
   acceptTask(taskId: string, expectedVersion: number) {
     this.acceptCalls.push({ expectedVersion, taskId });
     return this.next(this.acceptResults, "accept");
+  }
+
+  assignTask(taskId: string, expectedVersion: number) {
+    this.assignCalls.push({ expectedVersion, taskId });
+    return this.next(this.assignResults, "assign");
   }
 
   loadOperationalContext() {
