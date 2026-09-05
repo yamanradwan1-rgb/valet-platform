@@ -36,10 +36,12 @@ const items: readonly NavigationItem[] = [
 ];
 
 export function NativeProductionNavigation({
+  activeDestination,
   locale,
   onNavigate,
   pinned,
 }: {
+  readonly activeDestination: "check-in" | "shift" | "tasks";
   readonly locale: EmployeeLocale;
   readonly onNavigate: (destination: ProductionDestination) => void;
   readonly pinned: boolean;
@@ -52,9 +54,10 @@ export function NativeProductionNavigation({
       testID="native-production-navigation"
     >
       {items.map((item) => {
-        const available = item.destination === "tasks";
+        const available =
+          item.destination === "tasks" || item.destination === "shift";
         const enabled = available && !pinned;
-        const active = item.destination === "tasks" && !pinned;
+        const active = item.destination === activeDestination && !pinned;
         const Icon = item.icon;
         const label = copy[item.title];
         const accessibilityLabel = available

@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { NativeAuthSession } from "@valet/employee-client";
 
-import { createNativeOperationalTransport } from "../src/tasks/native-operational-http";
+import {
+  createNativeOperationalTransport,
+  createNativeShiftStartTransport,
+} from "../src/tasks/native-operational-http";
 
 const accessToken = `vsa1.${"a".repeat(43)}`;
 const ids = {
@@ -59,12 +62,80 @@ function acceptedResponse() {
   };
 }
 
+function startedShiftResponse() {
+  return {
+    endedAt: null,
+    locationId: ids.location,
+    shiftId: ids.shift,
+    startedAt: "2026-09-03T08:00:00.000Z",
+    status: "ACTIVE",
+  };
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 describe("Native operational HTTP transport", () => {
+  it("sends the exact Start Shift route and targetLocationId contract once", async () => {
+    vi.stubGlobal("__DEV__", false);
+    const fetchMock = vi.fn(async () => Response.json(startedShiftResponse()));
+    vi.stubGlobal("fetch", fetchMock);
+    const transport = createNativeShiftStartTransport(
+      "https://api.example.com",
+      auth(),
+    );
+
+    await expect(transport.startShift(ids.location)).resolves.toEqual(
+      startedShiftResponse(),
+    );
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      "https://api.example.com/v1/staff/shifts/start",
+      expect.objectContaining({
+        body: JSON.stringify({ targetLocationId: ids.location }),
+        method: "POST",
+      }),
+    );
+  });
+
+  it("rejects a malformed Start Shift response without inventing active state", async () => {
+    vi.stubGlobal("__DEV__", false);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json({ status: "ACTIVE" })),
+    );
+    const transport = createNativeShiftStartTransport(
+      "https://api.example.com",
+      auth(),
+    );
+
+    await expect(transport.startShift(ids.location)).rejects.toMatchObject({
+      code: "NATIVE_OPERATIONAL_RESPONSE_INVALID",
+    });
+  });
+
+  it("publishes validated context with the captured auth generation", async () => {
+    vi.stubGlobal("__DEV__", false);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(contextResponse())),
+    );
+    const onOperationalContext = vi.fn();
+    const transport = createNativeOperationalTransport(
+      "https://api.example.com",
+      auth(),
+      onOperationalContext,
+    );
+
+    await transport.loadOperationalContext();
+
+    expect(onOperationalContext).toHaveBeenCalledExactlyOnceWith(
+      1,
+      contextResponse(),
+    );
+  });
+
   it("loads authenticated context and exact Location-scoped queue routes", async () => {
     vi.stubGlobal("__DEV__", false);
     const requests: Array<{

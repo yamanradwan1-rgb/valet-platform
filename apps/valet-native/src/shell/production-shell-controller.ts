@@ -28,7 +28,7 @@ export type ProductionShellState =
       readonly reason: "ambiguous-active-shifts" | "unavailable";
     }
   | {
-      readonly destination: "check-in" | "tasks";
+      readonly destination: "check-in" | "shift" | "tasks";
       readonly kind: "active";
       readonly scope: EmployeeOperationalScope;
     };
@@ -137,7 +137,7 @@ export function deriveProductionShellState(
 export class ProductionShellController {
   private authority: ConfirmedAuthority | null = null;
   private authorityReady = false;
-  private destination: "check-in" | "tasks" = "tasks";
+  private destination: "check-in" | "shift" | "tasks" = "tasks";
   private pending: PendingIntent | null = null;
   private purgeLatched = false;
   private purgeRevision = 0;
@@ -249,7 +249,11 @@ export class ProductionShellController {
   }
 
   private resolveIntent(intent: ProductionRouteIntent): IntentReceipt {
-    if (intent.destination === "tasks" || intent.destination === "check-in") {
+    if (
+      intent.destination === "tasks" ||
+      intent.destination === "check-in" ||
+      intent.destination === "shift"
+    ) {
       this.destination = intent.destination;
       return "resolved";
     }

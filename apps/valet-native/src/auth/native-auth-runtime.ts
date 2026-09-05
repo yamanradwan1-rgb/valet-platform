@@ -2,6 +2,7 @@ import {
   createEmployeeCheckInTransport,
   EmployeeCheckInSession,
   EmployeeOperationalSession,
+  EmployeeShiftStartSession,
   NativeAuthSession,
 } from "@valet/employee-client";
 
@@ -15,6 +16,7 @@ import {
 import {
   createNativeEmployeeClient,
   createNativeOperationalTransport,
+  createNativeShiftStartTransport,
 } from "../tasks/native-operational-http";
 
 export interface NativeEmployeeRuntime {
@@ -23,6 +25,7 @@ export interface NativeEmployeeRuntime {
   readonly checkIn: EmployeeCheckInSession;
   readonly dispose: () => void;
   readonly operations: EmployeeOperationalSession;
+  readonly shiftStart: EmployeeShiftStartSession;
 }
 
 function installationGeneration(): string {
@@ -47,10 +50,24 @@ export function createNativeAuthSession(
 export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const apiOrigin = resolveNativeApiOrigin();
   const auth = createNativeAuthSession(apiOrigin);
+  const shiftStartObserver: { session?: EmployeeShiftStartSession } = {};
   const operations = new EmployeeOperationalSession({
     initialForeground: false,
-    transport: createNativeOperationalTransport(apiOrigin, auth),
+    transport: createNativeOperationalTransport(
+      apiOrigin,
+      auth,
+      (identityGeneration, response) =>
+        shiftStartObserver.session?.observeOperationalContext(
+          identityGeneration,
+          response,
+        ),
+    ),
   });
+  const shiftStart = new EmployeeShiftStartSession({
+    refreshOperationalContext: () => operations.refresh(),
+    transport: createNativeShiftStartTransport(apiOrigin, auth),
+  });
+  shiftStartObserver.session = shiftStart;
   const checkIn = new EmployeeCheckInSession({
     createOperationId: createNativeOperationId,
     transport: createEmployeeCheckInTransport(() =>
@@ -59,14 +76,16 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   });
   const unregisterIdentityPurge = nativeIdentityState.register(() => {
     operations.clear();
+    shiftStart.clear();
     checkIn.clear();
   });
   const dispose = () => {
     unregisterIdentityPurge();
     operations.dispose();
+    shiftStart.clear();
     checkIn.clear();
   };
-  return { apiOrigin, auth, checkIn, dispose, operations };
+  return { apiOrigin, auth, checkIn, dispose, operations, shiftStart };
 }
 
 function createNativeOperationId(): string {

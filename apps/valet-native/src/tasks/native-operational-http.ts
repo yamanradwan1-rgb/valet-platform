@@ -9,10 +9,13 @@ import {
   type EmployeeTransport,
   type EmployeeTransportRequest,
   type NativeAuthSession,
+  startShiftResponseSchema,
   staffOperationalContextResponseSchema,
   taskQueueResponseSchema,
   type AssignTaskResponse,
   type TaskQueueResponse,
+  type EmployeeShiftStartTransport,
+  type StaffOperationalContextResponse,
 } from "@valet/employee-client";
 
 import {
@@ -125,6 +128,10 @@ function invalidResponse(): EmployeeApiError {
 export function createNativeOperationalTransport(
   apiOrigin: string,
   auth: NativeAuthSession,
+  onOperationalContext?: (
+    identityGeneration: number,
+    response: StaffOperationalContextResponse,
+  ) => void,
 ): EmployeeOperationalTransport {
   function request<T>(
     input: EmployeeTransportRequest,
@@ -153,12 +160,14 @@ export function createNativeOperationalTransport(
       });
     },
     async loadOperationalContext() {
+      const identityGeneration = auth.current().authGeneration;
       const value = await request<unknown>({
         method: "GET",
         path: "/v1/staff/operational-context",
       });
       const parsed = staffOperationalContextResponseSchema.safeParse(value);
       if (!parsed.success) throw invalidResponse();
+      onOperationalContext?.(identityGeneration, parsed.data);
       return parsed.data;
     },
     async loadTaskQueue(locationId, signal) {
@@ -173,6 +182,25 @@ export function createNativeOperationalTransport(
       const parsed = taskQueueResponseSchema.safeParse(value);
       if (!parsed.success) throw invalidResponse();
       return parsed.data as TaskQueueResponse;
+    },
+  };
+}
+
+export function createNativeShiftStartTransport(
+  apiOrigin: string,
+  auth: NativeAuthSession,
+): EmployeeShiftStartTransport {
+  return {
+    async startShift(targetLocationId) {
+      const client = createNativeEmployeeClient(apiOrigin, auth);
+      const value = await client.request<unknown>({
+        body: { targetLocationId },
+        method: "POST",
+        path: "/v1/staff/shifts/start",
+      });
+      const parsed = startShiftResponseSchema.safeParse(value);
+      if (!parsed.success) throw invalidResponse();
+      return parsed.data;
     },
   };
 }

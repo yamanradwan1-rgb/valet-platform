@@ -1,6 +1,8 @@
 import { StatusBar } from "expo-status-bar";
 import type {
   EmployeeLocale,
+  EmployeeShiftStartSession,
+  EmployeeShiftStartSnapshot,
   NativeAuthSession,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
@@ -30,6 +32,7 @@ import {
 } from "../employee-ui/employee-typography";
 import { getNativeShellCopy } from "./native-shell-copy";
 import type { ProductionShellState } from "./production-shell-controller";
+import { NativeShiftStartPanel } from "../shift/native-shift-start-panel";
 
 type GateState = Exclude<ProductionShellState, { readonly kind: "active" }>;
 
@@ -40,6 +43,8 @@ export interface NativeShellGateProps {
   readonly onRetryContext: () => void;
   readonly onSelectLocale: (locale: EmployeeLocale) => void;
   readonly onSignOut: () => void;
+  readonly shiftStart: EmployeeShiftStartSession | undefined;
+  readonly shiftStartSnapshot: EmployeeShiftStartSnapshot;
   readonly state: GateState;
 }
 
@@ -50,6 +55,8 @@ export function NativeShellGate({
   onRetryContext,
   onSelectLocale,
   onSignOut,
+  shiftStart,
+  shiftStartSnapshot,
   state,
 }: NativeShellGateProps) {
   const copy = getNativeShellCopy(locale);
@@ -100,6 +107,13 @@ export function NativeShellGate({
                 accessibilityRole="progressbar"
                 color={c.blue}
                 size="large"
+              />
+            ) : null}
+            {state.kind === "no-active-shift" && shiftStart !== undefined ? (
+              <NativeShiftStartPanel
+                locale={locale}
+                session={shiftStart}
+                snapshot={shiftStartSnapshot}
               />
             ) : null}
             {authState ? (

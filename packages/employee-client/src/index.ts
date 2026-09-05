@@ -16,6 +16,12 @@ export {
 } from "@valet/contracts/staff-auth";
 export { staffOperationalContextResponseSchema } from "@valet/contracts/staff-context";
 export {
+  startShiftResponseSchema,
+  type StaffOperationalContextResponse,
+  type StaffOperationalLocation,
+  type StartShiftResponse,
+} from "@valet/contracts";
+export {
   plateOcrRequestSchema,
   plateOcrResponseSchema,
   PLATE_OCR_MAX_IMAGE_BYTES,
@@ -41,6 +47,9 @@ export * from "./employee-operational-types";
 export * from "./employee-task-queue-owner";
 export * from "./employee-task-action-runner";
 export * from "./employee-retrieval-attention";
+export * from "./employee-shift-start-context";
+export * from "./employee-shift-start-session";
+export * from "./employee-shift-start-types";
 export * from "./native-auth-session";
 export * from "./native-auth-state";
 export * from "./native-auth-storage";

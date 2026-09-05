@@ -14,11 +14,13 @@ describe("Native production shell localization", () => {
     }
   });
 
-  it("states that Shift start is unavailable instead of inventing it", () => {
-    expect(getNativeShellCopy("en").noShiftBody).toContain(
-      "Shift start is not available",
+  it("uses the current Web-aligned Start Shift prompt", () => {
+    expect(getNativeShellCopy("en").noShiftBody).toBe(
+      "Start a shift to begin operational work.",
     );
-    expect(getNativeShellCopy("ar").noShiftBody).toContain("غير متاح");
+    expect(getNativeShellCopy("ar").noShiftBody).toBe(
+      "ابدأ مناوبة لبدء العمل التشغيلي.",
+    );
   });
 
   it("uses truthful blocked language for access and Location gaps", () => {

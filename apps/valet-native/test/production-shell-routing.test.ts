@@ -95,6 +95,15 @@ describe("production route intent and authority fencing", () => {
     expect(active(controller)).toMatchObject({ destination: "check-in" });
   });
 
+  it("resolves the bounded active Shift destination without enabling summary behavior", () => {
+    const controller = new ProductionShellController();
+    active(controller);
+    expect(
+      controller.receive({ destination: "shift", source: "navigation" }),
+    ).toBe("resolved");
+    expect(active(controller)).toMatchObject({ destination: "shift" });
+  });
+
   it("purges the protected route synchronously on logout", () => {
     const controller = new ProductionShellController();
     active(controller);

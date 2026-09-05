@@ -49,8 +49,7 @@ const copy: Record<EmployeeLocale, NativeShellCopy> = {
     noLocationBody:
       "No active Location is available for this employee membership. Contact a manager or try again.",
     noLocationTitle: "No available Location",
-    noShiftBody:
-      "There is no active Shift for an available Location. Shift start is not available in this version.",
+    noShiftBody: "Start a shift to begin operational work.",
     noShiftTitle: "No active Shift",
     retry: "Retry",
     scan: "Scan",
@@ -81,8 +80,7 @@ const copy: Record<EmployeeLocale, NativeShellCopy> = {
     noLocationBody:
       "لا يوجد موقع نشط متاح لعضوية هذا الموظف. تواصل مع المدير أو أعد المحاولة.",
     noLocationTitle: "لا يوجد موقع متاح",
-    noShiftBody:
-      "لا توجد وردية نشطة لموقع متاح. بدء الوردية غير متاح في هذا الإصدار.",
+    noShiftBody: "ابدأ مناوبة لبدء العمل التشغيلي.",
     noShiftTitle: "لا توجد وردية نشطة",
     retry: "إعادة المحاولة",
     scan: "مسح",
