@@ -5,7 +5,9 @@
 ### A–C. Status, authority, outcome and merged baseline
 
 Status: canonical execution plan; decision-dependent implementation envelope.
-Synchronized: 2026-09-05. Baseline: `6c965a17fcc1a699270a189c38c52ec67079099a`.
+Synchronized: 2026-09-06. Rebaseline application baseline:
+`6c965a17fcc1a699270a189c38c52ec67079099a`. Current merged `main` at this
+status synchronization: `1cca7a4a40bb604dc0fcbe208bfd51feff42170d`.
 This replaces the old sequence as a whole; historical MOB IDs remain traceable.
 The plan grants no new product, security, schema, provider or release policy.
 
@@ -14,46 +16,51 @@ Employee Native client: a reliable Android field terminal with the same VAYLET
 product identity, minimum migration loss and a credible iOS path. Employee Web
 in `apps/valet` is the visual/product reference. Native is adaptation, not redesign.
 
-Fresh remote-ref inspection before branch creation found `origin/main` and
-`origin/codex/mob-010-native-check-in-returning-parity` at the baseline above,
-with ahead/behind `0 / 0`. The latest intake/OCR implementation is merged. Work
-starts on `codex/employee-native-plan-v2-rebaseline`, never on main. Two unrelated
-untracked review patches are excluded from this documentation branch.
+The original v2 rebaseline remote-ref inspection found `origin/main` and
+`origin/codex/mob-010-native-check-in-returning-parity` at application baseline
+`6c965a17fcc1a699270a189c38c52ec67079099a`, with ahead/behind `0 / 0`. The
+latest intake/OCR implementation was merged before that rebaseline. Subsequent
+status synchronization records G0 physical closure and merged MOB-028 below; it
+does not rewrite the historical implementation anchors.
 
 Authority read: `AGENTS.md`; docs 00–11, 13, 15, 17; applicable focused Accepted
 Decisions including DEC-063, DEC-066–074 and the custody, dispatch, tracking,
 finance and handoff decisions referenced below. `docs/14_PROJECT_STATUS.md` is
 informational. Focused Accepted DECs outrank their shorter log mirrors; DEC-074's
-missing mirror is repaired alongside this plan. Neither old plan status nor Git
-history alone proves physical or production readiness.
+missing mirror was repaired with the original rebaseline. Neither old plan status
+nor Git history alone proves physical or production readiness.
 
 | Area / inspected evidence | Current merged capability | Evidence limit / remaining owner |
 | --- | --- | --- |
-| `apps/valet-native/app/index.tsx`, `src/foundation/foundation-shell.tsx` / `FoundationShell` | Expo Router entry composes auth, task, intake, QR and development POC panels | Foundation composition, not a completed production navigation graph; MOB-028 |
-| `apps/valet-native/package.json`, app configuration; DEC-071 | Expo SDK 57 / React Native 0.86, Hermes, New Architecture, CNG | Configuration/code evidence; current signed-build/device evidence remains required |
-| `src/auth/native-auth-runtime.ts`, `native-auth-storage.ts`; portable `native-auth-session.ts` | Native Staff login/restore/refresh/logout, secure refresh adapter, memory access boundary | IMPLEMENTED; physical restore, SecureStore failure and revocation proof must be reconciled by MOB-010B |
+| `apps/valet-native/app/index.tsx`, `src/shell/**`, `src/foundation/foundation-shell.tsx` | MOB-028 production entry now composes the production shell, gated auth/context routing and working check-in while keeping dedicated POC tools development-only | Initial `29ae0a8`; lifecycle/visual repair and current merged main `1cca7a4`; owner physical PASS; CI VERIFIED remains open |
+| `apps/valet-native/package.json`, app configuration; DEC-071 | Expo SDK 57 / React Native 0.86, Hermes, New Architecture, CNG | Configuration/code evidence; current signed-build/final device-matrix evidence remains required |
+| `src/auth/native-auth-runtime.ts`, `native-auth-storage.ts`; portable `native-auth-session.ts` | Native Staff login/restore/refresh/logout, secure refresh adapter, memory access boundary | IMPLEMENTED; G0 baseline physical auth/revocation evidence owner-PASS at `932dee4`; broader integrated lifecycle hardening remains MOB-023A |
 | `src/tasks/**`; portable `employee-operational-session.ts` | Scoped operational context, task reads/actions, foreground/manual refresh | IMPLEMENTED; current Native has no proven periodic five-second polling loop; production queue closure is MOB-029 |
-| `src/scanner/**` | Native QR parsing/camera and fallback boundaries | IMPLEMENTED; repeated frames, device permission/lifecycle proof belongs to MOB-010B and each consumer |
-| `src/check-in/**`; portable `employee-check-in-*.ts` | New/returning intake, plate country/identity/confirmation, recovery, OCR camera path | IMPLEMENTED, not a future reimplementation of MOB-010; condition/completion and downstream custody remain MOB-011 onward |
-| `src/employee-ui/employee-{frame,back-header,controls,fields,feedback,icons,tokens,typography}.*` | Shared Web-aligned presentation, Plus Jakarta Sans / Space Grotesk, semantic tokens | Reuse this foundation; inspect rendered parity, do not create another design system |
-| `native-plate-ocr-client.ts`, `native-plate-camera-controller.ts`, API check-in OCR providers; DEC-074 | Assistive OCR, Expo File multipart repair, supported-size camera retry and privacy-safe development diagnostics | Local tests do not prove current physical multipart/provider success. Production provider remains fail-closed without accepted shared cost guard |
-| `apps/api/src/modules/**`, `packages/contracts/src/**`, `packages/database/prisma/**` | Existing employee domain commands, authorization, audit, constraints; 31 versioned SQL migrations at baseline | Native must reuse these capabilities. No StaffPush persistence/worker implementation found; DEC-073 is accepted design, not delivered push |
-| Remaining production flows | No completed Native parking/retrieval/handoff/directory/incident/guest-access/shift-summary production flow found in the audited Native feature tree | NOT STARTED or supporting POC capability only; mapped below |
+| `src/scanner/**` | Native QR parsing/camera and fallback boundaries | IMPLEMENTED; G0 baseline repeated-frame/permission/manual-fallback evidence owner-PASS; each later consuming flow still owns its own device proof |
+| `src/check-in/**`; portable `employee-check-in-*.ts` | New/returning intake, plate country/identity/confirmation, recovery, OCR camera path | IMPLEMENTED; G0 matched intake/returning/OCR physical baseline owner-PASS; condition/completion and downstream custody remain MOB-011 onward |
+| `src/employee-ui/employee-{frame,back-header,controls,fields,feedback,icons,tokens,typography}.*` | Shared Web-aligned presentation, Plus Jakarta Sans / Space Grotesk, semantic tokens | Reuse this foundation; inspect rendered parity per later flow, do not create another design system |
+| `native-plate-ocr-client.ts`, `native-plate-camera-controller.ts`, API check-in OCR providers; DEC-074 | Assistive OCR, Expo File multipart repair, supported-size camera retry and privacy-safe development diagnostics | G0 physical assistive flow owner-PASS under development harness; production provider remains fail-closed without accepted shared cost guard |
+| `apps/api/src/modules/**`, `packages/contracts/src/**`, `packages/database/prisma/**` | Existing employee domain commands, authorization, audit, constraints; 31 versioned SQL migrations at rebaseline | Native must reuse these capabilities. No StaffPush persistence/worker implementation found; DEC-073 is accepted design, not delivered push |
+| Remaining production flows | No completed Native parking/retrieval/handoff/directory/incident/guest-access/shift-summary production flow established by MOB-028 | NOT STARTED or supporting POC capability only; mapped below |
 
 Merged history anchors (implementation provenance, not acceptance certificates):
 `760fe10` foundation; `91d8561` portable client; `10370c9` auth; `b77a6ff`
 operational tasks; `43cea12` QR; `588995e`, `09b26b8`, `64e4bb3` intake;
 `5fa5bb0`, `09b9ce3`, `08d084c`, `6698179`, `d78f873`, `3620849`, `3246948`,
 `486159f` presentation/parity; `3c14092`, `063bb1e`, `c1c0b5a`, `06f9e23`,
-`6c965a1` OCR and capture/transport repairs. Use full Git objects when preparing a task.
+`6c965a1` OCR and capture/transport repairs. MOB-028 adds `29ae0a8` production
+shell routing and `1cca7a4` focused lifecycle/visual repair. Use full Git objects
+when preparing a task.
 
 Local baseline checks executed during rebaseline:
 `corepack pnpm --filter @valet/valet-native test` — 43 files / 373 tests passed;
 `corepack pnpm --filter @valet/employee-client test` — 15 files / 143 tests passed.
-These are LOCAL COMMAND VERIFIED. No current real Android comparison, signed
-release, real API/DB failure exercise, load run or full-shift soak was performed
-by this documentation task. The queried baseline workflow-run list was empty;
-CI VERIFIED is not claimed. Historical device claims need artifact/SHA matching.
+These are LOCAL COMMAND VERIFIED. MOB-028's final reported local validation later
+advanced those suites to employee-client 147/147 tests and valet-native 418/418
+tests, with both lint/typecheck suites passing, architecture check passing with
+only existing grandfathered warnings, targeted Prettier passing and
+`git diff --check` passing. No API/DB/schema/migration/dependency change was part
+of MOB-028. These remain local results, not remote CI.
 
 Evidence levels are separate: IMPLEMENTED, STATIC VERIFIED, LOCAL COMMAND
 VERIFIED, RUNTIME VERIFIED, FAILURE VERIFIED, CI VERIFIED, PRODUCTION-READY.
@@ -71,35 +78,32 @@ Executed on `codex/mob-010b-native-evidence-closure` from fresh `origin/main`
 `6c965a17fcc1a699270a189c38c52ec67079099a` is unchanged (`7e9b888` is
 documentation-only relative to it). Read-only code reconciliation plus local
 command reruns; no application, dependency, schema, migration or CI change on
-this branch, and no remote CI execution is claimed. Evidence levels stay
-separate and never imply one another.
+that branch. Evidence levels stay separate and never imply one another.
 
 | Merged task | Static review at `7e9b888` | Local command reruns | Local runtime trace | Reconciled level |
 | --- | --- | --- | --- | --- |
-| MOB-005 Expo foundation | `FoundationShell` composition, locale switch, `__DEV__` POC panel | 43 files / 373 Native tests (matches baseline) | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical render pairs open |
+| MOB-005 Expo foundation | `FoundationShell` composition, locale switch, `__DEV__` POC panel | 43 files / 373 Native tests (matches baseline) | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; G0 baseline physical proof later owner-PASS |
 | MOB-006 portable employee client | session exports, generation fencing, 299/295-line near-ceiling files | 15 files / 143 tests (matches baseline) | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED |
-| MOB-007 Native Staff auth | memory access token, SecureStore refresh adapter, single-flight refresh, native auth routes | Native restore 7 + logout 9 suites; API staff-auth integration 28 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical restore/revocation open (R-06) |
+| MOB-007 Native Staff auth | memory access token, SecureStore refresh adapter, single-flight refresh, native auth routes | Native restore 7 + logout 9 suites; API staff-auth integration 28 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; G0 baseline physical proof later owner-PASS |
 | MOB-008 operational tasks | no timers exist in `packages/employee-client`; Native timers only OCR 15 s fetch timeout and 1200 ms assistive loop | Native operational-http 4 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; no five-second polling exists |
-| MOB-009 native QR | auth + identity + AppState scanner fencing | Native qr-controller 12 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical frames open |
-| MOB-010 intake/returning | confirm/recognizing/returning/customer states, identity edit, `operationId` submit | portable intake suites; API intake/check-in/vehicle-identity 6 files / 177 tests plus returning 3 files / 12 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical pairs open |
-| MOB-010A assistive plate OCR | Expo `File` multipart, generation check, 15 s abort, bounded loop (5 attempts / 1200 ms), 1280x720 camera fallback, 64 KB provider response cap | Native OCR suites within the 43-file run; API OCR 5 files / 65 tests against real PostgreSQL including the failure taxonomy | Sep-5 development camera smoke below | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED + LOCAL RUNTIME TRACE (DEV HARNESS); device identity open |
+| MOB-009 native QR | auth + identity + AppState scanner fencing | Native qr-controller 12 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; G0 baseline physical proof later owner-PASS |
+| MOB-010 intake/returning | confirm/recognizing/returning/customer states, identity edit, `operationId` submit | portable intake suites; API intake/check-in/vehicle-identity 6 files / 177 tests plus returning 3 files / 12 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; G0 baseline physical proof later owner-PASS |
+| MOB-010A assistive plate OCR | Expo `File` multipart, generation check, 15 s abort, bounded loop (5 attempts / 1200 ms), 1280x720 camera fallback, 64 KB provider response cap | Native OCR suites within the 43-file run; API OCR 5 files / 65 tests against real PostgreSQL including the failure taxonomy | Sep-5 development camera smoke below | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED + LOCAL RUNTIME TRACE (DEV HARNESS); G0 baseline device attribution later owner-PASS |
 
 OCR runtime-trace record: the append-mode structured development log
-`apps/valet-native/.expo/dev/logs/start.log` (git-ignored, still on disk)
-preserves Sep-5 05:35–06:22 client events. Final window after transport repair
-`6c965a1` (06:14 onward): 13 assistive loops started and finished (6 MATCH,
-7 UNAVAILABLE from capture exceptions), 17 capture attempts (10 success,
-7 exception), 10 HTTP dispatches with 10 results (6 MATCH, 4 NO_MATCH), 7
-fallback remounts to 1280x720, capture payloads of roughly 28–82 KB. The API
-boundary log for 06:16–06:26, read before a later development session overwrote
-the `.tmp/mobile-poc` logs, recorded 19 complete authenticated chains and 1
-auth-failure with no other failure events. The 19-versus-10 dispatch difference
-is an unreconciled development-harness observation, not device proof: the Metro
-client log ends 06:22:54 while the API log ran to 06:26. The whole record is
-LOCAL RUNTIME TRACE (DEV HARNESS): a Metro development build with no device
-model/OS recorded (`.expo/devices.json` holds anonymous installation IDs only).
-It is not device-bound RUNTIME VERIFIED. No raw image, plate or token data is
-recorded.
+`apps/valet-native/.expo/dev/logs/start.log` (git-ignored, still on disk during
+that reconciliation) preserved Sep-5 05:35–06:22 client events. Final window
+after transport repair `6c965a1` (06:14 onward): 13 assistive loops started and
+finished (6 MATCH, 7 UNAVAILABLE from capture exceptions), 17 capture attempts
+(10 success, 7 exception), 10 HTTP dispatches with 10 results (6 MATCH, 4
+NO_MATCH), 7 fallback remounts to 1280x720, capture payloads of roughly 28–82 KB.
+The API boundary log for 06:16–06:26, read before a later development session
+overwrote the `.tmp/mobile-poc` logs, recorded 19 complete authenticated chains
+and 1 auth-failure with no other failure events. The 19-versus-10 dispatch
+difference remains an unreconciled development-harness observation, not device
+proof: the Metro client log ended 06:22:54 while the API log ran to 06:26. That
+historical record is LOCAL RUNTIME TRACE (DEV HARNESS). No raw image, plate or
+token data was recorded.
 
 Production fail-closed (DEC-074): STATIC VERIFIED + LOCAL COMMAND VERIFIED.
 `PlateOcrCostGuard.acquire()` yields nothing outside development/test modes, the
@@ -108,40 +112,70 @@ proves production fails closed even with configured provider credentials.
 
 Races: R-06 server rotation/revocation and client generation guards are STATIC
 VERIFIED + LOCAL COMMAND VERIFIED (28 staff-auth integration tests; Native
-restore/logout suites); physical SecureStore-failure, mid-refresh kill and
-revocation traces remain open. R-07 command semantics are LOCAL COMMAND
-VERIFIED on real PostgreSQL (intake, complete-check-in, condition,
-vehicle-identity and returning suites); physical duplicate/unknown-outcome
-traces remain open. R-08 remains a development-only limiter with production
-fail-closed verified above; the cross-process production mechanism stays
-unresolved under U-001 (MOB-010C), unchanged by this branch.
+restore/logout suites); the G0 baseline physical checklist is now owner-PASS,
+while broader process-death/storage/network hardening remains MOB-023A. R-07
+command semantics are LOCAL COMMAND VERIFIED on real PostgreSQL (intake,
+complete-check-in, condition, vehicle-identity and returning suites); physical
+duplicate/unknown-outcome traces remain later per-flow/recovery work. R-08 remains
+a development-only limiter with production fail-closed verified above; the
+cross-process production mechanism stays unresolved under U-001 (MOB-010C).
 
-G0 disposition: **EVIDENCE OPEN**. This branch established no physical device
-identity, matched EN/AR render pair, physical login/restore, QR repeated-frame
-or physical failure trace. One consolidated owner checklist closes it
-(development build harness permitted):
+### G0 physical evidence closure (owner-reported PASS)
 
-1. Record the physical device identity (model, OS, build) and Development
-   Build provenance used for every item below.
-2. Physical login/restore in EN and AR: fresh login, app kill and relaunch
-   restore, logout purge, account switch.
-3. R-06 physical: server-side revocation mid-session to a clean logged-out
-   state, kill during refresh, SecureStore failure if the harness permits.
-4. QR physical: repeated identical frames suppressed, permission-denied
-   render, manual input fallback.
-5. MC-04 matched EN/AR render pairs: new/manual/no-plate intake visible
-   states.
-6. MC-06 matched EN/AR pairs: returning, no-match and conflict states.
-7. MC-05 physical OCR confirm/edit: live capture, candidate confirm or edit
-   and submission in EN and AR; record statuses and sizes only, never plate
-   data.
-8. Short repeated-use trace: several intake cycles including one no-plate and
-   one returning path.
+G0 baseline physical evidence is **CLOSED**. The owner reports the required
+consolidated checklist PASS using:
 
-Defects: this reconciliation found none requiring a repair child. The
+- device model `V2302A`;
+- Android 10;
+- device build `X690B-H691DE-Q-GL-220215V356`;
+- reviewed G0 application/documentation SHA
+  `932dee4f6867ff609d0446e41ce0084e9a2215b8`;
+- `corepack pnpm mobile:poc`;
+- Development Build.
+
+The owner PASS covers the G0 checklist categories: EN/AR login/restore and purge,
+R-06 baseline revocation/lifecycle behavior as supported by the harness, QR
+repeated-frame/permission/manual fallback, MC-04 new/manual/no-plate matched
+states, MC-06 returning/no-match/conflict matched states, MC-05 live OCR
+confirm/edit/submission in EN/AR without recording plate data, and short repeated
+use including no-plate and returning paths. This closes only the G0 baseline
+physical-evidence gate. It does not substitute for later signed-release evidence,
+full Android matrix, per-flow production proof, MOB-023 process-death hardening,
+MOB-025 load/soak, or pilot evidence.
+
+Remote CI remains separate: push CI run #307 at `932dee4...` completed with
+conclusion `failure`. No failure cause is inferred here. Therefore MOB-010B is not
+reclassified as DONE solely from G0 closure; its historical implementation remains
+**IMPLEMENTED — EVIDENCE OPEN** where CI VERIFIED is required by the inherited
+completion contract.
+
+Defects: the MOB-010B reconciliation found none requiring a repair child. The
 `.tmp/mobile-poc` log overwrite is an evidence-preservation note, not a code
 defect; the counts above were read before the overwrite and the structured log
-corroborates the final-window client counts.
+corroborated the final-window client counts.
+
+### MOB-028 merged implementation ledger (2026-09-05/06 status sync)
+
+MOB-028 is merged on `main`. Initial implementation:
+`29ae0a8a239751afdb3d4d6e00143b4348a8f14f` (`feat: add native production shell
+routing`). Focused lifecycle/visual repair and current merged main:
+`1cca7a4a40bb604dc0fcbe208bfd51feff42170d` (`fix: preserve native shell workflow
+across revalidation`). Independent ChatGPT GitHub review passed after the repair,
+and owner physical verification passed.
+
+Final reported local validation after repair: employee-client 147/147 tests,
+valet-native 418/418 tests, both package lint/typecheck suites passed,
+`architecture:check` passed with only existing grandfathered warnings, targeted
+Prettier passed and `git diff --check` passed. No API, DB, schema, migration or
+dependency change was part of MOB-028.
+
+Remote CI is **EVIDENCE OPEN**: push CI run #308 at `1cca7a4...` completed with
+conclusion `failure`. No failure cause is inferred by this status synchronization.
+MOB-028 durable status is therefore **IMPLEMENTED — EVIDENCE OPEN**, with
+CI VERIFIED the named remaining evidence. Its implementation and owner physical
+proof are sufficient to make MOB-029 the next application-code slice under the
+owner's current execution sequence, but G1 is not complete and MOB-028 is not
+promoted to DONE while CI remains unverified green.
 
 ## 2. Binding requirements
 
@@ -270,8 +304,8 @@ are preconditions; they do not independently prove a later dispatch write is
 atomic against revocation. Preserve the owning transaction's contract.
 
 Portable sessions own nonvisual state and recovery; Native adapters own transport,
-secure storage, camera and lifecycle. At baseline `native-auth-session.ts` is 299
-lines and `employee-operational-session.ts` is 295: inspect current authored-line
+secure storage, camera and lifecycle. At rebaseline `native-auth-session.ts` was
+299 lines and `employee-operational-session.ts` 295: inspect current authored-line
 counts and extract focused responsibility before additions near the 300-line
 ceiling. Do not compress code or introduce speculative frameworks to evade it.
 
@@ -334,12 +368,12 @@ entry point, not sufficient visual evidence.
 
 | ID / Web capability and reference | Current backend authority | Native target / portable reuse | Platform adapter | Current parity / missing work / intentional difference |
 | --- | --- | --- | --- | --- |
-| MC-01 Login/restore; staff auth and `components/shell/employee-access-gate.tsx` | Native Staff auth, DEC-072 | Existing native-auth session; MOB-028 | SecureStore, lifecycle | Transport implemented; production access presentation/evidence open; accepted cookie-vs-Native-token transport difference only |
-| MC-02 Organization/Location/active Shift; `components/shell/employee-operational-gate.tsx` | Staff operational context/access/Shift | Existing employee-operational session; MOB-028/015A | Foreground | Context implemented; production scope routing and shift entry missing; no product difference |
+| MC-01 Login/restore; staff auth and `components/shell/employee-access-gate.tsx` | Native Staff auth, DEC-072 | Existing native-auth session; MOB-028 delivered shell integration | SecureStore, lifecycle | Transport and MOB-028 production access presentation implemented; owner physical PASS; later integrated lifecycle hardening remains MOB-023A and CI evidence remains open |
+| MC-02 Organization/Location/active Shift; `components/shell/employee-operational-gate.tsx` | Staff operational context/access/Shift | Existing employee-operational session; MOB-028 routing + MOB-015A Shift start | Foreground | MOB-028 production scope routing implemented; production Shift start/active presentation remains MOB-015A |
 | MC-03 Task queue/accept/refresh; `features/task-queue`, `components/screens/task-queue-screen.tsx` | Dispatch/Task commands and versioned projections | Existing operational client; MOB-029 | Foreground/attention | POC tasks implemented; production queue, polling policy adaptation and render closure missing |
-| MC-04 New/manual/no-plate intake; `features/check-in`, check-in screens | Check-in/ValetSession, DEC-068/069 | Existing employee-check-in client; MOB-010B | Keyboard | Merged; current physical/render evidence open; no intentional capability loss |
-| MC-05 Plate camera/OCR; check-in plate scan screens | DEC-074 OCR boundary | Existing candidate/confirm loop; MOB-010B/010C | Camera, multipart File | Implemented; real device proof open; production provider intentionally unavailable pending U-001 |
-| MC-06 Returning vehicle/customer; check-in discovery/returning screens | DEC-069 scoped discovery/confirmation | Existing portable discovery/identity state; MOB-010B | Keyboard | Merged implementation; matched returning/no-match/conflict proof open; OCR is not returning identity authority |
+| MC-04 New/manual/no-plate intake; `features/check-in`, check-in screens | Check-in/ValetSession, DEC-068/069 | Existing employee-check-in client; MOB-010B baseline evidence closed | Keyboard | Merged; G0 physical/render baseline owner-PASS; later per-flow evidence still applies |
+| MC-05 Plate camera/OCR; check-in plate scan screens | DEC-074 OCR boundary | Existing candidate/confirm loop; MOB-010B/010C | Camera, multipart File | Implemented; G0 development-build physical confirm/edit baseline owner-PASS; production provider intentionally unavailable pending U-001 |
+| MC-06 Returning vehicle/customer; check-in discovery/returning screens | DEC-069 scoped discovery/confirmation | Existing portable discovery/identity state; MOB-010B baseline evidence closed | Keyboard | Merged implementation; G0 returning/no-match/conflict baseline owner-PASS; OCR is not returning identity authority |
 | MC-07 Vehicle identity/detail/condition; check-in details, identity correction and condition screens | Vehicle identity/details and ValetSession condition commands | MOB-011A/011B; extract compatible validation/recovery | Camera/manual identity; photo child separately | Missing Native continuation/correction flow; no historical rewrite or autonomous identity |
 | MC-08 Condition-photo policy/upload; condition UI | Configured policy; `vehicle-photos/README.md` is a placeholder, not a byte pipeline | MOB-011C/011D conditional U-002 | Camera/private byte upload | No verified Native byte pipeline established; metadata alone cannot satisfy required evidence |
 | MC-09 Complete check-in/start parking; parking screens | Complete-check-in/start-parking commands, DEC-068 | MOB-011B/012A; command adapters | Lifecycle | Missing; never bind key during intake |
@@ -347,36 +381,36 @@ entry point, not sufficient visual evidence.
 | MC-11 Retrieval/checkout/Mark Ready; retrieval screens | Retrieval/keys/dispatch domain commands | MOB-013; shared workflow state | QR/lifecycle | Missing; Task state remains separate from custody |
 | MC-12 Pickup code/Dynamic QR/abort/override; handoff screens | Handoff commands/proof/attempt limits | MOB-014A; neutral scanner intent | Camera, privacy, keyboard | Missing; no authority from scan or stale proof |
 | MC-13 Final release/payment guard; handoff completion UI | Complete handoff, financial guard, DEC-057 | MOB-014B; command recovery | Lifecycle | Missing; payment remains separate; no new cashier/processor product invented |
-| MC-14 Shift start/active; shell start-shift panel | Shift commands/eligibility | MOB-015A; operational session | Foreground | POC/context support exists; production start/access presentation missing |
+| MC-14 Shift start/active; shell start-shift panel | Shift commands/eligibility | MOB-015A; operational session | Foreground | MOB-028 routes truthful no-Shift/active scope; production Shift start/active workflow remains MOB-015A |
 | MC-15 Shift summary/end; `components/screens/shift-summary-live.tsx` | Shift summary/end commands | MOB-015B; accepted recovery | Lifecycle | Missing production flow; no local end-of-shift authority |
 | MC-16 Vehicle directory/lookup; `features/vehicles-directory` | Staff scoped directory/projections | MOB-016; bounded loader/view model | Keyboard | Missing; rows are navigation hints, never mutation authorization |
 | MC-17 Incident reporting; incident screens/features | Incident commands, independent lifecycle | MOB-017A; validation/recovery | Keyboard; approved photo path only | Missing; no damage AI/ClaimShield |
 | MC-18 Guest Access; guest-access screens/features | Staff issuance/rotation command, DEC-063 | MOB-017B; route/token lifecycle | QR display/native presentation | Missing; no ordinary storage/logging of raw bearer material |
-| MC-19 Shell/nav/scan hub; `components/shell/employee-live-router.tsx`, `employee-navigation.ts` | DEC-066 and fresh backend projections | MOB-028/018A; neutral route/scan intent | Router/back/safe area/camera | Foundation shell only; production graph/scan dispatch missing |
+| MC-19 Shell/nav/scan hub; `components/shell/employee-live-router.tsx`, `employee-navigation.ts` | DEC-066 and fresh backend projections | MOB-028 production shell + MOB-018A integrated scan closure | Router/back/safe area/camera | MOB-028 production shell/back/scope routing implemented and owner physical PASS; cross-flow scan dispatch/integrated routing closure remains MOB-018A |
 | MC-20 Retrieval attention/notifications; `employee-retrieval-alert.tsx` | DEC-073, retrieval/dispatch authority | MOB-029/020A–D/021/022; neutral notification intent | FCM/notifications; later APNs | Web foreground alert exists; Native durable push missing; accepted platform attention difference |
 | MC-21 Maps/task tracking; tracking/map feature boundaries | DEC-045 and related tracking decisions | MOB-019A/B; portable policy projection | Native location/maps | Native sensor contract/pilot scope U-003; no shift-wide surveillance |
-| MC-22 Offline/recovery and identity changes; feature controllers + shell connectivity | DEC-063, DEC-072, each command contract | MOB-023A/B across all portable sessions | Network/lifecycle/SecureStore | Partial implemented foundations; integrated process-death/full-shift proof missing |
-| MC-23 EN/AR, RTL/LTR, accessibility, all visible states | DEC-071, Web copy/tokens, Blueprint | Every flow plus MOB-018B | Native text/focus/keyboard | Shared presentation exists; cross-flow closure missing; no deferred translation pass |
+| MC-22 Offline/recovery and identity changes; feature controllers + shell connectivity | DEC-063, DEC-072, each command contract | MOB-023A/B across all portable sessions | Network/lifecycle/SecureStore | Partial implemented foundations plus MOB-028 same-authority preservation/scope purge; integrated process-death/full-shift proof missing |
+| MC-23 EN/AR, RTL/LTR, accessibility, all visible states | DEC-071, Web copy/tokens, Blueprint | Every flow plus MOB-018B | Native text/focus/keyboard | Shared presentation exists; MOB-028 shell physical owner-PASS; cross-flow closure missing; no deferred translation pass |
 
 | MC ID | Security / concurrency implication | Test evidence at baseline → required proof | Visual evidence at baseline → required proof | Decision |
 | --- | --- | --- | --- | --- |
-| MC-01 | Refresh rotation, auth generation, logout purge | Portable/Native local suites → physical restore/failure and two-principal scope tests | Unverified current production access render → V | None for accepted auth |
-| MC-02 | User ≠ membership ≠ Organization ≠ Location ≠ Shift | Existing context tests → invalidation during workflow | POC → V all access/no-shift states | None |
+| MC-01 | Refresh rotation, auth generation, logout purge | Portable/Native local suites + G0 physical baseline → integrated MOB-023A lifecycle and CI proof | MOB-028 owner physical PASS → later cross-flow V where changed | None for accepted auth |
+| MC-02 | User ≠ membership ≠ Organization ≠ Location ≠ Shift | Existing context tests + MOB-028 scope routing → MOB-015A invalidation/start proof | MOB-028 shell PASS → V Shift states in MOB-015A | None |
 | MC-03 | Version conflict, assignment eligibility, refresh races | Existing task tests → actual concurrent accept/reassign + reconnect load | POC → V queue/empty/stale/conflict | U-004 only for final SLO |
-| MC-04–06 | Server scope, duplicate intake, candidate not identity, provider bounds | Local intake/OCR tests → physical bytes, unknown outcome, no-plate/returning races | Shared primitives/source alignment → matched actual Android intake pairs | U-001 production OCR only |
+| MC-04–06 | Server scope, duplicate intake, candidate not identity, provider bounds | Local intake/OCR tests + G0 physical baseline → later command-specific unknown-outcome/failure proof | Shared primitives plus G0 owner-PASS matched baseline → later changed-flow V | U-001 production OCR only |
 | MC-07 | Vehicle identity/detail expected version, condition/completion and append-only correction audit | Backend capability exists → adapter + live concurrent identity/custody/condition command tests | No Native production proof → V detail/edit/unknown-to-known/condition/error | None |
 | MC-08 | Private bytes, ownership, type/size, verified completion | No qualifying Native upload proof → real storage boundary tests conditional on U-002 | No Native proof → conditional V capture/upload/failed/retry | U-002 |
 | MC-09–10 | Atomic custody, contested spot/key, null key until parked | Existing commands → duplicate/stale/cross-scope real DB tests | No Native proof → V stage/scan/conflict/continuation | None |
 | MC-11 | Assigned actor, key checkout, terminal/version guards | Existing commands → multiple employee race + response loss | No Native proof → V each retrieval stage | None |
 | MC-12–13 | Single-use expiring proof, role-specific override, financial release | Existing guards → two principals, proof replay/expiry + payment race | No Native proof → V denied/pending/verified/release | None |
-| MC-14–15 | Membership-scoped Shift, task/end race | Existing Shift authority → actual invalidation/unknown end result | POC support → V start/blocked/summary/end recovery | None |
+| MC-14–15 | Membership-scoped Shift, task/end race | Existing Shift authority → actual invalidation/unknown end result | MOB-028 shell scope routing → V start/blocked/summary/end recovery | None |
 | MC-16 | Bounded tenant/Location projection; stale row | Existing Web loader tests → IDOR/read freshness/large list | No Native proof → V loading/empty/search/error | None |
 | MC-17–18 | Independent incident lifecycle; bounded free text; secret issuance | Backend capability → duplicate/ambiguity, cross-scope, secret purge | No Native proof → V form/result/expired/recovery | None unless byte upload U-002 is needed |
-| MC-19 | Reauthorize intent; no secret route params | Web navigation tests → invalid/dead intent + process restore | Foundation → V full route graph/back/scan | None |
+| MC-19 | Reauthorize intent; no secret route params | MOB-028 route/controller tests and owner physical shell proof → MOB-018A integrated invalid/dead scan intent | MOB-028 shell owner-PASS → V integrated route graph/back/scan in MOB-018A | None |
 | MC-20 | Push attention only; registration ownership; durable bounded attempts | No Native push stack → migrations, hard kill/lease, device tap/provider outage | No Native proof → OS + in-app comparisons; generic payload | U-005 deployment values |
 | MC-21 | Config default OFF; task scope only; no local policy authority | Accepted backend capability → conditional sensor/privacy/stop tests | No Native proof → conditional V permission/tracking states | U-003 |
-| MC-22 | No blanket retry or durable command queue | Local session tests → induced real disconnect/kill/revocation | Partial foundation → V ambiguity/stale/reconnect | None; U-004 thresholds |
-| MC-23 | Accessible truthful state; identifiers retain meaning | Existing presentation tests → per-flow EN/AR/a11y regression | Source alignment only → physical matched matrix | No numeric score selected |
+| MC-22 | No blanket retry or durable command queue | Local session/MOB-028 lifecycle tests → induced real disconnect/kill/revocation | MOB-028 shell baseline proof → V ambiguity/stale/reconnect in hardening | None; U-004 thresholds |
+| MC-23 | Accessible truthful state; identifiers retain meaning | Existing presentation tests → per-flow EN/AR/a11y regression | MOB-028 owner physical shell proof + G0 baseline → physical matched matrix per later flow | No numeric score selected |
 
 No capability is silently dropped. Conditional rows remain explicit pilot blockers
 if required by the selected Location policy; optional default policy is not permission
@@ -407,17 +441,19 @@ source; current implementation is not silently promoted to future policy.
 
 | ID / proposition | Classification | Source / evidence type | Falsifier searched / result |
 | --- | --- | --- | --- |
-| D-01 Rebaseline can start from merged main, without merging implementation work | DERIVED | Fresh refs at `6c965a1`, Git ancestry; CAPABILITY | Native feature ahead of main: comparison `0 / 0` |
+| D-01 Rebaseline can start from merged main, without merging implementation work | DERIVED | Fresh refs at `6c965a1`, Git ancestry; CAPABILITY | Native feature ahead of main: comparison `0 / 0` at rebaseline |
 | D-02 MOB-006–010A must not be described as unimplemented | DERIVED | Git anchors and Native/portable feature tree in §1; CAPABILITY | Absent merged implementation: files/commits present; proof remains a separate question |
-| D-03 Production navigation and downstream custody flows need bounded new slices | DERIVED | `FoundationShell`, Native route/feature inventory; CAPABILITY | Completed production Native graph/parking/handoff screens: not found in current tree |
+| D-03 Production navigation required a bounded new slice and MOB-028 now supplies it; downstream custody flows remain bounded future slices | DERIVED | MOB-028 commits plus Native route/feature inventory; CAPABILITY | Completed parking/handoff/etc. production Native flows: not established by MOB-028 |
 | D-04 Five-second polling is a Web load hypothesis, not verified Native behavior | DERIVED | Web `task-queue-controller.ts` default 5000; Native task panel/operational session; CAPABILITY | Equivalent active Native periodic loop: not found; manual/foreground refresh present |
-| D-05 Push implementation and physical readiness cannot be inferred from accepted DEC/code tests | DERIVED | DEC-073 vs schema/API search; §1 evidence ledger; CAPABILITY | StaffPush tables/worker or current device/CI artifact: not found in inspected baseline evidence |
+| D-05 Push implementation and production readiness cannot be inferred from accepted DEC/code tests | DERIVED | DEC-073 vs schema/API search; §1 evidence ledger; CAPABILITY | StaffPush tables/worker or signed/pilot evidence: not established |
 
-Falsification coverage: 17 / 17 LOCKED+DERIVED conclusions checked. This counts
-these propositions, not every possible runtime claim or repository file. Candidate
-claims “Native may redesign,” “push can authorize commands,” and “local tests prove
-physical readiness” are CONTRADICTED by the owner/DEC-073/evidence rules respectively.
-An absent Native capability remains implementation work; authority conflicts require affirmative conflicting policy evidence.
+Falsification coverage: 17 / 17 LOCKED+DERIVED conclusions checked in the original
+rebaseline. This counts these propositions, not every possible runtime claim or
+repository file. Candidate claims “Native may redesign,” “push can authorize
+commands,” and “local tests prove physical readiness” are CONTRADICTED by the
+owner/DEC-073/evidence rules respectively. An absent Native capability remains
+implementation work; authority conflicts require affirmative conflicting policy
+evidence. G0 owner physical PASS is recorded separately from production readiness.
 
 ## 6. UNRESOLVED decisions
 
@@ -439,7 +475,7 @@ authoritative limiter state is unavailable. U-001 does not reopen these values;
 only a later Owner Decision could change them.
 
 These gates stop only their dependent implementation/release assumptions. They do
-not prevent documentation completion or the immediate evidence-reconciliation task.
+not prevent documentation completion or currently unblocked implementation slices.
 No Proposed choice below is an Accepted Decision. No new exact route, DTO, role
 allowlist, error/event, schema column or lock mechanism is chosen for U-001–006.
 
@@ -485,7 +521,7 @@ permission to impose that mechanism on a different unresolved feature.
 | R-03 A starts retrieval/marks ready; B reassigns Task or mutates session/key | A checks actor/version/custody then writes; B changes assignment/key before A uses stale projection | Existing retrieval/dispatch command locks, versions and terminal guards; test live overlap and no double checkout. Commit with accepted guards is linearization | LOCKED domain contract; MOB-013 |
 | R-04 A releases vehicle; B consumes/expires proof or changes financial/policy state | Auth target, lock/guard proof/session/payment as current executor requires, release+audit; stale verified UI must not bypass B | `complete-handoff-{command,locks,guards}.ts`, `handoff-release-guard.ts`; test exact time/policy/financial boundary and two callers. Guarded release commit is linearization, not UI verification | LOCKED; MOB-014A/B |
 | R-05 A starts/ends Shift; B starts competing Shift or assigns protected work | Membership/Shift/access/Task resources; A resolves authority and existing Shift transaction; B writes between eligibility read and use | Existing Shift constraints/commands and dispatch consumer contract; test per-membership scope, not invented global User uniqueness. Commit/constraint outcome depends on actual statement path | DERIVED proof obligation; MOB-015A/B and MOB-029 |
-| R-06 A refreshes; B logs out/revokes or rotates same session | Native auth session/token generation, secure refresh storage; stale A response may repopulate cleared identity | DEC-072 server rotation/replay and portable generation guards exist; physical SecureStore failure/process kill proof missing. Server rotation/revocation commit plus client generation guard protect different boundaries | LOCKED; MOB-010B/023A |
+| R-06 A refreshes; B logs out/revokes or rotates same session | Native auth session/token generation, secure refresh storage; stale A response may repopulate cleared identity | DEC-072 server rotation/replay and portable generation guards exist; G0 baseline physical proof owner-PASS, with deeper process-death/storage-failure proof continuing in MOB-023A. Server rotation/revocation commit plus client generation guard protect different boundaries | LOCKED; MOB-010B/023A |
 | R-07 A creates intake/incident/Guest Access or corrects vehicle identity/details/condition; B repeats or changes target before response | Persisted session/Vehicle scope + command-specific idempotency/version; concurrent identity/custody edit can invalidate the checked version, and response lost after commit must not create a second protected effect | DEC-063 and individual executors including `vehicles/vehicle-identity-command.ts` and `vehicle-details-command.ts`, not a generic retry wrapper. Real duplicate/unknown-result/purge and expected-Vehicle-version tests needed; accepted command commit is linearization | LOCKED existing command semantics; MOB-010B/011A/B/017A/B/023B |
 | R-08 A sends OCR; B sends on another process or identity scope | Authenticated scope and provider budget; per-process read/count cannot bound cross-process spend | DEC-074 development limiter only; production fail-closed. Shared protection and any persistence/atomic mechanism missing until U-001; no selected production linearization | UNRESOLVED mechanism U-001; MOB-010C |
 | R-09 A claims/sends push; B reclaims expired lease or token rotates/logout occurs | Persist intent with business transaction, claim short DB lease, commit before provider I/O, fence finalization; crash after acceptance can duplicate attempt | DEC-073 requires durable states, lease/fence and fresh eligibility; not implemented. No claim of remote exactly-once. DB claim/finalize linearize local state, provider acceptance is separate | LOCKED architecture; U-005 values; MOB-020A–D/021/022 |
@@ -497,12 +533,12 @@ For R-01–05 and R-07, exercise all three competing-transaction branches: B com
 its response (caller outcome unknown, authoritative re-read/accepted idempotent
 retry with renewed authorization). Do not promise a universal conflict code or
 uniqueness error. Database integrity and caller-visible outcome are separate.
-For R-06 add crash before/after secure-store write. For R-08 fail closed before
-provider I/O until U-001 closes. R-09 tests DB commit/send failure, send acceptance/
-finalize failure, crash between them and recovery racing a live worker; bounded
-at-least-once attempts may duplicate attention, never a domain command. R-10's
-commit/rollback/unknown tests follow the eventual Accepted boundary, not invented
-upload/tracking semantics.
+For R-06 add crash before/after secure-store write in the later hardening evidence.
+For R-08 fail closed before provider I/O until U-001 closes. R-09 tests DB commit/
+send failure, send acceptance/finalize failure, crash between them and recovery
+racing a live worker; bounded at-least-once attempts may duplicate attention,
+never a domain command. R-10's commit/rollback/unknown tests follow the eventual
+Accepted boundary, not invented upload/tracking semantics.
 
 Free-text incident/override reasons require accepted length/normalization rules,
 PII/secret handling, retention and audit necessity review. Never copy raw notes,
@@ -516,36 +552,36 @@ DNS rebinding/TOCTOU and network egress, not only a string URL validator.
 ### D. Old plan → New plan traceability map
 
 Old IDs remain historical parent IDs. Suffixes are new bounded execution children;
-new MOB-028/029 repair missing program structure. A completed old policy decision
+new MOB-028/029 repaired missing program structure. A completed old policy decision
 is not reopened by splitting its implementation. No previously merged MOB-010
 presentation repair is relabeled unfinished implementation.
 
 | Old task | Actual current state | New owner of remaining work | Disposition |
 | --- | --- | --- | --- |
 | MOB-001 platform decision | Accepted DEC-071, later amended | MOB-026A/027B enforce release policy | Historical decision complete |
-| MOB-002 Native auth decision | Accepted DEC-072 | MOB-023A verify transport; MOB-010B ledger records current levels | Historical decision complete |
+| MOB-002 Native auth decision | Accepted DEC-072 | MOB-023A verify deeper transport/lifecycle; MOB-010B ledger records baseline levels | Historical decision complete |
 | MOB-003 push decision | Accepted DEC-073 | MOB-020A–D/021/022 | Historical decision complete; implementation pending |
 | MOB-004 integration architecture | Merged foundation/portable architecture | Every child preserves boundaries | Historical design absorbed; do not recreate |
-| MOB-005 Expo foundation | Merged implementation | G0 physical checklist (§1 ledger); MOB-028 | IMPLEMENTED — EVIDENCE OPEN |
+| MOB-005 Expo foundation | Merged implementation; G0 baseline physical gate closed | MOB-028 merged; later release/device-matrix proof in downstream gates | IMPLEMENTED; historical CI evidence remains open where required |
 | MOB-006 portable employee client | Merged `packages/employee-client` | Feature children extend it; levels in §1 ledger | Implemented baseline absorbed, not NOT STARTED |
-| MOB-007 Native Staff auth | Merged transport/session/adapters | MOB-028/023A; physical R-06 items via G0 checklist | Implemented baseline; production presentation/evidence remains |
-| MOB-008 operational bootstrap/tasks | Merged scoped context/task panel | MOB-028/029/015A | Implemented baseline; production closure split |
-| MOB-009 native QR | Merged scanner/camera/fallback | MOB-018A and each consuming flow; physical frames via G0 checklist | Implemented baseline; device evidence open |
-| MOB-010 check-in/returning parity | Merged intake, shared presentation and repairs | MOB-011A/B downstream continuation; physical pairs via G0 checklist | Implemented baseline; never replay old repair plan |
-| MOB-010A assistive plate OCR | Accepted DEC-074 and merged implementation/repairs | MOB-010C/D production decision/implementation; device identity via G0 checklist | Implemented baseline; production guard intentionally unavailable |
+| MOB-007 Native Staff auth | Merged transport/session/adapters; G0 baseline physical PASS | MOB-028 merged; MOB-023A deeper lifecycle hardening | Implemented baseline; production shell integrated |
+| MOB-008 operational bootstrap/tasks | Merged scoped context/task panel; MOB-028 shell integration merged | MOB-029/015A | Implemented baseline; production queue/Shift closure split |
+| MOB-009 native QR | Merged scanner/camera/fallback; G0 baseline physical PASS | MOB-018A and each consuming flow | Implemented baseline; later consuming-flow evidence still required |
+| MOB-010 check-in/returning parity | Merged intake, shared presentation and repairs; G0 baseline physical PASS | MOB-011A/B downstream continuation | Implemented baseline; never replay old repair plan |
+| MOB-010A assistive plate OCR | Accepted DEC-074 and merged implementation/repairs; G0 development-build physical PASS | MOB-010C/D production decision/implementation | Implemented baseline; production guard intentionally unavailable |
 | MOB-011 identity/condition | Native continuation work not started | MOB-011A/B/C/D | Split identity/detail corrections, condition/completion, photo decision and conditional verified byte adapter |
 | MOB-012 parking/key/spot | Native production work not started | MOB-012A/B | Split launch from atomic parked confirmation |
 | MOB-013 retrieval/ready | Native production work not started | MOB-013 | Preserved bounded parent |
 | MOB-014 handoff/release | Native production work not started | MOB-014A/B | Split verification/abort/override from final release |
-| MOB-015 Shift | Context/POC support only | MOB-015A/B | Split start from summary/end |
+| MOB-015 Shift | Context/POC support plus MOB-028 truthful scope routing | MOB-015A/B | Split start from summary/end |
 | MOB-016 directory | Native production work not started | MOB-016 | Preserved |
 | MOB-017 incident/Guest Access | Native production work not started | MOB-017A/B | Split independent capabilities |
-| MOB-018 UI/localization/accessibility | Shared intake presentation merged; cross-flow closure missing | MOB-018A/B plus per-feature V | Navigation/scan closure and final cross-flow audit; no late parity dump |
+| MOB-018 UI/localization/accessibility | Shared intake presentation and MOB-028 shell presentation merged; cross-flow closure missing | MOB-018A/B plus per-feature V | Navigation/scan closure and final cross-flow audit; no late parity dump |
 | MOB-019 tracking | Accepted backend policy; Native acquisition unresolved | MOB-019A/B | Decision gate then conditional adapter |
 | MOB-020 backend push | Accepted architecture; no implementation found | MOB-020A/B/C/D | Split schema, registration, intent, worker/provider |
 | MOB-021 Native push integration | Not started | MOB-021 | Preserved |
 | MOB-022 push lifecycle | Not started | MOB-022 | Preserved |
-| MOB-023 lifecycle/recovery | Foundations present; integrated hardening missing | MOB-023A/B | Split identity/network from protected workflow/process death |
+| MOB-023 lifecycle/recovery | Foundations + MOB-028 same-authority lifecycle protection present; integrated hardening missing | MOB-023A/B | Split identity/network from protected workflow/process death |
 | MOB-024 observability | Request IDs/development diagnostics exist; production program missing | MOB-024A/B | Split instrumentation from operations/runbooks |
 | MOB-025 production validation | No current full program proof | MOB-025A/B | Split baseline/thresholds from adversarial/soak acceptance |
 | MOB-026 release | Policy accepted; release evidence not established here | MOB-026A/B | Split ownership/config gate from signed distribution |
@@ -555,7 +591,7 @@ presentation repair is relabeled unfinished implementation.
 
 | Batch | Tasks | Exit gate |
 | --- | --- | --- |
-| B0 Evidence and production shell | MOB-010B, MOB-028, MOB-029, MOB-015A | G0: baseline device/parity evidence reconciled; G1: authenticated scoped production shell/queue/start works with truthful recovery |
+| B0 Evidence and production shell | MOB-010B, MOB-028, MOB-029, MOB-015A | G0: **CLOSED** baseline device/parity evidence reconciled; G1: authenticated scoped production shell/queue/start works with truthful recovery — still OPEN pending MOB-029, MOB-015A and remaining required evidence |
 | B1 Intake continuation and parking | MOB-011A/B, MOB-012A/B; conditional MOB-011C/D | G2: intake → parking/key custody demonstrated end-to-end; required photo policy cannot bypass U-002 |
 | B2 Retrieval, release and Shift closure | MOB-013, MOB-014A/B, MOB-015B | G3: actual multi-actor full custody cycle + secure guarded release and Shift closure |
 | B3 Supporting workflow and visual closure | MOB-016, MOB-017A/B, MOB-018A/B | G4: coverage matrix has no unexplained capability loss; all required screen/state V evidence reviewed |
@@ -605,8 +641,8 @@ one writer per working tree. Any parallel implementation requires separate owned
 branches/worktrees and explicit coordination before shared edits. Serialize
 `employee-ui`, portable session exports, Native shell/routes, contracts, API module
 wiring and all AGENTS high-contention docs/config/schema/lockfiles. One migration
-owner; never parallel schema allocation. Integrate each branch only after independent
-ChatGPT GitHub review and actual passing CI; Codex pushes its branch and stops.
+owner; never parallel schema allocation. Integrate each branch only after the
+required review/evidence for the owner's current workflow; do not fabricate CI.
 
 ### Complete task-card contract
 
@@ -649,7 +685,7 @@ DB and device checks that are not applicable to that branch.
 | VALIDATION COMMANDS | Profile C-UI, C-API or C-DOC below, plus named real boundary procedure. Record exact command/SHA/result and distinguish local from remote CI |
 | REVIEW RISKS | Card risks plus authority drift, hidden scope, token leakage, unexplained visual differences and false evidence claims |
 | ROLLBACK / FALLBACK | Revert isolated feature before release or restore tested signed binary; authoritative re-read and Employee Web fallback, never local data migration or audit deletion |
-| DEFINITION OF DONE | Objective in scope delivered, focused checks green, required V/A/failure/device evidence reviewed, no hard-zero/material parity defect, merged after independent review + CI. Owner-gated branches cannot close dependent gates by assertion |
+| DEFINITION OF DONE | Objective in scope delivered, focused checks green, required V/A/failure/device evidence reviewed, no hard-zero/material parity defect, merged after required review and any still-binding CI gate. Owner-gated branches cannot close dependent gates by assertion; failed/unobserved CI is never called green |
 
 Validation profiles (resolve current scripts before each task; do not invent a
 missing test command):
@@ -658,7 +694,8 @@ missing test command):
   `corepack pnpm --filter @valet/valet-native test`, corresponding package `lint`
   and `typecheck`, `corepack pnpm architecture:check`, targeted Prettier and
   `git diff --check`. If portable Web consumers change, run affected Web tests,
-  lint/typecheck/build too. Execute configured repository CI gates before merge.
+  lint/typecheck/build too. Record configured repository CI separately from local
+  checks; never call a failed/unobserved remote run green.
 - C-API: C-UI where affected, plus contracts/API/database package scripts from
   their current manifests, real PostgreSQL integration/concurrency tests and
   versioned migration checks on empty and representative existing data when
@@ -670,39 +707,43 @@ missing test command):
 - Real device/build/load procedures are evidence records, not fabricated package
   scripts. Use existing `corepack pnpm mobile:poc` only for its supported development
   harness; it does not prove a release binary. Build/config success is not runtime,
-  graceful shutdown is not hard-kill recovery, and local CI commands are not a
-  remotely observed passing workflow.
+  graceful shutdown is not hard-kill recovery, and local checks are not a remotely
+  observed passing workflow.
 
 ### MOB-010B — Merged intake/OCR and foundation evidence closure
 
 - **STATUS / SIZE / DEPENDENCIES:** IMPLEMENTED — EVIDENCE OPEN; S evidence branch;
-  merged baseline including MOB-010A. Non-device evidence reconciliation is
-  complete: executed 2026-09-05 on `codex/mob-010b-native-evidence-closure` from
-  audited `origin/main` `7e9b888b385e7081d0afad1363034df0e600857d`; the §1
-  MOB-010B evidence ledger is its record. G0 physical evidence remains open under
-  the ledger checklist; this card closes it only when that evidence or a named
-  repair child completes, never by assertion.
+  merged baseline including MOB-010A. Non-device evidence reconciliation completed
+  on `codex/mob-010b-native-evidence-closure` from audited `origin/main`
+  `7e9b888b385e7081d0afad1363034df0e600857d`; the §1 ledger is its record. G0
+  baseline physical evidence is now owner-PASS and CLOSED at reviewed SHA
+  `932dee4f6867ff609d0446e41ce0084e9a2215b8`. Remote CI run #307 failed, so CI
+  VERIFIED remains open where the inherited completion contract requires it.
 - **OBJECTIVE / WHY / OUTCOME:** Reconcile existing MOB-005–010A evidence against
   current code so field capability is neither discarded nor falsely declared DONE.
   Read DEC-071/072/074, native auth/tasks/scanner/check-in and MC-01–06. No rewrite
   of the merged MOB-010 repair work. Produce a SHA/device/state evidence ledger.
 - **SCOPE / FILES / REUSE:** Evidence and focused documentation only; Native and
   portable source/test families are read targets. DB/dependencies: none. Any defect
-  becomes a separately bounded repair child before G0 closes, not an unreviewed
-  expansion of this evidence branch. Domain/API behavior remains unchanged.
-- **PROOF / RISK:** C-DOC plus rerun affected C-UI baseline; physical login/restore,
+  becomes a separately bounded repair child, not an unreviewed expansion of this
+  evidence work. Domain/API behavior remains unchanged.
+- **PROOF / RISK:** C-DOC plus affected C-UI baseline; G0 physical login/restore,
   QR repeated frames, camera open/close, returning/manual/no-plate paths and OCR
-  multipart acceptance/HTTP result under permitted development configuration.
-  Demonstrate candidate confirm/edit and production fail-closed. R-06/07/08;
-  no raw image/plate/token logs. V covers all merged intake states in EN/AR.
-- **PLATFORM / DONE / FALLBACK:** Real Samsung/mid-range device and recorded OS/build;
-  iOS impact is documenting adapter gaps, no platform code. Record short repeated
-  use/failure traces; final soak remains MOB-025B. G0 closes only with required
-  evidence or a named repair child completed; Web remains available.
+  confirm/edit under permitted development configuration are owner-reported PASS.
+  Production fail-closed remains separate. R-06/07/08; no raw image/plate/token logs.
+- **PLATFORM / DONE / FALLBACK:** G0 used physical `V2302A`, Android 10, build
+  `X690B-H691DE-Q-GL-220215V356`, Development Build via `corepack pnpm mobile:poc`.
+  Final soak remains MOB-025B. G0 is closed; Web remains available. Do not promote
+  the task to DONE while required CI evidence remains unverified green.
 
 ### MOB-028 — Production shell, access and context routing
 
-- **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; M; MOB-010B/G0.
+- **STATUS / SIZE / DEPENDENCIES:** **IMPLEMENTED — EVIDENCE OPEN**; M; MOB-010B/G0.
+  G0 is closed. Initial implementation `29ae0a8a239751afdb3d4d6e00143b4348a8f14f`;
+  focused lifecycle/visual repair and merged main
+  `1cca7a4a40bb604dc0fcbe208bfd51feff42170d`. Independent GitHub review PASS and
+  owner physical PASS. Remaining named evidence: CI VERIFIED; push run #308 at
+  `1cca7a4...` completed `failure`, cause not inferred here.
 - **OBJECTIVE / WHY / OUTCOME:** Replace foundation composition as production entry
   with coherent login/access/Location/active-Shift routing while preserving working
   intake. Employee always sees a truthful current scope. MC-01/02/19; read DEC-066,
@@ -712,18 +753,21 @@ missing test command):
   operational sessions; do not grow their near-ceiling files. No new auth/API/DB,
   dependencies, task commands or capability redesign. Dedicated POC tools stay
   development-only and cannot be a production navigation destination.
-- **PROOF / RISK:** C-UI, V login/restoring/denied/no-Location/no-Shift/active/error,
-  Android back/keyboard/large-font, R-06 stale auth response and scope switch with
-  an open workflow. Test cold intent before auth, no token route params, no protected
-  state flash. Startup/readiness and repeated navigation traces; safe correlation.
+- **PROOF / RISK:** Final reported local validation: employee-client 147/147 tests,
+  valet-native 418/418 tests, both lint/typecheck suites pass, architecture check
+  passes with only existing grandfathered warnings, targeted Prettier and
+  `git diff --check` pass. Owner physical verification passed after the focused
+  same-authority revalidation/scope-purge and visual repair. No API/DB/schema/
+  migration/dependency change. Remote CI remains separately open.
 - **IOS PORTABILITY / DONE:** Portable route intents, Expo Router composition and
   lifecycle adapter; future iOS safe-area/back/Keychain proof remains explicit.
-  Physical production graph and scope purge must pass before G1; revert shell
-  slice/Web fallback on failure.
+  Physical production shell/scope purge owner-PASS. MOB-029 is the next code slice;
+  MOB-015A is also required before G1. G1 remains open, and Web remains fallback.
 
 ### MOB-029 — Production task queue and foreground attention
 
-- **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; M; MOB-028; G1 also needs MOB-015A.
+- **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; M; MOB-028 implementation merged;
+  G1 also needs MOB-015A and remaining required evidence.
 - **OBJECTIVE / WHY / OUTCOME:** Turn merged task functionality into the Web-aligned
   field queue with fresh status, accepted actions, foreground retrieval attention
   and measured refresh behavior. MC-03/20; Web task queue controller/cards/alert,
@@ -915,7 +959,8 @@ missing test command):
 
 ### MOB-015A — Production Shift start and active-Shift presentation
 
-- **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; M; MOB-028. Runs before G1 closes.
+- **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; M; MOB-028 implementation merged.
+  Runs before G1 closes.
 - **OBJECTIVE / WHY / OUTCOME:** Make existing operational context/Shift capability
   a production start/active experience. MC-02/14; read Web start-shift panel,
   operational gates and current Shift commands/eligibility decisions.
@@ -1004,7 +1049,7 @@ missing test command):
 - **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; M; G3, MOB-016 and MOB-017A/B.
 - **OBJECTIVE / WHY / OUTCOME:** Complete coherent route/back/scan entry across all
   delivered workflows. MC-19; read DEC-066, Web live router/navigation and scan-hub
-  tiles. MOB-028 already supplies the shell; this closes integrated routing gaps.
+  tiles. MOB-028 supplies the production shell; this closes integrated routing gaps.
 - **SCOPE / FILES / REUSE:** Native routes/shell/scan dispatch and portable neutral
   intents. No new business capability, scan-derived authority, backend/DB change
   or global-state framework. Extend existing shared presentation only when missing.
@@ -1435,13 +1480,18 @@ missing test command):
 
 ### W. Exact next task and prompt handoff
 
-MOB-010B reconciliation is recorded in §1; it was executed on
-`codex/mob-010b-native-evidence-closure` from audited `origin/main`
-`7e9b888b385e7081d0afad1363034df0e600857d`. Next work is the G0 owner physical
-checklist in that ledger. After G0 closes, the next application-code slice is
-**MOB-028 — Production shell, access and context routing**. Later U-ID gates
-remain conditional; do not ask the owner to settle unrelated production
-decisions before performing available G0 work.
+G0 baseline physical evidence is closed by the owner-attributed record in §1.
+MOB-028 implementation is merged through
+`1cca7a4a40bb604dc0fcbe208bfd51feff42170d`, independent GitHub review passed,
+and owner physical verification passed. MOB-028 remains **IMPLEMENTED — EVIDENCE
+OPEN** only because CI VERIFIED is not green: push CI run #308 completed with
+conclusion `failure`, with no cause inferred here.
+
+The next application-code slice is **MOB-029 — Production task queue and
+foreground attention**. **MOB-015A — Production Shift start and active-Shift
+presentation** remains independently required with MOB-029 before G1 can close.
+G1 is not complete. Later U-ID gates remain conditional; do not ask the owner to
+settle unrelated production decisions before performing available MOB-029 work.
 
 ## 9. Test matrix
 
@@ -1449,10 +1499,10 @@ decisions before performing available G0 work.
 
 | Surface | Required coverage | Owner / evidence |
 | --- | --- | --- |
-| Supported OS | Android 10/API 29, 11/API 30, 13/API 33, 15/API 35, 16/API 36; compile/target 36 per DEC-071 | Per-flow relevant checks; aggregate MOB-025B/026B. Record actual model, OS/security patch, RAM, build and test state |
-| Device families | Samsung/OEM, Pixel/reference and representative mid-range physical hardware; at least one real Samsung/mid-range device in field proof | G0 foundation and each native boundary; pilot MOB-027A. Emulators supplement OS breadth, never replace physical camera/lifecycle/field proof |
-| Native boundaries | Camera/QR/OCR bytes, permissions and revocation, SecureStore, process death/low memory/lock, notifications, signed install/update | Owning feature + MOB-023/025/026; actual Android Development Build and release-like/signed candidate |
-| Visual/ergonomic | EN/AR, LTR/RTL, identifier islands, comparable viewport, font scale, keyboard/safe area, TalkBack and touch targets | V per flow, MOB-018B aggregate; actual Android render pairs and deviations |
+| Supported OS | Android 10/API 29, 11/API 30, 13/API 33, 15/API 35, 16/API 36; compile/target 36 per DEC-071 | G0 baseline recorded Android 10 on V2302A; per-flow relevant checks and aggregate MOB-025B/026B still require the broader matrix. Record actual model, OS/security patch, RAM, build and test state |
+| Device families | Samsung/OEM, Pixel/reference and representative mid-range physical hardware; at least one real Samsung/mid-range device in field proof | G0 owner-attributed physical baseline is closed; each later native boundary and pilot MOB-027A still own required device-family proof. Emulators supplement OS breadth, never replace physical camera/lifecycle/field proof |
+| Native boundaries | Camera/QR/OCR bytes, permissions and revocation, SecureStore, process death/low memory/lock, notifications, signed install/update | G0 baseline covers its bounded auth/QR/intake/OCR checklist; owning feature + MOB-023/025/026 cover later/deeper boundaries and release-like/signed candidate |
+| Visual/ergonomic | EN/AR, LTR/RTL, identifier islands, comparable viewport, font scale, keyboard/safe area, TalkBack and touch targets | G0 and MOB-028 owner physical baseline recorded; V per later flow and MOB-018B aggregate still require actual Android render pairs/deviations |
 | iOS portability | Config/build smoke from same Expo app before final Android pilot completion; portable tests and adapter inventory | MOB-025B/026B. No full physical iOS readiness claim; future camera/Keychain/APNs/lifecycle/signing proof remains explicit |
 
 ### Mutation and failure evidence matrix
@@ -1475,15 +1525,15 @@ derive assertions only after their missing mechanism/contract is Accepted.
 
 | Boundary / owners | Automated + actual API/DB proof | Real failure/device/visual proof |
 | --- | --- | --- |
-| Auth/restore/logout; MOB-010B/028/023A | Generation/rotation/replay and two-session scope tests; R-06 | SecureStore failure, kill during restore/logout, revoked account, no protected flash; V access states |
-| Intake/returning/identity/detail/condition/completion; MOB-010B/011A/B | A, R-07, expected Vehicle/session version, duplicate/conflicting correction and two-principal target denial, append-only audit | Lost commit response, background/cold restore, unknown-to-known/manual/no-plate/returning; V each correction/continuation |
-| OCR; MOB-010B/010C/D | Existing candidate/transport tests, fail-closed production before provider I/O; MOB-010D mechanism tests conditional on U-001, accepted limits unchanged | Actual camera bytes/multipart/HTTP outcome, supported-size remount, permission failure, provider outage; V confirm/edit/fallback |
+| Auth/restore/logout; MOB-010B/028/023A | Generation/rotation/replay and two-session scope tests; R-06; MOB-028 revalidation/scope-purge tests | G0/MOB-028 owner physical baseline PASS; deeper SecureStore/process-death/offline proof remains MOB-023A; V access states |
+| Intake/returning/identity/detail/condition/completion; MOB-010B/011A/B | A, R-07, expected Vehicle/session version, duplicate/conflicting correction and two-principal target denial, append-only audit | G0 intake/returning baseline PASS; lost commit response, background/cold restore and continuation V remain per later flow |
+| OCR; MOB-010B/010C/D | Existing candidate/transport tests, fail-closed production before provider I/O; MOB-010D mechanism tests conditional on U-001, accepted limits unchanged | G0 development-build camera/confirm/edit baseline PASS; production provider outage/shared-limiter proof remains conditional; V availability/fallback where changed |
 | Parking/task/key; MOB-029/012A/B | A, R-01/02, concurrent employees on key/spot/Task, rollback and stale versions, DB custody/audit invariants | Rapid taps/frames, response loss and scope invalidation; V conflict/unknown/parked |
 | Retrieval/ready; MOB-013 | A, R-03, assignment change and key checkout races, no duplicate protected effect | Offline after send, foreground after reassignment, key scan/manual failure; V stages |
 | Handoff/release; MOB-014A/B | A, R-04, two principals, expiring/single-use proof, payment/policy race, authorized override and atomic audit | Kill/disconnect at final release, no stale proof replay, code privacy; V blocked/ambiguous/released |
 | Shift start/end; MOB-015A/B | A, R-01/05, per-membership scope, concurrent start/end/assignment, authorized fallback read | Lost end result, revoked access, process restore; V active/blocked/ended/recovery |
 | Incident/Guest Access; MOB-017A/B | A, R-07, bounded text/ownership, command-specific duplicate/rotation semantics | Secret purge on background/logout; interrupted submit, actual QR readability; V errors/results |
-| Directory/navigation; MOB-016/018A | Two-principal read denial, bounded projection, stale target/intent cannot authorize write | Large list, rapid query/back/scan, offline/dead target; V empty/error/unavailable |
+| Directory/navigation; MOB-016/018A | Two-principal read denial, bounded projection, stale target/intent cannot authorize write | MOB-028 production shell baseline PASS; large list, rapid query/back/scan, offline/dead target and integrated scan V remain later |
 | Photos/tracking; MOB-011C/D/019B | Conditional A/R-10 under U-002/U-003 accepted boundary, actual storage/point authorization, policy transition and late result | Conditional real bytes/private storage, permission/OEM/battery/task-stop; V required/denied/failure |
 | Push; MOB-020A–D/021/022 | Versioned migrations, two-principal registration, intent transaction, real lease/fence/expiry and dual-write failure | Hard kill/OOM/container loss, provider timeout/outage/accepted-response loss, physical signed foreground/background/terminated tap; V safe attention |
 | Cross-cutting; MOB-023–027 | Regression/lint/typecheck/build/architecture and actual remote CI; accepted thresholds | Real network transitions, full-shift soak, signed update/rollback and Web fallback; no missing evidence promoted to DONE |
@@ -1496,7 +1546,7 @@ loads is an accepted production guarantee or permission to load a live customer.
 
 The old hypothesis of 10 Locations × 20 Employees with five-second queue polling
 implies about 40 queue reads/second before context reads, auth, mutations or retry
-traffic. At this baseline five seconds is Web's default; Native has manual and
+traffic. At the rebaseline five seconds was Web's default; Native had manual and
 foreground refresh. MOB-029 must measure the actual scheduling/coalescing behavior
 before deriving total load. Capture request multiplicity rather than assuming one
 UI refresh equals one API query. Coexistence means Web and Native traffic can overlap.
@@ -1562,18 +1612,17 @@ Native-primary cutover or Employee Web deletion.
 
 ## 10. Files expected to change
 
-### This documentation branch
+### Original v2 rebaseline documentation branch
 
-Only `docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`,
-`docs/14_PROJECT_STATUS.md` (direct stale program reference) and
-`docs/08_DECISIONS_LOG.md` (DEC-074 summary mirror). No focused Accepted DEC is
-rewritten. Preserve unrelated review patches. Validate complete diff against
-baseline main and stage only these paths.
+The original rebaseline changed `docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`,
+`docs/14_PROJECT_STATUS.md` and `docs/08_DECISIONS_LOG.md` for the DEC-074 summary
+mirror. Subsequent bounded status synchronizations may update only the directly
+stale status/plan docs. No focused Accepted DEC is rewritten by this status record.
 
 ### Future task artifact firewall
 
 - **DEFINITELY RELEVANT:** Current Native `app/**`, `src/auth`, `tasks`, `scanner`,
-  `check-in`, `foundation`, `employee-ui` and tests; portable employee-client
+  `check-in`, `foundation`, `shell`, `employee-ui` and tests; portable employee-client
   boundaries/tests/exports; Web live screens/controllers/tokens/copy as read
   references. Existing contracts/API commands/database constraints and tests are
   authority/read targets for every consumed protected capability. DEC-073 proves
@@ -1593,9 +1642,9 @@ baseline main and stage only these paths.
 
 ### U. Anti-scope-creep rules
 
-This branch implements no application code, dependency, API behavior, schema,
-migration, Native/Web behavior, CI, signing, Firebase/provider project or external
-service. It does not merge, create a PR, push main, force-push or remove branches.
+This status synchronization implements no application code, dependency, API
+behavior, schema, migration, Native/Web behavior, CI, signing, Firebase/provider
+project or external service. It does not reinterpret failed CI as success.
 
 Future Native tasks exclude WebView/DOM wrapping, duplicated domain authorization,
 new mobile backend, generic durable offline replay/outbox, speculative global state,
@@ -1612,34 +1661,40 @@ No Web deletion or irreversible cutover. No new feature merely to improve a scor
 
 **DECISION REQUIRED**
 
-The program is a decision-dependent implementation envelope because U-001–006
+The program remains a decision-dependent implementation envelope because U-001–006
 remain open for their named production/capability gates. This is not an unresolved
-conflict between authoritative documents and is not a reason to leave this
-rebaseline unfinished. MOB-010B's reconciliation is recorded in §1; G0 remains
-EVIDENCE OPEN for the physical checklist, and MOB-028 follows after G0. No
-unresolved choice is selected by a later test, file prediction or task card.
+conflict between authoritative documents and does not block unrelated available
+implementation slices. G0 baseline physical evidence is **CLOSED**. MOB-028 is
+merged and owner-physically verified but remains **IMPLEMENTED — EVIDENCE OPEN**
+because remote CI run #308 at `1cca7a4...` completed `failure`; CI VERIFIED is not
+claimed. G1 remains OPEN.
 
-Production readiness is **NOT READY** at this baseline: required real-device,
-matched visual, failure/load, signed-release and pilot evidence is not established.
-If a later candidate has verified core behavior but explicitly deferred deployment
-controls, classify it READY WITH CONDITIONS for that bounded assessment, never as
-unconditional production readiness or as permission to bypass a blocking gate.
+The next application-code slice is **MOB-029 — Production task queue and foreground
+attention**. MOB-015A remains separately required before G1 closes. No unresolved
+U-ID choice is selected by a later test, file prediction or task card.
 
-Planning self-review scope: 12 required guardian sections; owner content A–W;
-23 migration capabilities; 28 historical IDs (MOB-001–027 plus MOB-010A);
-39 future task cards with the complete inherited field contract; 6 stable unresolved
-gates; 10 material race scenarios; 17 falsification checks.
-Before finalizing, perform proposition polarity, source precedence, single-label,
-identity-scope, current-pattern/policy, U-ID semantic leakage, race completeness,
-commit/rollback/unknown, mechanism, free-text privacy, downstream check-use,
-falsification, test-purity and artifact-prediction checks, then run the plan audit.
-A heuristic audit exit code is not semantic proof. Record actual validation results
-in the documentation branch report; do not label unperformed device or CI work green.
+Production readiness is **NOT READY**: later per-flow device proof, integrated
+failure/load evidence, full Android matrix, signed release and pilot evidence are
+not established. If a later candidate has verified core behavior but explicitly
+deferred deployment controls, classify it READY WITH CONDITIONS for that bounded
+assessment, never as unconditional production readiness or as permission to bypass
+a blocking gate.
 
-Audit disposition: the v1.5 heuristic reports one broad warning because a program
-with a DECISION REQUIRED verdict also contains definitive implementation language.
-The semantic review distinguishes existing Accepted contracts (which remain
-definitive) from U-001–006 choices (conditional and owned by named gates). It found
-no selected new limiter/photo/tracking mechanism, SLO value, push configuration
-value or release owner/environment in the dependent cards/tests/artifact list.
-This warning is retained and explained, not represented as an all-clear audit.
+Planning self-review scope remains the canonical guardian structure: 12 required
+sections; owner content A–W; 23 migration capabilities; 28 historical IDs
+(MOB-001–027 plus MOB-010A); 39 future task cards with the inherited field contract;
+6 stable unresolved gates; 10 material race scenarios; 17 original falsification
+checks. Status synchronization updates evidence/state, not the policy cardinality.
+Before future plan finalization, perform proposition polarity, source precedence,
+single-label, identity-scope, current-pattern/policy, U-ID semantic leakage, race
+completeness, commit/rollback/unknown, mechanism, free-text privacy, downstream
+check-use, falsification, test-purity and artifact-prediction checks, then run the
+plan audit.
+
+The original v1.5 heuristic reported one broad warning because a program with a
+DECISION REQUIRED verdict also contains definitive implementation language. The
+semantic review distinguished existing Accepted contracts (which remain definitive)
+from U-001–006 choices (conditional and owned by named gates). That warning remains
+a known heuristic condition, not an all-clear audit. This status synchronization
+adds no selected limiter/photo/tracking mechanism, SLO value, push configuration
+value or release owner/environment.
