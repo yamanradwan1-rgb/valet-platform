@@ -18,12 +18,14 @@ The canonical Employee Native order, scope, gates, evidence, and status plan is
   tasks, QR, intake/returning, shared presentation and assistive OCR repairs.
   Required current device/render/failure evidence remains explicitly open where
   no matching artifact has been established; merged code is not production proof.
-- MOB-010B merged-baseline evidence closure executed 2026-09-05 on
-  `codex/mob-010b-native-evidence-closure` at `7e9b888b385e7081d0afad1363034df0e600857d`
-  (branch pending independent review). Its ledger in the plan reconciles every
-  merged task to separated evidence levels, confirms production OCR fail-closed,
-  and records one Sep-5 development-harness OCR runtime trace. G0 stays open for
-  the consolidated physical checklist in the plan's §1 MOB-010B ledger.
+- MOB-010B merged-baseline evidence closure was executed 2026-09-05 on
+  `codex/mob-010b-native-evidence-closure` from audited `origin/main`
+  `7e9b888b385e7081d0afad1363034df0e600857d`. Its ledger in the plan records the
+  non-device evidence reconciliation of every merged task to separated evidence
+  levels, confirms production OCR fail-closed, and records one Sep-5
+  development-harness OCR runtime trace. G0 remains EVIDENCE OPEN for the
+  consolidated physical checklist in the plan's §1 MOB-010B ledger; MOB-028
+  follows only after G0 closes.
 - Production navigation and downstream condition/custody/supporting flows,
   durable push, integrated hardening, release and pilot gates remain unfinished.
 - DEC-074 production OCR stays fail-closed until an accepted shared/durable

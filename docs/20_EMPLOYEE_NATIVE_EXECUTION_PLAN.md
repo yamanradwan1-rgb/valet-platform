@@ -675,12 +675,13 @@ missing test command):
 
 ### MOB-010B — Merged intake/OCR and foundation evidence closure
 
-- **STATUS / SIZE / DEPENDENCIES:** REVIEW READY; S evidence branch; merged baseline
-  including MOB-010A. Evidence closure executed 2026-09-05 on
-  `codex/mob-010b-native-evidence-closure` at `7e9b888b385e7081d0afad1363034df0e600857d`;
-  the §1 MOB-010B evidence ledger is its record. G0 physical items remain open
-  under the ledger checklist; this card closes them only when that evidence or a
-  named repair child completes, never by assertion.
+- **STATUS / SIZE / DEPENDENCIES:** IMPLEMENTED — EVIDENCE OPEN; S evidence branch;
+  merged baseline including MOB-010A. Non-device evidence reconciliation is
+  complete: executed 2026-09-05 on `codex/mob-010b-native-evidence-closure` from
+  audited `origin/main` `7e9b888b385e7081d0afad1363034df0e600857d`; the §1
+  MOB-010B evidence ledger is its record. G0 physical evidence remains open under
+  the ledger checklist; this card closes it only when that evidence or a named
+  repair child completes, never by assertion.
 - **OBJECTIVE / WHY / OUTCOME:** Reconcile existing MOB-005–010A evidence against
   current code so field capability is neither discarded nor falsely declared DONE.
   Read DEC-071/072/074, native auth/tasks/scanner/check-in and MC-01–06. No rewrite
@@ -1434,13 +1435,13 @@ missing test command):
 
 ### W. Exact next task and prompt handoff
 
-MOB-010B executed on `codex/mob-010b-native-evidence-closure` from fresh
-`origin/main` `7e9b888b385e7081d0afad1363034df0e600857d`; its §1 evidence
-ledger is the record and G0 remains open only for the owner physical checklist
-there. After MOB-010B merges, the next work is that checklist, then the next
-application-code slice, **MOB-028 — Production shell, access and context
-routing**, after G0. Later U-ID gates remain conditional; do not ask the owner
-to settle unrelated production decisions before performing available G0 work.
+MOB-010B reconciliation is recorded in §1; it was executed on
+`codex/mob-010b-native-evidence-closure` from audited `origin/main`
+`7e9b888b385e7081d0afad1363034df0e600857d`. Next work is the G0 owner physical
+checklist in that ledger. After G0 closes, the next application-code slice is
+**MOB-028 — Production shell, access and context routing**. Later U-ID gates
+remain conditional; do not ask the owner to settle unrelated production
+decisions before performing available G0 work.
 
 ## 9. Test matrix
 
@@ -1614,9 +1615,9 @@ No Web deletion or irreversible cutover. No new feature merely to improve a scor
 The program is a decision-dependent implementation envelope because U-001–006
 remain open for their named production/capability gates. This is not an unresolved
 conflict between authoritative documents and is not a reason to leave this
-rebaseline unfinished. MOB-010B's evidence closure is recorded in §1 and awaits
-independent review; the G0 physical checklist and MOB-028 follow. No unresolved
-choice is selected by a later test, file prediction or task card.
+rebaseline unfinished. MOB-010B's reconciliation is recorded in §1; G0 remains
+EVIDENCE OPEN for the physical checklist, and MOB-028 follows after G0. No
+unresolved choice is selected by a later test, file prediction or task card.
 
 Production readiness is **NOT READY** at this baseline: required real-device,
 matched visual, failure/load, signed-release and pilot evidence is not established.
