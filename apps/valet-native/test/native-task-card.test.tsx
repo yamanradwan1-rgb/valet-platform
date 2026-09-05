@@ -14,6 +14,8 @@ vi.mock("react-native", () => ({
 }));
 
 const { NativeTaskCard } = await import("../src/tasks/native-task-card");
+const { NativeTaskQueueRow } =
+  await import("../src/tasks/native-task-queue-row");
 const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
 const { getNativeTasksCopy } = await import("../src/tasks/native-tasks-copy");
 
@@ -78,7 +80,8 @@ function snapshot(
   };
 }
 
-const operations = { acceptTask: vi.fn() } as never;
+const acceptTask = vi.fn();
+const operations = { acceptTask } as never;
 
 function render(
   item = task,
@@ -87,9 +90,23 @@ function render(
   return elements(
     NativeTaskCard({
       copy: getNativeTasksCopy("en"),
+      locale: "en",
       operations,
       priority: true,
       snapshot: snapshot(item, mutation),
+      task: item,
+      textAlign: "left",
+    }),
+  );
+}
+
+function renderRow(item = task) {
+  return elements(
+    NativeTaskQueueRow({
+      copy: getNativeTasksCopy("en"),
+      locale: "en",
+      operations,
+      snapshot: snapshot(item),
       task: item,
       textAlign: "left",
     }),
@@ -105,6 +122,7 @@ describe("Native production task cards", () => {
     const text = JSON.stringify(nodes.map((node) => node.props.children));
     expect(text).toContain("Priority task");
     expect(text).toContain("Toyota Camry");
+    expect(text).toContain("Queued");
     expect(text).toContain("North · 12");
   });
 
@@ -145,4 +163,51 @@ describe("Native production task cards", () => {
       label: "Accepting…",
     });
   });
+
+  it("renders ordinary work as a compact actionable row", () => {
+    acceptTask.mockClear();
+    const nodes = renderRow();
+    const row = nodes.find(
+      (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+    )!;
+
+    expect(row.props.accessibilityRole).toBe("button");
+    expect(JSON.stringify(nodes.map((node) => node.props.children))).toContain(
+      "Queued",
+    );
+    (row.props.onPress as () => void)();
+    expect(acceptTask).toHaveBeenCalledWith(task.taskId);
+  });
+
+  it("stages assigned-to-other rows without a downstream affordance", () => {
+    const other = {
+      ...task,
+      currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
+    };
+    const nodes = renderRow(other);
+    const row = nodes.find(
+      (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+    )!;
+    const text = JSON.stringify(nodes.map((node) => node.props.children));
+
+    expect(row.props.accessibilityRole).toBeUndefined();
+    expect(text).toContain("Other staff");
+    expect(text).not.toContain("›");
+  });
+
+  it.each(["ACCEPTED", "IN_PROGRESS"] as const)(
+    "stages %s rows without inventing downstream navigation",
+    (status) => {
+      const staged = { ...task, status };
+      const nodes = renderRow(staged);
+      const row = nodes.find(
+        (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+      )!;
+
+      expect(row.props.accessibilityRole).toBeUndefined();
+      expect(
+        JSON.stringify(nodes.map((node) => node.props.children)),
+      ).not.toContain("›");
+    },
+  );
 });

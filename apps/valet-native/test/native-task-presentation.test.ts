@@ -12,6 +12,7 @@ import {
   nativeTaskAge,
   nativeTaskParkingContext,
   nativeTaskStatusLabel,
+  nativeTaskTime,
   nativeTaskTypeLabel,
   nativeTaskVehicleLabel,
 } from "../src/tasks/native-task-presentation";
@@ -110,6 +111,14 @@ describe("Native Tasks presentation", () => {
     expect(getNativeTasksCopy("en").tasks).toBe("Tasks");
     expect(getNativeTasksCopy("ar").tasks).toBe("المهام");
     expect(getNativeTasksCopy("ar").reconcile).toContain("الخادم");
+    expect(getNativeTasksCopy("en")).toMatchObject({
+      retrievalAlertBody: "A guest has requested their vehicle.",
+      retrievalAlertTitle: "Vehicle requested",
+    });
+    expect(getNativeTasksCopy("ar")).toMatchObject({
+      retrievalAlertBody: "طلب أحد الضيوف استرجاع مركبته.",
+      retrievalAlertTitle: "تم طلب المركبة",
+    });
   });
 
   it("localizes task type, status, and queue-owned actions", () => {
@@ -130,7 +139,7 @@ describe("Native Tasks presentation", () => {
 
   it("formats age and parking context from canonical task facts", () => {
     expect(nativeTaskAge(task, Date.parse("2026-09-03T08:06:05.000Z"))).toBe(
-      "1m",
+      "01:05",
     );
     expect(
       nativeTaskParkingContext({
@@ -139,6 +148,22 @@ describe("Native Tasks presentation", () => {
         parkingZone: "North",
       }),
     ).toBe("North · P-12");
+    expect(
+      nativeTaskTime(
+        getNativeTasksCopy("en"),
+        "en",
+        task,
+        Date.parse("2026-09-03T08:06:05.000Z"),
+      ),
+    ).toBe("Queued 1 min. ago");
+    expect(
+      nativeTaskTime(
+        getNativeTasksCopy("ar"),
+        "ar",
+        { ...task, retrievalRequestedAt: task.createdAt },
+        Date.parse("2026-09-03T08:06:05.000Z"),
+      ),
+    ).toContain("مطلوبة");
   });
 
   it("presents truthful no-Shift, error, accepted, and recovery states", () => {

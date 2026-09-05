@@ -1,10 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import {
-  EmployeeRetrievalAttentionTracker,
-  type EmployeeOperationalSession,
-  type EmployeeOperationalSnapshot,
-} from "@valet/employee-client";
+import { type EmployeeOperationalSession } from "@valet/employee-client";
 
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
@@ -21,34 +17,22 @@ import { getNativeTasksCopy } from "./native-tasks-copy";
 
 export function NativeRetrievalAttention({
   locale,
+  onDismiss,
   onOpenQueue,
   operations,
-  snapshot,
+  taskIds,
   textAlign,
 }: {
   readonly locale: FoundationLocale;
+  readonly onDismiss: (taskId: string) => void;
   readonly onOpenQueue: () => void;
   readonly operations: EmployeeOperationalSession;
-  readonly snapshot: EmployeeOperationalSnapshot;
+  readonly taskIds: readonly string[];
   readonly textAlign: "left" | "right";
 }) {
-  const [taskIds, setTaskIds] = useState<readonly string[]>([]);
   const [opening, setOpening] = useState(false);
-  const tracker = useRef(new EmployeeRetrievalAttentionTracker());
   const copy = getNativeTasksCopy(locale);
   const humanText = employeeTextStyle("human", textAlign);
-
-  useEffect(() => {
-    const result = tracker.current.observe(snapshot);
-    if (result.scopeChanged) {
-      setTaskIds(result.newTaskIds);
-    } else if (result.newTaskIds.length > 0) {
-      setTaskIds((current) => [
-        ...current,
-        ...result.newTaskIds.filter((id) => !current.includes(id)),
-      ]);
-    }
-  }, [snapshot]);
 
   if (taskIds.length === 0) return null;
   const taskId = taskIds[0]!;
@@ -68,7 +52,7 @@ export function NativeRetrievalAttention({
         onPress={() => {
           setOpening(true);
           void operations.refreshQueue().finally(() => {
-            setTaskIds((current) => current.filter((id) => id !== taskId));
+            onDismiss(taskId);
             setOpening(false);
             onOpenQueue();
           });
@@ -89,9 +73,7 @@ export function NativeRetrievalAttention({
         accessibilityLabel={copy.dismiss}
         accessibilityRole="button"
         hitSlop={8}
-        onPress={() =>
-          setTaskIds((current) => current.filter((id) => id !== taskId))
-        }
+        onPress={() => onDismiss(taskId)}
         style={attentionStyles.dismiss}
       >
         <Text style={attentionStyles.dismissLabel}>{copy.dismiss}</Text>

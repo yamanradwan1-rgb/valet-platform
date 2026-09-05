@@ -18,6 +18,7 @@ import {
   EmployeeStatus,
 } from "../employee-ui/employee-feedback";
 import { NativeTaskCard } from "./native-task-card";
+import { NativeTaskQueueRow } from "./native-task-queue-row";
 import { NativeTaskShiftStrip } from "./native-task-shift-strip";
 
 interface NativeTasksPanelProps {
@@ -111,16 +112,28 @@ export function NativeTasksPanel({
           ) : null
         }
         maxToRenderPerBatch={8}
-        renderItem={({ item, index }) => (
-          <NativeTaskCard
-            copy={copy}
-            operations={operations}
-            priority={index === 0}
-            snapshot={snapshot}
-            task={item}
-            textAlign={textAlign}
-          />
-        )}
+        renderItem={({ item, index }) =>
+          index === 0 ? (
+            <NativeTaskCard
+              copy={copy}
+              locale={locale}
+              operations={operations}
+              priority
+              snapshot={snapshot}
+              task={item}
+              textAlign={textAlign}
+            />
+          ) : (
+            <NativeTaskQueueRow
+              copy={copy}
+              locale={locale}
+              operations={operations}
+              snapshot={snapshot}
+              task={item}
+              textAlign={textAlign}
+            />
+          )
+        }
         testID="native-production-task-queue"
         windowSize={7}
       />

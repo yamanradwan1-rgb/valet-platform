@@ -26,6 +26,7 @@ export interface NativeTasksCopy {
   readonly retrieval: string;
   readonly retrievalAlertBody: string;
   readonly retrievalAlertTitle: string;
+  readonly requested: string;
   readonly retry: string;
   readonly status: string;
   readonly statusAccepted: string;
@@ -54,7 +55,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     error: "Operational state is temporarily unavailable.",
     loading: "Loading current operational state…",
     noShift: "No active eligible Shift.",
-    otherStaff: "Assigned to other staff",
+    otherStaff: "Other staff",
     parking: "Parking",
     priority: "Priority task",
     rateLimited:
@@ -64,8 +65,9 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     refresh: "Refresh",
     refreshing: "Refreshing current Tasks…",
     retrieval: "Retrieval",
-    retrievalAlertBody: "A new vehicle retrieval request is waiting.",
-    retrievalAlertTitle: "Retrieval requested",
+    retrievalAlertBody: "A guest has requested their vehicle.",
+    retrievalAlertTitle: "Vehicle requested",
+    requested: "Requested",
     retry: "Retry task action",
     status: "Status",
     statusAccepted: "Accepted",
@@ -93,7 +95,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     error: "الحالة التشغيلية غير متاحة مؤقتًا.",
     loading: "جارٍ تحميل الحالة التشغيلية الحالية…",
     noShift: "لا توجد وردية نشطة مؤهلة.",
-    otherStaff: "مسندة إلى موظف آخر",
+    otherStaff: "موظف آخر",
     parking: "صف المركبة",
     priority: "المهمة ذات الأولوية",
     rateLimited: "تم تقييد تحديث المهام مؤقتًا. ستستأنف دورة التحديث المعتادة.",
@@ -102,8 +104,9 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     refresh: "تحديث",
     refreshing: "جارٍ تحديث المهام الحالية…",
     retrieval: "استرجاع المركبة",
-    retrievalAlertBody: "يوجد طلب جديد لاسترجاع مركبة.",
-    retrievalAlertTitle: "طلب استرجاع جديد",
+    retrievalAlertBody: "طلب أحد الضيوف استرجاع مركبته.",
+    retrievalAlertTitle: "تم طلب المركبة",
+    requested: "مطلوبة",
     retry: "إعادة محاولة إجراء المهمة",
     status: "الحالة",
     statusAccepted: "مقبولة",

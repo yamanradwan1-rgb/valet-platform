@@ -5,6 +5,7 @@ import {
   isEmployeeMutationUnresolved,
 } from "@valet/employee-client";
 
+import type { FoundationLocale } from "../foundation/foundation-locale";
 import type { NativeTasksCopy } from "./native-tasks-copy";
 
 export function nativeMutationMessage(
@@ -81,12 +82,27 @@ export function nativeTaskAge(
   task: StaffTaskQueueItem,
   now = Date.now(),
 ): string {
-  const timestamp = task.retrievalRequestedAt ?? task.createdAt;
-  const seconds = Math.max(0, Math.floor((now - Date.parse(timestamp)) / 1000));
-  if (seconds < 60) return `${seconds}s`;
+  const seconds = Math.max(
+    0,
+    Math.floor((now - Date.parse(task.createdAt)) / 1000),
+  );
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+export function nativeTaskTime(
+  copy: NativeTasksCopy,
+  locale: FoundationLocale,
+  task: StaffTaskQueueItem,
+  now = Date.now(),
+): string {
+  const timestamp = task.retrievalRequestedAt ?? task.createdAt;
+  const minutes = Math.floor(Math.max(0, now - Date.parse(timestamp)) / 60_000);
+  const relative = new Intl.RelativeTimeFormat(locale, {
+    numeric: "auto",
+    style: "short",
+  }).format(-minutes, "minute");
+  return `${task.retrievalRequestedAt ? copy.requested : copy.statusQueued} ${relative}`;
 }
 
 export function nativeTaskParkingContext(
@@ -108,5 +124,15 @@ export function nativeTaskVehicleLabel(task: StaffTaskQueueItem): string {
     task.vehicle.temporaryDescriptor?.trim() ||
     task.vehicle.plateNumberRaw?.trim() ||
     task.taskId
+  );
+}
+
+export function nativeTaskVehicleIdentifier(
+  task: StaffTaskQueueItem,
+): string | null {
+  return (
+    task.vehicle.plateNumberRaw?.trim() ||
+    task.vehicle.temporaryDescriptor?.trim() ||
+    null
   );
 }

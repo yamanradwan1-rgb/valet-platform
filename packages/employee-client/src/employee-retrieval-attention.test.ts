@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { EmployeeRetrievalAttentionTracker } from "./employee-retrieval-attention";
+import {
+  EmployeeRetrievalAttentionOwner,
+  EmployeeRetrievalAttentionTracker,
+} from "./employee-retrieval-attention";
 import { emptyEmployeeOperationalSnapshot } from "./employee-operational-state";
 import { resolveEmployeeOperationalScope } from "./employee-operational-scope";
 import type { EmployeeOperationalSnapshot } from "./employee-operational-types";
@@ -107,6 +110,60 @@ describe("Employee foreground retrieval attention", () => {
     ).toBe(true);
     expect(
       tracker.observe(emptyEmployeeOperationalSnapshot()).newTaskIds,
+    ).toEqual([]);
+  });
+});
+
+describe("Employee retrieval attention ownership", () => {
+  it("detects one new task after a same-authority transient unmount gap", () => {
+    const owner = new EmployeeRetrievalAttentionOwner();
+    expect(owner.observe(snapshot(1, []))).toEqual([]);
+    expect(
+      owner.observe(
+        snapshot(0, [], {
+          contextFailure: { code: "NETWORK_ERROR", message: "Offline" },
+          phase: "error",
+          scope: null,
+        }),
+      ),
+    ).toEqual([]);
+
+    expect(owner.observe(snapshot(1, [retrieval("r1")]))).toEqual(["r1"]);
+    expect(owner.observe(snapshot(1, [retrieval("r1")]))).toEqual(["r1"]);
+  });
+
+  it("retains pending attention through same-authority revalidation", () => {
+    const owner = new EmployeeRetrievalAttentionOwner();
+    owner.observe(snapshot(1, []));
+    expect(owner.observe(snapshot(2, [retrieval("r1")]))).toEqual(["r1"]);
+
+    expect(
+      owner.observe(snapshot(0, [], { phase: "error", scope: null })),
+    ).toEqual(["r1"]);
+    expect(owner.observe(snapshot(2, [retrieval("r1")]))).toEqual(["r1"]);
+  });
+
+  it("keeps dismissed tasks observed across a counter restart", () => {
+    const owner = new EmployeeRetrievalAttentionOwner();
+    owner.observe(snapshot(1, []));
+    owner.observe(snapshot(2, [retrieval("r1")]));
+    expect(owner.dismiss("r1")).toEqual([]);
+    owner.observe(snapshot(0, [], { phase: "error", scope: null }));
+
+    expect(owner.observe(snapshot(1, [retrieval("r1")]))).toEqual([]);
+  });
+
+  it("purges pending attention when authority scope changes", () => {
+    const owner = new EmployeeRetrievalAttentionOwner();
+    const baseline = snapshot(1, []);
+    owner.observe(baseline);
+    owner.observe(snapshot(2, [retrieval("r1")]));
+
+    expect(
+      owner.observe({
+        ...baseline,
+        scope: { ...baseline.scope!, locationId: "location-replacement" },
+      }),
     ).toEqual([]);
   });
 });

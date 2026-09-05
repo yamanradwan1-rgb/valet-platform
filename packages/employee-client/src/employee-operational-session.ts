@@ -9,6 +9,7 @@ import {
   resolveEmployeeOperationalScope,
 } from "./employee-operational-scope";
 import {
+  applyEmployeeMutationPhase,
   applyEmployeeOperationalScope,
   applyEmployeeQueueEvent,
   emptyEmployeeOperationalSnapshot,
@@ -184,7 +185,7 @@ export class EmployeeOperationalSession {
     } catch (error) {
       if (this.generation !== generation || request !== this.contextSequence)
         return;
-      this.queue.clear();
+      this.queue.suspend();
       this.publish({
         ...resetEmployeeOperationalContext(this.snapshot, generation, "error"),
         contextFailure: operationalFailure(error),
@@ -194,7 +195,9 @@ export class EmployeeOperationalSession {
 
   private async runAccept(attempt: AcceptAttempt): Promise<void> {
     this.pendingAttempt = attempt;
-    this.publishMutation(attempt, "submitting");
+    this.publish(
+      applyEmployeeMutationPhase(this.snapshot, attempt, "submitting"),
+    );
     const result = await executeEmployeeTaskAction(
       attempt,
       this.options.transport,
@@ -202,9 +205,18 @@ export class EmployeeOperationalSession {
         !this.snapshot.queueHardStopped &&
         isEmployeeAttemptScope(attempt, this.generation, this.snapshot.scope),
     );
-    if (result.kind === "stale") return;
+    if (result.kind === "stale") {
+      if (this.pendingAttempt === attempt) {
+        this.publish(
+          applyEmployeeMutationPhase(this.snapshot, attempt, "reconciling"),
+        );
+      }
+      return;
+    }
     if (result.kind === "reconcile") {
-      this.publishMutation(attempt, "reconciling");
+      this.publish(
+        applyEmployeeMutationPhase(this.snapshot, attempt, "reconciling"),
+      );
       await this.queue.refresh(false, true);
       return;
     }
@@ -233,20 +245,6 @@ export class EmployeeOperationalSession {
       ),
     );
     if (event.tasks !== undefined) this.reconcilePendingAttempt();
-  }
-
-  private publishMutation(
-    attempt: AcceptAttempt,
-    phase: "reconciling" | "submitting",
-  ): void {
-    this.publish({
-      ...this.snapshot,
-      mutation: {
-        expectedVersion: attempt.expectedVersion,
-        phase,
-        taskId: attempt.taskId,
-      },
-    });
   }
 
   private reconcilePendingAttempt(): void {

@@ -1,4 +1,5 @@
 import type {
+  EmployeeAcceptAttempt,
   EmployeeOperationalPhase,
   EmployeeOperationalScope,
   EmployeeOperationalSnapshot,
@@ -100,5 +101,20 @@ export function applyEmployeeOperationalScope(
     ),
     queueLoading: foreground,
     scope,
+  };
+}
+
+export function applyEmployeeMutationPhase(
+  current: EmployeeOperationalSnapshot,
+  attempt: EmployeeAcceptAttempt,
+  phase: "reconciling" | "submitting",
+): EmployeeOperationalSnapshot {
+  return {
+    ...current,
+    mutation: {
+      expectedVersion: attempt.expectedVersion,
+      phase,
+      taskId: attempt.taskId,
+    },
   };
 }

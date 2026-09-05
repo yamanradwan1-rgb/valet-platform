@@ -11,6 +11,9 @@ vi.mock("react-native", () => ({
 }));
 
 const { NativeTasksPanel } = await import("../src/tasks/native-tasks-panel");
+const { NativeTaskCard } = await import("../src/tasks/native-task-card");
+const { NativeTaskQueueRow } =
+  await import("../src/tasks/native-task-queue-row");
 const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
 const { EmployeeError, EmployeeStatus } =
   await import("../src/employee-ui/employee-feedback");
@@ -71,6 +74,22 @@ describe("Native production Tasks panel", () => {
       testID: "native-production-task-queue",
       windowSize: 7,
     });
+  });
+
+  it("uses one full priority card followed by compact queue rows", () => {
+    const second = { ...task, taskId: "77777777-7777-4777-8777-777777777777" };
+    const list = render({ tasks: [task, second] }).find(
+      (node) => node.type === "FlatList",
+    )!;
+    const renderItem = list.props.renderItem as (input: {
+      index: number;
+      item: typeof task;
+    }) => Element;
+
+    expect(renderItem({ index: 0, item: task }).type).toBe(NativeTaskCard);
+    expect(renderItem({ index: 1, item: second }).type).toBe(
+      NativeTaskQueueRow,
+    );
   });
 
   it("keeps the manual refresh action reachable", () => {

@@ -52,6 +52,7 @@ export class EmployeeTaskQueueOwner {
   private foreground = false;
   private hardStopped = false;
   private retryNotBefore = 0;
+  private suspended = false;
   private scope:
     | {
         readonly generation: number;
@@ -87,6 +88,7 @@ export class EmployeeTaskQueueOwner {
     }
     this.scope = { generation, key, value: scope };
     this.hardStopped = false;
+    this.suspended = false;
     this.startTimer();
     return {
       changed,
@@ -101,11 +103,18 @@ export class EmployeeTaskQueueOwner {
     this.hardStopped = false;
     this.retryNotBefore = 0;
     this.successfulSnapshotCount = 0;
+    this.suspended = false;
+  }
+
+  suspend(): void {
+    this.stopTimer();
+    this.abortActive();
+    this.suspended = true;
   }
 
   refresh(initial = false, preserveInBackground = false): Promise<void> {
     const target = this.scope;
-    if (target === undefined || this.hardStopped) {
+    if (target === undefined || this.hardStopped || this.suspended) {
       return Promise.resolve();
     }
     if (Date.now() < this.retryNotBefore) return Promise.resolve();
@@ -186,6 +195,7 @@ export class EmployeeTaskQueueOwner {
     if (
       !this.foreground ||
       this.hardStopped ||
+      this.suspended ||
       this.scope === undefined ||
       this.timer !== undefined
     ) {

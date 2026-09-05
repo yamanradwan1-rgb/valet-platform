@@ -37,6 +37,7 @@ import {
 } from "../foundation/foundation-locale";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeRetrievalAttention } from "../tasks/native-retrieval-attention";
+import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-attention";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeProductionNavigation } from "./native-production-navigation";
 import { NativeShellGate } from "./native-shell-gate";
@@ -106,6 +107,7 @@ export function NativeProductionShell({
   const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
   const presentation = getFoundationPresentation(locale);
   const copy = getNativeShellCopy(locale);
+  const retrievalAttention = useNativeRetrievalAttention(operations);
 
   useEffect(() => {
     if (runtime === undefined) return;
@@ -211,9 +213,10 @@ export function NativeProductionShell({
       <View style={styles.content} testID="native-production-shell">
         <NativeRetrievalAttention
           locale={locale}
+          onDismiss={retrievalAttention.dismiss}
           onOpenQueue={() => navigate("tasks")}
           operations={runtime.operations}
-          snapshot={operations}
+          taskIds={retrievalAttention.taskIds}
           textAlign={presentation.textAlign}
         />
         {shell.destination === "check-in" ? (

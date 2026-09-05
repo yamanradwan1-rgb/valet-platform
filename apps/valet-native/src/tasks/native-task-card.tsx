@@ -8,12 +8,14 @@ import type {
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeBadge } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
+import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   canAcceptNativeTask,
   nativeTaskActionLabel,
   nativeTaskAge,
   nativeTaskParkingContext,
   nativeTaskStatusLabel,
+  nativeTaskTime,
   nativeTaskTypeLabel,
   nativeTaskVehicleLabel,
 } from "./native-task-presentation";
@@ -22,6 +24,7 @@ import type { NativeTasksCopy } from "./native-tasks-copy";
 
 export function NativeTaskCard({
   copy,
+  locale,
   operations,
   priority,
   snapshot,
@@ -29,6 +32,7 @@ export function NativeTaskCard({
   textAlign,
 }: {
   readonly copy: NativeTasksCopy;
+  readonly locale: FoundationLocale;
   readonly operations: EmployeeOperationalSession;
   readonly priority: boolean;
   readonly snapshot: EmployeeOperationalSnapshot;
@@ -83,6 +87,9 @@ export function NativeTaskCard({
             {task.vehicle.plateNumberRaw}
           </Text>
         ) : null}
+        <Text style={[s.detail, humanText]}>
+          {nativeTaskTime(copy, locale, task)}
+        </Text>
         {task.vehicle.color || parkingContext ? (
           <Text style={[s.detail, humanText]}>
             {[task.vehicle.color, parkingContext].filter(Boolean).join(" · ")}

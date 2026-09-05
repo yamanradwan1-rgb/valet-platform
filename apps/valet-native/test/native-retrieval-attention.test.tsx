@@ -3,18 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const hooks = vi.hoisted(() => ({
   index: 0,
-  refIndex: 0,
-  refs: [] as Array<{ current: unknown }>,
   values: [] as unknown[],
 }));
 
 vi.mock("react", () => ({
-  useEffect: (effect: () => void) => effect(),
-  useRef: (initial: unknown) => {
-    const index = hooks.refIndex++;
-    hooks.refs[index] ??= { current: initial };
-    return hooks.refs[index];
-  },
   useState: (initial: unknown) => {
     const index = hooks.index++;
     if (!(index in hooks.values)) hooks.values[index] = initial;
@@ -39,8 +31,6 @@ vi.mock("react-native", () => ({
 
 const { NativeRetrievalAttention } =
   await import("../src/tasks/native-retrieval-attention");
-const { operations: snapshotFixture } =
-  await import("./production-shell-test-fixture");
 
 type Element = ReactElement<Record<string, unknown>>;
 
@@ -51,71 +41,50 @@ function elements(value: unknown): Element[] {
   return [node, ...elements(node.props.children)];
 }
 
-const retrieval = {
-  createdAt: "2026-09-03T08:05:00.000Z",
-  currentAssigneeMembershipId: null,
-  parkingSpot: "12",
-  parkingZone: "North",
-  retrievalRequestedAt: "2026-09-03T08:10:00.000Z",
-  sessionId: "44444444-4444-4444-8444-444444444444",
-  status: "QUEUED" as const,
-  taskId: "66666666-6666-4666-8666-666666666666",
-  taskType: "RETRIEVAL" as const,
-  valetSessionState: "REQUESTED" as const,
-  valetSessionVersion: 2,
-  vehicle: {
-    color: "Black",
-    make: "Toyota",
-    model: "Camry",
-    plateNumberRaw: "12-34567",
-    temporaryDescriptor: null,
-  },
-  version: 3,
-};
+const taskId = "66666666-6666-4666-8666-666666666666";
 
-function render(count: number, tasks: readonly [typeof retrieval] | []) {
+function render(taskIds: readonly string[]) {
   hooks.index = 0;
-  hooks.refIndex = 0;
   return elements(
     NativeRetrievalAttention({
       locale: "en",
+      onDismiss,
       onOpenQueue,
       operations,
-      snapshot: {
-        ...snapshotFixture("ready"),
-        successfulQueueSnapshotCount: count,
-        tasks,
-      },
+      taskIds,
       textAlign: "left",
     }),
   );
 }
 
 let onOpenQueue: ReturnType<typeof vi.fn>;
+let onDismiss: ReturnType<typeof vi.fn>;
 let operations: { refreshQueue: ReturnType<typeof vi.fn> };
 
 beforeEach(() => {
   hooks.index = 0;
-  hooks.refIndex = 0;
-  hooks.refs = [];
   hooks.values = [];
+  onDismiss = vi.fn();
   onOpenQueue = vi.fn();
   operations = { refreshQueue: vi.fn(() => Promise.resolve()) };
 });
 
 describe("Native foreground retrieval attention", () => {
-  it("shows only after baseline and dismissal prevents replay", () => {
-    expect(render(1, [])).toEqual([]);
-    expect(render(2, [retrieval])).toEqual([]);
-    const visible = render(2, [retrieval]);
+  it("renders exact Web copy and delegates dismissal to the shell owner", () => {
+    const visible = render([taskId]);
     const dismiss = visible.find(
       (node) => node.props.accessibilityLabel === "Dismiss",
     )!;
+    expect(
+      JSON.stringify(visible.map((node) => node.props.children)),
+    ).toContain("Vehicle requested");
+    expect(
+      JSON.stringify(visible.map((node) => node.props.children)),
+    ).toContain("A guest has requested their vehicle.");
 
     (dismiss.props.onPress as () => void)();
 
-    expect(render(2, [retrieval])).toEqual([]);
-    expect(render(3, [retrieval])).toEqual([]);
+    expect(onDismiss).toHaveBeenCalledWith(taskId);
   });
 
   it("refreshes canonical queue state before opening Tasks", async () => {
@@ -126,11 +95,9 @@ describe("Native foreground retrieval attention", () => {
           resolveRefresh = resolve;
         }),
     );
-    render(1, []);
-    render(2, [retrieval]);
-    const visible = render(2, [retrieval]);
+    const visible = render([taskId]);
     const message = visible.find((node) =>
-      String(node.props.accessibilityLabel).startsWith("Retrieval requested"),
+      String(node.props.accessibilityLabel).startsWith("Vehicle requested"),
     )!;
 
     (message.props.onPress as () => void)();
@@ -140,6 +107,7 @@ describe("Native foreground retrieval attention", () => {
     await Promise.resolve();
     await Promise.resolve();
 
+    expect(onDismiss).toHaveBeenCalledWith(taskId);
     expect(onOpenQueue).toHaveBeenCalledOnce();
   });
 });
