@@ -4,6 +4,7 @@ export type NativePlateOcrDiagnostic =
   | "camera-ready"
   | "capture-aborted"
   | "capture-exception"
+  | "camera-capture-fallback"
   | "fallback-capture-no-uri"
   | "fallback-capture-start"
   | "fallback-capture-success"

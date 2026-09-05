@@ -1,7 +1,9 @@
-export const NATIVE_PLATE_TARGET_LONG_EDGE = 1920;
-export const NATIVE_PLATE_TARGET_SHORT_EDGE = 1080;
+export const NATIVE_PLATE_TARGET_LONG_EDGE = 1280;
+export const NATIVE_PLATE_TARGET_SHORT_EDGE = 720;
 export const NATIVE_PLATE_MIN_LONG_EDGE = 1024;
 export const NATIVE_PLATE_MIN_SHORT_EDGE = 576;
+export const NATIVE_PLATE_FALLBACK_LONG_EDGE = 1024;
+export const NATIVE_PLATE_FALLBACK_SHORT_EDGE = 576;
 export const NATIVE_PLATE_PRIMARY_JPEG_QUALITY = 0.6;
 export const NATIVE_PLATE_FALLBACK_JPEG_QUALITY = 0.45;
 
@@ -12,7 +14,11 @@ interface PictureSizeCandidate {
   readonly score: number;
 }
 
-function candidate(value: string): PictureSizeCandidate | undefined {
+function candidate(
+  value: string,
+  targetLongEdge = NATIVE_PLATE_TARGET_LONG_EDGE,
+  targetShortEdge = NATIVE_PLATE_TARGET_SHORT_EDGE,
+): PictureSizeCandidate | undefined {
   const match = /^(\d+)x(\d+)$/.exec(value);
   if (!match) return undefined;
   const first = Number(match[1]);
@@ -23,22 +29,21 @@ function candidate(value: string): PictureSizeCandidate | undefined {
     !Number.isSafeInteger(longEdge) ||
     !Number.isSafeInteger(shortEdge) ||
     longEdge > NATIVE_PLATE_TARGET_LONG_EDGE ||
-    shortEdge > NATIVE_PLATE_TARGET_LONG_EDGE ||
+    shortEdge > NATIVE_PLATE_TARGET_SHORT_EDGE ||
     longEdge < NATIVE_PLATE_MIN_LONG_EDGE ||
     shortEdge < NATIVE_PLATE_MIN_SHORT_EDGE
   )
     return undefined;
   const aspectPenalty = Math.abs(
-    longEdge / shortEdge -
-      NATIVE_PLATE_TARGET_LONG_EDGE / NATIVE_PLATE_TARGET_SHORT_EDGE,
+    longEdge / shortEdge - targetLongEdge / targetShortEdge,
   );
   return {
     value,
     longEdge,
     shortEdge,
     score:
-      Math.abs(longEdge - NATIVE_PLATE_TARGET_LONG_EDGE) +
-      Math.abs(shortEdge - NATIVE_PLATE_TARGET_SHORT_EDGE) +
+      Math.abs(longEdge - targetLongEdge) +
+      Math.abs(shortEdge - targetShortEdge) +
       aspectPenalty * 1000,
   };
 }
@@ -48,8 +53,38 @@ export function selectNativePlatePictureSize(
   supported: readonly string[],
 ): string | undefined {
   return supported
-    .map(candidate)
+    .map((value) => candidate(value))
     .filter((value): value is PictureSizeCandidate => value !== undefined)
+    .sort(
+      (a, b) =>
+        a.score - b.score ||
+        b.longEdge * b.shortEdge - a.longEdge * a.shortEdge ||
+        (a.value < b.value ? -1 : a.value > b.value ? 1 : 0),
+    )[0]?.value;
+}
+
+/** Selects one exact supported lower-resolution size for a camera retry. */
+export function selectNativePlateFallbackPictureSize(
+  supported: readonly string[],
+  preferred: string,
+): string | undefined {
+  const selected = candidate(preferred);
+  if (!selected) return undefined;
+  return supported
+    .map((value) =>
+      candidate(
+        value,
+        NATIVE_PLATE_FALLBACK_LONG_EDGE,
+        NATIVE_PLATE_FALLBACK_SHORT_EDGE,
+      ),
+    )
+    .filter(
+      (value): value is PictureSizeCandidate =>
+        value !== undefined &&
+        value.value !== preferred &&
+        value.longEdge * value.shortEdge <
+          selected.longEdge * selected.shortEdge,
+    )
     .sort(
       (a, b) =>
         a.score - b.score ||

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { selectNativePlatePictureSize } from "../src/check-in/native-plate-capture-policy";
+import {
+  selectNativePlateFallbackPictureSize,
+  selectNativePlatePictureSize,
+} from "../src/check-in/native-plate-capture-policy";
 
 describe("Native ANPR picture-size policy", () => {
-  it("selects the exact 1920x1080 target independent of device ordering", () => {
+  it("selects the exact 1280x720 target independent of device ordering", () => {
     const supported = [
       "4032x3024",
       "3840x2160",
@@ -10,28 +13,44 @@ describe("Native ANPR picture-size policy", () => {
       "640x480",
       "1920x1080",
     ];
-    expect(selectNativePlatePictureSize(supported)).toBe("1920x1080");
+    expect(selectNativePlatePictureSize(supported)).toBe("1280x720");
     expect(selectNativePlatePictureSize([...supported].reverse())).toBe(
-      "1920x1080",
+      "1280x720",
     );
   });
 
   it("chooses the nearest supported bounded ANPR size", () => {
-    expect(
-      selectNativePlatePictureSize(["4000x3000", "1280x960", "1600x1200"]),
-    ).toBe("1600x1200");
+    const supported = ["4000x3000", "1152x648", "1024x576"];
+    expect(selectNativePlatePictureSize(supported)).toBe("1152x648");
+    expect(selectNativePlatePictureSize([...supported].reverse())).toBe(
+      "1152x648",
+    );
+    expect(selectNativePlatePictureSize(["1920x1080"])).toBeUndefined();
   });
 
   it("normalizes orientation only for comparison", () => {
     expect(selectNativePlatePictureSize(["720x1280", "1080x1920"])).toBe(
-      "1080x1920",
+      "720x1280",
     );
   });
 
   it("uses one reasonable supported size", () => {
-    expect(selectNativePlatePictureSize(["640x480", "1024x768"])).toBe(
-      "1024x768",
+    expect(selectNativePlatePictureSize(["640x480", "1024x576"])).toBe(
+      "1024x576",
     );
+  });
+
+  it("selects a deterministic exact lower camera fallback", () => {
+    const supported = ["1280x720", "1152x648", "1024x576", "960x540"];
+    expect(selectNativePlateFallbackPictureSize(supported, "1280x720")).toBe(
+      "1024x576",
+    );
+    expect(
+      selectNativePlateFallbackPictureSize(
+        [...supported].reverse(),
+        "1280x720",
+      ),
+    ).toBe("1024x576");
   });
 
   it("returns undefined instead of inventing a size", () => {

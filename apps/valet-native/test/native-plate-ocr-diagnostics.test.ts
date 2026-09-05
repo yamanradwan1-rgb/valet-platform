@@ -108,7 +108,7 @@ describe("Native Plate OCR diagnostic trace", () => {
     binding.controller.setEligible(true);
     await binding.controller.open();
     binding.cameraRef({
-      getAvailablePictureSizesAsync: async () => ["4032x3024", "1920x1080"],
+      getAvailablePictureSizesAsync: async () => ["4032x3024", "1280x720"],
     } as CameraView);
     const generation = binding.controller.current().generation;
     await binding.cameraReady(generation);
@@ -116,7 +116,7 @@ describe("Native Plate OCR diagnostic trace", () => {
 
     expect(messages()).toEqual([
       "PLATE_OCR_NATIVE picture-sizes-loaded count=2",
-      "PLATE_OCR_NATIVE picture-size-selected value=1920x1080",
+      "PLATE_OCR_NATIVE picture-size-selected value=1280x720",
       "PLATE_OCR_NATIVE picture-size-remount",
       "PLATE_OCR_NATIVE preview-ready",
       "PLATE_OCR_NATIVE loop-start",

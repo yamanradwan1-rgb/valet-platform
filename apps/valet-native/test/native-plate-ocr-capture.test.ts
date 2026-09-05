@@ -189,7 +189,7 @@ describe("Native bounded ANPR capture", () => {
     await binding.cameraReady(generation);
     expect(binding.controller.current()).toMatchObject({
       phase: "starting",
-      pictureSize: "1920x1080",
+      pictureSize: "1280x720",
     });
     await binding.cameraReady(generation);
     expect(binding.controller.current().phase).toBe("preview");

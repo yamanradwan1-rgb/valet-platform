@@ -7,7 +7,10 @@ import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 
 export interface NativePlateCameraSnapshot {
   readonly generation: number;
-  readonly pictureSize?: string;
+  readonly pictureSize?: string | undefined;
+  readonly preferredPictureSize?: string | undefined;
+  readonly fallbackPictureSize?: string | undefined;
+  readonly captureFallbackUsed: boolean;
   readonly phase:
     | "idle"
     | "requesting"
@@ -27,7 +30,16 @@ export class NativePlateCameraController {
     generation: 0,
     phase: "idle",
     canAskAgain: true,
+    captureFallbackUsed: false,
   };
+  private fallbackReady:
+    | {
+        readonly generation: number;
+        readonly signal: AbortSignal;
+        readonly resolve: (ready: boolean) => void;
+        readonly aborted: () => void;
+      }
+    | undefined;
   private readonly listeners = new Set<() => void>();
 
   private readonly ocr: NativePlateOcrLoop | undefined;
@@ -77,9 +89,12 @@ export class NativePlateCameraController {
         permission = await this.permissions.request();
       if (!this.isCurrent(generation)) return;
       this.publish({
+        ...this.snapshot,
         generation,
         phase: permission.granted ? "starting" : "denied",
         canAskAgain: permission.canAskAgain,
+        pictureSize: this.snapshot.preferredPictureSize,
+        captureFallbackUsed: false,
       });
     } catch {
       this.fail(generation);
@@ -89,25 +104,70 @@ export class NativePlateCameraController {
   ready(generation: number): void {
     if (this.isCurrent(generation) && this.snapshot.phase === "starting") {
       this.publish({ ...this.snapshot, phase: "preview" });
+      if (this.fallbackReady?.generation === generation) {
+        this.resolveFallback(true);
+        return;
+      }
       logNativePlateOcr("preview-ready");
       logNativePlateOcr("loop-start");
       this.ocr?.start(generation);
     }
   }
 
-  configurePictureSize(generation: number, pictureSize: string): boolean {
+  configurePictureSizes(
+    generation: number,
+    pictureSize: string,
+    fallbackPictureSize?: string,
+  ): boolean {
     if (
       !this.isCurrent(generation) ||
       this.snapshot.phase !== "starting" ||
       this.snapshot.pictureSize === pictureSize
     )
       return false;
-    this.publish({ ...this.snapshot, pictureSize });
+    this.publish({
+      ...this.snapshot,
+      pictureSize,
+      preferredPictureSize: pictureSize,
+      fallbackPictureSize,
+      captureFallbackUsed: false,
+    });
     return true;
+  }
+
+  waitForCaptureFallback(
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<boolean> {
+    const fallback = this.snapshot.fallbackPictureSize;
+    if (
+      signal.aborted ||
+      !fallback ||
+      !this.isCurrent(generation) ||
+      this.snapshot.phase !== "preview" ||
+      this.snapshot.captureFallbackUsed ||
+      this.fallbackReady
+    )
+      return Promise.resolve(false);
+    logNativePlateOcr("camera-capture-fallback");
+    logNativePlateOcr("picture-size-selected", { value: fallback });
+    logNativePlateOcr("picture-size-remount");
+    return new Promise((resolve) => {
+      const aborted = () => this.resolveFallback(false);
+      this.fallbackReady = { generation, signal, resolve, aborted };
+      signal.addEventListener("abort", aborted, { once: true });
+      this.publish({
+        ...this.snapshot,
+        pictureSize: fallback,
+        captureFallbackUsed: true,
+        phase: "starting",
+      });
+    });
   }
 
   fail(generation: number): void {
     if (!this.isCurrent(generation)) return;
+    this.resolveFallback(false);
     this.ocr?.cancel();
     // Expo mount errors do not reliably distinguish busy/missing hardware.
     this.publish({
@@ -118,6 +178,7 @@ export class NativePlateCameraController {
   }
 
   close(): void {
+    this.resolveFallback(false);
     this.ocr?.cancel();
     this.publish({
       ...this.snapshot,
@@ -133,6 +194,14 @@ export class NativePlateCameraController {
 
   private isCurrent(generation: number): boolean {
     return this.eligible && generation === this.snapshot.generation;
+  }
+
+  private resolveFallback(ready: boolean): void {
+    const fallback = this.fallbackReady;
+    if (!fallback) return;
+    this.fallbackReady = undefined;
+    fallback.signal.removeEventListener("abort", fallback.aborted);
+    fallback.resolve(ready);
   }
 
   private publish(snapshot: NativePlateCameraSnapshot): void {
