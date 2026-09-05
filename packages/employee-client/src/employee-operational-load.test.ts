@@ -44,6 +44,36 @@ describe("Employee operational context and queue", () => {
     expect(transport.queueCalls).toEqual([]);
   });
 
+  it("distinguishes no usable Location from no active Shift", async () => {
+    const transport = new StubOperationalTransport();
+    const context = operationalContext(false);
+    transport.contextResults.push(
+      Promise.resolve({
+        contexts: context.contexts.map((membership) => ({
+          ...membership,
+          eligibleLocations: [],
+        })),
+      }),
+    );
+    const session = new EmployeeOperationalSession({ transport });
+
+    await session.activate(1);
+
+    expect(session.current().phase).toBe("no-usable-location");
+    expect(transport.queueCalls).toEqual([]);
+  });
+
+  it("fails closed when an authenticated response has no usable membership", async () => {
+    const transport = new StubOperationalTransport();
+    transport.contextResults.push(Promise.resolve({ contexts: [] }));
+    const session = new EmployeeOperationalSession({ transport });
+
+    await session.activate(1);
+
+    expect(session.current().phase).toBe("access-denied");
+    expect(transport.queueCalls).toEqual([]);
+  });
+
   it("keeps context load failure truthful", async () => {
     const transport = new StubOperationalTransport();
     transport.contextResults.push(

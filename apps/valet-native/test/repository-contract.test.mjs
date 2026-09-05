@@ -7,7 +7,7 @@ const appRoot = resolve(import.meta.dirname, "..");
 const repositoryRoot = resolve(appRoot, "..", "..");
 
 describe("Native repository contract", () => {
-  it("has the minimal Router shell", () => {
+  it("has the production Router shell", () => {
     const layoutPath = resolve(appRoot, "app", "_layout.tsx");
     const indexPath = resolve(appRoot, "app", "index.tsx");
 
@@ -16,7 +16,9 @@ describe("Native repository contract", () => {
     expect(readFileSync(layoutPath, "utf8")).toContain(
       '<Stack.Screen name="index"',
     );
-    expect(readFileSync(indexPath, "utf8")).toContain("<FoundationShell />");
+    const indexSource = readFileSync(indexPath, "utf8");
+    expect(indexSource).toContain("<NativeProductionShell");
+    expect(indexSource).not.toContain("FoundationShell");
   });
 
   it.each([

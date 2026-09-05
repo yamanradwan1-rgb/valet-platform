@@ -16,6 +16,7 @@ interface NativeAuthPanelProps {
   readonly snapshot: NativeAuthSnapshot;
   readonly textAlign: "left" | "right";
   readonly compact?: boolean;
+  readonly tone?: "dark" | "light";
 }
 
 export function NativeAuthPanel({
@@ -24,6 +25,7 @@ export function NativeAuthPanel({
   snapshot,
   textAlign,
   compact = false,
+  tone = "light",
 }: NativeAuthPanelProps) {
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState("");
@@ -40,15 +42,17 @@ export function NativeAuthPanel({
   };
 
   if (snapshot.phase === "restoring") {
-    return <StatusText copy={copy.restoring} textAlign={textAlign} />;
+    return (
+      <StatusText copy={copy.restoring} textAlign={textAlign} tone={tone} />
+    );
   }
   if (snapshot.phase === "fatal" || session === undefined) {
-    return <StatusText copy={copy.fatal} textAlign={textAlign} />;
+    return <StatusText copy={copy.fatal} textAlign={textAlign} tone={tone} />;
   }
   if (snapshot.phase === "restoration-unavailable") {
     return (
       <View style={styles.authPanel}>
-        <StatusText copy={copy.transient} textAlign={textAlign} />
+        <StatusText copy={copy.transient} textAlign={textAlign} tone={tone} />
         <ActionButton
           disabled={busy}
           label={copy.retry}
@@ -71,7 +75,11 @@ export function NativeAuthPanel({
     }
     return (
       <View style={styles.authPanel}>
-        <StatusText copy={copy.authenticated} textAlign={textAlign} />
+        <StatusText
+          copy={copy.authenticated}
+          textAlign={textAlign}
+          tone={tone}
+        />
         <ActionButton
           disabled={busy}
           label={copy.logout}
@@ -88,7 +96,13 @@ export function NativeAuthPanel({
   return (
     <View style={styles.authPanel}>
       {showFailure ? (
-        <Text style={[styles.errorText, { textAlign }]}>
+        <Text
+          style={[
+            styles.errorText,
+            tone === "dark" && styles.darkErrorText,
+            { textAlign },
+          ]}
+        >
           {copy.loginFailed}
         </Text>
       ) : null}
@@ -100,7 +114,11 @@ export function NativeAuthPanel({
         onChangeText={setEmail}
         placeholder={copy.email}
         placeholderTextColor={employeeColors.muted}
-        style={[styles.input, { textAlign }]}
+        style={[
+          styles.input,
+          tone === "dark" && styles.darkInput,
+          { textAlign },
+        ]}
         value={email}
       />
       <TextInput
@@ -111,7 +129,11 @@ export function NativeAuthPanel({
         placeholder={copy.password}
         placeholderTextColor={employeeColors.muted}
         secureTextEntry
-        style={[styles.input, { textAlign }]}
+        style={[
+          styles.input,
+          tone === "dark" && styles.darkInput,
+          { textAlign },
+        ]}
         value={password}
       />
       <ActionButton
@@ -130,14 +152,20 @@ export function NativeAuthPanel({
 function StatusText({
   copy,
   textAlign,
+  tone,
 }: {
   copy: string;
   textAlign: "left" | "right";
+  tone: "dark" | "light";
 }) {
   return (
     <Text
       accessibilityLiveRegion="polite"
-      style={[styles.status, { textAlign }]}
+      style={[
+        styles.status,
+        tone === "dark" && styles.darkStatus,
+        { textAlign },
+      ]}
     >
       {copy}
     </Text>

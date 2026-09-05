@@ -3,17 +3,31 @@ import type { StaffOperationalContextResponse } from "@valet/contracts/staff-con
 import type { EmployeeOperationalScope } from "./employee-operational-types";
 
 export type EmployeeOperationalScopeResolution =
-  | { readonly phase: "ambiguous-active-shifts" | "no-active-shift" }
+  | {
+      readonly phase:
+        | "access-denied"
+        | "ambiguous-active-shifts"
+        | "no-active-shift"
+        | "no-usable-location";
+    }
   | { readonly phase: "ready"; readonly scope: EmployeeOperationalScope };
 
 export function resolveEmployeeOperationalScope(
   response: StaffOperationalContextResponse,
 ): EmployeeOperationalScopeResolution {
+  if (response.contexts.length === 0) return { phase: "access-denied" };
   const active = response.contexts.filter(
     (context) =>
       context.activeShift !== null && context.currentLocation !== null,
   );
-  if (active.length === 0) return { phase: "no-active-shift" };
+  if (active.length === 0) {
+    const hasUsableLocation = response.contexts.some(
+      (context) => context.eligibleLocations.length > 0,
+    );
+    return {
+      phase: hasUsableLocation ? "no-active-shift" : "no-usable-location",
+    };
+  }
   if (active.length !== 1) return { phase: "ambiguous-active-shifts" };
   const context = active[0]!;
   return {

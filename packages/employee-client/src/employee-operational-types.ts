@@ -21,11 +21,13 @@ export interface EmployeeOperationalScope {
 }
 
 export type EmployeeOperationalPhase =
+  | "access-denied"
   | "ambiguous-active-shifts"
   | "error"
   | "inactive"
   | "loading-context"
   | "no-active-shift"
+  | "no-usable-location"
   | "ready";
 
 export type EmployeeTaskMutationPhase =

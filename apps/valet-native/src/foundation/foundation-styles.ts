@@ -61,6 +61,17 @@ export const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.45,
   },
+  darkErrorText: {
+    color: "#FCA5A5",
+  },
+  darkInput: {
+    backgroundColor: "#FFFFFF14",
+    borderColor: "#FFFFFF26",
+    color: c.white,
+  },
+  darkStatus: {
+    color: c.white,
+  },
   errorText: {
     ...employeeTypography.body,
     color: c.danger,

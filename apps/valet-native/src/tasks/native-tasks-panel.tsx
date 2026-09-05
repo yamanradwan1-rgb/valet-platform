@@ -1,5 +1,5 @@
-import { useEffect, type ReactNode } from "react";
-import { AppState, ScrollView, Text, View } from "react-native";
+import type { ReactNode } from "react";
+import { ScrollView, Text, View } from "react-native";
 import type {
   EmployeeOperationalSession,
   EmployeeOperationalSnapshot,
@@ -36,13 +36,6 @@ export function NativeTasksPanel({
   headerAction,
 }: NativeTasksPanelProps) {
   const copy = getNativeTasksCopy(locale);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") void operations.refresh();
-    });
-    return () => subscription.remove();
-  }, [operations]);
 
   if (snapshot.phase === "loading-context" || snapshot.phase === "inactive") {
     return (

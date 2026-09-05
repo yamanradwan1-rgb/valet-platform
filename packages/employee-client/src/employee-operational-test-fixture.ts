@@ -19,6 +19,12 @@ export const ids = {
 export function operationalContext(
   active = true,
 ): StaffOperationalContextResponse {
+  const location = {
+    code: "AMM-1",
+    currency: "JOD",
+    locationId: ids.location,
+    name: "Amman Hotel",
+  };
   return {
     contexts: [
       {
@@ -30,15 +36,8 @@ export function operationalContext(
               status: "ACTIVE",
             }
           : null,
-        currentLocation: active
-          ? {
-              code: "AMM-1",
-              currency: "JOD",
-              locationId: ids.location,
-              name: "Amman Hotel",
-            }
-          : null,
-        eligibleLocations: [],
+        currentLocation: active ? location : null,
+        eligibleLocations: [location],
         membershipId: ids.membership,
         organization: {
           name: "VAYLET Operator",

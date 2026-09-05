@@ -1,5 +1,14 @@
-import { FoundationShell } from "@/foundation/foundation-shell";
+import { NativeProductionShell } from "@/shell/native-production-shell";
+import { productionRouteIntentFromParam } from "@/shell/production-shell-controller";
+import { useLocalSearchParams } from "expo-router";
 
 export default function IndexRoute() {
-  return <FoundationShell />;
+  const params = useLocalSearchParams<{ intent?: string | string[] }>();
+  const coldIntent = productionRouteIntentFromParam(params.intent);
+  return (
+    <NativeProductionShell
+      coldIntent={coldIntent}
+      key={coldIntent?.destination ?? "root"}
+    />
+  );
 }
