@@ -166,6 +166,58 @@ describe("Native Tasks presentation", () => {
     ).toContain("مطلوبة");
   });
 
+  it("formats EN and AR task times when RelativeTimeFormat is unavailable", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(
+      Intl,
+      "RelativeTimeFormat",
+    );
+    Object.defineProperty(Intl, "RelativeTimeFormat", {
+      configurable: true,
+      value: undefined,
+    });
+
+    try {
+      const now = Date.parse("2026-09-03T08:10:00.000Z");
+      expect(() =>
+        nativeTaskTime(getNativeTasksCopy("en"), "en", task, now),
+      ).not.toThrow();
+      expect(nativeTaskTime(getNativeTasksCopy("en"), "en", task, now)).toBe(
+        "Queued 5 min. ago",
+      );
+      expect(
+        nativeTaskTime(
+          getNativeTasksCopy("en"),
+          "en",
+          { ...task, createdAt: "2026-09-03T08:10:00.000Z" },
+          now,
+        ),
+      ).toBe("Queued this minute");
+      expect(
+        nativeTaskTime(
+          getNativeTasksCopy("ar"),
+          "ar",
+          { ...task, retrievalRequestedAt: task.createdAt },
+          now,
+        ),
+      ).toBe("مطلوبة قبل 5 دقائق");
+      expect(
+        nativeTaskTime(
+          getNativeTasksCopy("ar"),
+          "ar",
+          {
+            ...task,
+            retrievalRequestedAt: "2026-09-03T08:10:00.000Z",
+          },
+          now,
+        ),
+      ).toBe("مطلوبة هذه الدقيقة");
+    } finally {
+      if (descriptor !== undefined) {
+        Object.defineProperty(Intl, "RelativeTimeFormat", descriptor);
+      }
+    }
+  });
+
   it("presents truthful no-Shift, error, accepted, and recovery states", () => {
     const copy = getNativeTasksCopy("en");
     expect(copy.noShift).toBe("No active eligible Shift.");

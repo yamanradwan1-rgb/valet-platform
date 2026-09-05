@@ -90,6 +90,20 @@ export function nativeTaskAge(
   return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
+function fallbackRelativeMinutes(
+  locale: FoundationLocale,
+  minutes: number,
+): string {
+  if (locale === "en") {
+    return minutes === 0 ? "this minute" : `${minutes} min. ago`;
+  }
+  if (minutes === 0) return "هذه الدقيقة";
+  if (minutes === 1) return "قبل دقيقة واحدة";
+  if (minutes === 2) return "قبل دقيقتين";
+  const remainder = minutes % 100;
+  return `قبل ${minutes} ${remainder >= 3 && remainder <= 10 ? "دقائق" : "دقيقة"}`;
+}
+
 export function nativeTaskTime(
   copy: NativeTasksCopy,
   locale: FoundationLocale,
@@ -98,10 +112,13 @@ export function nativeTaskTime(
 ): string {
   const timestamp = task.retrievalRequestedAt ?? task.createdAt;
   const minutes = Math.floor(Math.max(0, now - Date.parse(timestamp)) / 60_000);
-  const relative = new Intl.RelativeTimeFormat(locale, {
-    numeric: "auto",
-    style: "short",
-  }).format(-minutes, "minute");
+  const relative =
+    typeof Intl !== "undefined" && typeof Intl.RelativeTimeFormat === "function"
+      ? new Intl.RelativeTimeFormat(locale, {
+          numeric: "auto",
+          style: "short",
+        }).format(-minutes, "minute")
+      : fallbackRelativeMinutes(locale, minutes);
   return `${task.retrievalRequestedAt ? copy.requested : copy.statusQueued} ${relative}`;
 }
 
