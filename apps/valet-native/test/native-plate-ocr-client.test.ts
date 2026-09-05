@@ -1,11 +1,32 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NativeAuthSession } from "@valet/employee-client";
+import { File } from "expo-file-system";
 import { recognizeNativePlate } from "../src/check-in/native-plate-ocr-client";
+
+vi.mock("expo-file-system", () => ({
+  File: class {
+    readonly name = "temporary.jpg";
+    readonly type = "image/jpeg";
+    constructor(readonly uri: string) {}
+    async bytes() {
+      return new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
+    }
+  },
+}));
+// Use the installed Expo serializer to reject unsupported URI-only file parts.
+const { convertFormDataAsync } = await vi.importActual<{
+  convertFormDataAsync(
+    body: FormData,
+  ): Promise<{ body: Uint8Array<ArrayBuffer>; boundary: string }>;
+}>("expo/src/winter/fetch/convertFormData.ts");
 
 class NativeFormData {
   readonly parts: Array<[string, unknown]> = [];
   append(key: string, value: unknown) {
     this.parts.push([key, value]);
+  }
+  entries() {
+    return this.parts.values();
   }
 }
 const metadata = {
@@ -71,11 +92,34 @@ describe("Native OCR Staff transport", () => {
     expect((options?.body as unknown as NativeFormData).parts).toEqual([
       ["targetLocationId", metadata.targetLocationId],
       ["plateCountry", "JO"],
-      [
-        "image",
-        { uri: "cache://temporary.jpg", name: "plate.jpg", type: "image/jpeg" },
-      ],
+      ["image", new File("cache://temporary.jpg")],
     ]);
+  });
+  it("serializes the captured JPEG bytes with Expo fetch multipart encoding", async () => {
+    const c = setup();
+    c.http.mockImplementationOnce(async (_url, options) => {
+      const { body, boundary } = await convertFormDataAsync(
+        options?.body as FormData,
+      );
+      const uploaded = await new Response(body, {
+        headers: {
+          "Content-Type": `multipart/form-data; boundary=${boundary}`,
+        },
+      }).formData();
+      expect(uploaded.getAll("targetLocationId")).toEqual([
+        metadata.targetLocationId,
+      ]);
+      expect(uploaded.getAll("plateCountry")).toEqual(["JO"]);
+      expect(uploaded.getAll("image")).toHaveLength(1);
+      const image = uploaded.getAll("image")[0] as unknown as Blob;
+      expect(image.type).toBe("image/jpeg");
+      expect(new Uint8Array(await image.arrayBuffer())).toEqual(
+        new Uint8Array([0xff, 0xd8, 0xff, 0xd9]),
+      );
+      return new Response(JSON.stringify({ status: "NO_MATCH" }));
+    });
+    expect(await c.run()).toEqual({ status: "NO_MATCH" });
+    expect(c.http).toHaveBeenCalledOnce();
   });
   it("preserves existing POST 401 behavior without introducing generic replay", async () => {
     const c = setup();

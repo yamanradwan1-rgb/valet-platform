@@ -4,6 +4,7 @@ import {
   type NativeAuthSession,
   type PlateOcrResponse,
 } from "@valet/employee-client";
+import { File } from "expo-file-system";
 import { createNativeEmployeeClient } from "../tasks/native-operational-http";
 
 export async function recognizeNativePlate(
@@ -18,12 +19,8 @@ export async function recognizeNativePlate(
   const body = new FormData();
   body.append("targetLocationId", input.targetLocationId);
   body.append("plateCountry", input.plateCountry);
-  // React Native's fetch consumes a local file part without base64/JSON copying.
-  body.append("image", {
-    uri,
-    name: "plate.jpg",
-    type: "image/jpeg",
-  } as unknown as Blob);
+  // Expo fetch requires readable file bytes, not a React Native URI descriptor.
+  body.append("image", new File(uri));
   const abort = new AbortController();
   const cancel = () => abort.abort();
   signal.addEventListener("abort", cancel, { once: true });
