@@ -38,6 +38,13 @@ export class EmployeeCheckInSessionCore {
   }
 
   activate(identityGeneration: number, locationId: string): Promise<void> {
+    if (
+      this.snapshot.phase !== "inactive" &&
+      this.snapshot.identityGeneration === identityGeneration &&
+      this.snapshot.locationId === locationId
+    ) {
+      return Promise.resolve();
+    }
     this.invalidate(identityGeneration, locationId);
     return this.discover(false);
   }

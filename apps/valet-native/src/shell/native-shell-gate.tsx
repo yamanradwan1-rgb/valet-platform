@@ -16,13 +16,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import logo from "../../assets/brand/VAYLET_Logo_Light_Background.png";
+import logo from "../../assets/brand/VAYLET_Logo_Dark_Background.png";
 import { getNativeAuthCopy } from "../auth/native-auth-copy";
 import { NativeAuthPanel } from "../auth/native-auth-panel";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
   employeeColors as c,
-  employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
 import {
@@ -76,13 +75,11 @@ export function NativeShellGate({
           keyboardShouldPersistTaps="handled"
         >
           <View accessible={false} style={styles.glow} />
-          <View style={styles.logoSurface}>
-            <Image
-              accessibilityLabel="VAYLET"
-              source={logo}
-              style={styles.logo}
-            />
-          </View>
+          <Image
+            accessibilityLabel="VAYLET"
+            source={logo}
+            style={styles.logo}
+          />
           <View style={styles.card} testID={`production-gate-${state.kind}`}>
             <Text
               accessibilityRole="header"
@@ -191,13 +188,11 @@ const styles = StyleSheet.create({
     top: -190,
     width: 440,
   },
-  logo: { height: 36, resizeMode: "contain", width: 154 },
-  logoSurface: {
+  logo: {
     alignSelf: "center",
-    backgroundColor: c.white,
-    borderRadius: employeeRadius.form,
-    paddingHorizontal: space.md,
-    paddingVertical: space.sm,
+    height: 36,
+    resizeMode: "contain",
+    width: 154,
   },
   safeArea: { backgroundColor: c.navy, flex: 1 },
   screen: {

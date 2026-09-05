@@ -40,6 +40,11 @@ interface PendingIntent {
   readonly receivedAuthority: string | null;
 }
 
+interface ConfirmedAuthority {
+  readonly authGeneration: number;
+  readonly key: string;
+}
+
 const destinations = new Set<ProductionDestination>([
   "check-in",
   "scan",
@@ -130,19 +135,25 @@ export function deriveProductionShellState(
 }
 
 export class ProductionShellController {
-  private authority: string | null = null;
+  private authority: ConfirmedAuthority | null = null;
   private authorityReady = false;
   private destination: "check-in" | "tasks" = "tasks";
   private pending: PendingIntent | null = null;
+  private purgeLatched = false;
+  private purgeRevision = 0;
 
   receive(value: unknown): IntentReceipt {
     const intent = parseProductionRouteIntent(value);
     if (intent === null) return "rejected";
     if (!this.authorityReady) {
-      this.pending = { intent, receivedAuthority: this.authority };
+      this.pending = { intent, receivedAuthority: this.authority?.key ?? null };
       return "held";
     }
     return this.resolveIntent(intent);
+  }
+
+  currentWorkflowPurgeRevision(): number {
+    return this.purgeRevision;
   }
 
   back(): boolean {
@@ -157,10 +168,11 @@ export class ProductionShellController {
   ): ProductionShellState {
     const state = deriveProductionShellState(auth, operations);
     if (state.kind !== "active") {
-      if (this.authorityReady) {
-        this.destination = "tasks";
-        this.pending = null;
+      if (this.canPreserveAcrossRevalidation(auth, operations, state)) {
+        this.authorityReady = false;
+        return state;
       }
+      if (this.authority !== null) this.purgeProtectedState();
       this.authorityReady = false;
       if (
         state.kind === "access-denied" ||
@@ -174,11 +186,15 @@ export class ProductionShellController {
     }
 
     const nextAuthority = authorityKey(auth.authGeneration, state.scope);
-    if (this.authority !== null && this.authority !== nextAuthority) {
-      this.destination = "tasks";
+    if (this.authority !== null && this.authority.key !== nextAuthority) {
+      this.purgeProtectedState();
     }
     this.authorityReady = true;
-    this.authority = nextAuthority;
+    this.authority = {
+      authGeneration: auth.authGeneration,
+      key: nextAuthority,
+    };
+    this.purgeLatched = false;
     if (this.pending !== null) {
       const pending = this.pending;
       this.pending = null;
@@ -190,6 +206,46 @@ export class ProductionShellController {
       }
     }
     return { ...state, destination: this.destination };
+  }
+
+  private canPreserveAcrossRevalidation(
+    auth: NativeAuthSnapshot,
+    operations: EmployeeOperationalSnapshot,
+    state: Exclude<ProductionShellState, { readonly kind: "active" }>,
+  ): boolean {
+    const authority = this.authority;
+    if (
+      authority === null ||
+      auth.phase !== "authenticated" ||
+      auth.authGeneration !== authority.authGeneration
+    ) {
+      return false;
+    }
+    if (
+      state.kind === "context-loading" &&
+      operations.identityGeneration !== null &&
+      operations.identityGeneration < authority.authGeneration
+    ) {
+      return true;
+    }
+    if (operations.identityGeneration !== authority.authGeneration)
+      return false;
+    if (state.kind === "operational-error") {
+      return state.reason === "unavailable";
+    }
+    if (state.kind !== "context-loading") return false;
+    return (
+      operations.scope === null ||
+      authority.key === authorityKey(auth.authGeneration, operations.scope)
+    );
+  }
+
+  private purgeProtectedState(): void {
+    this.destination = "tasks";
+    this.pending = null;
+    if (this.purgeLatched) return;
+    this.purgeLatched = true;
+    this.purgeRevision += 1;
   }
 
   private resolveIntent(intent: ProductionRouteIntent): IntentReceipt {

@@ -30,7 +30,6 @@ export function NativeCheckInRoute({
 
   useEffect(() => {
     void checkIn.activate(identityGeneration, scope.locationId);
-    return () => checkIn.clear();
   }, [checkIn, identityGeneration, scope.locationId]);
 
   const close = () => {

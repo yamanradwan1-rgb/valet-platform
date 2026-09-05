@@ -99,6 +99,7 @@ export function NativeProductionShell({
   const [, setNavigationRevision] = useState(0);
   const runtime = bootstrap.runtime;
   const shell = controller.update(authSnapshot, operations);
+  const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
   const presentation = getFoundationPresentation(locale);
   const copy = getNativeShellCopy(locale);
 
@@ -122,6 +123,11 @@ export function NativeProductionShell({
       runtime.operations.clear();
     }
   }, [authSnapshot.authGeneration, authSnapshot.phase, runtime]);
+
+  useEffect(() => {
+    if (runtime === undefined || workflowPurgeRevision === 0) return;
+    runtime.checkIn.clear();
+  }, [runtime, workflowPurgeRevision]);
 
   useEffect(() => {
     if (runtime === undefined) return;
