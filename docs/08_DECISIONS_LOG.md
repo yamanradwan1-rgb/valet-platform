@@ -3671,3 +3671,37 @@ worker, Web Push, service-worker or Employee Web change.
 
 Full binding contract:
 `docs/decisions/DEC-073_NATIVE_PUSH_ARCHITECTURE.md`
+
+---
+
+## DEC-074 — Native Assistive Plate OCR / ANPR
+
+Status: Accepted
+Date: 2026-09-05
+Amended: 2026-09-05 — no-migration OCR cost-guard policy
+
+MOB-010A adds bounded automatic assistive plate acquisition to the existing Native
+Scan Plate flow, before MOB-011. A candidate stops scanning and enters the existing
+editable Confirm Plate flow. Only explicit human confirmation may initiate exact
+returning recognition; OCR cannot confirm identity, select a Customer, create an
+intake or mutate custody. Manual Entry, No Plate and bounded Retry remain available.
+
+Transient camera samples go only through the authenticated VAYLET API and a
+replaceable provider adapter under the focused decision's size, attempt, timeout,
+authorization and privacy limits. Images and credentials must not be retained in
+ordinary client storage, logs or audit. Existing QR semantics, check-in contracts,
+identity generations and command recovery remain unchanged.
+
+The cost identity is server-derived Organization + Membership + target Location.
+Development/test/controlled single-API-process physical smoke may use bounded
+ephemeral limits: one provider call in flight, five calls per 10 seconds and
+20 calls per 60 seconds per key. This is not production anti-abuse protection.
+Production must return provider-neutral `UNAVAILABLE` before provider I/O unless a
+later Accepted implementation provides a shared/durable cost guard across replicas
+and restarts. That later slice preserves these limits and fail-closed behavior
+unless an Owner Decision changes them. Existing login, guest and handoff limiter
+scope meanings cannot be reused for OCR. MOB-010A itself adds no schema/migration.
+
+This summary repairs the log mirror; the full binding contract, including all
+provider, capture, lifecycle and evidence requirements, remains:
+`docs/decisions/DEC-074_NATIVE_ASSISTIVE_PLATE_OCR_ANPR.md`.

@@ -8,19 +8,28 @@
 The canonical Employee Native order, scope, gates, evidence, and status plan is
 [`docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`](20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md).
 
-- Program scope: exactly MOB-001 through MOB-027 in nine batches.
-- MOB-001: **DONE**.
-- MOB-002: **DONE**.
-- MOB-003: **DONE**.
-- MOB-004: **DONE**.
-- MOB-005: **IMPLEMENTED / PHYSICAL PROOF PENDING**.
-- MOB-006 through MOB-027: **NOT STARTED**.
-- Next task: **MOB-006 — Portable Employee Client Foundation**.
-- The Expo Native foundation now exists without database, migration, CI,
-  Firebase, auth, push, signing, OTA, or distribution implementation. A physical
-  Android Development Build remains required before MOB-005 can be `DONE`; the
-  current machine also cannot complete the root database integration gate
-  because its test-database credential is rejected.
+- Native synchronization: **2026-09-05**, merged baseline
+  `6c965a17fcc1a699270a189c38c52ec67079099a`. Fresh main and the MOB-010 feature
+  ref were equal before the rebaseline branch was created.
+- Plan v2 preserves MOB-001–027 and MOB-010A history, splits remaining work into
+  bounded children, and adds MOB-028 production shell and MOB-029 queue closure.
+- MOB-001–004 policy/architecture work is historical baseline. MOB-005–010A
+  now have merged implementation: Expo, portable client, Native auth, operational
+  tasks, QR, intake/returning, shared presentation and assistive OCR repairs.
+  Required current device/render/failure evidence remains explicitly open where
+  no matching artifact has been established; merged code is not production proof.
+- Production navigation and downstream condition/custody/supporting flows,
+  durable push, integrated hardening, release and pilot gates remain unfinished.
+- DEC-074 production OCR stays fail-closed until an accepted shared/durable
+  cost-guard implementation exists; manual/no-plate remains available.
+- Next task: **MOB-010B — Merged intake/OCR and foundation evidence closure**.
+  After its G0 gate, the next application-code slice is **MOB-028 — Production
+  shell, access and context routing**.
+- Local Native tests passed 43 files / 373 tests; portable employee-client tests
+  passed 15 files / 143 tests during rebaseline. No current physical, signed
+  release, load/soak or remote CI success is claimed by this documentation update.
+- The older product checkpoint below retains its own verification date and
+  historical database count; it is not the current Native baseline (31 migrations).
 
 ## Last Verified
 
