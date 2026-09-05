@@ -6,6 +6,7 @@ import {
 
 export interface NativePlateCameraSnapshot {
   readonly generation: number;
+  readonly pictureSize?: string;
   readonly phase:
     | "idle"
     | "requesting"
@@ -89,6 +90,17 @@ export class NativePlateCameraController {
       this.publish({ ...this.snapshot, phase: "preview" });
       this.ocr?.start(generation);
     }
+  }
+
+  configurePictureSize(generation: number, pictureSize: string): boolean {
+    if (
+      !this.isCurrent(generation) ||
+      this.snapshot.phase !== "starting" ||
+      this.snapshot.pictureSize === pictureSize
+    )
+      return false;
+    this.publish({ ...this.snapshot, pictureSize });
+    return true;
   }
 
   fail(generation: number): void {

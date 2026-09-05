@@ -7,23 +7,23 @@ import type {
 import { NativePlateCameraController } from "../src/check-in/native-plate-camera-controller";
 import { getNativeCheckInCopy } from "../src/check-in/native-check-in-copy";
 
-// Existing Native test style: injected hooks, not a device or reconciler.
 const hooks = vi.hoisted(() => ({
-  controller: undefined as unknown,
+  controller: undefined as unknown as NativePlateCameraController,
   focus: [] as (() => () => void)[],
 }));
 vi.mock("react", () => ({
   useState: () => [
-    { controller: hooks.controller, cameraRef: vi.fn() },
-    vi.fn(),
+    {
+      controller: hooks.controller,
+      cameraRef: vi.fn(),
+      cameraReady: (generation: number) => hooks.controller.ready(generation),
+    },
   ],
   useCallback: (callback: unknown) => callback,
   useSyncExternalStore: (_subscribe: unknown, current: () => unknown) =>
     current(),
 }));
-vi.mock("../src/check-in/native-plate-ocr-adapter", () => ({
-  createNativePlateOcrBinding: vi.fn(),
-}));
+vi.mock("../src/check-in/native-plate-ocr-adapter", () => ({}));
 vi.mock("react-native", () => ({
   AppState: {
     currentState: "active",

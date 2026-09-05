@@ -254,7 +254,8 @@ describe("OCR integrates the real Check-In trust boundary", () => {
     mocks.size = 1048577;
     await vi.advanceTimersByTimeAsync(1200);
     expect(mocks.request).not.toHaveBeenCalled();
-    expect(mocks.remove).toHaveBeenCalledOnce();
+    expect(c.camera.takePictureAsync).toHaveBeenCalledTimes(2);
+    expect(mocks.remove).toHaveBeenCalledTimes(2);
     expect(c.controller.current().phase).toBe("unavailable");
     c.dispose();
   });

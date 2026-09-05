@@ -45,7 +45,7 @@ export function NativePlateCameraStep({
   readonly onNoPlate: () => void;
   readonly textAlign: NativeTextAlign;
 }) {
-  const [{ controller, cameraRef }] = useState(() =>
+  const [{ controller, cameraRef, cameraReady }] = useState(() =>
     createNativePlateOcrBinding(auth, session),
   );
   const snapshot = useSyncExternalStore(
@@ -80,12 +80,13 @@ export function NativePlateCameraStep({
           {mounted ? (
             <CameraView
               ref={cameraRef}
-              key={snapshot.generation}
+              key={`${snapshot.generation}:${snapshot.pictureSize ?? "default"}`}
               facing="back"
               mute
+              pictureSize={snapshot.pictureSize}
               style={styles.camera}
               accessible={false}
-              onCameraReady={() => controller.ready(snapshot.generation)}
+              onCameraReady={() => void cameraReady(snapshot.generation)}
               onMountError={() => controller.fail(snapshot.generation)}
             />
           ) : null}

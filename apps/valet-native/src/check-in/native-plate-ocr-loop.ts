@@ -3,7 +3,7 @@ import type { PlateOcrResponse } from "@valet/employee-client";
 export const NATIVE_PLATE_OCR_INTERVAL_MS = 1200;
 export const NATIVE_PLATE_OCR_MAX_ATTEMPTS = 5;
 export interface NativePlateOcrPorts {
-  capture(): Promise<string>;
+  capture(signal: AbortSignal): Promise<string>;
   recognize(uri: string, signal: AbortSignal): Promise<PlateOcrResponse>;
   remove(uri: string): Promise<void>;
   accept(plateNumberRaw: string): void;
@@ -70,7 +70,7 @@ export class NativePlateOcrLoop {
     this.operation = operation;
     let result: PlateOcrResponse = { status: "UNAVAILABLE" };
     try {
-      operation.uri = await this.ports.capture();
+      operation.uri = await this.ports.capture(operation.abort.signal);
       if (this.current(generation)) {
         result = await this.ports.recognize(
           operation.uri,
