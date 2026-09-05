@@ -18,16 +18,24 @@ The canonical Employee Native order, scope, gates, evidence, and status plan is
   tasks, QR, intake/returning, shared presentation and assistive OCR repairs.
   Required current device/render/failure evidence remains explicitly open where
   no matching artifact has been established; merged code is not production proof.
+- MOB-010B merged-baseline evidence closure executed 2026-09-05 on
+  `codex/mob-010b-native-evidence-closure` at `7e9b888b385e7081d0afad1363034df0e600857d`
+  (branch pending independent review). Its ledger in the plan reconciles every
+  merged task to separated evidence levels, confirms production OCR fail-closed,
+  and records one Sep-5 development-harness OCR runtime trace. G0 stays open for
+  the consolidated physical checklist in the plan's §1 MOB-010B ledger.
 - Production navigation and downstream condition/custody/supporting flows,
   durable push, integrated hardening, release and pilot gates remain unfinished.
 - DEC-074 production OCR stays fail-closed until an accepted shared/durable
   cost-guard implementation exists; manual/no-plate remains available.
-- Next task: **MOB-010B — Merged intake/OCR and foundation evidence closure**.
-  After its G0 gate, the next application-code slice is **MOB-028 — Production
-  shell, access and context routing**.
+- Next work: the G0 owner physical checklist, then **MOB-028 — Production
+  shell, access and context routing** as the next application-code slice.
 - Local Native tests passed 43 files / 373 tests; portable employee-client tests
-  passed 15 files / 143 tests during rebaseline. No current physical, signed
-  release, load/soak or remote CI success is claimed by this documentation update.
+  passed 15 files / 143 tests; API OCR suites 5 files / 65 tests and
+  staff-auth/check-in/returning suites 9 files / 189 tests against real
+  PostgreSQL, rerun by MOB-010B at the evidence branch SHA. No current physical,
+  signed release, load/soak or remote CI success is claimed by this
+  documentation update.
 - The older product checkpoint below retains its own verification date and
   historical database count; it is not the current Native baseline (31 migrations).
 

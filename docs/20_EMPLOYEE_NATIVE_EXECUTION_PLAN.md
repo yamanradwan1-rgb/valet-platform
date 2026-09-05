@@ -64,6 +64,85 @@ code plus the task's specified evidence. A parent closes only when every require
 child and gate closes. Accepted decision work is complete as policy, not as its
 future implementation. No application is declared production-ready here.
 
+### MOB-010B merged-baseline evidence ledger (2026-09-05)
+
+Executed on `codex/mob-010b-native-evidence-closure` from fresh `origin/main`
+`7e9b888b385e7081d0afad1363034df0e600857d`; application baseline
+`6c965a17fcc1a699270a189c38c52ec67079099a` is unchanged (`7e9b888` is
+documentation-only relative to it). Read-only code reconciliation plus local
+command reruns; no application, dependency, schema, migration or CI change on
+this branch, and no remote CI execution is claimed. Evidence levels stay
+separate and never imply one another.
+
+| Merged task | Static review at `7e9b888` | Local command reruns | Local runtime trace | Reconciled level |
+| --- | --- | --- | --- | --- |
+| MOB-005 Expo foundation | `FoundationShell` composition, locale switch, `__DEV__` POC panel | 43 files / 373 Native tests (matches baseline) | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical render pairs open |
+| MOB-006 portable employee client | session exports, generation fencing, 299/295-line near-ceiling files | 15 files / 143 tests (matches baseline) | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED |
+| MOB-007 Native Staff auth | memory access token, SecureStore refresh adapter, single-flight refresh, native auth routes | Native restore 7 + logout 9 suites; API staff-auth integration 28 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical restore/revocation open (R-06) |
+| MOB-008 operational tasks | no timers exist in `packages/employee-client`; Native timers only OCR 15 s fetch timeout and 1200 ms assistive loop | Native operational-http 4 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; no five-second polling exists |
+| MOB-009 native QR | auth + identity + AppState scanner fencing | Native qr-controller 12 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical frames open |
+| MOB-010 intake/returning | confirm/recognizing/returning/customer states, identity edit, `operationId` submit | portable intake suites; API intake/check-in/vehicle-identity 6 files / 177 tests plus returning 3 files / 12 tests | none | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED; physical pairs open |
+| MOB-010A assistive plate OCR | Expo `File` multipart, generation check, 15 s abort, bounded loop (5 attempts / 1200 ms), 1280x720 camera fallback, 64 KB provider response cap | Native OCR suites within the 43-file run; API OCR 5 files / 65 tests against real PostgreSQL including the failure taxonomy | Sep-5 development camera smoke below | IMPLEMENTED + STATIC VERIFIED + LOCAL COMMAND VERIFIED + LOCAL RUNTIME TRACE (DEV HARNESS); device identity open |
+
+OCR runtime-trace record: the append-mode structured development log
+`apps/valet-native/.expo/dev/logs/start.log` (git-ignored, still on disk)
+preserves Sep-5 05:35–06:22 client events. Final window after transport repair
+`6c965a1` (06:14 onward): 13 assistive loops started and finished (6 MATCH,
+7 UNAVAILABLE from capture exceptions), 17 capture attempts (10 success,
+7 exception), 10 HTTP dispatches with 10 results (6 MATCH, 4 NO_MATCH), 7
+fallback remounts to 1280x720, capture payloads of roughly 28–82 KB. The API
+boundary log for 06:16–06:26, read before a later development session overwrote
+the `.tmp/mobile-poc` logs, recorded 19 complete authenticated chains and 1
+auth-failure with no other failure events. The 19-versus-10 dispatch difference
+is an unreconciled development-harness observation, not device proof: the Metro
+client log ends 06:22:54 while the API log ran to 06:26. The whole record is
+LOCAL RUNTIME TRACE (DEV HARNESS): a Metro development build with no device
+model/OS recorded (`.expo/devices.json` holds anonymous installation IDs only).
+It is not device-bound RUNTIME VERIFIED. No raw image, plate or token data is
+recorded.
+
+Production fail-closed (DEC-074): STATIC VERIFIED + LOCAL COMMAND VERIFIED.
+`PlateOcrCostGuard.acquire()` yields nothing outside development/test modes, the
+service returns `UNAVAILABLE` before any provider I/O, and the integration suite
+proves production fails closed even with configured provider credentials.
+
+Races: R-06 server rotation/revocation and client generation guards are STATIC
+VERIFIED + LOCAL COMMAND VERIFIED (28 staff-auth integration tests; Native
+restore/logout suites); physical SecureStore-failure, mid-refresh kill and
+revocation traces remain open. R-07 command semantics are LOCAL COMMAND
+VERIFIED on real PostgreSQL (intake, complete-check-in, condition,
+vehicle-identity and returning suites); physical duplicate/unknown-outcome
+traces remain open. R-08 remains a development-only limiter with production
+fail-closed verified above; the cross-process production mechanism stays
+unresolved under U-001 (MOB-010C), unchanged by this branch.
+
+G0 disposition: **EVIDENCE OPEN**. This branch established no physical device
+identity, matched EN/AR render pair, physical login/restore, QR repeated-frame
+or physical failure trace. One consolidated owner checklist closes it
+(development build harness permitted):
+
+1. Record the physical device identity (model, OS, build) and Development
+   Build provenance used for every item below.
+2. Physical login/restore in EN and AR: fresh login, app kill and relaunch
+   restore, logout purge, account switch.
+3. R-06 physical: server-side revocation mid-session to a clean logged-out
+   state, kill during refresh, SecureStore failure if the harness permits.
+4. QR physical: repeated identical frames suppressed, permission-denied
+   render, manual input fallback.
+5. MC-04 matched EN/AR render pairs: new/manual/no-plate intake visible
+   states.
+6. MC-06 matched EN/AR pairs: returning, no-match and conflict states.
+7. MC-05 physical OCR confirm/edit: live capture, candidate confirm or edit
+   and submission in EN and AR; record statuses and sizes only, never plate
+   data.
+8. Short repeated-use trace: several intake cycles including one no-plate and
+   one returning path.
+
+Defects: this reconciliation found none requiring a repair child. The
+`.tmp/mobile-poc` log overwrite is an evidence-preservation note, not a code
+defect; the counts above were read before the overwrite and the structured log
+corroborates the final-window client counts.
+
 ## 2. Binding requirements
 
 ### E–L. Architecture, migration-loss, visual, field and portability covenants
@@ -444,16 +523,16 @@ presentation repair is relabeled unfinished implementation.
 | Old task | Actual current state | New owner of remaining work | Disposition |
 | --- | --- | --- | --- |
 | MOB-001 platform decision | Accepted DEC-071, later amended | MOB-026A/027B enforce release policy | Historical decision complete |
-| MOB-002 Native auth decision | Accepted DEC-072 | MOB-010B/023A verify transport | Historical decision complete |
+| MOB-002 Native auth decision | Accepted DEC-072 | MOB-023A verify transport; MOB-010B ledger records current levels | Historical decision complete |
 | MOB-003 push decision | Accepted DEC-073 | MOB-020A–D/021/022 | Historical decision complete; implementation pending |
 | MOB-004 integration architecture | Merged foundation/portable architecture | Every child preserves boundaries | Historical design absorbed; do not recreate |
-| MOB-005 Expo foundation | Merged implementation | MOB-010B physical foundation reconciliation | IMPLEMENTED — EVIDENCE OPEN |
-| MOB-006 portable employee client | Merged `packages/employee-client` | MOB-010B baseline; feature children extend it | Implemented baseline absorbed, not NOT STARTED |
-| MOB-007 Native Staff auth | Merged transport/session/adapters | MOB-010B/028/023A | Implemented baseline; production presentation/evidence remains |
+| MOB-005 Expo foundation | Merged implementation | G0 physical checklist (§1 ledger); MOB-028 | IMPLEMENTED — EVIDENCE OPEN |
+| MOB-006 portable employee client | Merged `packages/employee-client` | Feature children extend it; levels in §1 ledger | Implemented baseline absorbed, not NOT STARTED |
+| MOB-007 Native Staff auth | Merged transport/session/adapters | MOB-028/023A; physical R-06 items via G0 checklist | Implemented baseline; production presentation/evidence remains |
 | MOB-008 operational bootstrap/tasks | Merged scoped context/task panel | MOB-028/029/015A | Implemented baseline; production closure split |
-| MOB-009 native QR | Merged scanner/camera/fallback | MOB-010B/018A and each consuming flow | Implemented baseline; device evidence open |
-| MOB-010 check-in/returning parity | Merged intake, shared presentation and repairs | MOB-010B evidence; MOB-011A/B downstream continuation | Implemented baseline; never replay old repair plan |
-| MOB-010A assistive plate OCR | Accepted DEC-074 and merged implementation/repairs | MOB-010B physical evidence; MOB-010C/D production decision/implementation | Implemented baseline; production guard intentionally unavailable |
+| MOB-009 native QR | Merged scanner/camera/fallback | MOB-018A and each consuming flow; physical frames via G0 checklist | Implemented baseline; device evidence open |
+| MOB-010 check-in/returning parity | Merged intake, shared presentation and repairs | MOB-011A/B downstream continuation; physical pairs via G0 checklist | Implemented baseline; never replay old repair plan |
+| MOB-010A assistive plate OCR | Accepted DEC-074 and merged implementation/repairs | MOB-010C/D production decision/implementation; device identity via G0 checklist | Implemented baseline; production guard intentionally unavailable |
 | MOB-011 identity/condition | Native continuation work not started | MOB-011A/B/C/D | Split identity/detail corrections, condition/completion, photo decision and conditional verified byte adapter |
 | MOB-012 parking/key/spot | Native production work not started | MOB-012A/B | Split launch from atomic parked confirmation |
 | MOB-013 retrieval/ready | Native production work not started | MOB-013 | Preserved bounded parent |
@@ -596,8 +675,12 @@ missing test command):
 
 ### MOB-010B — Merged intake/OCR and foundation evidence closure
 
-- **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; S evidence branch; merged baseline
-  including MOB-010A. This is the exact immediate next task (W).
+- **STATUS / SIZE / DEPENDENCIES:** REVIEW READY; S evidence branch; merged baseline
+  including MOB-010A. Evidence closure executed 2026-09-05 on
+  `codex/mob-010b-native-evidence-closure` at `7e9b888b385e7081d0afad1363034df0e600857d`;
+  the §1 MOB-010B evidence ledger is its record. G0 physical items remain open
+  under the ledger checklist; this card closes them only when that evidence or a
+  named repair child completes, never by assertion.
 - **OBJECTIVE / WHY / OUTCOME:** Reconcile existing MOB-005–010A evidence against
   current code so field capability is neither discarded nor falsely declared DONE.
   Read DEC-071/072/074, native auth/tasks/scanner/check-in and MC-01–06. No rewrite
@@ -1351,16 +1434,13 @@ missing test command):
 
 ### W. Exact next task and prompt handoff
 
-After this documentation branch is independently reviewed and merged, execute
-**MOB-010B — Merged intake/OCR and foundation evidence closure** on a fresh dedicated
-branch from then-current `origin/main`. It is an evidence task, not a replay of
-MOB-010 implementation. Its exact scope is its card above. Resolve current SHA,
-read the full card/common contract/MC references, inventory existing artifacts,
-then run missing physical matched-state and failure proof. Report unavailable
-hardware/artifacts truthfully and create only bounded task-owned repairs if needed.
-After G0 closes, the next application-code slice is **MOB-028 — Production shell,
-access and context routing**. Later U-ID gates remain conditional; do not ask the
-owner to settle unrelated production decisions before performing available G0 work.
+MOB-010B executed on `codex/mob-010b-native-evidence-closure` from fresh
+`origin/main` `7e9b888b385e7081d0afad1363034df0e600857d`; its §1 evidence
+ledger is the record and G0 remains open only for the owner physical checklist
+there. After MOB-010B merges, the next work is that checklist, then the next
+application-code slice, **MOB-028 — Production shell, access and context
+routing**, after G0. Later U-ID gates remain conditional; do not ask the owner
+to settle unrelated production decisions before performing available G0 work.
 
 ## 9. Test matrix
 
@@ -1534,8 +1614,8 @@ No Web deletion or irreversible cutover. No new feature merely to improve a scor
 The program is a decision-dependent implementation envelope because U-001–006
 remain open for their named production/capability gates. This is not an unresolved
 conflict between authoritative documents and is not a reason to leave this
-rebaseline unfinished. MOB-010B's evidence work is executable immediately after
-review/merge; MOB-028 is the next application-code slice after G0. No unresolved
+rebaseline unfinished. MOB-010B's evidence closure is recorded in §1 and awaits
+independent review; the G0 physical checklist and MOB-028 follow. No unresolved
 choice is selected by a later test, file prediction or task card.
 
 Production readiness is **NOT READY** at this baseline: required real-device,
