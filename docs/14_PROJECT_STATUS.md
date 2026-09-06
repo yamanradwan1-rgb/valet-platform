@@ -7,43 +7,41 @@
 
 The canonical Employee Native order, scope, gates, evidence, and status plan is
 [`docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`](20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md).
+The current B0/G1 reconciliation is recorded in
+[`docs/reference/employee-native-g1-closure.md`](reference/employee-native-g1-closure.md).
 
 - Native synchronization: **2026-09-06**. The v2 rebaseline application baseline
-  remains `6c965a17fcc1a699270a189c38c52ec67079099a`; current merged `main` is
-  `1cca7a4a40bb604dc0fcbe208bfd51feff42170d` after MOB-028 implementation and its
-  focused lifecycle/visual repair.
-- Plan v2 preserves MOB-001–027 and MOB-010A history, splits remaining work into
-  bounded children, and adds MOB-028 production shell and MOB-029 queue closure.
+  remains `6c965a17fcc1a699270a189c38c52ec67079099a`; the merged application `main`
+  at this synchronization is `70695dbdbbd39ef8d996791b99776e4f84f7755f`.
 - MOB-001–004 policy/architecture work is historical baseline. MOB-005–010A
   have merged implementation: Expo, portable client, Native auth, operational
   tasks, QR, intake/returning, shared presentation and assistive OCR repairs.
-- MOB-010B non-device reconciliation remains recorded from
-  `codex/mob-010b-native-evidence-closure`, audited from
-  `7e9b888b385e7081d0afad1363034df0e600857d`. The owner has now closed the G0
-  baseline physical checklist using a Development Build on device `V2302A`, Android
-  10, build `X690B-H691DE-Q-GL-220215V356`, against reviewed SHA
-  `932dee4f6867ff609d0446e41ce0084e9a2215b8`, launched through
-  `corepack pnpm mobile:poc`. The required G0 physical checklist is owner-reported
-  PASS. This closes G0 physical evidence; it does not promote later signed-release,
-  full-device-matrix, soak, or production evidence.
-- MOB-028 — Production shell, access and context routing — is merged. Initial
-  implementation commit: `29ae0a8a239751afdb3d4d6e00143b4348a8f14f`; focused
-  lifecycle/visual repair and current merged main: `1cca7a4a40bb604dc0fcbe208bfd51feff42170d`.
-  Independent GitHub review passed after the repair, and owner physical verification
-  passed. Final reported local validation was employee-client 147/147 tests,
-  valet-native 418/418 tests, both lint/typecheck suites green, architecture check
-  green with only existing grandfathered warnings, targeted Prettier green and
-  `git diff --check` green. No API, DB, schema, migration or dependency change was
-  part of MOB-028.
-- Remote CI is **not verified green**. Push CI run #307 at `932dee4...` and push CI
-  run #308 at `1cca7a4...` both completed with conclusion `failure`. No failure cause
-  is inferred here. MOB-028 therefore remains **IMPLEMENTED — EVIDENCE OPEN** with
-  CI VERIFIED as its named remaining evidence; G1 is not complete.
+- MOB-010B / G0 physical baseline remains owner-reported PASS on device `V2302A`,
+  Android 10, build `X690B-H691DE-Q-GL-220215V356`, reviewed SHA
+  `932dee4f6867ff609d0446e41ce0084e9a2215b8`, using `corepack pnpm mobile:poc`.
+- MOB-028 — Production shell, access and context routing — is merged through
+  `1cca7a4a40bb604dc0fcbe208bfd51feff42170d`. Independent GitHub review passed
+  and owner physical verification passed.
+- MOB-029 — Production task queue and foreground attention — is merged through
+  reviewed repair `4c2963e5afedbebfbe6bf747e783af4e6b586357`, with runtime-safety follow-up
+  `ec60b52305b58fbc754ca712ffc40e669561e2d7`. Independent code review passed and
+  owner physical verification passed for the functional scope. GitHub issue #214,
+  `Native Tasks queue visibly shifts during 5s foreground refresh`, remains OPEN as
+  a non-blocking UX/performance follow-up; authoritative refresh must not be weakened.
+- MOB-015A — Production Shift start and active-Shift presentation — is merged at
+  `70695dbdbbd39ef8d996791b99776e4f84f7755f`. Independent GitHub review passed and
+  owner physical verification passed on the correct MOB-015A runtime/build.
+- B0's required application path is now present and owner-physically exercised.
+  **G1 is CLOSED for the current execution sequence**, which unlocks B1. This is an
+  execution-gate closure, not a claim that the full Native program is production-ready.
+- Evidence levels remain separate. Historical remote CI failures are not rewritten
+  as passes, and local validation is not CI. Under the owner's current workflow
+  decision, absence of feature-branch PR CI does not block continuing the application
+  sequence; later per-flow failure/device/load/signed-build/pilot evidence remains due.
 - Production OCR remains fail-closed under DEC-074 until an accepted shared/durable
   cost-guard implementation exists; manual/no-plate remains available.
-- Next application-code slice: **MOB-029 — Production task queue and foreground
-  attention**. **MOB-015A — Production Shift start and active-Shift presentation**
-  remains separately required with MOB-029 before G1 can close.
+- Next application-code slice: **MOB-011A — Vehicle identity, detail and intake
+  continuation**.
 - The older product checkpoint below retains its own verification date and
   historical database count; it is not the current Native baseline (31 migrations).
 
