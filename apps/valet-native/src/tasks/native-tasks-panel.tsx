@@ -18,6 +18,7 @@ import {
   EmployeeStatus,
 } from "../employee-ui/employee-feedback";
 import { NativeTaskCard } from "./native-task-card";
+import { NativeManualRefreshButton } from "./native-manual-refresh-button";
 import { NativeTaskQueueRow } from "./native-task-queue-row";
 import { NativeTaskShiftStrip } from "./native-task-shift-strip";
 
@@ -77,13 +78,10 @@ export function NativeTasksPanel({
         </Text>
         <View style={styles.taskHeaderActions}>
           {headerAction}
-          <EmployeeButton
-            busy={snapshot.queueRefreshing}
-            disabled={snapshot.queueLoading || snapshot.queueRefreshing}
+          <NativeManualRefreshButton
+            disabled={snapshot.queueLoading}
             label={copy.refresh}
-            onPress={() => void operations.refreshQueue()}
-            size="standard"
-            variant="ghost"
+            onRefresh={() => operations.refreshQueue()}
           />
         </View>
       </View>

@@ -12,6 +12,8 @@ vi.mock("react-native", () => ({
 
 const { NativeTasksPanel } = await import("../src/tasks/native-tasks-panel");
 const { NativeTaskCard } = await import("../src/tasks/native-task-card");
+const { NativeManualRefreshButton } =
+  await import("../src/tasks/native-manual-refresh-button");
 const { NativeTaskQueueRow } =
   await import("../src/tasks/native-task-queue-row");
 const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
@@ -106,17 +108,28 @@ describe("Native production Tasks panel", () => {
 
   it("keeps the manual refresh action reachable", () => {
     const refresh = render().find(
-      (node) => node.type === EmployeeButton && node.props.label === "Refresh",
+      (node) =>
+        node.type === NativeManualRefreshButton &&
+        node.props.label === "Refresh",
     )!;
     expect(refresh.props.disabled).toBe(false);
   });
 
-  it("marks refresh busy without replacing retained tasks", () => {
-    const nodes = render({ queueRefreshing: true, tasks: [task] });
-    const refresh = nodes.find(
-      (node) => node.type === EmployeeButton && node.props.label === "Refresh",
+  it("keeps automatic refresh visually silent without replacing retained tasks", () => {
+    const idle = render({ tasks: [task] }).find(
+      (node) => node.type === NativeManualRefreshButton,
     )!;
-    expect(refresh.props).toMatchObject({ busy: true, disabled: true });
+    const nodes = render({ queueRefreshing: true, tasks: [task] });
+    const automatic = nodes.find(
+      (node) => node.type === NativeManualRefreshButton,
+    )!;
+
+    expect(automatic.props).toMatchObject({
+      disabled: false,
+      label: idle.props.label,
+    });
+    expect(automatic.props).not.toHaveProperty("busy");
+    expect(automatic.props).not.toHaveProperty("queueRefreshing");
     expect(nodes.some((node) => node.type === "FlatList")).toBe(true);
   });
 
