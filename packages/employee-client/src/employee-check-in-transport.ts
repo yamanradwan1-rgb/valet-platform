@@ -4,6 +4,10 @@ import {
   staffCheckInContinuationsResponseSchema,
   staffCheckInDraftsResponseSchema,
   staffValetSessionDetailResponseSchema,
+  vehicleDetailsCorrectionRequestSchema,
+  vehicleDetailsCorrectionResponseSchema,
+  vehicleIdentityRequestSchema,
+  vehicleIdentityResponseSchema,
 } from "@valet/contracts";
 
 import { EmployeeApiError } from "./api-error";
@@ -34,6 +38,22 @@ export function createEmployeeCheckInTransport(
   const client = () =>
     typeof clientOrFactory === "function" ? clientOrFactory() : clientOrFactory;
   return {
+    async correctDetails(sessionId, input) {
+      const value = await client().request<unknown>({
+        body: vehicleDetailsCorrectionRequestSchema.parse(input),
+        method: "PUT",
+        path: `/v1/staff/check-in/sessions/${sessionId}/vehicle-details`,
+      });
+      return parse(vehicleDetailsCorrectionResponseSchema, value);
+    },
+    async correctIdentity(sessionId, input) {
+      const value = await client().request<unknown>({
+        body: vehicleIdentityRequestSchema.parse(input),
+        method: "PUT",
+        path: `/v1/staff/check-in/sessions/${sessionId}/vehicle-identity`,
+      });
+      return parse(vehicleIdentityResponseSchema, value);
+    },
     async createIntake(input) {
       const value = await client().request<unknown>({
         body: input,

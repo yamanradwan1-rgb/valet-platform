@@ -53,8 +53,10 @@ describe("Employee shell composition contract", () => {
   it("retains the reviewed modal and live close guard ownership", () => {
     const panel = read("../src/check-in/native-check-in-panel.tsx");
     expect(panel).toContain("onRequestClose={close}");
-    expect(panel).toContain("checkIn.current().phase");
-    expect(panel).toContain("checkInBackBlocked(checkIn.current().phase)");
+    expect(panel).toContain("const current = checkIn.current();");
+    expect(panel).toContain(
+      "checkInBackBlocked(current.phase, current.continuation?.mode)",
+    );
     expect(panel).toContain(
       '<EmployeeFrame direction={locale === "ar" ? "rtl" : "ltr"}>',
     );

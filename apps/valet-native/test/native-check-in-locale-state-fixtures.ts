@@ -3,12 +3,14 @@ import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
 } from "@valet/employee-client";
+import { emptyCheckInContinuation } from "@valet/employee-client";
 
 export function base(
   patch: Partial<EmployeeCheckInSnapshot> = {},
 ): EmployeeCheckInSnapshot {
   return {
     active: null,
+    continuation: emptyCheckInContinuation(),
     customerPhone: "790001234",
     error: null,
     identityGeneration: 1,
@@ -243,8 +245,8 @@ export const localeStateCases: MatrixCase[] = [
   {
     name: "created",
     state: base({ active, phase: "created" }),
-    en: ["Intake saved", "Vehicle Condition"],
-    ar: ["تم حفظ سجل الوصول", "فحص حالة المركبة"],
+    en: ["Vehicle details", "Edit make, model, and color"],
+    ar: ["تفاصيل المركبة", "تعديل الصنع والطراز واللون"],
   },
   {
     name: "continuation",

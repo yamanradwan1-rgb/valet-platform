@@ -1,6 +1,7 @@
 import type { IntakeRequest } from "@valet/contracts";
 
 import { createdCheckInSession } from "./employee-check-in-domain";
+import { continuationForSession } from "./employee-check-in-continuation";
 import {
   hydrateCheckInSession,
   loadCheckInRecoverables,
@@ -21,6 +22,7 @@ export class EmployeeCheckInSessionCore {
   protected pendingRequest: IntakeRequest | null = null;
   protected sequence = 0;
   protected snapshot = emptyEmployeeCheckInSnapshot();
+  protected workflowOwner: string | null = null;
   private readonly subscribers = new Set<
     (snapshot: EmployeeCheckInSnapshot) => void
   >();
@@ -37,21 +39,27 @@ export class EmployeeCheckInSessionCore {
     return () => this.subscribers.delete(listener);
   }
 
-  activate(identityGeneration: number, locationId: string): Promise<void> {
+  activate(
+    identityGeneration: number,
+    locationId: string,
+    workflowOwner = locationId,
+  ): Promise<void> {
     if (
       this.snapshot.phase !== "inactive" &&
       this.snapshot.identityGeneration === identityGeneration &&
-      this.snapshot.locationId === locationId
+      this.snapshot.locationId === locationId &&
+      this.workflowOwner === workflowOwner
     ) {
       return Promise.resolve();
     }
-    this.invalidate(identityGeneration, locationId);
+    this.invalidate(identityGeneration, locationId, workflowOwner);
     return this.discover(false);
   }
 
   clear(): void {
     this.sequence += 1;
     this.pendingRequest = null;
+    this.workflowOwner = null;
     this.publish(emptyEmployeeCheckInSnapshot());
   }
 
@@ -94,10 +102,15 @@ export class EmployeeCheckInSessionCore {
 
   protected applyIntakeOutcome(outcome: EmployeeCheckInIntakeOutcome): void {
     if (outcome.kind === "SUCCESS") {
+      const active = createdCheckInSession(
+        outcome.result,
+        this.snapshot.vehicle,
+      );
       this.pendingRequest = null;
       this.publish({
         ...this.snapshot,
-        active: createdCheckInSession(outcome.result, this.snapshot.vehicle),
+        active,
+        continuation: continuationForSession(active),
         error: null,
         phase: "created",
         recoverables: [],
@@ -214,6 +227,7 @@ export class EmployeeCheckInSessionCore {
       this.publish({
         ...this.snapshot,
         active,
+        continuation: continuationForSession(active),
         error: null,
         phase: active.state === "CHECKING_IN" ? "created" : "continuation",
         recoverables: [],
@@ -228,9 +242,14 @@ export class EmployeeCheckInSessionCore {
     }
   }
 
-  private invalidate(identityGeneration: number, locationId: string): void {
+  private invalidate(
+    identityGeneration: number,
+    locationId: string,
+    workflowOwner: string,
+  ): void {
     this.sequence += 1;
     this.pendingRequest = null;
+    this.workflowOwner = workflowOwner;
     this.publish({
       ...emptyEmployeeCheckInSnapshot(),
       identityGeneration,

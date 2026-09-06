@@ -1,8 +1,27 @@
-import type { EmployeeCheckInSnapshot } from "./employee-check-in-types";
+import type {
+  EmployeeCheckInContinuation,
+  EmployeeCheckInSnapshot,
+} from "./employee-check-in-types";
+
+export function emptyCheckInContinuation(): EmployeeCheckInContinuation {
+  return {
+    detailsDraft: { color: "", make: "", model: "" },
+    identityDraft: {
+      mode: "CONFIRMED_PLATE",
+      plateCountry: "JO",
+      plateNumberRaw: "",
+      temporaryDescriptor: "",
+    },
+    lastMutationKind: null,
+    mode: "view",
+    pendingIntent: null,
+  };
+}
 
 export function emptyEmployeeCheckInSnapshot(): EmployeeCheckInSnapshot {
   return {
     active: null,
+    continuation: emptyCheckInContinuation(),
     customerPhone: "",
     error: null,
     identityGeneration: null,

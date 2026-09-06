@@ -9,10 +9,10 @@ import {
   runEmployeeCheckInIntake,
 } from "./employee-check-in-intake";
 import { normalizeJordanCheckInPhone } from "./employee-check-in-state";
-import { EmployeeCheckInSessionCore } from "./employee-check-in-session-core";
+import { EmployeeCheckInContinuationSession } from "./employee-check-in-continuation-session";
 import type { EmployeeCheckInVehicleDraft } from "./employee-check-in-types";
 
-export class EmployeeCheckInSession extends EmployeeCheckInSessionCore {
+export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
   setVehicle(patch: Partial<EmployeeCheckInVehicleDraft>): void {
     if (this.snapshot.phase !== "capture") return;
     this.pendingRequest = null;

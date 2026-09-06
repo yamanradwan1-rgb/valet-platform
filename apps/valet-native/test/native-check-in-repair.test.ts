@@ -6,6 +6,7 @@ import type {
   EmployeeCheckInSnapshot,
   NativeAuthSession,
 } from "@valet/employee-client";
+import { emptyCheckInContinuation } from "@valet/employee-client";
 
 const hooks = vi.hoisted(() => ({ setManual: vi.fn() }));
 vi.mock("react", () => ({
@@ -68,6 +69,7 @@ function render(
   const onClose = vi.fn();
   const state: EmployeeCheckInSnapshot = {
     active: null,
+    continuation: emptyCheckInContinuation(),
     customerPhone: "",
     error: null,
     identityGeneration: 1,

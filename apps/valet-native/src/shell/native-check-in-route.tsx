@@ -7,6 +7,7 @@ import type {
 } from "@valet/employee-client";
 
 import { NativeCheckInWorkflow } from "../check-in/native-check-in-workflow";
+import { nativeCheckInWorkflowOwner } from "../check-in/native-check-in-ownership";
 
 export function NativeCheckInRoute({
   auth,
@@ -23,14 +24,15 @@ export function NativeCheckInRoute({
   readonly onClose: () => void;
   readonly scope: EmployeeOperationalScope;
 }) {
+  const workflowOwner = nativeCheckInWorkflowOwner(scope);
   const snapshot = useSyncExternalStore(
     (listener) => checkIn.subscribe(listener),
     () => checkIn.current(),
   );
 
   useEffect(() => {
-    void checkIn.activate(identityGeneration, scope.locationId);
-  }, [checkIn, identityGeneration, scope.locationId]);
+    void checkIn.activate(identityGeneration, scope.locationId, workflowOwner);
+  }, [checkIn, identityGeneration, scope.locationId, workflowOwner]);
 
   const close = () => {
     checkIn.clear();

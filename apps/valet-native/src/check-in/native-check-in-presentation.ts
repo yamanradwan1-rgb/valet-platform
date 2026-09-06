@@ -19,6 +19,7 @@ export function checkInHeaderTitle(
   copy: NativeCheckInCopy,
   snapshot: EmployeeCheckInSnapshot,
   presentation: NativeCapturePresentation,
+  continuationTitle?: string,
 ): string {
   if (snapshot.phase === "capture") {
     if (presentation === "manual") return copy.enterPlate;
@@ -38,7 +39,10 @@ export function checkInHeaderTitle(
   if (snapshot.phase === "recognizing") return copy.recognizingTitle;
   if (snapshot.phase === "submitting") return copy.submittingTitle;
   if (snapshot.phase === "intake-ambiguous") return copy.intakeUnknownTitle;
-  if (snapshot.phase === "created") return copy.createdTitle;
+  if (snapshot.phase === "created")
+    return snapshot.continuation?.mode === "boundary"
+      ? copy.createdTitle
+      : (continuationTitle ?? copy.createdTitle);
   if (snapshot.phase === "continuation") return copy.awaitingParkingTitle;
   return copy.title;
 }
@@ -70,8 +74,16 @@ export function checkInFailureMessage(
 
 export function checkInBackBlocked(
   phase: EmployeeCheckInSnapshot["phase"],
+  continuationMode?: EmployeeCheckInSnapshot["continuation"]["mode"],
 ): boolean {
-  return phase === "submitting" || phase === "recognizing";
+  return (
+    phase === "submitting" ||
+    phase === "recognizing" ||
+    (phase === "created" &&
+      ["submitting", "reconciling", "ambiguous"].includes(
+        continuationMode ?? "view",
+      ))
+  );
 }
 
 export function checkInTextStyle(

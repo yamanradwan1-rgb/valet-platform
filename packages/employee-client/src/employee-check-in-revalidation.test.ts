@@ -7,6 +7,8 @@ const locationId = "11111111-1111-4111-8111-111111111111";
 
 function transport(): EmployeeCheckInTransport {
   return {
+    correctDetails: vi.fn(),
+    correctIdentity: vi.fn(),
     createIntake: vi.fn(),
     loadContinuations: vi.fn().mockResolvedValue({ continuations: [] }),
     loadDrafts: vi.fn().mockResolvedValue({ drafts: [] }),
@@ -64,5 +66,27 @@ describe("Employee Check-In shell revalidation boundary", () => {
       phase: "inactive",
       vehicle: { plateNumberRaw: "" },
     });
+  });
+
+  it("clears an in-progress edit when workflow ownership changes", async () => {
+    const client = transport();
+    vi.mocked(client.loadDrafts).mockResolvedValue({ drafts: [] });
+    const session = new EmployeeCheckInSession({
+      createOperationId: vi.fn(),
+      transport: client,
+    });
+    await session.activate(1, locationId, "shift-a");
+    session.setVehicle({ plateNumberRaw: "PRIVATE-DRAFT" });
+
+    await session.activate(1, locationId, "shift-b");
+
+    expect(session.current()).toMatchObject({
+      active: null,
+      identityGeneration: 1,
+      locationId,
+      phase: "capture",
+      vehicle: { plateNumberRaw: "" },
+    });
+    expect(client.loadDrafts).toHaveBeenCalledTimes(2);
   });
 });

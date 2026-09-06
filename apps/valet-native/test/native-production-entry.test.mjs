@@ -23,9 +23,10 @@ describe("Native production entry contract", () => {
   it("reuses the existing check-in workflow without duplicating intake", () => {
     const route = read("src/shell/native-check-in-route.tsx");
     expect(route).toContain("NativeCheckInWorkflow");
-    expect(route).toContain(
-      "checkIn.activate(identityGeneration, scope.locationId)",
-    );
+    expect(route).toContain("checkIn.activate(");
+    expect(route).toContain("identityGeneration,");
+    expect(route).toContain("scope.locationId,");
+    expect(route).toContain("workflowOwner");
   });
 
   it("keeps unavailable future tabs disabled in this slice", () => {

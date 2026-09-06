@@ -6,6 +6,10 @@ import type {
   StaffCheckInContinuationSummary,
   StaffCheckInDraftSummary,
   StaffValetSessionDetailResponse,
+  VehicleDetailsCorrectionRequest,
+  VehicleDetailsCorrectionResponse,
+  VehicleIdentityRequest,
+  VehicleIdentityResponse,
 } from "@valet/contracts";
 
 import type { EmployeeOperationalFailure } from "./employee-operational-types";
@@ -52,9 +56,48 @@ export interface EmployeeCheckInAuthoritativeSession {
   readonly vehicle: StaffValetSessionDetailResponse["vehicle"];
 }
 
+export type EmployeeCheckInCorrectionIntent =
+  | {
+      readonly kind: "DETAILS";
+      readonly request: VehicleDetailsCorrectionRequest;
+    }
+  | {
+      readonly kind: "IDENTITY";
+      readonly request: VehicleIdentityRequest;
+    };
+
+export type EmployeeCheckInContinuationMode =
+  | "view"
+  | "edit-details"
+  | "edit-identity"
+  | "confirm-identity"
+  | "submitting"
+  | "reconciling"
+  | "ambiguous"
+  | "conflict"
+  | "boundary";
+
+export interface EmployeeCheckInContinuation {
+  readonly detailsDraft: {
+    readonly color: string;
+    readonly make: string;
+    readonly model: string;
+  };
+  readonly identityDraft: EmployeeCheckInVehicleDraft;
+  readonly lastMutationKind:
+    | "DETAILS_NO_CHANGE"
+    | "DETAILS_UPDATED"
+    | "IDENTITY_UPDATED"
+    | "RECONCILED"
+    | null;
+  readonly mode: EmployeeCheckInContinuationMode;
+  readonly pendingIntent: EmployeeCheckInCorrectionIntent | null;
+}
+
 export interface EmployeeCheckInSnapshot {
   readonly active: EmployeeCheckInAuthoritativeSession | null;
   readonly customerPhone: string;
+  readonly continuation: EmployeeCheckInContinuation;
   readonly error: EmployeeOperationalFailure | null;
   readonly identityGeneration: number | null;
   readonly locationId: string | null;
@@ -66,6 +109,14 @@ export interface EmployeeCheckInSnapshot {
 }
 
 export interface EmployeeCheckInTransport {
+  correctDetails(
+    sessionId: string,
+    input: VehicleDetailsCorrectionRequest,
+  ): Promise<VehicleDetailsCorrectionResponse>;
+  correctIdentity(
+    sessionId: string,
+    input: VehicleIdentityRequest,
+  ): Promise<VehicleIdentityResponse>;
   createIntake(input: IntakeRequest): Promise<IntakeResponse>;
   loadContinuations(locationId: string): Promise<{
     readonly continuations: StaffCheckInContinuationSummary[];

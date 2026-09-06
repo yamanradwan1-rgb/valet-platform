@@ -119,4 +119,68 @@ describe("Employee Check-In transport", () => {
       path: `/v1/staff/valet-sessions/${sessionId}`,
     });
   });
+
+  it("uses the existing parsed identity and detail correction routes", async () => {
+    const vehicleId = "33333333-3333-4333-8333-333333333333";
+    const expectedVehicleUpdatedAt = "2026-09-04T08:00:00.000Z";
+    const nextVehicleUpdatedAt = "2026-09-04T08:01:00.000Z";
+    const execute = vi.fn(async (request: EmployeeTransportRequest) => ({
+      payload: request.path.endsWith("vehicle-details")
+        ? {
+            color: "Blue",
+            make: "Toyota",
+            model: "Camry",
+            mutationKind: "UPDATED",
+            valetSessionId: sessionId,
+            vehicleId,
+            vehicleUpdatedAt: nextVehicleUpdatedAt,
+          }
+        : {
+            identityMode: "CONFIRMED_PLATE",
+            plateCountry: "JO",
+            plateNumberNormalized: "9988888",
+            plateNumberRaw: "99-88888",
+            temporaryDescriptor: null,
+            valetSessionId: sessionId,
+            vehicleId,
+            vehicleUpdatedAt: nextVehicleUpdatedAt,
+          },
+      status: 200,
+    }));
+    const transport = createEmployeeCheckInTransport(
+      new EmployeeClient({ transport: { execute } }),
+    );
+    await transport.correctDetails(sessionId, {
+      color: " Blue ",
+      expectedVehicleUpdatedAt,
+      make: "Toyota",
+      model: "Camry",
+    });
+    await transport.correctIdentity(sessionId, {
+      expectedVehicleUpdatedAt,
+      identity: {
+        confirmedByHuman: true,
+        mode: "CONFIRMED_PLATE",
+        plateCountry: "JO",
+        plateNumberRaw: "99-88888",
+      },
+    });
+    expect(execute).toHaveBeenNthCalledWith(1, {
+      body: {
+        color: "Blue",
+        expectedVehicleUpdatedAt,
+        make: "Toyota",
+        model: "Camry",
+      },
+      method: "PUT",
+      path: `/v1/staff/check-in/sessions/${sessionId}/vehicle-details`,
+    });
+    expect(execute).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        method: "PUT",
+        path: `/v1/staff/check-in/sessions/${sessionId}/vehicle-identity`,
+      }),
+    );
+  });
 });

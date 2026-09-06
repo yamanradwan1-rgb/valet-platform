@@ -148,8 +148,20 @@ export function NativeProductionShell({
         if (
           runtime !== undefined &&
           shell.destination === "check-in" &&
-          checkInBackBlocked(runtime.checkIn.current().phase)
+          checkInBackBlocked(
+            runtime.checkIn.current().phase,
+            runtime.checkIn.current().continuation?.mode,
+          )
         ) {
+          return true;
+        }
+        if (
+          runtime !== undefined &&
+          shell.destination === "check-in" &&
+          runtime.checkIn.current().phase === "created" &&
+          runtime.checkIn.current().continuation?.mode !== "view"
+        ) {
+          runtime.checkIn.cancelVehicleEdit();
           return true;
         }
         runtime?.checkIn.clear();

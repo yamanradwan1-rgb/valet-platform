@@ -31,6 +31,8 @@ function transport(
     .mockResolvedValue(intake()),
 ): EmployeeCheckInTransport {
   return {
+    correctDetails: vi.fn(),
+    correctIdentity: vi.fn(),
     createIntake,
     loadContinuations: vi.fn().mockResolvedValue({ continuations: [] }),
     loadDrafts: vi.fn().mockResolvedValue({ drafts: [] }),

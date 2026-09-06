@@ -10,6 +10,7 @@ import type {
 import { NativeCheckInWorkflow } from "./native-check-in-workflow";
 import { getNativeCheckInCopy } from "./native-check-in-copy";
 import { checkInBackBlocked } from "./native-check-in-presentation";
+import { nativeCheckInWorkflowOwner } from "./native-check-in-ownership";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
   EmployeeAppHeader,
@@ -47,13 +48,26 @@ export function NativeCheckInPanel({
   const copy = getNativeCheckInCopy(locale);
   const textAlign = locale === "ar" ? "right" : "left";
   const close = () => {
-    if (checkInBackBlocked(checkIn.current().phase)) return;
+    const current = checkIn.current();
+    if (checkInBackBlocked(current.phase, current.continuation?.mode)) return;
+    if (
+      current.phase === "created" &&
+      current.continuation !== undefined &&
+      current.continuation.mode !== "view"
+    ) {
+      checkIn.cancelVehicleEdit();
+      return;
+    }
     checkIn.clear();
     setOpen(false);
   };
   const launch = () => {
     setOpen(true);
-    void checkIn.activate(operations.identityGeneration!, scope.locationId);
+    void checkIn.activate(
+      operations.identityGeneration!,
+      scope.locationId,
+      nativeCheckInWorkflowOwner(scope),
+    );
   };
   return (
     <>

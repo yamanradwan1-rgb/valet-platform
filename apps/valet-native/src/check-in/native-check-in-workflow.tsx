@@ -6,8 +6,14 @@ import type {
   EmployeeLocale,
   NativeAuthSession,
 } from "@valet/employee-client";
+import { emptyCheckInContinuation } from "@valet/employee-client";
 
 import { getNativeCheckInCopy } from "./native-check-in-copy";
+import { getNativeCheckInContinuationCopy } from "./native-check-in-continuation-copy";
+import {
+  NativeCheckInContinuationStep,
+  type ContinuationStepProps,
+} from "./native-check-in-continuation-step";
 import { NativeConfirmStep } from "./native-check-in-confirm-step";
 import {
   NativeCustomerStep,
@@ -49,6 +55,19 @@ export function NativeCheckInWorkflow({
   snapshot,
 }: NativeCheckInWorkflowProps) {
   const copy = getNativeCheckInCopy(locale);
+  const continuationCopy = getNativeCheckInContinuationCopy(locale);
+  const resolvedSnapshot = snapshot.continuation
+    ? snapshot
+    : {
+        ...snapshot,
+        continuation: {
+          ...emptyCheckInContinuation(),
+          mode:
+            snapshot.phase === "created"
+              ? ("boundary" as const)
+              : ("view" as const),
+        },
+      };
   const textAlign: NativeTextAlign = locale === "ar" ? "right" : "left";
   const [capturePresentation, setCapturePresentation] = useState(() =>
     initialCheckInCapturePresentation(snapshot),
@@ -61,7 +80,17 @@ export function NativeCheckInWorkflow({
     previousPhase.current = snapshot.phase;
   }, [snapshot]);
   const back = () => {
-    if (snapshot.phase === "capture" && capturePresentation !== "camera") {
+    if (
+      resolvedSnapshot.phase === "created" &&
+      resolvedSnapshot.continuation.mode !== "view"
+    ) {
+      session.cancelVehicleEdit();
+      return;
+    }
+    if (
+      resolvedSnapshot.phase === "capture" &&
+      capturePresentation !== "camera"
+    ) {
       if (capturePresentation === "descriptor") {
         session.setVehicle({ mode: "CONFIRMED_PLATE" });
         setCapturePresentation("manual");
@@ -70,8 +99,10 @@ export function NativeCheckInWorkflow({
       }
       return;
     }
-    if (snapshot.phase === "confirm") {
-      setCapturePresentation(initialCheckInCapturePresentation(snapshot));
+    if (resolvedSnapshot.phase === "confirm") {
+      setCapturePresentation(
+        initialCheckInCapturePresentation(resolvedSnapshot),
+      );
       session.editIdentity();
       return;
     }
@@ -79,23 +110,32 @@ export function NativeCheckInWorkflow({
   };
   const props = {
     auth,
+    continuationCopy,
     copy,
     locale,
     onClose,
     onPresentationChange: setCapturePresentation,
     presentation: capturePresentation,
     session,
-    snapshot,
+    snapshot: resolvedSnapshot,
     textAlign,
   };
   return (
     <>
       <CheckInHeader
         back={copy.back}
-        disabled={checkInBackBlocked(snapshot.phase)}
+        disabled={checkInBackBlocked(
+          resolvedSnapshot.phase,
+          resolvedSnapshot.continuation.mode,
+        )}
         onBack={back}
         textAlign={textAlign}
-        title={checkInHeaderTitle(copy, snapshot, capturePresentation)}
+        title={checkInHeaderTitle(
+          copy,
+          resolvedSnapshot,
+          capturePresentation,
+          continuationCopy.title,
+        )}
         direction={locale === "ar" ? "rtl" : "ltr"}
       />
       <ScrollView
@@ -105,7 +145,7 @@ export function NativeCheckInWorkflow({
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        {renderStep(snapshot.phase, props)}
+        {renderStep(resolvedSnapshot.phase, props)}
       </ScrollView>
     </>
   );
@@ -113,9 +153,10 @@ export function NativeCheckInWorkflow({
 
 function renderStep(
   phase: EmployeeCheckInSnapshot["phase"],
-  props: Parameters<typeof NativeCaptureStep>[0] & {
-    readonly onClose: () => void;
-  },
+  props: Parameters<typeof NativeCaptureStep>[0] &
+    ContinuationStepProps & {
+      readonly onClose: () => void;
+    },
 ) {
   switch (phase) {
     case "discovering":
@@ -138,6 +179,7 @@ function renderStep(
     case "intake-ambiguous":
       return <NativeAmbiguousStep {...props} />;
     case "created":
+      return <NativeCheckInContinuationStep {...props} />;
     case "continuation":
       return <NativeCompleteStep {...props} />;
     case "inactive":
