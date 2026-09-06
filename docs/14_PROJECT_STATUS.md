@@ -7,12 +7,14 @@
 
 The canonical Employee Native order, scope, gates, evidence, and status plan is
 [`docs/20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md`](20_EMPLOYEE_NATIVE_EXECUTION_PLAN.md).
-The current B0/G1 reconciliation is recorded in
-[`docs/reference/employee-native-g1-closure.md`](reference/employee-native-g1-closure.md).
+The B0/G1 reconciliation is recorded in
+[`docs/reference/employee-native-g1-closure.md`](reference/employee-native-g1-closure.md),
+and MOB-011A evidence is recorded in
+[`docs/reference/employee-native-mob-011a-evidence.md`](reference/employee-native-mob-011a-evidence.md).
 
 - Native synchronization: **2026-09-06**. The v2 rebaseline application baseline
   remains `6c965a17fcc1a699270a189c38c52ec67079099a`; the merged application `main`
-  at this synchronization is `70695dbdbbd39ef8d996791b99776e4f84f7755f`.
+  at this synchronization is `9ff04d89fa3e63eb20e318e2da5ecac0b8ff59f8`.
 - MOB-001–004 policy/architecture work is historical baseline. MOB-005–010A
   have merged implementation: Expo, portable client, Native auth, operational
   tasks, QR, intake/returning, shared presentation and assistive OCR repairs.
@@ -31,17 +33,21 @@ The current B0/G1 reconciliation is recorded in
 - MOB-015A — Production Shift start and active-Shift presentation — is merged at
   `70695dbdbbd39ef8d996791b99776e4f84f7755f`. Independent GitHub review passed and
   owner physical verification passed on the correct MOB-015A runtime/build.
-- B0's required application path is now present and owner-physically exercised.
+- B0's required application path is present and owner-physically exercised.
   **G1 is CLOSED for the current execution sequence**, which unlocks B1. This is an
   execution-gate closure, not a claim that the full Native program is production-ready.
+- MOB-011A — Vehicle identity, detail and intake continuation — is merged at
+  `9ff04d89fa3e63eb20e318e2da5ecac0b8ff59f8`. Independent GitHub review passed,
+  the owner reported physical `MOB-011A PASS`, and the implementation stops truthfully
+  at the Vehicle Condition boundary without implementing MOB-011B.
 - Evidence levels remain separate. Historical remote CI failures are not rewritten
-  as passes, and local validation is not CI. Under the owner's current workflow
+  as passes, and local validation is not CI. MOB-011A had no PR/status checks, so CI
+  remains unobserved rather than claimed PASS. Under the owner's current workflow
   decision, absence of feature-branch PR CI does not block continuing the application
   sequence; later per-flow failure/device/load/signed-build/pilot evidence remains due.
 - Production OCR remains fail-closed under DEC-074 until an accepted shared/durable
   cost-guard implementation exists; manual/no-plate remains available.
-- Next application-code slice: **MOB-011A — Vehicle identity, detail and intake
-  continuation**.
+- Next application-code slice: **MOB-011B — Condition and check-in completion**.
 - The older product checkpoint below retains its own verification date and
   historical database count; it is not the current Native baseline (31 migrations).
 
