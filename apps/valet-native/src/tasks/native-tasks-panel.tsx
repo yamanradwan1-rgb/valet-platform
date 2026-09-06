@@ -87,9 +87,6 @@ export function NativeTasksPanel({
           />
         </View>
       </View>
-      {snapshot.queueRefreshing ? (
-        <EmployeeStatus textAlign={textAlign}>{copy.refreshing}</EmployeeStatus>
-      ) : null}
       {snapshot.queueFailure ? (
         <EmployeeError textAlign={textAlign}>
           {nativeQueueFailureMessage(

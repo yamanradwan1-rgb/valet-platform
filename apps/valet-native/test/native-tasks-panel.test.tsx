@@ -52,14 +52,26 @@ const task = {
 };
 
 function render(overrides = {}) {
+  return elements(panel(overrides));
+}
+
+function panel(overrides = {}, locale: "en" | "ar" = "en") {
   const snapshot = { ...snapshotFixture("ready"), ...overrides };
-  return elements(
-    NativeTasksPanel({
-      locale: "en",
-      operations,
-      snapshot,
-      textAlign: "left",
-    }),
+  return NativeTasksPanel({
+    locale,
+    operations,
+    snapshot,
+    textAlign: locale === "ar" ? "right" : "left",
+  }) as Element;
+}
+
+function directElements(node: Element): Element[] {
+  const children = Array.isArray(node.props.children)
+    ? node.props.children
+    : [node.props.children];
+  return children.filter(
+    (child): child is Element =>
+      child !== null && typeof child === "object" && "props" in child,
   );
 }
 
@@ -106,6 +118,61 @@ describe("Native production Tasks panel", () => {
     )!;
     expect(refresh.props).toMatchObject({ busy: true, disabled: true });
     expect(nodes.some((node) => node.type === "FlatList")).toBe(true);
+  });
+
+  it("keeps initial loading distinct from a retained queue refresh", () => {
+    const nodes = render({ queueLoading: true, tasks: [] });
+    expect(nodes.some((node) => node.type === "FlatList")).toBe(false);
+    expect(
+      nodes.find((node) => node.type === EmployeeStatus)?.props.children,
+    ).toBe("Loading current operational state…");
+  });
+
+  it.each([
+    ["en", "Refreshing current Tasks…"],
+    ["ar", "جارٍ تحديث المهام الحالية…"],
+  ] as const)(
+    "does not add a layout row during a retained %s refresh",
+    (locale, refreshingCopy) => {
+      const idle = directElements(panel({ tasks: [task] }, locale));
+      const refreshing = directElements(
+        panel({ queueRefreshing: true, tasks: [task] }, locale),
+      );
+
+      expect(refreshing.map((node) => node.type)).toEqual(
+        idle.map((node) => node.type),
+      );
+      expect(
+        refreshing.some(
+          (node) =>
+            node.type === EmployeeStatus &&
+            node.props.children === refreshingCopy,
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it("preserves task hierarchy and ordering for unchanged refresh state", () => {
+    const second = { ...task, taskId: "77777777-7777-4777-8777-777777777777" };
+    const ids = (refreshing: boolean) =>
+      render({ queueRefreshing: refreshing, tasks: [task, second] }).find(
+        (node) => node.type === "FlatList",
+      )!.props.data as readonly (typeof task)[];
+
+    expect(ids(false).map((item) => item.taskId)).toEqual(
+      ids(true).map((item) => item.taskId),
+    );
+  });
+
+  it("still renders a materially changed authoritative queue", () => {
+    const second = { ...task, taskId: "77777777-7777-4777-8777-777777777777" };
+    const list = render({ tasks: [second, task] }).find(
+      (node) => node.type === "FlatList",
+    )!;
+
+    expect(
+      (list.props.data as readonly (typeof task)[]).map((item) => item.taskId),
+    ).toEqual([second.taskId, task.taskId]);
   });
 
   it("shows a stale warning while retaining a verified queue", () => {
