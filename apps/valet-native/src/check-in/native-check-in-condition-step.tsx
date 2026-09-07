@@ -41,8 +41,8 @@ const OPTIONS: ReadonlyArray<{
 
 /**
  * Employee Web parity for the Vehicle Condition step: the same three
- * options with the same selected-state treatment, the same
- * photos-optional-by-policy notice and one dominant Continue action.
+ * options with the same selected-state treatment, a truthful policy notice,
+ * and one dominant Continue action when Native can complete the step.
  * Selection drives the portable session; the server stays authoritative.
  */
 export function NativeCheckInConditionStep({
@@ -58,6 +58,7 @@ export function NativeCheckInConditionStep({
   const selected = continuation.conditionSelection;
   const submitting = continuation.mode === "submitting";
   const ambiguous = continuation.mode === "ambiguous";
+  const photoRequired = isPhotoRequiredError(snapshot);
   const failure = conditionErrorMessage(c, snapshot);
   return (
     <>
@@ -83,13 +84,17 @@ export function NativeCheckInConditionStep({
               accessibilityLabel={`${label}${isSelected ? `, ${c.selected}` : ""}`}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              disabled={submitting}
+              disabled={submitting || photoRequired}
               key={option.value}
-              onPress={() => session.setConditionSelection(option.value)}
+              onPress={
+                photoRequired
+                  ? undefined
+                  : () => session.setConditionSelection(option.value)
+              }
               style={[
                 s.option,
                 isSelected && s.optionSelected,
-                submitting && s.optionDisabled,
+                (submitting || photoRequired) && s.optionDisabled,
               ]}
             >
               <View
@@ -111,15 +116,17 @@ export function NativeCheckInConditionStep({
           );
         })}
       </View>
-      <EmployeeCard>
-        <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
-          {c.photosOptional}
-        </Text>
-      </EmployeeCard>
+      {!photoRequired ? (
+        <EmployeeCard>
+          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
+            {c.photoPolicyNotice}
+          </Text>
+        </EmployeeCard>
+      ) : null}
       {failure ? (
         <CheckInError textAlign={textAlign}>{failure}</CheckInError>
       ) : null}
-      {ambiguous ? (
+      {photoRequired ? null : ambiguous ? (
         <CheckInButton
           label={copy.checkServer}
           onPress={() => void session.retryConditionRecovery()}
@@ -136,14 +143,20 @@ export function NativeCheckInConditionStep({
   );
 }
 
+function isPhotoRequiredError(snapshot: EmployeeCheckInSnapshot): boolean {
+  return (
+    snapshot.error?.code === "CHECK_IN_CONDITION_PHOTO_REQUIRED" ||
+    snapshot.error?.code === "PHOTO_REQUIREMENT_NOT_SATISFIED"
+  );
+}
+
 function conditionErrorMessage(
   c: NativeCheckInConditionCopy,
   snapshot: EmployeeCheckInSnapshot,
 ): string | null {
   const code = snapshot.error?.code;
   if (!code) return null;
-  if (code === "CHECK_IN_CONDITION_PHOTO_REQUIRED") return c.photoRequired;
-  if (code === "PHOTO_REQUIREMENT_NOT_SATISFIED") return c.photoRequired;
+  if (isPhotoRequiredError(snapshot)) return c.photoRequired;
   if (code === "VERSION_CONFLICT" || code === "INVALID_STATE_TRANSITION") {
     return c.conflictBody;
   }

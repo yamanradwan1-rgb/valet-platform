@@ -1,4 +1,7 @@
-import { EmployeeApiError } from "./api-error";
+import {
+  ConditionNoteReplayFence,
+  isCheckInSessionConflict,
+} from "./employee-check-in-condition-note-fence";
 import {
   reconcileConditionOutcome,
   type ConditionRecoveryAttempt,
@@ -7,31 +10,15 @@ import { EmployeeCheckInCorrectionSession } from "./employee-check-in-correction
 import type {
   EmployeeCheckInAuthoritativeSession,
   EmployeeCheckInConditionSelection,
+  EmployeeCheckInRecoverable,
 } from "./employee-check-in-types";
 import {
   isAmbiguousMutationFailure,
   operationalFailure,
 } from "./employee-operational-recovery";
 
-/**
- * Condition and check-in completion orchestration.
- *
- * The authoritative sequence mirrors the Employee Web reference: append the
- * selected condition as a CHECK_IN note (the server permits zero notes),
- * record the idempotent condition-completion marker, then complete check-in
- * with the session's expected version. The server owns every transition.
- *
- * DEC-063 classifies this boundary REHYDRATE_BEFORE_RETRY: a lost response
- * never proves failure, so the append-only note is never blindly replayed.
- * After an ambiguous outcome the canonical session is re-read; a re-attempt
- * of the same session and selection skips the note (zero notes is
- * contract-valid) so a retry can never duplicate protected evidence.
- */
 export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCorrectionSession {
-  private unresolvedNote: {
-    readonly selection: EmployeeCheckInConditionSelection;
-    readonly sessionId: string;
-  } | null = null;
+  private readonly noteReplayFence = new ConditionNoteReplayFence();
 
   async submitConditionCompletion(): Promise<void> {
     const active = this.mutableActive();
@@ -51,7 +38,7 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
       error: null,
     });
     try {
-      await this.appendProtectedNote(attempt, active);
+      if (!(await this.appendProtectedNote(attempt, active))) return;
       const current = await this.completeConditionMarker(attempt, active);
       if (current === null) return;
       this.publish({
@@ -69,7 +56,7 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
       if (completed.valetSessionId !== attempt.sessionId) {
         throw new Error("Completion response did not match the session.");
       }
-      this.unresolvedNote = null;
+      this.noteReplayFence.clear();
       this.publishConditionSuccess(current, completed.version);
     } catch (error) {
       await this.handleConditionFailure(attempt, error);
@@ -89,9 +76,36 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
     );
   }
 
+  activate(
+    identityGeneration: number,
+    locationId: string,
+    workflowOwner = locationId,
+  ): Promise<void> {
+    if (
+      this.snapshot.identityGeneration !== identityGeneration ||
+      this.snapshot.locationId !== locationId ||
+      this.workflowOwner !== workflowOwner
+    ) {
+      this.noteReplayFence.clear();
+    }
+    return super.activate(identityGeneration, locationId, workflowOwner);
+  }
+
   clear(): void {
-    this.unresolvedNote = null;
+    this.noteReplayFence.clear();
     super.clear();
+  }
+
+  startNew(): void {
+    this.noteReplayFence.clear();
+    super.startNew();
+  }
+
+  resume(recoverable: EmployeeCheckInRecoverable): Promise<void> {
+    if (this.snapshot.active?.sessionId !== recoverable.value.sessionId) {
+      this.noteReplayFence.clear();
+    }
+    return super.resume(recoverable);
   }
 
   protected abstract mutableActive(): EmployeeCheckInAuthoritativeSession | null;
@@ -99,16 +113,29 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
   private async appendProtectedNote(
     attempt: ConditionRecoveryAttempt,
     active: EmployeeCheckInAuthoritativeSession,
-  ): Promise<void> {
-    if (active.conditionCompletedAt !== null) return;
-    const noteAlreadySent =
-      this.unresolvedNote !== null &&
-      this.unresolvedNote.sessionId === attempt.sessionId &&
-      this.unresolvedNote.selection === attempt.selection;
-    if (noteAlreadySent) return;
-    await this.options.transport.createConditionNote(attempt.sessionId, {
-      content: attempt.selection,
-    });
+  ): Promise<boolean> {
+    if (
+      active.conditionCompletedAt !== null ||
+      this.noteReplayFence.protects(attempt)
+    ) {
+      return true;
+    }
+    try {
+      await this.options.transport.createConditionNote(attempt.sessionId, {
+        content: attempt.selection,
+      });
+    } catch (error) {
+      if (
+        isAmbiguousMutationFailure(error) &&
+        this.conditionAttemptIsCurrent(attempt)
+      ) {
+        this.noteReplayFence.protect(attempt);
+      }
+      throw error;
+    }
+    if (!this.conditionAttemptIsCurrent(attempt)) return false;
+    this.noteReplayFence.protect(attempt);
+    return true;
   }
 
   private async completeConditionMarker(
@@ -163,12 +190,6 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
     };
   }
 
-  /**
-   * Client-side staleness guard for a live attempt. Server-side version drift
-   * is NOT staleness: the reconciling reread intentionally adopts the newer
-   * authoritative version, so the comparison targets session identity and
-   * workflow scope, not the version.
-   */
   private conditionAttemptIsCurrent(
     attempt: ConditionRecoveryAttempt,
   ): boolean {
@@ -190,10 +211,6 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
   ): Promise<void> {
     if (!this.conditionAttemptIsCurrent(attempt)) return;
     if (isAmbiguousMutationFailure(error)) {
-      this.unresolvedNote = {
-        selection: attempt.selection,
-        sessionId: attempt.sessionId,
-      };
       await this.reconcileCondition(attempt, attempt.selection, error);
       return;
     }
@@ -245,7 +262,7 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
       return;
     }
     if (outcome.result.completed) {
-      this.unresolvedNote = null;
+      this.noteReplayFence.clear();
       this.publish({
         ...this.snapshot,
         active: outcome.result.active,
@@ -279,12 +296,4 @@ export abstract class EmployeeCheckInConditionSession extends EmployeeCheckInCor
           : operationalFailure(originalError),
     });
   }
-}
-
-function isCheckInSessionConflict(error: unknown): boolean {
-  return (
-    error instanceof EmployeeApiError &&
-    (error.code === "VERSION_CONFLICT" ||
-      error.code === "INVALID_STATE_TRANSITION")
-  );
 }

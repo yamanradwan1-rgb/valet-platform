@@ -68,9 +68,9 @@ describe("MOB-011B Native condition and check-in completion", () => {
       "تحتاج مراجعة",
     ],
   ] as const)(
-    "presents the Web-matched condition options and policy notice in %s",
+    "presents the condition options and neutral policy notice in %s",
     (locale, title, noIssue, damage, review) => {
-      const { nodes } = render(conditionSnapshot(), locale);
+      const { checkIn, nodes } = render(conditionSnapshot(), locale);
       expect(
         nodes.some(
           (node) =>
@@ -87,9 +87,17 @@ describe("MOB-011B Native condition and check-in completion", () => {
       expect(options).toHaveLength(3);
       expect(content(nodes)).toContain(
         locale === "en"
-          ? "Photos optional by location policy"
-          : "الصور اختيارية وفق سياسة الموقع",
+          ? "Photo requirements are confirmed by the location policy when you continue."
+          : "سيتم التحقق من متطلبات الصور وفق سياسة الموقع عند المتابعة.",
       );
+      const proceed = nodes.find(
+        (node) =>
+          node.type === "Pressable" &&
+          label(node) === (locale === "en" ? "Continue" : "متابعة"),
+      )!;
+      expect(proceed.props.disabled).toBe(false);
+      (proceed.props.onPress as () => void)();
+      expect(checkIn.submitConditionCompletion).toHaveBeenCalledOnce();
     },
   );
 
@@ -157,27 +165,75 @@ describe("MOB-011B Native condition and check-in completion", () => {
     expect(checkIn.submitConditionCompletion).not.toHaveBeenCalled();
   });
 
-  it("shows the truthful required-photo block without fabricating completion", () => {
-    const state = selectCondition(conditionSnapshot(), "Existing damage");
-    const { checkIn, nodes } = render({
-      ...state,
-      error: {
-        code: "CHECK_IN_CONDITION_PHOTO_REQUIRED",
-        message: "Photo evidence required.",
-        status: 409,
-      },
-    });
-    expect(content(nodes)).toContain(
+  it.each([
+    [
+      "en",
+      "CHECK_IN_CONDITION_PHOTO_REQUIRED",
       "This location requires condition photos. Photo capture is not available yet; complete this step in Employee Web.",
-    );
-    expect(content(nodes)).not.toMatch(/uploaded|verified|photoComplete/i);
-    const proceed = nodes.find(
-      (node) => node.type === "Pressable" && label(node) === "Continue",
-    )!;
-    (proceed.props.onPress as () => void)();
-    expect(checkIn.retryConditionRecovery).not.toHaveBeenCalled();
-    expect(checkIn.submitConditionCompletion).toHaveBeenCalledOnce();
-  });
+      "Continue",
+    ],
+    [
+      "ar",
+      "CHECK_IN_CONDITION_PHOTO_REQUIRED",
+      "يتطلب هذا الموقع صوراً لحالة المركبة. التقاط الصور غير متاح بعد؛ أكمل هذه الخطوة في تطبيق الموظف على الويب.",
+      "متابعة",
+    ],
+    [
+      "en",
+      "PHOTO_REQUIREMENT_NOT_SATISFIED",
+      "This location requires condition photos. Photo capture is not available yet; complete this step in Employee Web.",
+      "Continue",
+    ],
+    [
+      "ar",
+      "PHOTO_REQUIREMENT_NOT_SATISFIED",
+      "يتطلب هذا الموقع صوراً لحالة المركبة. التقاط الصور غير متاح بعد؛ أكمل هذه الخطوة في تطبيق الموظف على الويب.",
+      "متابعة",
+    ],
+  ] as const)(
+    "blocks required-photo completion for %s after %s",
+    (locale, code, explanation, continueLabel) => {
+      const state = selectCondition(conditionSnapshot(), "Existing damage");
+      const { checkIn, nodes } = render(
+        {
+          ...state,
+          error: {
+            code,
+            message: "Photo evidence required.",
+            status: 409,
+          },
+        },
+        locale,
+      );
+      const copy = content(nodes);
+      expect(copy).toContain(explanation);
+      expect(copy).not.toMatch(/Photos optional|الصور اختيارية/);
+      expect(copy).not.toMatch(/uploaded|verified|photoComplete/i);
+      expect(
+        nodes.some(
+          (node) => node.type === "Pressable" && label(node) === continueLabel,
+        ),
+      ).toBe(false);
+      const optionLabels =
+        locale === "en"
+          ? ["No visible issue", "Existing damage", "Needs review"]
+          : ["لا توجد مشاكل ظاهرة", "ضرر موجود مسبقًا", "تحتاج مراجعة"];
+      const options = nodes.filter(
+        (node) =>
+          node.type === "Pressable" &&
+          optionLabels.some((option) => label(node).startsWith(option)),
+      );
+      expect(options).toHaveLength(3);
+      expect(options.every((option) => option.props.disabled === true)).toBe(
+        true,
+      );
+      expect(
+        options.every((option) => option.props.onPress === undefined),
+      ).toBe(true);
+      expect(checkIn.retryConditionRecovery).not.toHaveBeenCalled();
+      expect(checkIn.submitConditionCompletion).not.toHaveBeenCalled();
+    },
+  );
 
   it("offers read-only authoritative recovery after an ambiguous completion", () => {
     const state = conditionSnapshot("ambiguous");

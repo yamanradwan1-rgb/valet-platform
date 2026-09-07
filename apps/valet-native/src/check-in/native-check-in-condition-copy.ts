@@ -13,7 +13,7 @@ export interface NativeCheckInConditionCopy {
   readonly needsReview: string;
   readonly noVisibleIssue: string;
   readonly photoRequired: string;
-  readonly photosOptional: string;
+  readonly photoPolicyNotice: string;
   readonly selected: string;
   readonly title: string;
 }
@@ -36,7 +36,8 @@ const COPY: Record<EmployeeLocale, NativeCheckInConditionCopy> = {
     noVisibleIssue: "No visible issue",
     photoRequired:
       "This location requires condition photos. Photo capture is not available yet; complete this step in Employee Web.",
-    photosOptional: "Photos optional by location policy",
+    photoPolicyNotice:
+      "Photo requirements are confirmed by the location policy when you continue.",
     selected: "Selected",
     title: "Vehicle Condition",
   },
@@ -57,7 +58,8 @@ const COPY: Record<EmployeeLocale, NativeCheckInConditionCopy> = {
     noVisibleIssue: "لا توجد مشاكل ظاهرة",
     photoRequired:
       "يتطلب هذا الموقع صوراً لحالة المركبة. التقاط الصور غير متاح بعد؛ أكمل هذه الخطوة في تطبيق الموظف على الويب.",
-    photosOptional: "الصور اختيارية وفق سياسة الموقع",
+    photoPolicyNotice:
+      "سيتم التحقق من متطلبات الصور وفق سياسة الموقع عند المتابعة.",
     selected: "محدد",
     title: "حالة المركبة",
   },

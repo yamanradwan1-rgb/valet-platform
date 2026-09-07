@@ -149,7 +149,7 @@ describe("Employee Check-In condition and completion", () => {
     expect(client.completeCheckIn).not.toHaveBeenCalled();
   });
 
-  it("blocks a photo-required session truthfully instead of fabricating completion", async () => {
+  it("does not replay a committed note when required photos block completion", async () => {
     const client = transport();
     vi.mocked(client.completeCondition).mockRejectedValue(
       new EmployeeApiError({
@@ -161,6 +161,9 @@ describe("Employee Check-In condition and completion", () => {
     const session = await ready(client);
     session.setConditionSelection("Existing damage");
     await session.submitConditionCompletion();
+    await session.submitConditionCompletion();
+    expect(client.createConditionNote).toHaveBeenCalledOnce();
+    expect(client.completeCondition).toHaveBeenCalledTimes(2);
     expect(client.completeCheckIn).not.toHaveBeenCalled();
     expect(session.current()).toMatchObject({
       continuation: {
