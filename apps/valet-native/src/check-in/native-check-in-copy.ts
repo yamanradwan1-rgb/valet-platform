@@ -12,6 +12,8 @@ export interface NativeCheckInCopy {
   readonly country: string;
   readonly createdBody: string;
   readonly createdTitle: string;
+  readonly conditionCompletedBody: string;
+  readonly conditionCompletedTitle: string;
   readonly customerContact: string;
   readonly differentCustomer: string;
   readonly discoveryError: string;
@@ -127,6 +129,9 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     vehicleFound: "Vehicle found",
     awaitingParkingBody:
       "This authoritative check-in is awaiting parking. Native parking parity is not implemented yet, and no state was changed locally.",
+    conditionCompletedBody:
+      "Check-in is complete on the server. The vehicle is now awaiting parking; continue the parking workflow in Employee Web.",
+    conditionCompletedTitle: "Check-in complete",
     awaitingParkingTitle: "Ready for parking",
     countryNames: {
       JO: "Jordan",
@@ -200,6 +205,9 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     vehicleFound: "تم العثور على المركبة",
     awaitingParkingBody:
       "تسجيل الوصول المعتمد بانتظار الاصطفاف. لم يكتمل بعد مسار الاصطفاف في تطبيق الموظف على الأجهزة المحمولة، ولم يتم تغيير أي حالة محلياً.",
+    conditionCompletedBody:
+      "اكتمل تسجيل الوصول على الخادم. المركبة بانتظار الاصطفاف الآن؛ تابع مسار الاصطفاف في تطبيق الموظف على الويب.",
+    conditionCompletedTitle: "اكتمل تسجيل الوصول",
     awaitingParkingTitle: "جاهزة للاصطفاف",
     countryNames: {
       JO: "الأردن",

@@ -34,8 +34,10 @@ export async function hydrateCheckInSession(
     throw new Error("The check-in has changed. Refresh to continue.");
   }
   return {
+    conditionCompletedAt: detail.checkIn.conditionCompletedAt,
     sessionId: detail.sessionId,
     state: detail.state,
     vehicle: detail.vehicle,
+    version: detail.version,
   };
 }

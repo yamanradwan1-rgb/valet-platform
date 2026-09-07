@@ -183,4 +183,52 @@ describe("Employee Check-In transport", () => {
       }),
     );
   });
+
+  it("sends condition evidence and completion through the exact accepted routes", async () => {
+    const execute = vi.fn(async (request: EmployeeTransportRequest) => ({
+      payload: request.path.endsWith("condition-notes")
+        ? {
+            conditionNoteId: "44444444-4444-4444-8444-444444444444",
+            content: "Existing damage",
+            createdAt: "2026-09-04T08:00:00.000Z",
+            supersedesConditionNoteId: null,
+            valetSessionId: sessionId,
+          }
+        : request.path.endsWith("condition-completion")
+          ? {
+              completedAt: "2026-09-04T08:00:30.000Z",
+              valetSessionId: sessionId,
+            }
+          : {
+              checkingInCompletedAt: "2026-09-04T08:01:00.000Z",
+              state: "AWAITING_PARKING",
+              valetSessionId: sessionId,
+              version: 2,
+            },
+      status: 200,
+    }));
+    const transport = createEmployeeCheckInTransport(
+      new EmployeeClient({ transport: { execute } }),
+    );
+    await transport.createConditionNote(sessionId, {
+      content: "Existing damage",
+    });
+    await transport.completeCondition(sessionId);
+    await transport.completeCheckIn(sessionId, { expectedVersion: 1 });
+    expect(execute).toHaveBeenNthCalledWith(1, {
+      body: { content: "Existing damage" },
+      method: "POST",
+      path: `/v1/staff/check-in/sessions/${sessionId}/condition-notes`,
+    });
+    expect(execute).toHaveBeenNthCalledWith(2, {
+      body: {},
+      method: "POST",
+      path: `/v1/staff/check-in/sessions/${sessionId}/condition-completion`,
+    });
+    expect(execute).toHaveBeenNthCalledWith(3, {
+      body: { expectedVersion: 1 },
+      method: "POST",
+      path: `/v1/staff/check-in/sessions/${sessionId}/complete`,
+    });
+  });
 });

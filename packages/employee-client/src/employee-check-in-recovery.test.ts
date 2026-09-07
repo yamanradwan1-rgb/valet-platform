@@ -59,8 +59,11 @@ function client(
   state: "CHECKING_IN" | "AWAITING_PARKING" = "CHECKING_IN",
 ): EmployeeCheckInTransport {
   return {
+    completeCheckIn: vi.fn(),
+    completeCondition: vi.fn(),
     correctDetails: vi.fn(),
     correctIdentity: vi.fn(),
+    createConditionNote: vi.fn(),
     createIntake: vi.fn(),
     loadContinuations: vi.fn().mockResolvedValue({ continuations }),
     loadDrafts: vi.fn().mockResolvedValue({ drafts }),

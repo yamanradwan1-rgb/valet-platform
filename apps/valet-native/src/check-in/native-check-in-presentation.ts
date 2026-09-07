@@ -20,6 +20,7 @@ export function checkInHeaderTitle(
   snapshot: EmployeeCheckInSnapshot,
   presentation: NativeCapturePresentation,
   continuationTitle?: string,
+  conditionTitle?: string,
 ): string {
   if (snapshot.phase === "capture") {
     if (presentation === "manual") return copy.enterPlate;
@@ -39,11 +40,21 @@ export function checkInHeaderTitle(
   if (snapshot.phase === "recognizing") return copy.recognizingTitle;
   if (snapshot.phase === "submitting") return copy.submittingTitle;
   if (snapshot.phase === "intake-ambiguous") return copy.intakeUnknownTitle;
-  if (snapshot.phase === "created")
-    return snapshot.continuation?.mode === "boundary"
-      ? copy.createdTitle
-      : (continuationTitle ?? copy.createdTitle);
-  if (snapshot.phase === "continuation") return copy.awaitingParkingTitle;
+  if (snapshot.phase === "created") {
+    if (snapshot.continuation?.mode === "boundary") return copy.createdTitle;
+    const mode = snapshot.continuation?.mode;
+    if (
+      conditionTitle !== undefined &&
+      (mode === "select-condition" || mode === "ambiguous")
+    ) {
+      return conditionTitle;
+    }
+    return continuationTitle ?? copy.createdTitle;
+  }
+  if (snapshot.phase === "continuation")
+    return snapshot.continuation?.mode === "condition-completed"
+      ? copy.conditionCompletedTitle
+      : copy.awaitingParkingTitle;
   return copy.title;
 }
 
@@ -80,9 +91,12 @@ export function checkInBackBlocked(
     phase === "submitting" ||
     phase === "recognizing" ||
     (phase === "created" &&
-      ["submitting", "reconciling", "ambiguous"].includes(
-        continuationMode ?? "view",
-      ))
+      [
+        "submitting",
+        "reconciling",
+        "ambiguous",
+        "condition-completed",
+      ].includes(continuationMode ?? "view"))
   );
 }
 

@@ -1,4 +1,9 @@
 import {
+  completeCheckInRequestSchema,
+  completeCheckInResponseSchema,
+  conditionCompletionResponseSchema,
+  conditionNoteRequestSchema,
+  conditionNoteResponseSchema,
   intakeResponseSchema,
   returningVehicleRecognitionResponseSchema,
   staffCheckInContinuationsResponseSchema,
@@ -38,6 +43,22 @@ export function createEmployeeCheckInTransport(
   const client = () =>
     typeof clientOrFactory === "function" ? clientOrFactory() : clientOrFactory;
   return {
+    async completeCheckIn(sessionId, input) {
+      const value = await client().request<unknown>({
+        body: completeCheckInRequestSchema.parse(input),
+        method: "POST",
+        path: `/v1/staff/check-in/sessions/${sessionId}/complete`,
+      });
+      return parse(completeCheckInResponseSchema, value);
+    },
+    async completeCondition(sessionId) {
+      const value = await client().request<unknown>({
+        body: {},
+        method: "POST",
+        path: `/v1/staff/check-in/sessions/${sessionId}/condition-completion`,
+      });
+      return parse(conditionCompletionResponseSchema, value);
+    },
     async correctDetails(sessionId, input) {
       const value = await client().request<unknown>({
         body: vehicleDetailsCorrectionRequestSchema.parse(input),
@@ -53,6 +74,14 @@ export function createEmployeeCheckInTransport(
         path: `/v1/staff/check-in/sessions/${sessionId}/vehicle-identity`,
       });
       return parse(vehicleIdentityResponseSchema, value);
+    },
+    async createConditionNote(sessionId, input) {
+      const value = await client().request<unknown>({
+        body: conditionNoteRequestSchema.parse(input),
+        method: "POST",
+        path: `/v1/staff/check-in/sessions/${sessionId}/condition-notes`,
+      });
+      return parse(conditionNoteResponseSchema, value);
     },
     async createIntake(input) {
       const value = await client().request<unknown>({

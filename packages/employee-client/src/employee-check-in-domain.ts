@@ -60,6 +60,7 @@ export function createdCheckInSession(
 ): EmployeeCheckInAuthoritativeSession {
   const hasPlate = vehicle.mode === "CONFIRMED_PLATE";
   return {
+    conditionCompletedAt: null,
     sessionId: result.valetSessionId,
     state: "CHECKING_IN",
     vehicle: {
@@ -72,5 +73,6 @@ export function createdCheckInSession(
       vehicleId: result.vehicleId,
       vehicleUpdatedAt: result.vehicleUpdatedAt,
     },
+    version: result.version,
   };
 }

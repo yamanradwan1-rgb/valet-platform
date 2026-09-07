@@ -82,6 +82,24 @@ export function EmployeeShiftIcon(props: NavigationIconProps) {
   );
 }
 
+/** Small check used inside a selected option circle (Web CheckSmIcon). */
+export function EmployeeCheckIcon({
+  inverse = false,
+}: {
+  readonly inverse?: boolean;
+}) {
+  return (
+    <View accessible={false} style={iconStyles.checkFrame}>
+      <View
+        style={[
+          iconStyles.checkStroke,
+          { borderBottomColor: inverse ? c.white : c.navy },
+        ]}
+      />
+    </View>
+  );
+}
+
 const iconStyles = StyleSheet.create({
   backFrame: { height: 24, justifyContent: "center", width: 24 },
   backStroke: {
@@ -209,5 +227,22 @@ const iconStyles = StyleSheet.create({
     top: 4,
     transform: [{ rotate: "-35deg" }],
     width: 1.75,
+  },
+  checkFrame: {
+    height: 12,
+    justifyContent: "center",
+    width: 12,
+  },
+  checkStroke: {
+    borderBottomColor: c.navy,
+    borderBottomLeftRadius: 1,
+    borderBottomRightRadius: 1,
+    borderBottomWidth: 1.75,
+    borderLeftColor: c.navy,
+    borderLeftWidth: 1.75,
+    height: 6,
+    marginLeft: 2,
+    transform: [{ rotate: "45deg" }],
+    width: 6,
   },
 });

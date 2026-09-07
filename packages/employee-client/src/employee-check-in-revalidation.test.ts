@@ -7,8 +7,11 @@ const locationId = "11111111-1111-4111-8111-111111111111";
 
 function transport(): EmployeeCheckInTransport {
   return {
+    completeCheckIn: vi.fn(),
+    completeCondition: vi.fn(),
     correctDetails: vi.fn(),
     correctIdentity: vi.fn(),
+    createConditionNote: vi.fn(),
     createIntake: vi.fn(),
     loadContinuations: vi.fn().mockResolvedValue({ continuations: [] }),
     loadDrafts: vi.fn().mockResolvedValue({ drafts: [] }),

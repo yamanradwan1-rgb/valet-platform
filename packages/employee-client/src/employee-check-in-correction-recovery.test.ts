@@ -48,8 +48,11 @@ function client(
   loadSession = vi.fn().mockResolvedValue(detail()),
 ): EmployeeCheckInTransport {
   return {
+    completeCheckIn: vi.fn(),
+    completeCondition: vi.fn(),
     correctDetails: vi.fn(),
     correctIdentity: vi.fn(),
+    createConditionNote: vi.fn(),
     createIntake: vi.fn(),
     loadContinuations: vi.fn().mockResolvedValue({ continuations: [] }),
     loadDrafts: vi.fn().mockResolvedValue({

@@ -34,6 +34,7 @@ export * from "./employee-client";
 export * from "./employee-check-in-session";
 export * from "./employee-check-in-continuation";
 export * from "./employee-check-in-continuation-session";
+export * from "./employee-check-in-condition-session";
 export * from "./employee-check-in-correction-session";
 export * from "./employee-check-in-domain";
 export * from "./employee-check-in-discovery";

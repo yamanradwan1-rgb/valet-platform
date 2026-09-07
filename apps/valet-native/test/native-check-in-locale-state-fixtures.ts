@@ -48,6 +48,7 @@ export const recognized = {
 } as const;
 
 const active = {
+  conditionCompletedAt: "date",
   sessionId: "session-id",
   state: "AWAITING_PARKING" as const,
   vehicle: {
@@ -60,6 +61,7 @@ const active = {
     vehicleId: "vehicle-id",
     vehicleUpdatedAt: "date",
   },
+  version: 2,
 };
 
 export function controller() {

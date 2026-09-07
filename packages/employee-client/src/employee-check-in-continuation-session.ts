@@ -2,13 +2,14 @@ import {
   continuationForSession,
   identityCorrectionIntent,
 } from "./employee-check-in-continuation";
-import { EmployeeCheckInCorrectionSession } from "./employee-check-in-correction-session";
+import { EmployeeCheckInConditionSession } from "./employee-check-in-condition-session";
 import type {
   EmployeeCheckInAuthoritativeSession,
+  EmployeeCheckInConditionSelection,
   EmployeeCheckInVehicleDraft,
 } from "./employee-check-in-types";
 
-export class EmployeeCheckInContinuationSession extends EmployeeCheckInCorrectionSession {
+export class EmployeeCheckInContinuationSession extends EmployeeCheckInConditionSession {
   editVehicleDetails(): void {
     const active = this.mutableActive();
     if (active === null) return;
@@ -124,7 +125,31 @@ export class EmployeeCheckInContinuationSession extends EmployeeCheckInCorrectio
       ...this.snapshot,
       continuation: {
         ...continuationForSession(active),
-        mode: "boundary",
+        // Employee Web parity: "No visible issue" is the pre-selected
+        // low-friction default on the condition step.
+        conditionSelection:
+          active.conditionCompletedAt === null
+            ? ("No visible issue" as EmployeeCheckInConditionSelection)
+            : null,
+        mode: "select-condition",
+      },
+      error: null,
+    });
+  }
+
+  setConditionSelection(selection: EmployeeCheckInConditionSelection): void {
+    if (
+      this.mutableActive() === null ||
+      this.snapshot.continuation.mode !== "select-condition" ||
+      this.snapshot.continuation.conditionSelection === selection
+    ) {
+      return;
+    }
+    this.publish({
+      ...this.snapshot,
+      continuation: {
+        ...this.snapshot.continuation,
+        conditionSelection: selection,
       },
       error: null,
     });
@@ -135,11 +160,5 @@ export class EmployeeCheckInContinuationSession extends EmployeeCheckInCorrectio
     return this.snapshot.phase === "created" && active?.state === "CHECKING_IN"
       ? active
       : null;
-  }
-
-  protected continuationBusy(): boolean {
-    return ["submitting", "reconciling"].includes(
-      this.snapshot.continuation.mode,
-    );
   }
 }

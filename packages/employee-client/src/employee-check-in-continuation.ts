@@ -22,6 +22,7 @@ export function continuationForSession(
 ): EmployeeCheckInContinuation {
   const vehicle = active.vehicle;
   return {
+    conditionSelection: null,
     detailsDraft: {
       color: vehicle.color ?? "",
       make: vehicle.make ?? "",
@@ -43,6 +44,8 @@ export function continuationForSession(
           },
     lastMutationKind: null,
     mode,
+    pendingConditionSelection: null,
+    pendingConditionStage: null,
     pendingIntent: null,
   };
 }

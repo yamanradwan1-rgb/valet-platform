@@ -1,4 +1,9 @@
 import type {
+  CompleteCheckInRequest,
+  CompleteCheckInResponse,
+  ConditionCompletionResponse,
+  ConditionNoteRequest,
+  ConditionNoteResponse,
   IntakeRequest,
   IntakeResponse,
   ReturningVehicleRecognitionRequest,
@@ -51,9 +56,11 @@ export type EmployeeCheckInRecoverable =
     };
 
 export interface EmployeeCheckInAuthoritativeSession {
+  readonly conditionCompletedAt: string | null;
   readonly sessionId: string;
   readonly state: "CHECKING_IN" | "AWAITING_PARKING";
   readonly vehicle: StaffValetSessionDetailResponse["vehicle"];
+  readonly version: number;
 }
 
 export type EmployeeCheckInCorrectionIntent =
@@ -66,18 +73,26 @@ export type EmployeeCheckInCorrectionIntent =
       readonly request: VehicleIdentityRequest;
     };
 
+export type EmployeeCheckInConditionSelection =
+  "No visible issue" | "Existing damage" | "Needs review";
+
+export type EmployeeCheckInConditionStage = "note" | "completion";
+
 export type EmployeeCheckInContinuationMode =
   | "view"
   | "edit-details"
   | "edit-identity"
   | "confirm-identity"
+  | "select-condition"
   | "submitting"
   | "reconciling"
   | "ambiguous"
   | "conflict"
-  | "boundary";
+  | "boundary"
+  | "condition-completed";
 
 export interface EmployeeCheckInContinuation {
+  readonly conditionSelection: EmployeeCheckInConditionSelection | null;
   readonly detailsDraft: {
     readonly color: string;
     readonly make: string;
@@ -91,6 +106,8 @@ export interface EmployeeCheckInContinuation {
     | "RECONCILED"
     | null;
   readonly mode: EmployeeCheckInContinuationMode;
+  readonly pendingConditionSelection: EmployeeCheckInConditionSelection | null;
+  readonly pendingConditionStage: EmployeeCheckInConditionStage | null;
   readonly pendingIntent: EmployeeCheckInCorrectionIntent | null;
 }
 
@@ -109,6 +126,11 @@ export interface EmployeeCheckInSnapshot {
 }
 
 export interface EmployeeCheckInTransport {
+  completeCheckIn(
+    sessionId: string,
+    input: CompleteCheckInRequest,
+  ): Promise<CompleteCheckInResponse>;
+  completeCondition(sessionId: string): Promise<ConditionCompletionResponse>;
   correctDetails(
     sessionId: string,
     input: VehicleDetailsCorrectionRequest,
@@ -117,6 +139,10 @@ export interface EmployeeCheckInTransport {
     sessionId: string,
     input: VehicleIdentityRequest,
   ): Promise<VehicleIdentityResponse>;
+  createConditionNote(
+    sessionId: string,
+    input: ConditionNoteRequest,
+  ): Promise<ConditionNoteResponse>;
   createIntake(input: IntakeRequest): Promise<IntakeResponse>;
   loadContinuations(locationId: string): Promise<{
     readonly continuations: StaffCheckInContinuationSummary[];

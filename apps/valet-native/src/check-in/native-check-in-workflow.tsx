@@ -9,6 +9,7 @@ import type {
 import { emptyCheckInContinuation } from "@valet/employee-client";
 
 import { getNativeCheckInCopy } from "./native-check-in-copy";
+import { getNativeCheckInConditionCopy } from "./native-check-in-condition-copy";
 import { getNativeCheckInContinuationCopy } from "./native-check-in-continuation-copy";
 import {
   NativeCheckInContinuationStep,
@@ -55,6 +56,7 @@ export function NativeCheckInWorkflow({
   snapshot,
 }: NativeCheckInWorkflowProps) {
   const copy = getNativeCheckInCopy(locale);
+  const conditionCopy = getNativeCheckInConditionCopy(locale);
   const continuationCopy = getNativeCheckInContinuationCopy(locale);
   const resolvedSnapshot = snapshot.continuation
     ? snapshot
@@ -110,6 +112,7 @@ export function NativeCheckInWorkflow({
   };
   const props = {
     auth,
+    conditionCopy,
     continuationCopy,
     copy,
     locale,
@@ -135,6 +138,7 @@ export function NativeCheckInWorkflow({
           resolvedSnapshot,
           capturePresentation,
           continuationCopy.title,
+          conditionCopy.title,
         )}
         direction={locale === "ar" ? "rtl" : "ltr"}
       />

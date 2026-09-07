@@ -46,8 +46,11 @@ function detail(overrides: Record<string, unknown> = {}) {
 
 function transport(): EmployeeCheckInTransport {
   return {
+    completeCheckIn: vi.fn(),
+    completeCondition: vi.fn(),
     correctDetails: vi.fn(),
     correctIdentity: vi.fn(),
+    createConditionNote: vi.fn(),
     createIntake: vi.fn(),
     loadContinuations: vi.fn().mockResolvedValue({ continuations: [] }),
     loadDrafts: vi.fn().mockResolvedValue({

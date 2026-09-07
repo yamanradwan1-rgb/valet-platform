@@ -4,6 +4,8 @@ import type {
   EmployeeCheckInSnapshot,
 } from "@valet/employee-client";
 
+import type { NativeCheckInConditionCopy } from "./native-check-in-condition-copy";
+import { NativeCheckInConditionStep } from "./native-check-in-condition-step";
 import type { NativeCheckInContinuationCopy } from "./native-check-in-continuation-copy";
 import {
   ContinuationDetailsEditor,
@@ -26,6 +28,7 @@ import {
 } from "../employee-ui/employee-feedback";
 
 export interface ContinuationStepProps {
+  readonly conditionCopy: NativeCheckInConditionCopy;
   readonly continuationCopy: NativeCheckInContinuationCopy;
   readonly copy: NativeCheckInCopy;
   readonly onClose: () => void;
@@ -37,12 +40,18 @@ export interface ContinuationStepProps {
 export function NativeCheckInContinuationStep(props: ContinuationStepProps) {
   const mode = props.snapshot.continuation.mode;
   if (mode === "submitting" || mode === "reconciling") {
+    const conditionInFlight =
+      props.snapshot.continuation.pendingConditionSelection !== null;
     return (
       <EmployeeProgress
         label={
-          mode === "submitting"
-            ? props.continuationCopy.saving
-            : props.continuationCopy.checkingState
+          conditionInFlight
+            ? mode === "submitting"
+              ? props.conditionCopy.completingCondition
+              : props.conditionCopy.checkingConditionState
+            : mode === "submitting"
+              ? props.continuationCopy.saving
+              : props.continuationCopy.checkingState
         }
         textAlign={props.textAlign}
       />
@@ -52,6 +61,15 @@ export function NativeCheckInContinuationStep(props: ContinuationStepProps) {
   if (mode === "edit-identity" || mode === "confirm-identity")
     return <ContinuationIdentityEditor {...props} />;
   if (mode === "boundary") return <ContinuationBoundary {...props} />;
+  // MOB-011B condition/completion step. The shared "ambiguous" mode is routed
+  // by its pending intent: a pending correction stays on the correction
+  // recovery presentation, a pending condition selection stays here.
+  if (
+    mode === "select-condition" ||
+    (mode === "ambiguous" &&
+      props.snapshot.continuation.pendingConditionSelection !== null)
+  )
+    return <NativeCheckInConditionStep {...props} />;
   return <VehicleOverview {...props} />;
 }
 

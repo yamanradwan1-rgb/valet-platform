@@ -5,6 +5,7 @@ import type {
 
 export function emptyCheckInContinuation(): EmployeeCheckInContinuation {
   return {
+    conditionSelection: null,
     detailsDraft: { color: "", make: "", model: "" },
     identityDraft: {
       mode: "CONFIRMED_PLATE",
@@ -14,6 +15,8 @@ export function emptyCheckInContinuation(): EmployeeCheckInContinuation {
     },
     lastMutationKind: null,
     mode: "view",
+    pendingConditionSelection: null,
+    pendingConditionStage: null,
     pendingIntent: null,
   };
 }

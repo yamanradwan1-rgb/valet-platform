@@ -161,12 +161,25 @@ export function NativeCompleteStep({
   textAlign,
 }: StateStepProps) {
   const continuation = snapshot.phase === "continuation";
-  const body = continuation ? copy.awaitingParkingBody : copy.createdBody;
+  // condition-completed marks an authoritative MOB-011B completion; a plain
+  // continuation phase is a previously completed session restored from
+  // discovery. Both are server-proven AWAITING_PARKING states.
+  const completedHere =
+    continuation && snapshot.continuation?.mode === "condition-completed";
+  const body = completedHere
+    ? copy.conditionCompletedBody
+    : continuation
+      ? copy.awaitingParkingBody
+      : copy.createdBody;
   return (
     <>
       <EmployeeBadge
         label={
-          continuation ? copy.recoverableContinuation : copy.intakeSavedStatus
+          completedHere
+            ? copy.conditionCompletedTitle
+            : continuation
+              ? copy.recoverableContinuation
+              : copy.intakeSavedStatus
         }
         textAlign={textAlign}
         variant={continuation ? "success" : "primary"}

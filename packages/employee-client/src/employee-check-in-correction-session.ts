@@ -89,6 +89,12 @@ export abstract class EmployeeCheckInCorrectionSession extends EmployeeCheckInSe
     return this.reconcileCorrection(this.createAttempt(intent), false);
   }
 
+  protected continuationBusy(): boolean {
+    return ["submitting", "reconciling"].includes(
+      this.snapshot.continuation.mode,
+    );
+  }
+
   protected abstract mutableActive(): EmployeeCheckInAuthoritativeSession | null;
 
   private async runCorrection(
