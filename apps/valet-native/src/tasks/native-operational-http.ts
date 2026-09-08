@@ -1,6 +1,7 @@
 import {
   EmployeeApiError,
   EmployeeClient,
+  createEmployeeShiftEndTransport,
   assignTaskResponseSchema,
   employeeAuthenticationRequiredError,
   employeeNetworkError,
@@ -15,6 +16,7 @@ import {
   type AssignTaskResponse,
   type TaskQueueResponse,
   type EmployeeShiftStartTransport,
+  type EmployeeShiftEndTransport,
   type StaffOperationalContextResponse,
 } from "@valet/employee-client";
 
@@ -212,4 +214,13 @@ export function createNativeShiftStartTransport(
       return parsed.data;
     },
   };
+}
+
+export function createNativeShiftEndTransport(
+  apiOrigin: string,
+  auth: NativeAuthSession,
+): EmployeeShiftEndTransport {
+  return createEmployeeShiftEndTransport(() =>
+    createNativeEmployeeClient(apiOrigin, auth),
+  );
 }

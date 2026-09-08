@@ -7,6 +7,9 @@ import { useNativeProductionBackHandler } from "./native-production-back-handler
 import { NativeProductionWorkspace } from "./native-production-workspace";
 import { createNativeProductionBootstrap } from "./native-production-bootstrap";
 import { NativeShellGate } from "./native-shell-gate";
+import { nativeOnlineHint } from "../shift/native-shift-connectivity";
+import { NativeShiftDetachedScreen } from "../shift/native-shift-detached-screen";
+import { shouldRenderDetachedShiftEnd } from "../shift/native-shift-protection";
 import {
   ProductionShellController,
   type ProductionDestination,
@@ -30,6 +33,7 @@ export function NativeProductionShell({
   const [retrieval, setRetrieval] = useState(bootstrap.retrieval);
   const [release, setRelease] = useState(bootstrap.release);
   const [shiftStart, setShiftStart] = useState(bootstrap.shiftStart);
+  const [shiftEnd, setShiftEnd] = useState(bootstrap.shiftEnd);
   const [controller] = useState(() => {
     const productionController = new ProductionShellController();
     if (coldIntent !== null) productionController.receive(coldIntent);
@@ -52,6 +56,7 @@ export function NativeProductionShell({
     const unsubscribeRetrieval = runtime.retrieval.subscribe(setRetrieval);
     const unsubscribeRelease = runtime.release.subscribe(setRelease);
     const unsubscribeShiftStart = runtime.shiftStart.subscribe(setShiftStart);
+    const unsubscribeShiftEnd = runtime.shiftEnd.subscribe(setShiftEnd);
     void runtime.auth.start();
     return () => {
       unsubscribeAuth();
@@ -62,6 +67,7 @@ export function NativeProductionShell({
       unsubscribeRetrieval();
       unsubscribeRelease();
       unsubscribeShiftStart();
+      unsubscribeShiftEnd();
       runtime.dispose();
     };
   }, [runtime]);
@@ -69,6 +75,7 @@ export function NativeProductionShell({
   useEffect(() => {
     if (runtime === undefined) return;
     if (authSnapshot.phase === "authenticated") {
+      runtime.shiftEnd.activate(authSnapshot.authGeneration);
       runtime.shiftStart.activate(authSnapshot.authGeneration);
       void runtime.operations.activate(authSnapshot.authGeneration);
     } else {
@@ -77,6 +84,7 @@ export function NativeProductionShell({
       runtime.parking.clear();
       runtime.retrieval.clear();
       runtime.release.clear();
+      runtime.shiftEnd.clear();
       runtime.shiftStart.clear();
       runtime.operations.clear();
     }
@@ -84,6 +92,7 @@ export function NativeProductionShell({
 
   useEffect(() => {
     if (runtime === undefined || workflowPurgeRevision === 0) return;
+    runtime.shiftEnd.fenceOperationalScope();
     runtime.checkIn.clear();
     runtime.confirmParking.clear();
     runtime.handoff.clear();
@@ -132,9 +141,11 @@ export function NativeProductionShell({
     void runtime.operations.setForeground(AppState.currentState === "active");
     const subscription = AppState.addEventListener("change", (state) => {
       if (state !== "active") {
+        runtime.shiftEnd.suspendForBackground();
         runtime.release.suspendForBackground();
         runtime.handoff.suspendForBackground();
       }
+      runtime.shiftEnd.setOnline(nativeOnlineHint());
       void runtime.operations.setForeground(state === "active");
       if (
         state === "active" &&
@@ -202,6 +213,29 @@ export function NativeProductionShell({
   useNativeProductionBackHandler(controller, runtime, shell, bumpNavigation);
 
   if (shell.kind !== "active" || runtime === undefined) {
+    if (
+      runtime !== undefined &&
+      shouldRenderDetachedShiftEnd(authSnapshot, shiftEnd, shell.kind)
+    ) {
+      return (
+        <NativeShiftDetachedScreen
+          auth={runtime.auth}
+          authSnapshot={authSnapshot}
+          locale={locale}
+          onRefresh={() =>
+            void runtime.operations.activate(authSnapshot.authGeneration)
+          }
+          onReviewTasks={() => {
+            controller.receive({ destination: "tasks", source: "navigation" });
+            bumpNavigation();
+            void runtime.operations.activate(authSnapshot.authGeneration);
+          }}
+          onSelectLocale={setLocale}
+          session={runtime.shiftEnd}
+          snapshot={shiftEnd}
+        />
+      );
+    }
     return (
       <NativeShellGate
         auth={runtime?.auth}

@@ -26,4 +26,17 @@ describe("Native Shift localization", () => {
     expect(ar.starting).toBe("جارٍ بدء المناوبة...");
     expect(ar.uncertainTitle).toBe("أكّد نتيجة بدء المناوبة");
   });
+
+  it("matches the current Web End Shift action and recovery copy", () => {
+    const en = getNativeShiftCopy("en");
+    const ar = getNativeShiftCopy("ar");
+
+    expect(en.endShift).toBe("End Shift");
+    expect(en.endShiftConfirm).toBe("Confirm end shift");
+    expect(en.retryEnd).toBe("Retry end shift");
+    expect(en.openWorkBlocked).toContain("handed over");
+    expect(ar.endShift).toBe("إنهاء المناوبة");
+    expect(ar.retryEnd).toBe("إعادة محاولة إنهاء المناوبة");
+    expect(ar.openWorkBlocked).toContain("تسليم العمل الجاري");
+  });
 });

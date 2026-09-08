@@ -12,6 +12,7 @@ import {
   EmployeeParkingStartSession,
   EmployeeReleaseSession,
   EmployeeRetrievalSession,
+  EmployeeShiftEndSession,
   EmployeeShiftStartSession,
   NativeAuthSession,
 } from "@valet/employee-client";
@@ -26,8 +27,11 @@ import {
 import {
   createNativeEmployeeClient,
   createNativeOperationalTransport,
+  createNativeShiftEndTransport,
   createNativeShiftStartTransport,
 } from "../tasks/native-operational-http";
+import { nativeOnlineHint } from "../shift/native-shift-connectivity";
+import { retireNativeShiftScope } from "../shift/native-shift-retirement";
 
 export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
@@ -40,6 +44,7 @@ export interface NativeEmployeeRuntime {
   readonly parking: EmployeeParkingStartSession;
   readonly release: EmployeeReleaseSession;
   readonly retrieval: EmployeeRetrievalSession;
+  readonly shiftEnd: EmployeeShiftEndSession;
   readonly shiftStart: EmployeeShiftStartSession;
 }
 
@@ -65,24 +70,32 @@ export function createNativeAuthSession(
 export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const apiOrigin = resolveNativeApiOrigin();
   const auth = createNativeAuthSession(apiOrigin);
-  const shiftStartObserver: { session?: EmployeeShiftStartSession } = {};
+  const shiftObserver: {
+    end?: EmployeeShiftEndSession;
+    start?: EmployeeShiftStartSession;
+  } = {};
   const operations = new EmployeeOperationalSession({
     initialForeground: false,
     transport: createNativeOperationalTransport(
       apiOrigin,
       auth,
-      (identityGeneration, response) =>
-        shiftStartObserver.session?.observeOperationalContext(
+      (identityGeneration, response) => {
+        shiftObserver.start?.observeOperationalContext(
           identityGeneration,
           response,
-        ),
+        );
+        shiftObserver.end?.observeOperationalContext(
+          identityGeneration,
+          response,
+        );
+      },
     ),
   });
   const shiftStart = new EmployeeShiftStartSession({
     refreshOperationalContext: () => operations.refresh(),
     transport: createNativeShiftStartTransport(apiOrigin, auth),
   });
-  shiftStartObserver.session = shiftStart;
+  shiftObserver.start = shiftStart;
   const parking = new EmployeeParkingStartSession({
     transport: createEmployeeParkingStartTransport(() =>
       createNativeEmployeeClient(apiOrigin, auth),
@@ -146,6 +159,22 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  const shiftEnd = new EmployeeShiftEndSession({
+    initialOnline: nativeOnlineHint(),
+    onEnded: () =>
+      retireNativeShiftScope({
+        checkIn,
+        confirmParking,
+        handoff,
+        operations,
+        parking,
+        release,
+        retrieval,
+        shiftStart,
+      }),
+    transport: createNativeShiftEndTransport(apiOrigin, auth),
+  });
+  shiftObserver.end = shiftEnd;
   const unregisterIdentityPurge = nativeIdentityState.register(() => {
     operations.clear();
     confirmParking.clear();
@@ -153,6 +182,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     parking.clear();
     release.clear();
     retrieval.clear();
+    shiftEnd.clear();
     shiftStart.clear();
     checkIn.clear();
   });
@@ -164,6 +194,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     parking.clear();
     release.clear();
     retrieval.clear();
+    shiftEnd.clear();
     shiftStart.clear();
     checkIn.clear();
   };
@@ -178,6 +209,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     parking,
     release,
     retrieval,
+    shiftEnd,
     shiftStart,
   };
 }

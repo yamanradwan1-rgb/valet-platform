@@ -49,6 +49,7 @@ export const employeeStatusColors = {
 
 // Web Btn active blue and Tailwind gray-50/red-50, converted to sRGB for Native.
 export const employeeFeedbackColors = {
+  dangerPressed: "#8D1C1C",
   primaryPressed: "#0F5EEA",
   secondaryPressed: "#F9FAFB",
   errorSurface: "#FEF2F2",

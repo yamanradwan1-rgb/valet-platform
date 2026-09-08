@@ -4,8 +4,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createAssignTaskCommandExecutor } from "../src/modules/dispatch/assign-task-command";
 import { rankEligibleTaskAssignees } from "../src/modules/dispatch/assignment-ranking";
+import { createReassignTaskCommandExecutor } from "../src/modules/dispatch/reassign-task-command";
 import { inDispatchTransaction } from "../src/modules/dispatch/dispatch-transaction";
 import { createEndShiftCommandExecutor } from "../src/modules/shifts/end-shift-command";
+import { lockShiftOperationalEligibility } from "../src/modules/shifts/shift-operational-eligibility";
 import {
   DispatchTestContext,
   expectDispatchError,
@@ -165,5 +167,111 @@ describe("VAL-005E Shift-end canonical open-work guard", () => {
       shift_status: "ENDED",
       task_status: "ASSIGNED",
     });
+  });
+
+  it("reassignment versus Shift end cannot strand the ending owner", async () => {
+    const fixture = await context.createDispatchFixture({
+      role: "VALET_SUPERVISOR",
+    });
+    const target = await context.addMember(fixture);
+    const shift = await context.adminPool.query<{ id: string }>(
+      `SELECT id::text FROM shifts WHERE membership_id = $1 AND status = 'ACTIVE'`,
+      [fixture.membershipId],
+    );
+    const queued = await context.queue(fixture);
+    await createAssignTaskCommandExecutor(context.runtimePool)({
+      authenticatedUserId: fixture.userId,
+      expectedVersion: 1,
+      taskId: queued.taskId,
+    });
+
+    await Promise.allSettled([
+      createReassignTaskCommandExecutor(context.runtimePool)({
+        authenticatedUserId: fixture.userId,
+        expectedVersion: 2,
+        reason: "Shift handoff",
+        targetAssigneeMembershipId: target.membershipId,
+        taskId: queued.taskId,
+      }),
+      createEndShiftCommandExecutor(context.runtimePool)({
+        authenticatedUserId: fixture.userId,
+        cashReported: "0",
+        shiftId: shift.rows[0]!.id,
+      }),
+    ]);
+    const state = await context.adminPool.query<{
+      assignee: string | null;
+      shift_status: string;
+    }>(
+      `SELECT shift.status::text AS shift_status,
+              task.current_assignee_membership_id::text AS assignee
+       FROM shifts AS shift CROSS JOIN tasks AS task
+       WHERE shift.id = $1 AND task.id = $2`,
+      [shift.rows[0]!.id, queued.taskId],
+    );
+    expect(state.rows[0]).not.toEqual({
+      assignee: fixture.membershipId,
+      shift_status: "ENDED",
+    });
+  });
+
+  it("re-evaluates committed authority after a competing assignment rolls back", async () => {
+    const fixture = await context.createDispatchFixture();
+    const shift = await context.adminPool.query<{ id: string }>(
+      `SELECT id::text FROM shifts WHERE membership_id = $1 AND status = 'ACTIVE'`,
+      [fixture.membershipId],
+    );
+    const queued = await context.queue(fixture);
+    const competitor = await context.runtimePool.connect();
+    await competitor.query("BEGIN");
+    await competitor.query(`SELECT id FROM tasks WHERE id = $1 FOR UPDATE`, [
+      queued.taskId,
+    ]);
+    expect(
+      await lockShiftOperationalEligibility(competitor, {
+        locationId: fixture.locationId,
+        membershipId: fixture.membershipId,
+      }),
+    ).not.toBeNull();
+    await competitor.query(
+      `UPDATE tasks
+       SET status = 'ASSIGNED', current_assignee_membership_id = $2,
+           version = version + 1, updated_at = transaction_timestamp()
+       WHERE id = $1`,
+      [queued.taskId, fixture.membershipId],
+    );
+
+    let settled = false;
+    const end = createEndShiftCommandExecutor(context.runtimePool)({
+      authenticatedUserId: fixture.userId,
+      cashReported: "0",
+      shiftId: shift.rows[0]!.id,
+    }).finally(() => {
+      settled = true;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(settled).toBe(false);
+    await competitor.query("ROLLBACK");
+    competitor.release();
+
+    await expect(end).resolves.toMatchObject({ status: "ENDED" });
+    const state = await context.adminPool.query<{
+      assignee: string | null;
+      shift_status: string;
+      task_status: string;
+    }>(
+      `SELECT shift.status::text AS shift_status,
+              task.status::text AS task_status,
+              task.current_assignee_membership_id::text AS assignee
+       FROM shifts AS shift CROSS JOIN tasks AS task
+       WHERE shift.id = $1 AND task.id = $2`,
+      [shift.rows[0]!.id, queued.taskId],
+    );
+    expect(state.rows[0]).toEqual({
+      assignee: null,
+      shift_status: "ENDED",
+      task_status: "QUEUED",
+    });
+    expect(await context.countAudit(shift.rows[0]!.id, "SHIFT_ENDED")).toBe(1);
   });
 });

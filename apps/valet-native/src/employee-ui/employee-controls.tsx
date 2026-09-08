@@ -33,6 +33,7 @@ export const employeeControlStyles = StyleSheet.create({
     textAlign: "center",
   },
   disabled: { opacity: 0.4 },
+  danger: { backgroundColor: c.danger },
   primary: { backgroundColor: c.blue },
   secondary: {
     backgroundColor: c.white,
@@ -42,8 +43,14 @@ export const employeeControlStyles = StyleSheet.create({
   ghost: { backgroundColor: "transparent" },
 });
 
-const labelColors = { primary: c.white, secondary: c.navy, ghost: c.blue };
+const labelColors = {
+  danger: c.white,
+  primary: c.white,
+  secondary: c.navy,
+  ghost: c.blue,
+};
 const pressedColors = {
+  danger: employeeFeedbackColors.dangerPressed,
   primary: employeeFeedbackColors.primaryPressed,
   secondary: employeeFeedbackColors.secondaryPressed,
   ghost: c.ice,
@@ -53,7 +60,7 @@ export function EmployeeButton({
   label,
   onPress,
   variant = "primary",
-  size = variant === "primary"
+  size = variant === "primary" || variant === "danger"
     ? "large"
     : variant === "secondary"
       ? "standard"
@@ -66,7 +73,7 @@ export function EmployeeButton({
 }: {
   readonly label: string;
   readonly onPress: () => void;
-  readonly variant?: "primary" | "secondary" | "ghost";
+  readonly variant?: "danger" | "primary" | "secondary" | "ghost";
   readonly size?: keyof typeof employeeButtonHeights;
   readonly disabled?: boolean;
   readonly role?: AccessibilityRole;
@@ -121,7 +128,9 @@ export function EmployeeButton({
           {busy ? (
             <ActivityIndicator
               accessible={false}
-              color={variant === "primary" ? c.white : c.blue}
+              color={
+                variant === "primary" || variant === "danger" ? c.white : c.blue
+              }
               size="small"
             />
           ) : (

@@ -53,6 +53,10 @@ export const employeeFeedbackStyles = StyleSheet.create({
     color: c.danger,
     fontWeight: "700",
   },
+  successCard: {
+    backgroundColor: "#EEFBF5",
+    borderColor: "#2F9B7833",
+  },
   progress: {
     alignItems: "center",
     flex: 1,
@@ -66,15 +70,21 @@ export const employeeFeedbackStyles = StyleSheet.create({
 export function EmployeeCard({
   accessibilityLabel,
   children,
+  variant = "default",
 }: {
   readonly accessibilityLabel?: string;
   readonly children: ReactNode;
+  readonly variant?: "default" | "success";
 }) {
   return (
     <View
       accessible={accessibilityLabel !== undefined}
       accessibilityLabel={accessibilityLabel}
-      style={[employeeFeedbackStyles.card, { gap: employeeSpacing.compact }]}
+      style={[
+        employeeFeedbackStyles.card,
+        variant === "success" && employeeFeedbackStyles.successCard,
+        { gap: employeeSpacing.compact },
+      ]}
     >
       {children}
     </View>

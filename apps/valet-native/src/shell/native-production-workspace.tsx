@@ -77,6 +77,7 @@ export function NativeProductionWorkspace({
 }) {
   const presentation = getFoundationPresentation(locale);
   const copy = getNativeShellCopy(locale);
+  const shiftEnd = runtime.shiftEnd.current();
 
   return (
     <EmployeeFrame direction={presentation.direction}>
@@ -159,7 +160,10 @@ export function NativeProductionWorkspace({
         ) : shell.destination === "shift" ? (
           <NativeActiveShiftPanel
             locale={locale}
-            scope={shell.scope}
+            onReturned={() => void runtime.operations.refresh()}
+            onReviewTasks={() => navigate("tasks")}
+            session={runtime.shiftEnd}
+            snapshot={shiftEnd}
             textAlign={presentation.textAlign}
           />
         ) : shell.destination === "retrieval" ? (
@@ -251,7 +255,8 @@ export function NativeProductionWorkspace({
         pinned={
           shell.destination === "check-in" ||
           shell.destination === "parking" ||
-          shell.destination === "retrieval"
+          shell.destination === "retrieval" ||
+          (shell.destination === "shift" && shiftEnd.phase === "submitting")
         }
       />
     </EmployeeFrame>

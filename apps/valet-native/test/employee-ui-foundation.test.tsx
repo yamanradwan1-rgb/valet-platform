@@ -119,6 +119,7 @@ describe("Employee visual tokens (Employee Web authority)", () => {
 describe("Employee button contract", () => {
   it.each([
     ["primary", 56, "#176BFF", "#FFFFFF", "#0F5EEA"],
+    ["danger", 56, "#D95C63", "#FFFFFF", "#8D1C1C"],
     ["secondary", 44, "#FFFFFF", "#07111F", "#F9FAFB"],
     ["ghost", 36, "transparent", "#176BFF", "#EDF4FF"],
   ] as const)(

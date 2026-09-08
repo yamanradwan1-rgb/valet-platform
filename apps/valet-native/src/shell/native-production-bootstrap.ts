@@ -5,6 +5,7 @@ import type {
   EmployeeParkingStartSnapshot,
   EmployeeReleaseSnapshot,
   EmployeeRetrievalSnapshot,
+  EmployeeShiftEndSnapshot,
   EmployeeShiftStartSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
@@ -23,6 +24,7 @@ export interface NativeProductionBootstrap {
   readonly release: EmployeeReleaseSnapshot;
   readonly retrieval: EmployeeRetrievalSnapshot;
   readonly runtime: NativeEmployeeRuntime | undefined;
+  readonly shiftEnd: EmployeeShiftEndSnapshot;
   readonly shiftStart: EmployeeShiftStartSnapshot;
 }
 
@@ -38,6 +40,7 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
       release: runtime.release.current(),
       retrieval: runtime.retrieval.current(),
       runtime,
+      shiftEnd: runtime.shiftEnd.current(),
       shiftStart: runtime.shiftStart.current(),
     };
   } catch {
@@ -113,6 +116,16 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
         task: null,
       },
       runtime: undefined,
+      shiftEnd: {
+        authority: null,
+        cashInput: "",
+        cashValidationVisible: false,
+        failure: null,
+        identityGeneration: null,
+        online: true,
+        phase: "inactive",
+        result: null,
+      },
       shiftStart: {
         failure: null,
         identityGeneration: null,

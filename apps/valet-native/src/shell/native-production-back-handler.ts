@@ -7,6 +7,7 @@ import { nativeParkingBackBlocked } from "../parking/native-parking-protection";
 import { nativeRetrievalBackBlocked } from "../retrieval/native-retrieval-protection";
 import { nativeHandoffBackBlocked } from "../handoff/native-handoff-protection";
 import { nativeReleaseBackBlocked } from "../handoff/native-release-protection";
+import { nativeShiftEndBackAction } from "../shift/native-shift-protection";
 import type {
   ProductionShellController,
   ProductionShellState,
@@ -22,6 +23,16 @@ export function useNativeProductionBackHandler(
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        if (runtime !== undefined) {
+          const shiftAction = nativeShiftEndBackAction(
+            runtime.shiftEnd.current().phase,
+          );
+          if (shiftAction === "block") return true;
+          if (shiftAction === "cancel-confirmation") {
+            runtime.shiftEnd.cancelConfirmation();
+            return true;
+          }
+        }
         if (shell.kind !== "active" || shell.destination === "tasks") {
           return false;
         }
