@@ -2,10 +2,12 @@ import {
   createEmployeeCheckInTransport,
   createEmployeeConfirmParkedTransport,
   createEmployeeParkingStartTransport,
+  createEmployeeRetrievalTransport,
   EmployeeCheckInSession,
   EmployeeConfirmParkedSession,
   EmployeeOperationalSession,
   EmployeeParkingStartSession,
+  EmployeeRetrievalSession,
   EmployeeShiftStartSession,
   NativeAuthSession,
 } from "@valet/employee-client";
@@ -31,6 +33,7 @@ export interface NativeEmployeeRuntime {
   readonly dispose: () => void;
   readonly operations: EmployeeOperationalSession;
   readonly parking: EmployeeParkingStartSession;
+  readonly retrieval: EmployeeRetrievalSession;
   readonly shiftStart: EmployeeShiftStartSession;
 }
 
@@ -84,6 +87,11 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  const retrieval = new EmployeeRetrievalSession({
+    transport: createEmployeeRetrievalTransport(() =>
+      createNativeEmployeeClient(apiOrigin, auth),
+    ),
+  });
   const checkIn = new EmployeeCheckInSession({
     createOperationId: createNativeOperationId,
     transport: createEmployeeCheckInTransport(() =>
@@ -94,6 +102,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     operations.clear();
     confirmParking.clear();
     parking.clear();
+    retrieval.clear();
     shiftStart.clear();
     checkIn.clear();
   });
@@ -102,6 +111,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     operations.dispose();
     confirmParking.clear();
     parking.clear();
+    retrieval.clear();
     shiftStart.clear();
     checkIn.clear();
   };
@@ -113,6 +123,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     dispose,
     operations,
     parking,
+    retrieval,
     shiftStart,
   };
 }

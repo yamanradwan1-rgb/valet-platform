@@ -2,6 +2,7 @@ import type {
   EmployeeConfirmParkedSnapshot,
   EmployeeOperationalSnapshot,
   EmployeeParkingStartSnapshot,
+  EmployeeRetrievalSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -31,6 +32,7 @@ import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
 import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
+import { NativeRetrievalPanel } from "../retrieval/native-retrieval-panel";
 import { NativeProductionNavigation } from "./native-production-navigation";
 import { getNativeShellCopy } from "./native-shell-copy";
 import type {
@@ -48,6 +50,7 @@ export function NativeProductionWorkspace({
   onSelectLocale,
   operations,
   parking,
+  retrieval,
   retrievalAttention,
   runtime,
   shell,
@@ -59,6 +62,7 @@ export function NativeProductionWorkspace({
   readonly onSelectLocale: (locale: FoundationLocale) => void;
   readonly operations: EmployeeOperationalSnapshot;
   readonly parking: EmployeeParkingStartSnapshot;
+  readonly retrieval: EmployeeRetrievalSnapshot;
   readonly retrievalAttention: {
     readonly dismiss: (taskId: string) => void;
     readonly taskIds: readonly string[];
@@ -153,6 +157,18 @@ export function NativeProductionWorkspace({
             scope={shell.scope}
             textAlign={presentation.textAlign}
           />
+        ) : shell.destination === "retrieval" ? (
+          <NativeRetrievalPanel
+            auth={runtime.auth}
+            locale={locale}
+            onBack={() => {
+              runtime.retrieval.clear();
+              void runtime.operations.refreshQueue();
+              navigate("tasks");
+            }}
+            retrieval={runtime.retrieval}
+            snapshot={retrieval}
+          />
         ) : (
           <View style={styles.tasks}>
             <NativeTasksPanel
@@ -176,6 +192,15 @@ export function NativeProductionWorkspace({
                 );
                 navigate("parking");
               }}
+              onOpenRetrieval={(taskId, sessionId) => {
+                void runtime.retrieval.openQueueTask(
+                  authSnapshot.authGeneration,
+                  shell.scope,
+                  taskId,
+                  sessionId,
+                );
+                navigate("retrieval");
+              }}
               snapshot={operations}
               textAlign={presentation.textAlign}
             />
@@ -187,7 +212,9 @@ export function NativeProductionWorkspace({
         locale={locale}
         onNavigate={navigate}
         pinned={
-          shell.destination === "check-in" || shell.destination === "parking"
+          shell.destination === "check-in" ||
+          shell.destination === "parking" ||
+          shell.destination === "retrieval"
         }
       />
     </EmployeeFrame>

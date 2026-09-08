@@ -108,6 +108,24 @@ describe("production route intent and authority fencing", () => {
     expect(controller.back()).toBe(true);
   });
 
+  it("opens Retrieval only as an authority-bound in-app workflow", () => {
+    const controller = new ProductionShellController();
+    expect(
+      controller.receive({ destination: "retrieval", source: "cold" }),
+    ).toBe("held");
+    expect(active(controller)).toMatchObject({ destination: "tasks" });
+    expect(
+      controller.receive({ destination: "retrieval", source: "scan" }),
+    ).toBe("rejected");
+    expect(active(controller)).toMatchObject({ destination: "tasks" });
+    expect(
+      controller.receive({ destination: "retrieval", source: "navigation" }),
+    ).toBe("resolved");
+    expect(active(controller)).toMatchObject({ destination: "retrieval" });
+    expect(controller.back()).toBe(true);
+    expect(active(controller)).toMatchObject({ destination: "tasks" });
+  });
+
   it("resolves the bounded active Shift destination without enabling summary behavior", () => {
     const controller = new ProductionShellController();
     active(controller);

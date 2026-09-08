@@ -41,7 +41,8 @@ export function NativeProductionNavigation({
   onNavigate,
   pinned,
 }: {
-  readonly activeDestination: "check-in" | "parking" | "shift" | "tasks";
+  readonly activeDestination:
+    "check-in" | "parking" | "retrieval" | "shift" | "tasks";
   readonly locale: EmployeeLocale;
   readonly onNavigate: (destination: ProductionDestination) => void;
   readonly pinned: boolean;

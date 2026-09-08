@@ -35,6 +35,8 @@ export interface NativeTasksCopy {
   readonly statusInProgress: string;
   readonly statusQueued: string;
   readonly startParking: string;
+  readonly startRetrieval: string;
+  readonly continueRetrieval: string;
   readonly stale: string;
   readonly tasks: string;
   readonly unknownResult: string;
@@ -78,6 +80,8 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     statusInProgress: "In progress",
     statusQueued: "Queued",
     startParking: "Start Parking",
+    startRetrieval: "Start Retrieval",
+    continueRetrieval: "Continue Retrieval",
     stale: "Showing the last verified queue while refresh is unavailable.",
     tasks: "Tasks",
     unknownResult:
@@ -119,6 +123,8 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     statusInProgress: "قيد التنفيذ",
     statusQueued: "في قائمة الانتظار",
     startParking: "بدء الاصطفاف",
+    startRetrieval: "بدء الاسترجاع",
+    continueRetrieval: "متابعة الاسترجاع",
     stale: "يتم عرض آخر قائمة مهام مؤكدة لتعذر التحديث.",
     tasks: "المهام",
     unknownResult:

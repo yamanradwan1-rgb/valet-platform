@@ -100,13 +100,18 @@ function render(
   );
 }
 
-function renderRow(item = task, onOpenParking = vi.fn()) {
+function renderRow(
+  item = task,
+  onOpenParking = vi.fn(),
+  onOpenRetrieval = vi.fn(),
+) {
   return elements(
     NativeTaskQueueRow({
       copy: getNativeTasksCopy("en"),
       locale: "en",
       operations,
       onOpenParking,
+      onOpenRetrieval,
       snapshot: snapshot(item),
       task: item,
       textAlign: "left",
@@ -212,6 +217,22 @@ describe("Native production task cards", () => {
       expect(
         JSON.stringify(nodes.map((node) => node.props.children)),
       ).toContain("›");
+    },
+  );
+
+  it.each(["ACCEPTED", "IN_PROGRESS"] as const)(
+    "opens the bounded Retrieval workflow for self-owned %s work",
+    (status) => {
+      const staged = { ...task, status, taskType: "RETRIEVAL" as const };
+      const onOpenRetrieval = vi.fn();
+      const nodes = renderRow(staged, vi.fn(), onOpenRetrieval);
+      const row = nodes.find(
+        (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+      )!;
+
+      expect(row.props.accessibilityRole).toBe("button");
+      (row.props.onPress as () => void)();
+      expect(onOpenRetrieval).toHaveBeenCalledWith(task.taskId, task.sessionId);
     },
   );
 });

@@ -11,6 +11,7 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   canAcceptNativeTask,
   canOpenNativeParkingTask,
+  canOpenNativeRetrievalTask,
   nativeTaskActionLabel,
   nativeTaskParkingContext,
   nativeTaskStatusLabel,
@@ -27,6 +28,7 @@ export function NativeTaskQueueRow({
   locale,
   operations,
   onOpenParking = () => undefined,
+  onOpenRetrieval = () => undefined,
   snapshot,
   task,
   textAlign,
@@ -35,6 +37,8 @@ export function NativeTaskQueueRow({
   readonly locale: FoundationLocale;
   readonly operations: EmployeeOperationalSession;
   readonly onOpenParking?:
+    ((taskId: string, sessionId: string) => void) | undefined;
+  readonly onOpenRetrieval?:
     ((taskId: string, sessionId: string) => void) | undefined;
   readonly snapshot: EmployeeOperationalSnapshot;
   readonly task: StaffTaskQueueItem;
@@ -53,8 +57,12 @@ export function NativeTaskQueueRow({
     (snapshot.mutation.phase === "submitting" ||
       snapshot.mutation.phase === "reconciling");
   const opensParking = canOpenNativeParkingTask(snapshot, task);
+  const opensRetrieval = canOpenNativeRetrievalTask(snapshot, task);
   const actionable =
-    canAcceptNativeTask(snapshot, task) || retry || opensParking;
+    canAcceptNativeTask(snapshot, task) ||
+    retry ||
+    opensParking ||
+    opensRetrieval;
   const actionLabel = retry ? copy.retry : nativeTaskActionLabel(copy, task);
   const identifier = nativeTaskVehicleIdentifier(task);
   const context =
@@ -75,11 +83,15 @@ export function NativeTaskQueueRow({
       accessibilityRole={actionable ? "button" : undefined}
       accessibilityState={{ busy, disabled: !actionable || busy }}
       disabled={!actionable || busy}
-      onPress={() =>
-        opensParking
-          ? onOpenParking(task.taskId, task.sessionId)
-          : void operations.acceptTask(task.taskId)
-      }
+      onPress={() => {
+        if (opensParking) {
+          onOpenParking(task.taskId, task.sessionId);
+        } else if (opensRetrieval) {
+          onOpenRetrieval(task.taskId, task.sessionId);
+        } else {
+          void operations.acceptTask(task.taskId);
+        }
+      }}
       style={[
         s.row,
         { flexDirection: direction === "rtl" ? "row-reverse" : "row" },

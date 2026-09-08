@@ -12,6 +12,7 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   canAcceptNativeTask,
   canOpenNativeParkingTask,
+  canOpenNativeRetrievalTask,
   nativeTaskActionLabel,
   nativeTaskAge,
   nativeTaskParkingContext,
@@ -28,6 +29,7 @@ export function NativeTaskCard({
   locale,
   operations,
   onOpenParking = () => undefined,
+  onOpenRetrieval = () => undefined,
   priority,
   snapshot,
   task,
@@ -37,6 +39,8 @@ export function NativeTaskCard({
   readonly locale: FoundationLocale;
   readonly operations: EmployeeOperationalSession;
   readonly onOpenParking?:
+    ((taskId: string, sessionId: string) => void) | undefined;
+  readonly onOpenRetrieval?:
     ((taskId: string, sessionId: string) => void) | undefined;
   readonly priority: boolean;
   readonly snapshot: EmployeeOperationalSnapshot;
@@ -57,8 +61,12 @@ export function NativeTaskCard({
       snapshot.mutation.phase === "reconciling");
   const actionLabel = retry ? copy.retry : nativeTaskActionLabel(copy, task);
   const opensParking = canOpenNativeParkingTask(snapshot, task);
+  const opensRetrieval = canOpenNativeRetrievalTask(snapshot, task);
   const actionable =
-    canAcceptNativeTask(snapshot, task) || retry || opensParking;
+    canAcceptNativeTask(snapshot, task) ||
+    retry ||
+    opensParking ||
+    opensRetrieval;
   const showsAction = actionable || busy;
   const parkingContext = nativeTaskParkingContext(task);
   const vehicleLabel = nativeTaskVehicleLabel(task);
@@ -116,11 +124,15 @@ export function NativeTaskCard({
               busy={busy}
               disabled={busy}
               label={busy ? copy.processing : actionLabel}
-              onPress={() =>
-                opensParking
-                  ? onOpenParking(task.taskId, task.sessionId)
-                  : void operations.acceptTask(task.taskId)
-              }
+              onPress={() => {
+                if (opensParking) {
+                  onOpenParking(task.taskId, task.sessionId);
+                } else if (opensRetrieval) {
+                  onOpenRetrieval(task.taskId, task.sessionId);
+                } else {
+                  void operations.acceptTask(task.taskId);
+                }
+              }}
               size="standard"
               variant={priority ? "primary" : "secondary"}
             />
