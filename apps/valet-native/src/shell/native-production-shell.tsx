@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type {
+  EmployeeConfirmParkedSnapshot,
   EmployeeOperationalSnapshot,
   EmployeeParkingStartSnapshot,
   EmployeeShiftStartSnapshot,
@@ -13,6 +14,7 @@ import {
 } from "../auth/native-auth-runtime";
 import { checkInBackBlocked } from "../check-in/native-check-in-presentation";
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import { nativeParkingBackBlocked } from "../parking/native-parking-protection";
 import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-attention";
 import { NativeProductionWorkspace } from "./native-production-workspace";
 import { NativeShellGate } from "./native-shell-gate";
@@ -24,6 +26,7 @@ import {
 
 interface Bootstrap {
   readonly auth: NativeAuthSnapshot;
+  readonly confirmParking: EmployeeConfirmParkedSnapshot;
   readonly operations: EmployeeOperationalSnapshot;
   readonly parking: EmployeeParkingStartSnapshot;
   readonly runtime: NativeEmployeeRuntime | undefined;
@@ -35,6 +38,7 @@ function createBootstrap(): Bootstrap {
     const runtime = createNativeEmployeeRuntime();
     return {
       auth: runtime.auth.current(),
+      confirmParking: runtime.confirmParking.current(),
       operations: runtime.operations.current(),
       parking: runtime.parking.current(),
       runtime,
@@ -46,6 +50,18 @@ function createBootstrap(): Bootstrap {
         authGeneration: 0,
         phase: "fatal",
         reason: "configuration-failure",
+      },
+      confirmParking: {
+        conflict: null,
+        failure: null,
+        identityGeneration: null,
+        keySlotCandidate: "",
+        parked: null,
+        parkingSpotCandidate: "",
+        phase: "inactive",
+        scope: null,
+        session: null,
+        task: null,
       },
       operations: {
         contextFailure: null,
@@ -89,6 +105,9 @@ export function NativeProductionShell({
   const [locale, setLocale] = useState<FoundationLocale>("en");
   const [bootstrap] = useState(createBootstrap);
   const [authSnapshot, setAuthSnapshot] = useState(bootstrap.auth);
+  const [confirmParking, setConfirmParking] = useState(
+    bootstrap.confirmParking,
+  );
   const [operations, setOperations] = useState(bootstrap.operations);
   const [parking, setParking] = useState(bootstrap.parking);
   const [shiftStart, setShiftStart] = useState(bootstrap.shiftStart);
@@ -106,12 +125,15 @@ export function NativeProductionShell({
   useEffect(() => {
     if (runtime === undefined) return;
     const unsubscribeAuth = runtime.auth.subscribe(setAuthSnapshot);
+    const unsubscribeConfirmParking =
+      runtime.confirmParking.subscribe(setConfirmParking);
     const unsubscribeOperations = runtime.operations.subscribe(setOperations);
     const unsubscribeParking = runtime.parking.subscribe(setParking);
     const unsubscribeShiftStart = runtime.shiftStart.subscribe(setShiftStart);
     void runtime.auth.start();
     return () => {
       unsubscribeAuth();
+      unsubscribeConfirmParking();
       unsubscribeOperations();
       unsubscribeParking();
       unsubscribeShiftStart();
@@ -125,6 +147,7 @@ export function NativeProductionShell({
       runtime.shiftStart.activate(authSnapshot.authGeneration);
       void runtime.operations.activate(authSnapshot.authGeneration);
     } else {
+      runtime.confirmParking.clear();
       runtime.parking.clear();
       runtime.shiftStart.clear();
       runtime.operations.clear();
@@ -134,6 +157,7 @@ export function NativeProductionShell({
   useEffect(() => {
     if (runtime === undefined || workflowPurgeRevision === 0) return;
     runtime.checkIn.clear();
+    runtime.confirmParking.clear();
     runtime.parking.clear();
   }, [runtime, workflowPurgeRevision]);
 
@@ -143,6 +167,11 @@ export function NativeProductionShell({
     const subscription = AppState.addEventListener("change", (state) => {
       void runtime.operations.setForeground(state === "active");
       if (
+        state === "active" &&
+        runtime.confirmParking.current().phase !== "inactive"
+      ) {
+        void runtime.confirmParking.checkServerState();
+      } else if (
         state === "active" &&
         runtime.parking.current().phase !== "inactive"
       ) {
@@ -154,6 +183,28 @@ export function NativeProductionShell({
       void runtime.operations.setForeground(false);
     };
   }, [runtime]);
+
+  useEffect(() => {
+    const task = parking.task;
+    const session = parking.session;
+    if (
+      runtime === undefined ||
+      parking.phase !== "started" ||
+      parking.identityGeneration === null ||
+      parking.scope === null ||
+      task === null ||
+      session === null ||
+      runtime.parking.current() !== parking ||
+      runtime.confirmParking.current().phase !== "inactive"
+    )
+      return;
+    void runtime.confirmParking.open(
+      parking.identityGeneration,
+      parking.scope,
+      task.taskId,
+      session.sessionId,
+    );
+  }, [parking, runtime]);
 
   const navigate = (destination: ProductionDestination) => {
     controller.receive({ destination, source: "navigation" });
@@ -180,13 +231,22 @@ export function NativeProductionShell({
         if (
           runtime !== undefined &&
           shell.destination === "parking" &&
-          (runtime.parking.current().phase === "submitting" ||
-            runtime.parking.current().phase === "reconciling")
+          nativeParkingBackBlocked(
+            runtime.parking.current().phase,
+            runtime.confirmParking.current().phase,
+          )
         ) {
           return true;
         }
         if (runtime !== undefined && shell.destination === "parking") {
+          const confirmPhase = runtime.confirmParking.current().phase;
+          if (confirmPhase === "slot" || confirmPhase === "ready") {
+            runtime.confirmParking.backToSpot();
+            return true;
+          }
+          runtime.confirmParking.clear();
           runtime.parking.clear();
+          void runtime.operations.refreshQueue();
         }
         if (
           runtime !== undefined &&
@@ -226,6 +286,7 @@ export function NativeProductionShell({
     <NativeProductionWorkspace
       authSnapshot={authSnapshot}
       locale={locale}
+      confirmParking={confirmParking}
       navigate={navigate}
       onSelectLocale={setLocale}
       operations={operations}

@@ -1,4 +1,5 @@
 import type {
+  EmployeeConfirmParkedSnapshot,
   EmployeeOperationalSnapshot,
   EmployeeParkingStartSnapshot,
   NativeAuthSnapshot,
@@ -29,6 +30,7 @@ import { NativeRetrievalAttention } from "../tasks/native-retrieval-attention";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
+import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
 import { NativeProductionNavigation } from "./native-production-navigation";
 import { getNativeShellCopy } from "./native-shell-copy";
 import type {
@@ -40,6 +42,7 @@ type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 
 export function NativeProductionWorkspace({
   authSnapshot,
+  confirmParking,
   locale,
   navigate,
   onSelectLocale,
@@ -50,6 +53,7 @@ export function NativeProductionWorkspace({
   shell,
 }: {
   readonly authSnapshot: NativeAuthSnapshot;
+  readonly confirmParking: EmployeeConfirmParkedSnapshot;
   readonly locale: FoundationLocale;
   readonly navigate: (destination: ProductionDestination) => void;
   readonly onSelectLocale: (locale: FoundationLocale) => void;
@@ -116,17 +120,33 @@ export function NativeProductionWorkspace({
             scope={shell.scope}
           />
         ) : shell.destination === "parking" ? (
-          <NativeParkingStartPanel
-            locale={locale}
-            onBack={() => {
-              runtime.parking.clear();
-              void runtime.operations.refreshQueue();
-              navigate("tasks");
-            }}
-            operations={runtime.operations}
-            parking={runtime.parking}
-            snapshot={parking}
-          />
+          parking.phase === "started" ? (
+            <NativeParkingConfirmPanel
+              auth={runtime.auth}
+              confirmation={runtime.confirmParking}
+              locale={locale}
+              onDone={() => {
+                runtime.confirmParking.clear();
+                runtime.parking.clear();
+                void runtime.operations.refreshQueue();
+                navigate("tasks");
+              }}
+              snapshot={confirmParking}
+            />
+          ) : (
+            <NativeParkingStartPanel
+              locale={locale}
+              onBack={() => {
+                runtime.confirmParking.clear();
+                runtime.parking.clear();
+                void runtime.operations.refreshQueue();
+                navigate("tasks");
+              }}
+              operations={runtime.operations}
+              parking={runtime.parking}
+              snapshot={parking}
+            />
+          )
         ) : shell.destination === "shift" ? (
           <NativeActiveShiftPanel
             locale={locale}

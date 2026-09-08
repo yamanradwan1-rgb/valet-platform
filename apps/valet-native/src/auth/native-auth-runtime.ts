@@ -1,7 +1,9 @@
 import {
   createEmployeeCheckInTransport,
+  createEmployeeConfirmParkedTransport,
   createEmployeeParkingStartTransport,
   EmployeeCheckInSession,
+  EmployeeConfirmParkedSession,
   EmployeeOperationalSession,
   EmployeeParkingStartSession,
   EmployeeShiftStartSession,
@@ -25,6 +27,7 @@ export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
   readonly auth: NativeAuthSession;
   readonly checkIn: EmployeeCheckInSession;
+  readonly confirmParking: EmployeeConfirmParkedSession;
   readonly dispose: () => void;
   readonly operations: EmployeeOperationalSession;
   readonly parking: EmployeeParkingStartSession;
@@ -76,6 +79,11 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  const confirmParking = new EmployeeConfirmParkedSession({
+    transport: createEmployeeConfirmParkedTransport(() =>
+      createNativeEmployeeClient(apiOrigin, auth),
+    ),
+  });
   const checkIn = new EmployeeCheckInSession({
     createOperationId: createNativeOperationId,
     transport: createEmployeeCheckInTransport(() =>
@@ -84,6 +92,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   });
   const unregisterIdentityPurge = nativeIdentityState.register(() => {
     operations.clear();
+    confirmParking.clear();
     parking.clear();
     shiftStart.clear();
     checkIn.clear();
@@ -91,11 +100,21 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const dispose = () => {
     unregisterIdentityPurge();
     operations.dispose();
+    confirmParking.clear();
     parking.clear();
     shiftStart.clear();
     checkIn.clear();
   };
-  return { apiOrigin, auth, checkIn, dispose, operations, parking, shiftStart };
+  return {
+    apiOrigin,
+    auth,
+    checkIn,
+    confirmParking,
+    dispose,
+    operations,
+    parking,
+    shiftStart,
+  };
 }
 
 function createNativeOperationId(): string {

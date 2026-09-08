@@ -107,6 +107,12 @@ describe("VAL-005G concurrency", () => {
   it("allows only one session to claim a contested free Spot", async () => {
     const first = await context.createConfirmParkedFixture();
     const second = await context.createCompetingFixture(first);
+    expect(second.membershipId).not.toBe(first.membershipId);
+    expect(second.userId).not.toBe(first.userId);
+    const before = [
+      await context.completionEffects(first),
+      await context.completionEffects(second),
+    ];
     const results = await Promise.allSettled([
       context.confirm(first),
       context.confirm(second),
@@ -118,6 +124,30 @@ describe("VAL-005G concurrency", () => {
     expect(loser).toMatchObject({
       reason: { code: "PARKING_SPOT_NOT_FOUND_OR_UNAVAILABLE" },
     });
+    const winnerIndex = results[0].status === "fulfilled" ? 0 : 1;
+    const winner = winnerIndex === 0 ? first : second;
+    const losingFixture = winnerIndex === 0 ? second : first;
+    const winnerEffects = await context.completionEffects(winner);
+    expect(winnerEffects.projection).toMatchObject({
+      key_slot_id: winner.keySlotId,
+      parking_spot_id: first.parkingSpotId,
+      session_state: "PARKED",
+      session_version: 4,
+      task_status: "COMPLETED",
+      task_version: 5,
+    });
+    expect(
+      winnerEffects.events.map((event) => event.event_type).sort(),
+    ).toEqual(["COMPLETED", "RETURNED_TO_SLOT", "VALET_SESSION_PARKED"]);
+    expect(await context.completionEffects(losingFixture)).toEqual(
+      before[winnerIndex === 0 ? 1 : 0],
+    );
+    const occupancy = await context.adminPool.query<{ count: number }>(
+      `SELECT count(*)::integer AS count FROM valet_sessions
+       WHERE parking_spot_id = $1 AND state = 'PARKED'`,
+      [first.parkingSpotId],
+    );
+    expect(occupancy.rows[0]?.count).toBe(1);
   });
 
   it("serializes safely with Shift end and permits end after completion", async () => {

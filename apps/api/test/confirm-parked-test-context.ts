@@ -115,8 +115,10 @@ export class ConfirmParkedTestContext extends StartParkingTestContext {
   async createCompetingFixture(
     base: ConfirmParkedFixture,
   ): Promise<ConfirmParkedFixture> {
-    const sessionId = await this.addSession(base);
-    const fixture = { ...base, sessionId };
+    const actor = await this.addMember(base);
+    const actorBase = { ...base, ...actor };
+    const sessionId = await this.addSession(actorBase);
+    const fixture = { ...actorBase, sessionId };
     const slot = await this.addKeySlot(fixture);
     await createAssignKeySlotCommandExecutor(this.runtimePool)({
       authenticatedUserId: fixture.userId,

@@ -16,20 +16,22 @@ type PostBindingFixture = Awaited<
 async function addCompetingUnboundFixture(
   base: PostBindingFixture,
 ): Promise<PostBindingFixture> {
-  const sessionId = await context.addSession(base);
-  const queued = await context.queue({ ...base, sessionId });
+  const actor = await context.addMember(base);
+  const actorBase = { ...base, ...actor };
+  const sessionId = await context.addSession(actorBase);
+  const queued = await context.queue({ ...actorBase, sessionId });
   const assigned = await createAssignTaskCommandExecutor(context.runtimePool)({
-    authenticatedUserId: base.userId,
+    authenticatedUserId: actor.userId,
     expectedVersion: queued.version,
     taskId: queued.taskId,
   });
   await createAcceptTaskCommandExecutor(context.runtimePool)({
-    authenticatedUserId: base.userId,
+    authenticatedUserId: actor.userId,
     expectedVersion: assigned.version,
     taskId: queued.taskId,
   });
   const competitor: PostBindingFixture = {
-    ...base,
+    ...actorBase,
     sessionId,
     taskId: queued.taskId,
   };
@@ -81,6 +83,8 @@ describe("DEC-068 same-slot binding race", () => {
   it("lets exactly one unbound session bind a contested free slot", async () => {
     const first = await context.createPostBindingFixture();
     const second = await addCompetingUnboundFixture(first);
+    expect(second.membershipId).not.toBe(first.membershipId);
+    expect(second.userId).not.toBe(first.userId);
     expect(second.keySlotCode).toBe(first.keySlotCode);
     // Shared monotonic custody ids make the winner's intra-transaction event
     // order assertable via ORDER BY id despite identical operation timestamps.
@@ -146,5 +150,11 @@ describe("DEC-068 same-slot binding race", () => {
     ]);
     const loserAfter = await physicalSnapshot(loser);
     expect(loserAfter).toEqual(snapshots[winnerIndex === 0 ? 1 : 0]);
+    const owners = await context.adminPool.query<{ count: number }>(
+      `SELECT count(*)::integer AS count FROM valet_sessions
+       WHERE key_slot_id = $1 AND state = 'PARKED'`,
+      [first.keySlotId],
+    );
+    expect(owners.rows[0]?.count).toBe(1);
   });
 });
