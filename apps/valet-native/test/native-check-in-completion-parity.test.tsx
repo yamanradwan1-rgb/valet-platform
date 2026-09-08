@@ -159,7 +159,13 @@ describe("MOB-010 Patch 5 truthful completion presentation", () => {
         (node) =>
           node.type === "Pressable" &&
           node.props.accessibilityLabel ===
-            (locale === "en" ? "Back to tasks" : "العودة إلى المهام"),
+            (phase === "continuation"
+              ? locale === "en"
+                ? "Continue to Parking Task"
+                : "متابعة مهمة الاصطفاف"
+              : locale === "en"
+                ? "Back to tasks"
+                : "العودة إلى المهام"),
       )!;
       (close.props.onPress as () => void)();
       expect(onClose).toHaveBeenCalledOnce();
@@ -170,7 +176,7 @@ describe("MOB-010 Patch 5 truthful completion presentation", () => {
     const created = content(render("created", "en").nodes);
     const continuation = content(render("continuation", "en").nodes);
     expect(created).toContain("current Native scope");
-    expect(continuation).toContain("no state was changed locally");
+    expect(continuation).toContain("current Parking Task");
     expect(created).not.toBe(continuation);
   });
 });

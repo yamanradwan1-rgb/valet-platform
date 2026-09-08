@@ -253,7 +253,7 @@ export const localeStateCases: MatrixCase[] = [
   {
     name: "continuation",
     state: base({ active, phase: "continuation" }),
-    en: ["Ready for parking", "no state was changed locally"],
-    ar: ["جاهزة للاصطفاف", "لم يتم تغيير أي حالة محلياً"],
+    en: ["Ready for parking", "current Parking Task"],
+    ar: ["جاهزة للاصطفاف", "مهمة الاصطفاف الحالية"],
   },
 ];

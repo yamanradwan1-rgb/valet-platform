@@ -5,7 +5,7 @@ import type {
 } from "@valet/employee-client";
 
 export type ProductionDestination =
-  "check-in" | "scan" | "shift" | "tasks" | "vehicles";
+  "check-in" | "parking" | "scan" | "shift" | "tasks" | "vehicles";
 
 export type ProductionIntentSource = "cold" | "navigation" | "scan";
 
@@ -28,7 +28,7 @@ export type ProductionShellState =
       readonly reason: "ambiguous-active-shifts" | "unavailable";
     }
   | {
-      readonly destination: "check-in" | "shift" | "tasks";
+      readonly destination: "check-in" | "parking" | "shift" | "tasks";
       readonly kind: "active";
       readonly scope: EmployeeOperationalScope;
     };
@@ -47,6 +47,7 @@ interface ConfirmedAuthority {
 
 const destinations = new Set<ProductionDestination>([
   "check-in",
+  "parking",
   "scan",
   "shift",
   "tasks",
@@ -137,7 +138,7 @@ export function deriveProductionShellState(
 export class ProductionShellController {
   private authority: ConfirmedAuthority | null = null;
   private authorityReady = false;
-  private destination: "check-in" | "shift" | "tasks" = "tasks";
+  private destination: "check-in" | "parking" | "shift" | "tasks" = "tasks";
   private pending: PendingIntent | null = null;
   private purgeLatched = false;
   private purgeRevision = 0;
@@ -252,6 +253,7 @@ export class ProductionShellController {
     if (
       intent.destination === "tasks" ||
       intent.destination === "check-in" ||
+      (intent.destination === "parking" && intent.source === "navigation") ||
       intent.destination === "shift"
     ) {
       this.destination = intent.destination;

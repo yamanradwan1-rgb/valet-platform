@@ -46,6 +46,19 @@ export function canAcceptNativeTask(
   );
 }
 
+export function canOpenNativeParkingTask(
+  snapshot: EmployeeOperationalSnapshot,
+  task: StaffTaskQueueItem,
+): boolean {
+  return (
+    snapshot.phase === "ready" &&
+    task.taskType === "PARKING" &&
+    (task.status === "ACCEPTED" || task.status === "IN_PROGRESS") &&
+    task.currentAssigneeMembershipId === snapshot.scope?.membershipId &&
+    !isEmployeeMutationUnresolved(snapshot.mutation)
+  );
+}
+
 export function nativeTaskActionLabel(
   copy: NativeTasksCopy,
   task: StaffTaskQueueItem,
@@ -56,6 +69,10 @@ export function nativeTaskActionLabel(
       : copy.claimRetrieval;
   }
   if (task.status === "ASSIGNED") return copy.accept;
+  if (task.taskType === "PARKING" && task.status === "ACCEPTED")
+    return copy.startParking;
+  if (task.taskType === "PARKING" && task.status === "IN_PROGRESS")
+    return copy.continueParking;
   return undefined;
 }
 

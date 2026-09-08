@@ -20,6 +20,7 @@ export interface NativeTasksCopy {
   readonly rateLimited: string;
   readonly noShift: string;
   readonly processing: string;
+  readonly continueParking: string;
   readonly reconcile: string;
   readonly refresh: string;
   readonly refreshing: string;
@@ -33,6 +34,7 @@ export interface NativeTasksCopy {
   readonly statusAssigned: string;
   readonly statusInProgress: string;
   readonly statusQueued: string;
+  readonly startParking: string;
   readonly stale: string;
   readonly tasks: string;
   readonly unknownResult: string;
@@ -61,6 +63,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     rateLimited:
       "Task refresh is rate limited. The normal refresh cycle will resume.",
     processing: "Accepting…",
+    continueParking: "Continue Parking",
     reconcile: "Checking current server state…",
     refresh: "Refresh",
     refreshing: "Refreshing current Tasks…",
@@ -74,6 +77,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     statusAssigned: "Assigned",
     statusInProgress: "In progress",
     statusQueued: "Queued",
+    startParking: "Start Parking",
     stale: "Showing the last verified queue while refresh is unavailable.",
     tasks: "Tasks",
     unknownResult:
@@ -100,6 +104,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     priority: "المهمة ذات الأولوية",
     rateLimited: "تم تقييد تحديث المهام مؤقتًا. ستستأنف دورة التحديث المعتادة.",
     processing: "جارٍ القبول…",
+    continueParking: "متابعة الاصطفاف",
     reconcile: "جارٍ التحقق من حالة الخادم الحالية…",
     refresh: "تحديث",
     refreshing: "جارٍ تحديث المهام الحالية…",
@@ -113,6 +118,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     statusAssigned: "مسندة",
     statusInProgress: "قيد التنفيذ",
     statusQueued: "في قائمة الانتظار",
+    startParking: "بدء الاصطفاف",
     stale: "يتم عرض آخر قائمة مهام مؤكدة لتعذر التحديث.",
     tasks: "المهام",
     unknownResult:

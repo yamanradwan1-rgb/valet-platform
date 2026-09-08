@@ -1,7 +1,9 @@
 import {
   createEmployeeCheckInTransport,
+  createEmployeeParkingStartTransport,
   EmployeeCheckInSession,
   EmployeeOperationalSession,
+  EmployeeParkingStartSession,
   EmployeeShiftStartSession,
   NativeAuthSession,
 } from "@valet/employee-client";
@@ -25,6 +27,7 @@ export interface NativeEmployeeRuntime {
   readonly checkIn: EmployeeCheckInSession;
   readonly dispose: () => void;
   readonly operations: EmployeeOperationalSession;
+  readonly parking: EmployeeParkingStartSession;
   readonly shiftStart: EmployeeShiftStartSession;
 }
 
@@ -68,6 +71,11 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     transport: createNativeShiftStartTransport(apiOrigin, auth),
   });
   shiftStartObserver.session = shiftStart;
+  const parking = new EmployeeParkingStartSession({
+    transport: createEmployeeParkingStartTransport(() =>
+      createNativeEmployeeClient(apiOrigin, auth),
+    ),
+  });
   const checkIn = new EmployeeCheckInSession({
     createOperationId: createNativeOperationId,
     transport: createEmployeeCheckInTransport(() =>
@@ -76,16 +84,18 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   });
   const unregisterIdentityPurge = nativeIdentityState.register(() => {
     operations.clear();
+    parking.clear();
     shiftStart.clear();
     checkIn.clear();
   });
   const dispose = () => {
     unregisterIdentityPurge();
     operations.dispose();
+    parking.clear();
     shiftStart.clear();
     checkIn.clear();
   };
-  return { apiOrigin, auth, checkIn, dispose, operations, shiftStart };
+  return { apiOrigin, auth, checkIn, dispose, operations, parking, shiftStart };
 }
 
 function createNativeOperationId(): string {

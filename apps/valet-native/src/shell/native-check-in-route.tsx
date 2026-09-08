@@ -15,6 +15,7 @@ export function NativeCheckInRoute({
   identityGeneration,
   locale,
   onClose,
+  onOpenParking,
   scope,
 }: {
   readonly auth: NativeAuthSession;
@@ -22,6 +23,7 @@ export function NativeCheckInRoute({
   readonly identityGeneration: number;
   readonly locale: EmployeeLocale;
   readonly onClose: () => void;
+  readonly onOpenParking: (sessionId: string) => void;
   readonly scope: EmployeeOperationalScope;
 }) {
   const workflowOwner = nativeCheckInWorkflowOwner(scope);
@@ -44,6 +46,7 @@ export function NativeCheckInRoute({
       auth={auth}
       locale={locale}
       onClose={close}
+      onOpenParking={onOpenParking}
       session={checkIn}
       snapshot={snapshot}
     />

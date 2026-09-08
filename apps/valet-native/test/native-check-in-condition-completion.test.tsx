@@ -61,12 +61,17 @@ function completedSnapshot(
   };
 }
 
-function render(state: EmployeeCheckInSnapshot, locale: "en" | "ar" = "en") {
+function render(
+  state: EmployeeCheckInSnapshot,
+  locale: "en" | "ar" = "en",
+  onOpenParking = vi.fn(),
+) {
   return elements(
     NativeCheckInWorkflow({
       auth: {} as NativeAuthSession,
       locale,
       onClose: vi.fn(),
+      onOpenParking,
       session: {
         cancelVehicleEdit: vi.fn(),
       } as unknown as Parameters<typeof NativeCheckInWorkflow>[0]["session"],
@@ -86,7 +91,7 @@ describe("MOB-011B Native completion continuation", () => {
       ),
     ).toHaveLength(1);
     expect(content(nodes)).toContain(
-      "Check-in is complete on the server. The vehicle is now awaiting parking; continue the parking workflow in Employee Web.",
+      "Check-in is complete on the server. The vehicle is now awaiting its Parking Task.",
     );
     expect(content(nodes)).toContain("12-34567");
     expect(content(nodes)).not.toMatch(/Start Parking|بدء الاصطفاف/);
@@ -103,7 +108,7 @@ describe("MOB-011B Native completion continuation", () => {
       ),
     ).toHaveLength(1);
     expect(content(nodes)).toContain(
-      "اكتمل تسجيل الوصول على الخادم. المركبة بانتظار الاصطفاف الآن؛ تابع مسار الاصطفاف في تطبيق الموظف على الويب.",
+      "اكتمل تسجيل الوصول على الخادم. المركبة الآن بانتظار مهمة الاصطفاف.",
     );
     expect(content(nodes)).not.toMatch(/Start Parking/);
   });
@@ -111,7 +116,7 @@ describe("MOB-011B Native completion continuation", () => {
   it("keeps a restored continuation distinct from a fresh completion", () => {
     const restoredNodes = render(completedSnapshot("view"));
     expect(content(restoredNodes)).toContain(
-      "This authoritative check-in is awaiting parking. Native parking parity is not implemented yet, and no state was changed locally.",
+      "This authoritative check-in is awaiting its current Parking Task.",
     );
     const completedNodes = render(completedSnapshot());
     expect(content(completedNodes)).toContain("Check-in complete");
@@ -123,5 +128,15 @@ describe("MOB-011B Native completion continuation", () => {
     const copy = content(nodes);
     expect(copy).not.toMatch(/Start Parking|بدء الاصطفاف/);
     expect(copy).not.toMatch(/key slot|خانة المفتاح/i);
+  });
+
+  it("continues completed check-in into the canonical Parking Task workflow", () => {
+    const onOpenParking = vi.fn();
+    const nodes = render(completedSnapshot(), "en", onOpenParking);
+    const action = nodes.find(
+      (node) => node.props.accessibilityLabel === "Continue to Parking Task",
+    )!;
+    (action.props.onPress as () => void)();
+    expect(onOpenParking).toHaveBeenCalledWith(conditionActive.sessionId);
   });
 });

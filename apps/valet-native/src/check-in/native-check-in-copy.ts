@@ -13,6 +13,7 @@ export interface NativeCheckInCopy {
   readonly createdBody: string;
   readonly createdTitle: string;
   readonly conditionCompletedBody: string;
+  readonly continueParkingTask: string;
   readonly conditionCompletedTitle: string;
   readonly customerContact: string;
   readonly differentCustomer: string;
@@ -128,10 +129,11 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     vehicle: "Vehicle",
     vehicleFound: "Vehicle found",
     awaitingParkingBody:
-      "This authoritative check-in is awaiting parking. Native parking parity is not implemented yet, and no state was changed locally.",
+      "This authoritative check-in is awaiting its current Parking Task.",
     conditionCompletedBody:
-      "Check-in is complete on the server. The vehicle is now awaiting parking; continue the parking workflow in Employee Web.",
+      "Check-in is complete on the server. The vehicle is now awaiting its Parking Task.",
     conditionCompletedTitle: "Check-in complete",
+    continueParkingTask: "Continue to Parking Task",
     awaitingParkingTitle: "Ready for parking",
     countryNames: {
       JO: "Jordan",
@@ -203,11 +205,11 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     returningCustomer: "عميل عائد",
     vehicle: "المركبة",
     vehicleFound: "تم العثور على المركبة",
-    awaitingParkingBody:
-      "تسجيل الوصول المعتمد بانتظار الاصطفاف. لم يكتمل بعد مسار الاصطفاف في تطبيق الموظف على الأجهزة المحمولة، ولم يتم تغيير أي حالة محلياً.",
+    awaitingParkingBody: "تسجيل الوصول المعتمد بانتظار مهمة الاصطفاف الحالية.",
     conditionCompletedBody:
-      "اكتمل تسجيل الوصول على الخادم. المركبة بانتظار الاصطفاف الآن؛ تابع مسار الاصطفاف في تطبيق الموظف على الويب.",
+      "اكتمل تسجيل الوصول على الخادم. المركبة الآن بانتظار مهمة الاصطفاف.",
     conditionCompletedTitle: "اكتمل تسجيل الوصول",
+    continueParkingTask: "متابعة مهمة الاصطفاف",
     awaitingParkingTitle: "جاهزة للاصطفاف",
     countryNames: {
       JO: "الأردن",

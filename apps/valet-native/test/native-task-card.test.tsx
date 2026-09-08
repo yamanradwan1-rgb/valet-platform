@@ -100,12 +100,13 @@ function render(
   );
 }
 
-function renderRow(item = task) {
+function renderRow(item = task, onOpenParking = vi.fn()) {
   return elements(
     NativeTaskQueueRow({
       copy: getNativeTasksCopy("en"),
       locale: "en",
       operations,
+      onOpenParking,
       snapshot: snapshot(item),
       task: item,
       textAlign: "left",
@@ -196,18 +197,21 @@ describe("Native production task cards", () => {
   });
 
   it.each(["ACCEPTED", "IN_PROGRESS"] as const)(
-    "stages %s rows without inventing downstream navigation",
+    "opens the bounded Parking workflow for self-owned %s work",
     (status) => {
       const staged = { ...task, status };
-      const nodes = renderRow(staged);
+      const onOpenParking = vi.fn();
+      const nodes = renderRow(staged, onOpenParking);
       const row = nodes.find(
         (node) => node.props.testID === `native-queue-row-${task.taskId}`,
       )!;
 
-      expect(row.props.accessibilityRole).toBeUndefined();
+      expect(row.props.accessibilityRole).toBe("button");
+      (row.props.onPress as () => void)();
+      expect(onOpenParking).toHaveBeenCalledWith(task.taskId, task.sessionId);
       expect(
         JSON.stringify(nodes.map((node) => node.props.children)),
-      ).not.toContain("›");
+      ).toContain("›");
     },
   );
 });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type {
   EmployeeOperationalSnapshot,
+  EmployeeParkingStartSnapshot,
   EmployeeShiftStartSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
@@ -24,6 +25,7 @@ import {
 interface Bootstrap {
   readonly auth: NativeAuthSnapshot;
   readonly operations: EmployeeOperationalSnapshot;
+  readonly parking: EmployeeParkingStartSnapshot;
   readonly runtime: NativeEmployeeRuntime | undefined;
   readonly shiftStart: EmployeeShiftStartSnapshot;
 }
@@ -34,6 +36,7 @@ function createBootstrap(): Bootstrap {
     return {
       auth: runtime.auth.current(),
       operations: runtime.operations.current(),
+      parking: runtime.parking.current(),
       runtime,
       shiftStart: runtime.shiftStart.current(),
     };
@@ -57,6 +60,14 @@ function createBootstrap(): Bootstrap {
         successfulQueueSnapshotCount: 0,
         tasks: [],
       },
+      parking: {
+        failure: null,
+        identityGeneration: null,
+        phase: "inactive",
+        scope: null,
+        session: null,
+        task: null,
+      },
       runtime: undefined,
       shiftStart: {
         failure: null,
@@ -79,6 +90,7 @@ export function NativeProductionShell({
   const [bootstrap] = useState(createBootstrap);
   const [authSnapshot, setAuthSnapshot] = useState(bootstrap.auth);
   const [operations, setOperations] = useState(bootstrap.operations);
+  const [parking, setParking] = useState(bootstrap.parking);
   const [shiftStart, setShiftStart] = useState(bootstrap.shiftStart);
   const [controller] = useState(() => {
     const productionController = new ProductionShellController();
@@ -95,11 +107,13 @@ export function NativeProductionShell({
     if (runtime === undefined) return;
     const unsubscribeAuth = runtime.auth.subscribe(setAuthSnapshot);
     const unsubscribeOperations = runtime.operations.subscribe(setOperations);
+    const unsubscribeParking = runtime.parking.subscribe(setParking);
     const unsubscribeShiftStart = runtime.shiftStart.subscribe(setShiftStart);
     void runtime.auth.start();
     return () => {
       unsubscribeAuth();
       unsubscribeOperations();
+      unsubscribeParking();
       unsubscribeShiftStart();
       runtime.dispose();
     };
@@ -111,6 +125,7 @@ export function NativeProductionShell({
       runtime.shiftStart.activate(authSnapshot.authGeneration);
       void runtime.operations.activate(authSnapshot.authGeneration);
     } else {
+      runtime.parking.clear();
       runtime.shiftStart.clear();
       runtime.operations.clear();
     }
@@ -119,6 +134,7 @@ export function NativeProductionShell({
   useEffect(() => {
     if (runtime === undefined || workflowPurgeRevision === 0) return;
     runtime.checkIn.clear();
+    runtime.parking.clear();
   }, [runtime, workflowPurgeRevision]);
 
   useEffect(() => {
@@ -126,6 +142,12 @@ export function NativeProductionShell({
     void runtime.operations.setForeground(AppState.currentState === "active");
     const subscription = AppState.addEventListener("change", (state) => {
       void runtime.operations.setForeground(state === "active");
+      if (
+        state === "active" &&
+        runtime.parking.current().phase !== "inactive"
+      ) {
+        void runtime.parking.checkServerState();
+      }
     });
     return () => {
       subscription.remove();
@@ -154,6 +176,17 @@ export function NativeProductionShell({
           )
         ) {
           return true;
+        }
+        if (
+          runtime !== undefined &&
+          shell.destination === "parking" &&
+          (runtime.parking.current().phase === "submitting" ||
+            runtime.parking.current().phase === "reconciling")
+        ) {
+          return true;
+        }
+        if (runtime !== undefined && shell.destination === "parking") {
+          runtime.parking.clear();
         }
         if (
           runtime !== undefined &&
@@ -196,6 +229,7 @@ export function NativeProductionShell({
       navigate={navigate}
       onSelectLocale={setLocale}
       operations={operations}
+      parking={parking}
       retrievalAttention={retrievalAttention}
       runtime={runtime}
       shell={shell}

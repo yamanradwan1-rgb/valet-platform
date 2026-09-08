@@ -29,6 +29,8 @@ interface NativeTasksPanelProps {
   readonly textAlign: "left" | "right";
   readonly heading?: string;
   readonly headerAction?: ReactNode;
+  readonly onOpenParking?:
+    ((taskId: string, sessionId: string) => void) | undefined;
 }
 
 export function NativeTasksPanel({
@@ -38,6 +40,7 @@ export function NativeTasksPanel({
   textAlign,
   heading,
   headerAction,
+  onOpenParking = () => undefined,
 }: NativeTasksPanelProps) {
   const copy = getNativeTasksCopy(locale);
   const unavailable = statusForUnavailablePhase(snapshot, copy);
@@ -112,6 +115,7 @@ export function NativeTasksPanel({
             <NativeTaskCard
               copy={copy}
               locale={locale}
+              onOpenParking={onOpenParking}
               operations={operations}
               priority
               snapshot={snapshot}
@@ -122,6 +126,7 @@ export function NativeTasksPanel({
             <NativeTaskQueueRow
               copy={copy}
               locale={locale}
+              onOpenParking={onOpenParking}
               operations={operations}
               snapshot={snapshot}
               task={item}

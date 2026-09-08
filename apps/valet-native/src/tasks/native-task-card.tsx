@@ -11,6 +11,7 @@ import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   canAcceptNativeTask,
+  canOpenNativeParkingTask,
   nativeTaskActionLabel,
   nativeTaskAge,
   nativeTaskParkingContext,
@@ -26,6 +27,7 @@ export function NativeTaskCard({
   copy,
   locale,
   operations,
+  onOpenParking = () => undefined,
   priority,
   snapshot,
   task,
@@ -34,6 +36,8 @@ export function NativeTaskCard({
   readonly copy: NativeTasksCopy;
   readonly locale: FoundationLocale;
   readonly operations: EmployeeOperationalSession;
+  readonly onOpenParking?:
+    ((taskId: string, sessionId: string) => void) | undefined;
   readonly priority: boolean;
   readonly snapshot: EmployeeOperationalSnapshot;
   readonly task: StaffTaskQueueItem;
@@ -52,7 +56,9 @@ export function NativeTaskCard({
     (snapshot.mutation.phase === "submitting" ||
       snapshot.mutation.phase === "reconciling");
   const actionLabel = retry ? copy.retry : nativeTaskActionLabel(copy, task);
-  const actionable = canAcceptNativeTask(snapshot, task) || retry;
+  const opensParking = canOpenNativeParkingTask(snapshot, task);
+  const actionable =
+    canAcceptNativeTask(snapshot, task) || retry || opensParking;
   const showsAction = actionable || busy;
   const parkingContext = nativeTaskParkingContext(task);
   const vehicleLabel = nativeTaskVehicleLabel(task);
@@ -110,7 +116,11 @@ export function NativeTaskCard({
               busy={busy}
               disabled={busy}
               label={busy ? copy.processing : actionLabel}
-              onPress={() => void operations.acceptTask(task.taskId)}
+              onPress={() =>
+                opensParking
+                  ? onOpenParking(task.taskId, task.sessionId)
+                  : void operations.acceptTask(task.taskId)
+              }
               size="standard"
               variant={priority ? "primary" : "secondary"}
             />

@@ -95,6 +95,19 @@ describe("production route intent and authority fencing", () => {
     expect(active(controller)).toMatchObject({ destination: "check-in" });
   });
 
+  it("opens Parking only as an authority-bound in-app workflow", () => {
+    const controller = new ProductionShellController();
+    expect(controller.receive({ destination: "parking", source: "cold" })).toBe(
+      "held",
+    );
+    expect(active(controller)).toMatchObject({ destination: "tasks" });
+    expect(
+      controller.receive({ destination: "parking", source: "navigation" }),
+    ).toBe("resolved");
+    expect(active(controller)).toMatchObject({ destination: "parking" });
+    expect(controller.back()).toBe(true);
+  });
+
   it("resolves the bounded active Shift destination without enabling summary behavior", () => {
     const controller = new ProductionShellController();
     active(controller);

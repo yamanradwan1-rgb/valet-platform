@@ -10,6 +10,7 @@ import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   canAcceptNativeTask,
+  canOpenNativeParkingTask,
   nativeTaskActionLabel,
   nativeTaskParkingContext,
   nativeTaskStatusLabel,
@@ -25,6 +26,7 @@ export function NativeTaskQueueRow({
   copy,
   locale,
   operations,
+  onOpenParking = () => undefined,
   snapshot,
   task,
   textAlign,
@@ -32,6 +34,8 @@ export function NativeTaskQueueRow({
   readonly copy: NativeTasksCopy;
   readonly locale: FoundationLocale;
   readonly operations: EmployeeOperationalSession;
+  readonly onOpenParking?:
+    ((taskId: string, sessionId: string) => void) | undefined;
   readonly snapshot: EmployeeOperationalSnapshot;
   readonly task: StaffTaskQueueItem;
   readonly textAlign: "left" | "right";
@@ -48,7 +52,9 @@ export function NativeTaskQueueRow({
     snapshot.mutation.taskId === task.taskId &&
     (snapshot.mutation.phase === "submitting" ||
       snapshot.mutation.phase === "reconciling");
-  const actionable = canAcceptNativeTask(snapshot, task) || retry;
+  const opensParking = canOpenNativeParkingTask(snapshot, task);
+  const actionable =
+    canAcceptNativeTask(snapshot, task) || retry || opensParking;
   const actionLabel = retry ? copy.retry : nativeTaskActionLabel(copy, task);
   const identifier = nativeTaskVehicleIdentifier(task);
   const context =
@@ -69,7 +75,11 @@ export function NativeTaskQueueRow({
       accessibilityRole={actionable ? "button" : undefined}
       accessibilityState={{ busy, disabled: !actionable || busy }}
       disabled={!actionable || busy}
-      onPress={() => void operations.acceptTask(task.taskId)}
+      onPress={() =>
+        opensParking
+          ? onOpenParking(task.taskId, task.sessionId)
+          : void operations.acceptTask(task.taskId)
+      }
       style={[
         s.row,
         { flexDirection: direction === "rtl" ? "row-reverse" : "row" },

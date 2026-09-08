@@ -26,6 +26,7 @@ import { NativeCheckInIdentityContext } from "./native-check-in-identity-context
 interface StateStepProps {
   readonly copy: NativeCheckInCopy;
   readonly onClose: () => void;
+  readonly onOpenParking?: ((sessionId: string) => void) | undefined;
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
@@ -157,6 +158,7 @@ export function NativeAmbiguousStep({
 export function NativeCompleteStep({
   copy,
   onClose,
+  onOpenParking,
   snapshot,
   textAlign,
 }: StateStepProps) {
@@ -194,7 +196,17 @@ export function NativeCompleteStep({
       <EmployeeCard>
         <CheckInStatus textAlign={textAlign}>{body}</CheckInStatus>
       </EmployeeCard>
-      <CheckInButton label={copy.close} onPress={onClose} />
+      <CheckInButton
+        label={continuation ? copy.continueParkingTask : copy.close}
+        onPress={() => {
+          const sessionId = snapshot.active?.sessionId;
+          if (continuation && sessionId !== undefined && onOpenParking) {
+            onOpenParking(sessionId);
+          } else {
+            onClose();
+          }
+        }}
+      />
     </>
   );
 }
