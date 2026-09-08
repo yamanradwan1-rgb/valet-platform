@@ -161,17 +161,23 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   });
   const shiftEnd = new EmployeeShiftEndSession({
     initialOnline: nativeOnlineHint(),
-    onEnded: () =>
-      retireNativeShiftScope({
-        checkIn,
-        confirmParking,
-        handoff,
-        operations,
-        parking,
-        release,
-        retrieval,
-        shiftStart,
-      }),
+    onEnded: () => {
+      const currentAuth = auth.current();
+      if (currentAuth.phase !== "authenticated") return;
+      retireNativeShiftScope(
+        {
+          checkIn,
+          confirmParking,
+          handoff,
+          operations,
+          parking,
+          release,
+          retrieval,
+          shiftStart,
+        },
+        currentAuth.authGeneration,
+      );
+    },
     transport: createNativeShiftEndTransport(apiOrigin, auth),
   });
   shiftObserver.end = shiftEnd;

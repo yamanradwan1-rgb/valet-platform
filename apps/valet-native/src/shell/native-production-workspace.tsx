@@ -160,7 +160,9 @@ export function NativeProductionWorkspace({
         ) : shell.destination === "shift" ? (
           <NativeActiveShiftPanel
             locale={locale}
-            onReturned={() => void runtime.operations.refresh()}
+            onReturned={() =>
+              void runtime.operations.activate(authSnapshot.authGeneration)
+            }
             onReviewTasks={() => navigate("tasks")}
             session={runtime.shiftEnd}
             snapshot={shiftEnd}
