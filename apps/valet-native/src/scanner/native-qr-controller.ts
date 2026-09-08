@@ -1,6 +1,7 @@
 import {
   QrCaptureSession,
   type QrCaptureSnapshot,
+  type QrInput,
   type QrInputKind,
 } from "@valet/employee-client";
 
@@ -82,15 +83,26 @@ export class NativeQrController {
     this.publish();
   }
 
-  barcode(generation: number, event: { type: string; data: string }): void {
-    if (event.type !== "qr") return;
+  barcode(
+    generation: number,
+    event: { type: string; data: string },
+  ): QrInput | null {
+    if (event.type !== "qr") return null;
     if (this.#session.decode(generation, event.data)) {
       const input = this.#session.input();
-      if (input && input.kind !== "dynamic-handoff") {
+      if (input?.kind === "dynamic-handoff") {
+        // Return the opaque candidate directly to the ephemeral input owner.
+        // It must never enter a serializable controller snapshot.
+        this.#session.close();
+        this.publish();
+        return input;
+      }
+      if (input) {
         this.snapshot = { ...this.snapshot, resourceCode: input.resourceCode };
       }
     }
     this.publish();
+    return this.#session.input();
   }
 
   manual(resourceCode: string): void {

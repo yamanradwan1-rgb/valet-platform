@@ -72,6 +72,22 @@ export function canOpenNativeRetrievalTask(
   );
 }
 
+export function canOpenNativeHandoffOverride(
+  snapshot: EmployeeOperationalSnapshot,
+  task: StaffTaskQueueItem,
+): boolean {
+  return (
+    snapshot.phase === "ready" &&
+    snapshot.scope?.role === "VALET_SUPERVISOR" &&
+    task.taskType === "RETRIEVAL" &&
+    task.status === "IN_PROGRESS" &&
+    task.valetSessionState === "HANDOFF_PENDING" &&
+    task.currentAssigneeMembershipId !== null &&
+    task.currentAssigneeMembershipId !== snapshot.scope.membershipId &&
+    !isEmployeeMutationUnresolved(snapshot.mutation)
+  );
+}
+
 export function nativeTaskActionLabel(
   copy: NativeTasksCopy,
   task: StaffTaskQueueItem,

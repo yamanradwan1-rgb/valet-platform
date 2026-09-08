@@ -172,14 +172,15 @@ describe("Native QR permission and callback adapter", () => {
     });
     const proof = `vhq1.${"A".repeat(43)}`;
     await controller.open();
-    controller.barcode(controller.current().generation, {
+    const candidate = controller.barcode(controller.current().generation, {
       type: "qr",
       data: proof,
     });
     expect(controller.current()).toMatchObject({
-      phase: "accepted",
+      phase: "idle",
       resourceCode: "",
     });
+    expect(candidate).toEqual({ kind: "dynamic-handoff", proof });
     expect(JSON.stringify(controller)).not.toContain(proof);
     controller.clear();
     expect(controller.current().phase).toBe("idle");

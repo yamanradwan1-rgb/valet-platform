@@ -6,6 +6,7 @@ import type {
 
 import {
   canAcceptNativeTask,
+  canOpenNativeHandoffOverride,
   nativeMutationMessage,
   nativeQueueFailureMessage,
   nativeTaskActionLabel,
@@ -43,6 +44,7 @@ const task: StaffTaskQueueItem = {
 
 function snapshot(
   mutation: EmployeeOperationalSnapshot["mutation"] = { phase: "idle" },
+  role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
 ): EmployeeOperationalSnapshot {
   return {
     contextFailure: null,
@@ -61,7 +63,7 @@ function snapshot(
       membershipId,
       organizationId: "33333333-3333-4333-8333-333333333333",
       organizationName: "Operator",
-      role: "VALET_EMPLOYEE",
+      role,
       shiftId: "55555555-5555-4555-8555-555555555555",
       shiftStartedAt: "2026-09-03T08:00:00.000Z",
     },
@@ -70,6 +72,28 @@ function snapshot(
 }
 
 describe("Native Tasks presentation", () => {
+  it("exposes non-owner HANDOFF_PENDING override only to a supervisor", () => {
+    const pending = {
+      ...task,
+      currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
+      status: "IN_PROGRESS" as const,
+      taskType: "RETRIEVAL" as const,
+      valetSessionState: "HANDOFF_PENDING" as const,
+    };
+    expect(
+      canOpenNativeHandoffOverride(
+        snapshot({ phase: "idle" }, "VALET_SUPERVISOR"),
+        pending,
+      ),
+    ).toBe(true);
+    expect(canOpenNativeHandoffOverride(snapshot(), pending)).toBe(false);
+    expect(
+      canOpenNativeHandoffOverride(
+        snapshot({ phase: "idle" }, "VALET_SUPERVISOR"),
+        { ...pending, valetSessionState: "READY" },
+      ),
+    ).toBe(false);
+  });
   it("shows Accept only for the current ASSIGNED Task owner", () => {
     expect(canAcceptNativeTask(snapshot(), task)).toBe(true);
     expect(

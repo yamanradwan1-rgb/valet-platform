@@ -54,6 +54,7 @@ const task: StaffTaskQueueItem = {
 function snapshot(
   item: StaffTaskQueueItem,
   mutation: EmployeeOperationalSnapshot["mutation"] = { phase: "idle" },
+  role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
 ): EmployeeOperationalSnapshot {
   return {
     contextFailure: null,
@@ -71,7 +72,7 @@ function snapshot(
       membershipId,
       organizationId: "33333333-3333-4333-8333-333333333333",
       organizationName: "Operator",
-      role: "VALET_EMPLOYEE",
+      role,
       shiftId: "55555555-5555-4555-8555-555555555555",
       shiftStartedAt: "2026-09-03T08:00:00.000Z",
     },
@@ -104,6 +105,7 @@ function renderRow(
   item = task,
   onOpenParking = vi.fn(),
   onOpenRetrieval = vi.fn(),
+  role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
 ) {
   return elements(
     NativeTaskQueueRow({
@@ -112,7 +114,7 @@ function renderRow(
       operations,
       onOpenParking,
       onOpenRetrieval,
-      snapshot: snapshot(item),
+      snapshot: snapshot(item, { phase: "idle" }, role),
       task: item,
       textAlign: "left",
     }),
@@ -235,4 +237,29 @@ describe("Native production task cards", () => {
       expect(onOpenRetrieval).toHaveBeenCalledWith(task.taskId, task.sessionId);
     },
   );
+
+  it("opens explicit supervisor override work without claiming another owner's Task", () => {
+    acceptTask.mockClear();
+    const staged = {
+      ...task,
+      currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
+      status: "IN_PROGRESS" as const,
+      taskType: "RETRIEVAL" as const,
+      valetSessionState: "HANDOFF_PENDING" as const,
+    };
+    const onOpenRetrieval = vi.fn();
+    const nodes = renderRow(
+      staged,
+      vi.fn(),
+      onOpenRetrieval,
+      "VALET_SUPERVISOR",
+    );
+    const row = nodes.find(
+      (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+    )!;
+    expect(row.props.accessibilityLabel).toContain("Override Handoff");
+    (row.props.onPress as () => void)();
+    expect(onOpenRetrieval).toHaveBeenCalledWith(task.taskId, task.sessionId);
+    expect(acceptTask).not.toHaveBeenCalled();
+  });
 });

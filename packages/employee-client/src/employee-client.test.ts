@@ -86,6 +86,28 @@ describe("EmployeeClient", () => {
     expect(onAuthorizationLoss).toHaveBeenCalledTimes(1);
   });
 
+  it("preserves the bounded transport Retry-After for safe presentation", async () => {
+    const client = new EmployeeClient({
+      transport: sequenceTransport([
+        {
+          payload: {
+            code: "HANDOFF_VERIFICATION_RATE_LIMITED",
+            message: "wait",
+            requestId: "req_123",
+          },
+          retryAfter: 30,
+          status: 429,
+        },
+      ]),
+    });
+    await expect(
+      client.request({ method: "POST", path: "/verify" }),
+    ).rejects.toMatchObject({
+      code: "HANDOFF_VERIFICATION_RATE_LIMITED",
+      retryAfter: 30,
+    });
+  });
+
   it("keeps a transient refresh outage distinct from auth loss", async () => {
     const transport = sequenceTransport([
       {

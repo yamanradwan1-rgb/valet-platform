@@ -1,22 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import type {
-  EmployeeConfirmParkedSnapshot,
-  EmployeeOperationalSnapshot,
-  EmployeeParkingStartSnapshot,
-  EmployeeRetrievalSnapshot,
-  EmployeeShiftStartSnapshot,
-  NativeAuthSnapshot,
-} from "@valet/employee-client";
 import { AppState } from "react-native";
 
-import {
-  createNativeEmployeeRuntime,
-  type NativeEmployeeRuntime,
-} from "../auth/native-auth-runtime";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-attention";
 import { useNativeProductionBackHandler } from "./native-production-back-handler";
 import { NativeProductionWorkspace } from "./native-production-workspace";
+import { createNativeProductionBootstrap } from "./native-production-bootstrap";
 import { NativeShellGate } from "./native-shell-gate";
 import {
   ProductionShellController,
@@ -24,104 +13,18 @@ import {
   type ProductionRouteIntent,
 } from "./production-shell-controller";
 
-interface Bootstrap {
-  readonly auth: NativeAuthSnapshot;
-  readonly confirmParking: EmployeeConfirmParkedSnapshot;
-  readonly operations: EmployeeOperationalSnapshot;
-  readonly parking: EmployeeParkingStartSnapshot;
-  readonly retrieval: EmployeeRetrievalSnapshot;
-  readonly runtime: NativeEmployeeRuntime | undefined;
-  readonly shiftStart: EmployeeShiftStartSnapshot;
-}
-
-function createBootstrap(): Bootstrap {
-  try {
-    const runtime = createNativeEmployeeRuntime();
-    return {
-      auth: runtime.auth.current(),
-      confirmParking: runtime.confirmParking.current(),
-      operations: runtime.operations.current(),
-      parking: runtime.parking.current(),
-      retrieval: runtime.retrieval.current(),
-      runtime,
-      shiftStart: runtime.shiftStart.current(),
-    };
-  } catch {
-    return {
-      auth: {
-        authGeneration: 0,
-        phase: "fatal",
-        reason: "configuration-failure",
-      },
-      confirmParking: {
-        conflict: null,
-        failure: null,
-        identityGeneration: null,
-        keySlotCandidate: "",
-        parked: null,
-        parkingSpotCandidate: "",
-        phase: "inactive",
-        scope: null,
-        session: null,
-        task: null,
-      },
-      operations: {
-        contextFailure: null,
-        identityGeneration: null,
-        mutation: { phase: "idle" },
-        phase: "inactive",
-        queueFailure: null,
-        queueHardStopped: false,
-        queueLoading: false,
-        queueRefreshing: false,
-        scope: null,
-        successfulQueueSnapshotCount: 0,
-        tasks: [],
-      },
-      parking: {
-        failure: null,
-        identityGeneration: null,
-        phase: "inactive",
-        scope: null,
-        session: null,
-        task: null,
-      },
-      retrieval: {
-        failure: null,
-        identityGeneration: null,
-        keyConfirmed: false,
-        keySlotCandidate: "",
-        phase: "inactive",
-        readyAt: null,
-        retrievalStartedAt: null,
-        scope: null,
-        session: null,
-        task: null,
-      },
-      runtime: undefined,
-      shiftStart: {
-        failure: null,
-        identityGeneration: null,
-        phase: "inactive",
-        selectedLocationId: null,
-        startableLocations: [],
-        targetLocationId: null,
-      },
-    };
-  }
-}
-
 export function NativeProductionShell({
   coldIntent = null,
 }: {
   readonly coldIntent?: ProductionRouteIntent | null;
 }) {
   const [locale, setLocale] = useState<FoundationLocale>("en");
-  const [bootstrap] = useState(createBootstrap);
+  const [bootstrap] = useState(createNativeProductionBootstrap);
   const [authSnapshot, setAuthSnapshot] = useState(bootstrap.auth);
   const [confirmParking, setConfirmParking] = useState(
     bootstrap.confirmParking,
   );
+  const [handoff, setHandoff] = useState(bootstrap.handoff);
   const [operations, setOperations] = useState(bootstrap.operations);
   const [parking, setParking] = useState(bootstrap.parking);
   const [retrieval, setRetrieval] = useState(bootstrap.retrieval);
@@ -142,6 +45,7 @@ export function NativeProductionShell({
     const unsubscribeAuth = runtime.auth.subscribe(setAuthSnapshot);
     const unsubscribeConfirmParking =
       runtime.confirmParking.subscribe(setConfirmParking);
+    const unsubscribeHandoff = runtime.handoff.subscribe(setHandoff);
     const unsubscribeOperations = runtime.operations.subscribe(setOperations);
     const unsubscribeParking = runtime.parking.subscribe(setParking);
     const unsubscribeRetrieval = runtime.retrieval.subscribe(setRetrieval);
@@ -150,6 +54,7 @@ export function NativeProductionShell({
     return () => {
       unsubscribeAuth();
       unsubscribeConfirmParking();
+      unsubscribeHandoff();
       unsubscribeOperations();
       unsubscribeParking();
       unsubscribeRetrieval();
@@ -165,6 +70,7 @@ export function NativeProductionShell({
       void runtime.operations.activate(authSnapshot.authGeneration);
     } else {
       runtime.confirmParking.clear();
+      runtime.handoff.clear();
       runtime.parking.clear();
       runtime.retrieval.clear();
       runtime.shiftStart.clear();
@@ -176,16 +82,40 @@ export function NativeProductionShell({
     if (runtime === undefined || workflowPurgeRevision === 0) return;
     runtime.checkIn.clear();
     runtime.confirmParking.clear();
+    runtime.handoff.clear();
     runtime.parking.clear();
     runtime.retrieval.clear();
   }, [runtime, workflowPurgeRevision]);
 
   useEffect(() => {
+    const activeTask = runtime?.handoff.current().task;
+    if (
+      runtime === undefined ||
+      activeTask === null ||
+      activeTask === undefined ||
+      operations.phase !== "ready" ||
+      operations.queueFailure !== null ||
+      operations.queueLoading
+    ) {
+      return;
+    }
+    void runtime.handoff.observeTaskAuthority(
+      operations.tasks.find((task) => task.taskId === activeTask.taskId),
+    );
+  }, [operations, runtime]);
+
+  useEffect(() => {
     if (runtime === undefined) return;
     void runtime.operations.setForeground(AppState.currentState === "active");
     const subscription = AppState.addEventListener("change", (state) => {
+      if (state !== "active") runtime.handoff.suspendForBackground();
       void runtime.operations.setForeground(state === "active");
       if (
+        state === "active" &&
+        runtime.handoff.current().phase !== "inactive"
+      ) {
+        void runtime.handoff.checkServerState();
+      } else if (
         state === "active" &&
         runtime.confirmParking.current().phase !== "inactive"
       ) {
@@ -260,6 +190,7 @@ export function NativeProductionShell({
     <NativeProductionWorkspace
       authSnapshot={authSnapshot}
       locale={locale}
+      handoff={handoff}
       confirmParking={confirmParking}
       navigate={navigate}
       onSelectLocale={setLocale}

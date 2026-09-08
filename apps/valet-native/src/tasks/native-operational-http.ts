@@ -70,6 +70,7 @@ class NativeBearerTransport implements EmployeeTransport {
       this.onResponse(response.status);
       return {
         payload: await readNativeResponsePayload(response),
+        retryAfter: parseRetryAfter(response.headers.get("Retry-After")),
         status: response.status,
       };
     } catch (error) {
@@ -77,6 +78,14 @@ class NativeBearerTransport implements EmployeeTransport {
       throw employeeNetworkError();
     }
   }
+}
+
+function parseRetryAfter(value: string | null): number | undefined {
+  if (value === null || !/^\d+$/.test(value)) return undefined;
+  const seconds = Number(value);
+  return Number.isSafeInteger(seconds) && seconds >= 1 && seconds <= 900
+    ? seconds
+    : undefined;
 }
 
 export function createNativeEmployeeClient(

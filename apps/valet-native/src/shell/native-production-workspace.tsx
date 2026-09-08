@@ -1,11 +1,12 @@
 import type {
   EmployeeConfirmParkedSnapshot,
+  EmployeeHandoffSnapshot,
   EmployeeOperationalSnapshot,
   EmployeeParkingStartSnapshot,
   EmployeeRetrievalSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import { getNativeAuthCopy } from "../auth/native-auth-copy";
@@ -16,12 +17,7 @@ import {
   EmployeeFrame,
 } from "../employee-ui/employee-frame";
 import { EmployeePlusIcon } from "../employee-ui/employee-icons";
-import {
-  employeeColors as c,
-  employeeMinimumTouchTarget,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
-import { employeeTypography as type } from "../employee-ui/employee-typography";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import {
   getFoundationPresentation,
   type FoundationLocale,
@@ -33,7 +29,10 @@ import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
 import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
 import { NativeRetrievalPanel } from "../retrieval/native-retrieval-panel";
+import { NativeHandoffPanel } from "../handoff/native-handoff-panel";
+import { shouldShowNativeHandoff } from "../handoff/native-handoff-route-presentation";
 import { NativeProductionNavigation } from "./native-production-navigation";
+import { NativeLocaleButton } from "./native-locale-button";
 import { getNativeShellCopy } from "./native-shell-copy";
 import type {
   ProductionDestination,
@@ -45,6 +44,7 @@ type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 export function NativeProductionWorkspace({
   authSnapshot,
   confirmParking,
+  handoff,
   locale,
   navigate,
   onSelectLocale,
@@ -57,6 +57,7 @@ export function NativeProductionWorkspace({
 }: {
   readonly authSnapshot: NativeAuthSnapshot;
   readonly confirmParking: EmployeeConfirmParkedSnapshot;
+  readonly handoff: EmployeeHandoffSnapshot;
   readonly locale: FoundationLocale;
   readonly navigate: (destination: ProductionDestination) => void;
   readonly onSelectLocale: (locale: FoundationLocale) => void;
@@ -80,7 +81,7 @@ export function NativeProductionWorkspace({
         textAlign={presentation.textAlign}
         utilities={
           <>
-            <LocaleButton
+            <NativeLocaleButton
               code={locale === "en" ? "AR" : "EN"}
               label={locale === "en" ? copy.arabic : copy.english}
               onPress={() => onSelectLocale(locale === "en" ? "ar" : "en")}
@@ -158,17 +159,23 @@ export function NativeProductionWorkspace({
             textAlign={presentation.textAlign}
           />
         ) : shell.destination === "retrieval" ? (
-          <NativeRetrievalPanel
-            auth={runtime.auth}
-            locale={locale}
-            onBack={() => {
-              runtime.retrieval.clear();
-              void runtime.operations.refreshQueue();
-              navigate("tasks");
-            }}
-            retrieval={runtime.retrieval}
-            snapshot={retrieval}
-          />
+          shouldShowNativeHandoff(handoff, retrieval) ? (
+            <NativeHandoffPanel
+              auth={runtime.auth}
+              handoff={runtime.handoff}
+              locale={locale}
+              onBack={() => closeRetrieval(runtime, navigate)}
+              snapshot={handoff}
+            />
+          ) : (
+            <NativeRetrievalPanel
+              auth={runtime.auth}
+              locale={locale}
+              onBack={() => closeRetrieval(runtime, navigate)}
+              retrieval={runtime.retrieval}
+              snapshot={retrieval}
+            />
+          )
         ) : (
           <View style={styles.tasks}>
             <NativeTasksPanel
@@ -193,12 +200,26 @@ export function NativeProductionWorkspace({
                 navigate("parking");
               }}
               onOpenRetrieval={(taskId, sessionId) => {
-                void runtime.retrieval.openQueueTask(
-                  authSnapshot.authGeneration,
-                  shell.scope,
-                  taskId,
-                  sessionId,
+                const task = operations.tasks.find(
+                  (item) => item.taskId === taskId,
                 );
+                if (task?.valetSessionState === "HANDOFF_PENDING") {
+                  runtime.retrieval.clear();
+                  void runtime.handoff.openTask(
+                    authSnapshot.authGeneration,
+                    shell.scope,
+                    taskId,
+                    sessionId,
+                  );
+                } else {
+                  runtime.handoff.clear();
+                  void runtime.retrieval.openQueueTask(
+                    authSnapshot.authGeneration,
+                    shell.scope,
+                    taskId,
+                    sessionId,
+                  );
+                }
                 navigate("retrieval");
               }}
               snapshot={operations}
@@ -221,39 +242,18 @@ export function NativeProductionWorkspace({
   );
 }
 
-function LocaleButton({
-  code,
-  label,
-  onPress,
-}: {
-  readonly code: "AR" | "EN";
-  readonly label: string;
-  readonly onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      hitSlop={8}
-      onPress={onPress}
-      style={styles.localeButton}
-    >
-      <Text style={styles.localeLabel}>{code}</Text>
-    </Pressable>
-  );
+function closeRetrieval(
+  runtime: NativeEmployeeRuntime,
+  navigate: (destination: ProductionDestination) => void,
+) {
+  runtime.handoff.clear();
+  runtime.retrieval.clear();
+  void runtime.operations.refreshQueue();
+  navigate("tasks");
 }
 
 const styles = StyleSheet.create({
   content: { flex: 1, minHeight: 0, position: "relative" },
-  localeButton: {
-    alignItems: "center",
-    backgroundColor: c.ice,
-    borderRadius: 12,
-    justifyContent: "center",
-    minHeight: employeeMinimumTouchTarget,
-    minWidth: employeeMinimumTouchTarget,
-  },
-  localeLabel: { ...type.small, color: c.neutral, fontWeight: "600" },
   tasks: {
     flex: 1,
     minHeight: 0,

@@ -21,6 +21,7 @@ export interface EmployeeTransportRequest {
 
 export interface EmployeeTransportResponse {
   readonly payload: unknown;
+  readonly retryAfter?: number | undefined;
   readonly status: number;
 }
 
@@ -92,6 +93,11 @@ export class EmployeeClient {
       recovery?.onAuthorizationLoss?.();
     }
 
-    throw normalizeEmployeeApiError(response.status, response.payload);
+    throw normalizeEmployeeApiError(
+      response.status,
+      response.payload,
+      undefined,
+      response.retryAfter,
+    );
   }
 }

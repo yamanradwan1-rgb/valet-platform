@@ -31,6 +31,7 @@ export function normalizeEmployeeApiError(
   status: number,
   payload: unknown,
   defaultMessage = "An error occurred while processing your request.",
+  retryAfter?: number,
 ): EmployeeApiError {
   const parsed = apiErrorSchema.safeParse(payload);
   if (parsed.success) {
@@ -39,6 +40,7 @@ export function normalizeEmployeeApiError(
       code: parsed.data.code,
       message: parsed.data.message,
       requestId: parsed.data.requestId,
+      retryAfter,
     });
   }
 
@@ -53,7 +55,10 @@ export function normalizeEmployeeApiError(
       requestId:
         typeof payload.requestId === "string" ? payload.requestId : undefined,
       retryAfter:
-        typeof payload.retryAfter === "number" ? payload.retryAfter : undefined,
+        retryAfter ??
+        (typeof payload.retryAfter === "number"
+          ? payload.retryAfter
+          : undefined),
     });
   }
 
@@ -61,6 +66,7 @@ export function normalizeEmployeeApiError(
     status,
     code: defaultStatusToCode(status),
     message: defaultMessage,
+    retryAfter,
   });
 }
 

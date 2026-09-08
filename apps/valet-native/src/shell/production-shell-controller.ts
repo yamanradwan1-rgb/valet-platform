@@ -284,5 +284,6 @@ function authorityKey(
     scope.organizationId,
     scope.locationId,
     scope.shiftId,
+    scope.role,
   ].join(":");
 }

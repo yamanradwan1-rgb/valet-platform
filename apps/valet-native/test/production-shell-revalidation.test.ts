@@ -79,6 +79,7 @@ describe("production shell same-authority revalidation", () => {
       { ...scope, locationId: "55555555-5555-4555-8555-555555555555" },
     ],
     ["Shift", { ...scope, shiftId: "66666666-6666-4666-8666-666666666666" }],
+    ["role", { ...scope, role: "VALET_SUPERVISOR" as const }],
   ])("purges check-in when %s authority changes", (_label, nextScope) => {
     const controller = new ProductionShellController();
     openCheckIn(controller);

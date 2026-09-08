@@ -10,6 +10,7 @@ import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   canAcceptNativeTask,
+  canOpenNativeHandoffOverride,
   canOpenNativeParkingTask,
   canOpenNativeRetrievalTask,
   nativeTaskActionLabel,
@@ -58,12 +59,18 @@ export function NativeTaskQueueRow({
       snapshot.mutation.phase === "reconciling");
   const opensParking = canOpenNativeParkingTask(snapshot, task);
   const opensRetrieval = canOpenNativeRetrievalTask(snapshot, task);
+  const opensOverride = canOpenNativeHandoffOverride(snapshot, task);
   const actionable =
     canAcceptNativeTask(snapshot, task) ||
     retry ||
     opensParking ||
-    opensRetrieval;
-  const actionLabel = retry ? copy.retry : nativeTaskActionLabel(copy, task);
+    opensRetrieval ||
+    opensOverride;
+  const actionLabel = retry
+    ? copy.retry
+    : opensOverride
+      ? copy.overrideHandoff
+      : nativeTaskActionLabel(copy, task);
   const identifier = nativeTaskVehicleIdentifier(task);
   const context =
     nativeTaskParkingContext(task) ?? nativeTaskStatusLabel(copy, task.status);
@@ -86,7 +93,7 @@ export function NativeTaskQueueRow({
       onPress={() => {
         if (opensParking) {
           onOpenParking(task.taskId, task.sessionId);
-        } else if (opensRetrieval) {
+        } else if (opensRetrieval || opensOverride) {
           onOpenRetrieval(task.taskId, task.sessionId);
         } else {
           void operations.acceptTask(task.taskId);

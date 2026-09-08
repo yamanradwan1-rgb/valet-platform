@@ -15,6 +15,7 @@ export interface NativeTasksCopy {
   readonly dismiss: string;
   readonly loading: string;
   readonly otherStaff: string;
+  readonly overrideHandoff: string;
   readonly parking: string;
   readonly priority: string;
   readonly rateLimited: string;
@@ -60,6 +61,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     loading: "Loading current operational state…",
     noShift: "No active eligible Shift.",
     otherStaff: "Other staff",
+    overrideHandoff: "Override Handoff",
     parking: "Parking",
     priority: "Priority task",
     rateLimited:
@@ -104,6 +106,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     loading: "جارٍ تحميل الحالة التشغيلية الحالية…",
     noShift: "لا توجد وردية نشطة مؤهلة.",
     otherStaff: "موظف آخر",
+    overrideHandoff: "تجاوز التسليم",
     parking: "صف المركبة",
     priority: "المهمة ذات الأولوية",
     rateLimited: "تم تقييد تحديث المهام مؤقتًا. ستستأنف دورة التحديث المعتادة.",
