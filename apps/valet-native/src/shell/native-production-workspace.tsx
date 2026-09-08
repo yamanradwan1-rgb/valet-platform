@@ -3,6 +3,7 @@ import type {
   EmployeeHandoffSnapshot,
   EmployeeOperationalSnapshot,
   EmployeeParkingStartSnapshot,
+  EmployeeReleaseSnapshot,
   EmployeeRetrievalSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
@@ -30,6 +31,7 @@ import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
 import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
 import { NativeRetrievalPanel } from "../retrieval/native-retrieval-panel";
 import { NativeHandoffPanel } from "../handoff/native-handoff-panel";
+import { NativeReleasePanel } from "../handoff/native-release-panel";
 import { shouldShowNativeHandoff } from "../handoff/native-handoff-route-presentation";
 import { NativeProductionNavigation } from "./native-production-navigation";
 import { NativeLocaleButton } from "./native-locale-button";
@@ -51,6 +53,7 @@ export function NativeProductionWorkspace({
   operations,
   parking,
   retrieval,
+  release,
   retrievalAttention,
   runtime,
   shell,
@@ -64,6 +67,7 @@ export function NativeProductionWorkspace({
   readonly operations: EmployeeOperationalSnapshot;
   readonly parking: EmployeeParkingStartSnapshot;
   readonly retrieval: EmployeeRetrievalSnapshot;
+  readonly release: EmployeeReleaseSnapshot;
   readonly retrievalAttention: {
     readonly dismiss: (taskId: string) => void;
     readonly taskIds: readonly string[];
@@ -159,14 +163,24 @@ export function NativeProductionWorkspace({
             textAlign={presentation.textAlign}
           />
         ) : shell.destination === "retrieval" ? (
-          shouldShowNativeHandoff(handoff, retrieval) ? (
-            <NativeHandoffPanel
-              auth={runtime.auth}
-              handoff={runtime.handoff}
-              locale={locale}
-              onBack={() => closeRetrieval(runtime, navigate)}
-              snapshot={handoff}
-            />
+          shouldShowNativeHandoff(handoff, retrieval, release) ? (
+            release.phase !== "inactive" ? (
+              <NativeReleasePanel
+                locale={locale}
+                onBack={() => closeRetrieval(runtime, navigate)}
+                onDone={() => closeRetrieval(runtime, navigate)}
+                release={runtime.release}
+                snapshot={release}
+              />
+            ) : (
+              <NativeHandoffPanel
+                auth={runtime.auth}
+                handoff={runtime.handoff}
+                locale={locale}
+                onBack={() => closeRetrieval(runtime, navigate)}
+                snapshot={handoff}
+              />
+            )
           ) : (
             <NativeRetrievalPanel
               auth={runtime.auth}
@@ -205,6 +219,7 @@ export function NativeProductionWorkspace({
                 );
                 if (task?.valetSessionState === "HANDOFF_PENDING") {
                   runtime.retrieval.clear();
+                  runtime.release.clear();
                   void runtime.handoff.openTask(
                     authSnapshot.authGeneration,
                     shell.scope,
@@ -213,6 +228,7 @@ export function NativeProductionWorkspace({
                   );
                 } else {
                   runtime.handoff.clear();
+                  runtime.release.clear();
                   void runtime.retrieval.openQueueTask(
                     authSnapshot.authGeneration,
                     shell.scope,
@@ -247,6 +263,7 @@ function closeRetrieval(
   navigate: (destination: ProductionDestination) => void,
 ) {
   runtime.handoff.clear();
+  runtime.release.clear();
   runtime.retrieval.clear();
   void runtime.operations.refreshQueue();
   navigate("tasks");

@@ -28,6 +28,7 @@ export function NativeProductionShell({
   const [operations, setOperations] = useState(bootstrap.operations);
   const [parking, setParking] = useState(bootstrap.parking);
   const [retrieval, setRetrieval] = useState(bootstrap.retrieval);
+  const [release, setRelease] = useState(bootstrap.release);
   const [shiftStart, setShiftStart] = useState(bootstrap.shiftStart);
   const [controller] = useState(() => {
     const productionController = new ProductionShellController();
@@ -49,6 +50,7 @@ export function NativeProductionShell({
     const unsubscribeOperations = runtime.operations.subscribe(setOperations);
     const unsubscribeParking = runtime.parking.subscribe(setParking);
     const unsubscribeRetrieval = runtime.retrieval.subscribe(setRetrieval);
+    const unsubscribeRelease = runtime.release.subscribe(setRelease);
     const unsubscribeShiftStart = runtime.shiftStart.subscribe(setShiftStart);
     void runtime.auth.start();
     return () => {
@@ -58,6 +60,7 @@ export function NativeProductionShell({
       unsubscribeOperations();
       unsubscribeParking();
       unsubscribeRetrieval();
+      unsubscribeRelease();
       unsubscribeShiftStart();
       runtime.dispose();
     };
@@ -73,6 +76,7 @@ export function NativeProductionShell({
       runtime.handoff.clear();
       runtime.parking.clear();
       runtime.retrieval.clear();
+      runtime.release.clear();
       runtime.shiftStart.clear();
       runtime.operations.clear();
     }
@@ -85,6 +89,7 @@ export function NativeProductionShell({
     runtime.handoff.clear();
     runtime.parking.clear();
     runtime.retrieval.clear();
+    runtime.release.clear();
   }, [runtime, workflowPurgeRevision]);
 
   useEffect(() => {
@@ -105,12 +110,38 @@ export function NativeProductionShell({
   }, [operations, runtime]);
 
   useEffect(() => {
+    const activeTask = runtime?.release.current().task;
+    if (
+      runtime === undefined ||
+      activeTask === null ||
+      activeTask === undefined ||
+      runtime.release.current().phase === "released" ||
+      operations.phase !== "ready" ||
+      operations.queueFailure !== null ||
+      operations.queueLoading
+    ) {
+      return;
+    }
+    void runtime.release.observeTaskAuthority(
+      operations.tasks.find((task) => task.taskId === activeTask.taskId),
+    );
+  }, [operations, runtime]);
+
+  useEffect(() => {
     if (runtime === undefined) return;
     void runtime.operations.setForeground(AppState.currentState === "active");
     const subscription = AppState.addEventListener("change", (state) => {
-      if (state !== "active") runtime.handoff.suspendForBackground();
+      if (state !== "active") {
+        runtime.release.suspendForBackground();
+        runtime.handoff.suspendForBackground();
+      }
       void runtime.operations.setForeground(state === "active");
       if (
+        state === "active" &&
+        runtime.release.current().phase !== "inactive"
+      ) {
+        void runtime.release.checkServerState();
+      } else if (
         state === "active" &&
         runtime.handoff.current().phase !== "inactive"
       ) {
@@ -197,6 +228,7 @@ export function NativeProductionShell({
       operations={operations}
       parking={parking}
       retrieval={retrieval}
+      release={release}
       retrievalAttention={retrievalAttention}
       runtime={runtime}
       shell={shell}

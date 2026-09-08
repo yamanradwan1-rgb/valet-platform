@@ -1,4 +1,7 @@
-import type { EmployeeHandoffSnapshot } from "@valet/employee-client";
+import type {
+  EmployeeHandoffSnapshot,
+  EmployeeReleaseSnapshot,
+} from "@valet/employee-client";
 import { Text } from "react-native";
 
 import { EmployeeCard } from "../employee-ui/employee-feedback";
@@ -9,10 +12,10 @@ export function NativeHandoffVehicle({
   snapshot,
   textAlign,
 }: {
-  readonly snapshot: EmployeeHandoffSnapshot;
+  readonly snapshot: EmployeeHandoffSnapshot | EmployeeReleaseSnapshot;
   readonly textAlign: "left" | "right";
 }) {
-  const vehicle = snapshot.task?.vehicle;
+  const vehicle = snapshot.task?.vehicle ?? snapshot.session?.vehicle;
   if (!vehicle) return null;
   const name =
     [vehicle.make, vehicle.model].filter(Boolean).join(" ") ||

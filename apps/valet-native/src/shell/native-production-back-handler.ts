@@ -6,6 +6,7 @@ import { checkInBackBlocked } from "../check-in/native-check-in-presentation";
 import { nativeParkingBackBlocked } from "../parking/native-parking-protection";
 import { nativeRetrievalBackBlocked } from "../retrieval/native-retrieval-protection";
 import { nativeHandoffBackBlocked } from "../handoff/native-handoff-protection";
+import { nativeReleaseBackBlocked } from "../handoff/native-release-protection";
 import type {
   ProductionShellController,
   ProductionShellState,
@@ -48,7 +49,8 @@ export function useNativeProductionBackHandler(
           runtime !== undefined &&
           shell.destination === "retrieval" &&
           (nativeRetrievalBackBlocked(runtime.retrieval.current().phase) ||
-            nativeHandoffBackBlocked(runtime.handoff.current().phase))
+            nativeHandoffBackBlocked(runtime.handoff.current().phase) ||
+            nativeReleaseBackBlocked(runtime.release.current().phase))
         ) {
           return true;
         }
@@ -64,6 +66,7 @@ export function useNativeProductionBackHandler(
         }
         if (runtime !== undefined && shell.destination === "retrieval") {
           runtime.handoff.clear();
+          runtime.release.clear();
           runtime.retrieval.clear();
           void runtime.operations.refreshQueue();
         }

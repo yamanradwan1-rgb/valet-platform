@@ -3,12 +3,14 @@ import {
   createEmployeeConfirmParkedTransport,
   createEmployeeHandoffTransport,
   createEmployeeParkingStartTransport,
+  createEmployeeReleaseTransport,
   createEmployeeRetrievalTransport,
   EmployeeCheckInSession,
   EmployeeConfirmParkedSession,
   EmployeeHandoffSession,
   EmployeeOperationalSession,
   EmployeeParkingStartSession,
+  EmployeeReleaseSession,
   EmployeeRetrievalSession,
   EmployeeShiftStartSession,
   NativeAuthSession,
@@ -36,6 +38,7 @@ export interface NativeEmployeeRuntime {
   readonly handoff: EmployeeHandoffSession;
   readonly operations: EmployeeOperationalSession;
   readonly parking: EmployeeParkingStartSession;
+  readonly release: EmployeeReleaseSession;
   readonly retrieval: EmployeeRetrievalSession;
   readonly shiftStart: EmployeeShiftStartSession;
 }
@@ -90,7 +93,28 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  const release = new EmployeeReleaseSession({
+    transport: createEmployeeReleaseTransport(() =>
+      createNativeEmployeeClient(apiOrigin, auth),
+    ),
+  });
   const handoff = new EmployeeHandoffSession({
+    onStateChange: (snapshot) => {
+      if (
+        snapshot.phase === "verified" &&
+        snapshot.identityGeneration !== null &&
+        snapshot.scope !== null &&
+        snapshot.task !== null &&
+        snapshot.session !== null
+      ) {
+        void release.openTask(
+          snapshot.identityGeneration,
+          snapshot.scope,
+          snapshot.task.taskId,
+          snapshot.session.sessionId,
+        );
+      }
+    },
     transport: createEmployeeHandoffTransport(() =>
       createNativeEmployeeClient(apiOrigin, auth),
     ),
@@ -127,6 +151,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     confirmParking.clear();
     handoff.clear();
     parking.clear();
+    release.clear();
     retrieval.clear();
     shiftStart.clear();
     checkIn.clear();
@@ -137,6 +162,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     confirmParking.clear();
     handoff.clear();
     parking.clear();
+    release.clear();
     retrieval.clear();
     shiftStart.clear();
     checkIn.clear();
@@ -150,6 +176,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     handoff,
     operations,
     parking,
+    release,
     retrieval,
     shiftStart,
   };

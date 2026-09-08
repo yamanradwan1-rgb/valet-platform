@@ -3,6 +3,7 @@ import type {
   EmployeeHandoffSnapshot,
   EmployeeOperationalSnapshot,
   EmployeeParkingStartSnapshot,
+  EmployeeReleaseSnapshot,
   EmployeeRetrievalSnapshot,
   EmployeeShiftStartSnapshot,
   NativeAuthSnapshot,
@@ -19,6 +20,7 @@ export interface NativeProductionBootstrap {
   readonly handoff: EmployeeHandoffSnapshot;
   readonly operations: EmployeeOperationalSnapshot;
   readonly parking: EmployeeParkingStartSnapshot;
+  readonly release: EmployeeReleaseSnapshot;
   readonly retrieval: EmployeeRetrievalSnapshot;
   readonly runtime: NativeEmployeeRuntime | undefined;
   readonly shiftStart: EmployeeShiftStartSnapshot;
@@ -33,6 +35,7 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
       handoff: runtime.handoff.current(),
       operations: runtime.operations.current(),
       parking: runtime.parking.current(),
+      release: runtime.release.current(),
       retrieval: runtime.retrieval.current(),
       runtime,
       shiftStart: runtime.shiftStart.current(),
@@ -81,6 +84,18 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
         failure: null,
         identityGeneration: null,
         phase: "inactive",
+        scope: null,
+        session: null,
+        task: null,
+      },
+      release: {
+        block: null,
+        completion: null,
+        failure: null,
+        identityGeneration: null,
+        phase: "inactive",
+        releaseRequiresPayment: null,
+        releaseSatisfied: null,
         scope: null,
         session: null,
         task: null,

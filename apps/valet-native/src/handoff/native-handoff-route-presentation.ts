@@ -1,12 +1,15 @@
 import type {
   EmployeeHandoffSnapshot,
+  EmployeeReleaseSnapshot,
   EmployeeRetrievalSnapshot,
 } from "@valet/employee-client";
 
 export function shouldShowNativeHandoff(
   handoff: EmployeeHandoffSnapshot,
   retrieval: EmployeeRetrievalSnapshot,
+  release: EmployeeReleaseSnapshot,
 ) {
+  if (release.phase !== "inactive") return true;
   if (handoff.phase === "inactive") return false;
   if (handoff.phase === "loading") return retrieval.phase === "inactive";
   if (
