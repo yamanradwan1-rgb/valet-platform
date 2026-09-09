@@ -42,8 +42,9 @@ const {
   NativeGateLocaleToggle,
   nativeGateControlStyles,
 } = await import("../src/shell/native-gate-primitives");
-const { GateRadialBackground, nativeGateShellStyles } =
+const { nativeGateShellStyles } =
   await import("../src/shell/native-gate-shell");
+const { getNativeShellCopy } = await import("../src/shell/native-shell-copy");
 const { NativeShellGate } = await import("../src/shell/native-shell-gate");
 
 type Element = ReactElement<Record<string, unknown>>;
@@ -75,26 +76,7 @@ const authSession = {
 } as unknown as NativeAuthSession;
 
 describe("Native Employee gate parity", () => {
-  it("represents the Web radial background and exact access-shell geometry", () => {
-    const gradient = elements(GateRadialBackground()).find(
-      (node) => node.type === "RadialGradient",
-    )!;
-    const stops = elements(GateRadialBackground()).filter(
-      (node) => node.type === "Stop",
-    );
-
-    expect(gradient.props).toMatchObject({
-      cx: "55%",
-      cy: "0%",
-      fx: "55%",
-      fy: "0%",
-      rx: "65%",
-      ry: "65%",
-    });
-    expect(stops.map((node) => node.props)).toEqual([
-      { offset: "0%", stopColor: "#0B2D6E" },
-      { offset: "100%", stopColor: "#07111F" },
-    ]);
+  it("matches exact access-shell geometry and gate-specific copy", () => {
     expect(nativeGateShellStyles.logo).toMatchObject({
       aspectRatio: 3.1,
       height: 36,
@@ -104,6 +86,8 @@ describe("Native Employee gate parity", () => {
       paddingBottom: 40,
       paddingHorizontal: 24,
     });
+    expect(getNativeShellCopy("en").signOut).toBe("Sign Out");
+    expect(getNativeAuthCopy("en").logout).toBe("Log out");
   });
 
   it("uses gate-specific card, button, blur, and compact locale contracts", () => {

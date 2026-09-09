@@ -60,7 +60,7 @@ const copy: Record<EmployeeLocale, NativeShellCopy> = {
     retry: "Retry",
     scan: "Scan",
     shift: "Shift",
-    signOut: "Sign out",
+    signOut: "Sign Out",
     staffSignIn: "Staff sign in",
     tasks: "Tasks",
     unavailable: "Not available yet",

@@ -1,11 +1,13 @@
 import { StatusBar } from "expo-status-bar";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
+  View,
+  type LayoutChangeEvent,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
@@ -43,32 +45,86 @@ export function NativeGateShell({
 }
 
 export function GateRadialBackground() {
+  const [size, setSize] = useState({ height: 0, width: 0 });
+  const onLayout = ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
+    setSize((current) =>
+      current.height === layout.height && current.width === layout.width
+        ? current
+        : { height: layout.height, width: layout.width },
+    );
+  };
+
   return (
-    <Svg
+    <View
       accessible={false}
-      height="100%"
+      onLayout={onLayout}
       pointerEvents="none"
       style={nativeGateShellStyles.background}
       testID="native-gate-radial-background"
-      width="100%"
     >
+      {size.width > 0 && size.height > 0 ? (
+        <GateGradientSvg height={size.height} width={size.width} />
+      ) : null}
+    </View>
+  );
+}
+
+export function GateGradientSvg({
+  height,
+  width,
+}: {
+  readonly height: number;
+  readonly width: number;
+}) {
+  const ellipse = employeeGateFarthestCornerEllipse(width, height);
+  return (
+    <Svg accessible={false} height={height} pointerEvents="none" width={width}>
       <Defs>
         <RadialGradient
-          cx="55%"
-          cy="0%"
-          fx="55%"
-          fy="0%"
+          cx={ellipse.centerX}
+          cy={ellipse.centerY}
+          fx={ellipse.centerX}
+          fy={ellipse.centerY}
+          gradientUnits="userSpaceOnUse"
           id="employeeGateGradient"
-          rx="65%"
-          ry="65%"
+          rx={ellipse.radiusX}
+          ry={ellipse.radiusY}
         >
           <Stop offset="0%" stopColor="#0B2D6E" />
+          <Stop offset="65%" stopColor={c.navy} />
           <Stop offset="100%" stopColor={c.navy} />
         </RadialGradient>
       </Defs>
       <Rect fill="url(#employeeGateGradient)" height="100%" width="100%" />
     </Svg>
   );
+}
+
+/** CSS `ellipse farthest-corner at 55% 0%` ending-shape geometry. */
+export function employeeGateFarthestCornerEllipse(
+  width: number,
+  height: number,
+) {
+  const centerX = width * 0.55;
+  const centerY = 0;
+  const farthestSideX = Math.max(centerX, width - centerX);
+  const farthestSideY = Math.max(centerY, height - centerY);
+  const scale = Math.max(
+    ...[0, width].flatMap((x) =>
+      [0, height].map((y) =>
+        Math.hypot(
+          (x - centerX) / farthestSideX,
+          (y - centerY) / farthestSideY,
+        ),
+      ),
+    ),
+  );
+  return {
+    centerX,
+    centerY,
+    radiusX: farthestSideX * scale,
+    radiusY: farthestSideY * scale,
+  };
 }
 
 export const nativeGateShellStyles = StyleSheet.create({
