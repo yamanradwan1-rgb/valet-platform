@@ -214,7 +214,7 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
     },
   );
 
-  it("mirrors Back geometry but never transforms the VAYLET brand", () => {
+  it("keeps the Web Back glyph fixed but never transforms the VAYLET brand", () => {
     const rtl = elements(
       EmployeeBackHeader({
         accessibilityLabel: "رجوع",
@@ -239,7 +239,13 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
     )[0]!;
     expect(style(ltr.props.style).flexDirection).toBe("row");
     const stroke = elements(EmployeeBackIcon({ direction: "rtl" }))[1]!;
-    expect(style(stroke.props.style).transform).toEqual([{ rotate: "225deg" }]);
+    expect(stroke.props).toMatchObject({
+      d: "M15 18l-6-6 6-6",
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      strokeWidth: 1.75,
+    });
+    expect(style(stroke.props.style).transform).toBeUndefined();
     expect(employeeFrameStyles.brandLogo.transform).toBeUndefined();
   });
 

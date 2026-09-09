@@ -31,6 +31,7 @@ describe("Native package contract", () => {
 
   it("owns only the accepted SDK-compatible native modules", () => {
     expect(manifest.dependencies["expo-camera"]).toBe("~57.0.4");
+    expect(manifest.dependencies["react-native-svg"]).toBe("15.15.4");
     expect(Object.keys(manifest.dependencies).sort()).toEqual(
       [
         "@expo-google-fonts/plus-jakarta-sans",
@@ -53,6 +54,7 @@ describe("Native package contract", () => {
         "react-native-reanimated",
         "react-native-safe-area-context",
         "react-native-screens",
+        "react-native-svg",
         "react-native-worklets",
       ].sort(),
     );

@@ -132,15 +132,25 @@ describe("Employee production frame", () => {
     expect(nodes.filter((node) => node.type === "Image")).toHaveLength(1);
   });
 
-  it("mirrors Back geometry without mirroring the brand", () => {
-    const ltrStroke = elements(EmployeeBackIcon({ direction: "ltr" }))[1]!;
-    const rtlStroke = elements(EmployeeBackIcon({ direction: "rtl" }))[1]!;
-    expect(style(ltrStroke.props.style).transform).toEqual([
-      { rotate: "45deg" },
-    ]);
-    expect(style(rtlStroke.props.style).transform).toEqual([
-      { rotate: "225deg" },
-    ]);
+  it("keeps the Web Back glyph fixed without transforming the brand", () => {
+    const resolveIcon = (direction: "ltr" | "rtl") => {
+      const icon = EmployeeBackIcon({ direction });
+      return (icon.type as (props: unknown) => Element)(icon.props);
+    };
+    const ltrNodes = elements(resolveIcon("ltr"));
+    const rtlNodes = elements(resolveIcon("rtl"));
+    expect(ltrNodes[0]!.props).toMatchObject({
+      height: 24,
+      viewBox: "0 0 24 24",
+      width: 24,
+    });
+    expect(ltrNodes[1]!.props).toMatchObject({
+      d: "M15 18l-6-6 6-6",
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      strokeWidth: 1.75,
+    });
+    expect(rtlNodes[1]!.props).toEqual(ltrNodes[1]!.props);
     expect(employeeFrameStyles.brandLogo.transform).toBeUndefined();
   });
 
