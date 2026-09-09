@@ -36,7 +36,7 @@ describe("Employee field roles and Native Check-In compatibility", () => {
     ["plate", 56, 16, 20],
     ["phone", 56, 12, 16],
   ] as const)(
-    "applies the Web-derived %s field role",
+    "applies the compatible %s field role",
     (visualRole, height, radius, size) => {
       const tree = nodes(
         <EmployeeField
@@ -51,7 +51,7 @@ describe("Employee field roles and Native Check-In compatibility", () => {
       );
       const input = tree.find((node) => node.type === "TextInput")!;
       expect(style(input)).toMatchObject({
-        minHeight: height,
+        height,
         borderRadius: radius,
         fontSize: size,
         paddingHorizontal: 16,
@@ -131,7 +131,7 @@ describe("Employee field roles and Native Check-In compatibility", () => {
         autoCorrect: false,
       });
       expect(style(input)).toMatchObject({
-        minHeight: 48,
+        height: 48,
         writingDirection: textAlign === "right" ? "rtl" : "ltr",
         textAlign,
       });
@@ -163,7 +163,7 @@ describe("Employee field roles and Native Check-In compatibility", () => {
     });
     for (const field of [input, prefix]) {
       expect(style(field)).toMatchObject({
-        minHeight: 56,
+        height: 56,
         borderRadius: 12,
         textAlign: "left",
         writingDirection: "ltr",
@@ -172,5 +172,28 @@ describe("Employee field roles and Native Check-In compatibility", () => {
     expect(tree.some((node) => style(node).direction === "ltr")).toBe(true);
     (input.props.onChangeText as (value: string) => void)("791111111");
     expect(onChangeText).toHaveBeenCalledWith("791111111");
+  });
+
+  it("decouples canonical 48px geometry from 20px operational value text", () => {
+    const input = nodes(
+      <EmployeeField
+        accessibilityLabel="Parking spot"
+        alignment="center"
+        kind="identifier"
+        maxLength={20}
+        onChangeText={vi.fn()}
+        size="standard"
+        textAlign="left"
+        textRole="value"
+        value="A-12"
+      />,
+    ).find((node) => node.type === "TextInput")!;
+    expect(style(input)).toMatchObject({
+      borderRadius: 12,
+      fontFamily: "Space Grotesk",
+      fontSize: 20,
+      fontWeight: "700",
+      height: 48,
+    });
   });
 });

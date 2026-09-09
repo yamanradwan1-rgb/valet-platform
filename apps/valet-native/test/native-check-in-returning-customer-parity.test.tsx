@@ -253,11 +253,11 @@ describe("MOB-010 Patch 4 returning and customer presentation", () => {
       const prefix = nodes.find((node) => node.props.children === "+962")!;
       expect(input.props.inputMode).toBe("tel");
       expect(style(input)).toMatchObject({
-        minHeight: 56,
+        height: 56,
         writingDirection: "ltr",
       });
       expect(style(prefix)).toMatchObject({
-        minHeight: 56,
+        height: 56,
         writingDirection: "ltr",
       });
       expect(

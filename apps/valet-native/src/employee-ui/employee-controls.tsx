@@ -41,26 +41,31 @@ export const employeeControlStyles = StyleSheet.create({
     borderWidth: 1,
   },
   ghost: { backgroundColor: "transparent" },
+  success: { backgroundColor: c.success },
 });
+
+export type EmployeeButtonVariant =
+  "danger" | "ghost" | "primary" | "secondary" | "success";
+export type EmployeeButtonSize = keyof typeof employeeButtonHeights;
 
 const labelColors = {
   danger: c.white,
+  ghost: c.blue,
   primary: c.white,
   secondary: c.navy,
-  ghost: c.blue,
-};
-const pressedColors = {
-  danger: employeeFeedbackColors.dangerPressed,
+  success: c.white,
+} satisfies Record<EmployeeButtonVariant, string>;
+const pressedColors: Partial<Record<EmployeeButtonVariant, string>> = {
+  ghost: c.ice,
   primary: employeeFeedbackColors.primaryPressed,
   secondary: employeeFeedbackColors.secondaryPressed,
-  ghost: c.ice,
 };
 
 export function EmployeeButton({
   label,
   onPress,
   variant = "primary",
-  size = variant === "primary" || variant === "danger"
+  size = variant === "primary" || variant === "danger" || variant === "success"
     ? "large"
     : variant === "secondary"
       ? "standard"
@@ -73,8 +78,8 @@ export function EmployeeButton({
 }: {
   readonly label: string;
   readonly onPress: () => void;
-  readonly variant?: "danger" | "primary" | "secondary" | "ghost";
-  readonly size?: keyof typeof employeeButtonHeights;
+  readonly variant?: EmployeeButtonVariant;
+  readonly size?: EmployeeButtonSize;
   readonly disabled?: boolean;
   readonly role?: AccessibilityRole;
   readonly accessibilityState?: AccessibilityState;
@@ -85,70 +90,76 @@ export function EmployeeButton({
   const hitExtension = Math.max(0, (employeeMinimumTouchTarget - height) / 2);
   const isDisabled = disabled || busy;
   return (
-    // Reserve the hit area in layout so compact siblings never overlap it.
-    <View
-      style={{
-        minHeight: employeeMinimumTouchTarget,
-        justifyContent: "center",
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole={role}
+      accessibilityState={{
+        ...accessibilityState,
+        ...(busy ? { busy: true } : {}),
+        disabled: isDisabled,
       }}
+      disabled={isDisabled}
+      hitSlop={{
+        bottom: hitExtension,
+        left: 0,
+        right: 0,
+        top: hitExtension,
+      }}
+      onPress={() => {
+        if (!isDisabled) onPress();
+      }}
+      style={({ pressed }) => [
+        employeeControlStyles.button,
+        employeeControlStyles[variant],
+        { height },
+        pressed && !isDisabled && { transform: [{ scale: 0.98 }] },
+        pressed &&
+          !isDisabled &&
+          pressedColors[variant] !== undefined && {
+            backgroundColor: pressedColors[variant],
+          },
+        pressed &&
+          !isDisabled &&
+          (variant === "danger" || variant === "success") && { opacity: 0.9 },
+        isDisabled && employeeControlStyles.disabled,
+      ]}
     >
-      <Pressable
-        accessibilityLabel={label}
-        accessibilityRole={role}
-        accessibilityState={{
-          ...accessibilityState,
-          ...(busy ? { busy: true } : {}),
-          disabled: isDisabled,
+      <View
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          flexShrink: 1,
+          gap: employeeSpacing.compact,
+          justifyContent: "center",
         }}
-        disabled={isDisabled}
-        hitSlop={hitExtension}
-        onPress={() => {
-          if (!isDisabled) onPress();
-        }}
-        style={({ pressed }) => [
-          employeeControlStyles.button,
-          employeeControlStyles[variant],
-          { minHeight: height, minWidth: employeeMinimumTouchTarget },
-          pressed &&
-            !isDisabled && {
-              backgroundColor: pressedColors[variant],
-            },
-          isDisabled && employeeControlStyles.disabled,
-        ]}
       >
-        <View
-          style={{
-            alignItems: "center",
-            flexDirection: "row",
-            flexShrink: 1,
-            gap: employeeSpacing.compact,
-            justifyContent: "center",
-          }}
+        {busy ? (
+          <ActivityIndicator
+            accessible={false}
+            color={
+              variant === "primary" ||
+              variant === "danger" ||
+              variant === "success"
+                ? c.white
+                : c.blue
+            }
+            size="small"
+          />
+        ) : (
+          leading
+        )}
+        <Text
+          style={[
+            employeeControlStyles.buttonLabel,
+            { color: labelColors[variant] },
+            size !== "large" && {
+              fontSize: employeeTypography.body.fontSize,
+            },
+          ]}
         >
-          {busy ? (
-            <ActivityIndicator
-              accessible={false}
-              color={
-                variant === "primary" || variant === "danger" ? c.white : c.blue
-              }
-              size="small"
-            />
-          ) : (
-            leading
-          )}
-          <Text
-            style={[
-              employeeControlStyles.buttonLabel,
-              { color: labelColors[variant] },
-              size !== "large" && {
-                fontSize: employeeTypography.body.fontSize,
-              },
-            ]}
-          >
-            {label}
-          </Text>
-        </View>
-      </Pressable>
-    </View>
+          {label}
+        </Text>
+      </View>
+    </Pressable>
   );
 }

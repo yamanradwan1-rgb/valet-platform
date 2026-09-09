@@ -26,7 +26,12 @@ export const employeeBackHeaderStyles = StyleSheet.create({
     width: employeeMinimumTouchTarget,
   },
   disabled: { opacity: 0.4 },
-  title: { ...type.header, color: c.navy, flex: 1, flexShrink: 1 },
+  title: {
+    ...type.backHeaderTitle,
+    color: c.navy,
+    flex: 1,
+    flexShrink: 1,
+  },
 });
 
 export function EmployeeBackHeader({

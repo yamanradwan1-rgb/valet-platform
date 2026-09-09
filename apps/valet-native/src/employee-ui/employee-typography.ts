@@ -13,18 +13,48 @@ export const employeeFontWeights = {
   semiBold: "600",
 } as const satisfies Record<string, NonNullable<TextStyle["fontWeight"]>>;
 
+const body = {
+  fontFamily: employeeFontFamilies.ui,
+  fontSize: 14,
+  fontWeight: employeeFontWeights.regular,
+  lineHeight: 20,
+} as const;
+const supporting = {
+  fontFamily: employeeFontFamilies.ui,
+  fontSize: 12,
+  fontWeight: employeeFontWeights.regular,
+  lineHeight: 16,
+} as const;
+const backHeaderTitle = {
+  fontFamily: employeeFontFamilies.ui,
+  fontSize: 17,
+  fontWeight: employeeFontWeights.semiBold,
+} as const;
+const vehicleIdentity = {
+  fontFamily: employeeFontFamilies.display,
+  fontSize: 26,
+  fontWeight: employeeFontWeights.bold,
+  lineHeight: 32.5,
+} as const;
+const plateHero = {
+  fontFamily: employeeFontFamilies.display,
+  fontSize: 36,
+  fontWeight: employeeFontWeights.bold,
+} as const;
+const operationalValueStrong = {
+  fontFamily: employeeFontFamilies.display,
+  fontSize: 20,
+  fontWeight: employeeFontWeights.bold,
+  lineHeight: 28,
+} as const;
+
 export const employeeTypography = {
-  body: {
+  body,
+  supporting,
+  supportingLarge: {
     fontFamily: employeeFontFamilies.ui,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: employeeFontWeights.regular,
-    lineHeight: 20,
-  },
-  small: {
-    fontFamily: employeeFontFamilies.ui,
-    fontSize: 12,
-    fontWeight: employeeFontWeights.regular,
-    lineHeight: 16,
   },
   label: {
     fontFamily: employeeFontFamilies.ui,
@@ -32,32 +62,32 @@ export const employeeTypography = {
     fontWeight: employeeFontWeights.semiBold,
     lineHeight: 20,
   },
-  header: {
+  pageTitle: {
     fontFamily: employeeFontFamilies.ui,
-    fontSize: 17,
+    fontSize: 20,
+    fontWeight: employeeFontWeights.bold,
+    lineHeight: 28,
+  },
+  pageTitleLarge: {
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 24,
+    fontWeight: employeeFontWeights.bold,
+    lineHeight: 32,
+  },
+  backHeaderTitle,
+  vehicleIdentity,
+  plateHero,
+  operationalValue: {
+    fontFamily: employeeFontFamilies.display,
+    fontSize: 20,
     fontWeight: employeeFontWeights.semiBold,
+    lineHeight: 28,
   },
-  vehicle: {
-    fontFamily: employeeFontFamilies.display,
-    fontSize: 26,
-    fontWeight: employeeFontWeights.bold,
-    lineHeight: 32.5,
-  },
-  plate: {
-    fontFamily: employeeFontFamilies.display,
-    fontSize: 36,
-    fontWeight: employeeFontWeights.bold,
-  },
+  operationalValueStrong,
   button: {
     fontFamily: employeeFontFamilies.ui,
     fontSize: 15,
     fontWeight: employeeFontWeights.semiBold,
-  },
-  plateField: {
-    fontFamily: employeeFontFamilies.display,
-    fontSize: 20,
-    fontWeight: employeeFontWeights.bold,
-    lineHeight: 28,
   },
   phoneField: {
     fontFamily: employeeFontFamilies.ui,
@@ -71,6 +101,12 @@ export const employeeTypography = {
     fontWeight: employeeFontWeights.bold,
     letterSpacing: 0.5,
   },
+  // Transitional aliases keep existing screens stable until their parity batch.
+  small: supporting,
+  header: backHeaderTitle,
+  vehicle: vehicleIdentity,
+  plate: plateHero,
+  plateField: operationalValueStrong,
 } as const satisfies Record<string, TextStyle>;
 
 export type EmployeeTextAlign = "left" | "right";

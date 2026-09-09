@@ -114,14 +114,21 @@ describe("MOB-010 Patch 4 recoverables presentation", () => {
       ),
     ).toBe(true);
     expect(
+      style(nodes.find((node) => node.props.accessibilityLabel === "Draft")!),
+    ).toMatchObject({ backgroundColor: "#EDF4FF" });
+    expect(
       style(nodes.find((node) => node.props.children === "Draft")!),
-    ).toMatchObject({
-      backgroundColor: "#EDF4FF",
-      color: "#176BFF",
-    });
+    ).toMatchObject({ color: "#176BFF" });
+    expect(
+      style(
+        nodes.find(
+          (node) => node.props.accessibilityLabel === "Awaiting parking",
+        )!,
+      ),
+    ).toMatchObject({ backgroundColor: "#EEFBF5" });
     expect(
       style(nodes.find((node) => node.props.children === "Awaiting parking")!),
-    ).toMatchObject({ backgroundColor: "#EEFBF5", color: "#2F9B78" });
+    ).toMatchObject({ color: "#2F9B78" });
     const cards = nodes.filter(
       (node) =>
         node.type === "Pressable" &&

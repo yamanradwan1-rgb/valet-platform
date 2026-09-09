@@ -37,6 +37,9 @@ export interface EmployeeFieldProps {
   readonly kind: EmployeeTextKind;
   readonly textAlign: EmployeeTextAlign;
   readonly prefix?: string;
+  readonly size?: keyof typeof employeeFieldHeights;
+  readonly textRole?: "body" | "phone" | "value";
+  /** Transitional combined role retained for existing screen call sites. */
   readonly visualRole?: keyof typeof employeeFieldHeights;
   readonly alignment?: "left" | "right" | "center";
 }
@@ -51,17 +54,25 @@ export function EmployeeField({
   kind,
   textAlign,
   prefix,
+  size,
+  textRole,
   visualRole = "standard",
   alignment,
 }: EmployeeFieldProps) {
+  const resolvedSize = size ?? visualRole;
+  const resolvedTextRole =
+    textRole ??
+    (visualRole === "plate"
+      ? "value"
+      : visualRole === "phone"
+        ? "phone"
+        : "body");
   const fieldStyle = [
     employeeFieldStyles.field,
-    { minHeight: employeeFieldHeights[visualRole] },
-    visualRole === "plate" && {
-      ...employeeTypography.plateField,
-      borderRadius: employeeRadius.primary,
-    },
-    visualRole === "phone" && employeeTypography.phoneField,
+    { height: employeeFieldHeights[resolvedSize] },
+    resolvedTextRole === "value" && employeeTypography.operationalValueStrong,
+    resolvedTextRole === "phone" && employeeTypography.phoneField,
+    visualRole === "plate" && { borderRadius: employeeRadius.primary },
   ];
   return (
     <View style={{ gap: employeeSpacing.sm }}>

@@ -26,6 +26,11 @@ export const employeeSpacing = {
 } as const;
 
 export const employeeRadius = { primary: 16, form: 12, pill: 999 } as const;
+export const employeeCardPadding = {
+  compact: employeeSpacing.lg,
+  standard: employeeSpacing.screen,
+  spacious: employeeSpacing.hero,
+} as const;
 export const employeeButtonHeights = {
   large: 56,
   standard: 44,
@@ -40,16 +45,41 @@ export const employeeMinimumTouchTarget = 48;
 
 // Explicit Web Badge backgrounds; never a domain-state mapping.
 export const employeeStatusColors = {
-  neutral: { backgroundColor: "#F5F6F8", color: employeeColors.neutral },
-  primary: { backgroundColor: employeeColors.ice, color: employeeColors.blue },
-  success: { backgroundColor: "#EEFBF5", color: employeeColors.success },
-  warning: { backgroundColor: "#FFF4E0", color: employeeColors.warning },
-  danger: { backgroundColor: "#FFF0F0", color: employeeColors.danger },
+  neutral: {
+    backgroundColor: "#F5F6F8",
+    color: employeeColors.neutral,
+    dotColor: employeeColors.neutral,
+  },
+  primary: {
+    backgroundColor: employeeColors.ice,
+    color: employeeColors.blue,
+    dotColor: employeeColors.blue,
+  },
+  success: {
+    backgroundColor: "#EEFBF5",
+    color: employeeColors.success,
+    dotColor: employeeColors.success,
+  },
+  // Employee Web handoff Badge uses a distinct mint surface.
+  successSoft: {
+    backgroundColor: "#F0FFF8",
+    color: employeeColors.success,
+    dotColor: employeeColors.success,
+  },
+  warning: {
+    backgroundColor: "#FFF4E0",
+    color: employeeColors.warning,
+    dotColor: employeeColors.warning,
+  },
+  danger: {
+    backgroundColor: "#FFF0F0",
+    color: employeeColors.danger,
+    dotColor: employeeColors.danger,
+  },
 } as const;
 
-// Web Btn active blue and Tailwind gray-50/red-50, converted to sRGB for Native.
+// Web Btn active colors and the explicit error-panel treatment.
 export const employeeFeedbackColors = {
-  dangerPressed: "#8D1C1C",
   primaryPressed: "#0F5EEA",
   secondaryPressed: "#F9FAFB",
   errorSurface: "#FEF2F2",

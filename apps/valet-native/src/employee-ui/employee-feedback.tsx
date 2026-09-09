@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import {
+  employeeCardPadding,
   employeeColors as c,
   employeeFeedbackColors,
   employeeRadius,
@@ -20,16 +21,22 @@ export const employeeFeedbackStyles = StyleSheet.create({
     borderColor: c.border,
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
-    padding: employeeSpacing.lg,
   },
   badge: {
-    ...employeeTypography.badge,
+    alignItems: "center",
     alignSelf: "flex-start",
     borderRadius: employeeRadius.pill,
-    overflow: "hidden",
+    flexDirection: "row",
+    gap: employeeSpacing.compact,
     paddingHorizontal: 10,
     paddingVertical: employeeSpacing.xs,
   },
+  badgeDot: {
+    borderRadius: employeeRadius.pill,
+    height: 6,
+    width: 6,
+  },
+  badgeLabel: employeeTypography.badge,
   error: {
     ...employeeTypography.small,
     backgroundColor: employeeFeedbackColors.errorSurface,
@@ -70,10 +77,14 @@ export const employeeFeedbackStyles = StyleSheet.create({
 export function EmployeeCard({
   accessibilityLabel,
   children,
+  contentGap = "compact",
+  padding = "compact",
   variant = "default",
 }: {
   readonly accessibilityLabel?: string;
   readonly children: ReactNode;
+  readonly contentGap?: keyof typeof employeeSpacing | "none";
+  readonly padding?: keyof typeof employeeCardPadding;
   readonly variant?: "default" | "success";
 }) {
   return (
@@ -83,7 +94,10 @@ export function EmployeeCard({
       style={[
         employeeFeedbackStyles.card,
         variant === "success" && employeeFeedbackStyles.successCard,
-        { gap: employeeSpacing.compact },
+        {
+          gap: contentGap === "none" ? 0 : employeeSpacing[contentGap],
+          padding: employeeCardPadding[padding],
+        },
       ]}
     >
       {children}
@@ -94,23 +108,47 @@ export function EmployeeCard({
 // Compact status labels only. Explanatory copy belongs in EmployeeStatus.
 export function EmployeeBadge({
   label,
+  showDot = false,
   variant = "primary",
   textAlign,
 }: {
   readonly label: string;
+  readonly showDot?: boolean;
   readonly variant?: keyof typeof employeeStatusColors;
   readonly textAlign: EmployeeTextAlign;
 }) {
   return (
-    <Text
+    <View
+      accessible
+      accessibilityLabel={label}
       style={[
         employeeFeedbackStyles.badge,
-        employeeStatusColors[variant],
-        employeeTextStyle("human", textAlign),
+        {
+          backgroundColor: employeeStatusColors[variant].backgroundColor,
+          flexDirection: textAlign === "right" ? "row-reverse" : "row",
+        },
       ]}
     >
-      {label}
-    </Text>
+      {showDot ? (
+        <View
+          accessible={false}
+          style={[
+            employeeFeedbackStyles.badgeDot,
+            { backgroundColor: employeeStatusColors[variant].dotColor },
+          ]}
+        />
+      ) : null}
+      <Text
+        accessible={false}
+        style={[
+          employeeFeedbackStyles.badgeLabel,
+          { color: employeeStatusColors[variant].color },
+          employeeTextStyle("human", textAlign),
+        ]}
+      >
+        {label}
+      </Text>
+    </View>
   );
 }
 

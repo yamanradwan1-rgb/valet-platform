@@ -129,15 +129,13 @@ describe("MOB-010 Patch 5 truthful completion presentation", () => {
           : locale === "en"
             ? "Awaiting parking"
             : "بانتظار الاصطفاف";
+      const badge = nodes.find(
+        (node) => node.props.accessibilityLabel === badgeLabel,
+      )!;
+      expect(style(badge).backgroundColor).toBe(backgroundColor);
       expect(
-        style(
-          nodes.find(
-            (node) =>
-              node.props.children === badgeLabel &&
-              style(node).backgroundColor === backgroundColor,
-          )!,
-        ),
-      ).toMatchObject({ backgroundColor, color });
+        style(nodes.find((node) => node.props.children === badgeLabel)!).color,
+      ).toBe(color);
       const copy = content(nodes);
       if (phase === "created") {
         expect(copy).toMatch(/Vehicle Condition|فحص حالة المركبة/);
