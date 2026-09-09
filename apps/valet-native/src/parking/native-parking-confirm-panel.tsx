@@ -1,4 +1,4 @@
-import { ScrollView, Text } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import type {
   EmployeeConfirmParkedSession,
   EmployeeConfirmParkedSnapshot,
@@ -9,7 +9,6 @@ import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
   EmployeeBadge,
-  EmployeeCard,
   EmployeeErrorNotice,
   EmployeeProgress,
   EmployeeStatus,
@@ -19,17 +18,22 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
 import { NativeParkingQrInput } from "./native-parking-qr-input";
 import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import { NativeParkingSuccess } from "./native-parking-success";
 
 export function NativeParkingConfirmPanel({
   auth,
   confirmation,
   locale,
+  online = true,
+  onBack,
   onDone,
   snapshot,
 }: {
   readonly auth: NativeAuthSession;
   readonly confirmation: EmployeeConfirmParkedSession;
   readonly locale: FoundationLocale;
+  readonly online?: boolean | undefined;
+  readonly onBack?: (() => void) | undefined;
   readonly onDone: () => void;
   readonly snapshot: EmployeeConfirmParkedSnapshot;
 }) {
@@ -42,18 +46,27 @@ export function NativeParkingConfirmPanel({
     snapshot.phase === "slot" ||
     snapshot.phase === "ready" ||
     snapshot.phase === "submitting";
-  const back = inSlotStep ? () => confirmation.backToSpot() : onDone;
+  const back = inSlotStep
+    ? () => confirmation.backToSpot()
+    : (onBack ?? onDone);
+  const headerTitle = inSlotStep
+    ? copy.keySlot
+    : snapshot.phase === "spot"
+      ? copy.parkingSpot
+      : copy.taskTitle;
 
   return (
     <>
-      <EmployeeBackHeader
-        accessibilityLabel={copy.back}
-        direction={direction}
-        disabled={busy}
-        onBack={back}
-        textAlign={textAlign}
-        title={copy.taskTitle}
-      />
+      {snapshot.phase !== "parked" ? (
+        <EmployeeBackHeader
+          accessibilityLabel={copy.back}
+          direction={direction}
+          disabled={busy}
+          onBack={back}
+          textAlign={textAlign}
+          title={headerTitle}
+        />
+      ) : null}
       <ScrollView contentContainerStyle={[s.body, { direction }]}>
         {snapshot.phase === "loading" ||
         snapshot.phase === "reconciling" ||
@@ -73,7 +86,7 @@ export function NativeParkingConfirmPanel({
             textAlign={textAlign}
           />
         ) : snapshot.phase === "parked" ? (
-          <ParkedContent
+          <NativeParkingSuccess
             copy={copy}
             onDone={onDone}
             snapshot={snapshot}
@@ -94,6 +107,7 @@ export function NativeParkingConfirmPanel({
             confirmation={confirmation}
             copy={copy}
             locale={locale}
+            online={online}
             snapshot={snapshot}
             textAlign={textAlign}
           />
@@ -114,32 +128,53 @@ function SpotContent({
   snapshot,
   textAlign,
 }: ContentProps) {
+  const hasSpot = snapshot.parkingSpotCandidate.trim() !== "";
+  const destination = snapshot.session?.parking.parkingZoneCode
+    ? `${copy.zone} ${snapshot.session.parking.parkingZoneCode}`
+    : copy.parkingArea;
   return (
     <>
-      <EmployeeBadge label={copy.parkingSpot} textAlign={textAlign} />
       {snapshot.conflict === "spot" ? (
         <EmployeeErrorNotice textAlign={textAlign} title={copy.parkingSpot}>
           {copy.spotConflict}
         </EmployeeErrorNotice>
       ) : null}
-      <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
-        {copy.spotTitle}
-      </Text>
-      <EmployeeStatus textAlign={textAlign}>{copy.spotBody}</EmployeeStatus>
-      <NativeParkingQrInput
-        auth={auth}
-        disabled={false}
-        kind="parking-spot"
-        label={copy.parkingSpot}
-        locale={locale}
-        onChange={(value) => confirmation.enterParkingSpot(value)}
-        value={snapshot.parkingSpotCandidate}
-      />
-      <EmployeeButton
-        disabled={snapshot.parkingSpotCandidate === ""}
-        label={copy.continueLabel}
-        onPress={() => confirmation.continueToKeySlot()}
-      />
+      {!hasSpot ? (
+        <>
+          <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
+            {copy.spotTitle}
+          </Text>
+          <EmployeeStatus textAlign={textAlign}>{copy.spotBody}</EmployeeStatus>
+          <NativeParkingQrInput
+            auth={auth}
+            disabled={false}
+            kind="parking-spot"
+            label={copy.parkingSpot}
+            locale={locale}
+            onChange={(value) => confirmation.enterParkingSpot(value)}
+            value={snapshot.parkingSpotCandidate}
+          />
+        </>
+      ) : (
+        <>
+          <View style={s.successSurface}>
+            <Text style={s.fieldLabel}>{copy.location}</Text>
+            <Text style={s.locationHero}>{destination}</Text>
+            <Text style={s.fieldLabel}>{copy.spotCode}</Text>
+            <Text style={s.identifier}>{snapshot.parkingSpotCandidate}</Text>
+          </View>
+          <EmployeeButton
+            label={copy.continueLabel}
+            onPress={() => confirmation.continueToKeySlot()}
+            variant="success"
+          />
+          <EmployeeButton
+            label={copy.scanAgain}
+            onPress={() => confirmation.enterParkingSpot("")}
+            variant="secondary"
+          />
+        </>
+      )}
     </>
   );
 }
@@ -149,6 +184,7 @@ function SlotContent({
   confirmation,
   copy,
   locale,
+  online = true,
   snapshot,
   textAlign,
 }: ContentProps) {
@@ -163,27 +199,13 @@ function SlotContent({
           : null;
   return (
     <>
-      <EmployeeBadge label={copy.keySlot} textAlign={textAlign} />
+      <EmployeeBadge label={copy.parking} textAlign={textAlign} />
       {conflict !== null ? (
         <EmployeeErrorNotice textAlign={textAlign} title={copy.keySlot}>
           {conflict}
         </EmployeeErrorNotice>
       ) : null}
-      <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
-        {copy.slotTitle}
-      </Text>
       <EmployeeStatus textAlign={textAlign}>{copy.slotBody}</EmployeeStatus>
-      <EmployeeCard
-        accessibilityLabel={`${copy.parkingSpot} ${snapshot.parkingSpotCandidate}`}
-      >
-        <Text style={employeeTextStyle("human", textAlign)}>
-          {copy.parkingSpot}
-        </Text>
-        <Text style={s.identifier}>{snapshot.parkingSpotCandidate}</Text>
-      </EmployeeCard>
-      <EmployeeStatus textAlign={textAlign}>
-        {copy.candidateOnly}
-      </EmployeeStatus>
       <NativeParkingQrInput
         auth={auth}
         disabled={submitting}
@@ -193,9 +215,12 @@ function SlotContent({
         onChange={(value) => confirmation.enterKeySlot(value)}
         value={snapshot.keySlotCandidate}
       />
+      {!online ? (
+        <EmployeeStatus textAlign={textAlign}>{copy.noNetwork}</EmployeeStatus>
+      ) : null}
       <EmployeeButton
         busy={submitting}
-        disabled={snapshot.phase !== "ready"}
+        disabled={!online || snapshot.phase !== "ready"}
         label={submitting ? copy.confirming : copy.confirm}
         onPress={() => void confirmation.confirmParked()}
       />
@@ -208,6 +233,7 @@ interface ContentProps {
   readonly confirmation: EmployeeConfirmParkedSession;
   readonly copy: Copy;
   readonly locale: FoundationLocale;
+  readonly online?: boolean | undefined;
   readonly snapshot: EmployeeConfirmParkedSnapshot;
   readonly textAlign: Align;
 }
@@ -252,45 +278,6 @@ function UnavailableContent({
         onPress={onDone}
         variant="secondary"
       />
-    </>
-  );
-}
-
-function ParkedContent({
-  copy,
-  onDone,
-  snapshot,
-  textAlign,
-}: Pick<ContentProps, "copy" | "snapshot" | "textAlign"> & {
-  readonly onDone: () => void;
-}) {
-  const parked = snapshot.parked;
-  if (parked === null) return null;
-  const spot =
-    parked.source === "command"
-      ? parked.response.parkingSpotCode
-      : parked.parkingSpotCode;
-  return (
-    <>
-      <EmployeeBadge
-        label={copy.parkedBody}
-        textAlign={textAlign}
-        variant="success"
-      />
-      <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
-        {copy.parkedTitle}
-      </Text>
-      <EmployeeCard>
-        <Text style={employeeTextStyle("human", textAlign)}>
-          {copy.parkingSpot}
-        </Text>
-        <Text style={s.identifier}>{spot}</Text>
-        <Text style={employeeTextStyle("human", textAlign)}>
-          {copy.keySlot}
-        </Text>
-        <Text style={s.identifier}>{parked.keySlotCode}</Text>
-      </EmployeeCard>
-      <EmployeeButton label={copy.backToTasks} onPress={onDone} />
     </>
   );
 }
