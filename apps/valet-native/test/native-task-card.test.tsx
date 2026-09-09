@@ -16,6 +16,10 @@ const { NativeTaskQueueRow } =
 const { EmployeeBadge } = await import("../src/employee-ui/employee-feedback");
 const { NativeTaskActionButton, nativeTaskActionButtonStyles } =
   await import("../src/tasks/native-task-action-button");
+const { nativeTaskCardStyles } =
+  await import("../src/tasks/native-task-card-styles");
+const { nativeNewVehicleButtonStyles } =
+  await import("../src/tasks/native-new-vehicle-button");
 const { EmployeeChevronRightIcon } =
   await import("../src/employee-ui/employee-icons");
 const { getNativeTasksCopy } = await import("../src/tasks/native-tasks-copy");
@@ -120,6 +124,18 @@ describe("Web-authoritative Native task cards", () => {
       borderRadius: 12,
       height: 40,
       paddingHorizontal: 16,
+    });
+    expect(nativeTaskCardStyles.card).toMatchObject({
+      elevation: 1,
+      shadowOffset: { height: 1, width: 0 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+    });
+    expect(nativeNewVehicleButtonStyles.button).toMatchObject({
+      elevation: 1,
+      shadowOffset: { height: 1, width: 0 },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
     });
   });
 

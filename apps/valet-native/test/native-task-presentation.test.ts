@@ -7,8 +7,6 @@ import type {
 import {
   canAcceptNativeTask,
   canOpenNativeHandoffOverride,
-  nativeMutationMessage,
-  nativeQueueFailureMessage,
   nativeTaskActionLabel,
   nativeTaskAge,
   nativeTaskParkingContext,
@@ -135,7 +133,6 @@ describe("Native Tasks presentation", () => {
     expect(nativeTaskVehicleLabel(task)).toBe("Toyota Camry");
     expect(getNativeTasksCopy("en").tasks).toBe("Tasks");
     expect(getNativeTasksCopy("ar").tasks).toBe("المهام");
-    expect(getNativeTasksCopy("ar").reconcile).toContain("الخادم");
     expect(getNativeTasksCopy("en")).toMatchObject({
       retrievalAlertBody: "A guest has requested their vehicle.",
       retrievalAlertTitle: "Vehicle requested",
@@ -150,7 +147,7 @@ describe("Native Tasks presentation", () => {
     const en = getNativeTasksCopy("en");
     const ar = getNativeTasksCopy("ar");
     expect(nativeTaskTypeLabel(en, "PARKING")).toBe("Parking");
-    expect(nativeTaskTypeLabel(ar, "RETRIEVAL")).toBe("استرجاع المركبة");
+    expect(nativeTaskTypeLabel(ar, "RETRIEVAL")).toBe("الاسترجاع");
     expect(nativeTaskStatusLabel(en, "IN_PROGRESS")).toBe("In progress");
     expect(nativeTaskStatusLabel(ar, "QUEUED")).toBe("في قائمة الانتظار");
     expect(
@@ -160,6 +157,57 @@ describe("Native Tasks presentation", () => {
         status: "QUEUED",
       }),
     ).toBe("Claim & Park");
+    expect(
+      nativeTaskActionLabel(en, {
+        ...task,
+        taskType: "RETRIEVAL",
+      }),
+    ).toBe("Accept Task");
+  });
+
+  it("matches the current Web task dictionary in EN and AR", () => {
+    expect(getNativeTasksCopy("en")).toMatchObject({
+      acceptAndPark: "Accept & Park",
+      acceptTask: "Accept Task",
+      age: "Age",
+      claimParking: "Claim & Park",
+      claimRetrieval: "Accept Task",
+      continueParking: "Continue Parking",
+      continueRetrieval: "Continue Retrieval",
+      newVehicle: "New Vehicle",
+      openRetrieval: "Open Retrieval",
+      parking: "Parking",
+      queue: "Queue",
+      retrieval: "Retrieval",
+      startParking: "Start Parking",
+      status: "Status",
+      statusAccepted: "Active",
+      statusAssigned: "Assigned",
+      statusInProgress: "In progress",
+      statusQueued: "Queued",
+      tasks: "Tasks",
+    });
+    expect(getNativeTasksCopy("ar")).toMatchObject({
+      acceptAndPark: "قبول وبدء الإيقاف",
+      acceptTask: "قبول المهمة",
+      age: "العمر",
+      claimParking: "استلام وإيقاف",
+      claimRetrieval: "قبول المهمة",
+      continueParking: "متابعة الإيقاف",
+      continueRetrieval: "متابعة الاسترجاع",
+      newVehicle: "مركبة جديدة",
+      openRetrieval: "فتح الاسترجاع",
+      parking: "الركن",
+      queue: "قائمة الانتظار",
+      retrieval: "الاسترجاع",
+      startParking: "بدء الإيقاف",
+      status: "الحالة",
+      statusAccepted: "نشط",
+      statusAssigned: "معينة",
+      statusInProgress: "قيد التنفيذ",
+      statusQueued: "في قائمة الانتظار",
+      tasks: "المهام",
+    });
   });
 
   it("formats age and parking context from canonical task facts", () => {
@@ -243,30 +291,9 @@ describe("Native Tasks presentation", () => {
     }
   });
 
-  it("presents truthful no-Shift, error, accepted, and recovery states", () => {
+  it("retains truthful no-Shift and unavailable state copy", () => {
     const copy = getNativeTasksCopy("en");
     expect(copy.noShift).toBe("No active eligible Shift.");
     expect(copy.error).toBe("Operational state is temporarily unavailable.");
-    expect(nativeMutationMessage(copy, "accepted")).toContain("server state");
-    expect(nativeMutationMessage(copy, "reconciling")).toContain("server");
-    expect(nativeMutationMessage(copy, "conflict")).toContain("changed");
-    expect(nativeMutationMessage(copy, "recovery-unavailable")).toBe(
-      copy.unknownResult,
-    );
-  });
-
-  it("distinguishes retained stale, rate-limit, and scope-loss queue failures", () => {
-    const copy = getNativeTasksCopy("en");
-    const network = { code: "NETWORK_ERROR", message: "Offline", status: 0 };
-    const limited = { code: "RATE_LIMITED", message: "Wait", status: 429 };
-    expect(nativeQueueFailureMessage(copy, network, false, true)).toBe(
-      copy.stale,
-    );
-    expect(nativeQueueFailureMessage(copy, limited, false, true)).toBe(
-      copy.rateLimited,
-    );
-    expect(nativeQueueFailureMessage(copy, network, true, false)).toBe(
-      copy.accessChanged,
-    );
   });
 });

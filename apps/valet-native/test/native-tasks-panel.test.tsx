@@ -142,6 +142,46 @@ describe("Web-authoritative Native Tasks screen", () => {
     expect(nodes.some((node) => node.type === NativeTaskCard)).toBe(true);
   });
 
+  it("does not render Native-only mutation or queue recovery banners", () => {
+    const messages = [
+      "Accepted from current server state.",
+      "Checking current server state…",
+      "Processing...",
+      "Accept result is unknown. Refresh server state before retrying.",
+      "Showing the last verified queue while refresh is unavailable.",
+    ];
+    for (const phase of [
+      "accepted",
+      "reconciling",
+      "submitting",
+      "recovery-unavailable",
+    ] as const) {
+      const nodes = elements(
+        NativeTasksPanel({
+          locale: "en",
+          operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+          snapshot: {
+            ...fixture("ready"),
+            mutation: { phase, taskId: task.taskId },
+            queueFailure: {
+              code: "NETWORK_ERROR",
+              message: "Offline",
+              status: 0,
+            },
+            tasks: [task],
+          },
+          textAlign: "left",
+        }),
+      );
+      const visible = JSON.stringify(
+        nodes
+          .filter((node) => node.type === "Text")
+          .map((node) => node.props.children),
+      );
+      for (const message of messages) expect(visible).not.toContain(message);
+    }
+  });
+
   it("prevents duplicate task actions while the first action is in flight", async () => {
     let finish!: (value: boolean) => void;
     const action = vi.fn(
@@ -162,5 +202,71 @@ describe("Web-authoritative Native Tasks screen", () => {
     expect(action).toHaveBeenCalledOnce();
     finish(true);
     await Promise.resolve();
+  });
+
+  it("globally fences normal actions and supervisor override entry", async () => {
+    let finish!: (value: boolean) => void;
+    const action = vi.fn(
+      () => new Promise<boolean>((resolve) => (finish = resolve)),
+    );
+    const override = vi.fn();
+    const overrideTask = {
+      ...task,
+      currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
+      status: "IN_PROGRESS" as const,
+      taskId: "88888888-8888-4888-8888-888888888888",
+      valetSessionState: "HANDOFF_PENDING" as const,
+    };
+    const snapshot = {
+      ...fixture("ready"),
+      scope: { ...fixture("ready").scope!, role: "VALET_SUPERVISOR" as const },
+      tasks: [task, overrideTask],
+    };
+    const nodes = elements(
+      NativeTasksPanel({
+        locale: "en",
+        onOverrideHandoff: override,
+        onTaskAction: action,
+        operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+        snapshot,
+        textAlign: "left",
+      }),
+    );
+    const card = nodes.find((node) => node.type === NativeTaskCard)!;
+    const list = nodes.find((node) => node.type === "FlatList")!;
+    const overrideRow = (
+      list.props.renderItem as (input: { item: typeof overrideTask }) => Element
+    )({ item: overrideTask });
+    (card.props.onAction as () => void)();
+    (overrideRow.props.onOverrideHandoff as () => void)();
+    expect(override).not.toHaveBeenCalled();
+    finish(true);
+    await Promise.resolve();
+
+    const normalDuringOverride: { current?: () => void } = {};
+    const nestedAction = vi.fn();
+    const nestedOverride = vi.fn(() => normalDuringOverride.current?.());
+    const nestedNodes = elements(
+      NativeTasksPanel({
+        locale: "en",
+        onOverrideHandoff: nestedOverride,
+        onTaskAction: nestedAction,
+        operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+        snapshot,
+        textAlign: "left",
+      }),
+    );
+    normalDuringOverride.current = nestedNodes.find(
+      (node) => node.type === NativeTaskCard,
+    )!.props.onAction as () => void;
+    const nestedList = nestedNodes.find((node) => node.type === "FlatList")!;
+    const nestedOverrideRow = (
+      nestedList.props.renderItem as (input: {
+        item: typeof overrideTask;
+      }) => Element
+    )({ item: overrideTask });
+    (nestedOverrideRow.props.onOverrideHandoff as () => void)();
+    expect(nestedOverride).toHaveBeenCalledOnce();
+    expect(nestedAction).not.toHaveBeenCalled();
   });
 });

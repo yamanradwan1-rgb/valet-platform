@@ -114,6 +114,7 @@ export function NativeVehicleRow(props: {
           />
           <Detail
             identifier={row.parkingSpotCode !== null}
+            last
             label={copy.spot}
             textAlign={textAlign}
             value={row.parkingSpotCode ?? copy.notAssigned}
@@ -162,17 +163,19 @@ function Summary({
 
 function Detail({
   identifier = false,
+  last = false,
   label,
   textAlign,
   value,
 }: {
   readonly identifier?: boolean;
+  readonly last?: boolean;
   readonly label: string;
   readonly textAlign: "left" | "right";
   readonly value: string;
 }) {
   return (
-    <View style={s.detailRow}>
+    <View style={[s.detailRow, last && s.detailRowLast]}>
       <Text style={[s.detailLabel, employeeTextStyle("human", textAlign)]}>
         {label}
       </Text>

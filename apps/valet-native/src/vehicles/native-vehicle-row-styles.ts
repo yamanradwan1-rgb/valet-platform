@@ -71,6 +71,7 @@ export const nativeVehicleRowStyles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 12,
   },
+  detailRowLast: { borderBottomWidth: 0 },
   detailLabel: { ...type.supporting, color: c.neutral },
   detailValue: { ...type.body, color: c.navy, fontWeight: "600" },
   readOnly: { ...type.supporting, color: c.muted, fontSize: 11, paddingTop: 8 },

@@ -10,6 +10,7 @@ import { NativeShellGate } from "./native-shell-gate";
 import { nativeOnlineHint } from "../shift/native-shift-connectivity";
 import { NativeShiftDetachedScreen } from "../shift/native-shift-detached-screen";
 import { shouldRenderDetachedShiftEnd } from "../shift/native-shift-protection";
+import { useNativeVehicleDirectoryRevalidation } from "../vehicles/use-native-vehicle-directory-revalidation";
 import {
   ProductionShellController,
   type ProductionDestination,
@@ -51,6 +52,12 @@ export function NativeProductionShell({
       : null;
   const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
   const retrievalAttention = useNativeRetrievalAttention(operations);
+  useNativeVehicleDirectoryRevalidation({
+    directory: runtime?.vehicleDirectory,
+    identityGeneration: authSnapshot.authGeneration,
+    scope: activeVehicleScope,
+    snapshot: vehicleDirectory,
+  });
 
   useEffect(() => {
     if (runtime === undefined) return;
@@ -100,22 +107,6 @@ export function NativeProductionShell({
       runtime.vehicleDirectory.clear();
     }
   }, [authSnapshot.authGeneration, authSnapshot.phase, runtime]);
-
-  useEffect(() => {
-    if (runtime === undefined || activeVehicleScope === null) return;
-    void runtime.vehicleDirectory.activate(
-      authSnapshot.authGeneration,
-      activeVehicleScope,
-    );
-  }, [authSnapshot.authGeneration, runtime, activeVehicleScope]);
-
-  useEffect(() => {
-    if (runtime === undefined || activeVehicleScope === null) return;
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") void runtime.vehicleDirectory.refresh();
-    });
-    return () => subscription.remove();
-  }, [activeVehicleScope, runtime]);
 
   useEffect(() => {
     if (runtime === undefined || workflowPurgeRevision === 0) return;

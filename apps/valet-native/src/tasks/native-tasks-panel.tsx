@@ -16,10 +16,6 @@ import {
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
-import {
-  nativeMutationMessage,
-  nativeQueueFailureMessage,
-} from "./native-task-presentation";
 import { getNativeTasksCopy, type NativeTasksCopy } from "./native-tasks-copy";
 import { NativeTaskCard } from "./native-task-card";
 import { NativeTaskQueueRow } from "./native-task-queue-row";
@@ -60,7 +56,6 @@ export function NativeTasksPanel(props: {
   if (unavailable !== null || snapshot.scope === null) {
     return (
       <View style={screen.main}>
-        <MutationStatus copy={copy} snapshot={snapshot} textAlign={textAlign} />
         <EmployeeStatus textAlign={textAlign}>
           {unavailable ?? copy.error}
         </EmployeeStatus>
@@ -77,6 +72,18 @@ export function NativeTasksPanel(props: {
       setActionError(!(await handleTaskAction(task)));
     } catch {
       setActionError(true);
+    } finally {
+      inFlight.current = false;
+      setInFlightTaskId(null);
+    }
+  };
+
+  const runOverride = (task: StaffTaskQueueItem) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setInFlightTaskId(task.taskId);
+    try {
+      onOverrideHandoff(task);
     } finally {
       inFlight.current = false;
       setInFlightTaskId(null);
@@ -108,24 +115,13 @@ export function NativeTasksPanel(props: {
             {copy.actionFailed}
           </EmployeeError>
         ) : null}
-        {snapshot.queueFailure ? (
-          <EmployeeError textAlign={textAlign}>
-            {nativeQueueFailureMessage(
-              copy,
-              snapshot.queueFailure,
-              snapshot.queueHardStopped,
-              snapshot.tasks.length > 0,
-            )}
-          </EmployeeError>
-        ) : null}
-        <MutationStatus copy={copy} snapshot={snapshot} textAlign={textAlign} />
         {priority ? (
           <NativeTaskCard
             busy={inFlightTaskId === priority.taskId}
             copy={copy}
             locale={locale}
             onAction={() => void run(priority)}
-            onOverrideHandoff={() => onOverrideHandoff(priority)}
+            onOverrideHandoff={() => runOverride(priority)}
             snapshot={snapshot}
             task={priority}
             textAlign={textAlign}
@@ -155,7 +151,7 @@ export function NativeTasksPanel(props: {
               copy={copy}
               locale={locale}
               onAction={() => void run(item)}
-              onOverrideHandoff={() => onOverrideHandoff(item)}
+              onOverrideHandoff={() => runOverride(item)}
               snapshot={snapshot}
               task={item}
               textAlign={textAlign}
@@ -212,19 +208,4 @@ function statusForUnavailablePhase(
     return copy.error;
   if (snapshot.queueLoading && snapshot.tasks.length === 0) return copy.loading;
   return null;
-}
-
-function MutationStatus({
-  copy,
-  snapshot,
-  textAlign,
-}: {
-  readonly copy: NativeTasksCopy;
-  readonly snapshot: EmployeeOperationalSnapshot;
-  readonly textAlign: "left" | "right";
-}) {
-  const message = nativeMutationMessage(copy, snapshot.mutation.phase);
-  return message ? (
-    <EmployeeStatus textAlign={textAlign}>{message}</EmployeeStatus>
-  ) : null;
 }

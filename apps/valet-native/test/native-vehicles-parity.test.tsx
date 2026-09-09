@@ -27,6 +27,8 @@ const { getNativeVehiclesCopy } =
   await import("../src/vehicles/native-vehicles-copy");
 const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
 const { EmployeeBadge } = await import("../src/employee-ui/employee-feedback");
+const { nativeVehicleRowStyles } =
+  await import("../src/vehicles/native-vehicle-row-styles");
 
 type Element = ReactElement<Record<string, unknown>>;
 function elements(value: unknown): Element[] {
@@ -222,6 +224,16 @@ describe("Native Vehicles Web parity", () => {
       label: "Parked",
       showDot: true,
       variant: "success",
+    });
+    const spot = nodes.find(
+      (node) =>
+        typeof node.type === "function" &&
+        node.type.name === "Detail" &&
+        node.props.label === "Spot Code",
+    )!;
+    expect(spot.props.last).toBe(true);
+    expect(nativeVehicleRowStyles.detailRowLast).toEqual({
+      borderBottomWidth: 0,
     });
   });
 

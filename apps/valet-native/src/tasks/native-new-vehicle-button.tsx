@@ -29,16 +29,23 @@ export function NativeNewVehicleButton({
   );
 }
 
-const s = StyleSheet.create({
+export const nativeNewVehicleButtonStyles = StyleSheet.create({
   button: {
     alignItems: "center",
     backgroundColor: c.blue,
     borderRadius: employeeRadius.form,
+    elevation: 1,
     height: 36,
     justifyContent: "center",
     paddingHorizontal: 16,
+    shadowColor: c.navy,
+    shadowOffset: { height: 1, width: 0 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
   },
   content: { alignItems: "center", flexDirection: "row", gap: 6 },
   label: { ...type.body, color: c.white, fontWeight: "700" },
   pressed: { transform: [{ scale: 0.98 }] },
 });
+
+const s = nativeNewVehicleButtonStyles;

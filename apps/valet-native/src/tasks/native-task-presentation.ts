@@ -1,5 +1,4 @@
 import {
-  type EmployeeOperationalFailure,
   type EmployeeOperationalSnapshot,
   type StaffTaskQueueItem,
   isEmployeeMutationUnresolved,
@@ -7,31 +6,6 @@ import {
 
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import type { NativeTasksCopy } from "./native-tasks-copy";
-
-export function nativeMutationMessage(
-  copy: NativeTasksCopy,
-  phase: EmployeeOperationalSnapshot["mutation"]["phase"],
-): string | undefined {
-  const messages = {
-    accepted: copy.accepted,
-    conflict: copy.conflict,
-    reconciling: copy.reconcile,
-    "recovery-unavailable": copy.unknownResult,
-    submitting: copy.processing,
-  } as const;
-  return messages[phase as keyof typeof messages];
-}
-
-export function nativeQueueFailureMessage(
-  copy: NativeTasksCopy,
-  failure: EmployeeOperationalFailure,
-  hardStopped: boolean,
-  hasRetainedTasks: boolean,
-): string {
-  if (hardStopped) return copy.accessChanged;
-  if (failure.status === 429) return copy.rateLimited;
-  return hasRetainedTasks ? copy.stale : copy.error;
-}
 
 export function canAcceptNativeTask(
   snapshot: EmployeeOperationalSnapshot,
@@ -98,7 +72,7 @@ export function nativeTaskActionLabel(
       : copy.claimRetrieval;
   }
   if (task.status === "ASSIGNED")
-    return task.taskType === "PARKING" ? copy.acceptAndPark : copy.accept;
+    return task.taskType === "PARKING" ? copy.acceptAndPark : copy.acceptTask;
   if (task.taskType === "PARKING" && task.status === "ACCEPTED")
     return copy.startParking;
   if (task.taskType === "PARKING" && task.status === "IN_PROGRESS")
