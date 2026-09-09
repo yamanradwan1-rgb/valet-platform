@@ -1,10 +1,10 @@
+import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 import type { EmployeeConfirmParkedSnapshot } from "@valet/employee-client";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import { EmployeeCard } from "../employee-ui/employee-feedback";
-import { employeeTextStyle } from "../employee-ui/employee-typography";
 import { EmployeeBigCheckIcon } from "../employee-ui/employee-icons";
+import { employeeTextStyle } from "../employee-ui/employee-typography";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
 import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
 
@@ -33,6 +33,7 @@ export function NativeParkingSuccess({
   const location = zone
     ? `${copy.zone} ${zone} · ${copy.spot} ${spot}`
     : `${copy.spot} ${spot}`;
+  const keyCode = parked.keySlotCode.trim();
   return (
     <View style={s.successWrap}>
       <View style={s.successCircle}>
@@ -42,32 +43,60 @@ export function NativeParkingSuccess({
         {copy.parkedTitle}
       </Text>
       <Text style={s.successBody}>{copy.parkingConfirmed}</Text>
-      <EmployeeCard>
-        <Text style={employeeTextStyle("human", textAlign)}>
-          {copy.vehicle}
-        </Text>
-        <View
-          style={{
-            alignItems: textAlign === "right" ? "flex-end" : "flex-start",
-            flexDirection: textAlign === "right" ? "row-reverse" : "row",
-            gap: 4,
-          }}
+      <View style={s.successDetails}>
+        <SuccessInfoRow bordered label={copy.vehicle} textAlign={textAlign}>
+          <View
+            style={[s.successVehicle, textAlign === "right" && s.successRowRtl]}
+          >
+            <Text
+              style={[s.successValue, employeeTextStyle("human", textAlign)]}
+            >
+              {vehicleName} ·
+            </Text>
+            <Text style={[s.successValue, s.successIdentifier]}>{plate}</Text>
+          </View>
+        </SuccessInfoRow>
+        <SuccessInfoRow
+          bordered={keyCode !== ""}
+          label={copy.location}
+          textAlign={textAlign}
         >
-          <Text style={employeeTextStyle("human", textAlign)}>
-            {vehicleName} ·
-          </Text>
-          <Text style={s.identifier}>{plate}</Text>
-        </View>
-        <Text style={employeeTextStyle("human", textAlign)}>
-          {copy.location}
-        </Text>
-        <Text style={s.identifier}>{location}</Text>
-        <Text style={employeeTextStyle("human", textAlign)}>
-          {copy.keySlot}
-        </Text>
-        <Text style={s.identifier}>{parked.keySlotCode}</Text>
-      </EmployeeCard>
+          <Text style={[s.successValue, s.successIdentifier]}>{location}</Text>
+        </SuccessInfoRow>
+        {keyCode !== "" ? (
+          <SuccessInfoRow label={copy.keySlot} textAlign={textAlign}>
+            <Text style={[s.successValue, s.successIdentifier]}>{keyCode}</Text>
+          </SuccessInfoRow>
+        ) : null}
+      </View>
       <EmployeeButton label={copy.done} onPress={onDone} />
+    </View>
+  );
+}
+
+function SuccessInfoRow({
+  bordered = false,
+  children,
+  label,
+  textAlign,
+}: {
+  readonly bordered?: boolean;
+  readonly children: ReactNode;
+  readonly label: string;
+  readonly textAlign: "left" | "right";
+}) {
+  return (
+    <View
+      style={[
+        s.successRow,
+        textAlign === "right" && s.successRowRtl,
+        bordered && s.successRowDivider,
+      ]}
+    >
+      <Text style={[s.successLabel, employeeTextStyle("human", textAlign)]}>
+        {label}
+      </Text>
+      {children}
     </View>
   );
 }

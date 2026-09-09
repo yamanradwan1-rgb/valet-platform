@@ -222,7 +222,7 @@ describe("MOB-012B Native Confirm Parked", () => {
   it("locks Back, candidate input, and duplicate action while busy", () => {
     const { nodes } = render("submitting");
     expect(action(nodes, "Back")?.props.disabled).toBe(true);
-    expect(action(nodes, "Confirming Parked…")?.props).toMatchObject({
+    expect(action(nodes, "Confirming...")?.props).toMatchObject({
       disabled: true,
     });
     expect(nodes.find((node) => node.type === "QrInput")?.props.disabled).toBe(

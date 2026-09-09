@@ -8,15 +8,13 @@ import type {
 import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
-  EmployeeBadge,
   EmployeeErrorNotice,
   EmployeeProgress,
-  EmployeeStatus,
 } from "../employee-ui/employee-feedback";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
-import { NativeParkingQrInput } from "./native-parking-qr-input";
 import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import { NativeParkingKeyReturnStep } from "./native-parking-key-return-step";
 import { NativeParkingSuccess } from "./native-parking-success";
 import { NativeParkingSpotStep } from "./native-parking-spot-step";
 
@@ -102,7 +100,7 @@ export function NativeParkingConfirmPanel({
             textAlign={textAlign}
           />
         ) : (
-          <SlotContent
+          <NativeParkingKeyReturnStep
             auth={auth}
             confirmation={confirmation}
             copy={copy}
@@ -120,62 +118,9 @@ export function NativeParkingConfirmPanel({
 type Copy = ReturnType<typeof getNativeParkingConfirmCopy>;
 type Align = "left" | "right";
 
-function SlotContent({
-  auth,
-  confirmation,
-  copy,
-  locale,
-  online = true,
-  snapshot,
-  textAlign,
-}: ContentProps) {
-  const submitting = snapshot.phase === "submitting";
-  const conflict =
-    snapshot.conflict === "slot"
-      ? copy.slotConflict
-      : snapshot.conflict === "stale"
-        ? copy.stale
-        : snapshot.failure !== null
-          ? copy.reviewAgain
-          : null;
-  return (
-    <>
-      <EmployeeBadge label={copy.parking} textAlign={textAlign} />
-      {conflict !== null ? (
-        <EmployeeErrorNotice textAlign={textAlign} title={copy.keySlot}>
-          {conflict}
-        </EmployeeErrorNotice>
-      ) : null}
-      <EmployeeStatus textAlign={textAlign}>{copy.slotBody}</EmployeeStatus>
-      <NativeParkingQrInput
-        auth={auth}
-        disabled={submitting}
-        kind="key-slot"
-        label={copy.keySlot}
-        locale={locale}
-        onChange={(value) => confirmation.enterKeySlot(value)}
-        value={snapshot.keySlotCandidate}
-      />
-      {!online ? (
-        <EmployeeStatus textAlign={textAlign}>{copy.noNetwork}</EmployeeStatus>
-      ) : null}
-      <EmployeeButton
-        busy={submitting}
-        disabled={!online || snapshot.phase !== "ready"}
-        label={submitting ? copy.confirming : copy.confirm}
-        onPress={() => void confirmation.confirmParked()}
-      />
-    </>
-  );
-}
-
 interface ContentProps {
-  readonly auth: NativeAuthSession;
   readonly confirmation: EmployeeConfirmParkedSession;
   readonly copy: Copy;
-  readonly locale: FoundationLocale;
-  readonly online?: boolean | undefined;
-  readonly snapshot: EmployeeConfirmParkedSnapshot;
   readonly textAlign: Align;
 }
 

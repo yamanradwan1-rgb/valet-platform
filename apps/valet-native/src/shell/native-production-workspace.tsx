@@ -30,7 +30,7 @@ import { NativeScanHubScreen } from "../scan/native-scan-hub-screen";
 import { deriveNativeScanHubGates } from "../scan/native-scan-hub-gates";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
-import { startCompletedCheckInParking } from "../parking/native-completed-check-in-parking";
+import { launchCompletedCheckInParking } from "../parking/native-completed-check-in-parking";
 import { NativeParkingRoute } from "../parking/native-parking-route";
 import { NativeRetrievalPanel } from "../retrieval/native-retrieval-panel";
 import { NativeHandoffPanel } from "../handoff/native-handoff-panel";
@@ -122,18 +122,17 @@ export function NativeProductionWorkspace({
             key={`${authSnapshot.authGeneration}:${shell.scope.membershipId}:${shell.scope.locationId}:${shell.scope.shiftId}`}
             locale={locale}
             onClose={() => navigate("tasks")}
-            onOpenParking={async (sessionId) => {
-              runtime.checkIn.clear();
-              await startCompletedCheckInParking({
+            onOpenParking={(sessionId) =>
+              launchCompletedCheckInParking({
+                clearCheckIn: () => runtime.checkIn.clear(),
                 identityGeneration: authSnapshot.authGeneration,
+                navigateParking: () => navigate("parking"),
                 operations: runtime.operations,
                 parking: runtime.parking,
                 scope: shell.scope,
                 sessionId,
-              });
-              navigate("parking");
-              return true;
-            }}
+              })
+            }
             scope={shell.scope}
           />
         ) : shell.destination === "parking" ? (

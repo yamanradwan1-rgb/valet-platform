@@ -21,6 +21,7 @@ export interface NativeParkingConfirmCopy {
   readonly parkingArea: string;
   readonly spot: string;
   readonly done: string;
+  readonly enterKeySlotCode: string;
   readonly enterSpotCode: string;
   readonly enterSpotManually: string;
   readonly parkingConfirmed: string;
@@ -46,9 +47,10 @@ const copy: Record<FoundationLocale, NativeParkingConfirmCopy> = {
     backToTasks: "Back to tasks",
     checkState: "Check server state",
     confirm: "Confirm Parked",
-    confirming: "Confirming Parked…",
+    confirming: "Confirming...",
     continueLabel: "Continue",
     done: "Done",
+    enterKeySlotCode: "Enter Key Slot Code",
     enterSpotCode: "Enter spot code",
     enterSpotManually: "Enter spot code manually",
     keySlot: "Key slot",
@@ -57,7 +59,7 @@ const copy: Record<FoundationLocale, NativeParkingConfirmCopy> = {
     parking: "Parking",
     parkingSpot: "Parking Spot",
     location: "Location",
-    noNetwork: "No network connection. Reconnect to confirm this action.",
+    noNetwork: "No network connection. Reconnect to refresh and continue.",
     scanAgain: "Scan again",
     spotCode: "Spot Code",
     vehicle: "Vehicle",
@@ -88,9 +90,10 @@ const copy: Record<FoundationLocale, NativeParkingConfirmCopy> = {
     backToTasks: "العودة إلى المهام",
     checkState: "تحقق من حالة الخادم",
     confirm: "تأكيد الإيقاف",
-    confirming: "جارٍ تأكيد الإيقاف…",
+    confirming: "جارٍ التأكيد...",
     continueLabel: "متابعة",
     done: "تم",
+    enterKeySlotCode: "أدخل رمز خانة المفتاح",
     enterSpotCode: "أدخل رمز الموقف",
     enterSpotManually: "إدخال رمز الموقع يدوياً",
     keySlot: "خانة المفتاح",
@@ -99,7 +102,7 @@ const copy: Record<FoundationLocale, NativeParkingConfirmCopy> = {
     parking: "الركن",
     parkingSpot: "موقع الإيقاف",
     location: "الموقع",
-    noNetwork: "لا يوجد اتصال بالشبكة. أعد الاتصال لتأكيد هذا الإجراء.",
+    noNetwork: "لا يوجد اتصال بالشبكة. أعد الاتصال للتحديث والمتابعة.",
     scanAgain: "المسح مجدداً",
     spotCode: "رمز الموقع",
     vehicle: "المركبة",
