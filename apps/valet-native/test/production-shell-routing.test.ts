@@ -81,18 +81,26 @@ describe("production route intent and authority fencing", () => {
     expect(active(controller)).toMatchObject({ destination: "vehicles" });
   });
 
-  it("keeps unavailable Scan rejected without activating a false route", () => {
+  it("resolves Scan navigation only after authority is ready", () => {
     const controller = new ProductionShellController();
     active(controller);
     expect(
       controller.receive({ destination: "scan", source: "navigation" }),
-    ).toBe("rejected");
-    expect(active(controller)).toMatchObject({ destination: "tasks" });
+    ).toBe("resolved");
+    expect(active(controller)).toMatchObject({ destination: "scan" });
   });
 
   it("treats scanner input as a neutral intent, never authority", () => {
     const controller = new ProductionShellController();
     expect(controller.receive({ destination: "scan", source: "scan" })).toBe(
+      "held",
+    );
+    expect(active(controller)).toMatchObject({ destination: "tasks" });
+  });
+
+  it("rejects cold Scan intent instead of bypassing authority initialization", () => {
+    const controller = new ProductionShellController();
+    expect(controller.receive({ destination: "scan", source: "cold" })).toBe(
       "held",
     );
     expect(active(controller)).toMatchObject({ destination: "tasks" });

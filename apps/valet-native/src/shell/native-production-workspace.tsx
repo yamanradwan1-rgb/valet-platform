@@ -26,6 +26,8 @@ import { NativeNewVehicleButton } from "../tasks/native-new-vehicle-button";
 import { executeNativeTaskAction } from "../tasks/native-task-action-sequence";
 import { getNativeTasksCopy } from "../tasks/native-tasks-copy";
 import { NativeVehiclesScreen } from "../vehicles/native-vehicles-screen";
+import { NativeScanHubScreen } from "../scan/native-scan-hub-screen";
+import { deriveNativeScanHubGates } from "../scan/native-scan-hub-gates";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
 import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
@@ -40,6 +42,10 @@ import type {
   ProductionDestination,
   ProductionShellState,
 } from "./production-shell-controller";
+import {
+  closeRetrieval,
+  openHandoff,
+} from "./native-production-workflow-navigation";
 
 type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 
@@ -174,6 +180,18 @@ export function NativeProductionWorkspace({
             snapshot={vehicleDirectory}
             textAlign={presentation.textAlign}
           />
+        ) : shell.destination === "scan" ? (
+          <NativeScanHubScreen
+            gates={deriveNativeScanHubGates({
+              identityGeneration: authSnapshot.authGeneration,
+              parking,
+              retrieval,
+              scope: shell.scope,
+            })}
+            locale={locale}
+            navigate={navigate}
+            textAlign={presentation.textAlign}
+          />
         ) : shell.destination === "retrieval" ? (
           shouldShowNativeHandoff(handoff, retrieval, release) ? (
             release.phase !== "inactive" ? (
@@ -268,33 +286,5 @@ export function NativeProductionWorkspace({
         }
       />
     </EmployeeFrame>
-  );
-}
-
-function closeRetrieval(
-  runtime: NativeEmployeeRuntime,
-  navigate: (destination: ProductionDestination) => void,
-) {
-  runtime.handoff.clear();
-  runtime.release.clear();
-  runtime.retrieval.clear();
-  void runtime.operations.refreshQueue();
-  navigate("tasks");
-}
-
-function openHandoff(
-  runtime: NativeEmployeeRuntime,
-  authSnapshot: NativeAuthSnapshot,
-  shell: ActiveShell,
-  taskId: string,
-  sessionId: string,
-) {
-  runtime.retrieval.clear();
-  runtime.release.clear();
-  void runtime.handoff.openTask(
-    authSnapshot.authGeneration,
-    shell.scope,
-    taskId,
-    sessionId,
   );
 }

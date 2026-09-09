@@ -20,6 +20,20 @@ describe("Native production entry contract", () => {
     expect(controller).not.toContain('"development-poc" |');
   });
 
+  it("keeps the Scan Hub a launcher with no camera or scanner architecture", () => {
+    const screen = read("src/scan/native-scan-hub-screen.tsx");
+    const gates = read("src/scan/native-scan-hub-gates.ts");
+    for (const forbidden of [
+      "expo-camera",
+      "../scanner",
+      "BarcodeDetector",
+      "getUserMedia",
+      "Simulate",
+    ]) {
+      expect(`${screen}\n${gates}`).not.toContain(forbidden);
+    }
+  });
+
   it("reuses the existing check-in workflow without duplicating intake", () => {
     const route = read("src/shell/native-check-in-route.tsx");
     expect(route).toContain("NativeCheckInWorkflow");
@@ -29,10 +43,10 @@ describe("Native production entry contract", () => {
     expect(route).toContain("workflowOwner");
   });
 
-  it("activates truthful Vehicles while keeping future Scan disabled", () => {
+  it("activates truthful Vehicles and the real Scan destination", () => {
     const navigation = read("src/shell/native-production-navigation.tsx");
     expect(navigation).toContain("nativeProductionDestinationAvailability");
-    expect(navigation).toMatch(/scan:\s*false/);
+    expect(navigation).toMatch(/scan:\s*true/);
     expect(navigation).toMatch(/vehicles:\s*true/);
     expect(navigation).toContain("disabled={!enabled}");
   });
@@ -49,7 +63,11 @@ describe("Native production entry contract", () => {
     expect(controller).not.toContain('case "vehicles"');
     expect(controller).not.toContain('case "scan"');
     expect(workspace).toContain('destination === "vehicles"');
-    expect(workspace).not.toContain('destination === "scan"');
+    expect(workspace).toContain('destination === "scan"');
+    expect(workspace).toContain("NativeScanHubScreen");
+    expect(workspace.indexOf('destination === "scan"')).toBeLessThan(
+      workspace.indexOf("<NativeTasksPanel"),
+    );
   });
 
   it("matches the Employee Web dark-gate logo without a white capsule", () => {

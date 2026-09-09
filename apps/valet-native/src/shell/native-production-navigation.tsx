@@ -43,7 +43,7 @@ export const nativeProductionNavigationItems: readonly NavigationItem[] = [
 ];
 
 export const nativeProductionDestinationAvailability = {
-  scan: false,
+  scan: true,
   shift: true,
   tasks: true,
   vehicles: true,
@@ -56,7 +56,13 @@ export function NativeProductionNavigation({
   pinned,
 }: {
   readonly activeDestination:
-    "check-in" | "parking" | "retrieval" | "shift" | "tasks" | "vehicles";
+    | "check-in"
+    | "parking"
+    | "retrieval"
+    | "scan"
+    | "shift"
+    | "tasks"
+    | "vehicles";
   readonly locale: EmployeeLocale;
   readonly onNavigate: (destination: ProductionDestination) => void;
   readonly pinned: boolean;

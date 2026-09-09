@@ -12,7 +12,7 @@ export type ProductionDestination =
   | "tasks"
   | "vehicles";
 export type ProductionIntentSource = "cold" | "navigation" | "scan";
-type ActiveProductionDestination = Exclude<ProductionDestination, "scan">;
+type ActiveProductionDestination = ProductionDestination;
 export interface ProductionRouteIntent {
   readonly destination: ProductionDestination;
   readonly source: ProductionIntentSource;
@@ -54,7 +54,6 @@ interface ConfirmedAuthority {
   readonly authGeneration: number;
   readonly key: string;
 }
-
 const destinations = new Set<ProductionDestination>([
   "check-in",
   "parking",
@@ -273,6 +272,7 @@ export class ProductionShellController {
       intent.destination === "tasks" ||
       intent.destination === "check-in" ||
       (intent.destination === "vehicles" && intent.source === "navigation") ||
+      (intent.destination === "scan" && intent.source === "navigation") ||
       (intent.destination === "parking" && intent.source === "navigation") ||
       (intent.destination === "retrieval" && intent.source === "navigation") ||
       intent.destination === "shift"
