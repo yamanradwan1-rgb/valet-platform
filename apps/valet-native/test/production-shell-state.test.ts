@@ -83,13 +83,18 @@ describe("production shell visible state", () => {
   it("renders operational and ambiguous-context errors truthfully", () => {
     expect(
       deriveProductionShellState(auth("authenticated"), operations("error")),
-    ).toEqual({ kind: "operational-error", reason: "unavailable" });
+    ).toEqual({
+      kind: "operational-error",
+      message: null,
+      reason: "unavailable",
+    });
     expect(
       deriveProductionShellState(
         auth("authenticated"),
         operations("ambiguous-active-shifts"),
       ),
     ).toEqual({
+      count: 2,
       kind: "operational-error",
       reason: "ambiguous-active-shifts",
     });

@@ -61,7 +61,11 @@ describe("production shell same-authority revalidation", () => {
 
     expect(
       controller.update(auth("authenticated"), operations("error")),
-    ).toEqual({ kind: "operational-error", reason: "unavailable" });
+    ).toEqual({
+      kind: "operational-error",
+      message: null,
+      reason: "unavailable",
+    });
     expect(
       controller.update(
         auth("authenticated"),

@@ -42,6 +42,7 @@ function createAuthBootstrap(): AuthBootstrap {
   } catch {
     return {
       operationalSnapshot: {
+        activeShiftCount: null,
         contextFailure: null,
         identityGeneration: null,
         mutation: { phase: "idle" },

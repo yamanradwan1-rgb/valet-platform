@@ -33,6 +33,7 @@ export function operations(
   } = {},
 ): EmployeeOperationalSnapshot {
   return {
+    activeShiftCount: phase === "ambiguous-active-shifts" ? 2 : null,
     contextFailure: options.failureCode
       ? { code: options.failureCode, message: "Safe failure" }
       : null,

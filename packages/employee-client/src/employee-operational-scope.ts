@@ -16,11 +16,12 @@ export function isSameEmployeeOperationalScope(
 
 export type EmployeeOperationalScopeResolution =
   | {
+      readonly activeShiftCount: number;
+      readonly phase: "ambiguous-active-shifts";
+    }
+  | {
       readonly phase:
-        | "access-denied"
-        | "ambiguous-active-shifts"
-        | "no-active-shift"
-        | "no-usable-location";
+        "access-denied" | "no-active-shift" | "no-usable-location";
     }
   | { readonly phase: "ready"; readonly scope: EmployeeOperationalScope };
 
@@ -40,7 +41,12 @@ export function resolveEmployeeOperationalScope(
       phase: hasUsableLocation ? "no-active-shift" : "no-usable-location",
     };
   }
-  if (active.length !== 1) return { phase: "ambiguous-active-shifts" };
+  if (active.length !== 1) {
+    return {
+      activeShiftCount: active.length,
+      phase: "ambiguous-active-shifts",
+    };
+  }
   const context = active[0]!;
   return {
     phase: "ready",

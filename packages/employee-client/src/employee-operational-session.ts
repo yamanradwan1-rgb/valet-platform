@@ -53,7 +53,6 @@ export class EmployeeOperationalSession {
   current(): EmployeeOperationalSnapshot {
     return this.snapshot;
   }
-
   subscribe(
     listener: (snapshot: EmployeeOperationalSnapshot) => void,
   ): () => void {
@@ -88,7 +87,6 @@ export class EmployeeOperationalSession {
   clear(): void {
     this.invalidate(null);
   }
-
   dispose(): void {
     this.invalidate(null);
     this.queue.dispose();
@@ -155,13 +153,17 @@ export class EmployeeOperationalSession {
       if (resolution.phase !== "ready") {
         this.clearPendingAction();
         this.queue.clear();
-        this.publish(
-          resetEmployeeOperationalContext(
+        this.publish({
+          ...resetEmployeeOperationalContext(
             { ...this.snapshot, mutation: { phase: "idle" } },
             generation,
             resolution.phase,
           ),
-        );
+          activeShiftCount:
+            resolution.phase === "ambiguous-active-shifts"
+              ? resolution.activeShiftCount
+              : null,
+        });
         return;
       }
       const retained =

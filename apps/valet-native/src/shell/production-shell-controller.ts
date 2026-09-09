@@ -3,7 +3,6 @@ import type {
   EmployeeOperationalSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
-
 export type ProductionDestination =
   | "check-in"
   | "parking"
@@ -12,9 +11,7 @@ export type ProductionDestination =
   | "shift"
   | "tasks"
   | "vehicles";
-
 export type ProductionIntentSource = "cold" | "navigation" | "scan";
-
 export interface ProductionRouteIntent {
   readonly destination: ProductionDestination;
   readonly source: ProductionIntentSource;
@@ -30,8 +27,14 @@ export type ProductionShellState =
   | { readonly kind: "no-active-shift" }
   | { readonly kind: "no-usable-location" }
   | {
+      readonly count: number | null;
       readonly kind: "operational-error";
-      readonly reason: "ambiguous-active-shifts" | "unavailable";
+      readonly reason: "ambiguous-active-shifts";
+    }
+  | {
+      readonly kind: "operational-error";
+      readonly message: string | null;
+      readonly reason: "unavailable";
     }
   | {
       readonly destination:
@@ -135,10 +138,18 @@ export function deriveProductionShellState(
     return { kind: "no-active-shift" };
   }
   if (operations.phase === "ambiguous-active-shifts") {
-    return { kind: "operational-error", reason: "ambiguous-active-shifts" };
+    return {
+      count: operations.activeShiftCount,
+      kind: "operational-error",
+      reason: "ambiguous-active-shifts",
+    };
   }
   if (operations.phase !== "ready" || operations.scope === null) {
-    return { kind: "operational-error", reason: "unavailable" };
+    return {
+      kind: "operational-error",
+      message: operations.contextFailure?.message ?? null,
+      reason: "unavailable",
+    };
   }
   return { kind: "active", scope: operations.scope };
 }

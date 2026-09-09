@@ -9,6 +9,7 @@ import type { EmployeeQueueSnapshotEvent } from "./employee-task-queue-owner";
 
 export function emptyEmployeeOperationalSnapshot(): EmployeeOperationalSnapshot {
   return {
+    activeShiftCount: null,
     contextFailure: null,
     identityGeneration: null,
     mutation: { phase: "idle" },

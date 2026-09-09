@@ -1,4 +1,3 @@
-import { StatusBar } from "expo-status-bar";
 import type {
   EmployeeLocale,
   EmployeeShiftStartSession,
@@ -6,33 +5,22 @@ import type {
   NativeAuthSession,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
-import {
-  ActivityIndicator,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, Text, View } from "react-native";
 
-import logo from "../../assets/brand/VAYLET_Logo_Dark_Background.png";
 import { getNativeAuthCopy } from "../auth/native-auth-copy";
 import { NativeAuthPanel } from "../auth/native-auth-panel";
-import { EmployeeButton } from "../employee-ui/employee-controls";
+import { employeeTextStyle } from "../employee-ui/employee-typography";
+import { NativeShiftStartPanel } from "../shift/native-shift-start-panel";
 import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
-import {
-  employeeTextStyle,
-  employeeTypography as type,
-} from "../employee-ui/employee-typography";
+  NativeGateButton,
+  NativeGateCard,
+  NativeGateLocaleToggle,
+  NativeGateSpinner,
+  nativeGateStyles,
+} from "./native-gate-primitives";
+import { NativeGateShell } from "./native-gate-shell";
 import { getNativeShellCopy } from "./native-shell-copy";
 import type { ProductionShellState } from "./production-shell-controller";
-import { NativeShiftStartPanel } from "../shift/native-shift-start-panel";
 
 type GateState = Exclude<ProductionShellState, { readonly kind: "active" }>;
 
@@ -48,174 +36,240 @@ export interface NativeShellGateProps {
   readonly state: GateState;
 }
 
-export function NativeShellGate({
-  auth,
-  authSnapshot,
+export function NativeShellGate(props: NativeShellGateProps) {
+  const textAlign = props.locale === "ar" ? "right" : "left";
+  const direction = props.locale === "ar" ? "rtl" : "ltr";
+  const copy = getNativeShellCopy(props.locale);
+  const authCopy = getNativeAuthCopy(props.locale);
+
+  return (
+    <NativeGateShell>
+      <View
+        style={[styles.content, { direction }]}
+        testID={`production-gate-${props.state.kind}`}
+      >
+        {props.state.kind === "auth-restoring" ? (
+          <LoadingGate label={authCopy.restoring} />
+        ) : props.state.kind === "context-loading" ? (
+          <LoadingGate label={copy.loadingContext} />
+        ) : isAuthGate(props.state) ? (
+          <>
+            <NativeAuthPanel
+              copy={authCopy}
+              gate
+              session={props.auth}
+              snapshot={props.authSnapshot}
+              textAlign={textAlign}
+              tone="dark"
+            />
+            <View style={styles.localeAfterAction}>
+              <NativeGateLocaleToggle
+                locale={props.locale}
+                onSelectLocale={props.onSelectLocale}
+              />
+            </View>
+          </>
+        ) : props.state.kind === "no-active-shift" ? (
+          <NoActiveShiftGate {...props} textAlign={textAlign} />
+        ) : (
+          <BlockingGate
+            locale={props.locale}
+            onRetryContext={props.onRetryContext}
+            onSelectLocale={props.onSelectLocale}
+            onSignOut={props.onSignOut}
+            state={props.state}
+            textAlign={textAlign}
+          />
+        )}
+      </View>
+    </NativeGateShell>
+  );
+}
+
+function LoadingGate({ label }: { readonly label: string }) {
+  return (
+    <View style={nativeGateStyles.loadingStack} testID="native-gate-loading">
+      <NativeGateSpinner label={label} />
+      <Text style={nativeGateStyles.loadingLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function NoActiveShiftGate({
   locale,
   onRetryContext,
   onSelectLocale,
   onSignOut,
   shiftStart,
   shiftStartSnapshot,
-  state,
-}: NativeShellGateProps) {
+  textAlign,
+}: NativeShellGateProps & { readonly textAlign: "left" | "right" }) {
   const copy = getNativeShellCopy(locale);
-  const textAlign = locale === "ar" ? "right" : "left";
-  const direction = locale === "ar" ? "rtl" : "ltr";
-  const authState = [
-    "auth-error",
-    "auth-recovery",
-    "auth-restoring",
-    "logged-out",
-  ].includes(state.kind);
-  const presentation = gatePresentation(state, copy);
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={[styles.screen, { direction }]}
-          keyboardShouldPersistTaps="handled"
+    <>
+      <NativeGateCard style={styles.cardSpacing} testID="native-no-shift-card">
+        <Text
+          accessibilityRole="header"
+          style={[nativeGateStyles.title, { textAlign }]}
         >
-          <View accessible={false} style={styles.glow} />
-          <Image
-            accessibilityLabel="VAYLET"
-            source={logo}
-            style={styles.logo}
+          {copy.noShiftTitle}
+        </Text>
+        <Text style={[nativeGateStyles.body, { textAlign }]}>
+          {copy.noShiftBody}
+        </Text>
+      </NativeGateCard>
+      <View
+        style={nativeGateStyles.actionStack}
+        testID="native-no-shift-actions"
+      >
+        <NativeGateLocaleToggle
+          locale={locale}
+          onSelectLocale={onSelectLocale}
+        />
+        {shiftStart ? (
+          <NativeShiftStartPanel
+            locale={locale}
+            session={shiftStart}
+            snapshot={shiftStartSnapshot}
           />
-          <View style={styles.card} testID={`production-gate-${state.kind}`}>
-            <Text
-              accessibilityRole="header"
-              style={[styles.title, employeeTextStyle("human", textAlign)]}
-            >
-              {presentation.title}
-            </Text>
-            {presentation.body ? (
-              <Text
-                style={[styles.body, employeeTextStyle("human", textAlign)]}
-              >
-                {presentation.body}
-              </Text>
-            ) : null}
-            {state.kind === "context-loading" ? (
-              <ActivityIndicator
-                accessibilityLabel={copy.loadingContext}
-                accessibilityRole="progressbar"
-                color={c.blue}
-                size="large"
-              />
-            ) : null}
-            {state.kind === "no-active-shift" && shiftStart !== undefined ? (
-              <NativeShiftStartPanel
-                locale={locale}
-                session={shiftStart}
-                snapshot={shiftStartSnapshot}
-              />
-            ) : null}
-            {authState ? (
-              <NativeAuthPanel
-                copy={getNativeAuthCopy(locale)}
-                session={auth}
-                snapshot={authSnapshot}
-                textAlign={textAlign}
-                tone="dark"
-              />
-            ) : null}
-          </View>
-          {!authState && state.kind !== "context-loading" ? (
-            <View style={styles.actions}>
-              <EmployeeButton label={copy.retry} onPress={onRetryContext} />
-              <EmployeeButton
-                label={copy.signOut}
-                onPress={onSignOut}
-                variant="ghost"
-              />
-            </View>
-          ) : null}
-          <EmployeeButton
-            label={locale === "en" ? copy.arabic : copy.english}
-            onPress={() => onSelectLocale(locale === "en" ? "ar" : "en")}
-            variant="ghost"
-          />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        ) : null}
+        <NativeGateButton
+          label={copy.retry}
+          onPress={onRetryContext}
+          variant="secondary"
+        />
+        <NativeGateButton
+          label={copy.signOut}
+          onPress={onSignOut}
+          variant="secondary"
+        />
+      </View>
+    </>
   );
 }
 
-function gatePresentation(
-  state: GateState,
+function BlockingGate({
+  locale,
+  onRetryContext,
+  onSelectLocale,
+  onSignOut,
+  state,
+  textAlign,
+}: {
+  readonly locale: EmployeeLocale;
+  readonly onRetryContext: () => void;
+  readonly onSelectLocale: (locale: EmployeeLocale) => void;
+  readonly onSignOut: () => void;
+  readonly state: Exclude<
+    GateState,
+    | { readonly kind: "auth-error" }
+    | { readonly kind: "auth-recovery" }
+    | { readonly kind: "auth-restoring" }
+    | { readonly kind: "context-loading" }
+    | { readonly kind: "logged-out" }
+    | { readonly kind: "no-active-shift" }
+  >;
+  readonly textAlign: "left" | "right";
+}) {
+  const copy = getNativeShellCopy(locale);
+  const ambiguous =
+    state.kind === "operational-error" &&
+    state.reason === "ambiguous-active-shifts";
+  const presentation = blockingPresentation(state, copy, locale);
+  return (
+    <>
+      <NativeGateCard
+        style={styles.cardSpacing}
+        testID={`native-${state.kind}-card`}
+        tone={ambiguous ? "neutral" : "error"}
+      >
+        <Text
+          accessibilityRole="header"
+          style={[
+            nativeGateStyles.title,
+            !ambiguous && nativeGateStyles.errorTitle,
+            { textAlign },
+          ]}
+        >
+          {presentation.title}
+        </Text>
+        <Text
+          style={[
+            nativeGateStyles.body,
+            !ambiguous && nativeGateStyles.errorBody,
+            employeeTextStyle("human", textAlign),
+          ]}
+        >
+          {ambiguous &&
+          state.kind === "operational-error" &&
+          state.count !== null ? (
+            <>
+              <Text style={styles.identifier}>{state.count}</Text>{" "}
+              {copy.activeShiftsFound} {copy.ambiguousShiftDetail}
+            </>
+          ) : (
+            presentation.body
+          )}
+        </Text>
+      </NativeGateCard>
+      <View style={nativeGateStyles.actionStack}>
+        {ambiguous ? (
+          <NativeGateLocaleToggle
+            locale={locale}
+            onSelectLocale={onSelectLocale}
+          />
+        ) : null}
+        <NativeGateButton label={copy.retry} onPress={onRetryContext} />
+        <NativeGateButton
+          label={copy.signOut}
+          onPress={onSignOut}
+          variant="secondary"
+        />
+      </View>
+    </>
+  );
+}
+
+function isAuthGate(state: GateState) {
+  return (
+    state.kind === "auth-error" ||
+    state.kind === "auth-recovery" ||
+    state.kind === "logged-out"
+  );
+}
+
+function blockingPresentation(
+  state: Exclude<
+    GateState,
+    {
+      readonly kind:
+        | "auth-error"
+        | "auth-recovery"
+        | "auth-restoring"
+        | "context-loading"
+        | "logged-out"
+        | "no-active-shift";
+    }
+  >,
   copy: ReturnType<typeof getNativeShellCopy>,
-): { readonly body: string | null; readonly title: string } {
-  switch (state.kind) {
-    case "access-denied":
-      return { body: copy.accessDeniedBody, title: copy.accessDeniedTitle };
-    case "no-usable-location":
-      return { body: copy.noLocationBody, title: copy.noLocationTitle };
-    case "no-active-shift":
-      return { body: copy.noShiftBody, title: copy.noShiftTitle };
-    case "operational-error":
-      return {
-        body:
-          state.reason === "ambiguous-active-shifts"
-            ? copy.multipleShiftsBody
-            : copy.contextErrorBody,
-        title: copy.contextErrorTitle,
-      };
-    case "context-loading":
-      return { body: null, title: copy.loadingContext };
-    case "auth-recovery":
-      return { body: null, title: copy.authRecoveryTitle };
-    case "auth-error":
-      return { body: null, title: copy.authErrorTitle };
-    case "auth-restoring":
-      return { body: null, title: copy.staffSignIn };
-    case "logged-out":
-      return { body: null, title: copy.staffSignIn };
-  }
+  locale: EmployeeLocale,
+) {
+  if (state.kind === "access-denied")
+    return { body: copy.accessDeniedBody, title: copy.accessDeniedTitle };
+  if (state.kind === "no-usable-location")
+    return { body: copy.noLocationBody, title: copy.noLocationTitle };
+  if (state.reason === "ambiguous-active-shifts")
+    return { body: copy.ambiguousShiftDetail, title: copy.multipleShiftsTitle };
+  return {
+    body:
+      locale === "en" && state.message ? state.message : copy.contextErrorBody,
+    title: copy.contextErrorTitle,
+  };
 }
 
 const styles = StyleSheet.create({
-  actions: { gap: space.sm },
-  body: { ...type.body, color: c.muted },
-  card: {
-    backgroundColor: "#FFFFFF0F",
-    borderColor: "#FFFFFF1A",
-    borderRadius: 24,
-    borderWidth: 1,
-    gap: space.lg,
-    padding: space.hero,
-    width: "100%",
-  },
-  flex: { flex: 1 },
-  glow: {
-    backgroundColor: "#0B2D6E",
-    borderRadius: 220,
-    height: 360,
-    opacity: 0.8,
-    position: "absolute",
-    right: -100,
-    top: -190,
-    width: 440,
-  },
-  logo: {
-    alignSelf: "center",
-    height: 36,
-    resizeMode: "contain",
-    width: 154,
-  },
-  safeArea: { backgroundColor: c.navy, flex: 1 },
-  screen: {
-    flexGrow: 1,
-    gap: space.hero,
-    justifyContent: "center",
-    paddingBottom: 40,
-    paddingHorizontal: space.hero,
-    paddingTop: space.hero,
-  },
-  title: { ...type.header, color: c.white, fontSize: 20, fontWeight: "700" },
+  cardSpacing: { marginBottom: 24 },
+  content: { width: "100%" },
+  identifier: { writingDirection: "ltr" },
+  localeAfterAction: { marginTop: 16 },
 });

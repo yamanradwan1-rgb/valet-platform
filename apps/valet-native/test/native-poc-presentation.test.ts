@@ -28,9 +28,7 @@ describe("Native physical POC presentation", () => {
     ).toBeNull();
 
     const loginFailure = getNativeAuthCopy("en").loginFailed;
-    expect(loginFailure).toBe(
-      "Sign-in was not completed. Check your details and try again.",
-    );
+    expect(loginFailure).toBe("The operation failed. Refresh and try again.");
     expect(loginFailure).not.toContain("secure-storage-failure");
   });
 

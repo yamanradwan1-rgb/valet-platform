@@ -36,7 +36,7 @@ describe("Native production entry contract", () => {
   });
 
   it("matches the Employee Web dark-gate logo without a white capsule", () => {
-    const gate = read("src/shell/native-shell-gate.tsx");
+    const gate = read("src/shell/native-gate-shell.tsx");
     const nativeLogo = readFileSync(
       resolve(root, "assets/brand/VAYLET_Logo_Dark_Background.png"),
     );

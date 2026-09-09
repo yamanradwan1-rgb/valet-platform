@@ -15,7 +15,10 @@ vi.mock("react-native", () => ({
 
 const { NativeShiftStartPanel } =
   await import("../src/shift/native-shift-start-panel");
-const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
+const { NativeGateButton, nativeGateControlStyles } =
+  await import("../src/shell/native-gate-primitives");
+const { nativeShiftStartStyles } =
+  await import("../src/shift/native-shift-start-panel");
 
 type Element = ReactElement<Record<string, unknown>>;
 
@@ -84,7 +87,7 @@ describe("Native Start Shift presentation", () => {
     expect(
       nodes.some((node) => node.props.testID === "native-shift-start-blocked"),
     ).toBe(true);
-    expect(nodes.some((node) => node.type === EmployeeButton)).toBe(false);
+    expect(nodes.some((node) => node.type === NativeGateButton)).toBe(false);
   });
 
   it("shows one authoritative preselection but waits for explicit Start press", () => {
@@ -95,7 +98,7 @@ describe("Native Start Shift presentation", () => {
     )!;
     const start = nodes.find(
       (node) =>
-        node.type === EmployeeButton && node.props.label === "Start Shift",
+        node.type === NativeGateButton && node.props.label === "Start Shift",
     )!;
 
     expect(location.props.accessibilityState).toEqual({
@@ -120,24 +123,25 @@ describe("Native Start Shift presentation", () => {
     );
     const start = nodes.find(
       (node) =>
-        node.type === EmployeeButton && node.props.label === "Start Shift",
+        node.type === NativeGateButton && node.props.label === "Start Shift",
     )!;
 
     expect(choices).toHaveLength(2);
     expect(start.props.disabled).toBe(true);
   });
 
-  it("communicates submitting state through copy and accessibility busy state", () => {
+  it("communicates submitting state through copy and accessibility state", () => {
     const { nodes } = render(snapshot({ phase: "submitting" }));
     const start = nodes.find(
       (node) =>
-        node.type === EmployeeButton &&
+        node.type === NativeGateButton &&
         node.props.label === "Starting shift...",
     )!;
     const renderedButton = elements(
-      EmployeeButton(start.props as Parameters<typeof EmployeeButton>[0]),
+      NativeGateButton(start.props as Parameters<typeof NativeGateButton>[0]),
     ).find((node) => node.type === "Pressable")!;
 
+    expect(start.props.disabled).toBe(true);
     expect(start.props.busy).toBe(true);
     expect(
       nodes
@@ -189,4 +193,35 @@ describe("Native Start Shift presentation", () => {
       ).toContain(copy);
     },
   );
+
+  it("matches Web location geometry without visible radio artwork", () => {
+    const { nodes } = render(snapshot());
+    const location = nodes.find(
+      (node) => node.props.accessibilityRole === "radio",
+    )!;
+
+    expect(location.props.accessibilityState).toEqual({
+      disabled: false,
+      selected: true,
+    });
+    expect(nativeShiftStartStyles.location).toMatchObject({
+      backgroundColor: "#FFFFFF0A",
+      borderColor: "#FFFFFF1A",
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    });
+    expect(nativeShiftStartStyles.locationSelected).toEqual({
+      backgroundColor: "#176BFF33",
+      borderColor: "#176BFF",
+    });
+    expect(nativeGateControlStyles.standardButton.height).toBe(48);
+    expect(
+      nodes.some(
+        (node) =>
+          node.type === "View" &&
+          JSON.stringify(node.props.style).includes('"borderRadius":8'),
+      ),
+    ).toBe(false);
+  });
 });

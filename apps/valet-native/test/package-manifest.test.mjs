@@ -31,6 +31,7 @@ describe("Native package contract", () => {
 
   it("owns only the accepted SDK-compatible native modules", () => {
     expect(manifest.dependencies["expo-camera"]).toBe("~57.0.4");
+    expect(manifest.dependencies["expo-blur"]).toBe("~57.0.2");
     expect(manifest.dependencies["react-native-svg"]).toBe("15.15.4");
     expect(Object.keys(manifest.dependencies).sort()).toEqual(
       [
@@ -39,6 +40,7 @@ describe("Native package contract", () => {
         "@valet/employee-client",
         "expo",
         "expo-build-properties",
+        "expo-blur",
         "expo-camera",
         "expo-constants",
         "expo-dev-client",

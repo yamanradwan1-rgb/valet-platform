@@ -66,6 +66,8 @@ export interface EmployeeAcceptAttempt {
 }
 
 export interface EmployeeOperationalSnapshot {
+  /** Display-only count from the latest authoritative context response. */
+  readonly activeShiftCount: number | null;
   readonly contextFailure: EmployeeOperationalFailure | null;
   readonly identityGeneration: number | null;
   readonly mutation: EmployeeTaskMutationState;

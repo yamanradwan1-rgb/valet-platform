@@ -44,6 +44,23 @@ describe("Employee operational context and queue", () => {
     expect(transport.queueCalls).toEqual([]);
   });
 
+  it("projects the authoritative ambiguous active Shift count for display", async () => {
+    const transport = new StubOperationalTransport();
+    const context = operationalContext();
+    transport.contextResults.push(
+      Promise.resolve({ contexts: [...context.contexts, ...context.contexts] }),
+    );
+    const session = new EmployeeOperationalSession({ transport });
+
+    await session.activate(1);
+
+    expect(session.current()).toMatchObject({
+      activeShiftCount: 2,
+      phase: "ambiguous-active-shifts",
+    });
+    expect(transport.queueCalls).toEqual([]);
+  });
+
   it("distinguishes no usable Location from no active Shift", async () => {
     const transport = new StubOperationalTransport();
     const context = operationalContext(false);

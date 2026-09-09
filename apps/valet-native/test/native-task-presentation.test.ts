@@ -47,6 +47,7 @@ function snapshot(
   role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
 ): EmployeeOperationalSnapshot {
   return {
+    activeShiftCount: null,
     contextFailure: null,
     identityGeneration: 1,
     mutation,

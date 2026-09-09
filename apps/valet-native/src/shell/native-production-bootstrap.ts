@@ -71,6 +71,7 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
         task: null,
       },
       operations: {
+        activeShiftCount: null,
         contextFailure: null,
         identityGeneration: null,
         mutation: { phase: "idle" },
