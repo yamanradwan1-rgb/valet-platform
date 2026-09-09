@@ -17,7 +17,7 @@ const { NativeActiveParkingPanel } =
   await import("../src/parking/native-active-parking-panel");
 const { nativeActiveParkingStyles } =
   await import("../src/parking/native-active-parking-styles");
-const { content, elements } =
+const { content, elements, style } =
   await import("./native-check-in-condition-test-support");
 
 const snapshot = {
@@ -79,6 +79,32 @@ describe("UI-PARITY-09 active Parking", () => {
       padding: 20,
       borderRadius: 16,
       borderWidth: 1,
+    });
+  });
+
+  it("keeps the human vehicle name RTL-aware and isolates only the plate", () => {
+    const nodes = elements(
+      NativeActiveParkingPanel({
+        locale: "ar",
+        onParkVehicle: vi.fn(),
+        snapshot,
+      }),
+    );
+    expect(
+      style(
+        nodes.find(
+          (node) =>
+            Array.isArray(node.props.children) &&
+            node.props.children.includes("Toyota Camry"),
+        )!,
+      ),
+    ).toMatchObject({
+      writingDirection: "rtl",
+    });
+    expect(
+      style(nodes.find((node) => node.props.children === "12-34567")!),
+    ).toMatchObject({
+      writingDirection: "ltr",
     });
   });
 });

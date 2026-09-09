@@ -1,4 +1,4 @@
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView } from "react-native";
 import type {
   EmployeeConfirmParkedSession,
   EmployeeConfirmParkedSnapshot,
@@ -13,12 +13,12 @@ import {
   EmployeeProgress,
   EmployeeStatus,
 } from "../employee-ui/employee-feedback";
-import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
 import { NativeParkingQrInput } from "./native-parking-qr-input";
 import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
 import { NativeParkingSuccess } from "./native-parking-success";
+import { NativeParkingSpotStep } from "./native-parking-spot-step";
 
 export function NativeParkingConfirmPanel({
   auth,
@@ -93,7 +93,7 @@ export function NativeParkingConfirmPanel({
             textAlign={textAlign}
           />
         ) : snapshot.phase === "spot" ? (
-          <SpotContent
+          <NativeParkingSpotStep
             auth={auth}
             confirmation={confirmation}
             copy={copy}
@@ -119,65 +119,6 @@ export function NativeParkingConfirmPanel({
 
 type Copy = ReturnType<typeof getNativeParkingConfirmCopy>;
 type Align = "left" | "right";
-
-function SpotContent({
-  auth,
-  confirmation,
-  copy,
-  locale,
-  snapshot,
-  textAlign,
-}: ContentProps) {
-  const hasSpot = snapshot.parkingSpotCandidate.trim() !== "";
-  const destination = snapshot.session?.parking.parkingZoneCode
-    ? `${copy.zone} ${snapshot.session.parking.parkingZoneCode}`
-    : copy.parkingArea;
-  return (
-    <>
-      {snapshot.conflict === "spot" ? (
-        <EmployeeErrorNotice textAlign={textAlign} title={copy.parkingSpot}>
-          {copy.spotConflict}
-        </EmployeeErrorNotice>
-      ) : null}
-      {!hasSpot ? (
-        <>
-          <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
-            {copy.spotTitle}
-          </Text>
-          <EmployeeStatus textAlign={textAlign}>{copy.spotBody}</EmployeeStatus>
-          <NativeParkingQrInput
-            auth={auth}
-            disabled={false}
-            kind="parking-spot"
-            label={copy.parkingSpot}
-            locale={locale}
-            onChange={(value) => confirmation.enterParkingSpot(value)}
-            value={snapshot.parkingSpotCandidate}
-          />
-        </>
-      ) : (
-        <>
-          <View style={s.successSurface}>
-            <Text style={s.fieldLabel}>{copy.location}</Text>
-            <Text style={s.locationHero}>{destination}</Text>
-            <Text style={s.fieldLabel}>{copy.spotCode}</Text>
-            <Text style={s.identifier}>{snapshot.parkingSpotCandidate}</Text>
-          </View>
-          <EmployeeButton
-            label={copy.continueLabel}
-            onPress={() => confirmation.continueToKeySlot()}
-            variant="success"
-          />
-          <EmployeeButton
-            label={copy.scanAgain}
-            onPress={() => confirmation.enterParkingSpot("")}
-            variant="secondary"
-          />
-        </>
-      )}
-    </>
-  );
-}
 
 function SlotContent({
   auth,

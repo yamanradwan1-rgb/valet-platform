@@ -4,6 +4,7 @@ import type { EmployeeConfirmParkedSnapshot } from "@valet/employee-client";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeCard } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
+import { EmployeeBigCheckIcon } from "../employee-ui/employee-icons";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
 import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
 
@@ -35,7 +36,7 @@ export function NativeParkingSuccess({
   return (
     <View style={s.successWrap}>
       <View style={s.successCircle}>
-        <Text style={s.successMark}>✓</Text>
+        <EmployeeBigCheckIcon />
       </View>
       <Text style={[s.successHeading, employeeTextStyle("human", textAlign)]}>
         {copy.parkedTitle}
@@ -45,9 +46,18 @@ export function NativeParkingSuccess({
         <Text style={employeeTextStyle("human", textAlign)}>
           {copy.vehicle}
         </Text>
-        <Text style={s.identifier}>
-          {vehicleName} · {plate}
-        </Text>
+        <View
+          style={{
+            alignItems: textAlign === "right" ? "flex-end" : "flex-start",
+            flexDirection: textAlign === "right" ? "row-reverse" : "row",
+            gap: 4,
+          }}
+        >
+          <Text style={employeeTextStyle("human", textAlign)}>
+            {vehicleName} ·
+          </Text>
+          <Text style={s.identifier}>{plate}</Text>
+        </View>
         <Text style={employeeTextStyle("human", textAlign)}>
           {copy.location}
         </Text>
