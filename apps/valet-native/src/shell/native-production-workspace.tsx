@@ -30,7 +30,8 @@ import { NativeScanHubScreen } from "../scan/native-scan-hub-screen";
 import { deriveNativeScanHubGates } from "../scan/native-scan-hub-gates";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
-import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
+import { startCompletedCheckInParking } from "../parking/native-completed-check-in-parking";
+import { NativeParkingRoute } from "../parking/native-parking-route";
 import { NativeRetrievalPanel } from "../retrieval/native-retrieval-panel";
 import { NativeHandoffPanel } from "../handoff/native-handoff-panel";
 import { NativeReleasePanel } from "../handoff/native-release-panel";
@@ -123,11 +124,13 @@ export function NativeProductionWorkspace({
             onClose={() => navigate("tasks")}
             onOpenParking={async (sessionId) => {
               runtime.checkIn.clear();
-              await runtime.parking.openCompletedCheckIn(
-                authSnapshot.authGeneration,
-                shell.scope,
+              await startCompletedCheckInParking({
+                identityGeneration: authSnapshot.authGeneration,
+                operations: runtime.operations,
+                parking: runtime.parking,
+                scope: shell.scope,
                 sessionId,
-              );
+              });
               navigate("parking");
               return true;
             }}
@@ -135,9 +138,10 @@ export function NativeProductionWorkspace({
           />
         ) : shell.destination === "parking" ? (
           parking.phase === "started" ? (
-            <NativeParkingConfirmPanel
+            <NativeParkingRoute
               auth={runtime.auth}
               confirmation={runtime.confirmParking}
+              confirmSnapshot={confirmParking}
               locale={locale}
               onDone={() => {
                 runtime.confirmParking.clear();
@@ -145,7 +149,7 @@ export function NativeProductionWorkspace({
                 void runtime.operations.refreshQueue();
                 navigate("tasks");
               }}
-              snapshot={confirmParking}
+              parkingSnapshot={parking}
             />
           ) : (
             <NativeParkingStartPanel

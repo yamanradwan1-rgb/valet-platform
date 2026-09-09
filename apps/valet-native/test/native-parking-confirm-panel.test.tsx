@@ -19,7 +19,9 @@ vi.mock("../src/parking/native-parking-qr-input", () => ({
 
 const { NativeParkingConfirmPanel } =
   await import("../src/parking/native-parking-confirm-panel");
-const { content, elements, style } =
+const { nativeParkingConfirmStyles } =
+  await import("../src/parking/native-parking-confirm-styles");
+const { content, elements } =
   await import("./native-check-in-condition-test-support");
 
 const scope = {
@@ -117,6 +119,7 @@ function render(
   phase: EmployeeConfirmParkedSnapshot["phase"],
   locale: "en" | "ar" = "en",
   conflict: EmployeeConfirmParkedSnapshot["conflict"] = null,
+  online = true,
 ) {
   const confirmation = {
     backToSpot: vi.fn(),
@@ -132,6 +135,7 @@ function render(
       auth: {} as NativeAuthSession,
       confirmation: confirmation as never,
       locale,
+      online,
       onDone,
       snapshot: snapshot(phase, conflict),
     }),
@@ -157,23 +161,20 @@ describe("MOB-012B Native Confirm Parked", () => {
       { props: { disabled: false, kind: "parking-spot", value: "" } },
     ]);
     expect(
-      action(
-        nodes,
-        locale === "ar" ? "المتابعة إلى خانة المفتاح" : "Continue to Key Slot",
-      )?.props.disabled,
-    ).toBe(true);
+      action(nodes, locale === "ar" ? "متابعة" : "Continue"),
+    ).toBeUndefined();
   });
 
-  it("keeps Key Slot second and labels it as a non-reserved candidate", () => {
+  it("keeps Key Slot second with Web guidance and no preassignment", () => {
     const { nodes } = render("slot");
-    expect(content(nodes)).toContain("Identify the actual Key Slot");
-    expect(content(nodes)).toContain("Candidate only");
+    expect(content(nodes)).toContain(
+      "Place the key into any available free slot",
+    );
     expect(content(nodes)).not.toMatch(/reserved|assigned/i);
     expect(nodes.find((node) => node.type === "QrInput")?.props).toMatchObject({
       kind: "key-slot",
       value: "",
     });
-    expect(content(nodes)).toContain("P-101");
   });
 
   it("presents one dominant Confirm Parked action only when ready", () => {
@@ -182,6 +183,15 @@ describe("MOB-012B Native Confirm Parked", () => {
     expect(confirm.props.accessibilityState).toMatchObject({ disabled: false });
     (confirm.props.onPress as () => void)();
     expect(confirmation.confirmParked).toHaveBeenCalledOnce();
+  });
+
+  it("keeps protected confirmation unavailable offline", () => {
+    const { confirmation, nodes } = render("ready", "en", null, false);
+    const confirm = action(nodes, "Confirm Parked")!;
+    expect(content(nodes)).toContain("No network connection");
+    expect(confirm.props.accessibilityState).toMatchObject({ disabled: true });
+    (confirm.props.onPress as () => void)();
+    expect(confirmation.confirmParked).not.toHaveBeenCalled();
   });
 
   it("locks Back, candidate input, and duplicate action while busy", () => {
@@ -244,7 +254,7 @@ describe("MOB-012B Native Confirm Parked", () => {
     expect(content(nodes)).toContain("P-101");
     expect(content(nodes)).toContain("K-03");
     expect(content(nodes)).not.toMatch(/retriev|handoff|payment/i);
-    expect(action(nodes, "Back to tasks")).toBeDefined();
+    expect(action(nodes, "Done")).toBeDefined();
   });
 
   it("keeps operational identifiers LTR under Arabic RTL", () => {
@@ -253,12 +263,10 @@ describe("MOB-012B Native Confirm Parked", () => {
       nodes.find((node) => node.type === "ScrollView")?.props
         .contentContainerStyle,
     ).toContainEqual({ direction: "rtl" });
-    for (const value of ["P-101", "K-03"]) {
-      expect(
-        style(nodes.find((node) => node.props.children === value)!),
-      ).toMatchObject({
-        writingDirection: "ltr",
-      });
-    }
+    expect(content(nodes)).toContain("P-101");
+    expect(content(nodes)).toContain("K-03");
+    expect(nativeParkingConfirmStyles.identifier).toMatchObject({
+      writingDirection: "ltr",
+    });
   });
 });
