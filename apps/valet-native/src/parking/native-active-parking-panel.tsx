@@ -43,7 +43,12 @@ export function NativeActiveParkingPanel({
           <ElapsedValue startTimeIso={startedAt} />
         </View>
         <View style={s.detailCard}>
-          <InfoRow label={copy.vehicle} value={`${vehicleName} · ${plate}`} />
+          <VehicleInfoRow
+            label={copy.vehicle}
+            plate={plate}
+            textAlign={textAlign}
+            vehicleName={vehicleName}
+          />
           {snapshot.session?.keySlot?.code ? (
             <InfoRow
               bordered
@@ -56,6 +61,40 @@ export function NativeActiveParkingPanel({
         <EmployeeButton label={copy.parkVehicle} onPress={onParkVehicle} />
       </ScrollView>
     </>
+  );
+}
+
+function VehicleInfoRow({
+  label,
+  plate,
+  textAlign,
+  vehicleName,
+}: {
+  readonly label: string;
+  readonly plate: string;
+  readonly textAlign: "left" | "right";
+  readonly vehicleName: string;
+}) {
+  return (
+    <View style={s.row}>
+      <Text style={[s.rowLabel, employeeTextStyle("human", textAlign)]}>
+        {label}
+      </Text>
+      <View
+        style={{
+          alignItems: textAlign === "right" ? "flex-end" : "flex-start",
+          flexDirection: textAlign === "right" ? "row-reverse" : "row",
+          gap: 4,
+        }}
+      >
+        <Text style={[s.rowValue, employeeTextStyle("human", textAlign)]}>
+          {vehicleName} ·
+        </Text>
+        <Text style={[s.rowValue, employeeTextStyle("identifier", textAlign)]}>
+          {plate}
+        </Text>
+      </View>
+    </View>
   );
 }
 

@@ -27,6 +27,7 @@ export function NativeParkingQrInput({
   kind,
   label,
   locale,
+  manualInput = true,
   onChange,
   value,
 }: {
@@ -35,6 +36,7 @@ export function NativeParkingQrInput({
   readonly kind: QrResourceKind;
   readonly label: string;
   readonly locale: FoundationLocale;
+  readonly manualInput?: boolean | undefined;
   readonly onChange: (value: string) => void;
   readonly value: string;
 }) {
@@ -69,20 +71,22 @@ export function NativeParkingQrInput({
   return (
     <View style={{ gap: 12 }}>
       <Text style={employeeTextStyle("human", textAlign)}>{label}</Text>
-      <TextInput
-        accessibilityLabel={label}
-        accessibilityLiveRegion="polite"
-        accessibilityState={{ disabled }}
-        autoCapitalize="none"
-        autoCorrect={false}
-        editable={!disabled}
-        onChangeText={(candidate) => {
-          controller.manual(candidate);
-          onChange(candidate);
-        }}
-        style={s.input}
-        value={value}
-      />
+      {manualInput ? (
+        <TextInput
+          accessibilityLabel={label}
+          accessibilityLiveRegion="polite"
+          accessibilityState={{ disabled }}
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable={!disabled}
+          onChangeText={(candidate) => {
+            controller.manual(candidate);
+            onChange(candidate);
+          }}
+          style={s.input}
+          value={value}
+        />
+      ) : null}
       <EmployeeStatus textAlign={textAlign}>
         {copy.phases[snapshot.phase]}
       </EmployeeStatus>

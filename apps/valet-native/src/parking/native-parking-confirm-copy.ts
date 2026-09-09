@@ -21,6 +21,8 @@ export interface NativeParkingConfirmCopy {
   readonly parkingArea: string;
   readonly spot: string;
   readonly done: string;
+  readonly enterSpotCode: string;
+  readonly enterSpotManually: string;
   readonly parkingConfirmed: string;
   readonly parking: string;
   readonly reviewAgain: string;
@@ -47,6 +49,8 @@ const copy: Record<FoundationLocale, NativeParkingConfirmCopy> = {
     confirming: "Confirming Parked…",
     continueLabel: "Continue",
     done: "Done",
+    enterSpotCode: "Enter spot code",
+    enterSpotManually: "Enter spot code manually",
     keySlot: "Key slot",
     parkedTitle: "Vehicle parked and key returned",
     parkingConfirmed: "Parking confirmed",
@@ -87,6 +91,8 @@ const copy: Record<FoundationLocale, NativeParkingConfirmCopy> = {
     confirming: "جارٍ تأكيد الإيقاف…",
     continueLabel: "متابعة",
     done: "تم",
+    enterSpotCode: "أدخل رمز الموقف",
+    enterSpotManually: "إدخال رمز الموقع يدوياً",
     keySlot: "خانة المفتاح",
     parkedTitle: "تم صف السيارة وإعادة المفتاح",
     parkingConfirmed: "تم تأكيد الإيقاف",

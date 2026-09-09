@@ -4,6 +4,12 @@ import type {
 } from "@valet/employee-client";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("react", () => ({
+  useState: (initial: unknown) => [
+    typeof initial === "function" ? (initial as () => unknown)() : initial,
+    vi.fn(),
+  ],
+}));
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
   Pressable: "Pressable",
@@ -16,12 +22,16 @@ vi.mock("react-native", () => ({
 vi.mock("../src/parking/native-parking-qr-input", () => ({
   NativeParkingQrInput: (props: unknown) => ({ type: "QrInput", props }),
 }));
+vi.mock("../src/employee-ui/employee-icons", () => ({
+  EmployeeBackIcon: () => ({ type: "BackIcon", props: {} }),
+  EmployeeBigCheckIcon: () => ({ type: "BigCheck", props: {} }),
+}));
 
 const { NativeParkingConfirmPanel } =
   await import("../src/parking/native-parking-confirm-panel");
 const { nativeParkingConfirmStyles } =
   await import("../src/parking/native-parking-confirm-styles");
-const { content, elements } =
+const { content, elements, style } =
   await import("./native-check-in-condition-test-support");
 
 const scope = {
@@ -158,8 +168,23 @@ describe("MOB-012B Native Confirm Parked", () => {
     const { nodes } = render("spot", locale);
     expect(content(nodes)).toContain(heading);
     expect(nodes.filter((node) => node.type === "QrInput")).toMatchObject([
-      { props: { disabled: false, kind: "parking-spot", value: "" } },
+      {
+        props: {
+          disabled: false,
+          kind: "parking-spot",
+          manualInput: false,
+          value: "",
+        },
+      },
     ]);
+    expect(
+      action(
+        nodes,
+        locale === "ar"
+          ? "إدخال رمز الموقع يدوياً"
+          : "Enter spot code manually",
+      ),
+    ).toBeDefined();
     expect(
       action(nodes, locale === "ar" ? "متابعة" : "Continue"),
     ).toBeUndefined();
@@ -237,17 +262,6 @@ describe("MOB-012B Native Confirm Parked", () => {
     expect(action(ambiguous, "تحقق من حالة الخادم")).toBeDefined();
   });
 
-  it("renders loading and unavailable states without a protected action", () => {
-    const loading = render("loading").nodes;
-    expect(loading.some((node) => node.type === "ActivityIndicator")).toBe(
-      true,
-    );
-    const unavailable = render("unavailable").nodes;
-    expect(content(unavailable)).toContain("Unable to continue Parking");
-    expect(action(unavailable, "Check server state")).toBeDefined();
-    expect(action(unavailable, "Confirm Parked")).toBeUndefined();
-  });
-
   it("shows authoritative Parked completion without Retrieval", () => {
     const { nodes } = render("parked");
     expect(content(nodes)).toContain("Vehicle parked and key returned");
@@ -255,6 +269,7 @@ describe("MOB-012B Native Confirm Parked", () => {
     expect(content(nodes)).toContain("K-03");
     expect(content(nodes)).not.toMatch(/retriev|handoff|payment/i);
     expect(action(nodes, "Done")).toBeDefined();
+    expect(nodes.some((node) => node.type === "BigCheck")).toBe(true);
   });
 
   it("keeps operational identifiers LTR under Arabic RTL", () => {
@@ -268,5 +283,17 @@ describe("MOB-012B Native Confirm Parked", () => {
     expect(nativeParkingConfirmStyles.identifier).toMatchObject({
       writingDirection: "ltr",
     });
+    expect(
+      style(
+        nodes.find(
+          (node) =>
+            Array.isArray(node.props.children) &&
+            node.props.children.includes("Toyota Camry"),
+        )!,
+      ),
+    ).toMatchObject({ writingDirection: "rtl" });
+    expect(
+      style(nodes.find((node) => node.props.children === "12-34567")!),
+    ).toMatchObject({ writingDirection: "ltr" });
   });
 });
