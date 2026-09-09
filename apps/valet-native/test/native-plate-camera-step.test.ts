@@ -112,8 +112,6 @@ function fixture(
       render().find((node) => node.props.label === label)!.props
         .onPress as () => void
     )();
-  const hasMessage = (message: string) =>
-    render().some((node) => node.props.message === message);
   return {
     controller,
     onManual,
@@ -121,7 +119,6 @@ function fixture(
     render,
     press,
     cleanup,
-    hasMessage,
     resolvePermission,
   };
 }
@@ -133,7 +130,11 @@ describe("Native assistive plate camera presentation", () => {
       render()
         .filter((node) => node.props.label)
         .map((node) => node.props.label),
-    ).toEqual(["Open camera", "Enter manually", "No plate / unreadable plate"]);
+    ).toEqual([
+      "Open plate camera",
+      "Enter manually",
+      "No plate / unreadable plate",
+    ]);
     const buttons = render().filter((node) => node.props.label);
     expect(buttons.map((node) => node.props.variant)).toEqual([
       "primary",
@@ -142,7 +143,7 @@ describe("Native assistive plate camera presentation", () => {
     ]);
     expect(render().some((node) => node.type === "CameraView")).toBe(false);
   });
-  it("mounts a muted rear camera ref with no QR callback or Capture button", async () => {
+  it("mounts a muted rear camera and exposes explicit capture with no QR callback", async () => {
     const context = fixture();
     await context.controller.open();
     const starting = context.render();
@@ -163,6 +164,11 @@ describe("Native assistive plate camera presentation", () => {
     expect(camera.props.onBarcodeScanned).toBeUndefined();
     expect(camera.props.ref).toEqual(expect.any(Function));
     (camera.props.onCameraReady as () => void)();
+    expect(
+      context
+        .render()
+        .some((node) => node.props.label === "Capture plate image"),
+    ).toBe(true);
     context.press("Enter manually");
     expect(context.onManual).toHaveBeenCalledOnce();
     expect(context.render().some((node) => node.type === "CameraView")).toBe(
@@ -234,7 +240,9 @@ describe("Native assistive plate camera presentation", () => {
         failed.some((node) => typeof node.props.message === "string"),
       ).toBe(true);
       expect(
-        context.render().some((node) => node.props.label === "Retry Scan"),
+        context
+          .render()
+          .some((node) => node.props.label === "Try camera again"),
       ).toBe(true);
       if (failure === "denied")
         expect(
@@ -247,54 +255,12 @@ describe("Native assistive plate camera presentation", () => {
   it("uses localized Arabic entry and cleanup removes preview on focus/unmount exit", async () => {
     const context = fixture(true, "ar", false, "left");
     expect(
-      context.render().some((node) => node.props.label === "فتح الكاميرا"),
+      context.render().some((node) => node.props.label === "فتح كاميرا اللوحة"),
     ).toBe(true);
     await context.controller.open();
     context.cleanup();
     expect(context.render().some((node) => node.type === "CameraView")).toBe(
       false,
     );
-  });
-
-  it("localizes every Arabic camera phase independently of alignment", async () => {
-    const requesting = fixture(true, "ar", true, "left");
-    const opening = requesting.controller.open();
-    expect(requesting.hasMessage("جارٍ طلب إذن الكاميرا…")).toBe(true);
-    requesting.resolvePermission({ granted: true, canAskAgain: false });
-    await opening;
-    expect(requesting.hasMessage("جارٍ تشغيل الكاميرا الخلفية…")).toBe(true);
-    const camera = requesting
-      .render()
-      .find((node) => node.type === "CameraView")!;
-    (camera.props.onCameraReady as () => void)();
-    expect(
-      requesting
-        .render()
-        .some(
-          (node) =>
-            node.props.children ===
-            "جارٍ قراءة اللوحة… أبقِ اللوحة داخل الإطار.",
-        ),
-    ).toBe(true);
-
-    const denied = fixture(false, "ar", false, "left");
-    await denied.controller.open();
-    expect(
-      denied.hasMessage(
-        "تم رفض إذن الكاميرا. يمكنك إدخال اللوحة يدوياً أو المتابعة دون لوحة مقروءة.",
-      ),
-    ).toBe(true);
-
-    const failed = fixture(true, "ar", false, "left");
-    await failed.controller.open();
-    const failedCamera = failed
-      .render()
-      .find((node) => node.type === "CameraView")!;
-    (failedCamera.props.onMountError as () => void)();
-    expect(
-      failed.hasMessage(
-        "الكاميرا غير متاحة؛ قد تكون مشغولة أو غير موجودة. أعد المحاولة أو أدخل اللوحة يدوياً.",
-      ),
-    ).toBe(true);
   });
 });

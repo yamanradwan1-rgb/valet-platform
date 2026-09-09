@@ -16,6 +16,7 @@ import {
   type ContinuationStepProps,
 } from "./native-check-in-continuation-step";
 import { NativeConfirmStep } from "./native-check-in-confirm-step";
+import { NativeVehicleDetailsStep } from "./native-check-in-vehicle-details-step";
 import {
   NativeCustomerStep,
   NativeReturningStep,
@@ -60,16 +61,15 @@ export function NativeCheckInWorkflow({
   const copy = getNativeCheckInCopy(locale);
   const conditionCopy = getNativeCheckInConditionCopy(locale);
   const continuationCopy = getNativeCheckInContinuationCopy(locale);
-  const resolvedSnapshot = snapshot.continuation
+  const resolvedSnapshot: EmployeeCheckInSnapshot = snapshot.continuation
     ? snapshot
     : {
         ...snapshot,
         continuation: {
           ...emptyCheckInContinuation(),
-          mode:
-            snapshot.phase === "created"
-              ? ("boundary" as const)
-              : ("view" as const),
+          conditionSelection:
+            snapshot.phase === "created" ? "No visible issue" : null,
+          mode: snapshot.phase === "created" ? "select-condition" : "view",
         },
       };
   const textAlign: NativeTextAlign = locale === "ar" ? "right" : "left";
@@ -181,6 +181,8 @@ function renderStep(
       return <NativeBusyStep {...props} />;
     case "returning":
       return <NativeReturningStep {...props} />;
+    case "vehicle-details":
+      return <NativeVehicleDetailsStep {...props} />;
     case "customer":
       return <NativeCustomerStep {...props} />;
     case "intake-ambiguous":

@@ -110,7 +110,10 @@ export class EmployeeCheckInSessionCore {
       this.publish({
         ...this.snapshot,
         active,
-        continuation: continuationForSession(active),
+        continuation: {
+          ...continuationForSession(active, "select-condition"),
+          conditionSelection: "No visible issue",
+        },
         error: null,
         phase: "created",
         recoverables: [],
@@ -224,12 +227,18 @@ export class EmployeeCheckInSessionCore {
       );
       if (!this.isCurrent(request)) return;
       this.pendingRequest = null;
+      const checkingIn = active.state === "CHECKING_IN";
       this.publish({
         ...this.snapshot,
         active,
-        continuation: continuationForSession(active),
+        continuation: checkingIn
+          ? {
+              ...continuationForSession(active, "select-condition"),
+              conditionSelection: "No visible issue",
+            }
+          : continuationForSession(active),
         error: null,
-        phase: active.state === "CHECKING_IN" ? "created" : "continuation",
+        phase: checkingIn ? "created" : "continuation",
         recoverables: [],
       });
     } catch (error) {

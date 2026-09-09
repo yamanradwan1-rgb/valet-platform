@@ -81,20 +81,20 @@ function render(
 }
 
 describe("MOB-011B Native completion continuation", () => {
-  it("renders the canonical awaiting-parking continuation after completion", () => {
+  it("renders the Web-equivalent Parking Task after completion", () => {
     const nodes = render(completedSnapshot());
     expect(
       nodes.filter(
         (node) =>
           node.props.accessibilityRole === "header" &&
-          node.props.children === "Check-in complete",
+          node.props.children === "Parking Task",
       ),
     ).toHaveLength(1);
     expect(content(nodes)).toContain(
-      "Check-in is complete on the server. The vehicle is now awaiting its Parking Task.",
+      "Location tracking will activate for this parking task",
     );
     expect(content(nodes)).toContain("12-34567");
-    expect(content(nodes)).not.toMatch(/Start Parking|بدء الاصطفاف/);
+    expect(content(nodes)).toContain("Start Parking");
     expect(content(nodes)).not.toMatch(/parking spot|key slot|خانة/i);
   });
 
@@ -104,29 +104,24 @@ describe("MOB-011B Native completion continuation", () => {
       nodes.filter(
         (node) =>
           node.props.accessibilityRole === "header" &&
-          node.props.children === "اكتمل تسجيل الوصول",
+          node.props.children === "مهمة الإيقاف",
       ),
     ).toHaveLength(1);
-    expect(content(nodes)).toContain(
-      "اكتمل تسجيل الوصول على الخادم. المركبة الآن بانتظار مهمة الاصطفاف.",
-    );
-    expect(content(nodes)).not.toMatch(/Start Parking/);
+    expect(content(nodes)).toContain("سيتم تفعيل تتبع الموقع لمهمة الركن هذه");
+    expect(content(nodes)).toContain("بدء الإيقاف");
   });
 
-  it("keeps a restored continuation distinct from a fresh completion", () => {
+  it("uses the same Parking Task composition for restored authority", () => {
     const restoredNodes = render(completedSnapshot("view"));
-    expect(content(restoredNodes)).toContain(
-      "This authoritative check-in is awaiting its current Parking Task.",
-    );
+    expect(content(restoredNodes)).toContain("Start Parking");
     const completedNodes = render(completedSnapshot());
-    expect(content(completedNodes)).toContain("Check-in complete");
-    expect(content(restoredNodes)).not.toBe(content(completedNodes));
+    expect(content(completedNodes)).toBe(content(restoredNodes));
   });
 
-  it("never renders a fabricated start-parking or key action at the boundary", () => {
+  it("renders no pre-parking key action", () => {
     const nodes = render(completedSnapshot());
     const copy = content(nodes);
-    expect(copy).not.toMatch(/Start Parking|بدء الاصطفاف/);
+    expect(copy).toContain("Start Parking");
     expect(copy).not.toMatch(/key slot|خانة المفتاح/i);
   });
 
@@ -134,7 +129,7 @@ describe("MOB-011B Native completion continuation", () => {
     const onOpenParking = vi.fn();
     const nodes = render(completedSnapshot(), "en", onOpenParking);
     const action = nodes.find(
-      (node) => node.props.accessibilityLabel === "Continue to Parking Task",
+      (node) => node.props.accessibilityLabel === "Start Parking",
     )!;
     (action.props.onPress as () => void)();
     expect(onOpenParking).toHaveBeenCalledWith(conditionActive.sessionId);

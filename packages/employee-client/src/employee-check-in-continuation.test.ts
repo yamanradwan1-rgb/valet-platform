@@ -93,7 +93,7 @@ describe("Employee Check-In vehicle continuation", () => {
       },
       continuation: {
         detailsDraft: { color: "Black", make: "Toyota", model: "Camry" },
-        mode: "view",
+        mode: "select-condition",
       },
       phase: "created",
     });

@@ -169,25 +169,25 @@ describe("MOB-011B Native condition and check-in completion", () => {
     [
       "en",
       "CHECK_IN_CONDITION_PHOTO_REQUIRED",
-      "This location requires condition photos. Photo capture is not available yet; complete this step in Employee Web.",
+      "This location requires condition photos. This step cannot continue on this device yet.",
       "Continue",
     ],
     [
       "ar",
       "CHECK_IN_CONDITION_PHOTO_REQUIRED",
-      "يتطلب هذا الموقع صوراً لحالة المركبة. التقاط الصور غير متاح بعد؛ أكمل هذه الخطوة في تطبيق الموظف على الويب.",
+      "يتطلب هذا الموقع صوراً لحالة المركبة. لا يمكن متابعة هذه الخطوة على هذا الجهاز بعد.",
       "متابعة",
     ],
     [
       "en",
       "PHOTO_REQUIREMENT_NOT_SATISFIED",
-      "This location requires condition photos. Photo capture is not available yet; complete this step in Employee Web.",
+      "This location requires condition photos. This step cannot continue on this device yet.",
       "Continue",
     ],
     [
       "ar",
       "PHOTO_REQUIREMENT_NOT_SATISFIED",
-      "يتطلب هذا الموقع صوراً لحالة المركبة. التقاط الصور غير متاح بعد؛ أكمل هذه الخطوة في تطبيق الموظف على الويب.",
+      "يتطلب هذا الموقع صوراً لحالة المركبة. لا يمكن متابعة هذه الخطوة على هذا الجهاز بعد.",
       "متابعة",
     ],
   ] as const)(

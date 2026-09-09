@@ -82,8 +82,8 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
   });
 
   it("selects camera language from locale, independently of alignment", () => {
-    expect(getNativePlateCameraCopy("en").open).toBe("Open camera");
-    expect(getNativePlateCameraCopy("ar").open).toBe("فتح الكاميرا");
+    expect(getNativePlateCameraCopy("en").open).toBe("Open plate camera");
+    expect(getNativePlateCameraCopy("ar").open).toBe("فتح كاميرا اللوحة");
     expect(employeeTextStyle("human", "right")).toEqual({
       textAlign: "right",
       writingDirection: "rtl",
@@ -101,12 +101,14 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
       const copy = getNativePlateCameraCopy(locale);
       expect(Object.values(copy.phases).join(" ")).not.toMatch(forbidden);
       expect(copy.phases.preview).toMatch(
-        locale === "en" ? /reading plate/i : /جارٍ قراءة اللوحة/,
+        locale === "en" ? /capture one reference image/i : /التقط صورة مرجعية/,
       );
       expect(copy.enter).toMatch(
         locale === "en" ? /enter manually/i : /إدخال يدوي/,
       );
-      expect(copy.retry).toMatch(locale === "en" ? /retry/i : /إعادة/);
+      expect(copy.retry).toMatch(
+        locale === "en" ? /try camera again/i : /إعادة/,
+      );
       expect(copy.settings).toMatch(locale === "en" ? /settings/i : /إعدادات/);
     }
   });

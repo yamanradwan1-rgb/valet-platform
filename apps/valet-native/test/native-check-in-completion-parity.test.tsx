@@ -1,9 +1,10 @@
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
-import type {
-  EmployeeCheckInSession,
-  EmployeeCheckInSnapshot,
-  NativeAuthSession,
+import {
+  emptyCheckInContinuation,
+  type EmployeeCheckInSession,
+  type EmployeeCheckInSnapshot,
+  type NativeAuthSession,
 } from "@valet/employee-client";
 
 vi.mock("react", () => ({
@@ -30,6 +31,7 @@ vi.mock("../src/check-in/native-plate-camera-step", () => ({
 
 const { NativeCheckInWorkflow } =
   await import("../src/check-in/native-check-in-workflow");
+
 type Element = ReactElement<Record<string, unknown>>;
 function elements(value: unknown): Element[] {
   if (Array.isArray(value)) return value.flatMap(elements);
@@ -39,142 +41,131 @@ function elements(value: unknown): Element[] {
     return elements((node.type as (props: unknown) => unknown)(node.props));
   return [node, ...elements(node.props.children)];
 }
-function style(node: Element): Record<string, unknown> {
-  return Object.assign(
-    {},
-    ...[node.props.style].flat(Infinity).filter(Boolean),
-  );
-}
-function snapshot(phase: "created" | "continuation"): EmployeeCheckInSnapshot {
+
+const active = {
+  conditionCompletedAt: null,
+  sessionId: "session-id",
+  state: "CHECKING_IN" as const,
+  vehicle: {
+    color: "Black",
+    make: "Toyota",
+    model: "Camry",
+    plateCountry: "JO",
+    plateNumberRaw: "12-34567",
+    temporaryDescriptor: null,
+    vehicleId: "vehicle-id",
+    vehicleUpdatedAt: "date",
+  },
+  version: 1,
+};
+
+function snapshot(
+  patch: Partial<EmployeeCheckInSnapshot> = {},
+): EmployeeCheckInSnapshot {
   return {
-    active: {
-      sessionId: "session-id",
-      state: phase === "created" ? "CHECKING_IN" : "AWAITING_PARKING",
-      vehicle: {
-        color: "Black",
-        make: "Toyota",
-        model: "Camry",
-        plateCountry: "JO",
-        plateNumberRaw: "12-34567",
-        temporaryDescriptor: null,
-        vehicleId: "vehicle-id",
-        vehicleUpdatedAt: "date",
-      },
+    active,
+    continuation: {
+      ...emptyCheckInContinuation(),
+      conditionSelection: "No visible issue",
+      mode: "select-condition",
     },
     customerPhone: "",
     error: null,
     identityGeneration: 1,
     locationId: "location",
-    phase,
+    phase: "created",
     recognizedVehicle: null,
     recoverables: [],
     recoveryChecked: false,
     vehicle: {
+      color: "Black",
+      make: "Toyota",
       mode: "CONFIRMED_PLATE",
+      model: "Camry",
       plateCountry: "JO",
       plateNumberRaw: "12-34567",
       temporaryDescriptor: "",
     },
+    ...patch,
   };
 }
-function render(phase: "created" | "continuation", locale: "en" | "ar") {
-  const onClose = vi.fn();
-  const session = {
-    recoverAmbiguous: vi.fn(),
-    retryIntake: vi.fn(),
-    startNew: vi.fn(),
+
+function session() {
+  return {
+    continueVehicleDetails: vi.fn(),
+    setConditionSelection: vi.fn(),
+    setPreIntakeVehicleDetails: vi.fn(),
+    submitConditionCompletion: vi.fn(),
   } as unknown as EmployeeCheckInSession;
-  const nodes = elements(
+}
+
+function render(state: EmployeeCheckInSnapshot, locale: "en" | "ar" = "en") {
+  return elements(
     NativeCheckInWorkflow({
       auth: {} as NativeAuthSession,
       locale,
-      onClose,
-      session,
-      snapshot: snapshot(phase),
+      onClose: vi.fn(),
+      session: session(),
+      snapshot: state,
     }),
   );
-  return { nodes, onClose, session };
 }
-function content(nodes: Element[]) {
+
+function spoken(nodes: Element[]): string {
   return nodes
-    .flatMap((node) => [node.props.children].flat())
+    .flatMap((node) =>
+      [node.props.children, node.props.accessibilityLabel].flat(),
+    )
     .filter((value): value is string => typeof value === "string")
     .join(" ");
 }
 
-describe("MOB-010 Patch 5 truthful completion presentation", () => {
+describe("UI-PARITY-08 Check-In sequence", () => {
   it.each([
-    ["created", "en", "Intake saved", "#EDF4FF", "#176BFF"],
-    ["continuation", "en", "Ready for parking", "#EEFBF5", "#2F9B78"],
-    ["created", "ar", "تم حفظ سجل الوصول", "#EDF4FF", "#176BFF"],
-    ["continuation", "ar", "جاهزة للاصطفاف", "#EEFBF5", "#2F9B78"],
+    ["en", "Vehicle Condition", "No visible issue"],
+    ["ar", "حالة المركبة", "لا توجد مشاكل ظاهرة"],
   ] as const)(
-    "renders %s as a distinct localized operational state in %s",
-    (phase, locale, title, backgroundColor, color) => {
-      const { nodes, onClose, session } = render(phase, locale);
+    "renders authoritative intake success directly as Condition in %s",
+    (locale, title, selected) => {
+      const nodes = render(snapshot(), locale);
       expect(
-        nodes.filter(
+        nodes.some(
           (node) =>
             node.props.accessibilityRole === "header" &&
             node.props.children === title,
         ),
-      ).toHaveLength(1);
-      expect(content(nodes)).toContain("Toyota Camry");
-      expect(content(nodes)).toContain("12-34567");
-      const badgeLabel =
-        phase === "created"
-          ? locale === "en"
-            ? "Saved"
-            : "محفوظ"
-          : locale === "en"
-            ? "Awaiting parking"
-            : "بانتظار الاصطفاف";
-      const badge = nodes.find(
-        (node) => node.props.accessibilityLabel === badgeLabel,
-      )!;
-      expect(style(badge).backgroundColor).toBe(backgroundColor);
-      expect(
-        style(nodes.find((node) => node.props.children === badgeLabel)!).color,
-      ).toBe(color);
-      const copy = content(nodes);
-      if (phase === "created") {
-        expect(copy).toMatch(/Vehicle Condition|فحص حالة المركبة/);
-      } else {
-        expect(copy).toMatch(/awaiting parking|بانتظار الاصطفاف/i);
-      }
-      expect(copy).not.toMatch(/Start Parking|بدء الاصطفاف/);
-      expect(copy).not.toContain("Start New");
-      expect(
-        nodes.some(
-          (node) =>
-            node.type === "Pressable" &&
-            /condition|فحص حالة/.test(String(node.props.accessibilityLabel)),
-        ),
-      ).toBe(false);
-      expect(nodes.some((node) => node.props.children === "✓")).toBe(false);
-      expect(session.startNew).not.toHaveBeenCalled();
-      const close = nodes.find(
-        (node) =>
-          node.type === "Pressable" &&
-          node.props.accessibilityLabel ===
-            (phase === "continuation"
-              ? locale === "en"
-                ? "Continue to Parking Task"
-                : "متابعة مهمة الاصطفاف"
-              : locale === "en"
-                ? "Back to tasks"
-                : "العودة إلى المهام"),
-      )!;
-      (close.props.onPress as () => void)();
-      expect(onClose).toHaveBeenCalledOnce();
+      ).toBe(true);
+      expect(spoken(nodes)).toContain(selected);
+      expect(spoken(nodes)).not.toMatch(
+        /Continue in Employee Web|complete in Employee Web|Vehicle Condition is not implemented/i,
+      );
     },
   );
 
-  it("keeps created and continuation status language materially distinct", () => {
-    const created = content(render("created", "en").nodes);
-    const continuation = content(render("continuation", "en").nodes);
-    expect(created).toContain("current Native scope");
-    expect(continuation).toContain("current Parking Task");
-    expect(created).not.toBe(continuation);
+  it("renders Web-ordered new-vehicle fields before customer submission", () => {
+    const nodes = render(snapshot({ active: null, phase: "vehicle-details" }));
+    const labels = nodes
+      .filter((node) => node.type === "TextInput")
+      .map((node) => node.props.accessibilityLabel);
+    expect(labels).toEqual(["Make", "Model", "Color"]);
+    expect(spoken(nodes)).toContain("Skip vehicle details");
+  });
+
+  it("puts the no-plate description on Vehicle Details, not capture", () => {
+    const nodes = render(
+      snapshot({
+        active: null,
+        phase: "vehicle-details",
+        vehicle: {
+          mode: "TEMPORARY_DESCRIPTOR",
+          plateCountry: "JO",
+          plateNumberRaw: "",
+          temporaryDescriptor: "",
+        },
+      }),
+    );
+    expect(
+      nodes.find((node) => node.type === "TextInput")?.props.accessibilityLabel,
+    ).toBe("Vehicle description");
   });
 });

@@ -60,12 +60,12 @@ export function NativeCheckInContinuationStep(props: ContinuationStepProps) {
   if (mode === "edit-details") return <ContinuationDetailsEditor {...props} />;
   if (mode === "edit-identity" || mode === "confirm-identity")
     return <ContinuationIdentityEditor {...props} />;
-  if (mode === "boundary") return <ContinuationBoundary {...props} />;
   // MOB-011B condition/completion step. The shared "ambiguous" mode is routed
   // by its pending intent: a pending correction stays on the correction
   // recovery presentation, a pending condition selection stays here.
   if (
     mode === "select-condition" ||
+    mode === "boundary" ||
     (mode === "ambiguous" &&
       props.snapshot.continuation.pendingConditionSelection !== null)
   )
@@ -166,34 +166,6 @@ function VehicleDetailsCard({
         </Text>
       ))}
     </EmployeeCard>
-  );
-}
-
-function ContinuationBoundary({
-  copy,
-  onClose,
-  snapshot,
-  textAlign,
-}: ContinuationStepProps) {
-  return (
-    <>
-      <EmployeeBadge
-        label={copy.intakeSavedStatus}
-        textAlign={textAlign}
-        variant="primary"
-      />
-      {snapshot.active ? (
-        <VehicleCard
-          fallback={copy.vehicle}
-          textAlign={textAlign}
-          vehicle={snapshot.active.vehicle}
-        />
-      ) : null}
-      <EmployeeCard>
-        <CheckInStatus textAlign={textAlign}>{copy.createdBody}</CheckInStatus>
-      </EmployeeCard>
-      <CheckInButton label={copy.close} onPress={onClose} />
-    </>
   );
 }
 

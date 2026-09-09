@@ -283,7 +283,7 @@ describe("Employee Check-In correction recovery", () => {
       },
       continuation: {
         detailsDraft: { color: "Green" },
-        mode: "view",
+        mode: "select-condition",
         pendingIntent: null,
       },
     });

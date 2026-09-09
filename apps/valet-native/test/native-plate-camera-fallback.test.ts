@@ -71,7 +71,8 @@ async function start(binding: ReturnType<typeof createNativePlateOcrBinding>) {
   const generation = binding.controller.current().generation;
   await binding.cameraReady(generation);
   await binding.cameraReady(generation);
-  await vi.advanceTimersByTimeAsync(1200);
+  binding.controller.capture();
+  await vi.advanceTimersByTimeAsync(0);
   return generation;
 }
 

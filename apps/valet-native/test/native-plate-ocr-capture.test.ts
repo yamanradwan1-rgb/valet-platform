@@ -160,7 +160,8 @@ describe("Native bounded ANPR capture", () => {
     controller.setEligible(true);
     await controller.open();
     controller.ready(controller.current().generation);
-    await vi.advanceTimersByTimeAsync(1200);
+    controller.capture();
+    await vi.advanceTimersByTimeAsync(0);
     expect(camera.takePictureAsync).toHaveBeenCalledTimes(2);
     controller.close();
     finish();

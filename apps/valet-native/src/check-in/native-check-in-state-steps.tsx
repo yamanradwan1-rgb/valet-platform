@@ -157,34 +157,16 @@ export function NativeAmbiguousStep({
 
 export function NativeCompleteStep({
   copy,
-  onClose,
   onOpenParking,
   snapshot,
   textAlign,
 }: StateStepProps) {
-  const continuation = snapshot.phase === "continuation";
-  // condition-completed marks an authoritative MOB-011B completion; a plain
-  // continuation phase is a previously completed session restored from
-  // discovery. Both are server-proven AWAITING_PARKING states.
-  const completedHere =
-    continuation && snapshot.continuation?.mode === "condition-completed";
-  const body = completedHere
-    ? copy.conditionCompletedBody
-    : continuation
-      ? copy.awaitingParkingBody
-      : copy.createdBody;
   return (
     <>
       <EmployeeBadge
-        label={
-          completedHere
-            ? copy.conditionCompletedTitle
-            : continuation
-              ? copy.recoverableContinuation
-              : copy.intakeSavedStatus
-        }
+        label={copy.parkingTask}
         textAlign={textAlign}
-        variant={continuation ? "success" : "primary"}
+        variant="primary"
       />
       {snapshot.active ? (
         <VehicleCard
@@ -194,16 +176,16 @@ export function NativeCompleteStep({
         />
       ) : null}
       <EmployeeCard>
-        <CheckInStatus textAlign={textAlign}>{body}</CheckInStatus>
+        <CheckInStatus textAlign={textAlign}>
+          {copy.locationTrackingParking}
+        </CheckInStatus>
       </EmployeeCard>
       <CheckInButton
-        label={continuation ? copy.continueParkingTask : copy.close}
+        label={copy.startParking}
         onPress={() => {
           const sessionId = snapshot.active?.sessionId;
-          if (continuation && sessionId !== undefined && onOpenParking) {
+          if (sessionId !== undefined && onOpenParking) {
             onOpenParking(sessionId);
-          } else {
-            onClose();
           }
         }}
       />

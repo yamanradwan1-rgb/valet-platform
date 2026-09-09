@@ -12,6 +12,7 @@ import {
   DraftVehicleCard,
   type NativeTextAlign,
   VehicleCard,
+  CheckInStatus,
 } from "./native-check-in-primitives";
 import {
   checkInFailureMessage,
@@ -127,6 +128,7 @@ export function NativeCustomerStep({
         placeholder="79 000 0000"
         value={snapshot.customerPhone}
       />
+      <CheckInStatus textAlign={textAlign}>{copy.smsNotice}</CheckInStatus>
       {error ? (
         <CheckInError textAlign={textAlign}>{error}</CheckInError>
       ) : null}
@@ -140,11 +142,6 @@ export function NativeCustomerStep({
           session.setCustomerPhone("");
           void session.submitCustomer();
         }}
-        variant="ghost"
-      />
-      <CheckInButton
-        label={copy.edit}
-        onPress={() => session.editIdentity()}
         variant="ghost"
       />
     </>

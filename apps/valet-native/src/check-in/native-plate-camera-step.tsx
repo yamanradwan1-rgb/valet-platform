@@ -103,9 +103,16 @@ export function NativePlateCameraStep({
         </View>
       ) : null}
       {snapshot.phase === "preview" ? (
-        <CheckInStatus textAlign={textAlign}>
-          {camera.phases.preview}
-        </CheckInStatus>
+        <>
+          <CheckInStatus textAlign={textAlign}>
+            {camera.phases.preview}
+          </CheckInStatus>
+          <CheckInButton
+            label={camera.capture}
+            variant="primary"
+            onPress={() => controller.capture()}
+          />
+        </>
       ) : null}
       {!opened ? (
         <>
@@ -127,26 +134,18 @@ export function NativePlateCameraStep({
         </>
       ) : (
         <>
-          {snapshot.phase === "preview" ? (
-            <CheckInButton
-              label={camera.enter}
-              variant="primary"
-              onPress={() => closeThen(onManual)}
-            />
-          ) : failed ? (
+          {failed ? (
             <CheckInButton
               label={camera.retry}
               variant="primary"
               onPress={() => void controller.open()}
             />
           ) : null}
-          {snapshot.phase !== "preview" ? (
-            <CheckInButton
-              label={copy.enterManually}
-              variant="secondary"
-              onPress={() => closeThen(onManual)}
-            />
-          ) : null}
+          <CheckInButton
+            label={copy.enterManually}
+            variant="secondary"
+            onPress={() => closeThen(onManual)}
+          />
           {snapshot.phase === "denied" && !snapshot.canAskAgain ? (
             <CheckInButton
               label={camera.settings}

@@ -11,7 +11,11 @@ export type NativeCapturePresentation = "camera" | "manual" | "descriptor";
 export function initialCheckInCapturePresentation(
   snapshot: EmployeeCheckInSnapshot,
 ): NativeCapturePresentation {
-  if (snapshot.vehicle.mode === "TEMPORARY_DESCRIPTOR") return "descriptor";
+  if (
+    snapshot.vehicle.mode === "TEMPORARY_DESCRIPTOR" &&
+    snapshot.vehicle.temporaryDescriptor !== ""
+  )
+    return "descriptor";
   return snapshot.vehicle.plateNumberRaw === "" ? "camera" : "manual";
 }
 
@@ -33,6 +37,7 @@ export function checkInHeaderTitle(
       : copy.confirmDescription;
   }
   if (snapshot.phase === "returning") return copy.vehicleFound;
+  if (snapshot.phase === "vehicle-details") return copy.vehicleDetails;
   if (snapshot.phase === "customer") return copy.customerContact;
   if (snapshot.phase === "recoverables") return copy.recoverableSessions;
   if (snapshot.phase === "discovering" || snapshot.phase === "discovery-error")
@@ -41,20 +46,18 @@ export function checkInHeaderTitle(
   if (snapshot.phase === "submitting") return copy.submittingTitle;
   if (snapshot.phase === "intake-ambiguous") return copy.intakeUnknownTitle;
   if (snapshot.phase === "created") {
-    if (snapshot.continuation?.mode === "boundary") return copy.createdTitle;
     const mode = snapshot.continuation?.mode;
     if (
       conditionTitle !== undefined &&
-      (mode === "select-condition" || mode === "ambiguous")
+      (mode === "select-condition" ||
+        mode === "ambiguous" ||
+        mode === "boundary")
     ) {
       return conditionTitle;
     }
-    return continuationTitle ?? copy.createdTitle;
+    return continuationTitle ?? copy.vehicleDetails;
   }
-  if (snapshot.phase === "continuation")
-    return snapshot.continuation?.mode === "condition-completed"
-      ? copy.conditionCompletedTitle
-      : copy.awaitingParkingTitle;
+  if (snapshot.phase === "continuation") return copy.parkingTask;
   return copy.title;
 }
 

@@ -26,15 +26,8 @@ export function validateCheckInVehicle(
     }
     return { vehicle: { ...vehicle, plateCountry } };
   }
-  if (vehicle.temporaryDescriptor.trim() === "") {
-    return {
-      error: {
-        code: "TEMPORARY_DESCRIPTOR_REQUIRED",
-        message: "Describe the vehicle to continue without a plate.",
-      },
-      vehicle,
-    };
-  }
+  // Web defers the required temporary description to Vehicle Details. The
+  // employee may review the no-plate choice before entering that description.
   return { vehicle };
 }
 

@@ -35,7 +35,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInConditionCopy> = {
     needsReview: "Needs review",
     noVisibleIssue: "No visible issue",
     photoRequired:
-      "This location requires condition photos. Photo capture is not available yet; complete this step in Employee Web.",
+      "This location requires condition photos. This step cannot continue on this device yet.",
     photoPolicyNotice:
       "Photo requirements are confirmed by the location policy when you continue.",
     selected: "Selected",
@@ -57,7 +57,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInConditionCopy> = {
     needsReview: "تحتاج مراجعة",
     noVisibleIssue: "لا توجد مشاكل ظاهرة",
     photoRequired:
-      "يتطلب هذا الموقع صوراً لحالة المركبة. التقاط الصور غير متاح بعد؛ أكمل هذه الخطوة في تطبيق الموظف على الويب.",
+      "يتطلب هذا الموقع صوراً لحالة المركبة. لا يمكن متابعة هذه الخطوة على هذا الجهاز بعد.",
     photoPolicyNotice:
       "سيتم التحقق من متطلبات الصور وفق سياسة الموقع عند المتابعة.",
     selected: "محدد",

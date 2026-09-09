@@ -10,12 +10,11 @@ export interface NativeCheckInCopy {
   readonly continueToCustomer: string;
   readonly continueWithoutRecognition: string;
   readonly country: string;
-  readonly createdBody: string;
-  readonly createdTitle: string;
-  readonly conditionCompletedBody: string;
-  readonly continueParkingTask: string;
-  readonly conditionCompletedTitle: string;
+  readonly locationTrackingParking: string;
+  readonly parkingTask: string;
+  readonly startParking: string;
   readonly customerContact: string;
+  readonly color: string;
   readonly differentCustomer: string;
   readonly discoveryError: string;
   readonly discoveryErrorTitle: string;
@@ -25,7 +24,6 @@ export interface NativeCheckInCopy {
   readonly enterPlate: string;
   readonly intakeUnknown: string;
   readonly intakeUnknownTitle: string;
-  readonly intakeSavedStatus: string;
   readonly loading: string;
   readonly manualEntry: string;
   readonly multiple: string;
@@ -34,6 +32,9 @@ export interface NativeCheckInCopy {
   readonly noPlate: string;
   readonly noPlateExample: string;
   readonly phone: string;
+  readonly make: string;
+  readonly model: string;
+  readonly notSpecified: string;
   readonly phoneAmbiguous: string;
   readonly savedCustomerStale: string;
   readonly phoneEnding: string;
@@ -48,6 +49,8 @@ export interface NativeCheckInCopy {
   readonly retryDiscovery: string;
   readonly retrySame: string;
   readonly savedBody: string;
+  readonly skipVehicleDetails: string;
+  readonly smsNotice: string;
   readonly scanPlate: string;
   readonly submitting: string;
   readonly submittingTitle: string;
@@ -57,6 +60,9 @@ export interface NativeCheckInCopy {
   readonly useSavedCustomer: string;
   readonly returningCustomer: string;
   readonly vehicle: string;
+  readonly vehicleDescription: string;
+  readonly vehicleDetails: string;
+  readonly vehicleDescriptionExample: string;
   readonly vehicleFound: string;
   readonly awaitingParkingBody: string;
   readonly awaitingParkingTitle: string;
@@ -76,10 +82,12 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     continueToCustomer: "Continue to customer",
     continueWithoutRecognition: "Continue without recognition",
     country: "Country / Region",
-    createdBody:
-      "The authoritative intake is saved. Vehicle Condition is next and is not implemented in the current Native scope. Continue that workflow in Employee Web.",
-    createdTitle: "Intake saved",
+    locationTrackingParking:
+      "Location tracking will activate for this parking task",
+    parkingTask: "Parking Task",
+    startParking: "Start Parking",
     customerContact: "Customer Contact",
+    color: "Color",
     differentCustomer: "Different customer",
     discoveryError: "Check-in state is temporarily unavailable.",
     discoveryErrorTitle: "Failed to load check-in session",
@@ -90,7 +98,6 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     intakeUnknown:
       "The server result is unknown. Check authoritative state before retrying the same intake.",
     intakeUnknownTitle: "Intake result unknown",
-    intakeSavedStatus: "Saved",
     loading: "Checking saved check-ins…",
     manualEntry: "Manual Entry",
     multiple: "Multiple Incomplete Check-Ins Found",
@@ -99,6 +106,9 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     noPlate: "No plate / unreadable plate",
     noPlateExample: "Example: Silver Toyota SUV",
     phone: "Mobile Number",
+    make: "Make",
+    model: "Model",
+    notSpecified: "Not specified",
     phoneAmbiguous:
       "This phone matches more than one customer. Enter another phone or continue without a phone; no customer was selected.",
     savedCustomerStale:
@@ -118,6 +128,9 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     retrySame: "Retry same check-in",
     savedBody:
       "Use this previous association only if it matches the customer in front of you.",
+    skipVehicleDetails: "Skip vehicle details",
+    smsNotice:
+      "Guest Access can be shared by QR or copied link after check-in.",
     scanPlate: "Scan Plate",
     submitting: "Creating authoritative intake…",
     submittingTitle: "Saving intake",
@@ -127,13 +140,12 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     useSavedCustomer: "Use saved customer",
     returningCustomer: "Returning customer",
     vehicle: "Vehicle",
+    vehicleDescription: "Vehicle description",
+    vehicleDetails: "Vehicle details",
+    vehicleDescriptionExample: "Silver Toyota SUV",
     vehicleFound: "Vehicle found",
     awaitingParkingBody:
       "This authoritative check-in is awaiting its current Parking Task.",
-    conditionCompletedBody:
-      "Check-in is complete on the server. The vehicle is now awaiting its Parking Task.",
-    conditionCompletedTitle: "Check-in complete",
-    continueParkingTask: "Continue to Parking Task",
     awaitingParkingTitle: "Ready for parking",
     countryNames: {
       JO: "Jordan",
@@ -154,10 +166,11 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     continueToCustomer: "متابعة لإدخال رقم العميل",
     continueWithoutRecognition: "المتابعة دون تعرّف",
     country: "الدولة / المنطقة",
-    createdBody:
-      "تم حفظ سجل الوصول المعتمد. فحص حالة المركبة هو الخطوة التالية وغير متاح ضمن النطاق الحالي لتطبيق الموظف على الأجهزة المحمولة. تابع هذا المسار في تطبيق الموظف على الويب.",
-    createdTitle: "تم حفظ سجل الوصول",
+    locationTrackingParking: "سيتم تفعيل تتبع الموقع لمهمة الركن هذه",
+    parkingTask: "مهمة الإيقاف",
+    startParking: "بدء الإيقاف",
     customerContact: "بيانات تواصل العميل",
+    color: "اللون",
     differentCustomer: "عميل مختلف",
     discoveryError: "حالة تسجيل الوصول غير متاحة مؤقتاً.",
     discoveryErrorTitle: "تعذر تحميل جلسة تسجيل المركبة",
@@ -168,7 +181,6 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     intakeUnknown:
       "نتيجة إنشاء سجل الوصول على الخادم غير معروفة. تحقق من الحالة المعتمدة قبل إعادة محاولة سجل الوصول نفسه.",
     intakeUnknownTitle: "نتيجة سجل الوصول غير معروفة",
-    intakeSavedStatus: "محفوظ",
     loading: "جارٍ التحقق من سجلات الوصول المحفوظة…",
     manualEntry: "إدخال يدوي",
     multiple: "تم العثور على عدة عمليات غير مكتملة",
@@ -177,6 +189,9 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     noPlate: "لا توجد لوحة / غير مقروءة",
     noPlateExample: "مثال: تويوتا فضية دفع رباعي",
     phone: "رقم الهاتف المحمول",
+    make: "الشركة المصنّعة",
+    model: "الطراز",
+    notSpecified: "غير محدد",
     phoneAmbiguous:
       "يطابق هذا الرقم أكثر من عميل. أدخل رقماً آخر أو تابع دون رقم هاتف؛ لم يُحدَّد أي عميل.",
     savedCustomerStale:
@@ -195,6 +210,9 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     retryDiscovery: "إعادة محاولة الاستعادة",
     retrySame: "إعادة محاولة سجل الوصول نفسه",
     savedBody: "استخدم الارتباط السابق فقط إذا كان يطابق العميل الموجود أمامك.",
+    skipVehicleDetails: "تخطي بيانات المركبة",
+    smsNotice:
+      "يمكن مشاركة وصول الضيف عبر رمز QR أو الرابط المنسوخ بعد تسجيل الوصول.",
     scanPlate: "مسح اللوحة",
     submitting: "جارٍ إنشاء سجل الوصول المعتمد…",
     submittingTitle: "جارٍ حفظ سجل الوصول",
@@ -204,12 +222,11 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     useSavedCustomer: "استخدام العميل المحفوظ",
     returningCustomer: "عميل عائد",
     vehicle: "المركبة",
+    vehicleDescription: "وصف المركبة",
+    vehicleDetails: "تفاصيل المركبة",
+    vehicleDescriptionExample: "سيارة تويوتا فضية",
     vehicleFound: "تم العثور على المركبة",
     awaitingParkingBody: "تسجيل الوصول المعتمد بانتظار مهمة الاصطفاف الحالية.",
-    conditionCompletedBody:
-      "اكتمل تسجيل الوصول على الخادم. المركبة الآن بانتظار مهمة الاصطفاف.",
-    conditionCompletedTitle: "اكتمل تسجيل الوصول",
-    continueParkingTask: "متابعة مهمة الاصطفاف",
     awaitingParkingTitle: "جاهزة للاصطفاف",
     countryNames: {
       JO: "الأردن",

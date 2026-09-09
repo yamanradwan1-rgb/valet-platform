@@ -103,14 +103,29 @@ describe("EmployeeCheckInSession", () => {
     const session = await ready(client);
     plate(session);
     await session.confirmIdentity();
+    expect(session.current().phase).toBe("vehicle-details");
+    session.setPreIntakeVehicleDetails({
+      color: "Black",
+      make: "Toyota",
+      model: "Camry",
+    });
+    session.continueVehicleDetails();
     expect(session.current().phase).toBe("customer");
     session.setCustomerPhone("079 000 0000");
     await session.submitCustomer();
     expect(client.createIntake).toHaveBeenCalledWith(
       expect.objectContaining({
         customer: { intent: "DIFFERENT_CUSTOMER", phone: "+962790000000" },
+        vehicleDetails: { color: "Black", make: "Toyota", model: "Camry" },
       }),
     );
+    expect(session.current()).toMatchObject({
+      continuation: {
+        conditionSelection: "No visible issue",
+        mode: "select-condition",
+      },
+      phase: "created",
+    });
   });
 
   it("requires a descriptor and never recognizes the no-plate path", async () => {
@@ -121,10 +136,15 @@ describe("EmployeeCheckInSession", () => {
       temporaryDescriptor: "",
     });
     session.reviewIdentity();
-    expect(session.current().error?.code).toBe("TEMPORARY_DESCRIPTOR_REQUIRED");
-    session.setVehicle({ temporaryDescriptor: "Silver Toyota SUV" });
-    session.reviewIdentity();
+    expect(session.current().phase).toBe("confirm");
     await session.confirmIdentity();
+    expect(session.current().phase).toBe("vehicle-details");
+    session.continueVehicleDetails();
+    expect(session.current().error?.code).toBe("TEMPORARY_DESCRIPTOR_REQUIRED");
+    session.setPreIntakeVehicleDetails({
+      temporaryDescriptor: "Silver Toyota SUV",
+    });
+    session.continueVehicleDetails();
     expect(client.recognize).not.toHaveBeenCalled();
     await session.submitCustomer();
     expect(client.createIntake).toHaveBeenCalledWith(
@@ -156,6 +176,7 @@ describe("EmployeeCheckInSession", () => {
       const session = await ready(client);
       plate(session);
       await session.confirmIdentity();
+      session.continueVehicleDetails();
       await session.submitCustomer();
       expect(session.current().phase).toBe("intake-ambiguous");
       expect(session.current().recoveryChecked).toBe(false);
@@ -188,6 +209,7 @@ describe("EmployeeCheckInSession", () => {
       session.reviewIdentity();
       expect(session.current().phase).toBe("confirm");
       await session.confirmIdentity();
+      session.continueVehicleDetails();
       await session.submitCustomer();
       for (const command of [client.recognize, client.createIntake]) {
         expect(command).toHaveBeenCalledWith(
@@ -213,6 +235,7 @@ describe("EmployeeCheckInSession", () => {
     const session = await ready(transport(create));
     plate(session);
     await session.confirmIdentity();
+    session.continueVehicleDetails();
     session.setCustomerPhone("079 000 0000");
     await session.submitCustomer();
     expect(session.current()).toMatchObject({

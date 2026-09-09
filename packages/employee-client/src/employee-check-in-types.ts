@@ -28,6 +28,7 @@ export type EmployeeCheckInPhase =
   | "confirm"
   | "recognizing"
   | "returning"
+  | "vehicle-details"
   | "customer"
   | "submitting"
   | "intake-ambiguous"
@@ -35,7 +36,10 @@ export type EmployeeCheckInPhase =
   | "continuation";
 
 export interface EmployeeCheckInVehicleDraft {
+  readonly color?: string | null;
+  readonly make?: string | null;
   readonly mode: "CONFIRMED_PLATE" | "TEMPORARY_DESCRIPTOR";
+  readonly model?: string | null;
   readonly plateCountry: string;
   readonly plateNumberRaw: string;
   readonly temporaryDescriptor: string;

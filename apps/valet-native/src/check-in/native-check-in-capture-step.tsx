@@ -51,8 +51,12 @@ export function NativeCaptureStep(props: CaptureProps) {
         onPresentationChange("manual");
       }}
       onNoPlate={() => {
-        session.setVehicle({ mode: "TEMPORARY_DESCRIPTOR" });
-        onPresentationChange("descriptor");
+        session.setVehicle({
+          mode: "TEMPORARY_DESCRIPTOR",
+          plateNumberRaw: "",
+          temporaryDescriptor: "",
+        });
+        session.reviewIdentity();
       }}
     />
   );
@@ -60,7 +64,6 @@ export function NativeCaptureStep(props: CaptureProps) {
 
 export function NativeManualPlateFields({
   copy,
-  onPresentationChange,
   session,
   snapshot,
   textAlign,
@@ -96,8 +99,12 @@ export function NativeManualPlateFields({
         label={copy.noPlate}
         variant="ghost"
         onPress={() => {
-          session.setVehicle({ mode: "TEMPORARY_DESCRIPTOR" });
-          onPresentationChange("descriptor");
+          session.setVehicle({
+            mode: "TEMPORARY_DESCRIPTOR",
+            plateNumberRaw: "",
+            temporaryDescriptor: "",
+          });
+          session.reviewIdentity();
         }}
       />
     </>

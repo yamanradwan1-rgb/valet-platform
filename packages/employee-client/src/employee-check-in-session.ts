@@ -41,7 +41,11 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
   }
 
   editIdentity(): void {
-    if (!["confirm", "returning", "customer"].includes(this.snapshot.phase))
+    if (
+      !["confirm", "returning", "vehicle-details", "customer"].includes(
+        this.snapshot.phase,
+      )
+    )
       return;
     this.pendingRequest = null;
     this.publish({
@@ -56,7 +60,7 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
     if (this.snapshot.phase !== "confirm") return;
     const vehicle = this.snapshot.vehicle;
     if (vehicle.mode === "TEMPORARY_DESCRIPTOR") {
-      this.publish({ ...this.snapshot, error: null, phase: "customer" });
+      this.publish({ ...this.snapshot, error: null, phase: "vehicle-details" });
       return;
     }
     const request = ++this.sequence;
@@ -75,7 +79,7 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
       this.publish({
         ...this.snapshot,
         error: null,
-        phase: result.vehicle === null ? "customer" : "returning",
+        phase: result.vehicle === null ? "vehicle-details" : "returning",
         recognizedVehicle: result.vehicle,
       });
     } catch (error) {
@@ -87,6 +91,37 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
   continueWithoutRecognition(): void {
     if (this.snapshot.phase !== "confirm" || this.snapshot.error === null)
       return;
+    this.publish({ ...this.snapshot, error: null, phase: "vehicle-details" });
+  }
+
+  setPreIntakeVehicleDetails(
+    patch: Partial<
+      Pick<
+        EmployeeCheckInVehicleDraft,
+        "color" | "make" | "model" | "temporaryDescriptor"
+      >
+    >,
+  ): void {
+    if (this.snapshot.phase !== "vehicle-details") return;
+    this.publish({
+      ...this.snapshot,
+      error: null,
+      vehicle: { ...this.snapshot.vehicle, ...patch },
+    });
+  }
+
+  continueVehicleDetails(): void {
+    if (this.snapshot.phase !== "vehicle-details") return;
+    if (
+      this.snapshot.vehicle.mode === "TEMPORARY_DESCRIPTOR" &&
+      this.snapshot.vehicle.temporaryDescriptor.trim() === ""
+    ) {
+      this.fail({
+        code: "TEMPORARY_DESCRIPTOR_REQUIRED",
+        message: "Describe the vehicle to continue without a plate.",
+      });
+      return;
+    }
     this.publish({ ...this.snapshot, error: null, phase: "customer" });
   }
 
@@ -133,6 +168,15 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
         this.options.createOperationId,
       ),
       targetLocationId: this.requiredLocation(),
+      ...(this.snapshot.recognizedVehicle === null
+        ? {
+            vehicleDetails: {
+              color: this.snapshot.vehicle.color ?? null,
+              make: this.snapshot.vehicle.make ?? null,
+              model: this.snapshot.vehicle.model ?? null,
+            },
+          }
+        : {}),
       vehicleIdentity: buildCheckInIdentity(this.snapshot.vehicle),
     };
     this.pendingRequest = input;

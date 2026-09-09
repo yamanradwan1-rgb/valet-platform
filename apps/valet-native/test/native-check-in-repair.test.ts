@@ -108,10 +108,13 @@ describe("Native Check-In review regressions", () => {
     expect(session.reviewIdentity).not.toHaveBeenCalled();
     const camera = nodes.find((node) => node.type === "NativePlateCameraStep")!;
     (camera.props.onNoPlate as () => void)();
-    expect(hooks.setManual).toHaveBeenCalledWith("descriptor");
+    expect(hooks.setManual).not.toHaveBeenCalled();
     expect(session.setVehicle).toHaveBeenCalledWith({
       mode: "TEMPORARY_DESCRIPTOR",
+      plateNumberRaw: "",
+      temporaryDescriptor: "",
     });
+    expect(session.reviewIdentity).toHaveBeenCalledOnce();
   });
   it.each(["en", "ar"] as const)(
     "uses semantic descriptor direction in %s entry and confirmation",
