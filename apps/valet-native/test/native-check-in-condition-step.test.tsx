@@ -24,6 +24,8 @@ vi.mock("../src/check-in/native-plate-camera-step", () => ({
 
 const { NativeCheckInWorkflow } =
   await import("../src/check-in/native-check-in-workflow");
+const { checkInStyles } =
+  await import("../src/check-in/native-check-in-styles");
 const {
   conditionController,
   conditionSnapshot,
@@ -90,6 +92,16 @@ describe("MOB-011B Native condition and check-in completion", () => {
           ? "Photos optional by location policy"
           : "الصور اختيارية وفق سياسة الموقع",
       );
+      expect(checkInStyles.policyNotice).toMatchObject({
+        backgroundColor: "#F9FAFB",
+        borderRadius: 12,
+        borderWidth: 1,
+        padding: 12,
+      });
+      expect(checkInStyles.policyNoticeText).toMatchObject({
+        fontSize: 12,
+        textAlign: "center",
+      });
       const proceed = nodes.find(
         (node) =>
           node.type === "Pressable" &&

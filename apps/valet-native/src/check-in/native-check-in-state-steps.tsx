@@ -9,24 +9,22 @@ import { checkInTextStyle } from "./native-check-in-presentation";
 import {
   CheckInButton,
   CheckInErrorNotice,
-  CheckInStatus,
   DraftVehicleCard,
   type NativeTextAlign,
   RecoverableCard,
   VehicleCard,
 } from "./native-check-in-primitives";
 import { checkInStyles as s } from "./native-check-in-styles";
-import {
-  EmployeeBadge,
-  EmployeeCard,
-  EmployeeProgress,
-} from "../employee-ui/employee-feedback";
+import { EmployeeProgress } from "../employee-ui/employee-feedback";
 import { NativeCheckInIdentityContext } from "./native-check-in-identity-context";
+import { NativeCheckInParkingTaskStep } from "./native-check-in-parking-task-step";
 
 interface StateStepProps {
   readonly copy: NativeCheckInCopy;
   readonly onClose: () => void;
-  readonly onOpenParking?: ((sessionId: string) => void) | undefined;
+  readonly onStartParking?: (() => void) | undefined;
+  readonly parkingStartError?: boolean | undefined;
+  readonly parkingStarting?: boolean | undefined;
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
@@ -94,6 +92,7 @@ export function NativeBusyStep({ copy, snapshot, textAlign }: StateStepProps) {
       <>
         <NativeCheckInIdentityContext
           copy={copy}
+          presentation="camera"
           snapshot={snapshot}
           textAlign={textAlign}
         />
@@ -157,38 +156,20 @@ export function NativeAmbiguousStep({
 
 export function NativeCompleteStep({
   copy,
-  onOpenParking,
+  onStartParking,
+  parkingStartError = false,
+  parkingStarting = false,
   snapshot,
   textAlign,
 }: StateStepProps) {
   return (
-    <>
-      <EmployeeBadge
-        label={copy.parkingTask}
-        textAlign={textAlign}
-        variant="primary"
-      />
-      {snapshot.active ? (
-        <VehicleCard
-          fallback={copy.vehicle}
-          textAlign={textAlign}
-          vehicle={snapshot.active.vehicle}
-        />
-      ) : null}
-      <EmployeeCard>
-        <CheckInStatus textAlign={textAlign}>
-          {copy.locationTrackingParking}
-        </CheckInStatus>
-      </EmployeeCard>
-      <CheckInButton
-        label={copy.startParking}
-        onPress={() => {
-          const sessionId = snapshot.active?.sessionId;
-          if (sessionId !== undefined && onOpenParking) {
-            onOpenParking(sessionId);
-          }
-        }}
-      />
-    </>
+    <NativeCheckInParkingTaskStep
+      copy={copy}
+      error={parkingStartError || snapshot.error !== null}
+      onStart={onStartParking ?? (() => undefined)}
+      snapshot={snapshot}
+      starting={parkingStarting}
+      textAlign={textAlign}
+    />
   );
 }

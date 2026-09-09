@@ -117,7 +117,7 @@ describe("Native Check-In review regressions", () => {
     expect(session.reviewIdentity).toHaveBeenCalledOnce();
   });
   it.each(["en", "ar"] as const)(
-    "uses semantic descriptor direction in %s entry and confirmation",
+    "uses human entry and Web-authoritative LTR descriptor confirmation in %s",
     (locale) => {
       const draft = {
         ...vehicle,
@@ -137,7 +137,7 @@ describe("Native Check-In review regressions", () => {
       )!;
       expect(confirmation.props.style).toContainEqual({
         textAlign: "center",
-        writingDirection: locale === "ar" ? "rtl" : "ltr",
+        writingDirection: "ltr",
       });
     },
   );

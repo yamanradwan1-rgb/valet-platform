@@ -64,7 +64,7 @@ function completedSnapshot(
 function render(
   state: EmployeeCheckInSnapshot,
   locale: "en" | "ar" = "en",
-  onOpenParking = vi.fn(),
+  onOpenParking = vi.fn(async () => true),
 ) {
   return elements(
     NativeCheckInWorkflow({
@@ -126,7 +126,7 @@ describe("MOB-011B Native completion continuation", () => {
   });
 
   it("continues completed check-in into the canonical Parking Task workflow", () => {
-    const onOpenParking = vi.fn();
+    const onOpenParking = vi.fn(async () => true);
     const nodes = render(completedSnapshot(), "en", onOpenParking);
     const action = nodes.find(
       (node) => node.props.accessibilityLabel === "Start Parking",

@@ -4,6 +4,7 @@ import type {
 } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
+import type { NativeCapturePresentation } from "./native-check-in-presentation";
 import {
   CheckInButton,
   CheckInError,
@@ -13,11 +14,13 @@ import { NativeCheckInIdentityContext } from "./native-check-in-identity-context
 
 export function NativeConfirmStep({
   copy,
+  presentation,
   session,
   snapshot,
   textAlign,
 }: {
   readonly copy: NativeCheckInCopy;
+  readonly presentation: NativeCapturePresentation;
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
@@ -33,6 +36,7 @@ export function NativeConfirmStep({
       ) : null}
       <NativeCheckInIdentityContext
         copy={copy}
+        presentation={presentation}
         snapshot={snapshot}
         textAlign={textAlign}
       />

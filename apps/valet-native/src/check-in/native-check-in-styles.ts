@@ -48,6 +48,18 @@ export const checkInStyles = StyleSheet.create({
   optionLabelSelected: { color: c.blue },
   optionSelected: { backgroundColor: c.ice, borderColor: c.blue },
   options: { gap: space.compact },
+  policyNotice: {
+    backgroundColor: "#F9FAFB",
+    borderColor: c.border,
+    borderRadius: employeeRadius.form,
+    borderWidth: 1,
+    padding: space.md,
+  },
+  policyNoticeText: {
+    ...typography.supporting,
+    color: c.muted,
+    textAlign: "center",
+  },
   recoverableCard: {
     ...employeeFeedbackStyles.card,
     elevation: 1,

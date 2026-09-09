@@ -121,14 +121,15 @@ export function NativeProductionWorkspace({
             key={`${authSnapshot.authGeneration}:${shell.scope.membershipId}:${shell.scope.locationId}:${shell.scope.shiftId}`}
             locale={locale}
             onClose={() => navigate("tasks")}
-            onOpenParking={(sessionId) => {
+            onOpenParking={async (sessionId) => {
               runtime.checkIn.clear();
-              void runtime.parking.openCompletedCheckIn(
+              await runtime.parking.openCompletedCheckIn(
                 authSnapshot.authGeneration,
                 shell.scope,
                 sessionId,
               );
               navigate("parking");
+              return true;
             }}
             scope={shell.scope}
           />

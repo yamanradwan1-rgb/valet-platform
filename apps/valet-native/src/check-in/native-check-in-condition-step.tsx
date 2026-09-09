@@ -16,7 +16,6 @@ import {
 } from "./native-check-in-primitives";
 import { checkInTextStyle } from "./native-check-in-presentation";
 import { checkInStyles as s } from "./native-check-in-styles";
-import { EmployeeCard } from "../employee-ui/employee-feedback";
 import { EmployeeCheckIcon } from "../employee-ui/employee-icons";
 
 export interface ConditionStepProps {
@@ -117,11 +116,17 @@ export function NativeCheckInConditionStep({
         })}
       </View>
       {!photoRequired ? (
-        <EmployeeCard>
-          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
+        <View style={s.policyNotice}>
+          <Text
+            style={[
+              s.policyNoticeText,
+              checkInTextStyle("human", textAlign),
+              { textAlign: "center" },
+            ]}
+          >
             {c.photoPolicyNotice}
           </Text>
-        </EmployeeCard>
+        </View>
       ) : null}
       {failure ? (
         <CheckInError textAlign={textAlign}>{failure}</CheckInError>

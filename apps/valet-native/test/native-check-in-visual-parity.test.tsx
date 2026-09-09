@@ -233,7 +233,7 @@ describe("MOB-010 Patch 3 identity visual contract", () => {
     expect(copy).not.toMatch(/detected|confidence|captured/i);
   });
 
-  it("keeps an Arabic descriptor centered RTL without plate tracking", () => {
+  it("matches the Web 36px LTR-isolated Arabic descriptor hero", () => {
     const descriptor = "تويوتا فضية";
     const { nodes } = render(
       snapshot({
@@ -250,9 +250,9 @@ describe("MOB-010 Patch 3 identity visual contract", () => {
     expect(
       style(nodes.find((node) => node.props.children === descriptor)!),
     ).toMatchObject({
-      fontSize: 26,
+      fontSize: 36,
       textAlign: "center",
-      writingDirection: "rtl",
+      writingDirection: "ltr",
     });
     expect(
       style(nodes.find((node) => node.props.children === descriptor)!),

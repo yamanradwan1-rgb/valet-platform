@@ -12,13 +12,17 @@ export interface NativeCheckInCopy {
   readonly continueWithoutRecognition: string;
   readonly country: string;
   readonly locationTrackingParking: string;
+  readonly parkingState: string;
+  readonly parkingStartFailed: string;
   readonly parkingTask: string;
   readonly startParking: string;
+  readonly startingParking: string;
   readonly customerContact: string;
   readonly color: string;
   readonly correctVehicleDetails: string;
   readonly done: string;
   readonly differentCustomer: string;
+  readonly detected: string;
   readonly discoveryError: string;
   readonly discoveryErrorTitle: string;
   readonly discoveryTitle: string;
@@ -29,6 +33,8 @@ export interface NativeCheckInCopy {
   readonly intakeUnknownTitle: string;
   readonly loading: string;
   readonly manualEntry: string;
+  readonly enteredPlate: string;
+  readonly highConfidence: string;
   readonly multiple: string;
   readonly newVehicle: string;
   readonly noPhone: string;
@@ -89,13 +95,17 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     country: "Country / Region",
     locationTrackingParking:
       "Location tracking will activate for this parking task",
+    parkingState: "Parking",
+    parkingStartFailed: "The operation failed. Refresh and try again.",
     parkingTask: "Parking Task",
     startParking: "Start Parking",
+    startingParking: "Starting Parking...",
     customerContact: "Customer Contact",
     color: "Color",
     correctVehicleDetails: "Correct vehicle details",
     done: "Done",
     differentCustomer: "Different customer",
+    detected: "Detected",
     discoveryError: "Check-in state is temporarily unavailable.",
     discoveryErrorTitle: "Failed to load check-in session",
     discoveryTitle: "Check-In Discovery",
@@ -107,6 +117,8 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     intakeUnknownTitle: "Intake result unknown",
     loading: "Checking for existing check-in drafts...",
     manualEntry: "Manual Entry",
+    enteredPlate: "Entered plate",
+    highConfidence: "High confidence",
     multiple: "Multiple Incomplete Check-Ins Found",
     newVehicle: "New Vehicle",
     noPhone: "No phone available",
@@ -176,13 +188,17 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     continueWithoutRecognition: "متابعة بدون التحقق من المركبة",
     country: "الدولة / المنطقة",
     locationTrackingParking: "سيتم تفعيل تتبع الموقع لمهمة الركن هذه",
+    parkingState: "الركن",
+    parkingStartFailed: "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
     parkingTask: "مهمة الإيقاف",
     startParking: "بدء الإيقاف",
+    startingParking: "جارٍ بدء الإيقاف...",
     customerContact: "بيانات تواصل العميل",
     color: "اللون",
     correctVehicleDetails: "تصحيح بيانات المركبة",
     done: "تم",
     differentCustomer: "عميل مختلف",
+    detected: "تم الاكتشاف",
     discoveryError: "حالة تسجيل الوصول غير متاحة مؤقتاً.",
     discoveryErrorTitle: "تعذر تحميل جلسة تسجيل المركبة",
     discoveryTitle: "استعادة تسجيل الدخول",
@@ -194,6 +210,8 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     intakeUnknownTitle: "نتيجة سجل الوصول غير معروفة",
     loading: "جارٍ التحقق من عمليات التسجيل غير المكتملة...",
     manualEntry: "إدخال يدوي",
+    enteredPlate: "لوحة مدخلة",
+    highConfidence: "ثقة عالية",
     multiple: "تم العثور على عدة عمليات غير مكتملة",
     newVehicle: "مركبة جديدة",
     noPhone: "المتابعة دون رقم هاتف",

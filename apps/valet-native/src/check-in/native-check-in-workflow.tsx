@@ -43,7 +43,8 @@ interface NativeCheckInWorkflowProps {
   readonly auth: NativeAuthSession;
   readonly locale: EmployeeLocale;
   readonly onClose: () => void;
-  readonly onOpenParking?: ((sessionId: string) => void) | undefined;
+  readonly onOpenParking?:
+    ((sessionId: string) => Promise<boolean>) | undefined;
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
 }
@@ -75,6 +76,8 @@ export function NativeCheckInWorkflow({
     initialCheckInCapturePresentation(snapshot),
   );
   const previousPhase = useRef(snapshot.phase);
+  const [parkingStarting, setParkingStarting] = useState(false);
+  const [parkingStartError, setParkingStartError] = useState(false);
   useEffect(() => {
     if (snapshot.phase === "capture" && previousPhase.current !== "capture") {
       setCapturePresentation(initialCheckInCapturePresentation(snapshot));
@@ -110,6 +113,28 @@ export function NativeCheckInWorkflow({
     }
     onClose();
   };
+  const startParking = () => {
+    const sessionId = resolvedSnapshot.active?.sessionId;
+    if (
+      sessionId === undefined ||
+      onOpenParking === undefined ||
+      parkingStarting
+    )
+      return;
+    setParkingStartError(false);
+    setParkingStarting(true);
+    void onOpenParking(sessionId)
+      .then((opened) => {
+        if (!opened) {
+          setParkingStarting(false);
+          setParkingStartError(true);
+        }
+      })
+      .catch(() => {
+        setParkingStarting(false);
+        setParkingStartError(true);
+      });
+  };
   const props = {
     auth,
     conditionCopy,
@@ -117,7 +142,9 @@ export function NativeCheckInWorkflow({
     copy,
     locale,
     onClose,
-    onOpenParking,
+    onStartParking: startParking,
+    parkingStartError,
+    parkingStarting,
     onPresentationChange: setCapturePresentation,
     presentation: capturePresentation,
     session,
@@ -131,10 +158,12 @@ export function NativeCheckInWorkflow({
     <>
       <CheckInHeader
         back={copy.back}
-        disabled={checkInBackBlocked(
-          resolvedSnapshot.phase,
-          resolvedSnapshot.continuation.mode,
-        )}
+        disabled={
+          checkInBackBlocked(
+            resolvedSnapshot.phase,
+            resolvedSnapshot.continuation.mode,
+          ) || parkingStarting
+        }
         onBack={back}
         textAlign={textAlign}
         title={checkInHeaderTitle(

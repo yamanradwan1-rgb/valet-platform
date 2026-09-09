@@ -23,7 +23,7 @@ export function NativeCheckInRoute({
   readonly identityGeneration: number;
   readonly locale: EmployeeLocale;
   readonly onClose: () => void;
-  readonly onOpenParking: (sessionId: string) => void;
+  readonly onOpenParking: (sessionId: string) => Promise<boolean>;
   readonly scope: EmployeeOperationalScope;
 }) {
   const workflowOwner = nativeCheckInWorkflowOwner(scope);

@@ -2,10 +2,12 @@ import { StyleSheet, Text, View } from "react-native";
 import type { EmployeeCheckInSnapshot } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
-import { checkInIdentityLabel } from "./native-check-in-presentation";
+import {
+  checkInIdentityLabel,
+  type NativeCapturePresentation,
+} from "./native-check-in-presentation";
 import type { NativeTextAlign } from "./native-check-in-primitives";
 import { isPlateCountry } from "./native-plate-country-selector";
-import { EmployeeCard } from "../employee-ui/employee-feedback";
 import {
   employeeColors as c,
   employeeRadius,
@@ -18,15 +20,26 @@ import {
 
 export function NativeCheckInIdentityContext({
   copy,
+  presentation,
   snapshot,
   textAlign,
 }: {
   readonly copy: NativeCheckInCopy;
+  readonly presentation: NativeCapturePresentation;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
 }) {
   const hasPlate = snapshot.vehicle.mode === "CONFIRMED_PLATE";
   const identity = checkInIdentityLabel(snapshot, copy.vehicle);
+  const vehicle = snapshot.recognizedVehicle ?? snapshot.vehicle;
+  const vehicleName =
+    [vehicle.make, vehicle.model].filter(Boolean).join(" ") || copy.vehicle;
+  const color = vehicle.color || copy.notSpecified;
+  const status = !hasPlate
+    ? copy.temporaryDescriptor
+    : presentation === "camera"
+      ? copy.detected
+      : copy.manualEntry;
   return (
     <>
       <View importantForAccessibility="no-hide-descendants" style={styles.hero}>
@@ -36,16 +49,12 @@ export function NativeCheckInIdentityContext({
             employeeTextStyle("human", textAlign, "center"),
           ]}
         >
-          {hasPlate ? copy.manualEntry : copy.temporaryDescriptor}
+          {status}
         </Text>
         <Text
           style={[
             hasPlate ? styles.plate : styles.descriptor,
-            employeeTextStyle(
-              hasPlate ? "identifier" : "human",
-              textAlign,
-              "center",
-            ),
+            employeeTextStyle("identifier", textAlign, "center"),
           ]}
         >
           {identity}
@@ -54,34 +63,46 @@ export function NativeCheckInIdentityContext({
           <CountryContext
             country={snapshot.vehicle.plateCountry}
             copy={copy}
+            prefix={
+              presentation === "camera"
+                ? copy.highConfidence
+                : copy.enteredPlate
+            }
             textAlign={textAlign}
           />
         ) : null}
       </View>
-      <EmployeeCard accessibilityLabel={`${copy.vehicle}: ${identity}`}>
+      <View
+        accessible
+        accessibilityLabel={`${copy.vehicleDetails}: ${vehicleName}, ${identity}, ${color}`}
+        style={styles.vehicleCard}
+      >
         <Text style={[styles.cardLabel, employeeTextStyle("human", textAlign)]}>
-          {copy.vehicle}
+          {copy.vehicleDetails}
         </Text>
         <Text
+          style={[styles.vehicleName, employeeTextStyle("human", textAlign)]}
+        >
+          {vehicleName}
+        </Text>
+        <View
           style={[
-            styles.cardIdentity,
-            employeeTextStyle(hasPlate ? "identifier" : "human", textAlign),
+            styles.vehicleContext,
+            textAlign === "right" && styles.vehicleContextRtl,
           ]}
         >
-          {identity}
-        </Text>
-        {hasPlate ? (
-          <CountryContext
-            country={snapshot.vehicle.plateCountry}
-            copy={copy}
-            textAlign={textAlign}
-          />
-        ) : (
-          <Text style={[styles.context, employeeTextStyle("human", textAlign)]}>
-            {copy.temporaryDescriptor}
+          <Text style={[styles.vehicleDetail, styles.code]}>{identity}</Text>
+          <Text style={styles.vehicleDetail}>·</Text>
+          <Text
+            style={[
+              styles.vehicleDetail,
+              employeeTextStyle("human", textAlign),
+            ]}
+          >
+            {color}
           </Text>
-        )}
-      </EmployeeCard>
+        </View>
+      </View>
     </>
   );
 }
@@ -89,10 +110,12 @@ export function NativeCheckInIdentityContext({
 function CountryContext({
   copy,
   country,
+  prefix,
   textAlign,
 }: {
   readonly copy: NativeCheckInCopy;
   readonly country: string;
+  readonly prefix: string;
   readonly textAlign: NativeTextAlign;
 }) {
   const countryName = isPlateCountry(country)
@@ -112,15 +135,14 @@ function CountryContext({
           employeeTextStyle("human", textAlign, "center"),
         ]}
       >
-        {countryName}
+        {prefix} · {countryName}
       </Text>
       <Text style={[styles.context, styles.code]}>({country})</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  cardIdentity: { ...type.header, color: c.navy },
+export const nativeCheckInIdentityStyles = StyleSheet.create({
   cardLabel: {
     ...type.small,
     color: c.muted,
@@ -136,7 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   countryContextRtl: { flexDirection: "row-reverse" },
-  descriptor: { ...type.vehicle, color: c.navy },
+  descriptor: { ...type.plate, color: c.navy },
   hero: {
     alignItems: "center",
     backgroundColor: c.ice,
@@ -151,4 +173,22 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.75,
   },
+  vehicleCard: {
+    backgroundColor: c.white,
+    borderColor: c.border,
+    borderRadius: employeeRadius.primary,
+    borderWidth: 1,
+    gap: space.xs,
+    padding: space.lg,
+  },
+  vehicleContext: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: space.xs,
+  },
+  vehicleContextRtl: { flexDirection: "row-reverse" },
+  vehicleDetail: { ...type.body, color: c.neutral },
+  vehicleName: { ...type.vehicleIdentity, color: c.navy },
 });
+
+const styles = nativeCheckInIdentityStyles;
