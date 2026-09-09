@@ -83,6 +83,24 @@ function card(item = task, busy = false) {
   );
 }
 
+function priority(item: StaffTaskQueueItem, role: "VALET_SUPERVISOR") {
+  const onAction = vi.fn();
+  const onOverrideHandoff = vi.fn();
+  const nodes = elements(
+    NativeTaskCard({
+      busy: false,
+      copy: getNativeTasksCopy("en"),
+      locale: "en",
+      onAction,
+      onOverrideHandoff,
+      snapshot: snapshot(item, role),
+      task: item,
+      textAlign: "left",
+    }),
+  );
+  return { nodes, onAction, onOverrideHandoff };
+}
+
 function row(
   item = task,
   role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
@@ -113,7 +131,7 @@ describe("Web-authoritative Native task cards", () => {
     const button = nodes.find((node) => node.type === NativeTaskActionButton)!;
     const text = JSON.stringify(nodes.map((node) => node.props.children));
     expect(root.props.style).toEqual(
-      expect.arrayContaining([expect.objectContaining({ borderRadius: 16 })]),
+      expect.objectContaining({ borderRadius: 16 }),
     );
     expect(text).not.toContain("Priority task");
     expect(text).toContain("Toyota Camry");
@@ -170,7 +188,9 @@ describe("Web-authoritative Native task cards", () => {
       (node) => node.props.testID === "native-priority-task",
     )!;
     const button = nodes.find((node) => node.type === NativeTaskActionButton)!;
-    expect(root.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(root.type).toBe("View");
+    expect(root.props.accessibilityRole).toBeUndefined();
+    expect(root.props.onPress).toBeUndefined();
     expect(JSON.stringify(root.props.style)).toContain('"opacity":0.75');
     expect(button.props).toMatchObject({ disabled: true, label: "Assigned" });
   });
@@ -207,12 +227,72 @@ describe("Web-authoritative Native task cards", () => {
       taskType: "RETRIEVAL" as const,
       valetSessionState: "HANDOFF_PENDING" as const,
     };
+    const priorityRendered = priority(overrideTask, "VALET_SUPERVISOR");
+    const priorityRoot = priorityRendered.nodes.find(
+      (node) => node.props.testID === "native-priority-task",
+    )!;
+    const priorityButton = priorityRendered.nodes.find(
+      (node) =>
+        node.type === NativeTaskActionButton &&
+        node.props.label === "Override Handoff",
+    )!;
+    expect(priorityRoot.type).toBe("View");
+    expect(priorityRoot.props.accessibilityRole).toBeUndefined();
+    expect(priorityRoot.props.onPress).toBeUndefined();
+    expect(priorityButton.props).toMatchObject({
+      label: "Override Handoff",
+      variant: "danger",
+    });
+    (priorityButton.props.onPress as () => void)();
+    expect(priorityRendered.onOverrideHandoff).toHaveBeenCalledOnce();
+    expect(priorityRendered.onAction).not.toHaveBeenCalled();
+
     const rendered = row(overrideTask, "VALET_SUPERVISOR");
     const root = rendered.nodes.find(
       (node) => node.props.testID === `native-queue-row-${task.taskId}`,
     )!;
-    (root.props.onPress as () => void)();
+    const overrideButton = rendered.nodes.find(
+      (node) =>
+        node.type === NativeTaskActionButton &&
+        node.props.label === "Override Handoff",
+    )!;
+    expect(root.type).toBe("View");
+    expect(root.props.accessibilityRole).toBeUndefined();
+    expect(root.props.onPress).toBeUndefined();
+    expect(JSON.stringify(root.props.style)).toContain('"opacity":0.6');
+    expect(overrideButton.props).toMatchObject({
+      label: "Override Handoff",
+      size: "compact",
+      variant: "danger",
+    });
+    expect(
+      rendered.nodes.some((node) => node.type === EmployeeChevronRightIcon),
+    ).toBe(false);
+    (overrideButton.props.onPress as () => void)();
     expect(rendered.onOverrideHandoff).toHaveBeenCalledOnce();
     expect(rendered.onAction).not.toHaveBeenCalled();
+  });
+
+  it("stops an explicit action button press before invoking its callback", () => {
+    const onPress = vi.fn();
+    const stopPropagation = vi.fn();
+    const button = NativeTaskActionButton({
+      busy: false,
+      disabled: false,
+      label: "Override Handoff",
+      onPress,
+      size: "compact",
+      variant: "danger",
+    }) as Element;
+    (button.props.onPress as (event: unknown) => void)({ stopPropagation });
+    expect(stopPropagation).toHaveBeenCalledOnce();
+    expect(onPress).toHaveBeenCalledOnce();
+    expect(nativeTaskActionButtonStyles.button).toMatchObject({
+      borderRadius: 12,
+    });
+    expect(nativeTaskActionButtonStyles.compactButton).toMatchObject({
+      height: 36,
+      paddingHorizontal: 12,
+    });
   });
 });

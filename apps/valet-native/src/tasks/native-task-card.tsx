@@ -45,24 +45,15 @@ export function NativeTaskCard({
     task.currentAssigneeMembershipId !== null &&
     task.currentAssigneeMembershipId !== snapshot.scope?.membershipId;
   const override = canOpenNativeHandoffOverride(snapshot, task);
-  const actionLabel = override
-    ? copy.overrideHandoff
-    : assignedToOther
-      ? copy.statusAssigned
-      : nativeTaskActionLabel(copy, task);
-  const actionable = !assignedToOther || override;
+  const actionLabel = assignedToOther
+    ? copy.statusAssigned
+    : nativeTaskActionLabel(copy, task);
+  const actionable = !assignedToOther;
   const successAction =
     task.status === "ACCEPTED" || task.status === "IN_PROGRESS";
 
-  return (
-    <Pressable
-      accessibilityRole={actionable ? "button" : undefined}
-      accessibilityState={{ busy, disabled: !actionable || busy }}
-      disabled={!actionable || busy}
-      onPress={override ? onOverrideHandoff : onAction}
-      style={[s.card, assignedToOther && s.assignedToOther]}
-      testID="native-priority-task"
-    >
+  const content = (
+    <>
       <View accessible={false} style={s.accent} />
       <View style={s.content}>
         <View style={s.header}>
@@ -101,19 +92,42 @@ export function NativeTaskCard({
               {nativeTaskStatusLabel(copy, task.status)}
             </Text>
           </View>
-          {actionLabel ? (
+          {override ? (
+            <NativeTaskActionButton
+              busy={false}
+              disabled={busy}
+              label={copy.overrideHandoff}
+              onPress={onOverrideHandoff}
+              variant="danger"
+            />
+          ) : actionLabel ? (
             <NativeTaskActionButton
               busy={busy}
               disabled={!actionable || busy}
               label={busy ? copy.processing : actionLabel}
-              onPress={override ? onOverrideHandoff : onAction}
-              variant={
-                override ? "danger" : successAction ? "success" : "primary"
-              }
+              onPress={onAction}
+              variant={successAction ? "success" : "primary"}
             />
           ) : null}
         </View>
       </View>
+    </>
+  );
+
+  return assignedToOther ? (
+    <View style={[s.card, s.assignedToOther]} testID="native-priority-task">
+      {content}
+    </View>
+  ) : (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ busy, disabled: busy }}
+      disabled={busy}
+      onPress={onAction}
+      style={s.card}
+      testID="native-priority-task"
+    >
+      {content}
     </Pressable>
   );
 }

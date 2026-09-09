@@ -1,4 +1,10 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  type GestureResponderEvent,
+} from "react-native";
 
 import {
   employeeColors as c,
@@ -21,6 +27,8 @@ export const nativeTaskActionButtonStyles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   danger: { backgroundColor: c.danger },
+  compactButton: { height: 36, paddingHorizontal: 12 },
+  compactLabel: { ...type.small, fontWeight: "700" },
   disabled: { backgroundColor: disabledBackground },
   label: { ...type.body, color: c.white, fontWeight: "700" },
   labelDisabled: { color: disabledText },
@@ -33,16 +41,26 @@ export function NativeTaskActionButton({
   disabled,
   label,
   onPress,
+  size = "priority",
   variant,
 }: {
   readonly busy: boolean;
   readonly disabled: boolean;
   readonly label: string;
   readonly onPress: () => void;
+  readonly size?: "compact" | "priority";
   readonly variant: NativeTaskActionVariant;
 }) {
   const isDisabled = disabled || busy;
-  const hitExtension = Math.max(0, (employeeMinimumTouchTarget - 40) / 2);
+  const visibleHeight = size === "compact" ? 36 : 40;
+  const hitExtension = Math.max(
+    0,
+    (employeeMinimumTouchTarget - visibleHeight) / 2,
+  );
+  const handlePress = (event: GestureResponderEvent) => {
+    event.stopPropagation();
+    onPress();
+  };
   return (
     <Pressable
       accessibilityLabel={label}
@@ -55,9 +73,10 @@ export function NativeTaskActionButton({
         right: 0,
         top: hitExtension,
       }}
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         nativeTaskActionButtonStyles.button,
+        size === "compact" && nativeTaskActionButtonStyles.compactButton,
         nativeTaskActionButtonStyles[variant],
         isDisabled && nativeTaskActionButtonStyles.disabled,
         pressed && !isDisabled && { transform: [{ scale: 0.98 }] },
@@ -69,6 +88,7 @@ export function NativeTaskActionButton({
         <Text
           style={[
             nativeTaskActionButtonStyles.label,
+            size === "compact" && nativeTaskActionButtonStyles.compactLabel,
             isDisabled && nativeTaskActionButtonStyles.labelDisabled,
           ]}
         >

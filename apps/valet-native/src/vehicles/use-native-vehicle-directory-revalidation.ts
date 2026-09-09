@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { AppState } from "react-native";
 import type {
   EmployeeOperationalScope,
+  EmployeeOperationalFailure,
   EmployeeVehicleDirectorySession,
   EmployeeVehicleDirectorySnapshot,
 } from "@valet/employee-client";
@@ -13,16 +14,26 @@ type RecoveryDirectory = Pick<
   "current" | "refresh"
 >;
 
+export function shouldAutoRecoverVehicleDirectory(
+  failure: EmployeeOperationalFailure | null,
+) {
+  return failure?.code === "NETWORK_ERROR" && failure.status === 0;
+}
+
 export function scheduleVehicleDirectoryRecovery(
   directory: RecoveryDirectory,
   isForeground: () => boolean,
   delay = vehicleDirectoryRecoveryDelayMs,
 ) {
-  // The approved Native stack has no network-event package. A failed
-  // authoritative read is therefore the trustworthy offline signal: retry
-  // while this surface remains foreground until a later read can prove fresh.
+  // The approved Native stack has no network-event package. Only the canonical
+  // transport-level network failure may drive this foreground recovery probe.
   const timer = setTimeout(() => {
-    if (isForeground() && directory.current().phase === "error") {
+    const current = directory.current();
+    if (
+      isForeground() &&
+      current.phase === "error" &&
+      shouldAutoRecoverVehicleDirectory(current.failure)
+    ) {
       void directory.refresh();
     }
   }, delay);
@@ -55,6 +66,7 @@ export function useNativeVehicleDirectoryRevalidation(input: {
       directory === undefined ||
       scope === null ||
       snapshot.phase !== "error" ||
+      !shouldAutoRecoverVehicleDirectory(snapshot.failure) ||
       AppState.currentState !== "active"
     ) {
       return;
@@ -63,5 +75,5 @@ export function useNativeVehicleDirectoryRevalidation(input: {
       directory,
       () => AppState.currentState === "active",
     );
-  }, [directory, scope, snapshot.phase]);
+  }, [directory, scope, snapshot.failure, snapshot.phase]);
 }

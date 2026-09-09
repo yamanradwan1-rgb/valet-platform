@@ -19,6 +19,7 @@ import {
   nativeTaskVehicleLabel,
 } from "./native-task-presentation";
 import { nativeTaskQueueRowStyles as s } from "./native-task-queue-row-styles";
+import { NativeTaskActionButton } from "./native-task-action-button";
 import type { NativeTasksCopy } from "./native-tasks-copy";
 
 export function NativeTaskQueueRow(props: {
@@ -47,34 +48,31 @@ export function NativeTaskQueueRow(props: {
     task.currentAssigneeMembershipId !== null &&
     task.currentAssigneeMembershipId !== snapshot.scope?.membershipId;
   const override = canOpenNativeHandoffOverride(snapshot, task);
-  const actionable = !assignedToOther || override;
+  const actionable = !assignedToOther;
   const identifier = nativeTaskVehicleIdentifier(task);
   const context =
     nativeTaskParkingContext(task) ?? nativeTaskStatusLabel(copy, task.status);
   const direction = textAlign === "right" ? "rtl" : "ltr";
 
-  return (
-    <Pressable
-      accessibilityLabel={[
-        nativeTaskVehicleLabel(task),
-        nativeTaskTypeLabel(copy, task.taskType),
-        nativeTaskTime(copy, locale, task),
-        context,
-        override ? copy.overrideHandoff : nativeTaskActionLabel(copy, task),
-      ]
-        .filter(Boolean)
-        .join(". ")}
-      accessibilityRole={actionable ? "button" : undefined}
-      accessibilityState={{ busy, disabled: !actionable || busy }}
-      disabled={!actionable || busy}
-      onPress={override ? onOverrideHandoff : onAction}
-      style={[
-        s.row,
-        { flexDirection: direction === "rtl" ? "row-reverse" : "row" },
-        assignedToOther && s.assignedToOther,
-      ]}
-      testID={`native-queue-row-${task.taskId}`}
-    >
+  const accessibilityLabel = [
+    nativeTaskVehicleLabel(task),
+    nativeTaskTypeLabel(copy, task.taskType),
+    nativeTaskTime(copy, locale, task),
+    context,
+    actionable ? nativeTaskActionLabel(copy, task) : null,
+  ]
+    .filter(Boolean)
+    .join(". ");
+  const rowStyle = [
+    s.row,
+    {
+      flexDirection:
+        direction === "rtl" ? ("row-reverse" as const) : ("row" as const),
+    },
+    assignedToOther && s.assignedToOther,
+  ];
+  const content = (
+    <>
       <View style={s.content}>
         <View
           style={[
@@ -113,13 +111,38 @@ export function NativeTaskQueueRow(props: {
           <Text style={[s.detail, human]}>{context}</Text>
         </View>
       </View>
-      {busy ? (
+      {override ? (
+        <NativeTaskActionButton
+          busy={false}
+          disabled={busy}
+          label={copy.overrideHandoff}
+          onPress={onOverrideHandoff}
+          size="compact"
+          variant="danger"
+        />
+      ) : busy ? (
         <Text style={[s.busy, human]}>{copy.processing}</Text>
-      ) : override ? (
-        <Text style={[s.busy, human]}>{copy.overrideHandoff}</Text>
       ) : actionable ? (
         <EmployeeChevronRightIcon size={16} />
       ) : null}
+    </>
+  );
+
+  return assignedToOther ? (
+    <View style={rowStyle} testID={`native-queue-row-${task.taskId}`}>
+      {content}
+    </View>
+  ) : (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      accessibilityState={{ busy, disabled: busy }}
+      disabled={busy}
+      onPress={onAction}
+      style={rowStyle}
+      testID={`native-queue-row-${task.taskId}`}
+    >
+      {content}
     </Pressable>
   );
 }
