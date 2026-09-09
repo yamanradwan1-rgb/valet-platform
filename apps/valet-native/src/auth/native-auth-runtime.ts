@@ -5,6 +5,7 @@ import {
   createEmployeeParkingStartTransport,
   createEmployeeReleaseTransport,
   createEmployeeRetrievalTransport,
+  createEmployeeVehicleDirectoryTransport,
   EmployeeCheckInSession,
   EmployeeConfirmParkedSession,
   EmployeeHandoffSession,
@@ -12,6 +13,7 @@ import {
   EmployeeParkingStartSession,
   EmployeeReleaseSession,
   EmployeeRetrievalSession,
+  EmployeeVehicleDirectorySession,
   EmployeeShiftEndSession,
   EmployeeShiftStartSession,
   NativeAuthSession,
@@ -46,6 +48,7 @@ export interface NativeEmployeeRuntime {
   readonly retrieval: EmployeeRetrievalSession;
   readonly shiftEnd: EmployeeShiftEndSession;
   readonly shiftStart: EmployeeShiftStartSession;
+  readonly vehicleDirectory: EmployeeVehicleDirectorySession;
 }
 
 function installationGeneration(): string {
@@ -159,6 +162,11 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  const vehicleDirectory = new EmployeeVehicleDirectorySession({
+    transport: createEmployeeVehicleDirectoryTransport((signal) =>
+      createNativeEmployeeClient(apiOrigin, auth, signal),
+    ),
+  });
   const shiftEnd = new EmployeeShiftEndSession({
     initialOnline: nativeOnlineHint(),
     onEnded: () => {
@@ -174,6 +182,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
           release,
           retrieval,
           shiftStart,
+          vehicleDirectory,
         },
         currentAuth.authGeneration,
       );
@@ -191,6 +200,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     shiftEnd.clear();
     shiftStart.clear();
     checkIn.clear();
+    vehicleDirectory.clear();
   });
   const dispose = () => {
     unregisterIdentityPurge();
@@ -203,6 +213,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     shiftEnd.clear();
     shiftStart.clear();
     checkIn.clear();
+    vehicleDirectory.clear();
   };
   return {
     apiOrigin,
@@ -217,6 +228,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     retrieval,
     shiftEnd,
     shiftStart,
+    vehicleDirectory,
   };
 }
 

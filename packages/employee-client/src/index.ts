@@ -1,6 +1,8 @@
 export type {
   AcceptTaskResponse,
   AssignTaskResponse,
+  StaffVehicleDirectoryResponse,
+  StaffVehicleDirectoryRow,
   StaffTaskQueueItem,
   TaskQueueResponse,
 } from "@valet/contracts";
@@ -72,6 +74,9 @@ export * from "./employee-retrieval-flow-transport";
 export * from "./employee-retrieval-flow-types";
 export * from "./employee-task-queue-owner";
 export * from "./employee-task-action-runner";
+export * from "./employee-vehicle-directory-session";
+export * from "./employee-vehicle-directory-transport";
+export * from "./employee-vehicle-directory-types";
 export * from "./employee-retrieval-attention";
 export * from "./employee-shift-start-context";
 export * from "./employee-shift-start-session";

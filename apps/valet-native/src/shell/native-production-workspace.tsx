@@ -5,9 +5,10 @@ import type {
   EmployeeParkingStartSnapshot,
   EmployeeReleaseSnapshot,
   EmployeeRetrievalSnapshot,
+  EmployeeVehicleDirectorySnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import {
@@ -24,6 +25,7 @@ import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeNewVehicleButton } from "../tasks/native-new-vehicle-button";
 import { executeNativeTaskAction } from "../tasks/native-task-action-sequence";
 import { getNativeTasksCopy } from "../tasks/native-tasks-copy";
+import { NativeVehiclesScreen } from "../vehicles/native-vehicles-screen";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
 import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
@@ -55,6 +57,7 @@ export function NativeProductionWorkspace({
   retrievalAttention,
   runtime,
   shell,
+  vehicleDirectory,
 }: {
   readonly authSnapshot: NativeAuthSnapshot;
   readonly confirmParking: EmployeeConfirmParkedSnapshot;
@@ -72,6 +75,7 @@ export function NativeProductionWorkspace({
   };
   readonly runtime: NativeEmployeeRuntime;
   readonly shell: ActiveShell;
+  readonly vehicleDirectory: EmployeeVehicleDirectorySnapshot;
 }) {
   const presentation = getFoundationPresentation(locale);
   const copy = getNativeShellCopy(locale);
@@ -91,7 +95,10 @@ export function NativeProductionWorkspace({
           />
         }
       />
-      <View style={styles.content} testID="native-production-shell">
+      <View
+        style={{ flex: 1, minHeight: 0, position: "relative" }}
+        testID="native-production-shell"
+      >
         <NativeRetrievalAttention
           locale={locale}
           onDismiss={retrievalAttention.dismiss}
@@ -156,6 +163,15 @@ export function NativeProductionWorkspace({
             onReviewTasks={() => navigate("tasks")}
             session={runtime.shiftEnd}
             snapshot={shiftEnd}
+            textAlign={presentation.textAlign}
+          />
+        ) : shell.destination === "vehicles" ? (
+          <NativeVehiclesScreen
+            directory={runtime.vehicleDirectory}
+            key={`${authSnapshot.authGeneration}:${shell.scope.membershipId}:${shell.scope.locationId}:${shell.scope.shiftId}`}
+            locale={locale}
+            scope={shell.scope}
+            snapshot={vehicleDirectory}
             textAlign={presentation.textAlign}
           />
         ) : shell.destination === "retrieval" ? (
@@ -282,7 +298,3 @@ function openHandoff(
     sessionId,
   );
 }
-
-const styles = StyleSheet.create({
-  content: { flex: 1, minHeight: 0, position: "relative" },
-});

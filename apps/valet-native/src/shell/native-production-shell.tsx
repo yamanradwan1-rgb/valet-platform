@@ -34,6 +34,9 @@ export function NativeProductionShell({
   const [release, setRelease] = useState(bootstrap.release);
   const [shiftStart, setShiftStart] = useState(bootstrap.shiftStart);
   const [shiftEnd, setShiftEnd] = useState(bootstrap.shiftEnd);
+  const [vehicleDirectory, setVehicleDirectory] = useState(
+    bootstrap.vehicleDirectory,
+  );
   const [controller] = useState(() => {
     const productionController = new ProductionShellController();
     if (coldIntent !== null) productionController.receive(coldIntent);
@@ -42,6 +45,10 @@ export function NativeProductionShell({
   const [, setNavigationRevision] = useState(0);
   const runtime = bootstrap.runtime;
   const shell = controller.update(authSnapshot, operations);
+  const activeVehicleScope =
+    shell.kind === "active" && shell.destination === "vehicles"
+      ? shell.scope
+      : null;
   const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
   const retrievalAttention = useNativeRetrievalAttention(operations);
 
@@ -57,6 +64,8 @@ export function NativeProductionShell({
     const unsubscribeRelease = runtime.release.subscribe(setRelease);
     const unsubscribeShiftStart = runtime.shiftStart.subscribe(setShiftStart);
     const unsubscribeShiftEnd = runtime.shiftEnd.subscribe(setShiftEnd);
+    const unsubscribeVehicleDirectory =
+      runtime.vehicleDirectory.subscribe(setVehicleDirectory);
     void runtime.auth.start();
     return () => {
       unsubscribeAuth();
@@ -68,6 +77,7 @@ export function NativeProductionShell({
       unsubscribeRelease();
       unsubscribeShiftStart();
       unsubscribeShiftEnd();
+      unsubscribeVehicleDirectory();
       runtime.dispose();
     };
   }, [runtime]);
@@ -87,8 +97,25 @@ export function NativeProductionShell({
       runtime.shiftEnd.clear();
       runtime.shiftStart.clear();
       runtime.operations.clear();
+      runtime.vehicleDirectory.clear();
     }
   }, [authSnapshot.authGeneration, authSnapshot.phase, runtime]);
+
+  useEffect(() => {
+    if (runtime === undefined || activeVehicleScope === null) return;
+    void runtime.vehicleDirectory.activate(
+      authSnapshot.authGeneration,
+      activeVehicleScope,
+    );
+  }, [authSnapshot.authGeneration, runtime, activeVehicleScope]);
+
+  useEffect(() => {
+    if (runtime === undefined || activeVehicleScope === null) return;
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") void runtime.vehicleDirectory.refresh();
+    });
+    return () => subscription.remove();
+  }, [activeVehicleScope, runtime]);
 
   useEffect(() => {
     if (runtime === undefined || workflowPurgeRevision === 0) return;
@@ -99,6 +126,7 @@ export function NativeProductionShell({
     runtime.parking.clear();
     runtime.retrieval.clear();
     runtime.release.clear();
+    runtime.vehicleDirectory.clear();
   }, [runtime, workflowPurgeRevision]);
 
   useEffect(() => {
@@ -266,6 +294,7 @@ export function NativeProductionShell({
       retrievalAttention={retrievalAttention}
       runtime={runtime}
       shell={shell}
+      vehicleDirectory={vehicleDirectory}
     />
   );
 }

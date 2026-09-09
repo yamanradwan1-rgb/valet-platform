@@ -69,18 +69,26 @@ describe("production route intent and authority fencing", () => {
     expect(productionRouteIntentFromParam("development-poc")).toBeNull();
   });
 
-  it.each(["vehicles", "scan"] as const)(
-    "rejects unavailable %s navigation without activating a false route",
-    (destination) => {
-      const controller = new ProductionShellController();
-      active(controller);
-      controller.receive({ destination: "shift", source: "navigation" });
-      expect(controller.receive({ destination, source: "navigation" })).toBe(
-        "rejected",
-      );
-      expect(active(controller)).toMatchObject({ destination: "tasks" });
-    },
-  );
+  it("resolves Vehicles navigation without allowing a cold Vehicles route", () => {
+    const controller = new ProductionShellController();
+    expect(
+      controller.receive({ destination: "vehicles", source: "cold" }),
+    ).toBe("held");
+    expect(active(controller)).toMatchObject({ destination: "tasks" });
+    expect(
+      controller.receive({ destination: "vehicles", source: "navigation" }),
+    ).toBe("resolved");
+    expect(active(controller)).toMatchObject({ destination: "vehicles" });
+  });
+
+  it("keeps unavailable Scan rejected without activating a false route", () => {
+    const controller = new ProductionShellController();
+    active(controller);
+    expect(
+      controller.receive({ destination: "scan", source: "navigation" }),
+    ).toBe("rejected");
+    expect(active(controller)).toMatchObject({ destination: "tasks" });
+  });
 
   it("treats scanner input as a neutral intent, never authority", () => {
     const controller = new ProductionShellController();

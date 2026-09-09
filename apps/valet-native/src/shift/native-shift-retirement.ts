@@ -15,6 +15,7 @@ export interface NativeShiftRetirementTargets {
   readonly release: ClearableWorkflow;
   readonly retrieval: ClearableWorkflow;
   readonly shiftStart: ShiftStartWorkflow;
+  readonly vehicleDirectory: ClearableWorkflow;
 }
 
 /** Retires every authority-bound workflow only after strict End Shift success. */
@@ -31,4 +32,5 @@ export function retireNativeShiftScope(
   targets.shiftStart.clear();
   targets.shiftStart.activate(identityGeneration);
   targets.checkIn.clear();
+  targets.vehicleDirectory.clear();
 }

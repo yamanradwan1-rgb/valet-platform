@@ -13,8 +13,7 @@ const {
   nativeProductionDestinationAvailability,
   nativeProductionNavigationItems,
   nativeProductionNavigationStyles,
-} =
-  await import("../src/shell/native-production-navigation");
+} = await import("../src/shell/native-production-navigation");
 const {
   EmployeeCarIcon,
   EmployeeHomeIcon,
@@ -39,7 +38,7 @@ function style(value: unknown): Record<string, unknown> {
 }
 
 describe("Native production navigation", () => {
-  it("enables truthful Tasks and Shift destinations while leaving future tabs disabled", () => {
+  it("enables truthful Tasks, Vehicles and Shift while leaving Scan disabled", () => {
     const navigate = vi.fn();
     const nodes = elements(
       NativeProductionNavigation({
@@ -51,24 +50,25 @@ describe("Native production navigation", () => {
     );
     const tabs = nodes.filter((node) => node.props.accessibilityRole === "tab");
 
-    expect(nativeProductionNavigationItems.map((item) => item.destination)).toEqual(
-      ["tasks", "vehicles", "scan", "shift"],
-    );
+    expect(
+      nativeProductionNavigationItems.map((item) => item.destination),
+    ).toEqual(["tasks", "vehicles", "scan", "shift"]);
     expect(nativeProductionDestinationAvailability).toEqual({
       scan: false,
       shift: true,
       tasks: true,
-      vehicles: false,
+      vehicles: true,
     });
     expect(
-      tabs.map((tab) =>
-        elements(tab.props.children).find((node) => node.type === "Text")?.props
-          .children,
+      tabs.map(
+        (tab) =>
+          elements(tab.props.children).find((node) => node.type === "Text")
+            ?.props.children,
       ),
     ).toEqual(["Tasks", "Vehicles", "Scan", "Shift"]);
     expect(tabs.map((node) => node.props.accessibilityState)).toEqual([
       { disabled: false, selected: false },
-      { disabled: true, selected: false },
+      { disabled: false, selected: false },
       { disabled: true, selected: false },
       { disabled: false, selected: true },
     ]);
@@ -130,7 +130,9 @@ describe("Native production navigation", () => {
       backgroundColor: employeeColors.blue,
       shadowColor: employeeColors.blue,
     });
-    expect(nativeProductionNavigationStyles.scanLabel).toEqual({ marginTop: 2 });
+    expect(nativeProductionNavigationStyles.scanLabel).toEqual({
+      marginTop: 2,
+    });
   });
 
   it("pins all navigation while check-in owns the foreground workflow", () => {
@@ -145,9 +147,9 @@ describe("Native production navigation", () => {
     const tabs = nodes.filter((node) => node.props.accessibilityRole === "tab");
 
     expect(tabs.every((node) => node.props.disabled === true)).toBe(true);
-    expect(
-      tabs.every((node) => style(node.props.style).opacity === 0.4),
-    ).toBe(true);
+    expect(tabs.every((node) => style(node.props.style).opacity === 0.4)).toBe(
+      true,
+    );
     expect(
       tabs.every(
         (node) =>
@@ -155,5 +157,28 @@ describe("Native production navigation", () => {
           false,
       ),
     ).toBe(true);
+  });
+
+  it("selects the truthful Vehicles tab while Scan remains disabled", () => {
+    const navigate = vi.fn();
+    const nodes = elements(
+      NativeProductionNavigation({
+        activeDestination: "vehicles",
+        locale: "en",
+        onNavigate: navigate,
+        pinned: false,
+      }),
+    );
+    const tabs = nodes.filter((node) => node.props.accessibilityRole === "tab");
+    expect(tabs[1]?.props.accessibilityState).toEqual({
+      disabled: false,
+      selected: true,
+    });
+    expect(tabs[2]?.props.accessibilityState).toEqual({
+      disabled: true,
+      selected: false,
+    });
+    (tabs[1]?.props.onPress as () => void)();
+    expect(navigate).toHaveBeenCalledWith("vehicles");
   });
 });

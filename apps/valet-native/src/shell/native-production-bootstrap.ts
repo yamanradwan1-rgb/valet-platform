@@ -7,6 +7,7 @@ import type {
   EmployeeRetrievalSnapshot,
   EmployeeShiftEndSnapshot,
   EmployeeShiftStartSnapshot,
+  EmployeeVehicleDirectorySnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
 
@@ -26,6 +27,7 @@ export interface NativeProductionBootstrap {
   readonly runtime: NativeEmployeeRuntime | undefined;
   readonly shiftEnd: EmployeeShiftEndSnapshot;
   readonly shiftStart: EmployeeShiftStartSnapshot;
+  readonly vehicleDirectory: EmployeeVehicleDirectorySnapshot;
 }
 
 export function createNativeProductionBootstrap(): NativeProductionBootstrap {
@@ -42,6 +44,7 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
       runtime,
       shiftEnd: runtime.shiftEnd.current(),
       shiftStart: runtime.shiftStart.current(),
+      vehicleDirectory: runtime.vehicleDirectory.current(),
     };
   } catch {
     return {
@@ -134,6 +137,13 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
         selectedLocationId: null,
         startableLocations: [],
         targetLocationId: null,
+      },
+      vehicleDirectory: {
+        failure: null,
+        identityGeneration: null,
+        page: null,
+        phase: "inactive",
+        scope: null,
       },
     };
   }

@@ -29,11 +29,11 @@ describe("Native production entry contract", () => {
     expect(route).toContain("workflowOwner");
   });
 
-  it("keeps unavailable future tabs disabled in this slice", () => {
+  it("activates truthful Vehicles while keeping future Scan disabled", () => {
     const navigation = read("src/shell/native-production-navigation.tsx");
     expect(navigation).toContain("nativeProductionDestinationAvailability");
     expect(navigation).toMatch(/scan:\s*false/);
-    expect(navigation).toMatch(/vehicles:\s*false/);
+    expect(navigation).toMatch(/vehicles:\s*true/);
     expect(navigation).toContain("disabled={!enabled}");
   });
 
@@ -48,7 +48,7 @@ describe("Native production entry contract", () => {
     expect(detachedShift).not.toContain("NativeLocaleButton");
     expect(controller).not.toContain('case "vehicles"');
     expect(controller).not.toContain('case "scan"');
-    expect(workspace).not.toContain('destination === "vehicles"');
+    expect(workspace).toContain('destination === "vehicles"');
     expect(workspace).not.toContain('destination === "scan"');
   });
 

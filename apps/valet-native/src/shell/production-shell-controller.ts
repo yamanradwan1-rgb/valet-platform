@@ -12,6 +12,7 @@ export type ProductionDestination =
   | "tasks"
   | "vehicles";
 export type ProductionIntentSource = "cold" | "navigation" | "scan";
+type ActiveProductionDestination = Exclude<ProductionDestination, "scan">;
 export interface ProductionRouteIntent {
   readonly destination: ProductionDestination;
   readonly source: ProductionIntentSource;
@@ -37,8 +38,7 @@ export type ProductionShellState =
       readonly reason: "unavailable";
     }
   | {
-      readonly destination:
-        "check-in" | "parking" | "retrieval" | "shift" | "tasks";
+      readonly destination: ActiveProductionDestination;
       readonly kind: "active";
       readonly scope: EmployeeOperationalScope;
     };
@@ -157,8 +157,7 @@ export function deriveProductionShellState(
 export class ProductionShellController {
   private authority: ConfirmedAuthority | null = null;
   private authorityReady = false;
-  private destination:
-    "check-in" | "parking" | "retrieval" | "shift" | "tasks" = "tasks";
+  private destination: ActiveProductionDestination = "tasks";
   private pending: PendingIntent | null = null;
   private purgeLatched = false;
   private purgeRevision = 0;
@@ -273,6 +272,7 @@ export class ProductionShellController {
     if (
       intent.destination === "tasks" ||
       intent.destination === "check-in" ||
+      (intent.destination === "vehicles" && intent.source === "navigation") ||
       (intent.destination === "parking" && intent.source === "navigation") ||
       (intent.destination === "retrieval" && intent.source === "navigation") ||
       intent.destination === "shift"

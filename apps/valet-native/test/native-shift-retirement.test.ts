@@ -84,6 +84,7 @@ function targets(
     release: clearable(),
     retrieval: clearable(),
     shiftStart,
+    vehicleDirectory: clearable(),
   };
 }
 
@@ -136,6 +137,7 @@ describe("Native post-End Shift retirement", () => {
       retirement.parking,
       retirement.release,
       retirement.retrieval,
+      retirement.vehicleDirectory,
     ]) {
       expect(workflow.clear).toHaveBeenCalledOnce();
     }

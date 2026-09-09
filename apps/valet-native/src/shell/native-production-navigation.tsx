@@ -46,7 +46,7 @@ export const nativeProductionDestinationAvailability = {
   scan: false,
   shift: true,
   tasks: true,
-  vehicles: false,
+  vehicles: true,
 } as const satisfies Record<NavigationDestination, boolean>;
 
 export function NativeProductionNavigation({
@@ -56,7 +56,7 @@ export function NativeProductionNavigation({
   pinned,
 }: {
   readonly activeDestination:
-    "check-in" | "parking" | "retrieval" | "shift" | "tasks";
+    "check-in" | "parking" | "retrieval" | "shift" | "tasks" | "vehicles";
   readonly locale: EmployeeLocale;
   readonly onNavigate: (destination: ProductionDestination) => void;
   readonly pinned: boolean;
