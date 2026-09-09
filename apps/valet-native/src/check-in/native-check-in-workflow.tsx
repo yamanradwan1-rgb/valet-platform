@@ -17,10 +17,8 @@ import {
 } from "./native-check-in-continuation-step";
 import { NativeConfirmStep } from "./native-check-in-confirm-step";
 import { NativeVehicleDetailsStep } from "./native-check-in-vehicle-details-step";
-import {
-  NativeCustomerStep,
-  NativeReturningStep,
-} from "./native-check-in-input-steps";
+import { NativeCustomerStep } from "./native-check-in-input-steps";
+import { NativeReturningStep } from "./native-check-in-returning-step";
 import { NativeCaptureStep } from "./native-check-in-capture-step";
 import {
   checkInBackBlocked,
@@ -126,6 +124,9 @@ export function NativeCheckInWorkflow({
     snapshot: resolvedSnapshot,
     textAlign,
   };
+  if (resolvedSnapshot.phase === "discovering") {
+    return <NativeLoadingStep {...props} />;
+  }
   return (
     <>
       <CheckInHeader

@@ -82,18 +82,21 @@ describe("MOB-010 Patch 6 bilingual state matrix", () => {
         ["ar", ar],
       ] as const) {
         const { nodes, session, spoken } = render(state, locale);
-        expect(
-          nodes.filter(
-            (node) =>
-              node.props.accessibilityRole === "header" &&
-              node.props.children === expected[0],
-          ),
-        ).toHaveLength(1);
+        const headers = nodes.filter(
+          (node) => node.props.accessibilityRole === "header",
+        );
+        if (expected[0] === "") expect(headers).toHaveLength(0);
+        else
+          expect(headers.map((node) => node.props.children)).toContain(
+            expected[0],
+          );
         expect(spoken).toContain(expected[1]);
-        expect(
-          nodes.find((node) => node.type === "ScrollView")!.props
-            .contentContainerStyle,
-        ).toContainEqual({ direction: locale === "ar" ? "rtl" : "ltr" });
+        const scroll = nodes.find((node) => node.type === "ScrollView");
+        if (expected[0] === "") expect(scroll).toBeUndefined();
+        else
+          expect(scroll!.props.contentContainerStyle).toContainEqual({
+            direction: locale === "ar" ? "rtl" : "ltr",
+          });
         for (const callback of Object.values(
           session as unknown as Record<string, unknown>,
         ).filter((value) => typeof value === "function"))

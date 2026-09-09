@@ -89,9 +89,9 @@ const recognized = {
 function controller() {
   return {
     chooseDifferentCustomer: vi.fn(),
-    editIdentity: vi.fn(),
     resume: vi.fn(),
     setCustomerPhone: vi.fn(),
+    setReturningVehicleCorrection: vi.fn(),
     submitCustomer: vi.fn(),
     useSavedCustomer: vi.fn(),
   } as unknown as EmployeeCheckInSession;
@@ -151,7 +151,7 @@ describe("MOB-010 Patch 4 returning and customer presentation", () => {
     expect(allLabels).not.toContain("+962790001234");
     const saved = action(nodes, "Use saved customer");
     const different = action(nodes, "Different customer");
-    const edit = action(nodes, "Edit");
+    const edit = action(nodes, "Correct vehicle details");
     expect(style(saved)).toMatchObject({ backgroundColor: "#176BFF" });
     expect(style(different)).toMatchObject({
       backgroundColor: "#FFFFFF",
@@ -250,7 +250,7 @@ describe("MOB-010 Patch 4 returning and customer presentation", () => {
     (locale) => {
       const { nodes } = render(snapshot({ phase: "customer" }), locale);
       const input = nodes.find((node) => node.type === "TextInput")!;
-      const prefix = nodes.find((node) => node.props.children === "+962")!;
+      const prefix = nodes.find((node) => node.props.children === "🇯🇴  +962")!;
       expect(input.props.inputMode).toBe("tel");
       expect(style(input)).toMatchObject({
         height: 56,
@@ -264,9 +264,7 @@ describe("MOB-010 Patch 4 returning and customer presentation", () => {
         style(
           action(
             nodes,
-            locale === "en"
-              ? "Continue without phone"
-              : "المتابعة دون رقم هاتف",
+            locale === "en" ? "No phone available" : "المتابعة دون رقم هاتف",
           ),
         ),
       ).toMatchObject({

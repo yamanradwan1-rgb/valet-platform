@@ -81,6 +81,7 @@ function session() {
     retryIntake: vi.fn(),
     reviewIdentity: vi.fn(),
     setCustomerPhone: vi.fn(),
+    setReturningVehicleCorrection: vi.fn(),
     setVehicle: vi.fn(),
     startNew: vi.fn(),
     submitCustomer: vi.fn(),
@@ -172,7 +173,6 @@ describe("Native Check-In presentation", () => {
       .map((node) => node.props.children)
       .flat()
       .join(" ");
-    expect(content).toContain("Previously");
     expect(content).toContain("1234");
     expect(content).not.toContain(customerId);
     const useSaved = nodes.find(
@@ -209,17 +209,24 @@ describe("Native Check-In presentation", () => {
   });
 
   it("shows truthful loading, validation, and rehydrate-before-retry states", () => {
+    const loading = expand(
+      NativeCheckInWorkflow({
+        auth,
+        locale: "en",
+        onClose: vi.fn(),
+        session: session(),
+        snapshot: snapshot({ phase: "discovering" }),
+      }),
+    );
     expect(
-      expand(
-        NativeCheckInWorkflow({
-          auth,
-          locale: "en",
-          onClose: vi.fn(),
-          session: session(),
-          snapshot: snapshot({ phase: "discovering" }),
-        }),
-      ).some((node) => node.props.children === "Checking saved check-ins…"),
+      loading.some(
+        (node) =>
+          node.props.children === "Checking for existing check-in drafts...",
+      ),
     ).toBe(true);
+    expect(
+      loading.some((node) => node.props.accessibilityLabel === "Back"),
+    ).toBe(false);
     const invalid = render(
       snapshot({
         error: { code: "PLATE_REQUIRED", message: "required" },

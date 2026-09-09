@@ -160,7 +160,7 @@ describe("Native Check-In review regressions", () => {
     ).toContainEqual(direction(false));
     expect(
       phone.some(
-        (node) => node.type === "Text" && node.props.children === "+962",
+        (node) => node.type === "Text" && node.props.children === "🇯🇴  +962",
       ),
     ).toBe(true);
   });

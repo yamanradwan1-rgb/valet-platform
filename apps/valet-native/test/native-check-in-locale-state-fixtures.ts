@@ -100,8 +100,8 @@ export const localeStateCases: MatrixCase[] = [
   {
     name: "discovering",
     state: base({ phase: "discovering" }),
-    en: ["Check-In Discovery", "Checking saved check-ins…"],
-    ar: ["استعادة تسجيل الوصول", "جارٍ التحقق من سجلات الوصول المحفوظة…"],
+    en: ["", "Checking for existing check-in drafts..."],
+    ar: ["", "جارٍ التحقق من عمليات التسجيل غير المكتملة..."],
   },
   {
     name: "discovery error",
@@ -110,7 +110,7 @@ export const localeStateCases: MatrixCase[] = [
       error: { code: "SERVICE_UNAVAILABLE", message: "private" },
     }),
     en: ["Check-In Discovery", "Retry Discovery"],
-    ar: ["استعادة تسجيل الوصول", "إعادة محاولة الاستعادة"],
+    ar: ["استعادة تسجيل الدخول", "إعادة محاولة الاستعادة"],
   },
   {
     name: "recoverables",
@@ -190,20 +190,20 @@ export const localeStateCases: MatrixCase[] = [
   {
     name: "submitting recognized",
     state: base({ phase: "submitting", recognizedVehicle: recognized }),
-    en: ["Saving intake", "Creating authoritative intake…"],
-    ar: ["جارٍ حفظ سجل الوصول", "جارٍ إنشاء سجل الوصول المعتمد…"],
+    en: ["Creating Intake...", "Creating Intake..."],
+    ar: ["جارٍ إنشاء سجل الوصول...", "جارٍ إنشاء سجل الوصول..."],
   },
   {
     name: "submitting new plate",
     state: base({ phase: "submitting" }),
-    en: ["Saving intake", "New Vehicle"],
-    ar: ["جارٍ حفظ سجل الوصول", "مركبة جديدة"],
+    en: ["Creating Intake...", "New Vehicle"],
+    ar: ["جارٍ إنشاء سجل الوصول...", "مركبة جديدة"],
   },
   {
     name: "submitting descriptor",
     state: base({ phase: "submitting", vehicle: descriptor }),
-    en: ["Saving intake", "New Vehicle"],
-    ar: ["جارٍ حفظ سجل الوصول", "مركبة جديدة"],
+    en: ["Creating Intake...", "New Vehicle"],
+    ar: ["جارٍ إنشاء سجل الوصول...", "مركبة جديدة"],
   },
   {
     name: "phone ambiguous",

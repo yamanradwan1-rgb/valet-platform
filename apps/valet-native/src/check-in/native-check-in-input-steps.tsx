@@ -1,4 +1,3 @@
-import { Text, View } from "react-native";
 import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
@@ -14,81 +13,13 @@ import {
   VehicleCard,
   CheckInStatus,
 } from "./native-check-in-primitives";
-import {
-  checkInFailureMessage,
-  checkInTextStyle,
-} from "./native-check-in-presentation";
-import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInFailureMessage } from "./native-check-in-presentation";
 
 interface StepProps {
   readonly copy: NativeCheckInCopy;
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
-}
-
-export function NativeReturningStep({
-  copy,
-  session,
-  snapshot,
-  textAlign,
-}: StepProps) {
-  const vehicle = snapshot.recognizedVehicle;
-  if (vehicle === null) return null;
-  const suggestion = vehicle.returningCustomer;
-  return (
-    <>
-      <VehicleCard
-        fallback={copy.vehicle}
-        textAlign={textAlign}
-        vehicle={vehicle}
-      />
-      {suggestion ? (
-        <View
-          accessible
-          accessibilityLabel={`${copy.returningCustomer}, ${suggestion.displayName ? `${suggestion.displayName}, ` : ""}${copy.phoneEnding} ${suggestion.phoneSuffix}`}
-          style={s.card}
-        >
-          <Text style={[s.eyebrow, checkInTextStyle("human", textAlign)]}>
-            {copy.returningCustomer}
-          </Text>
-          {suggestion.displayName ? (
-            <Text style={[s.fieldLabel, checkInTextStyle("human", textAlign)]}>
-              {suggestion.displayName}
-            </Text>
-          ) : null}
-          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
-            {copy.phoneEnding}{" "}
-            <Text style={{ writingDirection: "ltr" }}>
-              {suggestion.phoneSuffix}
-            </Text>
-          </Text>
-          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
-            {copy.previousAssociation}
-          </Text>
-          <Text style={[s.text, checkInTextStyle("human", textAlign)]}>
-            {copy.savedBody}
-          </Text>
-        </View>
-      ) : null}
-      {suggestion ? (
-        <CheckInButton
-          label={copy.useSavedCustomer}
-          onPress={() => void session.useSavedCustomer()}
-        />
-      ) : null}
-      <CheckInButton
-        label={suggestion ? copy.differentCustomer : copy.continueToCustomer}
-        onPress={() => session.chooseDifferentCustomer()}
-        secondary={suggestion !== null}
-      />
-      <CheckInButton
-        label={copy.edit}
-        onPress={() => session.editIdentity()}
-        variant="ghost"
-      />
-    </>
-  );
 }
 
 export function NativeCustomerStep({
@@ -119,7 +50,7 @@ export function NativeCustomerStep({
         accessibilityLabel={copy.phone}
         kind="identifier"
         textAlign={textAlign}
-        prefix="+962"
+        prefix="🇯🇴  +962"
         inputMode="tel"
         maxLength={20}
         onChangeText={(customerPhone) =>

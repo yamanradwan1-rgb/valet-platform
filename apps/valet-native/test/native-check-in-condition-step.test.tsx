@@ -87,8 +87,8 @@ describe("MOB-011B Native condition and check-in completion", () => {
       expect(options).toHaveLength(3);
       expect(content(nodes)).toContain(
         locale === "en"
-          ? "Photo requirements are confirmed by the location policy when you continue."
-          : "سيتم التحقق من متطلبات الصور وفق سياسة الموقع عند المتابعة.",
+          ? "Photos optional by location policy"
+          : "الصور اختيارية وفق سياسة الموقع",
       );
       const proceed = nodes.find(
         (node) =>

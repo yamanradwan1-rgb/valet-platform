@@ -13,6 +13,38 @@ import { EmployeeCheckInContinuationSession } from "./employee-check-in-continua
 import type { EmployeeCheckInVehicleDraft } from "./employee-check-in-types";
 
 export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
+  private returningCorrection: {
+    readonly color: string | null;
+    readonly make: string | null;
+    readonly model: string | null;
+  } | null = null;
+
+  activate(
+    identityGeneration: number,
+    locationId: string,
+    workflowOwner = locationId,
+  ): Promise<void> {
+    const current = this.current();
+    if (
+      current.identityGeneration !== identityGeneration ||
+      current.locationId !== locationId ||
+      this.workflowOwner !== workflowOwner
+    ) {
+      this.returningCorrection = null;
+    }
+    return super.activate(identityGeneration, locationId, workflowOwner);
+  }
+
+  clear(): void {
+    this.returningCorrection = null;
+    super.clear();
+  }
+
+  startNew(): void {
+    this.returningCorrection = null;
+    super.startNew();
+  }
+
   setVehicle(patch: Partial<EmployeeCheckInVehicleDraft>): void {
     if (this.snapshot.phase !== "capture") return;
     this.pendingRequest = null;
@@ -48,6 +80,7 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
     )
       return;
     this.pendingRequest = null;
+    this.returningCorrection = null;
     this.publish({
       ...this.snapshot,
       error: null,
@@ -82,6 +115,7 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
         phase: result.vehicle === null ? "vehicle-details" : "returning",
         recognizedVehicle: result.vehicle,
       });
+      this.returningCorrection = null;
     } catch (error) {
       if (!this.isCurrent(request)) return;
       this.publishRecognitionFailure(error);
@@ -128,6 +162,22 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
   chooseDifferentCustomer(): void {
     if (this.snapshot.phase !== "returning") return;
     this.publish({ ...this.snapshot, error: null, phase: "customer" });
+  }
+
+  setReturningVehicleCorrection(details: {
+    readonly color: string | null;
+    readonly make: string | null;
+    readonly model: string | null;
+  }): void {
+    if (this.snapshot.phase !== "returning") return;
+    const recognized = this.snapshot.recognizedVehicle;
+    if (recognized === null) return;
+    this.returningCorrection = details;
+    this.publish({
+      ...this.snapshot,
+      error: null,
+      recognizedVehicle: { ...recognized, ...details },
+    });
   }
 
   setCustomerPhone(customerPhone: string): void {
@@ -186,6 +236,24 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
       this.options.transport,
       input,
     );
-    if (this.isCurrent(request)) this.applyIntakeOutcome(outcome);
+    if (!this.isCurrent(request)) return;
+    const correction = this.returningCorrection;
+    this.applyIntakeOutcome(outcome);
+    if (outcome.kind === "SUCCESS" && correction !== null) {
+      this.editVehicleDetails();
+      this.setVehicleDetails({
+        color: correction.color ?? "",
+        make: correction.make ?? "",
+        model: correction.model ?? "",
+      });
+      await this.submitVehicleDetails();
+      if (
+        this.snapshot.phase === "created" &&
+        this.snapshot.continuation.mode === "view"
+      ) {
+        this.returningCorrection = null;
+        this.continueVehicleIntake();
+      }
+    }
   }
 }

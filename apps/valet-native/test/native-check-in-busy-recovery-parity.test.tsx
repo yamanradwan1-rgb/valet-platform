@@ -112,36 +112,29 @@ function content(nodes: Element[]) {
 
 describe("MOB-010 Patch 5 loading and recovery presentation", () => {
   it.each([
-    ["en", "Check-In Discovery", "Checking saved check-ins…"],
-    ["ar", "استعادة تسجيل الوصول", "جارٍ التحقق من سجلات الوصول المحفوظة…"],
-  ] as const)(
-    "centers localized discovery progress in %s",
-    (locale, title, label) => {
-      const session = controller();
-      const { nodes } = render(snapshot(), locale, session);
-      expect(
-        nodes.filter(
-          (node) =>
-            node.props.accessibilityRole === "header" &&
-            node.props.children === title,
-        ),
-      ).toHaveLength(1);
-      const progress = nodes.find(
-        (node) => node.props.accessibilityRole === "progressbar",
-      )!;
-      expect(progress.props).toMatchObject({
-        accessibilityLabel: label,
-        accessibilityLiveRegion: "polite",
-        accessibilityState: { busy: true },
-      });
-      expect(style(progress)).toMatchObject({
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 320,
-      });
-      expect(session.retryDiscovery).not.toHaveBeenCalled();
-    },
-  );
+    ["en", "Checking for existing check-in drafts..."],
+    ["ar", "جارٍ التحقق من عمليات التسجيل غير المكتملة..."],
+  ] as const)("centers localized discovery progress in %s", (locale, label) => {
+    const session = controller();
+    const { nodes } = render(snapshot(), locale, session);
+    expect(
+      nodes.some((node) => node.props.accessibilityRole === "header"),
+    ).toBe(false);
+    const progress = nodes.find(
+      (node) => node.props.accessibilityRole === "progressbar",
+    )!;
+    expect(progress.props).toMatchObject({
+      accessibilityLabel: label,
+      accessibilityLiveRegion: "polite",
+      accessibilityState: { busy: true },
+    });
+    expect(style(progress)).toMatchObject({
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 320,
+    });
+    expect(session.retryDiscovery).not.toHaveBeenCalled();
+  });
 
   it("uses a safe titled discovery error with exact retry and return actions", () => {
     const session = controller();
@@ -243,8 +236,8 @@ describe("MOB-010 Patch 5 loading and recovery presentation", () => {
       const busy = button(
         nodes,
         kind === "descriptor"
-          ? "جارٍ إنشاء سجل الوصول المعتمد…"
-          : "Creating authoritative intake…",
+          ? "جارٍ إنشاء سجل الوصول..."
+          : "Creating Intake...",
       )!;
       expect(busy.props.accessibilityState).toMatchObject({
         busy: true,

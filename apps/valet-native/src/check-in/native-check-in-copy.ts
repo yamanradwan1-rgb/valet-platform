@@ -2,6 +2,7 @@ import type { EmployeeLocale } from "@valet/employee-client";
 
 export interface NativeCheckInCopy {
   readonly back: string;
+  readonly cancel: string;
   readonly checkServer: string;
   readonly close: string;
   readonly confirmDescription: string;
@@ -15,6 +16,8 @@ export interface NativeCheckInCopy {
   readonly startParking: string;
   readonly customerContact: string;
   readonly color: string;
+  readonly correctVehicleDetails: string;
+  readonly done: string;
   readonly differentCustomer: string;
   readonly discoveryError: string;
   readonly discoveryErrorTitle: string;
@@ -58,6 +61,7 @@ export interface NativeCheckInCopy {
   readonly temporaryDescriptor: string;
   readonly unreadable: string;
   readonly useSavedCustomer: string;
+  readonly unknown: string;
   readonly returningCustomer: string;
   readonly vehicle: string;
   readonly vehicleDescription: string;
@@ -74,6 +78,7 @@ export interface NativeCheckInCopy {
 const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
   en: {
     back: "Back",
+    cancel: "Cancel",
     checkServer: "Check server state",
     close: "Back to tasks",
     confirmDescription: "Confirm Vehicle Description",
@@ -88,6 +93,8 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     startParking: "Start Parking",
     customerContact: "Customer Contact",
     color: "Color",
+    correctVehicleDetails: "Correct vehicle details",
+    done: "Done",
     differentCustomer: "Different customer",
     discoveryError: "Check-in state is temporarily unavailable.",
     discoveryErrorTitle: "Failed to load check-in session",
@@ -98,11 +105,11 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     intakeUnknown:
       "The server result is unknown. Check authoritative state before retrying the same intake.",
     intakeUnknownTitle: "Intake result unknown",
-    loading: "Checking saved check-ins…",
+    loading: "Checking for existing check-in drafts...",
     manualEntry: "Manual Entry",
     multiple: "Multiple Incomplete Check-Ins Found",
     newVehicle: "New Vehicle",
-    noPhone: "Continue without phone",
+    noPhone: "No phone available",
     noPlate: "No plate / unreadable plate",
     noPlateExample: "Example: Silver Toyota SUV",
     phone: "Mobile Number",
@@ -132,12 +139,13 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     smsNotice:
       "Guest Access can be shared by QR or copied link after check-in.",
     scanPlate: "Scan Plate",
-    submitting: "Creating authoritative intake…",
-    submittingTitle: "Saving intake",
+    submitting: "Creating Intake...",
+    submittingTitle: "Creating Intake...",
     title: "New Vehicle Check-In",
     temporaryDescriptor: "Temporary Descriptor",
     unreadable: "Vehicle description",
     useSavedCustomer: "Use saved customer",
+    unknown: "Unknown",
     returningCustomer: "Returning customer",
     vehicle: "Vehicle",
     vehicleDescription: "Vehicle description",
@@ -158,35 +166,38 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
   },
   ar: {
     back: "رجوع",
+    cancel: "إلغاء",
     checkServer: "تحقق من حالة الخادم",
     close: "العودة إلى المهام",
     confirmDescription: "تأكيد وصف المركبة",
     confirmPlate: "تأكيد اللوحة",
     continueLabel: "متابعة",
     continueToCustomer: "متابعة لإدخال رقم العميل",
-    continueWithoutRecognition: "المتابعة دون تعرّف",
+    continueWithoutRecognition: "متابعة بدون التحقق من المركبة",
     country: "الدولة / المنطقة",
     locationTrackingParking: "سيتم تفعيل تتبع الموقع لمهمة الركن هذه",
     parkingTask: "مهمة الإيقاف",
     startParking: "بدء الإيقاف",
     customerContact: "بيانات تواصل العميل",
     color: "اللون",
+    correctVehicleDetails: "تصحيح بيانات المركبة",
+    done: "تم",
     differentCustomer: "عميل مختلف",
     discoveryError: "حالة تسجيل الوصول غير متاحة مؤقتاً.",
     discoveryErrorTitle: "تعذر تحميل جلسة تسجيل المركبة",
-    discoveryTitle: "استعادة تسجيل الوصول",
+    discoveryTitle: "استعادة تسجيل الدخول",
     edit: "تعديل",
     enterManually: "إدخال يدوي",
     enterPlate: "إدخال اللوحة",
     intakeUnknown:
       "نتيجة إنشاء سجل الوصول على الخادم غير معروفة. تحقق من الحالة المعتمدة قبل إعادة محاولة سجل الوصول نفسه.",
     intakeUnknownTitle: "نتيجة سجل الوصول غير معروفة",
-    loading: "جارٍ التحقق من سجلات الوصول المحفوظة…",
+    loading: "جارٍ التحقق من عمليات التسجيل غير المكتملة...",
     manualEntry: "إدخال يدوي",
     multiple: "تم العثور على عدة عمليات غير مكتملة",
     newVehicle: "مركبة جديدة",
     noPhone: "المتابعة دون رقم هاتف",
-    noPlate: "لا توجد لوحة / غير مقروءة",
+    noPlate: "لا توجد لوحة / اللوحة غير مقروءة",
     noPlateExample: "مثال: تويوتا فضية دفع رباعي",
     phone: "رقم الهاتف المحمول",
     make: "الشركة المصنّعة",
@@ -196,7 +207,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
       "يطابق هذا الرقم أكثر من عميل. أدخل رقماً آخر أو تابع دون رقم هاتف؛ لم يُحدَّد أي عميل.",
     savedCustomerStale:
       "لم يعد ارتباط العميل المحفوظ صالحاً. أدخل رقم هاتف العميل الحالي أو تابع دون رقم هاتف.",
-    phoneEnding: "رقم الهاتف المنتهي بـ",
+    phoneEnding: "رقم الهاتف ينتهي بـ",
     plate: "لوحة المركبة",
     previousAssociation:
       "ارتبط هذا العميل سابقاً بهذه المركبة خلال زيارة مكتملة في VAYLET.",
@@ -214,12 +225,13 @@ const COPY: Record<EmployeeLocale, NativeCheckInCopy> = {
     smsNotice:
       "يمكن مشاركة وصول الضيف عبر رمز QR أو الرابط المنسوخ بعد تسجيل الوصول.",
     scanPlate: "مسح اللوحة",
-    submitting: "جارٍ إنشاء سجل الوصول المعتمد…",
-    submittingTitle: "جارٍ حفظ سجل الوصول",
+    submitting: "جارٍ إنشاء سجل الوصول...",
+    submittingTitle: "جارٍ إنشاء سجل الوصول...",
     title: "تسجيل وصول مركبة جديدة",
     temporaryDescriptor: "وصف مؤقت",
     unreadable: "وصف المركبة",
     useSavedCustomer: "استخدام العميل المحفوظ",
+    unknown: "غير معروف",
     returningCustomer: "عميل عائد",
     vehicle: "المركبة",
     vehicleDescription: "وصف المركبة",

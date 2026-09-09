@@ -36,8 +36,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInConditionCopy> = {
     noVisibleIssue: "No visible issue",
     photoRequired:
       "This location requires condition photos. This step cannot continue on this device yet.",
-    photoPolicyNotice:
-      "Photo requirements are confirmed by the location policy when you continue.",
+    photoPolicyNotice: "Photos optional by location policy",
     selected: "Selected",
     title: "Vehicle Condition",
   },
@@ -58,8 +57,7 @@ const COPY: Record<EmployeeLocale, NativeCheckInConditionCopy> = {
     noVisibleIssue: "لا توجد مشاكل ظاهرة",
     photoRequired:
       "يتطلب هذا الموقع صوراً لحالة المركبة. لا يمكن متابعة هذه الخطوة على هذا الجهاز بعد.",
-    photoPolicyNotice:
-      "سيتم التحقق من متطلبات الصور وفق سياسة الموقع عند المتابعة.",
+    photoPolicyNotice: "الصور اختيارية وفق سياسة الموقع",
     selected: "محدد",
     title: "حالة المركبة",
   },
