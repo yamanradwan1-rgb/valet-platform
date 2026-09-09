@@ -462,7 +462,7 @@ evidence. G0 owner physical PASS is recorded separately from production readines
 | ID / unresolved proposition | Classification | Evidence required / accountable gate | Affected work and allowed envelope |
 | --- | --- | --- | --- |
 | U-001 Which production OCR shared/durable cost guard and deployment approval satisfy DEC-074? | UNRESOLVED | MOB-010C: inspect existing anti-abuse semantics, cross-process enforcement and privacy/provider configuration; accepted public limits are already locked, only mechanism/enablement remains open | IF a mechanism is Accepted, MOB-010D implements only it; otherwise retain production UNAVAILABLE and manual/no-plate fallback. Do not repurpose existing scopes silently |
-| U-002 What verified condition-photo byte pipeline is available, and what pilot photo policy must Native support? | UNRESOLVED | MOB-011C: trace current object-storage/initiation/verification/ownership contracts against actual Web; owner resolves missing material upload/retention semantics before MOB-011D | IF existing accepted byte pipeline suffices, adapt it; IF a new contract is needed, decision first. Photo-required pilot cannot pass on metadata or an unverified URI |
+| U-002 What verified condition-photo byte pipeline is available, and what pilot photo policy must Native support? | UNRESOLVED; `DEC-075_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md` is Proposed and awaits owner acceptance | MOB-011C: trace current object-storage/initiation/verification/ownership contracts against actual Web; owner resolves missing material upload/retention semantics before MOB-011D | IF the Proposed server-mediated byte pipeline is Accepted, implement only its reviewed children; otherwise retain the gate. Photo-required pilot cannot pass on metadata or an unverified URI |
 | U-003 What Native tracking acquisition/permission/sampling contract and pilot inclusion implement accepted task-scoped policy? | UNRESOLVED | MOB-019A: reconcile DEC-045 and related tracking decisions with mobile lifecycle/battery/privacy and current adapters; owner accepts only missing Native details | IF included, MOB-019B implements the Accepted adapter contract; IF excluded from pilot by owner, retain explicit scope/defer record. Core task-scoped policy is already accepted; no re-vote on server authority |
 | U-004 What measured pilot capacity and performance/SLO thresholds are accepted? | UNRESOLVED | MOB-025A: present measured baselines, hardware/cohort assumptions, latency/staleness/error/recovery and soak results; owner records thresholds before go/no-go | Use proposed experiments, not invented pass numbers. Correctness hard-zero requirements remain binding regardless of threshold |
 | U-005 What typed push retry/TTL/lease/retention/provider deployment values satisfy DEC-073? | UNRESOLVED | MOB-020D with release owner: choose validated finite values, timeout shorter than lease, secret custody and provider environment; record approved deployment configuration | DEC-073 selects state machine/FCM/fencing; values remain unset here. No new payload fields, provider service or persistence semantics inferred |
@@ -827,8 +827,10 @@ missing test command):
 
 ### MOB-011C — Verified condition-photo capability decision gate
 
-- **STATUS / SIZE / DEPENDENCIES:** NOT STARTED; S decision/audit to resolve U-002;
-  MOB-011B. Approved implementation belongs to MOB-011D.
+- **STATUS / SIZE / DEPENDENCIES:** AUDIT COMPLETE; PROPOSED DECISION AWAITS OWNER
+  ACCEPTANCE; S decision/audit to resolve U-002; MOB-011B. Proposed artifact:
+  `docs/decisions/DEC-075_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md`. Approved
+  implementation belongs to MOB-011D; U-002 remains unresolved until acceptance.
 - **OBJECTIVE / WHY / OUTCOME:** Prove real private bytes satisfy configured photo
   policy. MC-08; read Web condition/upload, current storage and verification
   contracts, photo policy and privacy authority. Metadata is not upload success.
