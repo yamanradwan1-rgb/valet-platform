@@ -97,13 +97,14 @@ export function nativeTaskActionLabel(
       ? copy.claimParking
       : copy.claimRetrieval;
   }
-  if (task.status === "ASSIGNED") return copy.accept;
+  if (task.status === "ASSIGNED")
+    return task.taskType === "PARKING" ? copy.acceptAndPark : copy.accept;
   if (task.taskType === "PARKING" && task.status === "ACCEPTED")
     return copy.startParking;
   if (task.taskType === "PARKING" && task.status === "IN_PROGRESS")
     return copy.continueParking;
   if (task.taskType === "RETRIEVAL" && task.status === "ACCEPTED")
-    return copy.startRetrieval;
+    return copy.openRetrieval;
   if (task.taskType === "RETRIEVAL" && task.status === "IN_PROGRESS")
     return copy.continueRetrieval;
   return undefined;

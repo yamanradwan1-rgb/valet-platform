@@ -84,11 +84,12 @@ describe("Employee shell composition contract", () => {
     expect(tasks).not.toContain("nativeOperationalFacts");
     expect(tasks).not.toContain("<Fact");
     expect(strip).toContain("scope.locationName");
+    expect(strip).toContain("shiftStartedAt");
+    expect(strip).toContain("nowLabel");
     for (const forbidden of [
       "organizationName",
       "role",
       "shiftId",
-      "shiftStartedAt",
       "locationCode",
     ]) {
       expect(strip).not.toContain(forbidden);

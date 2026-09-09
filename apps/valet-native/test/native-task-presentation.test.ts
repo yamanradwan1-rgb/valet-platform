@@ -159,7 +159,7 @@ describe("Native Tasks presentation", () => {
         currentAssigneeMembershipId: null,
         status: "QUEUED",
       }),
-    ).toBe("Claim task");
+    ).toBe("Claim & Park");
   });
 
   it("formats age and parking context from canonical task facts", () => {

@@ -1,18 +1,15 @@
 import { Pressable, Text, View } from "react-native";
 import type {
-  EmployeeOperationalSession,
   EmployeeOperationalSnapshot,
   StaffTaskQueueItem,
 } from "@valet/employee-client";
 
 import { EmployeeBadge } from "../employee-ui/employee-feedback";
+import { EmployeeChevronRightIcon } from "../employee-ui/employee-icons";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
-  canAcceptNativeTask,
   canOpenNativeHandoffOverride,
-  canOpenNativeParkingTask,
-  canOpenNativeRetrievalTask,
   nativeTaskActionLabel,
   nativeTaskParkingContext,
   nativeTaskStatusLabel,
@@ -24,53 +21,33 @@ import {
 import { nativeTaskQueueRowStyles as s } from "./native-task-queue-row-styles";
 import type { NativeTasksCopy } from "./native-tasks-copy";
 
-export function NativeTaskQueueRow({
-  copy,
-  locale,
-  operations,
-  onOpenParking = () => undefined,
-  onOpenRetrieval = () => undefined,
-  snapshot,
-  task,
-  textAlign,
-}: {
+export function NativeTaskQueueRow(props: {
+  readonly busy: boolean;
   readonly copy: NativeTasksCopy;
   readonly locale: FoundationLocale;
-  readonly operations: EmployeeOperationalSession;
-  readonly onOpenParking?:
-    ((taskId: string, sessionId: string) => void) | undefined;
-  readonly onOpenRetrieval?:
-    ((taskId: string, sessionId: string) => void) | undefined;
+  readonly onAction: () => void;
+  readonly onOverrideHandoff: () => void;
   readonly snapshot: EmployeeOperationalSnapshot;
   readonly task: StaffTaskQueueItem;
   readonly textAlign: "left" | "right";
 }) {
-  const humanText = employeeTextStyle("human", textAlign);
+  const {
+    busy,
+    copy,
+    locale,
+    onAction,
+    onOverrideHandoff,
+    snapshot,
+    task,
+    textAlign,
+  } = props;
+  const human = employeeTextStyle("human", textAlign);
   const identifierText = employeeTextStyle("identifier", textAlign);
   const assignedToOther =
     task.currentAssigneeMembershipId !== null &&
     task.currentAssigneeMembershipId !== snapshot.scope?.membershipId;
-  const retry =
-    snapshot.mutation.taskId === task.taskId &&
-    snapshot.mutation.phase === "retry-available";
-  const busy =
-    snapshot.mutation.taskId === task.taskId &&
-    (snapshot.mutation.phase === "submitting" ||
-      snapshot.mutation.phase === "reconciling");
-  const opensParking = canOpenNativeParkingTask(snapshot, task);
-  const opensRetrieval = canOpenNativeRetrievalTask(snapshot, task);
-  const opensOverride = canOpenNativeHandoffOverride(snapshot, task);
-  const actionable =
-    canAcceptNativeTask(snapshot, task) ||
-    retry ||
-    opensParking ||
-    opensRetrieval ||
-    opensOverride;
-  const actionLabel = retry
-    ? copy.retry
-    : opensOverride
-      ? copy.overrideHandoff
-      : nativeTaskActionLabel(copy, task);
+  const override = canOpenNativeHandoffOverride(snapshot, task);
+  const actionable = !assignedToOther || override;
   const identifier = nativeTaskVehicleIdentifier(task);
   const context =
     nativeTaskParkingContext(task) ?? nativeTaskStatusLabel(copy, task.status);
@@ -83,26 +60,18 @@ export function NativeTaskQueueRow({
         nativeTaskTypeLabel(copy, task.taskType),
         nativeTaskTime(copy, locale, task),
         context,
-        actionable ? actionLabel : undefined,
+        override ? copy.overrideHandoff : nativeTaskActionLabel(copy, task),
       ]
         .filter(Boolean)
         .join(". ")}
       accessibilityRole={actionable ? "button" : undefined}
       accessibilityState={{ busy, disabled: !actionable || busy }}
       disabled={!actionable || busy}
-      onPress={() => {
-        if (opensParking) {
-          onOpenParking(task.taskId, task.sessionId);
-        } else if (opensRetrieval || opensOverride) {
-          onOpenRetrieval(task.taskId, task.sessionId);
-        } else {
-          void operations.acceptTask(task.taskId);
-        }
-      }}
+      onPress={override ? onOverrideHandoff : onAction}
       style={[
         s.row,
         { flexDirection: direction === "rtl" ? "row-reverse" : "row" },
-        assignedToOther ? s.assignedToOther : null,
+        assignedToOther && s.assignedToOther,
       ]}
       testID={`native-queue-row-${task.taskId}`}
     >
@@ -115,10 +84,11 @@ export function NativeTaskQueueRow({
         >
           <EmployeeBadge
             label={nativeTaskTypeLabel(copy, task.taskType)}
+            showDot
             textAlign={textAlign}
-            variant={task.taskType === "RETRIEVAL" ? "danger" : "primary"}
+            variant={task.taskType === "PARKING" ? "warning" : "primary"}
           />
-          <Text style={[s.time, humanText]}>
+          <Text style={[s.time, human]}>
             {nativeTaskTime(copy, locale, task)}
           </Text>
           {assignedToOther ? (
@@ -129,9 +99,7 @@ export function NativeTaskQueueRow({
             />
           ) : null}
         </View>
-        <Text style={[s.vehicle, humanText]}>
-          {nativeTaskVehicleLabel(task)}
-        </Text>
+        <Text style={[s.vehicle, human]}>{nativeTaskVehicleLabel(task)}</Text>
         <View
           style={[
             s.meta,
@@ -141,16 +109,16 @@ export function NativeTaskQueueRow({
           {identifier ? (
             <Text style={[s.detail, identifierText]}>{identifier}</Text>
           ) : null}
-          {identifier ? <Text style={[s.detail, humanText]}> · </Text> : null}
-          <Text style={[s.detail, humanText]}>{context}</Text>
+          {identifier ? <Text style={[s.detail, human]}> · </Text> : null}
+          <Text style={[s.detail, human]}>{context}</Text>
         </View>
       </View>
       {busy ? (
-        <Text style={[s.busy, humanText]}>{copy.processing}</Text>
+        <Text style={[s.busy, human]}>{copy.processing}</Text>
+      ) : override ? (
+        <Text style={[s.busy, human]}>{copy.overrideHandoff}</Text>
       ) : actionable ? (
-        <Text accessible={false} style={s.chevron}>
-          {direction === "rtl" ? "‹" : "›"}
-        </Text>
+        <EmployeeChevronRightIcon size={16} />
       ) : null}
     </Pressable>
   );

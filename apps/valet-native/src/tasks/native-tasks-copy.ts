@@ -2,6 +2,8 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 
 export interface NativeTasksCopy {
   readonly accept: string;
+  readonly acceptAndPark: string;
+  readonly actionFailed: string;
   readonly accessChanged: string;
   readonly accepted: string;
   readonly age: string;
@@ -15,9 +17,13 @@ export interface NativeTasksCopy {
   readonly dismiss: string;
   readonly loading: string;
   readonly otherStaff: string;
+  readonly newVehicle: string;
+  readonly now: string;
+  readonly openRetrieval: string;
   readonly overrideHandoff: string;
   readonly parking: string;
   readonly priority: string;
+  readonly queue: string;
   readonly rateLimited: string;
   readonly noShift: string;
   readonly processing: string;
@@ -47,26 +53,32 @@ export interface NativeTasksCopy {
 const copy: Record<FoundationLocale, NativeTasksCopy> = {
   en: {
     accept: "Accept",
+    acceptAndPark: "Accept & Park",
+    actionFailed: "The operation failed. Refresh and try again.",
     accessChanged: "Task access changed. Refresh your operational context.",
     accepted: "Accepted from current server state.",
     age: "Age",
-    activeShift: "Active shift",
+    activeShift: "Shift active",
     ambiguousShifts: "More than one active Shift needs resolution.",
     conflict: "The Task changed. Current server state is shown.",
-    claimParking: "Claim task",
-    claimRetrieval: "Claim retrieval",
+    claimParking: "Claim & Park",
+    claimRetrieval: "Accept Task",
     dismiss: "Dismiss",
     empty: "No Tasks are currently available.",
     error: "Operational state is temporarily unavailable.",
     loading: "Loading current operational state…",
     noShift: "No active eligible Shift.",
     otherStaff: "Other staff",
+    newVehicle: "New Vehicle",
+    now: "now",
+    openRetrieval: "Open Retrieval",
     overrideHandoff: "Override Handoff",
     parking: "Parking",
     priority: "Priority task",
+    queue: "Queue",
     rateLimited:
       "Task refresh is rate limited. The normal refresh cycle will resume.",
-    processing: "Accepting…",
+    processing: "Processing...",
     continueParking: "Continue Parking",
     reconcile: "Checking current server state…",
     refresh: "Refresh",
@@ -77,7 +89,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     requested: "Requested",
     retry: "Retry task action",
     status: "Status",
-    statusAccepted: "Accepted",
+    statusAccepted: "Active",
     statusAssigned: "Assigned",
     statusInProgress: "In progress",
     statusQueued: "Queued",
@@ -92,25 +104,31 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
   },
   ar: {
     accept: "قبول",
+    acceptAndPark: "قبول وبدء الإيقاف",
+    actionFailed: "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
     accessChanged: "تغير صلاحية الوصول إلى المهام. حدّث السياق التشغيلي.",
     accepted: "تم القبول وفق حالة الخادم الحالية.",
     age: "المدة",
-    activeShift: "وردية نشطة",
+    activeShift: "المناوبة نشطة",
     ambiguousShifts: "توجد أكثر من وردية نشطة وتحتاج إلى معالجة.",
     conflict: "تغيرت المهمة. تظهر الآن حالة الخادم الحالية.",
-    claimParking: "استلام المهمة",
-    claimRetrieval: "استلام طلب الاسترجاع",
+    claimParking: "استلام وإيقاف",
+    claimRetrieval: "قبول المهمة",
     dismiss: "إخفاء",
     empty: "لا توجد مهام متاحة حاليًا.",
     error: "الحالة التشغيلية غير متاحة مؤقتًا.",
     loading: "جارٍ تحميل الحالة التشغيلية الحالية…",
     noShift: "لا توجد وردية نشطة مؤهلة.",
     otherStaff: "موظف آخر",
+    newVehicle: "مركبة جديدة",
+    now: "الآن",
+    openRetrieval: "فتح الاسترجاع",
     overrideHandoff: "تجاوز التسليم",
     parking: "صف المركبة",
     priority: "المهمة ذات الأولوية",
+    queue: "قائمة الانتظار",
     rateLimited: "تم تقييد تحديث المهام مؤقتًا. ستستأنف دورة التحديث المعتادة.",
-    processing: "جارٍ القبول…",
+    processing: "جارٍ المعالجة...",
     continueParking: "متابعة الاصطفاف",
     reconcile: "جارٍ التحقق من حالة الخادم الحالية…",
     refresh: "تحديث",
@@ -121,7 +139,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     requested: "مطلوبة",
     retry: "إعادة محاولة إجراء المهمة",
     status: "الحالة",
-    statusAccepted: "مقبولة",
+    statusAccepted: "نشط",
     statusAssigned: "مسندة",
     statusInProgress: "قيد التنفيذ",
     statusQueued: "في قائمة الانتظار",

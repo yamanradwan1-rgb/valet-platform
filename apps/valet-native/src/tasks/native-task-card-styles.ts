@@ -3,13 +3,12 @@ import { StyleSheet } from "react-native";
 import {
   employeeColors as c,
   employeeRadius,
-  employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 
 export const nativeTaskCardStyles = StyleSheet.create({
   accent: { backgroundColor: c.blue, height: 4 },
-  age: { ...type.header, color: c.danger, fontWeight: "700" },
+  age: { ...type.operationalValueStrong, color: c.danger },
   ageLabel: { ...type.badge, color: c.neutral, textTransform: "uppercase" },
   ageWrap: { alignItems: "flex-end" },
   card: {
@@ -19,28 +18,32 @@ export const nativeTaskCardStyles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
-  content: { gap: space.sm, padding: space.lg },
-  detail: { ...type.small, color: c.neutral },
+  assignedToOther: { opacity: 0.75 },
+  content: { padding: 20 },
+  detail: { ...type.supportingLarge, color: c.neutral, marginTop: 6 },
   header: {
     alignItems: "flex-start",
     flexDirection: "row",
     justifyContent: "space-between",
+    marginBottom: 16,
   },
-  plate: { ...type.label, color: c.navy },
-  priorityLabel: {
-    ...type.badge,
-    color: c.blue,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-  },
+  vehicleMeta: { ...type.body, color: c.neutral },
+  vehicleMetaRow: { flexDirection: "row" },
   statusRow: {
     alignItems: "center",
     borderTopColor: c.border,
     borderTopWidth: 1,
     flexDirection: "row",
-    gap: space.sm,
     justifyContent: "space-between",
-    paddingTop: space.sm,
+    marginTop: 16,
+    paddingTop: 16,
   },
-  vehicle: { ...type.header, color: c.navy, fontSize: 17, fontWeight: "700" },
+  statusLabel: {
+    ...type.badge,
+    color: c.neutral,
+    fontWeight: "400",
+    textTransform: "uppercase",
+  },
+  statusText: { ...type.body, color: c.navy, fontWeight: "600", marginTop: 2 },
+  vehicle: { ...type.vehicleIdentity, color: c.navy },
 });

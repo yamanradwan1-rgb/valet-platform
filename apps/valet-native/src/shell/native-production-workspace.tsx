@@ -10,13 +10,10 @@ import type {
 import { StyleSheet, View } from "react-native";
 
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
-import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
   EmployeeAppHeader,
   EmployeeFrame,
 } from "../employee-ui/employee-frame";
-import { EmployeePlusIcon } from "../employee-ui/employee-icons";
-import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import {
   getFoundationPresentation,
   type FoundationLocale,
@@ -24,6 +21,9 @@ import {
 import { NativeActiveShiftPanel } from "../shift/native-active-shift-panel";
 import { NativeRetrievalAttention } from "../tasks/native-retrieval-attention";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
+import { NativeNewVehicleButton } from "../tasks/native-new-vehicle-button";
+import { executeNativeTaskAction } from "../tasks/native-task-action-sequence";
+import { getNativeTasksCopy } from "../tasks/native-tasks-copy";
 import { NativeCheckInRoute } from "./native-check-in-route";
 import { NativeParkingStartPanel } from "../parking/native-parking-start-panel";
 import { NativeParkingConfirmPanel } from "../parking/native-parking-confirm-panel";
@@ -75,6 +75,7 @@ export function NativeProductionWorkspace({
 }) {
   const presentation = getFoundationPresentation(locale);
   const copy = getNativeShellCopy(locale);
+  const taskCopy = getNativeTasksCopy(locale);
   const shiftEnd = runtime.shiftEnd.current();
 
   return (
@@ -186,57 +187,57 @@ export function NativeProductionWorkspace({
             />
           )
         ) : (
-          <View style={styles.tasks}>
-            <NativeTasksPanel
-              heading={copy.tasks}
-              headerAction={
-                <EmployeeButton
-                  label={copy.checkIn}
-                  leading={<EmployeePlusIcon />}
-                  onPress={() => navigate("check-in")}
-                  size="compact"
-                />
+          <NativeTasksPanel
+            heading={copy.tasks}
+            headerAction={
+              <NativeNewVehicleButton
+                label={taskCopy.newVehicle}
+                onPress={() => navigate("check-in")}
+              />
+            }
+            locale={locale}
+            operations={runtime.operations}
+            onOverrideHandoff={(task) => {
+              openHandoff(
+                runtime,
+                authSnapshot,
+                shell,
+                task.taskId,
+                task.sessionId,
+              );
+              navigate("retrieval");
+            }}
+            onTaskAction={async (task) => {
+              const result = await executeNativeTaskAction({
+                identityGeneration: authSnapshot.authGeneration,
+                operations: runtime.operations,
+                parking: runtime.parking,
+                retrieval: runtime.retrieval,
+                scope: shell.scope,
+                task,
+              });
+              if (result.kind !== "navigate") return false;
+              if (
+                result.destination === "retrieval" &&
+                task.valetSessionState === "HANDOFF_PENDING"
+              ) {
+                openHandoff(
+                  runtime,
+                  authSnapshot,
+                  shell,
+                  task.taskId,
+                  task.sessionId,
+                );
+              } else if (result.destination === "retrieval") {
+                runtime.handoff.clear();
+                runtime.release.clear();
               }
-              locale={locale}
-              operations={runtime.operations}
-              onOpenParking={(taskId, sessionId) => {
-                void runtime.parking.openQueueTask(
-                  authSnapshot.authGeneration,
-                  shell.scope,
-                  taskId,
-                  sessionId,
-                );
-                navigate("parking");
-              }}
-              onOpenRetrieval={(taskId, sessionId) => {
-                const task = operations.tasks.find(
-                  (item) => item.taskId === taskId,
-                );
-                if (task?.valetSessionState === "HANDOFF_PENDING") {
-                  runtime.retrieval.clear();
-                  runtime.release.clear();
-                  void runtime.handoff.openTask(
-                    authSnapshot.authGeneration,
-                    shell.scope,
-                    taskId,
-                    sessionId,
-                  );
-                } else {
-                  runtime.handoff.clear();
-                  runtime.release.clear();
-                  void runtime.retrieval.openQueueTask(
-                    authSnapshot.authGeneration,
-                    shell.scope,
-                    taskId,
-                    sessionId,
-                  );
-                }
-                navigate("retrieval");
-              }}
-              snapshot={operations}
-              textAlign={presentation.textAlign}
-            />
-          </View>
+              navigate(result.destination);
+              return true;
+            }}
+            snapshot={operations}
+            textAlign={presentation.textAlign}
+          />
         )}
       </View>
       <NativeProductionNavigation
@@ -265,12 +266,23 @@ function closeRetrieval(
   navigate("tasks");
 }
 
+function openHandoff(
+  runtime: NativeEmployeeRuntime,
+  authSnapshot: NativeAuthSnapshot,
+  shell: ActiveShell,
+  taskId: string,
+  sessionId: string,
+) {
+  runtime.retrieval.clear();
+  runtime.release.clear();
+  void runtime.handoff.openTask(
+    authSnapshot.authGeneration,
+    shell.scope,
+    taskId,
+    sessionId,
+  );
+}
+
 const styles = StyleSheet.create({
   content: { flex: 1, minHeight: 0, position: "relative" },
-  tasks: {
-    flex: 1,
-    minHeight: 0,
-    paddingHorizontal: space.screen,
-    paddingVertical: space.lg,
-  },
 });

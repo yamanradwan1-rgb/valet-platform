@@ -4,23 +4,22 @@ import type { EmployeeOperationalScope } from "@valet/employee-client";
 import {
   employeeColors as c,
   employeeRadius,
-  employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
 import {
   employeeTextStyle,
   employeeTypography as type,
   type EmployeeTextAlign,
 } from "../employee-ui/employee-typography";
+import type { FoundationLocale } from "../foundation/foundation-locale";
 
 export const nativeTaskShiftStripStyles = StyleSheet.create({
   strip: {
     alignItems: "center",
     backgroundColor: c.navy3,
-    borderRadius: employeeRadius.form,
     flexDirection: "row",
-    gap: space.sm,
-    paddingHorizontal: space.lg,
-    paddingVertical: space.sm,
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   indicator: {
     backgroundColor: c.success,
@@ -28,41 +27,54 @@ export const nativeTaskShiftStripStyles = StyleSheet.create({
     height: 8,
     width: 8,
   },
-  copy: { flex: 1 },
-  primary: { ...type.small, color: c.white, fontWeight: "600" },
-  secondary: { ...type.small, color: c.muted },
+  line: { alignItems: "center", flex: 1, flexDirection: "row", minWidth: 0 },
+  primary: { ...type.supporting, color: c.white, fontWeight: "600" },
+  secondary: { ...type.supporting, color: c.muted, flexShrink: 1 },
 });
 
 export function NativeTaskShiftStrip({
   activeLabel,
+  locale,
+  nowLabel,
   scope,
   textAlign,
 }: {
   readonly activeLabel: string;
+  readonly locale: FoundationLocale;
+  readonly nowLabel: string;
   readonly scope: EmployeeOperationalScope;
   readonly textAlign: EmployeeTextAlign;
 }) {
-  const humanText = employeeTextStyle("human", textAlign);
+  const human = employeeTextStyle("human", textAlign);
+  const start = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(scope.shiftStartedAt));
   return (
     <View
       accessible
-      accessibilityLabel={`${activeLabel}, ${scope.locationName}`}
-      style={[
-        nativeTaskShiftStripStyles.strip,
-        { direction: textAlign === "right" ? "rtl" : "ltr" },
-      ]}
+      accessibilityLabel={`${activeLabel}, ${start}, ${nowLabel}, ${scope.locationName}`}
+      style={nativeTaskShiftStripStyles.strip}
       testID="native-task-shift-strip"
     >
       <View accessible={false} style={nativeTaskShiftStripStyles.indicator} />
-      <View style={nativeTaskShiftStripStyles.copy}>
-        <Text style={[nativeTaskShiftStripStyles.primary, humanText]}>
+      <View
+        style={[
+          nativeTaskShiftStripStyles.line,
+          { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
+        ]}
+      >
+        <Text
+          numberOfLines={1}
+          style={[nativeTaskShiftStripStyles.primary, human]}
+        >
           {activeLabel}
         </Text>
         <Text
           numberOfLines={1}
-          style={[nativeTaskShiftStripStyles.secondary, humanText]}
+          style={[nativeTaskShiftStripStyles.secondary, human]}
         >
-          {scope.locationName}
+          {` · ${start} – ${nowLabel} · ${scope.locationName}`}
         </Text>
       </View>
     </View>

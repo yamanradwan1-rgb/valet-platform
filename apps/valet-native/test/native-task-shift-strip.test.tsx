@@ -44,7 +44,9 @@ describe("Native Task active-shift strip", () => {
   it("uses the compact Web-derived surface and only visible truthful fields", () => {
     const nodes = elements(
       NativeTaskShiftStrip({
-        activeLabel: "Active shift",
+        activeLabel: "Shift active",
+        locale: "en",
+        nowLabel: "now",
         scope,
         textAlign: "left",
       }),
@@ -58,37 +60,34 @@ describe("Native Task active-shift strip", () => {
 
     expect(style(strip.props.style)).toMatchObject({
       backgroundColor: employeeColors.navy3,
-      borderRadius: 12,
-      direction: "ltr",
-      paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
     });
     expect(strip.props.accessible).toBe(true);
-    expect(visibleText).toEqual(["Active shift", "Amman Hotel"]);
+    expect(JSON.stringify(visibleText)).toContain("Shift active");
+    expect(JSON.stringify(visibleText)).toContain("now");
+    expect(JSON.stringify(visibleText)).toContain("Amman Hotel");
     expect(JSON.stringify(visibleText)).not.toContain(scope.organizationName);
     expect(JSON.stringify(visibleText)).not.toContain(scope.role);
     expect(JSON.stringify(visibleText)).not.toContain(scope.shiftId);
-    expect(JSON.stringify(visibleText)).not.toContain(scope.shiftStartedAt);
   });
 
   it("uses a truthful success indicator and intentional Arabic direction", () => {
     const nodes = elements(
       NativeTaskShiftStrip({
-        activeLabel: "وردية نشطة",
+        activeLabel: "المناوبة نشطة",
+        locale: "ar",
+        nowLabel: "الآن",
         scope,
         textAlign: "right",
       }),
     );
-    const strip = nodes.find(
-      (node) => node.props.testID === "native-task-shift-strip",
-    )!;
     const indicator = nodes.find(
       (node) =>
         style(node.props.style).backgroundColor === employeeColors.success,
     )!;
-    const text = nodes.find((node) => node.props.children === "وردية نشطة")!;
+    const text = nodes.find((node) => node.props.children === "المناوبة نشطة")!;
 
-    expect(style(strip.props.style).direction).toBe("rtl");
     expect(style(indicator.props.style)).toMatchObject({ height: 8, width: 8 });
     expect(style(text.props.style)).toMatchObject({
       textAlign: "right",

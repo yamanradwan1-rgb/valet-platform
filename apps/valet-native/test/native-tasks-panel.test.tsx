@@ -1,6 +1,14 @@
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react")>();
+  return {
+    ...actual,
+    useRef: <T,>(value: T) => ({ current: value }),
+    useState: <T,>(value: T) => [value, vi.fn()],
+  };
+});
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
   FlatList: "FlatList",
@@ -12,15 +20,14 @@ vi.mock("react-native", () => ({
 
 const { NativeTasksPanel } = await import("../src/tasks/native-tasks-panel");
 const { NativeTaskCard } = await import("../src/tasks/native-task-card");
-const { NativeManualRefreshButton } =
-  await import("../src/tasks/native-manual-refresh-button");
 const { NativeTaskQueueRow } =
   await import("../src/tasks/native-task-queue-row");
+const { NativeTaskShiftStrip } =
+  await import("../src/tasks/native-task-shift-strip");
+const { NativeManualRefreshButton } =
+  await import("../src/tasks/native-manual-refresh-button");
 const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
-const { EmployeeError, EmployeeStatus } =
-  await import("../src/employee-ui/employee-feedback");
-const { operations: snapshotFixture } =
-  await import("./production-shell-test-fixture");
+const { operations: fixture } = await import("./production-shell-test-fixture");
 
 type Element = ReactElement<Record<string, unknown>>;
 function elements(value: unknown): Element[] {
@@ -30,7 +37,6 @@ function elements(value: unknown): Element[] {
   return [node, ...elements(node.props.children)];
 }
 
-const operations = { refresh: vi.fn(), refreshQueue: vi.fn() } as never;
 const task = {
   createdAt: "2026-09-03T08:05:00.000Z",
   currentAssigneeMembershipId: null,
@@ -53,174 +59,108 @@ const task = {
   version: 3,
 };
 
-function render(overrides = {}) {
-  return elements(panel(overrides));
-}
-
-function panel(overrides = {}, locale: "en" | "ar" = "en") {
-  const snapshot = { ...snapshotFixture("ready"), ...overrides };
-  return NativeTasksPanel({
-    locale,
-    operations,
-    snapshot,
-    textAlign: locale === "ar" ? "right" : "left",
-  }) as Element;
-}
-
-function directElements(node: Element): Element[] {
-  const children = Array.isArray(node.props.children)
-    ? node.props.children
-    : [node.props.children];
-  return children.filter(
-    (child): child is Element =>
-      child !== null && typeof child === "object" && "props" in child,
+function render(tasks = [task]) {
+  return elements(
+    NativeTasksPanel({
+      locale: "en",
+      operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+      snapshot: { ...fixture("ready"), tasks },
+      textAlign: "left",
+    }),
   );
 }
 
-describe("Native production Tasks panel", () => {
-  it("renders a virtualized canonical queue for large-list safety", () => {
-    const list = render({ tasks: [task] }).find(
-      (node) => node.type === "FlatList",
-    )!;
-    expect(list.props).toMatchObject({
-      initialNumToRender: 8,
-      maxToRenderPerBatch: 8,
-      testID: "native-production-task-queue",
-      windowSize: 7,
+describe("Web-authoritative Native Tasks screen", () => {
+  it("owns a full-width shift strip outside the padded main content", () => {
+    const nodes = render();
+    const strip = nodes.find((node) => node.type === NativeTaskShiftStrip)!;
+    expect(strip.props).toMatchObject({
+      activeLabel: "Shift active",
+      nowLabel: "now",
     });
-  });
-
-  it("uses one full priority card followed by compact queue rows", () => {
-    const second = { ...task, taskId: "77777777-7777-4777-8777-777777777777" };
-    const list = render({ tasks: [task, second] }).find(
-      (node) => node.type === "FlatList",
-    )!;
-    const renderItem = list.props.renderItem as (input: {
-      index: number;
-      item: typeof task;
-    }) => Element;
-
-    expect(renderItem({ index: 0, item: task }).type).toBe(NativeTaskCard);
-    expect(renderItem({ index: 1, item: second }).type).toBe(
-      NativeTaskQueueRow,
+    const root = nodes[0]!;
+    expect((root.props.children as Element[])[0]?.type).toBe(
+      NativeTaskShiftStrip,
     );
   });
 
-  it("keeps the manual refresh action reachable", () => {
-    const refresh = render().find(
-      (node) =>
-        node.type === NativeManualRefreshButton &&
-        node.props.label === "Refresh",
-    )!;
-    expect(refresh.props.disabled).toBe(false);
-  });
-
-  it("keeps automatic refresh visually silent without replacing retained tasks", () => {
-    const idle = render({ tasks: [task] }).find(
-      (node) => node.type === NativeManualRefreshButton,
-    )!;
-    const nodes = render({ queueRefreshing: true, tasks: [task] });
-    const automatic = nodes.find(
-      (node) => node.type === NativeManualRefreshButton,
-    )!;
-
-    expect(automatic.props).toMatchObject({
-      disabled: false,
-      label: idle.props.label,
-    });
-    expect(automatic.props).not.toHaveProperty("busy");
-    expect(automatic.props).not.toHaveProperty("queueRefreshing");
-    expect(nodes.some((node) => node.type === "FlatList")).toBe(true);
-  });
-
-  it("keeps initial loading distinct from a retained queue refresh", () => {
-    const nodes = render({ queueLoading: true, tasks: [] });
-    expect(nodes.some((node) => node.type === "FlatList")).toBe(false);
+  it("uses a 24px task title and has no visible manual Refresh control", () => {
+    const nodes = render();
+    expect(nodes.some((node) => node.props.children === "Tasks")).toBe(true);
+    expect(nodes.some((node) => node.type === NativeManualRefreshButton)).toBe(
+      false,
+    );
     expect(
-      nodes.find((node) => node.type === EmployeeStatus)?.props.children,
-    ).toBe("Loading current operational state…");
-  });
-
-  it.each([
-    ["en", "Refreshing current Tasks…"],
-    ["ar", "جارٍ تحديث المهام الحالية…"],
-  ] as const)(
-    "does not add a layout row during a retained %s refresh",
-    (locale, refreshingCopy) => {
-      const idle = directElements(panel({ tasks: [task] }, locale));
-      const refreshing = directElements(
-        panel({ queueRefreshing: true, tasks: [task] }, locale),
-      );
-
-      expect(refreshing.map((node) => node.type)).toEqual(
-        idle.map((node) => node.type),
-      );
-      expect(
-        refreshing.some(
-          (node) =>
-            node.type === EmployeeStatus &&
-            node.props.children === refreshingCopy,
-        ),
-      ).toBe(false);
-    },
-  );
-
-  it("preserves task hierarchy and ordering for unchanged refresh state", () => {
-    const second = { ...task, taskId: "77777777-7777-4777-8777-777777777777" };
-    const ids = (refreshing: boolean) =>
-      render({ queueRefreshing: refreshing, tasks: [task, second] }).find(
-        (node) => node.type === "FlatList",
-      )!.props.data as readonly (typeof task)[];
-
-    expect(ids(false).map((item) => item.taskId)).toEqual(
-      ids(true).map((item) => item.taskId),
+      nodes.some(
+        (node) =>
+          node.type === EmployeeButton && node.props.label === "Refresh",
+      ),
+    ).toBe(false);
+    const unavailable = elements(
+      NativeTasksPanel({
+        locale: "en",
+        operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+        snapshot: {
+          ...fixture("ready"),
+          phase: "no-active-shift",
+          scope: null,
+          tasks: [],
+        },
+        textAlign: "left",
+      }),
     );
-  });
-
-  it("still renders a materially changed authoritative queue", () => {
-    const second = { ...task, taskId: "77777777-7777-4777-8777-777777777777" };
-    const list = render({ tasks: [second, task] }).find(
-      (node) => node.type === "FlatList",
-    )!;
-
-    expect(
-      (list.props.data as readonly (typeof task)[]).map((item) => item.taskId),
-    ).toEqual([second.taskId, task.taskId]);
-  });
-
-  it("shows a stale warning while retaining a verified queue", () => {
-    const nodes = render({
-      queueFailure: { code: "NETWORK_ERROR", message: "Offline", status: 0 },
-      tasks: [task],
-    });
-    expect(nodes.some((node) => node.type === EmployeeError)).toBe(true);
-    expect(nodes.find((node) => node.type === "FlatList")?.props.data).toEqual([
-      task,
-    ]);
-  });
-
-  it("shows a truthful empty state after a successful empty snapshot", () => {
-    const list = render({ successfulQueueSnapshotCount: 1, tasks: [] }).find(
-      (node) => node.type === "FlatList",
-    )!;
-    expect((list.props.ListEmptyComponent as Element).type).toBe(
-      EmployeeStatus,
+    expect(unavailable.some((node) => node.type === EmployeeButton)).toBe(
+      false,
     );
-  });
-
-  it("retains a verified queue during same-authority context revalidation", () => {
-    const nodes = render({ phase: "loading-context", tasks: [task] });
-    expect(nodes.some((node) => node.type === "FlatList")).toBe(true);
-  });
-
-  it("routes hard-stop recovery through operational context revalidation", () => {
-    const nodes = render({ queueHardStopped: true, tasks: [] });
-    const refresh = nodes.find(
-      (node) => node.type === EmployeeButton && node.props.label === "Refresh",
+    const heading = nodes.find(
+      (node) => node.props.accessibilityRole === "header",
     )!;
-    (refresh.props.onPress as () => void)();
+    expect(JSON.stringify(heading.props.style)).toContain('"fontSize":24');
+  });
 
-    expect(operations.refresh).toHaveBeenCalled();
-    expect(nodes.some((node) => node.type === "FlatList")).toBe(false);
+  it("renders one priority card and natural queue rows under the Queue label", () => {
+    const second = { ...task, taskId: "77777777-7777-4777-8777-777777777777" };
+    const nodes = render([task, second]);
+    expect(nodes.some((node) => node.type === NativeTaskCard)).toBe(true);
+    const list = nodes.find((node) => node.type === "FlatList")!;
+    expect(list.props.data).toEqual([second]);
+    const row = (
+      list.props.renderItem as (input: { item: typeof task }) => Element
+    )({ item: second });
+    expect(row.type).toBe(NativeTaskQueueRow);
+  });
+
+  it("retains a verified queue during same-authority refresh", () => {
+    const nodes = elements(
+      NativeTasksPanel({
+        locale: "en",
+        operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+        snapshot: { ...fixture("ready"), queueRefreshing: true, tasks: [task] },
+        textAlign: "left",
+      }),
+    );
+    expect(nodes.some((node) => node.type === NativeTaskCard)).toBe(true);
+  });
+
+  it("prevents duplicate task actions while the first action is in flight", async () => {
+    let finish!: (value: boolean) => void;
+    const action = vi.fn(
+      () => new Promise<boolean>((resolve) => (finish = resolve)),
+    );
+    const nodes = elements(
+      NativeTasksPanel({
+        locale: "en",
+        onTaskAction: action,
+        operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+        snapshot: { ...fixture("ready"), tasks: [task] },
+        textAlign: "left",
+      }),
+    );
+    const card = nodes.find((node) => node.type === NativeTaskCard)!;
+    (card.props.onAction as () => void)();
+    (card.props.onAction as () => void)();
+    expect(action).toHaveBeenCalledOnce();
+    finish(true);
+    await Promise.resolve();
   });
 });

@@ -1,151 +1,119 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import type {
-  EmployeeOperationalSession,
   EmployeeOperationalSnapshot,
   StaffTaskQueueItem,
 } from "@valet/employee-client";
 
-import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeBadge } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
-  canAcceptNativeTask,
   canOpenNativeHandoffOverride,
-  canOpenNativeParkingTask,
-  canOpenNativeRetrievalTask,
   nativeTaskActionLabel,
   nativeTaskAge,
-  nativeTaskParkingContext,
   nativeTaskStatusLabel,
   nativeTaskTime,
   nativeTaskTypeLabel,
   nativeTaskVehicleLabel,
 } from "./native-task-presentation";
 import { nativeTaskCardStyles as s } from "./native-task-card-styles";
+import { NativeTaskActionButton } from "./native-task-action-button";
 import type { NativeTasksCopy } from "./native-tasks-copy";
 
 export function NativeTaskCard({
+  busy,
   copy,
   locale,
-  operations,
-  onOpenParking = () => undefined,
-  onOpenRetrieval = () => undefined,
-  priority,
+  onAction,
+  onOverrideHandoff,
   snapshot,
   task,
   textAlign,
 }: {
+  readonly busy: boolean;
   readonly copy: NativeTasksCopy;
   readonly locale: FoundationLocale;
-  readonly operations: EmployeeOperationalSession;
-  readonly onOpenParking?:
-    ((taskId: string, sessionId: string) => void) | undefined;
-  readonly onOpenRetrieval?:
-    ((taskId: string, sessionId: string) => void) | undefined;
-  readonly priority: boolean;
+  readonly onAction: () => void;
+  readonly onOverrideHandoff: () => void;
   readonly snapshot: EmployeeOperationalSnapshot;
   readonly task: StaffTaskQueueItem;
   readonly textAlign: "left" | "right";
 }) {
-  const humanText = employeeTextStyle("human", textAlign);
-  const identifierText = employeeTextStyle("identifier", textAlign);
+  const human = employeeTextStyle("human", textAlign);
+  const identifier = employeeTextStyle("identifier", textAlign);
   const assignedToOther =
     task.currentAssigneeMembershipId !== null &&
     task.currentAssigneeMembershipId !== snapshot.scope?.membershipId;
-  const retry =
-    snapshot.mutation.taskId === task.taskId &&
-    snapshot.mutation.phase === "retry-available";
-  const busy =
-    snapshot.mutation.taskId === task.taskId &&
-    (snapshot.mutation.phase === "submitting" ||
-      snapshot.mutation.phase === "reconciling");
-  const opensParking = canOpenNativeParkingTask(snapshot, task);
-  const opensRetrieval = canOpenNativeRetrievalTask(snapshot, task);
-  const opensOverride = canOpenNativeHandoffOverride(snapshot, task);
-  const actionLabel = retry
-    ? copy.retry
-    : opensOverride
-      ? copy.overrideHandoff
+  const override = canOpenNativeHandoffOverride(snapshot, task);
+  const actionLabel = override
+    ? copy.overrideHandoff
+    : assignedToOther
+      ? copy.statusAssigned
       : nativeTaskActionLabel(copy, task);
-  const actionable =
-    canAcceptNativeTask(snapshot, task) ||
-    retry ||
-    opensParking ||
-    opensRetrieval ||
-    opensOverride;
-  const showsAction = actionable || busy;
-  const parkingContext = nativeTaskParkingContext(task);
-  const vehicleLabel = nativeTaskVehicleLabel(task);
+  const actionable = !assignedToOther || override;
+  const successAction =
+    task.status === "ACCEPTED" || task.status === "IN_PROGRESS";
 
   return (
-    <View
-      accessible={false}
-      style={s.card}
-      testID={
-        priority ? "native-priority-task" : `native-queue-task-${task.taskId}`
-      }
+    <Pressable
+      accessibilityRole={actionable ? "button" : undefined}
+      accessibilityState={{ busy, disabled: !actionable || busy }}
+      disabled={!actionable || busy}
+      onPress={override ? onOverrideHandoff : onAction}
+      style={[s.card, assignedToOther && s.assignedToOther]}
+      testID="native-priority-task"
     >
-      {priority ? <View accessible={false} style={s.accent} /> : null}
+      <View accessible={false} style={s.accent} />
       <View style={s.content}>
-        {priority ? (
-          <Text style={[s.priorityLabel, humanText]}>{copy.priority}</Text>
-        ) : null}
         <View style={s.header}>
           <EmployeeBadge
             label={nativeTaskTypeLabel(copy, task.taskType)}
+            showDot
             textAlign={textAlign}
-            variant={task.taskType === "RETRIEVAL" ? "danger" : "primary"}
+            variant={task.taskType === "PARKING" ? "warning" : "primary"}
           />
           <View style={s.ageWrap}>
-            <Text style={[s.ageLabel, humanText]}>{copy.age}</Text>
-            <Text style={[s.age, identifierText]}>{nativeTaskAge(task)}</Text>
+            <Text style={[s.ageLabel, human]}>{copy.age}</Text>
+            <Text style={[s.age, identifier]}>{nativeTaskAge(task)}</Text>
           </View>
         </View>
-        <Text style={[s.vehicle, humanText]}>{vehicleLabel}</Text>
-        {task.vehicle.plateNumberRaw ? (
-          <Text style={[s.plate, identifierText]}>
-            {task.vehicle.plateNumberRaw}
-          </Text>
-        ) : null}
-        <Text style={[s.detail, humanText]}>
+        <Text style={[s.vehicle, human]}>{nativeTaskVehicleLabel(task)}</Text>
+        <View style={s.vehicleMetaRow}>
+          {task.vehicle.plateNumberRaw ? (
+            <Text style={[s.vehicleMeta, identifier]}>
+              {task.vehicle.plateNumberRaw}
+            </Text>
+          ) : null}
+          {task.vehicle.plateNumberRaw && task.vehicle.color ? (
+            <Text style={[s.vehicleMeta, human]}> · </Text>
+          ) : null}
+          {task.vehicle.color ? (
+            <Text style={[s.vehicleMeta, human]}>{task.vehicle.color}</Text>
+          ) : null}
+        </View>
+        <Text style={[s.detail, human]}>
           {nativeTaskTime(copy, locale, task)}
         </Text>
-        {task.vehicle.color || parkingContext ? (
-          <Text style={[s.detail, humanText]}>
-            {[task.vehicle.color, parkingContext].filter(Boolean).join(" · ")}
-          </Text>
-        ) : null}
         <View style={s.statusRow}>
-          <EmployeeBadge
-            label={
-              assignedToOther
-                ? copy.otherStaff
-                : nativeTaskStatusLabel(copy, task.status)
-            }
-            textAlign={textAlign}
-            variant={assignedToOther ? "neutral" : "warning"}
-          />
-          {showsAction && actionLabel ? (
-            <EmployeeButton
+          <View>
+            <Text style={[s.statusLabel, human]}>{copy.status}</Text>
+            <Text style={[s.statusText, human]}>
+              {nativeTaskStatusLabel(copy, task.status)}
+            </Text>
+          </View>
+          {actionLabel ? (
+            <NativeTaskActionButton
               busy={busy}
-              disabled={busy}
+              disabled={!actionable || busy}
               label={busy ? copy.processing : actionLabel}
-              onPress={() => {
-                if (opensParking) {
-                  onOpenParking(task.taskId, task.sessionId);
-                } else if (opensRetrieval || opensOverride) {
-                  onOpenRetrieval(task.taskId, task.sessionId);
-                } else {
-                  void operations.acceptTask(task.taskId);
-                }
-              }}
-              size="standard"
-              variant={priority ? "primary" : "secondary"}
+              onPress={override ? onOverrideHandoff : onAction}
+              variant={
+                override ? "danger" : successAction ? "success" : "primary"
+              }
             />
           ) : null}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }

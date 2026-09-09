@@ -1,9 +1,6 @@
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
-import type {
-  EmployeeOperationalSnapshot,
-  StaffTaskQueueItem,
-} from "@valet/employee-client";
+import type { StaffTaskQueueItem } from "@valet/employee-client";
 
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
@@ -16,11 +13,16 @@ vi.mock("react-native", () => ({
 const { NativeTaskCard } = await import("../src/tasks/native-task-card");
 const { NativeTaskQueueRow } =
   await import("../src/tasks/native-task-queue-row");
-const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
+const { EmployeeBadge } = await import("../src/employee-ui/employee-feedback");
+const { NativeTaskActionButton, nativeTaskActionButtonStyles } =
+  await import("../src/tasks/native-task-action-button");
+const { EmployeeChevronRightIcon } =
+  await import("../src/employee-ui/employee-icons");
 const { getNativeTasksCopy } = await import("../src/tasks/native-tasks-copy");
+const { operations: snapshotFixture } =
+  await import("./production-shell-test-fixture");
 
 type Element = ReactElement<Record<string, unknown>>;
-
 function elements(value: unknown): Element[] {
   if (Array.isArray(value)) return value.flatMap(elements);
   if (!value || typeof value !== "object" || !("props" in value)) return [];
@@ -28,7 +30,7 @@ function elements(value: unknown): Element[] {
   return [node, ...elements(node.props.children)];
 }
 
-const membershipId = "22222222-2222-4222-8222-222222222222";
+const membershipId = snapshotFixture("ready").scope!.membershipId;
 const task: StaffTaskQueueItem = {
   createdAt: "2026-09-03T08:05:00.000Z",
   currentAssigneeMembershipId: membershipId,
@@ -53,213 +55,148 @@ const task: StaffTaskQueueItem = {
 
 function snapshot(
   item: StaffTaskQueueItem,
-  mutation: EmployeeOperationalSnapshot["mutation"] = { phase: "idle" },
   role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
-): EmployeeOperationalSnapshot {
+) {
   return {
-    contextFailure: null,
-    identityGeneration: 1,
-    mutation,
-    phase: "ready",
-    queueFailure: null,
-    queueHardStopped: false,
-    queueLoading: false,
-    queueRefreshing: false,
-    scope: {
-      locationCode: "AMM",
-      locationId: "11111111-1111-4111-8111-111111111111",
-      locationName: "Amman Hotel",
-      membershipId,
-      organizationId: "33333333-3333-4333-8333-333333333333",
-      organizationName: "Operator",
-      role,
-      shiftId: "55555555-5555-4555-8555-555555555555",
-      shiftStartedAt: "2026-09-03T08:00:00.000Z",
-    },
-    successfulQueueSnapshotCount: 1,
+    ...snapshotFixture("ready"),
+    scope: { ...snapshotFixture("ready").scope!, role },
     tasks: [item],
   };
 }
 
-const acceptTask = vi.fn();
-const operations = { acceptTask } as never;
-
-function render(
-  item = task,
-  mutation?: EmployeeOperationalSnapshot["mutation"],
-) {
+function card(item = task, busy = false) {
   return elements(
     NativeTaskCard({
+      busy,
       copy: getNativeTasksCopy("en"),
       locale: "en",
-      operations,
-      priority: true,
-      snapshot: snapshot(item, mutation),
+      onAction: vi.fn(),
+      onOverrideHandoff: vi.fn(),
+      snapshot: snapshot(item),
       task: item,
       textAlign: "left",
     }),
   );
 }
 
-function renderRow(
+function row(
   item = task,
-  onOpenParking = vi.fn(),
-  onOpenRetrieval = vi.fn(),
   role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
 ) {
-  return elements(
+  const onAction = vi.fn();
+  const onOverrideHandoff = vi.fn();
+  const nodes = elements(
     NativeTaskQueueRow({
+      busy: false,
       copy: getNativeTasksCopy("en"),
       locale: "en",
-      operations,
-      onOpenParking,
-      onOpenRetrieval,
-      snapshot: snapshot(item, { phase: "idle" }, role),
+      onAction,
+      onOverrideHandoff,
+      snapshot: snapshot(item, role),
       task: item,
       textAlign: "left",
     }),
   );
+  return { nodes, onAction, onOverrideHandoff };
 }
 
-describe("Native production task cards", () => {
-  it("presents the priority hierarchy with type, vehicle, status, and age", () => {
-    const nodes = render();
-    expect(
-      nodes.some((node) => node.props.testID === "native-priority-task"),
-    ).toBe(true);
+describe("Web-authoritative Native task cards", () => {
+  it("uses priority geometry, vehicle hierarchy, plain status, and exact action height", () => {
+    const nodes = card();
+    const root = nodes.find(
+      (node) => node.props.testID === "native-priority-task",
+    )!;
+    const button = nodes.find((node) => node.type === NativeTaskActionButton)!;
     const text = JSON.stringify(nodes.map((node) => node.props.children));
-    expect(text).toContain("Priority task");
+    expect(root.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ borderRadius: 16 })]),
+    );
+    expect(text).not.toContain("Priority task");
     expect(text).toContain("Toyota Camry");
-    expect(text).toContain("Queued");
-    expect(text).toContain("North · 12");
-  });
-
-  it("keeps vehicle identifiers in an LTR text island", () => {
-    const plate = render().find((node) => node.props.children === "12-34567")!;
-    expect(JSON.stringify(plate.props.style)).toContain(
-      '"writingDirection":"ltr"',
-    );
-  });
-
-  it("offers the accepted self-claim action for queued Retrieval work", () => {
-    const queued = {
-      ...task,
-      currentAssigneeMembershipId: null,
-      status: "QUEUED" as const,
-      taskType: "RETRIEVAL" as const,
-    };
-    const button = render(queued).find((node) => node.type === EmployeeButton)!;
-    expect(button.props.label).toBe("Claim retrieval");
-  });
-
-  it("does not expose an action for another employee's assignment", () => {
-    const other = {
-      ...task,
-      currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
-    };
-    expect(render(other).some((node) => node.type === EmployeeButton)).toBe(
-      false,
-    );
-  });
-
-  it("shows non-color-only busy state and blocks another task during recovery", () => {
-    const nodes = render(task, { phase: "submitting", taskId: task.taskId });
-    const button = nodes.find((node) => node.type === EmployeeButton)!;
-    expect(button.props).toMatchObject({
-      busy: true,
-      disabled: true,
-      label: "Accepting…",
+    expect(text).toContain("Status");
+    expect(text).toContain("Assigned");
+    expect(button.props).toMatchObject({ label: "Accept & Park" });
+    expect(nativeTaskActionButtonStyles.button).toMatchObject({
+      borderRadius: 12,
+      height: 40,
+      paddingHorizontal: 16,
     });
   });
 
-  it("renders ordinary work as a compact actionable row", () => {
-    acceptTask.mockClear();
-    const nodes = renderRow();
-    const row = nodes.find(
-      (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+  it("uses task badge dots and Web task-type variants", () => {
+    const parking = card().find((node) => node.type === EmployeeBadge)!;
+    const retrieval = card({ ...task, taskType: "RETRIEVAL" }).find(
+      (node) => node.type === EmployeeBadge,
     )!;
-
-    expect(row.props.accessibilityRole).toBe("button");
-    expect(JSON.stringify(nodes.map((node) => node.props.children))).toContain(
-      "Queued",
-    );
-    (row.props.onPress as () => void)();
-    expect(acceptTask).toHaveBeenCalledWith(task.taskId);
+    expect(parking.props).toMatchObject({ showDot: true, variant: "warning" });
+    expect(retrieval.props).toMatchObject({
+      showDot: true,
+      variant: "primary",
+    });
   });
 
-  it("stages assigned-to-other rows without a downstream affordance", () => {
+  it("keeps the plate in an LTR identifier island", () => {
+    const plate = card().find((node) => node.props.children === "12-34567")!;
+    expect(plate.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ writingDirection: "ltr" }),
+      ]),
+    );
+  });
+
+  it("shows assigned-to-other priority work at 0.75 and disables its normal action", () => {
     const other = {
       ...task,
       currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
     };
-    const nodes = renderRow(other);
-    const row = nodes.find(
-      (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+    const nodes = card(other);
+    const root = nodes.find(
+      (node) => node.props.testID === "native-priority-task",
     )!;
-    const text = JSON.stringify(nodes.map((node) => node.props.children));
-
-    expect(row.props.accessibilityRole).toBeUndefined();
-    expect(text).toContain("Other staff");
-    expect(text).not.toContain("›");
+    const button = nodes.find((node) => node.type === NativeTaskActionButton)!;
+    expect(root.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(JSON.stringify(root.props.style)).toContain('"opacity":0.75');
+    expect(button.props).toMatchObject({ disabled: true, label: "Assigned" });
   });
 
-  it.each(["ACCEPTED", "IN_PROGRESS"] as const)(
-    "opens the bounded Parking workflow for self-owned %s work",
-    (status) => {
-      const staged = { ...task, status };
-      const onOpenParking = vi.fn();
-      const nodes = renderRow(staged, onOpenParking);
-      const row = nodes.find(
-        (node) => node.props.testID === `native-queue-row-${task.taskId}`,
-      )!;
+  it("uses natural row geometry, the exact 16px icon, and 0.60 assigned-other opacity", () => {
+    const active = row();
+    const root = active.nodes.find(
+      (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+    )!;
+    const chevron = active.nodes.find(
+      (node) => node.type === EmployeeChevronRightIcon,
+    )!;
+    expect(JSON.stringify(root.props.style)).not.toContain("minHeight");
+    expect(chevron.props.size).toBe(16);
+    (root.props.onPress as () => void)();
+    expect(active.onAction).toHaveBeenCalledOnce();
 
-      expect(row.props.accessibilityRole).toBe("button");
-      (row.props.onPress as () => void)();
-      expect(onOpenParking).toHaveBeenCalledWith(task.taskId, task.sessionId);
-      expect(
-        JSON.stringify(nodes.map((node) => node.props.children)),
-      ).toContain("›");
-    },
-  );
+    const other = row({
+      ...task,
+      currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
+    });
+    const otherRoot = other.nodes.find(
+      (node) => node.props.testID === `native-queue-row-${task.taskId}`,
+    )!;
+    expect(JSON.stringify(otherRoot.props.style)).toContain('"opacity":0.6');
+    expect(otherRoot.props.accessibilityRole).toBeUndefined();
+  });
 
-  it.each(["ACCEPTED", "IN_PROGRESS"] as const)(
-    "opens the bounded Retrieval workflow for self-owned %s work",
-    (status) => {
-      const staged = { ...task, status, taskType: "RETRIEVAL" as const };
-      const onOpenRetrieval = vi.fn();
-      const nodes = renderRow(staged, vi.fn(), onOpenRetrieval);
-      const row = nodes.find(
-        (node) => node.props.testID === `native-queue-row-${task.taskId}`,
-      )!;
-
-      expect(row.props.accessibilityRole).toBe("button");
-      (row.props.onPress as () => void)();
-      expect(onOpenRetrieval).toHaveBeenCalledWith(task.taskId, task.sessionId);
-    },
-  );
-
-  it("opens explicit supervisor override work without claiming another owner's Task", () => {
-    acceptTask.mockClear();
-    const staged = {
+  it("preserves the narrow supervisor handoff override without normal action", () => {
+    const overrideTask = {
       ...task,
       currentAssigneeMembershipId: "77777777-7777-4777-8777-777777777777",
       status: "IN_PROGRESS" as const,
       taskType: "RETRIEVAL" as const,
       valetSessionState: "HANDOFF_PENDING" as const,
     };
-    const onOpenRetrieval = vi.fn();
-    const nodes = renderRow(
-      staged,
-      vi.fn(),
-      onOpenRetrieval,
-      "VALET_SUPERVISOR",
-    );
-    const row = nodes.find(
+    const rendered = row(overrideTask, "VALET_SUPERVISOR");
+    const root = rendered.nodes.find(
       (node) => node.props.testID === `native-queue-row-${task.taskId}`,
     )!;
-    expect(row.props.accessibilityLabel).toContain("Override Handoff");
-    (row.props.onPress as () => void)();
-    expect(onOpenRetrieval).toHaveBeenCalledWith(task.taskId, task.sessionId);
-    expect(acceptTask).not.toHaveBeenCalled();
+    (root.props.onPress as () => void)();
+    expect(rendered.onOverrideHandoff).toHaveBeenCalledOnce();
+    expect(rendered.onAction).not.toHaveBeenCalled();
   });
 });
