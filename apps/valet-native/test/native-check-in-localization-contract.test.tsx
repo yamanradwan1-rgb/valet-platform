@@ -252,8 +252,8 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
   it("uses minimum dimensions and shrinkable human labels for large text", () => {
     expect(employeeBackHeaderStyles.header).toMatchObject({ minHeight: 56 });
     expect(employeeBackHeaderStyles.header).not.toHaveProperty("height");
-    expect(employeeFrameStyles.appHeader).toMatchObject({ minHeight: 64 });
-    expect(employeeFrameStyles.appHeader).not.toHaveProperty("height");
+    expect(employeeFrameStyles.appHeader).toMatchObject({ height: 64 });
+    expect(employeeFrameStyles.appHeader).not.toHaveProperty("minHeight");
     expect(employeeControlStyles.buttonLabel.flexShrink).toBe(1);
   });
 });

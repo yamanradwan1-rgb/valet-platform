@@ -10,8 +10,6 @@ import type {
 import { StyleSheet, View } from "react-native";
 
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
-import { getNativeAuthCopy } from "../auth/native-auth-copy";
-import { NativeAuthPanel } from "../auth/native-auth-panel";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
   EmployeeAppHeader,
@@ -33,8 +31,8 @@ import { NativeRetrievalPanel } from "../retrieval/native-retrieval-panel";
 import { NativeHandoffPanel } from "../handoff/native-handoff-panel";
 import { NativeReleasePanel } from "../handoff/native-release-panel";
 import { shouldShowNativeHandoff } from "../handoff/native-handoff-route-presentation";
+import { NativeActiveHeaderUtilities } from "./native-active-header-utilities";
 import { NativeProductionNavigation } from "./native-production-navigation";
-import { NativeLocaleButton } from "./native-locale-button";
 import { getNativeShellCopy } from "./native-shell-copy";
 import type {
   ProductionDestination,
@@ -85,20 +83,11 @@ export function NativeProductionWorkspace({
         scope={shell.scope}
         textAlign={presentation.textAlign}
         utilities={
-          <>
-            <NativeLocaleButton
-              code={locale === "en" ? "AR" : "EN"}
-              label={locale === "en" ? copy.arabic : copy.english}
-              onPress={() => onSelectLocale(locale === "en" ? "ar" : "en")}
-            />
-            <NativeAuthPanel
-              compact
-              copy={getNativeAuthCopy(locale)}
-              session={runtime.auth}
-              snapshot={authSnapshot}
-              textAlign={presentation.textAlign}
-            />
-          </>
+          <NativeActiveHeaderUtilities
+            locale={locale}
+            onSelectLocale={onSelectLocale}
+            role={shell.scope.role}
+          />
         }
       />
       <View style={styles.content} testID="native-production-shell">

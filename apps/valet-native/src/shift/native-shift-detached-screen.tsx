@@ -5,8 +5,6 @@ import type {
   NativeAuthSnapshot,
 } from "@valet/employee-client";
 
-import { getNativeAuthCopy } from "../auth/native-auth-copy";
-import { NativeAuthPanel } from "../auth/native-auth-panel";
 import {
   EmployeeAppHeader,
   EmployeeFrame,
@@ -15,13 +13,10 @@ import {
   getFoundationPresentation,
   type FoundationLocale,
 } from "../foundation/foundation-locale";
-import { NativeLocaleButton } from "../shell/native-locale-button";
-import { getNativeShellCopy } from "../shell/native-shell-copy";
+import { NativeActiveHeaderUtilities } from "../shell/native-active-header-utilities";
 import { NativeActiveShiftPanel } from "./native-active-shift-panel";
 
 export function NativeShiftDetachedScreen({
-  auth,
-  authSnapshot,
   locale,
   onRefresh,
   onReviewTasks,
@@ -39,7 +34,6 @@ export function NativeShiftDetachedScreen({
   readonly snapshot: EmployeeShiftEndSnapshot;
 }) {
   const presentation = getFoundationPresentation(locale);
-  const shellCopy = getNativeShellCopy(locale);
   const authority = snapshot.authority;
   if (authority === null) return null;
   return (
@@ -48,20 +42,11 @@ export function NativeShiftDetachedScreen({
         scope={authority}
         textAlign={presentation.textAlign}
         utilities={
-          <>
-            <NativeLocaleButton
-              code={locale === "en" ? "AR" : "EN"}
-              label={locale === "en" ? shellCopy.arabic : shellCopy.english}
-              onPress={() => onSelectLocale(locale === "en" ? "ar" : "en")}
-            />
-            <NativeAuthPanel
-              compact
-              copy={getNativeAuthCopy(locale)}
-              session={auth}
-              snapshot={authSnapshot}
-              textAlign={presentation.textAlign}
-            />
-          </>
+          <NativeActiveHeaderUtilities
+            locale={locale}
+            onSelectLocale={onSelectLocale}
+            role={authority.role}
+          />
         }
       />
       <NativeActiveShiftPanel

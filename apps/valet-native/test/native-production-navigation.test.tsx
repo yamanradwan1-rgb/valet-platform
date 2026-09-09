@@ -8,8 +8,20 @@ vi.mock("react-native", () => ({
   View: "View",
 }));
 
-const { NativeProductionNavigation } =
+const {
+  NativeProductionNavigation,
+  nativeProductionDestinationAvailability,
+  nativeProductionNavigationItems,
+  nativeProductionNavigationStyles,
+} =
   await import("../src/shell/native-production-navigation");
+const {
+  EmployeeCarIcon,
+  EmployeeHomeIcon,
+  EmployeeScanIcon,
+  EmployeeShiftIcon,
+} = await import("../src/employee-ui/employee-icons");
+const { employeeColors } = await import("../src/employee-ui/employee-tokens");
 
 type Element = ReactElement<Record<string, unknown>>;
 function elements(value: unknown): Element[] {
@@ -17,6 +29,13 @@ function elements(value: unknown): Element[] {
   if (!value || typeof value !== "object" || !("props" in value)) return [];
   const node = value as Element;
   return [node, ...elements(node.props.children)];
+}
+
+function style(value: unknown): Record<string, unknown> {
+  if (Array.isArray(value)) {
+    return Object.assign({}, ...value.filter(Boolean).map(style));
+  }
+  return (value ?? {}) as Record<string, unknown>;
 }
 
 describe("Native production navigation", () => {
@@ -32,6 +51,21 @@ describe("Native production navigation", () => {
     );
     const tabs = nodes.filter((node) => node.props.accessibilityRole === "tab");
 
+    expect(nativeProductionNavigationItems.map((item) => item.destination)).toEqual(
+      ["tasks", "vehicles", "scan", "shift"],
+    );
+    expect(nativeProductionDestinationAvailability).toEqual({
+      scan: false,
+      shift: true,
+      tasks: true,
+      vehicles: false,
+    });
+    expect(
+      tabs.map((tab) =>
+        elements(tab.props.children).find((node) => node.type === "Text")?.props
+          .children,
+      ),
+    ).toEqual(["Tasks", "Vehicles", "Scan", "Shift"]);
     expect(tabs.map((node) => node.props.accessibilityState)).toEqual([
       { disabled: false, selected: false },
       { disabled: true, selected: false },
@@ -40,6 +74,63 @@ describe("Native production navigation", () => {
     ]);
     (tabs[3]?.props.onPress as () => void)();
     expect(navigate).toHaveBeenCalledWith("shift");
+  });
+
+  it("matches the Web bar, icon, label, and prominent Scan geometry", () => {
+    const root = NativeProductionNavigation({
+      activeDestination: "tasks",
+      locale: "en",
+      onNavigate: vi.fn(),
+      pinned: false,
+    });
+    const nodes = elements(root);
+    const tabs = nodes.filter((node) => node.props.accessibilityRole === "tab");
+    const iconTypes = [
+      EmployeeHomeIcon,
+      EmployeeCarIcon,
+      EmployeeScanIcon,
+      EmployeeShiftIcon,
+    ];
+
+    expect(style(root.props.style)).toMatchObject({
+      backgroundColor: employeeColors.white,
+      borderTopColor: employeeColors.border,
+      borderTopWidth: 1,
+      height: 72,
+      paddingHorizontal: 8,
+    });
+    tabs.forEach((tab, index) => {
+      const icon = elements(tab.props.children).find(
+        (node) => node.type === iconTypes[index],
+      )!;
+      expect(icon.props.size).toBe(22);
+    });
+    expect(nativeProductionNavigationStyles.item).toMatchObject({
+      gap: 4,
+      height: 72,
+      paddingBottom: 12,
+      paddingTop: 8,
+    });
+    expect(nativeProductionNavigationStyles.label).toMatchObject({
+      fontSize: 10,
+      fontWeight: "600",
+    });
+    expect(nativeProductionNavigationStyles.disabled.opacity).toBe(0.4);
+    expect(nativeProductionNavigationStyles.scanIcon).toMatchObject({
+      borderRadius: 18,
+      height: 46,
+      marginTop: -20,
+      padding: 12,
+      width: 46,
+    });
+    expect(nativeProductionNavigationStyles.scanIconDisabled).toEqual({
+      backgroundColor: employeeColors.neutral,
+    });
+    expect(nativeProductionNavigationStyles.scanIconEnabled).toMatchObject({
+      backgroundColor: employeeColors.blue,
+      shadowColor: employeeColors.blue,
+    });
+    expect(nativeProductionNavigationStyles.scanLabel).toEqual({ marginTop: 2 });
   });
 
   it("pins all navigation while check-in owns the foreground workflow", () => {
@@ -54,6 +145,9 @@ describe("Native production navigation", () => {
     const tabs = nodes.filter((node) => node.props.accessibilityRole === "tab");
 
     expect(tabs.every((node) => node.props.disabled === true)).toBe(true);
+    expect(
+      tabs.every((node) => style(node.props.style).opacity === 0.4),
+    ).toBe(true);
     expect(
       tabs.every(
         (node) =>

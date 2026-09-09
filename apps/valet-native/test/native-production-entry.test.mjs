@@ -31,8 +31,25 @@ describe("Native production entry contract", () => {
 
   it("keeps unavailable future tabs disabled in this slice", () => {
     const navigation = read("src/shell/native-production-navigation.tsx");
-    expect(navigation).toContain('item.destination === "tasks"');
+    expect(navigation).toContain("nativeProductionDestinationAvailability");
+    expect(navigation).toMatch(/scan:\s*false/);
+    expect(navigation).toMatch(/vehicles:\s*false/);
     expect(navigation).toContain("disabled={!enabled}");
+  });
+
+  it("does not expose active-shell logout or placeholder future routes", () => {
+    const workspace = read("src/shell/native-production-workspace.tsx");
+    const detachedShift = read("src/shift/native-shift-detached-screen.tsx");
+    const controller = read("src/shell/production-shell-controller.ts");
+
+    expect(workspace).not.toContain("NativeAuthPanel");
+    expect(detachedShift).not.toContain("NativeAuthPanel");
+    expect(workspace).not.toContain("NativeLocaleButton");
+    expect(detachedShift).not.toContain("NativeLocaleButton");
+    expect(controller).not.toContain('case "vehicles"');
+    expect(controller).not.toContain('case "scan"');
+    expect(workspace).not.toContain('destination === "vehicles"');
+    expect(workspace).not.toContain('destination === "scan"');
   });
 
   it("matches the Employee Web dark-gate logo without a white capsule", () => {

@@ -54,7 +54,7 @@ const scope: EmployeeOperationalScope = {
 };
 
 describe("Employee production frame", () => {
-  it("uses the warm constrained frame and real safe-area/status-bar boundary", () => {
+  it("uses navy outer gutters around the warm constrained Employee frame", () => {
     const nodes = elements(
       EmployeeFrame({ children: "content", direction: "rtl" }),
     );
@@ -63,15 +63,17 @@ describe("Employee production frame", () => {
     const frame = nodes.find((node) => node.props.testID === "employee-frame")!;
 
     expect(style(safeArea.props.style).backgroundColor).toBe(
-      employeeColors.warm,
+      employeeColors.navy3,
     );
-    expect(statusBar.props.style).toBe("dark");
+    expect(statusBar.props.style).toBe("light");
     expect(style(frame.props.style)).toMatchObject({
       backgroundColor: employeeColors.warm,
       direction: "rtl",
       maxWidth: 390,
       width: "100%",
     });
+    expect(style(frame.props.style)).not.toHaveProperty("borderRadius");
+    expect(style(frame.props.style)).not.toHaveProperty("shadowColor");
     expect(employeeSpacing.screen).toBe(20);
   });
 
@@ -88,12 +90,26 @@ describe("Employee production frame", () => {
       backgroundColor: employeeColors.white,
       borderBottomColor: employeeColors.border,
       borderBottomWidth: 1,
-      minHeight: 64,
+      height: 64,
       paddingHorizontal: 20,
-      paddingVertical: 8,
     });
+    expect(employeeFrameStyles.appHeader).not.toHaveProperty("minHeight");
     expect(employeeFrameStyles.brandContext.minWidth).toBe(0);
     expect(employeeFrameStyles.brandLogo.flexShrink).toBe(1);
+    expect(employeeFrameStyles.brandLogo).toMatchObject({
+      aspectRatio: 169 / 60,
+      height: 28,
+    });
+    expect(employeeFrameStyles.divider).toMatchObject({ height: 20, width: 1 });
+    expect(employeeFrameStyles.locationName).toMatchObject({
+      fontSize: 13,
+      fontWeight: "600",
+    });
+    expect(employeeFrameStyles.locationCode).toMatchObject({
+      fontSize: 11,
+      fontWeight: "400",
+    });
+    expect(employeeFrameStyles.headerUtilities.gap).toBe(8);
     expect(employeeFrameStyles.context.minWidth).toBe(0);
     expect(logo.props.accessibilityLabel).toBe("VAYLET");
     expect(logo.props.source).toBeTruthy();

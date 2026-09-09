@@ -24,6 +24,7 @@ export interface NativeShellCopy {
   readonly retry: string;
   readonly scan: string;
   readonly shift: string;
+  readonly shiftNav: string;
   readonly signOut: string;
   readonly staffSignIn: string;
   readonly tasks: string;
@@ -60,6 +61,7 @@ const copy: Record<EmployeeLocale, NativeShellCopy> = {
     retry: "Retry",
     scan: "Scan",
     shift: "Shift",
+    shiftNav: "Shift",
     signOut: "Sign Out",
     staffSignIn: "Staff sign in",
     tasks: "Tasks",
@@ -93,6 +95,7 @@ const copy: Record<EmployeeLocale, NativeShellCopy> = {
     retry: "إعادة المحاولة",
     scan: "مسح",
     shift: "الوردية",
+    shiftNav: "المناوبة",
     signOut: "تسجيل الخروج",
     staffSignIn: "تسجيل دخول الموظفين",
     tasks: "المهام",

@@ -30,4 +30,19 @@ describe("Native production shell localization", () => {
     expect(en.authRecoveryTitle).toContain("restore sign-in");
     expect(en.authErrorTitle).toContain("sign-in unavailable");
   });
+
+  it("uses the exact Employee Web navigation labels", () => {
+    expect(getNativeShellCopy("en")).toMatchObject({
+      scan: "Scan",
+      shiftNav: "Shift",
+      tasks: "Tasks",
+      vehicles: "Vehicles",
+    });
+    expect(getNativeShellCopy("ar")).toMatchObject({
+      scan: "مسح",
+      shiftNav: "المناوبة",
+      tasks: "المهام",
+      vehicles: "المركبات",
+    });
+  });
 });

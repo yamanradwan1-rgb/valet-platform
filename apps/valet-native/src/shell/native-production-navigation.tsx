@@ -9,21 +9,28 @@ import {
 } from "../employee-ui/employee-icons";
 import {
   employeeColors as c,
-  employeeMinimumTouchTarget,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
-import { employeeTypography as type } from "../employee-ui/employee-typography";
+import {
+  employeeFontFamilies,
+  employeeFontWeights,
+} from "../employee-ui/employee-typography";
 import { getNativeShellCopy } from "./native-shell-copy";
 import type { ProductionDestination } from "./production-shell-controller";
 
+type NavigationDestination = Extract<
+  ProductionDestination,
+  "scan" | "shift" | "tasks" | "vehicles"
+>;
+
 interface NavigationItem {
-  readonly destination: ProductionDestination;
+  readonly destination: NavigationDestination;
   readonly icon: typeof EmployeeHomeIcon;
   readonly prominent?: boolean;
-  readonly title: "scan" | "shift" | "tasks" | "vehicles";
+  readonly title: "scan" | "shiftNav" | "tasks" | "vehicles";
 }
 
-const items: readonly NavigationItem[] = [
+export const nativeProductionNavigationItems: readonly NavigationItem[] = [
   { destination: "tasks", icon: EmployeeHomeIcon, title: "tasks" },
   { destination: "vehicles", icon: EmployeeCarIcon, title: "vehicles" },
   {
@@ -32,8 +39,15 @@ const items: readonly NavigationItem[] = [
     prominent: true,
     title: "scan",
   },
-  { destination: "shift", icon: EmployeeShiftIcon, title: "shift" },
+  { destination: "shift", icon: EmployeeShiftIcon, title: "shiftNav" },
 ];
+
+export const nativeProductionDestinationAvailability = {
+  scan: false,
+  shift: true,
+  tasks: true,
+  vehicles: false,
+} as const satisfies Record<NavigationDestination, boolean>;
 
 export function NativeProductionNavigation({
   activeDestination,
@@ -54,11 +68,11 @@ export function NativeProductionNavigation({
       style={styles.bar}
       testID="native-production-navigation"
     >
-      {items.map((item) => {
+      {nativeProductionNavigationItems.map((item) => {
         const available =
-          item.destination === "tasks" || item.destination === "shift";
+          nativeProductionDestinationAvailability[item.destination];
         const enabled = available && !pinned;
-        const active = item.destination === activeDestination && !pinned;
+        const active = enabled && item.destination === activeDestination;
         const Icon = item.icon;
         const label = copy[item.title];
         const accessibilityLabel = available
@@ -74,10 +88,26 @@ export function NativeProductionNavigation({
             onPress={() => onNavigate(item.destination)}
             style={[styles.item, !enabled && styles.disabled]}
           >
-            <View style={item.prominent ? styles.scanIcon : styles.icon}>
-              <Icon active={active} inverse={item.prominent === true} />
+            <View
+              style={[
+                item.prominent ? styles.scanIcon : styles.icon,
+                item.prominent &&
+                  (enabled ? styles.scanIconEnabled : styles.scanIconDisabled),
+              ]}
+            >
+              <Icon
+                active={active}
+                inverse={item.prominent === true}
+                size={22}
+              />
             </View>
-            <Text style={[styles.label, active && styles.activeLabel]}>
+            <Text
+              style={[
+                styles.label,
+                item.prominent && styles.scanLabel,
+                active && !item.prominent && styles.activeLabel,
+              ]}
+            >
               {label}
             </Text>
           </Pressable>
@@ -95,27 +125,47 @@ const styles = StyleSheet.create({
     borderTopColor: c.border,
     borderTopWidth: 1,
     flexDirection: "row",
-    minHeight: 72,
+    flexShrink: 0,
+    height: 72,
     paddingHorizontal: space.sm,
   },
   disabled: { opacity: 0.4 },
-  icon: { alignItems: "center", height: 28, justifyContent: "center" },
+  icon: { height: 22, width: 22 },
   item: {
     alignItems: "center",
+    gap: space.xs,
     flex: 1,
+    height: 72,
     justifyContent: "flex-end",
-    minHeight: employeeMinimumTouchTarget,
     paddingBottom: space.md,
     paddingTop: space.sm,
   },
-  label: { ...type.badge, color: c.neutral, marginTop: 2 },
+  label: {
+    color: c.neutral,
+    fontFamily: employeeFontFamilies.ui,
+    fontSize: 10,
+    fontWeight: employeeFontWeights.semiBold,
+    lineHeight: 12,
+  },
   scanIcon: {
     alignItems: "center",
-    backgroundColor: c.neutral,
     borderRadius: 18,
-    height: 48,
+    height: 46,
     justifyContent: "center",
-    marginTop: -24,
-    width: 48,
+    marginTop: -20,
+    padding: 12,
+    width: 46,
   },
+  scanIconDisabled: { backgroundColor: c.neutral },
+  scanIconEnabled: {
+    backgroundColor: c.blue,
+    elevation: 8,
+    shadowColor: c.blue,
+    shadowOffset: { height: 4, width: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  scanLabel: { marginTop: 2 },
 });
+
+export const nativeProductionNavigationStyles = styles;

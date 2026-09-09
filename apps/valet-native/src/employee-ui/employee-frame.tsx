@@ -15,7 +15,7 @@ import {
 } from "./employee-typography";
 
 export const employeeFrameStyles = StyleSheet.create({
-  safeArea: { backgroundColor: c.warm, flex: 1 },
+  safeArea: { backgroundColor: c.navy3, flex: 1 },
   frame: {
     alignSelf: "center",
     backgroundColor: c.warm,
@@ -30,9 +30,9 @@ export const employeeFrameStyles = StyleSheet.create({
     borderBottomWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    minHeight: 64,
+    flexShrink: 0,
+    height: 64,
     paddingHorizontal: space.screen,
-    paddingVertical: space.sm,
   },
   brandContext: {
     alignItems: "center",
@@ -41,7 +41,12 @@ export const employeeFrameStyles = StyleSheet.create({
     gap: space.md,
     minWidth: 0,
   },
-  brandLogo: { flexShrink: 1, height: 28, resizeMode: "contain", width: 118 },
+  brandLogo: {
+    aspectRatio: 169 / 60,
+    flexShrink: 1,
+    height: 28,
+    resizeMode: "contain",
+  },
   context: { flexShrink: 1, minWidth: 0 },
   divider: { backgroundColor: c.border, height: 20, width: 1 },
   locationCode: {
@@ -68,7 +73,7 @@ export function EmployeeFrame({
 }) {
   return (
     <SafeAreaView style={employeeFrameStyles.safeArea}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <View
         style={[employeeFrameStyles.frame, { direction }]}
         testID="employee-frame"
