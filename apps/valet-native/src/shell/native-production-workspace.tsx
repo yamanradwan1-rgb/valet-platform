@@ -31,11 +31,13 @@ import {
 } from "./native-production-workflow-navigation";
 import { NativeContextualSurface } from "./native-contextual-surface";
 import { nativeContextualNavigationPinned } from "./native-contextual-route";
+import { NativeConnectivityBanner } from "./native-connectivity-banner";
 import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
 
 export function NativeProductionWorkspace({
   authSnapshot,
   confirmParking,
+  connectivityOnline,
   contextual,
   handoff,
   locale,
@@ -68,6 +70,7 @@ export function NativeProductionWorkspace({
           />
         }
       />
+      <NativeConnectivityBanner locale={locale} online={connectivityOnline} />
       <View
         style={{ flex: 1, minHeight: 0, position: "relative" }}
         testID="native-production-shell"
@@ -148,9 +151,6 @@ export function NativeProductionWorkspace({
         ) : shell.destination === "shift" ? (
           <NativeActiveShiftPanel
             locale={locale}
-            onReturned={() =>
-              void runtime.operations.activate(authSnapshot.authGeneration)
-            }
             onReviewTasks={() => navigate("tasks")}
             session={runtime.shiftEnd}
             snapshot={shiftEnd}

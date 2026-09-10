@@ -21,6 +21,7 @@ type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 export interface NativeProductionWorkspaceProps {
   readonly authSnapshot: NativeAuthSnapshot;
   readonly confirmParking: EmployeeConfirmParkedSnapshot;
+  readonly connectivityOnline?: boolean | undefined;
   readonly contextual: NativeContextualPresentation;
   readonly handoff: EmployeeHandoffSnapshot;
   readonly locale: FoundationLocale;
