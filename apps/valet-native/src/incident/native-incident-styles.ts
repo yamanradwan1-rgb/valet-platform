@@ -1,0 +1,98 @@
+import { StyleSheet } from "react-native";
+
+import {
+  employeeColors as c,
+  employeeFeedbackColors,
+  employeeRadius,
+  employeeSpacing as space,
+} from "../employee-ui/employee-tokens";
+import {
+  employeeFontFamilies,
+  employeeTypography as type,
+} from "../employee-ui/employee-typography";
+
+export const nativeIncidentStyles = StyleSheet.create({
+  body: { gap: space.lg, padding: space.screen },
+  choice: {
+    alignItems: "flex-start",
+    backgroundColor: c.white,
+    borderColor: c.border,
+    borderRadius: employeeRadius.form,
+    borderWidth: 2,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingHorizontal: space.md,
+    paddingVertical: 10,
+  },
+  choiceLabel: { ...type.small, color: c.navy, fontWeight: "600" },
+  choiceSelected: {
+    backgroundColor: "#FFF0F0",
+    borderColor: c.danger,
+  },
+  choiceSelectedLabel: { color: c.danger },
+  contextCard: {
+    backgroundColor: c.white,
+    borderColor: c.border,
+    borderRadius: employeeRadius.form,
+    borderWidth: 1,
+    gap: space.xs,
+    padding: space.lg,
+  },
+  contextSession: { ...type.small, color: c.neutral },
+  contextVehicle: {
+    ...type.body,
+    color: c.navy,
+    fontFamily: employeeFontFamilies.display,
+    fontWeight: "700",
+  },
+  description: {
+    ...type.body,
+    backgroundColor: c.white,
+    borderColor: c.border,
+    borderRadius: employeeRadius.form,
+    borderWidth: 1,
+    color: c.navy,
+    minHeight: 108,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+    textAlignVertical: "top",
+  },
+  error: {
+    ...type.small,
+    backgroundColor: employeeFeedbackColors.errorSurface,
+    borderColor: employeeFeedbackColors.errorBorder,
+    borderRadius: employeeRadius.form,
+    borderWidth: 1,
+    color: c.danger,
+    padding: space.md,
+  },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
+  label: { ...type.label, color: c.navy },
+  loading: {
+    alignItems: "center",
+    gap: space.lg,
+    justifyContent: "center",
+    minHeight: 400,
+    padding: space.hero,
+  },
+  optionHalf: { flexBasis: "48%", flexGrow: 1 },
+  optionQuarter: { flexBasis: "22%", flexGrow: 1, paddingHorizontal: space.sm },
+  resultBody: {
+    alignItems: "center",
+    gap: space.hero,
+    minHeight: 500,
+    padding: space.hero,
+  },
+  resultCard: { alignSelf: "stretch" },
+  resultIcon: {
+    alignItems: "center",
+    backgroundColor: "#FFF0F0",
+    borderRadius: 40,
+    height: 80,
+    justifyContent: "center",
+    width: 80,
+  },
+  resultReference: { ...type.body, color: c.neutral, marginTop: space.xs },
+  resultTitle: { ...type.pageTitleLarge, color: c.navy, textAlign: "center" },
+  severityLabel: { textAlign: "center" },
+});

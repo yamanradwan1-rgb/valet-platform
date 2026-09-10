@@ -18,6 +18,21 @@ export {
 } from "@valet/contracts/staff-auth";
 export { staffOperationalContextResponseSchema } from "@valet/contracts/staff-context";
 export {
+  guestAccessIssueRequestSchema,
+  guestAccessIssueResponseSchema,
+  guestAccessRevokeResponseSchema,
+  reportIncidentRequestSchema,
+  reportIncidentResponseSchema,
+  staffValetSessionDetailResponseSchema,
+  type GuestAccessIssueRequest,
+  type GuestAccessIssueResponse,
+  type GuestAccessRevokeResponse,
+  type IncidentSeverity,
+  type IncidentType,
+  type ReportIncidentResponse,
+  type StaffValetSessionDetailResponse,
+} from "@valet/contracts";
+export {
   startShiftResponseSchema,
   type StaffOperationalContextResponse,
   type StaffOperationalLocation,
