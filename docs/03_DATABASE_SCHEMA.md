@@ -1403,6 +1403,119 @@ Rules:
 - notification callbacks must be retry-safe/idempotent when implemented
 - first-market primary messaging channel depends on provider availability/contract; do not hard-code product logic to one provider
 
+## Staff native push persistence
+
+Accepted DEC-073 uses three dedicated push-domain entities. They do not reuse
+the external SMS/WhatsApp/Email `notifications` table and are not a generic
+outbox or event platform.
+
+### staff_push_registrations
+
+```text
+id UUID
+staff_auth_session_id FK -> staff_auth_sessions (restrictive)
+provider: FCM | APNS
+platform: ANDROID | IOS
+app_identifier
+installation_id UUID
+provider_token nullable only after terminalization
+token_hash (staff-push-token-sha256:v1:<64 lowercase hex>)
+app_version
+app_build
+locale: en | ar
+state: ACTIVE | DISABLED | PROVIDER_INVALID | SUPERSEDED
+last_confirmed_at
+terminal_at nullable
+terminal_reason_class nullable
+superseded_by_registration_id nullable self-FK (restrictive, deferred)
+created_at
+updated_at
+```
+
+Rules:
+
+- registrations belong to one exact `StaffAuthSession`; installation and token
+  identifiers never grant Staff or tenant authority
+- `FCM + ANDROID` and `APNS + IOS` are the provider-neutral supported storage
+  combinations for `com.vaylet.employee`; API enablement remains separately
+  controlled
+- partial unique indexes allow only one ACTIVE row per
+  provider/application/installation and per provider/token hash
+- ACTIVE requires the raw usable token and has no terminal metadata;
+  terminal rows clear the raw token and require a timestamp/reason class
+- SUPERSEDED additionally references its replacement; terminal rows cannot be
+  reactivated, and registration identity/token version is immutable
+- the raw token and its hash are restricted operational data and never belong
+  in logs, AuditEvent, analytics, errors, metrics labels, payloads, demo seeds,
+  or client read responses
+
+### staff_push_intents
+
+```text
+id UUID
+organization_id
+location_id
+valet_session_id
+task_id
+kind: EMPLOYEE_RETRIEVAL_REQUESTED
+policy_version positive integer
+expires_at required
+created_at
+```
+
+Rules:
+
+- Organization, Location, ValetSession, and Task scope is enforced by
+  restrictive same-scope composite foreign keys
+- unique `(kind, task_id)` is the stable logical dedupe key
+- expiry must be after creation, but this schema selects no TTL value
+- intent trigger identity is immutable; attempts never rewrite it
+
+### staff_push_deliveries
+
+```text
+id UUID
+organization_id
+intent_id
+registration_id
+recipient_membership_id
+state: PENDING | LEASED | RETRY_WAIT | PROVIDER_ACCEPTED | SUPPRESSED |
+       PERMANENT_FAILURE | EXPIRED
+attempt_count
+max_attempts
+next_attempt_at nullable
+lease_token UUID nullable, unique
+lease_expires_at nullable
+provider_result_class nullable: ACCEPTED | TRANSIENT | RATE_LIMITED |
+                                INVALID_ENDPOINT | PERMANENT |
+                                CONFIGURATION | UNKNOWN
+provider_reference nullable (non-secret only)
+provider_accepted_at nullable
+terminal_at nullable
+created_at
+updated_at
+```
+
+Rules:
+
+- same-Organization intent and recipient membership are enforced by composite
+  foreign keys; intent, registration, and membership ownership is immutable
+- unique `(intent_id, registration_id)` permits one delivery per device for an
+  intent while preserving intentional multi-device fan-out
+- attempts are non-negative and cannot exceed the required positive
+  `max_attempts` policy snapshot
+- lease fields exist only in LEASED; terminal timestamps exist only in terminal
+  states; provider acceptance requires the ACCEPTED result and timestamp
+- database guards enforce the DEC-073 transition graph and increment attempts
+  only on a fresh or expired-lease claim
+- due, lease-expiry, registration-state, and tenant-recipient indexes support
+  future bounded worker access without adding a worker in MOB-020A
+- the existing runtime role receives SELECT/INSERT plus only the registration
+  lifecycle and delivery-coordination UPDATE columns; it receives no intent
+  UPDATE and no DELETE/TRUNCATE/REFERENCES/TRIGGER authority on these tables
+- the migration supplies no TTL, maximum-attempt, lease, retry, retention,
+  concurrency, or provider deployment value; U-005 remains unresolved
+
 ## audit_events / Black Box
 
 ```text

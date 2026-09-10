@@ -303,6 +303,66 @@ enum NotificationStatus {
   @@map("notification_status")
 }
 
+enum StaffPushProvider {
+  FCM
+  APNS
+
+  @@map("staff_push_provider")
+}
+
+enum StaffPushPlatform {
+  ANDROID
+  IOS
+
+  @@map("staff_push_platform")
+}
+
+enum StaffPushLocale {
+  EN @map("en")
+  AR @map("ar")
+
+  @@map("staff_push_locale")
+}
+
+enum StaffPushRegistrationState {
+  ACTIVE
+  DISABLED
+  PROVIDER_INVALID
+  SUPERSEDED
+
+  @@map("staff_push_registration_state")
+}
+
+enum StaffPushKind {
+  EMPLOYEE_RETRIEVAL_REQUESTED
+
+  @@map("staff_push_kind")
+}
+
+enum StaffPushDeliveryState {
+  PENDING
+  LEASED
+  RETRY_WAIT
+  PROVIDER_ACCEPTED
+  SUPPRESSED
+  PERMANENT_FAILURE
+  EXPIRED
+
+  @@map("staff_push_delivery_state")
+}
+
+enum StaffPushProviderResultClass {
+  ACCEPTED
+  TRANSIENT
+  RATE_LIMITED
+  INVALID_ENDPOINT
+  PERMANENT
+  CONFIGURATION
+  UNKNOWN
+
+  @@map("staff_push_provider_result_class")
+}
+
 model Organization {
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
@@ -354,6 +414,8 @@ model Organization {
   taskTrackingSessions        TaskTrackingSession[]
   rawGpsSamples               RawGpsSample[]
   geofenceEvents              GeofenceEvent[]
+  staffPushIntents            StaffPushIntent[]
+  staffPushDeliveries         StaffPushDelivery[]
 
   @@map("organizations")
 }
@@ -402,6 +464,7 @@ model Location {
   taskTrackingSessions     TaskTrackingSession[]
   rawGpsSamples            RawGpsSample[]
   geofenceEvents           GeofenceEvent[]
+  staffPushIntents         StaffPushIntent[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
@@ -436,6 +499,7 @@ model StaffAuthSession {
 
   user               User                     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   refreshCredentials StaffRefreshCredential[]
+  pushRegistrations  StaffPushRegistration[]
 
   @@index([userId, revokedAt, absoluteExpiresAt], map: "staff_auth_sessions_user_id_status_idx")
   @@map("staff_auth_sessions")
@@ -493,6 +557,7 @@ model OrganizationMembership {
   actedDispatchEvents         DispatchEvent[]            @relation("DispatchEventActor")
   previousDispatchEvents      DispatchEvent[]            @relation("DispatchEventPreviousAssignee")
   newDispatchEvents           DispatchEvent[]            @relation("DispatchEventNewAssignee")
+  staffPushDeliveries         StaffPushDelivery[]
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
@@ -691,6 +756,7 @@ model ValetSession {
   taskTrackingSessions        TaskTrackingSession[]
   rawGpsSamples               RawGpsSample[]
   geofenceEvents              GeofenceEvent[]
+  staffPushIntents            StaffPushIntent[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -741,6 +807,7 @@ model Task {
   trackingSessions TaskTrackingSession[]
   rawGpsSamples    RawGpsSample[]
   geofenceEvents   GeofenceEvent[]
+  staffPushIntents StaffPushIntent[]
 
   @@unique([organizationId, locationId, valetSessionId, id], map: "tasks_organization_id_location_id_valet_session_id_id_key")
   @@index([locationId, status, createdAt, id], map: "tasks_location_id_status_created_at_id_idx")
@@ -1198,6 +1265,92 @@ model Notification {
   valetSession ValetSession? @relation(fields: [organizationId, valetSessionId], references: [organizationId, id], onDelete: Restrict, map: "notifications_org_valet_session_id_fkey")
 
   @@map("notifications")
+}
+
+model StaffPushRegistration {
+  id                         String                     @id @default(uuid()) @db.Uuid
+  staffAuthSessionId         String                     @map("staff_auth_session_id") @db.Uuid
+  provider                   StaffPushProvider
+  platform                   StaffPushPlatform
+  appIdentifier              String                     @map("app_identifier")
+  installationId             String                     @map("installation_id") @db.Uuid
+  providerToken              String?                    @map("provider_token")
+  tokenHash                  String                     @map("token_hash")
+  appVersion                 String                     @map("app_version")
+  appBuild                   String                     @map("app_build")
+  locale                     StaffPushLocale
+  state                      StaffPushRegistrationState @default(ACTIVE)
+  lastConfirmedAt            DateTime                   @default(now()) @map("last_confirmed_at") @db.Timestamptz(3)
+  terminalAt                 DateTime?                  @map("terminal_at") @db.Timestamptz(3)
+  terminalReasonClass        String?                    @map("terminal_reason_class")
+  supersededByRegistrationId String?                    @map("superseded_by_registration_id") @db.Uuid
+  createdAt                  DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                  DateTime                   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  staffAuthSession StaffAuthSession        @relation(fields: [staffAuthSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_registrations_staff_auth_session_id_fkey")
+  supersededBy     StaffPushRegistration?  @relation("StaffPushRegistrationSupersession", fields: [supersededByRegistrationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_registrations_superseded_by_fkey")
+  supersedes       StaffPushRegistration[] @relation("StaffPushRegistrationSupersession")
+  deliveries       StaffPushDelivery[]
+
+  @@index([staffAuthSessionId, state], map: "staff_push_registrations_session_state_idx")
+  @@index([supersededByRegistrationId], map: "staff_push_registrations_superseded_by_idx")
+  @@map("staff_push_registrations")
+}
+
+model StaffPushIntent {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  locationId     String        @map("location_id") @db.Uuid
+  valetSessionId String        @map("valet_session_id") @db.Uuid
+  taskId         String        @map("task_id") @db.Uuid
+  kind           StaffPushKind
+  policyVersion  Int           @map("policy_version")
+  expiresAt      DateTime      @map("expires_at") @db.Timestamptz(3)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_intents_organization_id_fkey")
+  location     Location            @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_intents_org_location_id_fkey")
+  valetSession ValetSession        @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_intents_scope_valet_session_id_fkey")
+  task         Task                @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_intents_scope_task_id_fkey")
+  deliveries   StaffPushDelivery[]
+
+  @@unique([organizationId, id], map: "staff_push_intents_organization_id_id_key")
+  @@unique([kind, taskId], map: "staff_push_intents_kind_task_id_key")
+  @@index([locationId, createdAt, id], map: "staff_push_intents_location_created_at_idx")
+  @@index([expiresAt, id], map: "staff_push_intents_expires_at_idx")
+  @@map("staff_push_intents")
+}
+
+model StaffPushDelivery {
+  id                    String                        @id @default(uuid()) @db.Uuid
+  organizationId        String                        @map("organization_id") @db.Uuid
+  intentId              String                        @map("intent_id") @db.Uuid
+  registrationId        String                        @map("registration_id") @db.Uuid
+  recipientMembershipId String                        @map("recipient_membership_id") @db.Uuid
+  state                 StaffPushDeliveryState        @default(PENDING)
+  attemptCount          Int                           @default(0) @map("attempt_count")
+  maxAttempts           Int                           @map("max_attempts")
+  nextAttemptAt         DateTime?                     @map("next_attempt_at") @db.Timestamptz(3)
+  leaseToken            String?                       @unique(map: "staff_push_deliveries_lease_token_key") @map("lease_token") @db.Uuid
+  leaseExpiresAt        DateTime?                     @map("lease_expires_at") @db.Timestamptz(3)
+  providerResultClass   StaffPushProviderResultClass? @map("provider_result_class")
+  providerReference     String?                       @map("provider_reference")
+  providerAcceptedAt    DateTime?                     @map("provider_accepted_at") @db.Timestamptz(3)
+  terminalAt            DateTime?                     @map("terminal_at") @db.Timestamptz(3)
+  createdAt             DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization        Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_deliveries_organization_id_fkey")
+  intent              StaffPushIntent        @relation(fields: [organizationId, intentId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_deliveries_org_intent_id_fkey")
+  registration        StaffPushRegistration  @relation(fields: [registrationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_deliveries_registration_id_fkey")
+  recipientMembership OrganizationMembership @relation(fields: [organizationId, recipientMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_push_deliveries_org_recipient_membership_id_fkey")
+
+  @@unique([intentId, registrationId], map: "staff_push_deliveries_intent_registration_key")
+  @@index([state, nextAttemptAt, createdAt, id], map: "staff_push_deliveries_due_idx")
+  @@index([leaseExpiresAt, id], map: "staff_push_deliveries_lease_expiry_idx")
+  @@index([registrationId, state], map: "staff_push_deliveries_registration_state_idx")
+  @@index([organizationId, recipientMembershipId, state], map: "staff_push_deliveries_recipient_state_idx")
+  @@map("staff_push_deliveries")
 }
 
 model AuditEvent {

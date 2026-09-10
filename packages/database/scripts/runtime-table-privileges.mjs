@@ -5,6 +5,7 @@ import {
   organizationSubscriptionTablePolicies,
   provisionBasicBrandingPrivileges,
 } from "./basic-branding-runtime-privileges.mjs";
+import { provisionStaffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -91,6 +92,12 @@ export const runtimeMapSetupFunctions = [
   "public.map_setup_create_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,numeric[],numeric[])",
   "public.map_setup_update_area(uuid,uuid,uuid,location_map_area_purpose,text,text,text,boolean,uuid,timestamp with time zone)",
   "public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[])",
+];
+
+export const runtimePrivateMapSetupFunctions = [
+  "public.map_setup_authorized_organization(uuid,uuid)",
+  "public.map_setup_validate_labels(text,text,text)",
+  "public.map_setup_append_audit(uuid,uuid,uuid,text,text,uuid,text,boolean,boolean)",
 ];
 
 export const runtimeMaintenanceFunctions = [
@@ -280,6 +287,7 @@ export async function provisionRuntimeTablePrivileges(
     runtimeRole,
   );
   await provisionBasicBrandingPrivileges(client, executeFormatted, runtimeRole);
+  await provisionStaffPushPrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

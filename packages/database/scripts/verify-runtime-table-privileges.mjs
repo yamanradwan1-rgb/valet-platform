@@ -6,14 +6,17 @@ import {
   incidentReadPolicies,
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
+  runtimePrivateMapSetupFunctions as privateMapSetupFunctions,
 } from "./runtime-table-privileges.mjs";
 import { verifyBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
+import { staffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentReadPolicies,
   ...paymentCollectionPrivileges.table,
   ...providerEventPrivileges.table,
   ...customerPrivileges.table,
+  ...staffPushPrivileges.table,
   ["public.users", "SELECT", true],
   ["public.users", "INSERT", false],
   ["public.users", "DELETE", false],
@@ -114,6 +117,7 @@ const tablePrivileges = [
 const columnPrivileges = [
   ...paymentCollectionPrivileges.column,
   ...providerEventPrivileges.column,
+  ...staffPushPrivileges.column,
   ["public.users", "password_hash", false],
   ["public.users", "status", false],
   ["public.users", "last_login_at", true],
@@ -158,6 +162,7 @@ const anyColumnPrivileges = [
   ...paymentCollectionPrivileges.anyColumn,
   ...providerEventPrivileges.anyColumn,
   ...customerPrivileges.anyColumn,
+  ...staffPushPrivileges.anyColumn,
   ["public.users", "INSERT", false],
   ["public.organization_memberships", "INSERT", false],
   ["public.membership_location_access", "INSERT", false],
@@ -169,12 +174,6 @@ const anyColumnPrivileges = [
   ["public.validations", "UPDATE", true],
   ["public.shifts", "UPDATE", true],
 ];
-const privateMapSetupFunctions = [
-  "public.map_setup_authorized_organization(uuid,uuid)",
-  "public.map_setup_validate_labels(text,text,text)",
-  "public.map_setup_append_audit(uuid,uuid,uuid,text,text,uuid,text,boolean,boolean)",
-];
-
 async function tablePrivilegeMatches(client, runtimeRole, policy) {
   const [table, privilege, expected] = policy;
   const result = await client.query(
