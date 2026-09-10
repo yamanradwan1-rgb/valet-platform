@@ -5,8 +5,19 @@ const hooks = vi.hoisted(() => ({
   index: 0,
   values: [] as unknown[],
 }));
+const gestures = vi.hoisted(() => ({
+  end: undefined as
+    | ((event: { translationX: number; translationY: number }) => void)
+    | undefined,
+  update: undefined as
+    | ((event: { translationX: number; translationY: number }) => void)
+    | undefined,
+}));
 
 vi.mock("react", () => ({
+  useCallback: (callback: unknown) => callback,
+  useMemo: (factory: () => unknown) => factory(),
+  useRef: (initial: unknown) => ({ current: initial }),
   useState: (initial: unknown) => {
     const index = hooks.index++;
     if (!(index in hooks.values)) hooks.values[index] = initial;
@@ -28,6 +39,39 @@ vi.mock("react-native", () => ({
   Text: "Text",
   View: "View",
 }));
+vi.mock("react-native-gesture-handler", () => ({
+  Gesture: {
+    Pan: () => {
+      const chain = {
+        onEnd(callback: typeof gestures.end) {
+          gestures.end = callback;
+          return chain;
+        },
+        onFinalize() {
+          return chain;
+        },
+        onUpdate(callback: typeof gestures.update) {
+          gestures.update = callback;
+          return chain;
+        },
+      };
+      return chain;
+    },
+  },
+  GestureDetector: "GestureDetector",
+  GestureHandlerRootView: "GestureHandlerRootView",
+}));
+vi.mock("react-native-reanimated", () => ({
+  default: { View: "AnimatedView" },
+  ReduceMotion: { System: "system" },
+  useAnimatedStyle: (factory: () => unknown) => factory(),
+  useSharedValue: (value: unknown) => ({ value }),
+  withDelay: (_delay: number, value: unknown) => value,
+  withTiming: (value: unknown) => value,
+}));
+vi.mock("react-native-worklets", () => ({
+  scheduleOnRN: (callback: () => void) => callback(),
+}));
 
 const { NativeRetrievalAttention } =
   await import("../src/tasks/native-retrieval-attention");
@@ -38,6 +82,8 @@ function elements(value: unknown): Element[] {
   if (Array.isArray(value)) return value.flatMap(elements);
   if (!value || typeof value !== "object" || !("props" in value)) return [];
   const node = value as Element;
+  if (typeof node.type === "function")
+    return elements((node.type as (props: unknown) => unknown)(node.props));
   return [node, ...elements(node.props.children)];
 }
 
@@ -64,12 +110,18 @@ let operations: { refreshQueue: ReturnType<typeof vi.fn> };
 beforeEach(() => {
   hooks.index = 0;
   hooks.values = [];
+  gestures.end = undefined;
+  gestures.update = undefined;
   onDismiss = vi.fn();
   onOpenQueue = vi.fn();
   operations = { refreshQueue: vi.fn(() => Promise.resolve()) };
 });
 
 describe("Native foreground retrieval attention", () => {
+  it("renders no overlay for zero alerts", () => {
+    expect(render([])).toEqual([]);
+  });
+
   it("renders exact Web copy and delegates dismissal to the shell owner", () => {
     const visible = render([taskId]);
     const dismiss = visible.find(
@@ -102,12 +154,63 @@ describe("Native foreground retrieval attention", () => {
 
     (message.props.onPress as () => void)();
     expect(operations.refreshQueue).toHaveBeenCalledOnce();
+    expect(onDismiss).toHaveBeenCalledWith(taskId);
     expect(onOpenQueue).not.toHaveBeenCalled();
     resolveRefresh?.();
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(onDismiss).toHaveBeenCalledWith(taskId);
     expect(onOpenQueue).toHaveBeenCalledOnce();
+  });
+
+  it.each([2, 3])(
+    "renders %i simultaneous alerts in stable task order",
+    (count) => {
+      const ids = Array.from(
+        { length: count },
+        (_, index) => `${taskId}-${index}`,
+      );
+      const visible = render(ids);
+      expect(
+        visible
+          .filter((node) =>
+            String(node.props.testID).startsWith("native-retrieval-alert-"),
+          )
+          .map((node) => node.props.testID),
+      ).toEqual(ids.map((id) => `native-retrieval-alert-${id}`));
+    },
+  );
+
+  it("dismisses exactly the swiped alert at the Web threshold", () => {
+    render([taskId]);
+    gestures.update?.({ translationX: 4, translationY: -48 });
+    gestures.end?.({ translationX: 4, translationY: -48 });
+    expect(onDismiss).toHaveBeenCalledExactlyOnceWith(taskId);
+    expect(onOpenQueue).not.toHaveBeenCalled();
+  });
+
+  it("uses exact Arabic copy without reversing logical task order", () => {
+    hooks.index = 0;
+    const ids = [`${taskId}-a`, `${taskId}-b`];
+    const visible = elements(
+      NativeRetrievalAttention({
+        locale: "ar",
+        onDismiss,
+        onOpenQueue,
+        operations: operations as never,
+        taskIds: ids,
+        textAlign: "right",
+      }),
+    );
+    expect(
+      visible.some((node) => node.props.accessibilityLabel === "تجاهل"),
+    ).toBe(true);
+    expect(
+      visible
+        .filter((node) =>
+          String(node.props.testID).startsWith("native-retrieval-alert-"),
+        )
+        .map((node) => node.props.testID),
+    ).toEqual(ids.map((id) => `native-retrieval-alert-${id}`));
   });
 });
