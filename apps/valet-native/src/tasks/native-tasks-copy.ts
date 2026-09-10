@@ -86,7 +86,7 @@ const copy: Record<FoundationLocale, NativeTasksCopy> = {
     ambiguousShifts: "توجد أكثر من وردية نشطة وتحتاج إلى معالجة.",
     claimParking: "استلام وإيقاف",
     claimRetrieval: "قبول المهمة",
-    dismiss: "إخفاء",
+    dismiss: "تجاهل",
     empty: "لا توجد مهام متاحة حاليًا.",
     error: "الحالة التشغيلية غير متاحة مؤقتًا.",
     loading: "جارٍ تحميل الحالة التشغيلية الحالية…",
