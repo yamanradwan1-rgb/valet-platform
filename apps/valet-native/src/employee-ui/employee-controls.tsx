@@ -34,6 +34,8 @@ export const employeeControlStyles = StyleSheet.create({
   },
   disabled: { opacity: 0.4 },
   danger: { backgroundColor: c.danger },
+  muted: { backgroundColor: "transparent" },
+  navy: { backgroundColor: c.navy },
   primary: { backgroundColor: c.blue },
   secondary: {
     backgroundColor: c.white,
@@ -45,18 +47,21 @@ export const employeeControlStyles = StyleSheet.create({
 });
 
 export type EmployeeButtonVariant =
-  "danger" | "ghost" | "primary" | "secondary" | "success";
+  "danger" | "ghost" | "muted" | "navy" | "primary" | "secondary" | "success";
 export type EmployeeButtonSize = keyof typeof employeeButtonHeights;
 
 const labelColors = {
   danger: c.white,
   ghost: c.blue,
+  muted: c.muted,
+  navy: c.white,
   primary: c.white,
   secondary: c.navy,
   success: c.white,
 } satisfies Record<EmployeeButtonVariant, string>;
 const pressedColors: Partial<Record<EmployeeButtonVariant, string>> = {
   ghost: c.ice,
+  navy: c.navy3,
   primary: employeeFeedbackColors.primaryPressed,
   secondary: employeeFeedbackColors.secondaryPressed,
 };
@@ -74,7 +79,9 @@ export function EmployeeButton({
   role = "button",
   accessibilityState,
   busy = false,
+  height: heightOverride,
   leading,
+  radius,
 }: {
   readonly label: string;
   readonly onPress: () => void;
@@ -84,9 +91,11 @@ export function EmployeeButton({
   readonly role?: AccessibilityRole;
   readonly accessibilityState?: AccessibilityState;
   readonly busy?: boolean;
+  readonly height?: number | undefined;
   readonly leading?: ReactNode;
+  readonly radius?: number | undefined;
 }) {
-  const height = employeeButtonHeights[size];
+  const height = heightOverride ?? employeeButtonHeights[size];
   const hitExtension = Math.max(0, (employeeMinimumTouchTarget - height) / 2);
   const isDisabled = disabled || busy;
   return (
@@ -111,7 +120,7 @@ export function EmployeeButton({
       style={({ pressed }) => [
         employeeControlStyles.button,
         employeeControlStyles[variant],
-        { height },
+        { borderRadius: radius ?? employeeRadius.primary, height },
         pressed && !isDisabled && { transform: [{ scale: 0.98 }] },
         pressed &&
           !isDisabled &&
@@ -138,6 +147,7 @@ export function EmployeeButton({
             accessible={false}
             color={
               variant === "primary" ||
+              variant === "navy" ||
               variant === "danger" ||
               variant === "success"
                 ? c.white

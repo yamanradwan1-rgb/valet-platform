@@ -83,8 +83,7 @@ const values: Record<FoundationLocale, NativeHandoffCopy> = {
     reportIssue: "Report Issue",
     readyBody:
       "The vehicle is ready. Begin the secure guest handoff when the guest is present.",
-    retryAfter: (seconds) =>
-      `Too many attempts. Try again in ${seconds} seconds.`,
+    retryAfter: (seconds) => `Retry in ${seconds}s.`,
     settings: "Open camera settings",
     supervisorTitle: "Supervisor override",
     key: "Key",
@@ -104,10 +103,10 @@ const values: Record<FoundationLocale, NativeHandoffCopy> = {
     abortTitle: "إلغاء",
     abortReason: "سبب إلغاء التسليم",
     aborting: "جارٍ إلغاء التسليم…",
-    awaiting: "بانتظار إثبات الضيف",
+    awaiting: "في انتظار إثبات الضيف",
     back: "رجوع",
     begin: "بدء تسليم الضيف",
-    beginning: "جارٍ بدء التسليم…",
+    beginning: "جارٍ بدء التسليم...",
     camera: "مسح رمز QR",
     check: "تحقق من حالة الخادم",
     closeCamera: "إغلاق الماسح",
@@ -132,7 +131,7 @@ const values: Record<FoundationLocale, NativeHandoffCopy> = {
     reasonRequired: "السبب (مطلوب)",
     reportIssue: "الإبلاغ عن مشكلة",
     readyBody: "المركبة جاهزة. ابدأ التسليم الآمن عند حضور الضيف.",
-    retryAfter: (seconds) => `محاولات كثيرة. حاول مجددًا بعد ${seconds} ثانية.`,
+    retryAfter: (seconds) => `أعد المحاولة خلال ${seconds}s.`,
     settings: "فتح إعدادات الكاميرا",
     supervisorTitle: "تجاوز المشرف",
     key: "المفتاح",
@@ -151,4 +150,16 @@ const values: Record<FoundationLocale, NativeHandoffCopy> = {
 
 export function getNativeHandoffCopy(locale: FoundationLocale) {
   return values[locale];
+}
+
+export function presentHandoffFailure(
+  copy: NativeHandoffCopy,
+  failure: {
+    readonly message: string;
+    readonly retryAfter?: number | undefined;
+  },
+) {
+  return failure.retryAfter !== undefined
+    ? `${failure.message} ${copy.retryAfter(failure.retryAfter)}`
+    : failure.message;
 }

@@ -38,6 +38,7 @@ export interface NativeRetrievalCopy {
   readonly scanQr: string;
   readonly closeScanner: string;
   readonly manualHint: string;
+  readonly operationFailed: string;
 }
 
 const copy: Record<FoundationLocale, NativeRetrievalCopy> = {
@@ -69,7 +70,7 @@ const copy: Record<FoundationLocale, NativeRetrievalCopy> = {
     retrievingLabel: "Retrieving",
     retrievalBadge: "Retrieval",
     startRetrieval: "Start Retrieval",
-    startingRetrieval: "Starting Retrieval…",
+    startingRetrieval: "Starting Retrieval...",
     taskTitle: "Retrieval Operation",
     unknownBody:
       "The Retrieval result is unknown. Check server state before taking another action.",
@@ -84,6 +85,7 @@ const copy: Record<FoundationLocale, NativeRetrievalCopy> = {
     scanQr: "Scan QR code",
     closeScanner: "Close scanner",
     manualHint: "You can enter the code manually at any time below.",
+    operationFailed: "The operation failed. Refresh and try again.",
   },
   ar: {
     assignedBody: "استلم مهمة الاسترجاع هذه واقبلها قبل بدء الاسترجاع.",
@@ -112,7 +114,7 @@ const copy: Record<FoundationLocale, NativeRetrievalCopy> = {
     retrievingLabel: "جارٍ الاسترجاع",
     retrievalBadge: "الاسترجاع",
     startRetrieval: "بدء الاسترجاع",
-    startingRetrieval: "جارٍ بدء الاسترجاع…",
+    startingRetrieval: "جارٍ بدء الاسترجاع...",
     taskTitle: "عملية الاسترجاع",
     unknownBody:
       "نتيجة الاسترجاع غير معروفة. تحقق من حالة الخادم قبل اتخاذ إجراء آخر.",
@@ -127,6 +129,7 @@ const copy: Record<FoundationLocale, NativeRetrievalCopy> = {
     scanQr: "مسح رمز QR",
     closeScanner: "إغلاق الماسح",
     manualHint: "يمكنك إدخال الرمز يدويًا في أي وقت أدناه.",
+    operationFailed: "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
   },
 };
 

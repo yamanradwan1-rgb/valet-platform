@@ -78,7 +78,7 @@ describe("MOB-012B Native Parking QR/manual parity", () => {
   it("uses the existing rear QR-only camera and returns the decoded candidate", async () => {
     const { controller, onChange, render } = fixture();
     await controller.open();
-    const camera = render().find((node) => node.type === "CameraView")!;
+    const camera = render("K-9").find((node) => node.type === "CameraView")!;
     expect(camera.props).toMatchObject({
       barcodeScannerSettings: { barcodeTypes: ["qr"] },
       facing: "back",
@@ -89,6 +89,25 @@ describe("MOB-012B Native Parking QR/manual parity", () => {
       type: "qr",
     });
     expect(onChange).toHaveBeenCalledWith("K-03");
+  });
+
+  it("preserves the Parking scanner default secondary 44px control", () => {
+    const { render } = fixture("parking-spot");
+    const action = render().find(
+      (node) =>
+        node.type === "Pressable" &&
+        node.props.accessibilityLabel === "Open camera",
+    )!;
+    const resolved = (
+      action.props.style as (state: { pressed: boolean }) => unknown
+    )({ pressed: false });
+    expect(
+      Object.assign({}, ...[resolved].flat(Infinity).filter(Boolean)),
+    ).toMatchObject({
+      backgroundColor: "#FFFFFF",
+      borderColor: "#DDE4EC",
+      height: 44,
+    });
   });
 
   it("keeps manual input available when camera capture is disabled", () => {

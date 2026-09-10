@@ -94,6 +94,7 @@ export const nativeRetrievalStyles = StyleSheet.create({
   rowBorder: { borderTopColor: c.border, borderTopWidth: 1 },
   rowLabel: { ...type.supporting, color: c.neutral },
   rowValue: { ...type.body, color: c.navy, flexShrink: 1, fontWeight: "600" },
+  scannerSection: { paddingHorizontal: 20, paddingTop: 16 },
   successPanel: {
     alignItems: "center",
     backgroundColor: "#EEFBF5",

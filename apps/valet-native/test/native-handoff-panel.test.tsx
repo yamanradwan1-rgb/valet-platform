@@ -138,6 +138,7 @@ function render(
   locale: "en" | "ar" = "en",
   role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR" = "VALET_EMPLOYEE",
   owner = true,
+  onReportIssue?: (sessionId: string) => void,
 ) {
   return elements(
     NativeHandoffPanel({
@@ -145,6 +146,7 @@ function render(
       handoff: handoff as never,
       locale,
       onBack: vi.fn(),
+      onReportIssue,
       snapshot: snapshot(phase, role, owner),
     }),
   );
@@ -182,6 +184,25 @@ describe("MOB-014A Native secure handoff", () => {
       true,
     );
     expect(content(nodes)).toContain("Verify QR");
+  });
+  it("matches the Web navy 44px Dynamic QR scanner control", () => {
+    const nodes = render("pending");
+    const scan = nodes.find(
+      (node) => node.props.accessibilityLabel === "Scan QR code",
+    )!;
+    const resolved = (
+      scan.props.style as (state: { pressed: boolean }) => unknown
+    )({ pressed: false });
+    expect(
+      Object.assign({}, ...[resolved].flat(Infinity).filter(Boolean)),
+    ).toMatchObject({
+      backgroundColor: "#07111F",
+      borderRadius: 12,
+      height: 44,
+    });
+    expect(
+      style(nodes.find((node) => node.props.children === "Scan QR code")!),
+    ).toMatchObject({ color: "#FFFFFF", fontSize: 14, fontWeight: "600" });
   });
   it.each(["en", "ar"] as const)(
     "stops verified proof before release in %s",
@@ -236,23 +257,27 @@ describe("MOB-014A Native secure handoff", () => {
     expect(handoff.verifyPickupCode).not.toHaveBeenCalled();
   });
 
-  it("invokes Report Issue only through the bounded supplied callback", () => {
-    const onReportIssue = vi.fn();
-    const snap = snapshot("pending");
-    const nodes = elements(
-      NativeHandoffPanel({
-        auth: {} as never,
-        handoff: handoff as never,
-        locale: "en",
-        onBack: vi.fn(),
-        onReportIssue,
-        snapshot: snap,
-      }),
-    );
-    const action = nodes.find(
-      (node) => node.props.accessibilityLabel === "Report Issue",
-    )!;
-    (action.props.onPress as () => void)();
-    expect(onReportIssue).toHaveBeenCalledWith(snap.session!.sessionId);
-  });
+  it.each(["ready", "pending"] as const)(
+    "renders the %s Report Issue entry as a 44px muted action",
+    (phase) => {
+      const onReportIssue = vi.fn();
+      const nodes = render(phase, "en", "VALET_EMPLOYEE", true, onReportIssue);
+      const action = nodes.find(
+        (node) => node.props.accessibilityLabel === "Report Issue",
+      )!;
+      const resolved = (
+        action.props.style as (state: { pressed: boolean }) => unknown
+      )({ pressed: false });
+      expect(
+        Object.assign({}, ...[resolved].flat(Infinity).filter(Boolean)),
+      ).toMatchObject({ backgroundColor: "transparent", height: 44 });
+      expect(
+        style(nodes.find((node) => node.props.children === "Report Issue")!),
+      ).toMatchObject({ color: "#8C98AA", fontSize: 14, fontWeight: "600" });
+      (action.props.onPress as () => void)();
+      expect(onReportIssue).toHaveBeenCalledWith(
+        snapshot(phase).session!.sessionId,
+      );
+    },
+  );
 });

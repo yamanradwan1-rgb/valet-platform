@@ -160,6 +160,7 @@ export function NativeReleasePanel({
           <EmployeeButton
             label={copy.reportIssue}
             onPress={reportIssue}
+            size="large"
             variant="secondary"
           />
         ) : null}

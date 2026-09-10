@@ -7,6 +7,7 @@ import {
   View,
   type StyleProp,
   type TextStyle,
+  type ViewStyle,
 } from "react-native";
 import { CameraView } from "expo-camera";
 import { useFocusEffect } from "expo-router";
@@ -40,12 +41,15 @@ export function NativeParkingQrInput({
   manualInput = true,
   manualHint,
   onChange,
+  openHeight,
   openLabel,
+  openRadius,
   openVariant = "secondary",
   closeLabel,
   placeholder,
   inputStyle,
   scannerFirst = false,
+  scannerContentStyle,
   hideIdleStatus = false,
   value,
 }: {
@@ -58,12 +62,15 @@ export function NativeParkingQrInput({
   readonly manualInput?: boolean | undefined;
   readonly manualHint?: string | undefined;
   readonly onChange: (value: string) => void;
+  readonly openHeight?: number | undefined;
   readonly openLabel?: string | undefined;
+  readonly openRadius?: number | undefined;
   readonly openVariant?: EmployeeButtonVariant | undefined;
   readonly closeLabel?: string | undefined;
   readonly placeholder?: string | undefined;
   readonly inputStyle?: StyleProp<TextStyle> | undefined;
   readonly scannerFirst?: boolean | undefined;
+  readonly scannerContentStyle?: StyleProp<ViewStyle> | undefined;
   readonly hideIdleStatus?: boolean | undefined;
   readonly value: string;
 }) {
@@ -120,59 +127,65 @@ export function NativeParkingQrInput({
   return (
     <View style={{ gap: 12 }}>
       {scannerFirst ? null : manualField}
-      {snapshot.phase !== "idle" || !hideIdleStatus ? (
-        <EmployeeStatus textAlign={textAlign}>
-          {copy.phases[snapshot.phase]}
-        </EmployeeStatus>
-      ) : null}
-      {snapshot.rejection !== null ? (
-        <EmployeeError textAlign={textAlign}>{copy.invalid}</EmployeeError>
-      ) : null}
-      {cameraMounted ? (
-        <CameraView
-          key={snapshot.generation}
-          {...nativeQrCameraSettings}
-          accessible={false}
-          onBarcodeScanned={(event) => {
-            const before = controller.current().phase;
-            controller.barcode(snapshot.generation, event);
-            const accepted = controller.current();
-            if (before !== "accepted" && accepted.phase === "accepted")
-              onChange(accepted.resourceCode);
-          }}
-          onCameraReady={() => controller.ready(snapshot.generation)}
-          onMountError={() => controller.fail(snapshot.generation)}
-          style={{ height: 220 }}
-        />
-      ) : null}
-      <EmployeeButton
-        disabled={disabled || cameraBusy}
-        label={
-          snapshot.phase === "accepted" ? copy.again : (openLabel ?? copy.open)
-        }
-        onPress={() => void controller.open()}
-        size="standard"
-        variant={openVariant}
-      />
-      {cameraMounted ? (
+      <View style={[{ gap: 12 }, scannerContentStyle]}>
+        {snapshot.phase !== "idle" || !hideIdleStatus ? (
+          <EmployeeStatus textAlign={textAlign}>
+            {copy.phases[snapshot.phase]}
+          </EmployeeStatus>
+        ) : null}
+        {snapshot.rejection !== null ? (
+          <EmployeeError textAlign={textAlign}>{copy.invalid}</EmployeeError>
+        ) : null}
+        {cameraMounted ? (
+          <CameraView
+            key={snapshot.generation}
+            {...nativeQrCameraSettings}
+            accessible={false}
+            onBarcodeScanned={(event) => {
+              const before = controller.current().phase;
+              controller.barcode(snapshot.generation, event);
+              const accepted = controller.current();
+              if (before !== "accepted" && accepted.phase === "accepted")
+                onChange(accepted.resourceCode);
+            }}
+            onCameraReady={() => controller.ready(snapshot.generation)}
+            onMountError={() => controller.fail(snapshot.generation)}
+            style={{ height: 220 }}
+          />
+        ) : null}
         <EmployeeButton
-          disabled={disabled}
-          label={closeLabel ?? copy.close}
-          onPress={() => controller.close()}
-          variant="secondary"
+          disabled={disabled || cameraBusy}
+          height={openHeight}
+          label={
+            snapshot.phase === "accepted"
+              ? copy.again
+              : (openLabel ?? copy.open)
+          }
+          onPress={() => void controller.open()}
+          radius={openRadius}
+          size="standard"
+          variant={openVariant}
         />
-      ) : null}
-      {snapshot.permission === "denied" && !snapshot.canAskAgain ? (
-        <EmployeeButton
-          disabled={disabled}
-          label={copy.settings}
-          onPress={() => void Linking.openSettings().catch(() => undefined)}
-          variant="secondary"
-        />
-      ) : null}
-      {manualHint ? (
-        <EmployeeStatus textAlign={textAlign}>{manualHint}</EmployeeStatus>
-      ) : null}
+        {cameraMounted ? (
+          <EmployeeButton
+            disabled={disabled}
+            label={closeLabel ?? copy.close}
+            onPress={() => controller.close()}
+            variant="secondary"
+          />
+        ) : null}
+        {snapshot.permission === "denied" && !snapshot.canAskAgain ? (
+          <EmployeeButton
+            disabled={disabled}
+            label={copy.settings}
+            onPress={() => void Linking.openSettings().catch(() => undefined)}
+            variant="secondary"
+          />
+        ) : null}
+        {manualHint ? (
+          <EmployeeStatus textAlign={textAlign}>{manualHint}</EmployeeStatus>
+        ) : null}
+      </View>
       {scannerFirst ? manualField : null}
     </View>
   );

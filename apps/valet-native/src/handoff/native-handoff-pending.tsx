@@ -10,7 +10,10 @@ import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeError } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
-import type { NativeHandoffCopy } from "./native-handoff-copy";
+import {
+  presentHandoffFailure,
+  type NativeHandoffCopy,
+} from "./native-handoff-copy";
 import { NativeHandoffReasonAction } from "./native-handoff-reason-action";
 import { NativeHandoffScanner } from "./native-handoff-scanner";
 import { nativeHandoffStyles as s } from "./native-handoff-styles";
@@ -64,7 +67,7 @@ export function NativeHandoffPending({
     <>
       {snapshot.failure && state.lastAction !== "abort" ? (
         <EmployeeError textAlign={textAlign}>
-          {failureText(copy, snapshot)}
+          {presentHandoffFailure(copy, snapshot.failure)}
         </EmployeeError>
       ) : null}
       <View style={s.card}>
@@ -131,7 +134,8 @@ export function NativeHandoffPending({
         <EmployeeButton
           label={copy.reportIssue}
           onPress={onReportIssue}
-          variant="ghost"
+          size="standard"
+          variant="muted"
         />
       ) : null}
       <NativeHandoffReasonAction
@@ -139,7 +143,7 @@ export function NativeHandoffPending({
         compact
         error={
           state.lastAction === "abort" && snapshot.failure
-            ? failureText(copy, snapshot)
+            ? presentHandoffFailure(copy, snapshot.failure)
             : null
         }
         label={copy.abort}
@@ -166,13 +170,4 @@ export function submitHandoffProof(
 ) {
   clear("");
   return verify(proof);
-}
-
-function failureText(
-  copy: NativeHandoffCopy,
-  snapshot: EmployeeHandoffSnapshot,
-) {
-  return snapshot.failure?.retryAfter !== undefined
-    ? `${snapshot.failure.message} ${copy.retryAfter(snapshot.failure.retryAfter)}`
-    : (snapshot.failure?.message ?? copy.failure);
 }

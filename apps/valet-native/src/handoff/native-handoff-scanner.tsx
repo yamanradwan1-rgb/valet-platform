@@ -91,7 +91,9 @@ export function NativeHandoffScanner({
         disabled={disabled || cameraMounted || snapshot.phase === "requesting"}
         label={copy.camera}
         onPress={() => void controller.open()}
+        radius={12}
         size="standard"
+        variant="navy"
       />
       {cameraMounted ? (
         <EmployeeButton

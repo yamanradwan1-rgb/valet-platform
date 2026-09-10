@@ -173,6 +173,19 @@ describe("MOB-014B Native final release", () => {
     const action = nodes.find(
       (node) => node.props.accessibilityLabel === "Report Issue",
     )!;
+    const resolved = (
+      action.props.style as (state: { pressed: boolean }) => unknown
+    )({ pressed: false });
+    expect(
+      Object.assign({}, ...[resolved].flat(Infinity).filter(Boolean)),
+    ).toMatchObject({
+      backgroundColor: "#FFFFFF",
+      borderColor: "#DDE4EC",
+      height: 56,
+    });
+    expect(
+      style(nodes.find((node) => node.props.children === "Report Issue")!),
+    ).toMatchObject({ color: "#07111F", fontWeight: "600" });
     (action.props.onPress as () => void)();
     expect(onReportIssue).toHaveBeenCalledWith(snap.session!.sessionId);
   });

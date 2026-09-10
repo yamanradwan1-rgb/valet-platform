@@ -125,6 +125,7 @@ export function NativeRetrievalPanel({
           snapshot.phase === "submitting-ready" ? (
           <NativeRetrievalRetrieving
             copy={copy}
+            locale={locale}
             retrieval={retrieval}
             snapshot={snapshot}
             textAlign={textAlign}

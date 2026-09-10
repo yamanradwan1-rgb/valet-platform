@@ -140,7 +140,8 @@ export function NativeHandoffPanel({
               <EmployeeButton
                 label={copy.reportIssue}
                 onPress={reportIssue}
-                variant="ghost"
+                size="standard"
+                variant="muted"
               />
             ) : null}
           </>
@@ -176,6 +177,7 @@ export function NativeHandoffPanel({
               <EmployeeButton
                 label={copy.reportIssue}
                 onPress={reportIssue}
+                size="large"
                 variant="secondary"
               />
             ) : null}

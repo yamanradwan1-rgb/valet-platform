@@ -14,9 +14,13 @@ import {
 } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
-import { NativeParkingQrInput } from "../parking/native-parking-qr-input";
 import type { NativeRetrievalCopy } from "./native-retrieval-copy";
 import { NativeRetrievalDetails } from "./native-retrieval-details";
+import { NativeRetrievalKeyInput } from "./native-retrieval-key-input";
+import {
+  keyCheckoutBoundary,
+  presentRetrievalFailure,
+} from "./native-retrieval-presentation";
 import { nativeRetrievalStyles as s } from "./native-retrieval-styles";
 
 interface StageProps {
@@ -39,11 +43,20 @@ export function NativeRetrievalKeyCheckout({
 }) {
   const submitting = snapshot.phase === "submitting-start";
   const expectedKey = snapshot.session?.keySlot?.code ?? null;
+  const boundary = keyCheckoutBoundary(
+    snapshot.session?.sessionId,
+    snapshot.task?.taskId,
+    expectedKey,
+  );
   return (
     <>
       {snapshot.failure ? (
         <EmployeeError textAlign={textAlign}>
-          {snapshot.failure.message}
+          {presentRetrievalFailure(
+            snapshot.failure.message,
+            locale,
+            copy.operationFailed,
+          )}
         </EmployeeError>
       ) : null}
       <View style={s.expectedKeyHero}>
@@ -63,31 +76,16 @@ export function NativeRetrievalKeyCheckout({
         textAlign={textAlign}
       />
       {!snapshot.keyConfirmed ? (
-        <>
-          <NativeParkingQrInput
-            auth={auth}
-            disabled={submitting}
-            closeLabel={copy.closeScanner}
-            kind="key-slot"
-            inputStyle={s.keyInput}
-            hideIdleStatus
-            label={copy.enterKeySlotCode}
-            labelStyle={s.fieldLabel}
-            locale={locale}
-            manualHint={copy.manualHint}
-            onChange={(value) => retrieval.enterKeySlot(value)}
-            placeholder={copy.enterKeySlotCode}
-            openLabel={copy.scanQr}
-            openVariant="primary"
-            scannerFirst
-            value={snapshot.keySlotCandidate}
-          />
-          <EmployeeButton
-            disabled={submitting || snapshot.keySlotCandidate.trim() === ""}
-            label={copy.keyVerifyLabel}
-            onPress={() => void retrieval.confirmKeySlot()}
-          />
-        </>
+        <NativeRetrievalKeyInput
+          auth={auth}
+          copy={copy}
+          expectedKey={expectedKey}
+          key={boundary}
+          locale={locale}
+          retrieval={retrieval}
+          snapshot={snapshot}
+          submitting={submitting}
+        />
       ) : (
         <>
           <View style={s.successPanel}>
@@ -116,11 +114,13 @@ export function NativeRetrievalKeyCheckout({
 
 export function NativeRetrievalRetrieving({
   copy,
+  locale,
   retrieval,
   snapshot,
   textAlign,
   onReportIssue,
 }: StageProps & {
+  readonly locale: FoundationLocale;
   readonly retrieval: EmployeeRetrievalSession;
   readonly onReportIssue?: (() => void) | undefined;
 }) {
@@ -129,7 +129,11 @@ export function NativeRetrievalRetrieving({
     <>
       {snapshot.failure ? (
         <EmployeeError textAlign={textAlign}>
-          {snapshot.failure.message}
+          {presentRetrievalFailure(
+            snapshot.failure.message,
+            locale,
+            copy.operationFailed,
+          )}
         </EmployeeError>
       ) : null}
       {snapshot.retrievalStartedAt ? (
@@ -156,6 +160,7 @@ export function NativeRetrievalRetrieving({
         <EmployeeButton
           label={copy.reportIssue}
           onPress={onReportIssue}
+          size="large"
           variant="secondary"
         />
       ) : null}
