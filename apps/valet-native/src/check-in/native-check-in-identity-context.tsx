@@ -85,12 +85,7 @@ export function NativeCheckInIdentityContext({
         >
           {vehicleName}
         </Text>
-        <View
-          style={[
-            styles.vehicleContext,
-            textAlign === "right" && styles.vehicleContextRtl,
-          ]}
-        >
+        <View style={styles.vehicleContext}>
           <Text style={[styles.vehicleDetail, styles.code]}>{identity}</Text>
           <Text style={styles.vehicleDetail}>·</Text>
           <Text
@@ -122,13 +117,7 @@ function CountryContext({
     ? copy.countryNames[country]
     : country;
   return (
-    <View
-      accessible={false}
-      style={[
-        styles.countryContext,
-        textAlign === "right" && styles.countryContextRtl,
-      ]}
-    >
+    <View accessible={false} style={styles.countryContext}>
       <Text
         style={[
           styles.context,
@@ -157,7 +146,6 @@ export const nativeCheckInIdentityStyles = StyleSheet.create({
     gap: space.xs,
     justifyContent: "center",
   },
-  countryContextRtl: { flexDirection: "row-reverse" },
   descriptor: { ...type.plate, color: c.navy },
   hero: {
     alignItems: "center",
@@ -186,7 +174,6 @@ export const nativeCheckInIdentityStyles = StyleSheet.create({
     flexDirection: "row",
     gap: space.xs,
   },
-  vehicleContextRtl: { flexDirection: "row-reverse" },
   vehicleDetail: { ...type.body, color: c.neutral },
   vehicleName: { ...type.vehicleIdentity, color: c.navy },
 });

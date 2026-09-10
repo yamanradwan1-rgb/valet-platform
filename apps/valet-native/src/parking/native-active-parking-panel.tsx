@@ -92,7 +92,7 @@ function VehicleInfoRow({
       <View
         style={{
           alignItems: textAlign === "right" ? "flex-end" : "flex-start",
-          flexDirection: textAlign === "right" ? "row-reverse" : "row",
+          flexDirection: "row",
           gap: 4,
         }}
       >

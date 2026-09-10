@@ -227,7 +227,7 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
       }),
     )[0]!;
     expect(style(rtl.props.style)).toMatchObject({
-      flexDirection: "row-reverse",
+      flexDirection: "row",
       minHeight: 56,
     });
     const ltr = elements(

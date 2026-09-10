@@ -42,7 +42,6 @@ export function NativeParkingKeyReturnStep({
         : snapshot.failure !== null
           ? copy.reviewAgain
           : null;
-  const directionStyle = textAlign === "right" ? s.panelRtl : undefined;
   return (
     <>
       {conflict !== null ? (
@@ -56,7 +55,7 @@ export function NativeParkingKeyReturnStep({
         textAlign={textAlign}
         variant="warning"
       />
-      <View style={[s.keyInfoPanel, directionStyle]}>
+      <View style={s.keyInfoPanel}>
         <View accessibilityElementsHidden style={s.blueDot} />
         <Text style={[s.keyInfoText, employeeTextStyle("human", textAlign)]}>
           {copy.slotBody}
@@ -84,7 +83,7 @@ export function NativeParkingKeyReturnStep({
         value={snapshot.keySlotCandidate}
       />
       {!online ? (
-        <View style={[s.offlinePanel, directionStyle]}>
+        <View style={s.offlinePanel}>
           <View accessibilityElementsHidden style={s.dangerDot} />
           <Text style={[s.offlineText, employeeTextStyle("human", textAlign)]}>
             {copy.noNetwork}

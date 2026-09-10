@@ -151,7 +151,7 @@ function ResultRow({
       style={{
         borderBottomColor: c.border,
         borderBottomWidth: divider ? 1 : 0,
-        flexDirection: textAlign === "right" ? "row-reverse" : "row",
+        flexDirection: "row",
         gap: 16,
         justifyContent: "space-between",
         paddingVertical: 12,

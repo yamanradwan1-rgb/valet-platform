@@ -62,7 +62,7 @@ export function NativeCheckInParkingTaskStep({
           vehicle={snapshot.active.vehicle}
         />
       ) : null}
-      <View style={[styles.notice, textAlign === "right" && styles.noticeRtl]}>
+      <View style={styles.notice}>
         <View accessibilityElementsHidden style={styles.dot} />
         <Text
           style={[styles.noticeText, employeeTextStyle("human", textAlign)]}
@@ -125,7 +125,6 @@ export const nativeCheckInParkingTaskStyles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
   },
-  noticeRtl: { flexDirection: "row-reverse" },
   noticeText: {
     ...type.supporting,
     color: c.blue,

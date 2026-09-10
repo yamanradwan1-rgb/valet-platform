@@ -26,7 +26,10 @@ function dictionaryEntries(source, fileName) {
   );
   const entries = {};
   const visit = (node) => {
-    if (ts.isPropertyAssignment(node) && ts.isStringLiteralLike(node.initializer)) {
+    if (
+      ts.isPropertyAssignment(node) &&
+      ts.isStringLiteralLike(node.initializer)
+    ) {
       const name = node.name.getText(syntax).replaceAll('"', "");
       entries[name] = node.initializer.text;
     }
@@ -46,9 +49,9 @@ describe("Native central employee dictionary parity", () => {
         const native = read(
           `../src/i18n/native-dictionary-${locale}${fragment}.ts`,
         );
-        expect(dictionaryEntries(native, `native-${locale}${fragment}`)).toEqual(
-          dictionaryEntries(web, `web-${locale}${fragment}`),
-        );
+        expect(
+          dictionaryEntries(native, `native-${locale}${fragment}`),
+        ).toEqual(dictionaryEntries(web, `web-${locale}${fragment}`));
       });
     }
   }

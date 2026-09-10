@@ -14,6 +14,7 @@ export const employeeBackHeaderStyles = StyleSheet.create({
     backgroundColor: c.warm,
     borderBottomColor: c.border,
     borderBottomWidth: 1,
+    flexDirection: "row",
     gap: space.sm,
     minHeight: 56,
     paddingHorizontal: space.screen,
@@ -50,12 +51,7 @@ export function EmployeeBackHeader({
   readonly title: string;
 }) {
   return (
-    <View
-      style={[
-        employeeBackHeaderStyles.header,
-        { flexDirection: direction === "rtl" ? "row-reverse" : "row" },
-      ]}
-    >
+    <View style={employeeBackHeaderStyles.header}>
       <Pressable
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"

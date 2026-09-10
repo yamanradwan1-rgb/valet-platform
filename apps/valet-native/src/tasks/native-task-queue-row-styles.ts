@@ -9,11 +9,16 @@ import { employeeTypography as type } from "../employee-ui/employee-typography";
 
 export const nativeTaskQueueRowStyles = StyleSheet.create({
   assignedToOther: { opacity: 0.6 },
-  badges: { alignItems: "center", flexWrap: "wrap", gap: space.sm },
+  badges: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: space.sm,
+  },
   busy: { ...type.small, color: c.blue, fontWeight: "600" },
   content: { flex: 1, gap: space.xs, minWidth: 0 },
   detail: { ...type.small, color: c.neutral },
-  meta: { alignItems: "center", flexWrap: "wrap" },
+  meta: { alignItems: "center", flexDirection: "row", flexWrap: "wrap" },
   row: {
     alignItems: "center",
     backgroundColor: c.white,

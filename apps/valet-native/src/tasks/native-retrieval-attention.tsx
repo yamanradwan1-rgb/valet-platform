@@ -117,11 +117,7 @@ export function NativeRetrievalAlertBanner({
   return (
     <GestureDetector gesture={pan}>
       <Animated.View
-        style={[
-          attentionStyles.banner,
-          { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
-          animatedStyle,
-        ]}
+        style={[attentionStyles.banner, animatedStyle]}
         testID={`native-retrieval-alert-${taskId}`}
       >
         <Pressable
@@ -170,6 +166,7 @@ export const nativeRetrievalAttentionStyles = StyleSheet.create({
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
     elevation: 10,
+    flexDirection: "row",
     shadowColor: c.navy,
     shadowOffset: { height: 6, width: 0 },
     shadowOpacity: 0.2,

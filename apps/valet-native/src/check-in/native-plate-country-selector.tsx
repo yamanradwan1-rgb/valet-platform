@@ -55,11 +55,7 @@ export function NativePlateCountrySelector({
         accessibilityState={{ expanded: open }}
         accessibilityValue={{ text: selected }}
         onPress={() => setOpen(true)}
-        style={({ pressed }) => [
-          styles.field,
-          textAlign === "right" && styles.rowReverse,
-          pressed && styles.pressed,
-        ]}
+        style={({ pressed }) => [styles.field, pressed && styles.pressed]}
       >
         <CountryLabel country={selected} copy={copy} textAlign={textAlign} />
         <Text accessible={false} style={styles.chevron}>
@@ -103,7 +99,6 @@ export function NativePlateCountrySelector({
                   }}
                   style={({ pressed }) => [
                     styles.option,
-                    textAlign === "right" && styles.rowReverse,
                     country === selected && styles.selectedOption,
                     pressed && styles.pressed,
                   ]}
@@ -138,10 +133,7 @@ function CountryLabel({
   readonly textAlign: NativeTextAlign;
 }) {
   return (
-    <View
-      accessible={false}
-      style={[styles.countryLabel, textAlign === "right" && styles.rowReverse]}
-    >
+    <View accessible={false} style={styles.countryLabel}>
       <Text style={[styles.value, employeeTextStyle("human", textAlign)]}>
         {copy.countryNames[country]}
       </Text>
@@ -209,7 +201,6 @@ const styles = StyleSheet.create({
     paddingVertical: space.lg,
   },
   pressed: { backgroundColor: c.ice },
-  rowReverse: { flexDirection: "row-reverse" },
   selectedOption: { backgroundColor: c.ice },
   value: { ...type.body, color: c.navy, flexShrink: 1 },
 });

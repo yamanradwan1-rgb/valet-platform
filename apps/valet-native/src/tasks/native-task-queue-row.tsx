@@ -52,7 +52,6 @@ export function NativeTaskQueueRow(props: {
   const identifier = nativeTaskVehicleIdentifier(task);
   const context =
     nativeTaskParkingContext(task) ?? nativeTaskStatusLabel(copy, task.status);
-  const direction = textAlign === "right" ? "rtl" : "ltr";
 
   const accessibilityLabel = [
     nativeTaskVehicleLabel(task),
@@ -63,23 +62,11 @@ export function NativeTaskQueueRow(props: {
   ]
     .filter(Boolean)
     .join(". ");
-  const rowStyle = [
-    s.row,
-    {
-      flexDirection:
-        direction === "rtl" ? ("row-reverse" as const) : ("row" as const),
-    },
-    assignedToOther && s.assignedToOther,
-  ];
+  const rowStyle = [s.row, assignedToOther && s.assignedToOther];
   const content = (
     <>
       <View style={s.content}>
-        <View
-          style={[
-            s.badges,
-            { flexDirection: direction === "rtl" ? "row-reverse" : "row" },
-          ]}
-        >
+        <View style={s.badges}>
           <EmployeeBadge
             label={nativeTaskTypeLabel(copy, task.taskType)}
             showDot
@@ -98,12 +85,7 @@ export function NativeTaskQueueRow(props: {
           ) : null}
         </View>
         <Text style={[s.vehicle, human]}>{nativeTaskVehicleLabel(task)}</Text>
-        <View
-          style={[
-            s.meta,
-            { flexDirection: direction === "rtl" ? "row-reverse" : "row" },
-          ]}
-        >
+        <View style={s.meta}>
           {identifier ? (
             <Text style={[s.detail, identifierText]}>{identifier}</Text>
           ) : null}

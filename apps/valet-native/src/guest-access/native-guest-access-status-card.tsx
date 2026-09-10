@@ -25,7 +25,6 @@ export function NativeGuestAccessStatusCard({
 }) {
   const copy = getNativeGuestAccessCopy(locale);
   const align = locale === "ar" ? "right" : "left";
-  const rowDirection = locale === "ar" ? "row-reverse" : "row";
   if (snapshot.status === null) return null;
 
   if (
@@ -49,7 +48,6 @@ export function NativeGuestAccessStatusCard({
         <NativeGuestAccessQrFixture alt={copy.qrAlt} />
         <Text style={s.mutedCenter}>{copy.shareHint}</Text>
         <DateRow
-          direction={rowDirection}
           label={copy.expires}
           locale={locale}
           value={snapshot.expiresAt}
@@ -84,7 +82,6 @@ export function NativeGuestAccessStatusCard({
           {copy.activeNoLink}
         </Text>
         <DateRow
-          direction={rowDirection}
           label={copy.expires}
           locale={locale}
           value={snapshot.expiresAt}
@@ -100,7 +97,6 @@ export function NativeGuestAccessStatusCard({
           {copy.expired}
         </Text>
         <DateRow
-          direction={rowDirection}
           label={copy.expires}
           locale={locale}
           value={snapshot.expiresAt}
@@ -119,7 +115,6 @@ export function NativeGuestAccessStatusCard({
           {copy.revokedHint}
         </Text>
         <DateRow
-          direction={rowDirection}
           label={copy.revoked}
           locale={locale}
           value={snapshot.revokedAt}
@@ -141,12 +136,10 @@ export function NativeGuestAccessStatusCard({
 }
 
 function DateRow({
-  direction,
   label,
   locale,
   value,
 }: {
-  readonly direction: "row" | "row-reverse";
   readonly label: string;
   readonly locale: FoundationLocale;
   readonly value: string | null;
@@ -159,7 +152,7 @@ function DateRow({
           timeStyle: "short",
         }).format(new Date(value));
   return (
-    <View style={[s.dividerRow, { flexDirection: direction }]}>
+    <View style={s.dividerRow}>
       <Text style={s.statusBody}>{label}</Text>
       <Text style={[s.date, employeeTextStyle("identifier", "left")]}>
         {formatted}

@@ -45,9 +45,7 @@ export function NativeParkingSuccess({
       <Text style={s.successBody}>{copy.parkingConfirmed}</Text>
       <View style={s.successDetails}>
         <SuccessInfoRow bordered label={copy.vehicle} textAlign={textAlign}>
-          <View
-            style={[s.successVehicle, textAlign === "right" && s.successRowRtl]}
-          >
+          <View style={s.successVehicle}>
             <Text
               style={[s.successValue, employeeTextStyle("human", textAlign)]}
             >
@@ -86,13 +84,7 @@ function SuccessInfoRow({
   readonly textAlign: "left" | "right";
 }) {
   return (
-    <View
-      style={[
-        s.successRow,
-        textAlign === "right" && s.successRowRtl,
-        bordered && s.successRowDivider,
-      ]}
-    >
+    <View style={[s.successRow, bordered && s.successRowDivider]}>
       <Text style={[s.successLabel, employeeTextStyle("human", textAlign)]}>
         {label}
       </Text>

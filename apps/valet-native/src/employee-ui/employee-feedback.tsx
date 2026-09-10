@@ -125,7 +125,6 @@ export function EmployeeBadge({
         employeeFeedbackStyles.badge,
         {
           backgroundColor: employeeStatusColors[variant].backgroundColor,
-          flexDirection: textAlign === "right" ? "row-reverse" : "row",
         },
       ]}
     >

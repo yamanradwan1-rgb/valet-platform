@@ -59,14 +59,7 @@ export function NativeRetrievalDetails({
   return (
     <View style={s.detailCard}>
       {rows.map((row, index) => (
-        <View
-          key={row.label}
-          style={[
-            s.row,
-            index > 0 && s.rowBorder,
-            { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
-          ]}
-        >
+        <View key={row.label} style={[s.row, index > 0 && s.rowBorder]}>
           <Text style={[s.rowLabel, employeeTextStyle("human", textAlign)]}>
             {row.label}
           </Text>

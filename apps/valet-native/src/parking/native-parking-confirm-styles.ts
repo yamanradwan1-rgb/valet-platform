@@ -78,7 +78,6 @@ export const nativeParkingConfirmStyles = StyleSheet.create({
     flex: 1,
     fontWeight: "600",
   },
-  panelRtl: { flexDirection: "row-reverse" },
   spotInput: {
     ...type.operationalValueStrong,
     backgroundColor: c.white,
@@ -137,7 +136,6 @@ export const nativeParkingConfirmStyles = StyleSheet.create({
     paddingVertical: 12,
   },
   successRowDivider: { borderBottomColor: c.border, borderBottomWidth: 1 },
-  successRowRtl: { flexDirection: "row-reverse" },
   successValue: { ...type.body, color: c.navy, fontWeight: "600" },
   successVehicle: { alignItems: "center", flexDirection: "row", gap: 4 },
   input: {

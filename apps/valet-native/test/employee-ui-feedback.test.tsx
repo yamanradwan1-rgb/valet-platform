@@ -102,7 +102,7 @@ describe("Employee badge presentation", () => {
       expect(style(tree[0]!)).toMatchObject({
         backgroundColor,
         borderRadius: 999,
-        flexDirection: "row-reverse",
+        flexDirection: "row",
         gap: 6,
         paddingHorizontal: 10,
         paddingVertical: 4,

@@ -58,12 +58,7 @@ export function NativeTaskShiftStrip({
       testID="native-task-shift-strip"
     >
       <View accessible={false} style={nativeTaskShiftStripStyles.indicator} />
-      <View
-        style={[
-          nativeTaskShiftStripStyles.line,
-          { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
-        ]}
-      >
+      <View style={nativeTaskShiftStripStyles.line}>
         <Text
           numberOfLines={1}
           style={[nativeTaskShiftStripStyles.primary, human]}

@@ -90,9 +90,8 @@ describe("native employee locale preference", () => {
   it("keeps presentation storage independent of auth lifecycle values", () => {
     file.content = "ar";
     const preference = createNativeLocalePreference(file);
-    for (const _authEvent of ["logout", "generation-change"]) {
-      expect(preference.read()).toBe("ar");
-    }
+    expect(preference.read()).toBe("ar");
+    expect(preference.read()).toBe("ar");
   });
 
   it("accepts only trimmed supported locale values", () => {

@@ -13,6 +13,7 @@ import {
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
 import { getNativeShiftCopy } from "./native-shift-copy";
 
 export function presentNativeShiftStartedAt(
@@ -39,10 +40,12 @@ export function formatNativeShiftDuration(
   const days = Math.floor(seconds / 86_400);
   const hours = Math.floor((seconds % 86_400) / 3_600);
   const minutes = Math.floor((seconds % 3_600) / 60);
-  const units =
-    locale === "ar"
-      ? { day: "يوم", hour: "س", minute: "د" }
-      : { day: "d", hour: "h", minute: "m" };
+  const dictionary = getNativeEmployeeDictionary(locale);
+  const units = {
+    day: dictionary.durationDayShort,
+    hour: dictionary.durationHourShort,
+    minute: dictionary.durationMinuteShort,
+  };
   const part = (value: number, unit: string) =>
     locale === "ar" ? `${value} ${unit}` : `${value}${unit}`;
   return [
@@ -68,12 +71,7 @@ export function NativeShiftInfoRow({
   readonly valueKind?: "human" | "identifier";
 }) {
   return (
-    <View
-      style={[
-        styles.row,
-        { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
-      ]}
-    >
+    <View style={styles.row}>
       <Text style={[styles.label, employeeTextStyle("human", textAlign)]}>
         {label}
       </Text>
@@ -145,12 +143,7 @@ export function NativeShiftSummaryDetails({
       : copy.roleEmployee;
   return (
     <EmployeeCard contentGap="none" padding="standard">
-      <View
-        style={[
-          styles.topRow,
-          { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
-        ]}
-      >
+      <View style={styles.topRow}>
         <EmployeeBadge
           label={copy.activeBadge}
           showDot
@@ -185,12 +178,7 @@ export function NativeShiftSummaryDetails({
         value={presentNativeShiftStartedAt(authority.shiftStartedAt, locale)}
         valueKind="identifier"
       />
-      <View
-        style={[
-          styles.elapsed,
-          { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
-        ]}
-      >
+      <View style={styles.elapsed}>
         <Text
           style={[styles.elapsedLabel, employeeTextStyle("human", textAlign)]}
         >
@@ -211,6 +199,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderTopColor: c.border,
     borderTopWidth: 1,
+    flexDirection: "row",
     justifyContent: "space-between",
     paddingTop: space.md,
   },
@@ -227,6 +216,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     borderBottomColor: c.border,
     borderBottomWidth: 1,
+    flexDirection: "row",
     gap: space.md,
     justifyContent: "space-between",
     paddingVertical: space.md,
@@ -235,6 +225,7 @@ const styles = StyleSheet.create({
   valueGroup: { flex: 1, gap: 2 },
   topRow: {
     alignItems: "center",
+    flexDirection: "row",
     justifyContent: "space-between",
     paddingBottom: space.lg,
   },

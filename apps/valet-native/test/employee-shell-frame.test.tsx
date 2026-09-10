@@ -186,7 +186,7 @@ describe("Employee production frame", () => {
       backgroundColor: employeeColors.warm,
       borderBottomColor: employeeColors.border,
       borderBottomWidth: 1,
-      flexDirection: "row-reverse",
+      flexDirection: "row",
       minHeight: 56,
       paddingHorizontal: 20,
       paddingVertical: 4,
