@@ -21,13 +21,10 @@ export function presentNativeShiftStartedAt(
 ): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString(locale, {
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 export function formatNativeShiftDuration(
@@ -46,10 +43,12 @@ export function formatNativeShiftDuration(
     locale === "ar"
       ? { day: "يوم", hour: "س", minute: "د" }
       : { day: "d", hour: "h", minute: "m" };
+  const part = (value: number, unit: string) =>
+    locale === "ar" ? `${value} ${unit}` : `${value}${unit}`;
   return [
-    days > 0 ? `${days}${units.day}` : null,
-    hours > 0 ? `${hours}${units.hour}` : null,
-    `${minutes}${units.minute}`,
+    days > 0 ? part(days, units.day) : null,
+    part(hours, units.hour),
+    part(minutes, units.minute),
   ]
     .filter(Boolean)
     .join(" ");
@@ -153,7 +152,7 @@ export function NativeShiftSummaryDetails({
         ]}
       >
         <EmployeeBadge
-          label="ACTIVE"
+          label={copy.activeBadge}
           showDot
           textAlign={textAlign}
           variant="primary"

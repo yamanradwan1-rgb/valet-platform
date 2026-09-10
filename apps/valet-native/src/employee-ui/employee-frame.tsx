@@ -21,6 +21,7 @@ export const employeeFrameStyles = StyleSheet.create({
     backgroundColor: c.warm,
     flex: 1,
     maxWidth: 390,
+    position: "relative",
     width: "100%",
   },
   appHeader: {

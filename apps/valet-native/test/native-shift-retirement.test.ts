@@ -73,7 +73,10 @@ function clearable() {
 
 function targets(
   shiftStart: EmployeeShiftStartSession,
-  operations: { clear(): void },
+  operations: {
+    activate(identityGeneration: number): Promise<void>;
+    clear(): void;
+  },
 ) {
   return {
     checkIn: clearable(),
@@ -107,10 +110,9 @@ describe("Native post-End Shift retirement", () => {
 
     const operations = {
       activate: vi.fn(async (identityGeneration: number) => {
-        shiftStart.observeOperationalContext(
-          identityGeneration,
-          context(false),
-        );
+        const next = context(false);
+        shiftStart.observeOperationalContext(identityGeneration, next);
+        shiftEnd.observeOperationalContext(identityGeneration, next);
       }),
       clear: vi.fn(),
     };
@@ -141,20 +143,20 @@ describe("Native post-End Shift retirement", () => {
     ]) {
       expect(workflow.clear).toHaveBeenCalledOnce();
     }
-    expect(shiftStart.current()).toMatchObject({
-      identityGeneration: generation,
-      phase: "inactive",
-      startableLocations: [],
-    });
-    expect(startCommand).not.toHaveBeenCalled();
-
-    shiftEnd.finish();
-    await operations.activate(generation);
+    expect(operations.activate).toHaveBeenCalledExactlyOnceWith(generation);
     expect(shiftStart.current()).toMatchObject({
       identityGeneration: generation,
       phase: "ready",
       selectedLocationId: ids.location,
       startableLocations: [location],
+    });
+    expect(startCommand).not.toHaveBeenCalled();
+
+    shiftEnd.acknowledgeEndedPresentation();
+    expect(shiftEnd.current()).toMatchObject({
+      authority: null,
+      phase: "inactive",
+      result: null,
     });
     expect(startCommand).not.toHaveBeenCalled();
 
@@ -175,7 +177,13 @@ describe("Native post-End Shift retirement", () => {
     await shiftStart.start();
     expect(shiftStart.current().phase).toBe("uncertain");
 
-    retireNativeShiftScope(targets(shiftStart, clearable()), generation);
+    retireNativeShiftScope(
+      targets(shiftStart, {
+        activate: vi.fn(async () => undefined),
+        clear: vi.fn(),
+      }),
+      generation,
+    );
     expect(shiftStart.current()).toMatchObject({
       identityGeneration: generation,
       phase: "inactive",

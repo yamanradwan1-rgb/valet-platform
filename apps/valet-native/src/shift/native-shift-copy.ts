@@ -1,6 +1,7 @@
 import type { EmployeeLocale } from "@valet/employee-client";
 
 export interface NativeShiftCopy {
+  readonly activeBadge: string;
   readonly activeShift: string;
   readonly cancel: string;
   readonly cashAmountPlaceholder: string;
@@ -45,6 +46,7 @@ export interface NativeShiftCopy {
 
 const copy: Record<EmployeeLocale, NativeShiftCopy> = {
   en: {
+    activeBadge: "Active",
     activeShift: "Active shift",
     cancel: "Cancel",
     cashAmountPlaceholder: "Enter cash amount",
@@ -93,6 +95,7 @@ const copy: Record<EmployeeLocale, NativeShiftCopy> = {
     verifying: "Confirming the active shift...",
   },
   ar: {
+    activeBadge: "نشط",
     activeShift: "مناوبة نشطة",
     cancel: "إلغاء",
     cashAmountPlaceholder: "أدخل المبلغ النقدي",

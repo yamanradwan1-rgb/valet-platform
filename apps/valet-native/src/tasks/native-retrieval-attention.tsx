@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -69,50 +69,46 @@ export function NativeRetrievalAlertBanner({
   const copy = getNativeTasksCopy(locale);
   const humanText = employeeTextStyle("human", textAlign);
   const dismiss = useCallback(() => onDismiss(taskId), [onDismiss, taskId]);
-  const pan = useMemo(
-    () =>
-      Gesture.Pan()
-        .onUpdate((event) => {
-          const state = nativeRetrievalAlertGesture(
-            event.translationX,
-            event.translationY,
-          );
-          translateY.value = state.offsetY;
-          opacity.value = state.opacity;
-          if (state.suppressOpen) suppressOpen.value = 1;
-        })
-        .onEnd((event) => {
-          const state = nativeRetrievalAlertGesture(
-            event.translationX,
-            event.translationY,
-          );
-          if (state.dismiss) scheduleOnRN(dismiss);
-          else {
-            translateY.value = withTiming(0, {
-              duration: 150,
-              reduceMotion: ReduceMotion.System,
-            });
-            opacity.value = withTiming(1, {
-              duration: 150,
-              reduceMotion: ReduceMotion.System,
-            });
-          }
-          suppressOpen.value = withDelay(120, withTiming(0, { duration: 0 }));
-        })
-        .onFinalize((_event, success) => {
-          if (success) return;
-          translateY.value = withTiming(0, {
-            duration: 150,
-            reduceMotion: ReduceMotion.System,
-          });
-          opacity.value = withTiming(1, {
-            duration: 150,
-            reduceMotion: ReduceMotion.System,
-          });
-          suppressOpen.value = withDelay(120, withTiming(0, { duration: 0 }));
-        }),
-    [dismiss, opacity, suppressOpen, translateY],
-  );
+  const pan = Gesture.Pan()
+    .onUpdate((event) => {
+      const state = nativeRetrievalAlertGesture(
+        event.translationX,
+        event.translationY,
+      );
+      translateY.value = state.offsetY;
+      opacity.value = state.opacity;
+      if (state.suppressOpen) suppressOpen.value = 1;
+    })
+    .onEnd((event) => {
+      const state = nativeRetrievalAlertGesture(
+        event.translationX,
+        event.translationY,
+      );
+      if (state.dismiss) scheduleOnRN(dismiss);
+      else {
+        translateY.value = withTiming(0, {
+          duration: 150,
+          reduceMotion: ReduceMotion.System,
+        });
+        opacity.value = withTiming(1, {
+          duration: 150,
+          reduceMotion: ReduceMotion.System,
+        });
+      }
+      suppressOpen.value = withDelay(120, withTiming(0, { duration: 0 }));
+    })
+    .onFinalize((_event, success) => {
+      if (success) return;
+      translateY.value = withTiming(0, {
+        duration: 150,
+        reduceMotion: ReduceMotion.System,
+      });
+      opacity.value = withTiming(1, {
+        duration: 150,
+        reduceMotion: ReduceMotion.System,
+      });
+      suppressOpen.value = withDelay(120, withTiming(0, { duration: 0 }));
+    });
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ translateY: translateY.value }],
@@ -138,7 +134,8 @@ export function NativeRetrievalAlertBanner({
             openingRef.current = true;
             setOpening(true);
             onDismiss(taskId);
-            void operations.refreshQueue().finally(onOpenQueue);
+            onOpenQueue();
+            void operations.refreshQueue();
           }}
           style={attentionStyles.message}
         >

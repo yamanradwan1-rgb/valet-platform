@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type {
   EmployeeShiftEndSession,
   EmployeeShiftEndSnapshot,
@@ -33,6 +34,9 @@ export function NativeShiftDetachedScreen({
 }) {
   const presentation = getFoundationPresentation(locale);
   const authority = snapshot.authority;
+  useEffect(() => {
+    if (snapshot.phase === "ended") session.acknowledgeEndedPresentation();
+  }, [session, snapshot.phase]);
   if (authority === null) return null;
   return (
     <EmployeeFrame direction={presentation.direction}>

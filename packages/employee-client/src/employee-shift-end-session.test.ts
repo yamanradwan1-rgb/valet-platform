@@ -130,6 +130,28 @@ describe("Employee Shift end command", () => {
     expect(session.current().phase).toBe("ended");
   });
 
+  it("leaves presented success only after authoritative no-active-shift reconciliation", async () => {
+    const { session, transport } = activeSession();
+    transport.results.push(Promise.resolve(endedShift()));
+    session.requestConfirmation();
+    await session.endShift();
+
+    expect(session.current()).toMatchObject({
+      authority: { shiftId: shiftEndIds.shift },
+      phase: "ended",
+      result: { status: "ENDED" },
+    });
+    session.observeOperationalContext(1, { contexts: [] });
+    expect(session.current().phase).toBe("ended");
+
+    session.acknowledgeEndedPresentation();
+    expect(session.current()).toMatchObject({
+      authority: null,
+      phase: "inactive",
+      result: null,
+    });
+  });
+
   it("never auto-replays an uncertain command and explicitly retries the exact intent", async () => {
     const { session, transport } = activeSession();
     transport.results.push(

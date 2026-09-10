@@ -6,11 +6,15 @@ interface ShiftStartWorkflow extends ClearableWorkflow {
   activate(identityGeneration: number): void;
 }
 
+interface OperationalWorkflow extends ClearableWorkflow {
+  activate(identityGeneration: number): Promise<void>;
+}
+
 export interface NativeShiftRetirementTargets {
   readonly checkIn: ClearableWorkflow;
   readonly confirmParking: ClearableWorkflow;
   readonly handoff: ClearableWorkflow;
-  readonly operations: ClearableWorkflow;
+  readonly operations: OperationalWorkflow;
   readonly parking: ClearableWorkflow;
   readonly release: ClearableWorkflow;
   readonly retrieval: ClearableWorkflow;
@@ -33,4 +37,5 @@ export function retireNativeShiftScope(
   targets.shiftStart.activate(identityGeneration);
   targets.checkIn.clear();
   targets.vehicleDirectory.clear();
+  void targets.operations.activate(identityGeneration);
 }

@@ -59,6 +59,7 @@ export function NativeProductionWorkspace({
 
   return (
     <EmployeeFrame direction={presentation.direction}>
+      <NativeConnectivityBanner locale={locale} online={connectivityOnline} />
       <EmployeeAppHeader
         scope={shell.scope}
         textAlign={presentation.textAlign}
@@ -70,19 +71,15 @@ export function NativeProductionWorkspace({
           />
         }
       />
-      <NativeConnectivityBanner locale={locale} online={connectivityOnline} />
-      <View
-        style={{ flex: 1, minHeight: 0, position: "relative" }}
-        testID="native-production-shell"
-      >
-        <NativeRetrievalAttention
-          locale={locale}
-          onDismiss={retrievalAttention.dismiss}
-          onOpenQueue={() => navigate("tasks")}
-          operations={runtime.operations}
-          taskIds={retrievalAttention.taskIds}
-          textAlign={presentation.textAlign}
-        />
+      <NativeRetrievalAttention
+        locale={locale}
+        onDismiss={retrievalAttention.dismiss}
+        onOpenQueue={() => navigate("tasks")}
+        operations={runtime.operations}
+        taskIds={retrievalAttention.taskIds}
+        textAlign={presentation.textAlign}
+      />
+      <View style={{ flex: 1, minHeight: 0 }} testID="native-production-shell">
         {contextual.route !== null ? (
           <NativeContextualSurface
             guestAccess={contextual.guestAccess}

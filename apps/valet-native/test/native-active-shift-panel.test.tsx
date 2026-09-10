@@ -213,7 +213,7 @@ describe("Native Shift summary and End Shift", () => {
     const nodes = elements(
       NativeShiftSummaryDetails({ authority, locale: "en", textAlign: "left" }),
     );
-    expect(nodes.some((node) => node.props.label === "ACTIVE")).toBe(true);
+    expect(nodes.some((node) => node.props.label === "Active")).toBe(true);
     expect(visibleText(nodes[0])).toContain("Active shift");
     const label = nodes.find((node) => node.props.children === "Active shift")!;
     expect(resolvedStyle(label)).toMatchObject({

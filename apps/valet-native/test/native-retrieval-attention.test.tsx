@@ -139,14 +139,8 @@ describe("Native foreground retrieval attention", () => {
     expect(onDismiss).toHaveBeenCalledWith(taskId);
   });
 
-  it("refreshes canonical queue state before opening Tasks", async () => {
-    let resolveRefresh: (() => void) | undefined;
-    operations.refreshQueue = vi.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveRefresh = resolve;
-        }),
-    );
+  it("opens Tasks immediately without waiting for canonical refresh", () => {
+    operations.refreshQueue = vi.fn(() => new Promise<void>(() => undefined));
     const visible = render([taskId]);
     const message = visible.find((node) =>
       String(node.props.accessibilityLabel).startsWith("Vehicle requested"),
@@ -155,11 +149,6 @@ describe("Native foreground retrieval attention", () => {
     (message.props.onPress as () => void)();
     expect(operations.refreshQueue).toHaveBeenCalledOnce();
     expect(onDismiss).toHaveBeenCalledWith(taskId);
-    expect(onOpenQueue).not.toHaveBeenCalled();
-    resolveRefresh?.();
-    await Promise.resolve();
-    await Promise.resolve();
-
     expect(onOpenQueue).toHaveBeenCalledOnce();
   });
 

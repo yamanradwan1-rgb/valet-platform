@@ -27,6 +27,8 @@ interface EndAttempt {
 export class EmployeeShiftEndSession {
   private activeSend: Promise<void> | undefined;
   private attempt: EndAttempt | undefined;
+  private endedPresentationAcknowledged = false;
+  private noActiveShiftObserved = false;
   private snapshot: EmployeeShiftEndSnapshot;
   private readonly subscribers = new Set<
     (snapshot: EmployeeShiftEndSnapshot) => void
@@ -70,7 +72,16 @@ export class EmployeeShiftEndSession {
       identityGeneration,
       response,
     );
-    if (authority === null) return;
+    if (authority === null) {
+      if (
+        this.snapshot.phase === "ended" &&
+        response.contexts.every((context) => context.activeShift === null)
+      ) {
+        this.noActiveShiftObserved = true;
+        this.finishEndedReconciliation();
+      }
+      return;
+    }
     const current = this.snapshot.authority;
     if (
       current !== null &&
@@ -83,6 +94,8 @@ export class EmployeeShiftEndSession {
     this.workflowGeneration += 1;
     this.attempt = undefined;
     this.activeSend = undefined;
+    this.endedPresentationAcknowledged = false;
+    this.noActiveShiftObserved = false;
     this.publish({
       ...emptyEmployeeShiftEndSnapshot(
         identityGeneration,
@@ -196,6 +209,12 @@ export class EmployeeShiftEndSession {
     this.reset(this.snapshot.identityGeneration);
   }
 
+  acknowledgeEndedPresentation(): void {
+    if (this.snapshot.phase !== "ended") return;
+    this.endedPresentationAcknowledged = true;
+    this.finishEndedReconciliation();
+  }
+
   private send(attempt: EndAttempt): Promise<void> {
     this.attempt = attempt;
     this.publish({ ...this.snapshot, failure: null, phase: "submitting" });
@@ -219,6 +238,8 @@ export class EmployeeShiftEndSession {
         result,
       );
       this.attempt = undefined;
+      this.endedPresentationAcknowledged = false;
+      this.noActiveShiftObserved = false;
       this.publish({ ...this.snapshot, phase: "ended", result });
       this.options.onEnded?.(result);
     } catch (error) {
@@ -255,9 +276,20 @@ export class EmployeeShiftEndSession {
     this.workflowGeneration += 1;
     this.attempt = undefined;
     this.activeSend = undefined;
+    this.endedPresentationAcknowledged = false;
+    this.noActiveShiftObserved = false;
     this.publish(
       emptyEmployeeShiftEndSnapshot(identityGeneration, this.snapshot.online),
     );
+  }
+  private finishEndedReconciliation(): void {
+    if (
+      this.endedPresentationAcknowledged &&
+      this.noActiveShiftObserved &&
+      this.snapshot.phase === "ended"
+    ) {
+      this.finish();
+    }
   }
 
   private publish(snapshot: EmployeeShiftEndSnapshot): void {
