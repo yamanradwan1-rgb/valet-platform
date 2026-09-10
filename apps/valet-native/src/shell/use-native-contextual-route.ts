@@ -1,6 +1,9 @@
 import { useState, useSyncExternalStore } from "react";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
-import type { NativeGuestAccessSnapshot } from "../guest-access/native-guest-access-types";
+import {
+  inactiveNativeGuestAccessSnapshot,
+  type NativeGuestAccessSnapshot,
+} from "../guest-access/native-guest-access-types";
 import type { NativeIncidentSnapshot } from "../incident/native-incident-types";
 import {
   handleNativeContextualSystemBack,
@@ -14,15 +17,6 @@ const inactiveIncident: NativeIncidentSnapshot = {
   error: null,
   phase: "inactive",
   report: null,
-  target: null,
-};
-const inactiveGuestAccess: NativeGuestAccessSnapshot = {
-  error: null,
-  expiresAt: null,
-  mutation: null,
-  phase: "inactive",
-  revokedAt: null,
-  status: null,
   target: null,
 };
 
@@ -57,7 +51,7 @@ export function useNativeContextualRoute(
   );
   const guestAccess = useSyncExternalStore(
     (listener) => runtime?.guestAccess.subscribe(listener) ?? (() => undefined),
-    () => runtime?.guestAccess.current() ?? inactiveGuestAccess,
+    () => runtime?.guestAccess.current() ?? inactiveNativeGuestAccessSnapshot,
   );
   const open = (
     kind: NativeContextualRoute["kind"],

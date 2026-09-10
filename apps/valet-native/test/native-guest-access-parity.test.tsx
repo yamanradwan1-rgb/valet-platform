@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { globSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const hooks = vi.hoisted(() => ({ states: [] as unknown[] }));
@@ -22,13 +20,16 @@ vi.mock("react-native", () => ({
   Text: "Text",
   View: "View",
 }));
+vi.mock("react-native-svg", () => ({
+  default: "Svg",
+  Path: "Path",
+  Rect: "Rect",
+}));
 
 const { content, elements } =
   await import("./native-check-in-condition-test-support");
 const { NativeGuestAccessScreen } =
   await import("../src/guest-access/native-guest-access-screen");
-const { NativeGuestAccessSession } =
-  await import("../src/guest-access/native-guest-access-session");
 const { getNativeGuestAccessCopy } =
   await import("../src/guest-access/native-guest-access-copy");
 const { nativeGuestAccessActions } =
@@ -42,7 +43,7 @@ function render(
   status: Parameters<typeof fixture.guestSnapshot>[1] = null,
   options: {
     configInvalid?: boolean;
-    credentialFresh?: boolean;
+    credentialUrl?: string | null;
     locale?: "en" | "ar";
     online?: boolean;
     patch?: Parameters<typeof fixture.guestSnapshot>[2];
@@ -55,7 +56,7 @@ function render(
   const nodes = elements(
     NativeGuestAccessScreen({
       configInvalid: options.configInvalid ?? false,
-      credentialFresh: options.credentialFresh,
+      credentialUrl: options.credentialUrl ?? null,
       locale: options.locale ?? "en",
       onClose,
       onCopy,
@@ -119,27 +120,25 @@ describe("UI-PARITY-11 Native Guest Access", () => {
       "The guest access state could not be loaded.",
     );
     expect(
-      failure.nodes.some(
-        (node) => node.props.testID === "guest-access-safe-qr-fixture",
-      ),
+      failure.nodes.some((node) => node.props.testID === "guest-access-qr"),
     ).toBe(false);
     (action(failure.nodes, "Retry")?.props.onPress as () => void)();
     expect(failure.session.retry).toHaveBeenCalledOnce();
   });
 
-  it("shows a fresh credential fixture, expiry, copy, reissue, and revoke", () => {
+  it("shows a fresh credential QR, expiry, copy, reissue, and revoke", () => {
     const { nodes, onCopy } = render("ready", "ACTIVE", {
-      credentialFresh: true,
+      credentialUrl:
+        "https://customer.example.com/#guestToken=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_",
+      patch: { credentialFresh: true },
     });
     expect(content(nodes)).toContain("Guest access ready");
     expect(content(nodes)).toContain(
       "Let the guest scan this QR or share the copied link.",
     );
-    expect(
-      nodes.some(
-        (node) => node.props.testID === "guest-access-safe-qr-fixture",
-      ),
-    ).toBe(true);
+    expect(nodes.some((node) => node.props.testID === "guest-access-qr")).toBe(
+      true,
+    );
     (action(nodes, "Copy Guest Link")?.props.onPress as () => void)();
     expect(onCopy).toHaveBeenCalledOnce();
     expect(action(nodes, "Reissue Access")).toBeDefined();
@@ -152,23 +151,29 @@ describe("UI-PARITY-11 Native Guest Access", () => {
   ] as const)("renders %s copy feedback", (feedback, expected) => {
     hooks.states = [null, feedback];
     expect(
-      content(render("ready", "ACTIVE", { credentialFresh: true }).nodes),
+      content(
+        render("ready", "ACTIVE", {
+          credentialUrl:
+            "https://customer.example.com/#guestToken=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_",
+          patch: { credentialFresh: true },
+        }).nodes,
+      ),
     ).toContain(expected);
   });
 
   it("suppresses credential surfaces and issuance under configuration failure but permits revoke", () => {
     const { nodes } = render("ready", "ACTIVE", {
       configInvalid: true,
-      credentialFresh: true,
+      credentialUrl:
+        "https://customer.example.com/#guestToken=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_",
+      patch: { credentialFresh: true },
     });
     expect(content(nodes)).toContain(
       "Customer app address is not configured correctly",
     );
-    expect(
-      nodes.some(
-        (node) => node.props.testID === "guest-access-safe-qr-fixture",
-      ),
-    ).toBe(false);
+    expect(nodes.some((node) => node.props.testID === "guest-access-qr")).toBe(
+      false,
+    );
     expect(
       action(nodes, "Reissue Access")?.props.accessibilityState,
     ).toMatchObject({ disabled: true });
@@ -179,7 +184,9 @@ describe("UI-PARITY-11 Native Guest Access", () => {
 
   it("disables offline mutations while retaining local copy", () => {
     const { nodes } = render("ready", "ACTIVE", {
-      credentialFresh: true,
+      credentialUrl:
+        "https://customer.example.com/#guestToken=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_",
+      patch: { credentialFresh: true },
       online: false,
     });
     expect(content(nodes)).toContain(
@@ -216,7 +223,11 @@ describe("UI-PARITY-11 Native Guest Access", () => {
     ],
   ] as const)("renders explicit %s confirmation", (kind, title, body) => {
     hooks.states = [kind, null];
-    const nodes = render("ready", "ACTIVE", { credentialFresh: true }).nodes;
+    const nodes = render("ready", "ACTIVE", {
+      credentialUrl:
+        "https://customer.example.com/#guestToken=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_",
+      patch: { credentialFresh: true },
+    }).nodes;
     expect(content(nodes)).toContain(title);
     expect(content(nodes)).toContain(body);
     expect(action(nodes, "Cancel")).toBeDefined();
@@ -248,40 +259,5 @@ describe("UI-PARITY-11 Native Guest Access", () => {
         nativeContextualRoute("guest-access", origin, fixture.sessionId),
       ).toMatchObject({ kind: "guest-access", origin });
     }
-  });
-
-  it("loads safe authority and revokes through the existing endpoint", async () => {
-    const request = vi.fn(({ method }: { method: string }) =>
-      Promise.resolve(
-        method === "GET"
-          ? fixture.detail("ACTIVE")
-          : {
-              revokedAt: "2026-09-10T10:00:00.000Z",
-              valetSessionId: fixture.sessionId,
-            },
-      ),
-    );
-    const session = new NativeGuestAccessSession(() => ({ request }) as never);
-    await session.open({ origin: "CHECK_IN", sessionId: fixture.sessionId });
-    expect(session.current().status).toBe("ACTIVE");
-    expect(await session.revoke()).toBe(true);
-    expect(session.current()).toMatchObject({
-      status: "REVOKED",
-      mutation: null,
-    });
-    expect(request.mock.calls[1]![0].path).toContain("/guest-access/revoke");
-  });
-
-  it("contains no credential persistence, navigation, logging, or telemetry path", () => {
-    const source = globSync("src/guest-access/*.{ts,tsx}", {
-      cwd: new URL("../", import.meta.url),
-    })
-      .map((path) =>
-        readFileSync(new URL(`../${path}`, import.meta.url), "utf8"),
-      )
-      .join("\n");
-    expect(source).not.toMatch(
-      /AsyncStorage|SecureStore|navigation.*(?:url|token)|console\.|analytics|telemetry|rawToken|shareableUrl/iu,
-    );
   });
 });

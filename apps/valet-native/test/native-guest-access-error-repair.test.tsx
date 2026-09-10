@@ -63,6 +63,7 @@ describe("Guest Access complete presentation error matrix", () => {
         const nodes = elements(
           NativeGuestAccessScreen({
             configInvalid: false,
+            credentialUrl: null,
             locale: locale as "en" | "ar",
             onClose: vi.fn(),
             session: { retry: vi.fn(), revoke: vi.fn() } as never,

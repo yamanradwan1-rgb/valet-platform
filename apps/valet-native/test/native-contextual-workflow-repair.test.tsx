@@ -7,6 +7,7 @@ import {
   nativeContextualRoute,
 } from "../src/shell/native-contextual-route";
 import { clearNativeContextualSessions } from "../src/shell/use-native-contextual-route";
+import { retireNativeWorkflowScope } from "../src/shell/native-workflow-scope-retirement";
 import { sessionId } from "./native-parity-11-test-fixture";
 
 const origins = ["CHECK_IN", "PARKING", "RETRIEVAL", "HANDOFF"] as const;
@@ -49,6 +50,24 @@ describe("shell-contained contextual workflow repair", () => {
     expect(runtime.parking.clear).not.toHaveBeenCalled();
     expect(runtime.retrieval.clear).not.toHaveBeenCalled();
     expect(runtime.handoff.clear).not.toHaveBeenCalled();
+  });
+
+  it("purges Guest Access when authoritative workflow scope retires", () => {
+    const clear = () => ({ clear: vi.fn() });
+    const runtime = {
+      checkIn: clear(),
+      confirmParking: clear(),
+      guestAccess: clear(),
+      handoff: clear(),
+      parking: clear(),
+      release: clear(),
+      retrieval: clear(),
+      shiftEnd: { fenceOperationalScope: vi.fn() },
+      vehicleDirectory: clear(),
+    };
+    retireNativeWorkflowScope(runtime as never);
+    expect(runtime.guestAccess.clear).toHaveBeenCalledOnce();
+    expect(runtime.shiftEnd.fenceOperationalScope).toHaveBeenCalledOnce();
   });
 
   it("keeps header and bottom nav around the contextual content without a full-screen Modal", () => {

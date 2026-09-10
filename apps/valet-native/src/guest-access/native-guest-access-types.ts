@@ -15,6 +15,8 @@ export type NativeGuestAccessError =
   | "UPDATE_FAILED";
 
 export interface NativeGuestAccessSnapshot {
+  /** Nonsecret signal; the credential URL itself stays private to the session. */
+  readonly credentialFresh: boolean;
   readonly error: NativeGuestAccessError | null;
   readonly expiresAt: string | null;
   readonly mutation: "creating" | "reissuing" | "revoking" | null;
@@ -23,6 +25,17 @@ export interface NativeGuestAccessSnapshot {
   readonly status: NativeGuestAccessStatus | null;
   readonly target: NativeContextualTarget | null;
 }
+
+export const inactiveNativeGuestAccessSnapshot: NativeGuestAccessSnapshot = {
+  credentialFresh: false,
+  error: null,
+  expiresAt: null,
+  mutation: null,
+  phase: "inactive",
+  revokedAt: null,
+  status: null,
+  target: null,
+};
 
 export type NativeGuestAccessPrimaryAction = {
   readonly kind: "CREATE" | "CREATE_NEW" | "REISSUE";

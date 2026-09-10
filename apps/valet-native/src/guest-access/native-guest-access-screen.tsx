@@ -16,7 +16,7 @@ import {
 
 export function NativeGuestAccessScreen({
   configInvalid,
-  credentialFresh = false,
+  credentialUrl,
   locale,
   onClose,
   onCopy,
@@ -26,7 +26,7 @@ export function NativeGuestAccessScreen({
   snapshot,
 }: {
   readonly configInvalid: boolean;
-  readonly credentialFresh?: boolean;
+  readonly credentialUrl: string | null;
   readonly locale: FoundationLocale;
   readonly onClose: () => void;
   readonly onCopy?: (() => Promise<boolean>) | undefined;
@@ -109,7 +109,7 @@ export function NativeGuestAccessScreen({
             ) : null}
             <NativeGuestAccessStatusCard
               copyFeedback={copyFeedback}
-              credentialFresh={credentialFresh}
+              credentialUrl={credentialUrl}
               locale={locale}
               onCopy={() => {
                 if (onCopy === undefined) return;
@@ -130,7 +130,7 @@ export function NativeGuestAccessScreen({
                 label={primaryLabel}
                 onPress={handlePrimary}
                 variant={
-                  actions.primary.kind === "REISSUE" && credentialFresh
+                  actions.primary.kind === "REISSUE" && credentialUrl !== null
                     ? "secondary"
                     : "primary"
                 }

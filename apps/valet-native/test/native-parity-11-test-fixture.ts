@@ -73,6 +73,7 @@ export function guestSnapshot(
 ): NativeGuestAccessSnapshot {
   const access = status === null ? null : detail(status).guestAccess;
   return {
+    credentialFresh: false,
     error: phase === "load-error" ? "LOAD_FAILED" : null,
     expiresAt: access?.expiresAt ?? null,
     mutation: null,

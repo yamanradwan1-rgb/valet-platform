@@ -32,6 +32,8 @@ describe("Native package contract", () => {
   it("owns only the accepted SDK-compatible native modules", () => {
     expect(manifest.dependencies["expo-camera"]).toBe("~57.0.4");
     expect(manifest.dependencies["expo-blur"]).toBe("~57.0.2");
+    expect(manifest.dependencies["expo-clipboard"]).toBe("~57.0.1");
+    expect(manifest.dependencies.qrcode).toBe("^1.5.4");
     expect(manifest.dependencies["react-native-svg"]).toBe("15.15.4");
     expect(Object.keys(manifest.dependencies).sort()).toEqual(
       [
@@ -42,6 +44,7 @@ describe("Native package contract", () => {
         "expo-build-properties",
         "expo-blur",
         "expo-camera",
+        "expo-clipboard",
         "expo-constants",
         "expo-dev-client",
         "expo-file-system",
@@ -50,6 +53,7 @@ describe("Native package contract", () => {
         "expo-router",
         "expo-secure-store",
         "expo-status-bar",
+        "qrcode",
         "react",
         "react-native",
         "react-native-gesture-handler",

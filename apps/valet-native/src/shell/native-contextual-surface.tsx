@@ -2,10 +2,12 @@ import { View } from "react-native";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeGuestAccessScreen } from "../guest-access/native-guest-access-screen";
+import { copyNativeGuestAccessUrl } from "../guest-access/native-guest-access-clipboard";
 import type { NativeGuestAccessSnapshot } from "../guest-access/native-guest-access-types";
 import { NativeIncidentScreen } from "../incident/native-incident-screen";
 import type { NativeIncidentSnapshot } from "../incident/native-incident-types";
 import type { NativeContextualRoute } from "./native-contextual-route";
+import { nativeOnlineHint } from "../shift/native-shift-connectivity";
 
 export function NativeContextualSurface({
   guestAccess,
@@ -37,9 +39,15 @@ export function NativeContextualSurface({
         />
       ) : (
         <NativeGuestAccessScreen
-          configInvalid
+          configInvalid={!runtime.guestAccess.hasValidCustomerOrigin()}
+          credentialUrl={runtime.guestAccess.freshCredentialUrl()}
           locale={locale}
           onClose={onClose}
+          onCopy={() =>
+            copyNativeGuestAccessUrl(runtime.guestAccess.freshCredentialUrl())
+          }
+          onIssue={() => void runtime.guestAccess.issue()}
+          online={nativeOnlineHint()}
           session={runtime.guestAccess}
           snapshot={guestAccess}
         />

@@ -186,6 +186,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
         {
           checkIn,
           confirmParking,
+          guestAccess,
           handoff,
           operations,
           parking,

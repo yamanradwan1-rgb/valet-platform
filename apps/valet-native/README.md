@@ -19,6 +19,13 @@ dependency build before starting Metro. After editing contracts during an
 active Metro session, rebuild `@valet/contracts` and reload the app. Restart
 Metro after changing package exports.
 
+Guest Access share surfaces additionally require
+`EXPO_PUBLIC_CUSTOMER_APP_ORIGIN`. It must be an absolute root-only Customer
+application origin with no credentials, query, or fragment. Release builds
+require HTTPS; local development permits HTTP only for localhost/loopback.
+This is intentionally separate from Employee Web's
+`NEXT_PUBLIC_CUSTOMER_APP_ORIGIN`.
+
 ## Android bundle resolution proof (no Gradle or APK build)
 
 Run from the repository root. This exercises the real Expo Router Android

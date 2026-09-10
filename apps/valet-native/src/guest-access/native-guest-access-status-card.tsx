@@ -4,20 +4,20 @@ import { EmployeeButton } from "../employee-ui/employee-controls";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeGuestAccessCopy } from "./native-guest-access-copy";
-import { NativeGuestAccessQrFixture } from "./native-guest-access-qr-fixture";
+import { NativeGuestAccessQr } from "./native-guest-access-qr";
 import { nativeGuestAccessStyles as s } from "./native-guest-access-styles";
 import type { NativeGuestAccessSnapshot } from "./native-guest-access-types";
 
 export function NativeGuestAccessStatusCard({
   copyFeedback,
-  credentialFresh,
+  credentialUrl,
   locale,
   onCopy,
   snapshot,
   suppressCredentialSurfaces,
 }: {
   readonly copyFeedback: "copied" | "failed" | null;
-  readonly credentialFresh: boolean;
+  readonly credentialUrl: string | null;
   readonly locale: FoundationLocale;
   readonly onCopy: () => void;
   readonly snapshot: NativeGuestAccessSnapshot;
@@ -29,7 +29,8 @@ export function NativeGuestAccessStatusCard({
 
   if (
     snapshot.status === "ACTIVE" &&
-    credentialFresh &&
+    snapshot.credentialFresh &&
+    credentialUrl !== null &&
     !suppressCredentialSurfaces
   ) {
     return (
@@ -45,7 +46,7 @@ export function NativeGuestAccessStatusCard({
             variant="success"
           />
         </View>
-        <NativeGuestAccessQrFixture alt={copy.qrAlt} />
+        <NativeGuestAccessQr alt={copy.qrAlt} credentialUrl={credentialUrl} />
         <Text style={s.mutedCenter}>{copy.shareHint}</Text>
         <DateRow
           label={copy.expires}

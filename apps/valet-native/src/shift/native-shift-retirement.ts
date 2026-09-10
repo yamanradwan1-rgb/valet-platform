@@ -13,6 +13,7 @@ interface OperationalWorkflow extends ClearableWorkflow {
 export interface NativeShiftRetirementTargets {
   readonly checkIn: ClearableWorkflow;
   readonly confirmParking: ClearableWorkflow;
+  readonly guestAccess: ClearableWorkflow;
   readonly handoff: ClearableWorkflow;
   readonly operations: OperationalWorkflow;
   readonly parking: ClearableWorkflow;
@@ -29,6 +30,7 @@ export function retireNativeShiftScope(
 ): void {
   targets.operations.clear();
   targets.confirmParking.clear();
+  targets.guestAccess.clear();
   targets.handoff.clear();
   targets.parking.clear();
   targets.release.clear();

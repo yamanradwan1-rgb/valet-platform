@@ -87,8 +87,11 @@ describe("Native production entry contract", () => {
   it("leaves check-in purge ownership with the production shell", () => {
     const route = read("src/shell/native-check-in-route.tsx");
     const shell = read("src/shell/native-production-shell.tsx");
+    const retirement = read("src/shell/native-workflow-scope-retirement.ts");
     expect(route).not.toContain("return () => checkIn.clear()");
     expect(shell).toContain("currentWorkflowPurgeRevision");
-    expect(shell).toContain("runtime.checkIn.clear()");
+    expect(shell).toContain("retireNativeWorkflowScope(runtime)");
+    expect(retirement).toContain("runtime.checkIn.clear()");
+    expect(retirement).toContain("runtime.guestAccess.clear()");
   });
 });

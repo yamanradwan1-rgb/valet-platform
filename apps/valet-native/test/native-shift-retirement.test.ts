@@ -81,6 +81,7 @@ function targets(
   return {
     checkIn: clearable(),
     confirmParking: clearable(),
+    guestAccess: clearable(),
     handoff: clearable(),
     operations,
     parking: clearable(),
@@ -134,6 +135,7 @@ describe("Native post-End Shift retirement", () => {
     for (const workflow of [
       retirement.checkIn,
       retirement.confirmParking,
+      retirement.guestAccess,
       retirement.handoff,
       retirement.operations,
       retirement.parking,

@@ -7,6 +7,7 @@ import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-atten
 import { useNativeProductionBackHandler } from "./native-production-back-handler";
 import { useNativeContextualRoute } from "./use-native-contextual-route";
 import { NativeProductionWorkspace } from "./native-production-workspace";
+import { retireNativeWorkflowScope } from "./native-workflow-scope-retirement";
 import { createNativeProductionBootstrap } from "./native-production-bootstrap";
 import { NativeShellGate } from "./native-shell-gate";
 import { nativeOnlineHint } from "../shift/native-shift-connectivity";
@@ -116,14 +117,7 @@ export function NativeProductionShell({
   }, [authSnapshot.authGeneration, authSnapshot.phase, runtime]);
   useEffect(() => {
     if (runtime === undefined || workflowPurgeRevision === 0) return;
-    runtime.shiftEnd.fenceOperationalScope();
-    runtime.checkIn.clear();
-    runtime.confirmParking.clear();
-    runtime.handoff.clear();
-    runtime.parking.clear();
-    runtime.retrieval.clear();
-    runtime.release.clear();
-    runtime.vehicleDirectory.clear();
+    retireNativeWorkflowScope(runtime);
   }, [runtime, workflowPurgeRevision]);
   useEffect(() => {
     const activeTask = runtime?.handoff.current().task;
