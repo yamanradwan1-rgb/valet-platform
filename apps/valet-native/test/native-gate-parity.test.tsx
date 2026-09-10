@@ -87,7 +87,7 @@ describe("Native Employee gate parity", () => {
       paddingHorizontal: 24,
     });
     expect(getNativeShellCopy("en").signOut).toBe("Sign Out");
-    expect(getNativeAuthCopy("en").logout).toBe("Log out");
+    expect(getNativeAuthCopy("en").logout).toBe("Sign Out");
   });
 
   it("uses gate-specific card, button, blur, and compact locale contracts", () => {

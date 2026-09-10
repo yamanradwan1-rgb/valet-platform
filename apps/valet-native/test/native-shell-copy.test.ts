@@ -23,11 +23,13 @@ describe("Native production shell localization", () => {
     );
   });
 
-  it("uses truthful blocked language for access and Location gaps", () => {
+  it("uses authoritative bounded copy for access and Location gaps", () => {
     const en = getNativeShellCopy("en");
-    expect(en.accessDeniedBody).toContain("Protected work remains blocked");
-    expect(en.noLocationTitle).toBe("No available Location");
-    expect(en.authRecoveryTitle).toContain("restore sign-in");
+    expect(en.accessDeniedBody).toBe(
+      "The operation failed. Refresh and try again.",
+    );
+    expect(en.noLocationTitle).toBe("No active shift");
+    expect(en.authRecoveryTitle).toBe("Could not load operational context");
     expect(en.authErrorTitle).toContain("sign-in unavailable");
   });
 

@@ -3,6 +3,7 @@ import { EmployeeApiError } from "@valet/employee-client";
 
 import { presentNativeIncidentFailure } from "../src/incident/native-incident-copy";
 import { NativeIncidentSession } from "../src/incident/native-incident-session";
+import { NATIVE_INCIDENT_OPERATION_FAILED } from "../src/incident/native-incident-error";
 import { detail, sessionId } from "./native-parity-11-test-fixture";
 
 const firstId = "11111111-1111-4111-8111-111111111111";
@@ -98,7 +99,10 @@ describe("Incident secure identity and safe failure repair", () => {
     });
     expect(weakRandom).not.toHaveBeenCalled();
     expect(session.current()).toMatchObject({ phase: "form", report: null });
-    expect(session.current().error).toContain("Secure UUID generation");
+    expect(session.current().error).toBe(NATIVE_INCIDENT_OPERATION_FAILED);
+    expect(presentNativeIncidentFailure("en", session.current().error!)).toBe(
+      "The operation failed. Refresh and try again.",
+    );
   });
 
   it("uses safe English API copy and canonical Arabic failure copy", () => {

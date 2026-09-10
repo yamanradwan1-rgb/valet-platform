@@ -165,7 +165,7 @@ describe("MOB-011B Native condition and check-in completion", () => {
       (node) => node.props.accessibilityRole === "progressbar",
     )!;
     expect(progress.props).toMatchObject({
-      accessibilityLabel: "Completing Condition…",
+      accessibilityLabel: "Completing Condition...",
       accessibilityState: { busy: true },
     });
     const back = nodes.find(
@@ -181,25 +181,25 @@ describe("MOB-011B Native condition and check-in completion", () => {
     [
       "en",
       "CHECK_IN_CONDITION_PHOTO_REQUIRED",
-      "This location requires condition photos. This step cannot continue on this device yet.",
+      "The operation failed. Refresh and try again.",
       "Continue",
     ],
     [
       "ar",
       "CHECK_IN_CONDITION_PHOTO_REQUIRED",
-      "يتطلب هذا الموقع صوراً لحالة المركبة. لا يمكن متابعة هذه الخطوة على هذا الجهاز بعد.",
+      "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
       "متابعة",
     ],
     [
       "en",
       "PHOTO_REQUIREMENT_NOT_SATISFIED",
-      "This location requires condition photos. This step cannot continue on this device yet.",
+      "The operation failed. Refresh and try again.",
       "Continue",
     ],
     [
       "ar",
       "PHOTO_REQUIREMENT_NOT_SATISFIED",
-      "يتطلب هذا الموقع صوراً لحالة المركبة. لا يمكن متابعة هذه الخطوة على هذا الجهاز بعد.",
+      "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
       "متابعة",
     ],
   ] as const)(
@@ -259,11 +259,10 @@ describe("MOB-011B Native condition and check-in completion", () => {
       },
     });
     expect(content(nodes)).toContain(
-      "The condition result is unknown. Check the authoritative session before retrying; the recorded note was preserved and will not be duplicated.",
+      "The operation failed. Refresh and try again.",
     );
     const check = nodes.find(
-      (node) =>
-        node.type === "Pressable" && label(node) === "Check server state",
+      (node) => node.type === "Pressable" && label(node) === "Retry",
     )!;
     (check.props.onPress as () => void)();
     expect(checkIn.retryConditionRecovery).toHaveBeenCalledOnce();
@@ -281,7 +280,7 @@ describe("MOB-011B Native condition and check-in completion", () => {
       },
     });
     expect(content(nodes)).toContain(
-      "Another operation changed this check-in. The current server state is shown; review it and try again.",
+      "The operation failed. Refresh and try again.",
     );
     expect(content(nodes)).toContain("12-34567");
   });

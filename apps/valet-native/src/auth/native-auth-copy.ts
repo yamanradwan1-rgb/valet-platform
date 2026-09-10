@@ -1,4 +1,6 @@
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
+import { getNativePlatformCopy } from "../i18n/native-platform-copy";
 
 export interface NativeAuthCopy {
   readonly authenticated: string;
@@ -18,43 +20,24 @@ export interface NativeAuthCopy {
   readonly transient: string;
 }
 
-const copy: Record<FoundationLocale, NativeAuthCopy> = {
-  en: {
-    authenticated: "Secure employee session active",
-    connectionIssue: "Connection issue",
-    email: "Work email",
-    fatal: "Secure authentication is unavailable. Protected work is blocked.",
-    fatalTitle: "Secure sign-in unavailable",
-    login: "Sign In",
-    loginFailed: "The operation failed. Refresh and try again.",
-    logout: "Log out",
-    password: "Password",
-    restoring: "Checking staff session...",
-    retry: "Retry",
-    retrying: "Retrying…",
-    signingIn: "Signing in…",
-    staffSignIn: "Staff sign in",
-    transient: "The staff sign-in service is temporarily unavailable.",
-  },
-  ar: {
-    authenticated: "جلسة الموظف الآمنة نشطة",
-    connectionIssue: "مشكلة في الاتصال",
-    email: "البريد الإلكتروني الوظيفي",
-    fatal: "المصادقة الآمنة غير متاحة. تم حظر العمل المحمي.",
-    fatalTitle: "تسجيل الدخول الآمن غير متاح",
-    login: "تسجيل الدخول",
-    loginFailed: "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
-    logout: "تسجيل الخروج",
-    password: "كلمة المرور",
-    restoring: "جارٍ التحقق من جلسة الموظف...",
-    retry: "إعادة المحاولة",
-    retrying: "جارٍ إعادة المحاولة…",
-    signingIn: "جارٍ تسجيل الدخول…",
-    staffSignIn: "تسجيل دخول الموظفين",
-    transient: "خدمة تسجيل دخول الموظفين غير متاحة مؤقتًا.",
-  },
-};
-
 export function getNativeAuthCopy(locale: FoundationLocale): NativeAuthCopy {
-  return copy[locale];
+  const d = getNativeEmployeeDictionary(locale);
+  const platform = getNativePlatformCopy(locale).auth;
+  return {
+    authenticated: platform.authenticated,
+    connectionIssue: d.connectionIssue,
+    email: d.workEmail,
+    fatal: platform.fatal,
+    fatalTitle: platform.fatalTitle,
+    login: d.signIn,
+    loginFailed: d.operationFailed,
+    logout: d.signOut,
+    password: d.password,
+    restoring: d.checkingSession,
+    retry: d.retry,
+    retrying: d.retrying,
+    signingIn: d.signingIn,
+    staffSignIn: d.staffSignIn,
+    transient: d.signInUnavailable,
+  };
 }

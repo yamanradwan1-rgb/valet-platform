@@ -228,8 +228,10 @@ describe("MOB-014B Native final release", () => {
 
   it("renders unknown outcome as read-only server reconciliation", () => {
     const nodes = render("ambiguous");
-    expect(content(nodes)).toContain("release result is unknown");
-    expect(content(nodes)).toContain("Check server state");
+    expect(content(nodes)).toContain(
+      "The operation failed. Refresh and try again.",
+    );
+    expect(content(nodes)).toContain("Retry");
     expect(content(nodes)).not.toContain("Release Vehicle");
   });
 

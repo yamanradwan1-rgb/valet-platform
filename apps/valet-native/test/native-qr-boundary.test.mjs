@@ -59,7 +59,7 @@ describe("MOB-009 native capture wiring", () => {
     },
   );
   it("Arabic copy is genuinely localized", () => {
-    expect(getNativeQrCopy("ar").title).toBe("المسح");
+    expect(getNativeQrCopy("ar").title).toBe("مسح");
     expect(getNativeQrCopy("en").title).toBe("Scan");
   });
   it("wires CameraView only for starting/scanning, with generation-bound callbacks", () => {
@@ -94,7 +94,7 @@ describe("MOB-009 native capture wiring", () => {
     expect(source).toContain('["key-slot", "parking-spot"]');
     expect(source).not.toContain('"dynamic-handoff"');
     expect(getNativeQrCopy("en").kinds).toEqual({
-      "key-slot": "Key Slot",
+      "key-slot": "Key slot",
       "parking-spot": "Parking Spot",
     });
   });

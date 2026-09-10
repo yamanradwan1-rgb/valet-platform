@@ -206,7 +206,7 @@ describe("Native Shift summary and End Shift", () => {
     );
     expect(
       visibleText(render(snapshot({ phase: "error" })).nodes[0]),
-    ).toContain("End Shift could not be completed. Try again.");
+    ).toContain("The operation failed. Refresh and try again.");
   });
 
   it("renders separate ACTIVE badge and green Active shift label", () => {

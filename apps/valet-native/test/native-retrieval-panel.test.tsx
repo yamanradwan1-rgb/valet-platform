@@ -200,15 +200,15 @@ describe("MOB-013 Native Retrieval", () => {
   });
 
   it.each([
-    ["ambiguous", "Retrieval result unknown"],
-    ["conflict", "Retrieval work changed"],
-    ["unavailable", "Unable to load Retrieval Task"],
+    ["ambiguous", "Connection issue"],
+    ["conflict", "Connection issue"],
+    ["unavailable", "Cannot resume retrieval flow"],
   ] as const)(
     "presents the %s recovery state without a protected retry",
     (phase, title) => {
       const { nodes, retrieval } = render(phase);
       expect(content(nodes)).toContain(title);
-      const check = action(nodes, "Check server state")!;
+      const check = action(nodes, "Retry")!;
       (check.props.onPress as () => void)();
       expect(retrieval.checkServerState).toHaveBeenCalledOnce();
       expect(action(nodes, "Start Retrieval")).toBeUndefined();

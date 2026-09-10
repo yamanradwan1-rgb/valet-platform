@@ -181,8 +181,8 @@ describe("Native Start Shift presentation", () => {
   });
 
   it.each([
-    ["en", "Start Shift could not be completed. Try again."],
-    ["ar", "تعذر إكمال بدء المناوبة. أعد المحاولة."],
+    ["en", "The operation failed. Refresh and try again."],
+    ["ar", "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً."],
   ] as const)(
     "renders localized ordinary error copy for %s",
     (locale, copy) => {

@@ -1,4 +1,5 @@
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
 
 export interface NativeRetrievalCopy {
   readonly assignedBody: string;
@@ -41,98 +42,48 @@ export interface NativeRetrievalCopy {
   readonly operationFailed: string;
 }
 
-const copy: Record<FoundationLocale, NativeRetrievalCopy> = {
-  en: {
-    assignedBody:
-      "Claim and accept this Retrieval Task before starting the retrieval.",
-    back: "Back",
-    backToTasks: "Back to tasks",
-    checkState: "Check server state",
-    conflictBody:
-      "The Retrieval Task or vehicle state changed. Review current server state before continuing.",
-    conflictTitle: "Retrieval work changed",
-    expectedKeySlot: "Expected key slot",
-    elapsed: "Elapsed",
-    enterKeySlotCode: "Enter Key Slot Code",
-    key: "Key",
-    keySlotVerified: "Key slot verified",
-    keyTitle: "Key Checkout",
-    keyVerifyBody: "Enter Key Slot Code",
-    keyVerifyLabel: "Verify Key Slot",
-    loading: "Loading retrieval session details...",
-    location: "Location",
-    markingReady: "Marking Ready...",
-    readyBody:
-      "The vehicle is staged and ready for the guest. Handoff continues in the secure handoff flow.",
-    readyTitle: "Vehicle Ready",
-    retrievingBody:
-      "Retrieval started. Bring the vehicle to the pickup area, then mark it ready.",
-    retrievingLabel: "Retrieving",
-    retrievalBadge: "Retrieval",
-    startRetrieval: "Start Retrieval",
-    startingRetrieval: "Starting Retrieval...",
-    taskTitle: "Retrieval Operation",
-    unknownBody:
-      "The Retrieval result is unknown. Check server state before taking another action.",
-    unknownTitle: "Retrieval result unknown",
-    unavailableBody: "Current Retrieval Task state is temporarily unavailable.",
-    unavailableTitle: "Unable to load Retrieval Task",
-    vehicleReady: "Vehicle Ready",
-    vehicle: "Vehicle",
-    reportIssue: "Report Issue",
-    zone: "Zone",
-    spot: "Spot",
-    scanQr: "Scan QR code",
-    closeScanner: "Close scanner",
-    manualHint: "You can enter the code manually at any time below.",
-    operationFailed: "The operation failed. Refresh and try again.",
-  },
-  ar: {
-    assignedBody: "استلم مهمة الاسترجاع هذه واقبلها قبل بدء الاسترجاع.",
-    back: "رجوع",
-    backToTasks: "العودة إلى المهام",
-    checkState: "تحقق من حالة الخادم",
-    conflictBody:
-      "تغيرت مهمة الاسترجاع أو حالة المركبة. راجع حالة الخادم الحالية قبل المتابعة.",
-    conflictTitle: "تغيرت مهمة الاسترجاع",
-    expectedKeySlot: "خانة المفتاح المتوقعة",
-    elapsed: "الوقت المنقضي",
-    enterKeySlotCode: "أدخل رمز خانة المفتاح",
-    key: "المفتاح",
-    keySlotVerified: "تم التحقق من خانة المفتاح",
-    keyTitle: "استلام المفتاح",
-    keyVerifyBody: "أدخل رمز خانة المفتاح",
-    keyVerifyLabel: "تحقق من خانة المفتاح",
-    loading: "جارٍ تحميل تفاصيل جلسة الاسترجاع...",
-    location: "الموقع",
-    markingReady: "جارٍ تأكيد الجاهزية...",
-    readyBody:
-      "المركبة في منطقة الاستلام وجاهزة للضيف. تتابع عملية التسليم في مسار التسليم الآمن.",
-    readyTitle: "المركبة جاهزة",
-    retrievingBody:
-      "بدأ الاسترجاع. أحضر المركبة إلى منطقة الاستلام ثم حددها جاهزة.",
-    retrievingLabel: "جارٍ الاسترجاع",
-    retrievalBadge: "الاسترجاع",
-    startRetrieval: "بدء الاسترجاع",
-    startingRetrieval: "جارٍ بدء الاسترجاع...",
-    taskTitle: "عملية الاسترجاع",
-    unknownBody:
-      "نتيجة الاسترجاع غير معروفة. تحقق من حالة الخادم قبل اتخاذ إجراء آخر.",
-    unknownTitle: "نتيجة الاسترجاع غير معروفة",
-    unavailableBody: "حالة مهمة الاسترجاع الحالية غير متاحة مؤقتًا.",
-    unavailableTitle: "تعذر تحميل مهمة الاسترجاع",
-    vehicleReady: "المركبة جاهزة",
-    vehicle: "المركبة",
-    reportIssue: "الإبلاغ عن مشكلة",
-    zone: "المنطقة",
-    spot: "الموقع",
-    scanQr: "مسح رمز QR",
-    closeScanner: "إغلاق الماسح",
-    manualHint: "يمكنك إدخال الرمز يدويًا في أي وقت أدناه.",
-    operationFailed: "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
-  },
-};
-
-export function getNativeRetrievalCopy(locale: FoundationLocale) {
-  return copy[locale];
+export function getNativeRetrievalCopy(
+  locale: FoundationLocale,
+): NativeRetrievalCopy {
+  const d = getNativeEmployeeDictionary(locale);
+  return {
+    assignedBody: d.retrievalOperation,
+    back: d.back,
+    backToTasks: d.backToQueue,
+    checkState: d.retry,
+    conflictBody: d.operationFailed,
+    conflictTitle: d.connectionIssue,
+    expectedKeySlot: d.expectedKeySlot,
+    elapsed: d.elapsed,
+    enterKeySlotCode: d.enterKeySlotCode,
+    key: d.key,
+    keySlotVerified: d.keySlotVerified,
+    keyTitle: d.keyCheckout,
+    keyVerifyBody: d.expectedKeySlot,
+    keyVerifyLabel: d.verifyKeySlot,
+    loading: d.loadingRetrieval,
+    location: d.location,
+    readyBody: d.readyForGuest,
+    readyTitle: d.vehicleReadyTitle,
+    retrievingBody: d.retrievalOperation,
+    retrievingLabel: d.retrievingLabel,
+    retrievalBadge: d.retrievalState,
+    startRetrieval: d.startRetrievalAction,
+    startingRetrieval: d.startingRetrieval,
+    taskTitle: d.retrievalOperation,
+    vehicle: d.vehicle,
+    unknownBody: d.operationFailed,
+    unknownTitle: d.connectionIssue,
+    unavailableBody: d.operationFailed,
+    unavailableTitle: d.cannotResumeRetrieval,
+    vehicleReady: d.markReady,
+    markingReady: d.markingReady,
+    reportIssue: d.reportIssue,
+    zone: d.zone,
+    spot: d.spot,
+    scanQr: d.scannerStartScan,
+    closeScanner: d.scannerCloseScanner,
+    manualHint: d.chooseManually,
+    operationFailed: d.operationFailed,
+  };
 }

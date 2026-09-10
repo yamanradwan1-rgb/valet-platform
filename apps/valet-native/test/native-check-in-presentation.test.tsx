@@ -236,12 +236,12 @@ describe("Native Check-In presentation", () => {
       invalid.nodes.some((node) => node.props.children === "Enter Plate"),
     ).toBe(true);
     const first = render(snapshot({ phase: "intake-ambiguous" }));
-    expect(labels(first.nodes)).toContain("Check server state");
+    expect(labels(first.nodes)).toContain("Retry");
     expect(labels(first.nodes)).not.toContain("Retry same check-in");
     const checked = render(
       snapshot({ phase: "intake-ambiguous", recoveryChecked: true }),
     );
-    expect(labels(checked.nodes)).toContain("Retry same check-in");
+    expect(labels(checked.nodes)).toContain("Retry Discovery");
   });
 
   it("uses Arabic flow direction while keeping identifiers LTR", () => {

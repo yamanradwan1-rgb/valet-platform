@@ -5,6 +5,7 @@ import {
   EmployeeApiError,
   type EmployeeClient,
 } from "@valet/employee-client";
+import { NATIVE_INCIDENT_OPERATION_FAILED } from "./native-incident-error";
 
 import type {
   NativeIncidentSnapshot,
@@ -150,11 +151,5 @@ function nativeIncidentPresentationError(error: unknown): string {
   if (error instanceof EmployeeApiError && error.message.trim().length > 0) {
     return error.message;
   }
-  if (
-    error instanceof Error &&
-    error.message.startsWith("Secure UUID generation is unavailable")
-  ) {
-    return error.message;
-  }
-  return "The operation failed. Refresh and try again.";
+  return NATIVE_INCIDENT_OPERATION_FAILED;
 }

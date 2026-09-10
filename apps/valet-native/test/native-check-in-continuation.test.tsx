@@ -120,18 +120,8 @@ function spoken(nodes: Element[]): string {
 
 describe("MOB-011A Native vehicle continuation", () => {
   it.each([
-    [
-      "en",
-      "Vehicle details",
-      "Authoritative vehicle",
-      "Edit make, model, and color",
-    ],
-    [
-      "ar",
-      "تفاصيل المركبة",
-      "بيانات المركبة المعتمدة",
-      "تعديل الصنع والطراز واللون",
-    ],
+    ["en", "Vehicle details", "Vehicle", "Correct vehicle details"],
+    ["ar", "تفاصيل المركبة", "المركبة", "تصحيح بيانات المركبة"],
   ] as const)(
     "presents authoritative %s hierarchy",
     (locale, title, badge, edit) => {
@@ -167,7 +157,7 @@ describe("MOB-011A Native vehicle continuation", () => {
     const save = nodes.find(
       (node) =>
         node.type === "Pressable" &&
-        node.props.accessibilityLabel === "Save vehicle details",
+        node.props.accessibilityLabel === "Confirm",
     )!;
     (save.props.onPress as () => void)();
     expect(checkIn.submitVehicleDetails).toHaveBeenCalledOnce();
@@ -196,7 +186,7 @@ describe("MOB-011A Native vehicle continuation", () => {
       },
     });
     expect(spoken(nodes)).toContain(
-      "This plate belongs to another vehicle record.",
+      "The operation failed. Refresh and try again.",
     );
   });
 
@@ -242,8 +232,7 @@ describe("MOB-011A Native vehicle continuation", () => {
     });
     const check = nodes.find(
       (node) =>
-        node.type === "Pressable" &&
-        node.props.accessibilityLabel === "Check server state",
+        node.type === "Pressable" && node.props.accessibilityLabel === "Retry",
     )!;
     (check.props.onPress as () => void)();
     expect(checkIn.retryCorrectionRecovery).toHaveBeenCalledOnce();

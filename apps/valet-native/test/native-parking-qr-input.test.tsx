@@ -96,7 +96,7 @@ describe("MOB-012B Native Parking QR/manual parity", () => {
     const action = render().find(
       (node) =>
         node.type === "Pressable" &&
-        node.props.accessibilityLabel === "Open camera",
+        node.props.accessibilityLabel === "Scan QR code",
     )!;
     const resolved = (
       action.props.style as (state: { pressed: boolean }) => unknown
@@ -124,7 +124,7 @@ describe("MOB-012B Native Parking QR/manual parity", () => {
       nodes.find(
         (node) =>
           node.type === "Pressable" &&
-          node.props.accessibilityLabel === "Open camera",
+          node.props.accessibilityLabel === "Scan QR code",
       )?.props.accessibilityState,
     ).toMatchObject({ disabled: true });
   });

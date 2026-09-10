@@ -258,9 +258,7 @@ describe("Native Check-In review regressions", () => {
     expect(onClose).toHaveBeenCalledTimes(blocked ? 0 : 1);
     if (phase === "intake-ambiguous")
       expect(
-        nodes.some(
-          (node) => node.props.accessibilityLabel === "Check server state",
-        ),
+        nodes.some((node) => node.props.accessibilityLabel === "Retry"),
       ).toBe(true);
   });
   it.each(["en", "ar"] as const)(

@@ -162,8 +162,8 @@ function action(nodes: ReturnType<typeof elements>, label: string) {
 
 describe("MOB-012B Native Confirm Parked", () => {
   it.each([
-    ["en", "Where is the vehicle parked?"],
-    ["ar", "أين تم صف المركبة؟"],
+    ["en", "Parking Spot"],
+    ["ar", "موقع الإيقاف"],
   ] as const)("renders the Spot-first step in %s", (locale, heading) => {
     const { nodes } = render("spot", locale);
     expect(content(nodes)).toContain(heading);
@@ -189,7 +189,6 @@ describe("MOB-012B Native Confirm Parked", () => {
       action(nodes, locale === "ar" ? "متابعة" : "Continue"),
     ).toBeUndefined();
   });
-
   it("keeps Key Slot second with Web guidance and no preassignment", () => {
     const { nodes } = render("slot");
     expect(content(nodes)).toContain(
@@ -201,7 +200,6 @@ describe("MOB-012B Native Confirm Parked", () => {
       value: "",
     });
   });
-
   it("presents one dominant Confirm Parked action only when ready", () => {
     const { confirmation, nodes } = render("ready");
     const confirm = action(nodes, "Confirm Parked")!;
@@ -209,7 +207,6 @@ describe("MOB-012B Native Confirm Parked", () => {
     (confirm.props.onPress as () => void)();
     expect(confirmation.confirmParked).toHaveBeenCalledOnce();
   });
-
   it("keeps protected confirmation unavailable offline", () => {
     const { confirmation, nodes } = render("ready", "en", null, false);
     const confirm = action(nodes, "Confirm Parked")!;
@@ -218,7 +215,6 @@ describe("MOB-012B Native Confirm Parked", () => {
     (confirm.props.onPress as () => void)();
     expect(confirmation.confirmParked).not.toHaveBeenCalled();
   });
-
   it("locks Back, candidate input, and duplicate action while busy", () => {
     const { nodes } = render("submitting");
     expect(action(nodes, "Back")?.props.disabled).toBe(true);
@@ -231,7 +227,7 @@ describe("MOB-012B Native Confirm Parked", () => {
   });
 
   it.each([
-    ["spot", "spot", "This Parking Spot is no longer available"],
+    ["spot", "spot", "The operation failed. Refresh and try again."],
     ["slot", "slot", "This key slot is no longer available"],
   ] as const)(
     "renders truthful %s conflict recovery",
@@ -246,9 +242,11 @@ describe("MOB-012B Native Confirm Parked", () => {
 
   it("offers only a read-only canonical check while ambiguous", () => {
     const { confirmation, nodes } = render("ambiguous");
-    const check = action(nodes, "Check server state")!;
+    const check = action(nodes, "Retry")!;
     (check.props.onPress as () => void)();
-    expect(content(nodes)).toContain("result is unknown");
+    expect(content(nodes)).toContain(
+      "The operation failed. Refresh and try again.",
+    );
     expect(confirmation.checkServerState).toHaveBeenCalledOnce();
     expect(confirmation.confirmParked).not.toHaveBeenCalled();
     expect(action(nodes, "Confirm Parked")).toBeUndefined();
@@ -258,8 +256,10 @@ describe("MOB-012B Native Confirm Parked", () => {
     const slot = render("slot", "ar", "slot").nodes;
     expect(content(slot)).toContain("هذه الخانة لم تعد متاحة");
     const ambiguous = render("ambiguous", "ar").nodes;
-    expect(content(ambiguous)).toContain("نتيجة الاصطفاف غير معروفة");
-    expect(action(ambiguous, "تحقق من حالة الخادم")).toBeDefined();
+    expect(content(ambiguous)).toContain(
+      "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً.",
+    );
+    expect(action(ambiguous, "إعادة المحاولة")).toBeDefined();
   });
 
   it("shows authoritative Parked completion without Retrieval", () => {

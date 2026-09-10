@@ -293,7 +293,7 @@ describe("Native Tasks presentation", () => {
 
   it("retains truthful no-Shift and unavailable state copy", () => {
     const copy = getNativeTasksCopy("en");
-    expect(copy.noShift).toBe("No active eligible Shift.");
-    expect(copy.error).toBe("Operational state is temporarily unavailable.");
+    expect(copy.noShift).toBe("No active shift");
+    expect(copy.error).toBe("The operation failed. Refresh and try again.");
   });
 });

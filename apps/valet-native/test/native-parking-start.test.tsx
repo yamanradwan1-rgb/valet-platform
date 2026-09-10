@@ -145,7 +145,7 @@ function action(nodes: ReturnType<typeof elements>, label: string) {
 describe("MOB-012A Native Parking Start", () => {
   it.each([
     ["en", "Parking Task", "Start Parking"],
-    ["ar", "مهمة الاصطفاف", "بدء الاصطفاف"],
+    ["ar", "مهمة الإيقاف", "بدء الإيقاف"],
   ] as const)(
     "renders accepted entry and dominant action in %s",
     (locale, title, start) => {
@@ -154,7 +154,7 @@ describe("MOB-012A Native Parking Start", () => {
       expect(action(nodes, start)?.props.accessibilityState).toMatchObject({
         disabled: false,
       });
-      expect(content(nodes)).toContain(locale === "ar" ? "مقبولة" : "Accepted");
+      expect(content(nodes)).toContain(locale === "ar" ? "معينة" : "Assigned");
     },
   );
 
@@ -166,7 +166,7 @@ describe("MOB-012A Native Parking Start", () => {
 
   it("keeps the assigned Task separate and routes acceptance through the operational session", async () => {
     const { nodes, operations, parking } = render("assigned");
-    const accept = action(nodes, "Accept task")!;
+    const accept = action(nodes, "Accept Task")!;
     (accept.props.onPress as () => void)();
     expect(operations.refreshQueue).toHaveBeenCalledOnce();
     await vi.waitFor(() =>
@@ -181,13 +181,13 @@ describe("MOB-012A Native Parking Start", () => {
   it("presents the completed-check-in queue boundary truthfully", () => {
     const { nodes } = render("assigned", "en", "QUEUED");
     expect(content(nodes)).toContain("Queued");
-    expect(action(nodes, "Claim task")).toBeDefined();
+    expect(action(nodes, "Claim & Park")).toBeDefined();
     expect(action(nodes, "Start Parking")).toBeUndefined();
   });
 
   it("blocks duplicate interaction and Back while Start Parking is busy", () => {
     const { nodes } = render("submitting");
-    expect(action(nodes, "Starting Parking…")?.props).toMatchObject({
+    expect(action(nodes, "Starting Parking...")?.props).toMatchObject({
       disabled: true,
     });
     expect(action(nodes, "Back")?.props).toMatchObject({ disabled: true });
@@ -195,9 +195,11 @@ describe("MOB-012A Native Parking Start", () => {
 
   it("uses a read-only recovery action for ambiguous state", () => {
     const { nodes, parking } = render("ambiguous");
-    const check = action(nodes, "Check server state")!;
+    const check = action(nodes, "Retry")!;
     (check.props.onPress as () => void)();
-    expect(content(nodes)).toContain("Start Parking result is unknown");
+    expect(content(nodes)).toContain(
+      "The operation failed. Refresh and try again.",
+    );
     expect(parking.checkServerState).toHaveBeenCalledOnce();
     expect(parking.startParking).not.toHaveBeenCalled();
     expect(action(nodes, "Start Parking")).toBeUndefined();
@@ -205,18 +207,20 @@ describe("MOB-012A Native Parking Start", () => {
 
   it("presents conflict with canonical review instead of a protected retry", () => {
     const { nodes } = render("conflict");
-    expect(content(nodes)).toContain("Parking work changed");
-    expect(action(nodes, "Check server state")).toBeDefined();
+    expect(content(nodes)).toContain(
+      "This task is assigned to another valet employee.",
+    );
+    expect(action(nodes, "Retry")).toBeDefined();
     expect(action(nodes, "Start Parking")).toBeUndefined();
   });
 
   it.each([
-    ["ambiguous", "نتيجة البدء غير معروفة"],
-    ["conflict", "تغيرت مهمة الاصطفاف"],
+    ["ambiguous", "تعذر تنفيذ العملية. حدّث الصفحة وحاول مجدداً."],
+    ["conflict", "هذه المهمة معينة لموظف صف سيارات آخر."],
   ] as const)("localizes the Arabic %s recovery state", (phase, expected) => {
     const { nodes } = render(phase, "ar");
     expect(content(nodes)).toContain(expected);
-    expect(action(nodes, "تحقق من حالة الخادم")).toBeDefined();
+    expect(action(nodes, "إعادة المحاولة")).toBeDefined();
   });
 
   it.each(["en", "ar"] as const)(
@@ -225,7 +229,7 @@ describe("MOB-012A Native Parking Start", () => {
       const { nodes } = render("started", locale);
       const text = content(nodes);
       expect(text).toContain(
-        locale === "ar" ? "الاصطفاف قيد التنفيذ" : "Parking in progress",
+        locale === "ar" ? "عملية الإيقاف" : "Parking Operation",
       );
       expect(text).not.toMatch(
         /Confirm Parked|parking spot|key slot|تأكيد الاصطفاف|خانة المفتاح/i,

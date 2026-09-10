@@ -158,7 +158,7 @@ describe("Native assistive plate camera presentation", () => {
       overflow: "hidden",
     });
     expect(
-      starting.some((node) => node.props.message === "Starting rear camera…"),
+      starting.some((node) => node.props.message === "Starting camera…"),
     ).toBe(true);
     expect(camera.props).toMatchObject({ facing: "back", mute: true });
     expect(camera.props.onBarcodeScanned).toBeUndefined();

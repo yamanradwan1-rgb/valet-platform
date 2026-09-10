@@ -84,7 +84,7 @@ describe("Native Scan production presentation with injected camera", () => {
     const nodes = render();
     const tabs = nodes.filter((node) => node.props.selected !== undefined);
     expect(tabs.map((node) => node.props.label)).toEqual([
-      "Key Slot",
+      "Key slot",
       "Parking Spot",
     ]);
     expect(
@@ -127,7 +127,9 @@ describe("Native Scan production presentation with injected camera", () => {
       render().find((node) => node.type === "TextInput")?.props.value,
     ).toBe("manual");
     expect(render().some((node) => node.type === "CameraView")).toBe(true);
-    const close = render().find((node) => node.props.label === "Close camera")!;
+    const close = render().find(
+      (node) => node.props.label === "Close scanner",
+    )!;
     (close.props.onPress as () => void)();
     expect(render().some((node) => node.type === "CameraView")).toBe(false);
   });
@@ -168,7 +170,7 @@ describe("Native Scan production presentation with injected camera", () => {
       const nodes = render();
       const input = nodes.find((node) => node.type === "TextInput")!;
       expect(input.props.accessibilityLabel).toBe(
-        locale === "ar" ? "رمز الموقع" : "Resource code",
+        locale === "ar" ? "إدخال يدوي" : "Manual Entry",
       );
       expect(input.props.style).toContainEqual({
         writingDirection: "ltr",

@@ -1,4 +1,6 @@
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
+import { getNativePlatformCopy } from "../i18n/native-platform-copy";
 
 export interface NativeHandoffCopy {
   abort: string;
@@ -46,110 +48,56 @@ export interface NativeHandoffCopy {
   verifying: string;
 }
 
-const values: Record<FoundationLocale, NativeHandoffCopy> = {
-  en: {
-    abort: "Abort Handoff",
-    abortTitle: "Abort",
-    abortReason: "Abort reason",
-    aborting: "Aborting handoff…",
-    awaiting: "Awaiting guest proof",
-    back: "Back",
-    begin: "Begin Guest Handoff",
-    beginning: "Starting handoff...",
-    camera: "Scan QR code",
-    check: "Check server state",
-    closeCamera: "Close scanner",
-    conflictBody:
-      "Handoff authority changed. Return to current Tasks before continuing.",
-    dynamicQr: "Guest QR code",
-    guestHandoff: "Guest Handoff",
-    failure:
-      "Verification could not be completed. Check the proof and try again.",
-    invalidCode: "Enter exactly four digits.",
-    invalidQr: "Enter a valid Dynamic QR proof.",
-    manualQr: "Dynamic QR manual entry",
-    manualHint: "You can enter the code manually at any time below.",
-    override: "Override Verification",
-    overrideReason: "Reason (required)",
-    overrideVerified: "Supervisor override authorized",
-    overriding: "Authorizing override…",
-    pendingBody:
-      "Ask the guest for their pickup code or Dynamic QR. Verification does not release the vehicle.",
-    pickupCode: "Pickup code",
+export function getNativeHandoffCopy(
+  locale: FoundationLocale,
+): NativeHandoffCopy {
+  const d = getNativeEmployeeDictionary(locale);
+  const platform = getNativePlatformCopy(locale);
+  return {
+    abort: d.abortHandoff,
+    abortTitle: d.abort,
+    abortReason: d.reasonRequired,
+    aborting: d.processing,
+    awaiting: d.awaitingGuestProof,
+    back: d.back,
+    begin: d.beginGuestHandoff,
+    beginning: d.startingHandoff,
+    camera: d.scannerStartScan,
+    check: d.retry,
+    closeCamera: d.scannerCloseScanner,
+    conflictBody: d.operationFailed,
+    dynamicQr: d.guestQrCode,
+    guestHandoff: d.guestHandoffTitle,
+    failure: d.operationFailed,
+    invalidCode: d.operationFailed,
+    invalidQr: d.scannerWrongTypeHandoff,
+    manualQr: d.manualEntry,
+    manualHint: d.scannerManualAlwaysAvailable,
+    override: d.overrideVerification,
+    overrideReason: d.reasonRequired,
+    overrideVerified: d.supervisorOverrideLabel,
+    overriding: d.processing,
+    pendingBody: d.awaitingGuestProof,
+    pickupCode: d.pickupCodeLabel,
     pickupPlaceholder: "0000",
     qrPlaceholder: "vhq1.…",
-    readyForPickup: "Ready for pickup",
-    reasonRequired: "Reason (required)",
-    reportIssue: "Report Issue",
-    readyBody:
-      "The vehicle is ready. Begin the secure guest handoff when the guest is present.",
-    retryAfter: (seconds) => `Retry in ${seconds}s.`,
-    settings: "Open camera settings",
-    supervisorTitle: "Supervisor override",
-    key: "Key",
-    taskTitle: "Vehicle Ready",
-    unknownBody:
-      "The handoff result is unknown. Check server state before another action.",
-    unavailableBody: "Current handoff state is unavailable.",
-    verifiedBody:
-      "Guest proof is verified. The vehicle has not been released or completed.",
-    verifiedTitle: "Identity verified",
-    verifyCode: "Verify Code",
-    verifyQr: "Verify QR",
-    verifying: "Verifying…",
-  },
-  ar: {
-    abort: "إلغاء التسليم",
-    abortTitle: "إلغاء",
-    abortReason: "سبب إلغاء التسليم",
-    aborting: "جارٍ إلغاء التسليم…",
-    awaiting: "في انتظار إثبات الضيف",
-    back: "رجوع",
-    begin: "بدء تسليم الضيف",
-    beginning: "جارٍ بدء التسليم...",
-    camera: "مسح رمز QR",
-    check: "تحقق من حالة الخادم",
-    closeCamera: "إغلاق الماسح",
-    conflictBody: "تغيرت صلاحية التسليم. ارجع إلى المهام الحالية قبل المتابعة.",
-    dynamicQr: "رمز QR للضيف",
-    guestHandoff: "تسليم الضيف",
-    failure: "تعذر إكمال التحقق. تحقق من الإثبات وحاول مجددًا.",
-    invalidCode: "أدخل أربعة أرقام بالضبط.",
-    invalidQr: "أدخل إثبات QR ديناميكي صالحًا.",
-    manualQr: "إدخال رمز QR الديناميكي يدويًا",
-    manualHint: "يمكنك إدخال الرمز يدويًا في أي وقت أدناه.",
-    override: "تجاوز التحقق",
-    overrideReason: "السبب (مطلوب)",
-    overrideVerified: "تم اعتماد تجاوز المشرف",
-    overriding: "جارٍ اعتماد التجاوز…",
-    pendingBody:
-      "اطلب من الضيف رمز الاستلام أو رمز QR الديناميكي. التحقق لا يعني تحرير المركبة.",
-    pickupCode: "رمز الاستلام",
-    pickupPlaceholder: "0000",
-    qrPlaceholder: "vhq1.…",
-    readyForPickup: "جاهز للاستلام",
-    reasonRequired: "السبب (مطلوب)",
-    reportIssue: "الإبلاغ عن مشكلة",
-    readyBody: "المركبة جاهزة. ابدأ التسليم الآمن عند حضور الضيف.",
-    retryAfter: (seconds) => `أعد المحاولة خلال ${seconds}s.`,
-    settings: "فتح إعدادات الكاميرا",
-    supervisorTitle: "تجاوز المشرف",
-    key: "المفتاح",
-    taskTitle: "المركبة جاهزة",
-    unknownBody:
-      "نتيجة التسليم غير معروفة. تحقق من حالة الخادم قبل أي إجراء آخر.",
-    unavailableBody: "حالة التسليم الحالية غير متاحة.",
-    verifiedBody:
-      "تم التحقق من إثبات الضيف. لم يتم تحرير المركبة أو إكمال المهمة.",
-    verifiedTitle: "تم التحقق من الهوية",
-    verifyCode: "تحقق من الرمز",
-    verifyQr: "تحقق من QR",
-    verifying: "جارٍ التحقق…",
-  },
-};
-
-export function getNativeHandoffCopy(locale: FoundationLocale) {
-  return values[locale];
+    readyForPickup: d.readyForPickup,
+    reasonRequired: d.reasonRequired,
+    reportIssue: d.reportIssue,
+    readyBody: d.readyForGuest,
+    retryAfter: (seconds) => `${d.retryIn} ${seconds}s.`,
+    settings: platform.scanner.settings,
+    supervisorTitle: d.supervisorOverrideLabel,
+    key: d.key,
+    taskTitle: d.vehicleReadyTitle,
+    unknownBody: d.operationFailed,
+    unavailableBody: d.operationFailed,
+    verifiedBody: d.identityVerified,
+    verifiedTitle: d.identityVerified,
+    verifyCode: d.verifyCode,
+    verifyQr: d.verifyQr,
+    verifying: d.processing,
+  };
 }
 
 export function presentHandoffFailure(

@@ -226,7 +226,7 @@ describe("MOB-014A Native secure handoff", () => {
     "keeps %s handoff recovery fail-closed",
     (phase) => {
       const nodes = render(phase);
-      expect(content(nodes)).toContain("Check server state");
+      expect(content(nodes)).toContain("Retry");
       expect(content(nodes)).not.toContain("Verify Code");
       expect(content(nodes)).not.toContain("Verify QR");
       expect(content(nodes)).not.toContain("Release Vehicle");

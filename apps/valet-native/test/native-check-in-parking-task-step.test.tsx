@@ -43,6 +43,7 @@ function render(locale: "en" | "ar" = "en", starting = false, error = false) {
     NativeCheckInParkingTaskStep({
       copy: getNativeCheckInCopy(locale),
       error,
+      locale,
       onStart,
       snapshot: snapshot(),
       starting,

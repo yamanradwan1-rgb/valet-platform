@@ -150,11 +150,11 @@ describe("MOB-010 Patch 5 loading and recovery presentation", () => {
       (node) => node.props.accessibilityRole === "alert",
     )!;
     expect(alert.props.accessibilityLabel).toBe(
-      "Failed to load check-in session. Check-in state is temporarily unavailable.",
+      "Failed to load check-in session. The operation failed. Refresh and try again.",
     );
     expect(content(nodes)).not.toContain("private sql detail");
     (button(nodes, "Retry Discovery")!.props.onPress as () => void)();
-    (button(nodes, "Back to tasks")!.props.onPress as () => void)();
+    (button(nodes, "Back to Task Queue")!.props.onPress as () => void)();
     expect(session.retryDiscovery).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
   });
@@ -170,7 +170,7 @@ describe("MOB-010 Patch 5 loading and recovery presentation", () => {
     expect(
       style(nodes.find((node) => node.props.children === "12-34567")!),
     ).toMatchObject({ textAlign: "center", writingDirection: "ltr" });
-    const busy = button(nodes, "Checking exact returning vehicle…")!;
+    const busy = button(nodes, "Checking for existing check-in drafts...")!;
     expect(busy.props).toMatchObject({
       accessibilityState: { busy: true, disabled: true },
       disabled: true,
@@ -264,14 +264,14 @@ describe("MOB-010 Patch 5 loading and recovery presentation", () => {
     expect(button(initial, "Retry same check-in")).toBeUndefined();
     expect(session.recoverAmbiguous).not.toHaveBeenCalled();
     expect(session.retryIntake).not.toHaveBeenCalled();
-    (button(initial, "Check server state")!.props.onPress as () => void)();
+    (button(initial, "Retry")!.props.onPress as () => void)();
     expect(session.recoverAmbiguous).toHaveBeenCalledOnce();
     const checking = render(
       snapshot({ phase: "intake-ambiguous" }),
       "en",
       session,
     ).nodes;
-    expect(button(checking, "Check server state")!.props).toMatchObject({
+    expect(button(checking, "Retry")!.props).toMatchObject({
       accessibilityState: { busy: true, disabled: true },
       disabled: true,
     });
@@ -280,7 +280,7 @@ describe("MOB-010 Patch 5 loading and recovery presentation", () => {
       "en",
       session,
     ).nodes;
-    (button(checked, "Retry same check-in")!.props.onPress as () => void)();
+    (button(checked, "Retry Discovery")!.props.onPress as () => void)();
     expect(session.retryIntake).toHaveBeenCalledOnce();
     expect(content(checked)).not.toContain("Start New");
   });

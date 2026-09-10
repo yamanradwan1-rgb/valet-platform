@@ -5,11 +5,7 @@ import {
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
-
-const copy = {
-  en: "No network connection. Reconnect to refresh and continue.",
-  ar: "لا يوجد اتصال بالشبكة. أعد الاتصال للتحديث والمتابعة.",
-} as const;
+import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
 
 /** Presentation boundary only. Production supplies no value until an approved
  * subscribed Native connectivity authority exists. */
@@ -30,7 +26,7 @@ export function NativeConnectivityBanner({
       testID="native-offline-banner"
     >
       <Text style={[styles.text, employeeTextStyle("human", textAlign)]}>
-        {copy[locale]}
+        {getNativeEmployeeDictionary(locale).noNetworkMessage}
       </Text>
     </View>
   );

@@ -122,12 +122,12 @@ describe("MOB-010 Patch 4 recoverables presentation", () => {
     expect(
       style(
         nodes.find(
-          (node) => node.props.accessibilityLabel === "Awaiting parking",
+          (node) => node.props.accessibilityLabel === "Awaiting Parking",
         )!,
       ),
     ).toMatchObject({ backgroundColor: "#EEFBF5" });
     expect(
-      style(nodes.find((node) => node.props.children === "Awaiting parking")!),
+      style(nodes.find((node) => node.props.children === "Awaiting Parking")!),
     ).toMatchObject({ color: "#2F9B78" });
     const cards = nodes.filter(
       (node) =>
