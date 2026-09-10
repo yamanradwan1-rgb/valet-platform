@@ -8,6 +8,7 @@ import {
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
 import {
+  employeeFontFamilies,
   employeeTextStyle,
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
@@ -77,7 +78,12 @@ export function NativeShiftInfoRow({
       <Text style={[styles.label, employeeTextStyle("human", textAlign)]}>
         {label}
       </Text>
-      <View style={styles.valueGroup}>
+      <View
+        style={[
+          styles.valueGroup,
+          { alignItems: textAlign === "right" ? "flex-start" : "flex-end" },
+        ]}
+      >
         <Text style={[styles.value, employeeTextStyle(valueKind, textAlign)]}>
           {value}
         </Text>
@@ -139,12 +145,25 @@ export function NativeShiftSummaryDetails({
       ? copy.roleSupervisor
       : copy.roleEmployee;
   return (
-    <EmployeeCard>
-      <EmployeeBadge
-        label={copy.activeShift}
-        textAlign={textAlign}
-        variant="success"
-      />
+    <EmployeeCard contentGap="none" padding="standard">
+      <View
+        style={[
+          styles.topRow,
+          { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
+        ]}
+      >
+        <EmployeeBadge
+          label="ACTIVE"
+          showDot
+          textAlign={textAlign}
+          variant="primary"
+        />
+        <Text
+          style={[styles.activeLabel, employeeTextStyle("human", textAlign)]}
+        >
+          {copy.activeShift}
+        </Text>
+      </View>
       <NativeShiftInfoRow
         label={copy.organization}
         textAlign={textAlign}
@@ -165,8 +184,14 @@ export function NativeShiftSummaryDetails({
         label={copy.started}
         textAlign={textAlign}
         value={presentNativeShiftStartedAt(authority.shiftStartedAt, locale)}
+        valueKind="identifier"
       />
-      <View style={styles.elapsed}>
+      <View
+        style={[
+          styles.elapsed,
+          { flexDirection: textAlign === "right" ? "row-reverse" : "row" },
+        ]}
+      >
         <Text
           style={[styles.elapsedLabel, employeeTextStyle("human", textAlign)]}
         >
@@ -187,22 +212,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderTopColor: c.border,
     borderTopWidth: 1,
-    flexDirection: "row",
     justifyContent: "space-between",
     paddingTop: space.md,
   },
   elapsedLabel: { ...type.badge, color: c.muted, textTransform: "uppercase" },
-  elapsedValue: { ...type.small, color: c.navy, fontWeight: "700" },
+  elapsedValue: {
+    ...type.body,
+    color: c.navy,
+    fontFamily: employeeFontFamilies.display,
+    fontWeight: "700",
+  },
   identifier: { ...type.small, color: c.neutral },
   label: { ...type.body, color: c.neutral, flexShrink: 0 },
   row: {
     alignItems: "flex-start",
-    borderTopColor: c.border,
-    borderTopWidth: 1,
+    borderBottomColor: c.border,
+    borderBottomWidth: 1,
     gap: space.md,
     justifyContent: "space-between",
-    paddingTop: space.md,
+    paddingVertical: space.md,
   },
   value: { ...type.body, color: c.navy, fontWeight: "600" },
-  valueGroup: { alignItems: "stretch", flex: 1, gap: 2 },
+  valueGroup: { flex: 1, gap: 2 },
+  topRow: {
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: space.lg,
+  },
+  activeLabel: { ...type.small, color: c.success, fontWeight: "600" },
 });

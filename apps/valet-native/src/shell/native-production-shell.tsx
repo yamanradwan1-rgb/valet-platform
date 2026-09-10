@@ -249,9 +249,6 @@ export function NativeProductionShell({
           auth={runtime.auth}
           authSnapshot={authSnapshot}
           locale={locale}
-          onRefresh={() =>
-            void runtime.operations.activate(authSnapshot.authGeneration)
-          }
           onReviewTasks={() => {
             controller.receive({ destination: "tasks", source: "navigation" });
             bumpNavigation();

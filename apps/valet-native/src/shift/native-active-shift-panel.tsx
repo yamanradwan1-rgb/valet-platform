@@ -5,7 +5,7 @@ import type {
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import { EmployeeCard, EmployeeError } from "../employee-ui/employee-feedback";
+import { EmployeeCard } from "../employee-ui/employee-feedback";
 import {
   employeeColors as c,
   employeeFieldHeights,
@@ -26,14 +26,12 @@ import {
 export function NativeActiveShiftPanel({
   locale,
   onReviewTasks,
-  onReturned,
   session,
   snapshot,
   textAlign,
 }: {
   readonly locale: FoundationLocale;
   readonly onReviewTasks: () => void;
-  readonly onReturned: () => void;
   readonly session: EmployeeShiftEndSession;
   readonly snapshot: EmployeeShiftEndSnapshot;
   readonly textAlign: "left" | "right";
@@ -45,7 +43,10 @@ export function NativeActiveShiftPanel({
 
   return (
     <ScrollView
-      contentContainerStyle={styles.screen}
+      contentContainerStyle={[
+        styles.screen,
+        { direction: locale === "ar" ? "rtl" : "ltr" },
+      ]}
       keyboardShouldPersistTaps="handled"
       style={styles.container}
       testID="native-active-shift"
@@ -69,7 +70,7 @@ export function NativeActiveShiftPanel({
         textAlign={textAlign}
       />
       {snapshot.phase === "ended" && snapshot.result !== null ? (
-        <EmployeeCard variant="success">
+        <EmployeeCard contentGap="none" padding="standard" variant="success">
           <Text
             accessibilityLiveRegion="polite"
             accessibilityRole="header"
@@ -95,18 +96,14 @@ export function NativeActiveShiftPanel({
             value={`${snapshot.result.cashReconciliation.cashVariance} ${snapshot.result.cashReconciliation.currency}`}
             valueKind="identifier"
           />
-          <EmployeeButton
-            label={copy.returnToStart}
-            onPress={() => {
-              session.finish();
-              onReturned();
-            }}
-          />
         </EmployeeCard>
       ) : (
-        <EmployeeCard>
+        <EmployeeCard contentGap="lg" padding="standard">
           <Text style={[styles.label, employeeTextStyle("human", textAlign)]}>
-            {copy.cashReported} {authority.currency}
+            {copy.cashReported}{" "}
+            <Text style={employeeTextStyle("identifier", textAlign)}>
+              {authority.currency}
+            </Text>
           </Text>
           <Text style={[styles.helper, employeeTextStyle("human", textAlign)]}>
             {copy.cashReportedHelper}
@@ -114,10 +111,6 @@ export function NativeActiveShiftPanel({
           <TextInput
             accessibilityHint={copy.cashReportedHelper}
             accessibilityLabel={`${copy.cashReported} ${authority.currency}`}
-            accessibilityState={{
-              disabled: locked || snapshot.phase === "uncertain",
-            }}
-            editable={!locked && snapshot.phase !== "uncertain"}
             inputMode="decimal"
             keyboardType="decimal-pad"
             maxLength={15}
@@ -128,28 +121,27 @@ export function NativeActiveShiftPanel({
             value={snapshot.cashInput}
           />
           {snapshot.cashValidationVisible ? (
-            <EmployeeError textAlign={textAlign}>
+            <Text
+              style={[styles.validation, employeeTextStyle("human", textAlign)]}
+            >
               {copy.cashReportedValidation}
-            </EmployeeError>
+            </Text>
           ) : null}
           {!snapshot.online ? (
-            <EmployeeError textAlign={textAlign}>
+            <Text
+              style={[styles.validation, employeeTextStyle("human", textAlign)]}
+            >
               {copy.noNetwork}
-            </EmployeeError>
+            </Text>
           ) : null}
           {snapshot.phase === "uncertain" ? (
             <View style={styles.uncertain} testID="native-shift-end-uncertain">
               <Text
                 accessibilityLiveRegion="assertive"
                 style={[
-                  styles.uncertainTitle,
+                  styles.uncertainText,
                   employeeTextStyle("human", textAlign),
                 ]}
-              >
-                {copy.endShiftUncertainTitle}
-              </Text>
-              <Text
-                style={[styles.helper, employeeTextStyle("human", textAlign)]}
               >
                 {copy.endShiftUncertain}
               </Text>
@@ -163,9 +155,14 @@ export function NativeActiveShiftPanel({
           ) : null}
           {snapshot.phase === "blocked-open-work" ? (
             <View style={styles.blocked}>
-              <EmployeeError textAlign={textAlign}>
+              <Text
+                style={[
+                  styles.blockedText,
+                  employeeTextStyle("human", textAlign),
+                ]}
+              >
                 {copy.openWorkBlocked}
-              </EmployeeError>
+              </Text>
               <EmployeeButton
                 label={copy.reviewTasks}
                 onPress={onReviewTasks}
@@ -173,9 +170,11 @@ export function NativeActiveShiftPanel({
               />
             </View>
           ) : snapshot.phase === "error" ? (
-            <EmployeeError textAlign={textAlign}>
+            <Text
+              style={[styles.validation, employeeTextStyle("human", textAlign)]}
+            >
               {copy.endShiftError}
-            </EmployeeError>
+            </Text>
           ) : null}
           {snapshot.phase === "confirming" ? (
             <View style={styles.confirm} testID="native-shift-end-confirmation">
@@ -216,13 +215,13 @@ export function NativeActiveShiftPanel({
 const styles = StyleSheet.create({
   blocked: { gap: space.sm },
   cashInput: {
-    ...type.header,
+    ...type.operationalValue,
     backgroundColor: c.warm,
     borderColor: c.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     color: c.navy,
-    minHeight: employeeFieldHeights.standard,
+    height: employeeFieldHeights.standard,
     paddingHorizontal: space.lg,
     textAlign: "center",
     writingDirection: "ltr",
@@ -230,11 +229,22 @@ const styles = StyleSheet.create({
   confirm: { gap: space.sm },
   confirmText: { ...type.body, color: c.navy, fontWeight: "600" },
   container: { flex: 1 },
-  endedTitle: { ...type.label, color: c.navy, fontSize: 18, fontWeight: "700" },
-  heading: { ...type.header, color: c.navy },
+  endedTitle: {
+    ...type.pageTitle,
+    color: c.navy,
+    fontFamily: "Space Grotesk",
+    fontSize: 18,
+  },
+  heading: { ...type.pageTitle, color: c.navy },
   helper: { ...type.small, color: c.muted },
-  label: { ...type.badge, color: c.neutral, textTransform: "uppercase" },
-  screen: { gap: space.lg, padding: space.screen },
+  label: {
+    ...type.small,
+    color: c.neutral,
+    fontWeight: "600",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  screen: { gap: space.screen, padding: space.screen },
   subheading: { ...type.body, color: c.neutral, marginTop: space.xs },
   uncertain: {
     backgroundColor: c.ice,
@@ -244,5 +254,7 @@ const styles = StyleSheet.create({
     gap: space.sm,
     padding: space.md,
   },
-  uncertainTitle: { ...type.small, color: c.navy, fontWeight: "700" },
+  uncertainText: { ...type.small, color: c.navy, fontWeight: "600" },
+  validation: { ...type.small, color: c.danger, fontWeight: "600" },
+  blockedText: { ...type.small, color: c.navy, fontWeight: "600" },
 });
