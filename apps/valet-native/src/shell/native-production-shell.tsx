@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { AppState } from "react-native";
 
-import type { FoundationLocale } from "../foundation/foundation-locale";
+import type { NativeLocalePreference } from "../i18n/native-locale-preference";
+import { useNativeEmployeeLocale } from "../i18n/use-native-employee-locale";
 import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-attention";
 import { useNativeProductionBackHandler } from "./native-production-back-handler";
 import { useNativeContextualRoute } from "./use-native-contextual-route";
@@ -20,10 +21,12 @@ import {
 
 export function NativeProductionShell({
   coldIntent = null,
+  localePreference,
 }: {
   readonly coldIntent?: ProductionRouteIntent | null;
+  readonly localePreference?: NativeLocalePreference;
 }) {
-  const [locale, setLocale] = useState<FoundationLocale>("en");
+  const { locale, setLocale } = useNativeEmployeeLocale(localePreference);
   const [bootstrap] = useState(createNativeProductionBootstrap);
   const [authSnapshot, setAuthSnapshot] = useState(bootstrap.auth);
   const [confirmParking, setConfirmParking] = useState(
