@@ -162,6 +162,40 @@ describe("StaffPushRegistration database invariants", () => {
     );
   });
 
+  it("rejects terminal registration states without a reason class", async () => {
+    const disabledId = await context.createRegistration(first);
+    await expectDatabaseError(
+      context.client.query(
+        `UPDATE staff_push_registrations
+         SET state = 'DISABLED', provider_token = NULL,
+             terminal_at = transaction_timestamp(),
+             terminal_reason_class = NULL,
+             updated_at = transaction_timestamp()
+         WHERE id = $1`,
+        [disabledId],
+      ),
+      "23514",
+      "staff_push_registrations_state_shape_check",
+    );
+
+    const supersededId = await context.createRegistration(first);
+    const replacementId = await context.createRegistration(first);
+    await expectDatabaseError(
+      context.client.query(
+        `UPDATE staff_push_registrations
+         SET state = 'SUPERSEDED', provider_token = NULL,
+             terminal_at = transaction_timestamp(),
+             terminal_reason_class = NULL,
+             superseded_by_registration_id = $2,
+             updated_at = transaction_timestamp()
+         WHERE id = $1`,
+        [supersededId, replacementId],
+      ),
+      "23514",
+      "staff_push_registrations_state_shape_check",
+    );
+  });
+
   it("supports one deferred atomic supersession to a new ACTIVE row", async () => {
     const installationId = randomUUID();
     const oldId = await context.createRegistration(first, { installationId });

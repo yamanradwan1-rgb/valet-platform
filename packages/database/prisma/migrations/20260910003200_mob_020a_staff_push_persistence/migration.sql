@@ -66,12 +66,14 @@ CREATE TABLE "staff_push_registrations" (
         ("state" IN ('DISABLED', 'PROVIDER_INVALID')
             AND "provider_token" IS NULL
             AND "terminal_at" IS NOT NULL
+            AND "terminal_reason_class" IS NOT NULL
             AND btrim("terminal_reason_class") <> ''
             AND "superseded_by_registration_id" IS NULL)
         OR
         ("state" = 'SUPERSEDED'
             AND "provider_token" IS NULL
             AND "terminal_at" IS NOT NULL
+            AND "terminal_reason_class" IS NOT NULL
             AND btrim("terminal_reason_class") <> ''
             AND "superseded_by_registration_id" IS NOT NULL
             AND "superseded_by_registration_id" <> "id")
@@ -194,6 +196,7 @@ CREATE TABLE "staff_push_deliveries" (
     ),
     CONSTRAINT "staff_push_deliveries_provider_acceptance_check" CHECK (
         ("state" = 'PROVIDER_ACCEPTED'
+            AND "provider_result_class" IS NOT NULL
             AND "provider_result_class" = 'ACCEPTED'
             AND "provider_accepted_at" IS NOT NULL)
         OR
@@ -216,6 +219,7 @@ CREATE TABLE "staff_push_deliveries" (
             AND "attempt_count" > 0
             AND "attempt_count" < "max_attempts"
             AND "next_attempt_at" IS NOT NULL
+            AND "provider_result_class" IS NOT NULL
             AND "provider_result_class" IN (
                 'TRANSIENT', 'RATE_LIMITED', 'CONFIGURATION', 'UNKNOWN'
             ))

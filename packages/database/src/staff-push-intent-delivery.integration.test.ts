@@ -246,6 +246,41 @@ describe("StaffPushDelivery database invariants", () => {
       "23514",
     );
   });
+  it("requires an ACCEPTED result class for provider acceptance", async () => {
+    const scope = await context.createScope();
+    const { deliveryId, leaseToken } = await context.claimDelivery(scope);
+    await expectDatabaseError(
+      context.client.query(
+        `UPDATE staff_push_deliveries
+         SET state = 'PROVIDER_ACCEPTED', lease_token = NULL,
+             lease_expires_at = NULL, provider_result_class = NULL,
+             provider_accepted_at = transaction_timestamp(),
+             terminal_at = transaction_timestamp(),
+             updated_at = transaction_timestamp()
+         WHERE id = $1 AND state = 'LEASED' AND lease_token = $2`,
+        [deliveryId, leaseToken],
+      ),
+      "23514",
+      "staff_push_deliveries_provider_acceptance_check",
+    );
+  });
+  it("requires a retryable result class for RETRY_WAIT", async () => {
+    const scope = await context.createScope();
+    const { deliveryId, leaseToken } = await context.claimDelivery(scope);
+    await expectDatabaseError(
+      context.client.query(
+        `UPDATE staff_push_deliveries
+         SET state = 'RETRY_WAIT', lease_token = NULL,
+             lease_expires_at = NULL, provider_result_class = NULL,
+             next_attempt_at = transaction_timestamp() + interval '1 minute',
+             updated_at = transaction_timestamp()
+         WHERE id = $1 AND state = 'LEASED' AND lease_token = $2`,
+        [deliveryId, leaseToken],
+      ),
+      "23514",
+      "staff_push_deliveries_scheduling_check",
+    );
+  });
 
   it("creates the due, lease, registration, and recipient access indexes", async () => {
     const result = await context.client.query<{ indexname: string }>(

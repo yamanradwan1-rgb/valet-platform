@@ -232,4 +232,25 @@ export class StaffPushTestContext {
       ],
     );
   }
+
+  async claimDelivery(scope: StaffPushScope): Promise<{
+    deliveryId: string;
+    leaseToken: string;
+  }> {
+    const intentId = await this.createIntent(scope);
+    const registrationId = await this.createRegistration(scope);
+    const inserted = await this.createDelivery(scope, intentId, registrationId);
+    const deliveryId = inserted.rows[0]!.id as string;
+    const leaseToken = randomUUID();
+    await this.client.query(
+      `UPDATE staff_push_deliveries
+       SET state = 'LEASED', attempt_count = 1, next_attempt_at = NULL,
+           lease_token = $2,
+           lease_expires_at = transaction_timestamp() + interval '1 minute',
+           updated_at = transaction_timestamp()
+       WHERE id = $1`,
+      [deliveryId, leaseToken],
+    );
+    return { deliveryId, leaseToken };
+  }
 }
