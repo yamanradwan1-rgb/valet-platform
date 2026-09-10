@@ -37,6 +37,8 @@ const { submitHandoffProof } =
   await import("../src/handoff/native-handoff-pending");
 const { captureDynamicQrCandidate } =
   await import("../src/handoff/native-handoff-scanner");
+const { getNativeHandoffCopy, presentHandoffFailure } =
+  await import("../src/handoff/native-handoff-copy");
 const { content, elements, style } =
   await import("./native-check-in-condition-test-support");
 
@@ -256,7 +258,21 @@ describe("MOB-014A Native secure handoff", () => {
     expect(handoff.verifyDynamicQr).not.toHaveBeenCalled();
     expect(handoff.verifyPickupCode).not.toHaveBeenCalled();
   });
-
+  it.each([
+    ["en", 12, "Request failed. Retry in 12s."],
+    ["ar", 12, "Request failed. أعد المحاولة خلال 12s."],
+    ["en", 0, "Request failed."],
+    ["en", -1, "Request failed."],
+    ["en", undefined, "Request failed."],
+  ] as const)(
+    "presents Web retry timing for %s / %s",
+    (locale, retryAfter, expected) => {
+      const failure = { message: "Request failed.", retryAfter };
+      expect(presentHandoffFailure(getNativeHandoffCopy(locale), failure)).toBe(
+        expected,
+      );
+    },
+  );
   it.each(["ready", "pending"] as const)(
     "renders the %s Report Issue entry as a 44px muted action",
     (phase) => {

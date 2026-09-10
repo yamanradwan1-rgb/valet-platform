@@ -159,7 +159,7 @@ export function presentHandoffFailure(
     readonly retryAfter?: number | undefined;
   },
 ) {
-  return failure.retryAfter !== undefined
+  return failure.retryAfter !== undefined && failure.retryAfter > 0
     ? `${failure.message} ${copy.retryAfter(failure.retryAfter)}`
     : failure.message;
 }
