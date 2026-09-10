@@ -22,6 +22,8 @@ export interface NativeReleaseCopy {
   taskTitle: string;
   unknownBody: string;
   unavailableBody: string;
+  awaitingTaskOwner: string;
+  reportIssue: string;
 }
 
 const values: Record<FoundationLocale, NativeReleaseCopy> = {
@@ -52,6 +54,8 @@ const values: Record<FoundationLocale, NativeReleaseCopy> = {
     unknownBody:
       "The release result is unknown. Check server state before another action.",
     unavailableBody: "Current release state is unavailable.",
+    awaitingTaskOwner: "Override recorded — awaiting task owner",
+    reportIssue: "Report Issue",
   },
   ar: {
     authorityBody: "يجب أن يكمل مالك مهمة الاسترجاع تسليم المركبة.",
@@ -78,6 +82,8 @@ const values: Record<FoundationLocale, NativeReleaseCopy> = {
     unknownBody:
       "نتيجة تحرير المركبة غير معروفة. تحقق من حالة الخادم قبل أي إجراء آخر.",
     unavailableBody: "حالة تحرير المركبة الحالية غير متاحة.",
+    awaitingTaskOwner: "تم تجاوز التحقق — في انتظار مالك المهمة",
+    reportIssue: "الإبلاغ عن مشكلة",
   },
 };
 

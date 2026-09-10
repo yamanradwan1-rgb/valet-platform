@@ -9,9 +9,15 @@ import { employeeTextStyle } from "../employee-ui/employee-typography";
 import { nativeHandoffStyles as s } from "./native-handoff-styles";
 
 export function NativeHandoffVehicle({
+  eyebrow,
+  keyLabel,
+  supporting,
   snapshot,
   textAlign,
 }: {
+  readonly eyebrow?: string | undefined;
+  readonly keyLabel?: string | undefined;
+  readonly supporting?: string | undefined;
   readonly snapshot: EmployeeHandoffSnapshot | EmployeeReleaseSnapshot;
   readonly textAlign: "left" | "right";
 }) {
@@ -23,13 +29,23 @@ export function NativeHandoffVehicle({
     vehicle.plateNumberRaw;
   const identifier = vehicle.plateNumberRaw || vehicle.temporaryDescriptor;
   return (
-    <EmployeeCard>
-      <Text style={[s.vehicle, employeeTextStyle("human", textAlign)]}>
-        {name}
+    <EmployeeCard contentGap="xs">
+      {eyebrow ? (
+        <Text style={[s.eyebrow, employeeTextStyle("human", textAlign)]}>
+          {eyebrow}
+        </Text>
+      ) : null}
+      <Text style={[s.vehicle, employeeTextStyle("identifier", textAlign)]}>
+        {identifier && name !== identifier ? `${name} · ${identifier}` : name}
       </Text>
-      {identifier ? (
+      {keyLabel && snapshot.session?.keySlot?.code ? (
         <Text style={employeeTextStyle("identifier", textAlign)}>
-          {identifier}
+          {keyLabel} · {snapshot.session.keySlot.code}
+        </Text>
+      ) : null}
+      {supporting ? (
+        <Text style={[s.cardBody, employeeTextStyle("human", textAlign)]}>
+          {supporting}
         </Text>
       ) : null}
     </EmployeeCard>

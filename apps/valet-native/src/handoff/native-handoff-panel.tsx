@@ -1,29 +1,22 @@
 import { useState } from "react";
-import { ScrollView, TextInput, View } from "react-native";
-import {
-  DYNAMIC_QR_PATTERN,
-  type EmployeeHandoffSession,
-  type EmployeeHandoffSnapshot,
-  type NativeAuthSession,
+import { ScrollView } from "react-native";
+import type {
+  EmployeeHandoffSession,
+  EmployeeHandoffSnapshot,
+  NativeAuthSession,
 } from "@valet/employee-client";
 
 import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
-  EmployeeBadge,
   EmployeeError,
   EmployeeErrorNotice,
   EmployeeProgress,
-  EmployeeStatus,
 } from "../employee-ui/employee-feedback";
 import type { FoundationLocale } from "../foundation/foundation-locale";
-import {
-  getNativeHandoffCopy,
-  type NativeHandoffCopy,
-} from "./native-handoff-copy";
-import { NativeHandoffScanner } from "./native-handoff-scanner";
+import { getNativeHandoffCopy } from "./native-handoff-copy";
+import { NativeHandoffPending } from "./native-handoff-pending";
 import { useNativeHandoffPrivacy } from "./native-handoff-privacy";
-import { NativeHandoffReasonAction as ReasonAction } from "./native-handoff-reason-action";
 import { nativeHandoffStyles as s } from "./native-handoff-styles";
 import { NativeHandoffVehicle } from "./native-handoff-vehicle";
 
@@ -32,12 +25,14 @@ export function NativeHandoffPanel({
   handoff,
   locale,
   onBack,
+  onReportIssue,
   snapshot,
 }: {
   readonly auth: NativeAuthSession;
   readonly handoff: EmployeeHandoffSession;
   readonly locale: FoundationLocale;
   readonly onBack: () => void;
+  readonly onReportIssue?: ((sessionId: string) => void) | undefined;
   readonly snapshot: EmployeeHandoffSnapshot;
 }) {
   const copy = getNativeHandoffCopy(locale);
@@ -45,6 +40,7 @@ export function NativeHandoffPanel({
   const [qrProof, setQrProof] = useState("");
   const [abortReason, setAbortReason] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
+  const [lastAction, setLastAction] = useState<"abort" | "proof" | null>(null);
   useNativeHandoffPrivacy(
     snapshot,
     setPickupCode,
@@ -61,25 +57,39 @@ export function NativeHandoffPanel({
   ].includes(snapshot.phase);
   const textAlign = locale === "ar" ? "right" : "left";
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const owner =
-    snapshot.task?.currentAssigneeMembershipId === snapshot.scope?.membershipId;
-  const supervisor = snapshot.scope?.role === "VALET_SUPERVISOR";
-
-  const submitCode = () => {
-    const proof = pickupCode;
-    setPickupCode("");
-    void handoff.verifyPickupCode(proof);
-  };
-  const submitQr = (candidate = qrProof) => {
-    setQrProof("");
-    void handoff.verifyDynamicQr(candidate);
-  };
+  const pending = ["pending", "verifying", "overriding", "aborting"].includes(
+    snapshot.phase,
+  );
+  const method = snapshot.session?.handoff.verification?.method;
+  const methodLabel =
+    method === "SUPERVISOR_OVERRIDE"
+      ? copy.supervisorTitle
+      : method === "DYNAMIC_QR"
+        ? copy.dynamicQr
+        : copy.pickupCode;
+  const reportIssue =
+    onReportIssue && snapshot.session
+      ? () => onReportIssue(snapshot.session!.sessionId)
+      : undefined;
   const back = () => {
     setPickupCode("");
     setQrProof("");
     setAbortReason("");
     setOverrideReason("");
+    setLastAction(null);
     onBack();
+  };
+  const state = {
+    abortReason,
+    lastAction,
+    overrideReason,
+    pickupCode,
+    qrProof,
+    setAbortReason,
+    setLastAction,
+    setOverrideReason,
+    setPickupCode,
+    setQrProof,
   };
 
   return (
@@ -90,7 +100,13 @@ export function NativeHandoffPanel({
         disabled={busy}
         onBack={back}
         textAlign={textAlign}
-        title={copy.taskTitle}
+        title={
+          snapshot.phase === "verified"
+            ? copy.verifiedTitle
+            : pending
+              ? copy.guestHandoff
+              : copy.taskTitle
+        }
       />
       <ScrollView
         contentContainerStyle={[s.body, { direction }]}
@@ -99,20 +115,17 @@ export function NativeHandoffPanel({
         {snapshot.phase === "loading" || snapshot.phase === "reconciling" ? (
           <EmployeeProgress label={copy.check} textAlign={textAlign} />
         ) : null}
-        <NativeHandoffVehicle snapshot={snapshot} textAlign={textAlign} />
         {snapshot.phase === "ready" || snapshot.phase === "initiating" ? (
           <>
-            <EmployeeBadge
-              label={copy.begin}
+            <NativeHandoffVehicle
+              eyebrow={copy.readyForPickup}
+              keyLabel={copy.key}
+              snapshot={snapshot}
               textAlign={textAlign}
-              variant="success"
             />
-            <EmployeeStatus textAlign={textAlign}>
-              {copy.readyBody}
-            </EmployeeStatus>
             {snapshot.failure ? (
               <EmployeeError textAlign={textAlign}>
-                {copy.failure}
+                {snapshot.failure.message}
               </EmployeeError>
             ) : null}
             <EmployeeButton
@@ -123,143 +136,59 @@ export function NativeHandoffPanel({
               }
               onPress={() => void handoff.initiate()}
             />
-          </>
-        ) : null}
-        {snapshot.phase === "pending" ||
-        snapshot.phase === "verifying" ||
-        snapshot.phase === "overriding" ||
-        snapshot.phase === "aborting" ? (
-          <>
-            <EmployeeBadge
-              label={copy.awaiting}
-              textAlign={textAlign}
-              variant="warning"
-            />
-            <EmployeeStatus textAlign={textAlign}>
-              {copy.pendingBody}
-            </EmployeeStatus>
-            {snapshot.failure ? (
-              <EmployeeError textAlign={textAlign}>
-                {failureText(copy, snapshot)}
-              </EmployeeError>
-            ) : null}
-            {owner ? (
-              <>
-                <View style={s.section}>
-                  <TextInput
-                    accessibilityLabel={copy.pickupCode}
-                    editable={!busy}
-                    keyboardType="number-pad"
-                    maxLength={4}
-                    onChangeText={(value) =>
-                      setPickupCode(value.replace(/\D/g, "").slice(0, 4))
-                    }
-                    style={[s.input, s.ltr]}
-                    value={pickupCode}
-                  />
-                  {pickupCode !== "" && !/^\d{4}$/.test(pickupCode) ? (
-                    <EmployeeError textAlign={textAlign}>
-                      {copy.invalidCode}
-                    </EmployeeError>
-                  ) : null}
-                  <EmployeeButton
-                    busy={snapshot.phase === "verifying"}
-                    disabled={busy || !/^\d{4}$/.test(pickupCode)}
-                    label={
-                      snapshot.phase === "verifying"
-                        ? copy.verifying
-                        : copy.verifyCode
-                    }
-                    onPress={submitCode}
-                  />
-                </View>
-                <NativeHandoffScanner
-                  auth={auth}
-                  copy={copy}
-                  disabled={busy}
-                  locale={locale}
-                  onCandidate={submitQr}
-                  onChange={setQrProof}
-                  value={qrProof}
-                />
-                <EmployeeButton
-                  disabled={busy || !DYNAMIC_QR_PATTERN.test(qrProof)}
-                  label={copy.verifyQr}
-                  onPress={() => submitQr()}
-                />
-              </>
-            ) : null}
-            {supervisor ? (
-              <ReasonAction
-                busy={busy}
-                label={
-                  snapshot.phase === "overriding"
-                    ? copy.overriding
-                    : copy.override
-                }
-                onChange={setOverrideReason}
-                onSubmit={() => {
-                  const value = overrideReason;
-                  setOverrideReason("");
-                  void handoff.override(value);
-                }}
-                placeholder={copy.overrideReason}
-                value={overrideReason}
+            {reportIssue ? (
+              <EmployeeButton
+                label={copy.reportIssue}
+                onPress={reportIssue}
+                variant="ghost"
               />
             ) : null}
-            <ReasonAction
+          </>
+        ) : null}
+        {pending ? (
+          <>
+            <NativeHandoffVehicle
+              eyebrow={copy.awaiting}
+              snapshot={snapshot}
+              textAlign={textAlign}
+            />
+            <NativeHandoffPending
+              auth={auth}
               busy={busy}
-              label={snapshot.phase === "aborting" ? copy.aborting : copy.abort}
-              onChange={setAbortReason}
-              onSubmit={() => {
-                const value = abortReason;
-                setAbortReason("");
-                void handoff.abort(value);
-              }}
-              placeholder={copy.abortReason}
-              value={abortReason}
+              copy={copy}
+              handoff={handoff}
+              locale={locale}
+              onReportIssue={reportIssue}
+              snapshot={snapshot}
+              state={state}
+              supervisor={snapshot.scope?.role === "VALET_SUPERVISOR"}
             />
           </>
         ) : null}
         {snapshot.phase === "verified" ? (
           <>
-            <EmployeeBadge
-              label={
-                snapshot.session?.handoff.verification?.method ===
-                "SUPERVISOR_OVERRIDE"
-                  ? copy.overrideVerified
-                  : copy.verifiedTitle
-              }
+            <NativeHandoffVehicle
+              eyebrow={`${copy.verifiedTitle} · ${methodLabel}`}
+              snapshot={snapshot}
               textAlign={textAlign}
-              variant="success"
             />
-            <EmployeeStatus textAlign={textAlign}>
-              {copy.verifiedBody}
-            </EmployeeStatus>
-            {snapshot.failure ? (
-              <EmployeeError textAlign={textAlign}>
-                {failureText(copy, snapshot)}
-              </EmployeeError>
+            {reportIssue ? (
+              <EmployeeButton
+                label={copy.reportIssue}
+                onPress={reportIssue}
+                variant="secondary"
+              />
             ) : null}
-            <ReasonAction
-              busy={busy}
-              label={copy.abort}
-              onChange={setAbortReason}
-              onSubmit={() => {
-                const value = abortReason;
-                setAbortReason("");
-                void handoff.abort(value);
-              }}
-              placeholder={copy.abortReason}
-              value={abortReason}
-            />
           </>
         ) : null}
         {snapshot.phase === "ambiguous" ||
         snapshot.phase === "unavailable" ||
         snapshot.phase === "conflict" ? (
           <>
-            <EmployeeErrorNotice textAlign={textAlign} title={copy.taskTitle}>
+            <EmployeeErrorNotice
+              textAlign={textAlign}
+              title={copy.guestHandoff}
+            >
               {snapshot.phase === "ambiguous"
                 ? copy.unknownBody
                 : snapshot.phase === "conflict"
@@ -275,13 +204,4 @@ export function NativeHandoffPanel({
       </ScrollView>
     </>
   );
-}
-
-function failureText(
-  copy: NativeHandoffCopy,
-  snapshot: EmployeeHandoffSnapshot,
-) {
-  return snapshot.failure?.retryAfter !== undefined
-    ? copy.retryAfter(snapshot.failure.retryAfter)
-    : copy.failure;
 }

@@ -86,7 +86,7 @@ describe("MOB-014A raw proof privacy", () => {
     const submit = nodes.find(
       (node) =>
         node.type === "Pressable" &&
-        node.props.accessibilityLabel === "Verify pickup code",
+        node.props.accessibilityLabel === "Verify Code",
     )!;
     (submit.props.onPress as () => void)();
     expect(state.setters[0]).toHaveBeenCalledWith("");

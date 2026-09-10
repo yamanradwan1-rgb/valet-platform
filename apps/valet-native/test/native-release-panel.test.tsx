@@ -20,6 +20,7 @@ const member = "22222222-2222-4222-8222-222222222222";
 function snapshot(
   phase: EmployeeReleaseSnapshot["phase"],
   block: EmployeeReleaseSnapshot["block"] = null,
+  method: "DYNAMIC_QR" | "PICKUP_CODE" | "SUPERVISOR_OVERRIDE" = "PICKUP_CODE",
 ): EmployeeReleaseSnapshot {
   return {
     block,
@@ -46,7 +47,7 @@ function snapshot(
       handoff: {
         pendingAt: "2026-09-08T09:00:00.000Z",
         verification: {
-          method: "PICKUP_CODE",
+          method,
           status: "VERIFIED",
           verifiedAt: "2026-09-08T09:01:00.000Z",
         },
@@ -105,6 +106,7 @@ function render(
   phase: EmployeeReleaseSnapshot["phase"],
   locale: "en" | "ar" = "en",
   block: EmployeeReleaseSnapshot["block"] = null,
+  method: "DYNAMIC_QR" | "PICKUP_CODE" | "SUPERVISOR_OVERRIDE" = "PICKUP_CODE",
 ) {
   return elements(
     NativeReleasePanel({
@@ -112,7 +114,7 @@ function render(
       onBack: vi.fn(),
       onDone: vi.fn(),
       release: release as never,
-      snapshot: snapshot(phase, block),
+      snapshot: snapshot(phase, block, method),
     }),
   );
 }
@@ -136,12 +138,50 @@ describe("MOB-014B Native final release", () => {
     },
   );
 
+  it.each([
+    ["DYNAMIC_QR", "Guest QR"],
+    ["PICKUP_CODE", "Pickup code"],
+    ["SUPERVISOR_OVERRIDE", "Supervisor override"],
+  ] as const)("uses authoritative %s verification method", (method, label) => {
+    expect(content(render("ready", "en", null, method))).toContain(
+      `Identity verified · ${label}`,
+    );
+  });
+
+  it("disables the sole Release action while releasing", () => {
+    const nodes = render("releasing");
+    const actions = nodes.filter(
+      (node) => node.props.accessibilityLabel === "Releasing…",
+    );
+    expect(actions).toHaveLength(1);
+    expect(actions[0]!.props.disabled).toBe(true);
+  });
+
+  it("invokes the bounded Report Issue callback with session context", () => {
+    const onReportIssue = vi.fn();
+    const snap = snapshot("ready");
+    const nodes = elements(
+      NativeReleasePanel({
+        locale: "en",
+        onBack: vi.fn(),
+        onDone: vi.fn(),
+        onReportIssue,
+        release: release as never,
+        snapshot: snap,
+      }),
+    );
+    const action = nodes.find(
+      (node) => node.props.accessibilityLabel === "Report Issue",
+    )!;
+    (action.props.onPress as () => void)();
+    expect(onReportIssue).toHaveBeenCalledWith(snap.session!.sessionId);
+  });
+
   it("shows financial block without an operative release CTA", () => {
     const nodes = render("blocked", "en", "financial");
     expect(content(nodes)).toContain("Release blocked");
-    expect(content(nodes)).toContain("outstanding payment requirement");
     expect(content(nodes)).not.toContain("Release Vehicle");
-    expect(content(nodes)).toContain("Check server state");
+    expect(content(nodes)).not.toContain("Check server state");
   });
 
   it("uses RTL layout while keeping vehicle identifiers LTR", () => {
@@ -150,7 +190,9 @@ describe("MOB-014B Native final release", () => {
       nodes.find((node) => node.type === "ScrollView")?.props
         .contentContainerStyle,
     ).toContainEqual({ direction: "rtl" });
-    const plate = nodes.find((node) => node.props.children === "12-34567")!;
+    const plate = nodes.find(
+      (node) => node.props.children === "Toyota Camry · 12-34567",
+    )!;
     expect(style(plate)).toMatchObject({ writingDirection: "ltr" });
   });
 

@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { AppState, Linking, Text, TextInput, View } from "react-native";
+import {
+  AppState,
+  Linking,
+  Text,
+  TextInput,
+  View,
+  type StyleProp,
+  type TextStyle,
+} from "react-native";
 import { CameraView } from "expo-camera";
 import { useFocusEffect } from "expo-router";
 import type { NativeAuthSession, QrResourceKind } from "@valet/employee-client";
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { EmployeeButton } from "../employee-ui/employee-controls";
+import type { EmployeeButtonVariant } from "../employee-ui/employee-controls";
 import {
   EmployeeError,
   EmployeeStatus,
@@ -26,18 +35,36 @@ export function NativeParkingQrInput({
   disabled,
   kind,
   label,
+  labelStyle,
   locale,
   manualInput = true,
+  manualHint,
   onChange,
+  openLabel,
+  openVariant = "secondary",
+  closeLabel,
+  placeholder,
+  inputStyle,
+  scannerFirst = false,
+  hideIdleStatus = false,
   value,
 }: {
   readonly auth: NativeAuthSession;
   readonly disabled: boolean;
   readonly kind: QrResourceKind;
   readonly label: string;
+  readonly labelStyle?: StyleProp<TextStyle> | undefined;
   readonly locale: FoundationLocale;
   readonly manualInput?: boolean | undefined;
+  readonly manualHint?: string | undefined;
   readonly onChange: (value: string) => void;
+  readonly openLabel?: string | undefined;
+  readonly openVariant?: EmployeeButtonVariant | undefined;
+  readonly closeLabel?: string | undefined;
+  readonly placeholder?: string | undefined;
+  readonly inputStyle?: StyleProp<TextStyle> | undefined;
+  readonly scannerFirst?: boolean | undefined;
+  readonly hideIdleStatus?: boolean | undefined;
   readonly value: string;
 }) {
   const [controller] = useState(
@@ -52,6 +79,28 @@ export function NativeParkingQrInput({
   const cameraMounted =
     snapshot.phase === "starting" || snapshot.phase === "scanning";
   const cameraBusy = cameraMounted || snapshot.phase === "requesting";
+  const manualField = manualInput ? (
+    <>
+      <Text style={[employeeTextStyle("human", textAlign), labelStyle]}>
+        {label}
+      </Text>
+      <TextInput
+        accessibilityLabel={label}
+        accessibilityLiveRegion="polite"
+        accessibilityState={{ disabled }}
+        autoCapitalize="none"
+        autoCorrect={false}
+        editable={!disabled}
+        onChangeText={(candidate) => {
+          controller.manual(candidate);
+          onChange(candidate);
+        }}
+        placeholder={placeholder}
+        style={[s.input, inputStyle]}
+        value={value}
+      />
+    </>
+  ) : null;
 
   useEffect(() => {
     if (disabled) controller.setEligible(false);
@@ -70,26 +119,12 @@ export function NativeParkingQrInput({
 
   return (
     <View style={{ gap: 12 }}>
-      <Text style={employeeTextStyle("human", textAlign)}>{label}</Text>
-      {manualInput ? (
-        <TextInput
-          accessibilityLabel={label}
-          accessibilityLiveRegion="polite"
-          accessibilityState={{ disabled }}
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!disabled}
-          onChangeText={(candidate) => {
-            controller.manual(candidate);
-            onChange(candidate);
-          }}
-          style={s.input}
-          value={value}
-        />
+      {scannerFirst ? null : manualField}
+      {snapshot.phase !== "idle" || !hideIdleStatus ? (
+        <EmployeeStatus textAlign={textAlign}>
+          {copy.phases[snapshot.phase]}
+        </EmployeeStatus>
       ) : null}
-      <EmployeeStatus textAlign={textAlign}>
-        {copy.phases[snapshot.phase]}
-      </EmployeeStatus>
       {snapshot.rejection !== null ? (
         <EmployeeError textAlign={textAlign}>{copy.invalid}</EmployeeError>
       ) : null}
@@ -112,14 +147,17 @@ export function NativeParkingQrInput({
       ) : null}
       <EmployeeButton
         disabled={disabled || cameraBusy}
-        label={snapshot.phase === "accepted" ? copy.again : copy.open}
+        label={
+          snapshot.phase === "accepted" ? copy.again : (openLabel ?? copy.open)
+        }
         onPress={() => void controller.open()}
-        variant="secondary"
+        size="standard"
+        variant={openVariant}
       />
       {cameraMounted ? (
         <EmployeeButton
           disabled={disabled}
-          label={copy.close}
+          label={closeLabel ?? copy.close}
           onPress={() => controller.close()}
           variant="secondary"
         />
@@ -132,6 +170,10 @@ export function NativeParkingQrInput({
           variant="secondary"
         />
       ) : null}
+      {manualHint ? (
+        <EmployeeStatus textAlign={textAlign}>{manualHint}</EmployeeStatus>
+      ) : null}
+      {scannerFirst ? manualField : null}
     </View>
   );
 }

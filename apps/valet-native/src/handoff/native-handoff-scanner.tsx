@@ -2,7 +2,7 @@ import { useCallback, useState, useSyncExternalStore } from "react";
 import { AppState, Linking, TextInput, View } from "react-native";
 import { CameraView } from "expo-camera";
 import { useFocusEffect } from "expo-router";
-import type { NativeAuthSession } from "@valet/employee-client";
+import type { NativeAuthSession, QrInput } from "@valet/employee-client";
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { EmployeeButton } from "../employee-ui/employee-controls";
@@ -61,21 +61,11 @@ export function NativeHandoffScanner({
   );
   return (
     <View style={s.section}>
-      <TextInput
-        accessibilityLabel={copy.manualQr}
-        autoCapitalize="none"
-        autoCorrect={false}
-        editable={!disabled}
-        onChangeText={(candidate) => {
-          controller.close();
-          onChange(candidate);
-        }}
-        style={[s.input, s.ltr]}
-        value={value}
-      />
-      <EmployeeStatus textAlign={locale === "ar" ? "right" : "left"}>
-        {scannerCopy.phases[snapshot.phase]}
-      </EmployeeStatus>
+      {snapshot.phase !== "idle" ? (
+        <EmployeeStatus textAlign={locale === "ar" ? "right" : "left"}>
+          {scannerCopy.phases[snapshot.phase]}
+        </EmployeeStatus>
+      ) : null}
       {snapshot.rejection ? (
         <EmployeeError textAlign={locale === "ar" ? "right" : "left"}>
           {copy.invalidQr}
@@ -88,7 +78,9 @@ export function NativeHandoffScanner({
           accessible={false}
           onBarcodeScanned={(event) => {
             const input = controller.barcode(snapshot.generation, event);
-            if (input?.kind === "dynamic-handoff") onCandidate(input.proof);
+            // DEC-067 §5: camera capture is candidate input only. The
+            // explicit Verify QR control owns the protected mutation.
+            captureDynamicQrCandidate(input, onCandidate);
           }}
           onCameraReady={() => controller.ready(snapshot.generation)}
           onMountError={() => controller.fail(snapshot.generation)}
@@ -99,7 +91,7 @@ export function NativeHandoffScanner({
         disabled={disabled || cameraMounted || snapshot.phase === "requesting"}
         label={copy.camera}
         onPress={() => void controller.open()}
-        variant="secondary"
+        size="standard"
       />
       {cameraMounted ? (
         <EmployeeButton
@@ -117,6 +109,29 @@ export function NativeHandoffScanner({
           variant="secondary"
         />
       ) : null}
+      <EmployeeStatus textAlign={locale === "ar" ? "right" : "left"}>
+        {copy.manualHint}
+      </EmployeeStatus>
+      <TextInput
+        accessibilityLabel={copy.manualQr}
+        autoCapitalize="none"
+        autoCorrect={false}
+        editable={!disabled}
+        onChangeText={(candidate) => {
+          controller.close();
+          onChange(candidate.trim());
+        }}
+        placeholder={copy.qrPlaceholder}
+        style={[s.input, s.ltr]}
+        value={value}
+      />
     </View>
   );
+}
+
+export function captureDynamicQrCandidate(
+  input: QrInput | null,
+  onCandidate: (proof: string) => void,
+) {
+  if (input?.kind === "dynamic-handoff") onCandidate(input.proof);
 }

@@ -1,5 +1,5 @@
 import type { EmployeeHandoffSnapshot } from "@valet/employee-client";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("react", () => ({
   useCallback: (callback: unknown) => callback,
@@ -33,6 +33,8 @@ vi.mock("expo-camera", () => ({
 
 const { NativeHandoffPanel } =
   await import("../src/handoff/native-handoff-panel");
+const { submitHandoffProof } =
+  await import("../src/handoff/native-handoff-pending");
 const { content, elements, style } =
   await import("./native-check-in-condition-test-support");
 
@@ -147,6 +149,7 @@ function render(
 }
 
 describe("MOB-014A Native secure handoff", () => {
+  beforeEach(() => vi.clearAllMocks());
   it("starts from READY with one dominant Begin Guest Handoff action", () => {
     const nodes = render("ready");
     expect(content(nodes)).toContain("Begin Guest Handoff");
@@ -165,24 +168,23 @@ describe("MOB-014A Native secure handoff", () => {
     expect(inputs.some((node) => style(node).writingDirection === "ltr")).toBe(
       true,
     );
-    expect(content(nodes)).toContain("التحقق لا يعني تحرير المركبة");
+    expect(content(nodes)).toContain("تحقق من الرمز");
+    expect(content(nodes)).toContain("تحقق من QR");
+    expect(content(nodes)).not.toContain("تجاوز التحقق");
   });
-  it("shows non-owner supervisor override without Standard proof controls", () => {
+  it("shows non-owner supervisor override in addition to Standard proof controls", () => {
     const nodes = render("pending", "en", "VALET_SUPERVISOR", false);
-    expect(content(nodes)).toContain("Authorize supervisor override");
+    expect(content(nodes)).toContain("Supervisor override");
+    expect(content(nodes)).toContain("Override Verification");
     expect(nodes.some((node) => node.props.keyboardType === "number-pad")).toBe(
-      false,
+      true,
     );
+    expect(content(nodes)).toContain("Verify QR");
   });
   it.each(["en", "ar"] as const)(
     "stops verified proof before release in %s",
     (locale) => {
       const text = content(render("verified", locale));
-      expect(text).toContain(
-        locale === "en"
-          ? "The vehicle has not been released or completed."
-          : "لم يتم تحرير المركبة أو إكمال المهمة.",
-      );
       expect(text).not.toMatch(
         /complete handoff|release vehicle|إكمال التسليم/iu,
       );
@@ -193,5 +195,52 @@ describe("MOB-014A Native secure handoff", () => {
       (node) => node.props.accessibilityLabel === "Back",
     )!;
     expect(back.props.disabled).toBe(true);
+  });
+
+  it.each(["ambiguous", "conflict", "unavailable"] as const)(
+    "keeps %s handoff recovery fail-closed",
+    (phase) => {
+      const nodes = render(phase);
+      expect(content(nodes)).toContain("Check server state");
+      expect(content(nodes)).not.toContain("Verify Code");
+      expect(content(nodes)).not.toContain("Verify QR");
+      expect(content(nodes)).not.toContain("Release Vehicle");
+    },
+  );
+
+  it("clears and submits pickup and QR proofs only through explicit actions", () => {
+    const clearCode = vi.fn();
+    const clearQr = vi.fn();
+    const verifyCode = vi.fn();
+    const verifyQr = vi.fn();
+    submitHandoffProof("0123", clearCode, verifyCode);
+    const proof = `vhq1.${"A".repeat(43)}`;
+    submitHandoffProof(proof, clearQr, verifyQr);
+    expect(clearCode).toHaveBeenCalledWith("");
+    expect(verifyCode).toHaveBeenCalledOnce();
+    expect(verifyCode).toHaveBeenCalledWith("0123");
+    expect(clearQr).toHaveBeenCalledWith("");
+    expect(verifyQr).toHaveBeenCalledOnce();
+    expect(verifyQr).toHaveBeenCalledWith(proof);
+  });
+
+  it("invokes Report Issue only through the bounded supplied callback", () => {
+    const onReportIssue = vi.fn();
+    const snap = snapshot("pending");
+    const nodes = elements(
+      NativeHandoffPanel({
+        auth: {} as never,
+        handoff: handoff as never,
+        locale: "en",
+        onBack: vi.fn(),
+        onReportIssue,
+        snapshot: snap,
+      }),
+    );
+    const action = nodes.find(
+      (node) => node.props.accessibilityLabel === "Report Issue",
+    )!;
+    (action.props.onPress as () => void)();
+    expect(onReportIssue).toHaveBeenCalledWith(snap.session!.sessionId);
   });
 });

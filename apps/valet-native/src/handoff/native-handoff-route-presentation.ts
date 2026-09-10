@@ -11,7 +11,9 @@ export function shouldShowNativeHandoff(
 ) {
   if (release.phase !== "inactive") return true;
   if (handoff.phase === "inactive") return false;
-  if (handoff.phase === "loading") return retrieval.phase === "inactive";
+  if (handoff.phase === "loading") {
+    return retrieval.phase === "inactive" || retrieval.phase === "ready";
+  }
   if (
     handoff.session?.state === "READY" ||
     handoff.session?.state === "HANDOFF_PENDING"

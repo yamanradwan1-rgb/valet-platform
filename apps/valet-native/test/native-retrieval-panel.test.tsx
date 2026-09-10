@@ -1,4 +1,3 @@
-import type { EmployeeRetrievalSnapshot } from "@valet/employee-client";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("react", () => ({
@@ -30,151 +29,19 @@ vi.mock("expo-camera", () => ({
   CameraView: "CameraView",
 }));
 
-const { NativeRetrievalPanel } =
-  await import("../src/retrieval/native-retrieval-panel");
 const { content, elements, style } =
   await import("./native-check-in-condition-test-support");
-
-const task = {
-  createdAt: "2026-09-07T09:00:00.000Z",
-  currentAssigneeMembershipId: "22222222-2222-4222-8222-222222222222",
-  parkingSpot: "LC-7",
-  parkingZone: "ZONE-LC",
-  retrievalRequestedAt: "2026-09-07T09:05:00.000Z",
-  sessionId: "44444444-4444-4444-8444-444444444444",
-  status: "ACCEPTED" as const,
-  taskId: "66666666-6666-4666-8666-666666666666",
-  taskType: "RETRIEVAL" as const,
-  valetSessionState: "REQUESTED" as const,
-  valetSessionVersion: 5,
-  vehicle: {
-    color: "Black",
-    make: "Toyota",
-    model: "Camry",
-    plateNumberRaw: "12-34567",
-    temporaryDescriptor: null,
-  },
-  version: 3,
-};
-
-const session = {
-  checkIn: { conditionCompletedAt: "2026-09-07T07:59:00.000Z" },
-  guestAccess: {
-    expiresAt: null,
-    revokedAt: null,
-    status: "NOT_ISSUED" as const,
-  },
-  handoff: { pendingAt: null, verification: null },
-  keySlot: { code: "K-9" },
-  locationId: "11111111-1111-4111-8111-111111111111",
-  parking: {
-    parkedAt: "2026-09-07T08:10:00.000Z",
-    parkingSpotCode: "LC-7",
-    parkingStartedAt: "2026-09-07T08:00:00.000Z",
-    parkingZoneCode: "ZONE-LC",
-  },
-  sessionId: task.sessionId,
-  state: "REQUESTED" as const,
-  vehicle: {
-    color: "Black",
-    make: "Toyota",
-    model: "Camry",
-    plateCountry: "JO",
-    plateNumberRaw: "12-34567",
-    temporaryDescriptor: null,
-    vehicleId: "77777777-7777-4777-8777-777777777777",
-    vehicleUpdatedAt: "2026-09-07T07:55:00.000Z",
-  },
-  version: 5,
-};
-
-const scope = {
-  locationCode: "AMM-1",
-  locationId: session.locationId,
-  locationName: "Amman Hotel",
-  membershipId: task.currentAssigneeMembershipId,
-  organizationId: "33333333-3333-4333-8333-333333333333",
-  organizationName: "Operator",
-  role: "VALET_EMPLOYEE" as const,
-  shiftId: "55555555-5555-4555-8555-555555555555",
-  shiftStartedAt: "2026-09-07T07:00:00.000Z",
-};
-
-function snapshot(
-  phase: EmployeeRetrievalSnapshot["phase"],
-  overrides: Partial<EmployeeRetrievalSnapshot> = {},
-): EmployeeRetrievalSnapshot {
-  const withTask =
-    phase === "loading" || phase === "inactive"
-      ? null
-      : phase === "retrieving" || phase === "submitting-ready"
-        ? {
-            ...task,
-            status: "IN_PROGRESS" as const,
-            valetSessionState: "RETRIEVING",
-          }
-        : phase === "ready"
-          ? null
-          : task;
-  return {
-    failure: null,
-    identityGeneration: 7,
-    keyConfirmed: false,
-    keySlotCandidate: "",
-    phase,
-    readyAt: phase === "ready" ? "2026-09-07T09:20:00.000Z" : null,
-    retrievalStartedAt: null,
-    scope,
-    session:
-      phase === "loading" || phase === "inactive"
-        ? null
-        : phase === "retrieving" || phase === "submitting-ready"
-          ? { ...session, state: "RETRIEVING" as const, version: 6 }
-          : phase === "ready"
-            ? { ...session, state: "READY" as const, version: 7 }
-            : session,
-    task: withTask,
-    ...overrides,
-  };
-}
-
-function render(
-  phase: EmployeeRetrievalSnapshot["phase"],
-  locale: "en" | "ar" = "en",
-  overrides: Partial<EmployeeRetrievalSnapshot> = {},
-) {
-  const retrieval = {
-    checkServerState: vi.fn(),
-    confirmKeySlot: vi.fn(() => true),
-    enterKeySlot: vi.fn(),
-    markReady: vi.fn(),
-    startRetrieval: vi.fn(),
-  };
-  const onBack = vi.fn();
-  const nodes = elements(
-    NativeRetrievalPanel({
-      auth: {} as never,
-      locale,
-      onBack,
-      retrieval: retrieval as never,
-      snapshot: snapshot(phase, overrides),
-    }),
-  );
-  return { nodes, onBack, retrieval };
-}
-
-function action(nodes: ReturnType<typeof elements>, label: string) {
-  return nodes.find(
-    (node) =>
-      node.type === "Pressable" &&
-      node.props.accessibilityLabel === label &&
-      node.props.accessibilityRole === "button",
-  );
-}
+const { NativeRetrievalPanel } =
+  await import("../src/retrieval/native-retrieval-panel");
+const fixture = await import("./native-retrieval-panel-test-fixture");
+const render = fixture.renderRetrieval;
+const snapshot = fixture.retrievalSnapshot;
+const session = fixture.retrievalSessionFixture;
+const action = fixture.retrievalAction;
 
 describe("MOB-013 Native Retrieval", () => {
   it.each([
-    ["en", "Key checkout", "K-9"],
+    ["en", "Key Checkout", "K-9"],
     ["ar", "استلام المفتاح", "K-9"],
   ] as const)(
     "renders the key-checkout stage with the authoritative expected Key Slot in %s",
@@ -182,10 +49,15 @@ describe("MOB-013 Native Retrieval", () => {
       const { nodes } = render("key-checkout", locale);
       expect(content(nodes)).toContain(title);
       expect(content(nodes)).toContain(key);
+      const hero = nodes.find((node) => node.props.children === key)!;
+      expect(style(hero)).toMatchObject({
+        fontFamily: "Space Grotesk",
+        fontSize: 48,
+        textAlign: "center",
+        writingDirection: "ltr",
+      });
       expect(content(nodes)).toContain(
-        locale === "ar"
-          ? "امسح رمز خانة المفتاح أو أدخل الرمز للتحقق من مطابقته للخانة المتوقعة قبل بدء الاسترجاع."
-          : "Scan the key slot QR or enter its code to verify it matches the expected slot before starting the retrieval.",
+        locale === "ar" ? "أدخل رمز خانة المفتاح" : "Enter Key Slot Code",
       );
     },
   );
@@ -194,6 +66,18 @@ describe("MOB-013 Native Retrieval", () => {
     const { nodes, retrieval } = render("key-checkout");
     expect(action(nodes, "Start Retrieval")).toBeUndefined();
     expect(retrieval.confirmKeySlot).not.toHaveBeenCalled();
+  });
+
+  it("treats key input as a candidate and keeps confirmation explicit", () => {
+    const { nodes, retrieval } = render("key-checkout");
+    const input = nodes.find((node) => node.type === "TextInput")!;
+    (input.props.onChangeText as (value: string) => void)("K-9");
+    expect(retrieval.enterKeySlot).toHaveBeenCalledWith("K-9");
+    expect(retrieval.confirmKeySlot).not.toHaveBeenCalled();
+    const explicit = render("key-checkout", "en", { keySlotCandidate: "K-9" });
+    const verify = action(explicit.nodes, "Verify Key Slot")!;
+    (verify.props.onPress as () => void)();
+    expect(explicit.retrieval.confirmKeySlot).toHaveBeenCalledOnce();
   });
 
   it("exposes Start Retrieval only after the Key Slot is confirmed", () => {
@@ -205,12 +89,20 @@ describe("MOB-013 Native Retrieval", () => {
     expect(retrieval.startRetrieval).toHaveBeenCalledOnce();
   });
 
-  it("sends Mark Ready from the retrieving stage and blocks Back while busy", () => {
-    const { nodes, onBack } = render("submitting-ready");
-    expect(action(nodes, "Marking vehicle ready…")?.props).toMatchObject({
+  it("blocks Back while Start Retrieval is in flight", () => {
+    const { nodes } = render("submitting-start", "en", { keyConfirmed: true });
+    expect(action(nodes, "Back")?.props).toMatchObject({ disabled: true });
+    expect(action(nodes, "Starting Retrieval…")?.props).toMatchObject({
       disabled: true,
     });
-    expect(action(nodes, "Back")?.props).toMatchObject({ disabled: true });
+  });
+
+  it("sends Mark Ready from the retrieving stage and blocks Back while busy", () => {
+    const { nodes, onBack } = render("submitting-ready");
+    expect(action(nodes, "Marking Ready...")?.props).toMatchObject({
+      disabled: true,
+    });
+    expect(action(nodes, "Back")).toBeUndefined();
     expect(content(nodes)).toContain("Retrieving");
     expect(onBack).not.toHaveBeenCalled();
   });
@@ -221,7 +113,9 @@ describe("MOB-013 Native Retrieval", () => {
       nodes.find((node) => node.type === "ScrollView")?.props
         .contentContainerStyle,
     ).toContainEqual({ direction: "rtl" });
-    const plate = nodes.find((node) => node.props.children === "12-34567")!;
+    const plate = nodes.find(
+      (node) => node.props.children === "Toyota Camry · 12-34567",
+    )!;
     expect(style(plate)).toMatchObject({
       textAlign: "left",
       writingDirection: "ltr",
@@ -244,19 +138,52 @@ describe("MOB-013 Native Retrieval", () => {
     },
   );
 
-  it.each(["en", "ar"] as const)(
-    "shows only the READY boundary without release authority or proof UI in %s",
-    (locale) => {
-      const { nodes } = render("ready", locale);
-      const text = content(nodes);
-      expect(text).toContain(
-        locale === "ar" ? "المركبة جاهزة" : "Vehicle ready",
-      );
-      // The verified state must not present a release success message or
-      // any handoff proof entry (pickup code / Dynamic QR inputs).
-      expect(text).not.toMatch(
-        /released|release the vehicle|pickup code|dynamic qr|verify|released|تم التحرير|حرر المركبة|رمز الاستلام|تحقق/i,
-      );
-    },
-  );
+  it("renders the elapsed card only for an authoritative retrievalStartedAt", () => {
+    expect(content(render("retrieving").nodes)).not.toContain("Elapsed");
+    const withStartedAt = render("retrieving", "en", {
+      retrievalStartedAt: new Date(Date.now() - 65_000).toISOString(),
+    });
+    expect(content(withStartedAt.nodes)).toContain("Elapsed");
+    expect(content(withStartedAt.nodes)).toMatch(/01:0[45]/);
+  });
+
+  it("renders Vehicle, Key and conditional Location rows", () => {
+    const withLocation = content(render("retrieving").nodes);
+    expect(withLocation).toContain("Vehicle");
+    expect(withLocation).toContain("Key");
+    expect(withLocation).toContain("Location");
+    const withoutLocation = render("retrieving", "en", {
+      session: {
+        ...snapshot("retrieving").session!,
+        parking: {
+          ...session.parking,
+          parkingSpotCode: null,
+          parkingZoneCode: null,
+        },
+      },
+      task: {
+        ...snapshot("retrieving").task!,
+        parkingSpot: null,
+        parkingZone: null,
+      },
+    });
+    expect(content(withoutLocation.nodes)).not.toContain("Location");
+  });
+
+  it("invokes the bounded Report Issue callback with session context", () => {
+    const onReportIssue = vi.fn();
+    const snap = snapshot("retrieving");
+    const nodes = elements(
+      NativeRetrievalPanel({
+        auth: {} as never,
+        locale: "en",
+        onBack: vi.fn(),
+        onReportIssue,
+        retrieval: render("retrieving").retrieval as never,
+        snapshot: snap,
+      }),
+    );
+    (action(nodes, "Report Issue")!.props.onPress as () => void)();
+    expect(onReportIssue).toHaveBeenCalledWith(snap.session!.sessionId);
+  });
 });

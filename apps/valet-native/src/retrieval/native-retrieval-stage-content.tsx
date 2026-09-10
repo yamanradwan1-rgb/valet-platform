@@ -2,70 +2,27 @@ import type {
   EmployeeRetrievalSession,
   EmployeeRetrievalSnapshot,
   NativeAuthSession,
-  StaffTaskQueueItem,
 } from "@valet/employee-client";
-import { Text } from "react-native";
+import { useEffect, useState } from "react";
+import { Text, View } from "react-native";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
   EmployeeBadge,
-  EmployeeCard,
+  EmployeeError,
   EmployeeErrorNotice,
-  EmployeeStatus,
 } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeParkingQrInput } from "../parking/native-parking-qr-input";
 import type { NativeRetrievalCopy } from "./native-retrieval-copy";
+import { NativeRetrievalDetails } from "./native-retrieval-details";
 import { nativeRetrievalStyles as s } from "./native-retrieval-styles";
 
 interface StageProps {
   readonly copy: NativeRetrievalCopy;
   readonly snapshot: EmployeeRetrievalSnapshot;
   readonly textAlign: "left" | "right";
-}
-
-function vehicleIdentifier(task: StaffTaskQueueItem | null): string | null {
-  return (
-    task?.vehicle.plateNumberRaw?.trim() ||
-    task?.vehicle.temporaryDescriptor?.trim() ||
-    null
-  );
-}
-
-function vehicleName(snapshot: EmployeeRetrievalSnapshot, fallback: string) {
-  const vehicle = snapshot.task?.vehicle;
-  return (
-    [vehicle?.make, vehicle?.model].filter(Boolean).join(" ") ||
-    vehicle?.temporaryDescriptor ||
-    vehicle?.plateNumberRaw ||
-    fallback
-  );
-}
-
-function VehicleCard({ copy, snapshot, textAlign }: StageProps) {
-  const identifier = vehicleIdentifier(snapshot.task);
-  const zone = snapshot.task?.parkingZone ?? null;
-  const spot = snapshot.task?.parkingSpot ?? null;
-  return (
-    <EmployeeCard>
-      <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
-        {vehicleName(snapshot, copy.taskTitle)}
-      </Text>
-      {identifier ? (
-        <Text
-          style={[s.identifier, employeeTextStyle("identifier", textAlign)]}
-        >
-          {identifier}
-        </Text>
-      ) : null}
-      {zone || spot ? (
-        <Text style={employeeTextStyle("identifier", textAlign)}>
-          {[zone, spot].filter(Boolean).join(" · ")}
-        </Text>
-      ) : null}
-    </EmployeeCard>
-  );
 }
 
 export function NativeRetrievalKeyCheckout({
@@ -84,27 +41,45 @@ export function NativeRetrievalKeyCheckout({
   const expectedKey = snapshot.session?.keySlot?.code ?? null;
   return (
     <>
-      <EmployeeBadge
-        label={copy.keyTitle}
+      {snapshot.failure ? (
+        <EmployeeError textAlign={textAlign}>
+          {snapshot.failure.message}
+        </EmployeeError>
+      ) : null}
+      <View style={s.expectedKeyHero}>
+        <Text
+          style={[
+            s.expectedKeyLabel,
+            employeeTextStyle("human", textAlign, "center"),
+          ]}
+        >
+          {copy.expectedKeySlot}
+        </Text>
+        <Text style={s.expectedKey}>{expectedKey ?? "N/A"}</Text>
+      </View>
+      <NativeRetrievalDetails
+        copy={copy}
+        snapshot={snapshot}
         textAlign={textAlign}
-        variant="danger"
       />
-      <VehicleCard copy={copy} snapshot={snapshot} textAlign={textAlign} />
-      <Text style={[s.expectedKey, employeeTextStyle("identifier", textAlign)]}>
-        {expectedKey ?? "N/A"}
-      </Text>
-      <EmployeeStatus textAlign={textAlign}>
-        {copy.keyVerifyBody}
-      </EmployeeStatus>
       {!snapshot.keyConfirmed ? (
         <>
           <NativeParkingQrInput
             auth={auth}
             disabled={submitting}
+            closeLabel={copy.closeScanner}
             kind="key-slot"
-            label={copy.expectedKeySlot}
+            inputStyle={s.keyInput}
+            hideIdleStatus
+            label={copy.enterKeySlotCode}
+            labelStyle={s.fieldLabel}
             locale={locale}
+            manualHint={copy.manualHint}
             onChange={(value) => retrieval.enterKeySlot(value)}
+            placeholder={copy.enterKeySlotCode}
+            openLabel={copy.scanQr}
+            openVariant="primary"
+            scannerFirst
             value={snapshot.keySlotCandidate}
           />
           <EmployeeButton
@@ -115,11 +90,18 @@ export function NativeRetrievalKeyCheckout({
         </>
       ) : (
         <>
-          <EmployeeBadge
-            label={copy.keySlotVerified}
-            textAlign={textAlign}
-            variant="success"
-          />
+          <View style={s.successPanel}>
+            <View style={s.successDot} />
+            <Text
+              style={[s.successText, employeeTextStyle("human", textAlign)]}
+            >
+              {copy.keySlotVerified} (
+              <Text style={employeeTextStyle("identifier", textAlign)}>
+                {expectedKey}
+              </Text>
+              )
+            </Text>
+          </View>
           <EmployeeButton
             busy={submitting}
             disabled={submitting}
@@ -137,25 +119,46 @@ export function NativeRetrievalRetrieving({
   retrieval,
   snapshot,
   textAlign,
-}: StageProps & { readonly retrieval: EmployeeRetrievalSession }) {
+  onReportIssue,
+}: StageProps & {
+  readonly retrieval: EmployeeRetrievalSession;
+  readonly onReportIssue?: (() => void) | undefined;
+}) {
   const submitting = snapshot.phase === "submitting-ready";
   return (
     <>
-      <EmployeeBadge
-        label={copy.retrievingLabel}
+      {snapshot.failure ? (
+        <EmployeeError textAlign={textAlign}>
+          {snapshot.failure.message}
+        </EmployeeError>
+      ) : null}
+      {snapshot.retrievalStartedAt ? (
+        <View style={s.elapsedCard}>
+          <Text style={[s.elapsedLabel, employeeTextStyle("human", textAlign)]}>
+            {copy.elapsed}
+          </Text>
+          <ElapsedValue startTimeIso={snapshot.retrievalStartedAt} />
+        </View>
+      ) : null}
+      <NativeRetrievalDetails
+        copy={copy}
+        includeKey
+        snapshot={snapshot}
         textAlign={textAlign}
-        variant="warning"
       />
-      <VehicleCard copy={copy} snapshot={snapshot} textAlign={textAlign} />
-      <EmployeeStatus textAlign={textAlign}>
-        {copy.retrievingBody}
-      </EmployeeStatus>
       <EmployeeButton
         busy={submitting}
         disabled={submitting}
         label={submitting ? copy.markingReady : copy.vehicleReady}
         onPress={() => void retrieval.markReady()}
       />
+      {onReportIssue ? (
+        <EmployeeButton
+          label={copy.reportIssue}
+          onPress={onReportIssue}
+          variant="secondary"
+        />
+      ) : null}
     </>
   );
 }
@@ -173,19 +176,33 @@ export function NativeRetrievalReady({
         textAlign={textAlign}
         variant="success"
       />
-      <EmployeeCard>
-        <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
-          {vehicleName(snapshot, copy.taskTitle)}
-        </Text>
-        {snapshot.readyAt ? (
-          <Text style={employeeTextStyle("human", textAlign)}>
-            {snapshot.readyAt}
-          </Text>
-        ) : null}
-      </EmployeeCard>
-      <EmployeeStatus textAlign={textAlign}>{copy.readyBody}</EmployeeStatus>
+      <NativeRetrievalDetails
+        copy={copy}
+        includeKey
+        snapshot={snapshot}
+        textAlign={textAlign}
+      />
       <EmployeeButton label={copy.backToTasks} onPress={onBack} />
     </>
+  );
+}
+
+function ElapsedValue({ startTimeIso }: { readonly startTimeIso: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1_000);
+    return () => clearInterval(timer);
+  }, []);
+  const seconds = Math.max(
+    0,
+    Math.floor((now - Date.parse(startTimeIso)) / 1_000),
+  );
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return (
+    <Text
+      style={s.elapsedValue}
+    >{`${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`}</Text>
   );
 }
 

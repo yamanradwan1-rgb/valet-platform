@@ -1,4 +1,4 @@
-import { ScrollView } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import type {
   EmployeeReleaseSession,
   EmployeeReleaseSnapshot,
@@ -7,11 +7,11 @@ import type {
 import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import {
-  EmployeeBadge,
+  EmployeeError,
   EmployeeErrorNotice,
   EmployeeProgress,
-  EmployeeStatus,
 } from "../employee-ui/employee-feedback";
+import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeReleaseCopy } from "./native-release-copy";
 import { nativeReleaseBackBlocked } from "./native-release-protection";
@@ -22,19 +22,20 @@ export function NativeReleasePanel({
   locale,
   onBack,
   onDone,
+  onReportIssue,
   release,
   snapshot,
 }: {
   readonly locale: FoundationLocale;
   readonly onBack: () => void;
   readonly onDone: () => void;
+  readonly onReportIssue?: ((sessionId: string) => void) | undefined;
   readonly release: EmployeeReleaseSession;
   readonly snapshot: EmployeeReleaseSnapshot;
 }) {
   const copy = getNativeReleaseCopy(locale);
   const textAlign = locale === "ar" ? "right" : "left";
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const backBlocked = nativeReleaseBackBlocked(snapshot.phase);
   const method = snapshot.session?.handoff.verification?.method;
   const methodLabel =
     method === "SUPERVISOR_OVERRIDE"
@@ -42,34 +43,61 @@ export function NativeReleasePanel({
       : method === "DYNAMIC_QR"
         ? copy.dynamicQr
         : copy.pickupCode;
+  const verifiedEyebrow = `${copy.identityVerified} · ${methodLabel}`;
+  const reportIssue =
+    onReportIssue && snapshot.session
+      ? () => onReportIssue(snapshot.session!.sessionId)
+      : undefined;
 
   return (
     <>
       <EmployeeBackHeader
         accessibilityLabel={copy.back}
         direction={direction}
-        disabled={backBlocked}
+        disabled={nativeReleaseBackBlocked(snapshot.phase)}
         onBack={onBack}
         textAlign={textAlign}
         title={
-          snapshot.phase === "released" ? copy.completedTitle : copy.taskTitle
+          snapshot.phase === "released"
+            ? copy.completedTitle
+            : copy.identityVerified
         }
       />
       <ScrollView contentContainerStyle={[s.body, { direction }]}>
         {snapshot.phase === "loading" || snapshot.phase === "reconciling" ? (
           <EmployeeProgress label={copy.check} textAlign={textAlign} />
         ) : null}
-        <NativeHandoffVehicle snapshot={snapshot} textAlign={textAlign} />
+        {snapshot.phase !== "loading" && snapshot.phase !== "reconciling" ? (
+          <NativeHandoffVehicle
+            eyebrow={
+              snapshot.phase === "released"
+                ? copy.completedTitle
+                : verifiedEyebrow
+            }
+            snapshot={snapshot}
+            supporting={
+              snapshot.phase === "released" ? copy.completedBody : undefined
+            }
+            textAlign={textAlign}
+          />
+        ) : null}
         {snapshot.phase === "ready" || snapshot.phase === "releasing" ? (
           <>
-            <EmployeeBadge
-              label={`${copy.identityVerified} · ${methodLabel}`}
-              textAlign={textAlign}
-              variant="success"
-            />
-            <EmployeeStatus textAlign={textAlign}>
-              {copy.cannotUndo}
-            </EmployeeStatus>
+            {snapshot.failure ? (
+              <EmployeeError textAlign={textAlign}>
+                {snapshot.failure.message}
+              </EmployeeError>
+            ) : null}
+            <View style={s.card}>
+              <Text
+                style={[s.fieldLabel, employeeTextStyle("human", textAlign)]}
+              >
+                {copy.releaseVehicle}
+              </Text>
+              <Text style={[s.cardBody, employeeTextStyle("human", textAlign)]}>
+                {copy.cannotUndo}
+              </Text>
+            </View>
             <EmployeeButton
               busy={snapshot.phase === "releasing"}
               disabled={snapshot.phase === "releasing"}
@@ -82,32 +110,28 @@ export function NativeReleasePanel({
             />
           </>
         ) : null}
-        {snapshot.phase === "blocked" ? (
-          <>
-            <EmployeeBadge
-              label={
-                snapshot.block === "authority"
-                  ? copy.authorityTitle
-                  : copy.releaseBlocked
-              }
-              textAlign={textAlign}
-              variant="warning"
-            />
-            <EmployeeStatus textAlign={textAlign}>
-              {snapshot.block === "authority"
-                ? copy.authorityBody
-                : snapshot.block === "financial"
-                  ? copy.financialBody
-                  : copy.policyBody}
-            </EmployeeStatus>
-            {snapshot.block !== "authority" ? (
-              <EmployeeButton
-                label={copy.check}
-                onPress={() => void release.checkServerState()}
-                variant="secondary"
-              />
-            ) : null}
-          </>
+        {snapshot.phase === "blocked" && snapshot.block === "financial" ? (
+          <Text
+            accessibilityRole="alert"
+            style={[s.warning, employeeTextStyle("human", textAlign)]}
+          >
+            {copy.releaseBlocked}
+          </Text>
+        ) : null}
+        {snapshot.phase === "blocked" && snapshot.block === "authority" ? (
+          <View style={s.card}>
+            <Text style={[s.fieldLabel, employeeTextStyle("human", textAlign)]}>
+              {copy.awaitingTaskOwner}
+            </Text>
+            <Text style={[s.cardBody, employeeTextStyle("human", textAlign)]}>
+              {copy.authorityBody}
+            </Text>
+          </View>
+        ) : null}
+        {snapshot.phase === "blocked" && snapshot.block === "verification" ? (
+          <EmployeeError textAlign={textAlign}>
+            {snapshot.failure?.message ?? copy.policyBody}
+          </EmployeeError>
         ) : null}
         {snapshot.phase === "ambiguous" ||
         snapshot.phase === "conflict" ||
@@ -130,17 +154,14 @@ export function NativeReleasePanel({
           </>
         ) : null}
         {snapshot.phase === "released" ? (
-          <>
-            <EmployeeBadge
-              label={copy.completedTitle}
-              textAlign={textAlign}
-              variant="success"
-            />
-            <EmployeeStatus textAlign={textAlign}>
-              {copy.completedBody}
-            </EmployeeStatus>
-            <EmployeeButton label={copy.nextTask} onPress={onDone} />
-          </>
+          <EmployeeButton label={copy.nextTask} onPress={onDone} />
+        ) : null}
+        {reportIssue && snapshot.phase !== "released" ? (
+          <EmployeeButton
+            label={copy.reportIssue}
+            onPress={reportIssue}
+            variant="secondary"
+          />
         ) : null}
       </ScrollView>
     </>

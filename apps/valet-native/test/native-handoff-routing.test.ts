@@ -46,6 +46,13 @@ describe("MOB-014A Retrieval route continuation", () => {
     ).toBe(true);
     expect(
       shouldShowNativeHandoff(
+        handoff("loading"),
+        retrieval("ready"),
+        release(),
+      ),
+    ).toBe(true);
+    expect(
+      shouldShowNativeHandoff(
         handoff("pending", "HANDOFF_PENDING"),
         retrieval("inactive"),
         release(),
