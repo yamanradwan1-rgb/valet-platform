@@ -15,6 +15,7 @@ export function NativeCheckInRoute({
   identityGeneration,
   locale,
   onClose,
+  onOpenGuestAccess,
   onOpenParking,
   scope,
 }: {
@@ -23,6 +24,7 @@ export function NativeCheckInRoute({
   readonly identityGeneration: number;
   readonly locale: EmployeeLocale;
   readonly onClose: () => void;
+  readonly onOpenGuestAccess?: ((sessionId: string) => void) | undefined;
   readonly onOpenParking: (sessionId: string) => Promise<boolean>;
   readonly scope: EmployeeOperationalScope;
 }) {
@@ -46,6 +48,7 @@ export function NativeCheckInRoute({
       auth={auth}
       locale={locale}
       onClose={close}
+      onOpenGuestAccess={onOpenGuestAccess}
       onOpenParking={onOpenParking}
       session={checkIn}
       snapshot={snapshot}

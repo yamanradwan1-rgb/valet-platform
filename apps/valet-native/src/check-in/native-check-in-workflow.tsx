@@ -43,6 +43,7 @@ interface NativeCheckInWorkflowProps {
   readonly auth: NativeAuthSession;
   readonly locale: EmployeeLocale;
   readonly onClose: () => void;
+  readonly onOpenGuestAccess?: ((sessionId: string) => void) | undefined;
   readonly onOpenParking?:
     ((sessionId: string) => Promise<boolean>) | undefined;
   readonly session: EmployeeCheckInSession;
@@ -53,6 +54,7 @@ export function NativeCheckInWorkflow({
   auth,
   locale,
   onClose,
+  onOpenGuestAccess,
   onOpenParking,
   session,
   snapshot,
@@ -142,6 +144,7 @@ export function NativeCheckInWorkflow({
     copy,
     locale,
     onClose,
+    onOpenGuestAccess,
     onStartParking: startParking,
     parkingStartError,
     parkingStarting,

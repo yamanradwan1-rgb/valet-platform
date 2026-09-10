@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { EmployeeCheckInSnapshot } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
@@ -18,10 +18,14 @@ import {
   employeeTextStyle,
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
+import type { FoundationLocale } from "../foundation/foundation-locale";
+import { getNativeGuestAccessCopy } from "../guest-access/native-guest-access-copy";
 
 export function NativeCheckInParkingTaskStep({
   copy,
   error,
+  locale,
+  onOpenGuestAccess,
   onStart,
   snapshot,
   starting,
@@ -29,11 +33,15 @@ export function NativeCheckInParkingTaskStep({
 }: {
   readonly copy: NativeCheckInCopy;
   readonly error: boolean;
+  readonly locale: FoundationLocale;
+  readonly onOpenGuestAccess?: ((sessionId: string) => void) | undefined;
   readonly onStart: () => void;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly starting: boolean;
   readonly textAlign: NativeTextAlign;
 }) {
+  const guestCopy = getNativeGuestAccessCopy(locale);
+  const sessionId = snapshot.active?.sessionId;
   return (
     <>
       {error ? (
@@ -68,6 +76,25 @@ export function NativeCheckInParkingTaskStep({
         label={starting ? copy.startingParking : copy.startParking}
         onPress={onStart}
       />
+      {sessionId && onOpenGuestAccess ? (
+        <Pressable
+          accessibilityLabel={guestCopy.title}
+          accessibilityRole="button"
+          onPress={() => onOpenGuestAccess(sessionId)}
+          style={styles.guestEntry}
+        >
+          <Text
+            style={[styles.guestTitle, employeeTextStyle("human", textAlign)]}
+          >
+            {guestCopy.title}
+          </Text>
+          <Text
+            style={[styles.guestHint, employeeTextStyle("human", textAlign)]}
+          >
+            {guestCopy.entryHint}
+          </Text>
+        </Pressable>
+      ) : null}
     </>
   );
 }
@@ -79,6 +106,16 @@ export const nativeCheckInParkingTaskStyles = StyleSheet.create({
     height: 6,
     width: 6,
   },
+  guestEntry: {
+    backgroundColor: c.white,
+    borderColor: c.border,
+    borderRadius: employeeRadius.primary,
+    borderWidth: 1,
+    gap: 2,
+    padding: space.lg,
+  },
+  guestHint: { ...type.supporting, color: c.muted },
+  guestTitle: { ...type.body, color: c.navy, fontWeight: "600" },
   notice: {
     alignItems: "center",
     backgroundColor: c.ice,

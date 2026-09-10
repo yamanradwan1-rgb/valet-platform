@@ -2,6 +2,7 @@ import { Text } from "react-native";
 import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
+  EmployeeLocale,
 } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
@@ -22,6 +23,8 @@ import { NativeCheckInParkingTaskStep } from "./native-check-in-parking-task-ste
 interface StateStepProps {
   readonly copy: NativeCheckInCopy;
   readonly onClose: () => void;
+  readonly locale: EmployeeLocale;
+  readonly onOpenGuestAccess?: ((sessionId: string) => void) | undefined;
   readonly onStartParking?: (() => void) | undefined;
   readonly parkingStartError?: boolean | undefined;
   readonly parkingStarting?: boolean | undefined;
@@ -156,6 +159,8 @@ export function NativeAmbiguousStep({
 
 export function NativeCompleteStep({
   copy,
+  locale,
+  onOpenGuestAccess,
   onStartParking,
   parkingStartError = false,
   parkingStarting = false,
@@ -166,6 +171,8 @@ export function NativeCompleteStep({
     <NativeCheckInParkingTaskStep
       copy={copy}
       error={parkingStartError || snapshot.error !== null}
+      locale={locale}
+      onOpenGuestAccess={onOpenGuestAccess}
       onStart={onStartParking ?? (() => undefined)}
       snapshot={snapshot}
       starting={parkingStarting}
