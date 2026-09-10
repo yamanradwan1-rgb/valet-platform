@@ -18,11 +18,13 @@ export function useNativeProductionBackHandler(
   runtime: NativeEmployeeRuntime | undefined,
   shell: ProductionShellState,
   onNavigation: () => void,
+  onContextualBack: () => boolean,
 ): void {
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        if (onContextualBack()) return true;
         if (runtime !== undefined) {
           const shiftAction = nativeShiftEndBackAction(
             runtime.shiftEnd.current().phase,
@@ -97,5 +99,5 @@ export function useNativeProductionBackHandler(
       },
     );
     return () => subscription.remove();
-  }, [controller, onNavigation, runtime, shell]);
+  }, [controller, onContextualBack, onNavigation, runtime, shell]);
 }

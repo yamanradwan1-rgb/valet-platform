@@ -93,6 +93,14 @@ export const nativeIncidentStyles = StyleSheet.create({
     width: 80,
   },
   resultReference: { ...type.body, color: c.neutral, marginTop: space.xs },
+  resultSummary: {
+    alignSelf: "stretch",
+    backgroundColor: c.white,
+    borderColor: c.border,
+    borderRadius: employeeRadius.primary,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
   resultTitle: { ...type.pageTitleLarge, color: c.navy, textAlign: "center" },
   severityLabel: { textAlign: "center" },
 });

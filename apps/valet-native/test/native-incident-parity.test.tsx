@@ -124,7 +124,9 @@ describe("UI-PARITY-11 Native Incident", () => {
   });
 
   it("shows authoritative vehicle/session, submission error and busy label", () => {
-    const form = render("form", "en", { error: true }).nodes;
+    const form = render("form", "en", {
+      error: "The operation failed. Refresh and try again.",
+    }).nodes;
     expect(content(form)).toMatch(/Toyota Camry\s+·\s+12-34567/);
     expect(content(form)).toContain("44444444");
     expect(content(form)).toContain(
@@ -143,6 +145,15 @@ describe("UI-PARITY-11 Native Incident", () => {
     expect(text).toContain("Vehicle damage");
     expect(text).toContain("Low");
     expect(text).toMatch(/Toyota Camry\s+·\s+12-34567/);
+    const summary = nodes.find(
+      (node) => node.props.testID === "native-incident-result-summary",
+    )!;
+    expect(style(summary)).not.toHaveProperty("padding");
+    expect(
+      elements(summary.props.children)
+        .filter((node) => node.type === "View")
+        .map((node) => style(node).borderBottomWidth),
+    ).toEqual([1, 1, 0]);
     (action(nodes, "Return")?.props.onPress as () => void)();
     expect(onClose).toHaveBeenCalledOnce();
   });

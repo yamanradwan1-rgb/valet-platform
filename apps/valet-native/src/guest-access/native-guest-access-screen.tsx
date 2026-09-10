@@ -75,7 +75,7 @@ export function NativeGuestAccessScreen({
             accessibilityRole="alert"
             style={[s.configError, employeeTextStyle("human", align)]}
           >
-            {copy.configError}
+            {copy.errors.CONFIG_INVALID}
           </Text>
         ) : null}
         {snapshot.phase === "loading" ? (

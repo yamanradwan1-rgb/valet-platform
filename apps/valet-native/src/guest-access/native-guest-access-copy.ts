@@ -7,8 +7,6 @@ const en = {
     "Guest access is active. The previous link cannot be shown again. Reissue to get a new shareable link.",
   back: "Back",
   cancel: "Cancel",
-  configError:
-    "Guest access is unavailable because the Customer app address is not configured correctly.",
   copied: "Guest link copied",
   copyFailed: "Copying failed. Try again.",
   copyLink: "Copy Guest Link",
@@ -16,11 +14,17 @@ const en = {
   creating: "Creating Guest Access...",
   createNew: "Create New Access",
   errors: {
+    CONFIG_INVALID:
+      "Guest access is unavailable because the Customer app address is not configured correctly.",
+    GENERATED_CREDENTIAL_INVALID: "Generated guest access was invalid.",
+    INTENT_CONFLICT:
+      "Guest access changed elsewhere. Showing the current state.",
     LOAD_FAILED: "The guest access state could not be loaded.",
     OFFLINE: "You appear to be offline.",
     OUTCOME_UNKNOWN:
       "The outcome is unknown. Showing the current server state.",
     REVOKE_FAILED: "Revocation failed.",
+    UPDATE_FAILED: "Guest access could not be updated.",
   } satisfies Record<NativeGuestAccessError, string>,
   entryHint: "Share a secure guest link for this vehicle",
   expired: "Guest access expired",
@@ -50,7 +54,6 @@ const ar = {
     "وصول الضيف نشط. لا يمكن عرض الرابط السابق مرة أخرى. أعد الإصدار للحصول على رابط جديد للمشاركة.",
   back: "رجوع",
   cancel: "إلغاء",
-  configError: "وصول الضيف غير متاح لأن عنوان تطبيق العميل غير مهيأ بشكل صحيح.",
   copied: "تم نسخ رابط الضيف",
   copyFailed: "فشل النسخ. حاول مرة أخرى.",
   copyLink: "نسخ رابط الضيف",
@@ -58,10 +61,16 @@ const ar = {
   creating: "جارٍ إنشاء وصول الضيف...",
   createNew: "إنشاء وصول جديد",
   errors: {
+    CONFIG_INVALID:
+      "وصول الضيف غير متاح لأن عنوان تطبيق العميل غير مهيأ بشكل صحيح.",
+    GENERATED_CREDENTIAL_INVALID:
+      "بيانات وصول الضيف التي تم إنشاؤها غير صالحة.",
+    INTENT_CONFLICT: "تغيّر وصول الضيف من مكان آخر. يتم عرض الحالة الحالية.",
     LOAD_FAILED: "تعذّر تحميل حالة وصول الضيف.",
     OFFLINE: "يبدو أنك غير متصل بالإنترنت.",
     OUTCOME_UNKNOWN: "النتيجة غير معروفة. يتم عرض حالة الخادم الحالية.",
     REVOKE_FAILED: "فشل إلغاء الوصول.",
+    UPDATE_FAILED: "تعذّر تحديث وصول الضيف.",
   },
   entryHint: "شارك رابط ضيف آمن لهذه المركبة",
   expired: "انتهت صلاحية وصول الضيف",

@@ -4,6 +4,7 @@ import { AppState } from "react-native";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-attention";
 import { useNativeProductionBackHandler } from "./native-production-back-handler";
+import { useNativeContextualRoute } from "./use-native-contextual-route";
 import { NativeProductionWorkspace } from "./native-production-workspace";
 import { createNativeProductionBootstrap } from "./native-production-bootstrap";
 import { NativeShellGate } from "./native-shell-gate";
@@ -45,6 +46,11 @@ export function NativeProductionShell({
   });
   const [, setNavigationRevision] = useState(0);
   const runtime = bootstrap.runtime;
+  const contextual = useNativeContextualRoute(
+    runtime,
+    authSnapshot.authGeneration,
+  );
+  const onContextualBack = contextual.onSystemBack;
   const shell = controller.update(authSnapshot, operations);
   const activeVehicleScope =
     shell.kind === "active" && shell.destination === "vehicles"
@@ -58,7 +64,6 @@ export function NativeProductionShell({
     scope: activeVehicleScope,
     snapshot: vehicleDirectory,
   });
-
   useEffect(() => {
     if (runtime === undefined) return;
     const unsubscribeAuth = runtime.auth.subscribe(setAuthSnapshot);
@@ -88,7 +93,6 @@ export function NativeProductionShell({
       runtime.dispose();
     };
   }, [runtime]);
-
   useEffect(() => {
     if (runtime === undefined) return;
     if (authSnapshot.phase === "authenticated") {
@@ -107,7 +111,6 @@ export function NativeProductionShell({
       runtime.vehicleDirectory.clear();
     }
   }, [authSnapshot.authGeneration, authSnapshot.phase, runtime]);
-
   useEffect(() => {
     if (runtime === undefined || workflowPurgeRevision === 0) return;
     runtime.shiftEnd.fenceOperationalScope();
@@ -119,7 +122,6 @@ export function NativeProductionShell({
     runtime.release.clear();
     runtime.vehicleDirectory.clear();
   }, [runtime, workflowPurgeRevision]);
-
   useEffect(() => {
     const activeTask = runtime?.handoff.current().task;
     if (
@@ -229,7 +231,13 @@ export function NativeProductionShell({
     () => setNavigationRevision((value) => value + 1),
     [],
   );
-  useNativeProductionBackHandler(controller, runtime, shell, bumpNavigation);
+  useNativeProductionBackHandler(
+    controller,
+    runtime,
+    shell,
+    bumpNavigation,
+    onContextualBack,
+  );
 
   if (shell.kind !== "active" || runtime === undefined) {
     if (
@@ -273,6 +281,7 @@ export function NativeProductionShell({
   return (
     <NativeProductionWorkspace
       authSnapshot={authSnapshot}
+      contextual={contextual}
       locale={locale}
       handoff={handoff}
       confirmParking={confirmParking}

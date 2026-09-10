@@ -47,7 +47,7 @@ export function incidentSnapshot(
 ): NativeIncidentSnapshot {
   return {
     detail: ["form", "submitting", "success"].includes(phase) ? detail() : null,
-    error: false,
+    error: null,
     phase,
     report:
       phase === "success"

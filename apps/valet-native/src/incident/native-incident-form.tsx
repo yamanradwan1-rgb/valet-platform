@@ -5,7 +5,10 @@ import type { IncidentSeverity, IncidentType } from "@valet/employee-client";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
-import { getNativeIncidentCopy } from "./native-incident-copy";
+import {
+  getNativeIncidentCopy,
+  presentNativeIncidentFailure,
+} from "./native-incident-copy";
 import type { NativeIncidentSession } from "./native-incident-session";
 import { nativeIncidentStyles as s } from "./native-incident-styles";
 import {
@@ -93,13 +96,13 @@ export function NativeIncidentForm({
         style={[s.description, employeeTextStyle("human", textAlign)]}
         value={description}
       />
-      {snapshot.error ? (
+      {snapshot.error !== null ? (
         <Text
           accessibilityLiveRegion="assertive"
           accessibilityRole="alert"
           style={[s.error, employeeTextStyle("human", textAlign)]}
         >
-          {copy.failure}
+          {presentNativeIncidentFailure(locale, snapshot.error)}
         </Text>
       ) : null}
       <EmployeeButton

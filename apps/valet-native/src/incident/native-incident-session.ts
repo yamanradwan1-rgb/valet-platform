@@ -2,6 +2,7 @@ import {
   reportIncidentRequestSchema,
   reportIncidentResponseSchema,
   staffValetSessionDetailResponseSchema,
+  EmployeeApiError,
   type EmployeeClient,
 } from "@valet/employee-client";
 
@@ -13,7 +14,7 @@ import type { NativeContextualTarget } from "../shell/native-contextual-route";
 
 const inactive: NativeIncidentSnapshot = {
   detail: null,
-  error: false,
+  error: null,
   phase: "inactive",
   report: null,
   target: null,
@@ -53,7 +54,7 @@ export class NativeIncidentSession {
     const target = this.snapshot.target;
     if (target === null || this.snapshot.phase !== "context-error") return;
     this.generation += 1;
-    this.publish({ ...this.snapshot, error: false, phase: "loading" });
+    this.publish({ ...this.snapshot, error: null, phase: "loading" });
     await this.load(this.generation, target);
   }
 
@@ -65,11 +66,14 @@ export class NativeIncidentSession {
     try {
       incidentId = this.incidentId ?? this.createIncidentId();
       this.incidentId = incidentId;
-    } catch {
-      this.publish({ ...current, error: true });
+    } catch (error: unknown) {
+      this.publish({
+        ...current,
+        error: nativeIncidentPresentationError(error),
+      });
       return false;
     }
-    this.publish({ ...current, error: false, phase: "submitting" });
+    this.publish({ ...current, error: null, phase: "submitting" });
     try {
       const body = reportIncidentRequestSchema.parse({ ...input, incidentId });
       const raw = await this.client().request<unknown>({
@@ -80,11 +84,15 @@ export class NativeIncidentSession {
       const report = reportIncidentResponseSchema.parse(raw);
       if (generation !== this.generation) return false;
       this.incidentId = null;
-      this.publish({ ...current, error: false, phase: "success", report });
+      this.publish({ ...current, error: null, phase: "success", report });
       return true;
-    } catch {
+    } catch (error: unknown) {
       if (generation === this.generation) {
-        this.publish({ ...current, error: true, phase: "form" });
+        this.publish({
+          ...current,
+          error: nativeIncidentPresentationError(error),
+          phase: "form",
+        });
       }
       return false;
     }
@@ -110,7 +118,7 @@ export class NativeIncidentSession {
       if (detail.state === "COMPLETED") throw new Error("terminal");
       this.publish({
         detail,
-        error: false,
+        error: null,
         phase: "form",
         report: null,
         target,
@@ -130,6 +138,23 @@ export class NativeIncidentSession {
 
 function secureIncidentId(): string {
   const value = globalThis.crypto?.randomUUID?.();
-  if (value === undefined) throw new Error("secure UUID unavailable");
+  if (value === undefined) {
+    throw new Error(
+      "Secure UUID generation is unavailable; incident cannot be submitted.",
+    );
+  }
   return value;
+}
+
+function nativeIncidentPresentationError(error: unknown): string {
+  if (error instanceof EmployeeApiError && error.message.trim().length > 0) {
+    return error.message;
+  }
+  if (
+    error instanceof Error &&
+    error.message.startsWith("Secure UUID generation is unavailable")
+  ) {
+    return error.message;
+  }
+  return "The operation failed. Refresh and try again.";
 }

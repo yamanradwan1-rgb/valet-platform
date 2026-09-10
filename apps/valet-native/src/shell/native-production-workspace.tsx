@@ -30,12 +30,13 @@ import {
   openHandoff,
 } from "./native-production-workflow-navigation";
 import { NativeContextualSurface } from "./native-contextual-surface";
-import { useNativeContextualRoute } from "./use-native-contextual-route";
+import { nativeContextualNavigationPinned } from "./native-contextual-route";
 import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
 
 export function NativeProductionWorkspace({
   authSnapshot,
   confirmParking,
+  contextual,
   handoff,
   locale,
   navigate,
@@ -53,7 +54,6 @@ export function NativeProductionWorkspace({
   const copy = getNativeShellCopy(locale);
   const taskCopy = getNativeTasksCopy(locale);
   const shiftEnd = runtime.shiftEnd.current();
-  const contextual = useNativeContextualRoute(runtime);
 
   return (
     <EmployeeFrame direction={presentation.direction}>
@@ -80,7 +80,16 @@ export function NativeProductionWorkspace({
           taskIds={retrievalAttention.taskIds}
           textAlign={presentation.textAlign}
         />
-        {shell.destination === "check-in" ? (
+        {contextual.route !== null ? (
+          <NativeContextualSurface
+            guestAccess={contextual.guestAccess}
+            incident={contextual.incident}
+            locale={locale}
+            onClose={contextual.close}
+            route={contextual.route}
+            runtime={runtime}
+          />
+        ) : shell.destination === "check-in" ? (
           <NativeCheckInRoute
             auth={runtime.auth}
             checkIn={runtime.checkIn}
@@ -264,19 +273,12 @@ export function NativeProductionWorkspace({
         locale={locale}
         onNavigate={navigate}
         pinned={
+          nativeContextualNavigationPinned(contextual.route) ||
           shell.destination === "check-in" ||
           shell.destination === "parking" ||
           shell.destination === "retrieval" ||
           (shell.destination === "shift" && shiftEnd.phase === "submitting")
         }
-      />
-      <NativeContextualSurface
-        guestAccess={contextual.guestAccess}
-        incident={contextual.incident}
-        locale={locale}
-        onClose={contextual.close}
-        route={contextual.route}
-        runtime={runtime}
       />
     </EmployeeFrame>
   );

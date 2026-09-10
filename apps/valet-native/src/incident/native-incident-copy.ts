@@ -116,3 +116,10 @@ export function getNativeIncidentCopy(
 ): NativeIncidentCopy {
   return copy[locale];
 }
+
+export function presentNativeIncidentFailure(
+  locale: EmployeeLocale,
+  safeEnglishMessage: string,
+): string {
+  return locale === "ar" ? copy.ar.failure : safeEnglishMessage;
+}

@@ -30,7 +30,7 @@ export const nativeIncidentSeverities: readonly IncidentSeverity[] = [
 
 export type NativeIncidentSnapshot = {
   readonly detail: StaffValetSessionDetailResponse | null;
-  readonly error: boolean;
+  readonly error: string | null;
   readonly report: ReportIncidentResponse | null;
   readonly target: NativeContextualTarget | null;
   readonly phase:

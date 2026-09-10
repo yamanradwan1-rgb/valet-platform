@@ -1,4 +1,4 @@
-import { Modal, View } from "react-native";
+import { View } from "react-native";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeGuestAccessScreen } from "../guest-access/native-guest-access-screen";
@@ -23,37 +23,27 @@ export function NativeContextualSurface({
   readonly runtime: NativeEmployeeRuntime;
 }) {
   if (route === null) return null;
-  const busy =
-    route.kind === "incident"
-      ? incident.phase === "submitting"
-      : guestAccess.mutation !== null;
   return (
-    <Modal
-      animationType="slide"
-      onRequestClose={() => {
-        if (!busy) onClose();
-      }}
-      presentationStyle="fullScreen"
-      visible
+    <View
+      style={{ backgroundColor: "#FAFAF8", flex: 1 }}
+      testID="native-contextual-workflow"
     >
-      <View style={{ backgroundColor: "#FAFAF8", flex: 1 }}>
-        {route.kind === "incident" ? (
-          <NativeIncidentScreen
-            locale={locale}
-            onClose={onClose}
-            session={runtime.incident}
-            snapshot={incident}
-          />
-        ) : (
-          <NativeGuestAccessScreen
-            configInvalid
-            locale={locale}
-            onClose={onClose}
-            session={runtime.guestAccess}
-            snapshot={guestAccess}
-          />
-        )}
-      </View>
-    </Modal>
+      {route.kind === "incident" ? (
+        <NativeIncidentScreen
+          locale={locale}
+          onClose={onClose}
+          session={runtime.incident}
+          snapshot={incident}
+        />
+      ) : (
+        <NativeGuestAccessScreen
+          configInvalid
+          locale={locale}
+          onClose={onClose}
+          session={runtime.guestAccess}
+          snapshot={guestAccess}
+        />
+      )}
+    </View>
   );
 }

@@ -5,7 +5,14 @@ export type NativeGuestAccessStatus =
   StaffValetSessionDetailResponse["guestAccess"]["status"];
 
 export type NativeGuestAccessError =
-  "LOAD_FAILED" | "OFFLINE" | "OUTCOME_UNKNOWN" | "REVOKE_FAILED";
+  | "CONFIG_INVALID"
+  | "GENERATED_CREDENTIAL_INVALID"
+  | "INTENT_CONFLICT"
+  | "LOAD_FAILED"
+  | "OFFLINE"
+  | "OUTCOME_UNKNOWN"
+  | "REVOKE_FAILED"
+  | "UPDATE_FAILED";
 
 export interface NativeGuestAccessSnapshot {
   readonly error: NativeGuestAccessError | null;

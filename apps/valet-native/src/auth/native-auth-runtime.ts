@@ -166,9 +166,8 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
-  const incident = new NativeIncidentSession(
-    () => createNativeEmployeeClient(apiOrigin, auth),
-    createNativeOperationId,
+  const incident = new NativeIncidentSession(() =>
+    createNativeEmployeeClient(apiOrigin, auth),
   );
   const guestAccess = new NativeGuestAccessSession(() =>
     createNativeEmployeeClient(apiOrigin, auth),

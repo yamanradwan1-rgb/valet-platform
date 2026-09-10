@@ -2,10 +2,7 @@ import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import {
-  EmployeeCard,
-  EmployeeErrorNotice,
-} from "../employee-ui/employee-feedback";
+import { EmployeeErrorNotice } from "../employee-ui/employee-feedback";
 import { EmployeeAlertIcon } from "../employee-ui/employee-icons";
 import { employeeColors as c } from "../employee-ui/employee-tokens";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
@@ -70,13 +67,15 @@ export function NativeIncidentScreen({
             </Text>
           </Text>
         </View>
-        <EmployeeCard contentGap="none" padding="compact">
+        <View style={s.resultSummary} testID="native-incident-result-summary">
           <ResultRow
+            divider
             label={copy.typeLabel}
             textAlign={textAlign}
             value={copy.types[snapshot.report.type]}
           />
           <ResultRow
+            divider
             label={copy.severityLabel}
             textAlign={textAlign}
             value={copy.severities[snapshot.report.severity]}
@@ -87,7 +86,7 @@ export function NativeIncidentScreen({
             textAlign={textAlign}
             value={vehicle.heading}
           />
-        </EmployeeCard>
+        </View>
         <View style={s.resultCard}>
           <EmployeeButton label={copy.returnLabel} onPress={onClose} />
         </View>
@@ -135,11 +134,13 @@ export function NativeIncidentScreen({
 }
 
 function ResultRow({
+  divider = false,
   identifierSuffix,
   label,
   textAlign,
   value,
 }: {
+  readonly divider?: boolean | undefined;
   readonly identifierSuffix?: string | undefined;
   readonly label: string;
   readonly textAlign: "left" | "right";
@@ -149,7 +150,7 @@ function ResultRow({
     <View
       style={{
         borderBottomColor: c.border,
-        borderBottomWidth: 1,
+        borderBottomWidth: divider ? 1 : 0,
         flexDirection: textAlign === "right" ? "row-reverse" : "row",
         gap: 16,
         justifyContent: "space-between",

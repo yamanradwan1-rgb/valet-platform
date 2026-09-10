@@ -10,6 +10,7 @@ import type {
 } from "@valet/employee-client";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import type { NativeContextualPresentation } from "./use-native-contextual-route";
 import type {
   ProductionDestination,
   ProductionShellState,
@@ -20,6 +21,7 @@ type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 export interface NativeProductionWorkspaceProps {
   readonly authSnapshot: NativeAuthSnapshot;
   readonly confirmParking: EmployeeConfirmParkedSnapshot;
+  readonly contextual: NativeContextualPresentation;
   readonly handoff: EmployeeHandoffSnapshot;
   readonly locale: FoundationLocale;
   readonly navigate: (destination: ProductionDestination) => void;
