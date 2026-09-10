@@ -99,10 +99,7 @@ export function NativeHandoffPending({
           copy={copy}
           disabled={busy}
           locale={locale}
-          onCandidate={(proof) => {
-            state.setQrProof("");
-            void handoff.verifyDynamicQr(proof);
-          }}
+          onCandidate={state.setQrProof}
           onChange={state.setQrProof}
           value={state.qrProof}
         />

@@ -35,6 +35,8 @@ const { NativeHandoffPanel } =
   await import("../src/handoff/native-handoff-panel");
 const { submitHandoffProof } =
   await import("../src/handoff/native-handoff-pending");
+const { captureDynamicQrCandidate } =
+  await import("../src/handoff/native-handoff-scanner");
 const { content, elements, style } =
   await import("./native-check-in-condition-test-support");
 
@@ -222,6 +224,16 @@ describe("MOB-014A Native secure handoff", () => {
     expect(clearQr).toHaveBeenCalledWith("");
     expect(verifyQr).toHaveBeenCalledOnce();
     expect(verifyQr).toHaveBeenCalledWith(proof);
+  });
+
+  it("captures a Dynamic QR candidate without invoking a protected mutation", () => {
+    const setCandidate = vi.fn();
+    const proof = `vhq1.${"A".repeat(43)}`;
+    captureDynamicQrCandidate({ kind: "dynamic-handoff", proof }, setCandidate);
+    expect(setCandidate).toHaveBeenCalledOnce();
+    expect(setCandidate).toHaveBeenCalledWith(proof);
+    expect(handoff.verifyDynamicQr).not.toHaveBeenCalled();
+    expect(handoff.verifyPickupCode).not.toHaveBeenCalled();
   });
 
   it("invokes Report Issue only through the bounded supplied callback", () => {
