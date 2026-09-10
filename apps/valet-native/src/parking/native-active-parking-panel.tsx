@@ -12,10 +12,12 @@ import { nativeActiveParkingStyles as s } from "./native-active-parking-styles";
 export function NativeActiveParkingPanel({
   locale,
   onParkVehicle,
+  onReportIssue,
   snapshot,
 }: {
   readonly locale: FoundationLocale;
   readonly onParkVehicle: () => void;
+  readonly onReportIssue?: ((sessionId: string) => void) | undefined;
   readonly snapshot: EmployeeParkingStartSnapshot;
 }) {
   const copy = getNativeActiveParkingCopy(locale);
@@ -59,6 +61,13 @@ export function NativeActiveParkingPanel({
           <InfoRow bordered label={copy.destination} value={destination} />
         </View>
         <EmployeeButton label={copy.parkVehicle} onPress={onParkVehicle} />
+        {snapshot.session && onReportIssue ? (
+          <EmployeeButton
+            label={copy.reportIssue}
+            onPress={() => onReportIssue(snapshot.session!.sessionId)}
+            variant="secondary"
+          />
+        ) : null}
       </ScrollView>
     </>
   );

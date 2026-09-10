@@ -1,0 +1,38 @@
+import type {
+  EmployeeConfirmParkedSnapshot,
+  EmployeeHandoffSnapshot,
+  EmployeeOperationalSnapshot,
+  EmployeeParkingStartSnapshot,
+  EmployeeReleaseSnapshot,
+  EmployeeRetrievalSnapshot,
+  EmployeeVehicleDirectorySnapshot,
+  NativeAuthSnapshot,
+} from "@valet/employee-client";
+import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
+import type { FoundationLocale } from "../foundation/foundation-locale";
+import type {
+  ProductionDestination,
+  ProductionShellState,
+} from "./production-shell-controller";
+
+type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
+
+export interface NativeProductionWorkspaceProps {
+  readonly authSnapshot: NativeAuthSnapshot;
+  readonly confirmParking: EmployeeConfirmParkedSnapshot;
+  readonly handoff: EmployeeHandoffSnapshot;
+  readonly locale: FoundationLocale;
+  readonly navigate: (destination: ProductionDestination) => void;
+  readonly onSelectLocale: (locale: FoundationLocale) => void;
+  readonly operations: EmployeeOperationalSnapshot;
+  readonly parking: EmployeeParkingStartSnapshot;
+  readonly retrieval: EmployeeRetrievalSnapshot;
+  readonly release: EmployeeReleaseSnapshot;
+  readonly retrievalAttention: {
+    readonly dismiss: (taskId: string) => void;
+    readonly taskIds: readonly string[];
+  };
+  readonly runtime: NativeEmployeeRuntime;
+  readonly shell: ActiveShell;
+  readonly vehicleDirectory: EmployeeVehicleDirectorySnapshot;
+}

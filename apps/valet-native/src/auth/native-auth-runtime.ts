@@ -34,6 +34,8 @@ import {
 } from "../tasks/native-operational-http";
 import { nativeOnlineHint } from "../shift/native-shift-connectivity";
 import { retireNativeShiftScope } from "../shift/native-shift-retirement";
+import { NativeIncidentSession } from "../incident/native-incident-session";
+import { NativeGuestAccessSession } from "../guest-access/native-guest-access-session";
 
 export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
@@ -42,6 +44,8 @@ export interface NativeEmployeeRuntime {
   readonly confirmParking: EmployeeConfirmParkedSession;
   readonly dispose: () => void;
   readonly handoff: EmployeeHandoffSession;
+  readonly guestAccess: NativeGuestAccessSession;
+  readonly incident: NativeIncidentSession;
   readonly operations: EmployeeOperationalSession;
   readonly parking: EmployeeParkingStartSession;
   readonly release: EmployeeReleaseSession;
@@ -162,6 +166,13 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  const incident = new NativeIncidentSession(
+    () => createNativeEmployeeClient(apiOrigin, auth),
+    createNativeOperationId,
+  );
+  const guestAccess = new NativeGuestAccessSession(() =>
+    createNativeEmployeeClient(apiOrigin, auth),
+  );
   const vehicleDirectory = new EmployeeVehicleDirectorySession({
     transport: createEmployeeVehicleDirectoryTransport((signal) =>
       createNativeEmployeeClient(apiOrigin, auth, signal),
@@ -194,6 +205,8 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     operations.clear();
     confirmParking.clear();
     handoff.clear();
+    guestAccess.clear();
+    incident.clear();
     parking.clear();
     release.clear();
     retrieval.clear();
@@ -207,6 +220,8 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     operations.dispose();
     confirmParking.clear();
     handoff.clear();
+    guestAccess.clear();
+    incident.clear();
     parking.clear();
     release.clear();
     retrieval.clear();
@@ -222,6 +237,8 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     confirmParking,
     dispose,
     handoff,
+    guestAccess,
+    incident,
     operations,
     parking,
     release,

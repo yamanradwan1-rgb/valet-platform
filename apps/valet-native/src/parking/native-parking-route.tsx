@@ -17,6 +17,7 @@ export function NativeParkingRoute({
   confirmSnapshot,
   locale,
   onDone,
+  onReportIssue,
   parkingSnapshot,
 }: {
   readonly auth: NativeAuthSession;
@@ -24,6 +25,7 @@ export function NativeParkingRoute({
   readonly confirmSnapshot: EmployeeConfirmParkedSnapshot;
   readonly locale: FoundationLocale;
   readonly onDone: () => void;
+  readonly onReportIssue?: ((sessionId: string) => void) | undefined;
   readonly parkingSnapshot: EmployeeParkingStartSnapshot;
 }) {
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -32,6 +34,7 @@ export function NativeParkingRoute({
       <NativeActiveParkingPanel
         locale={locale}
         onParkVehicle={() => setShowConfirmation(true)}
+        onReportIssue={onReportIssue}
         snapshot={parkingSnapshot}
       />
     );

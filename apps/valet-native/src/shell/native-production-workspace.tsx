@@ -1,24 +1,10 @@
-import type {
-  EmployeeConfirmParkedSnapshot,
-  EmployeeHandoffSnapshot,
-  EmployeeOperationalSnapshot,
-  EmployeeParkingStartSnapshot,
-  EmployeeReleaseSnapshot,
-  EmployeeRetrievalSnapshot,
-  EmployeeVehicleDirectorySnapshot,
-  NativeAuthSnapshot,
-} from "@valet/employee-client";
 import { View } from "react-native";
 
-import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import {
   EmployeeAppHeader,
   EmployeeFrame,
 } from "../employee-ui/employee-frame";
-import {
-  getFoundationPresentation,
-  type FoundationLocale,
-} from "../foundation/foundation-locale";
+import { getFoundationPresentation } from "../foundation/foundation-locale";
 import { NativeActiveShiftPanel } from "../shift/native-active-shift-panel";
 import { NativeRetrievalAttention } from "../tasks/native-retrieval-attention";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
@@ -39,16 +25,13 @@ import { shouldShowNativeHandoff } from "../handoff/native-handoff-route-present
 import { NativeActiveHeaderUtilities } from "./native-active-header-utilities";
 import { NativeProductionNavigation } from "./native-production-navigation";
 import { getNativeShellCopy } from "./native-shell-copy";
-import type {
-  ProductionDestination,
-  ProductionShellState,
-} from "./production-shell-controller";
 import {
   closeRetrieval,
   openHandoff,
 } from "./native-production-workflow-navigation";
-
-type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
+import { NativeContextualSurface } from "./native-contextual-surface";
+import { useNativeContextualRoute } from "./use-native-contextual-route";
+import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
 
 export function NativeProductionWorkspace({
   authSnapshot,
@@ -65,29 +48,12 @@ export function NativeProductionWorkspace({
   runtime,
   shell,
   vehicleDirectory,
-}: {
-  readonly authSnapshot: NativeAuthSnapshot;
-  readonly confirmParking: EmployeeConfirmParkedSnapshot;
-  readonly handoff: EmployeeHandoffSnapshot;
-  readonly locale: FoundationLocale;
-  readonly navigate: (destination: ProductionDestination) => void;
-  readonly onSelectLocale: (locale: FoundationLocale) => void;
-  readonly operations: EmployeeOperationalSnapshot;
-  readonly parking: EmployeeParkingStartSnapshot;
-  readonly retrieval: EmployeeRetrievalSnapshot;
-  readonly release: EmployeeReleaseSnapshot;
-  readonly retrievalAttention: {
-    readonly dismiss: (taskId: string) => void;
-    readonly taskIds: readonly string[];
-  };
-  readonly runtime: NativeEmployeeRuntime;
-  readonly shell: ActiveShell;
-  readonly vehicleDirectory: EmployeeVehicleDirectorySnapshot;
-}) {
+}: NativeProductionWorkspaceProps) {
   const presentation = getFoundationPresentation(locale);
   const copy = getNativeShellCopy(locale);
   const taskCopy = getNativeTasksCopy(locale);
   const shiftEnd = runtime.shiftEnd.current();
+  const contextual = useNativeContextualRoute(runtime);
 
   return (
     <EmployeeFrame direction={presentation.direction}>
@@ -133,6 +99,9 @@ export function NativeProductionWorkspace({
                 sessionId,
               })
             }
+            onOpenGuestAccess={(sessionId) =>
+              contextual.open("guest-access", "CHECK_IN", sessionId)
+            }
             scope={shell.scope}
           />
         ) : shell.destination === "parking" ? (
@@ -148,6 +117,9 @@ export function NativeProductionWorkspace({
                 void runtime.operations.refreshQueue();
                 navigate("tasks");
               }}
+              onReportIssue={(sessionId) =>
+                contextual.open("incident", "PARKING", sessionId)
+              }
               parkingSnapshot={parking}
             />
           ) : (
@@ -203,6 +175,9 @@ export function NativeProductionWorkspace({
                 locale={locale}
                 onBack={() => closeRetrieval(runtime, navigate)}
                 onDone={() => closeRetrieval(runtime, navigate)}
+                onReportIssue={(sessionId) =>
+                  contextual.open("incident", "HANDOFF", sessionId)
+                }
                 release={runtime.release}
                 snapshot={release}
               />
@@ -212,6 +187,9 @@ export function NativeProductionWorkspace({
                 handoff={runtime.handoff}
                 locale={locale}
                 onBack={() => closeRetrieval(runtime, navigate)}
+                onReportIssue={(sessionId) =>
+                  contextual.open("incident", "HANDOFF", sessionId)
+                }
                 snapshot={handoff}
               />
             )
@@ -220,6 +198,9 @@ export function NativeProductionWorkspace({
               auth={runtime.auth}
               locale={locale}
               onBack={() => closeRetrieval(runtime, navigate)}
+              onReportIssue={(sessionId) =>
+                contextual.open("incident", "RETRIEVAL", sessionId)
+              }
               retrieval={runtime.retrieval}
               snapshot={retrieval}
             />
@@ -288,6 +269,14 @@ export function NativeProductionWorkspace({
           shell.destination === "retrieval" ||
           (shell.destination === "shift" && shiftEnd.phase === "submitting")
         }
+      />
+      <NativeContextualSurface
+        guestAccess={contextual.guestAccess}
+        incident={contextual.incident}
+        locale={locale}
+        onClose={contextual.close}
+        route={contextual.route}
+        runtime={runtime}
       />
     </EmployeeFrame>
   );
