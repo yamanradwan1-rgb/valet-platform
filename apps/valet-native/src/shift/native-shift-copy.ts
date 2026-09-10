@@ -41,7 +41,6 @@ export interface NativeShiftCopy {
   readonly uncertain: string;
   readonly uncertainTitle: string;
   readonly verifying: string;
-  readonly returnToStart: string;
 }
 
 const copy: Record<EmployeeLocale, NativeShiftCopy> = {
@@ -80,7 +79,6 @@ const copy: Record<EmployeeLocale, NativeShiftCopy> = {
     retryStart: "Retry start shift",
     retryEnd: "Retry end shift",
     reviewTasks: "Review assigned tasks",
-    returnToStart: "Return to Start Shift",
     role: "Role",
     roleEmployee: "Valet Employee",
     roleSupervisor: "Valet Supervisor",
@@ -128,7 +126,6 @@ const copy: Record<EmployeeLocale, NativeShiftCopy> = {
     retryStart: "إعادة محاولة بدء المناوبة",
     retryEnd: "إعادة محاولة إنهاء المناوبة",
     reviewTasks: "مراجعة المهام المعينة",
-    returnToStart: "العودة إلى بدء المناوبة",
     role: "الدور",
     roleEmployee: "موظف صف سيارات",
     roleSupervisor: "مشرف صف سيارات",

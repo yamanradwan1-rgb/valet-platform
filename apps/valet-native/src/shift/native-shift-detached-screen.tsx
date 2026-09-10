@@ -18,7 +18,6 @@ import { NativeActiveShiftPanel } from "./native-active-shift-panel";
 
 export function NativeShiftDetachedScreen({
   locale,
-  onRefresh,
   onReviewTasks,
   onSelectLocale,
   session,
@@ -27,7 +26,6 @@ export function NativeShiftDetachedScreen({
   readonly auth: NativeAuthSession;
   readonly authSnapshot: NativeAuthSnapshot;
   readonly locale: FoundationLocale;
-  readonly onRefresh: () => void;
   readonly onReviewTasks: () => void;
   readonly onSelectLocale: (locale: FoundationLocale) => void;
   readonly session: EmployeeShiftEndSession;
@@ -51,7 +49,6 @@ export function NativeShiftDetachedScreen({
       />
       <NativeActiveShiftPanel
         locale={locale}
-        onReturned={onRefresh}
         onReviewTasks={onReviewTasks}
         session={session}
         snapshot={snapshot}

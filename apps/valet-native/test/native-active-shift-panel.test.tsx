@@ -37,6 +37,13 @@ function visibleText(value: unknown): string {
   return visibleText((value as Element).props.children);
 }
 
+function resolvedStyle(node: Element): Record<string, unknown> {
+  return Object.assign(
+    {},
+    ...[node.props.style].flat(Infinity).filter(Boolean),
+  );
+}
+
 const authority = {
   currency: "JOD",
   identityGeneration: 1,
@@ -83,20 +90,17 @@ function render(
   locale: "ar" | "en" = "en",
   session = owner(),
 ) {
-  const onReturned = vi.fn();
   const onReviewTasks = vi.fn();
   return {
     nodes: elements(
       NativeActiveShiftPanel({
         locale,
-        onReturned,
         onReviewTasks,
         session,
         snapshot: state,
         textAlign: locale === "ar" ? "right" : "left",
       }),
     ),
-    onReturned,
     onReviewTasks,
     session,
   };
@@ -119,6 +123,11 @@ describe("Native Shift summary and End Shift", () => {
     expect(renderedText).not.toContain(authority.shiftId);
     expect(renderedText).not.toContain("Check-ins");
     expect(button(nodes, "End Shift")).toBeDefined();
+    const heading = nodes.find((node) => node.props.children === "Shift")!;
+    expect(resolvedStyle(heading)).toMatchObject({
+      fontSize: 20,
+      fontWeight: "700",
+    });
     expect(
       formatNativeShiftDuration(
         authority.shiftStartedAt,
@@ -140,6 +149,12 @@ describe("Native Shift summary and End Shift", () => {
     expect(JSON.stringify(input.props.style)).toContain(
       '"writingDirection":"ltr"',
     );
+    expect(resolvedStyle(input)).toMatchObject({
+      fontFamily: "Space Grotesk",
+      fontSize: 20,
+      fontWeight: "600",
+      height: 48,
+    });
     (button(nodes, "إنهاء المناوبة").props.onPress as () => void)();
     expect(session.requestConfirmation).toHaveBeenCalledOnce();
   });
@@ -183,6 +198,30 @@ describe("Native Shift summary and End Shift", () => {
     ).toContain("Open work must be handed over");
   });
 
+  it("renders exact validation and generic failure without local success", () => {
+    expect(
+      visibleText(render(snapshot({ cashValidationVisible: true })).nodes[0]),
+    ).toContain(
+      "Enter a valid non-negative cash amount using up to three decimal places.",
+    );
+    expect(
+      visibleText(render(snapshot({ phase: "error" })).nodes[0]),
+    ).toContain("End Shift could not be completed. Try again.");
+  });
+
+  it("renders separate ACTIVE badge and green Active shift label", () => {
+    const nodes = elements(
+      NativeShiftSummaryDetails({ authority, locale: "en", textAlign: "left" }),
+    );
+    expect(nodes.some((node) => node.props.label === "ACTIVE")).toBe(true);
+    expect(visibleText(nodes[0])).toContain("Active shift");
+    const label = nodes.find((node) => node.props.children === "Active shift")!;
+    expect(resolvedStyle(label)).toMatchObject({
+      color: "#2F9B78",
+      fontSize: 12,
+    });
+  });
+
   it("offers only explicit same-command retry in the uncertain state", () => {
     const session = owner();
     const { nodes } = render(snapshot({ phase: "uncertain" }), "en", session);
@@ -194,7 +233,7 @@ describe("Native Shift summary and End Shift", () => {
     expect(session.retry).toHaveBeenCalledOnce();
   });
 
-  it("shows only server reconciliation after confirmed success and safely returns", () => {
+  it("shows only server reconciliation after confirmed success with no invented action", () => {
     const session = owner();
     const result = {
       cashReconciliation: {
@@ -219,11 +258,7 @@ describe("Native Shift summary and End Shift", () => {
     expect(serialized).toContain("Shift ended");
     expect(serialized).toContain("1.000 JOD");
     expect(visibleText(rendered.nodes[0])).not.toContain(authority.shiftId);
-    (
-      button(rendered.nodes, "Return to Start Shift").props
-        .onPress as () => void
-    )();
-    expect(session.finish).toHaveBeenCalledOnce();
-    expect(rendered.onReturned).toHaveBeenCalledOnce();
+    expect(button(rendered.nodes, "Return to Start Shift")).toBeUndefined();
+    expect(session.finish).not.toHaveBeenCalled();
   });
 });
