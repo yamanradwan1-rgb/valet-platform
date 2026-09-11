@@ -50,18 +50,30 @@ The process evaluates cleanup every 24 hours through
 `cleanup_staff_push_v1()`. The runtime role has EXECUTE only and retains no
 generic table DELETE privilege. Each invocation uses a fixed 1,000-row
 transaction-safety ceiling; this is not a capacity choice or throughput SLO.
+Every loop also performs provider-independent expiry/exhaustion recovery and
+DEC-076 stale-registration reconciliation, including while provider sending is
+disabled. Those passes use a fixed 10-candidate transaction-safety guard and do
+not claim or increment provider attempts.
 U-004/MOB-025 still owns process count, concurrency, batch size, rate limits,
 resources, backlog, and latency objectives.
 
-## Observability and unresolved lifecycle
+## Observability and stale lifecycle
 
 The worker observer accepts only bounded operational concepts such as event,
 result class, attempt, retry bucket, and cleanup counts. Tokens, hashes,
 credentials, row IDs, tenant IDs, domain IDs, payloads, and provider bodies are
-not permitted.
+not permitted. Observer failures are ignored by correctness paths. This seam is
+not a production metrics exporter or alerting system; MOB-024A owns that system.
 
 Thirty days without `last_confirmed_at` makes an ACTIVE registration stale,
-but does not prove provider invalidity. The accepted state machine has no
-truthful stale-maintenance terminal state. Cleanup therefore retains these
-registrations pending a focused lifecycle decision; it does not abuse
-DISABLED, PROVIDER_INVALID, or SUPERSEDED.
+but does not prove provider invalidity. Send-time eligibility rejects the row
+using database time. Bounded DEC-076 maintenance rechecks under row lock, then
+uses DISABLED with `STALE_CONFIRMATION_TIMEOUT`, clears the raw token, and
+suppresses its PENDING/RETRY_WAIT deliveries. A currently LEASED delivery is
+not rewritten. Later authenticated desired-state registration creates a fresh
+ACTIVE row and never reactivates the terminal stale row.
+
+Provider TTL is derived from the database-authoritative remaining intent
+lifetime and reduced using monotonic elapsed time through credential acquisition
+immediately before the HTTP request. Application wall-clock skew cannot extend
+the provider lifetime, and retries never restart the five-minute TTL.

@@ -4,8 +4,8 @@ import type { FcmHttpV1Config } from "./fcm-http-v1-config";
 import { mapFcmResult } from "./fcm-result-mapper";
 import type {
   StaffPushProvider,
-  StaffPushProviderMessage,
   StaffPushProviderResult,
+  StaffPushProviderSendResult,
 } from "./staff-push-provider";
 import { isValidRetrievalAttentionMessage } from "./staff-push-payload";
 
@@ -76,10 +76,14 @@ export class FcmHttpV1Adapter implements StaffPushProvider {
   ) {}
 
   async send(
-    message: StaffPushProviderMessage,
-  ): Promise<StaffPushProviderResult> {
-    if (!isValidRetrievalAttentionMessage(message)) {
-      return { resultClass: "PERMANENT" };
+    request: Parameters<StaffPushProvider["send"]>[0],
+  ): Promise<StaffPushProviderSendResult> {
+    const initialMessage = request.messageForTransport();
+    if (initialMessage === undefined) {
+      return { kind: "EXPIRED_BEFORE_TRANSPORT" };
+    }
+    if (!isValidRetrievalAttentionMessage(initialMessage)) {
+      return providerResult({ resultClass: "PERMANENT" });
     }
     const abort = new AbortController();
     const timeout = setTimeout(
@@ -100,9 +104,17 @@ export class FcmHttpV1Adapter implements StaffPushProvider {
           ),
         ]);
       } catch {
-        return {
+        if (request.messageForTransport() === undefined) {
+          return { kind: "EXPIRED_BEFORE_TRANSPORT" };
+        }
+        return providerResult({
           resultClass: abort.signal.aborted ? "UNKNOWN" : "CONFIGURATION",
-        };
+        });
+      }
+      const message = request.messageForTransport();
+      if (message === undefined) return { kind: "EXPIRED_BEFORE_TRANSPORT" };
+      if (!isValidRetrievalAttentionMessage(message)) {
+        return providerResult({ resultClass: "PERMANENT" });
       }
       const response = await this.request(
         `https://fcm.googleapis.com/v1/projects/${this.config.projectId}/messages:send`,
@@ -116,17 +128,25 @@ export class FcmHttpV1Adapter implements StaffPushProvider {
           signal: abort.signal,
         },
       );
-      return mapFcmResult({
-        body: await safeJson(response),
-        httpStatus: response.status,
-        nowMilliseconds: this.now(),
-        payloadProvenValid: true,
-        retryAfter: response.headers.get("Retry-After"),
-      });
+      return providerResult(
+        mapFcmResult({
+          body: await safeJson(response),
+          httpStatus: response.status,
+          nowMilliseconds: this.now(),
+          payloadProvenValid: true,
+          retryAfter: response.headers.get("Retry-After"),
+        }),
+      );
     } catch {
-      return { resultClass: "UNKNOWN" };
+      return providerResult({ resultClass: "UNKNOWN" });
     } finally {
       clearTimeout(timeout);
     }
   }
+}
+
+function providerResult(
+  result: StaffPushProviderResult,
+): StaffPushProviderSendResult {
+  return { kind: "PROVIDER_RESULT", result };
 }

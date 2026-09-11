@@ -11,6 +11,7 @@ import {
 } from "vitest";
 
 import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-delivery-worker";
+import { runProviderIndependentStaffPushMaintenance } from "../src/modules/staff-push/staff-push-maintenance";
 import type {
   StaffPushObservation,
   StaffPushObserver,
@@ -18,6 +19,7 @@ import type {
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
+import { providerSendResult } from "./staff-push-provider-test-value";
 
 const context = new RetrievalPushTestContext("worker_eligibility");
 const policy = { ...syntheticStaffPushPolicy, sendingEnabled: true };
@@ -73,7 +75,7 @@ beforeEach(async () => {
   await context.adminPool.query("DELETE FROM staff_push_intents");
   await context.adminPool.query("DELETE FROM staff_push_registrations");
   send = vi.fn<StaffPushProvider["send"]>().mockResolvedValue({
-    resultClass: "ACCEPTED",
+    ...providerSendResult({ resultClass: "ACCEPTED" }),
   });
   provider = { send };
   observations = [];
@@ -251,6 +253,10 @@ describe("Staff Push send-time eligibility", () => {
     await client.query("COMMIT");
     client.release();
     await worker().runOnce();
+    await runProviderIndependentStaffPushMaintenance(
+      context.runtimePool,
+      policy,
+    );
     expect(send).not.toHaveBeenCalled();
     expect(await state(fixture.delivery_id)).toBe("EXPIRED");
   });

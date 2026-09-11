@@ -40,16 +40,17 @@ export async function retryOrTerminalizeStaffPushDelivery(
     `WITH clock AS MATERIALIZED (SELECT clock_timestamp() AS now)
      UPDATE staff_push_deliveries AS delivery
      SET state = CASE
-           WHEN delivery.attempt_count < delivery.max_attempts
-             AND clock.now + make_interval(secs => $4) < intent.expires_at
-             THEN 'RETRY_WAIT'::staff_push_delivery_state
            WHEN clock.now >= intent.expires_at
-             OR clock.now + make_interval(secs => $4) >= intent.expires_at
              THEN 'EXPIRED'::staff_push_delivery_state
-           ELSE 'PERMANENT_FAILURE'::staff_push_delivery_state
+           WHEN delivery.attempt_count >= delivery.max_attempts
+             THEN 'PERMANENT_FAILURE'::staff_push_delivery_state
+           WHEN clock.now + make_interval(secs => $4) >= intent.expires_at
+             THEN 'EXPIRED'::staff_push_delivery_state
+           ELSE 'RETRY_WAIT'::staff_push_delivery_state
          END,
          next_attempt_at = CASE
            WHEN delivery.attempt_count < delivery.max_attempts
+             AND clock.now < intent.expires_at
              AND clock.now + make_interval(secs => $4) < intent.expires_at
              THEN clock.now + make_interval(secs => $4)
            ELSE NULL
@@ -59,6 +60,7 @@ export async function retryOrTerminalizeStaffPushDelivery(
          provider_reference = NULL,
          terminal_at = CASE
            WHEN delivery.attempt_count < delivery.max_attempts
+             AND clock.now < intent.expires_at
              AND clock.now + make_interval(secs => $4) < intent.expires_at
              THEN NULL ELSE clock.now END,
          updated_at = clock.now

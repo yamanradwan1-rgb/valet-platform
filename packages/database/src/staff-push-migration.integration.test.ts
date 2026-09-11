@@ -159,6 +159,12 @@ describe("MOB-020A/020D Staff Push migrations 32 and 33", () => {
         safe_search_path: true,
         security_definer: true,
       });
+      const staleIndex = await client.query<{ present: boolean }>(
+        `SELECT to_regclass(
+          'public.staff_push_registrations_stale_active_idx'
+        ) IS NOT NULL AS present`,
+      );
+      expect(staleIndex.rows[0]!.present).toBe(true);
     },
   );
 });

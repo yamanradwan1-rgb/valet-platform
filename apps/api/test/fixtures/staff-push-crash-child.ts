@@ -33,16 +33,22 @@ const worker = new StaffPushDeliveryWorker(
   pool,
   policy,
   {
-    async send() {
+    async send(request) {
+      if (request.messageForTransport() === undefined) {
+        return { kind: "EXPIRED_BEFORE_TRANSPORT" };
+      }
       const response = await fetch(providerUrl, { method: "POST" });
       if (!response.ok) throw new Error("Crash test provider rejected.");
       process.send?.("PROVIDER_ACCEPTED");
-      return { resultClass: "ACCEPTED" };
+      return {
+        kind: "PROVIDER_RESULT",
+        result: { resultClass: "ACCEPTED" },
+      };
     },
   },
   { observe: () => undefined },
   Math.random,
-  () => new Date(),
+  () => performance.now(),
   async () => {
     if (crashPoint === "BEFORE_FINALIZE") {
       process.send?.("BEFORE_FINALIZE");

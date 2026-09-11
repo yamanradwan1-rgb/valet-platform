@@ -1,10 +1,7 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { claimStaffPushDelivery } from "./staff-push-claim-repository";
 import {
-  claimStaffPushDelivery,
-  terminalizeUnclaimableStaffPushDeliveries,
-} from "./staff-push-claim-repository";
-import {
-  claimedDeliveryExpiry,
+  claimedDeliveryIsExpired,
   resolveEligibleStaffPushDelivery,
 } from "./staff-push-eligibility-repository";
 import {
@@ -14,9 +11,11 @@ import {
 } from "./staff-push-finalization-repository";
 import type { StaffPushOperationalPolicyShape } from "./staff-push-operational-policy";
 import {
+  observeStaffPushSafely,
   retryDelayBucket,
   type StaffPushObserver,
 } from "./staff-push-observability";
+import { remainingStaffPushLifetime } from "./staff-push-lifetime";
 import { buildRetrievalAttentionMessage } from "./staff-push-payload";
 import type { StaffPushProvider } from "./staff-push-provider";
 import { retryDelaySeconds, type StaffPushRandom } from "./staff-push-retry";
@@ -35,7 +34,7 @@ export class StaffPushDeliveryWorker {
     private readonly provider: StaffPushProvider,
     private readonly observer: StaffPushObserver,
     private readonly random: StaffPushRandom = Math.random,
-    private readonly now: () => Date = () => new Date(),
+    private readonly monotonicNow: () => number = () => performance.now(),
     private readonly afterProviderResult: () => Promise<void> = async () =>
       undefined,
     private readonly beforeProviderCall: () => Promise<void> = async () =>
@@ -44,51 +43,64 @@ export class StaffPushDeliveryWorker {
 
   async runOnce(): Promise<boolean> {
     if (!this.policy.sendingEnabled) return false;
-    await terminalizeUnclaimableStaffPushDeliveries(this.pool);
     const claim = await claimStaffPushDelivery(
       this.pool,
       this.policy.leaseDurationSeconds,
     );
     if (claim === undefined) return false;
-    await this.observer.observe({
+    await observeStaffPushSafely(this.observer, {
       attempt: String(claim.attemptCount) as "1" | "2" | "3" | "4",
       event: "CLAIM",
       reclaimed: claim.reclaimed,
     });
-    const eligible = await resolveEligibleStaffPushDelivery(this.pool, claim);
+    const eligibilityStartedAt = this.monotonicNow();
+    const eligible = await resolveEligibleStaffPushDelivery(
+      this.pool,
+      claim,
+      this.policy.activeRegistrationStaleDays,
+    );
     if (eligible === undefined) {
-      const expiry = await claimedDeliveryExpiry(this.pool, claim);
-      if (expiry !== undefined && expiry.getTime() <= this.now().getTime()) {
+      const expired = await claimedDeliveryIsExpired(this.pool, claim);
+      if (expired === true) {
         if (await finalizeStaffPushDelivery(this.pool, claim, "EXPIRED")) {
-          await this.observer.observe({ event: "EXPIRED" });
+          await observeStaffPushSafely(this.observer, { event: "EXPIRED" });
         }
       } else if (
         await finalizeStaffPushDelivery(this.pool, claim, "SUPPRESSED")
       ) {
-        await this.observer.observe({
+        await observeStaffPushSafely(this.observer, {
           event: "SUPPRESSED",
           reason: "ELIGIBILITY_LOST",
         });
       }
       return true;
     }
-    const message = buildRetrievalAttentionMessage({
-      expiresAt: eligible.expiresAt,
-      intentId: eligible.intentId,
-      locale: eligible.locale,
-      now: this.now(),
-      providerToken: eligible.providerToken,
+    await this.beforeProviderCall();
+    const send = await this.provider.send({
+      messageForTransport: () => {
+        const remainingLifetimeMilliseconds = remainingStaffPushLifetime(
+          eligible.remainingLifetimeMilliseconds,
+          eligibilityStartedAt,
+          this.monotonicNow(),
+        );
+        if (remainingLifetimeMilliseconds === undefined) return undefined;
+        return buildRetrievalAttentionMessage({
+          intentId: eligible.intentId,
+          locale: eligible.locale,
+          providerToken: eligible.providerToken,
+          remainingLifetimeMilliseconds,
+        });
+      },
     });
-    if (message === undefined) {
+    if (send.kind === "EXPIRED_BEFORE_TRANSPORT") {
       if (await finalizeStaffPushDelivery(this.pool, claim, "EXPIRED")) {
-        await this.observer.observe({ event: "EXPIRED" });
+        await observeStaffPushSafely(this.observer, { event: "EXPIRED" });
       }
       return true;
     }
-    await this.beforeProviderCall();
-    const result = await this.provider.send(message);
+    const result = send.result;
     await this.afterProviderResult();
-    await this.observer.observe({
+    await observeStaffPushSafely(this.observer, {
       event: "PROVIDER_RESULT",
       resultClass: result.resultClass,
     });
@@ -110,7 +122,9 @@ export class StaffPushDeliveryWorker {
           "PERMANENT",
         )
       ) {
-        await this.observer.observe({ event: "TERMINAL_FAILURE" });
+        await observeStaffPushSafely(this.observer, {
+          event: "TERMINAL_FAILURE",
+        });
       }
     } else if (retryable.has(result.resultClass)) {
       const delay = retryDelaySeconds(
@@ -127,14 +141,16 @@ export class StaffPushDeliveryWorker {
         delay,
       );
       if (state === "RETRY_WAIT") {
-        await this.observer.observe({
+        await observeStaffPushSafely(this.observer, {
           delayBucket: retryDelayBucket(delay),
           event: "RETRY_SCHEDULED",
         });
       } else if (state === "EXPIRED") {
-        await this.observer.observe({ event: "EXPIRED" });
+        await observeStaffPushSafely(this.observer, { event: "EXPIRED" });
       } else if (state === "PERMANENT_FAILURE") {
-        await this.observer.observe({ event: "TERMINAL_FAILURE" });
+        await observeStaffPushSafely(this.observer, {
+          event: "TERMINAL_FAILURE",
+        });
       }
     }
     return true;

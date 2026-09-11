@@ -11,8 +11,12 @@ import {
   cleanupStaffPushPersistence,
 } from "./modules/staff-push/staff-push-maintenance-repository";
 import { StaffPushDeliveryWorker } from "./modules/staff-push/staff-push-delivery-worker";
+import { runProviderIndependentStaffPushMaintenance } from "./modules/staff-push/staff-push-maintenance";
 import { readStaffPushOperationalPolicy } from "./modules/staff-push/staff-push-operational-policy";
-import { NoopStaffPushObserver } from "./modules/staff-push/staff-push-observability";
+import {
+  NoopStaffPushObserver,
+  observeStaffPushSafely,
+} from "./modules/staff-push/staff-push-observability";
 
 const IDLE_POLL_MILLISECONDS = 1_000;
 
@@ -61,11 +65,22 @@ async function bootstrap(): Promise<void> {
       const now = Date.now();
       if (now >= cleanupDue) {
         const cleaned = await cleanupStaffPushPersistence(pool);
-        await observer.observe({ event: "CLEANUP", ...cleaned });
+        await observeStaffPushSafely(observer, {
+          event: "CLEANUP",
+          ...cleaned,
+        });
         cleanupDue = now + policy.cleanupIntervalHours * 60 * 60 * 1_000;
       }
+      const maintained = await runProviderIndependentStaffPushMaintenance(
+        pool,
+        policy,
+      );
+      await observeStaffPushSafely(observer, {
+        event: "MAINTENANCE",
+        ...maintained,
+      });
       const backlog = await staffPushBacklog(pool);
-      await observer.observe({ event: "BACKLOG", ...backlog });
+      await observeStaffPushSafely(observer, { event: "BACKLOG", ...backlog });
       const worked = worker === undefined ? false : await worker.runOnce();
       if (!worked) await delay(IDLE_POLL_MILLISECONDS, stop.signal);
     }

@@ -66,8 +66,10 @@ export function isValidRetrievalAttentionMessage(
   );
 }
 
-function remainingTtl(expiresAt: Date, now: Date): string | undefined {
-  const remainingMilliseconds = Math.floor(expiresAt.getTime() - now.getTime());
+function remainingTtl(
+  remainingLifetimeMilliseconds: number,
+): string | undefined {
+  const remainingMilliseconds = Math.floor(remainingLifetimeMilliseconds);
   if (remainingMilliseconds <= 0) return undefined;
   const seconds = Math.floor(remainingMilliseconds / 1_000);
   const milliseconds = remainingMilliseconds % 1_000;
@@ -75,13 +77,12 @@ function remainingTtl(expiresAt: Date, now: Date): string | undefined {
 }
 
 export function buildRetrievalAttentionMessage(input: {
-  readonly expiresAt: Date;
   readonly intentId: string;
   readonly locale: string;
-  readonly now: Date;
   readonly providerToken: string;
+  readonly remainingLifetimeMilliseconds: number;
 }): StaffPushProviderMessage | undefined {
-  const ttl = remainingTtl(input.expiresAt, input.now);
+  const ttl = remainingTtl(input.remainingLifetimeMilliseconds);
   if (ttl === undefined) return undefined;
   const locale = input.locale === "ar" ? "ar" : "en";
   return {

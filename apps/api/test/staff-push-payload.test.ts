@@ -5,19 +5,16 @@ import {
   isValidRetrievalAttentionMessage,
 } from "../src/modules/staff-push/staff-push-payload";
 
-const now = new Date("2026-09-11T12:00:00.000Z");
-
 describe("Staff Push payload", () => {
   it.each([
     ["en", "New retrieval task available"],
     ["ar", "مهمة استرجاع جديدة متاحة"],
   ])("builds the exact safe %s message", (locale, body) => {
     const message = buildRetrievalAttentionMessage({
-      expiresAt: new Date(now.getTime() + 12_345),
       intentId: "00000000-0000-4000-8000-000000000001",
       locale,
-      now,
       providerToken: "destination-only",
+      remainingLifetimeMilliseconds: 12_345,
     });
     expect(message).toEqual({
       android: { priority: "HIGH", ttl: "12.345s" },
@@ -45,20 +42,18 @@ describe("Staff Push payload", () => {
   it("falls back to English and refuses nonpositive remaining TTL", () => {
     expect(
       buildRetrievalAttentionMessage({
-        expiresAt: new Date(now.getTime() + 1_000),
         intentId: "safe-id",
         locale: "unexpected",
-        now,
         providerToken: "destination-only",
+        remainingLifetimeMilliseconds: 1_000,
       })?.notification.body,
     ).toBe("New retrieval task available");
     expect(
       buildRetrievalAttentionMessage({
-        expiresAt: now,
         intentId: "safe-id",
         locale: "en",
-        now,
         providerToken: "destination-only",
+        remainingLifetimeMilliseconds: 0,
       }),
     ).toBeUndefined();
   });

@@ -19,6 +19,7 @@ import { finalizeStaffPushDelivery } from "../src/modules/staff-push/staff-push-
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
+import { providerSendResult } from "./staff-push-provider-test-value";
 
 const context = new RetrievalPushTestContext("worker_crash");
 const childScript = resolve(
@@ -158,7 +159,7 @@ describe("Staff Push hard process-loss recovery", () => {
     await expireLease(deliveryId);
 
     const secondSend = vi.fn<StaffPushProvider["send"]>().mockResolvedValue({
-      resultClass: "ACCEPTED",
+      ...providerSendResult({ resultClass: "ACCEPTED" }),
     });
     const second = new StaffPushDeliveryWorker(
       context.runtimePool,
@@ -218,7 +219,7 @@ describe("Staff Push hard process-loss recovery", () => {
     await expireLease(deliveryId);
 
     const send = vi.fn<StaffPushProvider["send"]>().mockResolvedValue({
-      resultClass: "ACCEPTED",
+      ...providerSendResult({ resultClass: "ACCEPTED" }),
     });
     const replacement = new StaffPushDeliveryWorker(
       context.runtimePool,

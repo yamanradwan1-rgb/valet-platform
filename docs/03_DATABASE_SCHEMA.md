@@ -1519,9 +1519,12 @@ Rules:
 - cleanup deletes terminal deliveries before unreferenced intents after seven
   days and unreferenced terminal registrations after 30 days; fixed 1,000-row
   transaction limits are implementation safety guards, not capacity policy
-- age-only stale ACTIVE registrations are deliberately not terminalized because
-  the accepted state vocabulary cannot represent staleness truthfully; a focused
-  lifecycle decision is still required for that behavior
+- the partial stale-registration index supports bounded DEC-076 reconciliation;
+  at 30 days without confirmation, locked/rechecked ACTIVE rows become DISABLED
+  with `STALE_CONFIRMATION_TIMEOUT`, clear the raw token, and suppress only
+  PENDING/RETRY_WAIT deliveries; currently LEASED rows remain fenced
+- provider-independent delivery recovery and stale-registration passes use a
+  fixed 10-candidate transaction-safety ceiling; this is not capacity policy
 
 ## audit_events / Black Box
 

@@ -15,6 +15,11 @@ const message: StaffPushProviderMessage = {
   token: "sensitive-destination",
 };
 
+const sendRequest = (
+  messageForTransport: () => StaffPushProviderMessage | undefined = () =>
+    message,
+) => ({ messageForTransport });
+
 describe("FCM HTTP v1 adapter", () => {
   it("sends direct v1 JSON with a short-lived ADC bearer", async () => {
     const request = vi.fn<typeof fetch>().mockResolvedValue(
@@ -27,8 +32,9 @@ describe("FCM HTTP v1 adapter", () => {
       { accessToken: async () => "short-lived-access" },
       request,
     );
-    await expect(adapter.send(message)).resolves.toEqual({
-      resultClass: "ACCEPTED",
+    await expect(adapter.send(sendRequest())).resolves.toEqual({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "ACCEPTED" },
     });
     expect(request).toHaveBeenCalledOnce();
     const [url, init] = request.mock.calls[0]!;
@@ -51,8 +57,9 @@ describe("FCM HTTP v1 adapter", () => {
       },
       request,
     );
-    await expect(adapter.send(message)).resolves.toEqual({
-      resultClass: "CONFIGURATION",
+    await expect(adapter.send(sendRequest())).resolves.toEqual({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "CONFIGURATION" },
     });
     expect(request).not.toHaveBeenCalled();
   });
@@ -66,11 +73,16 @@ describe("FCM HTTP v1 adapter", () => {
       request,
     );
     await expect(
-      adapter.send({
-        ...message,
-        data: { ...message.data, intentId: "not-a-uuid" },
-      }),
-    ).resolves.toEqual({ resultClass: "PERMANENT" });
+      adapter.send(
+        sendRequest(() => ({
+          ...message,
+          data: { ...message.data, intentId: "not-a-uuid" },
+        })),
+      ),
+    ).resolves.toEqual({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "PERMANENT" },
+    });
     expect(accessToken).not.toHaveBeenCalled();
     expect(request).not.toHaveBeenCalled();
   });
@@ -81,8 +93,9 @@ describe("FCM HTTP v1 adapter", () => {
       { accessToken: async () => "secret-access" },
       vi.fn<typeof fetch>().mockRejectedValue(new Error("network")),
     );
-    await expect(connectionLoss.send(message)).resolves.toEqual({
-      resultClass: "UNKNOWN",
+    await expect(connectionLoss.send(sendRequest())).resolves.toEqual({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "UNKNOWN" },
     });
 
     const hanging: typeof fetch = (_input, init) =>
@@ -96,8 +109,9 @@ describe("FCM HTTP v1 adapter", () => {
       { accessToken: async () => "secret-access" },
       hanging,
     );
-    await expect(timeout.send(message)).resolves.toEqual({
-      resultClass: "UNKNOWN",
+    await expect(timeout.send(sendRequest())).resolves.toEqual({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "UNKNOWN" },
     });
 
     const credentialTimeout = new FcmHttpV1Adapter(
@@ -105,8 +119,58 @@ describe("FCM HTTP v1 adapter", () => {
       { accessToken: () => new Promise<string>(() => undefined) },
       vi.fn<typeof fetch>(),
     );
-    await expect(credentialTimeout.send(message)).resolves.toEqual({
-      resultClass: "UNKNOWN",
+    await expect(credentialTimeout.send(sendRequest())).resolves.toEqual({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "UNKNOWN" },
     });
+  });
+
+  it("reduces wire TTL after credential acquisition", async () => {
+    let remainingMilliseconds = 30_000;
+    const request = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ name: "projects/p/messages/1" }), {
+        status: 200,
+      }),
+    );
+    const adapter = new FcmHttpV1Adapter(
+      { projectId: "vaylet-test-123", timeoutMilliseconds: 10_000 },
+      {
+        accessToken: async () => {
+          remainingMilliseconds -= 5_000;
+          return "short-lived-access";
+        },
+      },
+      request,
+    );
+    await adapter.send(
+      sendRequest(() => ({
+        ...message,
+        android: {
+          ...message.android,
+          ttl: `${Math.floor(remainingMilliseconds / 1_000)}.000s`,
+        },
+      })),
+    );
+    const wire = JSON.parse(String(request.mock.calls[0]![1]?.body));
+    expect(wire.message.android.ttl).toBe("25.000s");
+  });
+
+  it("does not issue HTTP when lifetime expires during credentials", async () => {
+    let alive = true;
+    const request = vi.fn<typeof fetch>();
+    const adapter = new FcmHttpV1Adapter(
+      { projectId: "vaylet-test-123", timeoutMilliseconds: 10_000 },
+      {
+        accessToken: async () => {
+          alive = false;
+          return "short-lived-access";
+        },
+      },
+      request,
+    );
+    await expect(
+      adapter.send(sendRequest(() => (alive ? message : undefined))),
+    ).resolves.toEqual({ kind: "EXPIRED_BEFORE_TRANSPORT" });
+    expect(request).not.toHaveBeenCalled();
   });
 });

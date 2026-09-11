@@ -29,6 +29,12 @@ export type StaffPushObservation =
       readonly event: "CLEANUP";
       readonly intents: number;
       readonly registrations: number;
+    }
+  | {
+      readonly disabledRegistrations: number;
+      readonly event: "MAINTENANCE";
+      readonly suppressedDeliveries: number;
+      readonly terminalizedDeliveries: number;
     };
 
 export interface StaffPushObserver {
@@ -38,6 +44,17 @@ export interface StaffPushObserver {
 export class NoopStaffPushObserver implements StaffPushObserver {
   observe(observation: StaffPushObservation): void {
     void observation;
+  }
+}
+
+export async function observeStaffPushSafely(
+  observer: StaffPushObserver,
+  observation: StaffPushObservation,
+): Promise<void> {
+  try {
+    await observer.observe(observation);
+  } catch {
+    // Telemetry is never delivery, registration, or domain authority.
   }
 }
 

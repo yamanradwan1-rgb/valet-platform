@@ -5,48 +5,53 @@ import type {
 } from "./staff-push-delivery-types";
 
 interface ClaimStateRow {
-  readonly expires_at: Date;
+  readonly expired: boolean;
 }
 
 interface EligibleRow {
-  readonly expires_at: Date;
   readonly intent_id: string;
   readonly locale: "en" | "ar";
   readonly provider_token: string;
   readonly registration_id: string;
+  readonly remaining_lifetime_milliseconds: number;
   readonly token_hash: string;
 }
 
-export async function claimedDeliveryExpiry(
+export async function claimedDeliveryIsExpired(
   pool: PostgresPool,
   claim: ClaimedStaffPushDelivery,
-): Promise<Date | undefined> {
+): Promise<boolean | undefined> {
   const result = await pool.query<ClaimStateRow>(
-    `SELECT intent.expires_at
+    `SELECT intent.expires_at <= clock_timestamp() AS expired
      FROM staff_push_deliveries AS delivery
      INNER JOIN staff_push_intents AS intent ON intent.id = delivery.intent_id
      WHERE delivery.id = $1 AND delivery.state = 'LEASED'
        AND delivery.lease_token = $2`,
     [claim.deliveryId, claim.leaseToken],
   );
-  return result.rows[0]?.expires_at;
+  return result.rows[0]?.expired;
 }
 
 export async function resolveEligibleStaffPushDelivery(
   pool: PostgresPool,
   claim: ClaimedStaffPushDelivery,
+  activeRegistrationStaleDays: number,
 ): Promise<EligibleStaffPushDelivery | undefined> {
   const result = await pool.query<EligibleRow>(
-    `SELECT intent.id AS intent_id, intent.expires_at,
+    `WITH clock AS MATERIALIZED (SELECT clock_timestamp() AS now)
+     SELECT intent.id AS intent_id,
             registration.id AS registration_id, registration.provider_token,
-            registration.token_hash, registration.locale::text
+            registration.token_hash, registration.locale::text,
+            floor(EXTRACT(EPOCH FROM (intent.expires_at - clock.now)) * 1000)::integer
+              AS remaining_lifetime_milliseconds
      FROM staff_push_deliveries AS delivery
+     CROSS JOIN clock
      INNER JOIN staff_push_intents AS intent
        ON intent.id = delivery.intent_id
       AND intent.organization_id = delivery.organization_id
       AND intent.kind = 'EMPLOYEE_RETRIEVAL_REQUESTED'
       AND intent.policy_version = 1
-      AND intent.expires_at > clock_timestamp()
+      AND intent.expires_at > clock.now
      INNER JOIN staff_push_registrations AS registration
        ON registration.id = delivery.registration_id
       AND registration.state = 'ACTIVE'
@@ -54,10 +59,12 @@ export async function resolveEligibleStaffPushDelivery(
       AND registration.platform = 'ANDROID'
       AND registration.app_identifier = 'com.vaylet.employee'
       AND registration.provider_token IS NOT NULL
+      AND registration.last_confirmed_at >
+        clock.now - make_interval(days => $3)
      INNER JOIN staff_auth_sessions AS staff_session
        ON staff_session.id = registration.staff_auth_session_id
       AND staff_session.revoked_at IS NULL
-      AND staff_session.absolute_expires_at > clock_timestamp()
+      AND staff_session.absolute_expires_at > clock.now
      INNER JOIN users AS staff_user
        ON staff_user.id = staff_session.user_id
       AND staff_user.status = 'ACTIVE'
@@ -101,17 +108,17 @@ export async function resolveEligibleStaffPushDelivery(
            AND shift.location_id = intent.location_id
            AND shift.status = 'ACTIVE'
        )`,
-    [claim.deliveryId, claim.leaseToken],
+    [claim.deliveryId, claim.leaseToken, activeRegistrationStaleDays],
   );
   const row = result.rows[0];
   if (row === undefined) return undefined;
   return {
     ...claim,
-    expiresAt: row.expires_at,
     intentId: row.intent_id,
     locale: row.locale,
     providerToken: row.provider_token,
     registrationId: row.registration_id,
+    remainingLifetimeMilliseconds: row.remaining_lifetime_milliseconds,
     tokenHash: row.token_hash,
   };
 }

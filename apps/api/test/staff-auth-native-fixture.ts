@@ -160,6 +160,11 @@ export class StaffAuthNativeFixture {
     return this.adminPool.query<T>(text, values);
   }
 
+  databasePool(): Pool {
+    if (this.adminPool === undefined) throw new Error("Fixture not started.");
+    return this.adminPool;
+  }
+
   async request(
     path: string,
     options: AuthRequestOptions = {},

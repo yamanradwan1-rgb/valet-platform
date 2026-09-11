@@ -7,6 +7,7 @@ import { persistRetrievalPushAttention } from "../src/modules/staff-push/retriev
 import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-delivery-worker";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
+import { providerSendResult } from "./staff-push-provider-test-value";
 
 const context = new RetrievalPushTestContext("invalid_endpoint");
 const policy = { ...syntheticStaffPushPolicy, sendingEnabled: true };
@@ -28,10 +29,12 @@ function invalidWorker(afterProviderResult = async () => undefined) {
   return new StaffPushDeliveryWorker(
     context.runtimePool,
     policy,
-    { send: async () => ({ resultClass: "INVALID_ENDPOINT" }) },
+    {
+      send: async () => providerSendResult({ resultClass: "INVALID_ENDPOINT" }),
+    },
     { observe: () => undefined },
     Math.random,
-    () => new Date(),
+    () => 0,
     afterProviderResult,
   );
 }

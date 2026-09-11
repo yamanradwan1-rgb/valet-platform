@@ -7,11 +7,11 @@ export interface ClaimedStaffPushDelivery {
 }
 
 export interface EligibleStaffPushDelivery extends ClaimedStaffPushDelivery {
-  readonly expiresAt: Date;
   readonly intentId: string;
   readonly locale: "en" | "ar";
   readonly providerToken: string;
   readonly registrationId: string;
+  readonly remainingLifetimeMilliseconds: number;
   readonly tokenHash: string;
 }
 

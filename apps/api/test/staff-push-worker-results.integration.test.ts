@@ -19,6 +19,7 @@ import type {
 } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
+import { providerSendResult } from "./staff-push-provider-test-value";
 
 const context = new RetrievalPushTestContext("worker_results");
 const policy = { ...syntheticStaffPushPolicy, sendingEnabled: true };
@@ -47,7 +48,7 @@ function worker(
   observer: StaffPushObserver = { observe: () => undefined },
 ) {
   const provider: StaffPushProvider = {
-    send: vi.fn().mockResolvedValue(result),
+    send: vi.fn().mockResolvedValue(providerSendResult(result)),
   };
   return new StaffPushDeliveryWorker(
     context.runtimePool,
@@ -55,7 +56,7 @@ function worker(
     provider,
     observer,
     () => 0.5,
-    () => new Date(),
+    () => 0,
     afterProviderResult,
   );
 }
@@ -210,6 +211,31 @@ describe("Staff Push provider result finalization", () => {
     });
   });
 
+  it("uses PERMANENT_FAILURE when the live fourth attempt cannot retry before expiry", async () => {
+    const fixture = await prepared();
+    await bypassGuard(
+      `UPDATE staff_push_deliveries
+       SET state = 'RETRY_WAIT', attempt_count = 3,
+           next_attempt_at = clock_timestamp() - interval '1 second',
+           provider_result_class = 'UNKNOWN'
+       WHERE id = $1`,
+      [fixture.deliveryId],
+    );
+    await bypassGuard(
+      `UPDATE staff_push_intents
+       SET expires_at = clock_timestamp() + interval '5 seconds'
+       WHERE valet_session_id = $1`,
+      [fixture.valetSessionId],
+    );
+    await worker({ resultClass: "UNKNOWN" }).runOnce();
+    expect(await row(fixture.deliveryId)).toMatchObject({
+      attempt_count: 4,
+      next_attempt_at: null,
+      provider_result_class: "UNKNOWN",
+      state: "PERMANENT_FAILURE",
+    });
+  });
+
   it("expires instead of scheduling a retry at intent expiry", async () => {
     const fixture = await prepared();
     await bypassGuard(
@@ -223,6 +249,20 @@ describe("Staff Push provider result finalization", () => {
       next_attempt_at: null,
       provider_result_class: "TRANSIENT",
       state: "EXPIRED",
+    });
+  });
+
+  it("does not let observer failure control delivery correctness", async () => {
+    const fixture = await prepared();
+    await expect(
+      worker({ resultClass: "ACCEPTED" }, async () => undefined, {
+        observe: () => {
+          throw new Error("observer unavailable");
+        },
+      }).runOnce(),
+    ).resolves.toBe(true);
+    expect(await row(fixture.deliveryId)).toMatchObject({
+      state: "PROVIDER_ACCEPTED",
     });
   });
 });

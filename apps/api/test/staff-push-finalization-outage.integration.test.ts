@@ -4,6 +4,7 @@ import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-de
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
 import { RetrievalPushTestContext } from "./retrieval-push-test-context";
 import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
+import { providerSendResult } from "./staff-push-provider-test-value";
 
 const context = new RetrievalPushTestContext("worker_finalize_outage");
 const policy = { ...syntheticStaffPushPolicy, sendingEnabled: true };
@@ -28,7 +29,7 @@ describe("Staff Push database outage after provider acceptance", () => {
     );
     const deliveryId = delivery.rows[0]!.id;
     const send = vi.fn<StaffPushProvider["send"]>().mockResolvedValue({
-      resultClass: "ACCEPTED",
+      ...providerSendResult({ resultClass: "ACCEPTED" }),
     });
     let accessRevoked = false;
     const firstWorker = new StaffPushDeliveryWorker(
@@ -37,7 +38,7 @@ describe("Staff Push database outage after provider acceptance", () => {
       { send },
       { observe: () => undefined },
       Math.random,
-      () => new Date(),
+      () => 0,
       async () => {
         await context.adminPool.query(
           `REVOKE CONNECT ON DATABASE ${quotedIdentifier(context.databaseName)}

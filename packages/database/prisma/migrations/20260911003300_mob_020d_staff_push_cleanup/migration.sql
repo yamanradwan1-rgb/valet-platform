@@ -1,6 +1,10 @@
 -- MOB-020D / DEC-075: narrowly privileged, server-authored Staff Push cleanup.
 -- The fixed 1,000-row limits are transaction-safety guards, not capacity policy.
 
+CREATE INDEX "staff_push_registrations_stale_active_idx"
+ON public.staff_push_registrations ("last_confirmed_at", "id")
+WHERE "state" = 'ACTIVE';
+
 CREATE FUNCTION public.cleanup_staff_push_v1()
 RETURNS TABLE (
     deleted_deliveries INTEGER,

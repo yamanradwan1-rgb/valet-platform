@@ -1,4 +1,6 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
+import { STAFF_PUSH_MAINTENANCE_PASS_LIMIT } from "./staff-push-claim-repository";
 import type { StaffPushCleanupResult } from "./staff-push-delivery-types";
 
 interface CleanupRow {
@@ -10,6 +12,68 @@ interface CleanupRow {
 interface BacklogRow {
   readonly due_count: number;
   readonly oldest_due_age_seconds: number;
+}
+
+interface StaleRegistrationRow {
+  readonly disabled_registrations: number;
+  readonly suppressed_deliveries: number;
+}
+
+export interface StaleRegistrationResult {
+  readonly disabledRegistrations: number;
+  readonly suppressedDeliveries: number;
+}
+
+export async function reconcileStaleStaffPushRegistrations(
+  pool: PostgresPool,
+  activeRegistrationStaleDays: number,
+): Promise<StaleRegistrationResult> {
+  return inPostgresTransaction(pool, async (transaction) => {
+    const result = await transaction.query<StaleRegistrationRow>(
+      `WITH clock AS MATERIALIZED (SELECT clock_timestamp() AS now),
+       candidates AS MATERIALIZED (
+         SELECT registration.id
+         FROM staff_push_registrations AS registration
+         CROSS JOIN clock
+         WHERE registration.state = 'ACTIVE'
+           AND registration.last_confirmed_at <=
+             clock.now - make_interval(days => $1)
+         ORDER BY registration.last_confirmed_at, registration.id
+         FOR UPDATE OF registration SKIP LOCKED
+         LIMIT $2
+       ), disabled AS (
+         UPDATE staff_push_registrations AS registration
+         SET state = 'DISABLED', provider_token = NULL,
+             terminal_at = clock.now,
+             terminal_reason_class = 'STALE_CONFIRMATION_TIMEOUT',
+             updated_at = clock.now
+         FROM candidates, clock
+         WHERE registration.id = candidates.id
+           AND registration.state = 'ACTIVE'
+           AND registration.last_confirmed_at <=
+             clock.now - make_interval(days => $1)
+         RETURNING registration.id
+       ), suppressed AS (
+         UPDATE staff_push_deliveries AS delivery
+         SET state = 'SUPPRESSED', next_attempt_at = NULL,
+             provider_result_class = NULL, provider_reference = NULL,
+             terminal_at = clock.now, updated_at = clock.now
+         FROM disabled, clock
+         WHERE delivery.registration_id = disabled.id
+           AND delivery.state IN ('PENDING', 'RETRY_WAIT')
+         RETURNING delivery.id
+       )
+       SELECT (SELECT count(*)::integer FROM disabled)
+                AS disabled_registrations,
+              (SELECT count(*)::integer FROM suppressed)
+                AS suppressed_deliveries`,
+      [activeRegistrationStaleDays, STAFF_PUSH_MAINTENANCE_PASS_LIMIT],
+    );
+    return {
+      disabledRegistrations: result.rows[0]?.disabled_registrations ?? 0,
+      suppressedDeliveries: result.rows[0]?.suppressed_deliveries ?? 0,
+    };
+  });
 }
 
 export async function cleanupStaffPushPersistence(

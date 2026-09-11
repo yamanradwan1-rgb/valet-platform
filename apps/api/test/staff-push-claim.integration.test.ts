@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import {
   claimStaffPushDelivery,
+  STAFF_PUSH_MAINTENANCE_PASS_LIMIT,
   terminalizeUnclaimableStaffPushDeliveries,
 } from "../src/modules/staff-push/staff-push-claim-repository";
 import {
@@ -184,5 +185,40 @@ describe("Staff Push atomic claim and fencing", () => {
       [expiringLease.deliveryId],
     );
     expect(expiredLease.rows[0]!.state).toBe("EXPIRED");
+  });
+
+  it("bounds one maintenance pass and safely drains with concurrent later passes", async () => {
+    const total = STAFF_PUSH_MAINTENANCE_PASS_LIMIT + 2;
+    for (let index = 0; index < total; index += 1) await delivery();
+    await bypassGuard(
+      `UPDATE staff_push_intents
+       SET created_at = clock_timestamp() - interval '2 seconds',
+           expires_at = clock_timestamp() - interval '1 second'`,
+      [],
+    );
+    await expect(
+      terminalizeUnclaimableStaffPushDeliveries(context.runtimePool),
+    ).resolves.toBe(STAFF_PUSH_MAINTENANCE_PASS_LIMIT);
+    const afterOne = await context.adminPool.query<{
+      count: string;
+      state: string;
+    }>(
+      `SELECT state::text, count(*)::text AS count
+       FROM staff_push_deliveries GROUP BY state ORDER BY state`,
+    );
+    expect(afterOne.rows).toEqual([
+      { count: String(STAFF_PUSH_MAINTENANCE_PASS_LIMIT), state: "EXPIRED" },
+      { count: "2", state: "PENDING" },
+    ]);
+    const drained = await Promise.all([
+      terminalizeUnclaimableStaffPushDeliveries(context.runtimePool),
+      terminalizeUnclaimableStaffPushDeliveries(context.runtimePool),
+    ]);
+    expect(drained.reduce((sum, count) => sum + count, 0)).toBe(2);
+    const final = await context.adminPool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM staff_push_deliveries
+       WHERE state <> 'EXPIRED'`,
+    );
+    expect(final.rows[0]!.count).toBe("0");
   });
 });

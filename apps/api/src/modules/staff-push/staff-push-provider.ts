@@ -12,6 +12,13 @@ export interface StaffPushProviderResult {
   readonly retryAfterSeconds?: number;
 }
 
+export type StaffPushProviderSendResult =
+  | { readonly kind: "EXPIRED_BEFORE_TRANSPORT" }
+  | {
+      readonly kind: "PROVIDER_RESULT";
+      readonly result: StaffPushProviderResult;
+    };
+
 export interface StaffPushProviderMessage {
   readonly android: {
     readonly priority: "HIGH";
@@ -31,5 +38,7 @@ export interface StaffPushProviderMessage {
 }
 
 export interface StaffPushProvider {
-  send(message: StaffPushProviderMessage): Promise<StaffPushProviderResult>;
+  send(request: {
+    messageForTransport(): StaffPushProviderMessage | undefined;
+  }): Promise<StaffPushProviderSendResult>;
 }
