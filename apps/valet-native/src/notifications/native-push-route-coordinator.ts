@@ -179,9 +179,7 @@ export class NativePushRouteCoordinator {
         });
         this.pending.shift();
         const receipt = this.options.routeTasks();
-        this.observe({
-          kind: receipt === "rejected" ? "route-dropped" : "route-resolved",
-        });
+        this.observe({ kind: routeObservationKind(receipt) });
         continue;
       }
       this.observe({
@@ -267,9 +265,19 @@ function isAuthoritativeGate(
   return (
     snapshot.identityGeneration === generation &&
     (snapshot.phase === "access-denied" ||
+      (snapshot.phase === "error" &&
+        snapshot.contextFailure?.code === "AUTHORIZATION_DENIED") ||
       snapshot.phase === "ambiguous-active-shifts" ||
       snapshot.phase === "no-active-shift" ||
       snapshot.phase === "no-usable-location" ||
       snapshot.queueHardStopped)
   );
+}
+
+function routeObservationKind(
+  receipt: IntentReceipt,
+): "route-dropped" | "route-held" | "route-resolved" {
+  if (receipt === "held") return "route-held";
+  if (receipt === "rejected") return "route-dropped";
+  return "route-resolved";
 }
