@@ -7,8 +7,8 @@ import { Phase6CoreE2ETestContext } from "./phase6-core-e2e-test-context";
 describe("VAL-008H production-composed customer cash journey", () => {
   const context = new Phase6CoreE2ETestContext("customer_cash");
 
-  beforeEach(async () => context.setupApi());
-  afterEach(async () => context.teardownApi());
+  beforeEach(async () => context.setupApi(), 120_000);
+  afterEach(async () => context.teardownApi(), 60_000);
 
   it("collects, projects, releases, and refunds without rewriting collection history", async () => {
     const fixture = await context.prepareStandard("PICKUP_CODE");

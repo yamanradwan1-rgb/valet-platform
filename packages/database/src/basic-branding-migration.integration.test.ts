@@ -98,12 +98,12 @@ describe("migration 30 basic branding and subscription entitlements", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(32);
+    expect(directories).toHaveLength(33);
     expect(directories[29]).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
     expect(directories.at(-1)).toBe(
-      "20260910003200_mob_020a_staff_push_persistence",
+      "20260911003300_mob_020d_staff_push_cleanup",
     );
   });
 
@@ -163,9 +163,9 @@ describe("migration 30 basic branding and subscription entitlements", () => {
       code: "23514",
     });
     await expect(seedPlanCode("")).rejects.toBeTruthy();
-    await expect(
-      seedPlanCode("A".repeat(65)),
-    ).rejects.toMatchObject({ code: "23514" });
+    await expect(seedPlanCode("A".repeat(65))).rejects.toMatchObject({
+      code: "23514",
+    });
     await expect(
       client.query(
         `UPDATE organization_subscriptions SET status = 'CANCELLED'`,
@@ -199,23 +199,24 @@ describe("migration 30 basic branding and subscription entitlements", () => {
     const state = await client.query<{
       effective_value: string;
       override_present: boolean;
-    }>(
-      `SELECT * FROM location_branding_setting_state($1,'brandDisplayName')`,
-      [locationId],
-    );
+    }>(`SELECT * FROM location_branding_setting_state($1,'brandDisplayName')`, [
+      locationId,
+    ]);
     expect(state.rows[0]).toEqual({
       effective_value: "فندق النخبة",
       override_present: true,
       override_value: "فندق النخبة",
     });
-    const stale = await client.query<{ t: Date }>(
-      `SELECT location_branding_clear_display_name_override($1,$2,$3) AS t`,
-      [
-        membershipId,
-        locationId,
-        new Date(current.rows[0]!.u.getTime() - 1000),
-      ],
-    ).catch((e) => e.code);
+    const stale = await client
+      .query<{ t: Date }>(
+        `SELECT location_branding_clear_display_name_override($1,$2,$3) AS t`,
+        [
+          membershipId,
+          locationId,
+          new Date(current.rows[0]!.u.getTime() - 1000),
+        ],
+      )
+      .catch((e) => e.code);
     expect(stale).toBe("40001");
 
     const auditsBefore = (

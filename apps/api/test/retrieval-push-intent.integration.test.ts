@@ -9,6 +9,25 @@ beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
 
 describe("MOB-020C retrieval Push intent transaction", () => {
+  it("keeps canonical Retrieval available when Push creation is disabled", async () => {
+    const fixture = await context.createGuestParkedFixture();
+    await context.addRegistration(fixture.userId);
+    await context.request(
+      fixture,
+      syntheticStaffPushPolicy.employeeRetrievalRequested,
+      false,
+    );
+    expect(await context.retrievalEffects(fixture.sessionId)).toEqual({
+      audit_count: 1,
+      delivery_count: 0,
+      dispatch_count: 1,
+      intent_count: 0,
+      request_count: 1,
+      session_state: "REQUESTED",
+      task_count: 1,
+    });
+  });
+
   it("commits the canonical domain lifecycle and one intent with zero recipients", async () => {
     const fixture = await context.createGuestParkedFixture();
     const result = await context.request(fixture);

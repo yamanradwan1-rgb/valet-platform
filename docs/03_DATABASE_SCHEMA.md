@@ -1513,8 +1513,15 @@ Rules:
 - the existing runtime role receives SELECT/INSERT plus only the registration
   lifecycle and delivery-coordination UPDATE columns; it receives no intent
   UPDATE and no DELETE/TRUNCATE/REFERENCES/TRIGGER authority on these tables
-- the migration supplies no TTL, maximum-attempt, lease, retry, retention,
-  concurrency, or provider deployment value; U-005 remains unresolved
+- migration 33 adds parameterless `cleanup_staff_push_v1()` as a
+  `SECURITY DEFINER` maintenance boundary: PUBLIC is denied, runtime receives
+  EXECUTE only, and direct DELETE/TRUNCATE stays denied
+- cleanup deletes terminal deliveries before unreferenced intents after seven
+  days and unreferenced terminal registrations after 30 days; fixed 1,000-row
+  transaction limits are implementation safety guards, not capacity policy
+- age-only stale ACTIVE registrations are deliberately not terminalized because
+  the accepted state vocabulary cannot represent staleness truthfully; a focused
+  lifecycle decision is still required for that behavior
 
 ## audit_events / Black Box
 

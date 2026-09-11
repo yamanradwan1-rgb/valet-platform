@@ -7135,10 +7135,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all thirty-two forward-only migrations in order", () => {
+  it("applies exactly all thirty-three forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260910003200_mob_020a_staff_push_persistence",
+      "20260911003300_mob_020d_staff_push_cleanup",
     );
   });
 

@@ -72,9 +72,9 @@ describe("DEC-034 Task and DispatchEvent persistence", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual(expectedMigrationDirectories);
-    expect(directories).toHaveLength(32);
+    expect(directories).toHaveLength(33);
     expect(directories.at(-1)).toBe(
-      "20260910003200_mob_020a_staff_push_persistence",
+      "20260911003300_mob_020d_staff_push_cleanup",
     );
     for (const [type, expected] of [
       ["task_type", ["PARKING", "RETRIEVAL"]],

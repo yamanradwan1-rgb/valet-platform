@@ -102,6 +102,7 @@ export const runtimePrivateMapSetupFunctions = [
 
 export const runtimeMaintenanceFunctions = [
   "public.cleanup_expired_raw_gps_samples(integer)",
+  "public.cleanup_staff_push_v1()",
 ];
 
 export const incidentReadPolicies = [
