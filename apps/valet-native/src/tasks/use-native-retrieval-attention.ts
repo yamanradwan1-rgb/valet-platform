@@ -6,6 +6,10 @@ import {
 
 export function useNativeRetrievalAttention(
   snapshot: EmployeeOperationalSnapshot,
+  push: {
+    readonly dismissAttention: (intentId: string) => void;
+    readonly intentIds: readonly string[];
+  },
 ) {
   const owner = useRef(new EmployeeRetrievalAttentionOwner());
   const [taskIds, setTaskIds] = useState<readonly string[]>([]);
@@ -15,9 +19,16 @@ export function useNativeRetrievalAttention(
   }, [snapshot]);
 
   return {
-    dismiss: (taskId: string) => {
-      setTaskIds(owner.current.dismiss(taskId));
+    attention: [
+      ...taskIds.map((key) => ({ key, source: "polling" as const })),
+      ...push.intentIds.map((key) => ({ key, source: "push" as const })),
+    ],
+    dismiss: (item: {
+      readonly key: string;
+      readonly source: "polling" | "push";
+    }) => {
+      if (item.source === "push") push.dismissAttention(item.key);
+      else setTaskIds(owner.current.dismiss(item.key));
     },
-    taskIds,
   };
 }

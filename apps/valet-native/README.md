@@ -47,3 +47,23 @@ ignored local evidence, not a deployable APK or physical-device PASS.
 No native dependency/plugin/configuration changes are involved. Reload the
 existing Development Build against a restarted Metro for physical validation;
 an APK rebuild is not required for this resolution repair.
+
+## Android push capability
+
+Staff push uses `expo-notifications` only for the direct native Android device
+token, permission, one operational retrieval channel, and foreground receipt.
+It does not use Expo push tokens or the Expo Push Service. The app intentionally
+suppresses an OS foreground banner because the existing in-app retrieval alert
+is the foreground presentation owner.
+
+This capability requires a Development Build or other real native binary; Expo
+Go is not valid push evidence. A real environment must supply its own
+organization-controlled Firebase Android configuration outside this repository.
+Without that configuration, token acquisition and remote registration degrade
+truthfully while the authenticated Task queue and polling continue to work.
+
+The compact notification status shown at the top of the authenticated workspace
+is the smallest existing status surface: it reports permission/registration
+availability, offers the OS prompt only while requestable, and otherwise gives
+neutral Android-settings guidance. Background taps, terminated-state responses,
+and cold-start notification routing remain MOB-022 work.

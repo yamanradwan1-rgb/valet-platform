@@ -10,6 +10,8 @@ import type {
 } from "@valet/employee-client";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import type { NativePushSnapshot } from "../notifications/native-push-types";
+import type { NativeRetrievalAttentionItem } from "../tasks/native-retrieval-attention";
 import type { NativeContextualPresentation } from "./use-native-contextual-route";
 import type {
   ProductionDestination,
@@ -29,11 +31,15 @@ export interface NativeProductionWorkspaceProps {
   readonly onSelectLocale: (locale: FoundationLocale) => void;
   readonly operations: EmployeeOperationalSnapshot;
   readonly parking: EmployeeParkingStartSnapshot;
+  readonly push: {
+    readonly requestPermission: () => Promise<void>;
+    readonly snapshot: NativePushSnapshot;
+  };
   readonly retrieval: EmployeeRetrievalSnapshot;
   readonly release: EmployeeReleaseSnapshot;
   readonly retrievalAttention: {
-    readonly dismiss: (taskId: string) => void;
-    readonly taskIds: readonly string[];
+    readonly attention: readonly NativeRetrievalAttentionItem[];
+    readonly dismiss: (item: NativeRetrievalAttentionItem) => void;
   };
   readonly runtime: NativeEmployeeRuntime;
   readonly shell: ActiveShell;

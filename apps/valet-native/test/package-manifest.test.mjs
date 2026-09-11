@@ -4,7 +4,6 @@ import manifest from "../package.json";
 const forbiddenDependencies = [
   "@valet/ui",
   "expo-location",
-  "expo-notifications",
   "expo-updates",
   "next",
   "react-dom",
@@ -26,6 +25,7 @@ describe("Native package contract", () => {
   });
 
   it("uses the MOB-006 portable Employee client boundary", () => {
+    expect(manifest.dependencies["@valet/contracts"]).toBe("workspace:*");
     expect(manifest.dependencies["@valet/employee-client"]).toBe("workspace:*");
   });
 
@@ -33,14 +33,18 @@ describe("Native package contract", () => {
     expect(manifest.dependencies["expo-camera"]).toBe("~57.0.4");
     expect(manifest.dependencies["expo-blur"]).toBe("~57.0.2");
     expect(manifest.dependencies["expo-clipboard"]).toBe("~57.0.1");
+    expect(manifest.dependencies["expo-application"]).toBe("~57.0.3");
+    expect(manifest.dependencies["expo-notifications"]).toBe("~57.0.18");
     expect(manifest.dependencies.qrcode).toBe("^1.5.4");
     expect(manifest.dependencies["react-native-svg"]).toBe("15.15.4");
     expect(Object.keys(manifest.dependencies).sort()).toEqual(
       [
         "@expo-google-fonts/plus-jakarta-sans",
         "@expo-google-fonts/space-grotesk",
+        "@valet/contracts",
         "@valet/employee-client",
         "expo",
+        "expo-application",
         "expo-build-properties",
         "expo-blur",
         "expo-camera",
@@ -50,6 +54,7 @@ describe("Native package contract", () => {
         "expo-file-system",
         "expo-font",
         "expo-linking",
+        "expo-notifications",
         "expo-router",
         "expo-secure-store",
         "expo-status-bar",

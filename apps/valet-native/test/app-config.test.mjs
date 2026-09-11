@@ -8,6 +8,9 @@ const buildProperties = expo.plugins.find(
 const cameraPlugin = expo.plugins.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === "expo-camera",
 );
+const notificationsPlugin = expo.plugins.find(
+  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-notifications",
+);
 
 describe("Expo application configuration", () => {
   it("uses the accepted Employee identity", () => {
@@ -35,6 +38,13 @@ describe("Expo application configuration", () => {
   it("configures SecureStore while keeping release cleartext disabled", () => {
     expect(expo.plugins).toContain("expo-secure-store");
     expect(buildProperties[1].android.usesCleartextTraffic).toBe(false);
+  });
+
+  it("configures one Android operational retrieval notification channel", () => {
+    expect(notificationsPlugin).toEqual([
+      "expo-notifications",
+      { defaultChannel: "vaylet-operational-retrieval" },
+    ]);
   });
 
   it("keeps camera permission without introducing audio recording", () => {

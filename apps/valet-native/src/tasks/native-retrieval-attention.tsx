@@ -25,17 +25,22 @@ import {
 import { nativeRetrievalAlertGesture } from "../retrieval-alert/native-retrieval-alert-gesture";
 import { getNativeTasksCopy } from "./native-tasks-copy";
 
+export interface NativeRetrievalAttentionItem {
+  readonly key: string;
+  readonly source: "polling" | "push";
+}
+
 interface NativeRetrievalAlertProps {
+  readonly attention: readonly NativeRetrievalAttentionItem[];
   readonly locale: FoundationLocale;
-  readonly onDismiss: (taskId: string) => void;
+  readonly onDismiss: (item: NativeRetrievalAttentionItem) => void;
   readonly onOpenQueue: () => void;
   readonly operations: EmployeeOperationalSession;
-  readonly taskIds: readonly string[];
   readonly textAlign: "left" | "right";
 }
 
 export function NativeRetrievalAttention(props: NativeRetrievalAlertProps) {
-  if (props.taskIds.length === 0) return null;
+  if (props.attention.length === 0) return null;
   return (
     <View
       accessibilityLiveRegion="polite"
@@ -46,8 +51,12 @@ export function NativeRetrievalAttention(props: NativeRetrievalAlertProps) {
       ]}
       testID="native-retrieval-attention"
     >
-      {props.taskIds.map((taskId) => (
-        <NativeRetrievalAlertBanner key={taskId} {...props} taskId={taskId} />
+      {props.attention.map((item) => (
+        <NativeRetrievalAlertBanner
+          key={`${item.source}:${item.key}`}
+          {...props}
+          item={item}
+        />
       ))}
     </View>
   );
@@ -58,9 +67,11 @@ export function NativeRetrievalAlertBanner({
   onDismiss,
   onOpenQueue,
   operations,
-  taskId,
+  item,
   textAlign,
-}: Omit<NativeRetrievalAlertProps, "taskIds"> & { readonly taskId: string }) {
+}: Omit<NativeRetrievalAlertProps, "attention"> & {
+  readonly item: NativeRetrievalAttentionItem;
+}) {
   const [opening, setOpening] = useState(false);
   const openingRef = useRef(false);
   const translateY = useSharedValue(0);
@@ -68,7 +79,7 @@ export function NativeRetrievalAlertBanner({
   const suppressOpen = useSharedValue(0);
   const copy = getNativeTasksCopy(locale);
   const humanText = employeeTextStyle("human", textAlign);
-  const dismiss = useCallback(() => onDismiss(taskId), [onDismiss, taskId]);
+  const dismiss = useCallback(() => onDismiss(item), [item, onDismiss]);
   const pan = Gesture.Pan()
     .onUpdate((event) => {
       const state = nativeRetrievalAlertGesture(
@@ -118,7 +129,7 @@ export function NativeRetrievalAlertBanner({
     <GestureDetector gesture={pan}>
       <Animated.View
         style={[attentionStyles.banner, animatedStyle]}
-        testID={`native-retrieval-alert-${taskId}`}
+        testID="native-retrieval-alert"
       >
         <Pressable
           accessibilityLabel={`${copy.retrievalAlertTitle}. ${copy.retrievalAlertBody}`}
@@ -129,7 +140,7 @@ export function NativeRetrievalAlertBanner({
             if (suppressOpen.value === 1 || openingRef.current) return;
             openingRef.current = true;
             setOpening(true);
-            onDismiss(taskId);
+            onDismiss(item);
             onOpenQueue();
             void operations.refreshQueue();
           }}
@@ -146,7 +157,7 @@ export function NativeRetrievalAlertBanner({
           accessibilityLabel={copy.dismiss}
           accessibilityRole="button"
           hitSlop={8}
-          onPress={() => onDismiss(taskId)}
+          onPress={() => onDismiss(item)}
           style={attentionStyles.dismiss}
         >
           <Text style={[attentionStyles.dismissLabel, humanText]}>

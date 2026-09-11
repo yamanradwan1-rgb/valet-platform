@@ -16,6 +16,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-notifications",
+        {
+          "defaultChannel": "vaylet-operational-retrieval"
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {

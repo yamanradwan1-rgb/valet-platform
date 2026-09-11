@@ -93,11 +93,25 @@ function render(taskIds: readonly string[]) {
   hooks.index = 0;
   return elements(
     NativeRetrievalAttention({
+      attention: taskIds.map((key) => ({ key, source: "polling" as const })),
       locale: "en",
       onDismiss,
       onOpenQueue,
       operations,
-      taskIds,
+      textAlign: "left",
+    }),
+  );
+}
+
+function renderPush(intentId: string) {
+  hooks.index = 0;
+  return elements(
+    NativeRetrievalAttention({
+      attention: [{ key: intentId, source: "push" }],
+      locale: "en",
+      onDismiss,
+      onOpenQueue,
+      operations,
       textAlign: "left",
     }),
   );
@@ -136,7 +150,7 @@ describe("Native foreground retrieval attention", () => {
 
     (dismiss.props.onPress as () => void)();
 
-    expect(onDismiss).toHaveBeenCalledWith(taskId);
+    expect(onDismiss).toHaveBeenCalledWith({ key: taskId, source: "polling" });
   });
 
   it("opens Tasks immediately without waiting for canonical refresh", () => {
@@ -148,8 +162,25 @@ describe("Native foreground retrieval attention", () => {
 
     (message.props.onPress as () => void)();
     expect(operations.refreshQueue).toHaveBeenCalledOnce();
-    expect(onDismiss).toHaveBeenCalledWith(taskId);
+    expect(onDismiss).toHaveBeenCalledWith({ key: taskId, source: "polling" });
     expect(onOpenQueue).toHaveBeenCalledOnce();
+  });
+
+  it("opens and refetches the canonical queue for push attention", () => {
+    const intentId = "77777777-7777-4777-8777-777777777777";
+    const visible = renderPush(intentId);
+    const message = visible.find((node) =>
+      String(node.props.accessibilityLabel).startsWith("Vehicle requested"),
+    )!;
+
+    (message.props.onPress as () => void)();
+
+    expect(onDismiss).toHaveBeenCalledExactlyOnceWith({
+      key: intentId,
+      source: "push",
+    });
+    expect(onOpenQueue).toHaveBeenCalledOnce();
+    expect(operations.refreshQueue).toHaveBeenCalledOnce();
   });
 
   it.each([2, 3])(
@@ -162,11 +193,9 @@ describe("Native foreground retrieval attention", () => {
       const visible = render(ids);
       expect(
         visible
-          .filter((node) =>
-            String(node.props.testID).startsWith("native-retrieval-alert-"),
-          )
+          .filter((node) => node.props.testID === "native-retrieval-alert")
           .map((node) => node.props.testID),
-      ).toEqual(ids.map((id) => `native-retrieval-alert-${id}`));
+      ).toEqual(ids.map(() => "native-retrieval-alert"));
     },
   );
 
@@ -174,7 +203,10 @@ describe("Native foreground retrieval attention", () => {
     render([taskId]);
     gestures.update?.({ translationX: 4, translationY: -48 });
     gestures.end?.({ translationX: 4, translationY: -48 });
-    expect(onDismiss).toHaveBeenCalledExactlyOnceWith(taskId);
+    expect(onDismiss).toHaveBeenCalledExactlyOnceWith({
+      key: taskId,
+      source: "polling",
+    });
     expect(onOpenQueue).not.toHaveBeenCalled();
   });
 
@@ -183,11 +215,11 @@ describe("Native foreground retrieval attention", () => {
     const ids = [`${taskId}-a`, `${taskId}-b`];
     const visible = elements(
       NativeRetrievalAttention({
+        attention: ids.map((key) => ({ key, source: "polling" as const })),
         locale: "ar",
         onDismiss,
         onOpenQueue,
         operations: operations as never,
-        taskIds: ids,
         textAlign: "right",
       }),
     );
@@ -196,10 +228,8 @@ describe("Native foreground retrieval attention", () => {
     ).toBe(true);
     expect(
       visible
-        .filter((node) =>
-          String(node.props.testID).startsWith("native-retrieval-alert-"),
-        )
+        .filter((node) => node.props.testID === "native-retrieval-alert")
         .map((node) => node.props.testID),
-    ).toEqual(ids.map((id) => `native-retrieval-alert-${id}`));
+    ).toEqual(ids.map(() => "native-retrieval-alert"));
   });
 });

@@ -3,7 +3,7 @@ import { AppState } from "react-native";
 
 import type { NativeLocalePreference } from "../i18n/native-locale-preference";
 import { useNativeEmployeeLocale } from "../i18n/use-native-employee-locale";
-import { useNativeRetrievalAttention } from "../tasks/use-native-retrieval-attention";
+import { useNativePushAttention } from "../notifications/use-native-push-attention";
 import { useNativeProductionBackHandler } from "./native-production-back-handler";
 import { useNativeContextualRoute } from "./use-native-contextual-route";
 import { NativeProductionWorkspace } from "./native-production-workspace";
@@ -61,7 +61,12 @@ export function NativeProductionShell({
       ? shell.scope
       : null;
   const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
-  const retrievalAttention = useNativeRetrievalAttention(operations);
+  const { push, retrievalAttention } = useNativePushAttention(
+    runtime,
+    authSnapshot,
+    locale,
+    operations,
+  );
   useNativeVehicleDirectoryRevalidation({
     directory: runtime?.vehicleDirectory,
     identityGeneration: authSnapshot.authGeneration,
@@ -283,6 +288,7 @@ export function NativeProductionShell({
       onSelectLocale={setLocale}
       operations={operations}
       parking={parking}
+      push={push}
       retrieval={retrieval}
       release={release}
       retrievalAttention={retrievalAttention}

@@ -32,6 +32,7 @@ import {
 import { NativeContextualSurface } from "./native-contextual-surface";
 import { nativeContextualNavigationPinned } from "./native-contextual-route";
 import { NativeConnectivityBanner } from "./native-connectivity-banner";
+import { NativePushPermissionStatus } from "../notifications/native-push-permission-status";
 import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
 
 export function NativeProductionWorkspace({
@@ -45,6 +46,7 @@ export function NativeProductionWorkspace({
   onSelectLocale,
   operations,
   parking,
+  push,
   retrieval,
   release,
   retrievalAttention,
@@ -60,6 +62,12 @@ export function NativeProductionWorkspace({
   return (
     <EmployeeFrame direction={presentation.direction}>
       <NativeConnectivityBanner locale={locale} online={connectivityOnline} />
+      <NativePushPermissionStatus
+        locale={locale}
+        onRequestPermission={push.requestPermission}
+        snapshot={push.snapshot}
+        textAlign={presentation.textAlign}
+      />
       <EmployeeAppHeader
         scope={shell.scope}
         textAlign={presentation.textAlign}
@@ -76,7 +84,7 @@ export function NativeProductionWorkspace({
         onDismiss={retrievalAttention.dismiss}
         onOpenQueue={() => navigate("tasks")}
         operations={runtime.operations}
-        taskIds={retrievalAttention.taskIds}
+        attention={retrievalAttention.attention}
         textAlign={presentation.textAlign}
       />
       <View style={{ flex: 1, minHeight: 0 }} testID="native-production-shell">
