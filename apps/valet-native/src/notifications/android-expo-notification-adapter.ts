@@ -138,6 +138,7 @@ export class AndroidExpoNotificationAdapter implements NativePushPlatformAdapter
 
   async requestPermission(): Promise<NativePushPermissionState> {
     if (Platform.OS !== "android") return "unavailable";
+    await this.ensureRetrievalChannel();
     return permissionState(await Notifications.requestPermissionsAsync());
   }
 

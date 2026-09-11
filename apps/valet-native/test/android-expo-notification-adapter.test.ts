@@ -103,6 +103,40 @@ describe("Android Expo notification adapter", () => {
     ).resolves.toBe(expected);
   });
 
+  it("creates the Android channel before requesting permission", async () => {
+    const order: string[] = [];
+    mocks.setNotificationChannelAsync.mockImplementation(async () => {
+      order.push("channel-created");
+    });
+    mocks.getNotificationChannelAsync.mockImplementation(async () => {
+      order.push("channel-checked");
+      return { importance: 5 };
+    });
+    mocks.requestPermissionsAsync.mockImplementation(async () => {
+      order.push("permission-requested");
+      return permission("granted", false, true);
+    });
+
+    await expect(
+      new AndroidExpoNotificationAdapter().requestPermission(),
+    ).resolves.toBe("granted");
+    expect(order).toEqual([
+      "channel-created",
+      "channel-checked",
+      "permission-requested",
+    ]);
+  });
+
+  it("does not request permission when channel setup fails", async () => {
+    mocks.setNotificationChannelAsync.mockRejectedValue(
+      new Error("synthetic channel setup failure"),
+    );
+    await expect(
+      new AndroidExpoNotificationAdapter().requestPermission(),
+    ).rejects.toThrow("synthetic channel setup failure");
+    expect(mocks.requestPermissionsAsync).not.toHaveBeenCalled();
+  });
+
   it("creates the one safe retrieval channel idempotently", async () => {
     const adapter = new AndroidExpoNotificationAdapter();
     await Promise.all([

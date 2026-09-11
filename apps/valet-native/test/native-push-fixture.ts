@@ -55,6 +55,7 @@ export class FakePushPlatform implements NativePushPlatformAdapter {
   channelAvailable = true;
   deleteCalls = 0;
   deleteFails = false;
+  deletePromise: Promise<void> | undefined;
   foregroundListener: ((data: unknown) => void) | undefined;
   foregroundRemoveCalls = 0;
   getTokenCalls = 0;
@@ -95,6 +96,7 @@ export class FakePushPlatform implements NativePushPlatformAdapter {
 
   async deleteCurrentToken() {
     this.deleteCalls += 1;
+    if (this.deletePromise !== undefined) await this.deletePromise;
     if (this.deleteFails) throw new Error("synthetic local delete failure");
   }
 

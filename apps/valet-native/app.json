@@ -32,7 +32,13 @@
           }
         }
       ],
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": false
+        }
+      ],
+      "./plugins/with-native-push-backup-exclusion",
       [
         "expo-camera",
         {

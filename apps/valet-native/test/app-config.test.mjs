@@ -11,6 +11,9 @@ const cameraPlugin = expo.plugins.find(
 const notificationsPlugin = expo.plugins.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === "expo-notifications",
 );
+const secureStorePlugin = expo.plugins.find(
+  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-secure-store",
+);
 
 describe("Expo application configuration", () => {
   it("uses the accepted Employee identity", () => {
@@ -36,7 +39,13 @@ describe("Expo application configuration", () => {
   });
 
   it("configures SecureStore while keeping release cleartext disabled", () => {
-    expect(expo.plugins).toContain("expo-secure-store");
+    expect(secureStorePlugin).toEqual([
+      "expo-secure-store",
+      { configureAndroidBackup: false },
+    ]);
+    expect(expo.plugins).toContain(
+      "./plugins/with-native-push-backup-exclusion",
+    );
     expect(buildProperties[1].android.usesCleartextTraffic).toBe(false);
   });
 

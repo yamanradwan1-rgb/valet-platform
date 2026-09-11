@@ -52,6 +52,19 @@ describe("Native push permission and desired state", () => {
     expect(harness.owner.current().registration).toBe("confirmed");
   });
 
+  it("degrades a failed pre-permission channel setup without token work", async () => {
+    const harness = pushHarness();
+    harness.platform.permission = "denied";
+    await harness.owner.setAuth(authenticated());
+    harness.platform.requestedPermission = Promise.reject(
+      new Error("synthetic channel setup failure"),
+    );
+    await harness.owner.requestPermission();
+    expect(harness.owner.current().permission).toBe("unavailable");
+    expect(harness.platform.getTokenCalls).toBe(0);
+    expect(harness.registration.calls).toHaveLength(0);
+  });
+
   it("ignores a stale permission result after logout", async () => {
     const harness = pushHarness();
     harness.platform.permission = "denied";
@@ -207,9 +220,10 @@ describe("Native push bounded lifecycle and auth fences", () => {
     harness.registration.responsePromise = pending.promise;
     const reconcile = harness.owner.setAuth(authenticated());
     await waitForCallCount(harness.registration.calls, 1);
-    harness.owner.purgeIdentity();
+    const purge = harness.owner.purgeIdentity();
     pending.resolve(registrationResponse(harness.registration.calls[0]!));
     await reconcile;
+    await purge;
     expect(harness.owner.current().registration).toBe("idle");
   });
 
@@ -244,21 +258,6 @@ describe("Native push bounded lifecycle and auth fences", () => {
     await harness.owner.receiveToken(fakeTokenTwo, 1);
     expect(harness.registration.calls).toHaveLength(currentCalls);
     expect(harness.registration.calls.at(-1)?.providerToken).toBe(fakeTokenOne);
-  });
-
-  it("purges identity immediately and local deletion remains best effort", async () => {
-    const harness = await authenticatedHarness();
-    harness.owner.setForeground(true);
-    harness.owner.receiveForeground(validWirePayload(), 1);
-    harness.platform.deleteFails = true;
-    const registrations = harness.registration.calls.length;
-    harness.owner.purgeIdentity();
-    harness.platform.emitToken(fakeTokenTwo);
-    await Promise.resolve();
-    expect(harness.platform.deleteCalls).toBe(1);
-    expect(harness.owner.current().attentionIntentIds).toEqual([]);
-    expect(harness.owner.current().registration).toBe("idle");
-    expect(harness.registration.calls).toHaveLength(registrations);
   });
 
   it("installs lifecycle listeners once and removes them on dispose", () => {

@@ -14,9 +14,9 @@ import {
   emptyNativePushSnapshot,
   unauthenticatedNativePushAuth,
   type NativePushInstallationId,
+  type NativePushLifecycleReason,
   type NativePushPermissionState,
   type NativePushPlatformAdapter,
-  type NativePushReconcileReason,
   type NativePushRegistrationTransport,
   type NativePushSnapshot,
   type PendingNativePushReconcile,
@@ -128,11 +128,13 @@ export class NativePushLifecycleOwner {
     if (permission === "granted") await this.reconcile("permission");
   }
 
-  purgeIdentity(): void {
+  async purgeIdentity(): Promise<void> {
     this.clearIdentity();
-    void this.platform.deleteCurrentToken().catch(() => {
+    try {
+      await this.platform.deleteCurrentToken();
+    } catch {
       // Local provider cleanup is best effort and cannot fail auth purge.
-    });
+    }
   }
 
   dismissAttention(intentId: string): void {
@@ -148,9 +150,7 @@ export class NativePushLifecycleOwner {
     if (attentionIntentIds !== undefined) this.publish({ attentionIntentIds });
   }
 
-  reconcile(
-    reason: Exclude<NativePushReconcileReason, "token-change">,
-  ): Promise<void> {
+  reconcile(reason: NativePushLifecycleReason): Promise<void> {
     return this.queue({ generation: this.auth.authGeneration, reason });
   }
 

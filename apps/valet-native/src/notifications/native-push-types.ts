@@ -21,6 +21,11 @@ export type NativePushReconcileReason =
   | "permission"
   | "token-change";
 
+export type NativePushLifecycleReason = Exclude<
+  NativePushReconcileReason,
+  "token-change"
+>;
+
 export interface PendingNativePushReconcile {
   readonly generation: number;
   readonly providedToken?: string;
