@@ -14,6 +14,7 @@ import { PaymentsModule } from "./modules/payments/payments.module";
 import { RetrievalModule } from "./modules/retrieval/retrieval.module";
 import { ShiftModule } from "./modules/shifts/shift.module";
 import { StaffModule } from "./modules/staff/staff.module";
+import { StaffPushModule } from "./modules/staff-push/staff-push.module";
 import { TrackingModule } from "./modules/tracking/tracking.module";
 
 @Module({
@@ -25,6 +26,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     DashboardModule,
     ShiftModule,
     StaffModule,
+    StaffPushModule,
     KeyCustodyModule,
     MapSetupModule,
     DispatchModule,

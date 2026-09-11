@@ -16,9 +16,11 @@ export interface AuthHttpResult {
 }
 
 interface AuthRequestOptions {
+  readonly authorization?: string;
   readonly body?: unknown;
   readonly contentType?: string;
   readonly cookie?: string;
+  readonly method?: "POST" | "PUT";
   readonly origin?: string;
 }
 
@@ -168,10 +170,13 @@ export class StaffAuthNativeFixture {
     };
     if (options.origin !== undefined) headers.Origin = options.origin;
     if (options.cookie !== undefined) headers.Cookie = options.cookie;
+    if (options.authorization !== undefined) {
+      headers.Authorization = options.authorization;
+    }
     const response = await fetch(`${this.baseUrl}${path}`, {
       body: JSON.stringify(options.body ?? {}),
       headers,
-      method: "POST",
+      method: options.method ?? "POST",
     });
     const text = await response.text();
     return {

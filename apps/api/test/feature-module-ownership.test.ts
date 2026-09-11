@@ -13,6 +13,7 @@ import { AuthModule } from "../src/modules/auth/auth.module";
 import { NativeStaffAuthController } from "../src/modules/auth/native-staff-auth.controller";
 import { StaffAuthController } from "../src/modules/auth/staff-auth.controller";
 import { STAFF_PRINCIPAL_RESOLVER } from "../src/modules/auth/staff-principal";
+import { STAFF_SESSION_CONTEXT_RESOLVER } from "../src/modules/auth/staff-session-context";
 import { StaffCheckInController } from "../src/modules/check-in-api/check-in-api.controller";
 import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.service";
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
@@ -82,6 +83,7 @@ import { StaffValetSessionController } from "../src/modules/staff/staff-valet-se
 import { StaffValetSessionService } from "../src/modules/staff/staff-valet-session.service";
 import { StaffVehicleDirectoryService } from "../src/modules/staff/staff-vehicle-directory.service";
 import { StaffModule } from "../src/modules/staff/staff.module";
+import { StaffPushModule } from "../src/modules/staff-push/staff-push.module";
 import { GpsIngestionController } from "../src/modules/tracking/gps-ingestion.controller";
 import { GpsIngestionService } from "../src/modules/tracking/gps-ingestion.service";
 import { LiveMapController } from "../src/modules/tracking/live-map.controller";
@@ -104,6 +106,7 @@ describe("accepted feature module ownership", () => {
       DashboardModule,
       ShiftModule,
       StaffModule,
+      StaffPushModule,
       KeyCustodyModule,
       MapSetupModule,
       DispatchModule,
@@ -218,13 +221,14 @@ describe("accepted feature module ownership", () => {
     ]);
   });
 
-  it("keeps Auth ownership and exports only staff principal resolution", () => {
+  it("keeps Auth ownership and exports only accepted staff authority", () => {
     expect(metadata(AuthModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffAuthController,
       NativeStaffAuthController,
     ]);
     expect(metadata(AuthModule, MODULE_METADATA.EXPORTS)).toEqual([
       STAFF_PRINCIPAL_RESOLVER,
+      STAFF_SESSION_CONTEXT_RESOLVER,
     ]);
   });
 

@@ -1,6 +1,6 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import argon2 from "argon2";
 
 import type {
@@ -13,18 +13,18 @@ import {
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import {
-  type StaffPrincipal,
-  type StaffPrincipalResolver,
-} from "./staff-principal";
+  generateStaffCredential,
+  refreshTokenPattern,
+  staffCredentialHash,
+} from "./staff-auth-credential";
+import { revokeStaffSessionAndDisablePush } from "./staff-session-revocation";
+
+export { DatabaseStaffPrincipalResolver } from "./staff-session-context";
 
 export const STAFF_PASSWORD_VERIFIER = Symbol("STAFF_PASSWORD_VERIFIER");
 
 export const STAFF_AUTH_DUMMY_PASSWORD_HASH =
   "$argon2id$v=19$m=65536,p=4,t=3$dmF5bGV0LWR1bW15LXYwMQ$GwCTUHTzbfRTG4lBOkCBl3m1yb8/4PKLBerf0R1sgnQ";
-
-const accessBearerPattern = /^Bearer (vsa1\.[A-Za-z0-9_-]{43})$/;
-const accessTokenPattern = /^vsa1\.[A-Za-z0-9_-]{43}$/;
-const refreshTokenPattern = /^vsr1\.[A-Za-z0-9_-]{43}$/;
 
 interface UserAuthenticationRow {
   readonly id: string;
@@ -109,17 +109,6 @@ export function isAcceptedStaffPasswordHash(value: string): boolean {
   );
 }
 
-function generateCredential(prefix: "vsa1." | "vsr1."): string {
-  return `${prefix}${randomBytes(32).toString("base64url")}`;
-}
-
-function credentialHash(
-  type: "access" | "refresh",
-  credential: string,
-): string {
-  return `staff-${type}-sha256:v1:${createHash("sha256").update(credential, "utf8").digest("hex")}`;
-}
-
 async function inTransaction<T>(
   pool: PostgresPool,
   action: (transaction: PostgresTransaction) => Promise<T>,
@@ -150,40 +139,6 @@ export class Argon2StaffPasswordVerifier implements StaffPasswordVerifier {
     } catch {
       return false;
     }
-  }
-}
-
-@Injectable()
-export class DatabaseStaffPrincipalResolver implements StaffPrincipalResolver {
-  constructor(
-    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
-  ) {}
-
-  async resolve(authorization: string | undefined): Promise<StaffPrincipal> {
-    const match =
-      typeof authorization === "string"
-        ? accessBearerPattern.exec(authorization)
-        : null;
-    const accessToken = match?.[1];
-    if (accessToken === undefined || !accessTokenPattern.test(accessToken)) {
-      throw new UnauthorizedException();
-    }
-    const result = await this.pool.query<{ user_id: string }>(
-      `SELECT session.user_id
-       FROM staff_auth_sessions AS session
-       INNER JOIN users AS staff_user ON staff_user.id = session.user_id
-       WHERE session.current_access_token_hash = $1
-         AND session.revoked_at IS NULL
-         AND clock_timestamp() < session.access_expires_at
-         AND clock_timestamp() < session.absolute_expires_at
-         AND staff_user.status = 'ACTIVE'`,
-      [credentialHash("access", accessToken)],
-    );
-    const userId = result.rows[0]?.user_id;
-    if (result.rowCount !== 1 || userId === undefined) {
-      throw new UnauthorizedException();
-    }
-    return { userId };
   }
 }
 
@@ -223,8 +178,8 @@ export class StaffAuthService {
       throw new StaffAuthenticationError();
     }
 
-    const accessToken = generateCredential("vsa1.");
-    const refreshToken = generateCredential("vsr1.");
+    const accessToken = generateStaffCredential("vsa1.");
+    const refreshToken = generateStaffCredential("vsr1.");
     const sessionId = randomUUID();
     const refreshId = randomUUID();
     const session = await inTransaction(this.pool, async (transaction) => {
@@ -260,7 +215,7 @@ export class StaffAuthService {
         [
           sessionId,
           user.id,
-          credentialHash("access", accessToken),
+          staffCredentialHash("access", accessToken),
           databaseNow,
         ],
       );
@@ -271,7 +226,7 @@ export class StaffAuthService {
         [
           refreshId,
           sessionId,
-          credentialHash("refresh", refreshToken),
+          staffCredentialHash("refresh", refreshToken),
           databaseNow,
         ],
       );
@@ -323,8 +278,8 @@ export class StaffAuthService {
     if (!refreshTokenPattern.test(refreshToken)) {
       throw new StaffAuthenticationError();
     }
-    const accessToken = generateCredential("vsa1.");
-    const replacementRefreshToken = generateCredential("vsr1.");
+    const accessToken = generateStaffCredential("vsa1.");
+    const replacementRefreshToken = generateStaffCredential("vsr1.");
     const replacementId = randomUUID();
     const result = await inTransaction(this.pool, async (transaction) => {
       const locked = await transaction.query<RefreshCredentialRow>(
@@ -337,7 +292,7 @@ export class StaffAuthService {
          INNER JOIN users AS staff_user ON staff_user.id = session.user_id
          WHERE refresh.token_hash = $1
          FOR UPDATE OF refresh, session, staff_user`,
-        [credentialHash("refresh", refreshToken)],
+        [staffCredentialHash("refresh", refreshToken)],
       );
       const credential = locked.rows[0];
       if (credential === undefined) throw new StaffAuthenticationError();
@@ -385,7 +340,7 @@ export class StaffAuthService {
         [
           replacementId,
           credential.session_id,
-          credentialHash("refresh", replacementRefreshToken),
+          staffCredentialHash("refresh", replacementRefreshToken),
           credential.generation + 1,
           databaseNow,
           credential.absolute_expires_at,
@@ -412,7 +367,7 @@ export class StaffAuthService {
                      FLOOR(EXTRACT(EPOCH FROM (absolute_expires_at - $3::timestamptz)))::integer
                    ) AS refresh_cookie_max_age_seconds`,
         [
-          credentialHash("access", accessToken),
+          staffCredentialHash("access", accessToken),
           credential.session_id,
           databaseNow,
         ],
@@ -442,16 +397,11 @@ export class StaffAuthService {
          INNER JOIN staff_auth_sessions AS session ON session.id = refresh.session_id
          WHERE refresh.token_hash = $1
          FOR UPDATE OF refresh, session`,
-        [credentialHash("refresh", refreshToken)],
+        [staffCredentialHash("refresh", refreshToken)],
       );
       const sessionId = locked.rows[0]?.session_id;
       if (sessionId !== undefined) {
-        await transaction.query(
-          `UPDATE staff_auth_sessions
-           SET revoked_at = COALESCE(revoked_at, transaction_timestamp())
-           WHERE id = $1`,
-          [sessionId],
-        );
+        await revokeStaffSessionAndDisablePush(transaction, sessionId);
       }
     });
   }

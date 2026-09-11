@@ -41,6 +41,16 @@ const operationRoutes: ReadonlyArray<{
   ...paymentOperationRoutes,
   ...staffAuthOperationRoutes,
   {
+    method: "PUT",
+    operation: "STAFF_PUSH_REGISTRATION_PUT",
+    path: /^\/v1\/staff\/push\/registrations$/,
+  },
+  {
+    method: "POST",
+    operation: "STAFF_PUSH_REGISTRATION_DISABLE",
+    path: /^\/v1\/staff\/push\/registrations\/[^/]+\/disable$/,
+  },
+  {
     method: "POST",
     operation: "CHECK_IN_INTAKE",
     path: /^\/v1\/staff\/check-in\/intakes$/,

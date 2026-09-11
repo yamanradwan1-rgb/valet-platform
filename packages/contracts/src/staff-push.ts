@@ -36,6 +36,39 @@ export const staffPushProviderResultClassSchema = z.enum([
 export const staffPushIntentIdSchema = z.string().uuid();
 export const staffPushRouteIntentSchema = z.literal("TASK_QUEUE");
 
+export const staffPushRegistrationIdSchema = z.string().uuid();
+export const staffPushRegistrationRequestSchema = z
+  .object({
+    provider: z.literal("FCM"),
+    platform: z.literal("ANDROID"),
+    providerToken: z
+      .string()
+      .min(1)
+      .max(4096)
+      .refine((value) => value.trim().length > 0),
+    installationId: z.string().uuid(),
+    appIdentifier: z.literal("com.vaylet.employee"),
+    appVersion: z.string().trim().min(1).max(64),
+    appBuild: z.string().trim().min(1).max(64),
+    locale: staffPushLocaleSchema,
+  })
+  .strict();
+
+export const staffPushRegistrationResponseSchema = z
+  .object({
+    registrationId: staffPushRegistrationIdSchema,
+    provider: staffPushProviderSchema,
+    platform: staffPushPlatformSchema,
+    installationId: z.string().uuid(),
+    appIdentifier: z.literal("com.vaylet.employee"),
+    appVersion: z.string().min(1).max(64),
+    appBuild: z.string().min(1).max(64),
+    locale: staffPushLocaleSchema,
+    state: staffPushRegistrationStateSchema,
+    lastConfirmedAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+
 export const staffPushPayloadSchema = z
   .object({
     schemaVersion: z.literal(1),
@@ -59,3 +92,9 @@ export type StaffPushProviderResultClass = z.infer<
   typeof staffPushProviderResultClassSchema
 >;
 export type StaffPushPayload = z.infer<typeof staffPushPayloadSchema>;
+export type StaffPushRegistrationRequest = z.infer<
+  typeof staffPushRegistrationRequestSchema
+>;
+export type StaffPushRegistrationResponse = z.infer<
+  typeof staffPushRegistrationResponseSchema
+>;

@@ -10,11 +10,15 @@ import { StaffLoginService } from "./staff-login.service";
 import { StaffAuthOriginPolicy } from "./staff-auth.origin";
 import {
   Argon2StaffPasswordVerifier,
-  DatabaseStaffPrincipalResolver,
   STAFF_PASSWORD_VERIFIER,
   StaffAuthService,
 } from "./staff-auth.service";
 import { STAFF_PRINCIPAL_RESOLVER } from "./staff-principal";
+import {
+  DatabaseStaffPrincipalResolver,
+  DatabaseStaffSessionContextResolver,
+  STAFF_SESSION_CONTEXT_RESOLVER,
+} from "./staff-session-context";
 
 @Module({
   controllers: [StaffAuthController, NativeStaffAuthController],
@@ -23,6 +27,7 @@ import { STAFF_PRINCIPAL_RESOLVER } from "./staff-principal";
     StaffAuthService,
     StaffLoginService,
     StaffAuthOriginPolicy,
+    DatabaseStaffSessionContextResolver,
     DatabaseStaffPrincipalResolver,
     Argon2StaffPasswordVerifier,
     {
@@ -30,11 +35,15 @@ import { STAFF_PRINCIPAL_RESOLVER } from "./staff-principal";
       useExisting: DatabaseStaffPrincipalResolver,
     },
     {
+      provide: STAFF_SESSION_CONTEXT_RESOLVER,
+      useExisting: DatabaseStaffSessionContextResolver,
+    },
+    {
       provide: STAFF_PASSWORD_VERIFIER,
       useExisting: Argon2StaffPasswordVerifier,
     },
   ],
-  exports: [STAFF_PRINCIPAL_RESOLVER],
+  exports: [STAFF_PRINCIPAL_RESOLVER, STAFF_SESSION_CONTEXT_RESOLVER],
 })
 export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

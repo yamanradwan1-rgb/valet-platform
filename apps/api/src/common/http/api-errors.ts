@@ -89,6 +89,8 @@ const statusByCode: Readonly<Record<string, number>> = {
   TASK_REASSIGN_REASON_REQUIRED: HttpStatus.BAD_REQUEST,
   STAFF_AUTHENTICATION_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: HttpStatus.FORBIDDEN,
+  STAFF_PUSH_REGISTRATION_CONFLICT: HttpStatus.CONFLICT,
+  STAFF_PUSH_REGISTRATION_NOT_AVAILABLE: HttpStatus.NOT_FOUND,
   PHOTO_REQUIREMENT_NOT_SATISFIED: HttpStatus.UNPROCESSABLE_ENTITY,
   PHOTO_STORAGE_OBJECT_CONFLICT: HttpStatus.CONFLICT,
   TENANT_ACCESS_DENIED: HttpStatus.NOT_FOUND,
@@ -120,6 +122,10 @@ const safeMessages: Readonly<Record<string, string>> = {
   STAFF_AUTHENTICATION_FAILED: "Staff authentication failed.",
   STAFF_AUTHENTICATION_RATE_LIMITED: "Too many requests. Try again later.",
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: "The request origin is not allowed.",
+  STAFF_PUSH_REGISTRATION_CONFLICT:
+    "The push registration could not be reconciled.",
+  STAFF_PUSH_REGISTRATION_NOT_AVAILABLE:
+    "The push registration is not available.",
   TENANT_ACCESS_DENIED: "The requested resource is not available.",
 };
 
