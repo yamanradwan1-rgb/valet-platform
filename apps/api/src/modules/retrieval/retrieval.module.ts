@@ -6,6 +6,7 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
 import { AuthModule } from "../auth/auth.module";
 import { GuestAccessModule } from "../guest-access/guest-access.module";
+import { StaffPushOperationalPolicy } from "../staff-push/staff-push-operational-policy";
 import { CompleteHandoffController } from "./complete-handoff.controller";
 import { CompleteHandoffService } from "./complete-handoff.service";
 import { GuestRetrievalController } from "./guest-retrieval.controller";
@@ -38,6 +39,7 @@ import { StartRetrievalService } from "./start-retrieval.service";
     CompleteHandoffService,
     HandoffService,
     RetrievalService,
+    StaffPushOperationalPolicy,
     MarkReadyService,
     StartRetrievalService,
   ],

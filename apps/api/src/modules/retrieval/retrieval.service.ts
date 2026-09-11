@@ -11,6 +11,7 @@ import {
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
+import { StaffPushOperationalPolicy } from "../staff-push/staff-push-operational-policy";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import type { GuestSafeSession } from "../valet-sessions/guest-safe-session";
 import type { LockedGuestAccessSessionScope } from "../valet-sessions/guest-access-session-resolution";
@@ -52,6 +53,7 @@ export class RetrievalService {
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     private readonly antiAbuse: AntiAbuseService,
     private readonly guestAccess: GuestAccessService,
+    private readonly pushPolicy: StaffPushOperationalPolicy,
   ) {}
 
   async requestGuestRetrieval(
@@ -61,7 +63,12 @@ export class RetrievalService {
     return this.executeGuestOperation(
       reservation,
       rawToken,
-      requestGuestRetrieval,
+      (transaction, session) =>
+        requestGuestRetrieval(
+          transaction,
+          session,
+          this.pushPolicy.employeeRetrievalRequested,
+        ),
     );
   }
 

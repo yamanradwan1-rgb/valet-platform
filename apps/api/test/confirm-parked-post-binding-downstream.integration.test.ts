@@ -18,6 +18,7 @@ import { createVerifyHandoffExecutor } from "../src/modules/retrieval/verify-han
 import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
 import { resolveAndLockGuestAccessSession } from "../src/modules/valet-sessions/guest-access-session-resolution";
 import { ConfirmParkedTestContext } from "./confirm-parked-test-context";
+import { syntheticStaffPushPolicy } from "./staff-push-policy-test-value";
 
 const context = new ConfirmParkedTestContext("postbindingdownstream");
 let priorAntiAbuseSecret: string | undefined;
@@ -117,6 +118,7 @@ describe("DEC-068 downstream continuity after post-Parking binding", () => {
         requestGuestRetrieval(
           transaction,
           await resolveAndLockGuestAccessSession(transaction, rawToken),
+          syntheticStaffPushPolicy.employeeRetrievalRequested,
         ),
     );
     expect(requested.state).toBe("REQUESTED");
@@ -129,18 +131,20 @@ describe("DEC-068 downstream continuity after post-Parking binding", () => {
         [fixture.sessionId],
       )
     ).rows[0]!.id;
-    const assigned = await createAssignTaskCommandExecutor(
-      context.runtimePool,
-    )({
-      authenticatedUserId: fixture.userId,
-      expectedVersion: 1,
-      taskId: retrievalTaskId,
-    });
-    const accepted = await createAcceptTaskCommandExecutor(context.runtimePool)({
-      authenticatedUserId: fixture.userId,
-      expectedVersion: assigned.version,
-      taskId: retrievalTaskId,
-    });
+    const assigned = await createAssignTaskCommandExecutor(context.runtimePool)(
+      {
+        authenticatedUserId: fixture.userId,
+        expectedVersion: 1,
+        taskId: retrievalTaskId,
+      },
+    );
+    const accepted = await createAcceptTaskCommandExecutor(context.runtimePool)(
+      {
+        authenticatedUserId: fixture.userId,
+        expectedVersion: assigned.version,
+        taskId: retrievalTaskId,
+      },
+    );
     const started = await createStartRetrievalCommandExecutor(
       context.runtimePool,
     )({
@@ -211,12 +215,8 @@ describe("DEC-068 downstream continuity after post-Parking binding", () => {
       key_slot_id: null,
       session_state: "COMPLETED",
     });
-    expect((await custodyHistory(fixture.sessionId)).map((e) => e.event_type))
-      .toEqual([
-        "SLOT_ASSIGNED",
-        "RETURNED_TO_SLOT",
-        "CHECKED_OUT",
-        "RELEASED",
-      ]);
+    expect(
+      (await custodyHistory(fixture.sessionId)).map((e) => e.event_type),
+    ).toEqual(["SLOT_ASSIGNED", "RETURNED_TO_SLOT", "CHECKED_OUT", "RELEASED"]);
   });
 });

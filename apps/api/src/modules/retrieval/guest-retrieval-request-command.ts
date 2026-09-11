@@ -7,6 +7,8 @@ import {
 } from "../audit/custody-audit-event-writer";
 import { appendDispatchEvent } from "../dispatch/dispatch-event-writer";
 import { loadDispatchOperationTime } from "../dispatch/dispatch-transaction";
+import { persistRetrievalPushAttention } from "../staff-push/retrieval-push-attention-writer";
+import type { StaffPushIntentCreationPolicy } from "../staff-push/staff-push-operational-policy";
 import type { LockedGuestAccessSessionScope } from "../valet-sessions/guest-access-session-resolution";
 
 export class GuestRetrievalRequestError extends Error {
@@ -36,7 +38,10 @@ function guestAuditScope(
 async function activeRows(
   transaction: PostgresTransaction,
   session: LockedGuestAccessSessionScope,
-): Promise<{ readonly requests: LifecycleRow[]; readonly tasks: LifecycleRow[] }> {
+): Promise<{
+  readonly requests: LifecycleRow[];
+  readonly tasks: LifecycleRow[];
+}> {
   const [requests, tasks] = await Promise.all([
     transaction.query<LifecycleRow>(
       `SELECT status::text
@@ -59,13 +64,24 @@ async function activeRows(
 
 function isCoherentCurrentLifecycle(
   state: LockedGuestAccessSessionScope["state"],
-  lifecycle: { readonly requests: LifecycleRow[]; readonly tasks: LifecycleRow[] },
+  lifecycle: {
+    readonly requests: LifecycleRow[];
+    readonly tasks: LifecycleRow[];
+  },
 ): boolean {
   if (state === "REQUESTED") {
-    return lifecycle.requests.length === 1 && lifecycle.requests[0]?.status === "OPEN" && lifecycle.tasks.length === 1;
+    return (
+      lifecycle.requests.length === 1 &&
+      lifecycle.requests[0]?.status === "OPEN" &&
+      lifecycle.tasks.length === 1
+    );
   }
   if (["RETRIEVING", "READY", "HANDOFF_PENDING"].includes(state)) {
-    return lifecycle.requests.length === 1 && lifecycle.requests[0]?.status === "ACCEPTED" && lifecycle.tasks.length === 1;
+    return (
+      lifecycle.requests.length === 1 &&
+      lifecycle.requests[0]?.status === "ACCEPTED" &&
+      lifecycle.tasks.length === 1
+    );
   }
   return false;
 }
@@ -93,6 +109,7 @@ async function isCoherentCompletedLifecycle(
 export async function requestGuestRetrieval(
   transaction: PostgresTransaction,
   session: LockedGuestAccessSessionScope,
+  pushPolicy: StaffPushIntentCreationPolicy,
 ): Promise<LockedGuestAccessSessionScope> {
   const lifecycle = await activeRows(transaction, session);
   if (session.state === "PARKED") {
@@ -123,14 +140,26 @@ export async function requestGuestRetrieval(
        (id, organization_id, valet_session_id, requested_by_type,
         requested_by_customer_id, requested_by_membership_id, status, requested_at)
      VALUES ($1, $2, $3, 'CUSTOMER', $4, NULL, 'OPEN', $5)`,
-    [randomUUID(), session.organizationId, session.valetSessionId, session.customerId, operationTime],
+    [
+      randomUUID(),
+      session.organizationId,
+      session.valetSessionId,
+      session.customerId,
+      operationTime,
+    ],
   );
   await transaction.query(
     `INSERT INTO tasks
        (id, organization_id, location_id, valet_session_id, task_type, status,
         current_assignee_membership_id, version, created_at, updated_at)
      VALUES ($1, $2, $3, $4, 'RETRIEVAL', 'QUEUED', NULL, 1, $5, $5)`,
-    [taskId, session.organizationId, session.locationId, session.valetSessionId, operationTime],
+    [
+      taskId,
+      session.organizationId,
+      session.locationId,
+      session.valetSessionId,
+      operationTime,
+    ],
   );
   await appendDispatchEvent(transaction, {
     actorMembershipId: null,
@@ -139,7 +168,12 @@ export async function requestGuestRetrieval(
     occurredAt: operationTime,
     previousAssigneeMembershipId: null,
     reason: null,
-    task: { id: taskId, location_id: session.locationId, organization_id: session.organizationId, valet_session_id: session.valetSessionId },
+    task: {
+      id: taskId,
+      location_id: session.locationId,
+      organization_id: session.organizationId,
+      valet_session_id: session.valetSessionId,
+    },
   });
   const updated = await transaction.query(
     `UPDATE valet_sessions
@@ -148,7 +182,8 @@ export async function requestGuestRetrieval(
      WHERE id = $1 AND state = 'PARKED'`,
     [session.valetSessionId, operationTime],
   );
-  if (updated.rowCount !== 1) throw new Error("Guest Retrieval state transition lost its lock.");
+  if (updated.rowCount !== 1)
+    throw new Error("Guest Retrieval state transition lost its lock.");
   await appendCustodyAuditEvent(transaction, {
     definition: {
       eventType: "RETRIEVAL_REQUESTED",
@@ -164,5 +199,16 @@ export async function requestGuestRetrieval(
     occurredAt: operationTime,
     scope: guestAuditScope(session),
   });
+  await persistRetrievalPushAttention(
+    transaction,
+    {
+      locationId: session.locationId,
+      organizationId: session.organizationId,
+      taskId,
+      valetSessionId: session.valetSessionId,
+    },
+    operationTime,
+    pushPolicy,
+  );
   return { ...session, state: "REQUESTED", version: session.version + 1 };
 }

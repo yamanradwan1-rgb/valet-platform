@@ -84,6 +84,7 @@ import { StaffValetSessionService } from "../src/modules/staff/staff-valet-sessi
 import { StaffVehicleDirectoryService } from "../src/modules/staff/staff-vehicle-directory.service";
 import { StaffModule } from "../src/modules/staff/staff.module";
 import { StaffPushModule } from "../src/modules/staff-push/staff-push.module";
+import { StaffPushOperationalPolicy } from "../src/modules/staff-push/staff-push-operational-policy";
 import { GpsIngestionController } from "../src/modules/tracking/gps-ingestion.controller";
 import { GpsIngestionService } from "../src/modules/tracking/gps-ingestion.service";
 import { LiveMapController } from "../src/modules/tracking/live-map.controller";
@@ -198,6 +199,7 @@ describe("accepted feature module ownership", () => {
       CompleteHandoffService,
       HandoffService,
       RetrievalService,
+      StaffPushOperationalPolicy,
       MarkReadyService,
       StartRetrievalService,
     ]);

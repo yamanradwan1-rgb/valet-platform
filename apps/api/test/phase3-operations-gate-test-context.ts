@@ -10,6 +10,7 @@ import {
   ConfirmParkedTestContext,
   type ConfirmParkedFixture,
 } from "./confirm-parked-test-context";
+import { installSyntheticStaffPushPolicyEnvironment } from "./staff-push-policy-test-value";
 
 export interface GateFixture extends ConfirmParkedFixture {
   readonly accessToken: string;
@@ -67,6 +68,7 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
   private baseUrl = "";
   private priorDatabaseUrl: string | undefined;
   private priorAntiAbuseSecret: string | undefined;
+  private restorePushPolicy: () => void = () => undefined;
 
   constructor(label: string) {
     super(`005h_${label}`);
@@ -79,6 +81,7 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
     process.env.DATABASE_URL = this.runtimeUrl;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
+    this.restorePushPolicy = installSyntheticStaffPushPolicyEnvironment();
     this.app = await NestFactory.create(AppModule, { logger: false });
     await this.app.listen(0, "127.0.0.1");
     const address = this.app.getHttpServer().address() as { port: number };
@@ -94,6 +97,7 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
     } else {
       process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = this.priorAntiAbuseSecret;
     }
+    this.restorePushPolicy();
     await this.teardown();
   }
 
