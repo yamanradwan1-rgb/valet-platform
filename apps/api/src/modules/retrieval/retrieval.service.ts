@@ -68,6 +68,7 @@ export class RetrievalService {
           transaction,
           session,
           this.pushPolicy.employeeRetrievalRequested,
+          this.pushPolicy.creationEnabled,
         ),
     );
   }

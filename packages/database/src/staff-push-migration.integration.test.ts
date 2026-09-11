@@ -56,6 +56,8 @@ async function tableNames(client: Client): Promise<string[]> {
 let emptyClient: Client;
 let upgradeClient: Client;
 const representativeOrganizationId = randomUUID();
+const staffPushMigration = "20260910003200_mob_020a_staff_push_persistence";
+const staffPushCleanupMigration = "20260911003300_mob_020d_staff_push_cleanup";
 
 beforeAll(async () => {
   emptyClient = await createDatabase(emptyDatabaseName);
@@ -64,7 +66,12 @@ beforeAll(async () => {
   }
 
   upgradeClient = await createDatabase(upgradeDatabaseName);
-  for (const migration of expectedMigrationDirectories.slice(0, -1)) {
+  const staffPushIndex =
+    expectedMigrationDirectories.indexOf(staffPushMigration);
+  for (const migration of expectedMigrationDirectories.slice(
+    0,
+    staffPushIndex,
+  )) {
     await applyMigration(upgradeClient, migration);
   }
   await upgradeClient.query(
@@ -78,7 +85,8 @@ beforeAll(async () => {
      VALUES ($1, $2, 'SMS', '+000000000', 'representative-existing-row')`,
     [randomUUID(), representativeOrganizationId],
   );
-  await applyMigration(upgradeClient, expectedMigrationDirectories.at(-1)!);
+  await applyMigration(upgradeClient, staffPushMigration);
+  await applyMigration(upgradeClient, staffPushCleanupMigration);
 }, 120_000);
 
 afterAll(async () => {
@@ -97,12 +105,11 @@ afterAll(async () => {
   }
 }, 60_000);
 
-describe("MOB-020A migration 32", () => {
+describe("MOB-020A/020D Staff Push migrations 32 and 33", () => {
   it("applies from an empty database through the full ordered history", async () => {
-    expect(expectedMigrationDirectories).toHaveLength(32);
-    expect(expectedMigrationDirectories.at(-1)).toBe(
-      "20260910003200_mob_020a_staff_push_persistence",
-    );
+    expect(expectedMigrationDirectories).toHaveLength(33);
+    expect(expectedMigrationDirectories).toContain(staffPushMigration);
+    expect(expectedMigrationDirectories.at(-1)).toBe(staffPushCleanupMigration);
     expect(await tableNames(emptyClient)).toEqual([
       "staff_push_deliveries",
       "staff_push_intents",
@@ -123,4 +130,35 @@ describe("MOB-020A migration 32", () => {
     );
     expect(result.rows[0]!.count).toBe("1");
   });
+
+  it.each(["empty", "upgrade"] as const)(
+    "installs the narrow cleanup boundary on the %s path",
+    async (path) => {
+      const client = path === "empty" ? emptyClient : upgradeClient;
+      const result = await client.query<{
+        public_denied: boolean;
+        security_definer: boolean;
+        safe_search_path: boolean;
+      }>(
+        `SELECT function.prosecdef AS security_definer,
+                function.proconfig =
+                  ARRAY['search_path=pg_catalog, public']::text[] AS safe_search_path,
+                NOT EXISTS (
+                  SELECT 1 FROM aclexplode(
+                    COALESCE(function.proacl,
+                             acldefault('f', function.proowner))
+                  ) AS privilege
+                  WHERE privilege.grantee = 0
+                    AND privilege.privilege_type = 'EXECUTE'
+                ) AS public_denied
+         FROM pg_proc AS function
+         WHERE function.oid = 'public.cleanup_staff_push_v1()'::regprocedure`,
+      );
+      expect(result.rows[0]).toEqual({
+        public_denied: true,
+        safe_search_path: true,
+        security_definer: true,
+      });
+    },
+  );
 });

@@ -108,12 +108,12 @@ describe("migration 29 location configuration authority", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(32);
-    expect(directories.at(-3)).toBe(
+    expect(directories).toHaveLength(33);
+    expect(directories.at(-4)).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
     expect(directories.at(-1)).toBe(
-      "20260910003200_mob_020a_staff_push_persistence",
+      "20260911003300_mob_020d_staff_push_cleanup",
     );
   });
 
@@ -184,9 +184,7 @@ describe("migration 29 location configuration authority", () => {
     const audits = await client.query<{ n: string }>(
       `SELECT count(*)::text AS n FROM audit_events WHERE entity_type='Location'`,
     );
-    expect(Number(audits.rows[0]!.n)).toBe(
-      Number(before.rows[0]!.audit) + 1,
-    );
+    expect(Number(audits.rows[0]!.n)).toBe(Number(before.rows[0]!.audit) + 1);
   });
 
   it("denies wrong roles, stale tokens and invalid values without mutation or audit", async () => {
@@ -260,7 +258,12 @@ describe("migration 29 location configuration authority", () => {
     );
     const cleared = await client.query<{ token: Date }>(
       `SELECT location_configuration_clear_override($1, $2, $3, $4) AS token`,
-      [membershipId, locationId, "valetServiceFee", current.rows[0]!.updated_at],
+      [
+        membershipId,
+        locationId,
+        "valetServiceFee",
+        current.rows[0]!.updated_at,
+      ],
     );
     expect(cleared.rows[0]!.token > current.rows[0]!.updated_at).toBe(true);
     const state = await client.query<{

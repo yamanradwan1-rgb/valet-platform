@@ -53,6 +53,7 @@ export class RetrievalPushTestContext extends ConfirmParkedTestContext {
   request(
     fixture: GuestParkedFixture,
     policy: StaffPushIntentCreationPolicy = syntheticStaffPushPolicy.employeeRetrievalRequested,
+    creationEnabled = true,
   ) {
     return inDispatchTransaction(this.runtimePool, async (transaction) =>
       requestGuestRetrieval(
@@ -62,6 +63,7 @@ export class RetrievalPushTestContext extends ConfirmParkedTestContext {
           fixture.rawGuestToken,
         ),
         policy,
+        creationEnabled,
       ),
     );
   }

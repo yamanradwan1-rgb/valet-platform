@@ -110,6 +110,7 @@ export async function requestGuestRetrieval(
   transaction: PostgresTransaction,
   session: LockedGuestAccessSessionScope,
   pushPolicy: StaffPushIntentCreationPolicy,
+  pushCreationEnabled = true,
 ): Promise<LockedGuestAccessSessionScope> {
   const lifecycle = await activeRows(transaction, session);
   if (session.state === "PARKED") {
@@ -199,16 +200,18 @@ export async function requestGuestRetrieval(
     occurredAt: operationTime,
     scope: guestAuditScope(session),
   });
-  await persistRetrievalPushAttention(
-    transaction,
-    {
-      locationId: session.locationId,
-      organizationId: session.organizationId,
-      taskId,
-      valetSessionId: session.valetSessionId,
-    },
-    operationTime,
-    pushPolicy,
-  );
+  if (pushCreationEnabled) {
+    await persistRetrievalPushAttention(
+      transaction,
+      {
+        locationId: session.locationId,
+        organizationId: session.organizationId,
+        taskId,
+        valetSessionId: session.valetSessionId,
+      },
+      operationTime,
+      pushPolicy,
+    );
+  }
   return { ...session, state: "REQUESTED", version: session.version + 1 };
 }
