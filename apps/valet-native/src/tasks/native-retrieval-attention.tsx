@@ -9,8 +9,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
-import { type EmployeeOperationalSession } from "@valet/employee-client";
-
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   employeeColors as c,
@@ -35,7 +33,6 @@ interface NativeRetrievalAlertProps {
   readonly locale: FoundationLocale;
   readonly onDismiss: (item: NativeRetrievalAttentionItem) => void;
   readonly onOpenQueue: () => void;
-  readonly operations: EmployeeOperationalSession;
   readonly textAlign: "left" | "right";
 }
 
@@ -66,7 +63,6 @@ export function NativeRetrievalAlertBanner({
   locale,
   onDismiss,
   onOpenQueue,
-  operations,
   item,
   textAlign,
 }: Omit<NativeRetrievalAlertProps, "attention"> & {
@@ -142,7 +138,6 @@ export function NativeRetrievalAlertBanner({
             setOpening(true);
             onDismiss(item);
             onOpenQueue();
-            void operations.refreshQueue();
           }}
           style={attentionStyles.message}
         >

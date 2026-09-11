@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { AppState } from "react-native";
 
 import type { NativeLocalePreference } from "../i18n/native-locale-preference";
 import { useNativeEmployeeLocale } from "../i18n/use-native-employee-locale";
@@ -10,10 +9,10 @@ import { NativeProductionWorkspace } from "./native-production-workspace";
 import { retireNativeWorkflowScope } from "./native-workflow-scope-retirement";
 import { createNativeProductionBootstrap } from "./native-production-bootstrap";
 import { NativeShellGate } from "./native-shell-gate";
-import { nativeOnlineHint } from "../shift/native-shift-connectivity";
 import { NativeShiftDetachedScreen } from "../shift/native-shift-detached-screen";
 import { shouldRenderDetachedShiftEnd } from "../shift/native-shift-protection";
 import { useNativeVehicleDirectoryRevalidation } from "../vehicles/use-native-vehicle-directory-revalidation";
+import { useNativeProductionLifecycle } from "./use-native-production-lifecycle";
 import {
   ProductionShellController,
   type ProductionDestination,
@@ -49,6 +48,10 @@ export function NativeProductionShell({
     return productionController;
   });
   const [, setNavigationRevision] = useState(0);
+  const bumpNavigation = useCallback(
+    () => setNavigationRevision((value) => value + 1),
+    [],
+  );
   const runtime = bootstrap.runtime;
   const contextual = useNativeContextualRoute(
     runtime,
@@ -61,12 +64,15 @@ export function NativeProductionShell({
       ? shell.scope
       : null;
   const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
-  const { push, retrievalAttention } = useNativePushAttention(
+  const { push, response, retrievalAttention } = useNativePushAttention(
     runtime,
     authSnapshot,
     locale,
     operations,
+    controller,
+    bumpNavigation,
   );
+  useNativeProductionLifecycle(runtime);
   useNativeVehicleDirectoryRevalidation({
     directory: runtime?.vehicleDirectory,
     identityGeneration: authSnapshot.authGeneration,
@@ -160,50 +166,6 @@ export function NativeProductionShell({
   }, [operations, runtime]);
 
   useEffect(() => {
-    if (runtime === undefined) return;
-    void runtime.operations.setForeground(AppState.currentState === "active");
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state !== "active") {
-        runtime.shiftEnd.suspendForBackground();
-        runtime.release.suspendForBackground();
-        runtime.handoff.suspendForBackground();
-      }
-      runtime.shiftEnd.setOnline(nativeOnlineHint());
-      void runtime.operations.setForeground(state === "active");
-      if (
-        state === "active" &&
-        runtime.release.current().phase !== "inactive"
-      ) {
-        void runtime.release.checkServerState();
-      } else if (
-        state === "active" &&
-        runtime.handoff.current().phase !== "inactive"
-      ) {
-        void runtime.handoff.checkServerState();
-      } else if (
-        state === "active" &&
-        runtime.confirmParking.current().phase !== "inactive"
-      ) {
-        void runtime.confirmParking.checkServerState();
-      } else if (
-        state === "active" &&
-        runtime.parking.current().phase !== "inactive"
-      ) {
-        void runtime.parking.checkServerState();
-      } else if (
-        state === "active" &&
-        runtime.retrieval.current().phase !== "inactive"
-      ) {
-        void runtime.retrieval.checkServerState();
-      }
-    });
-    return () => {
-      subscription.remove();
-      void runtime.operations.setForeground(false);
-    };
-  }, [runtime]);
-
-  useEffect(() => {
     const task = parking.task;
     const session = parking.session;
     if (
@@ -229,10 +191,6 @@ export function NativeProductionShell({
     controller.receive({ destination, source: "navigation" });
     setNavigationRevision((value) => value + 1);
   };
-  const bumpNavigation = useCallback(
-    () => setNavigationRevision((value) => value + 1),
-    [],
-  );
   useNativeProductionBackHandler(
     controller,
     runtime,
@@ -291,7 +249,10 @@ export function NativeProductionShell({
       push={push}
       retrieval={retrieval}
       release={release}
-      retrievalAttention={retrievalAttention}
+      retrievalAttention={{
+        ...retrievalAttention,
+        openCurrentTaskQueue: response.openCurrentTaskQueue,
+      }}
       runtime={runtime}
       shell={shell}
       vehicleDirectory={vehicleDirectory}

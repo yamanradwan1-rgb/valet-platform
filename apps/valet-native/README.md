@@ -51,10 +51,15 @@ an APK rebuild is not required for this resolution repair.
 ## Android push capability
 
 Staff push uses `expo-notifications` only for the direct native Android device
-token, permission, one operational retrieval channel, and foreground receipt.
+token, permission, one operational retrieval channel, foreground receipt, and
+default-action response capture. The root bootstrap registers the response
+listener before auth/shell restoration and also snapshots Expo's startup last
+response for terminated/swipe-away launches. Once an initial response is safely
+normalized or rejected, its native last-response record is cleared best effort.
 It does not use Expo push tokens or the Expo Push Service. The app intentionally
 suppresses an OS foreground banner because the existing in-app retrieval alert
-is the foreground presentation owner.
+is the foreground presentation owner. While backgrounded, the OS owns visible
+notification presentation; ordinary delivery starts no background work.
 
 This capability requires a Development Build or other real native binary; Expo
 Go is not valid push evidence. A real environment must supply its own
@@ -65,5 +70,15 @@ truthfully while the authenticated Task queue and polling continue to work.
 The compact notification status shown at the top of the authenticated workspace
 is the smallest existing status surface: it reports permission/registration
 availability, offers the OS prompt only while requestable, and otherwise gives
-neutral Android-settings guidance. Background taps, terminated-state responses,
-and cold-start notification routing remain MOB-022 work.
+neutral Android-settings guidance. A foreground banner OPEN or accepted OS tap
+emits only the allowlisted neutral `TASK_QUEUE` intent. The production auth/shell
+gate then restores current identity, revalidates current server-derived context,
+fetches the canonical current queue, and only then selects Tasks. Notification
+content never routes a URL, supplies Location/Task authority, or invokes a
+protected mutation.
+
+This implements ordinary background tap and terminated/swipe-away cold-start
+capture. Android Settings **Force stop** is a different platform state: remote
+notifications do not resume while the package remains force-stopped and the app
+must be manually reopened. Required real Firebase/device lifecycle and lockscreen
+evidence remains open; automated lifecycle proof is not a physical PASS.

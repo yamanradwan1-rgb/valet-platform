@@ -155,6 +155,27 @@ describe("production route intent and authority fencing", () => {
     expect(active(controller)).toMatchObject({ destination: "shift" });
   });
 
+  it("allows notification attention to select Tasks only", () => {
+    const controller = new ProductionShellController();
+    active(controller);
+    expect(
+      controller.receive({ destination: "tasks", source: "notification" }),
+    ).toBe("resolved");
+    for (const destination of [
+      "check-in",
+      "parking",
+      "retrieval",
+      "scan",
+      "shift",
+      "vehicles",
+    ] as const) {
+      expect(controller.receive({ destination, source: "notification" })).toBe(
+        "rejected",
+      );
+      expect(active(controller)).toMatchObject({ destination: "tasks" });
+    }
+  });
+
   it("purges the protected route synchronously on logout", () => {
     const controller = new ProductionShellController();
     active(controller);

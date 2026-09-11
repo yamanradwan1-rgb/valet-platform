@@ -40,6 +40,7 @@ export interface NativeProductionWorkspaceProps {
   readonly retrievalAttention: {
     readonly attention: readonly NativeRetrievalAttentionItem[];
     readonly dismiss: (item: NativeRetrievalAttentionItem) => void;
+    readonly openCurrentTaskQueue: () => void;
   };
   readonly runtime: NativeEmployeeRuntime;
   readonly shell: ActiveShell;

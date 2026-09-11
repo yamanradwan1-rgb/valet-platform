@@ -97,7 +97,6 @@ function render(taskIds: readonly string[]) {
       locale: "en",
       onDismiss,
       onOpenQueue,
-      operations,
       textAlign: "left",
     }),
   );
@@ -111,7 +110,6 @@ function renderPush(intentId: string) {
       locale: "en",
       onDismiss,
       onOpenQueue,
-      operations,
       textAlign: "left",
     }),
   );
@@ -119,8 +117,6 @@ function renderPush(intentId: string) {
 
 let onOpenQueue: ReturnType<typeof vi.fn>;
 let onDismiss: ReturnType<typeof vi.fn>;
-let operations: { refreshQueue: ReturnType<typeof vi.fn> };
-
 beforeEach(() => {
   hooks.index = 0;
   hooks.values = [];
@@ -128,7 +124,6 @@ beforeEach(() => {
   gestures.update = undefined;
   onDismiss = vi.fn();
   onOpenQueue = vi.fn();
-  operations = { refreshQueue: vi.fn(() => Promise.resolve()) };
 });
 
 describe("Native foreground retrieval attention", () => {
@@ -153,20 +148,18 @@ describe("Native foreground retrieval attention", () => {
     expect(onDismiss).toHaveBeenCalledWith({ key: taskId, source: "polling" });
   });
 
-  it("opens Tasks immediately without waiting for canonical refresh", () => {
-    operations.refreshQueue = vi.fn(() => new Promise<void>(() => undefined));
+  it("delegates OPEN to the shared shell-level canonical route boundary", () => {
     const visible = render([taskId]);
     const message = visible.find((node) =>
       String(node.props.accessibilityLabel).startsWith("Vehicle requested"),
     )!;
 
     (message.props.onPress as () => void)();
-    expect(operations.refreshQueue).toHaveBeenCalledOnce();
     expect(onDismiss).toHaveBeenCalledWith({ key: taskId, source: "polling" });
     expect(onOpenQueue).toHaveBeenCalledOnce();
   });
 
-  it("opens and refetches the canonical queue for push attention", () => {
+  it("uses the same shell-level OPEN boundary for push attention", () => {
     const intentId = "77777777-7777-4777-8777-777777777777";
     const visible = renderPush(intentId);
     const message = visible.find((node) =>
@@ -180,7 +173,6 @@ describe("Native foreground retrieval attention", () => {
       source: "push",
     });
     expect(onOpenQueue).toHaveBeenCalledOnce();
-    expect(operations.refreshQueue).toHaveBeenCalledOnce();
   });
 
   it.each([2, 3])(
@@ -219,7 +211,6 @@ describe("Native foreground retrieval attention", () => {
         locale: "ar",
         onDismiss,
         onOpenQueue,
-        operations: operations as never,
         textAlign: "right",
       }),
     );

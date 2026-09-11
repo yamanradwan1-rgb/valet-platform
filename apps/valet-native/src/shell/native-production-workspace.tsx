@@ -82,8 +82,7 @@ export function NativeProductionWorkspace({
       <NativeRetrievalAttention
         locale={locale}
         onDismiss={retrievalAttention.dismiss}
-        onOpenQueue={() => navigate("tasks")}
-        operations={runtime.operations}
+        onOpenQueue={retrievalAttention.openCurrentTaskQueue}
         attention={retrievalAttention.attention}
         textAlign={presentation.textAlign}
       />
