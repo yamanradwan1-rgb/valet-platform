@@ -1,39 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AppState } from "react-native";
+import type { EmployeeConnectivityStatus } from "@valet/employee-client";
 
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
-import { nativeOnlineHint } from "../shift/native-shift-connectivity";
+import { NativeProductionLifecycleOwner } from "./native-production-lifecycle-owner";
 
 export function useNativeProductionLifecycle(
   runtime: NativeEmployeeRuntime | undefined,
-): void {
+): EmployeeConnectivityStatus {
+  const [connectivity, setConnectivity] =
+    useState<EmployeeConnectivityStatus>("unknown");
   useEffect(() => {
     if (runtime === undefined) return;
-    void runtime.operations.setForeground(AppState.currentState === "active");
+    const owner = new NativeProductionLifecycleOwner(runtime);
+    const unsubscribe = runtime.connectivity.subscribe((status) => {
+      setConnectivity(status);
+      owner.setConnectivity(status);
+    });
+    owner.setAppActive(AppState.currentState === "active");
     const subscription = AppState.addEventListener("change", (state) => {
-      if (state !== "active") {
-        runtime.shiftEnd.suspendForBackground();
-        runtime.release.suspendForBackground();
-        runtime.handoff.suspendForBackground();
-      }
-      runtime.shiftEnd.setOnline(nativeOnlineHint());
-      void runtime.operations.setForeground(state === "active");
-      if (state !== "active") return;
-      if (runtime.release.current().phase !== "inactive") {
-        void runtime.release.checkServerState();
-      } else if (runtime.handoff.current().phase !== "inactive") {
-        void runtime.handoff.checkServerState();
-      } else if (runtime.confirmParking.current().phase !== "inactive") {
-        void runtime.confirmParking.checkServerState();
-      } else if (runtime.parking.current().phase !== "inactive") {
-        void runtime.parking.checkServerState();
-      } else if (runtime.retrieval.current().phase !== "inactive") {
-        void runtime.retrieval.checkServerState();
-      }
+      owner.setAppActive(state === "active");
     });
     return () => {
+      unsubscribe();
       subscription.remove();
-      void runtime.operations.setForeground(false);
+      owner.dispose();
     };
   }, [runtime]);
+  return connectivity;
 }

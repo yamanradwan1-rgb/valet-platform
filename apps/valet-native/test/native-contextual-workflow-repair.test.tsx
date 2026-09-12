@@ -59,6 +59,7 @@ describe("shell-contained contextual workflow repair", () => {
       confirmParking: clear(),
       guestAccess: clear(),
       handoff: clear(),
+      incident: clear(),
       parking: clear(),
       release: clear(),
       retrieval: clear(),
@@ -67,6 +68,7 @@ describe("shell-contained contextual workflow repair", () => {
     };
     retireNativeWorkflowScope(runtime as never);
     expect(runtime.guestAccess.clear).toHaveBeenCalledOnce();
+    expect(runtime.incident.clear).toHaveBeenCalledOnce();
     expect(runtime.shiftEnd.fenceOperationalScope).toHaveBeenCalledOnce();
   });
 

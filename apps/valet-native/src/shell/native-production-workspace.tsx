@@ -38,7 +38,7 @@ import type { NativeProductionWorkspaceProps } from "./native-production-workspa
 export function NativeProductionWorkspace({
   authSnapshot,
   confirmParking,
-  connectivityOnline,
+  connectivity,
   contextual,
   handoff,
   locale,
@@ -61,7 +61,7 @@ export function NativeProductionWorkspace({
 
   return (
     <EmployeeFrame direction={presentation.direction}>
-      <NativeConnectivityBanner locale={locale} online={connectivityOnline} />
+      <NativeConnectivityBanner locale={locale} status={connectivity} />
       <NativePushPermissionStatus
         locale={locale}
         onRequestPermission={push.requestPermission}
@@ -89,6 +89,7 @@ export function NativeProductionWorkspace({
       <View style={{ flex: 1, minHeight: 0 }} testID="native-production-shell">
         {contextual.route !== null ? (
           <NativeContextualSurface
+            connectivity={connectivity}
             guestAccess={contextual.guestAccess}
             incident={contextual.incident}
             locale={locale}
@@ -126,6 +127,7 @@ export function NativeProductionWorkspace({
               auth={runtime.auth}
               confirmation={runtime.confirmParking}
               confirmSnapshot={confirmParking}
+              connectivity={connectivity}
               locale={locale}
               onDone={() => {
                 runtime.confirmParking.clear();

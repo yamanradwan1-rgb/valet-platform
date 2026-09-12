@@ -37,7 +37,9 @@ export function response(
 }
 
 export class MemorySecureRefresh implements SecureRefreshStore {
+  deleteGate: Promise<void> | undefined;
   deleteFailure = false;
+  deleteStarted: (() => void) | undefined;
   readGate: Promise<void> | undefined;
   readFailure = false;
   readStarted: (() => void) | undefined;
@@ -47,6 +49,8 @@ export class MemorySecureRefresh implements SecureRefreshStore {
   writeStarted: (() => void) | undefined;
 
   async delete(): Promise<void> {
+    this.deleteStarted?.();
+    if (this.deleteGate !== undefined) await this.deleteGate;
     if (this.deleteFailure) throw new Error("secure delete unavailable");
     this.value = null;
   }
@@ -67,9 +71,13 @@ export class MemorySecureRefresh implements SecureRefreshStore {
 }
 
 export class MemoryInstallationState implements InstallationAuthStateStore {
+  failWriteAt: number | null = null;
   readFailure = false;
   value: unknown | null = null;
+  writeCalls = 0;
   writeFailure = false;
+  writeGate: Promise<void> | undefined;
+  writeStarted: (() => void) | undefined;
 
   async read(): Promise<unknown | null> {
     if (this.readFailure) throw new Error("installation read unavailable");
@@ -77,7 +85,11 @@ export class MemoryInstallationState implements InstallationAuthStateStore {
   }
 
   async write(state: InstallationAuthState): Promise<void> {
-    if (this.writeFailure) throw new Error("installation write unavailable");
+    this.writeCalls += 1;
+    if (this.writeFailure || this.failWriteAt === this.writeCalls)
+      throw new Error("installation write unavailable");
+    this.writeStarted?.();
+    if (this.writeGate !== undefined) await this.writeGate;
     this.value = state;
   }
 }

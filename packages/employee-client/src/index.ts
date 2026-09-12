@@ -48,6 +48,8 @@ export {
 
 export * from "./api-error";
 export * from "./employee-client";
+export * from "./employee-connectivity-owner";
+export * from "./employee-revalidation-coordinator";
 export * from "./employee-check-in-session";
 export * from "./employee-check-in-continuation";
 export * from "./employee-check-in-continuation-session";

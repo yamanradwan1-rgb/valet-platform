@@ -39,17 +39,14 @@ export class EmployeeRetrievalSession {
   private target: Target | null = null;
 
   constructor(private readonly options: EmployeeRetrievalOptions) {}
-
   current(): EmployeeRetrievalSnapshot {
     return this.snapshot;
   }
-
   subscribe(listener: (snapshot: EmployeeRetrievalSnapshot) => void) {
     this.subscribers.add(listener);
     listener(this.snapshot);
     return () => this.subscribers.delete(listener);
   }
-
   openQueueTask(
     identityGeneration: number,
     scope: EmployeeOperationalScope,
@@ -59,7 +56,6 @@ export class EmployeeRetrievalSession {
     this.bind(identityGeneration, scope, taskId, sessionId);
     return this.reconcile("loading");
   }
-
   checkServerState(): Promise<void> {
     if (this.target === null || isRetrievalSubmitting(this.snapshot.phase)) {
       return this.activeCommand ?? Promise.resolve();
@@ -67,6 +63,14 @@ export class EmployeeRetrievalSession {
     return this.reconcile(
       this.snapshot.phase === "ambiguous" ? "reconciling" : "loading",
     );
+  }
+
+  suspendForBackground(): void {
+    if (this.target === null || !isRetrievalSubmitting(this.snapshot.phase))
+      return;
+    this.request += 1;
+    this.activeCommand = undefined;
+    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
   }
 
   enterKeySlot(candidate: string): void {

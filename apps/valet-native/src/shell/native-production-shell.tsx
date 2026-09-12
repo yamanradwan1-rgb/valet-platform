@@ -64,15 +64,16 @@ export function NativeProductionShell({
       ? shell.scope
       : null;
   const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
+  const connectivity = useNativeProductionLifecycle(runtime);
   const { push, response, retrievalAttention } = useNativePushAttention(
     runtime,
     authSnapshot,
     locale,
     operations,
+    connectivity,
     controller,
     bumpNavigation,
   );
-  useNativeProductionLifecycle(runtime);
   useNativeVehicleDirectoryRevalidation({
     directory: runtime?.vehicleDirectory,
     identityGeneration: authSnapshot.authGeneration,
@@ -242,6 +243,7 @@ export function NativeProductionShell({
       locale={locale}
       handoff={handoff}
       confirmParking={confirmParking}
+      connectivity={connectivity}
       navigate={navigate}
       onSelectLocale={setLocale}
       operations={operations}

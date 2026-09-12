@@ -1,5 +1,6 @@
 import type {
   EmployeeConfirmParkedSnapshot,
+  EmployeeConnectivityStatus,
   EmployeeHandoffSnapshot,
   EmployeeOperationalSnapshot,
   EmployeeParkingStartSnapshot,
@@ -23,7 +24,7 @@ type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 export interface NativeProductionWorkspaceProps {
   readonly authSnapshot: NativeAuthSnapshot;
   readonly confirmParking: EmployeeConfirmParkedSnapshot;
-  readonly connectivityOnline?: boolean | undefined;
+  readonly connectivity: EmployeeConnectivityStatus;
   readonly contextual: NativeContextualPresentation;
   readonly handoff: EmployeeHandoffSnapshot;
   readonly locale: FoundationLocale;

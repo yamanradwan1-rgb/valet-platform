@@ -49,7 +49,6 @@ export class EmployeeOperationalSession {
     });
     this.queue.setForeground(this.foreground);
   }
-
   current(): EmployeeOperationalSnapshot {
     return this.snapshot;
   }
@@ -60,7 +59,6 @@ export class EmployeeOperationalSession {
     listener(this.snapshot);
     return () => this.subscribers.delete(listener);
   }
-
   activate(identityGeneration: number): Promise<void> {
     if (this.generation !== identityGeneration)
       this.invalidate(identityGeneration);
@@ -71,6 +69,8 @@ export class EmployeeOperationalSession {
     if (this.foreground === foreground) return Promise.resolve();
     this.foreground = foreground;
     if (!foreground) {
+      this.contextSequence += 1;
+      this.activeContext = undefined;
       this.queue.setForeground(false);
       return Promise.resolve();
     }

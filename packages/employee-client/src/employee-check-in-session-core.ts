@@ -63,6 +63,35 @@ export class EmployeeCheckInSessionCore {
     this.publish(emptyEmployeeCheckInSnapshot());
   }
 
+  suspendForBackground(): void {
+    if (this.snapshot.phase === "submitting") {
+      this.sequence += 1;
+      this.publish({
+        ...this.snapshot,
+        phase: "intake-ambiguous",
+        recoveryChecked: false,
+      });
+      return;
+    }
+    if (
+      ["submitting", "reconciling"].includes(this.snapshot.continuation.mode)
+    ) {
+      this.sequence += 1;
+      this.publish({
+        ...this.snapshot,
+        continuation: { ...this.snapshot.continuation, mode: "ambiguous" },
+      });
+      return;
+    }
+    if (this.snapshot.phase === "recognizing") {
+      this.sequence += 1;
+      this.publish({ ...this.snapshot, phase: "confirm" });
+    } else if (this.snapshot.phase === "discovering") {
+      this.sequence += 1;
+      this.publish({ ...this.snapshot, phase: "discovery-error" });
+    }
+  }
+
   startNew(): void {
     const { identityGeneration, locationId } = this.snapshot;
     if (identityGeneration === null || locationId === null) return;

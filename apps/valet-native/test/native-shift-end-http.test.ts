@@ -1,7 +1,6 @@
 import type { NativeAuthSession } from "@valet/employee-client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { nativeOnlineHint } from "../src/shift/native-shift-connectivity";
 import { createNativeShiftEndTransport } from "../src/tasks/native-operational-http";
 
 const accessToken = `vsa1.${"a".repeat(43)}`;
@@ -42,13 +41,6 @@ afterEach(() => {
 });
 
 describe("Native End Shift HTTP transport", () => {
-  it("uses a conservative platform online hint without requiring the global", () => {
-    vi.stubGlobal("navigator", undefined);
-    expect(nativeOnlineHint()).toBe(true);
-    vi.stubGlobal("navigator", { onLine: false });
-    expect(nativeOnlineHint()).toBe(false);
-  });
-
   it("sends the exact route and strict cashReported body once", async () => {
     vi.stubGlobal("__DEV__", false);
     const fetchMock = vi.fn(async () => Response.json(endedShiftResponse()));

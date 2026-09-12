@@ -1,4 +1,5 @@
 import type {
+  EmployeeConnectivityStatus,
   EmployeeLocale,
   EmployeeOperationalSnapshot,
   NativeAuthSnapshot,
@@ -16,10 +17,17 @@ export function useNativePushAttention(
   auth: NativeAuthSnapshot,
   locale: EmployeeLocale,
   operations: EmployeeOperationalSnapshot,
+  connectivity: EmployeeConnectivityStatus,
   controller: ProductionShellController,
   onRoute: () => void,
 ) {
-  const push = useNativePushLifecycle({ auth, locale, operations, runtime });
+  const push = useNativePushLifecycle({
+    auth,
+    connectivity,
+    locale,
+    operations,
+    runtime,
+  });
   const response = useNativePushResponse({
     auth,
     controller,

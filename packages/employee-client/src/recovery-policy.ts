@@ -25,7 +25,7 @@ export function shouldRefreshAndRetryEmployeeRequest(
 }
 
 export function shouldReportEmployeeAuthorizationLoss(status: number): boolean {
-  return status === 401 || status === 403 || status === 404;
+  return status === 401;
 }
 
 export function classifyEmployeeAuthorizationRefreshFailure(

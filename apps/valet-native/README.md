@@ -82,3 +82,26 @@ capture. Android Settings **Force stop** is a different platform state: remote
 notifications do not resume while the package remains force-stopped and the app
 must be manually reopened. Required real Firebase/device lifecycle and lockscreen
 evidence remains open; automated lifecycle proof is not a physical PASS.
+
+## Connectivity and lifecycle authority
+
+Production uses the SDK-compatible `expo-network` subscription through a narrow
+provider-neutral owner. Its `online`, `offline`, and `unknown` values are device
+connectivity hints only: `online` does not prove that the API is reachable, that
+authentication is valid, or that any command succeeded. The global no-network
+banner is shown only for confirmed `offline`; API and workflow error surfaces
+remain authoritative on captive or otherwise unreachable networks.
+
+Foreground and reconnect signals are coalesced into bounded current-authority
+reads. They revalidate operational context, the current queue, and at most the
+active workflow that already owns a safe server-state read. They never replay a
+protected mutation, persist an offline outbox, or claim success after reconnect.
+Background/inactive transitions suspend polling and fence sensitive in-flight
+workflow presentation until a safe read reconciles it.
+
+Native auth process restart continues to recover only from the installation
+generation and SecureStore refresh credential. Access tokens are memory-only.
+Logout persists a restore block before best-effort server revocation, and unsafe
+durable-storage outcomes remain fail-closed. Android physical evidence for
+network switching, lock/unlock, permissions, SecureStore, and process kill
+remains an owner-deferred gate; automated simulations are not physical proof.

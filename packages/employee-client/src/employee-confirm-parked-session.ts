@@ -152,6 +152,13 @@ export class EmployeeConfirmParkedSession {
     return this.reconcile("reconciling", this.snapshot.conflict);
   }
 
+  suspendForBackground(): void {
+    if (this.target === null || this.snapshot.phase !== "submitting") return;
+    this.request += 1;
+    this.activeCommand = undefined;
+    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
+  }
+
   clear(): void {
     this.request += 1;
     this.target = null;

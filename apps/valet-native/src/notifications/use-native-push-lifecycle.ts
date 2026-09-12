@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import type {
+  EmployeeConnectivityStatus,
   EmployeeLocale,
   EmployeeOperationalSnapshot,
   NativeAuthSnapshot,
@@ -36,6 +37,7 @@ function createOwner(runtime: NativeEmployeeRuntime) {
 
 export function useNativePushLifecycle(input: {
   readonly auth: NativeAuthSnapshot;
+  readonly connectivity: EmployeeConnectivityStatus;
   readonly locale: EmployeeLocale;
   readonly operations: EmployeeOperationalSnapshot;
   readonly runtime: NativeEmployeeRuntime | undefined;
@@ -47,6 +49,7 @@ export function useNativePushLifecycle(input: {
     owner?.current() ?? emptyNativePushSnapshot(),
   );
   const hadNetworkFailure = useRef(false);
+  const previousConnectivity = useRef<EmployeeConnectivityStatus>("unknown");
 
   useEffect(() => {
     if (owner === undefined) return;
@@ -83,6 +86,16 @@ export function useNativePushLifecycle(input: {
     if (!failed && hadNetworkFailure.current) void owner?.networkRecovered();
     hadNetworkFailure.current = failed;
   }, [input.operations, owner]);
+
+  useEffect(() => {
+    if (
+      input.connectivity === "online" &&
+      previousConnectivity.current !== "online"
+    ) {
+      void owner?.networkRecovered();
+    }
+    previousConnectivity.current = input.connectivity;
+  }, [input.connectivity, owner]);
 
   return {
     dismissAttention: (intentId: string) => owner?.dismissAttention(intentId),

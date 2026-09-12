@@ -7,9 +7,10 @@ import type { NativeGuestAccessSnapshot } from "../guest-access/native-guest-acc
 import { NativeIncidentScreen } from "../incident/native-incident-screen";
 import type { NativeIncidentSnapshot } from "../incident/native-incident-types";
 import type { NativeContextualRoute } from "./native-contextual-route";
-import { nativeOnlineHint } from "../shift/native-shift-connectivity";
+import type { EmployeeConnectivityStatus } from "@valet/employee-client";
 
 export function NativeContextualSurface({
+  connectivity,
   guestAccess,
   incident,
   locale,
@@ -17,6 +18,7 @@ export function NativeContextualSurface({
   route,
   runtime,
 }: {
+  readonly connectivity: EmployeeConnectivityStatus;
   readonly guestAccess: NativeGuestAccessSnapshot;
   readonly incident: NativeIncidentSnapshot;
   readonly locale: FoundationLocale;
@@ -47,7 +49,7 @@ export function NativeContextualSurface({
             copyNativeGuestAccessUrl(runtime.guestAccess.freshCredentialUrl())
           }
           onIssue={() => void runtime.guestAccess.issue()}
-          online={nativeOnlineHint()}
+          online={connectivity !== "offline"}
           session={runtime.guestAccess}
           snapshot={guestAccess}
         />

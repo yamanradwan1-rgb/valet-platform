@@ -5,7 +5,6 @@ import {
   staffValetSessionDetailResponseSchema,
   type EmployeeClient,
 } from "@valet/employee-client";
-import { nativeOnlineHint } from "../shift/native-shift-connectivity";
 import type { NativeContextualTarget } from "../shell/native-contextual-route";
 import {
   buildNativeGuestAccessUrl,
@@ -46,34 +45,28 @@ export class NativeGuestAccessSession {
   ) {
     this.customerOrigin =
       options.customerOrigin ?? currentNativeCustomerAppOrigin();
-    this.isOnline = options.isOnline ?? nativeOnlineHint;
+    this.isOnline = options.isOnline ?? (() => true);
   }
-
   current(): NativeGuestAccessSnapshot {
     return this.snapshot;
   }
-
   freshCredentialUrl(): string | null {
     return this.credential.current(this.snapshot);
   }
-
   hasValidCustomerOrigin(): boolean {
     return this.customerOrigin.ok;
   }
-
   subscribe(listener: (value: NativeGuestAccessSnapshot) => void): () => void {
     this.subscribers.add(listener);
     listener(this.snapshot);
     return () => this.subscribers.delete(listener);
   }
-
   async open(target: NativeContextualTarget): Promise<void> {
     this.generation += 1;
     this.credential.clear();
     this.publish({ ...inactive, phase: "loading", target });
     await this.loadAuthoritative(this.generation, target, null, "LOAD_FAILED");
   }
-
   async retry(): Promise<void> {
     const target = this.snapshot.target;
     if (target === null || this.snapshot.phase !== "load-error") return;
@@ -216,6 +209,30 @@ export class NativeGuestAccessSession {
       }
       return false;
     }
+  }
+
+  suspendForBackground(): void {
+    const target = this.snapshot.target;
+    this.credential.clear();
+    if (target === null || this.snapshot.mutation === null) {
+      this.publish(this.snapshot);
+      return;
+    }
+    this.generation += 1;
+    this.publish({
+      ...this.snapshot,
+      error: "OUTCOME_UNKNOWN",
+      mutation: null,
+    });
+  }
+
+  async revalidate(): Promise<void> {
+    const target = this.snapshot.target;
+    if (target === null || this.snapshot.mutation !== null) return;
+    this.generation += 1;
+    this.credential.clear();
+    this.publish({ ...this.snapshot, error: null, phase: "loading" });
+    await this.loadAuthoritative(this.generation, target, null, "LOAD_FAILED");
   }
 
   clear(): void {

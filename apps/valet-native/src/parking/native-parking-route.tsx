@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type {
+  EmployeeConnectivityStatus,
   EmployeeConfirmParkedSession,
   EmployeeConfirmParkedSnapshot,
   EmployeeParkingStartSnapshot,
@@ -9,10 +10,10 @@ import type {
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeActiveParkingPanel } from "./native-active-parking-panel";
 import { NativeParkingConfirmPanel } from "./native-parking-confirm-panel";
-import { nativeOnlineHint } from "../shift/native-shift-connectivity";
 
 export function NativeParkingRoute({
   auth,
+  connectivity,
   confirmation,
   confirmSnapshot,
   locale,
@@ -21,6 +22,7 @@ export function NativeParkingRoute({
   parkingSnapshot,
 }: {
   readonly auth: NativeAuthSession;
+  readonly connectivity: EmployeeConnectivityStatus;
   readonly confirmation: EmployeeConfirmParkedSession;
   readonly confirmSnapshot: EmployeeConfirmParkedSnapshot;
   readonly locale: FoundationLocale;
@@ -44,7 +46,7 @@ export function NativeParkingRoute({
       auth={auth}
       confirmation={confirmation}
       locale={locale}
-      online={nativeOnlineHint()}
+      online={connectivity !== "offline"}
       onBack={() => setShowConfirmation(false)}
       onDone={onDone}
       snapshot={confirmSnapshot}

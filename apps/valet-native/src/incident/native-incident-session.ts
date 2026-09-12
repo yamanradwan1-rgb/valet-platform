@@ -99,6 +99,16 @@ export class NativeIncidentSession {
     }
   }
 
+  suspendForBackground(): void {
+    if (this.snapshot.phase !== "submitting") return;
+    this.generation += 1;
+    this.publish({
+      ...this.snapshot,
+      error: NATIVE_INCIDENT_OPERATION_FAILED,
+      phase: "form",
+    });
+  }
+
   clear(): void {
     this.generation += 1;
     this.incidentId = null;

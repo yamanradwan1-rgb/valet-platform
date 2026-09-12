@@ -7,6 +7,7 @@ import {
   createEmployeeRetrievalTransport,
   createEmployeeVehicleDirectoryTransport,
   EmployeeCheckInSession,
+  EmployeeConnectivityOwner,
   EmployeeConfirmParkedSession,
   EmployeeHandoffSession,
   EmployeeOperationalSession,
@@ -32,16 +33,17 @@ import {
   createNativeShiftEndTransport,
   createNativeShiftStartTransport,
 } from "../tasks/native-operational-http";
-import { nativeOnlineHint } from "../shift/native-shift-connectivity";
 import { retireNativeShiftScope } from "../shift/native-shift-retirement";
 import { NativeIncidentSession } from "../incident/native-incident-session";
 import { NativeGuestAccessSession } from "../guest-access/native-guest-access-session";
+import { ExpoNativeConnectivityAdapter } from "../shell/expo-native-connectivity-adapter";
 
 export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
   readonly auth: NativeAuthSession;
   readonly checkIn: EmployeeCheckInSession;
   readonly confirmParking: EmployeeConfirmParkedSession;
+  readonly connectivity: EmployeeConnectivityOwner;
   readonly dispose: () => void;
   readonly handoff: EmployeeHandoffSession;
   readonly guestAccess: NativeGuestAccessSession;
@@ -77,6 +79,9 @@ export function createNativeAuthSession(
 export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const apiOrigin = resolveNativeApiOrigin();
   const auth = createNativeAuthSession(apiOrigin);
+  const connectivity = new EmployeeConnectivityOwner(
+    new ExpoNativeConnectivityAdapter(),
+  );
   const shiftObserver: {
     end?: EmployeeShiftEndSession;
     start?: EmployeeShiftStartSession;
@@ -169,8 +174,9 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const incident = new NativeIncidentSession(() =>
     createNativeEmployeeClient(apiOrigin, auth),
   );
-  const guestAccess = new NativeGuestAccessSession(() =>
-    createNativeEmployeeClient(apiOrigin, auth),
+  const guestAccess = new NativeGuestAccessSession(
+    () => createNativeEmployeeClient(apiOrigin, auth),
+    { isOnline: () => connectivity.current() !== "offline" },
   );
   const vehicleDirectory = new EmployeeVehicleDirectorySession({
     transport: createEmployeeVehicleDirectoryTransport((signal) =>
@@ -178,7 +184,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     ),
   });
   const shiftEnd = new EmployeeShiftEndSession({
-    initialOnline: nativeOnlineHint(),
+    initialOnline: connectivity.current() !== "offline",
     onEnded: () => {
       const currentAuth = auth.current();
       if (currentAuth.phase !== "authenticated") return;
@@ -187,6 +193,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
           checkIn,
           confirmParking,
           guestAccess,
+          incident,
           handoff,
           operations,
           parking,
@@ -201,6 +208,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     transport: createNativeShiftEndTransport(apiOrigin, auth),
   });
   shiftObserver.end = shiftEnd;
+  connectivity.start();
   const unregisterIdentityPurge = nativeIdentityState.register(() => {
     operations.clear();
     confirmParking.clear();
@@ -217,6 +225,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   });
   const dispose = () => {
     unregisterIdentityPurge();
+    connectivity.dispose();
     operations.dispose();
     confirmParking.clear();
     handoff.clear();
@@ -235,6 +244,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     auth,
     checkIn,
     confirmParking,
+    connectivity,
     dispose,
     handoff,
     guestAccess,

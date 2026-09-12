@@ -35,6 +35,7 @@ describe("Native package contract", () => {
     expect(manifest.dependencies["expo-clipboard"]).toBe("~57.0.1");
     expect(manifest.dependencies["expo-application"]).toBe("~57.0.3");
     expect(manifest.dependencies["expo-notifications"]).toBe("~57.0.18");
+    expect(manifest.dependencies["expo-network"]).toBe("~57.0.2");
     expect(manifest.dependencies.qrcode).toBe("^1.5.4");
     expect(manifest.dependencies["react-native-svg"]).toBe("15.15.4");
     expect(Object.keys(manifest.dependencies).sort()).toEqual(
@@ -54,6 +55,7 @@ describe("Native package contract", () => {
         "expo-file-system",
         "expo-font",
         "expo-linking",
+        "expo-network",
         "expo-notifications",
         "expo-router",
         "expo-secure-store",

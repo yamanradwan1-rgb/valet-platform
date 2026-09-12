@@ -6,17 +6,16 @@ import {
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
+import type { EmployeeConnectivityStatus } from "@valet/employee-client";
 
-/** Presentation boundary only. Production supplies no value until an approved
- * subscribed Native connectivity authority exists. */
 export function NativeConnectivityBanner({
   locale,
-  online,
+  status,
 }: {
   readonly locale: FoundationLocale;
-  readonly online?: boolean | undefined;
+  readonly status: EmployeeConnectivityStatus;
 }) {
-  if (online !== false) return null;
+  if (status !== "offline") return null;
   const textAlign = locale === "ar" ? "right" : "left";
   return (
     <View

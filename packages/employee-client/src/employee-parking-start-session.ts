@@ -31,17 +31,14 @@ export class EmployeeParkingStartSession {
   private target: Target | null = null;
 
   constructor(private readonly options: EmployeeParkingStartOptions) {}
-
   current(): EmployeeParkingStartSnapshot {
     return this.snapshot;
   }
-
   subscribe(listener: (snapshot: EmployeeParkingStartSnapshot) => void) {
     this.subscribers.add(listener);
     listener(this.snapshot);
     return () => this.subscribers.delete(listener);
   }
-
   openQueueTask(
     identityGeneration: number,
     scope: EmployeeOperationalScope,
@@ -51,7 +48,6 @@ export class EmployeeParkingStartSession {
     this.bind(identityGeneration, scope, taskId, sessionId);
     return this.reconcile("loading");
   }
-
   openCompletedCheckIn(
     identityGeneration: number,
     scope: EmployeeOperationalScope,
@@ -68,6 +64,13 @@ export class EmployeeParkingStartSession {
     return this.reconcile(
       this.snapshot.phase === "ambiguous" ? "reconciling" : "loading",
     );
+  }
+
+  suspendForBackground(): void {
+    if (this.target === null || this.snapshot.phase !== "submitting") return;
+    this.request += 1;
+    this.activeCommand = undefined;
+    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
   }
 
   startParking(): Promise<void> {

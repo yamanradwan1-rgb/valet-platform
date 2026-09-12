@@ -47,6 +47,10 @@ export class EmployeeVehicleDirectorySession {
       : this.load(identityGeneration, scope);
   }
 
+  suspendForBackground() {
+    this.clearRequest();
+  }
+
   clear() {
     this.clearRequest();
     this.publish(emptySnapshot());
