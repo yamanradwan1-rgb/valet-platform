@@ -68,3 +68,31 @@ export function faultCommitted(fault: ProtectedCommandFault): boolean {
     (typeof fault === "object" && fault.commit)
   );
 }
+
+export interface ProcessDeathCommandCut {
+  readonly reached: Promise<void>;
+  loseResponse<Result>(operation: Promise<Result>): Promise<Result>;
+}
+
+/**
+ * Cuts the transport after the fake server decides the transaction outcome.
+ * Process A remains awaiting a response that its killed process can never
+ * receive, so it cannot publish or start its own canonical reconciliation.
+ */
+export function processDeathCommandCut(): ProcessDeathCommandCut {
+  let reach!: () => void;
+  const reached = new Promise<void>((resolve) => {
+    reach = resolve;
+  });
+  return {
+    reached,
+    async loseResponse<Result>(operation: Promise<Result>): Promise<Result> {
+      try {
+        return await operation;
+      } catch {
+        reach();
+        return new Promise<Result>(() => undefined);
+      }
+    },
+  };
+}

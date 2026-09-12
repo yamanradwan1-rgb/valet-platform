@@ -8,7 +8,7 @@
 
 - Base: `cad942bad7f7655b0d4bda3c7449c30c6e4205c6`
 - Branch: `codex/mob-023b-protected-command-process-death`
-- Physical-device evidence: explicitly deferred by the owner and not claimed.
+- Physical evidence: **DEFERRED — owner deferred physical evidence gate.**
 - Overall status: **BLOCKED / CHILD REQUIRED** for exact Incident recovery after
   a committed response is lost across process death. All independently safe
   MOB-023B client rows are implemented or proven without adding persistence.
@@ -22,7 +22,7 @@ and protected proofs are memory-only unless stated otherwise.
 | Stage | Production route and method | Client / Native owner | Server authority and retry identity | Cold-start behavior and disposition | Accepted authority |
 | --- | --- | --- | --- | --- | --- |
 | Staff auth | `POST /v1/staff/auth/refresh`; auth logout | `NativeAuthSession`; Native bootstrap | rotating server session family; secure refresh credential is the only relevant durable client secret | new auth owner starts without access token, restores refresh through the accepted path, then reloads context; logout/revocation/account replacement remains fail-closed | DEC-072 |
-| Workspace | `GET /v1/staff/operational-context`; `GET /v1/staff/tasks/queue` | `EmployeeOperationalSession`; Tasks screen | current User, membership, Organization, Location, Shift, Task | entirely new owner loads context then queue; no POST and no restored navigation authority | DEC-032/034/035/071/072 |
+| Workspace | `GET /v1/staff/operational-context`; `GET /v1/staff/tasks/queue` | `EmployeeOperationalSession`; Tasks screen | current User, membership, Organization, Location, Shift, Task | entirely new owner loads context then queue; `native-process-death-routing.test.ts` proves a new production controller starts at Tasks with no restored command navigation | DEC-032/034/035/071/072 |
 | Shift Start | `POST /v1/staff/shifts/start` | `EmployeeShiftStartSession`; Shift screen | active-Shift uniqueness and same-Location semantic recovery; no operation ID | context says active, startable, conflicting, or revoked; never auto-replays | DEC-032/063 |
 | Shift End | `POST /v1/staff/shifts/:shiftId/end` | `EmployeeShiftEndSession`; Shift screen | open-work guard; immutable cash-close result; same ended Shift retry is server-idempotent | context says active or no active Shift; cash input and attempt are lost; never auto-replays | DEC-032/052/063 |
 | Returning recognition | `POST /v1/staff/check-in/vehicle-recognition` with read-only recognition semantics | `EmployeeCheckInSession`; Check-In screen | current scoped Vehicle/Customer projection | transient candidate is discarded; explicit current flow repeats recognition when needed | DEC-069 |
@@ -43,23 +43,45 @@ and protected proofs are memory-only unless stated otherwise.
 ## Deterministic process boundary
 
 `ProtectedCommandServer` owns the authoritative fake state across two runtime
-owners and models:
+owners. Every claimed custody cut now begins at a real public production-owner
+method; `server.mutate(...)` is called only inside that owner's transport
+adapter. The harness models:
 
 1. failure before commit;
 2. commit followed by response loss;
 3. atomic transaction rollback;
 4. caller disconnect with both possible server outcomes.
 
-Tests drop the Process-A owner without calling `clear()` or serializing its
-snapshot. Process B is newly constructed and receives only canonical server
-reads. The harness records every protected POST so restart-triggered mutation
-would fail deterministically.
+Tests make the Process-A owner unreachable without calling `clear()` or
+serializing its snapshot, target, candidates, proof, or navigation. Process B
+constructs a new `EmployeeOperationalSession`, reloads current context and
+queue, and passes only the Task identifiers returned by that Process-B queue to
+new command owners. Its command transports reject unexpected POSTs, while the
+harness records every protected POST.
 
-The full-shift scenario cuts responses after committed Parking Task bootstrap,
-Start Parking, Confirm Parked, Start Retrieval, Mark Ready, initiate handoff,
-pickup-code verification, abort handoff, and complete handoff. New owners adopt
-each canonical stage. The release cut proves a completed session is recognized
-before queue/payment reads and produces no duplicate release effect.
+For custody cuts, `processDeathCommandCut()` signals only after the fake server
+has selected commit, non-commit, rollback, or disconnect outcome, then leaves
+the Process-A transport response permanently unavailable. The test drops its
+only Process-A owner reference at that signal, before Process A can publish a
+result or begin its normal same-process reconciliation.
+
+The evidence is split by production responsibility rather than held in one
+oversized test. Parking bootstrap, Start Parking, Confirm Parked, Start
+Retrieval, Mark Ready, initiate handoff, pickup-code verification, supervisor
+override, abort, and complete handoff all execute through their Process-A
+session public actions. Confirm Parked and complete handoff remove their active
+Tasks, so integrated Process B intentionally stays at Tasks with no old target;
+the focused owner suites separately prove canonical `PARKED` and `COMPLETED`
+detail reconciliation when a current route supplies a target.
+
+## Fault-boundary evidence
+
+| Boundary | Real production-owner evidence |
+| --- | --- |
+| Failure before commit | `employee-process-death-shift-task.test.ts` — “restores Shift Start/End authority after before-commit without replay”; `employee-process-death-parking.test.ts` — “resolves Start Parking before-commit from Process-B queue authority”; `employee-process-death-release.test.ts` — “uses current server truth after complete-handoff before-commit” |
+| Commit + response lost | the same Shift and Start Parking parameterized tests; Parking bootstrap, Confirm Parked, Retrieval, Handoff, proof, abort, override, and release named tests below |
+| Transaction rollback | Shift Start/End and Start Parking parameterized `rollback` cases execute through real owners; PostgreSQL `start-parking-atomicity.integration.test.ts`, `confirm-parked-atomicity.integration.test.ts`, `start-retrieval-atomicity.integration.test.ts`, `mark-ready-atomicity.integration.test.ts`, `handoff-atomicity.integration.test.ts`, and `complete-handoff-atomicity.integration.test.ts` prove command atomicity |
+| Caller disconnect, outcome unknown | Shift Start/End and Start Parking parameterized `disconnect-no-commit` and `disconnect-commit` cases; Process B accepts only its canonical read result |
 
 ## Required-row disposition
 
@@ -68,23 +90,23 @@ before queue/payment reads and produces no duplicate release effect.
 | Shift Start | PASS | `employee-process-death-shift-task.test.ts` covers all four boundaries and both disconnect outcomes |
 | Shift End | PASS | same suite; Process B adopts active/no-active truth and has empty cash input |
 | Task accept / claim / reassignment | PASS | same suite plus `employee-operational-accept.test.ts`; committed accept, current reassignment, revoked scope, and claim/accept sequencing |
-| Parking queue bootstrap | PASS | `employee-full-shift-process-death.test.ts`; committed lost response is found through queue/detail with no bootstrap replay |
-| Start Parking | PASS | full-shift process-death test plus `employee-parking-start-session.test.ts` |
-| Confirm Parked | PASS | full-shift test and `employee-confirm-parked-recovery.test.ts`; includes fresh-owner canonical spot/slot adoption and stale-version cases |
-| Start Retrieval | PASS | full-shift test plus `employee-retrieval-flow-session.test.ts` |
-| Mark Ready | PASS | full-shift test plus `employee-retrieval-flow-fences.test.ts` |
-| Initiate handoff | PASS | full-shift test plus `employee-handoff-flow-session.test.ts` |
-| Pickup code / Dynamic QR proof loss | PASS | full-shift pickup-code canary, `employee-handoff-flow-session.test.ts` proof non-retention, and handoff fence tests; both methods use the same non-retaining command path |
-| Supervisor override | PASS | fresh canonical verified-state path in full-shift scenario plus existing role/authority tests; no reason is persisted or replayed |
-| Abort handoff | PASS | full-shift test discovers canonical `READY` after lost abort response |
-| Final release | PASS | full-shift test and `employee-release-flow-session.test.ts`; canonical `COMPLETED`, zero second POST, missing completed Task tolerated |
+| Parking queue bootstrap | PASS | `employee-process-death-parking.test.ts` — “queues through Process A and lets Process B discover the Task”; real `openCompletedCheckIn` call, lost response, Process-B queue discovery, zero replay |
+| Start Parking | PASS | `employee-process-death-parking.test.ts` — “resolves Start Parking … from Process-B queue authority”; all five fault outcomes through `startParking()` |
+| Confirm Parked | PASS | `employee-process-death-parking.test.ts` — “confirms through Process A, then cold-starts at Tasks with no target”; `employee-confirm-parked-recovery.test.ts` is the correctly labeled lower-level fresh-owner canonical spot/slot reconciliation |
+| Start Retrieval | PASS | `employee-process-death-retrieval.test.ts` — “resolves Start Retrieval … from Process-B queue authority”; all five fault outcomes through `startRetrieval()` |
+| Mark Ready | PASS | `employee-process-death-retrieval.test.ts` — “marks Ready through Process A and restores it with no POST” |
+| Initiate handoff | PASS | `employee-process-death-handoff.test.ts` — “initiates in Process A and Process B discovers HANDOFF_PENDING” |
+| Pickup code / Dynamic QR proof loss | PASS | `employee-process-death-handoff.test.ts` — “loses pickup proof with Process A and adopts only server verification”; `employee-handoff-flow-session.test.ts` — “verifies pickup/qr proof without completing or releasing” proves both methods use the same non-retaining `run("verify", method, proof)` owner boundary |
+| Supervisor override | PASS | `employee-process-death-handoff.test.ts` — “does not replay a supervisor override after Process A dies”; current supervisor scope and server verification win |
+| Abort handoff | PASS | `employee-process-death-handoff.test.ts` — “aborts in Process A and Process B discovers READY” |
+| Final release | PASS | `employee-process-death-release.test.ts` — before-commit and committed-response-lost calls through `release()`; committed terminal cold start has no Task/route and zero second POST. `employee-release-flow-session.test.ts` — “recovers COMMITTED completion after response loss even when Task disappeared” is the focused detail-first owner proof |
 | Incident | BLOCKED / CHILD REQUIRED | `native-process-death-recovery.test.ts` proves both commit outcomes produce only a Process-B GET and no fabricated report/replay; no lawful exact-recovery identity exists |
 | Guest Access | PASS | same Native suite proves ACTIVE server state with no retained raw bearer; existing recovery suite covers issue/revoke ambiguity |
 | Check-In intake | ALREADY COVERED | `employee-check-in-recovery.test.ts` constructs a fresh session and restores server drafts/continuations; `employee-check-in-session.test.ts` proves same-process exact ID reuse; API integration proves durable idempotency |
 | Check-In condition/detail correction | ALREADY COVERED | condition/correction recovery suites prove canonical reread, no append replay, stale version, and identity purge |
 | Auth / account / scope replacement | PASS | new Task test plus `native-auth-storage-matrix.test.ts`, shift fences, Native auth-race tests, and workflow purge tests |
 
-## Incident child required
+## MOB-023B-INCIDENT-RECOVERY CONTRACT CHILD REQUIRED
 
 Accepted policy allows manual retry of the same logical Incident using its
 actor-bound stable ID. Production generates that ID inside
@@ -93,12 +115,21 @@ that ID but exposes no employee read/list/by-ID route capable of discovering a
 committed lost response. After process death, generating a new ID for an
 explicit resubmission can create a second Incident for the same occurrence.
 
-Required focused child/decision: define a narrow, privacy-safe Incident
-process-death recovery contract. It must decide whether an allowed durable
-incident intent identity (without protected draft content) or a scoped
-canonical server discovery/read is authoritative, including retention, actor,
-Organization/Location/session binding, logout/scope purge, collision, and
-changed-payload behavior. Responsible current modules are:
+Required focused child/decision: define a command-specific, privacy-safe
+Incident process-death recovery contract without selecting its architecture in
+MOB-023B. It must decide:
+
+- how one stable Incident intent identity can survive process death;
+- how committed-response-lost is discovered and how not-committed is shown;
+- actor, Organization, Location, and Valet Session binding;
+- retention and TTL;
+- logout, definitive auth loss, account switch, and scope-change purge;
+- changed-payload reuse semantics and duplicate prevention;
+- why cold start never automatically replays the Incident POST; and
+- whether any sensitive draft content may be durable (plaintext persistence is
+  forbidden unless explicitly accepted).
+
+Responsible current modules are:
 
 - Native: `apps/valet-native/src/incident/native-incident-session.ts`
 - API: `apps/api/src/modules/incidents/incident-reporting-command.ts`
@@ -118,13 +149,30 @@ added.
 
 ## Automated validation record
 
-- Employee client: 62 files / 457 tests passed; lint, typecheck, and build passed.
-- Native: 135 files / 1,044 tests passed; lint and typecheck passed.
-- PostgreSQL command invariants: 17 files / 144 tests passed for Shift Start/End,
-  intake, Dispatch, Start/Confirm Parking, Start Retrieval, Mark Ready, handoff
-  atomicity/proof concurrency, final-release command/atomicity/concurrency and
-  terminal staff reads, Incident, and Guest Access. One release test needed a
-  15-second CLI timeout after exceeding the default five seconds in fixture setup.
+- Employee client: 65 files / 475 tests passed; lint, typecheck, and build
+  passed.
+- Native: 136 files / 1,047 tests passed; lint and typecheck passed. A first
+  concurrent run had one unrelated five-second dynamic-import timeout; the
+  required full Native command rerun alone passed cleanly.
+- PostgreSQL command invariants: 13 exact files / 106 tests passed: Shift Start,
+  Shift End, intake idempotency, Start/Confirm Parking atomicity, Start
+  Retrieval/Mark Ready atomicity, handoff atomicity/proof concurrency,
+  complete-handoff atomicity/concurrency, Incident, and Guest Access. Four slow
+  files were rerun serialized with a 15-second timeout after parallel fixture
+  lock contention; that rerun passed 4 files / 23 tests.
+
+  Exact files: `shift-start.integration.test.ts`,
+  `shift-end.integration.test.ts`, `intake-session-command.integration.test.ts`,
+  `start-parking-atomicity.integration.test.ts`,
+  `confirm-parked-atomicity.integration.test.ts`,
+  `start-retrieval-atomicity.integration.test.ts`,
+  `mark-ready-atomicity.integration.test.ts`,
+  `handoff-atomicity.integration.test.ts`,
+  `handoff-proof-concurrency.integration.test.ts`,
+  `complete-handoff-atomicity.integration.test.ts`,
+  `complete-handoff-concurrency.integration.test.ts`,
+  `staff-incident-reporting.integration.test.ts`, and
+  `staff-valet-session-guest-access.integration.test.ts`.
 - Architecture check passed with only pre-existing grandfathered-size warnings.
 - Changed-file Prettier and `git diff --check` passed before commit.
 
