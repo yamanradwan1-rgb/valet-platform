@@ -61,7 +61,12 @@ export class NativeIncidentSession {
 
   async revalidate(): Promise<void> {
     const target = this.snapshot.target;
-    if (target === null || this.snapshot.phase === "submitting") return;
+    if (
+      target === null ||
+      this.snapshot.phase === "submitting" ||
+      this.snapshot.phase === "success"
+    )
+      return;
     this.generation += 1;
     this.publish({ ...inactive, phase: "loading", target });
     await this.load(this.generation, target);

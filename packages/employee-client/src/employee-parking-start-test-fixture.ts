@@ -80,6 +80,9 @@ export function parkingStartedResult(
 }
 
 export class StubParkingStartTransport implements EmployeeParkingStartTransport {
+  readonly loadQueueCalls: string[] = [];
+  readonly loadSessionCalls: string[] = [];
+  readonly queueTaskCalls: string[] = [];
   readonly startCalls: Array<{
     sessionId: string;
     sessionVersion: number;
@@ -90,13 +93,16 @@ export class StubParkingStartTransport implements EmployeeParkingStartTransport 
   startResults: Array<Promise<StartParkingResponse>> = [];
   queuedResults: Array<Promise<ParkingTaskQueueResponse>> = [];
 
-  loadSession() {
+  loadSession(sessionId: string) {
+    this.loadSessionCalls.push(sessionId);
     return this.next(this.sessionResults);
   }
-  loadTaskQueue() {
+  loadTaskQueue(locationId: string) {
+    this.loadQueueCalls.push(locationId);
     return this.next(this.queueResults);
   }
-  queueParkingTask() {
+  queueParkingTask(sessionId: string) {
+    this.queueTaskCalls.push(sessionId);
     return this.next(this.queuedResults);
   }
   startParking(sessionId: string, sessionVersion: number, taskVersion: number) {

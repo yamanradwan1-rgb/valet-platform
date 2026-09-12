@@ -52,7 +52,7 @@ export class EmployeeParkingStartSession {
     sessionId: string,
   ): Promise<void> {
     this.bind(identityGeneration, scope, null, sessionId);
-    return this.queueAndReconcile();
+    return this.queueAndReconcile(this.request);
   }
 
   checkServerState(): Promise<void> {
@@ -122,14 +122,14 @@ export class EmployeeParkingStartSession {
     );
   }
 
-  private async queueAndReconcile(): Promise<void> {
+  private async queueAndReconcile(request: number): Promise<void> {
     const target = this.target;
     if (target === null) return;
     try {
       const task = await this.options.transport.queueParkingTask(
         target.sessionId,
       );
-      if (!this.isCurrent(target)) return;
+      if (!this.isCurrent(target, request)) return;
       if (task.sessionId !== target.sessionId) {
         throw new EmployeeApiError({
           code: "PARKING_TASK_RESPONSE_MISMATCH",
@@ -139,7 +139,7 @@ export class EmployeeParkingStartSession {
       }
       target.taskId = task.taskId;
     } catch (error) {
-      if (!this.isCurrent(target)) return;
+      if (!this.isCurrent(target, request)) return;
       if (!isAmbiguousMutationFailure(error)) {
         this.publish({
           ...this.snapshot,

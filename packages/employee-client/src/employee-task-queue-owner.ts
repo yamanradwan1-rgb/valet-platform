@@ -44,7 +44,6 @@ export class EmployeeTaskQueueOwner {
   private active:
     | {
         readonly key: string;
-        readonly preserveInBackground: boolean;
         readonly promise: Promise<void>;
       }
     | undefined;
@@ -69,7 +68,7 @@ export class EmployeeTaskQueueOwner {
     this.foreground = foreground;
     if (!foreground) {
       this.stopTimer();
-      if (this.active?.preserveInBackground !== true) this.abortActive();
+      this.abortActive();
       return;
     }
     this.startTimer();
@@ -112,9 +111,14 @@ export class EmployeeTaskQueueOwner {
     this.suspended = true;
   }
 
-  refresh(initial = false, preserveInBackground = false): Promise<void> {
+  refresh(initial = false): Promise<void> {
     const target = this.scope;
-    if (target === undefined || this.hardStopped || this.suspended) {
+    if (
+      !this.foreground ||
+      target === undefined ||
+      this.hardStopped ||
+      this.suspended
+    ) {
       return Promise.resolve();
     }
     if (Date.now() < this.retryNotBefore) return Promise.resolve();
@@ -124,7 +128,7 @@ export class EmployeeTaskQueueOwner {
     const controller = new AbortController();
     this.abortController = controller;
     const promise = this.load(target, controller, initial);
-    this.active = { key: target.key, preserveInBackground, promise };
+    this.active = { key: target.key, promise };
     return promise;
   }
 

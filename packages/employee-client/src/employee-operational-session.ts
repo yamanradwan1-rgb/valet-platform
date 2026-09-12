@@ -1,15 +1,12 @@
 import {
-  createEmployeeQueueAttempt,
   isEmployeeAttemptScope,
   operationalFailure,
-  reconcileAcceptAttempt,
 } from "./employee-operational-recovery";
 import {
   isSameEmployeeOperationalScope,
   resolveEmployeeOperationalScope,
 } from "./employee-operational-scope";
 import {
-  applyEmployeeMutationPhase,
   applyEmployeeOperationalScope,
   applyEmployeeQueueEvent,
   emptyEmployeeOperationalSnapshot,
@@ -19,22 +16,20 @@ import {
   EmployeeTaskQueueOwner,
   type EmployeeQueueSnapshotEvent,
 } from "./employee-task-queue-owner";
-import { executeEmployeeTaskAction } from "./employee-task-action-runner";
+import { EmployeeTaskActionOwner } from "./employee-task-action-owner";
 import type {
-  EmployeeAcceptAttempt as AcceptAttempt,
   EmployeeOperationalSessionOptions,
   EmployeeOperationalSnapshot,
 } from "./employee-operational-types";
 
 export class EmployeeOperationalSession {
-  private activeAccept: Promise<void> | undefined;
+  private readonly action: EmployeeTaskActionOwner;
   private activeContext:
     | { readonly generation: number; readonly promise: Promise<void> }
     | undefined;
   private contextSequence = 0;
   private foreground: boolean;
   private generation: number | null = null;
-  private pendingAttempt: AcceptAttempt | undefined;
   private readonly queue: EmployeeTaskQueueOwner;
   private snapshot = emptyEmployeeOperationalSnapshot();
   private readonly subscribers = new Set<
@@ -45,6 +40,13 @@ export class EmployeeOperationalSession {
     this.queue = new EmployeeTaskQueueOwner({
       intervalMs: options.pollingIntervalMs ?? 5000,
       onSnapshot: (event) => this.handleQueueEvent(event),
+      transport: options.transport,
+    });
+    this.action = new EmployeeTaskActionOwner({
+      current: () => this.snapshot,
+      isForeground: () => this.foreground,
+      publish: (snapshot) => this.publish(snapshot),
+      refreshQueue: () => this.queue.refresh(),
       transport: options.transport,
     });
     this.queue.setForeground(this.foreground);
@@ -69,6 +71,7 @@ export class EmployeeOperationalSession {
     if (!foreground) {
       this.contextSequence += 1;
       this.activeContext = undefined;
+      this.action.suspendForBackground();
       this.queue.setForeground(false);
       return Promise.resolve();
     }
@@ -103,19 +106,7 @@ export class EmployeeOperationalSession {
   }
 
   acceptTask(taskId: string): Promise<void> {
-    if (this.pendingAttempt !== undefined) {
-      return this.activeAccept ?? Promise.resolve();
-    }
-    const generation = this.generation;
-    const attempt = createEmployeeQueueAttempt(
-      this.snapshot,
-      generation,
-      taskId,
-    );
-    if (attempt === undefined) return Promise.resolve();
-    const operation = this.runAccept(attempt);
-    this.activeAccept = operation;
-    return operation;
+    return this.action.acceptTask(taskId, this.generation);
   }
 
   private loadContext(generation: number): Promise<void> {
@@ -150,7 +141,7 @@ export class EmployeeOperationalSession {
       this.options.onOperationalContext?.(generation, response);
       const resolution = resolveEmployeeOperationalScope(response);
       if (resolution.phase !== "ready") {
-        this.clearPendingAction();
+        this.action.clear();
         this.queue.clear();
         this.publish({
           ...resetEmployeeOperationalContext(
@@ -168,11 +159,11 @@ export class EmployeeOperationalSession {
       const retained =
         isSameEmployeeOperationalScope(this.snapshot.scope, resolution.scope) ||
         isEmployeeAttemptScope(
-          this.pendingAttempt,
+          this.action.currentAttempt(),
           generation,
           resolution.scope,
         );
-      if (!retained) this.clearPendingAction();
+      if (!retained) this.action.clear();
       this.publish(
         applyEmployeeOperationalScope(
           this.snapshot,
@@ -194,101 +185,30 @@ export class EmployeeOperationalSession {
     }
   }
 
-  private async runAccept(attempt: AcceptAttempt): Promise<void> {
-    this.pendingAttempt = attempt;
-    this.publish(
-      applyEmployeeMutationPhase(this.snapshot, attempt, "submitting"),
-    );
-    const result = await executeEmployeeTaskAction(
-      attempt,
-      this.options.transport,
-      () =>
-        !this.snapshot.queueHardStopped &&
-        isEmployeeAttemptScope(attempt, this.generation, this.snapshot.scope),
-    );
-    if (result.kind === "stale") {
-      if (this.pendingAttempt === attempt) {
-        this.publish(
-          applyEmployeeMutationPhase(this.snapshot, attempt, "reconciling"),
-        );
-      }
-      return;
-    }
-    if (result.kind === "reconcile") {
-      this.publish(
-        applyEmployeeMutationPhase(this.snapshot, attempt, "reconciling"),
-      );
-      await this.queue.refresh(false, true);
-      return;
-    }
-    this.pendingAttempt = undefined;
-    this.activeAccept = undefined;
-    this.publish({
-      ...this.snapshot,
-      mutation: {
-        expectedVersion: attempt.expectedVersion,
-        failure: result.failure,
-        phase: "failed",
-        taskId: attempt.taskId,
-      },
-    });
-  }
-
   private handleQueueEvent(event: EmployeeQueueSnapshotEvent): void {
     if (!isSameEmployeeOperationalScope(this.snapshot.scope, event.scope))
       return;
-    if (event.hardStopped) this.clearPendingAction();
+    if (event.hardStopped) this.action.clear();
     this.publish(
       applyEmployeeQueueEvent(
         this.snapshot,
         event,
-        this.pendingAttempt !== undefined,
+        this.action.currentAttempt() !== undefined,
       ),
     );
-    if (event.tasks !== undefined) this.reconcilePendingAttempt();
-  }
-
-  private reconcilePendingAttempt(): void {
-    const attempt = this.pendingAttempt;
-    if (
-      attempt === undefined ||
-      this.generation !== attempt.generation ||
-      (this.snapshot.mutation.phase !== "reconciling" &&
-        this.snapshot.mutation.phase !== "recovery-unavailable")
-    ) {
-      return;
-    }
-    const task = this.snapshot.tasks.find(
-      (item) => item.taskId === attempt.taskId,
-    );
-    const phase = reconcileAcceptAttempt({ ...attempt, task });
-    this.pendingAttempt = undefined;
-    this.activeAccept = undefined;
-    this.publish({
-      ...this.snapshot,
-      mutation: {
-        expectedVersion: attempt.expectedVersion,
-        phase,
-        taskId: attempt.taskId,
-      },
-    });
+    if (event.tasks !== undefined) this.action.reconcileCurrentQueue();
   }
 
   private invalidate(generation: number | null): void {
     this.contextSequence += 1;
     this.generation = generation;
     this.activeContext = undefined;
-    this.clearPendingAction();
+    this.action.clear();
     this.queue.clear();
     this.publish({
       ...emptyEmployeeOperationalSnapshot(),
       identityGeneration: generation,
     });
-  }
-
-  private clearPendingAction(): void {
-    this.pendingAttempt = undefined;
-    this.activeAccept = undefined;
   }
 
   private publish(snapshot: EmployeeOperationalSnapshot): void {
