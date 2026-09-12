@@ -21,7 +21,8 @@ function workflow(initialPhase = "inactive") {
     clear: vi.fn(() => {
       phase = "inactive";
     }),
-    current: vi.fn(() => ({ phase })),
+    current: vi.fn(() => ({ phase, target: null })),
+    revalidate: vi.fn(async () => undefined),
     suspendForBackground: vi.fn(),
   };
 }
@@ -32,6 +33,7 @@ function fixture(responses: EmployeeOperationalSnapshot[]) {
     snapshot = responses.shift() ?? snapshot;
   };
   const release = workflow("ready");
+  const incident = workflow();
   const guestAccess = {
     ...workflow(),
     current: vi.fn(() => ({ mutation: null, target: null })),
@@ -47,7 +49,7 @@ function fixture(responses: EmployeeOperationalSnapshot[]) {
     confirmParking: workflow(),
     guestAccess,
     handoff: workflow(),
-    incident: workflow(),
+    incident,
     operations: {
       current: vi.fn(() => snapshot),
       refresh: vi.fn(advance),
@@ -58,6 +60,7 @@ function fixture(responses: EmployeeOperationalSnapshot[]) {
     parking: workflow(),
     release,
     retrieval: workflow(),
+    shiftStart: { suspendForBackground: vi.fn() },
     shiftEnd: {
       fenceOperationalScope: vi.fn(),
       setOnline: vi.fn(),
@@ -71,6 +74,7 @@ function fixture(responses: EmployeeOperationalSnapshot[]) {
   return {
     current: () => snapshot,
     guestAccess,
+    incident,
     protectedCommand: vi.fn(),
     release,
     runtime,
@@ -149,5 +153,37 @@ describe("Native production lifecycle authority", () => {
     expect(test.release.clear).toHaveBeenCalledOnce();
     expect(test.release.checkServerState).not.toHaveBeenCalled();
     expect(test.protectedCommand).not.toHaveBeenCalled();
+  });
+
+  it("prioritizes visible Guest Access over an underlying workflow", async () => {
+    const test = fixture([operations("ready", { retainedScope: scope })]);
+    test.guestAccess.current.mockReturnValue({
+      target: { sessionId: "s" },
+    } as never);
+    test.release.current.mockReturnValue({ phase: "inactive" } as never);
+    vi.mocked(test.runtime.parking.current).mockReturnValue({
+      phase: "accepted",
+    } as never);
+    const owner = new NativeProductionLifecycleOwner(test.runtime);
+    owner.setAppActive(true);
+    await settle(owner);
+    expect(test.guestAccess.revalidate).toHaveBeenCalledOnce();
+    expect(test.runtime.parking.checkServerState).not.toHaveBeenCalled();
+  });
+
+  it("prioritizes visible Incident over an underlying workflow", async () => {
+    const test = fixture([operations("ready", { retainedScope: scope })]);
+    test.incident.current.mockReturnValue({
+      target: { sessionId: "s" },
+    } as never);
+    test.release.current.mockReturnValue({ phase: "inactive" } as never);
+    vi.mocked(test.runtime.handoff.current).mockReturnValue({
+      phase: "ready",
+    } as never);
+    const owner = new NativeProductionLifecycleOwner(test.runtime);
+    owner.setAppActive(true);
+    await settle(owner);
+    expect(test.incident.revalidate).toHaveBeenCalledOnce();
+    expect(test.runtime.handoff.checkServerState).not.toHaveBeenCalled();
   });
 });

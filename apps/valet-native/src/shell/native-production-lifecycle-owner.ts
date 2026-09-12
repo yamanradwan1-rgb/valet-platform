@@ -41,6 +41,7 @@ export class NativeProductionLifecycleOwner {
     if (!active) {
       this.operationsForeground = false;
       void this.runtime.operations.setForeground(false);
+      this.runtime.shiftStart.suspendForBackground();
       this.runtime.shiftEnd.suspendForBackground();
       this.runtime.checkIn.suspendForBackground();
       this.runtime.release.suspendForBackground();
@@ -103,6 +104,7 @@ export class NativeProductionLifecycleOwner {
       await this.runtime.auth.refresh();
       auth = this.runtime.auth.current();
     }
+    if (!this.canContinue(auth.authGeneration)) return;
     if (auth.phase !== "authenticated") return;
     const generation = auth.authGeneration;
     this.rememberReadyAuthority(generation);
@@ -112,7 +114,7 @@ export class NativeProductionLifecycleOwner {
       this.operationsForeground = true;
       await this.runtime.operations.setForeground(true);
     }
-    if (!this.isCurrent(generation)) return;
+    if (!this.canContinue(generation)) return;
     const current = this.runtime.operations.current();
     const shellState = deriveProductionShellState(auth, current);
     if (productionShellStateRetiresOperationalAuthority(shellState)) {
@@ -131,7 +133,7 @@ export class NativeProductionLifecycleOwner {
       retireNativeWorkflowScope(this.runtime);
       return;
     }
-    await this.revalidateActiveWorkflow();
+    if (this.canContinue(generation)) await this.revalidateActiveWorkflow();
   }
 
   private rememberReadyAuthority(generation: number): void {
@@ -148,7 +150,11 @@ export class NativeProductionLifecycleOwner {
 
   private async revalidateActiveWorkflow(): Promise<void> {
     const runtime = this.runtime;
-    if (runtime.release.current().phase !== "inactive") {
+    if (runtime.incident.current().target !== null) {
+      await runtime.incident.revalidate();
+    } else if (runtime.guestAccess.current().target !== null) {
+      await runtime.guestAccess.revalidate();
+    } else if (runtime.release.current().phase !== "inactive") {
       await runtime.release.checkServerState();
     } else if (runtime.handoff.current().phase !== "inactive") {
       await runtime.handoff.checkServerState();
@@ -160,13 +166,17 @@ export class NativeProductionLifecycleOwner {
       await runtime.retrieval.checkServerState();
     } else if (runtime.vehicleDirectory.current().phase !== "inactive") {
       await runtime.vehicleDirectory.refresh();
-    } else if (runtime.guestAccess.current().target !== null) {
-      await runtime.guestAccess.revalidate();
     }
   }
 
-  private isCurrent(generation: number): boolean {
+  private canContinue(generation: number): boolean {
     const auth = this.runtime.auth.current();
-    return auth.phase === "authenticated" && auth.authGeneration === generation;
+    return (
+      !this.disposed &&
+      this.foreground &&
+      this.connectivity !== "offline" &&
+      auth.phase === "authenticated" &&
+      auth.authGeneration === generation
+    );
   }
 }

@@ -59,6 +59,14 @@ export class NativeIncidentSession {
     await this.load(this.generation, target);
   }
 
+  async revalidate(): Promise<void> {
+    const target = this.snapshot.target;
+    if (target === null || this.snapshot.phase === "submitting") return;
+    this.generation += 1;
+    this.publish({ ...inactive, phase: "loading", target });
+    await this.load(this.generation, target);
+  }
+
   async submit(input: NativeIncidentSubmitInput): Promise<boolean> {
     const current = this.snapshot;
     if (current.phase !== "form" || current.detail === null) return false;
@@ -100,13 +108,15 @@ export class NativeIncidentSession {
   }
 
   suspendForBackground(): void {
-    if (this.snapshot.phase !== "submitting") return;
+    if (this.snapshot.target === null) return;
+    const submitting = this.snapshot.phase === "submitting";
     this.generation += 1;
-    this.publish({
-      ...this.snapshot,
-      error: NATIVE_INCIDENT_OPERATION_FAILED,
-      phase: "form",
-    });
+    if (submitting)
+      this.publish({
+        ...this.snapshot,
+        error: NATIVE_INCIDENT_OPERATION_FAILED,
+        phase: "form",
+      });
   }
 
   clear(): void {
@@ -125,7 +135,8 @@ export class NativeIncidentSession {
         path: `/v1/staff/valet-sessions/${target.sessionId}`,
       });
       const detail = staffValetSessionDetailResponseSchema.parse(raw);
-      if (generation !== this.generation) return;
+      if (generation !== this.generation || this.snapshot.target !== target)
+        return;
       if (detail.state === "COMPLETED") throw new Error("terminal");
       this.publish({
         detail,
@@ -135,7 +146,7 @@ export class NativeIncidentSession {
         target,
       });
     } catch {
-      if (generation === this.generation) {
+      if (generation === this.generation && this.snapshot.target === target) {
         this.publish({ ...inactive, phase: "context-error", target });
       }
     }

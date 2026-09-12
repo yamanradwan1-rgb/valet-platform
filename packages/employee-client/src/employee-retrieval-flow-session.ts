@@ -39,9 +39,7 @@ export class EmployeeRetrievalSession {
   private target: Target | null = null;
 
   constructor(private readonly options: EmployeeRetrievalOptions) {}
-  current(): EmployeeRetrievalSnapshot {
-    return this.snapshot;
-  }
+  current = () => this.snapshot;
   subscribe(listener: (snapshot: EmployeeRetrievalSnapshot) => void) {
     this.subscribers.add(listener);
     listener(this.snapshot);
@@ -66,11 +64,11 @@ export class EmployeeRetrievalSession {
   }
 
   suspendForBackground(): void {
-    if (this.target === null || !isRetrievalSubmitting(this.snapshot.phase))
-      return;
-    this.request += 1;
-    this.activeCommand = undefined;
-    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
+    if (this.target === null) return;
+    const protectedOutcome = this.activeCommand !== undefined;
+    this.fenceActiveWork();
+    if (protectedOutcome)
+      this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
   }
 
   enterKeySlot(candidate: string): void {
@@ -158,10 +156,8 @@ export class EmployeeRetrievalSession {
   }
 
   clear(): void {
-    this.request += 1;
+    this.fenceActiveWork();
     this.target = null;
-    this.activeCommand = undefined;
-    this.activeRead = undefined;
     this.publish(emptyRetrievalSnapshot());
   }
 
@@ -171,9 +167,7 @@ export class EmployeeRetrievalSession {
     taskId: string,
     sessionId: string,
   ): void {
-    this.request += 1;
-    this.activeCommand = undefined;
-    this.activeRead = undefined;
+    this.fenceActiveWork();
     this.target = {
       identityGeneration,
       locationId: scope.locationId,
@@ -290,6 +284,12 @@ export class EmployeeRetrievalSession {
       isRetrievalTargetCurrent(this.snapshot, target) &&
       (request === undefined || request === this.request)
     );
+  }
+
+  private fenceActiveWork(): void {
+    this.request += 1;
+    this.activeCommand = undefined;
+    this.activeRead = undefined;
   }
 
   private publish(snapshot: EmployeeRetrievalSnapshot): void {

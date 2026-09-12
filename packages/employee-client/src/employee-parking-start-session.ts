@@ -31,9 +31,7 @@ export class EmployeeParkingStartSession {
   private target: Target | null = null;
 
   constructor(private readonly options: EmployeeParkingStartOptions) {}
-  current(): EmployeeParkingStartSnapshot {
-    return this.snapshot;
-  }
+  current = () => this.snapshot;
   subscribe(listener: (snapshot: EmployeeParkingStartSnapshot) => void) {
     this.subscribers.add(listener);
     listener(this.snapshot);
@@ -65,12 +63,12 @@ export class EmployeeParkingStartSession {
       this.snapshot.phase === "ambiguous" ? "reconciling" : "loading",
     );
   }
-
   suspendForBackground(): void {
-    if (this.target === null || this.snapshot.phase !== "submitting") return;
-    this.request += 1;
-    this.activeCommand = undefined;
-    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
+    if (this.target === null) return;
+    const protectedOutcome = this.activeCommand !== undefined;
+    this.fenceActiveWork();
+    if (protectedOutcome)
+      this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
   }
 
   startParking(): Promise<void> {
@@ -98,10 +96,8 @@ export class EmployeeParkingStartSession {
   }
 
   clear(): void {
-    this.request += 1;
+    this.fenceActiveWork();
     this.target = null;
-    this.activeCommand = undefined;
-    this.activeRead = undefined;
     this.publish(emptyParkingStartSnapshot());
   }
 
@@ -111,9 +107,7 @@ export class EmployeeParkingStartSession {
     taskId: string | null,
     sessionId: string,
   ): void {
-    this.request += 1;
-    this.activeCommand = undefined;
-    this.activeRead = undefined;
+    this.fenceActiveWork();
     this.target = {
       identityGeneration,
       locationId: scope.locationId,
@@ -290,6 +284,12 @@ export class EmployeeParkingStartSession {
       isParkingStartTargetCurrent(this.snapshot, target) &&
       (request === undefined || request === this.request)
     );
+  }
+
+  private fenceActiveWork(): void {
+    this.request += 1;
+    this.activeCommand = undefined;
+    this.activeRead = undefined;
   }
 
   private publish(snapshot: EmployeeParkingStartSnapshot): void {

@@ -16,6 +16,52 @@ const incidentInput = {
 };
 
 describe("Native contextual lifecycle fences", () => {
+  it("fences a slow Guest Access GET and starts a fresh current read", async () => {
+    const pending = deferred<unknown>();
+    const { request, session } = queueSession([
+      pending.promise,
+      guestDetail("ACTIVE"),
+    ]);
+    const oldRead = session.open(target);
+    session.suspendForBackground();
+    pending.resolve(guestDetail("REVOKED"));
+    await oldRead;
+    expect(session.current().phase).toBe("loading");
+    expect(session.freshCredentialUrl()).toBeNull();
+
+    await session.revalidate();
+    expect(session.current()).toMatchObject({
+      phase: "ready",
+      status: "ACTIVE",
+    });
+    expect(session.freshCredentialUrl()).toBeNull();
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls.every(([input]) => input.method === "GET")).toBe(
+      true,
+    );
+  });
+
+  it("fences a slow Incident GET and safely revalidates the current target", async () => {
+    const pending = deferred<unknown>();
+    const request = vi
+      .fn()
+      .mockReturnValueOnce(pending.promise)
+      .mockResolvedValueOnce(incidentDetail());
+    const session = new NativeIncidentSession(() => ({ request }) as never);
+    const oldRead = session.open(target);
+    session.suspendForBackground();
+    pending.resolve(incidentDetail());
+    await oldRead;
+    expect(session.current()).toMatchObject({ phase: "loading", report: null });
+
+    await session.revalidate();
+    expect(session.current()).toMatchObject({ phase: "form", report: null });
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls.every(([input]) => input.method === "GET")).toBe(
+      true,
+    );
+  });
+
   it("purges Guest Access material and ignores a late issue response", async () => {
     const pending = deferred<unknown>();
     const { session } = queueSession([

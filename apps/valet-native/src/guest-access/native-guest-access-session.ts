@@ -47,12 +47,8 @@ export class NativeGuestAccessSession {
       options.customerOrigin ?? currentNativeCustomerAppOrigin();
     this.isOnline = options.isOnline ?? (() => true);
   }
-  current(): NativeGuestAccessSnapshot {
-    return this.snapshot;
-  }
-  freshCredentialUrl(): string | null {
-    return this.credential.current(this.snapshot);
-  }
+  current = () => this.snapshot;
+  freshCredentialUrl = () => this.credential.current(this.snapshot);
   hasValidCustomerOrigin(): boolean {
     return this.customerOrigin.ok;
   }
@@ -214,11 +210,15 @@ export class NativeGuestAccessSession {
   suspendForBackground(): void {
     const target = this.snapshot.target;
     this.credential.clear();
-    if (target === null || this.snapshot.mutation === null) {
+    if (target === null) {
       this.publish(this.snapshot);
       return;
     }
     this.generation += 1;
+    if (this.snapshot.mutation === null) {
+      this.publish(this.snapshot);
+      return;
+    }
     this.publish({
       ...this.snapshot,
       error: "OUTCOME_UNKNOWN",

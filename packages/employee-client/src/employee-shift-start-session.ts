@@ -140,6 +140,25 @@ export class EmployeeShiftStartSession {
     this.publishContext(this.context);
   }
 
+  suspendForBackground(): void {
+    if (
+      this.pending === undefined ||
+      (this.snapshot.phase !== "submitting" &&
+        this.snapshot.phase !== "verifying")
+    )
+      return;
+    this.pending = { ...this.pending };
+    this.activeSend = undefined;
+    this.publish({
+      ...this.snapshot,
+      failure: {
+        code: "SHIFT_START_RESULT_UNKNOWN",
+        message: "The Shift start result could not be confirmed.",
+      },
+      phase: "uncertain",
+    });
+  }
+
   private send(attempt: EmployeeShiftStartAuthority): Promise<void> {
     this.pending = attempt;
     this.publish({

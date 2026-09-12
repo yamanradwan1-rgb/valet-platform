@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import type { NativeEmployeeRuntime } from "../src/auth/native-auth-runtime";
 import { NativeProductionLifecycleOwner } from "../src/shell/native-production-lifecycle-owner";
+import {
+  operations as operationalSnapshot,
+  scope,
+} from "./production-shell-test-fixture";
 
 function workflow(phase = "inactive") {
   return {
     checkServerState: vi.fn(async () => undefined),
-    current: vi.fn(() => ({ phase })),
+    current: vi.fn(() => ({ phase, target: null })),
+    revalidate: vi.fn(async () => undefined),
     suspendForBackground: vi.fn(),
   };
 }
@@ -36,6 +41,7 @@ function fixture(status: "offline" | "online" | "unknown" = "unknown") {
     parking: workflow(),
     release: workflow(),
     retrieval: workflow(),
+    shiftStart: { suspendForBackground: vi.fn() },
     shiftEnd: { setOnline: vi.fn(), suspendForBackground: vi.fn() },
     vehicleDirectory: {
       current: vi.fn(() => ({ phase: "inactive" })),
@@ -151,6 +157,7 @@ describe("NativeProductionLifecycleOwner", () => {
     expect(runtime.retrieval.suspendForBackground).toHaveBeenCalledOnce();
     expect(runtime.handoff.suspendForBackground).toHaveBeenCalledOnce();
     expect(runtime.release.suspendForBackground).toHaveBeenCalledOnce();
+    expect(runtime.shiftStart.suspendForBackground).toHaveBeenCalledOnce();
     expect(runtime.incident.suspendForBackground).toHaveBeenCalledOnce();
     expect(runtime.guestAccess.suspendForBackground).toHaveBeenCalledOnce();
     expect(
@@ -172,6 +179,33 @@ describe("NativeProductionLifecycleOwner", () => {
     releaseContext();
     await settle(owner);
     expect(runtime.release.checkServerState).not.toHaveBeenCalled();
+  });
+
+  it("stops a revalidation batch when background wins the context race", async () => {
+    let releaseContext!: () => void;
+    const { operations, runtime } = fixture("online");
+    operations.current.mockReturnValue(
+      operationalSnapshot("ready", { retainedScope: scope }) as never,
+    );
+    operations.setForeground = vi.fn((foreground: boolean) =>
+      foreground
+        ? new Promise<void>((resolve) => (releaseContext = resolve))
+        : Promise.resolve(),
+    ) as never;
+    runtime.release.current = vi.fn(() => ({ phase: "ready" })) as never;
+    const owner = new NativeProductionLifecycleOwner(runtime);
+    owner.setAppActive(true);
+    await Promise.resolve();
+    owner.setAppActive(false);
+    releaseContext();
+    await settle(owner);
+    expect(runtime.release.checkServerState).not.toHaveBeenCalled();
+    expect(operations.setForeground).toHaveBeenLastCalledWith(false);
+
+    operations.setForeground = vi.fn(async () => undefined);
+    owner.setAppActive(true);
+    await settle(owner);
+    expect(runtime.release.checkServerState).toHaveBeenCalledOnce();
   });
 
   it("keeps false-online API failures separate from the network hint", async () => {

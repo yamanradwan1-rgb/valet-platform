@@ -49,9 +49,7 @@ export class EmployeeOperationalSession {
     });
     this.queue.setForeground(this.foreground);
   }
-  current(): EmployeeOperationalSnapshot {
-    return this.snapshot;
-  }
+  current = () => this.snapshot;
   subscribe(
     listener: (snapshot: EmployeeOperationalSnapshot) => void,
   ): () => void {
@@ -149,6 +147,7 @@ export class EmployeeOperationalSession {
       const response = await this.options.transport.loadOperationalContext();
       if (this.generation !== generation || request !== this.contextSequence)
         return;
+      this.options.onOperationalContext?.(generation, response);
       const resolution = resolveEmployeeOperationalScope(response);
       if (resolution.phase !== "ready") {
         this.clearPendingAction();

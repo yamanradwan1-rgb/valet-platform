@@ -75,18 +75,19 @@ export class EmployeeHandoffSession {
     if (!this.target || !current || sameHandoffTaskAuthority(current, task)) {
       return Promise.resolve();
     }
-    // A newer successful queue projection supersedes any protected response
-    // still in flight. Re-read both canonical projections before continuing.
+    // A newer queue projection supersedes protected work; reread canonical state.
     this.request += 1;
     this.active = undefined;
     return this.reconcile("reconciling");
   }
 
   suspendForBackground() {
-    if (!this.target || !isHandoffBusy(this.snapshot.phase)) return;
+    if (!this.target || !this.active) return;
+    const protectedOutcome = isHandoffBusy(this.snapshot.phase);
     this.request += 1;
     this.active = undefined;
-    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
+    if (protectedOutcome)
+      this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
   }
 
   initiate() {

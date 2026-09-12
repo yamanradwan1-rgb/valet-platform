@@ -101,10 +101,12 @@ export class EmployeeReleaseSession {
   }
 
   suspendForBackground() {
-    if (!this.target || !isReleaseProtected(this.snapshot.phase)) return;
+    if (!this.target || !this.active) return;
+    const protectedOutcome = isReleaseProtected(this.snapshot.phase);
     this.request += 1;
     this.active = undefined;
-    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
+    if (protectedOutcome)
+      this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
   }
 
   release() {

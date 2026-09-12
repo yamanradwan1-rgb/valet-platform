@@ -88,20 +88,17 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   } = {};
   const operations = new EmployeeOperationalSession({
     initialForeground: false,
-    transport: createNativeOperationalTransport(
-      apiOrigin,
-      auth,
-      (identityGeneration, response) => {
-        shiftObserver.start?.observeOperationalContext(
-          identityGeneration,
-          response,
-        );
-        shiftObserver.end?.observeOperationalContext(
-          identityGeneration,
-          response,
-        );
-      },
-    ),
+    onOperationalContext: (identityGeneration, response) => {
+      shiftObserver.start?.observeOperationalContext(
+        identityGeneration,
+        response,
+      );
+      shiftObserver.end?.observeOperationalContext(
+        identityGeneration,
+        response,
+      );
+    },
+    transport: createNativeOperationalTransport(apiOrigin, auth),
   });
   const shiftStart = new EmployeeShiftStartSession({
     refreshOperationalContext: () => operations.refresh(),

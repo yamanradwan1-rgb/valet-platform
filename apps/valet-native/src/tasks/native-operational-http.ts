@@ -17,7 +17,6 @@ import {
   type TaskQueueResponse,
   type EmployeeShiftStartTransport,
   type EmployeeShiftEndTransport,
-  type StaffOperationalContextResponse,
 } from "@valet/employee-client";
 
 import {
@@ -139,10 +138,6 @@ function invalidResponse(): EmployeeApiError {
 export function createNativeOperationalTransport(
   apiOrigin: string,
   auth: NativeAuthSession,
-  onOperationalContext?: (
-    identityGeneration: number,
-    response: StaffOperationalContextResponse,
-  ) => void,
 ): EmployeeOperationalTransport {
   function request<T>(
     input: EmployeeTransportRequest,
@@ -171,14 +166,12 @@ export function createNativeOperationalTransport(
       });
     },
     async loadOperationalContext() {
-      const identityGeneration = auth.current().authGeneration;
       const value = await request<unknown>({
         method: "GET",
         path: "/v1/staff/operational-context",
       });
       const parsed = staffOperationalContextResponseSchema.safeParse(value);
       if (!parsed.success) throw invalidResponse();
-      onOperationalContext?.(identityGeneration, parsed.data);
       return parsed.data;
     },
     async loadTaskQueue(locationId, signal) {

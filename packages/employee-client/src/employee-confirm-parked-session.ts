@@ -153,10 +153,17 @@ export class EmployeeConfirmParkedSession {
   }
 
   suspendForBackground(): void {
-    if (this.target === null || this.snapshot.phase !== "submitting") return;
+    if (
+      this.target === null ||
+      (this.activeRead === undefined && this.activeCommand === undefined)
+    )
+      return;
+    const protectedOutcome = this.activeCommand !== undefined;
     this.request += 1;
     this.activeCommand = undefined;
-    this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
+    this.activeRead = undefined;
+    if (protectedOutcome)
+      this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
   }
 
   clear(): void {

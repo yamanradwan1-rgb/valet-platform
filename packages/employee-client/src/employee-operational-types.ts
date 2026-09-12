@@ -99,6 +99,12 @@ export interface EmployeeOperationalTransport {
 
 export interface EmployeeOperationalSessionOptions {
   readonly initialForeground?: boolean | undefined;
+  readonly onOperationalContext?:
+    | ((
+        identityGeneration: number,
+        response: StaffOperationalContextResponse,
+      ) => void)
+    | undefined;
   readonly onStateChange?:
     ((snapshot: EmployeeOperationalSnapshot) => void) | undefined;
   readonly pollingIntervalMs?: number | undefined;

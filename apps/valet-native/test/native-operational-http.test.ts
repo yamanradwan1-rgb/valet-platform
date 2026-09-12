@@ -115,23 +115,18 @@ describe("Native operational HTTP transport", () => {
     });
   });
 
-  it("publishes validated context with the captured auth generation", async () => {
+  it("returns validated context without publishing transport side effects", async () => {
     vi.stubGlobal("__DEV__", false);
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => Response.json(contextResponse())),
     );
-    const onOperationalContext = vi.fn();
     const transport = createNativeOperationalTransport(
       "https://api.example.com",
       auth(),
-      onOperationalContext,
     );
 
-    await transport.loadOperationalContext();
-
-    expect(onOperationalContext).toHaveBeenCalledExactlyOnceWith(
-      1,
+    await expect(transport.loadOperationalContext()).resolves.toEqual(
       contextResponse(),
     );
   });
