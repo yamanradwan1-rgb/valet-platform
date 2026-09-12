@@ -11,6 +11,8 @@ import {
   parkedResponse,
   readyToConfirm,
 } from "./employee-confirm-parked-test-fixture";
+import { ids } from "./employee-operational-test-fixture";
+import { parkingStartScope } from "./employee-parking-start-test-fixture";
 
 function apiError(code: string, status: number) {
   return new EmployeeApiError({ code, message: code, status });
@@ -133,6 +135,26 @@ describe("MOB-012B protected attempt and recovery", () => {
       phase: "parked",
     });
     expect(transport.confirmCalls).toHaveLength(1);
+  });
+
+  it("adopts canonical PARKED in a fresh process without transient candidates", async () => {
+    const { session, transport } = confirmParkedHarness();
+    transport.queueResults.push(Promise.resolve({ tasks: [] }));
+    transport.sessionResults.push(Promise.resolve(parkedDetail()));
+
+    await session.open(7, parkingStartScope, ids.task, ids.session);
+
+    expect(session.current()).toMatchObject({
+      keySlotCandidate: "",
+      parked: {
+        keySlotCode: "K-03",
+        parkingSpotCode: "P-101",
+        source: "reconciliation",
+      },
+      parkingSpotCandidate: "",
+      phase: "parked",
+    });
+    expect(transport.confirmCalls).toHaveLength(0);
   });
 
   it("keeps unknown state ambiguous and Check Server State read-only", async () => {

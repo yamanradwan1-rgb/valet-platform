@@ -109,6 +109,8 @@ export function recoveredParkedResult(
   spot: string,
   slot: string,
 ): EmployeeConfirmParkedSuccess | null {
+  const canonicalSpot = session.parking.parkingSpotCode;
+  const canonicalSlot = session.keySlot?.code ?? null;
   if (
     task !== undefined ||
     session.sessionId !== target.sessionId ||
@@ -116,15 +118,17 @@ export function recoveredParkedResult(
     session.state !== "PARKED" ||
     session.parking.parkingStartedAt === null ||
     session.parking.parkedAt === null ||
-    session.parking.parkingSpotCode !== spot ||
-    session.keySlot?.code !== slot
+    canonicalSpot === null ||
+    canonicalSlot === null ||
+    (spot !== "" && canonicalSpot !== spot) ||
+    (slot !== "" && canonicalSlot !== slot)
   ) {
     return null;
   }
   return {
-    keySlotCode: slot,
+    keySlotCode: canonicalSlot,
     parkedAt: session.parking.parkedAt,
-    parkingSpotCode: spot,
+    parkingSpotCode: canonicalSpot,
     sessionVersion: session.version,
     source: "reconciliation",
   };
