@@ -136,7 +136,7 @@ assumptions with the real runtime role and genuine PostgreSQL transactions.
 | --- | --- | --- |
 | A: minimal local identity plus canonical read | Minimal local metadata and exact positive recovery; no content. A bare no-row cannot exclude a later POST or prove actor ownership of an unused ID | Incomplete alone. Retain its device marker and narrow GET as parts of the recommendation |
 | B: actor-bound server recovery intent | Server binds actor/session/scope before dispatch. Active intent means PENDING; committed Incident means FOUND; retained retirement means definitive ABSENT. No body is stored | **Recommended narrow solution.** One table/migration, reservation/retirement/read commands and POST admission |
-| B1: one mutable intent row | `RESERVED` → one-way `RETIRED`; Incident existence supplies FOUND. A conditional column-limited UPDATE records retirement | **Preferred representation.** Smallest schema and query surface; one row per recovery ID; no second join/table |
+| B1: one guarded intent row | A migration-owned database trigger permits only initial RESERVED insertion and one `RESERVED → RETIRED` transition while keeping all binding/time fields immutable. Incident existence supplies FOUND | **Preferred representation.** Existing migrations use focused transition/immutability triggers. This is the smallest design that makes terminality a database invariant rather than an application convention |
 | B2: immutable reservation plus immutable retirement fact | Insert-only facts avoid UPDATE privilege and retain event history | Rejected as unnecessary here. It needs two relations or a typed event table, additional invariants and joins. Retirement is internal reliability state, not an append-only business event |
 | C: durable full draft plus same-ID retry | Stores description, type and severity; exact retry possible only while current POST authorization remains valid | Rejected. Free-text PII, encryption/key access, backup, retention, account purge and edited-draft UX require a separate contract prohibited by current Accepted policy |
 | D: discovery without recovered ID | Latest/list/payload/time matching cannot identify one operation when multiple reports, repeated values, devices or reporters exist | Rejected as ambiguous and broader disclosure. No list/search/latest endpoint |
@@ -159,10 +159,9 @@ Add one `incident_recovery_intents` table / `IncidentRecoveryIntent` model with:
 - `location_id UUID`;
 - `valet_session_id UUID`;
 - `reporting_membership_id UUID`;
-- `state`, constrained to `RESERVED` or `RETIRED`;
+- `state`, constrained to `RESERVED` or `RETIRED` and defaulting to RESERVED;
 - `created_at TIMESTAMPTZ(3)`, set from database time;
-- `expires_at TIMESTAMPTZ(3)`, set from database time plus the accepted active
-  reservation period;
+- `expires_at TIMESTAMPTZ(3)`, set from database time plus 15 minutes;
 - `retired_at TIMESTAMPTZ(3) NULL`.
 
 Tenant-safe composite foreign keys mirror the Incident Organization, Location,
@@ -176,11 +175,38 @@ admission record. Incident existence remains in the existing Incident table;
 there is no redundant `COMMITTED` state. If an Incident exists for the matching
 reservation, canonical recovery is FOUND regardless of the still-RESERVED row.
 
-Only the transition `RESERVED → RETIRED` is allowed. Runtime receives SELECT,
-INSERT and column-level UPDATE on `state` and `retired_at`; it receives no DELETE
-or broad row-update authority. Every transition uses `WHERE state = 'RESERVED'`
-under the operation lock. `incident_id`, scope, actor, `created_at` and
-`expires_at` are immutable.
+Only the transition `RESERVED → RETIRED` is allowed. A CHECK relating state and
+`retired_at`, a conditional application UPDATE, and column privileges are not
+enough: a buggy query could otherwise set both fields consistently and resurrect
+a terminal ID.
+
+The migration must therefore create a focused `BEFORE INSERT OR UPDATE` database
+transition guard, following the existing Staff push and tracking-session trigger
+conventions. It must:
+
+- permit only INSERT with state RESERVED and null `retired_at`;
+- derive `created_at` from authoritative database time and set
+  `expires_at = created_at + interval '15 minutes'`;
+- permit exactly one RESERVED-to-RETIRED UPDATE;
+- set `retired_at` from authoritative database time during that transition;
+- reject RETIRED-to-RESERVED, any update after retirement, any removal or rewrite
+  of `retired_at`, and any mutation of incident, actor, session, Organization,
+  Location, creation or expiry fields.
+
+Runtime receives SELECT, column-limited INSERT of only the binding fields, and
+column-limited UPDATE of only `state`. The trigger authors `retired_at`; runtime
+does not need direct UPDATE authority over that timestamp. Runtime receives no
+DELETE, table ownership, DDL, function-execution grant or TRIGGER privilege. The
+guard function is migration-owned, fixes its `search_path`, and revokes PUBLIC
+execution following repository convention.
+
+The API still issues `UPDATE ... SET state = 'RETIRED' WHERE state = 'RESERVED'`
+under the operation lock, but correctness does not depend on that WHERE clause.
+A compromised or buggy normal runtime query using only its granted DML privileges
+must be unable to resurrect a terminal Incident recovery ID or rewrite its binding
+and timestamps. If implementation cannot prove this guard under the provisioned
+runtime role, it must use immutable reservation plus immutable retirement facts
+instead of weakening the invariant.
 
 An expired RESERVED row is terminal for admission. Under the operation lock,
 POST must reject it based on database time even if a maintenance transition has
@@ -192,8 +218,9 @@ means deletion or ID reuse.
 
 ### Recovery-mode identity and downgrade prevention
 
-Current clients generate RFC 4122/RFC 9562 version-4 UUIDs. Recovery-enabled
-Native uses a CSPRNG-backed version-8 UUID and the narrow protocol token
+Current Native calls `globalThis.crypto.randomUUID()`, which returns an RFC 4122/
+RFC 9562 version-4 UUID. Recovery-enabled Native must instead produce an RFC
+9562-valid, CSPRNG-backed version-8 UUID and use the narrow protocol token
 `actor-bound-intent-v1`. The UUID version is the durable server-recognizable mode
 selector; a header such as
 `Valet-Incident-Submission-Protocol: actor-bound-intent-v1` makes transport intent
@@ -210,10 +237,15 @@ Server admission rules are exact:
 5. Existing version-4 requests without the header retain the accepted legacy
    four-field POST behavior.
 
-All 122 custom bits remaining after the standard UUID version and variant bits
-must come from a CSPRNG; no actor or tenant data is encoded. Future implementation must prove
-the exact validator accepts the selected RFC 9562 form on Native, contracts, API
-and PostgreSQL. Before enabling it, a data check must confirm no current client
+All non-version/non-variant bits must remain CSPRNG-backed. Do not encode User,
+tenant, timestamp, membership or any other business data. No dependency is
+approved by this decision. Future implementation must prove the platform can
+construct the exact RFC 9562-valid form without weakening entropy and that the
+contracts/Zod validator, API parsing and PostgreSQL UUID type all accept it. If
+current platform primitives cannot do so without a new dependency, implementation
+must stop and return for owner review before changing dependencies.
+
+Before enabling the protocol, a data check must also confirm no current client
 has used the selected version/discriminator as a legacy ID; if that assumption is
 false, acceptance must choose another fixed recovery-ID discriminator. This is a
 narrow protocol marker, not a broad API-version framework.
@@ -462,7 +494,6 @@ version
 protocol = actor-bound-intent-v1
 incidentId
 sessionId
-userId
 membershipId
 organizationId
 locationId
@@ -470,11 +501,20 @@ installationGeneration
 createdAt
 ```
 
-All values except local version/protocol/time come from the CSPRNG ID or current
-authoritative restored context. The binding fields support local purge/routing;
-the server never trusts them for authorization. The optional server `expiresAt`
-may be cached after a successful reservation/read, but it is advisory on device
-and never proves terminal state.
+This shape deliberately has no `userId`. The actual Staff operational context in
+`packages/contracts/src/staff-context.ts` exposes membershipId, Organization,
+Location, role and Shift, not a User projection. Do not add `userId` to that
+contract for Incident recovery.
+
+All values except local version/protocol/time come from the CSPRNG ID, current
+Staff operational context or installation boundary. Local identity binding is the
+current authenticated generation/barrier plus exact membershipId, Organization,
+Location and installation generation. These fields support local purge/routing;
+the API never trusts them for authorization. It derives User from the authenticated
+Staff principal and proves that principal still owns the stored
+OrganizationMembership. The optional authoritative server `expiresAt` may be
+cached after a successful reservation/read, but it is advisory on device and
+never proves terminal state.
 
 The store must never contain:
 
@@ -596,32 +636,38 @@ RTL identifier isolation through existing employee UI boundaries.
 
 ## 11. TTL and retention
 
-Local metadata retention and server fence retention are separate:
+The owner selects two separate values in this Proposed contract.
 
-1. `T_local` governs how long the encrypted device marker may remain unresolved.
-2. `T_server_active` governs how long a RESERVED intent admits its matching POST.
-3. A RETIRED/effectively expired server row is retained as an exact-ID tombstone
-   so a delayed POST can never become valid merely because time passed.
+`T_server_active` is **15 minutes**. The database computes `created_at` and
+`expires_at = created_at + interval '15 minutes'` when reservation is inserted.
+Reservation occurs immediately before Incident POST. A matching recovery-enabled
+POST is admitted only while the intent is RESERVED and authoritative
+`database_now < expires_at`. At or after expiry, the ID is terminal for Incident
+admission forever: delayed POST is rejected and canonical recovery projects
+effective RETIRED. Expiry never deletes, reopens or permits reuse of the ID.
 
-No current Accepted source selects numeric values. Both `T_local` and
-`T_server_active` remain explicit owner inputs. They must be chosen from measured
-mobile request lifetimes, support/recovery needs, privacy expectations and clock
-skew rather than an arbitrary number in implementation.
+`T_local` is a **24-hour soft recovery deadline**, absolute and non-sliding from
+marker `createdAt`. It is device scheduling/presentation metadata, not server
+authority and not proof of non-commit. Native cannot promise exact action at 24
+hours while the OS is terminated or the device is offline.
 
-`T_server_active` is authoritative database time. At and after `expires_at`, the
-POST admission check rejects the ID under the lock forever. A local clock or local
-TTL never proves a delayed request cannot commit.
+After the soft deadline, same-identity Native must obtain canonical online
+recovery before clearing the old marker for new Incident work. FOUND, RETIRED or
+protocol-safe UNKNOWN resolves according to §9–10. RESERVED still requires an
+explicit foreground retirement or a later authoritative terminal result. If the
+API is unavailable, the UI remains truthfully recovery-unavailable; it does not
+clear the marker, infer absence or enable a new Incident automatically.
 
-Recommended local rule: do not erase a same-identity unresolved marker merely
-because elapsed time passed while its server intent may remain active. At the
-local deadline, require canonical online recovery; FOUND or RETIRED permits
-cleanup, RESERVED permits explicit retirement, and unavailable remains unresolved.
-If the owner requires a hard offline deletion deadline, acceptance must also
-define how `T_local` relates to the authoritative server expiry and how the device
-obtains proof despite clock skew. This is a privacy/availability choice, not an
-implementation constant.
+The privacy rationale is that the device retains only operation metadata, never
+Incident content or free text. The availability rationale is that 24 hours covers
+the selected field/support recovery window without treating the marker as a
+long-lived draft.
 
-After server expiry, GET returns effective RETIRED and the ID remains fenced.
+Server RETIRED and effectively expired rows are retained indefinitely as minimal
+exact-ID tombstones for MVP. There is no automatic cleanup worker. Any future
+compaction requires a separate decision proving old recovery IDs can never be
+admitted again.
+
 After logout or identity/scope retirement, local deletion follows §9 regardless
 of outcome; the old actor-bound server row remains inaccessible to the new actor.
 Uninstall or app-data loss may erase local recovery identity and therefore the
@@ -637,34 +683,43 @@ the Incident insert. Exact retry and every recovery-intent operation add zero
 opening events. Existing audit metadata may include incidentId, severity, status
 and type but never description.
 
-Reservation and retirement are internal reliability/admission metadata. They do
-not assert that an Incident occurred, change custody, affect a guest, create a
+The owner selects **no Black Box event for reservation and no Black Box event for
+retirement or expiry**. Recovery intents are reliability/admission metadata. They
+do not assert that an Incident occurred, change custody, affect a guest, create a
 Task or exercise a business Incident lifecycle transition. The retained intent
-row already records server-derived actor/scope and database timestamps. Therefore
-this proposal adds **no Black Box audit event** for reservation or retirement.
-This avoids making abandoned forms look like business/security events. If future
-support or threat evidence establishes a durable audit need, it requires a
-separate minimal event review; free text remains forbidden.
+row already records actor membership, scope, creation, expiry and retirement
+timestamps and contains no description/content. Adding events for abandoned forms
+would incorrectly make them appear to be business Incidents.
+
+Exactly one `INCIDENT_OPENED` is written only when an Incident actually commits.
+If future support or threat evidence establishes a separate durable intent-audit
+need, it requires a new minimal event review; free text remains forbidden.
 
 ### DB and runtime privileges
 
 Future implementation requires one forward-only coordinated migration for
-`incident_recovery_intents` and the constraints/FKs in §5. No Incident, audit,
-custody or Task schema change and no new Incident index is proposed. The shared
-lock and mandatory writer checks enforce cross-table state; two unrelated primary
-keys alone do not.
+`incident_recovery_intents`, the constraints/FKs in §5, and the migration-owned
+transition guard. This is compatible with repository convention: existing Staff
+push and tracking-session migrations use focused `BEFORE INSERT OR UPDATE` or
+`BEFORE UPDATE` trigger functions to enforce immutable identity and terminal
+state. No Incident, audit, custody or Task schema change and no new Incident index
+is proposed. The shared lock and mandatory writer checks enforce cross-table
+state; two unrelated primary keys alone do not.
 
 DEC-059's existing incidents SELECT is sufficient for canonical lookup, so no new
 Incident-table privilege is needed. The new table needs runtime SELECT, INSERT
-and column-limited UPDATE of only `state`/`retired_at`. Deny DELETE, broad UPDATE,
-TRUNCATE, REFERENCES, TRIGGER and PUBLIC access. Provisioning remains separate
-from migration. Tests must use the provisioned runtime role.
+on only the binding columns, and column-limited UPDATE of only `state`. The
+database trigger authors all timestamps. Deny direct timestamp/binding UPDATE,
+DELETE, broad UPDATE, TRUNCATE, REFERENCES, TRIGGER, function-management/DDL and
+PUBLIC function execution. Provisioning remains separate from migration. Tests
+must use the provisioned runtime role.
 
 Compared with immutable reservation plus retirement facts, this one-row design
-adds a narrowly scoped UPDATE grant but removes a second table, second insert path,
-join and cross-table uniqueness rule. The one-way constraint, column privilege,
-operation lock and retained terminal row provide the needed invariant with less
-surface.
+adds a narrowly scoped state UPDATE grant and migration-owned guard but removes a
+second table, second insert path, join and cross-table uniqueness rule. The guard,
+column privileges, operation lock and retained terminal row provide the actual
+database invariant with less surface. A normal runtime attempt to reverse or
+rewrite terminal state must fail with a database constraint-class error.
 
 ### Backward-compatible deployment
 
@@ -694,26 +749,26 @@ IDs as legacy, drop the table, delete terminal rows or route around the guard.
 ## 13. Exact implementation child handoff
 
 `MOB-023B-INCIDENT-RECOVERY-IMPLEMENTATION` becomes legal only after owner
-acceptance, independent review and resolution of §15 inputs. Fetch fresh main,
-coordinate the migration owner and preserve focused file ownership/size rules.
-No new dependency is expected.
+acceptance, independent review and completion of the §15 validation gates. Fetch
+fresh main, coordinate the migration owner and preserve focused file ownership/
+size rules. No new dependency is expected.
 
 Paths marked new are proposed future files, not files created by this branch.
 
 | Area | Exact future scope |
 | --- | --- |
 | Contracts | New `packages/contracts/src/incident-recovery.ts`: protocol token/header, recovery-ID validator, reservation/retirement params and strict FOUND/RESERVED/RETIRED/UNKNOWN response union; reuse `ReportIncidentResponse`; focused tests and `src/index.ts` export. Keep `src/incidents.ts` four-field body |
-| Portable client | New `packages/employee-client/src/incident-recovery-{types,store,state,transport}.ts` with portable marker/store interfaces, protocol ID generation/validation and explicit reserve/read/retire calls; focused tests/exports. Do not extend generic `recovery-policy.ts` to mutations |
+| Portable client | New `packages/employee-client/src/incident-recovery-{types,store,state,transport}.ts` with the exact no-userId marker/store interfaces, binding to the current Staff membership context, protocol ID generation/validation and explicit reserve/read/retire calls; focused tests/exports. Do not extend generic `recovery-policy.ts` to mutations |
 | API shared operation | New `apps/api/src/modules/incidents/incident-operation-lock.ts` and focused authorization helper; keep one canonical advisory key/lock order |
 | API intent | New `incident-recovery-intent-command.ts`, `incident-recovery-retirement-command.ts`, `incident-recovery-query.ts`: actor-derived binding, one-way state, expiry and exact result projection |
 | API transport | New focused `incident-recovery.controller.ts` and `incident-recovery.service.ts`; wire through existing `apps/api/src/modules/staff/staff.module.ts`, principal resolver, runtime pool and error boundary |
 | Existing POST | Update `incident-reporting.controller.ts` for strict protocol header handling and `incident-reporting-command.ts` for recovery-ID detection, matching active-intent admission, terminal rejection and shared lock. Preserve legacy v4 and exact-payload behavior |
 | API proof | New `apps/api/test/incident-recovery-{authorization,intent,serialization,rollout}.integration.test.ts` and focused harness changes; extend current Staff Incident tests for legacy and required-mode admission |
-| Native store | New `apps/valet-native/src/incident/expo-incident-recovery-store.ts`, using namespaced SecureStore and current platform backup/device behavior; auth storage remains separate |
+| Native store | New `apps/valet-native/src/incident/expo-incident-recovery-store.ts`, using namespaced SecureStore, the exact §9 fields without userId, and current platform backup/device behavior; auth storage remains separate |
 | Native orchestration | New `src/incident/native-incident-recovery.ts`; integrate `native-incident-session.ts` with marker-before-reservation-before-POST ordering, v8 generation, singleton pending guard and explicit retirement. Integrate awaited purge/fencing in `src/auth/native-auth-runtime.ts`, `identity-state-boundary.ts`, `native-production-bootstrap.ts` and scope-retirement owners |
 | Native presentation | Focused changes to `native-incident-{types,screen,form,copy}.ts(x)` and shell composition for the §10 states, EN/AR, receipt independent of custody detail and recovery after Shift/session terminality |
 | Native proof | New `test/native-incident-recovery-{store,process-death,scope,parity}.test.ts(x)`; extend process-death routing/recovery, Incident lifecycle and identity-purge suites |
-| DB | Update `packages/database/prisma/schema.prisma`; add one coordinated `prisma/migrations/<timestamp>_incident_recovery_intents/migration.sql`; add intent invariant/expiry proof; update `scripts/runtime-table-privileges.mjs` and verifier for exact grants |
+| DB | Update `packages/database/prisma/schema.prisma`; add one coordinated `prisma/migrations/<timestamp>_incident_recovery_intents/migration.sql` containing the table, constraints and transition-guard function/trigger; add provisioned-runtime reverse-transition, immutability and deterministic expiry proof; update `scripts/runtime-table-privileges.mjs` and verifier for exact column grants and denied trigger/DDL authority |
 | Docs | After acceptance synchronize status and decision log; update database/security/recovery docs. Close MOB-023B evidence only after implementation and independent review; do not close G7 from decision acceptance alone |
 
 ## 14. Deterministic future test matrix
@@ -724,87 +779,108 @@ and responses. Unit lock simulation and timing sleeps are insufficient. Process 
 is a fresh production owner sharing only the permitted SecureStore marker and
 server state.
 
-1. Marker write/confirmation failure causes zero network mutations: no reservation
+1. Actual adapter serialization contains exactly the §9 fields and no `userId`.
+   Membership/context matching uses the current `staff-context.ts` shape.
+2. Forged local membershipId, Organization or Location values grant no server
+   authority; authenticated principal ownership and persisted scope decide.
+3. Marker write/confirmation failure causes zero network mutations: no reservation
    and no Incident POST.
-2. Instrumented Native proves marker commit precedes reservation and validated
+4. Instrumented Native proves marker commit precedes reservation and validated
    reservation response precedes Incident POST dispatch.
-3. Process death before reservation sends no POST; GET UNKNOWN closes as truthful
+5. Process death before reservation sends no POST; GET UNKNOWN closes as truthful
    non-success with zero Incident/audit.
-4. Reservation transaction rollback or audit-independent database failure leaves
-   no intent; any recovery POST is rejected and GET is UNKNOWN.
-5. Reservation commits but its response is cut; fresh Process B GET returns the
+6. Reservation transaction rollback or database failure leaves no intent; any
+   recovery POST is rejected and GET is UNKNOWN.
+7. Reservation commits but its response is cut; fresh Process B GET returns the
    exact actor-bound RESERVED row without automatic POST.
-6. Reservation commits, Process A dies before Incident dispatch; GET RESERVED;
+8. Reservation commits, Process A dies before Incident dispatch; GET RESERVED;
    explicit retirement yields RETIRED and no Incident/`INCIDENT_OPENED`.
-7. Death immediately after Incident transport dispatch is exercised before API
+9. Death immediately after Incident transport dispatch is exercised before API
    transaction start, before operation lock and while holding it.
-8. Incident plus `INCIDENT_OPENED` commit, response is lost, Process A dies;
-   Process B GET returns FOUND and exactly one of each row/event exists.
-9. Pause delayed POST before operation lock; retirement commits first; resumed
-   POST sees RETIRED and inserts zero Incident/opening audit.
-10. POST obtains operation lock first; retirement blocks, then returns FOUND after
+10. Incident plus `INCIDENT_OPENED` commit, response is lost, Process A dies;
+    Process B GET returns FOUND and exactly one of each row/event exists.
+11. Pause delayed POST before operation lock; retirement commits first; resumed
+    POST sees RETIRED and inserts zero Incident/opening audit.
+12. POST obtains operation lock first; retirement blocks, then returns FOUND after
     commit. Repeat with POST rollback, which leaves RESERVED and allows retirement.
-11. Reservation holds lock while recovery starts: commit yields RESERVED; rollback
+13. One valid RESERVED-to-RETIRED transition succeeds; concurrent retirements
+    converge on the same terminal row and cannot reverse or rewrite it.
+14. Reservation holds lock while recovery starts: commit yields RESERVED; rollback
     yields UNKNOWN. Prove fresh post-lock SELECT visibility.
-12. Same actor/membership/session/scope reservation retry is idempotent; two API
+15. Same actor/membership/session/scope reservation retry is idempotent; two API
     processes create one row. Response loss remains recoverable.
-13. Different Employee and different Supervisor cannot read, overwrite, reserve
+16. Different Employee and different Supervisor cannot read, overwrite, reserve
     over or retire the ID; responses disclose no foreign state.
-14. Same User under a different OrganizationMembership is denied. Wrong
-    Organization/Location, revoked membership/access, inactive User/Organization/
-    Location, management role, anonymous and cross-tenant callers are denied.
-15. End Shift after reservation and after Incident commit: exact original actor
+17. Same authenticated principal under a different OrganizationMembership is
+    denied. Wrong Organization/Location, revoked membership/access, inactive User/
+    Organization/Location, management role, anonymous and cross-tenant callers
+    are denied.
+18. End Shift after reservation and after Incident commit: exact original actor
     can recover/retire, but cannot create without a new qualifying Shift.
-16. Complete ValetSession after reservation and after Incident commit: exact
+19. Complete ValetSession after reservation and after Incident commit: exact
     recovery/retirement works; reservation/new Incident/custody/Task mutation does not.
-17. Multiple legitimate Incidents on one session return only the requested exact
+20. Multiple legitimate Incidents on one session return only the requested exact
     ID, including repeated type/severity/description values.
-18. Same ID plus same exact normalized payload retains current same-process retry
+21. Same ID plus same exact normalized payload retains current same-process retry
     behavior; changed type/severity/description conflicts after applicable current
     authorization.
-19. API unavailable at reservation or recovery leaves marker ambiguous, blocks a
+22. API unavailable at reservation or recovery leaves marker ambiguous, blocks a
     new local submission and causes zero automatic mutation/replay.
-20. Logout/account switch fences callbacks, hides old data and purges marker. New
+23. Logout/account switch fences callbacks, hides old data and purges marker. New
     membership cannot read/retire the old intent and can report after confirmed
     store cleanup.
-21. Secure deletion failure keeps only the local Incident surface unavailable
+24. Secure deletion failure keeps only the local Incident surface unavailable
     until cleanup succeeds; recovery after store repair proves there is no durable
     `BLOCKED_REDACTED` sentinel or permanent policy brick.
-22. Authoritative membership/Location revoke races with GET/retirement; lock order
+25. Authoritative membership/Location revoke races with GET/retirement; lock order
     observes the winner and never discloses after revocation.
-23. Local retention deadline tests do not infer server expiry from device time;
-    owner-approved handling preserves privacy and blocks unsafe bypass.
-24. Server expiry uses database time; delayed POST at/before/after the boundary
-    is deterministic, terminal rows remain fenced, and local expiry cannot reopen ID.
-25. Existing Web and old Native version-4 requests pass throughout rollout and
+26. The absolute 24-hour local deadline alone never produces server ABSENT/
+    RETIRED, clears the marker, or enables a new Incident. Offline at the deadline
+    stays recovery-unavailable.
+27. Online recovery after the local deadline still resolves FOUND and RETIRED;
+    RESERVED requires explicit retirement and protocol-safe UNKNOWN resolves only
+    under the ordering proof.
+28. With deterministic database-controlled timestamps rather than sleeps, a valid
+    matching POST at 14:59 after reservation is admitted and a POST at 15:00 or
+    later is rejected by the exact `database_now < expires_at` predicate.
+29. Expired reservation projects effective RETIRED and remains terminal across
+    later POST, GET, retirement, restart and arbitrary elapsed time; no row is
+    deleted or reopened.
+30. Existing Web and old Native version-4 requests pass throughout rollout and
     preserve their four-field contract/idempotency.
-26. Recovery version-8 ID without the exact protocol header, protocol header with
+31. Recovery version-8 ID without the exact protocol header, protocol header with
     wrong ID class, absent intent, foreign intent, expired intent and RETIRED intent
     all reject before Incident/audit insertion.
-27. A tracked Native attempt cannot downgrade to legacy by omitting the header or
+32. Exact Native-generated UUIDv8 values are RFC 9562-valid and accepted by the
+    contracts/Zod/API/PostgreSQL path; every non-version/non-variant bit is sourced
+    from current platform CSPRNG primitives and encodes no business data.
+33. A tracked Native attempt cannot downgrade to legacy by omitting the header or
     using the legacy transport path with the same ID.
-28. Two API replicas with a mixed rollout fail the deployment capability gate;
+34. Two API replicas with a mixed rollout fail the deployment capability gate;
     no recovery Native traffic is enabled until every writer enforces admission.
-29. Real PostgreSQL proves reservation/POST/read/retirement races under the chosen
-    isolation level and the exact User/session/membership/access/Shift/Task/
-    operation-lock order without deadlock.
-30. Provisioned runtime can SELECT/INSERT intents and update only state/retired_at;
-    it cannot alter binding/time fields, delete rows, broaden Incident/audit access
-    or use PUBLIC privileges.
-31. Exactly one Incident and `INCIDENT_OPENED` exist across retries, response loss,
-    two authenticated same-actor readers and competing retirement. Reservation/
-    retirement emit no opening or business audit.
-32. Actual SecureStore writes, backup artifacts, logs, diagnostics and navigation
-    persistence contain no description/type/severity/body/hash, Authorization,
-    access/refresh token, Guest proof or customer/vehicle/key data.
-33. Cold start, reconnect, foregrounding and network restoration issue canonical
+35. Real PostgreSQL proves reservation/POST/read/retirement races under the chosen
+    isolation level and exact User/session/membership/access/Shift/Task/operation
+    lock order without deadlock.
+36. Using the provisioned runtime role, direct RETIRED-to-RESERVED, clearing or
+    changing `retired_at`, and updates to actor/session/Organization/Location/
+    created/expiry binding all fail at the database transition guard.
+37. Provisioned runtime can SELECT intents, INSERT only binding fields and UPDATE
+    only state. It cannot directly author timestamps, delete rows, manage/disable
+    triggers/functions, broaden Incident/audit access or use PUBLIC privileges.
+38. Exactly one Incident and `INCIDENT_OPENED` exist across retries, response loss,
+    two authenticated same-actor readers and competing retirement. Reservation,
+    retirement and expiry emit no opening or Black Box business audit.
+39. Actual SecureStore writes, backup artifacts, logs, diagnostics and navigation
+    persistence contain no userId, description/type/severity/body/hash,
+    Authorization, access/refresh token, Guest proof or customer/vehicle/key data.
+40. Cold start, reconnect, foregrounding and network restoration issue canonical
     GET only. They never auto-reserve, auto-retire, auto-POST or schedule replay.
-34. Recovery transport rejects body/query extras and exposes no list, search,
+41. Recovery transport rejects body/query extras and exposes no list, search,
     latest, payload matching, Dashboard delegation or other reporter's result.
-35. Android process-death/storage/backup behavior and iOS same-source SecureStore,
+42. Android process-death/storage/backup behavior and iOS same-source SecureStore,
     installation-generation and build smoke pass. Automated checks are not
     physical evidence.
-36. Uninstall/app-data loss is documented as lost local recovery capability, not
+43. Uninstall/app-data loss is documented as lost local recovery capability, not
     as server retirement or a supported ambiguity reset.
 
 Run targeted contracts/API/database, portable and Native tests, lint, typecheck,
@@ -814,26 +890,28 @@ evidence and iOS proof retain their existing gates; this Proposed DEC claims non
 
 ## 15. Owner inputs, consequences, rollback and non-goals
 
-Owner acceptance must explicitly decide:
+This revision records the owner's selected retention and audit inputs:
 
-1. Accept the actor-bound pre-dispatch intent, its new table/routes and one-way
-   terminal fence.
-2. Accept version-8 CSPRNG Incident IDs plus the exact narrow protocol header as
-   the non-downgradable selector, after the legacy-data compatibility query; or
-   choose an equally enforceable discriminator before implementation.
-3. Set `T_server_active` and `T_local` from product/privacy/support evidence, and
-   resolve the hard-offline local deletion policy described in §11.
-4. Accept that server terminal intent rows remain as minimal exact-ID fences and
-   receive no reservation/retirement Black Box event.
-5. Accept the strict rollout gate and rollback floor: every API writer must retain
-   recovery-ID admission once IDs can be issued.
+1. `T_server_active` is 15 minutes from authoritative database creation time.
+2. `T_local` is an absolute, non-sliding 24-hour soft recovery deadline with the
+   online-resolution behavior in §11.
+3. Terminal server rows are retained indefinitely for MVP with no cleanup worker.
+4. Reservation, retirement and expiry emit no Black Box event; Incident commit
+   emits exactly one `INCIDENT_OPENED`.
+
+No retention or audit value remains open. Before implementation, independent
+review must still accept the database-guarded actor-bound contract and strict
+rollout floor. Implementation must validate the exact UUIDv8 discriminator and
+existing-client data as specified in §5. Failure requiring a new dependency or a
+different discriminator returns to owner review rather than silently expanding
+scope.
 
 Benefits are actor-owned unused IDs, exact positive recovery, definitive terminal
 non-success, no Incident content on device or intent table, no permanent anonymous
 installation sentinel, and truthful recovery after Shift/session terminality.
 Costs are one migration/table, a normal-path reservation round trip, a small
-retained server tombstone, narrow UPDATE privilege, explicit user retirement and
-coordinated rollout.
+retained server tombstone, a migration-owned transition guard, narrow state-only
+UPDATE privilege, explicit foreground retirement and coordinated rollout.
 
 Fallback before acceptance is the current truthful blocked process-death state.
 Do not generate a new ID to hide ambiguity, call Dashboard as Employee, persist a
