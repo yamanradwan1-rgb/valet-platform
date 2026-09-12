@@ -3705,3 +3705,42 @@ scope meanings cannot be reused for OCR. MOB-010A itself adds no schema/migratio
 This summary repairs the log mirror; the full binding contract, including all
 provider, capture, lifecycle and evidence requirements, remains:
 `docs/decisions/DEC-074_NATIVE_ASSISTIVE_PLATE_OCR_ANPR.md`.
+
+---
+
+## DEC-077 — Employee Incident Process-Death Recovery
+
+Status: Accepted
+Date: 2026-09-12
+
+Decision:
+Employee Native Incident process-death recovery uses an actor-bound server
+`IncidentRecoveryIntent`. Native first writes only a minimal no-content recovery
+identity, then reserves the exact Incident ID on the server, and only after a
+successful reservation may dispatch the recovery-enabled Incident POST. Recovery
+stores no Incident body, description, type, severity or payload hash and never
+automatically reserves, retires, posts, journals, queues or replays a mutation.
+
+The exact original OrganizationMembership, Organization, Location and
+ValetSession bind reservation, recovery and retirement. Server state is
+`RESERVED -> RETIRED`; a migration-owned database transition guard makes RETIRED
+terminal and immutable to the normal runtime role. Active reservation lasts 15
+minutes by authoritative database time. Terminal exact-ID tombstones remain
+indefinitely for MVP. Native's minimal SecureStore marker has an absolute,
+non-sliding 24-hour soft recovery deadline and contains no userId or Incident
+content.
+
+CSPRNG UUIDv8 plus the exact narrow protocol header distinguishes recovery-enabled
+Native attempts from compatible legacy UUIDv4 reporting and prevents downgrade of
+a tracked v8 ID. Canonical outcomes are FOUND, RESERVED, RETIRED and UNKNOWN.
+Exact actor recovery remains available after Shift end or ValetSession completion
+while current identity and scope remain valid. Reservation, retirement and expiry
+write no Black Box event; exactly one `INCIDENT_OPENED` remains atomic with an
+actual Incident commit.
+
+Implementation remains the `MOB-023B-INCIDENT-RECOVERY-IMPLEMENTATION` child of
+MOB-023B and requires independent implementation review before the parent can
+close.
+
+Full binding contract:
+`docs/decisions/DEC-077_EMPLOYEE_INCIDENT_PROCESS_DEATH_RECOVERY.md`

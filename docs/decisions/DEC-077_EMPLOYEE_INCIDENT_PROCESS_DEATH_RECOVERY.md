@@ -1,15 +1,15 @@
 # DEC-077 — Employee Incident Process-Death Recovery
 
-Status: Proposed
+Status: Accepted
 Date: 2026-09-12
 Task: MOB-023B-INCIDENT-RECOVERY-CONTRACT
 Implementation child: MOB-023B-INCIDENT-RECOVERY-IMPLEMENTATION
 Audited base: `91e458cdf88b4e34525614a08eb10c2f14ceb2ed`
 Branch: `codex/mob-023b-incident-recovery-contract`
 
-## 1. Decision requested
+## 1. Accepted decision
 
-Recommend a narrow **actor-bound server recovery intent**, created before a
+Use a narrow **actor-bound server recovery intent**, created before a
 recovery-enabled Native Incident POST may be dispatched, plus a minimal encrypted
 device marker and an actor-bound canonical recovery read.
 
@@ -20,22 +20,22 @@ must enforce that binding for every recovery-enabled Native operation. A later
 explicit retirement makes an unused reserved ID terminal. Neither cold start nor
 reconnect sends a reservation, retirement or Incident mutation automatically.
 
-This supersedes this Proposed DEC's earlier retirement-only recommendation. That
-design correctly rejected a bare missing Incident row as definitive absence, but
-it allowed any otherwise authorized same-Location reporter who learned an unused
-ID to retire it. Its durable `BLOCKED_REDACTED` sentinel could also prevent all
-future Incident reporting on an installation without an accepted repair path.
-Neither property is accepted here.
+This Accepted contract supersedes the earlier Proposed retirement-only
+recommendation. That design correctly rejected a bare missing Incident row as
+definitive absence, but it allowed any otherwise authorized same-Location reporter
+who learned an unused ID to retire it. Its durable `BLOCKED_REDACTED` sentinel
+could also prevent all future Incident reporting on an installation without an
+accepted repair path. Neither property is part of the Accepted contract.
 
-The recommended contract adds one small table, one reservation command, one
+The Accepted contract adds one small table, one reservation command, one
 explicit retirement command, one canonical read and a reservation admission
 check in the existing Incident POST. It stores no Incident draft or payload and
 adds no queue, journal, worker or replay mechanism.
 
-This file changes no existing authority while Proposed. This branch changes no
-production files, schema, migrations, dependencies or runtime grants. Repository
-rules do not require the high-contention `docs/08_DECISIONS_LOG.md` mirror for a
-Proposed focused decision, so it remains untouched.
+This Accepted decision establishes the implementation authority described below.
+The acceptance branch changes no production files, schema, migrations,
+dependencies or runtime grants. Its concise canonical summary is synchronized in
+`docs/08_DECISIONS_LOG.md`.
 
 ## 2. Context and current failure
 
@@ -134,9 +134,9 @@ assumptions with the real runtime role and genuine PostgreSQL transactions.
 
 | Option | Security and recovery properties | Cost / disposition |
 | --- | --- | --- |
-| A: minimal local identity plus canonical read | Minimal local metadata and exact positive recovery; no content. A bare no-row cannot exclude a later POST or prove actor ownership of an unused ID | Incomplete alone. Retain its device marker and narrow GET as parts of the recommendation |
-| B: actor-bound server recovery intent | Server binds actor/session/scope before dispatch. Active intent means PENDING; committed Incident means FOUND; retained retirement means definitive ABSENT. No body is stored | **Recommended narrow solution.** One table/migration, reservation/retirement/read commands and POST admission |
-| B1: one guarded intent row | A migration-owned database trigger permits only initial RESERVED insertion and one `RESERVED → RETIRED` transition while keeping all binding/time fields immutable. Incident existence supplies FOUND | **Preferred representation.** Existing migrations use focused transition/immutability triggers. This is the smallest design that makes terminality a database invariant rather than an application convention |
+| A: minimal local identity plus canonical read | Minimal local metadata and exact positive recovery; no content. A bare no-row cannot exclude a later POST or prove actor ownership of an unused ID | Incomplete alone. Its device marker and narrow GET remain components of the selected contract |
+| B: actor-bound server recovery intent | Server binds actor/session/scope before dispatch. Active intent means PENDING; committed Incident means FOUND; retained retirement means definitive ABSENT. No body is stored | **Selected narrow solution.** One table/migration, reservation/retirement/read commands and POST admission |
+| B1: one guarded intent row | A migration-owned database trigger permits only initial RESERVED insertion and one `RESERVED → RETIRED` transition while keeping all binding/time fields immutable. Incident existence supplies FOUND | **Accepted representation.** Existing migrations use focused transition/immutability triggers. This is the smallest design that makes terminality a database invariant rather than an application convention |
 | B2: immutable reservation plus immutable retirement fact | Insert-only facts avoid UPDATE privilege and retain event history | Rejected as unnecessary here. It needs two relations or a typed event table, additional invariants and joins. Retirement is internal reliability state, not an append-only business event |
 | C: durable full draft plus same-ID retry | Stores description, type and severity; exact retry possible only while current POST authorization remains valid | Rejected. Free-text PII, encryption/key access, backup, retention, account purge and edited-draft UX require a separate contract prohibited by current Accepted policy |
 | D: discovery without recovered ID | Latest/list/payload/time matching cannot identify one operation when multiple reports, repeated values, devices or reporters exist | Rejected as ambiguous and broader disclosure. No list/search/latest endpoint |
@@ -147,9 +147,11 @@ claim an unseen ID became its owner. UUID entropy lowered accidental discovery
 but did not create server evidence of actor ownership. The pre-dispatch intent
 removes that authority gap.
 
-## 5. Proposed server intent
+## 5. Accepted server intent contract
 
-All names, fields, routes and response shapes below are Proposed.
+The fields, protocol rules and response semantics below are binding. Route/file
+names described as conceptual may be refined during implementation only when the
+Accepted security and recovery behavior remains exact.
 
 ### Smallest server object
 
@@ -167,7 +169,7 @@ Add one `incident_recovery_intents` table / `IncidentRecoveryIntent` model with:
 Tenant-safe composite foreign keys mirror the Incident Organization, Location,
 session and membership relationships with restrictive deletion. Constraints
 require `retired_at IS NULL` for RESERVED and non-null for RETIRED. No list index
-is proposed; exact primary-key lookup is the product surface.
+is authorized; exact primary-key lookup is the product surface.
 
 The row contains no Incident content, body hash, client authority, authorization
 material, navigation state or generalized command type. It is one command-specific
@@ -446,11 +448,11 @@ does acquire. Refactor only enough to share the exact operation key and ordering
 do not create parallel authorization logic.
 
 The implementation must test actual PostgreSQL isolation and visibility before
-choosing an isolation level. Under the current READ COMMITTED implementation,
-the intended property is that separate SELECT statements issued after an advisory
-lock wait observe a preceding transaction's commit. That statement is a Proposed
-assumption until real PostgreSQL integration proves it. A single pre-lock CTE or
-mocked mutex is insufficient.
+choosing an isolation level. Under the current READ COMMITTED implementation, the
+required property is that separate SELECT statements issued after an advisory
+lock wait observe a preceding transaction's commit. This remains an implementation
+validation gate until real PostgreSQL integration proves it. A single pre-lock
+CTE or mocked mutex is insufficient.
 
 The durable intent supplies the temporal fence that the advisory lock lacks:
 
@@ -470,7 +472,7 @@ and never coerce it to FOUND or RETIRED.
 ## 9. Native local storage and orchestration
 
 Using Expo SecureStore for Incident recovery is a new command-specific use under
-this Proposed decision. DEC-072 authorizes auth storage only; it does not silently
+this Accepted decision. DEC-072 authorizes auth storage only; it does not silently
 authorize operational drafts. Implement a separate `IncidentRecoveryStore`
 adapter behind portable interfaces. Add no dependency: the current Expo/native
 capability is sufficient in principle and must be verified on Android and iOS.
@@ -636,7 +638,7 @@ RTL identifier isolation through existing employee UI boundaries.
 
 ## 11. TTL and retention
 
-The owner selects two separate values in this Proposed contract.
+The Accepted contract fixes two separate retention values.
 
 `T_server_active` is **15 minutes**. The database computes `created_at` and
 `expires_at = created_at + interval '15 minutes'` when reservation is inserted.
@@ -703,7 +705,7 @@ transition guard. This is compatible with repository convention: existing Staff
 push and tracking-session migrations use focused `BEFORE INSERT OR UPDATE` or
 `BEFORE UPDATE` trigger functions to enforce immutable identity and terminal
 state. No Incident, audit, custody or Task schema change and no new Incident index
-is proposed. The shared lock and mandatory writer checks enforce cross-table
+is authorized. The shared lock and mandatory writer checks enforce cross-table
 state; two unrelated primary keys alone do not.
 
 DEC-059's existing incidents SELECT is sufficient for canonical lookup, so no new
@@ -748,12 +750,14 @@ IDs as legacy, drop the table, delete terminal rows or route around the guard.
 
 ## 13. Exact implementation child handoff
 
-`MOB-023B-INCIDENT-RECOVERY-IMPLEMENTATION` becomes legal only after owner
-acceptance, independent review and completion of the §15 validation gates. Fetch
-fresh main, coordinate the migration owner and preserve focused file ownership/
-size rules. No new dependency is expected.
+`MOB-023B-INCIDENT-RECOVERY-IMPLEMENTATION` is authorized to begin from this
+Accepted contract, subject to the §15 implementation validation gates. Fetch fresh
+main, coordinate the migration owner and preserve focused file ownership/size
+rules. No new dependency is expected. This acceptance commit does not begin that
+implementation child.
 
-Paths marked new are proposed future files, not files created by this branch.
+Paths marked new are required future implementation files, not files created by
+this acceptance branch.
 
 | Area | Exact future scope |
 | --- | --- |
@@ -769,7 +773,7 @@ Paths marked new are proposed future files, not files created by this branch.
 | Native presentation | Focused changes to `native-incident-{types,screen,form,copy}.ts(x)` and shell composition for the §10 states, EN/AR, receipt independent of custody detail and recovery after Shift/session terminality |
 | Native proof | New `test/native-incident-recovery-{store,process-death,scope,parity}.test.ts(x)`; extend process-death routing/recovery, Incident lifecycle and identity-purge suites |
 | DB | Update `packages/database/prisma/schema.prisma`; add one coordinated `prisma/migrations/<timestamp>_incident_recovery_intents/migration.sql` containing the table, constraints and transition-guard function/trigger; add provisioned-runtime reverse-transition, immutability and deterministic expiry proof; update `scripts/runtime-table-privileges.mjs` and verifier for exact column grants and denied trigger/DDL authority |
-| Docs | After acceptance synchronize status and decision log; update database/security/recovery docs. Close MOB-023B evidence only after implementation and independent review; do not close G7 from decision acceptance alone |
+| Docs | This acceptance commit synchronizes DEC status and the concise decision-log summary. The implementation child updates database/security/recovery docs and MOB-023B evidence only after implementation and independent review; decision acceptance alone does not close MOB-023B or G7 |
 
 ## 14. Deterministic future test matrix
 
@@ -886,11 +890,11 @@ server state.
 Run targeted contracts/API/database, portable and Native tests, lint, typecheck,
 builds, architecture checks and Prettier under the plan's task
 profiles. Record CI separately. Future EN/AR, physical process-death/SecureStore
-evidence and iOS proof retain their existing gates; this Proposed DEC claims none.
+evidence and iOS proof retain their existing gates; this Accepted DEC claims none.
 
-## 15. Owner inputs, consequences, rollback and non-goals
+## 15. Owner selections, consequences, rollback and non-goals
 
-This revision records the owner's selected retention and audit inputs:
+The Accepted decision records the owner's selected retention and audit inputs:
 
 1. `T_server_active` is 15 minutes from authoritative database creation time.
 2. `T_local` is an absolute, non-sliding 24-hour soft recovery deadline with the
@@ -899,12 +903,12 @@ This revision records the owner's selected retention and audit inputs:
 4. Reservation, retirement and expiry emit no Black Box event; Incident commit
    emits exactly one `INCIDENT_OPENED`.
 
-No retention or audit value remains open. Before implementation, independent
-review must still accept the database-guarded actor-bound contract and strict
-rollout floor. Implementation must validate the exact UUIDv8 discriminator and
-existing-client data as specified in §5. Failure requiring a new dependency or a
-different discriminator returns to owner review rather than silently expanding
-scope.
+No retention or audit value remains open. Owner and independent architecture
+review are complete. Implementation must still validate the database guard,
+PostgreSQL locking/visibility, exact UUIDv8 discriminator, existing-client data
+and strict rollout floor specified by this contract. Failure requiring a new
+dependency, different discriminator or weakened invariant returns for a focused
+owner amendment rather than silently expanding scope.
 
 Benefits are actor-owned unused IDs, exact positive recovery, definitive terminal
 non-success, no Incident content on device or intent table, no permanent anonymous
@@ -913,10 +917,11 @@ Costs are one migration/table, a normal-path reservation round trip, a small
 retained server tombstone, a migration-owned transition guard, narrow state-only
 UPDATE privilege, explicit foreground retirement and coordinated rollout.
 
-Fallback before acceptance is the current truthful blocked process-death state.
-Do not generate a new ID to hide ambiguity, call Dashboard as Employee, persist a
-body, weaken POST admission or fabricate success. If the owner rejects the costs,
-revise the Proposed contract before implementation.
+Until the implementation child passes independent implementation review, retain
+the current truthful blocked process-death state. Do not generate a new ID to hide
+ambiguity, call Dashboard as Employee, persist a body, weaken POST admission or
+fabricate success. If an implementation validation gate fails, amend or supersede
+this decision explicitly; do not weaken the Accepted contract in code.
 
 Non-goals: durable drafts, generic queue/journal/outbox, automatic or background
 mutations, Incident list/search/edit/resolve lifecycle, custody/Task/payment/auth
@@ -924,7 +929,7 @@ policy changes, Guest proof persistence, new dependencies, third-party services,
 cross-device/account semantic deduplication, MOB-024A, release acceptance or
 physical-evidence claims.
 
-**MOB-023B remains BLOCKED pending owner acceptance, implementation and independent
-review. G7 remains OPEN. Physical evidence remains: DEFERRED — owner deferred
-physical evidence gate.** Stop after this documentation branch is committed and
-pushed for independent ChatGPT and owner decision review.
+**MOB-023B remains BLOCKED pending implementation and independent implementation
+review. Its remaining child is MOB-023B-INCIDENT-RECOVERY-IMPLEMENTATION. G7
+remains OPEN. Physical evidence remains: DEFERRED — owner deferred physical
+evidence gate.**
