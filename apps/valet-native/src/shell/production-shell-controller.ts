@@ -109,6 +109,18 @@ export function deriveProductionShellState(
   return { kind: "active", scope: operations.scope };
 }
 
+export function productionShellStateRetiresOperationalAuthority(
+  state: ReturnType<typeof deriveProductionShellState>,
+): boolean {
+  return (
+    state.kind === "access-denied" ||
+    state.kind === "no-active-shift" ||
+    state.kind === "no-usable-location" ||
+    (state.kind === "operational-error" &&
+      state.reason === "ambiguous-active-shifts")
+  );
+}
+
 export class ProductionShellController {
   private authority: ConfirmedAuthority | null = null;
   private authorityReady = false;

@@ -1,14 +1,26 @@
 import {
   EmployeeRevalidationCoordinator,
   isSameEmployeeOperationalScope,
+  shouldAttemptEmployeeConnectivityRecovery,
   type EmployeeConnectivityStatus,
+  type EmployeeOperationalScope,
   type EmployeeRevalidationBatch,
 } from "@valet/employee-client";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import { retireNativeWorkflowScope } from "./native-workflow-scope-retirement";
+import {
+  deriveProductionShellState,
+  productionShellStateRetiresOperationalAuthority,
+} from "./production-shell-controller";
+
+interface ConfirmedOperationalAuthority {
+  readonly generation: number;
+  readonly scope: EmployeeOperationalScope;
+}
 
 export class NativeProductionLifecycleOwner {
   private connectivity: EmployeeConnectivityStatus;
+  private confirmedAuthority: ConfirmedOperationalAuthority | undefined;
   private disposed = false;
   private foreground = false;
   private operationsForeground = false;
@@ -44,7 +56,10 @@ export class NativeProductionLifecycleOwner {
 
   setConnectivity(status: EmployeeConnectivityStatus): void {
     if (this.disposed || status === this.connectivity) return;
-    const recovered = this.connectivity !== "online" && status === "online";
+    const recovered = shouldAttemptEmployeeConnectivityRecovery(
+      this.connectivity,
+      status,
+    );
     this.connectivity = status;
     this.applyConnectivity(status, recovered);
   }
@@ -90,7 +105,7 @@ export class NativeProductionLifecycleOwner {
     }
     if (auth.phase !== "authenticated") return;
     const generation = auth.authGeneration;
-    const previousScope = this.runtime.operations.current().scope;
+    this.rememberReadyAuthority(generation);
     if (this.operationsForeground) {
       await this.runtime.operations.refresh();
     } else {
@@ -99,16 +114,36 @@ export class NativeProductionLifecycleOwner {
     }
     if (!this.isCurrent(generation)) return;
     const current = this.runtime.operations.current();
-    if (
-      current.phase !== "ready" ||
-      current.scope === null ||
-      (previousScope !== null &&
-        !isSameEmployeeOperationalScope(previousScope, current.scope))
-    ) {
-      if (previousScope !== null) retireNativeWorkflowScope(this.runtime);
+    const shellState = deriveProductionShellState(auth, current);
+    if (productionShellStateRetiresOperationalAuthority(shellState)) {
+      this.confirmedAuthority = undefined;
+      retireNativeWorkflowScope(this.runtime);
+      return;
+    }
+    if (shellState.kind !== "active") return;
+    const previous = this.confirmedAuthority;
+    const authorityChanged =
+      previous !== undefined &&
+      (previous.generation !== generation ||
+        !isSameEmployeeOperationalScope(previous.scope, shellState.scope));
+    this.confirmedAuthority = { generation, scope: shellState.scope };
+    if (authorityChanged) {
+      retireNativeWorkflowScope(this.runtime);
       return;
     }
     await this.revalidateActiveWorkflow();
+  }
+
+  private rememberReadyAuthority(generation: number): void {
+    if (this.confirmedAuthority !== undefined) return;
+    const current = this.runtime.operations.current();
+    if (
+      current.identityGeneration === generation &&
+      current.phase === "ready" &&
+      current.scope !== null
+    ) {
+      this.confirmedAuthority = { generation, scope: current.scope };
+    }
   }
 
   private async revalidateActiveWorkflow(): Promise<void> {

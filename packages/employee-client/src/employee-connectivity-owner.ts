@@ -5,6 +5,16 @@ export interface EmployeeConnectivityAdapter {
   subscribe(listener: (status: EmployeeConnectivityStatus) => void): () => void;
 }
 
+export function shouldAttemptEmployeeConnectivityRecovery(
+  previous: EmployeeConnectivityStatus,
+  current: EmployeeConnectivityStatus,
+): boolean {
+  return (
+    (previous === "offline" && current === "unknown") ||
+    (previous !== "online" && current === "online")
+  );
+}
+
 /** Process-local, provider-neutral connectivity hint. It is never API authority. */
 export class EmployeeConnectivityOwner {
   private disposed = false;

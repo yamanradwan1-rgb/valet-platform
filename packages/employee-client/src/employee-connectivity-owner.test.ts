@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   EmployeeConnectivityOwner,
+  shouldAttemptEmployeeConnectivityRecovery,
   type EmployeeConnectivityStatus,
 } from "./employee-connectivity-owner";
 
@@ -24,6 +25,22 @@ function fixture(initial: EmployeeConnectivityStatus | Error) {
 }
 
 describe("EmployeeConnectivityOwner", () => {
+  it.each([
+    ["offline", "unknown", true],
+    ["offline", "online", true],
+    ["unknown", "online", true],
+    ["online", "unknown", false],
+    ["online", "offline", false],
+    ["unknown", "unknown", false],
+  ] as const)(
+    "classifies %s -> %s recovery as %s",
+    (previous, current, expected) => {
+      expect(shouldAttemptEmployeeConnectivityRecovery(previous, current)).toBe(
+        expected,
+      );
+    },
+  );
+
   it.each(["online", "offline", "unknown"] as const)(
     "publishes the initial %s hint",
     async (status) => {

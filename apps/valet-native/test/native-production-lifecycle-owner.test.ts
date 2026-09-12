@@ -95,6 +95,50 @@ describe("NativeProductionLifecycleOwner", () => {
     expect(command).not.toHaveBeenCalled();
   });
 
+  it("leaving confirmed offline for unknown schedules one safe attempt", async () => {
+    const { operations, runtime } = fixture("offline");
+    const command = vi.fn();
+    Object.assign(runtime, { protectedCommand: command });
+    const owner = new NativeProductionLifecycleOwner(runtime);
+    owner.setAppActive(true);
+    await settle(owner);
+    operations.setForeground.mockClear();
+    owner.setConnectivity("unknown");
+    await settle(owner);
+    expect(operations.setForeground).toHaveBeenCalledOnce();
+    expect(operations.setForeground).toHaveBeenCalledWith(true);
+    expect(command).not.toHaveBeenCalled();
+  });
+
+  it("does not loop when an offline-to-unknown attempt fails", async () => {
+    const { operations, runtime } = fixture("offline");
+    const owner = new NativeProductionLifecycleOwner(runtime);
+    owner.setAppActive(true);
+    await settle(owner);
+    operations.setForeground.mockClear();
+    operations.setForeground.mockRejectedValueOnce(new Error("NETWORK_ERROR"));
+    owner.setConnectivity("unknown");
+    await settle(owner);
+    await settle(owner);
+    expect(operations.setForeground).toHaveBeenCalledOnce();
+    expect(runtime.auth.refresh).not.toHaveBeenCalled();
+  });
+
+  it("coalesces rapid offline-to-unknown-to-online recovery", async () => {
+    const { operations, runtime } = fixture("offline");
+    const command = vi.fn();
+    Object.assign(runtime, { protectedCommand: command });
+    const owner = new NativeProductionLifecycleOwner(runtime);
+    owner.setAppActive(true);
+    await settle(owner);
+    operations.setForeground.mockClear();
+    owner.setConnectivity("unknown");
+    owner.setConnectivity("online");
+    await settle(owner);
+    expect(operations.setForeground).toHaveBeenCalledOnce();
+    expect(command).not.toHaveBeenCalled();
+  });
+
   it("fences workflow presentation and polling on background", () => {
     const { operations, runtime } = fixture("online");
     const owner = new NativeProductionLifecycleOwner(runtime);
@@ -140,7 +184,7 @@ describe("NativeProductionLifecycleOwner", () => {
     expect(runtime.connectivity.current()).toBe("online");
   });
 
-  it("performs one bounded restore retry only on network recovery", async () => {
+  it("performs one bounded restore retry when leaving confirmed offline", async () => {
     const { operations, runtime } = fixture("offline");
     let phase: "authenticated" | "restoration-unavailable" =
       "restoration-unavailable";
@@ -154,8 +198,8 @@ describe("NativeProductionLifecycleOwner", () => {
     });
     const owner = new NativeProductionLifecycleOwner(runtime);
     owner.setAppActive(true);
-    owner.setConnectivity("online");
-    owner.setConnectivity("online");
+    owner.setConnectivity("unknown");
+    owner.setConnectivity("unknown");
     await settle(owner);
     expect(runtime.auth.refresh).toHaveBeenCalledOnce();
     expect(operations.setForeground).toHaveBeenCalledTimes(2);

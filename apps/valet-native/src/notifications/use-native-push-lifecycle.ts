@@ -6,6 +6,7 @@ import type {
   EmployeeOperationalSnapshot,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
+import { shouldAttemptEmployeeConnectivityRecovery } from "@valet/employee-client";
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
@@ -89,8 +90,10 @@ export function useNativePushLifecycle(input: {
 
   useEffect(() => {
     if (
-      input.connectivity === "online" &&
-      previousConnectivity.current !== "online"
+      shouldAttemptEmployeeConnectivityRecovery(
+        previousConnectivity.current,
+        input.connectivity,
+      )
     ) {
       void owner?.networkRecovered();
     }
