@@ -17,6 +17,7 @@
     "local:bootstrap": "tsx tools/local-dev/bootstrap.ts",
     "local:status": "tsx tools/local-dev/status.ts",
     "local:smoke": "tsx tools/local-dev/smoke.ts",
+    "capacity:baseline": "tsx tools/capacity/run-capacity-baseline.ts",
     "incident-recovery:rollout-check": "tsx tools/check-incident-recovery-rollout.ts"
   },
   "dependencies": {

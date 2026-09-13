@@ -20,3 +20,4 @@ apps/valet-native/android/
 apps/valet-native/ios/
 apps/valet-native/.expo/
 .tmp/mobile-poc/
+.tmp/capacity/
