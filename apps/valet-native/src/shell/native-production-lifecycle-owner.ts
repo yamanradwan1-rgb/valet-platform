@@ -12,6 +12,10 @@ import {
   deriveProductionShellState,
   productionShellStateRetiresOperationalAuthority,
 } from "./production-shell-controller";
+import {
+  beginPhysicalMetric,
+  finishPhysicalMetric,
+} from "../diagnostics/native-physical-diagnostics";
 
 interface ConfirmedOperationalAuthority {
   readonly generation: number;
@@ -96,6 +100,13 @@ export class NativeProductionLifecycleOwner {
     if (this.disposed || !this.foreground || this.connectivity === "offline") {
       return;
     }
+    const measuringRecovery =
+      batch.reasons.has("network-recovery") || batch.reasons.has("foreground");
+    if (measuringRecovery)
+      beginPhysicalMetric(
+        "reconnect_recovery_ms",
+        batch.reasons.has("network-recovery") ? "network" : "foreground",
+      );
     let auth = this.runtime.auth.current();
     if (
       auth.phase === "restoration-unavailable" &&
@@ -104,8 +115,14 @@ export class NativeProductionLifecycleOwner {
       await this.runtime.auth.refresh();
       auth = this.runtime.auth.current();
     }
-    if (!this.canContinue(auth.authGeneration)) return;
-    if (auth.phase !== "authenticated") return;
+    if (
+      !this.canContinue(auth.authGeneration) ||
+      auth.phase !== "authenticated"
+    ) {
+      if (measuringRecovery)
+        finishPhysicalMetric("reconnect_recovery_ms", "failure", "auth-loss");
+      return;
+    }
     const generation = auth.authGeneration;
     this.rememberReadyAuthority(generation);
     if (this.operationsForeground) {
@@ -120,9 +137,15 @@ export class NativeProductionLifecycleOwner {
     if (productionShellStateRetiresOperationalAuthority(shellState)) {
       this.confirmedAuthority = undefined;
       retireNativeWorkflowScope(this.runtime);
+      if (measuringRecovery)
+        finishPhysicalMetric("reconnect_recovery_ms", "failure", "auth-loss");
       return;
     }
-    if (shellState.kind !== "active") return;
+    if (shellState.kind !== "active") {
+      if (measuringRecovery)
+        finishPhysicalMetric("reconnect_recovery_ms", "failure", "unknown");
+      return;
+    }
     const previous = this.confirmedAuthority;
     const authorityChanged =
       previous !== undefined &&
@@ -131,9 +154,15 @@ export class NativeProductionLifecycleOwner {
     this.confirmedAuthority = { generation, scope: shellState.scope };
     if (authorityChanged) {
       retireNativeWorkflowScope(this.runtime);
+      if (measuringRecovery)
+        finishPhysicalMetric("reconnect_recovery_ms", "success");
       return;
     }
-    if (this.canContinue(generation)) await this.revalidateActiveWorkflow();
+    if (this.canContinue(generation)) {
+      await this.revalidateActiveWorkflow();
+      if (measuringRecovery)
+        finishPhysicalMetric("reconnect_recovery_ms", "success");
+    }
   }
 
   private rememberReadyAuthority(generation: number): void {

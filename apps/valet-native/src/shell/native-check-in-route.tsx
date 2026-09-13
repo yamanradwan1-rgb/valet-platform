@@ -8,6 +8,10 @@ import type {
 
 import { NativeCheckInWorkflow } from "../check-in/native-check-in-workflow";
 import { nativeCheckInWorkflowOwner } from "../check-in/native-check-in-ownership";
+import {
+  beginPhysicalMetric,
+  finishPhysicalMetric,
+} from "../diagnostics/native-physical-diagnostics";
 
 export function NativeCheckInRoute({
   auth,
@@ -35,8 +39,16 @@ export function NativeCheckInRoute({
   );
 
   useEffect(() => {
+    beginPhysicalMetric("check_in_field_time_ms", "operator-flow");
     void checkIn.activate(identityGeneration, scope.locationId, workflowOwner);
+    return () =>
+      finishPhysicalMetric("check_in_field_time_ms", "failure", "cancelled");
   }, [checkIn, identityGeneration, scope.locationId, workflowOwner]);
+
+  useEffect(() => {
+    if (snapshot.phase === "continuation")
+      finishPhysicalMetric("check_in_field_time_ms", "success");
+  }, [snapshot.phase]);
 
   const close = () => {
     checkIn.clear();

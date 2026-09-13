@@ -18,6 +18,7 @@ import {
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeShiftDiagnosticsCard } from "./native-shift-diagnostics-card";
+import { NativePhysicalDiagnosticsCard } from "../diagnostics/native-physical-diagnostics-card";
 import { getNativeShiftCopy } from "./native-shift-copy";
 import {
   NativeShiftInfoRow,
@@ -210,6 +211,9 @@ export function NativeActiveShiftPanel({
         </EmployeeCard>
       )}
       <NativeShiftDiagnosticsCard locale={locale} textAlign={textAlign} />
+      {typeof __DEV__ === "boolean" && __DEV__ ? (
+        <NativePhysicalDiagnosticsCard />
+      ) : null}
     </ScrollView>
   );
 }

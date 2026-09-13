@@ -4,6 +4,10 @@ import {
   type NativePlateOcrPorts,
 } from "./native-plate-ocr-loop";
 import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
+import {
+  beginCameraReady,
+  finishPhysicalMetric,
+} from "../diagnostics/native-physical-diagnostics";
 
 export interface NativePlateCameraSnapshot {
   readonly generation: number;
@@ -81,6 +85,7 @@ export class NativePlateCameraController {
     )
       return;
     const generation = this.snapshot.generation + 1;
+    beginCameraReady();
     this.publish({ ...this.snapshot, generation, phase: "requesting" });
     try {
       let permission = await this.permissions.get();
@@ -96,6 +101,12 @@ export class NativePlateCameraController {
         pictureSize: this.snapshot.preferredPictureSize,
         captureFallbackUsed: false,
       });
+      if (!permission.granted)
+        finishPhysicalMetric(
+          "camera_ready_ms",
+          "failure",
+          "camera-unavailable",
+        );
     } catch {
       this.fail(generation);
     }
@@ -104,6 +115,7 @@ export class NativePlateCameraController {
   ready(generation: number): void {
     if (this.isCurrent(generation) && this.snapshot.phase === "starting") {
       this.publish({ ...this.snapshot, phase: "preview" });
+      finishPhysicalMetric("camera_ready_ms", "success");
       if (this.fallbackReady?.generation === generation) {
         this.resolveFallback(true);
         return;
@@ -174,6 +186,7 @@ export class NativePlateCameraController {
     if (!this.isCurrent(generation)) return;
     this.resolveFallback(false);
     this.ocr?.cancel();
+    finishPhysicalMetric("camera_ready_ms", "failure", "camera-unavailable");
     // Expo mount errors do not reliably distinguish busy/missing hardware.
     this.publish({
       ...this.snapshot,
@@ -185,6 +198,7 @@ export class NativePlateCameraController {
   close(): void {
     this.resolveFallback(false);
     this.ocr?.cancel();
+    finishPhysicalMetric("camera_ready_ms", "failure", "cancelled");
     this.publish({
       ...this.snapshot,
       generation: this.snapshot.generation + 1,

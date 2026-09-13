@@ -1,6 +1,9 @@
 import { NativeProductionShell } from "@/shell/native-production-shell";
 import { productionRouteIntentFromParam } from "@/shell/production-shell-controller";
 import { useLocalSearchParams } from "expo-router";
+import { installNativePhysicalDiagnosticsPersistence } from "@/diagnostics/native-physical-diagnostics-persistence";
+
+installNativePhysicalDiagnosticsPersistence();
 
 export default function IndexRoute() {
   const params = useLocalSearchParams<{ intent?: string | string[] }>();

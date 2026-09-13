@@ -255,43 +255,69 @@ safe real-provider load environment. Existing fake/test adapters can prove
 logic but not provider latency or delivery. Provider outage/recovery, server
 claim/send capacity, real FCM latency, and device delivery remain open.
 
-## Client/mobile measurements
+## Physical Android diagnostics instrumentation
 
-No physical Android device was connected or available; `adb` was not installed
-in the workspace. No emulator value is relabeled as physical evidence. Thus no
-measurement is claimed for startup/operational readiness, UI/input response,
-first/warm list render, first/warm camera readiness, memory growth, battery,
-crash/ANR, or human check-in field time.
+### Implemented
 
-### Physical-device evidence procedure (open)
+The development build now has one local **Physical Performance Diagnostics**
+card at the bottom of the active Shift screen. Both collection and rendering
+are hard-gated by the existing `__DEV__` boundary. Sanitized samples are kept
+in the app document file `vaylet-mob-025a-physical-dev.json` (maximum 200
+samples), never auth/domain storage, and are never uploaded. The card shows
+count, p50, p95, p99 and failures, can clear only this file, and can copy one
+sanitized JSON evidence payload to the clipboard. No dependency was added.
 
-On an Owner-approved physical Android cohort and integrated candidate SHA:
+Implemented client-observed boundaries:
 
-1. Record build SHA/version, device model, Android/OEM version, RAM/storage,
-   battery condition, network class, Location/task cardinality, and whether the
-   run is cold or warm. Never record staff/customer/business payloads.
-2. Run at least 30 bounded repetitions each for cold launch to authenticated
-   operational readiness, restored-session readiness, initial Task list render,
-   refreshed list render, first camera readiness, and later camera opens.
-   Capture monotonic timestamps and p50/p95/p99 separately.
-3. Capture UI frame/jank and input latency with the existing Android tooling
-   available in the approved lab; capture process memory before/after a bounded
-   operational session. Record crashes and ANRs from system diagnostics.
-4. Reset battery statistics, execute a defined bounded active-shift script,
-   record duration/screen/network conditions, and report consumed percentage
-   or charge with device uncertainty. Do not extrapolate a short run to a full
-   shift without validation.
-5. Time human check-in field work separately from render, network, and API
-   timing. Measure the optional no-photo path and any photo-required
-   configuration as distinct cohorts.
-6. Exercise loss/recovery of network, foreground/background, and push-attention
-   flows, then prove authoritative context/queue recovery and no blind mutation
-   replay.
+| Metric | Start | Successful end | Classification |
+| --- | --- | --- | --- |
+| `js_bootstrap_to_operational_ready_ms` | earliest diagnostics module evaluation during JS application bootstrap | authenticated operational scope is ready and its authoritative Task queue is not loading and has no failure | restored authenticated session, or auth-required when an unauthenticated gate was observed |
+| `task_list_ready_ms` | authenticated operational activation or Task navigation request | authoritative operational scope and usable Task queue (including a valid empty queue) | initial or Task screen |
+| `camera_ready_ms` | operator requests the real check-in camera flow | Expo camera `onCameraReady`; mount failure is a bounded `camera-unavailable` failure | first or warm camera open in this JS process |
+| `reconnect_recovery_ms` | real network-recovery or foreground revalidation batch begins | authoritative context/queue refresh and any required active-workflow reread complete | network or foreground; no protected mutation replay is introduced |
+| `check_in_field_time_ms` | check-in route activates for the operator | authoritative check-in reaches its existing successful continuation phase | operator flow; leaving early records cancelled |
 
-Smallest next physical action: connect one approved representative Android
-device, install the integrated candidate, and execute steps 1–6 with the
-synthetic 10-Location cohort. A broader device/OEM matrix belongs downstream,
-not in this remote baseline.
+Samples contain only metric, rounded duration, outcome, bounded warm/cold
+classification, timestamp and optional closed failure class. The export adds
+`evidenceClass`, development build class, Android platform, summaries, and a
+mandatory `OWNER_MUST_RECORD_TESTED_SHA` placeholder. It contains no URL,
+token, headers, identity, domain identifier, plate, proof, image, raw payload,
+or exception message. Nearest-rank percentiles are calculated locally without
+coupling Native to API capacity tooling.
+
+### Physical evidence
+
+**OPEN — no physical measurements are invented by this change.** Owner steps:
+
+1. Install the development build for the exact reviewed commit. Before testing,
+   record that Git SHA plus device model, OEM/Android version, network class,
+   and relevant non-sensitive cohort conditions separately; the current build
+   has no safe automatic Git-SHA facility.
+2. Open Shift → **Physical Performance Diagnostics** and choose **Clear
+   measurements**. Confirm every metric has `n=0`.
+3. Collect at least 30 successful bounded samples each for restored bootstrap,
+   Task list readiness, camera readiness, and reconnect/foreground recovery.
+   Use real screen opens, camera preview readiness, and real offline/online or
+   background/foreground recovery; do not fabricate offline success.
+4. Collect a practical bounded check-in cohort. Repeated real domain setup may
+   make 30 impractical, so report its exact count and keep it separate from API,
+   render, and OCR latency.
+5. Return to Shift, choose **Copy sanitized JSON evidence**, paste the complete
+   payload for independent review, and provide the exact tested Git SHA and
+   separately recorded device metadata. Do not accept evidence while
+   `buildSha` remains the placeholder.
+
+### Unavailable without ADB/native diagnostics
+
+`EVIDENCE OPEN — unavailable on current device without OS/native diagnostics`:
+Android process RSS/native heap/system memory, ANR and native crash diagnostics,
+battery attribution, OS-level launch time before JS bootstrap, and OS-level
+frame/jank timing. JavaScript values are not used as approximations.
+
+### U-004
+
+**OPEN — OWNER ACCEPTANCE REQUIRED.** Instrumentation is not physical evidence
+and does not accept any proposed threshold. MOB-025B remains **NOT STARTED**.
 
 ## Proposed U-004 pilot thresholds
 

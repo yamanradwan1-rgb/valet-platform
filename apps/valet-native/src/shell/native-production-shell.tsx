@@ -18,6 +18,11 @@ import {
   type ProductionDestination,
   type ProductionRouteIntent,
 } from "./production-shell-controller";
+import {
+  beginPhysicalMetric,
+  classifyPhysicalBootstrap,
+  observeOperationalReady,
+} from "../diagnostics/native-physical-diagnostics";
 
 export function NativeProductionShell({
   coldIntent = null,
@@ -29,6 +34,7 @@ export function NativeProductionShell({
   const { locale, setLocale } = useNativeEmployeeLocale(localePreference);
   const [bootstrap] = useState(createNativeProductionBootstrap);
   const [authSnapshot, setAuthSnapshot] = useState(bootstrap.auth);
+  useState(() => classifyPhysicalBootstrap(bootstrap.auth));
   const [confirmParking, setConfirmParking] = useState(
     bootstrap.confirmParking,
   );
@@ -110,10 +116,14 @@ export function NativeProductionShell({
     };
   }, [runtime]);
   useEffect(() => {
+    observeOperationalReady(authSnapshot, operations);
+  }, [authSnapshot, operations]);
+  useEffect(() => {
     if (runtime === undefined) return;
     if (authSnapshot.phase === "authenticated") {
       runtime.shiftEnd.activate(authSnapshot.authGeneration);
       runtime.shiftStart.activate(authSnapshot.authGeneration);
+      beginPhysicalMetric("task_list_ready_ms", "initial");
       void runtime.operations.activate(authSnapshot.authGeneration);
     } else {
       runtime.confirmParking.clear();
@@ -189,6 +199,10 @@ export function NativeProductionShell({
   }, [parking, runtime]);
 
   const navigate = (destination: ProductionDestination) => {
+    if (destination === "tasks") {
+      beginPhysicalMetric("task_list_ready_ms", "task-screen");
+      observeOperationalReady(authSnapshot, operations);
+    }
     controller.receive({ destination, source: "navigation" });
     setNavigationRevision((value) => value + 1);
   };
