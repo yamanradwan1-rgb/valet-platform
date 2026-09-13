@@ -46,6 +46,30 @@ async function readRss(pid: number): Promise<number> {
   return kib * 1024;
 }
 
+export async function requireCapacityApiPid(
+  raw: string | undefined,
+): Promise<number> {
+  if (raw === undefined || raw.trim() === "") {
+    throw new Error("CAPACITY_API_PID is required.");
+  }
+  if (!/^\d+$/u.test(raw)) {
+    throw new Error("CAPACITY_API_PID must be an integer greater than 1.");
+  }
+  const pid = Number(raw);
+  if (!Number.isSafeInteger(pid) || pid <= 1) {
+    throw new Error("CAPACITY_API_PID must be an integer greater than 1.");
+  }
+  try {
+    await Promise.all([
+      readFile(`/proc/${pid}/stat`, "utf8"),
+      readFile(`/proc/${pid}/status`, "utf8"),
+    ]);
+  } catch {
+    throw new Error("CAPACITY_API_PID does not identify a readable process.");
+  }
+  return pid;
+}
+
 export class CapacitySafetyMonitor {
   private consecutiveErrors = 0;
   private highCpuSamples = 0;
@@ -56,7 +80,7 @@ export class CapacitySafetyMonitor {
 
   constructor(
     private readonly pool: Pool,
-    private readonly apiPid?: number,
+    private readonly apiPid: number,
   ) {}
 
   record(sample: RequestSample): void {
@@ -98,25 +122,23 @@ export class CapacitySafetyMonitor {
     if (row === undefined) throw new Error("Database health is unavailable.");
     let apiCpuPercent: number | null = null;
     let apiRssBytes: number | null = null;
-    if (this.apiPid !== undefined) {
-      const [cpu, rss] = await Promise.all([
-        readCpu(this.apiPid),
-        readRss(this.apiPid),
-      ]);
-      apiRssBytes = rss;
-      if (this.lastCpu !== undefined) {
-        const processDelta = cpu.processTicks - this.lastCpu.processTicks;
-        const totalDelta = cpu.totalTicks - this.lastCpu.totalTicks;
-        apiCpuPercent = Number(
-          (
-            (processDelta / Math.max(1, totalDelta)) *
-            cpus().length *
-            100
-          ).toFixed(2),
-        );
-      }
-      this.lastCpu = cpu;
+    const [cpu, rss] = await Promise.all([
+      readCpu(this.apiPid),
+      readRss(this.apiPid),
+    ]);
+    apiRssBytes = rss;
+    if (this.lastCpu !== undefined) {
+      const processDelta = cpu.processTicks - this.lastCpu.processTicks;
+      const totalDelta = cpu.totalTicks - this.lastCpu.totalTicks;
+      apiCpuPercent = Number(
+        (
+          (processDelta / Math.max(1, totalDelta)) *
+          cpus().length *
+          100
+        ).toFixed(2),
+      );
     }
+    this.lastCpu = cpu;
     const snapshot = {
       apiCpuPercent,
       apiRssBytes,

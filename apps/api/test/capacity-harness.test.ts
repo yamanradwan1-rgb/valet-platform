@@ -5,6 +5,7 @@ import { capacityFixtureId } from "../tools/capacity/capacity-fixture";
 import { runConcurrent } from "../tools/capacity/capacity-http";
 import {
   CapacitySafetyMonitor,
+  requireCapacityApiPid,
   SAFETY_LIMITS,
 } from "../tools/capacity/capacity-safety";
 import { percentile, summarize } from "../tools/capacity/capacity-statistics";
@@ -19,6 +20,30 @@ function sample(status = 200, durationMs = 10): RequestSample {
 }
 
 describe("MOB-025A capacity harness", () => {
+  it("rejects a missing API PID before monitoring can start", async () => {
+    await expect(requireCapacityApiPid(undefined)).rejects.toThrow(
+      "CAPACITY_API_PID is required.",
+    );
+  });
+
+  it("rejects invalid and unreadable API PIDs", async () => {
+    await expect(requireCapacityApiPid("not-a-pid")).rejects.toThrow(
+      "CAPACITY_API_PID must be an integer greater than 1.",
+    );
+    await expect(requireCapacityApiPid("1")).rejects.toThrow(
+      "CAPACITY_API_PID must be an integer greater than 1.",
+    );
+    await expect(requireCapacityApiPid("2147483647")).rejects.toThrow(
+      "CAPACITY_API_PID does not identify a readable process.",
+    );
+  });
+
+  it("accepts a currently readable API PID", async () => {
+    await expect(requireCapacityApiPid(String(process.pid))).resolves.toBe(
+      process.pid,
+    );
+  });
+
   it("creates deterministic RFC 4122 variant fixture identifiers", () => {
     const id = capacityFixtureId(6, 12);
     expect(id).toBe("025a0000-0000-4000-8000-06000000000c");
@@ -127,14 +152,14 @@ describe("MOB-025A capacity harness", () => {
 
   it("aborts on consecutive errors and aggregate error rate", () => {
     const pool = {} as Pool;
-    const consecutive = new CapacitySafetyMonitor(pool);
+    const consecutive = new CapacitySafetyMonitor(pool, process.pid);
     const consecutiveSamples = Array.from({ length: 10 }, () => sample(500));
     for (const value of consecutiveSamples) consecutive.record(value);
     expect(() => consecutive.assertRequestLimits(consecutiveSamples)).toThrow(
       "SAFETY_ABORT: consecutive error limit reached",
     );
 
-    const aggregate = new CapacitySafetyMonitor(pool);
+    const aggregate = new CapacitySafetyMonitor(pool, process.pid);
     const aggregateSamples = Array.from(
       { length: SAFETY_LIMITS.errorRateMinimumSamples },
       (_, index) => sample(index % 10 === 0 ? 500 : 200),
@@ -156,8 +181,8 @@ describe("MOB-025A capacity harness", () => {
         ],
       }),
     } as unknown as Pool;
-    await expect(new CapacitySafetyMonitor(pool).snapshot()).rejects.toThrow(
-      "SAFETY_ABORT: database connection limit reached",
-    );
+    await expect(
+      new CapacitySafetyMonitor(pool, process.pid).snapshot(),
+    ).rejects.toThrow("SAFETY_ABORT: database connection limit reached");
   });
 });

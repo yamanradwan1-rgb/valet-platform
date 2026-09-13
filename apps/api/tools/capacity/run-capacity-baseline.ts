@@ -13,7 +13,10 @@ import {
 } from "./capacity-fixture";
 import { requestJson, runConcurrent } from "./capacity-http";
 import { writeCapacityResult } from "./capacity-result";
-import { CapacitySafetyMonitor } from "./capacity-safety";
+import {
+  CapacitySafetyMonitor,
+  requireCapacityApiPid,
+} from "./capacity-safety";
 import { summarize } from "./capacity-statistics";
 import {
   validateCapacityDetail,
@@ -29,16 +32,12 @@ async function main(): Promise<void> {
       "Set CAPACITY_CONFIRM_LOCAL=mob-025a for the guarded local run.",
     );
   }
+  const apiPid = await requireCapacityApiPid(process.env.CAPACITY_API_PID);
   const loaded = loadBootstrapEnvironment();
   const pool = new Pool({
     ...migrationClientConfig(loaded.environment.migration, "development"),
     max: 3,
   });
-  const apiPidRaw = process.env.CAPACITY_API_PID;
-  const apiPid = apiPidRaw === undefined ? undefined : Number(apiPidRaw);
-  if (apiPid !== undefined && (!Number.isInteger(apiPid) || apiPid <= 1)) {
-    throw new Error("CAPACITY_API_PID must be a positive process ID.");
-  }
   const monitor = new CapacitySafetyMonitor(pool, apiPid);
   const workloads: WorkloadResult[] = [];
   const startedAt = new Date().toISOString();

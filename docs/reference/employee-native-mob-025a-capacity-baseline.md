@@ -27,6 +27,12 @@ U-004 remains an Owner gate.
 The harness was uncommitted tooling layered on the exact reviewed application
 SHA. It did not modify the built API or database schema.
 
+Focused review repair did not rerun or replace the measurements. The final
+supported run was invoked with `CAPACITY_API_PID=2086581`, and its result
+contains API RSS/CPU snapshots from that process. Making the already-supplied
+PID mandatory changes only fail-closed preflight behavior and therefore does
+not invalidate the measured workload or results.
+
 ## Environment and hardware
 
 | Item | Measured configuration |
@@ -115,12 +121,15 @@ CAPACITY_API_PID=<measured-api-pid> \
 corepack pnpm --filter @valet/api capacity:baseline
 ```
 
-The confirmation string is mandatory, the existing database guard rejects a
-non-local target, requests have no automatic retries, and output is aggregate
-sanitized JSON under ignored `.tmp/capacity/`. The output contains no token,
-credential, header, URL, business payload, or PII. Fixture seeding uses the
-migration role only; all measured requests use real least-privilege API
-behavior.
+The confirmation string and `CAPACITY_API_PID` are mandatory. PID preflight
+requires an integer greater than 1 with readable `/proc/<pid>/stat` and
+`/proc/<pid>/status` before local environment loading, pool construction,
+fixture creation, authentication, or HTTP work. Monitoring never falls back to
+an unmonitored mode. The existing database guard rejects a non-local target,
+requests have no automatic retries, and output is aggregate sanitized JSON
+under ignored `.tmp/capacity/`. The output contains no token, credential,
+header, URL, business payload, or PII. Fixture seeding uses the migration role
+only; all measured requests use real least-privilege API behavior.
 
 Exact test-environment abort guards (not proposed SLOs):
 
@@ -135,10 +144,11 @@ Exact test-environment abort guards (not proposed SLOs):
 
 Unit tests prove nearest-rank percentile summaries, exact requested count and
 maximum concurrency, zero hidden retry count, both error aborts, DB connection
-abort, stopping new work after an abort, valid deterministic UUID fixtures,
-and rejection of cross-Location or missing queue fixtures. A malformed/error
-HTTP response is not accepted as a correct domain result. Protected effects
-are independently counted in the database.
+abort, stopping new work after an abort, rejection of missing/invalid/unreadable
+PIDs, acceptance of a readable PID, valid deterministic UUID fixtures, and
+rejection of cross-Location or missing queue fixtures. A malformed/error HTTP
+response is not accepted as a correct domain result. Protected effects are
+independently counted in the database.
 
 ## Workloads executed and measured results
 
@@ -294,7 +304,7 @@ repeat before acceptance.
 | --- | --- | --- | --- |
 | Cohort | 10 Locations, 20 Employee sessions; bounded wave c20 | qualification floor of 10 Locations / 20 simultaneously active sessions on one comparable API process | No extrapolation to the old 200-Employee hypothesis; low confidence until representative pilot cohort is known |
 | Queue latency | c20 repeats: p95 495–683 ms, p99 681–1,314 ms | p95 ≤750 ms and p99 ≤1,500 ms through c20 | Above worst complete repeat; c40 is explicitly excluded; medium confidence for this local cohort |
-| Queue throughput | c20 repeats 63.72–95.28 requests/s; final 72.07 | ≥60 successful queue reads/s through c20 | Below the slowest complete repeat; first break was queue/CPU/DB contention above c20; medium-low confidence |
+| Queue throughput | c20 repeats 63.72–95.28 requests/s; final supported run 63.97 | ≥60 successful queue reads/s through c20 | Below the slowest complete repeat; first break was queue/CPU/DB contention above c20; medium-low confidence |
 | Queue freshness | p95 5.13–5.48 s with five-second polling | p95 ≤6.0 s from committed change to refreshed queue observation | About 0.52 s beyond worst repeat; excludes device render/network; medium confidence |
 | Request errors/retries | 0% in complete bounded runs | errors <1%, harness retries 0; no retry storm | Statistical evidence is short and local; low-medium confidence |
 | Login burst | c5 p95 up to 2.20 s, p99 up to 2.64 s; c20 aborted | c5 p95 ≤2.5 s and p99 <3.0 s | Preserves anti-abuse and client timeout; higher concurrency not accepted; medium confidence |
