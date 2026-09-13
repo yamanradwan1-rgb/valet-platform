@@ -7,6 +7,17 @@ import {
   type StaffOperationalContextResponse,
 } from "@valet/employee-client";
 
+import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
+
+function recordRecoveryInvalidated(): void {
+  // Fail-open via the owner; classification is from the closed vocabulary.
+  getNativeTelemetry().record({
+    classification: "invalidated",
+    outcome: "error",
+    source: "recovery",
+  });
+}
+
 export async function resolveNativeIncidentRecoveryContext(
   response: StaffOperationalContextResponse,
   store: IncidentRecoveryStore,
@@ -17,6 +28,7 @@ export async function resolveNativeIncidentRecoveryContext(
     await installationStore.read(),
   );
   if (installation === undefined || installation.restoreBlocked) {
+    if (marker !== undefined) recordRecoveryInvalidated();
     return marker === undefined ? null : "invalidated";
   }
   if (marker !== undefined) {
@@ -28,14 +40,16 @@ export async function resolveNativeIncidentRecoveryContext(
           (location) => location.locationId === marker.locationId,
         ),
     );
-    return matching === undefined
-      ? "invalidated"
-      : {
-          installationGeneration: installation.generation,
-          locationId: marker.locationId,
-          membershipId: matching.membershipId,
-          organizationId: matching.organization.organizationId,
-        };
+    if (matching === undefined) {
+      recordRecoveryInvalidated();
+      return "invalidated";
+    }
+    return {
+      installationGeneration: installation.generation,
+      locationId: marker.locationId,
+      membershipId: matching.membershipId,
+      organizationId: matching.organization.organizationId,
+    };
   }
   const active = response.contexts.find(
     (context) =>

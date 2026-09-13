@@ -7,6 +7,7 @@ import {
   employeeNetworkError,
   type AcceptTaskResponse,
   type EmployeeOperationalTransport,
+  type EmployeeTelemetryEvent,
   type EmployeeTransport,
   type EmployeeTransportRequest,
   type NativeAuthSession,
@@ -23,6 +24,24 @@ import {
   readNativeResponsePayload,
   validateNativeApiOrigin,
 } from "../auth/native-api-http";
+import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
+import { NativeHttpTelemetryTransport } from "../telemetry/native-http-telemetry";
+
+/**
+ * Bounded correlation pattern — identical to the API's X-Request-Id contract.
+ * Anything with whitespace, header syntax, or over 128 chars is dropped.
+ */
+const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]{1,128}$/;
+
+function readRequestId(response: Response): string | undefined {
+  try {
+    const value = response.headers.get("x-request-id");
+    if (value === null) return undefined;
+    return REQUEST_ID_PATTERN.test(value) ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 class NativeBearerTransport implements EmployeeTransport {
   private readonly apiOrigin: string;
@@ -71,6 +90,7 @@ class NativeBearerTransport implements EmployeeTransport {
       this.onResponse(response.status);
       return {
         payload: await readNativeResponsePayload(response),
+        requestId: readRequestId(response),
         retryAfter: parseRetryAfter(response.headers.get("Retry-After")),
         status: response.status,
       };
@@ -93,10 +113,16 @@ export function createNativeEmployeeClient(
   apiOrigin: string,
   auth: NativeAuthSession,
   signal?: AbortSignal,
+  telemetry?: {
+    readonly record: (event: EmployeeTelemetryEvent) => void;
+  },
 ): EmployeeClient {
   const requestGeneration = auth.current().authGeneration;
   const isCurrent = () => auth.current().authGeneration === requestGeneration;
   let responseStatus: number | undefined;
+  // An explicit telemetry recorder wins; otherwise the module registry (a
+  // no-op until bootstrap wires memory) keeps behavior identical to today.
+  const recorder = telemetry?.record ?? getNativeTelemetry().record.bind(getNativeTelemetry());
   return new EmployeeClient({
     authorizationRecovery: {
       allowRefresh: true,
@@ -116,13 +142,16 @@ export function createNativeEmployeeClient(
             : "definitive-failure";
       },
     },
-    transport: new NativeBearerTransport(
-      apiOrigin,
-      () => (isCurrent() ? auth.getAccessToken() : undefined),
-      (status) => {
-        responseStatus = status;
-      },
-      signal,
+    transport: new NativeHttpTelemetryTransport(
+      new NativeBearerTransport(
+        apiOrigin,
+        () => (isCurrent() ? auth.getAccessToken() : undefined),
+        (status) => {
+          responseStatus = status;
+        },
+        signal,
+      ),
+      recorder,
     ),
   });
 }

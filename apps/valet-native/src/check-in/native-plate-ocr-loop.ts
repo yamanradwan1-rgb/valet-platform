@@ -1,5 +1,6 @@
 import type { PlateOcrResponse } from "@valet/employee-client";
 import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
+import { recordNativePlateOcrTelemetry } from "./native-plate-ocr-telemetry";
 
 export interface NativePlateOcrPorts {
   capture(signal: AbortSignal): Promise<string>;
@@ -31,6 +32,8 @@ export class NativePlateOcrLoop {
   cancel(): void {
     const operation = this.operation;
     if (!operation) return;
+    // Production telemetry: a user-driven cancellation before completion.
+    recordNativePlateOcrTelemetry("aborted");
     operation.abort.abort();
     // Cancellation cleans a captured file without waiting for an uncooperative HTTP promise.
     void this.remove(operation).catch(() => undefined);
@@ -69,6 +72,10 @@ export class NativePlateOcrLoop {
         );
       }
     } catch {
+      // Telemetry: the capture/recognize chain itself failed before a
+      // provider answer existed — that is a capture unavailability, not a
+      // provider "UNAVAILABLE" answer.
+      recordNativePlateOcrTelemetry("capture-unavailable");
       result = { status: "UNAVAILABLE" };
     } finally {
       try {
@@ -83,6 +90,8 @@ export class NativePlateOcrLoop {
       return;
     }
     logNativePlateOcr("loop-finish", { status: result.status });
+    // Production telemetry: the definitive provider answer for this loop.
+    recordNativePlateOcrTelemetry(result.status);
     this.finish(generation, result);
   }
 }

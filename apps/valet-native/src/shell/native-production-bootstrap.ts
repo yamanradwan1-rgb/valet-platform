@@ -15,6 +15,7 @@ import {
   createNativeEmployeeRuntime,
   type NativeEmployeeRuntime,
 } from "../auth/native-auth-runtime";
+import { createNativeTelemetry } from "../telemetry/native-telemetry-provenance";
 
 export interface NativeProductionBootstrap {
   readonly auth: NativeAuthSnapshot;
@@ -32,6 +33,15 @@ export interface NativeProductionBootstrap {
 
 export function createNativeProductionBootstrap(): NativeProductionBootstrap {
   try {
+    // Telemetry first: it must exist (and be fail-open) before any session
+    // is created, so every runtime client records from the start. Its own
+    // construction failure must fall back to the no-op registry rather than
+    // ever reaching the fatal-configuration path below.
+    try {
+      createNativeTelemetry();
+    } catch {
+      /* fail-open: registry stays no-op; the app must still boot */
+    }
     const runtime = createNativeEmployeeRuntime();
     return {
       auth: runtime.auth.current(),

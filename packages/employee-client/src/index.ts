@@ -49,6 +49,9 @@ export {
 } from "@valet/contracts";
 
 export * from "./api-error";
+export * from "./employee-telemetry-types";
+export * from "./employee-telemetry-classification";
+export * from "./employee-telemetry-fail-open";
 export * from "./employee-client";
 export * from "./employee-connectivity-owner";
 export * from "./employee-revalidation-coordinator";
