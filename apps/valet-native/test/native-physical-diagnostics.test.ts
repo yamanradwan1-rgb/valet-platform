@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   createPhysicalEvidence,
@@ -43,6 +43,10 @@ function memoryPersistence(
 }
 
 describe("physical diagnostics evidence", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("uses auditable nearest-rank p50/p95/p99 summaries", () => {
     const samples = Array.from({ length: 100 }, (_, index) =>
       sample(index + 1),
@@ -119,5 +123,101 @@ describe("physical diagnostics evidence", () => {
     await restored.clear();
     expect(restored.snapshot()).toEqual([]);
     expect(persistence.value).toBeNull();
+  });
+
+  it("keeps bootstrap and memory collection alive when persistence initialization fails", async () => {
+    vi.stubGlobal("__DEV__", true);
+    vi.resetModules();
+    const { installNativePhysicalDiagnosticsPersistence } =
+      await import("../src/diagnostics/native-physical-diagnostics-persistence");
+    const { getPhysicalDiagnostics } =
+      await import("../src/diagnostics/native-physical-diagnostics");
+
+    await expect(
+      installNativePhysicalDiagnosticsPersistence(async () => {
+        throw new Error("filesystem unavailable");
+      }),
+    ).resolves.toBeUndefined();
+
+    const owner = getPhysicalDiagnostics();
+    owner.record({
+      metric: "task_list_ready_ms",
+      startedAt: 100,
+      endedAt: 125,
+      outcome: "success",
+      warmColdClass: "warm",
+    });
+    await owner.whenIdle();
+    expect(owner.snapshot()).toMatchObject([
+      { durationMs: 25, metric: "task_list_ready_ms", outcome: "success" },
+    ]);
+  });
+
+  it("falls back safely when persistence read fails", async () => {
+    const owner = new NativePhysicalDiagnosticsStore({
+      clear: async () => undefined,
+      read: async () => {
+        throw new Error("read failed");
+      },
+      write: async () => undefined,
+    });
+
+    await expect(owner.load()).resolves.toBeUndefined();
+    owner.record({
+      metric: "task_list_ready_ms",
+      startedAt: 100,
+      endedAt: 130,
+      outcome: "success",
+      warmColdClass: "warm",
+    });
+    await owner.whenIdle();
+    expect(owner.snapshot()).toMatchObject([
+      { durationMs: 30, metric: "task_list_ready_ms", outcome: "success" },
+    ]);
+  });
+
+  it("keeps collected memory evidence when persistence write fails", async () => {
+    const owner = new NativePhysicalDiagnosticsStore({
+      clear: async () => undefined,
+      read: async () => null,
+      write: async () => {
+        throw new Error("write failed");
+      },
+    });
+
+    await owner.load();
+    owner.record({
+      metric: "task_list_ready_ms",
+      startedAt: 100,
+      endedAt: 135,
+      outcome: "success",
+      warmColdClass: "warm",
+    });
+    await expect(owner.whenIdle()).resolves.toBeUndefined();
+    expect(owner.snapshot()).toMatchObject([
+      { durationMs: 35, metric: "task_list_ready_ms", outcome: "success" },
+    ]);
+  });
+
+  it("clears memory evidence when persistence delete fails", async () => {
+    const owner = new NativePhysicalDiagnosticsStore({
+      clear: async () => {
+        throw new Error("delete failed");
+      },
+      read: async () => null,
+      write: async () => undefined,
+    });
+
+    await owner.load();
+    owner.record({
+      metric: "task_list_ready_ms",
+      startedAt: 100,
+      endedAt: 140,
+      outcome: "success",
+      warmColdClass: "warm",
+    });
+    await owner.whenIdle();
+    await expect(owner.clear()).resolves.toBeUndefined();
+    expect(owner.snapshot()).toEqual([]);
   });
 });
