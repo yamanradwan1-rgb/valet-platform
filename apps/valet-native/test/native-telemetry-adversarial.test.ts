@@ -11,7 +11,9 @@
  * nested objects, arrays, and prototype-pollution shapes.
  *
  * Business-preservation and ring-bound adversarial cases live in
- * native-telemetry-business-preservation.test.ts (split for the 300-line
+ * native-telemetry-business-preservation.test.ts; operation-slot and
+ * path-mapper adversarial cases live in
+ * native-telemetry-adversarial-operation.test.ts (split for the 300-line
  * authored-file ceiling in docs/17).
  */
 import { describe, expect, it } from "vitest";
@@ -197,6 +199,7 @@ describe("adversarial: format-level sanitization fuzzing", () => {
       classification: "response",
       durationMs: 7,
       errorCode: "GUEST_ACCESS_INVALID",
+      operation: "task-accept",
       outcome: "error",
       requestId: "req-47",
       source: "http",
@@ -207,6 +210,7 @@ describe("adversarial: format-level sanitization fuzzing", () => {
       classification: "response",
       durationMs: 7,
       errorCode: "GUEST_ACCESS_INVALID",
+      operation: "task-accept",
       outcome: "error",
       requestId: "req-47",
       source: "http",

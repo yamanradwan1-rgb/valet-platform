@@ -212,13 +212,44 @@ describe("Native telemetry privacy canary", () => {
       (event) => events.push(event),
     );
     await transport.execute({ method: "GET", path: "/z" });
-    // Header-injection-style ids are dropped, not stored raw.
+    // Header-injection-style ids are dropped, not stored raw. The unmapped
+    // path "/z" carries the bounded "other" operation, never the path.
     expect(events[0]).toEqual({
       classification: "response",
       durationMs: expect.any(Number),
+      operation: "other",
       outcome: "success",
       source: "http",
     });
+    assertNoSecrets(events);
+  });
+
+  it("never serializes dynamic ids, query strings, or raw paths via operation correlation", async () => {
+    const events: EmployeeTelemetryEvent[] = [];
+    const transport = new NativeHttpTelemetryTransport(
+      {
+        execute: async () => ({ payload: { ok: true }, status: 200 }),
+      },
+      (event) => events.push(event),
+    );
+    await transport.execute({
+      method: "POST",
+      path: `/v1/staff/valet-sessions/${sessionId}/start-parking?x=secret&y=1`,
+    });
+    const dump = JSON.stringify(events);
+    // The operation is the closed literal only: the real session UUID,
+    // the query string, and any raw path substring must never appear.
+    expect(events[0]).toEqual({
+      classification: "response",
+      durationMs: expect.any(Number),
+      operation: "parking-start",
+      outcome: "success",
+      source: "http",
+    });
+    expect(dump).not.toContain(sessionId);
+    expect(dump).not.toContain("x=secret");
+    expect(dump).not.toContain("start-parking");
+    expect(dump).not.toContain("valet-sessions");
     assertNoSecrets(events);
   });
 });

@@ -2,8 +2,13 @@
  * Native telemetry SURFACE wiring tests (MOB-024A).
  *
  * Covers the surfaces that record production events: the HTTP transport
- * wrapper, the OCR mapping, and the auth/lifecycle/network/push/recovery
- * classification emission points wired in this task.
+ * wrapper (with its closed operation correlation), the OCR mapping, and
+ * the auth/lifecycle/network/push/recovery classification emission points
+ * wired in this task.
+ *
+ * The exhaustive route-table mapper matrix and the auth X-Request-Id
+ * correlation suite live in native-telemetry-operation.test.ts (split for
+ * the 300-line authored-file ceiling in docs/17).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -104,6 +109,7 @@ describe("Native HTTP telemetry transport", () => {
       {
         classification: "response",
         durationMs: expect.any(Number),
+        operation: "task-queue",
         outcome: "success",
         requestId: "req-1",
         source: "http",
@@ -129,6 +135,7 @@ describe("Native HTTP telemetry transport", () => {
         classification: "network-failure",
         durationMs: expect.any(Number),
         errorCode: "NETWORK_ERROR",
+        operation: "operational-context",
         outcome: "error",
         source: "http",
       },
@@ -154,6 +161,7 @@ describe("Native HTTP telemetry transport", () => {
         classification: "auth-loss",
         durationMs: expect.any(Number),
         errorCode: "STAFF_AUTHENTICATION_REQUIRED",
+        operation: "task-assign",
         outcome: "error",
         source: "http",
       },
@@ -175,10 +183,40 @@ describe("Native HTTP telemetry transport", () => {
       {
         classification: "network-failure",
         durationMs: expect.any(Number),
+        operation: "other",
         outcome: "unknown",
         source: "http",
       },
     ]);
+  });
+
+  it("attributes a network failure with no requestId to the safe operation", async () => {
+    const events: EmployeeTelemetryEvent[] = [];
+    const uuid = "66666666-6666-6666-8666-666666666666";
+    const t = transport(
+      (value) => events.push(value),
+      async () => {
+        throw employeeNetworkError();
+      },
+    );
+    await t
+      .execute({
+        method: "POST",
+        path: `/v1/staff/valet-sessions/${uuid}/start-parking`,
+      })
+      .catch(() => undefined);
+    expect(events).toEqual([
+      {
+        classification: "network-failure",
+        durationMs: expect.any(Number),
+        errorCode: "NETWORK_ERROR",
+        operation: "parking-start",
+        outcome: "error",
+        source: "http",
+      },
+    ]);
+    expect("requestId" in (events[0] ?? {})).toBe(false);
+    expect(JSON.stringify(events)).not.toContain(uuid);
   });
 
   it("survives a throwing telemetry sink without breaking the response", async () => {

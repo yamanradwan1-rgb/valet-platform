@@ -17,6 +17,7 @@ import {
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import { NativeShiftDiagnosticsCard } from "./native-shift-diagnostics-card";
 import { getNativeShiftCopy } from "./native-shift-copy";
 import {
   NativeShiftInfoRow,
@@ -208,6 +209,7 @@ export function NativeActiveShiftPanel({
           )}
         </EmployeeCard>
       )}
+      <NativeShiftDiagnosticsCard locale={locale} textAlign={textAlign} />
     </ScrollView>
   );
 }

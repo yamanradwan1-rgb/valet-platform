@@ -4,12 +4,16 @@
  * 300-line authored-file ceiling.
  */
 import { describe, expect, it } from "vitest";
-import { createEmployeeTelemetryEvent } from "./employee-telemetry-classification";
+import {
+  createEmployeeTelemetryEvent,
+  isValidEmployeeTelemetryOperation,
+} from "./employee-telemetry-classification";
 import {
   failOpenTelemetryCollector,
   recordTelemetrySafely,
 } from "./employee-telemetry-fail-open";
 import {
+  EMPLOYEE_TELEMETRY_OPERATIONS,
   createNoopTelemetryCollector,
   isSafeTelemetryRequestId,
   type EmployeeTelemetryCollector,
@@ -186,5 +190,52 @@ describe("privacy canary (MOB-024A §17)", () => {
         expect(event).toBeUndefined();
       }
     }
+  });
+
+  it("operation can only be a closed-table literal on serialized output", () => {
+    const events = [
+      createEmployeeTelemetryEvent({
+        classification: "network-failure",
+        operation: "task-accept",
+        outcome: "error",
+        source: "http",
+      }),
+      createEmployeeTelemetryEvent({
+        classification: "dispatched",
+        operation:
+          "/v1/staff/valet-sessions/44444444-4444-4444-8444-444444444444/complete-handoff",
+        outcome: "error",
+        source: "http",
+      }),
+      createEmployeeTelemetryEvent({
+        classification: "match",
+        operation: "ABC1234",
+        outcome: "success",
+        source: "ocr",
+      }),
+      createEmployeeTelemetryEvent({
+        classification: "found",
+        outcome: "success",
+        source: "recovery",
+      }),
+    ];
+    const closed = new Set<string>(EMPLOYEE_TELEMETRY_OPERATIONS);
+    for (const event of events) {
+      expect(event).toBeDefined();
+      const serialized = JSON.stringify(event);
+      const parsed = JSON.parse(serialized) as { operation?: string };
+      if (parsed.operation !== undefined) {
+        // Any surviving operation must be a member of the closed table —
+        // never a raw path, entity ID, query param or other free string.
+        expect(closed.has(parsed.operation)).toBe(true);
+        expect(isValidEmployeeTelemetryOperation(parsed.operation)).toBe(true);
+      }
+      expect(serialized).not.toContain("44444444");
+      expect(serialized).not.toContain("/v1/staff");
+      expect(serialized).not.toContain("ABC1234");
+    }
+    // Events with no operation class at all stay legitimate.
+    const noOperation = events[3];
+    expect(noOperation && !("operation" in noOperation)).toBe(true);
   });
 });

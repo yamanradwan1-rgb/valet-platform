@@ -15,6 +15,7 @@ import {
   createNativeEmployeeRuntime,
   type NativeEmployeeRuntime,
 } from "../auth/native-auth-runtime";
+import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
 import { createNativeTelemetry } from "../telemetry/native-telemetry-provenance";
 
 export interface NativeProductionBootstrap {
@@ -41,6 +42,23 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
       createNativeTelemetry();
     } catch {
       /* fail-open: registry stays no-op; the app must still boot */
+    }
+    // ONE process-bootstrap "cold-start" lifecycle event. This is the
+    // truthful boundary: NativeProductionShell creates one bootstrap through
+    // a React useState initializer for the mounted production root (the
+    // initializer is not re-invoked on an ordinary re-render).
+    // It is deliberately DISTINCT from the foreground/background events
+    // emitted by useNativeProductionLifecycle, which observe AppState
+    // transitions during an already-running process. Recording stays fail-open:
+    // telemetry can never break bootstrap.
+    try {
+      getNativeTelemetry().record({
+        classification: "cold-start",
+        outcome: "success",
+        source: "lifecycle",
+      });
+    } catch {
+      /* fail-open: the cold-start event is an observation, never a gate */
     }
     const runtime = createNativeEmployeeRuntime();
     return {

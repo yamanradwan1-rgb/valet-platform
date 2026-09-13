@@ -40,7 +40,12 @@ export function formatOperationMeasurement(
 
 @Injectable()
 export class ConsoleOperationObserver implements OperationObserver {
-  private readonly logger = new Logger("CheckInApi");
+  /**
+   * Neutral context: this observer is provided globally by ObservabilityModule
+   * and serves every measured operation (check-in, shifts, payments, push,
+   * parking, tracking, retrieval, ...), not only check-in routes.
+   */
+  private readonly logger = new Logger("OperationObservability");
 
   observe(measurement: OperationMeasurement): void {
     try {

@@ -17,6 +17,13 @@
  *    requestId and is either a machine error code or omitted.
  * 6. Events are operational diagnostics only — never API authority, never
  *    audit records, never session state.
+ * 7. `operation`, when present, MUST come from the closed
+ *    EMPLOYEE_TELEMETRY_OPERATIONS table in this module
+ *    (see {@link isValidEmployeeTelemetryOperation}). Never raw request
+ *    paths, entity/session IDs, query params, body material, or any other
+ *    free string; values outside the closed table are omitted, not stored.
+ *    Absence is legitimate: ocr/lifecycle/network/push/recovery events may
+ *    carry no operation class at all.
  */
 
 /** Bounded outcome for a telemetry-observed operation. */
@@ -25,6 +32,48 @@ export type EmployeeTelemetryOutcome = "error" | "success" | "unknown";
 /** Bounded emitting surface for a telemetry event. */
 export type EmployeeTelemetrySource =
   "auth" | "http" | "lifecycle" | "network" | "ocr" | "push" | "recovery";
+
+/** Closed operation vocabulary for HTTP telemetry correlation. */
+export const EMPLOYEE_TELEMETRY_OPERATIONS = [
+  "operational-context",
+  "task-queue",
+  "task-assign",
+  "task-accept",
+  "shift-start",
+  "shift-end",
+  "shift-active-lookup",
+  "check-in-intake",
+  "check-in-continuations",
+  "check-in-drafts",
+  "check-in-vehicle-recognition",
+  "check-in-plate-ocr",
+  "check-in-complete",
+  "check-in-vehicle-details",
+  "check-in-vehicle-identity",
+  "check-in-condition-note",
+  "check-in-condition-completion",
+  "valet-session-read",
+  "parking-queue",
+  "parking-start",
+  "parking-confirm",
+  "retrieval-start",
+  "mark-ready",
+  "handoff-initiate",
+  "handoff-verify",
+  "handoff-override",
+  "handoff-abort",
+  "release-payment-status",
+  "release-complete",
+  "guest-access",
+  "push-registration",
+  "incident-report",
+  "incident-recovery",
+  "other",
+] as const;
+
+/** Union of every legal operation literal in the closed table. */
+export type EmployeeTelemetryOperation =
+  (typeof EMPLOYEE_TELEMETRY_OPERATIONS)[number];
 
 /** Where the running build came from; bounded strings, no free text. */
 export interface EmployeeTelemetryProvenance {
@@ -38,6 +87,7 @@ export interface EmployeeTelemetryEvent {
   readonly classification: string;
   readonly durationMs?: number | undefined;
   readonly errorCode?: string | undefined;
+  readonly operation?: EmployeeTelemetryOperation | undefined;
   readonly outcome: EmployeeTelemetryOutcome;
   readonly requestId?: string | undefined;
   readonly source: EmployeeTelemetrySource;

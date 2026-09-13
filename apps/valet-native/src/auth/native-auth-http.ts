@@ -18,20 +18,69 @@ import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
 /** Closed auth classification for this transport's routes. */
 type NativeAuthTelemetryKind = "login" | "refresh" | "logout";
 
+/**
+ * Read the bounded X-Request-Id RESPONSE header. Only the Response object
+ * is consulted — never the request, its body, or its headers. The shared
+ * safe-identifier rule drops whitespace, header syntax, and values over 128
+ * characters.
+ */
+function readResponseRequestId(
+  response: Response | undefined,
+): string | undefined {
+  if (response === undefined) return undefined;
+  try {
+    const value = response.headers.get("x-request-id");
+    if (value === null) return undefined;
+    return isSafeTelemetryRequestId(value) ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function recordAuthTelemetry(
   kind: NativeAuthTelemetryKind,
   outcome: "error" | "success",
-  errorCode?: string,
+  options: {
+    readonly errorCode?: string | undefined;
+    /** Bounded X-Request-Id from the RESPONSE, when safely known. */
+    readonly requestId?: string | undefined;
+  } = {},
 ): void {
   // Fail-open: the owner swallows every sink error itself.
+  //
+  // `operation` is deliberately OMITTED on auth events: the shared closed
+  // operation table covers HTTP surface operations only (it has no auth
+  // values by design). Source "auth" already identifies the surface and
+  // `classification` identifies the action (login/refresh/logout), so the
+  // optional operation slot legitimately stays unset here.
   getNativeTelemetry().record({
     classification: kind,
     errorCode:
-      typeof errorCode === "string" && isSafeTelemetryRequestId(errorCode)
-        ? errorCode
+      typeof options.errorCode === "string" &&
+      isSafeTelemetryRequestId(options.errorCode)
+        ? options.errorCode
         : undefined,
     outcome,
+    requestId:
+      typeof options.requestId === "string" &&
+      isSafeTelemetryRequestId(options.requestId)
+        ? options.requestId
+        : undefined,
     source: "auth",
+  });
+}
+
+/** Error-path telemetry with the bounded response header correlation. */
+function recordAuthTelemetryFailure(
+  kind: NativeAuthTelemetryKind,
+  error: unknown,
+  response: Response | undefined,
+): void {
+  recordAuthTelemetry(kind, "error", {
+    errorCode: error instanceof EmployeeApiError ? error.code : undefined,
+    // A network failure never produced a Response: no requestId (omitted).
+    // An error that came from a response correlates that response's header.
+    requestId: readResponseRequestId(response),
   });
 }
 
@@ -51,20 +100,21 @@ export class NativeAuthHttpTransport implements NativeStaffAuthTransport {
   }
 
   async logout(refreshToken: string): Promise<void> {
+    // The Response object is kept in scope so the error path can correlate
+    // its bounded X-Request-Id header without changing any thrown error.
+    let response: Response | undefined;
     try {
-      const response = await this.post("logout", { refreshToken });
+      response = await this.post("logout", { refreshToken });
       const payload = await readNativeResponsePayload(response);
       if (response.status !== 204) {
         throw normalizeEmployeeApiError(response.status, payload);
       }
-      recordAuthTelemetry("logout", "success");
+      recordAuthTelemetry("logout", "success", {
+        requestId: readResponseRequestId(response),
+      });
     } catch (error) {
       // Business behavior is unchanged: rethrow the original error exactly.
-      recordAuthTelemetry(
-        "logout",
-        "error",
-        error instanceof EmployeeApiError ? error.code : undefined,
-      );
+      recordAuthTelemetryFailure("logout", error, response);
       throw error;
     }
   }
@@ -73,8 +123,11 @@ export class NativeAuthHttpTransport implements NativeStaffAuthTransport {
     route: "login" | "refresh",
     body: unknown,
   ): Promise<StaffNativeAuthResponse> {
+    // The Response object is kept in scope so the error path can correlate
+    // its bounded X-Request-Id header without changing any thrown error.
+    let response: Response | undefined;
     try {
-      const response = await this.post(route, body);
+      response = await this.post(route, body);
       const payload = await readNativeResponsePayload(response);
       if (!response.ok) {
         throw normalizeEmployeeApiError(response.status, payload);
@@ -87,14 +140,12 @@ export class NativeAuthHttpTransport implements NativeStaffAuthTransport {
           status: 502,
         });
       }
-      recordAuthTelemetry(route, "success");
+      recordAuthTelemetry(route, "success", {
+        requestId: readResponseRequestId(response),
+      });
       return parsed.data;
     } catch (error) {
-      recordAuthTelemetry(
-        route,
-        "error",
-        error instanceof EmployeeApiError ? error.code : undefined,
-      );
+      recordAuthTelemetryFailure(route, error, response);
       throw error;
     }
   }

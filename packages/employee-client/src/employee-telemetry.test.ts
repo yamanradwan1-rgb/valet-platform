@@ -3,6 +3,7 @@ import {
   EMPLOYEE_TELEMETRY_CLASSIFICATIONS,
   createEmployeeTelemetryEvent,
   isValidEmployeeTelemetryClassification,
+  isValidEmployeeTelemetryOperation,
 } from "./employee-telemetry-classification";
 import {
   isSafeTelemetryRequestId,
@@ -13,6 +14,7 @@ const CONTRACT_KEYS = [
   "classification",
   "durationMs",
   "errorCode",
+  "operation",
   "outcome",
   "requestId",
   "source",
@@ -63,7 +65,22 @@ const UNSAFE_IDS = [
   undefined,
   123,
   {},
-];
+] as const;
+// Poisoned operations: raw paths (REAL session UUID), plates, headers, queries.
+const POISONED_OPERATIONS = [
+  "../../etc/passwd",
+  "/v1/staff/valet-sessions/44444444-4444-4444-8444-444444444444/complete-handoff",
+  "ABC1234",
+  "Bearer x",
+  "task-queue?a=b",
+  "task-queue\nrm -rf",
+  "",
+  "operational-context ",
+  " operational-context",
+  "task-queue/",
+  "tasks/123",
+  "x".repeat(129),
+] as const;
 
 describe("closed classification vocabulary", () => {
   it.each(ALL_PAIRS)("accepts listed pair %s/%s", (source, classification) => {
@@ -116,16 +133,31 @@ describe("createEmployeeTelemetryEvent", () => {
       requestId: "req-1.2_3",
       errorCode: "API_ERROR",
       durationMs: 42,
+      operation: "task-accept",
     });
     expect(event).toEqual({
       classification: "response",
       durationMs: 42,
       errorCode: "API_ERROR",
+      operation: "task-accept",
       outcome: "success",
       requestId: "req-1.2_3",
       source: "http",
     });
     expect(Object.keys(event ?? {}).sort()).toEqual([...CONTRACT_KEYS].sort());
+  });
+  it("omits operation entirely when absent (legitimate for ocr/lifecycle)", () => {
+    const event = createEmployeeTelemetryEvent({
+      source: "ocr",
+      classification: "match",
+      outcome: "success",
+    });
+    expect(event).toEqual({
+      classification: "match",
+      outcome: "success",
+      source: "ocr",
+    });
+    expect(Object.keys(event ?? {})).not.toContain("operation");
   });
   it.each([
     {
@@ -205,6 +237,7 @@ describe("createEmployeeTelemetryEvent", () => {
       requestId: "req-1",
       errorCode: "SOME_CODE",
       durationMs: 5,
+      operation: "incident-recovery",
       ...({ token: "secret", body: "leak", plate: "ABC1234" } as Record<
         string,
         unknown
@@ -216,6 +249,36 @@ describe("createEmployeeTelemetryEvent", () => {
     );
     for (const banned of BANNED) {
       expect(JSON.stringify(adversarial)).not.toContain(banned);
+    }
+  });
+  it("drops invalid operations (documented: drop, not reject)", () => {
+    for (const operation of POISONED_OPERATIONS) {
+      expect(isValidEmployeeTelemetryOperation(operation)).toBe(false);
+      const event = createEmployeeTelemetryEvent({
+        source: "http",
+        classification: "network-failure",
+        outcome: "error",
+        operation,
+      });
+      expect(event).toBeDefined();
+      expect(event?.operation).toBeUndefined();
+      expect(Object.keys(event ?? {})).not.toContain("operation");
+    }
+  });
+  it("keeps valid operations verbatim incl. the 'other' fallback", () => {
+    for (const operation of ["parking-start", "other"] as const) {
+      const event = createEmployeeTelemetryEvent({
+        source: "http",
+        classification: "network-failure",
+        outcome: "error",
+        operation,
+      });
+      expect(event).toEqual({
+        classification: "network-failure",
+        operation,
+        outcome: "error",
+        source: "http",
+      });
     }
   });
 });

@@ -118,6 +118,13 @@ describe("formatOperationMeasurement", () => {
 });
 
 describe("ConsoleOperationObserver", () => {
+  it("uses the neutral global observability logger context", () => {
+    const observer = new ConsoleOperationObserver();
+    const logger = (observer as unknown as { logger: { context?: string } })
+      .logger;
+    expect(logger.context).toBe("OperationObservability");
+  });
+
   it("emits exactly one console line per measurement through the logger", () => {
     const observer = new ConsoleOperationObserver();
     const { lines, restore } = captureLoggerLines(observer);

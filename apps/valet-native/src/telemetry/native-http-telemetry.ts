@@ -3,9 +3,12 @@
  *
  * PRIVACY + SAFETY CONTRACT:
  * - Records ONLY: outcome, bounded classification, durationMs, bounded
- *   errorCode (machine error code), and requestId from the bounded
- *   X-Request-Id RESPONSE header. It NEVER reads request.body, request
- *   headers, request.params, or the raw path (paths carry entity IDs).
+ *   errorCode (machine error code), operation (closed-table literal), and
+ *   requestId from the bounded X-Request-Id RESPONSE header. It NEVER
+ *   reads request.body, request headers, or request.params. The raw path
+ *   is read ONLY by the closed route-template mapper, which returns a
+ *   closed-table literal and never stores the path (see
+ *   native-http-operation.ts).
  * - The business result is PRESERVED: every error is rethrown unchanged
  *   (same instance), every successful response object is returned as-is.
  *   Telemetry must never alter what the caller sees.
@@ -21,10 +24,13 @@ import {
   isSafeTelemetryRequestId,
   EmployeeApiError,
   type EmployeeTelemetryEvent,
+  type EmployeeTelemetryOperation,
   type EmployeeTransport,
   type EmployeeTransportRequest,
   type EmployeeTransportResponse,
 } from "@valet/employee-client";
+
+import { nativeHttpTelemetryOperation } from "./native-http-operation";
 
 /** Response envelope with the optional correlated request id (see file 5). */
 export type NativeTelemetryTransportResponse = EmployeeTransportResponse & {
@@ -76,6 +82,10 @@ export class NativeHttpTelemetryTransport implements EmployeeTransport {
     request: EmployeeTransportRequest,
   ): Promise<EmployeeTransportResponse> {
     const startedAt = Date.now();
+    // Closed-table operation literal, computed BEFORE the call so the error
+    // path can attribute a network failure with no response at all. The
+    // mapper reads the path only to select a literal; it never echoes it.
+    const operation = nativeHttpTelemetryOperation(request);
     try {
       const response: NativeTelemetryTransportResponse =
         await this.inner.execute(request);
@@ -92,6 +102,7 @@ export class NativeHttpTelemetryTransport implements EmployeeTransport {
           : "response",
         durationMs: Date.now() - startedAt,
         errorCode: notOk ? responseErrorCode(response.payload) : undefined,
+        operation,
         outcome: notOk ? "error" : "success",
         requestId: isSafeTelemetryRequestId(response.requestId)
           ? response.requestId
@@ -101,12 +112,16 @@ export class NativeHttpTelemetryTransport implements EmployeeTransport {
       if (event !== undefined) this.record(event);
       return response;
     } catch (error) {
-      this.recordFailure(error, Date.now() - startedAt);
+      this.recordFailure(error, Date.now() - startedAt, operation);
       throw error;
     }
   }
 
-  private recordFailure(error: unknown, durationMs: number): void {
+  private recordFailure(
+    error: unknown,
+    durationMs: number,
+    operation: EmployeeTelemetryOperation,
+  ): void {
     const event =
       error instanceof EmployeeApiError
         ? createEmployeeTelemetryEvent({
@@ -117,6 +132,7 @@ export class NativeHttpTelemetryTransport implements EmployeeTransport {
                 : "response",
             durationMs,
             errorCode: boundedErrorCode(error.code),
+            operation,
             outcome: "error",
             requestId: error.requestId,
             source: "http",
@@ -124,6 +140,7 @@ export class NativeHttpTelemetryTransport implements EmployeeTransport {
         : createEmployeeTelemetryEvent({
             classification: "network-failure",
             durationMs,
+            operation,
             outcome: "unknown",
             source: "http",
           });

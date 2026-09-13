@@ -7,8 +7,10 @@
  * Never mint new values at runtime; extend this table only via a code change.
  */
 import {
+  EMPLOYEE_TELEMETRY_OPERATIONS,
   isSafeTelemetryRequestId,
   type EmployeeTelemetryEvent,
+  type EmployeeTelemetryOperation,
   type EmployeeTelemetryOutcome,
   type EmployeeTelemetrySource,
 } from "./employee-telemetry-types";
@@ -70,6 +72,22 @@ const VALID_SOURCES: ReadonlySet<string> = new Set(
   Object.keys(EMPLOYEE_TELEMETRY_CLASSIFICATIONS),
 );
 
+/** Set-backed lookup for O(1) membership checks over the closed table. */
+const VALID_OPERATIONS: ReadonlySet<string> = new Set(
+  EMPLOYEE_TELEMETRY_OPERATIONS,
+);
+
+/**
+ * True only when `operation` is one of the enumerated literals in the closed
+ * EMPLOYEE_TELEMETRY_OPERATIONS table. Raw paths, entity IDs, plates,
+ * query strings, header material and any other free string are rejected.
+ */
+export function isValidEmployeeTelemetryOperation(
+  operation: unknown,
+): operation is EmployeeTelemetryOperation {
+  return typeof operation === "string" && VALID_OPERATIONS.has(operation);
+}
+
 /**
  * True only when `classification` is one of the enumerated literals for
  * `source` in the closed table above. Unknown sources, empty strings,
@@ -90,6 +108,7 @@ export function isValidEmployeeTelemetryClassification(
 export interface CreateEmployeeTelemetryEventInput {
   readonly source: EmployeeTelemetrySource;
   readonly classification: string;
+  readonly operation?: string | undefined;
   readonly outcome: EmployeeTelemetryOutcome;
   readonly requestId?: string | undefined;
   readonly errorCode?: string | undefined;
@@ -103,6 +122,9 @@ export interface CreateEmployeeTelemetryEventInput {
  *
  * - `source` must be a known source.
  * - `classification` must be in the closed vocabulary for that source.
+ * - `operation` not in the closed EMPLOYEE_TELEMETRY_OPERATIONS table is
+ *   omitted (documented drop rule, same style as unsafe requestId) — never
+ *   stored raw. Valid operations are kept verbatim.
  * - `requestId` that fails the bounded pattern is omitted (not fatal).
  * - `errorCode` that fails the bounded pattern is omitted (not fatal).
  * - `durationMs` that is negative, NaN, or non-finite is omitted.
@@ -141,6 +163,11 @@ export function createEmployeeTelemetryEvent(
   const safeErrorCode = isSafeTelemetryRequestId(input.errorCode)
     ? input.errorCode
     : undefined;
+  const safeOperation =
+    typeof input.operation === "string" &&
+    isValidEmployeeTelemetryOperation(input.operation)
+      ? input.operation
+      : undefined;
   const rawDuration = input.durationMs;
   const safeDurationMs =
     typeof rawDuration === "number" &&
@@ -153,6 +180,7 @@ export function createEmployeeTelemetryEvent(
     classification: string;
     durationMs?: number | undefined;
     errorCode?: string | undefined;
+    operation?: EmployeeTelemetryOperation | undefined;
     outcome: EmployeeTelemetryOutcome;
     requestId?: string | undefined;
     source: EmployeeTelemetrySource;
@@ -163,6 +191,7 @@ export function createEmployeeTelemetryEvent(
   };
   if (safeRequestId !== undefined) event.requestId = safeRequestId;
   if (safeErrorCode !== undefined) event.errorCode = safeErrorCode;
+  if (safeOperation !== undefined) event.operation = safeOperation;
   if (safeDurationMs !== undefined) event.durationMs = safeDurationMs;
   return event;
 }

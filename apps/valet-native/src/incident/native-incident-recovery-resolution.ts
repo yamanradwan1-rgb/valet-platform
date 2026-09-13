@@ -40,6 +40,21 @@ function recordRecoveryTelemetry(
   });
 }
 
+/**
+ * EXACTLY-ONCE TELEMETRY CONTRACT (MOB-024A review fix):
+ *
+ * `applyNativeIncidentRecoveryResolution` is the single authoritative
+ * resolution executor, so it is the ONLY place a resolution telemetry event
+ * is recorded. The restore wrapper (`applyNativeIncidentRecoveryRestore`)
+ * delegates to it and must NOT record the resolution again — previously it
+ * recorded a duplicate `restored.resolution` event after the inner call,
+ * producing two events for one resolution.
+ *
+ * The wrapper still records its OWN distinct outcomes — "invalidated",
+ * "unavailable" (storage-unavailable) and "unavailable" (apply-threw
+ * catch) — because those never reach the inner executor, so exactly one
+ * event exists per restore outcome.
+ */
 function recordResolutionTelemetry(
   resolution: IncidentRecoveryResolution,
 ): void {
@@ -79,14 +94,14 @@ export async function applyNativeIncidentRecoveryRestore(
     };
   }
   try {
-    const applied = await applyNativeIncidentRecoveryResolution(
+    // Resolution telemetry is recorded INSIDE the inner executor (exactly
+    // once — see the contract above); the wrapper must not re-record it.
+    return await applyNativeIncidentRecoveryResolution(
       recovery,
       restored.marker,
       restored.resolution,
       restored.deadlineReached,
     );
-    recordResolutionTelemetry(restored.resolution);
-    return applied;
   } catch {
     recordRecoveryTelemetry("unavailable", "error");
     return {
