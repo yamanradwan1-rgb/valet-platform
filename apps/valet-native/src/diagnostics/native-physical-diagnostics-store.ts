@@ -1,6 +1,8 @@
 import {
   createPhysicalEvidence,
+  isPhysicalClassification,
   parsePhysicalSamples,
+  type PhysicalClassification,
   type PhysicalEvidence,
   type PhysicalFailureClass,
   type PhysicalMetric,
@@ -56,15 +58,16 @@ export class NativePhysicalDiagnosticsStore {
     startedAt: number;
     endedAt?: number;
     outcome: "success" | "failure";
-    warmColdClass: string;
+    warmColdClass: PhysicalClassification;
     failureClass?: PhysicalFailureClass;
   }): void {
+    if (!isPhysicalClassification(input.warmColdClass)) return;
     const endedAt = input.endedAt ?? Date.now();
     const sample: PhysicalSample = {
       metric: input.metric,
       durationMs: Math.max(0, Math.round(endedAt - input.startedAt)),
       outcome: input.outcome,
-      warmColdClass: input.warmColdClass.slice(0, 40),
+      warmColdClass: input.warmColdClass,
       timestamp: new Date(endedAt).toISOString(),
       ...(input.failureClass ? { failureClass: input.failureClass } : {}),
     };

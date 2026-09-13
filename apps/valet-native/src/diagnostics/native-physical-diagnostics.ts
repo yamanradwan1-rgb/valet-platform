@@ -8,6 +8,7 @@ import {
   type PhysicalDiagnosticsPersistence,
 } from "./native-physical-diagnostics-store";
 import type {
+  PhysicalClassification,
   PhysicalFailureClass,
   PhysicalMetric,
 } from "./native-physical-diagnostics-model";
@@ -22,11 +23,11 @@ let store = new NativePhysicalDiagnosticsStore(memoryPersistence);
 const enabled = typeof __DEV__ === "boolean" && __DEV__;
 const starts = new Map<
   PhysicalMetric,
-  { at: number; classification: string }
+  { at: number; classification: PhysicalClassification }
 >();
 let bootstrapAt = Date.now();
 let bootstrapRecorded = false;
-let bootstrapClass = "restored-authenticated-session";
+let bootstrapClass: PhysicalClassification = "restored-authenticated-session";
 let cameraCount = 0;
 
 if (enabled) void store.load();
@@ -54,7 +55,7 @@ export function classifyPhysicalBootstrap(auth: NativeAuthSnapshot): void {
 
 export function beginPhysicalMetric(
   metric: PhysicalMetric,
-  classification: string,
+  classification: PhysicalClassification,
 ): void {
   if (enabled) starts.set(metric, { at: Date.now(), classification });
 }

@@ -6,6 +6,18 @@ export type PhysicalMetric =
   | "check_in_field_time_ms";
 
 export type PhysicalOutcome = "success" | "failure";
+export const physicalClassifications = [
+  "restored-authenticated-session",
+  "auth-required",
+  "initial",
+  "task-screen",
+  "first",
+  "warm",
+  "network",
+  "foreground",
+  "operator-flow",
+] as const;
+export type PhysicalClassification = (typeof physicalClassifications)[number];
 export type PhysicalFailureClass =
   | "network"
   | "timeout"
@@ -18,7 +30,7 @@ export interface PhysicalSample {
   readonly metric: PhysicalMetric;
   readonly durationMs: number;
   readonly outcome: PhysicalOutcome;
-  readonly warmColdClass: string;
+  readonly warmColdClass: PhysicalClassification;
   readonly timestamp: string;
   readonly failureClass?: PhysicalFailureClass;
 }
@@ -50,17 +62,7 @@ export const physicalMetrics: readonly PhysicalMetric[] = [
   "reconnect_recovery_ms",
   "check_in_field_time_ms",
 ];
-const physicalClassifications = new Set([
-  "restored-authenticated-session",
-  "auth-required",
-  "initial",
-  "task-screen",
-  "first",
-  "warm",
-  "network",
-  "foreground",
-  "operator-flow",
-]);
+const physicalClassificationSet = new Set<string>(physicalClassifications);
 const failureClasses = new Set<PhysicalFailureClass>([
   "network",
   "timeout",
@@ -127,6 +129,12 @@ export function parsePhysicalSamples(value: string): PhysicalSample[] {
   }
 }
 
+export function isPhysicalClassification(
+  value: unknown,
+): value is PhysicalClassification {
+  return typeof value === "string" && physicalClassificationSet.has(value);
+}
+
 function isPhysicalSample(value: unknown): value is PhysicalSample {
   if (typeof value !== "object" || value === null) return false;
   const sample = value as Record<string, unknown>;
@@ -145,8 +153,7 @@ function isPhysicalSample(value: unknown): value is PhysicalSample {
     Number.isFinite(sample.durationMs) &&
     sample.durationMs >= 0 &&
     (sample.outcome === "success" || sample.outcome === "failure") &&
-    typeof sample.warmColdClass === "string" &&
-    physicalClassifications.has(sample.warmColdClass) &&
+    isPhysicalClassification(sample.warmColdClass) &&
     typeof sample.timestamp === "string" &&
     (sample.failureClass === undefined ||
       failureClasses.has(sample.failureClass as PhysicalFailureClass))

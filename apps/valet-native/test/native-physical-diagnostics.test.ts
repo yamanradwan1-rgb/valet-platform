@@ -82,6 +82,25 @@ describe("physical diagnostics evidence", () => {
     ).toEqual([]);
   });
 
+  it("rejects an invalid live classification before memory, persistence, or export", async () => {
+    const persistence = memoryPersistence();
+    const owner = new NativePhysicalDiagnosticsStore(persistence);
+    await owner.load();
+    owner.record({
+      metric: "task_list_ready_ms",
+      startedAt: 100,
+      endedAt: 120,
+      outcome: "success",
+      warmColdClass: "task-123-sensitive",
+    } as unknown as Parameters<NativePhysicalDiagnosticsStore["record"]>[0]);
+    await owner.whenIdle();
+    expect(owner.snapshot()).toEqual([]);
+    expect(persistence.value).toBeNull();
+    expect(JSON.stringify(owner.evidence())).not.toContain(
+      "task-123-sensitive",
+    );
+  });
+
   it("persists, restores, and clears only diagnostics samples", async () => {
     const persistence = memoryPersistence();
     const owner = new NativePhysicalDiagnosticsStore(persistence);
