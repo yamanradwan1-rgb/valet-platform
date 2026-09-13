@@ -40,7 +40,13 @@ function render(
   locale: "en" | "ar" = "en",
   patch = {},
 ) {
-  const session = { retryContext: vi.fn(), submit: vi.fn() };
+  const session = {
+    acknowledge: vi.fn().mockResolvedValue(true),
+    retire: vi.fn(),
+    retryContext: vi.fn(),
+    retryRecovery: vi.fn(),
+    submit: vi.fn(),
+  };
   const onClose = vi.fn();
   hooks.states = [];
   const nodes = elements(
@@ -137,7 +143,7 @@ describe("UI-PARITY-11 Native Incident", () => {
     ).toMatchObject({ busy: true, disabled: true });
   });
 
-  it("renders authoritative success summary and returns to its owner", () => {
+  it("renders authoritative success summary and returns to its owner", async () => {
     const { nodes, onClose } = render("success");
     const text = content(nodes);
     expect(text).toContain("Incident opened");
@@ -155,7 +161,36 @@ describe("UI-PARITY-11 Native Incident", () => {
         .map((node) => style(node).borderBottomWidth),
     ).toEqual([1, 1, 0]);
     (action(nodes, "Return")?.props.onPress as () => void)();
-    expect(onClose).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  });
+
+  it.each([
+    ["en", "The previous Incident attempt is reserved", "End previous attempt"],
+    ["ar", "محاولة البلاغ السابقة محجوزة", "إنهاء المحاولة السابقة"],
+  ] as const)(
+    "renders truthful no-replay recovery state in %s",
+    (locale, message, retireLabel) => {
+      const nodes = render("recovery-reserved", locale, {
+        deadlineReached: true,
+        detail: null,
+        target: null,
+      }).nodes;
+      const text = content(nodes);
+      expect(text).toContain(message);
+      expect(text).toContain(retireLabel);
+      expect(text.toLowerCase()).not.toContain("queued");
+      expect(text.toLowerCase()).not.toContain("will sync");
+      expect(
+        nodes.find((node) => node.type === "ScrollView")?.props
+          .contentContainerStyle,
+      ).toContainEqual({ direction: locale === "ar" ? "rtl" : "ltr" });
+    },
+  );
+
+  it("renders recovered FOUND without Process-A custody detail", () => {
+    const nodes = render("success", "en", { detail: null, target: null }).nodes;
+    expect(content(nodes)).toContain("Incident opened");
+    expect(content(nodes)).not.toContain("Toyota Camry");
   });
 
   it("preserves every contextual origin without inventing workflow snapshots", () => {

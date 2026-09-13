@@ -16,7 +16,8 @@
     "staff:provision": "tsx tools/provision-staff.ts",
     "local:bootstrap": "tsx tools/local-dev/bootstrap.ts",
     "local:status": "tsx tools/local-dev/status.ts",
-    "local:smoke": "tsx tools/local-dev/smoke.ts"
+    "local:smoke": "tsx tools/local-dev/smoke.ts",
+    "incident-recovery:rollout-check": "tsx tools/check-incident-recovery-rollout.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.1.28",

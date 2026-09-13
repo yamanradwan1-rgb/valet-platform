@@ -19,6 +19,8 @@ import {
 import { StaffValetSessionController } from "../src/modules/staff/staff-valet-session.controller";
 import { IncidentReportingController } from "../src/modules/incidents/incident-reporting.controller";
 import { IncidentReportingService } from "../src/modules/incidents/incident-reporting.service";
+import { IncidentRecoveryController } from "../src/modules/incidents/incident-recovery.controller";
+import { IncidentRecoveryService } from "../src/modules/incidents/incident-recovery.service";
 import { StaffValetSessionService } from "../src/modules/staff/staff-valet-session.service";
 import { StaffVehicleDirectoryService } from "../src/modules/staff/staff-vehicle-directory.service";
 import {
@@ -26,6 +28,7 @@ import {
   createKeySlotHelper,
   createParkingSpotHelper,
   createParkingZoneHelper,
+  createSessionHelper,
   createVehicleHelper,
   type SessionFixtureOptions,
 } from "./staff-valet-session-fixture-helpers";
@@ -35,6 +38,10 @@ import {
   type ShiftFixtureOptions,
   type TestRole,
 } from "./shift-test-context";
+import {
+  staffHarnessRequest,
+  type StaffHarnessRequestOptions,
+} from "./staff-harness-http";
 
 export interface StaffValetSessionHarness {
   readonly baseUrl: () => string;
@@ -95,7 +102,7 @@ export interface StaffValetSessionHarness {
   request<T = Record<string, unknown>>(
     method: string,
     path: string,
-    options?: { readonly body?: unknown; readonly token?: string },
+    options?: StaffHarnessRequestOptions,
   ): Promise<{ body: T; status: number }>;
   start(): Promise<void>;
 }
@@ -114,12 +121,17 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
   };
 
   @Module({
-    controllers: [StaffValetSessionController, IncidentReportingController],
+    controllers: [
+      StaffValetSessionController,
+      IncidentReportingController,
+      IncidentRecoveryController,
+    ],
     imports: [HttpInfrastructureModule],
     providers: [
       StaffValetSessionService,
       StaffVehicleDirectoryService,
       IncidentReportingService,
+      IncidentRecoveryService,
       {
         provide: RUNTIME_POSTGRES_POOL,
         useFactory: () => context.runtimePool,
@@ -134,7 +146,11 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
     configure(consumer: MiddlewareConsumer): void {
       consumer
         .apply(RequestIdMiddleware)
-        .forRoutes(StaffValetSessionController, IncidentReportingController);
+        .forRoutes(
+          StaffValetSessionController,
+          IncidentReportingController,
+          IncidentRecoveryController,
+        );
     }
   }
 
@@ -152,56 +168,53 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
       if (app !== undefined) await app.close();
       await context.teardown();
     },
-    async createKeySlot(fixture, code = "SLOT-01", status = "ACTIVE", locationIdOverride) {
-      return createKeySlotHelper(context, fixture, code, status, locationIdOverride);
+    async createKeySlot(
+      fixture,
+      code = "SLOT-01",
+      status = "ACTIVE",
+      locationIdOverride,
+    ) {
+      return createKeySlotHelper(
+        context,
+        fixture,
+        code,
+        status,
+        locationIdOverride,
+      );
     },
-    async createParkingSpot(fixture, zoneId, code = "SPOT-01", locationIdOverride) {
-      return createParkingSpotHelper(context, fixture, zoneId, code, locationIdOverride);
+    async createParkingSpot(
+      fixture,
+      zoneId,
+      code = "SPOT-01",
+      locationIdOverride,
+    ) {
+      return createParkingSpotHelper(
+        context,
+        fixture,
+        zoneId,
+        code,
+        locationIdOverride,
+      );
     },
     async createParkingZone(fixture, code = "ZONE-01", locationIdOverride) {
-      return createParkingZoneHelper(context, fixture, code, locationIdOverride);
+      return createParkingZoneHelper(
+        context,
+        fixture,
+        code,
+        locationIdOverride,
+      );
     },
     async createSession(fixture, options = {}) {
-      const sessionId = randomUUID();
       const vehicleId =
         options.vehicleId ??
-        (await this.createVehicle(fixture, { temporaryDescriptor: "Test vehicle" }));
-      const state = options.state ?? "CHECKING_IN";
-      const conditionCompletedAt =
-        options.checkInConditionCompletedAt !== undefined
-          ? options.checkInConditionCompletedAt
-          : state === "CHECKING_IN"
-            ? null
-            : new Date();
-      const conditionCompletedBy =
-        conditionCompletedAt === null ? null : fixture.membershipId;
-      await context.adminPool.query(
-        `INSERT INTO valet_sessions
-           (id, customer_access_token_hash, customer_access_expires_at,
-            organization_id, location_id, vehicle_id, state,
-            checked_in_by_membership_id, check_in_condition_completed_at,
-            check_in_condition_completed_by_membership_id,
-            key_slot_id, parking_spot_id, parking_zone_id,
-            parking_started_at, parked_at, version, updated_at)
-         VALUES ($1, $2, transaction_timestamp() + interval '1 hour',
-                 $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, transaction_timestamp())`,
-        [
-          sessionId,
-          `hash:${sessionId}`,
-          fixture.organizationId,
-          fixture.locationId,
-          vehicleId,
-          state,
-          fixture.membershipId,
-          conditionCompletedAt,
-          conditionCompletedBy,
-          options.keySlotId ?? null,
-          options.parkingSpotId ?? null,
-          options.parkingZoneId ?? null,
-          options.parkingStartedAt ?? null,
-          options.parkedAt ?? null,
-          options.version ?? 1,
-        ],
+        (await this.createVehicle(fixture, {
+          temporaryDescriptor: "Test vehicle",
+        }));
+      const sessionId = await createSessionHelper(
+        context,
+        fixture,
+        vehicleId,
+        options,
       );
       return { sessionId, vehicleId };
     },
@@ -233,7 +246,12 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
         `INSERT INTO shifts
            (id, organization_id, location_id, membership_id, status, started_at)
          VALUES ($1, $2, $3, $4, 'ACTIVE', transaction_timestamp())`,
-        [randomUUID(), fixture.organizationId, fixture.locationId, fixture.membershipId],
+        [
+          randomUUID(),
+          fixture.organizationId,
+          fixture.locationId,
+          fixture.membershipId,
+        ],
       );
       const token = `token-${randomUUID()}`;
       principals.set(`Bearer ${token}`, fixture.userId);
@@ -242,30 +260,9 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
     async request<T = Record<string, unknown>>(
       method: string,
       path: string,
-      options: { readonly body?: unknown; readonly token?: string } = {},
+      options: StaffHarnessRequestOptions = {},
     ) {
-      const headers: Record<string, string> = {};
-      if (options.token !== undefined) {
-        headers.authorization = `Bearer ${options.token}`;
-      }
-      if (options.body !== undefined) {
-        headers["content-type"] = "application/json";
-      }
-      const response = await fetch(`${baseUrl}${path}`, {
-        headers,
-        method,
-        ...(options.body === undefined
-          ? {}
-          : { body: JSON.stringify(options.body) }),
-      });
-      const text = await response.text();
-      let body: unknown = {};
-      try {
-        body = JSON.parse(text);
-      } catch {
-        body = { raw: text };
-      }
-      return { body: body as T, status: response.status };
+      return staffHarnessRequest<T>(baseUrl, method, path, options);
     },
     async start() {
       await context.setup();

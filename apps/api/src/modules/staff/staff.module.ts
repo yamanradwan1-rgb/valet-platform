@@ -6,6 +6,8 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { IncidentReportingController } from "../incidents/incident-reporting.controller";
 import { IncidentReportingService } from "../incidents/incident-reporting.service";
+import { IncidentRecoveryController } from "../incidents/incident-recovery.controller";
+import { IncidentRecoveryService } from "../incidents/incident-recovery.service";
 import { StaffCheckInContinuationsController } from "./staff-check-in-continuations.controller";
 import { StaffCheckInContinuationsService } from "./staff-check-in-continuations.service";
 import { StaffCheckInDraftsController } from "./staff-check-in-drafts.controller";
@@ -23,6 +25,7 @@ import { StaffVehicleDirectoryService } from "./staff-vehicle-directory.service"
     StaffOperationalContextController,
     StaffValetSessionController,
     IncidentReportingController,
+    IncidentRecoveryController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
@@ -32,6 +35,7 @@ import { StaffVehicleDirectoryService } from "./staff-vehicle-directory.service"
     StaffValetSessionService,
     StaffVehicleDirectoryService,
     IncidentReportingService,
+    IncidentRecoveryService,
   ],
 })
 export class StaffModule implements NestModule {
@@ -44,6 +48,7 @@ export class StaffModule implements NestModule {
         StaffOperationalContextController,
         StaffValetSessionController,
         IncidentReportingController,
+        IncidentRecoveryController,
       );
   }
 }

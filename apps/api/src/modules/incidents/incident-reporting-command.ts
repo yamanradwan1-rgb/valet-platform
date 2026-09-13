@@ -6,20 +6,15 @@ import type {
   ReportIncidentResponse,
 } from "@valet/contracts";
 
-import { loadParkingTasks, loadSessionScope } from "../staff/staff-valet-session-queries";
-import {
-  authorizeSessionAccess,
-} from "../staff/staff-valet-session-authorization";
-import {
-  CustodyStaffAuthorizationError,
-  requireActiveCustodyUser,
-  authorizeCustodyActorForPersistedScope,
-} from "../staff/custody-staff-authorizer";
-import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
+import { authorizeIncidentCreation } from "./incident-creation-authorization";
+import { lockIncidentOperation } from "./incident-operation-lock";
+import { loadRecoveryIntent } from "./incident-recovery-records";
+import { matchesIntent } from "./incident-recovery-result";
+import { readIncidentDatabaseTime } from "./incident-database-time";
 
-export interface ReportIncidentCommandRequest
-  extends ReportIncidentRequest {
+export interface ReportIncidentCommandRequest extends ReportIncidentRequest {
   readonly authenticatedUserId: string;
+  readonly recoveryProtocol?: boolean;
   readonly sessionId: string;
 }
 
@@ -56,44 +51,21 @@ const MAX_DESCRIPTION = 500;
  * The client-generated incidentId is the stable retry boundary: exact retry
  * returns the original report; mismatched reuse conflicts.
  */
-export function createReportIncidentCommandExecutor(pool: PostgresPool) {
+export function createReportIncidentCommandExecutor(
+  pool: PostgresPool,
+  controlledTime?: Date,
+) {
   return async (
     request: ReportIncidentCommandRequest,
   ): Promise<ReportIncidentResponse> => {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await requireActiveCustodyUser(client, request.authenticatedUserId);
-
-      const session = await loadSessionScope(client, request.sessionId);
-      if (session.state === "COMPLETED") {
-        throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
-      }
-
-      const actor = await authorizeCustodyActorForPersistedScope(client, {
-        allowedRoles: ["VALET_EMPLOYEE", "VALET_SUPERVISOR"],
-        authenticatedUserId: request.authenticatedUserId,
-        resourceScope: {
-          locationId: session.location_id,
-          organizationId: session.organization_id,
-        },
-      });
-
-      const eligibility = await lockShiftOperationalEligibility(client, {
-        locationId: session.location_id,
-        membershipId: actor.membershipId,
-      });
-      if (eligibility === null) {
-        throw new CustodyStaffAuthorizationError("LOCATION_ACCESS_DENIED");
-      }
-
-      if (actor.role === "VALET_EMPLOYEE") {
-        // Employees need the full legitimate operational access matrix.
-        const tasks = await loadParkingTasks(client, session);
-        authorizeSessionAccess(session, tasks, actor.membershipId, actor.role);
-      }
-      // Supervisors may report against any active session at their exact
-      // authorized shift Location without acquiring Task ownership.
+      const { actor, session } = await authorizeIncidentCreation(
+        client,
+        request.authenticatedUserId,
+        request.sessionId,
+      );
 
       const description = request.description.trim();
       if (description.length === 0 || description.length > MAX_DESCRIPTION) {
@@ -101,9 +73,10 @@ export function createReportIncidentCommandExecutor(pool: PostgresPool) {
       }
 
       // Stable client-generated id serializes concurrent retries.
-      await client.query(
-        `SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`,
-        [`${session.organization_id}:incident:${request.incidentId}`],
+      await lockIncidentOperation(
+        client,
+        session.organization_id,
+        request.incidentId,
       );
       const existing = await client.query<IncidentRow>(
         `SELECT id::text AS id, created_at, reported_by_membership_id::text,
@@ -115,6 +88,21 @@ export function createReportIncidentCommandExecutor(pool: PostgresPool) {
         [request.incidentId, session.organization_id],
       );
       const prior = existing.rows[0];
+      const intent = await loadRecoveryIntent(
+        client,
+        session.organization_id,
+        request.incidentId,
+      );
+      const binding = {
+        incidentId: request.incidentId,
+        locationId: session.location_id,
+        membershipId: actor.membershipId,
+        organizationId: session.organization_id,
+        sessionId: session.id,
+      };
+      if (intent !== undefined && request.recoveryProtocol !== true) {
+        throw new IncidentReportingError("IDEMPOTENCY_CONFLICT");
+      }
       if (prior !== undefined) {
         // The stable incidentId is bound to its original reporter: a
         // different (even otherwise-authorized) actor must never receive
@@ -130,6 +118,15 @@ export function createReportIncidentCommandExecutor(pool: PostgresPool) {
         if (!samePayload) {
           throw new IncidentReportingError("IDEMPOTENCY_CONFLICT");
         }
+        if (request.recoveryProtocol) {
+          if (
+            intent === undefined ||
+            !matchesIntent(intent, binding) ||
+            intent.state !== "RESERVED"
+          ) {
+            throw new Error("Incident recovery invariant failed.");
+          }
+        }
         await client.query("COMMIT");
         return {
           createdAt: prior.created_at.toISOString(),
@@ -140,6 +137,21 @@ export function createReportIncidentCommandExecutor(pool: PostgresPool) {
           status: "OPEN",
           type: request.type,
         };
+      }
+
+      if (request.recoveryProtocol) {
+        const databaseNow = await readIncidentDatabaseTime(
+          client,
+          controlledTime,
+        );
+        if (
+          intent === undefined ||
+          !matchesIntent(intent, binding) ||
+          intent.state !== "RESERVED" ||
+          databaseNow >= intent.expires_at
+        ) {
+          throw new IncidentReportingError("IDEMPOTENCY_CONFLICT");
+        }
       }
 
       const operationTime = new Date();

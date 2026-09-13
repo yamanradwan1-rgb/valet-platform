@@ -96,7 +96,8 @@ async function provisionRuntimeRole() {
     await verifyMigrationConnectionTls(client, process.env.NODE_ENV);
     await client.query("BEGIN");
     const existingRole = await client.query(
-      `SELECT 1 FROM pg_roles WHERE rolname = $1`,
+      `SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls
+       FROM pg_roles WHERE rolname = $1`,
       [runtimeRole],
     );
     if (existingRole.rowCount === 0) {
@@ -106,9 +107,19 @@ async function provisionRuntimeRole() {
         [runtimeRole, runtimePassword],
       );
     } else {
+      const attributes = existingRole.rows[0];
+      if (
+        attributes.rolsuper === true ||
+        attributes.rolcreatedb === true ||
+        attributes.rolcreaterole === true ||
+        attributes.rolreplication === true ||
+        attributes.rolbypassrls === true
+      ) {
+        throw new Error("Existing runtime role has unsafe role attributes.");
+      }
       await executeFormatted(
         client,
-        "ALTER ROLE %I WITH LOGIN PASSWORD %L NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS",
+        "ALTER ROLE %I WITH LOGIN PASSWORD %L NOINHERIT",
         [runtimeRole, runtimePassword],
       );
     }

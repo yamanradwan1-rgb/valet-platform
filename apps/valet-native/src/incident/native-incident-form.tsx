@@ -35,7 +35,8 @@ export function NativeIncidentForm({
   const detail = snapshot.detail;
   if (detail === null) return null;
   const vehicle = nativeIncidentVehicleIdentity(detail);
-  const submitting = snapshot.phase === "submitting";
+  const submitting =
+    snapshot.phase === "submitting" || snapshot.phase === "reserving";
 
   return (
     <>

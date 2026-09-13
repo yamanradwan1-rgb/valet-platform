@@ -349,6 +349,45 @@ Optimistic aggregate versioning is necessary for contested state changes but is 
 
 Operations that require authoritative online verification, such as certain payment/handoff steps, must use an explicitly documented fallback; never silently weaken security when offline.
 
+### Employee Incident process-death recovery (DEC-077)
+
+The Employee Native Incident command uses an actor-bound server recovery intent
+plus a minimal encrypted device marker; it stores no durable command journal:
+
+- Native durably confirms a minimal no-content marker (identity/scope metadata
+  only) before any network mutation, then reserves the exact Incident ID on the
+  server, and dispatches the recovery-enabled Incident POST only after a
+  validated RESERVED response
+- the marker and `incident_recovery_intents` row contain no userId, Incident
+  body, description, type, severity, payload hash, credential, guest proof or
+  navigation state
+- cold start, reconnect and foregrounding issue the canonical recovery GET only;
+  Native never automatically reserves, retires, posts or schedules replay
+- success is shown only from the authoritative committed Incident row
+  (`FOUND`); a lost response, rollback, disconnect or API outage never
+  fabricates success
+- the exact original OrganizationMembership, Organization, Location and
+  ValetSession bind reservation, recovery read and explicit foreground
+  retirement; a different actor or membership is denied without disclosure
+- the server state is one-way `RESERVED -> RETIRED`; a migration-owned database
+  transition guard makes terminal state, binding and timestamps immutable to the
+  normal runtime role, and an expired reservation is terminal for admission
+  forever
+- the runtime database role receives only SELECT, INSERT on the binding columns
+  and UPDATE on `state`; it cannot author timestamps, delete rows, manage the
+  guard function or use DDL
+- reservation, retirement and expiry emit no Black Box event; exactly one
+  `INCIDENT_OPENED` remains atomic with an actual Incident commit
+- recovery remains available to the exact original actor after Shift end or
+  ValetSession completion without reopening custody, while a new
+  reservation/Incident still requires current creation authority
+- definitive logout, account replacement, membership retirement or authoritative
+  scope loss securely purges the local marker; a failed secure purge fences only
+  the Incident surface until cleanup succeeds
+- the 24-hour local marker deadline is presentation metadata; authoritative
+  online recovery still resolves the exact outcome and never invents absence
+
+
 ## Secrets
 
 Use environment variables/secret manager.

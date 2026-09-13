@@ -388,6 +388,14 @@ Incident lifecycle is separate from ValetSession physical state. Opening an inci
 
 Full ClaimShield evidence-package handling is V2; basic incident reporting is MVP.
 
+The DEC-077 process-death recovery intent (`IncidentRecoveryIntent`) is
+reliability/admission metadata, not an Incident lifecycle state. It binds one
+recovery-mode Incident operation ID to its exact original Organization, Location,
+ValetSession and reporting OrganizationMembership before dispatch, holds a
+server-authoritative 15-minute admission window, and becomes terminal
+(`RETIRED`, or effectively expired) without ever asserting that an Incident
+occurred. A matching committed Incident remains the only success authority.
+
 ## Notification
 
 Outbound communication record for guest/staff operational messages.

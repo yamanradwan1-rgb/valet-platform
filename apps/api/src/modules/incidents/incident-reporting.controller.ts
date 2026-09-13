@@ -7,11 +7,13 @@ import {
   Param,
   Post,
   Req,
-  UnauthorizedException,
 } from "@nestjs/common";
 import {
   reportIncidentRequestSchema,
   reportIncidentResponseSchema,
+  incidentRecoveryProtocol,
+  isIncidentRecoveryId,
+  legacyIncidentIdSchema,
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
@@ -21,6 +23,10 @@ import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
 } from "../auth/staff-principal";
+import {
+  countRequestHeader,
+  resolveSingleStaffUserId,
+} from "../staff/staff-request-principal";
 import { IncidentReportingService } from "./incident-reporting.service";
 
 const uuidPattern =
@@ -40,6 +46,8 @@ export class IncidentReportingController {
   report(
     @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
+    @Headers("valet-incident-submission-protocol")
+    protocol: string | undefined,
     @Param("sessionId") sessionIdRaw: string,
     @Body() body: unknown,
   ) {
@@ -48,29 +56,32 @@ export class IncidentReportingController {
       if (!parsed.success || !uuidPattern.test(sessionIdRaw)) {
         throw new ApiTransportValidationError();
       }
+      const recoveryMode = isIncidentRecoveryId(parsed.data.incidentId);
+      const protocolCount = countRequestHeader(
+        request,
+        "valet-incident-submission-protocol",
+      );
+      if (
+        protocolCount > 1 ||
+        (recoveryMode && protocol !== incidentRecoveryProtocol) ||
+        (!recoveryMode && protocol !== undefined) ||
+        (!recoveryMode &&
+          !legacyIncidentIdSchema.safeParse(parsed.data.incidentId).success)
+      ) {
+        throw new ApiTransportValidationError();
+      }
       return reportIncidentResponseSchema.parse(
         await this.service.report(
-          await this.resolveUserId(request, authorization),
+          await resolveSingleStaffUserId(
+            this.principals,
+            request,
+            authorization,
+          ),
           sessionIdRaw,
           parsed.data,
+          recoveryMode,
         ),
       );
     });
-  }
-
-  private async resolveUserId(
-    request: ApiRequest,
-    authorization: string | undefined,
-  ): Promise<string> {
-    const rawHeaders = request.rawHeaders;
-    let count = 0;
-    if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) {
-      throw new UnauthorizedException();
-    }
-    for (let index = 0; index < rawHeaders.length; index += 2) {
-      if (rawHeaders[index]?.toLowerCase() === "authorization") count += 1;
-    }
-    if (count !== 1) throw new UnauthorizedException();
-    return (await this.principals.resolve(authorization)).userId;
   }
 }

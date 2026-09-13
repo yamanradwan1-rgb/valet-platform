@@ -8,10 +8,10 @@
 
 - Base: `cad942bad7f7655b0d4bda3c7449c30c6e4205c6`
 - Branch: `codex/mob-023b-protected-command-process-death`
-- Physical evidence: **DEFERRED — owner deferred physical evidence gate.**
-- Overall status: **BLOCKED / CHILD REQUIRED** for exact Incident recovery after
-  a committed response is lost across process death. All independently safe
-  MOB-023B client rows are implemented or proven without adding persistence.
+- Physical evidence: DEFERRED — owner deferred physical evidence gate.
+- Overall status: **BLOCKED / IMPLEMENTATION REVIEW REQUIRED**. The Accepted
+  Incident recovery child is implemented on its feature branch, but MOB-023B
+  remains open until independent implementation review and merge.
 
 ## Recovery ownership matrix
 
@@ -36,7 +36,7 @@ and protected proofs are memory-only unless stated otherwise.
 | Retrieval accept / start / ready | shared Task POSTs; `POST .../:id/start-retrieval`; `POST .../:id/mark-ready` | task/retrieval sessions; Retrieval screen | versions, current owner, request, custody | new owner derives assigned, key checkout, `RETRIEVING`, or `READY`; no replay | DEC-035/039/063 |
 | Handoff initiate / verify / override / abort | command-specific POSTs under `/v1/staff/valet-sessions/:id` | `EmployeeHandoffSession`; Handoff screen | session version, current Task/Shift, hashed verification status/expiry/attempts | queue/detail yields `READY`, pending, verified, expired/consumed, aborted, or conflict; proof/reason is gone and no POST runs | DEC-042/063 |
 | Final release | `POST .../:id/complete-handoff`; payment/session/queue GETs | `EmployeeReleaseSession`; Release screen | atomic verification consumption, custody, request/task/session completion, current financial policy | detail-first read discovers `COMPLETED` without requiring the completed Task or a second release; otherwise current eligibility is rebuilt | DEC-043/057/063 |
-| Incident | `POST .../:id/incidents`; session detail GET only | `NativeIncidentSession`; Incident screen | actor-bound stable `incidentId` exact-payload idempotency | new owner sends no POST and has no report result; committed report cannot be discovered or exact-retried because its UUID was Process-A-only | DEC-063/059 and accepted Stream-A contract |
+| Incident | recovery-intent reserve/read/retire plus existing `POST .../:id/incidents` | `IncidentRecoveryState`, dedicated SecureStore adapter and `NativeIncidentSession` | actor-bound UUIDv8 intent plus exact-payload Incident idempotency | fresh owner restores only minimal no-content identity and issues canonical GET; it never reserves, retires or reports automatically | DEC-077/063/059 and accepted Stream-A contract |
 | Guest Access | issue/reissue/revoke POSTs; staff session detail GET | `NativeGuestAccessSession`; contextual screen | hash-only credential state; explicit intents; revoked timestamp concurrency | detail can restore status but never raw bearer; reissue is explicit and no command replays | DEC-063/064 and accepted Guest Access contract |
 | Media / tracking | separate command owners | not entered by this configured full-shift scenario | separate Accepted policies | not applicable to MOB-023B; no R-08/R-09/R-10 behavior is invented | DEC-045/048/063 |
 
@@ -100,43 +100,24 @@ detail reconciliation when a current route supplies a target.
 | Supervisor override | PASS | `employee-process-death-handoff.test.ts` — “does not replay a supervisor override after Process A dies”; current supervisor scope and server verification win |
 | Abort handoff | PASS | `employee-process-death-handoff.test.ts` — “aborts in Process A and Process B discovers READY” |
 | Final release | PASS | `employee-process-death-release.test.ts` — before-commit and committed-response-lost calls through `release()`; committed terminal cold start has no Task/route and zero second POST. `employee-release-flow-session.test.ts` — “recovers COMMITTED completion after response loss even when Task disappeared” is the focused detail-first owner proof |
-| Incident | BLOCKED / CHILD REQUIRED | `native-process-death-recovery.test.ts` proves both commit outcomes produce only a Process-B GET and no fabricated report/replay; no lawful exact-recovery identity exists |
+| Incident | IMPLEMENTED / REVIEW REQUIRED | DEC-077 focused Native, API and real PostgreSQL suites prove no-content durable identity, reserve-before-POST admission, fresh-owner GET-only recovery, terminal retirement/expiry, exact actor authorization and one Incident/opening audit; independent implementation review remains pending |
 | Guest Access | PASS | same Native suite proves ACTIVE server state with no retained raw bearer; existing recovery suite covers issue/revoke ambiguity |
 | Check-In intake | ALREADY COVERED | `employee-check-in-recovery.test.ts` constructs a fresh session and restores server drafts/continuations; `employee-check-in-session.test.ts` proves same-process exact ID reuse; API integration proves durable idempotency |
 | Check-In condition/detail correction | ALREADY COVERED | condition/correction recovery suites prove canonical reread, no append replay, stale version, and identity purge |
 | Auth / account / scope replacement | PASS | new Task test plus `native-auth-storage-matrix.test.ts`, shift fences, Native auth-race tests, and workflow purge tests |
 
-## MOB-023B-INCIDENT-RECOVERY CONTRACT CHILD REQUIRED
+## MOB-023B-INCIDENT-RECOVERY implementation child
 
-Accepted policy allows manual retry of the same logical Incident using its
-actor-bound stable ID. Production generates that ID inside
-`NativeIncidentSession` and retains it only in memory. The server deduplicates
-that ID but exposes no employee read/list/by-ID route capable of discovering a
-committed lost response. After process death, generating a new ID for an
-explicit resubmission can create a second Incident for the same occurrence.
+Accepted DEC-077 now has an implementation on
+`codex/mob-023b-incident-recovery-implementation`, pending independent
+implementation review. The child adds the actor-bound server reservation,
+terminal database fence, exact canonical recovery read and minimal encrypted
+Native recovery marker. Native confirms the marker before reservation, confirms
+reservation before Incident POST, and performs only canonical GET after a fresh
+process starts. It persists no Incident content or payload hash.
 
-Required focused child/decision: define a command-specific, privacy-safe
-Incident process-death recovery contract without selecting its architecture in
-MOB-023B. It must decide:
-
-- how one stable Incident intent identity can survive process death;
-- how committed-response-lost is discovered and how not-committed is shown;
-- actor, Organization, Location, and Valet Session binding;
-- retention and TTL;
-- logout, definitive auth loss, account switch, and scope-change purge;
-- changed-payload reuse semantics and duplicate prevention;
-- why cold start never automatically replays the Incident POST; and
-- whether any sensitive draft content may be durable (plaintext persistence is
-  forbidden unless explicitly accepted).
-
-Responsible current modules are:
-
-- Native: `apps/valet-native/src/incident/native-incident-session.ts`
-- API: `apps/api/src/modules/incidents/incident-reporting-command.ts`
-- route: `POST /v1/staff/valet-sessions/:sessionId/incidents`
-
-MOB-023B does not invent that product/security contract and therefore does not
-claim overall PASS.
+This evidence record does not mark MOB-023B complete. Its remaining blocker is
+independent implementation review and merge of this child. G7 remains open.
 
 ## Privacy firewall
 
@@ -146,6 +127,16 @@ proof, supervisor proof, and payment secret. Process B retains none. The
 existing secure auth fake remains the sole allowed durable refresh boundary;
 no command request, response, workflow snapshot, navigation, or proof store was
 added.
+
+The DEC-077 child extends the same firewall to its one new durable surface:
+`native-incident-recovery-store.test.ts` asserts the real Expo SecureStore
+adapter serializes exactly the nine accepted no-content marker fields into the
+device-only keychain service and that the serialized marker contains no userId,
+description, type, severity, Incident body, payload hash, Authorization,
+access/refresh token, Guest token, handoff proof, vehicle/customer/key data,
+navigation state, generic command or retry schedule. The portable and Native
+process-death suites additionally assert the durable marker never contains
+Process-A free text. No other durable store was added.
 
 ## Automated validation record
 
@@ -176,5 +167,61 @@ added.
 - Architecture check passed with only pre-existing grandfathered-size warnings.
 - Changed-file Prettier and `git diff --check` passed before commit.
 
-G7 remains open: the binding plan requires both MOB-023B and MOB-024B, and this
-evidence cannot close that gate.
+## MOB-023B-INCIDENT-RECOVERY-IMPLEMENTATION validation record
+
+Cumulative focused and package results proven on the final implementation tree
+(`pnpm` workspace commands; PostgreSQL-backed API/database suites used the
+configured test-administrator migration profile):
+
+- Contracts: 26 files / 178 tests passed; lint, typecheck and build passed.
+- Employee client: 66 files / 484 tests passed; lint, typecheck and build
+  passed.
+- Native: 141 files / 1,067 tests passed (three consecutive full clean runs);
+  lint and typecheck passed. One unrelated pre-existing
+  `native-push-response-bootstrap.test.ts` five-second dynamic-import timeout
+  appeared once under concurrent load; that committed, MOB-023B-untouched file
+  passed in isolation and in the settled full reruns.
+- Database: 35 files / 596 tests passed; lint, typecheck, build and
+  `prisma validate` passed. This includes the real PostgreSQL DEC-077 runtime
+  guard suites: `incident-recovery-runtime-role.integration.test.ts` (4 tests)
+  proves DB-authored `created_at`/`expires_at`, the exact 15-minute window, the
+  single `RESERVED -> RETIRED` transition, reverse-transition rejection,
+  binding/timestamp immutability, denied DELETE/TRIGGER/function authority and
+  concurrent retirement convergence; `incident-runtime-read-privilege.integration.test.ts`
+  preserves Employee INSERT with bounded reads.
+- Focused Incident recovery API: 7 files / 38 tests passed against real
+  PostgreSQL (reserve/FOUND/audit-once, protocol downgrade rejection with
+  legacy v4 preserved, original-membership-only read/retire, retirement-defeats-
+  delayed-POST, Shift-end/COMPLETED-session recovery, authoritative 14:59/15:00
+  expiry boundary, exact-actor idempotency, repeated-content exact-ID recovery,
+  expired-reservation terminal tombstone, strict route protocol/UUID/empty-input
+  enforcement, the full authorization matrix, and the operation-lock
+  commit/rollback visibility plus retirement-vs-POST race matrix). The rollout
+  checker proves mixed-replica rejection before Native enrollment.
+- Full API package (settled final run on the implementation tree, 30-second
+  test/hook ceilings, test-administrator PostgreSQL profile): 227 of 229 files
+  passed with zero test failures; 1,665 tests passed. Two pre-existing
+  baseline exceptions, both outside MOB-023B and unchanged by this branch:
+  - `staff-check-in-continuations-{auth,discovery}.integration.test.ts`
+    (committed at `86c93db`, untouched): their worker fork crashes natively
+    during harness startup in this container. The identical crash was
+    reproduced on a clean `origin/main` worktree with the same admin profile
+    while a control test file passed there, proving a pre-existing
+    environmental failure rather than a branch regression. No production change
+    was made for it.
+  - Load-only flake history during the same runs: the pre-existing
+    `staff-push-finalization-outage.integration.test.ts` database-outage lease
+    test failed once in full-suite run 2 but passed in full-suite run 1 and
+    twice in isolation, and the untouched 14-file Staff Push group passes 90/90
+    in isolation; the earlier `architecture-line-policy` violation was a real
+    branch fix (a 303-line test file reduced to 300 with the ownership
+    assertions intact) and passes after the fix. Phase 6 E2E passes 15/15 in
+    isolation.
+- API lint, typecheck and build passed; architecture check passed with only
+  pre-existing grandfathered warnings; changed-file Prettier and
+  `git diff --check` passed.
+
+G7 remains OPEN.
+
+The binding plan requires both MOB-023B and MOB-024B, and this evidence cannot
+close that gate.

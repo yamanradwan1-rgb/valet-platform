@@ -4,7 +4,10 @@ import {
   inactiveNativeGuestAccessSnapshot,
   type NativeGuestAccessSnapshot,
 } from "../guest-access/native-guest-access-types";
-import type { NativeIncidentSnapshot } from "../incident/native-incident-types";
+import {
+  nativeIncidentRecoveryVisible,
+  type NativeIncidentSnapshot,
+} from "../incident/native-incident-types";
 import {
   handleNativeContextualSystemBack,
   nativeContextualRoute,
@@ -13,6 +16,7 @@ import {
 } from "./native-contextual-route";
 
 const inactiveIncident: NativeIncidentSnapshot = {
+  deadlineReached: false,
   detail: null,
   error: null,
   phase: "inactive",
@@ -66,7 +70,11 @@ export function useNativeContextualRoute(
     else void runtime.guestAccess.open(next);
   };
   const close = () => {
-    if (runtime === undefined || route === null) return;
+    if (runtime === undefined) return;
+    if (route === null) {
+      if (nativeIncidentRecoveryVisible(incident)) runtime.incident.clear();
+      return;
+    }
     const busy =
       route.kind === "incident"
         ? incident.phase === "submitting"
@@ -76,6 +84,10 @@ export function useNativeContextualRoute(
     setHeldRoute(null);
   };
   const onSystemBack = () => {
+    if (route === null && nativeIncidentRecoveryVisible(incident)) {
+      close();
+      return true;
+    }
     const busy =
       route?.kind === "incident"
         ? incident.phase === "submitting"

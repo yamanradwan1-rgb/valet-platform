@@ -1330,10 +1330,44 @@ Rules:
 - status, type and severity required
 - corrections/evidence additions do not rewrite original audit facts
 - full ClaimShield packaging remains V2
-- runtime role authority (DEC-059): SELECT only through the provisioning
-  allowlist; no INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER and no PUBLIC
-  privilege; Dashboard incident reads stay exact-Location authorized,
-  non-disclosing and read-only with no schema/migration change
+- runtime role authority: SELECT supports bounded authorized reads and INSERT
+  supports the Employee Incident command; UPDATE/DELETE/TRUNCATE/REFERENCES/
+  TRIGGER and PUBLIC privileges remain denied
+- Dashboard and Employee application authorization remain separate from the
+  database privilege; every read stays exact-Location authorized and
+  non-disclosing
+
+## incident_recovery_intents
+
+The DEC-077 command-specific admission and process-death fence stores only:
+
+```text
+incident_id + organization_id composite PK
+location_id
+valet_session_id
+reporting_membership_id
+state: RESERVED | RETIRED
+created_at
+expires_at
+retired_at nullable
+```
+
+Rules:
+
+- tenant-safe composite foreign keys bind the exact session, Location and
+  original OrganizationMembership; deletion and key updates are restrictive
+- a migration-owned `BEFORE INSERT OR UPDATE` guard authors `created_at`, sets
+  `expires_at` exactly 15 minutes later, and authors `retired_at`
+- the only update is one `RESERVED -> RETIRED` transition; terminal rows and
+  every binding/timestamp are database-immutable and retained indefinitely for
+  MVP
+- runtime receives SELECT, INSERT on binding columns, and UPDATE on `state`
+  only; it cannot directly author timestamps, delete rows, manage the trigger,
+  execute its function, or use DDL
+- no Incident body, description, type, severity, payload hash, credential or
+  workflow state is stored; no cleanup worker or list/search index exists
+- reservation, retirement and expiry add no AuditEvent; an actual Incident
+  commit retains exactly one atomic `INCIDENT_OPENED`
 
 ## organization_subscriptions
 

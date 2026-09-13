@@ -5,6 +5,8 @@ import { AppModule } from "../src/app.module";
 import { RuntimeDatabaseModule } from "../src/common/database/runtime-database.module";
 import { IncidentReportingController } from "../src/modules/incidents/incident-reporting.controller";
 import { IncidentReportingService } from "../src/modules/incidents/incident-reporting.service";
+import { IncidentRecoveryController } from "../src/modules/incidents/incident-recovery.controller";
+import { IncidentRecoveryService } from "../src/modules/incidents/incident-recovery.service";
 import { AntiAbuseModule } from "../src/modules/anti-abuse/anti-abuse.module";
 import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
@@ -204,7 +206,6 @@ describe("accepted feature module ownership", () => {
       StartRetrievalService,
     ]);
   });
-
   it("keeps Key custody ownership focused", () => {
     expect(metadata(KeyCustodyModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       KeyCustodyController,
@@ -213,7 +214,6 @@ describe("accepted feature module ownership", () => {
       KeyCustodyService,
     ]);
   });
-
   it("keeps Shift ownership focused", () => {
     expect(metadata(ShiftModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       ShiftController,
@@ -278,7 +278,6 @@ describe("accepted feature module ownership", () => {
       expect(method in CheckInApiService.prototype).toBe(false);
     }
   });
-
   it("keeps Staff ownership focused on operational context, session and vehicle-directory reads, and incident reporting", () => {
     expect(metadata(StaffModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffCheckInContinuationsController,
@@ -286,6 +285,7 @@ describe("accepted feature module ownership", () => {
       StaffOperationalContextController,
       StaffValetSessionController,
       IncidentReportingController,
+      IncidentRecoveryController,
     ]);
     expect(metadata(StaffModule, MODULE_METADATA.PROVIDERS)).toEqual([
       StaffCheckInContinuationsService,
@@ -294,6 +294,7 @@ describe("accepted feature module ownership", () => {
       StaffValetSessionService,
       StaffVehicleDirectoryService,
       IncidentReportingService,
+      IncidentRecoveryService,
     ]);
   });
 });

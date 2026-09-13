@@ -18,6 +18,8 @@ import {
   EmployeeShiftEndSession,
   EmployeeShiftStartSession,
   NativeAuthSession,
+  IncidentRecoveryState,
+  createIncidentRecoveryTransport,
 } from "@valet/employee-client";
 
 import { nativeIdentityState } from "./identity-state-boundary";
@@ -35,6 +37,8 @@ import {
 } from "../tasks/native-operational-http";
 import { retireNativeShiftScope } from "../shift/native-shift-retirement";
 import { NativeIncidentSession } from "../incident/native-incident-session";
+import { ExpoIncidentRecoveryStore } from "../incident/native-incident-recovery-store";
+import { resolveNativeIncidentRecoveryContext } from "../incident/native-incident-recovery-context";
 import { NativeGuestAccessSession } from "../guest-access/native-guest-access-session";
 import { ExpoNativeConnectivityAdapter } from "../shell/expo-native-connectivity-adapter";
 
@@ -79,8 +83,20 @@ export function createNativeAuthSession(
 export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const apiOrigin = resolveNativeApiOrigin();
   const auth = createNativeAuthSession(apiOrigin);
+  const incidentStore = new ExpoIncidentRecoveryStore();
+  const installationStore = new ExpoInstallationAuthStateStore();
   const connectivity = new EmployeeConnectivityOwner(
     new ExpoNativeConnectivityAdapter(),
+  );
+  const incident = new NativeIncidentSession(
+    () => createNativeEmployeeClient(apiOrigin, auth),
+    new IncidentRecoveryState(
+      incidentStore,
+      createIncidentRecoveryTransport(() =>
+        createNativeEmployeeClient(apiOrigin, auth),
+      ),
+    ),
+    () => operations.refresh(),
   );
   const shiftObserver: {
     end?: EmployeeShiftEndSession;
@@ -89,6 +105,21 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   const operations = new EmployeeOperationalSession({
     initialForeground: false,
     onOperationalContext: (identityGeneration, response) => {
+      void resolveNativeIncidentRecoveryContext(
+        response,
+        incidentStore,
+        installationStore,
+      )
+        .then(async (context) => {
+          if (auth.current().authGeneration !== identityGeneration) return;
+          if (context === "invalidated") {
+            await incident.purgeRecovery();
+            incident.fenceRecovery("recovery-invalidated");
+          } else if (context !== null)
+            await incident.observeRecoveryContext(context);
+          else await incident.purgeRecovery();
+        })
+        .catch(() => incident.fenceRecovery("recovery-unavailable"));
       shiftObserver.start?.observeOperationalContext(
         identityGeneration,
         response,
@@ -168,9 +199,6 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
-  const incident = new NativeIncidentSession(() =>
-    createNativeEmployeeClient(apiOrigin, auth),
-  );
   const guestAccess = new NativeGuestAccessSession(
     () => createNativeEmployeeClient(apiOrigin, auth),
     { isOnline: () => connectivity.current() !== "offline" },
@@ -206,12 +234,12 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   });
   shiftObserver.end = shiftEnd;
   connectivity.start();
-  const unregisterIdentityPurge = nativeIdentityState.register(() => {
+  const unregisterIdentityPurge = nativeIdentityState.register(async () => {
     operations.clear();
     confirmParking.clear();
     handoff.clear();
     guestAccess.clear();
-    incident.clear();
+    await incident.purgeRecovery();
     parking.clear();
     release.clear();
     retrieval.clear();

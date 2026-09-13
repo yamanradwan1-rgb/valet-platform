@@ -6,6 +6,7 @@ import {
   provisionBasicBrandingPrivileges,
 } from "./basic-branding-runtime-privileges.mjs";
 import { provisionStaffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
+import { provisionIncidentRecoveryPrivileges } from "./incident-recovery-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -103,16 +104,6 @@ export const runtimePrivateMapSetupFunctions = [
 export const runtimeMaintenanceFunctions = [
   "public.cleanup_expired_raw_gps_samples(integer)",
   "public.cleanup_staff_push_v1()",
-];
-
-export const incidentReadPolicies = [
-  ["public.incidents", "SELECT", true],
-  ["public.incidents", "INSERT", true],
-  ["public.incidents", "UPDATE", false],
-  ["public.incidents", "DELETE", false],
-  ["public.incidents", "TRUNCATE", false],
-  ["public.incidents", "REFERENCES", false],
-  ["public.incidents", "TRIGGER", false],
 ];
 
 const runtimeLockColumns = [
@@ -289,6 +280,11 @@ export async function provisionRuntimeTablePrivileges(
   );
   await provisionBasicBrandingPrivileges(client, executeFormatted, runtimeRole);
   await provisionStaffPushPrivileges(client, executeFormatted, runtimeRole);
+  await provisionIncidentRecoveryPrivileges(
+    client,
+    executeFormatted,
+    runtimeRole,
+  );
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

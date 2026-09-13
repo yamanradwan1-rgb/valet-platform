@@ -5,7 +5,10 @@ import { NativeGuestAccessScreen } from "../guest-access/native-guest-access-scr
 import { copyNativeGuestAccessUrl } from "../guest-access/native-guest-access-clipboard";
 import type { NativeGuestAccessSnapshot } from "../guest-access/native-guest-access-types";
 import { NativeIncidentScreen } from "../incident/native-incident-screen";
-import type { NativeIncidentSnapshot } from "../incident/native-incident-types";
+import {
+  nativeIncidentRecoveryVisible,
+  type NativeIncidentSnapshot,
+} from "../incident/native-incident-types";
 import type { NativeContextualRoute } from "./native-contextual-route";
 import type { EmployeeConnectivityStatus } from "@valet/employee-client";
 
@@ -26,13 +29,14 @@ export function NativeContextualSurface({
   readonly route: NativeContextualRoute | null;
   readonly runtime: NativeEmployeeRuntime;
 }) {
-  if (route === null) return null;
+  const recoveryVisible = nativeIncidentRecoveryVisible(incident);
+  if (route === null && !recoveryVisible) return null;
   return (
     <View
       style={{ backgroundColor: "#FAFAF8", flex: 1 }}
       testID="native-contextual-workflow"
     >
-      {route.kind === "incident" ? (
+      {route?.kind === "incident" || recoveryVisible ? (
         <NativeIncidentScreen
           locale={locale}
           onClose={onClose}

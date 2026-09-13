@@ -105,6 +105,8 @@ describe("MOB-023B Native process-death recovery", () => {
       let processA: NativeIncidentSession | undefined =
         new NativeIncidentSession(
           () => ({ request: processARequest }) as never,
+          undefined,
+          undefined,
           () => incidentId,
         );
       await processA.open(target);
@@ -119,6 +121,8 @@ describe("MOB-023B Native process-death recovery", () => {
       const createProcessBId = vi.fn(() => crypto.randomUUID());
       const processB = new NativeIncidentSession(
         () => ({ request: processBRequest }) as never,
+        undefined,
+        undefined,
         createProcessBId,
       );
       await processB.open(target);

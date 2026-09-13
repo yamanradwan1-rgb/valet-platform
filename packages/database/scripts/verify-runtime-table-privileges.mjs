@@ -3,15 +3,25 @@ import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs
 import { verifyLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
 import {
   customerPrivileges,
-  incidentReadPolicies,
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
   runtimePrivateMapSetupFunctions as privateMapSetupFunctions,
 } from "./runtime-table-privileges.mjs";
 import { verifyBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
 import { staffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
+import {
+  incidentReadPolicies,
+  incidentRecoveryPrivileges,
+  verifyIncidentRecoveryPrivileges,
+} from "./incident-recovery-runtime-privileges.mjs";
+import {
+  anyColumnPrivilegeMatches,
+  columnPrivilegeMatches,
+  tablePrivilegeMatches,
+} from "./runtime-privilege-verification-helpers.mjs";
 
 const tablePrivileges = [
+  ...incidentRecoveryPrivileges.table,
   ...incidentReadPolicies,
   ...paymentCollectionPrivileges.table,
   ...providerEventPrivileges.table,
@@ -115,6 +125,7 @@ const tablePrivileges = [
   ["public._prisma_migrations", "TRIGGER", false],
 ];
 const columnPrivileges = [
+  ...incidentRecoveryPrivileges.column,
   ...paymentCollectionPrivileges.column,
   ...providerEventPrivileges.column,
   ...staffPushPrivileges.column,
@@ -159,6 +170,7 @@ const columnPrivileges = [
   ["public.shifts", "started_at", false],
 ];
 const anyColumnPrivileges = [
+  ...incidentRecoveryPrivileges.anyColumn,
   ...paymentCollectionPrivileges.anyColumn,
   ...providerEventPrivileges.anyColumn,
   ...customerPrivileges.anyColumn,
@@ -174,41 +186,17 @@ const anyColumnPrivileges = [
   ["public.validations", "UPDATE", true],
   ["public.shifts", "UPDATE", true],
 ];
-async function tablePrivilegeMatches(client, runtimeRole, policy) {
-  const [table, privilege, expected] = policy;
-  const result = await client.query(
-    `SELECT has_table_privilege($1, $2, $3) AS allowed`,
-    [runtimeRole, table, privilege],
-  );
-  return (
-    result.rows[0]?.allowed === expected &&
-    (table !== "public.refunds" ||
-      privilege !== "INSERT" ||
-      (await providerEventPrivileges.verifyRefundInsert(client, runtimeRole)))
-  );
-}
-
-async function columnPrivilegeMatches(client, runtimeRole, policy) {
-  const [table, column, expected] = policy;
-  const result = await client.query(
-    `SELECT has_column_privilege($1, $2, $3, 'UPDATE') AS allowed`,
-    [runtimeRole, table, column],
-  );
-  return result.rows[0]?.allowed === expected;
-}
-
-async function anyColumnPrivilegeMatches(client, runtimeRole, policy) {
-  const [table, privilege, expected] = policy;
-  const result = await client.query(
-    `SELECT has_any_column_privilege($1, $2, $3) AS allowed`,
-    [runtimeRole, table, privilege],
-  );
-  return result.rows[0]?.allowed === expected;
-}
-
 export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
+  await verifyIncidentRecoveryPrivileges(client, runtimeRole);
   for (const policy of tablePrivileges) {
-    if (!(await tablePrivilegeMatches(client, runtimeRole, policy))) {
+    if (
+      !(await tablePrivilegeMatches(
+        client,
+        runtimeRole,
+        policy,
+        providerEventPrivileges.verifyRefundInsert,
+      ))
+    ) {
       throw new Error("Runtime database role effective privileges are unsafe.");
     }
   }

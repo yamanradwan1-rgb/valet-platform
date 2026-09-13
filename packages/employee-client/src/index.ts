@@ -18,6 +18,8 @@ export {
 } from "@valet/contracts/staff-auth";
 export { staffOperationalContextResponseSchema } from "@valet/contracts/staff-context";
 export {
+  incidentRecoveryProtocol,
+  incidentRecoveryProtocolHeader,
   guestAccessIssueRequestSchema,
   guestAccessIssueResponseSchema,
   guestAccessRevokeResponseSchema,
@@ -71,6 +73,11 @@ export * from "./employee-handoff-flow-command";
 export * from "./employee-handoff-flow-state";
 export * from "./employee-handoff-flow-transport";
 export * from "./employee-handoff-flow-types";
+export * from "./incident-recovery-id";
+export * from "./incident-recovery-store";
+export * from "./incident-recovery-state";
+export * from "./incident-recovery-transport";
+export * from "./incident-recovery-types";
 export * from "./employee-release-flow-command";
 export * from "./employee-release-flow-session";
 export * from "./employee-release-flow-state";

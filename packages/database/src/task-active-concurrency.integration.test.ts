@@ -68,13 +68,15 @@ describe("DEC-034 active Task concurrency", () => {
       );
     await Promise.all([first.query("BEGIN"), second.query("BEGIN")]);
     await insert(first);
-    const competingInsert = insert(second);
+    const competingInsert = insert(second).then(
+      () => ({ error: null }),
+      (error: unknown) => ({ error }),
+    );
     await new Promise<void>((resolve) => setImmediate(resolve));
     await first.query("COMMIT");
+    const { error } = await competingInsert;
     try {
-      await competingInsert;
-      throw new Error("Expected the competing active Task to fail.");
-    } catch (error) {
+      expect(error).not.toBeNull();
       const pgError = error as PgError;
       expect(pgError.code).toBe("23505");
       expect(pgError.constraint).toBe(

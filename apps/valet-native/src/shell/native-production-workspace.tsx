@@ -34,6 +34,7 @@ import { nativeContextualNavigationPinned } from "./native-contextual-route";
 import { NativeConnectivityBanner } from "./native-connectivity-banner";
 import { NativePushPermissionStatus } from "../notifications/native-push-permission-status";
 import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
+import { nativeIncidentRecoveryVisible } from "../incident/native-incident-types";
 
 export function NativeProductionWorkspace({
   authSnapshot,
@@ -87,7 +88,8 @@ export function NativeProductionWorkspace({
         textAlign={presentation.textAlign}
       />
       <View style={{ flex: 1, minHeight: 0 }} testID="native-production-shell">
-        {contextual.route !== null ? (
+        {contextual.route !== null ||
+        nativeIncidentRecoveryVisible(contextual.incident) ? (
           <NativeContextualSurface
             connectivity={connectivity}
             guestAccess={contextual.guestAccess}

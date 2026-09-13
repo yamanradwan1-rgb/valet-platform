@@ -20,10 +20,12 @@ export class IncidentReportingService {
     authenticatedUserId: string,
     sessionId: string,
     input: ReportIncidentRequest,
+    recoveryProtocol = false,
   ): Promise<ReportIncidentResponse> {
     return this.executor({
       ...input,
       authenticatedUserId,
+      recoveryProtocol,
       sessionId,
     });
   }

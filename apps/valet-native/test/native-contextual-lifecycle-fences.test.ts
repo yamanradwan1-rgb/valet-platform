@@ -91,6 +91,8 @@ describe("Native contextual lifecycle fences", () => {
       .mockReturnValueOnce(pending.promise);
     const session = new NativeIncidentSession(
       () => ({ request }) as never,
+      undefined,
+      undefined,
       () => "11111111-1111-4111-8111-111111111111",
     );
     await session.open(target);

@@ -30,10 +30,14 @@ export function NativeIncidentScreen({
   const copy = getNativeIncidentCopy(locale);
   const direction = locale === "ar" ? "rtl" : "ltr";
   const textAlign = locale === "ar" ? "right" : "left";
-  if (snapshot.phase === "loading") {
+  if (snapshot.phase === "loading" || snapshot.phase === "recovery-checking") {
     return (
       <View
-        accessibilityLabel={copy.loadingSession}
+        accessibilityLabel={
+          snapshot.phase === "loading"
+            ? copy.loadingSession
+            : copy.recoveryChecking
+        }
         accessibilityRole="progressbar"
         style={s.loading}
       >
@@ -44,13 +48,18 @@ export function NativeIncidentScreen({
             employeeTextStyle("human", textAlign),
           ]}
         >
-          {copy.loadingSession}
+          {snapshot.phase === "loading"
+            ? copy.loadingSession
+            : copy.recoveryChecking}
         </Text>
       </View>
     );
   }
-  if (snapshot.phase === "success" && snapshot.report && snapshot.detail) {
-    const vehicle = nativeIncidentVehicleIdentity(snapshot.detail);
+  if (snapshot.phase === "success" && snapshot.report) {
+    const vehicle =
+      snapshot.detail === null
+        ? null
+        : nativeIncidentVehicleIdentity(snapshot.detail);
     return (
       <ScrollView contentContainerStyle={[s.resultBody, { direction }]}>
         <View style={s.resultIcon}>
@@ -80,16 +89,67 @@ export function NativeIncidentScreen({
             textAlign={textAlign}
             value={copy.severities[snapshot.report.severity]}
           />
-          <ResultRow
-            identifierSuffix={vehicle.identifier}
-            label={copy.vehicle}
-            textAlign={textAlign}
-            value={vehicle.heading}
-          />
+          {vehicle === null ? null : (
+            <ResultRow
+              identifierSuffix={vehicle.identifier}
+              label={copy.vehicle}
+              textAlign={textAlign}
+              value={vehicle.heading}
+            />
+          )}
         </View>
         <View style={s.resultCard}>
-          <EmployeeButton label={copy.returnLabel} onPress={onClose} />
+          <EmployeeButton
+            label={copy.returnLabel}
+            onPress={() => {
+              void session.acknowledge().then((cleared) => {
+                if (cleared) onClose();
+              });
+            }}
+          />
         </View>
+      </ScrollView>
+    );
+  }
+  if (snapshot.phase.startsWith("recovery-")) {
+    const message = recoveryMessage(copy, snapshot);
+    return (
+      <ScrollView contentContainerStyle={[s.body, { direction }]}>
+        <EmployeeBackHeader
+          accessibilityLabel={copy.back}
+          direction={direction}
+          onBack={onClose}
+          textAlign={textAlign}
+          title={copy.reportIncident}
+        />
+        <EmployeeErrorNotice textAlign={textAlign} title={copy.reportIncident}>
+          {snapshot.deadlineReached
+            ? `${copy.recoveryDeadline} ${message}`
+            : message}
+        </EmployeeErrorNotice>
+        {snapshot.phase === "recovery-reserved" ? (
+          <EmployeeButton
+            label={copy.retireAttempt}
+            onPress={() => void session.retire()}
+            variant="danger"
+          />
+        ) : null}
+        {snapshot.phase === "recovery-unavailable" ||
+        snapshot.phase === "recovery-reserved" ? (
+          <EmployeeButton
+            label={copy.retry}
+            onPress={() => void session.retryRecovery()}
+          />
+        ) : (
+          <EmployeeButton
+            label={copy.returnLabel}
+            onPress={() => {
+              void session.acknowledge().then((cleared) => {
+                if (cleared) onClose();
+              });
+            }}
+          />
+        )}
       </ScrollView>
     );
   }
@@ -131,6 +191,18 @@ export function NativeIncidentScreen({
       </ScrollView>
     </>
   );
+}
+
+function recoveryMessage(
+  copy: ReturnType<typeof getNativeIncidentCopy>,
+  snapshot: NativeIncidentSnapshot,
+): string {
+  if (snapshot.phase === "recovery-reserved") return copy.recoveryReserved;
+  if (snapshot.phase === "recovery-retired") return copy.recoveryRetired;
+  if (snapshot.phase === "recovery-unknown") return copy.recoveryUnknown;
+  if (snapshot.phase === "recovery-invalidated")
+    return copy.recoveryInvalidated;
+  return copy.recoveryUnavailable;
 }
 
 function ResultRow({

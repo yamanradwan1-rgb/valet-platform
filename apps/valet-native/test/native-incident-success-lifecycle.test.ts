@@ -23,6 +23,8 @@ async function successfulIncident() {
   const createIncidentId = vi.fn(() => incidentId);
   const session = new NativeIncidentSession(
     () => ({ request }) as never,
+    undefined,
+    undefined,
     createIncidentId,
   );
   await session.open(target);

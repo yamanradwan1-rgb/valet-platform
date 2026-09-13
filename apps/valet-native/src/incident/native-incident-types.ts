@@ -29,6 +29,7 @@ export const nativeIncidentSeverities: readonly IncidentSeverity[] = [
 ];
 
 export type NativeIncidentSnapshot = {
+  readonly deadlineReached?: boolean | undefined;
   readonly detail: StaffValetSessionDetailResponse | null;
   readonly error: string | null;
   readonly report: ReportIncidentResponse | null;
@@ -36,16 +37,32 @@ export type NativeIncidentSnapshot = {
   readonly phase:
     | "inactive"
     | "loading"
+    | "reserving"
     | "context-error"
     | "form"
     | "submitting"
-    | "success";
+    | "success"
+    | "recovery-checking"
+    | "recovery-reserved"
+    | "recovery-retired"
+    | "recovery-unknown"
+    | "recovery-unavailable"
+    | "recovery-invalidated";
 };
 
 export interface NativeIncidentSubmitInput {
   readonly description: string;
   readonly severity: IncidentSeverity;
   readonly type: IncidentType;
+}
+
+export function nativeIncidentRecoveryVisible(
+  snapshot: NativeIncidentSnapshot,
+): boolean {
+  return (
+    snapshot.phase.startsWith("recovery-") ||
+    (snapshot.phase === "success" && snapshot.detail === null)
+  );
 }
 
 export function nativeIncidentVehicleLine(

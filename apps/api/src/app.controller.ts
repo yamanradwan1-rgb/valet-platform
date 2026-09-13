@@ -1,5 +1,6 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { incidentRecoveryCapability } from "@valet/contracts";
 
 @ApiTags("bootstrap")
 @Controller()
@@ -17,5 +18,10 @@ export class AppController {
   })
   getStatus() {
     return { name: "valet-api", status: "ok" } as const;
+  }
+
+  @Get("capabilities/incident-recovery")
+  incidentRecoveryCapability() {
+    return { capability: incidentRecoveryCapability } as const;
   }
 }
