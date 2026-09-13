@@ -1,9 +1,9 @@
 # Employee Native — MOB-024B Support, Outage, and Web Fallback Runbook
 
-> Documentation and tabletop evidence only. This runbook creates no product,
-> API, database, authorization, custody, provider, release, or support-SLA
-> authority. Accepted decisions and binding repository documents remain
-> canonical.
+> Documentation, tabletop evidence, and one bounded local test-cohort API
+> recovery drill. This runbook creates no product, API, database,
+> authorization, custody, provider, release, or support-SLA authority. Accepted
+> decisions and binding repository documents remain canonical.
 
 ## 1. Purpose, audience, and evidence status
 
@@ -32,10 +32,12 @@ No response-time SLA is defined. The Founder Blueprint permits different
 support tiers/contracts, and the repository does not establish one universal
 P1/P2 clock.
 
-This document is **DOCUMENTED + STATIC/TABLETOP VERIFIED**. No outage was
-induced, no production service or configuration was mutated, and no physical,
-runtime, provider, test-cohort, signed-build, or signed-rollback drill was
-performed for MOB-024B.
+This document is **DOCUMENTED + STATIC/TABLETOP VERIFIED** for all scenarios.
+Section 8 additionally records **LOCAL COMMAND VERIFIED + RUNTIME VERIFIED**
+evidence for one bounded API interruption/recovery path in the guarded local
+development cohort. That narrow drill is not Native UI/device, provider,
+physical, signed-build, or signed-rollback evidence. No production service,
+customer, vehicle, or configuration was used or mutated.
 
 ## 2. Non-negotiable operating rules
 
@@ -244,8 +246,10 @@ Use this sequence before the scenario-specific procedure:
 
 **Evidence level / remaining gap**
 
-- DOCUMENTED + STATIC/TABLETOP VERIFIED. NOT PERFORMED — downstream operational
-  evidence remains open.
+- DOCUMENTED + STATIC/TABLETOP VERIFIED. The section 8 bounded local
+  development-cohort API interruption/recovery path is LOCAL COMMAND VERIFIED +
+  RUNTIME VERIFIED. Partial-endpoint, remote environment, Native device, and
+  ambiguous-mutation outage drills remain open.
 
 ### 5.2 Database outage or degraded database
 
@@ -1083,7 +1087,7 @@ gap. “Verified” below means static/tabletop review only.
 
 | Scenario | Detection | Safe evidence | Containment | Recovery/fallback | Canonical re-read and verification | Escalation | Evidence / remaining gap |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| API outage/partial API | Verified | Bounded operation/request/error/build fields | Stop affected mutations | Restore/wait; Web only for Native-only failure | Context, Task, session, custody, payment/release as applicable | API; DB/auth as indicated | STATIC/TABLETOP VERIFIED; no outage drill |
+| API outage/partial API | Verified | Bounded operation/request/error/build fields | Stop affected mutations | Restore/wait; Web only for Native-only failure | Context, Task, session, custody, payment/release as applicable | API; DB/auth as indicated | STATIC/TABLETOP VERIFIED; bounded local API interruption/recovery LOCAL COMMAND + RUNTIME VERIFIED; other outage paths open |
 | Database outage/degradation | Verified | Safe dependency/preflight class | Stop both clients’ authoritative mutations | Restore authoritative DB; no Web bypass | Full affected state after service recovery | DB/infrastructure + API | STATIC/TABLETOP VERIFIED; no restore/outage drill |
 | Authentication/revocation | Verified | Transient/definitive class, no credential | Preserve transient state or accept definitive purge | Retry transient; normal login after definitive loss | Identity, membership, Location, Shift, Task | Auth/security | STATIC/TABLETOP VERIFIED; no revocation/device drill |
 | Network loss/reconnect | Verified | Network/operation/policy class | No queue, fake success, or replay | DEC-063 class procedure | Fresh versions/authority and affected domain state | Operations + Native/API | STATIC/TABLETOP VERIFIED; no disconnect drill |
@@ -1096,11 +1100,102 @@ gap. “Verified” below means static/tabletop review only.
 | Employee Web fallback | Verified | Backend-read health + build correlation | Stop Native mutations | Ten-step same-backend handoff | Fresh Web context/state before action | Operations + Native/API | STATIC/TABLETOP VERIFIED; no cohort drill |
 | Broken release/rollback | Verified | Build/cohort/backend class | Stop expansion/use | Web containment; future approved signed rollback | Server state after any client/build change | Release + Native/Operations | STATIC/TABLETOP VERIFIED; U-006 open; signed rollback EVIDENCE OPEN |
 
-For every scenario: **NOT PERFORMED — downstream operational evidence remains
-open**. No row is RUNTIME VERIFIED, PHYSICAL VERIFIED, or SIGNED ROLLBACK
-VERIFIED by MOB-024B.
+Except for the single API interruption/recovery path recorded below, every
+scenario remains: **NOT PERFORMED — downstream operational evidence remains
+open**. No Native device/UI path is RUNTIME VERIFIED, and nothing is PHYSICAL
+VERIFIED or SIGNED ROLLBACK VERIFIED by MOB-024B.
 
-## 8. Platform separation
+## 8. Actual bounded test-cohort drill
+
+**Identity and scope**
+
+- Performed at operator-observed time `2026-09-13T16:07:17.514Z` on branch
+  `codex/mob-024b-support-outage-runbooks` at
+  `94904d70d2eba9e333b88344ac9f8c87debaccc9`.
+- Cohort class: repository-guarded loopback development PostgreSQL plus the
+  existing managed local API service. The repository local-development guard
+  accepted the target before use. Current API artifacts were built from the
+  tested SHA. Required non-secret Staff Push policy classes used the checked-in
+  development defaults with intent creation and sending disabled; no
+  repository or `.env` configuration file was changed.
+- Scenario: Option A, one bounded development API interruption and recovery.
+  This was read-only apart from normal test-staff authentication/session
+  creation. No protected domain command, production resource, or real customer
+  or vehicle was used.
+
+**Precondition and safe evidence**
+
+The healthy baseline returned `200` for authentication, operational context,
+Task queue, vehicle directory, and the authorized ValetSession detail read. The
+server proved one `VALET_EMPLOYEE` context with an ACTIVE Shift. The selected
+synthetic custody-bearing record was a completed PARKING Task at version `5`, a
+`PARKED` ValetSession at version `4`, and an assigned Key Slot. A read-only
+runtime-role reconciliation counted two custody events and nine AuditEvents for
+that session.
+
+Only bounded correlations were retained:
+
+- `mob024b-before-login`, `mob024b-before-context`,
+  `mob024b-before-queue`, `mob024b-before-directory`, and
+  `mob024b-before-session`;
+- build/source evidence: exact tested Git SHA above; and
+- platform class `local-development`. Native `appVersion`/`appBuild` from a
+  running binary were not available because this was not a Native device drill.
+
+No raw body, raw URL, token, credential, customer/guest field, plate, Key Slot
+code/identifier, or domain identifier was recorded in this evidence.
+
+**Failure, detection, and containment**
+
+The operator stopped only the managed test API, then issued exactly one
+authenticated Task-queue read. It failed in `12 ms` with the bounded evidence
+`source=http`, `operation=task-queue`, `classification=network-failure`, and
+`outcome=unknown`. No response existed, so `requestId` and `errorCode` were
+correctly absent rather than fabricated.
+
+No mutation was in flight or ambiguous. Protected mutation attempts were zero;
+the failed read was not replayed while unavailable, no queue was created, and
+no server-owned success was claimed.
+
+**Restoration, authoritative re-read, and recovery verification**
+
+The operator restarted the existing managed test API and waited for its health
+read to return `200` (the seventh 250 ms probe). The cohort was then
+re-authenticated normally. Correlations
+`mob024b-after-login`, `mob024b-after-context`,
+`mob024b-after-queue`, `mob024b-after-directory`, and
+`mob024b-after-session` each accompanied successful authoritative reads.
+
+The fresh context again proved the ACTIVE Shift. API reads and the independent
+read-only runtime-role reconciliation proved all of the following unchanged:
+
+- the same Task, `COMPLETED` at version `5`;
+- the same ValetSession, `PARKED` at version `4`;
+- the same assigned Key Slot;
+- two custody events; and
+- nine AuditEvents.
+
+The API service remained active and returned `200` after the drill. Recovery
+therefore passed without fabricated state, blind replay, direct database edit,
+history repair, or protected domain mutation.
+
+**Evidence level and limitations**
+
+This exact path is **LOCAL COMMAND VERIFIED + RUNTIME VERIFIED** against the
+running guarded local development cohort. It fulfills the MOB-024B bounded
+test-cohort chain for representative API loss: detection, sanitized
+build/request evidence, containment, service restoration, reauthentication,
+context restoration, authoritative Task/ValetSession/key-custody re-read, and
+recovery verification.
+
+It does not promote any other scenario. Native UI/support-card behavior,
+physical device/network switching, an ambiguous committed mutation, partial
+endpoint failure, Employee Web fallback, database restore, auth revocation,
+camera/OCR/push/provider failure, bad Location configuration, release rollback,
+iOS, and production execution remain **NOT PERFORMED — downstream operational
+evidence remains open**.
+
+## 9. Platform separation
 
 Shared and platform-neutral:
 
@@ -1128,7 +1223,7 @@ Future iOS considerations:
 No iOS physical behavior, APNs delivery, Keychain recovery, distribution, or
 signed install was tested or is claimed here.
 
-## 9. Evidence and release honesty
+## 10. Evidence and release honesty
 
 Evidence vocabulary is strict:
 
@@ -1141,17 +1236,18 @@ Evidence vocabulary is strict:
 - **PHYSICAL VERIFIED** — performed on required physical hardware; and
 - **SIGNED ROLLBACK VERIFIED** — a later approved signed rollback actually ran.
 
-This task contributes documentation to G7 but does **not** close G7. The binding
-plan requires MOB-023B plus MOB-024B and their required evidence dispositions.
-MOB-023B’s physical process-death/full-shift evidence remains separately open as
-recorded in its evidence file. MOB-024A also explicitly claims no runtime/device/
-physical/CI crash or ANR evidence and provides no crash/ANR collector.
+This task contributes documentation, tabletop proof, and the section 8 bounded
+test-cohort drill to G7 but does **not** close G7. MOB-023B’s physical
+process-death/full-shift evidence remains separately open as recorded in its
+evidence file. MOB-024A also explicitly claims no runtime/device/physical/CI
+crash or ANR evidence and provides no crash/ANR collector. The section 8 API
+runtime evidence does not promote those gaps or any undrilled scenario.
 
 Release ownership status is **OPEN — U-006 / deferred release ownership**.
 Signed rollback status is **EVIDENCE OPEN**. Owner-deferred MOB-026A/B and
 MOB-027A/B are not activated by this runbook.
 
-## 10. Authority and implementation references
+## 11. Authority and implementation references
 
 - [`AGENTS.md`](../../AGENTS.md)
 - [`docs/00_SOURCE_OF_TRUTH.md`](../00_SOURCE_OF_TRUTH.md)
