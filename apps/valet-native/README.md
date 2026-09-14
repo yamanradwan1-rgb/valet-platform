@@ -26,6 +26,11 @@ require HTTPS; local development permits HTTP only for localhost/loopback.
 This is intentionally separate from Employee Web's
 `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN`.
 
+Expo release configuration fails before bundle embedding unless
+`EXPO_PUBLIC_CUSTOMER_APP_ORIGIN` is explicitly set to the real deployed bare
+HTTPS Customer App origin. The repository's localhost example is development
+only; no production hostname is hard-coded.
+
 ## Android bundle resolution proof (no Gradle or APK build)
 
 Run from the repository root. This exercises the real Expo Router Android

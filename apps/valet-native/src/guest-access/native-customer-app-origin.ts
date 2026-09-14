@@ -1,11 +1,15 @@
 /** Native Customer-app configuration and canonical Guest Access URL boundary. */
 
-const GUEST_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
-const LOCAL_HTTP_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+export {
+  NATIVE_RELEASE_CUSTOMER_APP_ORIGIN_ERROR,
+  requireNativeReleaseCustomerAppOrigin,
+  resolveNativeCustomerAppOrigin,
+} from "./native-customer-app-origin-rules.mjs";
+export type { NativeCustomerAppOriginResult } from "./native-customer-app-origin-rules.mjs";
 
-export type NativeCustomerAppOriginResult =
-  | { readonly ok: true; readonly origin: string }
-  | { readonly ok: false; readonly reason: "INVALID" | "MISSING" };
+import { resolveNativeCustomerAppOrigin } from "./native-customer-app-origin-rules.mjs";
+
+const GUEST_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
 function nativeReleaseMode(): boolean {
   return typeof __DEV__ === "boolean"
@@ -13,42 +17,7 @@ function nativeReleaseMode(): boolean {
     : process.env.NODE_ENV === "production";
 }
 
-export function resolveNativeCustomerAppOrigin(input: {
-  readonly isProduction: boolean;
-  readonly raw: string | null | undefined;
-}): NativeCustomerAppOriginResult {
-  const candidate = (input.raw ?? "").trim();
-  if (candidate === "") return { ok: false, reason: "MISSING" };
-
-  let url: URL;
-  try {
-    url = new URL(candidate);
-  } catch {
-    return { ok: false, reason: "INVALID" };
-  }
-  if (
-    url.username !== "" ||
-    url.password !== "" ||
-    url.search !== "" ||
-    url.hash !== "" ||
-    url.pathname !== "/"
-  ) {
-    return { ok: false, reason: "INVALID" };
-  }
-  if (url.protocol === "https:") {
-    return { ok: true, origin: url.origin };
-  }
-  if (
-    url.protocol === "http:" &&
-    !input.isProduction &&
-    LOCAL_HTTP_HOSTS.has(url.hostname.toLowerCase())
-  ) {
-    return { ok: true, origin: url.origin };
-  }
-  return { ok: false, reason: "INVALID" };
-}
-
-export function currentNativeCustomerAppOrigin(): NativeCustomerAppOriginResult {
+export function currentNativeCustomerAppOrigin(): import("./native-customer-app-origin-rules.mjs").NativeCustomerAppOriginResult {
   return resolveNativeCustomerAppOrigin({
     isProduction: nativeReleaseMode(),
     raw: process.env.EXPO_PUBLIC_CUSTOMER_APP_ORIGIN,

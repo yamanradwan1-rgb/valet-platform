@@ -12,7 +12,7 @@
     "android": "expo run:android",
     "prebuild:android": "expo prebuild --platform android --clean --no-install",
     "config:public": "expo config --type public",
-    "lint": "eslint app src test --max-warnings=0",
+    "lint": "eslint app.config.ts app src test --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run test"
   },
