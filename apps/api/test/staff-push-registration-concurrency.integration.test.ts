@@ -55,10 +55,10 @@ describe("Staff push registration PostgreSQL concurrency", () => {
   });
 
   it("makes the later-created session the endpoint owner in both race directions", async () => {
-    const userA = await fixture.createUser();
-    const older = await fixture.login(userA);
+    const user = await fixture.createUser();
+    const older = await fixture.login(user);
     await new Promise((resolve) => setTimeout(resolve, 5));
-    const later = await fixture.login();
+    const later = await fixture.login(user);
     const body = fixture.requestBody();
     await fixture.put(older, body);
 

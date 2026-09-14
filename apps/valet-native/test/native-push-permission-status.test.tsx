@@ -13,6 +13,8 @@ vi.mock("react-native", () => ({
 
 const { NativePushPermissionStatus } =
   await import("../src/notifications/native-push-permission-status");
+const { getNativePushCopy } =
+  await import("../src/notifications/native-push-copy");
 
 type Element = ReactElement<Record<string, unknown>>;
 
@@ -26,6 +28,11 @@ function elements(value: unknown): Element[] {
 function render(
   permission: "blocked" | "denied" | "granted" | "undetermined",
   channelAvailable = true,
+  registration:
+    | "confirmed"
+    | "network-unavailable"
+    | "registration-error"
+    | "token-unavailable" = "registration-error",
 ) {
   const onRequestPermission = vi.fn(async () => undefined);
   const visible = elements(
@@ -40,7 +47,7 @@ function render(
           permission === "granted" && !channelAvailable
             ? "confirmed"
             : permission === "granted"
-              ? "unconfirmed"
+              ? registration
               : "idle",
       },
       textAlign: "left",
@@ -78,11 +85,41 @@ describe("Native push permission status", () => {
     expect(onRequestPermission).not.toHaveBeenCalled();
   });
 
-  it("does not claim remote confirmation while registration is unconfirmed", () => {
+  it("does not label an HTTP reconciliation failure as connectivity", () => {
     const { visible } = render("granted");
+    const text = JSON.stringify(visible.map((node) => node.props.children));
+    expect(text).toContain("device registration could not be confirmed");
+    expect(text).not.toContain("connectivity");
+  });
+
+  it("shows enabled state immediately after registration is confirmed", () => {
+    const { visible } = render("granted", true, "confirmed");
     expect(
       JSON.stringify(visible.map((node) => node.props.children)),
-    ).toContain("this device is not yet confirmed");
+    ).toContain("Retrieval task notifications are enabled.");
+  });
+
+  it("reserves connectivity copy for a transport network failure", () => {
+    const { visible } = render("granted", true, "network-unavailable");
+    expect(
+      JSON.stringify(visible.map((node) => node.props.children)),
+    ).toContain("connectivity returns");
+  });
+
+  it("distinguishes unavailable token acquisition", () => {
+    const { visible } = render("granted", true, "token-unavailable");
+    expect(
+      JSON.stringify(visible.map((node) => node.props.children)),
+    ).toContain("device notification token is not available yet");
+  });
+
+  it("keeps reconciliation, network, and token copy in EN/AR parity", () => {
+    for (const locale of ["en", "ar"] as const) {
+      const localized = getNativePushCopy(locale);
+      expect(localized.registrationError.length).toBeGreaterThan(20);
+      expect(localized.networkUnavailable.length).toBeGreaterThan(20);
+      expect(localized.tokenUnavailable.length).toBeGreaterThan(20);
+    }
   });
 
   it("reports channel revocation and guides the user to Android settings", () => {

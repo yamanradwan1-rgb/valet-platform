@@ -174,8 +174,8 @@ Authorization-before-mutation ordering is mandatory:
 4. load and lock registrations implicated by registration ID, installation and
    token hash;
 5. prove a registration-ID mutation belongs to the current Staff session, and
-   permit cross-session replacement only under the exact account-switch
-   supersession rule in section 9;
+   permit cross-session replacement only for the exact same-user,
+   same-installation session-transition rule in section 9;
 6. apply one idempotent state transition and safe metadata change;
 7. commit before returning; and
 8. emit only redacted operational telemetry after the outcome is known.
@@ -275,30 +275,33 @@ migration, update fixtures and add PostgreSQL constraint tests.
 | None | Register | Current authenticated Staff session; valid strict input | ACTIVE | Create one row; return only registration ID/state/metadata, never token. |
 | ACTIVE | Exact retry | Same session, install, token hash and canonical operation | ACTIVE | Return prior outcome; update no authority. |
 | ACTIVE | Metadata refresh | Same session and registration | ACTIVE | Update only app version/build/locale and last-confirmed time. |
-| ACTIVE | Token rotation | Same session and installation, new valid token | SUPERSEDED + new ACTIVE | Lock and transition old row; insert new row atomically. |
-| ACTIVE | Account switch rebind | New current session presents the exact same provider/app/installation and token | SUPERSEDED + new ACTIVE | Atomically supersede the old binding and create a row for the new session; reveal no old identity. |
+| ACTIVE | Token rotation | Same session, or a later-created current session for the same User, presents the same installation with a new valid token | SUPERSEDED + new ACTIVE | Lock and transition old row; insert new row atomically. |
+| ACTIVE | Same-user session rebind | A later-created current session for the same User presents the exact same provider/app/installation and token | SUPERSEDED + new ACTIVE | Atomically supersede the old binding and create a row for the new session; reveal no old session identity. |
 | ACTIVE | Explicit disable/logout | Current owning session or trusted server session-revocation path | DISABLED | Terminal transition; clear raw token after the transition is durable. |
 | ACTIVE | Provider says endpoint invalid | Fenced delivery still references the same registration/token version | PROVIDER_INVALID | Terminal transition; clear raw token and suppress unsent deliveries. |
 | ACTIVE | New active row wins a uniqueness race | Locked canonical winner exists | SUPERSEDED | Losing old row cannot remain active. |
 | Any terminal | Register/rotate | Any input | Unchanged | Never reactivate; create a new row only after current authorization and uniqueness checks. |
 
-The account-switch exception uses installation and token only to locate a stale
-binding to supersede; they never identify or authorize the new Staff user. A
-token collision across different installation IDs fails closed and raises
-safe security telemetry rather than silently rebinding.
+The same-user session-transition exception uses installation and token only to
+locate the existing binding to supersede; they never identify or authorize the
+Staff user. The authenticated sessions must resolve to the same User, and the
+new owner must be later-created. A different User or a token collision across
+different installation IDs fails closed and raises safe security telemetry
+rather than silently rebinding.
 
 Registration races use one canonical lock order across Staff session,
 provider/app/installation and token-hash rows. Duplicate or simultaneous
 desired-state PUTs converge on one ACTIVE row. Registration rechecks the locked
 Staff session immediately before mutation. If logout wins, registration is
 rejected; if registration wins, the following logout transaction disables the
-row while revoking the session. When two authenticated sessions race to bind
-the exact same provider/app/installation/token tuple, the later-created current
-Staff session is the deterministic endpoint owner; an older session cannot
-reclaim it. This ordering affects endpoint attention only and grants neither
-session domain authority. Provider invalidation is conditional on exact row and
-token version, so a concurrent successful re-registration cannot be invalidated
-by a stale provider result.
+row while revoking the session. When two authenticated sessions for the same
+User race to bind the exact same provider/app/installation/token tuple, the
+later-created current Staff session is the deterministic endpoint owner; an
+older session cannot reclaim it. A session for a different User cannot take
+ownership of the active binding. This ordering affects endpoint attention only
+and grants neither session domain authority. Provider invalidation is
+conditional on exact row and token version, so a concurrent successful
+re-registration cannot be invalidated by a stale provider result.
 
 Multiple installations and multiple active Staff sessions are supported. Each
 registration belongs to exactly one Staff session. Session access-token
@@ -589,16 +592,17 @@ API --> Native app: current queue / safe forbidden-or-empty result
 Native app: navigation only; no protected mutation
 ```
 
-### Sequence J. Account switch on the same device
+### Sequence J. Same-user reauthentication on the same device
 
 ```text
-User A logout: local block/purge; server revoke/disable when reachable
-User B -> API: authenticate as a new StaffAuthSession
-User B app -> API: desired-state PUT(same install I, current token T)
+User A has a prior still-valid StaffAuthSession bound to install I
+User A -> API: reauthenticate as a later StaffAuthSession
+User A app -> API: desired-state PUT(same install I, current token T)
 API -> DB: lock exact provider/app/I/hash(T)
-API -> DB: supersede stale A binding + create ACTIVE B binding atomically
-API --> User B app: new registration; no A identity/data disclosed
-future delivery eligibility derives only from B's current server facts
+API -> DB: prove same User and later session; supersede prior binding
+API -> DB: create ACTIVE binding for the current session atomically
+API --> User A app: new registration; no prior-session identity disclosed
+future delivery eligibility derives only from the current session's facts
 ```
 
 ## 16. Concurrency analysis diagrams
@@ -740,7 +744,7 @@ deployment/security controls.
 | 4. Revoked session | Current session join at send | Restore fails, purge/login | Suppress; already accepted generic alert may arrive | Revocation race/e2e |
 | 5. Disabled User | Active User at resolution/create/send | Purge on auth loss | Suppress | Disabled-user integration test |
 | 6. Logout unregister failure | Atomic server logout+disable when request arrives; current session eligibility | Local block/purge and best-effort provider-token delete | Unconfirmed logout can leave short residual until server learns | Offline logout physical test |
-| 7. Account switch | Exact atomic install/token supersession under new authenticated session | Purge all old identity state before new context | Fail closed on collision | A->B->A device test |
+| 7. Session/account change | Same-user later-session rebind; different-User active ownership fails closed | Purge all old identity state before new context | Reauthenticate same User safely; reject cross-User collision | Same-user reauth and A->B negative tests |
 | 8. Provider-token theft | Token is non-authority; strict authenticated registration; server credentials secret | Never log/share token | Attacker with provider credentials could send generic/forged OS alerts | Redaction/secret review |
 | 9. Forged registration | Bearer-authenticated current session; strict allowlists; no caller identity fields | Send token only after auth | Reject without write | Auth/unknown-field/spoof tests |
 | 10. Token rotation race | Locks, active uniqueness and conditional token-version invalidation | Register rotation immediately | Old delivery suppressed; one ACTIVE winner | PostgreSQL concurrency test |

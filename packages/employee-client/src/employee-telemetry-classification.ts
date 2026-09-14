@@ -33,6 +33,9 @@ export const EMPLOYEE_TELEMETRY_CLASSIFICATIONS = {
   push: [
     "registration-confirmed",
     "registration-unavailable",
+    "registration-network-unavailable",
+    "registration-reconciliation-failed",
+    "token-unavailable",
     "permission-denied",
     "channel-unavailable",
   ],

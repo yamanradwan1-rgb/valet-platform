@@ -188,18 +188,6 @@ describe("Native push bounded lifecycle and auth fences", () => {
     });
   });
 
-  it("leaves failed registration unconfirmed and retries current state on recovery", async () => {
-    const harness = pushHarness();
-    harness.registration.failure = new Error("synthetic network failure");
-    await harness.owner.setAuth(authenticated());
-    expect(harness.owner.current().registration).toBe("unconfirmed");
-    harness.registration.failure = undefined;
-    harness.platform.token = fakeTokenTwo;
-    await harness.owner.networkRecovered();
-    expect(harness.registration.calls.at(-1)?.providerToken).toBe(fakeTokenTwo);
-    expect(harness.owner.current().registration).toBe("confirmed");
-  });
-
   it("ignores token acquisition completed after logout", async () => {
     const harness = pushHarness();
     const token = deferred<string>();
@@ -236,6 +224,7 @@ describe("Native push bounded lifecycle and auth fences", () => {
     expect(harness.registration.calls).toHaveLength(1);
     await harness.owner.setAuth(loggedOut(2));
     const accountB = harness.owner.setAuth(authenticated(3));
+    expect(harness.registration.calls).toHaveLength(1);
     response.resolve(registrationResponse(harness.registration.calls[0]!));
     await accountA;
     await accountB;

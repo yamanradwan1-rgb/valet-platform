@@ -53,6 +53,16 @@ function sessionIsLater(
   );
 }
 
+function sessionMayReplaceOwner(
+  session: LockedStaffSessionRow,
+  owner: ActiveRegistrationRow,
+): boolean {
+  return (
+    session.user_id === owner.owner_user_id &&
+    (!owner.owner_current || sessionIsLater(session, owner))
+  );
+}
+
 function safeRegistrationError(error: unknown): never {
   if ((error as PostgresError).code === "23505") {
     throw new StaffPushRegistrationConflictError();
@@ -128,10 +138,7 @@ export class StaffPushRegistrationService {
               ),
             );
           }
-          if (
-            installationRegistration.owner_current &&
-            !sessionIsLater(session, installationRegistration)
-          ) {
+          if (!sessionMayReplaceOwner(session, installationRegistration)) {
             throw new StaffPushRegistrationConflictError();
           }
           return this.replace(
@@ -143,7 +150,10 @@ export class StaffPushRegistrationService {
             "ACCOUNT_SWITCH",
           );
         }
-        if (installationRegistration.staff_auth_session_id !== session.id) {
+        if (
+          installationRegistration.staff_auth_session_id !== session.id &&
+          !sessionMayReplaceOwner(session, installationRegistration)
+        ) {
           throw new StaffPushRegistrationConflictError();
         }
         return this.replace(

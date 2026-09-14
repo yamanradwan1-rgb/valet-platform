@@ -37,7 +37,13 @@ export function NativePushPermissionStatus(props: {
     : channelUnavailable
       ? copy.channelUnavailable
       : props.snapshot.permission === "granted"
-        ? copy.pending
+        ? props.snapshot.registration === "network-unavailable"
+          ? copy.networkUnavailable
+          : props.snapshot.registration === "registration-error"
+            ? copy.registrationError
+            : props.snapshot.registration === "token-unavailable"
+              ? copy.tokenUnavailable
+              : copy.pending
         : requestable
           ? copy.requestable
           : blocked

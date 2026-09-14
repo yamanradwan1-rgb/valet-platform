@@ -3641,7 +3641,11 @@ delivery persistence; it must not reuse the external SMS/WhatsApp/Email
 bind server-side to the exact authenticated `StaffAuthSession`, support
 multiple devices, and use ACTIVE plus terminal
 DISABLED/PROVIDER_INVALID/SUPERSEDED lifecycle semantics with atomic token
-rotation/account-switch supersession.
+rotation and deterministic same-user session-transition supersession. A later
+current session may reconcile the same User's exact physical installation,
+including a simultaneous provider-token rotation; a different User may not
+inherit an existing active binding, and a token collision across installations
+remains a conflict.
 Provider tokens are sensitive operational identifiers: the server retains the
 raw usable value under least privilege plus a versioned hash for equality; no
 token or hash enters logs, payloads, AuditEvent, analytics, errors or metric

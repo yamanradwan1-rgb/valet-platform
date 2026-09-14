@@ -91,12 +91,60 @@ describe("Staff push registration lifecycle", () => {
     });
   });
 
-  it("rebinds an exact endpoint only to the later-created current session", async () => {
-    const older = await fixture.login();
+  it("reconciles same-device token rotation after same-user reauthentication", async () => {
+    const user = await fixture.createUser();
+    const priorSession = await fixture.login(user);
+    const body = fixture.requestBody();
+    const initial = await fixture.put(priorSession, body);
     await new Promise((resolve) => setTimeout(resolve, 5));
-    const later = await fixture.login();
+    const currentSession = await fixture.login(user);
+
+    const priorState = await fixture.query<{
+      absolute_current: boolean;
+      revoked_at: Date | null;
+    }>(
+      `SELECT revoked_at,
+              clock_timestamp() < absolute_expires_at AS absolute_current
+       FROM staff_auth_sessions WHERE id = $1`,
+      [priorSession.sessionId],
+    );
+    expect(priorState.rows[0]).toMatchObject({
+      absolute_current: true,
+      revoked_at: null,
+    });
+
+    const rotated = await fixture.put(currentSession, {
+      ...body,
+      providerToken: `${body.providerToken}-reauth-rotation`,
+    });
+
+    expect(rotated.status).toBe(200);
+    expect(rotated.body?.registrationId).not.toBe(initial.body?.registrationId);
+    const rows = (await fixture.registrations()).rows.filter(
+      (row) => row.installation_id === body.installationId,
+    );
+    expect(rows.filter((row) => row.state === "ACTIVE")).toEqual([
+      expect.objectContaining({
+        staff_auth_session_id: currentSession.sessionId,
+      }),
+    ]);
+    expect(
+      rows.find((row) => row.id === initial.body?.registrationId),
+    ).toMatchObject({
+      state: "SUPERSEDED",
+      terminal_reason_class: "TOKEN_ROTATION",
+    });
+  });
+
+  it("rebinds an exact endpoint only to the later-created current session", async () => {
+    const user = await fixture.createUser();
+    const older = await fixture.login(user);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const later = await fixture.login(user);
     const body = fixture.requestBody();
     const initial = await fixture.put(older, body);
+    // Product invariant: legitimate same-device reauthentication must not
+    // require logout/login, reinstall, or manual database cleanup for push.
     const rebound = await fixture.put(later, body);
     expect(rebound.status).toBe(200);
     expect(rebound.body?.registrationId).not.toBe(initial.body?.registrationId);
@@ -122,6 +170,20 @@ describe("Staff push registration lifecycle", () => {
       state: "SUPERSEDED",
       terminal_reason_class: "ACCOUNT_SWITCH",
     });
+  });
+
+  it("rejects a different user claiming the same active installation and token", async () => {
+    const owner = await fixture.login();
+    const otherUser = await fixture.login();
+    const body = fixture.requestBody();
+    await fixture.put(owner, body);
+    const before = await fixture.registrations();
+
+    const result = await fixture.put(otherUser, body);
+
+    expect(result.status).toBe(409);
+    expect(result.body?.code).toBe("STAFF_PUSH_REGISTRATION_CONFLICT");
+    expect((await fixture.registrations()).rows).toEqual(before.rows);
   });
 
   it("fails closed when an active token is presented for another installation", async () => {

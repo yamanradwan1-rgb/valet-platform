@@ -10,6 +10,7 @@ import {
   type ConfirmedNativePushState,
 } from "./native-push-desired-state";
 import { NativePushForegroundAttentionOwner } from "./native-push-foreground-attention";
+import { pushRegistrationFailureState } from "./native-push-registration-failure";
 import {
   emptyNativePushSnapshot,
   unauthenticatedNativePushAuth,
@@ -23,9 +24,7 @@ import {
 } from "./native-push-types";
 
 export class NativePushLifecycleOwner {
-  private active:
-    | { readonly generation: number; readonly promise: Promise<void> }
-    | undefined;
+  private active: Promise<void> | undefined;
   private auth: NativeAuthSnapshot = unauthenticatedNativePushAuth(0);
   private confirmed: ConfirmedNativePushState | undefined;
   private currentToken: string | undefined;
@@ -170,20 +169,20 @@ export class NativePushLifecycleOwner {
       return Promise.resolve();
     }
     this.pending = next;
-    if (this.active?.generation === next.generation) return this.active.promise;
-    const promise = this.drain(next.generation).finally(() => {
-      if (this.active?.promise === promise) this.active = undefined;
+    if (this.active !== undefined) return this.active;
+    const promise = this.drain().finally(() => {
+      if (this.active === promise) this.active = undefined;
     });
-    this.active = { generation: next.generation, promise };
+    this.active = promise;
     return promise;
   }
 
-  private async drain(generation: number): Promise<void> {
-    while (this.pending?.generation === generation) {
+  private async drain(): Promise<void> {
+    while (this.pending !== undefined) {
       const pending = this.pending;
       this.pending = undefined;
+      if (!this.isCurrent(pending.generation)) continue;
       await this.perform(pending);
-      if (!this.isCurrent(generation)) return;
     }
   }
 
@@ -224,7 +223,7 @@ export class NativePushLifecycleOwner {
       token = pending.providedToken ?? (await this.platform.getCurrentToken());
     } catch {
       if (this.isCurrent(generation))
-        this.publish({ registration: "unavailable" });
+        this.publish({ registration: "token-unavailable" });
       return;
     }
     if (!this.isCurrent(generation)) return;
@@ -265,14 +264,14 @@ export class NativePushLifecycleOwner {
       const response = await this.transport.reconcile(request);
       if (!this.isCurrent(generation) || !requestIsCurrent()) return;
       if (!nativePushResponseMatches(response, request)) {
-        this.publish({ registration: "unconfirmed" });
+        this.publish({ registration: "registration-error" });
         return;
       }
       this.confirmed = { ...metadata, locale: this.locale, token };
       this.publish({ registration: "confirmed" });
-    } catch {
+    } catch (error) {
       if (this.isCurrent(generation)) {
-        this.publish({ registration: "unconfirmed" });
+        this.publish({ registration: pushRegistrationFailureState(error) });
       }
     }
   }

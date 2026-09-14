@@ -54,6 +54,7 @@ export async function findActiveRegistrations(
             registration.app_build, registration.locale,
             registration.last_confirmed_at,
             owner.created_at AS owner_created_at,
+            owner.user_id AS owner_user_id,
             (owner.revoked_at IS NULL
               AND clock_timestamp() < owner.absolute_expires_at
               AND owner_user.status = 'ACTIVE') AS owner_current

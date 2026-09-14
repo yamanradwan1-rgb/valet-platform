@@ -11,7 +11,13 @@ export type NativePushPermissionState =
   "blocked" | "denied" | "granted" | "undetermined" | "unavailable";
 
 export type NativePushRegistrationState =
-  "confirmed" | "idle" | "reconciling" | "unconfirmed" | "unavailable";
+  | "confirmed"
+  | "idle"
+  | "network-unavailable"
+  | "reconciling"
+  | "registration-error"
+  | "token-unavailable"
+  | "unavailable";
 
 export type NativePushReconcileReason =
   | "authentication"

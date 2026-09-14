@@ -16,6 +16,7 @@ export interface ActiveRegistrationRow {
   readonly locale: "en" | "ar";
   readonly owner_created_at: Date;
   readonly owner_current: boolean;
+  readonly owner_user_id: string;
   readonly platform: "ANDROID";
   readonly provider: "FCM";
   readonly staff_auth_session_id: string;

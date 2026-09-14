@@ -18,7 +18,10 @@ import {
 } from "./native-push-installation";
 import { NativePushLifecycleOwner } from "./native-push-lifecycle";
 import { NativePushHttpRegistrationTransport } from "./native-push-registration-transport";
-import { emptyNativePushSnapshot, type NativePushSnapshot } from "./native-push-types";
+import {
+  emptyNativePushSnapshot,
+  type NativePushSnapshot,
+} from "./native-push-types";
 
 function isNetworkFailure(snapshot: EmployeeOperationalSnapshot): boolean {
   const failure = snapshot.queueFailure ?? snapshot.contextFailure;
@@ -45,22 +48,26 @@ function recordPushTelemetry(
       outcome,
       source: "push",
     });
-  if (
-    previous === undefined ||
-    previous.registration !== next.registration
-  ) {
-    if (next.registration === "confirmed") record("registration-confirmed", "success");
-    else if (
-      next.registration === "unavailable" ||
-      next.registration === "unconfirmed"
-    )
+  if (previous === undefined || previous.registration !== next.registration) {
+    if (next.registration === "confirmed")
+      record("registration-confirmed", "success");
+    else if (next.registration === "network-unavailable")
+      record("registration-network-unavailable", "error");
+    else if (next.registration === "registration-error")
+      record("registration-reconciliation-failed", "error");
+    else if (next.registration === "token-unavailable")
+      record("token-unavailable", "error");
+    else if (next.registration === "unavailable")
       record("registration-unavailable", "error");
   }
   if (previous === undefined || previous.permission !== next.permission) {
     if (next.permission === "denied" || next.permission === "blocked")
       record("permission-denied", "error");
   }
-  if (previous === undefined || previous.channelAvailable !== next.channelAvailable) {
+  if (
+    previous === undefined ||
+    previous.channelAvailable !== next.channelAvailable
+  ) {
     if (next.channelAvailable === false) record("channel-unavailable", "error");
   }
 }
