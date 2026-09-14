@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { StaffVehicleDirectoryResponse } from "@valet/contracts";
+import {
+  staffVehicleDirectoryVisibilityCapability,
+  staffVehicleDirectoryVisibilityCapabilityHeader,
+  type StaffVehicleDirectoryResponse,
+} from "@valet/contracts";
 
 import { EmployeeVehicleDirectorySession } from "./employee-vehicle-directory-session";
 import { createEmployeeVehicleDirectoryTransport } from "./employee-vehicle-directory-transport";
@@ -35,6 +39,10 @@ describe("Employee vehicle directory", () => {
     );
     await expect(transport.load(locationId)).resolves.toEqual(page());
     expect(request).toHaveBeenCalledWith({
+      headers: {
+        [staffVehicleDirectoryVisibilityCapabilityHeader]:
+          staffVehicleDirectoryVisibilityCapability,
+      },
       method: "GET",
       params: { locationId },
       path: "/v1/staff/valet-sessions/directory",

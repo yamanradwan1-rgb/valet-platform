@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  staffVehicleDirectoryLegacyResponseSchema,
   staffVehicleDirectoryQuerySchema,
   staffVehicleDirectoryResponseSchema,
   staffVehicleDirectoryRowSchema,
@@ -69,6 +70,26 @@ describe("staffVehicleDirectory contracts", () => {
         keySlotVisibility: "VISIBLE",
       }),
     ).toThrow("Key Slot code does not match its visibility");
+  });
+
+  it("proves the pre-visibility strict parser rejects additive rows but accepts the legacy projection", () => {
+    const currentPayload = {
+      locationId: "11111111-1111-4111-8111-111111111111",
+      rows: [baseRow()],
+      truncated: false,
+    };
+    expect(() =>
+      staffVehicleDirectoryLegacyResponseSchema.parse(currentPayload),
+    ).toThrow();
+
+    const legacyRow = { ...baseRow() };
+    delete legacyRow.keySlotVisibility;
+    expect(
+      staffVehicleDirectoryLegacyResponseSchema.parse({
+        ...currentPayload,
+        rows: [legacyRow],
+      }),
+    ).toEqual({ ...currentPayload, rows: [legacyRow] });
   });
 
   it("rejects COMPLETED as a directory row state", () => {

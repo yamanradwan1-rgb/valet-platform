@@ -1,4 +1,8 @@
-import type { StaffVehicleDirectoryResponse } from "@valet/contracts";
+import {
+  staffVehicleDirectoryVisibilityCapability,
+  staffVehicleDirectoryVisibilityCapabilityHeader,
+  type StaffVehicleDirectoryResponse,
+} from "@valet/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
@@ -47,6 +51,10 @@ describe("fetchStaffVehicleDirectory API (VUI-011C)", () => {
     expect(mockClient.request).toHaveBeenCalledWith(
       "/v1/staff/valet-sessions/directory",
       {
+        headers: {
+          [staffVehicleDirectoryVisibilityCapabilityHeader]:
+            staffVehicleDirectoryVisibilityCapability,
+        },
         method: "GET",
         params: { locationId: LOCATION_ID },
         signal: undefined,

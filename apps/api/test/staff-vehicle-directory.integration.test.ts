@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { StaffVehicleDirectoryResponse } from "@valet/contracts";
+import {
+  staffVehicleDirectoryLegacyResponseSchema,
+  staffVehicleDirectoryVisibilityCapability,
+  staffVehicleDirectoryVisibilityCapabilityHeader,
+  type StaffVehicleDirectoryLegacyResponse,
+  type StaffVehicleDirectoryResponse,
+} from "@valet/contracts";
 
 import {
   createStaffValetSessionHarness,
@@ -33,7 +39,13 @@ describe("Staff Vehicle Directory Authority Integration", () => {
     queryString: string,
   ) {
     const suffix = queryString.length > 0 ? `?${queryString}` : "";
-    return harness.request<T>("GET", `${DIRECTORY}${suffix}`, { token });
+    return harness.request<T>("GET", `${DIRECTORY}${suffix}`, {
+      headers: {
+        [staffVehicleDirectoryVisibilityCapabilityHeader]:
+          staffVehicleDirectoryVisibilityCapability,
+      },
+      token,
+    });
   }
 
   async function pinCreatedAt(sessionId: string, iso: string) {
@@ -42,6 +54,30 @@ describe("Staff Vehicle Directory Authority Integration", () => {
       [sessionId, iso],
     );
   }
+
+  it("preserves the exact strict legacy response for requests without the visibility capability", async () => {
+    const { fixture, token } = await harness.fixtureWithToken({
+      role: "VALET_SUPERVISOR",
+    });
+    const slotId = await harness.createKeySlot(fixture, "K-LEGACY");
+    await harness.createSession(fixture, {
+      keySlotId: slotId,
+      state: "AWAITING_PARKING",
+    });
+
+    const legacy = await harness.request<StaffVehicleDirectoryLegacyResponse>(
+      "GET",
+      `${DIRECTORY}?locationId=${fixture.locationId}`,
+      { token },
+    );
+
+    expect(legacy.status).toBe(200);
+    expect(
+      staffVehicleDirectoryLegacyResponseSchema.parse(legacy.body),
+    ).toEqual(legacy.body);
+    expect(JSON.stringify(legacy.body)).not.toContain("keySlotVisibility");
+    expect(legacy.body.rows[0]?.keySlotCode).toBe("K-LEGACY");
+  });
 
   it("returns location-wide non-COMPLETED rows to the supervisor in deterministic order", async () => {
     const { fixture, token } = await harness.fixtureWithToken({

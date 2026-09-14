@@ -1,5 +1,7 @@
 import {
   staffVehicleDirectoryResponseSchema,
+  staffVehicleDirectoryVisibilityCapability,
+  staffVehicleDirectoryVisibilityCapabilityHeader,
   type StaffVehicleDirectoryResponse,
 } from "@valet/contracts";
 
@@ -12,6 +14,10 @@ export function createEmployeeVehicleDirectoryTransport(
   return {
     async load(locationId, signal): Promise<StaffVehicleDirectoryResponse> {
       const raw = await clientFactory(signal).request<unknown>({
+        headers: {
+          [staffVehicleDirectoryVisibilityCapabilityHeader]:
+            staffVehicleDirectoryVisibilityCapability,
+        },
         method: "GET",
         params: { locationId },
         path: "/v1/staff/valet-sessions/directory",

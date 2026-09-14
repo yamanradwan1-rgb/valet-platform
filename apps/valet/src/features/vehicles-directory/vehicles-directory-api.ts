@@ -1,5 +1,7 @@
 import {
   staffVehicleDirectoryResponseSchema,
+  staffVehicleDirectoryVisibilityCapability,
+  staffVehicleDirectoryVisibilityCapabilityHeader,
   type StaffVehicleDirectoryResponse,
 } from "@valet/contracts";
 
@@ -30,6 +32,10 @@ export async function fetchStaffVehicleDirectory(
     "/v1/staff/valet-sessions/directory",
     {
       method: "GET",
+      headers: {
+        [staffVehicleDirectoryVisibilityCapabilityHeader]:
+          staffVehicleDirectoryVisibilityCapability,
+      },
       params: { locationId },
       signal: options.signal,
       requireAuth: true,

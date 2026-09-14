@@ -46,6 +46,31 @@ export type StaffVehicleDirectoryKeySlotVisibility = z.infer<
   typeof staffVehicleDirectoryKeySlotVisibilitySchema
 >;
 
+export const staffVehicleDirectoryVisibilityCapability =
+  "key-slot-visibility-v1" as const;
+export const staffVehicleDirectoryVisibilityCapabilityHeader =
+  "Valet-Vehicle-Directory-Capability" as const;
+
+const staffVehicleDirectoryLegacyRowShape = {
+  createdAt: utcTimestampSchema,
+  keySlotCode: z.string().min(1).nullable(),
+  parkingSpotCode: z.string().nullable(),
+  parkingZoneCode: z.string().nullable(),
+  sessionId: uuidSchema,
+  state: staffVehicleDirectoryRowStateSchema,
+  updatedAt: utcTimestampSchema,
+  vehicle: staffVehicleDirectoryVehicleSchema,
+};
+
+/** Exact strict row schema consumed by clients released before visibility v1. */
+export const staffVehicleDirectoryLegacyRowSchema = z
+  .object(staffVehicleDirectoryLegacyRowShape)
+  .strict();
+
+export type StaffVehicleDirectoryLegacyRow = z.infer<
+  typeof staffVehicleDirectoryLegacyRowSchema
+>;
+
 /**
  * One active vehicle row. `keySlotCode` is field-masked per role:
  * VALET_SUPERVISOR receives staff-only Key Slot detail inside the exact
@@ -56,15 +81,8 @@ export type StaffVehicleDirectoryKeySlotVisibility = z.infer<
  */
 export const staffVehicleDirectoryRowSchema = z
   .object({
-    createdAt: utcTimestampSchema,
-    keySlotCode: z.string().min(1).nullable(),
+    ...staffVehicleDirectoryLegacyRowShape,
     keySlotVisibility: staffVehicleDirectoryKeySlotVisibilitySchema,
-    parkingSpotCode: z.string().nullable(),
-    parkingZoneCode: z.string().nullable(),
-    sessionId: uuidSchema,
-    state: staffVehicleDirectoryRowStateSchema,
-    updatedAt: utcTimestampSchema,
-    vehicle: staffVehicleDirectoryVehicleSchema,
   })
   .strict()
   .superRefine((row, context) => {
@@ -112,4 +130,17 @@ export const staffVehicleDirectoryResponseSchema = z
 
 export type StaffVehicleDirectoryResponse = z.infer<
   typeof staffVehicleDirectoryResponseSchema
+>;
+
+/** Exact strict response schema consumed by pre-capability clients. */
+export const staffVehicleDirectoryLegacyResponseSchema = z
+  .object({
+    locationId: uuidSchema,
+    rows: z.array(staffVehicleDirectoryLegacyRowSchema),
+    truncated: z.boolean(),
+  })
+  .strict();
+
+export type StaffVehicleDirectoryLegacyResponse = z.infer<
+  typeof staffVehicleDirectoryLegacyResponseSchema
 >;

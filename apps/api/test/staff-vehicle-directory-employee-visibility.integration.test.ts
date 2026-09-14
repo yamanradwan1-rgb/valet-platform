@@ -1,7 +1,12 @@
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { StaffVehicleDirectoryResponse } from "@valet/contracts";
+import {
+  staffVehicleDirectoryVisibilityCapability,
+  staffVehicleDirectoryVisibilityCapabilityHeader,
+  type StaffVehicleDirectoryLegacyResponse,
+  type StaffVehicleDirectoryResponse,
+} from "@valet/contracts";
 
 import {
   createStaffValetSessionHarness,
@@ -33,6 +38,10 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
     locationId: string,
   ) {
     return harness.request<T>("GET", `${DIRECTORY}?locationId=${locationId}`, {
+      headers: {
+        [staffVehicleDirectoryVisibilityCapabilityHeader]:
+          staffVehicleDirectoryVisibilityCapability,
+      },
       token,
     });
   }
@@ -170,6 +179,22 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
     );
     expect(genuinelyUnassigned?.keySlotCode).toBeNull();
     expect(genuinelyUnassigned?.keySlotVisibility).toBe("UNASSIGNED");
+
+    const legacyEmployeeView =
+      await harness.request<StaffVehicleDirectoryLegacyResponse>(
+        "GET",
+        `${DIRECTORY}?locationId=${fixture.locationId}`,
+        { token: ownerToken },
+      );
+    expect(legacyEmployeeView.status).toBe(200);
+    expect(JSON.stringify(legacyEmployeeView.body)).not.toContain(
+      "keySlotVisibility",
+    );
+    expect(JSON.stringify(legacyEmployeeView.body)).not.toContain("K-Q");
+    expect(
+      legacyEmployeeView.body.rows.find((r) => r.sessionId === queuedId)
+        ?.keySlotCode,
+    ).toBeNull();
   });
 
   it("caps a >100-candidate Location and reports truncation per role", async () => {

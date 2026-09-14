@@ -10,9 +10,13 @@ import {
 } from "@nestjs/common";
 import {
   staffValetSessionDetailResponseSchema,
+  staffVehicleDirectoryLegacyResponseSchema,
   staffVehicleDirectoryQuerySchema,
   staffVehicleDirectoryResponseSchema,
+  staffVehicleDirectoryVisibilityCapability,
+  staffVehicleDirectoryVisibilityCapabilityHeader,
   type StaffValetSessionDetailResponse,
+  type StaffVehicleDirectoryLegacyResponse,
   type StaffVehicleDirectoryResponse,
 } from "@valet/contracts";
 
@@ -25,6 +29,7 @@ import {
 } from "../auth/staff-principal";
 import { StaffValetSessionService } from "./staff-valet-session.service";
 import { StaffVehicleDirectoryService } from "./staff-vehicle-directory.service";
+import { countRequestHeader } from "./staff-request-principal";
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -74,8 +79,12 @@ export class StaffValetSessionController {
   async getVehicleDirectory(
     @Req() request: ApiRequest,
     @Headers("authorization") authorization: string | undefined,
+    @Headers(staffVehicleDirectoryVisibilityCapabilityHeader)
+    directoryCapability: string | undefined,
     @Query() query: unknown,
-  ): Promise<StaffVehicleDirectoryResponse> {
+  ): Promise<
+    StaffVehicleDirectoryLegacyResponse | StaffVehicleDirectoryResponse
+  > {
     return this.runner.run(
       "STAFF_VEHICLE_DIRECTORY_READ",
       request,
@@ -86,7 +95,28 @@ export class StaffValetSessionController {
           authenticatedUserId,
           locationId,
         );
-        return staffVehicleDirectoryResponseSchema.parse(result);
+        const current = staffVehicleDirectoryResponseSchema.parse(result);
+        const supportsVisibility =
+          directoryCapability === staffVehicleDirectoryVisibilityCapability &&
+          countRequestHeader(
+            request,
+            staffVehicleDirectoryVisibilityCapabilityHeader.toLowerCase(),
+          ) === 1;
+        if (supportsVisibility) return current;
+
+        return staffVehicleDirectoryLegacyResponseSchema.parse({
+          ...current,
+          rows: current.rows.map((row) => ({
+            createdAt: row.createdAt,
+            keySlotCode: row.keySlotCode,
+            parkingSpotCode: row.parkingSpotCode,
+            parkingZoneCode: row.parkingZoneCode,
+            sessionId: row.sessionId,
+            state: row.state,
+            updatedAt: row.updatedAt,
+            vehicle: row.vehicle,
+          })),
+        });
       },
     );
   }
