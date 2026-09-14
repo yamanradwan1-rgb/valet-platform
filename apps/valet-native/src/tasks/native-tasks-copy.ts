@@ -52,7 +52,7 @@ export function getNativeTasksCopy(locale: FoundationLocale): NativeTasksCopy {
     claimParking: d.claimAndPark,
     claimRetrieval: d.acceptTask,
     dismiss: d.dismissAction,
-    empty: d.queueLabel,
+    empty: d.taskQueueEmpty,
     error: d.operationFailed,
     loading: d.loadingContext,
     noShift: d.noActiveShift,

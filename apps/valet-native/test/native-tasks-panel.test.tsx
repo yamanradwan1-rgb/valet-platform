@@ -27,6 +27,8 @@ const { NativeTaskShiftStrip } =
 const { NativeManualRefreshButton } =
   await import("../src/tasks/native-manual-refresh-button");
 const { EmployeeButton } = await import("../src/employee-ui/employee-controls");
+const { EmployeeStatus } = await import("../src/employee-ui/employee-feedback");
+const { getNativeTasksCopy } = await import("../src/tasks/native-tasks-copy");
 const { operations: fixture } = await import("./production-shell-test-fixture");
 
 type Element = ReactElement<Record<string, unknown>>;
@@ -128,6 +130,40 @@ describe("Web-authoritative Native Tasks screen", () => {
       list.props.renderItem as (input: { item: typeof task }) => Element
     )({ item: second });
     expect(row.type).toBe(NativeTaskQueueRow);
+  });
+
+  it("uses dedicated localized copy only for the ready empty queue", () => {
+    const copy = getNativeTasksCopy("en");
+    const ready = render([]);
+    const list = ready.find((node) => node.type === "FlatList")!;
+    const empty = list.props.ListEmptyComponent as Element;
+    expect(empty.type).toBe(EmployeeStatus);
+    expect(empty.props.children).toBe("No tasks in the queue");
+    expect(empty.props.children).toBe(copy.empty);
+    expect(empty.props.children).not.toBe(copy.queue);
+
+    for (const snapshot of [
+      { ...fixture("loading-context"), queueLoading: true },
+      fixture("error"),
+      fixture("no-active-shift"),
+    ]) {
+      const nodes = elements(
+        NativeTasksPanel({
+          locale: "en",
+          operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+          snapshot,
+          textAlign: "left",
+        }),
+      );
+      expect(nodes.some((node) => node.type === "FlatList")).toBe(false);
+      expect(nodes.some((node) => node.props.children === copy.empty)).toBe(
+        false,
+      );
+    }
+
+    expect(getNativeTasksCopy("ar").empty).toBe(
+      "لا توجد مهام في قائمة الانتظار",
+    );
   });
 
   it("retains a verified queue during same-authority refresh", () => {

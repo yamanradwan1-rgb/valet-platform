@@ -163,6 +163,7 @@ export const nativeEmployeeArabicDictionary: NativeEmployeeDictionary = {
   supervisorOverrideLabel: "تجاوز المشرف",
   systemConnection: "النظام / الاتصال",
   tasksTitle: "المهام",
+  taskQueueEmpty: "لا توجد مهام في قائمة الانتظار",
   organizationLabel: "المؤسسة",
   roleLabel: "الدور",
   roleValetEmployee: "موظف صف سيارات",

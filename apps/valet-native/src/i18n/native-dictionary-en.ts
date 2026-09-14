@@ -164,6 +164,7 @@ export const nativeEmployeeEnglishDictionary = {
   supervisorOverrideLabel: "Supervisor override",
   systemConnection: "System / connection",
   tasksTitle: "Tasks",
+  taskQueueEmpty: "No tasks in the queue",
   organizationLabel: "Organization",
   roleLabel: "Role",
   roleValetEmployee: "Valet Employee",

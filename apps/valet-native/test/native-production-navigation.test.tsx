@@ -123,10 +123,7 @@ describe("Native production navigation", () => {
       padding: 12,
       width: 46,
     });
-    expect(nativeProductionNavigationStyles.scanIconDisabled).toEqual({
-      backgroundColor: employeeColors.neutral,
-    });
-    expect(nativeProductionNavigationStyles.scanIconEnabled).toMatchObject({
+    expect(nativeProductionNavigationStyles.scanIconSurface).toMatchObject({
       backgroundColor: employeeColors.blue,
       shadowColor: employeeColors.blue,
     });
@@ -150,6 +147,7 @@ describe("Native production navigation", () => {
         (node) => node.props.accessibilityRole === "tab",
       );
       expect(tabs.every((node) => node.props.disabled === true)).toBe(true);
+      expect(tabs.every((node) => node.props.onPress === undefined)).toBe(true);
       expect(
         tabs.every((node) => style(node.props.style).opacity === 0.4),
       ).toBe(true);
@@ -160,6 +158,20 @@ describe("Native production navigation", () => {
               .selected === false,
         ),
       ).toBe(true);
+      const scanSurface = elements(tabs[2]!.props.children).find(
+        (node) => node.type === "View",
+      )!;
+      expect(style(scanSurface.props.style)).toMatchObject({
+        backgroundColor: employeeColors.blue,
+        borderRadius: 18,
+        elevation: 8,
+        height: 46,
+        marginTop: -20,
+        width: 46,
+      });
+      expect(style(scanSurface.props.style).backgroundColor).not.toBe(
+        employeeColors.neutral,
+      );
     },
   );
 

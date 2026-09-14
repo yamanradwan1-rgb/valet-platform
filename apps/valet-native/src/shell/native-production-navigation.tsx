@@ -91,14 +91,13 @@ export function NativeProductionNavigation({
             accessibilityState={{ disabled: !enabled, selected: active }}
             disabled={!enabled}
             key={item.destination}
-            onPress={() => onNavigate(item.destination)}
+            onPress={enabled ? () => onNavigate(item.destination) : undefined}
             style={[styles.item, !enabled && styles.disabled]}
           >
             <View
               style={[
                 item.prominent ? styles.scanIcon : styles.icon,
-                item.prominent &&
-                  (enabled ? styles.scanIconEnabled : styles.scanIconDisabled),
+                item.prominent && styles.scanIconSurface,
               ]}
             >
               <Icon
@@ -162,8 +161,7 @@ const styles = StyleSheet.create({
     padding: 12,
     width: 46,
   },
-  scanIconDisabled: { backgroundColor: c.neutral },
-  scanIconEnabled: {
+  scanIconSurface: {
     backgroundColor: c.blue,
     elevation: 8,
     shadowColor: c.blue,
