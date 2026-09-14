@@ -68,6 +68,7 @@ describe("Parking Spot scanner/manual composition", () => {
   it("starts scanner-first with a separate manual action", () => {
     const { nodes } = render("");
     expect(nodes.find((node) => node.type === "QrInput")?.props).toMatchObject({
+      autoOpen: true,
       manualInput: false,
       value: "",
     });

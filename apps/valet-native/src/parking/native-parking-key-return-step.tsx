@@ -63,6 +63,7 @@ export function NativeParkingKeyReturnStep({
       </View>
       <NativeParkingQrInput
         auth={auth}
+        autoOpen
         disabled={submitting}
         kind="key-slot"
         label={copy.keySlot}

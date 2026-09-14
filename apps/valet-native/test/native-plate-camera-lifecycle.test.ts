@@ -14,7 +14,8 @@ function setup() {
   const request = vi.fn().mockResolvedValue(granted);
   const controller = new NativePlateCameraController({ get, request });
   let authChange!: (state: NativeAuthSnapshot) => void;
-  let appChange!: (state: string) => void;
+  let notifyAppChange!: (state: string) => void;
+  let appState = "active";
   let checkInChange!: () => void;
   let snapshot = {
     phase: "capture",
@@ -42,9 +43,11 @@ function setup() {
     },
     identity,
     appState: {
-      currentState: "active",
+      get currentState() {
+        return appState;
+      },
       addEventListener: (_event, listener) => {
-        appChange = listener;
+        notifyAppChange = listener;
         return { remove };
       },
     },
@@ -59,7 +62,13 @@ function setup() {
     request,
     granted,
     authChange,
-    appChange,
+    appChange: (state: string) => {
+      appState = state;
+      notifyAppChange(state);
+    },
+    setAppState: (state: string) => {
+      appState = state;
+    },
     change,
     identity,
     cleanup,
@@ -162,6 +171,41 @@ describe("Assistive plate camera lifecycle", () => {
     context.appChange("active");
     expect(context.controller.current().phase).toBe("idle");
     expect(context.get).toHaveBeenCalledOnce();
+  });
+  it("preserves the original open across transient camera permission UI", async () => {
+    const context = setup();
+    let resolve!: (value: typeof context.granted) => void;
+    context.get.mockResolvedValue({ granted: false, canAskAgain: true });
+    context.request.mockReturnValue(
+      new Promise((done) => {
+        resolve = done;
+      }),
+    );
+    const opening = context.controller.open();
+    await Promise.resolve();
+    context.appChange("background");
+    expect(context.controller.current().phase).toBe("requesting");
+    context.setAppState("active");
+    resolve(context.granted);
+    await opening;
+    expect(context.controller.current().phase).toBe("starting");
+    expect(context.request).toHaveBeenCalledOnce();
+  });
+  it("cancels permission completion when the app remains backgrounded", async () => {
+    const context = setup();
+    let resolve!: (value: typeof context.granted) => void;
+    context.get.mockResolvedValue({ granted: false, canAskAgain: true });
+    context.request.mockReturnValue(
+      new Promise((done) => {
+        resolve = done;
+      }),
+    );
+    const opening = context.controller.open();
+    await Promise.resolve();
+    context.appChange("background");
+    resolve(context.granted);
+    await opening;
+    expect(context.controller.current().phase).toBe("idle");
   });
   it("scope/identity exit cannot be undone by foreground or a late capture snapshot", async () => {
     const context = setup();

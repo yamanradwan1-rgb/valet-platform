@@ -1,4 +1,5 @@
 import type { NativeCameraPermissionPort } from "../scanner/native-qr-controller";
+import { requestNativeCameraPermission } from "../scanner/native-camera-permission-lifecycle";
 import {
   NativePlateOcrLoop,
   type NativePlateOcrPorts,
@@ -91,7 +92,9 @@ export class NativePlateCameraController {
       let permission = await this.permissions.get();
       if (!this.isCurrent(generation)) return;
       if (!permission.granted && permission.canAskAgain)
-        permission = await this.permissions.request();
+        permission = await requestNativeCameraPermission(() =>
+          this.permissions.request(),
+        );
       if (!this.isCurrent(generation)) return;
       this.publish({
         ...this.snapshot,

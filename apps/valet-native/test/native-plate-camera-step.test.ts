@@ -75,9 +75,10 @@ function fixture(
     resolvePermission = resolve;
   });
   const controller = new NativePlateCameraController({
-    get: async () => (deferPermission ? pendingPermission : permission),
-    request: async () => permission,
+    get: vi.fn(async () => (deferPermission ? pendingPermission : permission)),
+    request: vi.fn(async () => permission),
   });
+  const open = vi.spyOn(controller, "open");
   hooks.controller = controller;
   const onManual = vi.fn(() => expect(controller.current().phase).toBe("idle"));
   const onNoPlate = vi.fn(() =>
@@ -114,6 +115,7 @@ function fixture(
     )();
   return {
     controller,
+    open,
     onManual,
     onNoPlate,
     render,
@@ -124,24 +126,33 @@ function fixture(
 }
 
 describe("Native assistive plate camera presentation", () => {
-  it("prioritizes Open camera, with immediate manual and no-plate actions", () => {
-    const { render } = fixture();
+  it("auto-opens once on focus while retaining manual and no-plate actions", async () => {
+    const { open, render } = fixture();
+    await Promise.resolve();
+    expect(open).toHaveBeenCalledOnce();
+    expect(hooks.controller.current().phase).toBe("starting");
     expect(
       render()
         .filter((node) => node.props.label)
         .map((node) => node.props.label),
-    ).toEqual([
-      "Open plate camera",
-      "Enter manually",
-      "No plate / unreadable plate",
-    ]);
-    const buttons = render().filter((node) => node.props.label);
-    expect(buttons.map((node) => node.props.variant)).toEqual([
-      "primary",
-      "secondary",
-      "ghost",
-    ]);
-    expect(render().some((node) => node.type === "CameraView")).toBe(false);
+    ).toContain("Enter manually");
+    expect(
+      render().some(
+        (node) => node.props.label === "No plate / unreadable plate",
+      ),
+    ).toBe(true);
+  });
+  it("does not auto-reopen after close, but re-entry opens again", async () => {
+    const context = fixture();
+    await Promise.resolve();
+    context.controller.close();
+    context.render();
+    expect(context.open).toHaveBeenCalledOnce();
+    context.cleanup();
+    const reenteredCleanup = hooks.focus.at(-1)!();
+    await Promise.resolve();
+    expect(context.open).toHaveBeenCalledTimes(2);
+    reenteredCleanup();
   });
   it("mounts a muted rear camera and exposes explicit capture with no QR callback", async () => {
     const context = fixture();
@@ -254,6 +265,7 @@ describe("Native assistive plate camera presentation", () => {
   );
   it("uses localized Arabic entry and cleanup removes preview on focus/unmount exit", async () => {
     const context = fixture(true, "ar", false, "left");
+    context.controller.close();
     expect(
       context.render().some((node) => node.props.label === "فتح كاميرا اللوحة"),
     ).toBe(true);

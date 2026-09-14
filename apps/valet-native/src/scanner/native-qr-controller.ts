@@ -4,6 +4,7 @@ import {
   type QrInput,
   type QrInputKind,
 } from "@valet/employee-client";
+import { requestNativeCameraPermission } from "./native-camera-permission-lifecycle";
 
 export interface CameraPermission {
   readonly granted: boolean;
@@ -57,7 +58,9 @@ export class NativeQrController {
       let permission = await this.permissions.get();
       if (!this.#session.isCurrent(generation)) return;
       if (!permission.granted && permission.canAskAgain) {
-        permission = await this.permissions.request();
+        permission = await requestNativeCameraPermission(() =>
+          this.permissions.request(),
+        );
       }
       if (!this.#session.isCurrent(generation)) return;
       this.snapshot = {

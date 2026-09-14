@@ -8,6 +8,7 @@ import type {
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
 import { NativeProductionLifecycleOwner } from "./native-production-lifecycle-owner";
+import { bindNativePermissionAwareAppState } from "../scanner/native-camera-permission-lifecycle";
 
 /**
  * Telemetry mapping for lifecycle/network transitions. Pure + bounded: the
@@ -57,17 +58,19 @@ export function useNativeProductionLifecycle(
     recordAppStateTransition(active);
     lastActive = active;
     owner.setAppActive(active);
-    const subscription = AppState.addEventListener("change", (state) => {
-      const next = state === "active";
-      if (next !== lastActive) {
-        lastActive = next;
-        recordAppStateTransition(next);
-      }
-      owner.setAppActive(next);
-    });
+    const disposeAppState = bindNativePermissionAwareAppState(
+      AppState,
+      (next) => {
+        if (next !== lastActive) {
+          lastActive = next;
+          recordAppStateTransition(next);
+        }
+        owner.setAppActive(next);
+      },
+    );
     return () => {
       unsubscribe();
-      subscription.remove();
+      disposeAppState();
       owner.dispose();
     };
   }, [runtime]);

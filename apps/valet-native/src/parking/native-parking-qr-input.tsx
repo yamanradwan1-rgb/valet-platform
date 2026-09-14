@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   AppState,
   Linking,
@@ -33,6 +39,7 @@ import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles
 
 export function NativeParkingQrInput({
   auth,
+  autoOpen = false,
   disabled,
   kind,
   label,
@@ -54,6 +61,7 @@ export function NativeParkingQrInput({
   value,
 }: {
   readonly auth: NativeAuthSession;
+  readonly autoOpen?: boolean | undefined;
   readonly disabled: boolean;
   readonly kind: QrResourceKind;
   readonly label: string;
@@ -77,6 +85,7 @@ export function NativeParkingQrInput({
   const [controller] = useState(
     () => new NativeQrController(kind, nativeCameraPermissions),
   );
+  const disabledRef = useRef(disabled);
   const snapshot = useSyncExternalStore(
     controller.subscribe,
     controller.current,
@@ -110,18 +119,19 @@ export function NativeParkingQrInput({
   ) : null;
 
   useEffect(() => {
+    disabledRef.current = disabled;
     if (disabled) controller.setEligible(false);
   }, [controller, disabled]);
   useFocusEffect(
-    useCallback(
-      () =>
-        bindNativeQrLifecycle(controller, {
-          appState: AppState,
-          auth,
-          identity: nativeIdentityState,
-        }),
-      [auth, controller],
-    ),
+    useCallback(() => {
+      const dispose = bindNativeQrLifecycle(controller, {
+        appState: AppState,
+        auth,
+        identity: nativeIdentityState,
+      });
+      if (autoOpen && !disabledRef.current) void controller.open();
+      return dispose;
+    }, [auth, autoOpen, controller]),
   );
 
   return (

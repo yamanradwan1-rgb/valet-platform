@@ -1,4 +1,5 @@
 import type { NativeAuthSnapshot } from "@valet/employee-client";
+import { bindNativePermissionAwareAppState } from "./native-camera-permission-lifecycle";
 
 interface LifecyclePorts {
   auth: {
@@ -38,14 +39,17 @@ export function bindNativeQrLifecycle(
     authorized = false;
     controller.setEligible(false);
   });
-  const subscription = ports.appState.addEventListener("change", (state) => {
-    active = state === "active";
-    controller.setEligible(authorized && active);
-  });
+  const disposeAppState = bindNativePermissionAwareAppState(
+    ports.appState,
+    (nextActive) => {
+      active = nextActive;
+      controller.setEligible(authorized && active);
+    },
+  );
   return () => {
     controller.setEligible(false);
     unsubscribeAuth();
     unregister();
-    subscription.remove();
+    disposeAppState();
   };
 }

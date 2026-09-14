@@ -40,7 +40,7 @@ export class QrCaptureSession {
     return this.#value;
   }
 
-  /** Only an explicit user action may call begin (including Scan again). */
+  /** Presentation owners may begin on an explicit action or opted-in entry. */
   begin(): number | null {
     if (["requesting", "starting", "scanning"].includes(this.snapshot.phase)) {
       return null;

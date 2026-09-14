@@ -55,15 +55,15 @@ export function NativePlateCameraStep({
   );
   const camera = getNativePlateCameraCopy(locale);
   useFocusEffect(
-    useCallback(
-      () =>
-        bindNativePlateCameraLifecycle(controller, session, {
-          auth,
-          identity: nativeIdentityState,
-          appState: AppState,
-        }),
-      [auth, controller, session],
-    ),
+    useCallback(() => {
+      const dispose = bindNativePlateCameraLifecycle(controller, session, {
+        auth,
+        identity: nativeIdentityState,
+        appState: AppState,
+      });
+      void controller.open();
+      return dispose;
+    }, [auth, controller, session]),
   );
   const mounted = snapshot.phase === "starting" || snapshot.phase === "preview";
   const opened = snapshot.phase !== "idle";

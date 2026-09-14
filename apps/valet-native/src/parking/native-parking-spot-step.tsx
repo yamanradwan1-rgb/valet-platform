@@ -52,6 +52,7 @@ export function NativeParkingSpotStep({
         <EmployeeStatus textAlign={textAlign}>{copy.spotBody}</EmployeeStatus>
         <NativeParkingQrInput
           auth={auth}
+          autoOpen
           disabled={false}
           kind="parking-spot"
           label={copy.parkingSpot}

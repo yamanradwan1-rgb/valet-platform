@@ -61,6 +61,7 @@ describe("UI-PARITY-09 Key Return composition", () => {
       expect(
         nodes.find((node) => node.type === "QrInput")?.props,
       ).toMatchObject({
+        autoOpen: true,
         kind: "key-slot",
         manualInput: false,
       });

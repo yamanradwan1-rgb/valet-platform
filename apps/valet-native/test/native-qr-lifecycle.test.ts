@@ -7,12 +7,14 @@ import { NativeIdentityStateBoundary } from "../src/auth/identity-state-boundary
 function setup() {
   const permission = { granted: true, canAskAgain: true };
   const get = vi.fn().mockResolvedValue(permission);
+  const request = vi.fn().mockResolvedValue(permission);
   const controller = new NativeQrController("key-slot", {
     get,
-    request: async () => permission,
+    request,
   });
   let authChange!: (value: NativeAuthSnapshot) => void;
-  let appChange!: (value: string) => void;
+  let notifyAppChange!: (value: string) => void;
+  let appState = "active";
   const unsubscribe = vi.fn();
   const remove = vi.fn();
   const authenticated = {
@@ -30,9 +32,11 @@ function setup() {
     },
     identity,
     appState: {
-      currentState: "active",
+      get currentState() {
+        return appState;
+      },
       addEventListener: (_event, listener) => {
-        appChange = listener;
+        notifyAppChange = listener;
         return { remove };
       },
     },
@@ -40,8 +44,15 @@ function setup() {
   return {
     controller,
     get,
+    request,
     authChange,
-    appChange,
+    appChange: (state: string) => {
+      appState = state;
+      notifyAppChange(state);
+    },
+    setAppState: (state: string) => {
+      appState = state;
+    },
     identity,
     dispose,
     unsubscribe,
@@ -141,6 +152,41 @@ describe("Native scanner immediate identity and lifecycle cleanup", () => {
     context.dispose();
     expect(context.unsubscribe).toHaveBeenCalled();
     expect(context.remove).toHaveBeenCalled();
+    expect(context.controller.current().phase).toBe("idle");
+  });
+  it("keeps a permission-generation alive only when permission UI returns active", async () => {
+    const context = setup();
+    let resolve!: (value: typeof context.permission) => void;
+    context.request.mockImplementation(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    context.get.mockResolvedValue({ granted: false, canAskAgain: true });
+    const opening = context.controller.open();
+    await Promise.resolve();
+    context.appChange("background");
+    context.setAppState("active");
+    resolve(context.permission);
+    await opening;
+    expect(context.controller.current().phase).toBe("starting");
+  });
+  it("cancels a granted permission result while genuinely backgrounded", async () => {
+    const context = setup();
+    let resolve!: (value: typeof context.permission) => void;
+    context.request.mockImplementation(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    context.get.mockResolvedValue({ granted: false, canAskAgain: true });
+    const opening = context.controller.open();
+    await Promise.resolve();
+    context.appChange("background");
+    resolve(context.permission);
+    await opening;
     expect(context.controller.current().phase).toBe("idle");
   });
 });
