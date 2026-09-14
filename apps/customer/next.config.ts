@@ -1,20 +1,29 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
-const apiOrigin = process.env.API_ORIGIN || 'http://localhost:3000';
+import {
+  GUEST_API_REWRITE_SOURCE,
+  guestApiRewriteDestination,
+} from "./src/lib/api/api-origin";
+
+const guestApiDestination = guestApiRewriteDestination({
+  apiOrigin: process.env.API_ORIGIN,
+  nodeEnv: process.env.NODE_ENV,
+});
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
-  transpilePackages: ['@valet/ui'],
+  output: "standalone",
+  poweredByHeader: false,
+  transpilePackages: ["@valet/ui"],
   turbopack: {
     resolveAlias: {
-      '@valet/contracts': '../../packages/contracts/dist/index.js',
+      "@valet/contracts": "../../packages/contracts/dist/index.js",
     },
   },
   async rewrites() {
     return [
       {
-        source: '/api/v1/guest/:path*',
-        destination: `${apiOrigin}/v1/guest/:path*`,
+        source: GUEST_API_REWRITE_SOURCE,
+        destination: guestApiDestination,
       },
     ];
   },

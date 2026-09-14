@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "pnpm --filter @valet/contracts build && next build",
+    "build": "pnpm --filter @valet/contracts build && next build && node scripts/prepare-standalone.mjs",
     "dev": "next dev --port 3002",
-    "start": "next start --port 3002",
+    "start": "node scripts/start-production.mjs",
     "lint": "eslint src --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run src"

@@ -1,0 +1,22 @@
+[Unit]
+Description=VAYLET Customer App
+Requires=vaylet-api.service
+After=network-online.target vaylet-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/workspace/valet-platform
+Environment=NODE_ENV=production
+Environment=API_ORIGIN=http://127.0.0.1:3001
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=3002
+ExecStartPre=/usr/bin/test -f /workspace/valet-platform/apps/customer/.next/standalone/apps/customer/server.js
+ExecStart=/usr/bin/node /workspace/valet-platform/apps/customer/scripts/start-production.mjs
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
