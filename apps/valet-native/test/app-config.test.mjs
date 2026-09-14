@@ -11,6 +11,9 @@ const cameraPlugin = expo.plugins.find(
 const notificationsPlugin = expo.plugins.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === "expo-notifications",
 );
+const splashPlugins = expo.plugins.filter(
+  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
+);
 const secureStorePlugin = expo.plugins.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === "expo-secure-store",
 );
@@ -52,7 +55,33 @@ describe("Expo application configuration", () => {
   it("configures one Android operational retrieval notification channel", () => {
     expect(notificationsPlugin).toEqual([
       "expo-notifications",
-      { defaultChannel: "vaylet-operational-retrieval" },
+      {
+        icon: "./assets/branding/notification-icon.png",
+        defaultChannel: "vaylet-operational-retrieval",
+      },
+    ]);
+  });
+
+  it("configures the production VAYLET launcher and adaptive icons", () => {
+    expect(expo.icon).toBe("./assets/branding/app-icon.png");
+    expect(expo.android.adaptiveIcon).toEqual({
+      foregroundImage: "./assets/branding/adaptive-icon-foreground.png",
+      backgroundImage: "./assets/branding/adaptive-icon-background.png",
+      monochromeImage: "./assets/branding/monochrome-icon.png",
+    });
+  });
+
+  it("configures exactly one white, contained VAYLET splash", () => {
+    expect(splashPlugins).toEqual([
+      [
+        "expo-splash-screen",
+        {
+          backgroundColor: "#FFFFFF",
+          image: "./assets/branding/splash-logo.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+        },
+      ],
     ]);
   });
 

@@ -6,19 +6,35 @@
     "platforms": ["ios", "android"],
     "orientation": "portrait",
     "scheme": "vaylet-employee",
+    "icon": "./assets/branding/app-icon.png",
     "ios": {
       "bundleIdentifier": "com.vaylet.employee",
       "supportsTablet": false
     },
     "android": {
-      "package": "com.vaylet.employee"
+      "package": "com.vaylet.employee",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/branding/adaptive-icon-foreground.png",
+        "backgroundImage": "./assets/branding/adaptive-icon-background.png",
+        "monochromeImage": "./assets/branding/monochrome-icon.png"
+      }
     },
     "plugins": [
       "expo-router",
       [
         "expo-notifications",
         {
+          "icon": "./assets/branding/notification-icon.png",
           "defaultChannel": "vaylet-operational-retrieval"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/branding/splash-logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
         }
       ],
       [
