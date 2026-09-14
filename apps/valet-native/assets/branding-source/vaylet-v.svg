@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="1536" viewBox="0 0 1536 1536">
+<defs>
+  <linearGradient id="leftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#08A9FF"/><stop offset="52%" stop-color="#087DFF"/><stop offset="100%" stop-color="#0A45FF"/>
+  </linearGradient>
+  <linearGradient id="rightGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#0B43FF"/><stop offset="55%" stop-color="#0879FF"/><stop offset="100%" stop-color="#08A5FF"/>
+  </linearGradient>
+  <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#08A9FF"/><stop offset="100%" stop-color="#0757FF"/>
+  </linearGradient>
+</defs>
+<path d="M50 300 L335 300 C370 300 392 313 412 342 L754 839 L582 1079 Z" fill="url(#leftGrad)"/>
+<path d="M1501 300 L1210 300 C1170 300 1148 315 1125 350 L783 840 L947 1080 Z" fill="url(#rightGrad)"/>
+<path d="M767 897 L603 1112 L727 1297 Q758 1332 790 1297 L922 1118 Z" fill="url(#diamondGrad)"/>
+<path d="M610 630 L754 839 L582 1079 L535 1010 Z" fill="#0B4FFF" opacity="0.72"/>
+<path d="M885 690 L783 840 L947 1080 L918 982 Z" fill="#0B55FF" opacity="0.40"/>
+<path d="M603 1112 L767 1010 L922 1118 L760 1080 Z" fill="#0794FF" opacity="0.72"/>
+</svg>
