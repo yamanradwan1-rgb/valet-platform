@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "610165722408",
+    "project_id": "vaylet-4725f",
+    "storage_bucket": "vaylet-4725f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:610165722408:android:c3b050910508f2dd4bd41d",
+        "android_client_info": {
+          "package_name": "com.vaylet.employee"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkMAIHQ1NnLrH0VeNMjKynLa_1v-7LhWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
