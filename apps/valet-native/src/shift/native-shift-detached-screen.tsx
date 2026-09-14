@@ -15,20 +15,25 @@ import {
   type FoundationLocale,
 } from "../foundation/foundation-locale";
 import { NativeActiveHeaderUtilities } from "../shell/native-active-header-utilities";
+import type { NativePushSnapshot } from "../notifications/native-push-types";
 import { NativeActiveShiftPanel } from "./native-active-shift-panel";
 
 export function NativeShiftDetachedScreen({
   locale,
+  onRequestNotificationPermission,
   onReviewTasks,
   onSelectLocale,
+  pushSnapshot,
   session,
   snapshot,
 }: {
   readonly auth: NativeAuthSession;
   readonly authSnapshot: NativeAuthSnapshot;
   readonly locale: FoundationLocale;
+  readonly onRequestNotificationPermission: () => Promise<void>;
   readonly onReviewTasks: () => void;
   readonly onSelectLocale: (locale: FoundationLocale) => void;
+  readonly pushSnapshot: NativePushSnapshot;
   readonly session: EmployeeShiftEndSession;
   readonly snapshot: EmployeeShiftEndSnapshot;
 }) {
@@ -46,8 +51,10 @@ export function NativeShiftDetachedScreen({
         utilities={
           <NativeActiveHeaderUtilities
             locale={locale}
+            onRequestNotificationPermission={onRequestNotificationPermission}
             onSelectLocale={onSelectLocale}
-            role={authority.role}
+            pushSnapshot={pushSnapshot}
+            scope={authority}
           />
         }
       />

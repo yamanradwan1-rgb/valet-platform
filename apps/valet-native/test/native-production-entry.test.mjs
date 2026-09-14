@@ -72,13 +72,18 @@ describe("Native production entry contract", () => {
 
   it("matches the Employee Web dark-gate logo without a white capsule", () => {
     const gate = read("src/shell/native-gate-shell.tsx");
+    const sharedLogo = read("src/employee-ui/employee-brand-logo.tsx");
     const nativeLogo = readFileSync(
       resolve(root, "assets/brand/VAYLET_Logo_Dark_Background.png"),
     );
     const webLogo = readFileSync(
       resolve(root, "../valet/public/brand/VAYLET_Logo_Dark_Background.png"),
     );
-    expect(gate).toContain("VAYLET_Logo_Dark_Background.png");
+    expect(gate).toContain("EmployeeBrandLogo");
+    expect(gate).toContain('surface="dark"');
+    expect(sharedLogo).toContain("VAYLET_Logo_Dark_Background.png");
+    expect(sharedLogo).toContain("VAYLET_Logo_Light_Background.png");
+    expect(sharedLogo).toContain("fadeDuration={0}");
     expect(gate).not.toContain("VAYLET_Logo_Light_Background.png");
     expect(gate).not.toContain("logoSurface");
     expect(nativeLogo.equals(webLogo)).toBe(true);

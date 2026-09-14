@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
 import type {
   EmployeeConfirmParkedSession,
   EmployeeConfirmParkedSnapshot,
@@ -7,15 +6,13 @@ import type {
 } from "@valet/employee-client";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import {
-  EmployeeErrorNotice,
-  EmployeeStatus,
-} from "../employee-ui/employee-feedback";
-import { employeeTextStyle } from "../employee-ui/employee-typography";
+import { EmployeeErrorNotice } from "../employee-ui/employee-feedback";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
-import { NativeParkingQrInput } from "./native-parking-qr-input";
-import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import {
+  NativeParkingResourceCapture,
+  NativeParkingResourceResult,
+} from "./native-parking-resource-step";
 
 export function NativeParkingSpotStep({
   auth,
@@ -46,48 +43,36 @@ export function NativeParkingSpotStep({
             {copy.spotConflict}
           </EmployeeErrorNotice>
         ) : null}
-        <Text style={[s.title, employeeTextStyle("human", textAlign)]}>
-          {copy.spotTitle}
-        </Text>
-        <EmployeeStatus textAlign={textAlign}>{copy.spotBody}</EmployeeStatus>
-        <NativeParkingQrInput
+        <NativeParkingResourceCapture
           auth={auth}
-          autoOpen
+          body={copy.spotBody}
           disabled={false}
           kind="parking-spot"
           label={copy.parkingSpot}
           locale={locale}
-          manualInput={false}
-          onChange={(value) => {
+          manualLabel={copy.enterSpotManually}
+          onCandidate={(value) => {
             confirmation.enterParkingSpot(value);
             if (value.trim() !== "") setReviewing(true);
           }}
+          onManual={() => setReviewing(true)}
+          textAlign={textAlign}
+          title={copy.spotTitle}
           value={snapshot.parkingSpotCandidate}
-        />
-        <EmployeeButton
-          label={copy.enterSpotManually}
-          onPress={() => setReviewing(true)}
-          variant="secondary"
         />
       </>
     );
   }
   return (
     <>
-      <View style={s.successSurface}>
-        <Text style={s.fieldLabel}>{copy.location}</Text>
-        <Text style={s.locationHero}>{destination}</Text>
-        <Text style={s.fieldLabel}>{copy.spotCode}</Text>
-        <TextInput
-          accessibilityLabel={copy.spotCode}
-          autoCapitalize="characters"
-          autoCorrect={false}
-          onChangeText={(value) => confirmation.enterParkingSpot(value)}
-          placeholder={copy.enterSpotCode}
-          style={s.spotInput}
-          value={snapshot.parkingSpotCandidate}
-        />
-      </View>
+      <NativeParkingResourceResult
+        codeLabel={copy.spotCode}
+        label={copy.location}
+        onChange={(value) => confirmation.enterParkingSpot(value)}
+        placeholder={copy.enterSpotCode}
+        value={snapshot.parkingSpotCandidate}
+        valueHero={destination}
+      />
       <EmployeeButton
         disabled={snapshot.parkingSpotCandidate.trim() === ""}
         label={copy.continueLabel}

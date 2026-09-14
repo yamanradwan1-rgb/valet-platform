@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("react", () => ({
+  useState: (initial: unknown) => [initial, vi.fn()],
+}));
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
   Pressable: "Pressable",
@@ -51,25 +54,17 @@ function render(
 
 describe("UI-PARITY-09 Key Return composition", () => {
   it.each([
-    ["en", "Place the key into any available free slot", "Enter Key Slot Code"],
-    ["ar", "ضع المفتاح في أي خانة فارغة متاحة", "أدخل رمز خانة المفتاح"],
+    ["en", "Enter Key Slot Code"],
+    ["ar", "أدخل رمز خانة المفتاح"],
   ] as const)(
-    "matches Web info and manual input in %s",
-    (locale, info, placeholder) => {
+    "matches the Parking Spot result hierarchy in %s",
+    (locale, placeholder) => {
       const { confirmation, nodes } = render(locale);
-      expect(content(nodes)).toContain(info);
-      expect(
-        nodes.find((node) => node.type === "QrInput")?.props,
-      ).toMatchObject({
-        autoOpen: true,
-        kind: "key-slot",
-        manualInput: false,
-      });
       const input = nodes.find((node) => node.type === "TextInput")!;
       expect(input.props).toMatchObject({ placeholder, value: "K-03" });
-      expect(s.keyInput).toMatchObject({
+      expect(s.spotInput).toMatchObject({
         fontSize: 20,
-        fontWeight: "600",
+        fontWeight: "700",
         height: 48,
         textAlign: "center",
         writingDirection: "ltr",
@@ -77,17 +72,26 @@ describe("UI-PARITY-09 Key Return composition", () => {
       (input.props.onChangeText as (value: string) => void)("K-04");
       expect(confirmation.enterKeySlot).toHaveBeenCalledWith("K-04");
       expect(confirmation.confirmParked).not.toHaveBeenCalled();
-      const qr = nodes.find((node) => node.type === "QrInput")!;
-      (qr.props.onChange as (value: string) => void)("K-05");
-      expect(confirmation.enterKeySlot).toHaveBeenLastCalledWith("K-05");
-      expect(confirmation.confirmParked).not.toHaveBeenCalled();
-      expect(s.keyInfoPanel).toMatchObject({
-        backgroundColor: "#EDF4FF",
-        borderRadius: 12,
-        padding: 16,
+      expect(s.successSurface).toMatchObject({
+        backgroundColor: "#EEFBF5",
+        borderRadius: 16,
+        padding: 20,
       });
     },
   );
+
+  it("uses the same auto-open capture composition before a slot is selected", () => {
+    const { confirmation, nodes } = render("en", true, "slot");
+    const qr = nodes.find((node) => node.type === "QrInput")!;
+    expect(qr.props).toMatchObject({
+      autoOpen: true,
+      kind: "key-slot",
+      manualInput: false,
+    });
+    (qr.props.onChange as (value: string) => void)("K-05");
+    expect(confirmation.enterKeySlot).toHaveBeenCalledWith("K-05");
+    expect(confirmation.confirmParked).not.toHaveBeenCalled();
+  });
 
   it("uses an explicit green action and blocks it offline", () => {
     const online = render();
@@ -128,5 +132,7 @@ describe("UI-PARITY-09 Key Return composition", () => {
       busy: true,
       disabled: true,
     });
+    const actions = nodes.filter((node) => node.type === "Pressable");
+    expect(actions.map(label)).toEqual(["Confirming...", "Scan again"]);
   });
 });

@@ -19,6 +19,8 @@ vi.mock("expo-status-bar", () => ({ StatusBar: "StatusBar" }));
 
 const { EmployeeAppHeader, EmployeeFrame, employeeFrameStyles } =
   await import("../src/employee-ui/employee-frame");
+const { EmployeeBrandLogo } =
+  await import("../src/employee-ui/employee-brand-logo");
 const { EmployeeBackHeader } =
   await import("../src/employee-ui/employee-back-header");
 const { EmployeeBackIcon } = await import("../src/employee-ui/employee-icons");
@@ -84,7 +86,7 @@ describe("Employee production frame", () => {
     const header = nodes.find(
       (node) => node.props.testID === "employee-app-header",
     )!;
-    const logo = nodes.find((node) => node.type === "Image")!;
+    const logo = nodes.find((node) => node.type === EmployeeBrandLogo)!;
 
     expect(style(header.props.style)).toMatchObject({
       backgroundColor: employeeColors.white,
@@ -96,10 +98,7 @@ describe("Employee production frame", () => {
     expect(employeeFrameStyles.appHeader).not.toHaveProperty("minHeight");
     expect(employeeFrameStyles.brandContext.minWidth).toBe(0);
     expect(employeeFrameStyles.brandLogo.flexShrink).toBe(1);
-    expect(employeeFrameStyles.brandLogo).toMatchObject({
-      aspectRatio: 169 / 60,
-      height: 28,
-    });
+    expect(logo.props).toMatchObject({ height: 28, surface: "light" });
     expect(employeeFrameStyles.divider).toMatchObject({ height: 20, width: 1 });
     expect(employeeFrameStyles.locationName).toMatchObject({
       fontSize: 13,
@@ -111,9 +110,17 @@ describe("Employee production frame", () => {
     });
     expect(employeeFrameStyles.headerUtilities.gap).toBe(8);
     expect(employeeFrameStyles.context.minWidth).toBe(0);
-    expect(logo.props.accessibilityLabel).toBe("VAYLET");
-    expect(logo.props.source).toBeTruthy();
-    expect(style(logo.props.style).transform).toBeUndefined();
+    const image = EmployeeBrandLogo(logo.props as never) as ReactElement<
+      Record<string, unknown>
+    >;
+    expect(image.props.accessibilityLabel).toBe("VAYLET");
+    expect(image.props.fadeDuration).toBe(0);
+    expect(image.props.source).toBeTruthy();
+    expect(style(image.props.style)).toMatchObject({
+      aspectRatio: 169 / 60,
+      height: 28,
+    });
+    expect(style(image.props.style).transform).toBeUndefined();
     expect(nodes.some((node) => node.props.children === "Amman Hotel")).toBe(
       true,
     );
@@ -145,7 +152,9 @@ describe("Employee production frame", () => {
     expect(nodes.some((node) => node.props.children === "Amman Hotel")).toBe(
       false,
     );
-    expect(nodes.filter((node) => node.type === "Image")).toHaveLength(1);
+    expect(
+      nodes.filter((node) => node.type === EmployeeBrandLogo),
+    ).toHaveLength(1);
   });
 
   it("keeps the Web Back glyph fixed without transforming the brand", () => {

@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import type { EmployeeOperationalScope } from "@valet/employee-client";
 
-import logo from "../../assets/brand/VAYLET_Logo_Light_Background.png";
+import { EmployeeBrandLogo } from "./employee-brand-logo";
 import {
   employeeColors as c,
   employeeSpacing as space,
@@ -43,10 +43,7 @@ export const employeeFrameStyles = StyleSheet.create({
     minWidth: 0,
   },
   brandLogo: {
-    aspectRatio: 169 / 60,
     flexShrink: 1,
-    height: 28,
-    resizeMode: "contain",
   },
   context: { flexShrink: 1, minWidth: 0 },
   divider: { backgroundColor: c.border, height: 20, width: 1 },
@@ -97,9 +94,9 @@ export function EmployeeAppHeader({
   return (
     <View style={employeeFrameStyles.appHeader} testID="employee-app-header">
       <View style={employeeFrameStyles.brandContext}>
-        <Image
-          accessibilityLabel="VAYLET"
-          source={logo}
+        <EmployeeBrandLogo
+          height={28}
+          surface="light"
           style={employeeFrameStyles.brandLogo}
         />
         {scope ? <View style={employeeFrameStyles.divider} /> : null}

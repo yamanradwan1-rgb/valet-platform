@@ -19,36 +19,7 @@ export function NativePushPermissionStatus(props: {
   readonly textAlign: "left" | "right";
 }) {
   const copy = getNativePushCopy(props.locale);
-  const requestable =
-    props.snapshot.permission === "undetermined" ||
-    props.snapshot.permission === "denied";
-  const blocked = props.snapshot.permission === "blocked";
-  const channelUnavailable =
-    props.snapshot.permission === "granted" &&
-    props.snapshot.registration === "confirmed" &&
-    !props.snapshot.channelAvailable;
-  const settingsRequired = blocked || channelUnavailable;
-  const confirmed =
-    props.snapshot.permission === "granted" &&
-    props.snapshot.registration === "confirmed" &&
-    props.snapshot.channelAvailable;
-  const message = confirmed
-    ? copy.confirmed
-    : channelUnavailable
-      ? copy.channelUnavailable
-      : props.snapshot.permission === "granted"
-        ? props.snapshot.registration === "network-unavailable"
-          ? copy.networkUnavailable
-          : props.snapshot.registration === "registration-error"
-            ? copy.registrationError
-            : props.snapshot.registration === "token-unavailable"
-              ? copy.tokenUnavailable
-              : copy.pending
-        : requestable
-          ? copy.requestable
-          : blocked
-            ? copy.blocked
-            : copy.unavailable;
+  const presentation = nativePushStatusPresentation(props.snapshot, copy);
 
   return (
     <View
@@ -59,24 +30,72 @@ export function NativePushPermissionStatus(props: {
       <Text
         style={[styles.message, employeeTextStyle("human", props.textAlign)]}
       >
-        {message}
+        {presentation.message}
       </Text>
-      {requestable || settingsRequired ? (
+      {presentation.action === null ? null : (
         <Pressable
           accessibilityRole="button"
           onPress={() => {
-            if (requestable) void props.onRequestPermission();
+            if (presentation.action === "request")
+              void props.onRequestPermission();
             else void Linking.openSettings();
           }}
           style={styles.action}
         >
           <Text style={styles.actionText}>
-            {requestable ? copy.enable : copy.openSettings}
+            {presentation.action === "request"
+              ? copy.enable
+              : copy.openSettings}
           </Text>
         </Pressable>
-      ) : null}
+      )}
     </View>
   );
+}
+
+export function nativePushStatusPresentation(
+  snapshot: NativePushSnapshot,
+  copy: ReturnType<typeof getNativePushCopy>,
+) {
+  const requestable =
+    snapshot.permission === "undetermined" || snapshot.permission === "denied";
+  const blocked = snapshot.permission === "blocked";
+  const channelUnavailable =
+    snapshot.permission === "granted" &&
+    snapshot.registration === "confirmed" &&
+    !snapshot.channelAvailable;
+  const settingsRequired = blocked || channelUnavailable;
+  const confirmed =
+    snapshot.permission === "granted" &&
+    snapshot.registration === "confirmed" &&
+    snapshot.channelAvailable;
+  const message = confirmed
+    ? copy.confirmed
+    : channelUnavailable
+      ? copy.channelUnavailable
+      : snapshot.permission === "granted"
+        ? snapshot.registration === "network-unavailable"
+          ? copy.networkUnavailable
+          : snapshot.registration === "registration-error"
+            ? copy.registrationError
+            : snapshot.registration === "token-unavailable"
+              ? copy.tokenUnavailable
+              : copy.pending
+        : requestable
+          ? copy.requestable
+          : blocked
+            ? copy.blocked
+            : copy.unavailable;
+
+  return {
+    action: requestable
+      ? ("request" as const)
+      : settingsRequired
+        ? ("settings" as const)
+        : null,
+    confirmed,
+    message,
+  };
 }
 
 const styles = StyleSheet.create({
@@ -89,12 +108,11 @@ const styles = StyleSheet.create({
   actionText: { ...type.small, color: c.blue, fontWeight: "700" },
   container: {
     alignItems: "center",
-    backgroundColor: c.white,
-    borderBottomColor: c.border,
-    borderBottomWidth: 1,
+    backgroundColor: c.ice,
+    borderRadius: 12,
     flexDirection: "row",
     gap: space.sm,
-    paddingHorizontal: space.lg,
+    paddingHorizontal: space.md,
   },
   message: {
     ...type.small,

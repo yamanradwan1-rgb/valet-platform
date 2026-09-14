@@ -1,7 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useState, type ReactNode } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
-import logo from "../../assets/brand/VAYLET_Logo_Dark_Background.png";
+import { EmployeeBrandLogo } from "../employee-ui/employee-brand-logo";
 import { employeeColors as c } from "../employee-ui/employee-tokens";
 
 export function NativeGateShell({
@@ -32,9 +31,9 @@ export function NativeGateShell({
           contentContainerStyle={nativeGateShellStyles.screen}
           keyboardShouldPersistTaps="handled"
         >
-          <Image
-            accessibilityLabel="VAYLET"
-            source={logo}
+          <EmployeeBrandLogo
+            height={36}
+            surface="dark"
             style={nativeGateShellStyles.logo}
           />
           {children}
@@ -132,10 +131,7 @@ export const nativeGateShellStyles = StyleSheet.create({
   flex: { flex: 1 },
   logo: {
     alignSelf: "center",
-    aspectRatio: 186 / 60,
-    height: 36,
     marginBottom: 48,
-    resizeMode: "contain",
   },
   safeArea: { backgroundColor: c.navy, flex: 1 },
   screen: {

@@ -224,12 +224,14 @@ export function NativeProductionShell({
           auth={runtime.auth}
           authSnapshot={authSnapshot}
           locale={locale}
+          onRequestNotificationPermission={push.requestPermission}
           onReviewTasks={() => {
             controller.receive({ destination: "tasks", source: "navigation" });
             bumpNavigation();
             void runtime.operations.activate(authSnapshot.authGeneration);
           }}
           onSelectLocale={setLocale}
+          pushSnapshot={push.snapshot}
           session={runtime.shiftEnd}
           snapshot={shiftEnd}
         />

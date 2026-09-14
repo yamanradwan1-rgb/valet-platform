@@ -72,10 +72,10 @@ organization-controlled Firebase Android configuration outside this repository.
 Without that configuration, token acquisition and remote registration degrade
 truthfully while the authenticated Task queue and polling continue to work.
 
-The compact notification status shown at the top of the authenticated workspace
-is the smallest existing status surface: it reports permission/registration
-availability, offers the OS prompt only while requestable, and otherwise gives
-neutral Android-settings guidance. A foreground banner OPEN or accepted OS tap
+The compact notification status in the authenticated initials/account menu
+reports permission/registration availability, offers the OS prompt only while
+requestable, and otherwise gives neutral Android-settings guidance without
+consuming permanent workspace height. A foreground banner OPEN or accepted OS tap
 emits only the allowlisted neutral `TASK_QUEUE` intent. The production auth/shell
 gate then restores current identity, revalidates current server-derived context,
 fetches the canonical current queue, and only then selects Tasks. Notification

@@ -32,7 +32,6 @@ import {
 import { NativeContextualSurface } from "./native-contextual-surface";
 import { nativeContextualNavigationPinned } from "./native-contextual-route";
 import { NativeConnectivityBanner } from "./native-connectivity-banner";
-import { NativePushPermissionStatus } from "../notifications/native-push-permission-status";
 import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
 import { nativeIncidentRecoveryVisible } from "../incident/native-incident-types";
 
@@ -63,20 +62,16 @@ export function NativeProductionWorkspace({
   return (
     <EmployeeFrame direction={presentation.direction}>
       <NativeConnectivityBanner locale={locale} status={connectivity} />
-      <NativePushPermissionStatus
-        locale={locale}
-        onRequestPermission={push.requestPermission}
-        snapshot={push.snapshot}
-        textAlign={presentation.textAlign}
-      />
       <EmployeeAppHeader
         scope={shell.scope}
         textAlign={presentation.textAlign}
         utilities={
           <NativeActiveHeaderUtilities
             locale={locale}
+            onRequestNotificationPermission={push.requestPermission}
             onSelectLocale={onSelectLocale}
-            role={shell.scope.role}
+            pushSnapshot={push.snapshot}
+            scope={shell.scope}
           />
         }
       />

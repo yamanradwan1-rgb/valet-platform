@@ -25,6 +25,7 @@ export function getNativeParkingConfirmCopy(locale: FoundationLocale) {
     spot: d.spot,
     done: d.done,
     enterKeySlotCode: d.enterKeySlotCode,
+    enterKeySlotManually: d.enterKeySlotCode,
     enterSpotCode: d.enterSpotCode,
     enterSpotManually: d.enterSpotManually,
     parkingConfirmed: d.parkingConfirmed,

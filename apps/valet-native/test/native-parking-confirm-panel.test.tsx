@@ -221,9 +221,10 @@ describe("MOB-012B Native Confirm Parked", () => {
     expect(action(nodes, "Confirming...")?.props).toMatchObject({
       disabled: true,
     });
-    expect(nodes.find((node) => node.type === "QrInput")?.props.disabled).toBe(
-      true,
+    expect(nodes.find((node) => node.type === "TextInput")?.props.value).toBe(
+      "K-03",
     );
+    expect(action(nodes, "Scan again")?.props.disabled).toBe(true);
   });
 
   it.each([

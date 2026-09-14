@@ -1,4 +1,5 @@
-import { Text, TextInput, View } from "react-native";
+import { useState } from "react";
+import { Text, View } from "react-native";
 import type {
   EmployeeConfirmParkedSession,
   EmployeeConfirmParkedSnapshot,
@@ -6,15 +7,15 @@ import type {
 } from "@valet/employee-client";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import {
-  EmployeeBadge,
-  EmployeeErrorNotice,
-} from "../employee-ui/employee-feedback";
+import { EmployeeErrorNotice } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
-import { NativeParkingQrInput } from "./native-parking-qr-input";
 import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import {
+  NativeParkingResourceCapture,
+  NativeParkingResourceResult,
+} from "./native-parking-resource-step";
 
 export function NativeParkingKeyReturnStep({
   auth,
@@ -34,6 +35,9 @@ export function NativeParkingKeyReturnStep({
   readonly textAlign: "left" | "right";
 }) {
   const submitting = snapshot.phase === "submitting";
+  const [reviewing, setReviewing] = useState(
+    snapshot.keySlotCandidate.trim() !== "" || snapshot.conflict !== null,
+  );
   const conflict =
     snapshot.conflict === "slot"
       ? copy.slotConflict
@@ -49,40 +53,34 @@ export function NativeParkingKeyReturnStep({
           {conflict}
         </EmployeeErrorNotice>
       ) : null}
-      <EmployeeBadge
-        label={copy.parking}
-        showDot
-        textAlign={textAlign}
-        variant="warning"
-      />
-      <View style={s.keyInfoPanel}>
-        <View accessibilityElementsHidden style={s.blueDot} />
-        <Text style={[s.keyInfoText, employeeTextStyle("human", textAlign)]}>
-          {copy.slotBody}
-        </Text>
-      </View>
-      <NativeParkingQrInput
-        auth={auth}
-        autoOpen
-        disabled={submitting}
-        kind="key-slot"
-        label={copy.keySlot}
-        locale={locale}
-        manualInput={false}
-        onChange={(value) => confirmation.enterKeySlot(value)}
-        value={snapshot.keySlotCandidate}
-      />
-      <TextInput
-        accessibilityLabel={copy.keySlot}
-        accessibilityState={{ disabled: submitting }}
-        autoCapitalize="characters"
-        autoCorrect={false}
-        editable={!submitting}
-        onChangeText={(value) => confirmation.enterKeySlot(value)}
-        placeholder={copy.enterKeySlotCode}
-        style={s.keyInput}
-        value={snapshot.keySlotCandidate}
-      />
+      {!reviewing ? (
+        <NativeParkingResourceCapture
+          auth={auth}
+          body={copy.slotBody}
+          disabled={submitting}
+          kind="key-slot"
+          label={copy.keySlot}
+          locale={locale}
+          manualLabel={copy.enterKeySlotManually}
+          onCandidate={(value) => {
+            confirmation.enterKeySlot(value);
+            if (value.trim() !== "") setReviewing(true);
+          }}
+          onManual={() => setReviewing(true)}
+          textAlign={textAlign}
+          title={copy.keySlot}
+          value={snapshot.keySlotCandidate}
+        />
+      ) : (
+        <NativeParkingResourceResult
+          codeLabel={copy.keySlot}
+          label={copy.keySlot}
+          onChange={(value) => confirmation.enterKeySlot(value)}
+          placeholder={copy.enterKeySlotCode}
+          value={snapshot.keySlotCandidate}
+          valueHero={snapshot.keySlotCandidate.trim() || "—"}
+        />
+      )}
       {!online ? (
         <View style={s.offlinePanel}>
           <View accessibilityElementsHidden style={s.dangerDot} />
@@ -91,18 +89,31 @@ export function NativeParkingKeyReturnStep({
           </Text>
         </View>
       ) : null}
-      <EmployeeButton
-        busy={submitting}
-        disabled={
-          !online ||
-          submitting ||
-          snapshot.keySlotCandidate.trim() === "" ||
-          snapshot.phase !== "ready"
-        }
-        label={submitting ? copy.confirming : copy.confirm}
-        onPress={() => void confirmation.confirmParked()}
-        variant="success"
-      />
+      {reviewing ? (
+        <>
+          <EmployeeButton
+            busy={submitting}
+            disabled={
+              !online ||
+              submitting ||
+              snapshot.keySlotCandidate.trim() === "" ||
+              snapshot.phase !== "ready"
+            }
+            label={submitting ? copy.confirming : copy.confirm}
+            onPress={() => void confirmation.confirmParked()}
+            variant="success"
+          />
+          <EmployeeButton
+            disabled={submitting}
+            label={copy.scanAgain}
+            onPress={() => {
+              confirmation.enterKeySlot("");
+              setReviewing(false);
+            }}
+            variant="secondary"
+          />
+        </>
+      ) : null}
     </>
   );
 }

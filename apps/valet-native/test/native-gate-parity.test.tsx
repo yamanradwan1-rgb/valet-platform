@@ -35,6 +35,8 @@ vi.mock("expo-status-bar", () => ({ StatusBar: "StatusBar" }));
 
 const { NativeAuthPanel, nativeAuthGateStyles } =
   await import("../src/auth/native-auth-panel");
+const { EmployeeBrandLogo } =
+  await import("../src/employee-ui/employee-brand-logo");
 const { getNativeAuthCopy } = await import("../src/auth/native-auth-copy");
 const {
   NativeGateButton,
@@ -77,11 +79,13 @@ const authSession = {
 
 describe("Native Employee gate parity", () => {
   it("matches exact access-shell geometry and gate-specific copy", () => {
-    expect(nativeGateShellStyles.logo).toMatchObject({
+    expect(nativeGateShellStyles.logo).toMatchObject({ marginBottom: 48 });
+    const logo = EmployeeBrandLogo({ height: 36, surface: "dark" });
+    expect(style(logo.props.style)).toMatchObject({
       aspectRatio: 3.1,
       height: 36,
-      marginBottom: 48,
     });
+    expect(logo.props.fadeDuration).toBe(0);
     expect(nativeGateShellStyles.screen).toMatchObject({
       paddingBottom: 40,
       paddingHorizontal: 24,
