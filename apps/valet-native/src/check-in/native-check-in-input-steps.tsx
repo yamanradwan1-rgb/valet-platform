@@ -2,6 +2,7 @@ import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
 } from "@valet/employee-client";
+import { normalizeJordanCheckInPhone } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
 import {
@@ -30,6 +31,8 @@ export function NativeCustomerStep({
 }: StepProps) {
   const error = checkInFailureMessage(copy, snapshot.error);
   const vehicle = snapshot.recognizedVehicle;
+  const enteredPhone = snapshot.customerPhone.trim() !== "";
+  const normalizedPhone = normalizeJordanCheckInPhone(snapshot.customerPhone);
   return (
     <>
       {vehicle ? (
@@ -60,12 +63,20 @@ export function NativeCustomerStep({
         value={snapshot.customerPhone}
       />
       <CheckInStatus textAlign={textAlign}>{copy.smsNotice}</CheckInStatus>
+      {enteredPhone && !normalizedPhone.ok ? (
+        <CheckInError textAlign={textAlign}>
+          {copy.invalidJordanMobile}
+        </CheckInError>
+      ) : null}
       {error ? (
         <CheckInError textAlign={textAlign}>{error}</CheckInError>
       ) : null}
       <CheckInButton
+        disabled={!normalizedPhone.ok}
         label={copy.continueLabel}
-        onPress={() => void session.submitCustomer()}
+        onPress={() => {
+          if (normalizedPhone.ok) void session.submitCustomer();
+        }}
       />
       <CheckInButton
         label={copy.noPhone}

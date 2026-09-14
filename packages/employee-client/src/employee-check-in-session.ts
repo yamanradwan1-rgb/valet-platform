@@ -202,12 +202,14 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
 
   submitCustomer(): Promise<void> {
     if (this.snapshot.phase !== "customer") return Promise.resolve();
+    if (this.snapshot.customerPhone.trim() === "")
+      return this.submit(undefined);
     const normalized = normalizeJordanCheckInPhone(this.snapshot.customerPhone);
-    return this.submit(
-      normalized === ""
-        ? undefined
-        : { intent: "DIFFERENT_CUSTOMER", phone: normalized },
-    );
+    if (!normalized.ok) return Promise.resolve();
+    return this.submit({
+      intent: "DIFFERENT_CUSTOMER",
+      phone: normalized.phone,
+    });
   }
 
   private async submit(customer: IntakeRequest["customer"]): Promise<void> {

@@ -152,7 +152,11 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
        (id, email, password_hash, status, updated_at)
      VALUES ($1, $2, 'not-a-real-password-hash', $3,
              transaction_timestamp())`,
-    [fixture.userId, `${identity}@val-004e.test`, options.userStatus ?? "ACTIVE"],
+    [
+      fixture.userId,
+      `${identity}@val-004e.test`,
+      options.userStatus ?? "ACTIVE",
+    ],
   );
   await adminPool.query(
     `INSERT INTO organization_memberships
@@ -396,7 +400,9 @@ describe("VAL-004E intake session creation", () => {
     const result = await createIntakeSessionCommandExecutor(runtimePool)(
       temporaryRequest(fixture),
     );
-    const session = await adminPool.query<{ checked_in_by_membership_id: string }>(
+    const session = await adminPool.query<{
+      checked_in_by_membership_id: string;
+    }>(
       `SELECT checked_in_by_membership_id::text
        FROM valet_sessions WHERE id = $1`,
       [result.valetSessionId],
@@ -434,12 +440,17 @@ describe("VAL-004E intake session creation", () => {
 
   it.each([
     [{ userStatus: "DISABLED" } as FixtureOptions, "AUTHORIZATION_DENIED"],
-    [{ membershipStatus: "INACTIVE" } as FixtureOptions, "TENANT_ACCESS_DENIED"],
+    [
+      { membershipStatus: "INACTIVE" } as FixtureOptions,
+      "TENANT_ACCESS_DENIED",
+    ],
     [{ locationAccess: false } as FixtureOptions, "LOCATION_ACCESS_DENIED"],
   ])("rejects inactive or unscoped staff", async (options, code) => {
     const fixture = await createFixture(options);
     await expectCommandError(
-      createIntakeSessionCommandExecutor(runtimePool)(temporaryRequest(fixture)),
+      createIntakeSessionCommandExecutor(runtimePool)(
+        temporaryRequest(fixture),
+      ),
       code,
     );
     expect(await readCounts(fixture.organizationId)).toMatchObject({
@@ -467,13 +478,10 @@ describe("VAL-004E intake session creation", () => {
     expect(foreignError.message).toBe(missingError.message);
   });
 
-  it("normalizes E.164-compatible customer input and reuses one exact match", async () => {
+  it("persists a canonical Jordan mobile and reuses one exact match", async () => {
     const fixture = await createFixture();
     const execute = createIntakeSessionCommandExecutor(runtimePool);
-    const customer = differentCustomer(
-      "  ＋９６２ (７９) １２３-４５６７  ",
-      "  Ｊｏｒｄａｎ  ",
-    );
+    const customer = differentCustomer("+962791234567", "  Ｊｏｒｄａｎ  ");
     const first = await execute(temporaryRequest(fixture, { customer }));
     const second = await execute(temporaryRequest(fixture, { customer }));
     expect(first.customerId).not.toBeNull();
@@ -494,14 +502,14 @@ describe("VAL-004E intake session creation", () => {
   it("rejects invalid customer contact before any mutation", async () => {
     const fixture = await createFixture();
     const before = await readCounts(fixture.organizationId);
-    await expectCommandError(
-      createIntakeSessionCommandExecutor(runtimePool)(
-        temporaryRequest(fixture, {
-          customer: differentCustomer("0791234567"),
-        }),
-      ),
-      "INTAKE_INPUT_INVALID",
-    );
+    for (const phone of ["+96277896356", "+962123456789", "+96279000000"]) {
+      await expectCommandError(
+        createIntakeSessionCommandExecutor(runtimePool)(
+          temporaryRequest(fixture, { customer: differentCustomer(phone) }),
+        ),
+        "INTAKE_INPUT_INVALID",
+      );
+    }
     expect(await readCounts(fixture.organizationId)).toEqual(before);
   });
 
@@ -535,7 +543,10 @@ describe("VAL-004E intake session creation", () => {
     const secondFixture = await createFixture();
     const execute = createIntakeSessionCommandExecutor(runtimePool);
     const customer = differentCustomer("+962791234567");
-    const first = await execute({ ...confirmedRequest(firstFixture), customer });
+    const first = await execute({
+      ...confirmedRequest(firstFixture),
+      customer,
+    });
     const second = await execute({
       ...confirmedRequest(secondFixture),
       customer,
@@ -610,7 +621,10 @@ describe("VAL-004E intake session creation", () => {
     const fixture = await createFixture();
     const execute = createIntakeSessionCommandExecutor(runtimePool);
     const request = temporaryRequest(fixture);
-    const [first, second] = await Promise.all([execute(request), execute(request)]);
+    const [first, second] = await Promise.all([
+      execute(request),
+      execute(request),
+    ]);
     expect(second).toEqual(first);
     expect(await readCounts(fixture.organizationId)).toEqual({
       audits: 1,
@@ -625,7 +639,9 @@ describe("VAL-004E intake session creation", () => {
     const fixture = await createFixture();
     const execute = createIntakeSessionCommandExecutor(runtimePool);
     const operationId = `intake:${randomUUID()}`;
-    await execute(temporaryRequest(fixture, { intakeOperationId: operationId }));
+    await execute(
+      temporaryRequest(fixture, { intakeOperationId: operationId }),
+    );
     const before = await readCounts(fixture.organizationId);
     await expectCommandError(
       execute(
@@ -678,9 +694,9 @@ describe("VAL-004E intake session creation", () => {
       execute(confirmedRequest(fixture)),
       execute(confirmedRequest(fixture)),
     ]);
-    expect(settled.filter((result) => result.status === "fulfilled")).toHaveLength(
-      1,
-    );
+    expect(
+      settled.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
     const rejected = settled.find((result) => result.status === "rejected");
     expect((rejected as PromiseRejectedResult).reason).toMatchObject({
       code: "ACTIVE_VALET_SESSION_CONFLICT",

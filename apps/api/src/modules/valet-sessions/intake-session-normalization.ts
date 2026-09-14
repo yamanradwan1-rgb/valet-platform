@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { jordanCheckInMobilePhoneSchema } from "@valet/contracts";
 
 import {
   normalizeVehicleIdentityInput,
@@ -36,8 +37,6 @@ export interface NormalizedIntakeRequest {
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const operationKeyPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
-const e164Pattern = /^\+[1-9][0-9]{1,14}$/;
-const phonePresentationPattern = /[\s().\p{Pd}]+/gu;
 
 function invalidInput(): never {
   throw new IntakeSessionCommandError("INTAKE_INPUT_INVALID");
@@ -63,11 +62,8 @@ function customer(value: unknown): NormalizedIntakeCustomer | null {
   if (input.intent !== "DIFFERENT_CUSTOMER") return invalidInput();
   assertOnlyKeys(input, ["displayName", "intent", "phone"]);
   if (typeof input.phone !== "string") return invalidInput();
-  const phoneNormalized = input.phone
-    .trim()
-    .normalize("NFKC")
-    .replace(phonePresentationPattern, "");
-  if (!e164Pattern.test(phoneNormalized)) return invalidInput();
+  const phone = jordanCheckInMobilePhoneSchema.safeParse(input.phone);
+  if (!phone.success) return invalidInput();
   let displayName: string | null = null;
   if (input.displayName !== undefined) {
     if (typeof input.displayName !== "string") return invalidInput();
@@ -76,7 +72,7 @@ function customer(value: unknown): NormalizedIntakeCustomer | null {
       return invalidInput();
     }
   }
-  return { displayName, intent: input.intent, phoneNormalized };
+  return { displayName, intent: input.intent, phoneNormalized: phone.data };
 }
 
 export function normalizeIntakeRequest(

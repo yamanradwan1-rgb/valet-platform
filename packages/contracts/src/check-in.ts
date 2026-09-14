@@ -9,6 +9,31 @@ import {
   vehicleIdentitySchema,
 } from "./check-in-common.js";
 
+const jordanCheckInMobilePhonePattern = /^\+9627[0-9]{8}$/;
+const jordanPhonePresentationSeparators = /[\s()\p{Pd}]+/gu;
+
+export const jordanCheckInMobilePhoneSchema = z
+  .string()
+  .regex(jordanCheckInMobilePhonePattern);
+
+export type JordanCheckInPhoneNormalization =
+  { readonly ok: true; readonly phone: string } | { readonly ok: false };
+
+/** Accepts Employee Check-In presentation forms and returns one wire value. */
+export function normalizeJordanCheckInPhone(
+  input: string,
+): JordanCheckInPhoneNormalization {
+  const compact = input
+    .trim()
+    .normalize("NFKC")
+    .replace(jordanPhonePresentationSeparators, "");
+  const candidate = compact.startsWith("+962")
+    ? compact
+    : `+962${compact.startsWith("0") ? compact.slice(1) : compact}`;
+  const parsed = jordanCheckInMobilePhoneSchema.safeParse(candidate);
+  return parsed.success ? { ok: true, phone: parsed.data } : { ok: false };
+}
+
 export {
   confirmedPlateIdentitySchema,
   temporaryVehicleIdentitySchema,
@@ -27,7 +52,7 @@ export const intakeCustomerIntentSchema = z.discriminatedUnion("intent", [
     .object({
       displayName: z.string().optional(),
       intent: z.literal("DIFFERENT_CUSTOMER"),
-      phone: z.string(),
+      phone: jordanCheckInMobilePhoneSchema,
     })
     .strict(),
 ]);

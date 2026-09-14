@@ -206,6 +206,7 @@ export const nativeEmployeeEnglishDictionary = {
   kuwait: "Kuwait",
   licensePlate: "License Plate",
   mobileNumber: "Mobile Number",
+  invalidJordanMobile: "Enter a valid Jordan mobile number.",
   plateCountry: "plate",
   positionPlate: "Position the plate within the frame",
   saudiArabia: "Saudi Arabia",

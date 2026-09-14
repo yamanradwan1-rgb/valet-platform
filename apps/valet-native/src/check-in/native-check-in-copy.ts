@@ -32,6 +32,7 @@ export interface NativeCheckInCopy {
   readonly enterPlate: string;
   readonly intakeUnknown: string;
   readonly intakeUnknownTitle: string;
+  readonly invalidJordanMobile: string;
   readonly loading: string;
   readonly manualEntry: string;
   readonly enteredPlate: string;
@@ -117,6 +118,7 @@ export function getNativeCheckInCopy(
     enterPlate: d.enterPlate,
     intakeUnknown: d.operationFailed,
     intakeUnknownTitle: d.connectionIssue,
+    invalidJordanMobile: d.invalidJordanMobile,
     loading: d.checkingDrafts,
     manualEntry: d.manualEntry,
     enteredPlate: d.enteredPlate,

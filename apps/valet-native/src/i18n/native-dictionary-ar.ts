@@ -205,6 +205,7 @@ export const nativeEmployeeArabicDictionary: NativeEmployeeDictionary = {
   kuwait: "الكويت",
   licensePlate: "لوحة المركبة",
   mobileNumber: "رقم الهاتف المحمول",
+  invalidJordanMobile: "أدخل رقم هاتف محمول أردني صالحًا.",
   plateCountry: "لوحة",
   positionPlate: "ضع اللوحة داخل الإطار",
   saudiArabia: "السعودية",

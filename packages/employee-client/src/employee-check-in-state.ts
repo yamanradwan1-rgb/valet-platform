@@ -2,6 +2,7 @@ import type {
   EmployeeCheckInContinuation,
   EmployeeCheckInSnapshot,
 } from "./employee-check-in-types";
+export { normalizeJordanCheckInPhone } from "@valet/contracts";
 
 export function emptyCheckInContinuation(): EmployeeCheckInContinuation {
   return {
@@ -40,14 +41,4 @@ export function emptyEmployeeCheckInSnapshot(): EmployeeCheckInSnapshot {
       temporaryDescriptor: "",
     },
   };
-}
-
-export function normalizeJordanCheckInPhone(input: string): string {
-  const compact = input
-    .trim()
-    .normalize("NFKC")
-    .replace(/[\s()\p{Pd}]+/gu, "");
-  if (compact === "" || /^\+9627[0-9]{8}$/.test(compact)) return compact;
-  const national = compact.startsWith("0") ? compact.slice(1) : compact;
-  return /^7[0-9]{8}$/.test(national) ? `+962${national}` : compact;
 }
