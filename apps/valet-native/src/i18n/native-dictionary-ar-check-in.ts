@@ -9,7 +9,6 @@ export const nativeEmployeeArabicCheckInDictionary = {
   phoneEnding: "رقم الهاتف ينتهي بـ",
   plateCameraBusy:
     "الكاميرا مشغولة أو غير متاحة. أغلق تطبيقات الكاميرا الأخرى وحاول مجددًا.",
-  plateCameraCapture: "التقاط صورة اللوحة",
   plateCameraCapturedHint:
     "تم التقاط الصورة كمرجع فقط. أدخل اللوحة وأكدها يدويًا.",
   plateCameraCapturedLabel: "صورة مرجعية ملتقطة للوحة المركبة",
@@ -22,7 +21,8 @@ export const nativeEmployeeArabicCheckInDictionary = {
   plateCameraOpen: "فتح كاميرا اللوحة",
   plateCameraPermissionDenied:
     "تم رفض إذن الكاميرا. عدّل أذونات المتصفح أو أدخل اللوحة يدويًا.",
-  plateCameraPreviewHint: "ضع اللوحة داخل الإطار، ثم التقط صورة مرجعية واحدة.",
+  plateCameraPreviewHint:
+    "جارٍ قراءة اللوحة تلقائيًا… أبقِ اللوحة ظاهرة داخل الإطار.",
   plateCameraPreviewLabel: "معاينة مباشرة لكاميرا لوحة المركبة",
   plateCameraRetake: "إعادة التقاط الصورة",
   plateCameraRetry: "إعادة محاولة تشغيل الكاميرا",

@@ -13,7 +13,7 @@ import { PlateOcrAuthGuard } from "./plate-ocr-auth.guard";
 import { PlateOcrService } from "./plate-ocr.service";
 import { PlateOcrCostGuard } from "./plate-ocr-cost-guard";
 import { PLATE_OCR_PROVIDER } from "./plate-ocr-provider";
-import { readPlateOcrConfig } from "./plate-ocr-config";
+import { resolvePlateOcrConfig } from "./plate-ocr-config";
 import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.provider";
 
 @Module({
@@ -35,8 +35,14 @@ import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.pro
     },
     {
       provide: PLATE_OCR_PROVIDER,
-      useFactory: () =>
-        new PlateRecognizerSnapshotProvider(readPlateOcrConfig(process.env)),
+      useFactory: () => {
+        const resolution = resolvePlateOcrConfig(process.env);
+        return new PlateRecognizerSnapshotProvider(
+          resolution.status === "configured" ? resolution.config : undefined,
+          fetch,
+          resolution.status === "unavailable" ? resolution.reason : undefined,
+        );
+      },
     },
   ],
 })

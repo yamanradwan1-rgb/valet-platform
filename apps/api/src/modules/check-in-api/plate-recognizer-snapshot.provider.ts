@@ -2,9 +2,9 @@ import {
   plateOcrCandidateSchema,
   type PlateOcrResponse,
 } from "@valet/contracts";
-import { Logger } from "@nestjs/common";
+import { Logger, type OnModuleInit } from "@nestjs/common";
 import type { PlateOcrProvider } from "./plate-ocr-provider";
-import type { PlateOcrConfig } from "./plate-ocr-config";
+import type { PlateOcrConfig, PlateOcrConfigIssue } from "./plate-ocr-config";
 
 const hints = {
   JO: "jo",
@@ -18,7 +18,7 @@ const unavailable: PlateOcrResponse = { status: "UNAVAILABLE" };
 
 type ProviderDiagnostic =
   | "candidate-validation-failure"
-  | "config-unavailable"
+  | PlateOcrConfigIssue
   | "http-non-ok"
   | "http-success"
   | "invalid-json"
@@ -133,25 +133,26 @@ function resultCount(value: unknown): number | undefined {
     : undefined;
 }
 
-function diagnosticsEnabled(): boolean {
-  return (
-    process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test"
-  );
-}
-
-export class PlateRecognizerSnapshotProvider implements PlateOcrProvider {
+export class PlateRecognizerSnapshotProvider
+  implements PlateOcrProvider, OnModuleInit
+{
   private readonly logger = new Logger("PlateOcrProvider");
 
   constructor(
     private readonly config: PlateOcrConfig | undefined,
     private readonly http: typeof fetch = fetch,
+    private readonly configIssue: PlateOcrConfigIssue = "provider-config-missing",
   ) {}
+
+  onModuleInit(): void {
+    if (!this.config)
+      this.logger.warn(`PLATE_OCR_READINESS ${this.configIssue}`);
+  }
 
   private diagnostic(
     classification: ProviderDiagnostic,
     details: { status?: number; resultCount?: number | undefined } = {},
   ): void {
-    if (!diagnosticsEnabled()) return;
     let message = `PLATE_OCR_PROVIDER ${classification}`;
     if (details.status !== undefined) message += ` status=${details.status}`;
     if (details.resultCount !== undefined)
@@ -164,7 +165,7 @@ export class PlateRecognizerSnapshotProvider implements PlateOcrProvider {
   ): Promise<PlateOcrResponse> {
     const config = this.config;
     if (!config) {
-      this.diagnostic("config-unavailable");
+      this.diagnostic(this.configIssue);
       return unavailable;
     }
     const abort = new AbortController();

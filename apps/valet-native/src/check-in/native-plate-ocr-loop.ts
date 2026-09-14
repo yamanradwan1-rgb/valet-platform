@@ -2,6 +2,9 @@ import type { PlateOcrResponse } from "@valet/employee-client";
 import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 import { recordNativePlateOcrTelemetry } from "./native-plate-ocr-telemetry";
 
+export const NATIVE_PLATE_OCR_INTERVAL_MS = 1200;
+export const NATIVE_PLATE_OCR_MAX_ATTEMPTS = 5;
+
 export interface NativePlateOcrPorts {
   capture(signal: AbortSignal): Promise<string>;
   recognize(uri: string, signal: AbortSignal): Promise<PlateOcrResponse>;
@@ -11,6 +14,7 @@ export interface NativePlateOcrPorts {
 
 /** One transient operation across generations; no queued captures or uploads. */
 export class NativePlateOcrLoop {
+  private timer: ReturnType<typeof setTimeout> | undefined;
   private operation:
     | { abort: AbortController; uri?: string; deleting?: Promise<void> }
     | undefined;
@@ -24,12 +28,14 @@ export class NativePlateOcrLoop {
   ) {}
 
   start(generation: number): boolean {
-    if (this.operation !== undefined) return false;
-    void this.run(generation);
+    if (this.timer !== undefined || this.operation !== undefined) return false;
+    this.schedule(generation, 1);
     return true;
   }
 
   cancel(): void {
+    clearTimeout(this.timer);
+    this.timer = undefined;
     const operation = this.operation;
     if (!operation) return;
     // Production telemetry: a user-driven cancellation before completion.
@@ -52,7 +58,14 @@ export class NativePlateOcrLoop {
     return operation.deleting;
   }
 
-  private async run(generation: number): Promise<void> {
+  private schedule(generation: number, attempt: number): void {
+    this.timer = setTimeout(() => {
+      void this.run(generation, attempt);
+    }, NATIVE_PLATE_OCR_INTERVAL_MS);
+  }
+
+  private async run(generation: number, attempt: number): Promise<void> {
+    this.timer = undefined;
     if (!this.current(generation)) {
       logNativePlateOcr("generation-stale");
       return;
@@ -87,6 +100,13 @@ export class NativePlateOcrLoop {
     }
     if (!this.current(generation)) {
       logNativePlateOcr("generation-stale");
+      return;
+    }
+    if (
+      result.status === "NO_MATCH" &&
+      attempt < NATIVE_PLATE_OCR_MAX_ATTEMPTS
+    ) {
+      this.schedule(generation, attempt + 1);
       return;
     }
     logNativePlateOcr("loop-finish", { status: result.status });

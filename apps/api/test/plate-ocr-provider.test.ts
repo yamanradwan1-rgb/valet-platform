@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { readPlateOcrConfig } from "../src/modules/check-in-api/plate-ocr-config";
+import {
+  readPlateOcrConfig,
+  resolvePlateOcrConfig,
+} from "../src/modules/check-in-api/plate-ocr-config";
 import { PlateRecognizerSnapshotProvider } from "../src/modules/check-in-api/plate-recognizer-snapshot.provider";
 
 const env = {
@@ -22,6 +25,30 @@ function setup(payload: unknown) {
 }
 afterEach(() => vi.useRealTimers());
 describe("Snapshot-compatible adapter", () => {
+  it("classifies missing, invalid-endpoint, and invalid provider configuration without secrets", () => {
+    expect(resolvePlateOcrConfig({})).toEqual({
+      status: "unavailable",
+      reason: "provider-config-missing",
+    });
+    expect(
+      resolvePlateOcrConfig({
+        PLATE_OCR_ENDPOINT: "file:///private",
+        PLATE_OCR_TOKEN: "do-not-log",
+      }),
+    ).toEqual({
+      status: "unavailable",
+      reason: "provider-endpoint-invalid",
+    });
+    expect(
+      resolvePlateOcrConfig({
+        ...env,
+        PLATE_OCR_TIMEOUT_MS: "invalid",
+      }),
+    ).toEqual({
+      status: "unavailable",
+      reason: "provider-config-invalid",
+    });
+  });
   it.each([
     ["JO", "jo"],
     ["AE", "ae"],

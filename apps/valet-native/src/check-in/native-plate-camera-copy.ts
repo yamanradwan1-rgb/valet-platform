@@ -3,7 +3,6 @@ import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary"
 import { getNativePlatformCopy } from "../i18n/native-platform-copy";
 
 export interface NativePlateCameraCopy {
-  readonly capture: string;
   readonly open: string;
   readonly close: string;
   readonly enter: string;
@@ -30,7 +29,6 @@ export function getNativePlateCameraCopy(
   const d = getNativeEmployeeDictionary(locale);
   const platform = getNativePlatformCopy(locale);
   return {
-    capture: d.plateCameraCapture,
     open: d.plateCameraOpen,
     close: d.plateCameraClose,
     enter: d.enterManually,

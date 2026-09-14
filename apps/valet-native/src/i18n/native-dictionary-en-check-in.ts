@@ -9,7 +9,6 @@ export const nativeEmployeeEnglishCheckInDictionary = {
   phoneEnding: "Phone ending",
   plateCameraBusy:
     "The camera is busy or unavailable. Close other camera apps and try again.",
-  plateCameraCapture: "Capture plate image",
   plateCameraCapturedHint:
     "Image captured for reference only. Enter and confirm the plate manually.",
   plateCameraCapturedLabel: "Captured vehicle plate reference",
@@ -24,7 +23,7 @@ export const nativeEmployeeEnglishCheckInDictionary = {
   plateCameraPermissionDenied:
     "Camera permission was denied. Update browser permissions or enter the plate manually.",
   plateCameraPreviewHint:
-    "Position the plate in the frame, then capture one reference image.",
+    "Reading plate automatically… Keep the plate visible in the frame.",
   plateCameraPreviewLabel: "Live vehicle plate camera preview",
   plateCameraRetake: "Retake image",
   plateCameraRetry: "Try camera again",

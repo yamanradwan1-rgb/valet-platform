@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInSession,
   NativeAuthSession,
@@ -67,6 +67,7 @@ function fixture(
   locale: "en" | "ar" = "en",
   deferPermission = false,
   textAlign: "left" | "right" = locale === "ar" ? "right" : "left",
+  ocrUnavailable = false,
 ) {
   hooks.focus = [];
   const permission = { granted, canAskAgain: false };
@@ -74,10 +75,22 @@ function fixture(
   const pendingPermission = new Promise<typeof permission>((resolve) => {
     resolvePermission = resolve;
   });
-  const controller = new NativePlateCameraController({
-    get: vi.fn(async () => (deferPermission ? pendingPermission : permission)),
-    request: vi.fn(async () => permission),
-  });
+  const controller = new NativePlateCameraController(
+    {
+      get: vi.fn(async () =>
+        deferPermission ? pendingPermission : permission,
+      ),
+      request: vi.fn(async () => permission),
+    },
+    ocrUnavailable
+      ? {
+          accept: vi.fn(),
+          capture: vi.fn(async () => "cache://plate.jpg"),
+          recognize: vi.fn(async () => ({ status: "UNAVAILABLE" as const })),
+          remove: vi.fn(async () => undefined),
+        }
+      : undefined,
+  );
   const open = vi.spyOn(controller, "open");
   hooks.controller = controller;
   const onManual = vi.fn(() => expect(controller.current().phase).toBe("idle"));
@@ -125,6 +138,8 @@ function fixture(
   };
 }
 
+afterEach(() => vi.useRealTimers());
+
 describe("Native assistive plate camera presentation", () => {
   it("auto-opens once on focus while retaining manual and no-plate actions", async () => {
     const { open, render } = fixture();
@@ -154,7 +169,9 @@ describe("Native assistive plate camera presentation", () => {
     expect(context.open).toHaveBeenCalledTimes(2);
     reenteredCleanup();
   });
-  it("mounts a muted rear camera and exposes explicit capture with no QR callback", async () => {
+  // DEC-074: ready-triggered OCR is the product contract; normal preview must
+  // never insert a required manual Capture action between readiness and OCR.
+  it("mounts a muted rear camera and does not require a capture button", async () => {
     const context = fixture();
     await context.controller.open();
     const starting = context.render();
@@ -179,6 +196,14 @@ describe("Native assistive plate camera presentation", () => {
       context
         .render()
         .some((node) => node.props.label === "Capture plate image"),
+    ).toBe(false);
+    expect(
+      context.render().some((node) => node.props.label === "Enter manually"),
+    ).toBe(true);
+    expect(
+      context
+        .render()
+        .some((node) => node.props.label === "No plate / unreadable plate"),
     ).toBe(true);
     context.press("Enter manually");
     expect(context.onManual).toHaveBeenCalledOnce();
@@ -203,6 +228,23 @@ describe("Native assistive plate camera presentation", () => {
     ).toBe(true);
     context.resolvePermission({ granted: true, canAskAgain: false });
     await opening;
+  });
+  it("keeps manual and no-plate fallbacks after OCR is unavailable", async () => {
+    vi.useFakeTimers();
+    const context = fixture(true, "en", false, "left", true);
+    await context.controller.open();
+    const camera = context.render().find((node) => node.type === "CameraView")!;
+    (camera.props.onCameraReady as () => void)();
+    await vi.advanceTimersByTimeAsync(1200);
+    expect(context.controller.current().phase).toBe("unavailable");
+    expect(
+      context.render().some((node) => node.props.label === "Enter manually"),
+    ).toBe(true);
+    expect(
+      context
+        .render()
+        .some((node) => node.props.label === "No plate / unreadable plate"),
+    ).toBe(true);
   });
   it.each(["Enter manually", "No plate / unreadable plate", "Close camera"])(
     "%s removes preview before transition",

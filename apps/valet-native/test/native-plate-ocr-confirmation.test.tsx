@@ -141,8 +141,7 @@ describe("OCR integrates the real Check-In trust boundary", () => {
       const c = await setup();
       const confirm = vi.spyOn(c.session, "confirmIdentity");
       expect(c.camera.takePictureAsync).not.toHaveBeenCalled();
-      c.controller.capture();
-      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(1200);
       expect(c.camera.takePictureAsync).toHaveBeenCalledWith({
         quality: 0.6,
         exif: false,
@@ -186,8 +185,7 @@ describe("OCR integrates the real Check-In trust boundary", () => {
   );
   it("allows Edit before explicit confirmation", async () => {
     const c = await setup();
-    c.controller.capture();
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(1200);
     c.session.editIdentity();
     c.session.setVehicle({ plateNumberRaw: "EDITED" });
     c.session.reviewIdentity();
@@ -215,8 +213,7 @@ describe("OCR integrates the real Check-In trust boundary", () => {
         resolve = done;
       }),
     );
-    c.controller.capture();
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(1200);
     switch (reason) {
       case "back":
         c.session.clear();
@@ -256,8 +253,7 @@ describe("OCR integrates the real Check-In trust boundary", () => {
   it("does not upload oversize local files and still deletes them", async () => {
     const c = await setup();
     mocks.size = 1048577;
-    c.controller.capture();
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(1200);
     expect(mocks.request).not.toHaveBeenCalled();
     expect(c.camera.takePictureAsync).toHaveBeenCalledTimes(2);
     expect(mocks.remove).toHaveBeenCalledTimes(2);

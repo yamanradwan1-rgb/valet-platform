@@ -71,8 +71,8 @@ async function start(binding: ReturnType<typeof createNativePlateOcrBinding>) {
   const generation = binding.controller.current().generation;
   await binding.cameraReady(generation);
   await binding.cameraReady(generation);
-  binding.controller.capture();
-  await vi.advanceTimersByTimeAsync(0);
+  await binding.cameraReady(generation);
+  await vi.advanceTimersByTimeAsync(1200);
   return generation;
 }
 
@@ -93,7 +93,7 @@ afterEach(() => {
 });
 
 describe("Native camera capture resolution fallback", () => {
-  it("uses the preferred camera size without a fallback after capture success", async () => {
+  it("starts once after the final preferred-size remount readiness", async () => {
     mocks.sizes.set("preferred.jpg", 500_000);
     const takePictureAsync = vi
       .fn()
@@ -104,6 +104,11 @@ describe("Native camera capture resolution fallback", () => {
 
     expect(takePictureAsync).toHaveBeenCalledOnce();
     expect(mocks.recognize).toHaveBeenCalledOnce();
+    expect(
+      info.mock.calls
+        .flat()
+        .filter((value: unknown) => String(value).includes("loop-start")),
+    ).toHaveLength(1);
     expect(info.mock.calls.flat().join("\n")).not.toContain(
       "camera-capture-fallback",
     );
@@ -131,6 +136,11 @@ describe("Native camera capture resolution fallback", () => {
     expect(takePictureAsync).toHaveBeenCalledTimes(2);
     expect(mocks.recognize).toHaveBeenCalledOnce();
     expect(state.reviewIdentity).toHaveBeenCalledOnce();
+    expect(
+      info.mock.calls
+        .flat()
+        .filter((value: unknown) => String(value).includes("loop-start")),
+    ).toHaveLength(1);
     expect(info.mock.calls.flat().join("\n")).toContain(
       "PLATE_OCR_NATIVE camera-capture-fallback",
     );

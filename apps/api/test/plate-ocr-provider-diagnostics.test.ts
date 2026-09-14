@@ -196,10 +196,12 @@ describe("Plate OCR provider diagnostics", () => {
       ),
     ).toEqual({ status: "UNAVAILABLE" });
     expect(http).not.toHaveBeenCalled();
-    expect(messages(logger)).toEqual(["PLATE_OCR_PROVIDER config-unavailable"]);
+    expect(messages(logger)).toEqual([
+      "PLATE_OCR_PROVIDER provider-config-missing",
+    ]);
   });
 
-  it("keeps production behavior while emitting no diagnostics", async () => {
+  it("keeps sanitized provider diagnostics observable in production", async () => {
     vi.stubEnv("NODE_ENV", "production");
     const logger = vi
       .spyOn(Logger.prototype, "log")
@@ -219,6 +221,26 @@ describe("Plate OCR provider diagnostics", () => {
       candidate: { plateNumberRaw: "AA123", confidence: 0.9 },
     });
     expect(await provider.recognize(input)).toEqual({ status: "UNAVAILABLE" });
-    expect(logger).not.toHaveBeenCalled();
+    expect(messages(logger)).toEqual([
+      "PLATE_OCR_PROVIDER request-start",
+      "PLATE_OCR_PROVIDER http-success status=201 results=1",
+      "PLATE_OCR_PROVIDER match status=201 results=1",
+      "PLATE_OCR_PROVIDER request-start",
+      "PLATE_OCR_PROVIDER http-non-ok status=429",
+    ]);
+  });
+
+  it("emits a sanitized startup warning for unavailable configuration", () => {
+    const warning = vi
+      .spyOn(Logger.prototype, "warn")
+      .mockImplementation(() => {});
+    new PlateRecognizerSnapshotProvider(
+      undefined,
+      vi.fn<typeof fetch>(),
+      "provider-endpoint-invalid",
+    ).onModuleInit();
+    expect(messages(warning)).toEqual([
+      "PLATE_OCR_READINESS provider-endpoint-invalid",
+    ]);
   });
 });

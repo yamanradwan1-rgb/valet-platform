@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PlateOcrResponse } from "@valet/employee-client";
 import { NativePlateCameraController } from "../src/check-in/native-plate-camera-controller";
+import {
+  NATIVE_PLATE_OCR_INTERVAL_MS,
+  NATIVE_PLATE_OCR_MAX_ATTEMPTS,
+} from "../src/check-in/native-plate-ocr-loop";
 
 const match: PlateOcrResponse = {
   status: "MATCH",
@@ -32,63 +36,114 @@ function setup() {
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
-describe("Native explicit bounded OCR", () => {
-  it("does no capture or OCR work from open, readiness, or elapsed time", async () => {
+// DEC-074: final camera readiness MUST start bounded assistive OCR automatically.
+// Requiring manual Capture here would change an Accepted product contract.
+describe("DEC-074 automatic bounded Native OCR invariant", () => {
+  it("starts assistive OCR automatically only after final camera readiness and the interval", async () => {
     const c = setup();
-    await c.open();
-    await vi.advanceTimersByTimeAsync(60_000);
+    await c.controller.open();
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 2);
     expect(c.capture).not.toHaveBeenCalled();
-    expect(c.recognize).not.toHaveBeenCalled();
-  });
 
-  it("runs exactly one attempt for one explicit capture", async () => {
-    const c = setup();
-    await c.open();
-    c.controller.capture();
-    await vi.advanceTimersByTimeAsync(0);
+    c.controller.ready(c.controller.current().generation);
+    c.controller.ready(c.controller.current().generation);
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS - 1);
+    expect(c.capture).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
     expect(c.capture).toHaveBeenCalledOnce();
     expect(c.recognize).toHaveBeenCalledOnce();
-    expect(c.remove).toHaveBeenCalledExactlyOnceWith("cache://transient.jpg");
+  });
+
+  it("retries NO_MATCH at most five spaced attempts", async () => {
+    const c = setup();
+    await c.open();
+    for (let attempt = 1; attempt <= NATIVE_PLATE_OCR_MAX_ATTEMPTS; attempt++) {
+      await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS - 1);
+      expect(c.capture).toHaveBeenCalledTimes(attempt - 1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(c.capture).toHaveBeenCalledTimes(attempt);
+    }
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 2);
+    expect(c.capture).toHaveBeenCalledTimes(NATIVE_PLATE_OCR_MAX_ATTEMPTS);
+    expect(c.recognize).toHaveBeenCalledTimes(NATIVE_PLATE_OCR_MAX_ATTEMPTS);
+    expect(c.remove).toHaveBeenCalledTimes(NATIVE_PLATE_OCR_MAX_ATTEMPTS);
     expect(c.controller.current().phase).toBe("no-match");
   });
 
-  it("fences double capture synchronously", async () => {
+  it("never overlaps capture or recognition while an attempt is active", async () => {
     const c = setup();
-    let finish!: (value: string) => void;
-    c.capture.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+    let captured!: (uri: string) => void;
+    c.capture.mockReturnValueOnce(
+      new Promise((resolve) => {
+        captured = resolve;
+      }),
+    );
     await c.open();
-    c.controller.capture();
-    c.controller.capture();
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 10);
     expect(c.capture).toHaveBeenCalledOnce();
-    finish("cache://transient.jpg");
-    await vi.advanceTimersByTimeAsync(0);
+    expect(c.recognize).not.toHaveBeenCalled();
+
+    let recognized!: (result: PlateOcrResponse) => void;
+    c.recognize.mockReturnValueOnce(
+      new Promise((resolve) => {
+        recognized = resolve;
+      }),
+    );
+    captured("cache://transient.jpg");
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 10);
     expect(c.recognize).toHaveBeenCalledOnce();
+    expect(c.capture).toHaveBeenCalledOnce();
+    recognized({ status: "NO_MATCH" });
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS);
+    expect(c.capture).toHaveBeenCalledTimes(2);
   });
 
-  it("shows a candidate for review without confirming identity", async () => {
+  it("MATCH stops retries and accepts the candidate exactly once", async () => {
     const c = setup();
     c.recognize.mockResolvedValueOnce(match);
     await c.open();
-    c.controller.capture();
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS);
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 10);
+    expect(c.capture).toHaveBeenCalledOnce();
     expect(c.accept).toHaveBeenCalledExactlyOnceWith("12-34567");
     expect(c.controller.current().phase).toBe("idle");
   });
 
-  it("invalidates a late result and cleans the transient file", async () => {
+  it("UNAVAILABLE stops retries and exposes the terminal fallback state", async () => {
+    const c = setup();
+    c.recognize.mockResolvedValueOnce({ status: "UNAVAILABLE" });
+    await c.open();
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 10);
+    expect(c.capture).toHaveBeenCalledOnce();
+    expect(c.controller.current().phase).toBe("unavailable");
+  });
+
+  it("close cancels a pending timer", async () => {
+    const c = setup();
+    await c.open();
+    c.controller.close();
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 2);
+    expect(c.capture).not.toHaveBeenCalled();
+  });
+
+  it("close aborts active work and a stale result cannot mutate a new generation", async () => {
     const c = setup();
     let finish!: (value: PlateOcrResponse) => void;
     c.recognize.mockReturnValueOnce(
-      new Promise((resolve) => (finish = resolve)),
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
     );
     await c.open();
-    c.controller.capture();
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS);
     c.controller.close();
-    expect(c.recognize.mock.calls[0]?.[1]?.aborted).toBe(true);
+    expect(c.recognize.mock.calls[0]?.[1].aborted).toBe(true);
     expect(c.remove).toHaveBeenCalledOnce();
+    await c.controller.open();
+    c.controller.ready(c.controller.current().generation);
     finish(match);
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 2);
     expect(c.accept).not.toHaveBeenCalled();
   });
 });

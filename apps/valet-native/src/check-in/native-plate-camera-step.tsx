@@ -103,16 +103,9 @@ export function NativePlateCameraStep({
         </View>
       ) : null}
       {snapshot.phase === "preview" ? (
-        <>
-          <CheckInStatus textAlign={textAlign}>
-            {camera.phases.preview}
-          </CheckInStatus>
-          <CheckInButton
-            label={camera.capture}
-            variant="primary"
-            onPress={() => controller.capture()}
-          />
-        </>
+        <CheckInStatus textAlign={textAlign}>
+          {camera.phases.preview}
+        </CheckInStatus>
       ) : null}
       {!opened ? (
         <>

@@ -124,14 +124,8 @@ export class NativePlateCameraController {
         return;
       }
       logNativePlateOcr("preview-ready");
+      if (this.ocr?.start(generation)) logNativePlateOcr("loop-start");
     }
-  }
-
-  capture(): void {
-    const generation = this.snapshot.generation;
-    if (!this.isCurrent(generation) || this.snapshot.phase !== "preview")
-      return;
-    if (this.ocr?.start(generation)) logNativePlateOcr("loop-start");
   }
 
   configurePictureSizes(

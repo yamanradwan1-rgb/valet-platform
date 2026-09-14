@@ -96,12 +96,14 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
 
   it("keeps every camera phase localized and assistive-only truthful", () => {
     const forbidden =
-      /plate (?:captured|detected)|high confidence|تم (?:التقاط|اكتشاف) اللوحة|ثقة عالية/i;
+      /capture one reference image|plate (?:captured|detected)|high confidence|التقط صورة مرجعية|تم (?:التقاط|اكتشاف) اللوحة|ثقة عالية/i;
     for (const locale of ["en", "ar"] as const) {
       const copy = getNativePlateCameraCopy(locale);
       expect(Object.values(copy.phases).join(" ")).not.toMatch(forbidden);
       expect(copy.phases.preview).toMatch(
-        locale === "en" ? /capture one reference image/i : /التقط صورة مرجعية/,
+        locale === "en"
+          ? /reading plate automatically/i
+          : /قراءة اللوحة تلقائيًا/,
       );
       expect(copy.enter).toMatch(
         locale === "en" ? /enter manually/i : /إدخال يدوي/,
