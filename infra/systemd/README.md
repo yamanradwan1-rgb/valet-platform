@@ -18,6 +18,15 @@ map the dedicated Customer hostname to `http://127.0.0.1:3002`. Keep the API
 ingress mapping intact. Do not use a Quick Tunnel hostname as the production
 Customer origin because it is ephemeral.
 
-After creating the controlled DNS/tunnel route, verify the public HTTPS origin
-and use that exact bare origin for both `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN` and
-`EXPO_PUBLIC_CUSTOMER_APP_ORIGIN` during their respective production builds.
+After creating the controlled DNS/tunnel route, verify the public HTTPS origin.
+The Customer server continues to use the private
+`API_ORIGIN=http://127.0.0.1:3001`; it does not require a public Customer-origin
+variable. The later Native Employee release must set the verified bare origin
+explicitly:
+
+```sh
+EXPO_PUBLIC_CUSTOMER_APP_ORIGIN=https://<real-customer-hostname>
+```
+
+`NEXT_PUBLIC_CUSTOMER_APP_ORIGIN` belongs to the separate Employee Web Guest
+Access sharing boundary and is not an `apps/customer` deployment input.

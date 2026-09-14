@@ -1,8 +1,7 @@
 [Unit]
 Description=VAYLET Customer App
-Requires=vaylet-api.service
 After=network-online.target vaylet-api.service
-Wants=network-online.target
+Wants=network-online.target vaylet-api.service
 
 [Service]
 Type=simple
