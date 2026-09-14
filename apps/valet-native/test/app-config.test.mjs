@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 import appConfig from "../app.json";
 
@@ -25,6 +28,24 @@ describe("Expo application configuration", () => {
     expect(expo.android.package).toBe("com.vaylet.employee");
     expect(expo.ios.bundleIdentifier).toBe("com.vaylet.employee");
     expect(expo.platforms).toEqual(["ios", "android"]);
+  });
+
+  it("wires the matching Firebase Android client configuration", () => {
+    expect(expo.android.googleServicesFile).toBe("./google-services.json");
+    const googleServicesPath = fileURLToPath(
+      new URL(`../${expo.android.googleServicesFile}`, import.meta.url),
+    );
+    expect(existsSync(googleServicesPath)).toBe(true);
+
+    const firebase = JSON.parse(readFileSync(googleServicesPath, "utf8"));
+    expect(firebase.project_info?.project_id).toBe("vaylet-4725f");
+    expect(
+      firebase.client?.some(
+        (client) =>
+          client.client_info?.android_client_info?.package_name ===
+          expo.android.package,
+      ),
+    ).toBe(true);
   });
 
   it("expresses the accepted Android build envelope through CNG", () => {
@@ -98,12 +119,11 @@ describe("Expo application configuration", () => {
     ]);
   });
 
-  it("does not configure OTA, Firebase, EAS, or production credentials", () => {
+  it("does not configure OTA, EAS, or production credentials", () => {
     expect(expo).not.toHaveProperty("updates");
     expect(expo).not.toHaveProperty("runtimeVersion");
     expect(expo).not.toHaveProperty("owner");
     expect(expo).not.toHaveProperty("extra.eas");
-    expect(expo.android).not.toHaveProperty("googleServicesFile");
     expect(expo.ios).not.toHaveProperty("googleServicesFile");
   });
 });
