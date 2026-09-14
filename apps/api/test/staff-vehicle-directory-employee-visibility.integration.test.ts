@@ -32,11 +32,9 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
     token: string,
     locationId: string,
   ) {
-    return harness.request<T>(
-      "GET",
-      `${DIRECTORY}?locationId=${locationId}`,
-      { token },
-    );
+    return harness.request<T>("GET", `${DIRECTORY}?locationId=${locationId}`, {
+      token,
+    });
   }
 
   it("derives employee rows from accepted state/task ownership semantics", async () => {
@@ -126,10 +124,7 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
       peerDraft.sessionId,
     ]);
 
-    const supervisorView = await directory(
-      supervisorToken,
-      fixture.locationId,
-    );
+    const supervisorView = await directory(supervisorToken, fixture.locationId);
     expect(supervisorView.status).toBe(200);
     const supervisorIds = supervisorView.body.rows.map((r) => r.sessionId);
     expect(supervisorIds).not.toContain(finished.sessionId);
@@ -151,11 +146,30 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
         ?.keySlotCode,
     ).toBe("K-Q");
     expect(
+      supervisorView.body.rows.find((r) => r.sessionId === queuedId)
+        ?.keySlotVisibility,
+    ).toBe("VISIBLE");
+    expect(
       ownerView.body.rows.find((r) => r.sessionId === queuedId)?.keySlotCode,
     ).toBeNull();
     expect(
+      ownerView.body.rows.find((r) => r.sessionId === queuedId)
+        ?.keySlotVisibility,
+    ).toBe("RESTRICTED");
+    expect(
       peerView.body.rows.find((r) => r.sessionId === queuedId)?.keySlotCode,
     ).toBeNull();
+    expect(
+      peerView.body.rows.find((r) => r.sessionId === queuedId)
+        ?.keySlotVisibility,
+    ).toBe("RESTRICTED");
+    expect(JSON.stringify(ownerView.body)).not.toContain("K-Q");
+
+    const genuinelyUnassigned = peerView.body.rows.find(
+      (r) => r.sessionId === peerParking.sessionId,
+    );
+    expect(genuinelyUnassigned?.keySlotCode).toBeNull();
+    expect(genuinelyUnassigned?.keySlotVisibility).toBe("UNASSIGNED");
   });
 
   it("caps a >100-candidate Location and reports truncation per role", async () => {
@@ -215,10 +229,7 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
       );
     }
 
-    const supervisorView = await directory(
-      supervisorToken,
-      fixture.locationId,
-    );
+    const supervisorView = await directory(supervisorToken, fixture.locationId);
     expect(supervisorView.status).toBe(200);
     expect(supervisorView.body.truncated).toBe(true);
     expect(supervisorView.body.rows).toHaveLength(100);

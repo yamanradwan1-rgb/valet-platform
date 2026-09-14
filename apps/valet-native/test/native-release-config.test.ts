@@ -13,6 +13,7 @@ function release(origin: string | undefined) {
     applyNativeReleaseConfigPreflight(config, {
       EXPO_PUBLIC_CUSTOMER_APP_ORIGIN: origin,
       NODE_ENV: "production",
+      argv: ["expo", "export:embed", "--dev", "false"],
     });
 }
 
@@ -44,6 +45,7 @@ describe("Native release Customer origin preflight", () => {
       applyNativeReleaseConfigPreflight(config, {
         EXPO_PUBLIC_CUSTOMER_APP_ORIGIN: "http://localhost:3002",
         NODE_ENV: "development",
+        argv: ["expo", "start", "--dev-client"],
       }),
     ).toBe(config);
   });

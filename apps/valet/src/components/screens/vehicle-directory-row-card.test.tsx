@@ -15,6 +15,7 @@ function baseRow(
   return {
     createdAt: "2026-08-25T09:00:00.000Z",
     keySlotCode: null,
+    keySlotVisibility: "UNASSIGNED",
     parkingSpotCode: null,
     parkingZoneCode: null,
     sessionId: "11111111-1111-4111-8111-111111111111",
@@ -97,10 +98,17 @@ describe("VehicleDirectoryRowCard truthful rendering", () => {
   });
 
   it("hides the detail panel until expanded and reveals row-held facts only", () => {
-    const row = baseRow({ keySlotCode: "K-07", parkingSpotCode: "B-17", parkingZoneCode: "ZB" });
+    const row = baseRow({
+      keySlotCode: "K-07",
+      keySlotVisibility: "VISIBLE",
+      parkingSpotCode: "B-17",
+      parkingZoneCode: "ZB",
+    });
     const collapsed = renderCard(row);
     expect(collapsed).not.toContain("Read-only view");
-    expect(collapsed).not.toContain(employeeDictionary("en").vehiclesCheckedInLabel);
+    expect(collapsed).not.toContain(
+      employeeDictionary("en").vehiclesCheckedInLabel,
+    );
 
     const expanded = renderCard(row, { expanded: true });
     const en = employeeDictionary("en");
@@ -121,16 +129,27 @@ describe("VehicleDirectoryRowCard truthful rendering", () => {
     expect(collapsed).not.toContain(row.sessionId);
   });
 
-  it("renders the safe localized placeholder for masked employee key slots", () => {
+  it("renders dedicated localized copy for masked employee key slots", () => {
     const en = employeeDictionary("en");
-    const markup = renderCard(baseRow(), { expanded: true });
-    expect(markup).toContain(en.notAssigned);
-    expect(markup).toContain(`>${en.notAssigned}</span>`);
+    const markup = renderCard(
+      baseRow({
+        keySlotVisibility: "RESTRICTED",
+        parkingSpotCode: "P-03",
+        parkingZoneCode: "North",
+      }),
+      { expanded: true },
+    );
+    expect(markup).toContain(en.keySlotRestricted);
+    expect(markup).not.toContain(en.notAssigned);
   });
 
   it("keeps Arabic labels and LTR identifier isolation intact", () => {
     const ar = employeeDictionary("ar");
-    const row = baseRow({ keySlotCode: "K-07", parkingZoneCode: "ZB" });
+    const row = baseRow({
+      keySlotCode: "K-07",
+      keySlotVisibility: "VISIBLE",
+      parkingZoneCode: "ZB",
+    });
     const markup = renderCard(row, { locale: "ar", expanded: true });
     expect(markup).toContain(ar.keySlot);
     expect(markup).toContain(ar.notAssigned);

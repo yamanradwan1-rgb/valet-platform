@@ -98,6 +98,8 @@ describe("Staff Vehicle Directory Authority Integration", () => {
     expect(parkingRow?.createdAt).toBe("2026-08-25T10:02:00.000Z");
     // Supervisory Key Slot detail inside the exact authorized Location.
     expect(queuedRow?.keySlotCode).toBe("K-01");
+    expect(queuedRow?.keySlotVisibility).toBe("VISIBLE");
+    expect(parkingRow?.keySlotVisibility).toBe("UNASSIGNED");
   });
 
   it("does not grant detail/command authority through row visibility", async () => {

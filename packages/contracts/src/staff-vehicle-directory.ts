@@ -10,9 +10,8 @@ const utcTimestampSchema = z.string().datetime({ offset: false });
  * the directory by definition (DEC-066 §6); excluding the value here as well
  * keeps a leaking COMPLETED row a contract failure instead of a disclosure.
  */
-export const staffVehicleDirectoryRowStateSchema = staffValetSessionStateSchema.exclude([
-  "COMPLETED",
-]);
+export const staffVehicleDirectoryRowStateSchema =
+  staffValetSessionStateSchema.exclude(["COMPLETED"]);
 
 export type StaffVehicleDirectoryRowState = z.infer<
   typeof staffVehicleDirectoryRowStateSchema
@@ -37,16 +36,29 @@ export type StaffVehicleDirectoryVehicle = z.infer<
   typeof staffVehicleDirectoryVehicleSchema
 >;
 
+export const staffVehicleDirectoryKeySlotVisibilitySchema = z.enum([
+  "VISIBLE",
+  "RESTRICTED",
+  "UNASSIGNED",
+]);
+
+export type StaffVehicleDirectoryKeySlotVisibility = z.infer<
+  typeof staffVehicleDirectoryKeySlotVisibilitySchema
+>;
+
 /**
  * One active vehicle row. `keySlotCode` is field-masked per role:
  * VALET_SUPERVISOR receives staff-only Key Slot detail inside the exact
  * authorized Location; VALET_EMPLOYEE rows always carry null (fail closed,
- * DEC-066 §8). Row visibility never grants command authority.
+ * DEC-066 §8). `keySlotVisibility` distinguishes that masking from a genuine
+ * lack of assignment without disclosing the protected code. Row visibility
+ * never grants command authority.
  */
 export const staffVehicleDirectoryRowSchema = z
   .object({
     createdAt: utcTimestampSchema,
     keySlotCode: z.string().min(1).nullable(),
+    keySlotVisibility: staffVehicleDirectoryKeySlotVisibilitySchema,
     parkingSpotCode: z.string().nullable(),
     parkingZoneCode: z.string().nullable(),
     sessionId: uuidSchema,
@@ -54,7 +66,20 @@ export const staffVehicleDirectoryRowSchema = z
     updatedAt: utcTimestampSchema,
     vehicle: staffVehicleDirectoryVehicleSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((row, context) => {
+    const codeMatchesVisibility =
+      row.keySlotVisibility === "VISIBLE"
+        ? row.keySlotCode !== null
+        : row.keySlotCode === null;
+    if (!codeMatchesVisibility) {
+      context.addIssue({
+        code: "custom",
+        message: "Key Slot code does not match its visibility.",
+        path: ["keySlotCode"],
+      });
+    }
+  });
 
 export type StaffVehicleDirectoryRow = z.infer<
   typeof staffVehicleDirectoryRowSchema

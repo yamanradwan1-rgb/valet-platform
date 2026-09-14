@@ -4,9 +4,7 @@ import type { JSX } from "react";
 import type { StaffVehicleDirectoryRow } from "@valet/contracts";
 
 import type { BadgeVariant } from "../../types/employee-ui";
-import {
-  formatEmployeeDateTime,
-} from "../../lib/i18n/live-presentation";
+import { formatEmployeeDateTime } from "../../lib/i18n/live-presentation";
 import { Badge, InfoRow } from "../ui/employee-primitives";
 import { useEmployeeI18n } from "../shell/employee-i18n";
 
@@ -60,9 +58,10 @@ export interface VehicleDirectoryRowCardProps {
 
 /**
  * One truthful directory row (DEC-066 §8/§10/§12). Plates and resource codes
- * render LTR-isolated; a null Key Slot renders the localized safe placeholder
- * — never a fabricated value. Expanding reveals the read-only detail already
- * present in this row: no extra fetches, no actions, no workflow launches.
+ * render LTR-isolated; the server-projected visibility distinguishes a
+ * restricted Key Slot from a genuine lack of assignment. Expanding reveals
+ * only read-only detail already present in this row: no extra fetches, actions,
+ * or workflow launches.
  */
 export function VehicleDirectoryRowCard({
   expanded,
@@ -71,6 +70,10 @@ export function VehicleDirectoryRowCard({
 }: VehicleDirectoryRowCardProps): JSX.Element {
   const { locale, t } = useEmployeeI18n();
   const title = vehicleTitle(row, t.vehiclesDescriptorMissing);
+  const keySlotFallback =
+    row.keySlotVisibility === "RESTRICTED"
+      ? t.keySlotRestricted
+      : t.notAssigned;
   const zoneSpot = [row.parkingZoneCode, row.parkingSpotCode].filter(
     (code): code is string => code !== null,
   );
@@ -109,7 +112,9 @@ export function VehicleDirectoryRowCard({
               {row.keySlotCode !== null ? (
                 <bdi dir="ltr">{row.keySlotCode}</bdi>
               ) : (
-                <span className="text-muted font-normal">{t.notAssigned}</span>
+                <span className="text-muted font-normal">
+                  {keySlotFallback}
+                </span>
               )}
             </p>
           </div>
@@ -160,7 +165,7 @@ export function VehicleDirectoryRowCard({
               row.keySlotCode !== null ? (
                 <bdi dir="ltr">{row.keySlotCode}</bdi>
               ) : (
-                t.notAssigned
+                keySlotFallback
               )
             }
           />

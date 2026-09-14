@@ -138,6 +138,8 @@ export class StaffVehicleDirectoryService {
       return {
         createdAt: candidate.created_at.toISOString(),
         keySlotCode: slot?.code ?? null,
+        keySlotVisibility:
+          candidate.key_slot_id === null ? "UNASSIGNED" : "VISIBLE",
         parkingSpotCode:
           candidate.parking_spot_id === null
             ? null
@@ -149,7 +151,8 @@ export class StaffVehicleDirectoryService {
             : (loaded.parking.get(candidate.parking_spot_id)?.zone_code ??
               null),
         sessionId: candidate.id,
-        state: candidate.state as StaffVehicleDirectoryResponse["rows"][number]["state"],
+        state:
+          candidate.state as StaffVehicleDirectoryResponse["rows"][number]["state"],
         updatedAt: candidate.updated_at.toISOString(),
         vehicle: toVehicleProjection(vehicle),
       };
@@ -171,7 +174,8 @@ export class StaffVehicleDirectoryService {
     const tasksBySession = new Map<string, DirectoryTaskRow[]>();
     for (const task of tasks) {
       const existing = tasksBySession.get(task.valet_session_id);
-      if (existing === undefined) tasksBySession.set(task.valet_session_id, [task]);
+      if (existing === undefined)
+        tasksBySession.set(task.valet_session_id, [task]);
       else existing.push(task);
     }
 
@@ -192,6 +196,8 @@ export class StaffVehicleDirectoryService {
         // Fail closed (DEC-066 §8): no directory-list disclosure rule exists
         // for employee Key Slot detail; QUEUED visibility never discloses.
         keySlotCode: null,
+        keySlotVisibility:
+          candidate.key_slot_id === null ? "UNASSIGNED" : "RESTRICTED",
         parkingSpotCode:
           candidate.parking_spot_id === null
             ? null
@@ -203,7 +209,8 @@ export class StaffVehicleDirectoryService {
             : (loaded.parking.get(candidate.parking_spot_id)?.zone_code ??
               null),
         sessionId: candidate.id,
-        state: candidate.state as StaffVehicleDirectoryResponse["rows"][number]["state"],
+        state:
+          candidate.state as StaffVehicleDirectoryResponse["rows"][number]["state"],
         updatedAt: candidate.updated_at.toISOString(),
         vehicle: toVehicleProjection(vehicle),
       };

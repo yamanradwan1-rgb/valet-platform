@@ -48,6 +48,41 @@ describe("Employee vehicle directory", () => {
     await expect(transport.load(locationId)).rejects.toThrow();
   });
 
+  it("preserves the authoritative restricted Key Slot distinction", async () => {
+    const restrictedPage: StaffVehicleDirectoryResponse = page({
+      rows: [
+        {
+          createdAt: "2026-09-03T08:00:00.000Z",
+          keySlotCode: null,
+          keySlotVisibility: "RESTRICTED",
+          parkingSpotCode: "P-03",
+          parkingZoneCode: "North",
+          sessionId: "55555555-5555-4555-8555-555555555555",
+          state: "PARKED",
+          updatedAt: "2026-09-03T09:00:00.000Z",
+          vehicle: {
+            color: null,
+            make: "Toyota",
+            model: "Camry",
+            plateCountry: null,
+            plateNumberRaw: null,
+            temporaryDescriptor: null,
+          },
+        },
+      ],
+    });
+    const transport = createEmployeeVehicleDirectoryTransport(
+      () => ({ request: vi.fn().mockResolvedValue(restrictedPage) }) as never,
+    );
+
+    const loaded = await transport.load(locationId);
+
+    expect(loaded.rows[0]).toMatchObject({
+      keySlotCode: null,
+      keySlotVisibility: "RESTRICTED",
+    });
+  });
+
   it("retains same-authority data during refresh and fails closed initially", async () => {
     const load = vi
       .fn()

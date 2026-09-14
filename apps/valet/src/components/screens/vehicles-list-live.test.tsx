@@ -17,9 +17,8 @@ vi.mock("../../features/vehicles-directory", async (importOriginal) => {
   };
 });
 
-const { useVehicleDirectory } = await import(
-  "../../features/vehicles-directory"
-);
+const { useVehicleDirectory } =
+  await import("../../features/vehicles-directory");
 
 const SCOPE: ResolvedOperationalScope = {
   activeContext: {} as ResolvedOperationalScope["activeContext"],
@@ -39,6 +38,7 @@ function supervisorRow(): StaffVehicleDirectoryRow {
   return {
     createdAt: "2026-08-25T09:00:00.000Z",
     keySlotCode: "K-07",
+    keySlotVisibility: "VISIBLE",
     parkingSpotCode: "B-17",
     parkingZoneCode: "ZB",
     sessionId: "11111111-1111-4111-8111-111111111111",
@@ -59,6 +59,7 @@ function employeeRow(): StaffVehicleDirectoryRow {
   return {
     createdAt: "2026-08-25T08:00:00.000Z",
     keySlotCode: null,
+    keySlotVisibility: "RESTRICTED",
     parkingSpotCode: null,
     parkingZoneCode: null,
     sessionId: "88888888-8888-4888-8888-888888888888",
@@ -149,8 +150,11 @@ describe("DEC-066 §6–§12 Live Vehicles directory (VUI-011C)", () => {
     expect(markup).toContain("Queued");
     // Missing plate is stated, never faked.
     expect(markup).toContain("No plate");
-    // Employee rows always carry null keySlotCode -> localized placeholder.
-    expect(markup).toContain("Not assigned");
+    // Employee rows carry a null code plus an authoritative masking signal.
+    expect(markup).toContain("Restricted");
+    expect(markup.indexOf("Restricted")).toBeLessThan(
+      markup.indexOf("Parking area"),
+    );
     expect(markup).not.toContain("K-07");
     // No raw session UUIDs anywhere.
     expect(markup).not.toContain(employeeRow().sessionId);

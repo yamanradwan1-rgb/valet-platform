@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "pnpm --filter @valet/contracts build && expo start --dev-client",
     "start": "pnpm --filter @valet/contracts build && expo start --dev-client",
-    "android": "expo run:android",
+    "android": "node scripts/native-android-build.mjs --native-mode debug --js-mode development --dev-enabled true",
+    "android:release": "node scripts/native-android-build.mjs --native-mode release --js-mode production --dev-enabled false",
     "prebuild:android": "expo prebuild --platform android --clean --no-install",
     "config:public": "expo config --type public",
     "lint": "eslint app.config.ts app src test --max-warnings=0",

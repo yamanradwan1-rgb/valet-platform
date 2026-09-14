@@ -20,6 +20,7 @@ function page(
       {
         createdAt: "2026-08-25T09:00:00.000Z",
         keySlotCode: null,
+        keySlotVisibility: "UNASSIGNED",
         parkingSpotCode: null,
         parkingZoneCode: null,
         sessionId: "11111111-1111-4111-8111-111111111111",
@@ -91,16 +92,14 @@ describe("VehicleDirectoryLoader read-model semantics", () => {
 
   it("surfaces network and API failures as errors without fabricating success", async () => {
     const failingClient = {
-      request: vi
-        .fn()
-        .mockRejectedValue(
-          new EmployeeApiError({
-            code: "NETWORK_ERROR",
-            isNetworkError: true,
-            message: "Network connection unavailable.",
-            status: 0,
-          }),
-        ),
+      request: vi.fn().mockRejectedValue(
+        new EmployeeApiError({
+          code: "NETWORK_ERROR",
+          isNetworkError: true,
+          message: "Network connection unavailable.",
+          status: 0,
+        }),
+      ),
     } as unknown as EmployeeApiClient;
     const loader = new VehicleDirectoryLoader({ client: failingClient });
     await loader.load(LOCATION_ID);

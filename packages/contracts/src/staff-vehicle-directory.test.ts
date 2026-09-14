@@ -10,6 +10,7 @@ function baseRow(): Record<string, unknown> {
   return {
     createdAt: "2026-08-25T10:00:00.000Z",
     keySlotCode: null,
+    keySlotVisibility: "UNASSIGNED",
     parkingSpotCode: null,
     parkingZoneCode: null,
     sessionId: "22222222-2222-4222-8222-222222222222",
@@ -31,6 +32,7 @@ describe("staffVehicleDirectory contracts", () => {
     const payload = {
       ...baseRow(),
       keySlotCode: "K-03",
+      keySlotVisibility: "VISIBLE",
       parkingSpotCode: "A-01",
       parkingZoneCode: "ZONE-A",
       state: "PARKED",
@@ -45,6 +47,28 @@ describe("staffVehicleDirectory contracts", () => {
     expect(parsed.keySlotCode).toBeNull();
     expect(parsed.parkingSpotCode).toBeNull();
     expect(parsed.parkingZoneCode).toBeNull();
+  });
+
+  it("distinguishes restricted masking from a genuine missing assignment", () => {
+    expect(
+      staffVehicleDirectoryRowSchema.parse({
+        ...baseRow(),
+        keySlotVisibility: "RESTRICTED",
+      }).keySlotVisibility,
+    ).toBe("RESTRICTED");
+    expect(() =>
+      staffVehicleDirectoryRowSchema.parse({
+        ...baseRow(),
+        keySlotCode: "K-SECRET",
+        keySlotVisibility: "RESTRICTED",
+      }),
+    ).toThrow("Key Slot code does not match its visibility");
+    expect(() =>
+      staffVehicleDirectoryRowSchema.parse({
+        ...baseRow(),
+        keySlotVisibility: "VISIBLE",
+      }),
+    ).toThrow("Key Slot code does not match its visibility");
   });
 
   it("rejects COMPLETED as a directory row state", () => {

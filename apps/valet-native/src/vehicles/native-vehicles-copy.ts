@@ -8,6 +8,7 @@ export interface NativeVehiclesCopy {
   readonly emptyDetail: string;
   readonly emptyTitle: string;
   readonly keySlot: string;
+  readonly keySlotRestricted: string;
   readonly loadFailed: string;
   readonly loading: string;
   readonly location: string;
@@ -37,6 +38,7 @@ export function getNativeVehiclesCopy(
     emptyDetail: d.vehiclesEmptyDetail,
     emptyTitle: d.vehiclesEmptyTitle,
     keySlot: d.keySlot,
+    keySlotRestricted: d.keySlotRestricted,
     loadFailed: d.vehiclesLoadFailed,
     loading: d.vehiclesLoading,
     location: d.location,

@@ -6,10 +6,13 @@ import { fetchStaffVehicleDirectory } from "./vehicles-directory-api";
 
 const LOCATION_ID = "44444444-4444-4444-8444-444444444444";
 
-function row(overrides: Partial<StaffVehicleDirectoryResponse["rows"][number]> = {}) {
+function row(
+  overrides: Partial<StaffVehicleDirectoryResponse["rows"][number]> = {},
+) {
   return {
     createdAt: "2026-08-25T09:00:00.000Z",
     keySlotCode: null,
+    keySlotVisibility: "RESTRICTED" as const,
     parkingSpotCode: "B-17",
     parkingZoneCode: "ZB",
     sessionId: "11111111-1111-4111-8111-111111111111",
@@ -72,9 +75,10 @@ describe("fetchStaffVehicleDirectory API (VUI-011C)", () => {
     const payload: StaffVehicleDirectoryResponse = {
       locationId: LOCATION_ID,
       rows: [
-        row({ keySlotCode: null }),
+        row({ keySlotCode: null, keySlotVisibility: "RESTRICTED" }),
         row({
           keySlotCode: "K-07",
+          keySlotVisibility: "VISIBLE",
           sessionId: "22222222-2222-4222-8222-222222222222",
         }),
       ],
@@ -87,6 +91,7 @@ describe("fetchStaffVehicleDirectory API (VUI-011C)", () => {
     const res = await fetchStaffVehicleDirectory(mockClient, LOCATION_ID);
 
     expect(res.rows[0]?.keySlotCode).toBeNull();
+    expect(res.rows[0]?.keySlotVisibility).toBe("RESTRICTED");
     expect(res.rows[1]?.keySlotCode).toBe("K-07");
   });
 
@@ -121,16 +126,17 @@ describe("fetchStaffVehicleDirectory API (VUI-011C)", () => {
         truncated: false,
       },
     },
-  ])("rejects schema-invalid payloads ($name) instead of partial rendering", async ({
-    payload,
-  }) => {
-    const mockClient = {
-      request: vi.fn().mockResolvedValue(payload),
-    } as unknown as EmployeeApiClient;
+  ])(
+    "rejects schema-invalid payloads ($name) instead of partial rendering",
+    async ({ payload }) => {
+      const mockClient = {
+        request: vi.fn().mockResolvedValue(payload),
+      } as unknown as EmployeeApiClient;
 
-    await expect(
-      fetchStaffVehicleDirectory(mockClient, LOCATION_ID),
-    ).rejects.toThrow();
-    expect(mockClient.request).toHaveBeenCalledTimes(1);
-  });
+      await expect(
+        fetchStaffVehicleDirectory(mockClient, LOCATION_ID),
+      ).rejects.toThrow();
+      expect(mockClient.request).toHaveBeenCalledTimes(1);
+    },
+  );
 });

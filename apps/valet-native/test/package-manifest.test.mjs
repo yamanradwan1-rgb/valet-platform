@@ -85,7 +85,12 @@ describe("Native package contract", () => {
     expect(manifest.scripts.start).toBe(
       "pnpm --filter @valet/contracts build && expo start --dev-client",
     );
-    expect(manifest.scripts.android).toBe("expo run:android");
+    expect(manifest.scripts.android).toContain(
+      "--native-mode debug --js-mode development --dev-enabled true",
+    );
+    expect(manifest.scripts["android:release"]).toContain(
+      "--native-mode release --js-mode production --dev-enabled false",
+    );
   });
 
   it("does not introduce later-scope or Web-only dependencies", () => {

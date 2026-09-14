@@ -78,6 +78,7 @@ export const employeeArabicDictionary: EmployeeDictionary = {
   keyLockedInside: "المفتاح داخل المركبة",
   keyMissing: "المفتاح مفقود",
   keySlot: "خانة المفتاح",
+  keySlotRestricted: "مقيّد",
   keySlotUnavailableRetry: "هذه الخانة لم تعد متاحة. امسح خانة أخرى.",
   returnKeyAvailable:
     "ضع المفتاح في أي خانة فارغة متاحة، ثم امسح رمزها أو أدخل رمز الخانة.",

@@ -62,6 +62,24 @@ describe("Native central employee dictionary parity", () => {
     );
   });
 
+  it("keeps Key Slot restriction copy aligned across Native and Web EN/AR", () => {
+    for (const [locale, expected] of [
+      ["en", "Restricted"],
+      ["ar", "مقيّد"],
+    ]) {
+      const web = dictionaryEntries(
+        read(`../../valet/src/lib/i18n/dictionary-${locale}.ts`),
+        `web-${locale}`,
+      );
+      const native = dictionaryEntries(
+        read(`../src/i18n/native-dictionary-${locale}.ts`),
+        `native-${locale}`,
+      );
+      expect(native.keySlotRestricted).toBe(expected);
+      expect(web.keySlotRestricted).toBe(expected);
+    }
+  });
+
   it("keeps the explicit Android-only catalog bounded", () => {
     expect(Object.keys(getNativePlatformCopy("en"))).toEqual([
       "auth",

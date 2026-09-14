@@ -52,6 +52,7 @@ const scope = {
 const row: StaffVehicleDirectoryRow = {
   createdAt: "2026-09-03T08:00:00.000Z",
   keySlotCode: null,
+  keySlotVisibility: "RESTRICTED",
   parkingSpotCode: "12",
   parkingZoneCode: "North",
   sessionId: "55555555-5555-4555-8555-555555555555",
@@ -209,9 +210,15 @@ describe("Native Vehicles Web parity", () => {
     )!;
     (control.props.onPress as () => void)();
     expect(onToggle).toHaveBeenCalledOnce();
-    expect(JSON.stringify(nodes.map((node) => node.props.children))).toContain(
-      "Not assigned",
-    );
+    const keySlotValues = nodes
+      .filter(
+        (node) =>
+          typeof node.type === "function" &&
+          ["Detail", "Summary"].includes(node.type.name) &&
+          node.props.label === "Key slot",
+      )
+      .map((node) => node.props.value);
+    expect(keySlotValues).toEqual(["Restricted", "Restricted"]);
     expect(JSON.stringify(nodes.map((node) => node.props.children))).toContain(
       "North",
     );
@@ -237,6 +244,41 @@ describe("Native Vehicles Web parity", () => {
     });
   });
 
+  it("distinguishes visible, restricted and genuinely unassigned key slots", () => {
+    const copy = getNativeVehiclesCopy("en");
+    const render = (candidate: StaffVehicleDirectoryRow) =>
+      elements(
+        NativeVehicleRow({
+          copy,
+          expanded: true,
+          locale: "en",
+          onToggle: vi.fn(),
+          row: candidate,
+          textAlign: "left",
+        }),
+      )
+        .filter(
+          (node) =>
+            typeof node.type === "function" &&
+            ["Detail", "Summary"].includes(node.type.name) &&
+            node.props.label === copy.keySlot,
+        )
+        .map((node) => node.props.value);
+
+    const visible = render({
+      ...row,
+      keySlotCode: "K-03",
+      keySlotVisibility: "VISIBLE",
+    });
+    expect(visible).toEqual(["K-03", "K-03"]);
+
+    const restricted = render(row);
+    expect(restricted).toEqual(["Restricted", "Restricted"]);
+
+    const unassigned = render({ ...row, keySlotVisibility: "UNASSIGNED" });
+    expect(unassigned).toEqual([null, "Not assigned"]);
+  });
+
   it("keeps exact EN/AR directory copy and identifier LTR semantics", () => {
     expect(getNativeVehiclesCopy("en").emptyTitle).toBe(
       "No active vehicles right now",
@@ -244,6 +286,8 @@ describe("Native Vehicles Web parity", () => {
     expect(getNativeVehiclesCopy("ar").emptyTitle).toBe(
       "لا توجد مركبات نشطة الآن",
     );
+    expect(getNativeVehiclesCopy("ar").keySlotRestricted).toBe("مقيّد");
+    expect(getNativeVehiclesCopy("en").keySlotRestricted).toBe("Restricted");
     const nodes = elements(
       NativeVehicleRow({
         copy: getNativeVehiclesCopy("ar"),

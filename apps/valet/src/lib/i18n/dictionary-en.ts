@@ -77,6 +77,7 @@ export const employeeEnglishDictionary = {
   keyLockedInside: "Key locked inside",
   keyMissing: "Key missing",
   keySlot: "Key slot",
+  keySlotRestricted: "Restricted",
   keySlotUnavailableRetry:
     "This key slot is no longer available. Scan another slot.",
   returnKeyAvailable:

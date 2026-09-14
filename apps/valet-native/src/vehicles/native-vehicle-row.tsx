@@ -24,6 +24,12 @@ export function NativeVehicleRow(props: {
   const human = employeeTextStyle("human", textAlign);
   const identifier = employeeTextStyle("identifier", textAlign);
   const badge = nativeVehicleBadge(row, copy);
+  const keySlot =
+    row.keySlotVisibility === "VISIBLE"
+      ? row.keySlotCode
+      : row.keySlotVisibility === "RESTRICTED"
+        ? copy.keySlotRestricted
+        : null;
   const parking = [row.parkingZoneCode, row.parkingSpotCode]
     .filter((value): value is string => value !== null)
     .join(" · ");
@@ -62,10 +68,10 @@ export function NativeVehicleRow(props: {
         </View>
         <View style={s.summary}>
           <Summary
-            identifier
+            identifier={row.keySlotVisibility === "VISIBLE"}
             label={copy.keySlot}
             textAlign={textAlign}
-            value={row.keySlotCode}
+            value={keySlot}
             copy={copy}
           />
           <Summary
@@ -101,10 +107,10 @@ export function NativeVehicleRow(props: {
           />
           <Detail label={copy.updated} textAlign={textAlign} value={updated} />
           <Detail
-            identifier={row.keySlotCode !== null}
+            identifier={row.keySlotVisibility === "VISIBLE"}
             label={copy.keySlot}
             textAlign={textAlign}
-            value={row.keySlotCode ?? copy.notAssigned}
+            value={keySlot ?? copy.notAssigned}
           />
           <Detail
             identifier={row.parkingZoneCode !== null}
