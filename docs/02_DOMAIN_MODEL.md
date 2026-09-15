@@ -426,7 +426,8 @@ persistence.
 
 ## AuditEvent / Black Box
 
-Append-only operational history.
+Append-only tenant business history with two truthful scopes: Location
+operational events and Organization-wide events whose Location is null.
 
 Each event should support as applicable:
 
@@ -445,9 +446,17 @@ Representative Blueprint events include vehicle creation, plate scan, customer l
 
 Corrections append a new event. Original historical facts are not silently edited.
 
-DEC-079 distinguishes Location operational audit, Organization-wide audit with
-no fabricated Location, and a separate account-security audit boundary. The
-current Location-required `AuditEvent` is only the first of those scopes.
+DEC-079 is implemented by keeping both tenant scopes in `AuditEvent` while
+requiring a real Organization and by storing account-security history in the
+separate `AccountSecurityAuditEvent` boundary. A tenant event with a session
+must remain Location-scoped. New events record an explicit actor type;
+historical pre-MGT-BE-01 rows remain unchanged and may have no actor type.
+
+Account-security events reference a relevant/acting User only when that fact is
+known. They never fabricate an Organization or Location, never fan out across a
+User's memberships, and never enter the tenant Black Box projection. The
+foundation stores bounded event/request/idempotency identity and timestamps,
+not arbitrary metadata or authentication evidence.
 
 ## Configuration model principle
 

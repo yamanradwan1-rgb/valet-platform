@@ -1565,9 +1565,10 @@ Rules:
 ```text
 id
 organization_id
-location_id
+location_id nullable
 valet_session_id nullable
 actor_membership_id nullable
+actor_type nullable only for historical pre-MGT-BE-01 rows
 event_type
 entity_type
 entity_id
@@ -1579,7 +1580,13 @@ created_at
 
 Rules:
 
-- location, optional session and optional actor membership must belong to `organization_id`
+- Organization is always required
+- a non-null Location and optional actor membership must belong to `organization_id`
+- a session requires a non-null Location and must match the exact Organization/Location
+- new rows require explicit actor provenance: `MEMBERSHIP`, `GUEST`, `SYSTEM`,
+  `PROVIDER`, or `CONTROLLED_OPERATOR`; `MEMBERSHIP` is equivalent to a
+  non-null same-Organization `actor_membership_id`
+- historical rows are not rewritten; a pre-MGT-BE-01 row may retain null actor type
 - append-only
 - no normal update/delete API
 - no cascade delete from operational records into audit history
@@ -1587,29 +1594,40 @@ Rules:
 - do not put secrets, raw guest tokens, pickup codes/OTP values or unnecessary PII into metadata
 - created in same DB transaction as protected domain mutation where applicable
 
-Representative Blueprint event names include:
+Representative Blueprint tenant event names include vehicle/plate/condition,
+parking/key/task/retrieval, payment/validation, handoff/release, incident and
+override facts. Exact naming is owned by each accepted command contract.
 
-- vehicle.created
-- plate.scanned
-- customer.link_sent
-- condition.recorded
-- photo.added
-- key.assigned
-- task.assigned / task.reassigned
-- parking.started
-- geofence.entered / geofence.exited
-- vehicle.parked
-- retrieval.requested / retrieval.started
-- key.checked_out
-- vehicle.ready
-- payment.completed
-- validation.applied
-- handoff.verified
-- vehicle.released / session.completed
-- incident.opened / incident.evidence_locked
-- override.used
+## account_security_audit_events
 
-Exact naming convention is finalized in the Audit implementation task; semantics above must be preserved.
+```text
+id
+subject_user_id nullable
+actor_type: USER | ANONYMOUS | SYSTEM | CONTROLLED_OPERATOR
+actor_user_id nullable
+event_type
+request_id nullable
+idempotency_key nullable, unique
+occurred_at
+created_at
+```
+
+Rules:
+
+- separate append-only account/authentication security history; it has no
+  Organization, Location, tenant metadata, or tenant AuditEvent relation
+- `USER` actor requires a real `actor_user_id`; every other actor type forbids it
+- optional subject/actor User references are restrictive
+- event type and optional request/idempotency identifiers are bounded,
+  non-control-character safe identifiers; there is no JSON/arbitrary payload
+- runtime receives INSERT only; no runtime read/update/delete/truncate and no
+  PUBLIC mutation privilege
+- callers pass an existing transaction; a stable caller event UUID converges
+  duplicate delivery through the primary key without another row
+
+The Organization-wide tenant writer follows the same stable event-UUID retry
+rule; Location-scoped commands retain their existing command-specific
+convergence guarantees.
 
 ## Required indexes
 
@@ -1705,15 +1723,11 @@ Add these only through their approved focused task/decision.
 
 ## Accepted Management extensions not yet implemented
 
-Current Prisma/migration truth remains the models above and 34 forward-only
-migrations through
-`20260912003400_mob_023b_incident_recovery_intents`. DEC-078 through DEC-094
+Current Prisma/migration truth is 35 forward-only migrations through
+`20260915003500_mgt_be_01_audit_foundation`. DEC-078 and DEC-080 through DEC-094
 accept the following future Management persistence work but do not implement it
 in this documentation rebaseline:
 
-- Organization-wide audit events with nullable Location semantics and a
-  separate account-security audit boundary; existing Location AuditEvents stay
-  compatible and append-only.
 - TOTP enrollment/recovery verifier state and exact Staff-session MFA
   assurance/activity timestamps. Raw TOTP seeds/recovery codes never enter
   persistence in reusable plaintext.

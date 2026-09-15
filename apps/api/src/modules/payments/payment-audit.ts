@@ -23,9 +23,9 @@ export async function appendPaymentInitializedAudit(
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
-        actor_membership_id, event_type, entity_type, entity_id,
+        actor_membership_id, actor_type, event_type, entity_type, entity_id,
         metadata_json, occurred_at)
-     VALUES ($1, $2, $3, $4, NULL, 'PAYMENT_INITIALIZED', 'Payment', $5,
+     VALUES ($1, $2, $3, $4, NULL, 'SYSTEM', 'PAYMENT_INITIALIZED', 'Payment', $5,
              $6::jsonb, $7)`,
     [
       auditEventId,

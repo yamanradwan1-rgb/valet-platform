@@ -30,9 +30,9 @@ export async function appendProviderEventAudit(
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
-        actor_membership_id, event_type, entity_type, entity_id,
+        actor_membership_id, actor_type, event_type, entity_type, entity_id,
         metadata_json, occurred_at)
-     VALUES ($1, $2, $3, $4, NULL, $5, $6, $7, $8::jsonb, $9)`,
+     VALUES ($1, $2, $3, $4, NULL, 'PROVIDER', $5, $6, $7, $8::jsonb, $9)`,
     [
       input.idFactory?.() ?? randomUUID(),
       input.payment.organizationId,

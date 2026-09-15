@@ -682,9 +682,11 @@ async function createAuditEvent(
   await databaseClient.query(
     `INSERT INTO audit_events (
        id, organization_id, location_id, valet_session_id,
-       actor_membership_id, event_type, entity_type, entity_id,
+       actor_membership_id, actor_type, event_type, entity_type, entity_id,
        metadata_json, idempotency_key, occurred_at
-     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+     ) VALUES ($1, $2, $3, $4, $5,
+       (CASE WHEN $5::uuid IS NULL THEN 'SYSTEM' ELSE 'MEMBERSHIP' END)::tenant_audit_actor_type,
+       $6, $7, $8, $9, $10, $11)`,
     [
       id,
       values.organizationId ?? tenant.organizationId,
@@ -2448,15 +2450,17 @@ describe("audit event database foundation", () => {
 
     const result = await databaseClient.query<{
       actor_membership_id: string | null;
+      actor_type: string;
       entity_id: string;
       valet_session_id: string | null;
     }>(
-      `SELECT actor_membership_id, entity_id, valet_session_id
+      `SELECT actor_membership_id, actor_type::text, entity_id, valet_session_id
        FROM audit_events WHERE id = $1`,
       [auditEventId],
     );
     expect(result.rows[0]).toEqual({
       actor_membership_id: null,
+      actor_type: "SYSTEM",
       entity_id: entityId,
       valet_session_id: null,
     });
@@ -2490,7 +2494,7 @@ describe("audit event database foundation", () => {
     const requiredColumns = [
       "id",
       "organization_id",
-      "location_id",
+      "actor_type",
       "event_type",
       "entity_type",
       "entity_id",
@@ -2502,7 +2506,7 @@ describe("audit event database foundation", () => {
       const values: unknown[] = [
         randomUUID(),
         tenant.organizationId,
-        tenant.locationId,
+        "SYSTEM",
         "vehicle.recorded",
         "Vehicle",
         randomUUID(),
@@ -2514,7 +2518,7 @@ describe("audit event database foundation", () => {
       await expectNotNullViolation(
         databaseClient.query(
           `INSERT INTO audit_events (
-             id, organization_id, location_id, event_type,
+             id, organization_id, actor_type, event_type,
              entity_type, entity_id, metadata_json, occurred_at
            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           values,
@@ -7135,10 +7139,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all thirty-four forward-only migrations in order", () => {
+  it("applies exactly all thirty-five forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260912003400_mob_023b_incident_recovery_intents",
+      "20260915003500_mgt_be_01_audit_foundation",
     );
   });
 

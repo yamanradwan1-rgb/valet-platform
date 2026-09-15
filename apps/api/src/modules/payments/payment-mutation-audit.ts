@@ -25,15 +25,16 @@ export async function appendFinancialMutationAudit(
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
-        actor_membership_id, event_type, entity_type, entity_id,
+        actor_membership_id, actor_type, event_type, entity_type, entity_id,
         metadata_json, occurred_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11)`,
     [
       (input.idFactory ?? randomUUID)(),
       input.payment.organizationId,
       input.payment.locationId,
       input.payment.valetSessionId,
       input.actor.membershipId,
+      input.actor.actorClass === "GUEST" ? "GUEST" : "MEMBERSHIP",
       input.eventType,
       input.entityType ?? "Payment",
       input.entityId ?? input.payment.id,

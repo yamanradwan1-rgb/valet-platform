@@ -272,6 +272,21 @@ Operational history is append-only.
 - sensitive audit metadata must exclude secrets and unnecessary PII
 - high-risk evidence lock/export behavior may be introduced with Incident/ClaimShield tasks
 
+MGT-BE-01 implements DEC-079 without rewriting historical rows. Tenant
+`AuditEvent` always has a real Organization; Location is null only for truthful
+Organization-wide history, while any session-scoped event still requires a
+real same-Organization Location. New rows require explicit actor provenance.
+A positive same-Organization membership reference is `MEMBERSHIP`; null
+membership is never automatically called `SYSTEM` and must instead declare
+`GUEST`, `SYSTEM`, `PROVIDER`, or `CONTROLLED_OPERATOR`.
+
+`AccountSecurityAuditEvent` is a separate append-only boundary with optional
+restrictive User references and no tenant scope or generic metadata. It stores
+only bounded event/request/idempotency identifiers and timestamps. The runtime
+role can insert but cannot select, update, delete, truncate, own, or directly
+execute the tenant-audit provenance trigger; PUBLIC cannot mutate either audit
+table. Future internal security reads require their own narrow authority.
+
 For the VAL-004C intake evidence tables, the ordinary application runtime role
 has only `SELECT` and `INSERT` on `condition_notes` and `vehicle_photos`.
 `UPDATE`, `DELETE` and `TRUNCATE` are denied so corrections append new evidence
@@ -297,7 +312,9 @@ For `complete-check-in`, the winning state/version mutation and `VALET_SESSION_C
 
 A stale-version retry or a later attempt from a non-`CHECKING_IN` state must not append another check-in-completed AuditEvent.
 
-The current AuditEvent schema provides the history record but database-level append-only enforcement for the ordinary Phase 2 runtime role still requires the explicit privilege/enforcement task identified by VAL-003P. Feature code must not treat migration-owner privileges as the production runtime boundary.
+Runtime append-only enforcement is provisioned and verified separately from
+migration-owner authority. Feature code must not treat migration-owner
+privileges as the production runtime boundary.
 
 Full ClaimShield evidence-package workflow is V2; basic Black Box and incident evidence integrity are MVP requirements.
 

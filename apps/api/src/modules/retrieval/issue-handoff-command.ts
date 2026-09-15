@@ -99,6 +99,7 @@ export async function issueHandoffVerification(
   );
   await appendHandoffAudit(transaction, {
     actorMembershipId: null,
+    actorType: "GUEST",
     eventType: rotate
       ? "HANDOFF_VERIFICATION_ROTATED"
       : "HANDOFF_VERIFICATION_ISSUED",

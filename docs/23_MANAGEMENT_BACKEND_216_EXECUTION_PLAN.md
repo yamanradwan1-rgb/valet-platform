@@ -1,7 +1,7 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan; documentation only. Production implementation
-authorization: **NO**.
+Status: Binding execution plan. Production implementation authorization:
+**MGT-BE-01 only**, by the owner's 2026-09-15 implementation instruction.
 
 Rebaseline date: 2026-09-15
 
@@ -17,8 +17,8 @@ Rebaseline date: 2026-09-15
 | Working tree before fetch/pull | Clean |
 | Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
 | Planning branch | `docs/management-backend-rebaseline-final` |
-| Migration baseline | 34 forward-only directories |
-| Latest migration | `20260912003400_mob_023b_incident_recovery_intents` |
+| Migration baseline after MGT-BE-01 | 35 forward-only directories |
+| Latest migration | `20260915003500_mgt_be_01_audit_foundation` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
@@ -179,6 +179,9 @@ and rechecks newly merged Android/auth/contracts changes before shared edits.
 ## 8. Active implementation packets
 
 ### MGT-BE-01 — Audit Foundation
+
+Implementation status: implemented on `codex/mgt-be-01-audit-foundation`,
+pending independent review and merge; later Management tasks remain unstarted.
 
 Objective: implement DEC-079 Organization audit, existing Location compatibility,
 and separate account-security audit with safe actor provenance and append-only

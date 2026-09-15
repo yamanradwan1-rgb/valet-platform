@@ -92,7 +92,7 @@ describe("DEC-039 Phase 4 runtime persistence privileges", () => {
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(34);
+    expect(result.rows).toHaveLength(35);
   });
 
   it("allows only stateful runtime access on RetrievalRequest and HandoffVerification", async () => {

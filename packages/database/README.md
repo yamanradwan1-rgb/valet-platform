@@ -25,7 +25,9 @@ migration/admin role. Application code and the guarded demo seed use
 after every migration deployment so current grants are reconciled and default
 privileges are retained for future tables. The command is idempotent, reads the
 runtime role and password from `DATABASE_URL`, never logs credentials, and
-restricts `audit_events` to `SELECT` and `INSERT` for runtime.
+restricts `audit_events` to `SELECT` and `INSERT` for runtime. The separate
+`account_security_audit_events` boundary is stricter: runtime receives only
+`INSERT`, with reads reserved for a future narrow internal authority.
 Runtime receives no blanket table `DELETE` or `TRUNCATE` privilege.
 It receives no access to `_prisma_migrations`; sequence privileges reconcile to
 `USAGE` and `SELECT` without `UPDATE`/`setval` authority.
