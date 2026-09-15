@@ -43,10 +43,6 @@
       "maxLines": 932
     },
     {
-      "path": "apps/api/test/intake-session-command.integration.test.ts",
-      "maxLines": 718
-    },
-    {
       "path": "apps/api/test/protected-custody-command.integration.test.ts",
       "maxLines": 538
     },

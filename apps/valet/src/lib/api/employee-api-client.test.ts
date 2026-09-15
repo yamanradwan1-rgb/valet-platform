@@ -138,7 +138,7 @@ describe("EmployeeApiClient", () => {
     expect(authLoss).toHaveBeenCalledTimes(1);
   });
 
-  it("revalidates operational authority after a non-disclosing mutation 404", async () => {
+  it("preserves a non-disclosing mutation 404 without reporting credential loss", async () => {
     const authLoss = vi.fn();
     const clientWithLoss = new EmployeeApiClient({
       authClient,
@@ -165,7 +165,7 @@ describe("EmployeeApiClient", () => {
         },
       ),
     ).rejects.toMatchObject({ status: 404 });
-    expect(authLoss).toHaveBeenCalledTimes(1);
+    expect(authLoss).not.toHaveBeenCalled();
   });
 
   it("does NOT report authorization loss on transient refresh failure and surfaces a retryable error", async () => {

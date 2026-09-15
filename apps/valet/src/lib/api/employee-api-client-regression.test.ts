@@ -149,8 +149,8 @@ describe("EmployeeApiClient Web behavior preservation", () => {
     },
   );
 
-  it.each([401, 403, 404])(
-    "reports authorization loss for a %s response",
+  it.each([403, 404])(
+    "preserves operational denial for a %s response without reporting credential loss",
     async (status) => {
       useFreshToken();
       const authLoss = vi.fn();
@@ -165,9 +165,27 @@ describe("EmployeeApiClient Web behavior preservation", () => {
         }).request("/v1/staff/mutation", { method: "POST" }),
       ).rejects.toMatchObject({ status });
 
-      expect(authLoss).toHaveBeenCalledTimes(1);
+      expect(authLoss).not.toHaveBeenCalled();
     },
   );
+
+  it("reports credential loss for a 401 mutation without replaying it", async () => {
+    useFreshToken();
+    const authLoss = vi.fn();
+    globalThis.fetch = vi.fn(async () =>
+      jsonResponse({ code: "STAFF_AUTHENTICATION_REQUIRED" }, 401),
+    );
+
+    await expect(
+      new EmployeeApiClient({
+        authClient,
+        onAuthorizationLoss: authLoss,
+      }).request("/v1/staff/mutation", { method: "POST" }),
+    ).rejects.toMatchObject({ status: 401 });
+
+    expect(globalThis.fetch).toHaveBeenCalledOnce();
+    expect(authLoss).toHaveBeenCalledOnce();
+  });
 
   it("preserves body, query, custom headers, URL joining, and fetch policy", async () => {
     useFreshToken();

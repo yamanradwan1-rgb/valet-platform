@@ -39,6 +39,12 @@ function dictionaryEntries(source, fileName) {
   return entries;
 }
 
+function sharedDictionaryEntries(entries, excludedKeys) {
+  return Object.fromEntries(
+    Object.entries(entries).filter(([key]) => !excludedKeys.has(key)),
+  );
+}
+
 describe("Native central employee dictionary parity", () => {
   for (const locale of ["en", "ar"]) {
     for (const fragment of fragments) {
@@ -49,9 +55,38 @@ describe("Native central employee dictionary parity", () => {
         const native = read(
           `../src/i18n/native-dictionary-${locale}${fragment}.ts`,
         );
+        const nativeEntries = dictionaryEntries(
+          native,
+          `native-${locale}${fragment}`,
+        );
+        const webEntries = dictionaryEntries(web, `web-${locale}${fragment}`);
+        const acceptedPlatformDifferences = new Set(
+          fragment === "-check-in" ? ["plateCameraPreviewHint"] : [],
+        );
+        const nativeOnly = new Set(
+          fragment === "" ? ["invalidJordanMobile"] : [],
+        );
+        const webOnly = new Set(
+          fragment === "-check-in" ? ["plateCameraCapture"] : [],
+        );
         expect(
-          dictionaryEntries(native, `native-${locale}${fragment}`),
-        ).toEqual(dictionaryEntries(web, `web-${locale}${fragment}`));
+          sharedDictionaryEntries(
+            nativeEntries,
+            new Set([...nativeOnly, ...acceptedPlatformDifferences]),
+          ),
+        ).toEqual(
+          sharedDictionaryEntries(
+            webEntries,
+            new Set([...webOnly, ...acceptedPlatformDifferences]),
+          ),
+        );
+        expect([...nativeOnly].every((key) => key in nativeEntries)).toBe(true);
+        expect([...webOnly].every((key) => key in webEntries)).toBe(true);
+        if (fragment === "-check-in") {
+          expect(nativeEntries.plateCameraPreviewHint).toContain(
+            locale === "en" ? "automatically" : "تلقائيًا",
+          );
+        }
       });
     }
   }
