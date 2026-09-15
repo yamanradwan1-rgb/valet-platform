@@ -19,7 +19,7 @@ import {
   anyColumnPrivilegeMatches,
   columnPrivilegeMatches,
   tablePrivilegeMatches,
-  verifyDeniedFunctionPrivilege,
+  verifyAuditFunctionPrivileges,
 } from "./runtime-privilege-verification-helpers.mjs";
 
 const tablePrivileges = [
@@ -213,11 +213,7 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
       throw new Error("Runtime database role effective privileges are unsafe.");
     }
   }
-  await verifyDeniedFunctionPrivilege(
-    client,
-    runtimeRole,
-    "public.audit_events_require_actor_provenance()",
-  );
+  await verifyAuditFunctionPrivileges(client, runtimeRole);
   for (const functionName of mapSetupFunctions) {
     const result = await client.query(
       `SELECT has_function_privilege($1, $2, 'EXECUTE') AS runtime_allowed,

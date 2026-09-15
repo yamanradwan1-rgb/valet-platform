@@ -74,15 +74,17 @@ export async function persistProvisionedStaff(
     await client.query(
       `INSERT INTO audit_events
          (id, organization_id, location_id, valet_session_id,
-          actor_membership_id, actor_type, event_type, entity_type, entity_id,
-          metadata_json, occurred_at)
-       VALUES ($1, $2, $3, NULL, NULL, 'CONTROLLED_OPERATOR', 'STAFF_ACCOUNT_PROVISIONED',
-               'OrganizationMembership', $4, $5::jsonb,
+          actor_membership_id, actor_type, actor_operator_ref, event_type,
+          entity_type, entity_id, metadata_json, occurred_at)
+       VALUES ($1, $2, $3, NULL, NULL, 'CONTROLLED_OPERATOR', $4,
+               'STAFF_ACCOUNT_PROVISIONED', 'OrganizationMembership', $5,
+               $6::jsonb,
                transaction_timestamp())`,
       [
         auditEventId,
         input.organizationId,
         input.auditLocationId,
+        input.operatorRef,
         membershipId,
         JSON.stringify({
           locationIds: input.locationIds,

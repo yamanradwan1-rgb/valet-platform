@@ -1,3 +1,6 @@
+export const accountSecurityAuditAppendFunction =
+  "public.append_account_security_audit_event_exact(uuid,uuid,account_security_actor_type,uuid,text,text,text,text,timestamp with time zone)";
+
 export async function provisionAppendOnlyTablePrivileges(
   client,
   executeFormatted,
@@ -27,6 +30,14 @@ export async function provisionAppendOnlyTablePrivileges(
   await executeFormatted(
     client,
     "GRANT INSERT ON TABLE account_security_audit_events TO %I",
+    [runtimeRole],
+  );
+  await client.query(
+    `REVOKE ALL ON FUNCTION ${accountSecurityAuditAppendFunction} FROM PUBLIC`,
+  );
+  await executeFormatted(
+    client,
+    `GRANT EXECUTE ON FUNCTION ${accountSecurityAuditAppendFunction} TO %I`,
     [runtimeRole],
   );
 }

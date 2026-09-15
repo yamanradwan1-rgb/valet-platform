@@ -1,3 +1,5 @@
+import { accountSecurityAuditAppendFunction } from "./provision-append-only-tables.mjs";
+
 export const auditTablePrivileges = [
   ["public.audit_events", "SELECT", true],
   ["public.audit_events", "INSERT", true],
@@ -50,13 +52,16 @@ export async function anyColumnPrivilegeMatches(client, runtimeRole, policy) {
   return result.rows[0]?.allowed === expected;
 }
 
-export async function verifyDeniedFunctionPrivilege(
+export async function verifyFunctionPrivilege(
   client,
   runtimeRole,
   functionName,
+  expectedRuntimeAllowed,
+  expectedSecurityDefiner,
 ) {
   const result = await client.query(
     `SELECT has_function_privilege($1, $2, 'EXECUTE') AS runtime_allowed,
+            function.prosecdef AS security_definer,
             owner.rolname <> $1 AS owner_safe,
             NOT EXISTS (
               SELECT 1 FROM aclexplode(
@@ -72,10 +77,28 @@ export async function verifyDeniedFunctionPrivilege(
   );
   const row = result.rows[0];
   if (
-    row?.runtime_allowed !== false ||
+    row?.runtime_allowed !== expectedRuntimeAllowed ||
+    row.security_definer !== expectedSecurityDefiner ||
     row.owner_safe !== true ||
     row.public_denied !== true
   ) {
     throw new Error("Runtime function privileges are unsafe.");
   }
+}
+
+export async function verifyAuditFunctionPrivileges(client, runtimeRole) {
+  await verifyFunctionPrivilege(
+    client,
+    runtimeRole,
+    "public.audit_events_require_actor_provenance()",
+    false,
+    false,
+  );
+  await verifyFunctionPrivilege(
+    client,
+    runtimeRole,
+    accountSecurityAuditAppendFunction,
+    true,
+    true,
+  );
 }

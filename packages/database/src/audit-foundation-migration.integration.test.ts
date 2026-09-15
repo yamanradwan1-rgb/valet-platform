@@ -85,12 +85,13 @@ describe("MGT-BE-01 audit foundation migration 35", () => {
     expect(expectedMigrationDirectories.at(-1)).toBe(auditMigration);
     const legacy = await upgrade.query(
       `SELECT organization_id::text, location_id::text, actor_type::text,
-              metadata_json, occurred_at::text
+              actor_operator_ref, metadata_json, occurred_at::text
        FROM audit_events WHERE id = $1`,
       [historicalAuditId],
     );
     expect(legacy.rows[0]).toMatchObject({
       actor_type: null,
+      actor_operator_ref: null,
       location_id: upgradeFixture.locationId,
       metadata_json: { legacy: true },
       organization_id: upgradeFixture.organizationId,

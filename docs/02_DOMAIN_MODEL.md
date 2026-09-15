@@ -458,6 +458,11 @@ User's memberships, and never enter the tenant Black Box projection. The
 foundation stores bounded event/request/idempotency identity and timestamps,
 not arbitrary metadata or authentication evidence.
 
+Controlled-operator events persist a bounded opaque operator reference in a
+dedicated actor field. Exact reuse of a stable event identity may converge only
+when every immutable audit fact matches; conflicting reuse fails the enclosing
+transaction.
+
 ## Configuration model principle
 
 Configuration First is binding product behavior.

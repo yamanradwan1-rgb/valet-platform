@@ -278,7 +278,9 @@ Organization-wide history, while any session-scoped event still requires a
 real same-Organization Location. New rows require explicit actor provenance.
 A positive same-Organization membership reference is `MEMBERSHIP`; null
 membership is never automatically called `SYSTEM` and must instead declare
-`GUEST`, `SYSTEM`, `PROVIDER`, or `CONTROLLED_OPERATOR`.
+`GUEST`, `SYSTEM`, `PROVIDER`, or `CONTROLLED_OPERATOR`. A controlled operator
+also requires a dedicated bounded opaque operator reference; it is never
+represented by actor type alone or by a fabricated membership.
 
 `AccountSecurityAuditEvent` is a separate append-only boundary with optional
 restrictive User references and no tenant scope or generic metadata. It stores
@@ -286,6 +288,9 @@ only bounded event/request/idempotency identifiers and timestamps. The runtime
 role can insert but cannot select, update, delete, truncate, own, or directly
 execute the tenant-audit provenance trigger; PUBLIC cannot mutate either audit
 table. Future internal security reads require their own narrow authority.
+The runtime may execute only a narrow account-security append function that
+serializes stable identities, compares all immutable content, and returns the
+persisted event ID without exposing rows or granting update/delete authority.
 
 For the VAL-004C intake evidence tables, the ordinary application runtime role
 has only `SELECT` and `INSERT` on `condition_notes` and `vehicle_photos`.

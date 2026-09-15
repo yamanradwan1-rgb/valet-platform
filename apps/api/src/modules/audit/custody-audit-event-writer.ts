@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { assertOpaqueOperatorReference } from "./actor-operator-reference";
 
 export type SafeAuditMetadataValue = boolean | number | string | null;
 export type SafeAuditMetadata = Readonly<
@@ -26,8 +27,12 @@ export type PersistedCustodyAuditScope = PersistedCustodyAuditScopeBase &
       }
     | {
         readonly actorMembershipId: null;
-        readonly actorType:
-          "CONTROLLED_OPERATOR" | "GUEST" | "PROVIDER" | "SYSTEM";
+        readonly actorOperatorRef: string;
+        readonly actorType: "CONTROLLED_OPERATOR";
+      }
+    | {
+        readonly actorMembershipId: null;
+        readonly actorType: "GUEST" | "PROVIDER" | "SYSTEM";
       }
   );
 
@@ -74,6 +79,9 @@ export async function appendCustodyAuditEvent(
   },
   auditEventIdFactory: () => string = randomUUID,
 ): Promise<string> {
+  if (input.scope.actorType === "CONTROLLED_OPERATOR") {
+    assertOpaqueOperatorReference(input.scope.actorOperatorRef);
+  }
   validateAuditDefinition(input.definition);
 
   const auditEventId = auditEventIdFactory();
@@ -84,9 +92,9 @@ export async function appendCustodyAuditEvent(
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
-        actor_membership_id, actor_type, event_type, entity_type, entity_id,
-        metadata_json, occurred_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11)`,
+        actor_membership_id, actor_type, actor_operator_ref, event_type,
+        entity_type, entity_id, metadata_json, occurred_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12)`,
     [
       auditEventId,
       input.scope.organizationId,
@@ -94,6 +102,9 @@ export async function appendCustodyAuditEvent(
       input.scope.valetSessionId,
       input.scope.actorMembershipId,
       input.scope.actorType ?? "MEMBERSHIP",
+      "actorOperatorRef" in input.scope
+        ? input.scope.actorOperatorRef
+        : null,
       input.definition.eventType,
       entity.type,
       entity.id,

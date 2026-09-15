@@ -134,10 +134,17 @@ describe("MGT-BE-01 runtime account-security audit privileges", () => {
 
   it("denies PUBLIC mutation and keeps runtime ownership false", async () => {
     const result = await admin.query<{
+      append_function_allowed: boolean;
       owner_safe: boolean;
       public_mutation_denied: boolean;
+      public_function_denied: boolean;
     }>(
       `SELECT owner.rolname <> $1 AS owner_safe,
+              has_function_privilege(
+                $1,
+                'append_account_security_audit_event_exact(uuid,uuid,account_security_actor_type,uuid,text,text,text,text,timestamp with time zone)',
+                'EXECUTE'
+              ) AS append_function_allowed,
               NOT EXISTS (
                 SELECT 1 FROM aclexplode(
                   COALESCE(table_record.relacl,
@@ -146,14 +153,29 @@ describe("MGT-BE-01 runtime account-security audit privileges", () => {
                 WHERE privilege.grantee=0
                   AND privilege.privilege_type IN
                     ('INSERT','UPDATE','DELETE','TRUNCATE')
-              ) AS public_mutation_denied
+              ) AS public_mutation_denied,
+              NOT EXISTS (
+                SELECT 1
+                FROM pg_proc AS function
+                CROSS JOIN LATERAL aclexplode(
+                  COALESCE(function.proacl,
+                           acldefault('f', function.proowner))
+                ) AS privilege
+                WHERE function.oid = to_regprocedure(
+                  'append_account_security_audit_event_exact(uuid,uuid,account_security_actor_type,uuid,text,text,text,text,timestamp with time zone)'
+                )
+                  AND privilege.grantee = 0
+                  AND privilege.privilege_type = 'EXECUTE'
+              ) AS public_function_denied
        FROM pg_class table_record
        JOIN pg_roles owner ON owner.oid=table_record.relowner
        WHERE table_record.oid='account_security_audit_events'::regclass`,
       [runtimeRole],
     );
     expect(result.rows[0]).toEqual({
+      append_function_allowed: true,
       owner_safe: true,
+      public_function_denied: true,
       public_mutation_denied: true,
     });
   });

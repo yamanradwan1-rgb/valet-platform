@@ -1412,6 +1412,7 @@ model AuditEvent {
   valetSessionId    String?               @map("valet_session_id") @db.Uuid
   actorMembershipId String?               @map("actor_membership_id") @db.Uuid
   actorType         TenantAuditActorType? @map("actor_type")
+  actorOperatorRef  String?               @map("actor_operator_ref")
   eventType         String                @map("event_type")
   entityType        String                @map("entity_type")
   entityId          String                @map("entity_id") @db.Uuid
@@ -1430,15 +1431,16 @@ model AuditEvent {
 }
 
 model AccountSecurityAuditEvent {
-  id             String                   @id @default(uuid()) @db.Uuid
-  subjectUserId  String?                  @map("subject_user_id") @db.Uuid
-  actorType      AccountSecurityActorType @map("actor_type")
-  actorUserId    String?                  @map("actor_user_id") @db.Uuid
-  eventType      String                   @map("event_type")
-  requestId      String?                  @map("request_id")
-  idempotencyKey String?                  @unique(map: "account_security_audit_events_idempotency_key") @map("idempotency_key")
-  occurredAt     DateTime                 @map("occurred_at") @db.Timestamptz(3)
-  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  id               String                   @id @default(uuid()) @db.Uuid
+  subjectUserId    String?                  @map("subject_user_id") @db.Uuid
+  actorType        AccountSecurityActorType @map("actor_type")
+  actorUserId      String?                  @map("actor_user_id") @db.Uuid
+  actorOperatorRef String?                  @map("actor_operator_ref")
+  eventType        String                   @map("event_type")
+  requestId        String?                  @map("request_id")
+  idempotencyKey   String?                  @unique(map: "account_security_audit_events_idempotency_key") @map("idempotency_key")
+  occurredAt       DateTime                 @map("occurred_at") @db.Timestamptz(3)
+  createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
 
   subjectUser User? @relation("AccountSecuritySubject", fields: [subjectUserId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "account_security_audit_events_subject_user_id_fkey")
   actorUser   User? @relation("AccountSecurityActor", fields: [actorUserId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "account_security_audit_events_actor_user_id_fkey")

@@ -83,11 +83,7 @@ export function parseProvisioningArguments(
     auditLocationId,
     email: required("--email"),
     locationIds: normalizedLocations,
-    operatorRef: requireBoundedText(
-      required("--operator-ref"),
-      200,
-      "Invalid operator reference.",
-    ),
+    operatorRef: requireOperatorReference(required("--operator-ref")),
     organizationId,
     passwordStdin: true,
     reason: requireBoundedText(
@@ -117,6 +113,16 @@ function requireBoundedText(
     fail(message);
   }
   return value;
+}
+
+function requireOperatorReference(value: string): string {
+  const reference = requireBoundedText(
+    value,
+    200,
+    "Invalid operator reference.",
+  );
+  if (/[\s@]/u.test(reference)) fail("Invalid operator reference.");
+  return reference;
 }
 
 export function requireNodeEnvironment(value: string | undefined): string {

@@ -27,7 +27,9 @@ privileges are retained for future tables. The command is idempotent, reads the
 runtime role and password from `DATABASE_URL`, never logs credentials, and
 restricts `audit_events` to `SELECT` and `INSERT` for runtime. The separate
 `account_security_audit_events` boundary is stricter: runtime receives only
-`INSERT`, with reads reserved for a future narrow internal authority.
+`INSERT` plus a narrow exact-retry append function, with reads reserved for a
+future narrow internal authority. The function never updates audit history and
+rejects stable identities whose immutable content differs.
 Runtime receives no blanket table `DELETE` or `TRUNCATE` privilege.
 It receives no access to `_prisma_migrations`; sequence privileges reconcile to
 `USAGE` and `SELECT` without `UPDATE`/`setval` authority.

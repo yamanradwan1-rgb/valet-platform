@@ -61,18 +61,20 @@ describe("controlled staff provisioning persistence", () => {
     );
     const audit = await pool.query<{
       actor_membership_id: string | null;
+      actor_operator_ref: string;
       event_type: string;
       location_id: string;
       metadata_json: Record<string, unknown>;
       valet_session_id: string | null;
     }>(
-      `SELECT actor_membership_id::text, event_type, location_id::text,
-              metadata_json, valet_session_id::text
+      `SELECT actor_membership_id::text, actor_operator_ref, event_type,
+              location_id::text, metadata_json, valet_session_id::text
        FROM audit_events WHERE id = $1`,
       [result.auditEventId],
     );
     expect(audit.rows[0]).toEqual({
       actor_membership_id: null,
+      actor_operator_ref: "CHANGE-004R",
       event_type: "STAFF_ACCOUNT_PROVISIONED",
       location_id: secondLocationId,
       metadata_json: {

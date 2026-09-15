@@ -1569,6 +1569,7 @@ location_id nullable
 valet_session_id nullable
 actor_membership_id nullable
 actor_type nullable only for historical pre-MGT-BE-01 rows
+actor_operator_ref nullable
 event_type
 entity_type
 entity_id
@@ -1585,7 +1586,8 @@ Rules:
 - a session requires a non-null Location and must match the exact Organization/Location
 - new rows require explicit actor provenance: `MEMBERSHIP`, `GUEST`, `SYSTEM`,
   `PROVIDER`, or `CONTROLLED_OPERATOR`; `MEMBERSHIP` is equivalent to a
-  non-null same-Organization `actor_membership_id`
+  non-null same-Organization `actor_membership_id`, while
+  `CONTROLLED_OPERATOR` requires a bounded opaque `actor_operator_ref`
 - historical rows are not rewritten; a pre-MGT-BE-01 row may retain null actor type
 - append-only
 - no normal update/delete API
@@ -1605,6 +1607,7 @@ id
 subject_user_id nullable
 actor_type: USER | ANONYMOUS | SYSTEM | CONTROLLED_OPERATOR
 actor_user_id nullable
+actor_operator_ref nullable
 event_type
 request_id nullable
 idempotency_key nullable, unique
@@ -1616,18 +1619,20 @@ Rules:
 
 - separate append-only account/authentication security history; it has no
   Organization, Location, tenant metadata, or tenant AuditEvent relation
-- `USER` actor requires a real `actor_user_id`; every other actor type forbids it
+- `USER` requires a real `actor_user_id`; `CONTROLLED_OPERATOR` requires a
+  bounded opaque `actor_operator_ref`; other actor types forbid both fields
 - optional subject/actor User references are restrictive
 - event type and optional request/idempotency identifiers are bounded,
   non-control-character safe identifiers; there is no JSON/arbitrary payload
 - runtime receives INSERT only; no runtime read/update/delete/truncate and no
   PUBLIC mutation privilege
-- callers pass an existing transaction; a stable caller event UUID converges
-  duplicate delivery through the primary key without another row
+- callers pass an existing transaction; a stable event UUID or account
+  idempotency key converges only when all immutable audit content matches;
+  conflicting identity reuse raises an error and aborts the transaction
 
-The Organization-wide tenant writer follows the same stable event-UUID retry
-rule; Location-scoped commands retain their existing command-specific
-convergence guarantees.
+The Organization-wide tenant writer follows the same exact-content stable
+event-UUID rule; Location-scoped commands retain their existing
+command-specific convergence guarantees.
 
 ## Required indexes
 

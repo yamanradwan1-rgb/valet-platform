@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { assertOpaqueOperatorReference } from "./actor-operator-reference";
 
 type AccountSecurityActor =
   | { readonly type: "USER"; readonly userId: string }
-  | { readonly type: "ANONYMOUS" | "CONTROLLED_OPERATOR" | "SYSTEM" };
+  | { readonly type: "CONTROLLED_OPERATOR"; readonly operatorRef: string }
+  | { readonly type: "ANONYMOUS" | "SYSTEM" };
 
 export interface AccountSecurityAuditEventInput {
   readonly actor: AccountSecurityActor;
@@ -21,23 +23,31 @@ export async function appendAccountSecurityAuditEvent(
   input: AccountSecurityAuditEventInput,
   eventIdFactory: () => string = randomUUID,
 ): Promise<string> {
+  if (input.actor.type === "CONTROLLED_OPERATOR") {
+    assertOpaqueOperatorReference(input.actor.operatorRef);
+  }
   const eventId = input.eventId ?? eventIdFactory();
-  await transaction.query(
-    `INSERT INTO account_security_audit_events
-       (id, subject_user_id, actor_type, actor_user_id, event_type,
-        request_id, idempotency_key, occurred_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-     ON CONFLICT (id) DO NOTHING`,
+  const result = await transaction.query<{ id: string }>(
+    `SELECT append_account_security_audit_event_exact(
+       $1, $2, $3, $4, $5, $6, $7, $8, $9
+     )::text AS id`,
     [
       eventId,
       input.subjectUserId ?? null,
       input.actor.type,
       input.actor.type === "USER" ? input.actor.userId : null,
+      input.actor.type === "CONTROLLED_OPERATOR"
+        ? input.actor.operatorRef
+        : null,
       input.eventType,
       input.requestId ?? null,
       input.idempotencyKey ?? null,
       input.occurredAt,
     ],
   );
-  return eventId;
+  const persistedId = result.rows[0]?.id;
+  if (result.rowCount !== 1 || persistedId === undefined) {
+    throw new Error("Account-security audit append did not converge.");
+  }
+  return persistedId;
 }

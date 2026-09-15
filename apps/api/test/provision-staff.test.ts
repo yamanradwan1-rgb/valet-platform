@@ -156,6 +156,16 @@ describe("controlled staff provisioning input", () => {
       reason: "إنشاء حساب موظف",
     });
   });
+
+  it("requires an opaque non-contact operator reference", () => {
+    for (const reference of ["operator@example.com", "operator reference"]) {
+      const values = validValues();
+      values[values.indexOf("--operator-ref") + 1] = reference;
+      expect(() => parseProvisioningArguments(values)).toThrow(
+        "Invalid operator reference",
+      );
+    }
+  });
 });
 
 describe("provisioning password boundary", () => {
