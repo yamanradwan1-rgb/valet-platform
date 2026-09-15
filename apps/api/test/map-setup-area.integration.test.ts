@@ -40,6 +40,7 @@ describe("VAL-007B Location map area management", () => {
 
     const audit = await context.audit(String(created.body.id));
     expect(audit.rows).toHaveLength(1);
+    expect(audit.rows[0]?.actor_type).toBe("MEMBERSHIP");
     expect(audit.rows[0]?.metadata_json).toEqual({
       active: true,
       configurationType: "PARKING",

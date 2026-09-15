@@ -181,10 +181,12 @@ describe("migration 29 location configuration authority", () => {
       override_present: true,
       override_value: "2.500",
     });
-    const audits = await client.query<{ n: string }>(
-      `SELECT count(*)::text AS n FROM audit_events WHERE entity_type='Location'`,
+    const audits = await client.query<{ actor_type: string; n: string }>(
+      `SELECT count(*)::text AS n, min(actor_type::text) AS actor_type
+       FROM audit_events WHERE entity_type='Location'`,
     );
     expect(Number(audits.rows[0]!.n)).toBe(Number(before.rows[0]!.audit) + 1);
+    expect(audits.rows[0]!.actor_type).toBe("MEMBERSHIP");
   });
 
   it("denies wrong roles, stale tokens and invalid values without mutation or audit", async () => {

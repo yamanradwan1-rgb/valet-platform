@@ -251,11 +251,12 @@ describe("migration 30 basic branding and subscription entitlements", () => {
       [membershipId, locationId, token.rows[0]!.t],
     );
     expect(cleared.rows[0]!.t > token.rows[0]!.t).toBe(true);
-    const meta = await client.query<{ m: unknown }>(
-      `SELECT metadata_json AS m FROM audit_events
+    const meta = await client.query<{ actor_type: string; m: unknown }>(
+      `SELECT actor_type::text, metadata_json AS m FROM audit_events
        WHERE event_type='DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED'
        ORDER BY occurred_at DESC LIMIT 1`,
     );
+    expect(meta.rows[0]!.actor_type).toBe("MEMBERSHIP");
     expect(meta.rows[0]!.m).toMatchObject({
       newOverridePresent: false,
       oldOverridePresent: true,

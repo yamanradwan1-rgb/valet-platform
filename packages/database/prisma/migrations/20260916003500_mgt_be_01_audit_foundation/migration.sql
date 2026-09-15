@@ -20,13 +20,33 @@ ALTER TABLE "audit_events"
     ADD COLUMN "actor_type" "audit_actor_type",
     ADD COLUMN "controlled_operator_ref" TEXT;
 
+CREATE FUNCTION "audit_events_normalize_membership_actor"()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+    IF NEW.actor_membership_id IS NOT NULL AND NEW.actor_type IS NULL THEN
+        NEW.actor_type := 'MEMBERSHIP';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION "audit_events_normalize_membership_actor"() FROM PUBLIC;
+
+CREATE TRIGGER "audit_events_normalize_membership_actor_trigger"
+BEFORE INSERT ON "audit_events"
+FOR EACH ROW
+EXECUTE FUNCTION "audit_events_normalize_membership_actor"();
+
 ALTER TABLE "audit_events"
     ADD CONSTRAINT "audit_events_session_requires_location_check"
     CHECK ("valet_session_id" IS NULL OR "location_id" IS NOT NULL),
     ADD CONSTRAINT "audit_events_actor_provenance_check"
     CHECK (
         ("actor_membership_id" IS NOT NULL
-            AND ("actor_type" IS NULL OR "actor_type" = 'MEMBERSHIP')
+            AND "actor_type" = 'MEMBERSHIP'
             AND "controlled_operator_ref" IS NULL)
         OR
         ("actor_membership_id" IS NULL

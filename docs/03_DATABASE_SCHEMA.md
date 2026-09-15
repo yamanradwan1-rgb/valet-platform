@@ -1592,6 +1592,9 @@ Rules:
   membership FK), Guest, system/service, external provider or controlled
   operator; controlled operator requires a bounded control-free opaque
   `controlled_operator_ref`
+- a new row carrying a real `actor_membership_id` but omitting `actor_type` is
+  normalized on INSERT to explicit `MEMBERSHIP` for compatibility with existing
+  database-owned writers; no newly persisted row may retain null `actor_type`
 - the actor-provenance CHECK is intentionally `NOT VALID`: PostgreSQL enforces
   it for every new insert/update while pre-MGT-BE-01 rows with historically
   absent non-membership provenance remain untouched

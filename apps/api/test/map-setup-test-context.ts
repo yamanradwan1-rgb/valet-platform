@@ -126,10 +126,11 @@ export class MapSetupTestContext {
   async audit(resourceId: string) {
     return this.database.adminPool.query<{
       actor_membership_id: string;
+      actor_type: string;
       event_type: string;
       metadata_json: Record<string, unknown>;
     }>(
-      `SELECT actor_membership_id::text, event_type, metadata_json
+      `SELECT actor_membership_id::text, actor_type::text, event_type, metadata_json
        FROM audit_events WHERE entity_id = $1 ORDER BY created_at`,
       [resourceId],
     );

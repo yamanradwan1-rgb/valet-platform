@@ -283,7 +283,9 @@ New tenant audit rows may identify a same-Organization membership, Guest,
 system/service, external provider or controlled VAYLET operator. A controlled
 operator requires a dedicated bounded opaque operator reference; absence of a
 membership is never interpreted as SYSTEM by itself. Historical rows are not
-backfilled with guessed actor provenance.
+backfilled with guessed actor provenance. For compatibility with accepted
+database-owned writers, an INSERT with a real membership and omitted actor type
+is normalized to explicit `MEMBERSHIP`; no new row may persist a null actor type.
 
 The ordinary runtime role has tenant-audit `SELECT` plus column-scoped `INSERT`
 needed by existing/new application writers, but cannot insert the dedicated

@@ -36,13 +36,14 @@ async function insertAudit(input: {
   actorType?: string | null;
   operatorRef?: string | null;
 }) {
-  return client.query(
+  return client.query<{ actor_type: string }>(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
         actor_membership_id, actor_type, controlled_operator_ref,
         event_type, entity_type, entity_id, metadata_json, occurred_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,'TEST_AUDIT','TestEntity',$8,'{}'::jsonb,
-             transaction_timestamp())`,
+             transaction_timestamp())
+     RETURNING actor_type::text`,
     [
       randomUUID(),
       input.organizationId ?? ids.organization1,
@@ -205,6 +206,21 @@ describe("MGT-BE-01 audit foundation constraints", () => {
       ).resolves.toBeDefined();
     },
   );
+
+  it("normalizes omitted membership actor type to explicit MEMBERSHIP", async () => {
+    const result = await insertAudit({ membershipId: ids.membership1 });
+    expect(result.rows[0]?.actor_type).toBe("MEMBERSHIP");
+    const nullActors = await client.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM audit_events WHERE actor_type IS NULL`,
+    );
+    expect(nullActors.rows[0]?.count).toBe("0");
+  });
+
+  it("rejects membership with a conflicting actor type", async () => {
+    await expect(
+      insertAudit({ membershipId: ids.membership1, actorType: "GUEST" }),
+    ).rejects.toMatchObject({ code: "23514" });
+  });
 
   it("rejects missing controlled-operator provenance and new null actors", async () => {
     await expect(
