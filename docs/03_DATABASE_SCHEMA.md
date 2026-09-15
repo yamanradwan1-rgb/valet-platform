@@ -1565,9 +1565,11 @@ Rules:
 ```text
 id
 organization_id
-location_id
+location_id nullable
 valet_session_id nullable
 actor_membership_id nullable
+actor_type nullable for historical/member-compatible rows
+controlled_operator_ref nullable
 event_type
 entity_type
 entity_id
@@ -1579,13 +1581,70 @@ created_at
 
 Rules:
 
-- location, optional session and optional actor membership must belong to `organization_id`
+- `organization_id` is always required
+- a non-null Location must belong to `organization_id`; Location operational
+  writers continue to require a real Location in their application contracts
+- an Organization-wide row has `location_id = NULL` and cannot carry a
+  ValetSession
+- a non-null ValetSession still belongs to the exact Organization/Location
+- an optional actor membership belongs to `organization_id`
+- every new row has truthful actor provenance: membership (proved by the
+  membership FK), Guest, system/service, external provider or controlled
+  operator; controlled operator requires a bounded control-free opaque
+  `controlled_operator_ref`
+- the actor-provenance CHECK is intentionally `NOT VALID`: PostgreSQL enforces
+  it for every new insert/update while pre-MGT-BE-01 rows with historically
+  absent non-membership provenance remain untouched
 - append-only
 - no normal update/delete API
 - no cascade delete from operational records into audit history
 - corrections append new events instead of replacing originals
 - do not put secrets, raw guest tokens, pickup codes/OTP values or unnecessary PII into metadata
 - created in same DB transaction as protected domain mutation where applicable
+
+Organization-wide audit uses stable event UUIDs for retryable internal writes.
+An exact retry with identical immutable facts converges to the existing row;
+reusing the same UUID with different immutable facts fails the caller
+transaction. The existing nullable/non-unique `idempotency_key` remains
+unchanged and is not treated as a generic command-idempotency mechanism.
+
+## account_security_audit_events
+
+Separate append-only account-authentication/security history required by
+DEC-079. It deliberately has no Organization, Location or arbitrary metadata
+payload.
+
+```text
+id
+event_type
+subject_user_id nullable
+actor_type
+actor_user_id nullable
+controlled_operator_ref nullable
+occurred_at
+created_at
+```
+
+Rules:
+
+- optional subject/actor User IDs use restrictive User foreign keys
+- `USER` actors require `actor_user_id` and no operator reference
+- `CONTROLLED_OPERATOR` actors require no actor User and a bounded control-free
+  opaque operator reference
+- `SYSTEM` and `ANONYMOUS` actors carry no fabricated User/operator identity
+- no Organization/Location membership fan-out is performed
+- no credentials, MFA material, recovery codes, bearer values, request bodies,
+  raw contacts or generic security JSON are stored here
+- stable UUID retry compares the complete immutable event facts; exact retry
+  converges and conflicting reuse fails closed
+- normal runtime writes `USER`/`SYSTEM`/`ANONYMOUS` events only through the
+  fixed-search-path SECURITY DEFINER append function; the controlled-operator
+  append boundary is not executable by the ordinary runtime role
+- deployment of migration 35 is a drained, coordinated database/runtime-role
+  cutover: apply the migration with ordinary runtime audit traffic stopped,
+  reprovision the runtime role, then start the updated application. This avoids
+  both old null-actor writers and pre-migration table-level INSERT grants being
+  used against the new provenance columns.
 
 Representative Blueprint event names include:
 
@@ -1705,15 +1764,11 @@ Add these only through their approved focused task/decision.
 
 ## Accepted Management extensions not yet implemented
 
-Current Prisma/migration truth remains the models above and 34 forward-only
-migrations through
-`20260912003400_mob_023b_incident_recovery_intents`. DEC-078 through DEC-094
-accept the following future Management persistence work but do not implement it
-in this documentation rebaseline:
+Current Prisma/migration truth is the models above and 35 forward-only
+migrations through `20260916003500_mgt_be_01_audit_foundation`. MGT-BE-01 now
+implements the DEC-079 audit foundation. The remaining accepted DEC-078 through
+DEC-094 work below is still future Management persistence:
 
-- Organization-wide audit events with nullable Location semantics and a
-  separate account-security audit boundary; existing Location AuditEvents stay
-  compatible and append-only.
 - TOTP enrollment/recovery verifier state and exact Staff-session MFA
   assurance/activity timestamps. Raw TOTP seeds/recovery codes never enter
   persistence in reusable plaintext.
@@ -1727,6 +1782,6 @@ in this documentation rebaseline:
   Management creation must explicitly write `INACTIVE`, and MGT-BE-07 must
   decide whether a forward migration also changes the database default.
 
-No schema or migration change is made by this rebaseline. Exact fields,
+Exact fields,
 constraints, indexes, runtime privileges, and migration IDs belong to the
 owning implementation task and must be proven against this current baseline.

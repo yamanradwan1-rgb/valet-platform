@@ -102,9 +102,9 @@ describe("VAL-009B location configuration runtime privileges", () => {
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(34);
+    expect(result.rows).toHaveLength(35);
     expect(result.rows.at(-1)?.migration_name).toBe(
-      "20260912003400_mob_023b_incident_recovery_intents",
+      "20260916003500_mgt_be_01_audit_foundation",
     );
   });
 

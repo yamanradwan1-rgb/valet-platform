@@ -446,8 +446,20 @@ Representative Blueprint events include vehicle creation, plate scan, customer l
 Corrections append a new event. Original historical facts are not silently edited.
 
 DEC-079 distinguishes Location operational audit, Organization-wide audit with
-no fabricated Location, and a separate account-security audit boundary. The
-current Location-required `AuditEvent` is only the first of those scopes.
+no fabricated Location, and a separate account-security audit boundary.
+`AuditEvent` now supports the first two tenant scopes: operational events keep a
+real Organization/Location, while Organization-wide events keep a real
+Organization with `location_id = NULL` and no ValetSession. Account-security
+history is persisted separately in `AccountSecurityAuditEvent`; it has no
+Organization or Location relationship and is not part of tenant Black Box
+history.
+
+New tenant audit rows carry truthful actor provenance: a same-Organization
+membership, Guest, system/service, external provider, or controlled VAYLET
+operator. Controlled operators use a bounded opaque operator reference in a
+dedicated column. Historical rows whose earlier schema did not encode an
+explicit non-membership actor remain unchanged rather than receiving invented
+provenance.
 
 ## Configuration model principle
 

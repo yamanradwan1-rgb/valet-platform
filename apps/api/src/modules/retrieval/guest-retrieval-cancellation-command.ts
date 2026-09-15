@@ -256,6 +256,7 @@ export async function cancelGuestRetrieval(
       occurredAt: operationTime,
       scope: {
         actorMembershipId: null,
+        actorType: "GUEST",
         locationId: session.locationId,
         organizationId: session.organizationId,
         valetSessionId: session.valetSessionId,

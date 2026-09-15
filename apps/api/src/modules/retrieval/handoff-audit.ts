@@ -6,6 +6,7 @@ export async function appendHandoffAudit(
   transaction: PostgresTransaction,
   input: {
     readonly actorMembershipId: string | null;
+    readonly actorType?: "GUEST" | "SYSTEM";
     readonly eventType: string;
     readonly metadata: Readonly<
       Record<string, boolean | number | string | null>
@@ -19,6 +20,7 @@ export async function appendHandoffAudit(
     occurredAt: input.occurredAt,
     scope: {
       actorMembershipId: input.actorMembershipId,
+      ...(input.actorType === undefined ? {} : { actorType: input.actorType }),
       locationId: input.session.location_id,
       organizationId: input.session.organization_id,
       valetSessionId: input.session.id,

@@ -19,10 +19,10 @@ describe("VAL-006E Mark Ready atomicity and concurrency", () => {
     const duplicateId = randomUUID();
     await context.adminPool.query(
       `INSERT INTO audit_events
-         (id, organization_id, location_id, valet_session_id, event_type,
-          entity_type, entity_id, metadata_json, occurred_at)
-       VALUES ($1, $2, $3, $4, 'TEST', 'VALET_SESSION', $4, '{}'::jsonb,
-               transaction_timestamp())`,
+         (id, organization_id, location_id, valet_session_id, actor_type,
+          event_type, entity_type, entity_id, metadata_json, occurred_at)
+       VALUES ($1, $2, $3, $4, 'SYSTEM', 'TEST', 'VALET_SESSION', $4,
+               '{}'::jsonb, transaction_timestamp())`,
       [
         duplicateId,
         fixture.organizationId,

@@ -370,6 +370,25 @@ enum StaffPushProviderResultClass {
   @@map("staff_push_provider_result_class")
 }
 
+enum AuditActorType {
+  MEMBERSHIP
+  GUEST
+  SYSTEM
+  EXTERNAL_PROVIDER
+  CONTROLLED_OPERATOR
+
+  @@map("audit_actor_type")
+}
+
+enum AccountSecurityActorType {
+  USER
+  CONTROLLED_OPERATOR
+  SYSTEM
+  ANONYMOUS
+
+  @@map("account_security_actor_type")
+}
+
 model Organization {
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
@@ -490,8 +509,10 @@ model User {
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(3)
 
-  memberships       OrganizationMembership[]
-  staffAuthSessions StaffAuthSession[]
+  memberships                  OrganizationMembership[]
+  staffAuthSessions            StaffAuthSession[]
+  accountSecuritySubjectEvents AccountSecurityAuditEvent[] @relation("AccountSecuritySubjectUser")
+  accountSecurityActorEvents   AccountSecurityAuditEvent[] @relation("AccountSecurityActorUser")
 
   @@map("users")
 }
@@ -1385,26 +1406,44 @@ model StaffPushDelivery {
 }
 
 model AuditEvent {
-  id                String   @id @default(uuid()) @db.Uuid
-  organizationId    String   @map("organization_id") @db.Uuid
-  locationId        String   @map("location_id") @db.Uuid
-  valetSessionId    String?  @map("valet_session_id") @db.Uuid
-  actorMembershipId String?  @map("actor_membership_id") @db.Uuid
-  eventType         String   @map("event_type")
-  entityType        String   @map("entity_type")
-  entityId          String   @map("entity_id") @db.Uuid
-  metadataJson      Json     @map("metadata_json") @db.JsonB
-  idempotencyKey    String?  @map("idempotency_key")
-  occurredAt        DateTime @map("occurred_at") @db.Timestamptz(3)
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  id                    String          @id @default(uuid()) @db.Uuid
+  organizationId        String          @map("organization_id") @db.Uuid
+  locationId            String?         @map("location_id") @db.Uuid
+  valetSessionId        String?         @map("valet_session_id") @db.Uuid
+  actorMembershipId     String?         @map("actor_membership_id") @db.Uuid
+  actorType             AuditActorType? @map("actor_type")
+  controlledOperatorRef String?         @map("controlled_operator_ref")
+  eventType             String          @map("event_type")
+  entityType            String          @map("entity_type")
+  entityId              String          @map("entity_id") @db.Uuid
+  metadataJson          Json            @map("metadata_json") @db.JsonB
+  idempotencyKey        String?         @map("idempotency_key")
+  occurredAt            DateTime        @map("occurred_at") @db.Timestamptz(3)
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
 
   organization    Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "audit_events_organization_id_fkey")
-  location        Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "audit_events_org_location_id_fkey")
+  location        Location?               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "audit_events_org_location_id_fkey")
   valetSession    ValetSession?           @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "audit_events_org_location_valet_session_id_fkey")
   actorMembership OrganizationMembership? @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, map: "audit_events_org_actor_membership_id_fkey")
 
   @@index([valetSessionId, occurredAt], map: "audit_events_valet_session_id_occurred_at_idx")
   @@map("audit_events")
+}
+
+model AccountSecurityAuditEvent {
+  id                    String                   @id @default(uuid()) @db.Uuid
+  eventType             String                   @map("event_type")
+  subjectUserId         String?                  @map("subject_user_id") @db.Uuid
+  actorType             AccountSecurityActorType @map("actor_type")
+  actorUserId           String?                  @map("actor_user_id") @db.Uuid
+  controlledOperatorRef String?                  @map("controlled_operator_ref")
+  occurredAt            DateTime                 @map("occurred_at") @db.Timestamptz(3)
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  subjectUser User? @relation("AccountSecuritySubjectUser", fields: [subjectUserId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "account_security_audit_events_subject_user_id_fkey")
+  actorUser   User? @relation("AccountSecurityActorUser", fields: [actorUserId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "account_security_audit_events_actor_user_id_fkey")
+
+  @@map("account_security_audit_events")
 }
 
 model AntiAbuseEvent {

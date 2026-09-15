@@ -98,12 +98,12 @@ describe("migration 30 basic branding and subscription entitlements", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(34);
+    expect(directories).toHaveLength(35);
     expect(directories[29]).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
     expect(directories.at(-1)).toBe(
-      "20260912003400_mob_023b_incident_recovery_intents",
+      "20260916003500_mgt_be_01_audit_foundation",
     );
   });
 

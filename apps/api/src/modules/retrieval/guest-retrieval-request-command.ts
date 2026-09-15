@@ -29,6 +29,7 @@ function guestAuditScope(
 ): PersistedCustodyAuditScope {
   return {
     actorMembershipId: null,
+    actorType: "GUEST",
     locationId: session.locationId,
     organizationId: session.organizationId,
     valetSessionId: session.valetSessionId,

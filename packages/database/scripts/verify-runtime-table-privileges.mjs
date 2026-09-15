@@ -19,6 +19,7 @@ import {
   columnPrivilegeMatches,
   tablePrivilegeMatches,
 } from "./runtime-privilege-verification-helpers.mjs";
+import { verifyAuditFoundationPrivileges } from "./audit-foundation-runtime-privilege-verification.mjs";
 
 const tablePrivileges = [
   ...incidentRecoveryPrivileges.table,
@@ -284,4 +285,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
   }
   await verifyLocationConfigurationPrivileges(client, runtimeRole);
   await verifyBasicBrandingPrivileges(client, runtimeRole);
+  await verifyAuditFoundationPrivileges(client, runtimeRole);
 }

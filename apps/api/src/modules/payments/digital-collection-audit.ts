@@ -34,10 +34,10 @@ export async function appendDigitalCollectionAudit(
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
-        actor_membership_id, event_type, entity_type, entity_id,
+        actor_membership_id, actor_type, event_type, entity_type, entity_id,
         metadata_json, occurred_at)
-     VALUES ($1, $2, $3, $4, NULL, $5, 'PaymentCollectionOperation',
-             $6, $7::jsonb, $8)`,
+     VALUES ($1, $2, $3, $4, NULL, 'SYSTEM', $5,
+             'PaymentCollectionOperation', $6, $7::jsonb, $8)`,
     [
       input.idFactory?.() ?? randomUUID(),
       input.payment.organizationId,

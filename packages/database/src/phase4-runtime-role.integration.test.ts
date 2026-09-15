@@ -86,13 +86,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("DEC-039 Phase 4 runtime persistence privileges", () => {
-  it("keeps the schema at exactly 31 applied migrations", async () => {
+  it("keeps the schema at exactly 35 applied migrations", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(34);
+    expect(result.rows).toHaveLength(35);
   });
 
   it("allows only stateful runtime access on RetrievalRequest and HandoffVerification", async () => {
@@ -153,7 +153,10 @@ describe("DEC-039 Phase 4 runtime persistence privileges", () => {
     }>(
       `SELECT table_name,
               has_table_privilege($1, format('public.%I', table_name), 'SELECT') AS can_select,
-              has_table_privilege($1, format('public.%I', table_name), 'INSERT') AS can_insert,
+              CASE WHEN table_name = 'audit_events'
+                THEN has_column_privilege($1, 'public.audit_events', 'id', 'INSERT')
+                ELSE has_table_privilege($1, format('public.%I', table_name), 'INSERT')
+              END AS can_insert,
               has_table_privilege($1, format('public.%I', table_name), 'UPDATE') AS can_update,
               has_table_privilege($1, format('public.%I', table_name), 'DELETE') AS can_delete,
               has_table_privilege($1, format('public.%I', table_name), 'TRUNCATE') AS can_truncate

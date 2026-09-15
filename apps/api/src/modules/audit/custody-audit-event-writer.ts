@@ -14,6 +14,7 @@ export interface CustodyAuditEventDefinition {
 
 export interface PersistedCustodyAuditScope {
   readonly actorMembershipId: string | null;
+  readonly actorType?: "GUEST" | "SYSTEM";
   readonly locationId: string;
   readonly organizationId: string;
   readonly valetSessionId: string;
@@ -64,6 +65,17 @@ export async function appendCustodyAuditEvent(
 ): Promise<string> {
   validateAuditDefinition(input.definition);
 
+  const actorType =
+    input.scope.actorMembershipId === null
+      ? input.scope.actorType
+      : ("MEMBERSHIP" as const);
+  if (
+    actorType === undefined ||
+    (input.scope.actorMembershipId !== null && input.scope.actorType !== undefined)
+  ) {
+    throw new UnsafeCustodyAuditDefinitionError();
+  }
+
   const auditEventId = auditEventIdFactory();
   const entity = input.entity ?? {
     id: input.scope.valetSessionId,
@@ -72,15 +84,17 @@ export async function appendCustodyAuditEvent(
   await transaction.query(
     `INSERT INTO audit_events
        (id, organization_id, location_id, valet_session_id,
-        actor_membership_id, event_type, entity_type, entity_id,
+        actor_membership_id, actor_type, event_type, entity_type, entity_id,
         metadata_json, occurred_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10)`,
+     VALUES ($1, $2, $3, $4, $5, $6::audit_actor_type,
+             $7, $8, $9, $10::jsonb, $11)`,
     [
       auditEventId,
       input.scope.organizationId,
       input.scope.locationId,
       input.scope.valetSessionId,
       input.scope.actorMembershipId,
+      actorType,
       input.definition.eventType,
       entity.type,
       entity.id,

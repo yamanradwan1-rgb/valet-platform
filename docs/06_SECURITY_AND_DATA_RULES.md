@@ -272,6 +272,30 @@ Operational history is append-only.
 - sensitive audit metadata must exclude secrets and unnecessary PII
 - high-risk evidence lock/export behavior may be introduced with Incident/ClaimShield tasks
 
+DEC-079 audit persistence has three trust boundaries. Location operational
+events remain tenant AuditEvents with a real Organization and Location.
+Organization-wide tenant events require a real Organization but store no fake
+Location and no ValetSession. Account-authentication/security events use the
+separate `account_security_audit_events` store, with no Organization/Location
+columns and no tenant Black Box exposure.
+
+New tenant audit rows may identify a same-Organization membership, Guest,
+system/service, external provider or controlled VAYLET operator. A controlled
+operator requires a dedicated bounded opaque operator reference; absence of a
+membership is never interpreted as SYSTEM by itself. Historical rows are not
+backfilled with guessed actor provenance.
+
+The ordinary runtime role has tenant-audit `SELECT` plus column-scoped `INSERT`
+needed by existing/new application writers, but cannot insert the dedicated
+controlled-operator reference or database-authored `created_at`, and cannot
+`UPDATE`, `DELETE`, `TRUNCATE`, add triggers or take ownership. PUBLIC has no
+tenant-audit access. Account-security tables grant the ordinary runtime no
+direct table access: `USER`, `SYSTEM` and `ANONYMOUS` writes go through a
+fixed-search-path SECURITY DEFINER append function. The generic
+controlled-operator account-security append function is denied to runtime and
+PUBLIC. Runtime therefore cannot manufacture controlled-operator provenance by
+supplying table columns or selecting the privileged function directly.
+
 For the VAL-004C intake evidence tables, the ordinary application runtime role
 has only `SELECT` and `INSERT` on `condition_notes` and `vehicle_photos`.
 `UPDATE`, `DELETE` and `TRUNCATE` are denied so corrections append new evidence
@@ -297,7 +321,11 @@ For `complete-check-in`, the winning state/version mutation and `VALET_SESSION_C
 
 A stale-version retry or a later attempt from a non-`CHECKING_IN` state must not append another check-in-completed AuditEvent.
 
-The current AuditEvent schema provides the history record but database-level append-only enforcement for the ordinary Phase 2 runtime role still requires the explicit privilege/enforcement task identified by VAL-003P. Feature code must not treat migration-owner privileges as the production runtime boundary.
+Database runtime provisioning enforces the append-only AuditEvent boundary and
+must be rerun after the MGT-BE-01 migration so the new account-security function
+grants are installed before the updated application runtime is started. The
+migration role remains the schema/object owner; feature code must not treat its
+privileges as the application runtime boundary.
 
 Full ClaimShield evidence-package workflow is V2; basic Black Box and incident evidence integrity are MVP requirements.
 
@@ -459,6 +487,10 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   custody completion.
 - Audit, Customer/visit, integration, subscription, and report projections are
   allowlisted, bounded, tenant-safe, and reauthorize current persisted scope.
+- MGT-BE-01 migration 35 is a coordinated cutover: stop ordinary runtime audit
+  traffic, apply the migration, rerun runtime-role provisioning, then start the
+  updated application. Do not run old null-actor writers or an old pre-35
+  runtime grant set against the migrated schema.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

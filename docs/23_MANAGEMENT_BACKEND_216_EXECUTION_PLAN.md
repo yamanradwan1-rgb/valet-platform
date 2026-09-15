@@ -184,6 +184,13 @@ Objective: implement DEC-079 Organization audit, existing Location compatibility
 and separate account-security audit with safe actor provenance and append-only
 guarantees.
 
+Implementation status: implemented on the MGT-BE-01 production branch for
+independent review. Migration `20260916003500_mgt_be_01_audit_foundation`
+preserves existing Location history/writers, adds Organization-wide null-Location
+tenant audit, explicit new-row actor provenance and a separate account-security
+append boundary. MGT-BE-02 and later Management work remain unstarted by this
+packet.
+
 - Dependencies: none beyond current main and DEC-079.
 - Schema: forward migration expected; preserve all existing Location rows and
   writers. Prefer explicit scope-safe relationships over dummy/null ambiguity.
@@ -573,13 +580,15 @@ Known implementation gaps, not contradictions:
   neither source nor tests; these baseline failures must be resolved before an
   implementation branch is treated as fully green.
 
-Before implementation, assign normal task ownership, start from a fresh main,
-honor the dependencies above, and resolve the pre-existing architecture-gate
-blocker. The recommended next task is:
+The notes below record the state of the earlier documentation/rebaseline branch
+and are historical baseline evidence; they do not override current `main` or an
+explicit production task authorization. MGT-BE-01 was subsequently authorized
+and implemented from a fresh current `main`. After independent review and merge,
+the recommended next task is:
 
-**MGT-BE-01 — Audit Foundation**
+**MGT-BE-02 — Complete MFA**
 
-Do not begin it on this documentation branch.
+Do not begin MGT-BE-02 as part of MGT-BE-01.
 
 ## 14. Documentation rebaseline validation record
 
