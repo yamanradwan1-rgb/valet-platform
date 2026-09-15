@@ -90,10 +90,18 @@ Must be able to:
 - manage company locations
 - manage staff/roles and approved permission settings
 - manage company defaults and location overrides
-- manage prices/policies/branding/billing configuration as implemented
+- manage approved prices/policies/branding as implemented
+- view read-only plan, subscription status and included Management features
 - view company-authorized reports
 
 Production Company Admin requires MFA.
+
+Accepted DEC-078 through DEC-094 clarify this Management boundary. Company
+Admin MFA is password + TOTP with recovery codes and server-side assurance.
+Company Admin Management authority does not imply operational field authority
+for check-in, parking, handoff, key movement or custody. Only VAYLET controls
+commercial entitlements, and a Management entitlement lapse must never block
+field operations or safe completion of a vehicle already in custody.
 
 ### Venue Client
 
@@ -170,15 +178,35 @@ Examples include, when implemented:
 - valet fee/payment methods/tips
 - photo policy
 - plate scan settings
-- key system
 - parking spot requirement
 - tracking on/off
-- route history/geofence policy
+- optional geofence-alert enablement
 - release policy
-- notification templates
+- per-notification-type enablement
 - SLA target
-- validation rules
-- allowed roles
+
+DEC-083 explicitly rejects a generic Settings JSON/Rules Builder, a Key Policy
+with only one valid mode, generic notification-template or validation-policy
+engines, and a Location allowed-role policy. Existing typed validation
+enablement and accepted financial commands remain unchanged.
+
+## Management visit and commercial boundaries
+
+- Management Customers is bounded visit management, not CRM. Search may use
+  phone, plate or authorized-scope name, and vehicle relationships are described
+  only as visit associations, never proven ownership.
+- Rating is 1–5, guest-only, once per completed visit. Staff cannot alter it.
+- “Returning Contact” means only that normalized contact appeared on a prior
+  completed authorized-scope visit; it does not prove a person identity.
+- Basic branding is display name and primary color with Company default ->
+  Location override. Logo and advanced white-label remain deferred.
+- Integrations and Billing are read-only MVP surfaces. Tenant provider-secret
+  administration and SaaS billing execution are out of scope.
+- Automatic report delivery is deferred; manual authenticated CSV/PDF is the
+  current requirement.
+- New Locations start inactive, require explicit currency/timezone and setup,
+  and must stop intake and drain safely before deactivation. History is never
+  deleted.
 
 This scope requirement does not authorize one generic untyped settings JSON table. Typed configuration is introduced by focused implementation tasks.
 

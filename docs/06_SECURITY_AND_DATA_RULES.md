@@ -438,3 +438,29 @@ Before production/paid-customer readiness, plan and verify as applicable:
 - permission review for larger customers
 - rollback/release procedure
 - incident-response runbook
+
+## Management security boundary
+
+Accepted DEC-078 through DEC-094 add these binding Management controls:
+
+- Company Admin uses password + TOTP. Ten one-time recovery codes are stored
+  only as safe verifiers. No SMS MFA or peer-admin recovery bypass exists.
+- MFA assurance is bound to the exact Staff session: maximum eight hours,
+  30-minute admin inactivity, and five-minute freshness for sensitive actions.
+  Expiry is step-up, and refresh rotation cannot extend assurance.
+- Account-security audit is separate from tenant audit. Organization-wide
+  business events use their real Organization and null Location; fake Locations
+  and per-tenant copies of account events are forbidden.
+- Company Admin Management scope never grants operational check-in, parking,
+  handoff, key movement, or custody authority. Raw route history requires an
+  explicit separate authority.
+- Staff membership disable is tenant-scoped. Emergency disable blocks access
+  and sessions immediately but never fabricates Task, Shift, Key, Incident, or
+  custody completion.
+- Audit, Customer/visit, integration, subscription, and report projections are
+  allowlisted, bounded, tenant-safe, and reauthorize current persisted scope.
+- Tenant users never manage provider secrets or commercial entitlements.
+- Management entitlement lapse must never block field operation or the safe
+  completion of a vehicle already in custody.
+- Guest rating is guest-only, one through five, once per completed visit;
+  contact recurrence never becomes proof of identity.

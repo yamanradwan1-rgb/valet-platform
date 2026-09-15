@@ -1,0 +1,56 @@
+# DEC-091 — Guest Rating and Returning Contact
+
+Status: Accepted
+Date: 2026-09-15
+Owner: VAYLET product owner
+
+## Context
+
+There is no Guest rating persistence. Older planning language used “Repeat
+Guest,” which overstates identity evidence from a contact value.
+
+## Decision
+
+Guest Rating is an integer from one through five, accepted only through the
+authorized Guest Access context for one completed visit. At most one rating may
+be created per visit. The write is idempotent for an exact retry and conflicting
+second values fail safely. Staff cannot create, alter, or delete a rating.
+
+Use the label **Returning Contact**, not Repeat Guest. It means the normalized
+contact on the current visit appeared on a prior completed visit within the
+viewer's authorized analytics scope. It does not prove the same human, an
+account, ownership, or authentication. Missing contact or missing eligible
+history remains missing/false according to the strict response contract and is
+never inferred from plate alone.
+
+Rating and Returning Contact analytics are tenant/Location scoped, bounded,
+privacy-minimized, and use Location-local period semantics. Raw phone values do
+not appear in analytics or audit metadata.
+
+## Reason
+
+This provides a genuine guest feedback source and an honest recurrence signal
+without asserting identity the system cannot prove.
+
+## Consequences
+
+MGT-BE-09 owns rating persistence/write; MGT-BE-08 exposes the bounded Returning
+Contact calculation; MGT-BE-10/11 may aggregate them after source availability.
+DEC-069's returning-customer suggestion remains distinct and unchanged.
+
+## Security and privacy considerations
+
+Rating authorization stays bound to the exact Guest visit context. Analytics
+contains no raw contact, and recurrence is not authentication, identity proof,
+ownership proof, or an unrestricted person lookup.
+
+## Supersedes/amends references
+
+Supersedes the old “Repeat Guest” label and rating packet semantics; it does
+not widen DEC-069 Employee recognition.
+
+## Affected docs/code
+
+`docs/02_DOMAIN_MODEL.md`, `docs/03_DATABASE_SCHEMA.md`,
+`docs/08_DECISIONS_LOG.md`, `docs/23_MANAGEMENT_BACKEND_216_EXECUTION_PLAN.md`,
+future Guest Access/customer/analytics implementation.

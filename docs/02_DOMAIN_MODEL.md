@@ -60,6 +60,7 @@ Customer / Guest Contact (when known)
                  +-- Refund history
             +-- Incident
             +-- Notification
+            +-- GuestRating
             +-- AuditEvent / Black Box timeline
 ```
 
@@ -84,6 +85,11 @@ Examples: hotel, restaurant, mall, hospital, airport, event venue.
 A Location belongs to one Organization in MVP.
 
 Location is the authoritative operational scope for settings such as timezone/currency and location-specific policies when implemented.
+
+Management-created Locations begin inactive. Activation requires explicit
+currency/timezone and setup readiness. Closure first stops new intake, then
+drains existing operational work, and only then deactivates. Historical
+Location data is never deleted.
 
 ## User
 
@@ -125,6 +131,14 @@ Minimal guest/contact data associated with a visit when known.
 MVP does not require a persistent customer account.
 
 Primary guest access is through secure phone-based WhatsApp/SMS link, with QR fallback. A future optional account/Valet Passport is outside the initial MVP.
+
+Management treats Customer as a visit contact, not a CRM profile or proven
+identity. Phone, plate and name search stays inside authorized visit scope.
+Vehicles may be described as associated through visits but not as owned.
+
+`Returning Contact` is a derived authorized-scope fact that the same normalized
+contact value appeared on a prior completed visit. It does not prove that the
+same human returned.
 
 ## Vehicle
 
@@ -402,6 +416,14 @@ Outbound communication record for guest/staff operational messages.
 
 MVP channels may include SMS and/or WhatsApp according to first-market provider availability. Push belongs to users who later choose an account/app flow.
 
+## GuestRating
+
+Minimal immutable guest feedback for one completed ValetSession. The accepted
+value is an integer from one through five, written only through that session's
+authorized Guest Access, at most once. Staff cannot author, update or delete it.
+It is a future Management schema addition under DEC-091, not current Prisma
+persistence.
+
 ## AuditEvent / Black Box
 
 Append-only operational history.
@@ -422,6 +444,10 @@ Each event should support as applicable:
 Representative Blueprint events include vehicle creation, plate scan, customer link sent, condition recorded, photo added, key assigned, task assigned/reassigned, parking started, geofence events, vehicle parked, retrieval requested/started, key checkout, vehicle ready, payment/validation, handoff verified, vehicle released/completed, incident opened/evidence locked and override used.
 
 Corrections append a new event. Original historical facts are not silently edited.
+
+DEC-079 distinguishes Location operational audit, Organization-wide audit with
+no fabricated Location, and a separate account-security audit boundary. The
+current Location-required `AuditEvent` is only the first of those scopes.
 
 ## Configuration model principle
 

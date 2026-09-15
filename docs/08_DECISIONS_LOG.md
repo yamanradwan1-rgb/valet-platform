@@ -3748,3 +3748,241 @@ close.
 
 Full binding contract:
 `docs/decisions/DEC-077_EMPLOYEE_INCIDENT_PROCESS_DEATH_RECOVERY.md`
+
+---
+
+## DEC-078 — Company Admin MFA
+
+Status: Accepted
+Date: 2026-09-15
+
+Company Admin uses password plus TOTP, with ten one-time verifier-only recovery
+codes. Recovery without a code is VAYLET-mediated and audited; peers cannot
+bypass it. Session-bound assurance expires after eight hours, 30 minutes of
+admin inactivity, or five minutes for sensitive actions. Expiry is soft
+step-up, and refresh rotation never extends assurance.
+
+Full contract: `docs/decisions/DEC-078_COMPANY_ADMIN_MFA.md`.
+
+---
+
+## DEC-079 — Management Audit Scopes
+
+Status: Accepted
+Date: 2026-09-15
+
+Audit has three truthful boundaries: Location operational events,
+Organization-wide events with null Location, and separate account-security
+events. Fake Locations and copying account events into every tenant are
+forbidden.
+
+Full contract: `docs/decisions/DEC-079_MANAGEMENT_AUDIT_SCOPES.md`.
+
+---
+
+## DEC-080 — Company Admin Management Authority
+
+Status: Accepted
+Date: 2026-09-15
+
+MFA-assured `ORG_ADMIN` receives company Management scope, all-Location
+visibility, settings/staff/branding/Location lifecycle, analytics, reports, and
+safe audit. It does not inherit check-in, parking, handoff, key movement, or
+other physical-custody authority. Live operational map visibility does not
+include unrestricted raw route history.
+
+Full contract: `docs/decisions/DEC-080_COMPANY_ADMIN_AUTHORITY.md`.
+
+---
+
+## DEC-081 — Staff, Role, and Access Lifecycle
+
+Status: Accepted
+Date: 2026-09-15
+
+Company Admin owns company roles and Location grants. Last-usable-admin and
+handover protections apply. Emergency disable blocks access immediately without
+fabricating completion of operational work. Membership disable affects only its
+Organization; global User disable remains separate.
+
+Full contract:
+`docs/decisions/DEC-081_STAFF_ROLE_AND_ACCESS_LIFECYCLE.md`.
+
+---
+
+## DEC-082 — Management Audit Visibility
+
+Status: Accepted
+Date: 2026-09-15
+
+Company Admin sees a safe Organization-wide projection, Location Manager only
+authorized Locations, Supervisor only necessary operational history, and
+Employee/Guest no general explorer. Security audit, secrets, credentials, and
+raw routes are excluded without separate authority.
+
+Full contract: `docs/decisions/DEC-082_MANAGEMENT_AUDIT_VISIBILITY.md`.
+
+---
+
+## DEC-083 — Management Settings Scope
+
+Status: Accepted
+Date: 2026-09-15
+
+Preserve existing typed settings and add only language, informational operating
+hours, OCR assist, parking-Spot requirement, per-notification-type toggles, SLA
+target after its KPI definition, and optional justified geofence alerts. Do not
+build generic settings/rules/templates, Key Policy, generic validation policy,
+or Location allowed-role policy.
+
+Full contract: `docs/decisions/DEC-083_MANAGEMENT_SETTINGS_SCOPE.md`.
+
+---
+
+## DEC-084 — Management Customers as Visit Contacts
+
+Status: Accepted
+Date: 2026-09-15
+
+Management Customer search is bounded visit management by phone, plate, or
+authorized-scope name. It may show safe contact and visit associations but
+never claims vehicle ownership and does not add CRM campaigns, tags, segments,
+loyalty, or marketing notes. Sensitive corrections are explicit and audited.
+
+Full contract: `docs/decisions/DEC-084_MANAGEMENT_VISIT_CONTACTS.md`.
+
+---
+
+## DEC-085 — Effective Management and Guest Branding
+
+Status: Accepted
+Date: 2026-09-15
+
+Basic branding remains display name plus primary color with Company default to
+Location override inheritance. Guest Access derives effective branding from the
+real visit Location. CSS, fonts, custom domains, and advanced white label are
+excluded.
+
+Full contract: `docs/decisions/DEC-085_EFFECTIVE_MANAGEMENT_BRANDING.md`.
+
+---
+
+## DEC-086 — Logo Customization Deferred
+
+Status: Accepted
+Date: 2026-09-15
+
+Logo customization is deferred unless later proven a launch blocker. Any future
+contract requires server-controlled verified asset handling; arbitrary client
+URLs and VehiclePhoto metadata reuse are forbidden.
+
+Full contract: `docs/decisions/DEC-086_LOGO_DEFERRAL.md`.
+
+---
+
+## DEC-087 — Read-Only MVP Integrations
+
+Status: Accepted
+Date: 2026-09-15
+
+MVP exposes read-only truthful status for real implemented integrations.
+Company Admin cannot enter keys, swap/self-enable providers, or manage secrets.
+POS/PMS/SSO remain out of scope.
+
+Full contract: `docs/decisions/DEC-087_READ_ONLY_INTEGRATIONS.md`.
+
+---
+
+## DEC-088 — Management Entitlement Safety
+
+Status: Accepted
+Date: 2026-09-15
+
+Only VAYLET controls commercial entitlements. Lapse may restrict Management
+features only and must never block check-in, parking, retrieval, handoff,
+custody completion, incident safety, or necessary Guest completion paths.
+
+Full contract: `docs/decisions/DEC-088_MANAGEMENT_ENTITLEMENT_SAFETY.md`.
+
+---
+
+## DEC-089 — Read-Only MVP Billing
+
+Status: Accepted
+Date: 2026-09-15
+
+MVP Billing shows plan, subscription status, and included features only. SaaS
+invoices, cards, Stripe, renewals, coupons, self-upgrade, and billing portal are
+out of scope. Guest valet payments remain separate.
+
+Full contract: `docs/decisions/DEC-089_READ_ONLY_MVP_BILLING.md`.
+
+---
+
+## DEC-090 — Management KPI Definitions
+
+Status: Accepted
+Date: 2026-09-15
+
+SLA is retrieval request to READY against a Location-configured target. Cars per
+Active Employee is completed visits divided by distinct operational employees
+proven to have worked; Cars Handed Off is a separate final-completer count. Key
+Exceptions include controlled genuine problems, never normal movements.
+
+Full contract: `docs/decisions/DEC-090_MANAGEMENT_KPI_DEFINITIONS.md`.
+
+---
+
+## DEC-091 — Guest Rating and Returning Contact
+
+Status: Accepted
+Date: 2026-09-15
+
+Guest rating is 1–5, once per completed visit, guest-only and idempotent; staff
+cannot alter it. Returning Contact replaces Repeat Guest and means only that a
+normalized contact appeared on a prior completed authorized-scope visit, not
+that the same person or owner was proven.
+
+Full contract:
+`docs/decisions/DEC-091_GUEST_RATING_AND_RETURNING_CONTACT.md`.
+
+---
+
+## DEC-092 — All Locations Analytics
+
+Status: Accepted
+Date: 2026-09-15
+
+Company analytics recomputes from underlying data, sums ratio numerators and
+denominators, keeps currencies separate, respects every Location's local-time
+semantics, and reports missing data as missing rather than zero.
+
+Full contract: `docs/decisions/DEC-092_ALL_LOCATIONS_ANALYTICS.md`.
+
+---
+
+## DEC-093 — Automatic Report Delivery Deferred
+
+Status: Accepted
+Date: 2026-09-15
+
+Manual authenticated CSV/PDF comes first. Scheduled delivery is deferred; a
+future email-first design must use authenticated links, current authorization,
+bounded retries, and the existing report composer, not open attachments.
+
+Full contract:
+`docs/decisions/DEC-093_AUTOMATIC_REPORT_DELIVERY_DEFERRED.md`.
+
+---
+
+## DEC-094 — Location Lifecycle
+
+Status: Accepted
+Date: 2026-09-15
+
+New Locations start inactive with explicit currency/timezone and readiness
+before activation. Closure stops intake, safely drains work, then deactivates;
+history is never deleted or falsely completed. Currency is prospective with
+historical snapshots; production timezone changes are exceptional corrections.
+
+Full contract: `docs/decisions/DEC-094_LOCATION_LIFECYCLE.md`.

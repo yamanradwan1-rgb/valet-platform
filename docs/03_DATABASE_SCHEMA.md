@@ -1702,3 +1702,31 @@ Current schema details intentionally not locked by this document include:
 - full offline synchronization queue/storage design beyond stable IDs/idempotency/version foundations
 
 Add these only through their approved focused task/decision.
+
+## Accepted Management extensions not yet implemented
+
+Current Prisma/migration truth remains the models above and 34 forward-only
+migrations through
+`20260912003400_mob_023b_incident_recovery_intents`. DEC-078 through DEC-094
+accept the following future Management persistence work but do not implement it
+in this documentation rebaseline:
+
+- Organization-wide audit events with nullable Location semantics and a
+  separate account-security audit boundary; existing Location AuditEvents stay
+  compatible and append-only.
+- TOTP enrollment/recovery verifier state and exact Staff-session MFA
+  assurance/activity timestamps. Raw TOTP seeds/recovery codes never enter
+  persistence in reusable plaintext.
+- typed Management settings only for the DEC-083 catalog; no generic settings,
+  rules, templates, key-policy, validation-policy, or allowed-role JSON/engine.
+- a minimal one-rating-per-ValetSession guest rating source.
+- historically truthful SLA-target applicability and a controlled genuine Key
+  Exception source before those metrics ship.
+- the smallest Location intake-stop/drain representation needed by DEC-094.
+  The current schema still defaults `locations.status` to `ACTIVE`; future
+  Management creation must explicitly write `INACTIVE`, and MGT-BE-07 must
+  decide whether a forward migration also changes the database default.
+
+No schema or migration change is made by this rebaseline. Exact fields,
+constraints, indexes, runtime privileges, and migration IDs belong to the
+owning implementation task and must be proven against this current baseline.
