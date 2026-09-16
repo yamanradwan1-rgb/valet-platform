@@ -389,6 +389,14 @@ enum AccountSecurityActorType {
   @@map("account_security_actor_type")
 }
 
+enum MfaTotpFactorState {
+  PENDING
+  ACTIVE
+  RETIRED
+
+  @@map("mfa_totp_factor_state")
+}
+
 model Organization {
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
@@ -511,6 +519,7 @@ model User {
 
   memberships                  OrganizationMembership[]
   staffAuthSessions            StaffAuthSession[]
+  mfaTotpFactors               UserMfaTotpFactor[]
   accountSecuritySubjectEvents AccountSecurityAuditEvent[] @relation("AccountSecuritySubjectUser")
   accountSecurityActorEvents   AccountSecurityAuditEvent[] @relation("AccountSecurityActorUser")
 
@@ -526,13 +535,53 @@ model StaffAuthSession {
   revokedAt              DateTime? @map("revoked_at") @db.Timestamptz(3)
   createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   lastRotatedAt          DateTime  @map("last_rotated_at") @db.Timestamptz(3)
+  mfaAuthenticatedAt     DateTime? @map("mfa_authenticated_at") @db.Timestamptz(3)
+  mfaFactorId            String?   @map("mfa_factor_id") @db.Uuid
+  lastAdminActivityAt    DateTime? @map("last_admin_activity_at") @db.Timestamptz(3)
 
   user               User                     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  mfaFactor          UserMfaTotpFactor?       @relation(fields: [userId, mfaFactorId], references: [userId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_auth_sessions_user_mfa_factor_id_fkey")
   refreshCredentials StaffRefreshCredential[]
   pushRegistrations  StaffPushRegistration[]
 
   @@index([userId, revokedAt, absoluteExpiresAt], map: "staff_auth_sessions_user_id_status_idx")
   @@map("staff_auth_sessions")
+}
+
+model UserMfaTotpFactor {
+  id                    String             @id @default(uuid()) @db.Uuid
+  userId                String             @map("user_id") @db.Uuid
+  state                 MfaTotpFactorState @default(PENDING)
+  protectedSecret       String             @map("protected_secret")
+  lastAcceptedStep      BigInt?            @map("last_accepted_step")
+  recoverySetGeneration Int                @default(0) @map("recovery_set_generation")
+  createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  activatedAt           DateTime?          @map("activated_at") @db.Timestamptz(3)
+  retiredAt             DateTime?          @map("retired_at") @db.Timestamptz(3)
+
+  user          User               @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "user_mfa_totp_factors_user_id_fkey")
+  sessions      StaffAuthSession[]
+  recoveryCodes MfaRecoveryCode[]
+
+  @@unique([userId, id], map: "user_mfa_totp_factors_user_id_id_key")
+  @@map("user_mfa_totp_factors")
+}
+
+model MfaRecoveryCode {
+  id            String    @id @default(uuid()) @db.Uuid
+  factorId      String    @map("factor_id") @db.Uuid
+  setGeneration Int       @map("set_generation")
+  slot          Int
+  selector      String    @unique(map: "mfa_recovery_codes_selector_key")
+  verifier      String
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  consumedAt    DateTime? @map("consumed_at") @db.Timestamptz(3)
+
+  factor UserMfaTotpFactor @relation(fields: [factorId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "mfa_recovery_codes_factor_id_fkey")
+
+  @@unique([factorId, setGeneration, slot], map: "mfa_recovery_codes_factor_generation_slot_key")
+  @@index([factorId, setGeneration, consumedAt], map: "mfa_recovery_codes_factor_generation_consumed_idx")
+  @@map("mfa_recovery_codes")
 }
 
 model StaffRefreshCredential {

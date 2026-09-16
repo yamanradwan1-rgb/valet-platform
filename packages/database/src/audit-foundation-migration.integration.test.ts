@@ -89,7 +89,10 @@ beforeAll(async () => {
   }
 
   upgradeClient = await createDatabase(upgradeDatabaseName);
-  for (const migration of expectedMigrationDirectories.slice(0, -1)) {
+  for (const migration of expectedMigrationDirectories.slice(
+    0,
+    expectedMigrationDirectories.indexOf(auditFoundationMigration),
+  )) {
     await applyMigration(upgradeClient, migration);
   }
 
@@ -194,9 +197,9 @@ afterAll(async () => {
 }, 60_000);
 
 describe("MGT-BE-01 audit foundation migration 35", () => {
-  it("applies the complete 35-migration history from an empty database", async () => {
-    expect(expectedMigrationDirectories).toHaveLength(35);
-    expect(expectedMigrationDirectories.at(-1)).toBe(auditFoundationMigration);
+  it("applies the current history including audit foundation from an empty database", async () => {
+    expect(expectedMigrationDirectories).toHaveLength(36);
+    expect(expectedMigrationDirectories.at(-2)).toBe(auditFoundationMigration);
     expect(await accountAuditTableExists(freshClient)).toBe(true);
   });
 

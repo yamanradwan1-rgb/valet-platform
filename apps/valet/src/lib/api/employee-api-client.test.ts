@@ -168,6 +168,37 @@ describe("EmployeeApiClient", () => {
     expect(authLoss).not.toHaveBeenCalled();
   });
 
+  it("treats MFA step-up 403 as authorization denial, not global credential loss", async () => {
+    const authLoss = vi.fn();
+    const clientWithLoss = new EmployeeApiClient({
+      authClient,
+      onAuthorizationLoss: authLoss,
+    });
+    vi.spyOn(authClient, "isTokenFresh").mockReturnValue(true);
+    vi.spyOn(authClient, "getAccessToken").mockReturnValue(VALID_MOCK_TOKEN_1);
+    const refreshSpy = vi.spyOn(authClient, "refresh");
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: "MFA_STEP_UP_REQUIRED",
+          message: "Additional authentication is required.",
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    await expect(
+      clientWithLoss.request("/v1/management/example", { method: "GET" }),
+    ).rejects.toMatchObject({
+      code: "MFA_STEP_UP_REQUIRED",
+      status: 403,
+    });
+
+    expect(authClient.getAccessToken()).toBe(VALID_MOCK_TOKEN_1);
+    expect(refreshSpy).not.toHaveBeenCalled();
+    expect(authLoss).not.toHaveBeenCalled();
+  });
+
   it("does NOT report authorization loss on transient refresh failure and surfaces a retryable error", async () => {
     const authLoss = vi.fn();
     const clientWithLoss = new EmployeeApiClient({

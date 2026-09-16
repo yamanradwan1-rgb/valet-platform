@@ -276,13 +276,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("runtime PostgreSQL role boundary", () => {
-  it("applies all 35 migrations through migration credentials only", async () => {
+  it("applies all 36 migrations through migration credentials only", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(35);
+    expect(result.rows).toHaveLength(36);
   });
   it("rejects a real plaintext migration preflight without applying a migration", async () => {
     const before = await adminPool.query<{ count: string }>(
@@ -322,7 +322,7 @@ describe("runtime PostgreSQL role boundary", () => {
     expect(privileges.rows).toEqual([
       {
         can_delete: false,
-        can_insert: true,
+        can_insert: false,
         can_select: true,
         can_truncate: false,
         table_name: "staff_auth_sessions",
@@ -349,16 +349,13 @@ describe("runtime PostgreSQL role boundary", () => {
                 'UPDATE'
               ) AS allowed
        FROM (VALUES
-         ('staff_auth_sessions', 'current_access_token_hash'),
-         ('staff_auth_sessions', 'access_expires_at'),
-         ('staff_auth_sessions', 'revoked_at'),
-         ('staff_auth_sessions', 'last_rotated_at'),
-         ('staff_auth_sessions', 'user_id'),
+         ('staff_auth_sessions', 'current_access_token_hash'), ('staff_auth_sessions', 'access_expires_at'),
+         ('staff_auth_sessions', 'revoked_at'), ('staff_auth_sessions', 'last_rotated_at'),
+         ('staff_auth_sessions', 'mfa_authenticated_at'), ('staff_auth_sessions', 'mfa_factor_id'),
+         ('staff_auth_sessions', 'last_admin_activity_at'), ('staff_auth_sessions', 'user_id'),
          ('staff_auth_sessions', 'absolute_expires_at'),
-         ('staff_refresh_credentials', 'consumed_at'),
-         ('staff_refresh_credentials', 'replaced_by_credential_id'),
-         ('staff_refresh_credentials', 'token_hash'),
-         ('staff_refresh_credentials', 'generation')
+         ('staff_refresh_credentials', 'consumed_at'), ('staff_refresh_credentials', 'replaced_by_credential_id'),
+         ('staff_refresh_credentials', 'token_hash'), ('staff_refresh_credentials', 'generation')
        ) AS checked(table_name, column_name)
        ORDER BY table_name, column_name`,
       [runtimeRole],
@@ -370,7 +367,10 @@ describe("runtime PostgreSQL role boundary", () => {
     ).toEqual([
       "staff_auth_sessions.access_expires_at",
       "staff_auth_sessions.current_access_token_hash",
+      "staff_auth_sessions.last_admin_activity_at",
       "staff_auth_sessions.last_rotated_at",
+      "staff_auth_sessions.mfa_authenticated_at",
+      "staff_auth_sessions.mfa_factor_id",
       "staff_auth_sessions.revoked_at",
       "staff_refresh_credentials.consumed_at",
       "staff_refresh_credentials.replaced_by_credential_id",

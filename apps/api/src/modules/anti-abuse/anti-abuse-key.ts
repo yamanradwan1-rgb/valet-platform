@@ -8,7 +8,9 @@ export type AntiAbuseScope =
   | "v1:guest-client-address"
   | "v1:guest-token"
   | "v1:handoff-issuance-session"
-  | "v1:handoff-verification-session";
+  | "v1:handoff-verification-session"
+  | "v1:mfa-totp-user"
+  | "v1:mfa-recovery-user";
 
 export interface AntiAbuseKey {
   readonly keyHash: string;

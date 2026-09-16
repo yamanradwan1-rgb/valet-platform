@@ -301,6 +301,9 @@ absolute_expires_at
 revoked_at
 created_at
 last_rotated_at
+mfa_authenticated_at nullable
+mfa_factor_id nullable
+last_admin_activity_at nullable
 ```
 
 Constraints/rules:
@@ -310,6 +313,78 @@ Constraints/rules:
 - access expiry is at most 15 minutes and never exceeds the fixed absolute expiry
 - absolute expiry is exactly 30 days from database-authoritative session creation and never slides
 - revocation retains the session and its refresh lineage
+- MFA assurance fields are all-null or all-present; `mfa_factor_id` is a
+  restrictive same-User reference to `user_mfa_totp_factors`
+- assurance is valid only while that exact factor remains the User's current
+  `ACTIVE` factor; factor retirement/replacement invalidates old assurance
+- `mfa_authenticated_at` is the successful MFA verification time and
+  `last_admin_activity_at` is server-authored admin activity. Access/refresh
+  rotation never advances either timestamp
+
+## user_mfa_totp_factors
+
+```text
+id
+user_id
+state
+protected_secret
+last_accepted_step nullable
+recovery_set_generation
+created_at
+activated_at nullable
+retired_at nullable
+```
+
+State:
+
+- `PENDING`
+- `ACTIVE`
+- `RETIRED`
+
+Rules:
+
+- restrictive User foreign key and at most one live (`PENDING` or `ACTIVE`)
+  factor per User
+- TOTP is SHA-1, six digits, 30-second period, accepted only within ±1 period;
+  each generated secret is 20 random bytes encoded as 32 uppercase Base32
+  characters; provisioning identifies the issuer as `VAYLET`
+- `protected_secret` is an `mte1` AES-256-GCM envelope. Encryption uses
+  `MFA_TOTP_ENCRYPTION_KEY_B64URL`, exactly 32 random bytes encoded as canonical
+  unpadded base64url (43 characters). The envelope is
+  `mte1.<12-byte IV>.<ciphertext>.<16-byte tag>` using canonical unpadded
+  base64url components, with User/factor identity bound as AAD
+- accepted TOTP time steps advance monotonically so an accepted step cannot be
+  replayed
+- factor identity/protected material and recorded activation/retirement times
+  are immutable; `RETIRED` never reactivates
+- recovery-set generation starts at zero and advances exactly by one when a new
+  ten-code set is issued
+
+## mfa_recovery_codes
+
+```text
+id
+factor_id
+set_generation
+slot
+selector
+verifier
+created_at
+consumed_at nullable
+```
+
+Rules:
+
+- restrictive factor foreign key; slots are exactly 1 through 10 and unique per
+  factor/generation, so each issued generation contains exactly ten codes
+- raw code wire format is `vmr1-<selector>-<secret>`, where selector is 8 random
+  bytes and secret is 20 random bytes, both canonical unpadded base64url
+- only the selector plus an `mrv1` HMAC-SHA-256 verifier are persisted. HMAC uses
+  `MFA_RECOVERY_HMAC_SECRET_B64URL`, exactly 32 random bytes encoded as canonical
+  unpadded base64url (43 characters), and binds User, factor, generation,
+  selector, and raw code
+- verifier comparison is constant-time; a consumed code cannot be reused or
+  un-consumed
 
 ## staff_refresh_credentials
 
@@ -351,7 +426,13 @@ State:
 Rules:
 
 - ephemeral shared PostgreSQL enforcement state under accepted DEC-024; it is not tenant business history and is never copied to AuditEvent
-- scopes are exactly `v1:staff-login-identifier`, `v1:staff-client-address`, `v1:guest-client-address` and `v1:guest-token`
+- scopes are exactly `v1:staff-login-identifier`, `v1:staff-client-address`,
+  `v1:guest-client-address`, `v1:guest-token`,
+  `v1:handoff-issuance-session`, `v1:handoff-verification-session`,
+  `v1:mfa-totp-user`, and `v1:mfa-recovery-user`
+- each MFA scope permits at most five failed/reserved verification attempts for
+  the User in the immediately preceding 15 minutes; successful verification
+  finalizes its reservation to ignored rather than erasing earlier failures
 - `key_hash` is exactly `anti-abuse-hmac-sha256:v1:` plus 64 lowercase hexadecimal HMAC-SHA-256 characters; raw email, IP, guest bearer, password, Authorization and authentication verifiers are prohibited
 - `id` and `occurred_at` are database-generated, with PostgreSQL time authoritative for rolling windows and cleanup
 - index `(scope, key_hash, occurred_at)` supports exact current-window lookup; a separate occurrence-time index supports fixed retention cleanup
@@ -1638,6 +1719,10 @@ Rules:
 - no Organization/Location membership fan-out is performed
 - no credentials, MFA material, recovery codes, bearer values, request bodies,
   raw contacts or generic security JSON are stored here
+- MGT-BE-02 uses exactly these account-security event names:
+  `MFA_TOTP_ACTIVATED`, `MFA_RECOVERY_CODE_USED`,
+  `MFA_FACTOR_REENROLLMENT_STARTED`, `MFA_RECOVERY_CODES_REISSUED`, and
+  `MFA_OPERATOR_RECOVERY`
 - stable UUID retry compares the complete immutable event facts; exact retry
   converges and conflicting reuse fails closed
 - normal runtime writes `USER`/`SYSTEM`/`ANONYMOUS` events only through the
@@ -1767,14 +1852,12 @@ Add these only through their approved focused task/decision.
 
 ## Accepted Management extensions not yet implemented
 
-Current Prisma/migration truth is the models above and 35 forward-only
-migrations through `20260916003500_mgt_be_01_audit_foundation`. MGT-BE-01 now
-implements the DEC-079 audit foundation. The remaining accepted DEC-078 through
-DEC-094 work below is still future Management persistence:
+Current Prisma/migration truth is the models above and 36 forward-only
+migrations through `20260916003600_mgt_be_02_complete_mfa`. MGT-BE-01 is merged
+and implements DEC-079. MGT-BE-02 implements DEC-078 factor/recovery persistence
+and exact-session assurance. MGT-BE-03 has not started. Remaining accepted
+Management persistence includes:
 
-- TOTP enrollment/recovery verifier state and exact Staff-session MFA
-  assurance/activity timestamps. Raw TOTP seeds/recovery codes never enter
-  persistence in reusable plaintext.
 - typed Management settings only for the DEC-083 catalog; no generic settings,
   rules, templates, key-policy, validation-policy, or allowed-role JSON/engine.
 - a minimal one-rating-per-ValetSession guest rating source.
@@ -1785,6 +1868,6 @@ DEC-094 work below is still future Management persistence:
   Management creation must explicitly write `INACTIVE`, and MGT-BE-07 must
   decide whether a forward migration also changes the database default.
 
-Exact fields,
-constraints, indexes, runtime privileges, and migration IDs belong to the
-owning implementation task and must be proven against this current baseline.
+Exact fields, constraints, indexes, runtime privileges, and migration IDs for
+remaining tasks belong to their owning implementation task and must be proven
+against this current baseline.

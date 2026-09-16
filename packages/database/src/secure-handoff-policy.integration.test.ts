@@ -86,7 +86,7 @@ describe("DEC-042 secure handoff policy persistence", () => {
     ).rejects.toMatchObject({ code: "22P02" });
   });
 
-  it("accepts only the six durable anti-abuse scopes", async () => {
+  it("accepts only the eight durable anti-abuse scopes", async () => {
     for (const scope of [
       "v1:staff-login-identifier",
       "v1:staff-client-address",
@@ -94,6 +94,8 @@ describe("DEC-042 secure handoff policy persistence", () => {
       "v1:guest-token",
       "v1:handoff-issuance-session",
       "v1:handoff-verification-session",
+      "v1:mfa-totp-user",
+      "v1:mfa-recovery-user",
     ]) {
       await expect(
         client.query(

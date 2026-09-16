@@ -81,12 +81,51 @@ cookie nor treat browser Origin, device metadata or a compiled client secret as
 authentication authority. Both transports reuse the same `StaffAuthSession`,
 rotation, replay, revocation and current server authorization authority.
 
-Password-only sessions do not assert MFA. Production Company Admin and VAYLET
-Super Admin capabilities requiring MFA remain unavailable. VAL-004M implements
-accepted DEC-024 as the shared PostgreSQL-backed anti-abuse boundary for staff
-login and guest session resolution. It uses exact rolling windows, database
-time, transaction-level advisory serialization, HMAC-derived limiter keys and
-fail-closed 503 behavior; process-local counters are never authoritative.
+MGT-BE-02 implements DEC-078 Company Admin TOTP MFA on the same
+`StaffAuthSession`; it does not create a second principal or grant Management
+authority by itself. Password-only sessions still do not assert MFA. MGT-BE-03
+is not started, so MFA-backed Company Admin capability/tenant authorization is
+still absent.
+
+The factor contract is TOTP SHA-1, six digits, 30-second period with ±1-period
+acceptance, issuer `VAYLET`, and a 20-byte random secret. Seeds are stored only in an `mte1`
+AES-256-GCM envelope keyed by `MFA_TOTP_ENCRYPTION_KEY_B64URL`, which must be a
+canonical 43-character unpadded base64url encoding of exactly 32 random bytes.
+The authenticated User/factor identity is authenticated as encryption context.
+
+Enrollment returns exactly ten one-time recovery codes. Each `vmr1` code contains
+an 8-byte random selector and a 20-byte random secret. Persistence keeps the
+selector plus an `mrv1` HMAC-SHA-256 verifier only; the HMAC key comes from
+`MFA_RECOVERY_HMAC_SECRET_B64URL`, with the same 32-byte/43-character canonical
+base64url key contract. Raw recovery codes are shown only in an authorized
+issuance/reissue response and never stored in reusable plaintext.
+
+Successful TOTP or recovery verification binds assurance to the exact active
+factor and exact Staff session. Maximum assurance expires when age is
+`>= 8 hours`; admin inactivity expires at `>= 30 minutes`; sensitive freshness
+expires only when age is `> 5 minutes`. Expiry is a soft step-up, not logout.
+Retiring/replacing the exact factor invalidates old session assurance even if
+timestamps remain. Access/refresh rotation never slides MFA authentication or
+admin-activity timestamps.
+
+MFA verification reuses DEC-024's durable PostgreSQL anti-abuse machinery with
+scopes `v1:mfa-totp-user` and `v1:mfa-recovery-user`, each limited to five
+failure-capable attempts per User in the immediately preceding 15 minutes.
+Database time and fail-closed limiter behavior remain authoritative; no
+process-local MFA counter is accepted. TOTP replay additionally requires a
+strictly advancing accepted time step, and recovery-code consumption is atomic
+and single-use.
+
+Authenticated MFA routes are under `/v1/staff/auth/mfa`: `GET /state`,
+`POST /enrollment/begin`, `POST /enrollment/confirm`, `POST /step-up`,
+`POST /recovery/begin`, and `POST /recovery-codes/reissue`. They preserve the
+existing Web/Native Staff authentication transports and never accept client
+User/session/role/MFA claims as authority.
+
+VAL-004M implements accepted DEC-024 as the shared PostgreSQL-backed anti-abuse
+boundary. It uses exact rolling windows, database time, transaction-level
+advisory serialization, HMAC-derived limiter keys and fail-closed 503 behavior;
+process-local counters are never authoritative.
 
 Enterprise SSO is deferred until its approved later phase.
 
@@ -298,6 +337,14 @@ controlled-operator account-security append function is denied to runtime and
 PUBLIC. Runtime therefore cannot manufacture controlled-operator provenance by
 supplying table columns or selecting the privileged function directly.
 
+MGT-BE-02 account-security outcomes use only
+`MFA_TOTP_ACTIVATED`, `MFA_RECOVERY_CODE_USED`,
+`MFA_FACTOR_REENROLLMENT_STARTED`, `MFA_RECOVERY_CODES_REISSUED`, and
+`MFA_OPERATOR_RECOVERY`. TOTP/recovery runtime ceremonies use the ordinary
+runtime account-security append boundary. No-code recovery is a controlled
+operator action outside ordinary runtime and records `MFA_OPERATOR_RECOVERY`
+through the privileged account-security boundary.
+
 For the VAL-004C intake evidence tables, the ordinary application runtime role
 has only `SELECT` and `INSERT` on `condition_notes` and `vehicle_photos`.
 `UPDATE`, `DELETE` and `TRUNCATE` are denied so corrections append new evidence
@@ -424,6 +471,18 @@ Use environment variables/secret manager.
 
 Never commit production secrets, real API keys, raw verification codes or provider credentials.
 
+MGT-BE-02 requires two independent server secrets before the API starts:
+
+- `MFA_TOTP_ENCRYPTION_KEY_B64URL`: 32 random bytes, canonical unpadded
+  base64url, exactly 43 characters; AES-256-GCM key for `mte1` TOTP envelopes
+- `MFA_RECOVERY_HMAC_SECRET_B64URL`: independently generated 32 random bytes,
+  canonical unpadded base64url, exactly 43 characters; HMAC-SHA-256 key for
+  `mrv1` recovery verifiers
+
+Neither key may be logged, committed, returned to a client, or reused as the
+other key. Production provisioning must install both before the updated server
+process is started.
+
 ## Privacy minimization
 
 Collect only data needed to run/support the valet operation.
@@ -477,7 +536,10 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   only as safe verifiers. No SMS MFA or peer-admin recovery bypass exists.
 - MFA assurance is bound to the exact Staff session: maximum eight hours,
   30-minute admin inactivity, and five-minute freshness for sensitive actions.
-  Expiry is step-up, and refresh rotation cannot extend assurance.
+  Eight-hour and 30-minute boundaries expire at equality; sensitive freshness
+  expires only after five minutes. Expiry is step-up, exact-factor replacement
+  invalidates old assurance, and refresh rotation cannot extend assurance or
+  activity.
 - Account-security audit is separate from tenant audit. Organization-wide
   business events use their real Organization and null Location; fake Locations
   and per-tenant copies of account events are forbidden.
@@ -493,6 +555,16 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   traffic, apply the migration, rerun runtime-role provisioning, then start the
   updated application. Do not run old null-actor writers or an old pre-35
   runtime grant set against the migrated schema.
+- MGT-BE-02 is migration 36. Deployment must provision both MFA keys, apply the
+  migration with `pnpm --filter @valet/database migrate:deploy`, rerun
+  `pnpm --filter @valet/database runtime:provision` (which performs runtime
+  privilege verification), deploy the updated server, then smoke login,
+  enrollment, step-up, recovery-code flow, and controlled operator recovery.
+  This is an ordered deployment contract, not a zero-downtime claim.
+- Controlled no-code recovery is performed only through
+  `pnpm --filter @valet/api staff:mfa-recover -- --operation recover-totp --operation-id <uuid> --user-id <uuid> --operator-ref <ref>`
+  using `NODE_ENV=production` and the protected `MIGRATION_DATABASE_URL`
+  operator boundary in production; ordinary API runtime cannot invoke it.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

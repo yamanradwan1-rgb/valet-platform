@@ -26,6 +26,13 @@
       "require": "./dist/staff-auth.js",
       "default": "./dist/staff-auth.js"
     },
+    "./staff-mfa": {
+      "types": "./src/staff-mfa.ts",
+      "react-native": "./dist/staff-mfa.js",
+      "import": "./src/staff-mfa.ts",
+      "require": "./dist/staff-mfa.js",
+      "default": "./dist/staff-mfa.js"
+    },
     "./staff-push": {
       "types": "./src/staff-push.ts",
       "react-native": "./dist/staff-push.js",

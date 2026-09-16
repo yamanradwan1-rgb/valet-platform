@@ -7137,10 +7137,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all thirty-five forward-only migrations in order", () => {
+  it("applies exactly all thirty-six forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260916003500_mgt_be_01_audit_foundation",
+      "20260916003600_mgt_be_02_complete_mfa",
     );
   });
 
@@ -7333,7 +7333,6 @@ describe("staff authentication persistence", () => {
     );
     return { refreshId, sessionId };
   }
-
   it("creates only the accepted session and refresh credential columns", async () => {
     const result = await databaseClient.query<{
       column_name: string;
@@ -7352,17 +7351,20 @@ describe("staff authentication persistence", () => {
         column_name: "current_access_token_hash",
         table_name: "staff_auth_sessions",
       },
-      {
-        column_name: "access_expires_at",
-        table_name: "staff_auth_sessions",
-      },
-      {
-        column_name: "absolute_expires_at",
-        table_name: "staff_auth_sessions",
-      },
+      { column_name: "access_expires_at", table_name: "staff_auth_sessions" },
+      { column_name: "absolute_expires_at", table_name: "staff_auth_sessions" },
       { column_name: "revoked_at", table_name: "staff_auth_sessions" },
       { column_name: "created_at", table_name: "staff_auth_sessions" },
       { column_name: "last_rotated_at", table_name: "staff_auth_sessions" },
+      {
+        column_name: "mfa_authenticated_at",
+        table_name: "staff_auth_sessions",
+      },
+      { column_name: "mfa_factor_id", table_name: "staff_auth_sessions" },
+      {
+        column_name: "last_admin_activity_at",
+        table_name: "staff_auth_sessions",
+      },
       { column_name: "id", table_name: "staff_refresh_credentials" },
       { column_name: "session_id", table_name: "staff_refresh_credentials" },
       { column_name: "token_hash", table_name: "staff_refresh_credentials" },
@@ -7376,7 +7378,6 @@ describe("staff authentication persistence", () => {
       },
     ]);
   });
-
   it("enforces one current refresh credential and restrictive foreign keys", async () => {
     const indexes = await databaseClient.query<{
       indexdef: string;
@@ -7407,11 +7408,10 @@ describe("staff authentication persistence", () => {
        WHERE constraint_record.contype = 'f'
          AND table_record.relname IN ('staff_auth_sessions', 'staff_refresh_credentials')`,
     );
-    expect(foreignKeys.rows).toHaveLength(3);
+    expect(foreignKeys.rows).toHaveLength(4);
     expect(foreignKeys.rows.every((row) => row.confdeltype === "r")).toBe(true);
     expect(foreignKeys.rows.every((row) => row.confupdtype === "r")).toBe(true);
   });
-
   it("rejects invalid staff session timestamp insert and update orderings", async () => {
     const userId = await createUser();
     await expectPostgresError(

@@ -99,7 +99,7 @@ describe("MGT-BE-01 audit foundation runtime role", () => {
       `SELECT count(*)::int AS n, max(migration_name) AS latest FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(migrations.rows[0]).toEqual({ latest: "20260916003500_mgt_be_01_audit_foundation", n: 35 });
+    expect(migrations.rows[0]).toEqual({ latest: "20260916003600_mgt_be_02_complete_mfa", n: 36 });
     const tables = await adminPool.query<{ owner_safe: boolean; public_denied: boolean; table_name: string }>(
       `SELECT relation.relname AS table_name,
               owner.rolname <> $1 AS owner_safe,

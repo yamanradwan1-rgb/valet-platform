@@ -8,6 +8,13 @@ import { NativeStaffAuthController } from "./native-staff-auth.controller";
 import { StaffAuthController } from "./staff-auth.controller";
 import { StaffLoginService } from "./staff-login.service";
 import { StaffAuthOriginPolicy } from "./staff-auth.origin";
+import { MfaAntiAbuse } from "./mfa/mfa-anti-abuse";
+import { MfaAssurancePolicy } from "./mfa/mfa-assurance-policy";
+import { MfaEnrollmentService } from "./mfa/mfa-enrollment.service";
+import { MfaRecoveryService } from "./mfa/mfa-recovery.service";
+import { MfaStateService } from "./mfa/mfa-state.service";
+import { MfaStepUpService } from "./mfa/mfa-step-up.service";
+import { StaffMfaController } from "./mfa/staff-mfa.controller";
 import {
   Argon2StaffPasswordVerifier,
   STAFF_PASSWORD_VERIFIER,
@@ -21,12 +28,18 @@ import {
 } from "./staff-session-context";
 
 @Module({
-  controllers: [StaffAuthController, NativeStaffAuthController],
+  controllers: [StaffAuthController, NativeStaffAuthController, StaffMfaController],
   imports: [AntiAbuseModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
     StaffAuthService,
     StaffLoginService,
     StaffAuthOriginPolicy,
+    MfaAntiAbuse,
+    MfaAssurancePolicy,
+    MfaEnrollmentService,
+    MfaRecoveryService,
+    MfaStateService,
+    MfaStepUpService,
     DatabaseStaffSessionContextResolver,
     DatabaseStaffPrincipalResolver,
     Argon2StaffPasswordVerifier,
@@ -43,12 +56,16 @@ import {
       useExisting: Argon2StaffPasswordVerifier,
     },
   ],
-  exports: [STAFF_PRINCIPAL_RESOLVER, STAFF_SESSION_CONTEXT_RESOLVER],
+  exports: [
+    STAFF_PRINCIPAL_RESOLVER,
+    STAFF_SESSION_CONTEXT_RESOLVER,
+    MfaAssurancePolicy,
+  ],
 })
 export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(StaffAuthController, NativeStaffAuthController);
+      .forRoutes(StaffAuthController, NativeStaffAuthController, StaffMfaController);
   }
 }

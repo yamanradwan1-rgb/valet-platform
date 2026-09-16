@@ -11,6 +11,8 @@ import {
   keySlotAssignmentProjectionSchema,
   nonEmptyStringSchema,
   staffAuthAccessResponseSchema,
+  staffMfaEnrollmentBeginResponseSchema,
+  staffMfaRecoveryCodeSchema,
   staffLoginRequestSchema,
   markReadyRequestSchema,
   markReadyResponseSchema,
@@ -182,5 +184,12 @@ describe("staff authentication contracts", () => {
         tokenType: "Bearer",
       }),
     ).toBeDefined();
+  });
+});
+
+describe("staff MFA package exports", () => {
+  it("exports the focused MFA schemas from the package root", () => {
+    expect(staffMfaEnrollmentBeginResponseSchema).toBeDefined();
+    expect(staffMfaRecoveryCodeSchema).toBeDefined();
   });
 });

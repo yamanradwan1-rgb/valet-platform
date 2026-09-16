@@ -1,7 +1,7 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan; documentation only. Production implementation
-authorization: **NO**.
+Status: Binding execution plan with implementation progress through MGT-BE-02.
+MGT-BE-03 has not started.
 
 Rebaseline date: 2026-09-15
 
@@ -17,8 +17,8 @@ Rebaseline date: 2026-09-15
 | Working tree before fetch/pull | Clean |
 | Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
 | Planning branch | `docs/management-backend-rebaseline-final` |
-| Migration baseline | 34 forward-only directories |
-| Latest migration | `20260912003400_mob_023b_incident_recovery_intents` |
+| Current implementation migration count | 36 forward-only directories through MGT-BE-02 |
+| Current implementation latest migration | `20260916003600_mgt_be_02_complete_mfa` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
@@ -44,7 +44,8 @@ no historical Accepted DEC file was silently rewritten.
 ## 3. Material changes since the old Management audit
 
 The old plan used `ca82d6ea2fbd2c2cf35287b7d62d0a46b0fc8261` and 33 migrations.
-Current main materially adds or completes:
+The current repository state through the authorized MGT-BE-02 implementation
+materially adds or completes:
 
 - migration 34 and `IncidentRecoveryIntent`, with actor/Organization/Location/
   ValetSession binding, `RESERVED -> RETIRED`, a 15-minute authoritative
@@ -68,6 +69,11 @@ Current main materially adds or completes:
   `VISIBLE`, `RESTRICTED`, and `UNASSIGNED` without widening Employee access;
 - extensive current tests and capacity tooling that can be reused as
   regression evidence but do not implement Management authority.
+- merged MGT-BE-01 / migration 35 with truthful Organization-wide tenant audit,
+  explicit actor provenance, and a separate append-only account-security store;
+- implemented MGT-BE-02 / migration 36 with TOTP enrollment/recovery,
+  exact-factor Staff-session assurance, bounded MFA anti-abuse, and controlled
+  operator recovery. MGT-BE-03 Management authorization remains unstarted.
 
 These changes remove no Management requirement. They add schema/migration
 contention, session/push interactions for MFA and emergency disable, a new
@@ -79,7 +85,9 @@ new shared-contract compatibility obligations.
 - Opaque password Staff Auth: 15-minute access, non-sliding 30-day session,
   rotating refresh, replay-family revocation, Web cookie and Native body
   transports, current User checks, durable login anti-abuse.
-- `StaffPrincipal { userId }` plus the internal exact `StaffSessionContext`.
+- `StaffPrincipal { userId }` plus the internal exact `StaffSessionContext` and
+  server-side MFA assurance/activity state bound to the exact Staff session and
+  active factor.
 - Four membership roles, active/inactive membership, explicit Location grants,
   active Shift eligibility, Task/Dispatch ownership, and append-only custody.
 - Location Manager-only exact-Location Dashboard authorization. The internal
@@ -99,30 +107,33 @@ new shared-contract compatibility obligations.
 - Maps/tracking, Task/Vehicle-centric live map, ended-route history, finite raw
   GPS cleanup, keys, payments, incidents, external-notification persistence,
   and Staff Push/FCM foundations under their existing Accepted role matrices.
-- AuditEvent is append-only at runtime but requires a real Location. There is no
-  Organization-null-Location audit scope, account-security audit store, or
-  Management audit query API.
+- DEC-079/MGT-BE-01 audit foundation is merged: Location audit remains
+  compatible, Organization-wide events use null Location truthfully, and
+  account-security history is separate. There is still no Management audit
+  query API.
+- DEC-078/MGT-BE-02 is implemented: TOTP/recovery persistence, verification,
+  re-enrollment, recovery-code reissue, exact-session assurance, soft step-up,
+  MFA anti-abuse, and controlled no-code recovery are present. This does not
+  grant Company Admin Management authority before MGT-BE-03.
 
 ## 5. Current real gaps
 
-1. No TOTP/recovery-code persistence, enrollment, challenge, recovery, MFA
-   timestamps, inactivity tracking, step-up guard, or MFA abuse boundary.
-2. No truthful Organization-wide or separate account-security audit boundary.
-3. No MFA-backed Company Admin Management authorization/company context.
-4. No tenant staff directory/mutation surface; only create-only operator
+1. No MFA-backed Company Admin Management authorization/company context;
+   MGT-BE-03 has not started.
+2. No tenant staff directory/mutation surface; only create-only operator
    provisioning. Last-admin, handover, emergency disable, and membership-only
    disable are absent.
-5. No Company-default mutations and none of the new typed language, hours, OCR,
+3. No Company-default mutations and none of the new typed language, hours, OCR,
    parking requirement, notification-type, SLA, or optional geofence settings.
-6. No safe Audit Explorer.
-7. No Location create/readiness/intake-stop/drain/deactivate API; persistence
+4. No safe Audit Explorer.
+5. No Location create/readiness/intake-stop/drain/deactivate API; persistence
    still defaults new rows to `ACTIVE`.
-8. No Management visit-contact search/history/correction surface.
-9. No Guest rating persistence or write.
-10. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
+6. No Management visit-contact search/history/correction surface.
+7. No Guest rating persistence or write.
+8. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
     or controlled Key Exceptions metrics.
-11. No All Locations analytics or company CSV/PDF reports.
-12. No truthful Integration status API, Management-only entitlement
+9. No All Locations analytics or company CSV/PDF reports.
+10. No truthful Integration status API, Management-only entitlement
     enforcement, company commercial view, or Guest effective branding.
 
 ## 6. Formal decision mapping
@@ -184,16 +195,15 @@ Objective: implement DEC-079 Organization audit, existing Location compatibility
 and separate account-security audit with safe actor provenance and append-only
 guarantees.
 
-Implementation status: implemented on the MGT-BE-01 production branch for
-independent review. Migration `20260916003500_mgt_be_01_audit_foundation`
+Implementation status: merged. Migration
+`20260916003500_mgt_be_01_audit_foundation`
 preserves existing Location history/writers, adds Organization-wide null-Location
 tenant audit, explicit new-row actor provenance and a separate account-security
-append boundary. MGT-BE-02 and later Management work remain unstarted by this
-packet.
+append boundary.
 
 - Dependencies: none beyond current main and DEC-079.
-- Schema: forward migration expected; preserve all existing Location rows and
-  writers. Prefer explicit scope-safe relationships over dummy/null ambiguity.
+- Schema: migration 35 preserves all existing Location rows/writers while adding
+  explicit scope-safe relationships without dummy Location/provenance facts.
 - Auth/audit: security audit is outside tenant Audit Log; mutations and their
   correct audit record commit atomically.
 - Concurrency/idempotency: stable event identity where retryable; duplicate
@@ -211,13 +221,38 @@ Objective: implement DEC-078 enrollment, TOTP, ten recovery codes, verification,
 VAYLET-mediated recovery, re-enrollment, assurance windows, soft step-up,
 abuse/replay protection, and exact session interaction.
 
+Implementation status: implemented as migration
+`20260916003600_mgt_be_02_complete_mfa` plus Staff Auth MFA contracts/services,
+routes, runtime privileges, and controlled operator recovery. MGT-BE-03 is not
+part of this implementation and has not started.
+
 - Dependencies: MGT-BE-01.
-- Schema: factors/recovery verifiers and server-authored session assurance/
-  activity facts; exact representation must keep secrets out of generic audit.
+- Schema: `user_mfa_totp_factors` with `PENDING`/`ACTIVE`/`RETIRED`,
+  `mfa_recovery_codes`, and StaffAuthSession `mfa_authenticated_at`,
+  `mfa_factor_id`, `last_admin_activity_at`. Assurance requires the exact factor
+  to remain active; replacement/retirement invalidates old assurance.
 - Auth: reuse StaffAuthSession and StaffSessionContext; preserve Web/Native
   transport, refresh rotation, non-sliding absolute expiry, replay-family
   revocation, logout/push disable, and current User checks. Refresh never renews
   assurance.
+- Crypto: TOTP SHA-1/6 digits/30 seconds/±1, issuer `VAYLET`, 20-byte secret; `mte1`
+  AES-256-GCM protection using `MFA_TOTP_ENCRYPTION_KEY_B64URL`; exactly ten
+  `vmr1` recovery codes per set (8-byte selector + 20-byte secret) with `mrv1`
+  HMAC-SHA-256 verifiers using `MFA_RECOVERY_HMAC_SECRET_B64URL`. Both keys are
+  independent canonical 43-character base64url encodings of 32 random bytes.
+- API: `/v1/staff/auth/mfa/state`, `/enrollment/begin`, `/enrollment/confirm`,
+  `/step-up`, `/recovery/begin`, and `/recovery-codes/reissue` under the common
+  MFA prefix.
+- Assurance: eight-hour max expires at `>=`; 30-minute inactivity expires at
+  `>=`; sensitive freshness expires at `> 5 minutes`. Expiry is soft step-up.
+- Abuse: `v1:mfa-totp-user` and `v1:mfa-recovery-user`, five failure-capable
+  attempts per User in the immediately preceding 15 minutes.
+- Audit catalog: `MFA_TOTP_ACTIVATED`, `MFA_RECOVERY_CODE_USED`,
+  `MFA_FACTOR_REENROLLMENT_STARTED`, `MFA_RECOVERY_CODES_REISSUED`,
+  `MFA_OPERATOR_RECOVERY`, all in the separate account-security boundary.
+- Controlled recovery: `pnpm --filter @valet/api staff:mfa-recover -- --operation recover-totp --operation-id <uuid> --user-id <uuid> --operator-ref <ref>`
+  uses `MIGRATION_DATABASE_URL`; ordinary runtime cannot manufacture controlled
+  operator provenance.
 - Concurrency/idempotency: enrollment verification, recovery-code consumption,
   factor replacement, concurrent step-up, refresh/replay/logout/disable races,
   and lost response are atomic and single-use.
@@ -225,6 +260,11 @@ abuse/replay protection, and exact session interaction.
   verifier handling; no secrets in logs, audit, telemetry, URLs, or fixtures.
 - Proof: fake-clock 8h/30m/5m matrices, code exhaustion/replay, recovery paths,
   Web/native regressions, session revocation, and runtime privileges.
+- Deployment order: provision both MFA keys before server start; run
+  `pnpm --filter @valet/database migrate:deploy`; run
+  `pnpm --filter @valet/database runtime:provision` (including privilege
+  verification); deploy; smoke login, enrollment, step-up, recovery-code and
+  operator-recovery flows. No zero-downtime guarantee is asserted.
 
 ### MGT-BE-03 — Company Admin Control Plane
 
@@ -550,11 +590,8 @@ planning names/scope without rewriting historical DECs.
 
 Known implementation gaps, not contradictions:
 
-- existing AuditEvent requires Location while DEC-079 requires Organization
-  events and a separate security boundary;
 - current Location database default is ACTIVE while DEC-094 requires
   Management-created Locations to start INACTIVE;
-- current `StaffSessionContext` has no assurance/activity fields;
 - DEC-074 keeps real OCR provider calls fail-closed unavailable in production
   until a shared durable OCR cost guard exists; an OCR tenant toggle cannot
   bypass that gate;
@@ -582,13 +619,8 @@ Known implementation gaps, not contradictions:
 
 The notes below record the state of the earlier documentation/rebaseline branch
 and are historical baseline evidence; they do not override current `main` or an
-explicit production task authorization. MGT-BE-01 was subsequently authorized
-and implemented from a fresh current `main`. After independent review and merge,
-the recommended next task is:
-
-**MGT-BE-02 — Complete MFA**
-
-Do not begin MGT-BE-02 as part of MGT-BE-01.
+explicit production task authorization. MGT-BE-01 is merged and MGT-BE-02 is
+implemented. MGT-BE-03 remains not started and is outside the MGT-BE-02 scope.
 
 ## 14. Documentation rebaseline validation record
 

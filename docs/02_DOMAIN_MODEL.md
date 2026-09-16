@@ -97,6 +97,23 @@ Authenticated staff identity.
 
 Keep authentication identity separate from tenant membership.
 
+MGT-BE-02 adds User-owned TOTP factor state without making MFA a tenant
+membership fact. `UserMfaTotpFactor` is a server-owned authenticator factor with
+`PENDING`, `ACTIVE`, or terminal `RETIRED` state. A User has at most one live
+(`PENDING` or `ACTIVE`) factor at a time. The factor stores only an AES-256-GCM
+protected TOTP secret plus replay/recovery-set state; the raw TOTP secret is
+disclosed only during the enrollment ceremony.
+
+Each activated factor owns exactly ten one-time `MfaRecoveryCode` entries for
+its current recovery-code generation. Recovery rows store a random selector and
+an HMAC verifier, never the reusable raw recovery code. Consumption is
+single-use and retained as security history.
+
+MFA assurance belongs to the exact existing `StaffAuthSession`, not to the User
+globally and not to `OrganizationMembership`. The session records the factor
+that authenticated it plus server-authored authentication/activity timestamps.
+If that exact factor is retired or replaced, old assurance is no longer valid.
+
 ## OrganizationMembership
 
 Connects a User to an Organization.
@@ -453,6 +470,13 @@ Organization with `location_id = NULL` and no ValetSession. Account-security
 history is persisted separately in `AccountSecurityAuditEvent`; it has no
 Organization or Location relationship and is not part of tenant Black Box
 history.
+
+MGT-BE-02 records the bounded account-security catalog
+`MFA_TOTP_ACTIVATED`, `MFA_RECOVERY_CODE_USED`,
+`MFA_FACTOR_REENROLLMENT_STARTED`, `MFA_RECOVERY_CODES_REISSUED`, and
+`MFA_OPERATOR_RECOVERY`. These events describe account-security outcomes only;
+they never carry TOTP seeds, raw recovery codes, verifiers, bearer credentials,
+or tenant-audit copies.
 
 New tenant audit rows carry truthful actor provenance: a same-Organization
 membership, Guest, system/service, external provider, or controlled VAYLET

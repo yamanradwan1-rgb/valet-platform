@@ -20,7 +20,7 @@ interface AuthRequestOptions {
   readonly body?: unknown;
   readonly contentType?: string;
   readonly cookie?: string;
-  readonly method?: "POST" | "PUT";
+  readonly method?: "GET" | "POST" | "PUT";
   readonly origin?: string;
 }
 
@@ -72,8 +72,11 @@ async function runPnpm(args: string[], environment: NodeJS.ProcessEnv) {
     child.on("close", (code) => {
       if (code === 0) resolvePromise();
       else
-        reject(new Error(`MOB-007 database setup failed (${String(code)}).`));
-      void output;
+        reject(
+          new Error(
+            `MOB-007 database setup failed (${String(code)}). ${output}`,
+          ),
+        );
     });
   });
 }
@@ -178,10 +181,11 @@ export class StaffAuthNativeFixture {
     if (options.authorization !== undefined) {
       headers.Authorization = options.authorization;
     }
+    const method = options.method ?? "POST";
     const response = await fetch(`${this.baseUrl}${path}`, {
-      body: JSON.stringify(options.body ?? {}),
+      ...(method === "GET" ? {} : { body: JSON.stringify(options.body ?? {}) }),
       headers,
-      method: options.method ?? "POST",
+      method,
     });
     const text = await response.text();
     return {

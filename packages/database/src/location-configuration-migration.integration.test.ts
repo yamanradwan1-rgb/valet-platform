@@ -108,13 +108,11 @@ describe("migration 29 location configuration authority", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(35);
-    expect(directories.at(-6)).toBe(
+    expect(directories).toHaveLength(36);
+    expect(directories.at(-7)).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
-    expect(directories.at(-1)).toBe(
-      "20260916003500_mgt_be_01_audit_foundation",
-    );
+    expect(directories.at(-1)).toBe("20260916003600_mgt_be_02_complete_mfa");
   });
 
   it("installs safe SECURITY DEFINER functions owned by the migration role", async () => {

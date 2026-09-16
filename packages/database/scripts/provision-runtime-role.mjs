@@ -11,6 +11,7 @@ import {
   verifyMigrationConnectionTls,
 } from "./database-connection-policy.mjs";
 import { provisionAppendOnlyTablePrivileges } from "./provision-append-only-tables.mjs";
+import { provisionMfaPrivileges } from "./mfa-runtime-privileges.mjs";
 import { provisionRuntimeTablePrivileges } from "./runtime-table-privileges.mjs";
 import { verifyRuntimeTablePrivileges } from "./verify-runtime-table-privileges.mjs";
 
@@ -203,29 +204,7 @@ async function provisionRuntimeRole() {
       runtimeRole,
     );
 
-    await client.query(
-      `REVOKE UPDATE, DELETE, TRUNCATE ON TABLE staff_auth_sessions, staff_refresh_credentials FROM PUBLIC`,
-    );
-    await executeFormatted(
-      client,
-      "REVOKE UPDATE, DELETE, TRUNCATE ON TABLE staff_auth_sessions, staff_refresh_credentials FROM %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT SELECT, INSERT ON TABLE staff_auth_sessions, staff_refresh_credentials TO %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT UPDATE (current_access_token_hash, access_expires_at, revoked_at, last_rotated_at) ON TABLE staff_auth_sessions TO %I",
-      [runtimeRole],
-    );
-    await executeFormatted(
-      client,
-      "GRANT UPDATE (consumed_at, replaced_by_credential_id) ON TABLE staff_refresh_credentials TO %I",
-      [runtimeRole],
-    );
+    await provisionMfaPrivileges(client, executeFormatted, runtimeRole);
 
     await client.query(
       `REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE anti_abuse_events FROM PUBLIC`,
