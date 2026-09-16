@@ -44,7 +44,7 @@ no historical Accepted DEC file was silently rewritten.
 ## 3. Material changes since the old Management audit
 
 The old plan used `ca82d6ea2fbd2c2cf35287b7d62d0a46b0fc8261` and 33 migrations.
-The current repository state through the authorized MGT-BE-02 implementation
+The current repository state through the implemented MGT-BE-04 packet
 materially adds or completes:
 
 - migration 34 and `IncidentRecoveryIntent`, with actor/Organization/Location/
@@ -80,6 +80,11 @@ materially adds or completes:
   revalidation, existing Location Dashboard/analytics/reports/export access,
   and current live-map read authority. It adds no migration or index and leaves
   raw route history and field operations denied.
+- implemented MGT-BE-04 / migration 37 with shared
+  `OrganizationMembership.version` CAS, bounded Staff directory/detail,
+  role/status/Location-grant lifecycle, race-safe last-usable-admin protection,
+  operational handover blockers, Organization-scoped membership deactivation,
+  and a separate controlled global User security-disable path.
 
 These changes remove no Management requirement. They add schema/migration
 contention, session/push interactions for MFA and emergency disable, a new
@@ -128,24 +133,29 @@ new shared-contract compatibility obligations.
 - DEC-080/MGT-BE-03 is implemented without schema changes: Company Admin
   Management context/selection and the reusable capability guard are present;
   raw route history and field-operation authority are excluded.
+- DEC-081/MGT-BE-04 is implemented: bounded Staff directory/detail and the
+  role/status/Location-grant lifecycle are present with shared membership CAS,
+  last-usable-admin and operational handover safeguards. Membership
+  deactivation is Organization-scoped; global User `DISABLED` remains a
+  separate controlled VAYLET security action. Company Admin still does not gain
+  field-operation superuser authority.
 
 ## 5. Current real gaps
 
-1. No tenant staff directory/mutation surface; only create-only operator
-   provisioning. Last-admin, handover, emergency disable, and membership-only
-   disable are absent.
-2. No Company-default mutations and none of the new typed language, hours, OCR,
-   parking requirement, notification-type, SLA, or optional geofence settings.
-3. No safe Audit Explorer.
-4. No Location create/readiness/intake-stop/drain/deactivate API; persistence
+1. No BE-05 Company-default settings/branding mutation surface: no
+   Company-default mutations for the existing typed policies/name/color, and
+   none of the new typed language, hours, OCR, parking requirement,
+   notification-type, SLA, or optional geofence settings.
+2. No safe Audit Explorer.
+3. No Location create/readiness/intake-stop/drain/deactivate API; persistence
    still defaults new rows to `ACTIVE`.
-5. No Management visit-contact search/history/correction surface.
-6. No Guest rating persistence or write.
-7. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
+4. No Management visit-contact search/history/correction surface.
+5. No Guest rating persistence or write.
+6. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
     or controlled Key Exceptions metrics.
-8. No All Locations analytics or company CSV/PDF reports. The implemented
+7. No All Locations analytics or company CSV/PDF reports. The implemented
    `ALL_LOCATIONS` selector/context is foundation only.
-9. No truthful Integration status API, Management-only entitlement
+8. No truthful Integration status API, Management-only entitlement
     enforcement, company commercial view, or Guest effective branding.
 
 ## 6. Formal decision mapping
@@ -684,12 +694,12 @@ Known implementation gaps, not contradictions:
 - historical docs-rebaseline evidence: at that baseline SHA, the repository
   architecture gate failed for four oversized test files. The failure was also
   reproduced in a detached clean worktree; this statement is retained as
-  provenance and does not assert the status of the current BE-03 working tree.
+  provenance and does not assert the status of the current BE-04 working tree.
 - historical docs-rebaseline evidence: at that same baseline, lint failed at
   `apps/valet-native/test/app-config.test.mjs` because `URL` was not defined in
   the lint environment, and the isolated Employee Web suite had three failing
   authorization-loss assertions for 403/404 responses. This statement likewise
-  does not assert current BE-03 validation status.
+  does not assert current BE-04 validation status.
 
 The notes below and the two validation bullets above record the state of the
 earlier documentation/rebaseline branch and are historical baseline evidence;
