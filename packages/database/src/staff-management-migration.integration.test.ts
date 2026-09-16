@@ -12,6 +12,11 @@ const adminUrl =
   "postgresql://valet:valet@127.0.0.1:5432/valet";
 const migrationRoot = new URL("../prisma/migrations/", import.meta.url);
 const migration = "20260916003700_mgt_be_04_staff_roles_access";
+const migrationIndex = expectedMigrationDirectories.indexOf(migration);
+const staffManagementMigrations = expectedMigrationDirectories.slice(
+  0,
+  migrationIndex + 1,
+);
 const suffix = randomUUID().replaceAll("-", "");
 const freshName = `valet_staff_mgt_fresh_${suffix}`;
 const upgradeName = `valet_staff_mgt_upgrade_${suffix}`;
@@ -48,10 +53,10 @@ async function apply(client: Client, name: string): Promise<void> {
 
 beforeAll(async () => {
   fresh = await createDatabase(freshName);
-  for (const name of expectedMigrationDirectories) await apply(fresh, name);
+  for (const name of staffManagementMigrations) await apply(fresh, name);
 
   upgrade = await createDatabase(upgradeName);
-  for (const name of expectedMigrationDirectories.slice(0, -1)) {
+  for (const name of staffManagementMigrations.slice(0, -1)) {
     await apply(upgrade, name);
   }
   const organizationId = randomUUID();
@@ -89,8 +94,8 @@ afterAll(async () => {
 
 describe("MGT-BE-04 Staff management migration 37", () => {
   it("applies all 37 forward migrations from empty state", async () => {
-    expect(expectedMigrationDirectories).toHaveLength(37);
-    expect(expectedMigrationDirectories.at(-1)).toBe(migration);
+    expect(staffManagementMigrations).toHaveLength(37);
+    expect(staffManagementMigrations.at(-1)).toBe(migration);
     const column = await fresh.query<{ column_default: string | null }>(
       `SELECT column_default FROM information_schema.columns
        WHERE table_schema='public' AND table_name='organization_memberships'

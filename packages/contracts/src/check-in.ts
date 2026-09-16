@@ -190,6 +190,7 @@ export const completeCheckInResponseSchema = z
 
 export const guestSafeSessionResponseSchema = z
   .object({
+    guestVehicleReadyNotificationEnabled: z.boolean().optional(),
     readyAt: utcTimestampSchema.nullable(),
     state: z.enum([
       "AWAITING_PARKING",

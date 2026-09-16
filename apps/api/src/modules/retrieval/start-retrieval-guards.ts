@@ -26,7 +26,7 @@ export function assertStartRetrievalGuards(
     session.state !== "REQUESTED" ||
     session.retrieval_requested_at === null ||
     session.retrieval_started_at !== null ||
-    session.parking_spot_id === null
+    session.parking_zone_id === null
   ) {
     throw new StartRetrievalError("INVALID_STATE_TRANSITION");
   }

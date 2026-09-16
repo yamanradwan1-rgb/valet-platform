@@ -17,7 +17,8 @@ export type PlateOcrBoundaryClassification =
   | "provider-dispatch"
   | "request-authenticated"
   | "shift-eligible"
-  | "shift-ineligible";
+  | "shift-ineligible"
+  | "tenant-policy-disabled";
 
 const logger = new Logger("PlateOcrBoundary");
 

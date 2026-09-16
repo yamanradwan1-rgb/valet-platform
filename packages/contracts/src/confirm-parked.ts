@@ -7,15 +7,22 @@ export const confirmParkedRequestSchema = z
     expectedSessionVersion: positiveVersionSchema,
     expectedTaskVersion: positiveVersionSchema,
     keySlotCode: z.string().trim().min(1),
-    parkingSpotCode: z.string().trim().min(1),
+    parkingSpotCode: z.string().trim().min(1).optional(),
+    parkingZoneCode: z.string().trim().min(1).optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (value) =>
+      (value.parkingSpotCode === undefined) !==
+      (value.parkingZoneCode === undefined),
+    { message: "Exactly one parking resource code is required." },
+  );
 
 export const confirmParkedResponseSchema = z
   .object({
     parkedAt: z.string().datetime({ offset: false }),
-    parkingSpotCode: z.string().min(1),
-    parkingSpotId: z.string().uuid(),
+    parkingSpotCode: z.string().min(1).nullable(),
+    parkingSpotId: z.string().uuid().nullable(),
     parkingZoneId: z.string().uuid(),
     sessionId: z.string().uuid(),
     sessionVersion: positiveVersionSchema,

@@ -20,6 +20,25 @@ enum LocationStatus {
   @@map("location_status")
 }
 
+enum ManagementLanguage {
+  EN
+  AR
+
+  @@map("management_language")
+}
+
+enum OperatingWeekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+
+  @@map("operating_weekday")
+}
+
 enum UserStatus {
   ACTIVE
   DISABLED
@@ -412,6 +431,11 @@ model Organization {
   tipsEnabled                 Boolean                     @default(false) @map("tips_enabled")
   validationEnabled           Boolean                     @default(false) @map("validation_enabled")
   releaseRequiresPayment      Boolean                     @default(false) @map("release_requires_payment")
+  languageDefault             ManagementLanguage          @default(EN) @map("language_default")
+  ocrAssistEnabled            Boolean                     @default(true) @map("ocr_assist_enabled")
+  parkingSpotRequired         Boolean                     @default(true) @map("parking_spot_required")
+  employeeRetrievalRequestedNotificationEnabled Boolean  @default(true) @map("employee_retrieval_requested_notification_enabled")
+  guestVehicleReadyNotificationEnabled Boolean           @default(true) @map("guest_vehicle_ready_notification_enabled")
   brandPrimaryColor           String                      @default("#176BFF") @map("brand_primary_color")
   createdAt                   DateTime                    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -451,6 +475,8 @@ model Organization {
   geofenceEvents              GeofenceEvent[]
   staffPushIntents            StaffPushIntent[]
   staffPushDeliveries         StaffPushDelivery[]
+  operatingHours              OrganizationOperatingHour[]
+  locationOperatingHourOverrides LocationOperatingHourOverride[]
 
   @@map("organizations")
 }
@@ -474,6 +500,11 @@ model Location {
   tipsEnabledOverride                 Boolean?                     @map("tips_enabled_override")
   validationEnabledOverride           Boolean?                     @map("validation_enabled_override")
   releaseRequiresPaymentOverride      Boolean?                     @map("release_requires_payment_override")
+  languageDefaultOverride             ManagementLanguage?          @map("language_default_override")
+  ocrAssistEnabledOverride            Boolean?                     @map("ocr_assist_enabled_override")
+  parkingSpotRequiredOverride         Boolean?                     @map("parking_spot_required_override")
+  employeeRetrievalRequestedNotificationEnabledOverride Boolean?  @map("employee_retrieval_requested_notification_enabled_override")
+  guestVehicleReadyNotificationEnabledOverride Boolean?           @map("guest_vehicle_ready_notification_enabled_override")
   brandDisplayNameOverride            String?                      @map("brand_display_name_override")
   brandPrimaryColorOverride           String?                      @map("brand_primary_color_override")
   createdAt                           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -501,10 +532,39 @@ model Location {
   rawGpsSamples            RawGpsSample[]
   geofenceEvents           GeofenceEvent[]
   staffPushIntents         StaffPushIntent[]
+  operatingHoursOverrides  LocationOperatingHourOverride[]
 
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
   @@map("locations")
+}
+
+model OrganizationOperatingHour {
+  organizationId String           @map("organization_id") @db.Uuid
+  weekday        OperatingWeekday
+  isClosed       Boolean          @map("is_closed")
+  opensAt        DateTime?        @map("opens_at") @db.Time(0)
+  closesAt       DateTime?        @map("closes_at") @db.Time(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@id([organizationId, weekday])
+  @@map("organization_operating_hours")
+}
+
+model LocationOperatingHourOverride {
+  organizationId String           @map("organization_id") @db.Uuid
+  locationId     String           @map("location_id") @db.Uuid
+  weekday        OperatingWeekday
+  isClosed       Boolean          @map("is_closed")
+  opensAt        DateTime?        @map("opens_at") @db.Time(0)
+  closesAt       DateTime?        @map("closes_at") @db.Time(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  location     Location     @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
+
+  @@id([organizationId, locationId, weekday])
+  @@map("location_operating_hours_overrides")
 }
 
 model User {

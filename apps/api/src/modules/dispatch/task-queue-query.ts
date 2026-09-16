@@ -55,7 +55,10 @@ export function createTaskQueueQuery(pool: PostgresPool) {
            vehicle.temporary_descriptor AS vehicle_temporary_descriptor,
            zone.label AS parking_zone_label,
            spot.label AS parking_spot_label,
-           session.retrieval_requested_at AS retrieval_requested_at
+           session.retrieval_requested_at AS retrieval_requested_at,
+           COALESCE(location.employee_retrieval_requested_notification_enabled_override,
+                    organization.employee_retrieval_requested_notification_enabled)
+             AS retrieval_notification_enabled
          FROM tasks AS task
          INNER JOIN valet_sessions AS session
            ON session.id = task.valet_session_id
@@ -64,6 +67,11 @@ export function createTaskQueueQuery(pool: PostgresPool) {
          INNER JOIN vehicles AS vehicle
            ON vehicle.id = session.vehicle_id
           AND vehicle.organization_id = session.organization_id
+         INNER JOIN locations AS location
+           ON location.id = task.location_id
+          AND location.organization_id = task.organization_id
+         INNER JOIN organizations AS organization
+           ON organization.id = task.organization_id
          LEFT JOIN parking_zones AS zone
            ON zone.id = session.parking_zone_id
           AND zone.organization_id = session.organization_id

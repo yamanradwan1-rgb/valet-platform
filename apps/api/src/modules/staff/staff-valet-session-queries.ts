@@ -37,7 +37,7 @@ export interface VehicleRow {
 }
 
 export interface ParkingRow {
-  spotCode: string;
+  spotCode: string | null;
   zoneCode: string;
 }
 
@@ -202,7 +202,24 @@ export async function loadParking(
   client: PostgresTransaction,
   session: SessionScopeRow,
 ): Promise<ParkingRow | null> {
-  if (session.parking_spot_id === null) return null;
+  if (session.parking_spot_id === null) {
+    if (
+      !["PARKED", "REQUESTED"].includes(session.state) ||
+      session.parking_zone_id === null
+    ) {
+      return null;
+    }
+    const zone = await client.query<{ code: string }>(
+      `SELECT code FROM parking_zones
+       WHERE id = $1 AND organization_id = $2 AND location_id = $3
+       FOR SHARE`,
+      [session.parking_zone_id, session.organization_id, session.location_id],
+    );
+    if (zone.rows[0] === undefined) {
+      throw new Error("Corrupted state: referenced parking zone missing.");
+    }
+    return { spotCode: null, zoneCode: zone.rows[0].code };
+  }
   const result = await client.query<{
     spot_code: string;
     spot_zone_id: string;

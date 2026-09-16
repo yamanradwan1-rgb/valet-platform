@@ -37,6 +37,7 @@ export class PlateOcrService {
         transaction,
         userId,
         input.targetLocationId,
+        true,
       );
       logPlateOcrBoundary("location-authorized");
       const eligible = await lockShiftOperationalEligibility(transaction, {
@@ -48,6 +49,20 @@ export class PlateOcrService {
         throw new CustodyStaffAuthorizationError("AUTHORIZATION_DENIED");
       }
       logPlateOcrBoundary("shift-eligible");
+      const policy = await transaction.query<{ enabled: boolean }>(
+        `SELECT COALESCE(location.ocr_assist_enabled_override,
+                         organization.ocr_assist_enabled) AS enabled
+         FROM locations AS location
+         INNER JOIN organizations AS organization
+           ON organization.id = location.organization_id
+         WHERE location.id = $1 AND location.organization_id = $2`,
+        [scope.locationId, scope.organizationId],
+      );
+      if (policy.rows[0]?.enabled !== true) {
+        logPlateOcrBoundary("tenant-policy-disabled");
+        await transaction.query("COMMIT");
+        return { status: "UNAVAILABLE" };
+      }
       await transaction.query("COMMIT");
     } catch (error) {
       await transaction.query("ROLLBACK").catch(() => undefined);

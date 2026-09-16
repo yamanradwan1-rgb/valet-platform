@@ -144,6 +144,7 @@ describe("VAL-006B guest Retrieval request", () => {
     expect(first.headers.get("cache-control")).toBe("no-store");
     expect(first.headers.get("pragma")).toBe("no-cache");
     expect(Object.keys(first.body).sort()).toEqual([
+      "guestVehicleReadyNotificationEnabled",
       "readyAt",
       "state",
       "valetSessionId",

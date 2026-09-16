@@ -231,7 +231,7 @@ VAL-004F replacement uses 256 bits of Node CSPRNG entropy encoded as unpadded ba
 
 Issue/rotation/revocation require an active User, active same-Organization membership, explicit session-Location access and an operational employee/supervisor role. They lock the ValetSession row and atomically mutate the credential with one safe AuditEvent. Initial `ISSUE_OR_ROTATE` replaces the disabled marker and rotates only a real active credential. It cannot reactivate a real revoked credential: post-revocation access requires the separately explicit `REISSUE_REVOKED` intent and the exact persisted `revokedAt` value previously observed from revocation. This expected timestamp is only an optimistic concurrency token and grants no authorization; the normal authorized path still applies. The intent is rejected unless a real credential remains revoked at that exact timestamp. Row locking plus this comparison prevents stale ordinary rotation and stale explicit reissue from clearing or becoming valid because of a concurrent revocation. Revocation preserves the hash, sets server time, and repeated revocation returns the existing timestamp without another audit. Physical session state and version never change.
 
-Guest resolution accepts no Organization or Location input. It hashes the presented shape-valid token, requires the globally unique matching hash to be unrevoked and unexpired, and returns only session ID, public state and Vehicle make/model/color. Malformed, random, expired, revoked and rotated-old tokens share the same `GUEST_ACCESS_INVALID` code/message. No parking spot, key slot, membership/staff identity, internal Location/Organization, audit data, token/hash, GPS or exact parking location is returned.
+Guest resolution accepts no Organization or Location input. It hashes the presented shape-valid token, requires the globally unique matching hash to be unrevoked and unexpired, and returns only session ID, public state, Vehicle make/model/color, `readyAt`, and the effective `guestVehicleReadyNotificationEnabled` presentation flag. Malformed, random, expired, revoked and rotated-old tokens share the same `GUEST_ACCESS_INVALID` code/message. No parking spot, key slot, membership/staff identity, internal Location/Organization, audit data, token/hash, GPS or exact parking location is returned.
 
 VAL-004I wires the narrow guest resolver only at `GET /v1/guest/session`. It accepts the raw credential exclusively as `Authorization: Bearer <token>` and returns the existing guest-safe result. Query, body, cookie, path and alternate-header token transport are not accepted. Missing, malformed, random, expired, revoked and rotated-old credentials remain indistinguishable.
 
@@ -302,6 +302,58 @@ Do not invent a legal retention period. Retention must later be configurable/con
 VAL-004G evaluates the typed Company-default -> nullable Location-override photo policy from locked persisted rows. An explicit Location `false` overrides a Company `true`; otherwise the Company default applies. Current-schema `CHECK_IN_CONDITION` VehiclePhoto rows contain client-declared metadata only and are not qualifying evidence for a required-photo policy. The condition-completion marker is historical evidence and is not treated as proof that a later current policy remains satisfied.
 
 The VAL-004G registration boundary stores authorized private object metadata only. Registration does not verify an object or promote metadata into trusted evidence. It does not upload or fetch bytes, trust MIME metadata as byte validation, create public URLs or expose the object key through AuditEvent metadata. The opaque storage key is never a client-fetchable URL, and globally conflicting reuse returns a non-disclosing domain conflict. Required-photo completion remains unavailable until a server-controlled verification boundary exists. Actual upload authorization, byte sniffing, size enforcement, malware scanning, signed access and lifecycle/retention remain later object-storage work.
+
+## Management settings and branding security
+
+MGT-BE-05 Company Admin reads use the exact BE-03 `StaffSessionContext`, current
+`ORG_ADMIN` membership/Organization/capability revalidation, and STANDARD MFA
+assurance. Company and exact-Location settings/branding mutations use the same
+authority plus SENSITIVE assurance and the BE-02 five-minute freshness policy.
+Stale sensitive MFA is a soft `MFA_STEP_UP_REQUIRED`: it does not revoke the
+base Staff session, does not mutate configuration, and does not append a success
+audit. Normal Management activity may advance the existing admin-activity fact
+but never slides `mfa_authenticated_at` or the fixed eight-hour assurance origin.
+
+The pre-existing Location Manager Dashboard configuration and branding routes
+remain separate authority. They continue to require active User, active
+`LOCATION_MANAGER` membership, active exact Location, and explicit
+`MembershipLocationAccess`; they require no Shift and receive no Company Admin
+MFA requirement. Company Admin authority is never added to that userId-only
+guard. Conversely, Company Admin exact-Location Management writes need no
+`MembershipLocationAccess` because BE-03 Management authority is revalidated
+server-side from the exact Staff session.
+
+Every real MGT-BE-05 Company mutation writes one Organization-wide tenant audit
+with `location_id = NULL` and the actual ORG_ADMIN membership actor. Every real
+Location mutation writes one exact-Location tenant audit with the actual actor.
+No-op desired-state convergence writes no duplicate audit and need not advance
+CAS. Audit metadata is bounded/allowlisted; operating-hours values use a bounded
+canonical week and never raw request/provider/secret payloads. Mutation and audit
+commit or roll back together.
+
+PostgreSQL authority stays narrow: runtime cannot generically update
+Organizations/Locations, cannot arbitrarily write the normalized hours tables,
+cannot execute private helpers, and receives no grant option. Reviewed
+`SECURITY DEFINER` entry points have a fixed safe `search_path`, PUBLIC EXECUTE
+revoked, closed setting allowlists, SQL-NULL rejection for SET, tenant/actor
+revalidation, CAS, and same-transaction audit.
+
+Mutable operational policy is re-read at the protected decision boundary. The
+per-Organization settings advisory ordering makes committed policy changes
+coherent with Check-In completion, Parking completion, Handoff financial
+release, tracking start/GPS ingestion, OCR authorization, and notification
+creation/final-send checks. Locks are not held across OCR/push/provider network
+I/O. Policy changes are prospective and do not rewrite historical photos,
+handoffs, payments, validations, GPS, custody, notifications, or audit facts.
+
+Operating hours are informational only. OCR OFF blocks tenant OCR assistance but
+not manual/no-plate Check-In; OCR ON never bypasses independent deployment,
+provider, cost, or privacy gates. Parking Spot required is enforced only at
+authoritative completion, with Zone-only persistence permitted when the policy
+is false. The two notification toggles suppress only their real configured event
+families; no templates, sender/provider credentials, routing, webhook, or
+security-notification controls are exposed. Branding is name/color only, with no
+logo/assets. Entitlement/subscription state does not gate BE-05 behavior.
 
 ## Black Box / audit / evidence
 

@@ -69,6 +69,24 @@ describe("VAL-006D Start Retrieval command", () => {
     ).toBe(fixture.parkingSpotId);
   });
 
+  it("starts Retrieval from a legitimate zone-only parked session", async () => {
+    const fixture = await context.createStartRetrievalFixture();
+    await context.adminPool.query(
+      `UPDATE valet_sessions
+       SET parking_spot_id = NULL
+       WHERE id = $1`,
+      [fixture.sessionId],
+    );
+    const result = await context.startRetrieval(fixture);
+    expect(result).toMatchObject({ state: "RETRIEVING", sessionVersion: 6 });
+    expect((await context.retrievalEffects(fixture)).projection).toMatchObject({
+      parking_spot_id: null,
+      parking_zone_id: fixture.parkingZoneId,
+      request_status: "ACCEPTED",
+      session_state: "RETRIEVING",
+    });
+  });
+
   it.each([
     ["stale Task", { task: 2 }],
     ["stale session", { session: 4 }],

@@ -4,6 +4,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createInitializePaymentExecutor } from "../src/modules/payments/initialize-payment-command";
 import { CompleteHandoffTestContext } from "./complete-handoff-test-context";
+import {
+  beginBlockedCompanySettingMutation,
+  beginCompanySettingMutation,
+  COMPANY_SETTING_MUTATION_QUERY,
+  waitForAdvisoryLock,
+} from "./management-settings-race-test-helpers";
 
 const context = new CompleteHandoffTestContext("financial_concurrency");
 
@@ -92,47 +98,76 @@ describe("VAL-008G financial release serialization", () => {
     },
   );
 
-  it.each(["COMMIT", "ROLLBACK"] as const)(
-    "evaluates current policy after concurrent Location policy %s",
-    async (resolution) => {
-      const fixture = await context.prepareStandard("PICKUP_CODE");
-      await setRequiredPolicy(fixture, "0.000");
-      const blocker = await context.adminPool.connect();
-      try {
-        await blocker.query("BEGIN");
-        await blocker.query(
-          `UPDATE locations
-           SET release_requires_payment_override = false
-           WHERE id = $1`,
-          [fixture.locationId],
-        );
-        const completion = context.complete(fixture).then(
-          (value) => ({ kind: "FULFILLED" as const, value }),
-          (error: unknown) => ({ error, kind: "REJECTED" as const }),
-        );
-        await waitForLockWait("FROM organization_memberships");
-        await blocker.query(resolution);
-        if (resolution === "COMMIT") {
-          await expect(completion).resolves.toMatchObject({
-            kind: "FULFILLED",
-            value: { state: "COMPLETED" },
-          });
-        } else {
-          await expect(completion).resolves.toMatchObject({
-            error: { code: "FINANCIAL_RELEASE_NOT_SATISFIED" },
-            kind: "REJECTED",
-          });
-          expect(
-            (await context.releaseEffects(fixture)).projection.session_state,
-          ).toBe("HANDOFF_PENDING");
-        }
-      } finally {
-        try {
-          await blocker.query("ROLLBACK");
-        } finally {
-          blocker.release();
-        }
-      }
-    },
-  );
+  it("waits for a Management release policy writer and evaluates its committed value", async () => {
+    const fixture = await context.prepareStandard("PICKUP_CODE");
+    const writer = await beginBlockedCompanySettingMutation({
+      adminPool: context.adminPool,
+      organizationId: fixture.organizationId,
+      runtimePool: context.runtimePool,
+      setting: "releaseRequiresPayment",
+      value: "true",
+    });
+    const completion = context.complete(fixture);
+    try {
+      await waitForAdvisoryLock(
+        context.adminPool,
+        "pg_advisory_xact_lock_shared",
+        "ShareLock",
+        false,
+      );
+      await writer.commit();
+      await expect(completion).rejects.toMatchObject({
+        code: "FINANCIAL_RELEASE_NOT_SATISFIED",
+      });
+      expect((await context.releaseEffects(fixture)).projection.session_state).toBe(
+        "HANDOFF_PENDING",
+      );
+    } finally {
+      await writer.rollback();
+      await completion.catch(() => undefined);
+    }
+  });
+
+  it("lets an in-flight handoff finish before the Management release policy writer", async () => {
+    const fixture = await context.prepareStandard("PICKUP_CODE");
+    const blocker = await context.adminPool.connect();
+    let blockerClosed = false;
+    let writer: Awaited<ReturnType<typeof beginCompanySettingMutation>> | undefined;
+    let completion: Promise<unknown> | undefined;
+    try {
+      await blocker.query("BEGIN");
+      await blocker.query(`SELECT id FROM tasks WHERE id = $1 FOR UPDATE`, [
+        fixture.retrievalTaskId,
+      ]);
+      completion = context.complete(fixture);
+      await waitForAdvisoryLock(context.adminPool, "FROM tasks", "ShareLock", true);
+      writer = await beginCompanySettingMutation({
+        adminPool: context.adminPool,
+        organizationId: fixture.organizationId,
+        runtimePool: context.runtimePool,
+        setting: "releaseRequiresPayment",
+        value: "true",
+      });
+      await waitForAdvisoryLock(
+        context.adminPool,
+        COMPANY_SETTING_MUTATION_QUERY,
+        "ExclusiveLock",
+        false,
+      );
+      await blocker.query("COMMIT");
+      blockerClosed = true;
+      await expect(completion).resolves.toMatchObject({ state: "COMPLETED" });
+      await writer.commit();
+      const policy = await context.adminPool.query<{ release_requires_payment: boolean }>(
+        `SELECT release_requires_payment FROM organizations WHERE id = $1`,
+        [fixture.organizationId],
+      );
+      expect(policy.rows[0]?.release_requires_payment).toBe(true);
+    } finally {
+      if (!blockerClosed) await blocker.query("ROLLBACK");
+      blocker.release();
+      await writer?.rollback();
+      await completion?.catch(() => undefined);
+    }
+  });
 });

@@ -1,4 +1,5 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendDispatchEvent } from "../dispatch/dispatch-event-writer";
 import {
   inDispatchTransaction,
@@ -22,7 +23,11 @@ import {
   completeParkingTask,
   parkValetSession,
 } from "./confirm-parked-mutations";
-import { lockConfirmParkingSpot } from "./confirm-parked-resources";
+import {
+  lockConfirmParkingSpot,
+  lockConfirmParkingZone,
+  parkingSpotTarget,
+} from "./confirm-parked-resources";
 import type { ConfirmParkedResult } from "./confirm-parked-types";
 
 export interface ConfirmParkedCommandRequest {
@@ -30,7 +35,8 @@ export interface ConfirmParkedCommandRequest {
   readonly expectedSessionVersion: number;
   readonly expectedTaskVersion: number;
   readonly keySlotCode: string;
-  readonly parkingSpotCode: string;
+  readonly parkingSpotCode?: string;
+  readonly parkingZoneCode?: string;
   readonly sessionId: string;
 }
 
@@ -47,6 +53,11 @@ async function executeConfirmParked(
 ): Promise<ConfirmParkedResult> {
   return inDispatchTransaction(pool, async (transaction) => {
     const session = await lockConfirmSession(transaction, request.sessionId);
+    await lockManagementSettingsOrganization(
+      transaction,
+      session.organization_id,
+      "SHARED",
+    );
     const actorMembershipId = await resolveConfirmActor(
       transaction,
       session,
@@ -55,16 +66,38 @@ async function executeConfirmParked(
     const task = await lockConfirmParkingTask(transaction, session);
     await authorizeConfirmOwner(transaction, session, task, actorMembershipId);
     assertConfirmParkedGuards(session, task, request);
+    const policy = await transaction.query<{ parkingSpotRequired: boolean }>(
+      `SELECT COALESCE(location.parking_spot_required_override,
+                       organization.parking_spot_required) AS "parkingSpotRequired"
+       FROM locations AS location
+       INNER JOIN organizations AS organization
+         ON organization.id = location.organization_id
+       WHERE location.id = $1 AND location.organization_id = $2`,
+      [session.location_id, session.organization_id],
+    );
+    const parkingSpotRequired = policy.rows[0]?.parkingSpotRequired;
+    if (parkingSpotRequired === undefined) {
+      throw new ConfirmParkedError("TASK_NOT_FOUND_OR_FORBIDDEN");
+    }
+    if (parkingSpotRequired && request.parkingSpotCode === undefined) {
+      throw new ConfirmParkedError("PARKING_SPOT_NOT_FOUND_OR_UNAVAILABLE");
+    }
     const lockedKeySlot = await lockConfirmKeySlot(
       transaction,
       session,
       request.keySlotCode.trim(),
     );
-    const spot = await lockConfirmParkingSpot(
-      transaction,
-      session,
-      request.parkingSpotCode.trim(),
-    );
+    const parking = request.parkingSpotCode !== undefined
+      ? parkingSpotTarget(await lockConfirmParkingSpot(
+          transaction,
+          session,
+          request.parkingSpotCode.trim(),
+        ))
+      : await lockConfirmParkingZone(
+          transaction,
+          session,
+          request.parkingZoneCode!.trim(),
+        );
     const operationTime = await loadDispatchOperationTime(transaction);
     const taskVersion = await completeParkingTask(
       transaction,
@@ -74,7 +107,7 @@ async function executeConfirmParked(
     const sessionVersion = await parkValetSession(
       transaction,
       session,
-      spot,
+      parking,
       operationTime,
       lockedKeySlot,
     );
@@ -156,7 +189,7 @@ async function executeConfirmParked(
         operationTime,
         session,
         sessionVersion,
-        spot,
+        parking,
         task,
         taskVersion,
       },
@@ -164,9 +197,9 @@ async function executeConfirmParked(
     );
     return {
       parkedAt: operationTime.toISOString(),
-      parkingSpotCode: spot.code,
-      parkingSpotId: spot.id,
-      parkingZoneId: spot.parking_zone_id,
+      parkingSpotCode: parking.parkingSpotCode,
+      parkingSpotId: parking.parkingSpotId,
+      parkingZoneId: parking.parkingZoneId,
       sessionId: session.id,
       sessionVersion,
       state: "PARKED",

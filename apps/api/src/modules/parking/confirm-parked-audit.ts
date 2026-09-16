@@ -4,7 +4,7 @@ import type { PostgresTransaction } from "../../common/database/postgres";
 import type {
   LockedConfirmSession,
   LockedConfirmTask,
-  LockedParkingSpot,
+  LockedParkingTarget,
 } from "./confirm-parked-types";
 
 export async function appendConfirmParkedAuditEvent(
@@ -14,7 +14,7 @@ export async function appendConfirmParkedAuditEvent(
     readonly operationTime: Date;
     readonly session: LockedConfirmSession;
     readonly sessionVersion: number;
-    readonly spot: LockedParkingSpot;
+    readonly parking: LockedParkingTarget;
     readonly task: LockedConfirmTask;
     readonly taskVersion: number;
   },
@@ -26,8 +26,8 @@ export async function appendConfirmParkedAuditEvent(
     fromSessionVersion: input.session.version,
     fromTaskStatus: "IN_PROGRESS",
     fromTaskVersion: input.task.version,
-    parkingSpotId: input.spot.id,
-    parkingZoneId: input.spot.parking_zone_id,
+    parkingSpotId: input.parking.parkingSpotId,
+    parkingZoneId: input.parking.parkingZoneId,
     taskId: input.task.id,
     toSessionState: "PARKED",
     toSessionVersion: input.sessionVersion,

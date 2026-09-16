@@ -104,8 +104,8 @@ export async function lockRetrievalRequest(
 export async function lockRetrievalResources(
   transaction: PostgresTransaction,
   session: LockedStartRetrievalSession,
-): Promise<{ readonly keySlotId: string; readonly parkingSpotId: string }> {
-  if (session.key_slot_id === null || session.parking_spot_id === null) {
+): Promise<{ readonly keySlotId: string; readonly parkingSpotId: string | null }> {
+  if (session.key_slot_id === null || session.parking_zone_id === null) {
     throw new StartRetrievalError("KEY_CUSTODY_NOT_READY");
   }
   const keySlot = await transaction.query<{ id: string }>(
@@ -117,15 +117,18 @@ export async function lockRetrievalResources(
   if (keySlot.rows[0] === undefined) {
     throw new StartRetrievalError("KEY_CUSTODY_NOT_READY");
   }
-  const parkingSpot = await transaction.query<{ id: string }>(
-    `SELECT id::text FROM parking_spots
-     WHERE id = $1 AND organization_id = $2 AND location_id = $3
-     FOR UPDATE`,
-    [session.parking_spot_id, session.organization_id, session.location_id],
-  );
-  const parkingSpotId = parkingSpot.rows[0]?.id;
-  if (parkingSpotId === undefined) {
-    throw new StartRetrievalError("INVALID_STATE_TRANSITION");
+  let parkingSpotId: string | null = null;
+  if (session.parking_spot_id !== null) {
+    const parkingSpot = await transaction.query<{ id: string }>(
+      `SELECT id::text FROM parking_spots
+       WHERE id = $1 AND organization_id = $2 AND location_id = $3
+       FOR UPDATE`,
+      [session.parking_spot_id, session.organization_id, session.location_id],
+    );
+    parkingSpotId = parkingSpot.rows[0]?.id ?? null;
+    if (parkingSpotId === null) {
+      throw new StartRetrievalError("INVALID_STATE_TRANSITION");
+    }
   }
   return { keySlotId: keySlot.rows[0].id, parkingSpotId };
 }

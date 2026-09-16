@@ -42,6 +42,48 @@ describe("authenticated OCR HTTP route with real persisted authority", () => {
           .n,
       ).toBe(0);
   });
+  it("suppresses tenant-disabled OCR before cost/provider while preserving override precedence", async () => {
+    const disabled = await c.staff();
+    const acquire = vi.spyOn(c.guard, "acquire");
+    await c.admin.query(
+      "UPDATE organizations SET ocr_assist_enabled = false WHERE id = $1",
+      [disabled.organizationId],
+    );
+    const unavailable = await c.request(disabled.token, {
+      targetLocationId: disabled.locationId,
+      plateCountry: "JO",
+    });
+    expect(unavailable.status).toBe(200);
+    expect(await unavailable.json()).toEqual({ status: "UNAVAILABLE" });
+    expect(acquire).not.toHaveBeenCalled();
+    expect(c.calls).toBe(0);
+
+    await c.admin.query(
+      "UPDATE locations SET ocr_assist_enabled_override = true WHERE id = $1",
+      [disabled.locationId],
+    );
+    const overriddenOn = await c.request(disabled.token, {
+      targetLocationId: disabled.locationId,
+      plateCountry: "JO",
+    });
+    expect(await overriddenOn.json()).toEqual({ status: "NO_MATCH" });
+    expect(c.calls).toBe(1);
+
+    await c.admin.query(
+      "UPDATE organizations SET ocr_assist_enabled = true WHERE id = $1",
+      [disabled.organizationId],
+    );
+    await c.admin.query(
+      "UPDATE locations SET ocr_assist_enabled_override = false WHERE id = $1",
+      [disabled.locationId],
+    );
+    const overriddenOff = await c.request(disabled.token, {
+      targetLocationId: disabled.locationId,
+      plateCountry: "JO",
+    });
+    expect(await overriddenOff.json()).toEqual({ status: "UNAVAILABLE" });
+    expect(c.calls).toBe(1);
+  });
   it.each([undefined, "invalid", `vsa1.${"x".repeat(43)}`])(
     "rejects invalid credentials before provider %s",
     async (token) => {

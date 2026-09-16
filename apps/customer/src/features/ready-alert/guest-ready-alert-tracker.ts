@@ -60,6 +60,9 @@ export function observeGuestReadySnapshot(
   }
 
   tracker.observedIdentities.add(identity);
+  if (session.guestVehicleReadyNotificationEnabled === false) {
+    return { kind: 'NONE' };
+  }
   return session.state === 'COMPLETED'
     ? { identity, kind: 'SUPPRESS_COMPLETED' }
     : { identity, kind: 'PRESENT' };

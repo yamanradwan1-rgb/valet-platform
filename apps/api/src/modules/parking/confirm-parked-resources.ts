@@ -3,6 +3,7 @@ import { ConfirmParkedError } from "./confirm-parked-errors";
 import type {
   LockedConfirmSession,
   LockedParkingSpot,
+  LockedParkingTarget,
 } from "./confirm-parked-types";
 
 function unavailable(): never {
@@ -46,4 +47,34 @@ export async function lockConfirmParkingSpot(
   );
   if (occupancy.rows[0] !== undefined) unavailable();
   return spot;
+}
+
+export async function lockConfirmParkingZone(
+  transaction: PostgresTransaction,
+  session: LockedConfirmSession,
+  parkingZoneCode: string,
+): Promise<LockedParkingTarget> {
+  const result = await transaction.query<{ id: string }>(
+    `SELECT id::text FROM parking_zones
+     WHERE organization_id = $1 AND location_id = $2 AND code = $3
+       AND status = 'ACTIVE' FOR UPDATE`,
+    [session.organization_id, session.location_id, parkingZoneCode],
+  );
+  const parkingZoneId = result.rows[0]?.id;
+  if (parkingZoneId === undefined) unavailable();
+  if (
+    session.parking_zone_id !== null &&
+    session.parking_zone_id !== parkingZoneId
+  ) {
+    unavailable();
+  }
+  return { parkingSpotCode: null, parkingSpotId: null, parkingZoneId };
+}
+
+export function parkingSpotTarget(spot: LockedParkingSpot): LockedParkingTarget {
+  return {
+    parkingSpotCode: spot.code,
+    parkingSpotId: spot.id,
+    parkingZoneId: spot.parking_zone_id,
+  };
 }

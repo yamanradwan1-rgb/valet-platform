@@ -251,6 +251,34 @@ Examples include, when implemented:
 - per-notification-type enablement
 - SLA target
 
+MGT-BE-05 implements this precedence for the existing ten typed operational
+defaults (`checkInPhotosRequired`, `handoffStandardMethodPolicy`,
+`trackingEnabled`, `rawGpsRetentionDays`, `valetServiceFee`,
+`paymentServicePayer`, `paymentMethodsPolicy`, `tipsEnabled`,
+`validationEnabled`, `releaseRequiresPayment`) plus the approved language,
+informational operating-hours, OCR-assist, Parking Spot requirement, and the two
+currently real configurable notification families: employee Retrieval-requested
+and Guest vehicle-ready. New Location overrides are nullable/inherit and an
+explicit boolean `false` is distinct from no override. Company Admin writes are
+narrow Management operations; the pre-existing Location Manager exact-Location
+surface for the original ten settings remains unchanged.
+
+Operating hours are seven explicit Location-local weekdays and are
+informational only: they do not block Check-In, Parking, Retrieval, Handoff,
+Shift, custody, or incident handling. OCR enablement is only a tenant feature
+gate and never bypasses provider/deployment/cost/privacy safety; manual and
+no-plate fallback remain available. Parking Spot policy is evaluated again at
+authoritative parking completion; when disabled, the persisted Parking Zone may
+remain authoritative without a Spot. Notification toggles are bounded to the
+real types above and do not create a template/routing/provider administration
+surface or rewrite prior notification history.
+
+No geofence-alert setting is implemented because the current system has no
+separate justified configurable alert consumer. No SLA-target persistence is
+implemented in BE-05: DEC-090 requires historically truthful applicability, so
+the source/history contract remains owned by MGT-BE-10 rather than introducing a
+current value that could be applied retroactively.
+
 DEC-083 explicitly rejects a generic Settings JSON/Rules Builder, a Key Policy
 with only one valid mode, generic notification-template or validation-policy
 engines, and a Location allowed-role policy. Existing typed validation
@@ -265,7 +293,10 @@ enablement and accepted financial commands remain unchanged.
 - “Returning Contact” means only that normalized contact appeared on a prior
   completed authorized-scope visit; it does not prove a person identity.
 - Basic branding is display name and primary color with Company default ->
-  Location override. Logo and advanced white-label remain deferred.
+  Location override. Company display name is the authoritative Organization
+  name; primary color is canonical uppercase `#RRGGBB`. Location overrides are
+  nullable and CLEAR inherits the current Company value. Logo and advanced
+  white-label remain deferred.
 - Integrations and Billing are read-only MVP surfaces. Tenant provider-secret
   administration and SaaS billing execution are out of scope.
 - Automatic report delivery is deferred; manual authenticated CSV/PDF is the

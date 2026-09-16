@@ -36,7 +36,7 @@ export async function startRetrievalSession(
      WHERE id = $1 AND version = $2 AND state = 'REQUESTED'
        AND retrieval_requested_at IS NOT NULL
        AND retrieval_started_at IS NULL AND key_slot_id = $4
-       AND parking_spot_id = $5
+       AND parking_spot_id IS NOT DISTINCT FROM $5::uuid
      RETURNING version`,
     [
       session.id,

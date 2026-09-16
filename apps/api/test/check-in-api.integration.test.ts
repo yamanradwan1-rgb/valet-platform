@@ -890,8 +890,8 @@ describe("VAL-004I Check-In HTTP integration", () => {
     expect(guest.status).toBe(200);
     const guestBody = (await guest.json()) as Record<string, unknown>;
     expect(Object.keys(guestBody).sort()).toEqual([
-      "readyAt",
-      "state",
+      "guestVehicleReadyNotificationEnabled",
+      "readyAt", "state",
       "valetSessionId",
       "vehicle",
     ]);

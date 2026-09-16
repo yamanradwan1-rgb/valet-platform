@@ -83,6 +83,26 @@ describe("Retrieval foreground alert tracking", () => {
     expect(observeRetrievalSnapshot(tracker, [task(TASK_ID_A)], 3)).toEqual([]);
   });
 
+  it("remembers a policy-disabled Task and never replays it after re-enable", () => {
+    const tracker = createRetrievalAlertTracker();
+    observeRetrievalSnapshot(tracker, [], 1);
+    expect(
+      observeRetrievalSnapshot(
+        tracker,
+        [task(TASK_ID_A, { retrievalNotificationEnabled: false })],
+        2,
+      ),
+    ).toEqual([]);
+    expect(
+      observeRetrievalSnapshot(
+        tracker,
+        [task(TASK_ID_A, { retrievalNotificationEnabled: true })],
+        3,
+      ),
+    ).toEqual([]);
+    expect(tracker.observedTaskIds.has(TASK_ID_A)).toBe(true);
+  });
+
   it("alerts each eligible ID in one recovered canonical snapshot", () => {
     const tracker = createRetrievalAlertTracker();
     observeRetrievalSnapshot(tracker, [], 1);

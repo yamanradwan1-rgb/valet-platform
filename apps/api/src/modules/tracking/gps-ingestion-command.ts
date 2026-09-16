@@ -1,4 +1,5 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import {
   inDispatchTransaction,
   loadDispatchOperationTime,
@@ -35,6 +36,11 @@ export function createGpsIngestionCommandExecutor(pool: PostgresPool) {
         throw new GpsIngestionError("REQUEST_INVALID");
       }
       const session = await lockGpsSession(transaction, request.sessionId);
+      await lockManagementSettingsOrganization(
+        transaction,
+        session.organization_id,
+        "SHARED",
+      );
       const actorMembershipId = await resolveGpsActor(
         transaction,
         session,

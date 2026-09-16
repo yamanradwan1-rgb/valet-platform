@@ -11,6 +11,7 @@ export interface DirectoryCandidateRow {
   id: string;
   key_slot_id: string | null;
   parking_spot_id: string | null;
+  parking_zone_id: string | null;
   state: string;
   updated_at: Date;
   vehicle_id: string;
@@ -42,6 +43,11 @@ export interface DirectoryParkingRow {
   spot_code: string;
   spot_id: string;
   zone_code: string;
+}
+
+export interface DirectoryZoneRow {
+  code: string;
+  id: string;
 }
 
 export interface DirectoryKeySlotRow {
@@ -100,6 +106,7 @@ export async function loadDirectoryCandidates(
     `SELECT id::text, state::text,
             checked_in_by_membership_id::text,
             vehicle_id::text, key_slot_id::text, parking_spot_id::text,
+            parking_zone_id::text,
             created_at, updated_at
      FROM valet_sessions
      WHERE organization_id = $1
@@ -182,6 +189,25 @@ export async function loadDirectoryParking(
   );
   for (const row of result.rows) bySpotId.set(row.spot_id, row);
   return bySpotId;
+}
+
+/** Batch-loads persisted parking zones for zone-only parked candidates. */
+export async function loadDirectoryZones(
+  client: PostgresTransaction,
+  organizationId: string,
+  locationId: string,
+  zoneIds: readonly string[],
+): Promise<Map<string, DirectoryZoneRow>> {
+  const byZoneId = new Map<string, DirectoryZoneRow>();
+  if (zoneIds.length === 0) return byZoneId;
+  const result = await client.query<DirectoryZoneRow>(
+    `SELECT id::text, code FROM parking_zones
+     WHERE id = ANY($1::uuid[]) AND organization_id = $2 AND location_id = $3
+     FOR SHARE`,
+    [[...zoneIds], organizationId, locationId],
+  );
+  for (const row of result.rows) byZoneId.set(row.id, row);
+  return byZoneId;
 }
 
 /** Batch-loads current Key Slot codes for the candidate set, scope-checked. */

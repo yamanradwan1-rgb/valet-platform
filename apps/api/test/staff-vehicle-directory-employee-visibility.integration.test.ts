@@ -57,7 +57,6 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
     );
     const supervisorToken = issueToken(supervisor.userId);
     const zoneId = await harness.createParkingZone(fixture, "ZONE-E");
-    const spotId = await harness.createParkingSpot(fixture, zoneId, "E-01");
     const slotId = await harness.createKeySlot(fixture, "K-Q");
 
     async function pinCreatedAt(sessionId: string, iso: string) {
@@ -92,7 +91,6 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
     });
     const peerParked = await harness.createSession(fixture, {
       parkedAt: new Date(),
-      parkingSpotId: spotId,
       parkingStartedAt: new Date(),
       parkingZoneId: zoneId,
       state: "PARKED",
@@ -132,6 +130,11 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
       peerParked.sessionId,
       peerDraft.sessionId,
     ]);
+    const peerParkedRow = peerView.body.rows.find(
+      (row) => row.sessionId === peerParked.sessionId,
+    );
+    expect(peerParkedRow?.parkingSpotCode).toBeNull();
+    expect(peerParkedRow?.parkingZoneCode).toBe("ZONE-E");
 
     const supervisorView = await directory(supervisorToken, fixture.locationId);
     expect(supervisorView.status).toBe(200);

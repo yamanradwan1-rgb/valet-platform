@@ -12,7 +12,7 @@ export async function appendStartRetrievalAuditEvent(
   input: {
     readonly actorMembershipId: string;
     readonly operationTime: Date;
-    readonly releasedParkingSpotId: string;
+    readonly releasedParkingSpotId: string | null;
     readonly request: LockedRetrievalRequest;
     readonly session: LockedStartRetrievalSession;
     readonly sessionVersion: number;

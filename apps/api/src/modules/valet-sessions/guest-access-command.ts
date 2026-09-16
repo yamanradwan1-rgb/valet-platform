@@ -479,8 +479,16 @@ export async function resolveGuestAccessWithDatabase(
   const result = await database.query<GuestSafeSessionRow>(
     `SELECT session.id::text AS valet_session_id, session.state::text,
               session.ready_at,
+              COALESCE(location.guest_vehicle_ready_notification_enabled_override,
+                       organization.guest_vehicle_ready_notification_enabled)
+                AS guest_vehicle_ready_notification_enabled,
               vehicle.make, vehicle.model, vehicle.color
        FROM valet_sessions AS session
+       INNER JOIN locations AS location
+         ON location.id = session.location_id
+        AND location.organization_id = session.organization_id
+       INNER JOIN organizations AS organization
+         ON organization.id = session.organization_id
        INNER JOIN vehicles AS vehicle
          ON vehicle.organization_id = session.organization_id
         AND vehicle.id = session.vehicle_id

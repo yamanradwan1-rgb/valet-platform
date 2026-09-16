@@ -85,7 +85,6 @@ describe("Staff Vehicle Directory Authority Integration", () => {
     });
     const employee = await harness.addMember(fixture, "VALET_EMPLOYEE", true);
     const zoneId = await harness.createParkingZone(fixture, "ZONE-A");
-    const spotId = await harness.createParkingSpot(fixture, zoneId, "A-01");
     const slotId = await harness.createKeySlot(fixture, "K-01");
 
     const queued = await harness.createSession(fixture, {
@@ -93,14 +92,14 @@ describe("Staff Vehicle Directory Authority Integration", () => {
       state: "AWAITING_PARKING",
     });
     const parking = await harness.createSession(fixture, {
-      parkingSpotId: spotId,
+      parkedAt: new Date(),
       parkingStartedAt: new Date(),
       parkingZoneId: zoneId,
-      state: "PARKING",
+      state: "PARKED",
     });
     await harness.createTask(fixture, parking.sessionId, {
       assigneeMembershipId: employee.membershipId,
-      status: "IN_PROGRESS",
+      status: "COMPLETED",
     });
     const completed = await harness.createSession(fixture);
     await harness.context.adminPool.query(
@@ -127,9 +126,9 @@ describe("Staff Vehicle Directory Authority Integration", () => {
     const queuedRow = res.body.rows.find(
       (r) => r.sessionId === queued.sessionId,
     );
-    expect(parkingRow?.state).toBe("PARKING");
+    expect(parkingRow?.state).toBe("PARKED");
     expect(parkingRow?.parkingZoneCode).toBe("ZONE-A");
-    expect(parkingRow?.parkingSpotCode).toBe("A-01");
+    expect(parkingRow?.parkingSpotCode).toBeNull();
     expect(parkingRow?.vehicle.temporaryDescriptor).toBe("Test vehicle");
     expect(parkingRow?.createdAt).toBe("2026-08-25T10:02:00.000Z");
     // Supervisory Key Slot detail inside the exact authorized Location.

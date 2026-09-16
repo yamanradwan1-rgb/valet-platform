@@ -189,6 +189,15 @@ Constraints/rules:
 - `payment_service_payer` is `CUSTOMER | VENUE`, required and `CUSTOMER` by default
 - `payment_methods_policy` is `CASH_ONLY | DIGITAL_ONLY | CASH_OR_DIGITAL`, required and `CASH_ONLY` by default
 - `tips_enabled`, `validation_enabled` and `release_requires_payment` are typed Company defaults, required and `false` by default
+- MGT-BE-05 adds `language_default` (`EN | AR`, default `EN`),
+  `ocr_assist_enabled` (default `true`), `parking_spot_required` (default
+  `true`), `employee_retrieval_requested_notification_enabled` (default
+  `true`), and `guest_vehicle_ready_notification_enabled` (default `true`)
+- the ten pre-existing Company defaults remain separate typed columns:
+  `check_in_photos_required`, `handoff_standard_method_policy`,
+  `tracking_enabled`, `raw_gps_retention_days`, `valet_service_fee`,
+  `payment_service_payer`, `payment_methods_policy`, `tips_enabled`,
+  `validation_enabled`, and `release_requires_payment`
 - DB timestamps follow the global UTC/timestamptz convention
 
 A later typed configuration task may rename/refine Company-default semantics; do not block Location-specific timezone support on this field.
@@ -213,6 +222,11 @@ payment_methods_policy_override nullable
 tips_enabled_override nullable
 validation_enabled_override nullable
 release_requires_payment_override nullable
+language_default_override nullable
+ocr_assist_enabled_override nullable
+parking_spot_required_override nullable
+employee_retrieval_requested_notification_enabled_override nullable
+guest_vehicle_ready_notification_enabled_override nullable
 created_at
 updated_at
 ```
@@ -234,6 +248,8 @@ Constraints/rules:
 - `raw_gps_retention_days_override` is nullable and must be positive when present; null inherits the Organization default
 - `valet_service_fee_override` uses `numeric(14,3)`, must be non-negative when present, and null inherits the Organization default
 - each nullable payer, payment-method, tips, validation and release override uses the corresponding Organization value when null
+- each MGT-BE-05 scalar override is nullable/inherit; explicit boolean `false`
+  is distinct from null/absence
 
 Phase 1 does not add a generic settings/policy JSON field. Location-specific typed configuration is added by focused tasks as approved MVP behavior requires it.
 
@@ -258,6 +274,40 @@ persisted Location currency using the private checked-in
 precision fails closed; no silent rounding). Failed calls write no
 configuration change and no audit. Organization default columns are not writable
 through this surface.
+
+### MGT-BE-05 Management settings and branding authority (migration 38)
+
+Migration `20260916003800_mgt_be_05_company_settings_branding` keeps the ten
+existing typed default/override pairs and adds only typed DEC-083 state. There
+is no `organization_settings`/`location_settings` JSONB, generic rules table, or
+arbitrary string-key mutation API.
+
+Operating hours are normalized in `organization_operating_hours` and
+`location_operating_hours_overrides`. Each configured schedule is exactly seven
+weekday rows with either CLOSED (`opens_at`/`closes_at` null) or one same-day
+OPEN interval where `opens_at < closes_at`. Both time columns are PostgreSQL
+`time without time zone`; no UTC offset is persisted. Absence of Company rows is
+an unconfigured Company schedule. Absence of Location rows means inherit the
+current Company schedule; CLEAR deletes the override rows rather than copying a
+default into them.
+
+Company Admin settings/branding writes execute only through migration-owned,
+fixed-`search_path` `SECURITY DEFINER` functions. Public EXECUTE is revoked and
+the runtime role receives only the reviewed mutation entry points. Runtime
+retains no generic `UPDATE organizations`, no generic `UPDATE locations`, and no
+direct arbitrary INSERT/UPDATE/DELETE authority on the operating-hours tables.
+The functions revalidate current Organization/Admin/Location authority,
+implement optimistic concurrency against the authoritative Organization or
+Location `updated_at`, advance revisions monotonically for real changes, treat
+desired-state no-ops as audit-free/no-CAS convergence, and append one truthful
+same-transaction `AuditEvent`. SET rejects SQL NULL; Location CLEAR is explicit.
+
+Company settings and Location setting mutations serialize on the same
+per-Organization Management settings transaction boundary. Operational commands
+that make mutable policy decisions acquire the corresponding shared boundary
+before later policy-dependent row locks, so a committed writer or the command's
+earlier snapshot wins coherently without holding the boundary across external
+provider I/O.
 
 ## users
 
@@ -1519,7 +1569,17 @@ Constraints/rules:
 - runtime role holds SELECT only (INSERT/UPDATE/DELETE/TRUNCATE denied); provisioning/change is an internal platform concern outside the customer API
 - no price/billing-interval/amount/currency/invoice/payment-method/Stripe/renewal/cancellation/trial-end/seat-count fields
 
-Basic branding columns (DEC-062): organizations.brand_primary_color TEXT NOT NULL DEFAULT #176BFF with uppercase-hex CHECK; locations.brand_display_name_override / brand_primary_color_override nullable with CHECKs (trimmed non-empty <=120 code points without control characters; uppercase hex). Overrides mutate only through narrow SECURITY DEFINER functions (set/clear x display-name/color) that revalidate the VAL-009A manager boundary in-database, recheck expectedUpdatedAt against locked locations.updated_at (40001 conflict), advance updated_at monotonically, and commit exactly one DASHBOARD_LOCATION_BRANDING_OVERRIDE_CHANGED AuditEvent per success. Failures write no mutation and no audit. Runtime role gains EXECUTE only on these four functions and keeps no generic UPDATE on organizations/locations.
+Basic branding columns (DEC-062/085): `organizations.brand_primary_color TEXT
+NOT NULL DEFAULT '#176BFF'` with uppercase-hex CHECK;
+`locations.brand_display_name_override` / `brand_primary_color_override` nullable
+with CHECKs (trimmed non-empty <=120 Unicode code points without control
+characters; uppercase hex). Company display name remains `organizations.name`;
+MGT-BE-05 does not duplicate it into a branding-name column. Company Admin
+Management can mutate Company name/color and exact-Location name/color through
+the migration-38 narrow functions. Existing Location Manager branding functions
+remain unchanged. CLEAR removes only the Location override and therefore resolves
+to the current Company value. No logo URL/object key/asset table is introduced,
+and subscription/entitlement columns are not consulted by these writes.
 Migration 31 hardening: the primary-color SET function explicitly rejects
 NULL (22023) so NULL-as-clear is impossible through SET; non-null
 display-name overrides are canonical outer-trimmed values enforced by
@@ -1562,6 +1622,18 @@ Rules:
 - FAILED requires `failed_at`
 - notification callbacks must be retry-safe/idempotent when implemented
 - first-market primary messaging channel depends on provider availability/contract; do not hard-code product logic to one provider
+
+MGT-BE-05 tenant notification configuration is not a generic notification-table
+policy. The only exposed configurable types are
+`EMPLOYEE_RETRIEVAL_REQUESTED` and `GUEST_VEHICLE_READY`, represented by typed
+Company booleans plus nullable Location overrides. The employee Retrieval toggle
+is checked at intent creation and again at the final Staff Push send-time
+eligibility boundary; disabled future attention is suppressed without provider
+I/O while prior intent/delivery history remains unchanged. Guest vehicle-ready
+presentation receives the effective boolean in the existing guest-safe session
+projection so the client can suppress presentation without changing `ready_at`
+or replaying an old READY transition after re-enable. MFA/security notifications
+and unrelated Staff Push/session-security behavior are not tenant-configurable.
 
 ## Staff native push persistence
 
@@ -1939,10 +2011,12 @@ login/refresh/push-registration rechecks; it changes `users.status`, revokes
 Staff sessions, disables active push registrations, and writes account-security
 audit without rewriting tenant membership or operational history.
 
+Implemented MGT-BE-05 Management persistence includes the typed DEC-083 catalog,
+normalized operating hours, narrow Company/Location branding, and no generic
+settings/rules/templates/key-policy/validation-policy/allowed-role JSON engine.
+
 Remaining accepted Management persistence includes:
 
-- typed Management settings only for the DEC-083 catalog; no generic settings,
-  rules, templates, key-policy, validation-policy, or allowed-role JSON/engine.
 - a minimal one-rating-per-ValetSession guest rating source.
 - historically truthful SLA-target applicability and a controlled genuine Key
   Exception source before those metrics ship.

@@ -29,6 +29,7 @@ export async function resolveAndLockGuestAccessSession(
     make: string | null;
     model: string | null;
     organization_id: string;
+    guest_vehicle_ready_notification_enabled: boolean;
     ready_at: Date | null;
     retrieval_requested_at: Date | null;
     state: GuestSafeSession["state"];
@@ -39,8 +40,16 @@ export async function resolveAndLockGuestAccessSession(
             session.location_id::text, session.customer_id::text,
             session.state::text, session.version, session.retrieval_requested_at,
             session.ready_at,
+            COALESCE(location.guest_vehicle_ready_notification_enabled_override,
+                     organization.guest_vehicle_ready_notification_enabled)
+              AS guest_vehicle_ready_notification_enabled,
             vehicle.make, vehicle.model, vehicle.color
        FROM valet_sessions AS session
+       INNER JOIN locations AS location
+         ON location.id = session.location_id
+        AND location.organization_id = session.organization_id
+       INNER JOIN organizations AS organization
+         ON organization.id = session.organization_id
        INNER JOIN vehicles AS vehicle
          ON vehicle.organization_id = session.organization_id
         AND vehicle.id = session.vehicle_id

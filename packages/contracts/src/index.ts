@@ -44,3 +44,5 @@ export * from "./incidents.js";
 export * from "./incident-recovery.js";
 export * from "./plate-ocr.js";
 export * from "./management-control-plane.js";
+export * from "./management-settings.js";
+export * from "./management-branding.js";

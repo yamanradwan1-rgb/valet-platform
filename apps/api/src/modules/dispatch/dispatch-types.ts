@@ -42,6 +42,7 @@ export interface StaffTaskQueueItemRow {
   readonly parking_spot_label: string | null;
   readonly parking_zone_label: string | null;
   readonly retrieval_requested_at: Date | null;
+  readonly retrieval_notification_enabled?: boolean;
   readonly session_parking_spot_id: string | null;
   readonly session_parking_zone_id: string | null;
   readonly session_state: string;
@@ -99,6 +100,7 @@ export function toStaffTaskQueueItem(
     parkingSpot: row.parking_spot_label,
     parkingZone: row.parking_zone_label,
     retrievalRequestedAt: row.retrieval_requested_at?.toISOString() ?? null,
+    retrievalNotificationEnabled: row.retrieval_notification_enabled ?? true,
     sessionId: row.valet_session_id,
     status: row.status,
     taskId: row.id,

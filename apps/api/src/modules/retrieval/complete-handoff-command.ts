@@ -1,4 +1,5 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendDispatchEvent } from "../dispatch/dispatch-event-writer";
 import {
   inDispatchTransaction,
@@ -49,6 +50,11 @@ export function createCompleteHandoffExecutor(
       const session = await lockCompleteHandoffSession(
         transaction,
         input.sessionId,
+      );
+      await lockManagementSettingsOrganization(
+        transaction,
+        session.organization_id,
+        "SHARED",
       );
       const actorMembershipId = await resolveCompleteHandoffActor(
         transaction,

@@ -50,7 +50,12 @@ export function observeRetrievalSnapshot(
   for (const task of tasks) {
     if (tracker.observedTaskIds.has(task.taskId)) continue;
     tracker.observedTaskIds.add(task.taskId);
-    if (isActionableRetrieval(task)) alertTaskIds.push(task.taskId);
+    if (
+      task.retrievalNotificationEnabled !== false &&
+      isActionableRetrieval(task)
+    ) {
+      alertTaskIds.push(task.taskId);
+    }
   }
   return alertTaskIds;
 }

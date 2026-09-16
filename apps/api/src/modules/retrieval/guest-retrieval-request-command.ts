@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import {
   appendCustodyAuditEvent,
   type PersistedCustodyAuditScope,
@@ -201,7 +202,21 @@ export async function requestGuestRetrieval(
     occurredAt: operationTime,
     scope: guestAuditScope(session),
   });
-  if (pushCreationEnabled) {
+  await lockManagementSettingsOrganization(
+    transaction,
+    session.organizationId,
+    "SHARED",
+  );
+  const notificationPolicy = await transaction.query<{ enabled: boolean }>(
+    `SELECT COALESCE(location.employee_retrieval_requested_notification_enabled_override,
+                     organization.employee_retrieval_requested_notification_enabled) AS enabled
+     FROM locations AS location
+     INNER JOIN organizations AS organization
+       ON organization.id = location.organization_id
+     WHERE location.id = $1 AND location.organization_id = $2`,
+    [session.locationId, session.organizationId],
+  );
+  if (pushCreationEnabled && notificationPolicy.rows[0]?.enabled === true) {
     await persistRetrievalPushAttention(
       transaction,
       {

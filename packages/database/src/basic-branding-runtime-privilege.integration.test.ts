@@ -76,12 +76,12 @@ afterAll(async () => {
 }, 60_000);
 
 describe("VAL-009F runtime privileges for G8 surfaces", () => {
-  it("keeps the schema at exactly 30 applied migrations", async () => {
+  it("keeps the schema at exactly 38 applied migrations", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(37);
+    expect(result.rows).toHaveLength(38);
   });
 
   it("grants SELECT only on organization_subscriptions", async () => {

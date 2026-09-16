@@ -4,7 +4,7 @@ import type {
   ConfirmParkedKeyBinding,
   LockedConfirmSession,
   LockedConfirmTask,
-  LockedParkingSpot,
+  LockedParkingTarget,
 } from "./confirm-parked-types";
 
 export async function completeParkingTask(
@@ -28,7 +28,7 @@ export async function completeParkingTask(
 export async function parkValetSession(
   transaction: PostgresTransaction,
   session: LockedConfirmSession,
-  spot: LockedParkingSpot,
+  parking: LockedParkingTarget,
   operationTime: Date,
   keyBinding: ConfirmParkedKeyBinding,
 ): Promise<number> {
@@ -47,8 +47,8 @@ export async function parkValetSession(
       session.id,
       session.version,
       operationTime,
-      spot.parking_zone_id,
-      spot.id,
+      parking.parkingZoneId,
+      parking.parkingSpotId,
       keyBinding.newKeySlotId,
       keyBinding.expectedCurrentKeySlotId,
     ],

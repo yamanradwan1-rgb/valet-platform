@@ -578,6 +578,38 @@ Company default -> Location override
 
 Exact typed configuration entities/tables are introduced by focused tasks. Do not create a speculative untyped policy blob simply to satisfy the concept early.
 
+MGT-BE-05 makes the Company-default layer mutable through the Company Admin
+Management boundary while preserving the existing Location Manager exact-grant
+surface for the original ten typed Location overrides. The implemented
+Management catalog adds `EN | AR` language, informational operating hours,
+OCR-assist enablement, Parking Spot required, employee Retrieval-requested
+notification enablement, and Guest vehicle-ready notification enablement. Scalar
+Location overrides are nullable; absence means inherit and explicit `false`
+remains a real override.
+
+`OrganizationOperatingHours` and `LocationOperatingHoursOverride` are normalized
+seven-weekday local-wall-clock facts. They persist `time without time zone`, use
+the authoritative Location timezone only when interpreting/displaying the
+schedule, and do not persist a current UTC offset. They are informational and do
+not become an operational eligibility lifecycle.
+
+Parking completion consumes the effective current Parking Spot policy inside
+the protected transaction. A required policy needs a valid permitted Spot; an
+optional policy may complete with a valid Parking Zone and no Spot. This is
+prospective policy only and does not rewrite completed parking history.
+
+OCR-assist and notification enablement are likewise prospective gates. OCR OFF
+prevents tenant OCR assistance while preserving manual/no-plate Check-In;
+OCR ON still depends on independent provider/deployment/cost/privacy gates.
+Notification settings are finite real event families, not arbitrary keys, and
+do not rewrite old Notification or Staff Push history.
+
+Basic Management branding is only Company/Location display name and primary
+color. Company display name is `Organization.name`; Location overrides inherit
+when absent. Logos/assets are deliberately not modeled by MGT-BE-05. No
+geofence-alert setting is modeled without a justified alert consumer, and no SLA
+target source is modeled until MGT-BE-10 can preserve historical applicability.
+
 ## Modeling principles
 
 1. Current state lives on operational entities for fast reads.

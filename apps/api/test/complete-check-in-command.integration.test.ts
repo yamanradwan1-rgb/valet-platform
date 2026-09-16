@@ -15,6 +15,7 @@ import {
   createCompleteCheckInCommandExecutor,
   hasAcceptedPersistedVehicleIdentity,
 } from "../src/modules/valet-sessions/complete-check-in-command";
+import { beginBlockedCompanySettingMutation, waitForAdvisoryLock } from "./management-settings-race-test-helpers";
 
 interface Fixture {
   locationId: string;
@@ -1026,33 +1027,31 @@ describe("VAL-004H complete-check-in command", () => {
     expect(await readCompletionAudits(fixture.sessionId)).toHaveLength(1);
   });
 
-  it("waits for a concurrent policy update and makes one consistent current-policy decision", async () => {
+  it("serializes completion behind a Management check-in policy mutation", async () => {
     const fixture = await createFixture();
-    const policyTransaction = await adminPool.connect();
+    const writer = await beginBlockedCompanySettingMutation({
+      adminPool,
+      organizationId: fixture.organizationId,
+      runtimePool,
+      setting: "checkInPhotosRequired",
+      value: "true",
+    });
+    const completion = createCompleteCheckInCommandExecutor(runtimePool)(
+      commandRequest(fixture),
+    );
     try {
-      await policyTransaction.query("BEGIN");
-      await policyTransaction.query(
-        `UPDATE organizations
-         SET check_in_photos_required = true
-         WHERE id = $1`,
-        [fixture.organizationId],
+      await waitForAdvisoryLock(
+        adminPool,
+        "pg_advisory_xact_lock_shared",
+        "ShareLock",
+        false,
       );
-      let settled = false;
-      const completion = createCompleteCheckInCommandExecutor(runtimePool)(
-        commandRequest(fixture),
-      ).finally(() => {
-        settled = true;
-      });
-      await new Promise((resolvePromise) => setTimeout(resolvePromise, 50));
-      expect(settled).toBe(false);
-      await policyTransaction.query("COMMIT");
+      await writer.commit();
       await expectErrorCode(completion, "PHOTO_REQUIREMENT_NOT_SATISFIED");
       expect((await readSession(fixture.sessionId)).state).toBe("CHECKING_IN");
-    } catch (error) {
-      await policyTransaction.query("ROLLBACK");
-      throw error;
     } finally {
-      policyTransaction.release();
+      await writer.rollback();
+      await completion.catch(() => undefined);
     }
   });
 });

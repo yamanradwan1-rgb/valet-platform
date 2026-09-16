@@ -240,7 +240,6 @@ export function validateTemporalInvariants(session: SessionScopeRow): void {
     if (
       session.parking_started_at === null ||
       session.parked_at === null ||
-      session.parking_spot_id === null ||
       session.parking_zone_id === null
     ) {
       throw new Error("Corrupted state: invalid post-parking state.");

@@ -39,6 +39,7 @@ export const staffTaskQueueItemSchema = z
     currentAssigneeMembershipId: uuidSchema.nullable(),
     parkingSpot: z.string().nullable(),
     parkingZone: z.string().nullable(),
+    retrievalNotificationEnabled: z.boolean().optional(),
     retrievalRequestedAt: z.string().datetime({ offset: false }).nullable(),
     sessionId: uuidSchema,
     status: z.enum(["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS"]),

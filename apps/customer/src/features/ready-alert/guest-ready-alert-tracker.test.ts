@@ -14,8 +14,12 @@ function session(
   state: GuestSafeSession['state'],
   readyAt: string | null,
   valetSessionId = SESSION_A,
+  notificationEnabled?: boolean,
 ): GuestSafeSession {
   return {
+    ...(notificationEnabled === undefined
+      ? {}
+      : { guestVehicleReadyNotificationEnabled: notificationEnabled }),
     readyAt,
     state,
     valetSessionId,
@@ -75,6 +79,23 @@ describe('Guest vehicle-ready presentation tracking', () => {
     expect(
       observeGuestReadySnapshot(tracker, session('READY', READY_AT)),
     ).toEqual({ kind: 'NONE' });
+  });
+
+  it('records a policy-disabled READY identity and never replays it after re-enable', () => {
+    const tracker = createGuestReadyAlertTracker(session('RETRIEVING', null));
+    expect(
+      observeGuestReadySnapshot(
+        tracker,
+        session('READY', READY_AT, SESSION_A, false),
+      ),
+    ).toEqual({ kind: 'NONE' });
+    expect(
+      observeGuestReadySnapshot(
+        tracker,
+        session('READY', READY_AT, SESSION_A, true),
+      ),
+    ).toEqual({ kind: 'NONE' });
+    expect(tracker.observedIdentities.has(`${SESSION_A}:${READY_AT}`)).toBe(true);
   });
 
   it.each(['READY', 'HANDOFF_PENDING', 'COMPLETED'] as const)(

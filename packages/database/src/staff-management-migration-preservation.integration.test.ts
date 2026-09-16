@@ -10,6 +10,11 @@ const adminUrl = process.env.TEST_DATABASE_URL ?? process.env.MIGRATION_DATABASE
   "postgresql://valet:valet@127.0.0.1:5432/valet";
 const migrationRoot = new URL("../prisma/migrations/", import.meta.url);
 const migration = "20260916003700_mgt_be_04_staff_roles_access";
+const migrationIndex = expectedMigrationDirectories.indexOf(migration);
+const migrationsBeforeStaffManagement = expectedMigrationDirectories.slice(
+  0,
+  migrationIndex,
+);
 const databaseName = `valet_staff_mgt_preserve_${randomUUID().replaceAll("-", "")}`;
 let client: Client;
 
@@ -39,7 +44,7 @@ beforeAll(async () => {
   finally { await bootstrap.end(); }
   client = new Client({ connectionString: scopedUrl() });
   await client.connect();
-  for (const name of expectedMigrationDirectories.slice(0, -1)) await apply(name);
+  for (const name of migrationsBeforeStaffManagement) await apply(name);
 
   await client.query(
     `INSERT INTO organizations(id,name,timezone,updated_at)

@@ -1,9 +1,9 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-04.
-MGT-BE-05 has not started.
+Status: Binding execution plan with implementation progress through MGT-BE-05.
+MGT-BE-06 has not started.
 
-Rebaseline date: 2026-09-15
+Rebaseline date: 2026-09-17
 
 ## 1. Exact baseline and provenance
 
@@ -11,14 +11,14 @@ Rebaseline date: 2026-09-15
 | --- | --- |
 | Repository | `valet-platform` |
 | Updated local branch before work | `main` |
-| Local `main` SHA | `0c101c00e56ad6316a22be75920ec632a44ea138` |
-| `origin/main` SHA | `0c101c00e56ad6316a22be75920ec632a44ea138` |
+| Local `main` SHA | `6a9617690b60a7d11a9ea11c77b7e0d681507cf1` |
+| `origin/main` SHA | `6a9617690b60a7d11a9ea11c77b7e0d681507cf1` |
 | Match before branch creation | Yes; `HEAD == origin/main` |
 | Working tree before fetch/pull | Clean |
 | Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
-| Planning branch | `docs/management-backend-rebaseline-final` |
-| Current implementation migration count | 37 forward-only directories through MGT-BE-04 |
-| Current implementation latest migration | `20260916003700_mgt_be_04_staff_roles_access` |
+| Current feature branch | `feat/mgt-be-05-company-settings-branding` |
+| Current implementation migration count | 38 forward-only directories through MGT-BE-05 |
+| Current implementation latest migration | `20260916003800_mgt_be_05_company_settings_branding` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
@@ -44,7 +44,7 @@ no historical Accepted DEC file was silently rewritten.
 ## 3. Material changes since the old Management audit
 
 The old plan used `ca82d6ea2fbd2c2cf35287b7d62d0a46b0fc8261` and 33 migrations.
-The current repository state through the implemented MGT-BE-04 packet
+The current repository state through the implemented MGT-BE-05 packet
 materially adds or completes:
 
 - migration 34 and `IncidentRecoveryIntent`, with actor/Organization/Location/
@@ -85,6 +85,14 @@ materially adds or completes:
   role/status/Location-grant lifecycle, race-safe last-usable-admin protection,
   operational handover blockers, Organization-scoped membership deactivation,
   and a separate controlled global User security-disable path.
+- implemented MGT-BE-05 / migration 38 with narrow Company Admin mutation/read
+  surfaces for the ten existing typed defaults, typed EN/AR language,
+  normalized informational operating hours, OCR-assist, Parking Spot required,
+  employee Retrieval-requested and Guest vehicle-ready notification toggles,
+  and Company/Location name-color branding. It adds no generic settings JSON,
+  logo/assets, entitlement enforcement, geofence toggle, SLA target source, or
+  KPI implementation. Representative field commands consume mutable policy at
+  serialized authoritative boundaries and do not rewrite historical facts.
 
 These changes remove no Management requirement. They add schema/migration
 contention, session/push interactions for MFA and emergency disable, a new
@@ -112,10 +120,16 @@ new shared-contract compatibility obligations.
 - Eight bounded/paginated operational overview routes; four existing Location
   analytics families; manual DAILY/WEEKLY/MONTHLY Location reports and
   synchronous hardened CSV/PDF export.
-- Ten typed Company-default/Location-override policies with Location Manager
-  override write authority; no Company-default mutation.
-- Basic display-name/primary-color persistence and Location overrides; no logo
-  and no Guest effective-branding projection.
+- Ten typed Company-default/Location-override policies retain the existing
+  Location Manager exact-grant override authority, and MGT-BE-05 now adds
+  Company Admin Company-default plus allowed exact-Location Management mutation.
+- MGT-BE-05 also implements typed EN/AR language, normalized informational
+  operating hours, OCR-assist, Parking Spot required, and the two real
+  notification enablement types with Company-default -> nullable Location
+  override resolution.
+- Company/Location display-name and primary-color Management is implemented;
+  Company display name remains `Organization.name`. No logo or advanced
+  white-label asset system exists.
 - Read-only `OrganizationSubscription` with plan/status and three typed
   entitlements; no tenant mutation, billing engine, or enforcement.
 - Customer/Vehicle/ValetSession history and narrow exact returning Check-In
@@ -142,21 +156,19 @@ new shared-contract compatibility obligations.
 
 ## 5. Current real gaps
 
-1. No BE-05 Company-default settings/branding mutation surface: no
-   Company-default mutations for the existing typed policies/name/color, and
-   none of the new typed language, hours, OCR, parking requirement,
-   notification-type, SLA, or optional geofence settings.
-2. No safe Audit Explorer.
-3. No Location create/readiness/intake-stop/drain/deactivate API; persistence
+1. No safe Audit Explorer.
+2. No Location create/readiness/intake-stop/drain/deactivate API; persistence
    still defaults new rows to `ACTIVE`.
-4. No Management visit-contact search/history/correction surface.
-5. No Guest rating persistence or write.
-6. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
+3. No Management visit-contact search/history/correction surface.
+4. No Guest rating persistence or write.
+5. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
     or controlled Key Exceptions metrics.
-7. No All Locations analytics or company CSV/PDF reports. The implemented
+6. No All Locations analytics or company CSV/PDF reports. The implemented
    `ALL_LOCATIONS` selector/context is foundation only.
-8. No truthful Integration status API, Management-only entitlement
+7. No truthful Integration status API, Management-only entitlement
     enforcement, company commercial view, or Guest effective branding.
+8. No historically truthful SLA-target source yet. BE-05 deliberately does not
+   add a current scalar target that BE-10 could retroactively apply to old visits.
 
 ## 6. Formal decision mapping
 
@@ -346,7 +358,7 @@ Implementation status: implemented as migration
 `20260916003700_mgt_be_04_staff_roles_access` plus bounded Staff management
 contracts/API, controlled global security-disable tooling, shared concurrency
 boundaries, tenant/account-security audit integration, and focused race/runtime
-privilege coverage. MGT-BE-05 remains unstarted.
+privilege coverage. MGT-BE-05 is implemented in the next packet below.
 
 - Dependencies: MGT-BE-01 through MGT-BE-03.
 - Schema: migration 37 adds shared positive monotonic
@@ -401,13 +413,26 @@ hours, OCR toggle, parking Spot requirement, per-notification-type toggles,
 SLA target integration, optional justified geofence alert, and name/color
 inheritance/overrides.
 
+Implementation status: implemented in migration 38 and the Management API.
+The completed catalog is the ten existing typed defaults plus `languageDefault`,
+`operatingHours`, `ocrAssistEnabled`, `parkingSpotRequired`,
+`employeeRetrievalRequestedNotificationEnabled`, and
+`guestVehicleReadyNotificationEnabled`. Geofence alert is not implemented
+because there is no current justified configurable alert consumer. SLA target
+persistence is not implemented because MGT-BE-10 must define historically
+truthful applicability before a source can be added.
+
 - Dependencies: MGT-BE-01 and MGT-BE-03; SLA setting waits for the MGT-BE-10
   source contract. Coordinate any field-command policy consumers.
 - Schema: typed columns/tables only; existing ten pairs and branding reused.
   No generic JSON/rules/templates. Historical SLA applicability must be
   representable without applying today's target retroactively.
-- Auth/audit: MFA Company defaults; allowed exact-Location manager overrides;
-  narrow database write authority, CAS, and one atomic typed audit event.
+- Auth/audit: Company Admin reads use STANDARD Management assurance and writes
+  use SENSITIVE/five-minute freshness. Existing Location Manager exact-Location
+  authority for the original ten configuration settings/branding is preserved
+  separately and receives no Company Admin MFA. Company/Location Management
+  writes use narrow database authority, CAS, truthful no-op convergence, and one
+  atomic typed audit event per real change.
 - Concurrency/idempotency: policy changes race safely with active operations;
   operating hours are informational; OCR/manual fallback and provider/cost
   gates remain; existing financial/custody history is immutable.
@@ -416,6 +441,15 @@ inheritance/overrides.
 - Proof: inheritance including false-vs-null, timezone/DST hours, EN/AR,
   notification type allowlist, OCR production-unavailable behavior, parking
   command policy races, and unchanged existing policy semantics.
+- Branding: Company display name is authoritative `Organization.name`; Company
+  and Location primary color is canonical uppercase `#RRGGBB`; Location CLEAR
+  inherits the current Company value. Logos/assets remain deferred by DEC-086.
+- Runtime/deploy order: (1) deploy/provision the compatible migration artifact,
+  (2) apply migration 38, (3) run `runtime:provision` and privilege verification,
+  (4) deploy the API, (5) smoke the existing Location Manager configuration
+  path, (6) smoke Company Admin Company settings, (7) smoke Company Admin exact-
+  Location overrides, (8) smoke Company/Location branding, and (9) verify the
+  operational consumers. No zero-downtime claim is asserted.
 
 ### MGT-BE-06 — Management Audit Log
 
@@ -706,7 +740,7 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 and MGT-BE-04 are implemented; MGT-BE-05 has not started.
+MGT-BE-03, MGT-BE-04, and MGT-BE-05 are implemented; MGT-BE-06 has not started.
 
 ## 14. Documentation rebaseline validation record
 

@@ -4,6 +4,7 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
+import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendCustodyAuditEvent } from "../audit/custody-audit-event-writer";
 import {
   authorizeCustodyActorForPersistedScope,
@@ -240,10 +241,8 @@ export function createCompleteCheckInCommandExecutor(
 
     return inTransaction(pool, async (transaction) => {
       await requireActiveCustodyUser(transaction, request.authenticatedUserId);
-      const initialScope = await loadSessionScope(
-        transaction,
-        request.valetSessionId,
-      );
+      const initialScope = await loadSessionScope(transaction, request.valetSessionId);
+      await lockManagementSettingsOrganization(transaction, initialScope.organization_id, "SHARED");
       const actor = await authorizeCustodyActorForPersistedScope(transaction, {
         allowedRoles: ["VALET_EMPLOYEE", "VALET_SUPERVISOR"],
         authenticatedUserId: request.authenticatedUserId,

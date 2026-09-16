@@ -6,6 +6,7 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
+import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendCustodyAuditEvent } from "../audit/custody-audit-event-writer";
 import {
   authorizeCustodyActorForPersistedScope,
@@ -377,12 +378,12 @@ async function lockSessionScope(
 async function authorizeAndLockSession(
   transaction: PostgresTransaction,
   request: CheckInConditionStaffRequest,
+  lockSettingsPolicy = false,
 ): Promise<{ actorMembershipId: string; session: SessionScopeRow }> {
   await requireActiveCustodyUser(transaction, request.authenticatedUserId);
-  const initialScope = await loadSessionScope(
-    transaction,
-    request.valetSessionId,
-  );
+  const initialScope = await loadSessionScope(transaction, request.valetSessionId);
+  if (lockSettingsPolicy)
+    await lockManagementSettingsOrganization(transaction, initialScope.organization_id, "SHARED");
   const actor = await authorizeCustodyActorForPersistedScope(transaction, {
     allowedRoles: ["VALET_EMPLOYEE", "VALET_SUPERVISOR"],
     authenticatedUserId: request.authenticatedUserId,
@@ -797,10 +798,7 @@ export function createCompleteCheckInConditionCommandExecutor(
   return async (request) => {
     const normalized = normalizeStaffRequest(request);
     return inTransaction(pool, async (transaction) => {
-      const { actorMembershipId, session } = await authorizeAndLockSession(
-        transaction,
-        normalized,
-      );
+      const { actorMembershipId, session } = await authorizeAndLockSession(transaction, normalized, true);
       const guard = await evaluateLockedCheckInConditionGuard(transaction, {
         locationId: session.location_id,
         organizationId: session.organization_id,

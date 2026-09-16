@@ -6,6 +6,7 @@ const runtimeLocationConfigurationFunctions = [
 const privateLocationConfigurationFunctions = [
   "public.location_configuration_authorized_organization(uuid,uuid)",
   "public.location_configuration_setting_state(uuid,text)",
+  "public.location_configuration_minor_unit_exponent(text)",
   "public.location_configuration_append_audit(uuid,uuid,uuid,text,text,boolean,text,text,boolean,text,text)",
 ];
 

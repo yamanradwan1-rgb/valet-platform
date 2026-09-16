@@ -40,6 +40,12 @@ type GuestRetrievalOperation = (
 
 function guestSafeSession(session: GuestSafeSession): GuestSafeSession {
   return {
+    ...(session.guestVehicleReadyNotificationEnabled === undefined
+      ? {}
+      : {
+          guestVehicleReadyNotificationEnabled:
+            session.guestVehicleReadyNotificationEnabled,
+        }),
     readyAt: session.readyAt,
     state: session.state,
     valetSessionId: session.valetSessionId,

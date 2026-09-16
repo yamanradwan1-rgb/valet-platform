@@ -5,6 +5,7 @@ export interface GuestSafeVehicle {
 }
 
 export interface GuestSafeSession {
+  readonly guestVehicleReadyNotificationEnabled?: boolean;
   readonly readyAt: string | null;
   readonly state:
     | "AWAITING_PARKING"
@@ -22,6 +23,7 @@ export interface GuestSafeSession {
 
 export interface GuestSafeSessionRow {
   readonly color: string | null;
+  readonly guest_vehicle_ready_notification_enabled: boolean;
   readonly make: string | null;
   readonly model: string | null;
   readonly ready_at: Date | null;
@@ -33,6 +35,8 @@ export function projectGuestSafeSession(
   session: GuestSafeSessionRow,
 ): GuestSafeSession {
   return {
+    guestVehicleReadyNotificationEnabled:
+      session.guest_vehicle_ready_notification_enabled,
     readyAt: session.ready_at?.toISOString() ?? null,
     state: session.state,
     valetSessionId: session.valet_session_id,

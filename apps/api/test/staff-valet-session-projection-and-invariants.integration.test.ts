@@ -100,6 +100,29 @@ describe("Staff Valet Session Projection and Invariants Integration", () => {
       expect(res.status).toBe(200);
       expect(res.body.keySlot?.code).toBe("INACT-99");
     });
+
+    it("projects persisted Zone when Parking Spot is intentionally absent", async () => {
+      const { fixture, token } = await harness.fixtureWithToken();
+      const zoneId = await harness.createParkingZone(fixture, "ZONE-ONLY");
+      const { sessionId } = await harness.createSession(fixture, {
+        parkedAt: new Date("2026-08-21T18:05:00.000Z"),
+        parkingStartedAt: new Date("2026-08-21T18:02:00.000Z"),
+        parkingZoneId: zoneId,
+        state: "PARKED",
+      });
+      await harness.createTask(fixture, sessionId, {
+        assigneeMembershipId: fixture.membershipId,
+        status: "COMPLETED",
+      });
+      const res = await harness.request<StaffValetSessionDetailResponse>(
+        "GET",
+        "/v1/staff/valet-sessions/" + sessionId,
+        { token },
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.parking.parkingSpotCode).toBeNull();
+      expect(res.body.parking.parkingZoneCode).toBe("ZONE-ONLY");
+    });
   });
 
   describe("Corruption and Invariant Validation", () => {

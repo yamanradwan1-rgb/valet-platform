@@ -28,6 +28,63 @@ describe("MOB-020C retrieval Push intent transaction", () => {
     });
   });
 
+  it("honors effective tenant retrieval-notification policy without rewriting history", async () => {
+    const companyOff = await context.createGuestParkedFixture();
+    await context.addRegistration(companyOff.userId);
+    await context.adminPool.query(
+      `UPDATE organizations
+       SET employee_retrieval_requested_notification_enabled = false
+       WHERE id = $1`,
+      [companyOff.organizationId],
+    );
+    await context.request(companyOff);
+    expect(await context.retrievalEffects(companyOff.sessionId)).toMatchObject({
+      delivery_count: 0,
+      intent_count: 0,
+      request_count: 1,
+      session_state: "REQUESTED",
+      task_count: 1,
+    });
+
+    const locationOn = await context.createGuestParkedFixture();
+    await context.addRegistration(locationOn.userId);
+    await context.adminPool.query(
+      `UPDATE organizations
+       SET employee_retrieval_requested_notification_enabled = false
+       WHERE id = $1`,
+      [locationOn.organizationId],
+    );
+    await context.adminPool.query(
+      `UPDATE locations
+       SET employee_retrieval_requested_notification_enabled_override = true
+       WHERE id = $1`,
+      [locationOn.locationId],
+    );
+    await context.request(locationOn);
+    const created = await context.retrievalEffects(locationOn.sessionId);
+    expect(created).toMatchObject({ delivery_count: 1, intent_count: 1 });
+    await context.adminPool.query(
+      `UPDATE locations
+       SET employee_retrieval_requested_notification_enabled_override = false
+       WHERE id = $1`,
+      [locationOn.locationId],
+    );
+    expect(await context.retrievalEffects(locationOn.sessionId)).toEqual(created);
+
+    const locationOff = await context.createGuestParkedFixture();
+    await context.addRegistration(locationOff.userId);
+    await context.adminPool.query(
+      `UPDATE locations
+       SET employee_retrieval_requested_notification_enabled_override = false
+       WHERE id = $1`,
+      [locationOff.locationId],
+    );
+    await context.request(locationOff);
+    expect(await context.retrievalEffects(locationOff.sessionId)).toMatchObject({
+      delivery_count: 0,
+      intent_count: 0,
+    });
+  });
   it("commits the canonical domain lifecycle and one intent with zero recipients", async () => {
     const fixture = await context.createGuestParkedFixture();
     const result = await context.request(fixture);

@@ -20,6 +20,7 @@ import {
   loadDirectoryParking,
   loadDirectoryTasks,
   loadDirectoryVehicles,
+  loadDirectoryZones,
   resolveDirectoryLocationScope,
   type DirectoryCandidateRow,
   type DirectoryTaskRow,
@@ -146,10 +147,11 @@ export class StaffVehicleDirectoryService {
             : (loaded.parking.get(candidate.parking_spot_id)?.spot_code ??
               null),
         parkingZoneCode:
-          candidate.parking_spot_id === null
+          candidate.parking_zone_id === null ||
+          (candidate.parking_spot_id === null &&
+            !["PARKED", "REQUESTED"].includes(candidate.state))
             ? null
-            : (loaded.parking.get(candidate.parking_spot_id)?.zone_code ??
-              null),
+            : (loaded.zones.get(candidate.parking_zone_id)?.code ?? null),
         sessionId: candidate.id,
         state:
           candidate.state as StaffVehicleDirectoryResponse["rows"][number]["state"],
@@ -204,10 +206,11 @@ export class StaffVehicleDirectoryService {
             : (loaded.parking.get(candidate.parking_spot_id)?.spot_code ??
               null),
         parkingZoneCode:
-          candidate.parking_spot_id === null
+          candidate.parking_zone_id === null ||
+          (candidate.parking_spot_id === null &&
+            !["PARKED", "REQUESTED"].includes(candidate.state))
             ? null
-            : (loaded.parking.get(candidate.parking_spot_id)?.zone_code ??
-              null),
+            : (loaded.zones.get(candidate.parking_zone_id)?.code ?? null),
         sessionId: candidate.id,
         state:
           candidate.state as StaffVehicleDirectoryResponse["rows"][number]["state"],
@@ -226,6 +229,9 @@ export class StaffVehicleDirectoryService {
     const spotIds = candidates
       .map((candidate) => candidate.parking_spot_id)
       .filter((spotId): spotId is string => spotId !== null);
+    const zoneIds = candidates
+      .map((candidate) => candidate.parking_zone_id)
+      .filter((zoneId): zoneId is string => zoneId !== null);
     const slotIds = candidates
       .map((candidate) => candidate.key_slot_id)
       .filter((slotId): slotId is string => slotId !== null);
@@ -241,6 +247,12 @@ export class StaffVehicleDirectoryService {
         scope.organizationId,
         scope.locationId,
         spotIds,
+      ),
+      zones: await loadDirectoryZones(
+        client,
+        scope.organizationId,
+        scope.locationId,
+        zoneIds,
       ),
       vehicles: await loadDirectoryVehicles(
         client,

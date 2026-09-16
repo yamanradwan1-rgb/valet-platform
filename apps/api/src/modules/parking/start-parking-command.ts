@@ -1,4 +1,5 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendDispatchEvent } from "../dispatch/dispatch-event-writer";
 import {
   inDispatchTransaction,
@@ -44,6 +45,11 @@ async function executeStartParking(
     const session = await lockStartParkingSession(
       transaction,
       request.sessionId,
+    );
+    await lockManagementSettingsOrganization(
+      transaction,
+      session.organization_id,
+      "SHARED",
     );
     const actorMembershipId = await resolveStartParkingActor(
       transaction,

@@ -1,4 +1,5 @@
 import type { PostgresPool } from "../../common/database/postgres";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import type {
   ClaimedStaffPushDelivery,
   EligibleStaffPushDelivery,
@@ -6,6 +7,10 @@ import type {
 
 interface ClaimStateRow {
   readonly expired: boolean;
+}
+
+interface ClaimScopeRow {
+  readonly organization_id: string;
 }
 
 interface EligibleRow {
@@ -37,8 +42,26 @@ export async function resolveEligibleStaffPushDelivery(
   claim: ClaimedStaffPushDelivery,
   activeRegistrationStaleDays: number,
 ): Promise<EligibleStaffPushDelivery | undefined> {
-  const result = await pool.query<EligibleRow>(
-    `WITH clock AS MATERIALIZED (SELECT clock_timestamp() AS now)
+  return inPostgresTransaction(pool, async (transaction) => {
+    const scope = await transaction.query<ClaimScopeRow>(
+      `SELECT delivery.organization_id,
+              pg_advisory_xact_lock_shared(
+                hashtextextended(
+                  'management-settings-org:' || delivery.organization_id::text, 0
+                )
+              )
+       FROM staff_push_deliveries AS delivery
+       WHERE delivery.id = $1 AND delivery.state = 'LEASED'
+         AND delivery.lease_token = $2`,
+      [claim.deliveryId, claim.leaseToken],
+    );
+    if (scope.rows[0] === undefined) return undefined;
+
+    // The lock acquisition above may wait for an exclusive settings writer.
+    // Keep the eligibility read as a second READ COMMITTED statement so it sees
+    // that writer's committed policy before this transaction releases the lock.
+    const result = await transaction.query<EligibleRow>(
+      `WITH clock AS MATERIALIZED (SELECT clock_timestamp() AS now)
      SELECT intent.id AS intent_id,
             registration.id AS registration_id, registration.provider_token,
             registration.token_hash, registration.locale::text,
@@ -81,6 +104,8 @@ export async function resolveEligibleStaffPushDelivery(
        ON location.id = intent.location_id
       AND location.organization_id = intent.organization_id
       AND location.status = 'ACTIVE'
+      AND COALESCE(location.employee_retrieval_requested_notification_enabled_override,
+                   organization.employee_retrieval_requested_notification_enabled)
      INNER JOIN valet_sessions AS valet_session
        ON valet_session.id = intent.valet_session_id
       AND valet_session.organization_id = intent.organization_id
@@ -108,17 +133,18 @@ export async function resolveEligibleStaffPushDelivery(
            AND shift.location_id = intent.location_id
            AND shift.status = 'ACTIVE'
        )`,
-    [claim.deliveryId, claim.leaseToken, activeRegistrationStaleDays],
-  );
-  const row = result.rows[0];
-  if (row === undefined) return undefined;
-  return {
-    ...claim,
-    intentId: row.intent_id,
-    locale: row.locale,
-    providerToken: row.provider_token,
-    registrationId: row.registration_id,
-    remainingLifetimeMilliseconds: row.remaining_lifetime_milliseconds,
-    tokenHash: row.token_hash,
-  };
+      [claim.deliveryId, claim.leaseToken, activeRegistrationStaleDays],
+    );
+    const row = result.rows[0];
+    if (row === undefined) return undefined;
+    return {
+      ...claim,
+      intentId: row.intent_id,
+      locale: row.locale,
+      providerToken: row.provider_token,
+      registrationId: row.registration_id,
+      remainingLifetimeMilliseconds: row.remaining_lifetime_milliseconds,
+      tokenHash: row.token_hash,
+    };
+  });
 }
