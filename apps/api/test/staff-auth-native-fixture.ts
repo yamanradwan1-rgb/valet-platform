@@ -168,6 +168,16 @@ export class StaffAuthNativeFixture {
     return this.adminPool;
   }
 
+  migrationDatabaseUrl(): string {
+    if (this.migrationUrl === "") throw new Error("Fixture not started.");
+    return this.migrationUrl;
+  }
+
+  runtimeDatabaseUrl(): string {
+    if (this.migrationUrl === "") throw new Error("Fixture not started.");
+    return runtimeUrl(databaseName);
+  }
+
   async request(
     path: string,
     options: AuthRequestOptions = {},

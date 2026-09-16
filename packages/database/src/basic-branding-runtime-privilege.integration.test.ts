@@ -81,7 +81,7 @@ describe("VAL-009F runtime privileges for G8 surfaces", () => {
       `SELECT migration_name FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(36);
+    expect(result.rows).toHaveLength(37);
   });
 
   it("grants SELECT only on organization_subscriptions", async () => {

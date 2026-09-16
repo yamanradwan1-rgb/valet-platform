@@ -103,18 +103,27 @@ export async function authorizeCompanyAdminManagement(
   await requireMfaAssuranceInTransaction(transaction, context, {
     sensitive: input.assurance === "SENSITIVE",
   });
+  await transaction.query(
+    `SELECT pg_advisory_xact_lock(
+       hashtextextended('staff-management-org:' || $1::text, 0)
+     )`,
+    [input.organizationId],
+  );
+  const organization = await transaction.query(
+    `SELECT id FROM organizations
+     WHERE id = $1 AND status = 'ACTIVE'`,
+    [input.organizationId],
+  );
+  if (organization.rowCount !== 1) throw new ManagementAccessDeniedError();
   const membership = await transaction.query<MembershipScopeRow>(
     `SELECT membership.id::text AS "membershipId",
-            organization.id::text AS "organizationId"
+            membership.organization_id::text AS "organizationId"
      FROM organization_memberships AS membership
-     INNER JOIN organizations AS organization
-       ON organization.id = membership.organization_id
      WHERE membership.user_id = $1
        AND membership.organization_id = $2
        AND membership.status = 'ACTIVE'
        AND membership.role = 'ORG_ADMIN'
-       AND organization.status = 'ACTIVE'
-     FOR UPDATE OF membership, organization`,
+     FOR UPDATE OF membership`,
     [context.userId, input.organizationId],
   );
   const row = membership.rows[0];

@@ -94,6 +94,9 @@ const statusByCode: Readonly<Record<string, number>> = {
   TASK_REASSIGN_REASON_REQUIRED: HttpStatus.BAD_REQUEST,
   STAFF_AUTHENTICATION_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: HttpStatus.FORBIDDEN,
+  STAFF_ACCESS_INVALID_STATE: HttpStatus.CONFLICT,
+  STAFF_HANDOVER_REQUIRED: HttpStatus.CONFLICT,
+  LAST_USABLE_ADMIN_REQUIRED: HttpStatus.CONFLICT,
   STAFF_PUSH_REGISTRATION_CONFLICT: HttpStatus.CONFLICT,
   STAFF_PUSH_REGISTRATION_NOT_AVAILABLE: HttpStatus.NOT_FOUND,
   PHOTO_REQUIREMENT_NOT_SATISFIED: HttpStatus.UNPROCESSABLE_ENTITY,
@@ -132,6 +135,9 @@ const safeMessages: Readonly<Record<string, string>> = {
   STAFF_AUTHENTICATION_FAILED: "Staff authentication failed.",
   STAFF_AUTHENTICATION_RATE_LIMITED: "Too many requests. Try again later.",
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: "The request origin is not allowed.",
+  STAFF_ACCESS_INVALID_STATE: "The requested Staff access change is not valid now.",
+  STAFF_HANDOVER_REQUIRED: "Operational handover is required before this change.",
+  LAST_USABLE_ADMIN_REQUIRED: "Another usable Company Admin is required.",
   STAFF_PUSH_REGISTRATION_CONFLICT:
     "The push registration could not be reconciled.",
   STAFF_PUSH_REGISTRATION_NOT_AVAILABLE:

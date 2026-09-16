@@ -609,6 +609,7 @@ model OrganizationMembership {
   userId         String           @map("user_id") @db.Uuid
   role           MembershipRole
   status         MembershipStatus @default(ACTIVE)
+  version        Int              @default(1)
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -641,6 +642,7 @@ model OrganizationMembership {
 
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
+  @@index([organizationId, createdAt, id], map: "organization_memberships_org_created_id_idx")
   @@map("organization_memberships")
 }
 
@@ -841,6 +843,7 @@ model ValetSession {
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
+  @@index([checkedInByMembershipId, state, locationId], map: "valet_sessions_checked_in_state_location_idx")
   @@index([locationId, state], map: "valet_sessions_location_id_state_idx")
   @@index([vehicleId, createdAt(sort: Desc)], map: "valet_sessions_vehicle_id_created_at_idx")
   @@index([locationId, retrievalRequestedAt], map: "valet_sessions_location_id_retrieval_requested_at_idx")
@@ -1346,6 +1349,7 @@ model IncidentRecoveryIntent {
   reportingMembership OrganizationMembership @relation("IncidentRecoveryReportedBy", fields: [organizationId, reportingMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "incident_recovery_intents_org_membership_id_fkey")
 
   @@id([organizationId, incidentId], map: "incident_recovery_intents_pkey")
+  @@index([reportingMembershipId, state, expiresAt, locationId], map: "incident_recovery_intents_member_state_expiry_location_idx")
   @@map("incident_recovery_intents")
 }
 

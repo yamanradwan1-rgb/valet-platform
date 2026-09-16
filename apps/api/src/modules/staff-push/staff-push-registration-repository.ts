@@ -2,6 +2,7 @@ import type { StaffPushRegistrationRequest } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { lockStaffUserSecurityBoundary } from "../auth/staff-user-security-lock";
 import type {
   ActiveRegistrationRow,
   LockedStaffSessionRow,
@@ -12,6 +13,7 @@ export async function lockAndRecheckStaffSession(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
 ): Promise<LockedStaffSessionRow | undefined> {
+  await lockStaffUserSecurityBoundary(transaction, context.userId);
   const result = await transaction.query<LockedStaffSessionRow>(
     `SELECT session.id, session.user_id, session.created_at
      FROM staff_auth_sessions AS session

@@ -1,7 +1,7 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-03.
-MGT-BE-04 has not started.
+Status: Binding execution plan with implementation progress through MGT-BE-04.
+MGT-BE-05 has not started.
 
 Rebaseline date: 2026-09-15
 
@@ -17,8 +17,8 @@ Rebaseline date: 2026-09-15
 | Working tree before fetch/pull | Clean |
 | Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
 | Planning branch | `docs/management-backend-rebaseline-final` |
-| Current implementation migration count | 36 forward-only directories through MGT-BE-02 |
-| Current implementation latest migration | `20260916003600_mgt_be_02_complete_mfa` |
+| Current implementation migration count | 37 forward-only directories through MGT-BE-04 |
+| Current implementation latest migration | `20260916003700_mgt_be_04_staff_roles_access` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
@@ -332,24 +332,57 @@ Objective: implement DEC-081 membership directory, role changes, Location
 grant/revoke, activation/deactivation, last-admin protection, emergency disable,
 and operational-responsibility safeguards.
 
-Implementation status: not started. MGT-BE-03 `STAFF_MANAGE_ELIGIBLE` is only
-the control-plane eligibility signal and does not implement this packet.
+Implementation status: implemented as migration
+`20260916003700_mgt_be_04_staff_roles_access` plus bounded Staff management
+contracts/API, controlled global security-disable tooling, shared concurrency
+boundaries, tenant/account-security audit integration, and focused race/runtime
+privilege coverage. MGT-BE-05 remains unstarted.
 
 - Dependencies: MGT-BE-01 through MGT-BE-03.
-- Schema: existing role/status/grant fields are primary state; narrow mutation
-  functions/history support only if justified. No generic permission model.
-- Auth/audit: five-minute MFA freshness; Company Admin only for base roles;
-  membership-scoped disable; atomic Organization audit; global User disable is
-  separate.
-- Concurrency/idempotency: serialize last-usable-admin checks; CAS/desired state;
-  races with Shift, Task, custody, IncidentRecoveryIntent, session refresh,
-  push delivery, and grant removal. Emergency disable revokes access without
-  fake operational completion.
-- Performance: bounded directory/detail queries and batched Location grants;
-  no N+1 or unbounded identity projection.
-- Proof: two-Organization User isolation, concurrent self-demotions, handover,
-  immediate denial, truthful stranded-work recovery, session/push invalidation,
-  and privilege bypass tests.
+- Schema: migration 37 adds shared positive monotonic
+  `OrganizationMembership.version` CAS and narrow migration-owner
+  `SECURITY DEFINER` role/status/Location-grant command functions plus private
+  helpers. Four base roles remain unchanged; no generic permission model or new
+  mutable key-custody owner was introduced.
+- Directory/privacy: Organization staff list is keyset-paginated and bounded;
+  its final query is page-first, selecting the tenant membership page by
+  `(created_at, id)` before User hydration and Location-grant counting. Detail
+  returns at most 100 Location grants plus total/truncated state. Public
+  projection is membership ID, email, role, status, version and bounded grant
+  data only; foreign membership and other-Organization state remain concealed.
+- Mutation semantics: role/status/grant requests use one shared CAS,
+  fail closed on nullable DB-boundary CAS/mode input, and converge desired-state
+  no-ops without duplicate version/audit. `ORG_ADMIN` demotion requires dormant
+  Location-grant reconciliation.
+- Auth/audit: sensitive mutation uses five-minute exact-session MFA freshness;
+  changed tenant mutations append one atomic Organization audit event and no-op
+  retries append none. Controlled global User disable writes account-security
+  audit only and never fabricates tenant lifecycle/operational completion.
+- Last-admin/concurrency: usable admin means active Organization + active
+  `ORG_ADMIN` membership + active User + `ACTIVE` TOTP factor; live session is
+  not required. Staff-management transactions serialize per Organization on
+  `staff-management-org` before actor/last-admin recheck.
+- Handover: access reduction blocks active Shift, assigned/accepted/in-progress
+  Task, unfinished intake responsibility, and unexpired `RESERVED`
+  IncidentRecoveryIntent in the affected scope. Task assignment is canonical
+  current key/custody responsibility; `KeyCustodyEvent` remains history.
+- Disable scope: membership `INACTIVE` is Organization-scoped and leaves other
+  memberships intact. Controlled User `DISABLED` revokes all of that User's
+  Staff sessions and active push registrations while preserving memberships and
+  operational truth. Disable/login/refresh/push registration serialize on the
+  per-User `staff-user-security` advisory boundary.
+- Runtime/deploy: ordinary runtime cannot directly mutate User status,
+  membership authority/version, or grant identity and can execute only the
+  three reviewed staff-management command functions; helpers/PUBLIC stay
+  denied. Apply migration 37, rerun runtime-role provisioning/verification,
+  then deploy/smoke the updated API.
+- Performance proof: migration 37 keeps only the three justified indexes used by
+  the final access paths: `organization_memberships_org_created_id_idx` on
+  `(organization_id, created_at, id)`,
+  `valet_sessions_checked_in_state_location_idx` on
+  `(checked_in_by_membership_id, state, location_id)`, and
+  `incident_recovery_intents_member_state_expiry_location_idx` on
+  `(reporting_membership_id, state, expires_at, location_id)`.
 
 ### MGT-BE-05 — Company Settings & Branding
 
@@ -663,7 +696,7 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 is implemented and MGT-BE-04 has not started.
+MGT-BE-03 and MGT-BE-04 are implemented; MGT-BE-05 has not started.
 
 ## 14. Documentation rebaseline validation record
 

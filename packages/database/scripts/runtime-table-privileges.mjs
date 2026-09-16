@@ -7,6 +7,7 @@ import {
 } from "./basic-branding-runtime-privileges.mjs";
 import { provisionStaffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
 import { provisionIncidentRecoveryPrivileges } from "./incident-recovery-runtime-privileges.mjs";
+import { provisionStaffManagementPrivileges } from "./staff-management-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -124,9 +125,9 @@ const authorityColumnRevokes = [
           UPDATE (id, email, phone, password_hash, status, created_at,
                   updated_at, last_login_at)
    ON TABLE users FROM %I`,
-  `REVOKE INSERT (id, organization_id, user_id, role, status, created_at,
+  `REVOKE INSERT (id, organization_id, user_id, role, status, version, created_at,
                   updated_at),
-          UPDATE (id, organization_id, user_id, role, status, created_at,
+          UPDATE (id, organization_id, user_id, role, status, version, created_at,
                   updated_at)
    ON TABLE organization_memberships FROM %I`,
   `REVOKE INSERT (organization_id, membership_id, location_id, created_at),
@@ -285,6 +286,7 @@ export async function provisionRuntimeTablePrivileges(
     executeFormatted,
     runtimeRole,
   );
+  await provisionStaffManagementPrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

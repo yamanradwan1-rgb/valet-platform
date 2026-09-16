@@ -198,8 +198,8 @@ afterAll(async () => {
 
 describe("MGT-BE-01 audit foundation migration 35", () => {
   it("applies the current history including audit foundation from an empty database", async () => {
-    expect(expectedMigrationDirectories).toHaveLength(36);
-    expect(expectedMigrationDirectories.at(-2)).toBe(auditFoundationMigration);
+    expect(expectedMigrationDirectories).toHaveLength(37);
+    expect(expectedMigrationDirectories.at(34)).toBe(auditFoundationMigration);
     expect(await accountAuditTableExists(freshClient)).toBe(true);
   });
 

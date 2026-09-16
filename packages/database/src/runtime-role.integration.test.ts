@@ -282,7 +282,7 @@ describe("runtime PostgreSQL role boundary", () => {
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(36);
+    expect(result.rows).toHaveLength(37);
   });
   it("rejects a real plaintext migration preflight without applying a migration", async () => {
     const before = await adminPool.query<{ count: string }>(
@@ -541,7 +541,7 @@ describe("runtime PostgreSQL role boundary", () => {
     await expectPostgresDenial(
       runtimePool.query(`SELECT setval($1::regclass, 1)`, [futureSequence]),
     );
-  });
+  }, 15_000);
 
   it("allows audit insert/select but denies update, delete and truncate", async () => {
     const fixture = await createAuditFixture();

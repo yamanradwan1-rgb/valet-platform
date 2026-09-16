@@ -121,6 +121,54 @@ reports/export reads and current live operations map, but raw route history,
 map-setup mutation and operational field commands remain outside Company Admin
 authority.
 
+MGT-BE-04 implements DEC-081 Staff, Roles & Access on top of that control
+plane. Company Admin can read a bounded Organization staff directory and
+membership detail, change a membership among the four existing base roles,
+activate/deactivate a tenant membership, and grant/revoke Organization-owned
+Locations. The directory is tenant-minimized: it exposes the membership ID,
+email identity, role, status, shared membership version and Location-access
+counts; detail adds at most 100 named Location grants with a total/truncated
+indicator. It does not expose User IDs, phone data, Staff sessions, MFA state,
+other-Organization memberships or operational responsibility.
+
+The directory query is page-first: it resolves the bounded Organization
+membership page by `(created_at, id)` before joining User identity and counting
+Location grants. Migration 37 adds only the three justified Staff-management
+indexes needed for this page path and the intake/incident handover blocker
+lookups; it does not introduce a broader speculative index set.
+
+Role/status/grant mutations require current Company Admin authority and
+five-minute MFA freshness. They use one shared monotonic
+`OrganizationMembership.version` CAS and desired-state semantics: an exact
+retry that already reached the requested state is a no-op with no extra version
+or tenant audit event, while a different stale request conflicts. Database
+command boundaries fail closed for nullable CAS/mode inputs. The role catalog
+remains exactly `ORG_ADMIN`, `LOCATION_MANAGER`, `VALET_SUPERVISOR` and
+`VALET_EMPLOYEE`; MGT-BE-04 adds no generic permission engine.
+
+Access reduction cannot strand live work. Deactivation, operational-role
+removal and Location-grant revocation recheck active Shift responsibility,
+assigned/accepted/in-progress Tasks, unhanded-off intake responsibility, and
+unexpired `RESERVED` incident-recovery intent. Key custody does not add a
+second mutable responsibility owner: the active Task is the canonical current
+operational owner, while `KeyCustodyEvent` remains immutable custody history.
+An `ORG_ADMIN` demotion with dormant Location grants is rejected until those
+grants are explicitly reconciled, so a role change cannot silently turn old
+grants into new authority.
+
+The last usable Company Admin cannot be normally demoted or deactivated. A
+usable admin means an active `ORG_ADMIN` membership in an active Organization
+for an active User with an `ACTIVE` TOTP factor; a live Staff session or recent
+step-up is not required for that availability count. Normal staff-management
+changes serialize per Organization before this decision.
+
+Tenant membership `INACTIVE` remains Organization-scoped and leaves the User
+and any memberships in other Organizations intact. Global User `DISABLED` is a
+separate controlled VAYLET security action: it revokes all Staff sessions for
+that User, disables their active push registrations, blocks later login/refresh
+and push re-registration, and preserves memberships plus Shift/Task/intake/key/
+incident operational truth for explicit recovery.
+
 ### Venue Client
 
 Blueprint actor for a venue/customer that needs restricted visibility into its own location performance, validations, ratings, SLA and incidents.

@@ -568,9 +568,76 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
 - MGT-BE-03 adds no database migration or index and does not enforce commercial
   entitlements. Entitlement enforcement remains owned by MGT-BE-12; All
   Locations analytics/company reports remain owned by MGT-BE-11.
-- Staff membership disable is tenant-scoped. Emergency disable blocks access
-  and sessions immediately but never fabricates Task, Shift, Key, Incident, or
-  custody completion.
+- MGT-BE-04 Staff directory/detail are Organization-scoped, bounded and
+  minimized. Directory identity is email-only plus membership role/status/
+  version and Location-access count; detail adds a bounded Location-grant
+  projection. User IDs, phone data, Staff sessions, MFA material,
+  other-Organization memberships/grants and operational responsibility are not
+  exposed. Foreign membership lookup is concealed as unavailable, and these
+  responses use no-store semantics.
+- The Staff directory is page-first: it selects only the bounded tenant
+  membership keyset page before joining User identity and counting Location
+  grants. Migration 37 adds the justified
+  `organization_memberships_org_created_id_idx`,
+  `valet_sessions_checked_in_state_location_idx`, and
+  `incident_recovery_intents_member_state_expiry_location_idx` indexes for the
+  directory and handover-blocker access paths; no additional Staff-management
+  index should be inferred from this contract.
+- MGT-BE-04 role/status/Location grant mutations require current persisted
+  `ORG_ADMIN` authority and sensitive five-minute exact-session MFA freshness.
+  The four tenant roles remain exactly `ORG_ADMIN`, `LOCATION_MANAGER`,
+  `VALET_SUPERVISOR`, `VALET_EMPLOYEE`; no generic permission engine is created.
+- Role, status and Location-grant commands share the monotonic
+  `OrganizationMembership.version` CAS. Desired-state retries that would make
+  no change converge without another version increment or duplicate tenant
+  audit event; a different stale state conflicts. The database command boundary
+  fails closed for `NULL` expected versions and `NULL` Location grant mode.
+- Staff-management mutations serialize per Organization on the
+  `staff-management-org` transaction advisory boundary. The last usable admin
+  is an active `ORG_ADMIN` membership in an active Organization for an active
+  User with an `ACTIVE` TOTP factor; a live session/recent step-up is not part of
+  that availability definition. A normal demotion or deactivation cannot remove
+  the last such admin.
+- Normal access reduction is handover-safe. The affected scope is blocked by an
+  active Shift; an assigned/accepted/in-progress Task; unfinished intake
+  responsibility (`CHECKING_IN`, or `AWAITING_PARKING` before a Parking Task
+  takes over); or an unexpired `RESERVED` IncidentRecoveryIntent. Location
+  revocation checks only the requested Locations. Key custody uses the active
+  Task as current operational responsibility; `KeyCustodyEvent` remains
+  append-only history and is never rewritten to make an access change succeed.
+- Persisted Location grants can be dormant under roles that do not consume
+  them. Demoting an `ORG_ADMIN` while grants remain is rejected until the grant
+  set is explicitly reconciled, so a role change cannot silently turn dormant
+  rows into authority.
+- Staff membership `INACTIVE` is tenant-scoped. It does not change the User or
+  memberships in other Organizations and does not globally revoke unrelated
+  sessions. Global User `DISABLED` remains a distinct controlled VAYLET
+  security action.
+- Controlled global disable runs through
+  `pnpm --filter @valet/api staff:security-disable -- --operation disable-user --operation-id <uuid> --user-id <uuid> --operator-ref <ref>`
+  with the protected migration credential. It changes the User to `DISABLED`,
+  revokes every active Staff session for that User, disables and clears active
+  Staff push registrations, and writes one controlled account-security audit
+  event. It deliberately leaves Organization memberships, Shift/Task/intake,
+  ValetSession, KeyCustodyEvent and IncidentRecoveryIntent truth unchanged for
+  explicit operational recovery.
+- Global disable, login issuance, refresh rotation and push registration share
+  the per-User `staff-user-security` transaction advisory boundary. After a
+  disable commits, queued/future login and refresh fail and no active push
+  registration can be re-established from the disabled User's sessions. Exact
+  disable retries converge by operation ID; changing the recorded operation
+  facts under the same ID is rejected.
+- Staff-management tenant audit and account-security audit remain separate.
+  Changed role/status/grant commands append one Organization audit event in the
+  same transaction; desired-state no-ops append none. Global User disable writes
+  only controlled account-security history and does not fabricate per-tenant
+  disable events.
+- Migration 37 keeps authority columns behind the runtime-role boundary. Normal
+  runtime has no direct DML authority over `users.status`, membership
+  role/status/version, or membership Location-grant identity. It receives
+  execute only on the three migration-owner staff-management command functions;
+  helper functions and `PUBLIC` execution remain denied and the functions use a
+  fixed safe search path.
 - Audit, Customer/visit, integration, subscription, and report projections are
   allowlisted, bounded, tenant-safe, and reauthorize current persisted scope.
 - MGT-BE-01 migration 35 is a coordinated cutover: stop ordinary runtime audit
@@ -587,6 +654,14 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   `pnpm --filter @valet/api staff:mfa-recover -- --operation recover-totp --operation-id <uuid> --user-id <uuid> --operator-ref <ref>`
   using `NODE_ENV=production` and the protected `MIGRATION_DATABASE_URL`
   operator boundary in production; ordinary API runtime cannot invoke it.
+- MGT-BE-04 is migration 37. After migration 36/MFA prerequisites are in place,
+  apply migration 37 with `pnpm --filter @valet/database migrate:deploy`, rerun
+  `pnpm --filter @valet/database runtime:provision` so the runtime receives only
+  the reviewed staff-management function grants and current direct-DML revokes,
+  then deploy the updated API and smoke directory/detail, one sensitive
+  mutation, tenant deactivation, and controlled global disable/login-refresh-
+  push denial. Do not serve BE-04 mutation traffic assuming migration-owner or
+  stale runtime privileges are sufficient.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

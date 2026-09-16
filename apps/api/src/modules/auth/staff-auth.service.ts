@@ -18,6 +18,10 @@ import {
   staffCredentialHash,
 } from "./staff-auth-credential";
 import { revokeStaffSessionAndDisablePush } from "./staff-session-revocation";
+import {
+  lockAndRecheckStaffLoginUser,
+  lockStaffRefreshUserSecurityBoundary,
+} from "./staff-user-security-lock";
 
 export { DatabaseStaffPrincipalResolver } from "./staff-session-context";
 
@@ -183,15 +187,7 @@ export class StaffAuthService {
     const sessionId = randomUUID();
     const refreshId = randomUUID();
     const session = await inTransaction(this.pool, async (transaction) => {
-      const locked = await transaction.query<UserAuthenticationRow>(
-        `SELECT id, password_hash, status FROM users WHERE id = $1 FOR UPDATE`,
-        [user.id],
-      );
-      const current = locked.rows[0];
-      if (
-        current?.status !== "ACTIVE" ||
-        current.password_hash !== user.password_hash
-      ) {
+      if (!(await lockAndRecheckStaffLoginUser(transaction, user.id, user.password_hash))) {
         throw new StaffAuthenticationError();
       }
       const databaseNow = (
@@ -281,7 +277,11 @@ export class StaffAuthService {
     const accessToken = generateStaffCredential("vsa1.");
     const replacementRefreshToken = generateStaffCredential("vsr1.");
     const replacementId = randomUUID();
+    const refreshHash = staffCredentialHash("refresh", refreshToken);
     const result = await inTransaction(this.pool, async (transaction) => {
+      if (!(await lockStaffRefreshUserSecurityBoundary(transaction, refreshHash))) {
+        throw new StaffAuthenticationError();
+      }
       const locked = await transaction.query<RefreshCredentialRow>(
         `SELECT refresh.id, refresh.session_id, refresh.generation,
                 refresh.expires_at, refresh.consumed_at,
@@ -292,7 +292,7 @@ export class StaffAuthService {
          INNER JOIN users AS staff_user ON staff_user.id = session.user_id
          WHERE refresh.token_hash = $1
          FOR UPDATE OF refresh, session, staff_user`,
-        [staffCredentialHash("refresh", refreshToken)],
+        [refreshHash],
       );
       const credential = locked.rows[0];
       if (credential === undefined) throw new StaffAuthenticationError();

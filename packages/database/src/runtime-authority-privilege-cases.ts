@@ -12,6 +12,7 @@ export const authorityColumnPrivileges = [
   ["organization_memberships", "updated_at", true],
   ["organization_memberships", "role", false],
   ["organization_memberships", "status", false],
+  ["organization_memberships", "version", false],
   ["organization_memberships", "organization_id", false],
   ["organization_memberships", "user_id", false],
   ["membership_location_access", "created_at", true],
@@ -69,6 +70,11 @@ export function authorityMutationAttempts(
     () =>
       client.query(
         `UPDATE organization_memberships SET status = 'INACTIVE' WHERE id = $1`,
+        [ids.membershipId],
+      ),
+    () =>
+      client.query(
+        `UPDATE organization_memberships SET version = version + 1 WHERE id = $1`,
         [ids.membershipId],
       ),
     () =>

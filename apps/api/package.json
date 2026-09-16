@@ -15,6 +15,7 @@
     "test:keys": "vitest run test/key-assignment.integration.test.ts test/key-correction.integration.test.ts test/key-eligibility-concurrency.integration.test.ts test/key-custody-api.integration.test.ts",
     "staff:provision": "tsx tools/provision-staff.ts",
     "staff:mfa-recover": "tsx tools/recover-mfa.ts",
+    "staff:security-disable": "tsx tools/security-disable-staff.ts",
     "local:bootstrap": "tsx tools/local-dev/bootstrap.ts",
     "local:status": "tsx tools/local-dev/status.ts",
     "local:smoke": "tsx tools/local-dev/smoke.ts",

@@ -33,6 +33,7 @@ export * from "./start-parking.js";
 export * from "./start-retrieval.js";
 export * from "./staff-auth.js";
 export * from "./staff-mfa.js";
+export * from "./staff-management.js";
 export * from "./staff-push.js";
 export * from "./staff-context.js";
 export * from "./staff-check-in-continuations.js";

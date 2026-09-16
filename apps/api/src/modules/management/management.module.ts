@@ -6,15 +6,24 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { ManagementContextController } from "./management-context.controller";
 import { ManagementContextService } from "./management-context.service";
+import { StaffDirectoryService } from "./staff-directory.service";
+import { StaffManagementController } from "./staff-management.controller";
+import { StaffManagementMutationService } from "./staff-management-mutation.service";
 
 @Module({
-  controllers: [ManagementContextController],
+  controllers: [ManagementContextController, StaffManagementController],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
-  providers: [ManagementContextService],
+  providers: [
+    ManagementContextService,
+    StaffDirectoryService,
+    StaffManagementMutationService,
+  ],
   exports: [ManagementContextService],
 })
 export class ManagementModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestIdMiddleware).forRoutes(ManagementContextController);
+    consumer
+      .apply(RequestIdMiddleware)
+      .forRoutes(ManagementContextController, StaffManagementController);
   }
 }

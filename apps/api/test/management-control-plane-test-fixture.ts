@@ -110,6 +110,14 @@ export class ManagementControlPlaneTestFixture extends StaffMfaTestFixture {
     });
   }
 
+  managementPost(path: string, accessToken: string, body: unknown) {
+    return this.request(path, {
+      authorization: `Bearer ${accessToken}`,
+      body,
+      method: "POST",
+    });
+  }
+
   async enrollAndAssure(auth: MfaAuthSession): Promise<AssuredFactorFixture> {
     const begun = await this.postMfa(
       "/v1/staff/auth/mfa/enrollment/begin",

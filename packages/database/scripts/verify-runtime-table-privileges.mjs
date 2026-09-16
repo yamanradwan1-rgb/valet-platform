@@ -21,6 +21,7 @@ import {
 } from "./runtime-privilege-verification-helpers.mjs";
 import { verifyAuditFoundationPrivileges } from "./audit-foundation-runtime-privilege-verification.mjs";
 import { verifyMfaPrivileges } from "./mfa-runtime-privilege-verification.mjs";
+import { verifyStaffManagementPrivileges } from "./staff-management-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentRecoveryPrivileges.table,
@@ -139,6 +140,7 @@ const columnPrivileges = [
   ["public.organization_memberships", "status", false],
   ["public.organization_memberships", "organization_id", false],
   ["public.organization_memberships", "user_id", false],
+  ["public.organization_memberships", "version", false],
   ["public.organization_memberships", "updated_at", true],
   ["public.membership_location_access", "organization_id", false],
   ["public.membership_location_access", "membership_id", false],
@@ -288,4 +290,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
   await verifyBasicBrandingPrivileges(client, runtimeRole);
   await verifyAuditFoundationPrivileges(client, runtimeRole);
   await verifyMfaPrivileges(client, runtimeRole);
+  await verifyStaffManagementPrivileges(client, runtimeRole);
 }

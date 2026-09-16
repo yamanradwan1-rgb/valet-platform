@@ -221,6 +221,23 @@ describe("SEC-002 runtime authority privileges", () => {
     expect(result.rows[0]?.allowed).toBe(false);
   });
 
+  it("fails closed on Staff-management EXECUTE grant option", async () => {
+    const client = await adminPool.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(
+        `GRANT EXECUTE ON FUNCTION public.staff_management_set_status(uuid,uuid,uuid,integer,membership_status)
+         TO "${runtimeRole}" WITH GRANT OPTION`,
+      );
+      await expect(verifyRuntimeTablePrivileges(client, runtimeRole)).rejects.toThrow(
+        "Runtime Staff management function privileges are unsafe.",
+      );
+      await client.query("ROLLBACK");
+    } finally {
+      client.release();
+    }
+  });
+
   it("reconciles stale grants and keeps future migration-owned tables default-deny", async () => {
     await adminPool.query(`GRANT UPDATE ON users TO "${runtimeRole}"`);
     await adminPool.query(`GRANT UPDATE (status) ON users TO PUBLIC`);

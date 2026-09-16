@@ -447,6 +447,7 @@ organization_id
 user_id
 role
 status
+version
 created_at
 updated_at
 ```
@@ -468,6 +469,44 @@ Constraints/rules:
 - unique `(organization_id, user_id)`
 - role required
 - status required, default `ACTIVE`
+- `version` required, default `1`, CHECK `version >= 1`; migration 37 backfills
+  existing memberships to version `1` without fabricating lifecycle/audit
+  history
+
+MGT-BE-04 / migration
+`20260916003700_mgt_be_04_staff_roles_access` uses `version` as the shared CAS
+for role, status and Location-grant mutations. Role/status desired-state no-ops
+return the current version before stale-version rejection; grant/revoke no-ops
+do the same when none of the requested grants would change. Different stale
+desired state returns `VERSION_CONFLICT`. The SQL command boundary fails closed
+when `expectedVersion` is `NULL`, and Location mutation rejects a `NULL`
+grant/revoke mode or invalid/duplicate/out-of-Organization Location set.
+
+Migration 37 adds exactly these Staff-management performance indexes:
+
+- `organization_memberships_org_created_id_idx` on
+  `(organization_id, created_at, id)` for tenant-filtered keyset directory page
+  selection;
+- `valet_sessions_checked_in_state_location_idx` on
+  `(checked_in_by_membership_id, state, location_id)` for intake-responsibility
+  blocker lookup;
+- `incident_recovery_intents_member_state_expiry_location_idx` on
+  `(reporting_membership_id, state, expires_at, location_id)` for live
+  `RESERVED` incident-recovery blocker lookup.
+
+Migration 37 also installs migration-owner `SECURITY DEFINER` functions with
+fixed `search_path = pg_catalog, public`:
+
+- runtime command functions: `staff_management_set_role`,
+  `staff_management_set_status`, `staff_management_set_location_access`;
+- private helpers: actor authorization, responsibility blockers, usable-admin
+  predicates and active-admin-factor locking.
+
+All functions deny `PUBLIC` execute. The ordinary runtime role receives
+`EXECUTE` only on the three command functions, not the helpers, and retains no
+direct mutation authority over `users.status`, membership role/status/version,
+or membership Location-grant identity. Runtime provisioning/verification owns
+those grants; migration ownership is not runtime authority.
 
 Role-boundary notes:
 
@@ -490,6 +529,12 @@ Constraints:
 - membership must belong to `organization_id`
 - location must belong to `organization_id`
 - both sides must therefore belong to the same Organization
+
+MGT-BE-04 Location grants are changed only through the bounded command path for
+normal application runtime. An `ORG_ADMIN` cannot be demoted to another role
+while dormant grants remain; callers must explicitly reconcile the grant set
+first. Access-reduction commands scope handover checks to the Locations being
+revoked.
 
 ## shifts
 
@@ -1852,10 +1897,10 @@ Add these only through their approved focused task/decision.
 
 ## Management implementation state and remaining extensions
 
-Current Prisma/migration truth is the models above and 36 forward-only
-migrations through `20260916003600_mgt_be_02_complete_mfa`. MGT-BE-01 is merged
-and implements DEC-079. MGT-BE-02 implements DEC-078 factor/recovery persistence
-and exact-session assurance.
+Current Prisma/migration truth is the models above and 37 forward-only
+migrations through `20260916003700_mgt_be_04_staff_roles_access`. MGT-BE-01 is
+merged and implements DEC-079. MGT-BE-02 implements DEC-078 factor/recovery
+persistence and exact-session assurance.
 
 MGT-BE-03 implements DEC-080 Company Admin authorization and context without a
 schema migration or new index. Its selected Organization, optional selected
@@ -1866,6 +1911,33 @@ authority. Exact-session MFA plus current membership/role/status, Organization
 and target ownership are revalidated at protected use. `ALL_LOCATIONS` is only a
 scope-selection foundation here and adds no All Locations analytics persistence,
 report aggregation persistence, or entitlement-enforcement state.
+
+MGT-BE-04 implements DEC-081 with the membership `version` column plus the
+narrow staff-management command/helper functions described above. It does not
+add a new role, generic permission model, staff-history table, or new mutable
+key-custody owner. Directory/detail remain request-time tenant projections over
+the current membership/User/Location grant state. The list is keyset-paginated
+and bounded to 100 items. Its query is page-first: the Organization membership
+page is selected in `(created_at, id)` order with the directory index before the
+User join and per-page Location-access counts are evaluated. Detail returns at
+most 100 Location grants plus an authoritative total/truncated indicator.
+
+Staff-management mutation authorization requires five-minute exact-session MFA
+freshness in the API and serializes on the per-Organization
+`staff-management-org` transaction advisory lock before rechecking the actor and
+last-usable-admin invariant. A usable admin is an active `ORG_ADMIN` membership
+in an active Organization for an active User with at least one `ACTIVE` TOTP
+factor. Access reduction is rejected while the affected membership owns an
+active Shift, active assigned Task, unfinished intake responsibility, or an
+unexpired `RESERVED` incident-recovery intent. Normal key custody is represented
+by the canonical Task assignee plus append-only `key_custody_events` history.
+
+Global User security disable remains outside the tenant membership mutation
+functions. The controlled operator path uses the migration credential and the
+per-User `staff-user-security` transaction advisory boundary shared with
+login/refresh/push-registration rechecks; it changes `users.status`, revokes
+Staff sessions, disables active push registrations, and writes account-security
+audit without rewriting tenant membership or operational history.
 
 Remaining accepted Management persistence includes:
 

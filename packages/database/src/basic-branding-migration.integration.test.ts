@@ -98,11 +98,11 @@ describe("migration 30 basic branding and subscription entitlements", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(36);
+    expect(directories).toHaveLength(37);
     expect(directories[29]).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
-    expect(directories.at(-1)).toBe("20260916003600_mgt_be_02_complete_mfa");
+    expect(directories.at(-1)).toBe("20260916003700_mgt_be_04_staff_roles_access");
   });
 
   it("backfills brand primary color and enforces persisted shapes", async () => {

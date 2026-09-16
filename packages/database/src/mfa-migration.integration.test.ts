@@ -12,6 +12,8 @@ const adminUrl =
   "postgresql://valet:valet@127.0.0.1:5432/valet";
 const migrationRoot = new URL("../prisma/migrations/", import.meta.url);
 const migration = "20260916003600_mgt_be_02_complete_mfa";
+const migrationIndex = expectedMigrationDirectories.indexOf(migration);
+const mfaMigrations = expectedMigrationDirectories.slice(0, migrationIndex + 1);
 const suffix = randomUUID().replaceAll("-", "");
 const freshName = `valet_mfa_fresh_${suffix}`;
 const upgradeName = `valet_mfa_upgrade_${suffix}`;
@@ -49,10 +51,10 @@ async function apply(client: Client, name: string): Promise<void> {
 
 beforeAll(async () => {
   fresh = await createDatabase(freshName);
-  for (const name of expectedMigrationDirectories) await apply(fresh, name);
+  for (const name of mfaMigrations) await apply(fresh, name);
 
   upgrade = await createDatabase(upgradeName);
-  for (const name of expectedMigrationDirectories.slice(0, -1)) {
+  for (const name of mfaMigrations.slice(0, -1)) {
     await apply(upgrade, name);
   }
   await upgrade.query(
@@ -92,8 +94,8 @@ afterAll(async () => {
 
 describe("MGT-BE-02 complete MFA migration 36", () => {
   it("applies the complete 36-migration history from an empty database", async () => {
-    expect(expectedMigrationDirectories).toHaveLength(36);
-    expect(expectedMigrationDirectories.at(-1)).toBe(migration);
+    expect(mfaMigrations).toHaveLength(36);
+    expect(mfaMigrations.at(-1)).toBe(migration);
     const tables = await fresh.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema='public'

@@ -125,7 +125,57 @@ Current tenant membership roles:
 - `VALET_SUPERVISOR`
 - `VALET_EMPLOYEE`
 
+MGT-BE-04 adds one shared positive monotonic `version` to
+`OrganizationMembership`. Role, status and Location-grant lifecycle commands
+all use that same version for optimistic concurrency. Desired-state retries are
+idempotent: if the requested role/status/grant state is already true, the
+command returns the current state without another version increment or audit
+event. A stale request for a different state conflicts. The database command
+boundary also treats nullable expected versions and nullable grant/revoke mode
+as invalid/fail-closed input.
+
 Location access can be restricted through membership-location assignment.
+Those grants are authority only when the current role/status and operational
+authorization path consume them. In particular, an `ORG_ADMIN` demotion with
+persisted Location grants is blocked until those dormant grants are explicitly
+reconciled, preventing a role transition from silently activating old grants.
+
+Normal access reduction must preserve truthful operational responsibility.
+Before deactivation, leaving an operational role, or revoking a Location grant,
+the current implementation checks the affected scope for:
+
+- an `ACTIVE` Shift;
+- a Task assigned to the membership in `ASSIGNED`, `ACCEPTED`, or
+  `IN_PROGRESS`;
+- intake ownership while a ValetSession is still `CHECKING_IN`, or while it is
+  `AWAITING_PARKING` without an active Parking Task that represents handoff;
+- an unexpired `RESERVED` `IncidentRecoveryIntent` reported by the membership.
+
+The Staff directory reads the bounded tenant membership page first and only then
+hydrates identity and Location-access counts. The persistence support added by
+migration 37 is intentionally narrow: one Organization membership page index,
+one intake-responsibility lookup index, and one reserved-incident lookup index
+for these concrete access/lifecycle paths.
+
+Key custody does not create a separate mutable staff-responsibility field for
+this lifecycle check. During normal parking/retrieval work the active Task is
+the canonical current assignee, while `KeyCustodyEvent` is append-only custody
+history. Security/emergency disable therefore never fabricates key movement or
+completion events.
+
+The last usable Company Admin cannot be normally demoted or deactivated. A
+usable admin is an active `ORG_ADMIN` membership in an active Organization,
+owned by an active User that has an `ACTIVE` TOTP factor. This definition does
+not require a currently live Staff session, current five-minute step-up, or
+recent admin activity. Staff-management mutations serialize per Organization
+with the shared `staff-management-org` transaction advisory boundary before
+rechecking this invariant.
+
+Membership `INACTIVE` is tenant-scoped: it disables that
+`OrganizationMembership` only. User `DISABLED` is a separate global account
+security state that applies across every Organization membership. Controlled
+global disable revokes the User's Staff sessions and disables active Staff push
+registrations while leaving membership and operational records unchanged.
 
 Guest/Customer is not an OrganizationMembership.
 
