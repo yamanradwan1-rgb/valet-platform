@@ -2,7 +2,8 @@ import type { QueueSnapshotResponse } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 
 interface QueueRow {
@@ -12,14 +13,23 @@ interface QueueRow {
 
 export async function queueSnapshot(
   pool: PostgresPool,
-  input: { authenticatedUserId: string; locationId: string },
+  input: {
+    authenticatedUserId: string;
+    recordManagementActivity?: boolean;
+    locationId: string;
+    staffSessionContext?: StaffSessionContext;
+  },
 ): Promise<QueueSnapshotResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "ANALYTICS_READ",
+      recordActivity: input.recordManagementActivity !== false,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const rows = await transaction.query<QueueRow>(
       `SELECT count(*)::int AS depth,

@@ -1,7 +1,7 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-02.
-MGT-BE-03 has not started.
+Status: Binding execution plan with implementation progress through MGT-BE-03.
+MGT-BE-04 has not started.
 
 Rebaseline date: 2026-09-15
 
@@ -73,7 +73,13 @@ materially adds or completes:
   explicit actor provenance, and a separate append-only account-security store;
 - implemented MGT-BE-02 / migration 36 with TOTP enrollment/recovery,
   exact-factor Staff-session assurance, bounded MFA anti-abuse, and controlled
-  operator recovery. MGT-BE-03 Management authorization remains unstarted.
+  operator recovery;
+- implemented MGT-BE-03 Company Admin control plane with exact-session MFA,
+  bounded Organization/Location selectors, explicit selected Location versus
+  `ALL_LOCATIONS` context, a typed capability snapshot, current-state
+  revalidation, existing Location Dashboard/analytics/reports/export access,
+  and current live-map read authority. It adds no migration or index and leaves
+  raw route history and field operations denied.
 
 These changes remove no Management requirement. They add schema/migration
 contention, session/push interactions for MFA and emergency disable, a new
@@ -90,9 +96,14 @@ new shared-contract compatibility obligations.
   active factor.
 - Four membership roles, active/inactive membership, explicit Location grants,
   active Shift eligibility, Task/Dispatch ownership, and append-only custody.
-- Location Manager-only exact-Location Dashboard authorization. The internal
-  Location enumeration query is unbounded and has no public company-context
-  route. Password-only `ORG_ADMIN` is denied.
+- Existing Location Manager exact-Location Dashboard authorization remains
+  available under its persisted grants. MGT-BE-03 adds MFA-backed `ORG_ADMIN`
+  access to authorized existing Location Dashboard/analytics/reports/export and
+  current live-map reads without requiring a Location grant.
+- MGT-BE-03 exposes bounded, keyset-paginated Company Admin Organization and
+  Location selectors plus explicit `LOCATION | ALL_LOCATIONS` context. The
+  returned capability catalog is a client snapshot only; protected use
+  revalidates current persisted authority.
 - Eight bounded/paginated operational overview routes; four existing Location
   analytics families; manual DAILY/WEEKLY/MONTHLY Location reports and
   synchronous hardened CSV/PDF export.
@@ -113,27 +124,28 @@ new shared-contract compatibility obligations.
   query API.
 - DEC-078/MGT-BE-02 is implemented: TOTP/recovery persistence, verification,
   re-enrollment, recovery-code reissue, exact-session assurance, soft step-up,
-  MFA anti-abuse, and controlled no-code recovery are present. This does not
-  grant Company Admin Management authority before MGT-BE-03.
+  MFA anti-abuse, and controlled no-code recovery are present.
+- DEC-080/MGT-BE-03 is implemented without schema changes: Company Admin
+  Management context/selection and the reusable capability guard are present;
+  raw route history and field-operation authority are excluded.
 
 ## 5. Current real gaps
 
-1. No MFA-backed Company Admin Management authorization/company context;
-   MGT-BE-03 has not started.
-2. No tenant staff directory/mutation surface; only create-only operator
+1. No tenant staff directory/mutation surface; only create-only operator
    provisioning. Last-admin, handover, emergency disable, and membership-only
    disable are absent.
-3. No Company-default mutations and none of the new typed language, hours, OCR,
+2. No Company-default mutations and none of the new typed language, hours, OCR,
    parking requirement, notification-type, SLA, or optional geofence settings.
-4. No safe Audit Explorer.
-5. No Location create/readiness/intake-stop/drain/deactivate API; persistence
+3. No safe Audit Explorer.
+4. No Location create/readiness/intake-stop/drain/deactivate API; persistence
    still defaults new rows to `ACTIVE`.
-6. No Management visit-contact search/history/correction surface.
-7. No Guest rating persistence or write.
-8. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
+5. No Management visit-contact search/history/correction surface.
+6. No Guest rating persistence or write.
+7. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
     or controlled Key Exceptions metrics.
-9. No All Locations analytics or company CSV/PDF reports.
-10. No truthful Integration status API, Management-only entitlement
+8. No All Locations analytics or company CSV/PDF reports. The implemented
+   `ALL_LOCATIONS` selector/context is foundation only.
+9. No truthful Integration status API, Management-only entitlement
     enforcement, company commercial view, or Guest effective branding.
 
 ## 6. Formal decision mapping
@@ -223,8 +235,9 @@ abuse/replay protection, and exact session interaction.
 
 Implementation status: implemented as migration
 `20260916003600_mgt_be_02_complete_mfa` plus Staff Auth MFA contracts/services,
-routes, runtime privileges, and controlled operator recovery. MGT-BE-03 is not
-part of this implementation and has not started.
+routes, runtime privileges, and controlled operator recovery. Historical scope
+note: MGT-BE-03 was not part of the MGT-BE-02 implementation; it is now
+implemented separately below.
 
 - Dependencies: MGT-BE-01.
 - Schema: `user_mfa_totp_factors` with `PENDING`/`ACTIVE`/`RETIRED`,
@@ -272,23 +285,55 @@ Objective: implement DEC-080 MFA-backed `ORG_ADMIN` Management authorization,
 Organization selection/context, bounded Location enumeration, selected Location,
 All Locations foundation, and a capability matrix.
 
+Implementation status: implemented on the existing 36-migration schema. No
+migration or index was added for MGT-BE-03.
+
 - Dependencies: MGT-BE-01 and MGT-BE-02.
-- Schema: no domain fields expected; indexes only if measured.
-- Auth: server derives current User/session assurance/membership/Organization;
-  never blanket-replace role checks. Existing operational field roles remain
-  unchanged. Map visibility is explicit; raw history is excluded.
-- Concurrency: context is a snapshot, never authority; every downstream command
-  rechecks persisted status/role/assurance/target at use.
-- Performance: keyset pagination and bounded Location enumeration; no N+1
-  Location details.
-- Proof: role × status × tenant × Location × assurance matrix, multi-membership
-  selection, revoked scope, and field-operation denial regression.
+- Schema: no domain fields, migration, or new index. Context/capabilities are
+  projections over existing persisted authority.
+- Context/API: bounded keyset Organization and Location selectors use `limit`
+  1–100 (default 50), tenant-bound cursors, an explicitly selected Organization,
+  and either a selected Organization-owned Location or `ALL_LOCATIONS` with no
+  selected Location. Active and inactive Locations may appear in Management
+  selection/context; downstream capabilities enforce their own active-target
+  requirements.
+- Auth: server derives current User, exact Staff session assurance, active
+  `ORG_ADMIN` membership and active Organization. The capability catalog is a
+  typed snapshot, never authority; every protected use revalidates persisted
+  role/status/assurance/target ownership and capability-specific conditions.
+- Capability snapshot: the implemented catalog is exactly
+  `COMPANY_DASHBOARD_READ`, `LOCATION_DASHBOARD_READ`, `ANALYTICS_READ`,
+  `REPORTS_READ`, `REPORT_EXPORT`, `LIVE_MAP_READ`, `STAFF_MANAGE_ELIGIBLE`,
+  `COMPANY_SETTINGS_MANAGE_ELIGIBLE`, `LOCATION_SETTINGS_MANAGE_ELIGIBLE`,
+  `BRANDING_MANAGE_ELIGIBLE`, `LOCATION_LIFECYCLE_MANAGE_ELIGIBLE`,
+  `TENANT_AUDIT_READ_ELIGIBLE`, and `ALL_LOCATIONS_SCOPE_SELECT`. The
+  `*_ELIGIBLE` entries expose control-plane eligibility for later owning tasks;
+  they do not assert that those mutation/query surfaces are implemented.
+- Compatibility: existing Location Manager Dashboard authorization remains
+  intact. Company Admin gains the authorized existing Location Dashboard,
+  analytics, reports/export and current live-map read paths without a Location
+  grant.
+- Boundary: `ALL_LOCATIONS` is selection/context foundation only. MGT-BE-03 does
+  not implement All Locations analytics, company report aggregation, or
+  entitlement enforcement. Company Admin still cannot use raw route history,
+  map-setup mutation, check-in, parking, Dispatch, Retrieval/handoff, key, GPS
+  field writes, or other operational custody commands.
+- Concurrency/activity: successful Management use records admin activity without
+  sliding `mfa_authenticated_at`; stale/inactive/revoked authority is rejected by
+  current-state revalidation and MFA expiry is soft step-up.
+- Proof: role × status × tenant × Location × assurance matrix, exact-session
+  isolation, multi-membership selection, cursor tamper/crossover denial,
+  current-state staleness, existing Location Manager compatibility, live-map
+  allow/raw-route deny, and field-operation denial regression.
 
 ### MGT-BE-04 — Staff, Roles & Access
 
 Objective: implement DEC-081 membership directory, role changes, Location
 grant/revoke, activation/deactivation, last-admin protection, emergency disable,
 and operational-responsibility safeguards.
+
+Implementation status: not started. MGT-BE-03 `STAFF_MANAGE_ELIGIBLE` is only
+the control-plane eligibility signal and does not implement this packet.
 
 - Dependencies: MGT-BE-01 through MGT-BE-03.
 - Schema: existing role/status/grant fields are primary state; narrow mutation
@@ -603,24 +648,22 @@ Known implementation gaps, not contradictions:
   tasks before migration;
 - Employee Check-In currently accepts Jordan mobile numbers only, so broader
   international Management phone normalization cannot be assumed.
-- the repository architecture gate already fails on current main for four
-  pre-existing oversized test-file violations: one grandfathered file grew and
-  three native test files are above the ungrandfathered limit. The same failure
-  was reproduced in a detached clean worktree at the baseline SHA; this docs
-  branch does not change those files. The violations must be fixed or the
-  architecture baseline deliberately reconciled before implementation is
-  treated as gate-clean.
-- current main also fails lint at
-  `apps/valet-native/test/app-config.test.mjs` because `URL` is not defined in
-  the lint environment, and the isolated Employee Web suite has three failing
-  authorization-loss assertions for 403/404 responses. This branch changes
-  neither source nor tests; these baseline failures must be resolved before an
-  implementation branch is treated as fully green.
+- historical docs-rebaseline evidence: at that baseline SHA, the repository
+  architecture gate failed for four oversized test files. The failure was also
+  reproduced in a detached clean worktree; this statement is retained as
+  provenance and does not assert the status of the current BE-03 working tree.
+- historical docs-rebaseline evidence: at that same baseline, lint failed at
+  `apps/valet-native/test/app-config.test.mjs` because `URL` was not defined in
+  the lint environment, and the isolated Employee Web suite had three failing
+  authorization-loss assertions for 403/404 responses. This statement likewise
+  does not assert current BE-03 validation status.
 
-The notes below record the state of the earlier documentation/rebaseline branch
-and are historical baseline evidence; they do not override current `main` or an
-explicit production task authorization. MGT-BE-01 is merged and MGT-BE-02 is
-implemented. MGT-BE-03 remains not started and is outside the MGT-BE-02 scope.
+The notes below and the two validation bullets above record the state of the
+earlier documentation/rebaseline branch and are historical baseline evidence;
+they do not override the current working tree or an explicit production task
+authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
+implemented, and MGT-BE-03 had not started. Current status is recorded above:
+MGT-BE-03 is implemented and MGT-BE-04 has not started.
 
 ## 14. Documentation rebaseline validation record
 

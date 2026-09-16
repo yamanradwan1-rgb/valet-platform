@@ -26,6 +26,13 @@
       "require": "./dist/staff-auth.js",
       "default": "./dist/staff-auth.js"
     },
+    "./management-control-plane": {
+      "types": "./src/management-control-plane.ts",
+      "react-native": "./dist/management-control-plane.js",
+      "import": "./src/management-control-plane.ts",
+      "require": "./dist/management-control-plane.js",
+      "default": "./dist/management-control-plane.js"
+    },
     "./staff-mfa": {
       "types": "./src/staff-mfa.ts",
       "react-native": "./dist/staff-mfa.js",

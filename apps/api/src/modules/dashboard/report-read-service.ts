@@ -5,18 +5,20 @@ import type {
 } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
+import type { StaffSessionContext } from "../auth/staff-session-context";
 import { financialAnalytics } from "./analytics-financial-query";
 import { incidentAnalytics } from "./analytics-incidents-query";
 import { operationalAnalytics } from "./analytics-operations-query";
 import type { AnalyticsPeriod } from "./analytics-period";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 import { dailyReportActivity } from "./report-daily-activity-query";
 
 export interface ComposedReport {
-  readonly dailyActivity:
-    | Awaited<ReturnType<typeof dailyReportActivity>>
-    | null;
+  readonly dailyActivity: Awaited<
+    ReturnType<typeof dailyReportActivity>
+  > | null;
   readonly summary: DailyReportResponse["summary"];
   readonly timezone: string;
 }
@@ -25,25 +27,39 @@ export async function composeReport(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     includeDailyActivity: boolean;
     locationId: string;
+    recordManagementActivity?: boolean;
     period: AnalyticsPeriod;
   },
 ): Promise<ComposedReport> {
   const scope = await inTransactionScope(pool, input);
   const operational = await operationalAnalytics(pool, {
     authenticatedUserId: input.authenticatedUserId,
+    recordManagementActivity: false,
+    ...(input.staffSessionContext === undefined
+      ? {}
+      : { staffSessionContext: input.staffSessionContext }),
     locationId: input.locationId,
     period: input.period,
   });
   const [financial, incidents] = await Promise.all([
     financialAnalytics(pool, {
       authenticatedUserId: input.authenticatedUserId,
+      recordManagementActivity: false,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
       locationId: input.locationId,
       period: input.period,
     }),
     incidentAnalytics(pool, {
       authenticatedUserId: input.authenticatedUserId,
+      recordManagementActivity: false,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
       locationId: input.locationId,
       period: input.period,
     }),
@@ -56,6 +72,16 @@ export async function composeReport(
         operational.timezone,
       )
     : null;
+  if (input.recordManagementActivity !== false) {
+    await requireAuthorizedScope(
+      pool,
+      input.authenticatedUserId,
+      input.locationId,
+      input.staffSessionContext,
+      "REPORTS_READ",
+      true,
+    );
+  }
   return {
     dailyActivity,
     summary: {
@@ -78,27 +104,28 @@ export async function requireAuthorizedScope(
   pool: PostgresPool,
   authenticatedUserId: string,
   locationId: string,
+  staffSessionContext?: StaffSessionContext,
+  capability: "REPORT_EXPORT" | "REPORTS_READ" = "REPORTS_READ",
+  recordActivity = true,
 ): Promise<{
   locationId: string;
   membershipId: string;
   organizationId: string;
 }> {
-  return pool.connect().then(async (client) => {
-    try {
-      const scope = await authorizeDashboardLocation(
-        client,
-        authenticatedUserId,
-        locationId,
-      );
-      assertAuthorized(scope);
-      return {
-        locationId: scope.locationId,
-        membershipId: scope.membershipId,
-        organizationId: scope.organizationId,
-      };
-    } finally {
-      client.release();
-    }
+  return inPostgresTransaction(pool, async (transaction) => {
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId,
+      capability,
+      recordActivity,
+      ...(staffSessionContext === undefined ? {} : { staffSessionContext }),
+      targetLocationId: locationId,
+    });
+    assertAuthorized(scope);
+    return {
+      locationId: scope.locationId,
+      membershipId: scope.membershipId,
+      organizationId: scope.organizationId,
+    };
   });
 }
 
@@ -106,13 +133,21 @@ async function inTransactionScope(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
   },
-): Promise<{ locationId: string; membershipId: string; organizationId: string }> {
+): Promise<{
+  locationId: string;
+  membershipId: string;
+  organizationId: string;
+}> {
   return requireAuthorizedScope(
     pool,
     input.authenticatedUserId,
     input.locationId,
+    input.staffSessionContext,
+    "REPORTS_READ",
+    false,
   );
 }
 
@@ -120,6 +155,7 @@ export async function dailyAnalyticsReport(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     date: string;
     locationId: string;
   },
@@ -127,6 +163,9 @@ export async function dailyAnalyticsReport(
   const period: AnalyticsPeriod = { from: input.date, to: input.date };
   const composed = await composeReport(pool, {
     authenticatedUserId: input.authenticatedUserId,
+    ...(input.staffSessionContext === undefined
+      ? {}
+      : { staffSessionContext: input.staffSessionContext }),
     includeDailyActivity: true,
     locationId: input.locationId,
     period,
@@ -146,6 +185,7 @@ export async function weeklyAnalyticsReport(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
     weekStart: string;
   },
@@ -154,6 +194,9 @@ export async function weeklyAnalyticsReport(
   const startMillis = Date.UTC(parts[0]!, parts[1]! - 1, parts[2]!);
   return periodicAnalyticsReport(pool, {
     authenticatedUserId: input.authenticatedUserId,
+    ...(input.staffSessionContext === undefined
+      ? {}
+      : { staffSessionContext: input.staffSessionContext }),
     kind: "WEEKLY",
     locationId: input.locationId,
     period: {
@@ -167,19 +210,24 @@ export async function monthlyAnalyticsReport(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
     month: string;
   },
 ): Promise<PeriodicReportResponse> {
   const parts = input.month.split("-").map(Number);
-  const lastDay = new Date(
-    Date.UTC(parts[0]!, parts[1]!, 0),
-  ).getUTCDate();
+  const lastDay = new Date(Date.UTC(parts[0]!, parts[1]!, 0)).getUTCDate();
   return periodicAnalyticsReport(pool, {
     authenticatedUserId: input.authenticatedUserId,
+    ...(input.staffSessionContext === undefined
+      ? {}
+      : { staffSessionContext: input.staffSessionContext }),
     kind: "MONTHLY",
     locationId: input.locationId,
-    period: { from: `${input.month}-01`, to: `${input.month}-${String(lastDay).padStart(2, "0")}` },
+    period: {
+      from: `${input.month}-01`,
+      to: `${input.month}-${String(lastDay).padStart(2, "0")}`,
+    },
   });
 }
 
@@ -187,6 +235,7 @@ export async function periodicAnalyticsReport(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     kind: Extract<ReportKind, "MONTHLY" | "WEEKLY">;
     locationId: string;
     period: AnalyticsPeriod;
@@ -194,6 +243,9 @@ export async function periodicAnalyticsReport(
 ): Promise<PeriodicReportResponse> {
   const composed = await composeReport(pool, {
     authenticatedUserId: input.authenticatedUserId,
+    ...(input.staffSessionContext === undefined
+      ? {}
+      : { staffSessionContext: input.staffSessionContext }),
     includeDailyActivity: false,
     locationId: input.locationId,
     period: input.period,

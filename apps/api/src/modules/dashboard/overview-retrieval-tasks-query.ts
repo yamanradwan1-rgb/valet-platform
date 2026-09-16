@@ -1,15 +1,11 @@
-import type {
-  RetrievalQueueEntry,
-  TaskOverviewEntry,
-} from "@valet/contracts";
+import type { RetrievalQueueEntry, TaskOverviewEntry } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
-import {
-  createOverviewCursorCodec,
-} from "./overview-cursor";
+import { createOverviewCursorCodec } from "./overview-cursor";
 
 const queueCursorCodec = createOverviewCursorCodec("retrieval-queue");
 const taskCursorCodec = createOverviewCursorCodec("tasks");
@@ -29,6 +25,7 @@ export async function listRetrievalQueue(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     cursor?: string;
     limit: number;
     locationId: string;
@@ -36,11 +33,14 @@ export async function listRetrievalQueue(
 ): Promise<{ items: RetrievalQueueEntry[]; nextCursor: string | null }> {
   const cursor = queueCursorCodec.decode(input.cursor);
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const predicates = [
       "request.organization_id = $1",
@@ -130,6 +130,7 @@ export async function listDashboardTasks(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     cursor?: string;
     limit: number;
     locationId: string;
@@ -137,16 +138,16 @@ export async function listDashboardTasks(
 ): Promise<{ items: TaskOverviewEntry[]; nextCursor: string | null }> {
   const cursor = taskCursorCodec.decode(input.cursor);
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
-    const predicates = [
-      "task.organization_id = $1",
-      "task.location_id = $2",
-    ];
+    const predicates = ["task.organization_id = $1", "task.location_id = $2"];
     const parameters: unknown[] = [scope.organizationId, input.locationId];
     if (cursor !== null) {
       parameters.push(cursor.sortKey, cursor.tiebreakerId);
@@ -170,15 +171,17 @@ export async function listDashboardTasks(
        LIMIT $${parameters.length}`,
       parameters,
     );
-    const items = rows.rows.slice(0, input.limit).map((row): TaskOverviewEntry => ({
-      createdAt: row.createdAt.toISOString(),
-      currentAssigneeMembershipId: row.currentAssigneeMembershipId,
-      status: row.status as TaskOverviewEntry["status"],
-      taskId: row.taskId,
-      taskType: row.taskType as TaskOverviewEntry["taskType"],
-      updatedAt: row.updatedAt.toISOString(),
-      valetSessionId: row.valetSessionId,
-    }));
+    const items = rows.rows
+      .slice(0, input.limit)
+      .map((row): TaskOverviewEntry => ({
+        createdAt: row.createdAt.toISOString(),
+        currentAssigneeMembershipId: row.currentAssigneeMembershipId,
+        status: row.status as TaskOverviewEntry["status"],
+        taskId: row.taskId,
+        taskType: row.taskType as TaskOverviewEntry["taskType"],
+        updatedAt: row.updatedAt.toISOString(),
+        valetSessionId: row.valetSessionId,
+      }));
     const last = rows.rows[input.limit - 1];
     const nextCursor =
       rows.rows.length > input.limit && last !== undefined

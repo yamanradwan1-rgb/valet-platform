@@ -6,7 +6,8 @@ import {
   loadLiveMapAreas,
   projectContainingAreas,
 } from "./live-map-area-projection";
-import { authorizeLiveMap } from "./live-map-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeLiveMapRead } from "./live-map-read-authorization";
 import { decodeLiveMapCursor, encodeLiveMapCursor } from "./live-map-cursor";
 
 class LiveMapUnavailableError extends Error {
@@ -35,7 +36,7 @@ interface LiveTrackerRow {
 }
 
 async function loadTrackers(
-  transaction: Parameters<typeof authorizeLiveMap>[0],
+  transaction: Parameters<typeof authorizeLiveMapRead>[0],
   input: {
     readonly cursor: ReturnType<typeof decodeLiveMapCursor>;
     readonly limit: number;
@@ -109,17 +110,20 @@ export function createLiveMapQuery(pool: PostgresPool) {
     readonly cursor?: string;
     readonly limit: number;
     readonly locationId: string;
+    readonly staffSessionContext?: StaffSessionContext;
   }): Promise<LiveOperationsMapResponse> => {
     const cursor = decodeLiveMapCursor(input.cursor);
     return inPostgresTransaction(pool, async (transaction) => {
       await transaction.query(
-        "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY",
+        "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ",
       );
-      const authorization = await authorizeLiveMap(
-        transaction,
-        input.authenticatedUserId,
-        input.locationId,
-      );
+      const authorization = await authorizeLiveMapRead(transaction, {
+        authenticatedUserId: input.authenticatedUserId,
+        locationId: input.locationId,
+        ...(input.staffSessionContext === undefined
+          ? {}
+          : { staffSessionContext: input.staffSessionContext }),
+      });
       if (authorization === null) throw new LiveMapUnavailableError();
       const clock = await transaction.query<{ observedAt: Date }>(
         `SELECT transaction_timestamp()::timestamptz(3) AS "observedAt"`,

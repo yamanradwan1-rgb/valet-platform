@@ -2,7 +2,8 @@ import type { IncidentAnalyticsResponse } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 import type { AnalyticsPeriod } from "./analytics-period";
 import {
@@ -22,7 +23,8 @@ interface GroupRow {
 
 function per1000(numerator: number, denominator: number): string | null {
   if (denominator === 0) return null;
-  const scaled = (BigInt(numerator) * 1_000_000n * 2n + BigInt(denominator)) /
+  const scaled =
+    (BigInt(numerator) * 1_000_000n * 2n + BigInt(denominator)) /
     (BigInt(denominator) * 2n);
   return `${scaled / 1000n}.${(scaled % 1000n).toString().padStart(3, "0")}`;
 }
@@ -31,16 +33,22 @@ export async function incidentAnalytics(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    recordManagementActivity?: boolean;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
     period: AnalyticsPeriod;
   },
 ): Promise<IncidentAnalyticsResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "ANALYTICS_READ",
+      recordActivity: input.recordManagementActivity !== false,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const timezone = await resolveAnalyticsTimezone(transaction, scope);
     const parameters = [scope.organizationId, input.locationId];
@@ -95,7 +103,8 @@ export async function incidentAnalytics(
       severityCounts: severities.rows
         .map((entry) => ({
           count: entry.count,
-          severity: entry.key as IncidentAnalyticsResponse["severityCounts"][number]["severity"],
+          severity:
+            entry.key as IncidentAnalyticsResponse["severityCounts"][number]["severity"],
         }))
         .sort((left, right) => left.severity.localeCompare(right.severity)),
       timezone,

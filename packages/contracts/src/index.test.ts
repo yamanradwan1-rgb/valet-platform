@@ -14,6 +14,8 @@ import {
   staffMfaEnrollmentBeginResponseSchema,
   staffMfaRecoveryCodeSchema,
   staffLoginRequestSchema,
+  managementContextResponseSchema,
+  managementScopeSchema,
   markReadyRequestSchema,
   markReadyResponseSchema,
   startShiftRequestSchema,
@@ -90,9 +92,9 @@ describe("Shift contracts", () => {
     expect(endShiftRequestSchema.parse({ cashReported: "0.000" })).toEqual({
       cashReported: "0.000",
     });
-    expect(
-      endShiftRequestSchema.safeParse({ cashReported: "" }).success,
-    ).toBe(false);
+    expect(endShiftRequestSchema.safeParse({ cashReported: "" }).success).toBe(
+      false,
+    );
     expect(
       endShiftRequestSchema.safeParse({ cashReported: "-1" }).success,
     ).toBe(false);
@@ -191,5 +193,12 @@ describe("staff MFA package exports", () => {
   it("exports the focused MFA schemas from the package root", () => {
     expect(staffMfaEnrollmentBeginResponseSchema).toBeDefined();
     expect(staffMfaRecoveryCodeSchema).toBeDefined();
+  });
+});
+
+describe("Management control-plane package exports", () => {
+  it("exports the Management scope and context schemas from the package root", () => {
+    expect(managementScopeSchema).toBeDefined();
+    expect(managementContextResponseSchema).toBeDefined();
   });
 });

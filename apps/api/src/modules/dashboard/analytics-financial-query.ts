@@ -1,10 +1,9 @@
-import type {
-  FinancialAnalyticsResponse,
-} from "@valet/contracts";
+import type { FinancialAnalyticsResponse } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 import type { AnalyticsPeriod } from "./analytics-period";
 import {
@@ -45,7 +44,8 @@ export function analyticsPercentage(
   denominator: number,
 ): string | null {
   if (denominator === 0) return null;
-  const scaled = (BigInt(numerator) * 10_000n * 2n + BigInt(denominator)) /
+  const scaled =
+    (BigInt(numerator) * 10_000n * 2n + BigInt(denominator)) /
     (BigInt(denominator) * 2n);
   return `${scaled / 100n}.${(scaled % 100n).toString().padStart(2, "0")}`;
 }
@@ -62,16 +62,22 @@ export async function financialAnalytics(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    recordManagementActivity?: boolean;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
     period: AnalyticsPeriod;
   },
 ): Promise<FinancialAnalyticsResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "ANALYTICS_READ",
+      recordActivity: input.recordManagementActivity !== false,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const timezone = await resolveAnalyticsTimezone(transaction, scope);
     const parameters = [scope.organizationId, input.locationId];
@@ -187,8 +193,7 @@ export async function financialAnalytics(
         const validation = validationByCurrency.get(currency);
         const digitalNumerator = paid?.digitalCount ?? 0;
         const digitalDenominator = paid?.cashOrDigitalCount ?? 0;
-        const validationDenominator =
-          validation?.cohortCount ?? 0;
+        const validationDenominator = validation?.cohortCount ?? 0;
         const validationNumerator = validation?.validatedCount ?? 0;
         return {
           collectedAmountTotal: paid?.collectedAmountTotal ?? "0.000",
@@ -204,8 +209,7 @@ export async function financialAnalytics(
             ),
           },
           paidPaymentCount: paid?.paidPaymentCount ?? 0,
-          succeededRefundAmountTotal:
-            refundByCurrency.get(currency) ?? "0.000",
+          succeededRefundAmountTotal: refundByCurrency.get(currency) ?? "0.000",
           tipAmountTotal: paid?.tipAmountTotal ?? "0.000",
           validationRate: {
             denominator: validationDenominator,

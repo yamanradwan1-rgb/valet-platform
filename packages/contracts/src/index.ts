@@ -42,3 +42,4 @@ export * from "./staff-vehicle-directory.js";
 export * from "./incidents.js";
 export * from "./incident-recovery.js";
 export * from "./plate-ocr.js";
+export * from "./management-control-plane.js";

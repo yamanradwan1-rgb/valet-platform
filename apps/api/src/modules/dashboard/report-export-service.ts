@@ -8,21 +8,16 @@ import type {
 } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import type { AnalyticsPeriod } from "./analytics-period";
+import type { StaffSessionContext } from "../auth/staff-session-context";
 import {
   assertExportWithinBounds,
   DashboardOverviewError,
 } from "./dashboard-overview-error";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
-import {
-  renderReportCsv,
-  type RenderedArtifact,
-} from "./report-csv-renderer";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
+import { renderReportCsv, type RenderedArtifact } from "./report-csv-renderer";
 import { renderReportPdf } from "./report-pdf-renderer";
 import { appendReportExportAuditEvent } from "./report-audit-writer";
-import {
-  composeReport,
-  requireAuthorizedScope,
-} from "./report-read-service";
+import { composeReport, requireAuthorizedScope } from "./report-read-service";
 import {
   resolveDailyPeriod,
   resolveMonthlyPeriod,
@@ -62,17 +57,21 @@ export async function finalizeAuditedExport(
   input: {
     artifact: Pick<RenderedArtifact, "bytes"> & { format: "CSV" | "PDF" };
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
     renderedPeriodFrom: string;
     renderedPeriodTo: string;
     request: ReportExportRequest;
   },
 ): Promise<ReportExportResult> {
-  const freshScope = await authorizeDashboardLocation(
-    transaction,
-    input.authenticatedUserId,
-    input.locationId,
-  );
+  const freshScope = await authorizeDashboardReadLocation(transaction, {
+    authenticatedUserId: input.authenticatedUserId,
+    capability: "REPORT_EXPORT",
+    ...(input.staffSessionContext === undefined
+      ? {}
+      : { staffSessionContext: input.staffSessionContext }),
+    targetLocationId: input.locationId,
+  });
   if (freshScope === null) {
     throw new DashboardOverviewError("AUTHORIZATION_DENIED");
   }
@@ -103,9 +102,7 @@ export async function finalizeAuditedExport(
       input.artifact.format === "CSV"
         ? "text/csv; charset=utf-8"
         : "application/pdf",
-    filename: `report-${input.request.kind.toLowerCase()}-${input.renderedPeriodFrom}.${
-      input.artifact.format.toLowerCase()
-    }`,
+    filename: `report-${input.request.kind.toLowerCase()}-${input.renderedPeriodFrom}.${input.artifact.format.toLowerCase()}`,
     kind: input.request.kind,
     periodFrom: input.renderedPeriodFrom,
     periodTo: input.renderedPeriodTo,
@@ -116,6 +113,7 @@ export async function generateReportExport(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
     request: ReportExportRequest;
   },
@@ -125,12 +123,19 @@ export async function generateReportExport(
     pool,
     input.authenticatedUserId,
     input.locationId,
+    input.staffSessionContext,
+    "REPORT_EXPORT",
+    false,
   );
   const period = derivePeriod(input.request);
   const report = await composeReport(pool, {
     authenticatedUserId: input.authenticatedUserId,
+    ...(input.staffSessionContext === undefined
+      ? {}
+      : { staffSessionContext: input.staffSessionContext }),
     includeDailyActivity: input.request.kind === "DAILY",
     locationId: input.locationId,
+    recordManagementActivity: false,
     period,
   });
   assertExportWithinBounds(
@@ -158,6 +163,9 @@ export async function generateReportExport(
     finalizeAuditedExport(transaction, {
       artifact: { bytes: artifact.bytes, format: input.request.format },
       authenticatedUserId: input.authenticatedUserId,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
       locationId: input.locationId,
       renderedPeriodFrom: period.from,
       renderedPeriodTo: period.to,

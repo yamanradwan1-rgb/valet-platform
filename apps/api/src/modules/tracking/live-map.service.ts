@@ -3,6 +3,7 @@ import type { LiveOperationsMapQuery } from "@valet/contracts";
 
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { PostgresPool } from "../../common/database/postgres";
+import type { StaffSessionContext } from "../auth/staff-session-context";
 import { createLiveMapQuery } from "./live-map-query";
 
 @Injectable()
@@ -17,6 +18,7 @@ export class LiveMapService {
     input: LiveOperationsMapQuery & {
       readonly authenticatedUserId: string;
       readonly locationId: string;
+      readonly staffSessionContext?: StaffSessionContext;
     },
   ) {
     return this.query({
@@ -24,6 +26,9 @@ export class LiveMapService {
       ...(input.cursor === undefined ? {} : { cursor: input.cursor }),
       limit: input.limit,
       locationId: input.locationId,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
     });
   }
 }

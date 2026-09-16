@@ -6,11 +6,10 @@ import type {
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
-import {
-  createOverviewCursorCodec,
-} from "./overview-cursor";
+import { createOverviewCursorCodec } from "./overview-cursor";
 
 const shiftCursorCodec = createOverviewCursorCodec("active-shifts");
 const keyCursorCodec = createOverviewCursorCodec("keys");
@@ -26,6 +25,7 @@ export async function listActiveShifts(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     cursor?: string;
     limit: number;
     locationId: string;
@@ -33,11 +33,14 @@ export async function listActiveShifts(
 ): Promise<{ items: ActiveShiftOverviewEntry[]; nextCursor: string | null }> {
   const cursor = shiftCursorCodec.decode(input.cursor);
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const predicates = [
       "shift.organization_id = $1",
@@ -90,6 +93,7 @@ export async function listKeyAccountability(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     cursor?: string;
     limit: number;
     locationId: string;
@@ -97,16 +101,16 @@ export async function listKeyAccountability(
 ): Promise<{ items: KeySlotOverviewEntry[]; nextCursor: string | null }> {
   const cursor = keyCursorCodec.decode(input.cursor);
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
-    const predicates = [
-      "slot.organization_id = $1",
-      "slot.location_id = $2",
-    ];
+    const predicates = ["slot.organization_id = $1", "slot.location_id = $2"];
     const parameters: unknown[] = [scope.organizationId, input.locationId];
     if (cursor !== null) {
       parameters.push(cursor.sortKey, cursor.tiebreakerId);
@@ -168,6 +172,7 @@ export async function listOpenIncidents(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     cursor?: string;
     limit: number;
     locationId: string;
@@ -175,11 +180,14 @@ export async function listOpenIncidents(
 ): Promise<{ items: IncidentOverviewEntry[]; nextCursor: string | null }> {
   const cursor = incidentCursorCodec.decode(input.cursor);
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const predicates = [
       "incident.organization_id = $1",
@@ -211,18 +219,17 @@ export async function listOpenIncidents(
     );
     const items = rows.rows
       .slice(0, input.limit)
-      .map(
-        (row): IncidentOverviewEntry => ({
-          createdAt: row.createdAt.toISOString(),
-          description: row.description,
-          incidentId: row.incidentId,
-          resolvedAt: row.resolvedAt === null ? null : row.resolvedAt.toISOString(),
-          severity: row.severity as IncidentOverviewEntry["severity"],
-          status: row.status as IncidentOverviewEntry["status"],
-          type: row.type,
-          valetSessionId: row.valetSessionId,
-        }),
-      );
+      .map((row): IncidentOverviewEntry => ({
+        createdAt: row.createdAt.toISOString(),
+        description: row.description,
+        incidentId: row.incidentId,
+        resolvedAt:
+          row.resolvedAt === null ? null : row.resolvedAt.toISOString(),
+        severity: row.severity as IncidentOverviewEntry["severity"],
+        status: row.status as IncidentOverviewEntry["status"],
+        type: row.type,
+        valetSessionId: row.valetSessionId,
+      }));
     const last = rows.rows[input.limit - 1];
     const nextCursor =
       rows.rows.length > input.limit && last !== undefined

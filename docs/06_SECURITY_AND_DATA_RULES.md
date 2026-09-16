@@ -84,8 +84,10 @@ rotation, replay, revocation and current server authorization authority.
 MGT-BE-02 implements DEC-078 Company Admin TOTP MFA on the same
 `StaffAuthSession`; it does not create a second principal or grant Management
 authority by itself. Password-only sessions still do not assert MFA. MGT-BE-03
-is not started, so MFA-backed Company Admin capability/tenant authorization is
-still absent.
+implements DEC-080 Company Admin Management authorization on top of that exact
+session assurance; the current persisted User, active `ORG_ADMIN` membership,
+active Organization and target ownership remain authorization inputs on every
+protected use.
 
 The factor contract is TOTP SHA-1, six digits, 30-second period with ±1-period
 acceptance, issuer `VAYLET`, and a 20-byte random secret. Seeds are stored only in an `mte1`
@@ -546,6 +548,26 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
 - Company Admin Management scope never grants operational check-in, parking,
   handoff, key movement, or custody authority. Raw route history requires an
   explicit separate authority.
+- MGT-BE-03 Organization/Location selectors are bounded and keyset-paginated.
+  Context uses an explicit selected `LOCATION` or `ALL_LOCATIONS`; the latter is
+  a scope-selection foundation only and does not grant All Locations analytics
+  or company-report fan-out.
+- The Management context capability list is a typed response snapshot, not
+  authority. Protected reads/actions revalidate current persisted User/session
+  assurance, active `ORG_ADMIN` membership, active Organization, target
+  ownership and capability-specific conditions. Cached context, frontend claims
+  and selected IDs never substitute for those checks.
+- Existing Location Manager Dashboard authorization remains governed by its
+  existing Location grants. MGT-BE-03 adds the MFA-backed Company Admin path to
+  authorized existing Location Dashboard/analytics/reports/export reads without
+  removing that Location Manager path.
+- Company Admin `LIVE_MAP_READ` is an allowed Management read for an active
+  Organization-owned active Location and still follows effective tracking
+  policy. Retained raw route history and map-setup/field mutations remain
+  denied to Company Admin through this control plane.
+- MGT-BE-03 adds no database migration or index and does not enforce commercial
+  entitlements. Entitlement enforcement remains owned by MGT-BE-12; All
+  Locations analytics/company reports remain owned by MGT-BE-11.
 - Staff membership disable is tenant-scoped. Emergency disable blocks access
   and sessions immediately but never fabricates Task, Shift, Key, Incident, or
   custody completion.

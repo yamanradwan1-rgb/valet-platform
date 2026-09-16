@@ -103,6 +103,24 @@ for check-in, parking, handoff, key movement or custody. Only VAYLET controls
 commercial entitlements, and a Management entitlement lapse must never block
 field operations or safe completion of a vehicle already in custody.
 
+MGT-BE-03 implements the Company Admin control-plane foundation. An MFA-assured
+`ORG_ADMIN` selects an active Organization from its own active Company Admin
+memberships, then selects either one Organization-owned Location or the explicit
+`ALL_LOCATIONS` scope. Organization and Location selectors are bounded and
+paginated. The returned capability catalog and selected context are a UI/read
+snapshot only: protected Management use revalidates the current User, exact
+Staff session MFA assurance, active membership/role, active Organization, target
+ownership and capability-specific conditions from persistence.
+
+The `ALL_LOCATIONS` scope in MGT-BE-03 is selection/context foundation only. It
+does not implement All Locations analytics, company-wide report aggregation, or
+commercial entitlement enforcement. Existing exact-Location Location Manager
+Dashboard authority remains available under its existing grants. MFA-backed
+Company Admin may use the existing authorized Location Dashboard/analytics/
+reports/export reads and current live operations map, but raw route history,
+map-setup mutation and operational field commands remain outside Company Admin
+authority.
+
 ### Venue Client
 
 Blueprint actor for a venue/customer that needs restricted visibility into its own location performance, validations, ratings, SLA and incidents.

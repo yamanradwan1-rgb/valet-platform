@@ -10,7 +10,6 @@ import {
   analyticsSeedSession,
 } from "./dashboard-analytics-seed";
 
-
 beforeAll(() => context.setupApi(), 120_000);
 beforeEach(() => context.clearAntiAbuse());
 afterAll(() => context.teardownApi(), 60_000);
@@ -47,7 +46,11 @@ class DashboardOverviewApiTestContext extends DashboardApiTestContext {
 
 const context = new DashboardOverviewApiTestContext("http");
 
-const PERIOD = { date: "2026-07-10", month: "2026-07", weekStart: "2026-07-06" };
+const PERIOD = {
+  date: "2026-07-10",
+  month: "2026-07",
+  weekStart: "2026-07-06",
+};
 
 async function seedReportData(): Promise<string> {
   const fixture = await context.managerFixture();
@@ -67,11 +70,8 @@ async function seedReportData(): Promise<string> {
   return fixture.locationId;
 }
 
-
 describe("VAL-009E reports HTTP boundary", () => {
-  it(
-    "composes daily/weekly/monthly JSON and audited CSV/PDF exports",
-    async () => {
+  it("composes daily/weekly/monthly JSON and audited CSV/PDF exports", async () => {
     const locationId = await seedReportData();
     const fixture = await context.managerFixture();
     const { authorization } = await context.authenticated(fixture);
@@ -113,32 +113,30 @@ describe("VAL-009E reports HTTP boundary", () => {
         kind === "DAILY"
           ? { date: PERIOD.date, format, kind }
           : { format, kind, weekStart: PERIOD.weekStart };
-      const exportResult = await context.rawRequest(
-        "POST",
-        `${base}/exports`,
-        { authorization, body },
-      );
+      const exportResult = await context.rawRequest("POST", `${base}/exports`, {
+        authorization,
+        body,
+      });
       expect(exportResult.status, format).toBe(200);
       const disposition = exportResult.headers.get("content-disposition") ?? "";
-      expect(disposition).toContain(
-        `filename="report-${kind.toLowerCase()}-`,
-      );
+      expect(disposition).toContain(`filename="report-${kind.toLowerCase()}-`);
       if (format === "CSV") {
         expect(exportResult.headers.get("content-type")).toBe(
           "text/csv; charset=utf-8",
         );
-        expect(exportResult.text.startsWith("section,key,subkey,currency,value"))
-          .toBe(true);
+        expect(
+          exportResult.text.startsWith("section,key,subkey,currency,value"),
+        ).toBe(true);
       } else {
-        expect(exportResult.headers.get("content-type")).toBe("application/pdf");
+        expect(exportResult.headers.get("content-type")).toBe(
+          "application/pdf",
+        );
         expect(exportResult.text.startsWith("%PDF-")).toBe(true);
       }
     }
     const auditsAfter = await auditCount(locationId);
     expect(auditsAfter - auditsBefore).toBe(2);
-    },
-    60_000,
-  );
+  }, 60_000);
 
   it("rejects invalid periods with REQUEST_INVALID and no audit rows", async () => {
     const fixture = await context.managerFixture();
@@ -169,19 +167,26 @@ describe("VAL-009E reports HTTP boundary", () => {
     const fixture = await context.managerFixture();
     const admin = await context.createStaff(fixture, "ORG_ADMIN");
     const supervisor = await context.createStaff(fixture, "VALET_SUPERVISOR");
-    for (const staff of [admin, supervisor]) {
+    for (const [staff, expectedStatus] of [
+      [admin, 403],
+      [supervisor, 404],
+    ] as const) {
       const login = await context.login(staff);
       const authorization = `Bearer ${String(login.body?.accessToken)}`;
       const base = `/v1/staff/dashboard/locations/${fixture.locationId}/reports`;
-      const daily = await context.request("GET", `${base}/daily?date=2026-07-10`, {
-        authorization,
-      });
-      expect(daily.status).toBe(404);
+      const daily = await context.request(
+        "GET",
+        `${base}/daily?date=2026-07-10`,
+        {
+          authorization,
+        },
+      );
+      expect(daily.status).toBe(expectedStatus);
       const exported = await context.request("POST", `${base}/exports`, {
         authorization,
         body: { date: "2026-07-10", format: "CSV", kind: "DAILY" },
       });
-      expect(exported.status).toBe(404);
+      expect(exported.status).toBe(expectedStatus);
     }
   });
 
@@ -245,15 +250,19 @@ describe("VAL-009E reports HTTP boundary", () => {
       const ok = await attempt(managerAuth, fixture.locationId, index);
       expect(ok.status, `manager route ${index}`).toBe(200);
     }
-    // ORG_ADMIN pre-MFA, Supervisor, and Employee denied on every route.
-    for (const role of ["ORG_ADMIN", "VALET_SUPERVISOR", "VALET_EMPLOYEE"]) {
+    // ORG_ADMIN is Management-eligible but must step up; operational roles stay denied.
+    for (const [role, expectedStatus] of [
+      ["ORG_ADMIN", 403],
+      ["VALET_SUPERVISOR", 404],
+      ["VALET_EMPLOYEE", 404],
+    ] as const) {
       for (let index = 0; index < routes.length; index += 1) {
         const denied = await attempt(
           staffBearers[role]!,
           fixture.locationId,
           index,
         );
-        expect(denied.status, `${role} route ${index}`).toBe(404);
+        expect(denied.status, `${role} route ${index}`).toBe(expectedStatus);
       }
     }
     // Same-org ungranted / cross-tenant / nonexistent / inactive denied.

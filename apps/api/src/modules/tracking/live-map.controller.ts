@@ -17,9 +17,9 @@ import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
 import {
-  STAFF_PRINCIPAL_RESOLVER,
-  type StaffPrincipalResolver,
-} from "../auth/staff-principal";
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContextResolver,
+} from "../auth/staff-session-context";
 import { LiveMapService } from "./live-map.service";
 
 const uuidPattern =
@@ -30,8 +30,8 @@ export class LiveMapController {
   constructor(
     private readonly service: LiveMapService,
     private readonly runner: ApiOperationRunner,
-    @Inject(STAFF_PRINCIPAL_RESOLVER)
-    private readonly principals: StaffPrincipalResolver,
+    @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
+    private readonly sessionContexts: StaffSessionContextResolver,
   ) {}
 
   @Get(":locationId/live-operations-map")
@@ -54,13 +54,14 @@ export class LiveMapController {
       if (count !== 1) throw new UnauthorizedException();
       const query = liveOperationsMapQuerySchema.safeParse(rawQuery);
       if (!query.success) throw new ApiTransportValidationError();
-      const authenticatedUserId = (await this.principals.resolve(authorization))
-        .userId;
+      const staffSessionContext =
+        await this.sessionContexts.resolve(authorization);
       return liveOperationsMapResponseSchema.parse(
         await this.service.execute({
           ...query.data,
-          authenticatedUserId,
+          authenticatedUserId: staffSessionContext.userId,
           locationId,
+          staffSessionContext,
         }),
       );
     });

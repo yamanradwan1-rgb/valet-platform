@@ -11,6 +11,7 @@ import {
   type StaffSessionContextResolver,
 } from "../staff-session-context";
 import { MfaStepUpRequiredError } from "./mfa-errors";
+import { lockAndRecheckMfaSession } from "./mfa-session-repository";
 
 const maxAssuranceMs = 8 * 60 * 60 * 1000;
 const inactivityMs = 30 * 60 * 1000;
@@ -103,6 +104,37 @@ async function readAssurance(
   };
 }
 
+export async function requireMfaAssuranceInTransaction(
+  transaction: PostgresTransaction,
+  context: StaffSessionContext,
+  options: { readonly sensitive: boolean } = { sensitive: false },
+): Promise<void> {
+  const session = await lockAndRecheckMfaSession(transaction, context);
+  const factorCurrent =
+    session.mfa_factor_id !== null &&
+    (
+      await transaction.query<{ readonly current: boolean }>(
+        `SELECT EXISTS (
+           SELECT 1 FROM user_mfa_totp_factors AS factor
+           WHERE factor.id = $1 AND factor.user_id = $2
+             AND factor.state = 'ACTIVE'
+         ) AS current`,
+        [session.mfa_factor_id, session.user_id],
+      )
+    ).rows[0]?.current === true;
+  const result = evaluateMfaAssurance(
+    {
+      factorCurrent,
+      lastAdminActivityAt: session.last_admin_activity_at,
+      mfaAuthenticatedAt: session.mfa_authenticated_at,
+      mfaFactorId: session.mfa_factor_id,
+    },
+    session.now,
+    options.sensitive,
+  );
+  if (result !== "ASSURANCE_VALID") throw new MfaStepUpRequiredError();
+}
+
 export async function recordAdminActivityInTransaction(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
@@ -131,12 +163,7 @@ export async function recordAdminActivityInTransaction(
        AND $4::timestamptz < session.absolute_expires_at
        AND $4::timestamptz < session.mfa_authenticated_at + INTERVAL '8 hours'
        AND $4::timestamptz < session.last_admin_activity_at + INTERVAL '30 minutes'`,
-    [
-      context.staffAuthSessionId,
-      context.userId,
-      context.accessTokenHash,
-      now,
-    ],
+    [context.staffAuthSessionId, context.userId, context.accessTokenHash, now],
   );
   if (updated.rowCount !== 1) throw new MfaStepUpRequiredError();
 }
@@ -148,6 +175,14 @@ export class MfaAssurancePolicy {
     @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
     private readonly sessions: StaffSessionContextResolver,
   ) {}
+
+  async requireInTransaction(
+    transaction: PostgresTransaction,
+    context: StaffSessionContext,
+    options: { readonly sensitive: boolean } = { sensitive: false },
+  ): Promise<void> {
+    await requireMfaAssuranceInTransaction(transaction, context, options);
+  }
 
   async require(
     authorization: string | undefined,
@@ -170,6 +205,10 @@ export class MfaAssurancePolicy {
   ): Promise<MfaAssuranceResult> {
     const context = await this.sessions.resolve(authorization);
     const current = await readAssurance(this.pool, context);
-    return evaluateMfaAssurance(current.snapshot, current.now, options.sensitive);
+    return evaluateMfaAssurance(
+      current.snapshot,
+      current.now,
+      options.sensitive,
+    );
   }
 }

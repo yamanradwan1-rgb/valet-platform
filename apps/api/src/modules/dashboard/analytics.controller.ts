@@ -18,14 +18,12 @@ import {
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
-import {
-  RUNTIME_POSTGRES_POOL,
-} from "../../common/database/runtime-database.module";
+import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { PostgresPool } from "../../common/database/postgres";
 import {
-  STAFF_PRINCIPAL_RESOLVER,
-  type StaffPrincipalResolver,
-} from "../auth/staff-principal";
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContextResolver,
+} from "../auth/staff-session-context";
 import type { AnalyticsPeriod } from "./analytics-period";
 import { validateAnalyticsPeriod } from "./analytics-period";
 import { financialAnalytics } from "./analytics-financial-query";
@@ -46,15 +44,21 @@ export class DashboardAnalyticsController {
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     private readonly runner: ApiOperationRunner,
-    @Inject(STAFF_PRINCIPAL_RESOLVER)
-    private readonly principals: StaffPrincipalResolver,
+    @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
+    private readonly sessionContexts: StaffSessionContextResolver,
   ) {}
 
   private async scope(
     request: ApiRequest,
     authorization: string | undefined,
     locationId: string,
-  ): Promise<{ authenticatedUserId: string; locationId: string }> {
+  ): Promise<{
+    authenticatedUserId: string;
+    locationId: string;
+    staffSessionContext: Awaited<
+      ReturnType<StaffSessionContextResolver["resolve"]>
+    >;
+  }> {
     const headers = request.rawHeaders;
     let count = 0;
     if (headers === undefined || headers.length % 2 !== 0) {
@@ -64,9 +68,12 @@ export class DashboardAnalyticsController {
       if (headers[index]?.toLowerCase() === "authorization") count += 1;
     }
     if (count !== 1) throw new UnauthorizedException();
+    const staffSessionContext =
+      await this.sessionContexts.resolve(authorization);
     return {
-      authenticatedUserId: (await this.principals.resolve(authorization)).userId,
+      authenticatedUserId: staffSessionContext.userId,
       locationId: uuid(locationId),
+      staffSessionContext,
     };
   }
 
@@ -75,7 +82,14 @@ export class DashboardAnalyticsController {
     authorization: string | undefined,
     locationId: string,
     query: unknown,
-  ): Promise<{ authenticatedUserId: string; locationId: string; period: AnalyticsPeriod }> {
+  ): Promise<{
+    authenticatedUserId: string;
+    locationId: string;
+    period: AnalyticsPeriod;
+    staffSessionContext: Awaited<
+      ReturnType<StaffSessionContextResolver["resolve"]>
+    >;
+  }> {
     const base = await this.scope(request, authorization, locationId);
     const parsed = analyticsPeriodQuerySchema.safeParse(query ?? {});
     if (!parsed.success) throw new ApiTransportValidationError();

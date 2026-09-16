@@ -5,6 +5,7 @@ import {
   Module,
   type INestApplication,
   type NestModule,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -13,22 +14,25 @@ import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.m
 import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../src/common/http/api-request";
 import {
-  FailClosedStaffPrincipalResolver,
-  STAFF_PRINCIPAL_RESOLVER,
-  type StaffPrincipalResolver,
-} from "../src/modules/auth/staff-principal";
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContextResolver,
+} from "../src/modules/auth/staff-session-context";
 import { LiveMapController } from "../src/modules/tracking/live-map.controller";
 import { LiveMapService } from "../src/modules/tracking/live-map.service";
 import { LiveMapTestContext } from "./live-map-test-context";
 
 const context = new LiveMapTestContext("api");
 const principals = new Map<string, string>();
-const resolver: StaffPrincipalResolver = {
+const resolver: StaffSessionContextResolver = {
   async resolve(authorization) {
     const userId = authorization && principals.get(authorization);
-    return userId === undefined
-      ? new FailClosedStaffPrincipalResolver().resolve(authorization)
-      : { userId };
+    if (userId === undefined) throw new UnauthorizedException();
+    return {
+      accessTokenHash: "test-access-hash",
+      createdAt: new Date(0),
+      staffAuthSessionId: randomUUID(),
+      userId,
+    };
   },
 };
 let app: INestApplication;
@@ -40,7 +44,7 @@ let baseUrl: string;
   providers: [
     LiveMapService,
     { provide: RUNTIME_POSTGRES_POOL, useFactory: () => context.runtimePool },
-    { provide: STAFF_PRINCIPAL_RESOLVER, useValue: resolver },
+    { provide: STAFF_SESSION_CONTEXT_RESOLVER, useValue: resolver },
   ],
 })
 class TestLiveMapModule implements NestModule {

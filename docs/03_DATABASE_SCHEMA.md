@@ -1850,13 +1850,24 @@ Current schema details intentionally not locked by this document include:
 
 Add these only through their approved focused task/decision.
 
-## Accepted Management extensions not yet implemented
+## Management implementation state and remaining extensions
 
 Current Prisma/migration truth is the models above and 36 forward-only
 migrations through `20260916003600_mgt_be_02_complete_mfa`. MGT-BE-01 is merged
 and implements DEC-079. MGT-BE-02 implements DEC-078 factor/recovery persistence
-and exact-session assurance. MGT-BE-03 has not started. Remaining accepted
-Management persistence includes:
+and exact-session assurance.
+
+MGT-BE-03 implements DEC-080 Company Admin authorization and context without a
+schema migration or new index. Its selected Organization, optional selected
+Location, explicit `LOCATION | ALL_LOCATIONS` scope and typed capability catalog
+are request-time server projections over existing User, `StaffAuthSession`,
+OrganizationMembership, Organization and Location rows; they are not persisted
+authority. Exact-session MFA plus current membership/role/status, Organization
+and target ownership are revalidated at protected use. `ALL_LOCATIONS` is only a
+scope-selection foundation here and adds no All Locations analytics persistence,
+report aggregation persistence, or entitlement-enforcement state.
+
+Remaining accepted Management persistence includes:
 
 - typed Management settings only for the DEC-083 catalog; no generic settings,
   rules, templates, key-policy, validation-policy, or allowed-role JSON/engine.

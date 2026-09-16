@@ -20,9 +20,7 @@ import {
   weeklyReportQuerySchema,
 } from "@valet/contracts";
 import type { PostgresPool } from "../../common/database/postgres";
-import {
-  RUNTIME_POSTGRES_POOL,
-} from "../../common/database/runtime-database.module";
+import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
@@ -31,9 +29,9 @@ import {
   type HeaderResponse,
 } from "../../common/http/no-store-response";
 import {
-  STAFF_PRINCIPAL_RESOLVER,
-  type StaffPrincipalResolver,
-} from "../auth/staff-principal";
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContextResolver,
+} from "../auth/staff-session-context";
 import { generateReportExport } from "./report-export-service";
 import {
   dailyAnalyticsReport,
@@ -48,11 +46,16 @@ import {
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function parse<T>(schema: {
-  safeParse(value: unknown):
-    | { readonly data: T; readonly success: true }
-    | { readonly success: false };
-}, value: unknown): T {
+function parse<T>(
+  schema: {
+    safeParse(
+      value: unknown,
+    ):
+      | { readonly data: T; readonly success: true }
+      | { readonly success: false };
+  },
+  value: unknown,
+): T {
   const result = schema.safeParse(value ?? {});
   if (!result.success) throw new ApiTransportValidationError();
   return result.data;
@@ -72,8 +75,8 @@ export class DashboardReportController {
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     private readonly runner: ApiOperationRunner,
-    @Inject(STAFF_PRINCIPAL_RESOLVER)
-    private readonly principals: StaffPrincipalResolver,
+    @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
+    private readonly sessionContexts: StaffSessionContextResolver,
   ) {}
 
   private async scope(
@@ -90,9 +93,12 @@ export class DashboardReportController {
       if (headers[index]?.toLowerCase() === "authorization") count += 1;
     }
     if (count !== 1) throw new UnauthorizedException();
+    const staffSessionContext =
+      await this.sessionContexts.resolve(authorization);
     return {
-      authenticatedUserId: (await this.principals.resolve(authorization)).userId,
+      authenticatedUserId: staffSessionContext.userId,
       locationId: uuid(locationId),
+      staffSessionContext,
     };
   }
 
@@ -110,6 +116,7 @@ export class DashboardReportController {
       return dailyReportResponseSchema.parse(
         await dailyAnalyticsReport(this.pool, {
           authenticatedUserId: scope.authenticatedUserId,
+          staffSessionContext: scope.staffSessionContext,
           date: parsed.date,
           locationId: scope.locationId,
         }),
@@ -130,6 +137,7 @@ export class DashboardReportController {
       return periodicReportResponseSchema.parse(
         await periodicAnalyticsReport(this.pool, {
           authenticatedUserId: scope.authenticatedUserId,
+          staffSessionContext: scope.staffSessionContext,
           kind: "WEEKLY",
           locationId: scope.locationId,
           period: resolveWeeklyPeriod(parsed.weekStart),
@@ -151,6 +159,7 @@ export class DashboardReportController {
       return periodicReportResponseSchema.parse(
         await periodicAnalyticsReport(this.pool, {
           authenticatedUserId: scope.authenticatedUserId,
+          staffSessionContext: scope.staffSessionContext,
           kind: "MONTHLY",
           locationId: scope.locationId,
           period: resolveMonthlyPeriod(parsed.month),
@@ -172,6 +181,7 @@ export class DashboardReportController {
       const parsed = parse(reportExportRequestSchema, body);
       const artifact = await generateReportExport(this.pool, {
         authenticatedUserId: scope.authenticatedUserId,
+        staffSessionContext: scope.staffSessionContext,
         locationId: scope.locationId,
         request: parsed,
       });

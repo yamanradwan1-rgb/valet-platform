@@ -5,7 +5,8 @@ import type {
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 import type { AnalyticsPeriod } from "./analytics-period";
 import {
@@ -80,16 +81,22 @@ export async function operationalAnalytics(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    recordManagementActivity?: boolean;
+    staffSessionContext?: StaffSessionContext;
     locationId: string;
     period: AnalyticsPeriod;
   },
 ): Promise<OperationalAnalyticsResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "ANALYTICS_READ",
+      recordActivity: input.recordManagementActivity !== false,
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const timezone = await resolveAnalyticsTimezone(transaction, scope);
     const parameters = [scope.organizationId, input.locationId];

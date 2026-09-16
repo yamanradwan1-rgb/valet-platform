@@ -2,7 +2,8 @@ import type { FinancialOverviewResponse } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 
 interface PaymentGroupRow {
@@ -39,14 +40,21 @@ const paymentScopePredicate = `WHERE payment.organization_id = $1
 
 export async function financialOperationalOverview(
   pool: PostgresPool,
-  input: { authenticatedUserId: string; locationId: string },
+  input: {
+    authenticatedUserId: string;
+    locationId: string;
+    staffSessionContext?: StaffSessionContext;
+  },
 ): Promise<FinancialOverviewResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const parameters = [scope.organizationId, input.locationId];
     const paymentGroups = await transaction.query<PaymentGroupRow>(

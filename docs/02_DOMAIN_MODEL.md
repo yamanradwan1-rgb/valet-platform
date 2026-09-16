@@ -133,6 +133,37 @@ VAYLET Super Admin is platform-level, not a tenant membership role.
 
 Venue Client is a Blueprint actor with restricted location visibility, but its exact identity/persistence model is not yet locked and must be defined by a dedicated schema decision.
 
+## Management context
+
+MGT-BE-03 adds no new persisted Management aggregate. Company Admin context is a
+server-derived projection over the authenticated User, exact `StaffAuthSession`,
+current `OrganizationMembership`, Organization and optional Location.
+
+An MFA-assured active `ORG_ADMIN` may select one active Organization for which
+the User currently has an active Company Admin membership. Within that
+Organization, Management context uses one of two explicit scopes:
+
+- `LOCATION`, with one Organization-owned selected Location; or
+- `ALL_LOCATIONS`, with no selected Location.
+
+Organization and Location selection lists are bounded, keyset-paginated
+projections. Location selection may describe an inactive Location for
+Management context; each downstream capability decides whether its target must
+currently be active.
+
+The context also returns a typed Company Admin capability catalog. That catalog
+is a snapshot for client composition, not authorization state and not a generic
+permission system. Every protected downstream use revalidates current persisted
+User/session assurance, membership role/status, Organization, target ownership
+and capability-specific conditions. The catalog contains Management/read
+eligibility only; it does not confer operational field commands.
+
+The explicit `ALL_LOCATIONS` scope is foundation for later company-wide
+Management work. MGT-BE-03 does not add All Locations analytics or company
+report aggregation. Existing Location Manager authority remains governed by its
+persisted Location grants. Company Admin may use the authorized current live-map
+read, while retained raw route history remains outside this Management context.
+
 ## Shift
 
 A working session for a staff membership at a Location.

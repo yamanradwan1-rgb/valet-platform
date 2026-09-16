@@ -68,26 +68,24 @@ describe("VAL-009C overview HTTP boundary", () => {
     );
     expect(login.status).toBe(200);
     const base = `/v1/staff/dashboard/locations/${locationId}/overview`;
-    const expectations: Array<[string, (body: Record<string, unknown>) => void]> =
+    const expectations: Array<
+      [string, (body: Record<string, unknown>) => void]
+    > = [
+      ["sessions", (body) => expect(body.items).toHaveLength(1)],
+      ["session-state-counts", (body) => expect(body.counts).toHaveLength(9)],
+      ["retrieval-queue", (body) => expect(body.items).toHaveLength(1)],
+      ["tasks", (body) => expect(body.items).toHaveLength(1)],
+      ["active-shifts", (body) => expect(body.items).toHaveLength(1)],
+      ["keys", (body) => expect(body.items).toHaveLength(1)],
+      ["incidents", (body) => expect(body.items).toHaveLength(1)],
       [
-        ["sessions", (body) => expect(body.items).toHaveLength(1)],
-        [
-          "session-state-counts",
-          (body) => expect(body.counts).toHaveLength(9),
-        ],
-        ["retrieval-queue", (body) => expect(body.items).toHaveLength(1)],
-        ["tasks", (body) => expect(body.items).toHaveLength(1)],
-        ["active-shifts", (body) => expect(body.items).toHaveLength(1)],
-        ["keys", (body) => expect(body.items).toHaveLength(1)],
-        ["incidents", (body) => expect(body.items).toHaveLength(1)],
-        [
-          "financial",
-          (body) =>
-            expect(body).toMatchObject({
-              currencies: [{ currency: "JOD" }],
-            }),
-        ],
-      ];
+        "financial",
+        (body) =>
+          expect(body).toMatchObject({
+            currencies: [{ currency: "JOD" }],
+          }),
+      ],
+    ];
     for (const [route, assert] of expectations) {
       const result = await context.request("GET", `${base}/${route}`, {
         authorization,
@@ -109,11 +107,9 @@ describe("VAL-009C overview HTTP boundary", () => {
       expect(result.status, query).toBe(400);
       expect(result.body?.code).toBe("REQUEST_INVALID");
     }
-    const malformed = await context.request(
-      "GET",
-      `${path}?cursor=abcdefgh`,
-      { authorization },
-    );
+    const malformed = await context.request("GET", `${path}?cursor=abcdefgh`, {
+      authorization,
+    });
     expect(malformed.status).toBe(400);
     const page = await context.request("GET", `${path}?limit=1`, {
       authorization,
@@ -169,7 +165,7 @@ describe("VAL-009C overview HTTP boundary", () => {
       `/v1/staff/dashboard/locations/${fixture.locationId}/overview/sessions`,
       { authorization: admin },
     );
-    expect(adminOverview.status).toBe(404);
-    expect(adminOverview.body?.code).toBe("AUTHORIZATION_DENIED");
+    expect(adminOverview.status).toBe(403);
+    expect(adminOverview.body?.code).toBe("MFA_STEP_UP_REQUIRED");
   });
 });

@@ -23,15 +23,16 @@ import {
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
-import {
-  RUNTIME_POSTGRES_POOL,
-} from "../../common/database/runtime-database.module";
+import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { PostgresPool } from "../../common/database/postgres";
 import {
-  STAFF_PRINCIPAL_RESOLVER,
-  type StaffPrincipalResolver,
-} from "../auth/staff-principal";
-import { dashboardSessionStateCounts, listDashboardSessions } from "./overview-sessions-query";
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContextResolver,
+} from "../auth/staff-session-context";
+import {
+  dashboardSessionStateCounts,
+  listDashboardSessions,
+} from "./overview-sessions-query";
 import {
   listDashboardTasks,
   listRetrievalQueue,
@@ -62,8 +63,8 @@ export class DashboardOverviewController {
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
     private readonly runner: ApiOperationRunner,
-    @Inject(STAFF_PRINCIPAL_RESOLVER)
-    private readonly principals: StaffPrincipalResolver,
+    @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
+    private readonly sessionContexts: StaffSessionContextResolver,
   ) {}
 
   private async scope(
@@ -81,11 +82,11 @@ export class DashboardOverviewController {
       if (headers[index]?.toLowerCase() === "authorization") count += 1;
     }
     if (count !== 1) throw new UnauthorizedException();
-    const authenticatedUserId = (
-      await this.principals.resolve(authorization)
-    ).userId;
+    const staffSessionContext =
+      await this.sessionContexts.resolve(authorization);
     return {
-      authenticatedUserId,
+      authenticatedUserId: staffSessionContext.userId,
+      staffSessionContext,
       list: query === undefined ? undefined : parseListQuery(query),
       locationId: uuid(locationId),
     };
@@ -98,20 +99,19 @@ export class DashboardOverviewController {
     @Param("locationId") locationId: string,
     @Query() query: unknown,
   ) {
-    return this.runner.run(
-      "DASHBOARD_OVERVIEW_SESSIONS",
-      request,
-      async () => {
-        const scope = await this.scope(request, authorization, locationId, query);
-        const result = await listDashboardSessions(this.pool, {
-          authenticatedUserId: scope.authenticatedUserId,
-          ...(scope.list!.cursor === undefined ? {} : { cursor: scope.list!.cursor }),
-          limit: scope.list!.limit,
-          locationId: scope.locationId,
-        });
-        return sessionOverviewListResponseSchema.parse(result);
-      },
-    );
+    return this.runner.run("DASHBOARD_OVERVIEW_SESSIONS", request, async () => {
+      const scope = await this.scope(request, authorization, locationId, query);
+      const result = await listDashboardSessions(this.pool, {
+        authenticatedUserId: scope.authenticatedUserId,
+        staffSessionContext: scope.staffSessionContext,
+        ...(scope.list!.cursor === undefined
+          ? {}
+          : { cursor: scope.list!.cursor }),
+        limit: scope.list!.limit,
+        locationId: scope.locationId,
+      });
+      return sessionOverviewListResponseSchema.parse(result);
+    });
   }
 
   @Get("session-state-counts")
@@ -128,6 +128,7 @@ export class DashboardOverviewController {
         return sessionStateCountsResponseSchema.parse(
           await dashboardSessionStateCounts(this.pool, {
             authenticatedUserId: scope.authenticatedUserId,
+            staffSessionContext: scope.staffSessionContext,
             locationId: scope.locationId,
           }),
         );
@@ -146,10 +147,18 @@ export class DashboardOverviewController {
       "DASHBOARD_OVERVIEW_RETRIEVAL_QUEUE",
       request,
       async () => {
-        const scope = await this.scope(request, authorization, locationId, query);
+        const scope = await this.scope(
+          request,
+          authorization,
+          locationId,
+          query,
+        );
         const result = await listRetrievalQueue(this.pool, {
           authenticatedUserId: scope.authenticatedUserId,
-          ...(scope.list!.cursor === undefined ? {} : { cursor: scope.list!.cursor }),
+          staffSessionContext: scope.staffSessionContext,
+          ...(scope.list!.cursor === undefined
+            ? {}
+            : { cursor: scope.list!.cursor }),
           limit: scope.list!.limit,
           locationId: scope.locationId,
         });
@@ -169,7 +178,10 @@ export class DashboardOverviewController {
       const scope = await this.scope(request, authorization, locationId, query);
       const result = await listDashboardTasks(this.pool, {
         authenticatedUserId: scope.authenticatedUserId,
-        ...(scope.list!.cursor === undefined ? {} : { cursor: scope.list!.cursor }),
+        staffSessionContext: scope.staffSessionContext,
+        ...(scope.list!.cursor === undefined
+          ? {}
+          : { cursor: scope.list!.cursor }),
         limit: scope.list!.limit,
         locationId: scope.locationId,
       });
@@ -188,10 +200,18 @@ export class DashboardOverviewController {
       "DASHBOARD_OVERVIEW_ACTIVE_SHIFTS",
       request,
       async () => {
-        const scope = await this.scope(request, authorization, locationId, query);
+        const scope = await this.scope(
+          request,
+          authorization,
+          locationId,
+          query,
+        );
         const result = await listActiveShifts(this.pool, {
           authenticatedUserId: scope.authenticatedUserId,
-          ...(scope.list!.cursor === undefined ? {} : { cursor: scope.list!.cursor }),
+          staffSessionContext: scope.staffSessionContext,
+          ...(scope.list!.cursor === undefined
+            ? {}
+            : { cursor: scope.list!.cursor }),
           limit: scope.list!.limit,
           locationId: scope.locationId,
         });
@@ -211,7 +231,10 @@ export class DashboardOverviewController {
       const scope = await this.scope(request, authorization, locationId, query);
       const result = await listKeyAccountability(this.pool, {
         authenticatedUserId: scope.authenticatedUserId,
-        ...(scope.list!.cursor === undefined ? {} : { cursor: scope.list!.cursor }),
+        staffSessionContext: scope.staffSessionContext,
+        ...(scope.list!.cursor === undefined
+          ? {}
+          : { cursor: scope.list!.cursor }),
         limit: scope.list!.limit,
         locationId: scope.locationId,
       });
@@ -226,16 +249,28 @@ export class DashboardOverviewController {
     @Param("locationId") locationId: string,
     @Query() query: unknown,
   ) {
-    return this.runner.run("DASHBOARD_OVERVIEW_INCIDENTS", request, async () => {
-      const scope = await this.scope(request, authorization, locationId, query);
-      const result = await listOpenIncidents(this.pool, {
-        authenticatedUserId: scope.authenticatedUserId,
-        ...(scope.list!.cursor === undefined ? {} : { cursor: scope.list!.cursor }),
-        limit: scope.list!.limit,
-        locationId: scope.locationId,
-      });
-      return incidentOverviewResponseSchema.parse(result);
-    });
+    return this.runner.run(
+      "DASHBOARD_OVERVIEW_INCIDENTS",
+      request,
+      async () => {
+        const scope = await this.scope(
+          request,
+          authorization,
+          locationId,
+          query,
+        );
+        const result = await listOpenIncidents(this.pool, {
+          authenticatedUserId: scope.authenticatedUserId,
+          staffSessionContext: scope.staffSessionContext,
+          ...(scope.list!.cursor === undefined
+            ? {}
+            : { cursor: scope.list!.cursor }),
+          limit: scope.list!.limit,
+          locationId: scope.locationId,
+        });
+        return incidentOverviewResponseSchema.parse(result);
+      },
+    );
   }
 
   @Get("financial")
@@ -244,14 +279,19 @@ export class DashboardOverviewController {
     @Headers("authorization") authorization: string | undefined,
     @Param("locationId") locationId: string,
   ) {
-    return this.runner.run("DASHBOARD_OVERVIEW_FINANCIAL", request, async () => {
-      const scope = await this.scope(request, authorization, locationId);
-      return financialOverviewResponseSchema.parse(
-        await financialOperationalOverview(this.pool, {
-          authenticatedUserId: scope.authenticatedUserId,
-          locationId: scope.locationId,
-        }),
-      );
-    });
+    return this.runner.run(
+      "DASHBOARD_OVERVIEW_FINANCIAL",
+      request,
+      async () => {
+        const scope = await this.scope(request, authorization, locationId);
+        return financialOverviewResponseSchema.parse(
+          await financialOperationalOverview(this.pool, {
+            authenticatedUserId: scope.authenticatedUserId,
+            staffSessionContext: scope.staffSessionContext,
+            locationId: scope.locationId,
+          }),
+        );
+      },
+    );
   }
 }

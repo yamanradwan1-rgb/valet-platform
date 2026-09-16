@@ -5,7 +5,8 @@ import type {
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
-import { authorizeDashboardLocation } from "./dashboard-location-authorization";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 import {
   createOverviewCursorCodec,
@@ -49,6 +50,7 @@ export async function listDashboardSessions(
   pool: PostgresPool,
   input: {
     authenticatedUserId: string;
+    staffSessionContext?: StaffSessionContext;
     cursor?: string;
     limit: number;
     locationId: string;
@@ -56,11 +58,14 @@ export async function listDashboardSessions(
 ): Promise<{ items: SessionOverviewEntry[]; nextCursor: string | null }> {
   const cursor: OverviewCursor | null = cursorCodec.decode(input.cursor);
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const predicates = [
       "session.organization_id = $1",
@@ -126,14 +131,21 @@ export async function listDashboardSessions(
 
 export async function dashboardSessionStateCounts(
   pool: PostgresPool,
-  input: { authenticatedUserId: string; locationId: string },
+  input: {
+    authenticatedUserId: string;
+    locationId: string;
+    staffSessionContext?: StaffSessionContext;
+  },
 ): Promise<SessionStateCountsResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardLocation(
-      transaction,
-      input.authenticatedUserId,
-      input.locationId,
-    );
+    const scope = await authorizeDashboardReadLocation(transaction, {
+      authenticatedUserId: input.authenticatedUserId,
+      capability: "LOCATION_DASHBOARD_READ",
+      ...(input.staffSessionContext === undefined
+        ? {}
+        : { staffSessionContext: input.staffSessionContext }),
+      targetLocationId: input.locationId,
+    });
     assertAuthorized(scope);
     const rows = await transaction.query<StateCountRow>(
       `SELECT state::text AS state, count(*)::int AS count

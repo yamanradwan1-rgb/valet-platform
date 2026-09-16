@@ -9,6 +9,7 @@ import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { GuestAccessModule } from "./modules/guest-access/guest-access.module";
 import { KeyCustodyModule } from "./modules/keys/key-custody.module";
 import { MapSetupModule } from "./modules/map-setup/map-setup.module";
+import { ManagementModule } from "./modules/management/management.module";
 import { StartParkingModule } from "./modules/parking/start-parking.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { RetrievalModule } from "./modules/retrieval/retrieval.module";
@@ -29,6 +30,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     StaffPushModule,
     KeyCustodyModule,
     MapSetupModule,
+    ManagementModule,
     DispatchModule,
     StartParkingModule,
     PaymentsModule,
