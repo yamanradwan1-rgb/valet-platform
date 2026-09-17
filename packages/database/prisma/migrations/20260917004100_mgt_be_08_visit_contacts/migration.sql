@@ -85,11 +85,11 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION USING ERRCODE='42501', MESSAGE='AUTHORIZATION_DENIED';
   END IF;
-  IF v.updated_at IS DISTINCT FROM p_expected_updated_at THEN
-    RETURN QUERY SELECT v.updated_at,FALSE,'VERSION_CONFLICT'; RETURN;
-  END IF;
   IF v.display_name IS NOT DISTINCT FROM p_display_name THEN
     RETURN QUERY SELECT v.updated_at,FALSE,'OK'; RETURN;
+  END IF;
+  IF v.updated_at IS DISTINCT FROM p_expected_updated_at THEN
+    RETURN QUERY SELECT v.updated_at,FALSE,'VERSION_CONFLICT'; RETURN;
   END IF;
   v_time:=GREATEST(clock_timestamp(),v.updated_at+INTERVAL '0.001 second');
   UPDATE public.customers SET display_name=p_display_name,updated_at=v_time
@@ -119,11 +119,11 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION USING ERRCODE='42501', MESSAGE='AUTHORIZATION_DENIED';
   END IF;
-  IF v.updated_at IS DISTINCT FROM p_expected_updated_at THEN
-    RETURN QUERY SELECT v.updated_at,FALSE,'VERSION_CONFLICT'; RETURN;
-  END IF;
   IF v.phone_normalized=p_phone_normalized THEN
     RETURN QUERY SELECT v.updated_at,FALSE,'OK'; RETURN;
+  END IF;
+  IF v.updated_at IS DISTINCT FROM p_expected_updated_at THEN
+    RETURN QUERY SELECT v.updated_at,FALSE,'VERSION_CONFLICT'; RETURN;
   END IF;
   v_time:=GREATEST(clock_timestamp(),v.updated_at+INTERVAL '0.001 second');
   UPDATE public.customers SET phone_normalized=p_phone_normalized,updated_at=v_time

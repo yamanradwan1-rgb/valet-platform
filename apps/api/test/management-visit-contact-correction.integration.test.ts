@@ -71,44 +71,68 @@ describe("MGT-BE-08 Visit Contact corrections", () => {
     const customerId = await fixture.createCustomer(actor.organizationId, "+962790080800", "First");
     const duplicateId = await fixture.createCustomer(actor.organizationId, "+962790080808", "Duplicate");
     const before = await fixture.customerState(customerId);
+    const body = { expectedUpdatedAt: before.updated_at.toISOString(), phone: "079 008 0808" };
     const response = await fixture.managementPost(
       correctionPath(actor.organizationId, customerId, "phone"), actor.auth.accessToken,
-      { expectedUpdatedAt: before.updated_at.toISOString(), phone: "079 008 0808" },
+      body,
     );
     expect(response.status).toBe(200);
-    expect((await fixture.customerState(customerId)).phone_normalized).toBe("+962790080808");
+    expect(response.body).toMatchObject({ changed: true, customerId });
+    const current = await fixture.customerState(customerId);
+    expect(current.phone_normalized).toBe("+962790080808");
     expect((await fixture.customerState(duplicateId)).phone_normalized).toBe("+962790080808");
-    const audit = await fixture.eventRows(actor.organizationId, "VISIT_CONTACT_PHONE_CORRECTED");
-    expect(audit.rows).toHaveLength(1);
-    expect(audit.rows[0]?.metadata_json).toEqual({
+    const retry = await fixture.managementPost(
+      correctionPath(actor.organizationId, customerId, "phone"), actor.auth.accessToken, body,
+    );
+    expect(retry.status).toBe(200);
+    expect(retry.body).toMatchObject({
+      changed: false,
+      updatedAt: current.updated_at.toISOString(),
+    });
+    const divergent = await fixture.managementPost(
+      correctionPath(actor.organizationId, customerId, "phone"), actor.auth.accessToken,
+      { expectedUpdatedAt: before.updated_at.toISOString(), phone: "079 008 0818" },
+    );
+    expect(divergent.status).toBe(409);
+    expect(divergent.body).toMatchObject({ code: "VERSION_CONFLICT" });
+    expect((await fixture.customerState(customerId)).phone_normalized).toBe("+962790080808");
+    const audits = await fixture.eventRows(actor.organizationId, "VISIT_CONTACT_PHONE_CORRECTED");
+    expect(audits.rows).toHaveLength(1);
+    expect(audits.rows[0]?.metadata_json).toEqual({
       field: "phoneNormalized",
       normalizationVersion: "JORDAN_MOBILE_V1",
     });
-    expect(JSON.stringify(audit.rows)).not.toContain("+962790080808");
+    expect(JSON.stringify(audits.rows)).not.toContain("+962790080808");
   });
 
   it("makes exact-value retry a no-op and stale CAS a conflict without extra audit", async () => {
     const actor = await admin();
     const customerId = await fixture.createCustomer(actor.organizationId, "+962790090909", "Start");
     const before = await fixture.customerState(customerId);
+    const body = { displayName: "Changed", expectedUpdatedAt: before.updated_at.toISOString() };
     const first = await fixture.managementPost(
       correctionPath(actor.organizationId, customerId, "name"), actor.auth.accessToken,
-      { displayName: "Changed", expectedUpdatedAt: before.updated_at.toISOString() },
+      body,
     );
     expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({ changed: true, customerId });
     const current = await fixture.customerState(customerId);
     const retry = await fixture.managementPost(
       correctionPath(actor.organizationId, customerId, "name"), actor.auth.accessToken,
-      { displayName: "Changed", expectedUpdatedAt: current.updated_at.toISOString() },
+      body,
     );
     expect(retry.status).toBe(200);
-    expect(retry.body).toMatchObject({ changed: false });
+    expect(retry.body).toMatchObject({
+      changed: false,
+      updatedAt: current.updated_at.toISOString(),
+    });
     const stale = await fixture.managementPost(
       correctionPath(actor.organizationId, customerId, "name"), actor.auth.accessToken,
-      { displayName: "Lost", expectedUpdatedAt: before.updated_at.toISOString() },
+      { displayName: "Different", expectedUpdatedAt: before.updated_at.toISOString() },
     );
     expect(stale.status).toBe(409);
     expect(stale.body).toMatchObject({ code: "VERSION_CONFLICT" });
+    expect((await fixture.customerState(customerId)).display_name).toBe("Changed");
     expect((await fixture.eventRows(actor.organizationId, "VISIT_CONTACT_NAME_CORRECTED")).rows)
       .toHaveLength(1);
   });

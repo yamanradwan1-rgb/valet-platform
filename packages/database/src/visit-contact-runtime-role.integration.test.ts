@@ -145,6 +145,74 @@ describe("MGT-BE-08 Visit Contact runtime privileges", () => {
       [organizationId])).rowCount).toBe(0);
   });
 
+  it("converges exact stale retries but rejects stale divergent corrections", async () => {
+    const organizationId = randomUUID();
+    const userId = randomUUID();
+    const membershipId = randomUUID();
+    const nameCustomerId = randomUUID();
+    const phoneCustomerId = randomUUID();
+    await adminPool.query(`INSERT INTO organizations(id,name,status,timezone,updated_at)
+      VALUES($1,'Retries','ACTIVE','Asia/Amman',clock_timestamp())`, [organizationId]);
+    await adminPool.query(`INSERT INTO users(id,email,password_hash,status,updated_at)
+      VALUES($1,$2,'hash','ACTIVE',clock_timestamp())`, [userId, `${userId}@retries.test`]);
+    await adminPool.query(`INSERT INTO organization_memberships(id,organization_id,user_id,role,status,updated_at)
+      VALUES($1,$2,$3,'ORG_ADMIN','ACTIVE',clock_timestamp())`, [membershipId, organizationId, userId]);
+    await adminPool.query(`INSERT INTO customers(id,organization_id,phone_normalized,display_name,updated_at)
+      VALUES($1,$3,'+962790000003','Before',clock_timestamp()),
+            ($2,$3,'+962790000004','Phone',clock_timestamp())`,
+      [nameCustomerId, phoneCustomerId, organizationId]);
+    const initial = await adminPool.query<{ id: string; updated_at: Date }>(
+      `SELECT id::text,updated_at FROM customers WHERE id=ANY($1::uuid[]) ORDER BY id`,
+      [[nameCustomerId, phoneCustomerId]],
+    );
+    const token = (customerId: string) => initial.rows.find((row) => row.id === customerId)!.updated_at;
+    const nameT0 = token(nameCustomerId);
+    const phoneT0 = token(phoneCustomerId);
+
+    const nameFirst = await runtimePool.query<{ changed: boolean; result_code: string; updated_at: Date }>(
+      `SELECT * FROM management_visit_contact_correct_name($1,$2,$3,'Changed',$4)`,
+      [membershipId, organizationId, nameCustomerId, nameT0],
+    );
+    const nameRetry = await runtimePool.query<{ changed: boolean; result_code: string; updated_at: Date }>(
+      `SELECT * FROM management_visit_contact_correct_name($1,$2,$3,'Changed',$4)`,
+      [membershipId, organizationId, nameCustomerId, nameT0],
+    );
+    const nameDivergent = await runtimePool.query<{ changed: boolean; result_code: string }>(
+      `SELECT * FROM management_visit_contact_correct_name($1,$2,$3,'Different',$4)`,
+      [membershipId, organizationId, nameCustomerId, nameT0],
+    );
+    expect(nameFirst.rows[0]).toMatchObject({ changed: true, result_code: "OK" });
+    expect(nameRetry.rows[0]).toMatchObject({ changed: false, result_code: "OK",
+      updated_at: nameFirst.rows[0]!.updated_at });
+    expect(nameDivergent.rows[0]).toMatchObject({ changed: false, result_code: "VERSION_CONFLICT" });
+
+    const phoneFirst = await runtimePool.query<{ changed: boolean; result_code: string; updated_at: Date }>(
+      `SELECT * FROM management_visit_contact_correct_phone($1,$2,$3,'+962790000005',$4)`,
+      [membershipId, organizationId, phoneCustomerId, phoneT0],
+    );
+    const phoneRetry = await runtimePool.query<{ changed: boolean; result_code: string; updated_at: Date }>(
+      `SELECT * FROM management_visit_contact_correct_phone($1,$2,$3,'+962790000005',$4)`,
+      [membershipId, organizationId, phoneCustomerId, phoneT0],
+    );
+    const phoneDivergent = await runtimePool.query<{ changed: boolean; result_code: string }>(
+      `SELECT * FROM management_visit_contact_correct_phone($1,$2,$3,'+962790000006',$4)`,
+      [membershipId, organizationId, phoneCustomerId, phoneT0],
+    );
+    expect(phoneFirst.rows[0]).toMatchObject({ changed: true, result_code: "OK" });
+    expect(phoneRetry.rows[0]).toMatchObject({ changed: false, result_code: "OK",
+      updated_at: phoneFirst.rows[0]!.updated_at });
+    expect(phoneDivergent.rows[0]).toMatchObject({ changed: false, result_code: "VERSION_CONFLICT" });
+
+    const audits = await adminPool.query<{ event_type: string; n: string }>(
+      `SELECT event_type,count(*)::text AS n FROM audit_events WHERE organization_id=$1
+       GROUP BY event_type ORDER BY event_type`, [organizationId],
+    );
+    expect(audits.rows).toEqual([
+      { event_type: "VISIT_CONTACT_NAME_CORRECTED", n: "1" },
+      { event_type: "VISIT_CONTACT_PHONE_CORRECTED", n: "1" },
+    ]);
+  });
+
   it("rolls back the Customer mutation when atomic audit append fails", async () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
