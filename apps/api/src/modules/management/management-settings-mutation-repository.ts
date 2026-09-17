@@ -1,4 +1,5 @@
 import type {
+  ManagementLocationSettingSetRequest,
   ManagementSettingSetRequest,
   OperatingHoursValue,
 } from "@valet/contracts";
@@ -99,12 +100,21 @@ export function setLocationSetting(
   transaction: PostgresTransaction,
   input: {
     readonly actorMembershipId: string;
-    readonly command: ManagementSettingSetRequest;
+    readonly command: ManagementLocationSettingSetRequest;
     readonly locationId: string;
     readonly organizationId: string;
   },
 ): Promise<MutationRow> {
   const { command } = input;
+  if (command.setting === "slaTargetSeconds") {
+    return mutation(
+      transaction,
+      `SELECT * FROM management_settings_set_location_sla_target(
+         $1::uuid,$2::uuid,$3::uuid,$4::integer,$5::timestamptz)`,
+      [input.actorMembershipId, input.organizationId, input.locationId,
+       command.value, command.expectedUpdatedAt],
+    );
+  }
   if (command.setting === "operatingHours") {
     const value = hoursArrays(command.value);
     return mutation(
@@ -140,6 +150,15 @@ export function clearLocationSetting(
     return mutation(
       transaction,
       `SELECT * FROM management_settings_clear_location_operating_hours(
+         $1::uuid,$2::uuid,$3::uuid,$4::timestamptz)`,
+      [input.actorMembershipId, input.organizationId, input.locationId,
+       input.expectedUpdatedAt],
+    );
+  }
+  if (input.setting === "slaTargetSeconds") {
+    return mutation(
+      transaction,
+      `SELECT * FROM management_settings_clear_location_sla_target(
          $1::uuid,$2::uuid,$3::uuid,$4::timestamptz)`,
       [input.actorMembershipId, input.organizationId, input.locationId,
        input.expectedUpdatedAt],

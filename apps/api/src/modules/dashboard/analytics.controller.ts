@@ -12,6 +12,7 @@ import {
   analyticsPeriodQuerySchema,
   financialAnalyticsResponseSchema,
   incidentAnalyticsResponseSchema,
+  locationKpiAnalyticsResponseSchema,
   operationalAnalyticsResponseSchema,
   queueSnapshotResponseSchema,
 } from "@valet/contracts";
@@ -28,6 +29,7 @@ import type { AnalyticsPeriod } from "./analytics-period";
 import { validateAnalyticsPeriod } from "./analytics-period";
 import { financialAnalytics } from "./analytics-financial-query";
 import { incidentAnalytics } from "./analytics-incidents-query";
+import { locationKpiAnalytics } from "./analytics-kpi-query";
 import { operationalAnalytics } from "./analytics-operations-query";
 import { queueSnapshot } from "./analytics-queue-query";
 
@@ -177,6 +179,26 @@ export class DashboardAnalyticsController {
         );
       },
     );
+  }
+
+  @Get("kpis")
+  kpis(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("locationId") locationId: string,
+    @Query() query: unknown,
+  ) {
+    return this.runner.run("DASHBOARD_ANALYTICS_KPIS", request, async () => {
+      const scope = await this.periodScope(
+        request,
+        authorization,
+        locationId,
+        query,
+      );
+      return locationKpiAnalyticsResponseSchema.parse(
+        await locationKpiAnalytics(this.pool, scope),
+      );
+    });
   }
 
   @Get("queue")

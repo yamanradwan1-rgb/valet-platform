@@ -2181,7 +2181,68 @@ is submission time rather than a new definition of the Location-local analytics
 visit period. Any additional period/access path or aggregate added by MGT-BE-10
 still requires its own query evidence and accepted analytics contract.
 
-Remaining accepted Management persistence includes historically truthful
-SLA-target applicability and a controlled genuine Key Exception source before
-those metrics ship. Exact fields, constraints, indexes and runtime privileges for
-those remaining tasks belong to their owning implementation task.
+### MGT-BE-10 KPI source contracts (migration 43)
+
+Migration `20260917004300_mgt_be_10_kpi_analytics` implements DEC-095 with two
+nullable integer columns only: `locations.sla_target_seconds` and
+`retrieval_requests.sla_target_seconds_snapshot`. Both enforce 30 through 3600
+when non-null; neither has a default and migration 43 performs no historical
+backfill. Key Exceptions continue to use `incidents`; there is no second
+KeyException table.
+
+`retrieval_request_snapshot_sla_target()` is a migration-owned, fixed-search-path
+`SECURITY DEFINER` BEFORE INSERT trigger function. It takes the shared
+per-Organization Management-settings advisory boundary, derives the exact
+session Location and replaces any caller-supplied snapshot with that Location's
+current target. `retrieval_request_reject_sla_snapshot_mutation()` rejects any
+later distinct snapshot update while normal RetrievalRequest lifecycle updates
+remain possible. This composes with the Guest Retrieval command's same shared
+boundary and the SLA-setting writer's exclusive boundary: request-first commits
+the old snapshot; target-change-first commits before a later request sees the
+new target.
+
+SLA SET/CLEAR is exposed only through
+`management_settings_set_location_sla_target` and
+`management_settings_clear_location_sla_target`. The commands reuse current
+ORG_ADMIN/Organization/exact-Location authorization, Location `updated_at` CAS,
+desired-state no-op convergence and the existing Organization settings lock.
+Real changes append exactly `MANAGEMENT_LOCATION_SLA_TARGET_CHANGED` with narrow
+scope/operation/key/previous/new metadata. Runtime receives EXECUTE only on the
+two public commands; the snapshot/audit helpers and PUBLIC remain non-executable,
+and generic runtime Location UPDATE remains denied.
+
+The BE-10 PostgreSQL 17.11 disposable benchmark used 4 Organizations, 20 Locations,
+400 memberships, 200,000 ValetSessions, 150,000 RetrievalRequests, 600,000
+KeyCustodyEvents, 120,000 ConditionNotes, 240,000 VehiclePhotos, 180,000
+HandoffVerifications, 600,000 DispatchEvents and 40,000 Incidents. On the exact
+31-day production KPI query shapes, the measured six-index set changed median
+warm execution from 35.510 to 12.387 ms for SLA, 326.548 to 153.278 ms for Cars
+per Active Employee, 5.591 to 1.694 ms for handoff summary, and 5.766 to 1.961 ms
+for handoff-by-employee. The corresponding one-day measurements were 0.031,
+14.540, 0.023 and 0.024 ms. Key Exceptions already measured 0.875 ms before and
+0.738 ms with the retained set, so an additional Incident index was not kept.
+Both benchmark databases were force-dropped and verified absent.
+
+The retained 31-day EXPLAIN/BUFFERS summaries recorded SLA shared buffers moving
+from 7,807 hits / 0 reads to 7,335 / 0 while the RetrievalRequest access changed
+from a sequential scan to a bitmap index/heap path. Cars per Active Employee
+moved from 31,788 hits + 26,194 reads to 14,509 hits + 19,008 reads; the material
+KeyCustodyEvent, VehiclePhoto, HandoffVerification and approved DispatchEvent
+arms changed from sequential scans to bitmap index/heap paths, while the already
+useful ConditionNote path remained indexed. Handoff summary/employee buffers
+fell from 5,631 hits to 2,103 hits. The captured benchmark summary records Sort
+nodes for the aggregate/grouping shapes but did not retain PostgreSQL temp-block
+counters, so no temp-I/O number is claimed here.
+
+Migration 43 therefore keeps only these measured KPI indexes:
+
+- `valet_sessions_org_location_completed_at_kpi_idx`;
+- `retrieval_requests_org_requested_at_kpi_idx`;
+- `dispatch_events_kpi_work_evidence_idx`;
+- `key_custody_events_kpi_work_evidence_idx`;
+- `vehicle_photos_kpi_work_evidence_idx`;
+- `handoff_verifications_kpi_work_evidence_idx`.
+
+Candidate Incident, ConditionNote, session-created and condition-completion
+indexes were not retained because the actual bounded plans did not justify the
+extra write/storage cost. Migrations 1 through 42 remain unchanged.

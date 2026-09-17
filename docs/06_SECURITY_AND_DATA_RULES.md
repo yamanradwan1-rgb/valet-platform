@@ -931,6 +931,32 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   `(organization_id, location_id, valet_session_id)` for bounded Location cohort
   joins; it adds no other speculative period/rating-value index. Later analytics
   must justify any further read/index boundary from its actual bounded query.
+- MGT-BE-10 / migration 43 makes the SLA target a Company Admin-only sensitive
+  Location setting. Every write revalidates the exact current Staff session,
+  active ORG_ADMIN membership, active Organization and exact Location, and uses
+  the existing SENSITIVE MFA boundary where exactly five minutes remains valid
+  and older proof requires step-up. Location Manager mutation authority is not
+  widened. Requests are strict integer 30..3600 with Location `updated_at` CAS;
+  exact desired-state retry is audit-free and stale differing state conflicts.
+- Ordinary runtime keeps no generic Location configuration UPDATE. SLA SET/CLEAR
+  is through two reviewed migration-owned `SECURITY DEFINER` commands with fixed
+  safe search path and no grant option; PUBLIC/private helpers are closed. A
+  database trigger derives each RetrievalRequest SLA snapshot under the shared
+  settings serialization boundary and a second trigger rejects snapshot rewrite.
+  Thus neither caller input nor a later target change can forge historical SLA
+  applicability.
+- A real target change appends exactly
+  `MANAGEMENT_LOCATION_SLA_TARGET_CHANGED` atomically. Metadata is limited to
+  Location-setting scope, SET/CLEAR operation, `slaTargetSeconds`, and previous/
+  new configured values; bearer credentials, MFA material, contact/address and
+  other PII are excluded.
+- `/analytics/kpis` remains an authorized exact-Location, bounded, read-only
+  Management projection using the Location timezone and one REPEATABLE READ
+  snapshot. It exposes aggregate SLA coverage, controlled Incident counts,
+  completed-visit handoff membership IDs/counts and distinct work-evidence
+  counts; it exposes no Guest token/contact/Customer identity, GPS route, payroll
+  or employee score. Historical work evidence does not consult mutable current
+  role/status, so later access reduction cannot rewrite past operational truth.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

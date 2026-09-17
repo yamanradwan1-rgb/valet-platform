@@ -9,6 +9,8 @@ export const runtimeManagementSettingsFunctions = [
   "public.management_branding_set_company_default(uuid,uuid,text,text,timestamp with time zone)",
   "public.management_branding_set_location_override(uuid,uuid,uuid,text,text,timestamp with time zone)",
   "public.management_branding_clear_location_override(uuid,uuid,uuid,text,timestamp with time zone)",
+  "public.management_settings_set_location_sla_target(uuid,uuid,uuid,integer,timestamp with time zone)",
+  "public.management_settings_clear_location_sla_target(uuid,uuid,uuid,timestamp with time zone)",
 ];
 
 export const privateManagementSettingsFunctions = [
@@ -24,6 +26,9 @@ export const privateManagementSettingsFunctions = [
   "public.management_settings_canonical_hours(operating_weekday[],boolean[],time without time zone[],time without time zone[])",
   "public.management_branding_append_company_audit(uuid,uuid,text,text,text)",
   "public.management_branding_append_location_audit(uuid,uuid,uuid,text,text,boolean,text,text,boolean,text,text)",
+  "public.management_settings_append_sla_target_audit(uuid,uuid,uuid,text,text,text)",
+  "public.retrieval_request_snapshot_sla_target()",
+  "public.retrieval_request_reject_sla_snapshot_mutation()",
 ];
 
 export const managementSettingsReadOnlyTables = [

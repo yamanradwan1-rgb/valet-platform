@@ -12,6 +12,7 @@ const uuidSchema = z.string().uuid();
 const timezoneSchema = z.string().min(1).max(255);
 const currencySchema = z.string().regex(/^[A-Z]{3}$/);
 const localTimeSchema = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/);
+export const slaTargetSecondsSchema = z.number().int().min(30).max(3600);
 
 export const managementLanguageSchema = z.enum(["EN", "AR"]);
 export const managementNotificationTypeSchema = z.enum([
@@ -128,9 +129,23 @@ export const managementSettingSetRequestSchema = z.union([
   booleanSetting("employeeRetrievalRequestedNotificationEnabled"),
   booleanSetting("guestVehicleReadyNotificationEnabled"),
 ]);
+export const managementLocationSettingSetRequestSchema = z.union([
+  managementSettingSetRequestSchema,
+  z.object({
+    setting: z.literal("slaTargetSeconds"),
+    value: slaTargetSecondsSchema,
+    ...mutationBase,
+  }).strict(),
+]);
 
 export const managementSettingClearRequestSchema = z
   .object({ setting: managementSettingKeySchema, ...mutationBase })
+  .strict();
+export const managementLocationSettingClearRequestSchema = z
+  .object({
+    setting: z.union([managementSettingKeySchema, z.literal("slaTargetSeconds")]),
+    ...mutationBase,
+  })
   .strict();
 export const managementCompanySettingClearRequestSchema = z
   .object({ setting: z.literal("operatingHours"), ...mutationBase })
@@ -197,12 +212,15 @@ export const managementLocationSettingsResponseSchema = z.object({
     parkingSpotRequired: inherited(z.boolean()),
     employeeRetrievalRequestedNotificationEnabled: inherited(z.boolean()),
     guestVehicleReadyNotificationEnabled: inherited(z.boolean()),
+    slaTargetSeconds: slaTargetSecondsSchema.nullable(),
   }).strict(),
 }).strict();
 
 export type ManagementSettingKey = z.infer<typeof managementSettingKeySchema>;
 export type ManagementSettingSetRequest = z.infer<typeof managementSettingSetRequestSchema>;
+export type ManagementLocationSettingSetRequest = z.infer<typeof managementLocationSettingSetRequestSchema>;
 export type ManagementSettingClearRequest = z.infer<typeof managementSettingClearRequestSchema>;
+export type ManagementLocationSettingClearRequest = z.infer<typeof managementLocationSettingClearRequestSchema>;
 export type ManagementCompanySettingClearRequest = z.infer<typeof managementCompanySettingClearRequestSchema>;
 export type OperatingHoursValue = z.infer<typeof operatingHoursValueSchema>;
 export type ManagementCompanySettingsResponse = z.infer<typeof managementCompanySettingsResponseSchema>;

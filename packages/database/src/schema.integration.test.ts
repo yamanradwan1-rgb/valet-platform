@@ -3716,7 +3716,7 @@ describe("handoff verification database foundation", () => {
     expect(columnNames).not.toContain("token");
   });
 
-  it("creates no non-PK HandoffVerification index or uniqueness constraint", async () => {
+  it("creates only the PK plus the measured BE-10 HandoffVerification KPI index", async () => {
     const indexes = await databaseClient.query<{ indexname: string }>(
       `SELECT indexname
        FROM pg_indexes
@@ -3725,6 +3725,7 @@ describe("handoff verification database foundation", () => {
        ORDER BY indexname`,
     );
     expect(indexes.rows.map((row) => row.indexname)).toEqual([
+      "handoff_verifications_kpi_work_evidence_idx",
       "handoff_verifications_pkey",
     ]);
 
@@ -7137,10 +7138,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all forty-two forward-only migrations in order", () => {
+  it("applies exactly all forty-three forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260917004200_mgt_be_09_guest_rating",
+      "20260917004300_mgt_be_10_kpi_analytics",
     );
   });
 

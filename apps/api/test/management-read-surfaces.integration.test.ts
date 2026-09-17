@@ -58,6 +58,7 @@ describe("MGT-BE-03 Company Admin existing read surfaces", () => {
     const paths = [
       `/v1/staff/dashboard/locations/${state.location.locationId}/overview/session-state-counts`,
       `/v1/staff/dashboard/locations/${state.location.locationId}/analytics/queue`,
+      `/v1/staff/dashboard/locations/${state.location.locationId}/analytics/kpis?from=2026-09-16&to=2026-09-16`,
       `/v1/staff/dashboard/locations/${state.location.locationId}/reports/daily?date=2026-09-16`,
       `/v1/staff/locations/${state.location.locationId}/live-operations-map`,
     ];

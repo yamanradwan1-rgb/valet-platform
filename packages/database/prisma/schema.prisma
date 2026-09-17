@@ -505,6 +505,7 @@ model Location {
   parkingSpotRequiredOverride         Boolean?                     @map("parking_spot_required_override")
   employeeRetrievalRequestedNotificationEnabledOverride Boolean?  @map("employee_retrieval_requested_notification_enabled_override")
   guestVehicleReadyNotificationEnabledOverride Boolean?           @map("guest_vehicle_ready_notification_enabled_override")
+  slaTargetSeconds                    Int?                         @map("sla_target_seconds")
   brandDisplayNameOverride            String?                      @map("brand_display_name_override")
   brandPrimaryColorOverride           String?                      @map("brand_primary_color_override")
   createdAt                           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -1199,6 +1200,7 @@ model RetrievalRequest {
   requestedByMembershipId String?                @map("requested_by_membership_id") @db.Uuid
   status                  RetrievalRequestStatus
   requestedAt             DateTime               @map("requested_at") @db.Timestamptz(3)
+  slaTargetSecondsSnapshot Int?                   @map("sla_target_seconds_snapshot")
   cancelledAt             DateTime?              @map("cancelled_at") @db.Timestamptz(3)
   createdAt               DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
 

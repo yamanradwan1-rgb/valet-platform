@@ -15,6 +15,7 @@ export * from "./live-operations-map.js";
 export * from "./location-analytics-common.js";
 export * from "./location-analytics-financial.js";
 export * from "./location-analytics-incidents.js";
+export * from "./location-analytics-kpis.js";
 export * from "./location-analytics-operational.js";
 export * from "./location-branding.js";
 export * from "./location-financial-overview.js";

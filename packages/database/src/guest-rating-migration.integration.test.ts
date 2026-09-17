@@ -114,7 +114,7 @@ afterAll(async () => {
 describe("MGT-BE-09 migration 42 Guest Rating", () => {
   it("is migration 42 and upgrades existing sessions without fabricating ratings", async () => {
     expect(migrationIndex).toBe(41);
-    expect(expectedMigrationDirectories).toHaveLength(42);
+    expect(expectedMigrationDirectories).toHaveLength(43);
     expect(expectedMigrationDirectories.at(41)).toBe(migration);
     expect((await upgrade.query(`SELECT count(*)::int AS n FROM valet_sessions`)).rows[0]?.n).toBe(1);
     expect((await upgrade.query(`SELECT count(*)::int AS n FROM guest_ratings`)).rows[0]?.n).toBe(0);

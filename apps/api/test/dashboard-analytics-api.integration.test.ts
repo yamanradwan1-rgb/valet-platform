@@ -46,7 +46,7 @@ describe("VAL-009D analytics HTTP boundary", () => {
     });
     const { authorization } = await context.authenticated(fixture);
     const base = `/v1/staff/dashboard/locations/${fixture.locationId}/analytics`;
-    for (const route of ["operations", "financial", "incidents"]) {
+    for (const route of ["operations", "financial", "incidents", "kpis"]) {
       const result = await context.request(
         "GET",
         `${base}/${route}?${PERIOD_QUERY}`,
@@ -81,6 +81,17 @@ describe("VAL-009D analytics HTTP boundary", () => {
       { authorization },
     );
     expect(incidents.body?.incidentCount).toBe(1);
+    const kpis = await context.request(
+      "GET",
+      `${base}/kpis?${PERIOD_QUERY}`,
+      { authorization },
+    );
+    expect(kpis.status).toBe(200);
+    expect(kpis.body).toMatchObject({
+      carsPerActiveEmployee: { denominator: 0, numerator: 2, value: null },
+      keyExceptions: { count: 0 },
+      slaCompliance: { denominator: 0, percentage: null },
+    });
     const queue = await context.request("GET", `${base}/queue`, {
       authorization,
     });
@@ -153,5 +164,16 @@ describe("VAL-009D analytics HTTP boundary", () => {
       { date: "2026-07-16", handledCount: 1 },
       { date: "2026-07-17", handledCount: 0 },
     ]);
+    const kpis = await context.request(
+      "GET",
+      `/v1/staff/dashboard/locations/${berlinLocationId}/analytics/kpis?from=2026-07-16&to=2026-07-16`,
+      { authorization },
+    );
+    expect(kpis.status).toBe(200);
+    expect(kpis.body).toMatchObject({
+      carsPerActiveEmployee: { numerator: 1 },
+      locationId: berlinLocationId,
+      timezone: "Europe/Berlin",
+    });
   });
 });

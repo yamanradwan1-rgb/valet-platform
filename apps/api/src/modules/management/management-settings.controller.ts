@@ -13,8 +13,9 @@ import {
 import {
   managementCompanySettingClearRequestSchema,
   managementCompanySettingsResponseSchema,
+  managementLocationSettingClearRequestSchema,
+  managementLocationSettingSetRequestSchema,
   managementLocationSettingsResponseSchema,
-  managementSettingClearRequestSchema,
   managementSettingSetRequestSchema,
 } from "@valet/contracts";
 
@@ -132,7 +133,7 @@ export class ManagementSettingsController {
   ) {
     return this.locationMutation(
       "MANAGEMENT_LOCATION_SETTING_SET", request, authorization,
-      organizationId, locationId, body, managementSettingSetRequestSchema,
+      organizationId, locationId, body, managementLocationSettingSetRequestSchema,
       response,
       (context, organization, location, command) =>
         this.settings.setLocation(context, organization, location, command),
@@ -150,7 +151,7 @@ export class ManagementSettingsController {
   ) {
     return this.locationMutation(
       "MANAGEMENT_LOCATION_SETTING_CLEAR", request, authorization,
-      organizationId, locationId, body, managementSettingClearRequestSchema,
+      organizationId, locationId, body, managementLocationSettingClearRequestSchema,
       response,
       (context, organization, location, command) =>
         this.settings.clearLocation(context, organization, location, command),

@@ -279,6 +279,15 @@ implemented in BE-05: DEC-090 requires historically truthful applicability, so
 the source/history contract remains owned by MGT-BE-10 rather than introducing a
 current value that could be applied retroactively.
 
+MGT-BE-10 now implements that deferred DEC-095 contract without changing the
+BE-05 inheritance catalog: `slaTargetSeconds` is a nullable Location-only integer
+setting from 30 through 3600 seconds, with no Company default and no fallback.
+Company Admin is the only Management mutation authority. Each new authoritative
+Retrieval request snapshots the then-current target onto that RetrievalRequest;
+old visits are not backfilled, target changes never rewrite prior snapshots, and
+a cancelled attempt followed by a new request receives the target current at the
+new request transition.
+
 DEC-083 explicitly rejects a generic Settings JSON/Rules Builder, a Key Policy
 with only one valid mode, generic notification-template or validation-policy
 engines, and a Location allowed-role policy. Existing typed validation
@@ -328,6 +337,15 @@ enablement and accepted financial commands remain unchanged.
   administration and SaaS billing execution are out of scope.
 - Automatic report delivery is deferred; manual authenticated CSV/PDF is the
   current requirement.
+- MGT-BE-10 adds a separate bounded Location-period `/analytics/kpis` projection
+  for SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee and
+  controlled Key Exceptions. It preserves all DEC-060 analytics semantics. SLA
+  exposes numerator/denominator plus missing-target and invalid/missing-interval
+  coverage; Cars per Active Employee uses only DEC-095's immutable actor-at-time
+  work-evidence union; handoffs use the persisted final completion actor; and Key
+  Exceptions count only the four accepted Incident types. No employee ranking,
+  payroll interpretation, Key Exception rate, second exception table, Returning
+  Contact aggregate or invented Guest Rating formula is introduced.
 - MGT-BE-07 implements DEC-094 Location lifecycle with the existing
   `ACTIVE | INACTIVE` status plus explicit `accepting_intake`. Management-created
   Locations start `INACTIVE` with intake closed. `ACTIVE + accepting_intake=true`

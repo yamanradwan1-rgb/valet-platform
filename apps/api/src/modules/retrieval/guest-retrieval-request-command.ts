@@ -146,6 +146,11 @@ export async function requestGuestRetrieval(
 
   const operationTime = await loadDispatchOperationTime(transaction);
   const taskId = randomUUID();
+  await lockManagementSettingsOrganization(
+    transaction,
+    session.organizationId,
+    "SHARED",
+  );
   await transaction.query(
     `INSERT INTO retrieval_requests
        (id, organization_id, valet_session_id, requested_by_type,
@@ -210,11 +215,6 @@ export async function requestGuestRetrieval(
     occurredAt: operationTime,
     scope: guestAuditScope(session),
   });
-  await lockManagementSettingsOrganization(
-    transaction,
-    session.organizationId,
-    "SHARED",
-  );
   const notificationPolicy = await transaction.query<{ enabled: boolean }>(
     `SELECT COALESCE(location.employee_retrieval_requested_notification_enabled_override,
                      organization.employee_retrieval_requested_notification_enabled) AS enabled

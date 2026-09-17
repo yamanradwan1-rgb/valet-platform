@@ -1,8 +1,9 @@
 import type {
   ManagementCompanySettingClearRequest,
   ManagementCompanySettingsResponse,
+  ManagementLocationSettingClearRequest,
+  ManagementLocationSettingSetRequest,
   ManagementLocationSettingsResponse,
-  ManagementSettingClearRequest,
   ManagementSettingSetRequest,
 } from "@valet/contracts";
 import { Inject, Injectable } from "@nestjs/common";
@@ -73,7 +74,7 @@ export class ManagementSettingsService {
     context: StaffSessionContext,
     organizationId: string,
     locationId: string,
-    command: ManagementSettingSetRequest,
+    command: ManagementLocationSettingSetRequest,
   ): Promise<ManagementLocationSettingsResponse> {
     return this.locationTransaction(context, organizationId, locationId, "SENSITIVE",
       async (transaction, actor) => {
@@ -88,7 +89,7 @@ export class ManagementSettingsService {
     context: StaffSessionContext,
     organizationId: string,
     locationId: string,
-    command: ManagementSettingClearRequest,
+    command: ManagementLocationSettingClearRequest,
   ): Promise<ManagementLocationSettingsResponse> {
     return this.locationTransaction(context, organizationId, locationId, "SENSITIVE",
       async (transaction, actor) => {

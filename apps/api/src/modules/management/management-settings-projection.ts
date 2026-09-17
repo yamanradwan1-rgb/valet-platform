@@ -42,6 +42,7 @@ interface LocationRow extends CompanyRow {
   readonly paymentServicePayerOverride: CompanyRow["paymentServicePayer"] | null;
   readonly rawGpsRetentionDaysOverride: number | null;
   readonly releaseRequiresPaymentOverride: boolean | null;
+  readonly slaTargetSeconds: number | null;
   readonly tipsEnabledOverride: boolean | null;
   readonly timezone: string;
   readonly trackingEnabledOverride: boolean | null;
@@ -201,7 +202,8 @@ export async function locationSettingsProjection(
             organization.employee_retrieval_requested_notification_enabled AS "employeeRetrievalRequestedNotificationEnabled",
             location.employee_retrieval_requested_notification_enabled_override AS "employeeRetrievalRequestedNotificationEnabledOverride",
             organization.guest_vehicle_ready_notification_enabled AS "guestVehicleReadyNotificationEnabled",
-            location.guest_vehicle_ready_notification_enabled_override AS "guestVehicleReadyNotificationEnabledOverride"
+            location.guest_vehicle_ready_notification_enabled_override AS "guestVehicleReadyNotificationEnabledOverride",
+            location.sla_target_seconds AS "slaTargetSeconds"
      FROM locations AS location
      INNER JOIN organizations AS organization ON organization.id = location.organization_id
      WHERE location.id = $1 AND location.organization_id = $2
@@ -234,6 +236,7 @@ export async function locationSettingsProjection(
       paymentServicePayer: inherited(row.paymentServicePayer, row.paymentServicePayerOverride),
       rawGpsRetentionDays: inherited(row.rawGpsRetentionDays, row.rawGpsRetentionDaysOverride),
       releaseRequiresPayment: inherited(row.releaseRequiresPayment, row.releaseRequiresPaymentOverride),
+      slaTargetSeconds: row.slaTargetSeconds,
       tipsEnabled: inherited(row.tipsEnabled, row.tipsEnabledOverride),
       trackingEnabled: inherited(row.trackingEnabled, row.trackingEnabledOverride),
       valetServiceFee: inherited(row.valetServiceFee, row.valetServiceFeeOverride),

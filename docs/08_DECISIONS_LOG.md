@@ -3986,3 +3986,19 @@ history is never deleted or falsely completed. Currency is prospective with
 historical snapshots; production timezone changes are exceptional corrections.
 
 Full contract: `docs/decisions/DEC-094_LOCATION_LIFECYCLE.md`.
+
+---
+
+## DEC-095 — Management KPI Source Contracts
+
+Status: Accepted
+Date: 2026-09-18
+
+SLA targets are typed Location settings with immutable per-retrieval snapshots
+anchored at the authoritative retrieval-request transition. Key Exceptions are
+exactly four controlled Incident types. Cars per Active Employee uses only the
+explicit approved immutable actor-at-time operational evidence union; final
+handoffs remain sourced from the persisted completing membership.
+
+Full contract:
+`docs/decisions/DEC-095_MANAGEMENT_KPI_SOURCE_CONTRACTS.md`.

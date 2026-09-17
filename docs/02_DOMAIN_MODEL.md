@@ -659,8 +659,37 @@ do not rewrite old Notification or Staff Push history.
 Basic Management branding is only Company/Location display name and primary
 color. Company display name is `Organization.name`; Location overrides inherit
 when absent. Logos/assets are deliberately not modeled by MGT-BE-05. No
-geofence-alert setting is modeled without a justified alert consumer, and no SLA
-target source is modeled until MGT-BE-10 can preserve historical applicability.
+geofence-alert setting is modeled without a justified alert consumer. MGT-BE-10
+implements the previously deferred SLA source as nullable
+`Location.sla_target_seconds` plus the immutable per-attempt
+`RetrievalRequest.sla_target_seconds_snapshot`. The current Location value is
+configuration; the RetrievalRequest snapshot is historical applicability truth.
+There is no default target, historical backfill, or rewrite of an earlier
+attempt when configuration changes.
+
+## Management KPI source facts
+
+DEC-095 keeps Management analytics derived from existing operational facts
+rather than creating a KPI warehouse. SLA Compliance cohorts authoritative
+RetrievalRequests by request time and compares `retrieval_requested_at ->
+ready_at` against the immutable snapshot. Equality meets target; missing target
+or invalid/missing interval is coverage information rather than fabricated zero.
+
+Cars per Active Employee counts distinct actor-at-time memberships evidenced by
+exactly: ValetSession check-in, condition completion and final completion;
+KeyCustodyEvent actor; ConditionNote recorder; VehiclePhoto capturer;
+HandoffVerification verifier; and DispatchEvent actor for `ACCEPTED`, `DECLINED`,
+`IN_PROGRESS` or `COMPLETED`. Current directory membership, Shift presence,
+current Task assignment and Dispatch `QUEUED`/`ASSIGNED`/`REASSIGNED` are not
+work evidence. Later role/status changes do not erase accepted historical action
+facts.
+
+Cars Handed Off by Employee is separately sourced only from
+`ValetSession.completed_by_membership_id` at `completed_at`; a null completing
+actor remains explicit missing attribution. Key Exceptions reuse Incident as the
+only fact, at `Incident.created_at`, and only `KEY_MISSING`, `WRONG_KEY`,
+`KEY_DAMAGED` and `KEY_LOCKED_INSIDE` qualify. Ordinary KeyCustodyEvent movement
+never becomes an exception and no `KeyException` aggregate/table exists.
 
 ## Modeling principles
 

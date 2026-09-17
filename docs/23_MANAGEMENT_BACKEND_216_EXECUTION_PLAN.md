@@ -1,10 +1,9 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-09.
-MGT-BE-08 is merged to
-`main@8c01dd58098715ed5b3b03a2d16c77a241714657` with migration 41. MGT-BE-09 is
-implemented in the current `feat/mgt-be-09-guest-rating` working tree as
-migration 42. MGT-BE-10 is UNSTARTED.
+Status: Binding execution plan with implementation progress through merged
+MGT-BE-09. MGT-BE-09 and migration 42 are merged to
+`main@9f8e63659645806ae99e562d500cd4fe209c184c`. MGT-BE-10 is implemented on
+`feat/mgt-be-10-kpi-analytics` from that exact base; BE-11 remains unstarted.
 
 Rebaseline date: 2026-09-17
 
@@ -13,8 +12,8 @@ Rebaseline date: 2026-09-17
 | Item | Current verified value |
 | --- | --- |
 | Repository | `valet-platform` |
-| BE-09 baseline `main` SHA | `8c01dd58098715ed5b3b03a2d16c77a241714657` |
-| `origin/main` SHA | `8c01dd58098715ed5b3b03a2d16c77a241714657` |
+| BE-10 baseline `main` SHA | `9f8e63659645806ae99e562d500cd4fe209c184c` |
+| `origin/main` SHA | `9f8e63659645806ae99e562d500cd4fe209c184c` |
 | BE-09 implementation branch | `feat/mgt-be-09-guest-rating` |
 | BE-09 base migration count | 41 forward-only directories through merged MGT-BE-08 |
 | BE-09 base latest migration | `20260917004100_mgt_be_08_visit_contacts` |
@@ -24,10 +23,9 @@ remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
 input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
 
-MGT-BE-08 is merged to `main` at
-`8c01dd58098715ed5b3b03a2d16c77a241714657`, including migration 41 and its
-Visit Contact retry correction. MGT-BE-09 starts from that exact baseline on
-`feat/mgt-be-09-guest-rating` and adds migration 42 for Guest Rating.
+MGT-BE-08 is merged with migration 41. MGT-BE-09 and migration 42 are merged to
+`main@9f8e63659645806ae99e562d500cd4fe209c184c`. MGT-BE-10 starts from that exact
+baseline on `feat/mgt-be-10-kpi-analytics`.
 
 ## 2. Authority and audit method
 
@@ -694,10 +692,8 @@ Implementation status: merged to
 Objective: implement DEC-091 guest-only 1–5 rating, once per completed visit,
 idempotency, and an authoritative analytics source.
 
-Implementation status: implemented in the current
-`feat/mgt-be-09-guest-rating` working tree from merged
-`main@8c01dd58098715ed5b3b03a2d16c77a241714657`; this status records
-implementation truth only and does not claim final root-gate completion.
+Implementation status: merged to
+`main@9f8e63659645806ae99e562d500cd4fe209c184c` with migration 42.
 
 - Route/contract: `POST /v1/guest/session/rating`, HTTP 200 on create/exact
   retry, strict JSON `{ rating: 1..5 }`, no query parameters and no-store
@@ -740,28 +736,63 @@ Objective: implement DEC-090 SLA target/Compliance, Cars per Active Employee,
 Cars Handed Off by Employee, and controlled Key Exceptions while preserving all
 DEC-060 metrics.
 
-Implementation status: **UNSTARTED**.
+Implementation status: **COMPLETE ON BRANCH** on `feat/mgt-be-10-kpi-analytics`
+from `main@9f8e63659645806ae99e562d500cd4fe209c184c`; not merged. Migration 43 is
+`20260917004300_mgt_be_10_kpi_analytics`. DEC-095 closes the SLA applicability,
+work-evidence, and Key Exception source gates intentionally left open by DEC-090.
 
-- Dependencies: MGT-BE-05 SLA target source and required authoritative sources;
-  the authoritative Guest Rating source is now provided by MGT-BE-09.
-- Schema: likely SLA history/snapshot and a controlled Key Exception source;
-  do not infer from ordinary custody. Confirm an evidence-backed “actually
-  worked” cohort before coding.
+- Dependencies: DEC-095 now locks the historically applicable SLA target
+  snapshot, approved work-evidence union, and Incident-backed Key Exception
+  catalog; MGT-BE-09 provides the authoritative Guest Rating source.
+- Schema: nullable `locations.sla_target_seconds` plus immutable per-attempt
+  `retrieval_requests.sla_target_seconds_snapshot`, each constrained to 30..3600
+  when present and with no backfill/default. A trigger derives the snapshot under
+  the shared settings boundary; target SET/CLEAR uses narrow ORG_ADMIN-only
+  SECURITY DEFINER commands. Key Exceptions reuse Incident and do not get a
+  second table.
 - Auth: existing Location Manager plus MFA Company Admin through MGT-BE-03;
   server-derived Location periods.
-- Correctness: explicit numerator/denominator/coverage; no hard-coded five
-  minutes; handoffs use persisted completion actor; not payroll/scoring.
-- Performance: set-based bounded period queries, no N+1, exact decimals,
-  query-plan/capacity inspection, justified indexes only.
-- Proof: timezone/DST boundaries, missing targets/source, zero denominator,
-  role changes, multi-task employees, normal key movements excluded, and
-  concurrent completion visibility.
+- Correctness: SLA snapshots at the authoritative retrieval-request transition;
+  explicit numerator/denominator/coverage; no hard-coded five minutes; handoffs
+  use persisted completion actor; work evidence is exactly DEC-095's approved
+  actor-at-time union and is not payroll/scoring.
+- API: separate strict `GET
+  /v1/staff/dashboard/locations/:locationId/analytics/kpis` response. SLA exposes
+  numerator/denominator/percentage plus missing-target and invalid/missing-
+  interval counts. Cars per Active Employee exposes numerator/denominator/value;
+  handoffs expose attributed/missing counts plus at most 500 deterministic
+  membership rows; Key Exceptions expose total plus all four controlled types.
+  No Guest Rating formula or Returning Contact aggregate is invented.
+- Performance: exact PostgreSQL numeric and set-based bounded period queries in
+  one REPEATABLE READ snapshot. Representative PostgreSQL 17.11 EXPLAIN/BUFFERS on
+  200k sessions, 150k requests, 600k key events and 600k dispatch events measured
+  31-day SLA 35.510 -> 12.387 ms, Cars/Active 326.548 -> 153.278 ms, handoff
+  summary 5.591 -> 1.694 ms and handoff rows 5.766 -> 1.961 ms. Six measured
+  source indexes are retained; an Incident KPI index and other marginal
+  candidates are deliberately omitted. Both disposable benchmark DBs were
+  verified dropped. The retained 31-day plans changed SLA from a RetrievalRequest
+  sequential scan to bitmap index/heap access (7,807 shared hits -> 7,335) and
+  Cars/Active from 31,788 hits + 26,194 reads to 14,509 hits + 19,008 reads;
+  handoff buffers fell from 5,631 to 2,103 shared hits. Captured summaries include
+  scan/sort families but did not retain temp-block counters, so no temp-I/O value
+  is asserted.
+- Proof: fresh/upgrade/no-backfill migration, runtime least privilege, CAS/no-op/
+  typed audit, deterministic setting-vs-Guest-request serialization in both lock
+  orders with PostgreSQL barriers and no sleeps, cancellation/new-request
+  snapshots, null target, SLA equality/coverage, exact eight-source work union,
+  excluded assignment evidence, historical role/status changes, handoff missing
+  attribution, exact four Incident types, same-Organization different-Location
+  isolation, zero denominator, Location timezone/DST, Company Admin/Location
+  Manager reads, and DEC-060 regression coverage.
 
 ### MGT-BE-11 — All Locations + Company Reports
 
 Objective: implement DEC-092 company summary/multi-Location analytics, weighted
 calculations, currency grouping, missing-data coverage, and manual CSV/PDF
 company reports with final export authorization/audit.
+
+Implementation status: **UNSTARTED**. MGT-BE-10 does not begin any BE-11
+company-wide analytics, aggregation, or export implementation.
 
 - Dependencies: MGT-BE-01, MGT-BE-03, and MGT-BE-10; MGT-BE-06 provides the
   Management audit read projection but is not required to write export audit.
@@ -943,10 +974,9 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 through MGT-BE-08 are merged through
-`main@8c01dd58098715ed5b3b03a2d16c77a241714657`; MGT-BE-09 is implemented in the
-current `feat/mgt-be-09-guest-rating` working tree as migration 42. MGT-BE-10 is
-UNSTARTED.
+MGT-BE-03 through MGT-BE-08 are merged, and MGT-BE-09 with migration 42 is
+merged to `main@9f8e63659645806ae99e562d500cd4fe209c184c`. MGT-BE-10 is implemented
+on `feat/mgt-be-10-kpi-analytics`; BE-11 remains unstarted.
 
 ## 14. Documentation rebaseline validation record
 
