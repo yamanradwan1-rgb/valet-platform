@@ -901,6 +901,7 @@ model ValetSession {
   rawGpsSamples               RawGpsSample[]
   geofenceEvents              GeofenceEvent[]
   staffPushIntents            StaffPushIntent[]
+  guestRatings                GuestRating[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -910,6 +911,19 @@ model ValetSession {
   @@index([organizationId, customerId, createdAt(sort: Desc), id(sort: Desc)], map: "valet_sessions_organization_customer_created_at_id_idx")
   @@index([locationId, retrievalRequestedAt], map: "valet_sessions_location_id_retrieval_requested_at_idx")
   @@map("valet_sessions")
+}
+
+model GuestRating {
+  organizationId String   @map("organization_id") @db.Uuid
+  locationId     String   @map("location_id") @db.Uuid
+  valetSessionId String   @id @map("valet_session_id") @db.Uuid
+  rating         Int
+  ratedAt        DateTime @default(dbgenerated("clock_timestamp()")) @map("rated_at") @db.Timestamptz(3)
+
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_ratings_org_location_session_id_fkey")
+
+  @@index([organizationId, locationId, valetSessionId], map: "guest_ratings_org_location_session_id_idx")
+  @@map("guest_ratings")
 }
 
 model KeyCustodyEvent {

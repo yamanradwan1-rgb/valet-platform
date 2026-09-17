@@ -45,6 +45,8 @@ const statusByCode: Readonly<Record<string, number>> = {
   GUEST_ACCESS_INVALID: HttpStatus.UNAUTHORIZED,
   GUEST_ACCESS_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
   GUEST_ACCESS_REQUEST_INVALID: HttpStatus.BAD_REQUEST,
+  GUEST_RATING_CONFLICT: HttpStatus.CONFLICT,
+  GUEST_RATING_NOT_AVAILABLE: HttpStatus.CONFLICT,
   GPS_SAMPLE_IDEMPOTENCY_CONFLICT: HttpStatus.CONFLICT,
   HANDOFF_ABORT_REASON_REQUIRED: HttpStatus.BAD_REQUEST,
   HANDOFF_METHOD_NOT_ALLOWED: HttpStatus.CONFLICT,
@@ -127,6 +129,9 @@ const safeMessages: Readonly<Record<string, string>> = {
   AUTHORIZATION_DENIED: "The requested resource is not available.",
   GUEST_ACCESS_INVALID: "Guest access is invalid.",
   GUEST_ACCESS_RATE_LIMITED: "Too many requests. Try again later.",
+  GUEST_RATING_CONFLICT: "A different rating is already recorded for this visit.",
+  GUEST_RATING_NOT_AVAILABLE:
+    "Guest rating is available only after the visit is completed.",
   FINANCIAL_RELEASE_NOT_SATISFIED:
     "The financial release requirement is not satisfied.",
   HANDOFF_SECURITY_UNAVAILABLE: "Service temporarily unavailable.",

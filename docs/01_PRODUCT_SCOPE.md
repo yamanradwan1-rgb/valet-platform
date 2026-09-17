@@ -306,12 +306,19 @@ enablement and accepted financial commands remain unchanged.
   for a real change. Location Manager corrections and Management plate
   corrections are not authorized by the current accepted authority and are not
   exposed.
-- Rating is 1–5, guest-only, once per completed visit. Staff cannot alter it.
+- MGT-BE-09 implements Guest Rating at `POST /v1/guest/session/rating`. The
+  request is strict `{ rating: 1..5 }`, accepts no query authority, and derives
+  the exact visit only from the current authorized Guest Access bearer. Rating
+  is available only after the persisted visit is `COMPLETED`; the response is
+  limited to session ID, rating and `ratedAt`, with guest no-store transport.
+  One immutable rating may exist per visit. An exact same-value retry returns
+  the persisted rating and original `ratedAt`; a different later value conflicts
+  safely and cannot overwrite it. Staff cannot create, alter or delete it.
 - “Returning Contact” means only that normalized contact appeared on a prior
   completed authorized-scope visit strictly earlier by `(created_at, id)`; plate
-  alone never qualifies and it does not prove a person identity. MGT-BE-08
-  implements this read calculation only. Guest Rating remains MGT-BE-09 and is
-  not started by MGT-BE-08.
+  alone never qualifies and it does not prove a person identity. MGT-BE-08,
+  merged at `main@8c01dd58098715ed5b3b03a2d16c77a241714657`, implements this read
+  calculation only; Guest Rating remains the separate MGT-BE-09 write/source.
 - Basic branding is display name and primary color with Company default ->
   Location override. Company display name is the authoritative Organization
   name; primary color is canonical uppercase `#RRGGBB`. Location overrides are

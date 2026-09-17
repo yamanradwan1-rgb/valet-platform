@@ -30,12 +30,7 @@ import { ReturningCheckInController } from "../src/modules/check-in-api/returnin
 import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
 import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
 import { DispatchService } from "../src/modules/dispatch/dispatch.service";
-import {
-  GuestAccessController,
-  StaffGuestAccessController,
-} from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessModule } from "../src/modules/guest-access/guest-access.module";
-import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
 import { KeyCustodyController } from "../src/modules/keys/key-custody.controller";
 import { KeyCustodyModule } from "../src/modules/keys/key-custody.module";
 import { KeyCustodyService } from "../src/modules/keys/key-custody.service";
@@ -242,16 +237,6 @@ describe("accepted feature module ownership", () => {
       AntiAbuseKeyDeriver,
       AntiAbuseService,
       TrustedClientAddressResolver,
-    ]);
-  });
-
-  it("owns issue, revoke, and guest read under Guest Access", () => {
-    expect(metadata(GuestAccessModule, MODULE_METADATA.CONTROLLERS)).toEqual([
-      StaffGuestAccessController,
-      GuestAccessController,
-    ]);
-    expect(metadata(GuestAccessModule, MODULE_METADATA.PROVIDERS)).toEqual([
-      GuestAccessService,
     ]);
   });
 

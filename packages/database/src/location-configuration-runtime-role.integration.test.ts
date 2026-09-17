@@ -96,15 +96,15 @@ afterAll(async () => {
 }, 60_000);
 
 describe("VAL-009B location configuration runtime privileges", () => {
-  it("keeps the schema at exactly 41 applied migrations", async () => {
+  it("keeps the schema at exactly 42 applied migrations", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(41);
+    expect(result.rows).toHaveLength(42);
     expect(result.rows.at(-1)?.migration_name).toBe(
-      "20260917004100_mgt_be_08_visit_contacts",
+      "20260917004200_mgt_be_09_guest_rating",
     );
   });
 

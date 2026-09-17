@@ -2048,10 +2048,11 @@ Add these only through their approved focused task/decision.
 
 ## Management implementation state and remaining extensions
 
-Current BE-08 implementation truth starts from merged
-`main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`, where MGT-BE-07 / migration 40
-is already merged. The BE-08 branch adds forward-only migration 41,
-`20260917004100_mgt_be_08_visit_contacts`; migrations 1 through 40 remain
+MGT-BE-08 is merged to
+`main@8c01dd58098715ed5b3b03a2d16c77a241714657` with forward-only migration 41,
+`20260917004100_mgt_be_08_visit_contacts`. The current MGT-BE-09 branch starts
+from that exact baseline and adds forward-only migration 42,
+`20260917004200_mgt_be_09_guest_rating`; migrations 1 through 41 remain
 unchanged.
 
 MGT-BE-03 implements DEC-080 Company Admin authorization and context without a
@@ -2139,12 +2140,48 @@ The new tenant audit event names are `VISIT_CONTACT_NAME_CORRECTED` and
 semantics (and the Jordan normalization-version identifier for phone) and stores
 no raw display name, phone, plate, or request body.
 
-Remaining accepted Management persistence includes:
+MGT-BE-09 / migration 42 adds the authoritative `guest_ratings` source with
+exactly:
 
-- a minimal one-rating-per-ValetSession guest rating source.
-- historically truthful SLA-target applicability and a controlled genuine Key
-  Exception source before those metrics ship.
+```text
+organization_id
+location_id
+valet_session_id
+rating
+rated_at
+```
 
-Exact fields, constraints, indexes, runtime privileges, and migration IDs for
-remaining tasks belong to their owning implementation task and must be proven
-against this current baseline.
+`valet_session_id` is the primary key, so one visit can have at most one rating.
+`rating` has a database CHECK for integer values 1 through 5. The composite
+`(organization_id, location_id, valet_session_id)` foreign key targets the exact
+ValetSession scope with restrictive update/delete behavior. `rated_at` is
+database-authored rating-write time. An immutable-row trigger rejects UPDATE and
+DELETE even for a caller that otherwise reaches the table.
+
+Ordinary runtime receives no direct `SELECT`, `INSERT`, `UPDATE`, `DELETE` or
+`TRUNCATE` privilege on `guest_ratings`. Its only rating-write authority is
+`EXECUTE` on migration-owner `guest_rating_submit(text, integer)`, a fixed
+`search_path = pg_catalog, public` `SECURITY DEFINER` function; PUBLIC and the
+private mutation-rejection helper receive no execute authority. The function
+resolves the current unrevoked/unexpired Guest bearer, locks its ValetSession,
+requires `state = COMPLETED` with `completed_at`, and derives Organization and
+Location from that row. An existing equal value returns the same persisted row
+and original `rated_at`; an existing different value returns conflict and never
+overwrites. The rating write appends no `AuditEvent`.
+
+Migration 42 adds one evidence-backed scoped structural index,
+`guest_ratings_org_location_session_id_idx` on
+`(organization_id, location_id, valet_session_id)`. On the BE-09 disposable
+PostgreSQL 17 benchmark (200,000 ValetSessions / 100,000 ratings), the measured
+Location/completed-visit cohort join improved from 11.123 ms to 6.161 ms
+(~44.6%) and avoided scanning all ratings; buffers fell from 1,445 shared hits
+to 365 hits plus 43 reads. No other analytics-oriented rating index is added.
+`guest_ratings` remains the authoritative future rating source, while `rated_at`
+is submission time rather than a new definition of the Location-local analytics
+visit period. Any additional period/access path or aggregate added by MGT-BE-10
+still requires its own query evidence and accepted analytics contract.
+
+Remaining accepted Management persistence includes historically truthful
+SLA-target applicability and a controlled genuine Key Exception source before
+those metrics ship. Exact fields, constraints, indexes and runtime privileges for
+those remaining tasks belong to their owning implementation task.

@@ -899,10 +899,38 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   serving the new lifecycle routes. The existing Shift index remains the measured
   authority for the ACTIVE-Shift blocker; no speculative extra Shift index is
   added.
-- MGT-BE-07 is merged on the BE-08 starting main at
-  `3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`. MGT-BE-08 is migration 41,
-  `20260917004100_mgt_be_08_visit_contacts`; after applying it, runtime-role
-  provisioning/verification must run before serving Customer corrections.
+- MGT-BE-08 is merged on
+  `main@8c01dd58098715ed5b3b03a2d16c77a241714657` as migration 41,
+  `20260917004100_mgt_be_08_visit_contacts`; its Customer correction boundary
+  still requires the reviewed runtime-role provisioning/verification.
+- MGT-BE-09 adds `POST /v1/guest/session/rating` with strict body
+  `{ rating: 1..5 }`, no query parameters and no-store response headers. The
+  response contains only `valetSessionId`, `rating` and `ratedAt`. Session,
+  Organization and Location are never caller-selected.
+- Rating reuses the current Guest Access bearer and the existing shared
+  `v1:guest-client-address` and `v1:guest-token` DEC-024 anti-abuse scopes in the
+  same authentication/finalization pattern. Missing, malformed, duplicate,
+  unknown, expired and revoked Guest authority remains non-disclosing; an
+  authenticated business-rule failure does not become a guest-auth failure.
+- The authorized ValetSession is locked before rating eligibility is decided.
+  Both the application boundary and database command require `COMPLETED` plus
+  non-null `completed_at`. Exact same-value retries return the original rating
+  and `ratedAt`; competing/different values cannot overwrite the first persisted
+  fact and fail with the safe rating-conflict boundary.
+- Migration 42, `20260917004200_mgt_be_09_guest_rating`, keeps Guest Rating
+  behind a function-only ordinary-runtime write boundary. Runtime has no direct
+  table read or DML privilege and may execute only
+  `guest_rating_submit(text, integer)`; the migration-owned function has fixed
+  safe search path, PUBLIC execution is revoked, and the private immutable-row
+  helper is not runtime-executable. Table UPDATE/DELETE is also rejected by the
+  immutable-row trigger.
+- Guest Rating creates no tenant `AuditEvent`. The immutable `guest_ratings` row
+  is the authoritative rating source. Its `rated_at` is submission/receipt time,
+  not a replacement for the later Location-local analytics visit-period
+  semantics. MGT-BE-09 adds exactly one benchmark-justified scoped index on
+  `(organization_id, location_id, valet_session_id)` for bounded Location cohort
+  joins; it adds no other speculative period/rating-value index. Later analytics
+  must justify any further read/index boundary from its actual bounded query.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

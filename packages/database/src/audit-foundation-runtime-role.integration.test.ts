@@ -100,8 +100,8 @@ describe("MGT-BE-01 audit foundation runtime role", () => {
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
     expect(migrations.rows[0]).toEqual({
-      latest: "20260917004100_mgt_be_08_visit_contacts",
-      n: 41,
+      latest: "20260917004200_mgt_be_09_guest_rating",
+      n: 42,
     });
     const tables = await adminPool.query<{ owner_safe: boolean; public_denied: boolean; table_name: string }>(
       `SELECT relation.relname AS table_name,

@@ -1,37 +1,33 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-08.
-MGT-BE-07 is merged to `main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`.
-MGT-BE-08 is implemented on `feat/mgt-be-08-visit-contacts` for independent
-review. MGT-BE-09 has not started.
+Status: Binding execution plan with implementation progress through MGT-BE-09.
+MGT-BE-08 is merged to
+`main@8c01dd58098715ed5b3b03a2d16c77a241714657` with migration 41. MGT-BE-09 is
+implemented in the current `feat/mgt-be-09-guest-rating` working tree as
+migration 42. MGT-BE-10 is UNSTARTED.
 
 Rebaseline date: 2026-09-17
 
 ## 1. Exact baseline and provenance
 
-| Item | Verified value |
+| Item | Current verified value |
 | --- | --- |
 | Repository | `valet-platform` |
-| Updated local branch before work | `main` |
-| Local `main` SHA | `3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32` |
-| `origin/main` SHA | `3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32` |
-| Match before branch creation | Yes; `HEAD == origin/main` |
-| Working tree before fetch/pull | Clean |
-| Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
-| BE-08 implementation branch | `feat/mgt-be-08-visit-contacts` |
-| BE-08 base migration count | 40 forward-only directories through merged MGT-BE-07 |
-| BE-08 base latest migration | `20260917004000_mgt_be_07_location_management` |
+| BE-09 baseline `main` SHA | `8c01dd58098715ed5b3b03a2d16c77a241714657` |
+| `origin/main` SHA | `8c01dd58098715ed5b3b03a2d16c77a241714657` |
+| BE-09 implementation branch | `feat/mgt-be-09-guest-rating` |
+| BE-09 base migration count | 41 forward-only directories through merged MGT-BE-08 |
+| BE-09 base latest migration | `20260917004100_mgt_be_08_visit_contacts` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
 input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
 
-MGT-BE-07 is merged to `main` at
-`3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`, including migration 40 and the
-DEC-094 Location lifecycle boundary. MGT-BE-08 starts from that exact clean base
-on `feat/mgt-be-08-visit-contacts` and adds migration 41 only for measured Visit
-Contact indexes plus narrow Company Admin Customer correction authority.
+MGT-BE-08 is merged to `main` at
+`8c01dd58098715ed5b3b03a2d16c77a241714657`, including migration 41 and its
+Visit Contact retry correction. MGT-BE-09 starts from that exact baseline on
+`feat/mgt-be-09-guest-rating` and adds migration 42 for Guest Rating.
 
 ## 2. Authority and audit method
 
@@ -613,9 +609,8 @@ Objective: implement DEC-084 visit-contact search by phone/plate/name, visit
 history, bounded projections, controlled corrections, and DEC-091 Returning
 Contact calculation.
 
-Implementation status: implemented on `feat/mgt-be-08-visit-contacts` from
-`main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`; independent-review validation is
-recorded by the task's final gate result. MGT-BE-09 remains unstarted.
+Implementation status: merged to
+`main@8c01dd58098715ed5b3b03a2d16c77a241714657` as migration 41.
 
 - Routes/contracts: `GET /v1/staff/management/organizations/:organizationId/visit-contacts`
   accepts exactly one of `phone`, `plate+plateCountry`, or `name`, plus bounded
@@ -699,18 +694,45 @@ recorded by the task's final gate result. MGT-BE-09 remains unstarted.
 Objective: implement DEC-091 guest-only 1–5 rating, once per completed visit,
 idempotency, and an authoritative analytics source.
 
-- Dependencies: MGT-BE-01 and existing Guest Access/completion authority.
-- Schema: dedicated minimal rating relation or equivalent explicit constrained
-  source; unique visit rating and restrictive tenant/session relationship.
-- Auth/audit: exact Guest bearer/session only; completed visit required; staff
-  cannot write/change/delete. Do not expose raw bearer or contact.
-- Concurrency/idempotency: same-value lost-response retry converges; competing
-  different values have one winner and safe conflict; no overwrite.
-- Performance: direct unique lookup and period/location index only if analytics
-  query evidence requires it.
-- Proof: invalid range/state/token, concurrent submissions, post-completion,
-  staff denial, cross-session isolation, analytics cohort, and append-only
-  runtime privileges.
+Implementation status: implemented in the current
+`feat/mgt-be-09-guest-rating` working tree from merged
+`main@8c01dd58098715ed5b3b03a2d16c77a241714657`; this status records
+implementation truth only and does not claim final root-gate completion.
+
+- Route/contract: `POST /v1/guest/session/rating`, HTTP 200 on create/exact
+  retry, strict JSON `{ rating: 1..5 }`, no query parameters and no-store
+  headers. Success returns only `valetSessionId`, `rating` and ISO `ratedAt`.
+- Authorization/anti-abuse: exact current Guest bearer/session only, reusing the
+  existing DEC-024 guest address and token limiter scopes and fail-closed
+  finalization. The request cannot select a session, tenant or Location. Expired,
+  revoked, malformed and unknown authority remains non-disclosing.
+- Completion: the locked authoritative ValetSession must be `COMPLETED` with
+  non-null `completed_at`; earlier physical states return the safe rating-not-
+  available conflict without creating a rating.
+- Schema: migration 42, `20260917004200_mgt_be_09_guest_rating`, adds
+  `guest_ratings(organization_id, location_id, valet_session_id, rating,
+  rated_at)`. `valet_session_id` is the primary key, rating is CHECKed 1–5, and
+  the composite tenant/Location/session FK is restrictive. UPDATE/DELETE is
+  rejected by an immutable-row trigger.
+- Idempotency/concurrency: the session row is the serialization boundary. The
+  first committed value wins; same-value retry returns the same row and original
+  `ratedAt`, while a different value returns `GUEST_RATING_CONFLICT`. There is no
+  overwrite path.
+- Runtime/audit: ordinary runtime has no direct `guest_ratings` table privilege.
+  Its only write authority is EXECUTE on fixed-search-path migration-owner
+  `SECURITY DEFINER` `guest_rating_submit(text, integer)`; PUBLIC/private-helper
+  execution is denied. Rating submission creates no `AuditEvent`.
+- Analytics source: `guest_ratings` is the authoritative future rating fact and
+  `rated_at` is the rating submission time. It does not redefine the later
+  Location-local analytics visit-period cohort. The BE-09 PostgreSQL 17
+  benchmark used 4 Organizations, 20 Locations, 200,000 ValetSessions, 180,000
+  completed visits and 100,000 ratings. The representative scoped cohort join
+  improved from 11.123 ms / 1,445 shared hits with an all-ratings sequential
+  scan to 6.161 ms / 365 hits + 43 reads with
+  `(organization_id, location_id, valet_session_id)`, about 44.6% faster.
+  Migration 42 therefore includes exactly that scoped structural index and no
+  other speculative rating/period index. MGT-BE-10 must justify any additional
+  read/index path from its real aggregate query.
 
 ### MGT-BE-10 — KPI & Analytics Package
 
@@ -718,8 +740,10 @@ Objective: implement DEC-090 SLA target/Compliance, Cars per Active Employee,
 Cars Handed Off by Employee, and controlled Key Exceptions while preserving all
 DEC-060 metrics.
 
+Implementation status: **UNSTARTED**.
+
 - Dependencies: MGT-BE-05 SLA target source and required authoritative sources;
-  Guest Rating may be added only after MGT-BE-09.
+  the authoritative Guest Rating source is now provided by MGT-BE-09.
 - Schema: likely SLA history/snapshot and a controlled Key Exception source;
   do not infer from ordinary custody. Confirm an evidence-backed “actually
   worked” cohort before coding.
@@ -919,10 +943,10 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 through MGT-BE-07 are merged through
-`main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`; MGT-BE-08 is implemented on
-`feat/mgt-be-08-visit-contacts` for independent review. MGT-BE-09 has not
-started.
+MGT-BE-03 through MGT-BE-08 are merged through
+`main@8c01dd58098715ed5b3b03a2d16c77a241714657`; MGT-BE-09 is implemented in the
+current `feat/mgt-be-09-guest-rating` working tree as migration 42. MGT-BE-10 is
+UNSTARTED.
 
 ## 14. Documentation rebaseline validation record
 

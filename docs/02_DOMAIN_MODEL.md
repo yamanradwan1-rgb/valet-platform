@@ -554,11 +554,18 @@ MVP channels may include SMS and/or WhatsApp according to first-market provider 
 
 ## GuestRating
 
-Minimal immutable guest feedback for one completed ValetSession. The accepted
-value is an integer from one through five, written only through that session's
-authorized Guest Access, at most once. Staff cannot author, update or delete it.
-It is a future Management schema addition under DEC-091, not current Prisma
-persistence.
+Minimal immutable guest feedback for one completed ValetSession, implemented by
+MGT-BE-09 under DEC-091. The persisted source contains the exact Organization,
+Location and ValetSession scope, integer rating from one through five, and the
+database-authored `rated_at`. `valet_session_id` is the one-rating-per-visit
+identity. The rating is written only through that session's current authorized
+Guest Access after `COMPLETED`; staff cannot author, update or delete it.
+
+`rated_at` is the rating-write receipt time. `GuestRating` is the authoritative
+rating fact for later analytics, but `rated_at` does not redefine the later
+Location-local visit-period cohort; MGT-BE-10 owns the aggregate/cohort contract.
+The rating write creates no separate `AuditEvent`; immutability of the source
+row preserves the submitted fact.
 
 ## AuditEvent / Black Box
 

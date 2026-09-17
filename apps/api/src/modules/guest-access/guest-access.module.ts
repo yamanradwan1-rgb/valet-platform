@@ -10,22 +10,32 @@ import {
   StaffGuestAccessController,
 } from "./guest-access.controller";
 import { GuestAccessService } from "./guest-access.service";
+import { GuestRatingController } from "./guest-rating.controller";
+import { GuestRatingService } from "./guest-rating.service";
 
 @Module({
-  controllers: [StaffGuestAccessController, GuestAccessController],
+  controllers: [
+    StaffGuestAccessController,
+    GuestAccessController,
+    GuestRatingController,
+  ],
   imports: [
     AuthModule,
     AntiAbuseModule,
     RuntimeDatabaseModule,
     HttpInfrastructureModule,
   ],
-  providers: [GuestAccessService],
+  providers: [GuestAccessService, GuestRatingService],
   exports: [GuestAccessService],
 })
 export class GuestAccessModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(StaffGuestAccessController, GuestAccessController);
+      .forRoutes(
+        StaffGuestAccessController,
+        GuestAccessController,
+        GuestRatingController,
+      );
   }
 }

@@ -8,6 +8,7 @@ export * from "./complete-handoff.js";
 export * from "./confirm-parked.js";
 export * from "./dispatch.js";
 export * from "./gps-ingestion.js";
+export * from "./guest-rating.js";
 export * from "./handoff.js";
 export * from "./key-custody.js";
 export * from "./live-operations-map.js";

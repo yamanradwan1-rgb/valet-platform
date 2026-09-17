@@ -6,6 +6,7 @@ import {
 } from "./guest-safe-session";
 
 export interface LockedGuestAccessSessionScope extends GuestSafeSession {
+  readonly completedAt: Date | null;
   readonly customerId: string | null;
   readonly locationId: string;
   readonly organizationId: string;
@@ -24,6 +25,7 @@ export async function resolveAndLockGuestAccessSession(
   }
   const result = await transaction.query<{
     color: string | null;
+    completed_at: Date | null;
     customer_id: string | null;
     location_id: string;
     make: string | null;
@@ -39,7 +41,7 @@ export async function resolveAndLockGuestAccessSession(
     `SELECT session.id::text AS valet_session_id, session.organization_id::text,
             session.location_id::text, session.customer_id::text,
             session.state::text, session.version, session.retrieval_requested_at,
-            session.ready_at,
+            session.ready_at, session.completed_at,
             COALESCE(location.guest_vehicle_ready_notification_enabled_override,
                      organization.guest_vehicle_ready_notification_enabled)
               AS guest_vehicle_ready_notification_enabled,
@@ -62,6 +64,7 @@ export async function resolveAndLockGuestAccessSession(
   const session = result.rows[0];
   if (session === undefined) throw new GuestAccessError("GUEST_ACCESS_INVALID");
   return {
+    completedAt: session.completed_at,
     customerId: session.customer_id,
     locationId: session.location_id,
     organizationId: session.organization_id,
