@@ -1,7 +1,7 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-05.
-MGT-BE-06 has not started.
+Status: Binding execution plan with implementation progress through MGT-BE-06.
+MGT-BE-06 is implemented on its review branch and is not merged by this plan.
 
 Rebaseline date: 2026-09-17
 
@@ -16,14 +16,22 @@ Rebaseline date: 2026-09-17
 | Match before branch creation | Yes; `HEAD == origin/main` |
 | Working tree before fetch/pull | Clean |
 | Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
-| Current feature branch | `feat/mgt-be-05-company-settings-branding` |
-| Current implementation migration count | 38 forward-only directories through MGT-BE-05 |
-| Current implementation latest migration | `20260916003800_mgt_be_05_company_settings_branding` |
+| Historical feature branch at this rebaseline | `feat/mgt-be-05-company-settings-branding` |
+| Historical implementation migration count at this rebaseline | 38 forward-only directories through MGT-BE-05 |
+| Historical implementation latest migration at this rebaseline | `20260916003800_mgt_be_05_company_settings_branding` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
 input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
+
+Current MGT-BE-06 implementation truth is separate from that historical
+provenance: BE-06 started from `main` at
+`cd42e1566ce927d866f61bae5ad2dad7c2508836` on
+`feat/mgt-be-06-management-audit-log`. The working implementation has 39
+forward-only migrations, with latest migration
+`20260917003900_mgt_be_06_management_audit_log` containing only the measured
+Management Audit chronology index.
 
 ## 2. Authority and audit method
 
@@ -93,6 +101,15 @@ materially adds or completes:
   logo/assets, entitlement enforcement, geofence toggle, SLA target source, or
   KPI implementation. Representative field commands consume mutable policy at
   serialized authoritative boundaries and do not rewrite historical facts.
+- implemented MGT-BE-06 / migration 39 with read-only Organization and exact-
+  Location Management Audit routes, current-state Company Admin/Location
+  Manager/Supervisor authorization, an explicit 78-event safe projection
+  catalog, a 36-event Supervisor operational allowlist, strict scope/filter-
+  bound keyset cursors with a database snapshot ceiling, and complete separation
+  from account-security audit and raw GPS/route history. Representative 100,000-
+  row PostgreSQL plans measured the new
+  `(organization_id, occurred_at DESC, id DESC)` index before adding it; no
+  speculative Location- or event-type-leading audit index was added.
 
 These changes remove no Management requirement. They add schema/migration
 contention, session/push interactions for MFA and emergency disable, a new
@@ -139,8 +156,8 @@ new shared-contract compatibility obligations.
   and Staff Push/FCM foundations under their existing Accepted role matrices.
 - DEC-079/MGT-BE-01 audit foundation is merged: Location audit remains
   compatible, Organization-wide events use null Location truthfully, and
-  account-security history is separate. There is still no Management audit
-  query API.
+  account-security history is separate. MGT-BE-06 now adds the bounded safe
+  Management Audit query API without exposing the account-security store.
 - DEC-078/MGT-BE-02 is implemented: TOTP/recovery persistence, verification,
   re-enrollment, recovery-code reissue, exact-session assurance, soft step-up,
   MFA anti-abuse, and controlled no-code recovery are present.
@@ -156,18 +173,17 @@ new shared-contract compatibility obligations.
 
 ## 5. Current real gaps
 
-1. No safe Audit Explorer.
-2. No Location create/readiness/intake-stop/drain/deactivate API; persistence
+1. No Location create/readiness/intake-stop/drain/deactivate API; persistence
    still defaults new rows to `ACTIVE`.
-3. No Management visit-contact search/history/correction surface.
-4. No Guest rating persistence or write.
-5. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
+2. No Management visit-contact search/history/correction surface.
+3. No Guest rating persistence or write.
+4. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
     or controlled Key Exceptions metrics.
-6. No All Locations analytics or company CSV/PDF reports. The implemented
+5. No All Locations analytics or company CSV/PDF reports. The implemented
    `ALL_LOCATIONS` selector/context is foundation only.
-7. No truthful Integration status API, Management-only entitlement
+6. No truthful Integration status API, Management-only entitlement
     enforcement, company commercial view, or Guest effective branding.
-8. No historically truthful SLA-target source yet. BE-05 deliberately does not
+7. No historically truthful SLA-target source yet. BE-05 deliberately does not
    add a current scalar target that BE-10 could retroactively apply to old visits.
 
 ## 6. Formal decision mapping
@@ -456,18 +472,64 @@ truthful applicability before a source can be added.
 Objective: implement DEC-082 safe Organization/Location audit query APIs with
 pagination, filtering, and role-specific visibility.
 
+Implementation status: implemented on
+`feat/mgt-be-06-management-audit-log` with migration 39 and focused API/contracts
+coverage present. Final branch validation is tracked separately; this statement
+does not claim merge or production deployment.
+
 - Dependencies: MGT-BE-01 and MGT-BE-03.
-- Schema: normally query indexes only after `EXPLAIN`; no audit mutation API.
-- Auth/privacy: Company Admin Organization-wide; Location Manager granted
-  Locations; Supervisor necessary operational projection; Employee/Guest none;
-  security audit and raw route data excluded.
-- Concurrency: cursor binds filters/scope and handles equal timestamps plus
-  concurrent appends deterministically.
-- Performance: keyset pagination, bounded page/filter values, allowlisted joins,
-  no metadata N+1.
-- Proof: every event family safe projection, unknown-event fallback, cursor
-  tampering, cross-tenant/location denial, prohibited-field snapshots, and
-  query-plan inspection.
+- Routes: `GET /v1/staff/management/organizations/:organizationId/audit-events`
+  for Company Admin Organization audit, and
+  `GET /v1/staff/management/organizations/:organizationId/locations/:locationId/audit-events`
+  for exact-Location Company Admin, Location Manager, or eligible Supervisor.
+- Schema: migration 39 adds only
+  `audit_events(organization_id, occurred_at DESC, id DESC)`. It was added after
+  representative `EXPLAIN (ANALYZE, BUFFERS)` evidence; no audit mutation API or
+  DML privilege change is introduced.
+- Auth/privacy: Company Admin uses current exact-session STANDARD MFA plus current
+  `ORG_ADMIN`/Organization authority. Location Manager requires the exact current
+  Location grant; inactive Location history remains readable under DEC-094 while
+  that grant is current. Supervisor additionally requires an active exact-
+  Location Shift and receives only the explicit 36-event operational allowlist.
+  Employee/Guest have no explorer. Account-security audit, raw metadata, raw
+  route/GPS data, secret/PII/provider internals, and controlled operator refs are
+  excluded.
+- Projection: all 78 current tenant event types are explicitly classified into
+  safe typed families. Known metadata is parsed field-by-field; malformed values
+  collapse safely. Unknown events return only a minimal `UNKNOWN` envelope and
+  are excluded entirely for Supervisor.
+- Filters/cursor: default `limit=50`, range 1–100; Organization supports optional
+  exact `locationId` and known `eventType`, exact-Location supports optional known
+  `eventType`. Unknown query keys/types are rejected. Cursor v1 binds route,
+  Organization, Location/filter, event filter, `(occurred_at,id)` boundary, and
+  first-page database snapshot ceiling.
+- Concurrency: every page reauthorizes current persisted authority inside the
+  read transaction. Ordering is `occurred_at DESC, id DESC`; equal timestamps are
+  deterministic and concurrent post-snapshot appends cannot destabilize later
+  pages. Audit reads append no AuditEvent.
+- Performance: one bounded page query over authorized `audit_events` scope, no
+  hydration N+1. The original 100,000-row benchmark measured Organization
+  chronology at 54.250 ms / 2,026 shared buffers before versus 0.144 ms / 13
+  after, exact Location at 62.407 ms / 1,961 versus 0.165 ms / 29, and event-type
+  filtering at 32.669 ms / 1,961 versus 0.435 ms / 47; that run used ordered
+  index scans with no Sort after migration 39. Final differential validation
+  repeated the benchmark on a new disposable 100,000-row database and again
+  showed the Organization chronology key materially winning (32.247 ms / 5,075
+  buffers / Seq Scan + Sort to 0.066 ms / 10 / Index Only Scan) and the
+  event-type shape materially winning (11.804 ms / 3,705 / Seq Scan + Sort to
+  0.228 ms / 46 / Index Scan). On that second synthetic distribution PostgreSQL
+  retained Seq Scan + Sort for the exact-Location shape (8.089 ms / 3,705 before,
+  8.298 ms / 3,705 after), so exact-Location index selection is not claimed as a
+  universal planner outcome. The Organization chronology measurement alone
+  independently justifies migration 39; the evidence still does not justify a
+  second Location- or event-type-leading index.
+- Focused validation coverage is present for current-state role/status/grant/Shift
+  revocation, tenant/Location scope, account-security separation, every current
+  event-family projection, malicious and malformed metadata, Supervisor
+  exclusions, cursor crossover/tampering, equal timestamp/concurrent append
+  traversal, zero read-side audit writes, migration upgrade/fresh install, and
+  unchanged append-only runtime privileges. Overall branch validation remains
+  tracked separately.
 
 ### MGT-BE-07 — Location Management
 
@@ -740,7 +802,8 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03, MGT-BE-04, and MGT-BE-05 are implemented; MGT-BE-06 has not started.
+MGT-BE-03, MGT-BE-04, MGT-BE-05, and MGT-BE-06 are implemented; MGT-BE-06
+remains unmerged until independent review/owner merge action.
 
 ## 14. Documentation rebaseline validation record
 

@@ -1802,6 +1802,19 @@ Rules:
 - corrections append new events instead of replacing originals
 - do not put secrets, raw guest tokens, pickup codes/OTP values or unnecessary PII into metadata
 - created in same DB transaction as protected domain mutation where applicable
+- MGT-BE-06 Management Audit reads use the measured chronological access path
+  `audit_events(organization_id, occurred_at DESC, id DESC)`. The original
+  100,000-row benchmark changed the bounded Organization, exact-Location and
+  event-type query shapes from full-table scan plus top-N sort to ordered index
+  scans with early LIMIT termination. A final independent 100,000-row rerun
+  reproduced the Organization chronology improvement (32.247 ms / 5,075 shared
+  buffers / Seq Scan + Sort to 0.066 ms / 10 buffers / Index Only Scan) and the
+  event-type improvement (11.804 ms / 3,705 buffers / Seq Scan + Sort to
+  0.228 ms / 46 buffers / Index Scan), while PostgreSQL still preferred a
+  Seq Scan + Sort for the exact-Location shape on that rerun's synthetic data.
+  The Organization chronology path therefore independently justifies this
+  index; no Location- or event-type-leading audit index is added without
+  separate measured evidence
 
 Organization-wide audit uses stable event UUIDs for retryable internal writes.
 An exact retry with identical immutable facts converges to the existing row;
@@ -1883,6 +1896,8 @@ At minimum as corresponding entities are implemented:
 - `valet_sessions(vehicle_id, created_at desc)`
 - `valet_sessions(location_id, retrieval_requested_at)`
 - `audit_events(valet_session_id, occurred_at)`
+- `audit_events(organization_id, occurred_at desc, id desc)` for the bounded
+  Management Audit chronology/keyset path measured by MGT-BE-06
 - `condition_notes(valet_session_id, created_at)`
 - `vehicle_photos(valet_session_id, purpose, created_at)`
 - `retrieval_requests(valet_session_id, status)`

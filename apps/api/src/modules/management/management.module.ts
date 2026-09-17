@@ -6,6 +6,8 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { ManagementContextController } from "./management-context.controller";
 import { ManagementContextService } from "./management-context.service";
+import { ManagementAuditController } from "./management-audit.controller";
+import { ManagementAuditService } from "./management-audit.service";
 import { ManagementSettingsController } from "./management-settings.controller";
 import { ManagementSettingsService } from "./management-settings.service";
 import { ManagementBrandingController } from "./management-branding.controller";
@@ -17,6 +19,7 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
 @Module({
   controllers: [
     ManagementContextController,
+    ManagementAuditController,
     StaffManagementController,
     ManagementSettingsController,
     ManagementBrandingController,
@@ -24,6 +27,7 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
     ManagementContextService,
+    ManagementAuditService,
     StaffDirectoryService,
     StaffManagementMutationService,
     ManagementSettingsService,
@@ -37,6 +41,7 @@ export class ManagementModule implements NestModule {
       .apply(RequestIdMiddleware)
       .forRoutes(
         ManagementContextController,
+        ManagementAuditController,
         StaffManagementController,
         ManagementSettingsController,
         ManagementBrandingController,

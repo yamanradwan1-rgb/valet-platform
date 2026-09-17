@@ -1,0 +1,180 @@
+import type {
+  ManagementAuditLocationQuery,
+  ManagementAuditOrganizationQuery,
+  ManagementAuditResponse,
+} from "@valet/contracts";
+import { managementAuditKnownEventTypes } from "@valet/contracts";
+import { Inject, Injectable } from "@nestjs/common";
+
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
+import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
+import { ApiTransportValidationError } from "../../common/http/api-errors";
+import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { ManagementAccessDeniedError } from "./management-authorization";
+import {
+  authorizeManagementAuditLocation,
+  authorizeManagementAuditOrganization,
+  type ManagementAuditAuthorization,
+} from "./management-audit-authorization";
+import {
+  decodeManagementAuditCursor,
+  encodeManagementAuditCursor,
+  type ManagementAuditCursorBoundary,
+  type ManagementAuditCursorScope,
+} from "./management-audit-cursor";
+import {
+  managementAuditSupervisorEventTypes,
+  projectManagementAuditEvent,
+} from "./management-audit-projection";
+import {
+  managementAuditDatabaseNow,
+  queryManagementAuditPage,
+} from "./management-audit-query";
+
+const knownEventTypes = new Set<string>(managementAuditKnownEventTypes);
+
+function normalizedEventType(value: string | null | undefined): string | null {
+  if (value === undefined || value === null) return null;
+  const normalized = value.trim().toUpperCase();
+  if (!knownEventTypes.has(normalized)) throw new ApiTransportValidationError();
+  return normalized;
+}
+
+function snapshotForRequest(
+  cursor: ManagementAuditCursorBoundary | null,
+  databaseNow: Date,
+): Date {
+  if (cursor === null) return databaseNow;
+  const snapshot = new Date(cursor.snapshotCreatedAt);
+  if (snapshot.getTime() > databaseNow.getTime()) {
+    throw new ApiTransportValidationError();
+  }
+  return snapshot;
+}
+
+@Injectable()
+export class ManagementAuditService {
+  constructor(
+    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+  ) {}
+
+  listOrganization(
+    context: StaffSessionContext,
+    organizationId: string,
+    query: ManagementAuditOrganizationQuery,
+  ): Promise<ManagementAuditResponse> {
+    const scope: ManagementAuditCursorScope = {
+      eventType: normalizedEventType(query.eventType),
+      locationId: null,
+      organizationId,
+      organizationLocationFilter: query.locationId ?? null,
+      routeKind: "ORG",
+    };
+    const cursor = decodeManagementAuditCursor(query.cursor, scope);
+    return inPostgresTransaction(this.pool, async (transaction) => {
+      const viewer = await authorizeManagementAuditOrganization(
+        transaction,
+        context,
+        organizationId,
+      );
+      if (scope.organizationLocationFilter !== null) {
+        const filtered = await authorizeManagementAuditLocation(
+          transaction,
+          context,
+          organizationId,
+          scope.organizationLocationFilter,
+        );
+        if (filtered.role !== "ORG_ADMIN")
+          throw new ManagementAccessDeniedError();
+      }
+      return this.page(
+        transaction,
+        context,
+        viewer,
+        scope,
+        cursor,
+        query.limit,
+      );
+    });
+  }
+
+  listLocation(
+    context: StaffSessionContext,
+    organizationId: string,
+    locationId: string,
+    query: ManagementAuditLocationQuery,
+  ): Promise<ManagementAuditResponse> {
+    const scope: ManagementAuditCursorScope = {
+      eventType: normalizedEventType(query.eventType),
+      locationId,
+      organizationId,
+      organizationLocationFilter: null,
+      routeKind: "LOCATION",
+    };
+    const cursor = decodeManagementAuditCursor(query.cursor, scope);
+    return inPostgresTransaction(this.pool, async (transaction) => {
+      const viewer = await authorizeManagementAuditLocation(
+        transaction,
+        context,
+        organizationId,
+        locationId,
+      );
+      return this.page(
+        transaction,
+        context,
+        viewer,
+        scope,
+        cursor,
+        query.limit,
+      );
+    });
+  }
+
+  private async page(
+    transaction: PostgresTransaction,
+    context: StaffSessionContext,
+    viewer: ManagementAuditAuthorization,
+    scope: ManagementAuditCursorScope,
+    cursor: ManagementAuditCursorBoundary | null,
+    limit: number,
+  ): Promise<ManagementAuditResponse> {
+    const databaseNow = await managementAuditDatabaseNow(transaction);
+    const snapshotCreatedAt = snapshotForRequest(cursor, databaseNow);
+    const result = await queryManagementAuditPage(transaction, {
+      cursor,
+      eventType: scope.eventType,
+      exactLocationId: scope.locationId,
+      limit,
+      organizationId: scope.organizationId,
+      organizationLocationFilter: scope.organizationLocationFilter,
+      snapshotCreatedAt,
+      supervisorEventTypes:
+        viewer.role === "VALET_SUPERVISOR"
+          ? managementAuditSupervisorEventTypes
+          : null,
+    });
+    const hasNext = result.length > limit;
+    const page = result.slice(0, limit);
+    const last = page.at(-1);
+    const items = page.map((row) => projectManagementAuditEvent(row, viewer));
+    if (viewer.role === "ORG_ADMIN") {
+      await recordAdminActivityInTransaction(transaction, context);
+    }
+    return {
+      items,
+      nextCursor:
+        hasNext && last !== undefined
+          ? encodeManagementAuditCursor(scope, {
+              id: last.id,
+              occurredAt: last.occurredAt.toISOString(),
+              snapshotCreatedAt: snapshotCreatedAt.toISOString(),
+            })
+          : null,
+    };
+  }
+}

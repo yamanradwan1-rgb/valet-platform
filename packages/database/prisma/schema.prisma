@@ -1540,6 +1540,7 @@ model AuditEvent {
   actorMembership OrganizationMembership? @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, map: "audit_events_org_actor_membership_id_fkey")
 
   @@index([valetSessionId, occurredAt], map: "audit_events_valet_session_id_occurred_at_idx")
+  @@index([organizationId, occurredAt(sort: Desc), id(sort: Desc)], map: "audit_events_organization_id_occurred_at_id_idx")
   @@map("audit_events")
 }
 

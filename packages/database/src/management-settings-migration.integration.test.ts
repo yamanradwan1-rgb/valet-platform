@@ -17,6 +17,7 @@ const adminUrl =
   "postgresql://valet:valet@127.0.0.1:5432/valet";
 const migrationRoot = new URL("../prisma/migrations/", import.meta.url);
 const migration = "20260916003800_mgt_be_05_company_settings_branding";
+const migrationIndex = expectedMigrationDirectories.indexOf(migration);
 const databaseName = `valet_mgt_be05_migration_${randomUUID().replaceAll("-", "")}`;
 const ids = {
   audit: randomUUID(),
@@ -57,7 +58,7 @@ beforeAll(async () => {
   }
   client = new Client({ connectionString: scopedUrl() });
   await client.connect();
-  for (const name of expectedMigrationDirectories.slice(0, -1)) await apply(name);
+  for (const name of expectedMigrationDirectories.slice(0, migrationIndex)) await apply(name);
 
   await client.query(
     `INSERT INTO organizations(
@@ -118,8 +119,8 @@ afterAll(async () => {
 
 describe("MGT-BE-05 migration 38 Company settings and branding", () => {
   it("upgrades migration 37 state without rewriting existing typed truth", async () => {
-    expect(expectedMigrationDirectories.at(-1)).toBe(migration);
-    expect(expectedMigrationDirectories).toHaveLength(38);
+    expect(expectedMigrationDirectories[migrationIndex]).toBe(migration);
+    expect(migrationIndex).toBe(37);
     const state = await client.query<Record<string, unknown>>(
       `SELECT organization.name,organization.check_in_photos_required,
               organization.handoff_standard_method_policy::text,

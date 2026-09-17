@@ -37,4 +37,5 @@ export const expectedMigrationDirectories = [
   "20260916003600_mgt_be_02_complete_mfa",
   "20260916003700_mgt_be_04_staff_roles_access",
   "20260916003800_mgt_be_05_company_settings_branding",
+  "20260917003900_mgt_be_06_management_audit_log",
 ] as const;

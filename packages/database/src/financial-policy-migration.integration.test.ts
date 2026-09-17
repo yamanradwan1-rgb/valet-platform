@@ -104,7 +104,7 @@ afterAll(async () => {
 describe("migration 26 financial policy", () => {
   it("is exactly the next forward-only migration with exact enum values", async () => {
     expect(migrationDirectories).toEqual([...expectedMigrationDirectories]);
-    expect(migrationDirectories).toHaveLength(38);
+    expect(migrationDirectories).toHaveLength(39);
     expect(migrationDirectories[25]).toBe(
       "20260815002600_phase6_financial_policy_payment_core",
     );

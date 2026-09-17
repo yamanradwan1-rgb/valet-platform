@@ -1,0 +1,215 @@
+import type { ManagementAuditEventFamily } from "./management-audit-event-catalog";
+
+const sessionStates = new Set([
+  "CHECKING_IN",
+  "AWAITING_PARKING",
+  "PARKING",
+  "PARKED",
+  "REQUESTED",
+  "RETRIEVING",
+  "READY",
+  "HANDOFF_PENDING",
+  "COMPLETED",
+]);
+const taskStatuses = new Set([
+  "QUEUED",
+  "ASSIGNED",
+  "ACCEPTED",
+  "DECLINED",
+  "REASSIGNED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+]);
+const roles = new Set([
+  "ORG_ADMIN",
+  "LOCATION_MANAGER",
+  "VALET_SUPERVISOR",
+  "VALET_EMPLOYEE",
+]);
+const identityModes = new Set(["CONFIRMED_PLATE", "TEMPORARY_DESCRIPTOR"]);
+const handoffMethods = new Set([
+  "DYNAMIC_QR",
+  "PICKUP_CODE",
+  "SUPERVISOR_OVERRIDE",
+]);
+const incidentSeverities = new Set(["LOW", "MEDIUM", "HIGH", "CRITICAL"]);
+const incidentTypes = new Set([
+  "VEHICLE_DAMAGE",
+  "KEY_MISSING",
+  "WRONG_KEY",
+  "KEY_DAMAGED",
+  "KEY_LOCKED_INSIDE",
+  "UNAUTHORIZED_ZONE_EXIT",
+  "WRONG_VEHICLE_HANDOFF_ATTEMPT",
+  "PAYMENT_DISPUTE",
+  "CUSTOMER_COMPLAINT",
+  "EMPLOYEE_SAFETY",
+  "SYSTEM_CONNECTION",
+  "OTHER",
+]);
+const shiftStatuses = new Set(["ACTIVE", "ENDED"]);
+const membershipStatuses = new Set(["ACTIVE", "INACTIVE"]);
+const mutationOperations = new Set(["SET", "CLEAR"]);
+
+function metadata(value: unknown): Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Readonly<Record<string, unknown>>)
+    : {};
+}
+
+function first(
+  source: Readonly<Record<string, unknown>>,
+  ...keys: readonly string[]
+): unknown {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) return source[key];
+  }
+  return undefined;
+}
+
+function allowedString(value: unknown, allowed: ReadonlySet<string>) {
+  return typeof value === "string" && allowed.has(value) ? value : undefined;
+}
+
+function positiveInteger(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value > 0
+    ? value
+    : undefined;
+}
+
+function nonNegativeInteger(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function settingKey(value: unknown): string | undefined {
+  return typeof value === "string" && /^[A-Za-z][A-Za-z0-9]{0,99}$/.test(value)
+    ? value
+    : undefined;
+}
+
+function compact<T extends Record<string, unknown>>(value: T): T {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as T;
+}
+
+function lifecycleDetails(source: Readonly<Record<string, unknown>>) {
+  return compact({
+    fromState: allowedString(
+      first(
+        source,
+        "fromState",
+        "from_state",
+        "fromSessionState",
+        "from_session_state",
+      ),
+      sessionStates,
+    ),
+    fromVersion: positiveInteger(
+      first(
+        source,
+        "fromVersion",
+        "from_version",
+        "fromSessionVersion",
+        "from_session_version",
+      ),
+    ),
+    toState: allowedString(
+      first(source, "toState", "to_state", "toSessionState", "to_session_state"),
+      sessionStates,
+    ),
+    toVersion: positiveInteger(
+      first(source, "toVersion", "to_version", "toSessionVersion", "to_session_version"),
+    ),
+  });
+}
+
+export function projectManagementAuditDetails(
+  family: ManagementAuditEventFamily,
+  value: unknown,
+): unknown {
+  const source = metadata(value);
+  if (family === "CHECK_IN") {
+    return compact({
+      kind: "CHECK_IN",
+      ...lifecycleDetails(source),
+      customerPresent: booleanValue(source.customerPresent),
+      effectivePhotosRequired: booleanValue(source.effectivePhotosRequired),
+      identityMode: allowedString(source.identityMode, identityModes),
+      qualifyingPhotoPresent: booleanValue(source.qualifyingPhotoPresent),
+    });
+  }
+  if (family === "KEY") {
+    return compact({
+      kind: "KEY",
+      fromVersion: positiveInteger(source.fromVersion),
+      toVersion: positiveInteger(source.toVersion),
+    });
+  }
+  if (family === "TASK") {
+    return compact({
+      kind: "TASK",
+      fromStatus: allowedString(source.fromStatus, taskStatuses),
+      fromVersion: positiveInteger(source.fromVersion),
+      toStatus: allowedString(source.toStatus, taskStatuses),
+      toVersion: positiveInteger(source.toVersion),
+    });
+  }
+  if (family === "SHIFT") {
+    return compact({
+      kind: "SHIFT",
+      fromStatus: allowedString(source.fromStatus, shiftStatuses),
+      status: allowedString(source.status, shiftStatuses),
+      toStatus: allowedString(source.toStatus, shiftStatuses),
+    });
+  }
+  if (family === "SESSION") {
+    return compact({
+      kind: "SESSION",
+      ...lifecycleDetails(source),
+      attempt: nonNegativeInteger(source.attempt),
+      handoffMethod: allowedString(
+        first(source, "method", "handoff_method"),
+        handoffMethods,
+      ),
+      maxAttempts: nonNegativeInteger(
+        first(source, "maxAttempts", "max_attempts"),
+      ),
+      terminalized: booleanValue(source.terminalized),
+    });
+  }
+  if (family === "INCIDENT") {
+    return compact({
+      kind: "INCIDENT",
+      severity: allowedString(source.severity, incidentSeverities),
+      status: source.status === "OPEN" ? "OPEN" : undefined,
+      type: allowedString(source.type, incidentTypes),
+    });
+  }
+  if (family === "CONFIGURATION" || family === "MANAGEMENT") {
+    return compact({
+      kind: family,
+      operation: allowedString(source.operation, mutationOperations),
+      settingKey: settingKey(source.settingKey),
+    });
+  }
+  if (family === "STAFF") {
+    return compact({
+      kind: "STAFF",
+      locationCount: nonNegativeInteger(source.locationCount),
+      newRole: allowedString(source.newRole, roles),
+      newStatus: allowedString(source.newStatus, membershipStatuses),
+      previousRole: allowedString(source.previousRole, roles),
+      previousStatus: allowedString(source.previousStatus, membershipStatuses),
+      role: allowedString(source.role, roles),
+    });
+  }
+  return { kind: family };
+}

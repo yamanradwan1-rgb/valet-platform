@@ -355,6 +355,68 @@ families; no templates, sender/provider credentials, routing, webhook, or
 security-notification controls are exposed. Branding is name/color only, with no
 logo/assets. Entitlement/subscription state does not gate BE-05 behavior.
 
+## Management Audit reader security
+
+MGT-BE-06 exposes only read-only tenant AuditEvent projections through
+`GET /v1/staff/management/organizations/:organizationId/audit-events` and
+`GET /v1/staff/management/organizations/:organizationId/locations/:locationId/audit-events`.
+The reader never queries or unions `account_security_audit_events`, never reads
+`raw_gps_samples`, and never writes an AuditEvent for either successful or denied
+reads.
+
+Company Admin Organization reads require the exact current Staff session,
+STANDARD Management MFA assurance, active User, active `ORG_ADMIN` membership,
+active Organization, and current `TENANT_AUDIT_READ_ELIGIBLE` semantics from
+persistence. Organization scope may return both truthful Organization-wide rows
+with `location_id = NULL` and Location-scoped rows in that same Organization.
+Company Admin exact-Location reads revalidate same-Organization ownership; an
+inactive Location remains readable as historical tenant data. Successful Company
+Admin reads may advance the existing admin-activity timestamp but never slide
+`mfa_authenticated_at`.
+
+Location Manager has no Organization-wide Audit Explorer. Exact-Location reads
+require a current active User/session/membership/Organization plus an explicit
+current `MembershipLocationAccess` grant to that same-Organization Location.
+DEC-094 historical-access semantics mean Location deactivation alone does not
+hide its audit history while that current grant remains authorized. Supervisor
+reads are narrower: the Location must be active, the explicit grant must still
+exist, and the Supervisor must have an ACTIVE Shift at that exact Location.
+Supervisor SQL admits only the reviewed operational event allowlist; Shift,
+Incident, financial/provider, map/configuration, report, Staff-management,
+Company-management, and unknown event families are excluded. Valet Employee and
+Guest receive no general Audit Explorer.
+
+Authorization facts used by the Location Manager/Supervisor path are held under
+transaction-compatible row locks through the scoped read, and Company Admin MFA
+and authority are likewise rechecked inside the read transaction. Every page
+request therefore reauthorizes current persisted state; a cursor or client claim
+never establishes Organization, Location, role, membership, or capability.
+
+Public output is a typed safe projection, never `metadata_json`. All 78 current
+tenant event types are explicitly classified and projected through bounded
+allowlists. Membership actors expose only a tenant-safe membership reference;
+non-membership actors expose only their safe type, and controlled operator
+references are never returned. Raw contacts/plates, pickup or QR material, guest
+tokens/hashes, MFA/recovery data, provider credentials/tokens or raw responses,
+push tokens, storage keys, cash/private financial values, free-text reasons, raw
+GPS/coordinates/routes, and arbitrary metadata keys are excluded. A future or
+historical unknown event fails closed to a minimal envelope containing only its
+event ID, occurrence time, already-authorized scope, `eventType = UNKNOWN`,
+`details.kind = UNKNOWN`, and `entity = null`; it exposes no actor, internal raw
+event type, entity expansion, or metadata. Unknown events are not returned to a
+Supervisor.
+
+Pagination is bounded keyset traversal ordered by `(occurred_at DESC, id DESC)`.
+The opaque strict cursor binds route kind, Organization, Location or Organization
+Location filter, event filter, the page boundary, and a database-authored first-
+page `created_at` snapshot ceiling. Equal occurrence timestamps therefore use the
+event UUID as a deterministic tie-breaker, later pages cannot cross scope/filter
+boundaries, and rows appended after the first-page snapshot do not destabilize
+the traversal. Migration 39 adds only the measured
+`audit_events(organization_id, occurred_at DESC, id DESC)` chronology index; it
+changes no runtime DML privilege and preserves the existing append-only audit
+boundary.
+
 ## Black Box / audit / evidence
 
 Operational history is append-only.
