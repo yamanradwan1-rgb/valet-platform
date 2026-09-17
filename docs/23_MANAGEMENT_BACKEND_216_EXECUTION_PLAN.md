@@ -1,7 +1,8 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-06.
-MGT-BE-06 is implemented on its review branch and is not merged by this plan.
+Status: Binding execution plan with implementation progress through MGT-BE-07.
+MGT-BE-06 is merged to `main`; MGT-BE-07 is implemented on its working branch
+and is not merged by this plan. MGT-BE-08 has not started.
 
 Rebaseline date: 2026-09-17
 
@@ -11,27 +12,26 @@ Rebaseline date: 2026-09-17
 | --- | --- |
 | Repository | `valet-platform` |
 | Updated local branch before work | `main` |
-| Local `main` SHA | `6a9617690b60a7d11a9ea11c77b7e0d681507cf1` |
-| `origin/main` SHA | `6a9617690b60a7d11a9ea11c77b7e0d681507cf1` |
+| Local `main` SHA | `b018833d84d32a6f3b78ee3dcbba58db76e413e5` |
+| `origin/main` SHA | `b018833d84d32a6f3b78ee3dcbba58db76e413e5` |
 | Match before branch creation | Yes; `HEAD == origin/main` |
 | Working tree before fetch/pull | Clean |
 | Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
-| Historical feature branch at this rebaseline | `feat/mgt-be-05-company-settings-branding` |
-| Historical implementation migration count at this rebaseline | 38 forward-only directories through MGT-BE-05 |
-| Historical implementation latest migration at this rebaseline | `20260916003800_mgt_be_05_company_settings_branding` |
+| BE-07 implementation branch | `feat/mgt-be-07-location-management` |
+| BE-07 base migration count | 39 forward-only directories through merged MGT-BE-06 |
+| BE-07 base latest migration | `20260917003900_mgt_be_06_management_audit_log` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
 input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
 
-Current MGT-BE-06 implementation truth is separate from that historical
-provenance: BE-06 started from `main` at
-`cd42e1566ce927d866f61bae5ad2dad7c2508836` on
-`feat/mgt-be-06-management-audit-log`. The working implementation has 39
-forward-only migrations, with latest migration
-`20260917003900_mgt_be_06_management_audit_log` containing only the measured
-Management Audit chronology index.
+MGT-BE-06 is now merged to `main` at
+`b018833d84d32a6f3b78ee3dcbba58db76e413e5`. MGT-BE-07 starts from that exact
+merged base on `feat/mgt-be-07-location-management`. Its working implementation
+adds migration 40,
+`20260917004000_mgt_be_07_location_management`, for the DEC-094 Location
+lifecycle representation and narrow mutation boundary.
 
 ## 2. Authority and audit method
 
@@ -110,6 +110,14 @@ materially adds or completes:
   row PostgreSQL plans measured the new
   `(organization_id, occurred_at DESC, id DESC)` index before adding it; no
   speculative Location- or event-type-leading audit index was added.
+- implemented MGT-BE-07 / migration 40 with `status + accepting_intake` lifecycle
+  representation, Management-created `INACTIVE/false` Locations, explicit
+  lifecycle routes with readiness/drain projection, currency/timezone-only
+  activation readiness, session/Shift/Task drain blockers, the shared Location
+  lifecycle advisory boundary, and safe-boundary currency/timezone correction.
+  A 100,001-row-per-table PostgreSQL benchmark justified partial blocker indexes
+  for non-completed ValetSessions and non-terminal Tasks; the existing Shift
+  index was already sufficient.
 
 These changes remove no Management requirement. They add schema/migration
 contention, session/push interactions for MFA and emergency disable, a new
@@ -170,20 +178,24 @@ new shared-contract compatibility obligations.
   deactivation is Organization-scoped; global User `DISABLED` remains a
   separate controlled VAYLET security action. Company Admin still does not gain
   field-operation superuser authority.
+- DEC-094/MGT-BE-07 is implemented on the current branch. Location persistence
+  now uses `ACTIVE | INACTIVE` plus `accepting_intake`, defaults new rows to
+  `INACTIVE/false`, and exposes the bounded lifecycle projection and commands.
+  Activation readiness is exactly supported currency plus valid IANA timezone;
+  final deactivation requires intake already stopped and no live session, Shift,
+  or non-terminal Task blocker.
 
 ## 5. Current real gaps
 
-1. No Location create/readiness/intake-stop/drain/deactivate API; persistence
-   still defaults new rows to `ACTIVE`.
-2. No Management visit-contact search/history/correction surface.
-3. No Guest rating persistence or write.
-4. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
+1. No Management visit-contact search/history/correction surface.
+2. No Guest rating persistence or write.
+3. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
     or controlled Key Exceptions metrics.
-5. No All Locations analytics or company CSV/PDF reports. The implemented
+4. No All Locations analytics or company CSV/PDF reports. The implemented
    `ALL_LOCATIONS` selector/context is foundation only.
-6. No truthful Integration status API, Management-only entitlement
+5. No truthful Integration status API, Management-only entitlement
     enforcement, company commercial view, or Guest effective branding.
-7. No historically truthful SLA-target source yet. BE-05 deliberately does not
+6. No historically truthful SLA-target source yet. BE-05 deliberately does not
    add a current scalar target that BE-10 could retroactively apply to old visits.
 
 ## 6. Formal decision mapping
@@ -474,8 +486,9 @@ pagination, filtering, and role-specific visibility.
 
 Implementation status: implemented on
 `feat/mgt-be-06-management-audit-log` with migration 39 and focused API/contracts
-coverage present. Final branch validation is tracked separately; this statement
-does not claim merge or production deployment.
+coverage, then merged to `main` as
+`b018833d84d32a6f3b78ee3dcbba58db76e413e5`. This statement does not claim
+production deployment.
 
 - Dependencies: MGT-BE-01 and MGT-BE-03.
 - Routes: `GET /v1/staff/management/organizations/:organizationId/audit-events`
@@ -537,21 +550,62 @@ Objective: implement DEC-094 create-inactive, readiness, activate, stop intake,
 safe drain, deactivate, historical access, and currency/timezone correction
 rules.
 
+Implementation status: implemented on `feat/mgt-be-07-location-management` from
+merged BE-06 main `b018833d84d32a6f3b78ee3dcbba58db76e413e5` with migration
+`20260917004000_mgt_be_07_location_management`. It is not merged by this plan;
+MGT-BE-08 remains unstarted.
+
 - Dependencies: MGT-BE-01, MGT-BE-03, and operational precondition interfaces
   from MGT-BE-04.
-- Schema: current `ACTIVE|INACTIVE` and default `ACTIVE` cannot by themselves
-  express accepting versus draining. Select the smallest typed representation
-  that preserves the full lifecycle; use a forward migration, never rewrite.
-- Auth/audit: five-minute MFA freshness, same-company server authority, stable
-  create identity, atomic lifecycle audit, no hard delete.
-- Concurrency/idempotency: code uniqueness, create retries, activation/readiness
-  races, stop-intake versus Check-In, drain versus new Task/Shift/custody work,
-  and final deactivation recheck under locks.
-- Performance: bounded readiness/drain summaries using indexed existence checks,
-  not loading all historical work.
-- Proof: INACTIVE creation, explicit currency/timezone, incomplete readiness,
-  intake fencing, safe drain, active-work denial, historical reads, and
-  prospective currency/timezone correction behavior.
+- Schema: migration 40 adds `locations.accepting_intake BOOLEAN NOT NULL DEFAULT
+  FALSE`, backfills existing ACTIVE rows to intake-open, changes Location status
+  default to `INACTIVE`, and forbids `INACTIVE/true`. The three valid lifecycle
+  representations are `INACTIVE/false`, `ACTIVE/true`, and drain-state
+  `ACTIVE/false`.
+- Routes: `POST /v1/staff/management/organizations/:organizationId/locations`;
+  `GET /v1/staff/management/organizations/:organizationId/locations/:locationId/lifecycle`;
+  and exact-Location `POST` routes at
+  `/v1/staff/management/organizations/:organizationId/locations/:locationId/activate`,
+  `/stop-intake`, `/deactivate`, `/currency-correction`, and
+  `/timezone-correction` under that same exact-Location prefix.
+- Readiness/drain projection: activation readiness is exactly
+  `currencySupported && timezoneValid`. Drain reports only `activeShiftPresent`,
+  `nonCompletedValetSessionPresent`, and `nonTerminalTaskPresent`; non-terminal
+  Task means `QUEUED | ASSIGNED | ACCEPTED | IN_PROGRESS`.
+- Auth/audit: every BE-07 route requires current same-Organization Company Admin
+  authority with SENSITIVE/five-minute exact-session MFA. Real mutations append
+  one of `LOCATION_CREATED`, `LOCATION_ACTIVATED`,
+  `LOCATION_INTAKE_STOPPED`, `LOCATION_DEACTIVATED`,
+  `LOCATION_CURRENCY_CORRECTED`, or `LOCATION_TIMEZONE_CORRECTED`; no hard delete
+  or fabricated operational completion is used. Migration 40 reserves those six
+  event names from direct runtime audit INSERT so lifecycle provenance and the
+  create idempotency ledger remain command-authoritative.
+- Concurrency/idempotency: create uses stable UUID `operationId` plus immutable
+  request fingerprint; lifecycle/correction writes use `expectedUpdatedAt` CAS.
+  The shared `location-lifecycle:<locationId>` transaction advisory key composes
+  exclusive Management lifecycle writes with shared Check-In/Shift/retrieval
+  operational boundaries. Stop-intake fences new Check-In; final deactivation
+  rechecks all three drain blockers while holding the lifecycle boundary.
+- Correction safe boundary: currency/timezone may change only when the Location
+  is `INACTIVE`, intake is closed, and no session/Shift/Task drain blocker
+  remains. Currency must be supported and keep the effective service fee exactly
+  representable. Timezone must be valid IANA data and correction requires a
+  bounded reason; historical timestamps/report facts remain unchanged.
+- Performance: projection/blocker reads are bounded `EXISTS` queries. With
+  100,001 rows in each blocker table, the pre-index ValetSession plan was a
+  sequential scan at 9.262 ms / 935 shared-hit buffers and the Task plan was a
+  sequential scan at 13.103 ms / 1,031 shared-hit buffers. Migration 40 therefore
+  adds `valet_sessions_location_id_non_completed_idx` and
+  `tasks_location_id_non_terminal_idx`; the same plans become index-only scans at
+  0.057 ms / 2 buffers and 0.015 ms / 2 buffers. The existing
+  `shifts_location_id_status_idx` was already index-only (0.023 ms / 3 buffers in
+  the before run; 0.066 ms / 3 buffers in the after run). None of the three plans
+  sorts. The separate create-operation partial unique audit index exists for
+  retry correctness.
+- Proof: INACTIVE creation, explicit currency/timezone, readiness truth, intake
+  fencing, safe drain, active-work denial, shared-lock races, historical reads,
+  create retry/conflict, CAS/no-op behavior, and prospective currency/timezone
+  correction behavior.
 
 ### MGT-BE-08 — Customers / Guests
 
@@ -774,17 +828,14 @@ planning names/scope without rewriting historical DECs.
 
 Known implementation gaps, not contradictions:
 
-- current Location database default is ACTIVE while DEC-094 requires
-  Management-created Locations to start INACTIVE;
 - DEC-074 keeps real OCR provider calls fail-closed unavailable in production
   until a shared durable OCR cost guard exists; an OCR tenant toggle cannot
   bypass that gate;
 - existing Task/current-assignee data does not by itself prove the complete
   historical “actually worked” cohort, and ordinary KeyCustodyEvent rows are
   not Key Exceptions;
-- SLA historical applicability, genuine Key Exception source, and Location
-  intake-stop/drain persistence require careful schema design in their owning
-  tasks before migration;
+- SLA historical applicability and the genuine Key Exception source require
+  careful schema design in their owning tasks before migration;
 - Employee Check-In currently accepts Jordan mobile numbers only, so broader
   international Management phone normalization cannot be assumed.
 - historical docs-rebaseline evidence: at that baseline SHA, the repository
@@ -802,8 +853,9 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03, MGT-BE-04, MGT-BE-05, and MGT-BE-06 are implemented; MGT-BE-06
-remains unmerged until independent review/owner merge action.
+MGT-BE-03 through MGT-BE-06 are merged through
+`main@b018833d84d32a6f3b78ee3dcbba58db76e413e5`; MGT-BE-07 is implemented on
+its current working branch and remains unmerged. MGT-BE-08 has not started.
 
 ## 14. Documentation rebaseline validation record
 

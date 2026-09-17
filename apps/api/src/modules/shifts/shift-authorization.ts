@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 import { ShiftOperationError } from "./shift-errors";
 
 export type OperationalShiftRole = "VALET_EMPLOYEE" | "VALET_SUPERVISOR";
@@ -33,6 +34,7 @@ export async function authorizeShiftStart(
   },
 ): Promise<AuthorizedShiftStartScope> {
   await requireActiveShiftUser(transaction, input.authenticatedUserId);
+  await lockLocationLifecycle(transaction, input.targetLocationId, "SHARED");
   const locationResult = await transaction.query<{
     location_status: string;
     organization_id: string;

@@ -122,9 +122,9 @@ export class Phase3OperationsGateContext extends ConfirmParkedTestContext {
     await this.adminPool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Gate other location', $3, 'Address', 'Asia/Amman',
-               'JOD', 'ACTIVE', clock_timestamp())`,
+               'JOD', 'ACTIVE', TRUE, clock_timestamp())`,
       [locationId, fixture.organizationId, randomUUID()],
     );
     await this.adminPool.query(

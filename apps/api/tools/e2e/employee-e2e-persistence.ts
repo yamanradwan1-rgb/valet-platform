@@ -41,10 +41,10 @@ export async function persistEmployeeE2eFixture(
     await client.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, release_requires_payment_override, updated_at)
+          status, accepting_intake, release_requires_payment_override, updated_at)
        VALUES ($1, $2, 'Employee E2E Location', $3, 'Loopback test site',
-         'UTC', 'JOD', 'ACTIVE', false, now())
-       ON CONFLICT (id) DO UPDATE SET status = 'ACTIVE',
+         'UTC', 'JOD', 'ACTIVE', TRUE, false, now())
+       ON CONFLICT (id) DO UPDATE SET status = 'ACTIVE', accepting_intake = TRUE,
          release_requires_payment_override = false, updated_at = now()`,
       [f.locationId, f.organizationId, f.locationCode],
     );

@@ -7137,10 +7137,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all thirty-nine forward-only migrations in order", () => {
+  it("applies exactly all forty forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260917003900_mgt_be_06_management_audit_log",
+      "20260917004000_mgt_be_07_location_management",
     );
   });
 

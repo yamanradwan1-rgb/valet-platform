@@ -154,9 +154,9 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     await client.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Guest access location', $3, 'Test address',
-               'Asia/Amman', 'JOD', 'ACTIVE', clock_timestamp())`,
+               'Asia/Amman', 'JOD', 'ACTIVE', TRUE, clock_timestamp())`,
       [fixture.locationId, fixture.organizationId, identity],
     );
     await client.query(

@@ -150,7 +150,7 @@ describe("Staff Push send-time eligibility", () => {
         "inactive Location",
         async (f) =>
           void (await context.adminPool.query(
-            "UPDATE locations SET status = 'INACTIVE' WHERE id = $1",
+            "UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1",
             [f.locationId],
           )),
       ],

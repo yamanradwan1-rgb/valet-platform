@@ -17,9 +17,9 @@ describe("controlled staff provisioning persistence", () => {
     await pool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Second Location', $3, 'Test address', 'Asia/Amman',
-               'JOD', 'ACTIVE', transaction_timestamp())`,
+               'JOD', 'ACTIVE', TRUE, transaction_timestamp())`,
       [secondLocationId, first.organizationId, secondLocationId],
     );
     const provisioning = input(

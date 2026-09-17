@@ -96,9 +96,9 @@ export function createStaffTaskQueueHarness(): StaffTaskQueueHarness {
       await context.adminPool.query(
         `INSERT INTO locations
            (id, organization_id, name, code, address_text, timezone, currency,
-            status, updated_at)
+            status, accepting_intake, updated_at)
          VALUES ($1, $2, 'Location Same Org 2', $3, 'Address', 'Asia/Amman',
-                 'JOD', 'ACTIVE', clock_timestamp())`,
+                 'JOD', 'ACTIVE', TRUE, clock_timestamp())`,
         [locationId, fixture.organizationId, `loc-${randomUUID().slice(0, 8)}`],
       );
       return locationId;

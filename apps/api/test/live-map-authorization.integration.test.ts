@@ -163,7 +163,7 @@ describe("VAL-007G live map authorization and policy", () => {
         );
       } else {
         await context.adminPool.query(
-          `UPDATE locations SET status = 'INACTIVE' WHERE id = $1`,
+          `UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1`,
           [fixture.locationId],
         );
       }

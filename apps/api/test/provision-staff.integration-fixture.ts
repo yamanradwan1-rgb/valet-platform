@@ -75,14 +75,15 @@ export async function scope(
   await pool.query(
     `INSERT INTO locations
        (id, organization_id, name, code, address_text, timezone, currency,
-        status, updated_at)
+        status, accepting_intake, updated_at)
      VALUES ($1, $2, 'Provisioning Location', $3, 'Test address',
-             'Asia/Amman', 'JOD', $4, transaction_timestamp())`,
+             'Asia/Amman', 'JOD', $4, $5, transaction_timestamp())`,
     [
       locationId,
       organizationId,
       locationId,
       options.locationStatus ?? "ACTIVE",
+      (options.locationStatus ?? "ACTIVE") === "ACTIVE",
     ],
   );
   return { locationId, organizationId };

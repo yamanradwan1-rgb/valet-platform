@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 
 export interface ShiftOperationalEligibility {
   readonly shiftId: string;
@@ -15,6 +16,7 @@ export async function lockShiftOperationalEligibility(
     readonly membershipId: string;
   },
 ): Promise<ShiftOperationalEligibility | null> {
+  await lockLocationLifecycle(transaction, input.locationId, "SHARED");
   const result = await transaction.query<{ shift_id: string }>(
     `SELECT shift_row.id::text AS shift_id
      FROM organization_memberships AS membership

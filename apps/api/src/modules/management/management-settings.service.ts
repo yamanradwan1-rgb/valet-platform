@@ -137,7 +137,7 @@ export class ManagementSettingsService {
         assurance,
         capability: "LOCATION_SETTINGS_MANAGE_ELIGIBLE",
         organizationId,
-        requireActiveLocation: true,
+        requireActiveLocation: false,
         targetLocationId: locationId,
       });
       const result = await operation(transaction, actor);

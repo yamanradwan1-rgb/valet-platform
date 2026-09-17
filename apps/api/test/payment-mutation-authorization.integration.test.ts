@@ -64,7 +64,7 @@ describe("VAL-008B financial mutation authorization and isolation", () => {
     const data = await fixture();
     const actor = await context.actor(data.paymentFixture);
     await context.adminPool.query(
-      `UPDATE locations SET status = 'INACTIVE' WHERE id = $1`,
+      `UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1`,
       [data.paymentFixture.locationId],
     );
     await expect(

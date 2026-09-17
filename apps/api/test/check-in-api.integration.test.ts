@@ -268,9 +268,9 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
   await adminPool.query(
     `INSERT INTO locations
        (id, organization_id, name, code, address_text, timezone, currency,
-        status, check_in_photos_required_override, updated_at)
+        status, accepting_intake, check_in_photos_required_override, updated_at)
      VALUES ($1, $2, 'HTTP location', $3, 'Test address', 'Asia/Amman',
-             'JOD', 'ACTIVE', $4, transaction_timestamp())`,
+             'JOD', 'ACTIVE', TRUE, $4, transaction_timestamp())`,
     [
       fixture.locationId,
       fixture.organizationId,
@@ -325,9 +325,9 @@ async function createSiblingLocationFixture(owner: Fixture): Promise<Fixture> {
   await adminPool.query(
     `INSERT INTO locations
        (id, organization_id, name, code, address_text, timezone, currency,
-        status, updated_at)
+        status, accepting_intake, updated_at)
      VALUES ($1, $2, 'Sibling HTTP location', $3, 'Test address',
-             'Asia/Amman', 'JOD', 'ACTIVE', transaction_timestamp())`,
+             'Asia/Amman', 'JOD', 'ACTIVE', TRUE, transaction_timestamp())`,
     [sibling.locationId, sibling.organizationId, identity],
   );
   await adminPool.query(

@@ -47,7 +47,10 @@ describe("VAL-009A exact-location dashboard authorization", () => {
       "UPDATE organization_memberships SET status = 'INACTIVE' WHERE id = $1",
     ],
     ["organization", "UPDATE organizations SET status = 'INACTIVE' WHERE id = $1"],
-    ["location", "UPDATE locations SET status = 'INACTIVE' WHERE id = $1"],
+    [
+      "location",
+      "UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1",
+    ],
   ] as const)(
     "denies an inactive %s through the same denied outcome",
     async (authority, statement) => {

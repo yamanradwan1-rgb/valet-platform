@@ -108,12 +108,12 @@ describe("migration 29 location configuration authority", () => {
       .map((entry) => entry.name)
       .sort();
     expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(39);
+    expect(directories).toHaveLength(40);
     expect(directories.at(29)).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
     expect(directories.at(-1)).toBe(
-      "20260917003900_mgt_be_06_management_audit_log",
+      "20260917004000_mgt_be_07_location_management",
     );
   });
 

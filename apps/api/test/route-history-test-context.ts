@@ -63,9 +63,9 @@ export class RouteHistoryTestContext extends GpsIngestionTestContext {
     await this.adminPool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Other route location', $3, 'Address', 'Asia/Amman',
-               'JOD', 'ACTIVE', transaction_timestamp())`,
+               'JOD', 'ACTIVE', TRUE, transaction_timestamp())`,
       [locationId, fixture.organizationId, randomUUID()],
     );
     return locationId;

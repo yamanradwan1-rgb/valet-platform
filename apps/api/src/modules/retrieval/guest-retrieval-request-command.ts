@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
+import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import {
   appendCustodyAuditEvent,
@@ -114,6 +115,13 @@ export async function requestGuestRetrieval(
   pushPolicy: StaffPushIntentCreationPolicy,
   pushCreationEnabled = true,
 ): Promise<LockedGuestAccessSessionScope> {
+  await lockLocationLifecycle(transaction, session.locationId, "SHARED");
+  const activeLocation = await transaction.query(
+    `SELECT 1 FROM locations
+     WHERE id = $1 AND organization_id = $2 AND status = 'ACTIVE'`,
+    [session.locationId, session.organizationId],
+  );
+  if (activeLocation.rowCount !== 1) throw new GuestRetrievalRequestError();
   const lifecycle = await activeRows(transaction, session);
   if (session.state === "PARKED") {
     if (lifecycle.requests.length !== 0 || lifecycle.tasks.length !== 0) {

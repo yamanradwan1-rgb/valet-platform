@@ -188,15 +188,15 @@ async function seed() {
     ]) {
       await query(
         `INSERT INTO locations
-           (id, organization_id, name, code, address_text, timezone, currency, status, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE', $8, $8)
+           (id, organization_id, name, code, address_text, timezone, currency, status, accepting_intake, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE', TRUE, $8, $8)
          ON CONFLICT (id) DO UPDATE SET
            name = EXCLUDED.name,
            code = EXCLUDED.code,
            address_text = EXCLUDED.address_text,
            timezone = EXCLUDED.timezone,
            currency = EXCLUDED.currency,
-           status = EXCLUDED.status,
+           status = EXCLUDED.status, accepting_intake = TRUE,
            updated_at = EXCLUDED.updated_at`,
         [
           location[0],

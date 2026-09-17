@@ -46,5 +46,6 @@ export * from "./plate-ocr.js";
 export * from "./management-control-plane.js";
 export * from "./management-settings.js";
 export * from "./management-branding.js";
+export * from "./management-location-lifecycle.js";
 export * from "./management-audit-events.js";
 export * from "./management-audit.js";

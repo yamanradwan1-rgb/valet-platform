@@ -87,9 +87,24 @@ A Location belongs to one Organization in MVP.
 Location is the authoritative operational scope for settings such as timezone/currency and location-specific policies when implemented.
 
 Management-created Locations begin inactive. Activation requires explicit
-currency/timezone and setup readiness. Closure first stops new intake, then
-drains existing operational work, and only then deactivates. Historical
-Location data is never deleted.
+currency/timezone readiness. MGT-BE-07 represents the lifecycle with the
+existing `ACTIVE | INACTIVE` status plus `accepting_intake`: `INACTIVE/false`
+is setup or inactive, `ACTIVE/true` accepts normal Check-In intake, and
+`ACTIVE/false` is the drain state. `INACTIVE/true` is invalid.
+
+BE-07 readiness is exactly two checks: supported Location currency and valid
+IANA timezone. It does not infer a larger setup checklist. Closure first stops
+new Check-In intake, then drains existing operational work, and only then
+deactivates. Safe drain means no non-`COMPLETED` ValetSession, no `ACTIVE` Shift,
+and no Task in `QUEUED`, `ASSIGNED`, `ACCEPTED`, or `IN_PROGRESS`. Historical
+Location data is never deleted and deactivation never fabricates completion of
+operational or financial history.
+
+Currency and timezone correction use the same inactive, intake-closed, drained
+safe boundary. Currency correction is prospective and must keep the effective
+service fee representable in the new currency. Timezone correction is an
+exceptional reasoned/audited correction; historical timestamps and prior report
+facts remain unchanged.
 
 ## User
 
@@ -565,6 +580,13 @@ operator. Controlled operators use a bounded opaque operator reference in a
 dedicated column. Historical rows whose earlier schema did not encode an
 explicit non-membership actor remain unchanged rather than receiving invented
 provenance.
+
+MGT-BE-07 adds the bounded Location lifecycle event family
+`LOCATION_CREATED`, `LOCATION_ACTIVATED`, `LOCATION_INTAKE_STOPPED`,
+`LOCATION_DEACTIVATED`, `LOCATION_CURRENCY_CORRECTED`, and
+`LOCATION_TIMEZONE_CORRECTED`. Each real lifecycle/correction mutation appends
+its Location-scoped tenant event atomically; desired-state no-ops do not create
+duplicate lifecycle history.
 
 ## Configuration model principle
 

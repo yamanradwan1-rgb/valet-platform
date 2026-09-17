@@ -58,7 +58,7 @@ export async function locationBrandingProjection(
      FROM locations AS location
      INNER JOIN organizations AS organization ON organization.id = location.organization_id
      WHERE location.id = $1 AND location.organization_id = $2
-       AND location.status = 'ACTIVE' AND organization.status = 'ACTIVE'`,
+       AND organization.status = 'ACTIVE'`,
     [locationId, organizationId],
   );
   const row = result.rows[0];

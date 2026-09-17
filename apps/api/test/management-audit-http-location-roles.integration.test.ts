@@ -66,9 +66,10 @@ describe("MGT-BE-06 Management audit HTTP Location roles", () => {
     expect(grantedRead.status).toBe(200);
     expect(eventIds(grantedRead.body)).toEqual([eventId]);
 
-    await fixture.query(`UPDATE locations SET status = 'INACTIVE' WHERE id = $1`, [
-      granted.locationId,
-    ]);
+    await fixture.query(
+      `UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1`,
+      [granted.locationId],
+    );
     const historicalRead = await fixture.managementGet(
       locationPath(organizationId, granted.locationId),
       auth.accessToken,

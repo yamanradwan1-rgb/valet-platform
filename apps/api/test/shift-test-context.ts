@@ -152,14 +152,15 @@ export class ShiftTestContext {
     await this.adminPool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Shift location', $3, 'Address', 'Asia/Amman',
-               'JOD', $4, transaction_timestamp())`,
+               'JOD', $4, $5, transaction_timestamp())`,
       [
         fixture.locationId,
         fixture.organizationId,
         identity,
         options.locationStatus ?? "ACTIVE",
+        (options.locationStatus ?? "ACTIVE") === "ACTIVE",
       ],
     );
     if (existingUserId === undefined) {
@@ -203,9 +204,9 @@ export class ShiftTestContext {
     await this.adminPool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Second shift location', $3, 'Address', 'Asia/Amman',
-               'JOD', 'ACTIVE', transaction_timestamp())`,
+               'JOD', 'ACTIVE', TRUE, transaction_timestamp())`,
       [locationId, fixture.organizationId, randomUUID()],
     );
     await this.adminPool.query(

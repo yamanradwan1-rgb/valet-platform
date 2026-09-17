@@ -101,14 +101,21 @@ describe("MOB-020C write-side recipient eligibility", () => {
     await expectNoDelivery(fixture);
   });
 
-  it("excludes an inactive Task Location", async () => {
+  it("rejects retrieval from an inactive Task Location before creating attention", async () => {
     const fixture = await context.createGuestParkedFixture();
     await context.addRegistration(fixture.userId);
     await context.adminPool.query(
-      "UPDATE locations SET status = 'INACTIVE' WHERE id = $1",
+      "UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1",
       [fixture.locationId],
     );
-    await expectNoDelivery(fixture);
+    await expect(context.request(fixture)).rejects.toMatchObject({
+      code: "INVALID_STATE_TRANSITION",
+    });
+    expect(await context.retrievalEffects(fixture.sessionId)).toMatchObject({
+      delivery_count: 0,
+      intent_count: 0,
+      task_count: 0,
+    });
   });
 
   it("excludes Staff without explicit access to the exact Task Location", async () => {

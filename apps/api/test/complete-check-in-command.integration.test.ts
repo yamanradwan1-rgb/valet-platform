@@ -211,14 +211,15 @@ async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
     await client.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, check_in_photos_required_override, updated_at)
+          status, accepting_intake, check_in_photos_required_override, updated_at)
        VALUES ($1, $2, 'Complete check-in location', $3, 'Test address',
-               'Asia/Amman', 'JOD', $4, $5, clock_timestamp())`,
+               'Asia/Amman', 'JOD', $4, $5, $6, clock_timestamp())`,
       [
         fixture.locationId,
         fixture.organizationId,
         identity,
         options.locationStatus ?? "ACTIVE",
+        (options.locationStatus ?? "ACTIVE") === "ACTIVE",
         options.locationPhotoOverride ?? null,
       ],
     );

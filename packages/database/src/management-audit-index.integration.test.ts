@@ -45,7 +45,7 @@ async function indexColumns() {
 }
 
 beforeAll(async () => {
-  expect(expectedMigrationDirectories.at(-1)).toBe(migration);
+  expect(expectedMigrationDirectories.indexOf(migration)).toBe(38);
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
   try {

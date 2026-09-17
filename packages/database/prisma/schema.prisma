@@ -489,7 +489,7 @@ model Location {
   addressText                         String                       @map("address_text")
   timezone                            String
   currency                            String
-  status                              LocationStatus               @default(ACTIVE)
+  status                              LocationStatus               @default(INACTIVE)
   checkInPhotosRequiredOverride       Boolean?                     @map("check_in_photos_required_override")
   handoffStandardMethodPolicyOverride HandoffStandardMethodPolicy? @map("handoff_standard_method_policy_override")
   trackingEnabledOverride             Boolean?                     @map("tracking_enabled_override")
@@ -509,7 +509,7 @@ model Location {
   brandPrimaryColorOverride           String?                      @map("brand_primary_color_override")
   createdAt                           DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                           DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
-
+  acceptingIntake                     Boolean                      @default(false) @map("accepting_intake")
   organization             Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   membershipLocationAccess MembershipLocationAccess[]
   shifts                   Shift[]

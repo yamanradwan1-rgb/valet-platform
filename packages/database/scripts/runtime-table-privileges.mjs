@@ -9,6 +9,7 @@ import { provisionStaffPushPrivileges } from "./staff-push-runtime-privileges.mj
 import { provisionIncidentRecoveryPrivileges } from "./incident-recovery-runtime-privileges.mjs";
 import { provisionStaffManagementPrivileges } from "./staff-management-runtime-privileges.mjs";
 import { provisionManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
+import { provisionLocationLifecyclePrivileges } from "./location-lifecycle-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -289,6 +290,7 @@ export async function provisionRuntimeTablePrivileges(
   );
   await provisionStaffManagementPrivileges(client, executeFormatted, runtimeRole);
   await provisionManagementSettingsPrivileges(client, executeFormatted, runtimeRole);
+  await provisionLocationLifecyclePrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

@@ -160,8 +160,18 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
   z
     .object({
       kind: z.literal("MANAGEMENT"),
+      acceptingIntake: z.boolean().optional(),
+      fromAcceptingIntake: z.boolean().optional(),
+      fromStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+      newCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
+      newTimezone: z.string().min(1).max(255).optional(),
       operation: z.enum(["SET", "CLEAR"]).optional(),
+      previousCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
+      previousTimezone: z.string().min(1).max(255).optional(),
       settingKey: z.string().min(1).max(100).optional(),
+      status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+      toAcceptingIntake: z.boolean().optional(),
+      toStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
     })
     .strict(),
 ]);

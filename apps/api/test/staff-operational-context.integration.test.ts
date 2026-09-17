@@ -91,8 +91,11 @@ describe("Staff Operational Context Read API", () => {
     const loc2 = await harness.context.addLocation(f);
     const inactiveLoc = randomUUID();
     await harness.context.adminPool.query(
-      `INSERT INTO locations (id, organization_id, name, code, address_text, timezone, currency, status, updated_at)
-       VALUES ($1, $2, 'Inactive', 'INACT', 'Addr', 'UTC', 'USD', 'INACTIVE', NOW())`,
+      `INSERT INTO locations
+         (id, organization_id, name, code, address_text, timezone, currency,
+          status, accepting_intake, updated_at)
+       VALUES ($1, $2, 'Inactive', 'INACT', 'Addr', 'UTC', 'USD',
+               'INACTIVE', FALSE, NOW())`,
       [inactiveLoc, f.organizationId],
     );
     await harness.context.adminPool.query(
@@ -129,7 +132,7 @@ describe("Staff Operational Context Read API", () => {
     const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
     await insertActiveShift(harness, f);
     await harness.context.adminPool.query(
-      `UPDATE locations SET status = 'INACTIVE' WHERE id = $1`,
+      `UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1`,
       [f.locationId],
     );
     const token = registerToken(harness.principals, f.userId);
@@ -186,8 +189,11 @@ describe("Staff Operational Context Read API", () => {
     const f = await harness.context.createFixture({ role: "VALET_EMPLOYEE" });
     const ungrantedLoc = randomUUID();
     await harness.context.adminPool.query(
-      `INSERT INTO locations (id, organization_id, name, code, address_text, timezone, currency, status, updated_at)
-       VALUES ($1, $2, 'Ungranted', $3, 'Addr', 'UTC', 'USD', 'ACTIVE', NOW())`,
+      `INSERT INTO locations
+         (id, organization_id, name, code, address_text, timezone, currency,
+          status, accepting_intake, updated_at)
+       VALUES ($1, $2, 'Ungranted', $3, 'Addr', 'UTC', 'USD',
+               'ACTIVE', TRUE, NOW())`,
       [ungrantedLoc, f.organizationId, randomUUID()],
     );
     const token = registerToken(harness.principals, f.userId);

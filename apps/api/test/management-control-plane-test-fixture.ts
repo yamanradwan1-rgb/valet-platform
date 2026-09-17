@@ -95,10 +95,10 @@ export class ManagementControlPlaneTestFixture extends StaffMfaTestFixture {
     await this.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, $3, $4, 'Address', 'Asia/Amman', 'JOD', $5,
-               transaction_timestamp())`,
-      [locationId, organizationId, name, `L-${locationId}`, status],
+               $6, transaction_timestamp())`,
+      [locationId, organizationId, name, `L-${locationId}`, status, status === "ACTIVE"],
     );
     return { locationId, name, status };
   }

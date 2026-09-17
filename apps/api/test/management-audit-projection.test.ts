@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(78);
+    expect(managementAuditKnownEventTypes).toHaveLength(84);
     for (const eventType of managementAuditKnownEventTypes) {
       const projected = projectManagementAuditEvent(
         row(eventType, sensitiveMetadata),
@@ -101,6 +101,7 @@ describe("management audit projection", () => {
       "MAP_SETUP_POINT_CREATED",
       "STAFF_ROLE_CHANGED",
       "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+      "LOCATION_DEACTIVATED",
     ]) {
       expect(managementAuditSupervisorEventTypes).not.toContain(excluded);
       expect(() => projectManagementAuditEvent(row(excluded), supervisor)).toThrow();
@@ -108,6 +109,25 @@ describe("management audit projection", () => {
     expect(() =>
       projectManagementAuditEvent(row("VALET_SESSION_PARKED"), supervisor),
     ).not.toThrow();
+  });
+
+  it("allowlists lifecycle metadata without exposing correction reason or create fingerprint", () => {
+    const projected = projectManagementAuditEvent(
+      row("LOCATION_TIMEZONE_CORRECTED", {
+        newTimezone: "Asia/Amman",
+        previousTimezone: "UTC",
+        reason: "private correction reason",
+        requestFingerprint: "private-create-fingerprint",
+      }),
+      admin,
+    );
+    expect(projected.details).toEqual({
+      kind: "MANAGEMENT",
+      newTimezone: "Asia/Amman",
+      previousTimezone: "UTC",
+    });
+    expect(JSON.stringify(projected)).not.toContain("private correction reason");
+    expect(JSON.stringify(projected)).not.toContain("private-create-fingerprint");
   });
 
   it("fails closed for unknown events and raw entity types", () => {

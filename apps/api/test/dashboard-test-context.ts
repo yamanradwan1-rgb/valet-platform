@@ -105,18 +105,20 @@ export class DashboardTestContext extends ShiftTestContext {
     } = {},
   ): Promise<string> {
     const locationId = randomUUID();
+    const status = options.status ?? "ACTIVE";
     await this.adminPool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, $3, $4, 'Address', 'Asia/Amman', 'JOD', $5,
-               transaction_timestamp())`,
+               $6, transaction_timestamp())`,
       [
         locationId,
         fixture.organizationId,
         options.name ?? `Dashboard location ${locationId}`,
         locationId,
-        options.status ?? "ACTIVE",
+        status,
+        status === "ACTIVE",
       ],
     );
     if (options.access !== false) {

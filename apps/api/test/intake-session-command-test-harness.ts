@@ -50,9 +50,9 @@ export function useIntakeSessionCommandTestHarness() {
     await database.adminPool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
-          status, updated_at)
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Intake location', $3, 'Test address', 'Asia/Amman',
-               'JOD', 'ACTIVE', transaction_timestamp())`,
+               'JOD', 'ACTIVE', TRUE, transaction_timestamp())`,
       [fixture.locationId, fixture.organizationId, identity],
     );
     await database.adminPool.query(

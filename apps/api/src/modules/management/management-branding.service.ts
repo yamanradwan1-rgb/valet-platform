@@ -108,7 +108,7 @@ export class ManagementBrandingService {
         assurance,
         capability: "BRANDING_MANAGE_ELIGIBLE",
         organizationId,
-        requireActiveLocation: true,
+        requireActiveLocation: false,
         targetLocationId: locationId,
       });
       const result = await operation(transaction, actor);

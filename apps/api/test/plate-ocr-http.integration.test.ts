@@ -128,7 +128,7 @@ describe("authenticated OCR HTTP route with real persisted authority", () => {
         staff.organizationId,
       ],
       location: [
-        "UPDATE locations SET status = 'INACTIVE' WHERE id = $1",
+        "UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1",
         staff.locationId,
       ],
       access: [

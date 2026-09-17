@@ -33,9 +33,9 @@ async function insertLocation(
   await transaction.query(
     `INSERT INTO locations
        (id, organization_id, name, code, address_text, timezone, currency,
-        status, created_at, updated_at)
+        status, accepting_intake, created_at, updated_at)
      VALUES ($1, $2, $3, $4, 'Synthetic local capacity fixture', 'UTC',
-             'JOD', 'ACTIVE', now(), now())`,
+             'JOD', 'ACTIVE', TRUE, now(), now())`,
     [
       capacityFixtureId(1, locationIndex),
       organizationId,

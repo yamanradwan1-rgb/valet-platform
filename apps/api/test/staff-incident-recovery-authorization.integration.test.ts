@@ -119,7 +119,10 @@ describe("DEC-077 recovery authorization", () => {
       "inactive Organization",
       "UPDATE organizations SET status='INACTIVE' WHERE id=$1",
     ],
-    ["inactive Location", "UPDATE locations SET status='INACTIVE' WHERE id=$1"],
+    [
+      "inactive Location",
+      "UPDATE locations SET status='INACTIVE', accepting_intake=FALSE WHERE id=$1",
+    ],
   ] as const)("denies %s", async (label, statement) => {
     void label;
     const setup = await reserved();

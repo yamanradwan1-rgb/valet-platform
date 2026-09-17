@@ -417,6 +417,63 @@ the traversal. Migration 39 adds only the measured
 changes no runtime DML privilege and preserves the existing append-only audit
 boundary.
 
+## Management Location lifecycle security
+
+MGT-BE-07 implements DEC-094 only for MFA-backed Company Admin Management. Every
+create, lifecycle read, activate, stop-intake, deactivate, currency correction,
+and timezone correction resolves the exact current `StaffSessionContext`,
+revalidates current active `ORG_ADMIN`/Organization ownership and
+`LOCATION_LIFECYCLE_MANAGE_ELIGIBLE`, and requires SENSITIVE five-minute MFA
+freshness. Client Organization/Location/role claims never become authority, and
+the routes use no-store responses.
+
+The explicit HTTP surface is:
+
+- `POST /v1/staff/management/organizations/:organizationId/locations`;
+- `GET /v1/staff/management/organizations/:organizationId/locations/:locationId/lifecycle`;
+- `POST /v1/staff/management/organizations/:organizationId/locations/:locationId/activate`;
+- `POST /v1/staff/management/organizations/:organizationId/locations/:locationId/stop-intake`;
+- `POST /v1/staff/management/organizations/:organizationId/locations/:locationId/deactivate`;
+- `POST /v1/staff/management/organizations/:organizationId/locations/:locationId/currency-correction`;
+- `POST /v1/staff/management/organizations/:organizationId/locations/:locationId/timezone-correction`.
+
+Creation is retry-safe through a stable UUID `operationId` and immutable request
+fingerprint. Other lifecycle/correction writes use `expectedUpdatedAt` as the
+optimistic token; exact desired-state no-ops converge without another audit.
+Successful real changes append one of `LOCATION_CREATED`, `LOCATION_ACTIVATED`,
+`LOCATION_INTAKE_STOPPED`, `LOCATION_DEACTIVATED`,
+`LOCATION_CURRENCY_CORRECTED`, or `LOCATION_TIMEZONE_CORRECTED` atomically with
+the Location mutation. Those six event names are reserved by a database trigger:
+ordinary runtime audit INSERT remains available for its existing bounded uses,
+but direct runtime attempts to forge a lifecycle event are denied. This keeps the
+`LOCATION_CREATED` operation-id ledger authoritative to the reviewed lifecycle
+command boundary.
+
+The representation is status plus intake gate. New Management-created Locations
+are `INACTIVE` with `accepting_intake=false`; activation produces
+`ACTIVE/true`; stop-intake produces `ACTIVE/false`; final deactivation produces
+`INACTIVE/false`. A database CHECK rejects `INACTIVE/true`. Check-In holds the
+shared Location lifecycle advisory boundary and requires both `ACTIVE` and
+`accepting_intake=true`, so committed stop-intake fences new intake without
+preventing existing custody work from finishing.
+
+The same `location-lifecycle:<locationId>` transaction advisory key coordinates
+Management lifecycle writes with protected operational paths that need the
+Location to remain live, including Check-In, Shift eligibility/start, and Guest
+Retrieval creation. Final deactivation takes the exclusive boundary and rechecks
+only three drain blockers: a non-`COMPLETED` ValetSession, an `ACTIVE` Shift, or
+a Task in `QUEUED`, `ASSIGNED`, `ACCEPTED`, or `IN_PROGRESS`. It never closes,
+completes, cancels, or deletes those records to make the check pass.
+
+Readiness is intentionally limited to supported Location currency and valid IANA
+timezone. Currency/timezone correction is restricted to the safe boundary where
+the Location is `INACTIVE`, intake is closed, and the same three blockers are
+absent. Currency correction must keep the effective service fee exactly
+representable. Timezone correction requires a bounded non-control reason and
+returns explicit impact facts that historical timestamps and prior report facts
+were not rewritten. Historical Location audit/Management reads remain available
+under their existing authorization after deactivation.
+
 ## Black Box / audit / evidence
 
 Operational history is append-only.
@@ -776,6 +833,17 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   mutation, tenant deactivation, and controlled global disable/login-refresh-
   push denial. Do not serve BE-04 mutation traffic assuming migration-owner or
   stale runtime privileges are sufficient.
+- MGT-BE-06 is merged to `main` at
+  `b018833d84d32a6f3b78ee3dcbba58db76e413e5`; migration 39 supplies only the
+  measured Management Audit chronology index and read-side implementation.
+- MGT-BE-07 is migration 40,
+  `20260917004000_mgt_be_07_location_management`. It adds the intake gate,
+  inactive default, bounded Location-create retry index, measured partial
+  ValetSession/Task drain-blocker indexes, and narrow lifecycle command
+  functions. After migration, rerun runtime-role provisioning/verification before
+  serving the new lifecycle routes. The existing Shift index remains the measured
+  authority for the ACTIVE-Shift blocker; no speculative extra Shift index is
+  added.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

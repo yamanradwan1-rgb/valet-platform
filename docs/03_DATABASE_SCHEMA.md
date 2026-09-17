@@ -213,6 +213,7 @@ address_text
 timezone
 currency
 status
+accepting_intake
 check_in_photos_required_override nullable
 tracking_enabled_override nullable
 raw_gps_retention_days_override nullable
@@ -242,7 +243,11 @@ Constraints/rules:
 - unique `(organization_id, code)`
 - `timezone` required for operational display/reporting context
 - `currency` required and follows uppercase ISO 4217 convention
-- status required, default `ACTIVE`
+- status required, default `INACTIVE` after MGT-BE-07 migration 40
+- `accepting_intake` required, default `false`; database CHECK forbids
+  `status = INACTIVE` with `accepting_intake = true`
+- lifecycle representation is `INACTIVE/false` for setup/inactive,
+  `ACTIVE/true` for normal intake, and `ACTIVE/false` for drain
 - `check_in_photos_required_override` is nullable: null inherits the Organization default, while explicit `true` or `false` overrides it
 - `tracking_enabled_override` is nullable: null inherits the Organization default, while explicit `true` or `false` overrides it
 - `raw_gps_retention_days_override` is nullable and must be positive when present; null inherits the Organization default
@@ -308,6 +313,60 @@ that make mutable policy decisions acquire the corresponding shared boundary
 before later policy-dependent row locks, so a committed writer or the command's
 earlier snapshot wins coherently without holding the boundary across external
 provider I/O.
+
+### MGT-BE-07 Location lifecycle authority (migration 40)
+
+Migration `20260917004000_mgt_be_07_location_management` adds only the smallest
+DEC-094 lifecycle representation: `locations.accepting_intake BOOLEAN NOT NULL
+DEFAULT FALSE`, backfills existing rows to `true` exactly when their existing
+status is `ACTIVE`, changes the Location status default to `INACTIVE`, and adds
+the CHECK that prevents inactive Locations from accepting intake. Existing
+historical rows and their status are not rewritten beyond the intake backfill.
+
+Management creation writes `INACTIVE/false` explicitly and uses the caller's
+stable `operationId` as Location-create retry identity. A partial unique
+`audit_events(organization_id, idempotency_key)` index for `LOCATION_CREATED`
+prevents duplicate create success under concurrent retries; identical immutable
+request facts converge and conflicting operation-id reuse fails closed.
+
+Activation changes `INACTIVE/false -> ACTIVE/true` only when the persisted
+currency is supported and the persisted timezone is a valid IANA timezone.
+Those are the complete BE-07 readiness checks. Stop-intake changes
+`ACTIVE/true -> ACTIVE/false`. Deactivation changes
+`ACTIVE/false -> INACTIVE/false` only when no non-`COMPLETED` ValetSession, no
+`ACTIVE` Shift, and no Task in `QUEUED`, `ASSIGNED`, `ACCEPTED`, or
+`IN_PROGRESS` exists for the exact Organization/Location.
+
+Lifecycle and correction mutations use the shared `location-lifecycle:<uuid>`
+transaction advisory boundary. Management lifecycle mutations take the exclusive
+form; operational paths that must remain coherent with deactivation use the
+shared form. Check-In additionally requires `ACTIVE` plus
+`accepting_intake = true`, while existing-session drain work may continue while
+the Location remains `ACTIVE` with intake closed. Final deactivation rechecks the
+three bounded blocker classes under the lifecycle boundary.
+
+Currency and timezone correction require the Location to be `INACTIVE`, intake
+closed, and drained by those same three blocker checks. Currency correction also
+requires a supported currency and exact representability of the current effective
+valet service fee in that currency. Timezone correction requires a bounded
+non-control reason and valid IANA timezone; it changes only the current Location
+timezone and does not rewrite historical timestamps or report facts.
+
+Real mutations append one Location-scoped event atomically from the bounded
+family `LOCATION_CREATED`, `LOCATION_ACTIVATED`, `LOCATION_INTAKE_STOPPED`,
+`LOCATION_DEACTIVATED`, `LOCATION_CURRENCY_CORRECTED`, and
+`LOCATION_TIMEZONE_CORRECTED`. Runtime mutation remains behind the reviewed
+migration-owned `SECURITY DEFINER` entry points; helper/PUBLIC execution stays
+denied. A migration-owned audit trigger also reserves those six event names from
+direct runtime `audit_events` INSERT, so the create idempotency ledger and
+lifecycle audit provenance cannot be forged outside the lifecycle commands.
+Representative 100,001-row blocker plans proved the existing
+ValetSession/Task indexes insufficient for the negative-state predicates, so
+migration 40 adds partial indexes
+`valet_sessions_location_id_non_completed_idx` and
+`tasks_location_id_non_terminal_idx`. The existing
+`shifts_location_id_status_idx` remains sufficient; no additional Shift blocker
+index is added.
 
 ## users
 
@@ -1886,6 +1945,11 @@ Representative Blueprint event names include:
 - incident.opened / incident.evidence_locked
 - override.used
 
+MGT-BE-07 Location lifecycle uses the explicit tenant event names
+`LOCATION_CREATED`, `LOCATION_ACTIVATED`, `LOCATION_INTAKE_STOPPED`,
+`LOCATION_DEACTIVATED`, `LOCATION_CURRENCY_CORRECTED`, and
+`LOCATION_TIMEZONE_CORRECTED`.
+
 Exact naming convention is finalized in the Audit implementation task; semantics above must be preserved.
 
 ## Required indexes
@@ -1984,10 +2048,11 @@ Add these only through their approved focused task/decision.
 
 ## Management implementation state and remaining extensions
 
-Current Prisma/migration truth is the models above and 37 forward-only
-migrations through `20260916003700_mgt_be_04_staff_roles_access`. MGT-BE-01 is
-merged and implements DEC-079. MGT-BE-02 implements DEC-078 factor/recovery
-persistence and exact-session assurance.
+Current Prisma/migration truth on the MGT-BE-07 implementation branch is the
+models above and 40 forward-only migrations through
+`20260917004000_mgt_be_07_location_management`. MGT-BE-06 is merged to `main`
+at `b018833d84d32a6f3b78ee3dcbba58db76e413e5`; MGT-BE-07 starts from that exact
+base and implements DEC-094 on `feat/mgt-be-07-location-management`.
 
 MGT-BE-03 implements DEC-080 Company Admin authorization and context without a
 schema migration or new index. Its selected Organization, optional selected
@@ -2030,15 +2095,23 @@ Implemented MGT-BE-05 Management persistence includes the typed DEC-083 catalog,
 normalized operating hours, narrow Company/Location branding, and no generic
 settings/rules/templates/key-policy/validation-policy/allowed-role JSON engine.
 
+MGT-BE-06 / migration 39 is merged and provides the bounded Management Audit
+chronology index and safe read surface described above.
+
+Implemented MGT-BE-07 / migration 40 adds `accepting_intake`, makes newly
+defaulted Location rows inactive, and exposes create/lifecycle-read/activate/
+stop-intake/deactivate plus currency/timezone correction through the narrow
+lifecycle boundary. The lifecycle read carries readiness and drain projections;
+readiness is currency/timezone only. Safe drain checks only
+non-completed ValetSessions, active Shifts, and non-terminal Tasks; it never
+rewrites those records to force closure. Correction is allowed only when the
+Location is inactive, intake-closed, and drained.
+
 Remaining accepted Management persistence includes:
 
 - a minimal one-rating-per-ValetSession guest rating source.
 - historically truthful SLA-target applicability and a controlled genuine Key
   Exception source before those metrics ship.
-- the smallest Location intake-stop/drain representation needed by DEC-094.
-  The current schema still defaults `locations.status` to `ACTIVE`; future
-  Management creation must explicitly write `INACTIVE`, and MGT-BE-07 must
-  decide whether a forward migration also changes the database default.
 
 Exact fields, constraints, indexes, runtime privileges, and migration IDs for
 remaining tasks belong to their owning implementation task and must be proven

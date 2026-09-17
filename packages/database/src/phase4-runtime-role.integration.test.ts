@@ -86,13 +86,13 @@ afterAll(async () => {
 }, 60_000);
 
 describe("DEC-039 Phase 4 runtime persistence privileges", () => {
-  it("keeps the schema at exactly 39 applied migrations", async () => {
+  it("keeps the schema at exactly 40 applied migrations", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(39);
+    expect(result.rows).toHaveLength(40);
   });
 
   it("allows only stateful runtime access on RetrievalRequest and HandoffVerification", async () => {

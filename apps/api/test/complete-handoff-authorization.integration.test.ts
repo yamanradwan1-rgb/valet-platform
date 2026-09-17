@@ -89,7 +89,7 @@ describe("VAL-006G final release authority", () => {
     ],
     [
       "inactive Location",
-      `UPDATE locations SET status = 'INACTIVE',
+      `UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE,
          updated_at = transaction_timestamp() WHERE id = $1`,
       "locationId",
     ],

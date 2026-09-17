@@ -301,9 +301,26 @@ enablement and accepted financial commands remain unchanged.
   administration and SaaS billing execution are out of scope.
 - Automatic report delivery is deferred; manual authenticated CSV/PDF is the
   current requirement.
-- New Locations start inactive, require explicit currency/timezone and setup,
-  and must stop intake and drain safely before deactivation. History is never
-  deleted.
+- MGT-BE-07 implements DEC-094 Location lifecycle with the existing
+  `ACTIVE | INACTIVE` status plus explicit `accepting_intake`. Management-created
+  Locations start `INACTIVE` with intake closed. `ACTIVE + accepting_intake=true`
+  is normal intake, while `ACTIVE + accepting_intake=false` is the drain state;
+  `INACTIVE + accepting_intake=true` is prohibited by the database.
+- BE-07 activation readiness is deliberately narrow: the Location currency must
+  be supported by the checked-in currency/minor-unit authority and the timezone
+  must be a valid IANA timezone. No broader setup checklist is implied by this
+  readiness projection.
+- Closure first stops new Check-In intake, then drains current work. Final
+  deactivation is blocked by any non-`COMPLETED` ValetSession, `ACTIVE` Shift, or
+  Task in `QUEUED`, `ASSIGNED`, `ACCEPTED`, or `IN_PROGRESS`. Existing work may
+  finish while intake is stopped; deactivation never fabricates completion and
+  historical Location data is never deleted.
+- Currency/timezone correction is allowed only at the safe boundary where the
+  Location is `INACTIVE`, intake is closed, and the same session/Shift/Task drain
+  blockers are absent. Currency changes are prospective and must preserve exact
+  representability of the effective service fee. Timezone correction requires a
+  bounded reason and audit; historical timestamps and prior reporting facts are
+  not rewritten.
 
 This scope requirement does not authorize one generic untyped settings JSON table. Typed configuration is introduced by focused implementation tasks.
 

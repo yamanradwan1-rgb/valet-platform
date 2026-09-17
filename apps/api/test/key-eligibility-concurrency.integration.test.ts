@@ -90,7 +90,7 @@ describe("VAL-005C authorization and concurrency", () => {
     ],
     [
       "inactive Location",
-      `UPDATE locations SET status = 'INACTIVE' WHERE id = $1`,
+      `UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1`,
       "locationId",
     ],
     [

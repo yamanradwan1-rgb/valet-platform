@@ -50,6 +50,7 @@ const incidentTypes = new Set([
 ]);
 const shiftStatuses = new Set(["ACTIVE", "ENDED"]);
 const membershipStatuses = new Set(["ACTIVE", "INACTIVE"]);
+const locationStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const mutationOperations = new Set(["SET", "CLEAR"]);
 
 function metadata(value: unknown): Readonly<Record<string, unknown>> {
@@ -94,6 +95,27 @@ function settingKey(value: unknown): string | undefined {
     : undefined;
 }
 
+function currency(value: unknown): string | undefined {
+  return typeof value === "string" && /^[A-Z]{3}$/.test(value)
+    ? value
+    : undefined;
+}
+
+function boundedText(value: unknown, maximum: number): string | undefined {
+  if (
+    typeof value !== "string" ||
+    value.length === 0 ||
+    value.length > maximum
+  ) {
+    return undefined;
+  }
+  const hasControlCharacter = Array.from(value).some((character) => {
+    const code = character.charCodeAt(0);
+    return code < 32 || code === 127;
+  });
+  return hasControlCharacter ? undefined : value;
+}
+
 function compact<T extends Record<string, unknown>>(value: T): T {
   return Object.fromEntries(
     Object.entries(value).filter(([, entry]) => entry !== undefined),
@@ -122,11 +144,23 @@ function lifecycleDetails(source: Readonly<Record<string, unknown>>) {
       ),
     ),
     toState: allowedString(
-      first(source, "toState", "to_state", "toSessionState", "to_session_state"),
+      first(
+        source,
+        "toState",
+        "to_state",
+        "toSessionState",
+        "to_session_state",
+      ),
       sessionStates,
     ),
     toVersion: positiveInteger(
-      first(source, "toVersion", "to_version", "toSessionVersion", "to_session_version"),
+      first(
+        source,
+        "toVersion",
+        "to_version",
+        "toSessionVersion",
+        "to_session_version",
+      ),
     ),
   });
 }
@@ -196,6 +230,20 @@ export function projectManagementAuditDetails(
   if (family === "CONFIGURATION" || family === "MANAGEMENT") {
     return compact({
       kind: family,
+      ...(family === "MANAGEMENT"
+        ? {
+            acceptingIntake: booleanValue(source.acceptingIntake),
+            fromAcceptingIntake: booleanValue(source.fromAcceptingIntake),
+            fromStatus: allowedString(source.fromStatus, locationStatuses),
+            newCurrency: currency(source.newCurrency),
+            newTimezone: boundedText(source.newTimezone, 255),
+            previousCurrency: currency(source.previousCurrency),
+            previousTimezone: boundedText(source.previousTimezone, 255),
+            status: allowedString(source.status, locationStatuses),
+            toAcceptingIntake: booleanValue(source.toAcceptingIntake),
+            toStatus: allowedString(source.toStatus, locationStatuses),
+          }
+        : {}),
       operation: allowedString(source.operation, mutationOperations),
       settingKey: settingKey(source.settingKey),
     });

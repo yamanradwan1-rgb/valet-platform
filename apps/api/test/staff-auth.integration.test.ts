@@ -214,9 +214,9 @@ async function createOperationalScope(
   await adminPool.query(
     `INSERT INTO locations
        (id, organization_id, name, code, address_text, timezone, currency,
-        status, updated_at)
+        status, accepting_intake, updated_at)
      VALUES ($1, $2, 'Auth location', $3, 'Test address', 'Asia/Amman',
-             'JOD', 'ACTIVE', transaction_timestamp())`,
+             'JOD', 'ACTIVE', TRUE, transaction_timestamp())`,
     [locationId, organizationId, identity],
   );
   await adminPool.query(

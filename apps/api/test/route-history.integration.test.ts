@@ -105,7 +105,10 @@ describe("VAL-007F ended route history", () => {
     );
     await expectRouteDenied(context.query({ authenticatedUserId: inactiveMembership.userId, trackingSessionId: fixture.trackingSessionId }));
     await expectRouteDenied(context.query({ authenticatedUserId: inactiveUser.userId, trackingSessionId: fixture.trackingSessionId }));
-    await context.adminPool.query(`UPDATE locations SET status = 'INACTIVE' WHERE id = $1`, [fixture.locationId]);
+    await context.adminPool.query(
+      `UPDATE locations SET status = 'INACTIVE', accepting_intake = FALSE WHERE id = $1`,
+      [fixture.locationId],
+    );
     await expectRouteDenied(context.query({ authenticatedUserId: manager.userId, trackingSessionId: fixture.trackingSessionId }));
     await context.adminPool.query(`UPDATE locations SET status = 'ACTIVE' WHERE id = $1`, [fixture.locationId]);
     await context.adminPool.query(`UPDATE organizations SET status = 'INACTIVE' WHERE id = $1`, [fixture.organizationId]);

@@ -171,9 +171,10 @@ export class ReturningCheckInTestContext {
     }
     await this.admin.query(
       `INSERT INTO locations
-         (id, organization_id, name, code, address_text, timezone, currency, status, updated_at)
+         (id, organization_id, name, code, address_text, timezone, currency,
+          status, accepting_intake, updated_at)
        VALUES ($1, $2, 'Returning location', $3, 'Address', 'Asia/Amman', 'JOD',
-               'ACTIVE', transaction_timestamp())`,
+               'ACTIVE', TRUE, transaction_timestamp())`,
       [ids.locationId, organizationId, token],
     );
     await this.admin.query(
@@ -206,8 +207,10 @@ export class ReturningCheckInTestContext {
     const locationId = randomUUID();
     await this.admin.query(
       `INSERT INTO locations
-         (id, organization_id, name, code, address_text, timezone, currency, status, updated_at)
-       VALUES ($1, $2, 'Second', $3, 'Address', 'Asia/Amman', 'JOD', 'ACTIVE', transaction_timestamp())`,
+         (id, organization_id, name, code, address_text, timezone, currency,
+          status, accepting_intake, updated_at)
+       VALUES ($1, $2, 'Second', $3, 'Address', 'Asia/Amman', 'JOD',
+               'ACTIVE', TRUE, transaction_timestamp())`,
       [locationId, fixture.organizationId, randomUUID()],
     );
     await this.admin.query(
