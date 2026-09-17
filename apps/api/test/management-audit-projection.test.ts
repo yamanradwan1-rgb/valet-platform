@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(84);
+    expect(managementAuditKnownEventTypes).toHaveLength(86);
     for (const eventType of managementAuditKnownEventTypes) {
       const projected = projectManagementAuditEvent(
         row(eventType, sensitiveMetadata),
@@ -102,6 +102,8 @@ describe("management audit projection", () => {
       "STAFF_ROLE_CHANGED",
       "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
       "LOCATION_DEACTIVATED",
+      "VISIT_CONTACT_NAME_CORRECTED",
+      "VISIT_CONTACT_PHONE_CORRECTED",
     ]) {
       expect(managementAuditSupervisorEventTypes).not.toContain(excluded);
       expect(() => projectManagementAuditEvent(row(excluded), supervisor)).toThrow();
@@ -128,6 +130,34 @@ describe("management audit projection", () => {
     });
     expect(JSON.stringify(projected)).not.toContain("private correction reason");
     expect(JSON.stringify(projected)).not.toContain("private-create-fingerprint");
+  });
+
+  it("projects Visit Contact correction metadata without raw PII", () => {
+    const projected = projectManagementAuditEvent(
+      {
+        ...row("VISIT_CONTACT_PHONE_CORRECTED", {
+          field: "phoneNormalized",
+          name: "Private Name",
+          normalizationVersion: "JORDAN_MOBILE_V1",
+          phone: "+962790000001",
+          plate: "12-ABC",
+        }),
+        entityType: "Customer",
+      },
+      admin,
+    );
+    expect(projected).toMatchObject({
+      details: {
+        field: "phoneNormalized",
+        kind: "MANAGEMENT",
+        normalizationVersion: "JORDAN_MOBILE_V1",
+      },
+      entity: { id: eventId, type: "CUSTOMER" },
+    });
+    const serialized = JSON.stringify(projected);
+    expect(serialized).not.toContain("Private Name");
+    expect(serialized).not.toContain("+962790000001");
+    expect(serialized).not.toContain("12-ABC");
   });
 
   it("fails closed for unknown events and raw entity types", () => {

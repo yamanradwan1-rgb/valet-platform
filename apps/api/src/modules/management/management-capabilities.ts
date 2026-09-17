@@ -13,6 +13,8 @@ export const companyAdminManagementCapabilities = [
   "BRANDING_MANAGE_ELIGIBLE",
   "LOCATION_LIFECYCLE_MANAGE_ELIGIBLE",
   "TENANT_AUDIT_READ_ELIGIBLE",
+  "VISIT_CONTACT_READ_ELIGIBLE",
+  "VISIT_CONTACT_CORRECT_ELIGIBLE",
   "ALL_LOCATIONS_SCOPE_SELECT",
 ] as const satisfies readonly ManagementCapability[];
 

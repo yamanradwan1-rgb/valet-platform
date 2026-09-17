@@ -811,6 +811,62 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   fixed safe search path.
 - Audit, Customer/visit, integration, subscription, and report projections are
   allowlisted, bounded, tenant-safe, and reauthorize current persisted scope.
+- MGT-BE-08 Visit Contact reads are authorized by visible ValetSessions, not by
+  Customer or Vehicle Organization ownership alone. Company Admin reads require
+  current STANDARD Management MFA and Organization authority. Location Manager
+  reads require an active User/membership/Organization plus current exact
+  `MembershipLocationAccess`; every search/history aggregate embeds that granted
+  Location set before counting, selecting latest visits, projecting associated
+  vehicles, evaluating ambiguity, or calculating Returning Contact. Revocation
+  is rechecked on every request/page. Location status alone does not erase
+  historical visibility while the exact grant remains current.
+- Visit Contact search is purpose-limited: one strict mode per request, exact
+  current Jordan Check-In phone normalization, exact authoritative plate
+  normalization with country, or a 2–80 code-point NFKC name prefix. Control
+  characters are rejected, SQL wildcard characters are escaped, result pages
+  are capped at 50 (default 25), and there is no unrestricted browse, suffix
+  phone match, fuzzy plate, fuzzy directory, or global E.164 widening.
+- Search ambiguity is derived only from authorized visits. Duplicate normalized
+  phone Customers remain separate `AMBIGUOUS` candidates and an inaccessible
+  candidate cannot change a Location Manager's ambiguity/count/latest/vehicle/
+  Returning Contact projection. Customerless Vehicle visits remain truthful
+  Vehicle results. Public terminology describes vehicles/plates observed on
+  visits and never ownership.
+- MGT-BE-08 history uses a first-page database snapshot and descending
+  `(ValetSession.created_at, id)` keyset traversal. Search/history cursors are
+  version 1 base64url records bound to Organization, membership, normalized
+  search or subject, snapshot and boundary; cross-mode, cross-Organization,
+  cross-membership and cross-subject reuse fails validation. Authorization is
+  still recomputed before every page. Phone/name search applies the cursor's
+  first-page snapshot to Customer creation, authorized ValetSession existence,
+  completed counts, latest visit and associated-vehicle derivation. A visit
+  appended after page 1 therefore cannot create a later-page candidate or alter
+  later-page visit-derived facts, while current Location grants are still
+  revalidated for every request.
+- Returning Contact is true only when the reference visit's normalized contact
+  matches at least one strictly earlier `(created_at, id)` physically
+  `COMPLETED` ValetSession inside the viewer's current authorized visit scope.
+  The current visit, later visits, incomplete visits, plate-only recurrence and
+  hidden Locations do not contribute. Equal timestamps use the persisted UUID
+  tie-break and duplicate Customer rows do not require merging.
+- Company Admin Visit Contact correction is limited to Customer display name and
+  Jordan-normalized phone, requires `VISIT_CONTACT_CORRECT_ELIGIBLE` plus
+  SENSITIVE five-minute exact-session MFA, and uses `Customer.updated_at` CAS.
+  Stale CAS conflicts, same desired state is a no-op, concurrent differing
+  corrections have one winner, and successful mutation plus audit is atomic.
+  No historical ValetSession is relinked. Location Manager correction is absent
+  because current accepted authority does not permit a Location-scoped manager
+  to mutate an Organization-level Customer/Vehicle with cross-Location effects;
+  Management plate correction is likewise absent because existing Vehicle
+  identity authority does not grant that Management mutation.
+- Migration 41 keeps Customer correction behind two narrow `SECURITY DEFINER`
+  functions with fixed safe search path. PUBLIC/private-helper execution is
+  revoked, runtime receives execute only on the two correction commands, and it
+  receives no generic Customer UPDATE/DELETE or Vehicle DELETE authority.
+  Correction audit uses `VISIT_CONTACT_NAME_CORRECTED` and
+  `VISIT_CONTACT_PHONE_CORRECTED`; the BE-06 catalog knows both, Supervisor does
+  not gain this Management family, and public audit details expose only the
+  allowlisted corrected field/normalization category, never raw name/phone/plate.
 - MGT-BE-01 migration 35 is a coordinated cutover: stop ordinary runtime audit
   traffic, apply the migration, rerun runtime-role provisioning, then start the
   updated application. Do not run old null-actor writers or an old pre-35
@@ -833,8 +889,7 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   mutation, tenant deactivation, and controlled global disable/login-refresh-
   push denial. Do not serve BE-04 mutation traffic assuming migration-owner or
   stale runtime privileges are sufficient.
-- MGT-BE-06 is merged to `main` at
-  `b018833d84d32a6f3b78ee3dcbba58db76e413e5`; migration 39 supplies only the
+- MGT-BE-06 is merged to `main`; migration 39 supplies only the
   measured Management Audit chronology index and read-side implementation.
 - MGT-BE-07 is migration 40,
   `20260917004000_mgt_be_07_location_management`. It adds the intake gate,
@@ -844,6 +899,10 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   serving the new lifecycle routes. The existing Shift index remains the measured
   authority for the ACTIVE-Shift blocker; no speculative extra Shift index is
   added.
+- MGT-BE-07 is merged on the BE-08 starting main at
+  `3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`. MGT-BE-08 is migration 41,
+  `20260917004100_mgt_be_08_visit_contacts`; after applying it, runtime-role
+  provisioning/verification must run before serving Customer corrections.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

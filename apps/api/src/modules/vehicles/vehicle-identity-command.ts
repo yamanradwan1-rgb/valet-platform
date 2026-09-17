@@ -166,7 +166,7 @@ function trimBoundedText(value: unknown, maximum: number): string {
   return trimmed;
 }
 
-function normalizePlateCountry(value: unknown): string {
+export function normalizePlateCountry(value: unknown): string {
   if (typeof value !== "string") {
     throw new VehicleIdentityCommandError("VEHICLE_IDENTITY_INVALID");
   }

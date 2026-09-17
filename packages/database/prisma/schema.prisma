@@ -758,6 +758,7 @@ model Customer {
   retrievalRequests RetrievalRequest[]
 
   @@unique([organizationId, id], map: "customers_organization_id_id_key")
+  @@index([organizationId, phoneNormalized, id], map: "customers_organization_phone_normalized_id_idx")
   @@map("customers")
 }
 
@@ -906,6 +907,7 @@ model ValetSession {
   @@index([checkedInByMembershipId, state, locationId], map: "valet_sessions_checked_in_state_location_idx")
   @@index([locationId, state], map: "valet_sessions_location_id_state_idx")
   @@index([vehicleId, createdAt(sort: Desc)], map: "valet_sessions_vehicle_id_created_at_idx")
+  @@index([organizationId, customerId, createdAt(sort: Desc), id(sort: Desc)], map: "valet_sessions_organization_customer_created_at_id_idx")
   @@index([locationId, retrievalRequestedAt], map: "valet_sessions_location_id_retrieval_requested_at_idx")
   @@map("valet_sessions")
 }

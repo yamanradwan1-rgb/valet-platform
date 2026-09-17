@@ -104,6 +104,8 @@ const eventFamilies = {
   LOCATION_DEACTIVATED: "MANAGEMENT",
   LOCATION_CURRENCY_CORRECTED: "MANAGEMENT",
   LOCATION_TIMEZONE_CORRECTED: "MANAGEMENT",
+  VISIT_CONTACT_NAME_CORRECTED: "MANAGEMENT",
+  VISIT_CONTACT_PHONE_CORRECTED: "MANAGEMENT",
 } satisfies Record<ManagementAuditKnownEventType, ManagementAuditEventFamily>;
 
 export const managementAuditSupervisorEventTypes = [

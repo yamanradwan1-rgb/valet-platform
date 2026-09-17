@@ -53,6 +53,7 @@ export const managementAuditActorSchema = z.discriminatedUnion("type", [
 export const managementAuditEntityTypeSchema = z.enum([
   "VALET_SESSION",
   "VEHICLE",
+  "CUSTOMER",
   "TASK",
   "SHIFT",
   "INCIDENT",
@@ -163,8 +164,10 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
       acceptingIntake: z.boolean().optional(),
       fromAcceptingIntake: z.boolean().optional(),
       fromStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+      field: z.enum(["displayName", "phoneNormalized"]).optional(),
       newCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
       newTimezone: z.string().min(1).max(255).optional(),
+      normalizationVersion: z.literal("JORDAN_MOBILE_V1").optional(),
       operation: z.enum(["SET", "CLEAR"]).optional(),
       previousCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
       previousTimezone: z.string().min(1).max(255).optional(),

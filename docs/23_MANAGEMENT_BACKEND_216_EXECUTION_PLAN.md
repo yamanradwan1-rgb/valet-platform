@@ -1,8 +1,9 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through MGT-BE-07.
-MGT-BE-06 is merged to `main`; MGT-BE-07 is implemented on its working branch
-and is not merged by this plan. MGT-BE-08 has not started.
+Status: Binding execution plan with implementation progress through MGT-BE-08.
+MGT-BE-07 is merged to `main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`.
+MGT-BE-08 is implemented on `feat/mgt-be-08-visit-contacts` for independent
+review. MGT-BE-09 has not started.
 
 Rebaseline date: 2026-09-17
 
@@ -12,26 +13,25 @@ Rebaseline date: 2026-09-17
 | --- | --- |
 | Repository | `valet-platform` |
 | Updated local branch before work | `main` |
-| Local `main` SHA | `b018833d84d32a6f3b78ee3dcbba58db76e413e5` |
-| `origin/main` SHA | `b018833d84d32a6f3b78ee3dcbba58db76e413e5` |
+| Local `main` SHA | `3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32` |
+| `origin/main` SHA | `3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32` |
 | Match before branch creation | Yes; `HEAD == origin/main` |
 | Working tree before fetch/pull | Clean |
 | Update method | `git fetch origin`; `git switch main`; `git pull --ff-only origin main` |
-| BE-07 implementation branch | `feat/mgt-be-07-location-management` |
-| BE-07 base migration count | 39 forward-only directories through merged MGT-BE-06 |
-| BE-07 base latest migration | `20260917003900_mgt_be_06_management_audit_log` |
+| BE-08 implementation branch | `feat/mgt-be-08-visit-contacts` |
+| BE-08 base migration count | 40 forward-only directories through merged MGT-BE-07 |
+| BE-08 base latest migration | `20260917004000_mgt_be_07_location_management` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
 input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
 
-MGT-BE-06 is now merged to `main` at
-`b018833d84d32a6f3b78ee3dcbba58db76e413e5`. MGT-BE-07 starts from that exact
-merged base on `feat/mgt-be-07-location-management`. Its working implementation
-adds migration 40,
-`20260917004000_mgt_be_07_location_management`, for the DEC-094 Location
-lifecycle representation and narrow mutation boundary.
+MGT-BE-07 is merged to `main` at
+`3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`, including migration 40 and the
+DEC-094 Location lifecycle boundary. MGT-BE-08 starts from that exact clean base
+on `feat/mgt-be-08-visit-contacts` and adds migration 41 only for measured Visit
+Contact indexes plus narrow Company Admin Customer correction authority.
 
 ## 2. Authority and audit method
 
@@ -157,8 +157,9 @@ new shared-contract compatibility obligations.
   white-label asset system exists.
 - Read-only `OrganizationSubscription` with plan/status and three typed
   entitlements; no tenant mutation, billing engine, or enforcement.
-- Customer/Vehicle/ValetSession history and narrow exact returning Check-In
-  recognition; no Management Customers API and no CRM.
+- Customer/Vehicle/ValetSession history, narrow exact returning Check-In
+  recognition, and the MGT-BE-08 bounded Visit Contact search/history/Returning
+  Contact surface; no CRM.
 - Maps/tracking, Task/Vehicle-centric live map, ended-route history, finite raw
   GPS cleanup, keys, payments, incidents, external-notification persistence,
   and Staff Push/FCM foundations under their existing Accepted role matrices.
@@ -178,8 +179,9 @@ new shared-contract compatibility obligations.
   deactivation is Organization-scoped; global User `DISABLED` remains a
   separate controlled VAYLET security action. Company Admin still does not gain
   field-operation superuser authority.
-- DEC-094/MGT-BE-07 is implemented on the current branch. Location persistence
-  now uses `ACTIVE | INACTIVE` plus `accepting_intake`, defaults new rows to
+- DEC-094/MGT-BE-07 is merged on
+  `main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`. Location persistence now uses
+  `ACTIVE | INACTIVE` plus `accepting_intake`, defaults new rows to
   `INACTIVE/false`, and exposes the bounded lifecycle projection and commands.
   Activation readiness is exactly supported currency plus valid IANA timezone;
   final deactivation requires intake already stopped and no live session, Shift,
@@ -187,16 +189,15 @@ new shared-contract compatibility obligations.
 
 ## 5. Current real gaps
 
-1. No Management visit-contact search/history/correction surface.
-2. No Guest rating persistence or write.
-3. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
+1. No Guest rating persistence or write.
+2. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
     or controlled Key Exceptions metrics.
-4. No All Locations analytics or company CSV/PDF reports. The implemented
+3. No All Locations analytics or company CSV/PDF reports. The implemented
    `ALL_LOCATIONS` selector/context is foundation only.
-5. No truthful Integration status API, Management-only entitlement
+4. No truthful Integration status API, Management-only entitlement
     enforcement, company commercial view, or Guest effective branding.
-6. No historically truthful SLA-target source yet. BE-05 deliberately does not
-   add a current scalar target that BE-10 could retroactively apply to old visits.
+5. No historically truthful SLA-target source yet. BE-05 deliberately does not
+    add a current scalar target that BE-10 could retroactively apply to old visits.
 
 ## 6. Formal decision mapping
 
@@ -550,10 +551,9 @@ Objective: implement DEC-094 create-inactive, readiness, activate, stop intake,
 safe drain, deactivate, historical access, and currency/timezone correction
 rules.
 
-Implementation status: implemented on `feat/mgt-be-07-location-management` from
-merged BE-06 main `b018833d84d32a6f3b78ee3dcbba58db76e413e5` with migration
-`20260917004000_mgt_be_07_location_management`. It is not merged by this plan;
-MGT-BE-08 remains unstarted.
+Implementation status: merged to `main` at
+`3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32` with migration
+`20260917004000_mgt_be_07_location_management`.
 
 - Dependencies: MGT-BE-01, MGT-BE-03, and operational precondition interfaces
   from MGT-BE-04.
@@ -613,20 +613,86 @@ Objective: implement DEC-084 visit-contact search by phone/plate/name, visit
 history, bounded projections, controlled corrections, and DEC-091 Returning
 Contact calculation.
 
-- Dependencies: MGT-BE-01 and MGT-BE-03; correction authorization uses
-  MGT-BE-04 capability policy.
-- Schema: reads should reuse Customer/Vehicle/ValetSession; add no CRM or
-  ownership table. Correction history may require only audit unless a concrete
-  immutable fact is missing.
-- Auth/privacy: search only within authorized visits/Locations/Organization;
-  phone projection is role-safe; no Employee directory or Guest token access.
-- Concurrency/idempotency: corrections use CAS and preserve historical visit
-  links; no automatic merge; exact phone ambiguity remains explicit.
-- Performance: normalized exact phone/plate lookup, bounded name search, keyset
-  pagination, aggregate visit counts without N+1, indexes only with evidence.
-- Proof: cross-tenant/location isolation, ambiguous/shared contact, vehicle
-  association wording, Jordan current input compatibility, correction rollback,
-  and absence of CRM fields.
+Implementation status: implemented on `feat/mgt-be-08-visit-contacts` from
+`main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`; independent-review validation is
+recorded by the task's final gate result. MGT-BE-09 remains unstarted.
+
+- Routes/contracts: `GET /v1/staff/management/organizations/:organizationId/visit-contacts`
+  accepts exactly one of `phone`, `plate+plateCountry`, or `name`, plus bounded
+  `limit`/`cursor` where applicable. Customer and Vehicle history are
+  `GET .../visit-contacts/:customerId/visits` and
+  `GET .../visit-vehicles/:vehicleId/visits`. Company Admin Customer correction
+  uses explicit `POST .../visit-contacts/:customerId/name-correction` and
+  `/phone-correction`; no generic Customer patch exists.
+- Bounds/cursors: search/history default to 25 and cap at 50. Phone/name search
+  and history use version-1 base64url keyset cursors bound to membership,
+  Organization, snapshot and normalized mode/subject facts. Plate is an exact
+  bounded lookup and does not accept a cursor. History orders by
+  `(ValetSession.created_at DESC, id DESC)` and freezes a first-page database
+  snapshot while reauthorizing current persisted scope on every page. Phone/name
+  search applies that same first-page snapshot ceiling to Customer candidates,
+  authorized ValetSession existence, completed counts, latest visit and
+  associated-vehicle derivation, so a post-page-1 visit cannot introduce a new
+  candidate or mutate later-page visit-derived facts.
+- Search semantics: phone reuses the current Jordan-only Check-In normalizer;
+  plate reuses authoritative country/number normalization; name is NFKC,
+  control-character-rejecting, 2–80 code points, case-normalized prefix matching
+  with SQL wildcards escaped. There is no browse, suffix/fuzzy phone, fuzzy
+  plate, or unrestricted people search.
+- Projection/ambiguity: results expose only safe source IDs, display name,
+  role-safe phone, authorized completed count/latest visit, and up to five
+  vehicles observed on authorized visits. Customerless Vehicle results remain
+  valid. Match state is `NONE | UNIQUE | AMBIGUOUS`; duplicate phone Customer
+  rows are never merged or hidden behind a selected winner. Location Manager
+  ambiguity and aggregates ignore inaccessible Locations.
+- Authorization: Company Admin has `VISIT_CONTACT_READ_ELIGIBLE` under STANDARD
+  MFA and `VISIT_CONTACT_CORRECT_ELIGIBLE` under SENSITIVE/five-minute MFA.
+  Location Manager read authority is the exact current persisted Location-grant
+  set and does not require Company Admin MFA. Supervisor/Employee/Guest have no
+  explorer or correction surface. Inactive Location history remains visible to
+  an LM only while the exact current grant remains valid.
+- Returning Contact: true only when the normalized contact for the reference
+  visit appears on a strictly earlier `(created_at, id)` `COMPLETED` visit in
+  the viewer's authorized scope. The current visit, future/incomplete visits,
+  plate alone, and hidden Locations do not count. Matching normalized contact
+  across different Customer rows works without merging.
+- Corrections: accepted Management mutation authority supports only Company
+  Admin `Customer.display_name` and Jordan-normalized phone correction. Both use
+  `Customer.updated_at` CAS; exact retries are no-op, stale/different concurrent
+  changes conflict, and historical ValetSession links remain unchanged. Current
+  accepted authority does not establish safe Location Manager Organization-level
+  Customer/Vehicle mutation or a Management plate correction, so neither is
+  implemented.
+- Audit/security: real changes atomically append
+  `VISIT_CONTACT_NAME_CORRECTED` or `VISIT_CONTACT_PHONE_CORRECTED` with no raw
+  name/phone/plate metadata. BE-06 recognizes both as Management events while
+  Supervisor visibility is unchanged. Reads append no AuditEvent.
+- Schema/runtime: migration 41 adds no CRM/ownership/merge table. It adds the
+  measured Customer phone, Customer name-prefix, and ValetSession customer
+  chronology indexes plus two narrow `SECURITY DEFINER` correction functions
+  with fixed safe search path. Runtime keeps no generic Customer UPDATE/DELETE
+  and receives execute only on those commands; private helpers and PUBLIC remain
+  denied.
+- Performance: the original disposable PostgreSQL component proof at 60,000
+  Customers, 50,000 Vehicles and 100,000 ValetSessions measured phone 38.081 ->
+  0.278 ms, name 67.154 -> 0.364 ms, history 15.929 -> 0.026 ms, Returning
+  Contact 30.884 -> 0.043 ms, completed aggregate 48.459 -> 0.071 ms, and LM
+  scoped lookup 17.949 -> 0.106 ms with the three migration-41 indexes. After
+  adding the search snapshot fence, the exact full production search SQL was
+  rerun on a fresh disposable dataset at the same cardinality: warm
+  `EXPLAIN (ANALYZE, BUFFERS)` execution was 0.785 ms / 312 shared hits for
+  phone Company Admin, 0.490 ms / 244 hits for phone Location Manager,
+  2.991 ms / 1,690 hits for broad name Company Admin, 4.381 ms / 2,875 hits for
+  broad name Location Manager, and 0.539 ms / 162 hits for a selective name
+  prefix. Phone uses `customers_organization_phone_normalized_id_idx`; selective
+  name uses `customers_organization_display_name_prefix_id_idx`; authorized
+  evidence and scoped aggregates use
+  `valet_sessions_organization_customer_created_at_id_idx`. Broad name prefixes
+  may rationally use the Organization/id keyset index with bounded filtering;
+  no additional index was justified. Exact plate stayed on the existing
+  `vehicles_known_plate_unique_idx` / Vehicle-session access path at 0.062 ->
+  0.051 ms, so no extra plate index was added. Each benchmark database was
+  dropped after measurement.
 
 ### MGT-BE-09 — Guest Rating
 
@@ -853,9 +919,10 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 through MGT-BE-06 are merged through
-`main@b018833d84d32a6f3b78ee3dcbba58db76e413e5`; MGT-BE-07 is implemented on
-its current working branch and remains unmerged. MGT-BE-08 has not started.
+MGT-BE-03 through MGT-BE-07 are merged through
+`main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`; MGT-BE-08 is implemented on
+`feat/mgt-be-08-visit-contacts` for independent review. MGT-BE-09 has not
+started.
 
 ## 14. Documentation rebaseline validation record
 

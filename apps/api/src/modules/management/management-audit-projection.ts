@@ -46,6 +46,7 @@ function projectEntity(row: ManagementAuditQueryRow) {
     ValetSession: "VALET_SESSION",
     VALET_SESSION: "VALET_SESSION",
     Vehicle: "VEHICLE",
+    Customer: "CUSTOMER",
     Task: "TASK",
     Shift: "SHIFT",
     INCIDENT: "INCIDENT",

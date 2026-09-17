@@ -23,7 +23,7 @@ import { verifyAuditFoundationPrivileges } from "./audit-foundation-runtime-priv
 import { verifyMfaPrivileges } from "./mfa-runtime-privilege-verification.mjs";
 import { verifyStaffManagementPrivileges } from "./staff-management-runtime-privileges.mjs";
 import { verifyManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
-import { verifyLocationLifecyclePrivileges } from "./location-lifecycle-runtime-privileges.mjs";
+import { verifyManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentRecoveryPrivileges.table,
@@ -294,5 +294,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
   await verifyMfaPrivileges(client, runtimeRole);
   await verifyStaffManagementPrivileges(client, runtimeRole);
   await verifyManagementSettingsPrivileges(client, runtimeRole);
-  await verifyLocationLifecyclePrivileges(client, runtimeRole);
+  await verifyManagementFeaturePrivileges(client, runtimeRole);
 }

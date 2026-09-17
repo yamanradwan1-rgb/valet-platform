@@ -2048,11 +2048,11 @@ Add these only through their approved focused task/decision.
 
 ## Management implementation state and remaining extensions
 
-Current Prisma/migration truth on the MGT-BE-07 implementation branch is the
-models above and 40 forward-only migrations through
-`20260917004000_mgt_be_07_location_management`. MGT-BE-06 is merged to `main`
-at `b018833d84d32a6f3b78ee3dcbba58db76e413e5`; MGT-BE-07 starts from that exact
-base and implements DEC-094 on `feat/mgt-be-07-location-management`.
+Current BE-08 implementation truth starts from merged
+`main@3b1d6a3bdb422a7b862c233de1f1a628aeb8ea32`, where MGT-BE-07 / migration 40
+is already merged. The BE-08 branch adds forward-only migration 41,
+`20260917004100_mgt_be_08_visit_contacts`; migrations 1 through 40 remain
+unchanged.
 
 MGT-BE-03 implements DEC-080 Company Admin authorization and context without a
 schema migration or new index. Its selected Organization, optional selected
@@ -2106,6 +2106,38 @@ readiness is currency/timezone only. Safe drain checks only
 non-completed ValetSessions, active Shifts, and non-terminal Tasks; it never
 rewrites those records to force closure. Correction is allowed only when the
 Location is inactive, intake-closed, and drained.
+
+MGT-BE-08 / migration 41 reuses Customer, Vehicle and ValetSession rather than
+adding a VisitContact/CRM/ownership relation. It adds only three measured read
+indexes plus the narrow Company Admin Customer-correction authority:
+
+- `customers_organization_phone_normalized_id_idx` on
+  `(organization_id, phone_normalized, id)` for exact normalized phone lookup;
+- `customers_organization_display_name_prefix_id_idx` on
+  `(organization_id, lower(display_name) text_pattern_ops, id)` for bounded
+  escaped name-prefix lookup;
+- `valet_sessions_organization_customer_created_at_id_idx` on
+  `(organization_id, customer_id, created_at DESC, id DESC)` for authorized
+  history, completed-count and Returning Contact access paths.
+
+Exact plate lookup continues to use the pre-existing
+`vehicles_known_plate_unique_idx` and `valet_sessions_vehicle_id_created_at_idx`;
+no duplicate BE-08 plate index is added.
+
+Migration 41 creates `management_visit_contact_correct_name` and
+`management_visit_contact_correct_phone` as migration-owner `SECURITY DEFINER`
+functions with fixed `search_path = pg_catalog, public`. Private actor/audit
+helpers and a correction-audit guard keep direct runtime forgery closed. The
+ordinary runtime role retains no generic `UPDATE` or `DELETE` privilege on
+Customer and receives execute only on the two public correction commands. Both
+commands enforce Organization scope and `updated_at` CAS, converge exact desired
+state without another audit, preserve ValetSession linkage, and append the
+correction AuditEvent in the same transaction as the Customer mutation.
+
+The new tenant audit event names are `VISIT_CONTACT_NAME_CORRECTED` and
+`VISIT_CONTACT_PHONE_CORRECTED`. Metadata is allowlisted to field/change
+semantics (and the Jordan normalization-version identifier for phone) and stores
+no raw display name, phone, plate, or request body.
 
 Remaining accepted Management persistence includes:
 

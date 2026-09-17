@@ -289,9 +289,29 @@ enablement and accepted financial commands remain unchanged.
 - Management Customers is bounded visit management, not CRM. Search may use
   phone, plate or authorized-scope name, and vehicle relationships are described
   only as visit associations, never proven ownership.
+- MGT-BE-08 exposes Visit Contacts through exact normalized Jordan-compatible
+  phone search, exact normalized country+plate search, and a bounded escaped
+  name-prefix search. Search and history are derived only from ValetSessions in
+  the viewer's current authorized scope. Company Admin sees Organization visit
+  scope; Location Manager sees only currently granted Locations, including
+  historical visits at an inactive Location while the grant remains current.
+  Phone/name pagination freezes first-page Customer/visit evidence and
+  visit-derived result facts while reauthorizing current scope on every page.
+- Visit Contact search preserves ambiguity. Duplicate Customer rows sharing a
+  normalized phone are separate candidates; no Customer/Vehicle merge, winner
+  selection, ownership inference, loyalty profile, or CRM identity is created.
+- Company Admin may make only explicit Customer display-name and phone factual
+  corrections. These require five-minute sensitive MFA and `updated_at` CAS,
+  preserve ValetSession links, and append one privacy-minimized audit event only
+  for a real change. Location Manager corrections and Management plate
+  corrections are not authorized by the current accepted authority and are not
+  exposed.
 - Rating is 1–5, guest-only, once per completed visit. Staff cannot alter it.
 - “Returning Contact” means only that normalized contact appeared on a prior
-  completed authorized-scope visit; it does not prove a person identity.
+  completed authorized-scope visit strictly earlier by `(created_at, id)`; plate
+  alone never qualifies and it does not prove a person identity. MGT-BE-08
+  implements this read calculation only. Guest Rating remains MGT-BE-09 and is
+  not started by MGT-BE-08.
 - Basic branding is display name and primary color with Company default ->
   Location override. Company display name is the authoritative Organization
   name; primary color is canonical uppercase `#RRGGBB`. Location overrides are

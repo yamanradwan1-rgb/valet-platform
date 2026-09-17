@@ -49,3 +49,4 @@ export * from "./management-branding.js";
 export * from "./management-location-lifecycle.js";
 export * from "./management-audit-events.js";
 export * from "./management-audit.js";
+export * from "./management-visit-contacts.js";

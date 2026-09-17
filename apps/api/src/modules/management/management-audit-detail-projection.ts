@@ -52,6 +52,8 @@ const shiftStatuses = new Set(["ACTIVE", "ENDED"]);
 const membershipStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const locationStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const mutationOperations = new Set(["SET", "CLEAR"]);
+const visitContactFields = new Set(["displayName", "phoneNormalized"]);
+const contactNormalizationVersions = new Set(["JORDAN_MOBILE_V1"]);
 
 function metadata(value: unknown): Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -235,8 +237,13 @@ export function projectManagementAuditDetails(
             acceptingIntake: booleanValue(source.acceptingIntake),
             fromAcceptingIntake: booleanValue(source.fromAcceptingIntake),
             fromStatus: allowedString(source.fromStatus, locationStatuses),
+            field: allowedString(source.field, visitContactFields),
             newCurrency: currency(source.newCurrency),
             newTimezone: boundedText(source.newTimezone, 255),
+            normalizationVersion: allowedString(
+              source.normalizationVersion,
+              contactNormalizationVersions,
+            ),
             previousCurrency: currency(source.previousCurrency),
             previousTimezone: boundedText(source.previousTimezone, 255),
             status: allowedString(source.status, locationStatuses),

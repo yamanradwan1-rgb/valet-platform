@@ -250,8 +250,31 @@ identity. Phone, plate and name search stays inside authorized visit scope.
 Vehicles may be described as associated through visits but not as owned.
 
 `Returning Contact` is a derived authorized-scope fact that the same normalized
-contact value appeared on a prior completed visit. It does not prove that the
-same human returned.
+contact value appeared on a prior physically completed visit. For a reference
+ValetSession, prior means strictly earlier by persisted `(created_at, id)`; the
+reference visit, future visits, incomplete visits, matching plate alone, and
+visits outside the viewer's current authorized Location scope do not count. The
+calculation may cross separate Customer rows sharing the same normalized phone
+without merging them. It does not prove that the same human returned.
+
+MGT-BE-08 represents Visit Contacts only through existing Customer, Vehicle and
+ValetSession identifiers. Search returns explicit `NONE | UNIQUE | AMBIGUOUS`
+state and at most five vehicles observed on authorized visits for a Customer.
+Company Admin receives the full normalized contact projection; Location Manager
+receives only the last four digits and only visit-derived facts from currently
+granted Locations. Customerless Vehicle visits remain valid Vehicle/history
+results and no synthetic VisitContact identifier is persisted. Phone/name
+search pages share one first-page database snapshot for Customer candidates and
+authorized visit-derived counts/latest/vehicle facts; current persisted grants
+are nevertheless reauthorized on every page.
+
+The only MGT-BE-08 factual mutations are Company Admin corrections of
+`Customer.display_name` and `Customer.phone_normalized`. They use
+`Customer.updated_at` compare-and-set, do not relink historical ValetSessions,
+do not merge duplicate Customers, and do not establish Customer ownership of a
+Vehicle. Current accepted authority does not grant Location Manager an
+Organization-level Customer/Vehicle mutation or grant Management a plate
+correction command, so those mutations are absent.
 
 ## Vehicle
 
