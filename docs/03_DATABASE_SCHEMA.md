@@ -2215,7 +2215,7 @@ The BE-10 PostgreSQL 17.11 disposable benchmark used 4 Organizations, 20 Locatio
 400 memberships, 200,000 ValetSessions, 150,000 RetrievalRequests, 600,000
 KeyCustodyEvents, 120,000 ConditionNotes, 240,000 VehiclePhotos, 180,000
 HandoffVerifications, 600,000 DispatchEvents and 40,000 Incidents. On the exact
-31-day production KPI query shapes, the measured six-index set changed median
+31-day production KPI query shapes, the measured six-index set changed
 warm execution from 35.510 to 12.387 ms for SLA, 326.548 to 153.278 ms for Cars
 per Active Employee, 5.591 to 1.694 ms for handoff summary, and 5.766 to 1.961 ms
 for handoff-by-employee. The corresponding one-day measurements were 0.031,
