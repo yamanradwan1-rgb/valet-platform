@@ -739,6 +739,13 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
 - MGT-BE-03 adds no database migration or index and does not enforce commercial
   entitlements. Entitlement enforcement remains owned by MGT-BE-12; All
   Locations analytics/company reports remain owned by MGT-BE-11.
+- MGT-BE-11 Company analytics/reports are Organization-scoped Management reads,
+  not authority inherited from a cached `ALL_LOCATIONS` selector. Each use
+  revalidates the exact Staff session/MFA, active `ORG_ADMIN` membership, active
+  Organization and the relevant `ANALYTICS_READ`, `REPORTS_READ` or
+  `REPORT_EXPORT` capability from persistence. Caller-supplied Location IDs are
+  not accepted as Company fan-out authority. MGT-BE-12 remains the owner of
+  commercial entitlement enforcement and BE-11 does not add that gate.
 - MGT-BE-04 Staff directory/detail are Organization-scoped, bounded and
   minimized. Directory identity is email-only plus membership role/status/
   version and Location-access count; detail adds a bounded Location-grant
@@ -957,6 +964,32 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   counts; it exposes no Guest token/contact/Customer identity, GPS route, payroll
   or employee score. Historical work evidence does not consult mutable current
   role/status, so later access reduction cannot rewrite past operational truth.
+- MGT-BE-11 Company analytics and report reads recompute from source in one
+  REPEATABLE READ snapshot. Every persisted Organization Location participates,
+  including inactive historical Locations, and each current persisted Location
+  IANA timezone defines that Location's local period bounds. Coverage exposes
+  total/active/inactive and timezone-boundary truth; missing metric/ratio evidence
+  remains null or explicit coverage rather than fabricated zero. Finance remains
+  grouped by immutable Payment currency, and Cars per Active Employee uses an
+  Organization-wide distinct approved evidence cohort rather than summing
+  per-Location employee counts.
+- Company report export first composes that bounded source snapshot and renders
+  deterministic hardened CSV/PDF bytes. A separate final transaction freshly
+  reauthorizes `REPORT_EXPORT`, rederives and matches the requested period,
+  hashes the final bytes, and appends exactly one
+  `DASHBOARD_REPORT_EXPORT_GENERATED` event at Organization scope with
+  `location_id = NULL`. Final reauthorization does not recompute the source
+  snapshot. Revocation or other final authorization failure produces no
+  successful generation audit and no successful artifact response; repeating a
+  successful manual export intentionally creates a new audit event.
+- BE-11 enforces at most 500 timezone, currency, cash-reconciliation and Incident
+  type groups; DAILY report activity is bounded to 16 Dispatch groups and five
+  key-custody groups; rendered artifacts are limited to 5 MiB. CSV cells receive
+  spreadsheet-injection/control hardening and PDF rendering is deterministic.
+  No Company `byEmployee` handoff breakdown, Guest Rating, Returning Contact,
+  raw contact identity, raw route/GPS data, credentials or provider secrets are
+  emitted. Report artifacts are not persisted and automatic delivery remains
+  deferred.
 - Tenant users never manage provider secrets or commercial entitlements.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.

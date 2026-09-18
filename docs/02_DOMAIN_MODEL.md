@@ -223,11 +223,13 @@ User/session assurance, membership role/status, Organization, target ownership
 and capability-specific conditions. The catalog contains Management/read
 eligibility only; it does not confer operational field commands.
 
-The explicit `ALL_LOCATIONS` scope is foundation for later company-wide
-Management work. MGT-BE-03 does not add All Locations analytics or company
-report aggregation. Existing Location Manager authority remains governed by its
-persisted Location grants. Company Admin may use the authorized current live-map
-read, while retained raw route history remains outside this Management context.
+The explicit `ALL_LOCATIONS` scope is the Organization-level foundation now
+consumed by MGT-BE-11 company analytics and report reads. MGT-BE-03 itself did
+not add those aggregates, and BE-11 does not fabricate a selected Location to
+represent the Company. Existing Location Manager authority remains governed by
+its persisted Location grants. Company Admin may use the authorized current
+live-map read, while retained raw route history remains outside this Management
+context.
 
 ## Shift
 
@@ -618,6 +620,13 @@ MGT-BE-07 adds the bounded Location lifecycle event family
 its Location-scoped tenant event atomically; desired-state no-ops do not create
 duplicate lifecycle history.
 
+MGT-BE-11 company report generation reuses the Organization-wide audit scope.
+Each successful bounded manual CSV/PDF generation appends exactly one
+`DASHBOARD_REPORT_EXPORT_GENERATED` row for the real Organization with
+`location_id = NULL`; failed generation or failed final reauthorization appends
+none. A repeated manual generation is intentionally a distinct generation event,
+not an idempotent replay of the prior artifact.
+
 ## Configuration model principle
 
 Configuration First is binding product behavior.
@@ -690,6 +699,24 @@ actor remains explicit missing attribution. Key Exceptions reuse Incident as the
 only fact, at `Incident.created_at`, and only `KEY_MISSING`, `WRONG_KEY`,
 `KEY_DAMAGED` and `KEY_LOCKED_INSIDE` qualify. Ordinary KeyCustodyEvent movement
 never becomes an exception and no `KeyException` aggregate/table exists.
+
+MGT-BE-11 does not add a Company analytics warehouse, persisted report entity or
+cross-Location cache. It derives a request-time Company projection from existing
+facts for every persisted Organization Location, including inactive historical
+Locations. Each Location's current persisted IANA timezone derives that
+Location's UTC period bounds; the projection exposes total/active/inactive and
+timezone-boundary coverage instead of imposing one Organization timezone.
+Duration averages use underlying samples, ratios sum their source numerators and
+denominators, and finance stays separated by immutable Payment currency.
+
+For Cars per Active Employee, the Company denominator is one Organization-wide
+`COUNT(DISTINCT membership_id)` over the approved DEC-095 actor-at-time evidence,
+not a sum of per-Location employee counts. Company handoff evidence is exposed
+only as attributed, missing-attribution and distinct-attributed-employee totals;
+there is no `byEmployee` Company ranking. DAILY reports add only controlled
+aggregate Retrieval/Dispatch/key-custody activity to the shared Company summary.
+The Company projection contains no Guest Rating or Returning Contact aggregate,
+raw contact identity, per-employee staff breakdown, or route/GPS history.
 
 ## Modeling principles
 

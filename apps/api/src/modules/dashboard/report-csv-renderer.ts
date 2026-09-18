@@ -3,37 +3,15 @@ import type {
   ReportKind,
 } from "@valet/contracts";
 
+import {
+  csvCell,
+  reportArtifactWithinLimit,
+  type RenderedArtifact,
+} from "../reporting/report-render-hardening";
 import { DashboardOverviewError } from "./dashboard-overview-error";
 import type { ComposedReport } from "./report-read-service";
 
-export interface RenderedArtifact {
-  readonly bytes: Uint8Array;
-  readonly contentType: string;
-  readonly filename: string;
-}
-
-const maximumArtifactBytes = 5 * 1024 * 1024;
-
-// Injection-hardening: strip non-tab/CR/LF C0 controls outright.
-// eslint-disable-next-line no-control-regex -- injection hardening targets control characters
-const controlStripPattern = /[\x00-\x08\x0B\x0C\x0E-\x1F]/g;
-const leadingControlPattern = /^[\t\r\n]+/;
-const dangerousPrefixPattern = /^[=+\-@\t\r\n]/;
-
-function sanitizeCell(value: string): string {
-  const stripped = value.replace(controlStripPattern, "");
-  const withoutLeadingControls = stripped.replace(leadingControlPattern, "");
-  return dangerousPrefixPattern.test(withoutLeadingControls)
-    ? `'${withoutLeadingControls}`
-    : withoutLeadingControls;
-}
-
-function csvCell(value: string): string {
-  const hardened = sanitizeCell(value);
-  return /[",\r\n]/.test(hardened)
-    ? `"${hardened.replaceAll('"', '""')}"`
-    : hardened;
-}
+export type { RenderedArtifact } from "../reporting/report-render-hardening";
 
 type Row = readonly [
   section: string,
@@ -146,7 +124,7 @@ export function renderReportCsv(
     lines.push(row.map((cell) => csvCell(cell ?? "")).join(","));
   }
   const bytes = new TextEncoder().encode(`${lines.join("\r\n")}\r\n`);
-  if (bytes.byteLength > maximumArtifactBytes) {
+  if (!reportArtifactWithinLimit(bytes)) {
     throw new DashboardOverviewError("REPORT_EXPORT_TOO_LARGE");
   }
   return {

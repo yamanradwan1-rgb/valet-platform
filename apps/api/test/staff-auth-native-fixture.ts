@@ -15,6 +15,12 @@ export interface AuthHttpResult {
   readonly status: number;
 }
 
+export interface AuthRawHttpResult {
+  readonly bytes: Uint8Array;
+  readonly headers: Headers;
+  readonly status: number;
+}
+
 interface AuthRequestOptions {
   readonly authorization?: string;
   readonly body?: unknown;
@@ -201,6 +207,32 @@ export class StaffAuthNativeFixture {
     return {
       body:
         text === "" ? undefined : (JSON.parse(text) as Record<string, unknown>),
+      headers: response.headers,
+      status: response.status,
+    };
+  }
+
+  async requestBytes(
+    path: string,
+    options: AuthRequestOptions = {},
+  ): Promise<AuthRawHttpResult> {
+    const headers: Record<string, string> = {
+      "Content-Type": options.contentType ?? "application/json",
+      "X-Request-Id": randomUUID(),
+    };
+    if (options.origin !== undefined) headers.Origin = options.origin;
+    if (options.cookie !== undefined) headers.Cookie = options.cookie;
+    if (options.authorization !== undefined) {
+      headers.Authorization = options.authorization;
+    }
+    const method = options.method ?? "POST";
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      ...(method === "GET" ? {} : { body: JSON.stringify(options.body ?? {}) }),
+      headers,
+      method,
+    });
+    return {
+      bytes: new Uint8Array(await response.arrayBuffer()),
       headers: response.headers,
       status: response.status,
     };

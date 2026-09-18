@@ -121,6 +121,11 @@ reports/export reads and current live operations map, but raw route history,
 map-setup mutation and operational field commands remain outside Company Admin
 authority.
 
+MGT-BE-11 now consumes that Organization-level Management foundation for
+company-wide analytics and reports without inventing a synthetic Location.
+Company Admin reads remain current-authority Management operations; commercial
+entitlement enforcement is still owned by MGT-BE-12 and is not added by BE-11.
+
 MGT-BE-04 implements DEC-081 Staff, Roles & Access on top of that control
 plane. Company Admin can read a bounded Organization staff directory and
 membership detail, change a membership among the four existing base roles,
@@ -346,6 +351,34 @@ enablement and accepted financial commands remain unchanged.
   Exceptions count only the four accepted Incident types. No employee ranking,
   payroll interpretation, Key Exception rate, second exception table, Returning
   Contact aggregate or invented Guest Rating formula is introduced.
+- MGT-BE-11 adds strict Company Admin Management routes at `GET
+  /v1/staff/management/organizations/:organizationId/analytics/all-locations?from&to`,
+  `GET .../:organizationId/reports/daily?date`, `GET
+  .../:organizationId/reports/weekly?weekStart`, `GET
+  .../:organizationId/reports/monthly?month`, and `POST
+  .../:organizationId/reports/exports`. Company results recompute from source
+  facts for every persisted Organization Location, including inactive history,
+  using each Location's current persisted IANA timezone to derive its local
+  period boundary. Coverage reports total, active and inactive Location counts
+  plus bounded timezone-boundary groups; missing samples remain null/missing
+  rather than fabricated zero.
+- Company duration metrics average the underlying qualifying samples, not
+  displayed Location averages, and ratio metrics aggregate exact numerators and
+  denominators. Financial results remain grouped by immutable Payment currency
+  with no cross-currency combination. Cars per Active Employee uses one
+  Organization-wide `COUNT(DISTINCT membership_id)` across the approved DEC-095
+  evidence union. Company handoff output is aggregate-only
+  (attributed/missing/distinct-attributed counts) and exposes no `byEmployee`,
+  Guest Rating, Returning Contact, raw staff/contact identity, or route/GPS data.
+- Company reports reuse the same source summary in one repeatable-read source
+  snapshot. WEEKLY/MONTHLY use five bounded source queries; DAILY adds one
+  controlled activity query. Group families are bounded to 500, DAILY dispatch
+  and custody groups to 16 and 5, and CSV/PDF artifacts to at most 5 MiB. Export
+  finalization freshly reauthorizes `REPORT_EXPORT`, rechecks the derived period,
+  hashes the rendered bytes and writes exactly one Organization-scoped,
+  null-Location generation audit. No report artifact is persisted, repeated
+  manual generation is a new audited event, automatic delivery remains deferred,
+  and BE-11 does not implement the commercial gating reserved for MGT-BE-12.
 - MGT-BE-07 implements DEC-094 Location lifecycle with the existing
   `ACTIVE | INACTIVE` status plus explicit `accepting_intake`. Management-created
   Locations start `INACTIVE` with intake closed. `ACTIVE + accepting_intake=true`

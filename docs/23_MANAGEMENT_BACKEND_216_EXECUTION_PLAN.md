@@ -1,31 +1,36 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
 Status: Binding execution plan with implementation progress through merged
-MGT-BE-09. MGT-BE-09 and migration 42 are merged to
-`main@9f8e63659645806ae99e562d500cd4fe209c184c`. MGT-BE-10 is implemented on
-`feat/mgt-be-10-kpi-analytics` from that exact base; BE-11 remains unstarted.
+MGT-BE-10. The BE-10 implementation commit is
+`2a178e977f88c576cfdc0c2c8363afae89f0ea5c`; current
+`main@4e8a50592ce524bb79becf001b8a9088aeeb81cc` adds only the follow-up benchmark
+wording correction. MGT-BE-11 is implemented on
+`feat/mgt-be-11-all-locations-company-reports` from that exact base and is
+pending independent review. MGT-BE-12 remains unstarted.
 
-Rebaseline date: 2026-09-17
+Rebaseline date: 2026-09-18
 
 ## 1. Exact baseline and provenance
 
 | Item | Current verified value |
 | --- | --- |
 | Repository | `valet-platform` |
-| BE-10 baseline `main` SHA | `9f8e63659645806ae99e562d500cd4fe209c184c` |
-| `origin/main` SHA | `9f8e63659645806ae99e562d500cd4fe209c184c` |
-| BE-09 implementation branch | `feat/mgt-be-09-guest-rating` |
-| BE-09 base migration count | 41 forward-only directories through merged MGT-BE-08 |
-| BE-09 base latest migration | `20260917004100_mgt_be_08_visit_contacts` |
+| BE-10 implementation commit | `2a178e977f88c576cfdc0c2c8363afae89f0ea5c` |
+| BE-11 baseline `main` SHA | `4e8a50592ce524bb79becf001b8a9088aeeb81cc` |
+| BE-11 implementation branch | `feat/mgt-be-11-all-locations-company-reports` |
+| Current migration count | 44 forward-only directories |
+| Current latest migration | `20260918004400_mgt_be_11_all_locations_reports` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
 input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
 
-MGT-BE-08 is merged with migration 41. MGT-BE-09 and migration 42 are merged to
-`main@9f8e63659645806ae99e562d500cd4fe209c184c`. MGT-BE-10 starts from that exact
-baseline on `feat/mgt-be-10-kpi-analytics`.
+MGT-BE-10 production code and migration 43 are merged in `2a178e...`.
+`4e8a505...` changes only the BE-10 benchmark wording from an unsupported
+"median warm execution" claim to the measured "warm execution" wording. BE-11
+starts from `4e8a505...`; its migration 44 and application work are pending
+independent review rather than asserted merged here.
 
 ## 2. Authority and audit method
 
@@ -183,15 +188,11 @@ new shared-contract compatibility obligations.
 
 ## 5. Current real gaps
 
-1. No Guest rating persistence or write.
-2. No SLA Compliance, Cars per Active Employee, Cars Handed Off by Employee,
-    or controlled Key Exceptions metrics.
-3. No All Locations analytics or company CSV/PDF reports. The implemented
-   `ALL_LOCATIONS` selector/context is foundation only.
-4. No truthful Integration status API, Management-only entitlement
-    enforcement, company commercial view, or Guest effective branding.
-5. No historically truthful SLA-target source yet. BE-05 deliberately does not
-    add a current scalar target that BE-10 could retroactively apply to old visits.
+1. No truthful Integration status API, Management-only commercial entitlement
+   enforcement, company commercial view, or remaining MGT-BE-12 effective
+   branding projection.
+2. Automatic report delivery remains intentionally deferred by DEC-093; this is
+   not an unfinished BE-11 requirement.
 
 ## 6. Formal decision mapping
 
@@ -736,10 +737,12 @@ Objective: implement DEC-090 SLA target/Compliance, Cars per Active Employee,
 Cars Handed Off by Employee, and controlled Key Exceptions while preserving all
 DEC-060 metrics.
 
-Implementation status: **COMPLETE ON BRANCH** on `feat/mgt-be-10-kpi-analytics`
-from `main@9f8e63659645806ae99e562d500cd4fe209c184c`; not merged. Migration 43 is
-`20260917004300_mgt_be_10_kpi_analytics`. DEC-095 closes the SLA applicability,
-work-evidence, and Key Exception source gates intentionally left open by DEC-090.
+Implementation status: **MERGED** in
+`2a178e977f88c576cfdc0c2c8363afae89f0ea5c`. Migration 43 is
+`20260917004300_mgt_be_10_kpi_analytics`. Current main
+`4e8a50592ce524bb79becf001b8a9088aeeb81cc` changes only the benchmark wording.
+DEC-095 closes the SLA applicability, work-evidence, and Key Exception source
+gates intentionally left open by DEC-090.
 
 - Dependencies: DEC-095 now locks the historically applicable SLA target
   snapshot, approved work-evidence union, and Incident-backed Key Exception
@@ -791,32 +794,87 @@ Objective: implement DEC-092 company summary/multi-Location analytics, weighted
 calculations, currency grouping, missing-data coverage, and manual CSV/PDF
 company reports with final export authorization/audit.
 
-Implementation status: **UNSTARTED**. MGT-BE-10 does not begin any BE-11
-company-wide analytics, aggregation, or export implementation.
+Implementation status: **IMPLEMENTED ON BRANCH, PENDING INDEPENDENT REVIEW** on
+`feat/mgt-be-11-all-locations-company-reports` from
+`main@4e8a50592ce524bb79becf001b8a9088aeeb81cc`.
 
 - Dependencies: MGT-BE-01, MGT-BE-03, and MGT-BE-10; MGT-BE-06 provides the
   Management audit read projection but is not required to write export audit.
-- Schema: source reuse expected; indexes/materialization only after measured
-  evidence and a focused decision. No warehouse or cache by default.
-- Auth/audit: MFA Company Admin, current entitlement at final generation,
-  Organization scope; one generation audit only after successful bounded output.
-- Correctness: recompute from source, sum numerators/denominators, never average
-  averages, preserve each Location timezone, separate currencies, and expose
-  missing coverage.
-- Performance: bounded Location/period fan-in, set-based queries, no per-Location
-  N+1, row/artifact limits, memory limits, CSV injection hardening, PDF reuse.
-- Concurrency/idempotency: final reauthorization before bytes/audit; repeated
-  manual export is intentionally a new generation event; source snapshot
-  semantics documented.
-- Proof: mixed timezone/currency/missing data, weighted ratios, large-company
-  query plans, cross-tenant denial, 5 MiB/row caps or accepted company bounds,
-  deterministic CSV/PDF, and no automatic delivery.
+- API: strict no-store Company Admin routes are `GET
+  /v1/staff/management/organizations/:organizationId/analytics/all-locations?from&to`,
+  `GET .../:organizationId/reports/daily?date`, `GET
+  .../:organizationId/reports/weekly?weekStart`, `GET
+  .../:organizationId/reports/monthly?month`, and `POST
+  .../:organizationId/reports/exports`.
+- Correctness: all persisted Organization Locations participate, including
+  inactive history. Each current persisted Location IANA timezone defines its own
+  local period bounds. Company analytics recomputes from source, averages raw
+  qualifying duration samples, sums ratio numerators/denominators, keeps immutable
+  Payment currencies separate, and exposes explicit Location/timezone/missing
+  coverage. Cars per Active Employee uses one Organization-wide
+  `COUNT(DISTINCT membership_id)` over approved DEC-095 evidence. Company handoff
+  output is aggregate-only with no `byEmployee`; Guest Rating and Returning
+  Contact are not included.
+- Query/snapshot shape: one REPEATABLE READ source snapshot uses exactly five
+  source queries for analytics and WEEKLY/MONTHLY report summaries; DAILY adds one
+  controlled activity query. Query count is independent of Location count and
+  there is no per-Location N+1, warehouse, cache or persisted report artifact.
+- Bounds/rendering: timezone, currency, cash-reconciliation and Incident-type
+  group families are capped at 500; DAILY Dispatch/key-custody groups are capped
+  at 16/5; CSV/PDF artifacts are capped at 5 MiB. CSV receives injection/control
+  hardening and PDF bytes are deterministic. Manual authenticated CSV/PDF is the
+  only delivery surface; automatic delivery remains deferred.
+- Auth/audit: BE-11 revalidates current MFA-backed Company Admin Management
+  authority. After rendering, a fresh `REPORT_EXPORT` authorization transaction
+  rederives and matches the period, hashes the final bytes, and appends exactly
+  one `DASHBOARD_REPORT_EXPORT_GENERATED` AuditEvent for the Organization with
+  null Location. Failed final reauthorization writes no successful-generation
+  audit; repeated successful manual export is intentionally a new event. BE-11
+  does not implement the commercial entitlement gate owned by MGT-BE-12.
+- Schema/performance: migration 44,
+  `20260918004400_mgt_be_11_all_locations_reports`, retains exactly one measured
+  index and no other schema object:
+  `dispatch_events_org_location_occurred_at_company_reports_idx` on
+  `(organization_id, location_id, occurred_at) INCLUDE (task_id, event_type)`
+  (109,568,000 bytes).
+- Benchmark evidence: PostgreSQL 17.11 used 52 Locations overall and a target
+  Organization with 40 Locations (30 ACTIVE/10 INACTIVE), eight timezone groups,
+  and 400k target sessions. Overall benchmark-database totals were 318k retrieval
+  requests, 1.272m key events, 254.4k notes,
+  508.8k photos, 381.6k handoff verifications, 1.272m dispatch events, 84.8k
+  incidents, 339.2k payments, 106k validations, 21.2k refunds and 56.16k shifts.
+  The exact six production SQL statements were captured from exports. Two
+  completed full runs both retained the Dispatch index: the exact 31-day DAILY
+  statement improved about 23% to 57% across runs with strong one-day/seven-day
+  wins. The initially tested Incident index was rejected after a permitted roughly
+  30 KiB `Incident.type` value proved its `INCLUDE(type)` shape unsafe. A follow-up
+  migrations-1-through-43 PostgreSQL 17.11 benchmark recaptured the exact current
+  `queryCompanyIncidents` SQL and tested two safe alternatives. `INCLUDE(severity)`
+  (5,775,360 bytes) accepted a 30,024-byte type but changed 1d/7d/31d execution
+  from 430.089/469.619/475.268 ms to 456.630/464.902/494.088 ms; the key-only
+  variant (5,029,888 bytes) accepted a 30,017-byte type and changed the same
+  windows to 441.310/433.783/465.929 ms. PostgreSQL used neither candidate and
+  neither met the >=20% and >=5 ms retention threshold, so migration 44 contains
+  no Incident index. Other candidates failed thresholds, regressed, or lacked
+  repeat support. Bundle endpoint wall-time was noisy/inconclusive and is not
+  claimed as a proven speedup. All disposable benchmark databases were dropped
+  and verified absent; temporary benchmark scripts were deleted.
+- Privacy/proof: Company output contains no per-employee staff breakdown, raw
+  contact identity, raw route/GPS data, provider secret, Guest Rating or Returning
+  Contact aggregate. Focused proof covers mixed timezone/currency/missing data,
+  weighted ratios, Organization DISTINCT evidence, cross-tenant denial,
+  deterministic bounded exports and final-revocation behavior.
 
 ### MGT-BE-12 — Integrations & Commercial Access
 
 Objective: implement DEC-087/088/089 read-only Integrations, plan/status/
 features, VAYLET-owned entitlements, Management-only enforcement, and the
 DEC-085 guest-safe effective branding projection if still missing.
+
+Implementation status: **UNSTARTED**. MGT-BE-12 remains the owner of commercial
+entitlement enforcement, including the final commercial gate/composition for
+report export; MGT-BE-11's final reauthorization proves current Management
+authority only and does not substitute for BE-12 entitlement enforcement.
 
 - Dependencies: MGT-BE-03; report-export enforcement after MGT-BE-11; effective
   branding consumes MGT-BE-05.
@@ -974,9 +1032,11 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 through MGT-BE-08 are merged, and MGT-BE-09 with migration 42 is
-merged to `main@9f8e63659645806ae99e562d500cd4fe209c184c`. MGT-BE-10 is implemented
-on `feat/mgt-be-10-kpi-analytics`; BE-11 remains unstarted.
+MGT-BE-03 through MGT-BE-10 are merged, with BE-10 production implementation at
+`2a178e977f88c576cfdc0c2c8363afae89f0ea5c` and current main/docs correction at
+`4e8a50592ce524bb79becf001b8a9088aeeb81cc`. MGT-BE-11 is implemented on
+`feat/mgt-be-11-all-locations-company-reports` and pending independent review;
+MGT-BE-12 remains unstarted.
 
 ## 14. Documentation rebaseline validation record
 

@@ -9,7 +9,7 @@ afterAll(() => context.teardown(), 60_000);
 
 describe("migration 28 payment collection operation", () => {
   it("is the sole 28th migration with the exact lifecycle enum", async () => {
-    expect(context.migrationDirectories).toHaveLength(43);
+    expect(context.migrationDirectories).toHaveLength(44);
     expect(context.migrationDirectories.at(27)).toBe(
       "20260816002800_phase6_payment_collection_operation",
     );

@@ -107,7 +107,7 @@ afterAll(async () => {
 
 describe("MOB-020A/020D Staff Push migrations 32 and 33", () => {
   it("applies from an empty database through the full ordered history", async () => {
-    expect(expectedMigrationDirectories).toHaveLength(43);
+    expect(expectedMigrationDirectories).toHaveLength(44);
     expect(expectedMigrationDirectories).toContain(staffPushMigration);
     expect(expectedMigrationDirectories.at(32)).toBe(staffPushCleanupMigration);
     expect(await tableNames(emptyClient)).toEqual([

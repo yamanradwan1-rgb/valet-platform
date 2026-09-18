@@ -2048,12 +2048,13 @@ Add these only through their approved focused task/decision.
 
 ## Management implementation state and remaining extensions
 
-MGT-BE-08 is merged to
-`main@8c01dd58098715ed5b3b03a2d16c77a241714657` with forward-only migration 41,
-`20260917004100_mgt_be_08_visit_contacts`. The current MGT-BE-09 branch starts
-from that exact baseline and adds forward-only migration 42,
-`20260917004200_mgt_be_09_guest_rating`; migrations 1 through 41 remain
-unchanged.
+MGT-BE-10 production implementation is merged in
+`2a178e977f88c576cfdc0c2c8363afae89f0ea5c` with migration 43. Current
+`main@4e8a50592ce524bb79becf001b8a9088aeeb81cc` adds only the follow-up BE-10
+benchmark wording correction. MGT-BE-11 starts from that exact main/base and
+adds forward-only migration 44,
+`20260918004400_mgt_be_11_all_locations_reports`. The migration manifest now
+ends at 44; migrations 1 through 43 remain unchanged.
 
 MGT-BE-03 implements DEC-080 Company Admin authorization and context without a
 schema migration or new index. Its selected Organization, optional selected
@@ -2246,3 +2247,53 @@ Migration 43 therefore keeps only these measured KPI indexes:
 Candidate Incident, ConditionNote, session-created and condition-completion
 indexes were not retained because the actual bounded plans did not justify the
 extra write/storage cost. Migrations 1 through 42 remain unchanged.
+
+### MGT-BE-11 All Locations/report read indexes (migration 44)
+
+MGT-BE-11 adds no Company analytics warehouse, report-artifact table,
+materialized aggregate, cache, grant, function or trigger. Migration
+`20260918004400_mgt_be_11_all_locations_reports` contains exactly one
+benchmark-retained read index:
+
+- `dispatch_events_org_location_occurred_at_company_reports_idx` on
+  `dispatch_events (organization_id, location_id, occurred_at) INCLUDE (task_id,
+  event_type)`, measured at 109,568,000 bytes.
+
+The PostgreSQL 17.11 BE-11 benchmark represented 52 Locations overall and a
+target Organization with 40 Locations (30 `ACTIVE`, 10 `INACTIVE`) across eight
+timezone groups and 400,000 target ValetSessions. The substantial overall
+benchmark population included 318,000 RetrievalRequests, 1,272,000 KeyCustodyEvents,
+254,400 ConditionNotes, 508,800 VehiclePhotos, 381,600 HandoffVerifications,
+1,272,000 DispatchEvents, 84,800 Incidents, 339,200 Payments, 106,000
+Validations, 21,200 Refunds and 56,160 Shifts. The benchmark captured the exact
+six production SQL statements exported from the implemented Company analytics/
+report query shapes rather than synthetic substitute queries.
+
+Two completed full benchmark runs independently retained the Dispatch candidate.
+For the exact 31-day DAILY dispatch statement, that index improved warm statement
+execution by approximately 23% to 57% across the two runs and also improved the
+one-day and seven-day shapes materially. The initially tested Incident index
+included unbounded `Incident.type` and was rejected after proving that a permitted
+roughly 30 KiB type value could exceed PostgreSQL's B-tree index-row size.
+
+A follow-up PostgreSQL 17.11 benchmark reapplied exactly migrations 1 through 43,
+used the same 40-Location mixed-timezone target shape with 400,000 target sessions
+and 80,000 target Incidents, and recaptured the exact production
+`queryCompanyIncidents` SQL (SHA-256
+`ab6352d2bb3c7edad49cb9b73712a6779350ec68b39d2ba197f4da478bb03554`). Safe
+candidate A, `(organization_id, location_id, created_at) INCLUDE (severity)`, was
+5,775,360 bytes and accepted a 30,024-byte type value, but PostgreSQL did not use
+it and warm execution changed from 430.089/469.619/475.268 ms to
+456.630/464.902/494.088 ms for the 1-day/7-day-DST/31-day-DST windows. Safe
+candidate B, `(organization_id, location_id, created_at)`, was 5,029,888 bytes and
+accepted a 30,017-byte type value, but was likewise unused and changed those
+windows to 441.310/433.783/465.929 ms. Neither met the required >=20% and >=5 ms
+retention threshold, so migration 44 retains no Incident index.
+
+Other candidates were rejected because they failed retention thresholds,
+regressed a measured shape, or were not repeatably supported. Bundle endpoint
+wall-time measurements remained noisy/inconclusive and are not evidence of an
+end-to-end speedup. All disposable BE-11 benchmark databases were dropped and
+cleanup verified; temporary benchmark scripts were deleted. These measurements
+justify only the single migration-44 Dispatch index above and do not justify a
+warehouse, cache or other speculative Company-report persistence.

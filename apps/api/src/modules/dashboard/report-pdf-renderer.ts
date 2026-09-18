@@ -2,32 +2,15 @@ import { PDFDocument, StandardFonts } from "pdf-lib";
 
 import type { ReportKind } from "@valet/contracts";
 
+import {
+  pdfSafeText,
+  reportArtifactWithinLimit,
+  type RenderedArtifact,
+} from "../reporting/report-render-hardening";
 import { DashboardOverviewError } from "./dashboard-overview-error";
 import type { ComposedReport } from "./report-read-service";
-import type { RenderedArtifact } from "./report-csv-renderer";
 
-const maximumArtifactBytes = 5 * 1024 * 1024;
-
-/**
- * Deterministic ASCII-safe representation for StandardFont (WinAnsi)
- * rendering: printable ASCII passes through, C0/DEL controls are removed,
- * and every other Unicode code point is preserved losslessly as a visible
- * `\u{hex}` escape so distinct persisted values never collapse.
- */
-export function pdfSafeText(text: string): string {
-  let safe = "";
-  for (const character of text) {
-    const codePoint = character.codePointAt(0)!;
-    if (codePoint >= 0x20 && codePoint <= 0x7e) {
-      safe += character;
-    } else if (codePoint === 0x7f || codePoint < 0x20) {
-      continue;
-    } else {
-      safe += `\\u{${codePoint.toString(16)}}`;
-    }
-  }
-  return safe;
-}
+export { pdfSafeText } from "../reporting/report-render-hardening";
 
 function line(
   document: Awaited<ReturnType<typeof PDFDocument.create>>,
@@ -126,7 +109,7 @@ export async function renderReportPdf(
     }
   }
   const bytes = await document.save();
-  if (bytes.byteLength > maximumArtifactBytes) {
+  if (!reportArtifactWithinLimit(bytes)) {
     throw new DashboardOverviewError("REPORT_EXPORT_TOO_LARGE");
   }
   return {
