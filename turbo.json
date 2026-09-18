@@ -13,6 +13,18 @@
       "dependsOn": ["^test"],
       "outputs": []
     },
+    "@valet/api#test": {
+      "cache": false,
+      "env": ["TEST_DATABASE_URL", "MIGRATION_DATABASE_URL"],
+      "dependsOn": ["^test"],
+      "outputs": []
+    },
+    "@valet/database#test": {
+      "cache": false,
+      "env": ["TEST_DATABASE_URL", "MIGRATION_DATABASE_URL"],
+      "dependsOn": ["^test"],
+      "outputs": []
+    },
     "lint": {
       "dependsOn": ["^lint"],
       "outputs": []

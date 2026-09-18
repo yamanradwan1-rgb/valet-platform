@@ -9,7 +9,11 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "test": "turbo run test",
+    "test": "node scripts/test-harness/run-root-tests.mjs",
+    "test:non-postgres": "node scripts/test-harness/run-root-tests.mjs --non-postgres-only",
+    "test:postgres": "node scripts/test-harness/run-root-tests.mjs --postgres-only",
+    "test:postgres:api": "pnpm --filter @valet/api test:postgres",
+    "test:postgres:database": "pnpm --filter @valet/database test:postgres",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "architecture:check": "node scripts/architecture-check.mjs",

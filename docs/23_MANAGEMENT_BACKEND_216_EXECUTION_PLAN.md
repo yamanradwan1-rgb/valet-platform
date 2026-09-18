@@ -1,9 +1,9 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with MGT-BE-11 merged at
-`main@6c3810af41081d4b816fd81b9e188a2a7b42886f` including migration 44.
-MGT-BE-12 is **IMPLEMENTED ON BRANCH, PENDING INDEPENDENT REVIEW** on
-`feat/mgt-be-12-integrations-commercial-access` from that exact merged base.
+Status: Binding execution plan with Management Backend MGT-BE-01 through
+MGT-BE-12 complete. MGT-BE-12 is **MERGED** at
+`main@df6158e8a417996bdaa67994ffe90724645e9e40`; INFRA-TEST-01 is the active
+side-track stabilization work.
 
 Rebaseline date: 2026-09-18
 
@@ -13,8 +13,8 @@ Rebaseline date: 2026-09-18
 | --- | --- |
 | Repository | `valet-platform` |
 | BE-10 implementation commit | `2a178e977f88c576cfdc0c2c8363afae89f0ea5c` |
-| Current merged `main` SHA | `6c3810af41081d4b816fd81b9e188a2a7b42886f` |
-| BE-12 implementation branch | `feat/mgt-be-12-integrations-commercial-access` |
+| Current merged `main` SHA | `df6158e8a417996bdaa67994ffe90724645e9e40` |
+| BE-12 merged implementation | `df6158e8a417996bdaa67994ffe90724645e9e40` |
 | Current migration count | 44 forward-only directories |
 | Current latest migration | `20260918004400_mgt_be_11_all_locations_reports` |
 
@@ -24,9 +24,9 @@ input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
 
 MGT-BE-10 production code and migration 43 are merged in `2a178e...`.
-The follow-up BE-10 benchmark wording correction preceded the merged BE-11 main
-above. BE-11 application work and migration 44 are now merged. BE-12 adds no
-migration and remains pending independent review/merge.
+The follow-up BE-10 benchmark wording correction preceded the merged BE-11 main.
+BE-11 application work and migration 44 are merged. BE-12 adds no migration and
+is merged at the current `main` SHA above.
 
 ## 2. Authority and audit method
 
@@ -192,8 +192,8 @@ new shared-contract compatibility obligations.
 
 1. Automatic report delivery remains intentionally deferred by DEC-093; this is
    not an unfinished BE-11/BE-12 requirement.
-2. INFRA-TEST-01 remains deferred until BE-12 is independently reviewed and
-   merged.
+2. INFRA-TEST-01 is the active side-track stabilization work after completion of
+   Management Backend MGT-BE-01 through MGT-BE-12.
 
 ## 6. Formal decision mapping
 
@@ -873,9 +873,8 @@ Objective: implement DEC-087/088/089 read-only Integrations, plan/status/
 features, VAYLET-owned entitlements, Management-only enforcement, and the
 DEC-085 guest-safe effective branding projection if still missing.
 
-Implementation status: **IMPLEMENTED ON BRANCH, PENDING INDEPENDENT REVIEW** on
-`feat/mgt-be-12-integrations-commercial-access` from
-`main@6c3810af41081d4b816fd81b9e188a2a7b42886f`.
+Implementation status: **MERGED** at
+`main@df6158e8a417996bdaa67994ffe90724645e9e40`.
 
 - Dependencies: MGT-BE-03; report-export enforcement after MGT-BE-11; effective
   branding consumes MGT-BE-05.
@@ -1051,10 +1050,10 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 through MGT-BE-11 are merged, with BE-11 and migration 44 at
-`main@6c3810af41081d4b816fd81b9e188a2a7b42886f`. MGT-BE-12 is implemented on
-`feat/mgt-be-12-integrations-commercial-access` and pending independent review;
-INFRA-TEST-01 remains next only after BE-12 review and merge.
+MGT-BE-03 through MGT-BE-12 are merged. MGT-BE-12 and the current merged code
+are at `main@df6158e8a417996bdaa67994ffe90724645e9e40`; Management Backend
+MGT-BE-01 through MGT-BE-12 is complete, and INFRA-TEST-01 is the active
+side-track stabilization work.
 
 ## 14. Documentation rebaseline validation record
 

@@ -15,7 +15,9 @@
     "runtime:provision": "node scripts/provision-runtime-role.mjs",
     "seed": "node prisma/seed.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run src"
+    "test": "node ../../scripts/test-harness/run-package-tests.mjs database",
+    "test:non-postgres": "vitest run --config vitest.config.mjs --project database-non-postgres",
+    "test:postgres": "node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs database-postgres-direct database-postgres-provision"
   },
   "dependencies": {
     "@prisma/client": "7.9.1",

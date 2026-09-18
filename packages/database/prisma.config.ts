@@ -8,6 +8,18 @@ const migrationDatabase = parseMigrationDatabaseUrl(
   process.env.MIGRATION_DATABASE_URL,
   process.env.NODE_ENV,
 );
+const testConnectionLimit = process.env.VAYLET_TEST_POSTGRES_CONNECTION_LIMIT;
+let datasourceUrl = migrationDatabase.value;
+if (process.env.NODE_ENV === "test" && testConnectionLimit !== undefined) {
+  if (!/^[1-9][0-9]*$/.test(testConnectionLimit)) {
+    throw new Error(
+      "Test PostgreSQL connection limit must be a positive integer.",
+    );
+  }
+  const boundedUrl = new URL(datasourceUrl);
+  boundedUrl.searchParams.set("connection_limit", testConnectionLimit);
+  datasourceUrl = boundedUrl.toString();
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -16,6 +28,6 @@ export default defineConfig({
     seed: "node prisma/seed.mjs",
   },
   datasource: {
-    url: migrationDatabase.value,
+    url: datasourceUrl,
   },
 });
