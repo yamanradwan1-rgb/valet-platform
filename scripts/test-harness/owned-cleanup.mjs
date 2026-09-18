@@ -22,8 +22,6 @@ export function buildOwnedCleanupPlan(events) {
       const key = `${event.kind}:${event.name}`;
       const resource = resources.get(key);
       if (resource !== undefined) resource.dropped = true;
-    } else if (event.type === "resource-create-failed") {
-      resources.delete(`${event.kind}:${event.name}`);
     } else if (event.type === "child-started") {
       children.set(event.pid, {
         pid: event.pid,
