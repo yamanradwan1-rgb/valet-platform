@@ -141,6 +141,24 @@ corepack pnpm test
 corepack pnpm build
 ```
 
+`pnpm build` is the deterministic repository verification build. It still runs
+real production-mode package builds, while root orchestration supplies the
+non-secret verification-only `API_ORIGIN=http://127.0.0.1:3001`. Production
+verification also clears any caller-specific `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN`
+so that local ambient configuration cannot change the verification artifact.
+Production builds use `pnpm build:production`; callers must supply their real
+required `API_ORIGIN`, and Customer production validation remains fail-closed
+when it is missing or invalid.
+
+Focused test gates are available as `pnpm test:non-postgres`,
+`pnpm test:postgres:api`, `pnpm test:postgres:database`, and
+`pnpm test:platform`. CI owns these through separate unit, API PostgreSQL,
+database PostgreSQL, and Ubuntu/Windows platform lanes, while `quality`
+aggregates every required correctness job. The live PostgreSQL and platform
+checks execute directly without Turbo test-result caching. The PostgreSQL lanes
+use the bounded 01A profiles; they are isolated by CI service and are not
+sharded.
+
 Docker Compose publishes PostgreSQL only on `127.0.0.1:5432`. Keep `.env`
 local and do not commit it.
 

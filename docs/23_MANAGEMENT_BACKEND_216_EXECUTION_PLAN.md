@@ -2,8 +2,10 @@
 
 Status: Binding execution plan with Management Backend MGT-BE-01 through
 MGT-BE-12 complete. MGT-BE-12 is **MERGED** at
-`main@df6158e8a417996bdaa67994ffe90724645e9e40`; INFRA-TEST-01 is the active
-side-track stabilization work.
+`df6158e8a417996bdaa67994ffe90724645e9e40`. INFRA-TEST-01A and 01B are
+**MERGED** through `main@0f9b4b4478c1686a7cbce77013bf6c2b7aab206d`;
+INFRA-TEST-01C is implemented on its review branch and awaits independent
+review/merge.
 
 Rebaseline date: 2026-09-18
 
@@ -13,8 +15,11 @@ Rebaseline date: 2026-09-18
 | --- | --- |
 | Repository | `valet-platform` |
 | BE-10 implementation commit | `2a178e977f88c576cfdc0c2c8363afae89f0ea5c` |
-| Current merged `main` SHA | `df6158e8a417996bdaa67994ffe90724645e9e40` |
+| Current merged `main` SHA | `0f9b4b4478c1686a7cbce77013bf6c2b7aab206d` |
 | BE-12 merged implementation | `df6158e8a417996bdaa67994ffe90724645e9e40` |
+| INFRA-TEST-01A merged implementation | `d7a2e309a06d749edbaf1f16a06111da59e9225e` + `fe5406ff60f30d7f482ae57b416dcdf4b62f1146` |
+| INFRA-TEST-01B merged implementation | `0f9b4b4478c1686a7cbce77013bf6c2b7aab206d` |
+| INFRA-TEST-01C | Implemented on `feat/infra-test-01c-build-ci-stability`; pending independent review |
 | Current migration count | 44 forward-only directories |
 | Current latest migration | `20260918004400_mgt_be_11_all_locations_reports` |
 
@@ -192,8 +197,8 @@ new shared-contract compatibility obligations.
 
 1. Automatic report delivery remains intentionally deferred by DEC-093; this is
    not an unfinished BE-11/BE-12 requirement.
-2. INFRA-TEST-01 is the active side-track stabilization work after completion of
-   Management Backend MGT-BE-01 through MGT-BE-12.
+2. INFRA-TEST-01A and 01B are merged. INFRA-TEST-01C is the final implemented
+   stabilization slice and remains pending independent review/merge.
 
 ## 6. Formal decision mapping
 
@@ -1050,10 +1055,11 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 through MGT-BE-12 are merged. MGT-BE-12 and the current merged code
-are at `main@df6158e8a417996bdaa67994ffe90724645e9e40`; Management Backend
-MGT-BE-01 through MGT-BE-12 is complete, and INFRA-TEST-01 is the active
-side-track stabilization work.
+MGT-BE-03 through MGT-BE-12 are merged. MGT-BE-12 is at
+`df6158e8a417996bdaa67994ffe90724645e9e40`; current merged main is
+`0f9b4b4478c1686a7cbce77013bf6c2b7aab206d` after INFRA-TEST-01A/01B.
+Management Backend MGT-BE-01 through MGT-BE-12 is complete, and
+INFRA-TEST-01C is implemented pending independent review/merge.
 
 ## 14. Documentation rebaseline validation record
 

@@ -16,30 +16,10 @@ permissions:
   contents: read
 
 jobs:
-  quality:
-    name: quality
+  static-build:
+    name: static-build
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
-      MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
-      TEST_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
-
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: valet
-          POSTGRES_PASSWORD: valet
-          POSTGRES_DB: valet
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U valet -d valet"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,11 +49,125 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test
+      - name: Build contract proof
+        run: pnpm test:build-contract
 
-      - name: Build
+      - name: Deterministic verification build
         run: pnpm build
+
+  unit:
+    name: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run non-PostgreSQL tests
+        run: pnpm test:non-postgres
+
+  postgres:
+    name: postgres-${{ matrix.lane }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        lane:
+          - api
+          - database
+    env:
+      DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+      MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+      TEST_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: valet
+          POSTGRES_PASSWORD: valet
+          POSTGRES_DB: valet
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U valet -d valet"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run bounded PostgreSQL lane
+        run: pnpm run test:postgres:${{ matrix.lane }}
+
+  platform:
+    name: platform-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Architecture check
+        run: pnpm architecture:check
+
+      - name: Run platform-sensitive checks
+        run: pnpm test:platform
 
   employee-e2e:
     name: employee-e2e
@@ -92,7 +186,6 @@ jobs:
       STAFF_AUTH_ALLOWED_ORIGINS: http://localhost:3000
       ANTI_ABUSE_HMAC_SECRET_B64URL: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       HANDOFF_VERIFIER_HMAC_SECRET_B64URL: AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE
-
     services:
       postgres:
         image: postgres:17-alpine
@@ -107,7 +200,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -186,3 +278,34 @@ jobs:
         env:
           E2E_API_URL: http://localhost:3001
           E2E_BASE_URL: http://localhost:3000
+
+  quality:
+    name: quality
+    if: ${{ always() }}
+    needs:
+      - static-build
+      - unit
+      - postgres
+      - platform
+      - employee-e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Assert required jobs succeeded
+        env:
+          STATIC_BUILD_RESULT: ${{ needs.static-build.result }}
+          UNIT_RESULT: ${{ needs.unit.result }}
+          POSTGRES_RESULT: ${{ needs.postgres.result }}
+          PLATFORM_RESULT: ${{ needs.platform.result }}
+          EMPLOYEE_E2E_RESULT: ${{ needs.employee-e2e.result }}
+        run: |
+          failed=0
+          for name in STATIC_BUILD UNIT POSTGRES PLATFORM EMPLOYEE_E2E; do
+            result_name="${name}_RESULT"
+            result="${!result_name}"
+            echo "${name}: ${result}"
+            if [ "${result}" != "success" ]; then
+              failed=1
+            fi
+          done
+          exit "${failed}"

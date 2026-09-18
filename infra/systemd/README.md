@@ -7,7 +7,7 @@ use the Customer origin's `/api/v1/guest/*` same-origin proxy.
 From `/workspace/valet-platform`, build and install it with:
 
 ```sh
-API_ORIGIN=http://127.0.0.1:3001 corepack pnpm --filter @valet/customer build
+API_ORIGIN=http://127.0.0.1:3001 corepack pnpm build:production -- --filter=@valet/customer
 install -m 0644 infra/systemd/vaylet-customer.service /etc/systemd/system/vaylet-customer.service
 systemctl daemon-reload
 systemctl enable --now vaylet-customer.service
