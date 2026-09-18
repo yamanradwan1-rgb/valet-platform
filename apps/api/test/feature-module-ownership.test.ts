@@ -12,6 +12,8 @@ import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { AuthModule } from "../src/modules/auth/auth.module";
+import { MfaAssurancePolicy } from "../src/modules/auth/mfa/mfa-assurance-policy";
+import { StaffMfaController } from "../src/modules/auth/mfa/staff-mfa.controller";
 import { NativeStaffAuthController } from "../src/modules/auth/native-staff-auth.controller";
 import { StaffAuthController } from "../src/modules/auth/staff-auth.controller";
 import { STAFF_PRINCIPAL_RESOLVER } from "../src/modules/auth/staff-principal";
@@ -37,6 +39,7 @@ import { KeyCustodyService } from "../src/modules/keys/key-custody.service";
 import { MapSetupController } from "../src/modules/map-setup/map-setup.controller";
 import { MapSetupModule } from "../src/modules/map-setup/map-setup.module";
 import { MapSetupService } from "../src/modules/map-setup/map-setup.service";
+import { ManagementModule } from "../src/modules/management/management.module";
 import { StartParkingController } from "../src/modules/parking/start-parking.controller";
 import { StartParkingModule } from "../src/modules/parking/start-parking.module";
 import { StartParkingService } from "../src/modules/parking/start-parking.service";
@@ -107,6 +110,7 @@ describe("accepted feature module ownership", () => {
       StaffPushModule,
       KeyCustodyModule,
       MapSetupModule,
+      ManagementModule,
       DispatchModule,
       StartParkingModule,
       PaymentsModule,
@@ -223,10 +227,12 @@ describe("accepted feature module ownership", () => {
     expect(metadata(AuthModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffAuthController,
       NativeStaffAuthController,
+      StaffMfaController,
     ]);
     expect(metadata(AuthModule, MODULE_METADATA.EXPORTS)).toEqual([
       STAFF_PRINCIPAL_RESOLVER,
       STAFF_SESSION_CONTEXT_RESOLVER,
+      MfaAssurancePolicy,
     ]);
   });
 

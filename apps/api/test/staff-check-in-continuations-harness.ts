@@ -1,30 +1,18 @@
 import { randomUUID } from "node:crypto";
 
-import {
-  MiddlewareConsumer,
-  Module,
-  type INestApplication,
-  type NestModule,
-} from "@nestjs/common";
+import type { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 
-import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
-import { RequestIdMiddleware } from "../src/common/http/api-request";
-import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
 import {
   FailClosedStaffPrincipalResolver,
-  STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
 } from "../src/modules/auth/staff-principal";
-import { StaffCheckInContinuationsController } from "../src/modules/staff/staff-check-in-continuations.controller";
-import { StaffCheckInContinuationsService } from "../src/modules/staff/staff-check-in-continuations.service";
-import { StaffValetSessionController } from "../src/modules/staff/staff-valet-session.controller";
-import { StaffValetSessionService } from "../src/modules/staff/staff-valet-session.service";
 import {
   addMemberHelper,
   createKeySlotHelper,
   createVehicleHelper,
 } from "./staff-valet-session-fixture-helpers";
+import { createStaffCheckInContinuationsTestModule } from "./staff-check-in-continuations-test-module";
 import {
   ShiftTestContext,
   type ShiftFixture,
@@ -113,35 +101,10 @@ export function createStaffCheckInContinuationsHarness(): StaffCheckInContinuati
     },
   };
 
-  @Module({
-    controllers: [
-      StaffCheckInContinuationsController,
-      StaffValetSessionController,
-    ],
-    imports: [HttpInfrastructureModule],
-    providers: [
-      StaffCheckInContinuationsService,
-      StaffValetSessionService,
-      {
-        provide: RUNTIME_POSTGRES_POOL,
-        useFactory: () => context.runtimePool,
-      },
-      {
-        provide: STAFF_PRINCIPAL_RESOLVER,
-        useValue: principalResolver,
-      },
-    ],
-  })
-  class TestContinuationsModule implements NestModule {
-    configure(consumer: MiddlewareConsumer): void {
-      consumer
-        .apply(RequestIdMiddleware)
-        .forRoutes(
-          StaffCheckInContinuationsController,
-          StaffValetSessionController,
-        );
-    }
-  }
+  const TestContinuationsModule = createStaffCheckInContinuationsTestModule(
+    () => context.runtimePool,
+    principalResolver,
+  );
 
   let app: INestApplication;
   let baseUrl = "";
@@ -157,14 +120,27 @@ export function createStaffCheckInContinuationsHarness(): StaffCheckInContinuati
       if (app !== undefined) await app.close();
       await context.teardown();
     },
-    async createKeySlot(fixture, code = "SLOT-01", status = "ACTIVE", locationIdOverride) {
-      return createKeySlotHelper(context, fixture, code, status, locationIdOverride);
+    async createKeySlot(
+      fixture,
+      code = "SLOT-01",
+      status = "ACTIVE",
+      locationIdOverride,
+    ) {
+      return createKeySlotHelper(
+        context,
+        fixture,
+        code,
+        status,
+        locationIdOverride,
+      );
     },
     async createSession(fixture, options = {}) {
       const sessionId = randomUUID();
       const vehicleId =
         options.vehicleId ??
-        (await this.createVehicle(fixture, { temporaryDescriptor: "Test vehicle" }));
+        (await this.createVehicle(fixture, {
+          temporaryDescriptor: "Test vehicle",
+        }));
       const state = options.state ?? "AWAITING_PARKING";
       const orgId = options.orgIdOverride ?? fixture.organizationId;
       const locId = options.locationIdOverride ?? fixture.locationId;
@@ -234,7 +210,12 @@ export function createStaffCheckInContinuationsHarness(): StaffCheckInContinuati
         `INSERT INTO shifts
            (id, organization_id, location_id, membership_id, status, started_at)
          VALUES ($1, $2, $3, $4, 'ACTIVE', transaction_timestamp())`,
-        [randomUUID(), fixture.organizationId, fixture.locationId, fixture.membershipId],
+        [
+          randomUUID(),
+          fixture.organizationId,
+          fixture.locationId,
+          fixture.membershipId,
+        ],
       );
       const token = `token-${randomUUID()}`;
       principals.set(`Bearer ${token}`, fixture.userId);
@@ -275,6 +256,7 @@ export function createStaffCheckInContinuationsHarness(): StaffCheckInContinuati
     async start() {
       await context.setup();
       app = await NestFactory.create(TestContinuationsModule, {
+        abortOnError: false,
         logger: false,
       });
       await app.listen(0, "127.0.0.1");

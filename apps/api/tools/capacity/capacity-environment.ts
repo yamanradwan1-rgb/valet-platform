@@ -14,8 +14,7 @@ export async function capacityEnvironment(pool: Pool) {
     apiRuntimeClass: "built Node process, NODE_ENV=development",
     cpuCount: cpus().length,
     cpuModel: cpu?.model ?? "unknown",
-    databaseTopologyClass:
-      "loopback PostgreSQL service in the same LXC container",
+    databaseTopologyClass: "loopback PostgreSQL service on the local host",
     dbPoolClass: "node-postgres default pool; maximum 10 per API process",
     gitSha: execFileSync("git", ["rev-parse", "HEAD"], {
       encoding: "utf8",

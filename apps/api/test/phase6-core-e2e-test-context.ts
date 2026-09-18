@@ -47,7 +47,10 @@ export class Phase6CoreE2ETestContext extends CompleteHandoffTestContext {
       type: argon2.argon2id,
       version: 19,
     });
-    this.app = await NestFactory.create(AppModule, { logger: false });
+    this.app = await NestFactory.create(AppModule, {
+      abortOnError: false,
+      logger: false,
+    });
     await this.app.listen(0, "127.0.0.1");
     const address = this.app.getHttpServer().address() as { port: number };
     this.baseUrl = `http://127.0.0.1:${address.port}`;

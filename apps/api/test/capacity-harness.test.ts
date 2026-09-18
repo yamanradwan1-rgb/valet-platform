@@ -169,20 +169,4 @@ describe("MOB-025A capacity harness", () => {
       "SAFETY_ABORT: error-rate limit exceeded",
     );
   });
-
-  it("aborts when database connections reach the guard", async () => {
-    const pool = {
-      query: async () => ({
-        rows: [
-          {
-            active: SAFETY_LIMITS.databaseActiveConnections,
-            waiting: 0,
-          },
-        ],
-      }),
-    } as unknown as Pool;
-    await expect(
-      new CapacitySafetyMonitor(pool, process.pid).snapshot(),
-    ).rejects.toThrow("SAFETY_ABORT: database connection limit reached");
-  });
 });

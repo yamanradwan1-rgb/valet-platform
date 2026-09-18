@@ -1,9 +1,13 @@
-import { readFile } from "node:fs/promises";
-import { cpus } from "node:os";
-
 import type { Pool } from "pg";
 
 import type { RequestSample, SafetySnapshot } from "./capacity-types";
+import {
+  createCapacityProcessSampler,
+  type ProcessMetricSample,
+  type ProcessMetricSampler,
+} from "./capacity-process-sampler";
+
+export { requireCapacityApiPid } from "./capacity-process-sampler";
 
 export const SAFETY_LIMITS = {
   apiCpuPercent: 95,
@@ -19,61 +23,10 @@ export const SAFETY_LIMITS = {
   requestTimeoutMs: 3_000,
 } as const;
 
-interface CpuReading {
-  readonly processTicks: number;
-  readonly totalTicks: number;
-}
-
-async function readCpu(pid: number): Promise<CpuReading> {
-  const [processStat, systemStat] = await Promise.all([
-    readFile(`/proc/${pid}/stat`, "utf8"),
-    readFile("/proc/stat", "utf8"),
-  ]);
-  const processFields = processStat.trim().split(/\s+/);
-  const cpuFields = systemStat.split("\n")[0]?.trim().split(/\s+/) ?? [];
-  return {
-    processTicks: Number(processFields[13]) + Number(processFields[14]),
-    totalTicks: cpuFields
-      .slice(1)
-      .reduce((sum, value) => sum + Number(value), 0),
-  };
-}
-
-async function readRss(pid: number): Promise<number> {
-  const status = await readFile(`/proc/${pid}/status`, "utf8");
-  const kib = Number(/^VmRSS:\s+(\d+)\s+kB$/m.exec(status)?.[1] ?? NaN);
-  if (!Number.isFinite(kib)) throw new Error("API RSS is unavailable.");
-  return kib * 1024;
-}
-
-export async function requireCapacityApiPid(
-  raw: string | undefined,
-): Promise<number> {
-  if (raw === undefined || raw.trim() === "") {
-    throw new Error("CAPACITY_API_PID is required.");
-  }
-  if (!/^\d+$/u.test(raw)) {
-    throw new Error("CAPACITY_API_PID must be an integer greater than 1.");
-  }
-  const pid = Number(raw);
-  if (!Number.isSafeInteger(pid) || pid <= 1) {
-    throw new Error("CAPACITY_API_PID must be an integer greater than 1.");
-  }
-  try {
-    await Promise.all([
-      readFile(`/proc/${pid}/stat`, "utf8"),
-      readFile(`/proc/${pid}/status`, "utf8"),
-    ]);
-  } catch {
-    throw new Error("CAPACITY_API_PID does not identify a readable process.");
-  }
-  return pid;
-}
-
 export class CapacitySafetyMonitor {
   private consecutiveErrors = 0;
   private highCpuSamples = 0;
-  private lastCpu: CpuReading | undefined;
+  private lastProcessSample: ProcessMetricSample | undefined;
   private requestCount = 0;
   readonly snapshots: SafetySnapshot[] = [];
   private readonly startedAt = Date.now();
@@ -81,6 +34,7 @@ export class CapacitySafetyMonitor {
   constructor(
     private readonly pool: Pool,
     private readonly apiPid: number,
+    private readonly processSampler: ProcessMetricSampler = createCapacityProcessSampler(),
   ) {}
 
   record(sample: RequestSample): void {
@@ -120,28 +74,30 @@ export class CapacitySafetyMonitor {
        FROM pg_stat_activity WHERE datname = current_database()`);
     const row = database.rows[0];
     if (row === undefined) throw new Error("Database health is unavailable.");
+    const processSample = await this.processSampler.sample(this.apiPid);
     let apiCpuPercent: number | null = null;
-    let apiRssBytes: number | null = null;
-    const [cpu, rss] = await Promise.all([
-      readCpu(this.apiPid),
-      readRss(this.apiPid),
-    ]);
-    apiRssBytes = rss;
-    if (this.lastCpu !== undefined) {
-      const processDelta = cpu.processTicks - this.lastCpu.processTicks;
-      const totalDelta = cpu.totalTicks - this.lastCpu.totalTicks;
-      apiCpuPercent = Number(
-        (
-          (processDelta / Math.max(1, totalDelta)) *
-          cpus().length *
-          100
-        ).toFixed(2),
-      );
+    if (this.lastProcessSample !== undefined) {
+      if (
+        processSample.processIdentity !== this.lastProcessSample.processIdentity
+      ) {
+        throw new Error(
+          "API process identity changed during capacity sampling.",
+        );
+      }
+      const processDelta =
+        processSample.processCpuUnits - this.lastProcessSample.processCpuUnits;
+      const capacityDelta =
+        processSample.oneCpuCapacityUnits -
+        this.lastProcessSample.oneCpuCapacityUnits;
+      if (processDelta < 0 || capacityDelta <= 0) {
+        throw new Error("API CPU sample is invalid.");
+      }
+      apiCpuPercent = Number(((processDelta / capacityDelta) * 100).toFixed(2));
     }
-    this.lastCpu = cpu;
+    this.lastProcessSample = processSample;
     const snapshot = {
       apiCpuPercent,
-      apiRssBytes,
+      apiRssBytes: processSample.rssBytes,
       databaseActiveConnections: row.active,
       databaseLockWaiters: row.waiting,
       observedAt: new Date().toISOString(),

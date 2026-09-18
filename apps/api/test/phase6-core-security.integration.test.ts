@@ -24,9 +24,12 @@ function expectCanariesAbsent(value: unknown): void {
 }
 
 describe("VAL-008H production provider and HTTP security gate", () => {
-  const context = new Phase6CoreE2ETestContext("production_security");
+  let context: Phase6CoreE2ETestContext;
 
-  beforeAll(async () => context.setupApi(), 120_000);
+  beforeAll(async () => {
+    context = new Phase6CoreE2ETestContext("production_security");
+    await context.setupApi();
+  }, 120_000);
   afterAll(async () => context.teardownApi(), 60_000);
 
   it("wires only the fail-closed unconfigured production provider registry", () => {
@@ -72,9 +75,12 @@ describe("VAL-008H production provider and HTTP security gate", () => {
 });
 
 describe("VAL-008H normalized provider-event canary gate", () => {
-  const context = new ProviderEventTestContext("canaries");
+  let context: ProviderEventTestContext;
 
-  beforeAll(async () => context.setup(), 120_000);
+  beforeAll(async () => {
+    context = new ProviderEventTestContext("canaries");
+    await context.setup();
+  }, 120_000);
   afterAll(async () => context.teardown(), 60_000);
 
   it("persists and audits only normalized safe facts", async () => {

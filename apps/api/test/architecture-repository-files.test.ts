@@ -1,5 +1,12 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  rm,
+  symlink,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -8,7 +15,11 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { checkArchitecture } from "../../../scripts/architecture-check.mjs";
 import { BASELINE_SOURCE_COMMIT } from "../../../scripts/architecture-line-policy.mjs";
-import { readRepositoryOwnedTextFiles } from "../../../scripts/architecture-repository-files.mjs";
+import {
+  parseGitPathOutput,
+  readRepositoryOwnedTextFiles,
+  sameRepositoryRoot,
+} from "../../../scripts/architecture-repository-files.mjs";
 
 const executeFile = promisify(execFile);
 const temporaryRoots: string[] = [];
@@ -212,6 +223,49 @@ describe("repository-owned authored file discovery", () => {
       tracked: [path, "scripts/architecture-line-baseline.json"],
     });
     expect(result.violations).toEqual([]);
+  });
+
+  it("compares repository roots by filesystem identity", async () => {
+    const root = await mkdtemp(resolve(tmpdir(), "valet root identity-"));
+    temporaryRoots.push(root);
+    const nested = resolve(root, "nested");
+    await mkdir(nested);
+    expect(await sameRepositoryRoot(root, root.replaceAll("\\", "/"))).toBe(
+      true,
+    );
+    expect(await sameRepositoryRoot(root, nested)).toBe(false);
+    if (process.platform === "win32") {
+      const driveCase = `${root[0]!.toLowerCase()}${root.slice(1)}`;
+      expect(await sameRepositoryRoot(root, driveCase)).toBe(true);
+      expect(await sameRepositoryRoot(root, `\\\\?\\${root}`)).toBe(true);
+    }
+    const alias = `${root}-alias`;
+    await symlink(
+      root,
+      alias,
+      process.platform === "win32" ? "junction" : "dir",
+    );
+    try {
+      expect(await sameRepositoryRoot(root, alias)).toBe(true);
+    } finally {
+      await unlink(alias);
+    }
+  });
+
+  it("keeps Git-relative traversal outside repository ownership", () => {
+    expect(() => parseGitPathOutput(Buffer.from("../escape.ts\0"))).toThrow(
+      "non-canonical repository path",
+    );
+  });
+
+  it("rejects a nested directory as the repository root", async () => {
+    const root = await mkdtemp(resolve(tmpdir(), "valet-nested-root-"));
+    temporaryRoots.push(root);
+    await executeFile("git", ["init", "--quiet"], { cwd: root });
+    const nested = resolve(root, "nested");
+    await mkdir(nested);
+    const result = await checkArchitecture(nested, async () => new Map());
+    expect(result.violations.join("\n")).toContain("expected Git root");
   });
 
   it("fails closed outside a Git repository", async () => {

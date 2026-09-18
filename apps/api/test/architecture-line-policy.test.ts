@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -8,7 +8,6 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   BASELINE_SOURCE_COMMIT,
-  checkLinePolicy,
   collectAuthoredFiles,
   countPhysicalLines,
   createGrandfatherEntries,
@@ -198,9 +197,17 @@ describe("architecture physical-line policy", () => {
 
   it("accepts the current repository after the transitional split", async () => {
     const repositoryRoot = resolve(__dirname, "../../..");
-    const result = await checkLinePolicy(
+    const baselinePath = resolve(
       repositoryRoot,
-      resolve(repositoryRoot, "scripts/architecture-line-baseline.json"),
+      "scripts/architecture-line-baseline.json",
+    );
+    const [files, baselineContent] = await Promise.all([
+      collectAuthoredFiles(repositoryRoot),
+      readFile(baselinePath, "utf8"),
+    ]);
+    const result = evaluateLinePolicy(
+      files,
+      parseLineBaseline(baselineContent),
     );
     expect(result.violations).toEqual([]);
   });

@@ -240,18 +240,21 @@ describe("VAL-007H Phase 5 Security gate", () => {
       [fixture.organizationId],
     );
 
-    const unauthorizedTokens = [
+    const concealedTokens = [
       foreignManagerToken,
       otherLocSupervisorToken,
       fixture.accessToken,
-      orgAdminToken,
     ];
 
-    const assertBoundary = async (path: string, randomPath: string) => {
+    const assertBoundary = async (
+      path: string,
+      randomPath: string,
+      adminBoundary: "MFA_STEP_UP_REQUIRED" | "AUTHORIZATION_DENIED",
+    ) => {
       const random = await context.staffGet(managerToken, randomPath);
       expect(random.status).toBe(404);
       expect(random.body).toMatchObject({ code: "AUTHORIZATION_DENIED" });
-      for (const token of unauthorizedTokens) {
+      for (const token of concealedTokens) {
         const denied = await context.staffGet(token, path);
         expect(denied.status).toBe(404);
         expect(denied.body).toEqual({
@@ -260,22 +263,30 @@ describe("VAL-007H Phase 5 Security gate", () => {
           requestId: expect.any(String),
         });
       }
+      const adminDenied = await context.staffGet(orgAdminToken, path);
+      expect(adminDenied.status).toBe(
+        adminBoundary === "MFA_STEP_UP_REQUIRED" ? 403 : 404,
+      );
+      expect(adminDenied.body).toMatchObject({ code: adminBoundary });
       expect((await context.staffGet(managerToken, path)).status).toBe(200);
       expect((await context.staffGet(supervisorToken, path)).status).toBe(200);
       expect((await context.staffGet(fixture.guestToken, path)).status).toBe(
         401,
       );
+      expect((await context.staffGet("invalid-bearer", path)).status).toBe(401);
       expect((await context.request("GET", path)).status).toBe(401);
     };
 
     await assertBoundary(
       `/v1/staff/locations/${fixture.locationId}/live-operations-map`,
       `/v1/staff/locations/${randomUUID()}/live-operations-map`,
+      "MFA_STEP_UP_REQUIRED",
     );
     await context.confirmParked(fixture, started);
     await assertBoundary(
       `/v1/staff/tracking-sessions/${tracker.id}/route-history`,
       `/v1/staff/tracking-sessions/${randomUUID()}/route-history`,
+      "AUTHORIZATION_DENIED",
     );
   });
 });

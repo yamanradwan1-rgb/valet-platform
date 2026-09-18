@@ -26,6 +26,7 @@ export function collectRepositoryOwnedPaths(
   repositoryRoot: string,
   execute?: GitExecutor,
 ): Promise<RepositoryOwnership>;
+export function sameRepositoryRoot(left: string, right: string): Promise<boolean>;
 export function readRepositoryOwnedTextFiles(
   repositoryRoot: string,
   ownership: RepositoryOwnership,

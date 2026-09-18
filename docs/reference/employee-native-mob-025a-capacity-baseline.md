@@ -122,10 +122,13 @@ corepack pnpm --filter @valet/api capacity:baseline
 ```
 
 The confirmation string and `CAPACITY_API_PID` are mandatory. PID preflight
-requires an integer greater than 1 with readable `/proc/<pid>/stat` and
-`/proc/<pid>/status` before local environment loading, pool construction,
-fixture creation, authentication, or HTTP work. Monitoring never falls back to
-an unmonitored mode. The existing database guard rejects a non-local target,
+requires an integer greater than 1 and a readable process sample before local
+environment loading, pool construction, fixture creation, authentication, or
+HTTP work. Linux sampling uses `/proc`; Windows sampling uses built-in
+`Get-Process` process CPU and working-set metrics with a monotonic Stopwatch
+elapsed-time denominator. Both preserve the measured
+100%=one-logical-CPU convention and RSS bytes, and monitoring never falls back
+to an unmonitored mode. The existing database guard rejects a non-local target,
 requests have no automatic retries, and output is aggregate sanitized JSON
 under ignored `.tmp/capacity/`. The output contains no token, credential,
 header, URL, business payload, or PII. Fixture seeding uses the migration role

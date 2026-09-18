@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readFile, realpath, stat } from "node:fs/promises";
 import { isAbsolute, posix, resolve } from "node:path";
 import { promisify } from "node:util";
 
@@ -33,7 +33,7 @@ export async function collectRepositoryOwnedPaths(
     "--show-toplevel",
   ]);
   const decodedTopLevel = decodeUtf8(topLevel, "Git repository root").trimEnd();
-  if (canonicalRoot(decodedTopLevel) !== canonicalRoot(root)) {
+  if (!(await sameRepositoryRoot(decodedTopLevel, root))) {
     throw new Error(
       `repository file discovery: expected Git root ${root}, found ${decodedTopLevel}`,
     );
@@ -60,6 +60,24 @@ export async function collectRepositoryOwnedPaths(
     }
   }
   return { deletedPaths, paths };
+}
+
+export async function sameRepositoryRoot(left, right) {
+  const [leftIdentity, rightIdentity] = await Promise.all([
+    filesystemIdentity(left),
+    filesystemIdentity(right),
+  ]);
+  const leftStable = leftIdentity.device !== 0n || leftIdentity.inode !== 0n;
+  const rightStable = rightIdentity.device !== 0n || rightIdentity.inode !== 0n;
+  if (leftStable || rightStable) {
+    return (
+      leftStable &&
+      rightStable &&
+      leftIdentity.device === rightIdentity.device &&
+      leftIdentity.inode === rightIdentity.inode
+    );
+  }
+  return leftIdentity.realPath === rightIdentity.realPath;
 }
 
 export async function readRepositoryOwnedTextFiles(
@@ -151,9 +169,33 @@ function decodeUtf8(value, label) {
   }
 }
 
-function canonicalRoot(value) {
-  const normalized = resolve(value).replaceAll("\\", "/");
-  return process.platform === "win32" ? normalized.toLowerCase() : normalized;
+async function filesystemIdentity(value) {
+  const resolved = resolve(value);
+  const [canonical, metadata] = await Promise.all([
+    realpath(resolved),
+    stat(resolved, { bigint: true }),
+  ]);
+  if (!metadata.isDirectory()) {
+    throw new Error(
+      `repository file discovery: root is not a directory ${resolved}`,
+    );
+  }
+  return {
+    device: metadata.dev,
+    inode: metadata.ino,
+    realPath: canonicalRealPath(canonical),
+  };
+}
+
+function canonicalRealPath(value) {
+  if (process.platform !== "win32") return value;
+  let normalized = value;
+  if (normalized.startsWith("\\\\?\\UNC\\")) {
+    normalized = `\\\\${normalized.slice(8)}`;
+  } else if (normalized.startsWith("\\\\?\\")) {
+    normalized = normalized.slice(4);
+  }
+  return normalized.replaceAll("\\", "/").toLowerCase();
 }
 
 function comparePaths(left, right) {
