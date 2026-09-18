@@ -57,6 +57,7 @@ const service = {
     if (guestMode === "UNEXPECTED") throw new Error("test failure");
     if (guestMode === "INVALID" || revoked) return undefined;
     return {
+      branding: { displayName: "Guest Safe", primaryColor: "#176BFF" },
       guestVehicleReadyNotificationEnabled: true,
       readyAt: null,
       state: "PARKED" as const,

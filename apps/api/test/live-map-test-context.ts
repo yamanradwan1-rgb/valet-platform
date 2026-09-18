@@ -30,15 +30,27 @@ export class LiveMapTestContext extends RouteHistoryTestContext {
   }
 
   async manager(fixture: TrackingFixture) {
+    await this.enableDashboardAccess(fixture);
     return this.createActor(fixture, "LOCATION_MANAGER");
   }
 
-  supervisor(fixture: TrackingFixture, activeShift = true) {
+  async supervisor(fixture: TrackingFixture, activeShift = true) {
+    await this.enableDashboardAccess(fixture);
     return this.createActor(fixture, "VALET_SUPERVISOR", { activeShift });
   }
 
-  actor(fixture: TrackingFixture, role: TestRole) {
+  async actor(fixture: TrackingFixture, role: TestRole) {
+    await this.enableDashboardAccess(fixture);
     return this.createActor(fixture, role);
+  }
+
+  private async enableDashboardAccess(fixture: TrackingFixture) {
+    await this.adminPool.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [fixture.organizationId],
+    );
   }
 
   async setPolicy(fixture: TrackingFixture, enabled: boolean) {

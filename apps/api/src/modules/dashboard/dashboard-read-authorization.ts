@@ -33,10 +33,15 @@ export async function authorizeDashboardReadLocation(
     readonly targetLocationId: string;
   },
 ): Promise<DashboardLocationScope | null> {
+  const commercialRequirement =
+    input.capability === "REPORT_EXPORT"
+      ? "REPORT_EXPORTS"
+      : "DASHBOARD_ACCESS";
   const manager = await authorizeDashboardLocation(
     transaction,
     input.authenticatedUserId,
     input.targetLocationId,
+    commercialRequirement,
   );
   if (manager !== null) return manager;
   const context = input.staffSessionContext;
@@ -52,6 +57,7 @@ export async function authorizeDashboardReadLocation(
   try {
     const scope = await authorizeCompanyAdminManagement(transaction, context, {
       capability: input.capability,
+      commercialRequirement,
       organizationId,
       requireActiveLocation: true,
       targetLocationId: input.targetLocationId,

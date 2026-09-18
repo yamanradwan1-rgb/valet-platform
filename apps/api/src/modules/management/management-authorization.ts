@@ -4,6 +4,10 @@ import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import { isCompanyAdminManagementCapability } from "./management-capabilities";
+import {
+  hasManagementCommercialAccess,
+  type ManagementCommercialRequirement,
+} from "./management-commercial-access-policy";
 
 export type ManagementAssuranceRequirement = "SENSITIVE" | "STANDARD";
 
@@ -79,6 +83,7 @@ export async function authorizeCompanyAdminManagement(
   input: {
     readonly assurance?: ManagementAssuranceRequirement;
     readonly capability: ManagementCapability;
+    readonly commercialRequirement?: ManagementCommercialRequirement | null;
     readonly organizationId: string;
     readonly requireActiveLocation?: boolean;
     readonly targetLocationId?: string;
@@ -145,6 +150,20 @@ export async function authorizeCompanyAdminManagement(
     if (location.rowCount !== 1 || locationId === null) {
       throw new ManagementAccessDeniedError();
     }
+  }
+  const commercialRequirement =
+    input.commercialRequirement === undefined
+      ? "DASHBOARD_ACCESS"
+      : input.commercialRequirement;
+  if (
+    commercialRequirement !== null &&
+    !(await hasManagementCommercialAccess(
+      transaction,
+      row.organizationId,
+      commercialRequirement,
+    ))
+  ) {
+    throw new ManagementAccessDeniedError();
   }
   return {
     locationId,

@@ -7,9 +7,19 @@ const context = new LiveMapTestContext("areas_privacy");
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 120_000);
 
+async function enableDashboardAccess(organizationId: string) {
+  await context.adminPool.query(
+    `UPDATE organization_subscriptions
+     SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+     WHERE organization_id=$1`,
+    [organizationId],
+  );
+}
+
 describe("VAL-007G current area and privacy projection", () => {
   it("projects all overlapping active current areas in deterministic order", async () => {
     const fixture = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(fixture.organizationId);
     const manager = await context.manager(fixture);
     const restrictedId = await context.addArea(fixture, {
       code: "B",
@@ -55,6 +65,7 @@ describe("VAL-007G current area and privacy projection", () => {
       [33, 38, 0],
     ] as const) {
       const fixture = await context.createParkingTrackingFixture();
+      await enableDashboardAccess(fixture.organizationId);
       const manager = await context.manager(fixture);
       await context.addArea(fixture);
       await context.seedSample(fixture, {
@@ -74,6 +85,7 @@ describe("VAL-007G current area and privacy projection", () => {
 
   it("returns only the approved operational fields and no raw/internal history data", async () => {
     const fixture = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(fixture.organizationId);
     const manager = await context.manager(fixture);
     await context.seedSample(fixture, {
       capturedAt: await context.databaseTime(),
@@ -98,6 +110,7 @@ describe("VAL-007G current area and privacy projection", () => {
   it("never evaluates active geometry from another tenant or Location", async () => {
     const target = await context.createParkingTrackingFixture();
     const foreign = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(target.organizationId);
     const manager = await context.manager(target);
     await context.addArea(foreign);
     await context.seedSample(target, {

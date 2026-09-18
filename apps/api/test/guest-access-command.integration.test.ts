@@ -471,18 +471,18 @@ describe("VAL-004F guest secure access", () => {
       staffRequest(fixture),
     );
     const guest = await createGuestAccessResolver(runtimePool)(issue.rawToken);
-    expect(guest).toEqual({
+    expect(guest).toMatchObject({
+      branding: { primaryColor: "#176BFF" },
       guestVehicleReadyNotificationEnabled: true,
       readyAt: null,
       state: "CHECKING_IN",
       valetSessionId: fixture.sessionId,
       vehicle: { color: "Black", make: "Toyota", model: "Camry" },
     });
+    expect(guest.branding.displayName).toMatch(/^VAL-004F /);
     expect(Object.keys(guest).sort()).toEqual([
-      "guestVehicleReadyNotificationEnabled",
-      "readyAt", "state",
-      "valetSessionId",
-      "vehicle"]);
+      "branding", "guestVehicleReadyNotificationEnabled", "readyAt", "state",
+      "valetSessionId", "vehicle"]);
     expect(Object.keys(guest.vehicle).sort()).toEqual([
       "color",
       "make",

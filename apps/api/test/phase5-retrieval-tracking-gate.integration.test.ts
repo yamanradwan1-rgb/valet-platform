@@ -106,6 +106,12 @@ describe("VAL-007H Phase 5 Retrieval tracking gate", () => {
     expect(rawRows[0]!.location_id).toBe(owned.locationId);
     expect(rawRows[0]!.task_id).toBe(owned.taskId);
 
+    await context.adminPool.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [owned.organizationId],
+    );
     const liveMapActive = await context.staffGet(
       managerToken,
       `/v1/staff/locations/${owned.locationId}/live-operations-map`,
@@ -230,6 +236,12 @@ describe("VAL-007H Phase 5 Retrieval tracking gate", () => {
       0,
     );
 
+    await context.adminPool.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [owned.organizationId],
+    );
     const liveMap = await context.staffGet(
       managerToken,
       `/v1/staff/locations/${owned.locationId}/live-operations-map`,

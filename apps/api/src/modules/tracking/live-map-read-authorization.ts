@@ -8,6 +8,7 @@ import {
   authorizeCompanyAdminManagement,
   eligibleCompanyAdminLocationOrganization,
 } from "../management/management-authorization";
+import { hasManagementCommercialAccess } from "../management/management-commercial-access-policy";
 import {
   authorizeLiveMap,
   type LiveMapAuthorization,
@@ -26,7 +27,15 @@ export async function authorizeLiveMapRead(
     input.authenticatedUserId,
     input.locationId,
   );
-  if (operational !== null) return operational;
+  if (operational !== null) {
+    return (await hasManagementCommercialAccess(
+      transaction,
+      operational.organizationId,
+      "DASHBOARD_ACCESS",
+    ))
+      ? operational
+      : null;
+  }
   const context = input.staffSessionContext;
   if (context === undefined || context.userId !== input.authenticatedUserId)
     return null;

@@ -1,5 +1,6 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { hasManagementCommercialAccess } from "./management-commercial-access-policy";
 import {
   authorizeCompanyAdminManagement,
   ManagementAccessDeniedError,
@@ -101,6 +102,15 @@ async function authorizeLocationManager(
   );
   const row = result.rows[0];
   if (result.rowCount !== 1 || row === undefined || row.locationIds.length === 0) {
+    return deny();
+  }
+  if (
+    !(await hasManagementCommercialAccess(
+      transaction,
+      row.organizationId,
+      "DASHBOARD_ACCESS",
+    ))
+  ) {
     return deny();
   }
   return { ...row, role: "LOCATION_MANAGER" };

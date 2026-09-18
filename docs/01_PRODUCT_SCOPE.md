@@ -123,8 +123,9 @@ authority.
 
 MGT-BE-11 now consumes that Organization-level Management foundation for
 company-wide analytics and reports without inventing a synthetic Location.
-Company Admin reads remain current-authority Management operations; commercial
-entitlement enforcement is still owned by MGT-BE-12 and is not added by BE-11.
+BE-11 originally added no commercial gate; MGT-BE-12 now composes current
+persisted typed subscription entitlements into protected Management/Dashboard
+use while preserving role, tenant, exact-session and MFA authority.
 
 MGT-BE-04 implements DEC-081 Staff, Roles & Access on top of that control
 plane. Company Admin can read a bounded Organization staff directory and
@@ -336,10 +337,22 @@ enablement and accepted financial commands remain unchanged.
 - Basic branding is display name and primary color with Company default ->
   Location override. Company display name is the authoritative Organization
   name; primary color is canonical uppercase `#RRGGBB`. Location overrides are
-  nullable and CLEAR inherits the current Company value. Logo and advanced
-  white-label remain deferred.
-- Integrations and Billing are read-only MVP surfaces. Tenant provider-secret
-  administration and SaaS billing execution are out of scope.
+  nullable and CLEAR inherits the current Company value. Guest Session now
+  projects only the effective persisted visit-Location `displayName` and
+  `primaryColor`; commercial lapse does not block Guest visit completion.
+  Logo and advanced white-label remain deferred.
+- Commercial state is read-only at
+  `GET /v1/staff/management/organizations/:organizationId/subscription`: an
+  authorized Company Admin receives the exact persisted opaque `planCode`,
+  descriptive `status`, and typed `dashboardAccess`, `reportExports` and
+  `basicBranding` booleans, or `subscription: null`. Tenant subscription
+  mutation and a SaaS billing engine remain out of scope.
+- Integrations are read-only at
+  `GET /v1/staff/management/organizations/:organizationId/integrations` with a
+  fixed provider-neutral catalog for Plate OCR, Staff Push and Digital Payment.
+  Status uses only bounded server/runtime truth; configured syntax is not
+  fabricated health, no provider is called while rendering the page, and tenant
+  provider-secret administration remains out of scope.
 - Automatic report delivery is deferred; manual authenticated CSV/PDF is the
   current requirement.
 - MGT-BE-10 adds a separate bounded Location-period `/analytics/kpis` projection
@@ -378,7 +391,9 @@ enablement and accepted financial commands remain unchanged.
   hashes the rendered bytes and writes exactly one Organization-scoped,
   null-Location generation audit. No report artifact is persisted, repeated
   manual generation is a new audited event, automatic delivery remains deferred,
-  and BE-11 does not implement the commercial gating reserved for MGT-BE-12.
+  and MGT-BE-12 now additionally requires current `dashboardAccess` plus
+  `reportExports` both before generation and at the final authorization
+  transaction before audit/artifact return.
 - MGT-BE-07 implements DEC-094 Location lifecycle with the existing
   `ACTIVE | INACTIVE` status plus explicit `accepting_intake`. Management-created
   Locations start `INACTIVE` with intake closed. `ACTIVE + accepting_intake=true`

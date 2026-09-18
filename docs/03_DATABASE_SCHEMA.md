@@ -1627,6 +1627,12 @@ Constraints/rules:
 - three explicit boolean entitlement columns; no generic JSON entitlements
 - runtime role holds SELECT only (INSERT/UPDATE/DELETE/TRUNCATE denied); provisioning/change is an internal platform concern outside the customer API
 - no price/billing-interval/amount/currency/invoice/payment-method/Stripe/renewal/cancellation/trial-end/seat-count fields
+- MGT-BE-12 authorizes protected Management/Dashboard use from the current
+  persisted booleans only; `plan_code` and `status` are never feature
+  authority, and an absent row fails closed
+- the Company subscription read never inserts/fabricates a row and remains
+  readable by an otherwise authorized Company Admin when dashboard access is
+  disabled so commercial lapse can be truthfully displayed
 
 Basic branding columns (DEC-062/085): `organizations.brand_primary_color TEXT
 NOT NULL DEFAULT '#176BFF'` with uppercase-hex CHECK;
@@ -1638,7 +1644,10 @@ Management can mutate Company name/color and exact-Location name/color through
 the migration-38 narrow functions. Existing Location Manager branding functions
 remain unchanged. CLEAR removes only the Location override and therefore resolves
 to the current Company value. No logo URL/object key/asset table is introduced,
-and subscription/entitlement columns are not consulted by these writes.
+and the database branding functions themselves do not inspect commercial
+entitlements. MGT-BE-12's API authorization layer now requires current
+`dashboardAccess` plus `basicBranding` before branding administration; Guest
+effective branding remains independent of commercial entitlement.
 Migration 31 hardening: the primary-color SET function explicitly rejects
 NULL (22023) so NULL-as-clear is impossible through SET; non-null
 display-name overrides are canonical outer-trimmed values enforced by
@@ -2049,12 +2058,12 @@ Add these only through their approved focused task/decision.
 ## Management implementation state and remaining extensions
 
 MGT-BE-10 production implementation is merged in
-`2a178e977f88c576cfdc0c2c8363afae89f0ea5c` with migration 43. Current
-`main@4e8a50592ce524bb79becf001b8a9088aeeb81cc` adds only the follow-up BE-10
-benchmark wording correction. MGT-BE-11 starts from that exact main/base and
-adds forward-only migration 44,
-`20260918004400_mgt_be_11_all_locations_reports`. The migration manifest now
-ends at 44; migrations 1 through 43 remain unchanged.
+`2a178e977f88c576cfdc0c2c8363afae89f0ea5c` with migration 43. MGT-BE-11 is
+merged at `main@6c3810af41081d4b816fd81b9e188a2a7b42886f` and includes
+forward-only migration 44,
+`20260918004400_mgt_be_11_all_locations_reports`. MGT-BE-12 reuses existing
+subscription/branding persistence and adds no migration; the migration manifest
+therefore still ends at 44 and migrations 1 through 44 remain the baseline.
 
 MGT-BE-03 implements DEC-080 Company Admin authorization and context without a
 schema migration or new index. Its selected Organization, optional selected

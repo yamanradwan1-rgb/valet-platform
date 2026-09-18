@@ -50,6 +50,13 @@ async function inTransaction<T>(
 describe("MGT-BE-06 Management audit authorization", () => {
   it("requires exact-session STANDARD MFA for Company Admin and allows inactive historical Locations", async () => {
     const admin = await fixture.createCompanyAdmin();
+    await fixture.query(
+      `INSERT INTO organization_subscriptions
+         (organization_id, plan_code, status, dashboard_access_enabled,
+          report_exports_enabled, basic_branding_enabled)
+       VALUES ($1, 'TEST_ENTITLED', 'ACTIVE', TRUE, TRUE, TRUE)`,
+      [admin.organizationId],
+    );
     const inactive = await fixture.addLocation(admin.organizationId, {
       status: "INACTIVE",
     });

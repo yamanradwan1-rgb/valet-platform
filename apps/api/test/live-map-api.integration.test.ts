@@ -63,6 +63,15 @@ async function get(locationId: string, query = "", token?: string) {
   return { body: await response.json(), status: response.status };
 }
 
+async function enableDashboardAccess(organizationId: string) {
+  await context.adminPool.query(
+    `UPDATE organization_subscriptions
+     SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+     WHERE organization_id=$1`,
+    [organizationId],
+  );
+}
+
 beforeAll(async () => {
   await context.setup();
   app = await NestFactory.create(TestLiveMapModule, { logger: false });
@@ -79,6 +88,7 @@ afterAll(async () => {
 describe("VAL-007G live operations map API", () => {
   it("requires one staff bearer and returns only the strict response", async () => {
     const fixture = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(fixture.organizationId);
     const manager = await context.manager(fixture);
     expect((await get(fixture.locationId)).status).toBe(401);
     const token = randomUUID();
@@ -97,6 +107,7 @@ describe("VAL-007G live operations map API", () => {
 
   it("rejects malformed location, cursor, limit, and unknown query fields", async () => {
     const fixture = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(fixture.organizationId);
     const manager = await context.manager(fixture);
     const token = randomUUID();
     principals.set(`Bearer ${token}`, manager.userId);
@@ -112,6 +123,7 @@ describe("VAL-007G live operations map API", () => {
 
   it("uses one non-disclosing response for unavailable Location authority", async () => {
     const fixture = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(fixture.organizationId);
     const manager = await context.manager(fixture);
     const token = randomUUID();
     principals.set(`Bearer ${token}`, manager.userId);
@@ -125,6 +137,7 @@ describe("VAL-007G live operations map API", () => {
 
   it("denies a Supervisor shifted only at another Location without disclosure", async () => {
     const fixture = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(fixture.organizationId);
     const otherLocationId = await context.createLocation(fixture);
     const supervisor = await context.createActor(fixture, "VALET_SUPERVISOR", {
       activeShift: true,
@@ -149,6 +162,7 @@ describe("VAL-007G live operations map API", () => {
 
   it("reauthorizes a Supervisor Shift on the next cursor page", async () => {
     const fixture = await context.createParkingTrackingFixture();
+    await enableDashboardAccess(fixture.organizationId);
     const supervisor = await context.supervisor(fixture);
     const startedAt = new Date(fixture.trackerStartedAt.getTime() + 1_000);
     await context.addParkingWork(fixture, startedAt);

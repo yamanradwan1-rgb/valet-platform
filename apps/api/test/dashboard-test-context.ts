@@ -11,6 +11,7 @@ import {
 import {
   ShiftTestContext,
   type ShiftFixture,
+  type ShiftFixtureOptions,
   type TestRole,
 } from "./shift-test-context";
 
@@ -22,6 +23,25 @@ export interface DashboardActor {
 export class DashboardTestContext extends ShiftTestContext {
   constructor(label: string) {
     super(`009a_${label}`);
+  }
+
+  override async createFixture(
+    options: ShiftFixtureOptions = {},
+    existingUserId?: string,
+  ): Promise<ShiftFixture> {
+    const fixture = await super.createFixture(options, existingUserId);
+    await this.adminPool.query(
+      `INSERT INTO organization_subscriptions
+         (organization_id, plan_code, status, dashboard_access_enabled,
+          report_exports_enabled, basic_branding_enabled)
+       VALUES ($1, 'TEST_ENTITLED', 'ACTIVE', TRUE, TRUE, TRUE)
+       ON CONFLICT (organization_id) DO UPDATE
+       SET plan_code='TEST_ENTITLED', status='ACTIVE',
+           dashboard_access_enabled=TRUE, report_exports_enabled=TRUE,
+           basic_branding_enabled=TRUE, updated_at=clock_timestamp()`,
+      [fixture.organizationId],
+    );
+    return fixture;
   }
 
   async authorize(input: {

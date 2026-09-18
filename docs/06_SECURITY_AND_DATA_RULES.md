@@ -353,7 +353,12 @@ authoritative completion, with Zone-only persistence permitted when the policy
 is false. The two notification toggles suppress only their real configured event
 families; no templates, sender/provider credentials, routing, webhook, or
 security-notification controls are exposed. Branding is name/color only, with no
-logo/assets. Entitlement/subscription state does not gate BE-05 behavior.
+logo/assets. MGT-BE-12 now adds current commercial authority above the existing
+role/scope/MFA checks: protected Management/Dashboard use requires
+`dashboardAccess`, and branding administration additionally requires
+`basicBranding`. The read-only Company/Location subscription status surfaces
+are intentional bootstrap exceptions so disabled/absent entitlement state can be
+displayed without unlocking unrelated Management data.
 
 ## Management Audit reader security
 
@@ -736,16 +741,17 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   Organization-owned active Location and still follows effective tracking
   policy. Retained raw route history and map-setup/field mutations remain
   denied to Company Admin through this control plane.
-- MGT-BE-03 adds no database migration or index and does not enforce commercial
-  entitlements. Entitlement enforcement remains owned by MGT-BE-12; All
-  Locations analytics/company reports remain owned by MGT-BE-11.
+- MGT-BE-03 added no database migration or commercial gate. MGT-BE-12 now
+  composes current persisted OrganizationSubscription booleans into protected
+  Management/Dashboard use without replacing tenant/role/MFA authorization.
 - MGT-BE-11 Company analytics/reports are Organization-scoped Management reads,
   not authority inherited from a cached `ALL_LOCATIONS` selector. Each use
   revalidates the exact Staff session/MFA, active `ORG_ADMIN` membership, active
   Organization and the relevant `ANALYTICS_READ`, `REPORTS_READ` or
   `REPORT_EXPORT` capability from persistence. Caller-supplied Location IDs are
-  not accepted as Company fan-out authority. MGT-BE-12 remains the owner of
-  commercial entitlement enforcement and BE-11 does not add that gate.
+  not accepted as Company fan-out authority. MGT-BE-12 now additionally requires
+  current `dashboardAccess` for reads and current
+  `dashboardAccess + reportExports` for exports.
 - MGT-BE-04 Staff directory/detail are Organization-scoped, bounded and
   minimized. Directory identity is email-only plus membership role/status/
   version and Location-access count; detail adds a bounded Location-grant
@@ -975,13 +981,18 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   per-Location employee counts.
 - Company report export first composes that bounded source snapshot and renders
   deterministic hardened CSV/PDF bytes. A separate final transaction freshly
-  reauthorizes `REPORT_EXPORT`, rederives and matches the requested period,
-  hashes the final bytes, and appends exactly one
+  reauthorizes `REPORT_EXPORT`, rechecks current `dashboardAccess` and
+  `reportExports`, rederives and matches the requested period, hashes the final
+  bytes, and appends exactly one
   `DASHBOARD_REPORT_EXPORT_GENERATED` event at Organization scope with
   `location_id = NULL`. Final reauthorization does not recompute the source
   snapshot. Revocation or other final authorization failure produces no
   successful generation audit and no successful artifact response; repeating a
   successful manual export intentionally creates a new audit event.
+- The exact-Location export finalizer performs the same fresh current
+  `dashboardAccess + reportExports` composition before its generation audit and
+  artifact return. Revocation between render and finalization fails closed with
+  no new audit on both Location and Company export paths.
 - BE-11 enforces at most 500 timezone, currency, cash-reconciliation and Incident
   type groups; DAILY report activity is bounded to 16 Dispatch groups and five
   key-custody groups; rendered artifacts are limited to 5 MiB. CSV cells receive
@@ -991,6 +1002,12 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   emitted. Report artifacts are not persisted and automatic delivery remains
   deferred.
 - Tenant users never manage provider secrets or commercial entitlements.
+- Company Admin commercial status is a no-store read-only projection of exact
+  persisted plan/status/three booleans (or null). Integrations are a no-store
+  fixed `PLATE_OCR | STAFF_PUSH | DIGITAL_PAYMENT` projection with strict safe
+  status only; no endpoint, project/account identifier, token, credential,
+  device token or raw provider error is returned, and no provider I/O occurs to
+  render status.
 - Management entitlement lapse must never block field operation or the safe
   completion of a vehicle already in custody.
 - Guest rating is guest-only, one through five, once per completed visit;

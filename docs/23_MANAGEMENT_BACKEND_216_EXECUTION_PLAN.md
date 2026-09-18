@@ -1,12 +1,9 @@
 # Management Backend — Final Rebaseline and Execution Plan
 
-Status: Binding execution plan with implementation progress through merged
-MGT-BE-10. The BE-10 implementation commit is
-`2a178e977f88c576cfdc0c2c8363afae89f0ea5c`; current
-`main@4e8a50592ce524bb79becf001b8a9088aeeb81cc` adds only the follow-up benchmark
-wording correction. MGT-BE-11 is implemented on
-`feat/mgt-be-11-all-locations-company-reports` from that exact base and is
-pending independent review. MGT-BE-12 remains unstarted.
+Status: Binding execution plan with MGT-BE-11 merged at
+`main@6c3810af41081d4b816fd81b9e188a2a7b42886f` including migration 44.
+MGT-BE-12 is **IMPLEMENTED ON BRANCH, PENDING INDEPENDENT REVIEW** on
+`feat/mgt-be-12-integrations-commercial-access` from that exact merged base.
 
 Rebaseline date: 2026-09-18
 
@@ -16,8 +13,8 @@ Rebaseline date: 2026-09-18
 | --- | --- |
 | Repository | `valet-platform` |
 | BE-10 implementation commit | `2a178e977f88c576cfdc0c2c8363afae89f0ea5c` |
-| BE-11 baseline `main` SHA | `4e8a50592ce524bb79becf001b8a9088aeeb81cc` |
-| BE-11 implementation branch | `feat/mgt-be-11-all-locations-company-reports` |
+| Current merged `main` SHA | `6c3810af41081d4b816fd81b9e188a2a7b42886f` |
+| BE-12 implementation branch | `feat/mgt-be-12-integrations-commercial-access` |
 | Current migration count | 44 forward-only directories |
 | Current latest migration | `20260918004400_mgt_be_11_all_locations_reports` |
 
@@ -27,10 +24,9 @@ input to this reconciliation, not authority over current main. This document
 creates the requested canonical path on the exact baseline above.
 
 MGT-BE-10 production code and migration 43 are merged in `2a178e...`.
-`4e8a505...` changes only the BE-10 benchmark wording from an unsupported
-"median warm execution" claim to the measured "warm execution" wording. BE-11
-starts from `4e8a505...`; its migration 44 and application work are pending
-independent review rather than asserted merged here.
+The follow-up BE-10 benchmark wording correction preceded the merged BE-11 main
+above. BE-11 application work and migration 44 are now merged. BE-12 adds no
+migration and remains pending independent review/merge.
 
 ## 2. Authority and audit method
 
@@ -155,7 +151,13 @@ new shared-contract compatibility obligations.
   Company display name remains `Organization.name`. No logo or advanced
   white-label asset system exists.
 - Read-only `OrganizationSubscription` with plan/status and three typed
-  entitlements; no tenant mutation, billing engine, or enforcement.
+  entitlements; MGT-BE-12 now enforces current typed booleans on protected
+  Management/Dashboard use while retaining no tenant mutation or billing engine.
+- Read-only Company commercial and integration status routes are implemented;
+  integration status is a fixed provider-neutral projection and performs no
+  provider I/O merely to render Management status.
+- Guest Session now projects effective persisted visit-Location display name and
+  primary color only, with no commercial entitlement as Guest authority.
 - Customer/Vehicle/ValetSession history, narrow exact returning Check-In
   recognition, and the MGT-BE-08 bounded Visit Contact search/history/Returning
   Contact surface; no CRM.
@@ -188,11 +190,10 @@ new shared-contract compatibility obligations.
 
 ## 5. Current real gaps
 
-1. No truthful Integration status API, Management-only commercial entitlement
-   enforcement, company commercial view, or remaining MGT-BE-12 effective
-   branding projection.
-2. Automatic report delivery remains intentionally deferred by DEC-093; this is
-   not an unfinished BE-11 requirement.
+1. Automatic report delivery remains intentionally deferred by DEC-093; this is
+   not an unfinished BE-11/BE-12 requirement.
+2. INFRA-TEST-01 remains deferred until BE-12 is independently reviewed and
+   merged.
 
 ## 6. Formal decision mapping
 
@@ -739,8 +740,9 @@ DEC-060 metrics.
 
 Implementation status: **MERGED** in
 `2a178e977f88c576cfdc0c2c8363afae89f0ea5c`. Migration 43 is
-`20260917004300_mgt_be_10_kpi_analytics`. Current main
-`4e8a50592ce524bb79becf001b8a9088aeeb81cc` changes only the benchmark wording.
+`20260917004300_mgt_be_10_kpi_analytics`. Follow-up commit `4e8a505...`
+corrected only the benchmark wording; current merged main is
+`6c3810af41081d4b816fd81b9e188a2a7b42886f`.
 DEC-095 closes the SLA applicability, work-evidence, and Key Exception source
 gates intentionally left open by DEC-090.
 
@@ -794,9 +796,8 @@ Objective: implement DEC-092 company summary/multi-Location analytics, weighted
 calculations, currency grouping, missing-data coverage, and manual CSV/PDF
 company reports with final export authorization/audit.
 
-Implementation status: **IMPLEMENTED ON BRANCH, PENDING INDEPENDENT REVIEW** on
-`feat/mgt-be-11-all-locations-company-reports` from
-`main@4e8a50592ce524bb79becf001b8a9088aeeb81cc`.
+Implementation status: **MERGED** at
+`main@6c3810af41081d4b816fd81b9e188a2a7b42886f` with migration 44.
 
 - Dependencies: MGT-BE-01, MGT-BE-03, and MGT-BE-10; MGT-BE-06 provides the
   Management audit read projection but is not required to write export audit.
@@ -829,8 +830,9 @@ Implementation status: **IMPLEMENTED ON BRANCH, PENDING INDEPENDENT REVIEW** on
   rederives and matches the period, hashes the final bytes, and appends exactly
   one `DASHBOARD_REPORT_EXPORT_GENERATED` AuditEvent for the Organization with
   null Location. Failed final reauthorization writes no successful-generation
-  audit; repeated successful manual export is intentionally a new event. BE-11
-  does not implement the commercial entitlement gate owned by MGT-BE-12.
+  audit; repeated successful manual export is intentionally a new event. MGT-BE-12
+  now composes current `dashboardAccess + reportExports` both before generation
+  and again in this fresh final transaction before audit/artifact return.
 - Schema/performance: migration 44,
   `20260918004400_mgt_be_11_all_locations_reports`, retains exactly one measured
   index and no other schema object:
@@ -871,29 +873,46 @@ Objective: implement DEC-087/088/089 read-only Integrations, plan/status/
 features, VAYLET-owned entitlements, Management-only enforcement, and the
 DEC-085 guest-safe effective branding projection if still missing.
 
-Implementation status: **UNSTARTED**. MGT-BE-12 remains the owner of commercial
-entitlement enforcement, including the final commercial gate/composition for
-report export; MGT-BE-11's final reauthorization proves current Management
-authority only and does not substitute for BE-12 entitlement enforcement.
+Implementation status: **IMPLEMENTED ON BRANCH, PENDING INDEPENDENT REVIEW** on
+`feat/mgt-be-12-integrations-commercial-access` from
+`main@6c3810af41081d4b816fd81b9e188a2a7b42886f`.
 
 - Dependencies: MGT-BE-03; report-export enforcement after MGT-BE-11; effective
   branding consumes MGT-BE-05.
-- Schema: reuse OrganizationSubscription and branding. Integration status comes
-  from real adapter/config health, not a tenant secrets table. New entitlement
-  fields require a focused product need, never generic JSON.
-- Auth/security: tenant users have no commercial/provider mutation; status
-  redacts endpoints, project IDs, credentials, tokens, and provider errors.
-- Safety: Dashboard/Management lapse may restrict Management only. It must not
-  enter Check-In, Parking, Retrieval, Handoff, release, custody completion,
-  incident safety, or necessary Guest completion paths.
-- Concurrency: current entitlement rechecked at protected Management use/export;
-  stale frontend state is not authority. Provider status is truthful and may be
-  unknown/unavailable rather than fabricated healthy.
-- Performance: bounded typed status reads; avoid live provider calls on every
-  page load unless a separately bounded health cache/adapter contract exists.
-- Proof: entitlement-lapse field-operation regression matrix, plan-code
-  non-authority, no tenant mutations, real/absent integration truth, secret
-  redaction, and Guest branding derived from the persisted visit Location.
+- Schema: no migration 45. Existing `organization_subscriptions` and branding
+  persistence are reused; runtime remains SELECT-only on subscriptions.
+- Commercial read: `GET
+  /v1/staff/management/organizations/:organizationId/subscription` requires
+  current Company Admin tenant/MFA authority but is intentionally not
+  `dashboardAccess`-gated. It returns exact opaque plan/status/three typed
+  booleans or `subscription: null`; no tenant mutation or billing engine exists.
+- Entitlements: current `dashboardAccess` is the base protected
+  Management/Dashboard gate. Report export additionally requires
+  `reportExports`; branding administration additionally requires
+  `basicBranding`. Missing row fails closed. `planCode` and subscription
+  status are descriptive and never feature authority.
+- Integrations: `GET
+  /v1/staff/management/organizations/:organizationId/integrations` is
+  dashboard-gated and returns only the fixed `PLATE_OCR`, `STAFF_PUSH`,
+  `DIGITAL_PAYMENT` catalog and safe status enum. OCR uses existing config/cost
+  truth, Staff Push uses existing worker/policy/config truth, and Digital Payment
+  reflects the actual unconfigured production registry. Configured syntax does
+  not mean healthy; no provider call/send/payment action occurs on status read.
+- Export finalization: exact-Location and Company manual export both recheck
+  current `dashboardAccess + reportExports` at their fresh final authorization
+  transaction before generation audit/artifact return. Post-render revocation
+  writes no successful generation audit.
+- Guest branding: `GET /v1/guest/session` now returns only
+  `branding: { displayName, primaryColor }` from the real persisted
+  ValetSession Location, with Location override -> current Organization fallback.
+  Guest chooses no scope, no branding snapshot is persisted, and commercial
+  lapse is not Guest authority.
+- Safety/scope: entitlement checks stay in Management/Dashboard read/admin
+  boundaries and do not enter Check-In, Parking, key/Shift/Task/Dispatch,
+  Retrieval/READY/Handoff/release/completion, Incident recovery, Guest
+  progression/rating, valet payment/validation/cash/refund, or operational
+  tracking. No provider-secret persistence/configuration, POS/PMS/SSO, logo,
+  advanced branding, automatic report delivery, or INFRA-TEST-01 work is added.
 
 ## 9. Old 39-packet disposition
 
@@ -1032,11 +1051,10 @@ earlier documentation/rebaseline branch and are historical baseline evidence;
 they do not override the current working tree or an explicit production task
 authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
-MGT-BE-03 through MGT-BE-10 are merged, with BE-10 production implementation at
-`2a178e977f88c576cfdc0c2c8363afae89f0ea5c` and current main/docs correction at
-`4e8a50592ce524bb79becf001b8a9088aeeb81cc`. MGT-BE-11 is implemented on
-`feat/mgt-be-11-all-locations-company-reports` and pending independent review;
-MGT-BE-12 remains unstarted.
+MGT-BE-03 through MGT-BE-11 are merged, with BE-11 and migration 44 at
+`main@6c3810af41081d4b816fd81b9e188a2a7b42886f`. MGT-BE-12 is implemented on
+`feat/mgt-be-12-integrations-commercial-access` and pending independent review;
+INFRA-TEST-01 remains next only after BE-12 review and merge.
 
 ## 14. Documentation rebaseline validation record
 

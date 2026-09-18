@@ -2,6 +2,7 @@ import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import { isCompanyAdminManagementCapability } from "./management-capabilities";
+import { hasManagementCommercialAccess } from "./management-commercial-access-policy";
 import { ManagementAccessDeniedError } from "./management-authorization";
 
 export type ManagementAuditViewerRole =
@@ -116,6 +117,15 @@ async function authorizeAdminScope(
   );
   const row = result.rows[0];
   if (result.rowCount !== 1 || row === undefined) deny();
+  if (
+    !(await hasManagementCommercialAccess(
+      transaction,
+      row.organizationId,
+      "DASHBOARD_ACCESS",
+    ))
+  ) {
+    deny();
+  }
   return {
     locationId: locationId ?? null,
     membershipId: row.membershipId,
@@ -188,6 +198,15 @@ async function authorizeGrantedLocation(
   );
   const row = result.rows[0];
   if (result.rowCount !== 1 || row === undefined) deny();
+  if (
+    !(await hasManagementCommercialAccess(
+      transaction,
+      row.organizationId,
+      "DASHBOARD_ACCESS",
+    ))
+  ) {
+    deny();
+  }
   return {
     locationId,
     membershipId: row.membershipId,

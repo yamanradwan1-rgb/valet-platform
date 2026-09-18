@@ -4,13 +4,17 @@ import { RuntimeDatabaseModule } from "../../common/database/runtime-database.mo
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
+import { PaymentsModule } from "../payments/payments.module";
 import { ManagementCompanyReportController } from "./company-report.controller";
 import { ManagementCompanyReportExportService } from "./company-report-export-service";
 import { ManagementCompanyReportService } from "./company-report-read-service";
+import { ManagementCommercialController } from "./management-commercial.controller";
+import { ManagementCommercialReadService } from "./management-commercial-read.service";
 import { ManagementContextController } from "./management-context.controller";
 import { ManagementContextService } from "./management-context.service";
 import { ManagementCompanyAnalyticsController } from "./management-company-analytics.controller";
 import { ManagementCompanyAnalyticsService } from "./management-company-analytics.service";
+import { ManagementIntegrationsService } from "./management-integrations.service";
 import { ManagementAuditController } from "./management-audit.controller";
 import { ManagementAuditService } from "./management-audit.service";
 import { ManagementSettingsController } from "./management-settings.controller";
@@ -36,8 +40,14 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
     ManagementVisitContactController,
     ManagementCompanyAnalyticsController,
     ManagementCompanyReportController,
+    ManagementCommercialController,
   ],
-  imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
+  imports: [
+    AuthModule,
+    PaymentsModule,
+    RuntimeDatabaseModule,
+    HttpInfrastructureModule,
+  ],
   providers: [
     ManagementContextService,
     ManagementAuditService,
@@ -50,6 +60,8 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
     ManagementCompanyAnalyticsService,
     ManagementCompanyReportService,
     ManagementCompanyReportExportService,
+    ManagementCommercialReadService,
+    ManagementIntegrationsService,
   ],
   exports: [ManagementContextService],
 })
@@ -67,6 +79,7 @@ export class ManagementModule implements NestModule {
         ManagementVisitContactController,
         ManagementCompanyAnalyticsController,
         ManagementCompanyReportController,
+        ManagementCommercialController,
       );
   }
 }

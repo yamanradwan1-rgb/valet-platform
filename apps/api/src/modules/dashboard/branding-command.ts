@@ -29,6 +29,7 @@ async function requireAuthorizedScope(
     transaction,
     authenticatedUserId,
     locationId,
+    "BASIC_BRANDING",
   );
   assertAuthorized(scope);
   return { locationId: scope.locationId, membershipId: scope.membershipId };

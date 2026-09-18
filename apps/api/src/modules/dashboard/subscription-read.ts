@@ -23,6 +23,7 @@ export async function readLocationSubscription(
       transaction,
       input.authenticatedUserId,
       input.locationId,
+      null,
     );
     assertAuthorized(scope);
     const rows = await transaction.query<SubscriptionRow>(

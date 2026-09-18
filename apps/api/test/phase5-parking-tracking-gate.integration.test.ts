@@ -183,6 +183,12 @@ describe("VAL-007H Phase 5 Parking tracking gate", () => {
       6,
     );
 
+    await context.adminPool.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [fixture.organizationId],
+    );
     await context.expectActiveLiveMap(managerToken, fixture.locationId, {
       latitude: 33,
       longitude: 38,
@@ -270,6 +276,12 @@ describe("VAL-007H Phase 5 Parking tracking gate", () => {
       await getTrackers(context.adminPool, fixture.sessionId),
     ).toHaveLength(0);
 
+    await context.adminPool.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [fixture.organizationId],
+    );
     const liveMap = await context.staffGet(
       managerToken,
       `/v1/staff/locations/${fixture.locationId}/live-operations-map`,

@@ -1,4 +1,8 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
+import {
+  hasManagementCommercialAccess,
+  type ManagementCommercialRequirement,
+} from "../management/management-commercial-access-policy";
 
 export interface DashboardLocationScope {
   readonly locationId: string;
@@ -10,6 +14,8 @@ export async function authorizeDashboardLocation(
   transaction: PostgresTransaction,
   authenticatedUserId: string,
   targetLocationId: string,
+  commercialRequirement: ManagementCommercialRequirement | null =
+    "DASHBOARD_ACCESS",
 ): Promise<DashboardLocationScope | null> {
   const result = await transaction.query<DashboardLocationScope>(
     `SELECT organization.id::text AS "organizationId",
@@ -33,5 +39,16 @@ export async function authorizeDashboardLocation(
      LIMIT 1`,
     [authenticatedUserId, targetLocationId],
   );
-  return result.rows[0] ?? null;
+  const scope = result.rows[0] ?? null;
+  if (
+    scope === null ||
+    commercialRequirement === null
+  ) return scope;
+  return (await hasManagementCommercialAccess(
+    transaction,
+    scope.organizationId,
+    commercialRequirement,
+  ))
+    ? scope
+    : null;
 }

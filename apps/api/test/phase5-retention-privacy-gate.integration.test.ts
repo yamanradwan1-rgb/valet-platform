@@ -177,6 +177,12 @@ describe("VAL-007H Phase 5 Retention and Privacy gate", () => {
 
     const manager = await context.addMember(fixture, "LOCATION_MANAGER", false);
     const managerToken = await context.authorize(manager.userId);
+    await context.adminPool.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [fixture.organizationId],
+    );
     const liveMap = await context.staffGet(
       managerToken,
       `/v1/staff/locations/${fixture.locationId}/live-operations-map`,

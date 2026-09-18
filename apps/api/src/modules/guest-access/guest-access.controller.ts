@@ -17,7 +17,7 @@ import {
   guestAccessIssueRequestSchema,
   guestAccessIssueResponseSchema,
   guestAccessRevokeResponseSchema,
-  guestSafeSessionResponseSchema,
+  guestSessionReadResponseSchema,
   type GuestAccessIssueRequest,
 } from "@valet/contracts";
 
@@ -257,7 +257,7 @@ export class GuestAccessController {
       if (result === undefined) {
         throw new GuestAccessError("GUEST_ACCESS_INVALID");
       }
-      return guestSafeSessionResponseSchema.parse(result);
+      return guestSessionReadResponseSchema.parse(result);
     });
   }
 }

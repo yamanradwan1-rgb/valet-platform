@@ -104,6 +104,14 @@ describe("MGT-BE-11 company export final authorization boundary", () => {
         reportKind: "DAILY",
       },
     });
+    await fixture.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=FALSE, report_exports_enabled=FALSE,
+           updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [state.membership.organizationId],
+    );
+    expect((await auditRows(state.membership.organizationId)).rowCount).toBe(1);
   });
 
   it("fails closed with zero audit when Organization authority is revoked after rendering", async () => {
@@ -115,6 +123,31 @@ describe("MGT-BE-11 company export final authorization boundary", () => {
        SET status='INACTIVE',updated_at=clock_timestamp()
        WHERE id=$1`,
       [state.membership.membershipId],
+    );
+    await expect(
+      inPostgresTransaction(fixture.databasePool(), (transaction) =>
+        finalizeCompanyReportExport(transaction, {
+          artifact: rendered,
+          context: staffContext,
+          organizationId: state.membership.organizationId,
+          renderedPeriodFrom: "2026-07-10",
+          renderedPeriodTo: "2026-07-10",
+          request: { date: "2026-07-10", format: "CSV", kind: "DAILY" },
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    expect((await auditRows(state.membership.organizationId)).rowCount).toBe(0);
+  });
+
+  it("fails closed with zero audit when current export entitlement is revoked after rendering", async () => {
+    const state = await scenario("BE-12 entitlement revoke");
+    const staffContext = await context(state.user.id, state.auth);
+    const rendered = artifact();
+    await fixture.query(
+      `UPDATE organization_subscriptions
+       SET report_exports_enabled=FALSE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [state.membership.organizationId],
     );
     await expect(
       inPostgresTransaction(fixture.databasePool(), (transaction) =>

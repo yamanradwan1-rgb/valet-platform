@@ -86,6 +86,7 @@ export class ManagementBrandingService {
       const actor = await authorizeCompanyAdminManagement(transaction, context, {
         assurance,
         capability: "BRANDING_MANAGE_ELIGIBLE",
+        commercialRequirement: "BASIC_BRANDING",
         organizationId,
       });
       const result = await operation(transaction, actor);
@@ -107,6 +108,7 @@ export class ManagementBrandingService {
       const actor = await authorizeCompanyAdminManagement(transaction, context, {
         assurance,
         capability: "BRANDING_MANAGE_ELIGIBLE",
+        commercialRequirement: "BASIC_BRANDING",
         organizationId,
         requireActiveLocation: false,
         targetLocationId: locationId,

@@ -79,6 +79,7 @@ export async function finalizeCompanyReportExport(
 ): Promise<void> {
   const freshScope = await authorizeCompanyAdminManagement(transaction, input.context, {
     capability: "REPORT_EXPORT",
+    commercialRequirement: "REPORT_EXPORTS",
     organizationId: input.organizationId,
   });
   const freshPeriod = derivePeriod(input.request);
@@ -131,6 +132,7 @@ export class ManagementCompanyReportExportService {
       await transaction.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
       const scope = await authorizeCompanyAdminManagement(transaction, context, {
         capability: "REPORT_EXPORT",
+        commercialRequirement: "REPORT_EXPORTS",
         organizationId,
       });
       const snapshot = await composeCompanyReportSnapshot(transaction, {

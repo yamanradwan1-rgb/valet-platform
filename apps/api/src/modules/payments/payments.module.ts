@@ -42,6 +42,7 @@ import { StaffPaymentController } from "./staff-payment.controller";
   ],
   exports: [
     CashMutationService,
+    DigitalPaymentProviderRegistry,
     DigitalCollectionService,
     PaymentInitializationService,
     PaymentMutationService,

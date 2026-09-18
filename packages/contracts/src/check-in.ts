@@ -214,6 +214,23 @@ export const guestSafeSessionResponseSchema = z
   })
   .strict();
 
+export const guestEffectiveBrandingSchema = z
+  .object({
+    displayName: z
+      .string()
+      .min(1)
+      .refine((value) => Array.from(value).length <= 120)
+      .refine((value) => !/\p{Cc}/u.test(value)),
+    primaryColor: z.string().regex(/^#[0-9A-F]{6}$/),
+  })
+  .strict();
+
+export const guestSessionReadResponseSchema = guestSafeSessionResponseSchema
+  .extend({
+    branding: guestEffectiveBrandingSchema,
+  })
+  .strict();
+
 export type IntakeRequest = z.infer<typeof intakeRequestSchema>;
 export type IntakeResponse = z.infer<typeof intakeResponseSchema>;
 export type IntakeCustomerIntent = z.infer<typeof intakeCustomerIntentSchema>;
@@ -243,4 +260,7 @@ export type CompleteCheckInRequest = z.infer<
 >;
 export type CompleteCheckInResponse = z.infer<
   typeof completeCheckInResponseSchema
+>;
+export type GuestSessionReadResponse = z.infer<
+  typeof guestSessionReadResponseSchema
 >;

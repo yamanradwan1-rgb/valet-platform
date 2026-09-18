@@ -233,6 +233,12 @@ describe("VAL-007H Phase 5 Security gate", () => {
       `/v1/staff/valet-sessions/${fixture.sessionId}/tracking/gps-samples`,
       { samples: [sample] },
     );
+    await context.adminPool.query(
+      `UPDATE organization_subscriptions
+       SET dashboard_access_enabled=TRUE, updated_at=clock_timestamp()
+       WHERE organization_id=$1`,
+      [fixture.organizationId],
+    );
 
     const unauthorizedTokens = [
       foreignManagerToken,

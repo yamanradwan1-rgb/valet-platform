@@ -676,6 +676,29 @@ configuration; the RetrievalRequest snapshot is historical applicability truth.
 There is no default target, historical backfill, or rewrite of an earlier
 attempt when configuration changes.
 
+`OrganizationSubscription` is the one-to-one read-only commercial fact for an
+Organization. Zero rows means no subscription and no fabricated default. The
+opaque `planCode` and `TRIAL | ACTIVE | SUSPENDED` status are descriptive
+only; feature authority comes only from the typed booleans. `dashboardAccess`
+is the base entitlement for protected Management/Dashboard use,
+`reportExports` is an additional export entitlement, and `basicBranding` is
+an additional branding-administration entitlement. Missing subscription fails
+closed for protected commercial use, while the commercial-state read itself
+remains available to an otherwise authorized Company Admin and returns null when
+the row is absent.
+
+The read-only Management integration projection is a fixed catalog:
+`PLATE_OCR`, `STAFF_PUSH`, and `DIGITAL_PAYMENT`. It exposes only a safe
+provider-neutral status from `DISABLED | UNAVAILABLE | MISCONFIGURED | DEGRADED
+| OPERATIONAL | UNKNOWN`; configuration presence alone is not provider health,
+and the projection performs no provider request/send/payment call.
+
+Guest effective branding is a current projection from the persisted
+ValetSession Location: Location display-name/color override wins, otherwise the
+current Organization name/color is inherited. Guest input cannot choose tenant
+scope, the values are not snapshotted onto ValetSession, and no commercial
+entitlement is Guest authority.
+
 ## Management KPI source facts
 
 DEC-095 keeps Management analytics derived from existing operational facts

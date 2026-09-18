@@ -134,6 +134,7 @@ describe("accepted feature module ownership", () => {
     ]);
     expect(metadata(PaymentsModule, MODULE_METADATA.EXPORTS)).toEqual([
       CashMutationService,
+      DigitalPaymentProviderRegistry,
       DigitalCollectionService,
       PaymentInitializationService,
       PaymentMutationService,

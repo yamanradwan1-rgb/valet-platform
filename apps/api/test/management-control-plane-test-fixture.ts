@@ -26,7 +26,11 @@ export interface AssuredFactorFixture {
 
 export class ManagementControlPlaneTestFixture extends StaffMfaTestFixture {
   async createOrganization(
-    options: { name?: string; status?: "ACTIVE" | "INACTIVE" } = {},
+    options: {
+      entitled?: boolean;
+      name?: string;
+      status?: "ACTIVE" | "INACTIVE";
+    } = {},
   ): Promise<string> {
     const organizationId = randomUUID();
     await this.query(
@@ -39,6 +43,15 @@ export class ManagementControlPlaneTestFixture extends StaffMfaTestFixture {
         options.status ?? "ACTIVE",
       ],
     );
+    if (options.entitled !== false) {
+      await this.query(
+        `INSERT INTO organization_subscriptions
+           (organization_id, plan_code, status, dashboard_access_enabled,
+            report_exports_enabled, basic_branding_enabled)
+         VALUES ($1, 'TEST_ENTITLED', 'ACTIVE', TRUE, TRUE, TRUE)`,
+        [organizationId],
+      );
+    }
     return organizationId;
   }
 
@@ -61,6 +74,7 @@ export class ManagementControlPlaneTestFixture extends StaffMfaTestFixture {
   async createMembership(
     userId: string,
     options: {
+      entitled?: boolean;
       name?: string;
       organizationStatus?: "ACTIVE" | "INACTIVE";
       role?: ManagementTestRole;
@@ -68,6 +82,7 @@ export class ManagementControlPlaneTestFixture extends StaffMfaTestFixture {
     } = {},
   ): Promise<ManagementMembershipFixture> {
     const organizationId = await this.createOrganization({
+      ...(options.entitled === undefined ? {} : { entitled: options.entitled }),
       ...(options.name === undefined ? {} : { name: options.name }),
       ...(options.organizationStatus === undefined
         ? {}

@@ -115,6 +115,10 @@ describe("VAL-009F G8 HTTP boundary", () => {
     const fixture = await context.managerFixture();
     const { authorization } = await context.authenticated(fixture);
     const path = `/v1/staff/dashboard/locations/${fixture.locationId}/subscription`;
+    await context.adminPool.query(
+      `DELETE FROM organization_subscriptions WHERE organization_id = $1`,
+      [fixture.organizationId],
+    );
     const absent = await context.request("GET", path, { authorization });
     expect(absent.status).toBe(200);
     expect(absent.body).toEqual({

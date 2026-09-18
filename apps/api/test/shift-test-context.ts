@@ -150,6 +150,13 @@ export class ShiftTestContext {
       ],
     );
     await this.adminPool.query(
+      `INSERT INTO organization_subscriptions
+         (organization_id, plan_code, status, dashboard_access_enabled,
+          report_exports_enabled, basic_branding_enabled)
+       VALUES ($1, 'TEST_LAPSED', 'SUSPENDED', FALSE, FALSE, FALSE)`,
+      [fixture.organizationId],
+    );
+    await this.adminPool.query(
       `INSERT INTO locations
          (id, organization_id, name, code, address_text, timezone, currency,
           status, accepting_intake, updated_at)
