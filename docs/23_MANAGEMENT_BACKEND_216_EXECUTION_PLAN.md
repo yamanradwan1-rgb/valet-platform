@@ -4,8 +4,10 @@ Status: Binding execution plan with Management Backend MGT-BE-01 through
 MGT-BE-12 complete. MGT-BE-12 is **MERGED** at
 `df6158e8a417996bdaa67994ffe90724645e9e40`. INFRA-TEST-01A, 01B and 01C are
 **MERGED** through `main@f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88`.
-MGT-FIX-02 is the current corrective implementation branch; this status does
-not claim that corrective branch is merged or deployed.
+MGT-FIX-01 and MGT-FIX-02 are implemented and independently reviewed. The
+`fix/mgt-management-final-integration` branch contains both reviewed repairs
+and remains pending final integration review/merge; neither repair is represented
+here as merged to `main` or deployed.
 
 Rebaseline date: 2026-09-18
 
@@ -20,9 +22,11 @@ Rebaseline date: 2026-09-18
 | INFRA-TEST-01A merged implementation | `d7a2e309a06d749edbaf1f16a06111da59e9225e` + `fe5406ff60f30d7f482ae57b416dcdf4b62f1146` |
 | INFRA-TEST-01B merged implementation | `0f9b4b4478c1686a7cbce77013bf6c2b7aab206d` |
 | INFRA-TEST-01C | Merged through `main@f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88` |
-| MGT-FIX-02 base | `main@f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88` |
-| Current branch migration count | 45 forward-only directories |
-| Current branch latest migration | `20260919004500_mgt_fix_02_pagination_snapshot_membership` |
+| MGT-FIX-01 reviewed implementation | `48ec582245fb64bf80623ecaace5dd3eed61efb5` |
+| MGT-FIX-02 reviewed implementation | `041b0f8a54f366ec7808f95919dc2789a31ae3c6` |
+| Final integration branch | `fix/mgt-management-final-integration` contains both reviewed repairs; pending final review/merge |
+| Integration branch migration count | 45 forward-only directories |
+| Integration branch latest migration | `20260919004500_mgt_fix_02_pagination_snapshot_membership` (not yet on `main`) |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
@@ -1075,8 +1079,11 @@ MGT-BE-03 through MGT-BE-12 are merged. MGT-BE-12 is at
 `df6158e8a417996bdaa67994ffe90724645e9e40`; current merged main is
 `f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88` after INFRA-TEST-01A/01B/01C.
 Management Backend MGT-BE-01 through MGT-BE-12 and the three INFRA-TEST-01
-stabilization slices are merged; MGT-FIX-02 is a later corrective branch and
-is not represented here as already merged.
+stabilization slices are merged. MGT-FIX-01 (`48ec582...`) and MGT-FIX-02
+(`041b0f8...`) are later independently reviewed corrective implementations now
+combined on `fix/mgt-management-final-integration`; migration 45 exists on that
+integration branch, not on current `main`, and the combined corrective state is
+pending final integration review/merge.
 
 ## 14. Documentation rebaseline validation record
 
