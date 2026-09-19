@@ -863,6 +863,7 @@ model ValetSession {
   checkInConditionCompletedByMembershipId String?           @map("check_in_condition_completed_by_membership_id") @db.Uuid
   completedByMembershipId                 String?           @map("completed_by_membership_id") @db.Uuid
   createdAt                               DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  paginationBirthXid                      Unsupported("xid8")? @map("pagination_birth_xid")
   checkInConditionCompletedAt             DateTime?         @map("check_in_condition_completed_at") @db.Timestamptz(3)
   checkingInCompletedAt                   DateTime?         @map("checking_in_completed_at") @db.Timestamptz(3)
   parkingStartedAt                        DateTime?         @map("parking_started_at") @db.Timestamptz(3)
@@ -1551,6 +1552,7 @@ model AuditEvent {
   idempotencyKey        String?         @map("idempotency_key")
   occurredAt            DateTime        @map("occurred_at") @db.Timestamptz(3)
   createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  paginationBirthXid    Unsupported("xid8")? @map("pagination_birth_xid")
 
   organization    Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "audit_events_organization_id_fkey")
   location        Location?               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "audit_events_org_location_id_fkey")

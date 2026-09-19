@@ -165,6 +165,66 @@ describe("MGT-BE-08 Visit Contact history and Returning Contact", () => {
     expect(revoked.status).toBe(404);
   });
 
+  it("excludes a visit uncommitted at page one and admits it to fresh history", async () => {
+    const actor = await createActor("ORG_ADMIN");
+    const location = await fixture.addLocation(actor.organizationId);
+    const customer = await fixture.createCustomer(
+      actor.organizationId, "+962790055556", "MVCC history",
+    );
+    const vehicle = await fixture.createVehicle(actor.organizationId, { plateNumber: "MVH-1" });
+    const older = await fixture.createVisit({ customerId: customer,
+      createdAt: "2026-09-11T10:00:00.000Z", locationId: location.locationId,
+      membershipId: actor.membershipId, organizationId: actor.organizationId,
+      vehicleId: vehicle });
+    const newer = await fixture.createVisit({ customerId: customer,
+      createdAt: "2026-09-11T12:00:00.000Z", locationId: location.locationId,
+      membershipId: actor.membershipId, organizationId: actor.organizationId,
+      vehicleId: vehicle });
+    const writerUser = await fixture.createUser();
+    const writerMembership = await fixture.addMembership(
+      actor.organizationId, writerUser.id, "VALET_EMPLOYEE",
+    );
+    const lateVisit = randomUUID();
+    const writer = await fixture.databasePool().connect();
+    try {
+      await writer.query("BEGIN");
+      await fixture.createVisitInTransaction(writer, {
+        customerId: customer, createdAt: "2026-09-11T11:00:00.000Z",
+        locationId: location.locationId, membershipId: writerMembership,
+        organizationId: actor.organizationId, sessionId: lateVisit, vehicleId: vehicle,
+      });
+
+      const first = await fixture.managementGet(
+        customerHistory(actor.organizationId, customer, "?limit=1"),
+        actor.auth.accessToken,
+      );
+      expect(first.status).toBe(200);
+      expect(first.body?.items).toEqual([expect.objectContaining({ valetSessionId: newer })]);
+      const cursor = String(first.body?.nextCursor);
+
+      await writer.query("COMMIT");
+      const second = await fixture.managementGet(
+        customerHistory(actor.organizationId, customer, `?limit=10&cursor=${cursor}`),
+        actor.auth.accessToken,
+      );
+      expect(second.status).toBe(200);
+      expect((second.body?.items as Array<{ valetSessionId: string }>).map((item) => item.valetSessionId))
+        .toEqual([older]);
+      expect(JSON.stringify(second.body)).not.toContain(lateVisit);
+
+      const fresh = await fixture.managementGet(
+        customerHistory(actor.organizationId, customer, "?limit=10"),
+        actor.auth.accessToken,
+      );
+      expect(fresh.status).toBe(200);
+      expect((fresh.body?.items as Array<{ valetSessionId: string }>).map((item) => item.valetSessionId))
+        .toEqual([newer, lateVisit, older]);
+    } finally {
+      await writer.query("ROLLBACK").catch(() => undefined);
+      writer.release();
+    }
+  });
+
   it("rejects malformed and subject-crossover cursors", async () => {
     const actor = await createActor("ORG_ADMIN");
     const location = await fixture.addLocation(actor.organizationId);
@@ -179,6 +239,9 @@ describe("MGT-BE-08 Visit Contact history and Returning Contact", () => {
       customerHistory(actor.organizationId, customer, "?limit=1"), actor.auth.accessToken,
     );
     const cursor = String(page.body?.nextCursor);
+    const last = cursor.at(-1);
+    if (last === undefined) throw new Error("Expected history cursor.");
+    const tampered = `${cursor.slice(0, -1)}${last === "A" ? "B" : "A"}`;
     const otherCustomer = randomUUID();
     const crossed = await fixture.managementGet(
       customerHistory(actor.organizationId, otherCustomer, `?limit=1&cursor=${cursor}`),
@@ -187,6 +250,10 @@ describe("MGT-BE-08 Visit Contact history and Returning Contact", () => {
     expect(crossed.status).toBe(400);
     expect((await fixture.managementGet(
       customerHistory(actor.organizationId, customer, "?cursor=bad!"),
+      actor.auth.accessToken,
+    )).status).toBe(400);
+    expect((await fixture.managementGet(
+      customerHistory(actor.organizationId, customer, `?cursor=${tampered}`),
       actor.auth.accessToken,
     )).status).toBe(400);
   });

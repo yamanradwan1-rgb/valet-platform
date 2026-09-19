@@ -55,6 +55,9 @@ describe("management audit contracts", () => {
     expect(
       managementAuditLocationQuerySchema.safeParse({ locationId }).success,
     ).toBe(false);
+    expect(
+      managementAuditLocationQuerySchema.safeParse({ cursor: "A".repeat(4097) }).success,
+    ).toBe(false);
   });
 
   it("accepts only the safe known-event response projection", () => {

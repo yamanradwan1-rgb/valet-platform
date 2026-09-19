@@ -36,6 +36,7 @@ describe("management Visit Contact contracts", () => {
     expect(managementVisitHistoryQuerySchema.parse({})).toEqual({ limit: 25 });
     expect(managementVisitHistoryQuerySchema.safeParse({ offset: 10 }).success).toBe(false);
     expect(managementVisitHistoryQuerySchema.safeParse({ cursor: "bad!" }).success).toBe(false);
+    expect(managementVisitHistoryQuerySchema.safeParse({ cursor: "A".repeat(4097) }).success).toBe(false);
     expect(managementVisitHistoryQuerySchema.safeParse({ limit: 0 }).success).toBe(false);
   });
 

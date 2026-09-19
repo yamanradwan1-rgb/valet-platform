@@ -2,10 +2,10 @@
 
 Status: Binding execution plan with Management Backend MGT-BE-01 through
 MGT-BE-12 complete. MGT-BE-12 is **MERGED** at
-`df6158e8a417996bdaa67994ffe90724645e9e40`. INFRA-TEST-01A and 01B are
-**MERGED** through `main@0f9b4b4478c1686a7cbce77013bf6c2b7aab206d`;
-INFRA-TEST-01C is implemented on its review branch and awaits independent
-review/merge.
+`df6158e8a417996bdaa67994ffe90724645e9e40`. INFRA-TEST-01A, 01B and 01C are
+**MERGED** through `main@f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88`.
+MGT-FIX-02 is the current corrective implementation branch; this status does
+not claim that corrective branch is merged or deployed.
 
 Rebaseline date: 2026-09-18
 
@@ -15,13 +15,14 @@ Rebaseline date: 2026-09-18
 | --- | --- |
 | Repository | `valet-platform` |
 | BE-10 implementation commit | `2a178e977f88c576cfdc0c2c8363afae89f0ea5c` |
-| Current merged `main` SHA | `0f9b4b4478c1686a7cbce77013bf6c2b7aab206d` |
+| Current merged `main` SHA | `f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88` |
 | BE-12 merged implementation | `df6158e8a417996bdaa67994ffe90724645e9e40` |
 | INFRA-TEST-01A merged implementation | `d7a2e309a06d749edbaf1f16a06111da59e9225e` + `fe5406ff60f30d7f482ae57b416dcdf4b62f1146` |
 | INFRA-TEST-01B merged implementation | `0f9b4b4478c1686a7cbce77013bf6c2b7aab206d` |
-| INFRA-TEST-01C | Implemented on `feat/infra-test-01c-build-ci-stability`; pending independent review |
-| Current migration count | 44 forward-only directories |
-| Current latest migration | `20260918004400_mgt_be_11_all_locations_reports` |
+| INFRA-TEST-01C | Merged through `main@f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88` |
+| MGT-FIX-02 base | `main@f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88` |
+| Current branch migration count | 45 forward-only directories |
+| Current branch latest migration | `20260919004500_mgt_fix_02_pagination_snapshot_membership` |
 
 The earlier 39-packet plan did not merge to `main`. Its historical source is
 remote commit `a40b328` on `origin/docs/VAL-009-management-216-plan`; it is
@@ -103,9 +104,10 @@ materially adds or completes:
   serialized authoritative boundaries and do not rewrite historical facts.
 - implemented MGT-BE-06 / migration 39 with read-only Organization and exact-
   Location Management Audit routes, current-state Company Admin/Location
-  Manager/Supervisor authorization, an explicit 78-event safe projection
-  catalog, a 36-event Supervisor operational allowlist, strict scope/filter-
-  bound keyset cursors with a database snapshot ceiling, and complete separation
+  Manager/Supervisor authorization, an explicit safe projection catalog (78
+  then-current event types at the BE-06 merge, 87 current event types), a
+  36-event Supervisor operational allowlist, strict scope/filter-bound keyset
+  cursors, and complete separation
   from account-security audit and raw GPS/route history. Representative 100,000-
   row PostgreSQL plans measured the new
   `(organization_id, occurred_at DESC, id DESC)` index before adding it; no
@@ -197,8 +199,6 @@ new shared-contract compatibility obligations.
 
 1. Automatic report delivery remains intentionally deferred by DEC-093; this is
    not an unfinished BE-11/BE-12 requirement.
-2. INFRA-TEST-01A and 01B are merged. INFRA-TEST-01C is the final implemented
-   stabilization slice and remains pending independent review/merge.
 
 ## 6. Formal decision mapping
 
@@ -509,19 +509,26 @@ production deployment.
   Employee/Guest have no explorer. Account-security audit, raw metadata, raw
   route/GPS data, secret/PII/provider internals, and controlled operator refs are
   excluded.
-- Projection: all 78 current tenant event types are explicitly classified into
-  safe typed families. Known metadata is parsed field-by-field; malformed values
-  collapse safely. Unknown events return only a minimal `UNKNOWN` envelope and
-  are excluded entirely for Supervisor.
+- Projection: all 87 current tenant event types are explicitly classified into
+  safe typed families. Known metadata is parsed field-by-field. Optional numeric
+  versions/counts admit only public-schema-compatible safe integers and preserve
+  their positive/non-negative rules; malformed historical values are omitted
+  rather than failing the page. Unknown events return only a minimal `UNKNOWN`
+  envelope and are excluded entirely for Supervisor.
 - Filters/cursor: default `limit=50`, range 1–100; Organization supports optional
   exact `locationId` and known `eventType`, exact-Location supports optional known
-  `eventType`. Unknown query keys/types are rejected. Cursor v1 binds route,
-  Organization, Location/filter, event filter, `(occurred_at,id)` boundary, and
-  first-page database snapshot ceiling.
+  `eventType`. Unknown query keys/types are rejected. MGT-FIX-02 cursor v2 is a
+  bounded HMAC-authenticated opaque value that binds route, Organization,
+  Location/filter, event filter, `(occurred_at,id)` boundary, the original
+  timestamp ceiling, and the first-page PostgreSQL `pg_snapshot`.
 - Concurrency: every page reauthorizes current persisted authority inside the
-  read transaction. Ordering is `occurred_at DESC, id DESC`; equal timestamps are
-  deterministic and concurrent post-snapshot appends cannot destabilize later
-  pages. Audit reads append no AuditEvent.
+  read transaction. Migration 45 records each new AuditEvent's immutable top-level
+  insert transaction; later pages require that transaction to have been visible
+  in the first-page snapshot. Therefore a matching writer still uncommitted at
+  page one cannot enter page 2+ after commit, while a fresh traversal can see it.
+  Pre-migration rows remain explicitly legacy/null and need no rewrite. Ordering
+  remains `occurred_at DESC, id DESC`; equal timestamps stay deterministic.
+  Audit reads append no AuditEvent.
 - Performance: one bounded page query over authorized `audit_events` scope, no
   hydration N+1. The original 100,000-row benchmark measured Organization
   chronology at 54.250 ms / 2,026 shared buffers before versus 0.144 ms / 13
@@ -541,10 +548,11 @@ production deployment.
 - Focused validation coverage is present for current-state role/status/grant/Shift
   revocation, tenant/Location scope, account-security separation, every current
   event-family projection, malicious and malformed metadata, Supervisor
-  exclusions, cursor crossover/tampering, equal timestamp/concurrent append
-  traversal, zero read-side audit writes, migration upgrade/fresh install, and
-  unchanged append-only runtime privileges. Overall branch validation remains
-  tracked separately.
+  exclusions, signed-cursor crossover/tampering, equal timestamp/concurrent
+  append traversal, the pre-page-one uncommitted-writer regression, zero
+  read-side audit writes, migration upgrade/fresh install, and unchanged
+  append-only runtime authority over audit metadata. Overall branch validation
+  remains tracked separately.
 
 ### MGT-BE-07 — Location Management
 
@@ -625,15 +633,19 @@ Implementation status: merged to
   uses explicit `POST .../visit-contacts/:customerId/name-correction` and
   `/phone-correction`; no generic Customer patch exists.
 - Bounds/cursors: search/history default to 25 and cap at 50. Phone/name search
-  and history use version-1 base64url keyset cursors bound to membership,
-  Organization, snapshot and normalized mode/subject facts. Plate is an exact
-  bounded lookup and does not accept a cursor. History orders by
-  `(ValetSession.created_at DESC, id DESC)` and freezes a first-page database
-  snapshot while reauthorizing current persisted scope on every page. Phone/name
-  search applies that same first-page snapshot ceiling to Customer candidates,
-  authorized ValetSession existence, completed counts, latest visit and
-  associated-vehicle derivation, so a post-page-1 visit cannot introduce a new
-  candidate or mutate later-page visit-derived facts.
+  and history use bounded HMAC-authenticated version-2 keyset cursors bound to
+  membership, Organization, normalized mode/subject facts, the original
+  timestamp ceiling and first-page PostgreSQL `pg_snapshot`. Plate is an exact
+  bounded lookup and does not accept a cursor. History keeps
+  `(ValetSession.created_at DESC, id DESC)` ordering and reauthorizes current
+  persisted scope on every page. Migration 45 gives each newly inserted
+  ValetSession an immutable top-level insert transaction; candidate evidence,
+  scoped search evidence, history rows and Returning Contact prior-visit
+  evidence must have been visible in the first-page snapshot. Thus a matching
+  visit transaction uncommitted at page one cannot join page 2+ after commit,
+  while a fresh traversal may see it. Mutable Customer fields and later
+  ValetSession state changes remain current projections; MGT-FIX-02 does not
+  fabricate historical row versions or hold a database transaction across HTTP.
 - Search semantics: phone reuses the current Jordan-only Check-In normalizer;
   plate reuses authoritative country/number normalization; name is NFKC,
   control-character-rejecting, 2–80 code points, case-normalized prefix matching
@@ -672,7 +684,9 @@ Implementation status: merged to
   chronology indexes plus two narrow `SECURITY DEFINER` correction functions
   with fixed safe search path. Runtime keeps no generic Customer UPDATE/DELETE
   and receives execute only on those commands; private helpers and PUBLIC remain
-  denied.
+  denied. MGT-FIX-02 migration 45 adds only nullable `xid8` pagination birth
+  markers to `audit_events` and `valet_sessions` plus a private preservation
+  trigger; there is no backfill, pagination table, cache, or new index.
 - Performance: the original disposable PostgreSQL component proof at 60,000
   Customers, 50,000 Vehicles and 100,000 ValetSessions measured phone 38.081 ->
   0.278 ms, name 67.154 -> 0.364 ms, history 15.929 -> 0.026 ms, Returning
@@ -746,8 +760,8 @@ DEC-060 metrics.
 Implementation status: **MERGED** in
 `2a178e977f88c576cfdc0c2c8363afae89f0ea5c`. Migration 43 is
 `20260917004300_mgt_be_10_kpi_analytics`. Follow-up commit `4e8a505...`
-corrected only the benchmark wording; current merged main is
-`6c3810af41081d4b816fd81b9e188a2a7b42886f`.
+corrected only the benchmark wording; `6c3810af41081d4b816fd81b9e188a2a7b42886f`
+was the later merged main at that BE-11 point, not the current main.
 DEC-095 closes the SLA applicability, work-evidence, and Key Exception source
 gates intentionally left open by DEC-090.
 
@@ -883,8 +897,10 @@ Implementation status: **MERGED** at
 
 - Dependencies: MGT-BE-03; report-export enforcement after MGT-BE-11; effective
   branding consumes MGT-BE-05.
-- Schema: no migration 45. Existing `organization_subscriptions` and branding
-  persistence are reused; runtime remains SELECT-only on subscriptions.
+- Schema: MGT-BE-12 itself added no migration after migration 44. Existing
+  `organization_subscriptions` and branding persistence are reused; runtime
+  remains SELECT-only on subscriptions. The later MGT-FIX-02 corrective branch
+  independently owns migration 45 for pagination membership.
 - Commercial read: `GET
   /v1/staff/management/organizations/:organizationId/subscription` requires
   current Company Admin tenant/MFA authority but is intentionally not
@@ -1057,9 +1073,10 @@ authorization. At that historical point, MGT-BE-01 was merged, MGT-BE-02 was
 implemented, and MGT-BE-03 had not started. Current status is recorded above:
 MGT-BE-03 through MGT-BE-12 are merged. MGT-BE-12 is at
 `df6158e8a417996bdaa67994ffe90724645e9e40`; current merged main is
-`0f9b4b4478c1686a7cbce77013bf6c2b7aab206d` after INFRA-TEST-01A/01B.
-Management Backend MGT-BE-01 through MGT-BE-12 is complete, and
-INFRA-TEST-01C is implemented pending independent review/merge.
+`f6d30b967c71bc7c3b9aaa0c0eba8ccaece7aa88` after INFRA-TEST-01A/01B/01C.
+Management Backend MGT-BE-01 through MGT-BE-12 and the three INFRA-TEST-01
+stabilization slices are merged; MGT-FIX-02 is a later corrective branch and
+is not represented here as already merged.
 
 ## 14. Documentation rebaseline validation record
 

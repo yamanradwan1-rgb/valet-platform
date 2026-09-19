@@ -1,4 +1,9 @@
 import { ApiTransportValidationError } from "../../common/http/api-errors";
+import {
+  decodeSignedManagementCursor,
+  encodeSignedManagementCursor,
+  requireManagementSnapshot,
+} from "./management-pagination-snapshot";
 
 export type ManagementAuditRouteKind = "LOCATION" | "ORG";
 
@@ -13,14 +18,14 @@ export interface ManagementAuditCursorScope {
 export interface ManagementAuditCursorBoundary {
   readonly id: string;
   readonly occurredAt: string;
+  readonly snapshot: string;
   readonly snapshotCreatedAt: string;
 }
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const eventTypePattern = /^[A-Z][A-Z0-9_]{0,99}$/;
-const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
-const cursorKeys = ["e", "f", "i", "k", "l", "o", "s", "t", "v"];
+const cursorKeys = ["e", "f", "i", "k", "l", "o", "p", "s", "t", "v"];
 
 function isCanonicalIsoTimestamp(value: unknown): value is string {
   if (typeof value !== "string") return false;
@@ -55,20 +60,18 @@ export function encodeManagementAuditCursor(
   ) {
     throw new ApiTransportValidationError();
   }
-  return Buffer.from(
-    JSON.stringify({
-      e: scope.eventType,
-      f: scope.organizationLocationFilter,
-      i: boundary.id,
-      k: scope.routeKind,
-      l: scope.locationId,
-      o: scope.organizationId,
-      s: boundary.snapshotCreatedAt,
-      t: boundary.occurredAt,
-      v: 1,
-    }),
-    "utf8",
-  ).toString("base64url");
+  return encodeSignedManagementCursor({
+    e: scope.eventType,
+    f: scope.organizationLocationFilter,
+    i: boundary.id,
+    k: scope.routeKind,
+    l: scope.locationId,
+    o: scope.organizationId,
+    p: requireManagementSnapshot(boundary.snapshot),
+    s: boundary.snapshotCreatedAt,
+    t: boundary.occurredAt,
+    v: 2,
+  });
 }
 
 export function decodeManagementAuditCursor(
@@ -78,21 +81,12 @@ export function decodeManagementAuditCursor(
   validateScope(scope);
   if (value === undefined) return null;
   try {
-    if (
-      value.length < 8 ||
-      value.length > 512 ||
-      !base64UrlPattern.test(value)
-    ) {
-      throw new Error();
-    }
-    const bytes = Buffer.from(value, "base64url");
-    if (bytes.toString("base64url") !== value) throw new Error();
-    const decoded: unknown = JSON.parse(bytes.toString("utf8"));
+    const decoded = decodeSignedManagementCursor(value);
     if (typeof decoded !== "object" || decoded === null) throw new Error();
     const candidate = decoded as Record<string, unknown>;
     if (
       Object.keys(candidate).sort().join("|") !== cursorKeys.join("|") ||
-      candidate.v !== 1 ||
+      candidate.v !== 2 ||
       candidate.k !== scope.routeKind ||
       candidate.o !== scope.organizationId ||
       candidate.l !== scope.locationId ||
@@ -100,6 +94,7 @@ export function decodeManagementAuditCursor(
       candidate.f !== scope.organizationLocationFilter ||
       typeof candidate.i !== "string" ||
       !uuidPattern.test(candidate.i) ||
+      typeof candidate.p !== "string" ||
       !isCanonicalIsoTimestamp(candidate.t) ||
       !isCanonicalIsoTimestamp(candidate.s)
     ) {
@@ -108,6 +103,7 @@ export function decodeManagementAuditCursor(
     return {
       id: candidate.i,
       occurredAt: candidate.t,
+      snapshot: requireManagementSnapshot(candidate.p),
       snapshotCreatedAt: candidate.s,
     };
   } catch {

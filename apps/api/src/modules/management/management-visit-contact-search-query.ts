@@ -30,17 +30,6 @@ function locationIds(viewer: VisitContactViewer): readonly string[] | null {
   return viewer.locationIds === null ? null : [...viewer.locationIds];
 }
 
-export async function visitContactDatabaseNow(
-  transaction: PostgresTransaction,
-): Promise<Date> {
-  const result = await transaction.query<{ readonly now: Date }>(
-    `SELECT clock_timestamp() AS now`,
-  );
-  const now = result.rows[0]?.now;
-  if (now === undefined) throw new Error("Visit-contact snapshot time unavailable.");
-  return now;
-}
-
 export async function queryVisitCustomers(
   transaction: PostgresTransaction,
   input: {
@@ -48,6 +37,7 @@ export async function queryVisitCustomers(
     readonly limit: number;
     readonly mode: "NAME" | "PHONE";
     readonly search: string;
+    readonly snapshot: string;
     readonly snapshotCreatedAt: Date;
     readonly viewer: VisitContactViewer;
   },
@@ -69,6 +59,8 @@ export async function queryVisitCustomers(
            WHERE visible.organization_id = $1
              AND visible.customer_id = customer.id
              AND visible.created_at <= $3
+             AND (visible.pagination_birth_xid IS NULL OR
+                  pg_visible_in_snapshot(visible.pagination_birth_xid, $7::pg_snapshot))
              AND ($2::uuid[] IS NULL OR visible.location_id = ANY($2::uuid[]))
          )
        ORDER BY customer.id
@@ -81,6 +73,8 @@ export async function queryVisitCustomers(
          ON location.id = session.location_id AND location.organization_id = $1
        WHERE session.organization_id = $1
          AND session.created_at <= $3
+         AND (session.pagination_birth_xid IS NULL OR
+              pg_visible_in_snapshot(session.pagination_birth_xid, $7::pg_snapshot))
          AND ($2::uuid[] IS NULL OR session.location_id = ANY($2::uuid[]))
      ), counts AS (
        SELECT customer_id, count(*) FILTER (WHERE state = 'COMPLETED') AS completed_count
@@ -129,6 +123,7 @@ export async function queryVisitCustomers(
       input.boundaryId,
       input.search,
       input.limit + 1,
+      input.snapshot,
     ],
   );
   return result.rows;
