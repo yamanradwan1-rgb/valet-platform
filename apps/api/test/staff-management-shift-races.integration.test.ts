@@ -143,14 +143,20 @@ describe("MGT-BE-04 Shift start vs access reduction", () => {
         await holdAuditWrites(barrier);
         const lifecycle = reduce(current, reduction);
         await waitForBlockedTransactions(1);
-        const shift = createStartShiftCommandExecutor(runtimePool)({
+        const shiftOutcome = createStartShiftCommandExecutor(runtimePool)({
           authenticatedUserId: current.target.id,
           targetLocationId: current.locationId,
-        });
+        }).then(
+          (value) => ({ status: "fulfilled" as const, value }),
+          (error: unknown) => ({ error, status: "rejected" as const }),
+        );
         await waitForBlockedTransactions(2);
         await release(barrier);
         expect((await lifecycle).status).toBe(201);
-        await expect(shift).rejects.toMatchObject({ name: "ShiftOperationError" });
+        await expect(shiftOutcome).resolves.toMatchObject({
+          error: { name: "ShiftOperationError" },
+          status: "rejected",
+        });
       } catch (error) {
         await barrier.query("ROLLBACK").catch(() => undefined);
         await barrier.end().catch(() => undefined);

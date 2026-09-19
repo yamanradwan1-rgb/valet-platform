@@ -161,15 +161,19 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
         },
       );
       await waitForLocationRaceBlocked(fixture, 1);
-      const shift = createStartShiftCommandExecutor(runtimePool)({
+      const shiftOutcome = createStartShiftCommandExecutor(runtimePool)({
         authenticatedUserId: current.employee.id,
         targetLocationId: current.locationId,
-      });
+      }).then(
+        (value) => ({ status: "fulfilled" as const, value }),
+        (error: unknown) => ({ error, status: "rejected" as const }),
+      );
       await waitForLocationRaceBlocked(fixture, 2);
       await releaseLocationRaceBarrier(barrier);
       expect((await deactivate).status).toBe(201);
-      await expect(shift).rejects.toMatchObject({
-        name: "ShiftOperationError",
+      await expect(shiftOutcome).resolves.toMatchObject({
+        error: { name: "ShiftOperationError" },
+        status: "rejected",
       });
     } catch (error) {
       await barrier.query("ROLLBACK").catch(() => undefined);

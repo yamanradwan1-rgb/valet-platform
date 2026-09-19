@@ -177,11 +177,14 @@ describe("MGT-BE-04 Task assignment vs access reduction", () => {
         await barrier.query(`SELECT id FROM tasks WHERE id=$1 FOR UPDATE`, [
           current.queued.taskId,
         ]);
-        const assignment = createAssignTaskCommandExecutor(runtimePool)({
+        const assignmentOutcome = createAssignTaskCommandExecutor(runtimePool)({
           authenticatedUserId: current.target.id,
           expectedVersion: current.queued.version,
           taskId: current.queued.taskId,
-        });
+        }).then(
+          (value) => ({ status: "fulfilled" as const, value }),
+          (error: unknown) => ({ error, status: "rejected" as const }),
+        );
         await waitForBlockedTransactions(1);
         await createEndShiftCommandExecutor(runtimePool)({
           authenticatedUserId: current.target.id,
@@ -191,8 +194,12 @@ describe("MGT-BE-04 Task assignment vs access reduction", () => {
         const lifecycle = await reduce(current, reduction);
         expect(lifecycle.status).toBe(201);
         await release(barrier);
-        await expect(assignment).rejects.toMatchObject({
-          name: "DispatchOperationError",
+        await expect(assignmentOutcome).resolves.toMatchObject({
+          error: {
+            code: "TASK_NOT_FOUND_OR_FORBIDDEN",
+            name: "DispatchOperationError",
+          },
+          status: "rejected",
         });
       } catch (error) {
         await barrier.query("ROLLBACK").catch(() => undefined);
