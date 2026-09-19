@@ -147,7 +147,7 @@ export async function verifyAuditFoundationPrivileges(client, runtimeRole) {
     "occurred_at",
   ]);
   const tenantColumnsSafe =
-    tenantColumns.rows.length === 14 &&
+    tenantColumns.rows.length === 15 &&
     tenantColumns.rows.every(
       (row) =>
         row.can_select === true &&

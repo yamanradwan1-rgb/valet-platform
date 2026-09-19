@@ -32,9 +32,11 @@ import {
   projectManagementAuditEvent,
 } from "./management-audit-projection";
 import {
-  managementAuditDatabaseNow,
   queryManagementAuditPage,
 } from "./management-audit-query";
+import {
+  captureManagementPaginationSnapshot,
+} from "./management-pagination-snapshot";
 
 const knownEventTypes = new Set<string>(managementAuditKnownEventTypes);
 
@@ -47,14 +49,14 @@ function normalizedEventType(value: string | null | undefined): string | null {
 
 function snapshotForRequest(
   cursor: ManagementAuditCursorBoundary | null,
-  databaseNow: Date,
-): Date {
-  if (cursor === null) return databaseNow;
-  const snapshot = new Date(cursor.snapshotCreatedAt);
-  if (snapshot.getTime() > databaseNow.getTime()) {
+  current: { readonly now: Date; readonly snapshot: string },
+): { readonly createdAt: Date; readonly snapshot: string } {
+  if (cursor === null) return { createdAt: current.now, snapshot: current.snapshot };
+  const createdAt = new Date(cursor.snapshotCreatedAt);
+  if (createdAt.getTime() > current.now.getTime()) {
     throw new ApiTransportValidationError();
   }
-  return snapshot;
+  return { createdAt, snapshot: cursor.snapshot };
 }
 
 @Injectable()
@@ -143,8 +145,8 @@ export class ManagementAuditService {
     cursor: ManagementAuditCursorBoundary | null,
     limit: number,
   ): Promise<ManagementAuditResponse> {
-    const databaseNow = await managementAuditDatabaseNow(transaction);
-    const snapshotCreatedAt = snapshotForRequest(cursor, databaseNow);
+    const current = await captureManagementPaginationSnapshot(transaction);
+    const snapshot = snapshotForRequest(cursor, current);
     const result = await queryManagementAuditPage(transaction, {
       cursor,
       eventType: scope.eventType,
@@ -152,7 +154,8 @@ export class ManagementAuditService {
       limit,
       organizationId: scope.organizationId,
       organizationLocationFilter: scope.organizationLocationFilter,
-      snapshotCreatedAt,
+      snapshot: snapshot.snapshot,
+      snapshotCreatedAt: snapshot.createdAt,
       supervisorEventTypes:
         viewer.role === "VALET_SUPERVISOR"
           ? managementAuditSupervisorEventTypes
@@ -172,7 +175,8 @@ export class ManagementAuditService {
           ? encodeManagementAuditCursor(scope, {
               id: last.id,
               occurredAt: last.occurredAt.toISOString(),
-              snapshotCreatedAt: snapshotCreatedAt.toISOString(),
+              snapshot: snapshot.snapshot,
+              snapshotCreatedAt: snapshot.createdAt.toISOString(),
             })
           : null,
     };

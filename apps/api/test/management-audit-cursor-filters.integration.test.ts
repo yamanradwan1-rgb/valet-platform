@@ -1,7 +1,9 @@
-import { Buffer } from "node:buffer";
-
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
+import {
+  decodeSignedManagementCursor,
+  encodeSignedManagementCursor,
+} from "../src/modules/management/management-pagination-snapshot";
 import { ManagementAuditTestFixture } from "./management-audit-test-fixture";
 
 const fixture = new ManagementAuditTestFixture();
@@ -65,11 +67,24 @@ function mutateCursor(
   cursor: string,
   mutate: (value: Record<string, unknown>) => void,
 ) {
-  const value = JSON.parse(
-    Buffer.from(cursor, "base64url").toString("utf8"),
-  ) as Record<string, unknown>;
+  const value = decodeSignedManagementCursor(cursor) as Record<string, unknown>;
   mutate(value);
-  return Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
+  return encodeSignedManagementCursor(value);
+}
+
+function tamperCursor(cursor: string): string {
+  const last = cursor.at(-1);
+  if (last === undefined) throw new Error("Cursor is empty.");
+  return `${cursor.slice(0, -1)}${last === "A" ? "B" : "A"}`;
+}
+
+function malleateSignatureText(cursor: string): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  const signatureLastIndex = 44;
+  const current = cursor[signatureLastIndex];
+  const index = current === undefined ? -1 : alphabet.indexOf(current);
+  if (index < 0 || index % 4 !== 0) throw new Error("Expected canonical cursor MAC.");
+  return `${cursor.slice(0, signatureLastIndex)}${alphabet[index + 1]}${cursor.slice(signatureLastIndex + 1)}`;
 }
 
 describe("MGT-BE-06 audit cursor and filter binding", () => {
@@ -207,11 +222,13 @@ describe("MGT-BE-06 audit cursor and filter binding", () => {
     const valid = String(first.body?.nextCursor);
     const candidates = [
       "not*base64url",
+      tamperCursor(valid),
+      malleateSignatureText(valid),
       mutateCursor(valid, (value) => {
         value.extra = true;
       }),
       mutateCursor(valid, (value) => {
-        value.v = 2;
+        value.v = 3;
       }),
     ];
     for (const cursor of candidates) {

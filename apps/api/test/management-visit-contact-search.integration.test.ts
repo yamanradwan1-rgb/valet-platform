@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { ManagementVisitContactTestFixture } from "./management-visit-contact-test-fixture";
@@ -194,6 +196,70 @@ describe("MGT-BE-08 Visit Contact search", () => {
     expect(JSON.stringify(second.body)).not.toContain(appendedVehicle);
     expect(JSON.stringify(second.body)).not.toContain(customerC);
     expect(second.body?.nextCursor).toBeNull();
+  });
+
+  it("excludes a matching visit uncommitted at page one and admits it to a fresh search", async () => {
+    const actor = await admin();
+    const location = await fixture.addLocation(actor.organizationId);
+    const phone = "+962790044445";
+    const customerA = await fixture.createCustomer(actor.organizationId, phone, "MVCC A",
+      "10000000-0000-4000-8000-000000000011");
+    const customerB = await fixture.createCustomer(actor.organizationId, phone, "MVCC B",
+      "10000000-0000-4000-8000-000000000012");
+    const customerC = await fixture.createCustomer(actor.organizationId, phone, "MVCC C",
+      "10000000-0000-4000-8000-000000000013");
+    const vehicle = await fixture.createVehicle(actor.organizationId, { plateNumber: "MVCC-1" });
+    await fixture.createVisit({ customerId: customerA, createdAt: "2026-09-10T10:00:00.000Z",
+      locationId: location.locationId, membershipId: actor.membershipId,
+      organizationId: actor.organizationId, vehicleId: vehicle });
+    await fixture.createVisit({ customerId: customerB, createdAt: "2026-09-10T11:00:00.000Z",
+      locationId: location.locationId, membershipId: actor.membershipId,
+      organizationId: actor.organizationId, vehicleId: vehicle });
+    const writerUser = await fixture.createUser();
+    const writerMembership = await fixture.addMembership(
+      actor.organizationId, writerUser.id, "VALET_EMPLOYEE",
+    );
+
+    const lateVisitId = randomUUID();
+    const writer = await fixture.databasePool().connect();
+    try {
+      await writer.query("BEGIN");
+      await fixture.createVisitInTransaction(writer, {
+        customerId: customerC, createdAt: "2026-09-10T12:00:00.000Z",
+        locationId: location.locationId, membershipId: writerMembership,
+        organizationId: actor.organizationId, sessionId: lateVisitId, vehicleId: vehicle,
+      });
+
+      const first = await fixture.managementGet(
+        searchPath(actor.organizationId, `phone=${encodeURIComponent(phone)}&limit=1`),
+        actor.auth.accessToken,
+      );
+      expect(first.status).toBe(200);
+      expect(first.body?.items).toEqual([expect.objectContaining({ customerId: customerA })]);
+      const cursor = String(first.body?.nextCursor);
+
+      await writer.query("COMMIT");
+      const second = await fixture.managementGet(
+        searchPath(actor.organizationId,
+          `phone=${encodeURIComponent(phone)}&limit=10&cursor=${encodeURIComponent(cursor)}`),
+        actor.auth.accessToken,
+      );
+      expect(second.status).toBe(200);
+      expect((second.body?.items as Array<{ customerId: string }>).map((item) => item.customerId))
+        .toEqual([customerB]);
+      expect(JSON.stringify(second.body)).not.toContain(customerC);
+
+      const fresh = await fixture.managementGet(
+        searchPath(actor.organizationId, `phone=${encodeURIComponent(phone)}&limit=10`),
+        actor.auth.accessToken,
+      );
+      expect(fresh.status).toBe(200);
+      expect((fresh.body?.items as Array<{ customerId: string }>).map((item) => item.customerId))
+        .toEqual([customerA, customerB, customerC]);
+    } finally {
+      await writer.query("ROLLBACK").catch(() => undefined);
+      writer.release();
+    }
   });
 
   it("rejects browse, incompatible modes, unknown keys, partial phone assumptions and bad cursors", async () => {

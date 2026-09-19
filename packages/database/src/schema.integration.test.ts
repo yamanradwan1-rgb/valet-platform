@@ -7138,10 +7138,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all forty-four forward-only migrations in order", () => {
+  it("applies exactly all forty-five forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260918004400_mgt_be_11_all_locations_reports",
+      "20260919004500_mgt_fix_02_pagination_snapshot_membership",
     );
   });
 

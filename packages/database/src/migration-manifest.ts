@@ -43,4 +43,5 @@ export const expectedMigrationDirectories = [
   "20260917004200_mgt_be_09_guest_rating",
   "20260917004300_mgt_be_10_kpi_analytics",
   "20260918004400_mgt_be_11_all_locations_reports",
+  "20260919004500_mgt_fix_02_pagination_snapshot_membership",
 ] as const;

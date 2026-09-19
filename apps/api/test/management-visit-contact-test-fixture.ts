@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import type { PoolClient } from "pg";
+
 import { ManagementAuditTestFixture } from "./management-audit-test-fixture";
 
 export interface VisitSeed {
@@ -57,12 +59,26 @@ export class ManagementVisitContactTestFixture extends ManagementAuditTestFixtur
   }
 
   async createVisit(input: VisitSeed): Promise<string> {
+    return this.insertVisit((text, values) => this.query(text, values), input);
+  }
+
+  async createVisitInTransaction(
+    client: PoolClient,
+    input: VisitSeed,
+  ): Promise<string> {
+    return this.insertVisit((text, values) => client.query(text, values), input);
+  }
+
+  private async insertVisit(
+    execute: (text: string, values: unknown[]) => Promise<unknown>,
+    input: VisitSeed,
+  ): Promise<string> {
     const id = input.sessionId ?? randomUUID();
     const state = input.state ?? "COMPLETED";
     const completedAt = state === "COMPLETED"
       ? (input.completedAt ?? input.createdAt ?? new Date().toISOString())
       : null;
-    await this.query(
+    await execute(
       `INSERT INTO valet_sessions(
          id,customer_access_token_hash,customer_access_expires_at,
          organization_id,location_id,vehicle_id,customer_id,state,

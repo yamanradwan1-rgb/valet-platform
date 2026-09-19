@@ -8,7 +8,7 @@ import {
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
 
 const uuidSchema = z.string().uuid();
-const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,512}$/);
+const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,4096}$/);
 const positiveVersionSchema = z.number().int().positive();
 const nonNegativeCountSchema = z.number().int().nonnegative();
 const taskStatusSchema = z.enum([

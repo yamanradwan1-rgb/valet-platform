@@ -1,4 +1,9 @@
 import { ApiTransportValidationError } from "../../common/http/api-errors";
+import {
+  decodeSignedManagementCursor,
+  encodeSignedManagementCursor,
+  requireManagementSnapshot,
+} from "./management-pagination-snapshot";
 
 export type VisitContactSearchMode = "NAME" | "PHONE" | "PLATE";
 export type VisitHistorySubject = "CUSTOMER" | "VEHICLE";
@@ -6,6 +11,7 @@ export type VisitHistorySubject = "CUSTOMER" | "VEHICLE";
 interface CursorCommon {
   readonly membershipId: string;
   readonly organizationId: string;
+  readonly snapshot: string;
   readonly snapshotCreatedAt: string;
 }
 
@@ -23,8 +29,6 @@ export interface VisitHistoryCursor extends CursorCommon {
 }
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const base64url = /^[A-Za-z0-9_-]+$/;
-
 function timestamp(value: unknown): value is string {
   if (typeof value !== "string") return false;
   const date = new Date(value);
@@ -33,10 +37,7 @@ function timestamp(value: unknown): value is string {
 
 function decode(value: string): Record<string, unknown> {
   try {
-    if (value.length < 8 || value.length > 768 || !base64url.test(value)) throw new Error();
-    const bytes = Buffer.from(value, "base64url");
-    if (bytes.toString("base64url") !== value) throw new Error();
-    const parsed: unknown = JSON.parse(bytes.toString("utf8"));
+    const parsed = decodeSignedManagementCursor(value);
     if (parsed === null || typeof parsed !== "object") throw new Error();
     return parsed as Record<string, unknown>;
   } catch {
@@ -45,49 +46,54 @@ function decode(value: string): Record<string, unknown> {
 }
 
 function encode(value: Record<string, unknown>): string {
-  return Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
+  return encodeSignedManagementCursor(value);
 }
 
 export function encodeVisitContactSearchCursor(value: VisitContactSearchCursor): string {
   return encode({ b: value.boundaryId, m: value.mode, n: value.normalizedSearch,
-    o: value.organizationId, p: value.membershipId, s: value.snapshotCreatedAt, v: 1 });
+    o: value.organizationId, p: value.membershipId, q: requireManagementSnapshot(value.snapshot),
+    s: value.snapshotCreatedAt, v: 2 });
 }
 
 export function decodeVisitContactSearchCursor(
   value: string | undefined,
-  expected: Omit<VisitContactSearchCursor, "boundaryId" | "snapshotCreatedAt">,
+  expected: Omit<VisitContactSearchCursor, "boundaryId" | "snapshot" | "snapshotCreatedAt">,
 ): VisitContactSearchCursor | null {
   if (value === undefined) return null;
   const item = decode(value);
-  if (Object.keys(item).sort().join("|") !== "b|m|n|o|p|s|v" || item.v !== 1 ||
+  if (Object.keys(item).sort().join("|") !== "b|m|n|o|p|q|s|v" || item.v !== 2 ||
       item.m !== expected.mode || item.n !== expected.normalizedSearch ||
       item.o !== expected.organizationId || item.p !== expected.membershipId ||
-      typeof item.b !== "string" || !uuid.test(item.b) || !timestamp(item.s)) {
+      typeof item.b !== "string" || !uuid.test(item.b) || typeof item.q !== "string" ||
+      !timestamp(item.s)) {
     throw new ApiTransportValidationError();
   }
   return { boundaryId: item.b, membershipId: expected.membershipId,
     mode: expected.mode, normalizedSearch: expected.normalizedSearch,
-    organizationId: expected.organizationId, snapshotCreatedAt: item.s };
+    organizationId: expected.organizationId, snapshot: requireManagementSnapshot(item.q),
+    snapshotCreatedAt: item.s };
 }
 
 export function encodeVisitHistoryCursor(value: VisitHistoryCursor): string {
   return encode({ b: value.boundaryId, c: value.boundaryCreatedAt, k: value.subject,
-    o: value.organizationId, p: value.membershipId, s: value.snapshotCreatedAt,
-    u: value.subjectId, v: 1 });
+    o: value.organizationId, p: value.membershipId, q: requireManagementSnapshot(value.snapshot),
+    s: value.snapshotCreatedAt, u: value.subjectId, v: 2 });
 }
 
 export function decodeVisitHistoryCursor(
   value: string | undefined,
-  expected: Omit<VisitHistoryCursor, "boundaryCreatedAt" | "boundaryId" | "snapshotCreatedAt">,
+  expected: Omit<VisitHistoryCursor, "boundaryCreatedAt" | "boundaryId" | "snapshot" | "snapshotCreatedAt">,
 ): VisitHistoryCursor | null {
   if (value === undefined) return null;
   const item = decode(value);
-  if (Object.keys(item).sort().join("|") !== "b|c|k|o|p|s|u|v" || item.v !== 1 ||
+  if (Object.keys(item).sort().join("|") !== "b|c|k|o|p|q|s|u|v" || item.v !== 2 ||
       item.k !== expected.subject || item.o !== expected.organizationId ||
       item.p !== expected.membershipId || item.u !== expected.subjectId ||
-      typeof item.b !== "string" || !uuid.test(item.b) || !timestamp(item.c) ||
+      typeof item.b !== "string" || !uuid.test(item.b) || typeof item.q !== "string" ||
+      !timestamp(item.c) ||
       !timestamp(item.s)) throw new ApiTransportValidationError();
   return { boundaryCreatedAt: item.c, boundaryId: item.b,
     membershipId: expected.membershipId, organizationId: expected.organizationId,
-    snapshotCreatedAt: item.s, subject: expected.subject, subjectId: expected.subjectId };
+    snapshot: requireManagementSnapshot(item.q), snapshotCreatedAt: item.s,
+    subject: expected.subject, subjectId: expected.subjectId };
 }

@@ -850,6 +850,7 @@ check_in_condition_completed_by_membership_id nullable
 completed_by_membership_id nullable
 
 created_at
+pagination_birth_xid nullable
 check_in_condition_completed_at nullable
 checking_in_completed_at nullable
 parking_started_at nullable
@@ -898,6 +899,12 @@ Rules:
 - COMPLETED requires `completed_at`
 - `version` required, defaults to `1`, and must remain >= 1
 - optimistic concurrency increments `version` on contested operational mutation
+- MGT-FIX-02 migration 45 adds nullable `pagination_birth_xid xid8` as an
+  internal pagination-membership fact. New rows receive the top-level insert
+  transaction from `pg_current_xact_id()` and a trigger preserves that value
+  across later ValetSession updates. Pre-migration rows remain null and are
+  treated as legacy rows that predate every post-migration traversal. The field
+  is not a product identifier and is not caller authority.
 - task assignment/reassignment is not a separate ValetSession state; it belongs to Task/Dispatch lifecycle
 - `READY` is the canonical MVP state used for the Blueprint `STAGED/READY` position; staging location is operational location data unless later requirements require a distinct state
 - Incident lifecycle remains separate from ValetSession state
@@ -1008,6 +1015,7 @@ actor_membership_id
 event_type
 occurred_at
 created_at
+pagination_birth_xid nullable
 ```
 
 Event type:
@@ -1870,6 +1878,12 @@ Rules:
 - corrections append new events instead of replacing originals
 - do not put secrets, raw guest tokens, pickup codes/OTP values or unnecessary PII into metadata
 - created in same DB transaction as protected domain mutation where applicable
+- MGT-FIX-02 migration 45 adds nullable `pagination_birth_xid xid8`; new rows
+  store their top-level insert transaction through a database-owned trigger.
+  Existing rows are deliberately not backfilled. Management pagination combines
+  this immutable birth transaction with the first-page PostgreSQL `pg_snapshot`
+  so a transaction that was still uncommitted at page one cannot enter later
+  pages after it commits. No new pagination index is added.
 - MGT-BE-06 Management Audit reads use the measured chronological access path
   `audit_events(organization_id, occurred_at DESC, id DESC)`. The original
   100,000-row benchmark changed the bounded Organization, exact-Location and
@@ -2108,6 +2122,10 @@ settings/rules/templates/key-policy/validation-policy/allowed-role JSON engine.
 
 MGT-BE-06 / migration 39 is merged and provides the bounded Management Audit
 chronology index and safe read surface described above.
+MGT-FIX-02 adds forward-only migration 45 with no backfill or index. It adds
+the immutable nullable pagination birth transaction to `audit_events` and
+`valet_sessions`; the existing chronology/search indexes remain the access
+paths, while `pg_visible_in_snapshot` enforces first-page insert visibility.
 
 Implemented MGT-BE-07 / migration 40 adds `accepting_intake`, makes newly
 defaulted Location rows inactive, and exposes create/lifecycle-read/activate/

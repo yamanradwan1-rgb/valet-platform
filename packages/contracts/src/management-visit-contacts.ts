@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const uuidSchema = z.string().uuid();
 const timestampSchema = z.string().datetime({ offset: true });
-const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,768}$/);
+const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,4096}$/);
 const pageLimitSchema = z.coerce.number().int().min(1).max(50).default(25);
 
 export const managementVisitContactSearchQuerySchema = z

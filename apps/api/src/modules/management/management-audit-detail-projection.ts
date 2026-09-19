@@ -76,13 +76,13 @@ function allowedString(value: unknown, allowed: ReadonlySet<string>) {
 }
 
 function positiveInteger(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value > 0
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0
     ? value
     : undefined;
 }
 
 function nonNegativeInteger(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0
     ? value
     : undefined;
 }

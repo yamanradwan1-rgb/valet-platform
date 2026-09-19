@@ -32,6 +32,7 @@ import {
   type VisitHistorySubject,
 } from "./management-visit-contact-cursor";
 import { queryVisitHistory } from "./management-visit-contact-history-query";
+import { captureManagementPaginationSnapshot } from "./management-pagination-snapshot";
 import {
   escapeLikePrefix,
   normalizeVisitContactDisplayName,
@@ -43,7 +44,6 @@ import {
 import {
   queryVisitCustomers,
   queryVisitVehicle,
-  visitContactDatabaseNow,
   type VisitCustomerSearchRow,
 } from "./management-visit-contact-search-query";
 
@@ -54,11 +54,14 @@ function searchMode(query: ManagementVisitContactSearchQuery): VisitContactSearc
   throw new ApiTransportValidationError();
 }
 
-function snapshot(cursor: { snapshotCreatedAt: string } | null, now: Date): Date {
-  if (cursor === null) return now;
-  const value = new Date(cursor.snapshotCreatedAt);
-  if (value.getTime() > now.getTime()) throw new ApiTransportValidationError();
-  return value;
+function snapshot(
+  cursor: { readonly snapshot: string; readonly snapshotCreatedAt: string } | null,
+  current: { readonly now: Date; readonly snapshot: string },
+) {
+  if (cursor === null) return { createdAt: current.now, snapshot: current.snapshot };
+  const createdAt = new Date(cursor.snapshotCreatedAt);
+  if (createdAt.getTime() > current.now.getTime()) throw new ApiTransportValidationError();
+  return { createdAt, snapshot: cursor.snapshot };
 }
 
 function latest(row: VisitCustomerSearchRow) {
@@ -104,11 +107,11 @@ export class ManagementVisitContactService {
       const viewer = await authorizeVisitContactRead(transaction, context, organizationId);
       const expected = { membershipId: viewer.membershipId, organizationId, subject, subjectId };
       const cursor = decodeVisitHistoryCursor(query.cursor, expected);
-      const now = await visitContactDatabaseNow(transaction);
-      const snap = snapshot(cursor, now);
+      const snap = snapshot(cursor, await captureManagementPaginationSnapshot(transaction));
       const rows = await queryVisitHistory(transaction, {
         boundary: cursor === null ? null : { createdAt: new Date(cursor.boundaryCreatedAt), id: cursor.boundaryId },
-        limit: query.limit, snapshotCreatedAt: snap, subject, subjectId, viewer,
+        limit: query.limit, snapshot: snap.snapshot, snapshotCreatedAt: snap.createdAt,
+        subject, subjectId, viewer,
       });
       const hasNext = rows.length > query.limit;
       const page = rows.slice(0, query.limit);
@@ -125,7 +128,8 @@ export class ManagementVisitContactService {
       if (viewer.role === "ORG_ADMIN") await recordAdminActivityInTransaction(transaction, context);
       return { items, nextCursor: hasNext && last !== undefined
         ? encodeVisitHistoryCursor({ ...expected, boundaryCreatedAt: last.createdAt.toISOString(),
-            boundaryId: last.valetSessionId, snapshotCreatedAt: snap.toISOString() }) : null };
+            boundaryId: last.valetSessionId, snapshot: snap.snapshot,
+            snapshotCreatedAt: snap.createdAt.toISOString() }) : null };
     });
   }
 
@@ -152,11 +156,10 @@ export class ManagementVisitContactService {
     const expected = { membershipId: viewer.membershipId, mode, normalizedSearch: normalized,
       organizationId: viewer.organizationId };
     const cursor = decodeVisitContactSearchCursor(query.cursor, expected);
-    const now = await visitContactDatabaseNow(transaction);
-    const snap = snapshot(cursor, now);
+    const snap = snapshot(cursor, await captureManagementPaginationSnapshot(transaction));
     const rows = await queryVisitCustomers(transaction, { boundaryId: cursor?.boundaryId ?? null,
       limit: query.limit, mode, search: mode === "NAME" ? escapeLikePrefix(normalized) : normalized,
-      snapshotCreatedAt: snap, viewer });
+      snapshot: snap.snapshot, snapshotCreatedAt: snap.createdAt, viewer });
     const hasNext = rows.length > query.limit;
     const page = rows.slice(0, query.limit);
     const last = page.at(-1);
@@ -164,7 +167,8 @@ export class ManagementVisitContactService {
       matchState: page.length === 0 ? "NONE" as const
         : cursor !== null || hasNext || page.length > 1 ? "AMBIGUOUS" as const : "UNIQUE" as const,
       nextCursor: hasNext && last !== undefined ? encodeVisitContactSearchCursor({ ...expected,
-        boundaryId: last.customerId, snapshotCreatedAt: snap.toISOString() }) : null };
+        boundaryId: last.customerId, snapshot: snap.snapshot,
+        snapshotCreatedAt: snap.createdAt.toISOString() }) : null };
   }
 
   private async plateSearch(transaction: PostgresTransaction, viewer: VisitContactViewer,

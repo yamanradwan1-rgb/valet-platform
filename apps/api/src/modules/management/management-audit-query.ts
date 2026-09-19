@@ -24,21 +24,9 @@ export interface ManagementAuditQueryInput {
   readonly limit: number;
   readonly organizationId: string;
   readonly organizationLocationFilter: string | null;
+  readonly snapshot: string;
   readonly snapshotCreatedAt: Date;
   readonly supervisorEventTypes: readonly string[] | null;
-}
-
-export async function managementAuditDatabaseNow(
-  transaction: PostgresTransaction,
-): Promise<Date> {
-  const result = await transaction.query<{ readonly now: Date }>(
-    `SELECT clock_timestamp() AS now`,
-  );
-  const now = result.rows[0]?.now;
-  if (result.rowCount !== 1 || now === undefined) {
-    throw new Error("Audit snapshot time is unavailable.");
-  }
-  return now;
 }
 
 function appendPredicate(
@@ -66,10 +54,16 @@ export async function queryManagementAuditPage(
     throw new ApiTransportValidationError();
   }
 
-  const parameters: unknown[] = [input.organizationId, input.snapshotCreatedAt];
+  const parameters: unknown[] = [
+    input.organizationId,
+    input.snapshotCreatedAt,
+    input.snapshot,
+  ];
   const predicates = [
     "event.organization_id = $1::uuid",
     "event.created_at <= $2::timestamptz",
+    `(event.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(event.pagination_birth_xid, $3::pg_snapshot))`,
   ];
 
   if (input.exactLocationId !== null) {

@@ -97,13 +97,28 @@ describe("MGT-BE-08 Visit Contact authorization", () => {
     const cursor = String(first.body?.nextCursor);
     expect(first.status).toBe(200);
     expect(cursor).not.toBe("null");
+    const last = cursor.at(-1);
+    if (last === undefined) throw new Error("Expected search cursor.");
+    const tampered = `${cursor.slice(0, -1)}${last === "A" ? "B" : "A"}`;
     for (const path of [
       search(organizationId, `phone=0790130130&limit=1&cursor=${cursor}`),
       search(organizationId, `name=Different&limit=1&cursor=${cursor}`),
       search(await fixture.createOrganization(), `name=Bound&limit=1&cursor=${cursor}`),
+      search(organizationId, `name=Bound&limit=1&cursor=${tampered}`),
     ]) {
       const response = await fixture.managementGet(path, auth.accessToken);
       expect([400, 404]).toContain(response.status);
     }
+
+    await fixture.query(
+      `DELETE FROM membership_location_access
+       WHERE organization_id=$1 AND membership_id=$2 AND location_id=$3`,
+      [organizationId, membershipId, location.locationId],
+    );
+    const revoked = await fixture.managementGet(
+      search(organizationId, `name=Bound&limit=1&cursor=${cursor}`),
+      auth.accessToken,
+    );
+    expect(revoked.status).toBe(404);
   });
 });

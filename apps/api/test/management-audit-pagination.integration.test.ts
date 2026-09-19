@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { ManagementAuditTestFixture } from "./management-audit-test-fixture";
@@ -163,6 +165,65 @@ describe("MGT-BE-06 audit pagination and filters", () => {
     expect(second.status).toBe(200);
     expect(eventIds(second.body)).toEqual([older]);
     expect(eventIds(second.body)).not.toContain(appended);
+  });
+
+  it("excludes a writer that was uncommitted at page one and admits it to a fresh traversal", async () => {
+    const state = await assuredAdmin();
+    const newer = await insertKnown(
+      state.membership.organizationId,
+      state.location.locationId,
+      new Date("2026-09-03T12:00:00.000Z"),
+    );
+    const older = await insertKnown(
+      state.membership.organizationId,
+      state.location.locationId,
+      new Date("2026-09-03T10:00:00.000Z"),
+    );
+    const lateId = randomUUID();
+    const writer = await fixture.databasePool().connect();
+    try {
+      await writer.query("BEGIN");
+      await writer.query(
+        `INSERT INTO audit_events
+           (id, organization_id, location_id, actor_type, event_type,
+            entity_type, entity_id, metadata_json, occurred_at)
+         VALUES ($1, $2, $3, 'SYSTEM', 'VALET_SESSION_CREATED',
+                 'Location', $3, '{}'::jsonb, $4)`,
+        [
+          lateId,
+          state.membership.organizationId,
+          state.location.locationId,
+          new Date("2026-09-03T11:00:00.000Z"),
+        ],
+      );
+
+      const first = await fixture.managementGet(
+        organizationPath(state.membership.organizationId, { limit: "1" }),
+        state.auth.accessToken,
+      );
+      expect(first.status).toBe(200);
+      expect(eventIds(first.body)).toEqual([newer]);
+      const cursor = String(first.body?.nextCursor);
+
+      await writer.query("COMMIT");
+      const second = await fixture.managementGet(
+        organizationPath(state.membership.organizationId, { cursor, limit: "10" }),
+        state.auth.accessToken,
+      );
+      expect(second.status).toBe(200);
+      expect(eventIds(second.body)).toEqual([older]);
+      expect(eventIds(second.body)).not.toContain(lateId);
+
+      const fresh = await fixture.managementGet(
+        organizationPath(state.membership.organizationId, { limit: "10" }),
+        state.auth.accessToken,
+      );
+      expect(fresh.status).toBe(200);
+      expect(eventIds(fresh.body)).toEqual([newer, lateId, older]);
+    } finally {
+      await writer.query("ROLLBACK").catch(() => undefined);
+      writer.release();
+    }
   });
 
   it("accepts known event filters and rejects unknown filter values", async () => {

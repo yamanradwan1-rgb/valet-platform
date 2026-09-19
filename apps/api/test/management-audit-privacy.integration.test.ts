@@ -158,6 +158,59 @@ describe("MGT-BE-06 audit privacy projection", () => {
     expect(JSON.stringify(item)).not.toContain("must remain private");
   });
 
+  it("omits unsafe optional integers without failing the audit page", async () => {
+    const state = await assuredAdmin();
+    const taskId = await fixture.insertAuditEvent({
+      actorMembershipId: state.membership.membershipId,
+      entityId: randomUUID(),
+      entityType: "Task",
+      eventType: "TASK_ASSIGNED",
+      locationId: state.location.locationId,
+      metadata: {
+        fromStatus: "QUEUED",
+        fromVersion: 1e100,
+        toStatus: "ASSIGNED",
+        toVersion: Number.MAX_SAFE_INTEGER,
+      },
+      organizationId: state.membership.organizationId,
+    });
+    const sessionId = await fixture.insertAuditEvent({
+      actorMembershipId: state.membership.membershipId,
+      entityId: randomUUID(),
+      entityType: "ValetSession",
+      eventType: "VALET_SESSION_HANDOFF_INITIATED",
+      locationId: state.location.locationId,
+      metadata: {
+        attempt: 1.5,
+        from_version: Number.MAX_SAFE_INTEGER + 1,
+        max_attempts: Number.MAX_SAFE_INTEGER,
+        method: "DYNAMIC_QR",
+        to_version: -1,
+      },
+      organizationId: state.membership.organizationId,
+    });
+
+    const result = await fixture.managementGet(
+      organizationPath(state.membership.organizationId),
+      state.auth.accessToken,
+    );
+    expect(result.status).toBe(200);
+    expect(itemById(result.body, taskId).details).toEqual({
+      fromStatus: "QUEUED",
+      kind: "TASK",
+      toStatus: "ASSIGNED",
+      toVersion: Number.MAX_SAFE_INTEGER,
+    });
+    expect(itemById(result.body, sessionId).details).toEqual({
+      handoffMethod: "DYNAMIC_QR",
+      kind: "SESSION",
+      maxAttempts: Number.MAX_SAFE_INTEGER,
+    });
+    const serialized = JSON.stringify(result.body);
+    expect(serialized).not.toContain("1e+100");
+    expect(serialized).not.toContain(String(Number.MAX_SAFE_INTEGER + 1));
+  });
+
   it("projects unknown tenant events to minimal UNKNOWN without leaking raw type or metadata", async () => {
     const state = await assuredAdmin();
     const occurredAt = new Date("2026-09-09T14:00:00.000Z");

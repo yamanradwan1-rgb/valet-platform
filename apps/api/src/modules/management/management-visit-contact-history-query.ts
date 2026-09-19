@@ -27,6 +27,7 @@ export async function queryVisitHistory(
   input: {
     readonly boundary: { readonly createdAt: Date; readonly id: string } | null;
     readonly limit: number;
+    readonly snapshot: string;
     readonly snapshotCreatedAt: Date;
     readonly subject: VisitHistorySubject;
     readonly subjectId: string;
@@ -58,6 +59,8 @@ export async function queryVisitHistory(
                 AND prior.state = 'COMPLETED'
                 AND prior_customer.phone_normalized = customer.phone_normalized
                 AND (prior.created_at, prior.id) < (session.created_at, session.id)
+                AND (prior.pagination_birth_xid IS NULL OR
+                     pg_visible_in_snapshot(prior.pagination_birth_xid, $7::pg_snapshot))
                 AND ($2::uuid[] IS NULL OR prior.location_id = ANY($2::uuid[]))
             ) END AS "returningContact"
      FROM valet_sessions AS session
@@ -74,10 +77,12 @@ export async function queryVisitHistory(
        AND ($2::uuid[] IS NULL OR session.location_id = ANY($2::uuid[]))
        AND ${subjectPredicate}
        AND session.created_at <= $4
+       AND (session.pagination_birth_xid IS NULL OR
+            pg_visible_in_snapshot(session.pagination_birth_xid, $7::pg_snapshot))
        AND ($5::timestamptz IS NULL OR
             (session.created_at, session.id) < ($5::timestamptz, $6::uuid))
      ORDER BY session.created_at DESC, session.id DESC
-     LIMIT $7`,
+     LIMIT $8`,
     [
       input.viewer.organizationId,
       locationIds(input.viewer),
@@ -85,6 +90,7 @@ export async function queryVisitHistory(
       input.snapshotCreatedAt,
       input.boundary?.createdAt ?? null,
       input.boundary?.id ?? null,
+      input.snapshot,
       input.limit + 1,
     ],
   );
