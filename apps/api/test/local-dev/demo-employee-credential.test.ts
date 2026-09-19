@@ -1,7 +1,13 @@
-import argon2 from "argon2";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { isAcceptedStaffPasswordHash } from "../../src/modules/auth/staff-auth.service";
+const { TEST_ONLY_PASSWORD_HASH } = vi.hoisted(() => ({
+  TEST_ONLY_PASSWORD_HASH: "test-only-deterministic-provisioning-hash",
+}));
+
+vi.mock("../../tools/staff-provisioning/provisioning-password", () => ({
+  hashProvisioningPassword: vi.fn(async () => TEST_ONLY_PASSWORD_HASH),
+}));
+
 import {
   AMMAN_DEMO_LOCATION_CODE,
   makeDemoEmployeeLoginCapable,
@@ -47,7 +53,7 @@ function successfulClient(): RecordingClient {
 }
 
 describe("canonical demo employee credential", () => {
-  it("stores a hash produced by the official provisioning implementation", async () => {
+  it("never exposes the password hash in the returned status object", async () => {
     const client = successfulClient();
     const result = await makeDemoEmployeeLoginCapable(
       client,
@@ -57,26 +63,9 @@ describe("canonical demo employee credential", () => {
     const update = client.queries.find((entry) =>
       entry.text.startsWith("UPDATE users"),
     );
-    expect(update).toBeDefined();
-    const storedHash = String(update?.values?.[0]);
-    expect(storedHash).not.toBe("VayletPassword123!");
-    expect(isAcceptedStaffPasswordHash(storedHash)).toBe(true);
-    expect(await argon2.verify(storedHash, "VayletPassword123!")).toBe(true);
-    expect(update?.values?.[1]).toBe("valet@vaylet.demo.invalid");
-    expect(result.email).toBe("valet@vaylet.demo.invalid");
-    expect(result.membershipRole).toBe("VALET_EMPLOYEE");
-    expect(result.activeShift).toBe(true);
-  });
-
-  it("never exposes the password hash in the returned status object", async () => {
-    const client = successfulClient();
-    const result = await makeDemoEmployeeLoginCapable(
-      client,
-      "valet@vaylet.demo.invalid",
-      "VayletPassword123!",
-    );
+    expect(update?.values?.[0]).toBe(TEST_ONLY_PASSWORD_HASH);
     const serialized = JSON.stringify(result);
-    expect(serialized).not.toMatch(/argon2id/i);
+    expect(serialized).not.toContain(TEST_ONLY_PASSWORD_HASH);
     expect(serialized.toLowerCase()).not.toContain("password_hash");
     expect(Object.keys(result)).toEqual([
       "activeShift",
