@@ -110,6 +110,7 @@ describe("VAL-009E fix: CSV hardening and determinism", () => {
 describe("VAL-009E fix: audited export transaction re-authorization", () => {
   it("fails closed with zero audits when access is revoked before the audit transaction", async () => {
     const fixture = await manager();
+    const staffSessionContext = await context.staffSessionContext(fixture.userId);
     const session = await analyticsSeedSession(context, {
       state: "COMPLETED",
       completedAtIso: "2026-07-10T10:00:00Z",
@@ -134,6 +135,7 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
     await expect(
       generateReportExport(context.runtimePool, {
         authenticatedUserId: fixture.userId,
+        staffSessionContext,
         locationId: fixture.locationId,
         request,
       }),
@@ -150,6 +152,7 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
             format: "CSV",
           },
           authenticatedUserId: fixture.userId,
+          staffSessionContext,
           locationId: fixture.locationId,
           renderedPeriodFrom: PERIOD.from,
           renderedPeriodTo: PERIOD.to,
@@ -162,6 +165,7 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
 
   it("writes one fresh-scope audit per successful finalized export", async () => {
     const fixture = await manager();
+    const staffSessionContext = await context.staffSessionContext(fixture.userId);
     await context.adminPool.query(
       `INSERT INTO membership_location_access
          (organization_id, membership_id, location_id)
@@ -171,11 +175,13 @@ describe("VAL-009E fix: audited export transaction re-authorization", () => {
     const before = await exportCount(fixture.locationId);
     const first = await generateReportExport(context.runtimePool, {
       authenticatedUserId: fixture.userId,
+      staffSessionContext,
       locationId: fixture.locationId,
       request: { date: "2026-07-10", format: "CSV", kind: "DAILY" },
     });
     const second = await generateReportExport(context.runtimePool, {
       authenticatedUserId: fixture.userId,
+      staffSessionContext,
       locationId: fixture.locationId,
       request: { date: "2026-07-10", format: "PDF", kind: "DAILY" },
     });

@@ -1,35 +1,10 @@
 import type { StaffPushRegistrationRequest } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
-import type { StaffSessionContext } from "../auth/staff-session-context";
-import { lockStaffUserSecurityBoundary } from "../auth/staff-user-security-lock";
 import type {
   ActiveRegistrationRow,
-  LockedStaffSessionRow,
   RegistrationRow,
 } from "./staff-push-registration-types";
-
-export async function lockAndRecheckStaffSession(
-  transaction: PostgresTransaction,
-  context: StaffSessionContext,
-): Promise<LockedStaffSessionRow | undefined> {
-  await lockStaffUserSecurityBoundary(transaction, context.userId);
-  const result = await transaction.query<LockedStaffSessionRow>(
-    `SELECT session.id, session.user_id, session.created_at
-     FROM staff_auth_sessions AS session
-     INNER JOIN users AS staff_user ON staff_user.id = session.user_id
-     WHERE session.id = $1
-       AND session.user_id = $2
-       AND session.current_access_token_hash = $3
-       AND session.revoked_at IS NULL
-       AND clock_timestamp() < session.access_expires_at
-       AND clock_timestamp() < session.absolute_expires_at
-       AND staff_user.status = 'ACTIVE'
-     FOR UPDATE OF session`,
-    [context.staffAuthSessionId, context.userId, context.accessTokenHash],
-  );
-  return result.rows[0];
-}
 
 export async function lockRegistrationKeys(
   transaction: PostgresTransaction,

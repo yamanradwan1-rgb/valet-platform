@@ -1,4 +1,6 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+
+import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 
 import type { ShiftFixture } from "./shift-test-context";
 import { DashboardTestContext } from "./dashboard-test-context";
@@ -17,6 +19,33 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
       });
     }
     return this.baseFixtureValue;
+  }
+
+  async staffSessionContext(userId: string): Promise<StaffSessionContext> {
+    const sessionId = randomUUID();
+    const accessTokenHash = `staff-access-sha256:v1:${createHash("sha256")
+      .update(randomUUID())
+      .digest("hex")}`;
+    const inserted = await this.adminPool.query<{ readonly created_at: Date }>(
+      `WITH decision AS (SELECT clock_timestamp() AS now)
+       INSERT INTO staff_auth_sessions
+         (id, user_id, current_access_token_hash, access_expires_at,
+          absolute_expires_at, created_at, last_rotated_at)
+       SELECT $1, $2, $3, decision.now + interval '15 minutes',
+              decision.now + interval '30 days', decision.now, decision.now
+       FROM decision
+       RETURNING created_at`,
+      [sessionId, userId, accessTokenHash],
+    );
+    const createdAt = inserted.rows[0]?.created_at;
+    if (createdAt === undefined)
+      throw new Error("Staff test session was not created.");
+    return {
+      accessTokenHash,
+      createdAt,
+      staffAuthSessionId: sessionId,
+      userId,
+    };
   }
 
   private baseFixture(): ShiftFixture {

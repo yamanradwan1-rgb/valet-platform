@@ -13,6 +13,7 @@ import {
   STAFF_SESSION_CONTEXT_RESOLVER,
   type StaffSessionContextResolver,
 } from "../auth/staff-session-context";
+import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalidation";
 import {
   StaffPushRegistrationConflictError,
   StaffPushRegistrationNotAvailableError,
@@ -23,7 +24,6 @@ import {
   findActiveRegistrations,
   findOwnedRegistration,
   insertRegistration,
-  lockAndRecheckStaffSession,
   lockRegistrationKeys,
   supersedeRegistration,
 } from "./staff-push-registration-repository";
@@ -87,7 +87,10 @@ export class StaffPushRegistrationService {
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
         // Canonical order: current session, sorted logical keys, implicated rows.
-        const session = await lockAndRecheckStaffSession(transaction, context);
+        const session = await lockAndRecheckStaffSessionContext(
+          transaction,
+          context,
+        );
         if (session === undefined) throw new UnauthorizedException();
         await lockRegistrationKeys(
           transaction,
@@ -176,7 +179,10 @@ export class StaffPushRegistrationService {
   ): Promise<StaffPushRegistrationResponse> {
     const context = await this.sessionResolver.resolve(authorization);
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const session = await lockAndRecheckStaffSession(transaction, context);
+      const session = await lockAndRecheckStaffSessionContext(
+        transaction,
+        context,
+      );
       if (session === undefined) throw new UnauthorizedException();
       const registration = await findOwnedRegistration(
         transaction,

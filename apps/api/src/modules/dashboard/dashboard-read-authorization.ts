@@ -2,6 +2,7 @@ import type { ManagementCapability } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalidation";
 import {
   recordAdminActivityInTransaction,
   requireMfaAssuranceInTransaction,
@@ -43,7 +44,17 @@ export async function authorizeDashboardReadLocation(
     input.targetLocationId,
     commercialRequirement,
   );
-  if (manager !== null) return manager;
+  if (manager !== null) {
+    if (input.capability !== "REPORT_EXPORT") return manager;
+    const context = input.staffSessionContext;
+    if (context === undefined || context.userId !== input.authenticatedUserId) {
+      return null;
+    }
+    return (await lockAndRecheckStaffSessionContext(transaction, context)) ===
+      undefined
+      ? null
+      : manager;
+  }
   const context = input.staffSessionContext;
   if (context === undefined || context.userId !== input.authenticatedUserId)
     return null;

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
+import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { finalizeAuditedExport } from "../src/modules/dashboard/report-export-service";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 
@@ -24,7 +25,11 @@ async function auditCount(locationId: string): Promise<number> {
   return Number(result.rows[0]?.count ?? 0);
 }
 
-function finalize(userId: string, locationId: string) {
+function finalize(
+  userId: string,
+  locationId: string,
+  staffSessionContext: StaffSessionContext,
+) {
   return inPostgresTransaction(context.runtimePool, (transaction) =>
     finalizeAuditedExport(transaction, {
       artifact: {
@@ -32,6 +37,7 @@ function finalize(userId: string, locationId: string) {
         format: "CSV",
       },
       authenticatedUserId: userId,
+      staffSessionContext,
       locationId,
       renderedPeriodFrom: period.from,
       renderedPeriodTo: period.to,
@@ -43,7 +49,14 @@ function finalize(userId: string, locationId: string) {
 describe("MGT-BE-12 Location export final entitlement boundary", () => {
   it("rechecks current reportExports and dashboardAccess before audit/return", async () => {
     const fixture = await context.managerFixture();
-    const first = await finalize(fixture.userId, fixture.locationId);
+    const staffSessionContext = await context.staffSessionContext(
+      fixture.userId,
+    );
+    const first = await finalize(
+      fixture.userId,
+      fixture.locationId,
+      staffSessionContext,
+    );
     expect(first.contentType).toBe("text/csv; charset=utf-8");
     expect(await auditCount(fixture.locationId)).toBe(1);
 
@@ -53,7 +66,9 @@ describe("MGT-BE-12 Location export final entitlement boundary", () => {
        WHERE organization_id=$1`,
       [fixture.organizationId],
     );
-    await expect(finalize(fixture.userId, fixture.locationId)).rejects.toMatchObject({
+    await expect(
+      finalize(fixture.userId, fixture.locationId, staffSessionContext),
+    ).rejects.toMatchObject({
       code: "AUTHORIZATION_DENIED",
     });
     expect(await auditCount(fixture.locationId)).toBe(1);
@@ -65,7 +80,9 @@ describe("MGT-BE-12 Location export final entitlement boundary", () => {
        WHERE organization_id=$1`,
       [fixture.organizationId],
     );
-    await expect(finalize(fixture.userId, fixture.locationId)).rejects.toMatchObject({
+    await expect(
+      finalize(fixture.userId, fixture.locationId, staffSessionContext),
+    ).rejects.toMatchObject({
       code: "AUTHORIZATION_DENIED",
     });
     expect(await auditCount(fixture.locationId)).toBe(1);
