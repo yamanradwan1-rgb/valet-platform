@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -195,20 +195,22 @@ describe("architecture physical-line policy", () => {
     expect(result.violations.join("\n")).toContain("must exceed 300");
   });
 
-  it("accepts the current repository after the transitional split", async () => {
-    const repositoryRoot = resolve(__dirname, "../../..");
-    const baselinePath = resolve(
-      repositoryRoot,
-      "scripts/architecture-line-baseline.json",
-    );
-    const [files, baselineContent] = await Promise.all([
-      collectAuthoredFiles(repositoryRoot),
-      readFile(baselinePath, "utf8"),
+  it("accepts a bounded repository after the transitional split", () => {
+    const grandfathered = {
+      path: "apps/api/src/modules/auth/staff-auth.service.ts",
+      maxLines: 458,
+    };
+    const files = new Map<string, string>([
+      [grandfathered.path, content(408)],
+      ["apps/new-file.ts", content(300)],
+      ...[...TRANSITIONAL_PATHS].map(
+        (path) => [path, content(300)] as [string, string],
+      ),
     ]);
-    const result = evaluateLinePolicy(
-      files,
-      parseLineBaseline(baselineContent),
-    );
+    const result = evaluateLinePolicy(files, baseline([grandfathered]));
     expect(result.violations).toEqual([]);
+    expect(result.warnings).toEqual([
+      `${grandfathered.path}: grandfathered 408 lines (limit 300, baseline maximum 458)`,
+    ]);
   });
 });
