@@ -1,4 +1,4 @@
 export const appInfo = {
-  description: "Management dashboard scaffold",
-  title: "Management Dashboard",
+  description: "Authorized VAYLET Management workspace",
+  title: "VAYLET Management",
 } as const;

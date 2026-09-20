@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { appInfo } from "./app-info";
 
-describe("dashboard app scaffold", () => {
+describe("dashboard application identity", () => {
   it("has a title", () => {
-    expect(appInfo.title).toBe("Management Dashboard");
+    expect(appInfo.title).toBe("VAYLET Management");
   });
 });

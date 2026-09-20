@@ -1,11 +1,5 @@
-import { AppShell } from "@valet/ui";
-
-import { appInfo } from "../lib/app-info";
+import { ManagementFoundationApp } from "../components/foundation/management-foundation-app";
 
 export default function Home() {
-  return (
-    <AppShell title={appInfo.title}>
-      <p>{appInfo.description}</p>
-    </AppShell>
-  );
+  return <ManagementFoundationApp currentPath="/" view="workspace" />;
 }
