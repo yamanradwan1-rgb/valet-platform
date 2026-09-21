@@ -12,7 +12,7 @@ import {
   dashboardNavigationRegistrations,
   resolveNavigation,
 } from "../../lib/navigation";
-import type { DashboardCommercialRequirement } from "../../lib/scope/dashboard-commercial-access";
+import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
 import { LoginPanel } from "../auth/login-panel";
 import { Button } from "../presentation/button";
 import { Panel } from "../presentation/panel";
@@ -30,11 +30,11 @@ import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation"
 export function ManagementFoundationApp({
   accountSecurity = false,
   children,
-  commercialRequirement = "DASHBOARD",
+  accessRequirement = "DASHBOARD",
 }: {
   readonly accountSecurity?: boolean;
   readonly children?: ReactNode;
-  readonly commercialRequirement?: DashboardCommercialRequirement;
+  readonly accessRequirement?: DashboardRouteAccessRequirement;
 }) {
   const currentPath = usePathname();
   const auth = useStaffAuth();
@@ -49,7 +49,7 @@ export function ManagementFoundationApp({
   const mfa = useMemo(() => new DashboardMfaClient(api), [api]);
   const revalidation = useSelectedScopeRevalidation({
     api,
-    commercialRequirement,
+    accessRequirement,
     identityGeneration: auth.identityGeneration,
     sessionGeneration: auth.sessionGeneration,
     onDenied: clearScope,
@@ -142,7 +142,7 @@ export function ManagementFoundationApp({
         ) : null}
         <ScopeEntry
           api={api}
-          commercialRequirement={commercialRequirement}
+          accessRequirement={accessRequirement}
           identityGeneration={auth.identityGeneration}
           sessionGeneration={auth.sessionGeneration}
           key={mfaGeneration}
@@ -182,7 +182,8 @@ export function ManagementFoundationApp({
     return (
       <StandalonePanel>
         <p>
-          {commercialRequirement === "DASHBOARD"
+          {accessRequirement === "DASHBOARD" ||
+          accessRequirement === "FOUNDATION_ENTRY"
             ? t("dashboardAccessUnavailable")
             : t("unavailable")}
         </p>
@@ -195,7 +196,7 @@ export function ManagementFoundationApp({
   }
   if (
     revalidation.status !== "valid" ||
-    revalidation.commercialAccess === null
+    revalidation.routeAccess === null
   ) {
     return (
       <StandalonePanel>
@@ -215,7 +216,7 @@ export function ManagementFoundationApp({
     dashboardNavigationRegistrations,
     presentation.navigation,
     locale,
-    revalidation.commercialAccess,
+    revalidation.routeAccess,
   );
   const selectedLocation =
     presentation.location ??

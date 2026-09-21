@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
 import type { DashboardLocale } from "../i18n/locale";
-import type { DashboardCommercialRequirement } from "../scope/dashboard-commercial-access";
+import type { DashboardRouteAccessRequirement } from "../scope/dashboard-commercial-access";
 
 export type DashboardNavigationRole =
   "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR";
@@ -22,7 +22,7 @@ export interface DashboardNavigationRegistration {
   readonly icon: LucideIcon;
   readonly labels: DashboardNavigationLabels;
   readonly roles: readonly DashboardNavigationRole[];
-  readonly commercialRequirement: DashboardCommercialRequirement;
+  readonly accessRequirement: DashboardRouteAccessRequirement;
   readonly scopeRequirement: DashboardNavigationScopeRequirement;
   readonly availability: DashboardNavigationAvailability;
   readonly placement: DashboardNavigationPlacement;

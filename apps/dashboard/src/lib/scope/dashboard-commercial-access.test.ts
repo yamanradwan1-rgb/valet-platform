@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   allowsDashboardCommercialRequirement,
+  allowsDashboardRouteAccessRequirement,
   commercialAccessFromSubscription,
+  noDashboardCommercialAccess,
 } from "./dashboard-commercial-access";
 
 function subscription(dashboardAccess: boolean, basicBranding: boolean) {
@@ -38,5 +40,17 @@ describe("dashboard commercial access", () => {
     expect(allowsDashboardCommercialRequirement("BRANDING", brandOnly)).toBe(false);
     expect(allowsDashboardCommercialRequirement("BRANDING", dashboardOnly)).toBe(false);
     expect(allowsDashboardCommercialRequirement("BRANDING", both)).toBe(true);
+  });
+
+  it("separates foundation entry from commercial Dashboard access", () => {
+    const routeAccess = {
+      foundationEntryAuthorized: true,
+      commercial: noDashboardCommercialAccess,
+    };
+
+    expect(allowsDashboardRouteAccessRequirement("FOUNDATION_ENTRY", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("DASHBOARD", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("BRANDING", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
   });
 });

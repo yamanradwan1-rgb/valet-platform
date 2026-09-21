@@ -3,7 +3,7 @@ import { WorkspaceFoundation } from "../components/foundation/workspace-foundati
 
 export default function Home() {
   return (
-    <ProtectedDashboardRoute>
+    <ProtectedDashboardRoute accessRequirement="FOUNDATION_ENTRY">
       <WorkspaceFoundation />
     </ProtectedDashboardRoute>
   );

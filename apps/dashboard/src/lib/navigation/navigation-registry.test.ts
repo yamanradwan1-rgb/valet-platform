@@ -14,10 +14,13 @@ import type {
   DashboardNavigationRole,
 } from "./navigation-types";
 
-const fullCommercialAccess = {
-  dashboardAccess: true,
-  basicBranding: true,
-  subscriptionRead: true,
+const fullRouteAccess = {
+  foundationEntryAuthorized: true,
+  commercial: {
+    dashboardAccess: true,
+    basicBranding: true,
+    subscriptionRead: true,
+  },
 } as const;
 
 function context(
@@ -35,7 +38,7 @@ function context(
 const futureRegistrations = [
   defineNavigationDestination({
     availability: "IMPLEMENTED",
-    commercialRequirement: "DASHBOARD",
+    accessRequirement: "DASHBOARD",
     href: "/company/settings",
     icon: Building2,
     id: "company-administration",
@@ -47,7 +50,7 @@ const futureRegistrations = [
   }),
   defineNavigationDestination({
     availability: "IMPLEMENTED",
-    commercialRequirement: "DASHBOARD",
+    accessRequirement: "DASHBOARD",
     href: "/analytics",
     icon: BarChart3,
     id: "analytics",
@@ -59,7 +62,7 @@ const futureRegistrations = [
   }),
   defineNavigationDestination({
     availability: "IMPLEMENTED",
-    commercialRequirement: "DASHBOARD",
+    accessRequirement: "DASHBOARD",
     href: "/reports",
     icon: FileText,
     id: "reports",
@@ -79,7 +82,7 @@ describe("dashboard navigation registry", () => {
         md01NavigationRegistrations,
         context(role),
         "en",
-        fullCommercialAccess,
+        fullRouteAccess,
       );
       expect(items.map((item) => item.id)).toEqual([
         "workspace",
@@ -100,13 +103,13 @@ describe("dashboard navigation registry", () => {
       registry,
       context("COMPANY_ADMIN"),
       "en",
-      fullCommercialAccess,
+      fullRouteAccess,
     );
     const locationManagerItems = resolveNavigation(
       registry,
       context("LOCATION_MANAGER"),
       "en",
-      fullCommercialAccess,
+      fullRouteAccess,
     );
 
     expect(companyItems.map((item) => item.id)).toContain(
@@ -127,7 +130,7 @@ describe("dashboard navigation registry", () => {
       registry,
       context("SUPERVISOR"),
       "en",
-      fullCommercialAccess,
+      fullRouteAccess,
     ).map((item) => item.id);
 
     expect(ids).not.toContain("company-administration");
@@ -144,7 +147,7 @@ describe("dashboard navigation registry", () => {
       registry,
       context("LOCATION_MANAGER"),
       "en",
-      fullCommercialAccess,
+      fullRouteAccess,
     ).map((item) => item.id);
 
     expect(ids).not.toContain("company-administration");
@@ -154,7 +157,7 @@ describe("dashboard navigation registry", () => {
   it("keeps future owner metadata hidden until the destination is implemented", () => {
     const planned = defineNavigationDestination({
       availability: "PLANNED",
-      commercialRequirement: "DASHBOARD",
+      accessRequirement: "DASHBOARD",
       href: "/future",
       icon: MapPin,
       id: "future-owner-page",
@@ -173,7 +176,7 @@ describe("dashboard navigation registry", () => {
         registry,
         context("COMPANY_ADMIN"),
         "en",
-        fullCommercialAccess,
+        fullRouteAccess,
       ),
     ).not.toEqual(
       expect.arrayContaining([
@@ -185,7 +188,7 @@ describe("dashboard navigation registry", () => {
   it("enforces required organization and Location scope before rendering", () => {
     const scoped = defineNavigationDestination({
       availability: "IMPLEMENTED",
-      commercialRequirement: "DASHBOARD",
+      accessRequirement: "DASHBOARD",
       href: "/location-only",
       icon: MapPin,
       id: "location-only",
@@ -201,7 +204,7 @@ describe("dashboard navigation registry", () => {
         [scoped],
         context("LOCATION_MANAGER", { locationId: null }),
         "en",
-        fullCommercialAccess,
+        fullRouteAccess,
       ),
     ).toEqual([]);
     expect(
@@ -209,7 +212,7 @@ describe("dashboard navigation registry", () => {
         [scoped],
         context("LOCATION_MANAGER"),
         "en",
-        fullCommercialAccess,
+        fullRouteAccess,
       ),
     ).toHaveLength(1);
   });
@@ -235,7 +238,7 @@ describe("dashboard navigation registry", () => {
       registry,
       context("COMPANY_ADMIN"),
       "ar",
-      fullCommercialAccess,
+      fullRouteAccess,
     );
 
     expect(arabic.find((item) => item.id === "analytics")?.label).toBe(

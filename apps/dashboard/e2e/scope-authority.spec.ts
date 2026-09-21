@@ -64,6 +64,48 @@ test("Location Manager sees only granted Locations", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("Location Manager foundation entry still requires Dashboard access", async ({
+  page,
+}) => {
+  const subscriptionPath =
+    `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/subscription`;
+  const fixture = new DashboardApiFixture({
+    locationManagerOrganizations: [ORG_A],
+    locationManagerLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    override: (path) =>
+      path === subscriptionPath
+        ? {
+            body: {
+              organizationId: ORG_A.organizationId,
+              locationId: LOCATION_A.locationId,
+              subscription: {
+                planCode: "E2E",
+                status: "ACTIVE",
+                entitlements: {
+                  dashboardAccess: false,
+                  reportExports: true,
+                  basicBranding: true,
+                },
+              },
+            },
+          }
+        : undefined,
+  });
+  await fixture.install(page);
+  await signIn(page, "manager@example.com");
+  await page.getByRole("button", { name: ORG_A.name }).click();
+  await page.getByRole("button", { name: LOCATION_A.name }).click();
+
+  await expect(
+    page.getByText(
+      "Management Dashboard access is unavailable for this authorized scope.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Authorized workspace" }),
+  ).toHaveCount(0);
+});
+
 test("Supervisor enters one active-shift Location with narrow navigation", async ({
   page,
 }) => {

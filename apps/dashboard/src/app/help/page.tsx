@@ -3,7 +3,7 @@ import { ProtectedDashboardRoute } from "../../components/foundation/protected-d
 
 export default function HelpPage() {
   return (
-    <ProtectedDashboardRoute>
+    <ProtectedDashboardRoute accessRequirement="FOUNDATION_ENTRY">
       <HelpFoundation />
     </ProtectedDashboardRoute>
   );

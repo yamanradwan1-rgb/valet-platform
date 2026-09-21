@@ -72,7 +72,7 @@ describe("selected scope revalidation helpers", () => {
 
     await expect(
       revalidateSelectedScope(apiWith(request), scope, "DASHBOARD"),
-    ).resolves.toEqual({ status: "entitlement", commercialAccess: null });
+    ).resolves.toEqual({ status: "entitlement", routeAccess: null });
     expect(request).toHaveBeenCalledTimes(1);
     expect(request.mock.calls[0]?.[0]).toContain("/subscription");
   });
@@ -99,10 +99,13 @@ describe("selected scope revalidation helpers", () => {
       revalidateSelectedScope(apiWith(request), scope, "SUBSCRIPTION_READ"),
     ).resolves.toEqual({
       status: "valid",
-      commercialAccess: {
-        dashboardAccess: false,
-        basicBranding: true,
-        subscriptionRead: true,
+      routeAccess: {
+        foundationEntryAuthorized: false,
+        commercial: {
+          dashboardAccess: false,
+          basicBranding: true,
+          subscriptionRead: true,
+        },
       },
     });
     expect(request).toHaveBeenCalledTimes(1);
@@ -119,10 +122,10 @@ describe("selected scope revalidation helpers", () => {
 
     await expect(
       revalidateSelectedScope(apiWith(request), scope, "DASHBOARD"),
-    ).resolves.toEqual({ status: "denied", commercialAccess: null });
+    ).resolves.toEqual({ status: "denied", routeAccess: null });
     await expect(
       revalidateSelectedScope(apiWith(request), scope, "BRANDING"),
-    ).resolves.toEqual({ status: "denied", commercialAccess: null });
+    ).resolves.toEqual({ status: "denied", routeAccess: null });
     expect(request).not.toHaveBeenCalled();
   });
 
@@ -146,15 +149,18 @@ describe("selected scope revalidation helpers", () => {
       revalidateSelectedScope(apiWith(request), scope, "SUBSCRIPTION_READ"),
     ).resolves.toEqual({
       status: "valid",
-      commercialAccess: {
-        dashboardAccess: false,
-        basicBranding: true,
-        subscriptionRead: true,
+      routeAccess: {
+        foundationEntryAuthorized: false,
+        commercial: {
+          dashboardAccess: false,
+          basicBranding: true,
+          subscriptionRead: true,
+        },
       },
     });
     await expect(
       revalidateSelectedScope(apiWith(request), scope, "DASHBOARD"),
-    ).resolves.toEqual({ status: "entitlement", commercialAccess: null });
+    ).resolves.toEqual({ status: "entitlement", routeAccess: null });
   });
 
   it("rejects inactive or mismatched LM subscription recovery scope", async () => {
@@ -174,7 +180,7 @@ describe("selected scope revalidation helpers", () => {
         inactiveScope,
         "SUBSCRIPTION_READ",
       ),
-    ).resolves.toEqual({ status: "denied", commercialAccess: null });
+    ).resolves.toEqual({ status: "denied", routeAccess: null });
 
     const activeScope: SelectedDashboardScope = {
       authority: "LOCATION_MANAGER",
@@ -187,7 +193,7 @@ describe("selected scope revalidation helpers", () => {
         activeScope,
         "SUBSCRIPTION_READ",
       ),
-    ).resolves.toEqual({ status: "denied", commercialAccess: null });
+    ).resolves.toEqual({ status: "denied", routeAccess: null });
   });
 
   it("requires an exact current Supervisor shift and safely classifies API failures", async () => {
@@ -214,10 +220,10 @@ describe("selected scope revalidation helpers", () => {
     const request = vi.fn().mockResolvedValue({ contexts: [] });
     await expect(
       revalidateSelectedScope(apiWith(request), scope, "DASHBOARD"),
-    ).resolves.toEqual({ status: "denied", commercialAccess: null });
+    ).resolves.toEqual({ status: "denied", routeAccess: null });
     await expect(
       revalidateSelectedScope(apiWith(request), scope, "SUBSCRIPTION_READ"),
-    ).resolves.toEqual({ status: "denied", commercialAccess: null });
+    ).resolves.toEqual({ status: "denied", routeAccess: null });
 
     expect(
       classifyScopeRevalidationFailure(
@@ -270,7 +276,7 @@ describe("selected scope revalidation helpers", () => {
     );
   });
 
-  it("changes the protected key when only the route commercial requirement changes", () => {
+  it("changes the protected key when only the route access requirement changes", () => {
     const scope: SelectedDashboardScope = {
       authority: "LOCATION_MANAGER",
       organization,

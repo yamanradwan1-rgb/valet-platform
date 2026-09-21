@@ -1,7 +1,7 @@
 import type { DashboardLocale } from "../i18n/locale";
 import {
-  allowsDashboardCommercialRequirement,
-  type DashboardCommercialAccess,
+  allowsDashboardRouteAccessRequirement,
+  type DashboardRouteAccess,
 } from "../scope/dashboard-commercial-access";
 import type {
   DashboardNavigationContext,
@@ -71,16 +71,16 @@ export function resolveNavigation(
   registrations: readonly DashboardNavigationRegistration[],
   context: DashboardNavigationContext,
   locale: DashboardLocale,
-  commercialAccess: DashboardCommercialAccess,
+  routeAccess: DashboardRouteAccess,
 ): readonly DashboardNavigationItem[] {
   return registrations
     .filter((registration) => registration.availability === "IMPLEMENTED")
     .filter((registration) => registration.roles.includes(context.role))
     .filter((registration) => hasRequiredScope(registration, context))
     .filter((registration) =>
-      allowsDashboardCommercialRequirement(
-        registration.commercialRequirement,
-        commercialAccess,
+      allowsDashboardRouteAccessRequirement(
+        registration.accessRequirement,
+        routeAccess,
       ))
     .map((registration) => ({
       href: registration.href,

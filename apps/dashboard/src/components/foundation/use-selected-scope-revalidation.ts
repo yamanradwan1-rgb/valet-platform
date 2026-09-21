@@ -11,9 +11,9 @@ import {
 import {
   allowsDashboardCommercialRequirement,
   commercialAccessFromSubscription,
-  supervisorDashboardCommercialAccess,
-  type DashboardCommercialAccess,
-  type DashboardCommercialRequirement,
+  noDashboardCommercialAccess,
+  type DashboardRouteAccess,
+  type DashboardRouteAccessRequirement,
 } from "../../lib/scope/dashboard-commercial-access";
 import {
   listActiveSupervisorScopes,
@@ -35,22 +35,22 @@ export interface SelectedScopeRevalidationState {
   readonly key: string;
   readonly status: SelectedScopeRevalidationStatus;
   readonly errorKind: DashboardApiErrorKind | null;
-  readonly commercialAccess: DashboardCommercialAccess | null;
+  readonly routeAccess: DashboardRouteAccess | null;
 }
 
 type SettledStatus = Exclude<SelectedScopeRevalidationStatus, "checking" | "error">;
 interface SettledResult {
   readonly status: SettledStatus;
-  readonly commercialAccess: DashboardCommercialAccess | null;
+  readonly routeAccess: DashboardRouteAccess | null;
 }
 
 export function selectedScopeRevalidationKey(
   sessionGeneration: number,
   identityGeneration: number,
-  commercialRequirement: DashboardCommercialRequirement,
+  accessRequirement: DashboardRouteAccessRequirement,
   scope: SelectedDashboardScope | null,
 ): string {
-  const prefix = `${sessionGeneration}:${identityGeneration}:${commercialRequirement}`;
+  const prefix = `${sessionGeneration}:${identityGeneration}:${accessRequirement}`;
   if (scope === null) return `${prefix}:none`;
   if (scope.authority === "COMPANY_ADMIN_SUBSCRIPTION") {
     return `${prefix}:ca-subscription:${scope.organization.organizationId}`;
@@ -98,12 +98,12 @@ export function classifyScopeRevalidationFailure(
 export async function revalidateSelectedScope(
   api: DashboardApiClient,
   scope: SelectedDashboardScope,
-  commercialRequirement: DashboardCommercialRequirement,
+  accessRequirement: DashboardRouteAccessRequirement,
   signal?: AbortSignal,
 ): Promise<SettledResult> {
   if (scope.authority === "COMPANY_ADMIN_SUBSCRIPTION") {
-    if (commercialRequirement !== "SUBSCRIPTION_READ") {
-      return { status: "denied", commercialAccess: null };
+    if (accessRequirement !== "SUBSCRIPTION_READ") {
+      return { status: "denied", routeAccess: null };
     }
     const subscription = await readCompanyAdminSubscription(
       api,
@@ -111,11 +111,14 @@ export async function revalidateSelectedScope(
       signal,
     );
     if (subscription.organizationId !== scope.organization.organizationId) {
-      return { status: "denied", commercialAccess: null };
+      return { status: "denied", routeAccess: null };
     }
     return {
       status: "valid",
-      commercialAccess: commercialAccessFromSubscription(subscription.subscription),
+      routeAccess: {
+        foundationEntryAuthorized: false,
+        commercial: commercialAccessFromSubscription(subscription.subscription),
+      },
     };
   }
 
@@ -123,14 +126,19 @@ export async function revalidateSelectedScope(
     const organizationId = scope.context.organization.organizationId;
     const subscription = await readCompanyAdminSubscription(api, organizationId, signal);
     if (subscription.organizationId !== organizationId) {
-      return { status: "denied", commercialAccess: null };
+      return { status: "denied", routeAccess: null };
     }
     const commercialAccess = commercialAccessFromSubscription(subscription.subscription);
-    if (!allowsDashboardCommercialRequirement(commercialRequirement, commercialAccess)) {
-      return { status: "entitlement", commercialAccess: null };
+    if (accessRequirement === "SUBSCRIPTION_READ") {
+      return {
+        status: "valid",
+        routeAccess: { foundationEntryAuthorized: false, commercial: commercialAccess },
+      };
     }
-    if (commercialRequirement === "SUBSCRIPTION_READ") {
-      return { status: "valid", commercialAccess };
+    const commercialRequirement =
+      accessRequirement === "FOUNDATION_ENTRY" ? "DASHBOARD" : accessRequirement;
+    if (!allowsDashboardCommercialRequirement(commercialRequirement, commercialAccess)) {
+      return { status: "entitlement", routeAccess: null };
     }
     const context = await resolveCompanyAdminContext(
       api,
@@ -142,9 +150,12 @@ export async function revalidateSelectedScope(
       context.organization.organizationId !== organizationId ||
       !sameManagementScope(context.scope, scope.context.scope)
     ) {
-      return { status: "denied", commercialAccess: null };
+      return { status: "denied", routeAccess: null };
     }
-    return { status: "valid", commercialAccess };
+    return {
+      status: "valid",
+      routeAccess: { foundationEntryAuthorized: true, commercial: commercialAccess },
+    };
   }
 
   if (scope.authority === "LOCATION_MANAGER") {
@@ -158,17 +169,25 @@ export async function revalidateSelectedScope(
       subscription.locationId !== scope.location.locationId ||
       subscription.organizationId !== scope.organization.organizationId
     ) {
-      return { status: "denied", commercialAccess: null };
+      return { status: "denied", routeAccess: null };
     }
     const commercialAccess = commercialAccessFromSubscription(subscription.subscription);
+    if (accessRequirement === "SUBSCRIPTION_READ") {
+      return {
+        status: "valid",
+        routeAccess: { foundationEntryAuthorized: false, commercial: commercialAccess },
+      };
+    }
+    const commercialRequirement =
+      accessRequirement === "FOUNDATION_ENTRY" ? "DASHBOARD" : accessRequirement;
     return allowsDashboardCommercialRequirement(commercialRequirement, commercialAccess)
-      ? { status: "valid", commercialAccess }
-      : { status: "entitlement", commercialAccess: null };
+      ? {
+          status: "valid",
+          routeAccess: { foundationEntryAuthorized: true, commercial: commercialAccess },
+        }
+      : { status: "entitlement", routeAccess: null };
   }
 
-  if (commercialRequirement !== "DASHBOARD") {
-    return { status: "denied", commercialAccess: null };
-  }
   const current = await listActiveSupervisorScopes(api, signal);
   const exact = current.some(
     (candidate) =>
@@ -176,9 +195,16 @@ export async function revalidateSelectedScope(
       candidate.location.locationId === scope.context.location.locationId &&
       candidate.activeShift.shiftId === scope.context.activeShift.shiftId,
   );
-  return exact
-    ? { status: "valid", commercialAccess: supervisorDashboardCommercialAccess }
-    : { status: "denied", commercialAccess: null };
+  if (!exact || accessRequirement !== "FOUNDATION_ENTRY") {
+    return { status: "denied", routeAccess: null };
+  }
+  return {
+    status: "valid",
+    routeAccess: {
+      foundationEntryAuthorized: true,
+      commercial: noDashboardCommercialAccess,
+    },
+  };
 }
 
 function sameManagementScope(
@@ -192,7 +218,7 @@ function sameManagementScope(
 
 export function useSelectedScopeRevalidation(input: {
   readonly api: DashboardApiClient;
-  readonly commercialRequirement: DashboardCommercialRequirement;
+  readonly accessRequirement: DashboardRouteAccessRequirement;
   readonly identityGeneration: number;
   readonly sessionGeneration: number;
   readonly onDenied?: () => void;
@@ -200,7 +226,7 @@ export function useSelectedScopeRevalidation(input: {
 }): SelectedScopeRevalidationState {
   const {
     api,
-    commercialRequirement,
+    accessRequirement,
     identityGeneration,
     onDenied,
     selectedScope,
@@ -210,14 +236,14 @@ export function useSelectedScopeRevalidation(input: {
   const key = selectedScopeRevalidationKey(
     sessionGeneration,
     identityGeneration,
-    commercialRequirement,
+    accessRequirement,
     selectedScope,
   );
   const [settled, setSettled] = useState<SelectedScopeRevalidationState>({
     key,
     status: "checking",
     errorKind: null,
-    commercialAccess: null,
+    routeAccess: null,
   });
 
   useEffect(() => {
@@ -226,14 +252,14 @@ export function useSelectedScopeRevalidation(input: {
     void Promise.resolve().then(async () => {
       if (disposed || !guard.isCurrent(ticket)) return;
       if (selectedScope === null) {
-        setSettled({ key, status: "denied", errorKind: null, commercialAccess: null });
+        setSettled({ key, status: "denied", errorKind: null, routeAccess: null });
         return;
       }
       try {
         const result = await revalidateSelectedScope(
           api,
           selectedScope,
-          commercialRequirement,
+          accessRequirement,
           ticket.signal,
         );
         if (!disposed && guard.isCurrent(ticket)) {
@@ -241,14 +267,14 @@ export function useSelectedScopeRevalidation(input: {
             key,
             status: result.status,
             errorKind: result.status === "entitlement" ? "entitlement" : null,
-            commercialAccess: result.commercialAccess,
+            routeAccess: result.routeAccess,
           });
           if (result.status === "denied") onDenied?.();
         }
       } catch (reason: unknown) {
         if (!disposed && guard.isCurrent(ticket)) {
           const failure = classifyScopeRevalidationFailure(reason);
-          setSettled({ key, ...failure, commercialAccess: null });
+          setSettled({ key, ...failure, routeAccess: null });
           if (failure.status === "denied") onDenied?.();
         }
       }
@@ -259,7 +285,7 @@ export function useSelectedScopeRevalidation(input: {
     };
   }, [
     api,
-    commercialRequirement,
+    accessRequirement,
     guard,
     identityGeneration,
     key,
@@ -270,5 +296,5 @@ export function useSelectedScopeRevalidation(input: {
 
   return settled.key === key
     ? settled
-    : { key, status: "checking", errorKind: null, commercialAccess: null };
+    : { key, status: "checking", errorKind: null, routeAccess: null };
 }

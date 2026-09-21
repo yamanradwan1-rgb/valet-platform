@@ -38,14 +38,14 @@ const EMPTY_LOCATIONS: Page<ManagementLocation> = { items: [], nextCursor: null 
 
 export function useScopeEntryController({
   api,
-  commercialRequirement,
+  accessRequirement,
   identityGeneration,
   sessionGeneration,
   onMfaRequired,
   onSelect,
 }: Pick<
   ScopeEntryProps,
-  "api" | "commercialRequirement" | "identityGeneration" | "sessionGeneration" | "onMfaRequired" | "onSelect"
+  "api" | "accessRequirement" | "identityGeneration" | "sessionGeneration" | "onMfaRequired" | "onSelect"
 >) {
   const [guard] = useState(() => new ScopeGenerationGuard());
   const identityRef = useRef(identityGeneration);
@@ -106,7 +106,7 @@ export function useScopeEntryController({
       const results = await Promise.allSettled([
         listCompanyAdminOrganizations(api, {}, ticket.request.signal),
         listLocationManagerOrganizations(api, {}, ticket.request.signal),
-        commercialRequirement === "DASHBOARD"
+        accessRequirement === "FOUNDATION_ENTRY"
           ? listActiveSupervisorScopes(api, ticket.request.signal)
           : Promise.resolve([] as readonly SupervisorCandidate[]),
       ]);
@@ -130,7 +130,7 @@ export function useScopeEntryController({
   }, [
     api,
     begin,
-    commercialRequirement,
+    accessRequirement,
     disposition,
     guard,
     identityGeneration,
@@ -185,7 +185,7 @@ export function useScopeEntryController({
         api,
         authority,
         organization,
-        commercialRequirement,
+        accessRequirement,
         ticket.request.signal,
       );
       if (!isCurrent(ticket)) return;
@@ -209,7 +209,7 @@ export function useScopeEntryController({
     } finally {
       if (isCurrent(ticket)) setPending(false);
     }
-  }, [api, begin, commercialRequirement, disposition, isCurrent]);
+  }, [api, accessRequirement, begin, disposition, isCurrent]);
 
   const loadMoreLocations = useCallback(async () => {
     if (activeOrganization === null || locations.nextCursor === null) return;

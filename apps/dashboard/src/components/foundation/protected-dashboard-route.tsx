@@ -2,18 +2,18 @@
 
 import type { ReactNode } from "react";
 
-import type { DashboardCommercialRequirement } from "../../lib/scope/dashboard-commercial-access";
+import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
 import { ManagementFoundationApp } from "./management-foundation-app";
 
 export function ProtectedDashboardRoute({
   children,
-  commercialRequirement = "DASHBOARD",
+  accessRequirement = "DASHBOARD",
 }: {
   readonly children: ReactNode;
-  readonly commercialRequirement?: DashboardCommercialRequirement;
+  readonly accessRequirement?: DashboardRouteAccessRequirement;
 }) {
   return (
-    <ManagementFoundationApp commercialRequirement={commercialRequirement}>
+    <ManagementFoundationApp accessRequirement={accessRequirement}>
       {children}
     </ManagementFoundationApp>
   );

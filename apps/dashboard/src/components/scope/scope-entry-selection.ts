@@ -4,7 +4,7 @@ import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import {
   allowsDashboardCommercialRequirement,
   commercialAccessFromSubscription,
-  type DashboardCommercialRequirement,
+  type DashboardRouteAccessRequirement,
 } from "../../lib/scope/dashboard-commercial-access";
 import {
   listCompanyAdminLocations,
@@ -26,7 +26,7 @@ export async function resolveOrganizationSelection(
   api: DashboardApiClient,
   authority: ScopeEntryAuthority,
   organization: ManagementOrganization,
-  commercialRequirement: DashboardCommercialRequirement,
+  accessRequirement: DashboardRouteAccessRequirement,
   signal: AbortSignal,
 ): Promise<OrganizationSelectionResult> {
   if (authority === "LOCATION_MANAGER") {
@@ -50,12 +50,14 @@ export async function resolveOrganizationSelection(
     return { kind: "DENIED" };
   }
   const access = commercialAccessFromSubscription(subscription.subscription);
-  if (commercialRequirement === "SUBSCRIPTION_READ") {
+  if (accessRequirement === "SUBSCRIPTION_READ") {
     return {
       kind: "SELECT",
       scope: { authority: "COMPANY_ADMIN_SUBSCRIPTION", organization },
     };
   }
+  const commercialRequirement =
+    accessRequirement === "FOUNDATION_ENTRY" ? "DASHBOARD" : accessRequirement;
   if (!allowsDashboardCommercialRequirement(commercialRequirement, access)) {
     return { kind: "UNAVAILABLE" };
   }

@@ -5,7 +5,7 @@ import type {
 } from "@valet/contracts";
 
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
-import type { DashboardCommercialRequirement } from "../../lib/scope/dashboard-commercial-access";
+import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
 import type { SupervisorCandidate } from "../../lib/scope/dashboard-scope";
 
 export type ScopeEntryAuthority = "COMPANY_ADMIN" | "LOCATION_MANAGER";
@@ -48,7 +48,7 @@ export type SelectedDashboardScope =
 
 export interface ScopeEntryProps {
   readonly api: DashboardApiClient;
-  readonly commercialRequirement: DashboardCommercialRequirement;
+  readonly accessRequirement: DashboardRouteAccessRequirement;
   readonly identityGeneration: number;
   readonly sessionGeneration: number;
   readonly labels: ScopeEntryLabels;

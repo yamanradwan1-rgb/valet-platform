@@ -6,7 +6,7 @@ import { SubscriptionRecoveryProbe } from "./subscription-recovery-probe";
 export default function SubscriptionRecoveryFixturePage() {
   if (process.env.NODE_ENV === "production") notFound();
   return (
-    <ProtectedDashboardRoute commercialRequirement="SUBSCRIPTION_READ">
+    <ProtectedDashboardRoute accessRequirement="SUBSCRIPTION_READ">
       <SubscriptionRecoveryProbe />
     </ProtectedDashboardRoute>
   );
