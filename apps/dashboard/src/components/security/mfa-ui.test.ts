@@ -27,5 +27,10 @@ describe("MFA UI error policy", () => {
     expect(isUncertainMfaMutation(apiError("unknown", "SERVER_ERROR"))).toBe(true);
     expect(isUncertainMfaMutation(apiError("mfa", "MFA_VERIFICATION_FAILED"))).toBe(false);
     expect(shouldReconcileMfaMutation(apiError("mfa", "MFA_ENROLLMENT_NOT_AVAILABLE"))).toBe(true);
+    expect(
+      shouldReconcileMfaMutation(
+        apiError("auth", "AUTH_RECONCILED_RETRY_REQUIRED"),
+      ),
+    ).toBe(true);
   });
 });

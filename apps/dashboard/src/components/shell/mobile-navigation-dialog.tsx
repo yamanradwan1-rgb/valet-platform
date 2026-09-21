@@ -1,4 +1,8 @@
+"use client";
+
 import type { DashboardNavigationItem } from "../../lib/navigation";
+import { useDashboardTheme } from "../../lib/theme/theme-provider";
+import { VayletLogo } from "../brand/vaylet-logo";
 import { Button } from "../presentation/button";
 import { FocusDialog } from "../presentation/focus-dialog";
 import { NavigationList } from "./navigation-list";
@@ -16,14 +20,13 @@ export function MobileNavigationDialog({
   readonly navigationLabel: string;
   readonly onClose: () => void;
 }) {
+  const { theme } = useDashboardTheme();
+
   return (
     <FocusDialog label={navigationLabel} onClose={onClose}>
       <div className="stack">
         <div className="sidebar-brand">
-          <span className="brand-mark">
-            <span aria-hidden="true" className="brand-dot" />
-            VAYLET
-          </span>
+          <VayletLogo tone={theme === "light" ? "dark" : "light"} />
           <Button
             aria-label={closeLabel}
             onClick={onClose}

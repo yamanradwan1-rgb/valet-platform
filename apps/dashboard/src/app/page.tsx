@@ -1,5 +1,10 @@
-import { ManagementFoundationApp } from "../components/foundation/management-foundation-app";
+import { ProtectedDashboardRoute } from "../components/foundation/protected-dashboard-route";
+import { WorkspaceFoundation } from "../components/foundation/workspace-foundation";
 
 export default function Home() {
-  return <ManagementFoundationApp currentPath="/" view="workspace" />;
+  return (
+    <ProtectedDashboardRoute>
+      <WorkspaceFoundation />
+    </ProtectedDashboardRoute>
+  );
 }

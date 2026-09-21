@@ -3,6 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { DashboardApiClient } from "./dashboard-api-client";
 import { DashboardApiError, dashboardApiErrorFromResponse } from "./dashboard-api-error";
+import { StaffAuthClient } from "../auth/staff-auth-client";
+
+const accessPayload = (character: string) => ({
+  accessToken: `vsa1.${character.repeat(43)}`,
+  tokenType: "Bearer" as const,
+  accessExpiresAt: "2099-01-01T00:00:00.000Z",
+  sessionExpiresAt: "2099-02-01T00:00:00.000Z",
+});
 
 function authProvider() {
   let currentToken = "old-token";
@@ -92,7 +100,9 @@ describe("DashboardApiClient", () => {
     });
   });
 
-  it("never blindly replays a mutation after a 401", async () => {
+  it.each(["POST", "PUT", "PATCH", "DELETE"] as const)(
+    "reconciles a %s 401 without replaying the mutation",
+    async (method) => {
     const auth = authProvider();
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify({ code: "STAFF_AUTHENTICATION_FAILED", message: "expired", requestId: "req-2" }), { status: 401 }),
@@ -100,10 +110,136 @@ describe("DashboardApiClient", () => {
     const api = new DashboardApiClient({ auth, fetch: fetcher });
 
     await expect(
-      api.request("/write", staffMfaStateResponseSchema, { method: "POST", body: {} }),
-    ).rejects.toMatchObject({ kind: "auth" } satisfies Partial<DashboardApiError>);
-    expect(auth.refresh).not.toHaveBeenCalled();
+      api.request("/write", staffMfaStateResponseSchema, { method, body: {} }),
+    ).rejects.toMatchObject({
+      kind: "auth",
+      code: "AUTH_RECONCILED_RETRY_REQUIRED",
+    } satisfies Partial<DashboardApiError>);
+    expect(auth.refresh).toHaveBeenCalledTimes(1);
+    expect(auth.getSessionGeneration()).toBe(3);
     expect(fetcher).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("clears identity when mutation reconciliation is definitively rejected", async () => {
+    const authFetch = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify(accessPayload("a")), { status: 200 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            code: "STAFF_AUTHENTICATION_FAILED",
+            message: "expired",
+            requestId: "req-refresh",
+          }),
+          { status: 401 },
+        ),
+      );
+    const auth = new StaffAuthClient({ fetch: authFetch });
+    await auth.login({ email: "admin@example.com", password: "secret" });
+    const identityBefore = auth.getIdentityGeneration();
+    const apiFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: "STAFF_AUTHENTICATION_FAILED",
+          message: "expired",
+          requestId: "req-write",
+        }),
+        { status: 401 },
+      ),
+    );
+    const api = new DashboardApiClient({ auth, fetch: apiFetch });
+
+    await expect(
+      api.request("/write", staffMfaStateResponseSchema, {
+        method: "POST",
+        body: {},
+      }),
+    ).rejects.toMatchObject({ kind: "auth" });
+    expect(apiFetch).toHaveBeenCalledTimes(1);
+    expect(auth.getSession()).toBeNull();
+    expect(auth.getIdentityGeneration()).toBe(identityBefore + 1);
+  });
+
+  it("keeps prior identity on transient mutation reconciliation failure", async () => {
+    const authFetch = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify(accessPayload("b")), { status: 200 }))
+      .mockResolvedValueOnce(new Response("offline", { status: 503 }));
+    const auth = new StaffAuthClient({ fetch: authFetch });
+    await auth.login({ email: "admin@example.com", password: "secret" });
+    const identityBefore = auth.getIdentityGeneration();
+    const apiFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: "STAFF_AUTHENTICATION_FAILED",
+          message: "expired",
+          requestId: "req-write",
+        }),
+        { status: 401 },
+      ),
+    );
+    const api = new DashboardApiClient({ auth, fetch: apiFetch });
+
+    await expect(
+      api.request("/write", staffMfaStateResponseSchema, {
+        method: "PATCH",
+        body: {},
+      }),
+    ).rejects.toMatchObject({ kind: "unknown" });
+    expect(apiFetch).toHaveBeenCalledTimes(1);
+    expect(auth.getSession()).not.toBeNull();
+    expect(auth.getIdentityGeneration()).toBe(identityBefore);
+  });
+
+  it("single-flights concurrent mutation-401 reconciliation", async () => {
+    let resolveRefresh!: (response: Response) => void;
+    let markRefreshStarted!: () => void;
+    const pendingRefresh = new Promise<Response>((resolve) => {
+      resolveRefresh = resolve;
+    });
+    const refreshStarted = new Promise<void>((resolve) => {
+      markRefreshStarted = resolve;
+    });
+    const authFetch = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+      const path = String(input);
+      if (path.endsWith("/login")) {
+        return new Response(JSON.stringify(accessPayload("c")), { status: 200 });
+      }
+      markRefreshStarted();
+      return pendingRefresh;
+    });
+    const auth = new StaffAuthClient({ fetch: authFetch });
+    await auth.login({ email: "admin@example.com", password: "secret" });
+    const apiFetch = vi.fn<typeof fetch>().mockImplementation(async () =>
+      new Response(
+        JSON.stringify({
+          code: "STAFF_AUTHENTICATION_FAILED",
+          message: "expired",
+          requestId: "req-write",
+        }),
+        { status: 401 },
+      ),
+    );
+    const api = new DashboardApiClient({ auth, fetch: apiFetch });
+
+    const first = api.request("/write-a", staffMfaStateResponseSchema, {
+      method: "POST",
+      body: {},
+    });
+    const second = api.request("/write-b", staffMfaStateResponseSchema, {
+      method: "DELETE",
+    });
+    await refreshStarted;
+    expect(authFetch).toHaveBeenCalledTimes(2);
+    resolveRefresh(
+      new Response(JSON.stringify(accessPayload("d")), { status: 200 }),
+    );
+
+    const results = await Promise.allSettled([first, second]);
+    expect(results.every((result) => result.status === "rejected")).toBe(true);
+    expect(apiFetch).toHaveBeenCalledTimes(2);
+    expect(authFetch).toHaveBeenCalledTimes(2);
   });
 
   it("reports schema-invalid successful responses as malformed", async () => {

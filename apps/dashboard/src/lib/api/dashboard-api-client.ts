@@ -5,6 +5,7 @@ import {
   dashboardApiErrorFromResponse,
   dashboardAuthBoundaryError,
   dashboardMalformedError,
+  dashboardMutationRetryRequiredError,
   dashboardNetworkError,
 } from "./dashboard-api-error";
 
@@ -66,19 +67,24 @@ export class DashboardApiClient {
     }
 
     let response = await this.execute(path, method, options, requireAuth);
-    if (
-      response.status === 401 &&
-      requireAuth &&
-      method === "GET" &&
-      !refreshUsed &&
-      identityFence === this.auth.getIdentityGeneration() &&
-      sessionFence === this.auth.getSessionGeneration()
-    ) {
-      await this.refreshOrThrow(options.signal);
-      refreshUsed = true;
-      identityFence = this.auth.getIdentityGeneration();
-      sessionFence = this.auth.getSessionGeneration();
-      response = await this.execute(path, method, options, requireAuth);
+    if (response.status === 401 && requireAuth) {
+      const fenceIsCurrent =
+        identityFence === this.auth.getIdentityGeneration() &&
+        sessionFence === this.auth.getSessionGeneration();
+      if (method === "GET" && !refreshUsed && fenceIsCurrent) {
+        await this.refreshOrThrow(options.signal);
+        refreshUsed = true;
+        identityFence = this.auth.getIdentityGeneration();
+        sessionFence = this.auth.getSessionGeneration();
+        response = await this.execute(path, method, options, requireAuth);
+      } else if (method !== "GET" && fenceIsCurrent) {
+        const rejectedMutation = dashboardApiErrorFromResponse(
+          response.status,
+          response.payload,
+        );
+        await this.refreshOrThrow(options.signal);
+        throw dashboardMutationRetryRequiredError(rejectedMutation);
+      }
     }
 
     if (

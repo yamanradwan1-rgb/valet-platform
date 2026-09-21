@@ -26,13 +26,21 @@ test("Company Admin can enter All Locations and an exact Location", async ({
   await expect(
     page.getByRole("heading", { name: "Authorized workspace" }),
   ).toBeVisible();
-  await expect(page.getByText(`Organization: ${ORG_A.name}`)).toBeVisible();
-  await expect(page.getByText(`Location: ${LOCATION_A.name}`)).toHaveCount(0);
+  await expect(page.locator(".sidebar").getByText(ORG_A.name)).toBeVisible();
+  await expect(page.locator(".topbar").getByText("All Locations")).toBeVisible();
+  await expect(
+    page.locator(".topbar").getByText(LOCATION_A.name),
+  ).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Change scope" }).click();
+  await page
+    .locator(".topbar")
+    .getByRole("button", { name: "Change scope" })
+    .click();
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
-  await expect(page.getByText(`Location: ${LOCATION_A.name}`)).toBeVisible();
+  await expect(
+    page.locator(".topbar").getByText(LOCATION_A.name),
+  ).toBeVisible();
 });
 
 test("Location Manager sees only granted Locations", async ({ page }) => {
@@ -71,7 +79,9 @@ test("Supervisor enters one active-shift Location with narrow navigation", async
   await expect(
     page.getByRole("heading", { name: "Authorized workspace" }),
   ).toBeVisible();
-  await expect(page.getByText(`Location: ${LOCATION_A.name}`)).toBeVisible();
+  await expect(
+    page.locator(".topbar").getByText(LOCATION_A.name),
+  ).toBeVisible();
   await expectMd01NavigationOnly(page);
 });
 

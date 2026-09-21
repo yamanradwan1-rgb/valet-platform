@@ -27,8 +27,7 @@ export async function openLocationManagerWorkspace(page: Page): Promise<void> {
 
 export async function expectMd01NavigationOnly(page: Page): Promise<void> {
   const navigation = page
-    .getByRole("navigation", { name: "Management navigation" })
-    .first();
+    .getByRole("navigation", { name: "Management navigation" });
   await expect(navigation.getByRole("link")).toHaveText([
     "Workspace",
     "Security",

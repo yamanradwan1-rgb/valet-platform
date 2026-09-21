@@ -21,13 +21,24 @@ export function DashboardShell({
   themeControl,
 }: DashboardShellProps) {
   const [navigationOpen, setNavigationOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="shell">
+    <div
+      className="shell"
+      data-sidebar-collapsed={sidebarCollapsed ? "true" : "false"}
+    >
       <DashboardSidebar
+        collapsed={sidebarCollapsed}
+        collapseLabel={labels.collapseNavigation}
         currentPath={currentPath}
+        expandLabel={labels.expandNavigation}
         items={navigationItems}
         navigationLabel={labels.navigation}
+        onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
+        organizationLabel={labels.organization}
+        organizationSelector={organizationSelector}
+        selectedOrganization={selectedOrganization}
       />
       <div className="shell-main">
         <DashboardTopbar
@@ -37,12 +48,12 @@ export function DashboardShell({
           locationSelector={locationSelector}
           navigationOpen={navigationOpen}
           onOpenNavigation={() => setNavigationOpen(true)}
-          organizationSelector={organizationSelector}
           selectedLocation={selectedLocation}
-          selectedOrganization={selectedOrganization}
           themeControl={themeControl}
         />
-        <main className="content">{children}</main>
+        <main className="content">
+          <div className="content-inner">{children}</div>
+        </main>
       </div>
       {navigationOpen ? (
         <MobileNavigationDialog

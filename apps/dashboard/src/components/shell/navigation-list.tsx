@@ -1,6 +1,9 @@
 import Link from "next/link";
 
-import type { DashboardNavigationItem } from "../../lib/navigation";
+import {
+  isNavigationPathActive,
+  type DashboardNavigationItem,
+} from "../../lib/navigation";
 
 export function NavigationList({
   currentPath,
@@ -19,12 +22,20 @@ export function NavigationList({
         {items.map((item) => (
           <li key={item.id}>
             <Link
-              aria-current={currentPath === item.href ? "page" : undefined}
+              aria-current={
+                isNavigationPathActive(currentPath, item.href) ? "page" : undefined
+              }
               className="nav-link"
               href={item.href}
               {...(onNavigate === undefined ? {} : { onClick: onNavigate })}
             >
-              {item.label}
+              <item.icon
+                aria-hidden="true"
+                className="nav-icon"
+                size={19}
+                strokeWidth={1.9}
+              />
+              <span className="nav-label">{item.label}</span>
             </Link>
           </li>
         ))}

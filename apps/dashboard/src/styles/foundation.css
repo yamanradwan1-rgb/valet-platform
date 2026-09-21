@@ -17,22 +17,6 @@
   justify-content: space-between;
 }
 
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.brand-dot {
-  inline-size: 1.25rem;
-  block-size: 1.25rem;
-  border-radius: 0.35rem;
-  background: linear-gradient(135deg, #38bdf8, var(--accent));
-  box-shadow: 0 0 24px rgba(56, 189, 248, 0.55);
-}
-
 .auth-card-wrap {
   display: grid;
   place-items: center;

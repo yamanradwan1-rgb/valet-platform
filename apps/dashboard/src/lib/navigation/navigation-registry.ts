@@ -1,18 +1,19 @@
+import type { DashboardLocale } from "../i18n/locale";
 import type {
   DashboardNavigationContext,
   DashboardNavigationItem,
   DashboardNavigationRegistration,
 } from "./navigation-types";
 
-export function defineNavigationDestination<LabelKey extends string>(
-  registration: DashboardNavigationRegistration<LabelKey>,
-): DashboardNavigationRegistration<LabelKey> {
+export function defineNavigationDestination(
+  registration: DashboardNavigationRegistration,
+): DashboardNavigationRegistration {
   return registration;
 }
 
-export function composeNavigationRegistry<LabelKey extends string>(
-  ...groups: ReadonlyArray<readonly DashboardNavigationRegistration<LabelKey>[]>
-): readonly DashboardNavigationRegistration<LabelKey>[] {
+export function composeNavigationRegistry(
+  ...groups: ReadonlyArray<readonly DashboardNavigationRegistration[]>
+): readonly DashboardNavigationRegistration[] {
   const registrations = groups.flat();
   const ids = new Set<string>();
   const hrefs = new Set<string>();
@@ -40,6 +41,17 @@ export function composeNavigationRegistry<LabelKey extends string>(
   return registrations;
 }
 
+export function isNavigationPathActive(
+  currentPath: string,
+  destinationHref: string,
+): boolean {
+  if (destinationHref === "/") return currentPath === "/";
+  return (
+    currentPath === destinationHref ||
+    currentPath.startsWith(`${destinationHref}/`)
+  );
+}
+
 function hasRequiredScope(
   registration: DashboardNavigationRegistration,
   context: DashboardNavigationContext,
@@ -51,10 +63,10 @@ function hasRequiredScope(
   return context.organizationId !== null && context.locationId !== null;
 }
 
-export function resolveNavigation<LabelKey extends string>(
-  registrations: readonly DashboardNavigationRegistration<LabelKey>[],
+export function resolveNavigation(
+  registrations: readonly DashboardNavigationRegistration[],
   context: DashboardNavigationContext,
-  translate: (key: LabelKey) => string,
+  locale: DashboardLocale,
 ): readonly DashboardNavigationItem[] {
   return registrations
     .filter((registration) => registration.availability === "IMPLEMENTED")
@@ -62,8 +74,10 @@ export function resolveNavigation<LabelKey extends string>(
     .filter((registration) => hasRequiredScope(registration, context))
     .map((registration) => ({
       href: registration.href,
+      icon: registration.icon,
       id: registration.id,
-      label: translate(registration.labelKey),
+      label: registration.labels[locale],
       owner: registration.owner,
+      placement: registration.placement,
     }));
 }

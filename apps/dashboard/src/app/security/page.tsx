@@ -1,5 +1,5 @@
-import { ManagementFoundationApp } from "../../components/foundation/management-foundation-app";
+import { AccountSecurityRoute } from "../../components/foundation/account-security-route";
 
 export default function SecurityPage() {
-  return <ManagementFoundationApp currentPath="/security" view="security" />;
+  return <AccountSecurityRoute />;
 }

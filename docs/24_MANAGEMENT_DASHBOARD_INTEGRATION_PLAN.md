@@ -943,6 +943,8 @@ MD-02 through MD-05 must not begin implementation against unstable foundation in
 
 **Reference treatment:** KEEP identity and layout; ADAPT navigation/controls; REMOVE fake profile, inbox/messages, security, cross-domain search; ADD real entry and scope handling.
 
+**UI/visual freeze — binding for MD-01:** the approved reference Dashboard visual design is frozen for every MD-01-owned surface. MD-01 implementation, repair, or follow-up MUST NOT redesign or restyle the Dashboard. Preserve the established layout, visual hierarchy, navigation placement, component composition, spacing, typography, colors, borders/radii, shadows, iconography, and overall page/shell appearance. MD-01 may replace fake data/behavior, connect real auth/MFA/scope, change truthful copy/labels, and remove or hide controls that the authoritative product/backend forbids, but those correctness changes are not permission to create a different visual design. Preserve the surrounding composition as closely as possible when an unsupported control must disappear. Any discretionary visual change requires explicit Project Owner approval before implementation.
+
 **Security:** preserve exact session assurance; do not demand CA MFA for an unrelated LM membership; Employee/Guest receive no general Management entry. Supervisor navigation is capability-driven and exposes only explicitly eligible exact-Location surfaces with required grants and active Shift; never render the full Management sidebar and rely on denials. No Company administration, Company analytics/reports, unauthorized Visit Contacts, or unsupported mutations. Subscription recovery must not depend on entering an inaccessible Dashboard context.
 
 **Data/concurrency:** bounded selectors; no preloading every Location; single-flight refresh; account/scope generation guards; forms cannot follow a changed scope.
@@ -988,6 +990,8 @@ MD-02 through MD-05 must not begin implementation against unstable foundation in
 - **Out of scope:** staff provisioning UI, global disable, shift control/attendance/payroll, generic Location editing, custom roles/settings, provider secrets, billing execution, logo assets.
 
 **Reference treatment:** KEEP master/detail, cards and forms; ADAPT fields and status labels; REMOVE unsupported admin controls; ADD inheritance, CAS, lifecycle/readiness/drain, sensitive step-up, staff guards, Branding.
+
+**UI/visual freeze — binding for MD-02:** the reference Dashboard visual design for Employees & Shifts, Locations, Policies/Settings, Roles & Permissions, Branding, Integrations, and Billing/Subscription is frozen. MD-02 MUST NOT redesign, restyle, rearrange, modernize, simplify, or otherwise change the established visual appearance of these surfaces. Preserve page layout, section/card/table structure, drawers/modals, control placement, spacing, typography, colors, borders/radii, shadows, iconography, and overall composition. MD-02 may replace mocks with authoritative data, wire real mutations, correct labels/fields, enforce authorization/MFA/entitlements, and remove or hide controls explicitly prohibited by the plan, but must preserve the surrounding visual composition rather than invent a new UI. Any visual change beyond those product-correctness necessities requires explicit Project Owner approval before implementation.
 
 **Security:** CA Standard reads/Sensitive mutations; lifecycle GET also Sensitive. LM receives only accepted Location settings/branding and Shift visibility. D-access/Brand-access follow the route map.
 
@@ -1035,6 +1039,8 @@ MD-02 through MD-05 must not begin implementation against unstable foundation in
 
 **Reference treatment:** KEEP table/drawer/map composition; ADAPT canonical states and available fields; REMOVE all unsupported operational mutations and fabricated markers; ADD freshness, null positions, real cursors, and genuine LM setup.
 
+**UI/visual freeze — binding for MD-03:** the reference Dashboard visual design for Live Operations, Vehicles, Tasks, Keys, Incidents, and Maps & Zones is frozen. MD-03 MUST NOT redesign or restyle these pages or substitute a new operational UI. Preserve the existing page composition, table/drawer/map layout, hierarchy, spacing, typography, colors, borders/radii, shadows, iconography, and control placement. MD-03 may replace mock facts with authoritative projections, remove prohibited field-operation controls, expose truthful empty/stale/null states, and connect the accepted LM map-setup behavior, but these correctness changes must not become a visual redesign. Preserve surrounding layout/composition when unsupported controls disappear. Any other visual change requires explicit Project Owner approval before implementation.
+
 **Security:** CA/LM read authority; narrow Supervisor live-map access only; no CA payment-detail/raw-route enrichment. Exact-Location selection is mandatory.
 
 **Data/concurrency:** distinguish active sessions/open incidents from historical data; no current-page totals; no Task-assignee inference from denormalized session fields; map setup uses actual geographic data and existing command semantics. Retained route-history UI must not promise a tracker archive/discovery capability that does not exist.
@@ -1079,6 +1085,8 @@ MD-02 through MD-05 must not begin implementation against unstable foundation in
 - **Out of scope:** CRM, ownership, merges, plate correction, account-security logs, Audit export, arbitrary metadata.
 
 **Reference treatment:** KEEP search/table/drawer layout; ADAPT field meaning and filters; REMOVE ownership/CRM/raw Audit details/fake seal; ADD privacy projections, history, corrections, safe event renderer.
+
+**UI/visual freeze — binding for MD-04:** the reference Dashboard visual design for Customers/Visit Contacts, Vehicle-history presentation, and Audit Log is frozen. MD-04 MUST NOT redesign, restyle, or rearrange the established search, table, drawer, detail, filter, or page composition. Preserve spacing, typography, colors, borders/radii, shadows, iconography, component proportions, and interaction placement. MD-04 may change the displayed fields and controls only where authoritative privacy, scope, cursor, correction, or Audit contracts require it; unsupported CRM/raw-Audit behavior must disappear without using that requirement as justification for a new visual design. Any discretionary visual change requires explicit Project Owner approval before implementation.
 
 **Security:** CA Standard reads/Sensitive corrections; LM masked grant-set visits; exact-Location Audit for LM; active-shift allowlisted Audit for SUP. All require the applicable D-access.
 
@@ -1127,6 +1135,8 @@ MD-02 through MD-05 must not begin implementation against unstable foundation in
 
 **Reference treatment:** KEEP card/chart/report layout; ADAPT metric labels and chart cohorts; REMOVE fake trends/default data/transactions/custom reports; ADD coverage, currency groups, real exports, final-denial/unknown-outcome UX.
 
+**UI/visual freeze — binding for MD-05:** the reference Dashboard visual design for Overview, Payments, validation-related presentation, Analytics, and Reports is frozen. MD-05 MUST NOT redesign, restyle, rearrange, or replace the established cards, charts, tables, report layouts, selectors, spacing, typography, colors, borders/radii, shadows, iconography, or overall page composition. MD-05 may replace fake metrics/data with authoritative cohorts, correct metric labels, remove unsupported transaction/custom-report/validation workflow UI, and add truthful coverage/error/empty/export states, but must preserve the established visual language and surrounding composition. The decision to fold validation facts into Payments/Analytics, if required by the plan, must reuse the existing reference visual system rather than introduce a new design. Any discretionary visual change requires explicit Project Owner approval before implementation.
+
 **Security:** CA Company mode, CA/LM exact-Location mode; Standard CA assurance; Export-access separately gates generation.
 
 **Data/concurrency:** no average-of-averages, floating-point money summation, all-Location request fan-out, or current-page aggregation. Scope/period changes invalidate preview and export intent. Export response belongs to the initiating scope generation.
@@ -1173,6 +1183,8 @@ MD-02 through MD-05 must not begin implementation against unstable foundation in
 - **Out of scope:** product expansion, broad refactors, provider activation, operational lifecycle changes.
 
 **Reference treatment:** verify retained visual identity; remove remaining mocks, fallbacks, inert controls, and misleading copy.
+
+**UI/visual freeze — binding for MD-06:** MD-06 is an integration/hardening task and MUST NOT perform any visual redesign. The combined Dashboard UI produced by MD-01 through MD-05 is visually frozen for this task. MD-06 may fix functional, security, accessibility, localization, responsive correctness, data-truth, or integration defects, but MUST preserve the established visual design, layout, hierarchy, spacing, typography, colors, component styling, iconography, and page composition. A defect fix that necessarily removes a prohibited or misleading control must preserve the surrounding composition as closely as possible. Any visual change that is not strictly required to restore the already-approved design or correct a functional defect requires explicit Project Owner approval before implementation.
 
 **Security/data/concurrency:** exercise all shared invariants with real principals and API/database boundaries, not only mocked fetches.
 

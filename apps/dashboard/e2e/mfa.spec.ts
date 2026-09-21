@@ -70,3 +70,44 @@ test("step-up recovery begins a replacement authenticator ceremony", async ({
   ).toBeVisible();
   expect(fixture.count("/v1/staff/auth/mfa/recovery/begin")).toBe(1);
 });
+
+test("mutation 401 reconciles auth once without replaying stale MFA material", async ({
+  page,
+}) => {
+  const confirmPath = "/v1/staff/auth/mfa/enrollment/confirm";
+  const fixture = new DashboardApiFixture({
+    mfaState: "ENROLLMENT_REQUIRED",
+    override: (path, _request, state) => {
+      if (path === confirmPath && state.count(path) === 1) {
+        return {
+          status: 401,
+          body: {
+            code: "STAFF_AUTHENTICATION_REQUIRED",
+            message: "expired",
+            requestId: "e2e-mutation-401",
+          },
+        };
+      }
+      return undefined;
+    },
+  });
+  await fixture.install(page);
+  await page.goto("/security");
+  await page.getByLabel("Email").fill("admin@example.com");
+  await page.getByLabel("Password").fill("fixture-password");
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  await page.getByRole("button", { name: "Set up authenticator" }).click();
+  const secret = page.getByText("A".repeat(32));
+  await expect(secret).toBeVisible();
+  const refreshBefore = fixture.count("/v1/staff/auth/refresh");
+  await page.getByLabel("6-digit authenticator code").fill("123456");
+  await page.getByRole("button", { name: "Confirm authenticator" }).click();
+
+  await expect(secret).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Continue authenticator setup" }),
+  ).toBeVisible();
+  expect(fixture.count(confirmPath)).toBe(1);
+  expect(fixture.count("/v1/staff/auth/refresh")).toBe(refreshBefore + 1);
+});

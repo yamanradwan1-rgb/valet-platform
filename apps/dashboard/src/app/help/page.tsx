@@ -1,5 +1,10 @@
-import { ManagementFoundationApp } from "../../components/foundation/management-foundation-app";
+import { HelpFoundation } from "../../components/foundation/help-foundation";
+import { ProtectedDashboardRoute } from "../../components/foundation/protected-dashboard-route";
 
 export default function HelpPage() {
-  return <ManagementFoundationApp currentPath="/help" view="help" />;
+  return (
+    <ProtectedDashboardRoute>
+      <HelpFoundation />
+    </ProtectedDashboardRoute>
+  );
 }

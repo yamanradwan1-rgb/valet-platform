@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { BarChart3, Building2, FileText, MapPin } from "lucide-react";
 
 import { md01NavigationRegistrations } from "./md01-navigation";
 import {
   composeNavigationRegistry,
   defineNavigationDestination,
+  isNavigationPathActive,
   resolveNavigation,
 } from "./navigation-registry";
 import type {
@@ -11,8 +13,6 @@ import type {
   DashboardNavigationRegistration,
   DashboardNavigationRole,
 } from "./navigation-types";
-
-const translate = (key: string) => key;
 
 function context(
   role: DashboardNavigationRole,
@@ -30,27 +30,33 @@ const futureRegistrations = [
   defineNavigationDestination({
     availability: "IMPLEMENTED",
     href: "/company/settings",
+    icon: Building2,
     id: "company-administration",
-    labelKey: "companyAdministration",
+    labels: { ar: "إدارة الشركة", en: "Company administration" },
     owner: "MD-02",
+    placement: "MAIN",
     roles: ["COMPANY_ADMIN"],
     scopeRequirement: "ORGANIZATION",
   }),
   defineNavigationDestination({
     availability: "IMPLEMENTED",
     href: "/analytics",
+    icon: BarChart3,
     id: "analytics",
-    labelKey: "analytics",
+    labels: { ar: "التحليلات", en: "Analytics" },
     owner: "MD-04",
+    placement: "MAIN",
     roles: ["COMPANY_ADMIN", "LOCATION_MANAGER"],
     scopeRequirement: "ORGANIZATION",
   }),
   defineNavigationDestination({
     availability: "IMPLEMENTED",
     href: "/reports",
+    icon: FileText,
     id: "reports",
-    labelKey: "reports",
+    labels: { ar: "التقارير", en: "Reports" },
     owner: "MD-04",
+    placement: "MAIN",
     roles: ["COMPANY_ADMIN"],
     scopeRequirement: "ORGANIZATION",
   }),
@@ -63,7 +69,7 @@ describe("dashboard navigation registry", () => {
       const items = resolveNavigation(
         md01NavigationRegistrations,
         context(role),
-        translate,
+        "en",
       );
       expect(items.map((item) => item.id)).toEqual([
         "workspace",
@@ -83,12 +89,12 @@ describe("dashboard navigation registry", () => {
     const companyItems = resolveNavigation(
       registry,
       context("COMPANY_ADMIN"),
-      translate,
+      "en",
     );
     const locationManagerItems = resolveNavigation(
       registry,
       context("LOCATION_MANAGER"),
-      translate,
+      "en",
     );
 
     expect(companyItems.map((item) => item.id)).toContain(
@@ -108,7 +114,7 @@ describe("dashboard navigation registry", () => {
     const ids = resolveNavigation(
       registry,
       context("SUPERVISOR"),
-      translate,
+      "en",
     ).map((item) => item.id);
 
     expect(ids).not.toContain("company-administration");
@@ -124,7 +130,7 @@ describe("dashboard navigation registry", () => {
     const ids = resolveNavigation(
       registry,
       context("LOCATION_MANAGER"),
-      translate,
+      "en",
     ).map((item) => item.id);
 
     expect(ids).not.toContain("company-administration");
@@ -135,9 +141,11 @@ describe("dashboard navigation registry", () => {
     const planned = defineNavigationDestination({
       availability: "PLANNED",
       href: "/future",
+      icon: MapPin,
       id: "future-owner-page",
-      labelKey: "future",
+      labels: { ar: "مستقبلي", en: "Future" },
       owner: "MD-05",
+      placement: "MAIN",
       roles: ["COMPANY_ADMIN"],
       scopeRequirement: "ORGANIZATION",
     });
@@ -146,7 +154,7 @@ describe("dashboard navigation registry", () => {
     ]);
 
     expect(
-      resolveNavigation(registry, context("COMPANY_ADMIN"), translate),
+      resolveNavigation(registry, context("COMPANY_ADMIN"), "en"),
     ).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "future-owner-page" }),
@@ -158,9 +166,11 @@ describe("dashboard navigation registry", () => {
     const scoped = defineNavigationDestination({
       availability: "IMPLEMENTED",
       href: "/location-only",
+      icon: MapPin,
       id: "location-only",
-      labelKey: "locationOnly",
+      labels: { ar: "موقع فقط", en: "Location only" },
       owner: "MD-03",
+      placement: "MAIN",
       roles: ["LOCATION_MANAGER"],
       scopeRequirement: "LOCATION",
     });
@@ -169,11 +179,11 @@ describe("dashboard navigation registry", () => {
       resolveNavigation(
         [scoped],
         context("LOCATION_MANAGER", { locationId: null }),
-        translate,
+        "en",
       ),
     ).toEqual([]);
     expect(
-      resolveNavigation([scoped], context("LOCATION_MANAGER"), translate),
+      resolveNavigation([scoped], context("LOCATION_MANAGER"), "en"),
     ).toHaveLength(1);
   });
 
@@ -187,5 +197,28 @@ describe("dashboard navigation registry", () => {
     expect(() =>
       composeNavigationRegistry(futureRegistrations, [duplicateHref]),
     ).toThrow("Duplicate navigation destination href");
+  });
+
+  it("keeps feature-owned labels localizable without shared dictionary edits", () => {
+    const registry = composeNavigationRegistry(
+      md01NavigationRegistrations,
+      futureRegistrations,
+    );
+    const arabic = resolveNavigation(
+      registry,
+      context("COMPANY_ADMIN"),
+      "ar",
+    );
+
+    expect(arabic.find((item) => item.id === "analytics")?.label).toBe(
+      "التحليلات",
+    );
+  });
+
+  it("keeps nested feature routes active without treating root as a prefix", () => {
+    expect(isNavigationPathActive("/analytics/live", "/analytics")).toBe(true);
+    expect(isNavigationPathActive("/analytics-old", "/analytics")).toBe(false);
+    expect(isNavigationPathActive("/help", "/")).toBe(false);
+    expect(isNavigationPathActive("/", "/")).toBe(true);
   });
 });

@@ -1,3 +1,4 @@
+import { MapPin, Menu } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "../presentation/button";
@@ -6,20 +7,6 @@ import type {
   DashboardShellLabels,
 } from "./shell-types";
 
-function ScopeChip({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: string;
-}) {
-  return (
-    <span className="scope-chip">
-      {label}: <bdi>{value}</bdi>
-    </span>
-  );
-}
-
 export function DashboardTopbar({
   accountControl,
   labels,
@@ -27,9 +14,7 @@ export function DashboardTopbar({
   locationSelector,
   navigationOpen,
   onOpenNavigation,
-  organizationSelector,
   selectedLocation,
-  selectedOrganization,
   themeControl,
 }: {
   readonly accountControl?: ReactNode;
@@ -38,9 +23,7 @@ export function DashboardTopbar({
   readonly locationSelector?: ReactNode;
   readonly navigationOpen: boolean;
   readonly onOpenNavigation: () => void;
-  readonly organizationSelector?: ReactNode;
   readonly selectedLocation: DashboardScopeReference | null;
-  readonly selectedOrganization: DashboardScopeReference | null;
   readonly themeControl?: ReactNode;
 }) {
   return (
@@ -55,18 +38,17 @@ export function DashboardTopbar({
           type="button"
           variant="quiet"
         >
-          ☰
+          <Menu aria-hidden="true" size={20} />
         </Button>
-        {selectedOrganization ? (
-          <ScopeChip
-            label={labels.organization}
-            value={selectedOrganization.label}
-          />
-        ) : null}
         {selectedLocation ? (
-          <ScopeChip label={labels.location} value={selectedLocation.label} />
+          <div className="location-context">
+            <MapPin aria-hidden="true" size={18} />
+            <div className="location-context-copy">
+              <span className="location-context-label">{labels.location}</span>
+              <bdi className="location-context-value">{selectedLocation.label}</bdi>
+            </div>
+          </div>
         ) : null}
-        {organizationSelector}
         {locationSelector}
       </div>
       <div className="topbar-actions">

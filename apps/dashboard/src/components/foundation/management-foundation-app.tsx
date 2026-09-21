@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useStaffAuth } from "../../lib/auth/staff-auth-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { DashboardMfaClient } from "../../lib/mfa/dashboard-mfa-client";
 import {
-  md01NavigationRegistrations,
+  dashboardNavigationRegistrations,
   resolveNavigation,
 } from "../../lib/navigation";
 import { LoginPanel } from "../auth/login-panel";
@@ -19,24 +20,22 @@ import { AccountSecurityPanel } from "../security";
 import { DashboardShell } from "../shell";
 import { FoundationState } from "./foundation-state";
 import { HeaderLocaleControl, HeaderThemeControl } from "./header-preferences";
-import { HelpFoundation } from "./help-foundation";
 import { PreferenceControls } from "./preference-controls";
+import { ProtectedDashboardContextProvider } from "./protected-dashboard-context";
 import { selectedScopePresentation } from "./scope-presentation";
 import { useSelectedScope } from "./selected-scope-provider";
 import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation";
-import { WorkspaceFoundation } from "./workspace-foundation";
-
-export type ManagementFoundationView = "workspace" | "security" | "help";
 
 export function ManagementFoundationApp({
-  currentPath,
-  view,
+  accountSecurity = false,
+  children,
 }: {
-  readonly currentPath: string;
-  readonly view: ManagementFoundationView;
+  readonly accountSecurity?: boolean;
+  readonly children?: ReactNode;
 }) {
+  const currentPath = usePathname();
   const auth = useStaffAuth();
-  const { t } = useDashboardLocale();
+  const { locale, t } = useDashboardLocale();
   const { clearScope, selectedScope, selectScope } = useSelectedScope();
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -50,7 +49,7 @@ export function ManagementFoundationApp({
     identityGeneration: auth.identityGeneration,
     sessionGeneration: auth.sessionGeneration,
     onDenied: clearScope,
-    selectedScope: view === "security" ? null : selectedScope,
+    selectedScope: accountSecurity ? null : selectedScope,
   });
   const requestLogout = async () => {
     if (logoutPending) return;
@@ -107,10 +106,12 @@ export function ManagementFoundationApp({
     );
   }
 
-  if (view === "security") {
+  const authGenerationKey = `${auth.identityGeneration}:${auth.sessionGeneration}`;
+
+  if (accountSecurity) {
     return (
       <StandalonePanel>
-        <AccountSecurityPanel client={mfa} />
+        <AccountSecurityPanel client={mfa} key={authGenerationKey} />
         <PreferenceControls />
         <Link className="nav-link foundation-link" href="/">{t("backToWorkspace")}</Link>
         <Button disabled={logoutPending} onClick={() => void requestLogout()} type="button" variant="quiet">
@@ -126,6 +127,7 @@ export function ManagementFoundationApp({
         {mfaRequired ? (
           <AccountSecurityPanel
             client={mfa}
+            key={authGenerationKey}
             onStateChange={(state) => {
               if (state === "ASSURED") {
                 setMfaRequired(false);
@@ -197,10 +199,16 @@ export function ManagementFoundationApp({
 
   const presentation = selectedScopePresentation(selectedScope);
   const navigation = resolveNavigation(
-    md01NavigationRegistrations,
+    dashboardNavigationRegistrations,
     presentation.navigation,
-    t,
+    locale,
   );
+  const selectedLocation =
+    presentation.location ??
+    (selectedScope.authority === "COMPANY_ADMIN" &&
+    selectedScope.context.scope.kind === "ALL_LOCATIONS"
+      ? { id: "all-locations", label: t("allLocations") }
+      : null);
   return (
     <DashboardShell
       accountControl={(
@@ -210,7 +218,9 @@ export function ManagementFoundationApp({
       )}
       currentPath={currentPath}
       labels={{
+        collapseNavigation: t("collapseNavigation"),
         closeNavigation: t("closeNavigation"),
+        expandNavigation: t("expandNavigation"),
         location: t("location"),
         navigation: t("navigation"),
         openNavigation: t("openNavigation"),
@@ -223,15 +233,25 @@ export function ManagementFoundationApp({
           {t("changeScope")}
         </Button>
       )}
-      selectedLocation={presentation.location}
+      locationSelector={(
+        <Button onClick={clearScope} type="button" variant="quiet">
+          {t("changeScope")}
+        </Button>
+      )}
+      selectedLocation={selectedLocation}
       selectedOrganization={presentation.organization}
       themeControl={<HeaderThemeControl />}
     >
-      {view === "help" ? (
-        <HelpFoundation />
-      ) : (
-        <WorkspaceFoundation />
-      )}
+      <ProtectedDashboardContextProvider
+        value={{
+          api,
+          identityGeneration: auth.identityGeneration,
+          selectedScope,
+          sessionGeneration: auth.sessionGeneration,
+        }}
+      >
+        {children}
+      </ProtectedDashboardContextProvider>
     </DashboardShell>
   );
 }

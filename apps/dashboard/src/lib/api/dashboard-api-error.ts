@@ -119,3 +119,13 @@ export function dashboardAuthBoundaryError(): DashboardApiError {
     status: 401,
   });
 }
+
+export function dashboardMutationRetryRequiredError(cause?: unknown): DashboardApiError {
+  return new DashboardApiError({
+    kind: "auth",
+    code: "AUTH_RECONCILED_RETRY_REQUIRED",
+    message: "Authentication was refreshed after the write was rejected. Review and retry the action.",
+    status: 401,
+    cause,
+  });
+}

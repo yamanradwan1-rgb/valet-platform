@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import type { StaffLoginRequest } from "@valet/contracts";
 
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { VayletLogo } from "../brand/vaylet-logo";
 import { Button } from "../presentation/button";
 import { Panel } from "../presentation/panel";
 
@@ -29,10 +30,7 @@ export function LoginPanel({
   return (
     <div className="auth-screen">
       <aside className="auth-brand">
-        <div className="brand-mark">
-          <span className="brand-dot" aria-hidden="true" />
-          VAYLET
-        </div>
+        <VayletLogo />
         <div>
           <p className="eyebrow">Management</p>
           <h1>{t("loginIntro")}</h1>

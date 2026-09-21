@@ -8,7 +8,9 @@ export interface DashboardScopeReference {
 }
 
 export interface DashboardShellLabels {
+  readonly collapseNavigation: string;
   readonly closeNavigation: string;
+  readonly expandNavigation: string;
   readonly location: string;
   readonly navigation: string;
   readonly openNavigation: string;

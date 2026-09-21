@@ -1,5 +1,6 @@
 @import "../styles/foundation.css";
 @import "../styles/shell.css";
+@import "../styles/shell-controls.css";
 
 :root {
   color-scheme: light;

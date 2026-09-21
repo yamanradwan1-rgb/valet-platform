@@ -1,44 +1,47 @@
-import type { TranslationKey } from "../i18n/dictionaries";
+import { CircleHelp, LayoutDashboard, ShieldCheck } from "lucide-react";
+
+import { ar, en } from "../i18n/dictionaries";
 import {
   composeNavigationRegistry,
   defineNavigationDestination,
 } from "./navigation-registry";
 import type { DashboardNavigationRegistration } from "./navigation-types";
 
-type Md01NavigationLabelKey = Extract<
-  TranslationKey,
-  "workspace" | "security" | "help"
->;
-
 const roles = ["COMPANY_ADMIN", "LOCATION_MANAGER", "SUPERVISOR"] as const;
 
 export const md01NavigationRegistrations =
-  composeNavigationRegistry<Md01NavigationLabelKey>([
+  composeNavigationRegistry([
     defineNavigationDestination({
       availability: "IMPLEMENTED",
       href: "/",
+      icon: LayoutDashboard,
       id: "workspace",
-      labelKey: "workspace",
+      labels: { ar: ar.workspace, en: en.workspace },
       owner: "MD-01",
+      placement: "MAIN",
       roles,
       scopeRequirement: "NONE",
     }),
     defineNavigationDestination({
       availability: "IMPLEMENTED",
       href: "/security",
+      icon: ShieldCheck,
       id: "security",
-      labelKey: "security",
+      labels: { ar: ar.security, en: en.security },
       owner: "MD-01",
+      placement: "UTILITY",
       roles,
       scopeRequirement: "NONE",
     }),
     defineNavigationDestination({
       availability: "IMPLEMENTED",
       href: "/help",
+      icon: CircleHelp,
       id: "help",
-      labelKey: "help",
+      labels: { ar: ar.help, en: en.help },
       owner: "MD-01",
+      placement: "UTILITY",
       roles,
       scopeRequirement: "NONE",
     }),
-  ] satisfies readonly DashboardNavigationRegistration<Md01NavigationLabelKey>[]);
+  ] satisfies readonly DashboardNavigationRegistration[]);
