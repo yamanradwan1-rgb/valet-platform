@@ -9,7 +9,7 @@ import {
   ORG_B,
   supervisorContext,
 } from "./support/dashboard-api-fixture";
-import { expectMd01NavigationOnly, signIn } from "./support/foundation-ui";
+import { expectSupervisorNarrowNavigation, signIn } from "./support/foundation-ui";
 
 test("Company Admin can enter All Locations and an exact Location", async ({
   page,
@@ -124,7 +124,7 @@ test("Supervisor enters one active-shift Location with narrow navigation", async
   await expect(
     page.locator(".topbar").getByText(LOCATION_A.name),
   ).toBeVisible();
-  await expectMd01NavigationOnly(page);
+  await expectSupervisorNarrowNavigation(page);
 });
 
 test("Employee has no general Management workspace", async ({ page }) => {
