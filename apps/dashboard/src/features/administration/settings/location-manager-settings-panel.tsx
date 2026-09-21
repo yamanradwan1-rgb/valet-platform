@@ -24,17 +24,21 @@ export function LocationManagerSettingsPanel(props: {
   const mutation = useSensitiveMutation(props.onReload);
   const copy = settingsTableCopy(props.locale);
   async function setValue(setting: string, value: unknown) {
-    const body = setConfigurationOverrideRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
-    await mutation.run(() => setLocationManagerSetting(props.api, props.data.locationId, body), props.onReload);
+    await mutation.run(() => {
+      const body = setConfigurationOverrideRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
+      return setLocationManagerSetting(props.api, props.data.locationId, body);
+    }, props.onReload);
   }
   async function clearValue(setting: string) {
-    const body = clearConfigurationOverrideRequestSchema.parse({ setting, expectedUpdatedAt: props.data.updatedAt });
-    await mutation.run(() => clearLocationManagerSetting(props.api, props.data.locationId, body), props.onReload);
+    await mutation.run(() => {
+      const body = clearConfigurationOverrideRequestSchema.parse({ setting, expectedUpdatedAt: props.data.updatedAt });
+      return clearLocationManagerSetting(props.api, props.data.locationId, body);
+    }, props.onReload);
   }
   return (
     <>
       <div className={styles.tableWrap}>
-        <table className={styles.table}>
+        <table className={`${styles.table} ${styles.referenceTable}`}>
           <thead><tr><th>{copy.setting}</th><th>{copy.value}</th><th>{copy.actions}</th></tr></thead>
           <tbody>
         {settingDefinitions.filter((definition) => legacyLocationKeys.has(definition.key)).map((definition) => {

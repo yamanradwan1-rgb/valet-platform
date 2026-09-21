@@ -55,15 +55,15 @@ function StaffPageContent() {
 
   if (!companyAdmin && !locationManager) return null;
   return (
-    <AdministrationPage subtitle={t.employeesSubtitle} title={t.employeesTitle}>
-      <div className={styles.tabs}>
-        {companyAdmin ? <button className={`${styles.tab} ${tab === "employees" ? styles.tabActive : ""}`} onClick={() => setTab("employees")} type="button">{t.employees}</button> : null}
-        <button className={`${styles.tab} ${tab === "shifts" ? styles.tabActive : ""}`} onClick={() => setTab("shifts")} type="button">{t.shifts}</button>
+    <AdministrationPage subtitle={t.employeesSubtitle} subtitleSize="sm" title={t.employeesTitle} titleTracking="tight">
+      <div className={`${styles.tabs} ${styles.staffTabs}`}>
+        {companyAdmin ? <button className={`${styles.tab} ${styles.staffTab} ${tab === "employees" ? `${styles.tabActive} ${styles.staffTabActive}` : ""}`} onClick={() => setTab("employees")} type="button">{t.employees}</button> : null}
+        <button className={`${styles.tab} ${styles.staffTab} ${tab === "shifts" ? `${styles.tabActive} ${styles.staffTabActive}` : ""}`} onClick={() => setTab("shifts")} type="button">{t.shifts}</button>
       </div>
       {tab === "employees" && companyAdmin ? (
         <ReadState error={directory.error ? new Error(administrationErrorMessage(directory.error)) : null} loading={directory.loading} onRetry={directory.refresh}>
           <div className={styles.card}>
-            <div className={styles.tableWrap}><table className={styles.table}>
+            <div className={styles.tableWrap}><table className={`${styles.table} ${styles.employeeTable}`}>
               <thead><tr><th>{t.email}</th><th>{t.role}</th><th>{t.status}</th><th>{t.locationAccess}</th><th>{t.actions}</th></tr></thead>
               <tbody>{directory.data?.items.map((item) => (
                 <tr key={item.membershipId}>
@@ -83,7 +83,7 @@ function StaffPageContent() {
       ) : null}
       {tab === "shifts" ? (!shiftLocationAvailable ? <div className={`${styles.card} ${styles.empty}`}>{scope.locationId === null ? t.selectLocation : t.activeLocationRequired}</div> : (
         <ReadState error={shifts.error ? new Error(administrationErrorMessage(shifts.error)) : null} loading={shifts.loading} onRetry={shifts.refresh}>
-          <div className={styles.card}><div className={styles.tableWrap}><table className={styles.table}>
+          <div className={styles.card}><div className={styles.tableWrap}><table className={`${styles.table} ${styles.employeeTable}`}>
             <thead><tr><th>{t.membership}</th><th>{t.shiftId}</th><th>{t.startedAt}</th></tr></thead>
             <tbody>{shifts.data?.items.map((item) => <tr key={item.shiftId}><td><bdi dir="ltr">{item.membershipId}</bdi></td><td><bdi dir="ltr">{item.shiftId}</bdi></td><td><bdi dir="ltr">{item.startedAt}</bdi></td></tr>)}</tbody>
           </table></div>{shifts.data?.items.length === 0 ? <div className={styles.empty}>{t.noActiveShifts}</div> : null}

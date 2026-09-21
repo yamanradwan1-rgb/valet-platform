@@ -11,19 +11,28 @@ export function AdministrationPage(props: {
   readonly children: ReactNode;
   readonly icon?: LucideIcon;
   readonly subtitle: string;
+  readonly subtitleMargin?: "half" | "full";
+  readonly subtitleSize?: "sm" | "xs";
   readonly title: string;
+  readonly titleTracking?: "tight";
   readonly action?: ReactNode;
 }) {
   const Icon = props.icon;
+  const titleClassName = `${styles.title} ${props.titleTracking === "tight" ? styles.titleTight : ""}`;
+  const subtitleClassName = [
+    styles.subtitle,
+    props.subtitleSize === "sm" ? styles.subtitleSm : "",
+    props.subtitleMargin === "half" ? styles.subtitleHalf : "",
+  ].filter(Boolean).join(" ");
   return (
     <div className={styles.page} data-testid="md02-page">
       <div className={styles.header}>
         <div>
           <div className={styles.heading}>
             {Icon ? <Icon className={styles.headingIcon} aria-hidden="true" /> : null}
-            <h1 className={styles.title}>{props.title}</h1>
+            <h1 className={titleClassName}>{props.title}</h1>
           </div>
-          <p className={styles.subtitle}>{props.subtitle}</p>
+          <p className={subtitleClassName}>{props.subtitle}</p>
         </div>
         {props.action}
       </div>

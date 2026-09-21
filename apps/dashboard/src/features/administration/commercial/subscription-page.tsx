@@ -40,12 +40,12 @@ export function SubscriptionPage() {
     <ReadState error={state.error ? new Error(administrationErrorMessage(state.error)) : null} loading={state.loading} onRetry={state.refresh}>
       {!subscription ? <div className={`${styles.card} ${styles.empty}`}>{t.noSubscription}</div> : <>
         <div className={styles.grid3}>
-          <div className={`${styles.card} ${styles.cardPad} ${styles.span2}`}><div className={styles.muted}>{t.planCode}</div><h2 className={styles.title}><bdi dir="ltr">{subscription.planCode}</bdi></h2><p className={styles.sectionText}>{t.readOnly}</p></div>
-          <div className={`${styles.card} ${styles.cardPad}`}><div className={styles.muted}>{t.subscriptionStatus}</div><div className={styles.factValue}>{statusLabel}</div><StatusBadge good={subscription.status === "ACTIVE"}>{statusLabel}</StatusBadge></div>
+          <div className={`${styles.card} ${styles.billingCardPad} ${styles.span2}`}><div className={styles.muted}>{t.planCode}</div><h2 className={styles.planTitle}><bdi dir="ltr">{subscription.planCode}</bdi></h2><p className={styles.sectionText}>{t.readOnly}</p></div>
+          <div className={`${styles.card} ${styles.billingCardPad}`}><div className={styles.muted}>{t.subscriptionStatus}</div><div className={styles.factValue}>{statusLabel}</div><StatusBadge good={subscription.status === "ACTIVE"}>{statusLabel}</StatusBadge></div>
         </div>
         <div className={styles.card}>
-          <div className={styles.cardPad}><h2 className={styles.sectionTitle}>{t.entitlements}</h2></div>
-          <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{t.entitlements}</th><th>{t.currentStatus}</th><th>{t.readOnly}</th></tr></thead><tbody>
+          <div className={styles.billingSectionHeader}><h2 className={styles.billingSectionTitle}>{t.entitlements}</h2></div>
+          <div className={styles.tableWrap}><table className={`${styles.table} ${styles.billingTable}`}><thead><tr><th>{t.entitlements}</th><th>{t.currentStatus}</th><th>{t.readOnly}</th></tr></thead><tbody>
             {entitlements.map(([label, enabled]) => <tr key={label}><td className={styles.strong}>{label}</td><td><span className={styles.actions}>{enabled ? <CheckCircle2 aria-hidden="true" size={18} /> : <XCircle aria-hidden="true" size={18} />}<StatusBadge good={enabled}>{enabled ? t.enabled : t.disabled}</StatusBadge></span></td><td><span className={styles.badge}>{t.readOnly}</span></td></tr>)}
           </tbody></table></div>
         </div>

@@ -14,9 +14,9 @@ import { useAuthoritativeRead } from "../use-authoritative-read";
 import { readIntegrations } from "./commercial-api";
 
 const metadata = {
-  PLATE_OCR: { icon: Camera, en: "Plate OCR", ar: "قراءة اللوحات" },
-  STAFF_PUSH: { icon: Smartphone, en: "Staff Push", ar: "إشعارات الموظفين" },
-  DIGITAL_PAYMENT: { icon: CreditCard, en: "Digital Payment", ar: "الدفع الرقمي" },
+  PLATE_OCR: { icon: Camera, iconClass: styles.integrationIconPlate, en: "Plate OCR", ar: "قراءة اللوحات" },
+  STAFF_PUSH: { icon: Smartphone, iconClass: styles.integrationIconPush, en: "Staff Push", ar: "إشعارات الموظفين" },
+  DIGITAL_PAYMENT: { icon: CreditCard, iconClass: styles.integrationIconPayment, en: "Digital Payment", ar: "الدفع الرقمي" },
 } as const;
 
 const statusLabels: Record<ManagementIntegrationStatus, Readonly<{ en: string; ar: string }>> = {
@@ -48,7 +48,7 @@ export function IntegrationsPage() {
   }, [locale, search, selectedKey, state.data?.integrations]);
   if (scope.authority !== "COMPANY_ADMIN") return null;
   return <AdministrationPage icon={Cpu} subtitle={t.integrationsSubtitle} title={t.integrationsTitle}
-    action={<button className={styles.secondary} disabled={state.loading} onClick={state.refresh} type="button"><RefreshCw size={15} /> {t.refresh}</button>}>
+    action={<button className={`${styles.secondary} ${styles.integrationRefresh}`} disabled={state.loading} onClick={state.refresh} type="button"><RefreshCw size={16} /> {t.refresh}</button>}>
     <ReadState error={state.error ? new Error(administrationErrorMessage(state.error)) : null} loading={state.loading} onRetry={state.refresh}>
       <div className={styles.card} style={{ padding: "1rem" }}>
         <div className={styles.toolbar}>
@@ -63,8 +63,8 @@ export function IntegrationsPage() {
       </div>
       {filtered.length === 0 ? <div className={`${styles.card} ${styles.empty}`}>{t.noData}</div> : null}
       <div className={styles.grid3}>{filtered.map((item) => { const entry = metadata[item.key]; const Icon = entry.icon; const badgeProps = item.status === "UNKNOWN" ? {} : { good: item.status === "OPERATIONAL" }; return <div className={`${styles.card} ${styles.integrationCard}`} key={item.key}>
-        <div><div className={styles.toolbar}><div className={styles.actions}><span className={styles.integrationIcon}><Icon size={19} /></span><div><div className={styles.strong}>{entry[locale]}</div><bdi className={styles.muted} dir="ltr">{item.key}</bdi></div></div><StatusBadge {...badgeProps}>{statusLabels[item.status][locale]}</StatusBadge></div></div>
-        <div className={styles.toolbar}><span className={styles.muted}>{t.currentStatus}</span><span className={styles.badge}>{t.readOnly}</span></div>
+        <div><div className={styles.toolbar}><div className={styles.actions}><span className={styles.integrationIcon}><Icon className={entry.iconClass} size={19} /></span><div><div className={styles.integrationName}>{entry[locale]}</div><bdi className={styles.integrationCode} dir="ltr">{item.key}</bdi></div></div><StatusBadge {...badgeProps}>{statusLabels[item.status][locale]}</StatusBadge></div></div>
+        <div className={`${styles.toolbar} ${styles.integrationFooter}`}><span className={styles.muted}>{t.currentStatus}</span><span className={styles.badge}>{t.readOnly}</span></div>
       </div>; })}</div>
     </ReadState>
   </AdministrationPage>;

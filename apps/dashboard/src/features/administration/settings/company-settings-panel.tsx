@@ -27,17 +27,21 @@ export function CompanySettingsPanel(props: {
   const copy = settingsTableCopy(props.locale);
   const defaults = props.data.defaults as unknown as Readonly<Record<string, unknown>>;
   async function setValue(setting: string, value: unknown) {
-    const body = managementSettingSetRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
-    await mutation.run(() => setCompanySetting(props.api, props.data.organizationId, body), props.onReload);
+    await mutation.run(() => {
+      const body = managementSettingSetRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
+      return setCompanySetting(props.api, props.data.organizationId, body);
+    }, props.onReload);
   }
   async function clearOperatingHours() {
-    const body = managementCompanySettingClearRequestSchema.parse({ setting: "operatingHours", expectedUpdatedAt: props.data.updatedAt });
-    await mutation.run(() => clearCompanySetting(props.api, props.data.organizationId, body), props.onReload);
+    await mutation.run(() => {
+      const body = managementCompanySettingClearRequestSchema.parse({ setting: "operatingHours", expectedUpdatedAt: props.data.updatedAt });
+      return clearCompanySetting(props.api, props.data.organizationId, body);
+    }, props.onReload);
   }
   return (
     <>
       <div className={styles.tableWrap}>
-        <table className={styles.table}>
+        <table className={`${styles.table} ${styles.referenceTable}`}>
           <thead><tr><th>{copy.setting}</th><th>{copy.value}</th><th>{copy.actions}</th></tr></thead>
           <tbody>
         {settingDefinitions.map((definition) => <SettingRow canClear={false} definition={definition}

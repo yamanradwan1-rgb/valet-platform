@@ -14,6 +14,12 @@ import { readStaffDirectory } from "../staff/staff-api";
 
 export function RolesPage() {
   const dashboard = useProtectedDashboard();
+  const scopeKey = administrationScopeKey(dashboard);
+  return <RolesPageContent key={scopeKey} />;
+}
+
+function RolesPageContent() {
+  const dashboard = useProtectedDashboard();
   const scope = administrationScope(dashboard.selectedScope);
   const scopeKey = administrationScopeKey(dashboard);
   const { locale } = useDashboardLocale();
@@ -37,18 +43,18 @@ export function RolesPage() {
     { code: "VALET_SUPERVISOR", label: t.supervisor, icon: Users, iconClass: styles.roleIconSupervisor, description: locale === "ar" ? "دور تشغيلي للوردية؛ لا يملك صفحات إدارة MD-02." : "Operational shift role; it has no MD-02 administration authority." },
     { code: "VALET_EMPLOYEE", label: t.employee, icon: User, iconClass: styles.roleIconEmployee, description: locale === "ar" ? "دور تشغيلي ميداني؛ لا يملك صفحات إدارة MD-02." : "Field operations role; it has no MD-02 administration authority." },
   ] as const;
-  return <AdministrationPage subtitle={t.rolesSubtitle} title={t.rolesTitle}>
+  return <AdministrationPage subtitle={t.rolesSubtitle} subtitleMargin="half" subtitleSize="sm" title={t.rolesTitle}>
     <div className={styles.card}>
-      <div className={`${styles.tabs} ${styles.tabsInset}`}>
-        <button className={`${styles.tab} ${tab === "roles" ? styles.tabActive : ""}`} onClick={() => setTab("roles")} type="button">{t.fixedRoles}</button>
-        <button className={`${styles.tab} ${tab === "users" ? styles.tabActive : ""}`} onClick={() => setTab("users")} type="button">{t.users}</button>
+      <div className={`${styles.tabs} ${styles.tabsInset} ${styles.referenceTabs}`}>
+        <button className={`${styles.tab} ${styles.referenceTab} ${tab === "roles" ? `${styles.tabActive} ${styles.referenceTabActive}` : ""}`} onClick={() => setTab("roles")} type="button">{t.fixedRoles}</button>
+        <button className={`${styles.tab} ${styles.referenceTab} ${tab === "users" ? `${styles.tabActive} ${styles.referenceTabActive}` : ""}`} onClick={() => setTab("users")} type="button">{t.users}</button>
       </div>
       {tab === "roles" ? (
-        <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{t.role}</th><th>{t.users}</th><th>{t.description}</th><th>{t.actions}</th></tr></thead><tbody>
+        <div className={styles.tableWrap}><table className={`${styles.table} ${styles.referenceTable}`}><thead><tr><th>{t.role}</th><th>{t.users}</th><th>{t.description}</th><th>{t.actions}</th></tr></thead><tbody>
           {roles.map((role) => {
             const Icon = role.icon;
             return <tr key={role.code}>
-              <td><div className={styles.actions}><span className={`${styles.roleIcon} ${role.iconClass}`}><Icon aria-hidden="true" size={16} /></span><div><div className={styles.strong}>{role.label}</div><bdi className={styles.muted} dir="ltr">{role.code}</bdi></div></div></td>
+              <td><div className={styles.roleCell}><span className={`${styles.roleIcon} ${role.iconClass}`}><Icon aria-hidden="true" size={16} /></span><div className={styles.strong}>{role.label}</div></div></td>
               <td aria-label={locale === "ar" ? "الإجمالي غير متاح" : "Total unavailable"}>—</td>
               <td>{role.description}</td>
               <td aria-label={locale === "ar" ? "لا توجد إجراءات" : "No actions"}>—</td>
@@ -57,7 +63,7 @@ export function RolesPage() {
         </tbody></table></div>
       ) : (
         <ReadState error={users.error ? new Error(administrationErrorMessage(users.error)) : null} loading={users.loading} onRetry={users.refresh}>
-          <div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{t.email}</th><th>{t.role}</th><th>{t.locationAccess}</th><th>{t.status}</th><th>{t.actions}</th></tr></thead><tbody>
+          <div className={styles.tableWrap}><table className={`${styles.table} ${styles.referenceTable}`}><thead><tr><th>{t.email}</th><th>{t.role}</th><th>{t.locationAccess}</th><th>{t.status}</th><th>{t.actions}</th></tr></thead><tbody>
             {users.data?.items.map((item) => <tr key={item.membershipId}>
               <td><bdi dir="ltr">{item.identity.email}</bdi></td>
               <td>{roleLabel(item.role, t)}</td>

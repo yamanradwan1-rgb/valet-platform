@@ -30,19 +30,23 @@ export function ManagementLocationSettingsPanel(props: {
   const copy = settingsTableCopy(props.locale);
   const projections = props.data.settings as unknown as Readonly<Record<string, Projection | unknown>>;
   async function setValue(setting: string, value: unknown) {
-    const body = managementLocationSettingSetRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
-    await mutation.run(() => setManagementLocationSetting(props.api, props.data.organizationId, props.data.locationId, body), props.onReload);
+    await mutation.run(() => {
+      const body = managementLocationSettingSetRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
+      return setManagementLocationSetting(props.api, props.data.organizationId, props.data.locationId, body);
+    }, props.onReload);
   }
   async function clearValue(setting: string) {
-    const body = managementLocationSettingClearRequestSchema.parse({ setting, expectedUpdatedAt: props.data.updatedAt });
-    await mutation.run(() => clearManagementLocationSetting(props.api, props.data.organizationId, props.data.locationId, body), props.onReload);
+    await mutation.run(() => {
+      const body = managementLocationSettingClearRequestSchema.parse({ setting, expectedUpdatedAt: props.data.updatedAt });
+      return clearManagementLocationSetting(props.api, props.data.organizationId, props.data.locationId, body);
+    }, props.onReload);
   }
   const projection = (key: string) => projections[key] as Projection;
   const hours = props.data.settings.operatingHours;
   return (
     <>
       <div className={styles.tableWrap}>
-        <table className={styles.table}>
+        <table className={`${styles.table} ${styles.referenceTable}`}>
           <thead><tr><th>{copy.setting}</th><th>{copy.value}</th><th>{copy.actions}</th></tr></thead>
           <tbody>
         {settingDefinitions.map((definition) => <SettingRow canClear definition={definition}
