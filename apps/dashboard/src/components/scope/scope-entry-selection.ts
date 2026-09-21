@@ -57,7 +57,10 @@ export async function resolveOrganizationSelection(
     };
   }
   const commercialRequirement =
-    accessRequirement === "FOUNDATION_ENTRY" ? "DASHBOARD" : accessRequirement;
+    accessRequirement === "FOUNDATION_ENTRY" ||
+    accessRequirement === "LOCATION_MAPS"
+      ? "DASHBOARD"
+      : accessRequirement;
   if (!allowsDashboardCommercialRequirement(commercialRequirement, access)) {
     return { kind: "UNAVAILABLE" };
   }

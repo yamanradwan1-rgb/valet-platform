@@ -4,6 +4,10 @@ import type { ManagementOrganization } from "@valet/contracts";
 
 import { Button } from "../presentation/button";
 import { Panel } from "../presentation/panel";
+import {
+  allowsCompanyAdminAllLocations,
+  canSelectScopeLocation,
+} from "./scope-entry-route-policy";
 import type { ScopeEntryAuthority, ScopeEntryProps } from "./scope-entry-types";
 import { useScopeEntryController } from "./use-scope-entry-controller";
 
@@ -83,11 +87,13 @@ export function ScopeEntry(props: ScopeEntryProps) {
             controller.commercialUnavailableOrganizationId === controller.activeOrganization.organization.organizationId ? (
               <p className="muted" role="status">
                 {props.accessRequirement === "DASHBOARD" ||
-                props.accessRequirement === "FOUNDATION_ENTRY"
+                props.accessRequirement === "FOUNDATION_ENTRY" ||
+                props.accessRequirement === "LOCATION_MAPS"
                   ? labels.dashboardAccessUnavailable
                   : labels.featureAccessUnavailable}
               </p>
-            ) : controller.activeOrganization.authority === "COMPANY_ADMIN" ? (
+            ) : controller.activeOrganization.authority === "COMPANY_ADMIN" &&
+              allowsCompanyAdminAllLocations(props.accessRequirement) ? (
               <Button
                 disabled={controller.pending}
                 onClick={() => void controller.selectCompanyAdminScope(null)}
@@ -100,8 +106,10 @@ export function ScopeEntry(props: ScopeEntryProps) {
             {controller.commercialUnavailableOrganizationId === controller.activeOrganization.organization.organizationId ? null : controller.locations.items.length === 0 ? <p className="muted">{labels.noneAvailable}</p> : (
               <div className="stack">
                 {controller.locations.items.map((location) => {
+                  const authority = controller.activeOrganization?.authority;
                   const disabled = controller.pending || (
-                    controller.activeOrganization?.authority === "LOCATION_MANAGER" && location.status !== "ACTIVE"
+                    authority !== undefined &&
+                    !canSelectScopeLocation(authority, props.accessRequirement, location)
                   );
                   return (
                     <Button

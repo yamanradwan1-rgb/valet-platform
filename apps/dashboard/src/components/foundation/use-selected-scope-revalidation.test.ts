@@ -101,6 +101,7 @@ describe("selected scope revalidation helpers", () => {
       status: "valid",
       routeAccess: {
         foundationEntryAuthorized: false,
+        locationMapsAuthorized: false,
         commercial: {
           dashboardAccess: false,
           basicBranding: true,
@@ -151,6 +152,7 @@ describe("selected scope revalidation helpers", () => {
       status: "valid",
       routeAccess: {
         foundationEntryAuthorized: false,
+        locationMapsAuthorized: true,
         commercial: {
           dashboardAccess: false,
           basicBranding: true,

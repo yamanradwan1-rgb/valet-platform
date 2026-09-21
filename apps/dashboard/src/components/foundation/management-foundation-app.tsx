@@ -183,7 +183,8 @@ export function ManagementFoundationApp({
       <StandalonePanel>
         <p>
           {accessRequirement === "DASHBOARD" ||
-          accessRequirement === "FOUNDATION_ENTRY"
+          accessRequirement === "FOUNDATION_ENTRY" ||
+          accessRequirement === "LOCATION_MAPS"
             ? t("dashboardAccessUnavailable")
             : t("unavailable")}
         </p>

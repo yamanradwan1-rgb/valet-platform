@@ -14,6 +14,7 @@ import {
 } from "../../lib/scope/dashboard-scope";
 import { ScopeGenerationGuard, type ScopeRequestTicket } from "../../lib/scope/scope-generation";
 import { scopeSourceFailureDisposition, type ScopeEntrySource } from "./scope-entry-policy";
+import { canSelectCompanyAdminScope, shouldDiscoverSupervisorScopes } from "./scope-entry-route-policy";
 import { resolveOrganizationSelection } from "./scope-entry-selection";
 import type { ScopeEntryAuthority, ScopeEntryProps } from "./scope-entry-types";
 
@@ -106,7 +107,7 @@ export function useScopeEntryController({
       const results = await Promise.allSettled([
         listCompanyAdminOrganizations(api, {}, ticket.request.signal),
         listLocationManagerOrganizations(api, {}, ticket.request.signal),
-        accessRequirement === "FOUNDATION_ENTRY"
+        shouldDiscoverSupervisorScopes(accessRequirement)
           ? listActiveSupervisorScopes(api, ticket.request.signal)
           : Promise.resolve([] as readonly SupervisorCandidate[]),
       ]);
@@ -236,7 +237,10 @@ export function useScopeEntryController({
   }, [activeOrganization, api, begin, disposition, isCurrent, locations]);
 
   const selectCompanyAdminScope = useCallback(async (location: ManagementLocation | null) => {
-    if (activeOrganization?.authority !== "COMPANY_ADMIN") return;
+    if (
+      activeOrganization?.authority !== "COMPANY_ADMIN" ||
+      !canSelectCompanyAdminScope(accessRequirement, location)
+    ) return;
     if (commercialUnavailableOrganizationId === activeOrganization.organization.organizationId) return;
     const ticket = begin();
     setPending(true);
@@ -263,7 +267,7 @@ export function useScopeEntryController({
     } finally {
       if (isCurrent(ticket)) setPending(false);
     }
-  }, [activeOrganization, api, begin, commercialUnavailableOrganizationId, disposition, isCurrent]);
+  }, [accessRequirement, activeOrganization, api, begin, commercialUnavailableOrganizationId, disposition, isCurrent]);
 
   const selectLocationManagerScope = useCallback((location: ManagementLocation) => {
     if (activeOrganization?.authority !== "LOCATION_MANAGER" || location.status !== "ACTIVE") return;

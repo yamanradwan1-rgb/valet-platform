@@ -16,6 +16,7 @@ import type {
 
 const fullRouteAccess = {
   foundationEntryAuthorized: true,
+  locationMapsAuthorized: true,
   commercial: {
     dashboardAccess: true,
     basicBranding: true,

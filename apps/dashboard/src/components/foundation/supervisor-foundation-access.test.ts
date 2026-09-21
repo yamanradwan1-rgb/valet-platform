@@ -55,6 +55,7 @@ describe("Supervisor foundation access", () => {
       status: "valid",
       routeAccess: {
         foundationEntryAuthorized: true,
+        locationMapsAuthorized: true,
         commercial: {
           dashboardAccess: false,
           basicBranding: false,

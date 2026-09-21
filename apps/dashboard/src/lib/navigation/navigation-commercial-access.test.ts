@@ -52,6 +52,7 @@ describe("navigation commercial access", () => {
       "en",
       {
         foundationEntryAuthorized: false,
+        locationMapsAuthorized: false,
         commercial: {
           dashboardAccess: false,
           basicBranding: true,
@@ -105,6 +106,7 @@ describe("navigation commercial access", () => {
       "en",
       {
         foundationEntryAuthorized: true,
+        locationMapsAuthorized: true,
         commercial: {
           dashboardAccess: false,
           basicBranding: false,

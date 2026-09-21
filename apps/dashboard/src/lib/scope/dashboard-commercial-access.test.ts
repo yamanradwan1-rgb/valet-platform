@@ -45,10 +45,26 @@ describe("dashboard commercial access", () => {
   it("separates foundation entry from commercial Dashboard access", () => {
     const routeAccess = {
       foundationEntryAuthorized: true,
+      locationMapsAuthorized: false,
       commercial: noDashboardCommercialAccess,
     };
 
     expect(allowsDashboardRouteAccessRequirement("FOUNDATION_ENTRY", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("LOCATION_MAPS", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("DASHBOARD", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("BRANDING", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
+  });
+
+  it("keeps location Maps authority separate from every commercial entitlement", () => {
+    const routeAccess = {
+      foundationEntryAuthorized: false,
+      locationMapsAuthorized: true,
+      commercial: noDashboardCommercialAccess,
+    };
+
+    expect(allowsDashboardRouteAccessRequirement("LOCATION_MAPS", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("FOUNDATION_ENTRY", routeAccess)).toBe(false);
     expect(allowsDashboardRouteAccessRequirement("DASHBOARD", routeAccess)).toBe(false);
     expect(allowsDashboardRouteAccessRequirement("BRANDING", routeAccess)).toBe(false);
     expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
