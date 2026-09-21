@@ -2,7 +2,10 @@ import { expect, test } from "@playwright/test";
 
 import { DashboardApiFixture, LOCATION_A, ORG_A } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
-import { operationsReadReply } from "./support/operations-fixtures";
+import { areaItem, operationsReadReply, pointItem } from "./support/operations-fixtures";
+
+const pointsPath = `/v1/staff/locations/${LOCATION_A.locationId}/map/points`;
+const areasPath = `/v1/staff/locations/${LOCATION_A.locationId}/map/areas`;
 
 test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dark palette", async ({ page }) => {
   const fixture = new DashboardApiFixture({
@@ -83,4 +86,65 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
   await expect(page.getByRole("heading", { name: "الخرائط والمناطق", level: 1 })).toBeVisible();
   await expect(page.locator(".sidebar")).toBeVisible();
   await expect(page.locator(".topbar")).toBeVisible();
+});
+
+test("Map Setup dialogs preserve the frozen Maps modal composition", async ({ page }) => {
+  const fixture = new DashboardApiFixture({
+    locationManagerOrganizations: [ORG_A],
+    locationManagerLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    override: (path) => {
+      if (path === pointsPath) return { body: { points: [pointItem()] } };
+      if (path === areasPath) return { body: { areas: [areaItem()] } };
+      return operationsReadReply(path);
+    },
+  });
+  await fixture.install(page);
+  await page.goto("/maps-zones");
+  await signInOnCurrentPage(page, "manager@example.com");
+  await page.getByRole("button", { name: ORG_A.name }).click();
+  await page.getByRole("button", { name: LOCATION_A.name }).click();
+
+  const opener = page.getByRole("button", { name: "Add Point" });
+  await opener.click();
+  const dialog = page.getByRole("dialog", { name: "Add Point" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveCSS("border-radius", "12px");
+  await expect(dialog).toHaveCSS("border-color", "rgb(226, 232, 240)");
+  const header = dialog.locator("header");
+  const body = dialog.locator('[class*="mapDialogBody"]');
+  const footer = dialog.locator("footer");
+  await expect(header).toHaveCSS("padding-left", "24px");
+  await expect(header).toHaveCSS("padding-top", "16px");
+  await expect(body).toHaveCSS("padding-left", "24px");
+  await expect(body).toHaveCSS("padding-top", "20px");
+  await expect(footer).toHaveCSS("background-color", "rgb(250, 251, 253)");
+  await expect(footer).toHaveCSS("padding-left", "24px");
+  const codeLabel = dialog.getByText("Code", { exact: true });
+  await expect(codeLabel).toHaveCSS("font-size", "12px");
+  await expect(codeLabel).toHaveCSS("font-weight", "500");
+  await expect(codeLabel).toHaveCSS("color", "rgb(51, 65, 85)");
+  await expect(codeLabel.locator("..").getByRole("textbox")).toHaveCSS("border-radius", "8px");
+  await expect(dialog.getByRole("button", { name: "Save" })).toHaveCSS("font-size", "14px");
+  await expect(dialog.getByRole("button", { name: "Close" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+
+  await page.getByRole("button", { name: "Add Area" }).click();
+  await expect(page.getByRole("dialog", { name: "Add Area" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Replace vertices" }).click();
+  await expect(page.getByRole("dialog", { name: "Replace vertices" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await page.getByRole("button", { name: "Dark" }).click();
+  await opener.click();
+  const darkDialog = page.getByRole("dialog", { name: "Add Point" });
+  await expect(darkDialog).toHaveCSS("background-color", "rgb(13, 21, 47)");
+  await expect(darkDialog.locator("footer")).toHaveCSS("background-color", "rgb(9, 16, 36)");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Language" }).click();
+  await page.getByRole("button", { name: "إضافة نقطة" }).click();
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  await expect(page.getByRole("dialog", { name: "إضافة نقطة" })).toBeVisible();
 });

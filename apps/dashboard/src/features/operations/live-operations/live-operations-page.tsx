@@ -2,10 +2,15 @@
 
 import { Car, ChevronRight, Clock } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import type { DashboardSessionState, SessionOverviewEntry } from "@valet/contracts";
+import type {
+  DashboardSessionState,
+  RetrievalQueueEntry,
+  SessionOverviewEntry,
+  TaskOverviewEntry,
+} from "@valet/contracts";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
-import { readSessions, readStateCounts } from "../operations-api";
+import { readRetrievalQueue, readSessions, readStateCounts, readTasks } from "../operations-api";
 import { operationsCopy } from "../operations-copy";
 import { sessionStateLabel, sessionTone } from "../operations-labels";
 import {
@@ -20,6 +25,7 @@ const visibleStates: readonly DashboardSessionState[] = [
   "AWAITING_PARKING", "CHECKING_IN", "PARKING", "PARKED",
   "REQUESTED", "RETRIEVING", "READY", "HANDOFF_PENDING",
 ];
+type LiveTab = DashboardSessionState | "ALL" | "RETRIEVAL_QUEUE" | "TASKS";
 
 export function LiveOperationsPage() {
   const { scopeKey } = useOperationsContext();
@@ -30,18 +36,28 @@ function LiveOperationsContent() {
   const { dashboard, exactLocation, scope, scopeKey } = useOperationsContext();
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
-  const page = useCursorPage();
+  const sessionPage = useCursorPage();
+  const retrievalPage = useCursorPage();
+  const taskPage = useCursorPage();
   const [selected, setSelected] = useState<SessionOverviewEntry | null>(null);
-  const [tab, setTab] = useState<DashboardSessionState | "ALL">("ALL");
+  const [tab, setTab] = useState<LiveTab>("ALL");
   const locationId = scope.locationId ?? "";
   const enabled = exactLocation && (scope.authority === "COMPANY_ADMIN" || scope.authority === "LOCATION_MANAGER");
   const loadSessions = useCallback((signal: AbortSignal) =>
-    readSessions(dashboard.api, locationId, page.cursor, signal),
-  [dashboard.api, locationId, page.cursor]);
+    readSessions(dashboard.api, locationId, sessionPage.cursor, signal),
+  [dashboard.api, locationId, sessionPage.cursor]);
   const loadCounts = useCallback((signal: AbortSignal) =>
     readStateCounts(dashboard.api, locationId, signal), [dashboard.api, locationId]);
-  const sessions = useOperationsRead(`${scopeKey}:live:sessions:${page.cursor ?? "first"}`, loadSessions, enabled);
+  const loadRetrieval = useCallback((signal: AbortSignal) =>
+    readRetrievalQueue(dashboard.api, locationId, retrievalPage.cursor, signal),
+  [dashboard.api, locationId, retrievalPage.cursor]);
+  const loadTasks = useCallback((signal: AbortSignal) =>
+    readTasks(dashboard.api, locationId, taskPage.cursor, signal),
+  [dashboard.api, locationId, taskPage.cursor]);
+  const sessions = useOperationsRead(`${scopeKey}:live:sessions:${sessionPage.cursor ?? "first"}`, loadSessions, enabled);
   const counts = useOperationsRead(`${scopeKey}:live:counts`, loadCounts, enabled);
+  const retrieval = useOperationsRead(`${scopeKey}:live:retrieval:${retrievalPage.cursor ?? "first"}`, loadRetrieval, enabled);
+  const tasks = useOperationsRead(`${scopeKey}:live:tasks:${taskPage.cursor ?? "first"}`, loadTasks, enabled);
   const count = (state: DashboardSessionState) =>
     counts.data?.counts.find((item) => item.state === state)?.count ?? 0;
   const active = counts.data?.counts.reduce(
@@ -59,7 +75,7 @@ function LiveOperationsContent() {
     <OperationsPage subtitle={t.liveSubtitle} title={t.liveTitle}>
       <div className={styles.metricGrid}>
         <Metric icon={<Car size={24} />} iconClass={styles.metricNavy} label={t.activeSessions} value={active} />
-        <Metric icon={<Clock size={24} />} iconClass={styles.metricAmber} label={t.retrievalRequested} value={count("REQUESTED")} />
+        <Metric icon={<Clock size={24} />} iconClass={styles.metricAmber} label={t.requestedSessions} value={count("REQUESTED")} />
         <Metric icon={<ChevronRight size={25} />} iconClass={styles.metricOrange} label={t.inTransit} value={count("PARKING") + count("RETRIEVING")} />
         <Metric icon={<span>!</span>} iconClass={styles.metricRed} label={t.handoffPending} value={count("HANDOFF_PENDING")} />
       </div>
@@ -70,9 +86,11 @@ function LiveOperationsContent() {
             {sessionStateLabel(state)} ({count(state)})
           </button>
         ))}
+        <button aria-selected={tab === "RETRIEVAL_QUEUE"} className={`${styles.tab} ${tab === "RETRIEVAL_QUEUE" ? styles.tabActive : ""}`} onClick={() => setTab("RETRIEVAL_QUEUE")} role="tab" type="button">{t.retrievalQueue}</button>
+        <button aria-selected={tab === "TASKS"} className={`${styles.tab} ${tab === "TASKS" ? styles.tabActive : ""}`} onClick={() => setTab("TASKS")} role="tab" type="button">{t.tasksTitle}</button>
       </div>
-      <div className={styles.loadedPageNote}>{t.currentPageOnly}</div>
-      <ReadState empty={sessions.data?.items.length === 0} error={sessions.error} loading={sessions.loading} onRetry={sessions.refresh}>
+      <div className={styles.loadedPageNote}>{tab === "RETRIEVAL_QUEUE" ? t.retrievalPageOnly : tab === "TASKS" ? t.tasksPageOnly : t.currentPageOnly}</div>
+      {tab === "RETRIEVAL_QUEUE" ? <RetrievalTable read={retrieval} page={retrievalPage} /> : tab === "TASKS" ? <LiveTasksTable read={tasks} page={taskPage} /> : <ReadState empty={sessions.data?.items.length === 0} error={sessions.error} loading={sessions.loading} onRetry={sessions.refresh}>
         <div className={styles.card}><div className={styles.tableWrap}><table className={styles.table}>
           <thead><tr><th>{t.vehicle}</th><th>{t.session}</th><th>{t.assignee}</th><th>{t.state}</th><th>{t.updated}</th><th className={styles.actionHeader}>{t.action}</th></tr></thead>
           <tbody>{filtered.map((item) => (
@@ -86,12 +104,31 @@ function LiveOperationsContent() {
             </tr>
           ))}</tbody>
         </table></div>
-        <CursorControls canNext={Boolean(sessions.data?.nextCursor)} canPrevious={page.canPrevious} onNext={() => page.next(sessions.data?.nextCursor ?? null)} onPrevious={page.previous} />
+        <CursorControls canNext={Boolean(sessions.data?.nextCursor)} canPrevious={sessionPage.canPrevious} onNext={() => sessionPage.next(sessions.data?.nextCursor ?? null)} onPrevious={sessionPage.previous} />
         </div>
-      </ReadState>
+      </ReadState>}
       {selected ? <SessionDrawer item={selected} onClose={() => setSelected(null)} /> : null}
     </OperationsPage>
   );
+}
+
+type ReadPage<T> = {
+  readonly data: { readonly items: readonly T[]; readonly nextCursor: string | null } | null;
+  readonly error: Error | null;
+  readonly loading: boolean;
+  readonly refresh: () => void;
+};
+
+function RetrievalTable({ read, page }: { readonly read: ReadPage<RetrievalQueueEntry>; readonly page: ReturnType<typeof useCursorPage> }) {
+  const { locale } = useDashboardLocale();
+  const t = operationsCopy(locale);
+  return <ReadState empty={read.data?.items.length === 0} error={read.error} loading={read.loading} onRetry={read.refresh}><div className={styles.card}><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{t.request}</th><th>{t.session}</th><th>{t.state}</th><th>{t.requester}</th><th>{t.task}</th><th>{t.taskState}</th></tr></thead><tbody>{read.data?.items.map((item) => <tr key={item.requestId}><td><bdi dir="ltr">{item.requestId}</bdi></td><td><bdi dir="ltr">{item.valetSessionId}</bdi></td><td><StatusBadge tone="warn">{item.status}</StatusBadge></td><td>{item.requesterType}</td><td>{item.task ? <bdi dir="ltr">{item.task.taskId}</bdi> : "—"}</td><td>{item.task?.status ?? "—"}</td></tr>)}</tbody></table></div><CursorControls canNext={Boolean(read.data?.nextCursor)} canPrevious={page.canPrevious} onNext={() => page.next(read.data?.nextCursor ?? null)} onPrevious={page.previous} /></div></ReadState>;
+}
+
+function LiveTasksTable({ read, page }: { readonly read: ReadPage<TaskOverviewEntry>; readonly page: ReturnType<typeof useCursorPage> }) {
+  const { locale } = useDashboardLocale();
+  const t = operationsCopy(locale);
+  return <ReadState empty={read.data?.items.length === 0} error={read.error} loading={read.loading} onRetry={read.refresh}><div className={styles.card}><div className={styles.tableWrap}><table className={styles.table}><thead><tr><th>{t.task}</th><th>{t.type}</th><th>{t.state}</th><th>{t.assignee}</th><th>{t.session}</th></tr></thead><tbody>{read.data?.items.map((item) => <tr key={item.taskId}><td><bdi dir="ltr">{item.taskId}</bdi></td><td>{item.taskType}</td><td>{item.status}</td><td>{item.currentAssigneeMembershipId ? <bdi dir="ltr">{item.currentAssigneeMembershipId}</bdi> : t.unassigned}</td><td><bdi dir="ltr">{item.valetSessionId}</bdi></td></tr>)}</tbody></table></div><CursorControls canNext={Boolean(read.data?.nextCursor)} canPrevious={page.canPrevious} onNext={() => page.next(read.data?.nextCursor ?? null)} onPrevious={page.previous} /></div></ReadState>;
 }
 
 function Metric(props: { readonly icon: React.ReactNode; readonly iconClass: string | undefined; readonly label: string; readonly value: number }) {

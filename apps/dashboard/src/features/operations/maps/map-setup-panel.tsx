@@ -22,6 +22,7 @@ import { ReadState, StatusBadge, styles } from "../operations-ui";
 import { AreaEditorDialog, VerticesEditorDialog } from "./area-editor-dialog";
 import { PointEditorDialog } from "./point-editor-dialog";
 import { useMapSetupMutation } from "./use-map-setup-mutation";
+import type { MapSetupReloadResult } from "./use-map-setup-state";
 
 export function MapSetupPanel(props: {
   readonly api: DashboardApiClient;
@@ -30,7 +31,7 @@ export function MapSetupPanel(props: {
   readonly loading: boolean;
   readonly locationId: string;
   readonly points: readonly LocationMapPoint[];
-  readonly reload: () => Promise<void>;
+  readonly reload: () => Promise<MapSetupReloadResult>;
 }) {
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
@@ -38,9 +39,13 @@ export function MapSetupPanel(props: {
   const [areaEditor, setAreaEditor] = useState<LocationMapArea | "new" | null>(null);
   const [verticesEditor, setVerticesEditor] = useState<LocationMapArea | null>(null);
   const mutation = useMapSetupMutation(props.reload);
-  const notice = mutation.notice === "conflict" ? t.mapConflict
-    : mutation.notice === "retry" ? t.mutationRetry
-    : mutation.notice === "unknown" ? t.mutationUnknown : null;
+  const notice = mutation.notice === "saved_refresh_failed" ? t.savedRefreshFailed
+    : mutation.notice === "conflict_reloaded" ? t.conflictReloaded
+    : mutation.notice === "conflict_reload_failed" ? t.conflictReloadFailed
+    : mutation.notice === "unknown_reloaded" ? t.unknownReloaded
+    : mutation.notice === "unknown_reload_failed" ? t.unknownReloadFailed
+    : mutation.notice === "retry_reloaded" ? t.retryReloaded
+    : mutation.notice === "retry_reload_failed" ? t.retryReloadFailed : null;
 
   async function savePoint(value: CreateLocationMapPointRequest | UpdateLocationMapPointRequest) {
     return mutation.run(() => pointEditor === "new"

@@ -9,10 +9,10 @@ import {
 } from "@valet/contracts";
 import { useState } from "react";
 
-import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
 import { styles } from "../operations-ui";
+import { MapSetupDialog } from "./map-setup-dialog";
 
 export function PointEditorDialog(props: {
   readonly onClose: () => void;
@@ -64,7 +64,12 @@ export function PointEditorDialog(props: {
   };
 
   return (
-    <FocusDialog label={original ? t.edit : t.addPoint} onClose={props.onClose}>
+    <MapSetupDialog
+      footer={<><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></>}
+      onClose={props.onClose}
+      subtitle={t.pointSetupSubtitle}
+      title={original ? t.edit : t.addPoint}
+    >
       <div className={styles.formGrid}>
         <Field label={t.code}><input className={styles.input} onChange={(e) => setCode(e.target.value)} value={code} /></Field>
         <Field label={t.label}><input className={styles.input} onChange={(e) => setLabel(e.target.value)} value={label} /></Field>
@@ -73,13 +78,12 @@ export function PointEditorDialog(props: {
         <Field label={t.latitude}><input className={styles.input} inputMode="decimal" onChange={(e) => setLatitude(e.target.value)} value={latitude} /></Field>
         <Field label={t.longitude}><input className={styles.input} inputMode="decimal" onChange={(e) => setLongitude(e.target.value)} value={longitude} /></Field>
       </div>
-      <label className={styles.field}><span>{t.active}</span><input checked={active} onChange={(e) => setActive(e.target.checked)} type="checkbox" /></label>
+      <label className={styles.field}><span className={styles.fieldLabel}>{t.active}</span><input checked={active} onChange={(e) => setActive(e.target.checked)} type="checkbox" /></label>
       {error ? <div className={styles.error} role="alert">{error}</div> : null}
-      <div className={styles.formActions}><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></div>
-    </FocusDialog>
+    </MapSetupDialog>
   );
 }
 
 function Field({ children, label }: { readonly children: React.ReactNode; readonly label: string }) {
-  return <label className={styles.field}><span>{label}</span>{children}</label>;
+  return <label className={styles.field}><span className={styles.fieldLabel}>{label}</span>{children}</label>;
 }

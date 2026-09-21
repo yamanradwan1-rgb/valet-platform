@@ -6,6 +6,14 @@ import type { LocationMapArea, LocationMapPoint } from "@valet/contracts";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { readMapAreas, readMapPoints } from "../map-setup-api";
 
+export type MapSetupReloadResult =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly error: Error };
+
+function asError(reason: unknown) {
+  return reason instanceof Error ? reason : new Error("Map setup read failed.");
+}
+
 export function useMapSetupState(
   api: DashboardApiClient,
   locationId: string,
@@ -20,8 +28,8 @@ export function useMapSetupState(
     readonly points: readonly LocationMapPoint[];
   }>({ areas: [], error: null, loading: enabled, points: [] });
 
-  const reload = useCallback(async () => {
-    if (!enabled) return;
+  const reload = useCallback(async (): Promise<MapSetupReloadResult> => {
+    if (!enabled) return { ok: false, error: new Error("Map setup is unavailable.") };
     generation.current += 1;
     const current = generation.current;
     controller.current?.abort();
@@ -36,26 +44,30 @@ export function useMapSetupState(
       if (current === generation.current && !next.signal.aborted) {
         setState({ areas, error: null, loading: false, points });
       }
+      return { ok: true };
     } catch (reason: unknown) {
+      const error = asError(reason);
       if (current === generation.current && !next.signal.aborted) {
         setState((value) => ({
           ...value,
-          error: reason instanceof Error ? reason : new Error("Map setup read failed."),
+          error,
           loading: false,
         }));
       }
-      throw reason;
+      return { ok: false, error };
     }
   }, [api, enabled, locationId]);
 
   useEffect(() => {
     if (!enabled) {
       controller.current?.abort();
-      setState({ areas: [], error: null, loading: false, points: [] });
       return;
     }
-    void reload().catch(() => undefined);
-    return () => controller.current?.abort();
+    const timer = window.setTimeout(() => { void reload(); }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      controller.current?.abort();
+    };
   }, [enabled, reload]);
 
   return { ...state, reload };

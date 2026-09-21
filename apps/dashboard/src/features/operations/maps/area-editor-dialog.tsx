@@ -11,10 +11,10 @@ import {
 } from "@valet/contracts";
 import { useState } from "react";
 
-import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
 import { styles } from "../operations-ui";
+import { MapSetupDialog } from "./map-setup-dialog";
 
 function verticesText(area?: LocationMapArea) {
   return area?.vertices.map((vertex) => `${vertex.latitude}, ${vertex.longitude}`).join("\n") ?? "";
@@ -71,7 +71,12 @@ export function AreaEditorDialog(props: {
   };
 
   return (
-    <FocusDialog label={original ? t.edit : t.addArea} onClose={props.onClose}>
+    <MapSetupDialog
+      footer={<><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></>}
+      onClose={props.onClose}
+      subtitle={t.areaSetupSubtitle}
+      title={original ? t.edit : t.addArea}
+    >
       <div className={styles.formGrid}>
         <Field label={t.code}><input className={styles.input} onChange={(e) => setCode(e.target.value)} value={code} /></Field>
         <Field label={t.label}><input className={styles.input} onChange={(e) => setLabel(e.target.value)} value={label} /></Field>
@@ -80,10 +85,9 @@ export function AreaEditorDialog(props: {
         <Field label={t.parkingZoneId}><input className={styles.input} onChange={(e) => setParkingZoneId(e.target.value)} value={parkingZoneId} /></Field>
       </div>
       {!original ? <Field label={`${t.vertices} (lat, lng — 3..500)`}><textarea className={styles.textarea} onChange={(e) => setVertices(e.target.value)} value={vertices} /></Field> : null}
-      <label className={styles.field}><span>{t.active}</span><input checked={active} onChange={(e) => setActive(e.target.checked)} type="checkbox" /></label>
+      <label className={styles.field}><span className={styles.fieldLabel}>{t.active}</span><input checked={active} onChange={(e) => setActive(e.target.checked)} type="checkbox" /></label>
       {error ? <div className={styles.error} role="alert">{error}</div> : null}
-      <div className={styles.formActions}><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></div>
-    </FocusDialog>
+    </MapSetupDialog>
   );
 }
 
@@ -103,9 +107,9 @@ export function VerticesEditorDialog(props: {
     setError(null);
     if (await props.onSave(parsed.data)) props.onClose();
   };
-  return <FocusDialog label={t.replaceVertices} onClose={props.onClose}><Field label={`${t.vertices} (lat, lng — 3..500)`}><textarea className={styles.textarea} onChange={(e) => setValue(e.target.value)} value={value} /></Field>{error ? <div className={styles.error} role="alert">{error}</div> : null}<div className={styles.formActions}><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></div></FocusDialog>;
+  return <MapSetupDialog footer={<><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></>} onClose={props.onClose} subtitle={t.verticesSetupSubtitle} title={t.replaceVertices}><Field label={`${t.vertices} (lat, lng — 3..500)`}><textarea className={styles.textarea} onChange={(e) => setValue(e.target.value)} value={value} /></Field>{error ? <div className={styles.error} role="alert">{error}</div> : null}</MapSetupDialog>;
 }
 
 function Field({ children, label }: { readonly children: React.ReactNode; readonly label: string }) {
-  return <label className={styles.field}><span>{label}</span>{children}</label>;
+  return <label className={styles.field}><span className={styles.fieldLabel}>{label}</span>{children}</label>;
 }
