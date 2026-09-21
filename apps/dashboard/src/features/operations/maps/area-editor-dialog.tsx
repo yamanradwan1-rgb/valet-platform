@@ -15,6 +15,7 @@ import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
 import { styles } from "../operations-ui";
 import { MapSetupDialog } from "./map-setup-dialog";
+import { MapSetupSelect } from "./map-setup-select";
 
 function verticesText(area?: LocationMapArea) {
   return area?.vertices.map((vertex) => `${vertex.latitude}, ${vertex.longitude}`).join("\n") ?? "";
@@ -80,7 +81,7 @@ export function AreaEditorDialog(props: {
       <div className={styles.formGrid}>
         <Field label={t.code}><input className={styles.input} onChange={(e) => setCode(e.target.value)} value={code} /></Field>
         <Field label={t.label}><input className={styles.input} onChange={(e) => setLabel(e.target.value)} value={label} /></Field>
-        <Field label={t.purpose}><select className={styles.select} onChange={(e) => setPurpose(e.target.value as CreateLocationMapAreaRequest["purpose"])} value={purpose}><option>PARKING</option><option>OVERFLOW</option><option>STAGING</option><option>RESTRICTED</option></select></Field>
+        <Field label={t.purpose}><MapSetupSelect onChange={(e) => setPurpose(e.target.value as CreateLocationMapAreaRequest["purpose"])} value={purpose}><option>PARKING</option><option>OVERFLOW</option><option>STAGING</option><option>RESTRICTED</option></MapSetupSelect></Field>
         <Field label={t.level}><input className={styles.input} onChange={(e) => setLevelLabel(e.target.value)} value={levelLabel} /></Field>
         <Field label={t.parkingZoneId}><input className={styles.input} onChange={(e) => setParkingZoneId(e.target.value)} value={parkingZoneId} /></Field>
       </div>

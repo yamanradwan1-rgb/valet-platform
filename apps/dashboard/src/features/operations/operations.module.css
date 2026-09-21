@@ -136,9 +136,14 @@
 .field { display:grid; gap:.35rem; }
 .fieldLabel { color:#334155; font-size:.75rem; font-weight:500; }
 :global([data-theme="dark"]) .fieldLabel { color:#cbd5e1; }
-.input,.select,.textarea { width:100%; min-height:2.5rem; border:1px solid #e2e8f0; border-radius:.5rem; padding:.5rem .75rem; background:#fff; color:#0f172a; font-size:.8125rem; }
+.input,.select,.textarea { width:100%; border:1px solid #e2e8f0; border-radius:.5rem; padding:.5rem .75rem; background:#fff; color:#0f172a; font-size:.875rem; line-height:1.25rem; transition:background-color 150ms ease,border-color 150ms ease,box-shadow 150ms ease,color 150ms ease; }
 .textarea { min-height:7rem; resize:vertical; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
 :global([data-theme="dark"]) .input,:global([data-theme="dark"]) .select,:global([data-theme="dark"]) .textarea { background:#131e3d; border-color:#1e293b; color:#fff; }
+.input::placeholder,.textarea::placeholder { color:#94a3b8; }
+:global([data-theme="dark"]) .input::placeholder,:global([data-theme="dark"]) .textarea::placeholder { color:#64748b; }
+.mapSelectControl { position:relative; width:100%; }
+.select { appearance:none; -webkit-appearance:none; padding-inline-start:.875rem; padding-inline-end:2rem; font-weight:500; color:#334155; cursor:pointer; }
+.mapSelectChevron { position:absolute; inset-block:0; inset-inline-end:0; display:flex; align-items:center; padding-inline:.5rem; color:#64748b; pointer-events:none; }
 .formGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
 .formActions { display:flex; justify-content:flex-end; gap:.5rem; padding-top:.5rem; }
 .setupStatus { border-radius:.65rem; padding:.65rem .8rem; font-size:.72rem; background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
@@ -157,12 +162,18 @@
 .mapDialogClose:hover { background:#f1f5f9; color:#475569; }
 :global([data-theme="dark"]) .mapDialogClose:hover { background:#131e3d; color:#e2e8f0; }
 .mapDialogBody { padding:1.25rem 1.5rem; max-height:75vh; overflow-y:auto; display:grid; gap:1rem; }
-.mapDialogBody .input,.mapDialogBody .select,.mapDialogBody .textarea { font-size:.875rem; }
 .mapDialogBody .select { font-weight:500; color:#334155; }
 :global([data-theme="dark"]) .mapDialogBody .select { color:#e2e8f0; }
+.mapDialogBody .input:focus,.mapDialogBody .input:focus-visible,.mapDialogBody .select:focus,.mapDialogBody .select:focus-visible,.mapDialogBody .textarea:focus,.mapDialogBody .textarea:focus-visible { outline:none; border-color:#1e60f0; box-shadow:0 0 0 1px #1e60f0; }
 .mapDialogFooter { border-top:1px solid #e2e8f0; background:#fafbfd; padding:.875rem 1.5rem; display:flex; align-items:center; justify-content:flex-end; gap:.625rem; }
 :global([data-theme="dark"]) .mapDialogFooter { border-color:#172346; background:#091024; }
-.mapDialogFooter .primary,.mapDialogFooter .secondary { min-height:auto; border-radius:.5rem; padding:.5rem .875rem; font-size:.875rem; font-weight:500; }
+.mapDialogFooter .primary,.mapDialogFooter .secondary { min-height:auto; border-radius:.5rem; padding:.5rem .875rem; font-size:.875rem; font-weight:500; line-height:1.25rem; transition:background-color 150ms ease,border-color 150ms ease,box-shadow 150ms ease,color 150ms ease; box-shadow:0 1px 2px rgba(15,23,42,.05); }
+.mapDialogFooter .primary:hover:not(:disabled) { background:#1551ca; border-color:#1551ca; }
+.mapDialogFooter .secondary:hover:not(:disabled) { background:#f8fafc; }
+:global([data-theme="dark"]) .mapDialogFooter .secondary:hover:not(:disabled) { background:#1a264f; }
+.mapDialogFooter .primary:focus,.mapDialogFooter .primary:focus-visible { outline:none; box-shadow:0 0 0 1px #fff,0 0 0 3px #1e60f0,0 1px 2px rgba(15,23,42,.05); }
+.mapDialogFooter .secondary:focus,.mapDialogFooter .secondary:focus-visible { outline:none; box-shadow:0 0 0 1px #fff,0 0 0 3px #cbd5e1,0 1px 2px rgba(15,23,42,.05); }
+:global([data-theme="dark"]) .mapDialogFooter .secondary:focus,:global([data-theme="dark"]) .mapDialogFooter .secondary:focus-visible { box-shadow:0 0 0 1px #fff,0 0 0 3px #334155,0 1px 2px rgba(15,23,42,.05); }
 @keyframes operationsFade { from { opacity:0; transform:translateY(2px); } to { opacity:1; transform:none; } }
 @media (max-width:1050px) { .mapsGrid { grid-template-columns:1fr; } }
 @media (min-width:640px) { .metricGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } .referenceFilterBetween { flex-direction:row; align-items:center; } }

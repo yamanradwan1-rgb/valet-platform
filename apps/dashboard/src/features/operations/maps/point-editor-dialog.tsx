@@ -13,6 +13,7 @@ import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
 import { styles } from "../operations-ui";
 import { MapSetupDialog } from "./map-setup-dialog";
+import { MapSetupSelect } from "./map-setup-select";
 
 export function PointEditorDialog(props: {
   readonly onClose: () => void;
@@ -73,7 +74,7 @@ export function PointEditorDialog(props: {
       <div className={styles.formGrid}>
         <Field label={t.code}><input className={styles.input} onChange={(e) => setCode(e.target.value)} value={code} /></Field>
         <Field label={t.label}><input className={styles.input} onChange={(e) => setLabel(e.target.value)} value={label} /></Field>
-        <Field label={t.kind}><select className={styles.select} onChange={(e) => setKind(e.target.value as CreateLocationMapPointRequest["kind"])} value={kind}><option>ENTRANCE</option><option>PICKUP</option><option>DROP_OFF</option></select></Field>
+        <Field label={t.kind}><MapSetupSelect onChange={(e) => setKind(e.target.value as CreateLocationMapPointRequest["kind"])} value={kind}><option>ENTRANCE</option><option>PICKUP</option><option>DROP_OFF</option></MapSetupSelect></Field>
         <Field label={t.level}><input className={styles.input} onChange={(e) => setLevelLabel(e.target.value)} value={levelLabel} /></Field>
         <Field label={t.latitude}><input className={styles.input} inputMode="decimal" onChange={(e) => setLatitude(e.target.value)} value={latitude} /></Field>
         <Field label={t.longitude}><input className={styles.input} inputMode="decimal" onChange={(e) => setLongitude(e.target.value)} value={longitude} /></Field>
