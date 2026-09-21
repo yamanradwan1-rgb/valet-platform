@@ -6,7 +6,6 @@ import {
   ORG_A,
 } from "./support/dashboard-api-fixture";
 import {
-  expectMd01NavigationOnly,
   openLocationManagerWorkspace,
 } from "./support/foundation-ui";
 
@@ -66,17 +65,31 @@ test("mobile navigation traps focus, closes on Escape, and restores the opener",
   ).toBeFocused();
 
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("link", { name: "Help" })).toBeFocused();
+  const focusable = dialog.locator(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  );
+  await expect(focusable.last()).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(opener).toBeFocused();
 });
 
-test("foundation shell exposes only real MD-01 controls", async ({ page }) => {
+test("foundation shell keeps unsupported global controls absent with MD-02 navigation", async ({ page }) => {
   const fixture = locationManagerFixture();
   await fixture.install(page);
   await openLocationManagerWorkspace(page);
-  await expectMd01NavigationOnly(page);
+  const navigation = page.getByRole("navigation", { name: "Management navigation" });
+  for (const name of [
+    "Employees & Shifts",
+    "Locations",
+    "Policies & Settings",
+    "Branding",
+    "Billing & Subscription",
+  ]) {
+    await expect(navigation.getByRole("link", { name })).toBeVisible();
+  }
+  await expect(navigation.getByRole("link", { name: "Roles & Permissions" })).toHaveCount(0);
+  await expect(navigation.getByRole("link", { name: "Integrations" })).toHaveCount(0);
 
   for (const name of ["Profile", "Notifications", "Messages", "Search"]) {
     await expect(page.getByRole("button", { name })).toHaveCount(0);

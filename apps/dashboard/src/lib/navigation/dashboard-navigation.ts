@@ -1,3 +1,4 @@
+import { md02NavigationRegistrations } from "../../features/administration/administration-navigation";
 import { md01NavigationRegistrations } from "./md01-navigation";
 import { composeNavigationRegistry } from "./navigation-registry";
 
@@ -9,4 +10,5 @@ import { composeNavigationRegistry } from "./navigation-registry";
  */
 export const dashboardNavigationRegistrations = composeNavigationRegistry(
   md01NavigationRegistrations,
+  md02NavigationRegistrations,
 );

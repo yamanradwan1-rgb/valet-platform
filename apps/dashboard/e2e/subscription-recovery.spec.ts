@@ -62,9 +62,10 @@ test("CA subscription recovery mounts without D-access, context, or Location enu
   expect(fixture.count(subscriptionPath)).toBe(2);
   expect(fixture.count(contextPath)).toBe(0);
   expect(fixture.count(locationsPath)).toBe(0);
-  await expect(
-    page.getByRole("navigation", { name: "Management navigation" }).getByRole("link"),
-  ).toHaveCount(0);
+  const navigation = page.getByRole("navigation", { name: "Management navigation" });
+  await expect(navigation.getByRole("link", { name: "Billing & Subscription" })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "Locations" })).toHaveCount(0);
+  await expect(navigation.getByRole("link", { name: "Branding" })).toHaveCount(0);
 });
 
 test("LM subscription recovery mounts only after an exact active granted Location", async ({
