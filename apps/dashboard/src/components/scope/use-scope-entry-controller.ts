@@ -9,12 +9,12 @@ import {
   listCompanyAdminOrganizations,
   listLocationManagerLocations,
   listLocationManagerOrganizations,
-  readCompanyAdminSubscription,
   resolveCompanyAdminContext,
   type SupervisorCandidate,
 } from "../../lib/scope/dashboard-scope";
 import { ScopeGenerationGuard, type ScopeRequestTicket } from "../../lib/scope/scope-generation";
 import { scopeSourceFailureDisposition, type ScopeEntrySource } from "./scope-entry-policy";
+import { resolveOrganizationSelection } from "./scope-entry-selection";
 import type { ScopeEntryAuthority, ScopeEntryProps } from "./scope-entry-types";
 
 interface Page<T> {
@@ -38,13 +38,14 @@ const EMPTY_LOCATIONS: Page<ManagementLocation> = { items: [], nextCursor: null 
 
 export function useScopeEntryController({
   api,
+  commercialRequirement,
   identityGeneration,
   sessionGeneration,
   onMfaRequired,
   onSelect,
 }: Pick<
   ScopeEntryProps,
-  "api" | "identityGeneration" | "sessionGeneration" | "onMfaRequired" | "onSelect"
+  "api" | "commercialRequirement" | "identityGeneration" | "sessionGeneration" | "onMfaRequired" | "onSelect"
 >) {
   const [guard] = useState(() => new ScopeGenerationGuard());
   const identityRef = useRef(identityGeneration);
@@ -105,7 +106,9 @@ export function useScopeEntryController({
       const results = await Promise.allSettled([
         listCompanyAdminOrganizations(api, {}, ticket.request.signal),
         listLocationManagerOrganizations(api, {}, ticket.request.signal),
-        listActiveSupervisorScopes(api, ticket.request.signal),
+        commercialRequirement === "DASHBOARD"
+          ? listActiveSupervisorScopes(api, ticket.request.signal)
+          : Promise.resolve([] as readonly SupervisorCandidate[]),
       ]);
       if (!isCurrent(ticket)) return;
       const [companyAdmin, locationManager, supervisor] = results;
@@ -127,6 +130,7 @@ export function useScopeEntryController({
   }, [
     api,
     begin,
+    commercialRequirement,
     disposition,
     guard,
     identityGeneration,
@@ -177,22 +181,23 @@ export function useScopeEntryController({
     setCommercialUnavailableOrganizationId(null);
     setLocations(EMPTY_LOCATIONS);
     try {
-      if (authority === "COMPANY_ADMIN") {
-        const subscription = await readCompanyAdminSubscription(
-          api,
-          organization.organizationId,
-          ticket.request.signal,
-        );
-        if (!isCurrent(ticket)) return;
-        if (subscription.subscription?.entitlements.dashboardAccess !== true) {
-          setCommercialUnavailableOrganizationId(organization.organizationId);
-          return;
-        }
+      const selection = await resolveOrganizationSelection(
+        api,
+        authority,
+        organization,
+        commercialRequirement,
+        ticket.request.signal,
+      );
+      if (!isCurrent(ticket)) return;
+      if (selection.kind === "SELECT") {
+        onSelectRef.current(selection.scope);
+      } else if (selection.kind === "LOCATIONS") {
+        setLocations(selection.page);
+      } else if (selection.kind === "UNAVAILABLE") {
+        setCommercialUnavailableOrganizationId(organization.organizationId);
+      } else {
+        setActiveOrganization(null);
       }
-      const page = authority === "COMPANY_ADMIN"
-        ? await listCompanyAdminLocations(api, organization.organizationId, {}, ticket.request.signal)
-        : await listLocationManagerLocations(api, organization.organizationId, {}, ticket.request.signal);
-      if (isCurrent(ticket)) setLocations(page);
     } catch (reason: unknown) {
       if (!isCurrent(ticket)) return;
       const action = disposition(authority, reason);
@@ -204,7 +209,7 @@ export function useScopeEntryController({
     } finally {
       if (isCurrent(ticket)) setPending(false);
     }
-  }, [api, begin, disposition, isCurrent]);
+  }, [api, begin, commercialRequirement, disposition, isCurrent]);
 
   const loadMoreLocations = useCallback(async () => {
     if (activeOrganization === null || locations.nextCursor === null) return;

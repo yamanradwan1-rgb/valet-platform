@@ -81,7 +81,11 @@ export function ScopeEntry(props: ScopeEntryProps) {
             <h2>{controller.activeOrganization.organization.name} · {labels.locations}</h2>
             {controller.activeOrganization.authority === "COMPANY_ADMIN" &&
             controller.commercialUnavailableOrganizationId === controller.activeOrganization.organization.organizationId ? (
-              <p className="muted" role="status">{labels.dashboardAccessUnavailable}</p>
+              <p className="muted" role="status">
+                {props.commercialRequirement === "DASHBOARD"
+                  ? labels.dashboardAccessUnavailable
+                  : labels.featureAccessUnavailable}
+              </p>
             ) : controller.activeOrganization.authority === "COMPANY_ADMIN" ? (
               <Button
                 disabled={controller.pending}

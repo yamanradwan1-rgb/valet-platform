@@ -7,6 +7,13 @@ export async function signIn(
   email = "admin@example.com",
 ): Promise<void> {
   await page.goto("/");
+  await signInOnCurrentPage(page, email);
+}
+
+export async function signInOnCurrentPage(
+  page: Page,
+  email = "admin@example.com",
+): Promise<void> {
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("fixture-password");

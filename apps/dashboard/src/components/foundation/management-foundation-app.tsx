@@ -12,6 +12,7 @@ import {
   dashboardNavigationRegistrations,
   resolveNavigation,
 } from "../../lib/navigation";
+import type { DashboardCommercialRequirement } from "../../lib/scope/dashboard-commercial-access";
 import { LoginPanel } from "../auth/login-panel";
 import { Button } from "../presentation/button";
 import { Panel } from "../presentation/panel";
@@ -29,9 +30,11 @@ import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation"
 export function ManagementFoundationApp({
   accountSecurity = false,
   children,
+  commercialRequirement = "DASHBOARD",
 }: {
   readonly accountSecurity?: boolean;
   readonly children?: ReactNode;
+  readonly commercialRequirement?: DashboardCommercialRequirement;
 }) {
   const currentPath = usePathname();
   const auth = useStaffAuth();
@@ -46,6 +49,7 @@ export function ManagementFoundationApp({
   const mfa = useMemo(() => new DashboardMfaClient(api), [api]);
   const revalidation = useSelectedScopeRevalidation({
     api,
+    commercialRequirement,
     identityGeneration: auth.identityGeneration,
     sessionGeneration: auth.sessionGeneration,
     onDenied: clearScope,
@@ -138,6 +142,7 @@ export function ManagementFoundationApp({
         ) : null}
         <ScopeEntry
           api={api}
+          commercialRequirement={commercialRequirement}
           identityGeneration={auth.identityGeneration}
           sessionGeneration={auth.sessionGeneration}
           key={mfaGeneration}
@@ -145,6 +150,7 @@ export function ManagementFoundationApp({
             allLocations: t("allLocations"),
             companyAdmin: t("companyAdmin"),
             dashboardAccessUnavailable: t("dashboardAccessUnavailable"),
+            featureAccessUnavailable: t("unavailable"),
             inactiveHistorical: t("inactiveHistorical"),
             loadError: t("loadError"),
             loadMore: t("loadMore"),
@@ -175,7 +181,11 @@ export function ManagementFoundationApp({
   if (revalidation.status === "entitlement") {
     return (
       <StandalonePanel>
-        <p>{t("dashboardAccessUnavailable")}</p>
+        <p>
+          {commercialRequirement === "DASHBOARD"
+            ? t("dashboardAccessUnavailable")
+            : t("unavailable")}
+        </p>
         <Button onClick={clearScope} type="button" variant="secondary">
           {t("changeScope")}
         </Button>
@@ -183,7 +193,10 @@ export function ManagementFoundationApp({
       </StandalonePanel>
     );
   }
-  if (revalidation.status !== "valid") {
+  if (
+    revalidation.status !== "valid" ||
+    revalidation.commercialAccess === null
+  ) {
     return (
       <StandalonePanel>
         <p className="error-text">{t("unavailable")}</p>
@@ -202,6 +215,7 @@ export function ManagementFoundationApp({
     dashboardNavigationRegistrations,
     presentation.navigation,
     locale,
+    revalidation.commercialAccess,
   );
   const selectedLocation =
     presentation.location ??

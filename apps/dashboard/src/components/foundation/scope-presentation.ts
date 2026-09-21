@@ -11,6 +11,20 @@ export interface SelectedScopePresentation {
 export function selectedScopePresentation(
   scope: SelectedDashboardScope,
 ): SelectedScopePresentation {
+  if (scope.authority === "COMPANY_ADMIN_SUBSCRIPTION") {
+    return {
+      navigation: {
+        role: "COMPANY_ADMIN",
+        organizationId: scope.organization.organizationId,
+        locationId: null,
+      },
+      organization: {
+        id: scope.organization.organizationId,
+        label: scope.organization.name,
+      },
+      location: null,
+    };
+  }
   if (scope.authority === "COMPANY_ADMIN") {
     return {
       navigation: {

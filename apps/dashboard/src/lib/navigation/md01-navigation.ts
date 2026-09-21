@@ -13,6 +13,7 @@ export const md01NavigationRegistrations =
   composeNavigationRegistry([
     defineNavigationDestination({
       availability: "IMPLEMENTED",
+      commercialRequirement: "DASHBOARD",
       href: "/",
       icon: LayoutDashboard,
       id: "workspace",
@@ -24,6 +25,7 @@ export const md01NavigationRegistrations =
     }),
     defineNavigationDestination({
       availability: "IMPLEMENTED",
+      commercialRequirement: "DASHBOARD",
       href: "/security",
       icon: ShieldCheck,
       id: "security",
@@ -35,6 +37,7 @@ export const md01NavigationRegistrations =
     }),
     defineNavigationDestination({
       availability: "IMPLEMENTED",
+      commercialRequirement: "DASHBOARD",
       href: "/help",
       icon: CircleHelp,
       id: "help",
