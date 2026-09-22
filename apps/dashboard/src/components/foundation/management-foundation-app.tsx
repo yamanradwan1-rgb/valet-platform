@@ -16,7 +16,6 @@ import {
 import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
 import { LoginPanel } from "../auth/login-panel";
 import { Button } from "../presentation/button";
-import { Panel } from "../presentation/panel";
 import { ScopeEntry } from "../scope";
 import { AccountSecurityPanel } from "../security";
 import { DashboardShell } from "../shell";
@@ -25,7 +24,10 @@ import { HeaderLocaleControl, HeaderThemeControl } from "./header-preferences";
 import { PreferenceControls } from "./preference-controls";
 import { ProtectedDashboardContextProvider } from "./protected-dashboard-context";
 import { selectedScopePresentation } from "./scope-presentation";
+import { SelectedScopeMfaPanel } from "./selected-scope-mfa-panel";
 import { useSelectedScope } from "./selected-scope-provider";
+import { StandaloneFoundationPanel } from "./standalone-foundation-panel";
+import { useFoundationLogout } from "./use-foundation-logout";
 import { useNavigationAuthority } from "./use-navigation-authority";
 import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation";
 
@@ -45,11 +47,11 @@ export function ManagementFoundationApp({
     useSelectedScope();
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [logoutPending, setLogoutPending] = useState(false);
   const [mfaRequired, setMfaRequired] = useState(false);
   const [mfaGeneration, setMfaGeneration] = useState(0);
   const api = useMemo(() => new DashboardApiClient({ auth: auth.client }), [auth.client]);
   const mfa = useMemo(() => new DashboardMfaClient(api), [api]);
+  const { logoutPending, requestLogout } = useFoundationLogout(auth.logout);
   const routeRevalidation = useSelectedScopeRevalidation({
     api,
     accessRequirement,
@@ -67,39 +69,27 @@ export function ManagementFoundationApp({
     selectionRevision,
     sessionGeneration: auth.sessionGeneration,
   });
-  const requestLogout = async () => {
-    if (logoutPending) return;
-    setLogoutPending(true);
-    try {
-      await auth.logout();
-    } catch {
-      // Auth state becomes logout-unconfirmed and remains fail-closed.
-    } finally {
-      setLogoutPending(false);
-    }
-  };
-
   if (auth.status === "initializing") {
     return <FoundationState title="VAYLET" message={t("loading")} />;
   }
   if (auth.status === "refresh-unavailable") {
     return (
-      <StandalonePanel>
+      <StandaloneFoundationPanel>
         <p className="error-text">{t("unavailable")}</p>
         <Button onClick={() => void auth.refresh()} type="button">
           {t("refreshSession")}
         </Button>
-      </StandalonePanel>
+      </StandaloneFoundationPanel>
     );
   }
   if (auth.status === "logout-unconfirmed") {
     return (
-      <StandalonePanel>
+      <StandaloneFoundationPanel>
         <p className="error-text">{t("logoutUnconfirmed")}</p>
         <Button disabled={logoutPending} onClick={() => void requestLogout()} type="button">
           {t("retryLogout")}
         </Button>
-      </StandalonePanel>
+      </StandaloneFoundationPanel>
     );
   }
   if (auth.status === "unauthenticated") {
@@ -126,20 +116,20 @@ export function ManagementFoundationApp({
 
   if (accountSecurity) {
     return (
-      <StandalonePanel>
+      <StandaloneFoundationPanel>
         <AccountSecurityPanel client={mfa} key={authGenerationKey} />
         <PreferenceControls />
         <Link className="nav-link foundation-link" href="/">{t("backToWorkspace")}</Link>
         <Button disabled={logoutPending} onClick={() => void requestLogout()} type="button" variant="quiet">
           {t("logout")}
         </Button>
-      </StandalonePanel>
+      </StandaloneFoundationPanel>
     );
   }
 
   if (selectedScope === null) {
     return (
-      <StandalonePanel>
+      <StandaloneFoundationPanel>
         {mfaRequired ? (
           <AccountSecurityPanel
             client={mfa}
@@ -183,7 +173,7 @@ export function ManagementFoundationApp({
             {t("logout")}
           </Button>
         </div>
-      </StandalonePanel>
+      </StandaloneFoundationPanel>
     );
   }
 
@@ -192,7 +182,7 @@ export function ManagementFoundationApp({
   }
   if (routeRevalidation.status === "entitlement") {
     return (
-      <StandalonePanel>
+      <StandaloneFoundationPanel>
         <p>
           {accessRequirement === "DASHBOARD" ||
           accessRequirement === "FOUNDATION_ENTRY" ||
@@ -204,7 +194,21 @@ export function ManagementFoundationApp({
           {t("changeScope")}
         </Button>
         <Link className="nav-link foundation-link" href="/security">{t("security")}</Link>
-      </StandalonePanel>
+      </StandaloneFoundationPanel>
+    );
+  }
+  if (
+    routeRevalidation.status === "denied" &&
+    routeRevalidation.errorKind === "mfa"
+  ) {
+    return (
+      <SelectedScopeMfaPanel
+        changeScopeLabel={t("changeScope")}
+        client={mfa}
+        generationKey={authGenerationKey + ":" + selectionRevision}
+        onAssured={() => selectScope(selectedScope)}
+        onChangeScope={clearScope}
+      />
     );
   }
   if (
@@ -212,7 +216,7 @@ export function ManagementFoundationApp({
     routeRevalidation.routeAccess === null
   ) {
     return (
-      <StandalonePanel>
+      <StandaloneFoundationPanel>
         <p className="error-text">{t("unavailable")}</p>
         <Button onClick={() => selectScope(selectedScope)} type="button">
           {t("retry")}
@@ -220,7 +224,7 @@ export function ManagementFoundationApp({
         <Button onClick={clearScope} type="button" variant="secondary">
           {t("changeScope")}
         </Button>
-      </StandalonePanel>
+      </StandaloneFoundationPanel>
     );
   }
 
@@ -283,15 +287,5 @@ export function ManagementFoundationApp({
         {children}
       </ProtectedDashboardContextProvider>
     </DashboardShell>
-  );
-}
-
-function StandalonePanel({ children }: { readonly children: React.ReactNode }) {
-  return (
-    <div className="auth-card-wrap foundation-page">
-      <Panel className="foundation-panel">
-        <div className="stack">{children}</div>
-      </Panel>
-    </div>
   );
 }

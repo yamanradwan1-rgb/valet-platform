@@ -18,9 +18,14 @@ export function dashboardFeatureTarget(
   scope: SelectedDashboardScope,
   feature: DashboardFeatureAuthorityFeature,
 ): DashboardFeatureTarget | null {
-  return feature === "VISIT_CONTACTS"
-    ? visitContactsTarget(scope)
-    : auditTarget(scope);
+  switch (feature) {
+    case "VISIT_CONTACTS":
+      return visitContactsTarget(scope);
+    case "MANAGEMENT_AUDIT":
+      return auditTarget(scope);
+    default:
+      return assertNever(feature);
+  }
 }
 
 export function dashboardFeatureTargetKey(target: DashboardFeatureTarget): string {
@@ -114,4 +119,8 @@ function auditTarget(
     };
   }
   return null;
+}
+
+function assertNever(value: never): never {
+  throw new Error("Unsupported Dashboard feature authority target: " + String(value));
 }
