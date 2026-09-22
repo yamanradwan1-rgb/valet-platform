@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Building2, FileText, MapPin } from "lucide-react";
 
 import { md01NavigationRegistrations } from "./md01-navigation";
+import { noNavigationAuthority } from "./navigation-authority";
 import {
   composeNavigationRegistry,
   defineNavigationDestination,
@@ -51,8 +52,7 @@ describe("navigation commercial access", () => {
       },
       "en",
       {
-        foundationEntryAuthorized: false,
-        locationMapsAuthorized: false,
+        ...noNavigationAuthority,
         commercial: {
           dashboardAccess: false,
           basicBranding: true,
@@ -105,8 +105,9 @@ describe("navigation commercial access", () => {
       },
       "en",
       {
-        foundationEntryAuthorized: true,
-        locationMapsAuthorized: true,
+        ...noNavigationAuthority,
+        foundationEntryEligible: true,
+        locationMapsEligible: true,
         commercial: {
           dashboardAccess: false,
           basicBranding: false,

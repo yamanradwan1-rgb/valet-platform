@@ -10,35 +10,67 @@ import type { SelectedDashboardScope } from "../scope";
 export function selectedScopeRevalidationKey(
   sessionGeneration: number,
   identityGeneration: number,
+  selectionRevision: number,
   accessRequirement: DashboardRouteAccessRequirement,
   scope: SelectedDashboardScope | null,
 ): string {
-  const prefix = `${sessionGeneration}:${identityGeneration}:${accessRequirement}`;
-  if (scope === null) return `${prefix}:none`;
+  return [
+    sessionGeneration,
+    identityGeneration,
+    selectionRevision,
+    accessRequirement,
+    selectedScopeAuthorityKey(scope),
+  ].join(":");
+}
+
+export function selectedScopeBaseRequestKey(
+  sessionGeneration: number,
+  identityGeneration: number,
+  selectionRevision: number,
+  scope: SelectedDashboardScope | null,
+): string {
+  return [
+    sessionGeneration,
+    identityGeneration,
+    selectionRevision,
+    selectedScopeAuthorityKey(scope),
+  ].join(":");
+}
+
+export function selectedScopeAuthorityKey(
+  scope: SelectedDashboardScope | null,
+): string {
+  if (scope === null) return "none";
   if (scope.authority === "COMPANY_ADMIN_SUBSCRIPTION") {
-    return `${prefix}:ca-subscription:${scope.organization.organizationId}`;
+    return `ca-subscription:${scope.organization.organizationId}`;
   }
   if (scope.authority === "COMPANY_ADMIN") {
     const selected = scope.context.scope;
     const suffix =
       selected.kind === "LOCATION"
-        ? `location:${selected.locationId}`
+        ? `location:${selected.locationId}:${scope.context.selectedLocation?.status ?? "UNKNOWN"}`
         : "all-locations";
-    return `${prefix}:ca:${scope.context.organization.organizationId}:${suffix}`;
+    return `ca:${scope.context.organization.organizationId}:${suffix}`;
   }
   if (scope.authority === "LOCATION_MANAGER") {
-    return `${prefix}:lm:${scope.organization.organizationId}:${scope.location.locationId}`;
+    return [
+      "lm",
+      scope.organization.organizationId,
+      scope.location.locationId,
+      scope.location.status,
+    ].join(":");
   }
   if (scope.authority === "LOCATION_MANAGER_GRANT_SET") {
-    return `${prefix}:lm-grant-set:${scope.organization.organizationId}`;
+    return `lm-grant-set:${scope.organization.organizationId}`;
   }
   return [
-    prefix,
     "sup",
     scope.context.organization.organizationId,
     scope.context.membershipId,
     scope.context.location.locationId,
+    scope.context.activeShift.locationId,
     scope.context.activeShift.shiftId,
+    scope.context.activeShift.status,
   ].join(":");
 }
 

@@ -50,8 +50,8 @@ describe("selected scope revalidation helpers", () => {
         },
       },
     };
-    expect(selectedScopeRevalidationKey(11, 7, "DASHBOARD", scope)).toContain(
-      "11:7:DASHBOARD:sup:11111111-1111-4111-8111-111111111111:33333333-3333-4333-8333-333333333333:22222222-2222-4222-8222-222222222222:44444444-4444-4444-8444-444444444444",
+    expect(selectedScopeRevalidationKey(11, 7, 5, "DASHBOARD", scope)).toContain(
+      "11:7:5:DASHBOARD:sup:11111111-1111-4111-8111-111111111111:33333333-3333-4333-8333-333333333333:22222222-2222-4222-8222-222222222222:22222222-2222-4222-8222-222222222222:44444444-4444-4444-8444-444444444444:ACTIVE",
     );
   });
 
@@ -258,8 +258,8 @@ describe("selected scope revalidation helpers", () => {
     const oldTicket = guard.begin();
     const newTicket = guard.begin();
 
-    expect(selectedScopeRevalidationKey(13, 8, "DASHBOARD", oldScope)).not.toBe(
-      selectedScopeRevalidationKey(13, 8, "DASHBOARD", newScope),
+    expect(selectedScopeRevalidationKey(13, 8, 1, "DASHBOARD", oldScope)).not.toBe(
+      selectedScopeRevalidationKey(13, 8, 1, "DASHBOARD", newScope),
     );
     expect(oldTicket.signal.aborted).toBe(true);
     expect(guard.accept(oldTicket, oldScope)).toBeUndefined();
@@ -273,8 +273,8 @@ describe("selected scope revalidation helpers", () => {
       location,
     };
 
-    expect(selectedScopeRevalidationKey(21, 9, "DASHBOARD", scope)).not.toBe(
-      selectedScopeRevalidationKey(22, 9, "DASHBOARD", scope),
+    expect(selectedScopeRevalidationKey(21, 9, 1, "DASHBOARD", scope)).not.toBe(
+      selectedScopeRevalidationKey(22, 9, 1, "DASHBOARD", scope),
     );
   });
 
@@ -285,8 +285,8 @@ describe("selected scope revalidation helpers", () => {
       location,
     };
 
-    expect(selectedScopeRevalidationKey(21, 9, "DASHBOARD", scope)).not.toBe(
-      selectedScopeRevalidationKey(21, 9, "SUBSCRIPTION_READ", scope),
+    expect(selectedScopeRevalidationKey(21, 9, 1, "DASHBOARD", scope)).not.toBe(
+      selectedScopeRevalidationKey(21, 9, 1, "SUBSCRIPTION_READ", scope),
     );
   });
 });

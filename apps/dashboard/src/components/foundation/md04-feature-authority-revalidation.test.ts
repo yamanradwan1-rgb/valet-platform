@@ -269,7 +269,7 @@ describe("MD-04 Foundation feature authority revalidation", () => {
       ))
       .mockResolvedValueOnce({ contexts: [] });
     await expect(revalidateSelectedScope(api(stale), supervisor, "MANAGEMENT_AUDIT"))
-      .resolves.toEqual({ status: "denied", routeAccess: null });
+      .resolves.toMatchObject({ status: "denied", selectedScopeInvalid: true });
   });
 
   it("does not downgrade a later compatible-base denial into feature-only success", async () => {
@@ -292,7 +292,7 @@ describe("MD-04 Foundation feature authority revalidation", () => {
     ));
     await expect(revalidateSelectedScope(api(changedRole), lmGrantSet, "VISIT_CONTACTS"))
       .resolves.toEqual({ status: "denied", routeAccess: null });
-    expect(selectedScopeRevalidationKey(7, 9, "VISIT_CONTACTS", lmGrantSet))
-      .toBe(`7:9:VISIT_CONTACTS:lm-grant-set:${organization.organizationId}`);
+    expect(selectedScopeRevalidationKey(7, 9, 3, "VISIT_CONTACTS", lmGrantSet))
+      .toBe(`7:9:3:VISIT_CONTACTS:lm-grant-set:${organization.organizationId}`);
   });
 });

@@ -1,23 +1,28 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  noNavigationAuthority,
+  type NavigationAuthority,
+} from "../../lib/navigation/navigation-authority";
 import { resolveNavigation } from "../../lib/navigation/navigation-registry";
-import type { DashboardRouteAccess } from "../../lib/scope/dashboard-commercial-access";
 import { md03NavigationRegistrations } from "./operations-navigation";
 
-const fullAccess: DashboardRouteAccess = {
-  foundationEntryAuthorized: true,
-  locationMapsAuthorized: true,
+const fullAccess: NavigationAuthority = {
+  ...noNavigationAuthority,
+  foundationEntryEligible: true,
+  locationMapsEligible: true,
   commercial: { dashboardAccess: true, basicBranding: false, subscriptionRead: true },
 };
-const mapsOnly: DashboardRouteAccess = {
-  foundationEntryAuthorized: true,
-  locationMapsAuthorized: true,
+const mapsOnly: NavigationAuthority = {
+  ...noNavigationAuthority,
+  foundationEntryEligible: true,
+  locationMapsEligible: true,
   commercial: { dashboardAccess: false, basicBranding: false, subscriptionRead: false },
 };
 
 function ids(
   role: "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR",
-  access: DashboardRouteAccess,
+  access: NavigationAuthority,
   locationId: string | null = "location",
 ) {
   return resolveNavigation(
@@ -48,7 +53,7 @@ describe("MD-03 navigation authority", () => {
   });
 
   it("keeps LM Maps visible without D while hiding all other MD-03 pages", () => {
-    const lmNoDashboard: DashboardRouteAccess = {
+    const lmNoDashboard: NavigationAuthority = {
       ...mapsOnly,
       commercial: { dashboardAccess: false, basicBranding: true, subscriptionRead: true },
     };

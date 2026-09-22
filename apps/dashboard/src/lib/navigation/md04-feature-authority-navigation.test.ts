@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest";
 
 import { md02NavigationRegistrations } from "../../features/administration/administration-navigation";
 import { md03NavigationRegistrations } from "../../features/operations/operations-navigation";
-import type { DashboardRouteAccess } from "../scope/dashboard-commercial-access";
 import { md01NavigationRegistrations } from "./md01-navigation";
+import {
+  noNavigationAuthority,
+  type NavigationAuthority,
+} from "./navigation-authority";
 import {
   composeNavigationRegistry,
   resolveNavigation,
@@ -64,7 +67,7 @@ const commercial = (basicBranding: boolean) => ({
 function ids(
   role: "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR",
   locationId: string | null,
-  access: DashboardRouteAccess,
+  access: NavigationAuthority,
 ) {
   return resolveNavigation(
     registry,
@@ -74,14 +77,16 @@ function ids(
   ).map((item) => item.id);
 }
 
-describe("MD-04 full-registry navigation authority", () => {
+describe("MD-04 navigation filtering", () => {
   it.each([
     [
       "CA Visit Contacts Organization",
       "COMPANY_ADMIN", null,
       {
-        commercial: commercial(true), foundationEntryAuthorized: true,
-        locationMapsAuthorized: false, visitContactsAuthorized: true,
+        ...noNavigationAuthority,
+        commercial: commercial(true),
+        foundationEntryEligible: true,
+        features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
       },
       [...foundation, ...caAdministration, "test-visit-contacts"],
     ],
@@ -89,8 +94,9 @@ describe("MD-04 full-registry navigation authority", () => {
       "CA Audit Organization",
       "COMPANY_ADMIN", null,
       {
-        commercial: commercial(true), foundationEntryAuthorized: true,
-        locationMapsAuthorized: false, managementAuditAuthorized: true,
+        ...noNavigationAuthority,
+        commercial: commercial(true), foundationEntryEligible: true,
+        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
       [...foundation, ...caAdministration, "test-audit"],
     ],
@@ -98,8 +104,10 @@ describe("MD-04 full-registry navigation authority", () => {
       "CA Audit exact active Location",
       "COMPANY_ADMIN", "location",
       {
-        commercial: commercial(true), foundationEntryAuthorized: true,
-        locationMapsAuthorized: true, managementAuditAuthorized: true,
+        ...noNavigationAuthority,
+        commercial: commercial(true), foundationEntryEligible: true,
+        locationMapsEligible: true,
+        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
       [...foundation, ...caAdministration, ...operations, "test-audit"],
     ],
@@ -107,8 +115,10 @@ describe("MD-04 full-registry navigation authority", () => {
       "LM Audit active Location",
       "LOCATION_MANAGER", "location",
       {
-        commercial: commercial(true), foundationEntryAuthorized: true,
-        locationMapsAuthorized: true, managementAuditAuthorized: true,
+        ...noNavigationAuthority,
+        commercial: commercial(true), foundationEntryEligible: true,
+        locationMapsEligible: true,
+        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
       [...foundation, ...lmAdministration, ...operations, "test-audit"],
     ],
@@ -116,9 +126,10 @@ describe("MD-04 full-registry navigation authority", () => {
       "Supervisor Audit active Shift",
       "SUPERVISOR", "location",
       {
+        ...noNavigationAuthority,
         commercial: { basicBranding: false, dashboardAccess: false, subscriptionRead: false },
-        foundationEntryAuthorized: true, locationMapsAuthorized: true,
-        managementAuditAuthorized: true,
+        foundationEntryEligible: true, locationMapsEligible: true,
+        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
       [...foundation, "maps-zones", "test-audit"],
     ],
@@ -126,9 +137,9 @@ describe("MD-04 full-registry navigation authority", () => {
       "LM Visit Contacts grant set",
       "LOCATION_MANAGER", null,
       {
+        ...noNavigationAuthority,
         commercial: { basicBranding: false, dashboardAccess: false, subscriptionRead: false },
-        foundationEntryAuthorized: false, locationMapsAuthorized: false,
-        visitContactsAuthorized: true,
+        features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
       },
       ["test-visit-contacts"],
     ],
@@ -136,9 +147,9 @@ describe("MD-04 full-registry navigation authority", () => {
       "LM Audit inactive Location",
       "LOCATION_MANAGER", "location",
       {
+        ...noNavigationAuthority,
         commercial: { basicBranding: false, dashboardAccess: false, subscriptionRead: false },
-        foundationEntryAuthorized: false, locationMapsAuthorized: false,
-        managementAuditAuthorized: true,
+        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
       ["test-audit"],
     ],
@@ -146,7 +157,7 @@ describe("MD-04 full-registry navigation authority", () => {
     string,
     "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR",
     string | null,
-    DashboardRouteAccess,
+    NavigationAuthority,
     readonly string[],
   ]>)("preserves the real shell registry for %s", (_label, role, locationId, access, expected) => {
     expect(ids(role, locationId, access)).toEqual(expected);
@@ -154,10 +165,10 @@ describe("MD-04 full-registry navigation authority", () => {
 
   it("does not turn an MD-04 feature bit into Branding entitlement", () => {
     expect(ids("COMPANY_ADMIN", null, {
+      ...noNavigationAuthority,
       commercial: commercial(false),
-      foundationEntryAuthorized: true,
-      locationMapsAuthorized: false,
-      visitContactsAuthorized: true,
+      foundationEntryEligible: true,
+      features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
     })).toEqual([
       ...foundation,
       "employees-shifts", "locations", "policies-settings", "roles-permissions",

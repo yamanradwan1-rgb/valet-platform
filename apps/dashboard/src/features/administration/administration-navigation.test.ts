@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  noNavigationAuthority,
+  type NavigationAuthority,
+} from "../../lib/navigation/navigation-authority";
 import { resolveNavigation } from "../../lib/navigation/navigation-registry";
-import type { DashboardRouteAccess } from "../../lib/scope/dashboard-commercial-access";
 import { md02NavigationRegistrations } from "./administration-navigation";
 
-const fullAccess: DashboardRouteAccess = {
-  foundationEntryAuthorized: true,
-  locationMapsAuthorized: true,
+const fullAccess: NavigationAuthority = {
+  ...noNavigationAuthority,
+  foundationEntryEligible: true,
+  locationMapsEligible: true,
   commercial: { dashboardAccess: true, basicBranding: true, subscriptionRead: true },
 };
 
@@ -45,9 +49,8 @@ describe("MD-02 navigation authority", () => {
   });
 
   it("shows only Billing during authorized no-D subscription recovery", () => {
-    const recovery: DashboardRouteAccess = {
-      foundationEntryAuthorized: false,
-      locationMapsAuthorized: false,
+    const recovery: NavigationAuthority = {
+      ...noNavigationAuthority,
       commercial: { dashboardAccess: false, basicBranding: true, subscriptionRead: true },
     };
     expect(ids("COMPANY_ADMIN", recovery)).toEqual(["billing-subscription"]);
@@ -62,8 +65,9 @@ describe("MD-02 navigation authority", () => {
     ] as const;
     for (const [commercial, expected] of cases) {
       expect(ids("COMPANY_ADMIN", {
-        foundationEntryAuthorized: true,
-        locationMapsAuthorized: true,
+        ...noNavigationAuthority,
+        foundationEntryEligible: true,
+        locationMapsEligible: true,
         commercial,
       }).includes("branding")).toBe(expected);
     }

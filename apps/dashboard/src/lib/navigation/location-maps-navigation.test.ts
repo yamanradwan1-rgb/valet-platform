@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { Building2, MapPin, Palette, Receipt } from "lucide-react";
 
-import type { DashboardRouteAccess } from "../scope/dashboard-commercial-access";
+import {
+  noNavigationAuthority,
+  type NavigationAuthority,
+} from "./navigation-authority";
 import {
   composeNavigationRegistry,
   defineNavigationDestination,
@@ -50,10 +53,11 @@ function access(input: {
   readonly dashboardAccess: boolean;
   readonly locationMapsAuthorized: boolean;
   readonly supervisor?: boolean;
-}): DashboardRouteAccess {
+}): NavigationAuthority {
   return {
-    foundationEntryAuthorized: input.supervisor === true,
-    locationMapsAuthorized: input.locationMapsAuthorized,
+    ...noNavigationAuthority,
+    foundationEntryEligible: input.supervisor === true,
+    locationMapsEligible: input.locationMapsAuthorized,
     commercial: input.supervisor === true
       ? { dashboardAccess: false, basicBranding: false, subscriptionRead: false }
       : {
@@ -66,7 +70,7 @@ function access(input: {
 
 function visible(
   role: "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR",
-  routeAccess: DashboardRouteAccess,
+  routeAccess: NavigationAuthority,
   locationId: string | null = "location-1",
 ) {
   return resolveNavigation(

@@ -10,6 +10,7 @@ import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { DashboardMfaClient } from "../../lib/mfa/dashboard-mfa-client";
 import {
   dashboardNavigationRegistrations,
+  noNavigationAuthority,
   resolveNavigation,
 } from "../../lib/navigation";
 import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
@@ -25,6 +26,7 @@ import { PreferenceControls } from "./preference-controls";
 import { ProtectedDashboardContextProvider } from "./protected-dashboard-context";
 import { selectedScopePresentation } from "./scope-presentation";
 import { useSelectedScope } from "./selected-scope-provider";
+import { useNavigationAuthority } from "./use-navigation-authority";
 import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation";
 
 export function ManagementFoundationApp({
@@ -39,7 +41,8 @@ export function ManagementFoundationApp({
   const currentPath = usePathname();
   const auth = useStaffAuth();
   const { locale, t } = useDashboardLocale();
-  const { clearScope, selectedScope, selectScope } = useSelectedScope();
+  const { clearScope, selectedScope, selectionRevision, selectScope } =
+    useSelectedScope();
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [logoutPending, setLogoutPending] = useState(false);
@@ -47,13 +50,22 @@ export function ManagementFoundationApp({
   const [mfaGeneration, setMfaGeneration] = useState(0);
   const api = useMemo(() => new DashboardApiClient({ auth: auth.client }), [auth.client]);
   const mfa = useMemo(() => new DashboardMfaClient(api), [api]);
-  const revalidation = useSelectedScopeRevalidation({
+  const routeRevalidation = useSelectedScopeRevalidation({
     api,
     accessRequirement,
     identityGeneration: auth.identityGeneration,
+    selectionRevision,
     sessionGeneration: auth.sessionGeneration,
     onDenied: clearScope,
     selectedScope: accountSecurity ? null : selectedScope,
+  });
+  const navigationAuthority = useNavigationAuthority({
+    api,
+    identityGeneration: auth.identityGeneration,
+    registrations: dashboardNavigationRegistrations,
+    selectedScope: accountSecurity ? null : selectedScope,
+    selectionRevision,
+    sessionGeneration: auth.sessionGeneration,
   });
   const requestLogout = async () => {
     if (logoutPending) return;
@@ -175,10 +187,10 @@ export function ManagementFoundationApp({
     );
   }
 
-  if (revalidation.status === "checking") {
+  if (routeRevalidation.status === "checking") {
     return <FoundationState title="VAYLET" message={t("loading")} />;
   }
-  if (revalidation.status === "entitlement") {
+  if (routeRevalidation.status === "entitlement") {
     return (
       <StandalonePanel>
         <p>
@@ -196,8 +208,8 @@ export function ManagementFoundationApp({
     );
   }
   if (
-    revalidation.status !== "valid" ||
-    revalidation.routeAccess === null
+    routeRevalidation.status !== "valid" ||
+    routeRevalidation.routeAccess === null
   ) {
     return (
       <StandalonePanel>
@@ -217,7 +229,9 @@ export function ManagementFoundationApp({
     dashboardNavigationRegistrations,
     presentation.navigation,
     locale,
-    revalidation.routeAccess,
+    navigationAuthority.status === "valid"
+      ? navigationAuthority.authority
+      : noNavigationAuthority,
   );
   const selectedLocation =
     presentation.location ??

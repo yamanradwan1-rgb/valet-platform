@@ -18,7 +18,7 @@ export interface DashboardCommercialAccess {
   readonly subscriptionRead: boolean;
 }
 
-export interface DashboardRouteAccess {
+export interface ProtectedRouteAuthority {
   readonly foundationEntryAuthorized: boolean;
   readonly locationMapsAuthorized: boolean;
   readonly managementAuditAuthorized?: boolean;
@@ -55,7 +55,7 @@ export function allowsDashboardCommercialRequirement(
 
 export function allowsDashboardRouteAccessRequirement(
   requirement: DashboardRouteAccessRequirement,
-  access: DashboardRouteAccess,
+  access: ProtectedRouteAuthority,
 ): boolean {
   if (requirement === "FOUNDATION_ENTRY") {
     return access.foundationEntryAuthorized;

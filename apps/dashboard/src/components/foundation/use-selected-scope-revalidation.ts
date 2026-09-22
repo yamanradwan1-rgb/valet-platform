@@ -5,13 +5,15 @@ import { useEffect, useState } from "react";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import type { DashboardApiErrorKind } from "../../lib/api/dashboard-api-error";
 import {
-  type DashboardRouteAccess,
   type DashboardRouteAccessRequirement,
+  type ProtectedRouteAuthority,
 } from "../../lib/scope/dashboard-commercial-access";
 import { ScopeGenerationGuard } from "../../lib/scope/scope-generation";
 import type { SelectedDashboardScope } from "../scope";
+import { dashboardFeatureTarget } from "./dashboard-feature-target";
 import {
   classifyScopeRevalidationFailure,
+  selectedScopeBaseRequestKey,
   selectedScopeRevalidationKey,
 } from "./selected-scope-revalidation-policy";
 import { revalidateSelectedScope } from "./revalidate-selected-scope";
@@ -33,13 +35,14 @@ export interface SelectedScopeRevalidationState {
   readonly key: string;
   readonly status: SelectedScopeRevalidationStatus;
   readonly errorKind: DashboardApiErrorKind | null;
-  readonly routeAccess: DashboardRouteAccess | null;
+  readonly routeAccess: ProtectedRouteAuthority | null;
 }
 
 export function useSelectedScopeRevalidation(input: {
   readonly api: DashboardApiClient;
   readonly accessRequirement: DashboardRouteAccessRequirement;
   readonly identityGeneration: number;
+  readonly selectionRevision: number;
   readonly sessionGeneration: number;
   readonly onDenied?: () => void;
   readonly selectedScope: SelectedDashboardScope | null;
@@ -49,6 +52,7 @@ export function useSelectedScopeRevalidation(input: {
     accessRequirement,
     identityGeneration,
     onDenied,
+    selectionRevision,
     selectedScope,
     sessionGeneration,
   } = input;
@@ -56,7 +60,14 @@ export function useSelectedScopeRevalidation(input: {
   const key = selectedScopeRevalidationKey(
     sessionGeneration,
     identityGeneration,
+    selectionRevision,
     accessRequirement,
+    selectedScope,
+  );
+  const baseRequestKey = selectedScopeBaseRequestKey(
+    sessionGeneration,
+    identityGeneration,
+    selectionRevision,
     selectedScope,
   );
   const [settled, setSettled] = useState<SelectedScopeRevalidationState>({
@@ -81,6 +92,7 @@ export function useSelectedScopeRevalidation(input: {
           selectedScope,
           accessRequirement,
           ticket.signal,
+          baseRequestKey,
         );
         if (!disposed && guard.isCurrent(ticket)) {
           setSettled({
@@ -89,13 +101,43 @@ export function useSelectedScopeRevalidation(input: {
             errorKind: result.status === "entitlement" ? "entitlement" : null,
             routeAccess: result.routeAccess,
           });
-          if (result.status === "denied") onDenied?.();
+          if (
+            result.status === "denied" &&
+            onDenied &&
+            (result.selectedScopeInvalid === true ||
+              await shouldInvalidateSelectedScopeAfterRouteDenial({
+                accessRequirement,
+                api,
+                baseRequestKey,
+                selectedScope,
+                signal: ticket.signal,
+              })) &&
+            !disposed &&
+            guard.isCurrent(ticket)
+          ) {
+            onDenied();
+          }
         }
       } catch (reason: unknown) {
         if (!disposed && guard.isCurrent(ticket)) {
           const failure = classifyScopeRevalidationFailure(reason);
           setSettled({ key, ...failure, routeAccess: null });
-          if (failure.status === "denied") onDenied?.();
+          if (
+            failure.status === "denied" &&
+            onDenied &&
+            await shouldInvalidateSelectedScopeAfterRouteDenial({
+              accessRequirement,
+              api,
+              baseRequestKey,
+              reason,
+              selectedScope,
+              signal: ticket.signal,
+            }) &&
+            !disposed &&
+            guard.isCurrent(ticket)
+          ) {
+            onDenied();
+          }
         }
       }
     });
@@ -106,10 +148,12 @@ export function useSelectedScopeRevalidation(input: {
   }, [
     api,
     accessRequirement,
+    baseRequestKey,
     guard,
     identityGeneration,
     key,
     onDenied,
+    selectionRevision,
     selectedScope,
     sessionGeneration,
   ]);
@@ -117,4 +161,56 @@ export function useSelectedScopeRevalidation(input: {
   return settled.key === key
     ? settled
     : { key, status: "checking", errorKind: null, routeAccess: null };
+}
+
+export async function shouldInvalidateSelectedScopeAfterRouteDenial(input: {
+  readonly accessRequirement: DashboardRouteAccessRequirement;
+  readonly api: DashboardApiClient;
+  readonly baseRequestKey?: string;
+  readonly reason?: unknown;
+  readonly selectedScope: SelectedDashboardScope;
+  readonly signal?: AbortSignal;
+}): Promise<boolean> {
+  const {
+    accessRequirement,
+    api,
+    baseRequestKey,
+    reason,
+    selectedScope,
+    signal,
+  } = input;
+  if (reason !== undefined) {
+    const routeFailure = classifyScopeRevalidationFailure(reason);
+    if (routeFailure.errorKind === "mfa") return false;
+    if (routeFailure.errorKind === "auth") return true;
+    if (
+      accessRequirement !== "VISIT_CONTACTS" &&
+      accessRequirement !== "MANAGEMENT_AUDIT"
+    ) {
+      return routeFailure.errorKind === "authorization";
+    }
+    if (routeFailure.errorKind !== "authorization") return false;
+  }
+  if (
+    accessRequirement !== "VISIT_CONTACTS" &&
+    accessRequirement !== "MANAGEMENT_AUDIT"
+  ) {
+    return true;
+  }
+  const target = dashboardFeatureTarget(selectedScope, accessRequirement);
+  if (target?.compatibleBase !== true) return false;
+  try {
+    const base = await revalidateSelectedScope(
+      api,
+      selectedScope,
+      "FOUNDATION_ENTRY",
+      signal,
+      baseRequestKey,
+    );
+    return base.status === "denied";
+  } catch (reason: unknown) {
+    const failure = classifyScopeRevalidationFailure(reason);
+    return failure.errorKind === "auth" ||
+      failure.errorKind === "authorization";
+  }
 }

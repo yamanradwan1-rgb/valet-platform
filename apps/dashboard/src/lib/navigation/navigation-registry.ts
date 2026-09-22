@@ -1,8 +1,8 @@
 import type { DashboardLocale } from "../i18n/locale";
 import {
-  allowsDashboardRouteAccessRequirement,
-  type DashboardRouteAccess,
-} from "../scope/dashboard-commercial-access";
+  allowsNavigationAccessRequirement,
+  type NavigationAuthority,
+} from "./navigation-authority";
 import type {
   DashboardNavigationContext,
   DashboardNavigationItem,
@@ -67,20 +67,27 @@ function hasRequiredScope(
   return context.organizationId !== null && context.locationId !== null;
 }
 
+export function candidateNavigationRegistrations(
+  registrations: readonly DashboardNavigationRegistration[],
+  context: DashboardNavigationContext,
+): readonly DashboardNavigationRegistration[] {
+  return registrations
+    .filter((registration) => registration.availability === "IMPLEMENTED")
+    .filter((registration) => registration.roles.includes(context.role))
+    .filter((registration) => hasRequiredScope(registration, context));
+}
+
 export function resolveNavigation(
   registrations: readonly DashboardNavigationRegistration[],
   context: DashboardNavigationContext,
   locale: DashboardLocale,
-  routeAccess: DashboardRouteAccess,
+  authority: NavigationAuthority,
 ): readonly DashboardNavigationItem[] {
-  return registrations
-    .filter((registration) => registration.availability === "IMPLEMENTED")
-    .filter((registration) => registration.roles.includes(context.role))
-    .filter((registration) => hasRequiredScope(registration, context))
+  return candidateNavigationRegistrations(registrations, context)
     .filter((registration) =>
-      allowsDashboardRouteAccessRequirement(
+      allowsNavigationAccessRequirement(
         registration.accessRequirement,
-        routeAccess,
+        authority,
       ))
     .map((registration) => ({
       href: registration.href,

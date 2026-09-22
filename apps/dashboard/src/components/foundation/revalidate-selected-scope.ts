@@ -1,27 +1,21 @@
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import {
   allowsDashboardCommercialRequirement,
-  commercialAccessFromSubscription,
   noDashboardCommercialAccess,
-  type DashboardRouteAccess,
   type DashboardRouteAccessRequirement,
+  type ProtectedRouteAuthority,
 } from "../../lib/scope/dashboard-commercial-access";
-import {
-  listActiveSupervisorScopes,
-  readCompanyAdminSubscription,
-  readLocationManagerSubscription,
-  resolveCompanyAdminContext,
-} from "../../lib/scope/dashboard-scope";
 import type { SelectedDashboardScope } from "../scope";
 import { revalidateMd04FeatureAuthority } from "./md04-feature-route-access";
 import {
-  isActiveExactCompanyLocationContext,
-  sameManagementScope,
-} from "./selected-scope-revalidation-policy";
+  resolveSelectedScopeBaseAuthority,
+  type SelectedScopeBaseFacts,
+} from "./selected-scope-base-authority";
 
 export interface SettledScopeRevalidation {
   readonly status: "valid" | "entitlement" | "denied";
-  readonly routeAccess: DashboardRouteAccess | null;
+  readonly routeAccess: ProtectedRouteAuthority | null;
+  readonly selectedScopeInvalid?: boolean;
 }
 
 export async function revalidateSelectedScope(
@@ -29,185 +23,148 @@ export async function revalidateSelectedScope(
   scope: SelectedDashboardScope,
   accessRequirement: DashboardRouteAccessRequirement,
   signal?: AbortSignal,
+  sharedBaseRequestKey?: string,
 ): Promise<SettledScopeRevalidation> {
-  if (accessRequirement === "VISIT_CONTACTS" ||
-      accessRequirement === "MANAGEMENT_AUDIT") {
+  if (
+    accessRequirement === "VISIT_CONTACTS" ||
+    accessRequirement === "MANAGEMENT_AUDIT"
+  ) {
     return revalidateMd04FeatureAuthority(
       api,
       scope,
       accessRequirement,
-      () => revalidateSelectedScope(api, scope, "FOUNDATION_ENTRY", signal),
+      () => revalidateSelectedScope(
+        api,
+        scope,
+        "FOUNDATION_ENTRY",
+        signal,
+        sharedBaseRequestKey,
+      ),
       signal,
     );
   }
-  if (scope.authority === "COMPANY_ADMIN_SUBSCRIPTION") {
-    if (accessRequirement !== "SUBSCRIPTION_READ") {
-      return { status: "denied", routeAccess: null };
-    }
-    const subscription = await readCompanyAdminSubscription(
-      api,
-      scope.organization.organizationId,
-      signal,
+  if (
+    scope.authority === "COMPANY_ADMIN_SUBSCRIPTION" &&
+    accessRequirement !== "SUBSCRIPTION_READ"
+  ) {
+    return denied();
+  }
+  if (scope.authority === "LOCATION_MANAGER_GRANT_SET") return denied();
+
+  const includeCompanyContext =
+    scope.authority === "COMPANY_ADMIN" &&
+    accessRequirement !== "SUBSCRIPTION_READ" &&
+    !(
+      accessRequirement === "LOCATION_MAPS" &&
+      scope.context.scope.kind !== "LOCATION"
     );
-    if (subscription.organizationId !== scope.organization.organizationId) {
-      return { status: "denied", routeAccess: null };
-    }
-    return {
-      status: "valid",
-      routeAccess: {
+  const base = await resolveSelectedScopeBaseAuthority(
+    api,
+    scope,
+    { includeCompanyContext },
+    signal,
+    sharedBaseRequestKey,
+  );
+  if (base.status === "denied") return denied();
+  return authorizeProtectedRoute(scope, accessRequirement, base.facts);
+}
+
+function authorizeProtectedRoute(
+  scope: SelectedDashboardScope,
+  requirement: Exclude<
+    DashboardRouteAccessRequirement,
+    "MANAGEMENT_AUDIT" | "VISIT_CONTACTS"
+  >,
+  facts: SelectedScopeBaseFacts,
+): SettledScopeRevalidation {
+  if (facts.kind === "FEATURE_ONLY") return denied();
+  if (requirement === "SUBSCRIPTION_READ") {
+    if (
+      scope.authority === "COMPANY_ADMIN" ||
+      scope.authority === "COMPANY_ADMIN_SUBSCRIPTION"
+    ) {
+      return valid({
+        commercial: facts.commercial,
         foundationEntryAuthorized: false,
         locationMapsAuthorized: false,
-        commercial: commercialAccessFromSubscription(subscription.subscription),
-      },
-    };
+      });
+    }
+    if (scope.authority === "LOCATION_MANAGER") {
+      return valid({
+        commercial: facts.commercial,
+        foundationEntryAuthorized: false,
+        locationMapsAuthorized: true,
+      });
+    }
+    return denied();
   }
 
-  if (scope.authority === "COMPANY_ADMIN") {
-    const organizationId = scope.context.organization.organizationId;
-    const subscription = await readCompanyAdminSubscription(api, organizationId, signal);
-    if (subscription.organizationId !== organizationId) {
-      return { status: "denied", routeAccess: null };
+  if (requirement === "LOCATION_MAPS") {
+    if (facts.kind === "SUPERVISOR") {
+      return valid(supervisorAuthority());
     }
-    const commercialAccess = commercialAccessFromSubscription(subscription.subscription);
-    if (accessRequirement === "SUBSCRIPTION_READ") {
-      return {
-        status: "valid",
-        routeAccess: {
-          foundationEntryAuthorized: false,
-          locationMapsAuthorized: false,
-          commercial: commercialAccess,
-        },
-      };
+    if (scope.authority === "COMPANY_ADMIN") {
+      if (scope.context.scope.kind !== "LOCATION") return denied();
+      if (!facts.commercial.dashboardAccess) return entitlement();
+      return facts.locationMapsEligible
+        ? valid(fullAuthority(facts))
+        : denied();
     }
-    if (accessRequirement === "LOCATION_MAPS") {
-      if (scope.context.scope.kind !== "LOCATION") {
-        return { status: "denied", routeAccess: null };
-      }
-      if (!allowsDashboardCommercialRequirement("DASHBOARD", commercialAccess)) {
-        return { status: "entitlement", routeAccess: null };
-      }
-      const context = await resolveCompanyAdminContext(
-        api,
-        organizationId,
-        scope.context.scope,
-        signal,
-      );
-      if (
-        context.organization.organizationId !== organizationId ||
-        !isActiveExactCompanyLocationContext(context, scope.context.scope)
-      ) {
-        return { status: "denied", routeAccess: null };
-      }
-      return {
-        status: "valid",
-        routeAccess: {
-          foundationEntryAuthorized: true,
-          locationMapsAuthorized: true,
-          commercial: commercialAccess,
-        },
-      };
+    if (scope.authority === "LOCATION_MANAGER" && facts.kind === "MANAGEMENT") {
+      return valid({
+        commercial: facts.commercial,
+        foundationEntryAuthorized: facts.commercial.dashboardAccess,
+        locationMapsAuthorized: true,
+      });
     }
-    const commercialRequirement =
-      accessRequirement === "FOUNDATION_ENTRY" ? "DASHBOARD" : accessRequirement;
-    if (!allowsDashboardCommercialRequirement(commercialRequirement, commercialAccess)) {
-      return { status: "entitlement", routeAccess: null };
-    }
-    const context = await resolveCompanyAdminContext(
-      api,
-      organizationId,
-      scope.context.scope,
-      signal,
-    );
-    if (
-      context.organization.organizationId !== organizationId ||
-      !sameManagementScope(context.scope, scope.context.scope)
-    ) {
-      return { status: "denied", routeAccess: null };
-    }
-    return {
-      status: "valid",
-      routeAccess: {
-        foundationEntryAuthorized: true,
-        locationMapsAuthorized:
-          commercialAccess.dashboardAccess &&
-          isActiveExactCompanyLocationContext(context, scope.context.scope),
-        commercial: commercialAccess,
-      },
-    };
+    return denied();
   }
 
-  if (scope.authority === "LOCATION_MANAGER") {
-    const subscription = await readLocationManagerSubscription(
-      api,
-      scope.location.locationId,
-      signal,
-    );
-    if (
-      scope.location.status !== "ACTIVE" ||
-      subscription.locationId !== scope.location.locationId ||
-      subscription.organizationId !== scope.organization.organizationId
-    ) {
-      return { status: "denied", routeAccess: null };
-    }
-    const commercialAccess = commercialAccessFromSubscription(subscription.subscription);
-    if (accessRequirement === "SUBSCRIPTION_READ") {
-      return {
-        status: "valid",
-        routeAccess: {
-          foundationEntryAuthorized: false,
-          locationMapsAuthorized: true,
-          commercial: commercialAccess,
-        },
-      };
-    }
-    if (accessRequirement === "LOCATION_MAPS") {
-      return {
-        status: "valid",
-        routeAccess: {
-          foundationEntryAuthorized: commercialAccess.dashboardAccess,
-          locationMapsAuthorized: true,
-          commercial: commercialAccess,
-        },
-      };
-    }
-    const commercialRequirement =
-      accessRequirement === "FOUNDATION_ENTRY" ? "DASHBOARD" : accessRequirement;
-    return allowsDashboardCommercialRequirement(commercialRequirement, commercialAccess)
-      ? {
-          status: "valid",
-          routeAccess: {
-            foundationEntryAuthorized: true,
-            locationMapsAuthorized: true,
-            commercial: commercialAccess,
-          },
-        }
-      : { status: "entitlement", routeAccess: null };
+  if (facts.kind === "SUPERVISOR") {
+    return requirement === "FOUNDATION_ENTRY"
+      ? valid(supervisorAuthority())
+      : denied();
   }
-
-  if (scope.authority === "LOCATION_MANAGER_GRANT_SET") {
-    return { status: "denied", routeAccess: null };
-  }
-
-  const current = await listActiveSupervisorScopes(api, signal);
-  const exact = current.some(
-    (candidate) =>
-      candidate.membershipId === scope.context.membershipId &&
-      candidate.location.locationId === scope.context.location.locationId &&
-      candidate.activeShift.shiftId === scope.context.activeShift.shiftId,
-  );
+  if (facts.kind !== "MANAGEMENT") return denied();
+  const commercialRequirement =
+    requirement === "FOUNDATION_ENTRY" ? "DASHBOARD" : requirement;
   if (
-    !exact ||
-    (accessRequirement !== "FOUNDATION_ENTRY" &&
-      accessRequirement !== "LOCATION_MAPS")
+    !allowsDashboardCommercialRequirement(
+      commercialRequirement,
+      facts.commercial,
+    )
   ) {
-    return { status: "denied", routeAccess: null };
+    return entitlement();
   }
+  return facts.foundationEntryEligible
+    ? valid(fullAuthority(facts))
+    : denied();
+}
+
+function fullAuthority(facts: SelectedScopeBaseFacts): ProtectedRouteAuthority {
   return {
-    status: "valid",
-    routeAccess: {
-      foundationEntryAuthorized: true,
-      locationMapsAuthorized: true,
-      commercial: noDashboardCommercialAccess,
-    },
+    commercial: facts.commercial,
+    foundationEntryAuthorized: facts.foundationEntryEligible,
+    locationMapsAuthorized: facts.locationMapsEligible,
   };
+}
+
+function supervisorAuthority(): ProtectedRouteAuthority {
+  return {
+    commercial: noDashboardCommercialAccess,
+    foundationEntryAuthorized: true,
+    locationMapsAuthorized: true,
+  };
+}
+
+function valid(routeAccess: ProtectedRouteAuthority): SettledScopeRevalidation {
+  return { status: "valid", routeAccess };
+}
+
+function denied(): SettledScopeRevalidation {
+  return { status: "denied", routeAccess: null };
+}
+
+function entitlement(): SettledScopeRevalidation {
+  return { status: "entitlement", routeAccess: null };
 }

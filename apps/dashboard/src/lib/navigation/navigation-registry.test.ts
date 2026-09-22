@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BarChart3, Building2, FileText, MapPin } from "lucide-react";
 
 import { md01NavigationRegistrations } from "./md01-navigation";
+import { noNavigationAuthority } from "./navigation-authority";
 import {
   composeNavigationRegistry,
   defineNavigationDestination,
@@ -15,8 +16,9 @@ import type {
 } from "./navigation-types";
 
 const fullRouteAccess = {
-  foundationEntryAuthorized: true,
-  locationMapsAuthorized: true,
+  ...noNavigationAuthority,
+  foundationEntryEligible: true,
+  locationMapsEligible: true,
   commercial: {
     dashboardAccess: true,
     basicBranding: true,
