@@ -70,7 +70,7 @@ describe("dashboard commercial access", () => {
     expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
   });
 
-  it("keeps MD-04 feature authorities separate from commercial and existing route authority", () => {
+  it("allows MD-04 feature authority to remain feature-only for special scopes", () => {
     const routeAccess = {
       commercial: noDashboardCommercialAccess,
       foundationEntryAuthorized: false,
@@ -85,5 +85,27 @@ describe("dashboard commercial access", () => {
     expect(allowsDashboardRouteAccessRequirement("LOCATION_MAPS", routeAccess)).toBe(false);
     expect(allowsDashboardRouteAccessRequirement("DASHBOARD", routeAccess)).toBe(false);
     expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
+  });
+
+  it("adds MD-04 authority without changing independently proven Foundation access", () => {
+    const routeAccess = {
+      commercial: {
+        dashboardAccess: true,
+        basicBranding: false,
+        subscriptionRead: true,
+      },
+      foundationEntryAuthorized: true,
+      locationMapsAuthorized: true,
+      managementAuditAuthorized: true,
+      visitContactsAuthorized: false,
+    };
+
+    expect(allowsDashboardRouteAccessRequirement("MANAGEMENT_AUDIT", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("FOUNDATION_ENTRY", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("DASHBOARD", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("LOCATION_MAPS", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("BRANDING", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("VISIT_CONTACTS", routeAccess)).toBe(false);
   });
 });
