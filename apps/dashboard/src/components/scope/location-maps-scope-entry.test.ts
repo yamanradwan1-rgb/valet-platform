@@ -119,3 +119,63 @@ describe("LOCATION_MAPS scope entry", () => {
     expect(request.mock.calls[0]?.[0]).not.toContain("/subscription");
   });
 });
+
+describe("MD-04 Foundation scope entry", () => {
+  it("selects LM Visit Contacts at Organization grant-set scope without a Location request", async () => {
+    const request = vi.fn();
+    await expect(resolveOrganizationSelection(
+      api(request),
+      "LOCATION_MANAGER",
+      organization,
+      "VISIT_CONTACTS",
+      new AbortController().signal,
+    )).resolves.toEqual({
+      kind: "SELECT",
+      scope: { authority: "LOCATION_MANAGER_GRANT_SET", organization },
+    });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("selects CA Visit Contacts as real All Locations context", async () => {
+    const request = vi.fn().mockResolvedValue({
+      capabilities: [],
+      organization,
+      scope: { kind: "ALL_LOCATIONS" },
+      selectedLocation: null,
+    });
+    const result = await resolveOrganizationSelection(
+      api(request), "COMPANY_ADMIN", organization, "VISIT_CONTACTS",
+      new AbortController().signal,
+    );
+    expect(result).toMatchObject({
+      kind: "SELECT",
+      scope: { authority: "COMPANY_ADMIN", context: { scope: { kind: "ALL_LOCATIONS" } } },
+    });
+    expect(request.mock.calls[0]?.[0]).toContain("/context");
+    expect(request.mock.calls[0]?.[0]).not.toContain("/subscription");
+  });
+
+  it("allows inactive LM Location selection only for Management Audit", () => {
+    expect(canSelectScopeLocation("LOCATION_MANAGER", "MANAGEMENT_AUDIT", inactiveLocation)).toBe(true);
+    expect(canSelectScopeLocation("LOCATION_MANAGER", "DASHBOARD", inactiveLocation)).toBe(false);
+    expect(canSelectScopeLocation("LOCATION_MANAGER", "LOCATION_MAPS", inactiveLocation)).toBe(false);
+    expect(shouldDiscoverSupervisorScopes("MANAGEMENT_AUDIT")).toBe(true);
+    expect(shouldDiscoverSupervisorScopes("VISIT_CONTACTS")).toBe(false);
+  });
+
+  it("keeps CA Audit Organization and exact-Location selection available", async () => {
+    const request = vi.fn().mockResolvedValue({
+      items: [activeLocation, inactiveLocation], nextCursor: null,
+    });
+    await expect(resolveOrganizationSelection(
+      api(request), "COMPANY_ADMIN", organization, "MANAGEMENT_AUDIT",
+      new AbortController().signal,
+    )).resolves.toEqual({
+      kind: "LOCATIONS",
+      page: { items: [activeLocation, inactiveLocation], nextCursor: null },
+    });
+    expect(allowsCompanyAdminAllLocations("MANAGEMENT_AUDIT")).toBe(true);
+    expect(canSelectCompanyAdminScope("MANAGEMENT_AUDIT", null)).toBe(true);
+    expect(canSelectCompanyAdminScope("MANAGEMENT_AUDIT", inactiveLocation)).toBe(true);
+  });
+});

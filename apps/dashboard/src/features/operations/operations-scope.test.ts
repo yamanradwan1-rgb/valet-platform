@@ -23,9 +23,15 @@ describe("MD-03 exact scope", () => {
       },
     };
     const lm: SelectedDashboardScope = { authority: "LOCATION_MANAGER", organization, location };
+    const lmGrantSet: SelectedDashboardScope = {
+      authority: "LOCATION_MANAGER_GRANT_SET", organization,
+    };
     expect(hasExactActiveLocation(operationsScope(all))).toBe(false);
     expect(hasExactActiveLocation(operationsScope(exact))).toBe(true);
     expect(hasExactActiveLocation(operationsScope(lm))).toBe(true);
+    expect(operationsScope(lmGrantSet)).toMatchObject({
+      authority: "LOCATION_MANAGER", locationId: null, locationStatus: null,
+    });
   });
 
   it("keys page state to identity, session, authority, and exact Location", () => {

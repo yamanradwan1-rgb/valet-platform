@@ -69,4 +69,21 @@ describe("dashboard commercial access", () => {
     expect(allowsDashboardRouteAccessRequirement("BRANDING", routeAccess)).toBe(false);
     expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
   });
+
+  it("keeps MD-04 feature authorities separate from commercial and existing route authority", () => {
+    const routeAccess = {
+      commercial: noDashboardCommercialAccess,
+      foundationEntryAuthorized: false,
+      locationMapsAuthorized: false,
+      managementAuditAuthorized: true,
+      visitContactsAuthorized: false,
+    };
+
+    expect(allowsDashboardRouteAccessRequirement("MANAGEMENT_AUDIT", routeAccess)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("VISIT_CONTACTS", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("FOUNDATION_ENTRY", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("LOCATION_MAPS", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("DASHBOARD", routeAccess)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
+  });
 });

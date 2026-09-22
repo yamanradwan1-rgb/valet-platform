@@ -7,7 +7,8 @@ export function shouldDiscoverSupervisorScopes(
   accessRequirement: DashboardRouteAccessRequirement,
 ): boolean {
   return accessRequirement === "FOUNDATION_ENTRY" ||
-    accessRequirement === "LOCATION_MAPS";
+    accessRequirement === "LOCATION_MAPS" ||
+    accessRequirement === "MANAGEMENT_AUDIT";
 }
 
 export function allowsCompanyAdminAllLocations(
@@ -22,7 +23,8 @@ export function canSelectScopeLocation(
   location: ManagementLocation,
 ): boolean {
   return location.status === "ACTIVE" ||
-    (authority === "COMPANY_ADMIN" && accessRequirement !== "LOCATION_MAPS");
+    (authority === "COMPANY_ADMIN" && accessRequirement !== "LOCATION_MAPS") ||
+    (authority === "LOCATION_MANAGER" && accessRequirement === "MANAGEMENT_AUDIT");
 }
 
 export function canSelectCompanyAdminScope(

@@ -42,6 +42,10 @@ export type SelectedDashboardScope =
       readonly location: ManagementLocation;
     }
   | {
+      readonly authority: "LOCATION_MANAGER_GRANT_SET";
+      readonly organization: ManagementOrganization;
+    }
+  | {
       readonly authority: "SUPERVISOR";
       readonly context: SupervisorCandidate;
     };

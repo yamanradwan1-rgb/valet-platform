@@ -59,6 +59,20 @@ export function selectedScopePresentation(
       location: { id: scope.location.locationId, label: scope.location.name },
     };
   }
+  if (scope.authority === "LOCATION_MANAGER_GRANT_SET") {
+    return {
+      navigation: {
+        role: "LOCATION_MANAGER",
+        organizationId: scope.organization.organizationId,
+        locationId: null,
+      },
+      organization: {
+        id: scope.organization.organizationId,
+        label: scope.organization.name,
+      },
+      location: null,
+    };
+  }
   return {
     navigation: {
       role: "SUPERVISOR",

@@ -12,6 +12,8 @@ import { DashboardReportController } from "./report.controller";
 import { DashboardScopeDiscoveryController } from "./dashboard-scope-discovery.controller";
 import { DashboardScopeDiscoveryService } from "./dashboard-scope-discovery.service";
 import { DashboardSubscriptionController } from "./subscription.controller";
+import { DashboardFeatureAuthorityController } from "./dashboard-feature-authority.controller";
+import { DashboardFeatureAuthorityService } from "./dashboard-feature-authority.service";
 
 @Module({
   controllers: [
@@ -22,9 +24,14 @@ import { DashboardSubscriptionController } from "./subscription.controller";
     DashboardBrandingSubscriptionController,
     DashboardSubscriptionController,
     DashboardScopeDiscoveryController,
+    DashboardFeatureAuthorityController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
-  providers: [DashboardConfigurationService, DashboardScopeDiscoveryService],
+  providers: [
+    DashboardConfigurationService,
+    DashboardFeatureAuthorityService,
+    DashboardScopeDiscoveryService,
+  ],
 })
 export class DashboardModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
@@ -38,6 +45,7 @@ export class DashboardModule implements NestModule {
         DashboardBrandingSubscriptionController,
         DashboardSubscriptionController,
         DashboardScopeDiscoveryController,
+        DashboardFeatureAuthorityController,
       );
   }
 }

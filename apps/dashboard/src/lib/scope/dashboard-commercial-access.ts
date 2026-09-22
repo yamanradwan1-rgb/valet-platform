@@ -8,6 +8,8 @@ export type DashboardCommercialRequirement =
 export type DashboardRouteAccessRequirement =
   | "FOUNDATION_ENTRY"
   | "LOCATION_MAPS"
+  | "MANAGEMENT_AUDIT"
+  | "VISIT_CONTACTS"
   | DashboardCommercialRequirement;
 
 export interface DashboardCommercialAccess {
@@ -19,6 +21,8 @@ export interface DashboardCommercialAccess {
 export interface DashboardRouteAccess {
   readonly foundationEntryAuthorized: boolean;
   readonly locationMapsAuthorized: boolean;
+  readonly managementAuditAuthorized?: boolean;
+  readonly visitContactsAuthorized?: boolean;
   readonly commercial: DashboardCommercialAccess;
 }
 
@@ -58,6 +62,12 @@ export function allowsDashboardRouteAccessRequirement(
   }
   if (requirement === "LOCATION_MAPS") {
     return access.locationMapsAuthorized;
+  }
+  if (requirement === "MANAGEMENT_AUDIT") {
+    return access.managementAuditAuthorized === true;
+  }
+  if (requirement === "VISIT_CONTACTS") {
+    return access.visitContactsAuthorized === true;
   }
   return allowsDashboardCommercialRequirement(requirement, access.commercial);
 }

@@ -27,6 +27,9 @@ export function administrationScope(selected: SelectedDashboardScope): Administr
       locationStatus: selected.location.status,
     };
   }
+  if (selected.authority === "LOCATION_MANAGER_GRANT_SET") {
+    throw new Error("Organization grant-set scope is not an Administration scope.");
+  }
   return {
     authority: selected.authority,
     organizationId: selected.context.organization.organizationId,

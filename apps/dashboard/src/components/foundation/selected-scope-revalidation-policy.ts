@@ -29,6 +29,9 @@ export function selectedScopeRevalidationKey(
   if (scope.authority === "LOCATION_MANAGER") {
     return `${prefix}:lm:${scope.organization.organizationId}:${scope.location.locationId}`;
   }
+  if (scope.authority === "LOCATION_MANAGER_GRANT_SET") {
+    return `${prefix}:lm-grant-set:${scope.organization.organizationId}`;
+  }
   return [
     prefix,
     "sup",

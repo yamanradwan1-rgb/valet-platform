@@ -14,7 +14,7 @@ import {
 } from "../../lib/scope/dashboard-scope";
 import { ScopeGenerationGuard, type ScopeRequestTicket } from "../../lib/scope/scope-generation";
 import { scopeSourceFailureDisposition, type ScopeEntrySource } from "./scope-entry-policy";
-import { canSelectCompanyAdminScope, shouldDiscoverSupervisorScopes } from "./scope-entry-route-policy";
+import { canSelectCompanyAdminScope, canSelectScopeLocation, shouldDiscoverSupervisorScopes } from "./scope-entry-route-policy";
 import { resolveOrganizationSelection } from "./scope-entry-selection";
 import type { ScopeEntryAuthority, ScopeEntryProps } from "./scope-entry-types";
 
@@ -270,10 +270,10 @@ export function useScopeEntryController({
   }, [accessRequirement, activeOrganization, api, begin, commercialUnavailableOrganizationId, disposition, isCurrent]);
 
   const selectLocationManagerScope = useCallback((location: ManagementLocation) => {
-    if (activeOrganization?.authority !== "LOCATION_MANAGER" || location.status !== "ACTIVE") return;
+    if (activeOrganization?.authority !== "LOCATION_MANAGER" || !canSelectScopeLocation("LOCATION_MANAGER", accessRequirement, location)) return;
     guard.begin();
     onSelectRef.current({ authority: "LOCATION_MANAGER", organization: activeOrganization.organization, location });
-  }, [activeOrganization, guard]);
+  }, [accessRequirement, activeOrganization, guard]);
 
   const selectSupervisorScope = useCallback((context: SupervisorCandidate) => {
     guard.begin();

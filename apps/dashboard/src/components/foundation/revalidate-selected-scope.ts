@@ -8,6 +8,7 @@ import {
 } from "../../lib/scope/dashboard-commercial-access";
 import {
   listActiveSupervisorScopes,
+  readDashboardFeatureAuthority,
   readCompanyAdminSubscription,
   readLocationManagerSubscription,
   resolveCompanyAdminContext,
@@ -17,6 +18,95 @@ import {
   isActiveExactCompanyLocationContext,
   sameManagementScope,
 } from "./selected-scope-revalidation-policy";
+
+function featureRouteAccess(
+  requirement: "MANAGEMENT_AUDIT" | "VISIT_CONTACTS",
+): DashboardRouteAccess {
+  return {
+    commercial: noDashboardCommercialAccess,
+    foundationEntryAuthorized: false,
+    locationMapsAuthorized: false,
+    managementAuditAuthorized: requirement === "MANAGEMENT_AUDIT",
+    visitContactsAuthorized: requirement === "VISIT_CONTACTS",
+  };
+}
+
+async function revalidateFeatureAuthority(
+  api: DashboardApiClient,
+  scope: SelectedDashboardScope,
+  requirement: "MANAGEMENT_AUDIT" | "VISIT_CONTACTS",
+  signal?: AbortSignal,
+): Promise<SettledScopeRevalidation> {
+  if (scope.authority === "COMPANY_ADMIN_SUBSCRIPTION") {
+    return { status: "denied", routeAccess: null };
+  }
+
+  if (requirement === "VISIT_CONTACTS") {
+    const organization = scope.authority === "COMPANY_ADMIN"
+      ? scope.context.organization
+      : scope.authority === "LOCATION_MANAGER_GRANT_SET"
+        ? scope.organization
+        : null;
+    if (
+      organization === null ||
+      (scope.authority === "COMPANY_ADMIN" && scope.context.scope.kind !== "ALL_LOCATIONS")
+    ) {
+      return { status: "denied", routeAccess: null };
+    }
+    const authority = await readDashboardFeatureAuthority(api, {
+      feature: requirement,
+      organizationId: organization.organizationId,
+    }, signal);
+    const matches = authority.organizationId === organization.organizationId &&
+      ((scope.authority === "COMPANY_ADMIN" && authority.role === "ORG_ADMIN" &&
+        authority.scope.kind === "ORGANIZATION") ||
+       (scope.authority === "LOCATION_MANAGER_GRANT_SET" &&
+        authority.role === "LOCATION_MANAGER" &&
+        authority.scope.kind === "ORGANIZATION_GRANT_SET"));
+    return matches
+      ? { status: "valid", routeAccess: featureRouteAccess(requirement) }
+      : { status: "denied", routeAccess: null };
+  }
+
+  let organizationId: string;
+  let locationId: string | undefined;
+  let expectedRole: "LOCATION_MANAGER" | "ORG_ADMIN" | "VALET_SUPERVISOR";
+  if (scope.authority === "COMPANY_ADMIN") {
+    organizationId = scope.context.organization.organizationId;
+    expectedRole = "ORG_ADMIN";
+    locationId = scope.context.scope.kind === "LOCATION"
+      ? scope.context.scope.locationId
+      : undefined;
+  } else if (scope.authority === "LOCATION_MANAGER") {
+    organizationId = scope.organization.organizationId;
+    locationId = scope.location.locationId;
+    expectedRole = "LOCATION_MANAGER";
+  } else if (scope.authority === "SUPERVISOR") {
+    const current = await listActiveSupervisorScopes(api, signal);
+    const exact = current.some((candidate) =>
+      candidate.membershipId === scope.context.membershipId &&
+      candidate.location.locationId === scope.context.location.locationId &&
+      candidate.activeShift.shiftId === scope.context.activeShift.shiftId);
+    if (!exact) return { status: "denied", routeAccess: null };
+    organizationId = scope.context.organization.organizationId;
+    locationId = scope.context.location.locationId;
+    expectedRole = "VALET_SUPERVISOR";
+  } else {
+    return { status: "denied", routeAccess: null };
+  }
+  const authority = await readDashboardFeatureAuthority(api, {
+    feature: requirement,
+    organizationId,
+    ...(locationId === undefined ? {} : { locationId }),
+  }, signal);
+  const scopeMatches = locationId === undefined
+    ? authority.scope.kind === "ORGANIZATION"
+    : authority.scope.kind === "LOCATION" && authority.scope.locationId === locationId;
+  return authority.organizationId === organizationId &&
+    authority.role === expectedRole && scopeMatches
+    ? { status: "valid", routeAccess: featureRouteAccess(requirement) }
+    : { status: "denied", routeAccess: null };
+}
 
 export interface SettledScopeRevalidation {
   readonly status: "valid" | "entitlement" | "denied";
@@ -29,6 +119,10 @@ export async function revalidateSelectedScope(
   accessRequirement: DashboardRouteAccessRequirement,
   signal?: AbortSignal,
 ): Promise<SettledScopeRevalidation> {
+  if (accessRequirement === "VISIT_CONTACTS" ||
+      accessRequirement === "MANAGEMENT_AUDIT") {
+    return revalidateFeatureAuthority(api, scope, accessRequirement, signal);
+  }
   if (scope.authority === "COMPANY_ADMIN_SUBSCRIPTION") {
     if (accessRequirement !== "SUBSCRIPTION_READ") {
       return { status: "denied", routeAccess: null };
@@ -171,6 +265,10 @@ export async function revalidateSelectedScope(
           },
         }
       : { status: "entitlement", routeAccess: null };
+  }
+
+  if (scope.authority === "LOCATION_MANAGER_GRANT_SET") {
+    return { status: "denied", routeAccess: null };
   }
 
   const current = await listActiveSupervisorScopes(api, signal);

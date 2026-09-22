@@ -24,6 +24,14 @@ export function operationsScope(selected: SelectedDashboardScope): OperationsSco
       locationStatus: selected.location.status,
     };
   }
+  if (selected.authority === "LOCATION_MANAGER_GRANT_SET") {
+    return {
+      authority: "LOCATION_MANAGER",
+      organizationId: selected.organization.organizationId,
+      locationId: null,
+      locationStatus: null,
+    };
+  }
   if (selected.authority === "SUPERVISOR") {
     return {
       authority: selected.authority,

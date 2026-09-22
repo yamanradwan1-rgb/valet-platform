@@ -1,4 +1,6 @@
 import {
+  dashboardFeatureAuthorityQuerySchema,
+  dashboardFeatureAuthorityResponseSchema,
   locationSubscriptionResponseSchema,
   managementContextResponseSchema,
   managementListQuerySchema,
@@ -7,6 +9,8 @@ import {
   managementSubscriptionResponseSchema,
   staffOperationalContextResponseSchema,
   type LocationSubscriptionResponse,
+  type DashboardFeatureAuthorityQuery,
+  type DashboardFeatureAuthorityResponse,
   type ManagementContextResponse,
   type ManagementListQuery,
   type ManagementLocation,
@@ -151,6 +155,19 @@ export function readLocationManagerSubscription(
     `/v1/staff/dashboard/locations/${encodeURIComponent(locationId)}/subscription`,
     locationSubscriptionResponseSchema,
     { method: "GET", signal },
+  );
+}
+
+export function readDashboardFeatureAuthority(
+  api: DashboardApiClient,
+  query: DashboardFeatureAuthorityQuery,
+  signal?: AbortSignal,
+): Promise<DashboardFeatureAuthorityResponse> {
+  const parsed = dashboardFeatureAuthorityQuerySchema.parse(query);
+  return api.request(
+    "/v1/staff/dashboard/feature-authority",
+    dashboardFeatureAuthorityResponseSchema,
+    { method: "GET", query: parsed, signal },
   );
 }
 

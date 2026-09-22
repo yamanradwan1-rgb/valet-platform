@@ -10,6 +10,7 @@ import {
   listCompanyAdminLocations,
   listLocationManagerLocations,
   readCompanyAdminSubscription,
+  resolveCompanyAdminContext,
 } from "../../lib/scope/dashboard-scope";
 import type {
   ScopeEntryAuthority,
@@ -30,9 +31,41 @@ export async function resolveOrganizationSelection(
   signal: AbortSignal,
 ): Promise<OrganizationSelectionResult> {
   if (authority === "LOCATION_MANAGER") {
+    if (accessRequirement === "VISIT_CONTACTS") {
+      return {
+        kind: "SELECT",
+        scope: { authority: "LOCATION_MANAGER_GRANT_SET", organization },
+      };
+    }
     return {
       kind: "LOCATIONS",
       page: await listLocationManagerLocations(
+        api,
+        organization.organizationId,
+        {},
+        signal,
+      ),
+    };
+  }
+
+  if (accessRequirement === "VISIT_CONTACTS") {
+    return {
+      kind: "SELECT",
+      scope: {
+        authority: "COMPANY_ADMIN",
+        context: await resolveCompanyAdminContext(
+          api,
+          organization.organizationId,
+          { kind: "ALL_LOCATIONS" },
+          signal,
+        ),
+      },
+    };
+  }
+  if (accessRequirement === "MANAGEMENT_AUDIT") {
+    return {
+      kind: "LOCATIONS",
+      page: await listCompanyAdminLocations(
         api,
         organization.organizationId,
         {},
