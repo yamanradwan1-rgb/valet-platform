@@ -49,7 +49,7 @@ export async function resolveNavigationAuthority(input: {
     for (const target of targets) features[target.feature] = "DENIED";
     return { ...noNavigationAuthority, features };
   }
-  const base = baseNavigationAuthority(baseResolution.facts);
+  const base = baseNavigationAuthority(baseResolution.facts, selectedScope);
   const features: Record<
     DashboardFeatureAuthorityFeature,
     NavigationFeatureEligibility
@@ -99,6 +99,7 @@ function requiredFeatureTargets(
 
 function baseNavigationAuthority(
   facts: SelectedScopeBaseFacts,
+  selectedScope: SelectedDashboardScope,
 ): NavigationAuthority {
   if (facts.kind === "FEATURE_ONLY") return noNavigationAuthority;
   if (facts.kind === "SUBSCRIPTION_ONLY") {
@@ -111,11 +112,12 @@ function baseNavigationAuthority(
       },
     };
   }
-  return navigationAuthorityFromFacts(facts);
+  return navigationAuthorityFromFacts(facts, selectedScope);
 }
 
 function navigationAuthorityFromFacts(
   facts: SelectedScopeBaseFacts,
+  selectedScope: SelectedDashboardScope,
 ): NavigationAuthority {
   return {
     ...noNavigationAuthority,
@@ -125,7 +127,26 @@ function navigationAuthorityFromFacts(
         : facts.commercial,
     foundationEntryEligible: facts.foundationEntryEligible,
     locationMapsEligible: facts.locationMapsEligible,
+    managementIntelligenceEligible: intelligenceEligible(
+      facts,
+      selectedScope,
+    ),
   };
+}
+
+function intelligenceEligible(
+  facts: SelectedScopeBaseFacts,
+  selectedScope: SelectedDashboardScope,
+): boolean {
+  if (facts.kind !== "MANAGEMENT" || !facts.commercial.dashboardAccess) {
+    return false;
+  }
+  if (selectedScope.authority === "COMPANY_ADMIN") {
+    return selectedScope.context.scope.kind === "ALL_LOCATIONS" ||
+      facts.locationMapsEligible;
+  }
+  return selectedScope.authority === "LOCATION_MANAGER" &&
+    facts.locationMapsEligible;
 }
 
 function featureEligibility(

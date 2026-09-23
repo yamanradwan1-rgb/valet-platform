@@ -20,6 +20,7 @@ export interface NavigationAuthority {
   >;
   readonly foundationEntryEligible: boolean;
   readonly locationMapsEligible: boolean;
+  readonly managementIntelligenceEligible: boolean;
 }
 
 export const noNavigationAuthority: NavigationAuthority = {
@@ -30,6 +31,7 @@ export const noNavigationAuthority: NavigationAuthority = {
   },
   foundationEntryEligible: false,
   locationMapsEligible: false,
+  managementIntelligenceEligible: false,
 };
 
 export function navigationFeatureForRequirement(
@@ -50,6 +52,9 @@ export function allowsNavigationAccessRequirement(
   }
   if (requirement === "LOCATION_MAPS") {
     return authority.locationMapsEligible;
+  }
+  if (requirement === "MANAGEMENT_INTELLIGENCE") {
+    return authority.managementIntelligenceEligible;
   }
   const feature = navigationFeatureForRequirement(requirement);
   if (feature !== null) return authority.features[feature] === "ELIGIBLE";

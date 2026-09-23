@@ -23,7 +23,11 @@ export function canSelectScopeLocation(
   location: ManagementLocation,
 ): boolean {
   return location.status === "ACTIVE" ||
-    (authority === "COMPANY_ADMIN" && accessRequirement !== "LOCATION_MAPS") ||
+    (
+      authority === "COMPANY_ADMIN" &&
+      accessRequirement !== "LOCATION_MAPS" &&
+      accessRequirement !== "MANAGEMENT_INTELLIGENCE"
+    ) ||
     (authority === "LOCATION_MANAGER" && accessRequirement === "MANAGEMENT_AUDIT");
 }
 
@@ -31,6 +35,9 @@ export function canSelectCompanyAdminScope(
   accessRequirement: DashboardRouteAccessRequirement,
   location: ManagementLocation | null,
 ): boolean {
+  if (accessRequirement === "MANAGEMENT_INTELLIGENCE") {
+    return location === null || location.status === "ACTIVE";
+  }
   return accessRequirement !== "LOCATION_MAPS" ||
     (location !== null && location.status === "ACTIVE");
 }

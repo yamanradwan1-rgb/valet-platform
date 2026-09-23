@@ -120,6 +120,29 @@ function authorizeProtectedRoute(
     return denied();
   }
 
+  if (requirement === "MANAGEMENT_INTELLIGENCE") {
+    if (facts.kind !== "MANAGEMENT") return denied();
+    if (!facts.commercial.dashboardAccess) return entitlement();
+    if (scope.authority === "COMPANY_ADMIN") {
+      const eligible =
+        scope.context.scope.kind === "ALL_LOCATIONS" ||
+        facts.locationMapsEligible;
+      return eligible
+        ? valid({
+            ...fullAuthority(facts),
+            managementIntelligenceAuthorized: true,
+          })
+        : denied();
+    }
+    if (scope.authority === "LOCATION_MANAGER" && facts.locationMapsEligible) {
+      return valid({
+        ...fullAuthority(facts),
+        managementIntelligenceAuthorized: true,
+      });
+    }
+    return denied();
+  }
+
   if (facts.kind === "SUPERVISOR") {
     return requirement === "FOUNDATION_ENTRY"
       ? valid(supervisorAuthority())
