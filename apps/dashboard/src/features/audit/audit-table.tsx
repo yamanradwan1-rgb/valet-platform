@@ -34,7 +34,7 @@ export function AuditTable(props: {
           <tbody>
             {props.items.length === 0 ? (
               <tr><td colSpan={6}>{t.empty}</td></tr>
-            ) : props.items.map((event) => {
+            ) : props.items.map((event, index) => {
               const actor = auditActorLabel(event);
               return (
                 <tr key={event.eventId}>
@@ -56,7 +56,7 @@ export function AuditTable(props: {
                   </td>
                   <td className={styles.actionCell}>
                     <button
-                      aria-label={t.inspect}
+                      aria-label={`${t.inspectEvent} ${index + 1}: ${event.eventType}`}
                       className={styles.inspect}
                       onClick={() => props.select(event)}
                       type="button"

@@ -10,6 +10,12 @@ import {
   orgAuditPath,
 } from "./md04-fixtures";
 
+export const FORBIDDEN_AUDIT_SENTINELS = {
+  email: "forbidden-audit@example.test",
+  ip: "203.0.113.77",
+  rawMetadata: "FORBIDDEN_RAW_METADATA",
+} as const;
+
 export function md04AuditReply(
   path: string,
   request: Request,
@@ -104,7 +110,10 @@ export function malformedAuditReply(): FixtureReply {
     body: {
       items: [{
         ...organizationEvents()[0],
-        details: { kind: "FINANCIAL", rawMetadata: { secret: "rawSecret" } },
+        details: { kind: "FINANCIAL" },
+        email: FORBIDDEN_AUDIT_SENTINELS.email,
+        ipAddress: FORBIDDEN_AUDIT_SENTINELS.ip,
+        rawMetadata: FORBIDDEN_AUDIT_SENTINELS.rawMetadata,
       }],
       nextCursor: null,
     },

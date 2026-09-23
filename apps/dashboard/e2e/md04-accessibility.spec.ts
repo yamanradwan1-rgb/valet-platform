@@ -36,8 +36,20 @@ async function enterContacts(page: Page) {
 
 test("Visit Contacts drawer and correction are keyboard-safe and restore focus", async ({ page }) => {
   await enterContacts(page);
-  const row = page.locator("tbody tr").filter({ hasText: "Alex One" });
-  const details = row.getByRole("button", { name: "Details" });
+  const details = page.getByRole("button", {
+    name: "Details for result 1: Alex One",
+    exact: true,
+  });
+  await expect(details).toHaveCount(1);
+  await expect(page.getByRole("button", {
+    name: "Details for result 2: Alex Two",
+    exact: true,
+  })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Details", exact: true })).toHaveCount(0);
+  const actionLabels = await page.locator("tbody button[aria-label]").evaluateAll(
+    (nodes) => nodes.map((node) => node.getAttribute("aria-label") ?? ""),
+  );
+  expect(actionLabels.join("\n")).not.toContain(FULL_PHONE);
   await details.focus();
   await details.click();
   let drawer = page.getByRole("dialog", { name: "Alex One" });
@@ -60,9 +72,29 @@ test("Visit Contacts drawer and correction are keyboard-safe and restore focus",
 
 test("Arabic MD-04 keeps mixed protected values safely LTR", async ({ page }) => {
   await enterContacts(page);
+  await page.getByLabel("Search mode").selectOption("PLATE");
+  await page.getByLabel("Plate country").fill("JO");
+  await page.getByLabel("Plate", { exact: true }).fill("10-12345");
+  await page.getByRole("button", { name: "Search" }).click();
+  await expect(page.getByRole("button", {
+    name: "Details for result 1: 10-12345",
+    exact: true,
+  })).toHaveCount(1);
+  await page.getByLabel("Search mode").selectOption("NAME");
+  await page.getByLabel("Name").fill("Alex");
+  await page.getByRole("button", { name: "Search" }).click();
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.getByRole("heading", { name: "جهات اتصال الزيارات", level: 1 })).toBeVisible();
+  await expect(page.getByRole("button", {
+    name: "تفاصيل النتيجة 1: Alex One",
+    exact: true,
+  })).toHaveCount(1);
+  await expect(page.getByRole("button", {
+    name: "تفاصيل النتيجة 2: Alex Two",
+    exact: true,
+  })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "التفاصيل", exact: true })).toHaveCount(0);
   await expect(page.locator('bdi[dir="ltr"]', { hasText: FULL_PHONE }).first()).toBeVisible();
   await expect(page.locator('bdi[dir="ltr"]', { hasText: "2026-09-21T09:00:00.000Z" }).first()).toBeVisible();
 });
@@ -81,7 +113,20 @@ test("Audit drawer restores focus and keeps canonical codes LTR in Arabic", asyn
   await signInOnCurrentPage(page, "admin@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: "All Locations" }).click();
-  const firstInspect = page.getByRole("button", { name: "Inspect" }).first();
+  const firstInspect = page.getByRole("button", {
+    name: "Inspect event 1: MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+    exact: true,
+  });
+  await expect(firstInspect).toHaveCount(1);
+  await expect(page.getByRole("button", {
+    name: "Inspect event 2: LOCATION_CONFIGURATION_OVERRIDE_SET",
+    exact: true,
+  })).toHaveCount(1);
+  await expect(page.getByRole("button", {
+    name: "Inspect event 3: LOCATION_CONFIGURATION_OVERRIDE_SET",
+    exact: true,
+  })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Inspect", exact: true })).toHaveCount(0);
   await firstInspect.focus();
   await firstInspect.click();
   await page.keyboard.press("Escape");
@@ -89,6 +134,11 @@ test("Audit drawer restores focus and keeps canonical codes LTR in Arabic", asyn
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.getByRole("heading", { name: "سجل التدقيق", level: 1 })).toBeVisible();
+  await expect(page.getByRole("button", {
+    name: "فحص الحدث 1: MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+    exact: true,
+  })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "فحص", exact: true })).toHaveCount(0);
   await expect(page.locator('bdi[dir="ltr"]', {
     hasText: "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
   }).first()).toBeVisible();

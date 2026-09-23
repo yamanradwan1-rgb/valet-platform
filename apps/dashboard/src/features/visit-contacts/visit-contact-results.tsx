@@ -54,7 +54,7 @@ export function VisitContactResults(props: {
               </tr>
             </thead>
             <tbody>
-              {data.items.map((item) => (
+              {data.items.map((item, index) => (
                 <tr key={item.kind === "CUSTOMER" ? item.customerId : item.vehicleId}>
                   <td>
                     {item.kind === "CUSTOMER" ? (
@@ -82,7 +82,11 @@ export function VisitContactResults(props: {
                   </td>
                   <td className={styles.actionCell}>
                     <button
-                      aria-label={t.details}
+                      aria-label={`${t.detailsForResult} ${index + 1}: ${
+                        item.kind === "CUSTOMER"
+                          ? item.displayName ?? t.unavailableName
+                          : item.plateNumberRaw
+                      }`}
                       className={styles.detail}
                       onClick={() => props.onSelect(item)}
                       type="button"

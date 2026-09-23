@@ -8,6 +8,7 @@ import {
 } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
 import {
+  FORBIDDEN_AUDIT_SENTINELS,
   md04AuditReply,
   malformedAuditReply,
   organizationEvents,
@@ -81,13 +82,19 @@ test("CA Organization Audit renders only safe typed data, supported filter and o
   await drawer.getByRole("button", { name: "Close" }).click();
 
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page.getByRole("cell", { name: "DASHBOARD_REPORT_EXPORT_GENERATED" })).toBeVisible();
+  await expect(page.getByRole("cell", {
+    name: "DASHBOARD_REPORT_EXPORT_GENERATED",
+    exact: true,
+  })).toBeVisible();
   await expect(page.getByText("Loaded 1 events", { exact: true })).toBeVisible();
   await expect(page.getByText(/Total|Page \d/i)).toHaveCount(0);
   await page.getByRole("button", { name: "Previous", exact: true }).click();
 
   await page.getByLabel("Event type").selectOption("LOCATION_CONFIGURATION_OVERRIDE_SET");
-  await expect(page.getByRole("cell", { name: "LOCATION_CONFIGURATION_OVERRIDE_SET" }).first()).toBeVisible();
+  await expect(page.getByRole("cell", {
+    name: "LOCATION_CONFIGURATION_OVERRIDE_SET",
+    exact: true,
+  }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Previous", exact: true })).toBeDisabled();
   expect(queries.some((url) => url.includes("eventType=LOCATION_CONFIGURATION_OVERRIDE_SET"))).toBe(true);
 });
@@ -104,7 +111,12 @@ test("malformed Audit response fails closed without raw payload rendering", asyn
   });
   await enterOrganizationAudit(page, fixture);
   await expect(page.getByText("The server returned an invalid audit response.")).toBeVisible();
-  await expect(page.getByText("rawSecret")).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const html = await page.locator("html").evaluate((node) => node.outerHTML);
+  for (const sentinel of Object.values(FORBIDDEN_AUDIT_SENTINELS)) {
+    expect(html).not.toContain(sentinel);
+  }
+  await expect(page.getByRole("button", { name: /Export/i })).toHaveCount(0);
 });
 
 test("current Audit denial wins between opaque cursor pages", async ({ page }) => {
@@ -169,9 +181,15 @@ test("late Audit filter response cannot repaint the newest filter", async ({ pag
   await enterOrganizationAudit(page, fixture);
   await page.getByLabel("Event type").selectOption("LOCATION_CONFIGURATION_OVERRIDE_SET");
   await page.getByLabel("Event type").selectOption("MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED");
-  await expect(page.getByRole("cell", { name: "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED" })).toBeVisible();
+  await expect(page.getByRole("cell", {
+    name: "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+    exact: true,
+  })).toBeVisible();
   await page.waitForTimeout(550);
-  await expect(page.getByRole("cell", { name: "LOCATION_CONFIGURATION_OVERRIDE_SET" })).toHaveCount(0);
+  await expect(page.getByRole("cell", {
+    name: "LOCATION_CONFIGURATION_OVERRIDE_SET",
+    exact: true,
+  })).toHaveCount(0);
 });
 
 test("Supervisor shift-end denial wins between Audit cursor pages", async ({ page }) => {
@@ -200,6 +218,9 @@ test("Supervisor shift-end denial wins between Audit cursor pages", async ({ pag
   await expect(page.getByRole("button", { name: "Next", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByText(/Current server authority no longer allows/)).toBeVisible();
-  await expect(page.getByRole("cell", { name: "VALET_SESSION_PARKED" })).toHaveCount(0);
+  await expect(page.getByRole("cell", {
+    name: "VALET_SESSION_PARKED",
+    exact: true,
+  })).toHaveCount(0);
   expect(requests).toBeGreaterThanOrEqual(2);
 });
