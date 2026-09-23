@@ -16,6 +16,7 @@ type ReportCopy = ReturnType<typeof reportsCopy>;
 export function ReportPreviewDialog(props: {
   readonly data: ReportResponse | null;
   readonly draftValue: string;
+  readonly exportAdvisoryPending: boolean;
   readonly exportAvailable: boolean;
   readonly exportStatus: ReportExportStatus;
   readonly kind: ReportKind;
@@ -110,6 +111,7 @@ export function ReportPreviewDialog(props: {
         </div>
         {props.data ? (
           <ReportsExportControls
+            advisoryPending={props.exportAdvisoryPending}
             available={props.exportAvailable}
             kind={props.kind}
             onExport={props.onExport}

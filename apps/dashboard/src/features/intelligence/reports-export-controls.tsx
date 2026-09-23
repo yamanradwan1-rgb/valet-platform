@@ -18,6 +18,7 @@ export type ReportExportStatus =
   | "stale";
 
 export function ReportsExportControls(props: {
+  readonly advisoryPending: boolean;
   readonly available: boolean;
   readonly kind: ReportKind;
   readonly onExport: (format: ExportFormat) => void;
@@ -25,11 +26,14 @@ export function ReportsExportControls(props: {
   readonly t: ReportCopy;
 }) {
   const message = exportMessage(props.status, props.t);
+  const disabled = !props.available || props.status === "exporting";
   return (
     <div className={dialogStyles.exportRegion} data-testid="report-export-region">
       <div className={dialogStyles.exportCopy}>
         <p>{props.t.pdfNeutral}</p>
-        {!props.available ? <p role="status">{props.t.exportUnavailable}</p> : null}
+        {!props.advisoryPending && !props.available ? (
+          <p role="status">{props.t.exportUnavailable}</p>
+        ) : null}
         {message ? (
           <p role={props.status === "exporting" ? "status" : "alert"}>{message}</p>
         ) : null}
@@ -38,7 +42,7 @@ export function ReportsExportControls(props: {
         <button
           aria-label={`${props.t.exportCsv}: ${reportName(props.kind, props.t)}`}
           className={dialogStyles.dialogSecondaryButton}
-          disabled={!props.available}
+          disabled={disabled}
           onClick={() => props.onExport("CSV")}
           type="button"
         >
@@ -47,7 +51,7 @@ export function ReportsExportControls(props: {
         <button
           aria-label={`${props.t.exportPdf}: ${reportName(props.kind, props.t)}`}
           className={dialogStyles.dialogPrimaryButton}
-          disabled={!props.available}
+          disabled={disabled}
           onClick={() => props.onExport("PDF")}
           type="button"
         >

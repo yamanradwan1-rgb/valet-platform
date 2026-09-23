@@ -178,19 +178,6 @@
 
 :global([data-theme="dark"]) .rowAction:hover { background: #1a264f; }
 
-.skeletonRow td { padding: 1rem 1.25rem; }
-.skeletonRow div {
-  width: 100%;
-  height: 1rem;
-  border-radius: 0.25rem;
-  background: #f1f5f9;
-  animation: reportPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes reportPulse {
-  50% { opacity: 0.5; }
-}
-
 @media (min-width: 640px) {
   .header { flex-direction: row; align-items: center; }
 }

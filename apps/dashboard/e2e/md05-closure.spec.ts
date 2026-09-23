@@ -28,7 +28,6 @@ import {
   loadReport,
 } from "./support/md05-reports-e2e-helpers";
 import {
-  proveReportsLoadingSkeleton,
   proveReportsReferenceGeometry,
 } from "./support/md05-reports-visual-proof";
 
@@ -146,8 +145,4 @@ test("no standalone Validations destination survives final MD-05", async ({ page
 
 test("Reports reproduces frozen geometry across theme, locale, and width", async ({ page }) => {
   await proveReportsReferenceGeometry(page);
-});
-
-test("Reports preserves the frozen eight-row loading skeleton geometry", async ({ page }) => {
-  await proveReportsLoadingSkeleton(page);
 });

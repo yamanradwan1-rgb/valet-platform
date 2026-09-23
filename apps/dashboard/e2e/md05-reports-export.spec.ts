@@ -29,12 +29,13 @@ import {
   loadReport,
   managerReportsFixture,
   proveFinalExportDenials,
+  reportPreviewPaths,
 } from "./support/md05-reports-e2e-helpers";
-
-const reportPaths = [
-  ...Object.values(companyReportPaths).filter((path) => !path.endsWith("/exports")),
-  ...Object.values(locationReportPaths).filter((path) => !path.endsWith("/exports")),
-];
+import {
+  proveAdvisoryDelayDoesNotBlockPreview,
+  proveAdvisoryFailureDoesNotBlockPreview,
+  proveExportDoubleSubmitIsBlocked,
+} from "./support/md05-reports-interaction-proof";
 
 test("CA All Locations previews all fixed kinds through exact Company URLs with no Location fan-out", async ({ page }) => {
   const fixture = companyReportsFixture();
@@ -91,7 +92,7 @@ test("inactive revalidation blocks Reports before preview or export", async ({ p
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
   await expect(page.getByTestId("md05-reports-page")).toHaveCount(0);
-  for (const path of reportPaths) expect(fixture.count(path)).toBe(0);
+  for (const path of reportPreviewPaths) expect(fixture.count(path)).toBe(0);
   expect(binary.posts).toBe(0);
 });
 
@@ -106,7 +107,7 @@ test("invalid selectors never normalize or issue preview/export requests", async
     await expect(dialog.locator("input")).toHaveValue(value);
     await dialog.getByRole("button", { name: "Close" }).click();
   }
-  for (const path of reportPaths) expect(fixture.count(path)).toBe(0);
+  for (const path of reportPreviewPaths) expect(fixture.count(path)).toBe(0);
   expect(binary.posts).toBe(0);
 });
 
@@ -172,6 +173,20 @@ test("reportExports false leaves preview usable and export unavailable", async (
   await expect(dialog.getByRole("button", { name: /Export CSV/u })).toBeDisabled();
   await expect(dialog.getByText(/Exports are unavailable/u)).toBeVisible();
   expect(binary.posts).toBe(0);
+});
+
+for (const scope of ["COMPANY", "LOCATION"] as const) {
+  test(`${scope} advisory subscription delay does not block preview`, async ({ page }) => {
+    await proveAdvisoryDelayDoesNotBlockPreview(page, scope);
+  });
+}
+
+test("advisory subscription failure does not block preview", async ({ page }) => {
+  await proveAdvisoryFailureDoesNotBlockPreview(page);
+});
+
+test("pending export disables both formats and blocks double-submit", async ({ page }) => {
+  await proveExportDoubleSubmitIsBlocked(page);
 });
 
 for (const [scopeName, fixtureFactory, enter, company] of [

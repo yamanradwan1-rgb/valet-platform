@@ -5,31 +5,11 @@ import { signInOnCurrentPage } from "./foundation-ui";
 import { companyReportReply } from "./md05-reports-fixtures";
 import { MD05_REPORTS_VISUAL_CONTRACT as contract } from "./md05-reports-visual-contract";
 
-async function enterReports(page: Page, delayedAdvisory = false) {
-  let subscriptions = 0;
-  const subscriptionPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/subscription`;
+async function enterReports(page: Page) {
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
-    override: (path, request) => {
-      if (path === subscriptionPath) {
-        subscriptions += 1;
-        if (delayedAdvisory && subscriptions >= 2) {
-          return {
-            body: {
-              organizationId: ORG_A.organizationId,
-              subscription: {
-                planCode: "E2E",
-                status: "ACTIVE",
-                entitlements: { dashboardAccess: true, reportExports: true, basicBranding: true },
-              },
-            },
-            delayMs: 900,
-          };
-        }
-      }
-      return companyReportReply(path, request);
-    },
+    override: (path, request) => companyReportReply(path, request),
   });
   await fixture.install(page);
   await page.goto("/reports");
@@ -226,17 +206,4 @@ export async function proveReportsReferenceGeometry(page: Page) {
   await page.setViewportSize({ width: 1280, height: 900 });
   await expectPageGeometry(page, false, false);
   await expectDialog(page, false);
-}
-
-export async function proveReportsLoadingSkeleton(page: Page) {
-  await enterReports(page, true);
-  const rows = page.locator('tbody tr[class*="skeletonRow"]');
-  await expect(rows).toHaveCount(contract.skeleton.count);
-  const cell = rows.first().locator("td");
-  await expect(cell).toHaveCSS("padding-left", contract.skeleton.cellPaddingInline);
-  await expect(cell).toHaveCSS("padding-top", contract.skeleton.cellPaddingBlock);
-  const bar = cell.locator("div");
-  await expect(bar).toHaveCSS("height", contract.skeleton.height);
-  await expect(bar).toHaveCSS("border-radius", contract.skeleton.radius);
-  await expect(bar).toHaveCSS("background-color", contract.skeleton.background);
 }

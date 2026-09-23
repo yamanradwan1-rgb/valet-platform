@@ -249,7 +249,7 @@ export function ReportsPage() {
         <div className={styles.tableScroll}>
           <table className={styles.reportTable}>
             <thead><tr><th>{t.reportName}</th><th>{t.category}</th><th>{t.description}</th><th>{t.actions}</th></tr></thead>
-            <tbody>{subscriptionLoading ? <ReportSkeleton /> : reportRows(t).map((row) => (
+            <tbody>{reportRows(t).map((row) => (
               <tr key={row.kind}>
                 <td><div className={styles.reportName}><span className={`${styles.reportIcon} ${row.iconClass}`}>{row.icon}</span><strong>{row.name}</strong></div></td>
                 <td className={styles.categoryCell}>{row.category}</td>
@@ -264,6 +264,7 @@ export function ReportsPage() {
         <ReportPreviewDialog
           data={selector ? preview.data : null}
           draftValue={draftValue}
+          exportAdvisoryPending={subscriptionLoading}
           exportAvailable={exportAvailable}
           exportStatus={exportStatus}
           kind={dialogKind}
@@ -281,10 +282,6 @@ export function ReportsPage() {
       ) : null}
     </div>
   );
-}
-
-function ReportSkeleton() {
-  return <>{Array.from({ length: 8 }).map((_, index) => <tr className={styles.skeletonRow} key={index}><td colSpan={4}><div /></td></tr>)}</>;
 }
 
 function reportRows(t: ReturnType<typeof reportsCopy>) {

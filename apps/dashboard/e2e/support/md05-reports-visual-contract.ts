@@ -78,14 +78,6 @@ export const MD05_REPORTS_VISUAL_CONTRACT = {
     actionLineHeight: "16px",
     actionWeight: "500",
   },
-  skeleton: {
-    count: 8,
-    cellPaddingInline: "20px",
-    cellPaddingBlock: "16px",
-    height: "16px",
-    radius: "4px",
-    background: "rgb(241, 245, 249)",
-  },
   // Manually encoded from frozen src/components/overlays/Modal.tsx.
   dialog: {
     backdropPadding: "16px",

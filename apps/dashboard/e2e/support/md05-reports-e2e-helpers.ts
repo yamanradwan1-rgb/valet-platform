@@ -8,7 +8,9 @@ import {
 } from "./dashboard-api-fixture";
 import { signInOnCurrentPage } from "./foundation-ui";
 import {
+  companyReportPaths,
   companyReportReply,
+  locationReportPaths,
   locationReportReply,
   REPORT_SELECTORS,
   subscriptionReply,
@@ -17,6 +19,11 @@ import {
 } from "./md05-reports-fixtures";
 
 type Override = ConstructorParameters<typeof DashboardApiFixture>[0]["override"];
+
+export const reportPreviewPaths = [
+  ...Object.values(companyReportPaths).filter((path) => !path.endsWith("/exports")),
+  ...Object.values(locationReportPaths).filter((path) => !path.endsWith("/exports")),
+];
 
 export function companyReportsFixture(override?: Override) {
   return new DashboardApiFixture({
