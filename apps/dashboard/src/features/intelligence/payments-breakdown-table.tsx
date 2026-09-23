@@ -96,7 +96,7 @@ function ValidationSummary(props: Parameters<typeof PaymentsBreakdownTable>[0]) 
         <State message={t.noPeriod} compact />
       ) : (
         <div className={styles.tableWrap}>
-          <table className={styles.table}>
+          <table className={[styles.table, styles.validationTable].join(" ")}>
             <thead>
               <tr><th>{t.currency}</th><th>{t.validationRate}</th><th>{t.currentValidation}</th></tr>
             </thead>
@@ -218,7 +218,7 @@ function Coverage(props: {
 }
 
 function Money(props: { readonly currency: string; readonly locale: DashboardLocale; readonly value: string }) {
-  return <td><BidiText kind="number">{formatExactCurrency(props.value, props.currency, props.locale)}</BidiText></td>;
+  return <td className={styles.money}><BidiText kind="number">{formatExactCurrency(props.value, props.currency, props.locale)}</BidiText></td>;
 }
 
 function Count({ code, count }: { readonly code: string; readonly count: number }) {

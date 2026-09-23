@@ -69,6 +69,7 @@ function SummaryCard(props: {
         <div className={styles.summaryBody}>
           <div className={styles.summaryValues}>{props.children}</div>
           <div className={styles.summaryLabel}>{props.label}</div>
+          <div aria-hidden="true" className={styles.summaryTrendSpace} />
         </div>
         <div className={styles.summaryIcon}>{props.icon}</div>
       </div>

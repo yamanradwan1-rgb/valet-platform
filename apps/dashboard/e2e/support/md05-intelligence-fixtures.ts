@@ -8,6 +8,8 @@ export const PERIOD_B = { from: "2026-09-08", to: "2026-09-14" } as const;
 
 export const companyAnalyticsPath =
   `/v1/staff/management/organizations/${ORG_A.organizationId}/analytics/all-locations`;
+export const companyContextPath =
+  `/v1/staff/management/organizations/${ORG_A.organizationId}/context`;
 
 export const locationPaths = {
   stateCounts: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/overview/session-state-counts`,
@@ -43,6 +45,30 @@ export function requestPeriod(request: Request) {
   return {
     from: query.get("from") ?? PERIOD_A.from,
     to: query.get("to") ?? PERIOD_A.to,
+  };
+}
+
+export function staleInactiveExactLocationContext() {
+  let exactContextReads = 0;
+  return (path: string, request: Request): FixtureReply | undefined => {
+    const url = new URL(request.url());
+    if (
+      path !== companyContextPath ||
+      url.searchParams.get("scopeKind") !== "LOCATION" ||
+      url.searchParams.get("locationId") !== LOCATION_A.locationId
+    ) return undefined;
+    exactContextReads += 1;
+    return {
+      body: {
+        organization: ORG_A,
+        scope: { kind: "LOCATION", locationId: LOCATION_A.locationId },
+        selectedLocation: {
+          ...LOCATION_A,
+          status: exactContextReads === 1 ? "ACTIVE" : "INACTIVE",
+        },
+        capabilities: ["LOCATION_DASHBOARD_READ"],
+      },
+    };
   };
 }
 

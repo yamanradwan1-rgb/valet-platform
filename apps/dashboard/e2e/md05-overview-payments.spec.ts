@@ -11,6 +11,7 @@ import { signInOnCurrentPage } from "./support/foundation-ui";
 import {
   companyAnalytics,
   companyAnalyticsPath,
+  companyContextPath,
   currentFinancialOverview,
   financialCurrency,
   locationIntelligenceReply,
@@ -18,6 +19,7 @@ import {
   PERIOD_A,
   PERIOD_B,
   requestPeriod,
+  staleInactiveExactLocationContext,
 } from "./support/md05-intelligence-fixtures";
 import {
   proveOverviewReferenceGeometry,
@@ -263,7 +265,7 @@ test("Arabic Payments keeps bidi values, keyboard period flow, and narrow compos
   await from.fill(PERIOD_A.from);
   await to.fill(PERIOD_A.to);
   await from.focus();
-  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Shift+Tab"); await page.keyboard.press("Shift+Tab");
   const apply = dialog.getByRole("button", { name: "تطبيق" });
   await expect(apply).toBeFocused();
   await page.keyboard.press("Enter");
@@ -282,3 +284,17 @@ test("Overview frozen geometry holds in EN/AR desktop and narrow", async ({ page
 test("Payments frozen geometry holds in EN/AR desktop and narrow", async ({ page }) => {
   await provePaymentsReferenceGeometry(page);
 });
+
+for (const [path, testId] of [["/overview", "md05-overview-page"], ["/payments", "md05-payments-page"]] as const) {
+  test(`stale exact Location revalidating INACTIVE blocks ${path} before Intelligence`, async ({ page }) => {
+    const fixture = new DashboardApiFixture({ companyOrganizations: [ORG_A],
+      companyLocations: { [ORG_A.organizationId]: [LOCATION_A] }, override: staleInactiveExactLocationContext() });
+    await fixture.install(page);
+    await page.goto(path); await signInOnCurrentPage(page);
+    await page.getByRole("button", { name: ORG_A.name }).click();
+    await page.getByRole("button", { name: LOCATION_A.name }).click();
+    await expect.poll(() => fixture.count(companyContextPath)).toBeGreaterThanOrEqual(2);
+    await expect(page.getByTestId(testId)).toHaveCount(0);
+    expect(fixture.count(companyAnalyticsPath)).toBe(0); noLocationFanout(fixture);
+  });
+}

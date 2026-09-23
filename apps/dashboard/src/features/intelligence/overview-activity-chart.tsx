@@ -56,8 +56,6 @@ export function OverviewActivityChart({
   const ticks = [0, 1, 2, 3, 4].map((step) =>
     Math.round((first.axisMaximum * step) / 4),
   );
-  const labelStep = Math.max(1, Math.ceil(points.length / 6));
-
   return (
     <div className={styles.chartWrap}>
       <svg aria-label={t.activity} className={styles.chart} role="img" viewBox="0 0 540 260">
@@ -90,11 +88,9 @@ export function OverviewActivityChart({
         <path className={styles.chartLine} d={linePath} fill="none" />
         {points.map((point, index) => (
           <g className={styles.chartTarget} key={point.date}>
-            {(index % labelStep === 0 || index === points.length - 1) ? (
-              <text className={styles.chartAxis} textAnchor="middle" x={point.x} y={first.height - 9}>
-                {point.date.slice(5)}
-              </text>
-            ) : null}
+            <text className={styles.chartAxis} textAnchor="middle" x={point.x} y={first.height - 8}>
+              {point.date.slice(5)}
+            </text>
             <circle
               className={styles.chartPoint}
               cx={point.x}

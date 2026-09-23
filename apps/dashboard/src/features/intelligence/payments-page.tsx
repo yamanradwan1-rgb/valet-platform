@@ -1,9 +1,8 @@
 "use client";
 
-import { Calendar, ChevronDown } from "lucide-react";
+import { Calendar, ChevronDown, X } from "lucide-react";
 import { useCallback, useState, type FormEvent } from "react";
 
-import { Button } from "../../components/presentation/button";
 import { FocusDialog } from "../../components/presentation/focus-dialog";
 import { BidiText } from "../../components/presentation/panel";
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
@@ -140,40 +139,52 @@ export function PaymentsPage() {
         periodSelected={period !== null}
       />
       {dialogOpen ? (
-        <FocusDialog label={t.periodDialog} onClose={closePeriodDialog}>
-          <form className={periodStyles.periodForm} onSubmit={applyPeriod}>
-            <h2>{t.periodDialog}</h2>
-            <div className={periodStyles.periodFields}>
-              <label className={periodStyles.periodField}>
-                {t.from}
-                <input
-                  aria-label={t.from}
-                  onChange={(event) => setDraftFrom(event.target.value)}
-                  type="date"
-                  value={draftFrom}
-                />
-              </label>
-              <label className={periodStyles.periodField}>
-                {t.to}
-                <input
-                  aria-label={t.to}
-                  onChange={(event) => setDraftTo(event.target.value)}
-                  type="date"
-                  value={draftTo}
-                />
-              </label>
-            </div>
-            {periodError ? (
-              <p className={periodStyles.periodError} role="alert">{t.invalidPeriod}</p>
-            ) : null}
-            <div className={periodStyles.periodActions}>
-              <Button onClick={closePeriodDialog} type="button" variant="secondary">
-                {t.cancel}
-              </Button>
-              <Button type="submit">{t.apply}</Button>
-            </div>
-          </form>
-        </FocusDialog>
+        <div className={periodStyles.periodHost}>
+          <FocusDialog label={t.periodDialog} onClose={closePeriodDialog}>
+            <header className={periodStyles.periodDialogHeader}>
+              <h2>{t.periodDialog}</h2>
+            </header>
+            <form className={periodStyles.periodForm} onSubmit={applyPeriod}>
+              <div className={periodStyles.periodFields}>
+                <label className={periodStyles.periodField}>
+                  {t.from}
+                  <input
+                    aria-label={t.from}
+                    onChange={(event) => setDraftFrom(event.target.value)}
+                    type="date"
+                    value={draftFrom}
+                  />
+                </label>
+                <label className={periodStyles.periodField}>
+                  {t.to}
+                  <input
+                    aria-label={t.to}
+                    onChange={(event) => setDraftTo(event.target.value)}
+                    type="date"
+                    value={draftTo}
+                  />
+                </label>
+              </div>
+              {periodError ? (
+                <p className={periodStyles.periodError} role="alert">{t.invalidPeriod}</p>
+              ) : null}
+              <div className={periodStyles.periodActions}>
+                <button className={periodStyles.periodCancel} onClick={closePeriodDialog} type="button">
+                  {t.cancel}
+                </button>
+                <button className={periodStyles.periodApply} type="submit">{t.apply}</button>
+              </div>
+            </form>
+            <button
+              aria-label={t.cancel}
+              className={periodStyles.periodDialogClose}
+              onClick={closePeriodDialog}
+              type="button"
+            >
+              <X aria-hidden="true" size={20} />
+            </button>
+          </FocusDialog>
+        </div>
       ) : null}
     </div>
   );
