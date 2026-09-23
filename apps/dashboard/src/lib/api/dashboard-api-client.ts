@@ -8,6 +8,7 @@ import {
   dashboardMutationRetryRequiredError,
   dashboardNetworkError,
 } from "./dashboard-api-error";
+import { parseDashboardBinaryHeaders } from "./dashboard-binary-response";
 
 export interface RuntimeSchema<T> {
   safeParse(input: unknown):
@@ -29,6 +30,18 @@ export interface DashboardApiRequestOptions {
   readonly query?: Readonly<Record<string, string | number | boolean | null | undefined>>;
   readonly signal?: AbortSignal | undefined;
   readonly requireAuth?: boolean;
+}
+
+export interface DashboardBinaryRequestOptions {
+  readonly body: unknown;
+  readonly expectedContentType: string;
+  readonly signal?: AbortSignal | undefined;
+}
+
+export interface DashboardBinaryResponse {
+  readonly bytes: Uint8Array;
+  readonly contentType: string;
+  readonly filename: string;
 }
 
 interface DashboardApiClientOptions {
@@ -101,6 +114,90 @@ export class DashboardApiClient {
     return parsed.data;
   }
 
+  async requestBinary(
+    path: string,
+    options: DashboardBinaryRequestOptions,
+  ): Promise<DashboardBinaryResponse> {
+    if (!this.auth.getAccessToken() || !this.auth.isTokenFresh()) {
+      await this.refreshOrThrow(options.signal);
+    }
+    if (options.signal?.aborted) {
+      throw options.signal.reason ?? dashboardNetworkError();
+    }
+    const identityFence = this.auth.getIdentityGeneration();
+    const sessionFence = this.auth.getSessionGeneration();
+    const headers: Record<string, string> = {
+      Accept: options.expectedContentType,
+      "Content-Type": "application/json",
+    };
+    const token = this.auth.getAccessToken();
+    if (token !== null) headers.Authorization = `Bearer ${token}`;
+
+    let response: Response;
+    try {
+      response = await this.fetcher(this.buildUrl(path), {
+        method: "POST",
+        headers,
+        body: JSON.stringify(options.body),
+        cache: "no-store",
+        credentials: "include",
+        ...(options.signal === undefined ? {} : { signal: options.signal }),
+      });
+    } catch (error: unknown) {
+      throw new DashboardApiError({
+        kind: "network",
+        code: "BINARY_POST_OUTCOME_UNKNOWN",
+        message: "The binary request outcome is unknown.",
+        cause: error,
+      });
+    }
+
+    if (response.status === 401) {
+      const rejected = await this.binaryError(response);
+      const fenceIsCurrent =
+        identityFence === this.auth.getIdentityGeneration() &&
+        sessionFence === this.auth.getSessionGeneration();
+      if (fenceIsCurrent) {
+        await this.refreshOrThrow(options.signal);
+        throw dashboardMutationRetryRequiredError(rejected);
+      }
+      throw dashboardAuthBoundaryError();
+    }
+    if (
+      identityFence !== this.auth.getIdentityGeneration() ||
+      sessionFence !== this.auth.getSessionGeneration()
+    ) {
+      throw dashboardAuthBoundaryError();
+    }
+    if (response.status !== 200) {
+      if (response.ok) throw dashboardMalformedError();
+      throw await this.binaryError(response);
+    }
+
+    const { contentType, filename } = parseDashboardBinaryHeaders(
+      response.headers,
+      options.expectedContentType,
+    );
+    let bytes: Uint8Array;
+    try {
+      bytes = new Uint8Array(await response.arrayBuffer());
+    } catch (error: unknown) {
+      throw new DashboardApiError({
+        kind: "network",
+        code: "BINARY_POST_OUTCOME_UNKNOWN",
+        message: "The binary request outcome is unknown.",
+        cause: error,
+      });
+    }
+    if (
+      identityFence !== this.auth.getIdentityGeneration() ||
+      sessionFence !== this.auth.getSessionGeneration()
+    ) {
+      throw dashboardAuthBoundaryError();
+    }
+    return { bytes, contentType, filename };
+  }
+
   private async refreshOrThrow(signal?: AbortSignal): Promise<void> {
     try {
       await this.auth.refresh(signal);
@@ -115,6 +212,26 @@ export class DashboardApiClient {
       }
       if (error instanceof DashboardApiError) throw error;
       throw dashboardNetworkError(error);
+    }
+  }
+
+  private async binaryError(response: Response): Promise<DashboardApiError> {
+    let text: string;
+    try {
+      text = await response.text();
+    } catch (error: unknown) {
+      throw new DashboardApiError({
+        kind: "network",
+        code: "BINARY_POST_OUTCOME_UNKNOWN",
+        message: "The binary request outcome is unknown.",
+        cause: error,
+      });
+    }
+    if (text.length === 0) return dashboardApiErrorFromResponse(response.status, null);
+    try {
+      return dashboardApiErrorFromResponse(response.status, JSON.parse(text));
+    } catch {
+      throw dashboardMalformedError();
     }
   }
 
