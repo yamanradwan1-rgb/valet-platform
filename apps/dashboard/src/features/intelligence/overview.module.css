@@ -1,0 +1,284 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+  animation: overviewFade 200ms ease-out;
+}
+
+.header h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.header p {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+:global([data-theme="dark"]) .header h1 {
+  color: #ffffff;
+}
+
+:global([data-theme="dark"]) .header p {
+  color: #94a3b8;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.metricCard {
+  min-height: 8.5rem;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+:global([data-theme="dark"]) .metricCard {
+  border-color: #172346;
+  background: #0d152f;
+}
+
+.metricTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.metricValue {
+  color: #0f172a;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.metricLabel {
+  margin-top: 0.25rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+:global([data-theme="dark"]) .metricValue {
+  color: #ffffff;
+}
+
+:global([data-theme="dark"]) .metricLabel {
+  color: #94a3b8;
+}
+
+.metricIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #1e60f0;
+  background: #eff6ff;
+}
+
+:global([data-theme="dark"]) .metricIcon {
+  background: #131e3d;
+}
+
+.metricIconDanger {
+  color: #f43f5e;
+  background: #fff1f2;
+}
+
+:global([data-theme="dark"]) .metricIconDanger {
+  background: rgba(136, 19, 55, 0.24);
+}
+
+.metricContext {
+  min-height: 1.5rem;
+  margin-top: 0.75rem;
+  color: #64748b;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+:global([data-theme="dark"]) .metricContext {
+  color: #94a3b8;
+}
+
+.metricPill {
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1e60f0;
+  font-weight: 600;
+}
+
+:global([data-theme="dark"]) .metricPill {
+  background: #131e3d;
+  color: #93c5fd;
+}
+
+.lowerGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.panel {
+  min-width: 0;
+  overflow: hidden;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+:global([data-theme="dark"]) .panel {
+  border-color: #172346;
+  background: #0d152f;
+}
+
+.panelHeader {
+  min-height: 2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.panelHeader h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+:global([data-theme="dark"]) .panelHeader h2 {
+  color: #ffffff;
+}
+
+.panelState {
+  min-height: 260px;
+  padding: 1.5rem;
+  color: #64748b;
+  font-size: 0.8125rem;
+  text-align: center;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
+}
+
+:global([data-theme="dark"]) .panelState {
+  color: #94a3b8;
+}
+
+.secondaryPanel {
+  min-height: 22rem;
+}
+
+.currentScroll {
+  max-height: 260px;
+  overflow: auto;
+}
+
+.currentRow {
+  min-height: 3rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.75rem;
+}
+
+.currentRow:last-child {
+  border-bottom: 0;
+}
+
+.currentRow strong {
+  color: #0f172a;
+  font-weight: 700;
+  text-align: end;
+}
+
+.currentRow small {
+  margin-top: 0.15rem;
+  color: #94a3b8;
+  display: block;
+  font-size: 0.625rem;
+}
+
+:global([data-theme="dark"]) .currentRow {
+  border-bottom-color: #172346;
+  color: #94a3b8;
+}
+
+:global([data-theme="dark"]) .currentRow strong {
+  color: #ffffff;
+}
+
+.currentSectionLabel {
+  padding: 0.75rem 0 0.35rem;
+  color: #94a3b8;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.retryButton {
+  min-height: 2rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #1e60f0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+:global([data-theme="dark"]) .retryButton {
+  border-color: #1e293b;
+  background: #131e3d;
+}
+
+@keyframes overviewFade {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (min-width: 640px) {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .metricGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .lowerGrid {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+}
