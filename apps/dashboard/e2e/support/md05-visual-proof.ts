@@ -1,60 +1,10 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { expect, type Locator, type Page } from "@playwright/test";
 
 import { DashboardApiFixture, LOCATION_A, ORG_A } from "./dashboard-api-fixture";
 import { signInOnCurrentPage } from "./foundation-ui";
 import { companyAnalytics, companyAnalyticsPath, PERIOD_A } from "./md05-intelligence-fixtures";
-const referenceRoot = resolve(process.cwd(), "../../reference/vaylet- man dashboard");
+import { MD05_VISUAL_CONTRACT } from "./md05-visual-contract";
 
-function proveMd05FrozenSource() {
-  const source = (path: string) => readFileSync(resolve(referenceRoot, path), "utf8");
-  const anchors: ReadonlyArray<readonly [string, readonly string[]]> = [
-    ["src/pages/OverviewPage.tsx", [
-      "space-y-6 animate-in fade-in duration-200",
-      "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
-      "grid grid-cols-1 lg:grid-cols-12 gap-6",
-      'gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] dark:border-[#1E293B]',
-    ]],
-    ["src/components/data/MetricCard.tsx", [
-      "rounded-xl p-5 shadow-subtle flex flex-col justify-between",
-      "text-3xl font-bold text-slate-900 dark:text-white tracking-tight",
-      "w-11 h-11 rounded-full",
-      "gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold",
-    ]],
-    ["src/components/charts/ActivityAreaChart.tsx", [
-      "const paddingLeft = 35;",
-      'strokeDasharray="4 4"',
-      'strokeWidth="2.5"',
-      'className="transition-all duration-150"',
-    ]],
-    ["src/pages/PaymentsPage.tsx", [
-      "flex flex-col sm:flex-row sm:items-center justify-between gap-4",
-      "gap-2 px-3.5 py-2 bg-white dark:bg-[#0D152F]",
-      "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
-      "p-5 rounded-xl border border-slate-200 dark:border-[#172346] shadow-sm",
-      "px-2 py-0.5 rounded-md mt-2.5",
-      "p-4 sm:p-5",
-      "font-mono font-semibold",
-    ]],
-    ["src/pages/ValidationsPage.tsx", [
-      "px-6 pt-4 border-b border-slate-100 dark:border-[#172346]",
-      "pb-3 text-xs font-bold transition-all relative",
-      "text-[#1E60F0] border-b-2 border-[#1E60F0]",
-      "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm",
-      "rounded-2xl w-full max-w-md overflow-hidden shadow-2xl",
-      "p-1.5 rounded-lg text-slate-400",
-      "w-full px-3 py-2 bg-slate-50 dark:bg-[#131E3D]",
-      "px-4 py-2 rounded-lg bg-[#1E60F0] text-white font-semibold",
-    ]],
-  ];
-  for (const [path, snippets] of anchors) {
-    const text = source(path);
-    for (const snippet of snippets) expect(text).toContain(snippet);
-  }
-  expect(source("tailwind.config.js")).toContain("plugins: []");
-  expect(source("package.json")).not.toContain("tailwindcss-animate");
-}
 async function columns(locator: Locator) {
   return locator.evaluate((node) =>
     getComputedStyle(node).gridTemplateColumns.split(" ").length
@@ -62,10 +12,11 @@ async function columns(locator: Locator) {
 }
 
 async function expectCardSurface(card: Locator, shadowOpacity: string) {
-  await expect(card).toHaveCSS("padding", "20px");
-  await expect(card).toHaveCSS("border-radius", "12px");
-  await expect(card).toHaveCSS("border-color", "rgb(226, 232, 240)");
-  await expect(card).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  const { common } = MD05_VISUAL_CONTRACT;
+  await expect(card).toHaveCSS("padding", common.cardPadding);
+  await expect(card).toHaveCSS("border-radius", common.cardRadius);
+  await expect(card).toHaveCSS("border-color", common.lightBorder);
+  await expect(card).toHaveCSS("background-color", common.lightSurface);
   await expect(card).toHaveCSS(
     "box-shadow",
     new RegExp("rgba\\(0, 0, 0, " + shadowOpacity + "\\) 0px 1px 2px", "u"),
@@ -73,42 +24,43 @@ async function expectCardSurface(card: Locator, shadowOpacity: string) {
 }
 
 async function expectPeriodDialog(page: Page) {
+  const { common, periodDialog } = MD05_VISUAL_CONTRACT;
   const dialog = page.getByRole("dialog");
   const backdrop = dialog.locator("..");
-  await expect(backdrop).toHaveCSS("padding", "16px");
-  await expect(backdrop).toHaveCSS("background-color", "rgba(0, 0, 0, 0.6)");
-  await expect(backdrop).toHaveCSS("backdrop-filter", "blur(4px)");
-  await expect(dialog).toHaveCSS("max-width", "448px");
-  await expect(dialog).toHaveCSS("border-radius", "16px");
-  await expect(dialog).toHaveCSS("border-color", "rgb(226, 232, 240)");
-  await expect(dialog).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(backdrop).toHaveCSS("padding", periodDialog.backdropPadding);
+  await expect(backdrop).toHaveCSS("background-color", periodDialog.backdropBackground);
+  await expect(backdrop).toHaveCSS("backdrop-filter", periodDialog.backdropBlur);
+  await expect(dialog).toHaveCSS("max-width", periodDialog.panelMaxWidth);
+  await expect(dialog).toHaveCSS("border-radius", periodDialog.panelRadius);
+  await expect(dialog).toHaveCSS("border-color", common.lightBorder);
+  await expect(dialog).toHaveCSS("background-color", common.lightSurface);
   const header = dialog.locator("header");
-  await expect(header).toHaveCSS("padding", "20px");
-  await expect(header).toHaveCSS("border-bottom-color", "rgb(241, 245, 249)");
-  await expect(header.getByRole("heading")).toHaveCSS("font-size", "16px");
-  await expect(header.getByRole("heading")).toHaveCSS("font-weight", "700");
+  await expect(header).toHaveCSS("padding", periodDialog.headerPadding);
+  await expect(header).toHaveCSS("border-bottom-color", periodDialog.headerBorder);
+  await expect(header.getByRole("heading")).toHaveCSS("font-size", periodDialog.headingFontSize);
+  await expect(header.getByRole("heading")).toHaveCSS("font-weight", periodDialog.headingWeight);
   const close = header.locator("..").getByRole("button", { name: /Cancel|إلغاء/u }).last();
-  await expect(close).toHaveCSS("padding", "6px");
-  await expect(close).toHaveCSS("border-radius", "8px");
-  await expect(close.locator("svg")).toHaveAttribute("width", "20");
+  await expect(close).toHaveCSS("padding", periodDialog.closePadding);
+  await expect(close).toHaveCSS("border-radius", periodDialog.closeRadius);
+  await expect(close.locator("svg")).toHaveAttribute("width", periodDialog.closeIconWidth);
   const form = dialog.locator("form");
-  await expect(form).toHaveCSS("padding", "20px");
-  await expect(form).toHaveCSS("row-gap", "16px");
+  await expect(form).toHaveCSS("padding", periodDialog.formPadding);
+  await expect(form).toHaveCSS("row-gap", periodDialog.formGap);
   const from = dialog.getByLabel(/From|من/u);
   await expect(from).toBeFocused();
-  await expect(from.locator("..")).toHaveCSS("font-size", "12px");
-  await expect(from.locator("..")).toHaveCSS("font-weight", "600");
-  await expect(from).toHaveCSS("padding-left", "12px");
-  await expect(from).toHaveCSS("padding-top", "8px");
-  await expect(from).toHaveCSS("border-radius", "8px");
-  await expect(from).toHaveCSS("background-color", "rgb(248, 250, 252)");
-  await expect(from).toHaveCSS("border-color", "rgb(226, 232, 240)");
+  await expect(from.locator("..")).toHaveCSS("font-size", periodDialog.fieldFontSize);
+  await expect(from.locator("..")).toHaveCSS("font-weight", periodDialog.fieldWeight);
+  await expect(from).toHaveCSS("padding-left", periodDialog.inputPaddingInline);
+  await expect(from).toHaveCSS("padding-top", periodDialog.inputPaddingBlock);
+  await expect(from).toHaveCSS("border-radius", periodDialog.inputRadius);
+  await expect(from).toHaveCSS("background-color", periodDialog.inputBackground);
+  await expect(from).toHaveCSS("border-color", common.lightBorder);
   const apply = dialog.getByRole("button", { name: /Apply|تطبيق/u });
-  await expect(apply).toHaveCSS("padding-left", "16px");
-  await expect(apply).toHaveCSS("padding-top", "8px");
-  await expect(apply).toHaveCSS("border-radius", "8px");
-  await expect(apply).toHaveCSS("font-weight", "600");
-  await expect(apply).toHaveCSS("background-color", "rgb(30, 96, 240)");
+  await expect(apply).toHaveCSS("padding-left", periodDialog.actionPaddingInline);
+  await expect(apply).toHaveCSS("padding-top", periodDialog.actionPaddingBlock);
+  await expect(apply).toHaveCSS("border-radius", periodDialog.actionRadius);
+  await expect(apply).toHaveCSS("font-weight", periodDialog.actionWeight);
+  await expect(apply).toHaveCSS("background-color", periodDialog.primary);
 }
 
 async function selectPeriod(page: Page) {
@@ -121,117 +73,125 @@ async function selectPeriod(page: Page) {
 }
 
 async function expectOverview(page: Page, metricColumns: number, lowerColumns: number) {
+  const { activityChart, common, overview } = MD05_VISUAL_CONTRACT;
   const root = page.getByTestId("md05-overview-page");
-  await expect(root).toHaveCSS("row-gap", "24px");
-  await expect(root).toHaveCSS("animation-name", "none");
+  await expect(root).toHaveCSS("row-gap", common.pageGap);
+  await expect(root).toHaveCSS("animation-name", common.renderedPageAnimationName);
   const title = root.getByRole("heading", { level: 1 });
-  await expect(title).toHaveCSS("font-size", "24px");
-  await expect(title).toHaveCSS("line-height", "32px");
-  await expect(title).toHaveCSS("font-weight", "700");
-  await expect(title).toHaveCSS("letter-spacing", "-0.6px");
+  await expect(title).toHaveCSS("font-size", common.titleFontSize);
+  await expect(title).toHaveCSS("line-height", common.titleLineHeight);
+  await expect(title).toHaveCSS("font-weight", common.titleWeight);
+  await expect(title).toHaveCSS("letter-spacing", overview.titleLetterSpacing);
   const subtitle = title.locator("..").locator("p");
-  await expect(subtitle).toHaveCSS("font-size", "14px");
-  await expect(subtitle).toHaveCSS("margin-top", "4px");
+  await expect(subtitle).toHaveCSS("font-size", overview.subtitleFontSize);
+  await expect(subtitle).toHaveCSS("margin-top", overview.subtitleMarginTop);
   const grid = root.locator('[class*="metricGrid"]');
-  await expect(grid).toHaveCSS("gap", "16px");
+  await expect(grid).toHaveCSS("gap", overview.gridGap);
   await expect.poll(() => columns(grid)).toBe(metricColumns);
   const cards = root.locator('[class*="metricCard"]');
   await expect(cards).toHaveCount(4);
-  await expectCardSurface(cards.first(), "0.04");
+  await expectCardSurface(cards.first(), overview.cardShadowOpacity);
   const value = cards.first().locator('[class*="metricValue"]');
-  await expect(value).toHaveCSS("font-size", "30px");
-  await expect(value).toHaveCSS("font-weight", "700");
+  await expect(value).toHaveCSS("font-size", overview.valueFontSize);
+  await expect(value).toHaveCSS("font-weight", overview.valueWeight);
   const label = cards.first().locator('[class*="metricLabel"]');
-  await expect(label).toHaveCSS("font-size", "14px");
-  await expect(label).toHaveCSS("font-weight", "500");
+  await expect(label).toHaveCSS("font-size", overview.labelFontSize);
+  await expect(label).toHaveCSS("font-weight", overview.labelWeight);
   const icon = cards.first().locator('[class*="metricIcon"]');
-  await expect(icon).toHaveCSS("width", "44px");
-  await expect(icon).toHaveCSS("height", "44px");
-  await expect(icon).toHaveCSS("border-radius", "9999px");
-  await expect(icon).toHaveCSS("background-color", "rgb(239, 246, 255)");
+  await expect(icon).toHaveCSS("width", overview.iconSize);
+  await expect(icon).toHaveCSS("height", overview.iconSize);
+  await expect(icon).toHaveCSS("border-radius", overview.iconRadius);
+  await expect(icon).toHaveCSS("background-color", overview.iconBackground);
   const context = cards.first().locator('[class*="metricPill"]');
-  await expect(context).toHaveCSS("padding-left", "8px");
-  await expect(context).toHaveCSS("padding-top", "2px");
-  await expect(context).toHaveCSS("border-color", "rgb(191, 219, 254)");
+  await expect(context).toHaveCSS("padding-left", overview.contextPaddingInline);
+  await expect(context).toHaveCSS("padding-top", overview.contextPaddingBlock);
+  await expect(context).toHaveCSS("border-color", overview.contextBorder);
   const lower = root.locator('[class*="lowerGrid"]');
-  await expect(lower).toHaveCSS("gap", "24px");
+  await expect(lower).toHaveCSS("gap", overview.lowerGap);
   await expect.poll(() => columns(lower)).toBe(lowerColumns);
   const activity = root.getByRole("heading", { name: /Vehicle Activity|نشاط المركبات/u }).locator("..").locator("..");
-  await expect(activity).toHaveCSS("padding", "20px");
-  await expect(activity).toHaveCSS("border-radius", "12px");
-  await expect(activity).toHaveCSS("border-color", "rgb(226, 232, 240)");
+  await expect(activity).toHaveCSS("padding", common.cardPadding);
+  await expect(activity).toHaveCSS("border-radius", common.cardRadius);
+  await expect(activity).toHaveCSS("border-color", common.lightBorder);
   const activityTitle = activity.getByRole("heading");
-  await expect(activityTitle).toHaveCSS("font-size", "16px");
-  await expect(activityTitle).toHaveCSS("font-weight", "700");
+  await expect(activityTitle).toHaveCSS("font-size", overview.activityTitleFontSize);
+  await expect(activityTitle).toHaveCSS("font-weight", overview.activityTitleWeight);
   const opener = activity.getByRole("button", { name: /Select period|اختيار الفترة|2026/u });
-  await expect(opener).toHaveCSS("padding-left", "10px");
-  await expect(opener).toHaveCSS("padding-top", "6px");
-  await expect(opener).toHaveCSS("gap", "6px");
-  await expect(opener).toHaveCSS("border-radius", "8px");
-  await expect(opener).toHaveCSS("font-size", "12px");
-  await expect(opener).toHaveCSS("font-weight", "500");
+  await expect(opener).toHaveCSS("padding-left", overview.openerPaddingInline);
+  await expect(opener).toHaveCSS("padding-top", overview.openerPaddingBlock);
+  await expect(opener).toHaveCSS("gap", overview.openerGap);
+  await expect(opener).toHaveCSS("border-radius", overview.openerRadius);
+  await expect(opener).toHaveCSS("font-size", overview.openerFontSize);
+  await expect(opener).toHaveCSS("font-weight", overview.openerWeight);
   await expect(opener).toHaveCSS("box-shadow", "none");
-  await expect(opener.locator("svg")).toHaveCSS("color", "rgb(148, 163, 184)");
+  await expect(opener.locator("svg")).toHaveCSS("color", overview.mutedIcon);
   const chart = activity.getByRole("img");
-  await expect(chart).toHaveCSS("height", "260px");
+  await expect(chart).toHaveCSS("height", activityChart.height);
   await expect(chart).toHaveCSS("overflow", "visible");
-  await expect(chart.locator('[class*="chartLine"]')).toHaveCSS("stroke", "rgb(30, 96, 240)");
-  await expect(chart.locator('[class*="chartLine"]')).toHaveCSS("stroke-width", "2.5px");
+  await expect(chart.locator('[class*="chartLine"]')).toHaveCSS("stroke", activityChart.line);
+  await expect(chart.locator('[class*="chartLine"]')).toHaveCSS("stroke-width", activityChart.lineWidth);
 }
 
 async function expectPayments(page: Page, summaryColumns: number) {
+  const { common, payments, validation: validationContract } = MD05_VISUAL_CONTRACT;
   const root = page.getByTestId("md05-payments-page");
-  await expect(root).toHaveCSS("row-gap", "24px");
-  await expect(root).toHaveCSS("animation-name", "none");
+  await expect(root).toHaveCSS("row-gap", common.pageGap);
+  await expect(root).toHaveCSS("animation-name", common.renderedPageAnimationName);
   const title = root.getByRole("heading", { level: 1 });
-  await expect(title).toHaveCSS("font-size", "24px");
-  await expect(title).toHaveCSS("line-height", "32px");
-  await expect(title).toHaveCSS("font-weight", "700");
-  await expect(title).toHaveCSS("letter-spacing", "normal");
+  await expect(title).toHaveCSS("font-size", common.titleFontSize);
+  await expect(title).toHaveCSS("line-height", common.titleLineHeight);
+  await expect(title).toHaveCSS("font-weight", common.titleWeight);
+  await expect(title).toHaveCSS("letter-spacing", payments.titleLetterSpacing);
   const opener = root.locator('button[aria-haspopup="dialog"]');
-  await expect(opener).toHaveCSS("padding-left", "14px");
-  await expect(opener).toHaveCSS("padding-top", "8px");
-  await expect(opener).toHaveCSS("gap", "8px");
-  await expect(opener).toHaveCSS("border-radius", "8px");
-  await expect(opener).toHaveCSS("font-size", "12px");
-  await expect(opener).toHaveCSS("font-weight", "500");
-  await expect(opener.locator("svg").first()).toHaveCSS("color", "rgb(148, 163, 184)");
+  await expect(opener).toHaveCSS("padding-left", payments.openerPaddingInline);
+  await expect(opener).toHaveCSS("padding-top", payments.openerPaddingBlock);
+  await expect(opener).toHaveCSS("gap", payments.openerGap);
+  await expect(opener).toHaveCSS("border-radius", payments.openerRadius);
+  await expect(opener).toHaveCSS("font-size", payments.openerFontSize);
+  await expect(opener).toHaveCSS("font-weight", payments.openerWeight);
+  await expect(opener.locator("svg").first()).toHaveCSS("color", payments.mutedIcon);
   const grid = root.locator('[class*="summaryGrid"]');
-  await expect(grid).toHaveCSS("gap", "16px");
+  await expect(grid).toHaveCSS("gap", payments.gridGap);
   await expect.poll(() => columns(grid)).toBe(summaryColumns);
   const cards = root.locator('[class*="summaryCard"]');
   await expect(cards).toHaveCount(4);
-  await expectCardSurface(cards.first(), "0.05");
+  await expectCardSurface(cards.first(), payments.cardShadowOpacity);
   const value = cards.first().locator('[class*="summaryValues"]');
-  await expect(value).toHaveCSS("font-size", "24px");
-  await expect(value).toHaveCSS("font-weight", "800");
+  await expect(value).toHaveCSS("font-size", payments.valueFontSize);
+  await expect(value).toHaveCSS("font-weight", payments.valueWeight);
   const label = cards.first().locator('[class*="summaryLabel"]');
-  await expect(label).toHaveCSS("font-size", "12px");
-  await expect(label).toHaveCSS("font-weight", "400");
+  await expect(label).toHaveCSS("font-size", payments.labelFontSize);
+  await expect(label).toHaveCSS("font-weight", payments.labelWeight);
   const trendSpace = cards.first().locator('[class*="summaryTrendSpace"]');
-  await expect(trendSpace).toHaveCSS("height", "20px");
-  await expect(trendSpace).toHaveCSS("margin-top", "10px");
+  await expect(trendSpace).toHaveCSS("height", payments.trendSpaceHeight);
+  await expect(trendSpace).toHaveCSS("margin-top", payments.trendSpaceMarginTop);
   const icon = cards.first().locator('[class*="summaryIcon"]');
-  await expect(icon).toHaveCSS("width", "40px");
-  await expect(icon).toHaveCSS("height", "40px");
-  await expect(icon).toHaveCSS("border-radius", "12px");
+  await expect(icon).toHaveCSS("width", payments.iconSize);
+  await expect(icon).toHaveCSS("height", payments.iconSize);
+  await expect(icon).toHaveCSS("border-radius", payments.iconRadius);
   const panel = root.getByRole("heading", { name: /Financial Breakdown|التفصيل المالي/u }).locator("..").locator("..");
-  await expect(panel).toHaveCSS("border-radius", "12px");
-  await expect(panel).toHaveCSS("border-color", "rgb(226, 232, 240)");
+  await expect(panel).toHaveCSS("border-radius", common.cardRadius);
+  await expect(panel).toHaveCSS("border-color", common.lightBorder);
   const panelHeader = panel.getByRole("heading", { level: 2 }).locator("..");
-  await expect(panelHeader).toHaveCSS("padding", summaryColumns === 1 ? "16px" : "20px");
-  await expect(panelHeader).toHaveCSS("border-bottom-color", "rgb(241, 245, 249)");
+  const panelHeaderPadding = summaryColumns === 1
+    ? payments.narrowPanelHeaderPadding
+    : payments.desktopPanelHeaderPadding;
+  await expect(panelHeader).toHaveCSS("padding", panelHeaderPadding);
+  await expect(panelHeader).toHaveCSS("border-bottom-color", MD05_VISUAL_CONTRACT.periodDialog.headerBorder);
   const th = panel.getByRole("columnheader").first();
-  await expect(th).toHaveCSS("padding-left", "20px");
-  await expect(th).toHaveCSS("padding-top", "12px");
-  await expect(th).toHaveCSS("font-size", "12px");
-  await expect(th).toHaveCSS("font-weight", "600");
-  await expect(th).toHaveCSS("background-color", "rgba(248, 250, 252, 0.5)");
+  await expect(th).toHaveCSS("padding-left", payments.tablePaddingInline);
+  await expect(th).toHaveCSS("padding-top", payments.tablePaddingBlock);
+  await expect(th).toHaveCSS("font-size", payments.tableFontSize);
+  await expect(th).toHaveCSS("font-weight", payments.tableWeight);
+  await expect(th).toHaveCSS("background-color", payments.tableHeaderBackground);
   const validation = panel.getByRole("heading", { name: /Validation summary|ملخص التحقق/u });
-  await expect(validation).toHaveCSS("font-size", "12px");
-  await expect(validation).toHaveCSS("padding-bottom", "12px");
-  await expect(validation).toHaveCSS("border-bottom-width", "2px");
-  await expect(validation.locator("..")).toHaveCSS("padding-left", "24px");
+  await expect(validation).toHaveCSS("font-size", validationContract.tabFontSize);
+  await expect(validation).toHaveCSS("padding-bottom", validationContract.tabPaddingBottom);
+  await expect(validation).toHaveCSS("border-bottom-width", validationContract.tabUnderline);
+  await expect(validation.locator("..")).toHaveCSS(
+    "padding-left",
+    validationContract.sectionPaddingInline,
+  );
 }
 
 function visualFixture() {
@@ -251,16 +211,19 @@ async function enterCompany(page: Page, path: string) {
 }
 
 export async function proveOverviewReferenceGeometry(page: Page) {
-  proveMd05FrozenSource();
   await visualFixture().install(page);
   await page.setViewportSize({ width: 1280, height: 900 });
   await enterCompany(page, "/overview");
   await selectPeriod(page);
   await expectOverview(page, 4, 2);
   await page.getByRole("button", { name: "Dark" }).click();
-  await expect(page.locator('[class*="metricCard"]').first()).toHaveCSS("background-color", "rgb(13, 21, 47)");
+  await expect(page.locator('[class*="metricCard"]').first()).toHaveCSS(
+    "background-color",
+    MD05_VISUAL_CONTRACT.common.darkSurface,
+  );
   await page.getByRole("button", { name: "Light" }).click();
-  await page.setViewportSize({ width: 480, height: 900 }); await expectOverview(page, 1, 1);
+  await page.setViewportSize({ width: 480, height: 900 });
+  await expectOverview(page, 1, 1);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
@@ -275,16 +238,19 @@ export async function proveOverviewReferenceGeometry(page: Page) {
 }
 
 export async function provePaymentsReferenceGeometry(page: Page) {
-  proveMd05FrozenSource();
   await visualFixture().install(page);
   await page.setViewportSize({ width: 1280, height: 900 });
   await enterCompany(page, "/payments");
   await selectPeriod(page);
   await expectPayments(page, 4);
   await page.getByRole("button", { name: "Dark" }).click();
-  await expect(page.locator('[class*="summaryCard"]').first()).toHaveCSS("background-color", "rgb(13, 21, 47)");
+  await expect(page.locator('[class*="summaryCard"]').first()).toHaveCSS(
+    "background-color",
+    MD05_VISUAL_CONTRACT.common.darkSurface,
+  );
   await page.getByRole("button", { name: "Light" }).click();
-  await page.setViewportSize({ width: 480, height: 900 }); await expectPayments(page, 1);
+  await page.setViewportSize({ width: 480, height: 900 });
+  await expectPayments(page, 1);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");

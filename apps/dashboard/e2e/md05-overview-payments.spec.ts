@@ -11,7 +11,6 @@ import { signInOnCurrentPage } from "./support/foundation-ui";
 import {
   companyAnalytics,
   companyAnalyticsPath,
-  companyContextPath,
   currentFinancialOverview,
   financialCurrency,
   locationIntelligenceReply,
@@ -19,8 +18,11 @@ import {
   PERIOD_A,
   PERIOD_B,
   requestPeriod,
-  staleInactiveExactLocationContext,
 } from "./support/md05-intelligence-fixtures";
+import {
+  expectNoLocationIntelligence,
+  proveStaleInactiveSelectedScope,
+} from "./support/md05-protected-route-proof";
 import {
   proveOverviewReferenceGeometry,
   provePaymentsReferenceGeometry,
@@ -50,10 +52,6 @@ async function applyPeriod(page: Page, from: string, to: string) {
   await dialog.getByRole("button", { name: "Apply" }).click();
 }
 
-function noLocationFanout(fixture: DashboardApiFixture) {
-  for (const path of Object.values(locationPaths)) expect(fixture.count(path)).toBe(0);
-}
-
 test("CA Company Overview uses only all-locations analytics and never Location fan-out", async ({ page }) => {
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
@@ -67,7 +65,7 @@ test("CA Company Overview uses only all-locations analytics and never Location f
   await applyPeriod(page, PERIOD_A.from, PERIOD_A.to);
   await expect(page.getByText("17", { exact: true }).first()).toBeVisible();
   expect(fixture.count(companyAnalyticsPath)).toBe(1);
-  noLocationFanout(fixture);
+  expectNoLocationIntelligence(fixture);
 });
 
 test("Company to Location to Company fences the first stale Company response", async ({ page }) => {
@@ -147,7 +145,7 @@ test("CA inactive Location is disabled before any Intelligence request", async (
   await page.getByRole("button", { name: ORG_A.name }).click();
   await expect(page.getByRole("button", { name: /Main Garage/u })).toBeDisabled();
   expect(fixture.count(companyAnalyticsPath)).toBe(0);
-  noLocationFanout(fixture);
+  expectNoLocationIntelligence(fixture);
 });
 
 for (const [role, context] of [
@@ -162,7 +160,7 @@ for (const [role, context] of [
     await expect(page.getByTestId("md05-overview-page")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Overview" })).toHaveCount(0);
     expect(fixture.count(companyAnalyticsPath)).toBe(0);
-    noLocationFanout(fixture);
+    expectNoLocationIntelligence(fixture);
   });
 }
 
@@ -173,7 +171,7 @@ test("unauthenticated Guest/general direct Payments route exposes no MD-05 conte
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
   await expect(page.getByTestId("md05-payments-page")).toHaveCount(0);
   expect(fixture.count(companyAnalyticsPath)).toBe(0);
-  noLocationFanout(fixture);
+  expectNoLocationIntelligence(fixture);
 });
 
 test("explicit period A to B fences a late period A Payments result", async ({ page }) => {
@@ -265,7 +263,8 @@ test("Arabic Payments keeps bidi values, keyboard period flow, and narrow compos
   await from.fill(PERIOD_A.from);
   await to.fill(PERIOD_A.to);
   await from.focus();
-  await page.keyboard.press("Shift+Tab"); await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Shift+Tab");
   const apply = dialog.getByRole("button", { name: "تطبيق" });
   await expect(apply).toBeFocused();
   await page.keyboard.press("Enter");
@@ -287,14 +286,6 @@ test("Payments frozen geometry holds in EN/AR desktop and narrow", async ({ page
 
 for (const [path, testId] of [["/overview", "md05-overview-page"], ["/payments", "md05-payments-page"]] as const) {
   test(`stale exact Location revalidating INACTIVE blocks ${path} before Intelligence`, async ({ page }) => {
-    const fixture = new DashboardApiFixture({ companyOrganizations: [ORG_A],
-      companyLocations: { [ORG_A.organizationId]: [LOCATION_A] }, override: staleInactiveExactLocationContext() });
-    await fixture.install(page);
-    await page.goto(path); await signInOnCurrentPage(page);
-    await page.getByRole("button", { name: ORG_A.name }).click();
-    await page.getByRole("button", { name: LOCATION_A.name }).click();
-    await expect.poll(() => fixture.count(companyContextPath)).toBeGreaterThanOrEqual(2);
-    await expect(page.getByTestId(testId)).toHaveCount(0);
-    expect(fixture.count(companyAnalyticsPath)).toBe(0); noLocationFanout(fixture);
+    await proveStaleInactiveSelectedScope(page, path, testId);
   });
 }
