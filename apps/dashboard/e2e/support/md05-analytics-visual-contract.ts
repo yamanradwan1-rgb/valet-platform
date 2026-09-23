@@ -50,6 +50,7 @@ export const MD05_ANALYTICS_VISUAL_CONTRACT = {
     axisSize: "11px",
     xAxisFill: "rgb(100, 116, 139)",
     yAxisFill: "rgb(148, 163, 184)",
+    yTickX: "32",
     lightGridStroke: "rgb(226, 232, 240)",
     darkGridStroke: "rgb(30, 41, 59)",
   },
@@ -61,6 +62,7 @@ export const MD05_ANALYTICS_VISUAL_CONTRACT = {
     pointFill: "rgb(30, 96, 240)",
     xAxisFill: "rgb(100, 116, 139)",
     yAxisFill: "rgb(148, 163, 184)",
+    yTickX: "32",
   },
   // Manually encoded from frozen Select.tsx.
   select: {
@@ -75,7 +77,7 @@ export const MD05_ANALYTICS_VISUAL_CONTRACT = {
     scopePaddingChevron: "32px",
     scopeSize: "14px",
     scopeChevronSize: "16",
-    chevronInset: "10px",
+    chevronInset: "8px",
     periodIconColor: "rgb(148, 163, 184)",
     scopeChevronColor: "rgb(100, 116, 139)",
   },

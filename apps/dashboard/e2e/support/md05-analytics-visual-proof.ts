@@ -95,6 +95,7 @@ async function expectChartGeometry(page: Page, columns: number, dark: boolean) {
   await expect(bar).toHaveCSS("fill", contract.vehicleBarChart.barFill);
   await expect(bar).toHaveAttribute("rx", contract.vehicleBarChart.barRadius);
   const activityYAxis = activitySvg.locator("text").first();
+  await expect(activityYAxis).toHaveAttribute("x", contract.vehicleBarChart.yTickX);
   await expect(activityYAxis).toHaveCSS(
     "font-size",
     contract.vehicleBarChart.axisSize,
@@ -123,6 +124,10 @@ async function expectChartGeometry(page: Page, columns: number, dark: boolean) {
   await expect(durationSvg.locator("text").first()).toHaveCSS(
     "fill",
     contract.revenueLineChart.yAxisFill,
+  );
+  await expect(durationSvg.locator("text").first()).toHaveAttribute(
+    "x",
+    contract.revenueLineChart.yTickX,
   );
   await expect(durationSvg.locator('[class*="chartAxisX"]').first()).toHaveCSS(
     "fill",

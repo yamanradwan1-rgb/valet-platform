@@ -108,7 +108,7 @@ export function AnalyticsActivityChart(props: {
           return (
             <g key={tick}>
               <line style={gridLineStyle} x1={PADDING.left} x2={WIDTH - PADDING.right} y1={y} y2={y} />
-              <text style={axisStyle} textAnchor="end" x="33" y={y + 4}>{tick}</text>
+              <text style={axisStyle} textAnchor="end" x="32" y={y + 4}>{tick}</text>
             </g>
           );
         })}

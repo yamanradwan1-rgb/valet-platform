@@ -80,7 +80,7 @@
 
 .scopeChevron {
   position: absolute;
-  inset-inline-end: 0.625rem;
+  inset-inline-end: 0.5rem;
   pointer-events: none;
 }
 
