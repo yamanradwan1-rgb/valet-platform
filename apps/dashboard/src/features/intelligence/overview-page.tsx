@@ -1,6 +1,5 @@
 "use client";
 
-import type { AnalyticsPeriodQuery } from "@valet/contracts";
 import { AlertTriangle, Car, ChevronDown, Clock, Users, X } from "lucide-react";
 import { useCallback, useState, type FormEvent } from "react";
 
@@ -16,7 +15,7 @@ import {
   readLocationOperationalAnalytics,
 } from "./intelligence-api";
 import { formatExactDecimal } from "./intelligence-format";
-import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
+import { explicitAnalyticsPeriod, type AnalyticsPeriodValidation } from "./intelligence-period-validation";
 import { intelligenceScope } from "./intelligence-scope";
 import { OverviewActivityChart } from "./overview-activity-chart";
 import { overviewCopy } from "./overview-copy";
@@ -42,15 +41,15 @@ export function OverviewPage() {
   const { locale } = useDashboardLocale();
   const t = overviewCopy(locale);
   const scope = intelligenceScope(dashboard.selectedScope);
-  const { applyPeriod: persistPeriod, period } = useExplicitAnalyticsPeriod();
+  const { applyPeriod: persistPeriod, period, rawFrom, rawTo, validation } = useExplicitAnalyticsPeriod();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draftFrom, setDraftFrom] = useState("");
   const [draftTo, setDraftTo] = useState("");
   const [periodError, setPeriodError] = useState(false);
   const closePeriodDialog = useCallback(() => setDialogOpen(false), []);
   function openPeriodDialog() {
-    setDraftFrom(period?.from ?? "");
-    setDraftTo(period?.to ?? "");
+    setDraftFrom(rawFrom ?? "");
+    setDraftTo(rawTo ?? "");
     setPeriodError(false);
     setDialogOpen(true);
   }
@@ -136,7 +135,7 @@ export function OverviewPage() {
       <div className={styles.metricGrid}>
         <OverviewMetricCard
           available={presentation !== null}
-          context={presentation ? `${presentation.activeEmployeeCount} ${t.activeEmployees}` : stateText(period, periodLoading, periodReadError, t)}
+          context={presentation ? `${presentation.activeEmployeeCount} ${t.activeEmployees}` : stateText(validation, periodLoading, periodReadError, t)}
           icon={<Car size={20} />}
           label={t.carsHandled}
           value={presentation ? String(presentation.carsHandled) : t.unavailable}
@@ -145,7 +144,7 @@ export function OverviewPage() {
           available={presentation?.slaCompliance.percentage !== null && presentation !== null}
           context={presentation
             ? `${presentation.slaCompliance.numerator}/${presentation.slaCompliance.denominator} · ${presentation.slaCompliance.missingTargetCount} ${t.missingTargets} · ${presentation.slaCompliance.invalidOrMissingIntervalCount} ${t.invalidIntervals}`
-            : stateText(period, periodLoading, periodReadError, t)}
+            : stateText(validation, periodLoading, periodReadError, t)}
           icon={<Users size={20} />}
           label={t.slaCompliance}
           value={presentation?.slaCompliance.percentage === null || !presentation
@@ -154,7 +153,7 @@ export function OverviewPage() {
         />
         <OverviewMetricCard
           available={presentation?.retrievalWaitAverageSeconds !== null && presentation !== null}
-          context={presentation ? `${presentation.retrievalWaitSampleCount} ${t.samples}` : stateText(period, periodLoading, periodReadError, t)}
+          context={presentation ? `${presentation.retrievalWaitSampleCount} ${t.samples}` : stateText(validation, periodLoading, periodReadError, t)}
           icon={<Clock size={20} />}
           label={t.retrievalWait}
           value={presentation?.retrievalWaitAverageSeconds === null || !presentation
@@ -163,7 +162,7 @@ export function OverviewPage() {
         />
         <OverviewMetricCard
           available={presentation !== null}
-          context={presentation ? t.selectedPeriod : stateText(period, periodLoading, periodReadError, t)}
+          context={presentation ? t.selectedPeriod : stateText(validation, periodLoading, periodReadError, t)}
           danger
           icon={<AlertTriangle size={20} />}
           label={t.incidents}
@@ -185,7 +184,7 @@ export function OverviewPage() {
             </button>
           </div>
           {!period ? (
-            <OverviewPanelState message={t.periodRequired} />
+            <OverviewPanelState message={validation.kind === "required" ? t.periodRequired : t.invalidPeriod} />
           ) : periodLoading ? (
             <OverviewPanelState message={t.loading} />
           ) : periodReadError ? (
@@ -269,8 +268,9 @@ export function OverviewPage() {
   );
 }
 
-function stateText(period: AnalyticsPeriodQuery | null, loading: boolean, error: unknown, t: ReturnType<typeof overviewCopy>) {
-  if (!period) return t.periodRequired;
+function stateText(validation: AnalyticsPeriodValidation, loading: boolean, error: unknown, t: ReturnType<typeof overviewCopy>) {
+  if (validation.kind === "required") return t.periodRequired;
+  if (validation.kind !== "valid") return t.invalidPeriod;
   if (loading) return t.loading;
   if (error) return errorMessage(error, t);
   return t.unavailable;

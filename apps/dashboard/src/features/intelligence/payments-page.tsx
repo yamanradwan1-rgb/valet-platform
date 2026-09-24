@@ -33,15 +33,15 @@ export function PaymentsPage() {
   const { locale } = useDashboardLocale();
   const t = paymentsCopy(locale);
   const scope = intelligenceScope(dashboard.selectedScope);
-  const { applyPeriod: persistPeriod, period } = useExplicitAnalyticsPeriod();
+  const { applyPeriod: persistPeriod, period, rawFrom, rawTo, validation } = useExplicitAnalyticsPeriod();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draftFrom, setDraftFrom] = useState("");
   const [draftTo, setDraftTo] = useState("");
   const [periodError, setPeriodError] = useState(false);
   const closePeriodDialog = useCallback(() => setDialogOpen(false), []);
   function openPeriodDialog() {
-    setDraftFrom(period?.from ?? "");
-    setDraftTo(period?.to ?? "");
+    setDraftFrom(rawFrom ?? "");
+    setDraftTo(rawTo ?? "");
     setPeriodError(false);
     setDialogOpen(true);
   }
@@ -75,7 +75,8 @@ export function PaymentsPage() {
     : (financial.data ? locationPaymentsPeriodPresentation(financial.data) : null);
   const periodLoading = scope.kind === "COMPANY" ? company.loading : financial.loading;
   const periodReadError = scope.kind === "COMPANY" ? company.error : financial.error;
-  const periodErrorMessage = periodReadError ? errorMessage(periodReadError, t) : null;
+  const periodInvalid = validation.kind !== "required" && validation.kind !== "valid";
+  const periodErrorMessage = periodInvalid ? t.invalidPeriod : periodReadError ? errorMessage(periodReadError, t) : null;
   const currentGenerationKey = period
     ? `${period.from}:${period.to}`
     : "no-period";
@@ -123,7 +124,7 @@ export function PaymentsPage() {
         errorMessage={periodErrorMessage}
         loading={periodLoading}
         locale={locale}
-        periodSelected={period !== null}
+        periodSelected={validation.kind !== "required"}
         presentation={periodPresentation}
       />
       <PaymentsBreakdownRead
@@ -134,7 +135,7 @@ export function PaymentsPage() {
         period={periodPresentation}
         periodError={periodErrorMessage}
         periodLoading={periodLoading}
-        periodSelected={period !== null}
+        periodSelected={validation.kind !== "required"}
       />
       {dialogOpen ? (
         <div className={periodStyles.periodHost}>

@@ -3,18 +3,15 @@
 import type { AnalyticsPeriodQuery } from "@valet/contracts";
 import { useCallback, useSyncExternalStore } from "react";
 
-import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
+import { validateAnalyticsPeriod } from "./intelligence-period-validation";
 
 const periodChangedEvent = "md05:period-changed";
+const emptyPeriodKey = JSON.stringify([null, null]);
 
 function periodKeyFromCurrentUrl(): string {
-  if (typeof window === "undefined") return "";
+  if (typeof window === "undefined") return emptyPeriodKey;
   const query = new URLSearchParams(window.location.search);
-  const period = explicitAnalyticsPeriod(
-    query.get("from") ?? "",
-    query.get("to") ?? "",
-  );
-  return period ? `${period.from}|${period.to}` : "";
+  return JSON.stringify([query.get("from"), query.get("to")]);
 }
 
 function writePeriodToCurrentUrl(period: AnalyticsPeriodQuery): void {
@@ -34,26 +31,23 @@ function subscribePeriod(onChange: () => void) {
   };
 }
 
-function periodFromKey(key: string): AnalyticsPeriodQuery | null {
-  if (!key) return null;
-  const separator = key.indexOf("|");
-  return {
-    from: key.slice(0, separator),
-    to: key.slice(separator + 1),
-  };
+function rawPeriodFromKey(key: string): readonly [string | null, string | null] {
+  return JSON.parse(key) as [string | null, string | null];
 }
 
 export function useExplicitAnalyticsPeriod() {
   const periodKey = useSyncExternalStore(
     subscribePeriod,
     periodKeyFromCurrentUrl,
-    () => "",
+    () => emptyPeriodKey,
   );
-  const period = periodFromKey(periodKey);
+  const [rawFrom, rawTo] = rawPeriodFromKey(periodKey);
+  const validation = validateAnalyticsPeriod(rawFrom, rawTo);
+  const period = validation.kind === "valid" ? validation.period : null;
 
   const applyPeriod = useCallback((next: AnalyticsPeriodQuery) => {
     writePeriodToCurrentUrl(next);
   }, []);
 
-  return { applyPeriod, period } as const;
+  return { applyPeriod, period, rawFrom, rawTo, validation } as const;
 }

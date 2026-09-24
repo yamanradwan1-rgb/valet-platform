@@ -18,6 +18,8 @@ import {
   PERIOD_A,
 } from "./support/md05-intelligence-fixtures";
 
+const INVALID_PERIOD_COPY = "Use real canonical dates, From on or before To, with at most 31 inclusive calendar days.";
+
 async function enterCompany(page: Page, path: string) {
   await page.goto(path);
   await signInOnCurrentPage(page);
@@ -33,7 +35,26 @@ async function applyPeriod(page: Page, from = PERIOD_A.from, to = PERIOD_A.to) {
   await dialog.getByRole("button", { name: "Apply" }).click();
 }
 
+function expectZeroPeriodBusinessRequests(fixture: DashboardApiFixture) {
+  expect(fixture.count(companyAnalyticsPath)).toBe(0);
+  for (const locationPath of Object.values(locationPaths)) {
+    expect(fixture.count(locationPath)).toBe(0);
+  }
+}
+
 for (const path of ["/overview", "/payments"] as const) {
+  test(`${path} distinguishes no direct period as required with zero business dispatch`, async ({ page }) => {
+    const fixture = new DashboardApiFixture({
+      companyOrganizations: [ORG_A],
+      companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    });
+    await fixture.install(page);
+    await enterCompany(page, path);
+    await expect(page.getByText(/Select a period to load/u).first()).toBeVisible();
+    expect(new URL(page.url()).search).toBe("");
+    expectZeroPeriodBusinessRequests(fixture);
+  });
+
   test(`${path} accepts 31 inclusive days and captures the exact Company selector`, async ({ page }) => {
     const seen: string[] = [];
     const fixture = new DashboardApiFixture({
@@ -50,9 +71,7 @@ for (const path of ["/overview", "/payments"] as const) {
     await enterCompany(page, `${path}?from=2026-09-01&to=2026-10-01`);
     await expect.poll(() => seen.length).toBe(1);
     expect(seen).toEqual([`${companyAnalyticsPath}?from=2026-09-01&to=2026-10-01`]);
-    for (const locationPath of Object.values(locationPaths)) {
-      expect(fixture.count(locationPath)).toBe(0);
-    }
+    for (const locationPath of Object.values(locationPaths)) expect(fixture.count(locationPath)).toBe(0);
   });
 
   for (const [label, from, to] of [
@@ -66,17 +85,27 @@ for (const path of ["/overview", "/payments"] as const) {
         companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
       });
       await fixture.install(page);
-      await enterCompany(page, `${path}?from=${from}&to=${to}`);
-      await expect(page.getByText(/Select a period/u).first()).toBeVisible();
+      const expectedPath = `${path}?from=${from}&to=${to}`;
+      await enterCompany(page, expectedPath);
+      await expect(page.getByText(INVALID_PERIOD_COPY).first()).toBeVisible();
       const url = new URL(page.url());
-      expect(url.searchParams.get("from")).toBe(from);
-      expect(url.searchParams.get("to")).toBe(to);
-      expect(fixture.count(companyAnalyticsPath)).toBe(0);
-      for (const locationPath of Object.values(locationPaths)) {
-        expect(fixture.count(locationPath)).toBe(0);
-      }
+      expect(`${url.pathname}${url.search}`).toBe(expectedPath);
+      expectZeroPeriodBusinessRequests(fixture);
     });
   }
+
+  test(`${path} dialog rejects 32 inclusive days with the truthful shared rule`, async ({ page }) => {
+    const fixture = new DashboardApiFixture({
+      companyOrganizations: [ORG_A],
+      companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    });
+    await fixture.install(page);
+    await enterCompany(page, path);
+    await applyPeriod(page, "2026-09-01", "2026-10-02");
+    await expect(page.getByRole("dialog").getByRole("alert")).toHaveText(INVALID_PERIOD_COPY);
+    expect(new URL(page.url()).search).toBe("");
+    expectZeroPeriodBusinessRequests(fixture);
+  });
 }
 
 test("LM Overview captures exact current and period Location endpoints", async ({ page }) => {
