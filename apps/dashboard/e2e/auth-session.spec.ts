@@ -44,11 +44,9 @@ test("logout clears the protected session and browser back stays at login", asyn
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
 
   await page.goBack();
-  await expect(page).toHaveURL(/\/$/u);
+  await expect(page).toHaveURL(/\/overview$/u);
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Overview" })).toHaveCount(0);
 });
 
 test("failed logout stays fail-closed across reload until server logout is confirmed", async ({

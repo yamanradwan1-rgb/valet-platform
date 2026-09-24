@@ -116,10 +116,6 @@ describe("navigation commercial access", () => {
       },
     );
 
-    expect(items.map((item) => item.id)).toEqual([
-      "workspace",
-      "security",
-      "help",
-    ]);
+    expect(items.map((item) => item.id)).toEqual(["security", "help"]);
   });
 });

@@ -1,5 +1,4 @@
-import { Building2, ChevronLeft, ChevronRight } from "lucide-react";
-import type { ReactNode } from "react";
+import { Building2, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { DashboardNavigationItem } from "../../lib/navigation";
 import { VayletLogo } from "../brand/vaylet-logo";
@@ -9,25 +8,27 @@ import type { DashboardScopeReference } from "./shell-types";
 
 export function DashboardSidebar({
   collapsed,
+  changeScopeLabel,
   collapseLabel,
   currentPath,
   expandLabel,
   items,
   navigationLabel,
+  onOrganizationSelect,
   onToggleCollapsed,
   organizationLabel,
-  organizationSelector,
   selectedOrganization,
 }: {
   readonly collapsed: boolean;
+  readonly changeScopeLabel: string;
   readonly collapseLabel: string;
   readonly currentPath: string;
   readonly expandLabel: string;
   readonly items: readonly DashboardNavigationItem[];
   readonly navigationLabel: string;
+  readonly onOrganizationSelect: () => void;
   readonly onToggleCollapsed: () => void;
   readonly organizationLabel: string;
-  readonly organizationSelector?: ReactNode;
   readonly selectedOrganization: DashboardScopeReference | null;
 }) {
   const mainItems = items.filter((item) => item.placement === "MAIN");
@@ -39,14 +40,16 @@ export function DashboardSidebar({
         <VayletLogo collapsed={collapsed} />
       </div>
       {selectedOrganization ? (
-        <div className="sidebar-scope">
+        <button
+          aria-label={`${organizationLabel}: ${selectedOrganization.label}. ${changeScopeLabel}`}
+          className="sidebar-scope"
+          onClick={onOrganizationSelect}
+          type="button"
+        >
           <Building2 aria-hidden="true" className="sidebar-scope-icon" size={18} />
-          <div className="sidebar-scope-details">
-            <span className="sidebar-scope-label">{organizationLabel}</span>
-            <bdi className="sidebar-scope-value">{selectedOrganization.label}</bdi>
-            {organizationSelector}
-          </div>
-        </div>
+          <bdi className="sidebar-scope-value">{selectedOrganization.label}</bdi>
+          <ChevronDown aria-hidden="true" className="sidebar-scope-chevron" size={14} />
+        </button>
       ) : null}
       <div className="sidebar-navigation">
         <NavigationList

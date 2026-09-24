@@ -1,4 +1,4 @@
-import { CircleHelp, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { CircleHelp, ShieldCheck } from "lucide-react";
 
 import { ar, en } from "../i18n/dictionaries";
 import {
@@ -11,18 +11,6 @@ const roles = ["COMPANY_ADMIN", "LOCATION_MANAGER", "SUPERVISOR"] as const;
 
 export const md01NavigationRegistrations =
   composeNavigationRegistry([
-    defineNavigationDestination({
-      availability: "IMPLEMENTED",
-      accessRequirement: "FOUNDATION_ENTRY",
-      href: "/",
-      icon: LayoutDashboard,
-      id: "workspace",
-      labels: { ar: ar.workspace, en: en.workspace },
-      owner: "MD-01",
-      placement: "MAIN",
-      roles,
-      scopeRequirement: "NONE",
-    }),
     defineNavigationDestination({
       availability: "IMPLEMENTED",
       accessRequirement: "FOUNDATION_ENTRY",

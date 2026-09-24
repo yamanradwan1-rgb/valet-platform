@@ -16,6 +16,10 @@ export {
   isNavigationPathActive,
   resolveNavigation,
 } from "./navigation-registry";
+export {
+  firstMainNavigationHref,
+  resolveRootProductLanding,
+} from "./navigation-landing";
 export type {
   DashboardNavigationAvailability,
   DashboardNavigationContext,

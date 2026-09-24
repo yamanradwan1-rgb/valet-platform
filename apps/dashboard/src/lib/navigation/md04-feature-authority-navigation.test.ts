@@ -48,7 +48,7 @@ const registry = composeNavigationRegistry(
   md04TestRegistrations,
 );
 
-const foundation = ["workspace", "security", "help"];
+const foundation = ["security", "help"];
 const caAdministration = [
   "employees-shifts", "locations", "policies-settings", "roles-permissions",
   "branding", "integrations", "billing-subscription",

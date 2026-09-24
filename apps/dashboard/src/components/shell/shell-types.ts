@@ -8,6 +8,7 @@ export interface DashboardScopeReference {
 }
 
 export interface DashboardShellLabels {
+  readonly changeScope: string;
   readonly collapseNavigation: string;
   readonly closeNavigation: string;
   readonly expandNavigation: string;
@@ -23,10 +24,10 @@ export interface DashboardShellProps {
   readonly currentPath: string;
   readonly labels: DashboardShellLabels;
   readonly navigationItems: readonly DashboardNavigationItem[];
+  readonly onLocationSelect: () => void;
+  readonly onOrganizationSelect: () => void;
   readonly selectedOrganization: DashboardScopeReference | null;
   readonly selectedLocation: DashboardScopeReference | null;
-  readonly organizationSelector?: ReactNode;
-  readonly locationSelector?: ReactNode;
   readonly localeControl?: ReactNode;
   readonly themeControl?: ReactNode;
 }

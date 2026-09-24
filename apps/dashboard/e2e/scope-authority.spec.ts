@@ -23,9 +23,8 @@ test("Company Admin can enter All Locations and an exact Location", async ({
 
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: "All Locations" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/overview$/u);
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   await expect(page.locator(".sidebar").getByText(ORG_A.name)).toBeVisible();
   await expect(page.locator(".topbar").getByText("All Locations")).toBeVisible();
   await expect(
@@ -59,9 +58,8 @@ test("Location Manager sees only granted Locations", async ({ page }) => {
     0,
   );
   await page.getByRole("button", { name: LOCATION_A.name }).click();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/overview$/u);
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 });
 
 test("Location Manager foundation entry still requires Dashboard access", async ({
@@ -101,9 +99,7 @@ test("Location Manager foundation entry still requires Dashboard access", async 
       "Management Dashboard access is unavailable for this authorized scope.",
     ),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Overview" })).toHaveCount(0);
 });
 
 test("Supervisor enters one active-shift Location with narrow navigation", async ({
@@ -118,9 +114,8 @@ test("Supervisor enters one active-shift Location with narrow navigation", async
   await page
     .getByRole("button", { name: `${ORG_A.name} · ${LOCATION_A.name}` })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/maps-zones$/u);
+  await expect(page.getByRole("heading", { name: "Maps & Zones" })).toBeVisible();
   await expect(
     page.locator(".topbar").getByText(LOCATION_A.name),
   ).toBeVisible();
@@ -139,9 +134,7 @@ test("Employee has no general Management workspace", async ({ page }) => {
       "No eligible Management workspace is available for this Staff session.",
     ),
   ).toHaveCount(3);
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace", exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Overview" })).toHaveCount(0);
   await expect(
     page.getByRole("navigation", { name: "Management navigation" }),
   ).toHaveCount(0);

@@ -27,16 +27,14 @@ export async function openLocationManagerWorkspace(page: Page): Promise<void> {
   await signIn(page, "manager@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/overview$/u);
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 }
 
 export async function expectSupervisorNarrowNavigation(page: Page): Promise<void> {
   const navigation = page
     .getByRole("navigation", { name: "Management navigation" });
   await expect(navigation.getByRole("link")).toHaveText([
-    "Workspace",
     "Maps & Zones",
     "Security",
     "Help",

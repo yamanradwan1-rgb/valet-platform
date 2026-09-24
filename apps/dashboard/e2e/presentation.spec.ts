@@ -30,6 +30,14 @@ test("theme and locale switch the real document between light/LTR and dark/RTL",
 
   await page.getByRole("button", { name: "Dark" }).click();
   await expect(root).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator(".shell")).toHaveCSS(
+    "background-color",
+    "rgb(7, 12, 24)",
+  );
+  await expect(page.locator(".topbar")).toHaveCSS(
+    "background-color",
+    "rgb(11, 19, 43)",
+  );
   await page.getByRole("button", { name: "Language" }).click();
   await expect(root).toHaveAttribute("lang", "ar");
   await expect(root).toHaveAttribute("dir", "rtl");
@@ -38,7 +46,7 @@ test("theme and locale switch the real document between light/LTR and dark/RTL",
     "matrix(-1, 0, 0, 1, 0, 0)",
   );
   await expect(
-    page.getByRole("heading", { name: "مساحة العمل المصرح بها" }),
+    page.getByRole("heading", { name: "نظرة عامة" }),
   ).toBeVisible();
 });
 
@@ -110,6 +118,10 @@ test("foundation shell preserves the frozen sidebar, topbar, and scroll geometry
   const topbar = page.locator(".topbar");
   const content = page.locator(".content");
   const contentInner = page.locator(".content-inner");
+  const scopeSelector = sidebar.locator(".sidebar-scope");
+  const locationSelector = topbar.locator(".location-context");
+  const firstNavigationLink = sidebar.locator(".sidebar-navigation .nav-link").first();
+  const utilities = sidebar.locator(".sidebar-utilities");
 
   await expect(sidebar).toBeVisible();
   await expect(sidebar.getByText(ORG_A.name)).toBeVisible();
@@ -127,6 +139,11 @@ test("foundation shell preserves the frozen sidebar, topbar, and scroll geometry
     Math.round(element.getBoundingClientRect().width),
   );
   expect(expandedWidth).toBe(260);
+  await expect(topbar).toHaveCSS("height", "64px");
+  await expect(scopeSelector).toHaveCSS("height", "53px");
+  await expect(locationSelector).toHaveCSS("height", "40px");
+  await expect(firstNavigationLink).toHaveCSS("height", "32px");
+  await expect(utilities).toHaveCSS("height", "125px");
 
   const geometry = await content.evaluate((element) => {
     const style = getComputedStyle(element);
@@ -166,9 +183,7 @@ test("thin protected routes reuse the same authorized frame and selected scope",
   await expect(page.locator(".sidebar").getByText(ORG_A.name)).toBeVisible();
   await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toBeVisible();
 
-  await page.getByRole("link", { name: "Workspace" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toBeVisible();
+  await page.getByRole("link", { name: "Overview" }).click();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toBeVisible();
 });

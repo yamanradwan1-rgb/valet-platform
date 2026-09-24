@@ -13,9 +13,9 @@ export function DashboardShell({
   currentPath,
   labels,
   localeControl,
-  locationSelector,
   navigationItems,
-  organizationSelector,
+  onLocationSelect,
+  onOrganizationSelect,
   selectedLocation,
   selectedOrganization,
   themeControl,
@@ -35,9 +35,10 @@ export function DashboardShell({
         expandLabel={labels.expandNavigation}
         items={navigationItems}
         navigationLabel={labels.navigation}
+        onOrganizationSelect={onOrganizationSelect}
         onToggleCollapsed={() => setSidebarCollapsed((value) => !value)}
+        changeScopeLabel={labels.changeScope}
         organizationLabel={labels.organization}
-        organizationSelector={organizationSelector}
         selectedOrganization={selectedOrganization}
       />
       <div className="shell-main">
@@ -45,8 +46,8 @@ export function DashboardShell({
           accountControl={accountControl}
           labels={labels}
           localeControl={localeControl}
-          locationSelector={locationSelector}
           navigationOpen={navigationOpen}
+          onLocationSelect={onLocationSelect}
           onOpenNavigation={() => setNavigationOpen(true)}
           selectedLocation={selectedLocation}
           themeControl={themeControl}

@@ -5,11 +5,14 @@
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   overflow: hidden;
+  background: #f8fafc;
 }
 
 .shell[data-sidebar-collapsed="true"] {
   grid-template-columns: 80px minmax(0, 1fr);
 }
+
+:root[data-theme="dark"] .shell { background: #070c18; }
 
 .sidebar {
   height: 100%;
@@ -50,50 +53,38 @@
 }
 
 .sidebar-scope {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  min-height: 3.5rem;
-  padding: 0.75rem 0.75rem 0.5rem;
+  min-height: 53px;
+  padding: 0.625rem 0.75rem;
+  border: 0;
   border-block-end: 1px solid color-mix(in srgb, var(--sidebar-border) 80%, transparent);
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
 }
+
+.sidebar-scope:hover { background: var(--sidebar-soft); }
 
 .sidebar-scope-icon {
   flex: 0 0 auto;
-  margin-block-start: 0.15rem;
   color: #8fb5ff;
 }
 
-.sidebar-scope-details {
-  min-width: 0;
-  display: grid;
-  gap: 0.2rem;
-}
-
-.sidebar-scope-label {
-  color: #8fa1c7;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
 .sidebar-scope-value {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #f5f8ff;
-  font-size: 0.82rem;
-  font-weight: 700;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
-.sidebar-scope .button {
-  justify-self: start;
-  min-height: 1.5rem;
-  padding-inline: 0;
-  color: #a9b8d5;
-  font-size: 0.72rem;
-}
+.sidebar-scope-chevron { margin-inline-start: auto; color: #64748b; }
 
 .sidebar-navigation {
   min-height: 0;
@@ -147,7 +138,8 @@
 
 .sidebar-collapse {
   width: 100%;
-  min-height: 2rem;
+  min-height: 1.75rem;
+  height: 1.75rem;
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -167,11 +159,11 @@
 
 .shell[data-sidebar-collapsed="true"] .sidebar-scope {
   justify-content: center;
-  min-height: 3.5rem;
   padding-inline: 0;
 }
 
-.shell[data-sidebar-collapsed="true"] .sidebar-scope-details,
+.shell[data-sidebar-collapsed="true"] .sidebar-scope-value,
+.shell[data-sidebar-collapsed="true"] .sidebar-scope-chevron,
 .shell[data-sidebar-collapsed="true"] .nav-label {
   display: none;
 }
@@ -203,6 +195,11 @@
   padding-inline: 1.5rem;
   background: var(--surface);
   border-block-end: 1px solid var(--border);
+}
+
+:root[data-theme="dark"] .topbar {
+  background: var(--sidebar);
+  border-block-end-color: var(--sidebar-border);
 }
 
 .topbar-actions,

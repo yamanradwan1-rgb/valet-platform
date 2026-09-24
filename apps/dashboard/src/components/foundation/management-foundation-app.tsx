@@ -10,7 +10,6 @@ import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { DashboardMfaClient } from "../../lib/mfa/dashboard-mfa-client";
 import {
   dashboardNavigationRegistrations,
-  noNavigationAuthority,
   resolveNavigation,
 } from "../../lib/navigation";
 import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
@@ -23,6 +22,7 @@ import { FoundationState } from "./foundation-state";
 import { HeaderLocaleControl, HeaderThemeControl } from "./header-preferences";
 import { PreferenceControls } from "./preference-controls";
 import { ProtectedDashboardContextProvider } from "./protected-dashboard-context";
+import { RootProductLanding } from "./root-product-landing";
 import { selectedScopePresentation } from "./scope-presentation";
 import { SelectedScopeMfaPanel } from "./selected-scope-mfa-panel";
 import { useSelectedScope } from "./selected-scope-provider";
@@ -111,9 +111,7 @@ export function ManagementFoundationApp({
       />
     );
   }
-
   const authGenerationKey = `${auth.identityGeneration}:${auth.sessionGeneration}`;
-
   if (accountSecurity) {
     return (
       <StandaloneFoundationPanel>
@@ -229,14 +227,15 @@ export function ManagementFoundationApp({
   }
 
   const presentation = selectedScopePresentation(selectedScope);
-  const navigation = resolveNavigation(
-    dashboardNavigationRegistrations,
-    presentation.navigation,
-    locale,
+  const navigation =
     navigationAuthority.status === "valid"
-      ? navigationAuthority.authority
-      : noNavigationAuthority,
-  );
+      ? resolveNavigation(
+          dashboardNavigationRegistrations,
+          presentation.navigation,
+          locale,
+          navigationAuthority.authority,
+        )
+      : [];
   const selectedLocation =
     presentation.location ??
     (selectedScope.authority === "COMPANY_ADMIN" &&
@@ -252,6 +251,7 @@ export function ManagementFoundationApp({
       )}
       currentPath={currentPath}
       labels={{
+        changeScope: t("changeScope"),
         collapseNavigation: t("collapseNavigation"),
         closeNavigation: t("closeNavigation"),
         expandNavigation: t("expandNavigation"),
@@ -262,30 +262,32 @@ export function ManagementFoundationApp({
       }}
       localeControl={<HeaderLocaleControl />}
       navigationItems={navigation}
-      organizationSelector={(
-        <Button onClick={clearScope} type="button" variant="quiet">
-          {t("changeScope")}
-        </Button>
-      )}
-      locationSelector={(
-        <Button onClick={clearScope} type="button" variant="quiet">
-          {t("changeScope")}
-        </Button>
-      )}
+      onLocationSelect={clearScope}
+      onOrganizationSelect={clearScope}
       selectedLocation={selectedLocation}
       selectedOrganization={presentation.organization}
       themeControl={<HeaderThemeControl />}
     >
-      <ProtectedDashboardContextProvider
-        value={{
-          api,
-          identityGeneration: auth.identityGeneration,
-          selectedScope,
-          sessionGeneration: auth.sessionGeneration,
-        }}
-      >
-        {children}
-      </ProtectedDashboardContextProvider>
+      {currentPath === "/" ? (
+        <RootProductLanding
+          authorityKey={navigationAuthority.key}
+          loadingLabel={t("loading")}
+          navigation={navigation}
+          navigationStatus={navigationAuthority.status}
+          unavailableLabel={t("unavailable")}
+        />
+      ) : (
+        <ProtectedDashboardContextProvider
+          value={{
+            api,
+            identityGeneration: auth.identityGeneration,
+            selectedScope,
+            sessionGeneration: auth.sessionGeneration,
+          }}
+        >
+          {children}
+        </ProtectedDashboardContextProvider>
+      )}
     </DashboardShell>
   );
 }

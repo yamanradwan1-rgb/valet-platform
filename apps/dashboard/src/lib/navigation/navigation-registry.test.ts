@@ -87,11 +87,7 @@ describe("dashboard navigation registry", () => {
         "en",
         fullRouteAccess,
       );
-      expect(items.map((item) => item.id)).toEqual([
-        "workspace",
-        "security",
-        "help",
-      ]);
+      expect(items.map((item) => item.id)).toEqual(["security", "help"]);
       expect(items.every((item) => item.owner === "MD-01")).toBe(true);
     },
   );

@@ -33,9 +33,8 @@ test("selected-scope MFA step-up blocks content until fresh route revalidation s
   await signIn(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: "All Locations" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Authorized workspace" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/overview$/u);
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   requireStepUp = true;
   await page.getByRole("link", { name: "Employees & Shifts" }).click();
@@ -77,7 +76,7 @@ test("ManagementFoundationApp composes complete navigation from NavigationAuthor
     page.getByRole("heading", { name: "Billing & Subscription" }),
   ).toBeVisible();
 
-  await expect(navigation.getByRole("link", { name: "Workspace" })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "Workspace" })).toHaveCount(0);
   await expect(navigation.getByRole("link", { name: "Security" })).toBeVisible();
   await expect(navigation.getByRole("link", { name: "Help" })).toBeVisible();
 });

@@ -1,4 +1,4 @@
-import { MapPin, Menu } from "lucide-react";
+import { ChevronDown, MapPin, Menu } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "../presentation/button";
@@ -11,8 +11,8 @@ export function DashboardTopbar({
   accountControl,
   labels,
   localeControl,
-  locationSelector,
   navigationOpen,
+  onLocationSelect,
   onOpenNavigation,
   selectedLocation,
   themeControl,
@@ -20,8 +20,8 @@ export function DashboardTopbar({
   readonly accountControl?: ReactNode;
   readonly labels: DashboardShellLabels;
   readonly localeControl?: ReactNode;
-  readonly locationSelector?: ReactNode;
   readonly navigationOpen: boolean;
+  readonly onLocationSelect: () => void;
   readonly onOpenNavigation: () => void;
   readonly selectedLocation: DashboardScopeReference | null;
   readonly themeControl?: ReactNode;
@@ -41,15 +41,26 @@ export function DashboardTopbar({
           <Menu aria-hidden="true" size={20} />
         </Button>
         {selectedLocation ? (
-          <div className="location-context">
+          <button
+            aria-label={labels.changeScope}
+            className="location-context"
+            onClick={onLocationSelect}
+            type="button"
+          >
             <MapPin aria-hidden="true" size={18} />
-            <div className="location-context-copy">
-              <span className="location-context-label">{labels.location}</span>
-              <bdi className="location-context-value">{selectedLocation.label}</bdi>
-            </div>
-          </div>
-        ) : null}
-        {locationSelector}
+            <bdi className="location-context-value">{selectedLocation.label}</bdi>
+            <ChevronDown aria-hidden="true" className="location-context-chevron" size={14} />
+          </button>
+        ) : (
+          <Button
+            aria-label={labels.changeScope}
+            onClick={onLocationSelect}
+            type="button"
+            variant="quiet"
+          >
+            {labels.changeScope}
+          </Button>
+        )}
       </div>
       <div className="topbar-actions">
         {localeControl}
