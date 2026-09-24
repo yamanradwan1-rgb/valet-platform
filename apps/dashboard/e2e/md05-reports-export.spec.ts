@@ -67,6 +67,10 @@ for (const [label, fixtureFactory, enter] of [
 ] as const) {
   test(`${label} previews all fixed kinds only through Location routes`, async ({ page }) => {
     const fixture = fixtureFactory();
+    const companySubscriptionPath =
+      `/v1/staff/management/organizations/${ORG_A.organizationId}/subscription`;
+    const locationSubscriptionPath =
+      `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/subscription`;
     const seen: string[] = [];
     page.on("request", (request) => {
       const url = new URL(request.url());
@@ -76,6 +80,13 @@ for (const [label, fixtureFactory, enter] of [
     });
     await fixture.install(page);
     await enter(page);
+    if (label.startsWith("CA")) {
+      expect(fixture.count(companySubscriptionPath)).toBeGreaterThan(0);
+      expect(fixture.count(locationSubscriptionPath)).toBe(0);
+    } else {
+      expect(fixture.count(locationSubscriptionPath)).toBeGreaterThan(0);
+      expect(fixture.count(companySubscriptionPath)).toBe(0);
+    }
     for (const kind of ["DAILY", "WEEKLY", "MONTHLY"] as const) {
       const dialog = await loadReport(page, kind);
       await expect(dialog.getByText(LOCATION_A.timezone, { exact: true })).toBeVisible();

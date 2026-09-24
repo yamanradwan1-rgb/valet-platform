@@ -183,9 +183,24 @@ jobs:
       E2E_LOCATION_ID: e2e00000-0000-4000-8000-000000000001
       E2E_STAFF_EMAIL: e2e-driver@valet.test
       E2E_STAFF_PASSWORD: e2e-secure-password-123
-      STAFF_AUTH_ALLOWED_ORIGINS: http://localhost:3000
+      STAFF_AUTH_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3003
       ANTI_ABUSE_HMAC_SECRET_B64URL: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       HANDOFF_VERIFIER_HMAC_SECRET_B64URL: AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE
+      MFA_TOTP_ENCRYPTION_KEY_B64URL: AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI
+      MFA_RECOVERY_HMAC_SECRET_B64URL: AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM
+      STAFF_PUSH_RETRIEVAL_CREATION_ENABLED: "false"
+      STAFF_PUSH_WORKER_SENDING_ENABLED: "false"
+      STAFF_PUSH_RETRIEVAL_POLICY_VERSION: "1"
+      STAFF_PUSH_RETRIEVAL_INTENT_TTL_SECONDS: "300"
+      STAFF_PUSH_RETRIEVAL_MAX_ATTEMPTS: "4"
+      STAFF_PUSH_PROVIDER_CALL_TIMEOUT_SECONDS: "10"
+      STAFF_PUSH_LEASE_DURATION_SECONDS: "30"
+      STAFF_PUSH_RETRY_MINIMUM_SECONDS: "10"
+      STAFF_PUSH_RETRY_CAP_SECONDS: "60"
+      STAFF_PUSH_INTENT_DELIVERY_RETENTION_DAYS: "7"
+      STAFF_PUSH_TERMINAL_REGISTRATION_RETENTION_DAYS: "30"
+      STAFF_PUSH_ACTIVE_REGISTRATION_STALE_DAYS: "30"
+      STAFF_PUSH_CLEANUP_INTERVAL_HOURS: "24"
     services:
       postgres:
         image: postgres:17-alpine
@@ -278,6 +293,30 @@ jobs:
         env:
           E2E_API_URL: http://localhost:3001
           E2E_BASE_URL: http://localhost:3000
+
+      - name: Provision Management Dashboard E2E fixtures
+        run: pnpm --filter @valet/api exec tsx tools/e2e/provision-management-dashboard-e2e.ts
+        env:
+          NODE_ENV: test
+          E2E_FIXTURE_CONFIRM: management-dashboard-e2e
+
+      - name: Start Dashboard app
+        run: |
+          pnpm --filter @valet/dashboard dev &
+          ready=0
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3003/ >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = "1"
+
+      - name: Run Management Dashboard runtime E2E
+        run: pnpm --filter @valet/dashboard test:e2e:runtime
+        env:
+          E2E_BASE_URL: http://localhost:3003
 
   quality:
     name: quality

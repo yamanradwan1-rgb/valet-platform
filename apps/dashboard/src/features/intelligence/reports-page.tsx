@@ -59,6 +59,7 @@ export function ReportsPage() {
     [dashboard.selectedScope],
   );
   const scopeIdentity = intelligenceScopeKey(scope);
+  const companyAdminCommercial = dashboard.selectedScope.authority === "COMPANY_ADMIN";
   const subscriptionKey = `${dashboard.identityGeneration}:${dashboard.sessionGeneration}:${selectionRevision}:${scopeIdentity}`;
   const [recovery] = useState(() =>
     takeReportExportAuthRecovery(
@@ -97,9 +98,11 @@ export function ReportsPage() {
     let current = true;
     const controller = new AbortController();
     if (scope === null) return () => controller.abort();
-    const read = scope.kind === "COMPANY"
+    const read = companyAdminCommercial
       ? readCompanySubscription(dashboard.api, scope.organizationId, controller.signal)
-      : readLocationSubscription(dashboard.api, scope.locationId, controller.signal);
+      : scope.kind === "LOCATION"
+        ? readLocationSubscription(dashboard.api, scope.locationId, controller.signal)
+        : Promise.reject(new Error("Location subscription requires exact Location scope."));
     void read.then((response) => {
       if (!current) return;
       setSubscriptionState({
@@ -113,7 +116,7 @@ export function ReportsPage() {
       current = false;
       controller.abort();
     };
-  }, [dashboard.api, scope, subscriptionKey]);
+  }, [companyAdminCommercial, dashboard.api, scope, subscriptionKey]);
 
   const subscriptionLoading = scope !== null && subscriptionState.requestKey !== subscriptionKey;
   const exportAvailable = !subscriptionLoading && subscriptionState.allowed;
@@ -227,11 +230,16 @@ export function ReportsPage() {
         setExportStatus("unknown");
         return;
       }
-      const failure = await finalExportFailure(error, dashboard.api, scope);
+      const failure = await finalExportFailure(
+        error,
+        dashboard.api,
+        scope,
+        companyAdminCommercial,
+      );
       if (!reportExportIntentIsCurrent(intent, currentExportBase.current, exportRevision.current)) return;
       setExportStatus(failure);
     }
-  }, [dashboard.api, dashboard.identityGeneration, dashboard.sessionGeneration, exportAvailable, preview.data, scope, selectionRevision, selector]);
+  }, [companyAdminCommercial, dashboard.api, dashboard.identityGeneration, dashboard.sessionGeneration, exportAvailable, preview.data, scope, selectionRevision, selector]);
 
   if (scope === null) return null;
 

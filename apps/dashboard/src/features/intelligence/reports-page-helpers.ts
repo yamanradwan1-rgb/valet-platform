@@ -87,13 +87,17 @@ export async function finalExportFailure(
   error: unknown,
   api: DashboardApiClient,
   scope: IntelligenceScope,
+  companyAdminCommercial: boolean,
 ): Promise<ReportExportStatus> {
   const base = exportFailure(error);
   if (!(error instanceof DashboardApiError) || error.kind !== "authorization") return base;
   try {
-    const response = scope.kind === "COMPANY"
+    const response = companyAdminCommercial
       ? await readCompanySubscription(api, scope.organizationId)
-      : await readLocationSubscription(api, scope.locationId);
+      : scope.kind === "LOCATION"
+        ? await readLocationSubscription(api, scope.locationId)
+        : null;
+    if (response === null) return "denied";
     return response.subscription?.entitlements.reportExports === true
       ? "denied"
       : "entitlement";

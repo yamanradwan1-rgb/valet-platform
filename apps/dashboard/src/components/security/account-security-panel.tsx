@@ -59,6 +59,11 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
     setRecoveryCodes(null);
   }, []);
 
+  const finishRecoveryCodes = useCallback(() => {
+    setRecoveryCodes(null);
+    onStateChange?.("ASSURED");
+  }, [onStateChange]);
+
   const readState = useCallback(
     async (signal?: AbortSignal) => {
       const response = await client.state(signal);
@@ -140,7 +145,7 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
       if (!mounted.current) return;
       setEnrollment(null);
       setRecoveryCodes(result.recoveryCodes);
-      publishState("ASSURED");
+      setMfaState("ASSURED");
     });
 
   const stepUp = (code: string) =>
@@ -164,7 +169,7 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
       if (!mounted.current) return;
       setRecoveryCodes(result.recoveryCodes);
       setReissueOpen(false);
-      publishState("ASSURED");
+      setMfaState("ASSURED");
     });
 
   const closeEnrollment = () => {
@@ -188,7 +193,7 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
         </p>
         {errorKey ? <p className="error-text" role="alert">{t(errorKey)}</p> : null}
         {recoveryCodes ? (
-          <RecoveryCodesDisclosure codes={recoveryCodes} onDone={() => setRecoveryCodes(null)} />
+          <RecoveryCodesDisclosure codes={recoveryCodes} onDone={finishRecoveryCodes} />
         ) : enrollment ? (
           <EnrollmentCeremony
             busy={busy}

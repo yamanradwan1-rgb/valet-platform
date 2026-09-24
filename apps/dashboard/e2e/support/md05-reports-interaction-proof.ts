@@ -22,16 +22,15 @@ export async function proveAdvisoryDelayDoesNotBlockPreview(
   scope: ReportScope,
 ) {
   const location = scope === "LOCATION";
-  const subscriptionPath = location
-    ? `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/subscription`
-    : `/v1/staff/management/organizations/${ORG_A.organizationId}/subscription`;
-  const advisoryReadNumber = location ? 2 : 4;
+  const subscriptionPath =
+    `/v1/staff/management/organizations/${ORG_A.organizationId}/subscription`;
+  const advisoryReadNumber = 4;
   let subscriptionReads = 0;
   const override = (path: string) => {
     if (path !== subscriptionPath) return undefined;
     subscriptionReads += 1;
     if (subscriptionReads !== advisoryReadNumber) return undefined;
-    return { ...subscriptionReply(true, location), delayMs: 4_000 };
+    return { ...subscriptionReply(true), delayMs: 4_000 };
   };
   const fixture = location
     ? companyLocationReportsFixture(override)
