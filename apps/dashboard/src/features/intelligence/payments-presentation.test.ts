@@ -11,7 +11,7 @@ import {
   currentPaymentsPresentation,
   locationPaymentsPeriodPresentation,
 } from "./payments-presentation";
-import { explicitAnalyticsPeriod } from "./use-explicit-analytics-period";
+import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
 
 const locationId = "11111111-1111-4111-8111-111111111111";
 

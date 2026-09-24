@@ -16,6 +16,7 @@ import {
   readLocationOperationalAnalytics,
 } from "./intelligence-api";
 import { formatExactDecimal } from "./intelligence-format";
+import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
 import { intelligenceScope } from "./intelligence-scope";
 import { OverviewActivityChart } from "./overview-activity-chart";
 import { overviewCopy } from "./overview-copy";
@@ -34,10 +35,7 @@ import {
 import styles from "./overview.module.css";
 import periodStyles from "./intelligence-period.module.css";
 import { useIntelligenceRead } from "./use-intelligence-read";
-import {
-  explicitAnalyticsPeriod,
-  useExplicitAnalyticsPeriod,
-} from "./use-explicit-analytics-period";
+import { useExplicitAnalyticsPeriod } from "./use-explicit-analytics-period";
 
 export function OverviewPage() {
   const dashboard = useProtectedDashboard();

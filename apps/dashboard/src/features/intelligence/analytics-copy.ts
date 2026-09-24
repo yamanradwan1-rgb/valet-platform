@@ -1,7 +1,7 @@
 import type { DashboardLocale } from "../../lib/i18n/locale";
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 
-import type { AnalyticsPeriodValidation } from "./analytics-presentation";
+import type { AnalyticsPeriodValidation } from "./intelligence-period-validation";
 
 const copy = {
   en: {

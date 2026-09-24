@@ -1,12 +1,7 @@
 "use client";
 
 import { Calendar, ChevronDown, X } from "lucide-react";
-import {
-  useState,
-  type CSSProperties,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+import { useCallback, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { selectedScopePresentation } from "../../components/foundation/scope-presentation";
@@ -26,10 +21,12 @@ import {
   companyAnalyticsPresentation,
   locationAnalyticsPresentation,
   useRawAnalyticsPeriod,
-  validateAnalyticsPeriod,
-  type AnalyticsPeriodValidation,
   type RawAnalyticsPeriod,
 } from "./analytics-presentation";
+import {
+  validateAnalyticsPeriod,
+  type AnalyticsPeriodValidation,
+} from "./intelligence-period-validation";
 import { AnalyticsSecondaryChart } from "./analytics-secondary-chart";
 import {
   readCompanyAnalytics,
@@ -72,9 +69,7 @@ export function AnalyticsPage() {
   const [draftTo, setDraftTo] = useState("");
   const [draftError, setDraftError] = useState<AnalyticsPeriodValidation["kind"] | null>(null);
 
-  function closeDialog() {
-    setDialogOpen(false);
-  }
+  const closeDialog = useCallback(() => setDialogOpen(false), [setDialogOpen]);
 
   const company = useIntelligenceRead({
     descriptor: { endpointFamily: "COMPANY_ANALYTICS", ...descriptorPeriod },

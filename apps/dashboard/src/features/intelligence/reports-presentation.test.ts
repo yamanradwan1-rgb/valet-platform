@@ -81,4 +81,22 @@ describe("MD-05D report presentation", () => {
     expect(weekly.some((section) => section.title === "Daily activity")).toBe(false);
     expect(daily.some((section) => section.title === "Daily activity")).toBe(true);
   });
+
+  it("marks only canonical dynamic labels for bidi isolation", () => {
+    const sections = reportPresentation({
+      ...locationBase,
+      kind: "DAILY",
+      periodTo: "2026-09-21",
+      dailyActivity: {
+        retrievalRequestedCount: 1,
+        dispatchEventCounts: [{ taskType: "RETRIEVAL", eventType: "QUEUED", count: 1 }],
+        keyCustodyEventCounts: [{ eventType: "RELEASED", count: 1 }],
+      },
+    }, "ar");
+    const rows = sections.flatMap((section) => section.rows);
+    expect(rows.find((row) => row.label === "JOD.paidPaymentCount")?.labelBidi).toBe("code");
+    expect(rows.find((row) => row.label === "dispatch.RETRIEVAL.QUEUED")?.labelBidi).toBe("code");
+    expect(rows.find((row) => row.label === "keyCustody.RELEASED")?.labelBidi).toBe("code");
+    expect(rows.find((row) => row.label === "معرّف الموقع")?.labelBidi).toBeUndefined();
+  });
 });

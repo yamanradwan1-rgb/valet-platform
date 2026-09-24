@@ -2,6 +2,7 @@ import type { Request } from "@playwright/test";
 
 import type { FixtureReply } from "./dashboard-api-fixture";
 import { LOCATION_A, ORG_A } from "./dashboard-api-fixture";
+import type { Location } from "./fixture-data";
 
 export const PERIOD_A = { from: "2026-09-01", to: "2026-09-07" } as const;
 export const PERIOD_B = { from: "2026-09-08", to: "2026-09-14" } as const;
@@ -11,15 +12,19 @@ export const companyAnalyticsPath =
 export const companyContextPath =
   `/v1/staff/management/organizations/${ORG_A.organizationId}/context`;
 
-export const locationPaths = {
-  stateCounts: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/overview/session-state-counts`,
-  queue: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/analytics/queue`,
-  financialOverview: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/overview/financial`,
-  operations: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/analytics/operations`,
-  financial: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/analytics/financial`,
-  incidents: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/analytics/incidents`,
-  kpis: `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/analytics/kpis`,
-} as const;
+export function locationPathsFor(locationId: string) {
+  return {
+    stateCounts: `/v1/staff/dashboard/locations/${locationId}/overview/session-state-counts`,
+    queue: `/v1/staff/dashboard/locations/${locationId}/analytics/queue`,
+    financialOverview: `/v1/staff/dashboard/locations/${locationId}/overview/financial`,
+    operations: `/v1/staff/dashboard/locations/${locationId}/analytics/operations`,
+    financial: `/v1/staff/dashboard/locations/${locationId}/analytics/financial`,
+    incidents: `/v1/staff/dashboard/locations/${locationId}/analytics/incidents`,
+    kpis: `/v1/staff/dashboard/locations/${locationId}/analytics/kpis`,
+  } as const;
+}
+
+export const locationPaths = locationPathsFor(LOCATION_A.locationId);
 
 const states = [
   "AWAITING_PARKING",
@@ -188,10 +193,10 @@ export function companyAnalytics(
   };
 }
 
-function locationPeriodEnvelope(request: Request) {
+function locationPeriodEnvelope(request: Request, location: Location) {
   return {
-    locationId: LOCATION_A.locationId,
-    timezone: LOCATION_A.timezone,
+    locationId: location.locationId,
+    timezone: location.timezone,
     ...requestPeriod(request),
   };
 }
@@ -200,16 +205,18 @@ export function locationIntelligenceReply(
   path: string,
   request: Request,
   carsHandled = 4,
+  location: Location = LOCATION_A,
 ): FixtureReply | undefined {
-  if (path === locationPaths.stateCounts) {
+  const paths = locationPathsFor(location.locationId);
+  if (path === paths.stateCounts) {
     return { body: { counts: states.map((state, index) => ({ state, count: index + 1 })) } };
   }
-  if (path === locationPaths.queue) return { body: { depth: 2, oldestAgeSeconds: "45.000" } };
-  if (path === locationPaths.financialOverview) {
+  if (path === paths.queue) return { body: { depth: 2, oldestAgeSeconds: "45.000" } };
+  if (path === paths.financialOverview) {
     return { body: currentFinancialOverview() };
   }
-  const envelope = locationPeriodEnvelope(request);
-  if (path === locationPaths.operations) {
+  const envelope = locationPeriodEnvelope(request, location);
+  if (path === paths.operations) {
     return {
       body: {
         ...envelope,
@@ -224,7 +231,7 @@ export function locationIntelligenceReply(
       },
     };
   }
-  if (path === locationPaths.financial) {
+  if (path === paths.financial) {
     return {
       body: {
         ...envelope,
@@ -233,7 +240,7 @@ export function locationIntelligenceReply(
       },
     };
   }
-  if (path === locationPaths.incidents) {
+  if (path === paths.incidents) {
     return {
       body: {
         ...envelope,
@@ -244,7 +251,7 @@ export function locationIntelligenceReply(
       },
     };
   }
-  if (path === locationPaths.kpis) {
+  if (path === paths.kpis) {
     return {
       body: {
         ...envelope,

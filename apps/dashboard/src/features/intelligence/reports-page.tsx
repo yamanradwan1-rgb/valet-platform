@@ -1,7 +1,6 @@
 "use client";
 
 import type { ExportFormat, ReportKind } from "@valet/contracts";
-import { BarChart3 } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -32,10 +31,6 @@ import { exportReportArtifact, reportExportRequest } from "./reports-export-api"
 import type { ReportExportStatus } from "./reports-export-controls";
 import { reportsCopy } from "./reports-copy";
 import {
-  ReportsFileSpreadsheetIcon,
-  ReportsFileTextIcon,
-} from "./reports-reference-icons";
-import {
   downloadArtifact,
   finalExportFailure,
   intelligenceScopeKey,
@@ -50,6 +45,7 @@ import {
   type ReportSelector,
   type ReportSelectorValidation,
 } from "./reports-presentation";
+import { ReportsTable } from "./reports-table";
 import styles from "./reports.module.css";
 import { useIntelligenceRead } from "./use-intelligence-read";
 
@@ -242,24 +238,12 @@ export function ReportsPage() {
   return (
     <div className={styles.page} data-testid="md05-reports-page">
       <header className={styles.header}>
-        <div><h1>{t.title}</h1><p>{t.subtitle}</p></div>
-      </header>
-      <div className={styles.mainContainer}>
-        <div className={styles.tabs}><span>{t.standardReports}</span></div>
-        <div className={styles.tableScroll}>
-          <table className={styles.reportTable}>
-            <thead><tr><th>{t.reportName}</th><th>{t.category}</th><th>{t.description}</th><th>{t.actions}</th></tr></thead>
-            <tbody>{reportRows(t).map((row) => (
-              <tr key={row.kind}>
-                <td><div className={styles.reportName}><span className={`${styles.reportIcon} ${row.iconClass}`}>{row.icon}</span><strong>{row.name}</strong></div></td>
-                <td className={styles.categoryCell}>{row.category}</td>
-                <td className={styles.descriptionCell}>{row.description}</td>
-                <td className={styles.actionCell}><button aria-label={row.accessibleName} className={styles.rowAction} onClick={() => openReport(row.kind)} type="button">{t.preview}</button></td>
-              </tr>
-            ))}</tbody>
-          </table>
+        <div>
+          <h1>{t.title}</h1>
+          <p>{t.subtitle}</p>
         </div>
-      </div>
+      </header>
+      <ReportsTable onPreview={openReport} t={t} />
       {dialogKind ? (
         <ReportPreviewDialog
           data={selector ? preview.data : null}
@@ -282,12 +266,4 @@ export function ReportsPage() {
       ) : null}
     </div>
   );
-}
-
-function reportRows(t: ReturnType<typeof reportsCopy>) {
-  return [
-    { kind: "DAILY" as const, name: t.daily, category: t.dailyCategory, description: t.dailyDescription, accessibleName: t.previewDaily, icon: <ReportsFileTextIcon size={16} />, iconClass: styles.iconBlue },
-    { kind: "WEEKLY" as const, name: t.weekly, category: t.weeklyCategory, description: t.weeklyDescription, accessibleName: t.previewWeekly, icon: <BarChart3 size={16} />, iconClass: styles.iconEmerald },
-    { kind: "MONTHLY" as const, name: t.monthly, category: t.monthlyCategory, description: t.monthlyDescription, accessibleName: t.previewMonthly, icon: <ReportsFileSpreadsheetIcon size={16} />, iconClass: styles.iconSlate },
-  ];
 }

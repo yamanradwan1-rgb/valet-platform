@@ -105,6 +105,28 @@ export function selector(kind: "DAILY" | "WEEKLY" | "MONTHLY") {
   return REPORT_SELECTORS.monthly;
 }
 
+export function exportProof(
+  kind: "DAILY" | "WEEKLY" | "MONTHLY",
+  format: "CSV" | "PDF",
+) {
+  if (kind === "DAILY") {
+    return {
+      body: { kind, format, date: REPORT_SELECTORS.daily },
+      filenameSelector: REPORT_SELECTORS.daily,
+    };
+  }
+  if (kind === "WEEKLY") {
+    return {
+      body: { kind, format, weekStart: REPORT_SELECTORS.weekly },
+      filenameSelector: REPORT_SELECTORS.weekly,
+    };
+  }
+  return {
+    body: { kind, format, month: REPORT_SELECTORS.monthly },
+    filenameSelector: `${REPORT_SELECTORS.monthly}-01`,
+  };
+}
+
 export async function installBinary(
   page: Page,
   reply: (count: number) => BinaryReply,
@@ -112,6 +134,16 @@ export async function installBinary(
   const fixture = new ReportBinaryFixture((_request, count) => reply(count));
   await fixture.install(page);
   return fixture;
+}
+
+export function expectExportRequest(
+  fixture: ReportBinaryFixture,
+  path: string,
+  body: unknown,
+) {
+  expect(fixture.methods).toEqual(["POST"]);
+  expect(fixture.urls.map((url) => new URL(url).pathname)).toEqual([path]);
+  expect(fixture.bodies).toEqual([body]);
 }
 
 export async function expectArtifact(
@@ -135,19 +167,40 @@ export async function expectArtifact(
 
 export async function installObjectUrlRevokeProbe(page: Page) {
   await page.addInitScript(() => {
-    const original = URL.revokeObjectURL.bind(URL);
-    (window as unknown as { __md05ObjectUrlRevokes: number }).__md05ObjectUrlRevokes = 0;
+    const create = URL.createObjectURL.bind(URL);
+    const revoke = URL.revokeObjectURL.bind(URL);
+    const state = window as unknown as {
+      __md05ObjectUrlRevokes: number;
+      __md05ObjectUrls: string[];
+      __md05ObjectUrlHistory: string[];
+    };
+    state.__md05ObjectUrlRevokes = 0;
+    state.__md05ObjectUrls = [];
+    state.__md05ObjectUrlHistory = [];
+    URL.createObjectURL = (object: Blob | MediaSource) => {
+      const url = create(object);
+      state.__md05ObjectUrls.push(url);
+      state.__md05ObjectUrlHistory.push(url);
+      return url;
+    };
     URL.revokeObjectURL = (url: string) => {
-      (window as unknown as { __md05ObjectUrlRevokes: number }).__md05ObjectUrlRevokes += 1;
-      original(url);
+      state.__md05ObjectUrlRevokes += 1;
+      state.__md05ObjectUrls = state.__md05ObjectUrls.filter((candidate) => candidate !== url);
+      revoke(url);
     };
   });
 }
 
 export async function expectObjectUrlRevoked(page: Page, count = 1) {
-  const revokes = await page.evaluate(() =>
-    (window as unknown as { __md05ObjectUrlRevokes: number }).__md05ObjectUrlRevokes);
-  expect(revokes).toBe(count);
+  const state = await page.evaluate(() => ({
+    revokes: (window as unknown as { __md05ObjectUrlRevokes: number }).__md05ObjectUrlRevokes,
+    urls: (window as unknown as { __md05ObjectUrls: string[] }).__md05ObjectUrls,
+    history: (window as unknown as { __md05ObjectUrlHistory: string[] }).__md05ObjectUrlHistory,
+  }));
+  expect(state.revokes).toBe(count);
+  expect(state.urls).toEqual([]);
+  expect(state.history).toHaveLength(count);
+  return state.history;
 }
 
 export async function proveFinalExportDenials(page: Page) {

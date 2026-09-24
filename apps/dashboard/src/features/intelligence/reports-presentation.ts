@@ -30,6 +30,7 @@ export type ReportSelectorValidation =
 
 export interface ReportPresentationRow {
   readonly label: string;
+  readonly labelBidi?: "code" | "number";
   readonly value: string | null;
   readonly bidi?: "code" | "number";
 }
@@ -126,21 +127,22 @@ function locationSections(report: LocationReport, t: ReturnType<typeof reportsCo
     rows: durationKeys.flatMap((key) => {
       const metric = summary.metrics[key];
       return [
-        { label: `${key}.averageSeconds`, value: metric.averageSeconds, bidi: "number" },
-        { label: `${key}.sampleCount`, value: String(metric.sampleCount), bidi: "number" },
+        { label: `${key}.averageSeconds`, labelBidi: "code", value: metric.averageSeconds, bidi: "number" },
+        { label: `${key}.sampleCount`, labelBidi: "code", value: String(metric.sampleCount), bidi: "number" },
       ] satisfies ReportPresentationRow[];
     }),
   }];
   sections.push(cohort(t.carsPerDay, summary.carsHandledPerDay.map((day) => ({
     label: day.date,
+    labelBidi: "number" as const,
     value: String(day.handledCount),
     bidi: "number" as const,
   })), t.emptyCohort));
   sections.push(cohort(t.finance, summary.currencies.flatMap((group) => currencyRows(group)), t.emptyCohort));
   sections.push(cohort(t.cash, summary.cashReconciliation.flatMap((entry) => [
-    { label: `${entry.currency}.cashExpectedTotal`, value: entry.cashExpectedTotal, bidi: "number" as const },
-    { label: `${entry.currency}.cashReportedTotal`, value: entry.cashReportedTotal, bidi: "number" as const },
-    { label: `${entry.currency}.cashVarianceTotal`, value: entry.cashVarianceTotal, bidi: "number" as const },
+    { label: `${entry.currency}.cashExpectedTotal`, labelBidi: "code" as const, value: entry.cashExpectedTotal, bidi: "number" as const },
+    { label: `${entry.currency}.cashReportedTotal`, labelBidi: "code" as const, value: entry.cashReportedTotal, bidi: "number" as const },
+    { label: `${entry.currency}.cashVarianceTotal`, labelBidi: "code" as const, value: entry.cashVarianceTotal, bidi: "number" as const },
   ]), t.emptyCohort));
   sections.push(incidentSection(summary.incidents, t.incidents, t.emptyCohort));
   if ("dailyActivity" in report) sections.push(dailySection(report.dailyActivity, t.dailyActivity, t.emptyCohort));
@@ -156,23 +158,24 @@ function companySections(report: CompanyReport, t: ReturnType<typeof reportsCopy
       rows: durationKeys.flatMap((key) => {
         const metric = summary.operational.metrics[key];
         return [
-          { label: `${key}.averageSeconds`, value: metric.averageSeconds, bidi: "number" as const },
-          { label: `${key}.sampleCount`, value: String(metric.sampleCount), bidi: "number" as const },
-          { label: `${key}.contributingLocationCount`, value: String(metric.contributingLocationCount), bidi: "number" as const },
+          { label: `${key}.averageSeconds`, labelBidi: "code" as const, value: metric.averageSeconds, bidi: "number" as const },
+          { label: `${key}.sampleCount`, labelBidi: "code" as const, value: String(metric.sampleCount), bidi: "number" as const },
+          { label: `${key}.contributingLocationCount`, labelBidi: "code" as const, value: String(metric.contributingLocationCount), bidi: "number" as const },
         ];
       }),
     },
   ];
   sections.push(cohort(t.carsPerDay, summary.operational.carsHandledPerDay.map((day) => ({
     label: day.date,
+    labelBidi: "number" as const,
     value: String(day.handledCount),
     bidi: "number" as const,
   })), t.emptyCohort));
   sections.push(cohort(t.finance, summary.financial.currencies.flatMap((group) => currencyRows(group)), t.emptyCohort));
   sections.push(cohort(t.cash, summary.financial.cashReconciliation.flatMap((entry) => [
-    { label: `${entry.currency}.cashExpectedTotal`, value: entry.cashExpectedTotal, bidi: "number" as const },
-    { label: `${entry.currency}.cashReportedTotal`, value: entry.cashReportedTotal, bidi: "number" as const },
-    { label: `${entry.currency}.cashVarianceTotal`, value: entry.cashVarianceTotal, bidi: "number" as const },
+    { label: `${entry.currency}.cashExpectedTotal`, labelBidi: "code" as const, value: entry.cashExpectedTotal, bidi: "number" as const },
+    { label: `${entry.currency}.cashReportedTotal`, labelBidi: "code" as const, value: entry.cashReportedTotal, bidi: "number" as const },
+    { label: `${entry.currency}.cashVarianceTotal`, labelBidi: "code" as const, value: entry.cashVarianceTotal, bidi: "number" as const },
   ]), t.emptyCohort));
   sections.push(incidentSection(summary.incidents, t.incidents, t.emptyCohort));
   sections.push(companyKpis(report, t.kpis));
@@ -187,44 +190,44 @@ function cohort(title: string, rows: readonly ReportPresentationRow[], empty: st
 function currencyRows(group: { currency: string; paidPaymentCount: number; collectedAmountTotal: string; tipAmountTotal: string; digitalPaymentRate: { numerator: number; denominator: number; percentage: string | null }; succeededRefundAmountTotal: string; validationRate: { numerator: number; denominator: number; percentage: string | null }; currentValidationAmountTotal: string }): ReportPresentationRow[] {
   const c = group.currency;
   return [
-    { label: `${c}.paidPaymentCount`, value: String(group.paidPaymentCount), bidi: "number" },
-    { label: `${c}.collectedAmountTotal`, value: group.collectedAmountTotal, bidi: "number" },
-    { label: `${c}.tipAmountTotal`, value: group.tipAmountTotal, bidi: "number" },
-    { label: `${c}.digitalPaymentRate.numerator`, value: String(group.digitalPaymentRate.numerator), bidi: "number" },
-    { label: `${c}.digitalPaymentRate.denominator`, value: String(group.digitalPaymentRate.denominator), bidi: "number" },
-    { label: `${c}.digitalPaymentRate.percentage`, value: group.digitalPaymentRate.percentage, bidi: "number" },
-    { label: `${c}.succeededRefundAmountTotal`, value: group.succeededRefundAmountTotal, bidi: "number" },
-    { label: `${c}.validationRate.numerator`, value: String(group.validationRate.numerator), bidi: "number" },
-    { label: `${c}.validationRate.denominator`, value: String(group.validationRate.denominator), bidi: "number" },
-    { label: `${c}.validationRate.percentage`, value: group.validationRate.percentage, bidi: "number" },
-    { label: `${c}.currentValidationAmountTotal`, value: group.currentValidationAmountTotal, bidi: "number" },
+    { label: `${c}.paidPaymentCount`, labelBidi: "code", value: String(group.paidPaymentCount), bidi: "number" },
+    { label: `${c}.collectedAmountTotal`, labelBidi: "code", value: group.collectedAmountTotal, bidi: "number" },
+    { label: `${c}.tipAmountTotal`, labelBidi: "code", value: group.tipAmountTotal, bidi: "number" },
+    { label: `${c}.digitalPaymentRate.numerator`, labelBidi: "code", value: String(group.digitalPaymentRate.numerator), bidi: "number" },
+    { label: `${c}.digitalPaymentRate.denominator`, labelBidi: "code", value: String(group.digitalPaymentRate.denominator), bidi: "number" },
+    { label: `${c}.digitalPaymentRate.percentage`, labelBidi: "code", value: group.digitalPaymentRate.percentage, bidi: "number" },
+    { label: `${c}.succeededRefundAmountTotal`, labelBidi: "code", value: group.succeededRefundAmountTotal, bidi: "number" },
+    { label: `${c}.validationRate.numerator`, labelBidi: "code", value: String(group.validationRate.numerator), bidi: "number" },
+    { label: `${c}.validationRate.denominator`, labelBidi: "code", value: String(group.validationRate.denominator), bidi: "number" },
+    { label: `${c}.validationRate.percentage`, labelBidi: "code", value: group.validationRate.percentage, bidi: "number" },
+    { label: `${c}.currentValidationAmountTotal`, labelBidi: "code", value: group.currentValidationAmountTotal, bidi: "number" },
   ];
 }
 
 function incidentSection(incidents: ReportResponse["summary"]["incidents"], title: string, empty: string): ReportPresentationSection {
   return { title, rows: [
-    { label: "incidentCount", value: String(incidents.incidentCount), bidi: "number" },
-    { label: "incidentsPer1000.numerator", value: String(incidents.incidentsPer1000.numerator), bidi: "number" },
-    { label: "incidentsPer1000.denominator", value: String(incidents.incidentsPer1000.denominator), bidi: "number" },
-    { label: "incidentsPer1000.value", value: incidents.incidentsPer1000.value, bidi: "number" },
-    ...(incidents.severityCounts.length ? incidents.severityCounts.map((row) => ({ label: `severity.${row.severity}`, value: String(row.count), bidi: "number" as const })) : [{ label: empty, value: "" }]),
-    ...incidents.typeCounts.map((row) => ({ label: `type.${row.type}`, value: String(row.count), bidi: "number" as const })),
+    { label: "incidentCount", labelBidi: "code", value: String(incidents.incidentCount), bidi: "number" },
+    { label: "incidentsPer1000.numerator", labelBidi: "code", value: String(incidents.incidentsPer1000.numerator), bidi: "number" },
+    { label: "incidentsPer1000.denominator", labelBidi: "code", value: String(incidents.incidentsPer1000.denominator), bidi: "number" },
+    { label: "incidentsPer1000.value", labelBidi: "code", value: incidents.incidentsPer1000.value, bidi: "number" },
+    ...(incidents.severityCounts.length ? incidents.severityCounts.map((row) => ({ label: `severity.${row.severity}`, labelBidi: "code" as const, value: String(row.count), bidi: "number" as const })) : [{ label: empty, value: "" }]),
+    ...incidents.typeCounts.map((row) => ({ label: `type.${row.type}`, labelBidi: "code" as const, value: String(row.count), bidi: "number" as const })),
   ] };
 }
 
 function companyCoverage(report: CompanyDailyReportResponse | CompanyPeriodicReportResponse, empty: string, title: string): ReportPresentationSection {
   const coverage = report.summary.coverage;
   const rows: ReportPresentationRow[] = [
-    { label: "totalLocationCount", value: String(coverage.totalLocationCount), bidi: "number" },
-    { label: "activeLocationCount", value: String(coverage.activeLocationCount), bidi: "number" },
-    { label: "inactiveLocationCount", value: String(coverage.inactiveLocationCount), bidi: "number" },
+    { label: "totalLocationCount", labelBidi: "code", value: String(coverage.totalLocationCount), bidi: "number" },
+    { label: "activeLocationCount", labelBidi: "code", value: String(coverage.activeLocationCount), bidi: "number" },
+    { label: "inactiveLocationCount", labelBidi: "code", value: String(coverage.inactiveLocationCount), bidi: "number" },
   ];
   for (const zone of coverage.timezoneBoundaries) rows.push(
-    { label: `${zone.timezone}.locationCount`, value: String(zone.locationCount), bidi: "number" },
-    { label: `${zone.timezone}.activeLocationCount`, value: String(zone.activeLocationCount), bidi: "number" },
-    { label: `${zone.timezone}.inactiveLocationCount`, value: String(zone.inactiveLocationCount), bidi: "number" },
-    { label: `${zone.timezone}.periodStartUtc`, value: zone.periodStartUtc, bidi: "code" },
-    { label: `${zone.timezone}.periodEndUtc`, value: zone.periodEndUtc, bidi: "code" },
+    { label: `${zone.timezone}.locationCount`, labelBidi: "code", value: String(zone.locationCount), bidi: "number" },
+    { label: `${zone.timezone}.activeLocationCount`, labelBidi: "code", value: String(zone.activeLocationCount), bidi: "number" },
+    { label: `${zone.timezone}.inactiveLocationCount`, labelBidi: "code", value: String(zone.inactiveLocationCount), bidi: "number" },
+    { label: `${zone.timezone}.periodStartUtc`, labelBidi: "code", value: zone.periodStartUtc, bidi: "code" },
+    { label: `${zone.timezone}.periodEndUtc`, labelBidi: "code", value: zone.periodEndUtc, bidi: "code" },
   );
   if (!coverage.timezoneBoundaries.length) rows.push({ label: empty, value: "" });
   return { title, rows };
@@ -233,19 +236,19 @@ function companyCoverage(report: CompanyDailyReportResponse | CompanyPeriodicRep
 function companyKpis(report: CompanyDailyReportResponse | CompanyPeriodicReportResponse, title: string): ReportPresentationSection {
   const k = report.summary.kpis;
   return { title, rows: [
-    ...Object.entries(k.slaCompliance).map(([key, value]) => ({ label: `slaCompliance.${key}`, value: value === null ? null : String(value), bidi: "number" as const })),
-    ...Object.entries(k.carsPerActiveEmployee).map(([key, value]) => ({ label: `carsPerActiveEmployee.${key}`, value: value === null ? null : String(value), bidi: "number" as const })),
-    ...Object.entries(k.carsHandedOff).map(([key, value]) => ({ label: `carsHandedOff.${key}`, value: String(value), bidi: "number" as const })),
-    { label: "keyExceptions.count", value: String(k.keyExceptions.count), bidi: "number" },
-    ...k.keyExceptions.byType.map((entry) => ({ label: `keyExceptions.${entry.type}`, value: String(entry.count), bidi: "number" as const })),
+    ...Object.entries(k.slaCompliance).map(([key, value]) => ({ label: `slaCompliance.${key}`, labelBidi: "code" as const, value: value === null ? null : String(value), bidi: "number" as const })),
+    ...Object.entries(k.carsPerActiveEmployee).map(([key, value]) => ({ label: `carsPerActiveEmployee.${key}`, labelBidi: "code" as const, value: value === null ? null : String(value), bidi: "number" as const })),
+    ...Object.entries(k.carsHandedOff).map(([key, value]) => ({ label: `carsHandedOff.${key}`, labelBidi: "code" as const, value: String(value), bidi: "number" as const })),
+    { label: "keyExceptions.count", labelBidi: "code", value: String(k.keyExceptions.count), bidi: "number" },
+    ...k.keyExceptions.byType.map((entry) => ({ label: `keyExceptions.${entry.type}`, labelBidi: "code" as const, value: String(entry.count), bidi: "number" as const })),
   ] };
 }
 
 function dailySection(a: DailyReportResponse["dailyActivity"], title: string, empty: string): ReportPresentationSection {
   return { title, rows: [
-    { label: "retrievalRequestedCount", value: String(a.retrievalRequestedCount), bidi: "number" },
-    ...(a.dispatchEventCounts.length ? a.dispatchEventCounts.map((row) => ({ label: `dispatch.${row.taskType}.${row.eventType}`, value: String(row.count), bidi: "number" as const })) : [{ label: empty, value: "" }]),
-    ...a.keyCustodyEventCounts.map((row) => ({ label: `keyCustody.${row.eventType}`, value: String(row.count), bidi: "number" as const })),
+    { label: "retrievalRequestedCount", labelBidi: "code", value: String(a.retrievalRequestedCount), bidi: "number" },
+    ...(a.dispatchEventCounts.length ? a.dispatchEventCounts.map((row) => ({ label: `dispatch.${row.taskType}.${row.eventType}`, labelBidi: "code" as const, value: String(row.count), bidi: "number" as const })) : [{ label: empty, value: "" }]),
+    ...a.keyCustodyEventCounts.map((row) => ({ label: `keyCustody.${row.eventType}`, labelBidi: "code" as const, value: String(row.count), bidi: "number" as const })),
   ] };
 }
 

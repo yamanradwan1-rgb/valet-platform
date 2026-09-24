@@ -121,7 +121,7 @@ export function OverviewActivityChart({
           <BidiText>{points[hoveredIndex]!.date}</BidiText>
         </div>
       ) : null}
-      <table className={styles.visuallyHidden}>
+      <table className={styles.visuallyHidden} data-testid="overview-activity-text">
         <caption>{t.activity}</caption>
         <thead><tr><th>{t.selectedPeriod}</th><th>{t.carsHandled}</th></tr></thead>
         <tbody>

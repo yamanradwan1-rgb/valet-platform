@@ -23,3 +23,7 @@ export function BidiText({
     </bdi>
   );
 }
+
+export function BidiIsolate({ children }: { readonly children: ReactNode }) {
+  return <bdi dir="ltr">{children}</bdi>;
+}

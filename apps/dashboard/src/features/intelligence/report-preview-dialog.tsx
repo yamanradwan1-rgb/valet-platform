@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { X } from "lucide-react";
 
 import { FocusDialog } from "../../components/presentation/focus-dialog";
-import { BidiText } from "../../components/presentation/panel";
+import { BidiIsolate, BidiText } from "../../components/presentation/panel";
 import type { ReportResponse, ReportSelectorValidation } from "./reports-presentation";
 import { reportPresentation } from "./reports-presentation";
 import type { DashboardLocale } from "../../lib/i18n/locale";
@@ -93,7 +93,11 @@ export function ReportPreviewDialog(props: {
                   <dl>
                     {section.rows.map((row, index) => (
                       <div className={dialogStyles.previewRow} key={`${row.label}:${index}`}>
-                        <dt>{row.label}</dt>
+                        <dt>
+                          {row.labelBidi
+                            ? <BidiIsolate>{row.label}</BidiIsolate>
+                            : row.label}
+                        </dt>
                         <dd>
                           {row.value === null
                             ? props.t.unavailable

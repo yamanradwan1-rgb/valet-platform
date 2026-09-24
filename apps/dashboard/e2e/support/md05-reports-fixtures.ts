@@ -151,6 +151,8 @@ export type BinaryReply =
 
 export class ReportBinaryFixture {
   readonly bodies: unknown[] = [];
+  readonly methods: string[] = [];
+  readonly urls: string[] = [];
   posts = 0;
 
   constructor(private readonly reply: (request: Request, count: number) => BinaryReply) {}
@@ -160,6 +162,8 @@ export class ReportBinaryFixture {
       const request = route.request();
       this.posts += 1;
       this.bodies.push(request.postDataJSON());
+      this.methods.push(request.method());
+      this.urls.push(request.url());
       await this.fulfill(route, this.reply(request, this.posts));
     });
   }

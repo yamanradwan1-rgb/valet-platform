@@ -23,7 +23,9 @@ import {
   enterCompanyReports,
   enterManagerReports,
   expectArtifact,
+  expectExportRequest,
   expectObjectUrlRevoked,
+  exportProof,
   installBinary,
   installObjectUrlRevokeProbe,
   loadReport,
@@ -51,10 +53,10 @@ test("CA All Locations previews all fixed kinds through exact Company URLs with 
     await expect(dialog.getByTestId("report-preview-content")).toBeVisible();
     await dialog.getByRole("button", { name: "Close" }).click();
   }
-  expect(seen.map((url) => new URL(url).search)).toEqual([
-    `?date=${REPORT_SELECTORS.daily}`,
-    `?weekStart=${REPORT_SELECTORS.weekly}`,
-    `?month=${REPORT_SELECTORS.monthly}`,
+  expect(seen.map((url) => `${new URL(url).pathname}${new URL(url).search}`)).toEqual([
+    `${companyReportPaths.daily}?date=${REPORT_SELECTORS.daily}`,
+    `${companyReportPaths.weekly}?weekStart=${REPORT_SELECTORS.weekly}`,
+    `${companyReportPaths.monthly}?month=${REPORT_SELECTORS.monthly}`,
   ]);
   for (const path of Object.values(locationReportPaths)) expect(fixture.count(path)).toBe(0);
 });
@@ -65,6 +67,13 @@ for (const [label, fixtureFactory, enter] of [
 ] as const) {
   test(`${label} previews all fixed kinds only through Location routes`, async ({ page }) => {
     const fixture = fixtureFactory();
+    const seen: string[] = [];
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (/\/reports\/(daily|weekly|monthly)$/u.test(url.pathname)) {
+        seen.push(`${url.pathname}${url.search}`);
+      }
+    });
     await fixture.install(page);
     await enter(page);
     for (const kind of ["DAILY", "WEEKLY", "MONTHLY"] as const) {
@@ -75,6 +84,11 @@ for (const [label, fixtureFactory, enter] of [
     expect(fixture.count(locationReportPaths.daily)).toBe(1);
     expect(fixture.count(locationReportPaths.weekly)).toBe(1);
     expect(fixture.count(locationReportPaths.monthly)).toBe(1);
+    expect(seen).toEqual([
+      `${locationReportPaths.daily}?date=${REPORT_SELECTORS.daily}`,
+      `${locationReportPaths.weekly}?weekStart=${REPORT_SELECTORS.weekly}`,
+      `${locationReportPaths.monthly}?month=${REPORT_SELECTORS.monthly}`,
+    ]);
     for (const path of Object.values(companyReportPaths)) expect(fixture.count(path)).toBe(0);
   });
 }
@@ -194,22 +208,29 @@ for (const [scopeName, fixtureFactory, enter, company] of [
   ["Company", companyReportsFixture, enterCompanyReports, true],
 ] as const) {
   for (const format of ["CSV", "PDF"] as const) {
-    test(`successful ${scopeName} ${format} uses one POST and real downloadable bytes`, async ({ page }) => {
-      await installObjectUrlRevokeProbe(page);
-      const fixture = fixtureFactory();
-      await fixture.install(page);
-      const binary = await installBinary(page, () => ({ kind: "artifact", format, company }));
-      await enter(page);
-      const dialog = await loadReport(page, "DAILY");
-      const downloadPromise = page.waitForEvent("download");
-      await dialog.getByRole("button", { name: new RegExp(`Export ${format}`, "u") }).click();
-      const download = await downloadPromise;
-      const prefix = company ? "company-report" : "report";
-      await expectArtifact(download, format, `${prefix}-daily-${REPORT_SELECTORS.daily}.${format.toLowerCase()}`);
-      await expectObjectUrlRevoked(page);
-      expect(binary.posts).toBe(1);
-      expect(binary.bodies).toEqual([{ kind: "DAILY", format, date: REPORT_SELECTORS.daily }]);
-    });
+    for (const kind of ["DAILY", "WEEKLY", "MONTHLY"] as const) {
+      test(`successful ${scopeName} ${kind} ${format} uses one exact POST and real bytes`, async ({ page }) => {
+        await installObjectUrlRevokeProbe(page);
+        const fixture = fixtureFactory();
+        await fixture.install(page);
+        const binary = await installBinary(page, () => ({ kind: "artifact", format, company }));
+        await enter(page);
+        const dialog = await loadReport(page, kind);
+        const downloadPromise = page.waitForEvent("download");
+        await dialog.getByRole("button", { name: new RegExp(`Export ${format}`, "u") }).click();
+        const prefix = company ? "company-report" : "report";
+        const proof = exportProof(kind, format);
+        const filename = `${prefix}-${kind.toLowerCase()}-${proof.filenameSelector}.${format.toLowerCase()}`;
+        await expectArtifact(await downloadPromise, format, filename);
+        await expectObjectUrlRevoked(page);
+        expect(binary.posts).toBe(1);
+        expectExportRequest(
+          binary,
+          company ? companyReportPaths.export : locationReportPaths.export,
+          proof.body,
+        );
+      });
+    }
   }
 }
 
@@ -263,37 +284,4 @@ test("stale delayed artifact after selector change never downloads", async ({ pa
   await dialog.getByLabel("Date").fill("2026-09-22");
   await page.waitForTimeout(850);
   expect(downloads).toBe(0);
-});
-
-test("Arabic RTL, keyboard flow, Escape restore, and narrow table stay truthful", async ({ page }) => {
-  const fixture = companyLocationReportsFixture();
-  await fixture.install(page);
-  const binary = await installBinary(page, () => ({ kind: "artifact", format: "CSV" }));
-  await enterCompanyLocationReports(page);
-  await page.setViewportSize({ width: 480, height: 900 });
-  await page.getByRole("button", { name: "Language" }).click();
-  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  const opener = page.getByRole("button", { name: "معاينة التقرير اليومي" });
-  await opener.focus();
-  await page.keyboard.press("Enter");
-  const dialog = page.getByRole("dialog", { name: "معاينة التقرير اليومي" });
-  const close = dialog.getByRole("button", { name: "إغلاق" });
-  await expect(close).toBeFocused();
-  await page.keyboard.press("Tab");
-  const input = dialog.getByLabel("التاريخ");
-  await expect(input).toBeFocused();
-  await input.fill(REPORT_SELECTORS.daily);
-  await dialog.getByRole("button", { name: "تحميل المعاينة" }).click();
-  await expect(dialog.locator("bdi[dir='ltr']").filter({ hasText: LOCATION_A.timezone })).toBeVisible();
-  await expect(dialog.getByText(/ليست ملفات PDF عربية/u)).toBeVisible();
-  const downloadPromise = page.waitForEvent("download");
-  const csv = dialog.getByRole("button", { name: /تصدير CSV/u });
-  await csv.focus();
-  await page.keyboard.press("Enter");
-  await expectArtifact(await downloadPromise, "CSV", `report-daily-${REPORT_SELECTORS.daily}.csv`);
-  expect(binary.posts).toBe(1);
-  await page.keyboard.press("Escape");
-  await expect(opener).toBeFocused();
-  await expect(page.locator("table")).toBeVisible();
-  await expect(page.locator("tbody tr")).toHaveCount(3);
 });

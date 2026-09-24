@@ -3,18 +3,9 @@
 import type { AnalyticsPeriodQuery } from "@valet/contracts";
 import { useCallback, useSyncExternalStore } from "react";
 
-const canonicalDate = /^\d{4}-\d{2}-\d{2}$/;
-const periodChangedEvent = "md05:period-changed";
+import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
 
-export function explicitAnalyticsPeriod(
-  from: string,
-  to: string,
-): AnalyticsPeriodQuery | null {
-  if (!canonicalDate.test(from) || !canonicalDate.test(to) || from > to) {
-    return null;
-  }
-  return { from, to };
-}
+const periodChangedEvent = "md05:period-changed";
 
 function periodKeyFromCurrentUrl(): string {
   if (typeof window === "undefined") return "";

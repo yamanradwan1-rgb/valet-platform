@@ -112,7 +112,7 @@ test("a protected GET 401 performs one refresh and one replay", async ({
 
   await signIn(page);
   await expect(page.getByRole("button", { name: ORG_A.name })).toBeVisible();
-  expect(fixture.count(managementPath)).toBe(3);
+  await expect.poll(() => fixture.count(managementPath)).toBe(3);
   expect(fixture.count("/v1/staff/auth/refresh")).toBe(2);
   expect(authorizations).toHaveLength(3);
   expect(authorizations[0]).not.toBe(authorizations[1]);

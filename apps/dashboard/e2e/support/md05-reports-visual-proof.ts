@@ -191,19 +191,19 @@ async function setTheme(page: Page, theme: "light" | "dark") {
 
 export async function proveReportsReferenceGeometry(page: Page) {
   await enterReports(page);
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await expectPageGeometry(page, false, false);
-  await expectDialog(page, false);
-  await setTheme(page, "dark");
-  await expectPageGeometry(page, false, true);
-  await expectDialog(page, true);
-  await page.setViewportSize({ width: 480, height: 900 });
-  await expectPageGeometry(page, true, true);
-  await setTheme(page, "light");
-  await page.getByRole("button", { name: "Language" }).click();
-  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  await expectPageGeometry(page, true, false);
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await expectPageGeometry(page, false, false);
-  await expectDialog(page, false);
+  for (const locale of ["en", "ar"] as const) {
+    if (locale === "ar") {
+      await page.getByRole("button", { name: "Language" }).click();
+      await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    }
+    for (const narrow of [false, true]) {
+      await page.setViewportSize({ width: narrow ? 480 : 1280, height: 900 });
+      for (const theme of ["light", "dark"] as const) {
+        await setTheme(page, theme);
+        const dark = theme === "dark";
+        await expectPageGeometry(page, narrow, dark);
+        await expectDialog(page, dark);
+      }
+    }
+  }
 }

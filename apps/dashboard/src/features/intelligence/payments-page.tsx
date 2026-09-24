@@ -13,6 +13,7 @@ import {
   readLocationFinancialAnalytics,
   readLocationFinancialOverview,
 } from "./intelligence-api";
+import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
 import periodStyles from "./intelligence-period.module.css";
 import { intelligenceScope } from "./intelligence-scope";
 import { PaymentsBreakdownTable } from "./payments-breakdown-table";
@@ -25,10 +26,7 @@ import {
 import { PaymentsSummaryGrid } from "./payments-summary-grid";
 import styles from "./payments.module.css";
 import { useIntelligenceRead } from "./use-intelligence-read";
-import {
-  explicitAnalyticsPeriod,
-  useExplicitAnalyticsPeriod,
-} from "./use-explicit-analytics-period";
+import { useExplicitAnalyticsPeriod } from "./use-explicit-analytics-period";
 
 export function PaymentsPage() {
   const dashboard = useProtectedDashboard();

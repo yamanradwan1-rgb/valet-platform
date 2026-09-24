@@ -11,19 +11,22 @@ async function columns(locator: Locator) {
   );
 }
 
-async function expectCardSurface(card: Locator, shadowOpacity: string) {
+async function expectCardSurface(card: Locator, shadowOpacity: string, dark: boolean) {
   const { common } = MD05_VISUAL_CONTRACT;
   await expect(card).toHaveCSS("padding", common.cardPadding);
   await expect(card).toHaveCSS("border-radius", common.cardRadius);
-  await expect(card).toHaveCSS("border-color", common.lightBorder);
-  await expect(card).toHaveCSS("background-color", common.lightSurface);
+  if (!dark) await expect(card).toHaveCSS("border-color", common.lightBorder);
+  await expect(card).toHaveCSS(
+    "background-color",
+    dark ? common.darkSurface : common.lightSurface,
+  );
   await expect(card).toHaveCSS(
     "box-shadow",
     new RegExp("rgba\\(0, 0, 0, " + shadowOpacity + "\\) 0px 1px 2px", "u"),
   );
 }
 
-async function expectPeriodDialog(page: Page) {
+async function expectPeriodDialog(page: Page, dark = false) {
   const { common, periodDialog } = MD05_VISUAL_CONTRACT;
   const dialog = page.getByRole("dialog");
   const backdrop = dialog.locator("..");
@@ -32,11 +35,14 @@ async function expectPeriodDialog(page: Page) {
   await expect(backdrop).toHaveCSS("backdrop-filter", periodDialog.backdropBlur);
   await expect(dialog).toHaveCSS("max-width", periodDialog.panelMaxWidth);
   await expect(dialog).toHaveCSS("border-radius", periodDialog.panelRadius);
-  await expect(dialog).toHaveCSS("border-color", common.lightBorder);
-  await expect(dialog).toHaveCSS("background-color", common.lightSurface);
+  if (!dark) await expect(dialog).toHaveCSS("border-color", common.lightBorder);
+  await expect(dialog).toHaveCSS(
+    "background-color",
+    dark ? common.darkSurface : common.lightSurface,
+  );
   const header = dialog.locator("header");
   await expect(header).toHaveCSS("padding", periodDialog.headerPadding);
-  await expect(header).toHaveCSS("border-bottom-color", periodDialog.headerBorder);
+  if (!dark) await expect(header).toHaveCSS("border-bottom-color", periodDialog.headerBorder);
   await expect(header.getByRole("heading")).toHaveCSS("font-size", periodDialog.headingFontSize);
   await expect(header.getByRole("heading")).toHaveCSS("font-weight", periodDialog.headingWeight);
   const close = header.locator("..").getByRole("button", { name: /Cancel|إلغاء/u }).last();
@@ -53,14 +59,24 @@ async function expectPeriodDialog(page: Page) {
   await expect(from).toHaveCSS("padding-left", periodDialog.inputPaddingInline);
   await expect(from).toHaveCSS("padding-top", periodDialog.inputPaddingBlock);
   await expect(from).toHaveCSS("border-radius", periodDialog.inputRadius);
-  await expect(from).toHaveCSS("background-color", periodDialog.inputBackground);
-  await expect(from).toHaveCSS("border-color", common.lightBorder);
+  if (!dark) {
+    await expect(from).toHaveCSS("background-color", periodDialog.inputBackground);
+    await expect(from).toHaveCSS("border-color", common.lightBorder);
+  }
   const apply = dialog.getByRole("button", { name: /Apply|تطبيق/u });
   await expect(apply).toHaveCSS("padding-left", periodDialog.actionPaddingInline);
   await expect(apply).toHaveCSS("padding-top", periodDialog.actionPaddingBlock);
   await expect(apply).toHaveCSS("border-radius", periodDialog.actionRadius);
   await expect(apply).toHaveCSS("font-weight", periodDialog.actionWeight);
   await expect(apply).toHaveCSS("background-color", periodDialog.primary);
+}
+
+async function expectPeriodDialogRoundTrip(page: Page, testId: string, dark: boolean) {
+  const opener = page.locator(`[data-testid="${testId}"] button[aria-haspopup="dialog"]`);
+  await opener.click();
+  await expectPeriodDialog(page, dark);
+  await page.keyboard.press("Escape");
+  await expect(opener).toBeFocused();
 }
 
 async function selectPeriod(page: Page) {
@@ -72,7 +88,7 @@ async function selectPeriod(page: Page) {
   await dialog.getByRole("button", { name: "Apply" }).click();
 }
 
-async function expectOverview(page: Page, metricColumns: number, lowerColumns: number) {
+async function expectOverview(page: Page, metricColumns: number, lowerColumns: number, dark: boolean) {
   const { activityChart, common, overview } = MD05_VISUAL_CONTRACT;
   const root = page.getByTestId("md05-overview-page");
   await expect(root).toHaveCSS("row-gap", common.pageGap);
@@ -90,7 +106,7 @@ async function expectOverview(page: Page, metricColumns: number, lowerColumns: n
   await expect.poll(() => columns(grid)).toBe(metricColumns);
   const cards = root.locator('[class*="metricCard"]');
   await expect(cards).toHaveCount(4);
-  await expectCardSurface(cards.first(), overview.cardShadowOpacity);
+  await expectCardSurface(cards.first(), overview.cardShadowOpacity, dark);
   const value = cards.first().locator('[class*="metricValue"]');
   await expect(value).toHaveCSS("font-size", overview.valueFontSize);
   await expect(value).toHaveCSS("font-weight", overview.valueWeight);
@@ -101,18 +117,18 @@ async function expectOverview(page: Page, metricColumns: number, lowerColumns: n
   await expect(icon).toHaveCSS("width", overview.iconSize);
   await expect(icon).toHaveCSS("height", overview.iconSize);
   await expect(icon).toHaveCSS("border-radius", overview.iconRadius);
-  await expect(icon).toHaveCSS("background-color", overview.iconBackground);
+  if (!dark) await expect(icon).toHaveCSS("background-color", overview.iconBackground);
   const context = cards.first().locator('[class*="metricPill"]');
   await expect(context).toHaveCSS("padding-left", overview.contextPaddingInline);
   await expect(context).toHaveCSS("padding-top", overview.contextPaddingBlock);
-  await expect(context).toHaveCSS("border-color", overview.contextBorder);
+  if (!dark) await expect(context).toHaveCSS("border-color", overview.contextBorder);
   const lower = root.locator('[class*="lowerGrid"]');
   await expect(lower).toHaveCSS("gap", overview.lowerGap);
   await expect.poll(() => columns(lower)).toBe(lowerColumns);
   const activity = root.getByRole("heading", { name: /Vehicle Activity|نشاط المركبات/u }).locator("..").locator("..");
   await expect(activity).toHaveCSS("padding", common.cardPadding);
   await expect(activity).toHaveCSS("border-radius", common.cardRadius);
-  await expect(activity).toHaveCSS("border-color", common.lightBorder);
+  if (!dark) await expect(activity).toHaveCSS("border-color", common.lightBorder);
   const activityTitle = activity.getByRole("heading");
   await expect(activityTitle).toHaveCSS("font-size", overview.activityTitleFontSize);
   await expect(activityTitle).toHaveCSS("font-weight", overview.activityTitleWeight);
@@ -132,7 +148,7 @@ async function expectOverview(page: Page, metricColumns: number, lowerColumns: n
   await expect(chart.locator('[class*="chartLine"]')).toHaveCSS("stroke-width", activityChart.lineWidth);
 }
 
-async function expectPayments(page: Page, summaryColumns: number) {
+async function expectPayments(page: Page, summaryColumns: number, dark: boolean) {
   const { common, payments, validation: validationContract } = MD05_VISUAL_CONTRACT;
   const root = page.getByTestId("md05-payments-page");
   await expect(root).toHaveCSS("row-gap", common.pageGap);
@@ -155,7 +171,7 @@ async function expectPayments(page: Page, summaryColumns: number) {
   await expect.poll(() => columns(grid)).toBe(summaryColumns);
   const cards = root.locator('[class*="summaryCard"]');
   await expect(cards).toHaveCount(4);
-  await expectCardSurface(cards.first(), payments.cardShadowOpacity);
+  await expectCardSurface(cards.first(), payments.cardShadowOpacity, dark);
   const value = cards.first().locator('[class*="summaryValues"]');
   await expect(value).toHaveCSS("font-size", payments.valueFontSize);
   await expect(value).toHaveCSS("font-weight", payments.valueWeight);
@@ -171,7 +187,7 @@ async function expectPayments(page: Page, summaryColumns: number) {
   await expect(icon).toHaveCSS("border-radius", payments.iconRadius);
   const panel = root.getByRole("heading", { name: /Financial Breakdown|التفصيل المالي/u }).locator("..").locator("..");
   await expect(panel).toHaveCSS("border-radius", common.cardRadius);
-  await expect(panel).toHaveCSS("border-color", common.lightBorder);
+  if (!dark) await expect(panel).toHaveCSS("border-color", common.lightBorder);
   const panelHeader = panel.getByRole("heading", { level: 2 }).locator("..");
   const panelHeaderPadding = summaryColumns === 1
     ? payments.narrowPanelHeaderPadding
@@ -183,7 +199,7 @@ async function expectPayments(page: Page, summaryColumns: number) {
   await expect(th).toHaveCSS("padding-top", payments.tablePaddingBlock);
   await expect(th).toHaveCSS("font-size", payments.tableFontSize);
   await expect(th).toHaveCSS("font-weight", payments.tableWeight);
-  await expect(th).toHaveCSS("background-color", payments.tableHeaderBackground);
+  if (!dark) await expect(th).toHaveCSS("background-color", payments.tableHeaderBackground);
   const validation = panel.getByRole("heading", { name: /Validation summary|ملخص التحقق/u });
   await expect(validation).toHaveCSS("font-size", validationContract.tabFontSize);
   await expect(validation).toHaveCSS("padding-bottom", validationContract.tabPaddingBottom);
@@ -212,54 +228,40 @@ async function enterCompany(page: Page, path: string) {
 
 export async function proveOverviewReferenceGeometry(page: Page) {
   await visualFixture().install(page);
-  await page.setViewportSize({ width: 1280, height: 900 });
   await enterCompany(page, "/overview");
   await selectPeriod(page);
-  await expectOverview(page, 4, 2);
-  await page.getByRole("button", { name: "Dark" }).click();
-  await expect(page.locator('[class*="metricCard"]').first()).toHaveCSS(
-    "background-color",
-    MD05_VISUAL_CONTRACT.common.darkSurface,
-  );
-  await page.getByRole("button", { name: "Light" }).click();
-  await page.setViewportSize({ width: 480, height: 900 });
-  await expectOverview(page, 1, 1);
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.getByRole("button", { name: "Language" }).click();
-  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  await expectOverview(page, 4, 2);
-  await page.setViewportSize({ width: 480, height: 900 });
-  await expectOverview(page, 1, 1);
-  const opener = page.locator('[data-testid="md05-overview-page"] button[aria-haspopup="dialog"]');
-  await opener.click();
-  await expectPeriodDialog(page);
-  await page.keyboard.press("Escape");
-  await expect(opener).toBeFocused();
+  for (const locale of ["en", "ar"] as const) {
+    if (locale === "ar") {
+      await page.getByRole("button", { name: "Language" }).click();
+      await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    }
+    for (const narrow of [false, true]) {
+      await page.setViewportSize({ width: narrow ? 480 : 1280, height: 900 });
+      for (const dark of [false, true]) {
+        await page.locator(".theme-segmented button").nth(dark ? 1 : 0).click();
+        await expectOverview(page, narrow ? 1 : 4, narrow ? 1 : 2, dark);
+        await expectPeriodDialogRoundTrip(page, "md05-overview-page", dark);
+      }
+    }
+  }
 }
 
 export async function provePaymentsReferenceGeometry(page: Page) {
   await visualFixture().install(page);
-  await page.setViewportSize({ width: 1280, height: 900 });
   await enterCompany(page, "/payments");
   await selectPeriod(page);
-  await expectPayments(page, 4);
-  await page.getByRole("button", { name: "Dark" }).click();
-  await expect(page.locator('[class*="summaryCard"]').first()).toHaveCSS(
-    "background-color",
-    MD05_VISUAL_CONTRACT.common.darkSurface,
-  );
-  await page.getByRole("button", { name: "Light" }).click();
-  await page.setViewportSize({ width: 480, height: 900 });
-  await expectPayments(page, 1);
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.getByRole("button", { name: "Language" }).click();
-  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  await expectPayments(page, 4);
-  await page.setViewportSize({ width: 480, height: 900 });
-  await expectPayments(page, 1);
-  const opener = page.locator('[data-testid="md05-payments-page"] button[aria-haspopup="dialog"]');
-  await opener.click();
-  await expectPeriodDialog(page);
-  await page.keyboard.press("Escape");
-  await expect(opener).toBeFocused();
+  for (const locale of ["en", "ar"] as const) {
+    if (locale === "ar") {
+      await page.getByRole("button", { name: "Language" }).click();
+      await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    }
+    for (const narrow of [false, true]) {
+      await page.setViewportSize({ width: narrow ? 480 : 1280, height: 900 });
+      for (const dark of [false, true]) {
+        await page.locator(".theme-segmented button").nth(dark ? 1 : 0).click();
+        await expectPayments(page, narrow ? 1 : 4, dark);
+        await expectPeriodDialogRoundTrip(page, "md05-payments-page", dark);
+      }
+    }
+  }
 }
