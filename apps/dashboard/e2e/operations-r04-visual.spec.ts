@@ -115,8 +115,14 @@ test("R04 visual proof covers Vehicles and Tasks in light/dark, EN/AR, desktop/n
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("link", { name: "المهام" }).click();
   await page.setViewportSize({ width: 480, height: 900 });
+  await expect(page).toHaveURL(/\/tasks$/u);
+  await expect(page.getByRole("heading", { name: "المهام", level: 1 })).toBeVisible();
+  const narrowTaskTable = page.getByRole("table");
+  await expect(narrowTaskTable).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(480);
-  await page.getByRole("table").getByRole("button", { name: /التفاصيل/u }).first().scrollIntoViewIfNeeded();
-  await expect(page.getByRole("table").getByRole("button", { name: /التفاصيل/u }).first()).toBeVisible();
+  const narrowTaskDetails = narrowTaskTable.getByRole("button", { name: /التفاصيل/u }).first();
+  await expect(narrowTaskDetails).toBeVisible();
+  await narrowTaskDetails.scrollIntoViewIfNeeded();
+  await expect(narrowTaskDetails).toBeVisible();
   await page.screenshot({ path: join(out, "tasks-ar-light-narrow.png"), fullPage: true });
 });
