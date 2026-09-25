@@ -10,6 +10,7 @@ import {
   type StaffSessionContext,
   type StaffSessionContextResolver,
 } from "../staff-session-context";
+import { localMfaBypassEnabled } from "./local-mfa-bypass";
 import { MfaStepUpRequiredError } from "./mfa-errors";
 import { lockAndRecheckMfaSession } from "./mfa-session-repository";
 
@@ -110,6 +111,7 @@ export async function requireMfaAssuranceInTransaction(
   options: { readonly sensitive: boolean } = { sensitive: false },
 ): Promise<void> {
   const session = await lockAndRecheckMfaSession(transaction, context);
+  if (localMfaBypassEnabled()) return;
   const factorCurrent =
     session.mfa_factor_id !== null &&
     (
@@ -139,6 +141,10 @@ export async function recordAdminActivityInTransaction(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
 ): Promise<void> {
+  if (localMfaBypassEnabled()) {
+    await lockAndRecheckMfaSession(transaction, context);
+    return;
+  }
   const clock = await transaction.query<{ readonly now: Date }>(
     `SELECT clock_timestamp() AS now`,
   );
@@ -190,6 +196,7 @@ export class MfaAssurancePolicy {
   ): Promise<StaffSessionContext> {
     const context = await this.sessions.resolve(authorization);
     const current = await readAssurance(this.pool, context);
+    if (localMfaBypassEnabled()) return context;
     if (
       evaluateMfaAssurance(current.snapshot, current.now, options.sensitive) !==
       "ASSURANCE_VALID"
@@ -205,6 +212,7 @@ export class MfaAssurancePolicy {
   ): Promise<MfaAssuranceResult> {
     const context = await this.sessions.resolve(authorization);
     const current = await readAssurance(this.pool, context);
+    if (localMfaBypassEnabled()) return "ASSURANCE_VALID";
     return evaluateMfaAssurance(
       current.snapshot,
       current.now,
