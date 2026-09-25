@@ -1,4 +1,5 @@
 import type { CompanyAnalyticsResponse } from "@valet/contracts";
+import { Building2, Car, CircleCheck, CirclePause, Clock3, Globe2, ListTodo } from "lucide-react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { BidiText } from "../../components/presentation/panel";
@@ -7,16 +8,23 @@ import {
   readLocationQueueAnalytics,
   readLocationSessionStateCounts,
 } from "./intelligence-api";
-import { formatExactDecimal } from "./intelligence-format";
+import { formatOverviewDuration } from "./overview-duration";
 import {
   locationCurrentPresentation,
   type OverviewCurrentPresentation,
 } from "./overview-presentation";
 import { overviewCopy } from "./overview-copy";
+import { OverviewCurrentRow } from "./overview-current-row";
+import { overviewSessionStateLabel } from "./overview-session-state";
+import currentStyles from "./overview-current.module.css";
 import styles from "./overview.module.css";
 import { useIntelligenceRead } from "./use-intelligence-read";
 
 type Coverage = CompanyAnalyticsResponse["summary"]["coverage"];
+
+function formatCount(value: number, locale: DashboardLocale): string {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-JO" : "en-US").format(value);
+}
 
 function State(props: {
   readonly message: string;
@@ -56,23 +64,33 @@ export function OverviewCurrentPanel(props: {
         <State message={t.loading} retryLabel={t.retry} />
       ) : props.mode === "COMPANY" ? (
         props.companyCoverage ? (
-          <div className={styles.currentScroll}>
-            <Fact label={t.totalLocations} value={props.companyCoverage.totalLocationCount} />
-            <Fact label={t.activeLocations} value={props.companyCoverage.activeLocationCount} />
-            <Fact label={t.inactiveLocations} value={props.companyCoverage.inactiveLocationCount} />
-            <div className={styles.currentSectionLabel}>{t.timezoneCoverage}</div>
+          <div aria-label={title} className={currentStyles.currentScroll} tabIndex={0}>
+            <OverviewCurrentRow
+              icon={<Building2 size={16} />}
+              label={t.totalLocations}
+              value={<BidiText kind="number">{formatCount(props.companyCoverage.totalLocationCount, props.locale)}</BidiText>}
+            />
+            <OverviewCurrentRow
+              icon={<CircleCheck size={16} />}
+              label={t.activeLocations}
+              tone="positive"
+              value={<BidiText kind="number">{formatCount(props.companyCoverage.activeLocationCount, props.locale)}</BidiText>}
+            />
+            <OverviewCurrentRow
+              icon={<CirclePause size={16} />}
+              label={t.inactiveLocations}
+              tone="danger"
+              value={<BidiText kind="number">{formatCount(props.companyCoverage.inactiveLocationCount, props.locale)}</BidiText>}
+            />
+            <div className={currentStyles.currentSectionLabel}>{t.timezoneCoverage}</div>
             {props.companyCoverage.timezoneBoundaries.map((boundary) => (
-              <div className={styles.currentRow} key={boundary.timezone}>
-                <div>
-                  <BidiText>{boundary.timezone}</BidiText>
-                  <small>
-                    <BidiText>{boundary.periodStartUtc}</BidiText>
-                    {" – "}
-                    <BidiText>{boundary.periodEndUtc}</BidiText>
-                  </small>
-                </div>
-                <BidiText kind="number">{boundary.locationCount}</BidiText>
-              </div>
+              <OverviewCurrentRow
+                detail={`${formatCount(boundary.activeLocationCount, props.locale)} ${t.activeShort} · ${formatCount(boundary.inactiveLocationCount, props.locale)} ${t.inactiveShort}`}
+                icon={<Globe2 size={16} />}
+                key={boundary.timezone}
+                label={<BidiText>{boundary.timezone}</BidiText>}
+                value={<BidiText kind="number">{formatCount(boundary.locationCount, props.locale)}</BidiText>}
+              />
             ))}
           </div>
         ) : (
@@ -82,42 +100,35 @@ export function OverviewCurrentPanel(props: {
           />
         )
       ) : props.current ? (
-        <div className={styles.currentScroll}>
-          <Fact label={t.queueDepth} value={props.current.queue.depth} />
-          <div className={styles.currentRow}>
-            <span>{t.oldestAge}</span>
-            <strong>
-              {props.current.queue.oldestAgeSeconds === null ? t.unavailable : (
-                <>
-                  <BidiText kind="number">
-                    {formatExactDecimal(props.current.queue.oldestAgeSeconds, props.locale)}
-                  </BidiText>
-                  {" "}{t.seconds}
-                </>
-              )}
-            </strong>
-          </div>
-          <div className={styles.currentSectionLabel}>{t.state}</div>
+        <div aria-label={title} className={currentStyles.currentScroll} tabIndex={0}>
+          <OverviewCurrentRow
+            icon={<ListTodo size={16} />}
+            label={t.queueDepth}
+            value={<BidiText kind="number">{formatCount(props.current.queue.depth, props.locale)}</BidiText>}
+          />
+          <OverviewCurrentRow
+            icon={<Clock3 size={16} />}
+            label={t.oldestAge}
+            value={props.current.queue.oldestAgeSeconds === null ? t.unavailable : (
+              <bdi className="bidi-number" dir={props.locale === "ar" ? "rtl" : "ltr"}>
+                {formatOverviewDuration(props.current.queue.oldestAgeSeconds, props.locale)}
+              </bdi>
+            )}
+          />
+          <div className={currentStyles.currentSectionLabel}>{t.state}</div>
           {props.current.counts.map((item) => (
-            <div className={styles.currentRow} key={item.state}>
-              <BidiText>{item.state}</BidiText>
-              <BidiText kind="number">{item.count}</BidiText>
-            </div>
+            <OverviewCurrentRow
+              icon={<Car size={16} />}
+              key={item.state}
+              label={overviewSessionStateLabel(item.state, props.locale)}
+              value={<BidiText kind="number">{formatCount(item.count, props.locale)}</BidiText>}
+            />
           ))}
         </div>
       ) : (
         <State message={t.noCurrent} retryLabel={t.retry} />
       )}
     </section>
-  );
-}
-
-function Fact({ label, value }: { readonly label: string; readonly value: number }) {
-  return (
-    <div className={styles.currentRow}>
-      <span>{label}</span>
-      <strong><BidiText kind="number">{value}</BidiText></strong>
-    </div>
   );
 }
 

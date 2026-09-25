@@ -11,6 +11,27 @@ async function columns(locator: Locator) {
   );
 }
 
+async function roundedBoxes(locator: Locator) {
+  return locator.evaluateAll((nodes) => nodes.map((node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      x: Math.round(rect.x),
+      y: Math.round(rect.y),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+    };
+  }));
+}
+
+async function expectOverviewDesktopGeometry(page: Page) {
+  const { desktopCards, desktopPanels } = MD05_VISUAL_CONTRACT.overview;
+  const root = page.getByTestId("md05-overview-page");
+  await expect.poll(() => roundedBoxes(root.locator('[class*="metricCard"]')))
+    .toEqual(desktopCards);
+  await expect.poll(() => roundedBoxes(root.locator('[class*="lowerGrid"] > *')))
+    .toEqual(desktopPanels);
+}
+
 async function expectCardSurface(card: Locator, shadowOpacity: string, dark: boolean) {
   const { common } = MD05_VISUAL_CONTRACT;
   await expect(card).toHaveCSS("padding", common.cardPadding);
@@ -228,18 +249,26 @@ async function enterCompany(page: Page, path: string) {
 
 export async function proveOverviewReferenceGeometry(page: Page) {
   await visualFixture().install(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await enterCompany(page, "/overview");
+  await expectOverviewDesktopGeometry(page);
   await selectPeriod(page);
+  await expectOverviewDesktopGeometry(page);
   for (const locale of ["en", "ar"] as const) {
     if (locale === "ar") {
       await page.getByRole("button", { name: "Language" }).click();
       await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     }
     for (const narrow of [false, true]) {
-      await page.setViewportSize({ width: narrow ? 480 : 1280, height: 900 });
+      await page.setViewportSize({ width: narrow ? 480 : 1440, height: 900 });
       for (const dark of [false, true]) {
         await page.locator(".theme-segmented button").nth(dark ? 1 : 0).click();
-        await expectOverview(page, narrow ? 1 : 4, narrow ? 1 : 2, dark);
+        await expectOverview(page, narrow ? 1 : 4, narrow ? 1 : 12, dark);
+        if (narrow) {
+          await expect.poll(() => page.evaluate(() =>
+            document.documentElement.scrollWidth <= window.innerWidth,
+          )).toBe(true);
+        }
         await expectPeriodDialogRoundTrip(page, "md05-overview-page", dark);
       }
     }

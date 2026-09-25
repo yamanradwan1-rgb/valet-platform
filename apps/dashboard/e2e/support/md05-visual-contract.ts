@@ -17,6 +17,17 @@ export const MD05_VISUAL_CONTRACT = {
   // Frozen prototype source: src/pages/OverviewPage.tsx and
   // src/components/data/MetricCard.tsx.
   overview: {
+    // Measured from live 3011 at Chromium 100% zoom, 1440 x 900.
+    desktopCards: [
+      { x: 292, y: 176, width: 267, height: 136 },
+      { x: 575, y: 176, width: 267, height: 136 },
+      { x: 858, y: 176, width: 267, height: 136 },
+      { x: 1141, y: 176, width: 267, height: 136 },
+    ],
+    desktopPanels: [
+      { x: 292, y: 336, width: 641, height: 386 },
+      { x: 957, y: 336, width: 451, height: 386 },
+    ],
     titleLetterSpacing: "-0.6px",
     subtitleFontSize: "14px",
     subtitleMarginTop: "4px",
@@ -31,7 +42,7 @@ export const MD05_VISUAL_CONTRACT = {
     iconBackground: "rgb(239, 246, 255)",
     contextPaddingInline: "8px",
     contextPaddingBlock: "2px",
-    contextBorder: "rgb(191, 219, 254)",
+    contextBorder: "rgb(167, 243, 208)",
     lowerGap: "24px",
     activityTitleFontSize: "16px",
     activityTitleWeight: "700",

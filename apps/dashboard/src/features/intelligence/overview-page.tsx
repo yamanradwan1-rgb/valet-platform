@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Car, ChevronDown, Clock, Users, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { useCallback, useState, type FormEvent } from "react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
@@ -14,19 +14,16 @@ import {
   readLocationKpiAnalytics,
   readLocationOperationalAnalytics,
 } from "./intelligence-api";
-import { formatExactDecimal } from "./intelligence-format";
-import { explicitAnalyticsPeriod, type AnalyticsPeriodValidation } from "./intelligence-period-validation";
+import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
 import { intelligenceScope } from "./intelligence-scope";
 import { OverviewActivityChart } from "./overview-activity-chart";
 import { overviewCopy } from "./overview-copy";
+import { OverviewMetrics } from "./overview-metrics";
 import {
   OverviewCurrentPanel,
   OverviewLocationCurrentRead,
 } from "./overview-current-panel";
-import {
-  OverviewMetricCard,
-  OverviewPanelState,
-} from "./overview-page-ui";
+import { OverviewPanelState } from "./overview-page-ui";
 import {
   companyOverviewPresentation,
   locationOverviewPresentation,
@@ -132,43 +129,13 @@ export function OverviewPage() {
         <h1>{t.title}</h1>
         <p>{scope.kind === "COMPANY" ? t.companySubtitle : t.locationSubtitle}</p>
       </div>
-      <div className={styles.metricGrid}>
-        <OverviewMetricCard
-          available={presentation !== null}
-          context={presentation ? `${presentation.activeEmployeeCount} ${t.activeEmployees}` : stateText(validation, periodLoading, periodReadError, t)}
-          icon={<Car size={20} />}
-          label={t.carsHandled}
-          value={presentation ? String(presentation.carsHandled) : t.unavailable}
-        />
-        <OverviewMetricCard
-          available={presentation?.slaCompliance.percentage !== null && presentation !== null}
-          context={presentation
-            ? `${presentation.slaCompliance.numerator}/${presentation.slaCompliance.denominator} · ${presentation.slaCompliance.missingTargetCount} ${t.missingTargets} · ${presentation.slaCompliance.invalidOrMissingIntervalCount} ${t.invalidIntervals}`
-            : stateText(validation, periodLoading, periodReadError, t)}
-          icon={<Users size={20} />}
-          label={t.slaCompliance}
-          value={presentation?.slaCompliance.percentage === null || !presentation
-            ? t.unavailable
-            : `${presentation.slaCompliance.percentage}%`}
-        />
-        <OverviewMetricCard
-          available={presentation?.retrievalWaitAverageSeconds !== null && presentation !== null}
-          context={presentation ? `${presentation.retrievalWaitSampleCount} ${t.samples}` : stateText(validation, periodLoading, periodReadError, t)}
-          icon={<Clock size={20} />}
-          label={t.retrievalWait}
-          value={presentation?.retrievalWaitAverageSeconds === null || !presentation
-            ? t.unavailable
-            : `${formatExactDecimal(presentation.retrievalWaitAverageSeconds, locale)} ${t.seconds}`}
-        />
-        <OverviewMetricCard
-          available={presentation !== null}
-          context={presentation ? t.selectedPeriod : stateText(validation, periodLoading, periodReadError, t)}
-          danger
-          icon={<AlertTriangle size={20} />}
-          label={t.incidents}
-          value={presentation ? String(presentation.incidentCount) : t.unavailable}
-        />
-      </div>
+      <OverviewMetrics
+        error={periodReadError}
+        loading={periodLoading}
+        locale={locale}
+        presentation={presentation}
+        validation={validation}
+      />
       <div className={styles.lowerGrid}>
         <section className={[styles.panel, styles.activityPanel].join(" ")}>
           <div className={styles.panelHeader}>
@@ -266,14 +233,6 @@ export function OverviewPage() {
       ) : null}
     </div>
   );
-}
-
-function stateText(validation: AnalyticsPeriodValidation, loading: boolean, error: unknown, t: ReturnType<typeof overviewCopy>) {
-  if (validation.kind === "required") return t.periodRequired;
-  if (validation.kind !== "valid") return t.invalidPeriod;
-  if (loading) return t.loading;
-  if (error) return errorMessage(error, t);
-  return t.unavailable;
 }
 
 function errorMessage(error: unknown, t: ReturnType<typeof overviewCopy>) {

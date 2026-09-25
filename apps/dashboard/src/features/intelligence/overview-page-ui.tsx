@@ -9,7 +9,9 @@ export function OverviewMetricCard(props: {
   readonly danger?: boolean;
   readonly icon: ReactNode;
   readonly label: string;
+  readonly tone?: "positive" | "info" | "danger";
   readonly value: string;
+  readonly valueDirection?: "ltr" | "rtl";
 }) {
   return (
     <section className={styles.metricCard}>
@@ -17,7 +19,9 @@ export function OverviewMetricCard(props: {
         <div>
           <div className={styles.metricValue}>
             {props.available ? (
-              <BidiText kind="number">{props.value}</BidiText>
+              props.valueDirection === "rtl"
+                ? <bdi className="bidi-number" dir="rtl">{props.value}</bdi>
+                : <BidiText kind="number">{props.value}</BidiText>
             ) : props.value}
           </div>
           <div className={styles.metricLabel}>{props.label}</div>
@@ -29,7 +33,10 @@ export function OverviewMetricCard(props: {
         </div>
       </div>
       <div className={styles.metricContext}>
-        <span className={styles.metricPill}>{props.context}</span>
+        <span className={`${styles.metricPill} ${
+          props.tone === "positive" ? styles.metricPillPositive :
+          props.tone === "danger" ? styles.metricPillDanger : ""
+        }`}>{props.context}</span>
       </div>
     </section>
   );

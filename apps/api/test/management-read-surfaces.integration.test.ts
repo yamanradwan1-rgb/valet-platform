@@ -77,6 +77,28 @@ describe("MGT-BE-03 Company Admin existing read surfaces", () => {
     );
   });
 
+  it("serves concurrent exact-Location analytics reads for a Company Admin", async () => {
+    const state = await assuredAdmin();
+    const base =
+      `/v1/staff/dashboard/locations/${state.location.locationId}/analytics`;
+    const query = "from=2026-09-16&to=2026-09-16";
+
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const responses = await Promise.all(
+        [
+          `/v1/staff/dashboard/locations/${state.location.locationId}/overview/session-state-counts`,
+          `${base}/queue`,
+          `${base}/operations?${query}`,
+          `${base}/incidents?${query}`,
+          `${base}/kpis?${query}`,
+        ].map((path) => fixture.managementGet(path, state.auth.accessToken)),
+      );
+      expect(responses.map((response) => response.status)).toEqual([
+        200, 200, 200, 200, 200,
+      ]);
+    }
+  });
+
   it("audits a report export with the exact ORG_ADMIN membership", async () => {
     const state = await assuredAdmin();
     const result = await generateReportExport(fixture.databasePool(), {

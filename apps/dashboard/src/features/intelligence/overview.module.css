@@ -16,6 +16,7 @@
   margin: 0.25rem 0 0;
   color: #64748b;
   font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
 :global([data-theme="dark"]) .header h1 {
@@ -33,6 +34,7 @@
 }
 
 .metricCard {
+  min-height: 136px;
   padding: 1.25rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
@@ -125,10 +127,34 @@
   font-weight: 600;
 }
 
+.metricPillPositive {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.metricPillDanger {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #be123c;
+}
+
 :global([data-theme="dark"]) .metricPill {
   border-color: rgba(30, 58, 138, 0.5);
   background: rgba(23, 37, 84, 0.4);
   color: #93c5fd;
+}
+
+:global([data-theme="dark"]) .metricPillPositive {
+  border-color: #065f46;
+  background: #063c36;
+  color: #6ee7b7;
+}
+
+:global([data-theme="dark"]) .metricPillDanger {
+  border-color: #881337;
+  background: #3d1025;
+  color: #fda4af;
 }
 
 .lowerGrid {
@@ -138,6 +164,7 @@
 }
 
 .panel {
+  min-height: 366px;
   min-width: 0;
   padding: 1.25rem;
   border: 1px solid #e2e8f0;
@@ -192,65 +219,6 @@
   color: #94a3b8;
 }
 
-.currentScroll {
-  max-height: 260px;
-  overflow: auto;
-  flex: 1 1 auto;
-}
-
-.currentRow {
-  min-height: 4rem;
-  padding: 0.875rem 0;
-  border-bottom: 1px solid #e2e8f0;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.currentRow:last-child {
-  border-bottom: 0;
-}
-
-.currentRow strong {
-  color: #1e60f0;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  text-align: end;
-}
-
-.currentRow small {
-  margin-top: 0.125rem;
-  color: #1e60f0;
-  display: block;
-  font-size: 0.6875rem;
-  font-weight: 500;
-}
-
-:global([data-theme="dark"]) .currentRow {
-  border-bottom-color: #172346;
-  color: #94a3b8;
-}
-
-:global([data-theme="dark"]) .currentRow strong {
-  color: #ffffff;
-}
-
-.currentSectionLabel {
-  padding: 0.875rem 0;
-  border-bottom: 1px solid #e2e8f0;
-  color: #1e60f0;
-  font-size: 0.6875rem;
-  font-weight: 500;
-}
-
-:global([data-theme="dark"]) .currentSectionLabel {
-  border-bottom-color: #172346;
-}
-
 .retryButton {
   min-height: 2rem;
   padding: 0.35rem 0.7rem;
@@ -275,11 +243,22 @@
 }
 
 @media (min-width: 1024px) {
+  .panel {
+    height: 386px;
+  }
   .metricGrid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .lowerGrid {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .activityPanel {
+    grid-column: span 7;
+  }
+
+  .secondaryPanel {
+    grid-column: span 5;
   }
 }

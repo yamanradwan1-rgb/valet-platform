@@ -15,6 +15,12 @@ import { resolveAnalyticsTimezone } from "./analytics-period";
 import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 
+const maximumSerializationAttempts = 5;
+
+function isSerializationFailure(error: unknown): boolean {
+  return (error as { readonly code?: unknown }).code === "40001";
+}
+
 export async function locationKpiAnalytics(
   pool: PostgresPool,
   input: {
@@ -25,47 +31,60 @@ export async function locationKpiAnalytics(
     staffSessionContext?: StaffSessionContext;
   },
 ): Promise<LocationKpiAnalyticsResponse> {
-  return inPostgresTransaction(pool, async (transaction) => {
-    await transaction.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-    const scope = await authorizeDashboardReadLocation(transaction, {
-      authenticatedUserId: input.authenticatedUserId,
-      capability: "ANALYTICS_READ",
-      recordActivity: input.recordManagementActivity !== false,
-      ...(input.staffSessionContext === undefined
-        ? {}
-        : { staffSessionContext: input.staffSessionContext }),
-      targetLocationId: input.locationId,
-    });
-    assertAuthorized(scope);
-    const timezone = await resolveAnalyticsTimezone(transaction, scope);
-    const parameters = [
-      scope.organizationId,
-      input.locationId,
-      input.period.from,
-      input.period.to,
-      timezone,
-    ];
-    const sla = await querySlaCompliance(transaction, parameters);
-    const carsPerActiveEmployee = await queryCarsPerActiveEmployee(
-      transaction,
-      parameters,
-    );
-    const handoffSummary = await queryHandoffSummary(transaction, parameters);
-    const handoffEmployees = await queryHandoffEmployees(transaction, parameters);
-    const keyExceptions = await queryKeyExceptions(transaction, parameters);
-    return {
-      carsHandedOffByEmployee: {
-        ...handoffSummary,
-        byEmployee: handoffEmployees.rows,
-        truncated: handoffSummary.employeeCount > handoffEmployees.rows.length,
-      },
-      carsPerActiveEmployee,
-      from: input.period.from,
-      keyExceptions,
-      locationId: scope.locationId,
-      slaCompliance: sla,
-      timezone,
-      to: input.period.to,
-    };
-  });
+  for (let attempt = 1; attempt <= maximumSerializationAttempts; attempt += 1) {
+    try {
+      return await inPostgresTransaction(pool, async (transaction) => {
+        await transaction.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+        const scope = await authorizeDashboardReadLocation(transaction, {
+          authenticatedUserId: input.authenticatedUserId,
+          capability: "ANALYTICS_READ",
+          recordActivity: input.recordManagementActivity !== false,
+          ...(input.staffSessionContext === undefined
+            ? {}
+            : { staffSessionContext: input.staffSessionContext }),
+          targetLocationId: input.locationId,
+        });
+        assertAuthorized(scope);
+        const timezone = await resolveAnalyticsTimezone(transaction, scope);
+        const parameters = [
+          scope.organizationId,
+          input.locationId,
+          input.period.from,
+          input.period.to,
+          timezone,
+        ];
+        const sla = await querySlaCompliance(transaction, parameters);
+        const carsPerActiveEmployee = await queryCarsPerActiveEmployee(
+          transaction,
+          parameters,
+        );
+        const handoffSummary = await queryHandoffSummary(transaction, parameters);
+        const handoffEmployees = await queryHandoffEmployees(
+          transaction,
+          parameters,
+        );
+        const keyExceptions = await queryKeyExceptions(transaction, parameters);
+        return {
+          carsHandedOffByEmployee: {
+            ...handoffSummary,
+            byEmployee: handoffEmployees.rows,
+            truncated:
+              handoffSummary.employeeCount > handoffEmployees.rows.length,
+          },
+          carsPerActiveEmployee,
+          from: input.period.from,
+          keyExceptions,
+          locationId: scope.locationId,
+          slaCompliance: sla,
+          timezone,
+          to: input.period.to,
+        };
+      });
+    } catch (error) {
+      if (!isSerializationFailure(error) || attempt === maximumSerializationAttempts) {
+        throw error;
+      }
+    }
+  }
+  throw new Error("KPI analytics serialization retry exhausted.");
 }
