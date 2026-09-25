@@ -31,7 +31,6 @@ import { useOperationsContext } from "../use-operations-context";
 import { useOperationsRead } from "../use-operations-read";
 
 type StateFilter = DashboardSessionState | "ALL";
-type CursorValue<T> = { readonly cursor: string | null; readonly value: T };
 
 export function VehiclesPage() {
   const { scopeKey } = useOperationsContext();
@@ -44,9 +43,9 @@ function VehiclesContent() {
   const t = operationsCopy(locale);
   const r04 = r04PresentationCopy(locale);
   const page = useCursorPage();
-  const [queryState, setQueryState] = useState<CursorValue<string>>({ cursor: null, value: "" });
-  const [filterState, setFilterState] = useState<CursorValue<StateFilter>>({ cursor: null, value: "ALL" });
-  const [selection, setSelection] = useState<CursorValue<SessionOverviewEntry | null>>({ cursor: null, value: null });
+  const [query, setQuery] = useState("");
+  const [state, setState] = useState<StateFilter>("ALL");
+  const [selected, setSelected] = useState<SessionOverviewEntry | null>(null);
   const location = selectedOperationsLocation(dashboard.selectedScope);
   const locationId = location?.locationId ?? "";
   const enabled = exactLocation && location !== null &&
@@ -57,9 +56,6 @@ function VehiclesContent() {
   );
   const read = useOperationsRead(`${scopeKey}:vehicles:${page.cursor ?? "first"}`, load, enabled);
   const items = read.data?.items ?? [];
-  const query = queryState.cursor === page.cursor ? queryState.value : "";
-  const state = filterState.cursor === page.cursor ? filterState.value : "ALL";
-  const selected = selection.cursor === page.cursor ? selection.value : null;
   const states = [...new Set(items.map((item) => item.state))];
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const rows = items.filter((item) => {
@@ -67,6 +63,21 @@ function VehiclesContent() {
     return (state === "ALL" || item.state === state) &&
       (normalizedQuery === "" || identity.includes(normalizedQuery));
   });
+  const resetPageLocalState = () => {
+    setQuery("");
+    setState("ALL");
+    setSelected(null);
+  };
+  const nextPage = () => {
+    const nextCursor = read.data?.nextCursor ?? null;
+    if (nextCursor === null) return;
+    resetPageLocalState();
+    page.next(nextCursor);
+  };
+  const previousPage = () => {
+    resetPageLocalState();
+    page.previous();
+  };
 
   if (!enabled || location === null) {
     return <OperationsPage subtitle={t.vehiclesSubtitle} title={t.vehiclesTitle}>
@@ -85,7 +96,7 @@ function VehiclesContent() {
         <input
           aria-label={r04.searchVehicle}
           aria-describedby="vehicles-loaded-page-note"
-          onChange={(event) => setQueryState({ cursor: page.cursor, value: event.target.value })}
+          onChange={(event) => setQuery(event.target.value)}
           placeholder={r04.searchVehicle}
           type="search"
           value={query}
@@ -97,7 +108,7 @@ function VehiclesContent() {
           <select
             aria-label={t.state}
             className={listStyles.select}
-            onChange={(event) => setFilterState({ cursor: page.cursor, value: event.target.value as StateFilter })}
+            onChange={(event) => setState(event.target.value as StateFilter)}
             value={state}
           >
             <option value="ALL">{r04.allStatuses}</option>
@@ -110,7 +121,7 @@ function VehiclesContent() {
       </div>
       <div className={listStyles.tableCard}>
         <div className={listStyles.tableWrap}>
-          <table className={listStyles.table}>
+          <table className={`${listStyles.table} ${listStyles.vehiclesTable}`}>
             <thead><tr>
               <th>{t.vehicle}</th>
               <th>{t.state}</th>
@@ -126,7 +137,7 @@ function VehiclesContent() {
                 locale={locale}
                 location={location}
                 onRetry={read.refresh}
-                onSelect={(item) => setSelection({ cursor: page.cursor, value: item })}
+                onSelect={setSelected}
                 sourceEmpty={items.length === 0}
               />
             </tbody>
@@ -138,11 +149,11 @@ function VehiclesContent() {
           label={t.loadedCursorPage}
           loading={read.loading}
           locale={locale}
-          onNext={() => page.next(read.data?.nextCursor ?? null)}
-          onPrevious={page.previous}
+          onNext={nextPage}
+          onPrevious={previousPage}
         />
       </div>
-      {selected ? <VehicleDrawer item={selected} locale={locale} location={location} onClose={() => setSelection({ cursor: page.cursor, value: null })} /> : null}
+      {selected ? <VehicleDrawer item={selected} locale={locale} location={location} onClose={() => setSelected(null)} /> : null}
     </OperationsPage>
   );
 }

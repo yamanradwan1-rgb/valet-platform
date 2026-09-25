@@ -130,6 +130,12 @@
   vertical-align: middle;
 }
 
+.vehiclesTable td {
+  height: 3.8125rem;
+  padding-top: 0.71875rem;
+  padding-bottom: 0.71875rem;
+}
+
 .table tbody tr:last-child td {
   border-bottom: 0;
 }

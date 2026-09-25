@@ -61,15 +61,19 @@ test("R04 Vehicles preserves opaque cursor next/previous and resets loaded-page 
   await enterLocation(page, LOCATION_A.name);
   await expect(page.getByText("FIRST-11", { exact: true })).toBeVisible();
   await page.getByRole("searchbox").fill("FIRST");
+  await page.getByRole("combobox", { name: "State" }).selectOption("PARKED");
 
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByText("SECOND-22", { exact: true })).toBeVisible();
   await expect(page.getByRole("searchbox")).toHaveValue("");
+  await expect(page.getByRole("combobox", { name: "State" })).toHaveValue("ALL");
   expect(seen).toContain("vehicle_cursor_12345678");
   await expect(page.getByRole("button", { name: "Next", exact: true })).toBeDisabled();
 
   await page.getByRole("button", { name: "Previous", exact: true }).click();
   await expect(page.getByText("FIRST-11", { exact: true })).toBeVisible();
+  await expect(page.getByRole("searchbox")).toHaveValue("");
+  await expect(page.getByRole("combobox", { name: "State" })).toHaveValue("ALL");
   expect(seen.filter((cursor) => cursor === null).length).toBeGreaterThanOrEqual(2);
   await expect(page.getByText(/Page \d+ of \d+/u)).toHaveCount(0);
 });
@@ -93,17 +97,21 @@ test("R04 Tasks preserves opaque cursor next/previous and resets loaded-page fil
   await signInOnCurrentPage(page);
   await enterLocation(page, LOCATION_A.name);
   await expect(page.getByRole("table").getByText("Queued", { exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "State" }).selectOption("QUEUED");
   await page.getByRole("combobox", { name: "Type" }).selectOption("PARKING");
 
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByRole("table").getByText("Retrieval", { exact: true })).toBeVisible();
   await expect(page.getByRole("table").getByText("Completed", { exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "State" })).toHaveValue("ALL");
   await expect(page.getByRole("combobox", { name: "Type" })).toHaveValue("ALL");
   expect(seen).toContain("task_cursor_12345678");
   await expect(page.getByRole("button", { name: "Next", exact: true })).toBeDisabled();
 
   await page.getByRole("button", { name: "Previous", exact: true }).click();
   await expect(page.getByRole("table").getByText("Queued", { exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "State" })).toHaveValue("ALL");
+  await expect(page.getByRole("combobox", { name: "Type" })).toHaveValue("ALL");
   expect(seen.filter((cursor) => cursor === null).length).toBeGreaterThanOrEqual(2);
 });
 

@@ -69,8 +69,7 @@ test("R04 visual proof covers Vehicles and Tasks in light/dark, EN/AR, desktop/n
   expect(vehicleHeaderBox?.height).toBeLessThanOrEqual(45);
   const vehicleRow = vehicleTable.getByRole("row").nth(1);
   const vehicleRowBox = await vehicleRow.boundingBox();
-  expect(vehicleRowBox?.height).toBeGreaterThanOrEqual(64);
-  expect(vehicleRowBox?.height).toBeLessThanOrEqual(67);
+  expect(vehicleRowBox?.height).toBe(61);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1440);
   await page.screenshot({ path: join(out, "vehicles-en-light-desktop.png"), fullPage: true });
 

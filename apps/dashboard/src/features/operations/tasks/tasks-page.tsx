@@ -32,7 +32,6 @@ import { useOperationsRead } from "../use-operations-read";
 
 type StatusFilter = DashboardTaskStatus | "ALL";
 type TypeFilter = TaskOverviewEntry["taskType"] | "ALL";
-type CursorValue<T> = { readonly cursor: string | null; readonly value: T };
 const taskStatuses: readonly DashboardTaskStatus[] = [
   "QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS", "COMPLETED", "CANCELLED",
 ];
@@ -49,9 +48,9 @@ function TasksContent() {
   const t = operationsCopy(locale);
   const r04 = r04PresentationCopy(locale);
   const page = useCursorPage();
-  const [statusState, setStatusState] = useState<CursorValue<StatusFilter>>({ cursor: null, value: "ALL" });
-  const [typeState, setTypeState] = useState<CursorValue<TypeFilter>>({ cursor: null, value: "ALL" });
-  const [selection, setSelection] = useState<CursorValue<TaskOverviewEntry | null>>({ cursor: null, value: null });
+  const [status, setStatus] = useState<StatusFilter>("ALL");
+  const [type, setType] = useState<TypeFilter>("ALL");
+  const [selected, setSelected] = useState<TaskOverviewEntry | null>(null);
   const location = selectedOperationsLocation(dashboard.selectedScope);
   const locationId = location?.locationId ?? "";
   const enabled = exactLocation && location !== null &&
@@ -61,13 +60,25 @@ function TasksContent() {
     [dashboard.api, locationId, page.cursor],
   );
   const read = useOperationsRead(`${scopeKey}:tasks:${page.cursor ?? "first"}`, load, enabled);
-  const status = statusState.cursor === page.cursor ? statusState.value : "ALL";
-  const type = typeState.cursor === page.cursor ? typeState.value : "ALL";
-  const selected = selection.cursor === page.cursor ? selection.value : null;
   const sourceItems = read.data?.items ?? [];
   const items = sourceItems.filter((item) =>
     (status === "ALL" || item.status === status) &&
     (type === "ALL" || item.taskType === type));
+  const resetPageLocalState = () => {
+    setStatus("ALL");
+    setType("ALL");
+    setSelected(null);
+  };
+  const nextPage = () => {
+    const nextCursor = read.data?.nextCursor ?? null;
+    if (nextCursor === null) return;
+    resetPageLocalState();
+    page.next(nextCursor);
+  };
+  const previousPage = () => {
+    resetPageLocalState();
+    page.previous();
+  };
 
   if (!enabled || location === null) {
     return <OperationsPage subtitle={t.tasksSubtitle} title={t.tasksTitle}>
@@ -80,11 +91,11 @@ function TasksContent() {
       <div className={listStyles.toolbar}>
         <div className={listStyles.filters}>
           <span className={listStyles.locationControl}>{location.name}</span>
-          <select aria-label={t.state} className={listStyles.select} onChange={(event) => setStatusState({ cursor: page.cursor, value: event.target.value as StatusFilter })} value={status}>
+          <select aria-label={t.state} className={listStyles.select} onChange={(event) => setStatus(event.target.value as StatusFilter)} value={status}>
             <option value="ALL">{r04.allStatuses}</option>
             {taskStatuses.map((value) => <option key={value} value={value}>{operationsTaskStatusLabel(value, locale)}</option>)}
           </select>
-          <select aria-label={t.type} className={listStyles.select} onChange={(event) => setTypeState({ cursor: page.cursor, value: event.target.value as TypeFilter })} value={type}>
+          <select aria-label={t.type} className={listStyles.select} onChange={(event) => setType(event.target.value as TypeFilter)} value={type}>
             <option value="ALL">{r04.allTaskTypes}</option>
             {taskTypes.map((value) => <option key={value} value={value}>{operationsTaskTypeLabel(value, locale)}</option>)}
           </select>
@@ -110,7 +121,7 @@ function TasksContent() {
                 locale={locale}
                 location={location}
                 onRetry={read.refresh}
-                onSelect={(item) => setSelection({ cursor: page.cursor, value: item })}
+                onSelect={setSelected}
                 sourceEmpty={sourceItems.length === 0}
               />
             </tbody>
@@ -122,11 +133,11 @@ function TasksContent() {
           label={t.loadedCursorPage}
           loading={read.loading}
           locale={locale}
-          onNext={() => page.next(read.data?.nextCursor ?? null)}
-          onPrevious={page.previous}
+          onNext={nextPage}
+          onPrevious={previousPage}
         />
       </div>
-      {selected ? <TaskDrawer item={selected} locale={locale} location={location} onClose={() => setSelection({ cursor: page.cursor, value: null })} /> : null}
+      {selected ? <TaskDrawer item={selected} locale={locale} location={location} onClose={() => setSelected(null)} /> : null}
     </OperationsPage>
   );
 }
