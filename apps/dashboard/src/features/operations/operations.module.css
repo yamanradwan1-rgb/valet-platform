@@ -180,6 +180,7 @@
 .liveHeaderActionSpace { width:9.28125rem; height:2.25rem; flex:0 0 auto; visibility:hidden; }
 .liveFilterRow { min-height:1.875rem; display:flex; align-items:flex-start; gap:1rem; min-width:0; border-bottom:1px solid #e2e8f0; }
 .liveFilterTabs { min-width:0; flex:1; display:flex; align-items:center; gap:2rem; overflow-x:auto; }
+.liveSecondaryTab { margin-inline-start:.25rem; }
 .liveFilterTabs .tab:focus-visible { outline:2px solid #1e60f0; outline-offset:-2px; border-radius:.25rem; }
 .liveFilterScope { margin-inline-start:auto; flex:0 0 auto; padding-top:.125rem; color:#94a3b8; font-size:.6875rem; line-height:1rem; white-space:nowrap; }
 .liveFilterRetry { margin-inline-start:auto; flex:0 0 auto; border:0; background:transparent; padding:.125rem 0 0; color:#b42318; font-size:.6875rem; line-height:1rem; cursor:pointer; white-space:nowrap; }

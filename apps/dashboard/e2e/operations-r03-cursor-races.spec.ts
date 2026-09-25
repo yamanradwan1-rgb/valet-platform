@@ -7,13 +7,19 @@ import {
   ORG_A,
 } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
-import { sessionItem, stateCounts } from "./support/operations-fixtures";
+import {
+  retrievalItem,
+  sessionItem,
+  stateCounts,
+} from "./support/operations-fixtures";
 
 const base = (locationId: string) =>
   `/v1/staff/dashboard/locations/${locationId}/overview`;
 const sessions = (locationId: string) => `${base(locationId)}/sessions`;
 const counts = (locationId: string) =>
   `${base(locationId)}/session-state-counts`;
+const retrieval = (locationId: string) =>
+  `${base(locationId)}/retrieval-queue`;
 
 function deferred() {
   let resolve!: () => void;
@@ -123,6 +129,59 @@ test("R03 never sends Location A page-2 cursor to Location B or repaints its del
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("Delayed A page two")).toHaveCount(0);
   await expect(page.getByText("Location B current")).toBeVisible();
+});
+
+test("R03 Retrieval Queue stays lazy and never carries its A cursor into B", async ({ page }) => {
+  const seenA: Array<string | null> = [];
+  const seenB: Array<string | null> = [];
+  const fixture = new DashboardApiFixture({
+    companyOrganizations: [ORG_A],
+    companyLocations: { [ORG_A.organizationId]: [LOCATION_A, LOCATION_B] },
+    override: (path, request) => {
+      if (path === counts(LOCATION_A.locationId) || path === counts(LOCATION_B.locationId)) {
+        return { body: stateCounts() };
+      }
+      if (path === sessions(LOCATION_A.locationId)) {
+        return { body: { items: [row("Location A current", "35")], nextCursor: null } };
+      }
+      if (path === sessions(LOCATION_B.locationId)) {
+        return { body: { items: [row("Location B current", "36")], nextCursor: null } };
+      }
+      if (path === retrieval(LOCATION_A.locationId)) {
+        const cursor = new URL(request.url()).searchParams.get("cursor");
+        seenA.push(cursor);
+        return {
+          body: {
+            items: [retrievalItem()],
+            nextCursor: cursor === null ? "retrieval_A_12345678" : null,
+          },
+        };
+      }
+      if (path === retrieval(LOCATION_B.locationId)) {
+        const cursor = new URL(request.url()).searchParams.get("cursor");
+        seenB.push(cursor);
+        return { body: { items: [retrievalItem()], nextCursor: null } };
+      }
+      return undefined;
+    },
+  });
+  await fixture.install(page);
+  await page.goto("/live-operations");
+  await signInOnCurrentPage(page);
+  await enterLocation(page, LOCATION_A.name);
+  expect(seenA).toEqual([]);
+  await page.getByRole("button", { name: "Retrieval Queue", exact: true }).click();
+  await expect.poll(() => seenA.length).toBe(1);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect.poll(() => seenA).toContain("retrieval_A_12345678");
+
+  await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
+  await enterLocation(page, LOCATION_B.name);
+  expect(seenB).toEqual([]);
+  await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Retrieval Queue", exact: true }).click();
+  await expect.poll(() => seenB.length).toBe(1);
+  expect(seenB).toEqual([null]);
 });
 
 for (const mode of ["success", "failure"] as const) {

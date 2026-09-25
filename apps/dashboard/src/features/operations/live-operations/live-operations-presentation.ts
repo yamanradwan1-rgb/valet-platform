@@ -1,5 +1,7 @@
 import type {
+  DashboardTaskStatus,
   DashboardSessionState,
+  RetrievalQueueEntry,
   SessionOverviewEntry,
   SessionStateCountsResponse,
 } from "@valet/contracts";
@@ -114,6 +116,37 @@ export function liveAssignmentLabel(
 ): string {
   if (membershipId === null) return locale === "ar" ? "غير مسندة" : "Unassigned";
   return locale === "ar" ? "مسندة" : "Assigned";
+}
+
+export function liveRetrievalStatusLabel(
+  status: RetrievalQueueEntry["status"],
+  locale: DashboardLocale,
+): string {
+  if (status === "OPEN") return locale === "ar" ? "مفتوح" : "Open";
+  return locale === "ar" ? "مقبول" : "Accepted";
+}
+
+export function liveRequesterTypeLabel(
+  requesterType: RetrievalQueueEntry["requesterType"],
+  locale: DashboardLocale,
+): string {
+  if (requesterType === "CUSTOMER") return locale === "ar" ? "العميل" : "Customer";
+  return locale === "ar" ? "الموظفون" : "Staff";
+}
+
+export function liveTaskStatusLabel(
+  status: DashboardTaskStatus,
+  locale: DashboardLocale,
+): string {
+  const labels: Record<DashboardTaskStatus, readonly [string, string]> = {
+    ACCEPTED: ["Accepted", "مقبولة"],
+    ASSIGNED: ["Assigned", "مسندة"],
+    CANCELLED: ["Cancelled", "ملغاة"],
+    COMPLETED: ["Completed", "مكتملة"],
+    IN_PROGRESS: ["In Progress", "قيد التنفيذ"],
+    QUEUED: ["Queued", "في قائمة الانتظار"],
+  };
+  return labels[status][locale === "ar" ? 1 : 0];
 }
 
 export function liveVehicleLabel(item: SessionOverviewEntry): string | null {

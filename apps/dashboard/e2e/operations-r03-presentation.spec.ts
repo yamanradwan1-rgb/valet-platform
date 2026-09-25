@@ -7,7 +7,12 @@ import {
   ORG_A,
 } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
-import { OP_IDS, sessionItem, stateCounts } from "./support/operations-fixtures";
+import {
+  OP_IDS,
+  retrievalItem,
+  sessionItem,
+  stateCounts,
+} from "./support/operations-fixtures";
 
 const overview = `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/overview`;
 
@@ -145,4 +150,65 @@ test("R03 localizes state, filter, time, and identifier direction in Arabic RTL"
   await expect(table.locator('bdi[dir="ltr"]').filter({ hasText: LOCATION_A.code }).first()).toBeVisible();
   await expect(table.locator('bdi[dir="rtl"]').first()).toBeVisible();
   await expect(page.getByText("HANDOFF_PENDING", { exact: true })).toHaveCount(0);
+});
+
+test("R03 keeps the unique Retrieval Queue capability lazy and manager-facing", async ({ page }) => {
+  const fixture = new DashboardApiFixture({
+    companyOrganizations: [ORG_A],
+    companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    override: (path) => {
+      if (path === `${overview}/sessions`) {
+        return { body: { items: [sessionItem()], nextCursor: null } };
+      }
+      if (path === `${overview}/session-state-counts`) {
+        return { body: stateCounts() };
+      }
+      if (path === `${overview}/retrieval-queue`) {
+        return { body: { items: [retrievalItem()], nextCursor: null } };
+      }
+      return undefined;
+    },
+  });
+  await fixture.install(page);
+  await page.goto("/live-operations");
+  await signInOnCurrentPage(page);
+  await page.getByRole("button", { name: ORG_A.name }).click();
+  await page.getByRole("button", { name: LOCATION_A.name }).click();
+
+  expect(fixture.count(`${overview}/retrieval-queue`)).toBe(0);
+  expect(fixture.count(`${overview}/tasks`)).toBe(0);
+  await page.getByRole("button", { name: "Retrieval Queue", exact: true }).click();
+  await expect.poll(() => fixture.count(`${overview}/retrieval-queue`)).toBe(1);
+  expect(fixture.count(`${overview}/tasks`)).toBe(0);
+
+  const table = page.getByRole("table");
+  for (const header of [
+    "Requested",
+    "Requester",
+    "Request Status",
+    "Task Status",
+    "Assigned To",
+    "Actions",
+  ]) {
+    await expect(table.getByRole("columnheader", { name: header })).toBeVisible();
+  }
+  await expect(table.getByText(/Sep 21.*2:30 PM/u)).toBeVisible();
+  await expect(table.getByText("Customer", { exact: true })).toBeVisible();
+  await expect(table.getByText("Open", { exact: true })).toBeVisible();
+  await expect(table.getByText("Queued", { exact: true })).toBeVisible();
+  await expect(table.getByText("Unassigned", { exact: true })).toBeVisible();
+  for (const rawId of [OP_IDS.retrieval, OP_IDS.session, OP_IDS.task]) {
+    await expect(page.getByText(rawId, { exact: true })).toHaveCount(0);
+  }
+
+  const opener = page.getByRole("button", {
+    name: "Details: Retrieval Queue",
+  });
+  await opener.click();
+  const dialog = page.getByRole("dialog", { name: "Retrieval Queue" });
+  await expect(dialog.getByText(OP_IDS.retrieval, { exact: true })).toBeVisible();
+  await expect(dialog.getByText(OP_IDS.session, { exact: true })).toBeVisible();
+  await expect(dialog.getByText(OP_IDS.task, { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(opener).toBeFocused();
 });

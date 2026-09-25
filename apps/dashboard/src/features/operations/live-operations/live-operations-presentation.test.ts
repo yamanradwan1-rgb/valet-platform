@@ -6,7 +6,10 @@ import {
   formatLiveOperationsTime,
   liveAssignmentLabel,
   liveOperationsKpis,
+  liveRequesterTypeLabel,
+  liveRetrievalStatusLabel,
   liveSessionStateLabel,
+  liveTaskStatusLabel,
   liveVehicleLabel,
 } from "./live-operations-presentation";
 
@@ -82,6 +85,15 @@ describe("Live Operations presentation", () => {
     expect(liveAssignmentLabel(session.currentAssigneeMembershipId, "en")).toBe("Assigned");
     expect(liveAssignmentLabel(null, "en")).toBe("Unassigned");
     expect(liveAssignmentLabel(session.currentAssigneeMembershipId, "ar")).toBe("مسندة");
+  });
+
+  it("humanizes retrieval queue facts without inventing identity", () => {
+    expect(liveRequesterTypeLabel("CUSTOMER", "en")).toBe("Customer");
+    expect(liveRequesterTypeLabel("STAFF", "ar")).toBe("الموظفون");
+    expect(liveRetrievalStatusLabel("OPEN", "en")).toBe("Open");
+    expect(liveRetrievalStatusLabel("ACCEPTED", "ar")).toBe("مقبول");
+    expect(liveTaskStatusLabel("QUEUED", "en")).toBe("Queued");
+    expect(liveTaskStatusLabel("IN_PROGRESS", "ar")).toBe("قيد التنفيذ");
   });
 
   it("uses plate, descriptor, then null vehicle identity fallback", () => {

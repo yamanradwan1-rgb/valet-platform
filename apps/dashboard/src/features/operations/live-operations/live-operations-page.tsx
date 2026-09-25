@@ -6,7 +6,11 @@ import { useCallback, useState, type ReactNode } from "react";
 
 import type { SelectedDashboardScope } from "../../../components/scope";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
-import { readSessions, readStateCounts } from "../operations-api";
+import {
+  readRetrievalQueue,
+  readSessions,
+  readStateCounts,
+} from "../operations-api";
 import { operationsCopy } from "../operations-copy";
 import { OperationsPage, styles } from "../operations-ui";
 import { useCursorPage } from "../use-cursor-page";
@@ -19,6 +23,9 @@ import {
   type LiveOperationsFilter,
 } from "./live-operations-presentation";
 import { LiveOperationsTable } from "./live-operations-table";
+import { RetrievalQueueTable } from "./retrieval-queue-table";
+
+type LiveOperationsView = "SESSIONS" | "RETRIEVAL_QUEUE";
 
 export function LiveOperationsPage() {
   const { scopeKey } = useOperationsContext();
@@ -30,7 +37,9 @@ function LiveOperationsContent() {
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
   const page = useCursorPage();
+  const retrievalPage = useCursorPage();
   const [filter, setFilter] = useState<LiveOperationsFilter>("ALL");
+  const [view, setView] = useState<LiveOperationsView>("SESSIONS");
   const location = selectedLocation(dashboard.selectedScope);
   const locationId = location?.locationId ?? "";
   const enabled =
@@ -48,6 +57,16 @@ function LiveOperationsContent() {
       readStateCounts(dashboard.api, locationId, signal),
     [dashboard.api, locationId],
   );
+  const loadRetrieval = useCallback(
+    (signal: AbortSignal) =>
+      readRetrievalQueue(
+        dashboard.api,
+        locationId,
+        retrievalPage.cursor,
+        signal,
+      ),
+    [dashboard.api, locationId, retrievalPage.cursor],
+  );
   const sessions = useOperationsRead(
     `${scopeKey}:live:sessions:${page.cursor ?? "first"}`,
     loadSessions,
@@ -57,6 +76,11 @@ function LiveOperationsContent() {
     `${scopeKey}:live:counts`,
     loadCounts,
     enabled,
+  );
+  const retrieval = useOperationsRead(
+    `${scopeKey}:live:retrieval:${retrievalPage.cursor ?? "first"}`,
+    loadRetrieval,
+    enabled && view === "RETRIEVAL_QUEUE",
   );
   const kpis = counts.data === null ? null : liveOperationsKpis(counts.data);
 
@@ -88,28 +112,48 @@ function LiveOperationsContent() {
           countsError={counts.error}
           filter={filter}
           locale={locale}
-          onChange={setFilter}
+          onChange={(next) => {
+            setView("SESSIONS");
+            setFilter(next);
+          }}
+          onRetrieval={() => setView("RETRIEVAL_QUEUE")}
           onRetryCounts={counts.refresh}
+          view={view}
         />
-        <LiveOperationsTable
-          canNext={Boolean(sessions.data?.nextCursor)}
-          canPrevious={page.canPrevious}
-          error={sessions.error}
-          filter={filter}
-          items={sessions.data?.items ?? []}
-          loading={sessions.loading}
-          locale={locale}
-          location={location}
-          onNext={() => {
-            setFilter("ALL");
-            page.next(sessions.data?.nextCursor ?? null);
-          }}
-          onPrevious={() => {
-            setFilter("ALL");
-            page.previous();
-          }}
-          onRetry={sessions.refresh}
-        />
+        {view === "RETRIEVAL_QUEUE" ? (
+          <RetrievalQueueTable
+            canNext={Boolean(retrieval.data?.nextCursor)}
+            canPrevious={retrievalPage.canPrevious}
+            error={retrieval.error}
+            items={retrieval.data?.items ?? []}
+            loading={retrieval.loading}
+            locale={locale}
+            location={location}
+            onNext={() => retrievalPage.next(retrieval.data?.nextCursor ?? null)}
+            onPrevious={retrievalPage.previous}
+            onRetry={retrieval.refresh}
+          />
+        ) : (
+          <LiveOperationsTable
+            canNext={Boolean(sessions.data?.nextCursor)}
+            canPrevious={page.canPrevious}
+            error={sessions.error}
+            filter={filter}
+            items={sessions.data?.items ?? []}
+            loading={sessions.loading}
+            locale={locale}
+            location={location}
+            onNext={() => {
+              setFilter("ALL");
+              page.next(sessions.data?.nextCursor ?? null);
+            }}
+            onPrevious={() => {
+              setFilter("ALL");
+              page.previous();
+            }}
+            onRetry={sessions.refresh}
+          />
+        )}
       </OperationsPage>
     </div>
   );
@@ -130,13 +174,17 @@ function LiveFilters({
   filter,
   locale,
   onChange,
+  onRetrieval,
   onRetryCounts,
+  view,
 }: {
   readonly countsError: Error | null;
   readonly filter: LiveOperationsFilter;
   readonly locale: "en" | "ar";
   readonly onChange: (filter: LiveOperationsFilter) => void;
+  readonly onRetrieval: () => void;
   readonly onRetryCounts: () => void;
+  readonly view: LiveOperationsView;
 }) {
   const t = operationsCopy(locale);
   return (
@@ -144,8 +192,8 @@ function LiveFilters({
       <div aria-label={t.state} className={styles.liveFilterTabs} role="group">
         {liveOperationsFilters.map((item) => (
           <button
-            aria-pressed={filter === item}
-            className={`${styles.tab} ${filter === item ? styles.tabActive : ""}`}
+            aria-pressed={view === "SESSIONS" && filter === item}
+            className={`${styles.tab} ${view === "SESSIONS" && filter === item ? styles.tabActive : ""}`}
             key={item}
             onClick={() => onChange(item)}
             type="button"
@@ -153,6 +201,14 @@ function LiveFilters({
             {liveFilterLabel(item, locale)}
           </button>
         ))}
+        <button
+          aria-pressed={view === "RETRIEVAL_QUEUE"}
+          className={`${styles.tab} ${styles.liveSecondaryTab} ${view === "RETRIEVAL_QUEUE" ? styles.tabActive : ""}`}
+          onClick={onRetrieval}
+          type="button"
+        >
+          {t.retrievalQueue}
+        </button>
       </div>
       {countsError ? (
         <button
@@ -163,7 +219,9 @@ function LiveFilters({
           {t.metricsUnavailable}
         </button>
       ) : (
-        <span className={styles.liveFilterScope}>{t.liveFilterScope}</span>
+        <span className={styles.liveFilterScope}>
+          {view === "RETRIEVAL_QUEUE" ? t.retrievalPageOnly : t.liveFilterScope}
+        </span>
       )}
     </div>
   );
