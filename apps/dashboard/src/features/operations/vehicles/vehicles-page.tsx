@@ -1,20 +1,37 @@
 "use client";
 
+import type { DashboardSessionState, SessionOverviewEntry } from "@valet/contracts";
 import { Search } from "lucide-react";
 import { useCallback, useState } from "react";
-import type { SessionOverviewEntry } from "@valet/contracts";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { readSessions } from "../operations-api";
+import { selectedOperationsLocation } from "../operations-location";
 import { operationsCopy } from "../operations-copy";
-import { sessionStateLabel, sessionTone } from "../operations-labels";
 import {
-  CursorControls, DetailAction, Fact, FactList, OperationsDrawer, OperationsPage,
-  ReadState, StatusBadge, styles,
+  formatOperationsTime,
+  operationsSessionStateLabel,
+  operationsVehicleLabel,
+  r04PresentationCopy,
+} from "../operations-presentation";
+import { sessionTone } from "../operations-labels";
+import {
+  DetailAction,
+  Fact,
+  FactList,
+  OperationsDrawer,
+  OperationsPage,
+  StatusBadge,
+  styles,
 } from "../operations-ui";
+import { ReferenceCursorControls } from "../reference-cursor-controls";
+import listStyles from "../reference-list.module.css";
 import { useCursorPage } from "../use-cursor-page";
 import { useOperationsContext } from "../use-operations-context";
 import { useOperationsRead } from "../use-operations-read";
+
+type StateFilter = DashboardSessionState | "ALL";
+type CursorValue<T> = { readonly cursor: string | null; readonly value: T };
 
 export function VehiclesPage() {
   const { scopeKey } = useOperationsContext();
@@ -25,60 +42,162 @@ function VehiclesContent() {
   const { dashboard, exactLocation, scope, scopeKey } = useOperationsContext();
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
+  const r04 = r04PresentationCopy(locale);
   const page = useCursorPage();
-  const [selected, setSelected] = useState<SessionOverviewEntry | null>(null);
-  const locationId = scope.locationId ?? "";
-  const enabled = exactLocation && (scope.authority === "COMPANY_ADMIN" || scope.authority === "LOCATION_MANAGER");
-  const load = useCallback((signal: AbortSignal) =>
-    readSessions(dashboard.api, locationId, page.cursor, signal),
-  [dashboard.api, locationId, page.cursor]);
+  const [queryState, setQueryState] = useState<CursorValue<string>>({ cursor: null, value: "" });
+  const [filterState, setFilterState] = useState<CursorValue<StateFilter>>({ cursor: null, value: "ALL" });
+  const [selection, setSelection] = useState<CursorValue<SessionOverviewEntry | null>>({ cursor: null, value: null });
+  const location = selectedOperationsLocation(dashboard.selectedScope);
+  const locationId = location?.locationId ?? "";
+  const enabled = exactLocation && location !== null &&
+    (scope.authority === "COMPANY_ADMIN" || scope.authority === "LOCATION_MANAGER");
+  const load = useCallback(
+    (signal: AbortSignal) => readSessions(dashboard.api, locationId, page.cursor, signal),
+    [dashboard.api, locationId, page.cursor],
+  );
   const read = useOperationsRead(`${scopeKey}:vehicles:${page.cursor ?? "first"}`, load, enabled);
-  if (!enabled) return <OperationsPage subtitle={t.vehiclesSubtitle} title={t.vehiclesTitle}><div className={`${styles.card} ${styles.state}`}>{t.exactLocation}</div></OperationsPage>;
+  const items = read.data?.items ?? [];
+  const query = queryState.cursor === page.cursor ? queryState.value : "";
+  const state = filterState.cursor === page.cursor ? filterState.value : "ALL";
+  const selected = selection.cursor === page.cursor ? selection.value : null;
+  const states = [...new Set(items.map((item) => item.state))];
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const rows = items.filter((item) => {
+    const identity = operationsVehicleLabel(item)?.toLocaleLowerCase() ?? "";
+    return (state === "ALL" || item.state === state) &&
+      (normalizedQuery === "" || identity.includes(normalizedQuery));
+  });
+
+  if (!enabled || location === null) {
+    return <OperationsPage subtitle={t.vehiclesSubtitle} title={t.vehiclesTitle}>
+      <div className={`${styles.card} ${styles.state}`}>{t.exactLocation}</div>
+    </OperationsPage>;
+  }
+
   return (
-    <OperationsPage subtitle={t.vehiclesSubtitle} title={t.vehiclesTitle}>
-      <div className={styles.searchPlaceholder}><Search aria-hidden="true" /><span>{t.serverCohort}: {t.currentSessions}</span></div>
-      <div className={styles.referenceFilterRow} aria-label={t.currentSessions}>
-        <span className={styles.filterPlaceholder}>{t.exactLocationLabel}</span>
-        <span className={styles.filterPlaceholder}>{t.canonicalStatuses}</span>
-        <span className={styles.filterPlaceholder}>{t.currentSessions}</span>
+    <OperationsPage
+      action={<span aria-hidden="true" className={listStyles.headerActionSpace} />}
+      subtitle={t.vehiclesSubtitle}
+      title={t.vehiclesTitle}
+    >
+      <label className={listStyles.search}>
+        <Search aria-hidden="true" />
+        <input
+          aria-label={r04.searchVehicle}
+          aria-describedby="vehicles-loaded-page-note"
+          onChange={(event) => setQueryState({ cursor: page.cursor, value: event.target.value })}
+          placeholder={r04.searchVehicle}
+          type="search"
+          value={query}
+        />
+      </label>
+      <div className={listStyles.toolbar}>
+        <div className={listStyles.filters}>
+          <span className={listStyles.locationControl}>{location.name}</span>
+          <select
+            aria-label={t.state}
+            className={listStyles.select}
+            onChange={(event) => setFilterState({ cursor: page.cursor, value: event.target.value as StateFilter })}
+            value={state}
+          >
+            <option value="ALL">{r04.allStatuses}</option>
+            {states.map((value) => (
+              <option key={value} value={value}>{operationsSessionStateLabel(value, locale)}</option>
+            ))}
+          </select>
+        </div>
+        <span className={listStyles.scopeNote} id="vehicles-loaded-page-note">{r04.loadedPageOnly}</span>
       </div>
-      <ReadState empty={read.data?.items.length === 0} error={read.error} loading={read.loading} onRetry={read.refresh}>
-        <div className={styles.card}><div className={styles.tableWrap}><table className={`${styles.table} ${styles.vehicleTable}`}>
-          <thead><tr><th>{t.plateDescriptor}</th><th>{t.session}</th><th>{t.state}</th><th>{t.keySlotId}</th><th>{t.updated}</th><th className={styles.actionHeader}>{t.action}</th></tr></thead>
-          <tbody>{read.data?.items.map((item) => (
-            <tr className={styles.row} key={item.sessionId}>
-              <td><VehicleCell item={item} /></td>
-              <td><bdi dir="ltr">{item.sessionId}</bdi></td>
-              <td><StatusBadge tone={sessionTone(item.state)}>{sessionStateLabel(item.state)}</StatusBadge></td>
-              <td>{item.keySlotId ? <bdi dir="ltr">{item.keySlotId}</bdi> : "—"}</td>
-              <td><bdi dir="ltr">{item.updatedAt}</bdi></td>
-              <td className={styles.actionCell}><DetailAction label={t.details} onClick={() => setSelected(item)} /></td>
-            </tr>
-          ))}</tbody>
-        </table></div>
-        <CursorControls canNext={Boolean(read.data?.nextCursor)} canPrevious={page.canPrevious} onNext={() => page.next(read.data?.nextCursor ?? null)} onPrevious={page.previous} /></div>
-      </ReadState>
-      {selected ? <VehicleDrawer item={selected} onClose={() => setSelected(null)} /> : null}
+      <div className={listStyles.tableCard}>
+        <div className={listStyles.tableWrap}>
+          <table className={listStyles.table}>
+            <thead><tr>
+              <th>{t.vehicle}</th>
+              <th>{t.state}</th>
+              <th>{t.location}</th>
+              <th>{t.updated}</th>
+              <th className={styles.actionHeader}>{t.action}</th>
+            </tr></thead>
+            <tbody>
+              <VehicleTableBody
+                error={read.error}
+                items={rows}
+                loading={read.loading}
+                locale={locale}
+                location={location}
+                onRetry={read.refresh}
+                onSelect={(item) => setSelection({ cursor: page.cursor, value: item })}
+                sourceEmpty={items.length === 0}
+              />
+            </tbody>
+          </table>
+        </div>
+        <ReferenceCursorControls
+          canNext={Boolean(read.data?.nextCursor)}
+          canPrevious={page.canPrevious}
+          label={t.loadedCursorPage}
+          loading={read.loading}
+          locale={locale}
+          onNext={() => page.next(read.data?.nextCursor ?? null)}
+          onPrevious={page.previous}
+        />
+      </div>
+      {selected ? <VehicleDrawer item={selected} locale={locale} location={location} onClose={() => setSelection({ cursor: page.cursor, value: null })} /> : null}
     </OperationsPage>
   );
 }
 
-function VehicleCell({ item }: { readonly item: SessionOverviewEntry }) {
-  const { locale } = useDashboardLocale();
-  const t = operationsCopy(locale);
-  const plate = item.vehicle.plateNumberNormalized;
-  return <div><div className={styles.primaryText}><bdi dir="ltr">{plate ?? item.vehicle.temporaryDescriptor ?? t.plateUnavailable}</bdi></div><div className={styles.muted}><bdi dir="ltr">{item.vehicle.plateCountry ?? item.vehicle.vehicleId}</bdi></div></div>;
+function VehicleTableBody(props: {
+  readonly error: Error | null;
+  readonly items: readonly SessionOverviewEntry[];
+  readonly loading: boolean;
+  readonly locale: "en" | "ar";
+  readonly location: ReturnType<typeof selectedOperationsLocation> & {};
+  readonly onRetry: () => void;
+  readonly onSelect: (item: SessionOverviewEntry) => void;
+  readonly sourceEmpty: boolean;
+}) {
+  const t = operationsCopy(props.locale);
+  if (props.loading) return <StateRow text={t.loading} />;
+  if (props.error) return <tr><td className={listStyles.stateCell} colSpan={5}>
+    <div className={listStyles.inlineError} role="alert"><span>{props.error.message}</span><button className={styles.secondary} onClick={props.onRetry} type="button">{t.retry}</button></div>
+  </td></tr>;
+  if (props.items.length === 0) return <StateRow text={props.sourceEmpty ? t.noData : t.noMatchingLoadedPage} />;
+  return <>{props.items.map((item) => {
+    const vehicle = operationsVehicleLabel(item) ?? t.plateUnavailable;
+    return <tr className={styles.row} key={item.sessionId}>
+      <td><div className={listStyles.primary}><bdi dir="ltr">{vehicle}</bdi></div>{item.vehicle.plateCountry ? <div className={listStyles.secondary}><bdi dir="ltr">{item.vehicle.plateCountry}</bdi></div> : null}</td>
+      <td><StatusBadge tone={sessionTone(item.state)}>{operationsSessionStateLabel(item.state, props.locale)}</StatusBadge></td>
+      <td><div className={listStyles.primary}>{props.location.name}</div><div className={listStyles.secondary}><bdi dir="ltr">{props.location.code}</bdi></div></td>
+      <td><bdi dir={props.locale === "ar" ? "rtl" : "ltr"}>{formatOperationsTime(item.updatedAt, props.location.timezone, props.locale)}</bdi></td>
+      <td className={styles.actionCell}><DetailAction label={`${t.details}: ${vehicle}`} onClick={() => props.onSelect(item)} /></td>
+    </tr>;
+  })}</>;
 }
 
-function VehicleDrawer({ item, onClose }: { readonly item: SessionOverviewEntry; readonly onClose: () => void }) {
-  const { locale } = useDashboardLocale();
-  const t = operationsCopy(locale);
-  return <OperationsDrawer label={t.vehiclesTitle} onClose={onClose} subtitle={<bdi dir="ltr">{item.vehicle.vehicleId}</bdi>}><FactList>
-    <Fact label={t.plate} value={<bdi dir="ltr">{item.vehicle.plateNumberNormalized ?? item.vehicle.temporaryDescriptor ?? t.plateUnavailable}</bdi>} />
-    <Fact label={t.plateCountry} value={<bdi dir="ltr">{item.vehicle.plateCountry ?? "—"}</bdi>} />
-    <Fact label={t.session} value={<bdi dir="ltr">{item.sessionId}</bdi>} />
-    <Fact label={t.state} value={<StatusBadge tone={sessionTone(item.state)}>{sessionStateLabel(item.state)}</StatusBadge>} />
-    <Fact label={t.assignee} value={item.currentAssigneeMembershipId ? <bdi dir="ltr">{item.currentAssigneeMembershipId}</bdi> : t.unassigned} />
-    <Fact label={t.updated} value={<bdi dir="ltr">{item.updatedAt}</bdi>} />
+function StateRow({ text }: { readonly text: string }) {
+  return <tr><td className={listStyles.stateCell} colSpan={5}>{text}</td></tr>;
+}
+
+function VehicleDrawer(props: {
+  readonly item: SessionOverviewEntry;
+  readonly locale: "en" | "ar";
+  readonly location: ReturnType<typeof selectedOperationsLocation> & {};
+  readonly onClose: () => void;
+}) {
+  const t = operationsCopy(props.locale);
+  const vehicle = operationsVehicleLabel(props.item) ?? t.plateUnavailable;
+  const time = (value: string) => formatOperationsTime(value, props.location.timezone, props.locale);
+  return <OperationsDrawer label={t.details} onClose={props.onClose} subtitle={<bdi dir="ltr">{vehicle}</bdi>}><FactList>
+    <Fact label={t.vehicle} value={<bdi dir="ltr">{vehicle}</bdi>} />
+    <Fact label={t.plateCountry} value={<bdi dir="ltr">{props.item.vehicle.plateCountry ?? "—"}</bdi>} />
+    <Fact label={t.state} value={<StatusBadge tone={sessionTone(props.item.state)}>{operationsSessionStateLabel(props.item.state, props.locale)}</StatusBadge>} />
+    <Fact label={t.location} value={props.location.name} />
+    <Fact label={t.vehicleId} value={<bdi dir="ltr">{props.item.vehicle.vehicleId}</bdi>} />
+    <Fact label={t.sessionId} value={<bdi dir="ltr">{props.item.sessionId}</bdi>} />
+    <Fact label={t.keySlotId} value={props.item.keySlotId ? <bdi dir="ltr">{props.item.keySlotId}</bdi> : "—"} />
+    <Fact label={t.parkingSpotId} value={props.item.parkingSpotId ? <bdi dir="ltr">{props.item.parkingSpotId}</bdi> : "—"} />
+    <Fact label={t.membershipId} value={props.item.currentAssigneeMembershipId ? <bdi dir="ltr">{props.item.currentAssigneeMembershipId}</bdi> : "—"} />
+    <Fact label={t.updated} value={<bdi dir={props.locale === "ar" ? "rtl" : "ltr"}>{time(props.item.updatedAt)}</bdi>} />
   </FactList></OperationsDrawer>;
 }

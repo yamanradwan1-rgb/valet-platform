@@ -7,6 +7,13 @@ import type {
 } from "@valet/contracts";
 
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import {
+  formatOperationsTime,
+  operationsAssignmentLabel,
+  operationsSessionStateLabel,
+  operationsTaskStatusLabel,
+  operationsVehicleLabel,
+} from "../operations-presentation";
 
 export type LiveOperationsFilter =
   | "ALL"
@@ -25,20 +32,6 @@ const filterStates: Readonly<Record<
   REQUESTED: ["REQUESTED"],
   IN_TRANSIT: ["PARKING", "RETRIEVING"],
   READY_HANDOFF: ["READY", "HANDOFF_PENDING"],
-};
-
-const stateLabels: Readonly<
-  Record<DashboardSessionState, Readonly<Record<DashboardLocale, string>>>
-> = {
-  AWAITING_PARKING: { en: "Awaiting Parking", ar: "بانتظار الاصطفاف" },
-  CHECKING_IN: { en: "Checking In", ar: "جارٍ تسجيل المركبة" },
-  COMPLETED: { en: "Completed", ar: "مكتملة" },
-  HANDOFF_PENDING: { en: "Handoff Pending", ar: "بانتظار التسليم" },
-  PARKED: { en: "Parked", ar: "مصطفّة" },
-  PARKING: { en: "Parking", ar: "جارٍ الاصطفاف" },
-  READY: { en: "Ready", ar: "جاهزة" },
-  REQUESTED: { en: "Retrieval Requested", ar: "تم طلب الاسترجاع" },
-  RETRIEVING: { en: "Retrieving", ar: "جارٍ الاسترجاع" },
 };
 
 const filterLabels: Readonly<
@@ -104,18 +97,14 @@ export function liveSessionStateLabel(
   state: string,
   locale: DashboardLocale,
 ): string {
-  const known = stateLabels[state as DashboardSessionState];
-  if (known !== undefined) return known[locale];
-  const literal = state.replaceAll("_", " ").trim() || "UNKNOWN";
-  return locale === "ar" ? `حالة: ${literal}` : `State: ${literal}`;
+  return operationsSessionStateLabel(state, locale);
 }
 
 export function liveAssignmentLabel(
   membershipId: string | null,
   locale: DashboardLocale,
 ): string {
-  if (membershipId === null) return locale === "ar" ? "غير مسندة" : "Unassigned";
-  return locale === "ar" ? "مسندة" : "Assigned";
+  return operationsAssignmentLabel(membershipId, locale);
 }
 
 export function liveRetrievalStatusLabel(
@@ -138,23 +127,11 @@ export function liveTaskStatusLabel(
   status: DashboardTaskStatus,
   locale: DashboardLocale,
 ): string {
-  const labels: Record<DashboardTaskStatus, readonly [string, string]> = {
-    ACCEPTED: ["Accepted", "مقبولة"],
-    ASSIGNED: ["Assigned", "مسندة"],
-    CANCELLED: ["Cancelled", "ملغاة"],
-    COMPLETED: ["Completed", "مكتملة"],
-    IN_PROGRESS: ["In Progress", "قيد التنفيذ"],
-    QUEUED: ["Queued", "في قائمة الانتظار"],
-  };
-  return labels[status][locale === "ar" ? 1 : 0];
+  return operationsTaskStatusLabel(status, locale);
 }
 
 export function liveVehicleLabel(item: SessionOverviewEntry): string | null {
-  return (
-    item.vehicle.plateNumberNormalized?.trim() ||
-    item.vehicle.temporaryDescriptor?.trim() ||
-    null
-  );
+  return operationsVehicleLabel(item);
 }
 
 export function formatLiveOperationsTime(
@@ -162,15 +139,5 @@ export function formatLiveOperationsTime(
   timezone: string,
   locale: DashboardLocale,
 ): string {
-  try {
-    return new Intl.DateTimeFormat(locale === "ar" ? "ar-JO" : "en-US", {
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      month: "short",
-      timeZone: timezone,
-    }).format(new Date(value));
-  } catch {
-    return locale === "ar" ? "الوقت غير متاح" : "Time unavailable";
-  }
+  return formatOperationsTime(value, timezone, locale);
 }

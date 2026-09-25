@@ -58,17 +58,18 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
   const nav = page.getByRole("navigation", { name: "Management navigation" });
   await nav.getByRole("link", { name: "Vehicles" }).click();
   await expect(page.getByRole("heading", { name: "Vehicles", level: 1 })).toHaveCSS("font-size", "24px");
-  const vehicleHeader = page.getByRole("columnheader", { name: "Plate / Descriptor" });
-  await expect(vehicleHeader).toHaveCSS("padding-left", "20px");
+  const vehicleHeader = page.getByRole("columnheader", { name: "Vehicle" });
+  await expect(vehicleHeader).toHaveCSS("padding-left", "24px");
   await expect(vehicleHeader).toHaveCSS("background-color", "rgb(250, 251, 253)");
-  await expect(page.locator('[class*="searchPlaceholder"]')).toHaveCSS("min-height", "42px");
-  await expect(page.locator('[class*="filterPlaceholder"]').first()).toHaveCSS("min-height", "36px");
+  await expect(page.getByRole("searchbox")).toHaveCSS("min-height", "42px");
+  await expect(page.getByRole("combobox", { name: "State" })).toHaveCSS("min-height", "38px");
   await expect(page.getByRole("columnheader", { name: "Actions" })).toHaveCSS("text-align", "end");
 
   await nav.getByRole("link", { name: "Tasks" }).click();
   await expect(page.getByRole("heading", { name: "Tasks", level: 1 })).toHaveCSS("font-weight", "700");
-  await expect(page.getByRole("columnheader", { name: "Task" })).toHaveCSS("padding-left", "24px");
-  await expect(page.locator('[class*="filterPlaceholder"]')).toHaveCount(3);
+  await expect(page.getByRole("columnheader", { name: "Type" })).toHaveCSS("padding-left", "24px");
+  await expect(page.getByRole("combobox", { name: "State" })).toHaveCSS("min-height", "38px");
+  await expect(page.getByRole("combobox", { name: "Type" })).toHaveCSS("min-height", "38px");
 
   await nav.getByRole("link", { name: "Keys" }).click();
   await expect(page.getByRole("heading", { name: "Keys", level: 1 })).toHaveCSS("font-size", "24px");

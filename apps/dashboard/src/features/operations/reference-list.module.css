@@ -1,0 +1,252 @@
+.headerActionSpace {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  visibility: hidden;
+}
+
+.search {
+  position: relative;
+  min-height: 2.625rem;
+}
+
+.search svg {
+  position: absolute;
+  inset-inline-start: 0.875rem;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  color: #94a3b8;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.search input,
+.select,
+.locationControl {
+  min-height: 2.375rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #334155;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.search input {
+  width: 100%;
+  min-height: 2.625rem;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.02);
+}
+
+:global([dir="rtl"]) .search input {
+  padding-right: 2.5rem;
+  padding-left: 1rem;
+}
+
+.toolbar {
+  min-height: 2.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.select {
+  min-width: 8rem;
+  padding: 0.45rem 2rem 0.45rem 0.875rem;
+  cursor: pointer;
+}
+
+:global([dir="rtl"]) .select {
+  padding-right: 0.875rem;
+  padding-left: 2rem;
+}
+
+.locationControl {
+  display: inline-flex;
+  align-items: center;
+  max-width: 18rem;
+  padding: 0.45rem 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scopeNote {
+  color: #94a3b8;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+.tableCard {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 48rem;
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.table th {
+  height: 2.75rem;
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fafbfd;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+.table td {
+  height: 4.0625rem;
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.primary {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.secondary {
+  margin-top: 0.125rem;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.stateCell {
+  height: 9rem !important;
+  text-align: center;
+  color: #64748b !important;
+}
+
+.inlineError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #b42318;
+}
+
+.pagination {
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.cursorButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cursorButton {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.cursorButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.search input:focus-visible,
+.select:focus-visible,
+.cursorButton:focus-visible {
+  outline: 2px solid #1e60f0;
+  outline-offset: 2px;
+}
+
+:global([data-theme="dark"]) .search input,
+:global([data-theme="dark"]) .select,
+:global([data-theme="dark"]) .locationControl,
+:global([data-theme="dark"]) .tableCard,
+:global([data-theme="dark"]) .cursorButton {
+  background: #0d152f;
+  border-color: #172346;
+  color: #cbd5e1;
+}
+
+:global([data-theme="dark"]) .table th {
+  background: #091024;
+  border-bottom-color: #172346;
+  color: #94a3b8;
+}
+
+:global([data-theme="dark"]) .table td {
+  border-bottom-color: rgba(23, 35, 70, 0.6);
+  color: #cbd5e1;
+}
+
+:global([data-theme="dark"]) .primary {
+  color: #fff;
+}
+
+:global([data-theme="dark"]) .secondary,
+:global([data-theme="dark"]) .stateCell,
+:global([data-theme="dark"]) .pagination {
+  color: #94a3b8 !important;
+}
+
+:global([data-theme="dark"]) .pagination {
+  border-top-color: #172346;
+}
+
+@media (max-width: 760px) {
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .scopeNote {
+    white-space: normal;
+  }
+
+  .table {
+    min-width: 46rem;
+  }
+}

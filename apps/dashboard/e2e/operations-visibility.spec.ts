@@ -77,7 +77,7 @@ test("MD-03 operational pages render only current authoritative projections with
   }
 
   await nav.getByRole("link", { name: "Tasks" }).click();
-  await expect(page.getByText("PARKING", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("table").getByText("Parking", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Unassigned", { exact: true }).first()).toBeVisible();
   for (const forbidden of ["MOVE", "SERVICE", "New Task", "Reassign", "Complete"]) {
     await expect(page.getByText(forbidden, { exact: true })).toHaveCount(0);
