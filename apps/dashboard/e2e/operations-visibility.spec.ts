@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { DashboardApiFixture, LOCATION_A, ORG_A } from "./support/dashboard-api-fixture";
+import { DashboardApiFixture, E2E_IDS, LOCATION_A, ORG_A } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
 import {
   incidentItem,
   keyItem,
+  OP_IDS,
   operationsReadReply,
   sessionItem,
   taskItem,
@@ -48,26 +49,24 @@ test("MD-03 operational pages render only current authoritative projections with
   await page.getByRole("button", { name: LOCATION_A.name }).click();
 
   await expect(page.getByText("Active Sessions")).toBeVisible();
-  await expect(page.getByText("Requested Sessions")).toBeVisible();
-  await expect(page.getByText("Retrieval Requested", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("In Transit")).toBeVisible();
-  await expect(page.getByText("Handoff Pending", { exact: true })).toBeVisible();
+  await expect(page.getByText("Waiting Retrieval", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("In Transit", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Handoff Pending", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Today", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Blue SUV near gate")).toBeVisible();
-  await expect(page.getByRole("tab", { name: /All \(/u })).toHaveAttribute("aria-selected", "true");
-  for (const suffix of ["sessions", "session-state-counts", "retrieval-queue", "tasks"]) {
+  await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("md03-page").getByText(LOCATION_A.name, { exact: true })).toBeVisible();
+  await expect(page.getByText("Assigned", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("Parked", { exact: true })).toBeVisible();
+  await expect(page.getByText(OP_IDS.session, { exact: true })).toHaveCount(0);
+  await expect(page.getByText(OP_IDS.vehicle, { exact: true })).toHaveCount(0);
+  await expect(page.getByText(E2E_IDS.membership, { exact: true })).toHaveCount(0);
+  for (const suffix of ["sessions", "session-state-counts"]) {
     await expect.poll(() => fixture.count(`${overview}/${suffix}`)).toBeGreaterThan(0);
   }
-
-  await page.getByRole("tab", { name: "retrieval queue" }).click();
-  await expect(page.getByText("OPEN", { exact: true })).toBeVisible();
-  await expect(page.getByText("CUSTOMER", { exact: true })).toBeVisible();
-  await expect(page.getByText("QUEUED", { exact: true })).toBeVisible();
-  await expect(page.getByText("OPEN / ACCEPTED retrieval requests — loaded page only")).toBeVisible();
-  await page.getByRole("tab", { name: "Tasks" }).click();
-  await expect(page.getByText("PARKING", { exact: true })).toBeVisible();
-  await expect(page.getByText("IN_PROGRESS", { exact: true })).toBeVisible();
-  await expect(page.getByText("Parking / Retrieval tasks — loaded page only")).toBeVisible();
+  expect(fixture.count(`${overview}/retrieval-queue`)).toBe(0);
+  expect(fixture.count(`${overview}/tasks`)).toBe(0);
+  await expect(page.getByText("New Check-in", { exact: true })).toHaveCount(0);
 
   const nav = page.getByRole("navigation", { name: "Management navigation" });
   await nav.getByRole("link", { name: "Vehicles" }).click();

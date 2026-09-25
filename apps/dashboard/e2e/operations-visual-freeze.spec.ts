@@ -14,6 +14,7 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
     override: (path) => operationsReadReply(path),
   });
   await fixture.install(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/live-operations");
   await signInOnCurrentPage(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
@@ -22,7 +23,8 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
   const title = page.getByRole("heading", { name: "Live Operations", level: 1 });
   await expect(title).toHaveCSS("font-size", "24px");
   await expect(title).toHaveCSS("font-weight", "700");
-  await expect(page.getByText("Current exact-Location valet operations.")).toHaveCSS("font-size", "14px");
+  await expect(page.getByText("Real-time operational context")).toHaveCSS("font-size", "14px");
+  await expect(page.getByText("Real-time operational context")).toHaveCSS("line-height", "20px");
   const activeCard = page.getByText("Active Sessions").locator("..").locator("..");
   await expect(activeCard).toHaveCSS("border-radius", "12px");
   await expect(activeCard.locator("div").first()).toHaveCSS("width", "48px");
@@ -31,7 +33,21 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
   await expect(liveHeader).toHaveCSS("padding-left", "24px");
   await expect(liveHeader).toHaveCSS("font-weight", "600");
   await expect(page.getByRole("columnheader", { name: "Actions" })).toHaveCSS("text-align", "end");
-  await expect(page.getByRole("tab", { name: /All \(/u })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
+  const titleBox = await title.boundingBox();
+  const activeBox = await activeCard.boundingBox();
+  const allBox = await page.getByRole("button", { name: "All", exact: true }).boundingBox();
+  const headerBox = await liveHeader.boundingBox();
+  const rowBox = await page.locator("tbody tr").first().boundingBox();
+  expect(titleBox?.x).toBeCloseTo(292, 0);
+  expect(titleBox?.y).toBeCloseTo(96, 0);
+  expect(activeBox?.height).toBeCloseTo(90, 0);
+  expect(activeBox?.width).toBeCloseTo(265.5, 0);
+  expect(allBox?.y).toBeCloseTo(290, 0);
+  expect(allBox?.height).toBeCloseTo(30, 0);
+  expect(headerBox?.y).toBeCloseTo(346, 0);
+  expect(headerBox?.height).toBeCloseTo(44.5, 0);
+  expect(rowBox?.height).toBeCloseTo(68.5, 0);
   const metricGrid = activeCard.locator("..");
   await page.setViewportSize({ width: 1000, height: 900 });
   await expect.poll(async () => (await metricGrid.evaluate((node) =>
