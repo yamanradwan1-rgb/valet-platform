@@ -45,7 +45,7 @@ test("MD-02 pages preserve the frozen reference hierarchy and page-specific geom
   const employeeTitle = page.getByRole("heading", { name: "Employees & Shifts", level: 1 });
   await expect(employeeTitle).toHaveCSS("font-size", "24px");
   await expect(employeeTitle).toHaveCSS("font-weight", "700");
-  await expect(page.getByText("Manage staff authority and view active shifts.")).toHaveCSS("font-size", "14px");
+  await expect(page.getByText("Manage your team and shifts.")).toHaveCSS("font-size", "14px");
   const employeeHeader = page.getByRole("columnheader", { name: "Email" });
   await expect(employeeHeader).toHaveCSS("color", "rgb(15, 23, 42)");
   await expect(employeeHeader).toHaveCSS("font-weight", "600");

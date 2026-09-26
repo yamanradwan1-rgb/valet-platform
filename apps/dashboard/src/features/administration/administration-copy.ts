@@ -2,7 +2,7 @@ import type { DashboardLocale } from "../../lib/i18n/locale";
 
 const copy = {
   en: {
-    employeesTitle: "Employees & Shifts", employeesSubtitle: "Manage staff authority and view active shifts.",
+    employeesTitle: "Employees & Shifts", employeesSubtitle: "Manage your team and shifts.",
     employees: "Employees", shifts: "Shifts", locationsTitle: "Locations",
     locationsSubtitle: "Manage locations and their lifecycle.", policiesTitle: "Policies & Settings",
     policiesSubtitle: "Manage typed operational configuration.", rolesTitle: "Roles & Permissions",
@@ -36,13 +36,16 @@ const copy = {
     mfaRetry: "Verification succeeded. Review the values and submit the action again.",
     revoke: "Revoke", grantListTruncated: "Additional Location grants are not shown; access outside this list is unknown.",
     activeLocationRequired: "Select an active Location to view active shifts.",
+    searchEmployees: "Search loaded employee email…", allRoles: "All roles", allMembershipStatuses: "All statuses",
+    loadedPageOnly: "Search and filters apply to the loaded page only.", loadedCursorPage: "Loaded cursor page",
+    shift: "Shift", location: "Location", locationCode: "Location code", noMatchingLoadedPage: "No matching staff on this loaded page.",
     setting: "Setting", value: "Value", category: "Category", all: "All", searchIntegrations: "Search integrations…",
     currencySupported: "Supported currency", timezoneValid: "Valid timezone", activeShift: "Active shift",
     nonCompletedSession: "Non-completed session", nonTerminalTask: "Non-terminal task",
     trial: "Trial", suspended: "Suspended",
   },
   ar: {
-    employeesTitle: "الموظفون والورديات", employeesSubtitle: "إدارة صلاحيات الموظفين وعرض الورديات النشطة.",
+    employeesTitle: "الموظفون والورديات", employeesSubtitle: "إدارة فريقك والورديات.",
     employees: "الموظفون", shifts: "الورديات", locationsTitle: "المواقع", locationsSubtitle: "إدارة المواقع ودورة حياتها.",
     policiesTitle: "السياسات والإعدادات", policiesSubtitle: "إدارة الإعدادات التشغيلية المحددة.", rolesTitle: "الأدوار والصلاحيات",
     rolesSubtitle: "مراجعة أدوار موظفي VAYLET الثابتة.", brandingTitle: "الهوية البصرية",
@@ -75,6 +78,9 @@ const copy = {
     mfaRetry: "تم التحقق بنجاح. راجع القيم وأرسل الإجراء مرة أخرى.",
     revoke: "إلغاء الصلاحية", grantListTruncated: "هناك صلاحيات مواقع إضافية غير معروضة؛ لا يمكن الجزم بصلاحية المواقع خارج هذه القائمة.",
     activeLocationRequired: "اختر موقعًا نشطًا لعرض الورديات النشطة.",
+    searchEmployees: "ابحث في بريد الموظفين المحمّل…", allRoles: "كل الأدوار", allMembershipStatuses: "كل الحالات",
+    loadedPageOnly: "البحث والفلاتر تنطبق على الصفحة المحمّلة فقط.", loadedCursorPage: "صفحة المؤشر المحمّلة",
+    shift: "الوردية", location: "الموقع", locationCode: "رمز الموقع", noMatchingLoadedPage: "لا يوجد موظفون مطابقون في الصفحة المحمّلة.",
     setting: "الإعداد", value: "القيمة", category: "الفئة", all: "الكل", searchIntegrations: "ابحث في التكاملات…",
     currencySupported: "عملة مدعومة", timezoneValid: "منطقة زمنية صالحة", activeShift: "وردية نشطة",
     nonCompletedSession: "جلسة غير مكتملة", nonTerminalTask: "مهمة غير منتهية",

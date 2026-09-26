@@ -47,8 +47,9 @@ test("Company Admin active shifts require an exact active Location", async ({ pa
   await page.getByRole("button", { name: LOCATION_A.name }).click();
   await page.getByRole("button", { name: "Shifts" }).click();
 
-  await expect(page.getByText(E2E_IDS.shift, { exact: true })).toBeVisible();
-  await expect(page.getByText(E2E_IDS.membership, { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("Active shift", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText(E2E_IDS.shift, { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("table").getByText(E2E_IDS.membership, { exact: true })).toHaveCount(0);
   expect(fixture.count(shiftsPath)).toBeGreaterThanOrEqual(1);
   await expect(page.getByRole("button", { name: /start shift|end shift|attendance|payroll/i })).toHaveCount(0);
 });
@@ -65,7 +66,8 @@ test("Location Manager reads active shifts only for the granted Location", async
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
 
-  await expect(page.getByText(E2E_IDS.shift, { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("Active shift", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText(E2E_IDS.shift, { exact: true })).toHaveCount(0);
   expect(fixture.count(shiftsPath)).toBeGreaterThanOrEqual(1);
   await expect(page.getByRole("button", { name: "Employees" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /start shift|end shift|attendance|payroll/i })).toHaveCount(0);
