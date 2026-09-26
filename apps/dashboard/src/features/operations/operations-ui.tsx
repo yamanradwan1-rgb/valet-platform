@@ -16,15 +16,17 @@ export function OperationsPage(props: {
   readonly action?: ReactNode;
   readonly children: ReactNode;
   readonly compact?: boolean;
+  readonly referenceHeader?: boolean;
   readonly subtitleMargin?: "full" | "half";
   readonly subtitle: string;
   readonly title: string;
 }) {
   const pageClass = [styles.page, props.compact ? styles.pageCompact : ""].filter(Boolean).join(" ");
   const subtitleClass = [styles.subtitle, props.subtitleMargin === "half" ? styles.subtitleHalf : ""].filter(Boolean).join(" ");
+  const headerClass = [styles.header, props.referenceHeader ? styles.referenceHeader : ""].filter(Boolean).join(" ");
   return (
     <div className={pageClass} data-testid="md03-page">
-      <div className={styles.header}>
+      <div className={headerClass}>
         <div><h1 className={styles.title}>{props.title}</h1><p className={subtitleClass}>{props.subtitle}</p></div>
         {props.action}
       </div>

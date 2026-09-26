@@ -93,10 +93,14 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
 
-  await expect(page.getByText("LIVE", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("STALE", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("No current position", { exact: true }).first()).toBeVisible();
+  const livePanel = page.getByRole("complementary", { name: "Live Operations" });
+  await expect(livePanel.locator("bdi").first()).toHaveAttribute("dir", "ltr");
+  await expect(livePanel.getByText("Live", { exact: true }).first()).toBeVisible();
+  await expect(livePanel.getByText("Last known", { exact: true }).first()).toBeVisible();
+  await expect(livePanel.getByText("No current position", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/Observed at:/u)).toBeVisible();
+  await expect(page.getByText(/Observed at:.*3:00/u)).toBeVisible();
+  await expect(page.getByText("2026-09-21T12:00:00.000Z", { exact: true })).toHaveCount(0);
   await expect(page.getByTestId("coordinate-canvas")).toBeVisible();
   await expect(page.getByText(/not a floor plan or street map/u)).toBeVisible();
   await expect(page.getByText("Occupancy", { exact: true })).toHaveCount(0);
@@ -107,6 +111,7 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
   await expect.poll(() => liveCursors).toContain("live_cursor_12345678");
   await page.getByRole("button", { name: "Previous", exact: true }).click();
 
+  await page.getByRole("button", { name: "Setup / Operational Areas" }).click();
   await page.getByRole("button", { name: "Add Point" }).click();
   const addPoint = page.getByRole("dialog", { name: "Add Point" });
   await addPoint.getByText("Code", { exact: true }).locator("..").getByRole("textbox").fill("PICK");
@@ -151,21 +156,21 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
   await addArea.getByText("Code", { exact: true }).locator("..").getByRole("textbox").fill("STG");
   await addArea.getByText("Label", { exact: true }).locator("..").getByRole("textbox").fill("Staging Area");
   await addArea.getByRole("combobox").selectOption("STAGING");
-  await addArea.getByRole("textbox", { name: /Vertices/u }).fill("31.950, 35.910\n31.951, 35.910\n31.951, 35.911");
+  await addArea.getByRole("textbox", { name: /Boundary points/u }).fill("31.950, 35.910\n31.951, 35.910\n31.951, 35.911");
   await addArea.getByRole("button", { name: "Save" }).click();
   expect(areaPostCount).toBe(1);
   await expect(page.getByText("Staging Area", { exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "Parking Area" }).click();
+  await page.getByRole("button", { name: "Edit: Parking Area", exact: true }).click();
   const editArea = page.getByRole("dialog", { name: "Edit" });
   await editArea.getByText("Label", { exact: true }).locator("..").getByRole("textbox").fill("Lot A");
   await editArea.getByRole("button", { name: "Save" }).click();
   expect(areaPatchCount).toBe(1);
   expect(lastAreaPatch).toEqual({ label: "Lot A" });
 
-  await page.getByRole("button", { name: "Replace vertices" }).first().click();
-  const vertices = page.getByRole("dialog", { name: "Replace vertices" });
-  await vertices.getByRole("textbox", { name: /Vertices/u }).fill("31.952, 35.910\n31.953, 35.910\n31.953, 35.912");
+  await page.getByRole("button", { name: /Edit boundary/u }).first().click();
+  const vertices = page.getByRole("dialog", { name: "Edit boundary" });
+  await vertices.getByRole("textbox", { name: /Boundary points/u }).fill("31.952, 35.910\n31.953, 35.910\n31.953, 35.912");
   await vertices.getByRole("button", { name: "Save" }).click();
   expect(verticesPutCount).toBe(1);
   expect(lastVertices).toEqual({

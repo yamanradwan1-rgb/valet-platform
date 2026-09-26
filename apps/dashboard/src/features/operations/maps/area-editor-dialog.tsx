@@ -15,7 +15,9 @@ import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
 import { styles } from "../operations-ui";
 import { MapSetupDialog } from "./map-setup-dialog";
+import { mapAreaPurposeLabel } from "./map-setup-presentation";
 import { MapSetupSelect } from "./map-setup-select";
+import reference from "./maps-reference.module.css";
 
 function verticesText(area?: LocationMapArea) {
   return area?.vertices.map((vertex) => `${vertex.latitude}, ${vertex.longitude}`).join("\n") ?? "";
@@ -79,13 +81,17 @@ export function AreaEditorDialog(props: {
       title={original ? t.edit : t.addArea}
     >
       <div className={styles.formGrid}>
-        <Field label={t.code}><input className={styles.input} onChange={(e) => setCode(e.target.value)} value={code} /></Field>
+        <Field label={t.code}><input className={styles.input} dir="ltr" onChange={(e) => setCode(e.target.value)} value={code} /></Field>
         <Field label={t.label}><input className={styles.input} onChange={(e) => setLabel(e.target.value)} value={label} /></Field>
-        <Field label={t.purpose}><MapSetupSelect onChange={(e) => setPurpose(e.target.value as CreateLocationMapAreaRequest["purpose"])} value={purpose}><option>PARKING</option><option>OVERFLOW</option><option>STAGING</option><option>RESTRICTED</option></MapSetupSelect></Field>
+        <Field label={t.purpose}><MapSetupSelect onChange={(e) => setPurpose(e.target.value as CreateLocationMapAreaRequest["purpose"])} value={purpose}><option value="PARKING">{mapAreaPurposeLabel("PARKING", locale)}</option><option value="OVERFLOW">{mapAreaPurposeLabel("OVERFLOW", locale)}</option><option value="STAGING">{mapAreaPurposeLabel("STAGING", locale)}</option><option value="RESTRICTED">{mapAreaPurposeLabel("RESTRICTED", locale)}</option></MapSetupSelect></Field>
         <Field label={t.level}><input className={styles.input} onChange={(e) => setLevelLabel(e.target.value)} value={levelLabel} /></Field>
-        <Field label={t.parkingZoneId}><input className={styles.input} onChange={(e) => setParkingZoneId(e.target.value)} value={parkingZoneId} /></Field>
       </div>
-      {!original ? <Field label={`${t.vertices} (lat, lng — 3..500)`}><textarea className={styles.textarea} onChange={(e) => setVertices(e.target.value)} value={vertices} /></Field> : null}
+      <details className={reference.advanced}>
+        <summary>{t.advancedConfig}</summary>
+        <p className={reference.advancedHelp}>{t.parkingZoneAssociationHelp}</p>
+        <Field label={t.parkingZoneId}><input className={styles.input} dir="ltr" onChange={(e) => setParkingZoneId(e.target.value)} value={parkingZoneId} /></Field>
+      </details>
+      {!original ? <Field label={`${t.boundaryPoints} (lat, lng — 3..500)`}><textarea className={styles.textarea} dir="ltr" onChange={(e) => setVertices(e.target.value)} value={vertices} /></Field> : null}
       <label className={styles.field}><span className={styles.fieldLabel}>{t.active}</span><input checked={active} onChange={(e) => setActive(e.target.checked)} type="checkbox" /></label>
       {error ? <div className={styles.error} role="alert">{error}</div> : null}
     </MapSetupDialog>
@@ -108,7 +114,7 @@ export function VerticesEditorDialog(props: {
     setError(null);
     if (await props.onSave(parsed.data)) props.onClose();
   };
-  return <MapSetupDialog footer={<><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></>} onClose={props.onClose} subtitle={t.verticesSetupSubtitle} title={t.replaceVertices}><Field label={`${t.vertices} (lat, lng — 3..500)`}><textarea className={styles.textarea} onChange={(e) => setValue(e.target.value)} value={value} /></Field>{error ? <div className={styles.error} role="alert">{error}</div> : null}</MapSetupDialog>;
+  return <MapSetupDialog footer={<><button className={styles.secondary} onClick={props.onClose} type="button">{t.cancel}</button><button className={styles.primary} disabled={props.pending} onClick={() => void submit()} type="button">{t.save}</button></>} onClose={props.onClose} subtitle={t.verticesSetupSubtitle} title={t.editBoundary}><Field label={`${t.boundaryPoints} (lat, lng — 3..500)`}><textarea className={styles.textarea} dir="ltr" onChange={(e) => setValue(e.target.value)} value={value} /></Field>{error ? <div className={styles.error} role="alert">{error}</div> : null}</MapSetupDialog>;
 }
 
 function Field({ children, label }: { readonly children: React.ReactNode; readonly label: string }) {

@@ -63,4 +63,39 @@ describe("map setup mutation outcome model", () => {
     expect(write).toHaveBeenCalledTimes(1);
     expect(reload).not.toHaveBeenCalled();
   });
+
+  it("does not reload or publish success after the owning scope is invalidated", async () => {
+    let current = true;
+    const write = vi.fn(async () => {
+      current = false;
+    });
+    const reload = vi.fn(reloadOk);
+
+    await expect(
+      executeMapSetupMutation(write, reload, () => current),
+    ).resolves.toEqual({ closeEditor: false, error: null, notice: null });
+    expect(write).toHaveBeenCalledTimes(1);
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it.each([conflict, unknown, retry])(
+    "does not reconcile a failed write after invalidation (%s)",
+    async (failure) => {
+      let current = true;
+      const write = vi.fn(async () => {
+        try {
+          await failure();
+        } finally {
+          current = false;
+        }
+      });
+      const reload = vi.fn(reloadOk);
+
+      await expect(
+        executeMapSetupMutation(write, reload, () => current),
+      ).resolves.toEqual({ closeEditor: false, error: null, notice: null });
+      expect(write).toHaveBeenCalledTimes(1);
+      expect(reload).not.toHaveBeenCalled();
+    },
+  );
 });

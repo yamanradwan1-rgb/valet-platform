@@ -12,6 +12,7 @@ async function openLocationManagerMaps(page: import("@playwright/test").Page) {
   await signInOnCurrentPage(page, "manager@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
+  await page.getByRole("button", { name: "Setup / Operational Areas" }).click();
 }
 
 test("manual map setup refresh failure is visible and never becomes an unhandled rejection", async ({ page }) => {

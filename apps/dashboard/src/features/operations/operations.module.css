@@ -4,6 +4,9 @@
 .title { margin:0; color:#0f172a; font-size:1.5rem; line-height:1.3; font-weight:700; letter-spacing:-.025em; }
 .subtitle { margin:.25rem 0 0; color:#64748b; font-size:.875rem; }
 .subtitleHalf { margin-top:.125rem; }
+.referenceHeader > div { flex:1 1 100%; min-width:0; }
+.referenceHeader .title { line-height:2rem; }
+.referenceHeader .subtitle { line-height:1.25rem; }
 :global([data-theme="dark"]) .title { color:#fff; }
 :global([data-theme="dark"]) .subtitle { color:#94a3b8; }
 .card { background:#fff; border:1px solid #e2e8f0; border-radius:.75rem; box-shadow:0 1px 2px rgba(15,23,42,.04); overflow:hidden; }

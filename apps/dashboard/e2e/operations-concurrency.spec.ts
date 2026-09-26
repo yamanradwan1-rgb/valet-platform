@@ -119,7 +119,9 @@ test("stale live-map refresh from Location A cannot repaint Location B and there
   await signInOnCurrentPage(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
-  await expect(page.getByText("A-LIVE").first()).toBeVisible();
+  await expect(
+    page.getByRole("complementary", { name: "Live Operations" }).getByText("A-LIVE", { exact: true }).first(),
+  ).toBeVisible();
   await page.waitForTimeout(150);
   const settledInitialCalls = liveACalls;
   expect(settledInitialCalls).toBeGreaterThanOrEqual(1);
@@ -132,7 +134,9 @@ test("stale live-map refresh from Location A cannot repaint Location B and there
   await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_B.name }).click();
-  await expect(page.getByText("B-LIVE").first()).toBeVisible();
+  await expect(
+    page.getByRole("complementary", { name: "Live Operations" }).getByText("B-LIVE", { exact: true }).first(),
+  ).toBeVisible();
   await page.waitForTimeout(150);
   const settledBCalls = liveBCalls;
   expect(settledBCalls).toBeGreaterThanOrEqual(1);

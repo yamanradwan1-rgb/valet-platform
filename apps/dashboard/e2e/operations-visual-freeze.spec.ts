@@ -89,14 +89,14 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
   await expect(page.getByRole("heading", { name: "Maps & Zones", level: 1 })).toHaveCSS("font-size", "24px");
   await expect(page.getByTestId("md03-page")).toHaveCSS("row-gap", "20px");
   const canvas = page.getByTestId("coordinate-canvas");
-  await expect(canvas).toHaveCSS("min-height", "480px");
-  await expect(canvas).toHaveCSS("border-radius", "12px");
-  await expect(canvas.locator("svg")).toHaveCSS("height", "480px");
+  await expect(canvas).toHaveCSS("min-height", "510px");
+  await expect(canvas).toHaveCSS("border-radius", "0px");
+  await expect(canvas.locator("svg")).toHaveCSS("height", "510px");
 
   await page.getByRole("button", { name: "Dark" }).click();
   await expect(title).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Maps & Zones", level: 1 })).toHaveCSS("color", "rgb(255, 255, 255)");
-  const mapToolbar = page.locator('[class*="mapsToolbar"]');
+  const mapToolbar = page.getByTestId("map-reference-toolbar");
   await expect(mapToolbar).toHaveCSS("background-color", "rgb(14, 22, 49)");
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
@@ -120,6 +120,7 @@ test("Map Setup dialogs preserve the frozen Maps modal composition", async ({ pa
   await signInOnCurrentPage(page, "manager@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
+  await page.getByRole("button", { name: "Setup / Operational Areas" }).click();
 
   const opener = page.getByRole("button", { name: "Add Point" });
   await opener.click();
@@ -183,8 +184,8 @@ test("Map Setup dialogs preserve the frozen Maps modal composition", async ({ pa
   await page.getByRole("button", { name: "Add Area" }).click();
   await expect(page.getByRole("dialog", { name: "Add Area" })).toBeVisible();
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Replace vertices" }).click();
-  await expect(page.getByRole("dialog", { name: "Replace vertices" })).toBeVisible();
+  await page.getByRole("button", { name: /Edit boundary/u }).click();
+  await expect(page.getByRole("dialog", { name: "Edit boundary" })).toBeVisible();
   await page.keyboard.press("Escape");
 
   await page.getByRole("button", { name: "Dark" }).click();

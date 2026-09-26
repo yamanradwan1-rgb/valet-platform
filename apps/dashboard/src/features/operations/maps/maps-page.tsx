@@ -1,23 +1,28 @@
 "use client";
 
-import { Layers, RefreshCw } from "lucide-react";
-import { useCallback } from "react";
+import { MapPin, RefreshCw } from "lucide-react";
+import { useCallback, useState } from "react";
 import type { LiveOperationsMapResponse } from "@valet/contracts";
 
+import type { SelectedDashboardScope } from "../../../components/scope";
 import { DashboardApiError } from "../../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { readLocationManagerSubscription } from "../../../lib/scope/dashboard-scope";
 import { readLiveMap } from "../operations-api";
 import { operationsCopy } from "../operations-copy";
-import {
-  CursorControls, OperationsPage, StatusBadge, styles,
-} from "../operations-ui";
+import { formatOperationsTime } from "../operations-presentation";
+import { OperationsPage, styles } from "../operations-ui";
 import { useCursorPage } from "../use-cursor-page";
 import { useOperationsContext } from "../use-operations-context";
 import { useOperationsRead } from "../use-operations-read";
-import { CoordinateCanvas, PositionList } from "./coordinate-canvas";
+import { CoordinateCanvas } from "./coordinate-canvas";
+import { LiveMapPanel } from "./live-map-panel";
 import { MapSetupPanel } from "./map-setup-panel";
+import reference from "./maps-reference.module.css";
 import { useMapSetupState } from "./use-map-setup-state";
+
+type MapMode = "LIVE" | "SETUP";
+type LiveMapItem = LiveOperationsMapResponse["items"][number];
 
 export function MapsPage() {
   const { scopeKey } = useOperationsContext();
@@ -29,11 +34,13 @@ function MapsContent() {
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
   const page = useCursorPage();
+  const [mode, setMode] = useState<MapMode>("LIVE");
   const locationId = scope.locationId ?? "";
   const locationManager = exactLocation && scope.authority === "LOCATION_MANAGER";
   const companyAdmin = exactLocation && scope.authority === "COMPANY_ADMIN";
   const supervisor = exactLocation && scope.authority === "SUPERVISOR";
   const routeEligible = locationManager || companyAdmin || supervisor;
+  const location = selectedMapLocation(dashboard.selectedScope);
 
   const loadSubscription = useCallback(
     (signal: AbortSignal) => readLocationManagerSubscription(dashboard.api, locationId, signal),
@@ -61,70 +68,191 @@ function MapsContent() {
   const setup = useMapSetupState(dashboard.api, locationId, locationManager);
   const liveError = live.error ? liveErrorMessage(live.error, t.liveMapDenied) : null;
   const liveItems = live.data?.items ?? [];
+  const levels = returnedLevels(liveItems, setup.points, setup.areas);
+  const setupForced = locationManager &&
+    !subscription.loading &&
+    !subscription.error &&
+    !lmDashboardAccess;
 
   if (!routeEligible) {
-    return <OperationsPage subtitle={t.mapsSubtitle} title={t.mapsTitle}><div className={`${styles.card} ${styles.state}`}>{t.exactLocation}</div></OperationsPage>;
+    return (
+      <OperationsPage subtitle={t.mapsSubtitle} title={t.mapsTitle}>
+        <div className={`${styles.card} ${styles.state}`}>{t.exactLocation}</div>
+      </OperationsPage>
+    );
   }
+
+  const setupMode = locationManager && (mode === "SETUP" || setupForced);
+  const observed = live.data && location.timezone
+    ? formatOperationsTime(live.data.observedAt, location.timezone, locale)
+    : live.data ? t.timeUnavailable : null;
+  const refresh = setupMode ? setup.reload : async () => live.refresh();
+  const refreshing = setupMode ? setup.loading : live.loading;
+
   return (
-    <OperationsPage compact subtitle={t.mapsSubtitle} subtitleMargin="half" title={t.mapsTitle}>
-      <div className={`${styles.card} ${styles.mapsToolbar}`}>
-        <div className={styles.toolbar}>
-          <div className={styles.filterGroup}>
-            <span className={styles.filterPlaceholder}>{t.exactLocationLabel}</span>
-            <span className={styles.filterPlaceholder}>{t.coordinateView}</span>
-            <span className={styles.filterPlaceholder}>{t.operational}</span>
+    <OperationsPage compact referenceHeader subtitle={t.mapsSubtitle} subtitleMargin="half" title={t.mapsTitle}>
+      <div className={reference.controlStrip} data-testid="map-reference-toolbar">
+        <div className={reference.controlGroup}>
+          <div className={reference.scopeControl} title={location.name}>
+            <MapPin aria-hidden="true" size={15} />
+            <span>{location.name || t.exactLocationLabel}</span>
           </div>
-          <button className={styles.secondary} disabled={!liveEnabled || live.loading} onClick={live.refresh} type="button"><RefreshCw aria-hidden="true" size={14} /> {t.refresh}</button>
+          <div aria-disabled="true" className={reference.levelControl} title={levels.join(", ")}>
+            {t.returnedLevels}: {levels.length > 0 ? levels.join(", ") : t.levelUnavailable}
+          </div>
+          <div aria-label={t.mapsTitle} className={reference.modeGroup}>
+            <button
+              aria-pressed={!setupMode}
+              className={`${reference.modeButton} ${!setupMode ? reference.modeButtonActive : ""}`}
+              disabled={setupForced}
+              onClick={() => setMode("LIVE")}
+              type="button"
+            >
+              {t.liveMode}
+            </button>
+            {locationManager ? (
+              <button
+                aria-pressed={setupMode}
+                className={`${reference.modeButton} ${setupMode ? reference.modeButtonActive : ""}`}
+                onClick={() => setMode("SETUP")}
+                type="button"
+              >
+                {t.setupMode}
+              </button>
+            ) : null}
+          </div>
         </div>
-        <div className={styles.muted}>{live.data ? <><span>{t.observedAt}: </span><bdi dir="ltr">{live.data.observedAt}</bdi></> : t.coordinateDisclaimer}</div>
+        <button
+          className={reference.refreshButton}
+          disabled={refreshing || (!setupMode && !liveEnabled)}
+          onClick={() => void refresh()}
+          type="button"
+        >
+          <RefreshCw aria-hidden="true" size={14} /> {t.refresh}
+        </button>
       </div>
-      <div className={styles.mapsGrid}>
-        <div>
+
+      <div className={reference.grid} data-testid="map-reference-grid">
+        <div className={reference.mapColumn}>
           {locationManager && subscription.loading ? <div className={styles.setupStatus}>{t.loading}</div> : null}
           {locationManager && subscription.error ? <div className={styles.error} role="alert">{subscription.error.message}</div> : null}
-          {locationManager && !subscription.loading && !subscription.error && !lmDashboardAccess ? <div className={styles.setupStatus} data-testid="lm-live-map-unavailable">{t.liveMapUnavailable}</div> : null}
-          {liveError ? <div className={styles.error} role="alert">{liveError}</div> : null}
-          {live.loading ? <div className={styles.setupStatus}>{t.loading}</div> : null}
-          <CoordinateCanvas areas={locationManager ? setup.areas : undefined} items={liveItems} points={locationManager ? setup.points : undefined} />
-          {liveEnabled && !live.loading && !live.error && liveItems.length === 0 ? <div className={styles.contextBand}>{t.noTrackedTasks}</div> : null}
-          {live.data ? <CursorControls canNext={Boolean(live.data.nextCursor)} canPrevious={page.canPrevious} onNext={() => page.next(live.data?.nextCursor ?? null)} onPrevious={page.previous} /> : null}
-          <PositionList items={liveItems} />
+          {locationManager && !subscription.loading && !subscription.error && !lmDashboardAccess ? (
+            <div className={styles.setupStatus} data-testid="lm-live-map-unavailable">{t.liveMapUnavailable}</div>
+          ) : null}
+          {!setupMode && liveError ? <div className={styles.error} role="alert">{liveError}</div> : null}
+          {!setupMode && live.loading ? <div className={styles.setupStatus}>{t.loading}</div> : null}
+          <section className={reference.surface} aria-label={t.providerNeutralMap}>
+            <div className={reference.surfaceBar}>
+              <div className={reference.statusRow}>
+                {liveItems.some((item) => item.position?.freshness === "LIVE") && !setupMode ? (
+                  <span className={reference.statusDot} aria-hidden="true" />
+                ) : !setupMode && liveItems.some((item) => item.position?.freshness === "STALE") ? (
+                  <span className={`${reference.statusDot} ${reference.statusDotStale}`} aria-hidden="true" />
+                ) : null}
+                <strong>{setupMode ? t.setupMode : t.liveMode}</strong>
+                {observed && !setupMode ? <span>{t.observedAt}: {observed}</span> : null}
+              </div>
+              <div className={reference.surfaceMeta}>
+                <strong>{location.name}</strong>
+                <span>{t.providerNeutralMap}</span>
+              </div>
+            </div>
+            <CoordinateCanvas
+              areas={locationManager ? setup.areas : undefined}
+              items={setupMode ? [] : liveItems}
+              points={locationManager ? setup.points : undefined}
+              timezone={location.timezone}
+            />
+            <div className={reference.surfaceLegend} aria-label={t.providerNeutralMap}>
+              <span className={reference.legendItem}>
+                <span aria-hidden="true" className={reference.legendLive} />
+                {t.liveLegend}
+              </span>
+              <span className={reference.legendItem}>
+                <span aria-hidden="true" className={reference.legendStale} />
+                {t.staleLegend}
+              </span>
+              {locationManager ? (
+                <span className={reference.legendItem}>
+                  <span aria-hidden="true" className={reference.legendInactive} />
+                  {t.inactiveLegend}
+                </span>
+              ) : null}
+            </div>
+          </section>
+          {!setupMode && liveEnabled && !live.loading && !live.error && liveItems.length === 0 ? (
+            <div className={styles.contextBand}>{t.noTrackedTasks}</div>
+          ) : null}
         </div>
+
         {locationManager ? (
-          <MapSetupPanel
-            api={dashboard.api}
-            areas={setup.areas}
-            error={setup.error}
-            loading={setup.loading}
-            locationId={locationId}
-            points={setup.points}
-            reload={setup.reload}
+          <>
+            <MapSetupPanel
+              api={dashboard.api}
+              areas={setup.areas}
+              error={setup.error}
+              hidden={!setupMode}
+              loading={setup.loading}
+              locationId={locationId}
+              points={setup.points}
+              reload={setup.reload}
+            />
+            <LiveMapPanel
+              canNext={Boolean(live.data?.nextCursor)}
+              canPrevious={page.canPrevious}
+              hidden={setupMode}
+              items={liveItems}
+              onNext={() => page.next(live.data?.nextCursor ?? null)}
+              onPrevious={page.previous}
+              timezone={location.timezone}
+            />
+          </>
+        ) : (
+          <LiveMapPanel
+            canNext={Boolean(live.data?.nextCursor)}
+            canPrevious={page.canPrevious}
+            hidden={false}
+            items={liveItems}
+            onNext={() => page.next(live.data?.nextCursor ?? null)}
+            onPrevious={page.previous}
+            timezone={location.timezone}
           />
-        ) : <LiveMapSidebar items={liveItems} />}
+        )}
       </div>
     </OperationsPage>
   );
 }
 
-type LiveMapItem = LiveOperationsMapResponse["items"][number];
+function selectedMapLocation(scope: SelectedDashboardScope): {
+  readonly name: string;
+  readonly timezone: string | undefined;
+} {
+  if (scope.authority === "COMPANY_ADMIN") {
+    return {
+      name: scope.context.selectedLocation?.name ?? "",
+      timezone: scope.context.selectedLocation?.timezone,
+    };
+  }
+  if (scope.authority === "LOCATION_MANAGER") {
+    return { name: scope.location.name, timezone: scope.location.timezone };
+  }
+  if (scope.authority === "SUPERVISOR") {
+    return { name: scope.context.location.name, timezone: undefined };
+  }
+  return { name: "", timezone: undefined };
+}
 
-function LiveMapSidebar({ items }: { readonly items: readonly LiveMapItem[] }) {
-  const { locale } = useDashboardLocale();
-  const t = operationsCopy(locale);
-  return (
-    <aside className={`${styles.card} ${styles.mapSidebar}`}>
-      <div className={styles.toolbar}><h2>{t.liveTitle}</h2><Layers aria-hidden="true" size={17} /></div>
-      <div className={styles.list}>
-        {items.length === 0 ? <div className={styles.muted}>{t.noTrackedTasks}</div> : items.map((item) => (
-          <div className={styles.listItem} key={item.taskId}>
-            <div className={styles.toolbar}><strong>{item.taskType}</strong><StatusBadge tone={item.position?.freshness === "LIVE" ? "good" : item.position ? "warn" : "neutral"}>{item.position?.freshness ?? t.noPosition}</StatusBadge></div>
-            <div className={styles.muted}><bdi dir="ltr">{item.taskId}</bdi></div>
-            <div className={styles.muted}><bdi dir="ltr">{item.vehicle.plateNumber ?? item.vehicle.temporaryDescriptor ?? item.vehicle.vehicleId}</bdi></div>
-          </div>
-        ))}
-      </div>
-    </aside>
-  );
+function returnedLevels(
+  items: readonly LiveMapItem[],
+  points: readonly { readonly levelLabel: string | null }[],
+  areas: readonly { readonly levelLabel: string | null }[],
+): readonly string[] {
+  const values = [
+    ...points.map((point) => point.levelLabel),
+    ...areas.map((area) => area.levelLabel),
+    ...items.flatMap((item) => item.position?.areas.map((area) => area.levelLabel) ?? []),
+  ].filter((value): value is string => Boolean(value?.trim())).map((value) => value.trim());
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
 function liveErrorMessage(error: Error, denied: string) {

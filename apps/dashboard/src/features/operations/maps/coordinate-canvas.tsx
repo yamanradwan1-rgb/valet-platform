@@ -8,7 +8,12 @@ import type {
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
-import { StatusBadge, styles } from "../operations-ui";
+import { styles } from "../operations-ui";
+import {
+  liveMapMarkerLabel,
+  mapAreaDescription,
+  mapPointDescription,
+} from "./map-presentation";
 
 type LiveItem = LiveOperationsMapResponse["items"][number];
 
@@ -43,6 +48,7 @@ export function CoordinateCanvas(props: {
   readonly areas?: readonly LocationMapArea[] | undefined;
   readonly items: readonly LiveItem[];
   readonly points?: readonly LocationMapPoint[] | undefined;
+  readonly timezone?: string | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
@@ -55,7 +61,7 @@ export function CoordinateCanvas(props: {
   const project = bounds ? projector(bounds) : null;
   return (
     <div className={styles.mapCanvas} data-testid="coordinate-canvas">
-      <div className={styles.mapNotice}><strong>{t.coordinateView}</strong> · {t.coordinateDisclaimer}</div>
+      <div className={styles.mapNotice}><strong>{t.providerNeutralMap}</strong> · {t.coordinateDisclaimer}</div>
       {project === null ? <div className={styles.state}>{t.noPosition}</div> : (
         <svg aria-label={t.coordinateView} className={styles.mapSvg} role="img" viewBox="0 0 100 100">
           {(props.areas ?? []).map((area) => (
@@ -69,38 +75,21 @@ export function CoordinateCanvas(props: {
               stroke="#1e60f0"
               strokeDasharray={area.active ? undefined : "2 2"}
               strokeWidth=".45"
-            />
+            >
+              <title>{mapAreaDescription(area, locale)}</title>
+            </polygon>
           ))}
           {(props.points ?? []).map((point) => {
             const p = project(point);
-            return <circle cx={p.x} cy={p.y} fill={point.active ? "#1e60f0" : "#94a3b8"} key={point.id} r="1.4"><title>{point.label}: {point.latitude}, {point.longitude}</title></circle>;
+            return <circle cx={p.x} cy={p.y} fill={point.active ? "#1e60f0" : "#94a3b8"} key={point.id} r="1.4"><title>{mapPointDescription(point)}</title></circle>;
           })}
           {props.items.flatMap((item) => {
             if (!item.position) return [];
             const point = project(item.position);
-            return [<circle cx={point.x} cy={point.y} fill={item.position.freshness === "LIVE" ? "#059669" : "#f59e0b"} key={item.taskId} r="2"><title>{item.taskType} {item.taskId}: {item.position.latitude}, {item.position.longitude}</title></circle>];
+            return [<circle cx={point.x} cy={point.y} fill={item.position.freshness === "LIVE" ? "#059669" : "#f59e0b"} key={item.taskId} r="2"><title>{liveMapMarkerLabel(item, locale, props.timezone)}</title></circle>];
           })}
         </svg>
       )}
     </div>
-  );
-}
-
-export function PositionList({ items }: { readonly items: readonly LiveItem[] }) {
-  const { locale } = useDashboardLocale();
-  const t = operationsCopy(locale);
-  return (
-    <section className={styles.accessibleList} aria-label={t.listAlternative}>
-      <h2 className={styles.sectionTitle}>{t.listAlternative}</h2>
-      <div className={styles.list}>
-        {items.map((item) => (
-          <div className={styles.listItem} key={item.taskId}>
-            <div className={styles.toolbar}><strong><bdi dir="ltr">{item.vehicle.plateNumber ?? item.vehicle.temporaryDescriptor ?? item.vehicle.vehicleId}</bdi></strong><StatusBadge tone={item.position?.freshness === "LIVE" ? "good" : item.position ? "warn" : "neutral"}>{item.position?.freshness ?? t.noPosition}</StatusBadge></div>
-            <div className={styles.muted}><bdi dir="ltr">{item.taskType} · {item.taskId}</bdi></div>
-            {item.position ? <div className={styles.muted}><bdi dir="ltr">{item.position.latitude}, {item.position.longitude}</bdi> · <bdi dir="ltr">{item.position.capturedAt}</bdi></div> : null}
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }

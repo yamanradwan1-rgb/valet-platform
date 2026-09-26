@@ -13,6 +13,7 @@ import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
 import { styles } from "../operations-ui";
 import { MapSetupDialog } from "./map-setup-dialog";
+import { mapPointKindLabel } from "./map-setup-presentation";
 import { MapSetupSelect } from "./map-setup-select";
 
 export function PointEditorDialog(props: {
@@ -72,12 +73,12 @@ export function PointEditorDialog(props: {
       title={original ? t.edit : t.addPoint}
     >
       <div className={styles.formGrid}>
-        <Field label={t.code}><input className={styles.input} onChange={(e) => setCode(e.target.value)} value={code} /></Field>
+        <Field label={t.code}><input className={styles.input} dir="ltr" onChange={(e) => setCode(e.target.value)} value={code} /></Field>
         <Field label={t.label}><input className={styles.input} onChange={(e) => setLabel(e.target.value)} value={label} /></Field>
-        <Field label={t.kind}><MapSetupSelect onChange={(e) => setKind(e.target.value as CreateLocationMapPointRequest["kind"])} value={kind}><option>ENTRANCE</option><option>PICKUP</option><option>DROP_OFF</option></MapSetupSelect></Field>
+        <Field label={t.kind}><MapSetupSelect onChange={(e) => setKind(e.target.value as CreateLocationMapPointRequest["kind"])} value={kind}><option value="ENTRANCE">{mapPointKindLabel("ENTRANCE", locale)}</option><option value="PICKUP">{mapPointKindLabel("PICKUP", locale)}</option><option value="DROP_OFF">{mapPointKindLabel("DROP_OFF", locale)}</option></MapSetupSelect></Field>
         <Field label={t.level}><input className={styles.input} onChange={(e) => setLevelLabel(e.target.value)} value={levelLabel} /></Field>
-        <Field label={t.latitude}><input className={styles.input} inputMode="decimal" onChange={(e) => setLatitude(e.target.value)} value={latitude} /></Field>
-        <Field label={t.longitude}><input className={styles.input} inputMode="decimal" onChange={(e) => setLongitude(e.target.value)} value={longitude} /></Field>
+        <Field label={t.latitude}><input className={styles.input} dir="ltr" inputMode="decimal" onChange={(e) => setLatitude(e.target.value)} value={latitude} /></Field>
+        <Field label={t.longitude}><input className={styles.input} dir="ltr" inputMode="decimal" onChange={(e) => setLongitude(e.target.value)} value={longitude} /></Field>
       </div>
       <label className={styles.field}><span className={styles.fieldLabel}>{t.active}</span><input checked={active} onChange={(e) => setActive(e.target.checked)} type="checkbox" /></label>
       {error ? <div className={styles.error} role="alert">{error}</div> : null}
