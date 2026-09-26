@@ -1,16 +1,25 @@
 "use client";
 
-import { Building, MapPin, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { administrationCopy } from "../administration-copy";
-import { administrationErrorMessage, isMfaRequired } from "../administration-error";
-import { administrationScope, administrationScopeKey } from "../administration-scope";
-import { AdministrationPage, ReadState, StatusBadge, styles } from "../administration-ui";
+import {
+  administrationErrorMessage,
+  isMfaRequired,
+} from "../administration-error";
+import {
+  administrationScope,
+  administrationScopeKey,
+} from "../administration-scope";
+import { AdministrationPage, ReadState, styles } from "../administration-ui";
 import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { useAuthoritativeRead } from "../use-authoritative-read";
+import { LocationMaster } from "./location-master";
+import { LocationDetail } from "./location-detail";
+import reference from "./locations-reference.module.css";
 import { LocationCreateDialog } from "./location-create-dialog";
 import { LocationLifecyclePanel } from "./location-lifecycle-panel";
 import { readLocationLifecycle, readLocations } from "./locations-api";
@@ -25,9 +34,8 @@ function LocationsPageContent() {
   const dashboard = useProtectedDashboard();
   const scope = administrationScope(dashboard.selectedScope);
   const scopeKey = administrationScopeKey(dashboard);
-  const { locale } = useDashboardLocale();
+  const { locale, t: translate } = useDashboardLocale();
   const t = administrationCopy(locale);
-  const locationStatusLabel = (status: "ACTIVE" | "INACTIVE") => status === "ACTIVE" ? t.active : t.inactive;
   const companyAdmin = scope.authority === "COMPANY_ADMIN";
   const locationManager = scope.authority === "LOCATION_MANAGER";
   const [cursor, setCursor] = useState<string | null>(null);
@@ -35,30 +43,178 @@ function LocationsPageContent() {
   const [selectedId, setSelectedId] = useState<string | null>(scope.locationId);
   const [createOpen, setCreateOpen] = useState(false);
   const [lifecycleMfaDismissed, setLifecycleMfaDismissed] = useState(false);
-  const loadLocations = useCallback((signal: AbortSignal) => readLocations(dashboard.api, scope.organizationId, cursor, signal), [dashboard.api, scope.organizationId, cursor]);
-  const locations = useAuthoritativeRead(`${scopeKey}:locations:${cursor ?? "first"}`, loadLocations, companyAdmin);
-  const loadLifecycle = useCallback((signal: AbortSignal) => {
-    if (!selectedId) throw new Error("Location lifecycle requires an exact Location.");
-    return readLocationLifecycle(dashboard.api, scope.organizationId, selectedId, signal);
-  }, [dashboard.api, scope.organizationId, selectedId]);
-  const lifecycle = useAuthoritativeRead(`${scopeKey}:lifecycle:${selectedId ?? "none"}`, loadLifecycle, companyAdmin && selectedId !== null);
+  const loadLocations = useCallback(
+    (signal: AbortSignal) =>
+      readLocations(dashboard.api, scope.organizationId, cursor, signal),
+    [dashboard.api, scope.organizationId, cursor],
+  );
+  const locations = useAuthoritativeRead(
+    `${scopeKey}:locations:${cursor ?? "first"}`,
+    loadLocations,
+    companyAdmin,
+  );
+  const loadLifecycle = useCallback(
+    (signal: AbortSignal) => {
+      if (!selectedId)
+        throw new Error("Location lifecycle requires an exact Location.");
+      return readLocationLifecycle(
+        dashboard.api,
+        scope.organizationId,
+        selectedId,
+        signal,
+      );
+    },
+    [dashboard.api, scope.organizationId, selectedId],
+  );
+  const lifecycle = useAuthoritativeRead(
+    `${scopeKey}:lifecycle:${selectedId ?? "none"}`,
+    loadLifecycle,
+    companyAdmin && selectedId !== null,
+  );
   const lifecycleNeedsMfa = isMfaRequired(lifecycle.error);
 
   if (!companyAdmin && !locationManager) return null;
-  const lmLocation = dashboard.selectedScope.authority === "LOCATION_MANAGER" ? dashboard.selectedScope.location : null;
+  const lmLocation =
+    dashboard.selectedScope.authority === "LOCATION_MANAGER"
+      ? dashboard.selectedScope.location
+      : null;
+  function select(id: string) {
+    setSelectedId(id);
+    setLifecycleMfaDismissed(false);
+  }
+
   return (
-    <AdministrationPage action={companyAdmin ? <button className={styles.primary} onClick={() => setCreateOpen(true)} type="button"><Plus size={15} /> {t.addLocation}</button> : undefined} subtitle={t.locationsSubtitle} subtitleSize="sm" title={t.locationsTitle} titleTracking="tight">
-      {locationManager && lmLocation ? (
-        <div className={styles.masterDetail}><div className={`${styles.card} ${styles.locationListCard}`}><div className={styles.listHeader}><Building size={16} /> {t.allLocations}</div><div className={styles.list}><div className={`${styles.listItem} ${styles.locationListItem} ${styles.listItemActive} ${styles.locationListItemActive}`}><span className={`${styles.locationIcon} ${styles.locationIconActive}`}><MapPin size={16} /></span><div><div className={`${styles.locationName} ${styles.locationNameActive}`}>{lmLocation.name}</div><div className={styles.locationMeta}>{lmLocation.code}</div></div></div></div></div><div className={styles.card}><div className={styles.facilityHero}><MapPin aria-hidden="true" /></div><div className={styles.detailBody}><div className={styles.detailHeading}><div><h2 className={styles.title}>{lmLocation.name}</h2><p className={styles.subtitle}><bdi dir="ltr">{lmLocation.code}</bdi></p></div><StatusBadge good={lmLocation.status === "ACTIVE"}>{locationStatusLabel(lmLocation.status)}</StatusBadge></div><div className={`${styles.facts} ${styles.locationFacts}`}><div className={styles.fact}><div className={styles.locationFactValue}><bdi dir="ltr">{lmLocation.code}</bdi></div><div className={styles.locationFactLabel}>{t.code}</div></div><div className={styles.fact}><div className={styles.locationFactValue}><bdi dir="ltr">{lmLocation.timezone}</bdi></div><div className={styles.locationFactLabel}>{t.timezone}</div></div><div className={styles.fact}><div className={styles.locationFactValue}><bdi dir="ltr">{lmLocation.currency}</bdi></div><div className={styles.locationFactLabel}>{t.currency}</div></div></div></div></div></div>
-      ) : null}
-      {companyAdmin ? <ReadState error={locations.error ? new Error(administrationErrorMessage(locations.error)) : null} loading={locations.loading} onRetry={locations.refresh}>
-        <div className={styles.masterDetail}>
-          <div className={`${styles.card} ${styles.locationListCard}`}><div className={styles.listHeader}><Building size={16} /> {t.allLocations}</div><div className={styles.list}>{locations.data?.items.map((location) => { const selected = selectedId === location.locationId; return <button className={`${styles.listItem} ${styles.locationListItem} ${selected ? `${styles.listItemActive} ${styles.locationListItemActive}` : ""}`} key={location.locationId} onClick={() => { setSelectedId(location.locationId); setLifecycleMfaDismissed(false); }} type="button"><span className={`${styles.locationIcon} ${selected ? styles.locationIconActive : ""}`}><MapPin size={16} /></span><div><div className={`${styles.locationName} ${selected ? styles.locationNameActive : ""}`}>{location.name}</div><div className={styles.locationMeta}><bdi dir="ltr">{location.code}</bdi> · {locationStatusLabel(location.status)}</div></div></button>; })}</div><div className={styles.pagination}><button className={styles.secondary} disabled={history.length === 0} onClick={() => { const next = [...history]; setCursor(next.pop() ?? null); setHistory(next); }} type="button">{t.previous}</button><button className={styles.secondary} disabled={!locations.data?.nextCursor} onClick={() => { setHistory((items) => [...items, cursor]); setCursor(locations.data?.nextCursor ?? null); }} type="button">{t.next}</button></div></div>
-          <div className={styles.card}>{selectedId ? <ReadState error={lifecycle.error && (!lifecycleNeedsMfa || lifecycleMfaDismissed) ? new Error(administrationErrorMessage(lifecycle.error)) : null} loading={lifecycle.loading} onRetry={lifecycle.refresh}>{lifecycle.data ? <><div className={styles.facilityHero}><MapPin aria-hidden="true" /></div><div className={styles.detailBody}><div className={styles.detailHeading}><div><h2 className={styles.title}>{lifecycle.data.name}</h2><p className={styles.subtitle}><MapPin size={14} /> {lifecycle.data.addressText}</p></div><StatusBadge good={lifecycle.data.status === "ACTIVE"}>{locationStatusLabel(lifecycle.data.status)}</StatusBadge></div><LocationLifecyclePanel api={dashboard.api} location={lifecycle.data} onReload={() => { lifecycle.refresh(); locations.refresh(); }} organizationId={scope.organizationId} /></div></> : lifecycleNeedsMfa ? <div className={styles.empty}>{t.mfaRetry}</div> : null}</ReadState> : <div className={styles.empty}>{t.selectLocation}</div>}</div>
-        </div>
-      </ReadState> : null}
-      {createOpen ? <LocationCreateDialog api={dashboard.api} onClose={() => setCreateOpen(false)} onCreated={(locationId) => { setCreateOpen(false); setSelectedId(locationId); locations.refresh(); }} organizationId={scope.organizationId} /> : null}
-      {lifecycleNeedsMfa && !lifecycleMfaDismissed ? <SensitiveMfaDialog api={dashboard.api} onAssured={() => { setLifecycleMfaDismissed(false); lifecycle.refresh(); }} onClose={() => setLifecycleMfaDismissed(true)} /> : null}
-    </AdministrationPage>
+    <div className={reference.page}>
+      <AdministrationPage
+        action={
+          companyAdmin ? (
+            <button
+              className={reference.add}
+              onClick={() => setCreateOpen(true)}
+              type="button"
+            >
+              <Plus aria-hidden="true" size={16} />
+              {t.addLocation}
+            </button>
+          ) : undefined
+        }
+        subtitle={t.locationsSubtitle}
+        subtitleSize="sm"
+        title={t.locationsTitle}
+        titleTracking="tight"
+      >
+        {locationManager && lmLocation ? (
+          <div className={reference.grid}>
+            <LocationMaster
+              items={[lmLocation]}
+              selectedId={lmLocation.locationId}
+            />
+            <section
+              className={`${styles.card} ${reference.detail}`}
+              data-testid="location-detail"
+            >
+              <LocationDetail location={lmLocation} />
+            </section>
+          </div>
+        ) : null}
+        {companyAdmin ? (
+          <ReadState
+            error={
+              locations.error
+                ? new Error(administrationErrorMessage(locations.error))
+                : null
+            }
+            loading={locations.loading && !locations.data}
+            onRetry={locations.refresh}
+          >
+            <div className={reference.grid}>
+              <LocationMaster
+                items={locations.data?.items ?? []}
+                onSelect={select}
+                selectedId={selectedId}
+                pagination={{
+                  hasPrevious: !locations.loading && history.length > 0,
+                  hasNext:
+                    !locations.loading && Boolean(locations.data?.nextCursor),
+                  previous: () => {
+                    const next = [...history];
+                    setCursor(next.pop() ?? null);
+                    setHistory(next);
+                  },
+                  next: () => {
+                    setHistory((items) => [...items, cursor]);
+                    setCursor(locations.data?.nextCursor ?? null);
+                  },
+                }}
+              />
+              <section
+                className={`${styles.card} ${reference.detail}`}
+                data-testid="location-detail"
+              >
+                {selectedId ? (
+                  <ReadState
+                    error={
+                      lifecycle.error &&
+                      (!lifecycleNeedsMfa || lifecycleMfaDismissed)
+                        ? new Error(administrationErrorMessage(lifecycle.error))
+                        : null
+                    }
+                    loading={lifecycle.loading && !lifecycle.data}
+                    onRetry={lifecycle.refresh}
+                  >
+                    {lifecycle.data ? (
+                      <LocationDetail
+                        location={lifecycle.data}
+                        addressText={lifecycle.data.addressText}
+                      >
+                        <LocationLifecyclePanel
+                          api={dashboard.api}
+                          key={lifecycle.data.locationId}
+                          location={lifecycle.data}
+                          organizationId={scope.organizationId}
+                          refreshing={lifecycle.loading}
+                          onReload={() => {
+                            lifecycle.refresh();
+                            locations.refresh();
+                          }}
+                        />
+                      </LocationDetail>
+                    ) : lifecycleNeedsMfa ? (
+                      <div className={styles.empty}>
+                        {translate("mfaStatusStepUpRequired")}
+                      </div>
+                    ) : null}
+                  </ReadState>
+                ) : (
+                  <div className={styles.empty}>{t.selectLocation}</div>
+                )}
+              </section>
+            </div>
+          </ReadState>
+        ) : null}
+        {createOpen ? (
+          <LocationCreateDialog
+            api={dashboard.api}
+            onClose={() => setCreateOpen(false)}
+            organizationId={scope.organizationId}
+            onCreated={(locationId) => {
+              setCreateOpen(false);
+              select(locationId);
+              locations.refresh();
+            }}
+          />
+        ) : null}
+        {lifecycleNeedsMfa && !lifecycleMfaDismissed ? (
+          <SensitiveMfaDialog
+            api={dashboard.api}
+            onAssured={() => {
+              setLifecycleMfaDismissed(false);
+              lifecycle.refresh();
+            }}
+            onClose={() => setLifecycleMfaDismissed(true)}
+          />
+        ) : null}
+      </AdministrationPage>
+    </div>
   );
 }

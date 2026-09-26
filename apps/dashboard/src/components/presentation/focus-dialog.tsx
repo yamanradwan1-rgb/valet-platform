@@ -11,6 +11,8 @@ const focusableSelector = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
+const lastDialogFocus = new WeakMap<HTMLElement, HTMLElement>();
+
 export function FocusDialog({
   children,
   label,
@@ -22,22 +24,64 @@ export function FocusDialog({
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     returnFocusRef.current = document.activeElement as HTMLElement | null;
     const node = dialogRef.current;
-    const first = node?.querySelector<HTMLElement>(focusableSelector);
-    first?.focus();
+    if (!node) return;
+    const parentDialog =
+      node.parentElement?.closest<HTMLElement>('[role="dialog"]');
+    if (parentDialog && !parentDialog.contains(returnFocusRef.current)) {
+      returnFocusRef.current =
+        lastDialogFocus.get(parentDialog) ?? parentDialog;
+    }
+    const isTopDialog = () =>
+      Array.from(
+        document.querySelectorAll('[role="dialog"][aria-modal="true"]'),
+      ).at(-1) === node;
+    const focusFirst = () => {
+      if (!isTopDialog()) return;
+      const first = node.querySelector<HTMLElement>(focusableSelector);
+      (first ?? node).focus();
+    };
+    focusFirst();
+    // MFA controls arrive after the authoritative state read.
+    const observer = new MutationObserver(() => {
+      if (document.activeElement === node) focusFirst();
+    });
+    observer.observe(node, { childList: true, subtree: true });
+    const rememberFocus = (event: FocusEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        target.closest('[role="dialog"]') === node
+      ) {
+        lastDialogFocus.set(node, target);
+      }
+    };
+    node.addEventListener("focusin", rememberFocus);
 
     const onKeyDown = (event: KeyboardEvent) => {
+      if (!isTopDialog()) return;
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        event.stopImmediatePropagation();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab" || !node) return;
-      const items = Array.from(node.querySelectorAll<HTMLElement>(focusableSelector));
-      if (items.length === 0) return;
+      const items = Array.from(
+        node.querySelectorAll<HTMLElement>(focusableSelector),
+      ).filter((item) => item.closest('[role="dialog"]') === node);
+      if (items.length === 0) {
+        event.preventDefault();
+        node.focus();
+        return;
+      }
       const firstItem = items[0]!;
       const lastItem = items[items.length - 1]!;
       if (event.shiftKey && document.activeElement === firstItem) {
@@ -50,10 +94,12 @@ export function FocusDialog({
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
+      observer.disconnect();
+      node.removeEventListener("focusin", rememberFocus);
       document.removeEventListener("keydown", onKeyDown);
       returnFocusRef.current?.focus();
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <div className="dialog-backdrop" role="presentation" onMouseDown={onClose}>
@@ -64,6 +110,7 @@ export function FocusDialog({
         onMouseDown={(event) => event.stopPropagation()}
         ref={dialogRef}
         role="dialog"
+        tabIndex={-1}
       >
         {children}
       </div>
