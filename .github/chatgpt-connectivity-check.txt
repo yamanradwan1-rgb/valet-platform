@@ -1,0 +1,2 @@
+Connectivity check from ChatGPT voice session on 2026-09-26.
+No production code changed.
