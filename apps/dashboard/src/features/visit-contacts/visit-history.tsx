@@ -3,19 +3,25 @@
 import { useEffect } from "react";
 
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { operationsSessionStateLabel } from "../operations/operations-presentation";
+import { VisitContactTime } from "./visit-contact-time";
 import { visitContactCopy } from "./visit-contact-copy";
 import {
   isVisitContactAuthorityLoss,
   visitContactErrorMessage,
 } from "./visit-contact-errors";
-import styles from "./visit-contacts.module.css";
+import baseStyles from "./visit-contacts.module.css";
+import tableStyles from "./visit-contact-table.module.css";
+const styles = { ...baseStyles, ...tableStyles };
 import { useVisitHistory, type VisitHistorySubject } from "./use-visit-history";
 
 export type { VisitHistorySubject } from "./use-visit-history";
 
 function phoneText(
-  phone: { readonly kind: "FULL"; readonly value: string } |
-    { readonly kind: "MASKED"; readonly ending: string } | null,
+  phone:
+    | { readonly kind: "FULL"; readonly value: string }
+    | { readonly kind: "MASKED"; readonly ending: string }
+    | null,
   masked: string,
 ) {
   if (phone === null) return "—";
@@ -33,14 +39,21 @@ function VisitHistoryContent({
   const t = visitContactCopy(locale);
   const history = useVisitHistory(subject);
   useEffect(() => {
-    if (isVisitContactAuthorityLoss(history.error)) onAuthorityLoss?.(history.error);
+    if (isVisitContactAuthorityLoss(history.error))
+      onAuthorityLoss?.(history.error);
   }, [history.error, onAuthorityLoss]);
   if (history.loading) return <div className={styles.state}>{t.loading}</div>;
   if (history.error) {
     return (
       <div className={styles.error} role="alert">
         <span>{visitContactErrorMessage(history.error, t)}</span>
-        <button className={styles.secondary} onClick={history.retry} type="button">{t.retry}</button>
+        <button
+          className={styles.secondary}
+          onClick={history.retry}
+          type="button"
+        >
+          {t.retry}
+        </button>
       </div>
     );
   }
@@ -49,10 +62,26 @@ function VisitHistoryContent({
       <div className={styles.card}>
         <div className={styles.state}>{t.noHistory}</div>
         <div className={styles.pagination}>
-          <span>{t.loaded} 0 {t.results}</span>
+          <span>
+            {t.loaded} 0 {t.results}
+          </span>
           <div className={styles.cursorButtons}>
-            <button className={styles.secondary} disabled={!history.canPrevious} onClick={history.previous} type="button">{t.previous}</button>
-            <button className={styles.secondary} disabled={!history.canNext} onClick={history.next} type="button">{t.next}</button>
+            <button
+              className={styles.secondary}
+              disabled={!history.canPrevious}
+              onClick={history.previous}
+              type="button"
+            >
+              {t.previous}
+            </button>
+            <button
+              className={styles.secondary}
+              disabled={!history.canNext}
+              onClick={history.next}
+              type="button"
+            >
+              {t.next}
+            </button>
           </div>
         </div>
       </div>
@@ -60,34 +89,78 @@ function VisitHistoryContent({
   }
   return (
     <div className={styles.card}>
-      <div className={styles.tableWrap}>
+      <div
+        aria-label={t.history}
+        className={styles.tableWrap}
+        role="region"
+        tabIndex={0}
+      >
         <table className={styles.table}>
-          <thead><tr><th>{t.location}</th><th>{t.state}</th><th>{t.phone}</th><th>{t.returningContact}</th><th>{t.completed}</th></tr></thead>
+          <thead>
+            <tr>
+              <th>{t.location}</th>
+              <th>{t.state}</th>
+              <th>{t.phone}</th>
+              <th>{t.returningContact}</th>
+              <th>{t.completed}</th>
+            </tr>
+          </thead>
           <tbody>
             {history.data.items.map((item) => (
               <tr key={item.valetSessionId}>
                 <td>
-                  <span className={styles.primaryText}>{item.locationName}</span>
-                  <br /><bdi className={styles.muted} dir="ltr">{item.valetSessionId}</bdi>
+                  <span className={styles.primaryText}>
+                    {item.locationName}
+                  </span>
+                  <br />
+                  <bdi className={styles.muted} dir="ltr">
+                    {item.valetSessionId}
+                  </bdi>
                 </td>
-                <td><bdi dir="ltr">{item.state}</bdi></td>
                 <td>
-                  {item.customerId === null
-                    ? t.customerless
-                    : <bdi dir="ltr">{phoneText(item.phone, t.maskedPhone)}</bdi>}
+                  {operationsSessionStateLabel(item.state, locale)}
+                  <br />
+                  <bdi className={styles.muted} dir="ltr">
+                    {item.state}
+                  </bdi>
+                </td>
+                <td>
+                  {item.customerId === null ? (
+                    t.customerless
+                  ) : (
+                    <bdi dir="ltr">{phoneText(item.phone, t.maskedPhone)}</bdi>
+                  )}
                 </td>
                 <td>{item.returningContact ? t.returningContact : "—"}</td>
-                <td><bdi dir="ltr">{item.completedAt ?? "—"}</bdi></td>
+                <td>
+                  <VisitContactTime value={item.completedAt} locale={locale} />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <div className={styles.pagination}>
-        <span>{t.loaded} {history.data.items.length} {t.results}</span>
+        <span>
+          {t.loaded} {history.data.items.length} {t.results}
+        </span>
         <div className={styles.cursorButtons}>
-          <button className={styles.secondary} disabled={!history.canPrevious} onClick={history.previous} type="button">{t.previous}</button>
-          <button className={styles.secondary} disabled={!history.canNext} onClick={history.next} type="button">{t.next}</button>
+          <button
+            className={styles.secondary}
+            disabled={!history.canPrevious}
+            onClick={history.previous}
+            type="button"
+          >
+            {t.previous}
+          </button>
+          <button
+            className={styles.secondary}
+            disabled={!history.canNext}
+            onClick={history.next}
+            type="button"
+          >
+            {t.next}
+          </button>
         </div>
       </div>
     </div>
@@ -110,6 +183,10 @@ export function VisitHistory({
   );
 }
 
-export function AuthorizedVehicleHistory({ vehicleId }: { readonly vehicleId: string }) {
+export function AuthorizedVehicleHistory({
+  vehicleId,
+}: {
+  readonly vehicleId: string;
+}) {
   return <VisitHistory subject={{ id: vehicleId, kind: "VEHICLE" }} />;
 }

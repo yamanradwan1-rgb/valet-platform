@@ -1,0 +1,31 @@
+.searchCard {
+  display: block;
+}
+.searchRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+.searchRow > .searchField:first-child {
+  flex: 0 0 12rem;
+}
+.searchRow > .searchField:not(:first-child),
+.searchRow > .plateFields {
+  flex: 1 1 20rem;
+}
+.plateFields {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.3fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+@media (max-width: 720px) {
+  .searchRow > .searchField:first-child,
+  .searchRow > .searchField:not(:first-child),
+  .searchRow > .plateFields {
+    flex-basis: 100%;
+  }
+  .plateFields {
+    grid-template-columns: 1fr;
+  }
+}

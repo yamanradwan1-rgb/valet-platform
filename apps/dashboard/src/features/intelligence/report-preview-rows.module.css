@@ -1,0 +1,51 @@
+.rows {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.row dt,
+.row dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.row dt {
+  color: #475569;
+}
+.row dd {
+  margin: 0;
+  color: #0f172a;
+  text-align: end;
+}
+.row small,
+.source {
+  display: block;
+  color: #64748b;
+  font-size: 0.6875rem;
+}
+:global([data-theme="dark"]) .rows,
+:global([data-theme="dark"]) .row {
+  border-color: #172346;
+}
+:global([data-theme="dark"]) .row dt {
+  color: #cbd5e1;
+}
+:global([data-theme="dark"]) .row dd {
+  color: #f8fafc;
+}
+:global([data-theme="dark"]) .row small,
+:global([data-theme="dark"]) .source {
+  color: #94a3b8;
+}

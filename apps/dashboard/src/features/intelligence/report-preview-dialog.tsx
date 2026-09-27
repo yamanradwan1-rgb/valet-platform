@@ -3,12 +3,18 @@ import type { FormEvent } from "react";
 import { X } from "lucide-react";
 
 import { FocusDialog } from "../../components/presentation/focus-dialog";
-import { BidiIsolate, BidiText } from "../../components/presentation/panel";
-import type { ReportResponse, ReportSelectorValidation } from "./reports-presentation";
+import { ReportPreviewRows } from "./report-preview-rows";
+import type {
+  ReportResponse,
+  ReportSelectorValidation,
+} from "./reports-presentation";
 import { reportPresentation } from "./reports-presentation";
 import type { DashboardLocale } from "../../lib/i18n/locale";
 import { reportsCopy } from "./reports-copy";
-import { ReportsExportControls, type ReportExportStatus } from "./reports-export-controls";
+import {
+  ReportsExportControls,
+  type ReportExportStatus,
+} from "./reports-export-controls";
 import dialogStyles from "./report-preview-dialog.module.css";
 
 type ReportCopy = ReturnType<typeof reportsCopy>;
@@ -31,7 +37,9 @@ export function ReportPreviewDialog(props: {
   readonly selectorValidation: ReportSelectorValidation["kind"] | null;
   readonly t: ReportCopy;
 }) {
-  const sections = props.data ? reportPresentation(props.data, props.locale) : [];
+  const sections = props.data
+    ? reportPresentation(props.data, props.locale)
+    : [];
   const title = reportTitle(props.kind, props.t);
   const input = selectorInput(props.kind, props.t);
   return (
@@ -62,7 +70,8 @@ export function ReportPreviewDialog(props: {
                 value={props.draftValue}
               />
             </label>
-            {props.selectorValidation && props.selectorValidation !== "valid" ? (
+            {props.selectorValidation &&
+            props.selectorValidation !== "valid" ? (
               <p className={dialogStyles.selectorError} role="alert">
                 {selectorError(props.kind, props.selectorValidation, props.t)}
               </p>
@@ -72,7 +81,7 @@ export function ReportPreviewDialog(props: {
             </button>
           </form>
 
-          {props.loading ? <PreviewSkeleton /> : null}
+          {props.loading ? <PreviewSkeleton label={props.t.loading} /> : null}
           {!props.loading && props.message ? (
             <div className={dialogStyles.previewState} role="alert">
               <p>{props.message}</p>
@@ -86,28 +95,21 @@ export function ReportPreviewDialog(props: {
             </div>
           ) : null}
           {props.data ? (
-            <div className={dialogStyles.previewSections} data-testid="report-preview-content">
+            <div
+              className={dialogStyles.previewSections}
+              data-testid="report-preview-content"
+            >
               {sections.map((section) => (
-                <section className={dialogStyles.previewSection} key={section.title}>
+                <section
+                  className={dialogStyles.previewSection}
+                  key={section.title}
+                >
                   <h3>{section.title}</h3>
-                  <dl>
-                    {section.rows.map((row, index) => (
-                      <div className={dialogStyles.previewRow} key={`${row.label}:${index}`}>
-                        <dt>
-                          {row.labelBidi
-                            ? <BidiIsolate>{row.label}</BidiIsolate>
-                            : row.label}
-                        </dt>
-                        <dd>
-                          {row.value === null
-                            ? props.t.unavailable
-                            : row.bidi
-                              ? <BidiText kind={row.bidi}>{row.value}</BidiText>
-                              : row.value}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
+                  <ReportPreviewRows
+                    rows={section.rows}
+                    locale={props.locale}
+                    unavailable={props.t.unavailable}
+                  />
                 </section>
               ))}
             </div>
@@ -128,20 +130,34 @@ export function ReportPreviewDialog(props: {
   );
 }
 
-function PreviewSkeleton() {
+function PreviewSkeleton({ label }: { readonly label: string }) {
   return (
-    <div aria-label="Loading" className={dialogStyles.previewSkeleton} role="status">
-      {Array.from({ length: 6 }).map((_, index) => <div key={index} />)}
+    <div
+      aria-label={label}
+      className={dialogStyles.previewSkeleton}
+      role="status"
+    >
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div key={index} />
+      ))}
     </div>
   );
 }
 
 function selectorInput(kind: ReportKind, t: ReportCopy) {
-  if (kind === "MONTHLY") return { label: t.selectorMonth, type: "month" as const };
-  return { label: kind === "WEEKLY" ? t.selectorWeek : t.selectorDate, type: "date" as const };
+  if (kind === "MONTHLY")
+    return { label: t.selectorMonth, type: "month" as const };
+  return {
+    label: kind === "WEEKLY" ? t.selectorWeek : t.selectorDate,
+    type: "date" as const,
+  };
 }
 
-function selectorError(kind: ReportKind, state: "required" | "invalid", t: ReportCopy) {
+function selectorError(
+  kind: ReportKind,
+  state: "required" | "invalid",
+  t: ReportCopy,
+) {
   if (state === "required") return t.selectorRequired;
   if (kind === "WEEKLY") return t.selectorInvalidWeek;
   if (kind === "MONTHLY") return t.selectorInvalidMonth;

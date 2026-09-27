@@ -3,7 +3,9 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 
-import styles from "./visit-contacts.module.css";
+import baseStyles from "./visit-contacts.module.css";
+import drawerStyles from "./visit-contact-drawer.module.css";
+const styles = { ...baseStyles, ...drawerStyles };
 
 const focusable = [
   "button:not([disabled])",
@@ -54,7 +56,11 @@ export function VisitContactDrawer(props: {
     };
   }, [onClose]);
   return (
-    <div className={styles.drawerBackdrop} onMouseDown={onClose} role="presentation">
+    <div
+      className={styles.drawerBackdrop}
+      onMouseDown={onClose}
+      role="presentation"
+    >
       <div
         aria-label={props.label}
         aria-modal="true"
@@ -64,8 +70,16 @@ export function VisitContactDrawer(props: {
         role="dialog"
       >
         <div className={styles.drawerHeader}>
-          <div><h2>{props.label}</h2>{props.subtitle}</div>
-          <button aria-label={props.closeLabel} className={styles.quiet} onClick={onClose} type="button">
+          <div>
+            <h2>{props.label}</h2>
+            {props.subtitle}
+          </div>
+          <button
+            aria-label={props.closeLabel}
+            className={styles.quiet}
+            onClick={onClose}
+            type="button"
+          >
             <X aria-hidden="true" size={18} />
           </button>
         </div>

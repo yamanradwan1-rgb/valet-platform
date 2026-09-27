@@ -2,7 +2,10 @@ import type { ReportKind } from "@valet/contracts";
 import { BarChart3 } from "lucide-react";
 
 import { reportsCopy } from "./reports-copy";
-import { ReportsFileSpreadsheetIcon, ReportsFileTextIcon } from "./reports-reference-icons";
+import {
+  ReportsFileSpreadsheetIcon,
+  ReportsFileTextIcon,
+} from "./reports-reference-icons";
 import styles from "./reports.module.css";
 
 type ReportCopy = ReturnType<typeof reportsCopy>;
@@ -16,7 +19,12 @@ export function ReportsTable(props: {
       <div className={styles.tabs}>
         <span>{props.t.standardReports}</span>
       </div>
-      <div className={styles.tableScroll}>
+      <div
+        aria-label={props.t.standardReports}
+        className={styles.tableScroll}
+        role="region"
+        tabIndex={0}
+      >
         <table className={styles.reportTable}>
           <thead>
             <tr>

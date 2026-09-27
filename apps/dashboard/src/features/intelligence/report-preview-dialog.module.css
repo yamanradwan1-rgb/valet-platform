@@ -5,6 +5,8 @@
 
 .dialogHost :global(.dialog-panel) {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 448px;
   max-height: calc(100vh - 2rem);
@@ -13,7 +15,9 @@
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   background: #ffffff;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 :global([data-theme="dark"]) .dialogHost :global(.dialog-panel) {
@@ -22,6 +26,7 @@
 }
 
 .dialogHeader {
+  flex: 0 0 auto;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
@@ -45,12 +50,19 @@
   line-height: 1rem;
 }
 
-:global([data-theme="dark"]) .dialogHeader { border-color: #172346; }
-:global([data-theme="dark"]) .dialogHeader h2 { color: #ffffff; }
-:global([data-theme="dark"]) .dialogHeader p { color: #94a3b8; }
+:global([data-theme="dark"]) .dialogHeader {
+  border-color: #172346;
+}
+:global([data-theme="dark"]) .dialogHeader h2 {
+  color: #ffffff;
+}
+:global([data-theme="dark"]) .dialogHeader p {
+  color: #94a3b8;
+}
 
 .dialogBody {
-  max-height: 75vh;
+  min-height: 0;
+  flex: 1 1 auto;
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
 }
@@ -65,8 +77,14 @@
   cursor: pointer;
 }
 
-.dialogClose:hover { background: #f1f5f9; color: #475569; }
-:global([data-theme="dark"]) .dialogClose:hover { background: #131e3d; color: #e2e8f0; }
+.dialogClose:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+:global([data-theme="dark"]) .dialogClose:hover {
+  background: #131e3d;
+  color: #e2e8f0;
+}
 
 .dialogPrimaryButton,
 .dialogSecondaryButton {
@@ -91,7 +109,9 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.dialogPrimaryButton:hover { background: #1551ca; }
+.dialogPrimaryButton:hover {
+  background: #1551ca;
+}
 
 .dialogSecondaryButton {
   border: 1px solid #e2e8f0;
@@ -100,7 +120,9 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.dialogSecondaryButton:hover { background: #f8fafc; }
+.dialogSecondaryButton:hover {
+  background: #f8fafc;
+}
 
 :global([data-theme="dark"]) .dialogSecondaryButton {
   border-color: #1e293b;
@@ -108,7 +130,9 @@
   color: #e2e8f0;
 }
 
-:global([data-theme="dark"]) .dialogSecondaryButton:hover { background: #1a264f; }
+:global([data-theme="dark"]) .dialogSecondaryButton:hover {
+  background: #1a264f;
+}
 
 .dialogPrimaryButton:disabled,
 .dialogSecondaryButton:disabled {
@@ -140,7 +164,9 @@
   font-size: 0.875rem;
 }
 
-:global([data-theme="dark"]) .selectorField { color: #cbd5e1; }
+:global([data-theme="dark"]) .selectorField {
+  color: #cbd5e1;
+}
 :global([data-theme="dark"]) .selectorField input {
   border-color: #1e293b;
   background: #131e3d;
@@ -148,10 +174,18 @@
 }
 
 .selectorError,
-.previewState { color: #b42318; font-size: 0.75rem; }
-.selectorError { margin: 0; }
+.previewState {
+  color: #b42318;
+  font-size: 0.75rem;
+}
+.selectorError {
+  margin: 0;
+}
 
-.previewSkeleton { display: grid; gap: 0.875rem; }
+.previewSkeleton {
+  display: grid;
+  gap: 0.875rem;
+}
 .previewSkeleton div {
   height: 1rem;
   border-radius: 0.25rem;
@@ -159,13 +193,28 @@
   animation: dialogPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes dialogPulse { 50% { opacity: 0.5; } }
+@keyframes dialogPulse {
+  50% {
+    opacity: 0.5;
+  }
+}
 
-.previewState { display: grid; justify-items: start; gap: 0.75rem; }
-.previewState p { margin: 0; }
+.previewState {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+}
+.previewState p {
+  margin: 0;
+}
 
-.previewSections { display: grid; gap: 1rem; }
-.previewSection { min-width: 0; }
+.previewSections {
+  display: grid;
+  gap: 1rem;
+}
+.previewSection {
+  min-width: 0;
+}
 .previewSection h3 {
   margin: 0 0 0.5rem;
   color: #0f172a;
@@ -173,32 +222,11 @@
   font-weight: 700;
 }
 
-:global([data-theme="dark"]) .previewSection h3 { color: #ffffff; }
-.previewSection dl {
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+:global([data-theme="dark"]) .previewSection h3 {
+  color: #ffffff;
 }
-:global([data-theme="dark"]) .previewSection dl { border-color: #172346; }
-
-.previewRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 0.6875rem;
-}
-
-.previewRow:last-child { border-bottom: 0; }
-.previewRow dt { min-width: 0; color: #64748b; overflow-wrap: anywhere; }
-.previewRow dd { min-width: 0; margin: 0; color: #0f172a; text-align: end; overflow-wrap: anywhere; }
-:global([data-theme="dark"]) .previewRow { border-color: #172346; }
-:global([data-theme="dark"]) .previewRow dt { color: #94a3b8; }
-:global([data-theme="dark"]) .previewRow dd { color: #f8fafc; }
-
 .exportRegion {
+  flex: 0 0 auto;
   padding: 0.875rem 1.5rem;
   border-top: 1px solid #e2e8f0;
   background: #fafbfd;
@@ -206,8 +234,25 @@
   gap: 0.75rem;
 }
 
-.exportCopy { display: grid; gap: 0.25rem; color: #64748b; font-size: 0.6875rem; }
-.exportCopy p { margin: 0; }
-.exportActions { display: flex; align-items: center; justify-content: flex-end; gap: 0.625rem; }
-:global([data-theme="dark"]) .exportRegion { border-color: #172346; background: #091024; }
-:global([data-theme="dark"]) .exportCopy { color: #94a3b8; }
+.exportCopy {
+  display: grid;
+  gap: 0.25rem;
+  color: #64748b;
+  font-size: 0.6875rem;
+}
+.exportCopy p {
+  margin: 0;
+}
+.exportActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.625rem;
+}
+:global([data-theme="dark"]) .exportRegion {
+  border-color: #172346;
+  background: #091024;
+}
+:global([data-theme="dark"]) .exportCopy {
+  color: #94a3b8;
+}

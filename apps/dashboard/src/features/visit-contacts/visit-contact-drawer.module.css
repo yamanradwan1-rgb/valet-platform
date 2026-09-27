@@ -1,0 +1,65 @@
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+}
+.drawer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(28rem, 100%);
+  background: #fff;
+  border-inline-start: 1px solid #e2e8f0;
+  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.16);
+  display: flex;
+  flex-direction: column;
+}
+:global([data-theme="dark"]) .drawer {
+  background: #0d152f;
+  border-color: #172346;
+}
+.drawerHeader {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+.drawerHeader h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.125rem;
+}
+:global([data-theme="dark"]) .drawerHeader {
+  background: #0d152f;
+  border-color: #172346;
+}
+:global([data-theme="dark"]) .drawerHeader h2 {
+  color: #fff;
+}
+.drawerBody {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 1rem;
+}
+
+.quiet {
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: 0;
+  padding: 0.375rem;
+  background: transparent;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+}

@@ -1,0 +1,26 @@
+.host {
+  --contact-dialog-border: #e2e8f0;
+  --contact-dialog-footer: #fafbfd;
+  --contact-dialog-muted: #475569;
+}
+.host :global(.dialog-backdrop) {
+  background: rgba(15, 23, 42, 0.4);
+}
+.host :global(.dialog-panel) {
+  width: min(448px, 100%);
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  border-radius: 0.75rem;
+  border-color: var(--contact-dialog-border);
+  color: #0f172a;
+  background: #fff;
+}
+:global([data-theme="dark"]) .host {
+  --contact-dialog-border: #172346;
+  --contact-dialog-footer: #091024;
+  --contact-dialog-muted: #cbd5e1;
+}
+:global([data-theme="dark"]) .host :global(.dialog-panel) {
+  color: #fff;
+  background: #0d152f;
+}

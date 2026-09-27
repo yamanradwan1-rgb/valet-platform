@@ -4,8 +4,12 @@ import { MoreHorizontal } from "lucide-react";
 import type { ManagementVisitContactSearchResponse } from "@valet/contracts";
 
 import type { VisitContactCopy } from "./visit-contact-copy";
+import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { VisitContactTime } from "./visit-contact-time";
 import { visitContactPhoneText } from "./visit-contact-presentation";
-import styles from "./visit-contacts.module.css";
+import baseStyles from "./visit-contacts.module.css";
+import tableStyles from "./visit-contact-table.module.css";
+const styles = { ...baseStyles, ...tableStyles };
 
 export type VisitContactSearchItem =
   ManagementVisitContactSearchResponse["items"][number];
@@ -20,16 +24,33 @@ export function VisitContactResults(props: {
   readonly t: VisitContactCopy;
 }) {
   const { data, t } = props;
+  const { locale } = useDashboardLocale();
   if (data.matchState === "NONE") {
     return (
       <div className={styles.card}>
         <div className={styles.state}>{t.none}</div>
         {data.mode !== "PLATE" ? (
           <div className={styles.pagination}>
-            <span>{t.loaded} 0 {t.results}</span>
+            <span>
+              {t.loaded} 0 {t.results}
+            </span>
             <div className={styles.cursorButtons}>
-              <button className={styles.secondary} disabled={!props.canPrevious} onClick={props.onPrevious} type="button">{t.previous}</button>
-              <button className={styles.secondary} disabled={!props.canNext} onClick={props.onNext} type="button">{t.next}</button>
+              <button
+                className={styles.secondary}
+                disabled={!props.canPrevious}
+                onClick={props.onPrevious}
+                type="button"
+              >
+                {t.previous}
+              </button>
+              <button
+                className={styles.secondary}
+                disabled={!props.canNext}
+                onClick={props.onNext}
+                type="button"
+              >
+                {t.next}
+              </button>
             </div>
           </div>
         ) : null}
@@ -42,7 +63,12 @@ export function VisitContactResults(props: {
         {data.matchState === "AMBIGUOUS" ? t.ambiguous : t.unique}
       </div>
       <div className={styles.card}>
-        <div className={styles.tableWrap}>
+        <div
+          aria-label={t.results}
+          className={styles.tableWrap}
+          role="region"
+          tabIndex={0}
+        >
           <table className={styles.table}>
             <thead>
               <tr>
@@ -55,43 +81,66 @@ export function VisitContactResults(props: {
             </thead>
             <tbody>
               {data.items.map((item, index) => (
-                <tr key={item.kind === "CUSTOMER" ? item.customerId : item.vehicleId}>
+                <tr
+                  key={
+                    item.kind === "CUSTOMER" ? item.customerId : item.vehicleId
+                  }
+                >
                   <td>
                     {item.kind === "CUSTOMER" ? (
                       <div>
-                        <div className={styles.primaryText}>{item.displayName ?? t.unavailableName}</div>
+                        <div className={styles.primaryText}>
+                          {item.displayName ?? t.unavailableName}
+                        </div>
                         <div className={styles.muted}>{t.customer}</div>
                       </div>
                     ) : (
                       <div>
-                        <div className={styles.primaryText}><bdi dir="ltr">{item.plateNumberRaw}</bdi></div>
-                        <div className={styles.muted}><bdi dir="ltr">{item.plateCountry}</bdi> · {t.vehicle}</div>
+                        <div className={styles.primaryText}>
+                          <bdi dir="ltr">{item.plateNumberRaw}</bdi>
+                        </div>
+                        <div className={styles.muted}>
+                          <bdi dir="ltr">{item.plateCountry}</bdi> · {t.vehicle}
+                        </div>
                       </div>
                     )}
                   </td>
                   <td>
-                    {item.kind === "CUSTOMER"
-                      ? <bdi dir="ltr">{visitContactPhoneText(item.phone, t.maskedPhone)}</bdi>
-                      : "—"}
+                    {item.kind === "CUSTOMER" ? (
+                      <bdi dir="ltr">
+                        {visitContactPhoneText(item.phone, t.maskedPhone)}
+                      </bdi>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td>{item.completedVisitCount}</td>
                   <td>
-                    {item.latestVisit
-                      ? <><span>{item.latestVisit.locationName}</span><br /><bdi className={styles.muted} dir="ltr">{item.latestVisit.createdAt}</bdi></>
-                      : "—"}
+                    {item.latestVisit ? (
+                      <>
+                        <span>{item.latestVisit.locationName}</span>
+                        <br />
+                        <VisitContactTime
+                          value={item.latestVisit.createdAt}
+                          locale={locale}
+                        />
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td className={styles.actionCell}>
                     <button
                       aria-label={`${t.detailsForResult} ${index + 1}: ${
                         item.kind === "CUSTOMER"
-                          ? item.displayName ?? t.unavailableName
+                          ? (item.displayName ?? t.unavailableName)
                           : item.plateNumberRaw
                       }`}
                       className={styles.detail}
                       onClick={() => props.onSelect(item)}
                       type="button"
                     >
-                      <MoreHorizontal aria-hidden="true" size={19} />
+                      <MoreHorizontal aria-hidden="true" size={16} />
                     </button>
                   </td>
                 </tr>
@@ -100,11 +149,27 @@ export function VisitContactResults(props: {
           </table>
         </div>
         <div className={styles.pagination}>
-          <span>{t.loaded} {data.items.length} {t.results}</span>
+          <span>
+            {t.loaded} {data.items.length} {t.results}
+          </span>
           {data.mode !== "PLATE" ? (
             <div className={styles.cursorButtons}>
-              <button className={styles.secondary} disabled={!props.canPrevious} onClick={props.onPrevious} type="button">{t.previous}</button>
-              <button className={styles.secondary} disabled={!props.canNext} onClick={props.onNext} type="button">{t.next}</button>
+              <button
+                className={styles.secondary}
+                disabled={!props.canPrevious}
+                onClick={props.onPrevious}
+                type="button"
+              >
+                {t.previous}
+              </button>
+              <button
+                className={styles.secondary}
+                disabled={!props.canNext}
+                onClick={props.onNext}
+                type="button"
+              >
+                {t.next}
+              </button>
             </div>
           ) : null}
         </div>
