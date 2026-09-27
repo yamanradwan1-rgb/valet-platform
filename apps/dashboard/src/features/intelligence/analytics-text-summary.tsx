@@ -9,18 +9,8 @@ import {
   type AnalyticsPresentation,
 } from "./analytics-presentation";
 import styles from "./analytics.module.css";
+import evidenceStyles from "./analytics-evidence.module.css";
 
-const visuallyHiddenStyle: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  border: 0,
-};
 const evidenceDetailsStyle: CSSProperties = {
   marginTop: "0.75rem",
   paddingTop: "0.75rem",
@@ -50,67 +40,6 @@ const evidenceListStyle: CSSProperties = {
   display: "grid",
   gap: "0.375rem",
 };
-
-export function ActivityTextSummary(props: {
-  readonly data: readonly { readonly date: string; readonly handledCount: number }[];
-  readonly locale: DashboardLocale;
-}) {
-  const t = analyticsCopy(props.locale);
-  return (
-    <table data-testid="analytics-activity-text" style={visuallyHiddenStyle}>
-      <caption>{t.vehicleActivity}</caption>
-      <thead>
-        <tr><th>{t.chartDate}</th><th>{t.chartCars}</th></tr>
-      </thead>
-      <tbody>
-        {props.data.map((point) => (
-          <tr key={point.date}>
-            <td><BidiText>{point.date}</BidiText></td>
-            <td><BidiText kind="number">{point.handledCount}</BidiText></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-export function DurationTextSummary(props: {
-  readonly data: readonly AnalyticsDurationPresentation[];
-  readonly locale: DashboardLocale;
-}) {
-  const t = analyticsCopy(props.locale);
-  return (
-    <table data-testid="analytics-duration-text" style={visuallyHiddenStyle}>
-      <caption>{t.durationComparison}</caption>
-      <thead>
-        <tr>
-          <th>{t.chartMetric}</th>
-          <th>{t.chartAverage}</th>
-          <th>{t.chartSamples}</th>
-          <th>{t.contributingLocations}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {props.data.map((point) => (
-          <tr key={point.key}>
-            <td>{durationLabel(point.key, props.locale)}</td>
-            <td>
-              {point.averageSeconds === null
-                ? t.unavailable
-                : <BidiText kind="number">{point.averageSeconds}</BidiText>}
-            </td>
-            <td><BidiText kind="number">{point.sampleCount}</BidiText></td>
-            <td>
-              {point.contributingLocationCount === null
-                ? t.unavailable
-                : <BidiText kind="number">{point.contributingLocationCount}</BidiText>}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
 
 export function durationLabel(
   key: AnalyticsDurationPresentation["key"],
@@ -149,7 +78,7 @@ export function AnalyticsSourceEvidence(props: {
       style={evidenceDetailsStyle}
     >
       <summary style={evidenceSummaryStyle}>{t.sourceEvidence}</summary>
-      <div style={evidenceBodyStyle}>
+      <div aria-label={t.sourceEvidence} className={evidenceStyles.scrollEvidence} role="region" style={evidenceBodyStyle} tabIndex={0}>
         <EvidenceGroup title={t.financialEvidence}>
           <FinancialEvidence locale={props.locale} presentation={props.presentation} />
         </EvidenceGroup>

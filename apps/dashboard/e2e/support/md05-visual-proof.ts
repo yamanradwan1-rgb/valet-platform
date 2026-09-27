@@ -214,7 +214,9 @@ async function expectPayments(page: Page, summaryColumns: number, dark: boolean)
     ? payments.narrowPanelHeaderPadding
     : payments.desktopPanelHeaderPadding;
   await expect(panelHeader).toHaveCSS("padding", panelHeaderPadding);
-  await expect(panelHeader).toHaveCSS("border-bottom-color", MD05_VISUAL_CONTRACT.periodDialog.headerBorder);
+  await expect(panelHeader).toHaveCSS("border-bottom-color",
+    dark ? payments.darkHeaderBorder : MD05_VISUAL_CONTRACT.periodDialog.headerBorder,
+  );
   const th = panel.getByRole("columnheader").first();
   await expect(th).toHaveCSS("padding-left", payments.tablePaddingInline);
   await expect(th).toHaveCSS("padding-top", payments.tablePaddingBlock);

@@ -7,9 +7,10 @@ import type { AnalyticsDurationPresentation } from "./analytics-presentation";
 import {
   durationLabel,
   durationShortLabel,
-  DurationTextSummary,
 } from "./analytics-text-summary";
 import styles from "./analytics.module.css";
+import { DurationTextSummary } from "./analytics-chart-data";
+import { formatOverviewDuration } from "./overview-duration";
 
 const WIDTH = 500;
 const HEIGHT = 260;
@@ -145,69 +146,71 @@ export function AnalyticsSecondaryChart(props: {
   const segments = contiguousSegments(points);
   return (
     <div data-testid="analytics-duration-chart" style={chartWrapStyle}>
-      <svg aria-label={t.durationComparison} role="img" style={chartStyle} viewBox="0 0 500 260">
-        <defs>
-          <linearGradient id="md05-analytics-duration-area" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#1E60F0" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#1E60F0" stopOpacity="0.02" />
-          </linearGradient>
-        </defs>
-        {ticks.map((tick) => {
-          const y = PADDING.top + plotHeight * (1 - tick / axisMaximum);
-          return (
-            <g key={tick}>
-              <line style={gridLineStyle} x1={PADDING.left} x2={WIDTH - PADDING.right} y1={y} y2={y} />
-              <text style={axisStyle} textAnchor="end" x="32" y={y + 4}>{tick}</text>
+      <div style={{ position: "relative", height: HEIGHT }}>
+        <svg aria-label={t.durationComparison} role="img" style={chartStyle} viewBox="0 0 500 260">
+          <defs>
+            <linearGradient id="md05-analytics-duration-area" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#1E60F0" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#1E60F0" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {ticks.map((tick) => {
+            const y = PADDING.top + plotHeight * (1 - tick / axisMaximum);
+            return (
+              <g key={tick}>
+                <line style={gridLineStyle} x1={PADDING.left} x2={WIDTH - PADDING.right} y1={y} y2={y} />
+                <text style={axisStyle} textAnchor="end" x="32" y={y + 4}>{tick}</text>
+              </g>
+            );
+          })}
+          {segments.map((segment) => {
+            const path = smoothPath(segment);
+            const first = segment[0]!;
+            const last = segment.at(-1)!;
+            const area = segment.length > 1
+              ? `${path} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`
+              : "";
+            return (
+              <g key={segment.map((point) => point.key).join("-")}>
+                {area ? <path d={area} fill="url(#md05-analytics-duration-area)" /> : null}
+                <path className={styles.chartLine} d={path} fill="none" />
+              </g>
+            );
+          })}
+          {points.map((point, index) => (
+            <g key={point.key} style={{ cursor: "pointer" }}>
+              <text className={styles.chartAxisX} style={xAxisStyle} textAnchor="middle" x={point.x} y={HEIGHT - 8}>
+                {durationShortLabel(point.key, props.locale)}
+              </text>
+              {point.y === null ? null : (
+                <>
+                  <circle className={styles.chartPoint} cx={point.x} cy={point.y} r={hovered === index ? 6 : 4} />
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    fill="transparent"
+                    onMouseEnter={() => setHovered(index)}
+                    onMouseLeave={() => setHovered(null)}
+                    r="16"
+                  />
+                </>
+              )}
             </g>
-          );
-        })}
-        {segments.map((segment) => {
-          const path = smoothPath(segment);
-          const first = segment[0]!;
-          const last = segment.at(-1)!;
-          const area = segment.length > 1
-            ? `${path} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`
-            : "";
-          return (
-            <g key={segment.map((point) => point.key).join("-")}>
-              {area ? <path d={area} fill="url(#md05-analytics-duration-area)" /> : null}
-              <path className={styles.chartLine} d={path} fill="none" />
-            </g>
-          );
-        })}
-        {points.map((point, index) => (
-          <g key={point.key} style={{ cursor: "pointer" }}>
-            <text className={styles.chartAxisX} style={xAxisStyle} textAnchor="middle" x={point.x} y={HEIGHT - 8}>
-              {durationShortLabel(point.key, props.locale)}
-            </text>
-            {point.y === null ? null : (
-              <>
-                <circle className={styles.chartPoint} cx={point.x} cy={point.y} r={hovered === index ? 6 : 4} />
-                <circle
-                  cx={point.x}
-                  cy={point.y}
-                  fill="transparent"
-                  onMouseEnter={() => setHovered(index)}
-                  onMouseLeave={() => setHovered(null)}
-                  r="16"
-                />
-              </>
-            )}
-          </g>
-        ))}
-      </svg>
-      {hovered !== null && points[hovered]?.averageSeconds !== null ? (
-        <div
-          style={{
-            ...tooltipStyle,
-            left: `${(points[hovered]!.x / WIDTH) * 100}%`,
-            top: `${(points[hovered]!.y! / HEIGHT) * 100}%`,
-          }}
-        >
-          {durationLabel(points[hovered]!.key, props.locale)}{" · "}
-          <BidiText kind="number">{points[hovered]!.averageSeconds}</BidiText> {t.seconds}
-        </div>
-      ) : null}
+          ))}
+        </svg>
+        {hovered !== null && points[hovered]?.averageSeconds !== null ? (
+          <div
+            style={{
+              ...tooltipStyle,
+              left: `${(points[hovered]!.x / WIDTH) * 100}%`,
+              top: `${(points[hovered]!.y! / HEIGHT) * 100}%`,
+            }}
+          >
+            {durationLabel(points[hovered]!.key, props.locale)}{" · "}
+            <BidiText>{formatOverviewDuration(points[hovered]!.averageSeconds, props.locale, "compact")}</BidiText>
+          </div>
+        ) : null}
+      </div>
       <DurationTextSummary data={props.data} locale={props.locale} />
     </div>
   );

@@ -229,7 +229,7 @@ test("Payments keeps JOD/USD separate and renders null rates as unavailable", as
   await applyPeriod(page, PERIOD_A.from, PERIOD_A.to);
   await expect(page.getByText("12.345 JOD", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("45.670 USD", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Unavailable", { exact: true })).toHaveCount(3);
+  await expect(page.getByText("Unavailable", { exact: true })).toHaveCount(4);
   await expect(page.getByText(/0(?:\.00)?% JOD/u)).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Validation/u })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Approve|Reject/u })).toHaveCount(0);

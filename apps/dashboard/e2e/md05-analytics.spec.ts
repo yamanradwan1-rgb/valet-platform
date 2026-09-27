@@ -286,7 +286,7 @@ test("Analytics charts expose textual alternatives", async ({ page }) => {
   await expect(activity.locator("tbody tr").first().locator("td")).toHaveText([PERIOD_A.from, "7"]);
   const durations = page.getByTestId("analytics-duration-text");
   await expect(durations.locator("caption")).toHaveText("Duration Comparison");
-  await expect(durations.locator("tbody tr").first().locator("td")).toHaveText(["Check-in Time", "12.500", "2", "2"]);
+  await expect(durations.locator("tbody tr").first().locator("td")).toHaveText(["Check-in Time", "12.5s", "12.500", "2", "2"]);
 });
 
 test("Analytics frozen geometry holds in EN/AR desktop+narrow light/dark", async ({ page }) => {

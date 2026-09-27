@@ -11,7 +11,8 @@ import { FocusDialog } from "../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { AnalyticsActivityChart } from "./analytics-activity-chart";
-import { AnalyticsCards, AnalyticsCoverage } from "./analytics-coverage";
+import { AnalyticsCoverage } from "./analytics-coverage";
+import { AnalyticsCards } from "./analytics-cards";
 import {
   analyticsCopy,
   analyticsPeriodMessage,

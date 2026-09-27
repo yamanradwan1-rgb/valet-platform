@@ -21,7 +21,7 @@ export function PaymentsSummaryGrid(props: {
     ? t.periodRequired
     : props.loading
       ? t.loading
-      : props.errorMessage ?? (currencies.length === 0 ? t.noPeriod : null);
+      : (props.errorMessage ?? (currencies.length === 0 ? t.noPeriod : null));
 
   return (
     <div className={styles.summaryGrid}>
@@ -81,7 +81,8 @@ function CountValues(props: {
   readonly currencies: readonly CurrencyGroup[];
   readonly empty: string | null;
 }) {
-  if (props.empty) return <span className={styles.summaryEmpty}>{props.empty}</span>;
+  if (props.empty)
+    return <span className={styles.summaryEmpty}>{props.empty}</span>;
   return (
     <>
       {props.currencies.map((group) => (
@@ -101,13 +102,15 @@ function CurrencyValues(props: {
   readonly locale: DashboardLocale;
   readonly value: (group: CurrencyGroup) => string;
 }) {
-  if (props.empty) return <span className={styles.summaryEmpty}>{props.empty}</span>;
+  if (props.empty)
+    return <span className={styles.summaryEmpty}>{props.empty}</span>;
   return (
     <>
       {props.currencies.map((group) => (
         <div className={styles.summaryValueRow} key={group.currency}>
           <BidiText kind="number">
-            {formatExactDecimal(props.value(group), props.locale)} {group.currency}
+            {formatExactDecimal(props.value(group), props.locale)}{" "}
+            {group.currency}
           </BidiText>
         </div>
       ))}
@@ -126,7 +129,8 @@ function RateValues(props: {
   };
 }) {
   const t = paymentsCopy(props.locale);
-  if (props.empty) return <span className={styles.summaryEmpty}>{props.empty}</span>;
+  if (props.empty)
+    return <span className={styles.summaryEmpty}>{props.empty}</span>;
   return (
     <>
       {props.currencies.map((group) => {
@@ -135,16 +139,19 @@ function RateValues(props: {
           <div className={styles.summaryRateRow} key={group.currency}>
             <div>
               {rate.percentage === null ? (
-                <span className={styles.summaryUnavailable}>{t.unavailable}</span>
+                <>
+                  <span className={styles.summaryUnavailable}>
+                    {t.unavailable}
+                  </span>{" "}
+                  <BidiText>{group.currency}</BidiText>
+                </>
               ) : (
                 <BidiText kind="number">
-                  {formatExactDecimal(rate.percentage, props.locale)}% {group.currency}
+                  {formatExactDecimal(rate.percentage, props.locale)}%{" "}
+                  {group.currency}
                 </BidiText>
               )}
             </div>
-            <small>
-              <BidiText kind="number">{rate.numerator}/{rate.denominator}</BidiText>
-            </small>
           </div>
         );
       })}

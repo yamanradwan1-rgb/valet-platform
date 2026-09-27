@@ -3,7 +3,7 @@ import { useState, type CSSProperties } from "react";
 import { BidiText } from "../../components/presentation/panel";
 import type { DashboardLocale } from "../../lib/i18n/locale";
 import { analyticsCopy } from "./analytics-copy";
-import { ActivityTextSummary } from "./analytics-text-summary";
+import { ActivityTextSummary } from "./analytics-chart-data";
 import styles from "./analytics.module.css";
 
 const WIDTH = 500;
@@ -102,53 +102,55 @@ export function AnalyticsActivityChart(props: {
   const labelStep = Math.max(1, Math.ceil(props.data.length / 7));
   return (
     <div data-testid="analytics-activity-chart" style={chartWrapStyle}>
-      <svg aria-label={t.vehicleActivity} role="img" style={chartStyle} viewBox="0 0 500 260">
-        {ticks.map((tick) => {
-          const y = PADDING.top + plotHeight * (1 - tick / axisMaximum);
-          return (
-            <g key={tick}>
-              <line style={gridLineStyle} x1={PADDING.left} x2={WIDTH - PADDING.right} y1={y} y2={y} />
-              <text style={axisStyle} textAnchor="end" x="32" y={y + 4}>{tick}</text>
+      <div style={{ position: "relative", height: HEIGHT }}>
+        <svg aria-label={t.vehicleActivity} role="img" style={chartStyle} viewBox="0 0 500 260">
+          {ticks.map((tick) => {
+            const y = PADDING.top + plotHeight * (1 - tick / axisMaximum);
+            return (
+              <g key={tick}>
+                <line style={gridLineStyle} x1={PADDING.left} x2={WIDTH - PADDING.right} y1={y} y2={y} />
+                <text style={axisStyle} textAnchor="end" x="32" y={y + 4}>{tick}</text>
+              </g>
+            );
+          })}
+          <text style={axisStyle} textAnchor="middle" transform="rotate(-90 12 130)" x="12" y="130">
+            {t.carsHandled}
+          </text>
+          {points.map((point, index) => (
+            <g key={point.date} style={{ cursor: "pointer" }}>
+              <rect
+                fill={hovered === index ? "#1551ca" : "#1e60f0"}
+                height={point.height}
+                onMouseEnter={() => setHovered(index)}
+                onMouseLeave={() => setHovered(null)}
+                rx="4"
+                style={{ transition: "fill 150ms ease" }}
+                width={point.barWidth}
+                x={point.x}
+                y={point.y}
+              />
+              {(index % labelStep === 0 || index === points.length - 1) ? (
+                <text className={styles.chartAxisX} style={xAxisStyle} textAnchor="middle" x={point.centerX} y={HEIGHT - 8}>
+                  {point.date.slice(5)}
+                </text>
+              ) : null}
             </g>
-          );
-        })}
-        <text style={axisStyle} textAnchor="middle" transform="rotate(-90 12 130)" x="12" y="130">
-          {t.carsHandled}
-        </text>
-        {points.map((point, index) => (
-          <g key={point.date} style={{ cursor: "pointer" }}>
-            <rect
-              fill={hovered === index ? "#1551ca" : "#1e60f0"}
-              height={point.height}
-              onMouseEnter={() => setHovered(index)}
-              onMouseLeave={() => setHovered(null)}
-              rx="4"
-              style={{ transition: "fill 150ms ease" }}
-              width={point.barWidth}
-              x={point.x}
-              y={point.y}
-            />
-            {(index % labelStep === 0 || index === points.length - 1) ? (
-              <text className={styles.chartAxisX} style={xAxisStyle} textAnchor="middle" x={point.centerX} y={HEIGHT - 8}>
-                {point.date.slice(5)}
-              </text>
-            ) : null}
-          </g>
-        ))}
-      </svg>
-      {hovered !== null ? (
-        <div
-          style={{
-            ...tooltipStyle,
-            left: `${(points[hovered]!.centerX / WIDTH) * 100}%`,
-            top: `${(points[hovered]!.y / HEIGHT) * 100}%`,
-          }}
-        >
-          <BidiText kind="number">{points[hovered]!.handledCount}</BidiText>
-          {" · "}
-          <BidiText>{points[hovered]!.date}</BidiText>
-        </div>
-      ) : null}
+          ))}
+        </svg>
+        {hovered !== null ? (
+          <div
+            style={{
+              ...tooltipStyle,
+              left: `${(points[hovered]!.centerX / WIDTH) * 100}%`,
+              top: `${(points[hovered]!.y / HEIGHT) * 100}%`,
+            }}
+          >
+            <BidiText kind="number">{points[hovered]!.handledCount}</BidiText>
+            {" · "}
+            <BidiText>{points[hovered]!.date}</BidiText>
+          </div>
+        ) : null}
+      </div>
       <ActivityTextSummary data={props.data} locale={props.locale} />
     </div>
   );

@@ -76,7 +76,9 @@ export const MD05_VISUAL_CONTRACT = {
     valueWeight: "800",
     labelFontSize: "12px",
     labelWeight: "400",
-    trendSpaceHeight: "20px",
+    // Live 3011: 11px text × 1.5 line-height + 4px badge padding.
+    trendSpaceHeight: "20.5px",
+    darkHeaderBorder: "rgb(23, 35, 70)",
     trendSpaceMarginTop: "10px",
     iconSize: "40px",
     iconRadius: "12px",
