@@ -73,7 +73,7 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
 
   await nav.getByRole("link", { name: "Keys" }).click();
   await expect(page.getByRole("heading", { name: "Keys", level: 1 })).toHaveCSS("font-size", "24px");
-  await expect(page.locator('[class*="filterPlaceholder"]')).toHaveCount(2);
+  await expect(page.locator('[class*="keyContext"] > span')).toHaveCount(2);
   await expect(page.getByRole("button", { name: "Previous" })).toHaveCSS("width", "32px");
   await expect(page.getByRole("button", { name: "Previous" })).toHaveCSS("height", "32px");
 
@@ -82,7 +82,7 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
   const incidentHeader = page.getByRole("columnheader", { name: "Description" });
   await expect(incidentHeader).toHaveCSS("padding-top", "14px");
   await expect(incidentHeader).toHaveCSS("padding-left", "20px");
-  await expect(page.locator('[class*="incidentFilterPlaceholder"]')).toHaveCount(5);
+  await expect(page.locator('[class*="incidentContext"] > span')).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Previous" })).toHaveCSS("width", "28px");
 
   await nav.getByRole("link", { name: "Maps & Zones" }).click();

@@ -85,15 +85,15 @@ test("MD-03 operational pages render only current authoritative projections with
 
   await nav.getByRole("link", { name: "Keys" }).click();
   await expect(page.getByText(keyItem().code, { exact: true })).toBeVisible();
-  await expect(page.getByText("Empty slot", { exact: true })).toBeVisible();
+  await expect(page.getByText("Empty", { exact: true })).toBeVisible();
   for (const forbidden of ["Add Key", "Checked out by", "Smart Key", "Return Key"]) {
     await expect(page.getByText(forbidden, { exact: true })).toHaveCount(0);
   }
 
   await nav.getByRole("link", { name: "Incidents" }).click();
   await expect(page.getByText(incidentItem().description)).toBeVisible();
-  await expect(page.getByText("INVESTIGATING", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("OPEN / INVESTIGATING", { exact: true })).toBeVisible();
+  await expect(page.getByText("Investigating", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Open and investigating incidents", { exact: true })).toBeVisible();
   for (const forbidden of ["Report Incident", "ClaimShield", "Insurance", "Export", "Resolve"]) {
     await expect(page.getByText(forbidden, { exact: true })).toHaveCount(0);
   }

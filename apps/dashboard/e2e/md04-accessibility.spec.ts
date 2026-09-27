@@ -114,16 +114,16 @@ test("Audit drawer restores focus and keeps canonical codes LTR in Arabic", asyn
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: "All Locations" }).click();
   const firstInspect = page.getByRole("button", {
-    name: "Inspect event 1: MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+    name: "Inspect event 1: Company setting default changed",
     exact: true,
   });
   await expect(firstInspect).toHaveCount(1);
   await expect(page.getByRole("button", {
-    name: "Inspect event 2: LOCATION_CONFIGURATION_OVERRIDE_SET",
+    name: "Inspect event 2: Location configuration override set",
     exact: true,
   })).toHaveCount(1);
   await expect(page.getByRole("button", {
-    name: "Inspect event 3: LOCATION_CONFIGURATION_OVERRIDE_SET",
+    name: "Inspect event 3: Location configuration override set",
     exact: true,
   })).toHaveCount(1);
   await expect(page.getByRole("button", { name: "Inspect", exact: true })).toHaveCount(0);
@@ -135,11 +135,12 @@ test("Audit drawer restores focus and keeps canonical codes LTR in Arabic", asyn
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.getByRole("heading", { name: "سجل التدقيق", level: 1 })).toBeVisible();
   await expect(page.getByRole("button", {
-    name: "فحص الحدث 1: MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+    name: "فحص الحدث 1: تغيير إعداد الشركة الافتراضي",
     exact: true,
   })).toHaveCount(1);
   await expect(page.getByRole("button", { name: "فحص", exact: true })).toHaveCount(0);
-  await expect(page.locator('bdi[dir="ltr"]', {
+  await page.getByRole("button", { name: "فحص الحدث 1: تغيير إعداد الشركة الافتراضي" }).click();
+  await expect(page.getByRole("dialog").locator('bdi[dir="ltr"]', {
     hasText: "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
   }).first()).toBeVisible();
 });

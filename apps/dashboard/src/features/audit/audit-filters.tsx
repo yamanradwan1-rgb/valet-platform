@@ -1,8 +1,13 @@
 "use client";
 
-import { managementAuditKnownEventTypes, type ManagementAuditKnownEvent } from "@valet/contracts";
+import {
+  managementAuditKnownEventTypes,
+  type ManagementAuditKnownEvent,
+} from "@valet/contracts";
 
 import type { AuditCopy } from "./audit-copy";
+import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { auditEventLabel } from "./audit-event-copy";
 import styles from "./audit.module.css";
 
 export function AuditFilters(props: {
@@ -11,6 +16,7 @@ export function AuditFilters(props: {
   readonly showEventType: boolean;
   readonly t: AuditCopy;
 }) {
+  const { locale } = useDashboardLocale();
   return (
     <div className={styles.filters}>
       {props.showEventType ? (
@@ -23,7 +29,9 @@ export function AuditFilters(props: {
           >
             <option value="">{props.t.allEventTypes}</option>
             {managementAuditKnownEventTypes.map((eventType) => (
-              <option key={eventType} value={eventType}>{eventType}</option>
+              <option key={eventType} value={eventType}>
+                {auditEventLabel(eventType, locale)}
+              </option>
             ))}
           </select>
         </label>

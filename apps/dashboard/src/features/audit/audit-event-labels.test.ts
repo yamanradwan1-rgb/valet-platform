@@ -20,10 +20,12 @@ function event(actor: unknown) {
 }
 
 describe("safe Audit actor and entity labels", () => {
-  it("shows only membership ID for membership actors", () => {
-    expect(auditActorLabel(event({ type: "MEMBERSHIP", membershipId }))).toEqual({
+  it("keeps membership ID secondary to the typed human label", () => {
+    expect(
+      auditActorLabel(event({ type: "MEMBERSHIP", membershipId })),
+    ).toEqual({
       id: membershipId,
-      label: "MEMBERSHIP",
+      label: "Staff member",
     });
   });
 
@@ -34,7 +36,11 @@ describe("safe Audit actor and entity labels", () => {
     "CONTROLLED_OPERATOR",
     "UNKNOWN",
   ] as const)("renders %s without extra identity data", (type) => {
-    expect(auditActorLabel(event({ type }))).toEqual({ label: type });
+    expect(auditActorLabel(event({ type }))?.label).not.toBe(type);
+    expect(auditActorLabel(event({ type }), "ar")?.label).toMatch(
+      /[\u0600-\u06ff]/u,
+    );
+    expect(auditActorLabel(event({ type }))).not.toHaveProperty("id");
   });
 
   it("keeps UNKNOWN events actor-free and entity-free", () => {
@@ -47,6 +53,6 @@ describe("safe Audit actor and entity labels", () => {
       scope: { kind: "ORGANIZATION" },
     });
     expect(auditActorLabel(unknown)).toBeNull();
-    expect(auditEntityLabel(unknown)).toBe("—");
+    expect(auditEntityLabel(unknown)).toBe("No target");
   });
 });

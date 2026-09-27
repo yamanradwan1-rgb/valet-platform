@@ -51,8 +51,8 @@ test("CA Organization Audit renders only safe typed data, supported filter and o
   });
   await enterOrganizationAudit(page, fixture);
   await expect(page.getByText("Organization Audit", { exact: true })).toBeVisible();
-  await expect(page.getByText("ORGANIZATION", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("LOCATION", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Organization", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Location", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Loaded 4 events", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Event type")).toBeVisible();
   await expect(page.getByRole("button", { name: /Export/i })).toHaveCount(0);
@@ -65,7 +65,7 @@ test("CA Organization Audit renders only safe typed data, supported filter and o
   expect(body).not.toContain("rawMetadata");
 
   const maliciousRow = page.locator("tbody tr").filter({
-    hasText: "LOCATION_CONFIGURATION_OVERRIDE_SET",
+    hasText: "Location configuration override set",
   }).nth(1);
   await maliciousRow.getByRole("button", { name: "Inspect" }).click();
   let drawer = page.getByRole("dialog", { name: "Audit Event Details" });
@@ -73,7 +73,7 @@ test("CA Organization Audit renders only safe typed data, supported filter and o
   await expect(drawer.locator("img")).toHaveCount(0);
   await drawer.getByRole("button", { name: "Close" }).click();
 
-  const unknownRow = page.locator("tbody tr").filter({ hasText: "UNKNOWN" });
+  const unknownRow = page.locator("tbody tr").filter({ hasText: "Unknown event" });
   await unknownRow.getByRole("button", { name: "Inspect" }).click();
   drawer = page.getByRole("dialog", { name: "Audit Event Details" });
   await expect(drawer.getByText("Actor not included for this event")).toBeVisible();
@@ -83,7 +83,7 @@ test("CA Organization Audit renders only safe typed data, supported filter and o
 
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByRole("cell", {
-    name: "DASHBOARD_REPORT_EXPORT_GENERATED",
+    name: "Report export generated",
     exact: true,
   })).toBeVisible();
   await expect(page.getByText("Loaded 1 events", { exact: true })).toBeVisible();
@@ -92,7 +92,7 @@ test("CA Organization Audit renders only safe typed data, supported filter and o
 
   await page.getByLabel("Event type").selectOption("LOCATION_CONFIGURATION_OVERRIDE_SET");
   await expect(page.getByRole("cell", {
-    name: "LOCATION_CONFIGURATION_OVERRIDE_SET",
+    name: "Location configuration override set",
     exact: true,
   }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Previous", exact: true })).toBeDisabled();
@@ -155,7 +155,7 @@ test("Supervisor Audit uses only exact Location route and omits unshared event-t
   await page.goto("/audit-log");
   await signInOnCurrentPage(page, "supervisor@example.com");
   await page.getByRole("button", { name: `${ORG_A.name} · ${LOCATION_A.name}` }).click();
-  await expect(page.getByText("VALET_SESSION_PARKED", { exact: true })).toBeVisible();
+  await expect(page.getByText("Vehicle parked", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Event type")).toHaveCount(0);
   expect(paths).toContain(locationAuditPath);
   expect(paths).not.toContain(orgAuditPath);
@@ -182,12 +182,12 @@ test("late Audit filter response cannot repaint the newest filter", async ({ pag
   await page.getByLabel("Event type").selectOption("LOCATION_CONFIGURATION_OVERRIDE_SET");
   await page.getByLabel("Event type").selectOption("MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED");
   await expect(page.getByRole("cell", {
-    name: "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+    name: "Company setting default changed",
     exact: true,
   })).toBeVisible();
   await page.waitForTimeout(550);
   await expect(page.getByRole("cell", {
-    name: "LOCATION_CONFIGURATION_OVERRIDE_SET",
+    name: "Location configuration override set",
     exact: true,
   })).toHaveCount(0);
 });
@@ -219,7 +219,7 @@ test("Supervisor shift-end denial wins between Audit cursor pages", async ({ pag
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByText(/Current server authority no longer allows/)).toBeVisible();
   await expect(page.getByRole("cell", {
-    name: "VALET_SESSION_PARKED",
+    name: "Vehicle parked",
     exact: true,
   })).toHaveCount(0);
   expect(requests).toBeGreaterThanOrEqual(2);

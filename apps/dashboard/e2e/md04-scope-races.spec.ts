@@ -253,20 +253,20 @@ test("Audit fences delayed Organization cursor and resets filter across Location
   await chooseOrganization(page, ORG_A.name);
   await page.getByRole("button", { name: LOCATION_A.name }).click();
   await expect(page.getByText("Location Audit", { exact: true })).toBeVisible();
-  await expect(page.getByText("2026-09-22T08:01:00.000Z", { exact: true })).toBeVisible();
+  await expect(page.locator('time[datetime="2026-09-22T08:01:00.000Z"]')).toBeVisible();
   const locationRequest = requests.filter((item) => item.path === locationAuditPath).at(-1);
   expect(locationRequest).toMatchObject({ cursor: null, eventType: null });
 
   await changeScope(page);
   await chooseOrganization(page, ORG_A.name);
   await page.getByRole("button", { name: "All Locations" }).click();
-  await expect(page.getByText("2026-09-22T09:00:00.000Z", { exact: true })).toBeVisible();
+  await expect(page.locator('time[datetime="2026-09-22T09:00:00.000Z"]')).toBeVisible();
   const currentOrganizationRequest = requests.filter((item) =>
     item.path === orgAuditPath && item.eventType === null,
   ).at(-1);
   expect(currentOrganizationRequest).toMatchObject({ cursor: null, eventType: null });
   await expect(page.getByRole("button", { name: "Previous", exact: true })).toBeDisabled();
   await page.waitForTimeout(900);
-  await expect(page.getByText("2026-09-22T07:00:00.000Z", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("2026-09-22T09:00:00.000Z", { exact: true })).toBeVisible();
+  await expect(page.locator('time[datetime="2026-09-22T07:00:00.000Z"]')).toHaveCount(0);
+  await expect(page.locator('time[datetime="2026-09-22T09:00:00.000Z"]')).toBeVisible();
 });

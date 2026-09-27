@@ -8,16 +8,27 @@ import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { auditCopy } from "./audit-copy";
 import { AuditDetailRenderer } from "./audit-detail-renderer";
 import { auditActorLabel, auditEntityLabel } from "./audit-event-labels";
-import styles from "./audit.module.css";
+import { auditEventLabel } from "./audit-event-copy";
+import {
+  auditScopeLabel,
+  formatAuditTime,
+  type AuditTimeContext,
+} from "./audit-presentation";
+import styles from "./audit-drawer.module.css";
 
 const focusable = [
-  "button:not([disabled])", "a[href]", "input:not([disabled])",
-  "select:not([disabled])", "textarea:not([disabled])", "[tabindex]:not([tabindex='-1'])",
+  "button:not([disabled])",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
 export function AuditDetailDrawer(props: {
   readonly event: ManagementAuditEvent;
   readonly onClose: () => void;
+  readonly context: AuditTimeContext;
 }) {
   const { locale } = useDashboardLocale();
   const t = auditCopy(locale);
@@ -54,9 +65,16 @@ export function AuditDetailDrawer(props: {
     };
   }, [onClose]);
 
-  const actor = auditActorLabel(props.event);
+  const actor = auditActorLabel(props.event, locale);
   return (
-    <div className={styles.drawerBackdrop} onMouseDown={onClose} role="presentation">
+    <div
+      className={styles.drawerBackdrop}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      role="presentation"
+    >
       <div
         aria-label={t.details}
         aria-modal="true"
@@ -66,24 +84,84 @@ export function AuditDetailDrawer(props: {
         role="dialog"
       >
         <div className={styles.drawerHeader}>
-          <div><h2>{t.details}</h2><bdi className={styles.muted} dir="ltr">{props.event.eventType}</bdi></div>
-          <button aria-label={t.close} className={styles.quiet} onClick={onClose} type="button">
+          <div>
+            <h2>{auditEventLabel(props.event.eventType, locale)}</h2>
+            <bdi className={styles.muted} dir="ltr">
+              {props.event.eventType}
+            </bdi>
+          </div>
+          <button
+            aria-label={t.close}
+            className={styles.quiet}
+            onClick={onClose}
+            type="button"
+          >
             <X aria-hidden="true" size={18} />
           </button>
         </div>
         <div className={styles.drawerBody}>
           <div className={styles.detailSection}>
-            <div className={styles.fact}><span>{t.eventId}</span><strong><bdi dir="ltr">{props.event.eventId}</bdi></strong></div>
-            <div className={styles.fact}><span>{t.occurredAt}</span><strong><bdi dir="ltr">{props.event.occurredAt}</bdi></strong></div>
-            <div className={styles.fact}><span>{t.scope}</span><strong><bdi dir="ltr">{props.event.scope.kind}</bdi></strong></div>
+            <div className={styles.fact}>
+              <span>{t.eventId}</span>
+              <strong>
+                <bdi dir="ltr">{props.event.eventId}</bdi>
+              </strong>
+            </div>
+            <div className={styles.fact}>
+              <span>{t.occurredAt}</span>
+              <strong>
+                {formatAuditTime(
+                  props.event.occurredAt,
+                  props.context.timezone,
+                  locale,
+                )}{" "}
+                <bdi dir="ltr">({props.context.timezone})</bdi>
+              </strong>
+            </div>
+            <div className={styles.fact}>
+              <span>{t.scope}</span>
+              <strong>
+                <bdi>{auditScopeLabel(props.event, props.context, locale)}</bdi>
+              </strong>
+            </div>
+            {props.event.scope.kind === "LOCATION" ? (
+              <div className={styles.fact}>
+                <span>{t.locationId}</span>
+                <strong>
+                  <bdi dir="ltr">{props.event.scope.locationId}</bdi>
+                </strong>
+              </div>
+            ) : null}
           </div>
           <div className={styles.detailSection}>
             {actor ? (
-              <div className={styles.fact}><span>{t.actor}</span><strong><bdi dir="ltr">{actor.label}</bdi></strong></div>
-            ) : <p className={styles.safeEmpty}>{t.noActor}</p>}
-            {actor?.id ? <div className={styles.fact}><span>{t.membershipId}</span><strong><bdi dir="ltr">{actor.id}</bdi></strong></div> : null}
-            <div className={styles.fact}><span>{t.entity}</span><strong><bdi dir="ltr">{auditEntityLabel(props.event)}</bdi></strong></div>
-            {props.event.entity ? <div className={styles.fact}><span>{t.entityId}</span><strong><bdi dir="ltr">{props.event.entity.id}</bdi></strong></div> : null}
+              <div className={styles.fact}>
+                <span>{t.actor}</span>
+                <strong>{actor.label}</strong>
+              </div>
+            ) : (
+              <p className={styles.safeEmpty}>{t.noActor}</p>
+            )}
+            {actor?.id ? (
+              <div className={styles.fact}>
+                <span>{t.membershipId}</span>
+                <strong>
+                  <bdi dir="ltr">{actor.id}</bdi>
+                </strong>
+              </div>
+            ) : null}
+            <div className={styles.fact}>
+              <span>{t.entity}</span>
+              <strong>{auditEntityLabel(props.event, locale)}</strong>
+            </div>
+            {props.event.entity ? (
+              <div className={styles.fact}>
+                <span>{t.entityId}</span>
+                <strong>
+                  <bdi dir="ltr">{props.event.entity.id}</bdi>
+                </strong>
+              </div>
+            ) : null}
           </div>
           <AuditDetailRenderer event={props.event} />
         </div>

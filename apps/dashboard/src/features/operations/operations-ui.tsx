@@ -131,7 +131,14 @@ export function OperationsDrawer(props: {
     return () => { document.removeEventListener("keydown", keydown); returnFocus.current?.focus(); };
   }, [onClose]);
   return (
-    <div className={styles.drawerBackdrop} onMouseDown={onClose} role="presentation">
+    <div
+      className={styles.drawerBackdrop}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      role="presentation"
+    >
       <div aria-label={props.label} aria-modal="true" className={styles.drawer} onMouseDown={(event) => event.stopPropagation()} ref={ref} role="dialog">
         <div className={styles.drawerHeader}>
           <div><h2>{props.label}</h2>{props.subtitle ? <div className={styles.drawerSubtitle}>{props.subtitle}</div> : null}</div>
