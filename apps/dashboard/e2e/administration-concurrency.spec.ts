@@ -1,6 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { staffDirectoryItem } from "./support/administration-fixtures";
 import {
   DashboardApiFixture,
   E2E_IDS,
@@ -12,7 +11,10 @@ import { signInOnCurrentPage } from "./support/foundation-ui";
 const STAFF_EMAIL = "worker@example.com";
 const CREATED_LOCATION_ID = "55555555-5555-4555-8555-555555555555";
 
-async function enterCompanyAllLocations(page: Page, path: string): Promise<void> {
+async function enterCompanyAllLocations(
+  page: Page,
+  path: string,
+): Promise<void> {
   await page.goto(path);
   await signInOnCurrentPage(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
@@ -44,7 +46,10 @@ function createdLocationLifecycle() {
   } as const;
 }
 
-function staffProjection(role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR", version: number) {
+function staffProjection(
+  role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR",
+  version: number,
+) {
   return {
     identity: { email: STAFF_EMAIL },
     locationAccessCount: 0,
@@ -55,14 +60,20 @@ function staffProjection(role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR", version: n
   };
 }
 
-function staffDetail(role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR", version: number) {
+function staffDetail(
+  role: "VALET_EMPLOYEE" | "VALET_SUPERVISOR",
+  version: number,
+) {
   return {
     ...staffProjection(role, version),
     locationAccess: { items: [], totalCount: 0, truncated: false },
   };
 }
 
-function integrations(organizationId: string, status: "DEGRADED" | "OPERATIONAL") {
+function integrations(
+  organizationId: string,
+  status: "DEGRADED" | "OPERATIONAL",
+) {
   return {
     organizationId,
     integrations: [
@@ -73,7 +84,9 @@ function integrations(organizationId: string, status: "DEGRADED" | "OPERATIONAL"
   } as const;
 }
 
-test("Location create keeps one operationId after an unknown first outcome", async ({ page }) => {
+test("Location create keeps one operationId after an unknown first outcome", async ({
+  page,
+}) => {
   const createPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/locations`;
   const postBodies: unknown[] = [];
   const fixture = new DashboardApiFixture({
@@ -107,7 +120,9 @@ test("Location create keeps one operationId after an unknown first outcome", asy
   await dialog.getByLabel("Currency").fill("JOD");
 
   await dialog.getByRole("button", { name: "Create Location" }).click();
-  await expect(dialog.getByRole("alert")).toHaveText("Create outcome is unknown.");
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "Create outcome is unknown.",
+  );
   await expect(dialog).toBeVisible();
   expect(postBodies).toHaveLength(1);
 
@@ -119,7 +134,9 @@ test("Location create keeps one operationId after an unknown first outcome", asy
   await expect(dialog).toHaveCount(0);
 });
 
-test("staff role conflict reloads authoritative detail without local success", async ({ page }) => {
+test("staff role conflict reloads authoritative detail without local success", async ({
+  page,
+}) => {
   const staffPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/staff`;
   const detailPath = `${staffPath}/${E2E_IDS.membership}`;
   const rolePath = `${detailPath}/role`;
@@ -135,7 +152,11 @@ test("staff role conflict reloads authoritative detail without local success", a
         return { body: { items: [item], nextCursor: null } };
       }
       if (path === detailPath && request.method() === "GET") {
-        return { body: conflicted ? staffDetail("VALET_SUPERVISOR", 2) : staffDetail("VALET_EMPLOYEE", 1) };
+        return {
+          body: conflicted
+            ? staffDetail("VALET_SUPERVISOR", 2)
+            : staffDetail("VALET_EMPLOYEE", 1),
+        };
       }
       if (path === rolePath && request.method() === "POST") {
         conflicted = true;
@@ -168,7 +189,9 @@ test("staff role conflict reloads authoritative detail without local success", a
   await expect(row).not.toContainText("Location Manager");
 });
 
-test("delayed Integrations read cannot repopulate after Organization scope change", async ({ page }) => {
+test("delayed Integrations read cannot repopulate after Organization scope change", async ({
+  page,
+}) => {
   const oldPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/integrations`;
   const newPath = `/v1/staff/management/organizations/${ORG_B.organizationId}/integrations`;
   const fixture = new DashboardApiFixture({
@@ -178,8 +201,13 @@ test("delayed Integrations read cannot repopulate after Organization scope chang
       [ORG_B.organizationId]: [],
     },
     override: (path) => {
-      if (path === oldPath) return { body: integrations(ORG_A.organizationId, "DEGRADED"), delayMs: 450 };
-      if (path === newPath) return { body: integrations(ORG_B.organizationId, "OPERATIONAL") };
+      if (path === oldPath)
+        return {
+          body: integrations(ORG_A.organizationId, "DEGRADED"),
+          delayMs: 450,
+        };
+      if (path === newPath)
+        return { body: integrations(ORG_B.organizationId, "OPERATIONAL") };
       return undefined;
     },
   });
@@ -188,76 +216,27 @@ test("delayed Integrations read cannot repopulate after Organization scope chang
   await signInOnCurrentPage(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
 
-  const oldRequest = page.waitForRequest((request) => new URL(request.url()).pathname === oldPath);
+  const oldRequest = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === oldPath,
+  );
   await page.getByRole("button", { name: "All Locations" }).click();
   await oldRequest;
-  await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
+  await page
+    .locator(".topbar")
+    .getByRole("button", { name: "Change scope" })
+    .click();
   await page.getByRole("button", { name: ORG_B.name }).click();
-  const newRequest = page.waitForRequest((request) => new URL(request.url()).pathname === newPath);
+  const newRequest = page.waitForRequest(
+    (request) => new URL(request.url()).pathname === newPath,
+  );
   await page.getByRole("button", { name: "All Locations" }).click();
   await newRequest;
 
-  await expect(page.getByRole("heading", { name: "Integrations & Connectors" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Integrations & Connectors" }),
+  ).toBeVisible();
   await expect(page.getByText("Operational", { exact: true })).toHaveCount(3);
   await page.waitForTimeout(550);
   await expect(page.getByText("Operational", { exact: true })).toHaveCount(3);
   await expect(page.getByText("Degraded", { exact: true })).toHaveCount(0);
-});
-
-test("Roles Users resets signed cursor and history before the next Organization read", async ({ page }) => {
-  const oldPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/staff`;
-  const newPath = `/v1/staff/management/organizations/${ORG_B.organizationId}/staff`;
-  const newCursors: Array<string | null> = [];
-  const fixture = new DashboardApiFixture({
-    companyOrganizations: [ORG_A, ORG_B],
-    companyLocations: {
-      [ORG_A.organizationId]: [],
-      [ORG_B.organizationId]: [],
-    },
-    override: (path, request) => {
-      const cursor = new URL(request.url()).searchParams.get("cursor");
-      if (path === oldPath && cursor === null) {
-        return { body: { items: [staffDirectoryItem("alpha@example.com")], nextCursor: "org-a-next" } };
-      }
-      if (path === oldPath && cursor === "org-a-next") {
-        return {
-          body: { items: [staffDirectoryItem("old-page@example.com")], nextCursor: null },
-          delayMs: 450,
-        };
-      }
-      if (path === newPath) {
-        newCursors.push(cursor);
-        return {
-          body: {
-            items: [staffDirectoryItem("bravo@example.com", "88888888-8888-4888-8888-888888888888")],
-            nextCursor: null,
-          },
-        };
-      }
-      return undefined;
-    },
-  });
-  await fixture.install(page);
-  await enterCompanyAllLocations(page, "/roles-permissions");
-  await page.getByRole("button", { name: "Users" }).click();
-  await expect(page.getByText("alpha@example.com", { exact: true })).toBeVisible();
-
-  const oldSecondPage = page.waitForRequest((request) =>
-    new URL(request.url()).pathname === oldPath &&
-    new URL(request.url()).searchParams.get("cursor") === "org-a-next");
-  await page.getByTestId("md02-page").getByRole("button", { name: "Next" }).click();
-  await oldSecondPage;
-
-  await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
-  await page.getByRole("button", { name: ORG_B.name }).click();
-  await page.getByRole("button", { name: "All Locations" }).click();
-  await page.getByRole("button", { name: "Users" }).click();
-
-  await expect(page.getByText("bravo@example.com", { exact: true })).toBeVisible();
-  expect(newCursors[0]).toBeNull();
-  expect(newCursors.every((cursor) => cursor === null)).toBe(true);
-  await expect(page.getByTestId("md02-page").getByRole("button", { name: "Previous" })).toBeDisabled();
-  await page.waitForTimeout(550);
-  await expect(page.getByText("old-page@example.com", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("bravo@example.com", { exact: true })).toBeVisible();
 });

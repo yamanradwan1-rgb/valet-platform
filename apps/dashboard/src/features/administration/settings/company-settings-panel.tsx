@@ -25,37 +25,81 @@ export function CompanySettingsPanel(props: {
 }) {
   const mutation = useSensitiveMutation(props.onReload);
   const copy = settingsTableCopy(props.locale);
-  const defaults = props.data.defaults as unknown as Readonly<Record<string, unknown>>;
+  const defaults = props.data.defaults as unknown as Readonly<
+    Record<string, unknown>
+  >;
   async function setValue(setting: string, value: unknown) {
     await mutation.run(() => {
-      const body = managementSettingSetRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
+      const body = managementSettingSetRequestSchema.parse({
+        setting,
+        value,
+        expectedUpdatedAt: props.data.updatedAt,
+      });
       return setCompanySetting(props.api, props.data.organizationId, body);
     }, props.onReload);
   }
   async function clearOperatingHours() {
     await mutation.run(() => {
-      const body = managementCompanySettingClearRequestSchema.parse({ setting: "operatingHours", expectedUpdatedAt: props.data.updatedAt });
+      const body = managementCompanySettingClearRequestSchema.parse({
+        setting: "operatingHours",
+        expectedUpdatedAt: props.data.updatedAt,
+      });
       return clearCompanySetting(props.api, props.data.organizationId, body);
     }, props.onReload);
   }
   return (
     <>
-      <div className={styles.tableWrap}>
+      <div
+        aria-label={copy.setting}
+        className={styles.tableWrap}
+        role="region"
+        tabIndex={0}
+      >
         <table className={`${styles.table} ${styles.referenceTable}`}>
-          <thead><tr><th>{copy.setting}</th><th>{copy.value}</th><th>{copy.actions}</th></tr></thead>
+          <thead>
+            <tr>
+              <th>{copy.setting}</th>
+              <th>{copy.value}</th>
+              <th>{copy.actions}</th>
+            </tr>
+          </thead>
           <tbody>
-        {settingDefinitions.map((definition) => <SettingRow canClear={false} definition={definition}
-          disabled={mutation.busy} key={definition.key} locale={props.locale}
-          onSet={(value) => void setValue(definition.key, value)} value={defaults[definition.key]} />)}
-        <OperatingHoursEditor canClear disabled={mutation.busy} locale={props.locale}
-          onClear={() => void clearOperatingHours()}
-          onSave={(value: OperatingHoursValue) => void setValue("operatingHours", value)}
-          value={props.data.defaults.operatingHours} />
+            {settingDefinitions.map((definition) => (
+              <SettingRow
+                canClear={false}
+                definition={definition}
+                disabled={mutation.busy}
+                key={definition.key}
+                locale={props.locale}
+                onSet={(value) => void setValue(definition.key, value)}
+                value={defaults[definition.key]}
+              />
+            ))}
+            <OperatingHoursEditor
+              canClear
+              disabled={mutation.busy}
+              locale={props.locale}
+              onClear={() => void clearOperatingHours()}
+              onSave={(value: OperatingHoursValue) =>
+                void setValue("operatingHours", value)
+              }
+              value={props.data.defaults.operatingHours}
+            />
           </tbody>
         </table>
       </div>
-      {mutation.error ? <div className={styles.error} role="alert">{mutation.error}</div> : null}
-      {mutation.mfaOpen ? <SensitiveMfaDialog api={props.api} onAssured={mutation.onMfaAssured} onClose={mutation.closeMfa} /> : null}
+      {mutation.error ? (
+        <div className={styles.error} role="alert">
+          {mutation.error}
+        </div>
+      ) : null}
+      {mutation.mfaOpen ? (
+        <SensitiveMfaDialog
+          api={props.api}
+          onAssured={mutation.onMfaAssured}
+          onClose={mutation.closeMfa}
+        />
+      ) : null}
     </>
   );
 }

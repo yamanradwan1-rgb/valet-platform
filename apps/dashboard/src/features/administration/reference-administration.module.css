@@ -1,0 +1,75 @@
+.reference {
+  min-width: 0;
+}
+
+.reference h1 {
+  line-height: 2rem;
+}
+
+.reference :global([class*="subtitle"]) {
+  line-height: 1.25rem;
+}
+
+.reference [role="tab"] {
+  line-height: 1.125rem;
+}
+
+.reference table {
+  line-height: 1rem;
+}
+
+.reference th {
+  text-align: start;
+}
+
+.reference th:last-child {
+  text-align: end;
+}
+
+.reference td:last-child > div {
+  justify-content: flex-end;
+}
+
+.reference [role="region"] {
+  min-width: 0;
+}
+
+.reference table {
+  min-width: 42rem;
+}
+
+.reference [data-setting] td:first-child {
+  width: 44%;
+}
+
+.reference [data-setting] td:nth-child(2) {
+  min-width: 13rem;
+}
+
+.reference bdi {
+  overflow-wrap: anywhere;
+}
+
+.reference :global([class*="formFooter"]) {
+  flex-wrap: wrap;
+}
+
+.reference :global([class*="planTitle"]) {
+  overflow-wrap: anywhere;
+}
+
+.reference :global([class*="integrationCard"]) {
+  min-width: 0;
+}
+
+.reference button:focus-visible,
+.reference [role="region"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reference > div {
+    animation: none;
+  }
+}

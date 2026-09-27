@@ -11,6 +11,7 @@ import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import type { TranslationKey } from "../../lib/i18n/dictionaries";
 import { Button } from "../presentation/button";
 import { Panel } from "../presentation/panel";
+import styles from "./account-security.module.css";
 import {
   EnrollmentCeremony,
   RecoveryCodesDisclosure,
@@ -35,11 +36,17 @@ interface AccountSecurityPanelProps {
   readonly onStateChange?: (state: StaffMfaStateValue) => void;
 }
 
-export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityPanelProps) {
+export function AccountSecurityPanel({
+  client,
+  onStateChange,
+}: AccountSecurityPanelProps) {
   const { t } = useDashboardLocale();
   const [mfaState, setMfaState] = useState<StaffMfaStateValue | null>(null);
-  const [enrollment, setEnrollment] = useState<StaffMfaEnrollmentBeginResponse | null>(null);
-  const [recoveryCodes, setRecoveryCodes] = useState<readonly string[] | null>(null);
+  const [enrollment, setEnrollment] =
+    useState<StaffMfaEnrollmentBeginResponse | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<readonly string[] | null>(
+    null,
+  );
   const [reissueOpen, setReissueOpen] = useState(false);
   const [busy, setBusy] = useState(true);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
@@ -67,7 +74,7 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
   const readState = useCallback(
     async (signal?: AbortSignal) => {
       const response = await client.state(signal);
-      if (!mounted.current) return;
+      if (!mounted.current || signal?.aborted) return;
       publishState(response.state);
     },
     [client, publishState],
@@ -79,16 +86,17 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
     request.current = controller;
     void Promise.resolve()
       .then(() => {
-        if (!mounted.current) return;
+        if (!mounted.current || controller.signal.aborted) return;
         setBusy(true);
         setErrorKey(null);
         return readState(controller.signal);
       })
       .catch((error: unknown) => {
-        if (mounted.current) setErrorKey(mfaErrorKey(error));
+        if (mounted.current && !controller.signal.aborted)
+          setErrorKey(mfaErrorKey(error));
       })
       .finally(() => {
-        if (mounted.current) setBusy(false);
+        if (mounted.current && !controller.signal.aborted) setBusy(false);
       });
     return () => {
       mounted.current = false;
@@ -113,7 +121,8 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
           setReissueOpen(false);
           try {
             await readState(controller.signal);
-            if (mounted.current) setErrorKey(uncertain ? "mfaErrorUncertain" : mfaErrorKey(error));
+            if (mounted.current)
+              setErrorKey(uncertain ? "mfaErrorUncertain" : mfaErrorKey(error));
           } catch {
             if (mounted.current) setErrorKey("mfaErrorStateRead");
           }
@@ -141,7 +150,10 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
   const confirmEnrollment = (code: string) =>
     runMutation(async (signal) => {
       if (!enrollment) return;
-      const result = await client.confirmEnrollment({ factorId: enrollment.factorId, code }, signal);
+      const result = await client.confirmEnrollment(
+        { factorId: enrollment.factorId, code },
+        signal,
+      );
       if (!mounted.current) return;
       setEnrollment(null);
       setRecoveryCodes(result.recoveryCodes);
@@ -178,22 +190,34 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
     void runMutation(async (signal) => readState(signal));
   };
 
-  const status = busy && mfaState === null ? t("mfaStatusChecking") : mfaState ? t(stateLabel[mfaState]) : "";
+  const status =
+    busy && mfaState === null
+      ? t("mfaStatusChecking")
+      : mfaState
+        ? t(stateLabel[mfaState])
+        : "";
 
   return (
-    <Panel>
+    <Panel className={styles.security ?? ""}>
       <div className="stack">
         <div>
           <p className="eyebrow">{t("accountSecurity")}</p>
           <h1>{t("mfa")}</h1>
           <p className="muted">{t("mfaIntro")}</p>
         </div>
-        <p aria-live="polite" role="status">
+        <p aria-live="polite" className={styles.status} role="status">
           <strong>{t("mfaStatus")}:</strong> {status}
         </p>
-        {errorKey ? <p className="error-text" role="alert">{t(errorKey)}</p> : null}
+        {errorKey ? (
+          <p className="error-text" role="alert">
+            {t(errorKey)}
+          </p>
+        ) : null}
         {recoveryCodes ? (
-          <RecoveryCodesDisclosure codes={recoveryCodes} onDone={finishRecoveryCodes} />
+          <RecoveryCodesDisclosure
+            codes={recoveryCodes}
+            onDone={finishRecoveryCodes}
+          />
         ) : enrollment ? (
           <EnrollmentCeremony
             busy={busy}
@@ -201,13 +225,26 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
             onCancel={closeEnrollment}
             onConfirm={confirmEnrollment}
           />
-        ) : mfaState === "ENROLLMENT_REQUIRED" || mfaState === "ENROLLMENT_PENDING" ? (
+        ) : mfaState === "ENROLLMENT_REQUIRED" ||
+          mfaState === "ENROLLMENT_PENDING" ? (
           <div className="stack">
             <p className="muted">
-              {t(mfaState === "ENROLLMENT_REQUIRED" ? "mfaEnrollmentRequiredBody" : "mfaEnrollmentPendingBody")}
+              {t(
+                mfaState === "ENROLLMENT_REQUIRED"
+                  ? "mfaEnrollmentRequiredBody"
+                  : "mfaEnrollmentPendingBody",
+              )}
             </p>
-            <Button disabled={busy} onClick={() => void beginEnrollment()} type="button">
-              {t(mfaState === "ENROLLMENT_REQUIRED" ? "mfaBeginEnrollment" : "mfaContinueEnrollment")}
+            <Button
+              disabled={busy}
+              onClick={() => void beginEnrollment()}
+              type="button"
+            >
+              {t(
+                mfaState === "ENROLLMENT_REQUIRED"
+                  ? "mfaBeginEnrollment"
+                  : "mfaContinueEnrollment",
+              )}
             </Button>
           </div>
         ) : mfaState === "STEP_UP_REQUIRED" ? (
@@ -226,13 +263,27 @@ export function AccountSecurityPanel({ client, onStateChange }: AccountSecurityP
             {reissueOpen ? (
               <div className="stack">
                 <p className="muted">{t("mfaReissueBody")}</p>
-                <TotpForm busy={busy} onSubmit={reissueRecoveryCodes} submitLabel="mfaReissueRecoveryCodes" />
-                <Button disabled={busy} onClick={() => setReissueOpen(false)} type="button" variant="quiet">
+                <TotpForm
+                  busy={busy}
+                  onSubmit={reissueRecoveryCodes}
+                  submitLabel="mfaReissueRecoveryCodes"
+                />
+                <Button
+                  disabled={busy}
+                  onClick={() => setReissueOpen(false)}
+                  type="button"
+                  variant="quiet"
+                >
                   {t("mfaCancelCeremony")}
                 </Button>
               </div>
             ) : (
-              <Button disabled={busy} onClick={() => setReissueOpen(true)} type="button" variant="secondary">
+              <Button
+                disabled={busy}
+                onClick={() => setReissueOpen(true)}
+                type="button"
+                variant="secondary"
+              >
                 {t("mfaReissueRecoveryCodes")}
               </Button>
             )}
