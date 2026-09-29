@@ -246,7 +246,7 @@ export function supervisorContext() {
     code: LOCATION_A.code,
     currency: LOCATION_A.currency,
     locationId: LOCATION_A.locationId,
-    name: LOCATION_A.name,
+    name: LOCATION_A.name, timezone: LOCATION_A.timezone,
   };
   return {
     activeShift: {

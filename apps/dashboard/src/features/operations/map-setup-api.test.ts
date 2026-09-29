@@ -2,13 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import {
-  createMapArea, createMapPoint, readMapAreas, readMapPoints,
+  createMapArea, createMapPoint, readMapAreas, readMapParkingZones, readMapPoints,
   replaceMapAreaVertices, updateMapArea, updateMapPoint,
 } from "./map-setup-api";
 
 const locationId = "22222222-2222-4222-8222-222222222222";
 const pointId = "33333333-3333-4333-8333-333333333333";
 const areaId = "44444444-4444-4444-8444-444444444444";
+const token = "2026-09-29T18:00:00.000Z";
 const point = {
   active: true, code: "ENT", kind: "ENTRANCE" as const, label: "Entrance",
   latitude: 31.95, levelLabel: null, longitude: 35.91,
@@ -33,16 +34,20 @@ describe("LM map setup API", () => {
     const { client, request } = api();
     await readMapPoints(client, locationId);
     await createMapPoint(client, locationId, point);
-    await updateMapPoint(client, locationId, pointId, { label: "Entry" });
+    await updateMapPoint(client, locationId, pointId, { expectedUpdatedAt: token, label: "Entry" });
     await readMapAreas(client, locationId);
+    await readMapParkingZones(client, locationId, null);
     await createMapArea(client, locationId, area);
-    await updateMapArea(client, locationId, areaId, { label: "Lot" });
-    await replaceMapAreaVertices(client, locationId, areaId, { vertices: area.vertices });
+    await updateMapArea(client, locationId, areaId, { expectedUpdatedAt: token, label: "Lot" });
+    await replaceMapAreaVertices(client, locationId, areaId, {
+      expectedUpdatedAt: token, vertices: area.vertices,
+    });
     expect(request.mock.calls.map((call) => [call[0], call[2]?.method])).toEqual([
       [`/v1/staff/locations/${locationId}/map/points`, "GET"],
       [`/v1/staff/locations/${locationId}/map/points`, "POST"],
       [`/v1/staff/locations/${locationId}/map/points/${pointId}`, "PATCH"],
       [`/v1/staff/locations/${locationId}/map/areas`, "GET"],
+      [`/v1/staff/locations/${locationId}/map/parking-zones`, "GET"],
       [`/v1/staff/locations/${locationId}/map/areas`, "POST"],
       [`/v1/staff/locations/${locationId}/map/areas/${areaId}`, "PATCH"],
       [`/v1/staff/locations/${locationId}/map/areas/${areaId}/vertices`, "PUT"],

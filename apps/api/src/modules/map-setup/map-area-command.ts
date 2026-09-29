@@ -27,7 +27,7 @@ function areaArguments(area: Omit<CreateLocationMapAreaRequest, "vertices">) {
   ] as const;
 }
 
-function vertexArguments(input: ReplaceLocationMapAreaVerticesRequest) {
+function vertexArguments(input: Pick<CreateLocationMapAreaRequest, "vertices">) {
   return [
     input.vertices.map((vertex) => vertex.latitude),
     input.vertices.map((vertex) => vertex.longitude),
@@ -118,7 +118,7 @@ export async function updateMapArea(
           input.locationId,
           input.areaId,
           ...areaArguments(next),
-          current.updatedAt,
+          input.expectedUpdatedAt,
         ],
       );
     } catch (error) {
@@ -149,13 +149,14 @@ export async function replaceMapAreaVertices(
     try {
       await transaction.query(
         `SELECT map_setup_replace_area_vertices(
-           $1, $2, $3, $4::numeric[], $5::numeric[]
+           $1, $2, $3, $4::numeric[], $5::numeric[], $6::timestamptz
          )`,
         [
           actor.membershipId,
           input.locationId,
           input.areaId,
           ...vertexArguments(input),
+          input.expectedUpdatedAt,
         ],
       );
     } catch (error) {

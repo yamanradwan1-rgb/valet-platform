@@ -1109,6 +1109,16 @@ and atomically replaces the full ordered vertex set. Mutations append safe
 AuditEvent facts in the same statement without copying coordinates or vertex
 arrays into audit metadata.
 
+Migration 47 replaces only the privileged
+`map_setup_replace_area_vertices` function signature. Boundary replacement now
+requires the browser-loaded parent Area `updated_at` value, locks the exact
+Area row, rejects a stale token with the existing serialization/conflict class
+before deleting any vertices, then atomically replaces the ordered polygon,
+advances the same parent Area timestamp used by metadata edits, and appends the
+same privacy-safe audit summary. The old no-token function is dropped rather
+than left as a runtime bypass. No table, Prisma model, version column or
+operation-identity persistence is added.
+
 ## retrieval_requests
 
 ```text

@@ -52,6 +52,7 @@ export function PointEditorDialog(props: {
       return;
     }
     const update: UpdateLocationMapPointRequest = {
+      expectedUpdatedAt: original.updatedAt,
       ...(active === original.active ? {} : { active }),
       ...(code === original.code ? {} : { code }),
       ...(kind === original.kind ? {} : { kind }),

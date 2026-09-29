@@ -73,7 +73,7 @@ export async function executeMapSetupMutation(
     const reloaded = await reload();
     if (!isCurrent()) return staleExecution;
     const classified = noticeFor(reason, reloaded.ok);
-    return { closeEditor: false, ...classified };
+    return { closeEditor: true, ...classified };
   }
 }
 

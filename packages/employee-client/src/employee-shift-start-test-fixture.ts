@@ -18,7 +18,9 @@ export function shiftStartLocation(
   locationId = shiftStartIds.locationA,
   code = "AMM-1",
 ): StaffOperationalLocation {
-  return { code, currency: "JOD", locationId, name: `Location ${code}` };
+  return {
+    code, currency: "JOD", locationId, name: `Location ${code}`, timezone: "Asia/Amman",
+  };
 }
 
 export function shiftStartContext(

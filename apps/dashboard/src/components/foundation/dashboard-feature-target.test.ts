@@ -62,6 +62,7 @@ const supervisor: SelectedDashboardScope = {
       currency: location.currency,
       locationId: location.locationId,
       name: location.name,
+      timezone: location.timezone,
     },
     membershipId: "44444444-4444-4444-8444-444444444444",
     organization: {

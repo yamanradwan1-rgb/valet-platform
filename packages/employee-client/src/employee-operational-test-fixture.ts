@@ -25,6 +25,7 @@ export function operationalContext(
     currency: "JOD",
     locationId: ids.location,
     name: "Amman Hotel",
+    timezone: "Asia/Amman",
   };
   return {
     contexts: [

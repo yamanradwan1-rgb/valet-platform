@@ -22,6 +22,7 @@ const vertices = [
   { latitude: 31.96, longitude: 35.91 },
   { latitude: 31.96, longitude: 35.92 },
 ];
+const token = "2026-09-29T18:00:00.000Z";
 
 describe("Location map setup contracts", () => {
   it("accepts only the approved point configuration shape", () => {
@@ -40,13 +41,31 @@ describe("Location map setup contracts", () => {
   });
 
   it("accepts non-empty strict point patches", () => {
-    expect(updateLocationMapPointRequestSchema.parse({ active: false })).toEqual(
-      { active: false },
+    expect(
+      updateLocationMapPointRequestSchema.parse({
+        active: false,
+        expectedUpdatedAt: token,
+      }),
+    ).toEqual(
+      { active: false, expectedUpdatedAt: token },
     );
     expect(updateLocationMapPointRequestSchema.safeParse({}).success).toBe(false);
     expect(
-      updateLocationMapPointRequestSchema.safeParse({ actorId: crypto.randomUUID() })
-        .success,
+      updateLocationMapPointRequestSchema.safeParse({
+        expectedUpdatedAt: token,
+      }).success,
+    ).toBe(false);
+    expect(
+      updateLocationMapPointRequestSchema.safeParse({
+        active: false,
+        expectedUpdatedAt: "not-a-date",
+      }).success,
+    ).toBe(false);
+    expect(
+      updateLocationMapPointRequestSchema.safeParse({
+        actorId: crypto.randomUUID(),
+        expectedUpdatedAt: token,
+      }).success,
     ).toBe(false);
   });
 
@@ -76,17 +95,43 @@ describe("Location map setup contracts", () => {
   });
 
   it("validates replacement vertices and strict area patches", () => {
-    expect(replaceLocationMapAreaVerticesRequestSchema.parse({ vertices })).toEqual(
-      { vertices },
+    expect(
+      replaceLocationMapAreaVerticesRequestSchema.parse({
+        expectedUpdatedAt: token,
+        vertices,
+      }),
+    ).toEqual(
+      { expectedUpdatedAt: token, vertices },
     );
     expect(
       replaceLocationMapAreaVerticesRequestSchema.safeParse({
+        expectedUpdatedAt: token,
         vertices: [vertices[0], vertices[1], { latitude: 0, longitude: 181 }],
+      }).success,
+    ).toBe(false);
+    expect(
+      replaceLocationMapAreaVerticesRequestSchema.safeParse({
+        expectedUpdatedAt: "not-a-date",
+        vertices,
       }).success,
     ).toBe(false);
     expect(updateLocationMapAreaRequestSchema.safeParse({}).success).toBe(false);
     expect(
-      updateLocationMapAreaRequestSchema.safeParse({ vertices }).success,
+      updateLocationMapAreaRequestSchema.safeParse({
+        expectedUpdatedAt: token,
+      }).success,
+    ).toBe(false);
+    expect(
+      updateLocationMapAreaRequestSchema.safeParse({
+        expectedUpdatedAt: token,
+        label: "Updated",
+      }).success,
+    ).toBe(true);
+    expect(
+      updateLocationMapAreaRequestSchema.safeParse({
+        expectedUpdatedAt: token,
+        vertices,
+      }).success,
     ).toBe(false);
   });
 
@@ -99,6 +144,7 @@ describe("Location map setup contracts", () => {
       label: "Main parking",
       levelLabel: null,
       parkingZoneId: null,
+      parkingZone: null,
       purpose: "PARKING",
       updatedAt: new Date().toISOString(),
       vertices: Array.from({ length: 501 }, (_, position) => ({

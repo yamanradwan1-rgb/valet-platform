@@ -237,7 +237,7 @@ describe("MD-05 intelligence authority", () => {
     )).resolves.toEqual({ status: "denied", routeAccess: null });
     expect(noRequest).not.toHaveBeenCalled();
 
-    const supervisor: SelectedDashboardScope = {
+    const supervisor: Extract<SelectedDashboardScope, { authority: "SUPERVISOR" }> = {
       authority: "SUPERVISOR",
       context: {
         authority: "SUPERVISOR",
@@ -248,6 +248,7 @@ describe("MD-05 intelligence authority", () => {
           name: activeLocation.name,
           code: activeLocation.code,
           currency: activeLocation.currency,
+          timezone: activeLocation.timezone,
         },
         activeShift: {
           locationId: activeLocation.locationId,

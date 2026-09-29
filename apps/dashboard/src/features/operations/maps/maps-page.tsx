@@ -237,7 +237,7 @@ function selectedMapLocation(scope: SelectedDashboardScope): {
     return { name: scope.location.name, timezone: scope.location.timezone };
   }
   if (scope.authority === "SUPERVISOR") {
-    return { name: scope.context.location.name, timezone: undefined };
+    return { name: scope.context.location.name, timezone: scope.context.location.timezone };
   }
   return { name: "", timezone: undefined };
 }

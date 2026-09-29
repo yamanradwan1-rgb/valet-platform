@@ -122,6 +122,7 @@ describe("MD-05 intelligence scope and generations", () => {
           currency: location.currency,
           locationId: location.locationId,
           name: location.name,
+          timezone: location.timezone,
         },
         membershipId: "44444444-4444-4444-8444-444444444444",
         organization: {

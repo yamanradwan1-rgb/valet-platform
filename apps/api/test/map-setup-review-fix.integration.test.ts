@@ -77,7 +77,10 @@ describe("VAL-007B final persistence review fixes", () => {
       const pending = context.request(
         "PATCH",
         `${pointPath(actor.fixture.locationId)}/${pointId}`,
-        { body: { active: false }, token: actor.token },
+        {
+          body: { active: false, expectedUpdatedAt: created.body.updatedAt },
+          token: actor.token,
+        },
       );
       await waitForPointUpdateLock();
       await locker.query("COMMIT");
@@ -143,13 +146,14 @@ describe("VAL-007B final persistence review fixes", () => {
     const areaId = String(created.body.id);
     const replacement = [10, 11, 12];
     await context.database.runtimePool.query(
-      `SELECT map_setup_replace_area_vertices($1, $2, $3, $4, $5)`,
+      `SELECT map_setup_replace_area_vertices($1, $2, $3, $4, $5, $6)`,
       [
         actor.fixture.membershipId,
         actor.fixture.locationId,
         areaId,
         replacement,
         [20, 21, 22],
+        created.body.updatedAt,
       ],
     );
     await expectPgCode(
@@ -225,13 +229,14 @@ describe("VAL-007B final persistence review fixes", () => {
     const areaId = String(created.body.id);
     await expectPgCode(
       context.database.runtimePool.query(
-        `SELECT map_setup_replace_area_vertices($1, $2, $3, $4, $5)`,
+        `SELECT map_setup_replace_area_vertices($1, $2, $3, $4, $5, $6)`,
         [
           actor.fixture.membershipId,
           actor.fixture.locationId,
           areaId,
           latitudes,
           longitudes,
+          created.body.updatedAt,
         ],
       ),
       "22023",

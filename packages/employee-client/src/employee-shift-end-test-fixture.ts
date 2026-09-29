@@ -38,6 +38,7 @@ export function shiftEndContext(
           currency: "JOD",
           locationId,
           name: "Amman Hotel",
+          timezone: "Asia/Amman",
         },
         eligibleLocations: [],
         membershipId: overrides.membershipId ?? shiftEndIds.membership,

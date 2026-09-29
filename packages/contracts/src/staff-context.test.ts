@@ -45,19 +45,22 @@ describe("Staff Operational Context Contracts", () => {
         name: "Main Entrance",
         code: "MAIN",
         currency: "JOD",
+        timezone: "Asia/Amman",
       },
       eligibleLocations: [
         {
           locationId: MOCK_LOCATION_ID_1,
           name: "Main Entrance",
           code: "MAIN",
-        currency: "JOD",
+          currency: "JOD",
+          timezone: "Asia/Amman",
         },
         {
           locationId: MOCK_LOCATION_ID_2,
           name: "VIP Lounge",
           code: "VIP",
           currency: "JOD",
+          timezone: "Asia/Amman",
         },
       ],
     };
@@ -84,7 +87,8 @@ describe("Staff Operational Context Contracts", () => {
           locationId: MOCK_LOCATION_ID_1,
           name: "Main Entrance",
           code: "MAIN",
-        currency: "JOD",
+          currency: "JOD",
+          timezone: "Asia/Amman",
         },
       ],
     };
@@ -114,6 +118,36 @@ describe("Staff Operational Context Contracts", () => {
 
     const parsed = staffOperationalContextResponseSchema.parse(response);
     expect(parsed.contexts).toHaveLength(1);
+  });
+
+  it("requires bounded authoritative timezone metadata", () => {
+    const location = {
+      code: "MAIN",
+      currency: "JOD",
+      locationId: MOCK_LOCATION_ID_1,
+      name: "Main Entrance",
+      timezone: "Asia/Amman",
+    };
+    expect(
+      staffOperationalMembershipContextSchema.safeParse({
+        membershipId: MOCK_MEMBERSHIP_ID,
+        organization: { organizationId: MOCK_ORG_ID, name: "Org A" },
+        role: "VALET_EMPLOYEE",
+        activeShift: null,
+        currentLocation: null,
+        eligibleLocations: [location],
+      }).success,
+    ).toBe(true);
+    expect(
+      staffOperationalMembershipContextSchema.safeParse({
+        membershipId: MOCK_MEMBERSHIP_ID,
+        organization: { organizationId: MOCK_ORG_ID, name: "Org A" },
+        role: "VALET_EMPLOYEE",
+        activeShift: null,
+        currentLocation: null,
+        eligibleLocations: [{ ...location, timezone: "" }],
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects unknown extra properties due to strict validation", () => {

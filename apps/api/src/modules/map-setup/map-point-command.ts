@@ -103,7 +103,7 @@ export async function updateMapPoint(
           input.locationId,
           input.pointId,
           ...pointArguments(next),
-          current.updatedAt,
+          input.expectedUpdatedAt,
         ],
       );
     } catch (error) {

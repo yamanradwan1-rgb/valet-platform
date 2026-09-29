@@ -275,6 +275,7 @@ function supervisorScope(): SelectedDashboardScope {
         currency: location.currency,
         locationId: location.locationId,
         name: location.name,
+        timezone: location.timezone,
       },
       membershipId,
       organization: { name: organization.name, organizationId: organization.organizationId },

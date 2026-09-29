@@ -47,7 +47,7 @@ describe("map setup mutation outcome model", () => {
     [retry, reloadFail, "retry_reload_failed"],
   ] as const)("classifies failed write without replay (%s)", async (write, reload, notice) => {
     const outcome = await run(write, reload);
-    expect(outcome.result).toEqual({ closeEditor: false, error: null, notice });
+    expect(outcome.result).toEqual({ closeEditor: true, error: null, notice });
     expect(outcome.writeSpy).toHaveBeenCalledTimes(1);
     expect(outcome.reloadSpy).toHaveBeenCalledTimes(1);
   });

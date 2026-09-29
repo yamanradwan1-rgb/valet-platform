@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const uuidSchema = z.string().uuid();
 const utcTimestampSchema = z.string().datetime({ offset: false });
+const timezoneSchema = z.string().min(1).max(64);
 
 export const staffOperationalRoleSchema = z.enum([
   "VALET_EMPLOYEE",
@@ -16,6 +17,7 @@ export const staffOperationalLocationSchema = z
     currency: z.string().regex(/^[A-Z]{3}$/),
     locationId: uuidSchema,
     name: z.string(),
+    timezone: timezoneSchema,
   })
   .strict();
 

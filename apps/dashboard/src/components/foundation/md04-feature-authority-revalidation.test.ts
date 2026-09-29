@@ -73,6 +73,7 @@ const supervisor: Extract<SelectedDashboardScope, { authority: "SUPERVISOR" }> =
       currency: activeLocation.currency,
       locationId: activeLocation.locationId,
       name: activeLocation.name,
+      timezone: activeLocation.timezone,
     },
     membershipId,
     organization: { organizationId: organization.organizationId, name: organization.name },

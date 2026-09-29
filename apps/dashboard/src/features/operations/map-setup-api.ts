@@ -5,6 +5,7 @@ import {
   locationMapAreaSchema,
   locationMapPointListResponseSchema,
   locationMapPointSchema,
+  parkingZoneSelectorListSchema,
   replaceLocationMapAreaVerticesRequestSchema,
   updateLocationMapAreaRequestSchema,
   updateLocationMapPointRequestSchema,
@@ -42,6 +43,19 @@ export async function readMapAreas(
     method: "GET", signal,
   });
   return response.areas;
+}
+
+export function readMapParkingZones(
+  api: DashboardApiClient,
+  locationId: string,
+  cursor: string | null,
+  signal?: AbortSignal,
+) {
+  return api.request(
+    `${base(locationId)}/parking-zones`,
+    parkingZoneSelectorListSchema,
+    { method: "GET", query: { cursor, limit: 50 }, signal },
+  );
 }
 
 export function createMapPoint(

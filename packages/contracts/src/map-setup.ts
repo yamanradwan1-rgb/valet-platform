@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parkingZoneSelectorSchema } from "./physical-resource-configuration";
 
 const uuidSchema = z.string().uuid();
 const codeSchema = z.string().trim().min(1).max(64);
@@ -6,6 +7,7 @@ const labelSchema = z.string().trim().min(1).max(160);
 const levelLabelSchema = z.string().trim().min(1).max(64).nullable();
 const latitudeSchema = z.number().finite().min(-90).max(90);
 const longitudeSchema = z.number().finite().min(-180).max(180);
+const timestampSchema = z.string().datetime({ offset: true });
 
 export const locationMapPointKindSchema = z.enum([
   "ENTRANCE",
@@ -41,10 +43,20 @@ export const createLocationMapPointRequestSchema = z
   })
   .strict();
 export const updateLocationMapPointRequestSchema = z
-  .object(pointFields)
-  .partial()
+  .object({
+    expectedUpdatedAt: timestampSchema,
+    active: pointFields.active.optional(),
+    code: pointFields.code.optional(),
+    kind: pointFields.kind.optional(),
+    label: pointFields.label.optional(),
+    latitude: pointFields.latitude.optional(),
+    levelLabel: pointFields.levelLabel.optional(),
+    longitude: pointFields.longitude.optional(),
+  })
   .strict()
-  .refine((value) => Object.keys(value).length > 0);
+  .refine((value) =>
+    Object.keys(value).some((key) => key !== "expectedUpdatedAt"),
+  );
 
 export const locationMapPointSchema = z
   .object({
@@ -77,12 +89,24 @@ export const createLocationMapAreaRequestSchema = z
   })
   .strict();
 export const updateLocationMapAreaRequestSchema = z
-  .object(areaFields)
-  .partial()
+  .object({
+    expectedUpdatedAt: timestampSchema,
+    active: areaFields.active.optional(),
+    code: areaFields.code.optional(),
+    label: areaFields.label.optional(),
+    levelLabel: areaFields.levelLabel.optional(),
+    parkingZoneId: areaFields.parkingZoneId.optional(),
+    purpose: areaFields.purpose.optional(),
+  })
   .strict()
-  .refine((value) => Object.keys(value).length > 0);
+  .refine((value) =>
+    Object.keys(value).some((key) => key !== "expectedUpdatedAt"),
+  );
 export const replaceLocationMapAreaVerticesRequestSchema = z
-  .object({ vertices: z.array(locationMapVertexInputSchema).min(3).max(500) })
+  .object({
+    expectedUpdatedAt: timestampSchema,
+    vertices: z.array(locationMapVertexInputSchema).min(3).max(500),
+  })
   .strict();
 
 export const locationMapVertexSchema = locationMapVertexInputSchema.extend({
@@ -93,6 +117,7 @@ export const locationMapAreaSchema = z
     ...areaFields,
     createdAt: z.string().datetime({ offset: true }),
     id: uuidSchema,
+    parkingZone: parkingZoneSelectorSchema.nullable(),
     updatedAt: z.string().datetime({ offset: true }),
     vertices: z.array(locationMapVertexSchema).min(3).max(500),
   })

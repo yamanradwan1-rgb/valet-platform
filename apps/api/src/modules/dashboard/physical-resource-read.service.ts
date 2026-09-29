@@ -10,9 +10,9 @@ import { authorizePhysicalResourceManagement } from "./physical-resource-authori
 import {
   listKeySlots,
   listParkingSpots,
-  listParkingZones,
   readPhysicalResourceLabel,
 } from "./physical-resource-query";
+import { listParkingZoneSelectors } from "../parking-zones/parking-zone-selector-query";
 
 @Injectable()
 export class PhysicalResourceReadService {
@@ -39,7 +39,7 @@ export class PhysicalResourceReadService {
   listParkingZones(context: StaffSessionContext, locationId: string, query: PhysicalResourceListQuery) {
     return inPostgresTransaction(this.pool, async (transaction) => {
       const authority = await authorizePhysicalResourceManagement(transaction, context, locationId, "LIST");
-      const result = await listParkingZones(transaction, authority, query);
+      const result = await listParkingZoneSelectors(transaction, authority, query);
       if (authority.role === "ORG_ADMIN") await recordAdminActivityInTransaction(transaction, context);
       return result;
     });

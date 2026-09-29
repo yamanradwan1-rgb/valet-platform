@@ -30,6 +30,7 @@ interface LocationRow {
   readonly currency: string;
   readonly location_id: string;
   readonly name: string;
+  readonly timezone: string;
 }
 
 interface RawActiveShiftRow {
@@ -45,6 +46,7 @@ interface ProjectableShiftRow {
   readonly name: string;
   readonly shift_id: string;
   readonly started_at: Date;
+  readonly timezone: string;
 }
 
 export function createStaffOperationalContextQuery(pool: PostgresPool) {
@@ -89,7 +91,8 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
         `SELECT location.id::text AS location_id,
                 location.name,
                 location.code,
-                location.currency
+                location.currency,
+                location.timezone
          FROM membership_location_access AS access
          INNER JOIN locations AS location
            ON location.id = access.location_id
@@ -125,7 +128,8 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
                   shift.started_at,
                   location.name,
                   location.code,
-                  location.currency
+                  location.currency,
+                  location.timezone
            FROM shifts AS shift
            INNER JOIN locations AS location
              ON location.id = shift.location_id
@@ -164,6 +168,7 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
           currency: projectable.currency,
           locationId: projectable.location_id,
           name: projectable.name,
+          timezone: projectable.timezone,
         };
       }
 
@@ -175,6 +180,7 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
           currency: loc.currency,
           locationId: loc.location_id,
           name: loc.name,
+          timezone: loc.timezone,
         })),
         membershipId: membership.membership_id,
         organization: {

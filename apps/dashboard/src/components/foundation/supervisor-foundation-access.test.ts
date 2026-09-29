@@ -16,7 +16,7 @@ const scope: SelectedDashboardScope = {
     authority: "SUPERVISOR",
     membershipId,
     organization: { organizationId, name: "Org" },
-    location: { locationId, name: "Main", code: "MAIN", currency: "JOD" },
+    location: { locationId, name: "Main", code: "MAIN", currency: "JOD", timezone: "Asia/Amman" },
     activeShift: {
       locationId,
       shiftId,
@@ -31,7 +31,7 @@ const operationalContext = {
   membershipId,
   organization: { organizationId, name: "Org" },
   eligibleLocations: [
-    { locationId, name: "Main", code: "MAIN", currency: "JOD" },
+    { locationId, name: "Main", code: "MAIN", currency: "JOD", timezone: "Asia/Amman" },
   ],
   activeShift: {
     locationId,

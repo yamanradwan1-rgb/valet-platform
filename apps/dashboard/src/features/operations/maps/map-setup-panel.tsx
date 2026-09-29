@@ -24,6 +24,7 @@ import { mapAreaPurposeLabel, mapPointKindLabel } from "./map-setup-presentation
 import reference from "./maps-reference.module.css";
 import { PointEditorDialog } from "./point-editor-dialog";
 import { useMapSetupMutation } from "./use-map-setup-mutation";
+import { useMapParkingZones } from "./use-map-parking-zones";
 import type { MapSetupReloadResult } from "./use-map-setup-state";
 
 export function MapSetupPanel(props: {
@@ -42,6 +43,7 @@ export function MapSetupPanel(props: {
   const [areaEditor, setAreaEditor] = useState<LocationMapArea | "new" | null>(null);
   const [verticesEditor, setVerticesEditor] = useState<LocationMapArea | null>(null);
   const mutation = useMapSetupMutation(props.reload);
+  const zones = useMapParkingZones(props.api, props.locationId, !props.hidden);
   const notice = mutation.notice === "saved_refresh_failed" ? t.savedRefreshFailed
     : mutation.notice === "conflict_reloaded" ? t.conflictReloaded
     : mutation.notice === "conflict_reload_failed" ? t.conflictReloadFailed
@@ -119,7 +121,19 @@ export function MapSetupPanel(props: {
         </ReadState>
       </div>
       {pointEditor ? <PointEditorDialog onClose={() => setPointEditor(null)} onSave={savePoint} pending={mutation.pending} point={pointEditor === "new" ? undefined : pointEditor} /> : null}
-      {areaEditor ? <AreaEditorDialog area={areaEditor === "new" ? undefined : areaEditor} onClose={() => setAreaEditor(null)} onSave={saveArea} pending={mutation.pending} /> : null}
+      {areaEditor ? <AreaEditorDialog
+        area={areaEditor === "new" ? undefined : areaEditor}
+        onClose={() => setAreaEditor(null)}
+        onParkingZonesNext={zones.next}
+        onParkingZonesPrevious={zones.previous}
+        onSave={saveArea}
+        parkingZones={zones.items}
+        parkingZonesCanNext={zones.canNext}
+        parkingZonesCanPrevious={zones.canPrevious}
+        parkingZonesError={zones.error}
+        parkingZonesLoading={zones.loading}
+        pending={mutation.pending}
+      /> : null}
       {verticesEditor ? <VerticesEditorDialog area={verticesEditor} onClose={() => setVerticesEditor(null)} onSave={saveVertices} pending={mutation.pending} /> : null}
     </aside>
   );

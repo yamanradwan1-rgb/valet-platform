@@ -3,6 +3,7 @@ import type {
   CreateLocationMapAreaRequest,
   CreateLocationMapPointRequest,
   ReplaceLocationMapAreaVerticesRequest,
+  PhysicalResourceListQuery,
   UpdateLocationMapAreaRequest,
   UpdateLocationMapPointRequest,
 } from "@valet/contracts";
@@ -15,6 +16,7 @@ import { createMapArea, replaceMapAreaVertices, updateMapArea } from "./map-area
 import { createMapPoint, updateMapPoint } from "./map-point-command";
 import { authorizeLocationMapSetup } from "./map-setup-authorization";
 import { loadMapAreas, loadMapPoints } from "./map-setup-projections";
+import { listParkingZoneSelectors } from "../parking-zones/parking-zone-selector-query";
 
 interface Scope {
   readonly authenticatedUserId: string;
@@ -64,6 +66,24 @@ export class MapSetupService {
         transaction,
         actor.organizationId,
         input.locationId,
+      );
+    });
+  }
+
+  listParkingZones(input: Scope & PhysicalResourceListQuery) {
+    return inPostgresTransaction(this.pool, async (transaction) => {
+      const actor = await authorizeLocationMapSetup(
+        transaction,
+        input.authenticatedUserId,
+        input.locationId,
+      );
+      return listParkingZoneSelectors(
+        transaction,
+        {
+          locationId: input.locationId,
+          organizationId: actor.organizationId,
+        },
+        input,
       );
     });
   }

@@ -6,6 +6,7 @@ import {
   updateLocationMapAreaRequestSchema,
   type CreateLocationMapAreaRequest,
   type LocationMapArea,
+  type ParkingZoneSelector,
   type ReplaceLocationMapAreaVerticesRequest,
   type UpdateLocationMapAreaRequest,
 } from "@valet/contracts";
@@ -13,7 +14,7 @@ import { useState } from "react";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
-import { styles } from "../operations-ui";
+import { CursorControls, StatusBadge, styles } from "../operations-ui";
 import { MapSetupDialog } from "./map-setup-dialog";
 import { mapAreaPurposeLabel } from "./map-setup-presentation";
 import { MapSetupSelect } from "./map-setup-select";
@@ -34,6 +35,13 @@ export function AreaEditorDialog(props: {
   readonly area?: LocationMapArea | undefined;
   readonly onClose: () => void;
   readonly onSave: (value: CreateLocationMapAreaRequest | UpdateLocationMapAreaRequest) => Promise<boolean>;
+  readonly parkingZones: readonly ParkingZoneSelector[];
+  readonly parkingZonesCanNext: boolean;
+  readonly parkingZonesCanPrevious: boolean;
+  readonly parkingZonesError: Error | null;
+  readonly parkingZonesLoading: boolean;
+  readonly onParkingZonesNext: () => void;
+  readonly onParkingZonesPrevious: () => void;
   readonly pending: boolean;
 }) {
   const { locale } = useDashboardLocale();
@@ -44,6 +52,9 @@ export function AreaEditorDialog(props: {
   const [purpose, setPurpose] = useState<CreateLocationMapAreaRequest["purpose"]>(original?.purpose ?? "PARKING");
   const [levelLabel, setLevelLabel] = useState(original?.levelLabel ?? "");
   const [parkingZoneId, setParkingZoneId] = useState(original?.parkingZoneId ?? "");
+  const [selectedZone, setSelectedZone] = useState<ParkingZoneSelector | null>(
+    original?.parkingZone ?? null,
+  );
   const [active, setActive] = useState(original?.active ?? true);
   const [vertices, setVertices] = useState(verticesText(original));
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +72,7 @@ export function AreaEditorDialog(props: {
       return;
     }
     const update: UpdateLocationMapAreaRequest = {
+      expectedUpdatedAt: original.updatedAt,
       ...(active === original.active ? {} : { active }),
       ...(code === original.code ? {} : { code }),
       ...(label === original.label ? {} : { label }),
@@ -89,7 +101,46 @@ export function AreaEditorDialog(props: {
       <details className={reference.advanced}>
         <summary>{t.advancedConfig}</summary>
         <p className={reference.advancedHelp}>{t.parkingZoneAssociationHelp}</p>
-        <Field label={t.parkingZoneId}><input className={styles.input} dir="ltr" onChange={(e) => setParkingZoneId(e.target.value)} value={parkingZoneId} /></Field>
+        <Field label={t.parkingZone}>
+          <MapSetupSelect
+            aria-label={t.parkingZone}
+            disabled={props.parkingZonesLoading}
+            onChange={(event) => {
+              const id = event.target.value;
+              setParkingZoneId(id);
+              setSelectedZone(
+                id === ""
+                  ? null
+                  : zoneOptions(selectedZone, props.parkingZones).find(
+                      (zone) => zone.parkingZoneId === id,
+                    ) ?? null,
+              );
+            }}
+            value={parkingZoneId}
+          >
+            <option value="">{t.noParkingZone}</option>
+            {zoneOptions(selectedZone, props.parkingZones).map((zone) => (
+              <option key={zone.parkingZoneId} value={zone.parkingZoneId}>
+                {zoneLabel(zone, t.inactive)}
+              </option>
+            ))}
+          </MapSetupSelect>
+        </Field>
+        {selectedZone?.status === "INACTIVE" ? (
+          <div className={styles.muted}>
+            {zoneLabel(selectedZone, t.inactive)}{" "}
+            <StatusBadge>{t.inactive}</StatusBadge>
+          </div>
+        ) : null}
+        {props.parkingZonesError ? (
+          <div className={styles.error} role="alert">{props.parkingZonesError.message}</div>
+        ) : null}
+        <CursorControls
+          canNext={props.parkingZonesCanNext}
+          canPrevious={props.parkingZonesCanPrevious}
+          onNext={props.onParkingZonesNext}
+          onPrevious={props.onParkingZonesPrevious}
+        />
       </details>
       {!original ? <Field label={`${t.boundaryPoints} (lat, lng — 3..500)`}><textarea className={styles.textarea} dir="ltr" onChange={(e) => setVertices(e.target.value)} value={vertices} /></Field> : null}
       <label className={styles.field}><span className={styles.fieldLabel}>{t.active}</span><input checked={active} onChange={(e) => setActive(e.target.checked)} type="checkbox" /></label>
@@ -109,7 +160,10 @@ export function VerticesEditorDialog(props: {
   const [value, setValue] = useState(verticesText(props.area));
   const [error, setError] = useState<string | null>(null);
   const submit = async () => {
-    const parsed = replaceLocationMapAreaVerticesRequestSchema.safeParse({ vertices: parseVertices(value) });
+    const parsed = replaceLocationMapAreaVerticesRequestSchema.safeParse({
+      expectedUpdatedAt: props.area.updatedAt,
+      vertices: parseVertices(value),
+    });
     if (!parsed.success) { setError(t.invalidForm); return; }
     setError(null);
     if (await props.onSave(parsed.data)) props.onClose();
@@ -119,4 +173,19 @@ export function VerticesEditorDialog(props: {
 
 function Field({ children, label }: { readonly children: React.ReactNode; readonly label: string }) {
   return <label className={styles.field}><span className={styles.fieldLabel}>{label}</span>{children}</label>;
+}
+
+function zoneOptions(
+  selected: ParkingZoneSelector | null,
+  page: readonly ParkingZoneSelector[],
+) {
+  if (selected === null || page.some((zone) => zone.parkingZoneId === selected.parkingZoneId)) {
+    return page;
+  }
+  return [selected, ...page];
+}
+
+function zoneLabel(zone: ParkingZoneSelector, inactive: string) {
+  const code = `\u2066${zone.code}\u2069`;
+  return `${zone.label} — ${code}${zone.status === "INACTIVE" ? ` — ${inactive}` : ""}`;
 }

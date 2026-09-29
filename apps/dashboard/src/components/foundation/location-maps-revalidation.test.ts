@@ -71,6 +71,7 @@ const supervisorScope: SelectedDashboardScope = {
       name: location.name,
       code: location.code,
       currency: location.currency,
+      timezone: location.timezone,
     },
     activeShift: {
       locationId: location.locationId,
@@ -97,6 +98,7 @@ function supervisorContext(overrides: {
         name: location.name,
         code: location.code,
         currency: location.currency,
+        timezone: location.timezone,
       }],
       activeShift: {
         locationId: currentLocationId,

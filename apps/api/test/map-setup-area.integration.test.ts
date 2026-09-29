@@ -184,7 +184,7 @@ describe("VAL-007B Location map area management", () => {
     const replace = (latitudes: number[], longitudes: number[]) =>
       context.database.runtimePool.query(
         `SELECT map_setup_replace_area_vertices(
-           $1, $2, $3, $4::numeric[], $5::numeric[]
+           $1, $2, $3, $4::numeric[], $5::numeric[], $6::timestamptz
          )`,
         [
           actor.fixture.membershipId,
@@ -192,6 +192,7 @@ describe("VAL-007B Location map area management", () => {
           areaId,
           latitudes,
           longitudes,
+          created.body.updatedAt,
         ],
       );
     await expect(replace([1, 2], [1, 2])).rejects.toMatchObject({
@@ -209,10 +210,12 @@ describe("VAL-007B Location map area management", () => {
 
     const first = { lat: [10, 11, 12], lon: [20, 21, 22] };
     const second = { lat: [40, 41, 42], lon: [50, 51, 52] };
-    await Promise.all([
+    const outcomes = await Promise.allSettled([
       replace(first.lat, first.lon),
       replace(second.lat, second.lon),
     ]);
+    expect(outcomes.filter((outcome) => outcome.status === "fulfilled")).toHaveLength(1);
+    expect(outcomes.filter((outcome) => outcome.status === "rejected")).toHaveLength(1);
     const final = await context.request(
       "GET",
       areaPath(actor.fixture.locationId),

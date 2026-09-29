@@ -188,6 +188,16 @@ describe("SEC-002 runtime authority privileges", () => {
         [userId],
       ),
     ).resolves.toMatchObject({ rowCount: 1 });
+    const boundaryFunctions = await adminPool.query<{
+      cas_boundary: string | null;
+      legacy_boundary: string | null;
+    }>(
+      `SELECT
+         to_regprocedure('public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[],timestamp with time zone)')::text AS cas_boundary,
+         to_regprocedure('public.map_setup_replace_area_vertices(uuid,uuid,uuid,numeric[],numeric[])')::text AS legacy_boundary`,
+    );
+    expect(boundaryFunctions.rows[0]?.cas_boundary).not.toBeNull();
+    expect(boundaryFunctions.rows[0]?.legacy_boundary).toBeNull();
   });
 
   it("denies all direct staff identity and authority writes", async () => {

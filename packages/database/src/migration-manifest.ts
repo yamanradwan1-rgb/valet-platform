@@ -45,4 +45,5 @@ export const expectedMigrationDirectories = [
   "20260918004400_mgt_be_11_all_locations_reports",
   "20260919004500_mgt_fix_02_pagination_snapshot_membership",
   "20260929004600_mgt_232_physical_resource_creation",
+  "20260929004700_map_setup_client_cas",
 ] as const;

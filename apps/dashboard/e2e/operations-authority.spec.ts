@@ -100,8 +100,8 @@ test("Supervisor LOCATION_MAPS calls the real live endpoint but never gets setup
   await expect(page.getByRole("heading", { name: "Maps & Zones", level: 1 })).toBeVisible();
   const livePanel = page.getByRole("complementary", { name: "Live Operations" });
   await expect(livePanel.getByText("Live", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Observed at: Time unavailable", { exact: true })).toBeVisible();
-  await expect(livePanel.getByText("Position time: Time unavailable", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/Observed at:.*3:00/u)).toBeVisible();
+  await expect(livePanel.getByText(/Position time:.*3:00/u).first()).toBeVisible();
   expect(fixture.count(livePath)).toBeGreaterThanOrEqual(1);
   expect(fixture.count(livePath)).toBeLessThanOrEqual(2);
   expect(fixture.count(pointsPath)).toBe(0);

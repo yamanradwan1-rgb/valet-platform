@@ -1,7 +1,6 @@
 import type {
   KeySlotConfiguration,
   ParkingSpotConfiguration,
-  ParkingZoneSelector,
   PhysicalResourceLabel,
   PhysicalResourceListQuery,
 } from "@valet/contracts";
@@ -30,13 +29,6 @@ interface ParkingSpotRow {
   readonly zoneId: string | null;
   readonly zoneLabel: string | null;
   readonly zoneStatus: "ACTIVE" | "INACTIVE" | null;
-}
-
-interface ZoneRow {
-  readonly code: string;
-  readonly label: string;
-  readonly parkingZoneId: string;
-  readonly status: "ACTIVE" | "INACTIVE";
 }
 
 function page<T extends { readonly code: string }>(
@@ -138,41 +130,6 @@ export async function listParkingSpots(
     nextCursor:
       current.hasNext && last !== undefined
         ? codec.encode({ id: last.parkingSpotId, sortKey: last.code })
-        : null,
-  };
-}
-
-export async function listParkingZones(
-  transaction: PostgresTransaction,
-  authority: PhysicalResourceAuthority,
-  query: PhysicalResourceListQuery,
-) {
-  const codec = physicalResourceCursorCodec("parking-zones", authority.locationId);
-  const cursor = codec.decode(query.cursor);
-  const parameters: unknown[] = [authority.organizationId, authority.locationId];
-  let keyset = "";
-  if (cursor !== null) {
-    parameters.push(cursor.sortKey, cursor.id);
-    keyset = `AND (zone.code, zone.id) > ($3, $4::uuid)`;
-  }
-  parameters.push(query.limit + 1);
-  const result = await transaction.query<ZoneRow>(
-    `SELECT zone.id::text AS "parkingZoneId", zone.code, zone.label,
-            zone.status::text AS status
-     FROM parking_zones AS zone
-     WHERE zone.organization_id = $1 AND zone.location_id = $2
-       AND zone.status = 'ACTIVE' ${keyset}
-     ORDER BY zone.code, zone.id LIMIT $${parameters.length}`,
-    parameters,
-  );
-  const current = page(result.rows, query.limit);
-  const items: ParkingZoneSelector[] = [...current.rows];
-  const last = current.rows.at(-1);
-  return {
-    items,
-    nextCursor:
-      current.hasNext && last !== undefined
-        ? codec.encode({ id: last.parkingZoneId, sortKey: last.code })
         : null,
   };
 }

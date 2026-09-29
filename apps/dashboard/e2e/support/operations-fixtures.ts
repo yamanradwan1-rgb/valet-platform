@@ -139,7 +139,8 @@ export function pointItem(overrides: Record<string, unknown> = {}) {
 export function areaItem(overrides: Record<string, unknown> = {}) {
   return {
     id: OP_IDS.area, code: "P1", label: "Parking Area", purpose: "PARKING",
-    levelLabel: null, parkingZoneId: null, active: true, createdAt: now, updatedAt: now,
+    levelLabel: null, parkingZone: null, parkingZoneId: null, active: true,
+    createdAt: now, updatedAt: now,
     vertices: [
       { latitude: 31.9535, longitude: 35.9101, position: 0 },
       { latitude: 31.9540, longitude: 35.9101, position: 1 },

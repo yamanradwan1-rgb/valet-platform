@@ -30,7 +30,7 @@ describe("dashboard scope foundation", () => {
       authority: "SUPERVISOR" as const,
       membershipId: "33333333-3333-4333-8333-333333333333",
       organization: { organizationId: org.organizationId, name: org.name },
-      location: { locationId: location.locationId, name: location.name, code: location.code, currency: location.currency },
+      location: { locationId: location.locationId, name: location.name, code: location.code, currency: location.currency, timezone: location.timezone },
       activeShift: { locationId: location.locationId, shiftId: "44444444-4444-4444-8444-444444444444", startedAt: "2026-09-20T00:00:00Z", status: "ACTIVE" as const },
     };
 
@@ -45,7 +45,7 @@ describe("dashboard scope foundation", () => {
     const active = {
       activeShift: { locationId: location.locationId, shiftId: "44444444-4444-4444-8444-444444444444", startedAt: "2026-09-20T00:00:00Z", status: "ACTIVE" as const },
       currentLocation: null,
-      eligibleLocations: [{ locationId: location.locationId, name: location.name, code: location.code, currency: location.currency }],
+      eligibleLocations: [{ locationId: location.locationId, name: location.name, code: location.code, currency: location.currency, timezone: location.timezone }],
       membershipId: "33333333-3333-4333-8333-333333333333",
       organization: { organizationId: org.organizationId, name: org.name },
       role: "VALET_SUPERVISOR" as const,

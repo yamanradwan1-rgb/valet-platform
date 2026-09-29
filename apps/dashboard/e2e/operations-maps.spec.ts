@@ -7,6 +7,7 @@ import { areaItem, liveMapBody, pointItem } from "./support/operations-fixtures"
 const livePath = `/v1/staff/locations/${LOCATION_A.locationId}/live-operations-map`;
 const pointsPath = `/v1/staff/locations/${LOCATION_A.locationId}/map/points`;
 const areasPath = `/v1/staff/locations/${LOCATION_A.locationId}/map/areas`;
+const zonesPath = `/v1/staff/locations/${LOCATION_A.locationId}/map/parking-zones`;
 
 test("LM Maps renders truthful coordinates and map setup reconciles success, conflict, and lost response", async ({ page }) => {
   let points = [pointItem()];
@@ -49,12 +50,17 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
           pointConflict = false;
           return { status: 409, body: { code: "MAP_SETUP_CONFLICT", message: "conflict", requestId: "e2e-409" } };
         }
+        const { expectedUpdatedAt: _token, ...patch } =
+          request.postDataJSON() as Record<string, unknown>;
         points = points.map((point) => point.id === pointItem().id
-          ? { ...point, ...(request.postDataJSON() as object), updatedAt: "2026-09-21T12:02:00.000Z" }
+          ? { ...point, ...patch, updatedAt: "2026-09-21T12:02:00.000Z" }
           : point);
         return { body: points[0] };
       }
       if (path === areasPath && request.method() === "GET") return { body: { areas } };
+      if (path === zonesPath && request.method() === "GET") {
+        return { body: { items: [], nextCursor: null } };
+      }
       if (path === areasPath && request.method() === "POST") {
         areaPostCount += 1;
         const body = request.postDataJSON() as Record<string, unknown>;
@@ -70,8 +76,10 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
       if (path.startsWith(`${areasPath}/`) && !path.endsWith("/vertices") && request.method() === "PATCH") {
         areaPatchCount += 1;
         lastAreaPatch = request.postDataJSON();
+        const { expectedUpdatedAt: _token, ...patch } =
+          request.postDataJSON() as Record<string, unknown>;
         areas = areas.map((area) => area.id === areaItem().id
-          ? { ...area, ...(request.postDataJSON() as object), updatedAt: "2026-09-21T12:03:00.000Z" }
+          ? { ...area, ...patch, updatedAt: "2026-09-21T12:03:00.000Z" }
           : area);
         return { body: areas[0] };
       }
@@ -129,8 +137,11 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
   await editPoint.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText(/changed on the server/u)).toBeVisible();
   expect(pointPatchCount).toBe(1);
-  expect(lastPointPatch).toEqual({ label: "Entrance Updated" });
-  await editPoint.getByRole("button", { name: "Cancel" }).click();
+  expect(lastPointPatch).toEqual({
+    expectedUpdatedAt: "2026-09-21T12:00:00.000Z",
+    label: "Entrance Updated",
+  });
+  await expect(editPoint).toHaveCount(0);
 
   let abortedWrites = 0;
   let abortNextPatch = true;
@@ -149,7 +160,7 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
   await lostPoint.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText(/write outcome is uncertain/u)).toBeVisible();
   expect(abortedWrites).toBe(1);
-  await lostPoint.getByRole("button", { name: "Cancel" }).click();
+  await expect(lostPoint).toHaveCount(0);
 
   await page.getByRole("button", { name: "Add Area" }).click();
   const addArea = page.getByRole("dialog", { name: "Add Area" });
@@ -166,7 +177,10 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
   await editArea.getByText("Label", { exact: true }).locator("..").getByRole("textbox").fill("Lot A");
   await editArea.getByRole("button", { name: "Save" }).click();
   expect(areaPatchCount).toBe(1);
-  expect(lastAreaPatch).toEqual({ label: "Lot A" });
+  expect(lastAreaPatch).toEqual({
+    expectedUpdatedAt: "2026-09-21T12:00:00.000Z",
+    label: "Lot A",
+  });
 
   await page.getByRole("button", { name: /Edit boundary/u }).first().click();
   const vertices = page.getByRole("dialog", { name: "Edit boundary" });
@@ -174,6 +188,7 @@ test("LM Maps renders truthful coordinates and map setup reconciles success, con
   await vertices.getByRole("button", { name: "Save" }).click();
   expect(verticesPutCount).toBe(1);
   expect(lastVertices).toEqual({
+    expectedUpdatedAt: "2026-09-21T12:03:00.000Z",
     vertices: [
       { latitude: 31.952, longitude: 35.91 },
       { latitude: 31.953, longitude: 35.91 },

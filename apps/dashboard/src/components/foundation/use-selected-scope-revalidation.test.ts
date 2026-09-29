@@ -41,6 +41,7 @@ describe("selected scope revalidation helpers", () => {
           name: location.name,
           code: location.code,
           currency: location.currency,
+          timezone: location.timezone,
         },
         activeShift: {
           locationId: location.locationId,
@@ -210,6 +211,7 @@ describe("selected scope revalidation helpers", () => {
           name: location.name,
           code: location.code,
           currency: location.currency,
+          timezone: location.timezone,
         },
         activeShift: {
           locationId: location.locationId,

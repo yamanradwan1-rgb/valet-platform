@@ -151,19 +151,24 @@ describe("VAL-007B Location map point management", () => {
       { body: validPoint, token: actor.token },
     );
     const pointId = String(created.body.id);
+    let expectedUpdatedAt = String(created.body.updatedAt);
     for (const active of [false, true]) {
       const updated = await context.request(
         "PATCH",
         `${pointPath(actor.fixture.locationId)}/${pointId}`,
-        { body: { active }, token: actor.token },
+        { body: { active, expectedUpdatedAt }, token: actor.token },
       );
       expect(updated.status).toBe(200);
       expect(updated.body.active).toBe(active);
+      expectedUpdatedAt = String(updated.body.updatedAt);
     }
     const crossed = await context.request(
       "PATCH",
       `${pointPath(secondLocation)}/${pointId}`,
-      { body: { label: randomUUID() }, token: actor.token },
+      {
+        body: { expectedUpdatedAt, label: randomUUID() },
+        token: actor.token,
+      },
     );
     expect(crossed.status).toBe(404);
   });

@@ -22,6 +22,9 @@ interface AreaRow {
   label: string;
   level_label: string | null;
   parking_zone_id: string | null;
+  parking_zone_code: string | null;
+  parking_zone_label: string | null;
+  parking_zone_status: "ACTIVE" | "INACTIVE" | null;
   purpose: LocationMapArea["purpose"];
   updated_at: Date;
 }
@@ -69,12 +72,20 @@ export async function loadMapAreas(
   areaId?: string,
 ): Promise<LocationMapArea[]> {
   const areas = await transaction.query<AreaRow>(
-    `SELECT id::text, parking_zone_id::text, purpose::text, code, label,
-            level_label, active, created_at, updated_at
-     FROM location_map_areas
-     WHERE organization_id = $1 AND location_id = $2
-       AND ($3::uuid IS NULL OR id = $3)
-     ORDER BY code, id`,
+    `SELECT area.id::text, area.parking_zone_id::text, area.purpose::text,
+            area.code, area.label, area.level_label, area.active,
+            area.created_at, area.updated_at,
+            zone.code AS parking_zone_code,
+            zone.label AS parking_zone_label,
+            zone.status::text AS parking_zone_status
+     FROM location_map_areas AS area
+     LEFT JOIN parking_zones AS zone
+       ON zone.id = area.parking_zone_id
+      AND zone.organization_id = area.organization_id
+      AND zone.location_id = area.location_id
+     WHERE area.organization_id = $1 AND area.location_id = $2
+       AND ($3::uuid IS NULL OR area.id = $3)
+     ORDER BY area.code, area.id`,
     [organizationId, locationId, areaId ?? null],
   );
   const ids = areas.rows.map((area) => area.id);
@@ -94,6 +105,18 @@ export async function loadMapAreas(
     label: area.label,
     levelLabel: area.level_label,
     parkingZoneId: area.parking_zone_id,
+    parkingZone:
+      area.parking_zone_id === null ||
+      area.parking_zone_code === null ||
+      area.parking_zone_label === null ||
+      area.parking_zone_status === null
+        ? null
+        : {
+            code: area.parking_zone_code,
+            label: area.parking_zone_label,
+            parkingZoneId: area.parking_zone_id,
+            status: area.parking_zone_status,
+          },
     purpose: area.purpose,
     updatedAt: area.updated_at.toISOString(),
     vertices: vertices.rows

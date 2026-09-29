@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Req,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -18,6 +19,8 @@ import {
   locationMapAreaSchema,
   locationMapPointListResponseSchema,
   locationMapPointSchema,
+  parkingZoneSelectorListSchema,
+  physicalResourceListQuerySchema,
   replaceLocationMapAreaVerticesRequestSchema,
   updateLocationMapAreaRequestSchema,
   updateLocationMapPointRequestSchema,
@@ -143,6 +146,23 @@ export class MapSetupController {
           await this.scope(request, authorization, locationId),
         ),
       }),
+    );
+  }
+
+  @Get("parking-zones")
+  listParkingZones(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("locationId") locationId: string,
+    @Query() query: unknown,
+  ) {
+    return this.runner.run("MAP_SETUP_PARKING_ZONE_LIST", request, async () =>
+      parkingZoneSelectorListSchema.parse(
+        await this.service.listParkingZones({
+          ...(await this.scope(request, authorization, locationId)),
+          ...parse(physicalResourceListQuerySchema, query ?? {}),
+        }),
+      ),
     );
   }
 
