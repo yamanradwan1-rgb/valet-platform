@@ -31,6 +31,7 @@ export function useIntelligenceRead<T>(input: {
   readonly descriptor: IntelligenceRequestDescriptor | null;
   readonly enabled?: boolean;
   readonly load: (context: IntelligenceReadContext) => Promise<T>;
+  readonly preserveOnRetry?: boolean;
 }): IntelligenceReadState<T> {
   const dashboard = useProtectedDashboard();
   const { selectionRevision } = useSelectedScope();
@@ -55,11 +56,22 @@ export function useIntelligenceRead<T>(input: {
         sessionGeneration: dashboard.sessionGeneration,
       })
     : null;
+  const baseKey = enabled && scope !== null && input.descriptor !== null
+    ? intelligenceRequestKey({
+        descriptor: input.descriptor,
+        identityGeneration: dashboard.identityGeneration,
+        retryRevision: 0,
+        scope,
+        selectionRevision,
+        sessionGeneration: dashboard.sessionGeneration,
+      })
+    : null;
   const [state, setState] = useState<{
     readonly data: T | null;
     readonly error: unknown;
     readonly requestKey: string | null;
-  }>({ data: null, error: null, requestKey: null });
+    readonly baseKey: string | null;
+  }>({ data: null, error: null, requestKey: null, baseKey: null });
 
   useEffect(() => {
     if (requestKey === null || scope === null) {
@@ -70,7 +82,12 @@ export function useIntelligenceRead<T>(input: {
     let disposed = false;
     void Promise.resolve().then(async () => {
       if (disposed || !guard.isCurrent(ticket)) return;
-      setState({ data: null, error: null, requestKey: null });
+      setState((current) => ({
+        data: input.preserveOnRetry && current.baseKey === baseKey ? current.data : null,
+        error: null,
+        requestKey: null,
+        baseKey,
+      }));
       try {
         const data = await loadRef.current({
           api: dashboard.api,
@@ -79,18 +96,23 @@ export function useIntelligenceRead<T>(input: {
         });
         const settlement = guard.accept(ticket, { kind: "success" as const, data });
         if (disposed || settlement === undefined) return;
-        setState({ data: settlement.data, error: null, requestKey });
+        setState({ data: settlement.data, error: null, requestKey, baseKey });
       } catch (error: unknown) {
         const settlement = guard.accept(ticket, { kind: "failure" as const, error });
         if (disposed || settlement === undefined) return;
-        setState({ data: null, error: settlement.error, requestKey });
+        setState((current) => ({
+          data: input.preserveOnRetry && current.baseKey === baseKey ? current.data : null,
+          error: settlement.error,
+          requestKey,
+          baseKey,
+        }));
       }
     });
     return () => {
       disposed = true;
       guard.invalidate();
     };
-  }, [dashboard.api, guard, requestKey, scope]);
+  }, [baseKey, dashboard.api, guard, input.preserveOnRetry, requestKey, scope]);
 
   const retry = useCallback(() => {
     guard.invalidate();
@@ -101,7 +123,8 @@ export function useIntelligenceRead<T>(input: {
     return { data: null, error: null, loading: false, requestKey, retry, scope };
   }
   if (state.requestKey !== requestKey) {
-    return { data: null, error: null, loading: true, requestKey, retry, scope };
+    const data = input.preserveOnRetry && state.baseKey === baseKey ? state.data : null;
+    return { data, error: null, loading: true, requestKey, retry, scope };
   }
   return {
     data: state.data,

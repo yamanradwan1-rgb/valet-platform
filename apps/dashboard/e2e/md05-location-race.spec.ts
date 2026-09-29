@@ -71,7 +71,7 @@ for (const [label, failFirstA] of [
     await page.getByRole("button", { name: ORG_A.name }).click();
     await page.getByRole("button", { name: LOCATION_A.name }).click();
     await applyAnalyticsPeriod(page);
-    await expect.poll(() => fixture.count(aPaths.operations)).toBe(1);
+    await expect.poll(() => fixture.count(aPaths.operations)).toBe(2);
 
     await changeLocation(page, LOCATION_B.name);
     await expectMarker(page, "17");
@@ -83,7 +83,7 @@ for (const [label, failFirstA] of [
     await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
 
     for (const path of [aPaths.operations, aPaths.financial, aPaths.incidents, aPaths.kpis]) {
-      expect(fixture.count(path)).toBe(2);
+      expect(fixture.count(path)).toBe(3);
       expect(urls.filter((url) => url === `${path}?from=${PERIOD_A.from}&to=${PERIOD_A.to}`)).toHaveLength(2);
     }
     for (const path of [bPaths.operations, bPaths.financial, bPaths.incidents, bPaths.kpis]) {

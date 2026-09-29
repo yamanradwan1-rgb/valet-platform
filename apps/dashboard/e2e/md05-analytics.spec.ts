@@ -40,7 +40,7 @@ async function expectLoaded(page: Page, value: string) {
   await expect(page.getByTestId("analytics-metric-card").first()).toContainText(value);
 }
 
-test("Company waits for a valid explicit period and makes one exact all-locations request", async ({ page }) => {
+test("Company reads Today then an explicit Custom period using only its endpoint", async ({ page }) => {
   const urls: string[] = [];
   const fixture = standardCompanyFixture((path, request) => {
     if (path !== companyAnalyticsPath) return undefined;
@@ -49,11 +49,12 @@ test("Company waits for a valid explicit period and makes one exact all-location
   });
   await fixture.install(page);
   await enterCompanyAnalytics(page);
-  expect(fixture.count(companyAnalyticsPath)).toBe(0);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
   expectNoLocationIntelligence(fixture);
   await applyAnalyticsPeriod(page);
   await expectLoaded(page, "7");
-  expect(urls).toEqual([exactPeriodUrl(companyAnalyticsPath)]);
+  expect(urls).toHaveLength(2);
+  expect(urls[1]).toBe(exactPeriodUrl(companyAnalyticsPath));
   expectNoLocationIntelligence(fixture);
 });
 
@@ -72,10 +73,10 @@ for (const [label, manager] of [["CA", false], ["LM", true]] as const) {
     await applyAnalyticsPeriod(page);
     await expectLoaded(page, "4");
     for (const path of analyticsLocationFamilies) {
-      expect(fixture.count(path)).toBe(1);
+      expect(fixture.count(path)).toBe(2);
       expect(urls).toContain(exactPeriodUrl(path));
     }
-    expect(urls).toHaveLength(4);
+    expect(urls).toHaveLength(8);
     expect(fixture.count(companyAnalyticsPath)).toBe(0);
     for (const path of nonAnalyticsLocationFamilies) expect(fixture.count(path)).toBe(0);
   });
@@ -153,7 +154,7 @@ test("period change fences a late stale success", async ({ page }) => {
   await fixture.install(page);
   await enterCompanyAnalytics(page);
   await applyAnalyticsPeriod(page, PERIOD_A.from, PERIOD_A.to);
-  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(2);
   await applyAnalyticsPeriod(page, PERIOD_B.from, PERIOD_B.to);
   await expectLoaded(page, "23");
   await page.waitForTimeout(900);
@@ -175,7 +176,7 @@ test("period change fences a late stale failure", async ({ page }) => {
   await fixture.install(page);
   await enterCompanyAnalytics(page);
   await applyAnalyticsPeriod(page, PERIOD_A.from, PERIOD_A.to);
-  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(2);
   await applyAnalyticsPeriod(page, PERIOD_B.from, PERIOD_B.to);
   await expectLoaded(page, "31");
   await page.waitForTimeout(900);
@@ -198,7 +199,7 @@ test("Company to Location to Company fences the first Company response", async (
   await fixture.install(page);
   await enterCompanyAnalytics(page);
   await applyAnalyticsPeriod(page);
-  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(2);
   await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
@@ -258,7 +259,7 @@ test("Arabic Analytics preserves RTL bidi and keyboard period flow", async ({ pa
   await page.setViewportSize({ width: 480, height: 900 });
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  const opener = page.getByTestId("analytics-header-selectors").getByRole("button", { name: "اختيار الفترة" });
+  const opener = page.getByTestId("analytics-header-selectors").getByRole("button", { name: "مخصص" });
   await opener.focus();
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: "اختيار فترة التحليلات" });

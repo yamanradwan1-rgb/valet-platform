@@ -5,14 +5,6 @@ import type {
   LocationKpiAnalyticsResponse,
   OperationalAnalyticsResponse,
 } from "@valet/contracts";
-import { useSyncExternalStore } from "react";
-
-const periodChangedEvent = "md05:period-changed";
-
-export type RawAnalyticsPeriod = {
-  readonly from: string | null;
-  readonly to: string | null;
-};
 
 export type AnalyticsDurationKey =
   | "checkInTime"
@@ -52,34 +44,6 @@ export interface AnalyticsPresentation {
   readonly keyExceptions: LocationKpiAnalyticsResponse["keyExceptions"];
   readonly coverage: CompanySummary["coverage"] | null;
   readonly sourceTimezone: string | null;
-}
-
-export function rawAnalyticsPeriod(search: string): RawAnalyticsPeriod {
-  const query = new URLSearchParams(search);
-  return {
-    from: query.get("from"),
-    to: query.get("to"),
-  };
-}
-
-export function useRawAnalyticsPeriod(): RawAnalyticsPeriod {
-  const key = useSyncExternalStore(subscribeRawPeriod, rawPeriodKey, () => "");
-  if (!key) return { from: null, to: null };
-  return JSON.parse(key) as RawAnalyticsPeriod;
-}
-
-function subscribeRawPeriod(onChange: () => void) {
-  window.addEventListener("popstate", onChange);
-  window.addEventListener(periodChangedEvent, onChange);
-  return () => {
-    window.removeEventListener("popstate", onChange);
-    window.removeEventListener(periodChangedEvent, onChange);
-  };
-}
-
-function rawPeriodKey(): string {
-  if (typeof window === "undefined") return "";
-  return JSON.stringify(rawAnalyticsPeriod(window.location.search));
 }
 
 function locationDurations(

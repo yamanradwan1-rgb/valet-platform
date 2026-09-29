@@ -26,8 +26,11 @@ test("Company analytics uses one Company request and zero Location fan-out", asy
     }
   });
 
+  const initial = page.waitForResponse((item) =>
+    item.request().method() === "GET" && new URL(item.url()).pathname === companyPath);
   await page.getByRole("link", { name: "Analytics" }).click();
-  await page.getByRole("button", { name: "Select period" }).first().click();
+  expect((await initial).status()).toBe(200);
+  await page.getByRole("button", { name: "Custom" }).click();
   const dialog = page.getByRole("dialog", { name: "Select analytics period" });
   await dialog.getByLabel("From").fill("2026-09-01");
   await dialog.getByLabel("To").fill("2026-09-21");
@@ -38,6 +41,6 @@ test("Company analytics uses one Company request and zero Location fan-out", asy
   expect((await response).status()).toBe(200);
   await expect(page.getByTestId("md05-analytics-page")).toBeVisible();
   expect(Date.now() - startedAt).toBeLessThan(2_000);
-  expect(companyReads).toBe(1);
+  expect(companyReads).toBe(2);
   expect(locationReads).toBe(0);
 });

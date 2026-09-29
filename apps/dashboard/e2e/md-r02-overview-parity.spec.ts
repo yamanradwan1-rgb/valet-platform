@@ -77,7 +77,7 @@ test("Company Overview shows exact source metrics and timezone coverage without 
   });
   await fixture.install(page);
   await enterCompany(page);
-  expect(fixture.count(companyAnalyticsPath)).toBe(0);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
   await applyPeriod(page, PERIOD_A);
   const root = page.getByTestId("md05-overview-page");
   await expect(root.getByText("17", { exact: true }).first()).toBeVisible();
@@ -89,7 +89,7 @@ test("Company Overview shows exact source metrics and timezone coverage without 
   await expect(root.getByText(/2026-08-31T20:00/u)).toHaveCount(0);
   await expect(root.getByRole("img", { name: "Vehicle Activity" })).toBeVisible();
   await expect(root.getByTestId("overview-activity-text").locator("tbody tr")).toHaveCount(1);
-  expect(fixture.count(companyAnalyticsPath)).toBe(1);
+  expect(fixture.count(companyAnalyticsPath)).toBe(2);
   expect(fixture.count(locationPaths.operations)).toBe(0);
   await page.getByRole("button", { name: "Language" }).click();
   const cards = root.locator('[class*="metricCard"]');
@@ -182,12 +182,12 @@ test("Company Admin exact Location uses bounded Location reads for a valid perio
   await applyPeriod(page, PERIOD_A);
   await expect(page.getByTestId("md05-overview-page").locator('[class*="metricCard"]').first())
     .toContainText("8");
-  expect(fixture.count(locationPaths.operations)).toBe(1);
-  expect(fixture.count(locationPaths.incidents)).toBe(1);
-  expect(fixture.count(locationPaths.kpis)).toBe(1);
+  expect(fixture.count(locationPaths.operations)).toBe(2);
+  expect(fixture.count(locationPaths.incidents)).toBe(2);
+  expect(fixture.count(locationPaths.kpis)).toBe(2);
   expect(fixture.count(locationPaths.queue)).toBeGreaterThan(0);
   expect(fixture.count(locationPaths.stateCounts)).toBeGreaterThan(0);
-  expect(fixture.count(companyAnalyticsPath)).toBe(0);
+  expect(fixture.count(companyAnalyticsPath)).toBe(1);
 });
 
 test("late period A cannot replace current Company period B", async ({ page }) => {
@@ -206,13 +206,13 @@ test("late period A cannot replace current Company period B", async ({ page }) =
   await fixture.install(page);
   await enterCompany(page);
   await applyPeriod(page, PERIOD_A);
-  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(2);
   await applyPeriod(page, PERIOD_B);
   const cards = page.getByTestId("md05-overview-page").locator('[class*="metricCard"]');
   await expect(cards.first().locator('[class*="metricValue"]')).toHaveText("52");
   await page.waitForTimeout(800);
   await expect(cards.first().locator('[class*="metricValue"]')).toHaveText("52");
-  expect(fixture.count(companyAnalyticsPath)).toBe(2);
+  expect(fixture.count(companyAnalyticsPath)).toBe(3);
 });
 
 test("a pending Company result cannot reappear after sign-out", async ({ page }) => {
@@ -226,7 +226,7 @@ test("a pending Company result cannot reappear after sign-out", async ({ page })
   await fixture.install(page);
   await enterCompany(page);
   await applyPeriod(page, PERIOD_A);
-  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(2);
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
   await page.waitForTimeout(800);
@@ -243,6 +243,9 @@ test("a new period read failure clears prior metrics and retries explicitly", as
       if (path !== companyAnalyticsPath) return undefined;
       if (requestPeriod(request).from === PERIOD_A.from) {
         return { body: companyAnalytics(request, 17) };
+      }
+      if (requestPeriod(request).from !== PERIOD_B.from) {
+        return { body: companyAnalytics(request, 7) };
       }
       periodBReads += 1;
       return periodBReads === 1
@@ -261,5 +264,5 @@ test("a new period read failure clears prior metrics and retries explicitly", as
   await expect(page.getByText("17", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Retry" }).first().click();
   await expect(cards.first().locator('[class*="metricValue"]')).toHaveText("52");
-  expect(fixture.count(companyAnalyticsPath)).toBe(3);
+  expect(fixture.count(companyAnalyticsPath)).toBe(4);
 });

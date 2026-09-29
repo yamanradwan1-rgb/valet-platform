@@ -15,6 +15,7 @@ import { useSelectedScope } from "../../components/foundation/selected-scope-pro
 import { readCompanySubscription, readLocationSubscription } from "../administration/commercial/commercial-api";
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { currentReportSelector, scopeCalendarTimezone } from "./dashboard-period-calendar";
 import { intelligenceScope } from "./intelligence-scope";
 import {
   reportExportBaseKey,
@@ -148,7 +149,8 @@ export function ReportsPage() {
     currentExportBase.current = "";
     currentExportSelection.current = "";
     setDialogKind(kind);
-    setDraftValue("");
+    const timezone = scopeCalendarTimezone(dashboard.selectedScope);
+    setDraftValue(timezone ? selectorValue(currentReportSelector(Date.now(), timezone, kind)) : "");
     setValidation(null);
     setSelector(null);
     setExportStatus("idle");

@@ -135,7 +135,7 @@ test("CA exact Location closure uses Location intelligence and Location reports 
   await selectLocation(page, "/overview", false);
   await applyOverviewPeriod(page);
   await expect(page.getByText("8", { exact: true }).first()).toBeVisible();
-  expect(fixture.count(locationPaths.operations)).toBe(1);
+  expect(fixture.count(locationPaths.operations)).toBe(2);
   expect(fixture.count(companyAnalyticsPath)).toBe(0);
   await page
     .getByRole("navigation", { name: "Management navigation" })

@@ -43,16 +43,24 @@ function expectZeroPeriodBusinessRequests(fixture: DashboardApiFixture) {
 }
 
 for (const path of ["/overview", "/payments"] as const) {
-  test(`${path} distinguishes no direct period as required with zero business dispatch`, async ({ page }) => {
+  test(`${path} defaults to Company calendar Today and reads without period interaction`, async ({ page }) => {
+    const seen: string[] = [];
     const fixture = new DashboardApiFixture({
       companyOrganizations: [ORG_A],
       companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+      override: (requestPath, request) => {
+        if (requestPath !== companyAnalyticsPath) return undefined;
+        seen.push(new URL(request.url()).search);
+        return { body: companyAnalytics(request) };
+      },
     });
     await fixture.install(page);
+    await page.addInitScript(() => { Date.now = () => Date.parse("2026-09-28T21:30:00Z"); });
     await enterCompany(page, path);
-    await expect(page.getByText(/Select a period to load/u).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Today", pressed: true })).toBeVisible();
+    await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
+    expect(seen).toEqual(["?from=2026-09-29&to=2026-09-29"]);
     expect(new URL(page.url()).search).toBe("");
-    expectZeroPeriodBusinessRequests(fixture);
   });
 
   test(`${path} accepts 31 inclusive days and captures the exact Company selector`, async ({ page }) => {
@@ -101,10 +109,11 @@ for (const path of ["/overview", "/payments"] as const) {
     });
     await fixture.install(page);
     await enterCompany(page, path);
+    await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
     await applyPeriod(page, "2026-09-01", "2026-10-02");
     await expect(page.getByRole("dialog").getByRole("alert")).toHaveText(INVALID_PERIOD_COPY);
     expect(new URL(page.url()).search).toBe("");
-    expectZeroPeriodBusinessRequests(fixture);
+    expect(fixture.count(companyAnalyticsPath)).toBe(1);
   });
 }
 
@@ -165,7 +174,7 @@ test("Analytics controlled period editing keeps focus and restores the opener on
   await standardCompanyFixture().install(page);
   await enterCompanyAnalytics(page);
   const opener = page.getByTestId("analytics-header-selectors")
-    .getByRole("button", { name: "Select period" });
+    .getByRole("button", { name: "Custom" });
   await opener.focus();
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: "Select analytics period" });

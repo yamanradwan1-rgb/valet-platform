@@ -116,6 +116,7 @@ for (const route of routes) {
       const fixture = standardCompanyFixture();
       await fixture.install(page);
       await enterR09(page, route, "company", "");
+      await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
       if (locale === "ar")
         await page
           .getByRole("button", { name: "Language", exact: true })
@@ -136,7 +137,7 @@ for (const route of routes) {
       await expect(opener).toBeFocused();
       await page.keyboard.press("Enter");
       await expect(from).toBeFocused();
-      expect(fixture.count(companyAnalyticsPath)).toBe(0);
+      expect(fixture.count(companyAnalyticsPath)).toBe(1);
     });
   }
 }

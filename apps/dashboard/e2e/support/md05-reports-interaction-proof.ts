@@ -56,8 +56,8 @@ export async function proveAdvisoryDelayDoesNotBlockPreview(
   await expect(pdf).toBeDisabled();
   await expect(dialog.getByText(/Exports are unavailable/u)).toHaveCount(0);
   expect(fixture.count(location ? locationReportPaths.daily : companyReportPaths.daily)).toBe(1);
-  await expect(csv).toBeEnabled();
-  await expect(pdf).toBeEnabled();
+  await expect(csv).toBeEnabled({ timeout: 10_000 });
+  await expect(pdf).toBeEnabled({ timeout: 10_000 });
 }
 
 export async function proveAdvisoryFailureDoesNotBlockPreview(page: Page) {

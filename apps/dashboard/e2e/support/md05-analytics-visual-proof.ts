@@ -15,19 +15,13 @@ async function columnCount(locator: Locator): Promise<number> {
 
 async function expectSelectorGeometry(page: Page, rtl: boolean) {
   const selectors = page.getByTestId("analytics-header-selectors");
-  const period = selectors.locator("button").nth(0);
-  const scope = selectors.locator("button").nth(1);
+  const period = selectors.getByTestId("dashboard-period-control");
+  const scope = selectors.locator("button").last();
   await expect(selectors).toHaveCSS("gap", contract.page.selectorGap);
-  await expect(period).toHaveCSS("border-radius", contract.select.radius);
-  await expect(period).toHaveCSS("padding-top", contract.select.periodPaddingBlock);
-  await expect(period).toHaveCSS("padding-left", contract.select.periodPaddingInline);
-  await expect(period).toHaveCSS("column-gap", contract.select.periodGap);
-  await expect(period).toHaveCSS("font-size", contract.select.periodSize);
-  const periodIcons = period.locator("svg");
-  await expect(periodIcons.nth(0)).toHaveAttribute("width", contract.select.periodCalendarSize);
-  await expect(periodIcons.nth(1)).toHaveAttribute("width", contract.select.periodChevronSize);
-  await expect(periodIcons.nth(0)).toHaveCSS("color", contract.select.periodIconColor);
-  await expect(periodIcons.nth(1)).toHaveCSS("color", contract.select.periodIconColor);
+  await expect(period.getByRole("button")).toHaveCount(8);
+  await expect(period.getByRole("button", { name: rtl ? "مخصص" : "Custom" }))
+    .toHaveAttribute("aria-pressed", "true");
+  await expect(period.getByRole("group")).toHaveCSS("overflow-x", "auto");
   await expect(scope).toHaveCSS("border-radius", contract.select.radius);
   await expect(scope).toHaveCSS("font-size", contract.select.scopeSize);
   await expect(scope).toHaveCSS(
@@ -138,21 +132,14 @@ async function expectChartGeometry(page: Page, columns: number, dark: boolean) {
 async function expectTheme(page: Page, dark: boolean) {
   const card = page.getByTestId("analytics-metric-card").first();
   const panel = page.getByTestId("analytics-chart-panel").first();
-  const control = page.getByTestId("analytics-header-selectors").locator("button").first();
+  const control = page.getByTestId("dashboard-period-control").getByRole("group");
   const surface = dark ? contract.theme.darkSurface : contract.theme.lightSurface;
   const border = dark ? contract.theme.darkBorder : contract.theme.lightBorder;
   await expect(card).toHaveCSS("background-color", surface);
   await expect(panel).toHaveCSS("background-color", surface);
   await expect(card).toHaveCSS("border-color", border);
   await expect(panel).toHaveCSS("border-color", border);
-  await expect(control).toHaveCSS(
-    "border-color",
-    dark ? contract.theme.darkControlBorder : contract.theme.lightBorder,
-  );
-  await expect(control).toHaveCSS(
-    "background-color",
-    dark ? contract.theme.darkControl : contract.theme.lightSurface,
-  );
+  await expect(control).toHaveCSS("background-color", dark ? "rgb(17, 29, 57)" : "rgb(248, 250, 252)");
   await expect(card.getByTestId("analytics-card-icon")).toHaveCSS(
     "background-color",
     dark ? contract.theme.darkControl : contract.metricCard.iconLightBackground,

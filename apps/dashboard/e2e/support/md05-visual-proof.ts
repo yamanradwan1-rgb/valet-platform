@@ -27,9 +27,9 @@ async function expectOverviewDesktopGeometry(page: Page) {
   const { desktopCards, desktopPanels } = MD05_VISUAL_CONTRACT.overview;
   const root = page.getByTestId("md05-overview-page");
   await expect.poll(() => roundedBoxes(root.locator('[class*="metricCard"]')))
-    .toEqual(desktopCards);
+    .toEqual(desktopCards.map((box) => ({ ...box, y: desktopCards[0]!.y + 63 })));
   await expect.poll(() => roundedBoxes(root.locator('[class*="lowerGrid"] > *')))
-    .toEqual(desktopPanels);
+    .toEqual(desktopPanels.map((box) => ({ ...box, y: box.y + 63 })));
 }
 
 async function expectCardSurface(card: Locator, shadowOpacity: string, dark: boolean) {
@@ -153,15 +153,9 @@ async function expectOverview(page: Page, metricColumns: number, lowerColumns: n
   const activityTitle = activity.getByRole("heading");
   await expect(activityTitle).toHaveCSS("font-size", overview.activityTitleFontSize);
   await expect(activityTitle).toHaveCSS("font-weight", overview.activityTitleWeight);
-  const opener = activity.getByRole("button", { name: /Select period|اختيار الفترة|2026/u });
-  await expect(opener).toHaveCSS("padding-left", overview.openerPaddingInline);
-  await expect(opener).toHaveCSS("padding-top", overview.openerPaddingBlock);
-  await expect(opener).toHaveCSS("gap", overview.openerGap);
-  await expect(opener).toHaveCSS("border-radius", overview.openerRadius);
-  await expect(opener).toHaveCSS("font-size", overview.openerFontSize);
-  await expect(opener).toHaveCSS("font-weight", overview.openerWeight);
-  await expect(opener).toHaveCSS("box-shadow", "none");
-  await expect(opener.locator("svg")).toHaveCSS("color", overview.mutedIcon);
+  const control = root.getByTestId("dashboard-period-control");
+  await expect(control.getByRole("button")).toHaveCount(8);
+  await expect(control.getByRole("button", { name: /Custom|مخصص/u })).toHaveAttribute("aria-pressed", "true");
   const chart = activity.getByRole("img");
   await expect(chart).toHaveCSS("height", activityChart.height);
   await expect(chart).toHaveCSS("overflow", "visible");
@@ -179,14 +173,9 @@ async function expectPayments(page: Page, summaryColumns: number, dark: boolean)
   await expect(title).toHaveCSS("line-height", common.titleLineHeight);
   await expect(title).toHaveCSS("font-weight", common.titleWeight);
   await expect(title).toHaveCSS("letter-spacing", payments.titleLetterSpacing);
-  const opener = root.locator('button[aria-haspopup="dialog"]');
-  await expect(opener).toHaveCSS("padding-left", payments.openerPaddingInline);
-  await expect(opener).toHaveCSS("padding-top", payments.openerPaddingBlock);
-  await expect(opener).toHaveCSS("gap", payments.openerGap);
-  await expect(opener).toHaveCSS("border-radius", payments.openerRadius);
-  await expect(opener).toHaveCSS("font-size", payments.openerFontSize);
-  await expect(opener).toHaveCSS("font-weight", payments.openerWeight);
-  await expect(opener.locator("svg").first()).toHaveCSS("color", payments.mutedIcon);
+  const control = root.getByTestId("dashboard-period-control");
+  await expect(control.getByRole("button")).toHaveCount(8);
+  await expect(control.getByRole("button", { name: /Custom|مخصص/u })).toHaveAttribute("aria-pressed", "true");
   const grid = root.locator('[class*="summaryGrid"]');
   await expect(grid).toHaveCSS("gap", payments.gridGap);
   await expect.poll(() => columns(grid)).toBe(summaryColumns);

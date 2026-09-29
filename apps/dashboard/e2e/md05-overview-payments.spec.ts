@@ -61,10 +61,10 @@ test("CA Company Overview uses only all-locations analytics and never Location f
   });
   await fixture.install(page);
   await enterCompany(page, "/overview");
-  expect(fixture.count(companyAnalyticsPath)).toBe(0);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
   await applyPeriod(page, PERIOD_A.from, PERIOD_A.to);
   await expect(page.getByText("17", { exact: true }).first()).toBeVisible();
-  expect(fixture.count(companyAnalyticsPath)).toBe(1);
+  expect(fixture.count(companyAnalyticsPath)).toBe(2);
   expectNoLocationIntelligence(fixture);
 });
 
@@ -87,7 +87,7 @@ test("Company to Location to Company fences the first stale Company response", a
   await fixture.install(page);
   await enterCompany(page, "/overview");
   await applyPeriod(page, PERIOD_A.from, PERIOD_A.to);
-  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(1);
+  await expect.poll(() => fixture.count(companyAnalyticsPath)).toBe(2);
   await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
@@ -113,7 +113,7 @@ test("LM active exact Location Overview uses Location reads and no Company endpo
   await applyPeriod(page, PERIOD_A.from, PERIOD_A.to);
   await expect(page.getByText("8", { exact: true }).first()).toBeVisible();
   expect(fixture.count(locationPaths.stateCounts)).toBeGreaterThan(0);
-  expect(fixture.count(locationPaths.operations)).toBe(1);
+  expect(fixture.count(locationPaths.operations)).toBe(2);
   expect(fixture.count(companyAnalyticsPath)).toBe(0);
 });
 
@@ -129,7 +129,7 @@ test("LM active exact Location Payments uses current and period Location reads o
   expect(fixture.count(locationPaths.financialOverview)).toBe(1);
   await applyPeriod(page, PERIOD_A.from, PERIOD_A.to);
   await expect(page.getByText("9.000 JOD", { exact: true }).first()).toBeVisible();
-  expect(fixture.count(locationPaths.financial)).toBe(1);
+  expect(fixture.count(locationPaths.financial)).toBe(2);
   expect(fixture.count(companyAnalyticsPath)).toBe(0);
 });
 
@@ -209,7 +209,8 @@ test("explicit period A to B fences a late period A Payments result", async ({ p
   await page.waitForTimeout(800);
   await expect(page.getByText("41.000 JOD", { exact: true })).toHaveCount(0);
   await expect(page.getByText("41.111 JOD", { exact: true })).toHaveCount(0);
-  expect(seen).toEqual([PERIOD_A.from, PERIOD_B.from]);
+  expect(seen).toHaveLength(3);
+  expect(seen.slice(1)).toEqual([PERIOD_A.from, PERIOD_B.from]);
   expect(currentReads).toBeGreaterThanOrEqual(3);
 });
 
@@ -253,10 +254,10 @@ test("Arabic Payments keeps bidi values, keyboard period flow, and narrow compos
   await page.setViewportSize({ width: 480, height: 900 });
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  const opener = page.getByRole("button", { name: "اختيار الفترة" });
+  const opener = page.getByRole("button", { name: "مخصص" });
   await opener.focus();
   await page.keyboard.press("Enter");
-  const dialog = page.getByRole("dialog", { name: "اختيار فترة التحليلات المالية" });
+  const dialog = page.getByRole("dialog", { name: "اختيار فترة التحليلات" });
   const from = dialog.getByLabel("من");
   const to = dialog.getByLabel("إلى");
   await expect(from).toBeFocused();

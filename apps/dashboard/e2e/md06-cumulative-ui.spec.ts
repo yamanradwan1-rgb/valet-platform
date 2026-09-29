@@ -115,7 +115,7 @@ test("MD-06 cumulative EN/AR journey composes responsive keyboard-safe features"
   await analyticsLink.focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "التحليلات" })).toBeVisible();
-  const period = page.getByRole("button", { name: "اختيار الفترة" }).first();
+  const period = page.getByRole("button", { name: "مخصص" });
   await period.focus();
   await page.keyboard.press("Enter");
   let dialog = page.getByRole("dialog", { name: "اختيار فترة التحليلات" });

@@ -1,13 +1,12 @@
 "use client";
 
-import { Calendar, ChevronDown, X } from "lucide-react";
-import { useCallback, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { selectedScopePresentation } from "../../components/foundation/scope-presentation";
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import { BidiText } from "../../components/presentation/panel";
-import { FocusDialog } from "../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { AnalyticsActivityChart } from "./analytics-activity-chart";
@@ -16,18 +15,12 @@ import { AnalyticsCards } from "./analytics-cards";
 import {
   analyticsCopy,
   analyticsPeriodMessage,
-  analyticsValidationCopy,
 } from "./analytics-copy";
 import {
   companyAnalyticsPresentation,
   locationAnalyticsPresentation,
-  useRawAnalyticsPeriod,
-  type RawAnalyticsPeriod,
 } from "./analytics-presentation";
-import {
-  validateAnalyticsPeriod,
-  type AnalyticsPeriodValidation,
-} from "./intelligence-period-validation";
+import { DashboardPeriodControl } from "./dashboard-period-control";
 import { AnalyticsSecondaryChart } from "./analytics-secondary-chart";
 import {
   readCompanyAnalytics,
@@ -36,9 +29,8 @@ import {
   readLocationKpiAnalytics,
   readLocationOperationalAnalytics,
 } from "./intelligence-api";
-import periodStyles from "./intelligence-period.module.css";
 import { intelligenceScope } from "./intelligence-scope";
-import { useExplicitAnalyticsPeriod } from "./use-explicit-analytics-period";
+import { useDashboardPeriod } from "./use-dashboard-period";
 import { useIntelligenceRead } from "./use-intelligence-read";
 import styles from "./analytics.module.css";
 
@@ -60,21 +52,14 @@ export function AnalyticsPage() {
   const t = analyticsCopy(locale);
   const scope = intelligenceScope(dashboard.selectedScope);
   const scopePresentation = selectedScopePresentation(dashboard.selectedScope);
-  const { applyPeriod: persistPeriod } = useExplicitAnalyticsPeriod();
-  const rawPeriod = useRawAnalyticsPeriod();
-  const periodValidation = validateAnalyticsPeriod(rawPeriod.from, rawPeriod.to);
-  const period = periodValidation.kind === "valid" ? periodValidation.period : null;
+  const periodState = useDashboardPeriod();
+  const { period, validation: periodValidation } = periodState;
   const descriptorPeriod = period ?? { from: "", to: "" };
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [draftFrom, setDraftFrom] = useState("");
-  const [draftTo, setDraftTo] = useState("");
-  const [draftError, setDraftError] = useState<AnalyticsPeriodValidation["kind"] | null>(null);
-
-  const closeDialog = useCallback(() => setDialogOpen(false), [setDialogOpen]);
 
   const company = useIntelligenceRead({
     descriptor: { endpointFamily: "COMPANY_ANALYTICS", ...descriptorPeriod },
     enabled: scope?.kind === "COMPANY" && period !== null,
+    preserveOnRetry: true,
     load: ({ api, scope: readScope, signal }) => {
       if (readScope.kind !== "COMPANY" || !period) throw new Error("Company analytics read mismatch");
       return readCompanyAnalytics(api, readScope.organizationId, period, signal);
@@ -100,29 +85,10 @@ export function AnalyticsPage() {
   const readError = scope.kind === "COMPANY"
     ? company.error
     : operations.error ?? financial.error ?? incidents.error ?? kpis.error;
-  const message = analyticsPeriodMessage(locale, periodValidation, readError, loading);
+  const message = analyticsPeriodMessage(locale, periodValidation, readError, loading && !presentation);
   const scopeLabel = scope.kind === "COMPANY"
     ? uiCopy("allLocations")
     : scopePresentation.location?.label ?? uiCopy("location");
-
-  function openDialog() {
-    setDraftFrom(rawPeriod.from ?? "");
-    setDraftTo(rawPeriod.to ?? "");
-    setDraftError(null);
-    setDialogOpen(true);
-  }
-
-  function applyPeriod(event: FormEvent) {
-    event.preventDefault();
-    const next = validateAnalyticsPeriod(draftFrom, draftTo);
-    if (next.kind !== "valid") {
-      setDraftError(next.kind);
-      return;
-    }
-    persistPeriod(next.period);
-    setDraftError(null);
-    closeDialog();
-  }
 
   function retry() {
     if (scopeKind === "COMPANY") company.retry();
@@ -142,7 +108,7 @@ export function AnalyticsPage() {
           <p>{t.subtitle}</p>
         </div>
         <div className={styles.headerActions} data-testid="analytics-header-selectors">
-          <PeriodButton onClick={openDialog} rawPeriod={rawPeriod} label={t.selectPeriod} />
+          <DashboardPeriodControl onRefresh={retry} refreshing={loading && Boolean(presentation)} scopeKind={scope.kind} state={periodState} />
           <button
             aria-label={`${uiCopy("changeScope")}: ${scopeLabel}`}
             className={styles.scopeButton}
@@ -158,12 +124,12 @@ export function AnalyticsPage() {
       <AnalyticsCards message={message} presentation={presentation} locale={locale} />
 
       <div className={styles.charts} data-testid="analytics-chart-grid">
-        <ChartPanel title={t.vehicleActivity} period={rawPeriod} periodLabel={t.selectPeriod} onPeriod={openDialog}>
+        <ChartPanel title={t.vehicleActivity} period={period}>
           {message ? <ChartState message={message} onRetry={readError ? retry : undefined} retry={t.retry} /> : presentation ? (
             <AnalyticsActivityChart data={presentation.activity} locale={locale} />
           ) : null}
         </ChartPanel>
-        <ChartPanel title={t.durationComparison} period={rawPeriod} periodLabel={t.selectPeriod} onPeriod={openDialog}>
+        <ChartPanel title={t.durationComparison} period={period}>
           {message ? <ChartState message={message} onRetry={readError ? retry : undefined} retry={t.retry} /> : presentation ? (
             <>
               <AnalyticsSecondaryChart data={presentation.durations} locale={locale} />
@@ -173,35 +139,6 @@ export function AnalyticsPage() {
         </ChartPanel>
       </div>
 
-      {dialogOpen ? (
-        <div className={periodStyles.periodHost}>
-          <FocusDialog label={t.periodDialog} onClose={closeDialog}>
-            <header className={periodStyles.periodDialogHeader}><h2>{t.periodDialog}</h2></header>
-            <form className={periodStyles.periodForm} onSubmit={applyPeriod}>
-              <div className={periodStyles.periodFields}>
-                <label className={periodStyles.periodField}>{t.from}
-                  <input aria-label={t.from} onChange={(event) => setDraftFrom(event.target.value)} type="date" value={draftFrom} />
-                </label>
-                <label className={periodStyles.periodField}>{t.to}
-                  <input aria-label={t.to} onChange={(event) => setDraftTo(event.target.value)} type="date" value={draftTo} />
-                </label>
-              </div>
-              {draftError ? (
-                <p className={periodStyles.periodError} role="alert">
-                  {analyticsValidationCopy(locale, draftError)}
-                </p>
-              ) : null}
-              <div className={periodStyles.periodActions}>
-                <button className={periodStyles.periodCancel} onClick={closeDialog} type="button">{t.cancel}</button>
-                <button className={periodStyles.periodApply} type="submit">{t.apply}</button>
-              </div>
-            </form>
-            <button aria-label={t.cancel} className={periodStyles.periodDialogClose} onClick={closeDialog} type="button">
-              <X aria-hidden="true" size={20} />
-            </button>
-          </FocusDialog>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -230,46 +167,17 @@ function useLocationRead<T>(
 
 function ChartPanel(props: {
   readonly children: ReactNode;
-  readonly onPeriod: () => void;
-  readonly period: RawAnalyticsPeriod;
-  readonly periodLabel: string;
+  readonly period: { readonly from: string; readonly to: string } | null;
   readonly title: string;
 }) {
   return (
     <section className={styles.chartPanel} data-testid="analytics-chart-panel">
       <div className={styles.chartHeader}>
         <h2>{props.title}</h2>
-        <PeriodButton
-          compact
-          label={props.periodLabel}
-          onClick={props.onPeriod}
-          rawPeriod={props.period}
-        />
+        {props.period ? <BidiText kind="number">{props.period.from} – {props.period.to}</BidiText> : null}
       </div>
       {props.children}
     </section>
-  );
-}
-
-function PeriodButton(props: {
-  readonly compact?: boolean;
-  readonly label: string;
-  readonly onClick: () => void;
-  readonly rawPeriod: RawAnalyticsPeriod;
-}) {
-  const hasRawPeriod = props.rawPeriod.from !== null || props.rawPeriod.to !== null;
-  const content = `${props.rawPeriod.from ?? "?"} – ${props.rawPeriod.to ?? "?"}`;
-  return (
-    <button
-      aria-haspopup="dialog"
-      className={props.compact ? styles.chartPeriod : styles.periodButton}
-      onClick={props.onClick}
-      type="button"
-    >
-      <Calendar aria-hidden="true" size={props.compact ? 14 : 16} />
-      {hasRawPeriod ? <BidiText kind="number">{content}</BidiText> : props.label}
-      <ChevronDown aria-hidden="true" size={props.compact ? 12 : 14} />
-    </button>
   );
 }
 

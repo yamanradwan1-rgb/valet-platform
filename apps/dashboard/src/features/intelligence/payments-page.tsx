@@ -1,10 +1,5 @@
 "use client";
 
-import { Calendar, ChevronDown, X } from "lucide-react";
-import { useCallback, useState, type FormEvent } from "react";
-
-import { FocusDialog } from "../../components/presentation/focus-dialog";
-import { BidiText } from "../../components/presentation/panel";
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
@@ -13,8 +8,7 @@ import {
   readLocationFinancialAnalytics,
   readLocationFinancialOverview,
 } from "./intelligence-api";
-import { explicitAnalyticsPeriod } from "./intelligence-period-validation";
-import periodStyles from "./intelligence-period.module.css";
+import { DashboardPeriodControl } from "./dashboard-period-control";
 import { intelligenceScope } from "./intelligence-scope";
 import { PaymentsBreakdownTable } from "./payments-breakdown-table";
 import { paymentsCopy } from "./payments-copy";
@@ -26,30 +20,21 @@ import {
 import { PaymentsSummaryGrid } from "./payments-summary-grid";
 import styles from "./payments.module.css";
 import { useIntelligenceRead } from "./use-intelligence-read";
-import { useExplicitAnalyticsPeriod } from "./use-explicit-analytics-period";
+import { useDashboardPeriod } from "./use-dashboard-period";
 
 export function PaymentsPage() {
   const dashboard = useProtectedDashboard();
   const { locale } = useDashboardLocale();
   const t = paymentsCopy(locale);
   const scope = intelligenceScope(dashboard.selectedScope);
-  const { applyPeriod: persistPeriod, period, rawFrom, rawTo, validation } = useExplicitAnalyticsPeriod();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [draftFrom, setDraftFrom] = useState("");
-  const [draftTo, setDraftTo] = useState("");
-  const [periodError, setPeriodError] = useState(false);
-  const closePeriodDialog = useCallback(() => setDialogOpen(false), []);
-  function openPeriodDialog() {
-    setDraftFrom(rawFrom ?? "");
-    setDraftTo(rawTo ?? "");
-    setPeriodError(false);
-    setDialogOpen(true);
-  }
+  const periodState = useDashboardPeriod();
+  const { period, validation } = periodState;
   const descriptorPeriod = period ?? { from: "", to: "" };
 
   const company = useIntelligenceRead({
     descriptor: { endpointFamily: "COMPANY_ANALYTICS", ...descriptorPeriod },
     enabled: scope?.kind === "COMPANY" && period !== null,
+    preserveOnRetry: true,
     load: ({ api, scope: readScope, signal }) => {
       if (readScope.kind !== "COMPANY" || !period) {
         throw new Error("Company financial period read mismatch");
@@ -60,6 +45,7 @@ export function PaymentsPage() {
   const financial = useIntelligenceRead({
     descriptor: { endpointFamily: "LOCATION_FINANCIAL_ANALYTICS", ...descriptorPeriod },
     enabled: scope?.kind === "LOCATION" && period !== null,
+    preserveOnRetry: true,
     load: ({ api, scope: readScope, signal }) => {
       if (readScope.kind !== "LOCATION" || !period) {
         throw new Error("Location financial period read mismatch");
@@ -81,18 +67,6 @@ export function PaymentsPage() {
     ? `${period.from}:${period.to}`
     : "no-period";
 
-  function applyPeriod(event: FormEvent) {
-    event.preventDefault();
-    const next = explicitAnalyticsPeriod(draftFrom, draftTo);
-    if (!next) {
-      setPeriodError(true);
-      return;
-    }
-    setPeriodError(false);
-    persistPeriod(next);
-    closePeriodDialog();
-  }
-
   function retryPeriod() {
     if (scopeKind === "COMPANY") company.retry();
     else financial.retry();
@@ -106,23 +80,12 @@ export function PaymentsPage() {
           <p>{scope.kind === "COMPANY" ? t.companySubtitle : t.locationSubtitle}</p>
         </div>
         <div className={styles.headerActions}>
-          <button
-            aria-haspopup="dialog"
-            className={styles.paymentsPeriodButton}
-            onClick={openPeriodDialog}
-            type="button"
-          >
-            <Calendar aria-hidden="true" size={16} />
-            {period ? (
-              <BidiText kind="number">{period.from} – {period.to}</BidiText>
-            ) : t.selectPeriod}
-            <ChevronDown aria-hidden="true" size={14} />
-          </button>
+          <DashboardPeriodControl onRefresh={retryPeriod} refreshing={periodLoading && Boolean(periodPresentation)} scopeKind={scope.kind} state={periodState} />
         </div>
       </div>
       <PaymentsSummaryGrid
         errorMessage={periodErrorMessage}
-        loading={periodLoading}
+        loading={periodLoading && !periodPresentation}
         locale={locale}
         periodSelected={validation.kind !== "required"}
         presentation={periodPresentation}
@@ -134,57 +97,9 @@ export function PaymentsPage() {
         onRetryPeriod={retryPeriod}
         period={periodPresentation}
         periodError={periodErrorMessage}
-        periodLoading={periodLoading}
+        periodLoading={periodLoading && !periodPresentation}
         periodSelected={validation.kind !== "required"}
       />
-      {dialogOpen ? (
-        <div className={periodStyles.periodHost}>
-          <FocusDialog label={t.periodDialog} onClose={closePeriodDialog}>
-            <header className={periodStyles.periodDialogHeader}>
-              <h2>{t.periodDialog}</h2>
-            </header>
-            <form className={periodStyles.periodForm} onSubmit={applyPeriod}>
-              <div className={periodStyles.periodFields}>
-                <label className={periodStyles.periodField}>
-                  {t.from}
-                  <input
-                    aria-label={t.from}
-                    onChange={(event) => setDraftFrom(event.target.value)}
-                    type="date"
-                    value={draftFrom}
-                  />
-                </label>
-                <label className={periodStyles.periodField}>
-                  {t.to}
-                  <input
-                    aria-label={t.to}
-                    onChange={(event) => setDraftTo(event.target.value)}
-                    type="date"
-                    value={draftTo}
-                  />
-                </label>
-              </div>
-              {periodError ? (
-                <p className={periodStyles.periodError} role="alert">{t.invalidPeriod}</p>
-              ) : null}
-              <div className={periodStyles.periodActions}>
-                <button className={periodStyles.periodCancel} onClick={closePeriodDialog} type="button">
-                  {t.cancel}
-                </button>
-                <button className={periodStyles.periodApply} type="submit">{t.apply}</button>
-              </div>
-            </form>
-            <button
-              aria-label={t.cancel}
-              className={periodStyles.periodDialogClose}
-              onClick={closePeriodDialog}
-              type="button"
-            >
-              <X aria-hidden="true" size={20} />
-            </button>
-          </FocusDialog>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
   setLocaleTheme,
 } from "./support/md-r09-fixtures";
 
-// Values measured from live 3011 before candidate edits; see MD-R09 evidence.
+// The shared period control shifts desktop content while card/panel geometry stays fixed.
 for (const route of routes) {
   for (const width of [1440, 480]) {
     for (const locale of ["en", "ar"] as const) {
@@ -52,7 +52,7 @@ for (const route of routes) {
           expect(boxes[0]!.width).toBe(width === 1440 ? 267 : 440);
           expect(boxes[0]!.height).toBe(route === "analytics" ? 136 : 124.5);
           if (width === 1440) {
-            expect(boxes[0]!.y).toBe(route === "analytics" ? 176 : 174);
+            expect(boxes[0]!.y).toBe(183);
             expect(boxes.every((box) => box.y === boxes[0]!.y)).toBe(true);
           } else {
             expect(boxes.every((box) => box.x === 20)).toBe(true);
@@ -68,8 +68,8 @@ for (const route of routes) {
             const second = await panels.nth(1).boundingBox();
             expect(first!.width).toBe(width === 1440 ? 546 : 440);
             if (width === 1440) {
-              expect(first!.y).toBe(336);
-              expect(second!.y).toBe(336);
+              expect(first!.y).toBe(343);
+              expect(second!.y).toBe(343);
               // Extra height contains required source evidence, not displaced plots.
               const plots = await root
                 .locator("svg[role='img']")
@@ -86,7 +86,7 @@ for (const route of routes) {
             const panel = root.locator('[class*="breakdownPanel"]');
             await expect(panel).toHaveCount(1);
             if (width === 1440)
-              expect((await panel.boundingBox())!.y).toBe(322.5);
+              expect((await panel.boundingBox())!.y).toBe(331.5);
             const scroller = root
               .locator('[role="region"][tabindex="0"]')
               .first();
