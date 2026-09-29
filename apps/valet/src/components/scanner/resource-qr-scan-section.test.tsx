@@ -6,10 +6,15 @@ import {
   resourceQrScanLabels,
 } from "./resource-qr-scan-section";
 import { employeeDictionary } from "../../lib/i18n/dictionary";
+import type { QrResourcePayload } from "../../features/scanner/qr-resource-payload";
 
 type CaptureOptions = {
-  interpret: (text: string) => { ok: boolean; value?: string; reason?: string };
-  onDecoded: (code: string) => void;
+  interpret: (text: string) => {
+    ok: boolean;
+    value?: QrResourcePayload;
+    reason?: string;
+  };
+  onDecoded: (payload: QrResourcePayload) => void;
 };
 
 let captured: CaptureOptions | null = null;
@@ -117,15 +122,28 @@ describe("ResourceQrScanSection (DEC-067 §2/§6/§7)", () => {
     if (captured === null) throw new Error("hook not captured");
     const ok = captured.interpret("vaylet:key-slot:k-Ab_07.x");
     expect(ok.ok).toBe(true);
-    if (ok.ok) expect(ok.value).toBe("k-Ab_07.x");
+    if (ok.ok) {
+      expect(ok.value).toEqual({
+        kind: "key-slot",
+        resourceCode: "k-Ab_07.x",
+        resourceId: null,
+        version: "V1",
+      });
+    }
     expect(captured.interpret("vaylet:parking-spot:A-1").ok).toBe(false);
     expect(captured.interpret("https://x.example").ok).toBe(false);
   });
 
   it("delivers accepted decodes to the consumer exactly once per frame", () => {
     const onDecoded = vi.fn();
+    const onDecodedIdentity = vi.fn();
     vi.mocked(useQrScannerCapture).mockImplementation(((options: CaptureOptions) => {
-      options.onDecoded("P-12");
+      options.onDecoded({
+        kind: "parking-spot",
+        resourceCode: "P-12",
+        resourceId: null,
+        version: "V1",
+      });
       return {
         close: vi.fn(),
         rejectionReason: null,
@@ -139,9 +157,16 @@ describe("ResourceQrScanSection (DEC-067 §2/§6/§7)", () => {
         expectedKind="parking-spot"
         labels={resourceQrScanLabels(employeeDictionary("en"), "parking-spot")}
         onDecoded={onDecoded}
+        onDecodedIdentity={onDecodedIdentity}
       />,
     );
     expect(onDecoded).toHaveBeenCalledTimes(1);
     expect(onDecoded).toHaveBeenCalledWith("P-12");
+    expect(onDecodedIdentity).toHaveBeenCalledWith({
+      kind: "parking-spot",
+      resourceCode: "P-12",
+      resourceId: null,
+      version: "V1",
+    });
   });
 });

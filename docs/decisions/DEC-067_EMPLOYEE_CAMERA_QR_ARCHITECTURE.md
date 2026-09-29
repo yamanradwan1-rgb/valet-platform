@@ -188,3 +188,13 @@ trust boundary identical whether a code was typed or scanned.
 - shared Live flow steps: parking spot confirm / key return, Check-In key
   assignment, retrieval key checkout, handoff pending step
 - `apps/valet/src/lib/i18n/dictionary-*-scanner.ts` fragments
+
+## Later accepted amendment — DEC-096
+
+DEC-096 adds explicit V2 static-resource payloads for newly generated
+Management Key Slot and Parking Spot labels while preserving this decision's V1
+grammar indefinitely. V2 preserves resource kind, immutable persisted UUID, and
+exact code through the scanner boundary so authoritative operational
+verification can reject a label from the wrong Location even when codes collide.
+Camera lifecycle, no-mutation-on-scan, manual fallback, and QR-as-input-not-
+authority requirements remain binding.

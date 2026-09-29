@@ -54,6 +54,7 @@ const locationStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const mutationOperations = new Set(["SET", "CLEAR"]);
 const visitContactFields = new Set(["displayName", "phoneNormalized"]);
 const contactNormalizationVersions = new Set(["JORDAN_MOBILE_V1"]);
+const physicalResourceTypes = new Set(["KEY_SLOT", "PARKING_SPOT"]);
 
 function metadata(value: unknown): Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -246,6 +247,11 @@ export function projectManagementAuditDetails(
             ),
             previousCurrency: currency(source.previousCurrency),
             previousTimezone: boundedText(source.previousTimezone, 255),
+            resourceCode: boundedText(source.resourceCode, 100),
+            resourceType: allowedString(
+              source.resourceType,
+              physicalResourceTypes,
+            ),
             status: allowedString(source.status, locationStatuses),
             toAcceptingIntake: booleanValue(source.toAcceptingIntake),
             toStatus: allowedString(source.toStatus, locationStatuses),

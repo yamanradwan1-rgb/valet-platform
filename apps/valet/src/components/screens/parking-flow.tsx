@@ -8,6 +8,7 @@ import {
   type ActiveParkingSession,
 } from "../../features/parking";
 import { useOnlineStatus } from "../../lib/connectivity/use-online-status";
+import type { QrResourcePayload } from "../../features/scanner/qr-resource-payload";
 import { ParkingKeyReturnStep } from "./parking-key-return-step";
 import { ParkingSpotConfirmStep } from "./parking-spot-confirm-step";
 import {
@@ -58,6 +59,8 @@ export function ParkingFlow({
   const [spotScanned, setSpotScanned] = useState(false);
   const [selectedSpot, setSelectedSpot] = useState("");
   const [selectedKeySlot, setSelectedKeySlot] = useState("");
+  const [selectedSpotScan, setSelectedSpotScan] = useState<QrResourcePayload | null>(null);
+  const [selectedKeySlotScan, setSelectedKeySlotScan] = useState<QrResourcePayload | null>(null);
   const isOnline = useOnlineStatus();
 
   const session = parking.activeSession;
@@ -169,13 +172,18 @@ export function ParkingFlow({
         error={liveError}
         isSubmitting={parking.isSubmitting}
         mode={mode}
-        onChangeSpot={setSelectedSpot}
+        onChangeSpot={(value) => {
+          setSelectedSpot(value);
+          setSelectedSpotScan(null);
+        }}
+        onScanSpot={(payload) => setSelectedSpotScan(payload)}
         onContinue={() => parking.setStep("key-return")}
         onBack={() => parking.setStep("in-progress")}
         onEnterManually={() => setSpotScanned(true)}
         onRescan={() => setSpotScanned(false)}
         onSimulateScan={() => {
           setSelectedSpot("P-101");
+          setSelectedSpotScan(null);
           setSpotScanned(true);
         }}
         spotScanned={spotScanned}
@@ -192,10 +200,21 @@ export function ParkingFlow({
         isSubmitting={parking.isSubmitting}
         keySlotCodeInput={selectedKeySlot}
         mode={mode}
-        onChangeKeySlotCode={setSelectedKeySlot}
+        onChangeKeySlotCode={(value) => {
+          setSelectedKeySlot(value);
+          setSelectedKeySlotScan(null);
+        }}
+        onScanKeySlot={(payload) => setSelectedKeySlotScan(payload)}
         onBack={() => parking.setStep("spot-scan")}
         onConfirm={async () => {
-          await parking.confirmParked(selectedSpot, selectedKeySlot);
+          await parking.confirmParked(selectedSpot, selectedKeySlot, {
+            ...(selectedKeySlotScan?.resourceId
+              ? { keySlotId: selectedKeySlotScan.resourceId }
+              : {}),
+            ...(selectedSpotScan?.resourceId
+              ? { parkingSpotId: selectedSpotScan.resourceId }
+              : {}),
+          });
         }}
       />
     );

@@ -55,6 +55,9 @@ export function NativeParkingSpotStep({
             confirmation.enterParkingSpot(value);
             if (value.trim() !== "") setReviewing(true);
           }}
+          onScanCandidate={(payload) => {
+            if (confirmation.acceptParkingSpotScan(payload)) setReviewing(true);
+          }}
           onManual={() => setReviewing(true)}
           textAlign={textAlign}
           title={copy.spotTitle}

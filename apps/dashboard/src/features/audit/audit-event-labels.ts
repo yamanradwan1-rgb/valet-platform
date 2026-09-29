@@ -28,6 +28,8 @@ const entities = {
   ORGANIZATION_MEMBERSHIP: ["Staff membership", "عضوية موظف"],
   MAP_POINT: ["Map point", "نقطة خريطة"],
   MAP_AREA: ["Map area", "منطقة خريطة"],
+  KEY_SLOT: ["Key Slot", "خانة مفتاح"],
+  PARKING_SPOT: ["Parking Spot", "موقف سيارة"],
 } satisfies Record<EntityType, readonly [string, string]>;
 
 export function auditActorLabel(

@@ -115,6 +115,9 @@ export function markReadyResult(
 export class StubRetrievalTransport implements EmployeeRetrievalTransport {
   readonly markReadyCalls: Array<{ sessionId: string; version: number }> = [];
   readonly startCalls: Array<{
+    readonly scannedKeySlot?:
+      | { readonly keySlotCode: string; readonly keySlotId: string }
+      | undefined;
     readonly sessionId: string;
     readonly sessionVersion: number;
     readonly taskVersion: number;
@@ -138,8 +141,12 @@ export class StubRetrievalTransport implements EmployeeRetrievalTransport {
     sessionId: string,
     expectedSessionVersion: number,
     expectedTaskVersion: number,
+    scannedKeySlot?:
+      | { readonly keySlotCode: string; readonly keySlotId: string }
+      | undefined,
   ) {
     this.startCalls.push({
+      scannedKeySlot,
       sessionId,
       sessionVersion: expectedSessionVersion,
       taskVersion: expectedTaskVersion,

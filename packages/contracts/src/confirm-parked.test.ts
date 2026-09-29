@@ -51,19 +51,38 @@ describe("VAL-005G/DEC-065 strict Confirm Parked contracts", () => {
       {
         expectedSessionVersion: 3,
         expectedTaskVersion: 4,
-        keySlotId: id,
-        keySlotCode: "K-03",
-        parkingSpotCode: "A-042",
-      },
-      {
-        expectedSessionVersion: 3,
-        expectedTaskVersion: 4,
         keySlotCode: "K-03",
         parkingSpotCode: "A-042",
         parkingZoneId: id,
       },
     ])
       expect(confirmParkedRequestSchema.safeParse(value).success).toBe(false);
+
+    expect(
+      confirmParkedRequestSchema.parse({
+        expectedSessionVersion: 3,
+        expectedTaskVersion: 4,
+        keySlotCode: "K-03",
+        keySlotId: id,
+        parkingSpotCode: "A-042",
+        parkingSpotId: id,
+      }),
+    ).toEqual({
+      expectedSessionVersion: 3,
+      expectedTaskVersion: 4,
+      keySlotCode: "K-03",
+      keySlotId: id,
+      parkingSpotCode: "A-042",
+      parkingSpotId: id,
+    });
+    expect(
+      confirmParkedRequestSchema.safeParse({
+        expectedSessionVersion: 3,
+        expectedTaskVersion: 4,
+        keySlotCode: "K-03",
+        parkingSpotId: id,
+      }).success,
+    ).toBe(false);
   });
 
   it("keeps the success response exact and minimal without slot detail", () => {

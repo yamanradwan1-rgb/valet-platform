@@ -107,6 +107,8 @@ const eventFamilies = {
   LOCATION_TIMEZONE_CORRECTED: "MANAGEMENT",
   VISIT_CONTACT_NAME_CORRECTED: "MANAGEMENT",
   VISIT_CONTACT_PHONE_CORRECTED: "MANAGEMENT",
+  KEY_SLOT_CREATED: "MANAGEMENT",
+  PARKING_SPOT_CREATED: "MANAGEMENT",
 } satisfies Record<ManagementAuditKnownEventType, ManagementAuditEventFamily>;
 
 export const managementAuditSupervisorEventTypes = [

@@ -60,6 +60,8 @@ function projectEntity(row: ManagementAuditQueryRow) {
     OrganizationMembership: "ORGANIZATION_MEMBERSHIP",
     LocationMapPoint: "MAP_POINT",
     LocationMapArea: "MAP_AREA",
+    KeySlot: "KEY_SLOT",
+    ParkingSpot: "PARKING_SPOT",
   } as const;
   const type = mapped[row.entityType as keyof typeof mapped];
   return type === undefined ? null : { id: row.entityId, type };

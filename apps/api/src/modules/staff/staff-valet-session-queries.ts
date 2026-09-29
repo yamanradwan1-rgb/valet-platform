@@ -182,10 +182,10 @@ export async function loadVehicle(
 export async function loadKeySlot(
   client: PostgresTransaction,
   session: SessionScopeRow,
-): Promise<{ code: string } | null> {
+): Promise<{ code: string; keySlotId: string } | null> {
   if (session.key_slot_id === null) return null;
-  const result = await client.query<{ code: string }>(
-    `SELECT code
+  const result = await client.query<{ code: string; keySlotId: string }>(
+    `SELECT id::text AS "keySlotId", code
      FROM key_slots
      WHERE id = $1 AND organization_id = $2 AND location_id = $3
      FOR SHARE`,

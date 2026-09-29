@@ -17,6 +17,7 @@ import {
 import { AdministrationPage, ReadState, styles } from "../administration-ui";
 import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { useAuthoritativeRead } from "../use-authoritative-read";
+import { PhysicalResourcesPanel } from "../physical-resources/physical-resources-panel";
 import { LocationMaster } from "./location-master";
 import { LocationDetail } from "./location-detail";
 import reference from "./locations-reference.module.css";
@@ -78,6 +79,16 @@ function LocationsPageContent() {
     dashboard.selectedScope.authority === "LOCATION_MANAGER"
       ? dashboard.selectedScope.location
       : null;
+  const selectedScopeLocation =
+    dashboard.selectedScope.authority === "COMPANY_ADMIN"
+      ? dashboard.selectedScope.context.selectedLocation
+      : null;
+  const selectedListLocation =
+    locations.data?.items.find((item) => item.locationId === selectedId) ?? null;
+  const selectedLocation =
+    lifecycle.data ??
+    selectedListLocation ??
+    (selectedScopeLocation?.locationId === selectedId ? selectedScopeLocation : null);
   function select(id: string) {
     setSelectedId(id);
     setLifecycleMfaDismissed(false);
@@ -113,7 +124,14 @@ function LocationsPageContent() {
               className={`${styles.card} ${reference.detail}`}
               data-testid="location-detail"
             >
-              <LocationDetail location={lmLocation} />
+              <LocationDetail location={lmLocation}>
+                <PhysicalResourcesPanel
+                  api={dashboard.api}
+                  identityGeneration={dashboard.identityGeneration}
+                  location={lmLocation}
+                  scopeKey={scopeKey}
+                />
+              </LocationDetail>
             </section>
           </div>
         ) : null}
@@ -152,39 +170,52 @@ function LocationsPageContent() {
                 data-testid="location-detail"
               >
                 {selectedId ? (
-                  <ReadState
-                    error={
-                      lifecycle.error &&
-                      (!lifecycleNeedsMfa || lifecycleMfaDismissed)
-                        ? new Error(administrationErrorMessage(lifecycle.error))
-                        : null
-                    }
-                    loading={lifecycle.loading && !lifecycle.data}
-                    onRetry={lifecycle.refresh}
-                  >
-                    {lifecycle.data ? (
-                      <LocationDetail
-                        location={lifecycle.data}
-                        addressText={lifecycle.data.addressText}
+                  selectedLocation ? (
+                    <LocationDetail
+                      {...(lifecycle.data?.addressText === undefined
+                        ? {}
+                        : { addressText: lifecycle.data.addressText })}
+                      location={selectedLocation}
+                    >
+                      <PhysicalResourcesPanel
+                        api={dashboard.api}
+                        identityGeneration={dashboard.identityGeneration}
+                        key={`physical-${selectedLocation.locationId}`}
+                        location={selectedLocation}
+                        scopeKey={scopeKey}
+                      />
+                      <ReadState
+                        error={
+                          lifecycle.error &&
+                          (!lifecycleNeedsMfa || lifecycleMfaDismissed)
+                            ? new Error(administrationErrorMessage(lifecycle.error))
+                            : null
+                        }
+                        loading={lifecycle.loading && !lifecycle.data && !lifecycleNeedsMfa}
+                        onRetry={lifecycle.refresh}
                       >
-                        <LocationLifecyclePanel
-                          api={dashboard.api}
-                          key={lifecycle.data.locationId}
-                          location={lifecycle.data}
-                          organizationId={scope.organizationId}
-                          refreshing={lifecycle.loading}
-                          onReload={() => {
-                            lifecycle.refresh();
-                            locations.refresh();
-                          }}
-                        />
-                      </LocationDetail>
-                    ) : lifecycleNeedsMfa ? (
-                      <div className={styles.empty}>
-                        {translate("mfaStatusStepUpRequired")}
-                      </div>
-                    ) : null}
-                  </ReadState>
+                        {lifecycle.data ? (
+                          <LocationLifecyclePanel
+                            api={dashboard.api}
+                            key={lifecycle.data.locationId}
+                            location={lifecycle.data}
+                            organizationId={scope.organizationId}
+                            refreshing={lifecycle.loading}
+                            onReload={() => {
+                              lifecycle.refresh();
+                              locations.refresh();
+                            }}
+                          />
+                        ) : lifecycleNeedsMfa ? (
+                          <div className={styles.empty}>
+                            {translate("mfaStatusStepUpRequired")}
+                          </div>
+                        ) : null}
+                      </ReadState>
+                    </LocationDetail>
+                  ) : (
+                    <div className={styles.empty}>{t.selectLocation}</div>
+                  )
                 ) : (
                   <div className={styles.empty}>{t.selectLocation}</div>
                 )}

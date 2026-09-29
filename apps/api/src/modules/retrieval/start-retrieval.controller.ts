@@ -76,6 +76,10 @@ export class StartRetrievalController {
           authenticatedUserId,
           expectedSessionVersion: input.expectedSessionVersion,
           expectedTaskVersion: input.expectedTaskVersion,
+          ...(input.keySlotCode === undefined
+            ? {}
+            : { keySlotCode: input.keySlotCode }),
+          ...(input.keySlotId === undefined ? {} : { keySlotId: input.keySlotId }),
           sessionId: parseSessionId(sessionIdRaw),
         }),
       );

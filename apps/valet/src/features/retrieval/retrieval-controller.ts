@@ -9,33 +9,12 @@ import type {
   RetrievalFlowStep,
   RetrievalState,
 } from "./retrieval-types";
-
-function getErrMsg(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
-}
-
-function resolveInitialStep(state?: string): RetrievalFlowStep {
-  if (state === "RETRIEVING") return "in-progress";
-  if (state === "READY") return "vehicle-ready";
-  if (state === "HANDOFF_PENDING") return "handoff";
-  if (state === "COMPLETED") return "handoff-completed";
-  return "key-checkout";
-}
-
-const VALID_STATUS_MAP: Record<
-  | "COMPLETED"
-  | "READY"
-  | "REQUESTED"
-  | "RETRIEVING"
-  | "HANDOFF_PENDING",
-  "ACCEPTED" | "COMPLETED" | "IN_PROGRESS"
-> = {
-  COMPLETED: "COMPLETED",
-  HANDOFF_PENDING: "IN_PROGRESS",
-  READY: "IN_PROGRESS",
-  REQUESTED: "ACCEPTED",
-  RETRIEVING: "IN_PROGRESS",
-};
+import {
+  createActiveRetrievalSession,
+  expectedRetrievalTaskStatus,
+  retrievalErrorMessage,
+  retrievalInitialStep,
+} from "./retrieval-controller-state";
 
 export class RetrievalController {
   private membershipId: string | null = null;
@@ -60,7 +39,7 @@ export class RetrievalController {
         error: null,
         isHydrating: false,
         isSubmitting: false,
-        step: resolveInitialStep(initialSession.state),
+        step: retrievalInitialStep(initialSession.state),
       };
     }
   }
@@ -92,7 +71,7 @@ export class RetrievalController {
       error: null,
       isHydrating: false,
       isSubmitting: false,
-      step: resolveInitialStep(session.state),
+      step: retrievalInitialStep(session.state),
     });
   }
 
@@ -143,60 +122,54 @@ export class RetrievalController {
         );
       }
 
-      const expectedStatus = VALID_STATUS_MAP[detail.state];
+      const expectedStatus = expectedRetrievalTaskStatus(detail.state);
       if (taskStatus !== expectedStatus) {
         throw new Error(
           `Task status ${taskStatus} is incompatible with ${detail.state} session state.`,
         );
       }
 
-      const activeSession: ActiveRetrievalSession = {
-        expectedKeySlotCode: detail.keySlot?.code ?? null,
-        handoff: detail.handoff,
-        isKeyConfirmed: false,
-        locationId: detail.locationId,
-        parkingSpotCode: detail.parking.parkingSpotCode,
-        parkingZoneCode: detail.parking.parkingZoneCode,
-        readyAt: null,
-        retrievalStartedAt: null,
-        sessionId: detail.sessionId,
-        sessionVersion: detail.version,
-        state: detail.state,
+      const activeSession = createActiveRetrievalSession(
+        detail,
+        detail.state,
         taskId,
-        taskStatus,
         taskVersion,
-        vehicle: {
-          color: detail.vehicle.color,
-          make: detail.vehicle.make,
-          model: detail.vehicle.model,
-          plateCountry: detail.vehicle.plateCountry,
-          plateNumberRaw: detail.vehicle.plateNumberRaw,
-          temporaryDescriptor: detail.vehicle.temporaryDescriptor,
-        },
-      };
+        taskStatus,
+      );
 
       this.update({
         activeSession,
         isHydrating: false,
-        step: resolveInitialStep(detail.state),
+        step: retrievalInitialStep(detail.state),
       });
     } catch (err: unknown) {
       this.update({
         activeSession: null,
-        error: getErrMsg(err, "Failed to load retrieval session detail."),
+        error: retrievalErrorMessage(err, "Failed to load retrieval session detail."),
         isHydrating: false,
       });
     }
   }
 
-  confirmKey(inputKeySlotCode: string): boolean {
+  confirmKey(inputKeySlotCode: string, scannedKeySlotId: string | null = null): boolean {
     const session = this.state.activeSession;
     if (!session) return false;
-    const expected = session.expectedKeySlotCode?.trim().toUpperCase() ?? "";
-    const input = inputKeySlotCode.trim().toUpperCase();
-    const isMatch = expected !== "" && expected === input;
+    const expectedExact = session.expectedKeySlotCode?.trim() ?? "";
+    const inputExact = inputKeySlotCode.trim();
+    const isV2 = scannedKeySlotId !== null;
+    const isMatch = isV2
+      ? expectedExact !== "" &&
+        expectedExact === inputExact &&
+        session.expectedKeySlotId === scannedKeySlotId
+      : expectedExact !== "" &&
+        expectedExact.toUpperCase() === inputExact.toUpperCase();
     this.update({
-      activeSession: { ...session, isKeyConfirmed: isMatch },
+      activeSession: {
+        ...session,
+        isKeyConfirmed: isMatch,
+        verifiedKeySlotCode: isMatch && isV2 ? inputExact : null,
+        verifiedKeySlotId: isMatch && isV2 ? scannedKeySlotId : null,
+      },
       error: isMatch ? null : "Key slot does not match expected key.",
     });
     return isMatch;
@@ -221,7 +194,18 @@ export class RetrievalController {
     this.update({ error: null, isSubmitting: true });
     try {
       const res = await startRetrievalSession(
-        this.apiClient, session.sessionId, session.sessionVersion, session.taskVersion,
+        this.apiClient,
+        session.sessionId,
+        session.sessionVersion,
+        session.taskVersion,
+        {},
+        typeof session.verifiedKeySlotId === "string" &&
+        typeof session.verifiedKeySlotCode === "string"
+          ? {
+              keySlotCode: session.verifiedKeySlotCode,
+              keySlotId: session.verifiedKeySlotId,
+            }
+          : undefined,
       );
       this.update({
         activeSession: {
@@ -238,7 +222,7 @@ export class RetrievalController {
         step: "in-progress",
       });
     } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to start retrieval."), isSubmitting: false });
+      this.update({ error: retrievalErrorMessage(err, "Failed to start retrieval."), isSubmitting: false });
     }
   }
 
@@ -274,7 +258,7 @@ export class RetrievalController {
         step: "vehicle-ready",
       });
     } catch (err: unknown) {
-      this.update({ error: getErrMsg(err, "Failed to mark vehicle ready."), isSubmitting: false });
+      this.update({ error: retrievalErrorMessage(err, "Failed to mark vehicle ready."), isSubmitting: false });
     }
   }
 }

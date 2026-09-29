@@ -12,6 +12,7 @@ import type {
   EmployeeRetrievalSnapshot,
   EmployeeRetrievalTransport,
 } from "./employee-retrieval-flow-types";
+import type { QrResourcePayload } from "./qr-resource-payload";
 
 /**
  * Canonical reconciliation for the Retrieval workflow (MOB-013).
@@ -52,6 +53,7 @@ export function emptyRetrievalSnapshot(
     identityGeneration,
     keyConfirmed: false,
     keySlotCandidate: "",
+    keySlotResourceId: null,
     phase,
     readyAt: null,
     retrievalStartedAt: null,
@@ -106,6 +108,66 @@ export function isRetrievalKeyMatch(
   // protected start-retrieval command re-validates canonical key/custody.
   const expected = expectedKeySlotCode?.trim() ?? "";
   return expected !== "" && candidate.trim() === expected;
+}
+
+export function isRetrievalV2KeyMatch(
+  session: StaffValetSessionDetailResponse,
+  candidateCode: string,
+  candidateId: string,
+): boolean {
+  return (
+    session.keySlot !== null &&
+    session.keySlot.keySlotId === candidateId &&
+    isRetrievalKeyMatch(session.keySlot.code, candidateCode)
+  );
+}
+
+export function withRetrievalKeyCandidate(
+  snapshot: EmployeeRetrievalSnapshot,
+  code: string,
+  resourceId: string | null,
+): EmployeeRetrievalSnapshot {
+  return {
+    ...snapshot,
+    failure: null,
+    keyConfirmed: false,
+    keySlotCandidate: code,
+    keySlotResourceId: resourceId,
+  };
+}
+
+export function retrievalKeyCandidateMatches(
+  snapshot: EmployeeRetrievalSnapshot,
+): boolean {
+  const session = snapshot.session;
+  if (session === null) return false;
+  return snapshot.keySlotResourceId === null
+    ? isRetrievalKeyMatch(session.keySlot?.code ?? null, snapshot.keySlotCandidate)
+    : isRetrievalV2KeyMatch(
+        session,
+        snapshot.keySlotCandidate,
+        snapshot.keySlotResourceId,
+      );
+}
+
+export function retrievalV2ScanAccepted(
+  snapshot: EmployeeRetrievalSnapshot,
+  candidate: QrResourcePayload,
+): boolean {
+  return (
+    candidate.kind === "key-slot" &&
+    snapshot.phase === "key-checkout" &&
+    snapshot.session !== null
+  );
+}
+
+export function retrievalScannedKeyInput(snapshot: EmployeeRetrievalSnapshot) {
+  return snapshot.keySlotResourceId === null
+    ? undefined
+    : {
+        keySlotCode: snapshot.keySlotCandidate,
+        keySlotId: snapshot.keySlotResourceId,
+      };
 }
 
 export function classifyRetrievalCanonical(
@@ -189,10 +251,16 @@ export async function loadRetrievalCanonical(
   const retainKeyConfirmation =
     phase === "key-checkout" &&
     ["key-checkout", "submitting-start", "reconciling"].includes(previous) &&
-    isRetrievalKeyMatch(
-      session.keySlot?.code ?? null,
-      snapshot.keySlotCandidate,
-    );
+    (snapshot.keySlotResourceId === null
+      ? isRetrievalKeyMatch(
+          session.keySlot?.code ?? null,
+          snapshot.keySlotCandidate,
+        )
+      : isRetrievalV2KeyMatch(
+          session,
+          snapshot.keySlotCandidate,
+          snapshot.keySlotResourceId,
+        ));
   return {
     ...snapshot,
     failure: null,
@@ -201,6 +269,10 @@ export async function loadRetrievalCanonical(
       retainKeyConfirmation || phase === "key-checkout"
         ? snapshot.keySlotCandidate
         : "",
+    keySlotResourceId:
+      retainKeyConfirmation || phase === "key-checkout"
+        ? snapshot.keySlotResourceId
+        : null,
     phase,
     session,
     task: task ?? null,

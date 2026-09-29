@@ -4002,3 +4002,22 @@ handoffs remain sourced from the persisted completing membership.
 
 Full contract:
 `docs/decisions/DEC-095_MANAGEMENT_KPI_SOURCE_CONTRACTS.md`.
+
+---
+
+## DEC-096 — Physical Resource Configuration and QR Identity
+
+Status: Accepted
+Date: 2026-09-29
+
+Management may create/list persisted Key Slots and Parking Spots at an exact
+Location under the approved Company Admin / Location Manager authority matrix.
+New Management labels use V2 static-resource QR payloads containing resource
+kind, immutable UUID, and exact code; V1 remains supported indefinitely. V2
+operational use verifies persisted UUID, Organization, Location, code, and
+ACTIVE state. ParkingSpot creation requires an ACTIVE same-Location
+ParkingZone. Runtime keeps no direct INSERT on physical-resource tables and
+writes only through narrow audited SECURITY DEFINER functions.
+
+Full contract:
+`docs/decisions/DEC-096_PHYSICAL_RESOURCE_CONFIGURATION_QR_IDENTITY.md`.

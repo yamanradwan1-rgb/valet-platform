@@ -30,6 +30,7 @@ export interface RetrievalHandoffSnapshot {
 
 export interface ActiveRetrievalSession {
   readonly expectedKeySlotCode: string | null;
+  readonly expectedKeySlotId?: string | null;
   readonly handoff: RetrievalHandoffSnapshot;
   readonly isKeyConfirmed: boolean;
   readonly locationId: string;
@@ -48,6 +49,8 @@ export interface ActiveRetrievalSession {
   readonly taskId: string;
   readonly taskStatus: "ACCEPTED" | "IN_PROGRESS" | "COMPLETED";
   readonly taskVersion: number;
+  readonly verifiedKeySlotCode?: string | null;
+  readonly verifiedKeySlotId?: string | null;
   readonly vehicle: RetrievalVehicleInfo;
 }
 

@@ -1,0 +1,7 @@
+@media print {
+  :global(body *) { visibility: hidden !important; }
+  .printRoot, .printRoot * { visibility: visible !important; }
+  .printRoot { position: fixed; inset: 0; width: 100%; min-height: 100%; margin: 0; padding: 12mm; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; display: grid; place-content: start center; background: #fff !important; color: #07111f !important; }
+  .printRoot img { width: 80mm !important; max-width: 80mm !important; image-rendering: pixelated; }
+  .printHidden { display: none !important; }
+}

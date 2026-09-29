@@ -59,6 +59,10 @@ export function NativeRetrievalKeyInput({
         locale={locale}
         manualHint={copy.manualHint}
         onChange={updateCandidate}
+        onResourceScan={(payload) => {
+          setCandidate(payload.resourceCode);
+          retrieval.acceptKeySlotScan(payload);
+        }}
         openHeight={48}
         openLabel={copy.scanQr}
         openRadius={12}

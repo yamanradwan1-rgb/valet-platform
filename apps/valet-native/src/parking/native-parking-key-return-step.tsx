@@ -66,6 +66,9 @@ export function NativeParkingKeyReturnStep({
             confirmation.enterKeySlot(value);
             if (value.trim() !== "") setReviewing(true);
           }}
+          onScanCandidate={(payload) => {
+            if (confirmation.acceptKeySlotScan(payload)) setReviewing(true);
+          }}
           onManual={() => setReviewing(true)}
           textAlign={textAlign}
           title={copy.keySlot}

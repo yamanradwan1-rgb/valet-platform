@@ -10,6 +10,7 @@ import {
   resourceQrScanLabels,
   ResourceQrScanSection,
 } from "../scanner/resource-qr-scan-section";
+import type { QrResourcePayload } from "../../features/scanner/qr-resource-payload";
 
 export interface ParkingSpotConfirmStepProps {
   readonly destination: string;
@@ -17,6 +18,7 @@ export interface ParkingSpotConfirmStepProps {
   readonly isSubmitting?: boolean | undefined;
   readonly mode?: "live" | "prototype" | undefined;
   readonly onChangeSpot: (code: string) => void;
+  readonly onScanSpot?: ((payload: QrResourcePayload) => void) | undefined;
   readonly onContinue: () => void;
   readonly onBack: () => void;
   readonly onEnterManually: () => void;
@@ -38,6 +40,7 @@ export function ParkingSpotConfirmStep({
   isSubmitting = false,
   mode = "live",
   onChangeSpot,
+  onScanSpot,
   onContinue,
   onBack,
   onEnterManually,
@@ -70,6 +73,7 @@ export function ParkingSpotConfirmStep({
                 onChangeSpot(code);
                 onEnterManually();
               }}
+              onDecodedIdentity={onScanSpot}
             />
             <div className="p-5 space-y-3">
               <Btn

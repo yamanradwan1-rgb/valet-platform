@@ -1,10 +1,14 @@
-import { parseResourceQr, type QrResourceKind } from "./qr-resource-payload";
+import {
+  parseResourceQr,
+  type QrResourceKind,
+  type QrResourcePayload,
+} from "./qr-resource-payload";
 
 // Existing Employee Web handoff pattern, shared without a new protocol.
 export const DYNAMIC_QR_PATTERN = /^vhq1\.[A-Za-z0-9_-]{43}$/;
 export type QrInputKind = QrResourceKind | "dynamic-handoff";
 export type QrInput =
-  | { readonly kind: QrResourceKind; readonly resourceCode: string }
+  | QrResourcePayload
   | { readonly kind: "dynamic-handoff"; readonly proof: string };
 export type QrInputResult =
   | { readonly ok: true; readonly value: QrInput }

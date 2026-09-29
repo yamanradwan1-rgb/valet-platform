@@ -28,6 +28,10 @@ export interface UseParkingResult {
   readonly confirmParked: (
     parkingSpotCode: string,
     keySlotCode: string,
+    resourceIdentity?: {
+      readonly keySlotId?: string;
+      readonly parkingSpotId?: string;
+    },
   ) => Promise<void>;
   readonly error: string | null;
   readonly errorCode: string | null;
@@ -89,8 +93,15 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
   }, [controller, initialSession, sessionId, taskId, taskVersion]);
 
   const confirmParked = useCallback(
-    async (parkingSpotCode: string, keySlotCode: string) => {
-      await controller.confirmParked(parkingSpotCode, keySlotCode);
+    async (
+      parkingSpotCode: string,
+      keySlotCode: string,
+      resourceIdentity: {
+        readonly keySlotId?: string;
+        readonly parkingSpotId?: string;
+      } = {},
+    ) => {
+      await controller.confirmParked(parkingSpotCode, keySlotCode, resourceIdentity);
     },
     [controller],
   );

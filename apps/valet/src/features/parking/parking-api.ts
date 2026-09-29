@@ -103,6 +103,10 @@ export async function confirmParkedSession(
   parkingSpotCode: string,
   keySlotCode: string,
   options: ParkingApiRequestOptions = {},
+  resourceIdentity: {
+    readonly keySlotId?: string;
+    readonly parkingSpotId?: string;
+  } = {},
 ): Promise<ConfirmParkedResponse> {
   const raw = await client.request<unknown>(
     `/v1/staff/valet-sessions/${sessionId}/confirm-parked`,
@@ -112,7 +116,13 @@ export async function confirmParkedSession(
         expectedSessionVersion,
         expectedTaskVersion,
         keySlotCode,
+        ...(resourceIdentity.keySlotId === undefined
+          ? {}
+          : { keySlotId: resourceIdentity.keySlotId }),
         parkingSpotCode,
+        ...(resourceIdentity.parkingSpotId === undefined
+          ? {}
+          : { parkingSpotId: resourceIdentity.parkingSpotId }),
       },
       signal: options.signal,
       requireAuth: true,

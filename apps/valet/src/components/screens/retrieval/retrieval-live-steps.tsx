@@ -14,6 +14,7 @@ import {
   resourceQrScanLabels,
   ResourceQrScanSection,
 } from "../../scanner/resource-qr-scan-section";
+import type { QrResourcePayload } from "../../../features/scanner/qr-resource-payload";
 
 export function LiveRetrievalKeyCheckoutStep({
   expectedKey,
@@ -31,16 +32,17 @@ export function LiveRetrievalKeyCheckoutStep({
   readonly isKeyConfirmed: boolean;
   readonly isSubmitting: boolean;
   readonly onBack: () => void;
-  readonly onConfirmKey: (input: string) => boolean;
+  readonly onConfirmKey: (input: string, scannedId: string | null) => boolean;
   readonly onStartRetrieval: () => Promise<void>;
   readonly parkingLocation: string | null;
   readonly vehicleInfo: string;
 }): JSX.Element {
   const { t } = useEmployeeI18n();
   const [inputKey, setInputKey] = useState(expectedKey ?? "");
+  const [scannedKey, setScannedKey] = useState<QrResourcePayload | null>(null);
 
   const handleVerify = () => {
-    onConfirmKey(inputKey);
+    onConfirmKey(inputKey, scannedKey?.resourceId ?? null);
   };
 
   return (
@@ -76,7 +78,8 @@ export function LiveRetrievalKeyCheckoutStep({
             <ResourceQrScanSection
               expectedKind="key-slot"
               labels={resourceQrScanLabels(t, "key-slot")}
-              onDecoded={setInputKey}
+              onDecoded={(value) => setInputKey(value)}
+              onDecodedIdentity={setScannedKey}
             />
             <div>
               <label className="text-neutral text-xs font-semibold uppercase tracking-wider block mb-1">
@@ -85,7 +88,10 @@ export function LiveRetrievalKeyCheckoutStep({
               <input
                 value={inputKey}
                 dir="ltr"
-                onChange={(e) => setInputKey(e.target.value)}
+                onChange={(e) => {
+                  setInputKey(e.target.value);
+                  setScannedKey(null);
+                }}
                 placeholder={t.enterKeySlotCode}
                 className="w-full text-center font-heading font-semibold text-xl text-navy bg-white border border-vborder rounded-xl h-12 focus:outline-none focus:border-vblue"
               />

@@ -84,13 +84,20 @@ async function resolveScannedKeySlot(
   transaction: PostgresTransaction,
   session: LockedConfirmSession,
   scannedKeySlotCode: string,
+  scannedKeySlotId?: string,
 ): Promise<string> {
   const result = await transaction.query<{ id: string }>(
     `SELECT id::text FROM key_slots
      WHERE organization_id = $1 AND location_id = $2
        AND code = $3 AND status = 'ACTIVE'
+       AND ($4::uuid IS NULL OR id = $4::uuid)
      FOR UPDATE`,
-    [session.organization_id, session.location_id, scannedKeySlotCode],
+    [
+      session.organization_id,
+      session.location_id,
+      scannedKeySlotCode,
+      scannedKeySlotId ?? null,
+    ],
   );
   const keySlotId = result.rows[0]?.id;
   if (keySlotId === undefined) {
@@ -103,12 +110,14 @@ export async function lockConfirmKeySlot(
   transaction: PostgresTransaction,
   session: LockedConfirmSession,
   scannedKeySlotCode: string,
+  scannedKeySlotId?: string,
 ): Promise<LockedConfirmKeySlot> {
   if (session.key_slot_id === null) {
     const keySlotId = await resolveScannedKeySlot(
       transaction,
       session,
       scannedKeySlotCode,
+      scannedKeySlotId,
     );
     const occupancy = await transaction.query<{ id: string }>(
       `SELECT id::text FROM valet_sessions
@@ -129,6 +138,7 @@ export async function lockConfirmKeySlot(
     transaction,
     session,
     scannedKeySlotCode,
+    scannedKeySlotId,
   );
   if (keySlotId !== session.key_slot_id) {
     throw new ConfirmParkedError("KEY_CUSTODY_NOT_READY");

@@ -2,7 +2,11 @@
 
 import { useCallback, type JSX } from "react";
 
-import { parseResourceQr, type QrResourceKind } from "../../features/scanner/qr-resource-payload";
+import {
+  parseResourceQr,
+  type QrResourceKind,
+  type QrResourcePayload,
+} from "../../features/scanner/qr-resource-payload";
 import { useQrScannerCapture } from "../../features/scanner/use-qr-scanner-capture";
 import { QrCameraView, type QrCameraViewStatus } from "./qr-camera-view";
 import type { EmployeeDictionary } from "../../lib/i18n/dictionary";
@@ -51,26 +55,32 @@ export interface ResourceQrScanSectionProps {
   readonly labels: ResourceQrScanLabels;
   /** Receives the byte-exact resource code of the single accepted decode. */
   readonly onDecoded: (resourceCode: string) => void;
+  /** Preserves V2 immutable identity without changing V1/manual code ownership. */
+  readonly onDecodedIdentity?: ((payload: QrResourcePayload) => void) | undefined;
 }
 
 export function ResourceQrScanSection({
   expectedKind,
   labels,
   onDecoded,
+  onDecodedIdentity,
 }: ResourceQrScanSectionProps): JSX.Element {
   const interpret = useCallback(
     (text: string) => {
       const parsed = parseResourceQr(text, expectedKind);
       return parsed.ok
-        ? ({ ok: true as const, value: parsed.payload.resourceCode })
+        ? ({ ok: true as const, value: parsed.payload })
         : ({ ok: false as const, reason: parsed.reason });
     },
     [expectedKind],
   );
 
-  const scanner = useQrScannerCapture<string>({
+  const scanner = useQrScannerCapture<QrResourcePayload>({
     interpret,
-    onDecoded,
+    onDecoded: (payload) => {
+      onDecoded(payload.resourceCode);
+      onDecodedIdentity?.(payload);
+    },
   });
 
   const status: QrCameraViewStatus =

@@ -104,6 +104,10 @@ export async function lockRetrievalRequest(
 export async function lockRetrievalResources(
   transaction: PostgresTransaction,
   session: LockedStartRetrievalSession,
+  scanned: {
+    readonly keySlotCode?: string;
+    readonly keySlotId?: string;
+  } = {},
 ): Promise<{ readonly keySlotId: string; readonly parkingSpotId: string | null }> {
   if (session.key_slot_id === null || session.parking_zone_id === null) {
     throw new StartRetrievalError("KEY_CUSTODY_NOT_READY");
@@ -111,8 +115,17 @@ export async function lockRetrievalResources(
   const keySlot = await transaction.query<{ id: string }>(
     `SELECT id::text FROM key_slots
      WHERE id = $1 AND organization_id = $2 AND location_id = $3
-       AND status = 'ACTIVE' FOR UPDATE`,
-    [session.key_slot_id, session.organization_id, session.location_id],
+       AND status = 'ACTIVE'
+       AND ($4::uuid IS NULL OR id = $4::uuid)
+       AND ($5::text IS NULL OR code = $5::text)
+     FOR UPDATE`,
+    [
+      session.key_slot_id,
+      session.organization_id,
+      session.location_id,
+      scanned.keySlotId ?? null,
+      scanned.keySlotCode ?? null,
+    ],
   );
   if (keySlot.rows[0] === undefined) {
     throw new StartRetrievalError("KEY_CUSTODY_NOT_READY");

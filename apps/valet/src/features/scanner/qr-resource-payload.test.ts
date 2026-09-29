@@ -4,14 +4,23 @@ import {
   hasKnownResourcePrefix,
   parseResourceQr,
   RESOURCE_QR_MAX_LENGTH,
+  RESOURCE_QR_V2_MAX_LENGTH,
+  RESOURCE_QR_V2_PREFIXES,
 } from "./qr-resource-payload";
+
+const resourceId = "11111111-2222-4333-8444-555555555555";
 
 describe("DEC-067 resource QR payload parser", () => {
   it("accepts a key-slot payload and preserves the code byte-exact", () => {
     const result = parseResourceQr("vaylet:key-slot:B-214", "key-slot");
     expect(result).toEqual({
       ok: true,
-      payload: { kind: "key-slot", resourceCode: "B-214" },
+      payload: {
+        kind: "key-slot",
+        resourceCode: "B-214",
+        resourceId: null,
+        version: "V1",
+      },
     });
   });
 
@@ -22,7 +31,29 @@ describe("DEC-067 resource QR payload parser", () => {
     );
     expect(result).toEqual({
       ok: true,
-      payload: { kind: "parking-spot", resourceCode: "P-101" },
+      payload: {
+        kind: "parking-spot",
+        resourceCode: "P-101",
+        resourceId: null,
+        version: "V1",
+      },
+    });
+  });
+
+  it("accepts V2 and preserves immutable identity and code", () => {
+    expect(
+      parseResourceQr(
+        `${RESOURCE_QR_V2_PREFIXES["key-slot"]}${resourceId}:k:A-1`,
+        "key-slot",
+      ),
+    ).toEqual({
+      ok: true,
+      payload: {
+        kind: "key-slot",
+        resourceCode: "k:A-1",
+        resourceId,
+        version: "V2",
+      },
     });
   });
 
@@ -109,6 +140,17 @@ describe("DEC-067 resource QR payload parser", () => {
     expect(boundary.ok).toBe(true);
   });
 
+  it("rejects overlong V2 payloads at the derived cap", () => {
+    const prefix = RESOURCE_QR_V2_PREFIXES["parking-spot"];
+    const code = "A".repeat(RESOURCE_QR_V2_MAX_LENGTH - prefix.length - 37);
+    expect(
+      parseResourceQr(`${prefix}${resourceId}:${code}`, "parking-spot").ok,
+    ).toBe(true);
+    expect(
+      parseResourceQr(`${prefix}${resourceId}:${code}X`, "parking-spot"),
+    ).toEqual({ ok: false, reason: "too-long" });
+  });
+
   it("rejects non-string input defensively", () => {
     expect(parseResourceQr(null, "key-slot")).toEqual({
       ok: false,
@@ -119,6 +161,7 @@ describe("DEC-067 resource QR payload parser", () => {
   it("reports which payloads carry any known VAYLET resource prefix", () => {
     expect(hasKnownResourcePrefix("vaylet:key-slot:X")).toBe(true);
     expect(hasKnownResourcePrefix("vaylet:parking-spot:Y")).toBe(true);
+    expect(hasKnownResourcePrefix(`vaylet:v2:key-slot:${resourceId}:X`)).toBe(true);
     expect(hasKnownResourcePrefix("vhq1.abc")).toBe(false);
   });
 });

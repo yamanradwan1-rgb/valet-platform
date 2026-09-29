@@ -16,7 +16,9 @@ export interface EmployeeConfirmParkedAttempt {
   readonly expectedSessionVersion: number;
   readonly expectedTaskVersion: number;
   readonly keySlotCode: string;
+  readonly keySlotId: string | null;
   readonly parkingSpotCode: string;
+  readonly parkingSpotId: string | null;
   readonly target: EmployeeConfirmParkedTarget;
 }
 
@@ -37,7 +39,9 @@ export function createConfirmParkedAttempt(
     expectedSessionVersion: snapshot.session.version,
     expectedTaskVersion: snapshot.task.version,
     keySlotCode: snapshot.keySlotCandidate,
+    keySlotId: snapshot.keySlotResourceId,
     parkingSpotCode: snapshot.parkingSpotCandidate,
+    parkingSpotId: snapshot.parkingSpotResourceId,
     target,
   };
 }
@@ -51,7 +55,9 @@ export function confirmParkedAttemptMatches(
     snapshot.session?.version === attempt.expectedSessionVersion &&
     snapshot.task?.version === attempt.expectedTaskVersion &&
     snapshot.keySlotCandidate === attempt.keySlotCode &&
-    snapshot.parkingSpotCandidate === attempt.parkingSpotCode
+    snapshot.keySlotResourceId === attempt.keySlotId &&
+    snapshot.parkingSpotCandidate === attempt.parkingSpotCode &&
+    snapshot.parkingSpotResourceId === attempt.parkingSpotId
   );
 }
 
@@ -63,7 +69,11 @@ export async function executeConfirmParkedOperation(
     expectedSessionVersion: attempt.expectedSessionVersion,
     expectedTaskVersion: attempt.expectedTaskVersion,
     keySlotCode: attempt.keySlotCode,
+    ...(attempt.keySlotId === null ? {} : { keySlotId: attempt.keySlotId }),
     parkingSpotCode: attempt.parkingSpotCode,
+    ...(attempt.parkingSpotId === null
+      ? {}
+      : { parkingSpotId: attempt.parkingSpotId }),
   });
   if (
     response.sessionId !== attempt.target.sessionId ||

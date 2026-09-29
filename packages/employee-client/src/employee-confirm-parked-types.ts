@@ -44,8 +44,10 @@ export interface EmployeeConfirmParkedSnapshot {
   readonly failure: EmployeeOperationalFailure | null;
   readonly identityGeneration: number | null;
   readonly keySlotCandidate: string;
+  readonly keySlotResourceId: string | null;
   readonly parked: EmployeeConfirmParkedSuccess | null;
   readonly parkingSpotCandidate: string;
+  readonly parkingSpotResourceId: string | null;
   readonly phase: EmployeeConfirmParkedPhase;
   readonly scope: EmployeeOperationalScope | null;
   readonly session: StaffValetSessionDetailResponse | null;
@@ -59,7 +61,9 @@ export interface EmployeeConfirmParkedTransport {
       readonly expectedSessionVersion: number;
       readonly expectedTaskVersion: number;
       readonly keySlotCode: string;
+      readonly keySlotId?: string;
       readonly parkingSpotCode: string;
+      readonly parkingSpotId?: string;
     },
   ): Promise<ConfirmParkedResponse>;
   loadSession(sessionId: string): Promise<StaffValetSessionDetailResponse>;

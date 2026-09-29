@@ -86,12 +86,19 @@ export async function startRetrievalSession(
   expectedSessionVersion: number,
   expectedTaskVersion: number,
   options: RetrievalApiRequestOptions = {},
+  scannedKeySlot?:
+    | { readonly keySlotCode: string; readonly keySlotId: string }
+    | undefined,
 ): Promise<StartRetrievalResponse> {
   const raw = await client.request<unknown>(
     `/v1/staff/valet-sessions/${sessionId}/start-retrieval`,
     {
       method: "POST",
-      body: { expectedSessionVersion, expectedTaskVersion },
+      body: {
+        expectedSessionVersion,
+        expectedTaskVersion,
+        ...(scannedKeySlot ?? {}),
+      },
       signal: options.signal,
       requireAuth: true,
     },

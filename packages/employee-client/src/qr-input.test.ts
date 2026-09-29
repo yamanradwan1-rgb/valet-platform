@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { parseQrInput, DYNAMIC_QR_PATTERN } from "./qr-input";
-import { parseResourceQr, RESOURCE_QR_PREFIXES } from "./qr-resource-payload";
+import {
+  parseResourceQr,
+  RESOURCE_QR_PREFIXES,
+  RESOURCE_QR_V2_MAX_LENGTH,
+  RESOURCE_QR_V2_PREFIXES,
+} from "./qr-resource-payload";
+
+const resourceId = "11111111-2222-4333-8444-555555555555";
 
 describe("shared Employee QR grammar", () => {
   it.each(["key-slot", "parking-spot"] as const)(
@@ -11,11 +18,42 @@ describe("shared Employee QR grammar", () => {
           parseQrInput(`  ${RESOURCE_QR_PREFIXES[kind]}${code}\n`, kind),
         ).toEqual({
           ok: true,
-          value: { kind, resourceCode: code },
+          value: {
+            kind,
+            resourceCode: code,
+            resourceId: null,
+            version: "V1",
+          },
         });
       }
     },
   );
+  it.each(["key-slot", "parking-spot"] as const)(
+    "preserves %s V2 immutable identity and exact code",
+    (kind) => {
+      const code = "k-Ab_07.x:A";
+      expect(
+        parseQrInput(
+          `${RESOURCE_QR_V2_PREFIXES[kind]}${resourceId}:${code}`,
+          kind,
+        ),
+      ).toEqual({
+        ok: true,
+        value: { kind, resourceCode: code, resourceId, version: "V2" },
+      });
+    },
+  );
+  it("enforces the derived V2 total length cap", () => {
+    const prefix = RESOURCE_QR_V2_PREFIXES["parking-spot"];
+    const code = "X".repeat(RESOURCE_QR_V2_MAX_LENGTH - prefix.length - 37);
+    const text = `${prefix}${resourceId}:${code}`;
+    expect(text).toHaveLength(RESOURCE_QR_V2_MAX_LENGTH);
+    expect(parseQrInput(text, "parking-spot").ok).toBe(true);
+    expect(parseQrInput(text + "X", "parking-spot")).toEqual({
+      ok: false,
+      reason: "too-long",
+    });
+  });
   it.each(["key-slot", "parking-spot"] as const)(
     "enforces the exact 120 total length for %s",
     (kind) => {
@@ -54,6 +92,17 @@ describe("shared Employee QR grammar", () => {
       ok: false,
       reason: "wrong-type",
     });
+    expect(
+      parseResourceQr(
+        `${RESOURCE_QR_V2_PREFIXES["key-slot"]}${resourceId}:K-01`,
+        "parking-spot",
+      ),
+    ).toEqual({ ok: false, reason: "wrong-type" });
+  });
+  it("rejects malformed V2 resource identity", () => {
+    expect(
+      parseResourceQr("vaylet:v2:key-slot:not-a-uuid:K-01", "key-slot"),
+    ).toEqual({ ok: false, reason: "unrecognized" });
   });
   const dummy = `vhq1.${"aB0_-".repeat(9).slice(0, 43)}`;
   it("returns the exact canonical raw Dynamic QR without transformation", () => {
@@ -93,7 +142,12 @@ describe("shared Employee QR grammar", () => {
       parseQrInput("vaylet:key-slot:organizationId=other", "key-slot"),
     ).toEqual({
       ok: true,
-      value: { kind: "key-slot", resourceCode: "organizationId=other" },
+      value: {
+        kind: "key-slot",
+        resourceCode: "organizationId=other",
+        resourceId: null,
+        version: "V1",
+      },
     });
   });
 });

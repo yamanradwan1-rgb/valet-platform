@@ -826,6 +826,22 @@ Constraints/rules:
 - status required, default `ACTIVE`
 - MVP key assignment is QR-based, with permitted manual fallback
 
+Issue #232 / DEC-096 adds no Prisma field to `parking_spots`, `parking_zones`,
+or `key_slots` and stores no QR payload/image/URL or creator ownership. New
+Management ParkingSpot creation requires one `ACTIVE` ParkingZone in the exact
+same Organization and Location, while legacy persisted Zone-null spots remain
+truthful historical data. New Management Key Slots and Parking Spots start
+`ACTIVE`.
+
+The ordinary runtime role keeps no direct table-level `INSERT` on `key_slots`
+or `parking_spots`. #232 adds narrowly scoped migration-owned
+`SECURITY DEFINER` creation functions with fixed safe `search_path`, PUBLIC
+EXECUTE denied, and runtime EXECUTE granted only on the reviewed create entry
+points. The database boundary independently revalidates actor, Organization,
+exact Location authority/status, and ParkingZone scope/status where applicable.
+Creation and its safe Management AuditEvent are atomic, with durable
+`operationId` + request-fingerprint reconciliation and no blind client replay.
+
 ## valet_sessions
 
 ```text

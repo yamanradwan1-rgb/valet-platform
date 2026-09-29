@@ -155,7 +155,7 @@ export function RetrievalFlow({
           error={liveError}
           vehicleInfo={vehicleInfo}
           parkingLocation={parkingLocation}
-          onConfirmKey={(code) => retrieval.confirmKey(code)}
+          onConfirmKey={(code, scannedId) => retrieval.confirmKey(code, scannedId)}
           onStartRetrieval={async () => {
             await retrieval.startRetrieval();
           }}

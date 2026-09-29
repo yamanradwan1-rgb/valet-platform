@@ -35,7 +35,9 @@ export interface ConfirmParkedCommandRequest {
   readonly expectedSessionVersion: number;
   readonly expectedTaskVersion: number;
   readonly keySlotCode: string;
+  readonly keySlotId?: string;
   readonly parkingSpotCode?: string;
+  readonly parkingSpotId?: string;
   readonly parkingZoneCode?: string;
   readonly sessionId: string;
 }
@@ -86,12 +88,14 @@ async function executeConfirmParked(
       transaction,
       session,
       request.keySlotCode.trim(),
+      request.keySlotId,
     );
     const parking = request.parkingSpotCode !== undefined
       ? parkingSpotTarget(await lockConfirmParkingSpot(
           transaction,
           session,
           request.parkingSpotCode.trim(),
+          request.parkingSpotId,
         ))
       : await lockConfirmParkingZone(
           transaction,

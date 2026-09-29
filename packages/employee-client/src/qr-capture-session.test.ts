@@ -36,7 +36,12 @@ describe("portable capture generations", () => {
       session.decode(generation, text),
     );
     expect(accepted).toEqual([true, false, false]);
-    expect(session.input()).toEqual({ kind: "key-slot", resourceCode: "K-01" });
+    expect(session.input()).toEqual({
+      kind: "key-slot",
+      resourceCode: "K-01",
+      resourceId: null,
+      version: "V1",
+    });
     expect(session.decode(session.current().generation, qr)).toBe(false);
     expect(session.current().phase).toBe("accepted");
   });

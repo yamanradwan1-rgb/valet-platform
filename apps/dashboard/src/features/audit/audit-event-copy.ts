@@ -231,6 +231,8 @@ const events = {
     "Visit contact phone corrected",
     "تصحيح هاتف جهة اتصال الزيارة",
   ],
+  KEY_SLOT_CREATED: ["Key Slot created", "إنشاء خانة مفتاح"],
+  PARKING_SPOT_CREATED: ["Parking Spot created", "إنشاء موقف سيارة"],
 } satisfies Record<ManagementAuditKnownEvent, readonly [string, string]>;
 
 export function auditEventLabel(

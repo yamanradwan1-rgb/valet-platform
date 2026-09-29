@@ -14,6 +14,10 @@ import { DashboardScopeDiscoveryService } from "./dashboard-scope-discovery.serv
 import { DashboardSubscriptionController } from "./subscription.controller";
 import { DashboardFeatureAuthorityController } from "./dashboard-feature-authority.controller";
 import { DashboardFeatureAuthorityService } from "./dashboard-feature-authority.service";
+import { PhysicalResourceController } from "./physical-resource.controller";
+import { PhysicalResourceReadService } from "./physical-resource-read.service";
+import { PhysicalResourceWriteController } from "./physical-resource-write.controller";
+import { PhysicalResourceWriteService } from "./physical-resource-write.service";
 
 @Module({
   controllers: [
@@ -25,12 +29,16 @@ import { DashboardFeatureAuthorityService } from "./dashboard-feature-authority.
     DashboardSubscriptionController,
     DashboardScopeDiscoveryController,
     DashboardFeatureAuthorityController,
+    PhysicalResourceController,
+    PhysicalResourceWriteController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
     DashboardConfigurationService,
     DashboardFeatureAuthorityService,
     DashboardScopeDiscoveryService,
+    PhysicalResourceReadService,
+    PhysicalResourceWriteService,
   ],
 })
 export class DashboardModule implements NestModule {
@@ -46,6 +54,8 @@ export class DashboardModule implements NestModule {
         DashboardSubscriptionController,
         DashboardScopeDiscoveryController,
         DashboardFeatureAuthorityController,
+        PhysicalResourceController,
+        PhysicalResourceWriteController,
       );
   }
 }

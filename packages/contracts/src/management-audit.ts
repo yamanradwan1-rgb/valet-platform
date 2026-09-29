@@ -67,6 +67,8 @@ export const managementAuditEntityTypeSchema = z.enum([
   "ORGANIZATION_MEMBERSHIP",
   "MAP_POINT",
   "MAP_AREA",
+  "KEY_SLOT",
+  "PARKING_SPOT",
 ]);
 
 export const managementAuditEntitySchema = z
@@ -171,6 +173,8 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
       operation: z.enum(["SET", "CLEAR"]).optional(),
       previousCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
       previousTimezone: z.string().min(1).max(255).optional(),
+      resourceCode: z.string().min(1).max(100).optional(),
+      resourceType: z.enum(["KEY_SLOT", "PARKING_SPOT"]).optional(),
       settingKey: z.string().min(1).max(100).optional(),
       status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
       toAcceptingIntake: z.boolean().optional(),

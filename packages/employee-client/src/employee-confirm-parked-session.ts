@@ -12,9 +12,13 @@ import {
 } from "./employee-confirm-parked-operation";
 import {
   emptyConfirmParkedSnapshot,
+  hasConfirmParkedPendingWork,
+  backToConfirmParkingSpot,
   classifyConfirmParkedFailure,
   confirmParkedScanCandidate,
   targetMatches,
+  withConfirmKeySlotCandidate,
+  withConfirmParkingSpotCandidate,
   type EmployeeConfirmParkedTarget as Target,
 } from "./employee-confirm-parked-state";
 import type {
@@ -23,6 +27,8 @@ import type {
   EmployeeConfirmParkedPhase,
   EmployeeConfirmParkedSnapshot,
 } from "./employee-confirm-parked-types";
+import type { QrResourcePayload } from "./qr-resource-payload";
+import { confirmParkedTarget } from "./employee-confirm-parked-target";
 
 export class EmployeeConfirmParkedSession {
   private activeCommand: Promise<void> | undefined;
@@ -55,15 +61,7 @@ export class EmployeeConfirmParkedSession {
     this.request += 1;
     this.activeCommand = undefined;
     this.activeRead = undefined;
-    this.target = {
-      identityGeneration,
-      locationId: scope.locationId,
-      membershipId: scope.membershipId,
-      organizationId: scope.organizationId,
-      sessionId,
-      shiftId: scope.shiftId,
-      taskId,
-    };
+    this.target = confirmParkedTarget(identityGeneration, scope, taskId, sessionId);
     this.publish(
       emptyConfirmParkedSnapshot(identityGeneration, scope, "loading"),
     );
@@ -72,13 +70,26 @@ export class EmployeeConfirmParkedSession {
 
   enterParkingSpot(value: string): void {
     if (this.snapshot.phase !== "spot") return;
-    this.setSpot(value);
+    this.publish(withConfirmParkingSpotCandidate(this.snapshot, value, null));
   }
 
   scanParkingSpot(payload: unknown): boolean {
     const candidate = confirmParkedScanCandidate("parking-spot", payload);
     if (candidate === null || this.snapshot.phase !== "spot") return false;
-    this.setSpot(candidate);
+    return this.acceptParkingSpotScan(candidate);
+  }
+
+  acceptParkingSpotScan(candidate: QrResourcePayload): boolean {
+    if (candidate.kind !== "parking-spot" || this.snapshot.phase !== "spot") {
+      return false;
+    }
+    this.publish(
+      withConfirmParkingSpotCandidate(
+        this.snapshot,
+        candidate.resourceCode,
+        candidate.resourceId,
+      ),
+    );
     return true;
   }
 
@@ -94,37 +105,36 @@ export class EmployeeConfirmParkedSession {
   enterKeySlot(value: string): void {
     if (this.snapshot.phase !== "slot" && this.snapshot.phase !== "ready")
       return;
-    const candidate = value.trim();
-    this.publish({
-      ...this.snapshot,
-      conflict: null,
-      failure: null,
-      keySlotCandidate: candidate,
-      phase: candidate === "" ? "slot" : "ready",
-    });
+    this.publish(withConfirmKeySlotCandidate(this.snapshot, value, null));
   }
 
   scanKeySlot(payload: unknown): boolean {
     const candidate = confirmParkedScanCandidate("key-slot", payload);
+    if (candidate === null) return false;
+    return this.acceptKeySlotScan(candidate);
+  }
+
+  acceptKeySlotScan(candidate: QrResourcePayload): boolean {
     if (
-      candidate === null ||
+      candidate.kind !== "key-slot" ||
       (this.snapshot.phase !== "slot" && this.snapshot.phase !== "ready")
-    )
+    ) {
       return false;
-    this.enterKeySlot(candidate);
+    }
+    this.publish(
+      withConfirmKeySlotCandidate(
+        this.snapshot,
+        candidate.resourceCode,
+        candidate.resourceId,
+      ),
+    );
     return true;
   }
 
   backToSpot(): void {
     if (this.snapshot.phase !== "slot" && this.snapshot.phase !== "ready")
       return;
-    this.publish({
-      ...this.snapshot,
-      conflict: null,
-      failure: null,
-      keySlotCandidate: "",
-      phase: "spot",
-    });
+    this.publish(backToConfirmParkingSpot(this.snapshot));
   }
 
   confirmParked(): Promise<void> {
@@ -153,11 +163,11 @@ export class EmployeeConfirmParkedSession {
   }
 
   suspendForBackground(): void {
-    if (
-      this.target === null ||
-      (this.activeRead === undefined && this.activeCommand === undefined)
-    )
-      return;
+    if (!hasConfirmParkedPendingWork(
+      this.target !== null,
+      this.activeRead !== undefined,
+      this.activeCommand !== undefined,
+    )) return;
     const protectedOutcome = this.activeCommand !== undefined;
     this.request += 1;
     this.activeCommand = undefined;
@@ -172,16 +182,6 @@ export class EmployeeConfirmParkedSession {
     this.activeCommand = undefined;
     this.activeRead = undefined;
     this.publish(emptyConfirmParkedSnapshot());
-  }
-
-  private setSpot(value: string): void {
-    this.publish({
-      ...this.snapshot,
-      conflict: null,
-      failure: null,
-      keySlotCandidate: "",
-      parkingSpotCandidate: value.trim(),
-    });
   }
 
   private async executeConfirm(

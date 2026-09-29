@@ -1,13 +1,16 @@
 import { z } from "zod";
 
 const positiveVersionSchema = z.number().int().positive();
+const uuidSchema = z.string().uuid();
 
 export const confirmParkedRequestSchema = z
   .object({
     expectedSessionVersion: positiveVersionSchema,
     expectedTaskVersion: positiveVersionSchema,
     keySlotCode: z.string().trim().min(1),
+    keySlotId: uuidSchema.optional(),
     parkingSpotCode: z.string().trim().min(1).optional(),
+    parkingSpotId: uuidSchema.optional(),
     parkingZoneCode: z.string().trim().min(1).optional(),
   })
   .strict()
@@ -16,6 +19,11 @@ export const confirmParkedRequestSchema = z
       (value.parkingSpotCode === undefined) !==
       (value.parkingZoneCode === undefined),
     { message: "Exactly one parking resource code is required." },
+  )
+  .refine(
+    (value) =>
+      value.parkingSpotId === undefined || value.parkingSpotCode !== undefined,
+    { message: "Parking Spot ID requires a Parking Spot code." },
   );
 
 export const confirmParkedResponseSchema = z

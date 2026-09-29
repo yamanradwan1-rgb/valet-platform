@@ -717,3 +717,12 @@ needed), `apps/valet/src/features/check-in/**`,
 `apps/valet/src/components/screens/parking-*.tsx`,
 `apps/valet/src/lib/i18n/dictionary-*`, focused integration/e2e tests, and
 demo seed fixtures.
+
+## Later accepted amendment — DEC-096
+
+DEC-096 extends physical Key Slot verification so post-parking binding may
+carry exact V2 identity (`UUID + exact code`) in addition to V1/manual code. The
+server must verify that V2 identity against the current persisted Organization,
+Location, exact code, and ACTIVE KeySlot. Custody timing, post-parking binding,
+transaction atomicity, state semantics, and V1/manual compatibility are
+unchanged.

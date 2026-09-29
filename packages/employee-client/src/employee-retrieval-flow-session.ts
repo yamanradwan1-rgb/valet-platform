@@ -7,27 +7,22 @@ import {
 import {
   classifyRetrievalFailure,
   emptyRetrievalSnapshot,
-  isRetrievalKeyMatch,
   isRetrievalSubmitting,
   isRetrievalTargetCurrent,
   loadRetrievalCanonical,
+  retrievalKeyCandidateMatches,
   retrievalReadFailurePhase,
+  retrievalScannedKeyInput,
+  retrievalV2ScanAccepted,
+  withRetrievalKeyCandidate,
   type EmployeeRetrievalTarget as Target,
 } from "./employee-retrieval-flow-state";
+import { parseResourceQr, type QrResourcePayload } from "./qr-resource-payload";
 import type {
   EmployeeRetrievalOptions,
   EmployeeRetrievalSnapshot,
 } from "./employee-retrieval-flow-types";
 
-/**
- * Portable Retrieval workflow session (MOB-013).
- *
- * Consumes the authoritative Retrieval Task, verifies the expected Key Slot
- * through the existing QR/manual resource-code input, then executes the two
- * protected server commands start-retrieval and mark-ready. Ambiguous
- * failures are resolved by an authoritative scoped reread (DEC-063);
- * no protected mutation is ever blindly replayed.
- */
 export class EmployeeRetrievalSession {
   private activeCommand: Promise<void> | undefined;
   private activeRead: Promise<void> | undefined;
@@ -72,28 +67,30 @@ export class EmployeeRetrievalSession {
   }
 
   enterKeySlot(candidate: string): void {
-    if (
-      this.snapshot.phase !== "key-checkout" ||
-      this.snapshot.session === null
-    )
-      return;
-    this.publish({
-      ...this.snapshot,
-      failure: null,
-      keyConfirmed: false,
-      keySlotCandidate: candidate,
-    });
+    if (this.snapshot.phase !== "key-checkout" || this.snapshot.session === null) return;
+    this.publish(withRetrievalKeyCandidate(this.snapshot, candidate, null));
+  }
+
+  scanKeySlot(payload: unknown): boolean {
+    const parsed = parseResourceQr(payload, "key-slot");
+    return parsed.ok ? this.acceptKeySlotScan(parsed.payload) : false;
+  }
+
+  acceptKeySlotScan(candidate: QrResourcePayload): boolean {
+    if (!retrievalV2ScanAccepted(this.snapshot, candidate)) return false;
+    this.publish(
+      withRetrievalKeyCandidate(
+        this.snapshot,
+        candidate.resourceCode,
+        candidate.resourceId,
+      ),
+    );
+    return true;
   }
 
   confirmKeySlot(): boolean {
-    const session = this.snapshot.session;
-    if (this.snapshot.phase !== "key-checkout" || session === null)
-      return false;
-    const expected = session.keySlot?.code ?? null;
-    const matches = isRetrievalKeyMatch(
-      expected,
-      this.snapshot.keySlotCandidate,
-    );
+    if (this.snapshot.phase !== "key-checkout" || this.snapshot.session === null) return false;
+    const matches = retrievalKeyCandidateMatches(this.snapshot);
     this.publish({ ...this.snapshot, keyConfirmed: matches });
     return matches;
   }
@@ -232,6 +229,7 @@ export class EmployeeRetrievalSession {
         session.sessionId,
         session.version,
         task.version,
+        retrievalScannedKeyInput(this.snapshot),
       );
       if (!this.isCurrent(target, request)) return;
       this.publish(

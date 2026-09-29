@@ -57,9 +57,14 @@ export function createEmployeeRetrievalTransport(
       sessionId,
       expectedSessionVersion,
       expectedTaskVersion,
+      scannedKeySlot,
     ) {
       const value = await client().request<unknown>({
-        body: { expectedSessionVersion, expectedTaskVersion },
+        body: {
+          expectedSessionVersion,
+          expectedTaskVersion,
+          ...(scannedKeySlot ?? {}),
+        },
         method: "POST",
         path: `/v1/staff/valet-sessions/${sessionId}/start-retrieval`,
       });

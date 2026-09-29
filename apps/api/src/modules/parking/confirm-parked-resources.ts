@@ -14,14 +14,21 @@ export async function lockConfirmParkingSpot(
   transaction: PostgresTransaction,
   session: LockedConfirmSession,
   parkingSpotCode: string,
+  parkingSpotId?: string,
 ): Promise<LockedParkingSpot> {
   const spotResult = await transaction.query<LockedParkingSpot>(
     `SELECT id::text, code, parking_zone_id::text
      FROM parking_spots
      WHERE organization_id = $1 AND location_id = $2 AND code = $3
+       AND ($4::uuid IS NULL OR id = $4::uuid)
        AND status = 'ACTIVE' AND parking_zone_id IS NOT NULL
      FOR UPDATE`,
-    [session.organization_id, session.location_id, parkingSpotCode],
+    [
+      session.organization_id,
+      session.location_id,
+      parkingSpotCode,
+      parkingSpotId ?? null,
+    ],
   );
   const spot = spotResult.rows[0];
   if (spot === undefined) unavailable();

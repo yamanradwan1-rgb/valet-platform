@@ -17,7 +17,11 @@ import {
 } from "react-native";
 import { CameraView } from "expo-camera";
 import { useFocusEffect } from "expo-router";
-import type { NativeAuthSession, QrResourceKind } from "@valet/employee-client";
+import type {
+  NativeAuthSession,
+  QrResourceKind,
+  QrResourcePayload,
+} from "@valet/employee-client";
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { EmployeeButton } from "../employee-ui/employee-controls";
@@ -48,6 +52,7 @@ export function NativeParkingQrInput({
   manualInput = true,
   manualHint,
   onChange,
+  onResourceScan,
   openHeight,
   openLabel,
   openRadius,
@@ -70,6 +75,7 @@ export function NativeParkingQrInput({
   readonly manualInput?: boolean | undefined;
   readonly manualHint?: string | undefined;
   readonly onChange: (value: string) => void;
+  readonly onResourceScan?: ((value: QrResourcePayload) => void) | undefined;
   readonly openHeight?: number | undefined;
   readonly openLabel?: string | undefined;
   readonly openRadius?: number | undefined;
@@ -153,10 +159,19 @@ export function NativeParkingQrInput({
             accessible={false}
             onBarcodeScanned={(event) => {
               const before = controller.current().phase;
-              controller.barcode(snapshot.generation, event);
+              const input = controller.barcode(snapshot.generation, event);
               const accepted = controller.current();
-              if (before !== "accepted" && accepted.phase === "accepted")
-                onChange(accepted.resourceCode);
+              if (before !== "accepted" && accepted.phase === "accepted") {
+                if (
+                  input !== null &&
+                  input.kind !== "dynamic-handoff" &&
+                  onResourceScan !== undefined
+                ) {
+                  onResourceScan(input);
+                } else {
+                  onChange(accepted.resourceCode);
+                }
+              }
             }}
             onCameraReady={() => controller.ready(snapshot.generation)}
             onMountError={() => controller.fail(snapshot.generation)}

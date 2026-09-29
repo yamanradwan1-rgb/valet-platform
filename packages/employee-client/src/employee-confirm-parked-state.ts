@@ -6,7 +6,11 @@ import type {
 
 import type { EmployeeOperationalScope } from "./employee-operational-types";
 import { EmployeeApiError } from "./api-error";
-import { parseResourceQr, type QrResourceKind } from "./qr-resource-payload";
+import {
+  parseResourceQr,
+  type QrResourceKind,
+  type QrResourcePayload,
+} from "./qr-resource-payload";
 import type {
   EmployeeConfirmParkedConflict,
   EmployeeConfirmParkedPhase,
@@ -53,8 +57,10 @@ export function emptyConfirmParkedSnapshot(
     failure: null,
     identityGeneration,
     keySlotCandidate: "",
+    keySlotResourceId: null,
     parked: null,
     parkingSpotCandidate: "",
+    parkingSpotResourceId: null,
     phase,
     scope,
     session: null,
@@ -65,9 +71,62 @@ export function emptyConfirmParkedSnapshot(
 export function confirmParkedScanCandidate(
   kind: QrResourceKind,
   payload: unknown,
-): string | null {
+): QrResourcePayload | null {
   const result = parseResourceQr(payload, kind);
-  return result.ok ? result.payload.resourceCode.trim() : null;
+  return result.ok ? result.payload : null;
+}
+
+export function withConfirmParkingSpotCandidate(
+  snapshot: EmployeeConfirmParkedSnapshot,
+  value: string,
+  resourceId: string | null,
+): EmployeeConfirmParkedSnapshot {
+  return {
+    ...snapshot,
+    conflict: null,
+    failure: null,
+    keySlotCandidate: "",
+    keySlotResourceId: null,
+    parkingSpotCandidate: value.trim(),
+    parkingSpotResourceId: resourceId,
+  };
+}
+
+export function withConfirmKeySlotCandidate(
+  snapshot: EmployeeConfirmParkedSnapshot,
+  value: string,
+  resourceId: string | null,
+): EmployeeConfirmParkedSnapshot {
+  const candidate = value.trim();
+  return {
+    ...snapshot,
+    conflict: null,
+    failure: null,
+    keySlotCandidate: candidate,
+    keySlotResourceId: resourceId,
+    phase: candidate === "" ? "slot" : "ready",
+  };
+}
+
+export function backToConfirmParkingSpot(
+  snapshot: EmployeeConfirmParkedSnapshot,
+): EmployeeConfirmParkedSnapshot {
+  return {
+    ...snapshot,
+    conflict: null,
+    failure: null,
+    keySlotCandidate: "",
+    keySlotResourceId: null,
+    phase: "spot",
+  };
+}
+
+export function hasConfirmParkedPendingWork(
+  hasTarget: boolean,
+  hasRead: boolean,
+  hasCommand: boolean,
+): boolean {
+  return hasTarget && (hasRead || hasCommand);
 }
 
 export function findCurrentParkingTask(
@@ -214,8 +273,14 @@ export function reconcileConfirmParkedSnapshot(
     ...snapshot,
     conflict,
     keySlotCandidate: slot,
+    keySlotResourceId:
+      conflict === "spot" || conflict === "slot"
+        ? null
+        : snapshot.keySlotResourceId,
     parked: null,
     parkingSpotCandidate: spot,
+    parkingSpotResourceId:
+      conflict === "spot" ? null : snapshot.parkingSpotResourceId,
     phase: phaseAfterActiveRead(previous, conflict, spot, slot),
     session,
     task,

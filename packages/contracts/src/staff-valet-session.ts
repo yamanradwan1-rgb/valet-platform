@@ -50,6 +50,7 @@ export type StaffValetSessionCheckIn = z.infer<
 export const staffValetSessionKeySlotSchema = z
   .object({
     code: z.string().min(1),
+    keySlotId: uuidSchema.optional(),
   })
   .strict();
 

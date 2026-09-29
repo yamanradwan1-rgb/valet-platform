@@ -51,6 +51,7 @@ export interface EmployeeRetrievalSnapshot {
   readonly identityGeneration: number | null;
   readonly keyConfirmed: boolean;
   readonly keySlotCandidate: string;
+  readonly keySlotResourceId: string | null;
   readonly phase: EmployeeRetrievalPhase;
   readonly readyAt: string | null;
   readonly retrievalStartedAt: string | null;
@@ -66,6 +67,9 @@ export interface EmployeeRetrievalTransport {
     sessionId: string,
     expectedSessionVersion: number,
     expectedTaskVersion: number,
+    scannedKeySlot?:
+      | { readonly keySlotCode: string; readonly keySlotId: string }
+      | undefined,
   ): Promise<EmployeeRetrievalStartResult>;
   markReady(
     sessionId: string,

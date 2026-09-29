@@ -32,6 +32,8 @@ export interface StartRetrievalCommandRequest {
   readonly authenticatedUserId: string;
   readonly expectedSessionVersion: number;
   readonly expectedTaskVersion: number;
+  readonly keySlotCode?: string;
+  readonly keySlotId?: string;
   readonly sessionId: string;
 }
 
@@ -73,7 +75,14 @@ export function createStartRetrievalCommandExecutor(
       assertStartRetrievalGuards(session, task, request);
       const retrievalRequest = await lockRetrievalRequest(transaction, session);
       assertOpenRetrievalRequest(retrievalRequest);
-      const resources = await lockRetrievalResources(transaction, session);
+      const resources = await lockRetrievalResources(transaction, session, {
+        ...(request.keySlotCode === undefined
+          ? {}
+          : { keySlotCode: request.keySlotCode }),
+        ...(request.keySlotId === undefined
+          ? {}
+          : { keySlotId: request.keySlotId }),
+      });
       const operationTime = await loadDispatchOperationTime(transaction);
       const taskVersion = await startRetrievalTask(
         transaction,

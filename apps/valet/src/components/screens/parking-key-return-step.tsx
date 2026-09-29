@@ -11,6 +11,7 @@ import {
   resourceQrScanLabels,
   ResourceQrScanSection,
 } from "../scanner/resource-qr-scan-section";
+import type { QrResourcePayload } from "../../features/scanner/qr-resource-payload";
 
 export interface ParkingKeyReturnStepProps {
   readonly error?: string | null | undefined;
@@ -19,6 +20,7 @@ export interface ParkingKeyReturnStepProps {
   readonly keySlotCodeInput: string;
   readonly mode?: "live" | "prototype" | undefined;
   readonly onChangeKeySlotCode: (code: string) => void;
+  readonly onScanKeySlot?: ((payload: QrResourcePayload) => void) | undefined;
   readonly onConfirm: () => void;
   readonly onBack: () => void;
 }
@@ -38,6 +40,7 @@ export function ParkingKeyReturnStep({
   keySlotCodeInput,
   mode = "live",
   onChangeKeySlotCode,
+  onScanKeySlot,
   onConfirm,
   onBack,
 }: ParkingKeyReturnStepProps): JSX.Element {
@@ -71,6 +74,7 @@ export function ParkingKeyReturnStep({
             expectedKind="key-slot"
             labels={resourceQrScanLabels(t, "key-slot")}
             onDecoded={onChangeKeySlotCode}
+            onDecodedIdentity={onScanKeySlot}
           />
         ) : (
           <ScannerFrame label={t.scanKeySlot} sublabel={t.chooseManually} />

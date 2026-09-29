@@ -1,0 +1,26 @@
+.section { margin-top: 1.25rem; border-top: 1px solid var(--border); padding-top: 1.25rem; display: grid; gap: 1rem; min-width: 0; }
+.headingRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.headingRow h3 { margin: 0; color: var(--text); font-size: .95rem; font-weight: 800; }
+.headingRow p { margin: .2rem 0 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
+.panel { min-width: 0; border: 1px solid var(--border); border-radius: .75rem; overflow: hidden; background: var(--surface); }
+.panelHeader { padding: 1rem 1.25rem 0; }
+.pagination { display: flex; justify-content: flex-end; gap: .5rem; padding: .75rem 1rem; border-top: 1px solid var(--border); }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
+.dialogHost :global(.dialog-panel) { width: min(448px, 100%); border-radius: .75rem; padding: 1.5rem; }
+.dialogHost h2 { margin: 0 0 1rem; font-size: 1rem; line-height: 1.5rem; font-weight: 700; color: var(--text); }
+.form { display: grid; gap: 1rem; }
+.field { display: grid; gap: .4rem; color: var(--text); font-size: .75rem; font-weight: 700; }
+.field input, .field select { width: 100%; min-height: 2.5rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); color: var(--text); padding: .5rem .65rem; font: inherit; font-weight: 500; }
+.field input:focus-visible, .field select:focus-visible, .dialogHost button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dialogActions { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; margin-top: .25rem; }
+.labelHost :global(.dialog-panel) { width: min(560px, 100%); border-radius: .75rem; padding: 1.5rem; }
+.label { width: min(100%, 420px); margin: 0 auto; padding: 1.5rem; border: 1px solid var(--border); border-radius: .75rem; background: #fff; color: #07111f; text-align: center; display: grid; gap: .55rem; justify-items: center; }
+.brand { margin: 0; font-size: 1.2rem; font-weight: 900; letter-spacing: .12em; }
+.resourceType { margin: 0; font-size: .82rem; font-weight: 800; letter-spacing: .08em; }
+.resourceCode { margin: .15rem 0; font-size: 1.35rem; font-weight: 900; }
+.location { margin: 0; font-size: .75rem; color: #475569; }
+.qr { width: min(100%, 320px); height: auto; image-rendering: pixelated; }
+.labelActions { display: flex; justify-content: center; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
+.error { margin: 0; color: #b42318; font-size: .75rem; }
+:global([data-theme="dark"]) .error { color: #fecaca; }
+@media (max-width: 560px) { .section { margin-inline: -.25rem; } .labelHost :global(.dialog-panel), .dialogHost :global(.dialog-panel) { padding: 1rem; } .label { padding: 1rem; } }

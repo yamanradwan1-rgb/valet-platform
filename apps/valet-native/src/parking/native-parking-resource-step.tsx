@@ -1,5 +1,9 @@
 import { Text, TextInput, View } from "react-native";
-import type { NativeAuthSession, QrResourceKind } from "@valet/employee-client";
+import type {
+  NativeAuthSession,
+  QrResourceKind,
+  QrResourcePayload,
+} from "@valet/employee-client";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeStatus } from "../employee-ui/employee-feedback";
@@ -18,6 +22,7 @@ export function NativeParkingResourceCapture(props: {
   readonly locale: FoundationLocale;
   readonly manualLabel: string;
   readonly onCandidate: (value: string) => void;
+  readonly onScanCandidate: (value: QrResourcePayload) => void;
   readonly onManual: () => void;
   readonly textAlign: "left" | "right";
   readonly title: string;
@@ -38,6 +43,7 @@ export function NativeParkingResourceCapture(props: {
         locale={props.locale}
         manualInput={false}
         onChange={props.onCandidate}
+        onResourceScan={props.onScanCandidate}
         value={props.value}
       />
       <EmployeeButton

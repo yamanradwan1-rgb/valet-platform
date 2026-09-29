@@ -29,7 +29,10 @@ export interface UseRetrievalOptions {
 
 export interface UseRetrievalResult {
   readonly activeSession: ActiveRetrievalSession | null;
-  readonly confirmKey: (inputKeySlotCode: string) => boolean;
+  readonly confirmKey: (
+    inputKeySlotCode: string,
+    scannedKeySlotId?: string | null,
+  ) => boolean;
   readonly error: string | null;
   readonly isHydrating: boolean;
   readonly isSubmitting: boolean;
@@ -133,7 +136,8 @@ export function useRetrieval(options: UseRetrievalOptions): UseRetrievalResult {
   ]);
 
   const confirmKey = useCallback(
-    (inputKeySlotCode: string) => controller.confirmKey(inputKeySlotCode),
+    (inputKeySlotCode: string, scannedKeySlotId: string | null = null) =>
+      controller.confirmKey(inputKeySlotCode, scannedKeySlotId),
     [controller],
   );
 

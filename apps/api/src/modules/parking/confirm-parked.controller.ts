@@ -72,7 +72,12 @@ export class ConfirmParkedController {
       const authenticatedUserId = await this.userId(request, authorization);
       const input = parseRequest(body);
       const parkingResource = input.parkingSpotCode !== undefined
-        ? { parkingSpotCode: input.parkingSpotCode }
+        ? {
+            parkingSpotCode: input.parkingSpotCode,
+            ...(input.parkingSpotId === undefined
+              ? {}
+              : { parkingSpotId: input.parkingSpotId }),
+          }
         : { parkingZoneCode: input.parkingZoneCode! };
       return confirmParkedResponseSchema.parse(
         await this.service.execute({
@@ -80,6 +85,7 @@ export class ConfirmParkedController {
           expectedSessionVersion: input.expectedSessionVersion,
           expectedTaskVersion: input.expectedTaskVersion,
           keySlotCode: input.keySlotCode,
+          ...(input.keySlotId === undefined ? {} : { keySlotId: input.keySlotId }),
           ...parkingResource,
           sessionId: parseSessionId(sessionIdRaw),
         }),

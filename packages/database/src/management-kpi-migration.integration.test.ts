@@ -136,7 +136,7 @@ afterAll(async () => {
 describe("MGT-BE-10 migration 43 KPI source contracts", () => {
   it("is migration 43 and upgrades old rows without backfilling SLA truth", async () => {
     expect(migrationIndex).toBe(42);
-    expect(expectedMigrationDirectories).toHaveLength(45);
+    expect(expectedMigrationDirectories).toHaveLength(46);
     expect(expectedMigrationDirectories.at(42)).toBe(migration);
     const row = (await upgrade.query(
       `SELECT location.sla_target_seconds, request.sla_target_seconds_snapshot
