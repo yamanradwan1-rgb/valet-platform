@@ -564,6 +564,66 @@ Reuse `Panel`, `Button`, `BidiText`, and `FocusDialog` where appropriate. Mirror
 
 **Any UI changed by #234 must be visually indistinguishable from the established Management Dashboard design system. If Security conflicts with that design, change Security—not the surrounding Dashboard.**
 
+
+## 24A. ABSOLUTE UI VISUAL FREEZE — HIGHEST PRIORITY
+
+This requirement is **binding and higher priority than any discretionary UI improvement** in Issue #234.
+
+The implementation agent is **strictly forbidden** from changing the established Management Dashboard visual design language.
+
+No #234 implementation may introduce a new or altered visual system, styling direction, component appearance, spacing system, typography hierarchy, card treatment, button style, input/select style, border/radius convention, shadow convention, color treatment, icon treatment, layout language, navigation geometry, modal/drawer language, or responsive behavior that departs from the current Management Dashboard.
+
+The existing Management Dashboard UI is the visual source of truth.
+
+Any new Security UI required by #234 must look **100% native to the existing Dashboard** and must be visually indistinguishable from components that already belong to the product.
+
+Required implementation order for every new or changed UI element:
+
+1. Reuse an existing Dashboard component if one already serves the purpose.
+2. Otherwise reuse the exact existing Dashboard styling/tokens/pattern from the nearest equivalent component.
+3. Only if neither is possible, create the smallest new component/style necessary, matching the existing Dashboard exactly.
+4. Never modify the surrounding Dashboard visual system to accommodate a new Security component.
+
+The agent must not:
+
+- redesign the Security page beyond what is required to integrate it into the existing Dashboard;
+- “modernize”, “clean up”, “improve”, or reinterpret unrelated Dashboard visuals;
+- introduce Security-specific colors, gradients, radii, shadows, spacing, typography, buttons, cards, fields, status badges, dialogs, or navigation conventions;
+- change shell/sidebar/topbar geometry unless a proven functional defect makes a minimal change unavoidable;
+- change existing Dashboard-wide CSS/tokens for convenience;
+- restyle unrelated pages;
+- create a standalone Security-app appearance;
+- use arbitrary CSS values where an existing Dashboard token/pattern exists.
+
+The shell, sidebar, topbar, page header, cards, forms, actions, notices, status presentation, focus treatment, responsive stacking, Light/Dark behavior, EN/AR behavior, and RTL/LTR behavior must remain consistent with the current Management Dashboard.
+
+For Security-specific flows such as MFA status, enrollment, step-up, recovery, recovery-code disclosure, and error/retry states, the agent must map each state onto the closest existing Dashboard visual pattern rather than inventing a new one.
+
+If an implementation choice creates visual tension between Security and the Dashboard, **Security must change to match the Dashboard**. The Dashboard must never be changed to match Security.
+
+This is a release-blocking acceptance criterion.
+
+Before final delivery, the agent must perform an explicit UI-diff review and prove:
+
+- no visual-language drift;
+- no unrelated CSS changes;
+- no new arbitrary colors;
+- no new arbitrary spacing/radius/shadow conventions;
+- no Dashboard-wide visual changes;
+- Security page geometry matches existing Dashboard page geometry;
+- new controls match existing Dashboard controls;
+- new cards match existing Dashboard cards;
+- new notices/errors/statuses match existing Dashboard feedback patterns;
+- sidebar/topbar remain visually unchanged except for normal active-state behavior;
+- EN/AR parity;
+- RTL/LTR correctness;
+- Light/Dark parity;
+- desktop/narrow parity;
+- keyboard/focus parity;
+- no unintended overflow.
+
+Any violation of this section means Issue #234 is **not complete**, even if functional tests pass.
+
 ## 25. Final Security Page Information Architecture
 
 ```text
