@@ -19,7 +19,7 @@ import { StaffCursorControls } from "./staff-cursor-controls";
 import { StaffDetailDrawer } from "./staff-detail-drawer";
 import { readActiveShifts, readStaffDetail, readStaffDirectory } from "./staff-api";
 import { staffRoleLabel, staffStatusLabel } from "./staff-labels";
-import { formatStaffTime, selectedStaffLocation } from "./staff-presentation";
+import { formatStaffTime, selectedStaffLocation, staffShiftDetailLabels } from "./staff-presentation";
 import referenceStyles from "./staff-reference.module.css";
 import { StaffShiftDrawer } from "./staff-shift-drawer";
 
@@ -92,7 +92,8 @@ function StaffPageContent() {
 
   if (!companyAdmin && !locationManager) return null;
   return (
-    <AdministrationPage subtitle={t.employeesSubtitle} subtitleSize="sm" title={t.employeesTitle} titleTracking="tight">
+    <AdministrationPage subtitle={companyAdmin ? t.employeesSubtitle : t.employeesLocationManagerSubtitle}
+      subtitleSize="sm" title={t.employeesTitle} titleTracking="tight">
       <div className={`${styles.tabs} ${styles.staffTabs} ${referenceStyles.tabsOffset}`}>
         {companyAdmin ? <button aria-pressed={tab === "employees"} className={`${styles.tab} ${styles.staffTab} ${tab === "employees" ? `${styles.tabActive} ${styles.staffTabActive}` : ""}`} onClick={() => switchTab("employees")} type="button">{t.employees}</button> : null}
         <button aria-pressed={tab === "shifts"} className={`${styles.tab} ${styles.staffTab} ${tab === "shifts" ? `${styles.tabActive} ${styles.staffTabActive}` : ""}`} onClick={() => switchTab("shifts")} type="button">{t.shifts}</button>
@@ -224,11 +225,12 @@ function EmployeeRows(props: { readonly items: readonly StaffDirectoryItem[]; re
 function ShiftRows(props: { readonly items: readonly ActiveShiftOverviewEntry[]; readonly locale: "en" | "ar"; readonly location: NonNullable<ReturnType<typeof selectedStaffLocation>>; readonly onSelect: (item: ActiveShiftOverviewEntry) => void }) {
   const t = administrationCopy(props.locale);
   if (props.items.length === 0) return <tr><td className={referenceStyles.emptyCell} colSpan={5}>{t.noActiveShifts}</td></tr>;
-  return <>{props.items.map((item) => <tr key={item.shiftId}>
+  const detailLabels = staffShiftDetailLabels(props.items, props.location, props.locale);
+  return <>{props.items.map((item, index) => <tr key={item.shiftId}>
     <td className={referenceStyles.primary}>{t.activeShift}</td>
     <td><div className={referenceStyles.primary}>{props.location.name}</div><div className={referenceStyles.secondary}><bdi dir="ltr">{props.location.code}</bdi></div></td>
     <td><StatusBadge good>{t.active}</StatusBadge></td>
     <td><bdi dir={props.locale === "ar" ? "rtl" : "ltr"}>{formatStaffTime(item.startedAt, props.location.timezone, props.locale)}</bdi></td>
-    <td className={referenceStyles.actionCell}><button aria-label={`${t.details}: ${t.activeShift}`} className={referenceStyles.detailAction} onClick={() => props.onSelect(item)} type="button"><MoreHorizontal aria-hidden="true" size={18} /></button></td>
+    <td className={referenceStyles.actionCell}><button aria-label={detailLabels[index]} className={referenceStyles.detailAction} onClick={() => props.onSelect(item)} type="button"><MoreHorizontal aria-hidden="true" size={18} /></button></td>
   </tr>)}</>;
 }

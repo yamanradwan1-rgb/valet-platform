@@ -55,12 +55,15 @@ test("R05 Location Manager gets no Employees directory and reads only exact gran
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
   await expect(page.getByRole("heading", { name: "Employees & Shifts" })).toBeVisible();
+  await expect(page.getByText("View active shifts for the selected Location.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Employees" })).toHaveCount(0);
   await expect(page.getByText("Active shift", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: LOCATION_B.name })).toHaveCount(0);
   expect(fixture.count(directory)).toBe(0);
   expect(fixture.count(shifts)).toBeGreaterThan(0);
   expect(fixture.count(activeShiftsPath(LOCATION_B.locationId))).toBe(0);
+  await page.getByRole("button", { name: "Language" }).click();
+  await expect(page.getByText("عرض الورديات النشطة للموقع المحدد.")).toBeVisible();
 });
 
 test("R05 inactive Location sends zero active-shift reads", async ({ page }) => {

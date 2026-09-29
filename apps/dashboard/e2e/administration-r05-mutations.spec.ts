@@ -110,6 +110,62 @@ test("R05 auth reconciliation never replays a staff mutation without explicit re
   await expect(page.getByRole("table").getByText("Location Manager", { exact: true })).toBeVisible();
 });
 
+test("R05 entitlement loss while editing denies once and retries only explicitly", async ({ page }) => {
+  const directory = staffPath(ORG_A.organizationId);
+  const detailPath = `${directory}/${E2E_IDS.membership}`;
+  const rolePath = `${detailPath}/role`;
+  const posts: unknown[] = [];
+  let dashboardEntitled = true;
+  let changed = false;
+  const fixture = new DashboardApiFixture({
+    companyOrganizations: [ORG_A],
+    override: (path, request) => {
+      if (path === directory) {
+        return { body: { items: [staffItem(changed ? { role: "LOCATION_MANAGER", version: 2 } : {})], nextCursor: null } };
+      }
+      if (path === detailPath) {
+        return { body: staffDetail(changed ? { role: "LOCATION_MANAGER", version: 2 } : {}) };
+      }
+      if (path === rolePath && request.method() === "POST") {
+        posts.push(request.postDataJSON());
+        if (!dashboardEntitled) {
+          return {
+            status: 404,
+            body: {
+              code: "AUTHORIZATION_DENIED",
+              message: "The requested resource is not available.",
+              requestId: "r05-entitlement",
+            },
+          };
+        }
+        changed = true;
+        return { body: staffDetail({ role: "LOCATION_MANAGER", version: 2 }) };
+      }
+      return undefined;
+    },
+  });
+  const drawer = await openDetail(page, fixture);
+  const table = page.getByRole("table");
+  await drawer.getByLabel("Role").selectOption("LOCATION_MANAGER");
+  dashboardEntitled = false;
+  await drawer.getByRole("button", { name: "Save" }).click();
+
+  await expect(drawer.getByRole("alert")).toHaveText("The requested resource is not available.");
+  expect(posts).toEqual([{ expectedVersion: 1, role: "LOCATION_MANAGER" }]);
+  await expect(table.getByText("Valet Employee", { exact: true })).toBeVisible();
+  await expect(table.getByText("Location Manager", { exact: true })).toHaveCount(0);
+  await page.waitForLoadState("networkidle");
+  expect(posts).toHaveLength(1);
+
+  dashboardEntitled = true;
+  await page.waitForLoadState("networkidle");
+  expect(posts).toHaveLength(1);
+  await drawer.getByRole("button", { name: "Save" }).click();
+  await expect.poll(() => posts.length).toBe(2);
+  expect(posts[1]).toEqual({ expectedVersion: 1, role: "LOCATION_MANAGER" });
+  await expect(table.getByText("Location Manager", { exact: true })).toBeVisible();
+});
+
 test("R05 status mutation preserves last-admin and handover denials before explicit success", async ({ page }) => {
   const directory = staffPath(ORG_A.organizationId);
   const detailPath = `${directory}/${E2E_IDS.membership}`;

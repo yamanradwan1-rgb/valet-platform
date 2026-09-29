@@ -2,7 +2,8 @@ import type { DashboardLocale } from "../../lib/i18n/locale";
 
 const copy = {
   en: {
-    employeesTitle: "Employees & Shifts", employeesSubtitle: "Manage your team and shifts.",
+    employeesTitle: "Employees & Shifts", employeesSubtitle: "Manage staff authority and view active shifts.",
+    employeesLocationManagerSubtitle: "View active shifts for the selected Location.",
     employees: "Employees", shifts: "Shifts", locationsTitle: "Locations",
     locationsSubtitle: "Manage locations and their lifecycle.", policiesTitle: "Policies & Settings",
     policiesSubtitle: "Manage typed operational configuration.", rolesTitle: "Roles & Permissions",
@@ -42,10 +43,11 @@ const copy = {
     setting: "Setting", value: "Value", category: "Category", all: "All", searchIntegrations: "Search integrations…",
     currencySupported: "Supported currency", timezoneValid: "Valid timezone", activeShift: "Active shift",
     nonCompletedSession: "Non-completed session", nonTerminalTask: "Non-terminal task",
-    trial: "Trial", suspended: "Suspended",
+    row: "Row", trial: "Trial", suspended: "Suspended",
   },
   ar: {
-    employeesTitle: "الموظفون والورديات", employeesSubtitle: "إدارة فريقك والورديات.",
+    employeesTitle: "الموظفون والورديات", employeesSubtitle: "إدارة صلاحيات الموظفين وعرض الورديات النشطة.",
+    employeesLocationManagerSubtitle: "عرض الورديات النشطة للموقع المحدد.",
     employees: "الموظفون", shifts: "الورديات", locationsTitle: "المواقع", locationsSubtitle: "إدارة المواقع ودورة حياتها.",
     policiesTitle: "السياسات والإعدادات", policiesSubtitle: "إدارة الإعدادات التشغيلية المحددة.", rolesTitle: "الأدوار والصلاحيات",
     rolesSubtitle: "مراجعة أدوار موظفي VAYLET الثابتة.", brandingTitle: "الهوية البصرية",
@@ -84,7 +86,7 @@ const copy = {
     setting: "الإعداد", value: "القيمة", category: "الفئة", all: "الكل", searchIntegrations: "ابحث في التكاملات…",
     currencySupported: "عملة مدعومة", timezoneValid: "منطقة زمنية صالحة", activeShift: "وردية نشطة",
     nonCompletedSession: "جلسة غير مكتملة", nonTerminalTask: "مهمة غير منتهية",
-    trial: "تجريبي", suspended: "معلّق",
+    row: "الصف", trial: "تجريبي", suspended: "معلّق",
   },
 } as const;
 
