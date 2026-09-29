@@ -161,8 +161,7 @@ export class RetrievalController {
       ? expectedExact !== "" &&
         expectedExact === inputExact &&
         session.expectedKeySlotId === scannedKeySlotId
-      : expectedExact !== "" &&
-        expectedExact.toUpperCase() === inputExact.toUpperCase();
+      : expectedExact !== "" && expectedExact === inputExact;
     this.update({
       activeSession: {
         ...session,
