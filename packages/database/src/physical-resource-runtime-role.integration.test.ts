@@ -239,6 +239,29 @@ describe("Issue #232 physical-resource runtime boundary", () => {
     expect((await create(f.locationA, randomUUID())).rows[0]?.result_code).toBe("RESOURCE_CODE_CONFLICT");
   });
 
+  it("serializes concurrent exact-code creation to one resource and one audit", async () => {
+    const f = await fixture();
+    const create = (operationId: string) =>
+      runtimePool.query<{ result_code: string }>(
+        `SELECT result_code FROM management_physical_resource_create_key_slot($1,$2,$3,$4,$5,$6)`,
+        [f.adminMembershipId, f.organizationId, f.locationA, operationId, "f".repeat(64), "K-RACE"],
+      );
+    const results = await Promise.all([create(randomUUID()), create(randomUUID())]);
+    expect(results.map((result) => result.rows[0]?.result_code).sort()).toEqual([
+      "OK",
+      "RESOURCE_CODE_CONFLICT",
+    ]);
+    const counts = await adminPool.query<{ audits: string; slots: string }>(
+      `SELECT
+         (SELECT count(*) FROM key_slots WHERE location_id=$1 AND code='K-RACE')::text AS slots,
+         (SELECT count(*) FROM audit_events
+          WHERE location_id=$1 AND event_type='KEY_SLOT_CREATED'
+            AND metadata_json->>'resourceCode'='K-RACE')::text AS audits`,
+      [f.locationA],
+    );
+    expect(counts.rows[0]).toEqual({ audits: "1", slots: "1" });
+  });
+
   it("requires an ACTIVE same-Location zone and enforces LM Location grant", async () => {
     const f = await fixture();
     const call = (locationId: string, zoneId: string) =>

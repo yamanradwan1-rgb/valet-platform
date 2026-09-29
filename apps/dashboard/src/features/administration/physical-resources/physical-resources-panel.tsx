@@ -2,7 +2,7 @@
 
 import type { ManagementLocation } from "@valet/contracts";
 import { Plus } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
@@ -11,6 +11,7 @@ import { AdministrationTabs } from "../administration-tabs";
 import { ReadState, styles } from "../administration-ui";
 import { useAuthoritativeRead } from "../use-authoritative-read";
 import { PhysicalResourceCreateDialog } from "./physical-resource-create-dialog";
+import { clearOtherIdentityPhysicalResourceOperations } from "./physical-resource-operation-id";
 import { PhysicalResourceTable } from "./physical-resource-table";
 import { readKeySlots, readParkingSpots } from "./physical-resources-api";
 import { physicalResourcesCopy } from "./physical-resources-copy";
@@ -34,6 +35,9 @@ export function PhysicalResourcesPanel(props: {
   const [spotHistory, setSpotHistory] = useState<(string | null)[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [labelTarget, setLabelTarget] = useState<{ kind: Family; id: string } | null>(null);
+  useEffect(() => {
+    clearOtherIdentityPhysicalResourceOperations(props.identityGeneration);
+  }, [props.identityGeneration]);
   const loadKeys = useCallback(
     (signal: AbortSignal) => readKeySlots(props.api, props.location.locationId, keyCursor, signal),
     [props.api, props.location.locationId, keyCursor],

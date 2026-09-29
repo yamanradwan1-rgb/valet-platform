@@ -48,6 +48,15 @@ describe("Issue #232 physical-resource Management API", () => {
       other.locationId,
       "ZONE-B",
     );
+    const inactiveZoneId = await zone(
+      admin.membership.organizationId,
+      location.locationId,
+      "ZONE-INACTIVE",
+    );
+    await fixture.query(
+      `UPDATE parking_zones SET status='INACTIVE' WHERE id=$1`,
+      [inactiveZoneId],
+    );
     const operationId = randomUUID();
     const keyBody = { operationId, code: " K-01 " };
 
@@ -139,6 +148,19 @@ describe("Issue #232 physical-resource Management API", () => {
       label: "Front Row 01",
       parkingZone: { parkingZoneId: zoneId, status: "ACTIVE" },
     });
+    const zones = await fixture.managementGet(
+      `${base(location.locationId)}/parking-zones?limit=100`,
+      admin.auth.accessToken,
+    );
+    expect(zones.status).toBe(200);
+    expect(zones.body?.items).toEqual([
+      {
+        code: "ZONE-A",
+        label: "Label ZONE-A",
+        parkingZoneId: zoneId,
+        status: "ACTIVE",
+      },
+    ]);
     const wrongZone = await fixture.managementPost(
       `${base(location.locationId)}/parking-spots`,
       admin.auth.accessToken,

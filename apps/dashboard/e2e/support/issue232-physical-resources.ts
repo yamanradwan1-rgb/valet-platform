@@ -52,6 +52,8 @@ export class Issue232PhysicalState {
   readonly parkingSpots: ParkingSpotItem[] = [];
   readonly keyPostBodies: unknown[] = [];
   readonly spotPostBodies: unknown[] = [];
+  private readonly keyOperations = new Map<string, KeySlotItem>();
+  private readonly spotOperations = new Map<string, ParkingSpotItem>();
   failNextKeyPost401 = false;
 
   constructor(populated = true) {
@@ -86,18 +88,24 @@ export class Issue232PhysicalState {
       }
       const input = request.postDataJSON() as { code: string; operationId: string };
       const code = input.code.trim();
+      const replay = this.keyOperations.get(input.operationId);
+      if (replay) return { status: 201, body: replay };
       const existing = this.keySlots.find((item) => item.code === code);
       if (existing) return { status: 409, body: { code: "RESOURCE_CODE_CONFLICT", message: "Duplicate", requestId: "issue232-duplicate" } };
       const item = { keySlotId: "44444444-4444-4444-8444-444444444444", code, status: "ACTIVE" as const, createdAt: at, updatedAt: at };
       this.keySlots.push(item);
+      this.keyOperations.set(input.operationId, item);
       return { status: 201, body: item };
     }
     if (path === `${base}/parking-spots`) {
       if (request.method() === "GET") return { body: { items: this.parkingSpots, nextCursor: null } };
       this.spotPostBodies.push(request.postDataJSON());
-      const input = request.postDataJSON() as { code: string; label: string; parkingZoneId: string };
+      const input = request.postDataJSON() as { code: string; label: string; operationId: string; parkingZoneId: string };
+      const replay = this.spotOperations.get(input.operationId);
+      if (replay) return { status: 201, body: replay };
       const item = { parkingSpotId: "55555555-5555-4555-8555-555555555555", code: input.code.trim(), label: input.label.trim(), status: "ACTIVE" as const, parkingZone: zone, createdAt: at, updatedAt: at };
       this.parkingSpots.push(item);
+      this.spotOperations.set(input.operationId, item);
       return { status: 201, body: item };
     }
     if (path === `${base}/parking-zones`) return { body: { items: [zone], nextCursor: null } };

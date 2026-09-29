@@ -56,50 +56,50 @@ async function duplicateResourcesInOtherLocation(input: {
 }
 
 describe("DEC-096 V2 exact physical identity", () => {
-  it("rejects same-code Key Slot or Parking Spot UUID from another Location", async () => {
-    const fixture = await context.createConfirmParkedFixture();
-    const other = await duplicateResourcesInOtherLocation(fixture);
+  it("rejects same-code Location A UUIDs in B and accepts the correct B V2 identity", async () => {
+    const locationB = await context.createConfirmParkedFixture();
+    const locationA = await duplicateResourcesInOtherLocation(locationB);
     const execute = createConfirmParkedCommandExecutor(context.runtimePool);
 
     await expectConfirmError(
       execute({
-        authenticatedUserId: fixture.userId,
+        authenticatedUserId: locationB.userId,
         expectedSessionVersion: 3,
         expectedTaskVersion: 4,
-        keySlotCode: fixture.keySlotCode,
-        keySlotId: other.keySlotId,
-        parkingSpotCode: fixture.parkingSpotCode,
-        parkingSpotId: fixture.parkingSpotId,
-        sessionId: fixture.sessionId,
+        keySlotCode: locationB.keySlotCode,
+        keySlotId: locationA.keySlotId,
+        parkingSpotCode: locationB.parkingSpotCode,
+        parkingSpotId: locationB.parkingSpotId,
+        sessionId: locationB.sessionId,
       }),
       "KEY_CUSTODY_NOT_READY",
     );
     await expectConfirmError(
       execute({
-        authenticatedUserId: fixture.userId,
+        authenticatedUserId: locationB.userId,
         expectedSessionVersion: 3,
         expectedTaskVersion: 4,
-        keySlotCode: fixture.keySlotCode,
-        keySlotId: fixture.keySlotId,
-        parkingSpotCode: fixture.parkingSpotCode,
-        parkingSpotId: other.parkingSpotId,
-        sessionId: fixture.sessionId,
+        keySlotCode: locationB.keySlotCode,
+        keySlotId: locationB.keySlotId,
+        parkingSpotCode: locationB.parkingSpotCode,
+        parkingSpotId: locationA.parkingSpotId,
+        sessionId: locationB.sessionId,
       }),
       "PARKING_SPOT_NOT_FOUND_OR_UNAVAILABLE",
     );
 
     const accepted = await execute({
-      authenticatedUserId: fixture.userId,
+      authenticatedUserId: locationB.userId,
       expectedSessionVersion: 3,
       expectedTaskVersion: 4,
-      keySlotCode: fixture.keySlotCode,
-      keySlotId: fixture.keySlotId,
-      parkingSpotCode: fixture.parkingSpotCode,
-      parkingSpotId: fixture.parkingSpotId,
-      sessionId: fixture.sessionId,
+      keySlotCode: locationB.keySlotCode,
+      keySlotId: locationB.keySlotId,
+      parkingSpotCode: locationB.parkingSpotCode,
+      parkingSpotId: locationB.parkingSpotId,
+      sessionId: locationB.sessionId,
     });
     expect(accepted).toMatchObject({
-      parkingSpotId: fixture.parkingSpotId,
+      parkingSpotId: locationB.parkingSpotId,
       state: "PARKED",
     });
   });
@@ -129,5 +129,63 @@ describe("DEC-096 V2 exact physical identity", () => {
       sessionId: fixture.sessionId,
     });
     expect(accepted).toMatchObject({ state: "RETRIEVING" });
+  });
+
+  it("rejects inactive V2 physical targets before protected workflow mutation", async () => {
+    const parkedKey = await context.createConfirmParkedFixture();
+    await context.adminPool.query(
+      `UPDATE key_slots SET status='INACTIVE' WHERE id=$1`,
+      [parkedKey.keySlotId],
+    );
+    const confirm = createConfirmParkedCommandExecutor(context.runtimePool);
+    await expectConfirmError(
+      confirm({
+        authenticatedUserId: parkedKey.userId,
+        expectedSessionVersion: 3,
+        expectedTaskVersion: 4,
+        keySlotCode: parkedKey.keySlotCode,
+        keySlotId: parkedKey.keySlotId,
+        parkingSpotCode: parkedKey.parkingSpotCode,
+        parkingSpotId: parkedKey.parkingSpotId,
+        sessionId: parkedKey.sessionId,
+      }),
+      "KEY_CUSTODY_NOT_READY",
+    );
+
+    const parkedSpot = await context.createConfirmParkedFixture();
+    await context.adminPool.query(
+      `UPDATE parking_spots SET status='INACTIVE' WHERE id=$1`,
+      [parkedSpot.parkingSpotId],
+    );
+    await expectConfirmError(
+      confirm({
+        authenticatedUserId: parkedSpot.userId,
+        expectedSessionVersion: 3,
+        expectedTaskVersion: 4,
+        keySlotCode: parkedSpot.keySlotCode,
+        keySlotId: parkedSpot.keySlotId,
+        parkingSpotCode: parkedSpot.parkingSpotCode,
+        parkingSpotId: parkedSpot.parkingSpotId,
+        sessionId: parkedSpot.sessionId,
+      }),
+      "PARKING_SPOT_NOT_FOUND_OR_UNAVAILABLE",
+    );
+
+    const retrieval = await context.createStartRetrievalFixture();
+    await context.adminPool.query(
+      `UPDATE key_slots SET status='INACTIVE' WHERE id=$1`,
+      [retrieval.keySlotId],
+    );
+    await expectStartRetrievalError(
+      createStartRetrievalCommandExecutor(context.runtimePool)({
+        authenticatedUserId: retrieval.userId,
+        expectedSessionVersion: 5,
+        expectedTaskVersion: 3,
+        keySlotCode: retrieval.keySlotCode,
+        keySlotId: retrieval.keySlotId,
+        sessionId: retrieval.sessionId,
+      }),
+      "KEY_CUSTODY_NOT_READY",
+    );
   });
 });

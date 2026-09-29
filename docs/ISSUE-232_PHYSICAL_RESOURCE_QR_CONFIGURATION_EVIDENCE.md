@@ -171,37 +171,33 @@ Dashboard E2E checks localStorage, sessionStorage, IndexedDB and CacheStorage fo
 
 ## Test and gate evidence
 
-Focused and closure results confirmed during implementation:
+Focused and closure results confirmed during implementation and the final fast-closure review:
 
-- Shared QR parser / input: PASS, including V1 and V2, exact bytes, malformed/wrong-type and derived V2 cap.
-- Employee Client confirm parked / retrieval regression: PASS.
-- Employee Web scanner and operational flows: PASS.
-- Native scanner / parking / retrieval regression: PASS.
-- Contracts physical-resource / confirm parked / retrieval: PASS.
-- Physical-resource runtime PostgreSQL role: 5/5 PASS after the final migration refactor.
-- Management physical-resource HTTP authority/behavior: 7/7 PASS.
-- V2 exact cross-Location operational identity: 2/2 PASS.
-- Issue #232 Dashboard E2E: 8/8 PASS after final label changes.
-- Dashboard PNG: valid PNG signature; 1200x1500 dimensions; byte-exact QR round-trip decode PASS.
-- A->B->A stale success fencing and logout fencing: PASS.
-- Double-submit, 401 no-replay, explicit retry with stable operationId: PASS.
-- EN/AR/RTL, Light/Dark, desktop/narrow, keyboard focus restoration and print-chrome exclusion: PASS.
-- Prisma validate against the local test PostgreSQL configuration: PASS.
-- pnpm lint: PASS.
-- pnpm typecheck: PASS.
-- pnpm architecture:check: PASS.
-- pnpm test:build-contract: 4/4 PASS.
-- pnpm build (verification mode): PASS for all build targets.
-- pnpm test:non-postgres after final scanner fixes: PASS.
-- Full PostgreSQL API tiers from the closure run before the final non-Postgres expectation fixes:
-  - api-postgres-standard: 112 files / 785 tests PASS.
-  - api-postgres-compound: 24 files / 89 tests PASS.
-  - api-postgres-race: 140 files / 870 tests PASS.
-  - database-postgres-direct: 30 files / 563 tests PASS.
-  - database-postgres-provision: 24 files / 109 tests PASS.
-- Final pnpm test rerun after all fixes: PASS — api-postgres-standard 785/785, api-postgres-compound 89/89, api-postgres-race 870/870, database-postgres-direct 563/563, database-postgres-provision 109/109; root command exit 0.
-- git diff --check: will be rerun after this evidence document and cleanup before commit.
-- Production build was intentionally not fabricated; no fake production configuration values were supplied.
+- Shared QR parser / input: PASS, including V1 and V2, exact bytes, malformed/wrong-type handling, manual code continuity, and the derived V2 cap. These production paths were unchanged by the final review, so their already-green focused/root results remain authoritative.
+- Employee Client Confirm Parked / Retrieval, Employee Web scanner, and Native scanner/parking/retrieval regressions: PASS; unchanged during the final review.
+- Contracts physical-resource / Confirm Parked / Retrieval: PASS; unchanged during the final review.
+- Physical-resource cursor binding: 3/3 PASS; malformed cursors, wrong Location, and wrong resource-family reuse are rejected.
+- Management physical-resource HTTP authority/behavior: 7/7 PASS in the final focused run. This covers Company Admin, exact granted Location Manager, Supervisor/Employee denial, Sensitive-CA-create versus Standard reads, inactive Location behavior, entitlement revocation, idempotency, persisted reread, zone enforcement, and safe audit.
+- V2 operational identity: 3/3 PASS in the final focused run. Same-code Location A UUIDs are rejected in Location B, the correct Location B V2 KeySlot/ParkingSpot identity succeeds under the normal workflow, Retrieval rejects the wrong cross-Location UUID, and inactive V2 targets are rejected before protected mutation.
+- Physical-resource runtime PostgreSQL role: 6/6 PASS in the final focused run. Direct runtime INSERT remains denied; only reviewed SECURITY DEFINER entry points are executable; idempotent replay, same-Location conflict, cross-Location duplicate-code allowance, concurrent duplicate serialization to exactly one resource/one audit, ParkingZone scope/status, and LM grant enforcement all pass.
+- Issue #232 Dashboard focused closure: 14/14 PASS after the final operation-id cleanup. This includes persisted create/reread, duplicate/focus behavior, 401 no automatic POST replay, lost-response authoritative reread plus explicit same-operation retry, A->B->A stale success/failure fencing, create-A-then-switch-B fencing, logout fencing, identity replacement, Standard CA physical-resource reads while lifecycle independently requests Sensitive MFA, visual parity, and empty states.
+- Dashboard PNG/print/privacy: PASS in that 14-test closure. PNG signature and 1200x1500 dimensions are verified, ZXing decodes the generated image byte-for-byte to the V2 payload, Blob URLs are revoked, protected QR/resource identity is absent from browser persistence, and print mode excludes Dashboard chrome/buttons/backdrop.
+- EN/AR/RTL, Light/Dark, desktop/narrow, bidi-isolated operational codes, keyboard focus restoration, and no horizontal page overflow: PASS in the focused visual closure.
+- Dashboard package lint after the final UI change: PASS.
+- Dashboard package typecheck after the final UI change: PASS.
+- pnpm architecture:check after the final review: PASS with only repository-baseline grandfather warnings.
+- Prisma validate against the local test PostgreSQL configuration: PASS from the implementation closure; Prisma/schema were not changed afterward.
+- pnpm test:build-contract: 4/4 PASS from the implementation closure; affected contracts were not changed afterward.
+- pnpm build (verification mode): PASS for all build targets from the implementation closure; no fake production environment values were supplied.
+- pnpm test:non-postgres after the scanner expectation fixes: PASS; scanner/contract production code was unchanged afterward.
+- Full root pnpm test at implementation commit `5b93161e84746189572295c97fc49d1dda8c3f35`: PASS with root exit 0:
+  - api-postgres-standard: 785/785 tests PASS.
+  - api-postgres-compound: 89/89 tests PASS.
+  - api-postgres-race: 870/870 tests PASS.
+  - database-postgres-direct: 563/563 tests PASS.
+  - database-postgres-provision: 109/109 tests PASS.
+- Fast Closure mode intentionally did not restart a repository-wide root suite. A broad PostgreSQL batch launched before Fast Closure mode was stopped so it would not block the final focused #232 database/API runs. This is redundant rather than a coverage gap: the full root suite above was already green at the pushed implementation commit, API/DB production code did not change during the final review, and the only post-commit production change is identity-scoped cleanup of the Dashboard's memory-only create operation IDs, covered by Dashboard lint/typecheck, architecture check, and the 14/14 focused Dashboard closure.
+- git diff --check: PASS after final evidence synchronization and before closure commit.
 
 ## File-size policy
 
@@ -244,7 +240,9 @@ Their sizes did not grow beyond the accepted architecture baseline, and architec
 - apps/api/test/dashboard-physical-resources.integration.test.ts
 - apps/api/test/dashboard-physical-resources-authority.integration.test.ts
 - apps/api/test/management-audit-projection.test.ts
+- apps/api/test/physical-resource-cursor.test.ts
 - apps/api/test/physical-resource-v2-operational.integration.test.ts
+- apps/dashboard/e2e/issue232-physical-resource-closure.spec.ts
 - apps/dashboard/e2e/issue232-physical-resource-races.spec.ts
 - apps/dashboard/e2e/issue232-physical-resources.spec.ts
 - apps/dashboard/e2e/issue232-physical-resource-visual.spec.ts
@@ -348,4 +346,4 @@ Their sizes did not grow beyond the accepted architecture baseline, and architec
 
 ## Final status
 
-Implementation is functionally complete and all Issue #232 focused acceptance gates are green. The enclosing closure commit is the implementation commit for this evidence document. No PR or merge is part of Issue #232 closure.
+Implementation is complete and the final focused Issue #232 acceptance gates are green. The final closure commit contains only intentional #232 review hardening on top of the already-pushed implementation commit. No PR or merge is part of Issue #232 closure.
