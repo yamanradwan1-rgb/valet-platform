@@ -998,3 +998,283 @@ Legend: **Yes** remains subject to active user/membership/organization, current 
 | Own active/end shift | Not inherited from CA role | Not inherited from LM role | Existing self/field contract | Existing self/field contract |
 | Force End | Owner-approved administrative closure, fresh MFA, reason and audit | CA/authorized LM in exact permitted Location, using the existing MFA system; no Company Admin authority is implied by MFA eligibility | No | No |
 | Zone create | Section10, active location + sensitive MFA | Section10, exact active grant | No | No |
+| Key-slot/spot create/label | Existing DEC-096 | Existing granted active location | No management | No management |
+| Physical configuration list | Existing CA including authorized inactive list | Existing active exact grant | No | No |
+| Live Operations/Retrieval Queue | Exact active location | Exact active granted location | No management overview | No management overview |
+| Roles reference | Yes | No | No | No |
+| Integration status | Yes | No | No | No |
+| Topbar location choices | Authorized org locations; All only eligible destination | Granted choices; no company-wide All | Only existing authorized specialized scope if supported | No management workspace |
+
+Inactive membership and disabled user: deny every protected management row above, including result replay. A valid user session alone does not confer an active membership. Preserve the separate accepted self-end cleanup rule where applicable; do not generalize it to staff management.
+
+LM target distinctions after U-02: inside grant set may be allowed for lower roles; outside denied; mixed target must not permit global role/status mutation on partial authority; grant lost during operation must serialize so either the authorized command commits before revoke, or it fails after revoke. Zero-grant target and partially visible history need an explicit decision. No name/count of hidden grants in denial messages. Submitted location IDs never substitute for persisted target membership/location ownership.
+
+### Authorization-before-mutation proof
+
+| Stage | Existing resource/staff path | Conditional onboarding / Force End requirement |
+| --- | --- | --- |
+| Authenticate | Current staff session resolver; active principal | Same for manager; activation has separately approved token proof |
+| Resolve target | Persisted organization/location/membership, not client ownership | Shift→location→organization and target member; invite→approved tenant/account |
+| Authorize | Operation capability/role/grant/MFA | Exact lower-role target policy and fresh Force End MFA; no generic CA helper relaxation |
+| Protect proof | Existing org/operation advisory and row locks | Align with current grant, session, shift and task writers; no check-use gap |
+| Write | Scoped command function/CAS | Approved lifecycle/closure only |
+| Audit | Existing safe writer in transaction | Dedicated reviewed event, bounded reason, no credentials |
+| Commit | One PostgreSQL transaction | Delivery external side effects after durable state, truthful outcome |
+| Retry/re-read | Fresh authority before desired-state/replay result | Same; possession of operation ID/token record ID does not expose result |
+
+## 20. Role-transition matrix
+
+The following is the existing CA command policy to preserve, not an endorsement of every transition without its guards. Rows are target's current role; columns are desired role. All require current actor CA authority, sensitive assurance and target tenant proof.
+
+| Target from → to | ORG_ADMIN | LOCATION_MANAGER | VALET_SUPERVISOR | VALET_EMPLOYEE |
+| --- | --- | --- | --- | --- |
+| ORG_ADMIN | Authorized no-op | Last usable admin + dormant-grant rules | Same demotion guards | Same demotion guards |
+| LOCATION_MANAGER | Allowed under existing CAS | Authorized no-op | Allowed under existing CAS | Allowed under existing CAS |
+| VALET_SUPERVISOR | Block if operational handover incomplete | Block if operational handover incomplete | Authorized no-op | Existing field-to-field transition allowed, including active shift |
+| VALET_EMPLOYEE | Block if operational handover incomplete | Block if operational handover incomplete | Existing field-to-field transition allowed, including active shift | Authorized no-op |
+
+CA demotion requires another usable admin and explicit handling of dormant grants as enforced by 037; do not silently drop grants to make a transition succeed. Self-demotion/deactivation follows these same last-admin protections. A role change is not a task reassignment or shift closure. Desired-state no-op is still freshly authorized and must not emit duplicate audit or increment version.
+
+Proposed LM matrix after U-02: Employee→Supervisor and Supervisor→Employee only, plus authorized no-op for those lower-role targets. All transitions from/to ORG_ADMIN or LOCATION_MANAGER denied, including attempts to modify self as LM. LM cannot create elevated roles, deactivate an elevated target, or use grants mutation to indirectly acquire elevated authority. Target inside/mixed/outside checks apply before no-op result disclosure. CA actor changing its own authority mid-command must be protected by the existing organization/member serialization, not trusted from an earlier HTTP request.
+
+## 21. Concurrency/race matrix
+
+### Browser identity and result ownership
+
+Every case below runs both delayed success and delayed failure where applicable. Assert DOM, selected row/dialog, toast, loading flag, next cursor and request counts—not merely that AbortController was called.
+
+| Scenario | Captured identity and invalidation | Required outcome |
+| --- | --- | --- |
+| Organization A→B | Identity/session/revision + org | A list/detail/menu/MFA callback cannot affect B; use unchanged sidebar Organization flow |
+| Location A→B→A | Full epoch; revision differs for revisited A | First A result cannot paint second A; current A fetch controls state |
+| All→A→All | Typed scope kind + revision, not null-ID equivalence | No exact-location data shown as all-location aggregate |
+| Filter A→B→A | Epoch + normalized filter + query sequence | Old A page/cursor/error discarded even when filter text returns to A |
+| Page2 late after scope/filter reset | Epoch/filter/cursor + sequence | Cannot append/replace page1 or push stale cursor history |
+| Logout/session replacement/refresh | Identity and session generation | Old result/draft/label/force-end intent invalid; refresh does not auto-POST |
+| Old drawer/dialog or entity selection | Epoch + entityId + expectedVersion | No old-target mutation or reconciliation against new selection |
+| Mutation success/failure after switch/logout | Captured epoch plus logical operation | Server may commit; no stale toast/dialog/refresh; explicit later reconciliation |
+| Membership/grant/entitlement loss | Fresh server proof, tagged denial | Denied state clears only its own epoch; cannot clear a newer valid selection |
+| Menu candidate A proof after B choice | Menu/candidate sequence + actor epoch | Only latest candidate can call selectScope; one revision per committed selection |
+
+### Database competing transactions
+
+| Race / owner | Transaction A vs B; shared rows/locks | Linearization, commit/rollback/unknown outcome |
+| --- | --- | --- |
+| Resource identical create / #236 | Two commands share org+operation advisory lock; current actor/location/grant proof held | One insert+audit, other authorized original replay. Audit failure rolls back insert. Lost response retries same operation |
+| Same code different operation / #236 | Distinct operation locks contend on `(location_id,code)` unique constraint | One success, one typed duplicate; not an idempotent replay. Other tenant/location unaffected |
+| Resource create vs grant/location loss / #236 | Create actor/location/grant share locks versus revoke/inactivate writer | Commit authorized before loss or reject after loss; no eligibility SELECT in a separate transaction |
+| Staff role/status/grants / #240 | 037 organization advisory + target membership lock; two expectedVersion writers | One changed version/audit; conflicting desired outcome conflicts, identical desired outcome reauthorizes then no-ops |
+| Last admin demotion vs demotion/factor loss / #240 | Organization serialization plus sorted factor locks/current usable-admin check | Cannot commit zero usable admins; preserve existing factor-race tests, do not use stale count |
+| Deactivate/revoke vs shift start / #240 | Existing member/grant locks and shift eligibility, organization serialization | Either shift starts and blocker prevents revoke, or authority removed and start fails |
+| Deactivate/revoke vs task assignment/intake/incident intent / #240 | Existing blocker predicates and their consumer transaction locks | No stranded protected work. Existing race suites are acceptance tests, not optional regression polish |
+| Invite issue/resend vs consume / remaining U-01 | Proposed membership/invite-generation lock plus account unique email and operation key | Exactly one accepted generation consumed; no password reset of existing user. Rollback leaves no half-created membership/grants; unknown delivery reconciles durable state |
+| Concurrent resends / remaining U-01 | Same invitation owner/generation and reviewed logical-operation identity | Approved winner/rotation policy; old token unusable; no double membership or uncontrolled invite-generation loop |
+| Force End vs self-end / accepted Force End decision | Same shift row exclusive lock after correct actor/target proof | One immutable closure; other observes authorized existing outcome without replacing cash/reason. Lost response does not produce another event |
+| Force End vs new task eligibility / accepted Force End decision | Existing `shift-operational-eligibility.ts` holds shift share lock in consumer transaction; proposed end takes conflicting exclusive lock | If assignment wins, end sees blocker and fails; if end wins, eligibility fails. A preflight-only check permits unsafe task-after-end and is forbidden |
+| Force End vs MFA/session revoke / accepted LM MFA + Force End decisions | Current `lockAndRecheckMfaSession` transaction protection + target scope locks | Authorization must remain valid through protected write under existing lock contract; no stale client assurance |
+
+Do not impose a guessed global lock order across all modules. Existing paths take organization, member, lifecycle, session and shift locks in specific orders; before adding a command, write its actual acquisition graph against each competitor and retain established order. New paths must not invert existing order. Add deterministic two-connection barrier tests (hold lock, start competitor, release, assert final rows/audits), plus bounded deadlock/serialization failure handling. A database serialization retry may only repeat a transaction according to existing infrastructure policy with fresh proof; it does not authorize generic HTTP POST replay.
+
+No TOCTOU claim is satisfied by a helper name alone: prove the operational consumer holds the eligibility lock until its later task write commits. If a required lock is absent, the responsible issue owns the smallest accepted change or records a blocking dependency; do not simply add a second SELECT and call the race fixed.
+
+## 22. Request-budget matrix
+
+Budgets describe business reads, excluding documented shared auth/navigation work. Record shared authority calls separately and assert deduplication against the baseline. Development rendering behavior is not permission for duplicate production fetches.
+
+| Surface/action | Intended bounded work | Forbidden work |
+| --- | --- | --- |
+| Topbar open | One current-org location page | All-org discovery, one call per location, automatic page loop |
+| Topbar choose | One candidate proof plus deduplicated foundation revalidation; one target-page load | Chooser discovery fan-out or repeated denial loop |
+| Keys & Spots entry/tab | One active occupancy/config list | Eager occupancy + keys + spots + zones on every entry |
+| Resource create | One POST per explicit submit; ≤1 affected list reconciliation | Auto retry after auth/MFA/timeout |
+| Spot zone selector | One page/open or explicit page action | Assume first100 complete; load all zones invisibly |
+| Label | One authorized GET per action | Per-row label/QR reads |
+| Settings ordinary tabs | Zero integrations calls | Hidden status prefetch |
+| Service Status | One GET per entry/explicit refresh | Polling/provider probes |
+| Employees query | One page/effective debounced query | Full directory preload or local-only global filter |
+| Employee detail/grants | One detail + explicit bounded grant pages | N+1 location/identity lookup or silent >50 mutation loop |
+| Shift history | One page/filter/page action; one selected detail | All-location fan-out/full history preload |
+| Live duration | Zero HTTP; local timer from timestamps | Per-second/minute polling |
+| Live Operations | One session page + independent scope counts | Full session preload, row identity/resource requests |
+| Retrieval Queue | One queue page | Staff directory fetch for each assignee |
+| Roles reference | Zero directory/capability probes | Hidden Users fetch |
+
+Use SQL joins/lateral projection inside the existing bounded query for employee names, vehicle/resource labels and latest task data. Distinguish SQL query count from HTTP count: a fixed count of scoped transaction queries can be acceptable; an unbounded query per row is not. Network tests must assert no forbidden calls during empty/loading/denied states as well as success.
+
+## 23. Test plan
+
+Tests below are future execution requirements; none were run during this audit. Extend existing files where responsibility matches; new test names are proposals and must stay under300 authored lines.
+
+| Layer | Current anchors to extend | Required cases |
+| --- | --- | --- |
+| Contract/schema | `packages/contracts/src/physical-resource-configuration.test.ts`, management control-plane/commercial and overview contract tests | Strict unknown-key rejection; limits/trim; nullable legacy identity; filter enums; cursor mismatch; new gated command schemas only after acceptance |
+| Migration/DB function | `packages/database/src/staff-management-migration.integration.test.ts`, `staff-management-migration-preservation.integration.test.ts`, `physical-resource-runtime-role.integration.test.ts` | Upgrade preservation, scoped FKs/unique/checks, direct runtime denial, helper revocation, provision rerun, audit rollback and original replay |
+| API resource | `apps/api/test/dashboard-physical-resources.integration.test.ts`, `dashboard-physical-resources-authority.integration.test.ts`, `physical-resource-cursor.test.ts` | CA/LM/other roles, inactive location/zone, same/cross tenant, duplicate operation/code, zone page101, unchanged key/spot QR |
+| API staff | `staff-management-transitions.integration.test.ts`, `staff-management-directory-pagination.integration.test.ts`, `staff-management-deactivation.integration.test.ts`, `staff-management-last-admin.integration.test.ts`, `staff-management-cas.integration.test.ts` | Section20 all role pairs; >50 results; full filtering; target version/no-op; last usable admin; unrelated tenant sessions preserved |
+| API staff races | `staff-management-shift-races.integration.test.ts`, `staff-management-task-races.integration.test.ts`, `staff-management-custody-race.integration.test.ts`, `staff-management-incident-recovery-races.integration.test.ts`, `staff-management-deactivation-refresh-race.integration.test.ts` | Deterministic competing writers, all existing blockers, no stale eligibility proof |
+| Shift/MFA | `shift-end.integration.test.ts`, `shift-cash-reconciliation.integration.test.ts`, `shift-eligibility.integration.test.ts`, staff MFA eligibility/assurance/session-race tests | Existing self behavior unchanged; approved force/self/task race; exact5min freshness boundary; refresh no extension; LM-only account flow under the owner-approved existing-MFA extension |
+| Onboarding new proposed suites | `apps/api/test/staff-onboarding.integration.test.ts`, `staff-invitation-races.integration.test.ts` | New/existing email, no enumeration/takeover, atomic membership/grants, expiry/single use, concurrent resend/consume, unknown issuance/result outcome, no logged secrets |
+| Overview API | `dashboard-overview-api.integration.test.ts`, `dashboard-overview-authz.integration.test.ts`, `dashboard-overview-domains.integration.test.ts` | Filters beyond page1, counts scope, joins isolation/nulls, explicit assignment source, deterministic cursor |
+| Dashboard unit | Existing scope-key/navigation tests, `roles-page.test.ts`, `staff-presentation.test.ts`, `live-operations-presentation.test.ts` | Revision propagation, canonical identity fallback/RTL, tab mapping, role copy, date/duration math, route fallback |
+| Dashboard behavior/component coverage | Existing Playwright administration/operations fixtures and specs | Create/assign/history/dialog state, disabled/double submit, explicit post-MFA retry, unknown outcome, no automatic replay |
+| Scope/browser races | `scope-authority.spec.ts`, `md04-scope-races.spec.ts`, `md05-location-race.spec.ts`, `md233-period-scope-race.spec.ts`, `issue232-physical-resource-races.spec.ts`, `administration-r05-employees-generation.spec.ts`, `operations-r04-generation.spec.ts` | Section21 browser cases, stale success and stale failure, old dialog callbacks |
+| Cursor/budget/privacy | `administration-r05-cursor-generation.spec.ts`, `administration-r05-authority-budget.spec.ts`, `operations-r04-cursor.spec.ts`, `operations-r04-authority-budget.spec.ts`, `operations-r03-privacy-budget.spec.ts` | Page2 late, query identity, no N+1/fan-out/hidden Users calls, protected storage empty |
+| Visual/accessibility | `issue232-physical-resource-visual.spec.ts`, `administration-visual-freeze.spec.ts`, `operations-visual-freeze.spec.ts`, `administration-r06-accessibility.spec.ts` | Section24 screenshots, keyboard/focus restoration, EN/AR, RTL/LTR, light/dark, desktop/narrow |
+| Integrated runtime | Existing dashboard `e2e-runtime` config and isolated API/database | Real restricted runtime principal, real auth/MFA, migrated data and required command failures; no mocks claimed as DB evidence |
+
+For all mutations test first submission, identical retry, concurrent identical submission, conflicting submission, retry after authorization loss, and unknown outcome after commit. Inspect database rows and audit count/metadata, not just status codes. For secret-bearing flows inspect sanitized logs, response bodies, traces and browser storage without printing secrets in test output. Failed assertions must not be “fixed” by deleting tests, weakening auth fixtures or replacing real database paths with mocks.
+
+## 24. Visual proof matrix
+
+Hard UI freeze is a release gate. Capture at the baseline SHA before edits, using deterministic equivalent data, viewport, locale, theme, browser and font readiness. Store reviewed artifacts in the implementation task's normal test artifact location, not this planning task. Do not blindly regenerate golden snapshots. Compare relocated component crops separately from the authorized outer composition change.
+
+| Proof group | Before | After / combinations |
+| --- | --- | --- |
+| Shell/#243 | Closed topbar, sidebar Organization, exact/all scope | Closed control exact crop; menu open/selected/error; EN/light desktop + AR/dark narrow; keyboard/focus proof; shell remains mounted |
+| #236/#237 | Locations physical panel, key/spot tables, Add Key/Spot, label; operational Keys table/drawer | Same interiors in Keys & Spots; Zone create and empty selector; EN/light desktop all flows, AR/dark narrow representative table/dialog/label |
+| #238 | Sidebar, Integrations cards, Settings tabs | Removed single nav item, preserved cards in Service Status; EN/light desktop + AR/dark narrow |
+| #240 Employees | Table/filter/detail and current grants | Table/filter/detail, create, assignment; EN/light desktop; AR/dark desktop long names; AR/light narrow form/focus |
+| #240 Shifts | Active table/drawer, existing MFA | History/filters/drawer, duration, Force End reason/confirmation/MFA/unknown state; EN/light desktop + EN/dark narrow, AR representative drawer |
+| #241 | Live table/assigned/vehicle/drawer/queue | Same surfaces with real identity and missing-data fixtures; EN/light desktop + AR/dark narrow |
+| #242 | Role reference | Four-row truthful reference without Users; EN/light desktop + AR/dark narrow |
+
+This deliberately avoids a full Cartesian explosion. The matrix still covers both languages, both directions, both themes, desktop and narrow; shared primitive parity proven in one group can support others only when markup/styles are actually shared. New or changed focus behavior requires functional tests even when a screenshot looks identical.
+
+Failure criteria: unrelated changes to shell/sidebar/topbar size, page width, typography, spacing/color/icon/button language, row density, drawer/dialog geometry, QR size/download, focus order/trap/return, horizontal overflow behavior, RTL alignment or contrast. Approved text, added task-required controls, relocated outer container and removed navigation/tab are not blanket permission to redesign. Attach before/after evidence with intentional differences enumerated; no runtime screenshots were captured in this audit.
+
+## 25. Validation commands
+
+Run from the implementation worktree after confirming branch ownership and isolated test/database configuration. These commands are based on current scripts; they are instructions for the future implementer, not execution evidence. Node>=22 and pnpm10.34.5 are the current repository requirements. Do not run provisioning/seed against shared or production data for validation.
+
+1. Baseline and structural checks:
+
+```powershell
+git status --short
+git diff --check
+pnpm architecture:check
+pnpm --filter @valet/database prisma:validate
+```
+
+2. Contract and focused non-database tests:
+
+```powershell
+pnpm --filter @valet/contracts test
+pnpm --filter @valet/dashboard test
+pnpm --filter @valet/api test:non-postgres
+```
+
+3. Focused existing database-backed API tests through the owned harness (it classifies projects and manages invocation leases):
+
+```powershell
+pnpm --filter @valet/api exec node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/dashboard-physical-resources.integration.test.ts test/dashboard-physical-resources-authority.integration.test.ts
+pnpm --filter @valet/api exec node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/staff-management-transitions.integration.test.ts test/staff-management-deactivation.integration.test.ts test/staff-management-directory-pagination.integration.test.ts
+pnpm --filter @valet/api test:shifts
+pnpm --filter @valet/api exec node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/shift-cash-reconciliation.integration.test.ts test/dashboard-overview-api.integration.test.ts test/dashboard-overview-authz.integration.test.ts
+pnpm --filter @valet/database exec node ../../scripts/test-harness/run-owned-tests.mjs database vitest.config.mjs src/staff-management-migration.integration.test.ts src/staff-management-migration-preservation.integration.test.ts src/physical-resource-runtime-role.integration.test.ts
+```
+
+Add accepted new test files to the appropriate harness ownership classification and run them through this same mechanism; do not invoke PostgreSQL tests in a way that bypasses their test harness. Then run affected broader suites once:
+
+```powershell
+pnpm --filter @valet/api test:postgres
+pnpm --filter @valet/database test:postgres
+```
+
+4. Migration/privilege validation on a disposable database with explicitly verified connection targets:
+
+```powershell
+pnpm --filter @valet/database exec prisma migrate status
+pnpm --filter @valet/database migrate:deploy
+pnpm --filter @valet/database runtime:provision
+pnpm --filter @valet/database exec prisma migrate status
+```
+
+Run upgrade/preservation tests and runtime denial tests as well as these command-success checks. `migrate:deploy` uses the repository's connection-policy wrapper; no direct admin credential in API runtime. Do not run seed for this plan. Avoid emitting connection URLs or secrets when checking environment. Repeat runtime provisioning in the isolated test to prove idempotence.
+
+5. Focused browser suites, then affected administration/operations suites:
+
+```powershell
+pnpm --filter @valet/dashboard test:e2e e2e/scope-authority.spec.ts e2e/md04-scope-races.spec.ts e2e/md05-location-race.spec.ts
+pnpm --filter @valet/dashboard test:e2e e2e/issue232-physical-resources.spec.ts e2e/issue232-physical-resource-races.spec.ts e2e/issue232-physical-resource-visual.spec.ts
+pnpm --filter @valet/dashboard test:e2e e2e/administration-staff.spec.ts e2e/administration-r05-employees-generation.spec.ts e2e/administration-r05-authority-budget.spec.ts
+pnpm --filter @valet/dashboard test:e2e e2e/operations-r04-generation.spec.ts e2e/operations-r04-cursor.spec.ts e2e/operations-r04-authority-budget.spec.ts
+pnpm --filter @valet/dashboard test:e2e e2e/administration-visual-freeze.spec.ts e2e/operations-visual-freeze.spec.ts e2e/administration-r06-accessibility.spec.ts
+pnpm --filter @valet/dashboard test:e2e:runtime
+```
+
+The standard Playwright config uses one Chromium worker and can start the dashboard on3003. Runtime config expects a separately prepared runtime base URL and does not start the whole API/database stack. Read the existing runtime fixture/setup instructions before using it. These commands can create artifacts and are therefore deferred to implementation; they were not run during read-only planning. Run new issue-specific specs once added, including Roles/Settings compatibility and all matrix gaps.
+
+6. Repository quality and production build:
+
+```powershell
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm build:production
+git diff --check
+git status --short
+```
+
+If an existing baseline formatter failure is unrelated, report it with evidence rather than rewriting unrelated files. A production-build failure is not success; capture the actual dependency/environment failure and resolve it before completion. CI must pass on the final PR SHA. Local lint/typecheck proves only those checks, not migrations, runtime races, visual parity or production operation.
+
+## 26. Implementation-agent handoff checklist
+
+- Re-fetch seven issue bodies/comments and origin; record new SHA and reconcile drift. Read assigned issue and relevant full Accepted decisions; use an owned branch, not main.
+- Capture baseline visuals/network behavior before UI changes. Preserve shell, table/dialog/drawer patterns and both languages/themes/directions.
+- Resolve only the remaining U-01/U-02 items where needed. Record the owner-approved invite-link-only delivery, LM existing-MFA extension, Force End semantics and active-Task assignee semantics as accepted contracts before implementation; do not reopen them.
+- Name affected entities per slice: resource slices affect zones/spots/slots/audit; staff slices affect membership/grants/approved invitation/account lifecycle/shift/audit; projections affect reads only. No Session/Task transitions unless separately authorized.
+- Recount target file lengths and extract responsibilities before growth. Coordinate schema/migrations/contracts exports/navigation high-contention files; one migration owner.
+- Land full scope epoch/fences, #243, resource relocation then zone creation; create status destination before removing nav; canonical identity before #241; staff parity before Users removal.
+- Preserve authorization-before-write, tenant/location FKs, existing blockers, last usable admin and exact retry semantics. Verify restricted runtime role and audit rollback, not just owner-connection success.
+- Run section21 races and section22 budgets, including stale errors and unknown POST outcomes. Do not silently replay mutations after auth/MFA.
+- Verify no protected browser persistence, no secret-bearing logs/audits, and no global session revocation from tenant deactivation. Invite UI must truthfully say only that a secure link was generated/copied; it must not claim email/SMS/provider delivery.
+- Complete section24 visual evidence and section25 validation; report failed/unrun checks explicitly. No issue complete while its required behavior or gate remains missing.
+- Review final diff against allowed scope and documentation; obtain independent contributor review and passing CI. Do not merge own work merely because local checks pass.
+
+## 27. Known risks
+
+| Risk | Consequence / mitigation |
+| --- | --- |
+| Plan baseline ages | Re-fetch/reconcile before execution; current HEAD equality is a dated observation |
+| Remaining U-01/U-02 policy treated as approved | New identity/LM-target behavior silently becomes permanent; block only the dependent slice until the remaining decision is accepted |
+| LM uses CA-only helper | Either denied legitimate flow or weakened global helper; add narrowly scoped authority with full tests |
+| Force End reuses self-end blindly | Impersonation or fabricated cash; separate approved command preserving self contract |
+| Legacy session assignee reused as current owner | False operational accountability; use the accepted active operational Task assignee source and do not synchronize the legacy field |
+| Revision omitted from one consumer | A→B→A stale result/drawer; inventory all context consumers and test old errors too |
+| Labels/resources lose inactive CA reads | Relocation regression; preserve current distinct list versus create/label policy |
+| Invite lifecycle ignores existing global user | Cross-tenant password takeover or account disclosure; explicit ownership proof and neutral errors |
+| Email/SMS delivery assumed | False completion; VAYLET only generates the secure activation link in this scope and must never claim external delivery |
+| New function missing runtime grant/guard | Works as owner but fails/overpermits production; restricted-role migration tests |
+| Strict response schemas during deployment | Old consumers reject new identity fields; coordinated/versioned compatibility |
+| Local filter appears correct on small fixtures | Missing employees/sessions on later pages; datasets larger than page size and SQL predicate tests |
+| Snapshot refresh masks redesign | Capture baseline first and review intentional changes; no blanket golden update |
+| Unbounded history/zone lists | Latency/data exposure; explicit pages, query plans, no background cursor loop |
+| Tests mocked at wrong boundary | No proof of locks/privileges/atomicity; real two-connection database and restricted-runtime evidence |
+
+No application tests, runtime captures or production checks were executed in this planning audit. Source paths and test anchors reduce rediscovery but do not eliminate implementation-time verification. This plan does not authorize unrelated cleanup, provider integration, custom roles, automatic dispatch, session state repair, password administration, Force Start or operational history deletion.
+
+## 28. Truly unresolved decisions
+
+The owner has now resolved the invite-delivery direction plus the former U-03, U-04 and U-05 product decisions. Those decisions are **LOCKED** for implementation and must not be reopened. Only the remaining U-01 identity/onboarding-lifecycle details and U-02 Location Manager target-scope semantics remain unresolved.
+
+### Owner-approved decisions recorded after the planning audit
+
+| Decision | Locked direction | Implementation consequence |
+| --- | --- | --- |
+| Invite delivery | VAYLET generates the secure one-time Invite/Activation Link and exposes it for explicit copy. VAYLET does **not** send email/SMS and does not require a third-party delivery provider for this feature. The admin is responsible for delivering the copied link outside VAYLET. | Do not add email/SMS provider integration, outbox delivery state or `sent` claims. Persist only the hashed/one-time invite verifier; expose the raw link only at the trusted issuance boundary and transient UI needed for copy. |
+| Former U-03 — LM MFA | Location Manager uses the **same existing MFA system** for sensitive operations that the LM is already authorized to perform. This does not grant Company Admin authority and must not create a second MFA system. | Extend existing MFA eligibility/enrollment/verification/recovery/account-security paths narrowly to the permitted LM actor and preserve current freshness/session/abuse rules. |
+| Former U-04 — Force End Shift | Force End is a **distinct administrative closure**. It requires fresh MFA, explicit confirmation, mandatory reason and a dedicated audit event. Do not fabricate employee-reported cash; the cash/reconciliation outcome remains truthfully **unreconciled/pending reconciliation**. Force End must not automatically cancel/reassign Tasks or mutate Sessions. | Implement a separate management Force End command rather than impersonating normal self-end. Preserve operational blockers/races, reason/actor/audit, unknown-outcome reconciliation and exactly-once closure semantics. |
+| Former U-05 — Live Operations Assigned To | `Assigned To` means the employee assigned to the **current active operational Task**. If there is no active Task assignee, or only terminal Task ownership remains, show `Unassigned`. Keep legacy session assignee fields unchanged and do not synchronize them. | Server projection/filtering must resolve the active Task source explicitly; no N+1 lookup and no misleading use of legacy session ownership. |
+
+### Remaining unresolved decisions
+
+| ID | Evidence / unresolved contract | Options and risk | Lowest-risk recommendation | Blocking scope |
+| --- | --- | --- | --- | --- |
+| U-01 | No canonical first/last-name storage or complete invite/activation lifecycle exists; User email is global and password verifier is required. Invite **delivery is already decided**: generated secure copy-link only, no email/SMS provider. | Global names let tenant admins affect other tenants; membership names require nullable legacy handling. New-user and existing-user activation differ. Token TTL/rate limits/resend generation/account-state rules still need a precise accepted contract. | Membership-owned structured names + existing User email, nullable legacy expansion and truthful fallback; purpose-scoped hashed single-use invitation lifecycle; existing account proves ownership without password reset. Keep the approved copy-link-only delivery model. | Names persistence/onboarding APIs/migration/lifecycle details. Directory filter work may proceed without claiming full #240 completion |
+| U-02 | DEC-081 and current SQL are CA-only; #240 requires restricted LM management; mixed/zero-grant target semantics unspecified | Any-intersection permission lets LM change global membership outside its grants; full-subset rule is safer but may deny legitimate shared employees. Partial read visibility must not authorize global write | Explicit amendment: lower-role targets only; require complete target/affected scope coverage for global role/status commands, deny mixed/outside until an approved alternative; define zero-grant creation/management and permitted detail/history visibility | LM directory/mutations/onboarding and associated copy/tests. Existing CA behavior remains |
+
+For U-01, the remaining acceptance record must answer minimum/maximum name lengths and normalization, required grants for a pending hire, which roles CA can onboard, existing-email response privacy, account activation state, token TTL/attempt/rate limits, resend rotation/retry policy, password policy reuse, secret transport/redaction and audit actor/event fields. **Delivery channel is no longer open:** VAYLET generates/copies the activation link only.
+
+### Ready-to-implement verdict
+
+**DECISION REQUIRED only for the remaining U-01/U-02 portions of #240.** #243, #237, #236 and #238 are independently specified; #241 assignment semantics are now owner-approved; and the LM MFA + Force End product direction is now owner-approved. The implementation agent must not mark the affected #240 onboarding/LM-management portions complete while U-01/U-02 remain unresolved or while any required tests/visual/runtime evidence fail.
