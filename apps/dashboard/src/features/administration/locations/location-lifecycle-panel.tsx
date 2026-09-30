@@ -41,7 +41,10 @@ export function LocationLifecyclePanel(props: {
     setTimezone(props.location.timezone);
     setReason("");
   }
-  const mutation = useSensitiveMutation(props.onReload);
+  const mutation = useSensitiveMutation(
+    `location-lifecycle:${props.location.locationId}:${props.location.updatedAt}`,
+    props.onReload,
+  );
   async function timezoneCorrection() {
     setImpact(false);
     await mutation.run(

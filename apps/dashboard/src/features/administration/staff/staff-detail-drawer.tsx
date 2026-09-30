@@ -29,7 +29,10 @@ export function StaffDetailDrawer(props: {
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
   const [role, setRole] = useState<StaffManagementRole>(props.detail.role);
-  const mutation = useSensitiveMutation(props.onConflict);
+  const mutation = useSensitiveMutation(
+    `staff:${props.detail.membershipId}:${props.detail.version}`,
+    props.onConflict,
+  );
 
   const selectedGranted = props.selectedLocationId !== null &&
     props.detail.locationAccess.items.some((item) => item.locationId === props.selectedLocationId);

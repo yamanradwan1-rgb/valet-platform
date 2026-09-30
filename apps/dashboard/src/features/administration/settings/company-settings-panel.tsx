@@ -23,7 +23,10 @@ export function CompanySettingsPanel(props: {
   readonly locale: DashboardLocale;
   readonly onReload: () => void;
 }) {
-  const mutation = useSensitiveMutation(props.onReload);
+  const mutation = useSensitiveMutation(
+    `company-settings:${props.data.organizationId}:${props.data.updatedAt}`,
+    props.onReload,
+  );
   const copy = settingsTableCopy(props.locale);
   const defaults = props.data.defaults as unknown as Readonly<
     Record<string, unknown>

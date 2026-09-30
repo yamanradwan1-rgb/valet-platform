@@ -2,7 +2,7 @@
 
 import type { PhysicalResourceLabel } from "@valet/contracts";
 import { Download, Printer, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
@@ -26,6 +26,7 @@ export function ResourceLabelDialog(props: {
   readonly locationId: string;
   readonly onClose: () => void;
   readonly resourceId: string;
+  readonly scopeKey: string;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -33,6 +34,16 @@ export function ResourceLabelDialog(props: {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  const currentScopeKeyRef = useRef(props.scopeKey);
+
+  useLayoutEffect(() => {
+    currentScopeKeyRef.current = props.scopeKey;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [props.scopeKey]);
 
   const freshLabel = useCallback((signal?: AbortSignal) => {
     return readPhysicalResourceLabel(
@@ -46,48 +57,68 @@ export function ResourceLabelDialog(props: {
 
   useEffect(() => {
     const controller = new AbortController();
+    const scopeKey = props.scopeKey;
+    const isCurrent = () =>
+      mountedRef.current &&
+      currentScopeKeyRef.current === scopeKey &&
+      !controller.signal.aborted;
     void freshLabel(controller.signal).then(async (next) => {
-      if (controller.signal.aborted) return;
+      if (!isCurrent()) return;
+      const nextQr = await resourceQrDataUrl(next.qrPayload);
+      if (!isCurrent()) return;
       setLabel(next);
-      setQrUrl(await resourceQrDataUrl(next.qrPayload));
+      setQrUrl(nextQr);
       setBusy(false);
     }, (reason) => {
-      if (controller.signal.aborted) return;
+      if (!isCurrent()) return;
       setError(administrationErrorMessage(reason));
       setBusy(false);
     });
     return () => controller.abort();
-  }, [freshLabel]);
+  }, [freshLabel, props.scopeKey]);
 
   async function download() {
     if (busy) return;
+    const scopeKey = props.scopeKey;
+    const isCurrent = () =>
+      mountedRef.current && currentScopeKeyRef.current === scopeKey;
     setBusy(true); setError(null);
     try {
       const next = await freshLabel();
+      if (!isCurrent()) return;
+      const nextQr = await resourceQrDataUrl(next.qrPayload);
+      if (!isCurrent()) return;
       setLabel(next);
-      setQrUrl(await resourceQrDataUrl(next.qrPayload));
+      setQrUrl(nextQr);
       const blob = await renderPhysicalResourceLabelPng(next);
+      if (!isCurrent()) return;
       downloadPhysicalResourceLabel(blob, resourceLabelFilename(next));
     } catch (reason) {
-      setError(administrationErrorMessage(reason));
+      if (isCurrent()) setError(administrationErrorMessage(reason));
     } finally {
-      setBusy(false);
+      if (isCurrent()) setBusy(false);
     }
   }
 
   async function printLabel() {
     if (busy) return;
+    const scopeKey = props.scopeKey;
+    const isCurrent = () =>
+      mountedRef.current && currentScopeKeyRef.current === scopeKey;
     setBusy(true); setError(null);
     try {
       const next = await freshLabel();
+      if (!isCurrent()) return;
       const nextQr = await resourceQrDataUrl(next.qrPayload);
+      if (!isCurrent()) return;
       setLabel(next); setQrUrl(nextQr);
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (!isCurrent()) return;
       window.print();
     } catch (reason) {
-      setError(administrationErrorMessage(reason));
+      if (isCurrent()) setError(administrationErrorMessage(reason));
     } finally {
-      setBusy(false);
+      if (isCurrent()) setBusy(false);
     }
   }
 

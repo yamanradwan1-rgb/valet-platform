@@ -8,6 +8,7 @@ import { ScopeGenerationGuard } from "../../lib/scope/scope-generation";
 import type { SelectedDashboardScope } from "../scope";
 import {
   advanceSelectedScopeState,
+  advanceSelectedScopeStateIfCurrentEpoch,
   type SelectedScopeState,
 } from "./selected-scope-state";
 import { selectedScopeRevalidationKey } from "./selected-scope-revalidation-policy";
@@ -209,5 +210,67 @@ describe("navigation authority generations", () => {
     expect(retry.selectionRevision).toBe(2);
     expect(cleared.selectionRevision).toBe(3);
     expect(switchedIdentity.selectionRevision).toBe(1);
+  });
+
+  it("does not let a stale scope epoch clear a newer selected scope", () => {
+    const first = advanceSelectedScopeState(
+      {
+        identityGeneration: 1,
+        selectedScope: null,
+        selectionRevision: 0,
+      },
+      1,
+      scopeA,
+    );
+    const newer = advanceSelectedScopeState(first, 1, scopeB);
+
+    expect(
+      advanceSelectedScopeStateIfCurrentEpoch(
+        newer,
+        { identityGeneration: 1, sessionGeneration: 8 },
+        {
+          identityGeneration: 1,
+          selectionRevision: first.selectionRevision,
+          sessionGeneration: 8,
+        },
+        null,
+      ),
+    ).toBe(newer);
+    expect(
+      advanceSelectedScopeStateIfCurrentEpoch(
+        newer,
+        { identityGeneration: 2, sessionGeneration: 8 },
+        {
+          identityGeneration: 1,
+          selectionRevision: newer.selectionRevision,
+          sessionGeneration: 8,
+        },
+        null,
+      ),
+    ).toBe(newer);
+    expect(
+      advanceSelectedScopeStateIfCurrentEpoch(
+        newer,
+        { identityGeneration: 1, sessionGeneration: 9 },
+        {
+          identityGeneration: 1,
+          selectionRevision: newer.selectionRevision,
+          sessionGeneration: 8,
+        },
+        null,
+      ),
+    ).toBe(newer);
+    expect(
+      advanceSelectedScopeStateIfCurrentEpoch(
+        newer,
+        { identityGeneration: 1, sessionGeneration: 9 },
+        {
+          identityGeneration: 1,
+          selectionRevision: newer.selectionRevision,
+          sessionGeneration: 9,
+        },
+        null,
+      ),
+    ).toMatchObject({ selectedScope: null, selectionRevision: 3 });
   });
 });

@@ -18,6 +18,7 @@ export function useMapSetupState(
   api: DashboardApiClient,
   locationId: string,
   enabled: boolean,
+  scopeKey: string,
 ) {
   const generation = useRef(0);
   const controller = useRef<AbortController | null>(null);
@@ -57,6 +58,11 @@ export function useMapSetupState(
       return { ok: false, error };
     }
   }, [api, enabled, locationId]);
+
+  useEffect(() => {
+    generation.current += 1;
+    controller.current?.abort();
+  }, [scopeKey]);
 
   useEffect(() => {
     if (!enabled) {

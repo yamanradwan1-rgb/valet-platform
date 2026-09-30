@@ -24,7 +24,10 @@ export function LocationManagerSettingsPanel(props: {
   readonly locale: DashboardLocale;
   readonly onReload: () => void;
 }) {
-  const mutation = useSensitiveMutation(props.onReload);
+  const mutation = useSensitiveMutation(
+    `location-settings:${props.data.locationId}:${props.data.updatedAt}`,
+    props.onReload,
+  );
   const copy = settingsTableCopy(props.locale);
   async function setValue(setting: string, value: unknown) {
     await mutation.run(() => {

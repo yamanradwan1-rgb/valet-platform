@@ -28,6 +28,7 @@ function BrandingForm(props: {
   readonly clearPrimary?: () => Promise<unknown>;
   readonly displayName: string;
   readonly displayOverride?: boolean;
+  readonly intentKey: string;
   readonly onReload: () => void;
   readonly primaryColor: string;
   readonly primaryOverride?: boolean;
@@ -37,7 +38,7 @@ function BrandingForm(props: {
   const { locale } = useDashboardLocale(); const t = administrationCopy(locale);
   const [displayName, setDisplayName] = useState(props.displayName);
   const [primaryColor, setPrimaryColor] = useState(props.primaryColor);
-  const mutation = useSensitiveMutation(props.onReload);
+  const mutation = useSensitiveMutation(props.intentKey, props.onReload);
   return <div className={`${styles.card} ${styles.brandingCard}`}><div className={styles.stack}>
     <div className={styles.grid2}>
       <div className={styles.field}><label htmlFor="brand-display-name">{t.displayName}</label><input className={styles.input} id="brand-display-name" maxLength={120} onChange={(e) => setDisplayName(e.target.value)} value={displayName} /><div className={styles.muted}>{props.displayOverride === undefined ? t.effective : props.displayOverride ? t.overridden : t.inherited}</div></div>
@@ -51,7 +52,7 @@ function BrandingForm(props: {
 
 export function CompanyBrandingEditor(props: { readonly api: DashboardApiClient; readonly data: ManagementCompanyBrandingResponse; readonly onReload: () => void }) {
   const request = (setting: "brandDisplayName" | "brandPrimaryColor", value: string) => managementBrandingSetRequestSchema.parse({ setting, value, expectedUpdatedAt: props.data.updatedAt });
-  return <BrandingForm api={props.api} displayName={props.data.displayName} onReload={props.onReload} primaryColor={props.data.primaryColor}
+  return <BrandingForm api={props.api} displayName={props.data.displayName} intentKey={`company-branding:${props.data.organizationId}:${props.data.updatedAt}`} onReload={props.onReload} primaryColor={props.data.primaryColor}
     saveDisplay={(value) => setCompanyBranding(props.api, props.data.organizationId, request("brandDisplayName", value))}
     savePrimary={(value) => setCompanyBranding(props.api, props.data.organizationId, request("brandPrimaryColor", value))} />;
 }
@@ -61,7 +62,7 @@ export function ManagementLocationBrandingEditor(props: { readonly api: Dashboar
   const clear = (setting: "brandDisplayName" | "brandPrimaryColor") => clearManagementLocationBranding(props.api, props.data.organizationId, props.data.locationId, managementBrandingClearRequestSchema.parse({ setting, expectedUpdatedAt: props.data.updatedAt }));
   return <BrandingForm api={props.api} clearDisplay={() => clear("brandDisplayName")} clearPrimary={() => clear("brandPrimaryColor")}
     displayName={props.data.displayName.effective as string} displayOverride={props.data.displayName.overridePresent}
-    onReload={props.onReload} primaryColor={props.data.primaryColor.effective as string} primaryOverride={props.data.primaryColor.overridePresent}
+    intentKey={`management-location-branding:${props.data.locationId}:${props.data.updatedAt}`} onReload={props.onReload} primaryColor={props.data.primaryColor.effective as string} primaryOverride={props.data.primaryColor.overridePresent}
     saveDisplay={(value) => set("brandDisplayName", value)} savePrimary={(value) => set("brandPrimaryColor", value)} />;
 }
 
@@ -70,6 +71,6 @@ export function LocationManagerBrandingEditor(props: { readonly api: DashboardAp
   const clear = (setting: "brandDisplayName" | "brandPrimaryColor") => clearLocationManagerBranding(props.api, props.data.locationId, brandingClearRequestSchema.parse({ setting, expectedUpdatedAt: props.data.updatedAt }));
   return <BrandingForm api={props.api} clearDisplay={() => clear("brandDisplayName")} clearPrimary={() => clear("brandPrimaryColor")}
     displayName={props.data.displayName.effective} displayOverride={props.data.displayName.overridePresent}
-    onReload={props.onReload} primaryColor={props.data.primaryColor.effective} primaryOverride={props.data.primaryColor.overridePresent}
+    intentKey={`location-branding:${props.data.locationId}:${props.data.updatedAt}`} onReload={props.onReload} primaryColor={props.data.primaryColor.effective} primaryOverride={props.data.primaryColor.overridePresent}
     saveDisplay={(value) => set("brandDisplayName", value)} savePrimary={(value) => set("brandPrimaryColor", value)} />;
 }

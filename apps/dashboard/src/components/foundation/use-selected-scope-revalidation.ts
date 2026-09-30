@@ -9,6 +9,7 @@ import {
   type ProtectedRouteAuthority,
 } from "../../lib/scope/dashboard-commercial-access";
 import { ScopeGenerationGuard } from "../../lib/scope/scope-generation";
+import type { SelectedScopeEpoch } from "./selected-scope-state";
 import type { SelectedDashboardScope } from "../scope";
 import { dashboardFeatureTarget } from "./dashboard-feature-target";
 import {
@@ -44,7 +45,7 @@ export function useSelectedScopeRevalidation(input: {
   readonly identityGeneration: number;
   readonly selectionRevision: number;
   readonly sessionGeneration: number;
-  readonly onDenied?: () => void;
+  readonly onDenied?: (epoch: SelectedScopeEpoch) => void;
   readonly selectedScope: SelectedDashboardScope | null;
 }): SelectedScopeRevalidationState {
   const {
@@ -115,7 +116,11 @@ export function useSelectedScopeRevalidation(input: {
             !disposed &&
             guard.isCurrent(ticket)
           ) {
-            onDenied();
+            onDenied({
+              identityGeneration,
+              selectionRevision,
+              sessionGeneration,
+            });
           }
         }
       } catch (reason: unknown) {
@@ -136,7 +141,11 @@ export function useSelectedScopeRevalidation(input: {
             !disposed &&
             guard.isCurrent(ticket)
           ) {
-            onDenied();
+            onDenied({
+              identityGeneration,
+              selectionRevision,
+              sessionGeneration,
+            });
           }
         }
       }

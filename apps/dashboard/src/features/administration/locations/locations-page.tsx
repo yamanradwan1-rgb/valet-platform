@@ -128,8 +128,9 @@ function LocationsPageContent() {
                 <PhysicalResourcesPanel
                   api={dashboard.api}
                   identityGeneration={dashboard.identityGeneration}
+                  key={`${scopeKey}:physical:${lmLocation.locationId}`}
                   location={lmLocation}
-                  scopeKey={scopeKey}
+                  scopeKey={`${scopeKey}:physical:${lmLocation.locationId}`}
                 />
               </LocationDetail>
             </section>
@@ -180,9 +181,9 @@ function LocationsPageContent() {
                       <PhysicalResourcesPanel
                         api={dashboard.api}
                         identityGeneration={dashboard.identityGeneration}
-                        key={`physical-${selectedLocation.locationId}`}
+                        key={`${scopeKey}:physical:${selectedLocation.locationId}`}
                         location={selectedLocation}
-                        scopeKey={scopeKey}
+                        scopeKey={`${scopeKey}:physical:${selectedLocation.locationId}`}
                       />
                       <ReadState
                         error={

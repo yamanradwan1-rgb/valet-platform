@@ -1,58 +1,111 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
+import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
-import { administrationCopy } from "./administration-copy";
 import {
-  administrationErrorMessage,
-  isConflict,
-  isMfaRequired,
-} from "./administration-error";
+  ScopeGenerationGuard,
+  type ScopeRequestTicket,
+} from "../../lib/scope/scope-generation";
+import { administrationCopy } from "./administration-copy";
+import { administrationErrorMessage } from "./administration-error";
+import { administrationScopeKey } from "./administration-scope";
+import { executeSensitiveMutation } from "./sensitive-mutation-executor";
 
-export function useSensitiveMutation(onConflict?: () => void) {
+interface MutationState {
+  readonly busy: boolean;
+  readonly error: string | null;
+  readonly key: string;
+  readonly mfaOpen: boolean;
+}
+
+export function useSensitiveMutation(intentKey: string, onConflict?: () => void) {
+  const dashboard = useProtectedDashboard();
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
-  const [busy, setBusy] = useState(false);
-  const busyRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mfaOpen, setMfaOpen] = useState(false);
+  const scopeKey = `${administrationScopeKey(dashboard)}:mutation:${intentKey}`;
+  const currentKeyRef = useRef(scopeKey);
+  const mountedRef = useRef(true);
+  const [guard] = useState(() => new ScopeGenerationGuard());
+  const activeRef = useRef<{ readonly key: string; readonly ticket: ScopeRequestTicket } | null>(null);
+  const [state, setState] = useState<MutationState>({
+    busy: false,
+    error: null,
+    key: scopeKey,
+    mfaOpen: false,
+  });
+
+  useLayoutEffect(() => {
+    currentKeyRef.current = scopeKey;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      activeRef.current = null;
+      guard.invalidate();
+    };
+  }, [guard, scopeKey]);
 
   const run = useCallback(async <T,>(
     operation: () => Promise<T>,
     onSuccess?: (result: T) => void,
   ): Promise<void> => {
-    if (busyRef.current) return;
-    busyRef.current = true;
-    setBusy(true);
-    setError(null);
+    const active = activeRef.current;
+    if (active?.key === scopeKey && guard.isCurrent(active.ticket)) return;
+    const ticket = guard.begin();
+    activeRef.current = { key: scopeKey, ticket };
+    const isCurrent = () =>
+      mountedRef.current &&
+      currentKeyRef.current === scopeKey &&
+      guard.isCurrent(ticket);
+    setState({ busy: true, error: null, key: scopeKey, mfaOpen: false });
     try {
-      const result = await operation();
-      onSuccess?.(result);
-    } catch (reason) {
-      if (isMfaRequired(reason)) {
-        setMfaOpen(true);
-      } else {
-        setError(administrationErrorMessage(reason));
-        if (isConflict(reason)) onConflict?.();
-      }
+      await executeSensitiveMutation(operation, {
+        isCurrent,
+        onConflict,
+        onError: (reason) =>
+          setState({
+            busy: true,
+            error: administrationErrorMessage(reason),
+            key: scopeKey,
+            mfaOpen: false,
+          }),
+        onMfaRequired: () =>
+          setState({ busy: true, error: null, key: scopeKey, mfaOpen: true }),
+        onSuccess,
+      });
     } finally {
-      busyRef.current = false;
-      setBusy(false);
+      if (isCurrent()) {
+        activeRef.current = null;
+        setState((current) =>
+          current.key === scopeKey ? { ...current, busy: false } : current);
+      }
     }
-  }, [onConflict]);
+  }, [guard, onConflict, scopeKey]);
 
   const onMfaAssured = useCallback(() => {
-    setMfaOpen(false);
-    setError(t.mfaRetry);
-  }, [t.mfaRetry]);
+    if (currentKeyRef.current !== scopeKey) return;
+    setState((current) =>
+      current.key === scopeKey && current.mfaOpen
+        ? { ...current, error: t.mfaRetry, mfaOpen: false }
+        : current);
+  }, [scopeKey, t.mfaRetry]);
+  const closeMfa = useCallback(() => {
+    if (currentKeyRef.current !== scopeKey) return;
+    setState((current) =>
+      current.key === scopeKey ? { ...current, mfaOpen: false } : current);
+  }, [scopeKey]);
+  const visible =
+    state.key === scopeKey
+      ? state
+      : { busy: false, error: null, key: scopeKey, mfaOpen: false };
 
   return {
-    busy,
-    error,
-    mfaOpen,
+    busy: visible.busy,
+    error: visible.error,
+    mfaOpen: visible.mfaOpen,
     onMfaAssured,
-    closeMfa: () => setMfaOpen(false),
+    closeMfa,
     run,
   } as const;
 }

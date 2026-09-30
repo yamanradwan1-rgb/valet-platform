@@ -13,10 +13,13 @@ import { useStaffAuth } from "../../lib/auth/staff-auth-context";
 import type { SelectedDashboardScope } from "../scope";
 import {
   advanceSelectedScopeState,
+  advanceSelectedScopeStateIfCurrentEpoch,
+  type SelectedScopeEpoch,
   type SelectedScopeState,
 } from "./selected-scope-state";
 
 interface SelectedScopeContextValue {
+  readonly clearScopeIfEpoch: (epoch: SelectedScopeEpoch) => void;
   readonly selectedScope: SelectedDashboardScope | null;
   readonly selectionRevision: number;
   readonly selectScope: (scope: SelectedDashboardScope) => void;
@@ -26,7 +29,7 @@ interface SelectedScopeContextValue {
 const SelectedScopeContext = createContext<SelectedScopeContextValue | null>(null);
 
 export function SelectedScopeProvider({ children }: { readonly children: ReactNode }) {
-  const { identityGeneration } = useStaffAuth();
+  const { client, identityGeneration } = useStaffAuth();
   const [state, setState] = useState<SelectedScopeState>({
     identityGeneration,
     selectionRevision: 0,
@@ -46,10 +49,28 @@ export function SelectedScopeProvider({ children }: { readonly children: ReactNo
   const clearScope = useCallback(() => {
     setState((current) => advanceSelectedScopeState(current, identityGeneration, null));
   }, [identityGeneration]);
+  const clearScopeIfEpoch = useCallback((expected: SelectedScopeEpoch) => {
+    setState((current) =>
+      advanceSelectedScopeStateIfCurrentEpoch(
+        current,
+        {
+          identityGeneration: client.getIdentityGeneration(),
+          sessionGeneration: client.getSessionGeneration(),
+        },
+        expected,
+        null,
+      ));
+  }, [client]);
 
   const value = useMemo(
-    () => ({ clearScope, selectedScope, selectionRevision, selectScope }),
-    [clearScope, selectedScope, selectionRevision, selectScope],
+    () => ({
+      clearScope,
+      clearScopeIfEpoch,
+      selectedScope,
+      selectionRevision,
+      selectScope,
+    }),
+    [clearScope, clearScopeIfEpoch, selectedScope, selectionRevision, selectScope],
   );
   return (
     <SelectedScopeContext.Provider value={value}>
