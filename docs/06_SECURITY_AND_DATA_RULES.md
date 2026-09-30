@@ -124,6 +124,35 @@ Authenticated MFA routes are under `/v1/staff/auth/mfa`: `GET /state`,
 existing Web/Native Staff authentication transports and never accept client
 User/session/role/MFA claims as authority.
 
+Issue #234 keeps Account Security eligibility account/session scoped. An active
+Staff User may manage Account Security when the server can prove at least one
+ACTIVE `ORG_ADMIN` membership in an ACTIVE Organization. The currently selected
+Organization, Location, workspace role, Location grant, Shift and commercial
+`dashboardAccess` entitlement are not Account Security authority. A direct
+`/security` entry therefore must not fabricate business scope or perform
+Management discovery merely to render the shell. Any already-resolved business
+labels/navigation retained by the browser are presentation only and never replace
+server authorization.
+
+The Dashboard may coordinate the non-secret MFA state for the current
+identity/session generation, but provisioning secrets, TOTP inputs, recovery-code
+inputs and raw recovery-code disclosures remain ceremony-local and ephemeral.
+They must not be promoted into shared navigation/shell state or browser persistent
+storage. A failed authoritative reread must not preserve an earlier `ASSURED`
+presentation.
+
+Sensitive-action freshness is independent of the ordinary `ASSURED` state. When a
+protected Management action requires fresh sensitive assurance, the browser must
+collect and submit a fresh TOTP even if the ordinary state read is `ASSURED`.
+Successful verification does not replay the protected mutation. Authentication
+reconciliation after a rejected write may refresh Staff credentials, but the
+write itself requires deliberate explicit retry; generic automatic mutation replay
+is prohibited.
+
+Issue #234 does not change the production MFA endpoints, public request/response
+contracts, database schema, persisted factor model, factor algorithm/format or
+server eligibility rule.
+
 VAL-004M implements accepted DEC-024 as the shared PostgreSQL-backed anti-abuse
 boundary. It uses exact rolling windows, database time, transaction-level
 advisory serialization, HMAC-derived limiter keys and fail-closed 503 behavior;

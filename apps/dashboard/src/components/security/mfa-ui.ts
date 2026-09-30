@@ -37,6 +37,8 @@ export function shouldReconcileMfaMutation(error: unknown): boolean {
   return (
     isUncertainMfaMutation(error) ||
     (error instanceof DashboardApiError &&
-      (error.kind === "auth" || error.code === "MFA_ENROLLMENT_NOT_AVAILABLE"))
+      (error.kind === "auth" ||
+        error.status >= 500 ||
+        error.code === "MFA_ENROLLMENT_NOT_AVAILABLE"))
   );
 }

@@ -201,24 +201,25 @@ A simple change from the shared role list to `roles: ["COMPANY_ADMIN"]` **would 
 
 LM operational and accepted Management authentication does not automatically require CA MFA. Removing misleading MFA-management affordances from LM-only/SUP-only accounts therefore does not remove an accepted prerequisite of their ordinary workflows.
 
-## 9. Authority Recommendation
+## 9. Accepted Authority Contract
 
-**READY WITH RECOMMENDATION:** retain the current CA-account eligibility model.
+**ACCEPTED:** retain the current CA-account eligibility model.
 
-The recommended product statement is:
+The accepted product statement is:
 
-> Account Security/MFA management is available to an authenticated active Staff User who currently has at least one active ORG_ADMIN membership in an active Organization. Eligibility is independent of the selected Management workspace.
+> Account Security/MFA management is available to an authenticated active Staff User who currently has at least one active `ORG_ADMIN` membership in an active Organization. Eligibility is independent of the selected Management workspace and independent of the commercial `dashboardAccess` entitlement.
 
 Consequences:
 
 - No backend eligibility expansion.
+- No commercial-entitlement requirement is added to Account Security.
 - No MFA requirements added to ordinary LM/SUP workflows.
 - Mixed-role eligible accounts retain Security access.
 - LM-only/SUP-only/Employee-only accounts receive a clear unavailable presentation on direct entry.
 - Navigation and Help use account eligibility, not selected-scope role alone.
 - Eligibility loss clears ceremony material when observed; subsequent commands remain server-authorized.
 
-This is a conservative alignment with implemented behavior and the accepted CA MFA purpose. It should be recorded in the implementation documentation when this plan is accepted.
+This is the accepted alignment with implemented backend behavior and the accepted CA MFA purpose.
 
 An expansion to LM/SUP is a separate security decision, not a visual implementation option.
 
@@ -262,7 +263,8 @@ With no selected scope:
 - `selectedOrganization = null`
 - `selectedLocation = null`
 - No fabricated “All Locations” object.
-- No business discovery.
+- No Management business discovery or business-data request merely to render Security chrome.
+- The account MFA state read used for Account Security eligibility remains allowed because it is account/session authority, not workspace discovery.
 - No fabricated business navigation.
 - Topbar’s workspace-selection action explicitly navigates to existing workspace entry.
 - Security remains usable without selecting anything.
@@ -1156,42 +1158,31 @@ The current issue contains **49 checkboxes across seven acceptance groups**. The
 
 | Issue acceptance group | Count | Current coverage | Planned closure |
 |---|---:|---|---|
-| Shell integration | 7 | Account-scoped requests implemented; integrated chrome/active nav/mobile continuity missing | Sections 11, 28–29, 38–41 |
-| MFA states and ceremonies | 12 | Existing state/ceremony tests substantial; retry/reconciliation failure gap | Sections 12–18, 23, 37–38 |
-| Authorization/security | 9 | Server authority/no replay implemented; targeted lifecycle/privacy/freshness proof incomplete | Sections 7–9, 14, 17–22, 37, 40, 43 |
-| Page presentation | 9 | Existing standalone typography/theme/locale tests; integrated design/focus missing | Sections 24–27, 39 |
-| Preferences/remnants | 4 | Standalone duplicates currently present | Sections 25, 28–29 |
-| Direct route/no scope | 4 | Current standalone route is scope-free; selected new presentation unimplemented | Sections 10–11, 29, 41 |
-| Authority mismatch | 4 | Unresolved in current UI; backend unchanged | Sections 8–9, 30, 33–34 |
+| Shell integration | 7 | Integrated `AccountSecurityShell` and memory-only navigation presentation are present in the working tree; focused browser/mobile/request-budget validation pending | Sections 11, 28–29, 38–41 plus implementation evidence |
+| MFA states and ceremonies | 12 | Ceremony extraction, truthful reread/error handling and reconciliation are present; focused lifecycle/privacy/runtime validation pending | Sections 12–18, 23, 37–40 plus implementation evidence |
+| Authorization/security | 9 | Shared account eligibility, no selected-scope/`dashboardAccess` authority, explicit retry/no mutation replay and sensitive freshness UI are present; runtime/race proof pending | Sections 7–9, 14, 17–22, 37, 40, 43 plus implementation evidence |
+| Page presentation | 9 | Security is composed inside the existing Dashboard shell with native controls; full EN/AR, Light/Dark, desktop/narrow and focus proof pending | Sections 24–27, 39 plus implementation evidence |
+| Preferences/remnants | 4 | Direct Security uses shell-owned locale/theme/sign-out presentation; regression proof pending | Sections 25, 28–29 plus implementation evidence |
+| Direct route/no scope | 4 | Truthful null-scope Security shell is present and source inspection shows no Management discovery for shell composition; network-budget validation pending | Sections 10–11, 29, 41 plus implementation evidence |
+| Authority mismatch | 4 | Navigation, Help and unselected-scope Security affordances consume shared account eligibility; mixed-membership/runtime proof pending | Sections 8–9, 30, 33–34 plus implementation evidence |
 
-Coverage classifications:
+Coverage classifications for the current working tree:
 
-- **Already implemented, retain:** account request scope; four MFA states; core ceremonies; one-time code dismissal; no automatic mutation replay; independent backend guards.
-- **Partially covered:** lifecycle clearing, browser storage, real MFA runtime, visual variants.
-- **Missing:** integrated shell; active Security in that shell; comprehensive direct-route budget; mixed-membership navigation; delayed sensitive-response replacement cases.
-- **Obsolete expectation to change:** Sensitive dialog’s Retry-only ASSURED branch.
-- **Conditional acceptance item:** expanded-role DEC applies only if expansion is selected; the recommendation does not select it.
+- **Implemented in source, validation pending:** integrated/scopeless shell; account-level Security presentation; account navigation/Help affordance; ceremony extraction; stale-state clearing; sensitive `ASSURED` TOTP challenge; explicit retry/no automatic write replay.
+- **Evidence still pending:** focused browser request budgets, storage/privacy teardown, visual matrix, real-runtime MFA/mixed-membership proof, broad gates and remote CI.
+- **Unchanged by #234:** production backend eligibility, public MFA contracts, database schema, persisted factor model and factor formats.
+- **Conditional acceptance item:** expanded-role DEC applies only if expansion is selected; the accepted implementation does not select it.
 
 ## 47. Blockers / Owner Decisions
 
-There is no need to invent a new MFA model, endpoint or selected-scope requirement.
+The Project Owner accepted the conservative authority recommendation in the #234 implementation instruction: Account Security retains the current active-Staff plus ACTIVE `ORG_ADMIN` membership in ACTIVE Organization rule, independent of selected workspace and `dashboardAccess`, with LM-only/SUP-only/Employee-only accounts excluded. The same instruction accepted the scopeless Dashboard shell architecture and required implementation without a new MFA model, endpoint, public contract, database/schema change, factor type/format, or selected-scope authority.
 
-One precise decision remains for plan acceptance:
-
-> **Should Account Security retain the current eligibility rule—an active Staff User with at least one active ORG_ADMIN membership in an active Organization, independent of the selected workspace—with LM-only/SUP-only accounts excluded, and any broader own-account MFA support deferred to a separately accepted security design?**
-
-**Recommended answer: yes.**
-
-The scopeless shell is the recommended implementation architecture, not an unresolved choice for the implementation agent.
-
-The sensitive-dialog repair is a concrete frontend dependency of the requested five-minute-freshness acceptance proof. The possible backend revocation interleaving remains a separately identified evidence gap; this report does not claim it is fixed or proven safe.
-
-No implementation should begin until this planning result is reviewed and accepted, as explicitly required by the request and #234.
+The sensitive-dialog repair remains a concrete frontend dependency of the requested five-minute-freshness acceptance proof. The possible backend revocation interleaving remains a separately identified evidence gap; #234 does not add locks or redesign backend eligibility without a separately reproduced and approved backend scope.
 
 ## 48. Final Readiness Classification
 
-**READY WITH RECOMMENDATION**
+**ACCEPTED FOR IMPLEMENTATION**
 
 The current source supports a concrete frontend implementation: **existing Dashboard shell with truthful null scope, current CA-account eligibility, unchanged MFA contracts, explicit sensitive-material ownership, and independent server freshness enforcement**.
 
-The recommendation needs acceptance; implementation and runtime proof remain future work. No source, tests, documentation, branches, worktrees or GitHub issue content were changed.
+The authority recommendation and scopeless-shell architecture were accepted by the Project Owner for #234. Current working-tree implementation evidence and its still-pending validation status are recorded in `docs/ISSUE_234_IMPLEMENTATION_EVIDENCE.md` so this planning audit remains distinguishable from post-implementation proof.

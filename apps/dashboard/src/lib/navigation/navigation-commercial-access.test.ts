@@ -116,6 +116,6 @@ describe("navigation commercial access", () => {
       },
     );
 
-    expect(items.map((item) => item.id)).toEqual(["security", "help"]);
+    expect(items.map((item) => item.id)).toEqual(["help"]);
   });
 });

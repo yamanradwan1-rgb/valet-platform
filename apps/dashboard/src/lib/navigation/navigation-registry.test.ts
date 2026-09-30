@@ -78,19 +78,11 @@ const futureRegistrations = [
 ] satisfies readonly DashboardNavigationRegistration[];
 
 describe("dashboard navigation registry", () => {
-  it.each(["COMPANY_ADMIN", "LOCATION_MANAGER", "SUPERVISOR"] as const)(
-    "renders only MD-01 destinations for %s before feature registrations are added",
-    (role) => {
-      const items = resolveNavigation(
-        md01NavigationRegistrations,
-        context(role),
-        "en",
-        fullRouteAccess,
-      );
-      expect(items.map((item) => item.id)).toEqual(["security", "help"]);
-      expect(items.every((item) => item.owner === "MD-01")).toBe(true);
-    },
-  );
+  it("keeps Security out of selected-role-only LM and Supervisor resolution", () => {
+    expect(resolveNavigation(md01NavigationRegistrations, context("COMPANY_ADMIN"), "en", fullRouteAccess).map((item) => item.id)).toEqual(["security", "help"]);
+    expect(resolveNavigation(md01NavigationRegistrations, context("LOCATION_MANAGER"), "en", fullRouteAccess).map((item) => item.id)).toEqual(["help"]);
+    expect(resolveNavigation(md01NavigationRegistrations, context("SUPERVISOR"), "en", fullRouteAccess).map((item) => item.id)).toEqual(["help"]);
+  });
 
   it("uses the exact selected role instead of flattening a user to a highest role", () => {
     const registry = composeNavigationRegistry(

@@ -8,6 +8,7 @@ import {
 import type { DashboardNavigationRegistration } from "./navigation-types";
 
 const roles = ["COMPANY_ADMIN", "LOCATION_MANAGER", "SUPERVISOR"] as const;
+const securityRoles = ["COMPANY_ADMIN"] as const;
 
 export const md01NavigationRegistrations =
   composeNavigationRegistry([
@@ -20,7 +21,7 @@ export const md01NavigationRegistrations =
       labels: { ar: ar.security, en: en.security },
       owner: "MD-01",
       placement: "UTILITY",
-      roles,
+      roles: securityRoles,
       scopeRequirement: "NONE",
     }),
     defineNavigationDestination({

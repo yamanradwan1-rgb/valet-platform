@@ -48,7 +48,8 @@ const registry = composeNavigationRegistry(
   md04TestRegistrations,
 );
 
-const foundation = ["security", "help"];
+const caFoundation = ["security", "help"];
+const nonCaFoundation = ["help"];
 const caAdministration = [
   "employees-shifts", "locations", "policies-settings", "roles-permissions",
   "branding", "integrations", "billing-subscription",
@@ -88,7 +89,7 @@ describe("MD-04 navigation filtering", () => {
         foundationEntryEligible: true,
         features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
       },
-      [...foundation, ...caAdministration, "test-visit-contacts"],
+      [...caFoundation, ...caAdministration, "test-visit-contacts"],
     ],
     [
       "CA Audit Organization",
@@ -98,7 +99,7 @@ describe("MD-04 navigation filtering", () => {
         commercial: commercial(true), foundationEntryEligible: true,
         features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
-      [...foundation, ...caAdministration, "test-audit"],
+      [...caFoundation, ...caAdministration, "test-audit"],
     ],
     [
       "CA Audit exact active Location",
@@ -109,7 +110,7 @@ describe("MD-04 navigation filtering", () => {
         locationMapsEligible: true,
         features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
-      [...foundation, ...caAdministration, ...operations, "test-audit"],
+      [...caFoundation, ...caAdministration, ...operations, "test-audit"],
     ],
     [
       "LM Audit active Location",
@@ -120,7 +121,7 @@ describe("MD-04 navigation filtering", () => {
         locationMapsEligible: true,
         features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
-      [...foundation, ...lmAdministration, ...operations, "test-audit"],
+      [...nonCaFoundation, ...lmAdministration, ...operations, "test-audit"],
     ],
     [
       "Supervisor Audit active Shift",
@@ -131,7 +132,7 @@ describe("MD-04 navigation filtering", () => {
         foundationEntryEligible: true, locationMapsEligible: true,
         features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
       },
-      [...foundation, "maps-zones", "test-audit"],
+      [...nonCaFoundation, "maps-zones", "test-audit"],
     ],
     [
       "LM Visit Contacts grant set",
@@ -170,7 +171,7 @@ describe("MD-04 navigation filtering", () => {
       foundationEntryEligible: true,
       features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
     })).toEqual([
-      ...foundation,
+      ...caFoundation,
       "employees-shifts", "locations", "policies-settings", "roles-permissions",
       "integrations", "billing-subscription", "test-visit-contacts",
     ]);

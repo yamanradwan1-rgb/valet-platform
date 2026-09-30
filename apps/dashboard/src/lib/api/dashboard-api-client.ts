@@ -9,12 +9,19 @@ import {
   dashboardNetworkError,
 } from "./dashboard-api-error";
 import { parseDashboardBinaryHeaders } from "./dashboard-binary-response";
+import type {
+  DashboardApiRequestOptions,
+  DashboardBinaryRequestOptions,
+  DashboardBinaryResponse,
+  RuntimeSchema,
+} from "./dashboard-api-types";
 
-export interface RuntimeSchema<T> {
-  safeParse(input: unknown):
-    | { readonly success: true; readonly data: T }
-    | { readonly success: false; readonly error?: unknown };
-}
+export type {
+  DashboardApiRequestOptions,
+  DashboardBinaryRequestOptions,
+  DashboardBinaryResponse,
+  RuntimeSchema,
+} from "./dashboard-api-types";
 
 interface DashboardAuthProvider {
   getAccessToken(): string | null;
@@ -22,26 +29,6 @@ interface DashboardAuthProvider {
   getSessionGeneration(): number;
   isTokenFresh(bufferSeconds?: number): boolean;
   refresh(signal?: AbortSignal): Promise<StaffAuthAccessResponse>;
-}
-
-export interface DashboardApiRequestOptions {
-  readonly method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  readonly body?: unknown;
-  readonly query?: Readonly<Record<string, string | number | boolean | null | undefined>>;
-  readonly signal?: AbortSignal | undefined;
-  readonly requireAuth?: boolean;
-}
-
-export interface DashboardBinaryRequestOptions {
-  readonly body: unknown;
-  readonly expectedContentType: string;
-  readonly signal?: AbortSignal | undefined;
-}
-
-export interface DashboardBinaryResponse {
-  readonly bytes: Uint8Array;
-  readonly contentType: string;
-  readonly filename: string;
 }
 
 interface DashboardApiClientOptions {
@@ -77,6 +64,10 @@ export class DashboardApiClient {
       refreshUsed = true;
       identityFence = this.auth.getIdentityGeneration();
       sessionFence = this.auth.getSessionGeneration();
+      options.onAuthReconciled?.({
+        identityGeneration: identityFence,
+        sessionGeneration: sessionFence,
+      });
     }
 
     let response = await this.execute(path, method, options, requireAuth);
@@ -89,6 +80,10 @@ export class DashboardApiClient {
         refreshUsed = true;
         identityFence = this.auth.getIdentityGeneration();
         sessionFence = this.auth.getSessionGeneration();
+        options.onAuthReconciled?.({
+          identityGeneration: identityFence,
+          sessionGeneration: sessionFence,
+        });
         response = await this.execute(path, method, options, requireAuth);
       } else if (method !== "GET" && fenceIsCurrent) {
         const rejectedMutation = dashboardApiErrorFromResponse(
@@ -96,6 +91,10 @@ export class DashboardApiClient {
           response.payload,
         );
         await this.refreshOrThrow(options.signal);
+        options.onAuthReconciled?.({
+          identityGeneration: this.auth.getIdentityGeneration(),
+          sessionGeneration: this.auth.getSessionGeneration(),
+        });
         throw dashboardMutationRetryRequiredError(rejectedMutation);
       }
     }
@@ -264,7 +263,13 @@ export class DashboardApiClient {
       if (options.signal?.aborted) throw options.signal.reason ?? error;
       throw dashboardNetworkError(error);
     }
-    const text = await response.text();
+    let text: string;
+    try {
+      text = await response.text();
+    } catch (error: unknown) {
+      if (options.signal?.aborted) throw options.signal.reason ?? error;
+      throw dashboardNetworkError(error);
+    }
     if (text.length === 0) {
       return { ok: response.ok, status: response.status, payload: null, jsonValid: true };
     }

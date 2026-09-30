@@ -107,6 +107,17 @@ test("Supervisor enters one active-shift Location with narrow navigation", async
 }) => {
   const fixture = new DashboardApiFixture({
     operationalContexts: [supervisorContext()],
+    override: (path) =>
+      path === "/v1/staff/auth/mfa/state"
+        ? {
+            status: 409,
+            body: {
+              code: "MFA_ENROLLMENT_NOT_AVAILABLE",
+              message: "MFA enrollment is not available.",
+              requestId: "supervisor-account-security-ineligible",
+            },
+          }
+        : undefined,
   });
   await fixture.install(page);
   await signIn(page, "supervisor@example.com");

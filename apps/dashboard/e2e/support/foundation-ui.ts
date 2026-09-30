@@ -36,7 +36,6 @@ export async function expectSupervisorNarrowNavigation(page: Page): Promise<void
     .getByRole("navigation", { name: "Management navigation" });
   await expect(navigation.getByRole("link")).toHaveText([
     "Maps & Zones",
-    "Security",
     "Help",
   ]);
   for (const forbidden of ["Administration", "Analytics", "Reports"]) {

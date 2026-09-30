@@ -7,26 +7,31 @@ import { useMemo, useState, type ReactNode } from "react";
 import { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useStaffAuth } from "../../lib/auth/staff-auth-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
-import { DashboardMfaClient } from "../../lib/mfa/dashboard-mfa-client";
 import {
   dashboardNavigationRegistrations,
   resolveNavigation,
 } from "../../lib/navigation";
+import { reconcileAccountSecurityNavigation } from "../../lib/navigation/account-security-navigation";
 import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
 import { LoginPanel } from "../auth/login-panel";
 import { Button } from "../presentation/button";
-import { ScopeEntry } from "../scope";
-import { AccountSecurityPanel } from "../security";
+import { useAccountSecurityAccess } from "../security/account-security-access-provider";
 import { DashboardShell } from "../shell";
+import { AccountSecurityShell } from "./account-security-shell";
+import {
+  DashboardNavigationPresentationCapture,
+  dashboardShellPresentationKey,
+} from "./dashboard-shell-presentation-provider";
+import { dashboardShellLabels } from "./dashboard-shell-labels";
 import { FoundationState } from "./foundation-state";
 import { HeaderLocaleControl, HeaderThemeControl } from "./header-preferences";
-import { PreferenceControls } from "./preference-controls";
 import { ProtectedDashboardContextProvider } from "./protected-dashboard-context";
 import { RootProductLanding } from "./root-product-landing";
 import { selectedScopePresentation } from "./scope-presentation";
 import { SelectedScopeMfaPanel } from "./selected-scope-mfa-panel";
 import { useSelectedScope } from "./selected-scope-provider";
 import { StandaloneFoundationPanel } from "./standalone-foundation-panel";
+import { UnselectedScopeFoundation } from "./unselected-scope-foundation";
 import { useFoundationLogout } from "./use-foundation-logout";
 import { useNavigationAuthority } from "./use-navigation-authority";
 import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation";
@@ -42,15 +47,13 @@ export function ManagementFoundationApp({
 }) {
   const currentPath = usePathname();
   const auth = useStaffAuth();
+  const securityAccess = useAccountSecurityAccess();
   const { locale, t } = useDashboardLocale();
   const { clearScope, selectedScope, selectionRevision, selectScope } =
     useSelectedScope();
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [mfaRequired, setMfaRequired] = useState(false);
-  const [mfaGeneration, setMfaGeneration] = useState(0);
   const api = useMemo(() => new DashboardApiClient({ auth: auth.client }), [auth.client]);
-  const mfa = useMemo(() => new DashboardMfaClient(api), [api]);
   const { logoutPending, requestLogout } = useFoundationLogout(auth.logout);
   const routeRevalidation = useSelectedScopeRevalidation({
     api,
@@ -114,64 +117,26 @@ export function ManagementFoundationApp({
   const authGenerationKey = `${auth.identityGeneration}:${auth.sessionGeneration}`;
   if (accountSecurity) {
     return (
-      <StandaloneFoundationPanel>
-        <AccountSecurityPanel client={mfa} key={authGenerationKey} />
-        <PreferenceControls />
-        <Link className="nav-link foundation-link" href="/">{t("backToWorkspace")}</Link>
-        <Button disabled={logoutPending} onClick={() => void requestLogout()} type="button" variant="quiet">
-          {t("logout")}
-        </Button>
-      </StandaloneFoundationPanel>
+      <AccountSecurityShell
+        currentPath={currentPath}
+        identityGeneration={auth.identityGeneration}
+        logoutPending={logoutPending}
+        onLogout={requestLogout}
+        sessionGeneration={auth.sessionGeneration}
+      />
     );
   }
 
   if (selectedScope === null) {
     return (
-      <StandaloneFoundationPanel>
-        {mfaRequired ? (
-          <AccountSecurityPanel
-            client={mfa}
-            key={authGenerationKey}
-            onStateChange={(state) => {
-              if (state === "ASSURED") {
-                setMfaRequired(false);
-                setMfaGeneration((value) => value + 1);
-              }
-            }}
-          />
-        ) : null}
-        <ScopeEntry
-          api={api}
-          accessRequirement={accessRequirement}
-          identityGeneration={auth.identityGeneration}
-          sessionGeneration={auth.sessionGeneration}
-          key={mfaGeneration}
-          labels={{
-            allLocations: t("allLocations"),
-            companyAdmin: t("companyAdmin"),
-            dashboardAccessUnavailable: t("dashboardAccessUnavailable"),
-            featureAccessUnavailable: t("unavailable"),
-            inactiveHistorical: t("inactiveHistorical"),
-            loadError: t("loadError"),
-            loadMore: t("loadMore"),
-            loading: t("loading"),
-            locationManager: t("locationManager"),
-            locations: t("locations"),
-            noneAvailable: t("noEligibleScope"),
-            retry: t("retry"),
-            supervisor: t("supervisor"),
-            title: t("chooseScope"),
-          }}
-          onMfaRequired={() => setMfaRequired(true)}
-          onSelect={selectScope}
-        />
-        <div className="scope-line">
-          <Link className="nav-link foundation-link" href="/security">{t("security")}</Link>
-          <Button disabled={logoutPending} onClick={() => void requestLogout()} type="button" variant="quiet">
-            {t("logout")}
-          </Button>
-        </div>
-      </StandaloneFoundationPanel>
+      <UnselectedScopeFoundation
+        accessRequirement={accessRequirement}
+        api={api}
+        identityGeneration={auth.identityGeneration}
+        logoutPending={logoutPending}
+        onLogout={requestLogout}
+        sessionGeneration={auth.sessionGeneration}
+      />
     );
   }
 
@@ -191,7 +156,9 @@ export function ManagementFoundationApp({
         <Button onClick={clearScope} type="button" variant="secondary">
           {t("changeScope")}
         </Button>
-        <Link className="nav-link foundation-link" href="/security">{t("security")}</Link>
+        {securityAccess.snapshot.status === "eligible" ? (
+          <Link className="nav-link foundation-link" href="/security">{t("security")}</Link>
+        ) : null}
       </StandaloneFoundationPanel>
     );
   }
@@ -202,7 +169,6 @@ export function ManagementFoundationApp({
     return (
       <SelectedScopeMfaPanel
         changeScopeLabel={t("changeScope")}
-        client={mfa}
         generationKey={authGenerationKey + ":" + selectionRevision}
         onAssured={() => selectScope(selectedScope)}
         onChangeScope={clearScope}
@@ -227,7 +193,7 @@ export function ManagementFoundationApp({
   }
 
   const presentation = selectedScopePresentation(selectedScope);
-  const navigation =
+  const resolvedNavigation =
     navigationAuthority.status === "valid"
       ? resolveNavigation(
           dashboardNavigationRegistrations,
@@ -236,6 +202,18 @@ export function ManagementFoundationApp({
           navigationAuthority.authority,
         )
       : [];
+  const navigation = reconcileAccountSecurityNavigation(
+    dashboardNavigationRegistrations,
+    resolvedNavigation,
+    locale,
+    securityAccess.snapshot.status === "eligible",
+  );
+  const presentationBindingKey = dashboardShellPresentationKey({
+    identityGeneration: auth.identityGeneration,
+    selectedScope,
+    selectionRevision,
+    sessionGeneration: auth.sessionGeneration,
+  });
   const selectedLocation =
     presentation.location ??
     (selectedScope.authority === "COMPANY_ADMIN" &&
@@ -250,16 +228,7 @@ export function ManagementFoundationApp({
         </Button>
       )}
       currentPath={currentPath}
-      labels={{
-        changeScope: t("changeScope"),
-        collapseNavigation: t("collapseNavigation"),
-        closeNavigation: t("closeNavigation"),
-        expandNavigation: t("expandNavigation"),
-        location: t("location"),
-        navigation: t("navigation"),
-        openNavigation: t("openNavigation"),
-        organization: t("organization"),
-      }}
+      labels={dashboardShellLabels(t)}
       localeControl={<HeaderLocaleControl />}
       navigationItems={navigation}
       onLocationSelect={clearScope}
@@ -268,6 +237,12 @@ export function ManagementFoundationApp({
       selectedOrganization={presentation.organization}
       themeControl={<HeaderThemeControl />}
     >
+      {navigationAuthority.status === "valid" ? (
+        <DashboardNavigationPresentationCapture
+          bindingKey={presentationBindingKey}
+          navigation={navigation}
+        />
+      ) : null}
       {currentPath === "/" ? (
         <RootProductLanding
           authorityKey={navigationAuthority.key}

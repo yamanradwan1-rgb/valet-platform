@@ -4,11 +4,13 @@ import { BookOpen, CircleHelp, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { useAccountSecurityAccess } from "../security/account-security-access-provider";
 import { helpCopy } from "./help-copy";
 import styles from "./help-foundation.module.css";
 
 export function HelpFoundation() {
   const { locale, t } = useDashboardLocale();
+  const securityAccess = useAccountSecurityAccess();
   const copy = helpCopy(locale);
   return (
     <div className={styles.page}>
@@ -37,16 +39,18 @@ export function HelpFoundation() {
           ))}
         </section>
         <div className={styles.stack}>
-          <section className={styles.card} aria-labelledby="help-security">
-            <h2 id="help-security">
-              <ShieldCheck aria-hidden="true" />
-              {copy.securityTitle}
-            </h2>
-            <p>{copy.securityBody}</p>
-            <Link className={styles.link} href="/security">
-              {copy.securityLink}
-            </Link>
-          </section>
+          {securityAccess.snapshot.status === "eligible" ? (
+            <section className={styles.card} aria-labelledby="help-security">
+              <h2 id="help-security">
+                <ShieldCheck aria-hidden="true" />
+                {copy.securityTitle}
+              </h2>
+              <p>{copy.securityBody}</p>
+              <Link className={styles.link} href="/security">
+                {copy.securityLink}
+              </Link>
+            </section>
+          ) : null}
           <section className={styles.card} aria-labelledby="help-faq">
             <h2 id="help-faq">{copy.faqTitle}</h2>
             {copy.faqs.map(([question, answer]) => (

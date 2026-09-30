@@ -139,6 +139,14 @@ The commercial policy consumes the persisted entitlement booleans. The frontend 
 
 Browser refresh uses the existing Secure, HttpOnly, SameSite cookie boundary. Access tokens belong in memory, not browser persistent storage.
 
+Issue #234 integrates Account Security into the normal Management Dashboard shell without changing MFA authority or contracts. Account Security remains account/session scoped: an active Staff User is eligible when the account has at least one ACTIVE `ORG_ADMIN` membership in an ACTIVE Organization, regardless of the currently selected workspace role and regardless of `dashboardAccess`. A selected Organization/Location may remain visible when it was already resolved, but that context is presentation only and is never sent as MFA authority. Direct `/security` uses a truthful scopeless shell with null Organization/Location and performs no Management discovery or business-data request merely to draw the shell. The account MFA state read remains the authority source for the account affordance. Confirmed LM-only, Supervisor-only and Employee-only accounts do not receive the Security management affordance; unknown state-read failures remain unknown/error rather than being presented as denial or prior assurance.
+
+The browser coordinates one non-secret account MFA-state result per current identity/session generation for Security presentation and navigation. The Security utility destination is added or removed from navigation from that account-level result rather than the selected business role. Already-resolved business destination IDs may be retained in memory as presentation only; a missing or mismatched presentation snapshot falls back to account-only navigation and does not trigger discovery. Provisioning secrets, TOTP/recovery inputs and raw recovery-code disclosures remain ceremony-local and ephemeral. A failed authoritative reread invalidates prior Security state instead of preserving stale `ASSURED`.
+
+Sensitive Management freshness remains independent of ordinary `ASSURED`: when a protected action requests fresh assurance, the existing sensitive MFA dialog accepts TOTP for either `STEP_UP_REQUIRED` or ordinary `ASSURED`. Successful verification closes the challenge and leaves the protected action for explicit user resubmission; it never automatically replays that mutation. A mutation-side 401 may reconcile the Staff credential, but the mutation itself remains one-shot and requires an explicit user retry after the authoritative state is reviewed.
+
+#234 changes no production API endpoint, public MFA request/response contract, database schema, persisted MFA factor model, factor algorithm/format, or server eligibility rule.
+
 Sources: [Staff authentication contracts](../packages/contracts/src/staff-auth.ts), [MFA contracts](../packages/contracts/src/staff-mfa.ts), [MFA implementation](../apps/api/src/modules/auth/mfa).
 
 ### C2. Organization, Location, and actor context

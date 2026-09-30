@@ -33,9 +33,16 @@ const MFA_BASE = "/v1/staff/auth/mfa";
 export class DashboardMfaClient {
   constructor(private readonly api: DashboardApiClient) {}
 
-  state(signal?: AbortSignal): Promise<StaffMfaStateResponse> {
+  state(
+    signal?: AbortSignal,
+    onAuthReconciled?: (generation: {
+      readonly identityGeneration: number;
+      readonly sessionGeneration: number;
+    }) => void,
+  ): Promise<StaffMfaStateResponse> {
     return this.api.request(`${MFA_BASE}/state`, staffMfaStateResponseSchema, {
       method: "GET",
+      onAuthReconciled,
       signal,
     });
   }

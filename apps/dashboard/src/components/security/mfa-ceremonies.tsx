@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { StaffMfaEnrollmentBeginResponse } from "@valet/contracts";
 
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
@@ -9,17 +9,32 @@ import { Button } from "../presentation/button";
 
 interface TotpFormProps {
   readonly busy: boolean;
+  readonly errorId?: string | undefined;
+  readonly focusOnMount?: boolean | undefined;
   readonly onSubmit: (code: string) => Promise<void>;
   readonly submitLabel: "mfaConfirmEnrollment" | "mfaVerify" | "mfaReissueRecoveryCodes";
 }
 
-export function TotpForm({ busy, onSubmit, submitLabel }: TotpFormProps) {
+export function TotpForm({ busy, errorId, focusOnMount = false, onSubmit, submitLabel }: TotpFormProps) {
   const { t } = useDashboardLocale();
   const [code, setCode] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const restoreFocusRef = useRef(false);
+
+  useEffect(() => {
+    if (busy || !restoreFocusRef.current) return;
+    restoreFocusRef.current = false;
+    inputRef.current?.focus();
+  }, [busy]);
+
+  useEffect(() => {
+    if (focusOnMount) inputRef.current?.focus();
+  }, [focusOnMount]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const value = code;
+    restoreFocusRef.current = true;
     setCode("");
     await onSubmit(value);
   };
@@ -29,14 +44,18 @@ export function TotpForm({ busy, onSubmit, submitLabel }: TotpFormProps) {
       <div className="field">
         <label htmlFor={`mfa-totp-${submitLabel}`}>{t("mfaTotpCode")}</label>
         <input
+          aria-describedby={errorId}
+          aria-invalid={errorId ? true : undefined}
           autoComplete="one-time-code"
           disabled={busy}
+          dir="ltr"
           id={`mfa-totp-${submitLabel}`}
           inputMode="numeric"
           maxLength={6}
           minLength={6}
           onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
           pattern="[0-9]{6}"
+          ref={inputRef}
           required
           type="text"
           value={code}
@@ -51,17 +70,28 @@ export function TotpForm({ busy, onSubmit, submitLabel }: TotpFormProps) {
 
 export function RecoveryForm({
   busy,
+  errorId,
   onSubmit,
 }: {
   readonly busy: boolean;
+  readonly errorId?: string | undefined;
   readonly onSubmit: (recoveryCode: string) => Promise<void>;
 }) {
   const { t } = useDashboardLocale();
   const [recoveryCode, setRecoveryCode] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const restoreFocusRef = useRef(false);
+
+  useEffect(() => {
+    if (busy || !restoreFocusRef.current) return;
+    restoreFocusRef.current = false;
+    inputRef.current?.focus();
+  }, [busy]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const value = recoveryCode.trim();
+    restoreFocusRef.current = true;
     setRecoveryCode("");
     await onSubmit(value);
   };
@@ -71,11 +101,15 @@ export function RecoveryForm({
       <div className="field">
         <label htmlFor="mfa-recovery-code">{t("mfaRecoveryCode")}</label>
         <input
+          aria-describedby={errorId}
+          aria-invalid={errorId ? true : undefined}
           autoComplete="off"
           disabled={busy}
+          dir="ltr"
           id="mfa-recovery-code"
           onChange={(event) => setRecoveryCode(event.target.value)}
           required
+          ref={inputRef}
           spellCheck={false}
           type="text"
           value={recoveryCode}
@@ -91,19 +125,25 @@ export function RecoveryForm({
 export function EnrollmentCeremony({
   busy,
   enrollment,
+  errorId,
   onCancel,
   onConfirm,
 }: {
   readonly busy: boolean;
   readonly enrollment: StaffMfaEnrollmentBeginResponse;
+  readonly errorId?: string | undefined;
   readonly onCancel: () => void;
   readonly onConfirm: (code: string) => Promise<void>;
 }) {
   const { t } = useDashboardLocale();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
   return (
     <div className="stack">
       <div>
-        <h2>{t("mfaSetupTitle")}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>{t("mfaSetupTitle")}</h2>
         <p className="muted">{t("mfaSetupInstructions")}</p>
       </div>
       <div className="field">
@@ -111,7 +151,12 @@ export function EnrollmentCeremony({
         <BidiText>{enrollment.provisioning.secretBase32}</BidiText>
         <p className="muted">{t("mfaSetupDetails")}</p>
       </div>
-      <TotpForm busy={busy} onSubmit={onConfirm} submitLabel="mfaConfirmEnrollment" />
+      <TotpForm
+        busy={busy}
+        errorId={errorId}
+        onSubmit={onConfirm}
+        submitLabel="mfaConfirmEnrollment"
+      />
       <Button disabled={busy} onClick={onCancel} type="button" variant="quiet">
         {t("mfaCancelCeremony")}
       </Button>
@@ -127,10 +172,14 @@ export function RecoveryCodesDisclosure({
   readonly onDone: () => void;
 }) {
   const { t } = useDashboardLocale();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
   return (
     <div className="stack">
       <div>
-        <h2>{t("mfaRecoveryCodesTitle")}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>{t("mfaRecoveryCodesTitle")}</h2>
         <p className="muted">{t("mfaRecoveryCodesBody")}</p>
         <p className="muted">{t("mfaRecoveryCodesWarning")}</p>
       </div>

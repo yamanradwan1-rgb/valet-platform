@@ -6,6 +6,7 @@ import type { StaffMfaStateValue } from "@valet/contracts";
 
 import { FocusDialog } from "../../components/presentation/focus-dialog";
 import { TotpForm } from "../../components/security/mfa-ceremonies";
+import { mfaErrorKey } from "../../components/security/mfa-ui";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { DashboardMfaClient } from "../../lib/mfa/dashboard-mfa-client";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
@@ -26,6 +27,12 @@ export function SensitiveMfaDialog(props: {
   useEffect(() => {
     mounted.current = true;
     const controller = new AbortController();
+    queueMicrotask(() => {
+      if (!mounted.current) return;
+      setState(null);
+      setBusy(true);
+      setError(null);
+    });
     void client.state(controller.signal).then(
       (response) => {
         if (!mounted.current) return;
@@ -34,7 +41,7 @@ export function SensitiveMfaDialog(props: {
       },
       (reason: unknown) => {
         if (!mounted.current || controller.signal.aborted) return;
-        setError(reason instanceof Error ? reason.message : t("mfaErrorStateRead"));
+        setError(t(mfaErrorKey(reason)));
         setBusy(false);
       },
     );
@@ -48,7 +55,7 @@ export function SensitiveMfaDialog(props: {
       await client.stepUp({ code });
       if (mounted.current) props.onAssured();
     } catch (reason) {
-      if (mounted.current) setError(reason instanceof Error ? reason.message : t("unavailable"));
+      if (mounted.current) setError(t(mfaErrorKey(reason)));
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -59,15 +66,21 @@ export function SensitiveMfaDialog(props: {
       <h2 className={styles.dialogTitle}>{t("mfaStatusStepUpRequired")}</h2>
       <p className={styles.dialogSubtitle}>{t("mfaStepUpBody")}</p>
       {busy && state === null ? <p className={styles.muted}>{t("mfaStatusChecking")}</p> : null}
-      {state === "STEP_UP_REQUIRED" ? <TotpForm busy={busy} onSubmit={stepUp} submitLabel="mfaVerify" /> : null}
+      {state === "STEP_UP_REQUIRED" || state === "ASSURED" ? (
+        <TotpForm
+          busy={busy}
+          errorId={error ? "sensitive-mfa-error" : undefined}
+          onSubmit={stepUp}
+          submitLabel="mfaVerify"
+        />
+      ) : null}
       {state === "ENROLLMENT_REQUIRED" || state === "ENROLLMENT_PENDING" ? (
         <div className={styles.stack}>
           <p className={styles.muted}>{t(state === "ENROLLMENT_REQUIRED" ? "mfaEnrollmentRequiredBody" : "mfaEnrollmentPendingBody")}</p>
           <Link className={styles.primary} href="/security">{t("accountSecurity")}</Link>
         </div>
       ) : null}
-      {state === "ASSURED" ? <button className={styles.primary} onClick={props.onAssured} type="button">{t("retry")}</button> : null}
-      {error ? <div className={styles.error} role="alert">{error}</div> : null}
+      {error ? <div className={styles.error} id="sensitive-mfa-error" role="alert">{error}</div> : null}
     </FocusDialog>
   );
 }

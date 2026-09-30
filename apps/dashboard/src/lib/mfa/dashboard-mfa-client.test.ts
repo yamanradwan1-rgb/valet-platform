@@ -39,4 +39,22 @@ describe("DashboardMfaClient", () => {
     ]);
     expect(JSON.stringify(client)).not.toContain(recoveryCode);
   });
+
+  it("dispatches each sensitive ceremony mutation exactly once as POST", async () => {
+    const failure = new Error("transport failed");
+    const request = vi.fn().mockRejectedValue(failure);
+    const client = new DashboardMfaClient({ request } as unknown as DashboardApiClient);
+    const factorId = "11111111-1111-4111-8111-111111111111";
+    const recoveryCode = `vmr1-${"a".repeat(11)}-${"b".repeat(27)}`;
+    const operations = [
+      () => client.beginEnrollment(),
+      () => client.confirmEnrollment({ code: "123456", factorId }),
+      () => client.stepUp({ code: "123456" }),
+      () => client.beginRecovery({ recoveryCode }),
+      () => client.reissueRecoveryCodes({ code: "654321" }),
+    ];
+    for (const operation of operations) await expect(operation()).rejects.toBe(failure);
+    expect(request).toHaveBeenCalledTimes(operations.length);
+    expect(request.mock.calls.every((call) => call[2]?.method === "POST")).toBe(true);
+  });
 });

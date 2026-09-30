@@ -47,13 +47,15 @@ for (const width of [1440, 480]) {
             if (surface === "billing-null") {
               await page.goto("/billing-subscription");
               await page.getByRole("button", { name: ORG_A.name }).click();
-            } else if (surface === "security") await page.goto("/security");
-            else await page.locator(`nav a[href="/${route}"]`).click();
+           } else if (surface === "security") {
+             await page.locator('nav a[href="/security"]').click();
+            } else await page.locator(`nav a[href="/${route}"]`).click();
             await page.setViewportSize({ width, height: 900 });
           }
           if (surface === "policies-location")
             await page.getByRole("tab", { name: t.locationOverrides }).click();
           const title = page.locator("h1");
+          await expect(title).toHaveCount(1);
           await expect(title).toBeVisible();
           if (surface === "roles-permissions") {
             await expect(title).toHaveText(t.rolesTitle);
@@ -78,9 +80,45 @@ for (const width of [1440, 480]) {
           if (surface === "help")
             await expect(page.locator("details")).toHaveCount(4);
           if (surface === "security") {
-            await expect(page.getByRole("status")).toContainText(
-              locale === "en" ? "Verified" : "تم التحقق",
-            );
+            const securityLabel = locale === "en" ? "Security" : "الأمان";
+            const verifiedLabel = locale === "en" ? "Verified" : "تم التحقق";
+            const languageLabel = locale === "en" ? "Language" : "اللغة";
+            const themeLabel = locale === "en" ? "Theme" : "المظهر";
+            const logoutLabel = locale === "en" ? "Sign out" : "تسجيل الخروج";
+            const openNavigationLabel =
+              locale === "en" ? "Open navigation" : "فتح التنقل";
+            const closeNavigationLabel =
+              locale === "en" ? "Close navigation" : "إغلاق التنقل";
+            const reissueLabel =
+              locale === "en" ? "Replace recovery codes" : "استبدال رموز الاسترداد";
+            await expect(page.getByRole("status")).toContainText(verifiedLabel);
+            const securityLink = page.getByRole("link", {
+              name: securityLabel,
+              exact: true,
+            });
+            if (width === 480) {
+              await page
+                .getByRole("button", { name: openNavigationLabel, exact: true })
+                .click();
+              await expect(securityLink).toHaveAttribute("aria-current", "page");
+              await page
+                .getByRole("button", { name: closeNavigationLabel, exact: true })
+                .click();
+            } else {
+              await expect(securityLink).toHaveAttribute("aria-current", "page");
+            }
+            await expect(
+              page.getByRole("button", { name: languageLabel, exact: true }),
+            ).toHaveCount(1);
+            await expect(
+              page.getByRole("group", { name: themeLabel, exact: true }),
+            ).toHaveCount(1);
+            await expect(
+              page.getByRole("button", { name: logoutLabel, exact: true }),
+            ).toHaveCount(1);
+            await expect(
+              page.getByRole("button", { name: reissueLabel, exact: true }),
+            ).toHaveCount(1);
             await expect(
               page
                 .getByRole("alert")

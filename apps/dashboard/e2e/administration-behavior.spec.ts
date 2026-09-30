@@ -86,6 +86,58 @@ test("Company Branding requires explicit retry after sensitive MFA step-up", asy
   expect(fixture.count(brandingWritePath)).toBe(2);
 });
 
+test("sensitive Branding freshness requests TOTP even while ordinary MFA is ASSURED", async ({
+  page,
+}) => {
+  let currentBranding = branding();
+  let freshSensitiveAssurance = false;
+  const fixture = new DashboardApiFixture({
+    companyOrganizations: [ORG_A],
+    companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    mfaState: "ASSURED",
+    override: (path, request) => {
+      if (path === brandingPath) return { body: currentBranding };
+      if (path === "/v1/staff/auth/mfa/step-up") {
+        freshSensitiveAssurance = true;
+        return { body: { state: "ASSURED" } };
+      }
+      if (path !== brandingWritePath) return undefined;
+      if (!freshSensitiveAssurance) {
+        return {
+          status: 403,
+          body: {
+            code: "MFA_STEP_UP_REQUIRED",
+            message: "Verification required",
+            requestId: "issue234-branding-freshness",
+          },
+        };
+      }
+      const body = request.postDataJSON() as { value: string };
+      currentBranding = branding(body.value, "2026-09-21T10:03:00.000Z");
+      return { body: currentBranding };
+    },
+  });
+  await fixture.install(page);
+  await openCompanyAllLocations(page, "/branding");
+
+  await page.getByLabel("Display name").fill("Fresh Brand");
+  await page.getByRole("button", { name: "Save Display name" }).click();
+  const challenge = page.getByRole("dialog", { name: "Verification required" });
+  await expect(challenge.getByLabel("6-digit authenticator code")).toBeVisible();
+  await expect(challenge.getByRole("button", { name: "Retry" })).toHaveCount(0);
+  expect(fixture.count(brandingWritePath)).toBe(1);
+
+  await challenge.getByLabel("6-digit authenticator code").fill("123456");
+  await challenge.getByRole("button", { name: "Verify" }).click();
+  await expect(page.getByText(/Review the values and submit the action again/u)).toBeVisible();
+  expect(fixture.count(brandingWritePath)).toBe(1);
+  expect(fixture.count("/v1/staff/auth/mfa/step-up")).toBe(1);
+
+  await page.getByRole("button", { name: "Save Display name" }).click();
+  expect(fixture.count(brandingWritePath)).toBe(2);
+  await expect(page.getByLabel("Display name")).toHaveValue("Fresh Brand");
+});
+
 test("Company Branding CAS conflict reloads authoritative server state", async ({
   page,
 }) => {

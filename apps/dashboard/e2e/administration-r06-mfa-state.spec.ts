@@ -59,8 +59,11 @@ for (const deniedAgain of [false, true]) {
     if (deniedAgain) {
       await expect(challenge).toHaveCount(1);
       await expect(
-        challenge.getByRole("button", { name: "Retry" }),
+        challenge.getByLabel("6-digit authenticator code"),
       ).toBeVisible();
+      await expect(
+        challenge.getByRole("button", { name: "Retry" }),
+      ).toHaveCount(0);
       await expect(page.getByText(/Verification succeeded/)).toHaveCount(0);
     } else {
       await expect(

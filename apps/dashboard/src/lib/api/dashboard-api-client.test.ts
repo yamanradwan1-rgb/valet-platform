@@ -250,6 +250,37 @@ describe("DashboardApiClient", () => {
     await expect(api.request("/state", staffMfaStateResponseSchema)).rejects.toMatchObject({ kind: "malformed" });
   });
 
+  it("treats a post-dispatch JSON body read failure as uncertain without replay", async () => {
+    const response = new Response(null, { status: 200 });
+    vi.spyOn(response, "text").mockRejectedValue(new TypeError("body lost"));
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response);
+    const api = new DashboardApiClient({ auth: authProvider(), fetch: fetcher });
+
+    await expect(
+      api.request("/write", staffMfaStateResponseSchema, {
+        body: {},
+        method: "POST",
+      }),
+    ).rejects.toMatchObject({
+      kind: "network",
+      code: "NETWORK_ERROR",
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["network", () => Promise.reject(new TypeError("offline"))],
+    ["5xx", () => Promise.resolve(new Response(JSON.stringify({ code: "SERVER_ERROR", message: "failed", requestId: "req-5xx" }), { status: 503 }))],
+    ["malformed", () => Promise.resolve(new Response(JSON.stringify({ state: "NOPE" }), { status: 200 }))],
+  ] as const)("does not replay a POST after %s failure", async (_name, reply) => {
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(reply);
+    const api = new DashboardApiClient({ auth: authProvider(), fetch: fetcher });
+    await expect(
+      api.request("/write", staffMfaStateResponseSchema, { body: {}, method: "POST" }),
+    ).rejects.toBeInstanceOf(DashboardApiError);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps error categories separate", () => {
     expect(dashboardApiErrorFromResponse(403, { code: "MFA_STEP_UP_REQUIRED", message: "mfa", requestId: "req-mfa" }).kind).toBe("mfa");
     expect(dashboardApiErrorFromResponse(403, { code: "DASHBOARD_ACCESS_DISABLED", message: "plan", requestId: "req-plan" }).kind).toBe("entitlement");
