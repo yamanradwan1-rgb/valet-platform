@@ -35,8 +35,7 @@ test("Company Admin can enter All Locations and an exact Location", async ({
     .locator(".topbar")
     .getByRole("button", { name: "Change scope" })
     .click();
-  await page.getByRole("button", { name: ORG_A.name }).click();
-  await page.getByRole("button", { name: LOCATION_A.name }).click();
+  await page.getByRole("option", { name: LOCATION_A.name }).click();
   await expect(
     page.locator(".topbar").getByText(LOCATION_A.name),
   ).toBeVisible();

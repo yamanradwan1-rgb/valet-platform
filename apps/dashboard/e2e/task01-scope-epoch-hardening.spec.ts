@@ -38,10 +38,7 @@ async function openCompanyAllLocations(page: Page) {
 }
 
 async function changeCompanyScope(page: Page, scopeName: string) {
-  await page
-    .locator(".topbar")
-    .getByRole("button", { name: "Change scope" })
-    .click();
+  await page.locator(".sidebar-scope").click();
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: scopeName }).click();
 }
@@ -177,8 +174,7 @@ test("scope change invalidates an in-flight Branding MFA intent", async ({
   await stepStarted.promise;
 
   await page
-    .locator(".topbar")
-    .getByRole("button", { name: "Change scope" })
+    .locator(".sidebar-scope")
     .evaluate((element: HTMLButtonElement) => element.click());
   await expect(dialog).toHaveCount(0);
   await expect(

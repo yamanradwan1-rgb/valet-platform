@@ -26,11 +26,7 @@ export {
 export { revalidateSelectedScope } from "./revalidate-selected-scope";
 
 export type SelectedScopeRevalidationStatus =
-  | "checking"
-  | "valid"
-  | "entitlement"
-  | "denied"
-  | "error";
+  "checking" | "valid" | "entitlement" | "denied" | "error";
 
 export interface SelectedScopeRevalidationState {
   readonly key: string;
@@ -39,13 +35,18 @@ export interface SelectedScopeRevalidationState {
   readonly routeAccess: ProtectedRouteAuthority | null;
 }
 
+export type SelectedScopeDenialKind = "ROUTE_DENIED" | "SELECTED_SCOPE_INVALID";
+
 export function useSelectedScopeRevalidation(input: {
   readonly api: DashboardApiClient;
   readonly accessRequirement: DashboardRouteAccessRequirement;
   readonly identityGeneration: number;
   readonly selectionRevision: number;
   readonly sessionGeneration: number;
-  readonly onDenied?: (epoch: SelectedScopeEpoch) => void;
+  readonly onDenied?: (
+    epoch: SelectedScopeEpoch,
+    kind: SelectedScopeDenialKind,
+  ) => void;
   readonly selectedScope: SelectedDashboardScope | null;
 }): SelectedScopeRevalidationState {
   const {
@@ -84,7 +85,12 @@ export function useSelectedScopeRevalidation(input: {
     void Promise.resolve().then(async () => {
       if (disposed || !guard.isCurrent(ticket)) return;
       if (selectedScope === null) {
-        setSettled({ key, status: "denied", errorKind: null, routeAccess: null });
+        setSettled({
+          key,
+          status: "denied",
+          errorKind: null,
+          routeAccess: null,
+        });
         return;
       }
       try {
@@ -106,21 +112,22 @@ export function useSelectedScopeRevalidation(input: {
             result.status === "denied" &&
             onDenied &&
             (result.selectedScopeInvalid === true ||
-              await shouldInvalidateSelectedScopeAfterRouteDenial({
+              (await shouldInvalidateSelectedScopeAfterRouteDenial({
                 accessRequirement,
                 api,
                 baseRequestKey,
                 selectedScope,
                 signal: ticket.signal,
-              })) &&
+              }))) &&
             !disposed &&
             guard.isCurrent(ticket)
           ) {
-            onDenied({
-              identityGeneration,
-              selectionRevision,
-              sessionGeneration,
-            });
+            onDenied(
+              { identityGeneration, selectionRevision, sessionGeneration },
+              result.selectedScopeInvalid === true
+                ? "SELECTED_SCOPE_INVALID"
+                : "ROUTE_DENIED",
+            );
           }
         }
       } catch (reason: unknown) {
@@ -130,22 +137,24 @@ export function useSelectedScopeRevalidation(input: {
           if (
             failure.status === "denied" &&
             onDenied &&
-            await shouldInvalidateSelectedScopeAfterRouteDenial({
+            (await shouldInvalidateSelectedScopeAfterRouteDenial({
               accessRequirement,
               api,
               baseRequestKey,
               reason,
               selectedScope,
               signal: ticket.signal,
-            }) &&
+            })) &&
             !disposed &&
             guard.isCurrent(ticket)
           ) {
-            onDenied({
-              identityGeneration,
-              selectionRevision,
-              sessionGeneration,
-            });
+            onDenied(
+              { identityGeneration, selectionRevision, sessionGeneration },
+              failure.errorKind === "auth" ||
+                failure.errorKind === "authorization"
+                ? "SELECTED_SCOPE_INVALID"
+                : "ROUTE_DENIED",
+            );
           }
         }
       }
@@ -219,7 +228,8 @@ export async function shouldInvalidateSelectedScopeAfterRouteDenial(input: {
     return base.status === "denied";
   } catch (reason: unknown) {
     const failure = classifyScopeRevalidationFailure(reason);
-    return failure.errorKind === "auth" ||
-      failure.errorKind === "authorization";
+    return (
+      failure.errorKind === "auth" || failure.errorKind === "authorization"
+    );
   }
 }
