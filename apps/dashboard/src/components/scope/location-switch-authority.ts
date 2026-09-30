@@ -4,6 +4,7 @@ import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import {
   dashboardNavigationRegistrations,
   resolveNavigation,
+  type DashboardNavigationItem,
 } from "../../lib/navigation";
 import {
   commercialAccessFromSubscription,
@@ -55,6 +56,7 @@ export type LocationSwitchProof =
   | {
       readonly destination: string | null;
       readonly kind: "READY";
+      readonly navigation: readonly DashboardNavigationItem[];
       readonly scope: SwitchableDashboardScope;
     }
   | { readonly kind: "DENIED" };
@@ -95,13 +97,6 @@ export async function proveLocationSwitchCandidate(
 ): Promise<LocationSwitchProof> {
   const proof = await proveCandidateAuthority(input, dependencies);
   if (proof === null) return { kind: "DENIED" };
-  if (
-    input.preserveIndependentRoute &&
-    proof.baseResolution.status === "valid"
-  ) {
-    return { destination: null, kind: "READY", scope: proof.scope };
-  }
-
   const authority = await dependencies.resolveNavigationAuthority({
     api: input.api,
     baseRequestKey: input.requestKey,
@@ -119,13 +114,29 @@ export async function proveLocationSwitchCandidate(
     ),
     selectedLocationStatus(proof.scope),
   );
+  if (
+    input.preserveIndependentRoute &&
+    proof.baseResolution.status === "valid"
+  ) {
+    return {
+      destination: null,
+      kind: "READY",
+      navigation,
+      scope: proof.scope,
+    };
+  }
   if (isCurrentPathAuthorized(input.currentPath, navigation)) {
-    return { destination: null, kind: "READY", scope: proof.scope };
+    return {
+      destination: null,
+      kind: "READY",
+      navigation,
+      scope: proof.scope,
+    };
   }
   const destination = safeLocationSwitchLanding(navigation);
   return destination === null
     ? { kind: "DENIED" }
-    : { destination, kind: "READY", scope: proof.scope };
+    : { destination, kind: "READY", navigation, scope: proof.scope };
 }
 
 async function proveCandidateAuthority(

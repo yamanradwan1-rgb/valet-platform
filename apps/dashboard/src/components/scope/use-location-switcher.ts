@@ -193,7 +193,7 @@ export function useLocationSwitcher(input: LocationSwitcherInput) {
         setOpen(false);
         setLocations([]);
         setNextCursor(null);
-        live.onCommit(proof.scope, proof.destination);
+        live.onCommit(proof.scope, proof.destination, proof.navigation);
       } catch (reason: unknown) {
         if (!isCurrent(ticket)) return;
         if (

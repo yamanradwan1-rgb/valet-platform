@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
-import { dashboardNavigationRegistrations } from "../../lib/navigation";
+import {
+  dashboardNavigationRegistrations,
+  type DashboardNavigationItem,
+} from "../../lib/navigation";
 import {
   navigationItemsFromPresentationIds,
   reconcileAccountSecurityNavigation,
@@ -85,8 +88,20 @@ export function AccountSecurityShell(props: {
     clearScope();
     router.push("/");
   };
-  const commitSwitch = (scope: SwitchableDashboardScope) => {
+  const commitSwitch = (
+    scope: SwitchableDashboardScope,
+    navigation: readonly DashboardNavigationItem[],
+  ) => {
     setSwitchMfaRequired(false);
+    presentationStore.remember(
+      dashboardShellPresentationKey({
+        identityGeneration: props.identityGeneration,
+        selectedScope: scope,
+        selectionRevision: selectionRevision + 1,
+        sessionGeneration: props.sessionGeneration,
+      }),
+      navigation,
+    );
     selectScope(scope);
   };
   const locationControl =
@@ -98,7 +113,9 @@ export function AccountSecurityShell(props: {
         api={props.api}
         currentPath={props.currentPath}
         identityGeneration={props.identityGeneration}
-        onCommit={(scope) => commitSwitch(scope)}
+        onCommit={(scope, _destination, navigation) =>
+          commitSwitch(scope, navigation)
+        }
         onCurrentScopeInvalid={(epoch) => {
           clearScopeIfEpoch(epoch);
           router.replace("/");

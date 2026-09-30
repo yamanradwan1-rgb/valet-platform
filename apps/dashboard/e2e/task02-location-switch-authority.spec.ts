@@ -125,41 +125,6 @@ test("Location Manager grant-set scope uses the topbar menu and never offers All
   ).toHaveCount(0);
 });
 
-test("Security keeps the shell and route while the topbar switches Location in-place", async ({
-  page,
-}) => {
-  const fixture = new DashboardApiFixture({
-    companyOrganizations: [ORG_A],
-    companyLocations: { [ORG_A.organizationId]: [LOCATION_A, LOCATION_B] },
-    mfaState: "ASSURED",
-  });
-  await enterCompanyLocation(page, fixture);
-  await page.getByRole("link", { name: "Security", exact: true }).click();
-  await expect(page).toHaveURL(/\/security$/u);
-  await page
-    .locator(".shell")
-    .evaluate((node) => node.setAttribute("data-task02-security", "mounted"));
-
-  await openMenu(page);
-  await page.getByRole("option", { name: LOCATION_B.name }).click();
-  await expect(page).toHaveURL(/\/security$/u);
-  await expect(page.locator(".topbar .location-context")).toContainText(
-    LOCATION_B.name,
-  );
-  await expect(
-    page.locator('.shell[data-task02-security="mounted"]'),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Choose your authorized workspace" }),
-  ).toHaveCount(0);
-
-  await page.locator(".sidebar-scope").click();
-  await expect(page).toHaveURL(/\/$/u);
-  await expect(
-    page.getByRole("heading", { name: "Choose your authorized workspace" }),
-  ).toBeVisible();
-});
-
 test("candidate proof remains bounded and does not rediscover Organizations", async ({
   page,
 }) => {

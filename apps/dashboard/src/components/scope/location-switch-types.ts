@@ -1,4 +1,5 @@
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
+import type { DashboardNavigationItem } from "../../lib/navigation";
 import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
 import type { SelectedScopeEpoch } from "../foundation/selected-scope-state";
 import type {
@@ -17,6 +18,7 @@ export interface LocationSwitcherInput {
   readonly onCommit: (
     scope: SwitchableDashboardScope,
     destination: string | null,
+    navigation: readonly DashboardNavigationItem[],
   ) => void;
   readonly onCurrentScopeInvalid: (epoch: SelectedScopeEpoch) => void;
   readonly onMfaRequired: () => void;
