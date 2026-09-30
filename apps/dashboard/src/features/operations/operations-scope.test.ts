@@ -34,10 +34,16 @@ describe("MD-03 exact scope", () => {
     });
   });
 
-  it("keys page state to identity, session, authority, and exact Location", () => {
+  it("keys page state to identity, session, selection epoch, authority, and exact Location", () => {
     const lm: SelectedDashboardScope = { authority: "LOCATION_MANAGER", organization, location };
-    const base = { identityGeneration: 7, sessionGeneration: 11, selectedScope: lm };
+    const base = {
+      identityGeneration: 7,
+      sessionGeneration: 11,
+      selectionRevision: 2,
+      selectedScope: lm,
+    };
     expect(operationsScopeKey(base)).not.toBe(operationsScopeKey({ ...base, identityGeneration: 8 }));
     expect(operationsScopeKey(base)).not.toBe(operationsScopeKey({ ...base, sessionGeneration: 12 }));
+    expect(operationsScopeKey(base)).not.toBe(operationsScopeKey({ ...base, selectionRevision: 3 }));
   });
 });

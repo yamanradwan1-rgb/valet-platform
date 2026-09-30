@@ -49,8 +49,13 @@ export function ManagementFoundationApp({
   const auth = useStaffAuth();
   const securityAccess = useAccountSecurityAccess();
   const { locale, t } = useDashboardLocale();
-  const { clearScope, selectedScope, selectionRevision, selectScope } =
-    useSelectedScope();
+  const {
+    clearScope,
+    clearScopeIfEpoch,
+    selectedScope,
+    selectionRevision,
+    selectScope,
+  } = useSelectedScope();
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const api = useMemo(() => new DashboardApiClient({ auth: auth.client }), [auth.client]);
@@ -61,7 +66,7 @@ export function ManagementFoundationApp({
     identityGeneration: auth.identityGeneration,
     selectionRevision,
     sessionGeneration: auth.sessionGeneration,
-    onDenied: clearScope,
+    onDenied: clearScopeIfEpoch,
     selectedScope: accountSecurity ? null : selectedScope,
   });
   const navigationAuthority = useNavigationAuthority({
@@ -257,6 +262,7 @@ export function ManagementFoundationApp({
             api,
             identityGeneration: auth.identityGeneration,
             selectedScope,
+            selectionRevision,
             sessionGeneration: auth.sessionGeneration,
           }}
         >

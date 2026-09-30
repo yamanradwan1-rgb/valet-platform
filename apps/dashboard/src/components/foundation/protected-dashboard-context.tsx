@@ -9,6 +9,7 @@ export interface ProtectedDashboardContextValue {
   readonly api: DashboardApiClient;
   readonly identityGeneration: number;
   readonly selectedScope: SelectedDashboardScope;
+  readonly selectionRevision: number;
   readonly sessionGeneration: number;
 }
 

@@ -36,6 +36,7 @@ export function MapSetupPanel(props: {
   readonly locationId: string;
   readonly points: readonly LocationMapPoint[];
   readonly reload: () => Promise<MapSetupReloadResult>;
+  readonly scopeKey: string;
 }) {
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
@@ -43,7 +44,12 @@ export function MapSetupPanel(props: {
   const [areaEditor, setAreaEditor] = useState<LocationMapArea | "new" | null>(null);
   const [verticesEditor, setVerticesEditor] = useState<LocationMapArea | null>(null);
   const mutation = useMapSetupMutation(props.reload);
-  const zones = useMapParkingZones(props.api, props.locationId, !props.hidden);
+  const zones = useMapParkingZones(
+    props.api,
+    props.locationId,
+    !props.hidden,
+    props.scopeKey,
+  );
   const notice = mutation.notice === "saved_refresh_failed" ? t.savedRefreshFailed
     : mutation.notice === "conflict_reloaded" ? t.conflictReloaded
     : mutation.notice === "conflict_reload_failed" ? t.conflictReloadFailed

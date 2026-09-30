@@ -1,7 +1,7 @@
 "use client";
 
 import type { ParkingZoneSelector } from "@valet/contracts";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
@@ -29,6 +29,7 @@ export function PhysicalResourceCreateDialog(props: {
   readonly onClose: () => void;
   readonly onCreated: (resourceId: string) => void;
   readonly onReconcile: () => void;
+  readonly scopeKey: string;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -41,27 +42,45 @@ export function PhysicalResourceCreateDialog(props: {
   const [zonesLoading, setZonesLoading] = useState(props.kind === "parking-spot");
   const [error, setError] = useState<string | null>(null);
   const [mfaOpen, setMfaOpen] = useState(false);
+  const mountedRef = useRef(true);
+  const currentScopeKeyRef = useRef(props.scopeKey);
+
+  useLayoutEffect(() => {
+    currentScopeKeyRef.current = props.scopeKey;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [props.scopeKey]);
 
   useEffect(() => {
     if (props.kind !== "parking-spot") return;
     const controller = new AbortController();
+    const scopeKey = props.scopeKey;
+    const isCurrent = () =>
+      mountedRef.current &&
+      currentScopeKeyRef.current === scopeKey &&
+      !controller.signal.aborted;
     void readParkingZones(props.api, props.locationId, controller.signal).then(
       (result) => {
-        if (controller.signal.aborted) return;
+        if (!isCurrent()) return;
         setZones(result.items);
         setZonesLoading(false);
       },
       (reason) => {
-        if (controller.signal.aborted) return;
+        if (!isCurrent()) return;
         setError(administrationErrorMessage(reason));
         setZonesLoading(false);
       },
     );
     return () => controller.abort();
-  }, [props.api, props.kind, props.locationId]);
+  }, [props.api, props.kind, props.locationId, props.scopeKey]);
 
   async function submit() {
     if (busyRef.current) return;
+    const scopeKey = props.scopeKey;
+    const isCurrent = () =>
+      mountedRef.current && currentScopeKeyRef.current === scopeKey;
     busyRef.current = true;
     setBusy(true);
     setError(null);
@@ -87,7 +106,7 @@ export function PhysicalResourceCreateDialog(props: {
           props.kind,
           requestKey,
         );
-        props.onCreated(result.keySlotId);
+        if (isCurrent()) props.onCreated(result.keySlotId);
       } else {
         const result = await createParkingSpot(props.api, props.locationId, {
           code,
@@ -101,15 +120,16 @@ export function PhysicalResourceCreateDialog(props: {
           props.kind,
           requestKey,
         );
-        props.onCreated(result.parkingSpotId);
+        if (isCurrent()) props.onCreated(result.parkingSpotId);
       }
     } catch (reason) {
+      if (!isCurrent()) return;
       props.onReconcile();
       if (isMfaRequired(reason)) setMfaOpen(true);
       else setError(administrationErrorMessage(reason));
     } finally {
       busyRef.current = false;
-      setBusy(false);
+      if (isCurrent()) setBusy(false);
     }
   }
 

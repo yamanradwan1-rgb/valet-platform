@@ -73,8 +73,8 @@ export function PhysicalResourcesPanel(props: {
           ) : null}
         </ReadState>
       </div>
-      {createOpen ? <PhysicalResourceCreateDialog api={props.api} identityGeneration={props.identityGeneration} kind={family} locationId={props.location.locationId} onClose={() => setCreateOpen(false)} onCreated={(id) => { setCreateOpen(false); current.refresh(); setLabelTarget({ id, kind: family }); }} onReconcile={current.refresh} /> : null}
-      {labelTarget ? <ResourceLabelDialog api={props.api} kind={labelTarget.kind} locationId={props.location.locationId} onClose={() => setLabelTarget(null)} resourceId={labelTarget.id} /> : null}
+      {createOpen ? <PhysicalResourceCreateDialog api={props.api} identityGeneration={props.identityGeneration} key={`${props.scopeKey}:create:${family}`} kind={family} locationId={props.location.locationId} onClose={() => setCreateOpen(false)} onCreated={(id) => { setCreateOpen(false); current.refresh(); setLabelTarget({ id, kind: family }); }} onReconcile={current.refresh} scopeKey={`${props.scopeKey}:${family}`} /> : null}
+      {labelTarget ? <ResourceLabelDialog api={props.api} key={`${props.scopeKey}:label:${labelTarget.kind}:${labelTarget.id}`} kind={labelTarget.kind} locationId={props.location.locationId} onClose={() => setLabelTarget(null)} resourceId={labelTarget.id} scopeKey={`${props.scopeKey}:label:${labelTarget.kind}:${labelTarget.id}`} /> : null}
     </section>
   );
 }

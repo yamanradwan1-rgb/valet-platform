@@ -26,7 +26,9 @@ export function LocationCreateDialog(props: {
   const [addressText, setAddressText] = useState("");
   const [timezone, setTimezone] = useState("");
   const [currency, setCurrency] = useState("");
-  const mutation = useSensitiveMutation();
+  const mutation = useSensitiveMutation(
+    `location-create:${props.organizationId}:${operationId}`,
+  );
 
   async function submit(event: FormEvent) {
     event.preventDefault();

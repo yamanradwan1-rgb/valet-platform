@@ -65,7 +65,12 @@ function MapsContent() {
     loadLive,
     liveEnabled,
   );
-  const setup = useMapSetupState(dashboard.api, locationId, locationManager);
+  const setup = useMapSetupState(
+    dashboard.api,
+    locationId,
+    locationManager,
+    scopeKey,
+  );
   const liveError = live.error ? liveErrorMessage(live.error, t.liveMapDenied) : null;
   const liveItems = live.data?.items ?? [];
   const levels = returnedLevels(liveItems, setup.points, setup.areas);
@@ -196,6 +201,7 @@ function MapsContent() {
               locationId={locationId}
               points={setup.points}
               reload={setup.reload}
+              scopeKey={scopeKey}
             />
             <LiveMapPanel
               canNext={Boolean(live.data?.nextCursor)}

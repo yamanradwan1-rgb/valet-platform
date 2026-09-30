@@ -1,4 +1,5 @@
 import type { SelectedDashboardScope } from "../../components/scope";
+import { selectedScopeAuthorityKey } from "../../components/foundation/selected-scope-revalidation-policy";
 
 export interface AdministrationScope {
   readonly authority: "COMPANY_ADMIN" | "COMPANY_ADMIN_SUBSCRIPTION" | "LOCATION_MANAGER" | "SUPERVISOR";
@@ -40,10 +41,16 @@ export function administrationScope(selected: SelectedDashboardScope): Administr
 
 export function administrationScopeKey(input: {
   readonly identityGeneration: number;
+  readonly selectionRevision: number;
   readonly sessionGeneration: number;
   readonly selectedScope: SelectedDashboardScope;
 }): string {
-  const scope = administrationScope(input.selectedScope);
-  return [input.identityGeneration, input.sessionGeneration, scope.authority,
-    scope.organizationId, scope.locationId ?? "organization"].join(":");
+  administrationScope(input.selectedScope);
+  return [
+    input.identityGeneration,
+    input.sessionGeneration,
+    input.selectionRevision,
+    "administration",
+    selectedScopeAuthorityKey(input.selectedScope),
+  ].join(":");
 }

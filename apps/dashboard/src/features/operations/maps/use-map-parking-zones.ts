@@ -11,6 +11,7 @@ export function useMapParkingZones(
   api: DashboardApiClient,
   locationId: string,
   enabled: boolean,
+  scopeKey: string,
 ) {
   const page = useCursorPage();
   const load = useCallback(
@@ -19,7 +20,7 @@ export function useMapParkingZones(
     [api, locationId, page.cursor],
   );
   const read = useOperationsRead(
-    `${locationId}:map-setup:parking-zones:${page.cursor ?? "first"}`,
+    `${scopeKey}:map-setup:parking-zones:${page.cursor ?? "first"}`,
     load,
     enabled,
   );

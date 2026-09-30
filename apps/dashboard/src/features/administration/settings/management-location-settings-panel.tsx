@@ -33,7 +33,10 @@ export function ManagementLocationSettingsPanel(props: {
   readonly locale: DashboardLocale;
   readonly onReload: () => void;
 }) {
-  const mutation = useSensitiveMutation(props.onReload);
+  const mutation = useSensitiveMutation(
+    `management-location-settings:${props.data.locationId}:${props.data.updatedAt}`,
+    props.onReload,
+  );
   const copy = settingsTableCopy(props.locale);
   const projections = props.data.settings as unknown as Readonly<
     Record<string, Projection | unknown>
