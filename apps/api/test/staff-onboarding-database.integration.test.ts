@@ -110,6 +110,20 @@ describe("T05-C PostgreSQL constraints and runtime command boundary", () => {
     });
     await runtime.connect();
     try {
+      for (const sql of [
+        "UPDATE users SET password_hash='forbidden' WHERE FALSE",
+        "UPDATE users SET status='ACTIVE' WHERE FALSE",
+        "UPDATE organization_memberships SET status='ACTIVE' WHERE FALSE",
+      ])
+        await expect(runtime.query(sql)).rejects.toMatchObject({
+          code: "42501",
+        });
+      await expect(
+        runtime.query("SELECT staff_onboarding_activate('unknown',NULL,NULL)"),
+      ).rejects.toMatchObject({
+        code: "P0001",
+        message: "STAFF_ACTIVATION_FAILED",
+      });
       for (const table of [
         "users",
         "organization_memberships",
@@ -140,7 +154,7 @@ describe("T05-C PostgreSQL constraints and runtime command boundary", () => {
       }>(
         `SELECT bool_and(NOT EXISTS(SELECT 1 FROM aclexplode(COALESCE(proacl,acldefault('f',proowner))) acl WHERE grantee=0 AND privilege_type='EXECUTE')) AS public_safe,
           bool_and(proconfig=ARRAY['search_path=pg_catalog, public']::text[]) AS path_safe,
-          bool_and(prosecdef) FILTER(WHERE proname IN ('staff_onboarding_create','staff_onboarding_resend')) AS security_safe
+          bool_and(prosecdef) FILTER(WHERE proname IN ('staff_onboarding_create','staff_onboarding_resend','staff_onboarding_activate')) AS security_safe
          FROM pg_proc WHERE proname LIKE 'staff_onboarding_%'`,
       );
       expect(privileges.rows[0]).toEqual({
@@ -149,6 +163,12 @@ describe("T05-C PostgreSQL constraints and runtime command boundary", () => {
         security_safe: true,
       });
       const actor = await fixture.actor();
+      await expect(
+        runtime.query(
+          "INSERT INTO audit_events(id,organization_id,actor_membership_id,event_type,entity_type,entity_id,metadata_json,occurred_at) VALUES($1,$2,$3,'STAFF_ONBOARDING_ACTIVATED','OrganizationMembership',$3,'{}',clock_timestamp())",
+          [randomUUID(), actor.organizationId, actor.membershipId],
+        ),
+      ).rejects.toMatchObject({ code: "42501" });
       await expect(
         runtime.query(
           "INSERT INTO audit_events(id,organization_id,actor_membership_id,event_type,entity_type,entity_id,metadata_json,occurred_at) VALUES($1,$2,$3,'STAFF_ONBOARDING_INVITATION_ISSUED','OrganizationMembership',$3,'{}',clock_timestamp())",

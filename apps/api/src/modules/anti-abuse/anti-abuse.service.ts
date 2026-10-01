@@ -54,7 +54,9 @@ export class AntiAbuseUnavailableError extends Error {
 export class AntiAbuseRateLimitError extends Error {
   constructor(
     readonly code:
-      "GUEST_ACCESS_RATE_LIMITED" | "STAFF_AUTHENTICATION_RATE_LIMITED",
+      | "GUEST_ACCESS_RATE_LIMITED"
+      | "STAFF_AUTHENTICATION_RATE_LIMITED"
+      | "STAFF_ACTIVATION_RATE_LIMITED",
     readonly retryAfter: number,
   ) {
     super("Too many requests. Try again later.");

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 import { StaffAuthProvider } from "../lib/auth/staff-auth-context";
 import { DashboardLocaleProvider } from "../lib/i18n/locale-provider";
@@ -10,6 +11,14 @@ import { SelectedScopeProvider } from "../components/foundation/selected-scope-p
 import { AccountSecurityAccessProvider } from "../components/security/account-security-access-provider";
 
 export function AppProviders({ children }: { readonly children: ReactNode }) {
+  const publicActivation = usePathname() === "/staff/activate";
+  if (publicActivation) {
+    return (
+      <DashboardLocaleProvider>
+        <DashboardThemeProvider>{children}</DashboardThemeProvider>
+      </DashboardLocaleProvider>
+    );
+  }
   return (
     <DashboardLocaleProvider>
       <DashboardThemeProvider>

@@ -287,6 +287,11 @@
     text-align: start;
   }
 
+  .onboardingAction {
+    /* Use the existing note row and its following gap without moving the table. */
+    block-size: 1rem;
+  }
+
   .table {
     min-width: 48rem;
   }

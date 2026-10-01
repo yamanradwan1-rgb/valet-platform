@@ -48,7 +48,13 @@ export class StaffLocationAccessService {
       const authority = await authorizeStaffManagement(transaction, context, {
         organizationId,
       });
-      await authorizeStaffTarget(transaction, authority, membershipId);
+      await authorizeStaffTarget(
+        transaction,
+        authority,
+        membershipId,
+        false,
+        true,
+      );
       const cursor = decodeStaffLocationAccessCursor(
         organizationId,
         membershipId,

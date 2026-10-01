@@ -5,6 +5,11 @@ export const staffAuthOperationRoutes: ReadonlyArray<{
 }> = [
   {
     method: "POST",
+    operation: "STAFF_AUTH_ACTIVATE",
+    path: /^\/v1\/staff\/auth\/activate$/,
+  },
+  {
+    method: "POST",
     operation: "STAFF_AUTH_LOGIN",
     path: /^\/v1\/staff\/auth\/login$/,
   },

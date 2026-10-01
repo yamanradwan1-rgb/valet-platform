@@ -21,6 +21,7 @@ import {
   encodeStaffDirectoryCursor,
   staffDirectoryFilterFingerprint,
 } from "./staff-management-cursor";
+import { pendingInvitationFacts } from "./staff-pending-invitation-query";
 import { staffDirectorySql } from "./staff-directory-query";
 import {
   loadStaffMembership,
@@ -110,17 +111,34 @@ export class StaffDirectoryService {
       const authority = await authorizeStaffManagement(transaction, context, {
         organizationId,
       });
-      await authorizeStaffTarget(transaction, authority, membershipId);
+      await authorizeStaffTarget(
+        transaction,
+        authority,
+        membershipId,
+        false,
+        true,
+      );
       const membership = await loadStaffMembership(
         transaction,
         organizationId,
         membershipId,
+        false,
+        true,
       );
       const detail = await staffMembershipDetail(transaction, membership);
       if (authority.kind === "COMPANY_ADMIN") {
         await recordAdminActivityInTransaction(transaction, context);
       }
-      return detail;
+      return membership.status === "PENDING"
+        ? {
+            ...detail,
+            pendingInvitation: await pendingInvitationFacts(
+              transaction,
+              organizationId,
+              membershipId,
+            ),
+          }
+        : detail;
     });
   }
 }

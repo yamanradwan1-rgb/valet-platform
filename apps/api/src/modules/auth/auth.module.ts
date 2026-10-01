@@ -4,6 +4,8 @@ import { RuntimeDatabaseModule } from "../../common/database/runtime-database.mo
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
+import { StaffActivationController } from "./staff-activation.controller";
+import { StaffActivationService } from "./staff-activation.service";
 import { NativeStaffAuthController } from "./native-staff-auth.controller";
 import { StaffAuthController } from "./staff-auth.controller";
 import { StaffLoginService } from "./staff-login.service";
@@ -28,11 +30,17 @@ import {
 } from "./staff-session-context";
 
 @Module({
-  controllers: [StaffAuthController, NativeStaffAuthController, StaffMfaController],
+  controllers: [
+    StaffActivationController,
+    StaffAuthController,
+    NativeStaffAuthController,
+    StaffMfaController,
+  ],
   imports: [AntiAbuseModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
     StaffAuthService,
     StaffLoginService,
+    StaffActivationService,
     StaffAuthOriginPolicy,
     MfaAntiAbuse,
     MfaAssurancePolicy,
@@ -66,6 +74,11 @@ export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestIdMiddleware)
-      .forRoutes(StaffAuthController, NativeStaffAuthController, StaffMfaController);
+      .forRoutes(
+        StaffActivationController,
+        StaffAuthController,
+        NativeStaffAuthController,
+        StaffMfaController,
+      );
   }
 }

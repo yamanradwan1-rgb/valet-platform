@@ -1,9 +1,5 @@
-import { randomBytes } from "node:crypto";
-
 import { staffLoginRequestSchema } from "@valet/contracts";
-import argon2 from "argon2";
-
-import { isAcceptedStaffPasswordHash } from "../../src/modules/auth/staff-auth.service";
+import { hashStaffPassword } from "../../src/modules/auth/staff-password-hashing";
 import { fail } from "./types";
 
 export function passwordFromStdin(value: string, interactive: boolean): string {
@@ -48,17 +44,5 @@ export function normalizeProvisioningIdentity(
 export async function hashProvisioningPassword(
   password: string,
 ): Promise<string> {
-  const passwordHash = await argon2.hash(password, {
-    hashLength: 32,
-    memoryCost: 65_536,
-    parallelism: 4,
-    salt: randomBytes(16),
-    timeCost: 3,
-    type: argon2.argon2id,
-    version: 19,
-  });
-  if (!isAcceptedStaffPasswordHash(passwordHash)) {
-    fail("Password hashing failed.");
-  }
-  return passwordHash;
+  return hashStaffPassword(password);
 }

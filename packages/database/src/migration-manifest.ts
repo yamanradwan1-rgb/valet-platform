@@ -51,4 +51,5 @@ export const expectedMigrationDirectories = [
   "20261001005000_mgt_240b_lm_staff_authority",
   "20261001005100_mgt_240c_staff_onboarding_invites",
   "20261001005200_mgt_240c_invitation_anti_abuse_scope",
+  "20261001005300_mgt_240d_staff_activation",
 ] as const;

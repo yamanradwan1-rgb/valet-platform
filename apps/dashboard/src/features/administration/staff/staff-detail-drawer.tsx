@@ -17,6 +17,7 @@ import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { setStaffRole, setStaffStatus } from "./staff-api";
 import { staffRoleLabel, staffStatusLabel } from "./staff-labels";
 import { StaffLocationAccessPanel } from "./staff-location-access-panel";
+import { StaffPendingInvitePanel } from "./staff-pending-invite-panel";
 
 const roles: readonly StaffManagementRole[] = [
   "ORG_ADMIN",
@@ -75,7 +76,7 @@ export function StaffDetailDrawer(props: {
           <div>
             <div className={styles.muted}>{t.status}</div>
             <StatusBadge good={props.detail.status === "ACTIVE"}>
-              {staffStatusLabel(props.detail.status, t)}
+              {staffStatusLabel(props.detail.status, t, locale)}
             </StatusBadge>
           </div>
           <div>
@@ -83,104 +84,119 @@ export function StaffDetailDrawer(props: {
             <bdi dir="ltr">{props.detail.version}</bdi>
           </div>
         </div>
-        <div className={styles.field}>
-          <label htmlFor="staff-role">{t.role}</label>
-          <div className={styles.actions}>
-            <select
-              className={styles.select}
-              id="staff-role"
-              onChange={(event) =>
-                setRole(event.target.value as StaffManagementRole)
-              }
-              value={role}
-            >
-              {(props.authority === "LOCATION_MANAGER"
-                ? locationManagerRoles
-                : roles
-              ).map((item) => (
-                <option key={item} value={item}>
-                  {staffRoleLabel(item, t)}
-                </option>
-              ))}
-            </select>
-            <button
-              className={styles.primary}
-              disabled={
-                mutation.busy || props.reconciling || role === props.detail.role
-              }
-              onClick={() =>
-                void mutation.run(
-                  () =>
-                    setStaffRole(
-                      props.api,
-                      props.organizationId,
-                      props.detail.membershipId,
-                      role,
-                      props.detail.version,
-                    ),
-                  props.onChanged,
-                )
-              }
-              type="button"
-            >
-              {t.save}
-            </button>
-          </div>
-        </div>
-        <div className={styles.actions}>
-          {props.detail.status === "ACTIVE" ? (
-            <button
-              className={styles.danger}
-              disabled={mutation.busy || props.reconciling}
-              onClick={() =>
-                void mutation.run(
-                  () =>
-                    setStaffStatus(
-                      props.api,
-                      props.organizationId,
-                      props.detail.membershipId,
-                      "INACTIVE",
-                      props.detail.version,
-                    ),
-                  props.onChanged,
-                )
-              }
-              type="button"
-            >
-              {t.deactivateStaff}
-            </button>
-          ) : (
-            <button
-              className={styles.primary}
-              disabled={mutation.busy || props.reconciling}
-              onClick={() =>
-                void mutation.run(
-                  () =>
-                    setStaffStatus(
-                      props.api,
-                      props.organizationId,
-                      props.detail.membershipId,
-                      "ACTIVE",
-                      props.detail.version,
-                    ),
-                  props.onChanged,
-                )
-              }
-              type="button"
-            >
-              {t.activateStaff}
-            </button>
-          )}
-        </div>
-        <StaffLocationAccessPanel
-          api={props.api}
-          authority={props.authority}
-          detail={props.detail}
-          onChanged={props.onChanged}
-          onConflict={props.onConflict}
-          organizationId={props.organizationId}
-          reconciling={props.reconciling}
-        />
+        {props.detail.status === "PENDING" ? (
+          <StaffPendingInvitePanel
+            api={props.api}
+            detail={props.detail}
+            organizationId={props.organizationId}
+            reconciling={props.reconciling}
+            onChanged={props.onChanged}
+            onConflict={props.onConflict}
+          />
+        ) : (
+          <>
+            <div className={styles.field}>
+              <label htmlFor="staff-role">{t.role}</label>
+              <div className={styles.actions}>
+                <select
+                  className={styles.select}
+                  id="staff-role"
+                  onChange={(event) =>
+                    setRole(event.target.value as StaffManagementRole)
+                  }
+                  value={role}
+                >
+                  {(props.authority === "LOCATION_MANAGER"
+                    ? locationManagerRoles
+                    : roles
+                  ).map((item) => (
+                    <option key={item} value={item}>
+                      {staffRoleLabel(item, t)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  className={styles.primary}
+                  disabled={
+                    mutation.busy ||
+                    props.reconciling ||
+                    role === props.detail.role
+                  }
+                  onClick={() =>
+                    void mutation.run(
+                      () =>
+                        setStaffRole(
+                          props.api,
+                          props.organizationId,
+                          props.detail.membershipId,
+                          role,
+                          props.detail.version,
+                        ),
+                      props.onChanged,
+                    )
+                  }
+                  type="button"
+                >
+                  {t.save}
+                </button>
+              </div>
+            </div>
+            <div className={styles.actions}>
+              {props.detail.status === "ACTIVE" ? (
+                <button
+                  className={styles.danger}
+                  disabled={mutation.busy || props.reconciling}
+                  onClick={() =>
+                    void mutation.run(
+                      () =>
+                        setStaffStatus(
+                          props.api,
+                          props.organizationId,
+                          props.detail.membershipId,
+                          "INACTIVE",
+                          props.detail.version,
+                        ),
+                      props.onChanged,
+                    )
+                  }
+                  type="button"
+                >
+                  {t.deactivateStaff}
+                </button>
+              ) : (
+                <button
+                  className={styles.primary}
+                  disabled={mutation.busy || props.reconciling}
+                  onClick={() =>
+                    void mutation.run(
+                      () =>
+                        setStaffStatus(
+                          props.api,
+                          props.organizationId,
+                          props.detail.membershipId,
+                          "ACTIVE",
+                          props.detail.version,
+                        ),
+                      props.onChanged,
+                    )
+                  }
+                  type="button"
+                >
+                  {t.activateStaff}
+                </button>
+              )}
+            </div>
+            <StaffLocationAccessPanel
+              api={props.api}
+              authority={props.authority}
+              detail={props.detail}
+              onChanged={props.onChanged}
+              onConflict={props.onConflict}
+              organizationId={props.organizationId}
+              reconciling={props.reconciling}
+            />
+          </>
+        )}
         {mutation.error ? (
           <div className={styles.error} role="alert">
             {mutation.error}

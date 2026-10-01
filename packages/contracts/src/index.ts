@@ -60,3 +60,4 @@ export * from "./management-audit.js";
 export * from "./management-visit-contacts.js";
 
 export * from "./staff-onboarding.js";
+export * from "./staff-activation.js";

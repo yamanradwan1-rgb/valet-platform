@@ -97,6 +97,8 @@ const statusByCode: Readonly<Record<string, number>> = {
   RESOURCE_CODE_CONFLICT: HttpStatus.CONFLICT,
   RETRIEVAL_REQUEST_NOT_READY: HttpStatus.CONFLICT,
   REQUEST_INVALID: HttpStatus.BAD_REQUEST,
+  STAFF_ACTIVATION_FAILED: HttpStatus.UNAUTHORIZED,
+  STAFF_ACTIVATION_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
   STAFF_AUTHENTICATION_FAILED: HttpStatus.UNAUTHORIZED,
   TASK_ASSIGNEE_NOT_ELIGIBLE: HttpStatus.CONFLICT,
   TASK_ASSIGNMENT_CONFLICT: HttpStatus.CONFLICT,
@@ -152,6 +154,8 @@ const safeMessages: Readonly<Record<string, string>> = {
   PARKING_ZONE_INVALID: "The selected Parking Zone is not available.",
   RESOURCE_CODE_CONFLICT:
     "A resource with this code already exists in this Location.",
+  STAFF_ACTIVATION_FAILED: "Staff activation failed.",
+  STAFF_ACTIVATION_RATE_LIMITED: "Too many requests. Try again later.",
   STAFF_AUTHENTICATION_FAILED: "Staff authentication failed.",
   STAFF_AUTHENTICATION_RATE_LIMITED: "Too many requests. Try again later.",
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: "The request origin is not allowed.",

@@ -3,6 +3,8 @@ import { createHmac } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 
 export type AntiAbuseScope =
+  | "v1:staff-activation-credential"
+  | "v1:staff-activation-client-address"
   | "v1:staff-login-identifier"
   | "v1:staff-client-address"
   | "v1:guest-client-address"

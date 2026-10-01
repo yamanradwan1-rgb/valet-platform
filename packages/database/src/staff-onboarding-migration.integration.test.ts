@@ -9,7 +9,7 @@ import { expectedMigrationDirectories } from "./migration-manifest.js";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = join(root, "node_modules/prisma/build/index.js");
 const migration = "20261001005100_mgt_240c_staff_onboarding_invites";
-const latestMigration = "20261001005200_mgt_240c_invitation_anti_abuse_scope";
+const latestMigration = "20261001005300_mgt_240d_staff_activation";
 const previousAbuseEventId = randomUUID();
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -157,7 +157,7 @@ afterAll(async () => {
   if (scratch && resolve(scratch).startsWith(resolve(root, "tmp") + sep))
     rmSync(scratch, { recursive: true, force: true });
 }, 60_000);
-describe("T05-C actual Prisma 050 to 052 and fresh deployment", () => {
+describe("T05-C actual Prisma 050 foundation to current and fresh deployment", () => {
   it("preserves User credentials/state, T05-A membership names/state and grants without backfill", async () => {
     expect((await upgrade.query(snapshotSql)).rows).toEqual(snapshot);
     expect(
@@ -172,7 +172,7 @@ describe("T05-C actual Prisma 050 to 052 and fresh deployment", () => {
       ).rows,
     ).toEqual(commandDefinitions);
   });
-  it("records exactly 52 versioned migrations in both paths, PENDING enums and nullable password", async () => {
+  it("records exactly 53 versioned migrations in both paths, PENDING enums and nullable password", async () => {
     for (const connection of [upgrade, fresh]) {
       expect(
         (
@@ -180,7 +180,7 @@ describe("T05-C actual Prisma 050 to 052 and fresh deployment", () => {
             "SELECT count(*)::int AS n,max(migration_name) AS latest FROM _prisma_migrations WHERE finished_at IS NOT NULL",
           )
         ).rows[0],
-      ).toEqual({ n: 52, latest: latestMigration });
+      ).toEqual({ n: 53, latest: latestMigration });
       expect(
         (
           await connection.query(

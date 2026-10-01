@@ -19,12 +19,14 @@ export function useStaffDirectoryQuery() {
     history: (string | null)[];
     generation: number;
     membershipId: string | null;
+    detailGeneration: number;
   }>({
     filters: {},
     cursor: null,
     history: [],
     generation: 0,
     membershipId: null,
+    detailGeneration: 0,
   });
 
   const effectiveSearch = search.trim() || undefined;
@@ -65,7 +67,11 @@ export function useStaffDirectoryQuery() {
       }
     },
     select: (membershipId: string | null) =>
-      setState((current) => ({ ...current, membershipId })),
+      setState((current) => ({
+        ...current,
+        membershipId,
+        detailGeneration: current.detailGeneration + 1,
+      })),
     next: (cursor: string) =>
       setState((current) => ({
         ...current,

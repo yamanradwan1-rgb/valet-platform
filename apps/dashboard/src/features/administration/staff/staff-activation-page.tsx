@@ -1,0 +1,190 @@
+"use client";
+
+import { staffInvitationTokenSchema } from "@valet/contracts";
+import Link from "next/link";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
+import { Button } from "../../../components/presentation/button";
+import { Panel } from "../../../components/presentation/panel";
+import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { useDashboardTheme } from "../../../lib/theme/theme-provider";
+import {
+  activateStaffAccount,
+  StaffActivationPageError,
+} from "./staff-activation-api";
+import { staffOnboardingCopy } from "./staff-onboarding-copy";
+
+export function StaffActivationPage() {
+  const { locale, setLocale } = useDashboardLocale();
+  const { theme, setTheme } = useDashboardTheme();
+  const t = staffOnboardingCopy(locale);
+  const captured = useRef(false);
+  const token = useRef<string | null>(null);
+  const submitting = useRef(false);
+  const active = useRef(true);
+  const request = useRef<AbortController | null>(null);
+  const generation = useRef(0);
+  const [available, setAvailable] = useState(false);
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [complete, setComplete] = useState(false);
+  const [error, setError] = useState<"FAILED" | "LIMITED" | null>(null);
+  const [retryUntil, setRetryUntil] = useState(0);
+
+  useLayoutEffect(() => {
+    function capture() {
+      request.current?.abort();
+      generation.current++;
+      submitting.current = false;
+      setBusy(false);
+      token.current = null;
+      setAvailable(false);
+      setComplete(false);
+      setPassword("");
+      setError(null);
+      setRetryUntil(0);
+      const entries = [
+        ...new URLSearchParams(window.location.hash.slice(1)).entries(),
+      ];
+      // Always remove the fragment, including malformed/duplicate credentials.
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname,
+      );
+      if (entries.length !== 1 || entries[0]?.[0] !== "invite") return;
+      const parsed = staffInvitationTokenSchema.safeParse(entries[0][1]);
+      if (parsed.success) {
+        token.current = parsed.data;
+        setAvailable(true);
+      }
+    }
+    if (!captured.current) {
+      captured.current = true;
+      capture();
+    }
+    window.addEventListener("hashchange", capture);
+    return () => window.removeEventListener("hashchange", capture);
+  }, []);
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+      request.current?.abort();
+    };
+  }, []);
+  useEffect(() => {
+    if (!retryUntil) return;
+    const timer = setTimeout(
+      () => setRetryUntil(0),
+      Math.max(0, retryUntil - Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [retryUntil]);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (submitting.current || !token.current || retryUntil > Date.now()) return;
+    submitting.current = true;
+    setBusy(true);
+    setError(null);
+    request.current = new AbortController();
+    const submittedGeneration = generation.current;
+    const current = () =>
+      active.current && generation.current === submittedGeneration;
+    try {
+      await activateStaffAccount(
+        token.current,
+        password,
+        request.current.signal,
+      );
+      if (!current()) return;
+      token.current = null;
+      setPassword("");
+      setComplete(true);
+    } catch (reason) {
+      if (!current()) return;
+      if (
+        reason instanceof StaffActivationPageError &&
+        reason.retryAfter !== null
+      ) {
+        setRetryUntil(Date.now() + reason.retryAfter * 1000);
+        setError("LIMITED");
+      } else setError("FAILED");
+    } finally {
+      if (current()) {
+        submitting.current = false;
+        setBusy(false);
+      }
+    }
+  }
+  return (
+    <div className="auth-screen" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="auth-card-wrap">
+        <Panel className="auth-card">
+          <div className="stack">
+            <div className="actions">
+              <Button
+                variant="secondary"
+                onClick={() => setLocale(locale === "en" ? "ar" : "en")}
+              >
+                EN / العربية
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              >
+                {theme === "light" ? "Dark / داكن" : "Light / فاتح"}
+              </Button>
+            </div>
+            <p className="eyebrow">VAYLET</p>
+            <h1>{complete ? t.complete : t.activate}</h1>
+            {complete ? (
+              <Link href="/">{t.signIn}</Link>
+            ) : available ? (
+              <form className="stack" onSubmit={(event) => void submit(event)}>
+                <p className="muted" id="activation-guidance">
+                  {t.guidance}
+                </p>
+                <p className="muted">{t.passwordPolicy}</p>
+                <div className="field">
+                  <label htmlFor="activation-password">{t.password}</label>
+                  <input
+                    id="activation-password"
+                    aria-describedby="activation-guidance activation-feedback"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+                </div>
+                <p
+                  id="activation-feedback"
+                  className="error-text"
+                  role="status"
+                >
+                  {error === "LIMITED"
+                    ? t.rateLimited
+                    : error === "FAILED"
+                      ? t.failed
+                      : ""}
+                </p>
+                <Button type="submit" disabled={busy || retryUntil > 0}>
+                  {busy ? t.loading : t.activate}
+                </Button>
+              </form>
+            ) : (
+              <p className="muted">{t.missing}</p>
+            )}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}

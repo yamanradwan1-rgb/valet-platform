@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { staffPendingInvitationSchema } from "./staff-activation.js";
 
 const uuidSchema = z.string().uuid();
 const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,512}$/);
@@ -11,6 +12,11 @@ export const staffManagementRoleSchema = z.enum([
 ]);
 
 export const staffManagementStatusSchema = z.enum(["ACTIVE", "INACTIVE"]);
+export const staffReadableStatusSchema = z.enum([
+  "PENDING",
+  "ACTIVE",
+  "INACTIVE",
+]);
 
 export const STAFF_NAME_MAX_LENGTH = 100;
 export const STAFF_SEARCH_MAX_LENGTH = 200;
@@ -36,7 +42,7 @@ export const staffDirectoryQuerySchema = z
       .transform((value) => (value === "" ? undefined : value))
       .optional(),
     role: staffManagementRoleSchema.optional(),
-    status: staffManagementStatusSchema.optional(),
+    status: staffReadableStatusSchema.optional(),
     locationId: uuidSchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).default(50),
   })
@@ -110,7 +116,7 @@ export const staffDirectoryItemSchema = z
     locationAccessCount: z.number().int().nonnegative(),
     membershipId: uuidSchema,
     role: staffManagementRoleSchema,
-    status: staffManagementStatusSchema,
+    status: staffReadableStatusSchema,
     version: z.number().int().positive(),
   })
   .strict();
@@ -124,6 +130,7 @@ export const staffDirectoryResponseSchema = z
 
 export const staffMembershipDetailSchema = staffDirectoryItemSchema
   .extend({
+    pendingInvitation: staffPendingInvitationSchema.nullable().optional(),
     locationAccess: z
       .object({
         items: z.array(staffManagementLocationAccessSchema).max(100),

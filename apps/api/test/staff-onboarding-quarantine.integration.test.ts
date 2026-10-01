@@ -14,20 +14,22 @@ beforeAll(() => fixture.start(), 120_000);
 afterEach(() => fixture.resetLimits());
 afterAll(() => fixture.stop(), 60_000);
 describe("T05-C pending quarantine", () => {
-  it("pending is excluded before directory limit and concealed by detail and normal mutations", async () => {
+  it("pending is manager-readable but remains quarantined by all normal mutations", async () => {
     const actor = await fixture.actor();
     const command = fixture.command(actor.locationId);
     const fresh = issued(await fixture.create(actor, command));
     const base = staffPath(actor.organizationId, fresh.membershipId);
     const directory = await fixture.managementGet(
-      `${staffPath(actor.organizationId)}?limit=1`,
+      `${staffPath(actor.organizationId)}?status=PENDING&limit=1`,
       actor.auth.accessToken,
     );
     expect(directory.status).toBe(200);
     expect(JSON.stringify(directory.body).includes(fresh.membershipId)).toBe(
-      false,
+      true,
     );
-    hidden(await fixture.managementGet(base, actor.auth.accessToken));
+    expect(
+      (await fixture.managementGet(base, actor.auth.accessToken)).status,
+    ).toBe(200);
     for (const [suffix, body] of [
       ["/activate", { expectedVersion: 1 }],
       ["/deactivate", { expectedVersion: 1 }],

@@ -1151,3 +1151,19 @@ Known baseline failures, reproduced without production changes:
 The ordinary build command also requires production `API_ORIGIN`; without that
 required configuration it fails closed as designed. No validation failure was
 worked around by changing product code in this documentation task.
+
+## Approved T05-D activation and pending management reads
+
+The owner Task 05-D contract is recorded in
+`docs/validation/ISSUE_240D_STAFF_ACTIVATION_UI.md` (Accepted implementation map).
+Public POST /v1/staff/auth/activate accepts only inviteToken/password. PENDING
+accounts choose a password under current provisioning policy; ACTIVE accounts
+prove their current password without hash/status/session changes; DISABLED is
+denied. Activation consumes the current generation with member/account activation
+and dedicated safe audit atomically, without issuing a Staff session. Narrow
+migration 053 and runtime EXECUTE protect these writes. HMAC failure reservations
+bound public attempts (credential 5, trusted address 30 per rolling 15 minutes).
+Pending manager reads retain full LM coverage while ordinary mutations remain
+quarantined. Create/resend use explicit MFA retry and ephemeral copy-link results.
+The standalone EN/AR activation form immediately removes its fragment and keeps
+secrets only in memory. T05-E/F/G and email/SMS delivery are outside this slice.

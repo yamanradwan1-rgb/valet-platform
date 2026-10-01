@@ -6,7 +6,7 @@ import {
   type StaffManagementRole,
 } from "@valet/contracts";
 import { MoreHorizontal, Search } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { administrationCopy } from "../administration-copy";
@@ -24,6 +24,9 @@ import { StaffDirectoryLocationFilter } from "./staff-directory-location-filter"
 import { staffRoleLabel, staffStatusLabel } from "./staff-labels";
 import referenceStyles from "./staff-reference.module.css";
 import { useStaffDirectoryQuery } from "./use-staff-directory-query";
+import { StaffCreateDialog } from "./staff-create-dialog";
+import { staffOnboardingCopy } from "./staff-onboarding-copy";
+import { styles } from "../administration-ui";
 
 const roles: readonly StaffManagementRole[] = [
   "ORG_ADMIN",
@@ -44,6 +47,7 @@ export function StaffEmployeesBody() {
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
   const query = useStaffDirectoryQuery();
+  const [createOpen, setCreateOpen] = useState(false);
   const filtersKey = JSON.stringify(query.filters);
   const loadDirectory = useCallback(
     (signal: AbortSignal) =>
@@ -71,7 +75,7 @@ export function StaffEmployeesBody() {
     [dashboard.api, scope.organizationId, query.membershipId],
   );
   const detail = useAuthoritativeRead(
-    `${scopeKey}:staff-detail:${query.membershipId ?? "none"}:${query.generation}`,
+    `${scopeKey}:staff-detail:${query.membershipId ?? "none"}:${query.generation}:${query.detailGeneration}`,
     loadDetail,
     query.membershipId !== null,
   );
@@ -120,12 +124,16 @@ export function StaffEmployeesBody() {
                   status:
                     event.target.value === "ALL"
                       ? undefined
-                      : (event.target.value as "ACTIVE" | "INACTIVE"),
+                      : (event.target.value as
+                          "PENDING" | "ACTIVE" | "INACTIVE"),
                 })
               }
               value={query.filters.status ?? "ALL"}
             >
               <option value="ALL">{t.allMembershipStatuses}</option>
+              <option value="PENDING">
+                {staffOnboardingCopy(locale).pending}
+              </option>
               <option value="ACTIVE">{t.active}</option>
               <option value="INACTIVE">{t.inactive}</option>
             </select>
@@ -136,9 +144,15 @@ export function StaffEmployeesBody() {
               onChange={(locationId) => query.changeFilters({ locationId })}
             />
           </div>
-          <span aria-hidden="true" className={referenceStyles.scopeNote}>
-            &nbsp;
-          </span>
+          <div className={referenceStyles.onboardingAction}>
+            <button
+              className={styles.primary}
+              onClick={() => setCreateOpen(true)}
+              type="button"
+            >
+              {staffOnboardingCopy(locale).create}
+            </button>
+          </div>
         </div>
         <ReadState
           error={
@@ -191,7 +205,7 @@ export function StaffEmployeesBody() {
                           <td>{staffRoleLabel(item.role, t)}</td>
                           <td>
                             <StatusBadge good={item.status === "ACTIVE"}>
-                              {staffStatusLabel(item.status, t)}
+                              {staffStatusLabel(item.status, t, locale)}
                             </StatusBadge>
                           </td>
                           <td>{item.locationAccessCount}</td>
@@ -229,6 +243,7 @@ export function StaffEmployeesBody() {
       </div>
       {query.membershipId && detail.data ? (
         <StaffDetailDrawer
+          key={`${scopeKey}:${query.membershipId}:${query.detailGeneration}`}
           api={dashboard.api}
           authority={locationManager ? "LOCATION_MANAGER" : "COMPANY_ADMIN"}
           detail={detail.data}
@@ -245,6 +260,12 @@ export function StaffEmployeesBody() {
           }}
           organizationId={scope.organizationId}
           selectedLocationId={scope.locationId}
+        />
+      ) : null}
+      {createOpen ? (
+        <StaffCreateDialog
+          onClose={() => setCreateOpen(false)}
+          onCreated={directory.refresh}
         />
       ) : null}
     </>

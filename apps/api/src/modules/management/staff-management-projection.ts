@@ -9,7 +9,7 @@ import { ManagementAccessDeniedError } from "./management-authorization";
 export interface StaffMembershipRow extends StaffDirectoryItem {
   readonly createdAt: Date;
   readonly userId: string;
-  readonly userStatus: "ACTIVE" | "DISABLED";
+  readonly userStatus: "PENDING" | "ACTIVE" | "DISABLED";
 }
 
 export async function loadStaffMembership(
@@ -17,6 +17,7 @@ export async function loadStaffMembership(
   organizationId: string,
   membershipId: string,
   lock = false,
+  includePending = false,
 ): Promise<StaffMembershipRow> {
   const result = await transaction.query<StaffMembershipRow>(
     `SELECT membership.id::text AS "membershipId",
@@ -32,7 +33,7 @@ export async function loadStaffMembership(
      FROM organization_memberships AS membership
      INNER JOIN users AS staff_user ON staff_user.id = membership.user_id
      WHERE membership.id = $1 AND membership.organization_id = $2
-       AND membership.status IN ('ACTIVE', 'INACTIVE')
+       AND membership.status IN (${includePending ? "'PENDING', " : ""}'ACTIVE', 'INACTIVE')
      ${lock ? "FOR UPDATE OF membership" : ""}`,
     [membershipId, organizationId],
   );
