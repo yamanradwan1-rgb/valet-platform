@@ -76,7 +76,10 @@ export function StaffCreateDialog(props: {
           result.membershipId,
           resendOperation.current!,
         ),
-      setResult,
+      (next) => {
+        setResult(next);
+        resendOperation.current = null;
+      },
     );
   }
   return (

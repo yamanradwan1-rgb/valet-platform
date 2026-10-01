@@ -119,11 +119,12 @@ test("401 refresh replaces session and closes Create without replaying its POST"
   expect(posts).toBe(1);
 });
 
-test("Create reconciliation offers explicit Resend without automatic rotation", async ({
+test("Create resend preserves unresolved operation and advances after resolved reconciliation", async ({
   page,
 }) => {
   let creates = 0,
     resends = 0;
+  const operationIds: string[] = [];
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
@@ -132,9 +133,22 @@ test("Create reconciliation offers explicit Resend without automatic rotation", 
         creates++;
         return { status: 201, body: inviteResult(false) };
       }
-      if (path.endsWith("/invitations")) {
+      if (path.endsWith("/invitations") && request.method() === "POST") {
         resends++;
-        return { status: 201, body: inviteResult(true, 2) };
+        operationIds.push(request.postDataJSON().operationId);
+        if (resends === 1)
+          return {
+            status: 500,
+            body: {
+              code: "INTERNAL_ERROR",
+              message: "Request outcome unknown",
+              requestId: "240d-resend-uncertain",
+            },
+          };
+        return {
+          status: 201,
+          body: inviteResult(resends === 3, resends === 3 ? 3 : 2),
+        };
       }
       if (path === STAFF_BASE) return { body: { items: [], nextCursor: null } };
       return undefined;
@@ -154,7 +168,28 @@ test("Create reconciliation offers explicit Resend without automatic rotation", 
   );
   expect(creates).toBe(1);
   expect(resends).toBe(0);
-  await dialog.getByRole("button", { name: "Resend invite" }).click();
-  await expect(dialog.getByText("Invite link generated")).toBeVisible();
+  const resend = dialog.getByRole("button", { name: "Resend invite" });
+  await resend.click();
+  await expect(dialog.getByRole("alert")).toBeVisible();
+  await expect(resend).toBeEnabled();
   expect(resends).toBe(1);
+  expect(operationIds[0]).toMatch(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  );
+  await resend.click();
+  await expect(dialog.getByRole("alert")).toHaveCount(0);
+  await expect(resend).toBeEnabled();
+  await expect(dialog.getByText(/original link is unavailable/)).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Copy link" })).toHaveCount(
+    0,
+  );
+  expect(resends).toBe(2);
+  expect(operationIds[1]).toBe(operationIds[0]);
+  await resend.click();
+  await expect(dialog.getByText("Invite link generated")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Copy link" })).toBeVisible();
+  await expect(resend).toHaveCount(0);
+  expect(operationIds[2]).not.toBe(operationIds[0]);
+  expect(creates).toBe(1);
+  expect(resends).toBe(3);
 });
