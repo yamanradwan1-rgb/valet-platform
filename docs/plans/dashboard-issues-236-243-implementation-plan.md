@@ -25,7 +25,7 @@ Primary binding sources: `AGENTS.md`; `docs/00_SOURCE_OF_TRUTH.md`; product/doma
 
 **Classification:** LOCKED = explicit issue/owner or Accepted decision requirement; DERIVED = implementation choice supported by the current architecture; UNRESOLVED = material missing contract requiring a decision; CONTRADICTED = a proposition disproved by the inspected code. Every proposed file or API below is explicitly future work, not a claim that it exists.
 
-**Overall verdict: DECISION REQUIRED only for the remaining U-01/U-02 portions of #240.** The owner has now approved the invite-delivery direction, Location Manager MFA reuse, Force End operational/cash semantics, and #241 active-Task assignee semantics. Independent work described below can proceed on an owned branch; the accepted decisions below must not be weakened or replaced.
+**Overall verdict: READY TO IMPLEMENT for the planned Dashboard issues.** The owner has now approved U-01 identity/onboarding ownership and invitation-generation semantics, U-02 Location Manager target-scope semantics, invite delivery, Location Manager MFA reuse, Force End operational/cash semantics, and #241 active-Task assignee semantics. These decisions are LOCKED and must not be weakened or reopened by implementation.
 
 ## 2. Current git/worktree state
 
@@ -66,7 +66,7 @@ Re-fetch bodies/comments when execution begins. Later issue instructions can sup
 | #237 | `PhysicalResourcesPanel` is mounted in Locations detail. `/keys` is an operational occupancy view. | Relocate the same configuration component, retain occupancy separately, and remove its old mount. |
 | #238 | Integrations already has a real read-only API and card UI. Backend configuration projection often returns UNKNOWN/UNAVAILABLE. | Reuse it in Settings; do not delete it, imply live provider health, or add configuration. |
 | #240 | Email-only CA directory; page-local filters; single-location UI actions over a backend array contract; active-shift overview only. Existing SQL already protects last usable admin, handover and desired-state retries. | Extend, do not replace or weaken these protections. Staff files are under `features/administration/staff`, not an invented employees folder. |
-| #240 | No invite/password-reset implementation was found in the searched API/database/contracts source. `users.password_hash` is required, and no built-in invite email/SMS delivery is required by the owner. | VAYLET must generate the secure activation link/token only and expose it for explicit copy; the admin distributes it outside VAYLET. Remaining U-01 work is the canonical identity/invite lifecycle contract, not a third-party delivery provider. Existing staff access/refresh credentials are not invite tokens. |
+| #240 | No invite/password-reset implementation was found in the searched API/database/contracts source. `users.password_hash` is required, and no built-in invite email/SMS delivery is required by the owner. | VAYLET generates the secure activation link/token only and exposes it for explicit copy; the admin distributes it outside VAYLET. U-01 now locks membership-owned structured names, one-time hashed activation tokens, rotation on resend, existing-account ownership proof without password reset, and pending membership with no protected authority before activation. Existing staff access/refresh credentials are not invite tokens. |
 | #240 | Force End does not exist. Self-end includes immutable cash reconciliation; MFA enrollment eligibility currently requires Company Admin. | OWNER-APPROVED: Location Manager uses the existing MFA system for permitted sensitive operations; Force End is a distinct administrative closure requiring fresh MFA, explicit confirmation, required reason and dedicated audit, with no fabricated reported cash and an unreconciled/pending reconciliation state. It must not auto-cancel/reassign Tasks or mutate Sessions. |
 | #241 | Sessions project legacy session assignee; dispatch and parking/retrieval commands own assignment on Task and do not synchronize that field. | OWNER-APPROVED: Live Operations `Assigned To` uses the current active operational Task assignee. If there is no active Task assignee, or only terminal Task ownership remains, show `Unassigned`. Keep the legacy session assignee untouched and do not synchronize it. |
 | #242 | Fixed four roles already exist, but a duplicate Users tab fetches the staff directory and permissions are largely descriptive. | Keep the fixed-role surface, ground descriptions in authorization, remove the duplicate only after #240 replaces its purpose. |
@@ -101,7 +101,7 @@ Define a DERIVED UI ticket, using existing values rather than new authority: `(i
 | Staff role/status/grants | `expectedVersion`; authorized already-desired state returns success before stale-version rejection; changed state increments membership version once |
 | Physical create | Stable `operationId` + normalized payload fingerprint; database serialization and original-result replay |
 | Other existing settings/lifecycle commands | Preserve their specific `expectedUpdatedAt`/version semantics; no bulk rewrite in this task |
-| New onboarding/Force End | Onboarding remains partially gated by U-01/U-02; Force End follows the accepted administrative-closure + fresh-MFA decision. Both require reviewed logical-operation identity and fresh authorization on retry, not a generic retry wrapper |
+| New onboarding/Force End | Onboarding follows the locked U-01/U-02 contract; Force End follows the accepted administrative-closure + fresh-MFA decision. Both require reviewed logical-operation identity and fresh authorization on retry, not a generic retry wrapper |
 
 ### Database, authorization and audit ownership
 
@@ -144,7 +144,7 @@ No reusable general dropdown/popover was found by the scoped menu search. Do not
 4. **DERIVED:** Put service status in a CA-only Settings tab. Current Settings is organization/location configuration; current Overview is operational intelligence with its own request/metric contracts. Reusing the status cards in Settings avoids contaminating Overview counts or adding unconditional health reads.
 5. **LOCKED:** No task/session state transition follows merely from moving UI, adding a zone, changing filters or changing staff identity. Force End affects Shift only unless a separately accepted work-handover policy says otherwise.
 6. **DERIVED:** Adopt identity contracts before #241 changes. Built-in invite delivery is explicitly out of scope: VAYLET generates a secure activation link and the admin distributes it externally. Remove Roles' Users tab only when staff-directory parity is demonstrated.
-7. **UNRESOLVED U-02:** #240's LM management requirement expands DEC-081's present CA-only base-role contract. The requirement itself is not reopened; the target/mixed-grant policy and documented amendment need acceptance before implementing the expansion.
+7. **LOCKED U-02:** #240's LM management requirement expands DEC-081's present CA-only base-role contract only for lower-role targets. LM may manage Employee/Supervisor targets only when the target has a non-empty current grant set fully contained in the LM's own active grants. Mixed/outside and zero-grant targets are denied to LM without revealing hidden grant identities/counts; Company Admin behavior remains unchanged.
 
 ## 7. Dependency graph
 
@@ -169,11 +169,11 @@ Dependency arrows are landing constraints, not authorization for parallel agents
 
 ## 8. Recommended execution order
 
-1. Revalidate baseline; capture frozen UI and network baselines; record the accepted owner decisions from this plan and resolve only the remaining U-01/U-02 items in focused docs and the decision log. A missing remaining decision blocks only its dependent behavior.
+1. Revalidate baseline; capture frozen UI and network baselines; record the accepted owner decisions from this plan, including the now-locked U-01/U-02 contract, in focused implementation docs/decision records where required.
 2. Extend protected context with selection revision and fence existing page reads/mutations; add race tests before changing switching UX.
 3. Land #243 with the existing Organization control unchanged. It supplies the exact scope used by all following UI work.
 4. Land #237 relocation with unchanged resource internals and preserved occupancy. Then land #236 zone command/dialog within that final home. Backend zone work may be prepared earlier, but no temporary Locations create flow ships.
-5. Land the approved #240 identity schema/contracts, then directory/filter/grants/history. Secure onboarding remains subject to the remaining U-01/U-02 details; Force End may proceed using the accepted administrative-closure + existing-MFA direction. Keep migrations and runtime privileges reviewed together.
+5. Land the approved #240 identity schema/contracts, then directory/filter/grants/history and secure onboarding under the locked U-01/U-02 rules. Force End proceeds using the accepted administrative-closure + existing-MFA direction. Keep migrations and runtime privileges reviewed together.
 6. Land #241 server projection and filter work using #240 identity. Its independent vehicle/filter changes can proceed without invite delivery; `Assigned To` must use the owner-approved current active operational Task assignee rule.
 7. Land #242's accurate fixed-role reference and remove Users only after #240 directory coverage.
 8. #238 may land after shared shell work, independently of onboarding. Create destination first, then remove nav; retain compatibility behavior in the same change.
@@ -185,7 +185,7 @@ Dependency arrows are landing constraints, not authorization for parallel agents
 | --- | --- | --- |
 | Complete UI scope ticket | Foundation protected context and administration/operations scope keys; no new authority store | All location-bound pages, dialogs, menus |
 | Scope-safe callbacks | Existing `useSensitiveMutation` and narrow resource callback guards | Staff, resources, Force End after approval |
-| Canonical staff identity | Shared contracts and one server projection; proposed membership-owned names under U-01 | Directory, shifts, sessions/tasks/retrieval display |
+| Canonical staff identity | Shared contracts and one server projection; membership-owned structured names per locked U-01 | Directory, shifts, sessions/tasks/retrieval display |
 | Identity presentation | One small shared dashboard formatter accepting structured identity | #240 and #241; no directory fetch from each row |
 | Directory query/cursor identity | Existing staff cursor boundary, extended with normalized filters and authorized scope | Staff list, optional paged selector; never Roles preload |
 | Topbar location discovery | Current scope API adapters, current organization and authority only | #243 and passive page labels |
@@ -502,7 +502,7 @@ The Shifts tab reads exact-location active shifts only. Shift persistence alread
 
 Provide real names/email, secure employee onboarding, server-side searchable/paginated directory, complete location assignment, the locked restricted LM management capability, full shift history and live duration, and fresh-MFA/reasoned/audited Force End. Preserve all current blocker and cross-tenant behavior. Do not add Force Start, custom roles or automatic work reassignment.
 
-Remaining unresolved contracts are U-01 canonical identity/onboarding lifecycle details and U-02 LM target authority. OWNER-APPROVED decisions now lock these formerly open points: VAYLET generates/copies the invite link only (no built-in email/SMS delivery); Location Manager reuses the existing MFA system for permitted sensitive operations; Force End is a distinct administrative closure with required reason, fresh MFA, dedicated audit and unreconciled/pending cash state; and Live Operations `Assigned To` uses the current active operational Task assignee. Sections below must implement those accepted decisions without reopening them.
+U-01 canonical identity/onboarding ownership and U-02 LM target authority are now OWNER-APPROVED and LOCKED. VAYLET generates/copies the invite link only (no built-in email/SMS delivery); names are membership-owned; invitation generations are one-time and resend invalidates the previous generation; existing accounts prove ownership without password reset; LM manages lower-role staff only under complete current grant coverage. Location Manager reuses the existing MFA system for permitted sensitive operations; Force End is a distinct administrative closure with required reason, fresh MFA, dedicated audit and unreconciled/pending cash state; and Live Operations `Assigned To` uses the current active operational Task assignee. Sections below must implement those accepted decisions without reopening them.
 
 ### C. Current files/modules involved
 
@@ -514,13 +514,13 @@ Dashboard `features/administration/staff/{staff-page,staff-detail-drawer,staff-s
 
 Split Staff page into focused employee-list/filter and shift-history bodies before adding forms. Proposed adjacent UI files: `staff-create-dialog.tsx`, `staff-location-assignment-dialog.tsx`, `staff-history-query.ts`, `staff-force-end-dialog.tsx`. Proposed API responsibilities: separate staff onboarding controller/service, bounded shift-history query/controller, and a management Force End executor that calls shared shift domain helpers only where semantics truly match. Do not turn the self-end command into an impersonation endpoint.
 
-Public schemas remain under `packages/contracts/src`, with a single identity schema exported from the package. A proposed `staff-identity.ts` extraction can be imported by `staff-management.ts` and overview contracts without circular imports. Proposed onboarding schema files remain conditional on remaining U-01/U-02 decisions; history and Force End schema work follows the accepted product decisions. Update module registration, runtime grants, database docs, security docs and focused decisions in the implementation task. No module-local public schema fork.
+Public schemas remain under `packages/contracts/src`, with a single identity schema exported from the package. A proposed `staff-identity.ts` extraction can be imported by `staff-management.ts` and overview contracts without circular imports. Onboarding schema files implement the locked U-01/U-02 decisions; history and Force End schema work follows the accepted product decisions. Update module registration, runtime grants, database docs, security docs and focused decisions in the implementation task. No module-local public schema fork.
 
 ### E. Data model impact
 
-**Conditional on U-01:** recommend first/last names on OrganizationMembership, because tenant admins manage an organization's employee identity and must not overwrite global identity for other tenants. Email remains on User and is returned through the same canonical identity projection. Existing records need nullable names during expansion; render a truthful email fallback, never manufactured names. New onboarding requires both names. Name changes later must use an explicit authorized command; this task does not implicitly permit email/account takeover.
+**Locked U-01:** store `firstName`/`lastName` on OrganizationMembership, because tenant admins manage an organization's employee identity and must not overwrite global identity for other tenants. Email remains on User and is returned through the same canonical identity projection. Existing records use nullable names during additive expansion with a truthful email fallback, never manufactured names. New onboarding requires both trimmed non-blank names. Name changes later require an explicit authorized command; this does not permit email/account takeover.
 
-Canonical response identity should expose `firstName`, `lastName`, `email`, and a consistently derived display name (either a shared formatter or a server field, not independently divergent derivations). Use one representation throughout directory/shift/operations. Preserve structured names and render with `bdi` as needed; do not infer ethnicity/order from strings. Bounds/normalization are an explicit contract decision under U-01; recommend trimming only and rejecting blank required new names, without ASCII-only restrictions.
+Canonical response identity exposes `firstName`, `lastName`, `email`, and a consistently derived display name (either a shared formatter or a server field, not independently divergent derivations). Use one representation throughout directory/shift/operations. Preserve structured Unicode names and render with `bdi` as needed; do not infer ethnicity/order from strings. Trim surrounding whitespace, reject blank required new names, and use bounded schema lengths consistent with existing shared text-field conventions; exact numeric bounds are an implementation security/schema constant, not a reopened product decision.
 
 **Conditional onboarding persistence:** recommend a purpose-scoped invitation record tied to organization/membership, hashed random verifier, generation, expiry, consumed/revoked timestamps and actor/operation correlation. Store no plaintext token. OWNER-APPROVED delivery model: after successful issuance, VAYLET exposes the one-time activation link/token for explicit copy and does not send email/SMS; the admin is responsible for external delivery. Pending onboarding must be distinct from ACTIVE staff authority and from global account disable. Since `users.password_hash` is required today, do not invent a fake usable password or reuse DISABLED as pending without a reviewed lifecycle/schema change. Existing-user attachment must require proof of account ownership and must never reset the existing user's password. Duplicate email handling must not reveal memberships in other tenants.
 
@@ -534,13 +534,13 @@ Evaluate directory indexes against actual SQL and EXPLAIN on representative isol
 
 ### G. Contract impact
 
-Extend `staffManagementIdentitySchema` once after U-01, `staffDirectoryQuerySchema` with normalized text/role/status/location filters, and `staffManagementLocationAccessSchema` with the existing location code. Preserve membership ID, role, status and version. Add bounded cursor access to grants so a >100-grant target is manageable without silently dropping grants.
+Extend `staffManagementIdentitySchema` once under locked U-01, `staffDirectoryQuerySchema` with normalized text/role/status/location filters, and `staffManagementLocationAccessSchema` with the existing location code. Preserve membership ID, role, status and version. Add bounded cursor access to grants so a >100-grant target is manageable without silently dropping grants.
 
 Recommended directory query: `search`, `role`, `status`, optional `locationId`, `cursor`, `limit` (existing default50/max100). Exact accepted names and bounds are DERIVED proposals to settle in the contract change. Apply predicates before LIMIT. Cursor binds version/domain, organization, authorized actor scope/grant-set identity, normalized filters and sort tuple. Do not encode raw search text/PII in a readable cursor when a fingerprint suffices. Invalid/mismatched cursor gets a typed validation error, not a silently reused page.
 
 Conditional history query: employee membership, authorized location, ACTIVE/ENDED/all status, start-time interval and cursor/limit. Recommend `[from,to)` UTC instants on `started_at`, explicit UI timezone labels, and deterministic `(started_at,id)` descending order. Clearly label this as shifts started in the selected period; overlap-of-period semantics would need a different predicate. Return shift ID, employee identity/role snapshot availability, location name/code, status, startedAt, endedAt and authorized reconciliation summary. Do not claim historical role snapshot if only current membership role exists.
 
-Create/invite/resend/activate contracts remain conditional on the remaining U-01/U-02 details. Force End request/response follows the accepted administrative-closure decision. Require strict input, expected target revision where meaningful, stable logical-operation identity for retryable commands, typed pending/issuance outcomes, and no returned credential in ordinary staff-detail responses.
+Create/invite/resend/activate contracts follow the locked U-01/U-02 details. Force End request/response follows the accepted administrative-closure decision. Require strict input, expected target revision where meaningful, stable logical-operation identity for retryable commands, typed pending/issuance outcomes, and no returned credential in ordinary staff-detail responses.
 
 ### H. API impact
 
@@ -552,7 +552,7 @@ For every protected write: authenticate through current staff principal resoluti
 
 ### I. Authorization impact
 
-CA retains organization-wide staff authority subject to current sensitive assurance and last-admin protections. LM's locked scope is Employee/Supervisor management inside granted locations, never creation/promotion/edit of Company Admin or Location Manager. U-02 must settle visibility and mutations for mixed-location targets and zero-grant targets. Lowest-risk mutation rule: actor's currently authorized active grants cover every affected grant and the target's whole management scope; otherwise deny without leaking hidden grant identities. A partial visible detail must never authorize a global role/status change.
+CA retains organization-wide staff authority subject to current sensitive assurance and last-admin protections. **Locked U-02:** LM manages only Employee/Supervisor targets whose non-empty current grant set is fully contained in the LM's own active grants. Mixed/outside and zero-grant targets are not LM-manageable or LM-directory-visible. LM onboarding may create only Employee/Supervisor memberships with a non-empty initial grant set fully contained in the actor's active grants. Global role/status commands, grant changes and activation/deactivation require complete target coverage before any no-op/result disclosure. Grant mutations may affect only locations inside the LM's active grants and must leave the target inside the same complete-coverage rule. Denials must not reveal hidden grant identities or counts.
 
 Use a distinct operation-specific LM authority branch; do not globally relax `authorizeCompanyAdminManagement` or remove MFA from CA commands. Recheck and hold actor membership/grants, target membership and relevant location lifecycle protection through commit. Inactive membership, disabled user, lost entitlement or lost grant cannot replay an old successful command to reveal protected detail. Section 20 covers all role pairs. Existing self-shift cleanup after lost grant remains its own accepted contract, not a management privilege loophole.
 
@@ -584,7 +584,7 @@ Shift history uses bounded server pages; current page may change as shifts end, 
 
 Retain desired-state semantics for existing role/status/grants, including authorized no-op success before stale expectedVersion rejection. First changed command updates version and audit once. Concurrent conflicting commands use version conflict. On conflict, refresh authorized detail and require user review before another submit; never substitute the refreshed version into an automatic POST.
 
-Conditional onboarding: same logical operation + same normalized payload returns original pending/result state after fresh authority; changed payload conflicts. Resend rotates/invalidate previous token generation under lock; concurrent resend behavior remains part of U-01. Unknown issuance/transport outcome reconciles by operation status, not repeated account creation. No provider-delivery retry exists in this scope. Activation consumes token once in the same transaction as approved credential/membership changes. Password hashing uses current Argon2id profile and must not hold broad tenant locks during an expensive hash.
+Locked onboarding: invitation issuance creates a purpose-scoped cryptographically random verifier stored only as a hash; the raw activation link is exposed only at the trusted issuance boundary for explicit copy. A pending membership has no protected authority until activation succeeds. Resend creates a new generation under lock and invalidates every previous unconsumed generation. Do not retain plaintext tokens merely to replay a lost response; an uncertain issuance result is reconciled from durable state and an explicit resend creates the next generation. Existing-email flows use neutral responses and require ownership proof of the existing account without password reset or tenant-membership disclosure. Activation consumes the accepted generation exactly once in the same transaction as approved membership/account changes. Reuse the current staff password policy and Argon2id profile. Token TTL, issuance/attempt rate limits and bounded anti-abuse thresholds must use shared auth/security configuration (or a narrowly introduced tested config if none exists); their numeric values are implementation security constants, not reopened product decisions.
 
 Force End: lock and reauthorize already-ended target before returning any retry result. Same operation can return its original closure; a different closure must not be overwritten. Unknown outcome requires authoritative reconciliation and explicit retry. An aborted browser fetch is not cancellation of the command. The accepted result is a distinct administrative closure with required reason, dedicated audit and unreconciled/pending cash reconciliation; it must not fabricate employee-reported cash or auto-cancel/reassign Tasks/Sessions.
 
@@ -596,7 +596,7 @@ Existing assurance limits are maximum8h, idle30min and sensitive freshness5min w
 
 ### P. Audit implications
 
-Keep existing role/status/grant audit behavior. New onboarding events record actor, tenant, membership, operation and safe outcome/generation metadata; never names/email/password/token bodies gratuitously. Invite redemption needs a reviewed actor model for unauthenticated token-holder proof. Exact onboarding event names/details remain conditional on U-01; Force End event semantics are owner-approved but the concrete enum/name should follow existing audit conventions rather than be invented here.
+Keep existing role/status/grant audit behavior. New onboarding events record issuing actor, tenant, membership, logical operation, safe outcome and invite-generation identifier; never record raw names/email/password/token bodies gratuitously. Redemption records the token-holder proof model and authenticated User identity when one exists, following existing audit conventions. Exact enum names may follow the nearest existing audit naming convention, but actor/tenant/membership/operation/generation coverage is required. Force End event semantics remain owner-approved.
 
 Force End has a dedicated event distinguishable from normal self-end, with reason, persisted manager actor, target shift/member/location and approved closure facts, atomic with closure. Reason is sensitive free text: bound length, trim/reject blank, escape display, restrict audit visibility, exclude from general logs/telemetry and document retention. Do not record a fabricated employee-reported amount.
 
@@ -624,11 +624,11 @@ Section25 contracts, focused staff/shift/MFA/database tests, dashboard unit/E2E,
 
 ### V. Dependencies
 
-Remaining U-01/U-02 decisions and corresponding accepted documentation precede their dependent onboarding/LM-staff schema/API work. The accepted MFA/Force End decisions should be recorded before implementation but are no longer product-decision blockers. Shared epoch/#243 precede final UI. #241 consumes identity and #242 waits for directory parity. Only one migration owner.
+The locked U-01/U-02 decisions and corresponding accepted documentation precede their dependent onboarding/LM-staff schema/API work. The accepted MFA/Force End decisions are likewise locked and are no longer product-decision blockers. Shared epoch/#243 precede final UI. #241 consumes identity and #242 waits for directory parity. Only one migration owner.
 
 ### W. Exact completion evidence
 
-Directory finds records beyond first page; names persist in approved canonical owner; granted LM/denied mixed/outside cases proven; role matrix and last-admin protections pass; deactivation blocks all existing work; secure token consumption/replay/redaction and copy-link issuance evidence exists; full history includes ended records and stable duration; Force End proves fresh MFA, reason, actor/audit atomicity and approved cash/work semantics; no Force Start; bounded request and visual evidence. Unresolved U-01/U-02 items mean the affected onboarding/LM-management portions of this issue are not complete; accepted MFA/Force End decisions must be implemented exactly as recorded.
+Directory finds records beyond first page; names persist on the membership-owned canonical identity; fully covered LM targets succeed while mixed/outside/zero-grant targets are denied without scope leakage; role matrix and last-admin protections pass; deactivation blocks all existing work; secure token consumption/rotation/redaction and copy-link issuance evidence exists; full history includes ended records and stable duration; Force End proves fresh MFA, reason, actor/audit atomicity and approved cash/work semantics; no Force Start; bounded request and visual evidence. The locked U-01/U-02 and MFA/Force End decisions must be implemented exactly as recorded.
 
 ### X. Edge cases / risks
 
@@ -941,9 +941,9 @@ No migration is executed by this planning task. Allocate new migration IDs again
 | Order | Proposed migration unit | Prerequisite | Required proof |
 | --- | --- | --- | --- |
 | M1 | Zone create function and resource audit/replay extensions | #236 documented resource policy | Upgrade from 046 retains key/spot replay and QR behavior; zone create runtime entrypoint works; direct table/helper abuse denied |
-| M2 | Canonical identity additive columns/constraints | U-01 accepted | Existing users/memberships/auth still work; no invented backfill; tenant isolation; names/schema contracts agree |
-| M3 | Approved invite lifecycle, uniqueness and narrow commands | U-01 delivery/account contract | Expired/consumed/rotated tokens fail; same-operation replay; existing-account ownership; rollback on audit failure; no plaintext verifier |
-| M4 | LM staff authority/function changes | U-02 accepted, M2 as required | All 037 invariants preserved; mixed/outside/self/elevated targets denied; last-admin and grant races pass |
+| M2 | Canonical identity additive columns/constraints | Locked U-01 | Existing users/memberships/auth still work; no invented backfill; tenant isolation; names/schema contracts agree |
+| M3 | Approved invite lifecycle, uniqueness and narrow commands | Locked U-01 invite/account contract | Expired/consumed/rotated tokens fail; existing-account ownership; rollback on audit failure; no plaintext verifier; explicit resend rotates generation |
+| M4 | LM staff authority/function changes | Locked U-02, M2 as required | All 037 invariants preserved; mixed/outside/zero-grant/self/elevated targets denied; last-admin and grant races pass |
 | M5 | Force End persistence/command boundary | Owner-approved LM existing-MFA + administrative Force End semantics | Self-end unchanged; cash semantics remain unreconciled/pending instead of fabricated; task eligibility race safe; exactly one closure and audit |
 | M6 | Measured read indexes, if justified | Final directory/history/overview SQL | EXPLAIN evidence and bounded query performance; no redundant speculative indexes |
 
@@ -966,12 +966,12 @@ Prefix abbreviations below are exact existing bases: **P** = `/v1/staff/dashboar
 | POST P/parking-spots | Existing operationId/code/label/parkingZoneId → spot configuration | Same, plus persisted active same-scope zone | Existing replay/conflict; preserve |
 | POST P/parking-zones | Proposed strict operationId/code/label → zone selector | Section10's explicit extension | Stable ID + replay/audit; new #236 dialog |
 | Existing key/spot label GETs under P | Existing PhysicalResourceLabel: V2 payload, resource UUID/code/location | Fresh label authority, active resource/location | No cached authority; preserve exact current route suffixes/controller |
-| GET S; GET S/:membershipId | Existing staff schemas extended identity/filters/grants | CA now; approved LM branch only after U-02 | Cursor binds filters/scope; no mutation; #240 |
-| POST S/:membershipId/role | Existing expectedVersion/role → detail | CA sensitive; LM restricted only after U-02 | Desired-state no-op or CAS; atomic existing audit |
+| GET S; GET S/:membershipId | Existing staff schemas extended identity/filters/grants | CA organization-wide; LM lower-role target only under locked complete-coverage U-02 | Cursor binds filters/scope; no mutation; #240 |
+| POST S/:membershipId/role | Existing expectedVersion/role → detail | CA sensitive; LM Employee↔Supervisor only under locked complete-coverage U-02 | Desired-state no-op or CAS; atomic existing audit |
 | POST S/:membershipId/activate or deactivate | Existing expectedVersion → detail | Same, plus existing last-admin/handover checks | No global user disable; authorized retries |
 | POST S/:membershipId/location-access/grant or revoke | Existing expectedVersion/locationIds1..50 → detail | Same + target/location proof | Array command, version once, atomic audit; no hidden multi-batch loop |
-| Proposed POST S and invitation command | U-01-gated identity/role/grants/logical operation → safe pending/result state | Approved actor/target + sensitive policy | Durable retry identity, safe audit; generated-copy-link outcome only with no external-delivery claim; exact routes accepted before coding |
-| Proposed auth activation route | U-01-gated purpose-scoped token + approved credential input → safe consumed outcome | Token proof/anti-abuse, not admin authority | Single-use atomic consume; no automatic credential replay or logging |
+| Proposed POST S and invitation command | Locked U-01 identity/role/grants/logical operation → safe pending/result state | CA approved lower-role onboarding; LM Employee/Supervisor only with non-empty fully covered grants; sensitive policy | Durable operation identity, safe audit; generated-copy-link outcome only with no external-delivery claim; exact routes accepted before coding |
+| Proposed auth activation route | Locked U-01 purpose-scoped token + approved credential input → safe consumed outcome | Token proof/anti-abuse, not admin authority | Single-use atomic consume; rotated generations fail; no automatic credential replay or logging |
 | Proposed management shift history/detail GET | Section13 query/entry; no full-history preload | CA org or approved LM granted scope | Bound cursor and date semantics; #240 history |
 | Proposed Force End POST | Accepted required reason + explicit confirmation + logical operation → authoritative administrative closure with unreconciled/pending cash state | Persisted CA/LM target scope + fresh MFA through the existing MFA system | Dedicated atomic audit; unknown outcome reconcile; no self-end impersonation; no automatic Task/Session side effects |
 | GET O/sessions | Existing OverviewListQuery extended filter; structured session projection | Existing exact active CA/LM overview authority | Versioned scoped/filter cursor; #241 |
@@ -989,11 +989,11 @@ Legend: **Yes** remains subject to active user/membership/organization, current 
 
 | Operation | Company Admin | Location Manager | Supervisor | Employee |
 | --- | --- | --- | --- | --- |
-| Staff directory/detail | Yes, organization | Conditional U-02, permitted target scope only | No | No |
-| Create/invite/resend | Conditional remaining U-01; generated-copy-link delivery only | Conditional U-01/U-02; Employee/Supervisor only | No | No |
-| Role transition | Existing matrix section20, sensitive | Conditional U-02, Employee↔Supervisor only | No | No |
-| Grant/revoke | Organization target/locations, blockers | Conditional U-02, fully authorized targets and affected grants | No | No |
-| Activate/deactivate | Tenant membership; last-admin/blockers | Conditional U-02, allowed lower-role target only | No | No |
+| Staff directory/detail | Yes, organization | Yes, Employee/Supervisor only when non-empty target grants are fully contained in LM active grants | No | No |
+| Create/invite/resend | Yes under locked U-01; generated-copy-link delivery only | Yes for Employee/Supervisor with non-empty initial/current grants fully contained in LM active grants | No | No |
+| Role transition | Existing matrix section20, sensitive | Employee↔Supervisor only under complete target coverage | No | No |
+| Grant/revoke | Organization target/locations, blockers | Fully covered Employee/Supervisor targets; affected/resulting grants remain non-empty subset of LM active grants | No | No |
+| Activate/deactivate | Tenant membership; last-admin/blockers | Employee/Supervisor only under complete target coverage | No | No |
 | Active/history shift management read | Existing active exact; proposed full authorized history | Existing active exact; proposed granted history | No management history | No management history |
 | Own active/end shift | Not inherited from CA role | Not inherited from LM role | Existing self/field contract | Existing self/field contract |
 | Force End | Owner-approved administrative closure, fresh MFA, reason and audit | CA/authorized LM in exact permitted Location, using the existing MFA system; no Company Admin authority is implied by MFA eligibility | No | No |
@@ -1007,7 +1007,7 @@ Legend: **Yes** remains subject to active user/membership/organization, current 
 
 Inactive membership and disabled user: deny every protected management row above, including result replay. A valid user session alone does not confer an active membership. Preserve the separate accepted self-end cleanup rule where applicable; do not generalize it to staff management.
 
-LM target distinctions after U-02: inside grant set may be allowed for lower roles; outside denied; mixed target must not permit global role/status mutation on partial authority; grant lost during operation must serialize so either the authorized command commits before revoke, or it fails after revoke. Zero-grant target and partially visible history need an explicit decision. No name/count of hidden grants in denial messages. Submitted location IDs never substitute for persisted target membership/location ownership.
+Locked LM target semantics: a manageable target must be Employee/Supervisor with a non-empty current grant set fully contained in the actor's active grants. Mixed/outside and zero-grant targets are denied and must not appear as partially manageable directory/detail records. LM shift/history reads remain bounded to the actor's currently granted Locations and must not reveal historical outside-scope Location identities. Grant lost during an operation must serialize so either the authorized command commits before revoke, or it fails after revoke. No name/count of hidden grants in denial messages. Submitted location IDs never substitute for persisted target membership/location ownership.
 
 ### Authorization-before-mutation proof
 
@@ -1035,7 +1035,7 @@ The following is the existing CA command policy to preserve, not an endorsement 
 
 CA demotion requires another usable admin and explicit handling of dormant grants as enforced by 037; do not silently drop grants to make a transition succeed. Self-demotion/deactivation follows these same last-admin protections. A role change is not a task reassignment or shift closure. Desired-state no-op is still freshly authorized and must not emit duplicate audit or increment version.
 
-Proposed LM matrix after U-02: Employee→Supervisor and Supervisor→Employee only, plus authorized no-op for those lower-role targets. All transitions from/to ORG_ADMIN or LOCATION_MANAGER denied, including attempts to modify self as LM. LM cannot create elevated roles, deactivate an elevated target, or use grants mutation to indirectly acquire elevated authority. Target inside/mixed/outside checks apply before no-op result disclosure. CA actor changing its own authority mid-command must be protected by the existing organization/member serialization, not trusted from an earlier HTTP request.
+Locked LM matrix: Employee→Supervisor and Supervisor→Employee only, plus authorized no-op for fully covered lower-role targets. All transitions from/to ORG_ADMIN or LOCATION_MANAGER are denied, including attempts to modify self as LM. LM cannot create elevated roles, deactivate an elevated target, manage zero-grant/mixed/outside targets, or use grants mutation to indirectly acquire elevated authority. Complete target-coverage checks apply before no-op/result disclosure. CA actor changing its own authority mid-command must be protected by the existing organization/member serialization, not trusted from an earlier HTTP request.
 
 ## 21. Concurrency/race matrix
 
@@ -1067,8 +1067,8 @@ Every case below runs both delayed success and delayed failure where applicable.
 | Last admin demotion vs demotion/factor loss / #240 | Organization serialization plus sorted factor locks/current usable-admin check | Cannot commit zero usable admins; preserve existing factor-race tests, do not use stale count |
 | Deactivate/revoke vs shift start / #240 | Existing member/grant locks and shift eligibility, organization serialization | Either shift starts and blocker prevents revoke, or authority removed and start fails |
 | Deactivate/revoke vs task assignment/intake/incident intent / #240 | Existing blocker predicates and their consumer transaction locks | No stranded protected work. Existing race suites are acceptance tests, not optional regression polish |
-| Invite issue/resend vs consume / remaining U-01 | Proposed membership/invite-generation lock plus account unique email and operation key | Exactly one accepted generation consumed; no password reset of existing user. Rollback leaves no half-created membership/grants; unknown delivery reconciles durable state |
-| Concurrent resends / remaining U-01 | Same invitation owner/generation and reviewed logical-operation identity | Approved winner/rotation policy; old token unusable; no double membership or uncontrolled invite-generation loop |
+| Invite issue/resend vs consume / locked U-01 | Membership/invite-generation lock plus account unique email and operation key | Exactly one accepted generation consumed; resend invalidates earlier generations; no password reset of existing user. Rollback leaves no half-created membership/grants; uncertain issuance reconciles durable state |
+| Concurrent resends / locked U-01 | Same invitation owner/generation and reviewed logical-operation identity | One serialized newest generation remains usable; every older generation is unusable; no double membership or uncontrolled invite-generation loop |
 | Force End vs self-end / accepted Force End decision | Same shift row exclusive lock after correct actor/target proof | One immutable closure; other observes authorized existing outcome without replacing cash/reason. Lost response does not produce another event |
 | Force End vs new task eligibility / accepted Force End decision | Existing `shift-operational-eligibility.ts` holds shift share lock in consumer transaction; proposed end takes conflicting exclusive lock | If assignment wins, end sees blocker and fails; if end wins, eligibility fails. A preflight-only check permits unsafe task-after-end and is forbidden |
 | Force End vs MFA/session revoke / accepted LM MFA + Force End decisions | Current `lockAndRecheckMfaSession` transaction protection + target scope locks | Authorization must remain valid through protected write under existing lock contract; no stale client assurance |
@@ -1221,7 +1221,7 @@ If an existing baseline formatter failure is unrelated, report it with evidence 
 
 - Re-fetch seven issue bodies/comments and origin; record new SHA and reconcile drift. Read assigned issue and relevant full Accepted decisions; use an owned branch, not main.
 - Capture baseline visuals/network behavior before UI changes. Preserve shell, table/dialog/drawer patterns and both languages/themes/directions.
-- Resolve only the remaining U-01/U-02 items where needed. Record the owner-approved invite-link-only delivery, LM existing-MFA extension, Force End semantics and active-Task assignee semantics as accepted contracts before implementation; do not reopen them.
+- Treat U-01/U-02 as resolved and locked. Record the owner-approved membership-owned identity, single-use/rotating invite generation, complete-coverage LM scope, invite-link-only delivery, LM existing-MFA extension, Force End semantics and active-Task assignee semantics as accepted contracts before implementation; do not reopen them.
 - Name affected entities per slice: resource slices affect zones/spots/slots/audit; staff slices affect membership/grants/approved invitation/account lifecycle/shift/audit; projections affect reads only. No Session/Task transitions unless separately authorized.
 - Recount target file lengths and extract responsibilities before growth. Coordinate schema/migrations/contracts exports/navigation high-contention files; one migration owner.
 - Land full scope epoch/fences, #243, resource relocation then zone creation; create status destination before removing nav; canonical identity before #241; staff parity before Users removal.
@@ -1236,7 +1236,7 @@ If an existing baseline formatter failure is unrelated, report it with evidence 
 | Risk | Consequence / mitigation |
 | --- | --- |
 | Plan baseline ages | Re-fetch/reconcile before execution; current HEAD equality is a dated observation |
-| Remaining U-01/U-02 policy treated as approved | New identity/LM-target behavior silently becomes permanent; block only the dependent slice until the remaining decision is accepted |
+| Locked U-01/U-02 policy implemented inconsistently | Cross-tenant identity mutation, invite takeover or partial-scope LM authority; require membership-owned names, ownership-proof activation and complete target coverage exactly as recorded |
 | LM uses CA-only helper | Either denied legitimate flow or weakened global helper; add narrowly scoped authority with full tests |
 | Force End reuses self-end blindly | Impersonation or fabricated cash; separate approved command preserving self contract |
 | Legacy session assignee reused as current owner | False operational accountability; use the accepted active operational Task assignee source and do not synchronize the legacy field |
@@ -1253,28 +1253,53 @@ If an existing baseline formatter failure is unrelated, report it with evidence 
 
 No application tests, runtime captures or production checks were executed in this planning audit. Source paths and test anchors reduce rediscovery but do not eliminate implementation-time verification. This plan does not authorize unrelated cleanup, provider integration, custom roles, automatic dispatch, session state repair, password administration, Force Start or operational history deletion.
 
-## 28. Truly unresolved decisions
+## 28. Owner-locked decisions — U-01/U-02 resolved
 
-The owner has now resolved the invite-delivery direction plus the former U-03, U-04 and U-05 product decisions. Those decisions are **LOCKED** for implementation and must not be reopened. Only the remaining U-01 identity/onboarding-lifecycle details and U-02 Location Manager target-scope semantics remain unresolved.
+The owner has now resolved U-01 and U-02 in addition to the previously locked invite-delivery, LM MFA, Force End and Live Operations assignment decisions. There is no remaining product-decision blocker in this plan. Implementation may choose narrow security/schema constants only where the repository has no existing shared value, but it must not reopen the product semantics below.
 
-### Owner-approved decisions recorded after the planning audit
+### U-01 — canonical staff identity and invitation/activation lifecycle
 
-| Decision | Locked direction | Implementation consequence |
-| --- | --- | --- |
-| Invite delivery | VAYLET generates the secure one-time Invite/Activation Link and exposes it for explicit copy. VAYLET does **not** send email/SMS and does not require a third-party delivery provider for this feature. The admin is responsible for delivering the copied link outside VAYLET. | Do not add email/SMS provider integration, outbox delivery state or `sent` claims. Persist only the hashed/one-time invite verifier; expose the raw link only at the trusted issuance boundary and transient UI needed for copy. |
-| Former U-03 — LM MFA | Location Manager uses the **same existing MFA system** for sensitive operations that the LM is already authorized to perform. This does not grant Company Admin authority and must not create a second MFA system. | Extend existing MFA eligibility/enrollment/verification/recovery/account-security paths narrowly to the permitted LM actor and preserve current freshness/session/abuse rules. |
-| Former U-04 — Force End Shift | Force End is a **distinct administrative closure**. It requires fresh MFA, explicit confirmation, mandatory reason and a dedicated audit event. Do not fabricate employee-reported cash; the cash/reconciliation outcome remains truthfully **unreconciled/pending reconciliation**. Force End must not automatically cancel/reassign Tasks or mutate Sessions. | Implement a separate management Force End command rather than impersonating normal self-end. Preserve operational blockers/races, reason/actor/audit, unknown-outcome reconciliation and exactly-once closure semantics. |
-| Former U-05 — Live Operations Assigned To | `Assigned To` means the employee assigned to the **current active operational Task**. If there is no active Task assignee, or only terminal Task ownership remains, show `Unassigned`. Keep legacy session assignee fields unchanged and do not synchronize them. | Server projection/filtering must resolve the active Task source explicitly; no N+1 lookup and no misleading use of legacy session ownership. |
+**LOCKED direction**
 
-### Remaining unresolved decisions
+- Staff `firstName` and `lastName` are owned by `OrganizationMembership`, not the global `User`, so one tenant cannot rewrite another tenant's staff identity. `User.email` remains global.
+- Existing memberships may have nullable names during additive migration and render a truthful email fallback. New onboarding requires both structured names, trimmed and non-blank, with Unicode allowed and bounded schema lengths.
+- Direct onboarding creates lower operational/management staff roles only: `LOCATION_MANAGER`, `VALET_SUPERVISOR` and `VALET_EMPLOYEE`. A new `ORG_ADMIN` is not created directly by the invitation flow; elevation to `ORG_ADMIN` uses the existing sensitive CA role-transition path and its last-usable-admin protections after account ownership is established.
+- Every pending onboarded membership has a non-empty initial Location grant set appropriate to its role and receives no protected Management authority until activation/ownership proof succeeds.
+- VAYLET generates a purpose-scoped cryptographically random activation link, stores only a hash/verifier representation, exposes the raw link only at the trusted issuance boundary for explicit copy, and does not send email/SMS.
+- An activation generation is single-use. Explicit resend creates a new serialized generation and invalidates all previous unconsumed generations.
+- Do not retain plaintext activation tokens merely to replay a lost response. An uncertain issuance result is reconciled from durable state; an explicit resend creates the next generation.
+- If the email already belongs to a global User, use a neutral non-enumerating response and require proof of ownership of that existing account. Never reset/replace that User's password merely because a tenant admin invited the email, and never disclose the User's memberships in other tenants.
+- New-account credential setup reuses the current Staff password policy and Argon2id profile. Existing-account activation does not replace the existing password.
+- Activation consumes the accepted invite generation exactly once in the same transaction as the approved account/membership activation changes.
+- Raw invite/password/recovery secrets must not enter logs, audit payloads, analytics, browser persistence or referrer propagation. Capture/remove the activation secret from visible navigation state as early as the chosen flow permits.
+- Onboarding audit evidence must include issuing actor, organization, target membership, logical operation, safe outcome and invite generation identifier, using existing audit naming conventions without storing the raw token/password.
+- Token TTL, issuance frequency and invalid-attempt/rate limits must use the repository's shared auth/security policy/configuration. If no shared value exists, #240 may introduce a narrowly scoped bounded/tested security configuration; choosing its numeric value is an implementation security constant, not a reopened owner/product decision.
 
-| ID | Evidence / unresolved contract | Options and risk | Lowest-risk recommendation | Blocking scope |
-| --- | --- | --- | --- | --- |
-| U-01 | No canonical first/last-name storage or complete invite/activation lifecycle exists; User email is global and password verifier is required. Invite **delivery is already decided**: generated secure copy-link only, no email/SMS provider. | Global names let tenant admins affect other tenants; membership names require nullable legacy handling. New-user and existing-user activation differ. Token TTL/rate limits/resend generation/account-state rules still need a precise accepted contract. | Membership-owned structured names + existing User email, nullable legacy expansion and truthful fallback; purpose-scoped hashed single-use invitation lifecycle; existing account proves ownership without password reset. Keep the approved copy-link-only delivery model. | Names persistence/onboarding APIs/migration/lifecycle details. Directory filter work may proceed without claiming full #240 completion |
-| U-02 | DEC-081 and current SQL are CA-only; #240 requires restricted LM management; mixed/zero-grant target semantics unspecified | Any-intersection permission lets LM change global membership outside its grants; full-subset rule is safer but may deny legitimate shared employees. Partial read visibility must not authorize global write | Explicit amendment: lower-role targets only; require complete target/affected scope coverage for global role/status commands, deny mixed/outside until an approved alternative; define zero-grant creation/management and permitted detail/history visibility | LM directory/mutations/onboarding and associated copy/tests. Existing CA behavior remains |
+### U-02 — Location Manager staff target scope
 
-For U-01, the remaining acceptance record must answer minimum/maximum name lengths and normalization, required grants for a pending hire, which roles CA can onboard, existing-email response privacy, account activation state, token TTL/attempt/rate limits, resend rotation/retry policy, password policy reuse, secret transport/redaction and audit actor/event fields. **Delivery channel is no longer open:** VAYLET generates/copies the activation link only.
+**LOCKED direction**
+
+- LM may manage only `VALET_EMPLOYEE` and `VALET_SUPERVISOR`.
+- A target is LM-manageable only when its current Location grant set is **non-empty** and every target grant is contained in the LM actor's own currently active grant set.
+- Mixed targets, outside-scope targets and zero-grant targets are not LM-manageable and must not appear as partially manageable directory/detail records. They remain Company Admin responsibility.
+- LM global role/status/activate/deactivate commands require complete target coverage before no-op/result disclosure.
+- LM role changes are limited to Employee↔Supervisor. LM cannot create/promote/edit `ORG_ADMIN` or `LOCATION_MANAGER`, including itself.
+- LM onboarding may create only Employee/Supervisor targets and must assign a non-empty initial grant set fully contained in the LM's current active grants.
+- LM grant/revoke operations may affect only Locations in the LM's current active grants and must leave the target with a non-empty resulting grant set fully contained in those grants.
+- LM shift/history/detail reads are bounded to the actor's currently granted Locations and must not reveal outside-scope historical Location identities. If a CA later gives the target an outside grant, the LM loses target-level management visibility/authority on fresh proof.
+- Denials must not leak hidden Location IDs, names or hidden-grant counts.
+- Authority is revalidated from persisted actor/target/grant state through protected writes; client-supplied Location IDs never substitute for server authority.
+- Grant loss during an operation must serialize so the command either commits while fully authorized before the revoke, or fails after the revoke. Partial preflight authority is not sufficient.
+
+### Other already locked owner decisions
+
+| Decision | Locked direction |
+| --- | --- |
+| Invite delivery | Generate/copy secure activation link only; no built-in email/SMS provider |
+| LM MFA | Reuse the same existing MFA system for LM-sensitive operations the LM is otherwise authorized to perform |
+| Force End Shift | Distinct administrative closure with fresh MFA, confirmation, mandatory reason, dedicated audit and unreconciled/pending cash; no automatic Task/Session mutation |
+| Live Operations Assigned To | Current active operational Task assignee; otherwise Unassigned; do not synchronize legacy session assignee fields |
 
 ### Ready-to-implement verdict
 
-**DECISION REQUIRED only for the remaining U-01/U-02 portions of #240.** #243, #237, #236 and #238 are independently specified; #241 assignment semantics are now owner-approved; and the LM MFA + Force End product direction is now owner-approved. The implementation agent must not mark the affected #240 onboarding/LM-management portions complete while U-01/U-02 remain unresolved or while any required tests/visual/runtime evidence fail.
+**NO REMAINING PRODUCT DECISION IS REQUIRED by this plan.** #240 onboarding and restricted LM management may proceed only under the locked U-01/U-02 rules above. #237 and #236 remain next in the execution order after merged #243; #241 consumes the canonical identity contract; #242 waits for directory parity. Any future change to these locked owner decisions requires an explicit new owner decision rather than an implementation-agent inference.
