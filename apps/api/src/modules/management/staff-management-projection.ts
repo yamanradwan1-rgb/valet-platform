@@ -23,9 +23,12 @@ export async function loadStaffMembership(
             membership.role::text AS role, membership.status::text AS status,
             membership.version, membership.created_at AS "createdAt",
             membership.user_id::text AS "userId", staff_user.status::text AS "userStatus",
-            jsonb_build_object('email', staff_user.email) AS identity,
+            jsonb_build_object('email', staff_user.email,
+              'firstName', membership.first_name,
+              'lastName', membership.last_name) AS identity,
             (SELECT count(*)::integer FROM membership_location_access AS access
-             WHERE access.membership_id = membership.id) AS "locationAccessCount"
+             WHERE access.membership_id = membership.id
+               AND access.organization_id = membership.organization_id) AS "locationAccessCount"
      FROM organization_memberships AS membership
      INNER JOIN users AS staff_user ON staff_user.id = membership.user_id
      WHERE membership.id = $1 AND membership.organization_id = $2

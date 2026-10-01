@@ -554,6 +554,8 @@ Rules:
 id
 organization_id
 user_id
+first_name nullable
+last_name nullable
 role
 status
 version
@@ -577,6 +579,13 @@ Constraints/rules:
 
 - unique `(organization_id, user_id)`
 - role required
+- Issue #240 / T05-A adds nullable membership-owned `first_name` / `last_name`
+  TEXT columns in forward migration `20261001004900_mgt_240a_staff_identity`.
+  Each non-null value contains 1–100 Unicode code points and has no surrounding
+  ECMAScript whitespace (including Unicode spaces); blank values are rejected.
+  Unicode, diacritics and punctuation are preserved. Existing records retain
+  null names without email-derived backfill; User remains the email authority.
+  Runtime retains read-only membership access, with no new name-write command.
 - status required, default `ACTIVE`
 - `version` required, default `1`, CHECK `version >= 1`; migration 37 backfills
   existing memberships to version `1` without fabricating lifecycle/audit
@@ -2130,9 +2139,11 @@ narrow staff-management command/helper functions described above. It does not
 add a new role, generic permission model, staff-history table, or new mutable
 key-custody owner. Directory/detail remain request-time tenant projections over
 the current membership/User/Location grant state. The list is keyset-paginated
-and bounded to 100 items. Its query is page-first: the Organization membership
-page is selected in `(created_at, id)` order with the directory index before the
-User join and per-page Location-access counts are evaluated. Detail returns at
+and bounded to 100 items. T05-A applies tenant, name/email search, role, status
+and tenant-scoped Location predicates before the `(created_at,id)` keyset limit.
+User email joins participate before LIMIT; per-page Location-access counts are
+evaluated afterward. No new search index or PostgreSQL extension is assumed;
+the existing directory index is retained pending measured plan evidence. Detail returns at
 most 100 Location grants plus an authoritative total/truncated indicator.
 
 Staff-management mutation authorization requires five-minute exact-session MFA

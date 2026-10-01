@@ -132,14 +132,17 @@ plane. Company Admin can read a bounded Organization staff directory and
 membership detail, change a membership among the four existing base roles,
 activate/deactivate a tenant membership, and grant/revoke Organization-owned
 Locations. The directory is tenant-minimized: it exposes the membership ID,
-email identity, role, status, shared membership version and Location-access
+membership-owned nullable first/last names, User email identity, role, status,
+shared membership version and Location-access
 counts; detail adds at most 100 named Location grants with a total/truncated
 indicator. It does not expose User IDs, phone data, Staff sessions, MFA state,
 other-Organization memberships or operational responsibility.
 
-The directory query is page-first: it resolves the bounded Organization
-membership page by `(created_at, id)` before joining User identity and counting
-Location grants. Migration 37 adds only the three justified Staff-management
+T05-A directory filters are server-authoritative: bounded literal name/email
+search, exact role/status and Organization-owned Location predicates precede
+the `(created_at,id)` keyset limit. Complete names and email remain visible;
+incomplete legacy names fall back to real email. Grant counts follow the page.
+Migration 37 adds only the three justified Staff-management
 indexes needed for this page path and the intake/incident handover blocker
 lookups; it does not introduce a broader speculative index set.
 

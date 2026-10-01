@@ -21,13 +21,18 @@ import {
 const directory = staffPath(ORG_A.organizationId);
 const shifts = activeShiftsPath(LOCATION_A.locationId);
 
-test("R05 Company Admin All Locations reads Employees but sends zero active-shift reads", async ({ page }) => {
+test("R05 Company Admin All Locations reads Employees but sends zero active-shift reads", async ({
+  page,
+}) => {
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
-    override: (path) => path === directory
-      ? { body: { items: [staffItem()], nextCursor: null } }
-      : path === shifts ? { body: { items: [activeShift()], nextCursor: null } } : undefined,
+    override: (path) =>
+      path === directory
+        ? { body: { items: [staffItem()], nextCursor: null } }
+        : path === shifts
+          ? { body: { items: [activeShift()], nextCursor: null } }
+          : undefined,
   });
   await fixture.install(page);
   await page.goto("/employees");
@@ -37,41 +42,61 @@ test("R05 Company Admin All Locations reads Employees but sends zero active-shif
   await expect(page.getByText(STAFF_EMAIL, { exact: true })).toBeVisible();
   expect(fixture.count(directory)).toBeGreaterThan(0);
   await page.getByRole("button", { name: "Shifts" }).click();
-  await expect(page.getByText("Select a Location to view this information.")).toBeVisible();
+  await expect(
+    page.getByText("Select a Location to view this information."),
+  ).toBeVisible();
   expect(fixture.count(shifts)).toBe(0);
 });
 
-test("R05 Location Manager gets no Employees directory and reads only exact granted active Shifts", async ({ page }) => {
+test("R05 Location Manager gets no Employees directory and reads only exact granted active Shifts", async ({
+  page,
+}) => {
   const fixture = new DashboardApiFixture({
     locationManagerOrganizations: [ORG_A],
     locationManagerLocations: { [ORG_A.organizationId]: [LOCATION_A] },
-    override: (path) => path === shifts
-      ? { body: { items: [activeShift()], nextCursor: null } }
-      : path === directory ? { body: { items: [staffItem()], nextCursor: null } } : undefined,
+    override: (path) =>
+      path === shifts
+        ? { body: { items: [activeShift()], nextCursor: null } }
+        : path === directory
+          ? { body: { items: [staffItem()], nextCursor: null } }
+          : undefined,
   });
   await fixture.install(page);
   await page.goto("/employees");
   await signInOnCurrentPage(page, "manager@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
-  await expect(page.getByRole("heading", { name: "Employees & Shifts" })).toBeVisible();
-  await expect(page.getByText("View active shifts for the selected Location.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Employees & Shifts" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("View active shifts for the selected Location."),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Employees" })).toHaveCount(0);
   await expect(page.getByText("Active shift", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: LOCATION_B.name })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: LOCATION_B.name })).toHaveCount(
+    0,
+  );
   expect(fixture.count(directory)).toBe(0);
   expect(fixture.count(shifts)).toBeGreaterThan(0);
   expect(fixture.count(activeShiftsPath(LOCATION_B.locationId))).toBe(0);
   await page.getByRole("button", { name: "Language" }).click();
-  await expect(page.getByText("عرض الورديات النشطة للموقع المحدد.")).toBeVisible();
+  await expect(
+    page.getByText("عرض الورديات النشطة للموقع المحدد."),
+  ).toBeVisible();
 });
 
-test("R05 inactive Location sends zero active-shift reads", async ({ page }) => {
+test("R05 inactive Location sends zero active-shift reads", async ({
+  page,
+}) => {
   const inactive = { ...LOCATION_A, status: "INACTIVE" as const };
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [inactive] },
-    override: (path) => path === shifts ? { body: { items: [activeShift()], nextCursor: null } } : undefined,
+    override: (path) =>
+      path === shifts
+        ? { body: { items: [activeShift()], nextCursor: null } }
+        : undefined,
   });
   await fixture.install(page);
   await page.goto("/employees");
@@ -79,20 +104,36 @@ test("R05 inactive Location sends zero active-shift reads", async ({ page }) => 
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: /Main Garage/u }).click();
   await page.getByRole("button", { name: "Shifts" }).click();
-  await expect(page.getByText("Select an active Location to view active shifts.")).toBeVisible();
+  await expect(
+    page.getByText("Select an active Location to view active shifts."),
+  ).toBeVisible();
   expect(fixture.count(shifts)).toBe(0);
 });
 
-test("R05 Dashboard entitlement denial prevents Employees business reads", async ({ page }) => {
+test("R05 Dashboard entitlement denial prevents Employees business reads", async ({
+  page,
+}) => {
   const subscriptionPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/subscription`;
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     override: (path) => {
-      if (path === subscriptionPath) return { body: {
-        organizationId: ORG_A.organizationId,
-        subscription: { planCode: "R05", status: "ACTIVE", entitlements: { dashboardAccess: false, reportExports: true, basicBranding: true } },
-      } };
-      if (path === directory) return { body: { items: [staffItem()], nextCursor: null } };
+      if (path === subscriptionPath)
+        return {
+          body: {
+            organizationId: ORG_A.organizationId,
+            subscription: {
+              planCode: "R05",
+              status: "ACTIVE",
+              entitlements: {
+                dashboardAccess: false,
+                reportExports: true,
+                basicBranding: true,
+              },
+            },
+          },
+        };
+      if (path === directory)
+        return { body: { items: [staffItem()], nextCursor: null } };
       return undefined;
     },
   });
@@ -100,11 +141,17 @@ test("R05 Dashboard entitlement denial prevents Employees business reads", async
   await page.goto("/employees");
   await signInOnCurrentPage(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
-  await expect(page.getByText("Management Dashboard access is unavailable for this authorized scope.")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Management Dashboard access is unavailable for this authorized scope.",
+    ),
+  ).toBeVisible();
   expect(fixture.count(directory)).toBe(0);
 });
 
-test("R05 Supervisor, Employee, and unauthenticated routes make zero staff business reads", async ({ page }) => {
+test("R05 Supervisor, Employee, and unauthenticated routes make zero staff business reads", async ({
+  page,
+}) => {
   for (const [email, context] of [
     ["supervisor@example.com", supervisorContext()],
     ["employee@example.com", employeeContext()],
@@ -119,7 +166,9 @@ test("R05 Supervisor, Employee, and unauthenticated routes make zero staff busin
     }
     expect(fixture.count(directory)).toBe(0);
     expect(fixture.count(shifts)).toBe(0);
-    await expect(page.getByRole("heading", { name: "Employees & Shifts" })).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Employees & Shifts" }),
+    ).toHaveCount(0);
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
     await page.unrouteAll({ behavior: "wait" });
@@ -133,7 +182,9 @@ test("R05 Supervisor, Employee, and unauthenticated routes make zero staff busin
   expect(unauthenticated.count(shifts)).toBe(0);
 });
 
-test("R05 settles request budget, keeps rows memory-only, and performs no hidden joins or writes", async ({ page }) => {
+test("R05 settles request budget, keeps rows memory-only, and performs no hidden joins or writes", async ({
+  page,
+}) => {
   const sentinel = "r05-storage-sentinel@example.com";
   const seen: string[] = [];
   const writes: string[] = [];
@@ -142,9 +193,17 @@ test("R05 settles request budget, keeps rows memory-only, and performs no hidden
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
     override: (path, request) => {
       seen.push(path);
-      if (request.method() !== "GET" && !path.startsWith("/v1/staff/auth/")) writes.push(`${request.method()} ${path}`);
-      if (path === directory) return { body: { items: [staffItem({ identity: { email: sentinel } })], nextCursor: null } };
-      if (path === shifts) return { body: { items: [activeShift()], nextCursor: null } };
+      if (request.method() !== "GET" && !path.startsWith("/v1/staff/auth/"))
+        writes.push(`${request.method()} ${path}`);
+      if (path === directory)
+        return {
+          body: {
+            items: [staffItem({ identity: { email: sentinel } })],
+            nextCursor: null,
+          },
+        };
+      if (path === shifts)
+        return { body: { items: [activeShift()], nextCursor: null } };
       return undefined;
     },
   });
@@ -158,7 +217,7 @@ test("R05 settles request budget, keeps rows memory-only, and performs no hidden
   await page.waitForTimeout(650);
   expect(fixture.count(directory)).toBe(settledDirectory);
   await page.getByRole("searchbox").fill("r05-storage");
-  expect(fixture.count(directory)).toBe(settledDirectory);
+  await expect.poll(() => fixture.count(directory)).toBe(settledDirectory + 1);
 
   await page.getByRole("button", { name: "Shifts" }).click();
   await expect(page.getByText("Active shift", { exact: true })).toBeVisible();
@@ -166,8 +225,14 @@ test("R05 settles request budget, keeps rows memory-only, and performs no hidden
   await page.waitForTimeout(650);
   expect(fixture.count(shifts)).toBe(settledShifts);
   expect(writes).toEqual([]);
-  expect(seen.some((path) => /\/staff\/[^/]+$/u.test(path) && path !== directory)).toBe(false);
-  expect(seen.filter((path) => path.includes("/active-shifts")).every((path) => path === shifts)).toBe(true);
+  expect(
+    seen.some((path) => /\/staff\/[^/]+$/u.test(path) && path !== directory),
+  ).toBe(false);
+  expect(
+    seen
+      .filter((path) => path.includes("/active-shifts"))
+      .every((path) => path === shifts),
+  ).toBe(true);
   const storage = await persistentMatches(page, sentinel);
   expect(storage.local).toEqual([]);
   expect(storage.session).toEqual([]);

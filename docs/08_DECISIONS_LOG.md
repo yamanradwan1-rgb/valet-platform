@@ -3808,6 +3808,14 @@ Organization; global User disable remains separate.
 Full contract:
 `docs/decisions/DEC-081_STAFF_ROLE_AND_ACCESS_LIFECYCLE.md`.
 
+Approved Issue #240 / T05-A extension (2026-10-01): nullable structured staff
+names belong to OrganizationMembership; User retains global email. Names are
+trimmed, nonblank, Unicode-preserving and bounded to 100 code points each, with
+no fabricated backfill. One shared formatter uses complete names or truthful
+email fallback. Company Admin directory filters run before the keyset limit;
+v2 cursors bind effective filter fingerprints without raw search PII. Current
+authority and mutation policies remain unchanged; later #240 slices stay deferred.
+
 ---
 
 ## DEC-082 — Management Audit Visibility

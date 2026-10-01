@@ -33,7 +33,38 @@ idempotent desired-state semantics, non-disclosing tenant failures, and an
 atomic tenant audit event. No generic permission engine or new role enum is
 introduced.
 
-## Reason
+## Approved Issue #240 / T05-A identity and directory extension — 2026-10-01
+
+The owner-approved U-01 contract adds nullable `firstName` and `lastName` to
+OrganizationMembership. User remains the global email authority. Existing
+memberships retain null names; no email-derived or guessed backfill is allowed.
+Non-null names preserve Unicode, diacritics and punctuation, have no surrounding
+ECMAScript whitespace, and contain 1–100 Unicode code points. The conservative
+100-code-point component bound is an implementation constant; existing shared
+Management labels use 200 characters, but no structured person-name bound exists.
+
+One exported shared identity formatter displays `firstName + " " + lastName`
+only when both names exist; otherwise it displays the real email. Directory and
+detail expose the same structured identity, and named staff retain visible email.
+Names are protected tenant identity, never global User fields.
+
+The existing Company Admin directory supports bounded, trimmed, case-insensitive
+literal substring search (maximum 200 Unicode code points) over first name,
+last name, full name and User email, exact role/status, and Organization-owned
+Location filters. Effective predicates precede the `(created_at,id)` keyset
+limit (default 50, maximum 100); grant counts remain bounded to returned rows.
+Version-2 cursors bind domain, Organization and a SHA-256 fingerprint of effective
+filters (trimmed/empty-normalized search with case preserved, exact enums and
+normalized Location UUID), never readable search PII. Search case remains
+distinct in the fingerprint to avoid assuming PostgreSQL locale case-folding
+equivalence. Invalid/mismatched cursors fail validation.
+Existing Company Admin authority, MFA, entitlements and all mutation semantics
+remain unchanged. Location Manager expansion, onboarding and shift changes are
+owned by later Issue #240 slices and are not introduced by T05-A.
+
+Source: Issue #240, the owner-approved execution plan U-01, and T05-A brief.
+
+## Reason (original decision)
 
 Tenant staff administration must not strand operations, erase responsibility,
 or turn a tenant-scoped action into a platform-wide account disable.

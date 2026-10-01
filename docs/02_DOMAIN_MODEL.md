@@ -133,6 +133,10 @@ If that exact factor is retired or replaced, old assurance is no longer valid.
 
 Connects a User to an Organization.
 
+Issue #240 / T05-A adds nullable membership-owned first/last names; User retains
+global email. Complete names use one shared formatter, with truthful email
+fallback for legacy incomplete names and no fabricated backfill.
+
 Current tenant membership roles:
 
 - `ORG_ADMIN` — internal name for Blueprint Company Admin
@@ -166,8 +170,9 @@ the current implementation checks the affected scope for:
   `AWAITING_PARKING` without an active Parking Task that represents handoff;
 - an unexpired `RESERVED` `IncidentRecoveryIntent` reported by the membership.
 
-The Staff directory reads the bounded tenant membership page first and only then
-hydrates identity and Location-access counts. The persistence support added by
+T05-A Staff directory applies tenant-scoped name/email, role/status and Location
+filters before the deterministic membership keyset limit; only returned rows
+receive Location-access counts. The persistence support added by
 migration 37 is intentionally narrow: one Organization membership page index,
 one intake-responsibility lookup index, and one reserved-incident lookup index
 for these concrete access/lifecycle paths.

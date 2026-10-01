@@ -12,16 +12,55 @@ export const staffManagementRoleSchema = z.enum([
 
 export const staffManagementStatusSchema = z.enum(["ACTIVE", "INACTIVE"]);
 
+export const STAFF_NAME_MAX_LENGTH = 100;
+export const STAFF_SEARCH_MAX_LENGTH = 200;
+const staffNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .refine(
+    (value) => Array.from(value).length <= STAFF_NAME_MAX_LENGTH,
+    "Name exceeds 100 Unicode code points.",
+  );
+
 export const staffDirectoryQuerySchema = z
   .object({
     cursor: cursorSchema.optional(),
+    search: z
+      .string()
+      .trim()
+      .refine(
+        (value) => Array.from(value).length <= STAFF_SEARCH_MAX_LENGTH,
+        "Search exceeds 200 Unicode code points.",
+      )
+      .transform((value) => (value === "" ? undefined : value))
+      .optional(),
+    role: staffManagementRoleSchema.optional(),
+    status: staffManagementStatusSchema.optional(),
+    locationId: uuidSchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).default(50),
   })
   .strict();
 
 export const staffManagementIdentitySchema = z
-  .object({ email: z.string().email().max(320) })
+  .object({
+    email: z.string().email().max(320),
+    firstName: staffNameSchema.nullable(),
+    lastName: staffNameSchema.nullable(),
+  })
   .strict();
+
+export type StaffManagementIdentity = z.infer<
+  typeof staffManagementIdentitySchema
+>;
+
+export function staffManagementDisplayName(
+  identity: StaffManagementIdentity,
+): string {
+  return identity.firstName !== null && identity.lastName !== null
+    ? `${identity.firstName} ${identity.lastName}`
+    : identity.email;
+}
 
 export const staffManagementLocationAccessSchema = z
   .object({
@@ -91,7 +130,9 @@ export const staffLocationAccessCommandSchema = z
 
 export type StaffDirectoryItem = z.infer<typeof staffDirectoryItemSchema>;
 export type StaffDirectoryQuery = z.infer<typeof staffDirectoryQuerySchema>;
-export type StaffDirectoryResponse = z.infer<typeof staffDirectoryResponseSchema>;
+export type StaffDirectoryResponse = z.infer<
+  typeof staffDirectoryResponseSchema
+>;
 export type StaffLocationAccessCommand = z.infer<
   typeof staffLocationAccessCommandSchema
 >;

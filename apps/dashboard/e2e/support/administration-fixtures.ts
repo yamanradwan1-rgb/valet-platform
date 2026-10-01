@@ -30,7 +30,12 @@ export function companySettings(updatedAt = SETTINGS_UPDATED_AT) {
 }
 
 function inherited<T>(value: T) {
-  return { default: value, overridePresent: false, override: null, effective: value };
+  return {
+    default: value,
+    overridePresent: false,
+    override: null,
+    effective: value,
+  };
 }
 
 export function managementLocationSettings(updatedAt = SETTINGS_UPDATED_AT) {
@@ -42,7 +47,9 @@ export function managementLocationSettings(updatedAt = SETTINGS_UPDATED_AT) {
     updatedAt,
     settings: {
       checkInPhotosRequired: inherited(defaultSettings.checkInPhotosRequired),
-      handoffStandardMethodPolicy: inherited(defaultSettings.handoffStandardMethodPolicy),
+      handoffStandardMethodPolicy: inherited(
+        defaultSettings.handoffStandardMethodPolicy,
+      ),
       trackingEnabled: inherited(defaultSettings.trackingEnabled),
       rawGpsRetentionDays: inherited(defaultSettings.rawGpsRetentionDays),
       valetServiceFee: inherited(defaultSettings.valetServiceFee),
@@ -55,8 +62,12 @@ export function managementLocationSettings(updatedAt = SETTINGS_UPDATED_AT) {
       operatingHours: inherited(defaultSettings.operatingHours),
       ocrAssistEnabled: inherited(defaultSettings.ocrAssistEnabled),
       parkingSpotRequired: inherited(defaultSettings.parkingSpotRequired),
-      employeeRetrievalRequestedNotificationEnabled: inherited(defaultSettings.employeeRetrievalRequestedNotificationEnabled),
-      guestVehicleReadyNotificationEnabled: inherited(defaultSettings.guestVehicleReadyNotificationEnabled),
+      employeeRetrievalRequestedNotificationEnabled: inherited(
+        defaultSettings.employeeRetrievalRequestedNotificationEnabled,
+      ),
+      guestVehicleReadyNotificationEnabled: inherited(
+        defaultSettings.guestVehicleReadyNotificationEnabled,
+      ),
       slaTargetSeconds: null,
     },
   };
@@ -70,8 +81,20 @@ export function locationManagerConfiguration(updatedAt = SETTINGS_UPDATED_AT) {
     currency: LOCATION_A.currency,
     updatedAt,
     settings: [
-      { setting: "rawGpsRetentionDays", default: 30, overridePresent: false, override: null, effective: 30 },
-      { setting: "valetServiceFee", default: "5.500", overridePresent: false, override: null, effective: "5.500" },
+      {
+        setting: "rawGpsRetentionDays",
+        default: 30,
+        overridePresent: false,
+        override: null,
+        effective: 30,
+      },
+      {
+        setting: "valetServiceFee",
+        default: "5.500",
+        overridePresent: false,
+        override: null,
+        effective: "5.500",
+      },
     ],
   };
 }
@@ -81,7 +104,7 @@ export function staffDirectoryItem(
   membershipId = E2E_IDS.membership,
 ) {
   return {
-    identity: { email },
+    identity: { firstName: null, lastName: null, email },
     locationAccessCount: 0,
     membershipId,
     role: "VALET_EMPLOYEE" as const,

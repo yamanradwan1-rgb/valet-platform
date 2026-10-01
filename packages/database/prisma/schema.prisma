@@ -668,6 +668,8 @@ model OrganizationMembership {
   id             String           @id @default(uuid()) @db.Uuid
   organizationId String           @map("organization_id") @db.Uuid
   userId         String           @map("user_id") @db.Uuid
+  firstName      String?          @map("first_name")
+  lastName       String?          @map("last_name")
   role           MembershipRole
   status         MembershipStatus @default(ACTIVE)
   version        Int              @default(1)

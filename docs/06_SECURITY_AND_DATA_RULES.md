@@ -782,15 +782,19 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   current `dashboardAccess` for reads and current
   `dashboardAccess + reportExports` for exports.
 - MGT-BE-04 Staff directory/detail are Organization-scoped, bounded and
-  minimized. Directory identity is email-only plus membership role/status/
+  minimized. T05-A directory identity is nullable membership-owned first/last
+  names and globally authoritative User email, plus membership role/status/
   version and Location-access count; detail adds a bounded Location-grant
   projection. User IDs, phone data, Staff sessions, MFA material,
   other-Organization memberships/grants and operational responsibility are not
   exposed. Foreign membership lookup is concealed as unavailable, and these
   responses use no-store semantics.
-- The Staff directory is page-first: it selects only the bounded tenant
-  membership keyset page before joining User identity and counting Location
-  grants. Migration 37 adds the justified
+- T05-A Staff directory applies tenant/authority, bounded literal name/email
+  search and exact role/status/Organization-owned Location filters before the
+  keyset LIMIT. User email joins precede LIMIT; grant counts follow page selection.
+  V2 cursors contain a filter fingerprint, never readable search PII; no raw
+  search terms or staff names/email are added to logs, audit or browser storage.
+  Migration 37 adds the justified
   `organization_memberships_org_created_id_idx`,
   `valet_sessions_checked_in_state_location_idx`, and
   `incident_recovery_intents_member_state_expiry_location_idx` indexes for the

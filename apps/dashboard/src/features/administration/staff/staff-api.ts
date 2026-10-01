@@ -6,6 +6,7 @@ import {
   type StaffManagementRole,
   type StaffRoleCommand,
   type StaffStatusCommand,
+  type StaffDirectoryQuery,
 } from "@valet/contracts";
 
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
@@ -19,9 +20,11 @@ export function readStaffDirectory(
   organizationId: string,
   cursor: string | null,
   signal?: AbortSignal,
+  filters: Omit<StaffDirectoryQuery, "limit" | "cursor"> = {},
 ) {
   return api.request(base(organizationId), staffDirectoryResponseSchema, {
-    query: { limit: 50, cursor }, signal,
+    query: { ...filters, limit: 50, cursor },
+    signal,
   });
 }
 
@@ -31,7 +34,11 @@ export function readStaffDetail(
   membershipId: string,
   signal?: AbortSignal,
 ) {
-  return api.request(`${base(organizationId)}/${membershipId}`, staffMembershipDetailSchema, { signal });
+  return api.request(
+    `${base(organizationId)}/${membershipId}`,
+    staffMembershipDetailSchema,
+    { signal },
+  );
 }
 
 export function setStaffRole(
@@ -42,9 +49,14 @@ export function setStaffRole(
   expectedVersion: number,
 ) {
   const body: StaffRoleCommand = { expectedVersion, role };
-  return api.request(`${base(organizationId)}/${membershipId}/role`, staffMembershipDetailSchema, {
-    body, method: "POST",
-  });
+  return api.request(
+    `${base(organizationId)}/${membershipId}/role`,
+    staffMembershipDetailSchema,
+    {
+      body,
+      method: "POST",
+    },
+  );
 }
 
 export function setStaffStatus(
@@ -56,9 +68,14 @@ export function setStaffStatus(
 ) {
   const body: StaffStatusCommand = { expectedVersion };
   const action = status === "ACTIVE" ? "activate" : "deactivate";
-  return api.request(`${base(organizationId)}/${membershipId}/${action}`, staffMembershipDetailSchema, {
-    body, method: "POST",
-  });
+  return api.request(
+    `${base(organizationId)}/${membershipId}/${action}`,
+    staffMembershipDetailSchema,
+    {
+      body,
+      method: "POST",
+    },
+  );
 }
 
 export function changeStaffLocationAccess(
@@ -69,7 +86,10 @@ export function changeStaffLocationAccess(
   expectedVersion: number,
   action: "grant" | "revoke",
 ) {
-  const body: StaffLocationAccessCommand = { expectedVersion, locationIds: [locationId] };
+  const body: StaffLocationAccessCommand = {
+    expectedVersion,
+    locationIds: [locationId],
+  };
   return api.request(
     `${base(organizationId)}/${membershipId}/location-access/${action}`,
     staffMembershipDetailSchema,

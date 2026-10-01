@@ -401,10 +401,12 @@ privilege coverage. MGT-BE-05 is implemented in the next packet below.
   helpers. Four base roles remain unchanged; no generic permission model or new
   mutable key-custody owner was introduced.
 - Directory/privacy: Organization staff list is keyset-paginated and bounded;
-  its final query is page-first, selecting the tenant membership page by
-  `(created_at, id)` before User hydration and Location-grant counting. Detail
+  T05-A extends its query with bounded literal name/email, role/status and
+  Organization-owned Location filters before the `(created_at,id)` limit.
+  User email participates before LIMIT and grant counts follow the page. Detail
   returns at most 100 Location grants plus total/truncated state. Public
-  projection is membership ID, email, role, status, version and bounded grant
+  projection is membership ID, nullable membership-owned first/last names,
+  User email, role, status, version and bounded grant
   data only; foreign membership and other-Organization state remain concealed.
 - Mutation semantics: role/status/grant requests use one shared CAS,
   fail closed on nullable DB-boundary CAS/mode input, and converge desired-state

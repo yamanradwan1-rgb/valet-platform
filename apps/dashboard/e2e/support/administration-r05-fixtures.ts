@@ -12,29 +12,37 @@ export const activeShiftsPath = (locationId: string) =>
 
 export function staffItem(overrides: Record<string, unknown> = {}) {
   return {
-    identity: { email: STAFF_EMAIL },
     locationAccessCount: 2,
     membershipId: E2E_IDS.membership,
     role: "VALET_EMPLOYEE",
     status: "ACTIVE",
     version: 1,
     ...overrides,
+    identity: {
+      firstName: null,
+      lastName: null,
+      email: STAFF_EMAIL,
+      ...((overrides.identity as object) ?? {}),
+    },
   };
 }
 
 export function staffDetail(overrides: Record<string, unknown> = {}) {
   return {
-    ...staffItem(),
+    ...staffItem(overrides),
     locationAccess: {
-      items: [{
-        locationId: LOCATION_A.locationId,
-        name: LOCATION_A.name,
-        status: LOCATION_A.status,
-      }],
+      items: [
+        {
+          locationId: LOCATION_A.locationId,
+          name: LOCATION_A.name,
+          status: LOCATION_A.status,
+        },
+      ],
       totalCount: 1,
       truncated: false,
     },
     ...overrides,
+    identity: staffItem(overrides).identity,
   };
 }
 

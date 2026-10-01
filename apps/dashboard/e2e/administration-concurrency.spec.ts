@@ -51,7 +51,7 @@ function staffProjection(
   version: number,
 ) {
   return {
-    identity: { email: STAFF_EMAIL },
+    identity: { email: STAFF_EMAIL, firstName: null, lastName: null },
     locationAccessCount: 0,
     membershipId: E2E_IDS.membership,
     role,
