@@ -8,7 +8,10 @@ export function staffDirectorySql(
   locationManagerMembershipId?: string,
 ) {
   const values: unknown[] = [organizationId];
-  const predicates = ["membership.organization_id = $1::uuid"];
+  const predicates = [
+    "membership.organization_id = $1::uuid",
+    "membership.status IN ('ACTIVE', 'INACTIVE')",
+  ];
   const parameter = (value: unknown) => {
     values.push(value);
     return `$${values.length}`;

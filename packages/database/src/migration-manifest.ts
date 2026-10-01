@@ -49,4 +49,5 @@ export const expectedMigrationDirectories = [
   "20261001004800_mgt_236_parking_zone_creation",
   "20261001004900_mgt_240a_staff_identity",
   "20261001005000_mgt_240b_lm_staff_authority",
+  "20261001005100_mgt_240c_staff_onboarding_invites",
 ] as const;

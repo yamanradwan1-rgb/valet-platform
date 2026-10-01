@@ -32,6 +32,7 @@ export async function loadStaffMembership(
      FROM organization_memberships AS membership
      INNER JOIN users AS staff_user ON staff_user.id = membership.user_id
      WHERE membership.id = $1 AND membership.organization_id = $2
+       AND membership.status IN ('ACTIVE', 'INACTIVE')
      ${lock ? "FOR UPDATE OF membership" : ""}`,
     [membershipId, organizationId],
   );

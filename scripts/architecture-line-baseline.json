@@ -3,10 +3,6 @@
   "sourceCommit": "1b5db989252dbf8d47b9fe7f81e55a96ed012c56",
   "grandfathered": [
     {
-      "path": "apps/api/src/modules/auth/staff-auth.service.ts",
-      "maxLines": 458
-    },
-    {
       "path": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
       "maxLines": 317
     },

@@ -178,13 +178,23 @@ export async function authorizeStaffTarget(
   membershipId: string,
   lock = false,
 ): Promise<void> {
-  if (authority.kind === "COMPANY_ADMIN") return;
+  if (authority.kind === "COMPANY_ADMIN") {
+    const target = await transaction.query(
+      `SELECT 1 FROM organization_memberships
+       WHERE id = $1 AND organization_id = $2
+         AND status IN ('ACTIVE', 'INACTIVE')`,
+      [membershipId, authority.organizationId],
+    );
+    if (target.rowCount !== 1) return deny();
+    return;
+  }
   const result = await transaction.query(
     `SELECT 1
      FROM organization_memberships AS target
      WHERE target.id = $1
        AND target.organization_id = $2
        AND target.id <> $3
+       AND target.status IN ('ACTIVE', 'INACTIVE')
        AND target.role IN ('VALET_EMPLOYEE', 'VALET_SUPERVISOR')
        AND EXISTS (
          SELECT 1 FROM membership_location_access AS target_access

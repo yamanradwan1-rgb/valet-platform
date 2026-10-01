@@ -1,13 +1,11 @@
 import { provisionPaymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { provisionProviderEventPrivileges } from "./provider-event-runtime-privileges.mjs";
 import { provisionLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
-import {
-  organizationSubscriptionTablePolicies,
-  provisionBasicBrandingPrivileges,
-} from "./basic-branding-runtime-privileges.mjs";
+import { provisionBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
 import { provisionStaffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
 import { provisionIncidentRecoveryPrivileges } from "./incident-recovery-runtime-privileges.mjs";
-import { provisionStaffManagementPrivileges } from "./staff-management-runtime-privileges.mjs";
+import { provisionStaffOnboardingPrivileges } from "./staff-onboarding-runtime-privileges.mjs";
+import { revokeRuntimeStaffAuthority } from "./runtime-staff-authority-revokes.mjs";
 import { provisionManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
 import { provisionManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
 
@@ -121,22 +119,6 @@ const runtimeLockColumns = [
   ["parking_zones", "updated_at"],
 ];
 
-const authorityColumnRevokes = [
-  `REVOKE INSERT (id, email, phone, password_hash, status, created_at,
-                  updated_at, last_login_at),
-          UPDATE (id, email, phone, password_hash, status, created_at,
-                  updated_at, last_login_at)
-   ON TABLE users FROM %I`,
-  `REVOKE INSERT (id, organization_id, user_id, role, status, version, created_at,
-                  updated_at),
-          UPDATE (id, organization_id, user_id, role, status, version, created_at,
-                  updated_at)
-   ON TABLE organization_memberships FROM %I`,
-  `REVOKE INSERT (organization_id, membership_id, location_id, created_at),
-          UPDATE (organization_id, membership_id, location_id, created_at)
-   ON TABLE membership_location_access FROM %I`,
-];
-
 export async function provisionRuntimeTablePrivileges(
   client,
   executeFormatted,
@@ -151,22 +133,7 @@ export async function provisionRuntimeTablePrivileges(
     "REVOKE UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLE customers FROM %I",
     [runtimeRole],
   );
-  await client.query(
-    `REVOKE INSERT, UPDATE, DELETE, TRUNCATE
-     ON TABLE users, organization_memberships, membership_location_access
-     FROM PUBLIC`,
-  );
-  for (const statement of authorityColumnRevokes) {
-    await client.query(statement.replace("%I", "PUBLIC"));
-  }
-  await executeFormatted(
-    client,
-    "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON TABLE users, organization_memberships, membership_location_access FROM %I",
-    [runtimeRole],
-  );
-  for (const statement of authorityColumnRevokes) {
-    await executeFormatted(client, statement, [runtimeRole]);
-  }
+  await revokeRuntimeStaffAuthority(client, executeFormatted, runtimeRole);
   for (const table of runtimeReadOnlyTables) {
     await executeFormatted(client, "GRANT SELECT ON TABLE %I TO %I", [
       table,
@@ -288,9 +255,21 @@ export async function provisionRuntimeTablePrivileges(
     executeFormatted,
     runtimeRole,
   );
-  await provisionStaffManagementPrivileges(client, executeFormatted, runtimeRole);
-  await provisionManagementSettingsPrivileges(client, executeFormatted, runtimeRole);
-  await provisionManagementFeaturePrivileges(client, executeFormatted, runtimeRole);
+  await provisionStaffOnboardingPrivileges(
+    client,
+    executeFormatted,
+    runtimeRole,
+  );
+  await provisionManagementSettingsPrivileges(
+    client,
+    executeFormatted,
+    runtimeRole,
+  );
+  await provisionManagementFeaturePrivileges(
+    client,
+    executeFormatted,
+    runtimeRole,
+  );
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

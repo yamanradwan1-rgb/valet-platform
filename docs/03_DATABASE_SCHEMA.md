@@ -383,6 +383,7 @@ last_login_at
 
 Status:
 
+- PENDING — onboarding account; no password and no staff authentication
 - ACTIVE
 - DISABLED
 
@@ -391,13 +392,20 @@ Constraints/rules:
 - `email` required for staff MVP authentication
 - `email` stores normalized trimmed lowercase value and is globally unique
 - `phone` nullable and not unique in Phase 1; when normalized it should be stored in E.164-compatible canonical form
-- `password_hash` required and never exposed
+- `password_hash` null exactly for PENDING; required for ACTIVE/DISABLED and never exposed
 - status required, default `ACTIVE`
 
 Accepted staff password hashes use an Argon2id PHC string with version 19,
 64 MiB memory, three passes, parallelism four, a 16-byte random salt and a
 32-byte output. Unsupported stored formats fail closed and are never accepted
 as a password fallback.
+
+### Issue #240 / T05-C pending account extension
+
+Migration `20261001005100_mgt_240c_staff_onboarding_invites` adds UserStatus
+`PENDING` and makes `password_hash` nullable. A PostgreSQL CHECK requires null
+exactly for PENDING; ACTIVE/DISABLED retain non-null hashes. Existing values are
+preserved. Pending accounts cannot authenticate or create Staff sessions.
 
 ## staff_auth_sessions
 
@@ -572,6 +580,7 @@ Role:
 
 Status:
 
+- PENDING — onboarding membership; no staff authority or ordinary management lifecycle mutation
 - ACTIVE
 - INACTIVE
 
@@ -654,6 +663,38 @@ Role-boundary notes:
 - Guest/Customer is not an OrganizationMembership.
 - VAYLET Super Admin is platform-level and must not be represented as a tenant membership role.
 - Venue Client is a Blueprint role/actor, but its exact persistence/access representation is not locked in Phase 1; do not invent it inside VAL-002B.
+
+### Issue #240 / T05-C pending membership extension
+
+MembershipStatus adds `PENDING`. Initial onboarding requires both canonical names,
+one of LM/Supervisor/Employee and 1–50 initial grants. Existing defaults, names,
+statuses and unique `(organization_id,user_id)` remain intact. Ordinary directory
+SQL excludes PENDING before LIMIT; detail and ordinary DB role/status/grant
+commands reject it before no-op/write. Only later T05-D may activate onboarding.
+
+## staff_onboarding_invitations
+
+One purpose-specific record per issued generation:
+`id`, `organization_id`, `membership_id`, `issued_by_membership_id`, `generation`,
+`operation_id`, `request_fingerprint`, `token_hash`, `created_at`, `expires_at`,
+nullable `consumed_at` and `revoked_at`. No raw token/link/password/delivery state.
+Tenant-composite restrictive member/actor FKs plus Organization FK; positive
+generation; unique member/generation, Organization/operation and token hash.
+Expiry must follow creation; consumed and revoked are mutually exclusive and
+cannot predate creation; consumption cannot exceed expiry. Partial unique index
+allows only one unconsumed/unrevoked generation per membership. Expired rows are
+historical/current-by-lineage but never valid activation proof. A private DB
+eligibility helper checks authoritative time and all terminal fields.
+
+Create/resend are narrow SECURITY DEFINER commands with fixed
+`search_path=pg_catalog, public`, schema-qualified persistence and PUBLIC denied.
+API authorizes current exact-session sensitive MFA and persisted staff authority;
+commands independently prove actor/role/grants/account eligibility and serialize
+operation/generation, write protected state and exactly one safe audit atomically.
+Runtime has SELECT only on invitation persistence, EXECUTE on create/resend only,
+no helper/trigger execution or direct INSERT/UPDATE/DELETE/TRUNCATE. Generations
+are never hard-deleted. See the focused T05-C validation record for lock order and
+future T05-D consumer obligations.
 
 ## membership_location_access
 

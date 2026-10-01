@@ -12,8 +12,8 @@ function failureHarness(
   row:
     | {
         id: string;
-        password_hash: string;
-        status: "ACTIVE" | "DISABLED";
+        password_hash: string | null;
+        status: "ACTIVE" | "DISABLED" | "PENDING";
       }
     | undefined,
 ) {
@@ -30,6 +30,21 @@ function failureHarness(
 }
 
 describe("staff login timing-equalization boundary", () => {
+  it("verifies the dummy once and rejects a passwordless pending account", async () => {
+    const { service, verify } = failureHarness({
+      id: "f6d2749c-e646-44fc-aa41-d84b65014739",
+      password_hash: null,
+      status: "PENDING",
+    });
+    await expect(
+      service.login("pending@example.com", "candidate"),
+    ).rejects.toMatchObject({ code: "STAFF_AUTHENTICATION_FAILED" });
+    expect(verify).toHaveBeenCalledTimes(1);
+    expect(verify).toHaveBeenCalledWith(
+      STAFF_AUTH_DUMMY_PASSWORD_HASH,
+      "candidate",
+    );
+  });
   it("performs exactly one verification against the dummy hash for unknown email", async () => {
     const { service, verify } = failureHarness(undefined);
     await expect(
@@ -80,9 +95,7 @@ describe("staff authentication origin configuration", () => {
       parseStaffAuthAllowedOrigins(
         "https://staff.example,https://dashboard.example",
       ),
-    ).toEqual(
-      new Set(["https://staff.example", "https://dashboard.example"]),
-    );
+    ).toEqual(new Set(["https://staff.example", "https://dashboard.example"]));
     expect(() => parseStaffAuthAllowedOrigins("*")).toThrow(
       "explicit allowed origins",
     );

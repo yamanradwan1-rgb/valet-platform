@@ -96,6 +96,37 @@ invitations, activation links, Shift History, Force End Shift, or Force Start.
 
 Source: Issue #240, the owner-approved execution plan U-02, and T05-B brief.
 
+## Approved Issue #240 / T05-C onboarding backend — 2026-10-01
+
+Owner-approved T05-C adds distinct `PENDING` User and membership lifecycle states.
+New pending Users have null `password_hash`; ACTIVE/DISABLED Users retain required
+verifiers. Pending memberships have required membership-owned names, a lower
+direct role and 1–50 distinct Organization-owned initial Location grants. They
+have no protected authority and are excluded from ordinary directory/detail and
+role/status/grant commands, including ordinary `/activate`.
+
+Sensitive CA onboarding allows LM/Supervisor/Employee; LM allows only
+Supervisor/Employee with complete current active grant coverage. Existing ACTIVE
+or PENDING Users are reused without password/status changes; global DISABLED and
+same-Organization membership conflicts produce neutral onboarding-unavailable
+responses. MFA and entitlement requirements remain the existing mechanisms.
+
+Exact commands: `POST /v1/staff/management/organizations/:organizationId/staff`
+and `POST /v1/staff/management/organizations/:organizationId/staff/:membershipId/invitations`.
+Create takes strict operationId/names/email/role/locationIds; resend takes only
+operationId. Invitations persist tenant-composite member/actor references,
+generation, durable Organization-scoped operation identity, normalized request
+digest, verifier hash, expiry and terminal timestamps. Plaintext never persists.
+Fresh successful issuance returns a trusted-origin fragment activation link only
+after commit. Same operation/digest returns `INVITE_PENDING_LINK_UNAVAILABLE`
+without a link or new generation/audit; conflicting digest returns operation
+conflict. Only explicit new resend rotates and revokes previous generations.
+
+Issuance and one safe tenant audit event commit atomically through narrow runtime
+SECURITY DEFINER entrypoints; direct table mutations and private helper execution
+remain denied. No email/SMS transport. T05-D owns token proof/consumption,
+existing-account ownership, first password, activation and onboarding UI.
+
 ## Reason (original decision)
 
 Tenant staff administration must not strand operations, erase responsibility,

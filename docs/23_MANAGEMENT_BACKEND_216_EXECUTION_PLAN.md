@@ -465,6 +465,18 @@ active Location Managers in active Organizations and grants no Company Admin or
 unrelated Management authority. T05-C through T05-G functionality is outside this
 extension.
 
+Issue #240 / T05-C adds only secure onboarding issuance/resend foundations:
+PENDING User/membership, null pending password, required membership names and
+bounded initial grants, hash-only invitation generations, durable operation/digest
+reconciliation and atomic safe audit through narrow runtime command functions.
+Exact routes are staff-root POST and `/:membershipId/invitations` POST. Sensitive
+CA permits LM/Supervisor/Employee; LM permits only completely covered
+Supervisor/Employee. Pending remains excluded from ordinary management/auth and
+operational authority. Fresh commit alone returns the trusted-origin fragment
+activation link; replay returns no link or new generation. See Accepted DEC-081
+and `validation/ISSUE_240C_STAFF_ONBOARDING_BACKEND.md`. T05-D activation,
+ownership, password setup and onboarding UI remain deferred.
+
 ### MGT-BE-05 — Company Settings & Branding
 
 Objective: expose existing typed defaults plus DEC-083/085 language, operating

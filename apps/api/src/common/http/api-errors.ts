@@ -105,6 +105,7 @@ const statusByCode: Readonly<Record<string, number>> = {
   TASK_REASSIGN_REASON_REQUIRED: HttpStatus.BAD_REQUEST,
   STAFF_AUTHENTICATION_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: HttpStatus.FORBIDDEN,
+  STAFF_ONBOARDING_UNAVAILABLE: HttpStatus.CONFLICT,
   STAFF_ACCESS_INVALID_STATE: HttpStatus.CONFLICT,
   STAFF_HANDOVER_REQUIRED: HttpStatus.CONFLICT,
   LAST_USABLE_ADMIN_REQUIRED: HttpStatus.CONFLICT,
@@ -132,7 +133,8 @@ const safeMessages: Readonly<Record<string, string>> = {
   AUTHORIZATION_DENIED: "The requested resource is not available.",
   GUEST_ACCESS_INVALID: "Guest access is invalid.",
   GUEST_ACCESS_RATE_LIMITED: "Too many requests. Try again later.",
-  GUEST_RATING_CONFLICT: "A different rating is already recorded for this visit.",
+  GUEST_RATING_CONFLICT:
+    "A different rating is already recorded for this visit.",
   GUEST_RATING_NOT_AVAILABLE:
     "Guest rating is available only after the visit is completed.",
   FINANCIAL_RELEASE_NOT_SATISFIED:
@@ -147,12 +149,16 @@ const safeMessages: Readonly<Record<string, string>> = {
   MFA_STEP_UP_REQUIRED: "Additional authentication is required.",
   MFA_VERIFICATION_FAILED: "MFA verification failed.",
   PARKING_ZONE_INVALID: "The selected Parking Zone is not available.",
-  RESOURCE_CODE_CONFLICT: "A resource with this code already exists in this Location.",
+  RESOURCE_CODE_CONFLICT:
+    "A resource with this code already exists in this Location.",
   STAFF_AUTHENTICATION_FAILED: "Staff authentication failed.",
   STAFF_AUTHENTICATION_RATE_LIMITED: "Too many requests. Try again later.",
   STAFF_AUTH_ORIGIN_NOT_ALLOWED: "The request origin is not allowed.",
-  STAFF_ACCESS_INVALID_STATE: "The requested Staff access change is not valid now.",
-  STAFF_HANDOVER_REQUIRED: "Operational handover is required before this change.",
+  STAFF_ONBOARDING_UNAVAILABLE: "Staff onboarding is not available.",
+  STAFF_ACCESS_INVALID_STATE:
+    "The requested Staff access change is not valid now.",
+  STAFF_HANDOVER_REQUIRED:
+    "Operational handover is required before this change.",
   LAST_USABLE_ADMIN_REQUIRED: "Another usable Company Admin is required.",
   STAFF_PUSH_REGISTRATION_CONFLICT:
     "The push registration could not be reconciled.",

@@ -3826,7 +3826,16 @@ audit semantics, and every grant command must leave a non-empty fully covered
 target set. Authority is re-proved through commit so grant/lifecycle loss cannot
 race through stale preflight. LM sensitive staff commands reuse the existing MFA
 system; eligibility for that ceremony does not grant Company Admin capability.
-T05-C through T05-G remain deferred.
+Approved Issue #240 / T05-C extension (2026-10-01): explicit PENDING User and
+membership, null password only for pending accounts, required names/1–50 grants,
+sensitive CA/fully covered LM lower-role onboarding, hash-only invitation
+generations and strict staff-root POST plus `/:membershipId/invitations` resend.
+Fresh issuance alone exposes the trusted-origin fragment link after commit.
+Durable operation/digest replay returns link-unavailable with no new generation;
+conflicting payload conflicts. Narrow security-definer writes atomically audit,
+retain history and quarantine PENDING from ordinary management and authority.
+Full details are in Accepted DEC-081. Activation/ownership/UI and T05-E–G remain
+deferred to their assigned slices.
 
 ---
 

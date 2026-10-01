@@ -180,6 +180,35 @@ process-local counters are never authoritative.
 
 Enterprise SSO is deferred until its approved later phase.
 
+### Issue #240 / T05-C invitation issuance
+
+Pending User/membership are explicit and provide no protected authority. Null
+password is restricted to pending accounts; login performs dummy-hash verification
+and returns the same generic failure. Existing ACTIVE credentials are untouched.
+Tenant invitations cannot reactivate global DISABLED accounts or expose another
+tenant's membership/account state. Ordinary staff commands cannot bypass pending
+activation or ownership proof.
+
+Create/resend use current StaffSession, fresh sensitive MFA, Dashboard entitlement,
+persisted CA/LM role policy and complete LM active grant coverage through commit.
+The exact routes and durable operation semantics are recorded in Accepted DEC-081.
+Only fresh successful issuance returns a raw 256-bit `vsi1` invitation link after
+commit; persistence stores a purpose/version-separated SHA-256 verifier only.
+Trusted `STAFF_ACTIVATION_PUBLIC_ORIGIN` must be a validated origin (HTTPS outside
+local development); `/staff/activate#invite=...` carries the secret in a fragment.
+Never derive this origin from request Host/Origin/forwarded headers. No delivery
+provider or outbox. Invitation TTL is 24 hours, aligned with the existing one-time
+guest credential lifetime; explicit resends serialize without an automatic loop.
+
+Same operation/digest reconciles safe durable invitation facts without returning
+the secret or issuing another generation. Different digest conflicts; explicit new
+resend invalidates older unconsumed generations. Audit includes only actor/tenant,
+target membership, operation/invitation/generation, role, count and safe outcome;
+no names/email/token/link/verifier/password. Narrow command privileges protect
+atomic issuance/audit and preserved generation history. T05-D must recheck private
+current-proof eligibility under account/member/generation locks before any future
+consumption; no public redemption, credential setup or UI is implemented here.
+
 ## Native push
 
 Accepted DEC-073 makes Employee Native push a best-effort attention signal,

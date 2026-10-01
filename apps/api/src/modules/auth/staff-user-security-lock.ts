@@ -1,8 +1,8 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 
 interface LoginSecurityRow {
-  readonly password_hash: string;
-  readonly status: "ACTIVE" | "DISABLED";
+  readonly password_hash: string | null;
+  readonly status: "PENDING" | "ACTIVE" | "DISABLED";
 }
 
 export function lockStaffUserSecurityBoundary(

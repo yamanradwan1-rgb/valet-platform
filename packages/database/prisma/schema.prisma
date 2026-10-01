@@ -40,6 +40,7 @@ enum OperatingWeekday {
 }
 
 enum UserStatus {
+  PENDING
   ACTIVE
   DISABLED
 
@@ -56,6 +57,7 @@ enum MembershipRole {
 }
 
 enum MembershipStatus {
+  PENDING
   ACTIVE
   INACTIVE
 
@@ -478,6 +480,8 @@ model Organization {
   operatingHours              OrganizationOperatingHour[]
   locationOperatingHourOverrides LocationOperatingHourOverride[]
 
+  onboardingInvitations StaffOnboardingInvitation[]
+
   @@map("organizations")
 }
 
@@ -572,7 +576,7 @@ model User {
   id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique(map: "users_email_key")
   phone        String?
-  passwordHash String     @map("password_hash")
+  passwordHash String?    @map("password_hash")
   status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -706,7 +710,33 @@ model OrganizationMembership {
   @@unique([organizationId, userId], map: "organization_memberships_organization_id_user_id_key")
   @@unique([organizationId, id], map: "organization_memberships_organization_id_id_key")
   @@index([organizationId, createdAt, id], map: "organization_memberships_org_created_id_idx")
+  onboardingInvitations       StaffOnboardingInvitation[] @relation("OnboardingTarget")
+  issuedOnboardingInvitations  StaffOnboardingInvitation[] @relation("OnboardingIssuer")
+
   @@map("organization_memberships")
+}
+
+model StaffOnboardingInvitation {
+  id                   String @id @default(uuid()) @db.Uuid
+  organizationId       String @map("organization_id") @db.Uuid
+  membershipId         String @map("membership_id") @db.Uuid
+  issuedByMembershipId String @map("issued_by_membership_id") @db.Uuid
+  generation           Int
+  operationId          String @map("operation_id") @db.Uuid
+  requestFingerprint   String @map("request_fingerprint")
+  tokenHash            String @unique(map: "staff_onboarding_token_key") @map("token_hash")
+  createdAt            DateTime @map("created_at") @db.Timestamptz(3)
+  expiresAt            DateTime @map("expires_at") @db.Timestamptz(3)
+  consumedAt           DateTime? @map("consumed_at") @db.Timestamptz(3)
+  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  membership OrganizationMembership @relation("OnboardingTarget", fields: [organizationId,membershipId], references: [organizationId,id], onDelete: Restrict, onUpdate: Restrict, map: "staff_onboarding_member_fkey")
+  issuer OrganizationMembership @relation("OnboardingIssuer", fields: [organizationId,issuedByMembershipId], references: [organizationId,id], onDelete: Restrict, onUpdate: Restrict, map: "staff_onboarding_actor_fkey")
+
+  @@unique([membershipId,generation], map: "staff_onboarding_generation_key")
+  @@unique([organizationId,operationId], map: "staff_onboarding_operation_key")
+  @@map("staff_onboarding_invitations")
 }
 
 model MembershipLocationAccess {

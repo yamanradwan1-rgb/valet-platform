@@ -1,12 +1,32 @@
+import { StaffAuthenticationError } from "./staff-auth-types";
+import type {
+  UserAuthenticationRow,
+  LoginSessionRow,
+  RefreshCredentialRow,
+  DatabaseClockRow,
+  StaffPasswordVerifier,
+  StaffAuthTokens,
+} from "./staff-auth-types";
+export { StaffAuthenticationError } from "./staff-auth-types";
+export type {
+  StaffPasswordVerifier,
+  StaffAuthTokens,
+} from "./staff-auth-types";
 import { randomUUID } from "node:crypto";
 
 import { Inject, Injectable } from "@nestjs/common";
-import argon2 from "argon2";
+import { inPostgresTransaction as inTransaction } from "../../common/database/postgres-transaction";
+import {
+  isAcceptedStaffPasswordHash,
+  STAFF_AUTH_DUMMY_PASSWORD_HASH,
+} from "./staff-password-verification";
+export {
+  Argon2StaffPasswordVerifier,
+  isAcceptedStaffPasswordHash,
+  STAFF_AUTH_DUMMY_PASSWORD_HASH,
+} from "./staff-password-verification";
 
-import type {
-  PostgresPool,
-  PostgresTransaction,
-} from "../../common/database/postgres";
+import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import {
   AntiAbuseUnavailableError,
@@ -17,7 +37,8 @@ import {
   refreshTokenPattern,
   staffCredentialHash,
 } from "./staff-auth-credential";
-import { revokeStaffSessionAndDisablePush } from "./staff-session-revocation";
+import { logoutStaffSession } from "./staff-auth-logout";
+import { staffAuthTokenResult } from "./staff-auth-token-result";
 import {
   lockAndRecheckStaffLoginUser,
   lockStaffRefreshUserSecurityBoundary,
@@ -26,125 +47,6 @@ import {
 export { DatabaseStaffPrincipalResolver } from "./staff-session-context";
 
 export const STAFF_PASSWORD_VERIFIER = Symbol("STAFF_PASSWORD_VERIFIER");
-
-export const STAFF_AUTH_DUMMY_PASSWORD_HASH =
-  "$argon2id$v=19$m=65536,p=4,t=3$dmF5bGV0LWR1bW15LXYwMQ$GwCTUHTzbfRTG4lBOkCBl3m1yb8/4PKLBerf0R1sgnQ";
-
-interface UserAuthenticationRow {
-  readonly id: string;
-  readonly password_hash: string;
-  readonly status: "ACTIVE" | "DISABLED";
-}
-
-interface LoginSessionRow {
-  readonly access_expires_at: Date;
-  readonly absolute_expires_at: Date;
-  readonly refresh_cookie_max_age_seconds: number;
-}
-
-interface RefreshCredentialRow {
-  readonly absolute_expires_at: Date;
-  readonly consumed_at: Date | null;
-  readonly expires_at: Date;
-  readonly generation: number;
-  readonly id: string;
-  readonly revoked_at: Date | null;
-  readonly session_id: string;
-  readonly status: "ACTIVE" | "DISABLED";
-}
-
-interface DatabaseClockRow {
-  readonly now: Date;
-}
-
-export interface StaffPasswordVerifier {
-  verify(passwordHash: string, password: string): Promise<boolean>;
-}
-
-export interface StaffAuthTokens {
-  readonly accessExpiresAt: Date;
-  readonly accessToken: string;
-  readonly refreshToken: string;
-  readonly refreshCookieMaxAgeSeconds: number;
-  readonly sessionExpiresAt: Date;
-}
-
-export class StaffAuthenticationError extends Error {
-  readonly code = "STAFF_AUTHENTICATION_FAILED";
-
-  constructor() {
-    super("Staff authentication failed.");
-    this.name = "StaffAuthenticationError";
-  }
-}
-
-function base64DecodedLength(value: string): number | undefined {
-  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(value)) return undefined;
-  try {
-    const decoded = Buffer.from(value, "base64");
-    const canonical = decoded.toString("base64").replace(/=+$/, "");
-    return canonical === value.replace(/=+$/, "") ? decoded.length : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-export function isAcceptedStaffPasswordHash(value: string): boolean {
-  const parts = value.split("$");
-  if (parts.length !== 6 || parts[0] !== "" || parts[1] !== "argon2id") {
-    return false;
-  }
-  if (parts[2] !== "v=19") return false;
-  const parameterEntries = (parts[3] ?? "").split(",");
-  const parameters = new Map(
-    parameterEntries.map((entry) => {
-      const [key, parameterValue] = entry.split("=", 2);
-      return [key, parameterValue] as const;
-    }),
-  );
-  return (
-    parameterEntries.length === 3 &&
-    parameters.size === 3 &&
-    parameters.get("m") === "65536" &&
-    parameters.get("t") === "3" &&
-    parameters.get("p") === "4" &&
-    base64DecodedLength(parts[4] ?? "") === 16 &&
-    base64DecodedLength(parts[5] ?? "") === 32
-  );
-}
-
-async function inTransaction<T>(
-  pool: PostgresPool,
-  action: (transaction: PostgresTransaction) => Promise<T>,
-): Promise<T> {
-  const transaction = await pool.connect();
-  try {
-    await transaction.query("BEGIN");
-    const result = await action(transaction);
-    await transaction.query("COMMIT");
-    return result;
-  } catch (error) {
-    try {
-      await transaction.query("ROLLBACK");
-    } catch {
-      // Preserve the authentication failure without exposing database details.
-    }
-    throw error;
-  } finally {
-    transaction.release();
-  }
-}
-
-@Injectable()
-export class Argon2StaffPasswordVerifier implements StaffPasswordVerifier {
-  async verify(passwordHash: string, password: string): Promise<boolean> {
-    try {
-      return await argon2.verify(passwordHash, password);
-    } catch {
-      return false;
-    }
-  }
-}
 
 @Injectable()
 export class StaffAuthService {
@@ -165,16 +67,20 @@ export class StaffAuthService {
     );
     const user = lookup.rows[0];
     const supported =
-      user !== undefined && isAcceptedStaffPasswordHash(user.password_hash);
-    const hashToVerify = supported
-      ? user.password_hash
-      : STAFF_AUTH_DUMMY_PASSWORD_HASH;
+      user !== undefined &&
+      user.password_hash !== null &&
+      isAcceptedStaffPasswordHash(user.password_hash);
+    const hashToVerify =
+      supported && user.password_hash !== null
+        ? user.password_hash
+        : STAFF_AUTH_DUMMY_PASSWORD_HASH;
     const passwordMatches = await this.passwordVerifier.verify(
       hashToVerify,
       password,
     );
     if (
       user === undefined ||
+      user.password_hash === null ||
       !supported ||
       !passwordMatches ||
       user.status !== "ACTIVE"
@@ -187,7 +93,13 @@ export class StaffAuthService {
     const sessionId = randomUUID();
     const refreshId = randomUUID();
     const session = await inTransaction(this.pool, async (transaction) => {
-      if (!(await lockAndRecheckStaffLoginUser(transaction, user.id, user.password_hash))) {
+      if (
+        !(await lockAndRecheckStaffLoginUser(
+          transaction,
+          user.id,
+          hashToVerify,
+        ))
+      ) {
         throw new StaffAuthenticationError();
       }
       const databaseNow = (
@@ -261,13 +173,7 @@ export class StaffAuthService {
         throw new Error("Authentication session was not created.");
       return row;
     });
-    return {
-      accessExpiresAt: session.access_expires_at,
-      accessToken,
-      refreshToken,
-      refreshCookieMaxAgeSeconds: session.refresh_cookie_max_age_seconds,
-      sessionExpiresAt: session.absolute_expires_at,
-    };
+    return staffAuthTokenResult(session, accessToken, refreshToken);
   }
 
   async refresh(refreshToken: string): Promise<StaffAuthTokens> {
@@ -279,7 +185,9 @@ export class StaffAuthService {
     const replacementId = randomUUID();
     const refreshHash = staffCredentialHash("refresh", refreshToken);
     const result = await inTransaction(this.pool, async (transaction) => {
-      if (!(await lockStaffRefreshUserSecurityBoundary(transaction, refreshHash))) {
+      if (
+        !(await lockStaffRefreshUserSecurityBoundary(transaction, refreshHash))
+      ) {
         throw new StaffAuthenticationError();
       }
       const locked = await transaction.query<RefreshCredentialRow>(
@@ -377,32 +285,14 @@ export class StaffAuthService {
       return { authenticationFailed: false, session } as const;
     });
     if (result.authenticationFailed) throw new StaffAuthenticationError();
-    return {
-      accessExpiresAt: result.session.access_expires_at,
+    return staffAuthTokenResult(
+      result.session,
       accessToken,
-      refreshToken: replacementRefreshToken,
-      refreshCookieMaxAgeSeconds: result.session.refresh_cookie_max_age_seconds,
-      sessionExpiresAt: result.session.absolute_expires_at,
-    };
+      replacementRefreshToken,
+    );
   }
 
-  async logout(refreshToken: string | undefined): Promise<void> {
-    if (refreshToken === undefined || !refreshTokenPattern.test(refreshToken)) {
-      return;
-    }
-    await inTransaction(this.pool, async (transaction) => {
-      const locked = await transaction.query<{ session_id: string }>(
-        `SELECT refresh.session_id
-         FROM staff_refresh_credentials AS refresh
-         INNER JOIN staff_auth_sessions AS session ON session.id = refresh.session_id
-         WHERE refresh.token_hash = $1
-         FOR UPDATE OF refresh, session`,
-        [staffCredentialHash("refresh", refreshToken)],
-      );
-      const sessionId = locked.rows[0]?.session_id;
-      if (sessionId !== undefined) {
-        await revokeStaffSessionAndDisablePush(transaction, sessionId);
-      }
-    });
+  logout(refreshToken: string | undefined): Promise<void> {
+    return logoutStaffSession(this.pool, refreshToken);
   }
 }
