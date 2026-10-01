@@ -13,6 +13,7 @@ export function DashboardShell({
   currentPath,
   labels,
   localeControl,
+  locationControl,
   navigationItems,
   onLocationSelect,
   onOrganizationSelect,
@@ -46,6 +47,7 @@ export function DashboardShell({
           accountControl={accountControl}
           labels={labels}
           localeControl={localeControl}
+          locationControl={locationControl}
           navigationOpen={navigationOpen}
           onLocationSelect={onLocationSelect}
           onOpenNavigation={() => setNavigationOpen(true)}

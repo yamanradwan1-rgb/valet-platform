@@ -23,6 +23,7 @@ export interface DashboardShellProps {
   readonly children: ReactNode;
   readonly currentPath: string;
   readonly labels: DashboardShellLabels;
+  readonly locationControl?: ReactNode;
   readonly navigationItems: readonly DashboardNavigationItem[];
   readonly onLocationSelect: () => void;
   readonly onOrganizationSelect: () => void;

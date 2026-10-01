@@ -3,13 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
-import { dashboardNavigationRegistrations } from "../../lib/navigation";
+import {
+  dashboardNavigationRegistrations,
+  type DashboardNavigationItem,
+} from "../../lib/navigation";
 import {
   navigationItemsFromPresentationIds,
   reconcileAccountSecurityNavigation,
 } from "../../lib/navigation/account-security-navigation";
 import { Button } from "../presentation/button";
+import { LocationSwitchControl } from "../scope/location-switch-control";
+import type { SwitchableDashboardScope } from "../scope/location-switch-authority";
 import { AccountSecurityWorkspace } from "../security/account-security-workspace";
 import { useAccountSecurityAccess } from "../security/account-security-access-provider";
 import { DashboardShell } from "../shell";
@@ -20,9 +26,12 @@ import {
 import { dashboardShellLabels } from "./dashboard-shell-labels";
 import { HeaderLocaleControl, HeaderThemeControl } from "./header-preferences";
 import { selectedScopePresentation } from "./scope-presentation";
+import { SelectedScopeMfaPanel } from "./selected-scope-mfa-panel";
+import { isLocationSwitchSource } from "./selected-management-shell-policy";
 import { useSelectedScope } from "./selected-scope-provider";
 
 export function AccountSecurityShell(props: {
+  readonly api: DashboardApiClient;
   readonly currentPath: string;
   readonly identityGeneration: number;
   readonly logoutPending: boolean;
@@ -31,10 +40,17 @@ export function AccountSecurityShell(props: {
 }) {
   const router = useRouter();
   const { locale, t } = useDashboardLocale();
-  const { clearScope, selectedScope, selectionRevision } = useSelectedScope();
+  const {
+    clearScope,
+    clearScopeIfEpoch,
+    selectedScope,
+    selectionRevision,
+    selectScope,
+  } = useSelectedScope();
   const { refreshState, snapshot: accessSnapshot } = useAccountSecurityAccess();
   const generationKey = `${props.identityGeneration}:${props.sessionGeneration}`;
   const [readyKey, setReadyKey] = useState<string | null>(null);
+  const [switchMfaRequired, setSwitchMfaRequired] = useState(false);
   const entryReady = readyKey === generationKey;
   const presentationStore = useDashboardShellPresentation();
   const bindingKey = selectedScope
@@ -46,8 +62,9 @@ export function AccountSecurityShell(props: {
       })
     : null;
   const snapshot = bindingKey ? presentationStore.read(bindingKey) : null;
-  const scopePresentation =
-    snapshot && selectedScope ? selectedScopePresentation(selectedScope) : null;
+  const scopePresentation = selectedScope
+    ? selectedScopePresentation(selectedScope)
+    : null;
   const baseNavigation = navigationItemsFromPresentationIds(
     dashboardNavigationRegistrations,
     snapshot?.destinationIds ?? [],
@@ -61,27 +78,70 @@ export function AccountSecurityShell(props: {
   );
   const selectedLocation =
     scopePresentation?.location ??
-    (snapshot &&
-    selectedScope?.authority === "COMPANY_ADMIN" &&
+    (selectedScope?.authority === "COMPANY_ADMIN" &&
     selectedScope.context.scope.kind === "ALL_LOCATIONS"
       ? { id: "all-locations", label: t("allLocations") }
-      : null);
+      : selectedScope?.authority === "LOCATION_MANAGER_GRANT_SET"
+        ? { id: "location-grant-set", label: t("locations") }
+        : null);
   const changeScope = () => {
     clearScope();
     router.push("/");
   };
+  const commitSwitch = (
+    scope: SwitchableDashboardScope,
+    navigation: readonly DashboardNavigationItem[],
+  ) => {
+    setSwitchMfaRequired(false);
+    presentationStore.remember(
+      dashboardShellPresentationKey({
+        identityGeneration: props.identityGeneration,
+        selectedScope: scope,
+        selectionRevision: selectionRevision + 1,
+        sessionGeneration: props.sessionGeneration,
+      }),
+      navigation,
+    );
+    selectScope(scope);
+  };
+  const locationControl =
+    selectedScope &&
+    isLocationSwitchSource(selectedScope) &&
+    selectedLocation ? (
+      <LocationSwitchControl
+        accessRequirement="FOUNDATION_ENTRY"
+        api={props.api}
+        currentPath={props.currentPath}
+        identityGeneration={props.identityGeneration}
+        onCommit={(scope, _destination, navigation) =>
+          commitSwitch(scope, navigation)
+        }
+        onCurrentScopeInvalid={(epoch) => {
+          clearScopeIfEpoch(epoch);
+          router.replace("/");
+        }}
+        onMfaRequired={() => setSwitchMfaRequired(true)}
+        preserveIndependentRoute
+        scope={selectedScope}
+        selectedLabel={selectedLocation.label}
+        selectionRevision={selectionRevision}
+        sessionGeneration={props.sessionGeneration}
+      />
+    ) : undefined;
 
   useEffect(() => {
     let active = true;
     void refreshState().then(() => {
       if (active) setReadyKey(generationKey);
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [generationKey, refreshState]);
 
   return (
     <DashboardShell
-      accountControl={(
+      accountControl={
         <Button
           disabled={props.logoutPending}
           onClick={() => void props.onLogout()}
@@ -90,10 +150,11 @@ export function AccountSecurityShell(props: {
         >
           {t("logout")}
         </Button>
-      )}
+      }
       currentPath={props.currentPath}
       labels={dashboardShellLabels(t)}
       localeControl={<HeaderLocaleControl />}
+      locationControl={locationControl}
       navigationItems={navigation}
       onLocationSelect={changeScope}
       onOrganizationSelect={changeScope}
@@ -101,7 +162,19 @@ export function AccountSecurityShell(props: {
       selectedOrganization={scopePresentation?.organization ?? null}
       themeControl={<HeaderThemeControl />}
     >
-      <AccountSecurityWorkspace key={generationKey} ready={entryReady} />
+      {switchMfaRequired && selectedScope ? (
+        <SelectedScopeMfaPanel
+          changeScopeLabel={t("changeScope")}
+          generationKey={`security-location-switch:${generationKey}:${selectionRevision}`}
+          onAssured={() => {
+            setSwitchMfaRequired(false);
+            selectScope(selectedScope);
+          }}
+          onChangeScope={changeScope}
+        />
+      ) : (
+        <AccountSecurityWorkspace key={generationKey} ready={entryReady} />
+      )}
     </DashboardShell>
   );
 }

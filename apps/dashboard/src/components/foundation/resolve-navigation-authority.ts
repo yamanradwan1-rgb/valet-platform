@@ -2,9 +2,7 @@ import type { DashboardFeatureAuthorityFeature } from "@valet/contracts";
 
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
-import {
-  candidateNavigationRegistrations,
-} from "../../lib/navigation/navigation-registry";
+import { candidateNavigationRegistrations } from "../../lib/navigation/navigation-registry";
 import {
   navigationFeatureForRequirement,
   noNavigationAuthority,
@@ -25,25 +23,36 @@ import { selectedScopePresentation } from "./scope-presentation";
 import {
   resolveSelectedScopeBaseAuthority,
   type SelectedScopeBaseFacts,
+  type SelectedScopeBaseResolution,
 } from "./selected-scope-base-authority";
 
 export async function resolveNavigationAuthority(input: {
   readonly api: DashboardApiClient;
+  readonly baseResolution?: SelectedScopeBaseResolution;
   readonly baseRequestKey?: string;
   readonly registrations: readonly DashboardNavigationRegistration[];
   readonly selectedScope: SelectedDashboardScope;
   readonly signal?: AbortSignal;
 }): Promise<NavigationAuthority> {
-  const { api, baseRequestKey, registrations, selectedScope, signal } = input;
+  const {
+    api,
+    baseRequestKey,
+    baseResolution: providedBaseResolution,
+    registrations,
+    selectedScope,
+    signal,
+  } = input;
   const context = selectedScopePresentation(selectedScope).navigation;
   const targets = requiredFeatureTargets(registrations, context, selectedScope);
-  const baseResolution = await resolveSelectedScopeBaseAuthority(
-    api,
-    selectedScope,
-    { includeCompanyContext: true },
-    signal,
-    baseRequestKey,
-  );
+  const baseResolution =
+    providedBaseResolution ??
+    (await resolveSelectedScopeBaseAuthority(
+      api,
+      selectedScope,
+      { includeCompanyContext: true },
+      signal,
+      baseRequestKey,
+    ));
   if (baseResolution.status !== "valid") {
     const features = { ...noNavigationAuthority.features };
     for (const target of targets) features[target.feature] = "DENIED";
@@ -60,20 +69,22 @@ export async function resolveNavigationAuthority(input: {
     features[target.feature] = "DENIED";
     return false;
   });
-  const featureSettlements = await Promise.allSettled(probeTargets.map(async (target) => ({
-    authority: await readDashboardFeatureAuthority(
-      api,
-      {
-        feature: target.feature,
-        organizationId: target.organizationId,
-        ...(target.locationId === undefined
-          ? {}
-          : { locationId: target.locationId }),
-      },
-      signal,
-    ),
-    target,
-  })));
+  const featureSettlements = await Promise.allSettled(
+    probeTargets.map(async (target) => ({
+      authority: await readDashboardFeatureAuthority(
+        api,
+        {
+          feature: target.feature,
+          organizationId: target.organizationId,
+          ...(target.locationId === undefined
+            ? {}
+            : { locationId: target.locationId }),
+        },
+        signal,
+      ),
+      target,
+    })),
+  );
 
   probeTargets.forEach((target, index) => {
     const settlement = featureSettlements[index];
@@ -88,8 +99,13 @@ function requiredFeatureTargets(
   selectedScope: SelectedDashboardScope,
 ): readonly DashboardFeatureTarget[] {
   const targets = new Map<string, DashboardFeatureTarget>();
-  for (const registration of candidateNavigationRegistrations(registrations, context)) {
-    const feature = navigationFeatureForRequirement(registration.accessRequirement);
+  for (const registration of candidateNavigationRegistrations(
+    registrations,
+    context,
+  )) {
+    const feature = navigationFeatureForRequirement(
+      registration.accessRequirement,
+    );
     if (feature === null) continue;
     const target = dashboardFeatureTarget(selectedScope, feature);
     if (target !== null) targets.set(dashboardFeatureTargetKey(target), target);
@@ -127,10 +143,7 @@ function navigationAuthorityFromFacts(
         : facts.commercial,
     foundationEntryEligible: facts.foundationEntryEligible,
     locationMapsEligible: facts.locationMapsEligible,
-    managementIntelligenceEligible: intelligenceEligible(
-      facts,
-      selectedScope,
-    ),
+    managementIntelligenceEligible: intelligenceEligible(facts, selectedScope),
   };
 }
 
@@ -142,19 +155,26 @@ function intelligenceEligible(
     return false;
   }
   if (selectedScope.authority === "COMPANY_ADMIN") {
-    return selectedScope.context.scope.kind === "ALL_LOCATIONS" ||
-      facts.locationMapsEligible;
+    return (
+      selectedScope.context.scope.kind === "ALL_LOCATIONS" ||
+      facts.locationMapsEligible
+    );
   }
-  return selectedScope.authority === "LOCATION_MANAGER" &&
-    facts.locationMapsEligible;
+  return (
+    selectedScope.authority === "LOCATION_MANAGER" && facts.locationMapsEligible
+  );
 }
 
 function featureEligibility(
   target: DashboardFeatureTarget,
-  settlement: PromiseSettledResult<{
-    readonly authority: Awaited<ReturnType<typeof readDashboardFeatureAuthority>>;
-    readonly target: DashboardFeatureTarget;
-  }> | undefined,
+  settlement:
+    | PromiseSettledResult<{
+        readonly authority: Awaited<
+          ReturnType<typeof readDashboardFeatureAuthority>
+        >;
+        readonly target: DashboardFeatureTarget;
+      }>
+    | undefined,
 ): NavigationFeatureEligibility {
   if (settlement?.status !== "fulfilled") {
     return classifyFeatureFailure(settlement?.reason);

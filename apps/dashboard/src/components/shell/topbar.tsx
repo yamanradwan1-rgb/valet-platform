@@ -11,6 +11,7 @@ export function DashboardTopbar({
   accountControl,
   labels,
   localeControl,
+  locationControl,
   navigationOpen,
   onLocationSelect,
   onOpenNavigation,
@@ -20,6 +21,7 @@ export function DashboardTopbar({
   readonly accountControl?: ReactNode;
   readonly labels: DashboardShellLabels;
   readonly localeControl?: ReactNode;
+  readonly locationControl?: ReactNode;
   readonly navigationOpen: boolean;
   readonly onLocationSelect: () => void;
   readonly onOpenNavigation: () => void;
@@ -40,27 +42,34 @@ export function DashboardTopbar({
         >
           <Menu aria-hidden="true" size={20} />
         </Button>
-        {selectedLocation ? (
-          <button
-            aria-label={labels.changeScope}
-            className="location-context"
-            onClick={onLocationSelect}
-            type="button"
-          >
-            <MapPin aria-hidden="true" size={18} />
-            <bdi className="location-context-value">{selectedLocation.label}</bdi>
-            <ChevronDown aria-hidden="true" className="location-context-chevron" size={14} />
-          </button>
-        ) : (
-          <Button
-            aria-label={labels.changeScope}
-            onClick={onLocationSelect}
-            type="button"
-            variant="quiet"
-          >
-            {labels.changeScope}
-          </Button>
-        )}
+        {locationControl ??
+          (selectedLocation ? (
+            <button
+              aria-label={labels.changeScope}
+              className="location-context"
+              onClick={onLocationSelect}
+              type="button"
+            >
+              <MapPin aria-hidden="true" size={18} />
+              <bdi className="location-context-value">
+                {selectedLocation.label}
+              </bdi>
+              <ChevronDown
+                aria-hidden="true"
+                className="location-context-chevron"
+                size={14}
+              />
+            </button>
+          ) : (
+            <Button
+              aria-label={labels.changeScope}
+              onClick={onLocationSelect}
+              type="button"
+              variant="quiet"
+            >
+              {labels.changeScope}
+            </Button>
+          ))}
       </div>
       <div className="topbar-actions">
         {localeControl}
