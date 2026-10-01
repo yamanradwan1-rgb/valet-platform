@@ -1,6 +1,8 @@
 import {
   activeShiftOverviewResponseSchema,
   staffDirectoryResponseSchema,
+  staffLocationAccessPageSchema,
+  staffLocationCandidatePageSchema,
   staffMembershipDetailSchema,
   type StaffLocationAccessCommand,
   type StaffManagementRole,
@@ -82,18 +84,47 @@ export function changeStaffLocationAccess(
   api: DashboardApiClient,
   organizationId: string,
   membershipId: string,
-  locationId: string,
+  locationIds: readonly string[] | string,
   expectedVersion: number,
   action: "grant" | "revoke",
 ) {
   const body: StaffLocationAccessCommand = {
     expectedVersion,
-    locationIds: [locationId],
+    locationIds:
+      typeof locationIds === "string" ? [locationIds] : [...locationIds],
   };
   return api.request(
     `${base(organizationId)}/${membershipId}/location-access/${action}`,
     staffMembershipDetailSchema,
     { body, method: "POST" },
+  );
+}
+
+export function readStaffLocationAccess(
+  api: DashboardApiClient,
+  organizationId: string,
+  membershipId: string,
+  cursor: string | null,
+  signal?: AbortSignal,
+) {
+  return api.request(
+    `${base(organizationId)}/${membershipId}/location-access`,
+    staffLocationAccessPageSchema,
+    { query: { limit: 50, cursor }, signal },
+  );
+}
+
+export function readStaffLocationCandidates(
+  api: DashboardApiClient,
+  organizationId: string,
+  membershipId: string,
+  cursor: string | null,
+  signal?: AbortSignal,
+) {
+  return api.request(
+    `${base(organizationId)}/${membershipId}/location-access/candidates`,
+    staffLocationCandidatePageSchema,
+    { query: { limit: 50, cursor }, signal },
   );
 }
 

@@ -146,8 +146,18 @@ Migration 37 adds only the three justified Staff-management
 indexes needed for this page path and the intake/incident handover blocker
 lookups; it does not introduce a broader speculative index set.
 
-Role/status/grant mutations require current Company Admin authority and
-five-minute MFA freshness. They use one shared monotonic
+Role/status/grant mutations retain current Company Admin authority and
+five-minute MFA freshness. Issue #240 / T05-B additionally permits an active
+Location Manager to manage only existing `VALET_EMPLOYEE` /
+`VALET_SUPERVISOR` memberships whose complete current persisted Location grant
+set is non-empty and fully contained in that LM's current grants to active
+Locations. Mixed/outside, zero-grant, elevated-role and self targets are
+concealed; LM role changes are Employee <-> Supervisor only, status changes keep
+all existing blockers, and grant/revoke must leave a non-empty fully covered
+target set. Those LM sensitive commands reuse the same MFA system and do not
+grant Company Admin authority or unrelated Management capabilities.
+
+All authorized Staff mutations use one shared monotonic
 `OrganizationMembership.version` CAS and desired-state semantics: an exact
 retry that already reached the requested state is a no-op with no extra version
 or tenant audit event, while a different stale request conflicts. Database

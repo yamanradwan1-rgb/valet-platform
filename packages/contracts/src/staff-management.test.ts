@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   staffDirectoryQuerySchema,
+  staffLocationAccessCommandSchema,
+  staffLocationAccessPageSchema,
+  staffLocationAccessQuerySchema,
+  staffLocationCandidatePageSchema,
+  staffManagementLocationAccessSchema,
   staffManagementIdentitySchema,
   staffManagementDisplayName,
 } from "./staff-management.js";
@@ -104,5 +109,92 @@ describe("T05-A strict directory filters", () => {
     ]) {
       expect(staffDirectoryQuerySchema.safeParse(invalid).success).toBe(false);
     }
+  });
+});
+
+describe("T05-B bounded Location access contracts", () => {
+  const locationA = "11111111-1111-4111-8111-111111111111";
+  const locationB = "22222222-2222-4222-8222-222222222222";
+
+  it("keeps strict cursor/limit bounds and human-readable grant rows", () => {
+    expect(
+      staffManagementLocationAccessSchema.parse({
+        locationId: locationA,
+        name: "Amman Main",
+        status: "ACTIVE",
+      }),
+    ).toEqual({ locationId: locationA, name: "Amman Main", status: "ACTIVE" });
+    expect(
+      staffManagementLocationAccessSchema.safeParse({
+        code: "AMM-01",
+        locationId: locationA,
+        name: "Amman Main",
+        status: "ACTIVE",
+      }).success,
+    ).toBe(false);
+    expect(staffLocationAccessQuerySchema.parse({})).toEqual({ limit: 50 });
+    expect(staffLocationAccessQuerySchema.parse({ limit: "100" }).limit).toBe(
+      100,
+    );
+    expect(
+      staffLocationAccessPageSchema.parse({
+        items: [
+          {
+            code: "AMM-01",
+            locationId: locationA,
+            name: "Amman Main",
+            status: "ACTIVE",
+          },
+        ],
+        nextCursor: null,
+      }).items[0],
+    ).toMatchObject({ code: "AMM-01", name: "Amman Main" });
+    expect(
+      staffLocationCandidatePageSchema.parse({
+        items: [
+          {
+            code: "AMM-01",
+            granted: true,
+            locationId: locationA,
+            name: "Amman Main",
+            status: "ACTIVE",
+          },
+        ],
+        nextCursor: null,
+      }).items[0]?.granted,
+    ).toBe(true);
+    for (const invalid of [{ limit: 101 }, { offset: 0 }, { cursor: "!" }]) {
+      expect(staffLocationAccessQuerySchema.safeParse(invalid).success).toBe(
+        false,
+      );
+    }
+  });
+
+  it("retains one explicit 1-50 distinct Location command", () => {
+    expect(
+      staffLocationAccessCommandSchema.parse({
+        expectedVersion: 7,
+        locationIds: [locationA, locationB],
+      }),
+    ).toMatchObject({
+      expectedVersion: 7,
+      locationIds: [locationA, locationB],
+    });
+    expect(
+      staffLocationAccessCommandSchema.safeParse({
+        expectedVersion: 7,
+        locationIds: [locationA, locationA],
+      }).success,
+    ).toBe(false);
+    expect(
+      staffLocationAccessCommandSchema.safeParse({
+        expectedVersion: 7,
+        locationIds: Array.from(
+          { length: 51 },
+          (_, index) =>
+            `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+        ),
+      }).success,
+    ).toBe(false);
   });
 });

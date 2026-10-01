@@ -5,6 +5,7 @@ export function staffDirectorySql(
   organizationId: string,
   query: StaffDirectoryQuery,
   cursor: StaffDirectoryCursor | null,
+  locationManagerMembershipId?: string,
 ) {
   const values: unknown[] = [organizationId];
   const predicates = ["membership.organization_id = $1::uuid"];
@@ -12,6 +13,35 @@ export function staffDirectorySql(
     values.push(value);
     return `$${values.length}`;
   };
+  if (locationManagerMembershipId !== undefined) {
+    const actor = parameter(locationManagerMembershipId);
+    predicates.push(
+      `membership.id <> ${actor}::uuid`,
+      `membership.role IN ('VALET_EMPLOYEE', 'VALET_SUPERVISOR')`,
+      `EXISTS (
+        SELECT 1 FROM membership_location_access AS target_access
+        WHERE target_access.organization_id = membership.organization_id
+          AND target_access.membership_id = membership.id
+      )`,
+      `NOT EXISTS (
+        SELECT 1
+        FROM membership_location_access AS target_access
+        WHERE target_access.organization_id = membership.organization_id
+          AND target_access.membership_id = membership.id
+          AND NOT EXISTS (
+            SELECT 1
+            FROM membership_location_access AS actor_access
+            INNER JOIN locations AS actor_location
+              ON actor_location.id = actor_access.location_id
+             AND actor_location.organization_id = actor_access.organization_id
+             AND actor_location.status = 'ACTIVE'
+            WHERE actor_access.organization_id = membership.organization_id
+              AND actor_access.membership_id = ${actor}::uuid
+              AND actor_access.location_id = target_access.location_id
+          )
+      )`,
+    );
+  }
   if (query.search) {
     const pattern = `%${query.search.replace(/[\\%_]/gu, "\\$&")}%`;
     const p = parameter(pattern);

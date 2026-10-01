@@ -7,6 +7,10 @@ export interface StaffDirectoryCursor {
   readonly membershipId: string;
 }
 
+export interface StaffDirectoryAuthorityCursorScope {
+  readonly scopeFingerprint: string;
+}
+
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -29,7 +33,23 @@ export function encodeStaffDirectoryCursor(
   organizationId: string,
   cursor: StaffDirectoryCursor,
   fingerprint: string,
+  authority?: StaffDirectoryAuthorityCursorScope,
 ): string {
+  if (authority !== undefined) {
+    return Buffer.from(
+      JSON.stringify({
+        a: "lm",
+        c: cursor.createdAt,
+        f: fingerprint,
+        g: authority.scopeFingerprint,
+        i: cursor.membershipId,
+        k: "staff",
+        o: organizationId,
+        v: 3,
+      }),
+      "utf8",
+    ).toString("base64url");
+  }
   return Buffer.from(
     JSON.stringify({
       c: cursor.createdAt,
@@ -47,6 +67,7 @@ export function decodeStaffDirectoryCursor(
   organizationId: string,
   value: string | undefined,
   fingerprint: string,
+  authority?: StaffDirectoryAuthorityCursorScope,
 ): StaffDirectoryCursor | null {
   if (value === undefined) return null;
   try {
@@ -55,12 +76,15 @@ export function decodeStaffDirectoryCursor(
     );
     if (typeof decoded !== "object" || decoded === null) throw new Error();
     const candidate = decoded as Record<string, unknown>;
+    const scoped = authority !== undefined;
     if (
-      Object.keys(candidate).length !== 6 ||
-      candidate.v !== 2 ||
+      Object.keys(candidate).length !== (scoped ? 8 : 6) ||
+      candidate.v !== (scoped ? 3 : 2) ||
       candidate.f !== fingerprint ||
       candidate.k !== "staff" ||
       candidate.o !== organizationId ||
+      (scoped && candidate.a !== "lm") ||
+      (scoped && candidate.g !== authority.scopeFingerprint) ||
       typeof candidate.i !== "string" ||
       !uuidPattern.test(candidate.i) ||
       typeof candidate.c !== "string" ||

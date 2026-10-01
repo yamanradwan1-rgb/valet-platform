@@ -6,10 +6,13 @@ export const runtimeStaffManagementFunctions = [
 
 export const privateStaffManagementFunctions = [
   "public.staff_management_authorize_actor(uuid,uuid)",
+  "public.staff_management_authorize_staff_actor(uuid,uuid)",
   "public.staff_management_has_blockers(uuid,uuid,uuid[])",
   "public.staff_management_is_usable_admin(uuid,uuid)",
   "public.staff_management_has_other_usable_admin(uuid,uuid)",
   "public.staff_management_lock_admin_factors(uuid)",
+  "public.staff_management_lock_lm_active_grants(uuid,uuid)",
+  "public.staff_management_lm_target_covered(uuid,uuid,uuid)",
 ];
 
 export async function provisionStaffManagementPrivileges(
@@ -62,7 +65,9 @@ export async function verifyStaffManagementPrivileges(client, runtimeRole) {
       row.runtime_grant_option_denied !== true ||
       row.public_denied !== true
     ) {
-      throw new Error("Runtime Staff management function privileges are unsafe.");
+      throw new Error(
+        "Runtime Staff management function privileges are unsafe.",
+      );
     }
   }
   for (const functionName of privateStaffManagementFunctions) {

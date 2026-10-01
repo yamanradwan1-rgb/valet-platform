@@ -11,7 +11,11 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
-import { authorizeCompanyAdminManagement } from "./management-authorization";
+import {
+  authorizeStaffManagement,
+  authorizeStaffTarget,
+  requireAuthorizedLocationFilter,
+} from "./staff-management-authorization";
 import {
   decodeStaffDirectoryCursor,
   encodeStaffDirectoryCursor,
@@ -39,20 +43,29 @@ export class StaffDirectoryService {
     query: StaffDirectoryQuery,
   ): Promise<StaffDirectoryResponse> {
     const fingerprint = staffDirectoryFilterFingerprint(query);
-    const cursor = decodeStaffDirectoryCursor(
-      organizationId,
-      query.cursor,
-      fingerprint,
-    );
     return inPostgresTransaction(this.pool, async (transaction) => {
-      await authorizeCompanyAdminManagement(transaction, context, {
-        capability: "STAFF_MANAGE_ELIGIBLE",
+      const authority = await authorizeStaffManagement(transaction, context, {
         organizationId,
-        ...(query.locationId === undefined
-          ? {}
-          : { targetLocationId: query.locationId }),
       });
-      const sql = staffDirectorySql(organizationId, query, cursor);
+      requireAuthorizedLocationFilter(authority, query.locationId);
+      const cursorScope =
+        authority.kind === "LOCATION_MANAGER"
+          ? { scopeFingerprint: authority.scopeFingerprint }
+          : undefined;
+      const cursor = decodeStaffDirectoryCursor(
+        organizationId,
+        query.cursor,
+        fingerprint,
+        cursorScope,
+      );
+      const sql = staffDirectorySql(
+        organizationId,
+        query,
+        cursor,
+        authority.kind === "LOCATION_MANAGER"
+          ? authority.membershipId
+          : undefined,
+      );
       const result = await transaction.query<DirectoryRow>(
         sql.text,
         sql.values,
@@ -60,7 +73,9 @@ export class StaffDirectoryService {
       const hasNext = result.rows.length > query.limit;
       const rows = result.rows.slice(0, query.limit);
       const last = rows.at(-1);
-      await recordAdminActivityInTransaction(transaction, context);
+      if (authority.kind === "COMPANY_ADMIN") {
+        await recordAdminActivityInTransaction(transaction, context);
+      }
       return {
         items: rows.map((row) => ({
           identity: row.identity,
@@ -79,6 +94,7 @@ export class StaffDirectoryService {
                   membershipId: last.membershipId,
                 },
                 fingerprint,
+                cursorScope,
               )
             : null,
       };
@@ -91,17 +107,19 @@ export class StaffDirectoryService {
     membershipId: string,
   ): Promise<StaffMembershipDetail> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      await authorizeCompanyAdminManagement(transaction, context, {
-        capability: "STAFF_MANAGE_ELIGIBLE",
+      const authority = await authorizeStaffManagement(transaction, context, {
         organizationId,
       });
+      await authorizeStaffTarget(transaction, authority, membershipId);
       const membership = await loadStaffMembership(
         transaction,
         organizationId,
         membershipId,
       );
       const detail = await staffMembershipDetail(transaction, membership);
-      await recordAdminActivityInTransaction(transaction, context);
+      if (authority.kind === "COMPANY_ADMIN") {
+        await recordAdminActivityInTransaction(transaction, context);
+      }
       return detail;
     });
   }

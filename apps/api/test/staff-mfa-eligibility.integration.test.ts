@@ -6,32 +6,13 @@ import { StaffMfaTestFixture } from "./staff-mfa-test-fixture";
 
 const fixture = new StaffMfaTestFixture();
 const statePath = "/v1/staff/auth/mfa/state";
-const mutationCases = [
-  { path: "/v1/staff/auth/mfa/enrollment/begin", body: undefined },
-  {
-    path: "/v1/staff/auth/mfa/enrollment/confirm",
-    body: { factorId: "11111111-1111-4111-8111-111111111111", code: "123456" },
-  },
-  { path: "/v1/staff/auth/mfa/step-up", body: { code: "123456" } },
-  {
-    path: "/v1/staff/auth/mfa/recovery/begin",
-    body: { recoveryCode: `vmr1-${"a".repeat(11)}-${"b".repeat(27)}` },
-  },
-  {
-    path: "/v1/staff/auth/mfa/recovery-codes/reissue",
-    body: { code: "123456" },
-  },
-] as const;
 
 beforeAll(() => fixture.start(), 120_000);
 afterEach(() => fixture.resetLimits());
 afterAll(() => fixture.stop(), 60_000);
 
 type TenantRole =
-  | "ORG_ADMIN"
-  | "LOCATION_MANAGER"
-  | "VALET_SUPERVISOR"
-  | "VALET_EMPLOYEE";
+  "ORG_ADMIN" | "LOCATION_MANAGER" | "VALET_SUPERVISOR" | "VALET_EMPLOYEE";
 
 async function addMembership(
   userId: string,
@@ -81,27 +62,28 @@ describe("MFA account eligibility", () => {
       const admin = await fixture.createCompanyAdmin();
       await addMembership(admin.userId, extraRole);
       const auth = await fixture.nativeLogin(admin);
-      expect((await fixture.getMfa(statePath, auth.accessToken)).status).toBe(200);
+      expect((await fixture.getMfa(statePath, auth.accessToken)).status).toBe(
+        200,
+      );
     }
-  });
+  }, 15_000);
 
-  it("rejects LM, Supervisor, Employee, inactive CA and inactive Organization", async () => {
-    for (const role of [
-      "LOCATION_MANAGER",
-      "VALET_SUPERVISOR",
-      "VALET_EMPLOYEE",
-    ] as const) {
+  it("rejects Supervisor, Employee, inactive membership and inactive Organization", async () => {
+    for (const role of ["VALET_SUPERVISOR", "VALET_EMPLOYEE"] as const) {
       const user = await fixture.createUser();
       await addMembership(user.id, role);
       const auth = await fixture.nativeLogin(user);
-      await expectUnavailable(await fixture.getMfa(statePath, auth.accessToken));
+      await expectUnavailable(
+        await fixture.getMfa(statePath, auth.accessToken),
+      );
     }
 
     const inactiveMembership = await fixture.createUser();
     await addMembership(inactiveMembership.id, "ORG_ADMIN", {
       membershipStatus: "INACTIVE",
     });
-    const inactiveMembershipAuth = await fixture.nativeLogin(inactiveMembership);
+    const inactiveMembershipAuth =
+      await fixture.nativeLogin(inactiveMembership);
     await expectUnavailable(
       await fixture.getMfa(statePath, inactiveMembershipAuth.accessToken),
     );
@@ -110,24 +92,37 @@ describe("MFA account eligibility", () => {
     await addMembership(inactiveOrganization.id, "ORG_ADMIN", {
       organizationStatus: "INACTIVE",
     });
-    const inactiveOrganizationAuth = await fixture.nativeLogin(inactiveOrganization);
+    const inactiveOrganizationAuth =
+      await fixture.nativeLogin(inactiveOrganization);
     await expectUnavailable(
       await fixture.getMfa(statePath, inactiveOrganizationAuth.accessToken),
     );
-  });
 
-  it("re-authorizes LM-only accounts on every MFA endpoint", async () => {
+    const inactiveManager = await fixture.createUser();
+    await addMembership(inactiveManager.id, "LOCATION_MANAGER", {
+      membershipStatus: "INACTIVE",
+    });
+    const inactiveManagerAuth = await fixture.nativeLogin(inactiveManager);
+    await expectUnavailable(
+      await fixture.getMfa(statePath, inactiveManagerAuth.accessToken),
+    );
+  }, 15_000);
+
+  it("allows an active LM-only account to use the existing MFA ceremony", async () => {
     const manager = await fixture.createUser();
     await addMembership(manager.id, "LOCATION_MANAGER");
     const auth = await fixture.nativeLogin(manager);
 
-    await expectUnavailable(await fixture.getMfa(statePath, auth.accessToken));
-    for (const operation of mutationCases) {
-      await expectUnavailable(
-        await fixture.postMfa(operation.path, auth.accessToken, operation.body),
-      );
-    }
-  });
+    const state = await fixture.getMfa(statePath, auth.accessToken);
+    expect(state.status).toBe(200);
+    expect(state.body).toMatchObject({ state: "ENROLLMENT_REQUIRED" });
+    const begun = await fixture.postMfa(
+      "/v1/staff/auth/mfa/enrollment/begin",
+      auth.accessToken,
+    );
+    expect(begun.status).toBe(200);
+    expect(begun.body).toMatchObject({ factorId: expect.any(String) });
+  }, 15_000);
 
   it("denies disabled Staff before Account Security can be used", async () => {
     const admin = await fixture.createCompanyAdmin();

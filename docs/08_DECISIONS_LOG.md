@@ -3814,7 +3814,19 @@ trimmed, nonblank, Unicode-preserving and bounded to 100 code points each, with
 no fabricated backfill. One shared formatter uses complete names or truthful
 email fallback. Company Admin directory filters run before the keyset limit;
 v2 cursors bind effective filter fingerprints without raw search PII. Current
-authority and mutation policies remain unchanged; later #240 slices stay deferred.
+authority and mutation policies remain unchanged by T05-A.
+
+Approved Issue #240 / T05-B extension (2026-10-01): Location Manager may manage
+only existing Employee/Supervisor targets whose complete persisted Location grant
+set is non-empty and fully contained in the actor's current grants to active
+Locations. Mixed/outside, zero-grant, elevated-role and self targets are concealed.
+LM role changes are Employee <-> Supervisor only; status and 1-50 Location
+grant/revoke commands retain CAS, handover blockers, desired-state no-op and atomic
+audit semantics, and every grant command must leave a non-empty fully covered
+target set. Authority is re-proved through commit so grant/lifecycle loss cannot
+race through stale preflight. LM sensitive staff commands reuse the existing MFA
+system; eligibility for that ceremony does not grant Company Admin capability.
+T05-C through T05-G remain deferred.
 
 ---
 

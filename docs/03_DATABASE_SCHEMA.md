@@ -626,6 +626,29 @@ direct mutation authority over `users.status`, membership role/status/version,
 or membership Location-grant identity. Runtime provisioning/verification owns
 those grants; migration ownership is not runtime authority.
 
+Issue #240 / T05-B forward migration
+`20261001005000_mgt_240b_lm_staff_authority` preserves those three runtime
+command signatures and recreates only their implementation plus three private
+helpers. Company Admin semantics remain the migration-37 contract. For an
+active `LOCATION_MANAGER`, the database command boundary independently requires
+an active User, active LM membership, active Organization, a non-self
+`VALET_EMPLOYEE`/`VALET_SUPERVISOR` target, and a complete current target grant
+set that is non-empty and wholly covered by the actor's persisted grants to
+`ACTIVE` Locations. Role/status/grant desired-state no-ops are authorized only
+after that complete-coverage proof.
+
+For LM grant/revoke, every submitted Location must be one of those current
+active actor grants, and the resulting target grant set must remain non-empty
+and fully covered. The existing `staff-management-org:<organization_id>`
+transaction serialization is retained for actor/target grant writers. M4 holds
+deterministically ordered `FOR SHARE` locks on the actor's active grant/Location
+rows while the command is in flight; it does not acquire a Location-lifecycle
+advisory lock after the staff-management advisory lock. This preserves the
+existing Location lifecycle lock order while preventing stale actor grant or
+Location-active-state authority from committing. New M4 helpers keep fixed
+`search_path = pg_catalog, public`, deny `PUBLIC`, and are not granted to the
+runtime role.
+
 Role-boundary notes:
 
 - Guest/Customer is not an OrganizationMembership.
@@ -653,6 +676,13 @@ normal application runtime. An `ORG_ADMIN` cannot be demoted to another role
 while dormant grants remain; callers must explicitly reconcile the grant set
 first. Access-reduction commands scope handover checks to the Locations being
 revoked.
+
+Issue #240 / T05-B keeps the same 1–50 distinct-Location command and one shared
+membership `version` CAS. Location Manager commands may only operate on already
+manageable Employee/Supervisor targets and may not use revoke to repair a mixed
+or outside-scope target. A revoke that would leave zero grants is denied. Grant
+browsing is exposed as a separate bounded cursor page; neither that page nor the
+legacy detail projection's first 100 rows is authorization input.
 
 ## shifts
 

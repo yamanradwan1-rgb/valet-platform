@@ -14,12 +14,9 @@ import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { useSensitiveMutation } from "../use-sensitive-mutation";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
-import {
-  changeStaffLocationAccess,
-  setStaffRole,
-  setStaffStatus,
-} from "./staff-api";
+import { setStaffRole, setStaffStatus } from "./staff-api";
 import { staffRoleLabel, staffStatusLabel } from "./staff-labels";
+import { StaffLocationAccessPanel } from "./staff-location-access-panel";
 
 const roles: readonly StaffManagementRole[] = [
   "ORG_ADMIN",
@@ -27,14 +24,20 @@ const roles: readonly StaffManagementRole[] = [
   "VALET_SUPERVISOR",
   "VALET_EMPLOYEE",
 ];
+const locationManagerRoles: readonly StaffManagementRole[] = [
+  "VALET_SUPERVISOR",
+  "VALET_EMPLOYEE",
+];
 
 export function StaffDetailDrawer(props: {
   readonly api: DashboardApiClient;
+  readonly authority: "COMPANY_ADMIN" | "LOCATION_MANAGER";
   readonly detail: StaffMembershipDetail;
   readonly onChanged: (detail: StaffMembershipDetail) => void;
   readonly onClose: () => void;
   readonly onConflict: () => void;
   readonly organizationId: string;
+  readonly reconciling: boolean;
   readonly selectedLocationId: string | null;
 }) {
   const { locale } = useDashboardLocale();
@@ -45,11 +48,6 @@ export function StaffDetailDrawer(props: {
     props.onConflict,
   );
 
-  const selectedGranted =
-    props.selectedLocationId !== null &&
-    props.detail.locationAccess.items.some(
-      (item) => item.locationId === props.selectedLocationId,
-    );
   return (
     <AdministrationDrawer label={t.details} onClose={props.onClose}>
       <div className={styles.stack}>
@@ -96,7 +94,10 @@ export function StaffDetailDrawer(props: {
               }
               value={role}
             >
-              {roles.map((item) => (
+              {(props.authority === "LOCATION_MANAGER"
+                ? locationManagerRoles
+                : roles
+              ).map((item) => (
                 <option key={item} value={item}>
                   {staffRoleLabel(item, t)}
                 </option>
@@ -104,7 +105,9 @@ export function StaffDetailDrawer(props: {
             </select>
             <button
               className={styles.primary}
-              disabled={mutation.busy || role === props.detail.role}
+              disabled={
+                mutation.busy || props.reconciling || role === props.detail.role
+              }
               onClick={() =>
                 void mutation.run(
                   () =>
@@ -128,7 +131,7 @@ export function StaffDetailDrawer(props: {
           {props.detail.status === "ACTIVE" ? (
             <button
               className={styles.danger}
-              disabled={mutation.busy}
+              disabled={mutation.busy || props.reconciling}
               onClick={() =>
                 void mutation.run(
                   () =>
@@ -149,7 +152,7 @@ export function StaffDetailDrawer(props: {
           ) : (
             <button
               className={styles.primary}
-              disabled={mutation.busy}
+              disabled={mutation.busy || props.reconciling}
               onClick={() =>
                 void mutation.run(
                   () =>
@@ -168,74 +171,16 @@ export function StaffDetailDrawer(props: {
               {t.activateStaff}
             </button>
           )}
-          {props.selectedLocationId &&
-          !selectedGranted &&
-          !props.detail.locationAccess.truncated ? (
-            <button
-              className={styles.secondary}
-              disabled={mutation.busy}
-              onClick={() =>
-                void mutation.run(
-                  () =>
-                    changeStaffLocationAccess(
-                      props.api,
-                      props.organizationId,
-                      props.detail.membershipId,
-                      props.selectedLocationId!,
-                      props.detail.version,
-                      "grant",
-                    ),
-                  props.onChanged,
-                )
-              }
-              type="button"
-            >
-              {t.grantSelected}
-            </button>
-          ) : null}
         </div>
-        <div>
-          <h3 className={styles.sectionTitle}>{t.grants}</h3>
-          <p className={styles.sectionText}>
-            {props.detail.locationAccess.totalCount}
-            {props.detail.locationAccess.truncated
-              ? ` · ${t.grantListTruncated}`
-              : ""}
-          </p>
-        </div>
-        <div className={styles.stack}>
-          {props.detail.locationAccess.items.map((grant) => (
-            <div className={styles.toolbar} key={grant.locationId}>
-              <div>
-                <div className={styles.strong}>{grant.name}</div>
-                <bdi className={styles.muted} dir="ltr">
-                  {grant.locationId}
-                </bdi>
-              </div>
-              <button
-                className={styles.danger}
-                disabled={mutation.busy}
-                onClick={() =>
-                  void mutation.run(
-                    () =>
-                      changeStaffLocationAccess(
-                        props.api,
-                        props.organizationId,
-                        props.detail.membershipId,
-                        grant.locationId,
-                        props.detail.version,
-                        "revoke",
-                      ),
-                    props.onChanged,
-                  )
-                }
-                type="button"
-              >
-                {t.revoke}
-              </button>
-            </div>
-          ))}
-        </div>
+        <StaffLocationAccessPanel
+          api={props.api}
+          authority={props.authority}
+          detail={props.detail}
+          onChanged={props.onChanged}
+          onConflict={props.onConflict}
+          organizationId={props.organizationId}
+          reconciling={props.reconciling}
+        />
         {mutation.error ? (
           <div className={styles.error} role="alert">
             {mutation.error}

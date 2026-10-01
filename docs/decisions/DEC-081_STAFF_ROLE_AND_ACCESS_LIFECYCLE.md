@@ -64,6 +64,38 @@ owned by later Issue #240 slices and are not introduced by T05-A.
 
 Source: Issue #240, the owner-approved execution plan U-01, and T05-A brief.
 
+## Approved Issue #240 / T05-B Location Manager staff authority extension — 2026-10-01
+
+The owner-approved U-02 contract narrowly amends the original Company-Admin-only
+role/access rule for existing lower-role staff. An active `LOCATION_MANAGER` may
+manage only `VALET_EMPLOYEE` and `VALET_SUPERVISOR` memberships whose complete
+current persisted Location grant set is non-empty and wholly contained in the
+manager's own current grants to active Locations in the same active Organization.
+Zero-grant, mixed/outside-grant, `ORG_ADMIN`, `LOCATION_MANAGER`, and self targets
+are denied and concealed; directory, detail, no-op, mutation, and result reads use
+the same complete-coverage boundary and never infer authority from a loaded page,
+the first 100 grants, submitted IDs, or the Dashboard-selected Location.
+
+Within that boundary, a Location Manager may change Employee <-> Supervisor,
+activate/deactivate subject to every existing operational handover blocker, and
+explicitly grant/revoke 1-50 Locations per CAS-protected command. Each submitted
+Location must be in the actor's current active grant set and the resulting target
+grant set must remain non-empty and wholly contained in that set. Actor grant
+loss, target grant changes, and Location lifecycle changes must serialize with the
+protected write so stale preflight authority cannot commit. Company Admin staff
+management, last-usable-admin rules, desired-state no-op semantics, versioning,
+atomic audit families, and blocker behavior remain unchanged.
+
+Location Manager sensitive staff mutations reuse the existing TOTP,
+`StaffAuthSession`, recovery, server-clock, and five-minute sensitive-assurance
+mechanisms. MFA account eligibility may therefore include an active Location
+Manager in an active Organization, but MFA eligibility does not grant Company
+Admin authority or unrelated Management capabilities. Supervisor and Employee
+MFA eligibility is not added by this extension. T05-B does not add onboarding,
+invitations, activation links, Shift History, Force End Shift, or Force Start.
+
+Source: Issue #240, the owner-approved execution plan U-02, and T05-B brief.
+
 ## Reason (original decision)
 
 Tenant staff administration must not strand operations, erase responsibility,

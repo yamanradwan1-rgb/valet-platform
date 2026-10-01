@@ -14,11 +14,13 @@ import {
   establishMfaAssurance,
   lockAndRecheckMfaSession,
   lockMfaUser,
-  requireCompanyAdminEligibility,
+  requireManagementMfaEligibility,
 } from "./mfa-session-repository";
 import { unprotectTotpSecret, verifyTotpCode } from "./mfa-totp";
 
-function lastAcceptedStep(value: string | number | bigint | null): number | undefined {
+function lastAcceptedStep(
+  value: string | number | bigint | null,
+): number | undefined {
   if (value === null) return undefined;
   const converted = Number(value);
   if (!Number.isSafeInteger(converted) || converted < 0) {
@@ -46,7 +48,7 @@ export class MfaStepUpService {
       return await inPostgresTransaction(this.pool, async (transaction) => {
         const session = await lockAndRecheckMfaSession(transaction, context);
         await lockMfaUser(transaction, session.user_id);
-        await requireCompanyAdminEligibility(transaction, session.user_id);
+        await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockCurrentFactor(transaction, session.user_id);
         if (factor?.state !== "ACTIVE") throw new MfaVerificationFailedError();
         const secret = unprotectTotpSecret(factor.protected_secret, {

@@ -70,6 +70,40 @@ export const staffManagementLocationAccessSchema = z
   })
   .strict();
 
+export const staffLocationAccessItemSchema = z
+  .object({
+    code: z.string().min(1).max(100),
+    locationId: uuidSchema,
+    name: z.string().min(1).max(200),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+  })
+  .strict();
+
+export const staffLocationAccessQuerySchema = z
+  .object({
+    cursor: cursorSchema.optional(),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict();
+
+export const staffLocationAccessPageSchema = z
+  .object({
+    items: z.array(staffLocationAccessItemSchema).max(100),
+    nextCursor: cursorSchema.nullable(),
+  })
+  .strict();
+
+export const staffLocationCandidateSchema = staffLocationAccessItemSchema
+  .extend({ granted: z.boolean() })
+  .strict();
+
+export const staffLocationCandidatePageSchema = z
+  .object({
+    items: z.array(staffLocationCandidateSchema).max(100),
+    nextCursor: cursorSchema.nullable(),
+  })
+  .strict();
+
 export const staffDirectoryItemSchema = z
   .object({
     identity: staffManagementIdentitySchema,
@@ -135,6 +169,24 @@ export type StaffDirectoryResponse = z.infer<
 >;
 export type StaffLocationAccessCommand = z.infer<
   typeof staffLocationAccessCommandSchema
+>;
+export type StaffLocationAccessItem = z.infer<
+  typeof staffLocationAccessItemSchema
+>;
+export type StaffLocationAccessPage = z.infer<
+  typeof staffLocationAccessPageSchema
+>;
+export type StaffLocationAccessQuery = z.infer<
+  typeof staffLocationAccessQuerySchema
+>;
+export type StaffLocationCandidate = z.infer<
+  typeof staffLocationCandidateSchema
+>;
+export type StaffLocationCandidatePage = z.infer<
+  typeof staffLocationCandidatePageSchema
+>;
+export type StaffManagementLocationAccess = z.infer<
+  typeof staffManagementLocationAccessSchema
 >;
 export type StaffManagementRole = z.infer<typeof staffManagementRoleSchema>;
 export type StaffMembershipDetail = z.infer<typeof staffMembershipDetailSchema>;

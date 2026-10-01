@@ -48,7 +48,7 @@ test("R05 Company Admin All Locations reads Employees but sends zero active-shif
   expect(fixture.count(shifts)).toBe(0);
 });
 
-test("R05 Location Manager gets no Employees directory and reads only exact granted active Shifts", async ({
+test("T05-B Location Manager opens Employees lazily and keeps Shifts exact-location scoped", async ({
   page,
 }) => {
   const fixture = new DashboardApiFixture({
@@ -72,7 +72,7 @@ test("R05 Location Manager gets no Employees directory and reads only exact gran
   await expect(
     page.getByText("View active shifts for the selected Location."),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Employees" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Employees" })).toBeVisible();
   await expect(page.getByText("Active shift", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: LOCATION_B.name })).toHaveCount(
     0,
@@ -80,9 +80,18 @@ test("R05 Location Manager gets no Employees directory and reads only exact gran
   expect(fixture.count(directory)).toBe(0);
   expect(fixture.count(shifts)).toBeGreaterThan(0);
   expect(fixture.count(activeShiftsPath(LOCATION_B.locationId))).toBe(0);
+  await page.getByRole("button", { name: "Employees", exact: true }).click();
+  await expect(page.getByText(STAFF_EMAIL, { exact: true })).toBeVisible();
+  expect(fixture.count(directory)).toBe(1);
+  const settledShifts = fixture.count(shifts);
+  await page.waitForTimeout(400);
+  expect(fixture.count(shifts)).toBe(settledShifts);
+  await expect(
+    page.getByText("Manage staff within your authorized Locations."),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Language" }).click();
   await expect(
-    page.getByText("عرض الورديات النشطة للموقع المحدد."),
+    page.getByText("إدارة الموظفين ضمن المواقع المصرح لك بها."),
   ).toBeVisible();
 });
 

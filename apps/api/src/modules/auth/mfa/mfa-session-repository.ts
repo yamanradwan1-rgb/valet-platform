@@ -41,7 +41,7 @@ export async function lockAndRecheckMfaSession(
   return row;
 }
 
-export async function requireCompanyAdminEligibility(
+export async function requireManagementMfaEligibility(
   transaction: PostgresTransaction,
   userId: string,
 ): Promise<void> {
@@ -51,7 +51,7 @@ export async function requireCompanyAdminEligibility(
      INNER JOIN organizations AS organization
        ON organization.id = membership.organization_id
      WHERE membership.user_id = $1
-       AND membership.role = 'ORG_ADMIN'
+       AND membership.role IN ('ORG_ADMIN', 'LOCATION_MANAGER')
        AND membership.status = 'ACTIVE'
        AND organization.status = 'ACTIVE'
      ORDER BY membership.id

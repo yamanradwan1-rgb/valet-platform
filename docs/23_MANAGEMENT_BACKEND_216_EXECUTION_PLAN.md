@@ -442,6 +442,29 @@ privilege coverage. MGT-BE-05 is implemented in the next packet below.
   `incident_recovery_intents_member_state_expiry_location_idx` on
   `(reporting_membership_id, state, expires_at, location_id)`.
 
+Issue #240 / T05-B extends this existing staff-management boundary for Location
+Managers only. The locked U-02 rule requires a lower-role target
+(`VALET_EMPLOYEE`/`VALET_SUPERVISOR`) to have a non-empty complete persisted grant
+set fully contained in the actor LM's current grants to ACTIVE Locations. The
+predicate applies before directory LIMIT and before detail/no-op/result disclosure;
+mixed/outside, zero-grant, elevated-role and self targets remain concealed. LM
+role changes are Employee <-> Supervisor only. Status changes preserve every
+migration-37 blocker. Multi-Location grant/revoke remains one explicit 1-50-ID CAS
+command and must leave a non-empty fully covered target set. T05-B adds bounded
+grant-page browsing instead of treating detail's historical first-100 projection as
+complete authority, and LM cursors bind the current grant-scope identity.
+
+M4 (`20261001005000_mgt_240b_lm_staff_authority`) forward-extends the existing
+staff command functions and keeps Company Admin semantics, last-admin protection,
+audit families and runtime/PUBLIC privilege boundaries intact. Current actor grant
+loss, target grant changes and Location lifecycle changes are protected through the
+write boundary; implementation must preserve the established lifecycle lock order.
+LM sensitive staff commands use the same existing TOTP/`StaffAuthSession`
+assurance system. The Account Security eligibility prerequisite is widened only to
+active Location Managers in active Organizations and grants no Company Admin or
+unrelated Management authority. T05-C through T05-G functionality is outside this
+extension.
+
 ### MGT-BE-05 — Company Settings & Branding
 
 Objective: expose existing typed defaults plus DEC-083/085 language, operating

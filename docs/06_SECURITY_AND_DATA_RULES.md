@@ -134,6 +134,24 @@ Management discovery merely to render the shell. Any already-resolved business
 labels/navigation retained by the browser are presentation only and never replace
 server authorization.
 
+Issue #240 / T05-B narrowly extends the same Account Security/MFA ceremony
+eligibility to a User with at least one ACTIVE `LOCATION_MANAGER` membership in an
+ACTIVE Organization because authorized LM staff role/status/grant commands remain
+SENSITIVE. This changes no factor storage, assurance duration, freshness rule,
+recovery mechanism, or Staff session model. MFA eligibility is not Company Admin
+authority: each staff command still proves its operation-specific current
+membership, entitlement, target role and complete Location-grant coverage from
+persistence. `VALET_SUPERVISOR` and `VALET_EMPLOYEE` do not gain MFA ceremony
+eligibility from T05-B.
+
+For LM existing-staff management, a target is visible or mutable only when its
+complete persisted grant set is non-empty and every target grant is also a current
+LM grant to an ACTIVE Location. Mixed/outside, zero-grant, elevated-role and self
+targets use the normal concealed denial. Directory filtering applies that boundary
+before LIMIT. Protected writes serialize current actor/target/grant authority and
+Location lifecycle state through commit; no first-page, first-100, submitted-ID,
+selected-Location, or browser-cached authority proof is accepted.
+
 The Dashboard may coordinate the non-secret MFA state for the current
 identity/session generation, but provisioning secrets, TOTP inputs, recovery-code
 inputs and raw recovery-code disclosures remain ceremony-local and ephemeral.
@@ -149,9 +167,11 @@ reconciliation after a rejected write may refresh Staff credentials, but the
 write itself requires deliberate explicit retry; generic automatic mutation replay
 is prohibited.
 
-Issue #234 does not change the production MFA endpoints, public request/response
-contracts, database schema, persisted factor model, factor algorithm/format or
-server eligibility rule.
+Issue #234 itself did not change the production MFA endpoints, public
+request/response contracts, database schema, persisted factor model, factor
+algorithm/format or server eligibility rule. The later T05-B eligibility amendment
+above is limited to active Location Managers and reuses those same endpoints and
+persistence.
 
 VAL-004M implements accepted DEC-024 as the shared PostgreSQL-backed anti-abuse
 boundary. It uses exact rolling windows, database time, transaction-level

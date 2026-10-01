@@ -2,10 +2,57 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+interface SharedRead {
+  abortRevision: number;
+  readonly controller: AbortController;
+  consumers: number;
+  readonly promise: Promise<unknown>;
+}
+
+const sharedReads = new Map<string, SharedRead>();
+
+function acquireRead<T>(
+  requestKey: string,
+  load: (signal: AbortSignal) => Promise<T>,
+): { readonly promise: Promise<T>; readonly release: () => void } {
+  let entry = sharedReads.get(requestKey);
+  if (entry === undefined) {
+    const controller = new AbortController();
+    entry = {
+      abortRevision: 0,
+      controller,
+      consumers: 0,
+      promise: load(controller.signal),
+    };
+    sharedReads.set(requestKey, entry);
+  }
+  entry.consumers += 1;
+  entry.abortRevision += 1;
+  const acquired = entry;
+  return {
+    promise: acquired.promise as Promise<T>,
+    release: () => {
+      acquired.consumers -= 1;
+      const abortRevision = ++acquired.abortRevision;
+      queueMicrotask(() => {
+        if (
+          sharedReads.get(requestKey) === acquired &&
+          acquired.consumers === 0 &&
+          acquired.abortRevision === abortRevision
+        ) {
+          acquired.controller.abort();
+          sharedReads.delete(requestKey);
+        }
+      });
+    },
+  };
+}
+
 export interface AuthoritativeReadState<T> {
   readonly data: T | null;
   readonly error: Error | null;
   readonly loading: boolean;
+  readonly replace: (data: T) => void;
   readonly refresh: () => void;
 }
 
@@ -23,41 +70,59 @@ export function useAuthoritativeRead<T>(
     error: Error | null;
     requestKey: string;
   }>({
-    baseKey: "", data: null, error: null, requestKey: "",
+    baseKey: "",
+    data: null,
+    error: null,
+    requestKey: "",
   });
 
   useEffect(() => {
     generationRef.current += 1;
     const generation = generationRef.current;
-    const controller = new AbortController();
     let disposed = false;
-    if (!enabled) return () => controller.abort();
-    void load(controller.signal).then(
+    if (!enabled) return;
+    const read = acquireRead(requestKey, load);
+    void read.promise.then(
       (data) => {
         if (!disposed && generation === generationRef.current) {
           setState({ baseKey: key, data, error: null, requestKey });
         }
       },
       (reason: unknown) => {
-        if (controller.signal.aborted || disposed || generation !== generationRef.current) return;
+        if (disposed || generation !== generationRef.current) return;
         setState({
           baseKey: key,
           data: null,
-          error: reason instanceof Error ? reason : new Error("Request failed."),
+          error:
+            reason instanceof Error ? reason : new Error("Request failed."),
           requestKey,
         });
       },
     );
-    return () => { disposed = true; controller.abort(); };
+    return () => {
+      disposed = true;
+      read.release();
+    };
   }, [enabled, key, load, requestKey]);
 
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
-  if (!enabled) return { data: null, error: null, loading: false, refresh };
+  const replace = useCallback(
+    (data: T) => setState({ baseKey: key, data, error: null, requestKey }),
+    [key, requestKey],
+  );
+  if (!enabled)
+    return { data: null, error: null, loading: false, refresh, replace };
   if (state.requestKey !== requestKey) {
     if (state.baseKey === key) {
-      return { data: state.data, error: null, loading: true, refresh };
+      return { data: state.data, error: null, loading: true, refresh, replace };
     }
-    return { data: null, error: null, loading: true, refresh };
+    return { data: null, error: null, loading: true, refresh, replace };
   }
-  return { data: state.data, error: state.error, loading: false, refresh };
+  return {
+    data: state.data,
+    error: state.error,
+    loading: false,
+    refresh,
+    replace,
+  };
 }

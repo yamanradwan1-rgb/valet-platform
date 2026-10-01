@@ -21,18 +21,18 @@ import {
   establishMfaAssurance,
   lockAndRecheckMfaSession,
   lockMfaUser,
-  requireCompanyAdminEligibility,
+  requireManagementMfaEligibility,
 } from "./mfa-session-repository";
 import {
   generateRecoveryCodes,
   recoveryCodeSelector,
   verifyRecoveryCodeVerifier,
 } from "./mfa-recovery-code";
+import { generateTotpSecret, verifyTotpCode } from "./mfa-totp";
 import {
-  generateTotpSecret,
-  verifyTotpCode,
-} from "./mfa-totp";
-import { protectTotpSecret, unprotectTotpSecret } from "./mfa-secret-protection";
+  protectTotpSecret,
+  unprotectTotpSecret,
+} from "./mfa-secret-protection";
 import type { MfaProvisioningData } from "./mfa-enrollment.service";
 
 interface RecoveryVerifierRow {
@@ -68,7 +68,7 @@ export class MfaRecoveryService {
       return await inPostgresTransaction(this.pool, async (transaction) => {
         const session = await lockAndRecheckMfaSession(transaction, context);
         await lockMfaUser(transaction, session.user_id);
-        await requireCompanyAdminEligibility(transaction, session.user_id);
+        await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockCurrentFactor(transaction, session.user_id);
         const selector = recoveryCodeSelector(recoveryCode);
         if (factor?.state !== "ACTIVE" || selector === undefined) {
@@ -152,14 +152,17 @@ export class MfaRecoveryService {
   async reissueRecoveryCodes(
     authorization: string | undefined,
     code: string,
-  ): Promise<{ readonly factorId: string; readonly recoveryCodes: readonly string[] }> {
+  ): Promise<{
+    readonly factorId: string;
+    readonly recoveryCodes: readonly string[];
+  }> {
     const context = await this.sessions.resolve(authorization);
     const reservation = await this.antiAbuse.reserveTotp(context.userId);
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
         const session = await lockAndRecheckMfaSession(transaction, context);
         await lockMfaUser(transaction, session.user_id);
-        await requireCompanyAdminEligibility(transaction, session.user_id);
+        await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockCurrentFactor(transaction, session.user_id);
         if (factor?.state !== "ACTIVE") throw new MfaVerificationFailedError();
         const secret = unprotectTotpSecret(factor.protected_secret, {
@@ -187,14 +190,19 @@ export class MfaRecoveryService {
         });
         for (let index = 0; index < recoveryCodes.length; index += 1) {
           const recovery = recoveryCodes[index];
-          if (recovery === undefined) throw new Error("Recovery code generation failed.");
+          if (recovery === undefined)
+            throw new Error("Recovery code generation failed.");
           await transaction.query(
             `INSERT INTO mfa_recovery_codes
                (id, factor_id, set_generation, slot, selector, verifier)
              VALUES ($1, $2, $3, $4, $5, $6)`,
             [
-              randomUUID(), factor.id, nextGeneration, index + 1,
-              recovery.selector, recovery.verifier,
+              randomUUID(),
+              factor.id,
+              nextGeneration,
+              index + 1,
+              recovery.selector,
+              recovery.verifier,
             ],
           );
         }
@@ -205,7 +213,12 @@ export class MfaRecoveryService {
           [factor.id, acceptedStep, nextGeneration],
         );
         if (updated.rowCount !== 1) throw new MfaVerificationFailedError();
-        await establishMfaAssurance(transaction, session.id, factor.id, session.now);
+        await establishMfaAssurance(
+          transaction,
+          session.id,
+          factor.id,
+          session.now,
+        );
         await appendAccountSecurityAuditEvent(transaction, {
           actor: { type: "USER", userId: session.user_id },
           eventId: randomUUID(),

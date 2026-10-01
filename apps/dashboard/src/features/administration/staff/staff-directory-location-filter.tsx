@@ -4,10 +4,18 @@ import type { ManagementLocation } from "@valet/contracts";
 import { useCallback, useState } from "react";
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
-import { listCompanyAdminLocations } from "../../../lib/scope/dashboard-scope";
+import {
+  listCompanyAdminLocations,
+  listLocationManagerLocations,
+} from "../../../lib/scope/dashboard-scope";
 import { administrationCopy } from "../administration-copy";
+import { administrationScope } from "../administration-scope";
 import { useAuthoritativeRead } from "../use-authoritative-read";
 import referenceStyles from "./staff-reference.module.css";
+
+function isolatedLocationLabel(name: string, code: string): string {
+  return `\u2068${name}\u2069 · \u2066${code}\u2069`;
+}
 import filterStyles from "./staff-directory-filter.module.css";
 
 export function StaffDirectoryLocationFilter(props: {
@@ -16,7 +24,9 @@ export function StaffDirectoryLocationFilter(props: {
   readonly value: string | undefined;
   readonly onChange: (value: string | undefined) => void;
 }) {
-  const { api } = useProtectedDashboard();
+  const dashboard = useProtectedDashboard();
+  const { api } = dashboard;
+  const authority = administrationScope(dashboard.selectedScope).authority;
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
   const [enabled, setEnabled] = useState(false);
@@ -25,13 +35,15 @@ export function StaffDirectoryLocationFilter(props: {
   const [selected, setSelected] = useState<ManagementLocation | null>(null);
   const load = useCallback(
     (signal: AbortSignal) =>
-      listCompanyAdminLocations(
+      (authority === "LOCATION_MANAGER"
+        ? listLocationManagerLocations
+        : listCompanyAdminLocations)(
         api,
         props.organizationId,
         cursor === null ? {} : { cursor },
         signal,
       ),
-    [api, props.organizationId, cursor],
+    [api, authority, props.organizationId, cursor],
   );
   const page = useAuthoritativeRead(
     `${props.scopeKey}:staff-location-selector:${cursor ?? "first"}`,
@@ -70,12 +82,18 @@ export function StaffDirectoryLocationFilter(props: {
       <option value="ALL">{t.allEmployeeLocations}</option>
       {selectedOutsidePage ? (
         <option value={selected.locationId}>
-          {selected.name} · {selected.code}
+          {isolatedLocationLabel(selected.name, selected.code)}
         </option>
       ) : null}
       {options.map((item) => (
-        <option key={item.locationId} value={item.locationId}>
-          {item.name} · {item.code}
+        <option
+          disabled={
+            authority === "LOCATION_MANAGER" && item.status !== "ACTIVE"
+          }
+          key={item.locationId}
+          value={item.locationId}
+        >
+          {isolatedLocationLabel(item.name, item.code)}
         </option>
       ))}
       {page.loading ? <option disabled>{t.loading}</option> : null}

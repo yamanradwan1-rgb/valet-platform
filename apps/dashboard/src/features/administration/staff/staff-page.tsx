@@ -72,7 +72,11 @@ function StaffPageContent() {
   return (
     <AdministrationPage
       subtitle={
-        companyAdmin ? t.employeesSubtitle : t.employeesLocationManagerSubtitle
+        companyAdmin
+          ? t.employeesSubtitle
+          : tab === "employees"
+            ? t.employeesLocationManagerStaffSubtitle
+            : t.employeesLocationManagerSubtitle
       }
       subtitleSize="sm"
       title={t.employeesTitle}
@@ -81,7 +85,7 @@ function StaffPageContent() {
       <div
         className={`${styles.tabs} ${styles.staffTabs} ${referenceStyles.tabsOffset}`}
       >
-        {companyAdmin ? (
+        {companyAdmin || locationManager ? (
           <button
             aria-pressed={tab === "employees"}
             className={`${styles.tab} ${styles.staffTab} ${tab === "employees" ? `${styles.tabActive} ${styles.staffTabActive}` : ""}`}
@@ -100,7 +104,9 @@ function StaffPageContent() {
           {t.shifts}
         </button>
       </div>
-      {tab === "employees" && companyAdmin ? <StaffEmployeesBody /> : null}
+      {tab === "employees" && (companyAdmin || locationManager) ? (
+        <StaffEmployeesBody />
+      ) : null}
       {tab === "shifts" ? renderShifts() : null}
       {selectedShift && location ? (
         <StaffShiftDrawer

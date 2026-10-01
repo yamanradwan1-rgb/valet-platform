@@ -11,7 +11,10 @@ import {
   type StaffSessionContextResolver,
 } from "../staff-session-context";
 import { MfaAntiAbuse } from "./mfa-anti-abuse";
-import { MfaEnrollmentNotAvailableError, MfaVerificationFailedError } from "./mfa-errors";
+import {
+  MfaEnrollmentNotAvailableError,
+  MfaVerificationFailedError,
+} from "./mfa-errors";
 import {
   insertPendingFactor,
   lockCurrentFactor,
@@ -21,9 +24,12 @@ import {
   establishMfaAssurance,
   lockAndRecheckMfaSession,
   lockMfaUser,
-  requireCompanyAdminEligibility,
+  requireManagementMfaEligibility,
 } from "./mfa-session-repository";
-import { protectTotpSecret, unprotectTotpSecret } from "./mfa-secret-protection";
+import {
+  protectTotpSecret,
+  unprotectTotpSecret,
+} from "./mfa-secret-protection";
 import { generateTotpSecret, verifyTotpCode } from "./mfa-totp";
 import { generateRecoveryCodes } from "./mfa-recovery-code";
 
@@ -56,9 +62,10 @@ export class MfaEnrollmentService {
     return inPostgresTransaction(this.pool, async (transaction) => {
       const session = await lockAndRecheckMfaSession(transaction, context);
       await lockMfaUser(transaction, session.user_id);
-      await requireCompanyAdminEligibility(transaction, session.user_id);
+      await requireManagementMfaEligibility(transaction, session.user_id);
       const current = await lockCurrentFactor(transaction, session.user_id);
-      if (current?.state === "ACTIVE") throw new MfaEnrollmentNotAvailableError();
+      if (current?.state === "ACTIVE")
+        throw new MfaEnrollmentNotAvailableError();
       if (current?.state === "PENDING") {
         return this.provisioning(
           current.id,
@@ -93,7 +100,7 @@ export class MfaEnrollmentService {
       return await inPostgresTransaction(this.pool, async (transaction) => {
         const session = await lockAndRecheckMfaSession(transaction, context);
         await lockMfaUser(transaction, session.user_id);
-        await requireCompanyAdminEligibility(transaction, session.user_id);
+        await requireManagementMfaEligibility(transaction, session.user_id);
         const factor = await lockFactorById(
           transaction,
           session.user_id,
@@ -125,10 +132,12 @@ export class MfaEnrollmentService {
            WHERE id = $1 AND state = 'PENDING'`,
           [factor.id, session.now, acceptedStep, recoverySetGeneration],
         );
-        if (activated.rowCount !== 1) throw new MfaEnrollmentNotAvailableError();
+        if (activated.rowCount !== 1)
+          throw new MfaEnrollmentNotAvailableError();
         for (let index = 0; index < recoveryCodes.length; index += 1) {
           const recovery = recoveryCodes[index];
-          if (recovery === undefined) throw new Error("Recovery code generation failed.");
+          if (recovery === undefined)
+            throw new Error("Recovery code generation failed.");
           await transaction.query(
             `INSERT INTO mfa_recovery_codes
                (id, factor_id, set_generation, slot, selector, verifier)
@@ -171,7 +180,10 @@ export class MfaEnrollmentService {
     }
   }
 
-  private provisioning(factorId: string, secretBase32: string): MfaProvisioningData {
+  private provisioning(
+    factorId: string,
+    secretBase32: string,
+  ): MfaProvisioningData {
     return {
       factorId,
       provisioning: {

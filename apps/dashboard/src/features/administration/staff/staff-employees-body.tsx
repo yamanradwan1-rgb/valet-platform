@@ -31,10 +31,15 @@ const roles: readonly StaffManagementRole[] = [
   "VALET_SUPERVISOR",
   "VALET_EMPLOYEE",
 ];
+const locationManagerRoles: readonly StaffManagementRole[] = [
+  "VALET_SUPERVISOR",
+  "VALET_EMPLOYEE",
+];
 
 export function StaffEmployeesBody() {
   const dashboard = useProtectedDashboard();
   const scope = administrationScope(dashboard.selectedScope);
+  const locationManager = scope.authority === "LOCATION_MANAGER";
   const scopeKey = administrationScopeKey(dashboard);
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
@@ -101,7 +106,7 @@ export function StaffEmployeesBody() {
               value={query.filters.role ?? "ALL"}
             >
               <option value="ALL">{t.allRoles}</option>
-              {roles.map((role) => (
+              {(locationManager ? locationManagerRoles : roles).map((role) => (
                 <option key={role} value={role}>
                   {staffRoleLabel(role, t)}
                 </option>
@@ -225,8 +230,11 @@ export function StaffEmployeesBody() {
       {query.membershipId && detail.data ? (
         <StaffDetailDrawer
           api={dashboard.api}
+          authority={locationManager ? "LOCATION_MANAGER" : "COMPANY_ADMIN"}
           detail={detail.data}
-          onChanged={() => {
+          reconciling={detail.loading}
+          onChanged={(nextDetail) => {
+            detail.replace(nextDetail);
             detail.refresh();
             directory.refresh();
           }}

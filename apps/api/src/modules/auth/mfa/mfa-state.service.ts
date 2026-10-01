@@ -12,14 +12,11 @@ import { MfaAssurancePolicy } from "./mfa-assurance-policy";
 import { lockCurrentFactor } from "./mfa-factor-repository";
 import {
   lockAndRecheckMfaSession,
-  requireCompanyAdminEligibility,
+  requireManagementMfaEligibility,
 } from "./mfa-session-repository";
 
 export type MfaSafeState =
-  | "ENROLLMENT_REQUIRED"
-  | "ENROLLMENT_PENDING"
-  | "STEP_UP_REQUIRED"
-  | "ASSURED";
+  "ENROLLMENT_REQUIRED" | "ENROLLMENT_PENDING" | "STEP_UP_REQUIRED" | "ASSURED";
 
 @Injectable()
 export class MfaStateService {
@@ -30,19 +27,26 @@ export class MfaStateService {
     private readonly assurance: MfaAssurancePolicy,
   ) {}
 
-  async state(authorization: string | undefined): Promise<{ readonly state: MfaSafeState }> {
+  async state(
+    authorization: string | undefined,
+  ): Promise<{ readonly state: MfaSafeState }> {
     const context = await this.sessions.resolve(authorization);
     const bypassEnabled = localMfaBypassEnabled();
-    const factorState = await inPostgresTransaction(this.pool, async (transaction) => {
-      const session = await lockAndRecheckMfaSession(transaction, context);
-      await requireCompanyAdminEligibility(transaction, session.user_id);
-      if (bypassEnabled) return "LOCAL_BYPASS" as const;
-      return (await lockCurrentFactor(transaction, session.user_id))?.state;
-    });
+    const factorState = await inPostgresTransaction(
+      this.pool,
+      async (transaction) => {
+        const session = await lockAndRecheckMfaSession(transaction, context);
+        await requireManagementMfaEligibility(transaction, session.user_id);
+        if (bypassEnabled) return "LOCAL_BYPASS" as const;
+        return (await lockCurrentFactor(transaction, session.user_id))?.state;
+      },
+    );
     if (factorState === "LOCAL_BYPASS") return { state: "ASSURED" };
     if (factorState === undefined) return { state: "ENROLLMENT_REQUIRED" };
     if (factorState === "PENDING") return { state: "ENROLLMENT_PENDING" };
     const result = await this.assurance.assess(authorization);
-    return { state: result === "ASSURANCE_VALID" ? "ASSURED" : "STEP_UP_REQUIRED" };
+    return {
+      state: result === "ASSURANCE_VALID" ? "ASSURED" : "STEP_UP_REQUIRED",
+    };
   }
 }

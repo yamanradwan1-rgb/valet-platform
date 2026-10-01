@@ -48,4 +48,5 @@ export const expectedMigrationDirectories = [
   "20260929004700_map_setup_client_cas",
   "20261001004800_mgt_236_parking_zone_creation",
   "20261001004900_mgt_240a_staff_identity",
+  "20261001005000_mgt_240b_lm_staff_authority",
 ] as const;

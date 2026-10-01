@@ -11,8 +11,12 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import { authorizeCompanyAdminManagement } from "./management-authorization";
 import { appendStaffManagementAudit } from "./staff-management-audit";
+import {
+  authorizeStaffManagement,
+  authorizeStaffTarget,
+  type StaffManagementAuthority,
+} from "./staff-management-authorization";
 import {
   setStaffLocationAccess,
   setStaffRole,
@@ -25,7 +29,9 @@ import {
 
 @Injectable()
 export class StaffManagementMutationService {
-  constructor(@Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool) {}
+  constructor(
+    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+  ) {}
 
   role(
     context: StaffSessionContext,
@@ -34,11 +40,11 @@ export class StaffManagementMutationService {
     command: StaffRoleCommand,
   ): Promise<StaffMembershipDetail> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const actor = await authorizeCompanyAdminManagement(transaction, context, {
+      const actor = await authorizeStaffManagement(transaction, context, {
         assurance: "SENSITIVE",
-        capability: "STAFF_MANAGE_ELIGIBLE",
         organizationId,
       });
+      await authorizeStaffTarget(transaction, actor, membershipId, true);
       const before = await loadStaffMembership(
         transaction,
         organizationId,
@@ -65,7 +71,13 @@ export class StaffManagementMutationService {
           organizationId,
         });
       }
-      return this.finish(transaction, context, organizationId, membershipId);
+      return this.finish(
+        transaction,
+        context,
+        actor,
+        organizationId,
+        membershipId,
+      );
     });
   }
 
@@ -77,11 +89,11 @@ export class StaffManagementMutationService {
     desiredStatus: "ACTIVE" | "INACTIVE",
   ): Promise<StaffMembershipDetail> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const actor = await authorizeCompanyAdminManagement(transaction, context, {
+      const actor = await authorizeStaffManagement(transaction, context, {
         assurance: "SENSITIVE",
-        capability: "STAFF_MANAGE_ELIGIBLE",
         organizationId,
       });
+      await authorizeStaffTarget(transaction, actor, membershipId, true);
       const before = await loadStaffMembership(
         transaction,
         organizationId,
@@ -111,7 +123,13 @@ export class StaffManagementMutationService {
           organizationId,
         });
       }
-      return this.finish(transaction, context, organizationId, membershipId);
+      return this.finish(
+        transaction,
+        context,
+        actor,
+        organizationId,
+        membershipId,
+      );
     });
   }
 
@@ -123,12 +141,17 @@ export class StaffManagementMutationService {
     granted: boolean,
   ): Promise<StaffMembershipDetail> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const actor = await authorizeCompanyAdminManagement(transaction, context, {
+      const actor = await authorizeStaffManagement(transaction, context, {
         assurance: "SENSITIVE",
-        capability: "STAFF_MANAGE_ELIGIBLE",
         organizationId,
       });
-      await loadStaffMembership(transaction, organizationId, membershipId, true);
+      await authorizeStaffTarget(transaction, actor, membershipId, true);
+      await loadStaffMembership(
+        transaction,
+        organizationId,
+        membershipId,
+        true,
+      );
       const mutation = await setStaffLocationAccess(transaction, {
         ...command,
         actorMembershipId: actor.membershipId,
@@ -150,17 +173,31 @@ export class StaffManagementMutationService {
           organizationId,
         });
       }
-      return this.finish(transaction, context, organizationId, membershipId);
+      return this.finish(
+        transaction,
+        context,
+        actor,
+        organizationId,
+        membershipId,
+      );
     });
   }
 
   private async finish(
     transaction: Parameters<typeof recordAdminActivityInTransaction>[0],
     context: StaffSessionContext,
+    authority: StaffManagementAuthority,
     organizationId: string,
     membershipId: string,
   ): Promise<StaffMembershipDetail> {
-    const current = await loadStaffMembership(transaction, organizationId, membershipId);
+    if (authority.kind === "LOCATION_MANAGER") {
+      await authorizeStaffTarget(transaction, authority, membershipId);
+    }
+    const current = await loadStaffMembership(
+      transaction,
+      organizationId,
+      membershipId,
+    );
     const detail = await staffMembershipDetail(transaction, current);
     await recordAdminActivityInTransaction(transaction, context);
     return detail;
