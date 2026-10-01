@@ -31,6 +31,9 @@
 :global([data-theme="dark"]) .tab { color:#94a3b8; }
 :global([data-theme="dark"]) .tabActive { color:#38bdf8; }
 :global([data-theme="dark"]) .tabActive::after { background:#38bdf8; }
+.workspaceTabs .tab:focus-visible { outline:2px solid #1e60f0; outline-offset:-2px; border-radius:.25rem; }
+:global([data-theme="dark"]) .workspaceTabs .tab:focus-visible { outline-color:#38bdf8; }
+.workspacePanel { display:grid; gap:1.5rem; min-width:0; }
 .loadedPageNote { color:#94a3b8; font-size:.6875rem; margin-top:-.75rem; }
 .contextBand { min-height:2.75rem; display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.625rem .875rem; border:1px solid #e2e8f0; border-radius:.75rem; background:#fff; color:#64748b; font-size:.75rem; }
 :global([data-theme="dark"]) .contextBand { background:#131e3d; border-color:#1e293b; color:#94a3b8; }

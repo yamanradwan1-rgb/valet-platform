@@ -25,7 +25,7 @@ for (const route of ["keys", "incidents", "audit-log"] as const) {
         expect(box?.x).toBeCloseTo(292, 0);
         expect(box?.y).toBeCloseTo(96, 0);
         const cardBox = await card.boundingBox();
-        expect(cardBox?.y).toBeCloseTo(route === "keys" ? 238 : 232, 0);
+        expect(cardBox?.y).toBeCloseTo(route === "keys" ? 293 : 232, 0);
         expect(cardBox?.width).toBeCloseTo(1110, 0);
         const row = await page.locator("tbody tr").first().boundingBox();
         expect(row?.height).toBeCloseTo(route === "keys" ? 65 : 53, 0);
@@ -43,7 +43,7 @@ for (const route of ["keys", "incidents", "audit-log"] as const) {
         const region = page.getByRole("region", {
           name:
             route === "keys"
-              ? "Keys"
+              ? "Keys & Spots"
               : route === "incidents"
                 ? "Incidents"
                 : "Audit Log",

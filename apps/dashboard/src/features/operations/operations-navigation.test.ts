@@ -52,6 +52,14 @@ describe("MD-03 navigation authority", () => {
     expect(ids("LOCATION_MANAGER", fullAccess)).toEqual(expected);
   });
 
+  it("names the keys destination consistently in English and Arabic", () => {
+    const keys = md03NavigationRegistrations.find((item) => item.id === "keys");
+    expect(keys?.labels).toEqual({
+      ar: "المفاتيح ومواقف السيارات",
+      en: "Keys & Spots",
+    });
+  });
+
   it("keeps LM Maps visible without D while hiding all other MD-03 pages", () => {
     const lmNoDashboard: NavigationAuthority = {
       ...mapsOnly,

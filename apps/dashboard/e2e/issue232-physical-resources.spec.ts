@@ -1,46 +1,50 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 
-import { DashboardApiFixture, LOCATION_A, ORG_A } from "./support/dashboard-api-fixture";
-import { enterLocations, lifecyclePath, locationLifecycle, selectLocation } from "./support/r06-locations";
+import {
+  DashboardApiFixture,
+  LOCATION_A,
+  ORG_A,
+} from "./support/dashboard-api-fixture";
 import { Issue232PhysicalState } from "./support/issue232-physical-resources";
+import {
+  enterPhysicalResources,
+  openPhysicalResources,
+  selectCompanyLocationAfterReload,
+} from "./support/keys-spots";
 import { decodeQrFromPng } from "./support/png-qr-decode";
 
 function fixture(state: Issue232PhysicalState) {
   return new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
-    override: (path, request) => {
-      if (path === lifecyclePath) return { body: locationLifecycle({ status: "ACTIVE", acceptingIntake: true }) };
-      return state.reply(path, request);
-    },
+    override: (path, request) => state.reply(path, request),
   });
 }
 
 async function enter(page: Page, state: Issue232PhysicalState) {
   await fixture(state).install(page);
-  await enterLocations(page);
-  await selectLocation(page);
-  await expect(page.getByRole("heading", { name: "Physical Resources" })).toBeVisible();
+  await enterPhysicalResources(page);
 }
 
-test("lists real resources, creates persisted rows, refreshes and reopens labels", async ({ page }) => {
+test("lists real resources, creates persisted rows, refreshes and reopens labels", async ({
+  page,
+}) => {
   const state = new Issue232PhysicalState(true);
   await enter(page, state);
   await expect(page.getByText("K-01", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Add Key Slot" }).click();
   const keyDialog = page.getByRole("dialog", { name: "Add Key Slot" });
   await keyDialog.getByLabel("Code").fill(" K-02 ");
-  await keyDialog.getByRole("button", { name: "Create", exact: true }).dblclick();
+  await keyDialog
+    .getByRole("button", { name: "Create", exact: true })
+    .dblclick();
   expect(state.keyPostBodies).toHaveLength(1);
   const label = page.getByRole("dialog", { name: "Physical resource label" });
   await expect(label.getByText("K-02", { exact: true })).toBeVisible();
   await label.getByLabel("Cancel").click();
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Choose your authorized workspace" })).toBeVisible();
-  await page.getByRole("button", { name: ORG_A.name }).click();
-  await page.getByRole("button", { name: "All Locations" }).click();
-  await selectLocation(page);
+  await selectCompanyLocationAfterReload(page);
   await expect(page.getByText("K-02", { exact: true })).toBeVisible();
 
   await page.getByRole("tab", { name: "Parking Spots" }).click();
@@ -49,19 +53,28 @@ test("lists real resources, creates persisted rows, refreshes and reopens labels
   const spotDialog = page.getByRole("dialog", { name: "Add Parking Spot" });
   await spotDialog.getByLabel("Code").fill("P-02");
   await spotDialog.getByLabel("Label").fill("Front Row 02");
-  await spotDialog.getByLabel("Parking Zone").selectOption("33333333-3333-4333-8333-333333333333");
+  await spotDialog
+    .getByLabel("Parking Zone")
+    .selectOption("33333333-3333-4333-8333-333333333333");
   await spotDialog.getByRole("button", { name: "Create", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "Physical resource label" }).getByText("P-02", { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByRole("dialog", { name: "Physical resource label" })
+      .getByText("P-02", { exact: true }),
+  ).toBeVisible();
   expect(state.spotPostBodies).toHaveLength(1);
 });
 
-test("empty states, duplicate validation and 401 reconciliation never auto-replay POST", async ({ page }) => {
+test("empty states, duplicate validation and 401 reconciliation never auto-replay POST", async ({
+  page,
+}) => {
   const state = new Issue232PhysicalState(false);
   const api = fixture(state);
   await api.install(page);
-  await enterLocations(page);
-  await selectLocation(page);
-  await expect(page.getByText("No Key Slots configured for this Location.")).toBeVisible();
+  await enterPhysicalResources(page);
+  await expect(
+    page.getByText("No Key Slots configured for this Location."),
+  ).toBeVisible();
   state.failNextKeyPost401 = true;
   const keyPath = `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/physical-resources/key-slots`;
   const readsBefore = api.count(keyPath);
@@ -70,20 +83,26 @@ test("empty states, duplicate validation and 401 reconciliation never auto-repla
   await dialog.getByLabel("Code").fill("K-09");
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
   expect(state.keyPostBodies).toHaveLength(1);
-  await expect(page.getByRole("dialog", { name: "Add Key Slot" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Add Key Slot" })).toHaveCount(
+    0,
+  );
   expect(api.count(keyPath)).toBeGreaterThan(readsBefore);
-  await selectLocation(page);
+  await openPhysicalResources(page);
   await page.getByRole("button", { name: "Add Key Slot" }).click();
   const retryDialog = page.getByRole("dialog", { name: "Add Key Slot" });
   await retryDialog.getByLabel("Code").fill("K-09");
-  await retryDialog.getByRole("button", { name: "Create", exact: true }).click();
+  await retryDialog
+    .getByRole("button", { name: "Create", exact: true })
+    .click();
   expect(state.keyPostBodies).toHaveLength(2);
   expect((state.keyPostBodies[0] as { operationId: string }).operationId).toBe(
     (state.keyPostBodies[1] as { operationId: string }).operationId,
   );
 });
 
-test("announces duplicate conflicts and restores keyboard focus", async ({ page }) => {
+test("announces duplicate conflicts and restores keyboard focus", async ({
+  page,
+}) => {
   const state = new Issue232PhysicalState(true);
   await enter(page, state);
   const add = page.getByRole("button", { name: "Add Key Slot" });
@@ -100,23 +119,39 @@ test("announces duplicate conflicts and restores keyboard focus", async ({ page 
   await expect(add).toBeFocused();
 });
 
-test("downloads a real high-resolution PNG and print mode excludes Dashboard chrome", async ({ page }) => {
+test("downloads a real high-resolution PNG and print mode excludes Dashboard chrome", async ({
+  page,
+}) => {
   const state = new Issue232PhysicalState(true);
   await enter(page, state);
   await page.getByRole("button", { name: "View label" }).first().click();
   const dialog = page.getByRole("dialog", { name: "Physical resource label" });
   await expect(dialog.getByText("KEY SLOT", { exact: true })).toBeVisible();
-  await expect(dialog.getByText(LOCATION_A.name, { exact: true })).toBeVisible();
+  await expect(
+    dialog.getByText(LOCATION_A.name, { exact: true }),
+  ).toBeVisible();
   await page.evaluate(() => {
     const originalCreate = URL.createObjectURL.bind(URL);
     const originalRevoke = URL.revokeObjectURL.bind(URL);
-    (window as unknown as { issue232ObjectUrls: { created: number; revoked: number } }).issue232ObjectUrls = { created: 0, revoked: 0 };
+    (
+      window as unknown as {
+        issue232ObjectUrls: { created: number; revoked: number };
+      }
+    ).issue232ObjectUrls = { created: 0, revoked: 0 };
     URL.createObjectURL = (blob) => {
-      (window as unknown as { issue232ObjectUrls: { created: number; revoked: number } }).issue232ObjectUrls.created += 1;
+      (
+        window as unknown as {
+          issue232ObjectUrls: { created: number; revoked: number };
+        }
+      ).issue232ObjectUrls.created += 1;
       return originalCreate(blob);
     };
     URL.revokeObjectURL = (url) => {
-      (window as unknown as { issue232ObjectUrls: { created: number; revoked: number } }).issue232ObjectUrls.revoked += 1;
+      (
+        window as unknown as {
+          issue232ObjectUrls: { created: number; revoked: number };
+        }
+      ).issue232ObjectUrls.revoked += 1;
       originalRevoke(url);
     };
   });
@@ -132,11 +167,32 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
   expect(decodeQrFromPng(bytes)).toBe(
     `vaylet:v2:key-slot:11111111-1111-4111-8111-111111111111:K-01`,
   );
-  expect(await page.evaluate(() => (window as unknown as { issue232ObjectUrls: { created: number; revoked: number } }).issue232ObjectUrls)).toEqual({ created: 1, revoked: 1 });
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            issue232ObjectUrls: { created: number; revoked: number };
+          }
+        ).issue232ObjectUrls,
+    ),
+  ).toEqual({ created: 1, revoked: 1 });
   const stored = await page.evaluate(async () => {
     const result: unknown[] = [];
-    result.push([...Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index)).filter(Boolean).map((key) => [key, localStorage.getItem(key!)])]);
-    result.push([...Array.from({ length: sessionStorage.length }, (_, index) => sessionStorage.key(index)).filter(Boolean).map((key) => [key, sessionStorage.getItem(key!)])]);
+    result.push([
+      ...Array.from({ length: localStorage.length }, (_, index) =>
+        localStorage.key(index),
+      )
+        .filter(Boolean)
+        .map((key) => [key, localStorage.getItem(key!)]),
+    ]);
+    result.push([
+      ...Array.from({ length: sessionStorage.length }, (_, index) =>
+        sessionStorage.key(index),
+      )
+        .filter(Boolean)
+        .map((key) => [key, sessionStorage.getItem(key!)]),
+    ]);
     if (typeof indexedDB.databases === "function") {
       for (const info of await indexedDB.databases()) {
         if (!info.name) continue;
@@ -147,7 +203,10 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
         });
         for (const storeName of Array.from(db.objectStoreNames)) {
           const values = await new Promise<unknown[]>((resolve, reject) => {
-            const request = db.transaction(storeName).objectStore(storeName).getAll();
+            const request = db
+              .transaction(storeName)
+              .objectStore(storeName)
+              .getAll();
             request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(request.error);
           });
@@ -161,7 +220,11 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
         const cache = await caches.open(name);
         for (const request of await cache.keys()) {
           const response = await cache.match(request);
-          result.push([name, request.url, response ? await response.clone().text() : null]);
+          result.push([
+            name,
+            request.url,
+            response ? await response.clone().text() : null,
+          ]);
         }
       }
     }
@@ -173,7 +236,11 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
   await page.emulateMedia({ media: "print" });
   const printLabel = page.getByTestId("physical-resource-print-label");
   await expect(printLabel).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Management navigation" })).toBeHidden();
-  await expect(dialog.getByRole("button", { name: "Download QR" })).toBeHidden();
+  await expect(
+    page.getByRole("navigation", { name: "Management navigation" }),
+  ).toBeHidden();
+  await expect(
+    dialog.getByRole("button", { name: "Download QR" }),
+  ).toBeHidden();
   await page.emulateMedia({ media: "screen" });
 });

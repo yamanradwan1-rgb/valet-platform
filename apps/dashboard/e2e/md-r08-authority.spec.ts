@@ -86,7 +86,7 @@ for (const family of ["keys", "incidents"] as const) {
     ).toHaveCount(0);
     await expect(
       page.getByRole("link", {
-        name: family === "keys" ? "Keys" : "Incidents",
+        name: family === "keys" ? "Keys & Spots" : "Incidents",
         exact: true,
       }),
     ).toHaveCount(0);

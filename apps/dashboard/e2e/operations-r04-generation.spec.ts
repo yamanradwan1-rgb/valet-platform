@@ -23,6 +23,14 @@ async function enterLocation(page: Page, locationName: string) {
   await page.getByRole("button", { name: locationName }).click();
 }
 
+async function switchLocation(page: Page, locationName: string) {
+  await page
+    .locator(".topbar")
+    .getByRole("button", { name: "Change scope", exact: true })
+    .click();
+  await page.getByRole("option", { name: locationName, exact: true }).click();
+}
+
 for (const mode of ["success", "failure"] as const) {
   test(`R04 Tasks A→B→A fences stale first-A ${mode}`, async ({ page }) => {
     const releaseFirstA = deferred();
@@ -58,11 +66,9 @@ for (const mode of ["success", "failure"] as const) {
     await enterLocation(page, LOCATION_A.name);
     await firstAStarted.promise;
 
-    await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
-    await enterLocation(page, LOCATION_B.name);
+    await switchLocation(page, LOCATION_B.name);
     await expect(page.getByRole("table").getByText("Accepted", { exact: true })).toBeVisible();
-    await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
-    await enterLocation(page, LOCATION_A.name);
+    await switchLocation(page, LOCATION_A.name);
     await expect(page.getByRole("table").getByText("Completed", { exact: true })).toBeVisible();
     expect(seenACursors.at(-1)).toBeNull();
 

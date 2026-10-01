@@ -7,13 +7,15 @@ import {
   ORG_A,
 } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
-import { enterLocations } from "./support/r06-locations";
+import {
+  enterPhysicalResources,
+  openPhysicalResources,
+  switchTopbarLocation,
+} from "./support/keys-spots";
 import { liveMapBody, pointItem } from "./support/operations-fixtures";
 
 const keyPath = (locationId: string) =>
   `/v1/staff/dashboard/locations/${locationId}/physical-resources/key-slots`;
-const lifecyclePath = (locationId: string) =>
-  `/v1/staff/management/organizations/${ORG_A.organizationId}/locations/${locationId}/lifecycle`;
 const livePath = (locationId: string) =>
   `/v1/staff/locations/${locationId}/live-operations-map`;
 const pointsPath = (locationId: string) =>
@@ -29,27 +31,6 @@ function deferred() {
   });
   return { promise, resolve };
 }
-function lifecycle(location: typeof LOCATION_A) {
-  return {
-    ...location,
-    organizationId: ORG_A.organizationId,
-    addressText: `${location.name} address`,
-    status: "ACTIVE",
-    acceptingIntake: true,
-    updatedAt: at,
-    readiness: {
-      readyForActivation: true,
-      checks: { currencySupported: true, timezoneValid: true },
-    },
-    drain: {
-      blocked: false,
-      activeShiftPresent: false,
-      nonCompletedValetSessionPresent: false,
-      nonTerminalTaskPresent: false,
-    },
-  };
-}
-
 function key(code: string, keySlotId: string) {
   return { keySlotId, code, status: "ACTIVE", createdAt: at, updatedAt: at };
 }
@@ -69,11 +50,7 @@ async function chooseLocation(page: Page, locationName: string) {
 }
 
 async function changeLocation(page: Page, locationName: string) {
-  await page
-    .locator(".topbar")
-    .getByRole("button", { name: "Change scope" })
-    .click();
-  await chooseLocation(page, locationName);
+  await switchTopbarLocation(page, locationName);
 }
 
 test("physical create A→B→A cannot reconcile into the newer A epoch", async ({
@@ -91,12 +68,6 @@ test("physical create A→B→A cannot reconcile into the newer A epoch", async 
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A, LOCATION_B] },
     override: async (path, request) => {
-      if (path === lifecyclePath(LOCATION_A.locationId)) {
-        return { body: lifecycle(LOCATION_A) };
-      }
-      if (path === lifecyclePath(LOCATION_B.locationId)) {
-        return { body: lifecycle(LOCATION_B) };
-      }
       if (
         path === keyPath(LOCATION_A.locationId) &&
         request.method() === "POST"
@@ -124,11 +95,7 @@ test("physical create A→B→A cannot reconcile into the newer A epoch", async 
     },
   });
   await fixture.install(page);
-  await enterLocations(page);
-  const master = page.getByTestId("location-master");
-  await master
-    .getByRole("button", { name: new RegExp(LOCATION_A.name) })
-    .click();
+  await enterPhysicalResources(page);
   await page.getByRole("button", { name: "Add Key Slot" }).click();
   const dialog = page.getByRole("dialog", { name: "Add Key Slot" });
   await dialog.getByLabel("Code").fill("A-EPOCH-CREATED");
@@ -136,13 +103,11 @@ test("physical create A→B→A cannot reconcile into the newer A epoch", async 
   await started.promise;
   await dialog.press("Escape");
 
-  await master
-    .getByRole("button", { name: new RegExp(LOCATION_B.name) })
-    .click();
+  await switchTopbarLocation(page, LOCATION_B.name);
+  await openPhysicalResources(page);
   await expect(page.getByText("B-01", { exact: true })).toBeVisible();
-  await master
-    .getByRole("button", { name: new RegExp(LOCATION_A.name) })
-    .click();
+  await switchTopbarLocation(page, LOCATION_A.name);
+  await openPhysicalResources(page);
   await expect(page.getByText("A-EPOCH-CREATED", { exact: true })).toHaveCount(
     0,
   );
@@ -162,12 +127,10 @@ test("physical create A→B→A cannot reconcile into the newer A epoch", async 
     page.getByRole("dialog", { name: "Physical resource label" }),
   ).toHaveCount(0);
 
-  await master
-    .getByRole("button", { name: new RegExp(LOCATION_B.name) })
-    .click();
-  await master
-    .getByRole("button", { name: new RegExp(LOCATION_A.name) })
-    .click();
+  await switchTopbarLocation(page, LOCATION_B.name);
+  await openPhysicalResources(page);
+  await switchTopbarLocation(page, LOCATION_A.name);
+  await openPhysicalResources(page);
   await expect(
     page.getByText("A-EPOCH-CREATED", { exact: true }),
   ).toBeVisible();

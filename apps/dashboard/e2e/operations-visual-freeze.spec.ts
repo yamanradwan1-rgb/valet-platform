@@ -71,8 +71,8 @@ test("MD-03 six pages preserve the frozen reference hierarchy, geometry, and dar
   await expect(page.getByRole("combobox", { name: "State" })).toHaveCSS("min-height", "38px");
   await expect(page.getByRole("combobox", { name: "Type" })).toHaveCSS("min-height", "38px");
 
-  await nav.getByRole("link", { name: "Keys" }).click();
-  await expect(page.getByRole("heading", { name: "Keys", level: 1 })).toHaveCSS("font-size", "24px");
+  await nav.getByRole("link", { name: "Keys & Spots" }).click();
+  await expect(page.getByRole("heading", { name: "Keys & Spots", level: 1 })).toHaveCSS("font-size", "24px");
   await expect(page.locator('[class*="keyContext"] > span')).toHaveCount(2);
   await expect(page.getByRole("button", { name: "Previous" })).toHaveCSS("width", "32px");
   await expect(page.getByRole("button", { name: "Previous" })).toHaveCSS("height", "32px");
