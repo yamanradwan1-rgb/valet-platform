@@ -90,6 +90,7 @@ export const managementAuditKnownEventTypes = [
   "VISIT_CONTACT_PHONE_CORRECTED",
   "KEY_SLOT_CREATED",
   "PARKING_SPOT_CREATED",
+  "PARKING_ZONE_CREATED",
 ] as const;
 
 export const managementAuditKnownEventTypeSchema = z.enum(

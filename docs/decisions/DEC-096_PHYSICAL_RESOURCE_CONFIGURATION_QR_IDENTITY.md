@@ -149,6 +149,34 @@ in RTL.
 
 ## Amendment map
 
+### Task 04 / Issue #236 — Parking Zone creation
+
+The approved Task 04 extends the physical-resource create boundary to ParkingZone
+in Keys & Spots / Physical Resources / Parking Spots. The strict request contains
+only UUID `operationId`, trimmed `code` (1–100), and trimmed `label` (1–160).
+Case, punctuation and Unicode are preserved. The response is the existing
+ParkingZoneSelector; creation persists ACTIVE status under the authorized
+Organization and exact active Location. Parking Zones receive no QR identity.
+
+Company Admin uses existing sensitive MFA; Location Manager uses the existing
+exact active Location grant without a new MFA requirement. Persisted authority,
+Dashboard entitlement and active Location are rechecked before replay and held
+through mutation. The shared Organization/operation serialization and replay
+family includes `PARKING_ZONE_CREATED`, with fingerprint kind, Location, normalized
+code and label. Exact same-Location code conflicts include inactive rows.
+
+One narrow runtime-executable SECURITY DEFINER command owns creation and one
+atomic `PARKING_ZONE_CREATED` Management audit event (`ParkingZone` entity).
+Private helpers and direct runtime table INSERT remain denied. Migration 048
+extends the replay index, helper mapping and audit guard without rewriting 046.
+
+The Add Spot selector loads one bounded server page and navigates only on explicit
+Previous/Next actions. A newly returned zone is retained separately as the selected
+authoritative option. Add Zone suspends the Spot dialog's focus trap while
+preserving its in-memory draft. Complete selection/session authority epochs fence
+all callbacks. MFA/auth reconciliation never automatically retries a dispatched
+POST; uncertain outcomes retain the same in-memory operation ID for explicit retry.
+
 DEC-096 amends DEC-067 only by adding V2 for newly generated Management static
 resource labels while preserving all V1/manual/camera/non-authoritative-input
 requirements.

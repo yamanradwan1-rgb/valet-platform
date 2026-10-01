@@ -11,8 +11,10 @@ import {
 import {
   createKeySlotRequestSchema,
   createParkingSpotRequestSchema,
+  createParkingZoneRequestSchema,
   keySlotConfigurationSchema,
   parkingSpotConfigurationSchema,
+  parkingZoneSelectorSchema,
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
@@ -50,18 +52,49 @@ export class PhysicalResourceWriteController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("DASHBOARD_PHYSICAL_KEY_SLOT_CREATE", request, async () => {
-      requireSingleManagementAuthorization(request);
-      const parsed = createKeySlotRequestSchema.safeParse(body);
-      if (!parsed.success) throw new ApiTransportValidationError();
-      return keySlotConfigurationSchema.parse(
-        await this.writes.createKeySlot(
-          await this.sessions.resolve(authorization),
-          requireManagementUuid(locationId),
-          parsed.data,
-        ),
-      );
-    });
+    return this.runner.run(
+      "DASHBOARD_PHYSICAL_KEY_SLOT_CREATE",
+      request,
+      async () => {
+        requireSingleManagementAuthorization(request);
+        const parsed = createKeySlotRequestSchema.safeParse(body);
+        if (!parsed.success) throw new ApiTransportValidationError();
+        return keySlotConfigurationSchema.parse(
+          await this.writes.createKeySlot(
+            await this.sessions.resolve(authorization),
+            requireManagementUuid(locationId),
+            parsed.data,
+          ),
+        );
+      },
+    );
+  }
+
+  @Post("parking-zones")
+  createParkingZone(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("locationId") locationId: string,
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    setNoStoreResponseHeaders(response);
+    return this.runner.run(
+      "DASHBOARD_PHYSICAL_PARKING_ZONE_CREATE",
+      request,
+      async () => {
+        requireSingleManagementAuthorization(request);
+        const parsed = createParkingZoneRequestSchema.safeParse(body);
+        if (!parsed.success) throw new ApiTransportValidationError();
+        return parkingZoneSelectorSchema.parse(
+          await this.writes.createParkingZone(
+            await this.sessions.resolve(authorization),
+            requireManagementUuid(locationId),
+            parsed.data,
+          ),
+        );
+      },
+    );
   }
 
   @Post("parking-spots")
@@ -73,17 +106,21 @@ export class PhysicalResourceWriteController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("DASHBOARD_PHYSICAL_PARKING_SPOT_CREATE", request, async () => {
-      requireSingleManagementAuthorization(request);
-      const parsed = createParkingSpotRequestSchema.safeParse(body);
-      if (!parsed.success) throw new ApiTransportValidationError();
-      return parkingSpotConfigurationSchema.parse(
-        await this.writes.createParkingSpot(
-          await this.sessions.resolve(authorization),
-          requireManagementUuid(locationId),
-          parsed.data,
-        ),
-      );
-    });
+    return this.runner.run(
+      "DASHBOARD_PHYSICAL_PARKING_SPOT_CREATE",
+      request,
+      async () => {
+        requireSingleManagementAuthorization(request);
+        const parsed = createParkingSpotRequestSchema.safeParse(body);
+        if (!parsed.success) throw new ApiTransportValidationError();
+        return parkingSpotConfigurationSchema.parse(
+          await this.writes.createParkingSpot(
+            await this.sessions.resolve(authorization),
+            requireManagementUuid(locationId),
+            parsed.data,
+          ),
+        );
+      },
+    );
   }
 }

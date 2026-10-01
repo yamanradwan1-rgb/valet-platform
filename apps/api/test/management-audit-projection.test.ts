@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(89);
+    expect(managementAuditKnownEventTypes).toHaveLength(90);
     for (const eventType of managementAuditKnownEventTypes) {
       const projected = projectManagementAuditEvent(
         row(eventType, sensitiveMetadata),
@@ -93,7 +93,9 @@ describe("management audit projection", () => {
   it("uses an operational-only supervisor allowlist", () => {
     expect(managementAuditSupervisorEventTypes).toHaveLength(36);
     expect(managementAuditSupervisorEventTypes).toContain("TASK_ASSIGNED");
-    expect(managementAuditSupervisorEventTypes).toContain("VALET_SESSION_COMPLETED");
+    expect(managementAuditSupervisorEventTypes).toContain(
+      "VALET_SESSION_COMPLETED",
+    );
     for (const excluded of [
       "SHIFT_STARTED",
       "INCIDENT_OPENED",
@@ -106,7 +108,9 @@ describe("management audit projection", () => {
       "VISIT_CONTACT_PHONE_CORRECTED",
     ]) {
       expect(managementAuditSupervisorEventTypes).not.toContain(excluded);
-      expect(() => projectManagementAuditEvent(row(excluded), supervisor)).toThrow();
+      expect(() =>
+        projectManagementAuditEvent(row(excluded), supervisor),
+      ).toThrow();
     }
     expect(() =>
       projectManagementAuditEvent(row("VALET_SESSION_PARKED"), supervisor),
@@ -128,8 +132,12 @@ describe("management audit projection", () => {
       newTimezone: "Asia/Amman",
       previousTimezone: "UTC",
     });
-    expect(JSON.stringify(projected)).not.toContain("private correction reason");
-    expect(JSON.stringify(projected)).not.toContain("private-create-fingerprint");
+    expect(JSON.stringify(projected)).not.toContain(
+      "private correction reason",
+    );
+    expect(JSON.stringify(projected)).not.toContain(
+      "private-create-fingerprint",
+    );
   });
 
   it("projects Visit Contact correction metadata without raw PII", () => {
@@ -180,7 +188,11 @@ describe("management audit projection", () => {
 
   it("minimizes actors and enforces the authorized projection scope", () => {
     const system = projectManagementAuditEvent(
-      { ...row("VALET_SESSION_READY"), actorMembershipId: null, actorType: "SYSTEM" },
+      {
+        ...row("VALET_SESSION_READY"),
+        actorMembershipId: null,
+        actorType: "SYSTEM",
+      },
       admin,
     );
     expect(system).toMatchObject({ actor: { type: "SYSTEM" } });

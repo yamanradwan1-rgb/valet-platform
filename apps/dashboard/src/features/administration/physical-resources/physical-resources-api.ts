@@ -4,9 +4,11 @@ import {
   parkingSpotConfigurationListSchema,
   parkingSpotConfigurationSchema,
   parkingZoneSelectorListSchema,
+  parkingZoneSelectorSchema,
   physicalResourceLabelSchema,
   type CreateKeySlotRequest,
   type CreateParkingSpotRequest,
+  type CreateParkingZoneRequest,
 } from "@valet/contracts";
 
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
@@ -21,10 +23,14 @@ export function readKeySlots(
   cursor: string | null,
   signal?: AbortSignal,
 ) {
-  return api.request(`${base(locationId)}/key-slots`, keySlotConfigurationListSchema, {
-    query: { cursor, limit: 50 },
-    signal,
-  });
+  return api.request(
+    `${base(locationId)}/key-slots`,
+    keySlotConfigurationListSchema,
+    {
+      query: { cursor, limit: 50 },
+      signal,
+    },
+  );
 }
 
 export function readParkingSpots(
@@ -33,21 +39,42 @@ export function readParkingSpots(
   cursor: string | null,
   signal?: AbortSignal,
 ) {
-  return api.request(`${base(locationId)}/parking-spots`, parkingSpotConfigurationListSchema, {
-    query: { cursor, limit: 50 },
-    signal,
-  });
+  return api.request(
+    `${base(locationId)}/parking-spots`,
+    parkingSpotConfigurationListSchema,
+    {
+      query: { cursor, limit: 50 },
+      signal,
+    },
+  );
 }
 
 export function readParkingZones(
   api: DashboardApiClient,
   locationId: string,
   signal?: AbortSignal,
+  cursor: string | null = null,
 ) {
-  return api.request(`${base(locationId)}/parking-zones`, parkingZoneSelectorListSchema, {
-    query: { limit: 100 },
-    signal,
-  });
+  return api.request(
+    `${base(locationId)}/parking-zones`,
+    parkingZoneSelectorListSchema,
+    {
+      query: { cursor, limit: 100 },
+      signal,
+    },
+  );
+}
+
+export function createParkingZone(
+  api: DashboardApiClient,
+  locationId: string,
+  body: CreateParkingZoneRequest,
+) {
+  return api.request(
+    `${base(locationId)}/parking-zones`,
+    parkingZoneSelectorSchema,
+    { body, method: "POST" },
+  );
 }
 
 export function createKeySlot(
@@ -55,10 +82,14 @@ export function createKeySlot(
   locationId: string,
   body: CreateKeySlotRequest,
 ) {
-  return api.request(`${base(locationId)}/key-slots`, keySlotConfigurationSchema, {
-    body,
-    method: "POST",
-  });
+  return api.request(
+    `${base(locationId)}/key-slots`,
+    keySlotConfigurationSchema,
+    {
+      body,
+      method: "POST",
+    },
+  );
 }
 
 export function createParkingSpot(
@@ -66,10 +97,14 @@ export function createParkingSpot(
   locationId: string,
   body: CreateParkingSpotRequest,
 ) {
-  return api.request(`${base(locationId)}/parking-spots`, parkingSpotConfigurationSchema, {
-    body,
-    method: "POST",
-  });
+  return api.request(
+    `${base(locationId)}/parking-spots`,
+    parkingSpotConfigurationSchema,
+    {
+      body,
+      method: "POST",
+    },
+  );
 }
 
 export function readPhysicalResourceLabel(

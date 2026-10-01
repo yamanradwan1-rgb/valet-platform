@@ -3,6 +3,10 @@ import type { DashboardLocale } from "../../../lib/i18n/locale";
 interface PhysicalResourcesCopy {
   readonly addKeySlot: string;
   readonly addParkingSpot: string;
+  readonly addParkingZone: string;
+  readonly zonesEmpty: string;
+  readonly unknownOutcome: string;
+  readonly zoneCodeConflict: string;
   readonly cancel: string;
   readonly code: string;
   readonly create: string;
@@ -32,6 +36,11 @@ interface PhysicalResourcesCopy {
 const english: PhysicalResourcesCopy = {
   addKeySlot: "Add Key Slot",
   addParkingSpot: "Add Parking Spot",
+  addParkingZone: "Add Parking Zone",
+  zoneCodeConflict: "Duplicate Zone code. Choose another Code.",
+  zonesEmpty: "No Parking Zones configured. Add a Parking Zone to continue.",
+  unknownOutcome:
+    "The result is uncertain. Review the refreshed zones, then explicitly retry the same draft if needed.",
   cancel: "Cancel",
   code: "Code",
   create: "Create",
@@ -54,13 +63,19 @@ const english: PhysicalResourcesCopy = {
   retryExplicit: "Review the refreshed list, then submit again if needed.",
   selectZone: "Select a Parking Zone",
   status: "Status",
-  subtitle: "Configure persisted Key Slots and Parking Spots for this Location.",
+  subtitle:
+    "Configure persisted Key Slots and Parking Spots for this Location.",
   viewLabel: "View label",
 };
 
 const arabic: PhysicalResourcesCopy = {
   addKeySlot: "إضافة خانة مفتاح",
   addParkingSpot: "إضافة موقف",
+  addParkingZone: "إضافة منطقة وقوف",
+  zoneCodeConflict: "رمز منطقة الوقوف مستخدم بالفعل. اختر رمزًا آخر.",
+  zonesEmpty: "لا توجد مناطق وقوف مهيأة. أضف منطقة وقوف للمتابعة.",
+  unknownOutcome:
+    "نتيجة الإنشاء غير مؤكدة. راجع المناطق المحدّثة ثم أعد المحاولة يدويًا بنفس البيانات عند الحاجة.",
   cancel: "إلغاء",
   code: "الرمز",
   create: "إنشاء",

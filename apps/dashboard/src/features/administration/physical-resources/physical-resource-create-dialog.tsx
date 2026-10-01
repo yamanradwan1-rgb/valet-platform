@@ -6,20 +6,22 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
-import { administrationErrorMessage, isMfaRequired } from "../administration-error";
+import {
+  administrationErrorMessage,
+  isMfaRequired,
+} from "../administration-error";
 import { styles } from "../administration-ui";
 import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
-import {
-  createKeySlot,
-  createParkingSpot,
-  readParkingZones,
-} from "./physical-resources-api";
+import { createKeySlot, createParkingSpot } from "./physical-resources-api";
 import { physicalResourcesCopy } from "./physical-resources-copy";
 import {
   clearPhysicalResourceOperationId,
   physicalResourceOperationId,
 } from "./physical-resource-operation-id";
 import presentation from "./physical-resources.module.css";
+import { ParkingZoneCreateDialog } from "./parking-zone-create-dialog";
+import { ParkingZonePicker } from "./parking-zone-picker";
+import { useParkingZonePage } from "./use-parking-zone-page";
 
 export function PhysicalResourceCreateDialog(props: {
   readonly api: DashboardApiClient;
@@ -38,8 +40,24 @@ export function PhysicalResourceCreateDialog(props: {
   const [code, setCode] = useState("");
   const [label, setLabel] = useState("");
   const [zoneId, setZoneId] = useState("");
-  const [zones, setZones] = useState<ParkingZoneSelector[]>([]);
-  const [zonesLoading, setZonesLoading] = useState(props.kind === "parking-spot");
+  const [selectedZone, setSelectedZone] = useState<ParkingZoneSelector | null>(
+    null,
+  );
+  const [zoneOpen, setZoneOpen] = useState(false);
+  const addZoneRef = useRef<HTMLButtonElement>(null);
+  const restoreZoneFocus = useRef(false);
+  const zonePage = useParkingZonePage(
+    props.api,
+    props.locationId,
+    props.scopeKey,
+    props.kind === "parking-spot",
+  );
+  const zones = [...(zonePage.data?.items ?? [])];
+  if (
+    selectedZone &&
+    !zones.some((zone) => zone.parkingZoneId === selectedZone.parkingZoneId)
+  )
+    zones.push(selectedZone);
   const [error, setError] = useState<string | null>(null);
   const [mfaOpen, setMfaOpen] = useState(false);
   const mountedRef = useRef(true);
@@ -54,27 +72,19 @@ export function PhysicalResourceCreateDialog(props: {
   }, [props.scopeKey]);
 
   useEffect(() => {
-    if (props.kind !== "parking-spot") return;
-    const controller = new AbortController();
-    const scopeKey = props.scopeKey;
-    const isCurrent = () =>
-      mountedRef.current &&
-      currentScopeKeyRef.current === scopeKey &&
-      !controller.signal.aborted;
-    void readParkingZones(props.api, props.locationId, controller.signal).then(
-      (result) => {
-        if (!isCurrent()) return;
-        setZones(result.items);
-        setZonesLoading(false);
-      },
-      (reason) => {
-        if (!isCurrent()) return;
-        setError(administrationErrorMessage(reason));
-        setZonesLoading(false);
-      },
-    );
-    return () => controller.abort();
-  }, [props.api, props.kind, props.locationId, props.scopeKey]);
+    if (!zoneOpen && restoreZoneFocus.current) {
+      restoreZoneFocus.current = false;
+      const scope = props.scopeKey;
+      queueMicrotask(() => {
+        if (mountedRef.current && currentScopeKeyRef.current === scope)
+          addZoneRef.current?.focus();
+      });
+    }
+  }, [zoneOpen, props.scopeKey]);
+  function closeZone() {
+    restoreZoneFocus.current = true;
+    setZoneOpen(false);
+  }
 
   async function submit() {
     if (busyRef.current) return;
@@ -87,7 +97,11 @@ export function PhysicalResourceCreateDialog(props: {
     const requestKey =
       props.kind === "key-slot"
         ? JSON.stringify({ code: code.trim() })
-        : JSON.stringify({ code: code.trim(), label: label.trim(), parkingZoneId: zoneId });
+        : JSON.stringify({
+            code: code.trim(),
+            label: label.trim(),
+            parkingZoneId: zoneId,
+          });
     const operationId = physicalResourceOperationId(
       props.identityGeneration,
       props.locationId,
@@ -133,37 +147,105 @@ export function PhysicalResourceCreateDialog(props: {
     }
   }
 
+  if (zoneOpen)
+    return (
+      <ParkingZoneCreateDialog
+        api={props.api}
+        identityGeneration={props.identityGeneration}
+        locationId={props.locationId}
+        scopeKey={props.scopeKey}
+        onClose={closeZone}
+        onReconcile={zonePage.refresh}
+        onCreated={(zone) => {
+          if (
+            !mountedRef.current ||
+            currentScopeKeyRef.current !== props.scopeKey
+          )
+            return;
+          setSelectedZone(zone);
+          setZoneId(zone.parkingZoneId);
+          closeZone();
+        }}
+      />
+    );
+
   const title = props.kind === "key-slot" ? t.addKeySlot : t.addParkingSpot;
   return (
     <div className={presentation.dialogHost}>
       <FocusDialog label={title} onClose={props.onClose}>
         <h2>{title}</h2>
-        <form className={presentation.form} onSubmit={(event) => { event.preventDefault(); void submit(); }}>
+        <form
+          className={presentation.form}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit();
+          }}
+        >
           <label className={presentation.field}>
             <span>{t.code}</span>
-            <input autoComplete="off" dir="ltr" maxLength={100} onChange={(event) => setCode(event.target.value)} required value={code} />
+            <input
+              autoComplete="off"
+              dir="ltr"
+              maxLength={100}
+              onChange={(event) => setCode(event.target.value)}
+              required
+              value={code}
+            />
           </label>
           {props.kind === "parking-spot" ? (
             <>
               <label className={presentation.field}>
                 <span>{t.label}</span>
-                <input autoComplete="off" maxLength={160} onChange={(event) => setLabel(event.target.value)} required value={label} />
+                <input
+                  autoComplete="off"
+                  maxLength={160}
+                  onChange={(event) => setLabel(event.target.value)}
+                  required
+                  value={label}
+                />
               </label>
-              <label className={presentation.field}>
-                <span>{t.parkingZone}</span>
-                <select disabled={zonesLoading} onChange={(event) => setZoneId(event.target.value)} required value={zoneId}>
-                  <option value="">{t.selectZone}</option>
-                  {zones.map((zone) => (
-                    <option key={zone.parkingZoneId} value={zone.parkingZoneId}>{zone.label} — {zone.code}</option>
-                  ))}
-                </select>
-              </label>
+              <ParkingZonePicker
+                page={zonePage}
+                zones={zones}
+                zoneId={zoneId}
+                busy={busy}
+                addRef={addZoneRef}
+                onAdd={() => setZoneOpen(true)}
+                onSelect={(id) => {
+                  setZoneId(id);
+                  setSelectedZone(
+                    zones.find((zone) => zone.parkingZoneId === id) ?? null,
+                  );
+                }}
+              />
             </>
           ) : null}
-          {error ? <p className={presentation.error} role="alert">{error}</p> : null}
+          {error ? (
+            <p className={presentation.error} role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className={presentation.dialogActions}>
-            <button className={styles.secondary} disabled={busy} onClick={props.onClose} type="button">{t.cancel}</button>
-            <button className={styles.primary} disabled={busy || code.trim() === "" || (props.kind === "parking-spot" && (label.trim() === "" || zoneId === ""))} type="submit">{busy ? t.creating : t.create}</button>
+            <button
+              className={styles.secondary}
+              disabled={busy}
+              onClick={props.onClose}
+              type="button"
+            >
+              {t.cancel}
+            </button>
+            <button
+              className={styles.primary}
+              disabled={
+                busy ||
+                code.trim() === "" ||
+                (props.kind === "parking-spot" &&
+                  (label.trim() === "" || zoneId === ""))
+              }
+              type="submit"
+            >
+              {busy ? t.creating : t.create}
+            </button>
           </div>
         </form>
         {mfaOpen ? (

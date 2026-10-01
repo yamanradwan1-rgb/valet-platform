@@ -4019,5 +4019,11 @@ ACTIVE state. ParkingSpot creation requires an ACTIVE same-Location
 ParkingZone. Runtime keeps no direct INSERT on physical-resource tables and
 writes only through narrow audited SECURITY DEFINER functions.
 
+Task 04 / #236 extends this same boundary to ACTIVE ParkingZone creation in
+Keys & Spots, using strict code/label contracts, sensitive Company Admin MFA,
+exact Location Manager grants, shared operation replay, and atomic
+`PARKING_ZONE_CREATED` audit. Zones have no QR identity. The Spot selector uses
+explicit bounded pagination and can select the newly created authoritative zone.
+
 Full contract:
 `docs/decisions/DEC-096_PHYSICAL_RESOURCE_CONFIGURATION_QR_IDENTITY.md`.

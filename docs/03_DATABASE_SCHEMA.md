@@ -773,6 +773,16 @@ Constraints/rules:
 - status required, default `ACTIVE`
 - `code` is a resource identifier usable for QR/manual lookup, never authentication or authorization
 
+Task 04 / #236 adds no columns or Prisma model changes. Forward migration
+`20261001004800_mgt_236_parking_zone_creation` extends the physical-resource
+operation uniqueness/replay family and audit guard to `PARKING_ZONE_CREATED`.
+The narrow zone create function validates code/label, rechecks and locks current
+actor/Organization/Dashboard entitlement/exact ACTIVE Location authority before
+replay, and atomically creates an ACTIVE ParkingZone and its Management audit.
+Only the existing `(location_id, code)` uniqueness violation maps to the typed
+resource-code conflict; inactive rows reserve their codes. Runtime may execute
+the public create entrypoint, never the private helpers or direct table INSERT.
+
 ## parking_spots
 
 ```text

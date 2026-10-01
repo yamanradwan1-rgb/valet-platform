@@ -13,14 +13,19 @@ const membershipId = "018f1234-5678-4abc-9234-56789abcdef2";
 
 describe("management audit contracts", () => {
   it("publishes the exact bounded current event catalog", () => {
-    expect(managementAuditKnownEventTypes).toHaveLength(89);
-    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(89);
+    expect(managementAuditKnownEventTypes).toHaveLength(90);
+    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(90);
+    expect(managementAuditKnownEventTypes).toContain("PARKING_ZONE_CREATED");
     expect(managementAuditKnownEventTypes).toContain(
       "MANAGEMENT_LOCATION_SLA_TARGET_CHANGED",
     );
     expect(managementAuditKnownEventTypes).toContain("LOCATION_DEACTIVATED");
-    expect(managementAuditKnownEventTypes).toContain("VISIT_CONTACT_NAME_CORRECTED");
-    expect(managementAuditKnownEventTypes).toContain("VISIT_CONTACT_PHONE_CORRECTED");
+    expect(managementAuditKnownEventTypes).toContain(
+      "VISIT_CONTACT_NAME_CORRECTED",
+    );
+    expect(managementAuditKnownEventTypes).toContain(
+      "VISIT_CONTACT_PHONE_CORRECTED",
+    );
     expect(managementAuditKnownEventTypes).toContain("KEY_SLOT_CREATED");
     expect(managementAuditKnownEventTypes).toContain("PARKING_SPOT_CREATED");
   });
@@ -58,7 +63,8 @@ describe("management audit contracts", () => {
       managementAuditLocationQuerySchema.safeParse({ locationId }).success,
     ).toBe(false);
     expect(
-      managementAuditLocationQuerySchema.safeParse({ cursor: "A".repeat(4097) }).success,
+      managementAuditLocationQuerySchema.safeParse({ cursor: "A".repeat(4097) })
+        .success,
     ).toBe(false);
   });
 
@@ -96,7 +102,10 @@ describe("management audit contracts", () => {
       scope: { kind: "ORGANIZATION" },
     };
     expect(
-      managementAuditResponseSchema.parse({ items: [minimal], nextCursor: null }),
+      managementAuditResponseSchema.parse({
+        items: [minimal],
+        nextCursor: null,
+      }),
     ).toBeDefined();
     expect(
       managementAuditResponseSchema.safeParse({

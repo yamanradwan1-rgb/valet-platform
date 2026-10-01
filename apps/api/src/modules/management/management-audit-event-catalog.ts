@@ -109,6 +109,7 @@ const eventFamilies = {
   VISIT_CONTACT_PHONE_CORRECTED: "MANAGEMENT",
   KEY_SLOT_CREATED: "MANAGEMENT",
   PARKING_SPOT_CREATED: "MANAGEMENT",
+  PARKING_ZONE_CREATED: "MANAGEMENT",
 } satisfies Record<ManagementAuditKnownEventType, ManagementAuditEventFamily>;
 
 export const managementAuditSupervisorEventTypes = [
@@ -151,7 +152,9 @@ export const managementAuditSupervisorEventTypes = [
 ] as const satisfies readonly ManagementAuditKnownEventType[];
 
 const knownEventTypeSet = new Set<string>(managementAuditKnownEventTypes);
-const supervisorEventTypeSet = new Set<string>(managementAuditSupervisorEventTypes);
+const supervisorEventTypeSet = new Set<string>(
+  managementAuditSupervisorEventTypes,
+);
 
 export function managementAuditFamilyFor(
   eventType: string,
@@ -160,6 +163,8 @@ export function managementAuditFamilyFor(
   return eventFamilies[eventType as ManagementAuditKnownEventType];
 }
 
-export function isManagementAuditSupervisorEventType(eventType: string): boolean {
+export function isManagementAuditSupervisorEventType(
+  eventType: string,
+): boolean {
   return supervisorEventTypeSet.has(eventType);
 }

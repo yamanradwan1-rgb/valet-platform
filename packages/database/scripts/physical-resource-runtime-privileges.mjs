@@ -1,4 +1,5 @@
 export const runtimePhysicalResourceFunctions = [
+  "public.management_physical_resource_create_parking_zone(uuid,uuid,uuid,uuid,text,text,text)",
   "public.management_physical_resource_create_key_slot(uuid,uuid,uuid,uuid,text,text)",
   "public.management_physical_resource_create_parking_spot(uuid,uuid,uuid,uuid,text,uuid,text,text)",
 ];
@@ -10,7 +11,7 @@ export const privatePhysicalResourceFunctions = [
   "public.management_physical_resource_guard_audit_event()",
 ];
 
-const physicalResourceTables = ["key_slots", "parking_spots"];
+const physicalResourceTables = ["key_slots", "parking_spots", "parking_zones"];
 
 export async function provisionPhysicalResourcePrivileges(
   client,
@@ -95,13 +96,17 @@ export async function verifyPhysicalResourcePrivileges(client, runtimeRole) {
       row.public_denied !== true ||
       row.runtime_grant_option_denied !== true
     ) {
-      throw new Error("Runtime physical-resource command privileges are unsafe.");
+      throw new Error(
+        "Runtime physical-resource command privileges are unsafe.",
+      );
     }
   }
   for (const functionName of privatePhysicalResourceFunctions) {
     const row = await functionSecurity(client, runtimeRole, functionName);
     if (row?.runtime_allowed !== false || row?.public_denied !== true) {
-      throw new Error("Runtime physical-resource helper privileges are unsafe.");
+      throw new Error(
+        "Runtime physical-resource helper privileges are unsafe.",
+      );
     }
   }
 }

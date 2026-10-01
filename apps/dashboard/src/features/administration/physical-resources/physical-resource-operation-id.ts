@@ -3,7 +3,7 @@ const operationIds = new Map<string, string>();
 function key(
   identityGeneration: number,
   locationId: string,
-  kind: "key-slot" | "parking-spot",
+  kind: "key-slot" | "parking-spot" | "parking-zone",
   requestKey: string,
 ) {
   return `${identityGeneration}:${locationId}:${kind}:${requestKey}`;
@@ -12,7 +12,7 @@ function key(
 export function physicalResourceOperationId(
   identityGeneration: number,
   locationId: string,
-  kind: "key-slot" | "parking-spot",
+  kind: "key-slot" | "parking-spot" | "parking-zone",
   requestKey: string,
 ) {
   const mapKey = key(identityGeneration, locationId, kind, requestKey);
@@ -26,7 +26,7 @@ export function physicalResourceOperationId(
 export function clearPhysicalResourceOperationId(
   identityGeneration: number,
   locationId: string,
-  kind: "key-slot" | "parking-spot",
+  kind: "key-slot" | "parking-spot" | "parking-zone",
   requestKey: string,
 ) {
   operationIds.delete(key(identityGeneration, locationId, kind, requestKey));
@@ -36,6 +36,7 @@ export function clearOtherIdentityPhysicalResourceOperations(
   identityGeneration: number,
 ) {
   for (const mapKey of operationIds.keys()) {
-    if (!mapKey.startsWith(`${identityGeneration}:`)) operationIds.delete(mapKey);
+    if (!mapKey.startsWith(`${identityGeneration}:`))
+      operationIds.delete(mapKey);
   }
 }
