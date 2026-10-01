@@ -17,7 +17,6 @@ import {
 import { AdministrationPage, ReadState, styles } from "../administration-ui";
 import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { useAuthoritativeRead } from "../use-authoritative-read";
-import { PhysicalResourcesPanel } from "../physical-resources/physical-resources-panel";
 import { LocationMaster } from "./location-master";
 import { LocationDetail } from "./location-detail";
 import reference from "./locations-reference.module.css";
@@ -124,15 +123,7 @@ function LocationsPageContent() {
               className={`${styles.card} ${reference.detail}`}
               data-testid="location-detail"
             >
-              <LocationDetail location={lmLocation}>
-                <PhysicalResourcesPanel
-                  api={dashboard.api}
-                  identityGeneration={dashboard.identityGeneration}
-                  key={`${scopeKey}:physical:${lmLocation.locationId}`}
-                  location={lmLocation}
-                  scopeKey={`${scopeKey}:physical:${lmLocation.locationId}`}
-                />
-              </LocationDetail>
+              <LocationDetail location={lmLocation} />
             </section>
           </div>
         ) : null}
@@ -178,13 +169,6 @@ function LocationsPageContent() {
                         : { addressText: lifecycle.data.addressText })}
                       location={selectedLocation}
                     >
-                      <PhysicalResourcesPanel
-                        api={dashboard.api}
-                        identityGeneration={dashboard.identityGeneration}
-                        key={`${scopeKey}:physical:${selectedLocation.locationId}`}
-                        location={selectedLocation}
-                        scopeKey={`${scopeKey}:physical:${selectedLocation.locationId}`}
-                      />
                       <ReadState
                         error={
                           lifecycle.error &&

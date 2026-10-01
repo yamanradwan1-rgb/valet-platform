@@ -83,7 +83,7 @@ test("MD-03 operational pages render only current authoritative projections with
     await expect(page.getByText(forbidden, { exact: true })).toHaveCount(0);
   }
 
-  await nav.getByRole("link", { name: "Keys" }).click();
+  await nav.getByRole("link", { name: "Keys & Spots" }).click();
   await expect(page.getByText(keyItem().code, { exact: true })).toBeVisible();
   await expect(page.getByText("Empty", { exact: true })).toBeVisible();
   for (const forbidden of ["Add Key", "Checked out by", "Smart Key", "Return Key"]) {

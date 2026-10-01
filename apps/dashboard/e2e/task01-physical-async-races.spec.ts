@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import {
   DashboardApiFixture,
@@ -10,13 +10,15 @@ import {
   ISSUE232_KEY_ID,
   Issue232PhysicalState,
 } from "./support/issue232-physical-resources";
-import { enterLocations } from "./support/r06-locations";
+import {
+  enterPhysicalResources,
+  openPhysicalResources,
+  switchTopbarLocation,
+} from "./support/keys-spots";
 
 const at = "2026-09-30T18:00:00.000Z";
 const keyPath = (locationId: string) =>
   `/v1/staff/dashboard/locations/${locationId}/physical-resources/key-slots`;
-const lifecyclePath = (locationId: string) =>
-  `/v1/staff/management/organizations/${ORG_A.organizationId}/locations/${locationId}/lifecycle`;
 
 function deferred() {
   let resolve!: () => void;
@@ -24,27 +26,6 @@ function deferred() {
     resolve = done;
   });
   return { promise, resolve };
-}
-
-function lifecycle(location: typeof LOCATION_A) {
-  return {
-    ...location,
-    organizationId: ORG_A.organizationId,
-    addressText: `${location.name} address`,
-    status: "ACTIVE",
-    acceptingIntake: true,
-    updatedAt: at,
-    readiness: {
-      readyForActivation: true,
-      checks: { currencySupported: true, timezoneValid: true },
-    },
-    drain: {
-      blocked: false,
-      activeShiftPresent: false,
-      nonCompletedValetSessionPresent: false,
-      nonTerminalTaskPresent: false,
-    },
-  };
 }
 
 function key(code: string, keySlotId: string) {
@@ -57,8 +38,20 @@ function key(code: string, keySlotId: string) {
   };
 }
 
-async function choose(master: ReturnType<Page["getByTestId"]>, name: string) {
-  await master.getByRole("button", { name: new RegExp(name) }).click();
+async function switchWhileDialogOpen(
+  page: Parameters<typeof switchTopbarLocation>[0],
+  locationName: string,
+) {
+  await page
+    .locator(".topbar")
+    .getByRole("button", { name: "Change scope", exact: true })
+    .evaluate((button: HTMLButtonElement) => button.click());
+  const option = page.getByRole("option", { name: locationName, exact: true });
+  await expect(option).toBeVisible();
+  await option.evaluate((element: HTMLElement) => element.click());
+  await expect(page.locator(".topbar .location-context")).toContainText(
+    locationName,
+  );
 }
 
 test("first-A physical create cannot reconcile after A to B to A", async ({
@@ -73,10 +66,6 @@ test("first-A physical create cannot reconcile after A to B to A", async ({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A, LOCATION_B] },
     override: async (path, request) => {
-      if (path === lifecyclePath(LOCATION_A.locationId))
-        return { body: lifecycle(LOCATION_A) };
-      if (path === lifecyclePath(LOCATION_B.locationId))
-        return { body: lifecycle(LOCATION_B) };
       if (
         path === keyPath(LOCATION_A.locationId) &&
         request.method() === "POST"
@@ -102,20 +91,18 @@ test("first-A physical create cannot reconcile after A to B to A", async ({
     },
   });
   await fixture.install(page);
-  await enterLocations(page);
-  const master = page.getByTestId("location-master");
-  await choose(master, LOCATION_A.name);
+  await enterPhysicalResources(page);
   await page.getByRole("button", { name: "Add Key Slot" }).click();
   const dialog = page.getByRole("dialog", { name: "Add Key Slot" });
   await dialog.getByLabel("Code").fill("A-CREATED");
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
   await started.promise;
-
-  await master
-    .getByRole("button", { name: new RegExp(LOCATION_B.name) })
-    .evaluate((element: HTMLButtonElement) => element.click());
+  await switchWhileDialogOpen(page, LOCATION_B.name);
+  await expect(dialog).toHaveCount(0);
+  await openPhysicalResources(page);
   await expect(page.getByText("B-01", { exact: true })).toBeVisible();
-  await choose(master, LOCATION_A.name);
+  await switchTopbarLocation(page, LOCATION_A.name);
+  await openPhysicalResources(page);
   await expect(page.getByText("A-CREATED", { exact: true })).toBeVisible();
   const readsBeforeRelease = fixture.count(keyPath(LOCATION_A.locationId));
   release.resolve();
@@ -146,10 +133,6 @@ test("first-A label download cannot fire after A to B to A", async ({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A, LOCATION_B] },
     override: async (path, request) => {
-      if (path === lifecyclePath(LOCATION_A.locationId))
-        return { body: lifecycle(LOCATION_A) };
-      if (path === lifecyclePath(LOCATION_B.locationId))
-        return { body: lifecycle(LOCATION_B) };
       if (path === keyPath(LOCATION_B.locationId))
         return {
           body: {
@@ -170,9 +153,7 @@ test("first-A label download cannot fire after A to B to A", async ({
     },
   });
   await fixture.install(page);
-  await enterLocations(page);
-  const master = page.getByTestId("location-master");
-  await choose(master, LOCATION_A.name);
+  await enterPhysicalResources(page);
   await page.getByRole("button", { name: "View label" }).click();
   const dialog = page.getByRole("dialog", {
     name: "Physical resource label",
@@ -181,12 +162,12 @@ test("first-A label download cannot fire after A to B to A", async ({
   holdLabelRead = true;
   await dialog.getByRole("button", { name: "Download QR" }).click();
   await started.promise;
-
-  await master
-    .getByRole("button", { name: new RegExp(LOCATION_B.name) })
-    .evaluate((element: HTMLButtonElement) => element.click());
+  await switchWhileDialogOpen(page, LOCATION_B.name);
+  await expect(dialog).toHaveCount(0);
+  await openPhysicalResources(page);
   await expect(page.getByText("B-01", { exact: true })).toBeVisible();
-  await choose(master, LOCATION_A.name);
+  await switchTopbarLocation(page, LOCATION_A.name);
+  await openPhysicalResources(page);
   await expect(page.getByText("K-01", { exact: true })).toBeVisible();
   release.resolve();
   await page.waitForTimeout(200);

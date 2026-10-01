@@ -12,6 +12,15 @@ export function isLocationSwitchSource(
   );
 }
 
+export function selectedManagementLocationStatus(
+  scope: SelectedDashboardScope,
+) {
+  if (scope.authority === "COMPANY_ADMIN")
+    return scope.context.selectedLocation?.status ?? null;
+  if (scope.authority === "LOCATION_MANAGER") return scope.location.status;
+  return null;
+}
+
 export function isDashboardUnavailable(
   requirement: DashboardRouteAccessRequirement,
 ): boolean {

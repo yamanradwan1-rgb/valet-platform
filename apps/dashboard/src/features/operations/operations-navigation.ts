@@ -40,7 +40,7 @@ export const md03NavigationRegistrations = [
   defineNavigationDestination({
     accessRequirement: "DASHBOARD", availability: "IMPLEMENTED",
     href: "/keys", icon: KeyRound, id: "keys",
-    labels: { ar: "المفاتيح", en: "Keys" }, owner: "MD-03",
+    labels: { ar: "المفاتيح ومواقف السيارات", en: "Keys & Spots" }, owner: "MD-03",
     placement: "MAIN", roles: managementRoles, scopeRequirement: "LOCATION",
   }),
   defineNavigationDestination({

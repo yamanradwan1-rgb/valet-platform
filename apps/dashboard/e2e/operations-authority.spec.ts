@@ -34,14 +34,14 @@ test("CA exact Location gets read-only MD-03 navigation while All Locations cann
   await expect(page.getByRole("heading", { name: "Live Operations", level: 1 })).toBeVisible();
 
   const nav = page.getByRole("navigation", { name: "Management navigation" });
-  for (const name of ["Live Operations", "Vehicles", "Tasks", "Maps & Zones", "Keys", "Incidents"]) {
+  for (const name of ["Live Operations", "Vehicles", "Tasks", "Maps & Zones", "Keys & Spots", "Incidents"]) {
     await expect(nav.getByRole("link", { name })).toBeVisible();
   }
   for (const forbidden of ["New Check-In", "Request Vehicle", "Add Vehicle", "New Task", "Add Key", "Report Incident"]) {
     await expect(page.getByRole("button", { name: forbidden })).toHaveCount(0);
   }
 
-  await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
+  await page.locator(".sidebar-scope").click();
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: "All Locations" }).click();
   await expect(page.getByText("Select an active exact Location to view this information.")).toBeVisible();
@@ -81,7 +81,7 @@ test("LM D=false keeps Maps/setup available, hides other MD-03 reads, and sends 
   await expect(page.getByRole("button", { name: "Add Point" })).toBeVisible();
   const nav = page.getByRole("navigation", { name: "Management navigation" });
   await expect(nav.getByRole("link", { name: "Maps & Zones" })).toBeVisible();
-  for (const name of ["Live Operations", "Vehicles", "Tasks", "Keys", "Incidents"]) {
+  for (const name of ["Live Operations", "Vehicles", "Tasks", "Keys & Spots", "Incidents"]) {
     await expect(nav.getByRole("link", { name })).toHaveCount(0);
   }
   expect(fixture.count(livePath)).toBe(0);

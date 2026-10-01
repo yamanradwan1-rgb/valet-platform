@@ -18,6 +18,7 @@ import { useAccountSecurityAccess } from "../security/account-security-access-pr
 import { DashboardShell } from "../shell";
 import { LocationSwitchControl } from "../scope/location-switch-control";
 import type { SwitchableDashboardScope } from "../scope/location-switch-authority";
+import { navigationForLocationStatus } from "../scope/location-switch-policy";
 import {
   DashboardNavigationPresentationCapture,
   dashboardShellPresentationKey,
@@ -32,6 +33,7 @@ import { useSelectedScope } from "./selected-scope-provider";
 import {
   isDashboardUnavailable,
   isLocationSwitchSource,
+  selectedManagementLocationStatus,
 } from "./selected-management-shell-policy";
 import { StandaloneFoundationPanel } from "./standalone-foundation-panel";
 import { useNavigationAuthority } from "./use-navigation-authority";
@@ -160,11 +162,15 @@ export function SelectedManagementShell({
   const presentation = selectedScopePresentation(selectedScope);
   const resolvedNavigation =
     navigationAuthority.status === "valid"
-      ? resolveNavigation(
-          dashboardNavigationRegistrations,
-          presentation.navigation,
-          locale,
-          navigationAuthority.authority,
+      ? navigationForLocationStatus(
+          resolveNavigation(
+            dashboardNavigationRegistrations,
+            presentation.navigation,
+            locale,
+            navigationAuthority.authority,
+          ),
+          selectedManagementLocationStatus(selectedScope),
+          selectedScope.authority === "COMPANY_ADMIN",
         )
       : [];
   const navigation = reconcileAccountSecurityNavigation(

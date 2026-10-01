@@ -56,6 +56,17 @@ describe("topbar Location switch route policy", () => {
         inactive,
       ),
     ).toBe(true);
+    expect(
+      canOfferLocationForPath("/keys", "DASHBOARD", "COMPANY_ADMIN", inactive),
+    ).toBe(true);
+    expect(
+      canOfferLocationForPath(
+        "/keys",
+        "DASHBOARD",
+        "LOCATION_MANAGER",
+        inactive,
+      ),
+    ).toBe(false);
   });
 
   it("preserves an authorized current route and otherwise chooses the existing landing order", () => {
@@ -76,10 +87,16 @@ describe("topbar Location switch route policy", () => {
     const navigation = [
       item("overview", "/overview", "MAIN"),
       item("vehicles", "/vehicles", "MAIN"),
+      item("keys", "/keys", "MAIN"),
       item("help", "/help", "UTILITY"),
     ];
     expect(
-      navigationForLocationStatus(navigation, "INACTIVE").map(
+      navigationForLocationStatus(navigation, "INACTIVE", true).map(
+        (entry) => entry.href,
+      ),
+    ).toEqual(["/overview", "/keys", "/help"]);
+    expect(
+      navigationForLocationStatus(navigation, "INACTIVE", false).map(
         (entry) => entry.href,
       ),
     ).toEqual(["/overview", "/help"]);

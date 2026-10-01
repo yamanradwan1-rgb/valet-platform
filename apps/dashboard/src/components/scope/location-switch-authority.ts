@@ -113,6 +113,7 @@ export async function proveLocationSwitchCandidate(
       authority,
     ),
     selectedLocationStatus(proof.scope),
+    proof.scope.authority === "COMPANY_ADMIN",
   );
   if (
     input.preserveIndependentRoute &&

@@ -109,7 +109,7 @@ for (const route of ["keys", "incidents"] as const) {
     await page
       .getByRole("navigation")
       .getByRole("link", {
-        name: route === "keys" ? "Keys" : "Incidents",
+        name: route === "keys" ? "Keys & Spots" : "Incidents",
         exact: true,
       })
       .click();

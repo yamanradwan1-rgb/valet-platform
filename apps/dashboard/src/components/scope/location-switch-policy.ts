@@ -37,6 +37,12 @@ export function canOfferLocationForPath(
   if (!canSelectScopeLocation(authority, accessRequirement, location))
     return false;
   const registration = registrationForPath(currentPath, registrations);
+  if (
+    authority === "COMPANY_ADMIN" &&
+    registration?.id === "keys" &&
+    location.status === "INACTIVE"
+  )
+    return true;
   return (
     registration?.scopeRequirement !== "LOCATION" ||
     location.status === "ACTIVE"
@@ -46,13 +52,15 @@ export function canOfferLocationForPath(
 export function navigationForLocationStatus(
   navigation: readonly DashboardNavigationItem[],
   locationStatus: ManagementLocation["status"] | null,
+  allowInactiveKeys: boolean,
   registrations: readonly DashboardNavigationRegistration[] = dashboardNavigationRegistrations,
 ): readonly DashboardNavigationItem[] {
   if (locationStatus !== "INACTIVE") return navigation;
   return navigation.filter(
     (item) =>
+      (allowInactiveKeys && item.id === "keys") ||
       registrationForPath(item.href, registrations)?.scopeRequirement !==
-      "LOCATION",
+        "LOCATION",
   );
 }
 
