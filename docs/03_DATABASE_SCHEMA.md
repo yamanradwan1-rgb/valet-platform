@@ -546,10 +546,15 @@ Rules:
 - scopes are exactly `v1:staff-login-identifier`, `v1:staff-client-address`,
   `v1:guest-client-address`, `v1:guest-token`,
   `v1:handoff-issuance-session`, `v1:handoff-verification-session`,
-  `v1:mfa-totp-user`, and `v1:mfa-recovery-user`
+  `v1:mfa-totp-user`, `v1:mfa-recovery-user`,
+  `v1:staff-onboarding-create-organization`, and
+  `v1:staff-onboarding-resend-membership`
 - each MFA scope permits at most five failed/reserved verification attempts for
   the User in the immediately preceding 15 minutes; successful verification
   finalizes its reservation to ignored rather than erasing earlier failures
+- T05-C invitation issuance scopes use the same 15-minute rolling window:
+  at most 20 changed creates per Organization and 5 changed resends per target
+  membership; durable same-operation reconciliation consumes no new slot
 - `key_hash` is exactly `anti-abuse-hmac-sha256:v1:` plus 64 lowercase hexadecimal HMAC-SHA-256 characters; raw email, IP, guest bearer, password, Authorization and authentication verifiers are prohibited
 - `id` and `occurred_at` are database-generated, with PostgreSQL time authoritative for rolling windows and cleanup
 - index `(scope, key_hash, occurred_at)` supports exact current-window lookup; a separate occurrence-time index supports fixed retention cleanup

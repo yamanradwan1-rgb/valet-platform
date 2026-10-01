@@ -3,6 +3,7 @@ import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
+import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
 import { AuthModule } from "../auth/auth.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { ManagementCompanyReportController } from "./company-report.controller";
@@ -49,6 +50,7 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
     ManagementCommercialController,
   ],
   imports: [
+    AntiAbuseModule,
     AuthModule,
     PaymentsModule,
     RuntimeDatabaseModule,

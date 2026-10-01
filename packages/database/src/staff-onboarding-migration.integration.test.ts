@@ -9,6 +9,8 @@ import { expectedMigrationDirectories } from "./migration-manifest.js";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = join(root, "node_modules/prisma/build/index.js");
 const migration = "20261001005100_mgt_240c_staff_onboarding_invites";
+const latestMigration = "20261001005200_mgt_240c_invitation_anti_abuse_scope";
+const previousAbuseEventId = randomUUID();
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.MIGRATION_DATABASE_URL ??
@@ -129,6 +131,11 @@ beforeAll(async () => {
       "SELECT proname AS name,pg_get_functiondef(oid) AS definition FROM pg_proc WHERE proname IN ('staff_management_authorize_staff_actor','staff_management_lock_lm_active_grants','staff_management_lm_target_covered') ORDER BY proname",
     )
   ).rows;
+  await upgrade.query(
+    `INSERT INTO anti_abuse_events(id,scope,key_hash,state)
+     VALUES($1,'v1:staff-login-identifier',$2,'COUNTED')`,
+    [previousAbuseEventId, `anti-abuse-hmac-sha256:v1:${"a".repeat(64)}`],
+  );
   deploy(upgradeName);
   deploy(freshName);
   fresh = new Client({ connectionString: url(freshName) });
@@ -150,7 +157,7 @@ afterAll(async () => {
   if (scratch && resolve(scratch).startsWith(resolve(root, "tmp") + sep))
     rmSync(scratch, { recursive: true, force: true });
 }, 60_000);
-describe("T05-C actual Prisma 050 to 051 and fresh deployment", () => {
+describe("T05-C actual Prisma 050 to 052 and fresh deployment", () => {
   it("preserves User credentials/state, T05-A membership names/state and grants without backfill", async () => {
     expect((await upgrade.query(snapshotSql)).rows).toEqual(snapshot);
     expect(
@@ -165,7 +172,7 @@ describe("T05-C actual Prisma 050 to 051 and fresh deployment", () => {
       ).rows,
     ).toEqual(commandDefinitions);
   });
-  it("records exactly 51 versioned migrations in both paths, PENDING enums and nullable password", async () => {
+  it("records exactly 52 versioned migrations in both paths, PENDING enums and nullable password", async () => {
     for (const connection of [upgrade, fresh]) {
       expect(
         (
@@ -173,7 +180,7 @@ describe("T05-C actual Prisma 050 to 051 and fresh deployment", () => {
             "SELECT count(*)::int AS n,max(migration_name) AS latest FROM _prisma_migrations WHERE finished_at IS NOT NULL",
           )
         ).rows[0],
-      ).toEqual({ n: 51, latest: migration });
+      ).toEqual({ n: 52, latest: latestMigration });
       expect(
         (
           await connection.query(
@@ -189,5 +196,20 @@ describe("T05-C actual Prisma 050 to 051 and fresh deployment", () => {
         ).rows[0],
       ).toEqual({ account: "PENDING", member: "PENDING" });
     }
+  });
+  it("preserves existing anti-abuse events while accepting only approved issuance scopes", async () => {
+    expect(
+      (
+        await upgrade.query(
+          "SELECT scope,state FROM anti_abuse_events WHERE id=$1",
+          [previousAbuseEventId],
+        )
+      ).rows[0],
+    ).toEqual({ scope: "v1:staff-login-identifier", state: "COUNTED" });
+    await upgrade.query(
+      `INSERT INTO anti_abuse_events(scope,key_hash,state)
+       VALUES('v1:staff-onboarding-create-organization',$1,'COUNTED')`,
+      [`anti-abuse-hmac-sha256:v1:${"b".repeat(64)}`],
+    );
   });
 });

@@ -10,7 +10,9 @@ export type AntiAbuseScope =
   | "v1:handoff-issuance-session"
   | "v1:handoff-verification-session"
   | "v1:mfa-totp-user"
-  | "v1:mfa-recovery-user";
+  | "v1:mfa-recovery-user"
+  | "v1:staff-onboarding-create-organization"
+  | "v1:staff-onboarding-resend-membership";
 
 export interface AntiAbuseKey {
   readonly keyHash: string;

@@ -1,4 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+
+import { createRuntimePostgresPool } from "../src/common/database/postgres";
+import { rankEligibleTaskAssignees } from "../src/modules/dispatch/assignment-ranking";
+import { createStartShiftCommandExecutor } from "../src/modules/shifts/start-shift-command";
 import {
   StaffOnboardingTestFixture,
   hidden,
@@ -64,7 +68,7 @@ describe("T05-C pending quarantine", () => {
   it("an ACTIVE User with only pending membership gains no management authority", async () => {
     const admin = await fixture.actor();
     const existing = await fixture.createUser();
-    issued(
+    const pending = issued(
       await fixture.create(
         admin,
         fixture.command(admin.locationId, { email: existing.email }),
@@ -84,5 +88,44 @@ describe("T05-C pending quarantine", () => {
         fixture.command(admin.locationId),
       ),
     );
+
+    const pool = createRuntimePostgresPool(fixture.runtimeDatabaseUrl());
+    try {
+      await expect(
+        createStartShiftCommandExecutor(pool)({
+          authenticatedUserId: existing.id,
+          targetLocationId: admin.locationId,
+        }),
+      ).rejects.toMatchObject({ code: "TENANT_ACCESS_DENIED" });
+      expect(
+        (
+          await fixture.query("SELECT 1 FROM shifts WHERE membership_id=$1", [
+            pending.membershipId,
+          ])
+        ).rowCount,
+      ).toBe(0);
+
+      // Even a malformed pre-existing Shift must not make PENDING assignable.
+      await fixture.query(
+        `INSERT INTO shifts(id,organization_id,location_id,membership_id,status,started_at)
+         VALUES(gen_random_uuid(),$1,$2,$3,'ACTIVE',clock_timestamp())`,
+        [admin.organizationId, admin.locationId, pending.membershipId],
+      );
+      const transaction = await pool.connect();
+      try {
+        await transaction.query("BEGIN");
+        expect(
+          await rankEligibleTaskAssignees(transaction, {
+            organizationId: admin.organizationId,
+            locationId: admin.locationId,
+          }),
+        ).toEqual([]);
+      } finally {
+        await transaction.query("ROLLBACK");
+        transaction.release();
+      }
+    } finally {
+      await pool.end();
+    }
   });
 });

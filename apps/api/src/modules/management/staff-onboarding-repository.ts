@@ -19,6 +19,19 @@ interface IssuanceIdentity {
   readonly tokenHash: string;
 }
 
+export async function staffOnboardingOperationExists(
+  transaction: PostgresTransaction,
+  organizationId: string,
+  operationId: string,
+): Promise<boolean> {
+  const result = await transaction.query(
+    `SELECT 1 FROM staff_onboarding_invitations
+     WHERE organization_id = $1 AND operation_id = $2`,
+    [organizationId, operationId],
+  );
+  return result.rowCount === 1;
+}
+
 async function execute(
   transaction: PostgresTransaction,
   sql: string,

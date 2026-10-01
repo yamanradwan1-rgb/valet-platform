@@ -52,6 +52,31 @@ protected writes, then records existing admin activity before transaction commit
 Raw link disclosure follows successful COMMIT only. Audit failure rolls back all
 new account, membership, grant and invitation rows.
 
+## T05-C correction: bounded fresh invitation issuance
+
+The existing `anti_abuse_events` reservation mechanism limits fresh create
+issuance to 20 per Organization and explicit resend issuance to 5 per target
+membership in its rolling 15-minute window. Both use purpose-specific scopes
+and the shared HMAC key deriver; no email, activation token, or link is stored
+in the anti-abuse key. The Organization limit supports a normal staff onboarding
+batch while bounding bulk issuance; the tighter target limit bounds repeated
+rotation of one person's invitation. These are implementation security constants
+under locked #240 plan U-01, not Dashboard policy. Migration 052 extends only
+the existing database scope check to accept the two new values; the existing
+anti-abuse event table, indexes, privileges, and retention remain unchanged.
+
+After the existing account lock, persisted CA/LM actor authority, sensitive MFA,
+entitlement, and actor Location-grant checks, an already committed operation may
+use the original database command to reconcile without consuming quota. The
+database command still checks complete target/initial-grant coverage before its
+protected write. A new operation reserves a slot before that command. A changed
+issuance and its `COUNTED` reservation commit together; a no-change replay
+finalizes `IGNORED`. A failed command rolls back its protected writes and then
+finalizes the reservation `IGNORED` after that transaction has ended. A process
+failure can leave only a window-bounded `PENDING` reservation. Exceeding either
+limit returns a safe, dedicated 429 with `Retry-After`; the original operation
+remains reconcilable without a replacement raw link or generation.
+
 ## Validation evidence — 2026-10-01
 
 The final focused suites passed against PostgreSQL 17.10. All API database suites
@@ -305,3 +330,31 @@ Shifts/Force End sources have no diff. No activation, ownership proof, password
 setup, UI or external delivery work landed. No PR, merge or Issue edit occurred.
 Branch commit/remote SHA and final clean Git status are recorded in the delivery
 response because a committed source file cannot contain its own final commit SHA.
+
+## Correction-pass evidence — 2026-10-02
+
+The correction adds no Dashboard, Shift, Task, activation, ownership-proof, or
+password implementation. Migration
+`20261001005200_mgt_240c_invitation_anti_abuse_scope` only expands the
+existing anti-abuse scope CHECK; migrations 001–051 remain unmodified. The
+focused migrated-database tests accept the new scopes and reject an unknown
+scope with the named CHECK constraint. The migration manifest and focused
+050-to-052 upgrade test now expect 52 migrations; the upgrade test preserved
+an existing counted anti-abuse event. The existing anti-abuse retention index
+and runtime grants continue to apply without a new persistence mechanism.
+
+Focused real-HTTP/PostgreSQL tests passed: six tests in the rate-limit and
+pending-quarantine files, plus twelve existing create/resend tests. Twenty-three
+focused anti-abuse, onboarding-policy, and HTTP-registry unit tests passed.
+The three focused migration tests passed on fresh and upgrade databases.
+The rate tests observed counted changed issuances, ignored failed reservations,
+429 with bounded `Retry-After`, replay without a new secret/generation, HMAC-only
+persisted keys, and unchanged member/invitation/audit counts at the limit. The
+quarantine test used an existing globally ACTIVE User with only a PENDING
+membership in the invited Organization: Shift start was denied and the normal
+Task-assignee ranking excluded it even with a fabricated active Shift fixture.
+
+API/database package typechecks, focused ESLint/Prettier, architecture check, and `git diff
+--check` passed. The architecture check emitted only pre-existing grandfathered
+line warnings. No full API/database suite, Dashboard E2E, root gate, production
+build, remote CI, PR, or merge was run for this correction.

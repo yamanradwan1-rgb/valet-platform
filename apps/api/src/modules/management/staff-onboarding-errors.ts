@@ -9,6 +9,14 @@ export class StaffOnboardingUnavailableError extends Error {
   }
 }
 
+export class StaffOnboardingRateLimitedError extends Error {
+  readonly code = "STAFF_ONBOARDING_RATE_LIMITED";
+  constructor(readonly retryAfter: number) {
+    super("Too many requests. Try again later.");
+    this.name = "StaffOnboardingRateLimitedError";
+  }
+}
+
 export class StaffOnboardingOperationConflictError extends Error {
   readonly code = "IDEMPOTENCY_CONFLICT";
   constructor() {
