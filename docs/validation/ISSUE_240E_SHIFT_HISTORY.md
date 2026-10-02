@@ -1,11 +1,15 @@
 # Issue #240 / T05-E — Shift History
 
-Status: IMPLEMENTED / focused verification passed; GAP — NOT PR READY.
+Status: IMPLEMENTED / FOCUSED ACCEPTANCE PASSED.
 No remote CI, merge, production-readiness or full-shift pilot claim.
+The owner's closure-only instruction accepts the focused T05-E evidence already
+completed. Pre-existing aggregate baseline failures are outside T05-E scope,
+not repaired, not counted PASS and deferred to cumulative/repository closure.
+They do not block T05-E acceptance, commit or push. Issue #240 is not complete.
 Owner-authorized scope: pasted T05-E brief clauses 0–54 and Issue #240 plan
 sections 13, 17–19, 21–28. Baseline verified after fetch:
 `d5488b0f6bca98642f2e59ec2c85bc5c9a9ed191`; clean existing normal branch
-`fix/240e-shift-history`, HEAD equal to origin/main. Latest migration 053.
+`fix/240e-shift-history`, starting HEAD equal to origin/main. Latest migration 053.
 
 ## Pre-code contract ledger and implementation map
 
@@ -201,12 +205,13 @@ typecheck`: passed, exit 0, all three affected packages completed successfully.
 ### Adversarial review record (vaylet-code-review)
 
 1. **Review target:** baseline d5488b0 → this normal branch's scoped diff,
-   including new files and visual evidence; no PR or remote action.
+   including new files and visual evidence; no PR or remote CI action.
 2. **Decisions/docs:** owner clauses 0–54; complete issue plan; DEC-081, 078,
    080, 088, 032, 052, 082; schema/security/structure/DoD; A–D records.
 3. **Findings:** cached-label retry defect fixed and regression-tested. Existing
-   aggregate lint/Auth ownership/Employee typecheck failures remain merge gates
-   outside this task.
+   aggregate lint/Auth ownership/Employee typecheck failures are pre-existing,
+   outside T05-E scope, not repaired or counted PASS, and deferred to cumulative
+   repository closure. They do not block this subtask's commit/push acceptance.
 4. **Security/tenant/location:** tested actor and object scope negatives;
    persisted authority and parameterized predicates precede every history read.
 5. **Retry/concurrency/DB:** read cursors and browser generations reviewed;
@@ -224,17 +229,37 @@ typecheck`: passed, exit 0, all three affected packages completed successfully.
 10. **Test adequacy:** real HTTP/PG authority and pagination plus browser fixture
     race/budget/visual evidence; explicit live-stack/pilot/CI limits above.
 11. **Scope leakage:** no T05-F/G, dependency/lockfile/config-policy change,
-    protected worktree, PR, Issue write, push or merge.
+    protected worktree, PR, Issue write or merge. Only the owner-authorized
+    existing-branch push is included in this closure.
 12. **Gate evidence:** focused gates passed; aggregate baseline failures recorded
     separately. Local builds do not establish production/remote CI readiness.
-13. **Merge verdict:** **BLOCK MERGE** pending baseline gates, CI and human review.
+13. **T05-E closure verdict:** **IMPLEMENTED / FOCUSED ACCEPTANCE PASSED** under
+    the owner's closure instruction. Full repository/remote CI readiness and
+    Issue #240 completion are not claimed.
 
 ## Handoff
 
 Existing normal branch: `fix/240e-shift-history`, based on the required d5488b0
-baseline. Save the scoped result with `fix(dashboard): add full staff shift
-history`. No PR, push, merge, worktree or Issue update was performed. Generated
-Next route-reference drift returned to the baseline content after the build;
-no generated source change is included. The 64 screenshots contain explicit
-fixture identities only. Remaining work for PR readiness is the unrelated
-aggregate gate repair, full required CI and human review, under separate scope.
+baseline. The implementation was saved in c02f0e1; this closure classification
+is saved as a new intentional documentation commit with the owner-requested
+message `fix(dashboard): add full staff shift history`, preserving that commit.
+Push only this existing branch and verify local/remote SHA equality and clean
+Git status. No PR, merge, worktree, Issue update or T05-F/G work is authorized.
+Generated Next route-reference drift returned to baseline content after the
+earlier build; no generated source change is included. The 64 screenshots
+contain explicit fixture identities only and were not regenerated for closure.
+
+The final local inspection against d5488b0 confirmed 113 changed files, including
+38 authored TS/TSX files (maximum 253 physical lines; no changed MJS file).
+Only T05-E history reads/UI/contracts/docs/tests and recorded evidence are
+present. No Force End/Start, self-shift/Task/Session/cash mutation or cash
+projection change, migration addition, edit to migrations 001–053, or unrelated
+baseline repair is present. The only CSS addition styles history filters;
+shared reference CSS, shell and Drawer primitives remain unchanged, preserving
+the frozen geometry established by the completed visual evidence.
+
+Closure performed local diff/line-count inspection, this documentation update,
+scoped commit, branch push and Git SHA/status verification only. No tests,
+lint/typecheck/build commands, broad suites, remote CI, timeout changes or
+visual regeneration were run again. The recorded aggregate failures retain
+their actual failed result and remain deferred outside this subtask.
