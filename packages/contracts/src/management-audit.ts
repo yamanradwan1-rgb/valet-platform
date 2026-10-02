@@ -6,6 +6,7 @@ import {
   type ManagementAuditKnownEventType,
 } from "./management-audit-events.js";
 import { staffValetSessionStateSchema } from "./staff-valet-session.js";
+import { staffShiftForceEndReasonSchema } from "./staff-shift-force-end.js";
 
 const uuidSchema = z.string().uuid();
 const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,4096}$/);
@@ -34,7 +35,8 @@ export const managementAuditOrganizationQuerySchema = z
 
 export const managementAuditLocationQuerySchema = z.object(queryBase).strict();
 
-export const managementAuditQuerySchema = managementAuditOrganizationQuerySchema;
+export const managementAuditQuerySchema =
+  managementAuditOrganizationQuerySchema;
 
 export const managementAuditScopeSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("ORGANIZATION") }).strict(),
@@ -42,7 +44,9 @@ export const managementAuditScopeSchema = z.discriminatedUnion("kind", [
 ]);
 
 export const managementAuditActorSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("MEMBERSHIP"), membershipId: uuidSchema }).strict(),
+  z
+    .object({ type: z.literal("MEMBERSHIP"), membershipId: uuidSchema })
+    .strict(),
   z.object({ type: z.literal("GUEST") }).strict(),
   z.object({ type: z.literal("SYSTEM") }).strict(),
   z.object({ type: z.literal("EXTERNAL_PROVIDER") }).strict(),
@@ -95,7 +99,13 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
       qualifyingPhotoPresent: z.boolean().optional(),
     })
     .strict(),
-  z.object({ kind: z.literal("KEY"), fromVersion: positiveVersionSchema.optional(), toVersion: positiveVersionSchema.optional() }).strict(),
+  z
+    .object({
+      kind: z.literal("KEY"),
+      fromVersion: positiveVersionSchema.optional(),
+      toVersion: positiveVersionSchema.optional(),
+    })
+    .strict(),
   z
     .object({
       kind: z.literal("TASK"),
@@ -111,6 +121,11 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
       fromStatus: z.enum(["ACTIVE", "ENDED"]).optional(),
       status: z.enum(["ACTIVE", "ENDED"]).optional(),
       toStatus: z.enum(["ACTIVE", "ENDED"]).optional(),
+      closureKind: z.literal("ADMIN_FORCE_END").optional(),
+      cashReconciliationState: z.literal("PENDING").optional(),
+      targetMembershipId: uuidSchema.optional(),
+      operationId: uuidSchema.optional(),
+      reason: staffShiftForceEndReasonSchema.optional(),
     })
     .strict(),
   z
@@ -148,15 +163,30 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
       kind: z.literal("STAFF"),
       locationCount: nonNegativeCountSchema.optional(),
       newRole: z
-        .enum(["ORG_ADMIN", "LOCATION_MANAGER", "VALET_SUPERVISOR", "VALET_EMPLOYEE"])
+        .enum([
+          "ORG_ADMIN",
+          "LOCATION_MANAGER",
+          "VALET_SUPERVISOR",
+          "VALET_EMPLOYEE",
+        ])
         .optional(),
       newStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
       previousRole: z
-        .enum(["ORG_ADMIN", "LOCATION_MANAGER", "VALET_SUPERVISOR", "VALET_EMPLOYEE"])
+        .enum([
+          "ORG_ADMIN",
+          "LOCATION_MANAGER",
+          "VALET_SUPERVISOR",
+          "VALET_EMPLOYEE",
+        ])
         .optional(),
       previousStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
       role: z
-        .enum(["ORG_ADMIN", "LOCATION_MANAGER", "VALET_SUPERVISOR", "VALET_EMPLOYEE"])
+        .enum([
+          "ORG_ADMIN",
+          "LOCATION_MANAGER",
+          "VALET_SUPERVISOR",
+          "VALET_EMPLOYEE",
+        ])
         .optional(),
     })
     .strict(),
@@ -167,11 +197,17 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
       fromAcceptingIntake: z.boolean().optional(),
       fromStatus: z.enum(["ACTIVE", "INACTIVE"]).optional(),
       field: z.enum(["displayName", "phoneNormalized"]).optional(),
-      newCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
+      newCurrency: z
+        .string()
+        .regex(/^[A-Z]{3}$/)
+        .optional(),
       newTimezone: z.string().min(1).max(255).optional(),
       normalizationVersion: z.literal("JORDAN_MOBILE_V1").optional(),
       operation: z.enum(["SET", "CLEAR"]).optional(),
-      previousCurrency: z.string().regex(/^[A-Z]{3}$/).optional(),
+      previousCurrency: z
+        .string()
+        .regex(/^[A-Z]{3}$/)
+        .optional(),
       previousTimezone: z.string().min(1).max(255).optional(),
       resourceCode: z.string().min(1).max(100).optional(),
       resourceType: z.enum(["KEY_SLOT", "PARKING_SPOT"]).optional(),
@@ -238,4 +274,6 @@ export type ManagementAuditLocationQuery = z.infer<
 >;
 export type ManagementAuditQuery = ManagementAuditOrganizationQuery;
 export type ManagementAuditEvent = z.infer<typeof managementAuditEventSchema>;
-export type ManagementAuditResponse = z.infer<typeof managementAuditResponseSchema>;
+export type ManagementAuditResponse = z.infer<
+  typeof managementAuditResponseSchema
+>;

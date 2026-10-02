@@ -1179,3 +1179,13 @@ use exact Location timezone or explicit UTC, and duration has no network activit
 No self-shift/Overview/cash mutation semantics change. Final SQL plans determine
 whether a read-only index migration is justified. Scope and executed evidence are
 recorded in `docs/validation/ISSUE_240E_SHIFT_HISTORY.md`; T05-F/G remain separate.
+
+### Issue #240 / T05-F backend extension
+
+Accepted contract/map: `docs/validation/ISSUE_240F_LM_MFA_FORCE_END_BACKEND.md`
+and DEC-081. Migration 054 adds dedicated administrative Shift closure/replay
+persistence and the restricted runtime command. Existing management MFA supports
+LM and is reused; scope remains operation-specific. Shift FOR UPDATE serializes
+self-end and assignment eligibility, cash remains PENDING, and SHIFT_FORCE_ENDED
+atomically records manager/reason with no Supervisor visibility. T05-G owns the
+Force End UI and full Issue #240 closure; neither is included in T05-F.

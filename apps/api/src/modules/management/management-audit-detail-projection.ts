@@ -1,4 +1,5 @@
 import type { ManagementAuditEventFamily } from "./management-audit-event-catalog";
+import { projectManagementShiftAuditDetails } from "./management-audit-shift-projection";
 
 const sessionStates = new Set([
   "CHECKING_IN",
@@ -48,7 +49,6 @@ const incidentTypes = new Set([
   "SYSTEM_CONNECTION",
   "OTHER",
 ]);
-const shiftStatuses = new Set(["ACTIVE", "ENDED"]);
 const membershipStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const locationStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const mutationOperations = new Set(["SET", "CLEAR"]);
@@ -171,6 +171,7 @@ function lifecycleDetails(source: Readonly<Record<string, unknown>>) {
 export function projectManagementAuditDetails(
   family: ManagementAuditEventFamily,
   value: unknown,
+  eventType?: string,
 ): unknown {
   const source = metadata(value);
   if (family === "CHECK_IN") {
@@ -200,12 +201,7 @@ export function projectManagementAuditDetails(
     });
   }
   if (family === "SHIFT") {
-    return compact({
-      kind: "SHIFT",
-      fromStatus: allowedString(source.fromStatus, shiftStatuses),
-      status: allowedString(source.status, shiftStatuses),
-      toStatus: allowedString(source.toStatus, shiftStatuses),
-    });
+    return projectManagementShiftAuditDetails(source, eventType);
   }
   if (family === "SESSION") {
     return compact({

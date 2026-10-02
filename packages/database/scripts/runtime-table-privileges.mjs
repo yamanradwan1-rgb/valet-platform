@@ -4,7 +4,7 @@ import { provisionLocationConfigurationPrivileges } from "./location-configurati
 import { provisionBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
 import { provisionStaffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
 import { provisionIncidentRecoveryPrivileges } from "./incident-recovery-runtime-privileges.mjs";
-import { provisionStaffOnboardingPrivileges } from "./staff-onboarding-runtime-privileges.mjs";
+import { provisionShiftForceEndPrivileges } from "./shift-force-end-runtime-privileges.mjs";
 import { revokeRuntimeStaffAuthority } from "./runtime-staff-authority-revokes.mjs";
 import { provisionManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
 import { provisionManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
@@ -255,11 +255,7 @@ export async function provisionRuntimeTablePrivileges(
     executeFormatted,
     runtimeRole,
   );
-  await provisionStaffOnboardingPrivileges(
-    client,
-    executeFormatted,
-    runtimeRole,
-  );
+  await provisionShiftForceEndPrivileges(client, executeFormatted, runtimeRole);
   await provisionManagementSettingsPrivileges(
     client,
     executeFormatted,

@@ -3849,6 +3849,18 @@ deferred to their assigned slices.
 
 ---
 
+### Approved T05-F extension (2026-10-02)
+
+DEC-081 and `docs/validation/ISSUE_240F_LM_MFA_FORCE_END_BACKEND.md` record the
+owner-approved distinct administrative Force End backend. Existing LM MFA is
+reused. CA same-Organization and LM current ACTIVE Shift-Location grant authority
+require fresh sensitive exact-session assurance. One locked transaction closes
+Shift with all cash fields NULL, persists Organization/operation replay identity,
+and appends SHIFT_FORCE_ENDED with protected bounded reason. No Supervisor reason
+visibility, self-end impersonation, Task/Session mutation or T05-G UI is authorized.
+
+---
+
 ## DEC-082 — Management Audit Visibility
 
 Status: Accepted

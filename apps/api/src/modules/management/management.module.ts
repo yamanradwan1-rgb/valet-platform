@@ -31,6 +31,8 @@ import { StaffOnboardingService } from "./staff-onboarding.service";
 import { StaffDirectoryService } from "./staff-directory.service";
 import { StaffShiftHistoryController } from "./staff-shift-history.controller";
 import { StaffShiftHistoryService } from "./staff-shift-history.service";
+import { StaffShiftForceEndController } from "./staff-shift-force-end.controller";
+import { StaffShiftForceEndService } from "./staff-shift-force-end.service";
 import { StaffLocationAccessController } from "./staff-location-access.controller";
 import { StaffLocationAccessService } from "./staff-location-access.service";
 import { StaffManagementController } from "./staff-management.controller";
@@ -42,6 +44,7 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
     ManagementAuditController,
     StaffManagementController,
     StaffShiftHistoryController,
+    StaffShiftForceEndController,
     StaffOnboardingController,
     StaffLocationAccessController,
     ManagementSettingsController,
@@ -64,6 +67,7 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
     ManagementAuditService,
     StaffDirectoryService,
     StaffShiftHistoryService,
+    StaffShiftForceEndService,
     StaffLocationAccessService,
     StaffManagementMutationService,
     StaffOnboardingService,
@@ -88,6 +92,7 @@ export class ManagementModule implements NestModule {
         ManagementAuditController,
         StaffManagementController,
         StaffShiftHistoryController,
+        StaffShiftForceEndController,
         StaffOnboardingController,
         StaffLocationAccessController,
         ManagementSettingsController,

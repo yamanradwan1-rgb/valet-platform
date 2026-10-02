@@ -202,3 +202,33 @@ detail read, and uses one local minute clock shared by visible rows/detail with
 zero duration requests. Filter/page/refresh/scope/session generations fence stale
 successes and failures. Refresh starts page one. No operational mutation,
 business audit, history-copy persistence, Force End/Start or T05-F/G behavior.
+
+## Approved Issue #240 / T05-F administrative Shift closure (2026-10-02)
+
+The owner T05-F contract is recorded in
+`docs/validation/ISSUE_240F_LM_MFA_FORCE_END_BACKEND.md`. Company Admin and
+Location Manager use the existing management MFA system, including exact Staff
+session, active factor, eight-hour maximum, thirty-minute idle and five-minute
+sensitive freshness (existing boundary comparisons retained). MFA eligibility
+adds no Company Admin authority to LM and none to lower roles.
+
+POST `/v1/staff/management/organizations/:organizationId/shifts/:shiftId/force-end`
+accepts strict operationId, confirmation FORCE_END_SHIFT and trimmed nonblank
+reason bounded to 500 characters. Current active actor/member/Organization and
+Dashboard entitlement are mandatory. CA closes same-Organization Shifts; LM
+closes only Shifts at currently granted ACTIVE Locations, independently of the
+owner's role/status or complete staff-management grant coverage.
+
+One transaction holds exact-session/factor and scope proof, locks the Shift
+FOR UPDATE, blocks ASSIGNED/ACCEPTED/IN_PROGRESS Tasks at that membership/Location,
+then writes ENDED with authoritative time, dedicated closure and one
+SHIFT_FORCE_ENDED audit. All reconciliation fields remain NULL (PENDING).
+Ordinary self-end/cash behavior remains unchanged. No Task/Session side effects.
+Organization+operationId plus canonical request fingerprint provides fresh-proof
+exact replay; changed payload conflicts, another closure is SHIFT_ALREADY_ENDED.
+Unknown transport outcome requires explicit reconciliation, never automatic POST.
+Reason exists only in protected typed management audit, never ordinary projections,
+logs or errors; the event is excluded from Supervisor visibility.
+Migration 054 provides restrictive tenant FKs and a narrow SECURITY DEFINER command;
+closure table access and helper execution are denied to runtime/PUBLIC.
+T05-G UI and cumulative Issue #240 closure remain deferred.

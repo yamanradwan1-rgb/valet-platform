@@ -446,6 +446,7 @@ model Organization {
   memberships                 OrganizationMembership[]
   membershipLocationAccess    MembershipLocationAccess[]
   shifts                      Shift[]
+  shiftForceEndClosures        ShiftForceEndClosure[]
   customers                   Customer[]
   vehicles                    Vehicle[]
   parkingZones                ParkingZone[]
@@ -684,6 +685,7 @@ model OrganizationMembership {
   user                        User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
   membershipLocationAccess    MembershipLocationAccess[]
   shifts                      Shift[]                    @relation("ShiftOwner")
+  shiftForceEndClosures        ShiftForceEndClosure[]
   cashReconciliationsReported Shift[]                    @relation("ShiftCashReporter")
   checkedInValetSessions      ValetSession[]             @relation("ValetSessionCheckedInBy")
   assignedValetSessions       ValetSession[]             @relation("ValetSessionCurrentAssignee")
@@ -773,9 +775,29 @@ model Shift {
   location       Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict)
   membership     OrganizationMembership  @relation("ShiftOwner", fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict)
   cashReportedBy OrganizationMembership? @relation("ShiftCashReporter", fields: [organizationId, cashReportedByMembershipId], references: [organizationId, id], onDelete: Restrict, map: "shifts_cash_reporter_fkey")
+  forceEndClosure ShiftForceEndClosure?
 
+  @@unique([organizationId, id], map: "shifts_organization_id_id_key")
   @@index([locationId, status], map: "shifts_location_id_status_idx")
   @@map("shifts")
+}
+
+model ShiftForceEndClosure {
+  shiftId            String   @id @map("shift_id") @db.Uuid
+  organizationId     String   @map("organization_id") @db.Uuid
+  actorMembershipId  String   @map("actor_membership_id") @db.Uuid
+  operationId        String   @map("operation_id") @db.Uuid
+  requestFingerprint String   @map("request_fingerprint")
+  endedAt            DateTime @map("ended_at") @db.Timestamptz(3)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  shift        Shift                  @relation(fields: [organizationId, shiftId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction, map: "shift_force_end_closures_shift_fkey")
+  actor        OrganizationMembership @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction, map: "shift_force_end_closures_actor_fkey")
+
+  @@unique([organizationId, operationId], map: "shift_force_end_closures_org_operation_key")
+  @@unique([organizationId, shiftId], map: "shift_force_end_closures_org_shift_key")
+  @@map("shift_force_end_closures")
 }
 
 model Customer {

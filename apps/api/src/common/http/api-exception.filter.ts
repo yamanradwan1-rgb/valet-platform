@@ -21,6 +21,7 @@ import { paymentOperationRoutes } from "./payment-operation-routes";
 import { setNoStoreResponseHeaders } from "./no-store-response";
 import { staffAuthOperationRoutes } from "./staff-auth-operation-routes";
 import { staffOnboardingOperationRoutes } from "./staff-onboarding-operation-routes";
+import { staffShiftForceEndOperationRoutes } from "./staff-shift-force-end-operation-routes";
 
 interface FilterRequest extends ApiRequest {
   readonly method: string;
@@ -42,6 +43,7 @@ const operationRoutes: ReadonlyArray<{
   ...paymentOperationRoutes,
   ...staffAuthOperationRoutes,
   ...staffOnboardingOperationRoutes,
+  ...staffShiftForceEndOperationRoutes,
   {
     method: "PUT",
     operation: "STAFF_PUSH_REGISTRATION_PUT",

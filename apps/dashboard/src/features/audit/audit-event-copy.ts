@@ -59,6 +59,7 @@ const events = {
   TASK_REASSIGNED: ["Task reassigned", "إعادة إسناد المهمة"],
   SHIFT_STARTED: ["Shift started", "بدء الوردية"],
   SHIFT_ENDED: ["Shift ended", "انتهاء الوردية"],
+  SHIFT_FORCE_ENDED: ["Shift force ended", "إنهاء الوردية إدارياً"],
   VALET_SESSION_PARKING_STARTED: ["Parking started", "بدء الاصطفاف"],
   VALET_SESSION_PARKED: ["Vehicle parked", "اصطفاف المركبة"],
   RETRIEVAL_REQUESTED: ["Retrieval requested", "طلب استرجاع المركبة"],

@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(90);
+    expect(managementAuditKnownEventTypes).toHaveLength(91);
     for (const eventType of managementAuditKnownEventTypes) {
       const projected = projectManagementAuditEvent(
         row(eventType, sensitiveMetadata),
@@ -79,11 +79,13 @@ describe("management audit projection", () => {
         "private-operator",
         "private-spot",
         "private-provider",
-        "private-reason",
         "private-storage-key",
       ]) {
         expect(serialized).not.toContain(secret);
       }
+      if (eventType === "SHIFT_FORCE_ENDED")
+        expect(projected.details).toMatchObject({ reason: "private-reason" });
+      else expect(serialized).not.toContain("private-reason");
       expect(serialized).not.toContain("latitude");
       expect(serialized).not.toContain("longitude");
       expect(serialized).not.toContain("locationIds");
@@ -98,6 +100,7 @@ describe("management audit projection", () => {
     );
     for (const excluded of [
       "SHIFT_STARTED",
+      "SHIFT_FORCE_ENDED",
       "INCIDENT_OPENED",
       "PAYMENT_INITIALIZED",
       "MAP_SETUP_POINT_CREATED",

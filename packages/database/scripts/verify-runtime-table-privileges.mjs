@@ -21,7 +21,7 @@ import {
 } from "./runtime-privilege-verification-helpers.mjs";
 import { verifyAuditFoundationPrivileges } from "./audit-foundation-runtime-privilege-verification.mjs";
 import { verifyMfaPrivileges } from "./mfa-runtime-privilege-verification.mjs";
-import { verifyStaffOnboardingPrivileges } from "./staff-onboarding-runtime-privileges.mjs";
+import { verifyShiftForceEndPrivileges } from "./shift-force-end-runtime-privileges.mjs";
 import { verifyManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
 import { verifyManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
 
@@ -292,7 +292,7 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
   await verifyBasicBrandingPrivileges(client, runtimeRole);
   await verifyAuditFoundationPrivileges(client, runtimeRole);
   await verifyMfaPrivileges(client, runtimeRole);
-  await verifyStaffOnboardingPrivileges(client, runtimeRole);
+  await verifyShiftForceEndPrivileges(client, runtimeRole);
   await verifyManagementSettingsPrivileges(client, runtimeRole);
   await verifyManagementFeaturePrivileges(client, runtimeRole);
 }

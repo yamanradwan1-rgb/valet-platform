@@ -13,10 +13,7 @@ import {
 import { projectManagementAuditDetails } from "./management-audit-detail-projection";
 import type { ManagementAuditQueryRow } from "./management-audit-query";
 
-export {
-  managementAuditKnownEventTypes,
-  managementAuditSupervisorEventTypes,
-};
+export { managementAuditKnownEventTypes, managementAuditSupervisorEventTypes };
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -110,7 +107,11 @@ export function projectManagementAuditEvent(
   return managementAuditEventSchema.parse({
     ...envelope,
     actor: projectActor(row),
-    details: projectManagementAuditDetails(family, row.metadataJson),
+    details: projectManagementAuditDetails(
+      family,
+      row.metadataJson,
+      row.eventType,
+    ),
     entity: projectEntity(row),
     eventType: row.eventType,
   });

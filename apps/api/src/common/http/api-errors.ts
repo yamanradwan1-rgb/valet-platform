@@ -24,6 +24,7 @@ export interface MappedApiError {
 }
 
 const statusByCode: Readonly<Record<string, number>> = {
+  SHIFT_ALREADY_ENDED: HttpStatus.CONFLICT,
   ACTIVE_SHIFT_CONFLICT: HttpStatus.CONFLICT,
   ACTIVE_VALET_SESSION_CONFLICT: HttpStatus.CONFLICT,
   AUTHORIZATION_DENIED: HttpStatus.NOT_FOUND,
@@ -132,6 +133,7 @@ const statusByCode: Readonly<Record<string, number>> = {
 };
 
 const safeMessages: Readonly<Record<string, string>> = {
+  SHIFT_ALREADY_ENDED: "The Shift has already ended.",
   ANTI_ABUSE_UNAVAILABLE: "Service temporarily unavailable.",
   AUTHORIZATION_DENIED: "The requested resource is not available.",
   GUEST_ACCESS_INVALID: "Guest access is invalid.",

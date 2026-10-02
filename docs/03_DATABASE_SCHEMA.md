@@ -2469,3 +2469,24 @@ Pending manager reads retain full LM coverage while ordinary mutations remain
 quarantined. Create/resend use explicit MFA retry and ephemeral copy-link results.
 The standalone EN/AR activation form immediately removes its fragment and keeps
 secrets only in memory. T05-E/F/G and email/SMS delivery are outside this slice.
+
+## Issue #240 / T05-F Shift administrative closure
+
+Migration `20261002005400_mgt_240f_force_end_shift` adds
+`shift_force_end_closures`: shift_id (primary key), organization_id,
+actor_membership_id, operation_id, request_fingerprint (64 lowercase hex),
+ended_at and created_at. Unique Organization/operation identity and restrictive
+Organization+Shift / Organization+actor FKs prevent scope substitution. Shift
+adds the composite Organization/id unique required by that FK. No reason or
+cash is copied into this record; reason belongs only to SHIFT_FORCE_ENDED audit.
+No historical self-ended row is backfilled.
+
+The narrow SECURITY DEFINER command holds exact session/factor/current actor,
+active Organization/subscription and LM active target-Location grant proof, then
+Shift FOR UPDATE through transition/closure/audit. It queries canonical open
+Tasks after the Shift lock without locking Task rows. Exact authorized replay
+returns the original closure; changed fingerprint conflicts; another end is
+SHIFT_ALREADY_ENDED. Cash remains all-null/PENDING. Runtime has no closure-table
+SELECT or DML; only the intended command is executable. Protected audit and
+closure history are immutable. Existing self-end runtime privileges are retained.
+See Accepted DEC-081 and the T05-F implementation/evidence record.

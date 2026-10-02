@@ -62,3 +62,4 @@ export * from "./management-visit-contacts.js";
 
 export * from "./staff-onboarding.js";
 export * from "./staff-activation.js";
+export * from "./staff-shift-force-end.js";

@@ -1126,3 +1126,25 @@ The bounded employee candidate read uses this history authority. Browser state i
 memory-only and fenced by identity/session/scope/filter/page/detail generations;
 duration uses one local clock with no requests. See Accepted DEC-081 T05-E and
 `docs/validation/ISSUE_240E_SHIFT_HISTORY.md`.
+
+## Issue #240 / T05-F Force End security
+
+The existing Staff MFA ceremony includes active Location Managers under DEC-081;
+this does not confer Company Admin capability. Force End requires the exact
+current Staff session and ACTIVE factor, sensitive age <=5 minutes, maximum age
+<8 hours and idle <30 minutes, with no refresh extension. Current actor account,
+membership, Organization and Dashboard entitlement are rechecked even on replay.
+CA requires same-Organization Shift; LM requires its current grant at the Shift's
+ACTIVE Location, independently of target-level staff-management coverage.
+
+The reason is outer-trimmed, nonblank and bounded to 500 characters; Unicode is
+preserved as text. Only dedicated SHIFT_FORCE_ENDED audit metadata stores it.
+Typed authorized CA/LM audit may expose it; Supervisor's allowlist excludes this
+event. Responses, errors, logs, telemetry, cursor identity and ordinary Shift
+projections omit it. No raw request logging or arbitrary metadata projection.
+Migration 054's narrow command is SECURITY DEFINER with fixed search_path and
+PUBLIC denied; private guards are denied and runtime has no closure-table access.
+One transaction preserves session/scope/Shift proof, blocks open assigned Tasks,
+and atomically writes pending-cash closure and audit. Unknown transport outcome
+uses the same operation identity only after fresh proof and explicit retry.
+No Force Start, impersonation, cash settlement or automatic Task/Session mutation.
