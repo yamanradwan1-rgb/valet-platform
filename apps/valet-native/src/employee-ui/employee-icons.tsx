@@ -12,6 +12,7 @@ export {
   EmployeeChevronLeftIcon,
   EmployeeChevronRightIcon,
   EmployeePlusIcon,
+  EmployeeSettingsIcon,
 } from "./employee-action-icons";
 export {
   EmployeeAlertIcon,

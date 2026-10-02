@@ -96,7 +96,6 @@ export function NativeTasksPanel(props: {
       <NativeTaskShiftStrip
         activeLabel={copy.activeShift}
         locale={locale}
-        nowLabel={copy.now}
         scope={snapshot.scope}
         textAlign={textAlign}
       />

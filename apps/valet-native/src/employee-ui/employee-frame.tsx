@@ -25,6 +25,7 @@ export const employeeFrameStyles = StyleSheet.create({
     width: "100%",
   },
   appHeader: {
+    direction: "ltr",
     alignItems: "center",
     backgroundColor: c.white,
     borderBottomColor: c.border,
@@ -36,6 +37,7 @@ export const employeeFrameStyles = StyleSheet.create({
     paddingHorizontal: space.screen,
   },
   brandContext: {
+    direction: "ltr",
     alignItems: "center",
     flexDirection: "row",
     flexShrink: 1,
@@ -55,6 +57,7 @@ export const employeeFrameStyles = StyleSheet.create({
   },
   locationName: { ...type.label, color: c.navy, fontSize: 13, lineHeight: 16 },
   headerUtilities: {
+    direction: "ltr",
     alignItems: "center",
     flexDirection: "row",
     flexShrink: 0,

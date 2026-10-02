@@ -13,6 +13,8 @@ import {
 } from "react-native";
 
 import { employeeTextStyle } from "../employee-ui/employee-typography";
+import { EmployeeSettingsIcon } from "../employee-ui/employee-icons";
+import { employeeColors } from "../employee-ui/employee-tokens";
 import { NativePushPermissionStatus } from "../notifications/native-push-permission-status";
 import type { NativePushSnapshot } from "../notifications/native-push-types";
 import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
@@ -24,14 +26,12 @@ import {
 } from "./native-account-menu-styles";
 
 export function NativeAccountMenu({
-  initials,
   locale,
   onRequestNotificationPermission,
   onSelectLocale,
   pushSnapshot,
   scope,
 }: {
-  readonly initials: string | null;
   readonly locale: EmployeeLocale;
   readonly onRequestNotificationPermission: () => Promise<void>;
   readonly onSelectLocale: (locale: EmployeeLocale) => void;
@@ -73,9 +73,7 @@ export function NativeAccountMenu({
         ]}
         testID="native-role-avatar"
       >
-        {initials === null ? null : (
-          <Text style={nativeAccountAvatarStyles.avatarLabel}>{initials}</Text>
-        )}
+        <EmployeeSettingsIcon color={employeeColors.white} size={20} />
       </Pressable>
       <Modal
         animationType="fade"

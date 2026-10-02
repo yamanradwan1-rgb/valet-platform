@@ -1,7 +1,30 @@
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 
 import type { EmployeeIconProps } from "./employee-icon-types";
 import { employeeColors as c } from "./employee-tokens";
+
+export function EmployeeSettingsIcon({
+  color = c.navy,
+  size = 24,
+}: EmployeeIconProps = {}) {
+  return (
+    <Svg
+      accessible={false}
+      fill="none"
+      height={size}
+      viewBox="0 0 24 24"
+      width={size}
+    >
+      <Path
+        d="M9.5 3h5l.6 2.4 1.1.6 2.4-.7 2.5 4.4-1.8 1.7v1.2l1.8 1.7-2.5 4.4-2.4-.7-1.1.6-.6 2.4h-5l-.6-2.4-1.1-.6-2.4.7-2.5-4.4 1.8-1.7v-1.2L2.9 9.7l2.5-4.4 2.4.7 1.1-.6L9.5 3z"
+        stroke={color}
+        strokeLinejoin="round"
+        strokeWidth={1.75}
+      />
+      <Circle cx={12} cy={12} r={3} stroke={color} strokeWidth={1.75} />
+    </Svg>
+  );
+}
 
 export function EmployeeChevronLeftIcon({
   color = c.navy,

@@ -4,11 +4,7 @@ import {
   employeeColors as c,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
-import {
-  employeeFontFamilies,
-  employeeFontWeights,
-  employeeTypography as type,
-} from "../employee-ui/employee-typography";
+import { employeeTypography as type } from "../employee-ui/employee-typography";
 
 export const nativeAccountAvatarStyles = StyleSheet.create({
   avatar: {
@@ -18,13 +14,6 @@ export const nativeAccountAvatarStyles = StyleSheet.create({
     height: 36,
     justifyContent: "center",
     width: 36,
-  },
-  avatarLabel: {
-    color: c.white,
-    fontFamily: employeeFontFamilies.display,
-    fontSize: 11,
-    fontWeight: employeeFontWeights.bold,
-    lineHeight: 14,
   },
   avatarPressed: { opacity: 0.7 },
 });

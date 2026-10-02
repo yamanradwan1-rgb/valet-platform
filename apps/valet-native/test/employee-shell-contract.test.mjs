@@ -85,7 +85,8 @@ describe("Employee shell composition contract", () => {
     expect(tasks).not.toContain("<Fact");
     expect(strip).toContain("scope.locationName");
     expect(strip).toContain("shiftStartedAt");
-    expect(strip).toContain("nowLabel");
+    expect(strip).toContain("useNativeTaskShiftDuration");
+    expect(strip).not.toContain("nowLabel");
     for (const forbidden of [
       "organizationName",
       "role",

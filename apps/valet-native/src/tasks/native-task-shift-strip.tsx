@@ -11,6 +11,7 @@ import {
   type EmployeeTextAlign,
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
+import { useNativeTaskShiftDuration } from "./use-native-task-shift-duration";
 
 export const nativeTaskShiftStripStyles = StyleSheet.create({
   strip: {
@@ -35,25 +36,20 @@ export const nativeTaskShiftStripStyles = StyleSheet.create({
 export function NativeTaskShiftStrip({
   activeLabel,
   locale,
-  nowLabel,
   scope,
   textAlign,
 }: {
   readonly activeLabel: string;
   readonly locale: FoundationLocale;
-  readonly nowLabel: string;
   readonly scope: EmployeeOperationalScope;
   readonly textAlign: EmployeeTextAlign;
 }) {
   const human = employeeTextStyle("human", textAlign);
-  const start = new Intl.DateTimeFormat(locale, {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(scope.shiftStartedAt));
+  const duration = useNativeTaskShiftDuration(scope.shiftStartedAt, locale);
   return (
     <View
       accessible
-      accessibilityLabel={`${activeLabel}, ${start}, ${nowLabel}, ${scope.locationName}`}
+      accessibilityLabel={`${activeLabel}, ${duration}, ${scope.locationName}`}
       style={nativeTaskShiftStripStyles.strip}
       testID="native-task-shift-strip"
     >
@@ -69,7 +65,7 @@ export function NativeTaskShiftStrip({
           numberOfLines={1}
           style={[nativeTaskShiftStripStyles.secondary, human]}
         >
-          {` · ${start} – ${nowLabel} · ${scope.locationName}`}
+          {` · ${duration} · ${scope.locationName}`}
         </Text>
       </View>
     </View>

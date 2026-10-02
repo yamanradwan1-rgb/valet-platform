@@ -22,13 +22,37 @@ describe("Web-authoritative Native Tasks screen", () => {
     const strip = nodes.find((node) => node.type === NativeTaskShiftStrip)!;
     expect(strip.props).toMatchObject({
       activeLabel: "Shift active",
-      nowLabel: "now",
+      scope: tasksOperationsFixture("ready").scope,
     });
     const root = nodes[0]!;
     expect((root.props.children as TasksElement[])[0]?.type).toBe(
       NativeTaskShiftStrip,
     );
   });
+
+  it.each(["en", "ar"] as const)(
+    "removes the strip when authoritative Shift scope is unavailable in %s",
+    (locale) => {
+      for (const snapshot of [
+        tasksOperationsFixture("no-active-shift"),
+        tasksOperationsFixture("loading-context"),
+        tasksOperationsFixture("error"),
+        { ...tasksOperationsFixture("ready"), scope: null },
+      ]) {
+        const nodes = taskElements(
+          NativeTasksPanel({
+            locale,
+            operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+            snapshot,
+            textAlign: locale === "ar" ? "right" : "left",
+          }),
+        );
+        expect(nodes.some((node) => node.type === NativeTaskShiftStrip)).toBe(
+          false,
+        );
+      }
+    },
+  );
 
   it("uses a 24px task title and has no visible manual Refresh control", () => {
     const nodes = renderTasksPanel();
