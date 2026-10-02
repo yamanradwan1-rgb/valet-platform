@@ -1,90 +1,29 @@
 "use client";
 
 import { MapPin, Shield, User, Users } from "lucide-react";
-import { useCallback, useState } from "react";
+import type { StaffManagementRole } from "@valet/contracts";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { ReferenceAdministrationPage as AdministrationPage } from "../reference-administration-page";
 import { administrationCopy } from "../administration-copy";
-import { administrationErrorMessage } from "../administration-error";
-import {
-  administrationScope,
-  administrationScopeKey,
-} from "../administration-scope";
-import { ReadState, StatusBadge, styles } from "../administration-ui";
-import { AdministrationTabs } from "../administration-tabs";
-import { useAuthoritativeRead } from "../use-authoritative-read";
-import { readStaffDirectory } from "../staff/staff-api";
+import { styles } from "../administration-ui";
+import { fixedRoleReference, roleReferenceCopy } from "./role-reference";
+
+const roleIcons = {
+  ORG_ADMIN: { icon: Shield, className: styles.roleIconAdmin },
+  LOCATION_MANAGER: { icon: MapPin, className: styles.roleIconManager },
+  VALET_SUPERVISOR: { icon: Users, className: styles.roleIconSupervisor },
+  VALET_EMPLOYEE: { icon: User, className: styles.roleIconEmployee },
+} satisfies Record<StaffManagementRole, unknown>;
 
 export function RolesPage() {
   const dashboard = useProtectedDashboard();
-  const scopeKey = administrationScopeKey(dashboard);
-  return <RolesPageContent key={scopeKey} />;
-}
-
-function RolesPageContent() {
-  const dashboard = useProtectedDashboard();
-  const scope = administrationScope(dashboard.selectedScope);
-  const scopeKey = administrationScopeKey(dashboard);
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
-  const [tab, setTab] = useState<"roles" | "users">("roles");
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [history, setHistory] = useState<(string | null)[]>([]);
-  const loadUsers = useCallback(
-    (signal: AbortSignal) =>
-      readStaffDirectory(dashboard.api, scope.organizationId, cursor, signal),
-    [cursor, dashboard.api, scope.organizationId],
-  );
-  const users = useAuthoritativeRead(
-    `${scopeKey}:roles-users:${cursor ?? "first"}`,
-    loadUsers,
-    scope.authority === "COMPANY_ADMIN" && tab === "users",
-  );
-  if (scope.authority !== "COMPANY_ADMIN") return null;
-  const roles = [
-    {
-      code: "ORG_ADMIN",
-      label: t.companyAdmin,
-      icon: Shield,
-      iconClass: styles.roleIconAdmin,
-      description:
-        locale === "ar"
-          ? "إدارة إعدادات الشركة وأدوار الموظفين والوصول إلى المواقع."
-          : "Manage company settings, staff roles, and Location access.",
-    },
-    {
-      code: "LOCATION_MANAGER",
-      label: t.locationManager,
-      icon: MapPin,
-      iconClass: styles.roleIconManager,
-      description:
-        locale === "ar"
-          ? "إدارة الإعدادات والهوية البصرية للمواقع الممنوحة."
-          : "Manage configuration and branding for granted Locations.",
-    },
-    {
-      code: "VALET_SUPERVISOR",
-      label: t.supervisor,
-      icon: Users,
-      iconClass: styles.roleIconSupervisor,
-      description:
-        locale === "ar"
-          ? "الإشراف على العمليات الميدانية أثناء الوردية النشطة."
-          : "Supervise field operations during an active shift.",
-    },
-    {
-      code: "VALET_EMPLOYEE",
-      label: t.employee,
-      icon: User,
-      iconClass: styles.roleIconEmployee,
-      description:
-        locale === "ar"
-          ? "تنفيذ العمليات الميدانية المصرح بها."
-          : "Carry out authorized field operations.",
-    },
-  ] as const;
+  const reference = roleReferenceCopy(locale);
+  if (dashboard.selectedScope.authority !== "COMPANY_ADMIN") return null;
+
   return (
     <AdministrationPage
       subtitle={t.rolesSubtitle}
@@ -92,174 +31,46 @@ function RolesPageContent() {
       subtitleSize="sm"
       title={t.rolesTitle}
     >
+      <p className={styles.subtitle}>{reference.explanation}</p>
       <div className={styles.card}>
-        <AdministrationTabs
-          active={tab}
-          id="roles"
-          inset
-          label={t.rolesTitle}
-          items={[
-            { value: "roles", label: t.fixedRoles },
-            { value: "users", label: t.users },
-          ]}
-          onSelect={setTab}
-        />
         <div
-          aria-labelledby={`roles-tab-${tab}`}
-          id={`roles-panel-${tab}`}
-          role="tabpanel"
+          aria-label={t.fixedRoles}
+          className={styles.tableWrap}
+          role="region"
+          tabIndex={0}
         >
-          {tab === "roles" ? (
-            <div
-              aria-label={t.fixedRoles}
-              className={styles.tableWrap}
-              role="region"
-              tabIndex={0}
-            >
-              <table className={`${styles.table} ${styles.referenceTable}`}>
-                <thead>
-                  <tr>
-                    <th>{t.role}</th>
-                    <th>{t.users}</th>
-                    <th>{t.description}</th>
-                    <th>{t.actions}</th>
+          <table className={`${styles.table} ${styles.referenceTable}`}>
+            <thead>
+              <tr>
+                <th>{t.role}</th>
+                <th>{reference.scope}</th>
+                <th>{reference.capabilities}</th>
+                <th>{reference.conditions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {fixedRoleReference(locale).map((role) => {
+                const { icon: Icon, className } = roleIcons[role.role];
+                return (
+                  <tr key={role.role}>
+                    <td>
+                      <div className={styles.roleCell}>
+                        <span className={`${styles.roleIcon} ${className}`}>
+                          <Icon aria-hidden="true" size={16} />
+                        </span>
+                        <div className={styles.strong}>{role.label}</div>
+                      </div>
+                    </td>
+                    <td>{role.scope}</td>
+                    <td>{role.capabilities}</td>
+                    <td>{role.conditions}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {roles.map((role) => {
-                    const Icon = role.icon;
-                    return (
-                      <tr key={role.code}>
-                        <td>
-                          <div className={styles.roleCell}>
-                            <span
-                              className={`${styles.roleIcon} ${role.iconClass}`}
-                            >
-                              <Icon aria-hidden="true" size={16} />
-                            </span>
-                            <div className={styles.strong}>{role.label}</div>
-                          </div>
-                        </td>
-                        <td
-                          aria-label={
-                            locale === "ar"
-                              ? "الإجمالي غير متاح"
-                              : "Total unavailable"
-                          }
-                        >
-                          —
-                        </td>
-                        <td>{role.description}</td>
-                        <td
-                          aria-label={
-                            locale === "ar" ? "لا توجد إجراءات" : "No actions"
-                          }
-                        >
-                          —
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <ReadState
-              error={
-                users.error
-                  ? new Error(administrationErrorMessage(users.error))
-                  : null
-              }
-              loading={users.loading}
-              onRetry={users.refresh}
-            >
-              <div
-                aria-label={t.users}
-                className={styles.tableWrap}
-                role="region"
-                tabIndex={0}
-              >
-                <table className={`${styles.table} ${styles.referenceTable}`}>
-                  <thead>
-                    <tr>
-                      <th>{t.email}</th>
-                      <th>{t.role}</th>
-                      <th>{t.locationAccess}</th>
-                      <th>{t.status}</th>
-                      <th>{t.actions}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.data?.items.map((item) => (
-                      <tr key={item.membershipId}>
-                        <td>
-                          <bdi dir="ltr">{item.identity.email}</bdi>
-                        </td>
-                        <td>{roleLabel(item.role, t)}</td>
-                        <td>{item.locationAccessCount}</td>
-                        <td>
-                          <StatusBadge good={item.status === "ACTIVE"}>
-                            {item.status === "ACTIVE" ? t.active : t.inactive}
-                          </StatusBadge>
-                        </td>
-                        <td
-                          aria-label={
-                            locale === "ar"
-                              ? "تتم إدارة الصلاحيات من صفحة الموظفين"
-                              : "Authority is managed from Employees"
-                          }
-                        >
-                          —
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {users.data?.items.length === 0 ? (
-                <div className={styles.empty}>{t.noData}</div>
-              ) : null}
-              <div className={styles.pagination}>
-                <button
-                  className={styles.secondary}
-                  disabled={history.length === 0}
-                  onClick={() => {
-                    const previousHistory = [...history];
-                    const previous = previousHistory.pop() ?? null;
-                    setHistory(previousHistory);
-                    setCursor(previous);
-                  }}
-                  type="button"
-                >
-                  {t.previous}
-                </button>
-                <button
-                  className={styles.secondary}
-                  disabled={!users.data?.nextCursor}
-                  onClick={() => {
-                    setHistory((items) => [...items, cursor]);
-                    setCursor(users.data?.nextCursor ?? null);
-                  }}
-                  type="button"
-                >
-                  {t.next}
-                </button>
-              </div>
-            </ReadState>
-          )}
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </AdministrationPage>
   );
-}
-
-function roleLabel(
-  role:
-    "ORG_ADMIN" | "LOCATION_MANAGER" | "VALET_SUPERVISOR" | "VALET_EMPLOYEE",
-  t: ReturnType<typeof administrationCopy>,
-): string {
-  if (role === "ORG_ADMIN") return t.companyAdmin;
-  if (role === "LOCATION_MANAGER") return t.locationManager;
-  if (role === "VALET_SUPERVISOR") return t.supervisor;
-  return t.employee;
 }
