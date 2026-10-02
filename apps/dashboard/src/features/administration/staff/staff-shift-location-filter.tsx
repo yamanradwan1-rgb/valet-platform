@@ -45,13 +45,18 @@ export function StaffShiftLocationFilter(props: {
     load,
     enabled,
   );
-  const options = page.data?.items ?? [];
+  const candidates = page.data?.items ?? [];
+  const options =
+    authority === "LOCATION_MANAGER"
+      ? candidates.filter((location) => location.status === "ACTIVE")
+      : candidates;
   const selected =
     !enabled &&
     !page.error &&
     !page.loading &&
     props.displayAuthorized &&
     props.value &&
+    (authority !== "LOCATION_MANAGER" || props.value.status === "ACTIVE") &&
     !options.some((item) => item.locationId === props.value?.locationId)
       ? props.value
       : null;

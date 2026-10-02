@@ -249,7 +249,7 @@ Generated Next route-reference drift returned to baseline content after the
 earlier build; no generated source change is included. The 64 screenshots
 contain explicit fixture identities only and were not regenerated for closure.
 
-The final local inspection against d5488b0 confirmed 113 changed files, including
+The prior closure inspection against d5488b0 confirmed 113 changed files, including
 38 authored TS/TSX files (maximum 253 physical lines; no changed MJS file).
 Only T05-E history reads/UI/contracts/docs/tests and recorded evidence are
 present. No Force End/Start, self-shift/Task/Session/cash mutation or cash
@@ -258,8 +258,65 @@ baseline repair is present. The only CSS addition styles history filters;
 shared reference CSS, shell and Drawer primitives remain unchanged, preserving
 the frozen geometry established by the completed visual evidence.
 
-Closure performed local diff/line-count inspection, this documentation update,
+The prior closure performed local diff/line-count inspection, its documentation update,
 scoped commit, branch push and Git SHA/status verification only. No tests,
 lint/typecheck/build commands, broad suites, remote CI, timeout changes or
 visual regeneration were run again. The recorded aggregate failures retain
 their actual failed result and remain deferred outside this subtask.
+
+## Narrow Location-filter correction — owner-authorized follow-up
+
+Correction starts at pushed e3445eb52eb1c8b64f8cefc92bbcef1d7e1c23f7 on the
+same branch. Independent review identified a UI mismatch: shared LM discovery
+may include inactive granted Locations, but history accepts only current ACTIVE
+grants; list denial then hid the Location selector and trapped the stale filter.
+
+Approved correction: filter only LM history discovery candidates to ACTIVE;
+preserve CA inactive candidates and server history/authority/cursor behavior.
+Keep Location recovery available after a list error, with only generic cached
+selection text until current discovery proves a label. A denial boundary also
+fences any pre-denial discovery response. Employee protected identity remains
+hidden after list denial. All/another current active Location starts the normal
+new history generation. Explicit bounded discovery pages remain unchanged.
+
+Affected read entities: Location and existing management actor authority;
+Shift/ValetSession/Task/Dispatch transitions: none. No schema, indexes,
+configuration policy, backend, contracts, cash, duration/date/detail, CSS/shell,
+migration or T05-F/G changes. Files stay below 300 authored lines. Verification
+is limited to directly affected browser specs, Dashboard typecheck, changed-file
+ESLint/Prettier and Git diff-check.
+
+Correction browser evidence (fixtures, not live-stack/CI proof): the six new
+regressions first reproduced the defect with five expected failures and one
+passing CA case. After the correction, the following directly affected specs
+passed together: `issue240e-location-recovery.spec.ts` (6),
+`issue240e-denial-retry.spec.ts` (3), `issue240e-history-races.spec.ts` (9), and
+`issue240e-history-budget.spec.ts` (2): **20/20 PASS**, exit 0, 47.0 seconds.
+
+LM inactive B is absent and causes no history request; ACTIVE A and All remain
+available. CA inactive B remains selectable. Explicit Next/Previous discovery
+uses one request per selected page, with no background cursor crawl. Denial
+keeps Location visible with only the generic selected label and hides stale
+Employee identity. Both All and current ACTIVE C recover with exactly one new
+history request (four total: initial, A, denied refresh, recovery). Each recovery
+also proves that delayed pre-denial discovery success/failure cannot restore A,
+its cursor, an error, or protected identity. The React key and authoritative
+read namespace both change across the list-error boundary; candidate denial
+and existing history-generation fences remain intact.
+
+Dashboard-only typecheck passed (exit 0). No PostgreSQL/API/contracts suites,
+root gates, broad Dashboard suites, production build, screenshot regeneration,
+remote CI, timeout changes, or baseline repairs were run for this correction.
+Earlier aggregate failures remain pre-existing, outside T05-E scope, not fixed,
+not counted PASS, and deferred to cumulative/repository closure. T05-E remains
+**IMPLEMENTED / FOCUSED ACCEPTANCE PASSED**; Issue #240 completion and full
+repository/remote CI readiness are not claimed.
+
+Changed-file ESLint passed with zero warnings (exit 0). Changed-file Prettier
+and `git diff --check` passed. The correction contains exactly four intentional
+files: the two history Location/body components, the new focused browser spec,
+and this validation record. Authored TS/TSX sizes are 113, 233, and 285 physical
+lines respectively. No migration, backend, history SQL, contracts, CSS, visual
+geometry, shell/table/Drawer design, or T05-F/G change is included. Generated
+Next route-reference drift was restored to starting content after the browser
+run and is excluded from the correction commit.

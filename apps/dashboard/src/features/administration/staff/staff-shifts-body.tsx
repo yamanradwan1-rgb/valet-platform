@@ -62,6 +62,7 @@ export function StaffShiftsBody() {
     load,
     range.valid,
   );
+  const locationKey = `${key}:locations:${history.error ? "denied" : "current"}`;
   const loadDetail = useCallback(
     (signal: AbortSignal) =>
       readShiftDetail(dashboard.api, organizationId, query.shiftId!, signal),
@@ -83,36 +84,33 @@ export function StaffShiftsBody() {
         <div className={css.toolbar}>
           <div className={css.controls}>
             {!history.error ? (
-              <>
-                <StaffShiftEmployeeFilter
-                  key={key + ":employees"}
-                  organizationId={organizationId}
-                  scopeKey={key}
-                  locationId={f.location?.locationId}
-                  membershipId={f.membershipId}
-                  value={
-                    items.find(
-                      (item) => item.membershipId === f.membershipId,
-                    ) ?? null
-                  }
-                  onChange={(employee) =>
-                    query.change({ membershipId: employee?.membershipId })
-                  }
-                />
-                <StaffShiftLocationFilter
-                  key={key + ":locations"}
-                  organizationId={organizationId}
-                  scopeKey={key}
-                  value={f.location}
-                  displayAuthorized={
-                    history.data !== null && !history.loading && range.valid
-                  }
-                  onChange={(location) =>
-                    query.change({ location, membershipId: undefined })
-                  }
-                />
-              </>
+              <StaffShiftEmployeeFilter
+                key={key + ":employees"}
+                organizationId={organizationId}
+                scopeKey={key}
+                locationId={f.location?.locationId}
+                membershipId={f.membershipId}
+                value={
+                  items.find((item) => item.membershipId === f.membershipId) ??
+                  null
+                }
+                onChange={(employee) =>
+                  query.change({ membershipId: employee?.membershipId })
+                }
+              />
             ) : null}
+            <StaffShiftLocationFilter
+              key={locationKey}
+              organizationId={organizationId}
+              scopeKey={locationKey}
+              value={f.location}
+              displayAuthorized={
+                history.data !== null && !history.loading && range.valid
+              }
+              onChange={(location) =>
+                query.change({ location, membershipId: undefined })
+              }
+            />
             <select
               aria-label={t.status}
               className={`${css.select} ${css.statusSelect}`}
