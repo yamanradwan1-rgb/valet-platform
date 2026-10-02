@@ -17,7 +17,7 @@ import { GuestVehicleReadyAlert } from "../ready-alert/guest-vehicle-ready-alert
 import { GuestSessionContext } from "./use-guest-session";
 import {
   currentClientSession,
-  retainCurrentSessionBranding,
+  applyCurrentClientSessionUpdate,
 } from "./client-bound-session";
 
 const POLLING_INTERVAL_MS = 5_000;
@@ -54,6 +54,7 @@ export function GuestSessionProvider({
   const [isExpired, setIsExpired] = useState<boolean>(false);
 
   const inFlightClientRef = useRef<typeof client>(null);
+  const latestSessionRef = useRef(sessionEnvelope);
   const session = currentClientSession(sessionEnvelope, client);
   const readyAlertIdentity =
     readyAlertEnvelope.client === client ? readyAlertEnvelope.identity : null;
@@ -79,7 +80,8 @@ export function GuestSessionProvider({
         readyTrackerRef.current,
         newSession,
       );
-      setSessionEnvelope({ client, value: newSession });
+      latestSessionRef.current = { client, value: newSession };
+      setSessionEnvelope(latestSessionRef.current);
       if (newSession.state === "COMPLETED" || decision.kind === "BASELINE") {
         setReadyAlertEnvelope({ client, identity: null });
       } else if (decision.kind === "PRESENT") {
@@ -129,13 +131,19 @@ export function GuestSessionProvider({
   }, [fetchSession]);
 
   const updateSession = useCallback(
-    (newSession: GuestSafeSession) => {
-      newSession = retainCurrentSessionBranding(session, newSession);
-      applyAuthorizedSessionSnapshot(newSession);
-      setError(null);
-      setIsNetworkError(false);
-    },
-    [applyAuthorizedSessionSnapshot, session],
+    (snapshot: GuestSafeSession) =>
+      applyCurrentClientSessionUpdate(
+        latestSessionRef,
+        activeClientRef,
+        client,
+        snapshot,
+        (newSession) => {
+          applyAuthorizedSessionSnapshot(newSession);
+          setError(null);
+          setIsNetworkError(false);
+        },
+      ),
+    [applyAuthorizedSessionSnapshot, client],
   );
 
   // Initial load via asynchronous trigger

@@ -1,4 +1,5 @@
 import React from "react";
+import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -8,10 +9,11 @@ import type { GuestSafeSession } from "../../lib/api/guest-api-types";
 import { ThemeProvider } from "../../theme/theme-provider";
 import {
   currentClientSession,
+  applyCurrentClientSessionUpdate,
   retainCurrentSessionBranding,
 } from "./client-bound-session";
 import { GuestApiClient } from "../../lib/api/guest-api-client";
-import { DEFAULT_BRAND_PRIMARY, guestBrandStyle } from "./guest-branding";
+import { guestBrandStyle } from "./guest-branding";
 import { ScreenParked } from "./screen-parked";
 import { GuestSessionContext } from "./use-guest-session";
 
@@ -32,17 +34,19 @@ function render(
   value: GuestSafeSession | null,
   expired = false,
   locale: "en" | "ar" = "en",
+  theme: "light" | "dark" = "light",
+  unavailable: "network" | "error" | null = null,
 ) {
   return renderToStaticMarkup(
     <LocaleProvider initialLocale={locale}>
-      <ThemeProvider initialTheme="light">
+      <ThemeProvider initialTheme={theme}>
         <GuestSessionContext.Provider
           value={{
             session: value,
             isExpired: expired,
-            isNetworkError: false,
+            isNetworkError: unavailable === "network",
             isLoading: false,
-            error: null,
+            error: unavailable ? "Read unavailable" : null,
             refreshSession: async () => {},
             updateSession: () => {},
           }}
@@ -124,26 +128,120 @@ describe("effective Guest branding consumption", () => {
     expect(render(currentClientSession(currentB, clientB))).toContain(
       "Current B",
     );
-    expect(render(currentClientSession(oldA, clientB))).toContain(
-      `--brand-primary:${DEFAULT_BRAND_PRIMARY}`,
+    const latest = { current: oldA };
+    const activeClient = { current: clientA };
+    const apply = vi.fn();
+    const delayedA = (snapshot: GuestSafeSession) =>
+      applyCurrentClientSessionUpdate(
+        latest,
+        activeClient,
+        clientA,
+        snapshot,
+        apply,
+      );
+    activeClient.current = clientB;
+    latest.current = currentB;
+    delayedA(oldA.value);
+    expect(apply).not.toHaveBeenCalled();
+    expect(render(latest.current.value)).toContain("Current B");
+    activeClient.current = replacementA;
+    delayedA(oldA.value);
+    expect(apply).not.toHaveBeenCalled();
+    expect(render(currentClientSession(oldA, clientB))).not.toContain(
+      "--brand-primary:",
     );
     expect(render(currentB.value, true)).not.toContain("Current B");
-    expect(render(currentB.value, true)).toContain(
-      `--brand-primary:${DEFAULT_BRAND_PRIMARY}`,
-    );
+    expect(render(currentB.value, true)).not.toContain("--brand-primary:");
   });
+
+  it("retains authoritative B when a command captured under A completes without branding", () => {
+    const client = {};
+    const brandA = session("Brand A");
+    const brandB = session("Brand B", "#004488");
+    const latest = { current: { client, value: brandA } };
+    const applied: GuestSafeSession[] = [];
+    const capturedCommand = (snapshot: GuestSafeSession) =>
+      applyCurrentClientSessionUpdate(
+        latest,
+        { current: client },
+        client,
+        snapshot,
+        (snapshot) => {
+          latest.current = { client, value: snapshot };
+          applied.push(snapshot);
+        },
+      );
+    const { branding, ...command } = brandA;
+    expect(branding).toBeDefined();
+    latest.current = { client, value: brandB };
+    capturedCommand({ ...command, state: "REQUESTED" });
+    expect(applied).toHaveLength(1);
+    expect(applied[0]?.state).toBe("REQUESTED");
+    expect(applied[0]?.branding).toEqual(brandB.branding);
+    expect(render(latest.current.value)).toContain("Brand B");
+    expect(render(latest.current.value)).not.toContain("Brand A");
+
+    latest.current = {
+      client,
+      value: { ...brandB, valetSessionId: "replacement-session" },
+    };
+    capturedCommand(command);
+    expect(applied).toHaveLength(1);
+    expect(latest.current.value.valetSessionId).toBe("replacement-session");
+  });
+
+  it.each([
+    ["dark", "#2575FC"],
+    ["light", "#176BFF"],
+  ] as const)(
+    "preserves the existing %s accent %s without safe branding",
+    (theme, accent) => {
+      const css = readFileSync(
+        new URL("../../app/globals.css", import.meta.url),
+        "utf8",
+      );
+      const themeAccent = css.match(
+        new RegExp(
+          `\\[data-theme="${theme}"\\]\\s*\\{[^}]*?--v-blue:\\s*(#[0-9A-F]{6});`,
+          "u",
+        ),
+      )?.[1];
+      expect(themeAccent).toBe(accent);
+      const { branding, ...withoutBranding } = session("Venue");
+      expect(branding).toBeDefined();
+      for (const value of [
+        null,
+        withoutBranding,
+        session("Venue", "invalid"),
+        session("Venue", "#808080"),
+      ]) {
+        const style = guestBrandStyle(value, theme === "dark");
+        expect(style).toEqual({});
+        expect(style).not.toHaveProperty("--v-blue");
+        expect(style).not.toHaveProperty("--v-blue-hover");
+        expect(render(value, false, "en", theme)).not.toContain(
+          "--brand-primary:",
+        );
+        expect(render(value, false, "en", theme)).not.toContain("--v-blue:");
+      }
+      const branded = session(
+        "Venue",
+        theme === "dark" ? "#AADDFF" : "#0057B8",
+      );
+      expect(render(branded, true, "en", theme)).not.toContain("--v-blue:");
+      for (const unavailable of ["network", "error"] as const) {
+        expect(render(branded, false, "en", theme, unavailable)).not.toContain(
+          "--v-blue:",
+        );
+      }
+    },
+  );
 
   it("falls back for missing/invalid/unsafe colors and keeps contrast-safe dark branding", () => {
     for (const color of ["invalid", "#FFFFFF", "#FFFF00"]) {
-      expect(guestBrandStyle(session("Venue", color), false)).toHaveProperty(
-        "--brand-primary",
-        DEFAULT_BRAND_PRIMARY,
-      );
+      expect(guestBrandStyle(session("Venue", color), false)).toEqual({});
     }
-    expect(guestBrandStyle(null, false)).toHaveProperty(
-      "--brand-primary",
-      DEFAULT_BRAND_PRIMARY,
-    );
+    expect(guestBrandStyle(null, false)).toEqual({});
     const dark = guestBrandStyle(session("Venue", "#AADDFF"), true);
     expect(dark).toHaveProperty("--brand-primary", "#AADDFF");
     expect(dark).toHaveProperty("--brand-on-primary", "#07111F");

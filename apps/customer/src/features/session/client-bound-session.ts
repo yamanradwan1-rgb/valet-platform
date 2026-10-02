@@ -15,3 +15,21 @@ export function retainCurrentSessionBranding(
     ? { ...next, branding: next.branding ?? current.branding }
     : next;
 }
+
+export function applyCurrentClientSessionUpdate<T>(
+  latest: {
+    readonly current: {
+      readonly client: T;
+      readonly value: GuestSafeSession | null;
+    };
+  },
+  activeClient: { readonly current: T },
+  client: T,
+  snapshot: GuestSafeSession,
+  apply: (snapshot: GuestSafeSession) => void,
+): void {
+  if (activeClient.current !== client) return;
+  const current = currentClientSession(latest.current, client);
+  if (!current || current.valetSessionId !== snapshot.valetSessionId) return;
+  apply(retainCurrentSessionBranding(current, snapshot));
+}

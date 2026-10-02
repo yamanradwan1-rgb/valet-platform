@@ -35,7 +35,9 @@ export function AppShell({
   const guest = useContext(GuestSessionContext);
   const theme = useContext(ThemeContext);
   const session =
-    guest && !guest.isExpired && !guest.isNetworkError ? guest.session : null;
+    guest && !guest.isExpired && !guest.isNetworkError && !guest.error
+      ? guest.session
+      : null;
 
   return (
     <div

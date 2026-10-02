@@ -2,8 +2,6 @@ import type { CSSProperties } from "react";
 
 import type { GuestSafeSession } from "../../lib/api/guest-api-types";
 
-export const DEFAULT_BRAND_PRIMARY = "#176BFF";
-
 export function guestBrandDisplayName(
   session: GuestSafeSession,
 ): string | undefined {
@@ -28,7 +26,7 @@ function contrast(left: string, right: string): number {
 }
 
 // These are the existing theme surfaces on which accent text is rendered.
-// Unsafe runtime colors keep the established default rather than changing surfaces.
+// Unsafe runtime colors leave the existing light/dark theme accents untouched.
 export function guestBrandStyle(
   session: GuestSafeSession | null,
   dark: boolean,
@@ -41,7 +39,8 @@ export function guestBrandStyle(
     typeof candidate === "string" &&
     /^#[0-9A-F]{6}$/u.test(candidate) &&
     surfaces.every((surface) => contrast(candidate, surface) >= 4.5);
-  const primary = safe ? candidate : DEFAULT_BRAND_PRIMARY;
+  if (!safe) return {};
+  const primary = candidate;
   return {
     "--brand-primary": primary,
     "--v-blue": "var(--brand-primary)",
