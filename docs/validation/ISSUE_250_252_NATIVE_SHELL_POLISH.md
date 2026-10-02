@@ -171,6 +171,9 @@ This is a self-review and does not replace human cross-review.
   database, packages, lockfile, logo, navigation and menu-sheet UI untouched.
 - Gate evidence: local results above; no green full-suite or CI claim.
 
-Merge verdict: **BLOCK MERGE** until required failing gates are resolved outside
-this focused task and physical Native evidence is collected. The owner requested
-commit/push for review only, with no PR and no merge.
+Owner merge decision — 2026-10-03: the scoped #250/#251/#252 code is approved
+for direct merge. The failing broad gates are reproduced baseline/unrelated failures,
+and full Android packaging plus physical-device EN/AR/minute-advance/TalkBack proof
+are intentionally deferred to the Native batch closure gate rather than blocking
+this focused code merge. This does not convert unavailable physical evidence into
+PASS and does not mark the three issues production-acceptance complete.
