@@ -1,10 +1,10 @@
 "use client";
 
-import type { ManagementLocation } from "@valet/contracts";
 import { Car, ChevronRight, Clock } from "lucide-react";
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useState } from "react";
 
-import type { SelectedDashboardScope } from "../../../components/scope";
+import { selectedOperationsLocation } from "../operations-location";
+import { LiveFilters, Metric } from "./live-operations-controls";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import {
   readRetrievalQueue,
@@ -15,10 +15,8 @@ import { operationsCopy } from "../operations-copy";
 import { OperationsPage, styles } from "../operations-ui";
 import { useCursorPage } from "../use-cursor-page";
 import { useOperationsContext } from "../use-operations-context";
-import { useOperationsRead } from "../use-operations-read";
+import { useAuthoritativeRead } from "../../administration/use-authoritative-read";
 import {
-  liveFilterLabel,
-  liveOperationsFilters,
   liveOperationsKpis,
   type LiveOperationsFilter,
 } from "./live-operations-presentation";
@@ -39,8 +37,9 @@ function LiveOperationsContent() {
   const page = useCursorPage();
   const retrievalPage = useCursorPage();
   const [filter, setFilter] = useState<LiveOperationsFilter>("ALL");
+  const [listRevision, setListRevision] = useState(0);
   const [view, setView] = useState<LiveOperationsView>("SESSIONS");
-  const location = selectedLocation(dashboard.selectedScope);
+  const location = selectedOperationsLocation(dashboard.selectedScope);
   const locationId = location?.locationId ?? "";
   const enabled =
     exactLocation &&
@@ -49,12 +48,11 @@ function LiveOperationsContent() {
       scope.authority === "LOCATION_MANAGER");
   const loadSessions = useCallback(
     (signal: AbortSignal) =>
-      readSessions(dashboard.api, locationId, page.cursor, signal),
-    [dashboard.api, locationId, page.cursor],
+      readSessions(dashboard.api, locationId, page.cursor, signal, filter),
+    [dashboard.api, locationId, page.cursor, filter],
   );
   const loadCounts = useCallback(
-    (signal: AbortSignal) =>
-      readStateCounts(dashboard.api, locationId, signal),
+    (signal: AbortSignal) => readStateCounts(dashboard.api, locationId, signal),
     [dashboard.api, locationId],
   );
   const loadRetrieval = useCallback(
@@ -67,18 +65,18 @@ function LiveOperationsContent() {
       ),
     [dashboard.api, locationId, retrievalPage.cursor],
   );
-  const sessions = useOperationsRead(
-    `${scopeKey}:live:sessions:${page.cursor ?? "first"}`,
+  const sessions = useAuthoritativeRead(
+    `${scopeKey}:live:sessions:${filter}:${listRevision}:${page.cursor ?? "first"}`,
     loadSessions,
-    enabled,
+    enabled && view === "SESSIONS",
   );
-  const counts = useOperationsRead(
+  const counts = useAuthoritativeRead(
     `${scopeKey}:live:counts`,
     loadCounts,
     enabled,
   );
-  const retrieval = useOperationsRead(
-    `${scopeKey}:live:retrieval:${retrievalPage.cursor ?? "first"}`,
+  const retrieval = useAuthoritativeRead(
+    `${scopeKey}:live:retrieval:${listRevision}:${retrievalPage.cursor ?? "first"}`,
     loadRetrieval,
     enabled && view === "RETRIEVAL_QUEUE",
   );
@@ -98,15 +96,37 @@ function LiveOperationsContent() {
   return (
     <div className={styles.liveOperations}>
       <OperationsPage
-        action={<span aria-hidden="true" className={styles.liveHeaderActionSpace} />}
+        action={
+          <span aria-hidden="true" className={styles.liveHeaderActionSpace} />
+        }
         subtitle={t.liveSubtitle}
         title={t.liveTitle}
       >
         <div className={styles.metricGrid}>
-          <Metric icon={<Car size={24} />} iconClass={styles.metricNavy} label={t.activeSessions} value={kpis?.active ?? null} />
-          <Metric icon={<Clock size={24} />} iconClass={styles.metricAmber} label={t.requestedSessions} value={kpis?.requested ?? null} />
-          <Metric icon={<ChevronRight size={25} />} iconClass={styles.metricOrange} label={t.inTransit} value={kpis?.inTransit ?? null} />
-          <Metric icon={<span>!</span>} iconClass={styles.metricRed} label={t.handoffPending} value={kpis?.handoffPending ?? null} />
+          <Metric
+            icon={<Car size={24} />}
+            iconClass={styles.metricNavy}
+            label={t.activeSessions}
+            value={kpis?.active ?? null}
+          />
+          <Metric
+            icon={<Clock size={24} />}
+            iconClass={styles.metricAmber}
+            label={t.requestedSessions}
+            value={kpis?.requested ?? null}
+          />
+          <Metric
+            icon={<ChevronRight size={25} />}
+            iconClass={styles.metricOrange}
+            label={t.inTransit}
+            value={kpis?.inTransit ?? null}
+          />
+          <Metric
+            icon={<span>!</span>}
+            iconClass={styles.metricRed}
+            label={t.handoffPending}
+            value={kpis?.handoffPending ?? null}
+          />
         </div>
         <LiveFilters
           countsError={counts.error}
@@ -115,13 +135,21 @@ function LiveOperationsContent() {
           onChange={(next) => {
             setView("SESSIONS");
             setFilter(next);
+            page.reset();
+            setListRevision((value) => value + 1);
           }}
-          onRetrieval={() => setView("RETRIEVAL_QUEUE")}
+          onRetrieval={() => {
+            setView("RETRIEVAL_QUEUE");
+            page.reset();
+            retrievalPage.reset();
+            setListRevision((value) => value + 1);
+          }}
           onRetryCounts={counts.refresh}
           view={view}
         />
         {view === "RETRIEVAL_QUEUE" ? (
           <RetrievalQueueTable
+            key={`queue:${listRevision}:${retrievalPage.cursor}`}
             canNext={Boolean(retrieval.data?.nextCursor)}
             canPrevious={retrievalPage.canPrevious}
             error={retrieval.error}
@@ -129,122 +157,38 @@ function LiveOperationsContent() {
             loading={retrieval.loading}
             locale={locale}
             location={location}
-            onNext={() => retrievalPage.next(retrieval.data?.nextCursor ?? null)}
-            onPrevious={retrievalPage.previous}
+            onNext={() => {
+              retrievalPage.next(retrieval.data?.nextCursor ?? null);
+              setListRevision((value) => value + 1);
+            }}
+            onPrevious={() => {
+              retrievalPage.previous();
+              setListRevision((value) => value + 1);
+            }}
             onRetry={retrieval.refresh}
           />
         ) : (
           <LiveOperationsTable
+            key={`sessions:${listRevision}:${filter}:${page.cursor}`}
             canNext={Boolean(sessions.data?.nextCursor)}
             canPrevious={page.canPrevious}
             error={sessions.error}
-            filter={filter}
             items={sessions.data?.items ?? []}
             loading={sessions.loading}
             locale={locale}
             location={location}
             onNext={() => {
-              setFilter("ALL");
+              setListRevision((value) => value + 1);
               page.next(sessions.data?.nextCursor ?? null);
             }}
             onPrevious={() => {
-              setFilter("ALL");
+              setListRevision((value) => value + 1);
               page.previous();
             }}
             onRetry={sessions.refresh}
           />
         )}
       </OperationsPage>
-    </div>
-  );
-}
-
-function selectedLocation(
-  selected: SelectedDashboardScope | null,
-): ManagementLocation | null {
-  if (selected?.authority === "COMPANY_ADMIN") {
-    return selected.context.selectedLocation;
-  }
-  if (selected?.authority === "LOCATION_MANAGER") return selected.location;
-  return null;
-}
-
-function LiveFilters({
-  countsError,
-  filter,
-  locale,
-  onChange,
-  onRetrieval,
-  onRetryCounts,
-  view,
-}: {
-  readonly countsError: Error | null;
-  readonly filter: LiveOperationsFilter;
-  readonly locale: "en" | "ar";
-  readonly onChange: (filter: LiveOperationsFilter) => void;
-  readonly onRetrieval: () => void;
-  readonly onRetryCounts: () => void;
-  readonly view: LiveOperationsView;
-}) {
-  const t = operationsCopy(locale);
-  return (
-    <div className={styles.liveFilterRow}>
-      <div aria-label={t.state} className={styles.liveFilterTabs} role="group">
-        {liveOperationsFilters.map((item) => (
-          <button
-            aria-pressed={view === "SESSIONS" && filter === item}
-            className={`${styles.tab} ${view === "SESSIONS" && filter === item ? styles.tabActive : ""}`}
-            key={item}
-            onClick={() => onChange(item)}
-            type="button"
-          >
-            {liveFilterLabel(item, locale)}
-          </button>
-        ))}
-        <button
-          aria-pressed={view === "RETRIEVAL_QUEUE"}
-          className={`${styles.tab} ${styles.liveSecondaryTab} ${view === "RETRIEVAL_QUEUE" ? styles.tabActive : ""}`}
-          onClick={onRetrieval}
-          type="button"
-        >
-          {t.retrievalQueue}
-        </button>
-      </div>
-      {countsError ? (
-        <button
-          className={styles.liveFilterRetry}
-          onClick={onRetryCounts}
-          type="button"
-        >
-          {t.metricsUnavailable}
-        </button>
-      ) : (
-        <span className={styles.liveFilterScope}>
-          {view === "RETRIEVAL_QUEUE" ? t.retrievalPageOnly : t.liveFilterScope}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function Metric({
-  icon,
-  iconClass,
-  label,
-  value,
-}: {
-  readonly icon: ReactNode;
-  readonly iconClass: string | undefined;
-  readonly label: string;
-  readonly value: number | null;
-}) {
-  return (
-    <div className={`${styles.card} ${styles.metric}`}>
-      <div className={`${styles.metricIcon} ${iconClass ?? ""}`}>{icon}</div>
-      <div>
-        <div className={styles.metricValue}>{value ?? "—"}</div>
-        <div className={styles.metricLabel}>{label}</div>
-      </div>
     </div>
   );
 }

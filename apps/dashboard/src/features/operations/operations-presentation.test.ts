@@ -1,9 +1,9 @@
 import type { SessionOverviewEntry } from "@valet/contracts";
 import { describe, expect, it } from "vitest";
+import { operationalStaffName } from "./operational-staff";
 
 import {
   formatOperationsTime,
-  operationsAssignmentLabel,
   operationsSessionStateLabel,
   operationsTaskStatusLabel,
   operationsTaskTypeLabel,
@@ -18,7 +18,14 @@ const session: SessionOverviewEntry = {
   keySlotId: null,
   parkingSpotId: null,
   currentAssigneeMembershipId: "55555555-5555-4555-8555-555555555555",
+  activeTask: null,
+  keySlot: null,
+  parkingSpot: null,
+  parkingZone: null,
   vehicle: {
+    make: null,
+    model: null,
+    color: null,
     vehicleId: "77777777-7777-4777-8777-777777777702",
     plateCountry: "JO",
     plateNumberNormalized: "12-34567",
@@ -29,38 +36,54 @@ const session: SessionOverviewEntry = {
 describe("operations presentation", () => {
   it("prefers plate, then descriptor, and never falls back to vehicle UUID", () => {
     expect(operationsVehicleLabel(session)).toBe("12-34567");
-    expect(operationsVehicleLabel({
-      ...session,
-      vehicle: { ...session.vehicle, plateNumberNormalized: null },
-    })).toBe("Blue SUV near gate");
-    expect(operationsVehicleLabel({
-      ...session,
-      vehicle: {
-        ...session.vehicle,
-        plateNumberNormalized: null,
-        temporaryDescriptor: null,
-      },
-    })).toBeNull();
-    expect(operationsVehicleLabel({
-      ...session,
-      vehicle: {
-        ...session.vehicle,
-        plateNumberNormalized: " ",
-        temporaryDescriptor: " ",
-      },
-    })).toBeNull();
+    expect(
+      operationsVehicleLabel({
+        ...session,
+        vehicle: { ...session.vehicle, plateNumberNormalized: null },
+      }),
+    ).toBe("Blue SUV near gate");
+    expect(
+      operationsVehicleLabel({
+        ...session,
+        vehicle: {
+          ...session.vehicle,
+          plateNumberNormalized: null,
+          temporaryDescriptor: null,
+        },
+      }),
+    ).toBeNull();
+    expect(
+      operationsVehicleLabel({
+        ...session,
+        vehicle: {
+          ...session.vehicle,
+          plateNumberNormalized: " ",
+          temporaryDescriptor: " ",
+        },
+      }),
+    ).toBeNull();
   });
 
   it("humanizes canonical session states in English and Arabic", () => {
-    expect(operationsSessionStateLabel("CHECKING_IN", "en")).toBe("Checking In");
-    expect(operationsSessionStateLabel("REQUESTED", "en")).toBe("Retrieval Requested");
-    expect(operationsSessionStateLabel("HANDOFF_PENDING", "ar")).toBe("بانتظار التسليم");
+    expect(operationsSessionStateLabel("CHECKING_IN", "en")).toBe(
+      "Checking In",
+    );
+    expect(operationsSessionStateLabel("REQUESTED", "en")).toBe(
+      "Retrieval Requested",
+    );
+    expect(operationsSessionStateLabel("HANDOFF_PENDING", "ar")).toBe(
+      "بانتظار التسليم",
+    );
     expect(operationsSessionStateLabel("PARKING", "ar")).toBe("جارٍ الاصطفاف");
   });
 
   it("keeps unknown future session states explicit instead of misclassifying them", () => {
-    expect(operationsSessionStateLabel("FUTURE_STATE", "en")).toBe("State: FUTURE STATE");
-    expect(operationsSessionStateLabel("FUTURE_STATE", "ar")).toBe("حالة: FUTURE STATE");
+    expect(operationsSessionStateLabel("FUTURE_STATE", "en")).toBe(
+      "State: FUTURE STATE",
+    );
+    expect(operationsSessionStateLabel("FUTURE_STATE", "ar")).toBe(
+      "حالة: FUTURE STATE",
+    );
   });
 
   it("localizes only the two canonical task types", () => {
@@ -72,7 +95,7 @@ describe("operations presentation", () => {
 
   it("preserves every canonical task status with localized manager copy", () => {
     expect(operationsTaskStatusLabel("QUEUED", "en")).toBe("Queued");
-    expect(operationsTaskStatusLabel("ASSIGNED", "en")).toBe("Assigned");
+    expect(operationsTaskStatusLabel("ASSIGNED", "en")).toBe("Lina Haddad");
     expect(operationsTaskStatusLabel("ACCEPTED", "en")).toBe("Accepted");
     expect(operationsTaskStatusLabel("IN_PROGRESS", "en")).toBe("In Progress");
     expect(operationsTaskStatusLabel("COMPLETED", "en")).toBe("Completed");
@@ -82,15 +105,47 @@ describe("operations presentation", () => {
   });
 
   it("presents assignment truth without exposing membership identity", () => {
-    expect(operationsAssignmentLabel(session.currentAssigneeMembershipId, "en")).toBe("Assigned");
-    expect(operationsAssignmentLabel(null, "en")).toBe("Unassigned");
-    expect(operationsAssignmentLabel(session.currentAssigneeMembershipId, "ar")).toBe("مسندة");
-    expect(operationsAssignmentLabel(null, "ar")).toBe("غير مسندة");
+    expect(
+      operationalStaffName(
+        {
+          membershipId: session.currentAssigneeMembershipId!,
+          identity: {
+            firstName: "Lina",
+            lastName: "Haddad",
+            email: "lina@example.com",
+          },
+        },
+        "en",
+      ),
+    ).toBe("Lina Haddad");
+    expect(operationalStaffName(null, "en")).toBe("Unassigned");
+    expect(
+      operationalStaffName(
+        {
+          membershipId: session.currentAssigneeMembershipId!,
+          identity: {
+            firstName: "Lina",
+            lastName: "Haddad",
+            email: "lina@example.com",
+          },
+        },
+        "ar",
+      ),
+    ).toBe("Lina Haddad");
+    expect(operationalStaffName(null, "ar")).toBe("غير مسندة");
   });
 
   it("formats valid timestamps in the supplied Location timezone", () => {
-    const en = formatOperationsTime("2026-09-21T12:00:00.000Z", "Asia/Amman", "en");
-    const ar = formatOperationsTime("2026-09-21T12:00:00.000Z", "Asia/Amman", "ar");
+    const en = formatOperationsTime(
+      "2026-09-21T12:00:00.000Z",
+      "Asia/Amman",
+      "en",
+    );
+    const ar = formatOperationsTime(
+      "2026-09-21T12:00:00.000Z",
+      "Asia/Amman",
+      "ar",
+    );
     expect(en).toContain("3:00");
     expect(en).not.toContain("12:00");
     expect(ar).not.toBe(en);
@@ -98,9 +153,14 @@ describe("operations presentation", () => {
   });
 
   it("uses a truthful localized fallback for invalid time input", () => {
-    expect(formatOperationsTime("not-a-date", "Asia/Amman", "en")).toBe("Time unavailable");
-    expect(formatOperationsTime("not-a-date", "Asia/Amman", "ar")).toBe("الوقت غير متاح");
-    expect(formatOperationsTime("2026-09-21T12:00:00.000Z", "Invalid/Zone", "en"))
-      .toBe("Time unavailable");
+    expect(formatOperationsTime("not-a-date", "Asia/Amman", "en")).toBe(
+      "Time unavailable",
+    );
+    expect(formatOperationsTime("not-a-date", "Asia/Amman", "ar")).toBe(
+      "الوقت غير متاح",
+    );
+    expect(
+      formatOperationsTime("2026-09-21T12:00:00.000Z", "Invalid/Zone", "en"),
+    ).toBe("Time unavailable");
   });
 });

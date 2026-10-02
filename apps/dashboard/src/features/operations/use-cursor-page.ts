@@ -8,6 +8,10 @@ export function useCursorPage() {
   return {
     cursor,
     canPrevious: history.length > 0,
+    reset() {
+      setCursor(null);
+      setHistory([]);
+    },
     previous() {
       const next = [...history];
       setCursor(next.pop() ?? null);

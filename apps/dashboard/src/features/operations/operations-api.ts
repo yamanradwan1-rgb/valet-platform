@@ -11,6 +11,7 @@ import {
   type LiveOperationsMapResponse,
   type RetrievalQueueEntry,
   type SessionOverviewEntry,
+  type SessionOverviewFilter,
   type SessionStateCountsResponse,
   type TaskOverviewEntry,
 } from "@valet/contracts";
@@ -46,8 +47,17 @@ export function readSessions(
   locationId: string,
   cursor: string | null,
   signal?: AbortSignal,
+  filter: SessionOverviewFilter = "ALL",
 ): Promise<CursorPage<SessionOverviewEntry>> {
-  return list(api, locationId, "sessions", sessionOverviewListResponseSchema, cursor, signal);
+  return api.request(
+    overviewPath(locationId, "sessions"),
+    sessionOverviewListResponseSchema,
+    {
+      method: "GET",
+      query: { limit: 50, filter, ...(cursor === null ? {} : { cursor }) },
+      signal,
+    },
+  );
 }
 
 export function readStateCounts(
@@ -68,7 +78,14 @@ export function readRetrievalQueue(
   cursor: string | null,
   signal?: AbortSignal,
 ): Promise<CursorPage<RetrievalQueueEntry>> {
-  return list(api, locationId, "retrieval-queue", retrievalQueueOverviewResponseSchema, cursor, signal);
+  return list(
+    api,
+    locationId,
+    "retrieval-queue",
+    retrievalQueueOverviewResponseSchema,
+    cursor,
+    signal,
+  );
 }
 
 export function readTasks(
@@ -77,7 +94,14 @@ export function readTasks(
   cursor: string | null,
   signal?: AbortSignal,
 ): Promise<CursorPage<TaskOverviewEntry>> {
-  return list(api, locationId, "tasks", taskOverviewListResponseSchema, cursor, signal);
+  return list(
+    api,
+    locationId,
+    "tasks",
+    taskOverviewListResponseSchema,
+    cursor,
+    signal,
+  );
 }
 
 export function readKeys(
@@ -86,7 +110,14 @@ export function readKeys(
   cursor: string | null,
   signal?: AbortSignal,
 ): Promise<CursorPage<KeySlotOverviewEntry>> {
-  return list(api, locationId, "keys", keySlotOverviewResponseSchema, cursor, signal);
+  return list(
+    api,
+    locationId,
+    "keys",
+    keySlotOverviewResponseSchema,
+    cursor,
+    signal,
+  );
 }
 
 export function readIncidents(
@@ -95,7 +126,14 @@ export function readIncidents(
   cursor: string | null,
   signal?: AbortSignal,
 ): Promise<CursorPage<IncidentOverviewEntry>> {
-  return list(api, locationId, "incidents", incidentOverviewResponseSchema, cursor, signal);
+  return list(
+    api,
+    locationId,
+    "incidents",
+    incidentOverviewResponseSchema,
+    cursor,
+    signal,
+  );
 }
 
 export function readLiveMap(

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { overviewListResponse } from "./location-overview-pagination.js";
+import { staffManagementIdentitySchema } from "./staff-management.js";
 
 const uuidSchema = z.string().uuid();
 const timestampSchema = z.string().datetime({ offset: true });
@@ -20,6 +21,21 @@ export type DashboardSessionState = z.infer<typeof dashboardSessionStateSchema>;
 
 const nullableUuidSchema = uuidSchema.nullable();
 
+export const operationalAssigneeSchema = z
+  .object({
+    membershipId: uuidSchema,
+    identity: staffManagementIdentitySchema,
+  })
+  .strict();
+export type OperationalAssignee = z.infer<typeof operationalAssigneeSchema>;
+const resourceSchema = z
+  .object({
+    resourceId: uuidSchema,
+    code: z.string().min(1),
+    label: z.string().nullable(),
+  })
+  .strict();
+
 export const sessionOverviewEntrySchema = z
   .object({
     sessionId: uuidSchema,
@@ -29,9 +45,22 @@ export const sessionOverviewEntrySchema = z
     keySlotId: nullableUuidSchema,
     parkingSpotId: nullableUuidSchema,
     currentAssigneeMembershipId: nullableUuidSchema,
+    activeTask: z
+      .object({
+        taskId: uuidSchema,
+        assignee: operationalAssigneeSchema.nullable(),
+      })
+      .strict()
+      .nullable(),
+    keySlot: resourceSchema.nullable(),
+    parkingSpot: resourceSchema.nullable(),
+    parkingZone: resourceSchema.nullable(),
     vehicle: z
       .object({
         vehicleId: uuidSchema,
+        make: z.string().nullable(),
+        model: z.string().nullable(),
+        color: z.string().nullable(),
         plateCountry: z.string().nullable(),
         plateNumberNormalized: z.string().nullable(),
         temporaryDescriptor: z.string().nullable(),
@@ -72,6 +101,7 @@ export const retrievalQueueTaskFactsSchema = z
     taskId: uuidSchema,
     status: dashboardTaskStatusSchema,
     currentAssigneeMembershipId: nullableUuidSchema,
+    assignee: operationalAssigneeSchema.nullable(),
   })
   .strict();
 
@@ -94,6 +124,7 @@ export const taskOverviewEntrySchema = z
     status: dashboardTaskStatusSchema,
     valetSessionId: uuidSchema,
     currentAssigneeMembershipId: nullableUuidSchema,
+    assignee: operationalAssigneeSchema.nullable(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })

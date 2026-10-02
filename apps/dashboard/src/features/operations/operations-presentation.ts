@@ -33,7 +33,10 @@ const taskStatusLabels: Readonly<
 };
 
 const taskTypeLabels: Readonly<
-  Record<TaskOverviewEntry["taskType"], Readonly<Record<DashboardLocale, string>>>
+  Record<
+    TaskOverviewEntry["taskType"],
+    Readonly<Record<DashboardLocale, string>>
+  >
 > = {
   PARKING: { en: "Parking", ar: "اصطفاف" },
   RETRIEVAL: { en: "Retrieval", ar: "استرجاع" },
@@ -63,19 +66,31 @@ export function operationsTaskTypeLabel(
   return taskTypeLabels[type][locale];
 }
 
-export function operationsAssignmentLabel(
-  membershipId: string | null,
-  locale: DashboardLocale,
-): string {
-  if (membershipId === null) return locale === "ar" ? "غير مسندة" : "Unassigned";
-  return locale === "ar" ? "مسندة" : "Assigned";
-}
-
-export function operationsVehicleLabel(item: SessionOverviewEntry): string | null {
+export function operationsVehicleLabel(
+  item: SessionOverviewEntry,
+): string | null {
   return (
+    [item.vehicle.make, item.vehicle.model]
+      .map((value) => value?.trim())
+      .filter(Boolean)
+      .join(" ") ||
     item.vehicle.plateNumberNormalized?.trim() ||
     item.vehicle.temporaryDescriptor?.trim() ||
     null
+  );
+}
+
+export function operationsVehicleSecondary(
+  item: SessionOverviewEntry,
+): string | null {
+  const makeModel = item.vehicle.make?.trim() || item.vehicle.model?.trim();
+  return (
+    [
+      makeModel ? item.vehicle.plateNumberNormalized?.trim() : null,
+      item.vehicle.color?.trim(),
+    ]
+      .filter(Boolean)
+      .join(" · ") || null
   );
 }
 

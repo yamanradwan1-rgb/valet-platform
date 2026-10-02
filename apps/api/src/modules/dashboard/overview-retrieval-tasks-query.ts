@@ -5,12 +5,17 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
+import {
+  operationalAssigneeColumn,
+  operationalAssigneeJoins,
+} from "./operational-assignee-projection";
 import { createOverviewCursorCodec } from "./overview-cursor";
 
 const queueCursorCodec = createOverviewCursorCodec("retrieval-queue");
 const taskCursorCodec = createOverviewCursorCodec("tasks");
 
 interface QueueRow {
+  readonly assignee: NonNullable<RetrievalQueueEntry["task"]>["assignee"];
   readonly requestId: string;
   readonly requestedAt: Date;
   readonly requesterType: string;
@@ -64,21 +69,25 @@ export async function listRetrievalQueue(
               current_task.id::text AS "taskId",
               current_task.status::text AS "taskStatus",
               current_task.current_assignee_membership_id::text
-                AS "assigneeMembershipId"
+                AS "assigneeMembershipId",
+              ${operationalAssigneeColumn}
        FROM retrieval_requests AS request
        INNER JOIN valet_sessions AS session
          ON session.organization_id = request.organization_id
         AND session.id = request.valet_session_id
        LEFT JOIN LATERAL (
-           SELECT task.id, task.status,
+           SELECT task.id, task.organization_id, task.status,
                   task.current_assignee_membership_id
            FROM tasks AS task
            WHERE task.organization_id = request.organization_id
              AND task.valet_session_id = request.valet_session_id
              AND task.task_type = 'RETRIEVAL'
+             AND task.location_id = session.location_id
+             AND task.status IN ('QUEUED', 'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS')
            ORDER BY task.created_at DESC, task.id DESC
            LIMIT 1
        ) AS current_task ON TRUE
+       ${operationalAssigneeJoins("current_task")}
        WHERE ${predicates.join(" AND ")}
        ORDER BY request.requested_at ASC, request.id ASC
        LIMIT $${parameters.length}`,
@@ -97,6 +106,7 @@ export async function listRetrievalQueue(
             ? null
             : {
                 currentAssigneeMembershipId: row.assigneeMembershipId,
+                assignee: row.assignee,
                 status: row.taskStatus as NonNullable<
                   RetrievalQueueEntry["task"]
                 >["status"],
@@ -117,6 +127,7 @@ export async function listRetrievalQueue(
 }
 
 interface TaskRow {
+  readonly assignee: TaskOverviewEntry["assignee"];
   readonly createdAt: Date;
   readonly currentAssigneeMembershipId: string | null;
   readonly status: string;
@@ -164,8 +175,10 @@ export async function listDashboardTasks(
               task.current_assignee_membership_id::text
                 AS "currentAssigneeMembershipId",
               task.created_at AS "createdAt",
-              task.updated_at AS "updatedAt"
+              task.updated_at AS "updatedAt",
+              ${operationalAssigneeColumn}
        FROM tasks AS task
+       ${operationalAssigneeJoins("task")}
        WHERE ${predicates.join(" AND ")}
        ORDER BY task.created_at DESC, task.id DESC
        LIMIT $${parameters.length}`,
@@ -176,6 +189,7 @@ export async function listDashboardTasks(
       .map((row): TaskOverviewEntry => ({
         createdAt: row.createdAt.toISOString(),
         currentAssigneeMembershipId: row.currentAssigneeMembershipId,
+        assignee: row.assignee,
         status: row.status as TaskOverviewEntry["status"],
         taskId: row.taskId,
         taskType: row.taskType as TaskOverviewEntry["taskType"],

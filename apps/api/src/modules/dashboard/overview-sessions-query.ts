@@ -1,4 +1,6 @@
+import { sessionOverviewFilterStates } from "@valet/contracts";
 import type {
+  SessionOverviewFilter,
   SessionOverviewEntry,
   SessionStateCountsResponse,
 } from "@valet/contracts";
@@ -8,14 +10,27 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
+import { sessionOverviewCursor } from "./session-overview-cursor";
 import {
-  createOverviewCursorCodec,
-  type OverviewCursor,
-} from "./overview-cursor";
-
-const cursorCodec = createOverviewCursorCodec("sessions");
+  operationalAssigneeColumn,
+  operationalAssigneeJoins,
+} from "./operational-assignee-projection";
+import {
+  sessionResourceColumns,
+  sessionResourceJoins,
+} from "./session-resource-projection";
 
 interface SessionRow {
+  readonly activeTaskId: string | null;
+  readonly assignee: NonNullable<
+    SessionOverviewEntry["activeTask"]
+  >["assignee"];
+  readonly keySlot: SessionOverviewEntry["keySlot"];
+  readonly parkingSpot: SessionOverviewEntry["parkingSpot"];
+  readonly parkingZone: SessionOverviewEntry["parkingZone"];
+  readonly make: string | null;
+  readonly model: string | null;
+  readonly color: string | null;
   readonly createdAt: Date;
   readonly currentAssigneeMembershipId: string | null;
   readonly keySlotId: string | null;
@@ -52,11 +67,11 @@ export async function listDashboardSessions(
     authenticatedUserId: string;
     staffSessionContext?: StaffSessionContext;
     cursor?: string;
+    filter?: SessionOverviewFilter;
     limit: number;
     locationId: string;
   },
 ): Promise<{ items: SessionOverviewEntry[]; nextCursor: string | null }> {
-  const cursor: OverviewCursor | null = cursorCodec.decode(input.cursor);
   return inPostgresTransaction(pool, async (transaction) => {
     const scope = await authorizeDashboardReadLocation(transaction, {
       authenticatedUserId: input.authenticatedUserId,
@@ -67,12 +82,23 @@ export async function listDashboardSessions(
       targetLocationId: input.locationId,
     });
     assertAuthorized(scope);
+    const filter = input.filter ?? "ALL";
+    const cursorCodec = sessionOverviewCursor({
+      organizationId: scope.organizationId,
+      locationId: input.locationId,
+      filter,
+    });
+    const cursor = cursorCodec.decode(input.cursor);
     const predicates = [
       "session.organization_id = $1",
       "session.location_id = $2",
-      "session.state <> 'COMPLETED'",
+      "session.state::text = ANY($3::text[])",
     ];
-    const parameters: unknown[] = [scope.organizationId, input.locationId];
+    const parameters: unknown[] = [
+      scope.organizationId,
+      input.locationId,
+      sessionOverviewFilterStates[filter],
+    ];
     if (cursor !== null) {
       parameters.push(cursor.sortKey, cursor.tiebreakerId);
       predicates.push(
@@ -92,11 +118,25 @@ export async function listDashboardSessions(
               vehicle.id::text AS "vehicleId",
               vehicle.plate_country AS "plateCountry",
               vehicle.plate_number_normalized AS "plateNumberNormalized",
-              vehicle.temporary_descriptor AS "temporaryDescriptor"
+              vehicle.temporary_descriptor AS "temporaryDescriptor",
+              vehicle.make, vehicle.model, vehicle.color,
+              current_task.id::text AS "activeTaskId",
+              ${operationalAssigneeColumn}, ${sessionResourceColumns}
        FROM valet_sessions AS session
        INNER JOIN vehicles AS vehicle
          ON vehicle.organization_id = session.organization_id
         AND vehicle.id = session.vehicle_id
+       LEFT JOIN LATERAL (
+         SELECT task.id, task.organization_id, task.status, task.current_assignee_membership_id
+         FROM tasks AS task
+         WHERE task.organization_id = session.organization_id
+           AND task.location_id = session.location_id AND task.valet_session_id = session.id
+           AND task.task_type IN ('PARKING', 'RETRIEVAL')
+           AND task.status IN ('QUEUED', 'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS')
+         ORDER BY task.created_at DESC, task.id DESC LIMIT 1
+       ) AS current_task ON TRUE
+       ${operationalAssigneeJoins("current_task")}
+       ${sessionResourceJoins}
        WHERE ${predicates.join(" AND ")}
        ORDER BY session.created_at DESC, session.id DESC
        LIMIT $${parameters.length}`,
@@ -105,12 +145,22 @@ export async function listDashboardSessions(
     const items = rows.rows.slice(0, input.limit).map((row) => ({
       createdAt: row.createdAt.toISOString(),
       currentAssigneeMembershipId: row.currentAssigneeMembershipId,
+      activeTask:
+        row.activeTaskId === null
+          ? null
+          : { taskId: row.activeTaskId, assignee: row.assignee },
+      keySlot: row.keySlot,
+      parkingSpot: row.parkingSpot,
+      parkingZone: row.parkingZone,
       keySlotId: row.keySlotId,
       parkingSpotId: row.parkingSpotId,
       sessionId: row.sessionId,
       state: row.state as SessionOverviewEntry["state"],
       updatedAt: row.updatedAt.toISOString(),
       vehicle: {
+        make: row.make,
+        model: row.model,
+        color: row.color,
         plateCountry: row.plateCountry,
         plateNumberNormalized: row.plateNumberNormalized,
         temporaryDescriptor: row.temporaryDescriptor,

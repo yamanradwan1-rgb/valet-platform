@@ -678,7 +678,7 @@ Retain CA/LM exact active location management reads and commercial checks. No Su
 
 ### J. Frontend implementation
 
-Keep table columns/geometry and current tabs. Replace placeholder Assigned with structured name, with email or truthful unassigned/unavailable fallback; annotate the exact owner-approved active-Task source. Vehicle cell uses existing stacked text pattern, plate primary and available make/model/color secondary. Resource codes/labels replace raw UUID as primary display; UUID may remain secondary detail. Drawer and Retrieval Queue use the same formatters. Do not add manual dispatch controls or a fabricated duration calculated from generic updatedAt.
+Keep table columns/geometry and current tabs. Replace placeholder Assigned with structured name, with email or truthful unassigned/unavailable fallback; annotate the exact owner-approved active-Task source. Per the owner's #241 execution instruction, vehicle identity uses available make/model first, then plate, then temporary descriptor, then the existing unavailable label. Available plate/color use the existing stacked text pattern. Resource codes/labels replace raw UUID as primary display; UUID may remain secondary detail. Drawer and Retrieval Queue use the same formatters. Do not add manual dispatch controls or a fabricated duration calculated from generic updatedAt.
 
 ### K. Existing UI primitives to reuse
 
@@ -735,6 +735,16 @@ Cross-page filtering returns all matching states; cursor rejected under wrong sc
 ### X. Edge cases / risks
 
 Legacy session assignee null/stale, task reopened/reassigned/terminal, departed membership still referenced historically, absent resources, duplicate display names, archived vehicle metadata, filter race and old strict clients during deploy.
+
+### #241 implemented read contract
+
+The strict session projection retains the legacy assignee ID without changing its meaning and adds nullable `activeTask: { taskId, assignee }`. An assignee is `{ membershipId, identity }`, where `identity` is the existing #240 `staffManagementIdentitySchema`; the existing shared name formatter owns full-name/email fallback. The selected task is the latest active Parking/Retrieval task by `(created_at,id)` descending, scoped to the session's organization and location. QUEUED has no owner. Only ASSIGNED/ACCEPTED/IN_PROGRESS project identity; absent or terminal-only tasks render Unassigned. Retrieval Queue selects only active Retrieval tasks; task overview rows suppress terminal ownership in the same identity projection.
+
+Sessions also add nullable persisted make/model/color and `keySlot`, `parkingSpot`, `parkingZone` resource objects `{ resourceId, code, label }`. Key slots have no persisted label, so label is null. Resource joins use the exact stored reference with organization/location/id and retain inactive resource labels; missing references return null without substitution. No persistence/schema migration or Task/Session mutation is introduced.
+
+The session-only strict query defaults `filter=ALL`, with the six groups above and existing limit 1–100 (default 50). Version 2 session cursors bind `sessions`, authorized organization/location, filter and `(created_at,id)` descending tuple. Validation happens after location authorization; version/domain/scope/filter mismatches are rejected. Other overview cursors keep their existing format. Strict API and Dashboard consumers must deploy together.
+
+Filter/page revisions fence A→B→A responses and synchronously reset old drawer state. Filter changes clear cursor/history; pagination preserves the filter. Whole-location KPIs retain their independent request key. The session reader is disabled in Retrieval Queue mode. Live Operations reuses the existing authoritative read hook to share an in-flight read during effect replay; authority epochs remain in every key. Vehicles details reuse the same session drawer to avoid retaining a legacy assignee as the employee fact. This issue adds no directory/resource HTTP calls, preload, polling, dispatch controls, browser persistence, or visual styling changes. The owner's focused validation restraint supersedes the broad command list in subsection U for this execution.
 
 ## 15. #242 implementation plan
 

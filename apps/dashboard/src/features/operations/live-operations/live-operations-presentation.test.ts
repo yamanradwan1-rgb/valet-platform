@@ -1,10 +1,13 @@
-import type { SessionOverviewEntry, SessionStateCountsResponse } from "@valet/contracts";
+import {
+  sessionOverviewFilterStates,
+  type SessionOverviewEntry,
+  type SessionStateCountsResponse,
+} from "@valet/contracts";
 import { describe, expect, it } from "vitest";
+import { operationalStaffName } from "../operational-staff";
 
 import {
-  filterLiveSessions,
   formatLiveOperationsTime,
-  liveAssignmentLabel,
   liveOperationsKpis,
   liveRequesterTypeLabel,
   liveRetrievalStatusLabel,
@@ -21,7 +24,14 @@ const session: SessionOverviewEntry = {
   keySlotId: null,
   parkingSpotId: null,
   currentAssigneeMembershipId: "55555555-5555-4555-8555-555555555555",
+  activeTask: null,
+  keySlot: null,
+  parkingSpot: null,
+  parkingZone: null,
   vehicle: {
+    make: null,
+    model: null,
+    color: null,
     vehicleId: "77777777-7777-4777-8777-777777777702",
     plateCountry: "JO",
     plateNumberNormalized: "12-34567",
@@ -53,38 +63,68 @@ describe("Live Operations presentation", () => {
     });
   });
 
-  it("groups only loaded-page canonical states", () => {
-    const items = [
-      { ...session, state: "CHECKING_IN" as const },
-      { ...session, sessionId: "77777777-7777-4777-8777-777777777711", state: "AWAITING_PARKING" as const },
-      { ...session, sessionId: "77777777-7777-4777-8777-777777777712", state: "PARKING" as const },
-      { ...session, sessionId: "77777777-7777-4777-8777-777777777713", state: "RETRIEVING" as const },
-      { ...session, sessionId: "77777777-7777-4777-8777-777777777714", state: "READY" as const },
-      { ...session, sessionId: "77777777-7777-4777-8777-777777777715", state: "HANDOFF_PENDING" as const },
-    ];
-    expect(filterLiveSessions(items, "CHECK_IN").map((item) => item.state))
-      .toEqual(["CHECKING_IN", "AWAITING_PARKING"]);
-    expect(filterLiveSessions(items, "IN_TRANSIT").map((item) => item.state))
-      .toEqual(["PARKING", "RETRIEVING"]);
-    expect(filterLiveSessions(items, "READY_HANDOFF").map((item) => item.state))
-      .toEqual(["READY", "HANDOFF_PENDING"]);
+  it("uses canonical server state groups", () => {
+    expect(sessionOverviewFilterStates.CHECK_IN).toEqual([
+      "CHECKING_IN",
+      "AWAITING_PARKING",
+    ]);
+    expect(sessionOverviewFilterStates.IN_TRANSIT).toEqual([
+      "PARKING",
+      "RETRIEVING",
+    ]);
+    expect(sessionOverviewFilterStates.READY_HANDOFF).toEqual([
+      "READY",
+      "HANDOFF_PENDING",
+    ]);
   });
 
   it("humanizes known session states in English and Arabic", () => {
-    expect(liveSessionStateLabel("REQUESTED", "en")).toBe("Retrieval Requested");
+    expect(liveSessionStateLabel("REQUESTED", "en")).toBe(
+      "Retrieval Requested",
+    );
     expect(liveSessionStateLabel("REQUESTED", "ar")).toBe("تم طلب الاسترجاع");
-    expect(liveSessionStateLabel("HANDOFF_PENDING", "ar")).toBe("بانتظار التسليم");
+    expect(liveSessionStateLabel("HANDOFF_PENDING", "ar")).toBe(
+      "بانتظار التسليم",
+    );
   });
 
   it("keeps an unknown future state truthful instead of misclassifying it", () => {
-    expect(liveSessionStateLabel("FUTURE_STATE", "en")).toBe("State: FUTURE STATE");
-    expect(liveSessionStateLabel("FUTURE_STATE", "ar")).toBe("حالة: FUTURE STATE");
+    expect(liveSessionStateLabel("FUTURE_STATE", "en")).toBe(
+      "State: FUTURE STATE",
+    );
+    expect(liveSessionStateLabel("FUTURE_STATE", "ar")).toBe(
+      "حالة: FUTURE STATE",
+    );
   });
 
   it("presents assignment presence without exposing membership identity", () => {
-    expect(liveAssignmentLabel(session.currentAssigneeMembershipId, "en")).toBe("Assigned");
-    expect(liveAssignmentLabel(null, "en")).toBe("Unassigned");
-    expect(liveAssignmentLabel(session.currentAssigneeMembershipId, "ar")).toBe("مسندة");
+    expect(
+      operationalStaffName(
+        {
+          membershipId: session.currentAssigneeMembershipId!,
+          identity: {
+            firstName: "Lina",
+            lastName: "Haddad",
+            email: "lina@example.com",
+          },
+        },
+        "en",
+      ),
+    ).toBe("Assigned");
+    expect(operationalStaffName(null, "en")).toBe("Unassigned");
+    expect(
+      operationalStaffName(
+        {
+          membershipId: session.currentAssigneeMembershipId!,
+          identity: {
+            firstName: "Lina",
+            lastName: "Haddad",
+            email: "lina@example.com",
+          },
+        },
+        "ar",
+      ),
+    ).toBe("مسندة");
   });
 
   it("humanizes retrieval queue facts without inventing identity", () => {
@@ -98,22 +138,26 @@ describe("Live Operations presentation", () => {
 
   it("uses plate, descriptor, then null vehicle identity fallback", () => {
     expect(liveVehicleLabel(session)).toBe("12-34567");
-    expect(liveVehicleLabel({
-      ...session,
-      vehicle: {
-        ...session.vehicle,
-        plateNumberNormalized: null,
-        temporaryDescriptor: "Blue SUV near gate",
-      },
-    })).toBe("Blue SUV near gate");
-    expect(liveVehicleLabel({
-      ...session,
-      vehicle: {
-        ...session.vehicle,
-        plateNumberNormalized: null,
-        temporaryDescriptor: null,
-      },
-    })).toBeNull();
+    expect(
+      liveVehicleLabel({
+        ...session,
+        vehicle: {
+          ...session.vehicle,
+          plateNumberNormalized: null,
+          temporaryDescriptor: "Blue SUV near gate",
+        },
+      }),
+    ).toBe("Blue SUV near gate");
+    expect(
+      liveVehicleLabel({
+        ...session,
+        vehicle: {
+          ...session.vehicle,
+          plateNumberNormalized: null,
+          temporaryDescriptor: null,
+        },
+      }),
+    ).toBeNull();
   });
 
   it("formats timestamps in the authoritative Location timezone", () => {

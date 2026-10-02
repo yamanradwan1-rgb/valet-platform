@@ -3,6 +3,7 @@
 import type { ManagementLocation, RetrievalQueueEntry } from "@valet/contracts";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { OperationalStaff, operationalStaffName } from "../operational-staff";
 
 import type { DashboardLocale } from "../../../lib/i18n/locale";
 import { operationsCopy } from "../operations-copy";
@@ -17,7 +18,6 @@ import {
 } from "../operations-ui";
 import {
   formatLiveOperationsTime,
-  liveAssignmentLabel,
   liveRequesterTypeLabel,
   liveRetrievalStatusLabel,
   liveTaskStatusLabel,
@@ -93,7 +93,9 @@ export function RetrievalQueueTable(props: RetrievalQueueTableProps) {
 function StateRow({ text }: { readonly text: string }) {
   return (
     <tr>
-      <td className={styles.liveStateCell} colSpan={6}>{text}</td>
+      <td className={styles.liveStateCell} colSpan={6}>
+        {text}
+      </td>
     </tr>
   );
 }
@@ -109,18 +111,20 @@ function RetrievalRow({
 }) {
   const t = operationsCopy(locale);
   const [open, setOpen] = useState(false);
-  const taskStatus = item.task === null
-    ? t.noTask
-    : liveTaskStatusLabel(item.task.status, locale);
-  const assignment = item.task === null
-    ? "—"
-    : liveAssignmentLabel(item.task.currentAssigneeMembershipId, locale);
+  const taskStatus =
+    item.task === null
+      ? t.noTask
+      : liveTaskStatusLabel(item.task.status, locale);
   return (
     <>
       <tr className={styles.row}>
         <td>
           <bdi dir={locale === "ar" ? "rtl" : "ltr"}>
-            {formatLiveOperationsTime(item.requestedAt, location.timezone, locale)}
+            {formatLiveOperationsTime(
+              item.requestedAt,
+              location.timezone,
+              locale,
+            )}
           </bdi>
         </td>
         <td>{liveRequesterTypeLabel(item.requesterType, locale)}</td>
@@ -133,10 +137,17 @@ function RetrievalRow({
           {item.task === null ? (
             taskStatus
           ) : (
-            <StatusBadge tone={taskTone(item.task.status)}>{taskStatus}</StatusBadge>
+            <StatusBadge tone={taskTone(item.task.status)}>
+              {taskStatus}
+            </StatusBadge>
           )}
         </td>
-        <td>{assignment}</td>
+        <td>
+          <OperationalStaff
+            assignee={item.task?.assignee ?? null}
+            locale={locale}
+          />
+        </td>
         <td className={styles.actionCell}>
           <DetailAction
             label={`${t.details}: ${t.retrievalQueue}`}
@@ -172,13 +183,54 @@ function RetrievalDrawer({
     <OperationsDrawer label={t.retrievalQueue} onClose={onClose}>
       <FactList>
         <Fact label={t.request} value={<bdi dir="ltr">{item.requestId}</bdi>} />
-        <Fact label={t.sessionId} value={<bdi dir="ltr">{item.valetSessionId}</bdi>} />
-        <Fact label={t.requestedAt} value={<bdi dir={locale === "ar" ? "rtl" : "ltr"}>{formatLiveOperationsTime(item.requestedAt, location.timezone, locale)}</bdi>} />
-        <Fact label={t.requester} value={liveRequesterTypeLabel(item.requesterType, locale)} />
-        <Fact label={t.requestStatus} value={liveRetrievalStatusLabel(item.status, locale)} />
-        <Fact label={t.taskId} value={item.task ? <bdi dir="ltr">{item.task.taskId}</bdi> : "—"} />
-        <Fact label={t.taskState} value={item.task ? liveTaskStatusLabel(item.task.status, locale) : t.noTask} />
-        <Fact label={t.membershipId} value={item.task?.currentAssigneeMembershipId ? <bdi dir="ltr">{item.task.currentAssigneeMembershipId}</bdi> : "—"} />
+        <Fact
+          label={t.sessionId}
+          value={<bdi dir="ltr">{item.valetSessionId}</bdi>}
+        />
+        <Fact
+          label={t.requestedAt}
+          value={
+            <bdi dir={locale === "ar" ? "rtl" : "ltr"}>
+              {formatLiveOperationsTime(
+                item.requestedAt,
+                location.timezone,
+                locale,
+              )}
+            </bdi>
+          }
+        />
+        <Fact
+          label={t.requester}
+          value={liveRequesterTypeLabel(item.requesterType, locale)}
+        />
+        <Fact
+          label={t.requestStatus}
+          value={liveRetrievalStatusLabel(item.status, locale)}
+        />
+        <Fact
+          label={t.taskId}
+          value={item.task ? <bdi dir="ltr">{item.task.taskId}</bdi> : "—"}
+        />
+        <Fact
+          label={t.taskState}
+          value={
+            item.task ? liveTaskStatusLabel(item.task.status, locale) : t.noTask
+          }
+        />
+        <Fact
+          label={t.assignee}
+          value={
+            <bdi>
+              {operationalStaffName(item.task?.assignee ?? null, locale)}
+            </bdi>
+          }
+        />
+        <Fact
+          label={locale === "ar" ? "البريد الإلكتروني" : "Email"}
+          value={
+            <bdi dir="ltr">{item.task?.assignee?.identity.email ?? "—"}</bdi>
+          }
+        />
       </FactList>
     </OperationsDrawer>
   );
@@ -192,8 +244,24 @@ function QueueCursorControls(props: RetrievalQueueTableProps) {
     <div className={styles.livePagination}>
       <span>{t.retrievalPageOnly}</span>
       <div className={styles.cursorButtons}>
-        <button aria-label={t.previous} className={styles.cursorSquare32} disabled={!props.canPrevious || props.loading} onClick={props.onPrevious} type="button"><PreviousIcon size={16} /></button>
-        <button aria-label={t.next} className={styles.cursorSquare32} disabled={!props.canNext || props.loading} onClick={props.onNext} type="button"><NextIcon size={16} /></button>
+        <button
+          aria-label={t.previous}
+          className={styles.cursorSquare32}
+          disabled={!props.canPrevious || props.loading}
+          onClick={props.onPrevious}
+          type="button"
+        >
+          <PreviousIcon size={16} />
+        </button>
+        <button
+          aria-label={t.next}
+          className={styles.cursorSquare32}
+          disabled={!props.canNext || props.loading}
+          onClick={props.onNext}
+          type="button"
+        >
+          <NextIcon size={16} />
+        </button>
       </div>
     </div>
   );

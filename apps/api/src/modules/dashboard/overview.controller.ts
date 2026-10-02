@@ -8,13 +8,12 @@ import {
   Req,
   UnauthorizedException,
 } from "@nestjs/common";
-import type { OverviewListQuery } from "@valet/contracts";
 import {
   activeShiftOverviewResponseSchema,
   financialOverviewResponseSchema,
   incidentOverviewResponseSchema,
   keySlotOverviewResponseSchema,
-  overviewListQuerySchema,
+  sessionOverviewQuerySchema,
   retrievalQueueOverviewResponseSchema,
   sessionOverviewListResponseSchema,
   sessionStateCountsResponseSchema,
@@ -44,19 +43,7 @@ import {
 } from "./overview-shifts-keys-incidents-query";
 import { financialOperationalOverview } from "./overview-financial-query";
 
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function parseListQuery(value: unknown): OverviewListQuery {
-  const result = overviewListQuerySchema.safeParse(value ?? {});
-  if (!result.success) throw new ApiTransportValidationError();
-  return result.data;
-}
-
-function uuid(value: string): string {
-  if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
-  return value;
-}
+import { parseListQuery, uuid } from "./overview-query-input";
 
 @Controller("v1/staff/dashboard/locations/:locationId/overview")
 export class DashboardOverviewController {
@@ -100,14 +87,17 @@ export class DashboardOverviewController {
     @Query() query: unknown,
   ) {
     return this.runner.run("DASHBOARD_OVERVIEW_SESSIONS", request, async () => {
-      const scope = await this.scope(request, authorization, locationId, query);
+      const scope = await this.scope(request, authorization, locationId);
+      const parsed = sessionOverviewQuerySchema.safeParse(query);
+      if (!parsed.success) throw new ApiTransportValidationError();
       const result = await listDashboardSessions(this.pool, {
         authenticatedUserId: scope.authenticatedUserId,
         staffSessionContext: scope.staffSessionContext,
-        ...(scope.list!.cursor === undefined
+        ...(parsed.data.cursor === undefined
           ? {}
-          : { cursor: scope.list!.cursor }),
-        limit: scope.list!.limit,
+          : { cursor: parsed.data.cursor }),
+        limit: parsed.data.limit,
+        filter: parsed.data.filter,
         locationId: scope.locationId,
       });
       return sessionOverviewListResponseSchema.parse(result);
