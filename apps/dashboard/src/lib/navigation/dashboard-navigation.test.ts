@@ -48,7 +48,6 @@ describe("production dashboard navigation order", () => {
       "reports",
       "policies-settings",
       "roles-permissions",
-      "integrations",
       "branding",
       "billing-subscription",
       "management-audit",

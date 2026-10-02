@@ -17,7 +17,6 @@ const productOrder = [
   "reports",
   "policies-settings",
   "roles-permissions",
-  "integrations",
   "branding",
   "billing-subscription",
   "management-audit",

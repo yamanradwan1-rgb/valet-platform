@@ -1,6 +1,5 @@
-import { ProtectedDashboardRoute } from "../../components/foundation/protected-dashboard-route";
-import { IntegrationsPage } from "../../features/administration/commercial/integrations-page";
+import { redirect, RedirectType } from "next/navigation";
 
 export default function IntegrationsRoute() {
-  return <ProtectedDashboardRoute accessRequirement="DASHBOARD"><IntegrationsPage /></ProtectedDashboardRoute>;
+  redirect("/policies?tab=services", RedirectType.replace);
 }

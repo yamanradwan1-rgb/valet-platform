@@ -1,12 +1,11 @@
 "use client";
 
 import type { ManagementIntegrationStatus } from "@valet/contracts";
-import { Camera, Cpu, CreditCard, RefreshCw, Smartphone } from "lucide-react";
+import { Camera, CreditCard, RefreshCw, Smartphone } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
-import { ReferenceAdministrationPage as AdministrationPage } from "../reference-administration-page";
 import { administrationCopy } from "../administration-copy";
 import { administrationErrorMessage } from "../administration-error";
 import {
@@ -50,7 +49,7 @@ const statusLabels: Record<
   UNKNOWN: { en: "Unknown", ar: "غير معروف" },
 };
 
-export function IntegrationsPage() {
+export function ServiceStatusPanel() {
   const dashboard = useProtectedDashboard();
   const scope = administrationScope(dashboard.selectedScope);
   const scopeKey = administrationScopeKey(dashboard);
@@ -87,11 +86,9 @@ export function IntegrationsPage() {
   }, [locale, search, selectedKey, state.data?.integrations]);
   if (scope.authority !== "COMPANY_ADMIN") return null;
   return (
-    <AdministrationPage
-      icon={Cpu}
-      subtitle={t.integrationsSubtitle}
-      title={t.integrationsTitle}
-      action={
+    <>
+      <div className={styles.toolbar}>
+        <span className={styles.muted}>{t.integrationsSubtitle}</span>
         <button
           className={`${styles.secondary} ${styles.integrationRefresh}`}
           disabled={state.loading}
@@ -100,8 +97,7 @@ export function IntegrationsPage() {
         >
           <RefreshCw size={16} /> {t.refresh}
         </button>
-      }
-    >
+      </div>
       <ReadState
         error={
           state.error
@@ -194,6 +190,6 @@ export function IntegrationsPage() {
           })}
         </div>
       </ReadState>
-    </AdministrationPage>
+    </>
   );
 }

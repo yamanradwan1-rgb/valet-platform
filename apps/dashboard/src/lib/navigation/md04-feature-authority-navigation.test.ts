@@ -51,13 +51,28 @@ const registry = composeNavigationRegistry(
 const caFoundation = ["security", "help"];
 const nonCaFoundation = ["help"];
 const caAdministration = [
-  "employees-shifts", "locations", "policies-settings", "roles-permissions",
-  "branding", "integrations", "billing-subscription",
+  "employees-shifts",
+  "locations",
+  "policies-settings",
+  "roles-permissions",
+  "branding",
+  "billing-subscription",
 ];
 const lmAdministration = [
-  "employees-shifts", "locations", "policies-settings", "branding", "billing-subscription",
+  "employees-shifts",
+  "locations",
+  "policies-settings",
+  "branding",
+  "billing-subscription",
 ];
-const operations = ["live-operations", "vehicles", "tasks", "maps-zones", "keys", "incidents"];
+const operations = [
+  "live-operations",
+  "vehicles",
+  "tasks",
+  "maps-zones",
+  "keys",
+  "incidents",
+];
 
 const commercial = (basicBranding: boolean) => ({
   basicBranding,
@@ -82,98 +97,156 @@ describe("MD-04 navigation filtering", () => {
   it.each([
     [
       "CA Visit Contacts Organization",
-      "COMPANY_ADMIN", null,
+      "COMPANY_ADMIN",
+      null,
       {
         ...noNavigationAuthority,
         commercial: commercial(true),
         foundationEntryEligible: true,
-        features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
+        features: {
+          ...noNavigationAuthority.features,
+          VISIT_CONTACTS: "ELIGIBLE",
+        },
       },
       [...caFoundation, ...caAdministration, "test-visit-contacts"],
     ],
     [
       "CA Audit Organization",
-      "COMPANY_ADMIN", null,
+      "COMPANY_ADMIN",
+      null,
       {
         ...noNavigationAuthority,
-        commercial: commercial(true), foundationEntryEligible: true,
-        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
+        commercial: commercial(true),
+        foundationEntryEligible: true,
+        features: {
+          ...noNavigationAuthority.features,
+          MANAGEMENT_AUDIT: "ELIGIBLE",
+        },
       },
       [...caFoundation, ...caAdministration, "test-audit"],
     ],
     [
       "CA Audit exact active Location",
-      "COMPANY_ADMIN", "location",
+      "COMPANY_ADMIN",
+      "location",
       {
         ...noNavigationAuthority,
-        commercial: commercial(true), foundationEntryEligible: true,
+        commercial: commercial(true),
+        foundationEntryEligible: true,
         locationMapsEligible: true,
-        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
+        features: {
+          ...noNavigationAuthority.features,
+          MANAGEMENT_AUDIT: "ELIGIBLE",
+        },
       },
       [...caFoundation, ...caAdministration, ...operations, "test-audit"],
     ],
     [
       "LM Audit active Location",
-      "LOCATION_MANAGER", "location",
+      "LOCATION_MANAGER",
+      "location",
       {
         ...noNavigationAuthority,
-        commercial: commercial(true), foundationEntryEligible: true,
+        commercial: commercial(true),
+        foundationEntryEligible: true,
         locationMapsEligible: true,
-        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
+        features: {
+          ...noNavigationAuthority.features,
+          MANAGEMENT_AUDIT: "ELIGIBLE",
+        },
       },
       [...nonCaFoundation, ...lmAdministration, ...operations, "test-audit"],
     ],
     [
       "Supervisor Audit active Shift",
-      "SUPERVISOR", "location",
+      "SUPERVISOR",
+      "location",
       {
         ...noNavigationAuthority,
-        commercial: { basicBranding: false, dashboardAccess: false, subscriptionRead: false },
-        foundationEntryEligible: true, locationMapsEligible: true,
-        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
+        commercial: {
+          basicBranding: false,
+          dashboardAccess: false,
+          subscriptionRead: false,
+        },
+        foundationEntryEligible: true,
+        locationMapsEligible: true,
+        features: {
+          ...noNavigationAuthority.features,
+          MANAGEMENT_AUDIT: "ELIGIBLE",
+        },
       },
       [...nonCaFoundation, "maps-zones", "test-audit"],
     ],
     [
       "LM Visit Contacts grant set",
-      "LOCATION_MANAGER", null,
+      "LOCATION_MANAGER",
+      null,
       {
         ...noNavigationAuthority,
-        commercial: { basicBranding: false, dashboardAccess: false, subscriptionRead: false },
-        features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
+        commercial: {
+          basicBranding: false,
+          dashboardAccess: false,
+          subscriptionRead: false,
+        },
+        features: {
+          ...noNavigationAuthority.features,
+          VISIT_CONTACTS: "ELIGIBLE",
+        },
       },
       ["test-visit-contacts"],
     ],
     [
       "LM Audit inactive Location",
-      "LOCATION_MANAGER", "location",
+      "LOCATION_MANAGER",
+      "location",
       {
         ...noNavigationAuthority,
-        commercial: { basicBranding: false, dashboardAccess: false, subscriptionRead: false },
-        features: { ...noNavigationAuthority.features, MANAGEMENT_AUDIT: "ELIGIBLE" },
+        commercial: {
+          basicBranding: false,
+          dashboardAccess: false,
+          subscriptionRead: false,
+        },
+        features: {
+          ...noNavigationAuthority.features,
+          MANAGEMENT_AUDIT: "ELIGIBLE",
+        },
       },
       ["test-audit"],
     ],
-  ] satisfies ReadonlyArray<readonly [
-    string,
-    "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR",
-    string | null,
-    NavigationAuthority,
-    readonly string[],
-  ]>)("preserves the real shell registry for %s", (_label, role, locationId, access, expected) => {
-    expect(ids(role, locationId, access)).toEqual(expected);
-  });
+  ] satisfies ReadonlyArray<
+    readonly [
+      string,
+      "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR",
+      string | null,
+      NavigationAuthority,
+      readonly string[],
+    ]
+  >)(
+    "preserves the real shell registry for %s",
+    (_label, role, locationId, access, expected) => {
+      expect(ids(role, locationId, access)).toEqual(expected);
+    },
+  );
 
   it("does not turn an MD-04 feature bit into Branding entitlement", () => {
-    expect(ids("COMPANY_ADMIN", null, {
-      ...noNavigationAuthority,
-      commercial: commercial(false),
-      foundationEntryEligible: true,
-      features: { ...noNavigationAuthority.features, VISIT_CONTACTS: "ELIGIBLE" },
-    })).toEqual([
+    expect(
+      ids("COMPANY_ADMIN", null, {
+        ...noNavigationAuthority,
+        commercial: commercial(false),
+        foundationEntryEligible: true,
+        features: {
+          ...noNavigationAuthority.features,
+          VISIT_CONTACTS: "ELIGIBLE",
+        },
+      }),
+    ).toEqual([
       ...caFoundation,
-      "employees-shifts", "locations", "policies-settings", "roles-permissions",
-      "integrations", "billing-subscription", "test-visit-contacts",
+      "employees-shifts",
+      "locations",
+      "policies-settings",
+      "roles-permissions",
+      "billing-subscription",
+      "test-visit-contacts",
     ]);
   });
 });

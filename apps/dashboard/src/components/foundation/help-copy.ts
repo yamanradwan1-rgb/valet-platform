@@ -30,7 +30,7 @@ export function helpCopy(locale: DashboardLocale) {
         faqs: [
           [
             "لماذا بعض الصفحات للقراءة فقط؟",
-            "تعرض التكاملات حالة الخدمات، ويعرض الاشتراك الخطة والميزات المسجلة. لا توفر هذه الصفحات إعداد مزودي الخدمات أو تنفيذ الفوترة.",
+            "تعرض حالة الخدمات ضمن السياسات والإعدادات حالة الخدمات، ويعرض الاشتراك الخطة والميزات المسجلة. لا توفر هذه الصفحات إعداد مزودي الخدمات أو تنفيذ الفوترة.",
           ],
           [
             "ماذا أفعل إذا تغيّرت الإعدادات أثناء الحفظ؟",
@@ -75,7 +75,7 @@ export function helpCopy(locale: DashboardLocale) {
         faqs: [
           [
             "Why are some pages read-only?",
-            "Integrations shows service status, and Subscription shows the recorded plan and features. These pages do not configure providers or execute billing.",
+            "Service Status under Policies & Settings shows service status, and Subscription shows the recorded plan and features. These pages do not configure providers or execute billing.",
           ],
           [
             "What if settings change while I save?",

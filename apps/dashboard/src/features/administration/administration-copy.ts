@@ -19,7 +19,8 @@ const copy = {
     brandingTitle: "Branding",
     brandingSubtitle: "Manage basic display name and primary color.",
     integrationsTitle: "Integrations & Connectors",
-    integrationsSubtitle: "View the current production integration status.",
+    integrationsSubtitle:
+      "Read-only service configuration status; not guaranteed live provider health.",
     billingTitle: "Billing & Subscription",
     billingSubtitle: "View the persisted plan, status, and entitlements.",
     loading: "Loading…",
@@ -161,7 +162,8 @@ const copy = {
     brandingTitle: "الهوية البصرية",
     brandingSubtitle: "إدارة اسم العرض واللون الأساسي.",
     integrationsTitle: "التكاملات والموصلات",
-    integrationsSubtitle: "عرض الحالة الفعلية لتكاملات الإنتاج.",
+    integrationsSubtitle:
+      "حالة إعداد الخدمات للقراءة فقط؛ لا تضمن الحالة الفعلية للمزود.",
     billingTitle: "الفوترة والاشتراك",
     billingSubtitle: "عرض الخطة والحالة والاستحقاقات المحفوظة.",
     loading: "جارٍ التحميل…",

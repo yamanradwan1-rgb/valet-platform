@@ -14,6 +14,7 @@ import {
 import { styles } from "../administration-ui";
 import { useAuthoritativeRead } from "../use-authoritative-read";
 import { AdministrationTabs } from "../administration-tabs";
+import { ServiceStatusPanel } from "../commercial/service-status-panel";
 import { CompanySettingsPanel } from "./company-settings-panel";
 import { LocationManagerSettingsPanel } from "./location-manager-settings-panel";
 import { ManagementLocationSettingsPanel } from "./management-location-settings-panel";
@@ -52,7 +53,11 @@ function SettingsReadState(props: {
   return <>{props.children}</>;
 }
 
-export function SettingsPage() {
+export function SettingsPage({
+  serviceStatus = false,
+}: {
+  readonly serviceStatus?: boolean;
+}) {
   const dashboard = useProtectedDashboard();
   const scope = administrationScope(dashboard.selectedScope);
   const scopeKey = administrationScopeKey(dashboard);
@@ -61,8 +66,8 @@ export function SettingsPage() {
   const copy = settingsTableCopy(locale);
   const companyAdmin = scope.authority === "COMPANY_ADMIN";
   const locationManager = scope.authority === "LOCATION_MANAGER";
-  const [tab, setTab] = useState<"company" | "location">(
-    companyAdmin ? "company" : "location",
+  const [tab, setTab] = useState<"company" | "location" | "services">(
+    companyAdmin ? (serviceStatus ? "services" : "company") : "location",
   );
   const activeTab = companyAdmin ? tab : "location";
 
@@ -127,10 +132,23 @@ export function SettingsPage() {
             items={[
               { value: "company", label: t.companyDefaults },
               { value: "location", label: t.locationOverrides },
+              {
+                value: "services",
+                label: locale === "ar" ? "حالة الخدمات" : "Service Status",
+              },
             ]}
             label={copy.tabsLabel}
             onSelect={setTab}
           />
+        ) : null}
+        {companyAdmin && activeTab === "services" ? (
+          <div
+            aria-labelledby="settings-tab-services"
+            id="settings-panel-services"
+            role="tabpanel"
+          >
+            <ServiceStatusPanel key={scopeKey} />
+          </div>
         ) : null}
         {companyAdmin && activeTab === "company" ? (
           <div
