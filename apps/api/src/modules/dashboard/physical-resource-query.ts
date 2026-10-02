@@ -1,6 +1,6 @@
 import type {
   KeySlotConfiguration,
-  ParkingSpotConfiguration,
+  ParkingSpotListEntry,
   PhysicalResourceLabel,
   PhysicalResourceListQuery,
 } from "@valet/contracts";
@@ -19,6 +19,12 @@ interface KeySlotRow {
 }
 
 interface ParkingSpotRow {
+  readonly operational: boolean;
+  readonly sessionId: string | null;
+  readonly sessionState:
+    NonNullable<ParkingSpotListEntry["occupancy"]>["sessionState"] | null;
+  readonly plateNumberNormalized: string | null;
+  readonly temporaryDescriptor: string | null;
   readonly code: string;
   readonly createdAt: Date;
   readonly label: string;
@@ -45,7 +51,10 @@ export async function listKeySlots(
 ) {
   const codec = physicalResourceCursorCodec("key-slots", authority.locationId);
   const cursor = codec.decode(query.cursor);
-  const parameters: unknown[] = [authority.organizationId, authority.locationId];
+  const parameters: unknown[] = [
+    authority.organizationId,
+    authority.locationId,
+  ];
   let keyset = "";
   if (cursor !== null) {
     parameters.push(cursor.sortKey, cursor.id);
@@ -82,9 +91,15 @@ export async function listParkingSpots(
   authority: PhysicalResourceAuthority,
   query: PhysicalResourceListQuery,
 ) {
-  const codec = physicalResourceCursorCodec("parking-spots", authority.locationId);
+  const codec = physicalResourceCursorCodec(
+    "parking-spots",
+    authority.locationId,
+  );
   const cursor = codec.decode(query.cursor);
-  const parameters: unknown[] = [authority.organizationId, authority.locationId];
+  const parameters: unknown[] = [
+    authority.organizationId,
+    authority.locationId,
+  ];
   let keyset = "";
   if (cursor !== null) {
     parameters.push(cursor.sortKey, cursor.id);
@@ -96,24 +111,56 @@ export async function listParkingSpots(
             spot.status::text AS status, spot.created_at AS "createdAt",
             spot.updated_at AS "updatedAt", zone.id::text AS "zoneId",
             zone.code AS "zoneCode", zone.label AS "zoneLabel",
-            zone.status::text AS "zoneStatus"
+            zone.status::text AS "zoneStatus",
+            location.status = 'ACTIVE' AS operational,
+            session.id::text AS "sessionId", session.state::text AS "sessionState",
+            vehicle.plate_number_normalized AS "plateNumberNormalized",
+            vehicle.temporary_descriptor AS "temporaryDescriptor"
      FROM parking_spots AS spot
+     INNER JOIN locations AS location
+       ON location.id = spot.location_id AND location.organization_id = spot.organization_id
      LEFT JOIN parking_zones AS zone
        ON zone.id = spot.parking_zone_id
       AND zone.organization_id = spot.organization_id
       AND zone.location_id = spot.location_id
+     LEFT JOIN valet_sessions AS session
+       ON session.parking_spot_id = spot.id
+      AND session.organization_id = spot.organization_id
+      AND session.location_id = spot.location_id
+      AND session.state <> 'COMPLETED'
+      AND location.status = 'ACTIVE'
+     LEFT JOIN vehicles AS vehicle
+       ON vehicle.id = session.vehicle_id AND vehicle.organization_id = session.organization_id
      WHERE spot.organization_id = $1 AND spot.location_id = $2 ${keyset}
      ORDER BY spot.code, spot.id LIMIT $${parameters.length}`,
     parameters,
   );
   const current = page(result.rows, query.limit);
-  const items: ParkingSpotConfiguration[] = current.rows.map((row) => ({
+  const items: ParkingSpotListEntry[] = current.rows.map((row) => ({
+    ...(row.operational
+      ? {
+          occupancy:
+            row.sessionId === null || row.sessionState === null
+              ? null
+              : {
+                  sessionId: row.sessionId,
+                  sessionState: row.sessionState,
+                  vehicle: {
+                    plateNumberNormalized: row.plateNumberNormalized,
+                    temporaryDescriptor: row.temporaryDescriptor,
+                  },
+                },
+        }
+      : {}),
     code: row.code,
     createdAt: row.createdAt.toISOString(),
     label: row.label,
     parkingSpotId: row.parkingSpotId,
     parkingZone:
-      row.zoneId === null || row.zoneCode === null || row.zoneLabel === null || row.zoneStatus === null
+      row.zoneId === null ||
+      row.zoneCode === null ||
+      row.zoneLabel === null ||
+      row.zoneStatus === null
         ? null
         : {
             code: row.zoneCode,

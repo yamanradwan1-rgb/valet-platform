@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { overviewListResponse } from "./location-overview-pagination.js";
 import { staffManagementIdentitySchema } from "./staff-management.js";
+import { resourceVehicleIdentitySchema } from "./resource-vehicle-identity.js";
 
 const uuidSchema = z.string().uuid();
 const timestampSchema = z.string().datetime({ offset: true });
@@ -148,8 +149,16 @@ export const keySlotOverviewEntrySchema = z
     code: z.string().min(1),
     slotStatus: z.enum(["ACTIVE", "INACTIVE"]),
     holdingSessionId: nullableUuidSchema,
+    holdingVehicle: resourceVehicleIdentitySchema.nullable(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (entry) =>
+      (entry.holdingSessionId === null) === (entry.holdingVehicle === null),
+    {
+      message: "Holder and vehicle must describe the same current assignment.",
+    },
+  );
 export type KeySlotOverviewEntry = z.infer<typeof keySlotOverviewEntrySchema>;
 
 export const incidentOverviewEntrySchema = z

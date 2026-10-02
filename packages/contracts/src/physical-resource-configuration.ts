@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { dashboardSessionStateSchema } from "./location-overview.js";
+import { resourceVehicleIdentitySchema } from "./resource-vehicle-identity.js";
 
 const uuidSchema = z.string().uuid();
 const cursorSchema = z.string().regex(/^[A-Za-z0-9_-]{8,512}$/);
@@ -46,6 +48,21 @@ export const parkingSpotConfigurationSchema = z
   })
   .strict();
 
+export const parkingSpotOccupancySchema = z
+  .object({
+    sessionId: uuidSchema,
+    sessionState: dashboardSessionStateSchema.exclude(["COMPLETED"]),
+    vehicle: resourceVehicleIdentitySchema,
+  })
+  .strict();
+
+// Omitted for configuration-only historical Locations; null means available.
+export const parkingSpotListEntrySchema = parkingSpotConfigurationSchema.extend(
+  {
+    occupancy: parkingSpotOccupancySchema.nullable().optional(),
+  },
+);
+
 function listResponse<T extends z.ZodTypeAny>(item: T) {
   return z
     .object({
@@ -60,6 +77,9 @@ export const keySlotConfigurationListSchema = listResponse(
 );
 export const parkingSpotConfigurationListSchema = listResponse(
   parkingSpotConfigurationSchema,
+);
+export const parkingSpotListResponseSchema = listResponse(
+  parkingSpotListEntrySchema,
 );
 export const parkingZoneSelectorListSchema = listResponse(
   parkingZoneSelectorSchema,
@@ -113,6 +133,7 @@ export type KeySlotConfiguration = z.infer<typeof keySlotConfigurationSchema>;
 export type ParkingSpotConfiguration = z.infer<
   typeof parkingSpotConfigurationSchema
 >;
+export type ParkingSpotListEntry = z.infer<typeof parkingSpotListEntrySchema>;
 export type ParkingZoneSelector = z.infer<typeof parkingZoneSelectorSchema>;
 export type CreateKeySlotRequest = z.infer<typeof createKeySlotRequestSchema>;
 export type CreateParkingSpotRequest = z.infer<

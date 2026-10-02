@@ -21,6 +21,10 @@ export const keys = [
     keySlotId: OP_IDS.vehicle,
     code: "K-13",
     holdingSessionId: OP_IDS.session,
+    holdingVehicle: {
+      plateNumberNormalized: "12345",
+      temporaryDescriptor: null,
+    },
   },
   {
     ...keyItem(),
@@ -34,6 +38,10 @@ export const keys = [
     code: "K-15",
     slotStatus: "INACTIVE",
     holdingSessionId: OP_IDS.session,
+    holdingVehicle: {
+      plateNumberNormalized: "12345",
+      temporaryDescriptor: null,
+    },
   },
 ];
 export const incidents = [

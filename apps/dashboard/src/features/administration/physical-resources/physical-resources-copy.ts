@@ -1,6 +1,8 @@
 import type { DashboardLocale } from "../../../lib/i18n/locale";
 
 interface PhysicalResourcesCopy {
+  readonly available: string;
+  readonly occupied: string;
   readonly addKeySlot: string;
   readonly addParkingSpot: string;
   readonly addParkingZone: string;
@@ -34,6 +36,8 @@ interface PhysicalResourcesCopy {
 }
 
 const english: PhysicalResourcesCopy = {
+  available: "Available",
+  occupied: "Occupied",
   addKeySlot: "Add Key Slot",
   addParkingSpot: "Add Parking Spot",
   addParkingZone: "Add Parking Zone",
@@ -69,6 +73,8 @@ const english: PhysicalResourcesCopy = {
 };
 
 const arabic: PhysicalResourcesCopy = {
+  available: "متاح",
+  occupied: "مشغول",
   addKeySlot: "إضافة خانة مفتاح",
   addParkingSpot: "إضافة موقف",
   addParkingZone: "إضافة منطقة وقوف",

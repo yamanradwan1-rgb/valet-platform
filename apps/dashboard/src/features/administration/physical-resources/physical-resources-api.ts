@@ -1,7 +1,7 @@
 import {
   keySlotConfigurationListSchema,
   keySlotConfigurationSchema,
-  parkingSpotConfigurationListSchema,
+  parkingSpotListResponseSchema,
   parkingSpotConfigurationSchema,
   parkingZoneSelectorListSchema,
   parkingZoneSelectorSchema,
@@ -41,7 +41,7 @@ export function readParkingSpots(
 ) {
   return api.request(
     `${base(locationId)}/parking-spots`,
-    parkingSpotConfigurationListSchema,
+    parkingSpotListResponseSchema,
     {
       query: { cursor, limit: 50 },
       signal,

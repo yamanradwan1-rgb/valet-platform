@@ -155,6 +155,7 @@ export function PhysicalResourcesPanel(props: {
             items={current.data?.items ?? []}
             kind={family}
             labelAllowed={active}
+            operational={active}
             locale={locale}
             onLabel={(id) => setLabelTarget({ id, kind: family })}
           />

@@ -24,6 +24,7 @@ export function keyItem() {
     code: "K-12",
     slotStatus: "ACTIVE",
     holdingSessionId: null,
+    holdingVehicle: null,
   };
 }
 

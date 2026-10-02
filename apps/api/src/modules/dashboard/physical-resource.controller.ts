@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import {
   keySlotConfigurationListSchema,
-  parkingSpotConfigurationListSchema,
+  parkingSpotListResponseSchema,
   parkingZoneSelectorListSchema,
   physicalResourceLabelSchema,
   physicalResourceListQuerySchema,
@@ -78,7 +78,7 @@ export class PhysicalResourceController {
       rawQuery,
       response,
       (context, id, query) => this.reads.listParkingSpots(context, id, query),
-      parkingSpotConfigurationListSchema,
+      parkingSpotListResponseSchema,
     );
   }
 

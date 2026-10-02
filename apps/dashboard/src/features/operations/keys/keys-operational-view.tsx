@@ -4,6 +4,7 @@ import type { KeySlotOverviewEntry } from "@valet/contracts";
 import { useCallback, useState } from "react";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ResourceVehicleIdentity } from "../../../lib/presentation/resource-vehicle-identity-text";
 import localStyles from "../accountability.module.css";
 import { readKeys } from "../operations-api";
 import { selectedOperationsLocation } from "../operations-location";
@@ -107,6 +108,14 @@ export function KeysOperationalView() {
                       >
                         {keyUsageLabel(item.holdingSessionId, locale)}
                       </StatusBadge>
+                      {item.holdingSessionId !== null ? (
+                        <div className={styles.muted}>
+                          <ResourceVehicleIdentity
+                            vehicle={item.holdingVehicle}
+                            locale={locale}
+                          />
+                        </div>
+                      ) : null}
                     </td>
                     <td>
                       <bdi>{location?.name}</bdi>

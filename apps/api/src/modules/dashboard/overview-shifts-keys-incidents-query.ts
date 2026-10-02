@@ -85,6 +85,8 @@ export async function listActiveShifts(
 interface KeySlotRow {
   readonly code: string;
   readonly holdingSessionId: string | null;
+  readonly plateNumberNormalized: string | null;
+  readonly temporaryDescriptor: string | null;
   readonly keySlotId: string;
   readonly slotStatus: string;
 }
@@ -123,17 +125,23 @@ export async function listKeyAccountability(
       `SELECT slot.id::text AS "keySlotId",
               slot.code,
               slot.status::text AS "slotStatus",
-              holder.id::text AS "holdingSessionId"
+              holder.id::text AS "holdingSessionId",
+              vehicle.plate_number_normalized AS "plateNumberNormalized",
+              vehicle.temporary_descriptor AS "temporaryDescriptor"
        FROM key_slots AS slot
        LEFT JOIN LATERAL (
-           SELECT session.id
+           SELECT session.id, session.vehicle_id
            FROM valet_sessions AS session
            WHERE session.organization_id = slot.organization_id
+             AND session.location_id = slot.location_id
              AND session.key_slot_id = slot.id
              AND session.state <> 'COMPLETED'
            ORDER BY session.updated_at DESC, session.id DESC
            LIMIT 1
        ) AS holder ON TRUE
+       LEFT JOIN vehicles AS vehicle
+         ON vehicle.id = holder.vehicle_id
+        AND vehicle.organization_id = slot.organization_id
        WHERE ${predicates.join(" AND ")}
        ORDER BY slot.code ASC, slot.id ASC
        LIMIT $${parameters.length}`,
@@ -142,6 +150,13 @@ export async function listKeyAccountability(
     const items = rows.rows.slice(0, input.limit).map((row) => ({
       code: row.code,
       holdingSessionId: row.holdingSessionId,
+      holdingVehicle:
+        row.holdingSessionId === null
+          ? null
+          : {
+              plateNumberNormalized: row.plateNumberNormalized,
+              temporaryDescriptor: row.temporaryDescriptor,
+            },
       keySlotId: row.keySlotId,
       slotStatus: row.slotStatus as KeySlotOverviewEntry["slotStatus"],
     }));
