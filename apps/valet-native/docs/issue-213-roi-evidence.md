@@ -1,7 +1,7 @@
 # Issue #213 — Native plate ROI implementation evidence
 
 Baseline: `2ce340ba0f99c9efe6554681adea1a12cc89b13e`, refreshed `origin/main`.
-Branch: `fix/VAL-213-native-plate-roi`. No worktrees, PR or merge.
+Branch: `fix/VAL-213-native-plate-roi`. No worktrees or PR. The owner later approved direct code merge while deferring full Android packaging and physical acceptance to the Native batch closure gate.
 
 ## Contract ledger
 
@@ -186,8 +186,9 @@ cache inspection, force-stop behavior and native-module runtime smoke are
 **UNAVAILABLE**. No authorized device is attached. The owner explicitly approved
 continuing implementation while recording this evidence as unavailable.
 The final APK packaging attempt also failed, so no successful installable build
-or physical installation is available from this run. Closure proceeds under the
-owner's explicit instruction to stop environment workarounds and push for review.
+or physical installation is available from this run. The owner subsequently
+approved direct code merge while explicitly deferring full Android packaging and
+physical-device acceptance to the Native batch closure gate.
 
 Source diff and element-tree tests verify the unchanged 260-unit navy/radius
 viewport, shell, actions/order and permanent fallbacks, plus the decorative clear
@@ -222,12 +223,16 @@ rules. Review used the VAYLET review matrix and production-evidence ladder.
 - Architecture: focused files under 300 lines; no baseline exceptions added.
 - Tests: automated sample coverage established; PostgreSQL/device runtime gaps
   explicitly unverified. No security scan or CI certification claimed.
-- Findings: acceptance evidence and failing repository gates prevent merge.
-  No additional in-scope implementation defect identified in this review.
+- Findings: no additional in-scope implementation defect was identified. The
+  originally recorded APK/physical/repository-gate blockers remain truthful
+  evidence gaps, but the owner explicitly changed the workflow decision: merge
+  the reviewed code now and carry those proofs into the Native batch closure gate.
 
-**BLOCK MERGE** until repository gates are reconciled, physical calibration and
-accuracy criteria are verified, required remote CI passes and human review occurs.
-The code is submitted for review; this is not a production-ready completion claim.
+**OWNER MERGE DECISION — 2026-10-03:** direct code merge is approved. This does
+not convert unavailable evidence into PASS and does not mark Issue #213 production-
+complete. The issue remains open for batch closure proof: clean Android build and
+installation, physical ROI calibration, full-digit/edge-digit accuracy comparison,
+EN/AR physical visual acceptance, and final relevant CI/integration verification.
 
 ## Exact file inventory
 
