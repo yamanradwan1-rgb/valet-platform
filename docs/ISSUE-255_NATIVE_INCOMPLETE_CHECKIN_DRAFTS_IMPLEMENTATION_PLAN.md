@@ -1,10 +1,93 @@
 # Issue #255 — Native incomplete Check-In draft actions implementation plan
 
-Status: **PLANNING ONLY — DECISION REQUIRED BEFORE CODE**
+Status: **PLANNING COMPLETE — OWNER DECISIONS LOCKED — READY FOR IMPLEMENTATION PROMPT**
 
 Issue: [#255](https://github.com/veletpro0-lgtm/valet-platform/issues/255)
 Planning baseline: `e76e6ade82ba1d697a95ff03995639f222649f8c`
 Planning branch: `docs/VAL-255-incomplete-checkin-drafts-plan`
+
+
+### Owner decision lock — 2026-10-03
+
+The VAYLET product owner has resolved U-001 through U-007. These resolutions are
+binding for the later #255 implementation unless the owner explicitly changes
+them. They do not authorize UI redesign or scope expansion.
+
+- **U-001 — terminal semantics:** adopt one real terminal
+  `CHECKING_IN -> CANCELLED` ValetSession transition. `CANCELLED` retains
+  authoritative history, is non-resumable and non-operational, and does not mean
+  a completed visit, vehicle release, handoff, parking completion, or successful
+  Check-In. No hard delete, hidden abandonment flag, or second lifecycle model.
+
+- **U-002 — authority / Shift fencing:** Continue and Cancel are self-owned only.
+  The actor must be the same persisted `checked_in_by_membership_id`, whether
+  their operational role is `VALET_EMPLOYEE` or `VALET_SUPERVISOR`. Supervisor
+  directory visibility grants no other-owner mutation authority. Current ACTIVE
+  User, Organization, Location, membership, explicit Location access, active
+  exact-Location Shift, and current operational eligibility are required at
+  action time. The command must compare the current authoritative Shift against
+  the caller's expected Shift scope and fail closed after authority loss.
+
+- **U-003 — retry / unknown outcome:** no generic mutation replay, no outbox and
+  no new durable operationId for this command. Only one Cancel request may be in
+  flight per client action. If the response is lost after dispatch, mark the
+  outcome unknown and perform an exact authoritative reconciliation read before
+  offering another destructive action. `CANCELLED` converges to success;
+  `CHECKING_IN` at the same expected version permits an explicit user retry;
+  any different state/version reports current truth and blocks destructive replay.
+  No duplicate cancellation AuditEvent may be created.
+
+- **U-004 — API / audit contract:** use the narrow protected command
+  `POST /v1/staff/check-in/sessions/:sessionId/cancel` with strict
+  `expectedVersion` plus the exact expected Shift scope required by U-002.
+  Use `VALET_SESSION_CHECK_IN_CANCELLED` as the operational event type in the
+  existing `CHECK_IN` Management Audit family. Mutation and audit commit
+  atomically. Safe metadata is limited to lifecycle facts such as
+  `fromState`, `toState`, `fromVersion`, and `toVersion`; do not add
+  plate, phone, guest credential, token, reason text, or other unnecessary PII.
+  Expose the event through the existing typed Management Audit pipeline only;
+  no Dashboard redesign is authorized.
+
+- **U-005 — consumer compatibility:** terminal support is one implementation
+  responsibility, not an enum-only patch or optional follow-up. Before enabling
+  `CANCELLED`, every affected terminal/active predicate, query, contract,
+  index, Location drain/readiness rule, Vehicle Directory path, draft discovery
+  path, Guest/visit-history compatibility edge, incident/financial/reporting
+  semantic, audit allowlist/projection, and other exposed consumer identified in
+  this plan must be reconciled. Preserve truthful completed-visit and financial
+  meaning. Do not widen unrelated UI.
+
+- **U-006 — directory coverage:** Vehicles remains the single Native list and
+  visual entry point. Do not add a second drafts list, duplicate row, per-row
+  detail fan-out, or parallel full draft fetch. The implementation must solve
+  the verified cap/coverage gap with the smallest bounded capability/query
+  contract that guarantees eligible self-owned incomplete Check-Ins are not
+  silently omitted, while preserving one truthful row per session.
+
+- **U-007 — child-edit concurrency:** the existing ValetSession `version` is
+  the lifecycle CAS for Cancel. Do not add a second aggregate version merely to
+  mirror Vehicle/condition child edits. The cancel transaction must use the
+  repository's correct lock/serialization order and revalidate current
+  `CHECKING_IN` state and authority. Child edits committed before the winning
+  cancel remain retained history; once `CANCELLED` commits, later protected
+  Check-In/Vehicle/condition mutations must fail closed under terminal-state
+  rules.
+
+**UI freeze remains absolute.** Current Native Vehicles composition, hierarchy,
+styles, spacing, typography, colors, row/card treatment, header, navigation and
+normal vehicle states are frozen. The maximum visual delta is the minimum
+incomplete-work explanation plus Continue/Cancel actions inside the existing
+eligible expanded row, and an existing-pattern confirmation/feedback surface.
+No new top-level section, duplicate card, shell redesign, Check-In redesign,
+Dashboard redesign or new visual language is permitted.
+
+Any later section that still uses wording such as "conditional on U-001–U-007",
+"pending owner acceptance", or "Bundle P proposed" is retained to preserve the
+full planning and decision provenance. For implementation, read those conditions
+as resolved by this owner decision lock. The remaining required governance step
+is to materialize these locked decisions into the repository's canonical focused
+DEC/state-machine/schema documentation before production code in the
+implementation run.
 
 ## 1. Executive summary
 
@@ -12,9 +95,9 @@ Vehicles already contains authoritative `CHECKING_IN` rows. The smallest Native 
 
 Cancellation is not an accepted ValetSession operation. `docs/04_VALET_SESSION_STATE_MACHINE.md` explicitly prohibits introducing `CANCELLED` or hard deletion without a later Accepted decision. The current Prisma enum has nine states. The decision log and focused decisions contain Task/RetrievalRequest cancellation, but no Accepted abandoned Check-In terminal contract. Issue text does not silently replace that domain contract.
 
-Recommendation, **UNRESOLVED pending acceptance**: one terminal `CHECKING_IN -> CANCELLED` transition, self-owned for both operational roles, exact current Shift eligibility, existing aggregate version, one atomic safe audit event, and authoritative outcome reconciliation. Audit already provides durable actor/time; duplicate cancellation columns and a second lifecycle flag are unnecessary for this recommendation. This is a cross-consumer lifecycle change, not an enum-only patch. Guest access and visit-history compatibility are material prerequisites requiring explicit scope ownership.
+Owner-locked direction: one terminal `CHECKING_IN -> CANCELLED` transition, self-owned for both operational roles, exact current Shift eligibility, existing aggregate version, one atomic safe audit event, and authoritative outcome reconciliation. Audit already provides durable actor/time; duplicate cancellation columns and a second lifecycle flag are unnecessary for this recommendation. This is a cross-consumer lifecycle change, not an enum-only patch. Guest access and visit-history compatibility are material prerequisites requiring explicit scope ownership.
 
-The implementation envelope below is conditional on proposed bundle **P** in section 14 being accepted and U-001–U-007 being resolved. A different accepted representation requires revising the dependent sections before execution. This document does not create a DEC, accept one, or authorize implementation.
+The implementation envelope below is governed by the owner decision lock above. Section 14's bundle P is now the owner-approved product direction. A formal focused DEC/state-machine/schema synchronization remains the first mandatory implementation slice before production code. A later owner change would require revising the dependent sections before execution.
 
 ## 2. Verified baseline SHA / branch
 
@@ -226,7 +309,7 @@ No automatic expiry, scheduled cleanup, bulk supervisor repair or historical ret
 
 ### Proposed implementation plan
 
-**Bundle P — proposed substance, UNRESOLVED until owner acceptance.** Allocate a focused DEC number during documentation synchronization; do not reuse Task/Request decisions or mark this plan Accepted. If any U-item is accepted differently, edit this section and dependent implementation/test maps first.
+**Bundle P — OWNER-LOCKED PRODUCT DECISION SUBSTANCE.** U-001–U-007 are resolved by the VAYLET product owner as recorded at the top of this document. Allocate a focused DEC number during canonical documentation synchronization; do not reuse Task/Request decisions. The focused DEC must faithfully materialize these locked decisions before production code. If the owner later changes any item, edit this section and all dependent implementation/test maps first.
 
 Context: employees need to end an abandoned persisted intake while distinguishing it from released custody and retaining Black Box evidence. Vehicles is the entry point; a CHECKING_IN session is not a Task.
 
@@ -806,28 +889,32 @@ Future implementation closure requires appropriate current owned tests for `@val
 
 Record each gate as STATIC VERIFIED, LOCAL COMMAND VERIFIED, RUNTIME VERIFIED, FAILURE-PATH VERIFIED, CI VERIFIED or PHYSICAL VERIFIED with exact SHA/environment. This plan currently establishes source inspection/static planning evidence only. No migration deployment, test pass, visual capture, physical acceptance, CI or production result is claimed. Do not mark implementation complete while required tests fail or U-005 compatibility is missing; report unrelated baseline failures honestly without fixing excluded work.
 
-## 46. Unresolved questions
+## 46. Resolved owner decisions
 
-| ID    | Owner response required before code                                                                                                                                                                                 | Consequence if unanswered                                                         |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| U-001 | Accept terminal CANCELLED and exact no-custody unfinished invariant, retained history and non-completion reporting meaning?                                                                                         | No terminal/schema/migration/cancel command.                                      |
-| U-002 | Accept self-owned both roles, current full eligibility, expectedShiftId comparison and no revoked-scope cleanup? Require transaction-level exact Staff-session revocation fencing beyond current principal pattern? | Authority/lock/request contract cannot be frozen.                                 |
-| U-003 | Accept current-state convergence and minimal status read under current same-owner eligibility without operationId?                                                                                                  | Retry/unknown-outcome persistence/read shape remains blocked.                     |
-| U-004 | Accept final proposed route/schema/error precedence/event/family/Supervisor visibility, or supply alternatives?                                                                                                     | No final runtime contract or audit catalog.                                       |
-| U-005 | Who owns Guest/visit-history/financial/incident compatibility prerequisites, and what terminal/financial/count semantics are accepted without widening #255?                                                        | Terminal cannot safely ship; do not bypass the Guest/outside-Audit UI exclusions. |
-| U-006 | Accept negotiated minimal action hints and current capped coverage, or require separately scoped access to omitted owned drafts?                                                                                    | Cannot truthfully promise all drafts/actions under Supervisor visibility and cap. |
-| U-007 | Accept lifecycle-only version CAS, allowing earlier condition/Vehicle edits retained under serialized cancellation, or require a reviewed-child snapshot contract?                                                  | No false stale-write guarantee; concurrency semantics must be resolved.           |
+| ID    | Locked owner resolution |
+| ----- | ----------------------- |
+| U-001 | Use terminal `CHECKING_IN -> CANCELLED`; retain history; no hard delete/hidden state; never treat cancellation as completed custody or release. |
+| U-002 | Continue/Cancel are self-owned for `VALET_EMPLOYEE` and `VALET_SUPERVISOR`; current exact Location/Shift/access/membership/User eligibility is mandatory; Supervisor visibility does not grant other-owner mutation authority. |
+| U-003 | No operationId/outbox/automatic mutation replay. Unknown outcome reconciles authoritatively first; terminal convergence is success, same-version `CHECKING_IN` allows explicit retry, changed truth blocks replay. |
+| U-004 | Narrow protected cancel command with `expectedVersion` and exact expected Shift scope; event `VALET_SESSION_CHECK_IN_CANCELLED`; `CHECK_IN` family; atomic safe audit; existing Management Audit surface only. |
+| U-005 | All terminal/active consumer compatibility identified in this plan is mandatory before enabling `CANCELLED`; no enum-only rollout and no unrelated UI expansion. |
+| U-006 | Vehicles stays the one list. Resolve the cap/coverage problem with the smallest bounded capability/query contract; no duplicate list, duplicate row, fan-out or parallel full draft list. |
+| U-007 | Existing ValetSession version is the lifecycle CAS. Correct locking/revalidation serializes Cancel against child work; pre-cancel committed child facts remain history and post-terminal mutations fail closed. |
 
-Non-material choices resolved from source: directory owns list, exact detail owns hydrate; no second list/state machine/Task; existing route/components/tokens; shared strict contracts; sibling controller; custody writer supports scope; explicit allowlists/narrow labels; no automatic POST replay; no speculative cancellation actor/time column for P. Exact screenshot viewport must be established at future capture, but is not a domain decision or excuse to change frozen UI.
+No owner product questions remain from U-001–U-007. Implementation must still perform the canonical focused DEC/state-machine/schema synchronization required by repository governance before production code and must preserve every compatibility/test/validation obligation in this plan.
+
+Non-material choices resolved from source remain unchanged: directory owns list, exact detail owns hydrate; no second list/state machine/Task; existing route/components/tokens; shared strict contracts; sibling controller; custody writer supports scope; explicit allowlists/narrow labels; no automatic POST replay; no speculative cancellation actor/time column. Exact screenshot viewport must be established at future capture, but is not a domain decision or excuse to change frozen UI.
 
 ## 47. Final planning verdict
 
-### Ready-to-implement verdict
+### Ready-for-implementation-prompt verdict
 
-**DECISION REQUIRED**
+**OWNER DECISIONS LOCKED — PLAN APPROVED FOR IMPLEMENTATION PROMPT**
 
-The plan is ready for owner decision review; implementation remains conditional on U-001–U-007 being resolved through an Accepted decision. It is not authority to implement cancellation. The critical blocker is the explicit abandoned Check-In rule and absent Accepted terminal contract. Recommendation is terminal CANCELLED with exact self-owned/Shift/version/atomic audit/current-status convergence and separately owned compatibility prerequisites.
+U-001–U-007 are resolved and binding as recorded in this document. The implementation run must begin by materializing the locked product decisions into the repository's focused canonical DEC/state-machine/schema documentation, then execute the ordered slices without weakening any authority, concurrency, compatibility, audit, request-budget, test, visual-freeze or physical-closure requirement in this 47-section plan.
 
-UI freeze is enforceable: current Native Vehicles composition and measured style values remain unchanged; only necessary incomplete-work explanation/actions in the existing affected expanded row and current-pattern confirmation/feedback are allowed. No new top-level list, duplicate session, Task, Check-In redesign, shell redesign or Dashboard redesign.
+The accepted product direction is terminal `CANCELLED` with exact self-owned current authority/Shift fencing, existing lifecycle version CAS, atomic safe cancellation audit, authoritative unknown-outcome reconciliation, mandatory terminal-consumer compatibility, and one bounded Vehicles representation with the cap/coverage gap solved without a second list.
 
-This branch changes only this planning document. No implementation, migration, contracts, copy, tests, package, lockfile, APK, PR or merge is part of this task. Commit/push evidence is reported after the document-only final review; the plan itself does not claim runtime or physical completion.
+UI freeze is absolute and enforceable: current Native Vehicles composition and measured style values remain unchanged; only necessary incomplete-work explanation/actions in the existing affected expanded row and current-pattern confirmation/feedback are allowed. No new top-level list, duplicate session, Task, Check-In redesign, shell redesign, Dashboard redesign or new visual language.
+
+This planning branch changes only this complete planning document. No production implementation, migration, runtime contract, copy, test, package, lockfile or APK was introduced by the planning run. Physical Android acceptance remains in the owner-defined Native batch closure gate. The merged plan is the implementation authority for #255 unless the owner explicitly amends it.
