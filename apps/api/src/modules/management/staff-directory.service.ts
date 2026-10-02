@@ -47,6 +47,9 @@ export class StaffDirectoryService {
     return inPostgresTransaction(this.pool, async (transaction) => {
       const authority = await authorizeStaffManagement(transaction, context, {
         organizationId,
+        ...(query.locationId === undefined
+          ? {}
+          : { targetLocationId: query.locationId }),
       });
       requireAuthorizedLocationFilter(authority, query.locationId);
       const cursorScope =

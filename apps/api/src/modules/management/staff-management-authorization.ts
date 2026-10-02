@@ -144,6 +144,7 @@ export async function authorizeStaffManagement(
   input: {
     readonly assurance?: ManagementAssuranceRequirement;
     readonly organizationId: string;
+    readonly targetLocationId?: string;
   },
 ): Promise<StaffManagementAuthority> {
   const role = await currentRole(transaction, context, input.organizationId);
@@ -152,6 +153,12 @@ export async function authorizeStaffManagement(
       ...(input.assurance === undefined ? {} : { assurance: input.assurance }),
       capability: "STAFF_MANAGE_ELIGIBLE",
       organizationId: input.organizationId,
+      ...(input.targetLocationId === undefined
+        ? {}
+        : {
+            requireActiveLocation: false,
+            targetLocationId: input.targetLocationId,
+          }),
     });
     return {
       activeLocationIds: null,

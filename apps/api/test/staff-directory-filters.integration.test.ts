@@ -139,6 +139,22 @@ describe("T05-A real server directory filters", () => {
     expect((await page({ search: "\\" })).items).toEqual([]);
     expect((await page({ locationId: otherLocationId })).items).toEqual([]);
   });
+  it("retains Company Admin filtering at an inactive same-Organization Location", async () => {
+    await fixture.query(
+      "UPDATE locations SET status='INACTIVE', accepting_intake=false WHERE id=$1",
+      [locationId],
+    );
+    try {
+      expect(
+        (await page({ locationId })).items.map((item) => item.membershipId),
+      ).toEqual([targetId]);
+    } finally {
+      await fixture.query(
+        "UPDATE locations SET status='ACTIVE', accepting_intake=true WHERE id=$1",
+        [locationId],
+      );
+    }
+  });
   it("conceals foreign/missing Locations identically and requires current CA authority", async () => {
     const foreign = await fixture.managementGet(
       path({ locationId: foreignLocationId }),
@@ -148,9 +164,21 @@ describe("T05-A real server directory filters", () => {
       path({ locationId: randomUUID() }),
       token,
     );
+    expect([foreign.status, missing.status]).toEqual([404, 404]);
     expect(foreign.status).toBe(404);
     expect(missing.status).toBe(foreign.status);
     expect(missing.body?.code).toBe(foreign.body?.code);
+    expect(foreign.body).toEqual({
+      code: "AUTHORIZATION_DENIED",
+      message: "The requested resource is not available.",
+      requestId: expect.any(String),
+    });
+    expect(missing.body).toEqual({
+      ...foreign.body,
+      requestId: expect.any(String),
+    });
+    for (const response of [foreign, missing])
+      expect(response.headers.get("cache-control")).toContain("no-store");
     expect(JSON.stringify(foreign.body)).not.toContain(foreignLocationId);
     expect(
       (
