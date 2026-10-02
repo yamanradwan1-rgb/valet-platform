@@ -73,6 +73,15 @@ for (const code of ["SHIFT_ALREADY_ENDED", "IDEMPOTENCY_CONFLICT"] as const) {
   test(`${code} requires explicit reconciliation and never auto-generates another operation`, async ({
     page,
   }) => {
+    await page.addInitScript(() => {
+      const allocate = crypto.randomUUID.bind(crypto);
+      const recorder = window as Window & { forceEndUuidCalls: number };
+      recorder.forceEndUuidCalls = 0;
+      crypto.randomUUID = () => {
+        recorder.forceEndUuidCalls += 1;
+        return allocate();
+      };
+    });
     const setup = forceFixture({
       onPost: () => {
         setup.state.ended = true;
@@ -94,11 +103,70 @@ for (const code of ["SHIFT_ALREADY_ENDED", "IDEMPOTENCY_CONFLICT"] as const) {
     );
     expect(setup.fixture.count(FORCE_BASE)).toBe(list);
     expect(setup.posts).toHaveLength(1);
-    await dialog.getByRole("button", { name: "Refresh status" }).click();
+    const submitted = { ...setup.posts[0]! };
+    const allocations = await page.evaluate(
+      () =>
+        (window as Window & { forceEndUuidCalls: number }).forceEndUuidCalls,
+    );
+    expect(allocations).toBeGreaterThan(0);
+    const reason = dialog.getByLabel("Reason", { exact: true });
+    const confirmation = dialog.getByRole("checkbox");
+    const submit = dialog.getByRole("button", {
+      name: "Force End Shift",
+      exact: true,
+    });
+    const refresh = dialog.getByRole("button", {
+      name: "Refresh status",
+      exact: true,
+    });
+    await expect(reason).toBeDisabled();
+    await expect(confirmation).toBeDisabled();
+    await expect(submit).toBeDisabled();
+    await expect(refresh).toBeEnabled();
+    // Native pointer/keyboard attempts must not escape the conflict phase.
+    const bounds = await reason.boundingBox();
+    expect(bounds).not.toBeNull();
+    await page.mouse.click(bounds!.x + 6, bounds!.y + 6);
+    await page.keyboard.type("AttemptedConflictBypass");
+    for (const control of [confirmation, submit]) {
+      const box = await control.boundingBox();
+      expect(box).not.toBeNull();
+      await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    }
+    await expect(reason).toHaveValue(String(submitted.reason));
+    await expect(confirmation).toBeChecked();
+    await expect(submit).toBeDisabled();
+    await expect(dialog.getByRole("status")).toContainText(
+      code === "SHIFT_ALREADY_ENDED"
+        ? "already ended"
+        : "conflicts with an earlier request",
+    );
+    expect(setup.posts).toEqual([submitted]);
+    expect(
+      await page.evaluate(
+        () =>
+          (window as Window & { forceEndUuidCalls: number }).forceEndUuidCalls,
+      ),
+    ).toBe(allocations);
+    expect(setup.fixture.count(FORCE_BASE)).toBe(list);
+    expect(setup.fixture.count(`${FORCE_BASE}/${SHIFT_X}`)).toBe(1);
+    await refresh.click();
     await expect(dialog.getByRole("status")).toContainText(
       "The refreshed shift is ended",
     );
     expect(setup.posts).toHaveLength(1);
+    expect(setup.fixture.count(FORCE_BASE)).toBe(list + 1);
+    expect(setup.fixture.count(`${FORCE_BASE}/${SHIFT_X}`)).toBe(2);
+    await expect(
+      dialog.getByRole("button", { name: "Retry same operation", exact: true }),
+    ).toHaveCount(0);
+    await expect(submit).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () =>
+          (window as Window & { forceEndUuidCalls: number }).forceEndUuidCalls,
+      ),
+    ).toBe(allocations);
   });
 }
 

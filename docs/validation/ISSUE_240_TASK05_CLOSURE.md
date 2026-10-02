@@ -225,6 +225,50 @@ backend authorization. No client Task/Session/cash mutation exists.
 
 ## Owner final-report checklist
 
+### Post-push correction — conflict material freeze
+
+Owner-authorized correction starts at
+`13bb9d1baa3fc4c23e83a728726461af03238543` on the same branch. Review discovered
+that `ended-conflict` and `conflict` disabled submission but did not lock edits.
+Changing Reason/confirmation reset the phase to idle and could allocate another
+operation before authoritative reconciliation. The prior self-review missed
+this bypass; its historical test results remain recorded above.
+
+Locked correction: freeze both mutation fields in both conflict phases until
+explicit bounded Refresh status; ENDED forbids further submission, ACTIVE uses
+the existing reviewed retry rules. Derived mechanics: add only those two phases
+to the existing hook lock predicate and extend the existing browser cases.
+Affected entity: Shift UI intent only. No new domain transitions, tenant/Location
+authority, configuration, DB constraints/indexes or MVP scope changes. Unknown,
+MFA, auth retry, blocker, operation identity and scope/session fences unchanged.
+No unresolved product choice. No extraction needed: both authored targets are
+below 300 physical lines.
+
+**T05-G focused correction PASS:** one normal run of
+`pnpm --filter @valet/dashboard test:e2e e2e/issue240g-unknown.spec.ts --reporter=line`
+against the existing manual Dashboard runtime passed **7/7**. Both conflict cases
+assert disabled Reason, disabled checked confirmation and disabled submit;
+native pointer/keyboard attempts cannot change material or escape the conflict.
+UUID allocation count remains unchanged and POST count stays exactly one before
+Refresh. Explicit Refresh alone adds one history GET and one detail GET. An
+ENDED result exposes neither Force End nor Retry and allocates no new UUID.
+The four unknown-outcome cases and existing 401 stable-operation retry also pass.
+
+Dashboard typecheck and two-file ESLint passed. Changed-file Prettier/whitespace
+results are synchronized in the correction ledger before commit. The cumulative
+manifest remains **132 files**, with **five** correction files, all already in
+that manifest. Maximum authored file remains **268 lines**.
+
+Manual hostile review: the only production change is the lock predicate. Unknown,
+blocker retry, MFA success requiring explicit click, auth refresh requiring
+explicit same-operation retry, operationId allocation and reconciliation/fences
+are unchanged. No API/contracts/database/migration/privilege changes, Force Start,
+Task/Session automation, timeout increase or weakened assertion/race. Generated
+preview reference/test-result artifacts were restored/removed only for this run.
+No PostgreSQL, cumulative API/DB/browser, root full gate or production build was
+rerun. Historical failure evidence remains intact; all cumulative blockers are
+unchanged. Task05 closure remains **BLOCKED**. No PR, merge or Issue write.
+
 | Items | Result / exact evidence                                                                                                                                                                  |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1–5   | Exact branch/base above; final commit/remote SHA reported after push. `issue240g-change-manifest.json` enumerates every changed file and physical code count.                            |

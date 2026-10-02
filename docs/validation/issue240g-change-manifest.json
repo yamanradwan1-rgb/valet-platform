@@ -44,7 +44,7 @@
     },
     {
       "path": "apps/dashboard/e2e/issue240g-unknown.spec.ts",
-      "physicalLines": 135
+      "physicalLines": 203
     },
     {
       "path": "apps/dashboard/e2e/issue240g-visual.spec.ts",
@@ -108,7 +108,7 @@
     },
     {
       "path": "apps/dashboard/src/features/administration/staff/use-staff-shift-force-end.ts",
-      "physicalLines": 242
+      "physicalLines": 245
     },
     {
       "path": "apps/dashboard/src/features/administration/staff/use-staff-shift-query.ts",
@@ -428,6 +428,19 @@
     },
     {
       "path": "docs/validation/issue240g-visual-comparison.json"
+    }
+  ],
+  "corrections": [
+    {
+      "previousSha": "13bb9d1baa3fc4c23e83a728726461af03238543",
+      "changedFileCount": 5,
+      "files": [
+        "apps/dashboard/e2e/issue240g-unknown.spec.ts",
+        "apps/dashboard/src/features/administration/staff/use-staff-shift-force-end.ts",
+        "docs/validation/ISSUE_240_TASK05_CLOSURE.md",
+        "docs/validation/issue240g-change-manifest.json",
+        "docs/validation/issue240g-evidence-ledger.json"
+      ]
     }
   ]
 }

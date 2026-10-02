@@ -117,7 +117,10 @@ export function useStaffShiftForceEnd(props: {
   const phase = state.phase;
   const working = phase === "submitting" || phase === "reconciling";
   const terminal = ["success", "ended", "success-read-failed"].includes(phase);
-  const locked = working || terminal || phase === "unknown" || phase === "mfa";
+  const locked =
+    working ||
+    terminal ||
+    ["unknown", "mfa", "ended-conflict", "conflict"].includes(phase);
   const valid =
     confirmed && staffShiftForceEndReasonSchema.safeParse(reason).success;
   const canSubmit =

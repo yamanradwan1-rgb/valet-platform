@@ -483,5 +483,61 @@
   "deployment": "UNRUN",
   "paidCustomerPilot": "UNRUN",
   "timeoutChanges": false,
-  "testWeakening": false
+  "testWeakening": false,
+  "corrections": [
+    {
+      "previousSha": "13bb9d1baa3fc4c23e83a728726461af03238543",
+      "status": "PASS",
+      "defect": "ended-conflict/conflict disabled submit but allowed material edits to reset idle and allocate another operation before reconciliation.",
+      "fix": "Add only ended-conflict/conflict to the existing immutable mutation phases.",
+      "files": [
+        "apps/dashboard/e2e/issue240g-unknown.spec.ts",
+        "apps/dashboard/src/features/administration/staff/use-staff-shift-force-end.ts",
+        "docs/validation/ISSUE_240_TASK05_CLOSURE.md",
+        "docs/validation/issue240g-change-manifest.json",
+        "docs/validation/issue240g-evidence-ledger.json"
+      ],
+      "checks": [
+        {
+          "id": "focused-playwright",
+          "status": "PASS",
+          "command": "E2E_BASE_URL=http://localhost:3003; pnpm --filter @valet/dashboard test:e2e e2e/issue240g-unknown.spec.ts --reporter=line",
+          "passed": 7,
+          "failed": 0,
+          "runs": 1
+        },
+        {
+          "id": "dashboard-typecheck",
+          "status": "PASS",
+          "command": "pnpm --filter @valet/dashboard typecheck"
+        },
+        {
+          "id": "changed-eslint",
+          "status": "PASS",
+          "command": "pnpm exec eslint apps/dashboard/src/features/administration/staff/use-staff-shift-force-end.ts apps/dashboard/e2e/issue240g-unknown.spec.ts --max-warnings=0"
+        },
+        {
+          "id": "changed-prettier",
+          "status": "PASS",
+          "command": "pnpm exec prettier --ignore-path .gitignore --check <the five correction files>"
+        },
+        {
+          "id": "diff-check",
+          "status": "PASS",
+          "command": "git diff --check"
+        }
+      ],
+      "regressionProof": "Both server conflicts freeze Reason and checked confirmation, disable submit, retain conflict status/material and UUID allocation count despite native pointer/keyboard edit/submit attempts. Exactly one POST before/after explicit Refresh. Refresh adds one history GET and one detail GET; ENDED removes Force End/Retry controls without another UUID allocation.",
+      "manualReview": "Diff changes only the locked phase predicate. Unknown, open-task blocker, MFA/auth explicit retry, operationId, reconciliation and scope/session fences retain prior implementations. Backend remains mutation authority.",
+      "postgresRerun": false,
+      "cumulativeRerun": false,
+      "rootRerun": false,
+      "productionBuildRerun": false,
+      "timeoutChanges": false,
+      "assertionWeakening": false,
+      "apiContractsDatabaseMigrationChanges": false,
+      "task05Closure": "BLOCKED",
+      "priorBlockers": "unchanged"
+    }
+  ]
 }
