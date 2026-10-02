@@ -11,7 +11,8 @@ import {
 import { ReadState } from "../administration-ui";
 import { useAuthoritativeRead } from "../use-authoritative-read";
 import { StaffCursorControls } from "./staff-cursor-controls";
-import { StaffShiftDrawer } from "./staff-shift-drawer";
+import { StaffShiftManagementDrawer } from "./staff-shift-management-drawer";
+import type { ForceEndRecovery } from "./staff-force-end-recovery";
 import { StaffShiftEmployeeFilter } from "./staff-shift-employee-filter";
 import { StaffShiftLocationFilter } from "./staff-shift-location-filter";
 import { StaffShiftRows } from "./staff-shift-rows";
@@ -22,14 +23,19 @@ import { useShiftClock } from "./use-shift-clock";
 import { useStaffShiftQuery } from "./use-staff-shift-query";
 import css from "./staff-reference.module.css";
 import filterCss from "./staff-shift-filters.module.css";
-export function StaffShiftsBody() {
+export function StaffShiftsBody(props: {
+  readonly recovery?: ForceEndRecovery | null;
+  readonly onRecoveryConsumed?: () => void;
+}) {
   const dashboard = useProtectedDashboard();
   const scopeKey = administrationScopeKey(dashboard),
-    { organizationId } = administrationScope(dashboard.selectedScope);
+    { organizationId, authority } = administrationScope(
+      dashboard.selectedScope,
+    );
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale),
     h = staffShiftHistoryCopy(locale);
-  const query = useStaffShiftQuery(),
+  const query = useStaffShiftQuery(props.recovery?.shiftId ?? null),
     f = query.filters;
   const timezone = f.location?.timezone ?? "UTC";
   const range = useMemo(
@@ -78,6 +84,21 @@ export function StaffShiftsBody() {
     items.some((item) => item.status === "ACTIVE") ||
       detail.data?.status === "ACTIVE",
   );
+  const { close: closeShift, shiftId: selectedShiftId } = query;
+  const closeSelectedShift = useCallback(() => {
+    closeShift();
+    queueMicrotask(() => {
+      const row = document.querySelector<HTMLButtonElement>(
+        `[data-shift-detail="${selectedShiftId}"]`,
+      );
+      (
+        row ??
+        document.querySelector<HTMLButtonElement>(
+          "[data-shift-history-refresh]",
+        )
+      )?.focus();
+    });
+  }, [closeShift, selectedShiftId]);
   return (
     <>
       <div className={css.content}>
@@ -156,6 +177,7 @@ export function StaffShiftsBody() {
               className={css.select}
               type="button"
               onClick={query.refresh}
+              data-shift-history-refresh
             >
               {h.refresh}
             </button>
@@ -218,14 +240,27 @@ export function StaffShiftsBody() {
           </ReadState>
         )}
       </div>
-      {query.shiftId && range.valid && !history.error ? (
-        <StaffShiftDrawer
-          item={detail.data}
-          loading={detail.loading}
-          error={detail.error}
+      {query.shiftId && range.valid ? (
+        <StaffShiftManagementDrawer
+          key={`${scopeKey}:selection:${query.selectionGeneration}:${query.shiftId}`}
+          read={{
+            item: detail.data,
+            loading: detail.loading || history.loading,
+            error: history.error ?? detail.error,
+            revision: query.detailGeneration,
+          }}
+          organizationId={organizationId}
+          authorized={
+            authority === "COMPANY_ADMIN" || authority === "LOCATION_MANAGER"
+          }
+          recovery={
+            query.selectionGeneration === 0 ? (props.recovery ?? null) : null
+          }
+          onRecoveryConsumed={props.onRecoveryConsumed}
           now={now}
-          onClose={query.close}
+          onClose={closeSelectedShift}
           onRetry={detail.refresh}
+          onReconcile={query.reconcileSelected}
         />
       ) : null}
     </>

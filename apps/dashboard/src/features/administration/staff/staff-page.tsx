@@ -1,5 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useStaffAuth } from "../../../lib/auth/staff-auth-context";
+import {
+  clearForceEndRecovery,
+  readForceEndRecovery,
+  subscribeForceEndRecovery,
+  forceEndRecoveryScope,
+  type ForceEndRecovery,
+} from "./staff-force-end-recovery";
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { administrationCopy } from "../administration-copy";
@@ -14,17 +22,59 @@ import { staffShiftHistoryCopy } from "./staff-shift-history-copy";
 import css from "./staff-reference.module.css";
 export function StaffPage() {
   const dashboard = useProtectedDashboard();
-  return <StaffPageContent key={administrationScopeKey(dashboard)} />;
+  const { client: auth } = useStaffAuth();
+  const [recovery, setRecovery] = useState(() =>
+    readForceEndRecovery(dashboard),
+  );
+  useEffect(() => {
+    let disposed = false;
+    const accept = () => {
+      queueMicrotask(() => {
+        if (
+          disposed ||
+          auth.getIdentityGeneration() !== dashboard.identityGeneration ||
+          auth.getSessionGeneration() !== dashboard.sessionGeneration
+        )
+          return;
+        const value = readForceEndRecovery(dashboard);
+        if (value) {
+          setRecovery(value);
+          clearForceEndRecovery(value);
+        }
+      });
+    };
+    const unsubscribe = subscribeForceEndRecovery(accept);
+    accept();
+    return () => {
+      disposed = true;
+      unsubscribe();
+    };
+  }, [dashboard, auth]);
+  const current =
+    recovery?.scope === forceEndRecoveryScope(dashboard) &&
+    recovery.sessionGeneration === dashboard.sessionGeneration
+      ? recovery
+      : null;
+  return (
+    <StaffPageContent
+      key={`${administrationScopeKey(dashboard)}:${current?.operationId ?? "normal"}`}
+      recovery={current}
+    />
+  );
 }
-function StaffPageContent() {
+function StaffPageContent(props: {
+  readonly recovery: ForceEndRecovery | null;
+}) {
   const dashboard = useProtectedDashboard();
   const scope = administrationScope(dashboard.selectedScope);
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
+  const [recovery, setRecovery] = useState(props.recovery);
+  const consumeRecovery = useCallback(() => setRecovery(null), []);
   const companyAdmin = scope.authority === "COMPANY_ADMIN",
     locationManager = scope.authority === "LOCATION_MANAGER";
   const [tab, setTab] = useState<"employees" | "shifts">(
-    companyAdmin ? "employees" : "shifts",
+    companyAdmin && !recovery ? "employees" : "shifts",
   );
   if (!companyAdmin && !locationManager) return null;
   return (
@@ -53,7 +103,14 @@ function StaffPageContent() {
           </button>
         ))}
       </div>
-      {tab === "employees" ? <StaffEmployeesBody /> : <StaffShiftsBody />}
+      {tab === "employees" ? (
+        <StaffEmployeesBody />
+      ) : (
+        <StaffShiftsBody
+          recovery={recovery}
+          onRecoveryConsumed={consumeRecovery}
+        />
+      )}
     </AdministrationPage>
   );
 }

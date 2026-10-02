@@ -1,0 +1,433 @@
+{
+  "baseline": "4604048439eae0c1b8306a9b36afe2d2df6c66c6",
+  "branch": "fix/240g-force-end-closure",
+  "changedFileCount": 132,
+  "authoredCodeFiles": 27,
+  "maxAuthoredPhysicalLines": 268,
+  "maxAuthoredFile": "apps/dashboard/src/features/administration/staff/staff-shifts-body.tsx",
+  "files": [
+    {
+      "path": "apps/dashboard/e2e/issue240g-auth-cancellation.spec.ts",
+      "physicalLines": 81
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-authority.spec.ts",
+      "physicalLines": 117
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-freeze.spec.ts",
+      "physicalLines": 129
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-keyboard.spec.ts",
+      "physicalLines": 50
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-mfa-baseline.spec.ts",
+      "physicalLines": 65
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-mutation-races.spec.ts",
+      "physicalLines": 148
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-page-fences.spec.ts",
+      "physicalLines": 163
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-reconcile-fences.spec.ts",
+      "physicalLines": 197
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-submit.spec.ts",
+      "physicalLines": 121
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-unknown.spec.ts",
+      "physicalLines": 135
+    },
+    {
+      "path": "apps/dashboard/e2e/issue240g-visual.spec.ts",
+      "physicalLines": 174
+    },
+    {
+      "path": "apps/dashboard/e2e/support/issue240g-force-end.ts",
+      "physicalLines": 161
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-force-end-copy.ts",
+      "physicalLines": 72
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-force-end-dialog.tsx",
+      "physicalLines": 175
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-force-end-intent.test.ts",
+      "physicalLines": 61
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-force-end-intent.ts",
+      "physicalLines": 71
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-force-end-recovery.test.ts",
+      "physicalLines": 50
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-force-end-recovery.ts",
+      "physicalLines": 49
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-page.tsx",
+      "physicalLines": 116
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-shift-drawer.tsx",
+      "physicalLines": 105
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-shift-force-end-api.test.ts",
+      "physicalLines": 95
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-shift-force-end-api.ts",
+      "physicalLines": 32
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-shift-management-drawer.tsx",
+      "physicalLines": 108
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-shift-rows.tsx",
+      "physicalLines": 97
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/staff-shifts-body.tsx",
+      "physicalLines": 268
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/use-staff-shift-force-end.ts",
+      "physicalLines": 242
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/staff/use-staff-shift-query.ts",
+      "physicalLines": 100
+    },
+    {
+      "path": "docs/validation/ISSUE_240_TASK05_CLOSURE.md"
+    },
+    {
+      "path": "docs/validation/issue240g-api-test-manifest.txt"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline-provenance.json"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/.last-run.json"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-ar-light-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-dark-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-baseline/issue240e-baseline-T05-E-visual-en-light-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-change-manifest.json"
+    },
+    {
+      "path": "docs/validation/issue240g-database-test-manifest.txt"
+    },
+    {
+      "path": "docs/validation/issue240g-e2e-test-manifest.txt"
+    },
+    {
+      "path": "docs/validation/issue240g-evidence-ledger.json"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/.last-run.json"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-ar-light-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-dark-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-desktop-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-desktop-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-desktop-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-desktop-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-narrow-chromium/employee-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-narrow-chromium/employees.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-narrow-chromium/shift-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-freeze-T05-E-visual-en-light-narrow-chromium/shifts.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-5f4c7-eyboard-MFA-unknown-success-chromium/active-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-5f4c7-eyboard-MFA-unknown-success-chromium/force-end.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-5f4c7-eyboard-MFA-unknown-success-chromium/nested-mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-5f4c7-eyboard-MFA-unknown-success-chromium/outcome-unknown.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-5f4c7-eyboard-MFA-unknown-success-chromium/success-pending-cash.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-97cdb-eyboard-MFA-unknown-success-chromium/active-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-97cdb-eyboard-MFA-unknown-success-chromium/force-end.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-97cdb-eyboard-MFA-unknown-success-chromium/nested-mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-97cdb-eyboard-MFA-unknown-success-chromium/outcome-unknown.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-97cdb-eyboard-MFA-unknown-success-chromium/success-pending-cash.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-cf1d4-eyboard-MFA-unknown-success-chromium/active-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-cf1d4-eyboard-MFA-unknown-success-chromium/force-end.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-cf1d4-eyboard-MFA-unknown-success-chromium/nested-mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-cf1d4-eyboard-MFA-unknown-success-chromium/outcome-unknown.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-cf1d4-eyboard-MFA-unknown-success-chromium/success-pending-cash.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-d292e-eyboard-MFA-unknown-success-chromium/active-drawer.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-d292e-eyboard-MFA-unknown-success-chromium/force-end.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-d292e-eyboard-MFA-unknown-success-chromium/nested-mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-d292e-eyboard-MFA-unknown-success-chromium/outcome-unknown.png"
+    },
+    {
+      "path": "docs/validation/issue240g-final-corrections/issue240g-visual-Force-End-d292e-eyboard-MFA-unknown-success-chromium/success-pending-cash.png"
+    },
+    {
+      "path": "docs/validation/issue240g-mfa-baseline/.last-run.json"
+    },
+    {
+      "path": "docs/validation/issue240g-mfa-baseline/issue240g-mfa-baseline-existing-MFA-ar-false-480-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-mfa-baseline/issue240g-mfa-baseline-existing-MFA-ar-true-1440-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-mfa-baseline/issue240g-mfa-baseline-existing-MFA-en-false-1440-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-mfa-baseline/issue240g-mfa-baseline-existing-MFA-en-true-480-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-root-gates.json"
+    },
+    {
+      "path": "docs/validation/issue240g-runtime-preflight.json"
+    },
+    {
+      "path": "docs/validation/issue240g-verified-final/issue240g-mfa-baseline-existing-MFA-ar-false-480-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-verified-final/issue240g-mfa-baseline-existing-MFA-ar-true-1440-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-verified-final/issue240g-mfa-baseline-existing-MFA-en-false-1440-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-verified-final/issue240g-mfa-baseline-existing-MFA-en-true-480-chromium/mfa.png"
+    },
+    {
+      "path": "docs/validation/issue240g-visual-comparison.json"
+    }
+  ]
+}

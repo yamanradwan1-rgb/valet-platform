@@ -1,0 +1,361 @@
+{
+  "clock": "2026-10-02T09:55:00.000Z",
+  "surfaces": [
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium\\employees.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium\\employee-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium\\shifts.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-desktop-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-desktop-chromium\\shift-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 4036,
+      "rawBounds": [310, 566, 423, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[20, 562, 432, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium\\employees.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium\\employee-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium\\shifts.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-dark-narrow-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-dark-narrow-chromium\\shift-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 4036,
+      "rawBounds": [310, 566, 423, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[20, 562, 432, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-desktop-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-desktop-chromium\\employees.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-desktop-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-desktop-chromium\\employee-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-desktop-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-desktop-chromium\\shifts.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-desktop-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-desktop-chromium\\shift-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 3949,
+      "rawBounds": [310, 566, 423, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[20, 562, 432, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-narrow-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-narrow-chromium\\employees.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-narrow-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-narrow-chromium\\employee-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-narrow-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-narrow-chromium\\shifts.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-ar-light-narrow-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-ar-light-narrow-chromium\\shift-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 3949,
+      "rawBounds": [310, 566, 423, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[20, 562, 432, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-desktop-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-desktop-chromium\\employees.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-desktop-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-desktop-chromium\\employee-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-desktop-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-desktop-chromium\\shifts.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-desktop-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-desktop-chromium\\shift-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 4036,
+      "rawBounds": [1017, 566, 1130, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[1012, 562, 1424, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-narrow-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-narrow-chromium\\employees.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-narrow-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-narrow-chromium\\employee-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-narrow-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-narrow-chromium\\shifts.png",
+      "size": [480, 900],
+      "rawChangedPixels": 4,
+      "rawBounds": [394, 265, 397, 267],
+      "outsideActionChangedPixels": 4,
+      "outsideActionBounds": [394, 265, 397, 267],
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-dark-narrow-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-dark-narrow-chromium\\shift-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 4036,
+      "rawBounds": [57, 566, 170, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[52, 562, 464, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-desktop-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-desktop-chromium\\employees.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-desktop-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-desktop-chromium\\employee-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-desktop-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-desktop-chromium\\shifts.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-desktop-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-desktop-chromium\\shift-drawer.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 3930,
+      "rawBounds": [1017, 566, 1130, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[1012, 562, 1424, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-narrow-chromium\\employees.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-narrow-chromium\\employees.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-narrow-chromium\\employee-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-narrow-chromium\\employee-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-narrow-chromium\\shifts.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-narrow-chromium\\shifts.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-baseline\\issue240e-baseline-T05-E-visual-en-light-narrow-chromium\\shift-drawer.png",
+      "final": "docs\\validation\\issue240g-final-corrections\\issue240g-freeze-T05-E-visual-en-light-narrow-chromium\\shift-drawer.png",
+      "size": [480, 900],
+      "rawChangedPixels": 3930,
+      "rawBounds": [57, 566, 170, 602],
+      "outsideActionChangedPixels": 0,
+      "outsideActionBounds": null,
+      "actionMask": [[52, 562, 464, 610]]
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-mfa-baseline\\issue240g-mfa-baseline-existing-MFA-ar-false-480-chromium\\mfa.png",
+      "final": "docs\\validation\\issue240g-verified-final\\issue240g-mfa-baseline-existing-MFA-ar-false-480-chromium\\mfa.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-mfa-baseline\\issue240g-mfa-baseline-existing-MFA-ar-true-1440-chromium\\mfa.png",
+      "final": "docs\\validation\\issue240g-verified-final\\issue240g-mfa-baseline-existing-MFA-ar-true-1440-chromium\\mfa.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-mfa-baseline\\issue240g-mfa-baseline-existing-MFA-en-false-1440-chromium\\mfa.png",
+      "final": "docs\\validation\\issue240g-verified-final\\issue240g-mfa-baseline-existing-MFA-en-false-1440-chromium\\mfa.png",
+      "size": [1440, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "actionMask": []
+    },
+    {
+      "baseline": "docs\\validation\\issue240g-mfa-baseline\\issue240g-mfa-baseline-existing-MFA-en-true-480-chromium\\mfa.png",
+      "final": "docs\\validation\\issue240g-verified-final\\issue240g-mfa-baseline-existing-MFA-en-true-480-chromium\\mfa.png",
+      "size": [480, 900],
+      "rawChangedPixels": 0,
+      "rawBounds": null,
+      "outsideActionChangedPixels": 0,
+      "actionMask": []
+    }
+  ]
+}

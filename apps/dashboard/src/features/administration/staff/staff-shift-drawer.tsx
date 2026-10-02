@@ -20,6 +20,8 @@ export function StaffShiftDrawer(props: {
   readonly now: number;
   readonly onClose: () => void;
   readonly onRetry: () => void;
+  readonly action?: ReactNode;
+  readonly dialog?: ReactNode;
 }) {
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale),
@@ -85,9 +87,11 @@ export function StaffShiftDrawer(props: {
               label={h.duration}
               value={shiftDuration(item, props.now, locale)}
             />
+            {props.action}
           </div>
         ) : null}
       </ReadState>
+      {props.dialog}
     </AdministrationDrawer>
   );
 }

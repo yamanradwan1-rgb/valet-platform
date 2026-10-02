@@ -82,6 +82,7 @@ export function StaffShiftRows(props: {
               <button
                 aria-label={`${h.details}: \u2068${name}\u2069 · \u2068${item.location.name}\u2069 · \u2068${started}\u2069 · ${new Intl.NumberFormat(props.locale).format(index + 1)}`}
                 className={css.detailAction}
+                data-shift-detail={item.shiftId}
                 onClick={() => props.onSelect(item.shiftId)}
                 type="button"
               >

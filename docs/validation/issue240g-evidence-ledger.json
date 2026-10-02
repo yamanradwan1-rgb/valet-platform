@@ -1,0 +1,487 @@
+{
+  "baseline": "4604048439eae0c1b8306a9b36afe2d2df6c66c6",
+  "branch": "fix/240g-force-end-closure",
+  "environment": {
+    "node": "24.18.0",
+    "pnpm": "10.34.5",
+    "browser": "Chromium",
+    "browserWorkers": 1,
+    "date": "2026-10-02"
+  },
+  "evidenceBoundary": "Local execution. Browser tests use explicit API fixtures; backend and migrations use owned isolated real PostgreSQL. No CI, deployment, pilot, or live browser-to-API claim.",
+  "gates": [
+    {
+      "id": "baseline-surfaces",
+      "status": "PASS",
+      "command": "pnpm --filter @valet/dashboard test:e2e e2e/issue240e-baseline.spec.ts --output=../../docs/validation/issue240g-baseline --reporter=line",
+      "tests": 8,
+      "screenshots": 32,
+      "beforeUi": true
+    },
+    {
+      "id": "baseline-existing-mfa",
+      "status": "PASS",
+      "command": "pnpm --filter @valet/dashboard test:e2e e2e/issue240g-mfa-baseline.spec.ts --output=../../docs/validation/issue240g-mfa-baseline --reporter=line",
+      "tests": 4,
+      "screenshots": 4,
+      "beforeUi": true
+    },
+    {
+      "id": "dashboard-unit",
+      "status": "PASS",
+      "command": "pnpm --filter @valet/dashboard test staff-force-end staff-shift-force-end",
+      "files": 80,
+      "passed": 594,
+      "note": "Package script also selects src, so this runs the dashboard unit suite."
+    },
+    {
+      "id": "contracts",
+      "status": "PASS",
+      "command": "pnpm --filter @valet/contracts exec vitest run src/staff-management.test.ts src/staff-onboarding.test.ts src/staff-activation.test.ts src/staff-shift-history.test.ts src/staff-shift-force-end.test.ts src/staff-mfa.test.ts src/staff-auth.test.ts src/staff-context.test.ts src/management-audit.test.ts",
+      "files": 9,
+      "passed": 65
+    },
+    {
+      "id": "focused-browser-final-main",
+      "status": "FAIL",
+      "command": "pnpm --filter @valet/dashboard test:e2e e2e/issue240g e2e/issue240e-baseline.spec.ts --output=../../docs/validation/issue240g-verified-final --reporter=line",
+      "passed": 65,
+      "failed": 3,
+      "resolved": [
+        "Nested MFA Escape focus returned to body; fixed owned dialog focus recovery.",
+        "Two filter ABA fixtures selected empty value instead of existing ALL; corrected fixture."
+      ],
+      "note": "Original failed result retained here; fixed cases were rerun below. Only final existing-MFA PNGs retained in this output directory."
+    },
+    {
+      "id": "focused-browser-final-corrections",
+      "status": "PASS",
+      "command": "pnpm --filter @valet/dashboard test:e2e e2e/issue240g-keyboard.spec.ts e2e/issue240g-page-fences.spec.ts e2e/issue240g-freeze.spec.ts e2e/issue240g-visual.spec.ts e2e/issue240g-submit.spec.ts --output=../../docs/validation/issue240g-final-corrections --reporter=line",
+      "passed": 22,
+      "note": "After the final focus correction. No timeout, test configuration, existing assertion or race barrier weakened."
+    },
+    {
+      "id": "focused-browser-distinct-final-proof",
+      "status": "PASS",
+      "distinctNewCases": 68,
+      "existingBaselineCases": 8,
+      "note": "Union of successful cases in the two final scoped runs; overlapping cases not added twice. This is not a single 76-case green run and does not replace the failed cumulative run."
+    },
+    {
+      "id": "cumulative-api-owned",
+      "status": "FAIL",
+      "command": "DOTENV_CONFIG_PATH=<root .env>; pnpm --filter @valet/api exec node -r dotenv/config ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs <issue240g-api-test-manifest.txt>",
+      "files": 63,
+      "passed": 319,
+      "failed": 4,
+      "groups": [
+        {
+          "name": "api-non-postgres",
+          "passed": 31
+        },
+        {
+          "name": "api-postgres-standard",
+          "passed": 19
+        },
+        {
+          "name": "api-postgres-race",
+          "passed": 269,
+          "failed": 4
+        }
+      ]
+    },
+    {
+      "id": "isolated-api-failure-provenance",
+      "status": "FAIL",
+      "command": "DOTENV_CONFIG_PATH=<root .env>; pnpm --filter @valet/api exec node -r dotenv/config ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/staff-directory-filters.integration.test.ts test/staff-management-directory-pagination.integration.test.ts",
+      "passed": 13,
+      "failed": 2,
+      "note": "Both assertion failures reproduce in isolation; tests and production backend blobs are unchanged."
+    },
+    {
+      "id": "cumulative-database-owned",
+      "status": "FAIL",
+      "command": "DOTENV_CONFIG_PATH=<root .env>; pnpm --filter @valet/database exec node -r dotenv/config ../../scripts/test-harness/run-owned-tests.mjs database vitest.config.mjs <issue240g-database-test-manifest.txt>",
+      "files": 9,
+      "passed": 27,
+      "failed": 3,
+      "forceEndMigrationTestsPassed": 4
+    },
+    {
+      "id": "cumulative-dashboard-browser",
+      "status": "FAIL",
+      "command": "pnpm --filter @valet/dashboard test:e2e <issue240g-e2e-test-manifest.txt> --output=../../docs/validation/issue240g-cumulative --reporter=line",
+      "selected": 180,
+      "reportedFailedBeforeStop": 78,
+      "interrupted": 1,
+      "unstarted": 101,
+      "note": "Stopped the one cumulative run when generated Next route state made / and /employees return 404. Failure was before meaningful sign-in. No broad replay. Recovered only generated .next state, then production compilation, HTTP 200 preflight and focused browser checks passed."
+    },
+    {
+      "id": "root-typecheck",
+      "status": "FAIL",
+      "command": "pnpm typecheck",
+      "exitCode": 2,
+      "note": "Generated dashboard route validator constrained Route to never. Final dashboard package check passes after cache recovery. Separate Employee check still fails with 15 missing timezone TS2741 errors in nine unchanged files."
+    },
+    {
+      "id": "employee-typecheck-provenance",
+      "status": "FAIL",
+      "command": "pnpm --filter @valet/valet typecheck",
+      "exitCode": 2,
+      "errorCount": 15,
+      "fileCount": 9
+    },
+    {
+      "id": "root-lint",
+      "status": "FAIL",
+      "command": "pnpm lint",
+      "exitCode": 1,
+      "errors": 9,
+      "warnings": 3,
+      "fileCount": 5,
+      "note": "All five offending files are unchanged foundation/scope files."
+    },
+    {
+      "id": "root-format",
+      "status": "FAIL",
+      "command": "pnpm format:check",
+      "exitCode": 1,
+      "warnings": 950,
+      "unchangedTracked": 851,
+      "outsideTrackedBaseline": 99,
+      "note": "Historical result. Other 99 include untracked/ignored reference and task artifacts; do not call all 950 baseline defects. Final owned files receive an explicit check."
+    },
+    {
+      "id": "architecture",
+      "status": "PASS",
+      "command": "pnpm architecture:check",
+      "note": "Only unchanged grandfathered warnings."
+    },
+    {
+      "id": "prisma",
+      "status": "PASS",
+      "command": "pnpm --filter @valet/database prisma:validate"
+    },
+    {
+      "id": "root-production-build",
+      "status": "PASS",
+      "command": "API_ORIGIN=http://localhost:3001; pnpm build:production --no-cache",
+      "successfulTasks": 10,
+      "cachedTasks": 0,
+      "note": "Run once. Followed by final dashboard-only build for the last owned focus correction."
+    },
+    {
+      "id": "final-dashboard-build",
+      "status": "PASS",
+      "command": "API_ORIGIN=http://localhost:3001; pnpm --filter @valet/dashboard build"
+    },
+    {
+      "id": "final-dashboard-typecheck",
+      "status": "PASS",
+      "command": "pnpm --filter @valet/dashboard typecheck"
+    },
+    {
+      "id": "final-owned-lint",
+      "status": "PASS",
+      "command": "pnpm exec eslint --max-warnings=0 <27 owned TS/TSX paths from change manifest>"
+    },
+    {
+      "id": "final-owned-format",
+      "status": "PASS",
+      "command": "pnpm exec prettier --ignore-path .gitignore --check <explicit owned TS/TSX/MD/JSON paths>"
+    },
+    {
+      "id": "broad-postgresql",
+      "status": "FAIL",
+      "command": "DOTENV_CONFIG_PATH=<root .env>; pnpm exec node -r ./apps/api/node_modules/dotenv/config scripts/test-harness/run-root-tests.mjs --postgres-only",
+      "groups": [
+        {
+          "name": "api-postgres-standard",
+          "status": "PASS",
+          "files": 115,
+          "passed": 798
+        },
+        {
+          "name": "api-postgres-compound",
+          "status": "PASS",
+          "files": 24,
+          "passed": 89
+        },
+        {
+          "name": "api-postgres-race",
+          "status": "FAIL",
+          "files": 173,
+          "passed": 1055,
+          "failed": 2
+        },
+        {
+          "name": "database-postgres-direct",
+          "status": "FAIL",
+          "files": 31,
+          "passed": 552,
+          "failed": 15
+        },
+        {
+          "name": "database-postgres-provision",
+          "status": "FAIL",
+          "files": 31,
+          "passed": 123,
+          "failed": 10
+        }
+      ],
+      "note": "Single complete serial owned invocation. API 1942 passed/2 failed; DB 675 passed/25 failed. Two owned-run timeout cases passed here without altered limits; the earlier owned run remains FAIL. DB has 24 stale migration count/latest expectations and one AuditEvent required-field test expecting 23502 but receiving 42501. All failing test files are unchanged. Each project reports owned cleanup db=0 roles=0 children=0.",
+      "recordedFailures": [
+        {
+          "project": "api-postgres-race",
+          "file": "apps/api/test/staff-directory-filters.integration.test.ts",
+          "case": "T05-A real server directory filters > conceals foreign/missing Locations identically and requires current CA authority",
+          "error": "AssertionError: expected 200 to be 404 // Object.is equality",
+          "reference": "test/staff-directory-filters.integration.test.ts:151:28"
+        },
+        {
+          "project": "api-postgres-race",
+          "file": "apps/api/test/staff-management-directory-pagination.integration.test.ts",
+          "case": "MGT-BE-04 Staff directory pagination > binds cursors to the Organization and rejects an oversized page",
+          "error": "AssertionError: expected 404 to be 400 // Object.is equality",
+          "reference": "test/staff-management-directory-pagination.integration.test.ts:70:28"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/audit-foundation-migration.integration.test.ts",
+          "case": "MGT-BE-01 audit foundation migration 35 > applies the current history including audit foundation from an empty database",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/audit-foundation-migration.integration.test.ts:201:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/basic-branding-migration.integration.test.ts",
+          "case": "migration 30 basic branding and subscription entitlements > is exactly migration 30 with the manifest in order",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/basic-branding-migration.integration.test.ts:101:25"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/cash-reconciliation-migration.integration.test.ts",
+          "case": "migration 27 cash reconciliation > is exactly migration 27 and adds nullable typed Shift columns",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/cash-reconciliation-migration.integration.test.ts:118:25"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/financial-policy-migration.integration.test.ts",
+          "case": "migration 26 financial policy > is exactly the next forward-only migration with exact enum values",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/financial-policy-migration.integration.test.ts:107:34"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/guest-rating-migration.integration.test.ts",
+          "case": "MGT-BE-09 migration 42 Guest Rating > is migration 42 and upgrades existing sessions without fabricating ratings",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/guest-rating-migration.integration.test.ts:117:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/location-configuration-migration.integration.test.ts",
+          "case": "migration 29 location configuration authority > is exactly migration 29 with the manifest in order",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/location-configuration-migration.integration.test.ts:111:25"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/location-lifecycle-migration.integration.test.ts",
+          "case": "MGT-BE-07 migration 40 Location lifecycle > is the 40th ordered migration and applies cleanly in fresh history",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/location-lifecycle-migration.integration.test.ts:115:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/management-company-reports-migration.integration.test.ts",
+          "case": "MGT-BE-11 migration 44 company analytics/report indexes > is exactly migration 44 and preserves upgraded source rows",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/management-company-reports-migration.integration.test.ts:159:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/management-kpi-migration.integration.test.ts",
+          "case": "MGT-BE-10 migration 43 KPI source contracts > is migration 43 and upgrades old rows without backfilling SLA truth",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/management-kpi-migration.integration.test.ts:139:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/maps-tracking-persistence.integration.test.ts",
+          "case": "DEC-046 maps and tracking persistence > applies migration 23 with the accepted typed tables and policy defaults",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/maps-tracking-persistence.integration.test.ts:78:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/payment-collection-migration.integration.test.ts",
+          "case": "migration 28 payment collection operation > is the sole 28th migration with the exact lifecycle enum",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/payment-collection-migration.integration.test.ts:12:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/schema.integration.test.ts",
+          "case": "audit event database foundation > enforces every required AuditEvent field",
+          "error": "AssertionError: expected '42501' to be '23502' // Object.is equality",
+          "reference": "expectNotNullViolation src/schema.integration.test.ts:294:32"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/schema.integration.test.ts",
+          "case": "intake session creation persistence > applies exactly all forty-six forward-only migrations in order",
+          "error": "AssertionError: expected '20261002005400_mgt_240f_force_end_shi…' to be '20260929004600_mgt_232_physical_resou…' // Object.is equality",
+          "reference": "src/schema.integration.test.ts:7143:48"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/staff-push-migration.integration.test.ts",
+          "case": "MOB-020A/020D Staff Push migrations 32 and 33 > applies from an empty database through the full ordered history",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/staff-push-migration.integration.test.ts:110:42"
+        },
+        {
+          "project": "database-postgres-direct",
+          "file": "packages/database/src/task-dispatch-persistence.integration.test.ts",
+          "case": "DEC-034 Task and DispatchEvent persistence > preserves Task/Dispatch enums through the current migration set",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/task-dispatch-persistence.integration.test.ts:75:25"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/audit-foundation-runtime-role.integration.test.ts",
+          "case": "MGT-BE-01 audit foundation runtime role > applies all migrations and keeps both audit tables non-owned and PUBLIC-denied",
+          "error": "AssertionError: expected { n: 54, …(1) } to deeply equal { …(2) }",
+          "reference": "src/audit-foundation-runtime-role.integration.test.ts:102:32"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
+          "case": "VAL-009F runtime privileges for G8 surfaces > keeps the schema at exactly 46 applied migrations",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/basic-branding-runtime-privilege.integration.test.ts:84:25"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/location-configuration-runtime-role.integration.test.ts",
+          "case": "VAL-009B location configuration runtime privileges > keeps the schema at exactly 46 applied migrations",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/location-configuration-runtime-role.integration.test.ts:105:25"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/management-pagination-snapshot-migration.integration.test.ts",
+          "case": "MGT-FIX-02 migration 45 pagination snapshot membership > is one forward migration and leaves legacy rows pre-snapshot",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/management-pagination-snapshot-migration.integration.test.ts:175:42"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/phase4-runtime-role.integration.test.ts",
+          "case": "DEC-039 Phase 4 runtime persistence privileges > keeps the schema at exactly 46 applied migrations",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/phase4-runtime-role.integration.test.ts:95:25"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/runtime-role.integration.test.ts",
+          "case": "runtime PostgreSQL role boundary > applies all 46 migrations through migration credentials only",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/runtime-role.integration.test.ts:285:25"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/seed.integration.test.ts",
+          "case": "demo seed data foundation > applies all 46 forward-only migrations to a fresh database",
+          "error": "AssertionError: expected [ …(54) ] to have a length of 46 but got 54",
+          "reference": "src/seed.integration.test.ts:230:25"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/staff-activation-migration.integration.test.ts",
+          "case": "T05-D actual Prisma 052 to 053 and fresh deployment > records exactly 53 versioned migrations in both paths, PENDING enums and nullable password",
+          "error": "AssertionError: expected { n: 54, …(1) } to deeply equal { n: 53, …(1) }",
+          "reference": "src/staff-activation-migration.integration.test.ts:215:9"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/staff-identity-migration.integration.test.ts",
+          "case": "T05-A actual Prisma 048 → 049 additive upgrade > preserves every old membership/User/grant fact and leaves names null without backfill",
+          "error": "AssertionError: expected { n: 54, …(1) } to deeply equal { n: 49, …(1) }",
+          "reference": "src/staff-identity-migration.integration.test.ts:173:9"
+        },
+        {
+          "project": "database-postgres-provision",
+          "file": "packages/database/src/staff-onboarding-migration.integration.test.ts",
+          "case": "T05-C actual Prisma 050 foundation to current and fresh deployment > records exactly 53 versioned migrations in both paths, PENDING enums and nullable password",
+          "error": "AssertionError: expected { n: 54, …(1) } to deeply equal { n: 53, …(1) }",
+          "reference": "src/staff-onboarding-migration.integration.test.ts:183:9"
+        }
+      ],
+      "exitCode": 1,
+      "files": 374,
+      "passed": 2617,
+      "failed": 27
+    }
+  ],
+  "failures": [
+    {
+      "gate": "cumulative-api-owned",
+      "file": "apps/api/test/staff-directory-filters.integration.test.ts",
+      "line": 151,
+      "expected": 404,
+      "received": 200,
+      "case": "conceals foreign/missing Locations identically and requires current CA authority"
+    },
+    {
+      "gate": "cumulative-api-owned",
+      "file": "apps/api/test/staff-management-directory-pagination.integration.test.ts",
+      "line": 70,
+      "expected": 400,
+      "received": 404,
+      "case": "binds cursors to the Organization and rejects an oversized page"
+    },
+    {
+      "gate": "cumulative-api-owned",
+      "file": "apps/api/test/staff-management-lm-mutations.integration.test.ts",
+      "line": 176,
+      "timeoutMs": 5000,
+      "case": "pages more than 100 grants and returns bounded candidate state without CA authority"
+    },
+    {
+      "gate": "cumulative-api-owned",
+      "file": "apps/api/test/staff-shift-history-plan.integration.test.ts",
+      "line": 11,
+      "timeoutMs": 5000,
+      "case": "measures final history SQL at 40,000 ended rows across two tenants"
+    },
+    {
+      "gate": "cumulative-database-owned",
+      "file": "packages/database/src/staff-identity-migration.integration.test.ts",
+      "expectedMigrations": 49,
+      "receivedMigrations": 54
+    },
+    {
+      "gate": "cumulative-database-owned",
+      "file": "packages/database/src/staff-onboarding-migration.integration.test.ts",
+      "expectedMigrations": 53,
+      "receivedMigrations": 54
+    },
+    {
+      "gate": "cumulative-database-owned",
+      "file": "packages/database/src/staff-activation-migration.integration.test.ts",
+      "expectedMigrations": 53,
+      "receivedMigrations": 54
+    }
+  ],
+  "closureVerdict": "BLOCKED",
+  "remoteCi": "UNRUN",
+  "deployment": "UNRUN",
+  "paidCustomerPilot": "UNRUN",
+  "timeoutChanges": false,
+  "testWeakening": false
+}

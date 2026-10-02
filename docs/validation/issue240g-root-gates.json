@@ -1,0 +1,7 @@
+{
+  "typecheck": 2,
+  "lint": 1,
+  "format": 1,
+  "architecture": 0,
+  "prisma": 0
+}

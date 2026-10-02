@@ -8,7 +8,7 @@ interface Filters {
   from: string;
   to: string;
 }
-export function useStaffShiftQuery() {
+export function useStaffShiftQuery(initialShiftId: string | null = null) {
   const [state, setState] = useState({
     filters: {
       location: null,
@@ -20,8 +20,9 @@ export function useStaffShiftQuery() {
     cursor: null as string | null,
     history: [] as (string | null)[],
     generation: 0,
-    shiftId: null as string | null,
+    shiftId: initialShiftId,
     detailGeneration: 0,
+    selectionGeneration: 0,
   });
   const close = useCallback(
     () => setState((current) => ({ ...current, shiftId: null })),
@@ -74,7 +75,26 @@ export function useStaffShiftQuery() {
       ...current,
       shiftId,
       detailGeneration: current.detailGeneration + 1,
+      selectionGeneration: current.selectionGeneration + 1,
     }));
   }
-  return { ...state, change, refresh, next, previous, select, close };
+  function reconcileSelected() {
+    setState((current) => ({
+      ...current,
+      cursor: null,
+      history: [],
+      generation: current.generation + 1,
+      detailGeneration: current.detailGeneration + 1,
+    }));
+  }
+  return {
+    ...state,
+    change,
+    refresh,
+    next,
+    previous,
+    select,
+    close,
+    reconcileSelected,
+  };
 }

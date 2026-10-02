@@ -1,0 +1,9 @@
+src/staff-identity-migration.integration.test.ts
+src/staff-management-lm-authority-migration.integration.test.ts
+src/staff-onboarding-migration.integration.test.ts
+src/staff-activation-migration.integration.test.ts
+src/shift-force-end-migration.integration.test.ts
+src/mfa-runtime-role.integration.test.ts
+src/mfa-recovery-constraints.integration.test.ts
+src/mfa-constraints.integration.test.ts
+src/staff-management-migration-preservation.integration.test.ts
