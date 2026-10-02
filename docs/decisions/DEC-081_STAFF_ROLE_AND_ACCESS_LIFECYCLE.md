@@ -168,4 +168,37 @@ bound public attempts (credential 5, trusted address 30 per rolling 15 minutes).
 Pending manager reads retain full LM coverage while ordinary mutations remain
 quarantined. Create/resend use explicit MFA retry and ephemeral copy-link results.
 The standalone EN/AR activation form immediately removes its fragment and keeps
-secrets only in memory. T05-E/F/G and email/SMS delivery are outside this slice.
+secrets only in memory. T05-E/F/G and email/SMS delivery are outside T05-D.
+
+## Approved T05-E management Shift history (2026-10-02)
+
+The owner T05-E contract and execution map are recorded in
+`docs/validation/ISSUE_240E_SHIFT_HISTORY.md`. Organization-scoped, bounded GET
+`/v1/staff/management/organizations/:organizationId/shifts` and `/:shiftId`
+read existing ACTIVE/ENDED rows. Current canonical membership names/User email,
+currentRole and authoritative Location metadata are projected; these are current
+identity values, not historical snapshots. No cash or custody/task projection.
+
+Every request revalidates the current active actor account, exact Staff session,
+membership, Organization and Dashboard entitlement. Company Admin uses ordinary
+DEC-078 read assurance and sees its Organization history including inactive
+Locations/targets. Location Manager sees only Shift rows at its CURRENT granted
+ACTIVE Locations. Target lifecycle, role or complete target-management grant
+coverage must not erase otherwise authorized history. Direct detail is concealed
+outside that same Location authority. No LM history MFA policy is added here.
+
+Exact membership/Location/status and started-in `[from,to)` instant predicates
+run before LIMIT+1. Pages order by started_at DESC/id DESC; dedicated versioned
+cursors bind Organization, actor authority/membership/grant scope and normalized
+filter fingerprint for CA and LM. No frozen snapshot across HTTP requests.
+`/shifts/employees` is a bounded searchable identity-only candidate read using
+the same history Location authority, rather than the target-management directory.
+Existing bounded Location discovery supplies filter metadata. Civil dates use
+the selected Location timezone, or explicit UTC for all authorized Locations;
+invalid/equal/reversed or unavailable midnight boundaries block browser reads.
+
+The Dashboard retains the Staff visual language, renders a separate authoritative
+detail read, and uses one local minute clock shared by visible rows/detail with
+zero duration requests. Filter/page/refresh/scope/session generations fence stale
+successes and failures. Refresh starts page one. No operational mutation,
+business audit, history-copy persistence, Force End/Start or T05-F/G behavior.

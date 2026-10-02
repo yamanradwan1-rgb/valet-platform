@@ -11,15 +11,18 @@ import {
 import { signInOnCurrentPage } from "./support/foundation-ui";
 import { persistentMatches } from "./support/persistent-storage";
 import {
-  activeShift,
   activeShiftsPath,
   STAFF_EMAIL,
   staffItem,
   staffPath,
 } from "./support/administration-r05-fixtures";
+import {
+  historyPath,
+  historyRow as activeShift,
+} from "./support/issue240e-history";
 
 const directory = staffPath(ORG_A.organizationId);
-const shifts = activeShiftsPath(LOCATION_A.locationId);
+const shifts = historyPath();
 
 test("R05 Company Admin All Locations reads Employees but sends zero active-shift reads", async ({
   page,
@@ -43,12 +46,12 @@ test("R05 Company Admin All Locations reads Employees but sends zero active-shif
   expect(fixture.count(directory)).toBeGreaterThan(0);
   await page.getByRole("button", { name: "Shifts" }).click();
   await expect(
-    page.getByText("Select a Location to view this information."),
+    page.getByRole("table").getByText("Maya O’Connor", { exact: true }),
   ).toBeVisible();
-  expect(fixture.count(shifts)).toBe(0);
+  expect(fixture.count(shifts)).toBe(1);
 });
 
-test("T05-B Location Manager opens Employees lazily and keeps Shifts exact-location scoped", async ({
+test("T05-E Location Manager opens Employees lazily and reads authorized Location history", async ({
   page,
 }) => {
   const fixture = new DashboardApiFixture({
@@ -70,10 +73,10 @@ test("T05-B Location Manager opens Employees lazily and keeps Shifts exact-locat
     page.getByRole("heading", { name: "Employees & Shifts" }),
   ).toBeVisible();
   await expect(
-    page.getByText("View active shifts for the selected Location."),
+    page.getByText("View shift history across authorized locations."),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Employees" })).toBeVisible();
-  await expect(page.getByText("Active shift", { exact: true })).toBeVisible();
+  await expect(page.getByText("Maya O’Connor", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: LOCATION_B.name })).toHaveCount(
     0,
   );
@@ -114,9 +117,9 @@ test("R05 inactive Location sends zero active-shift reads", async ({
   await page.getByRole("button", { name: /Main Garage/u }).click();
   await page.getByRole("button", { name: "Shifts" }).click();
   await expect(
-    page.getByText("Select an active Location to view active shifts."),
+    page.getByRole("table").getByText("Maya O’Connor", { exact: true }),
   ).toBeVisible();
-  expect(fixture.count(shifts)).toBe(0);
+  expect(fixture.count(shifts)).toBe(1);
 });
 
 test("R05 Dashboard entitlement denial prevents Employees business reads", async ({
@@ -229,7 +232,7 @@ test("R05 settles request budget, keeps rows memory-only, and performs no hidden
   await expect.poll(() => fixture.count(directory)).toBe(settledDirectory + 1);
 
   await page.getByRole("button", { name: "Shifts" }).click();
-  await expect(page.getByText("Active shift", { exact: true })).toBeVisible();
+  await expect(page.getByText("Maya O’Connor", { exact: true })).toBeVisible();
   const settledShifts = fixture.count(shifts);
   await page.waitForTimeout(650);
   expect(fixture.count(shifts)).toBe(settledShifts);

@@ -11,14 +11,13 @@ import {
   ORG_A,
 } from "./support/dashboard-api-fixture";
 import {
-  activeShift,
-  activeShiftsPath,
   STAFF_EMAIL,
   staffDetail,
   staffItem,
   staffPath,
 } from "./support/administration-r05-fixtures";
 import { signInOnCurrentPage } from "./support/foundation-ui";
+import { historyPath, historyRow } from "./support/issue240e-history";
 
 const phase = process.env.T05B_VISUAL_PHASE ?? "after";
 const out = join(tmpdir(), "vaylet-t05b", phase);
@@ -78,8 +77,13 @@ function visualFixture(authority: "CA" | "LM") {
             nextCursor: null,
           },
         };
-      if (path === activeShiftsPath(LOCATION_A.locationId))
-        return { body: { items: [activeShift()], nextCursor: null } };
+      if (path === historyPath())
+        return {
+          body: {
+            items: [historyRow({ identity: staffItem().identity })],
+            nextCursor: null,
+          },
+        };
       return undefined;
     },
   });
@@ -150,18 +154,19 @@ test("T05-B CA visual freeze and Shifts table proof", async ({ page }) => {
   await page.keyboard.press("Escape");
 
   await page.getByRole("button", { name: "اللغة", exact: true }).click();
-  await page.getByRole("button", { name: "Light", exact: true }).click();
-  await page.setViewportSize({ width: 1440, height: 900 });
   await page
-    .locator(".topbar")
-    .getByRole("button", { name: "Change scope" })
+    .getByRole("group", { name: "Theme" })
+    .getByRole("button")
+    .nth(0)
     .click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.locator(".sidebar-scope").click();
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
   await page.getByRole("button", { name: "Shifts", exact: true }).click();
   const shiftTable = page.getByRole("table");
   await expect(
-    shiftTable.getByText("Active shift", { exact: true }),
+    shiftTable.getByText(STAFF_EMAIL, { exact: true }).first(),
   ).toBeVisible();
   await shiftTable.screenshot({ path: join(out, "shifts-table.png") });
   writeFileSync(

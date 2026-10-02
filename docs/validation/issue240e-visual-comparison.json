@@ -1,0 +1,98 @@
+[
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-dark-desktop-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-dark-desktop-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-dark-narrow-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-dark-narrow-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-light-desktop-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-light-desktop-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-light-narrow-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-ar-light-narrow-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-dark-desktop-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-dark-desktop-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-dark-narrow-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-dark-narrow-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-light-desktop-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 3
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-light-desktop-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 1209600,
+    "changedPixels": 3
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-light-narrow-chromium",
+    "surface": "employees.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  },
+  {
+    "case": "issue240e-baseline-T05-E-baseline-en-light-narrow-chromium",
+    "surface": "employee-drawer.png",
+    "pixelsCompared": 403200,
+    "changedPixels": 0
+  }
+]

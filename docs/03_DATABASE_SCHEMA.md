@@ -732,6 +732,12 @@ legacy detail projection's first 100 rows is authorization input.
 
 ## shifts
 
+T05-E management history reads these existing rows directly. Identity is joined
+from current same-Organization membership/User and Location metadata; it is not
+a Shift-time name/role snapshot. It introduces no history-copy or Force End data.
+Read-index decisions require final SQL EXPLAIN evidence; see
+`docs/validation/ISSUE_240E_SHIFT_HISTORY.md`.
+
 ```text
 id
 organization_id

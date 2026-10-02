@@ -1,0 +1,346 @@
+{
+  "endedRows": 40000,
+  "tenantRows": 20000,
+  "membersPerTenant": 200,
+  "migrationsThrough": 53,
+  "measurements": [
+    {
+      "scenario": "organization",
+      "executionMs": 20.391,
+      "nodes": [
+        {
+          "node": "Nested Loop",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 968
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 811
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 658
+        },
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656,
+          "sortMethod": "top-N heapsort"
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 20000,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Memoize",
+          "rows": 1,
+          "loops": 51,
+          "sharedHitBlocks": 2
+        },
+        {
+          "node": "Index Scan",
+          "index": "locations_organization_id_id_key",
+          "rows": 1,
+          "loops": 1,
+          "sharedHitBlocks": 2
+        },
+        {
+          "node": "Index Scan",
+          "index": "organization_memberships_pkey",
+          "rows": 1,
+          "loops": 51,
+          "sharedHitBlocks": 153
+        },
+        {
+          "node": "Index Scan",
+          "index": "users_pkey",
+          "rows": 1,
+          "loops": 51,
+          "sharedHitBlocks": 153
+        }
+      ]
+    },
+    {
+      "scenario": "exact-location",
+      "executionMs": 9.547,
+      "nodes": [
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 382,
+          "sortMethod": "quicksort"
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 382
+        },
+        {
+          "node": "Hash Join",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 229
+        },
+        {
+          "node": "Hash Join",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 228
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 400,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Hash",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 222
+        },
+        {
+          "node": "Subquery Scan",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 222
+        },
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 222
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 222,
+          "sortMethod": "top-N heapsort"
+        },
+        {
+          "node": "Bitmap Heap Scan",
+          "rows": 10000,
+          "loops": 1,
+          "sharedHitBlocks": 222
+        },
+        {
+          "node": "Bitmap Index Scan",
+          "index": "shifts_location_id_status_idx",
+          "rows": 10000,
+          "loops": 1,
+          "sharedHitBlocks": 9
+        },
+        {
+          "node": "Hash",
+          "rows": 3,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 3,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Index Scan",
+          "index": "users_pkey",
+          "rows": 1,
+          "loops": 51,
+          "sharedHitBlocks": 153
+        }
+      ]
+    },
+    {
+      "scenario": "exact-membership",
+      "executionMs": 10.42,
+      "nodes": [
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 816,
+          "sortMethod": "quicksort"
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 816
+        },
+        {
+          "node": "Hash Join",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 663
+        },
+        {
+          "node": "Hash Join",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 662
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 400,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Hash",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Subquery Scan",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656,
+          "sortMethod": "quicksort"
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 100,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Hash",
+          "rows": 3,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 3,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Index Scan",
+          "index": "users_pkey",
+          "rows": 1,
+          "loops": 51,
+          "sharedHitBlocks": 153
+        }
+      ]
+    },
+    {
+      "scenario": "status-date",
+      "executionMs": 11.055,
+      "nodes": [
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 816,
+          "sortMethod": "quicksort"
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 816
+        },
+        {
+          "node": "Hash Join",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 663
+        },
+        {
+          "node": "Hash Join",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 662
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 400,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Hash",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Subquery Scan",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 656,
+          "sortMethod": "top-N heapsort"
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 2800,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Hash",
+          "rows": 3,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 3,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Index Scan",
+          "index": "users_pkey",
+          "rows": 1,
+          "loops": 51,
+          "sharedHitBlocks": 153
+        }
+      ]
+    }
+  ]
+}

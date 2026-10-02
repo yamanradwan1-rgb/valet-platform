@@ -3808,6 +3808,16 @@ Organization; global User disable remains separate.
 Full contract:
 `docs/decisions/DEC-081_STAFF_ROLE_AND_ACCESS_LIFECYCLE.md`.
 
+Approved T05-E extension (2026-10-02): bounded Organization Shift history/detail
+read existing rows with current canonical identity/currentRole. CA uses standard
+read assurance including inactive Locations/targets; LM history is constrained by
+current granted ACTIVE Shift Locations, independent of target-management coverage.
+Exact filters precede LIMIT; actor/scope/filter-bound dedicated cursors apply to
+both authorities. A bounded history-authorized employee candidate read supports
+exact membership selection. Explicit timezone date boundaries and one local
+minute clock support the existing Staff UI. No cash/operational mutation or
+T05-F/G behavior. Full execution map: `docs/validation/ISSUE_240E_SHIFT_HISTORY.md`.
+
 Approved Issue #240 / T05-A extension (2026-10-01): nullable structured staff
 names belong to OrganizationMembership; User retains global email. Names are
 trimmed, nonblank, Unicode-preserving and bounded to 100 code points each, with

@@ -1,0 +1,313 @@
+{
+  "endedRows": 40000,
+  "tenantRows": 20000,
+  "membersPerTenant": 200,
+  "migrationsThrough": 53,
+  "measurements": [
+    {
+      "scenario": "organization",
+      "executionMs": 175.723,
+      "nodes": [
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 674
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 674,
+          "sortMethod": "top-N heapsort"
+        },
+        {
+          "node": "Hash Join",
+          "rows": 20000,
+          "loops": 1,
+          "sharedHitBlocks": 674
+        },
+        {
+          "node": "Hash Join",
+          "rows": 20000,
+          "loops": 1,
+          "sharedHitBlocks": 669
+        },
+        {
+          "node": "Hash Join",
+          "rows": 20000,
+          "loops": 1,
+          "sharedHitBlocks": 662
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 20000,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Hash",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Hash",
+          "rows": 400,
+          "loops": 1,
+          "sharedHitBlocks": 7
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 400,
+          "loops": 1,
+          "sharedHitBlocks": 7
+        },
+        {
+          "node": "Hash",
+          "rows": 2,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 2,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        }
+      ]
+    },
+    {
+      "scenario": "exact-location",
+      "executionMs": 76.307,
+      "nodes": [
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 236
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 236,
+          "sortMethod": "top-N heapsort"
+        },
+        {
+          "node": "Hash Join",
+          "rows": 10000,
+          "loops": 1,
+          "sharedHitBlocks": 236
+        },
+        {
+          "node": "Bitmap Heap Scan",
+          "rows": 10000,
+          "loops": 1,
+          "sharedHitBlocks": 222
+        },
+        {
+          "node": "Bitmap Index Scan",
+          "index": "shifts_location_id_status_idx",
+          "rows": 10000,
+          "loops": 1,
+          "sharedHitBlocks": 9
+        },
+        {
+          "node": "Hash",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 14
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 14
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 1,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Hash Join",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 13
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 400,
+          "loops": 1,
+          "sharedHitBlocks": 7
+        },
+        {
+          "node": "Hash",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        }
+      ]
+    },
+    {
+      "scenario": "exact-membership",
+      "executionMs": 6.313,
+      "nodes": [
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 665
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 665,
+          "sortMethod": "quicksort"
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 100,
+          "loops": 1,
+          "sharedHitBlocks": 665
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 2,
+          "loops": 1,
+          "sharedHitBlocks": 9
+        },
+        {
+          "node": "Nested Loop",
+          "rows": 1,
+          "loops": 1,
+          "sharedHitBlocks": 8
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 1,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 1,
+          "loops": 1,
+          "sharedHitBlocks": 2
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 2,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Materialize",
+          "rows": 100,
+          "loops": 2,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 100,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        }
+      ]
+    },
+    {
+      "scenario": "status-date",
+      "executionMs": 27.559,
+      "nodes": [
+        {
+          "node": "Limit",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 670
+        },
+        {
+          "node": "Sort",
+          "rows": 51,
+          "loops": 1,
+          "sharedHitBlocks": 670,
+          "sortMethod": "top-N heapsort"
+        },
+        {
+          "node": "Hash Join",
+          "rows": 2800,
+          "loops": 1,
+          "sharedHitBlocks": 670
+        },
+        {
+          "node": "Hash Join",
+          "rows": 2800,
+          "loops": 1,
+          "sharedHitBlocks": 669
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 2800,
+          "loops": 1,
+          "sharedHitBlocks": 656
+        },
+        {
+          "node": "Hash",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 13
+        },
+        {
+          "node": "Hash Join",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 13
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 400,
+          "loops": 1,
+          "sharedHitBlocks": 7
+        },
+        {
+          "node": "Hash",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 200,
+          "loops": 1,
+          "sharedHitBlocks": 6
+        },
+        {
+          "node": "Hash",
+          "rows": 2,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        },
+        {
+          "node": "Seq Scan",
+          "rows": 2,
+          "loops": 1,
+          "sharedHitBlocks": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1109,4 +1109,20 @@ bound public attempts (credential 5, trusted address 30 per rolling 15 minutes).
 Pending manager reads retain full LM coverage while ordinary mutations remain
 quarantined. Create/resend use explicit MFA retry and ephemeral copy-link results.
 The standalone EN/AR activation form immediately removes its fragment and keeps
-secrets only in memory. T05-E/F/G and email/SMS delivery are outside this slice.
+secrets only in memory. T05-E/F/G and email/SMS delivery are outside T05-D.
+
+## T05-E Shift history read boundary
+
+Management history list/detail/candidates revalidate the exact current session,
+active actor User/membership/Organization and Dashboard entitlement. Company Admin
+uses standard DEC-078 read assurance. Location Manager authorization belongs to
+the Shift's current granted ACTIVE Location; target lifecycle/role/full grant
+coverage is not required for a historical read. Predicates precede LIMIT and
+direct detail conceals unauthorized rows. Both authorities' dedicated cursors
+bind actor membership/authority scope, Organization and normalized filters.
+Projection includes only current canonical staff identity/currentRole, Location
+metadata and Shift status/timestamps. No cash, tokens, custody/task or audit blob.
+The bounded employee candidate read uses this history authority. Browser state is
+memory-only and fenced by identity/session/scope/filter/page/detail generations;
+duration uses one local clock with no requests. See Accepted DEC-081 T05-E and
+`docs/validation/ISSUE_240E_SHIFT_HISTORY.md`.

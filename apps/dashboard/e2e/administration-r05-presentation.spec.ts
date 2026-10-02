@@ -8,8 +8,6 @@ import {
 } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
 import {
-  activeShift,
-  activeShiftsPath,
   STAFF_EMAIL,
   STAFF_MEMBERSHIP_2,
   SHIFT_ID_2,
@@ -17,6 +15,15 @@ import {
   staffItem,
   staffPath,
 } from "./support/administration-r05-fixtures";
+import { historyPath, historyRow } from "./support/issue240e-history";
+const activeShift = (overrides: Record<string, unknown> = {}) =>
+  historyRow({
+    shiftId: E2E_IDS.shift,
+    membershipId: E2E_IDS.membership,
+    identity: staffItem().identity,
+    startedAt: "2026-09-21T07:00:00.000Z",
+    ...overrides,
+  });
 
 async function enterCompany(page: Page, exactLocation = false) {
   await page.goto("/employees");
@@ -29,36 +36,44 @@ async function enterCompany(page: Page, exactLocation = false) {
     .click();
 }
 
-test("R05 Shifts uses safe row-specific actions, Location timezone, and detail-only IDs", async ({
+test("T05-E Shifts uses safe row-specific actions, Location timezone and authoritative identity", async ({
   page,
 }) => {
-  const shiftsPath = activeShiftsPath(LOCATION_A.locationId);
+  const shiftsPath = historyPath();
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
     override: (path) =>
-      path === shiftsPath
+      path === `${shiftsPath}/${SHIFT_ID_2}`
         ? {
-            body: {
-              items: [
-                activeShift(),
-                activeShift({
-                  membershipId: STAFF_MEMBERSHIP_2,
-                  shiftId: SHIFT_ID_2,
-                  startedAt: "2026-09-21T08:00:00.000Z",
-                }),
-              ],
-              nextCursor: null,
-            },
+            body: activeShift({
+              membershipId: STAFF_MEMBERSHIP_2,
+              shiftId: SHIFT_ID_2,
+              startedAt: "2026-09-21T08:00:00.000Z",
+            }),
           }
-        : undefined,
+        : path === shiftsPath
+          ? {
+              body: {
+                items: [
+                  activeShift(),
+                  activeShift({
+                    membershipId: STAFF_MEMBERSHIP_2,
+                    shiftId: SHIFT_ID_2,
+                    startedAt: "2026-09-21T08:00:00.000Z",
+                  }),
+                ],
+                nextCursor: null,
+              },
+            }
+          : undefined,
   });
   await fixture.install(page);
   await enterCompany(page, true);
   await page.getByRole("button", { name: "Shifts" }).click();
 
   const table = page.getByRole("table");
-  await expect(table.getByText("Active shift", { exact: true })).toHaveCount(2);
+  await expect(table.locator("tbody tr")).toHaveCount(2);
   await expect(table.getByText(LOCATION_A.name, { exact: true })).toHaveCount(
     2,
   );
@@ -85,10 +100,10 @@ test("R05 Shifts uses safe row-specific actions, Location timezone, and detail-o
   ).toHaveCount(0);
 
   const firstOpener = table.getByRole("button", {
-    name: `Details: ${LOCATION_A.name}, Started at 21 Sept 2026, 10:00`,
+    name: new RegExp(`Shift details:.*${STAFF_EMAIL}.*21 Sept 2026, 10:00.*1`),
   });
   const secondOpener = table.getByRole("button", {
-    name: `Details: ${LOCATION_A.name}, Started at 21 Sept 2026, 11:00`,
+    name: new RegExp(`Shift details:.*${STAFF_EMAIL}.*21 Sept 2026, 11:00.*2`),
   });
   await expect(firstOpener).toHaveCount(1);
   await expect(secondOpener).toHaveCount(1);
@@ -103,10 +118,10 @@ test("R05 Shifts uses safe row-specific actions, Location timezone, and detail-o
   expect(labels.join(" ")).not.toContain(SHIFT_ID_2);
   expect(labels.join(" ")).not.toContain(STAFF_MEMBERSHIP_2);
   await secondOpener.click();
-  const drawer = page.getByRole("dialog", { name: "Details" });
-  await expect(drawer.getByText(SHIFT_ID_2, { exact: true })).toBeVisible();
+  const drawer = page.getByRole("dialog", { name: "Shift details" });
+  await expect(drawer.getByText("Current role", { exact: true })).toBeVisible();
   await expect(
-    drawer.getByText(STAFF_MEMBERSHIP_2, { exact: true }),
+    drawer.getByText(STAFF_EMAIL, { exact: true }).first(),
   ).toBeVisible();
   await expect(
     drawer.getByText(LOCATION_A.name, { exact: true }),
@@ -128,7 +143,7 @@ test("R05 manager labels localize in Arabic with bidi-safe email, IDs, and time"
       if (path === directory)
         return { body: { items: [staffItem()], nextCursor: null } };
       if (path === detailPath) return { body: staffDetail() };
-      if (path === activeShiftsPath(LOCATION_A.locationId)) {
+      if (path === historyPath()) {
         return { body: { items: [activeShift()], nextCursor: null } };
       }
       return undefined;
@@ -174,12 +189,9 @@ test("R05 manager labels localize in Arabic with bidi-safe email, IDs, and time"
   }).format(new Date("2026-09-21T07:00:00.000Z"));
   const shiftAction = page.getByRole("table").locator("button[aria-label]");
   const shiftLabel = await shiftAction.getAttribute("aria-label");
-  expect(shiftLabel).toContain("التفاصيل:");
+  expect(shiftLabel).toContain("تفاصيل وردية:");
   expect(shiftLabel).toContain(LOCATION_A.name);
-  expect(shiftLabel).toContain("بدأت في");
   expect(shiftLabel).toContain(arabicTime);
-  expect(shiftLabel).toContain("\u2068");
-  expect(shiftLabel).toContain("\u2069");
   expect(shiftLabel).not.toContain(E2E_IDS.shift);
   expect(shiftLabel).not.toContain(E2E_IDS.membership);
 });

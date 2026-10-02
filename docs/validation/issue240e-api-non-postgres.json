@@ -1,0 +1,12 @@
+{
+  "command": "pnpm --filter @valet/api exec vitest run --project api-non-postgres --maxWorkers=1",
+  "failedTests": 1,
+  "passedTests": 465,
+  "failures": [
+    {
+      "test": "accepted feature module ownership keeps Auth ownership and exports only accepted staff authority",
+      "reason": "Expected AuthModule controllers omit the pre-existing StaffActivationController from baseline d5488b0.",
+      "file": "apps/api/test/feature-module-ownership.test.ts"
+    }
+  ]
+}

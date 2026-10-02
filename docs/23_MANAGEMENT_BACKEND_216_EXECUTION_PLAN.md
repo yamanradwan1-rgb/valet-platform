@@ -1166,4 +1166,16 @@ bound public attempts (credential 5, trusted address 30 per rolling 15 minutes).
 Pending manager reads retain full LM coverage while ordinary mutations remain
 quarantined. Create/resend use explicit MFA retry and ephemeral copy-link results.
 The standalone EN/AR activation form immediately removes its fragment and keeps
-secrets only in memory. T05-E/F/G and email/SMS delivery are outside this slice.
+secrets only in memory. T05-E/F/G and email/SMS delivery are outside T05-D.
+
+## T05-E bounded Shift history integration
+
+Accepted DEC-081's T05-E extension implements Organization-scoped history list,
+independent detail and bounded history-authorized employee candidates. CA standard
+read assurance and LM current ACTIVE Location grants authorize existing Shift rows
+independently of target-management coverage. Exact filters run before stable
+started_at/id keyset pagination; cursors bind both actors' current scope. UI dates
+use exact Location timezone or explicit UTC, and duration has no network activity.
+No self-shift/Overview/cash mutation semantics change. Final SQL plans determine
+whether a read-only index migration is justified. Scope and executed evidence are
+recorded in `docs/validation/ISSUE_240E_SHIFT_HISTORY.md`; T05-F/G remain separate.

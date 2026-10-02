@@ -1,223 +1,188 @@
 import { expect, test, type Page } from "@playwright/test";
-
 import {
   DashboardApiFixture,
   LOCATION_A,
   LOCATION_B,
   ORG_A,
+  ORG_B,
 } from "./support/dashboard-api-fixture";
+import { deferred, changeOrganization } from "./support/staff-directory-ui";
 import { signInOnCurrentPage } from "./support/foundation-ui";
 import {
-  activeShift,
-  activeShiftsPath,
-} from "./support/administration-r05-fixtures";
-
-function deferred() {
-  let resolve!: () => void;
-  const promise = new Promise<void>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
-}
-
-async function signInCompany(page: Page, locationName: string | null = null) {
+  enterHistory,
+  failure,
+  historyPath,
+  historyRow,
+} from "./support/issue240e-history";
+async function enterLm(page: Page) {
   await page.goto("/employees");
-  await signInOnCurrentPage(page);
+  await signInOnCurrentPage(page, "manager@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
-  await page
-    .getByRole("button", { name: locationName ?? "All Locations" })
-    .click();
+  await page.getByRole("button", { name: LOCATION_A.name }).click();
 }
-
-test("R05 Shifts preserves opaque cursor history and never carries Location A cursor into B", async ({
-  page,
-}) => {
-  const pathA = activeShiftsPath(LOCATION_A.locationId);
-  const pathB = activeShiftsPath(LOCATION_B.locationId);
-  const seenA: Array<string | null> = [];
-  const seenB: Array<string | null> = [];
-  const fixture = new DashboardApiFixture({
-    companyOrganizations: [ORG_A],
-    companyLocations: { [ORG_A.organizationId]: [LOCATION_A, LOCATION_B] },
-    override: (path, request) => {
-      const cursor = new URL(request.url()).searchParams.get("cursor");
-      if (path === pathA) {
-        seenA.push(cursor);
-        return cursor === null
+for (const mode of ["success", "failure"] as const) {
+  for (const authority of ["CA", "LM"] as const) {
+    test(`T05-E ${authority} Organization A→B→A fences stale first-A ${mode}`, async ({
+      page,
+    }) => {
+      const started = deferred(),
+        release = deferred();
+      let calls = 0;
+      const fixture = new DashboardApiFixture({
+        ...(authority === "CA"
           ? {
-              body: {
-                items: [activeShift()],
-                nextCursor: "shift_cursor_12345678",
+              companyOrganizations: [ORG_A, ORG_B],
+              companyLocations: {
+                [ORG_A.organizationId]: [LOCATION_A],
+                [ORG_B.organizationId]: [LOCATION_B],
               },
             }
           : {
+              locationManagerOrganizations: [ORG_A, ORG_B],
+              locationManagerLocations: {
+                [ORG_A.organizationId]: [LOCATION_A],
+                [ORG_B.organizationId]: [LOCATION_B],
+              },
+            }),
+        override: async (route) => {
+          if (route === historyPath()) {
+            if (++calls === 1) {
+              started.resolve();
+              await release.promise;
+              return mode === "failure"
+                ? failure()
+                : {
+                    body: {
+                      items: [
+                        historyRow({
+                          identity: {
+                            firstName: "Stale",
+                            lastName: "A",
+                            email: "stale-a@example.com",
+                          },
+                        }),
+                      ],
+                      nextCursor: "STALE_CURSOR",
+                    },
+                  };
+            }
+            return { body: { items: [historyRow()], nextCursor: null } };
+          }
+          if (route === historyPath(ORG_B.organizationId))
+            return {
               body: {
                 items: [
-                  activeShift({
-                    shiftId: "99999999-9999-4999-8999-999999999999",
-                    startedAt: "2026-09-21T08:00:00.000Z",
+                  historyRow({
+                    identity: {
+                      firstName: "Tenant",
+                      lastName: "B",
+                      email: "b@example.com",
+                    },
+                    location: {
+                      locationId: LOCATION_B.locationId,
+                      name: LOCATION_B.name,
+                      code: LOCATION_B.code,
+                      timezone: LOCATION_B.timezone,
+                    },
                   }),
                 ],
                 nextCursor: null,
               },
             };
+          return undefined;
+        },
+      });
+      await fixture.install(page);
+      if (authority === "CA") await enterHistory(page);
+      else await enterLm(page);
+      await started.promise;
+      async function change(org: string, loc: string) {
+        if (authority === "CA") {
+          await changeOrganization(page, org);
+          await page
+            .getByRole("button", { name: "Shifts", exact: true })
+            .click();
+        } else {
+          await page.locator(".sidebar-scope").click();
+          await page.getByRole("button", { name: org, exact: true }).click();
+          await page.getByRole("button", { name: loc, exact: true }).click();
+        }
       }
-      if (path === pathB) {
-        seenB.push(cursor);
-        return {
-          body: {
-            items: [
-              activeShift({
-                shiftId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-                startedAt: "2026-09-21T09:00:00.000Z",
-              }),
-            ],
-            nextCursor: null,
-          },
-        };
-      }
-      return undefined;
-    },
-  });
-  await fixture.install(page);
-  await signInCompany(page, LOCATION_A.name);
-  await page.getByRole("button", { name: "Shifts" }).click();
-  await expect(
-    page.getByText("21 Sept 2026, 10:00", { exact: true }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(
-    page.getByText("21 Sept 2026, 11:00", { exact: true }),
-  ).toBeVisible();
-  expect(seenA).toContain("shift_cursor_12345678");
-  await expect(
-    page.getByRole("button", { name: "Next", exact: true }),
-  ).toBeDisabled();
-  await page.getByRole("button", { name: "Previous", exact: true }).click();
-  await expect(
-    page.getByText("21 Sept 2026, 10:00", { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByText(/Page \d+ of \d+/u)).toHaveCount(0);
-
-  await page
-    .locator(".topbar")
-    .getByRole("button", { name: "Change scope" })
-    .click();
-  await page.getByRole("button", { name: ORG_A.name }).click();
-  await page.getByRole("button", { name: LOCATION_B.name }).click();
-  await page.getByRole("button", { name: "Shifts" }).click();
-  await expect(
-    page.getByText("21 Sept 2026, 12:00", { exact: true }),
-  ).toBeVisible();
-  expect(seenB.every((cursor) => cursor === null)).toBe(true);
-});
-
-for (const mode of ["success", "failure"] as const) {
-  test(`R05 Shifts A→B→A fences stale first-A ${mode}`, async ({ page }) => {
-    const pathA = activeShiftsPath(LOCATION_A.locationId);
-    const pathB = activeShiftsPath(LOCATION_B.locationId);
-    const release = deferred();
-    const started = deferred();
-    let aCalls = 0;
+      await change(ORG_B.name, LOCATION_B.name);
+      await expect(page.getByRole("table")).toContainText("Tenant B");
+      await change(ORG_A.name, LOCATION_A.name);
+      await expect(page.getByRole("table")).toContainText("Maya O’Connor");
+      release.resolve();
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByRole("table")).toContainText("Maya O’Connor");
+      await expect(
+        page.getByText("stale-a@example.com", { exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByText("stale history failure", { exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "Next", exact: true }),
+      ).toHaveCount(0);
+      expect(fixture.count(historyPath())).toBe(2);
+      expect(fixture.count(historyPath(ORG_B.organizationId))).toBe(1);
+    });
+  }
+  test(`T05-E pending history ${mode} cannot repaint after logout and same-user sign-in`, async ({
+    page,
+  }) => {
+    const started = deferred(),
+      release = deferred();
+    let calls = 0;
     const fixture = new DashboardApiFixture({
       companyOrganizations: [ORG_A],
-      companyLocations: { [ORG_A.organizationId]: [LOCATION_A, LOCATION_B] },
-      override: async (path) => {
-        if (path === pathA) {
-          aCalls += 1;
-          if (aCalls === 1) {
-            started.resolve();
-            await release.promise;
-            return mode === "success"
-              ? {
-                  body: {
-                    items: [
-                      activeShift({ startedAt: "2026-09-21T06:00:00.000Z" }),
-                    ],
-                    nextCursor: null,
-                  },
-                }
-              : {
-                  status: 503,
-                  body: {
-                    code: "TEMPORARY",
-                    message: "stale shift failure",
-                    requestId: "r05-stale",
-                  },
-                };
-          }
-          return {
-            body: {
-              items: [activeShift({ startedAt: "2026-09-21T08:00:00.000Z" })],
-              nextCursor: null,
-            },
-          };
+      override: async (route) => {
+        if (route !== historyPath()) return undefined;
+        if (++calls === 1) {
+          started.resolve();
+          await release.promise;
+          return mode === "failure"
+            ? failure()
+            : {
+                body: {
+                  items: [
+                    historyRow({
+                      identity: {
+                        firstName: "Old",
+                        lastName: "Session",
+                        email: "old-session@example.com",
+                      },
+                    }),
+                  ],
+                  nextCursor: null,
+                },
+              };
         }
-        if (path === pathB)
-          return {
-            body: {
-              items: [activeShift({ startedAt: "2026-09-21T09:00:00.000Z" })],
-              nextCursor: null,
-            },
-          };
-        return undefined;
+        return { body: { items: [historyRow()], nextCursor: null } };
       },
     });
     await fixture.install(page);
-    await signInCompany(page, LOCATION_A.name);
-    await page.getByRole("button", { name: "Shifts" }).click();
+    await enterHistory(page);
     await started.promise;
-    await changeLocation(page, LOCATION_B.name);
-    await page.getByRole("button", { name: "Shifts" }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await expect(
-      page.getByText("21 Sept 2026, 12:00", { exact: true }),
+      page.getByRole("heading", { name: "Sign in", exact: true }),
     ).toBeVisible();
-    await changeLocation(page, LOCATION_A.name);
-    await page.getByRole("button", { name: "Shifts" }).click();
-    await expect(
-      page.getByText("21 Sept 2026, 11:00", { exact: true }),
-    ).toBeVisible();
+    await signInOnCurrentPage(page);
+    await page.getByRole("button", { name: ORG_A.name }).click();
+    await page
+      .getByRole("button", { name: "All Locations", exact: true })
+      .click();
+    await page.getByRole("button", { name: "Shifts", exact: true }).click();
+    await expect(page.getByRole("table")).toContainText("Maya O’Connor");
     release.resolve();
     await page.waitForLoadState("networkidle");
     await expect(
-      page.getByText("21 Sept 2026, 09:00", { exact: true }),
+      page.getByText("old-session@example.com", { exact: true }),
     ).toHaveCount(0);
     await expect(
-      page.getByText("stale shift failure", { exact: true }),
+      page.getByText("stale history failure", { exact: true }),
     ).toHaveCount(0);
+    expect(fixture.count(historyPath())).toBe(2);
   });
-}
-
-test("R05 pending Shift read cannot repaint after logout", async ({ page }) => {
-  const path = activeShiftsPath(LOCATION_A.locationId);
-  const release = deferred();
-  const started = deferred();
-  const fixture = new DashboardApiFixture({
-    companyOrganizations: [ORG_A],
-    companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
-    override: async (requestPath) => {
-      if (requestPath !== path) return undefined;
-      started.resolve();
-      await release.promise;
-      return { body: { items: [activeShift()], nextCursor: null } };
-    },
-  });
-  await fixture.install(page);
-  await signInCompany(page, LOCATION_A.name);
-  await page.getByRole("button", { name: "Shifts" }).click();
-  await started.promise;
-  await page.getByRole("button", { name: "Sign out" }).click();
-  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-  release.resolve();
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText("Active shift", { exact: true })).toHaveCount(0);
-});
-
-async function changeLocation(page: Page, locationName: string) {
-  await page
-    .locator(".topbar")
-    .getByRole("button", { name: "Change scope" })
-    .click();
-  await page.getByRole("button", { name: ORG_A.name }).click();
-  await page.getByRole("button", { name: locationName }).click();
 }
