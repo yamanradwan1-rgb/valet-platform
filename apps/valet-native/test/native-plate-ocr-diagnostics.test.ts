@@ -1,3 +1,9 @@
+import {
+  roiPicture,
+  roiSource,
+  mountRoiCamera,
+  roiPreview,
+} from "./native-plate-roi-test-fixture";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInSession,
@@ -65,10 +71,14 @@ function ports(
   takePictureAsync: CameraView["takePictureAsync"],
   state = session(),
 ) {
+  const camera = { takePictureAsync } as CameraView;
   return createNativePlateOcrPorts(
-    () => ({ takePictureAsync }) as CameraView,
+    () => camera,
     {} as NativeAuthSession,
     state,
+    undefined,
+    undefined,
+    roiSource(camera),
   );
 }
 
@@ -107,17 +117,19 @@ describe("Native Plate OCR diagnostic trace", () => {
     );
     binding.controller.setEligible(true);
     await binding.controller.open();
-    binding.cameraRef({
+    const camera = {
       getAvailablePictureSizesAsync: async () => ["4032x3024", "1280x720"],
-    } as CameraView);
-    const generation = binding.controller.current().generation;
-    await binding.cameraReady(generation);
-    await binding.cameraReady(generation);
+      getPlatePreviewMetadataAsync: async () => roiPreview,
+    } as CameraView;
+    await mountRoiCamera(binding, camera);
+    await mountRoiCamera(binding, camera);
 
     expect(messages()).toEqual([
+      "PLATE_OCR_NATIVE camera-ready",
       "PLATE_OCR_NATIVE picture-sizes-loaded count=2",
       "PLATE_OCR_NATIVE picture-size-selected value=1280x720",
       "PLATE_OCR_NATIVE picture-size-remount",
+      "PLATE_OCR_NATIVE camera-ready",
       "PLATE_OCR_NATIVE preview-ready",
       "PLATE_OCR_NATIVE loop-start",
     ]);
@@ -125,14 +137,16 @@ describe("Native Plate OCR diagnostic trace", () => {
   });
 
   it("traces a primary capture through HTTP dispatch", async () => {
-    mocks.sizes.set("primary.jpg", 900_000);
+    mocks.sizes.set("primary.jpg.roi-0.6.jpg", 900_000);
     const capturePorts = ports(
-      vi.fn().mockResolvedValue({ uri: "primary.jpg" }),
+      vi.fn().mockResolvedValue(roiPicture("primary.jpg")),
     );
 
     expect(await attempt(capturePorts)).toEqual({ status: "NO_MATCH" });
-    expect(messages()).toEqual([
-      "PLATE_OCR_NATIVE primary-capture-start quality=0.6",
+    expect(
+      messages().filter((value) => !value.startsWith("PLATE_OCR_NATIVE roi-")),
+    ).toEqual([
+      "PLATE_OCR_NATIVE primary-capture-start quality=1",
       "PLATE_OCR_NATIVE primary-capture-success",
       "PLATE_OCR_NATIVE primary-file-uploadable bytes=900000",
       "PLATE_OCR_NATIVE recognize-preflight",
@@ -143,12 +157,12 @@ describe("Native Plate OCR diagnostic trace", () => {
   });
 
   it("traces an oversized primary through fallback and HTTP dispatch", async () => {
-    mocks.sizes.set("large.jpg", 1_048_577);
-    mocks.sizes.set("fallback.jpg", 700_000);
+    mocks.sizes.set("large.jpg.roi-0.6.jpg", 1_048_577);
+    mocks.sizes.set("large.jpg.roi-0.45.jpg", 700_000);
     const capturePorts = ports(
       vi
         .fn()
-        .mockResolvedValueOnce({ uri: "large.jpg" })
+        .mockResolvedValueOnce(roiPicture("large.jpg"))
         .mockResolvedValueOnce({ uri: "fallback.jpg" }),
     );
 
@@ -156,8 +170,10 @@ describe("Native Plate OCR diagnostic trace", () => {
     expect(messages()).toContain(
       "PLATE_OCR_NATIVE primary-file-oversize bytes=1048577",
     );
-    expect(messages()).toContain(
-      "PLATE_OCR_NATIVE fallback-capture-start quality=0.45",
+    expect(messages()).toContainEqual(
+      expect.stringMatching(
+        /^PLATE_OCR_NATIVE roi-encoded bytes=700000 quality=0.45/,
+      ),
     );
     expect(messages()).toContain(
       "PLATE_OCR_NATIVE fallback-file-uploadable bytes=700000",
@@ -166,13 +182,13 @@ describe("Native Plate OCR diagnostic trace", () => {
     expect(mocks.recognize).toHaveBeenCalledOnce();
   });
 
-  it("stops before HTTP when both captures are oversized", async () => {
-    mocks.sizes.set("large.jpg", 1_048_577);
-    mocks.sizes.set("still-large.jpg", 2_000_000);
+  it("stops before HTTP when both encodings are oversized", async () => {
+    mocks.sizes.set("large.jpg.roi-0.6.jpg", 1_048_577);
+    mocks.sizes.set("large.jpg.roi-0.45.jpg", 2_000_000);
     const capturePorts = ports(
       vi
         .fn()
-        .mockResolvedValueOnce({ uri: "large.jpg" })
+        .mockResolvedValueOnce(roiPicture("large.jpg"))
         .mockResolvedValueOnce({ uri: "still-large.jpg" }),
     );
 
@@ -206,9 +222,9 @@ describe("Native Plate OCR diagnostic trace", () => {
   });
 
   it("stops before HTTP when location is missing", async () => {
-    mocks.sizes.set("primary.jpg", 10);
+    mocks.sizes.set("primary.jpg.roi-0.6.jpg", 10);
     const capturePorts = ports(
-      vi.fn().mockResolvedValue({ uri: "primary.jpg" }),
+      vi.fn().mockResolvedValue(roiPicture("primary.jpg")),
       session(null),
     );
 
@@ -221,7 +237,7 @@ describe("Native Plate OCR diagnostic trace", () => {
     const abort = new AbortController();
     abort.abort();
     const capturePorts = ports(
-      vi.fn().mockResolvedValue({ uri: "aborted.jpg" }),
+      vi.fn().mockResolvedValue(roiPicture("aborted.jpg")),
     );
 
     expect(await attempt(capturePorts, abort.signal)).toEqual({
@@ -232,12 +248,12 @@ describe("Native Plate OCR diagnostic trace", () => {
   });
 
   it("does not leak request or exception data when HTTP fails", async () => {
-    mocks.sizes.set("private-file-uri.jpg", 10);
+    mocks.sizes.set("private-file-uri.jpg.roi-0.6.jpg", 10);
     mocks.recognize.mockRejectedValue(
       new Error("token-secret plate-secret identity-secret"),
     );
     const capturePorts = ports(
-      vi.fn().mockResolvedValue({ uri: "private-file-uri.jpg" }),
+      vi.fn().mockResolvedValue(roiPicture("private-file-uri.jpg")),
     );
 
     expect(await attempt(capturePorts)).toEqual({ status: "UNAVAILABLE" });
@@ -249,9 +265,9 @@ describe("Native Plate OCR diagnostic trace", () => {
 
   it("emits no diagnostics outside development builds", async () => {
     vi.stubGlobal("__DEV__", false);
-    mocks.sizes.set("primary.jpg", 10);
+    mocks.sizes.set("primary.jpg.roi-0.6.jpg", 10);
     const capturePorts = ports(
-      vi.fn().mockResolvedValue({ uri: "primary.jpg" }),
+      vi.fn().mockResolvedValue(roiPicture("primary.jpg")),
     );
 
     expect(await attempt(capturePorts)).toEqual({ status: "NO_MATCH" });

@@ -12,126 +12,109 @@ import type { NativePlateOcrPorts } from "./native-plate-ocr-loop";
 import { NativePlateCameraController } from "./native-plate-camera-controller";
 import { nativeCameraPermissions } from "../scanner/native-camera-adapter";
 import {
-  NATIVE_PLATE_FALLBACK_JPEG_QUALITY,
-  NATIVE_PLATE_PRIMARY_JPEG_QUALITY,
   selectNativePlateFallbackPictureSize,
   selectNativePlatePictureSize,
 } from "./native-plate-capture-policy";
+import { NativePlateRoiBinding } from "./native-plate-roi-binding";
+import {
+  CameraCaptureFailure,
+  capturePlateRoi,
+} from "./native-plate-roi-capture";
+import { renderPlateRoi } from "./native-plate-roi-crop-adapter";
+import { inspectPlateFile, removePlateFile } from "./native-plate-roi-files";
 
+export type PlateRoiSource = Pick<
+  NativePlateRoiBinding,
+  "capture" | "isCurrent"
+>;
 const unavailable = () => new Error("Automatic plate reading is unavailable.");
-class CameraCaptureFailure extends Error {}
-
-function removeCapture(uri: string): void {
-  const file = new File(uri);
-  if (file.exists) file.delete();
-}
-
-function captureFile(
-  uri: string,
-  kind: "primary" | "fallback",
-): { exists: boolean; size: number } {
-  const file = new File(uri);
-  if (!file.exists) {
-    logNativePlateOcr(`${kind}-file-missing`);
-    return { exists: false, size: file.size };
-  }
-  if (file.size > PLATE_OCR_MAX_IMAGE_BYTES) {
-    logNativePlateOcr(`${kind}-file-oversize`, { bytes: file.size });
-  } else {
-    logNativePlateOcr(`${kind}-file-uploadable`, { bytes: file.size });
-  }
-  return { exists: true, size: file.size };
-}
-
-async function capture(
-  camera: CameraView,
-  quality: number,
-  signal: AbortSignal,
-  kind: "primary" | "fallback",
-): Promise<string> {
-  logNativePlateOcr(`${kind}-capture-start`, { quality });
-  let picture: Awaited<ReturnType<CameraView["takePictureAsync"]>>;
-  try {
-    picture = await camera.takePictureAsync({
-      quality,
-      exif: false,
-      base64: false,
-    });
-  } catch {
-    if (signal.aborted) logNativePlateOcr("capture-aborted");
-    else logNativePlateOcr("capture-exception");
-    throw new CameraCaptureFailure();
-  }
-  if (!picture?.uri) {
-    logNativePlateOcr(`${kind}-capture-no-uri`);
-    throw unavailable();
-  }
-  logNativePlateOcr(`${kind}-capture-success`);
-  if (signal.aborted) {
-    removeCapture(picture.uri);
-    logNativePlateOcr("capture-aborted");
-    throw unavailable();
-  }
-  return picture.uri;
-}
 
 export function createNativePlateOcrBinding(
   auth: NativeAuthSession,
   session: EmployeeCheckInSession,
 ) {
-  let camera: CameraView | null = null;
-  const currentGeneration = (): number => controller.current().generation;
   const controller: NativePlateCameraController =
     new NativePlateCameraController(
       nativeCameraPermissions,
       createNativePlateOcrPorts(
-        () => camera,
+        () =>
+          roi.cameraFor(
+            controller.current().generation,
+            controller.current().mountId,
+          ),
         auth,
         session,
         (generation, signal) =>
           controller.waitForCaptureFallback(generation, signal),
-        currentGeneration,
+        () => controller.current().generation,
+        {
+          capture: () => roi.capture(),
+          isCurrent: (value) => roi.isCurrent(value),
+        },
       ),
     );
+  const roi = new NativePlateRoiBinding(controller);
   return {
-    cameraRef: (value: CameraView | null) => {
-      camera = value;
-    },
     controller,
-    async cameraReady(generation: number) {
+    roi,
+    cameraRef: (
+      value: CameraView | null,
+      generation: number,
+      mountId: number,
+    ) => roi.ref(value, generation, mountId),
+    cameraLayout: (
+      generation: number,
+      mountId: number,
+      width: number,
+      height: number,
+    ) => roi.layout(generation, mountId, width, height),
+    cameraError: (generation: number, mountId: number) => {
+      if (roi.isMount(generation, mountId)) controller.fail(generation);
+    },
+    async cameraReady(generation: number, mountId: number) {
       const current = controller.current();
-      if (current.generation !== generation || current.phase !== "starting")
-        return;
-      if (current.pictureSize !== undefined) {
-        controller.ready(generation);
-        return;
-      }
-      let selected: string | undefined;
-      let fallback: string | undefined;
-      try {
-        const supported = (await camera?.getAvailablePictureSizesAsync()) ?? [];
-        logNativePlateOcr("picture-sizes-loaded", {
-          count: supported.length,
-        });
-        selected = selectNativePlatePictureSize(supported);
-        if (selected)
-          fallback = selectNativePlateFallbackPictureSize(supported, selected);
-      } catch {
-        selected = undefined;
-      }
-      if (selected) {
-        logNativePlateOcr("picture-size-selected", { value: selected });
-      } else {
-        logNativePlateOcr("picture-size-none");
-      }
+      const camera = roi.cameraFor(generation, mountId);
       if (
-        selected &&
-        controller.configurePictureSizes(generation, selected, fallback)
-      ) {
-        logNativePlateOcr("picture-size-remount");
+        !camera ||
+        !roi.isMount(generation, mountId) ||
+        current.phase !== "starting"
+      )
         return;
+      logNativePlateOcr("camera-ready");
+      if (current.pictureSize === undefined) {
+        let selected: string | undefined;
+        let fallback: string | undefined;
+        try {
+          const supported = await camera.getAvailablePictureSizesAsync();
+          logNativePlateOcr("picture-sizes-loaded", {
+            count: supported.length,
+          });
+          selected = selectNativePlatePictureSize(supported);
+          if (selected)
+            fallback = selectNativePlateFallbackPictureSize(
+              supported,
+              selected,
+            );
+        } catch {
+          selected = undefined;
+        }
+        if (
+          !roi.isMount(generation, mountId) ||
+          roi.cameraFor(generation, mountId) !== camera
+        )
+          return;
+        if (selected)
+          logNativePlateOcr("picture-size-selected", { value: selected });
+        else logNativePlateOcr("picture-size-none");
+        if (
+          selected &&
+          controller.configurePictureSizes(generation, selected, fallback)
+        ) {
+          logNativePlateOcr("picture-size-remount");
+          return;
+        }
       }
-      controller.ready(generation);
+      await roi.ready(generation, mountId);
     },
   };
 }
@@ -145,65 +128,49 @@ export function createNativePlateOcrPorts(
     signal: AbortSignal,
   ) => Promise<boolean>,
   currentGeneration?: () => number,
+  roi?: PlateRoiSource,
 ): NativePlateOcrPorts {
+  const capture = (signal: AbortSignal) => {
+    const active = camera();
+    if (!active || !roi) {
+      logNativePlateOcr("capture-exception");
+      throw unavailable();
+    }
+    const snapshot = roi.capture();
+    if (snapshot.camera !== active) throw unavailable();
+    return capturePlateRoi(
+      {
+        ...snapshot,
+        current: () => roi.isCurrent(snapshot),
+        render: renderPlateRoi,
+        inspect: inspectPlateFile,
+        remove: removePlateFile,
+      },
+      signal,
+    );
+  };
   return {
     async capture(signal) {
-      const active = camera();
-      if (!active) {
-        logNativePlateOcr("capture-exception");
-        throw unavailable();
-      }
       const generation = currentGeneration?.() ?? 0;
-      let first: string;
       try {
-        first = await capture(
-          active,
-          NATIVE_PLATE_PRIMARY_JPEG_QUALITY,
-          signal,
-          "primary",
-        );
+        return await capture(signal);
       } catch (error) {
         if (
           !(error instanceof CameraCaptureFailure) ||
           !cameraFallback ||
+          signal.aborted ||
           !(await cameraFallback(generation, signal))
         )
           throw error;
-        const fallbackCamera = camera();
-        if (!fallbackCamera || signal.aborted) throw unavailable();
-        first = await capture(
-          fallbackCamera,
-          NATIVE_PLATE_PRIMARY_JPEG_QUALITY,
-          signal,
-          "primary",
-        );
+        if (signal.aborted) throw unavailable();
+        return await capture(signal);
       }
-      const primary = captureFile(first, "primary");
-      if (primary.exists && primary.size <= PLATE_OCR_MAX_IMAGE_BYTES)
-        return first;
-      removeCapture(first);
-      if (signal.aborted) {
-        logNativePlateOcr("capture-aborted");
-        throw unavailable();
-      }
-      const compressionCamera = camera();
-      if (!compressionCamera || signal.aborted) throw unavailable();
-      const fallback = await capture(
-        compressionCamera,
-        NATIVE_PLATE_FALLBACK_JPEG_QUALITY,
-        signal,
-        "fallback",
-      );
-      const second = captureFile(fallback, "fallback");
-      if (second.exists && second.size <= PLATE_OCR_MAX_IMAGE_BYTES)
-        return fallback;
-      removeCapture(fallback);
-      throw unavailable();
     },
     async recognize(uri, signal) {
       logNativePlateOcr("recognize-preflight");
+      if (signal.aborted) return { status: "UNAVAILABLE" };
       const file = new File(uri);
-      if (!file.exists) {
+      if (!file.exists || !Number.isSafeInteger(file.size) || file.size <= 0) {
         logNativePlateOcr("recognize-file-missing");
         return { status: "UNAVAILABLE" };
       }
@@ -230,14 +197,12 @@ export function createNativePlateOcrPorts(
         );
         logNativePlateOcr("http-result", { status: result.status });
         return result;
-      } catch (error) {
+      } catch {
         logNativePlateOcr("http-exception");
-        throw error;
+        throw unavailable();
       }
     },
-    async remove(uri) {
-      removeCapture(uri);
-    },
+    remove: removePlateFile,
     accept(plateNumberRaw) {
       session.setVehicle({ mode: "CONFIRMED_PLATE", plateNumberRaw });
       session.reviewIdentity();

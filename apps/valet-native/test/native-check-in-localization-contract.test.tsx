@@ -102,8 +102,8 @@ describe("MOB-010 Patch 6 localization and direction contract", () => {
       expect(Object.values(copy.phases).join(" ")).not.toMatch(forbidden);
       expect(copy.phases.preview).toMatch(
         locale === "en"
-          ? /reading plate automatically/i
-          : /قراءة اللوحة تلقائيًا/,
+          ? /reading automatically.*complete plate inside the guide/i
+          : /جارٍ القراءة تلقائيًا.*ضع اللوحة كاملة داخل الإطار/,
       );
       expect(copy.enter).toMatch(
         locale === "en" ? /enter manually/i : /إدخال يدوي/,

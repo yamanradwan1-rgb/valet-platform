@@ -1,3 +1,4 @@
+import { roiPicture, roiSource } from "./native-plate-roi-test-fixture";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -79,12 +80,17 @@ async function setup() {
   await session.activate(1, "11111111-1111-4111-8111-111111111111");
   session.setVehicle({ plateCountry: "AE" });
   const camera = {
-    takePictureAsync: vi.fn().mockResolvedValue({ uri: "cache://private.jpg" }),
+    takePictureAsync: vi
+      .fn()
+      .mockResolvedValue(roiPicture("cache://private.jpg")),
   };
   const ports = createNativePlateOcrPorts(
     () => camera as unknown as CameraView,
     {} as NativeAuthSession,
     session,
+    undefined,
+    undefined,
+    roiSource(camera as unknown as CameraView),
   );
   const controller = new NativePlateCameraController(
     {
@@ -143,11 +149,13 @@ describe("OCR integrates the real Check-In trust boundary", () => {
       expect(c.camera.takePictureAsync).not.toHaveBeenCalled();
       await vi.advanceTimersByTimeAsync(1200);
       expect(c.camera.takePictureAsync).toHaveBeenCalledWith({
-        quality: 0.6,
+        quality: 1,
+        skipProcessing: false,
+        plateRoiMetadata: { generation: 1, mountId: 1, revision: 1 },
         exif: false,
         base64: false,
       });
-      expect(mocks.remove).toHaveBeenCalledOnce();
+      expect(mocks.remove).toHaveBeenCalledTimes(2);
       expect(c.controller.current().phase).toBe("idle");
       expect(c.session.current()).toMatchObject({
         phase: "confirm",
@@ -243,7 +251,7 @@ describe("OCR integrates the real Check-In trust boundary", () => {
         c.dispose();
         break;
     }
-    expect(mocks.remove).toHaveBeenCalledOnce();
+    expect(mocks.remove).toHaveBeenCalledTimes(2);
     resolve(match);
     await vi.advanceTimersByTimeAsync(10000);
     expect(c.session.current().vehicle.plateNumberRaw).not.toBe("12-34567");
@@ -255,8 +263,8 @@ describe("OCR integrates the real Check-In trust boundary", () => {
     mocks.size = 1048577;
     await vi.advanceTimersByTimeAsync(1200);
     expect(mocks.request).not.toHaveBeenCalled();
-    expect(c.camera.takePictureAsync).toHaveBeenCalledTimes(2);
-    expect(mocks.remove).toHaveBeenCalledTimes(2);
+    expect(c.camera.takePictureAsync).toHaveBeenCalledOnce();
+    expect(mocks.remove).toHaveBeenCalledTimes(3);
     expect(c.controller.current().phase).toBe("unavailable");
     c.dispose();
   });

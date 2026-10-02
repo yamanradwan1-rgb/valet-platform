@@ -1,0 +1,439 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 5de524761cb03c970254be8c122549f85694f5cb..96b3625ec9c3920059bbb4b594feae1d05910876 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -44,3 +44,10 @@ dependencies {
+   add(barcodeDependencyConfiguration, "com.google.mlkit:barcode-scanning:17.3.0")
+   add(barcodeDependencyConfiguration, "androidx.camera:camera-mlkit-vision:${camerax_version}")
+ }
++
++// VAYLET Issue #213 transform tests only; no production runtime dependency.
++dependencies {
++  testImplementation 'junit:junit:4.13.2'
++  testImplementation 'org.robolectric:robolectric:4.16.1'
++}
++android.testOptions.unitTests.includeAndroidResources = true
+diff --git a/android/src/main/java/expo/modules/camera/CameraViewModule.kt b/android/src/main/java/expo/modules/camera/CameraViewModule.kt
+index 21382f81b3f42889193c6583a5439690a39f2a64..c613a9bd14651ae0057ecf3b635435d3b2606419 100644
+--- a/android/src/main/java/expo/modules/camera/CameraViewModule.kt
++++ b/android/src/main/java/expo/modules/camera/CameraViewModule.kt
+@@ -447,6 +447,10 @@ class CameraViewModule : Module() {
+         }
+       }.runOnQueue(Queues.MAIN)
+ 
++      AsyncFunction("getPlatePreviewMetadata") { view: ExpoCameraView ->
++        view.platePreviewMetadata()
++      }.runOnQueue(Queues.MAIN)
++
+       AsyncFunction("getAvailablePictureSizes") { view: ExpoCameraView ->
+         return@AsyncFunction view.getAvailablePictureSizes()
+       }
+diff --git a/android/src/main/java/expo/modules/camera/ExpoCameraView.kt b/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
+index 999a22c6a679042e144acb6caa764c9929103966..2139cfb17fd35592d7d9e6ef58318e5e622711ce 100644
+--- a/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
++++ b/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
+@@ -278,11 +278,22 @@ class ExpoCameraView(
+     addView(previewView, 0)
+   }
+ 
++  fun platePreviewMetadata(): Bundle? =
++    if (lensFacing == CameraType.BACK) PlateRoiPreview.snapshot(previewView)?.describe() else null
++
+   fun takePicture(options: PictureOptions, promise: Promise, cacheDirectory: File, runtimeContext: RuntimeContext) {
+     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+     val volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+     val hasShutterSound = options.shutterSound
+ 
++    val roiPreview = if (options.plateRoiMetadata != null && lensFacing == CameraType.BACK)
++      PlateRoiPreview.snapshot(previewView) else null
++    val roiCamera = camera
++    val roiCapture = imageCaptureUseCase
++    if (options.plateRoiMetadata != null && (roiPreview == null || roiCapture == null)) {
++      promise.reject(CameraExceptions.ImageCaptureFailed())
++      return
++    }
+     imageCaptureUseCase?.takePicture(
+       ContextCompat.getMainExecutor(context),
+       object : ImageCapture.OnImageCapturedCallback() {
+@@ -303,6 +314,11 @@ class ExpoCameraView(
+         }
+ 
+         override fun onCaptureSuccess(image: ImageProxy) {
++          val roi = options.plateRoiMetadata?.let { request ->
++            if (roiCamera === camera && roiCapture === imageCaptureUseCase &&
++              roiPreview?.matches(PlateRoiPreview.snapshot(previewView)) == true)
++              roiPreview.capture(image, request) else null
++          }
+           val data = image.planes.toByteArray()
+ 
+           if (options.fastMode) {
+@@ -312,7 +328,7 @@ class ExpoCameraView(
+           cacheDirectory.let {
+             scope.launch {
+               val shouldMirror = mirror && lensFacing == CameraType.FRONT
+-              ResolveTakenPicture(data, promise, options, shouldMirror, runtimeContext, it) { response: Bundle ->
++              ResolveTakenPicture(data, promise, options, shouldMirror, runtimeContext, it, roi) { response: Bundle ->
+                 if (!options.pictureRef) {
+                   onPictureSaved(response)
+                 }
+diff --git a/android/src/main/java/expo/modules/camera/Options.kt b/android/src/main/java/expo/modules/camera/Options.kt
+index 21ade0761ce67de7786c21a53bbdef8a430c9fd5..011e1748c79b1874f05c83e2ea50c00c481e0ad3 100644
+--- a/android/src/main/java/expo/modules/camera/Options.kt
++++ b/android/src/main/java/expo/modules/camera/Options.kt
+@@ -18,7 +18,8 @@ data class PictureOptions(
+   @Field val id: Int? = null,
+   @Field val maxDownsampling: Int = 1,
+   @Field val shutterSound: Boolean = true,
+-  @Field val pictureRef: Boolean = false
++  @Field val pictureRef: Boolean = false,
++  @Field val plateRoiMetadata: PlateRoiRequest? = null
+ ) : Record
+ 
+ @OptimizedRecord
+diff --git a/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt b/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..cfc77b5c88a810ab8340652e03adf5a4173700fe
+--- /dev/null
++++ b/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt
+@@ -0,0 +1,104 @@
++package expo.modules.camera
++
++import android.graphics.Matrix
++import android.os.Bundle
++import androidx.camera.core.ImageProxy
++import androidx.camera.view.PreviewView
++import expo.modules.kotlin.records.Field
++import expo.modules.kotlin.records.Record
++
++/** Issue #213 only: identifiers are ephemeral callback fences, never authority. */
++data class PlateRoiRequest(
++  @Field val generation: Int = 0,
++  @Field val mountId: Int = 0,
++  @Field val revision: Int = 0
++) : Record
++
++class PlateRoiPreview private constructor(
++  val width: Int,
++  val height: Int,
++  private val sensorToView: Matrix
++) {
++  fun matches(other: PlateRoiPreview?): Boolean = other != null &&
++    width == other.width && height == other.height &&
++    values(sensorToView).contentEquals(values(other.sensorToView))
++
++  fun describe(): Bundle = Bundle().apply {
++    putInt("width", width)
++    putInt("height", height)
++    putDoubleArray("sensorToView", values(sensorToView).map { it.toDouble() }.toDoubleArray())
++  }
++
++  fun capture(image: ImageProxy, request: PlateRoiRequest): PlateRoiMetadata? {
++    val inverse = Matrix()
++    if (!sensorToView.invert(inverse)) return null
++    val previewToBuffer = Matrix().apply {
++      setConcat(image.imageInfo.sensorToBufferTransformMatrix, inverse)
++    }
++    if (!valid(previewToBuffer)) return null
++    return PlateRoiMetadata(
++      request, width, height, image.width, image.height,
++      image.imageInfo.rotationDegrees, previewToBuffer
++    )
++  }
++
++  companion object {
++    fun snapshot(view: PreviewView): PlateRoiPreview? {
++      val transform = view.sensorToViewTransform ?: return null
++      if (view.width <= 0 || view.height <= 0 || !valid(transform)) return null
++      return PlateRoiPreview(view.width, view.height, Matrix(transform))
++    }
++
++    fun values(matrix: Matrix): FloatArray = FloatArray(9).also(matrix::getValues)
++
++    fun valid(matrix: Matrix): Boolean =
++      values(matrix).all { it.isFinite() } && matrix.invert(Matrix())
++  }
++}
++
++/** No guessed center-cover relationship and no change to CameraX use-case binding. */
++class PlateRoiMetadata(
++  private val request: PlateRoiRequest,
++  private val previewWidth: Int,
++  private val previewHeight: Int,
++  private val bufferWidth: Int,
++  private val bufferHeight: Int,
++  private val rotation: Int,
++  private val previewToBuffer: Matrix
++) {
++  private var processingValid = true
++
++  fun rejectProcessing() { processingValid = false }
++
++  fun processed(
++    rawWidth: Int, rawHeight: Int, appliedRotation: Int,
++    outputWidth: Int, outputHeight: Int
++  ): Bundle? {
++    if (!processingValid || rawWidth != bufferWidth || rawHeight != bufferHeight ||
++      appliedRotation != rotation || bufferWidth <= 0 || bufferHeight <= 0) return null
++    val quarterTurn = rotation == 90 || rotation == 270
++    val expectedWidth = if (quarterTurn) bufferHeight else bufferWidth
++    val expectedHeight = if (quarterTurn) bufferWidth else bufferHeight
++    if (outputWidth != expectedWidth || outputHeight != expectedHeight) return null
++    val rotationValues = when (rotation) {
++      0 -> floatArrayOf(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
++      90 -> floatArrayOf(0f, -1f, bufferHeight.toFloat(), 1f, 0f, 0f, 0f, 0f, 1f)
++      180 -> floatArrayOf(-1f, 0f, bufferWidth.toFloat(), 0f, -1f, bufferHeight.toFloat(), 0f, 0f, 1f)
++      270 -> floatArrayOf(0f, 1f, 0f, -1f, 0f, bufferWidth.toFloat(), 0f, 0f, 1f)
++      else -> return null
++    }
++    val upright = Matrix().apply { setValues(rotationValues) }
++    val mapping = Matrix().apply { setConcat(upright, previewToBuffer) }
++    if (!PlateRoiPreview.valid(mapping)) return null
++    return Bundle().apply {
++      putInt("generation", request.generation)
++      putInt("mountId", request.mountId)
++      putInt("revision", request.revision)
++      putInt("previewWidth", previewWidth)
++      putInt("previewHeight", previewHeight)
++      putInt("imageWidth", outputWidth)
++      putInt("imageHeight", outputHeight)
++      putDoubleArray("previewToImage", PlateRoiPreview.values(mapping).map { it.toDouble() }.toDoubleArray())
++    }
++  }
++}
+diff --git a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
+index 212b0ef19add03308e864d75ae7ca0adc52d0a27..65446e5ff9fded1a6c800e6a1c256c6bbe5ab228 100644
+--- a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
++++ b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
+@@ -12,6 +12,7 @@ import expo.modules.camera.CameraExceptions.WriteImageException
+ import expo.modules.camera.PictureFormat
+ import expo.modules.camera.PictureOptions
+ import expo.modules.camera.PictureRef
++import expo.modules.camera.PlateRoiMetadata
+ import expo.modules.camera.utils.CameraViewHelper.addExifData
+ import expo.modules.camera.utils.CameraViewHelper.getExifData
+ import expo.modules.camera.utils.CameraViewHelper.setExifData
+@@ -64,6 +65,7 @@ class ResolveTakenPicture(
+   private var mirror: Boolean,
+   private val runtimeContext: RuntimeContext,
+   private val directory: File,
++  private val plateRoiMetadata: PlateRoiMetadata? = null,
+   private var pictureSavedDelegate: PictureSavedDelegate
+ ) {
+   private val quality: Int
+@@ -127,6 +129,16 @@ class ResolveTakenPicture(
+           return null
+         }
+ 
++        if (options.plateRoiMetadata != null && !options.exif && !mirror &&
++          options.additionalExif == null && bitmapOptions.inSampleSize == 1 &&
++          orientation in listOf(ExifInterface.ORIENTATION_NORMAL, ExifInterface.ORIENTATION_ROTATE_90,
++            ExifInterface.ORIENTATION_ROTATE_180, ExifInterface.ORIENTATION_ROTATE_270)) {
++          val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
++          BitmapFactory.decodeByteArray(imageData, 0, imageData.size, bounds)
++          plateRoiMetadata?.processed(bounds.outWidth, bounds.outHeight, getImageRotation(orientation),
++            bitmap.width, bitmap.height)?.let { response.putBundle("plateRoiMetadata", it) }
++        }
++
+         // Write Exif data to the response if requested
+         if (options.exif) {
+           val exifData = getExifData(exifInterface)
+@@ -176,7 +188,7 @@ class ResolveTakenPicture(
+         is WriteImageException -> promise.reject(e)
+         else -> promise.reject(ERROR_TAG, UNKNOWN_EXCEPTION_MSG, e)
+       }
+-      e.printStackTrace()
++      if (options.plateRoiMetadata == null) e.printStackTrace()
+     }
+     // An exception had to occur, promise has already been rejected. Do not try to resolve it again.
+     return null
+@@ -215,10 +227,10 @@ class ResolveTakenPicture(
+       }
+     } catch (e: IOException) {
+       promise.reject(ERROR_TAG, UNKNOWN_IO_EXCEPTION_MSG, e)
+-      e.printStackTrace()
++      if (options.plateRoiMetadata == null) e.printStackTrace()
+     } catch (e: Exception) {
+       promise.reject(ERROR_TAG, UNKNOWN_EXCEPTION_MSG, e)
+-      e.printStackTrace()
++      if (options.plateRoiMetadata == null) e.printStackTrace()
+     }
+     // error occurred
+     return null
+@@ -271,6 +283,7 @@ class ResolveTakenPicture(
+       }
+       transformed
+     } catch (e: OutOfMemoryError) {
++      plateRoiMetadata?.rejectProcessing()
+       source
+     }
+   }
+diff --git a/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt b/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..2962b1db701fe5eb148740fe63c7c56b63bd9540
+--- /dev/null
++++ b/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt
+@@ -0,0 +1,98 @@
++package expo.modules.camera
++
++import android.graphics.Matrix
++import androidx.camera.core.ImageInfo
++import androidx.camera.core.ImageProxy
++import java.lang.reflect.Proxy
++import org.junit.Assert.*
++import org.junit.Test
++import org.junit.runner.RunWith
++import org.robolectric.RobolectricTestRunner
++import org.robolectric.annotation.Config
++
++@RunWith(RobolectricTestRunner::class)
++@Config(sdk = [29], manifest = Config.NONE)
++class PlateRoiMetadataTest {
++  private fun metadata(rotation: Int = 0): PlateRoiMetadata {
++    val mapping = Matrix().apply { setValues(floatArrayOf(2f, 0f, 10f, 0f, 3f, 20f, 0f, 0f, 1f)) }
++    return PlateRoiMetadata(PlateRoiRequest(5, 7, 9), 360, 260, 1000, 800, rotation, mapping)
++  }
++
++  @Test fun actualUprightRotationMapsAsymmetricPoint() {
++    val cases = mapOf(0 to floatArrayOf(30f, 80f), 90 to floatArrayOf(720f, 30f),
++      180 to floatArrayOf(970f, 720f), 270 to floatArrayOf(80f, 970f))
++    for ((rotation, expected) in cases) {
++      val quarter = rotation == 90 || rotation == 270
++      val result = metadata(rotation).processed(1000, 800, rotation,
++        if (quarter) 800 else 1000, if (quarter) 1000 else 800)!!
++      val matrix = Matrix().apply {
++        setValues(result.getDoubleArray("previewToImage")!!.map { it.toFloat() }.toFloatArray())
++      }
++      val point = floatArrayOf(10f, 20f)
++      matrix.mapPoints(point)
++      assertArrayEquals(expected, point, 0.0001f)
++      assertEquals(5, result.getInt("generation"))
++      assertEquals(7, result.getInt("mountId"))
++      assertEquals(9, result.getInt("revision"))
++    }
++  }
++
++  @Test fun rejectsProcessingThatDoesNotMatchCapturedBuffer() {
++    assertNull(metadata().processed(999, 800, 0, 1000, 800))
++    assertNull(metadata(90).processed(1000, 800, 0, 800, 1000))
++    assertNull(metadata(90).processed(1000, 800, 90, 1000, 800))
++    assertNull(metadata(45).processed(1000, 800, 45, 1000, 800))
++    val failed = metadata(180)
++    failed.rejectProcessing()
++    assertNull(failed.processed(1000, 800, 180, 1000, 800))
++  }
++
++  @Test fun singularOrNonFiniteMatricesAreRejected() {
++    assertFalse(PlateRoiPreview.valid(Matrix().apply { setScale(0f, 1f) }))
++    assertFalse(PlateRoiPreview.valid(Matrix().apply { setScale(Float.NaN, 1f) }))
++    assertTrue(PlateRoiPreview.valid(Matrix()))
++  }
++
++  @Test fun composesActualCaptureAndPreviewSensorTransforms() {
++    val sensorToView = Matrix().apply {
++      setValues(floatArrayOf(0.5f, 0f, 11f, 0f, 0.75f, 13f, 0f, 0f, 1f))
++    }
++    val constructor = PlateRoiPreview::class.java.getDeclaredConstructor(
++      Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Matrix::class.java
++    ).apply { isAccessible = true }
++    val preview = constructor.newInstance(360, 260, sensorToView)
++    val sensorToBuffer = Matrix().apply {
++      setValues(floatArrayOf(2f, 0f, 70f, 0f, 3f, 90f, 0f, 0f, 1f))
++    }
++    val info = Proxy.newProxyInstance(ImageInfo::class.java.classLoader,
++      arrayOf(ImageInfo::class.java)) { _, method, _ ->
++      when (method.name) {
++        "getSensorToBufferTransformMatrix" -> sensorToBuffer
++        "getRotationDegrees" -> 0
++        else -> error("Unexpected image-info access")
++      }
++    } as ImageInfo
++    val image = Proxy.newProxyInstance(ImageProxy::class.java.classLoader,
++      arrayOf(ImageProxy::class.java)) { _, method, _ ->
++      when (method.name) {
++        "getImageInfo" -> info
++        "getWidth" -> 1000
++        "getHeight" -> 800
++        else -> error("Unexpected image-buffer access")
++      }
++    } as ImageProxy
++    val result = preview.capture(image, PlateRoiRequest(5, 7, 9))!!
++      .processed(1000, 800, 0, 1000, 800)!!
++    val matrix = Matrix().apply {
++      setValues(result.getDoubleArray("previewToImage")!!.map { it.toFloat() }.toFloatArray())
++    }
++    val point = floatArrayOf(10f, 20f)
++    matrix.mapPoints(point)
++    assertArrayEquals(floatArrayOf(66f, 118f), point, 0.0001f)
++    assertTrue(preview.matches(constructor.newInstance(360, 260, Matrix(sensorToView))))
++    assertFalse(preview.matches(constructor.newInstance(361, 260, sensorToView)))
++    assertFalse(preview.matches(constructor.newInstance(360, 260, sensorToBuffer)))
++    assertFalse(preview.matches(null))
++  }
++
++}
+diff --git a/build/Camera.types.d.ts b/build/Camera.types.d.ts
+index 0ee50ec0d2705ef233c5ccbcfa098e92d91446bb..9186afdcb818c4f3ce5fd3908c1e24e4fad8576c 100644
+--- a/build/Camera.types.d.ts
++++ b/build/Camera.types.d.ts
+@@ -462,6 +462,7 @@ export interface CameraViewRef {
+     readonly takePicture: (options: CameraPictureOptions) => Promise<CameraCapturedPicture>;
+     readonly takePictureRef?: (options: CameraPictureOptions) => Promise<PictureRef>;
+     readonly getAvailablePictureSizes: () => Promise<string[]>;
++  getPlatePreviewMetadata: () => Promise<unknown>;
+     readonly getAvailableLenses: () => Promise<string[]>;
+     readonly record: (options?: CameraRecordingOptions) => Promise<{
+         uri: string;
+diff --git a/build/CameraView.d.ts b/build/CameraView.d.ts
+index da858fa67131c22597375a2400877ac7d640f971..cabcdaec898c4dd17fe1588075a34f0fb5d0ac51 100644
+--- a/build/CameraView.d.ts
++++ b/build/CameraView.d.ts
+@@ -26,6 +26,7 @@ export default class CameraView extends Component<CameraViewProps> {
+      * The list varies across Android devices but is the same for every iOS.
+      */
+     getAvailablePictureSizesAsync(): Promise<string[]>;
++    getPlatePreviewMetadataAsync(): Promise<unknown>;
+     /**
+      * Returns the available lenses for the currently selected camera.
+      *
+diff --git a/build/CameraView.js b/build/CameraView.js
+index 78f81984d8831a895ed5259ec75597489afbdbc2..724a0a298a5501901ddc3701458e90f4a6f803aa 100644
+--- a/build/CameraView.js
++++ b/build/CameraView.js
+@@ -74,6 +74,9 @@ export default class CameraView extends Component {
+      * @return Returns a Promise that resolves to an array of strings representing picture sizes that can be passed to `pictureSize` prop.
+      * The list varies across Android devices but is the same for every iOS.
+      */
++    async getPlatePreviewMetadataAsync() {
++        return this._cameraRef.current?.getPlatePreviewMetadata?.();
++    }
+     async getAvailablePictureSizesAsync() {
+         return (await this._cameraRef.current?.getAvailablePictureSizes()) ?? [];
+     }
+diff --git a/src/Camera.types.ts b/src/Camera.types.ts
+index 7cf0a075b9c174a843bc141d54c01bfcc146b112..00fd87152655a84b741a548484316db80de6dfbb 100644
+--- a/src/Camera.types.ts
++++ b/src/Camera.types.ts
+@@ -498,6 +498,7 @@ export interface CameraViewRef {
+   readonly takePicture: (options: CameraPictureOptions) => Promise<CameraCapturedPicture>;
+   readonly takePictureRef?: (options: CameraPictureOptions) => Promise<PictureRef>;
+   readonly getAvailablePictureSizes: () => Promise<string[]>;
++  getPlatePreviewMetadata: () => Promise<unknown>;
+   readonly getAvailableLenses: () => Promise<string[]>;
+   readonly record: (options?: CameraRecordingOptions) => Promise<{ uri: string }>;
+   readonly toggleRecording: () => Promise<void>;
+diff --git a/src/CameraView.tsx b/src/CameraView.tsx
+index b2cc359476729812a3f8a7e144e01d51b362bd0f..e86589285d6706079fc4c8fb1c4cc5ff47f5b1c8 100644
+--- a/src/CameraView.tsx
++++ b/src/CameraView.tsx
+@@ -112,6 +112,11 @@ export default class CameraView extends Component<CameraViewProps> {
+    * @return Returns a Promise that resolves to an array of strings representing picture sizes that can be passed to `pictureSize` prop.
+    * The list varies across Android devices but is the same for every iOS.
+    */
++  /** VAYLET Issue #213 opt-in metadata; unsupported platforms return no mapping. */
++  async getPlatePreviewMetadataAsync(): Promise<unknown> {
++    return this._cameraRef.current?.getPlatePreviewMetadata?.();
++  }
++
+   async getAvailablePictureSizesAsync(): Promise<string[]> {
+     return (await this._cameraRef.current?.getAvailablePictureSizes()) ?? [];
+   }

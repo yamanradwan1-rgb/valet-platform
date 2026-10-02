@@ -1,3 +1,9 @@
+import {
+  roiPicture,
+  roiPreview,
+  mountRoiCamera,
+  roiImageMocks,
+} from "./native-plate-roi-test-fixture";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInSession,
@@ -37,6 +43,10 @@ vi.stubGlobal("__DEV__", true);
 const { createNativePlateOcrBinding } =
   await import("../src/check-in/native-plate-ocr-adapter");
 
+const cameras = new Map<
+  ReturnType<typeof createNativePlateOcrBinding>,
+  CameraView
+>();
 let info: ReturnType<typeof vi.spyOn>;
 function session() {
   return {
@@ -59,9 +69,24 @@ function setup(takePictureAsync: CameraView["takePictureAsync"]) {
       "1152x648",
       "1024x576",
     ],
-    takePictureAsync,
+    getPlatePreviewMetadataAsync: async () => roiPreview,
+    takePictureAsync: async (options: unknown) => {
+      const picture = (await takePictureAsync(
+        options as Parameters<CameraView["takePictureAsync"]>[0],
+      )) as Awaited<ReturnType<CameraView["takePictureAsync"]>>;
+      return picture?.uri
+        ? roiPicture(
+            picture.uri,
+            (
+              options as {
+                plateRoiMetadata: typeof import("./native-plate-roi-test-fixture").roiGeometry;
+              }
+            ).plateRoiMetadata,
+          )
+        : picture;
+    },
   } as CameraView;
-  binding.cameraRef(camera);
+  cameras.set(binding, camera);
   return { binding, camera, state };
 }
 
@@ -69,9 +94,9 @@ async function start(binding: ReturnType<typeof createNativePlateOcrBinding>) {
   binding.controller.setEligible(true);
   await binding.controller.open();
   const generation = binding.controller.current().generation;
-  await binding.cameraReady(generation);
-  await binding.cameraReady(generation);
-  await binding.cameraReady(generation);
+  await mountRoiCamera(binding, cameras.get(binding)!);
+  await mountRoiCamera(binding, cameras.get(binding)!);
+  await mountRoiCamera(binding, cameras.get(binding)!);
   await vi.advanceTimersByTimeAsync(1200);
   return generation;
 }
@@ -94,7 +119,7 @@ afterEach(() => {
 
 describe("Native camera capture resolution fallback", () => {
   it("starts once after the final preferred-size remount readiness", async () => {
-    mocks.sizes.set("preferred.jpg", 500_000);
+    mocks.sizes.set("preferred.jpg.roi-0.6.jpg", 500_000);
     const takePictureAsync = vi
       .fn()
       .mockResolvedValue({ uri: "preferred.jpg" });
@@ -115,14 +140,14 @@ describe("Native camera capture resolution fallback", () => {
   });
 
   it("remounts once at the supported lower size and waits for readiness", async () => {
-    mocks.sizes.set("lower.jpg", 500_000);
+    mocks.sizes.set("lower.jpg.roi-0.6.jpg", 500_000);
     const takePictureAsync = vi
       .fn()
       .mockRejectedValueOnce(new Error("device failure"))
       .mockResolvedValueOnce({ uri: "lower.jpg" });
     const { binding, state } = setup(takePictureAsync);
 
-    const generation = await start(binding);
+    await start(binding);
     expect(binding.controller.current()).toMatchObject({
       phase: "starting",
       pictureSize: "1024x576",
@@ -131,7 +156,7 @@ describe("Native camera capture resolution fallback", () => {
     expect(takePictureAsync).toHaveBeenCalledOnce();
     expect(mocks.recognize).not.toHaveBeenCalled();
 
-    await binding.cameraReady(generation);
+    await mountRoiCamera(binding, cameras.get(binding)!);
     await vi.advanceTimersByTimeAsync(0);
     expect(takePictureAsync).toHaveBeenCalledTimes(2);
     expect(mocks.recognize).toHaveBeenCalledOnce();
@@ -160,8 +185,8 @@ describe("Native camera capture resolution fallback", () => {
     const takePictureAsync = vi.fn().mockRejectedValue(new Error("failure"));
     const { binding } = setup(takePictureAsync);
 
-    const generation = await start(binding);
-    await binding.cameraReady(generation);
+    await start(binding);
+    await mountRoiCamera(binding, cameras.get(binding)!);
     await vi.advanceTimersByTimeAsync(0);
 
     expect(takePictureAsync).toHaveBeenCalledTimes(2);
@@ -180,9 +205,9 @@ describe("Native camera capture resolution fallback", () => {
     const takePictureAsync = vi.fn().mockRejectedValue(new Error("failure"));
     const { binding } = setup(takePictureAsync);
 
-    const generation = await start(binding);
+    await start(binding);
     binding.controller.close();
-    await binding.cameraReady(generation);
+    await mountRoiCamera(binding, cameras.get(binding)!);
     await vi.advanceTimersByTimeAsync(0);
 
     expect(takePictureAsync).toHaveBeenCalledOnce();
@@ -191,8 +216,8 @@ describe("Native camera capture resolution fallback", () => {
   });
 
   it("keeps the JPEG quality fallback after a camera-size fallback", async () => {
-    mocks.sizes.set("large.jpg", 1_048_577);
-    mocks.sizes.set("compressed.jpg", 700_000);
+    mocks.sizes.set("large.jpg.roi-0.6.jpg", 1_048_577);
+    mocks.sizes.set("large.jpg.roi-0.45.jpg", 700_000);
     const preferredCapture = vi
       .fn()
       .mockRejectedValueOnce(new Error("device failure"));
@@ -202,21 +227,35 @@ describe("Native camera capture resolution fallback", () => {
       .mockResolvedValueOnce({ uri: "compressed.jpg" });
     const { binding } = setup(preferredCapture);
 
-    const generation = await start(binding);
-    binding.cameraRef({
-      takePictureAsync: fallbackCapture,
-    } as unknown as CameraView);
-    await binding.cameraReady(generation);
+    await start(binding);
+    const camera = {
+      getPlatePreviewMetadataAsync: async () => roiPreview,
+      takePictureAsync: async (options: unknown) => {
+        const picture = await fallbackCapture(options);
+        return roiPicture(
+          picture.uri,
+          (
+            options as {
+              plateRoiMetadata: typeof import("./native-plate-roi-test-fixture").roiGeometry;
+            }
+          ).plateRoiMetadata,
+        );
+      },
+    } as unknown as CameraView;
+    await mountRoiCamera(binding, camera);
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(preferredCapture).toHaveBeenCalledExactlyOnceWith({
-      quality: 0.6,
-      exif: false,
-      base64: false,
-    });
+    expect(preferredCapture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        quality: 1,
+        exif: false,
+        base64: false,
+      }),
+    );
     expect(
       fallbackCapture.mock.calls.map(([options]) => options?.quality),
-    ).toEqual([0.6, 0.45]);
+    ).toEqual([1]);
+    expect(roiImageMocks.save.mock.calls.slice(-2)).toEqual([[0.6], [0.45]]);
     expect(mocks.recognize).toHaveBeenCalledOnce();
     expect(
       info.mock.calls

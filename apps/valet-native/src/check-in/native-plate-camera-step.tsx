@@ -1,6 +1,6 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { AppState, Linking, StyleSheet, Text, View } from "react-native";
-import { CameraView } from "expo-camera";
+import { NativePlateRoiViewport } from "./native-plate-roi-viewport";
 import { useFocusEffect } from "expo-router";
 import type {
   EmployeeCheckInSession,
@@ -10,7 +10,6 @@ import type {
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { createNativePlateOcrBinding } from "./native-plate-ocr-adapter";
-import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 import { bindNativePlateCameraLifecycle } from "./native-plate-camera-lifecycle";
 import { getNativePlateCameraCopy } from "./native-plate-camera-copy";
 import type { NativeCheckInCopy } from "./native-check-in-copy";
@@ -46,8 +45,11 @@ export function NativePlateCameraStep({
   readonly onNoPlate: () => void;
   readonly textAlign: NativeTextAlign;
 }) {
-  const [{ controller, cameraRef, cameraReady }] = useState(() =>
-    createNativePlateOcrBinding(auth, session),
+  const [binding] = useState(() => createNativePlateOcrBinding(auth, session));
+  const { controller } = binding;
+  const geometry = useSyncExternalStore(
+    binding.roi.subscribe,
+    binding.roi.current,
   );
   const snapshot = useSyncExternalStore(
     controller.subscribe,
@@ -79,19 +81,11 @@ export function NativePlateCameraStep({
       {opened ? (
         <View style={styles.viewport}>
           {mounted ? (
-            <CameraView
-              ref={cameraRef}
-              key={`${snapshot.generation}:${snapshot.pictureSize ?? "default"}`}
-              facing="back"
-              mute
-              pictureSize={snapshot.pictureSize}
-              style={styles.camera}
-              accessible={false}
-              onCameraReady={() => {
-                logNativePlateOcr("camera-ready");
-                void cameraReady(snapshot.generation);
-              }}
-              onMountError={() => controller.fail(snapshot.generation)}
+            <NativePlateRoiViewport
+              key={snapshot.mountId}
+              snapshot={snapshot}
+              binding={binding}
+              geometry={geometry}
             />
           ) : null}
           {snapshot.phase !== "preview" ? (
@@ -187,13 +181,6 @@ function CameraMessage({
 }
 
 const styles = StyleSheet.create({
-  camera: {
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
   message: {
     ...type.label,
     backgroundColor: "rgba(255, 255, 255, 0.95)",

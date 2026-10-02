@@ -12,6 +12,7 @@ import {
 
 export interface NativePlateCameraSnapshot {
   readonly generation: number;
+  readonly mountId: number;
   readonly pictureSize?: string | undefined;
   readonly preferredPictureSize?: string | undefined;
   readonly fallbackPictureSize?: string | undefined;
@@ -33,6 +34,7 @@ export class NativePlateCameraController {
   private eligible = false;
   private snapshot: NativePlateCameraSnapshot = {
     generation: 0,
+    mountId: 0,
     phase: "idle",
     canAskAgain: true,
     captureFallbackUsed: false,
@@ -102,6 +104,7 @@ export class NativePlateCameraController {
         phase: permission.granted ? "starting" : "denied",
         canAskAgain: permission.canAskAgain,
         pictureSize: this.snapshot.preferredPictureSize,
+        mountId: this.snapshot.mountId + 1,
         captureFallbackUsed: false,
       });
       if (!permission.granted)
@@ -142,6 +145,7 @@ export class NativePlateCameraController {
     this.publish({
       ...this.snapshot,
       pictureSize,
+      mountId: this.snapshot.mountId + 1,
       preferredPictureSize: pictureSize,
       fallbackPictureSize,
       captureFallbackUsed: false,
@@ -173,6 +177,7 @@ export class NativePlateCameraController {
       this.publish({
         ...this.snapshot,
         pictureSize: fallback,
+        mountId: this.snapshot.mountId + 1,
         captureFallbackUsed: true,
         phase: "starting",
       });
@@ -190,6 +195,12 @@ export class NativePlateCameraController {
       generation: generation + 1,
       phase: "error",
     });
+  }
+
+  geometryUnavailable(generation: number): void {
+    if (!this.isCurrent(generation)) return;
+    this.close();
+    this.publish({ ...this.snapshot, phase: "unavailable" });
   }
 
   close(): void {

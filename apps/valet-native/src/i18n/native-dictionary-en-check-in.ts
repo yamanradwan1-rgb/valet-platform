@@ -23,7 +23,7 @@ export const nativeEmployeeEnglishCheckInDictionary = {
   plateCameraPermissionDenied:
     "Camera permission was denied. Update browser permissions or enter the plate manually.",
   plateCameraPreviewHint:
-    "Reading plate automatically… Keep the plate visible in the frame.",
+    "Reading automatically… Keep the complete plate inside the guide.",
   plateCameraPreviewLabel: "Live vehicle plate camera preview",
   plateCameraRetake: "Retake image",
   plateCameraRetry: "Try camera again",

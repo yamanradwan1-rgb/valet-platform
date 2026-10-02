@@ -21,8 +21,7 @@ export const nativeEmployeeArabicCheckInDictionary = {
   plateCameraOpen: "فتح كاميرا اللوحة",
   plateCameraPermissionDenied:
     "تم رفض إذن الكاميرا. عدّل أذونات المتصفح أو أدخل اللوحة يدويًا.",
-  plateCameraPreviewHint:
-    "جارٍ قراءة اللوحة تلقائيًا… أبقِ اللوحة ظاهرة داخل الإطار.",
+  plateCameraPreviewHint: "جارٍ القراءة تلقائيًا… ضع اللوحة كاملة داخل الإطار.",
   plateCameraPreviewLabel: "معاينة مباشرة لكاميرا لوحة المركبة",
   plateCameraRetake: "إعادة التقاط الصورة",
   plateCameraRetry: "إعادة محاولة تشغيل الكاميرا",

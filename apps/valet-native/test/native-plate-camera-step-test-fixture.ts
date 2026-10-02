@@ -1,3 +1,5 @@
+import { NativePlateRoiViewport } from "../src/check-in/native-plate-roi-viewport";
+import { plateGuide } from "../src/check-in/native-plate-roi-geometry";
 import type { ReactElement } from "react";
 import { expect, vi } from "vitest";
 import type {
@@ -15,7 +17,22 @@ vi.mock("react", () => ({
   useState: () => [
     {
       controller: cameraHooks.controller,
+      roi: {
+        subscribe: () => () => {},
+        current: () => ({
+          ...cameraHooks.controller.current(),
+          width: 360,
+          height: 260,
+          revision: 1,
+          guide: plateGuide(360, 260),
+        }),
+      },
       cameraRef: vi.fn(),
+      cameraLayout: vi.fn(),
+      cameraError: (generation: number, mountId: number) => {
+        if (cameraHooks.controller.current().mountId === mountId)
+          cameraHooks.controller.fail(generation);
+      },
       cameraReady: (generation: number) =>
         cameraHooks.controller.ready(generation),
     },
@@ -57,6 +74,12 @@ export function cameraElements(value: unknown): CameraElement[] {
   if (Array.isArray(value)) return value.flatMap(cameraElements);
   if (!value || typeof value !== "object" || !("props" in value)) return [];
   const node = value as CameraElement;
+  if (node.type === NativePlateRoiViewport)
+    return cameraElements(
+      NativePlateRoiViewport(
+        node.props as unknown as Parameters<typeof NativePlateRoiViewport>[0],
+      ),
+    );
   return [node, ...cameraElements(node.props.children)];
 }
 
@@ -80,7 +103,7 @@ export function plateCameraFixture(
   locale: "en" | "ar" = "en",
   deferPermission = false,
   textAlign: "left" | "right" = locale === "ar" ? "right" : "left",
-  ocrUnavailable = false,
+  ocrUnavailable: boolean | "no-match" = false,
 ) {
   cameraHooks.focus = [];
   const permission = { granted, canAskAgain: false };
@@ -99,7 +122,12 @@ export function plateCameraFixture(
       ? {
           accept: vi.fn(),
           capture: vi.fn(async () => "cache://plate.jpg"),
-          recognize: vi.fn(async () => ({ status: "UNAVAILABLE" as const })),
+          recognize: vi.fn(async () => ({
+            status:
+              ocrUnavailable === "no-match"
+                ? ("NO_MATCH" as const)
+                : ("UNAVAILABLE" as const),
+          })),
           remove: vi.fn(async () => undefined),
         }
       : undefined,

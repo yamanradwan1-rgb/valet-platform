@@ -6,6 +6,7 @@ export const NATIVE_PLATE_FALLBACK_LONG_EDGE = 1024;
 export const NATIVE_PLATE_FALLBACK_SHORT_EDGE = 576;
 export const NATIVE_PLATE_PRIMARY_JPEG_QUALITY = 0.6;
 export const NATIVE_PLATE_FALLBACK_JPEG_QUALITY = 0.45;
+export const NATIVE_PLATE_SOURCE_JPEG_QUALITY = 1;
 
 interface PictureSizeCandidate {
   readonly value: string;

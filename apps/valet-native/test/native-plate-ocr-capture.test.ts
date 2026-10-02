@@ -1,14 +1,19 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  roiPicture,
+  roiSource,
+  roiImageMocks,
+  roiPreview,
+  mountRoiCamera,
+} from "./native-plate-roi-test-fixture";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInSession,
   NativeAuthSession,
 } from "@valet/employee-client";
 import type { CameraView } from "expo-camera";
-import { NativePlateCameraController } from "../src/check-in/native-plate-camera-controller";
 
 const mocks = vi.hoisted(() => ({
   deleted: [] as string[],
-  events: [] as string[],
   sizes: new Map<string, number>(),
   recognize: vi.fn(),
 }));
@@ -21,15 +26,11 @@ vi.mock("expo-file-system", () => ({
     }
     delete() {
       mocks.deleted.push(this.uri);
-      mocks.events.push(`delete:${this.uri}`);
     }
   },
 }));
 vi.mock("../src/check-in/native-plate-ocr-client", () => ({
-  recognizeNativePlate: (...args: unknown[]) => {
-    mocks.events.push("provider");
-    return mocks.recognize(...args);
-  },
+  recognizeNativePlate: (...args: unknown[]) => mocks.recognize(...args),
 }));
 vi.mock("../src/auth/native-api-http", () => ({
   resolveNativeApiOrigin: () => "http://localhost:3001",
@@ -37,176 +38,139 @@ vi.mock("../src/auth/native-api-http", () => ({
 vi.mock("../src/scanner/native-camera-adapter", () => ({
   nativeCameraPermissions: {
     get: async () => ({ granted: true, canAskAgain: true }),
-    request: async () => ({ granted: true, canAskAgain: true }),
+    request: vi.fn(),
   },
 }));
 const { createNativePlateOcrBinding, createNativePlateOcrPorts } =
   await import("../src/check-in/native-plate-ocr-adapter");
-
-function session() {
-  return {
+const session = () =>
+  ({
     current: () => ({
       locationId: "11111111-1111-4111-8111-111111111111",
       vehicle: { plateCountry: "JO" },
     }),
     setVehicle: vi.fn(),
     reviewIdentity: vi.fn(),
-  } as unknown as EmployeeCheckInSession;
-}
-
-function setup(captures: readonly string[]) {
-  const takePictureAsync = vi.fn(async ({ quality }: { quality: number }) => {
-    const uri = captures[takePictureAsync.mock.calls.length - 1];
-    mocks.events.push(`capture:${quality}`);
-    return uri === undefined ? undefined : { uri };
-  });
+  }) as unknown as EmployeeCheckInSession;
+function setup() {
+  const camera = {
+    takePictureAsync: vi.fn(async () => roiPicture("source.jpg")),
+  };
   const ports = createNativePlateOcrPorts(
-    () => ({ takePictureAsync }) as unknown as CameraView,
+    () => camera as unknown as CameraView,
     {} as NativeAuthSession,
     session(),
+    undefined,
+    undefined,
+    roiSource(camera as unknown as CameraView),
   );
-  async function attempt(signal = new AbortController().signal) {
+  const attempt = async () => {
     let uri: string | undefined;
     try {
-      uri = await ports.capture(signal);
-      return await ports.recognize(uri, signal);
+      uri = await ports.capture(new AbortController().signal);
+      return await ports.recognize(uri, new AbortController().signal);
     } catch {
-      return { status: "UNAVAILABLE" } as const;
+      return { status: "UNAVAILABLE" };
     } finally {
       if (uri) await ports.remove(uri);
     }
-  }
-  return { attempt, ports, takePictureAsync };
+  };
+  return { attempt, camera, ports };
 }
-
 beforeEach(() => {
   mocks.deleted = [];
-  mocks.events = [];
   mocks.sizes.clear();
   mocks.recognize.mockReset().mockResolvedValue({ status: "MATCH" });
+  vi.clearAllMocks();
 });
-afterEach(() => vi.useRealTimers());
-
-describe("Native bounded ANPR capture", () => {
-  it("uses one primary capture, provider call and deletion when within 1 MiB", async () => {
-    mocks.sizes.set("primary.jpg", 900_000);
-    const c = setup(["primary.jpg"]);
+describe("Native bounded cropped ANPR upload", () => {
+  it("uploads only ROI, after source deletion, exactly once", async () => {
+    mocks.sizes.set("source.jpg.roi-0.6.jpg", 900000);
+    mocks.recognize.mockImplementation(
+      async (_origin, _auth, _request, uri) => {
+        expect(uri).toBe("source.jpg.roi-0.6.jpg");
+        expect(mocks.deleted).toEqual(["source.jpg"]);
+        return { status: "MATCH" };
+      },
+    );
+    const c = setup();
     expect(await c.attempt()).toEqual({ status: "MATCH" });
-    expect(c.takePictureAsync).toHaveBeenCalledExactlyOnceWith({
-      quality: 0.6,
-      exif: false,
-      base64: false,
-    });
+    expect(c.camera.takePictureAsync).toHaveBeenCalledOnce();
+    expect(roiImageMocks.render).toHaveBeenCalledOnce();
     expect(mocks.recognize).toHaveBeenCalledOnce();
-    expect(mocks.deleted).toEqual(["primary.jpg"]);
+    expect(mocks.deleted).toEqual(["source.jpg", "source.jpg.roi-0.6.jpg"]);
   });
-
-  it("deletes an oversize capture before one lower-quality recapture", async () => {
-    mocks.sizes.set("large.jpg", 1_048_577);
-    mocks.sizes.set("fallback.jpg", 700_000);
-    const c = setup(["large.jpg", "fallback.jpg"]);
+  it("performs local compression fallback before a single HTTP call", async () => {
+    mocks.sizes.set("source.jpg.roi-0.6.jpg", 1048577);
+    mocks.sizes.set("source.jpg.roi-0.45.jpg", 700000);
+    const c = setup();
     expect(await c.attempt()).toEqual({ status: "MATCH" });
-    expect(
-      c.takePictureAsync.mock.calls.map(([value]) => value.quality),
-    ).toEqual([0.6, 0.45]);
+    expect(c.camera.takePictureAsync).toHaveBeenCalledOnce();
+    expect(roiImageMocks.save.mock.calls).toEqual([[0.6], [0.45]]);
     expect(mocks.recognize).toHaveBeenCalledOnce();
-    expect(mocks.events).toEqual([
-      "capture:0.6",
-      "delete:large.jpg",
-      "capture:0.45",
-      "provider",
-      "delete:fallback.jpg",
+    expect(mocks.deleted).toEqual([
+      "source.jpg.roi-0.6.jpg",
+      "source.jpg",
+      "source.jpg.roi-0.45.jpg",
     ]);
   });
-
-  it("deletes two oversize captures and makes zero provider calls", async () => {
-    mocks.sizes.set("large.jpg", 1_048_577);
-    mocks.sizes.set("still-large.jpg", 2_000_000);
-    const c = setup(["large.jpg", "still-large.jpg"]);
+  it("deletes both oversize ROIs and source with zero HTTP calls", async () => {
+    mocks.sizes.set("source.jpg.roi-0.6.jpg", 1048577);
+    mocks.sizes.set("source.jpg.roi-0.45.jpg", 2000000);
+    const c = setup();
     expect(await c.attempt()).toEqual({ status: "UNAVAILABLE" });
-    expect(c.takePictureAsync).toHaveBeenCalledTimes(2);
+    expect(c.camera.takePictureAsync).toHaveBeenCalledOnce();
     expect(mocks.recognize).not.toHaveBeenCalled();
-    expect(mocks.deleted).toEqual(["large.jpg", "still-large.jpg"]);
+    expect(mocks.deleted).toEqual([
+      "source.jpg.roi-0.6.jpg",
+      "source.jpg.roi-0.45.jpg",
+      "source.jpg",
+    ]);
   });
-
-  it("deletes a late fallback after cancellation without provider/session work", async () => {
-    vi.useFakeTimers();
-    mocks.sizes.set("large.jpg", 1_048_577);
-    mocks.sizes.set("late.jpg", 500_000);
-    let finish!: () => void;
-    const camera = {
-      takePictureAsync: vi
-        .fn()
-        .mockResolvedValueOnce({ uri: "large.jpg" })
-        .mockReturnValueOnce(
-          new Promise((resolve) => {
-            finish = () => resolve({ uri: "late.jpg" });
-          }),
-        ),
-    };
-    const state = session();
-    const ports = createNativePlateOcrPorts(
-      () => camera as unknown as CameraView,
-      {} as NativeAuthSession,
-      state,
-    );
-    const controller = new NativePlateCameraController(
-      {
-        get: async () => ({ granted: true, canAskAgain: true }),
-        request: async () => ({ granted: true, canAskAgain: true }),
-      },
-      ports,
-    );
-    controller.setEligible(true);
-    await controller.open();
-    controller.ready(controller.current().generation);
-    await vi.advanceTimersByTimeAsync(1200);
-    expect(camera.takePictureAsync).toHaveBeenCalledTimes(2);
-    controller.close();
-    finish();
-    await vi.advanceTimersByTimeAsync(0);
-    expect(mocks.deleted).toEqual(["large.jpg", "late.jpg"]);
+  it("fails closed when metadata is absent without rendering or HTTP", async () => {
+    const c = setup();
+    c.camera.takePictureAsync.mockResolvedValueOnce({
+      ...roiPicture("source.jpg"),
+      plateRoiMetadata: undefined,
+    } as never);
+    expect(await c.attempt()).toEqual({ status: "UNAVAILABLE" });
+    expect(roiImageMocks.render).not.toHaveBeenCalled();
     expect(mocks.recognize).not.toHaveBeenCalled();
-    expect(state.setVehicle).not.toHaveBeenCalled();
-    expect(state.reviewIdentity).not.toHaveBeenCalled();
+    expect(mocks.deleted).toEqual(["source.jpg"]);
   });
-
-  it("applies an exact supported pictureSize before OCR becomes ready", async () => {
-    const binding = createNativePlateOcrBinding(
-      {} as NativeAuthSession,
-      session(),
-    );
-    binding.controller.setEligible(true);
-    await binding.controller.open();
-    binding.cameraRef({
-      getAvailablePictureSizesAsync: async () => [
-        "4032x3024",
-        "1280x720",
-        "1920x1080",
-      ],
-    } as CameraView);
-    const generation = binding.controller.current().generation;
-    await binding.cameraReady(generation);
-    expect(binding.controller.current()).toMatchObject({
-      phase: "starting",
-      pictureSize: "1280x720",
-    });
-    await binding.cameraReady(generation);
-    expect(binding.controller.current().phase).toBe("preview");
-    binding.controller.close();
+  it("independently rechecks nonzero size and limit before HTTP", async () => {
+    const c = setup();
+    for (const size of [0, 1048577]) {
+      mocks.sizes.set("untrusted.jpg", size);
+      expect(
+        await c.ports.recognize("untrusted.jpg", new AbortController().signal),
+      ).toEqual({ status: "UNAVAILABLE" });
+    }
+    expect(mocks.recognize).not.toHaveBeenCalled();
   });
-
-  it("uses the supported Expo default without inventing a size when enumeration is unavailable", async () => {
-    const binding = createNativePlateOcrBinding(
-      {} as NativeAuthSession,
-      session(),
-    );
-    binding.controller.setEligible(true);
-    await binding.controller.open();
-    const generation = binding.controller.current().generation;
-    await binding.cameraReady(generation);
-    expect(binding.controller.current()).toMatchObject({ phase: "preview" });
-    expect(binding.controller.current().pictureSize).toBeUndefined();
-    binding.controller.close();
-  });
+  it.each([true, false])(
+    "gates readiness on native metadata after supported-size remount=%s",
+    async (enumeration) => {
+      const binding = createNativePlateOcrBinding(
+        {} as NativeAuthSession,
+        session(),
+      );
+      binding.controller.setEligible(true);
+      await binding.controller.open();
+      const camera = {
+        getAvailablePictureSizesAsync: enumeration
+          ? async () => ["4032x3024", "1280x720", "1920x1080"]
+          : vi.fn().mockRejectedValue(new Error()),
+        getPlatePreviewMetadataAsync: async () => roiPreview,
+      } as unknown as CameraView;
+      await mountRoiCamera(binding, camera);
+      if (enumeration) {
+        expect(binding.controller.current().pictureSize).toBe("1280x720");
+        expect(binding.controller.current().phase).toBe("starting");
+        await mountRoiCamera(binding, camera);
+      }
+      expect(binding.controller.current().phase).toBe("preview");
+      binding.controller.close();
+    },
+  );
 });
