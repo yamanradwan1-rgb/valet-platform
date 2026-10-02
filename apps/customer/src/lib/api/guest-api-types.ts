@@ -1,22 +1,27 @@
 import type {
   guestSafeSessionResponseSchema,
+  GuestSessionReadResponse,
   guestHandoffMaterialResponseSchema,
   handoffStandardMethodSchema,
-} from '@valet/contracts';
-import type { z } from 'zod';
+} from "@valet/contracts";
+import type { z } from "zod";
 
-export type GuestSafeSession = z.infer<typeof guestSafeSessionResponseSchema>;
-export type GuestSessionState = GuestSafeSession['state'];
+export type GuestSafeSession = z.infer<
+  typeof guestSafeSessionResponseSchema
+> & { readonly branding?: GuestSessionReadResponse["branding"] | undefined };
+export type GuestSessionState = GuestSafeSession["state"];
 
 export type HandoffStandardMethod = z.infer<typeof handoffStandardMethodSchema>;
-export type GuestHandoffMaterial = z.infer<typeof guestHandoffMaterialResponseSchema>;
+export type GuestHandoffMaterial = z.infer<
+  typeof guestHandoffMaterialResponseSchema
+>;
 
 export type PickupCodeHandoffMaterial = Extract<
   GuestHandoffMaterial,
-  { method: 'PICKUP_CODE' }
+  { method: "PICKUP_CODE" }
 >;
 
 export type DynamicQrHandoffMaterial = Extract<
   GuestHandoffMaterial,
-  { method: 'DYNAMIC_QR' }
+  { method: "DYNAMIC_QR" }
 >;

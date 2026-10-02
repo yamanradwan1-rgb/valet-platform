@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useContext } from "react";
 
-import { C } from '../../lib/theme/colors';
-import { AppHeader } from './app-header';
-import { BottomNav, type CustomerTab } from './bottom-nav';
+import { C } from "../../lib/theme/colors";
+import { GuestSessionContext } from "../../features/session/use-guest-session";
+import { guestBrandStyle } from "../../features/session/guest-branding";
+import { ThemeContext } from "../../theme/theme-provider";
+import { AppHeader } from "./app-header";
+import { BottomNav, type CustomerTab } from "./bottom-nav";
 
 export function AppShell({
   children,
@@ -27,28 +30,34 @@ export function AppShell({
   readonly dark?: boolean | undefined;
   readonly whiteLabel?: boolean | undefined;
 }) {
-  const containerBg = dark === true ? C.brandNavy : dark === false ? C.warm : C.bg;
+  const containerBg =
+    dark === true ? C.brandNavy : dark === false ? C.warm : C.bg;
+  const guest = useContext(GuestSessionContext);
+  const theme = useContext(ThemeContext);
+  const session =
+    guest && !guest.isExpired && !guest.isNetworkError ? guest.session : null;
 
   return (
     <div
       style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
+        ...guestBrandStyle(session, dark ?? theme?.isDark ?? false),
+        minHeight: "100dvh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
         backgroundColor: C.bgFrame,
       }}
     >
       <div
         style={{
-          width: '100%',
+          width: "100%",
           maxWidth: 430,
-          minHeight: '100dvh',
-          display: 'flex',
-          flexDirection: 'column',
+          minHeight: "100dvh",
+          display: "flex",
+          flexDirection: "column",
           backgroundColor: containerBg,
-          boxShadow: '0 0 60px rgba(0, 0, 0, 0.15)',
-          position: 'relative',
+          boxShadow: "0 0 60px rgba(0, 0, 0, 0.15)",
+          position: "relative",
         }}
       >
         {showHeader && (
@@ -63,9 +72,9 @@ export function AppShell({
         <main
           style={{
             flex: 1,
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           {children}

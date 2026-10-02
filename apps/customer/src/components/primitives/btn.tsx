@@ -1,61 +1,61 @@
-import React from 'react';
+import React from "react";
 
-import { C } from '../../lib/theme/colors';
+import { C } from "../../lib/theme/colors";
 
 export function Btn({
   children,
   onClick,
-  variant = 'primary',
+  variant = "primary",
   disabled = false,
   loading = false,
   fullWidth = true,
   small = false,
-  type = 'button',
+  type = "button",
 }: {
   readonly children: React.ReactNode;
   readonly onClick?: () => void;
-  readonly variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  readonly variant?: "primary" | "secondary" | "ghost" | "danger";
   readonly disabled?: boolean;
   readonly loading?: boolean;
   readonly fullWidth?: boolean;
   readonly small?: boolean;
-  readonly type?: 'button' | 'submit' | 'reset';
+  readonly type?: "button" | "submit" | "reset";
 }) {
   const baseStyle: React.CSSProperties = {
-    display: fullWidth ? 'flex' : 'inline-flex',
-    width: fullWidth ? '100%' : 'auto',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: fullWidth ? "flex" : "inline-flex",
+    width: fullWidth ? "100%" : "auto",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     fontWeight: 600,
     fontSize: small ? 14 : 15,
-    padding: small ? '10px 16px' : '16px 20px',
+    padding: small ? "10px 16px" : "16px 20px",
     borderRadius: 10,
     minHeight: small ? 40 : 48,
-    cursor: disabled || loading ? 'not-allowed' : 'pointer',
+    cursor: disabled || loading ? "not-allowed" : "pointer",
     opacity: disabled || loading ? 0.5 : 1,
-    transition: 'all 150ms ease',
-    border: 'none',
-    outline: 'none',
-    userSelect: 'none',
+    transition: "all 150ms ease",
+    border: "none",
+    outline: "none",
+    userSelect: "none",
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
       backgroundColor: C.accent,
-      color: '#FFFFFF',
+      color: "var(--brand-on-primary, #FFFFFF)",
     },
     secondary: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       border: `1px solid ${C.borderSemantic}`,
       color: C.text,
     },
     ghost: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       color: C.accent,
     },
     danger: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       color: C.dangerSemantic,
     },
   };
@@ -73,10 +73,10 @@ export function Btn({
           style={{
             width: 18,
             height: 18,
-            border: '2px solid currentColor',
-            borderTopColor: 'transparent',
-            borderRadius: '50%',
-            display: 'block',
+            border: "2px solid currentColor",
+            borderTopColor: "transparent",
+            borderRadius: "50%",
+            display: "block",
           }}
         />
       ) : (
