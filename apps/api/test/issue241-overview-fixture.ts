@@ -1,6 +1,23 @@
 import { randomUUID } from "node:crypto";
 import type { DashboardApiTestContext } from "./dashboard-api-test-context";
 
+export function issue241MismatchedCursors(
+  cursor: string,
+  otherLocation: string,
+) {
+  const decoded = JSON.parse(
+    Buffer.from(cursor, "base64url").toString("utf8"),
+  ) as Record<string, unknown>;
+  return [
+    { v: 1 },
+    { d: "tasks" },
+    { organizationId: randomUUID() },
+    { locationId: otherLocation },
+  ].map((patch) =>
+    Buffer.from(JSON.stringify({ ...decoded, ...patch })).toString("base64url"),
+  );
+}
+
 export async function seedIssue241Overview(context: DashboardApiTestContext) {
   const fixture = await context.managerFixture();
   const staff = await context.createStaff(fixture, "VALET_EMPLOYEE");
@@ -78,5 +95,59 @@ export async function seedIssue241Overview(context: DashboardApiTestContext) {
     spotId,
     taskId,
     terminalRetrieval,
+  };
+}
+
+export async function seedIssue241LocationAssignees(
+  context: DashboardApiTestContext,
+) {
+  const fixture = await context.managerFixture();
+  const granted = await context.createStaff(fixture, "VALET_EMPLOYEE");
+  const foreign = await context.createStaff(fixture, "VALET_EMPLOYEE");
+  const otherLocation = await context.addLocation(fixture, { access: false });
+  await context.adminPool.query(
+    "DELETE FROM membership_location_access WHERE organization_id=$1 AND membership_id=$2",
+    [fixture.organizationId, foreign.membershipId],
+  );
+  await context.grantAccess(fixture, foreign.membershipId, otherLocation);
+  await context.adminPool.query(
+    "UPDATE organization_memberships SET first_name=$2, last_name=$3 WHERE id=$1",
+    [foreign.membershipId, "ForeignLocationFirst", "ForeignLocationLast"],
+  );
+  await context.adminPool.query(
+    "UPDATE organization_memberships SET first_name='GrantedFirst', last_name='GrantedLast' WHERE id=$1",
+    [granted.membershipId],
+  );
+  const sessionId = await context.seedSession({ state: "PARKED" });
+  const grantedSessionId = await context.seedSession({ state: "PARKED" });
+  // Deliberately corrupt ownership using test-admin authority, never runtime code.
+  const taskId = await context.seedTask({
+    sessionId,
+    taskType: "RETRIEVAL",
+    status: "ASSIGNED",
+    assigneeMembershipId: foreign.membershipId,
+  });
+  const grantedTaskId = await context.seedTask({
+    sessionId: grantedSessionId,
+    taskType: "RETRIEVAL",
+    status: "ASSIGNED",
+    assigneeMembershipId: granted.membershipId,
+  });
+  for (const id of [sessionId, grantedSessionId]) {
+    await context.seedRetrievalRequest({
+      sessionId: id,
+      requestedAgoMinutes: 1,
+      status: "OPEN",
+    });
+  }
+  return {
+    fixture,
+    granted,
+    foreign,
+    otherLocation,
+    sessionId,
+    grantedSessionId,
+    taskId,
+    grantedTaskId,
   };
 }

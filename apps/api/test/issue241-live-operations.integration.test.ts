@@ -1,11 +1,14 @@
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   sessionOverviewListResponseSchema,
   retrievalQueueOverviewResponseSchema,
   taskOverviewListResponseSchema,
 } from "@valet/contracts";
-import { seedIssue241Overview } from "./issue241-overview-fixture";
+import {
+  issue241MismatchedCursors,
+  seedIssue241LocationAssignees,
+  seedIssue241Overview,
+} from "./issue241-overview-fixture";
 import { DashboardApiTestContext } from "./dashboard-api-test-context";
 
 const context = new DashboardApiTestContext("issue241");
@@ -102,18 +105,10 @@ describe("#241 authorized operational projection", () => {
         )
       ).status,
     ).toBe(400);
-    const decoded = JSON.parse(
-      Buffer.from(page1.nextCursor!, "base64url").toString("utf8"),
-    ) as Record<string, unknown>;
-    for (const patch of [
-      { v: 1 },
-      { d: "tasks" },
-      { organizationId: randomUUID() },
-      { locationId: otherLocation },
-    ]) {
-      const cursor = Buffer.from(
-        JSON.stringify({ ...decoded, ...patch }),
-      ).toString("base64url");
+    for (const cursor of issue241MismatchedCursors(
+      page1.nextCursor!,
+      otherLocation,
+    )) {
       expect((await read(`filter=PARKED&cursor=${cursor}`)).status).toBe(400);
     }
     const queue = await context.request("GET", `${base}/retrieval-queue`, {
@@ -156,6 +151,83 @@ describe("#241 authorized operational projection", () => {
         .parse((await read("filter=PARKED")).body)
         .items.find((item) => item.sessionId === sessionId)!.activeTask,
     ).toBeNull();
+  });
+
+  it("does not project a same-organization assignee granted only another Location", async () => {
+    await context.clearAntiAbuse();
+    const {
+      fixture,
+      granted,
+      foreign,
+      otherLocation,
+      sessionId,
+      grantedSessionId,
+      taskId,
+      grantedTaskId,
+    } = await seedIssue241LocationAssignees(context);
+    const grants = await context.adminPool.query<{ location_id: string }>(
+      "SELECT location_id::text FROM membership_location_access WHERE organization_id=$1 AND membership_id=$2",
+      [fixture.organizationId, foreign.membershipId],
+    );
+    expect(grants.rows).toEqual([{ location_id: otherLocation }]);
+    const manager = await context.createStaff(fixture, "LOCATION_MANAGER");
+    const login = await context.login(manager);
+    expect(login.status).toBe(200);
+    const authorization = `Bearer ${String(login.body?.accessToken)}`;
+    const base = `/v1/staff/dashboard/locations/${fixture.locationId}/overview`;
+    const expected = {
+      membershipId: granted.membershipId,
+      identity: {
+        firstName: "GrantedFirst",
+        lastName: "GrantedLast",
+        email: granted.email,
+      },
+    };
+    for (const route of ["sessions", "retrieval-queue", "tasks"]) {
+      const response = await context.request("GET", `${base}/${route}`, {
+        authorization,
+      });
+      expect(response.status, route).toBe(200);
+      for (const secret of [
+        "ForeignLocationFirst",
+        "ForeignLocationLast",
+        foreign.email,
+      ]) {
+        expect(JSON.stringify(response.body), route).not.toContain(secret);
+      }
+      if (route === "sessions") {
+        const items = sessionOverviewListResponseSchema.parse(
+          response.body,
+        ).items;
+        expect(
+          items.find((item) => item.sessionId === sessionId)!.activeTask,
+        ).toEqual({ taskId, assignee: null });
+        expect(
+          items.find((item) => item.sessionId === grantedSessionId)!.activeTask!
+            .assignee,
+        ).toEqual(expected);
+      } else if (route === "retrieval-queue") {
+        const items = retrievalQueueOverviewResponseSchema.parse(
+          response.body,
+        ).items;
+        expect(
+          items.find((item) => item.valetSessionId === sessionId)!.task!
+            .assignee,
+        ).toBeNull();
+        expect(
+          items.find((item) => item.valetSessionId === grantedSessionId)!.task!
+            .assignee,
+        ).toEqual(expected);
+      } else {
+        const items = taskOverviewListResponseSchema.parse(response.body).items;
+        expect(
+          items.find((item) => item.taskId === taskId)!.assignee,
+        ).toBeNull();
+        expect(
+          items.find((item) => item.taskId === grantedTaskId)!.assignee,
+        ).toEqual(expected);
+      }
+    }
   });
 
   it("keeps employee/supervisor, ungranted, inactive and foreign tenant reads denied", async () => {

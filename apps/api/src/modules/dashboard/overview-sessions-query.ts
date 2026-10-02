@@ -127,7 +127,8 @@ export async function listDashboardSessions(
          ON vehicle.organization_id = session.organization_id
         AND vehicle.id = session.vehicle_id
        LEFT JOIN LATERAL (
-         SELECT task.id, task.organization_id, task.status, task.current_assignee_membership_id
+         SELECT task.id, task.organization_id, task.location_id, task.status,
+                task.current_assignee_membership_id
          FROM tasks AS task
          WHERE task.organization_id = session.organization_id
            AND task.location_id = session.location_id AND task.valet_session_id = session.id

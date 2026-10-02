@@ -76,7 +76,7 @@ export async function listRetrievalQueue(
          ON session.organization_id = request.organization_id
         AND session.id = request.valet_session_id
        LEFT JOIN LATERAL (
-           SELECT task.id, task.organization_id, task.status,
+           SELECT task.id, task.organization_id, task.location_id, task.status,
                   task.current_assignee_membership_id
            FROM tasks AS task
            WHERE task.organization_id = request.organization_id
