@@ -1,7 +1,17 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import {
+  GuestAccessError,
+  guestAccessContract,
+  hashGuestAccessToken,
+} from "./guest-access-token";
+export {
+  GuestAccessError,
+  guestAccessContract,
+  hashGuestAccessToken,
+  type GuestAccessErrorCode,
+} from "./guest-access-token";
+import { randomBytes, randomUUID } from "node:crypto";
 
 import type { DatabaseError } from "pg";
-import type { GuestSessionReadResponse } from "@valet/contracts";
 
 import type {
   PostgresPool,
@@ -13,43 +23,8 @@ import {
   CustodyStaffAuthorizationError,
   requireActiveCustodyUser,
 } from "../staff/custody-staff-authorizer";
-import {
-  projectGuestSafeSession,
-  type GuestSafeSessionRow,
-} from "./guest-safe-session";
 
 export type { GuestSafeSession, GuestSafeVehicle } from "./guest-safe-session";
-
-export const guestAccessContract = {
-  hashPrefix: "sha256:v1:",
-  lifetimeMilliseconds: 24 * 60 * 60 * 1_000,
-  rawTokenCharacters: 43,
-  tokenEntropyBytes: 32,
-} as const;
-
-export type GuestAccessErrorCode =
-  | "GUEST_ACCESS_GENERATION_FAILED"
-  | "GUEST_ACCESS_INVALID"
-  | "GUEST_ACCESS_INTENT_CONFLICT"
-  | "GUEST_ACCESS_REQUEST_INVALID";
-
-const errorMessages: Record<GuestAccessErrorCode, string> = {
-  GUEST_ACCESS_GENERATION_FAILED: "Guest access could not be generated safely.",
-  GUEST_ACCESS_INVALID: "Guest access is invalid.",
-  GUEST_ACCESS_INTENT_CONFLICT:
-    "Guest access intent does not match the current access state.",
-  GUEST_ACCESS_REQUEST_INVALID: "The guest access request is invalid.",
-};
-
-export class GuestAccessError extends Error {
-  readonly code: GuestAccessErrorCode;
-
-  constructor(code: GuestAccessErrorCode) {
-    super(errorMessages[code]);
-    this.name = "GuestAccessError";
-    this.code = code;
-  }
-}
 
 export interface StaffGuestAccessRequest {
   readonly authenticatedUserId: string;
@@ -77,6 +52,7 @@ export interface RevokeGuestAccessResult {
 }
 
 interface GuestAccessScope {
+  state: string;
   customer_access_expires_at: Date;
   customer_access_revoked_at: Date | null;
   customer_access_token_hash: string;
@@ -186,18 +162,6 @@ function generateRawToken(tokenBytesFactory: () => Buffer): string {
   return rawToken;
 }
 
-export function hashGuestAccessToken(rawToken: string): string {
-  return `${guestAccessContract.hashPrefix}${createHash("sha256")
-    .update(rawToken, "utf8")
-    .digest("hex")}`;
-}
-
-function assertPresentedToken(rawToken: unknown): asserts rawToken is string {
-  if (typeof rawToken !== "string" || !rawTokenPattern.test(rawToken)) {
-    throw new GuestAccessError("GUEST_ACCESS_INVALID");
-  }
-}
-
 async function loadSessionScope(
   transaction: PostgresTransaction,
   valetSessionId: string,
@@ -226,7 +190,7 @@ async function lockSessionScope(
 ): Promise<GuestAccessScope> {
   const result = await transaction.query<GuestAccessScope>(
     `SELECT id::text AS valet_session_id, organization_id::text,
-            location_id::text, customer_access_token_hash,
+            location_id::text, state::text, customer_access_token_hash,
             customer_access_expires_at, customer_access_revoked_at
      FROM valet_sessions
      WHERE id = $1 AND organization_id = $2 AND location_id = $3
@@ -311,6 +275,9 @@ export function createIssueGuestAccessCommandExecutor(
         transaction,
         normalized,
       );
+      if (scope.state === "CANCELLED") {
+        throw new GuestAccessError("GUEST_ACCESS_INTENT_CONFLICT");
+      }
       const isDisabledPlaceholder =
         scope.customer_access_token_hash.startsWith("disabled:intake:");
       const isRevoked = scope.customer_access_revoked_at !== null;
@@ -464,57 +431,7 @@ export function createRevokeGuestAccessCommandExecutor(
   };
 }
 
-export function createGuestAccessResolver(
-  pool: PostgresPool,
-): (rawToken: string) => Promise<GuestSessionReadResponse> {
-  return async (rawToken) => resolveGuestAccessWithDatabase(pool, rawToken);
-}
-
-export async function resolveGuestAccessWithDatabase(
-  database: PostgresPool | PostgresTransaction,
-  rawToken: string,
-): Promise<GuestSessionReadResponse> {
-  assertPresentedToken(rawToken);
-  const tokenHash = hashGuestAccessToken(rawToken);
-  const result = await database.query<
-    GuestSafeSessionRow & {
-      readonly brand_display_name: string;
-      readonly brand_primary_color: string;
-    }
-  >(
-    `SELECT session.id::text AS valet_session_id, session.state::text,
-              session.ready_at,
-              COALESCE(location.brand_display_name_override, organization.name)
-                AS brand_display_name,
-              COALESCE(location.brand_primary_color_override,
-                       organization.brand_primary_color) AS brand_primary_color,
-              COALESCE(location.guest_vehicle_ready_notification_enabled_override,
-                       organization.guest_vehicle_ready_notification_enabled)
-                AS guest_vehicle_ready_notification_enabled,
-              vehicle.make, vehicle.model, vehicle.color
-       FROM valet_sessions AS session
-       INNER JOIN locations AS location
-         ON location.id = session.location_id
-        AND location.organization_id = session.organization_id
-       INNER JOIN organizations AS organization
-         ON organization.id = session.organization_id
-       INNER JOIN vehicles AS vehicle
-         ON vehicle.organization_id = session.organization_id
-        AND vehicle.id = session.vehicle_id
-       WHERE session.customer_access_token_hash = $1
-         AND session.customer_access_revoked_at IS NULL
-         AND session.customer_access_expires_at > clock_timestamp()`,
-    [tokenHash],
-  );
-  const session = result.rows[0];
-  if (session === undefined) {
-    throw new GuestAccessError("GUEST_ACCESS_INVALID");
-  }
-  return {
-    ...projectGuestSafeSession(session),
-    branding: {
-      displayName: session.brand_display_name,
-      primaryColor: session.brand_primary_color,
-    },
-  };
-}
+export {
+  createGuestAccessResolver,
+  resolveGuestAccessWithDatabase,
+} from "./guest-access-resolver";

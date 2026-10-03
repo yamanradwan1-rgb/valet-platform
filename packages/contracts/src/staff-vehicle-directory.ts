@@ -11,7 +11,7 @@ const utcTimestampSchema = z.string().datetime({ offset: false });
  * keeps a leaking COMPLETED row a contract failure instead of a disclosure.
  */
 export const staffVehicleDirectoryRowStateSchema =
-  staffValetSessionStateSchema.exclude(["COMPLETED"]);
+  staffValetSessionStateSchema.exclude(["COMPLETED", "CANCELLED"]);
 
 export type StaffVehicleDirectoryRowState = z.infer<
   typeof staffVehicleDirectoryRowStateSchema

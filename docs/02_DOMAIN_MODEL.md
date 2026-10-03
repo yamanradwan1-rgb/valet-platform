@@ -756,3 +756,7 @@ raw contact identity, per-employee staff breakdown, or route/GPS history.
 6. Offline/retryable operations require stable identifiers/idempotency semantics.
 7. Multi-country Location data must not inherit one-country assumptions from Organization.
 8. Avoid premature event sourcing, generic configuration engines and speculative future schema.
+
+## Incomplete Check-In terminal history — DEC-097
+
+ValetSession CANCELLED is retained, non-operational intake history with no outgoing transition. Only self-owned CHECKING_IN may cancel under current exact Location/Shift authority and lifecycle CAS. It is not a completed visit, release, revenue, handoff or rating target. Independent child facts remain. Guest credentials remain stored but cannot resolve a cancelled session. No Task is created.

@@ -43,6 +43,10 @@ const events = {
     "Vehicle details corrected",
     "تصحيح تفاصيل المركبة",
   ],
+  VALET_SESSION_CHECK_IN_CANCELLED: [
+    "Check-in cancelled",
+    "تم إلغاء تسجيل الوصول",
+  ],
   VALET_SESSION_CHECK_IN_COMPLETED: [
     "Check-in completed",
     "اكتمال استلام المركبة",

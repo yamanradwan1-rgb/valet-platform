@@ -40,7 +40,7 @@ export async function locationLifecycleProjection(
               AND status IN ('QUEUED','ASSIGNED','ACCEPTED','IN_PROGRESS'))
               AS "nonTerminalTaskPresent",
             EXISTS(SELECT 1 FROM valet_sessions WHERE organization_id=$1 AND location_id=$2
-              AND state<>'COMPLETED') AS "nonCompletedValetSessionPresent"
+              AND state NOT IN ('COMPLETED','CANCELLED')) AS "nonCompletedValetSessionPresent"
        FROM locations AS location
        WHERE location.organization_id=$1 AND location.id=$2`,
     [organizationId, locationId],

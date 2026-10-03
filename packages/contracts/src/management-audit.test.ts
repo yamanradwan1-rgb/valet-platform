@@ -13,8 +13,8 @@ const membershipId = "018f1234-5678-4abc-9234-56789abcdef2";
 
 describe("management audit contracts", () => {
   it("publishes the exact bounded current event catalog", () => {
-    expect(managementAuditKnownEventTypes).toHaveLength(91);
-    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(91);
+    expect(managementAuditKnownEventTypes).toHaveLength(92);
+    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(92);
     expect(managementAuditKnownEventTypes).toContain("SHIFT_FORCE_ENDED");
     expect(managementAuditKnownEventTypes).toContain("PARKING_ZONE_CREATED");
     expect(managementAuditKnownEventTypes).toContain(

@@ -190,3 +190,7 @@ The next payment task is **VAL-008I**, but only after explicit provider
 selection and approval. Dashboard remains the next normal Blueprint product
 phase after Payments; however, VAL-008I/J/K remain mandatory before Phase 6
 Digital Payments can be called MVP/production complete.
+
+## Issue #255 — completed scoped implementation
+
+Scoped implementation is complete on feat/VAL-255-incomplete-checkin-drafts from origin/main 2ce32445a289ed803366834fa8e1f7e80ab20818. Accepted DEC-097, forward migrations 055/056, exact-target Continue, current-owner Cancel/status, safe Audit and terminal/Guest compatibility are implemented. Focused proof passes; unrelated broad Native/database baseline failures and unperformed CI/physical Android gates remain explicit in [the validation record](ISSUE-255_IMPLEMENTATION_VALIDATION.md). No PR, merge or release acceptance is claimed.

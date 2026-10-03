@@ -11,7 +11,7 @@ import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeNewVehicleButton } from "../tasks/native-new-vehicle-button";
 import { executeNativeTaskAction } from "../tasks/native-task-action-sequence";
 import { getNativeTasksCopy } from "../tasks/native-tasks-copy";
-import { NativeVehiclesScreen } from "../vehicles/native-vehicles-screen";
+import { NativeVehiclesRoute } from "../vehicles/native-vehicles-route";
 import { NativeScanHubScreen } from "../scan/native-scan-hub-screen";
 import { deriveNativeScanHubGates } from "../scan/native-scan-hub-gates";
 import { NativeCheckInRoute } from "./native-check-in-route";
@@ -101,7 +101,7 @@ export function NativeProductionWorkspace({
             identityGeneration={authSnapshot.authGeneration}
             key={`${authSnapshot.authGeneration}:${shell.scope.membershipId}:${shell.scope.locationId}:${shell.scope.shiftId}`}
             locale={locale}
-            onClose={() => navigate("tasks")}
+            onClose={() => navigate(runtime.checkInActions.returnDestination())}
             onOpenParking={(sessionId) =>
               launchCompletedCheckInParking({
                 clearCheckIn: () => runtime.checkIn.clear(),
@@ -160,8 +160,9 @@ export function NativeProductionWorkspace({
             textAlign={presentation.textAlign}
           />
         ) : shell.destination === "vehicles" ? (
-          <NativeVehiclesScreen
-            directory={runtime.vehicleDirectory}
+          <NativeVehiclesRoute
+            runtime={runtime}
+            onContinue={() => navigate("check-in")}
             key={`${authSnapshot.authGeneration}:${shell.scope.membershipId}:${shell.scope.locationId}:${shell.scope.shiftId}`}
             locale={locale}
             scope={shell.scope}

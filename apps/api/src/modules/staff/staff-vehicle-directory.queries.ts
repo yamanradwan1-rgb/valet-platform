@@ -61,9 +61,10 @@ export const DIRECTORY_PAGE_LIMIT = 100;
 export const DIRECTORY_FETCH_LIMIT = DIRECTORY_PAGE_LIMIT + 1;
 
 /** Pure page-cap derivation, unit-testable without a database. */
-export function applyDirectoryPageCap<T>(
-  candidates: readonly T[],
-): { readonly rows: T[]; readonly truncated: boolean } {
+export function applyDirectoryPageCap<T>(candidates: readonly T[]): {
+  readonly rows: T[];
+  readonly truncated: boolean;
+} {
   if (candidates.length > DIRECTORY_PAGE_LIMIT) {
     return { rows: candidates.slice(0, DIRECTORY_PAGE_LIMIT), truncated: true };
   }
@@ -101,6 +102,7 @@ export async function loadDirectoryCandidates(
   client: PostgresTransaction,
   organizationId: string,
   locationId: string,
+  membershipId: string | null = null,
 ): Promise<DirectoryCandidateRow[]> {
   const result = await client.query<DirectoryCandidateRow>(
     `SELECT id::text, state::text,
@@ -111,11 +113,12 @@ export async function loadDirectoryCandidates(
      FROM valet_sessions
      WHERE organization_id = $1
        AND location_id = $2
-       AND state <> 'COMPLETED'
-     ORDER BY created_at DESC, id ASC
+       AND state NOT IN ('COMPLETED', 'CANCELLED')
+     ORDER BY (state = 'CHECKING_IN' AND checked_in_by_membership_id = $3) DESC NULLS LAST,
+              created_at DESC, id ASC
      LIMIT ${DIRECTORY_FETCH_LIMIT}
      FOR SHARE`,
-    [organizationId, locationId],
+    [organizationId, locationId, membershipId],
   );
   return result.rows;
 }

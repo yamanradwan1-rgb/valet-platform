@@ -65,3 +65,7 @@ export * from "./staff-onboarding.js";
 export * from "./staff-activation.js";
 export * from "./staff-shift-force-end.js";
 export * from "./resource-vehicle-identity.js";
+
+export * from "./cancel-check-in.js";
+
+export * from "./staff-vehicle-directory-actions.js";

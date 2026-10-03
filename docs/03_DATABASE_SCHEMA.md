@@ -2490,3 +2490,7 @@ SHIFT_ALREADY_ENDED. Cash remains all-null/PENDING. Runtime has no closure-table
 SELECT or DML; only the intended command is executable. Protected audit and
 closure history are immutable. Existing self-end runtime privileges are retained.
 See Accepted DEC-081 and the T05-F implementation/evidence record.
+
+## Issue #255 / DEC-097 terminal incomplete intake
+
+Forward migrations 055 and 056 add ValetSession CANCELLED, then replace active Vehicle/Location predicates and the Location blocker function after enum commit. CANCELLED enforces no physical progression/completion/current assignment, retains condition/Vehicle/financial/incident/contact history and guest credential columns, and uses existing version plus atomic AuditEvent for provenance. No new grants or cancellation columns. Non-null KeySlot/ParkingSpot uniqueness remains state-independent. See DEC-097.

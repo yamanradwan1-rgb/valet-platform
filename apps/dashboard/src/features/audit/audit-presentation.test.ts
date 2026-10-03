@@ -146,4 +146,18 @@ describe("Audit timezone authority", () => {
       }).timezone,
     ).toBe("America/New_York");
   });
+  it("labels only the existing Audit cancellation event and terminal transition in EN/AR", () => {
+    expect(auditEventLabel("VALET_SESSION_CHECK_IN_CANCELLED", "en")).toBe(
+      "Check-in cancelled",
+    );
+    expect(auditEventLabel("VALET_SESSION_CHECK_IN_CANCELLED", "ar")).toMatch(
+      /[\u0600-\u06ff]/u,
+    );
+    expect(auditDetailValue("CHECK_IN", "toState", "CANCELLED", "en")).toBe(
+      "Cancelled",
+    );
+    expect(auditDetailValue("CHECK_IN", "toState", "CANCELLED", "ar")).toMatch(
+      /[\u0600-\u06ff]/u,
+    );
+  });
 });

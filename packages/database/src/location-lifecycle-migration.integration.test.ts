@@ -112,7 +112,7 @@ afterAll(async () => {
 describe("MGT-BE-07 migration 40 Location lifecycle", () => {
   it("is the 40th ordered migration and applies cleanly in fresh history", async () => {
     expect(migrationIndex).toBe(39);
-    expect(expectedMigrationDirectories).toHaveLength(46);
+    expect(expectedMigrationDirectories).toHaveLength(56);
     expect(expectedMigrationDirectories.at(39)).toBe(migration);
     const column = await fresh.query<{
       column_default: string;
@@ -146,7 +146,7 @@ describe("MGT-BE-07 migration 40 Location lifecycle", () => {
       },
       {
         indexdef: expect.stringContaining(
-          "WHERE (state <> 'COMPLETED'::valet_session_state)",
+          "WHERE (state <> ALL (ARRAY['COMPLETED'::valet_session_state, 'CANCELLED'::valet_session_state]))",
         ),
         indexname: "valet_sessions_location_id_non_completed_idx",
       },

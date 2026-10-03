@@ -128,3 +128,7 @@ The historical concept remains useful for original intent but is superseded wher
 If implementation would contradict Blueprint v1.0, an Accepted decision, or the binding docs, stop and update the product contracts before coding.
 
 Do not use this traceability file to silently fill gaps that the Blueprint does not specify. Explicitly unresolved details remain unresolved until a focused decision/task closes them.
+
+## Issue #255 implementation mapping
+
+Accepted DEC-097 maps incomplete intake Continue/Cancel to existing Native Vehicles expanded rows, exact session hydration, protected self-owned cancellation/status, forward migrations 055/056 and existing Management Audit CHECK_IN family. Guest compatibility is backend-only; Employee Web and Guest UI are excluded. Execution evidence is recorded in docs/validation/ISSUE-255_INCOMPLETE_CHECKIN_DRAFTS.md.

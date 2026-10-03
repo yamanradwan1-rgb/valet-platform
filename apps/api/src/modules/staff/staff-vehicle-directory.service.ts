@@ -1,5 +1,13 @@
+import {
+  requireVehicle,
+  toVehicleProjection,
+  loadDirectoryProjections,
+} from "./staff-vehicle-directory-descriptor";
 import { Inject, Injectable } from "@nestjs/common";
-import type { StaffVehicleDirectoryResponse } from "@valet/contracts";
+import type {
+  StaffVehicleDirectoryResponse,
+  StaffVehicleDirectoryActionsResponse,
+} from "@valet/contracts";
 
 import type {
   PostgresPool,
@@ -16,15 +24,10 @@ import { classifyStaffValetSessionAccess } from "./staff-valet-session-authoriza
 import {
   applyDirectoryPageCap,
   loadDirectoryCandidates,
-  loadDirectoryKeySlots,
-  loadDirectoryParking,
   loadDirectoryTasks,
-  loadDirectoryVehicles,
-  loadDirectoryZones,
   resolveDirectoryLocationScope,
   type DirectoryCandidateRow,
   type DirectoryTaskRow,
-  type DirectoryVehicleRow,
 } from "./staff-vehicle-directory.queries";
 
 /**
@@ -53,7 +56,10 @@ export class StaffVehicleDirectoryService {
   async getVehicleDirectory(
     authenticatedUserId: string,
     requestedLocationId: string,
-  ): Promise<StaffVehicleDirectoryResponse> {
+    supportsActions = false,
+  ): Promise<
+    StaffVehicleDirectoryResponse | StaffVehicleDirectoryActionsResponse
+  > {
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN");
@@ -88,8 +94,14 @@ export class StaffVehicleDirectoryService {
         client,
         scope.organizationId,
         requestedLocationId,
+        actor.membershipId,
       );
       const page = applyDirectoryPageCap(candidates);
+      page.rows.sort(
+        (a, b) =>
+          b.created_at.getTime() - a.created_at.getTime() ||
+          a.id.localeCompare(b.id),
+      );
       const rows =
         actor.role === "VALET_SUPERVISOR"
           ? await this.buildSupervisorRows(client, page.rows, {
@@ -110,7 +122,21 @@ export class StaffVehicleDirectoryService {
 
       return {
         locationId: requestedLocationId,
-        rows,
+        rows: supportsActions
+          ? rows.map((row) => {
+              const candidate = page.rows.find(
+                (item) => item.id === row.sessionId,
+              );
+              const eligible =
+                candidate?.state === "CHECKING_IN" &&
+                candidate.checked_in_by_membership_id === actor.membershipId;
+              return {
+                ...row,
+                canContinueCheckIn: eligible,
+                canCancelCheckIn: eligible,
+              };
+            })
+          : rows,
         truncated: page.truncated,
       };
     } catch (error) {
@@ -130,7 +156,7 @@ export class StaffVehicleDirectoryService {
     candidates: readonly DirectoryCandidateRow[],
     scope: { readonly locationId: string; readonly organizationId: string },
   ): Promise<StaffVehicleDirectoryResponse["rows"]> {
-    const loaded = await this.loadProjections(client, candidates, scope);
+    const loaded = await loadDirectoryProjections(client, candidates, scope);
     return candidates.map((candidate) => {
       const vehicle = requireVehicle(loaded.vehicles, candidate);
       const slot = candidate.key_slot_id
@@ -189,7 +215,7 @@ export class StaffVehicleDirectoryService {
           actorMembershipId,
         ) === "ACCESS_ALLOWED",
     );
-    const loaded = await this.loadProjections(client, visible, scope);
+    const loaded = await loadDirectoryProjections(client, visible, scope);
 
     return visible.map((candidate) => {
       const vehicle = requireVehicle(loaded.vehicles, candidate);
@@ -219,75 +245,4 @@ export class StaffVehicleDirectoryService {
       };
     });
   }
-
-  private async loadProjections(
-    client: PostgresTransaction,
-    candidates: readonly DirectoryCandidateRow[],
-    scope: { readonly locationId: string; readonly organizationId: string },
-  ) {
-    const vehicleIds = candidates.map((candidate) => candidate.vehicle_id);
-    const spotIds = candidates
-      .map((candidate) => candidate.parking_spot_id)
-      .filter((spotId): spotId is string => spotId !== null);
-    const zoneIds = candidates
-      .map((candidate) => candidate.parking_zone_id)
-      .filter((zoneId): zoneId is string => zoneId !== null);
-    const slotIds = candidates
-      .map((candidate) => candidate.key_slot_id)
-      .filter((slotId): slotId is string => slotId !== null);
-    return {
-      keySlots: await loadDirectoryKeySlots(
-        client,
-        scope.organizationId,
-        scope.locationId,
-        slotIds,
-      ),
-      parking: await loadDirectoryParking(
-        client,
-        scope.organizationId,
-        scope.locationId,
-        spotIds,
-      ),
-      zones: await loadDirectoryZones(
-        client,
-        scope.organizationId,
-        scope.locationId,
-        zoneIds,
-      ),
-      vehicles: await loadDirectoryVehicles(
-        client,
-        scope.organizationId,
-        vehicleIds,
-      ),
-    };
-  }
-}
-
-function requireVehicle(
-  vehicles: Map<string, DirectoryVehicleRow>,
-  candidate: DirectoryCandidateRow,
-) {
-  const vehicle = vehicles.get(candidate.vehicle_id);
-  if (vehicle === undefined) {
-    throw new Error("Corrupted state: referenced vehicle missing.");
-  }
-  return vehicle;
-}
-
-function toVehicleProjection(vehicle: {
-  color: string | null;
-  make: string | null;
-  model: string | null;
-  plate_country: string | null;
-  plate_number_raw: string | null;
-  temporary_descriptor: string | null;
-}) {
-  return {
-    color: vehicle.color,
-    make: vehicle.make,
-    model: vehicle.model,
-    plateCountry: vehicle.plate_country,
-    plateNumberRaw: vehicle.plate_number_raw,
-    temporaryDescriptor: vehicle.temporary_descriptor,
-  };
 }

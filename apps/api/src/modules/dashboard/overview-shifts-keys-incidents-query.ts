@@ -135,7 +135,7 @@ export async function listKeyAccountability(
            WHERE session.organization_id = slot.organization_id
              AND session.location_id = slot.location_id
              AND session.key_slot_id = slot.id
-             AND session.state <> 'COMPLETED'
+             AND session.state NOT IN ('COMPLETED', 'CANCELLED')
            ORDER BY session.updated_at DESC, session.id DESC
            LIMIT 1
        ) AS holder ON TRUE

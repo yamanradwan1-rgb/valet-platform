@@ -460,3 +460,7 @@ Database tasks additionally verify migration behavior on a fresh PostgreSQL data
 - do not call work DONE until merged
 
 See `docs/13_COLLABORATION_WORKFLOW.md`.
+
+## Issue #255 scoped implementation
+
+Execute Accepted DEC-097 and the merged 47-section plan in S0–S6 order. Owner Guest clarification is binding. No Employee Web inspection, PR or merge. Physical Android S7 is deferred to the owner Native batch closure gate.

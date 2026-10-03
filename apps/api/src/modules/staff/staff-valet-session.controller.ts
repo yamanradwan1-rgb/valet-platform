@@ -10,6 +10,9 @@ import {
 } from "@nestjs/common";
 import {
   staffValetSessionDetailResponseSchema,
+  staffVehicleDirectoryActionsCapability,
+  staffVehicleDirectoryActionsResponseSchema,
+  type StaffVehicleDirectoryActionsResponse,
   staffVehicleDirectoryLegacyResponseSchema,
   staffVehicleDirectoryQuerySchema,
   staffVehicleDirectoryResponseSchema,
@@ -83,7 +86,9 @@ export class StaffValetSessionController {
     directoryCapability: string | undefined,
     @Query() query: unknown,
   ): Promise<
-    StaffVehicleDirectoryLegacyResponse | StaffVehicleDirectoryResponse
+    | StaffVehicleDirectoryLegacyResponse
+    | StaffVehicleDirectoryResponse
+    | StaffVehicleDirectoryActionsResponse
   > {
     return this.runner.run(
       "STAFF_VEHICLE_DIRECTORY_READ",
@@ -91,10 +96,21 @@ export class StaffValetSessionController {
       async () => {
         const authenticatedUserId = await this.userId(request, authorization);
         const locationId = parseDirectoryQuery(query);
+        const singleCapability =
+          countRequestHeader(
+            request,
+            staffVehicleDirectoryVisibilityCapabilityHeader.toLowerCase(),
+          ) === 1;
+        const supportsActions =
+          singleCapability &&
+          directoryCapability === staffVehicleDirectoryActionsCapability;
         const result = await this.directory.getVehicleDirectory(
           authenticatedUserId,
           locationId,
+          supportsActions,
         );
+        if (supportsActions)
+          return staffVehicleDirectoryActionsResponseSchema.parse(result);
         const current = staffVehicleDirectoryResponseSchema.parse(result);
         const supportsVisibility =
           directoryCapability === staffVehicleDirectoryVisibilityCapability &&

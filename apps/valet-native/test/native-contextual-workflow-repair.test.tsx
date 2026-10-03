@@ -56,6 +56,7 @@ describe("shell-contained contextual workflow repair", () => {
     const clear = () => ({ clear: vi.fn() });
     const runtime = {
       checkIn: clear(),
+      checkInActions: clear(),
       confirmParking: clear(),
       guestAccess: clear(),
       handoff: clear(),
@@ -67,6 +68,7 @@ describe("shell-contained contextual workflow repair", () => {
       vehicleDirectory: clear(),
     };
     retireNativeWorkflowScope(runtime as never);
+    expect(runtime.checkInActions.clear).toHaveBeenCalledOnce();
     expect(runtime.guestAccess.clear).toHaveBeenCalledOnce();
     expect(runtime.incident.clear).toHaveBeenCalledOnce();
     expect(runtime.shiftEnd.fenceOperationalScope).toHaveBeenCalledOnce();

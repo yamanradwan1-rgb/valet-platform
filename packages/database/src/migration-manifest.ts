@@ -53,4 +53,6 @@ export const expectedMigrationDirectories = [
   "20261001005200_mgt_240c_invitation_anti_abuse_scope",
   "20261001005300_mgt_240d_staff_activation",
   "20261002005400_mgt_240f_force_end_shift",
+  "20261003005500_check_in_cancelled_enum",
+  "20261003005600_check_in_cancelled_terminal",
 ] as const;

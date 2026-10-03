@@ -1,3 +1,4 @@
+import { nativeEmployeeEnglishCheckInActionsDictionary } from "./native-dictionary-en-check-in-actions";
 import { nativeEmployeeEnglishCheckInDictionary } from "./native-dictionary-en-check-in";
 import { nativeEmployeeEnglishScanHubDictionary } from "./native-dictionary-en-scan-hub";
 import { nativeEmployeeEnglishScannerDictionary } from "./native-dictionary-en-scanner";
@@ -5,6 +6,7 @@ import { nativeEmployeeEnglishShiftDictionary } from "./native-dictionary-en-shi
 import { nativeEmployeeEnglishVehiclesDictionary } from "./native-dictionary-en-vehicles";
 
 export const nativeEmployeeEnglishDictionary = {
+  ...nativeEmployeeEnglishCheckInActionsDictionary,
   ...nativeEmployeeEnglishCheckInDictionary,
   ...nativeEmployeeEnglishShiftDictionary,
   ...nativeEmployeeEnglishScanHubDictionary,

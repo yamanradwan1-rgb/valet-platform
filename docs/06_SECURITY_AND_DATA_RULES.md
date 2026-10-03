@@ -1148,3 +1148,7 @@ One transaction preserves session/scope/Shift proof, blocks open assigned Tasks,
 and atomically writes pending-cash closure and audit. Unknown transport outcome
 uses the same operation identity only after fresh proof and explicit retry.
 No Force Start, impersonation, cash settlement or automatic Task/Session mutation.
+
+## Issue #255 — terminal intake authority
+
+DEC-097 requires current exact self-owned membership, Organization/Location/access/Shift eligibility before cancellation or status disclosure, including terminal convergence. Expected Shift and version are selectors, never authority. Both Guest resolvers reject CANCELLED before projection; locked staff token issuance fails with GUEST_ACCESS_INTENT_CONFLICT before any generation/write/audit. No automatic credential revocation. Cancellation audit contains only lifecycle state/version facts. Transient client intent is memory-only and fenced by full owner/generation/revision.

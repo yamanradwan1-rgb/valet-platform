@@ -1,5 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
-import { GuestAccessError, hashGuestAccessToken } from "./guest-access-command";
+import { GuestAccessError, hashGuestAccessToken } from "./guest-access-token";
 import {
   projectGuestSafeSession,
   type GuestSafeSession,
@@ -56,13 +56,15 @@ export async function resolveAndLockGuestAccessSession(
          ON vehicle.organization_id = session.organization_id
         AND vehicle.id = session.vehicle_id
        WHERE session.customer_access_token_hash = $1
+         AND session.state <> 'CANCELLED'
          AND session.customer_access_revoked_at IS NULL
          AND session.customer_access_expires_at > clock_timestamp()
        FOR UPDATE OF session`,
     [hashGuestAccessToken(rawToken)],
   );
   const session = result.rows[0];
-  if (session === undefined) throw new GuestAccessError("GUEST_ACCESS_INVALID");
+  if (session === undefined || String(session.state) === "CANCELLED")
+    throw new GuestAccessError("GUEST_ACCESS_INVALID");
   return {
     completedAt: session.completed_at,
     customerId: session.customer_id,

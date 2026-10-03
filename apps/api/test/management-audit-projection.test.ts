@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(91);
+    expect(managementAuditKnownEventTypes).toHaveLength(92);
     for (const eventType of managementAuditKnownEventTypes) {
       const projected = projectManagementAuditEvent(
         row(eventType, sensitiveMetadata),
@@ -93,7 +93,7 @@ describe("management audit projection", () => {
   });
 
   it("uses an operational-only supervisor allowlist", () => {
-    expect(managementAuditSupervisorEventTypes).toHaveLength(36);
+    expect(managementAuditSupervisorEventTypes).toHaveLength(37);
     expect(managementAuditSupervisorEventTypes).toContain("TASK_ASSIGNED");
     expect(managementAuditSupervisorEventTypes).toContain(
       "VALET_SESSION_COMPLETED",
@@ -206,5 +206,29 @@ describe("management audit projection", () => {
         supervisor,
       ),
     ).toThrow("Management audit projection scope mismatch.");
+  });
+  it("projects cancellation as safe CHECK_IN metadata for authorized admin and Supervisor", () => {
+    for (const authority of [admin, supervisor]) {
+      const projected = projectManagementAuditEvent(
+        row("VALET_SESSION_CHECK_IN_CANCELLED", {
+          fromState: "CHECKING_IN",
+          toState: "CANCELLED",
+          fromVersion: 1,
+          toVersion: 2,
+          token: "never-project",
+          reason: "never-project",
+        }),
+        authority,
+      );
+      expect(projected.eventType).toBe("VALET_SESSION_CHECK_IN_CANCELLED");
+      expect(projected.details).toEqual({
+        kind: "CHECK_IN",
+        fromState: "CHECKING_IN",
+        toState: "CANCELLED",
+        fromVersion: 1,
+        toVersion: 2,
+      });
+      expect(JSON.stringify(projected)).not.toContain("never-project");
+    }
   });
 });

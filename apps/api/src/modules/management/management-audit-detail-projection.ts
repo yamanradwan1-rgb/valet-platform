@@ -11,6 +11,7 @@ const sessionStates = new Set([
   "READY",
   "HANDOFF_PENDING",
   "COMPLETED",
+  "CANCELLED",
 ]);
 const taskStatuses = new Set([
   "QUEUED",

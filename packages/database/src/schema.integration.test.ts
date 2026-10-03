@@ -1967,7 +1967,7 @@ describe("valet session database foundation", () => {
     });
   });
 
-  it("accepts all nine documented ValetSession states", async () => {
+  it("preserves all nine pre-cancellation ValetSession states", async () => {
     for (const state of documentedStates) {
       const fixture = await createValetSessionFixture();
       await expect(
@@ -7138,10 +7138,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all forty-six forward-only migrations in order", () => {
+  it("applies exactly all fifty-six forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20260929004600_mgt_232_physical_resource_creation",
+      "20261003005600_check_in_cancelled_terminal",
     );
   });
 

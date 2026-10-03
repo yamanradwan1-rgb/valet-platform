@@ -1,3 +1,4 @@
+import { nativeEmployeeArabicCheckInActionsDictionary } from "./native-dictionary-ar-check-in-actions";
 import type { NativeEmployeeDictionary } from "./native-employee-dictionary";
 import { nativeEmployeeArabicCheckInDictionary } from "./native-dictionary-ar-check-in";
 import { nativeEmployeeArabicScanHubDictionary } from "./native-dictionary-ar-scan-hub";
@@ -6,6 +7,7 @@ import { nativeEmployeeArabicShiftDictionary } from "./native-dictionary-ar-shif
 import { nativeEmployeeArabicVehiclesDictionary } from "./native-dictionary-ar-vehicles";
 
 export const nativeEmployeeArabicDictionary: NativeEmployeeDictionary = {
+  ...nativeEmployeeArabicCheckInActionsDictionary,
   ...nativeEmployeeArabicCheckInDictionary,
   ...nativeEmployeeArabicScanHubDictionary,
   ...nativeEmployeeArabicShiftDictionary,

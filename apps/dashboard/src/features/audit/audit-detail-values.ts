@@ -85,7 +85,9 @@ export function auditDetailValue(
   if (typeof value === "number")
     return new Intl.NumberFormat(locale).format(value);
   if (key === "fromState" || key === "toState")
-    return operationsSessionStateLabel(value, locale);
+    return value === "CANCELLED"
+      ? values.CANCELLED![locale === "ar" ? 1 : 0]
+      : operationsSessionStateLabel(value, locale);
   if (kind === "INCIDENT" && key === "type")
     return incidentTypeLabel(value, locale);
   if (kind === "INCIDENT" && key === "severity")

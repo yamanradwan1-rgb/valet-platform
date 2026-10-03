@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import type { StaffVehicleDirectoryRow } from "@valet/employee-client";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type {
@@ -20,6 +22,8 @@ import { NativeVehicleRow } from "./native-vehicle-row";
 import { getNativeVehiclesCopy } from "./native-vehicles-copy";
 
 export function NativeVehiclesScreen(props: {
+  readonly renderCheckInActions?:
+    ((row: StaffVehicleDirectoryRow) => ReactNode) | undefined;
   readonly directory: EmployeeVehicleDirectorySession;
   readonly locale: FoundationLocale;
   readonly scope: EmployeeOperationalScope;
@@ -77,6 +81,11 @@ export function NativeVehiclesScreen(props: {
         <View style={s.stack}>
           {page?.rows.map((row) => (
             <NativeVehicleRow
+              checkInActions={
+                row.state === "CHECKING_IN"
+                  ? props.renderCheckInActions?.(row)
+                  : null
+              }
               copy={copy}
               expanded={expandedId === row.sessionId}
               key={row.sessionId}

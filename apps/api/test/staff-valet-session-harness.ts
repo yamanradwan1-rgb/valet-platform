@@ -1,3 +1,6 @@
+import { CancelCheckInController } from "../src/modules/check-in-api/cancel-check-in.controller";
+import { CancelCheckInService } from "../src/modules/check-in-api/cancel-check-in.service";
+import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
 import { randomUUID } from "node:crypto";
 
 import {
@@ -123,12 +126,15 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
   @Module({
     controllers: [
       StaffValetSessionController,
+      CancelCheckInController,
       IncidentReportingController,
       IncidentRecoveryController,
     ],
     imports: [HttpInfrastructureModule],
     providers: [
       StaffValetSessionService,
+      CancelCheckInService,
+      CheckInOperationRunner,
       StaffVehicleDirectoryService,
       IncidentReportingService,
       IncidentRecoveryService,
@@ -148,6 +154,7 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
         .apply(RequestIdMiddleware)
         .forRoutes(
           StaffValetSessionController,
+          CancelCheckInController,
           IncidentReportingController,
           IncidentRecoveryController,
         );

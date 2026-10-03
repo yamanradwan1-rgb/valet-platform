@@ -9,14 +9,25 @@ vi.mock("react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react")>();
   return { ...actual, useState: <T,>(value: T) => [value, vi.fn()] };
 });
+const vehicleWindowValues = vi.hoisted(() => ({
+  width: 320,
+  height: 640,
+  scale: 1,
+  fontScale: 1,
+}));
+
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
+  Modal: "Modal",
+  useWindowDimensions: () => vehicleWindowValues,
   Pressable: "Pressable",
   ScrollView: "ScrollView",
   StyleSheet: { create: (value: unknown) => value },
   Text: "Text",
   View: "View",
 }));
+
+export const vehicleWindow = vehicleWindowValues;
 
 export const { NativeVehiclesScreen } =
   await import("../src/vehicles/native-vehicles-screen");

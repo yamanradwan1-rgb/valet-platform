@@ -1,7 +1,7 @@
+import { hydratedCheckInSnapshot } from "./employee-check-in-hydrated-snapshot";
 import type { IntakeRequest } from "@valet/contracts";
 
-import { createdCheckInSession } from "./employee-check-in-domain";
-import { continuationForSession } from "./employee-check-in-continuation";
+import { checkInIntakeSnapshot } from "./employee-check-in-intake-snapshot";
 import {
   hydrateCheckInSession,
   loadCheckInRecoverables,
@@ -124,51 +124,31 @@ export class EmployeeCheckInSessionCore {
     return this.hydrate(recoverable.value.sessionId);
   }
 
+  async openExistingCheckIn(
+    identityGeneration: number,
+    locationId: string,
+    workflowOwner: string,
+    sessionId: string,
+  ): Promise<boolean> {
+    this.clear();
+    this.invalidate(identityGeneration, locationId, workflowOwner);
+    await this.hydrate(sessionId, true);
+    return (
+      this.snapshot.identityGeneration === identityGeneration &&
+      this.workflowOwner === workflowOwner &&
+      this.snapshot.phase === "created" &&
+      this.snapshot.active?.sessionId === sessionId
+    );
+  }
+
   retryDiscovery(): Promise<void> {
     if (this.snapshot.phase !== "discovery-error") return Promise.resolve();
     return this.discover(false);
   }
 
   protected applyIntakeOutcome(outcome: EmployeeCheckInIntakeOutcome): void {
-    if (outcome.kind === "SUCCESS") {
-      const active = createdCheckInSession(
-        outcome.result,
-        this.snapshot.vehicle,
-      );
-      this.pendingRequest = null;
-      this.publish({
-        ...this.snapshot,
-        active,
-        continuation: {
-          ...continuationForSession(active, "select-condition"),
-          conditionSelection: "No visible issue",
-        },
-        error: null,
-        phase: "created",
-        recoverables: [],
-      });
-      return;
-    }
-    if (outcome.kind === "AMBIGUOUS") {
-      this.publish({
-        ...this.snapshot,
-        error: outcome.failure,
-        phase: "intake-ambiguous",
-        recoveryChecked: false,
-      });
-      return;
-    }
-    const stale = outcome.failure.code === "RETURNING_CUSTOMER_INTENT_INVALID";
-    this.pendingRequest = null;
-    this.publish({
-      ...this.snapshot,
-      error: outcome.failure,
-      phase: "customer",
-      recognizedVehicle:
-        stale && this.snapshot.recognizedVehicle
-          ? { ...this.snapshot.recognizedVehicle, returningCustomer: null }
-          : this.snapshot.recognizedVehicle,
-    });
+    if (outcome.kind !== "AMBIGUOUS") this.pendingRequest = null;
+    this.publish(checkInIntakeSnapshot(this.snapshot, outcome));
   }
 
   protected fail(error: { readonly code: string; readonly message: string }) {
@@ -245,7 +225,10 @@ export class EmployeeCheckInSessionCore {
     }
   }
 
-  private async hydrate(sessionId: string): Promise<void> {
+  protected async hydrate(
+    sessionId: string,
+    checkingInOnly = false,
+  ): Promise<void> {
     const request = ++this.sequence;
     this.publish({ ...this.snapshot, error: null, phase: "discovering" });
     try {
@@ -255,21 +238,10 @@ export class EmployeeCheckInSessionCore {
         sessionId,
       );
       if (!this.isCurrent(request)) return;
+      if (checkingInOnly && active.state !== "CHECKING_IN")
+        throw new Error("The check-in has changed.");
       this.pendingRequest = null;
-      const checkingIn = active.state === "CHECKING_IN";
-      this.publish({
-        ...this.snapshot,
-        active,
-        continuation: checkingIn
-          ? {
-              ...continuationForSession(active, "select-condition"),
-              conditionSelection: "No visible issue",
-            }
-          : continuationForSession(active),
-        error: null,
-        phase: checkingIn ? "created" : "continuation",
-        recoverables: [],
-      });
+      this.publish(hydratedCheckInSnapshot(this.snapshot, active));
     } catch (error) {
       if (!this.isCurrent(request)) return;
       this.publish({

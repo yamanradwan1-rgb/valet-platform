@@ -127,7 +127,7 @@ export async function listParkingSpots(
        ON session.parking_spot_id = spot.id
       AND session.organization_id = spot.organization_id
       AND session.location_id = spot.location_id
-      AND session.state <> 'COMPLETED'
+      AND session.state NOT IN ('COMPLETED', 'CANCELLED')
       AND location.status = 'ACTIVE'
      LEFT JOIN vehicles AS vehicle
        ON vehicle.id = session.vehicle_id AND vehicle.organization_id = session.organization_id

@@ -23,11 +23,13 @@ RETRIEVING
 READY
 HANDOFF_PENDING
 COMPLETED
+CANCELLED
 ```
 
 Terminal:
 
 - `COMPLETED`
+- `CANCELLED` — incomplete intake history only, per Accepted DEC-097.
 
 `READY` is the canonical MVP state for the Blueprint's `STAGED/READY` position. A staging zone/spot may be represented as parking/location data without adding a second session state unless a later accepted workflow requires it.
 
@@ -79,6 +81,7 @@ Activities may include:
 Allowed:
 
 - `CHECKING_IN -> AWAITING_PARKING`
+- `CHECKING_IN -> CANCELLED` through the dedicated DEC-097 self-owned cancel command.
 
 The only normal command that performs this transition is `complete-check-in`.
 
@@ -423,6 +426,7 @@ Rules:
 | From | To | Command / meaning |
 |---|---|---|
 | CHECKING_IN | AWAITING_PARKING | complete-check-in |
+| CHECKING_IN | CANCELLED | cancel incomplete Check-In (DEC-097) |
 | AWAITING_PARKING | PARKING | start-parking |
 | PARKING | PARKED | confirm-parked |
 | PARKED | REQUESTED | request-retrieval |
@@ -463,7 +467,15 @@ Offline/retry behavior must preserve idempotency. Server-required payment/verifi
 
 ### Invalid/abandoned check-in
 
-Blueprint v1.0 does not fully define a post-session-creation terminal cancellation state for an invalid/abandoned check-in. Do not add `CANCELLED` to the canonical session enum or hard-delete the session without a later accepted decision.
+Accepted DEC-097 defines the sole `CHECKING_IN -> CANCELLED` terminal abandonment
+command. It requires exact self-owned current operational authority/Shift, session
+version CAS, guarded state/invariants and atomic safe cancellation audit. Condition
+and Vehicle child history remains. CANCELLED never means completed Check-In,
+release, handoff or successful visit, and has no outgoing edge. No hard deletion,
+automatic expiry, override or hidden lifecycle flag is authorized. Unknown outcomes
+require exact authorized status reconciliation before explicit retry. Guest bearers
+cannot resolve CANCELLED; stored credentials are retained rather than auto-revoked.
+See `docs/decisions/DEC-097_INCOMPLETE_CHECK_IN_CANCELLATION.md` for the full contract.
 
 ## API/domain command rule
 

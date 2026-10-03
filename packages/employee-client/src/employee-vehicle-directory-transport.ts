@@ -1,4 +1,6 @@
 import {
+  staffVehicleDirectoryActionsResponseSchema,
+  staffVehicleDirectoryActionsCapability,
   staffVehicleDirectoryResponseSchema,
   staffVehicleDirectoryVisibilityCapability,
   staffVehicleDirectoryVisibilityCapabilityHeader,
@@ -10,19 +12,24 @@ import type { EmployeeVehicleDirectoryTransport } from "./employee-vehicle-direc
 
 export function createEmployeeVehicleDirectoryTransport(
   clientFactory: (signal?: AbortSignal) => EmployeeClient,
+  options: { readonly checkInActions?: boolean } = {},
 ): EmployeeVehicleDirectoryTransport {
   return {
     async load(locationId, signal): Promise<StaffVehicleDirectoryResponse> {
       const raw = await clientFactory(signal).request<unknown>({
         headers: {
           [staffVehicleDirectoryVisibilityCapabilityHeader]:
-            staffVehicleDirectoryVisibilityCapability,
+            options.checkInActions
+              ? staffVehicleDirectoryActionsCapability
+              : staffVehicleDirectoryVisibilityCapability,
         },
         method: "GET",
         params: { locationId },
         path: "/v1/staff/valet-sessions/directory",
       });
-      return staffVehicleDirectoryResponseSchema.parse(raw);
+      return options.checkInActions
+        ? staffVehicleDirectoryActionsResponseSchema.parse(raw)
+        : staffVehicleDirectoryResponseSchema.parse(raw);
     },
   };
 }

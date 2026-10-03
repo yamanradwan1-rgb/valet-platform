@@ -33,7 +33,7 @@ const sessionScopeJoin = `
        ON session.organization_id = payment.organization_id
       AND session.location_id = payment.location_id
       AND session.id = payment.valet_session_id
-      AND session.state <> 'COMPLETED'
+      AND session.state NOT IN ('COMPLETED', 'CANCELLED')
 `;
 const paymentScopePredicate = `WHERE payment.organization_id = $1
        AND payment.location_id = $2`;

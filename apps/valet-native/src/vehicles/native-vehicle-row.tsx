@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { StaffVehicleDirectoryRow } from "@valet/employee-client";
 
@@ -13,6 +14,7 @@ import { nativeVehicleRowStyles as s } from "./native-vehicle-row-styles";
 import type { NativeVehiclesCopy } from "./native-vehicles-copy";
 
 export function NativeVehicleRow(props: {
+  readonly checkInActions?: ReactNode;
   readonly copy: NativeVehiclesCopy;
   readonly expanded: boolean;
   readonly locale: FoundationLocale;
@@ -125,7 +127,11 @@ export function NativeVehicleRow(props: {
             textAlign={textAlign}
             value={row.parkingSpotCode ?? copy.notAssigned}
           />
-          <Text style={[s.readOnly, human]}>{copy.detailReadOnly}</Text>
+          {row.state === "CHECKING_IN" && props.checkInActions ? (
+            props.checkInActions
+          ) : (
+            <Text style={[s.readOnly, human]}>{copy.detailReadOnly}</Text>
+          )}
         </View>
       ) : null}
     </View>

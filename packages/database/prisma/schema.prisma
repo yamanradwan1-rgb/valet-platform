@@ -168,6 +168,7 @@ enum ValetSessionState {
   READY
   HANDOFF_PENDING
   COMPLETED
+  CANCELLED
 
   @@map("valet_session_state")
 }

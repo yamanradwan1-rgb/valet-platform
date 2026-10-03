@@ -23,7 +23,8 @@ export type ValetSessionState =
   | "RETRIEVING"
   | "READY"
   | "HANDOFF_PENDING"
-  | "COMPLETED";
+  | "COMPLETED"
+  | "CANCELLED";
 
 export type CustodyMutationErrorCode =
   "VERSION_CONFLICT" | "INVALID_STATE_TRANSITION";

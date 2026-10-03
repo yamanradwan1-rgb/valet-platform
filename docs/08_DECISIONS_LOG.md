@@ -4094,3 +4094,10 @@ Pending manager reads retain full LM coverage while ordinary mutations remain
 quarantined. Create/resend use explicit MFA retry and ephemeral copy-link results.
 The standalone EN/AR activation form immediately removes its fragment and keeps
 secrets only in memory. T05-E/F/G and email/SMS delivery are outside this slice.
+
+## DEC-097 — Incomplete Check-In cancellation
+
+Status: Accepted
+Date: 2026-10-03
+
+Issue #255 adopts terminal CHECKING_IN -> CANCELLED, exact self-owned Employee/Supervisor current authority and expected Shift fencing, lifecycle version CAS, atomic VALET_SESSION_CHECK_IN_CANCELLED audit, minimal protected reconciliation and no mutation replay. All terminal consumers are reconciled. Both Guest resolvers reject CANCELLED with GUEST_ACCESS_INVALID; staff issuance rejects it with GUEST_ACCESS_INTENT_CONFLICT under the session lock. Cancellation retains credential columns/history and does not auto-revoke. Vehicles stays one bounded list with negotiated minimal hints and frozen presentation. Physical Android closure remains batch-owned. Full contract: docs/decisions/DEC-097_INCOMPLETE_CHECK_IN_CANCELLATION.md.

@@ -283,7 +283,8 @@ export class NativeIncidentSession {
       );
       if (generation !== this.generation || this.snapshot.target !== target)
         return;
-      if (detail.state === "COMPLETED") throw new Error("terminal");
+      if (["COMPLETED", "CANCELLED"].includes(detail.state))
+        throw new Error("terminal");
       this.publish({ ...inactive, detail, phase: "form", target });
     } catch {
       if (generation === this.generation && this.snapshot.target === target)

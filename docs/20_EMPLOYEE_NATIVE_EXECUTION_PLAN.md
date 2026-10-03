@@ -1698,3 +1698,7 @@ from U-001–006 choices (conditional and owned by named gates). That warning re
 a known heuristic condition, not an all-clear audit. This status synchronization
 adds no selected limiter/photo/tracking mechanism, SLO value, push configuration
 value or release owner/environment.
+
+## Issue #255 scoped owner execution contract
+
+Accepted DEC-097 governs exact-target Continue and audited terminal Cancel from the existing Vehicles expanded row. Current Native UI is the frozen visual baseline for this task; Employee Web is excluded. Only minimal explanation/actions/confirmation/feedback are authorized. No dependency/config/native source change or APK build is required. S7 physical/device acceptance remains the Native batch gate.

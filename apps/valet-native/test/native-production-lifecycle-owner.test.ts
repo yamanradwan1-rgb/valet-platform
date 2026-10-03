@@ -29,6 +29,11 @@ function fixture(status: "offline" | "online" | "unknown" = "unknown") {
     },
     connectivity: { current: vi.fn(() => status) },
     checkIn: workflow(),
+    checkInActions: {
+      clear: vi.fn(),
+      suspendForBackground: vi.fn(),
+      reconcile: vi.fn(async () => false),
+    },
     confirmParking: workflow(),
     guestAccess: {
       ...workflow(),

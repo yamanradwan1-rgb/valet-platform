@@ -14,6 +14,7 @@ export const staffValetSessionStateSchema = z.enum([
   "READY",
   "HANDOFF_PENDING",
   "COMPLETED",
+  "CANCELLED",
 ]);
 
 export type StaffValetSessionState = z.infer<

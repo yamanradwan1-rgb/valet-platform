@@ -25,7 +25,7 @@ export async function authorizeIncidentCreation(
 ): Promise<IncidentCreationAuthority> {
   await requireActiveCustodyUser(transaction, authenticatedUserId);
   const session = await loadSessionScope(transaction, sessionId);
-  if (session.state === "COMPLETED") {
+  if (["COMPLETED", "CANCELLED"].includes(session.state)) {
     throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
   }
   const actor = await authorizeCustodyActorForPersistedScope(transaction, {

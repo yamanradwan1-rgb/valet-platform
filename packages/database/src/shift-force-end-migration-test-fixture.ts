@@ -158,8 +158,14 @@ export class ShiftForceEndMigrationTestFixture {
     );
     this.before = (await this.upgrade.query(this.snapshotSql)).rows;
     this.functions = (await this.upgrade.query(this.functionsSql)).rows;
-    this.deploy(this.upgradeName);
-    this.deploy(this.freshName);
+    // This historical proof must stay at 054 when later migrations exist.
+    cpSync(
+      join(root, "prisma/migrations", forceEndMigration),
+      join(this.scratch, "migrations", forceEndMigration),
+      { recursive: true },
+    );
+    this.deploy(this.upgradeName, config);
+    this.deploy(this.freshName, config);
     const fresh = new Pool({ connectionString: this.url(this.freshName) });
     try {
       this.freshEvidence = {

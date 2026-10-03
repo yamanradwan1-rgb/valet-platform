@@ -48,6 +48,7 @@ export class NativeProductionLifecycleOwner {
       this.runtime.shiftStart.suspendForBackground();
       this.runtime.shiftEnd.suspendForBackground();
       this.runtime.checkIn.suspendForBackground();
+      this.runtime.checkInActions.suspendForBackground();
       this.runtime.release.suspendForBackground();
       this.runtime.handoff.suspendForBackground();
       this.runtime.confirmParking.suspendForBackground();
@@ -150,6 +151,7 @@ export class NativeProductionLifecycleOwner {
     const authorityChanged =
       previous !== undefined &&
       (previous.generation !== generation ||
+        previous.scope.role !== shellState.scope.role ||
         !isSameEmployeeOperationalScope(previous.scope, shellState.scope));
     this.confirmedAuthority = { generation, scope: shellState.scope };
     if (authorityChanged) {
@@ -179,6 +181,7 @@ export class NativeProductionLifecycleOwner {
 
   private async revalidateActiveWorkflow(): Promise<void> {
     const runtime = this.runtime;
+    const cancelRefreshed = await runtime.checkInActions.reconcile();
     if (runtime.incident.current().target !== null) {
       await runtime.incident.revalidate();
     } else if (runtime.guestAccess.current().target !== null) {
@@ -193,7 +196,10 @@ export class NativeProductionLifecycleOwner {
       await runtime.parking.checkServerState();
     } else if (runtime.retrieval.current().phase !== "inactive") {
       await runtime.retrieval.checkServerState();
-    } else if (runtime.vehicleDirectory.current().phase !== "inactive") {
+    } else if (
+      !cancelRefreshed &&
+      runtime.vehicleDirectory.current().phase !== "inactive"
+    ) {
       await runtime.vehicleDirectory.refresh();
     }
   }

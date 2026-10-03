@@ -1,11 +1,11 @@
+import { createNativeCheckInRuntime } from "./native-check-in-runtime";
+import type { NativeCheckInActions } from "../check-in/native-check-in-actions";
 import {
-  createEmployeeCheckInTransport,
   createEmployeeConfirmParkedTransport,
   createEmployeeHandoffTransport,
   createEmployeeParkingStartTransport,
   createEmployeeReleaseTransport,
   createEmployeeRetrievalTransport,
-  createEmployeeVehicleDirectoryTransport,
   EmployeeCheckInSession,
   EmployeeConnectivityOwner,
   EmployeeConfirmParkedSession,
@@ -46,6 +46,7 @@ export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
   readonly auth: NativeAuthSession;
   readonly checkIn: EmployeeCheckInSession;
+  readonly checkInActions: NativeCheckInActions;
   readonly confirmParking: EmployeeConfirmParkedSession;
   readonly connectivity: EmployeeConnectivityOwner;
   readonly dispose: () => void;
@@ -193,21 +194,17 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
-  const checkIn = new EmployeeCheckInSession({
-    createOperationId: createNativeOperationId,
-    transport: createEmployeeCheckInTransport(() =>
-      createNativeEmployeeClient(apiOrigin, auth),
-    ),
-  });
+  const { checkIn, vehicleDirectory, checkInActions } =
+    createNativeCheckInRuntime(
+      apiOrigin,
+      auth,
+      operations,
+      () => connectivity.current() !== "offline",
+    );
   const guestAccess = new NativeGuestAccessSession(
     () => createNativeEmployeeClient(apiOrigin, auth),
     { isOnline: () => connectivity.current() !== "offline" },
   );
-  const vehicleDirectory = new EmployeeVehicleDirectorySession({
-    transport: createEmployeeVehicleDirectoryTransport((signal) =>
-      createNativeEmployeeClient(apiOrigin, auth, signal),
-    ),
-  });
   const shiftEnd = new EmployeeShiftEndSession({
     initialOnline: connectivity.current() !== "offline",
     onEnded: () => {
@@ -216,6 +213,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       retireNativeShiftScope(
         {
           checkIn,
+          checkInActions,
           confirmParking,
           guestAccess,
           incident,
@@ -246,6 +244,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     shiftEnd.clear();
     shiftStart.clear();
     checkIn.clear();
+    checkInActions.clear();
     vehicleDirectory.clear();
   });
   const dispose = () => {
@@ -262,12 +261,14 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     shiftEnd.clear();
     shiftStart.clear();
     checkIn.clear();
+    checkInActions.clear();
     vehicleDirectory.clear();
   };
   return {
     apiOrigin,
     auth,
     checkIn,
+    checkInActions,
     confirmParking,
     connectivity,
     dispose,
@@ -282,15 +283,4 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     shiftStart,
     vehicleDirectory,
   };
-}
-
-function createNativeOperationId(): string {
-  if (typeof globalThis.crypto?.randomUUID === "function") {
-    return globalThis.crypto.randomUUID();
-  }
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (value) => {
-    const random = Math.floor(Math.random() * 16);
-    const digit = value === "x" ? random : (random & 0x3) | 0x8;
-    return digit.toString(16);
-  });
 }

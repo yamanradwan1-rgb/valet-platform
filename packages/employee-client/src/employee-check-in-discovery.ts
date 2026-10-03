@@ -28,6 +28,7 @@ export async function hydrateCheckInSession(
 ): Promise<EmployeeCheckInAuthoritativeSession> {
   const detail = await transport.loadSession(sessionId);
   if (
+    detail.sessionId !== sessionId ||
     detail.locationId !== locationId ||
     (detail.state !== "CHECKING_IN" && detail.state !== "AWAITING_PARKING")
   ) {

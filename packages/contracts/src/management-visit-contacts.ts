@@ -92,7 +92,7 @@ export const managementVisitHistoryItemSchema = z.object({
   returningContact: z.boolean(),
   state: z.enum([
     "CHECKING_IN", "AWAITING_PARKING", "PARKING", "PARKED", "REQUESTED",
-    "RETRIEVING", "READY", "HANDOFF_PENDING", "COMPLETED",
+    "RETRIEVING", "READY", "HANDOFF_PENDING", "COMPLETED", "CANCELLED",
   ]),
   valetSessionId: uuidSchema,
   vehicleId: uuidSchema,

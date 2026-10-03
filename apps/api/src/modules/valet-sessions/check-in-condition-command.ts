@@ -1,3 +1,7 @@
+import {
+  authorizeAndLockCheckInConditionSession as authorizeAndLockSession,
+  type CheckInConditionSessionRow as SessionScopeRow,
+} from "./check-in-condition-authorization";
 import { randomUUID } from "node:crypto";
 
 import type { DatabaseError } from "pg";
@@ -6,17 +10,9 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
-import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendCustodyAuditEvent } from "../audit/custody-audit-event-writer";
-import {
-  authorizeCustodyActorForPersistedScope,
-  CustodyStaffAuthorizationError,
-  requireActiveCustodyUser,
-} from "../staff/custody-staff-authorizer";
-import {
-  CustodyMutationError,
-  type ValetSessionState,
-} from "./protected-custody-command";
+import { CustodyStaffAuthorizationError } from "../staff/custody-staff-authorizer";
+import { CustodyMutationError } from "./protected-custody-command";
 
 export const checkInConditionLimits = {
   contentTypeCodePoints: 127,
@@ -56,19 +52,16 @@ export interface CheckInConditionStaffRequest {
   readonly valetSessionId: string;
 }
 
-export interface RecordCheckInConditionNoteRequest
-  extends CheckInConditionStaffRequest {
+export interface RecordCheckInConditionNoteRequest extends CheckInConditionStaffRequest {
   readonly content: string;
 }
 
-export interface CorrectCheckInConditionNoteRequest
-  extends CheckInConditionStaffRequest {
+export interface CorrectCheckInConditionNoteRequest extends CheckInConditionStaffRequest {
   readonly content: string;
   readonly supersedesConditionNoteId: string;
 }
 
-export interface RegisterCheckInConditionPhotoRequest
-  extends CheckInConditionStaffRequest {
+export interface RegisterCheckInConditionPhotoRequest extends CheckInConditionStaffRequest {
   readonly contentType: string;
   readonly storageObjectKey: string;
 }
@@ -97,8 +90,7 @@ export interface CompleteCheckInConditionResult {
 }
 
 export type CheckInPhotoPolicySource =
-  | "LOCATION_OVERRIDE"
-  | "ORGANIZATION_DEFAULT";
+  "LOCATION_OVERRIDE" | "ORGANIZATION_DEFAULT";
 
 export interface EffectiveCheckInPhotoPolicy {
   readonly required: boolean;
@@ -124,16 +116,6 @@ interface CheckInConditionCommandOptions {
   readonly auditEventIdFactory?: () => string;
   readonly conditionNoteIdFactory?: () => string;
   readonly vehiclePhotoIdFactory?: () => string;
-}
-
-interface SessionScopeRow {
-  check_in_condition_completed_at: Date | null;
-  check_in_condition_completed_by_membership_id: string | null;
-  location_id: string;
-  organization_id: string;
-  state: ValetSessionState;
-  valet_session_id: string;
-  version: number;
 }
 
 interface ConditionNoteRow {
@@ -166,16 +148,13 @@ interface GuardRow {
 }
 
 const controlCharacterPattern = /\p{Cc}/u;
-const imageContentTypePattern =
-  /^image\/[a-z0-9!#$%&'*+.^_`|~-]+$/i;
+const imageContentTypePattern = /^image\/[a-z0-9!#$%&'*+.^_`|~-]+$/i;
 const publicUrlPattern = /^https?:\/\//i;
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function invalidRequest(): never {
-  throw new CheckInConditionCommandError(
-    "CHECK_IN_EVIDENCE_REQUEST_INVALID",
-  );
+  throw new CheckInConditionCommandError("CHECK_IN_EVIDENCE_REQUEST_INVALID");
 }
 
 function assertOnlyKeys(value: object, allowedKeys: readonly string[]): void {
@@ -250,9 +229,7 @@ function normalizeCorrectionRequest(
       request.content,
       checkInConditionLimits.noteContentCodePoints,
     ),
-    supersedesConditionNoteId: normalizeUuid(
-      request.supersedesConditionNoteId,
-    ),
+    supersedesConditionNoteId: normalizeUuid(request.supersedesConditionNoteId),
   };
 }
 
@@ -332,82 +309,15 @@ async function serverTime(transaction: PostgresTransaction): Promise<Date> {
   return operationTime;
 }
 
-async function loadSessionScope(
-  transaction: PostgresTransaction,
-  valetSessionId: string,
-): Promise<Pick<SessionScopeRow, "location_id" | "organization_id">> {
-  const result = await transaction.query<{
-    location_id: string;
-    organization_id: string;
-  }>(
-    `SELECT organization_id::text, location_id::text
-     FROM valet_sessions
-     WHERE id = $1`,
-    [valetSessionId],
-  );
-  const scope = result.rows[0];
-  if (scope === undefined) {
-    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
-  }
-  return scope;
-}
-
-async function lockSessionScope(
-  transaction: PostgresTransaction,
-  valetSessionId: string,
-  organizationId: string,
-  locationId: string,
-): Promise<SessionScopeRow> {
-  const result = await transaction.query<SessionScopeRow>(
-    `SELECT id::text AS valet_session_id, organization_id::text,
-            location_id::text, state::text, version,
-            check_in_condition_completed_at,
-            check_in_condition_completed_by_membership_id::text
-     FROM valet_sessions
-     WHERE id = $1 AND organization_id = $2 AND location_id = $3
-     FOR UPDATE`,
-    [valetSessionId, organizationId, locationId],
-  );
-  const scope = result.rows[0];
-  if (scope === undefined) {
-    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
-  }
-  return scope;
-}
-
-async function authorizeAndLockSession(
-  transaction: PostgresTransaction,
-  request: CheckInConditionStaffRequest,
-  lockSettingsPolicy = false,
-): Promise<{ actorMembershipId: string; session: SessionScopeRow }> {
-  await requireActiveCustodyUser(transaction, request.authenticatedUserId);
-  const initialScope = await loadSessionScope(transaction, request.valetSessionId);
-  if (lockSettingsPolicy)
-    await lockManagementSettingsOrganization(transaction, initialScope.organization_id, "SHARED");
-  const actor = await authorizeCustodyActorForPersistedScope(transaction, {
-    allowedRoles: ["VALET_EMPLOYEE", "VALET_SUPERVISOR"],
-    authenticatedUserId: request.authenticatedUserId,
-    resourceScope: {
-      locationId: initialScope.location_id,
-      organizationId: initialScope.organization_id,
-    },
-  });
-  const session = await lockSessionScope(
-    transaction,
-    request.valetSessionId,
-    initialScope.organization_id,
-    initialScope.location_id,
-  );
-  return { actorMembershipId: actor.membershipId, session };
-}
-
 function requireCheckingIn(session: SessionScopeRow): void {
   if (session.state !== "CHECKING_IN") {
     throw new CustodyMutationError("INVALID_STATE_TRANSITION");
   }
 }
 
-function conditionNoteResult(row: ConditionNoteRow): CheckInConditionNoteResult {
+function conditionNoteResult(
+  row: ConditionNoteRow,
+): CheckInConditionNoteResult {
   return {
     conditionNoteId: row.id,
     content: row.content,
@@ -486,14 +396,12 @@ export async function evaluateLockedCheckInConditionGuard(
     row.check_in_condition_completed_by_membership_id !== null;
   return {
     completedAt: row.check_in_condition_completed_at,
-    completedByMembershipId:
-      row.check_in_condition_completed_by_membership_id,
+    completedByMembershipId: row.check_in_condition_completed_by_membership_id,
     markerComplete,
     photoPolicy,
     qualifyingPhotoPresent: row.qualifying_photo_present,
     satisfied:
-      markerComplete &&
-      (!photoPolicy.required || row.qualifying_photo_present),
+      markerComplete && (!photoPolicy.required || row.qualifying_photo_present),
   };
 }
 
@@ -780,9 +688,7 @@ export function createRegisterCheckInConditionPhotoCommandExecutor(
       });
     } catch (error) {
       if (isPhotoStorageObjectConflict(error)) {
-        throw new CheckInConditionCommandError(
-          "PHOTO_STORAGE_OBJECT_CONFLICT",
-        );
+        throw new CheckInConditionCommandError("PHOTO_STORAGE_OBJECT_CONFLICT");
       }
       throw error;
     }
@@ -798,7 +704,11 @@ export function createCompleteCheckInConditionCommandExecutor(
   return async (request) => {
     const normalized = normalizeStaffRequest(request);
     return inTransaction(pool, async (transaction) => {
-      const { actorMembershipId, session } = await authorizeAndLockSession(transaction, normalized, true);
+      const { actorMembershipId, session } = await authorizeAndLockSession(
+        transaction,
+        normalized,
+        true,
+      );
       const guard = await evaluateLockedCheckInConditionGuard(transaction, {
         locationId: session.location_id,
         organizationId: session.organization_id,

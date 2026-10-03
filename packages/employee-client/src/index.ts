@@ -120,3 +120,6 @@ export * from "./recovery-policy";
 export * from "./qr-resource-payload";
 export * from "./qr-input";
 export * from "./qr-capture-session";
+
+export * from "./employee-cancel-check-in-session";
+export * from "./employee-cancel-check-in-transport";

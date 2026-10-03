@@ -45,7 +45,7 @@ export const staffTaskQueueItemSchema = z
     status: z.enum(["QUEUED", "ASSIGNED", "ACCEPTED", "IN_PROGRESS"]),
     taskId: uuidSchema,
     taskType: z.enum(["PARKING", "RETRIEVAL"]),
-    valetSessionState: staffValetSessionStateSchema,
+    valetSessionState: staffValetSessionStateSchema.exclude(["CANCELLED"]),
     valetSessionVersion: versionSchema,
     vehicle: staffTaskQueueItemVehicleSchema,
     version: versionSchema,

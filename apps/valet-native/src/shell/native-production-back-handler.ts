@@ -92,6 +92,18 @@ export function useNativeProductionBackHandler(
           runtime.checkIn.cancelVehicleEdit();
           return true;
         }
+        if (runtime && shell.destination === "check-in") {
+          const destination = runtime.checkInActions.returnDestination();
+          runtime.checkIn.clear();
+          if (destination === "vehicles") {
+            controller.receive({
+              destination: "vehicles",
+              source: "navigation",
+            });
+            onNavigation();
+            return true;
+          }
+        }
         runtime?.checkIn.clear();
         const handled = controller.back();
         if (handled) onNavigation();

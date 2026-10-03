@@ -46,6 +46,11 @@ function fixture(responses: EmployeeOperationalSnapshot[]) {
     },
     connectivity: { current: vi.fn(() => "online") },
     checkIn: workflow(),
+    checkInActions: {
+      clear: vi.fn(),
+      suspendForBackground: vi.fn(),
+      reconcile: vi.fn(async () => false),
+    },
     confirmParking: workflow(),
     guestAccess,
     handoff: workflow(),

@@ -2,6 +2,7 @@ import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 
 type ScopeRuntime = Pick<
   NativeEmployeeRuntime,
+  | "checkInActions"
   | "checkIn"
   | "confirmParking"
   | "guestAccess"
@@ -18,6 +19,7 @@ type ScopeRuntime = Pick<
 export function retireNativeWorkflowScope(runtime: ScopeRuntime): void {
   runtime.shiftEnd.fenceOperationalScope();
   runtime.checkIn.clear();
+  runtime.checkInActions.clear();
   runtime.confirmParking.clear();
   runtime.guestAccess.clear();
   runtime.handoff.clear();

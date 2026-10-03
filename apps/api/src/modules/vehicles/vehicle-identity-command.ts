@@ -330,14 +330,12 @@ async function requireNoCompetingLocationCustody(
        WHERE competing.organization_id = $1
          AND competing.vehicle_id = $2
          AND competing.location_id <> $3
-         AND competing.state <> 'COMPLETED'
+         AND competing.state NOT IN ('COMPLETED', 'CANCELLED')
      ) AS conflict`,
     [session.organization_id, session.vehicle_id, session.location_id],
   );
   if (result.rows[0]?.conflict === true) {
-    throw new VehicleIdentityCommandError(
-      "VEHICLE_IDENTITY_CUSTODY_CONFLICT",
-    );
+    throw new VehicleIdentityCommandError("VEHICLE_IDENTITY_CUSTODY_CONFLICT");
   }
 }
 
