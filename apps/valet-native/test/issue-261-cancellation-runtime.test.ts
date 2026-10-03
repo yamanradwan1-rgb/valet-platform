@@ -38,7 +38,7 @@ function fixture() {
   };
   const ops = {
     current: () => operational,
-    refreshQueue: vi.fn(),
+    retireTaskAfterTerminalMutation: vi.fn().mockResolvedValue(undefined),
     subscribe: (listener: typeof observeScope) => {
       observeScope = listener;
       listener(operational);
@@ -83,7 +83,9 @@ describe("Issue #261 exact Native runtime ownership", () => {
     await ctx.cancellation.submit();
     expect(ctx.parking.clear).toHaveBeenCalledOnce();
     expect(ctx.confirmation.clear).toHaveBeenCalledOnce();
-    expect(ctx.ops.refreshQueue).toHaveBeenCalledExactlyOnceWith(true);
+    expect(
+      ctx.ops.retireTaskAfterTerminalMutation,
+    ).toHaveBeenCalledExactlyOnceWith(target.taskId);
   });
   it.each(["SCOPE", "SELECTION"])(
     "rejects late success after %s A-B-A retirement",
@@ -123,7 +125,7 @@ describe("Issue #261 exact Native runtime ownership", () => {
         phase: "idle",
         target: null,
       });
-      expect(ctx.ops.refreshQueue).not.toHaveBeenCalled();
+      expect(ctx.ops.retireTaskAfterTerminalMutation).not.toHaveBeenCalled();
       expect(ctx.parking.clear).not.toHaveBeenCalled();
       expect(ctx.confirmation.clear).not.toHaveBeenCalled();
     },

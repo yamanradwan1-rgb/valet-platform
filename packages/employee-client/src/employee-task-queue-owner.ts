@@ -139,6 +139,7 @@ export class EmployeeTaskQueueOwner {
 
   refreshAfterTerminalMutation(): Promise<void> {
     this.abortActive();
+    this.retryNotBefore = 0;
     return this.refresh();
   }
 

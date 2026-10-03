@@ -11,6 +11,10 @@ import {
 } from "../src/modules/auth/staff-principal";
 import { CancelBeforeParkingController } from "../src/modules/parking/cancel-before-parking.controller";
 import { CancelBeforeParkingService } from "../src/modules/parking/cancel-before-parking.service";
+import {
+  createIssueGuestAccessCommandExecutor,
+  createRevokeGuestAccessCommandExecutor,
+} from "../src/modules/valet-sessions/guest-access-command";
 import { ParkingCancellationTestContext } from "./cancel-before-parking-test-context";
 
 describe("DEC-098 cancellation real HTTP boundary", () => {
@@ -115,5 +119,70 @@ describe("DEC-098 cancellation real HTTP boundary", () => {
     principals.set(foreignAuth, foreign.fixture.userId);
     expect((await read(statusUrl, foreignAuth)).status).toBe(404);
     expect((await post(body, foreignAuth)).status).toBe(404);
+  });
+  it("keeps exact terminal history coherent after a later Guest revoke and converges the original POST", async () => {
+    const { fixture, input } = await ctx.target();
+    const authorization = `Bearer ${randomUUID()}`;
+    principals.set(authorization, fixture.userId);
+    await createIssueGuestAccessCommandExecutor(ctx.runtimePool)({
+      authenticatedUserId: fixture.userId,
+      valetSessionId: input.sessionId,
+      intent: "ISSUE_OR_ROTATE",
+    });
+    const body = {
+      taskId: input.taskId,
+      expectedShiftId: input.expectedShiftId,
+      expectedSessionVersion: input.expectedSessionVersion,
+      expectedTaskVersion: input.expectedTaskVersion,
+    };
+    const path = `${base}/v1/staff/valet-sessions/${input.sessionId}`;
+    const post = () =>
+      fetch(`${path}/cancel-before-parking`, {
+        method: "POST",
+        headers: {
+          authorization,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+    const status = () =>
+      fetch(
+        `${path}/parking-cancellation-status?taskId=${input.taskId}&expectedShiftId=${input.expectedShiftId}`,
+        { headers: { authorization } },
+      );
+
+    const first = await post();
+    expect(first.status).toBe(200);
+    const terminal = cancelBeforeParkingResponseSchema.parse(await first.json());
+    const afterCancellation = await ctx.cancellationFacts(fixture);
+
+    await createRevokeGuestAccessCommandExecutor(ctx.runtimePool)({
+      authenticatedUserId: fixture.userId,
+      valetSessionId: input.sessionId,
+    });
+    const afterRevoke = await ctx.cancellationFacts(fixture);
+    expect(afterRevoke.session.customer_access_revoked_at).not.toBeNull();
+    expect(afterRevoke.session.updated_at).not.toEqual(
+      afterCancellation.session.updated_at,
+    );
+
+    const reconciled = await status();
+    expect(reconciled.status).toBe(200);
+    expect(await reconciled.json()).toEqual({
+      outcome: "CANCELLED",
+      ...terminal,
+    });
+
+    const replay = await post();
+    expect(replay.status).toBe(200);
+    expect(await replay.json()).toEqual(terminal);
+    const afterReplay = await ctx.cancellationFacts(fixture);
+    expect(afterReplay.session.version).toBe(terminal.sessionVersion);
+    expect(afterReplay.task.version).toBe(terminal.taskVersion);
+    expect(afterReplay.history).toHaveLength(1);
+    expect(afterReplay.dispatch).toHaveLength(1);
+    expect(afterReplay.history[0]?.occurred_at.toISOString()).toBe(
+      terminal.cancelledAt,
+    );
   });
 });

@@ -38,8 +38,9 @@ export function NativeParkingCancellationControls({
     if (snapshot.phase === "cancelled" && !navigated.current) {
       navigated.current = true;
       onCancelled();
+      session.retireCancelled();
     }
-  }, [snapshot.phase, onCancelled]);
+  }, [snapshot.phase, onCancelled, session]);
   const copy = getNativeParkingCancellationCopy(locale);
   useEffect(() => {
     if (previous.current === "confirming" && snapshot.phase === "idle")

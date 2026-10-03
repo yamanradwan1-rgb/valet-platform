@@ -107,6 +107,14 @@ export class EmployeeOperationalSession {
       : this.queue.refresh();
   }
 
+  retireTaskAfterTerminalMutation(taskId: string): Promise<void> {
+    this.publish({
+      ...this.snapshot,
+      tasks: this.snapshot.tasks.filter((task) => task.taskId !== taskId),
+    });
+    return this.queue.refreshAfterTerminalMutation();
+  }
+
   acceptTask(taskId: string): Promise<void> {
     return this.action.acceptTask(taskId, this.generation);
   }

@@ -95,6 +95,24 @@ describe("exact pre-custody cancellation ownership", () => {
     await session.submit();
     expect(transport.cancel).toHaveBeenCalledTimes(1);
   });
+  it("keeps success observable until consumed, then retires before the next target", async () => {
+    const { session, onCancelled } = fixture();
+    await session.submit();
+    expect(session.current()).toEqual({ phase: "cancelled", target: null });
+    expect(onCancelled).toHaveBeenCalledExactlyOnceWith(terminal);
+
+    session.retireCancelled();
+    expect(session.current()).toEqual({ phase: "idle", target: null });
+
+    const next = {
+      ...target,
+      sessionId: "next-session",
+      taskId: "next-task",
+    };
+    session.confirm(next);
+    expect(session.current()).toEqual({ phase: "confirming", target: next });
+    expect(onCancelled).toHaveBeenCalledTimes(1);
+  });
   it("uses fresh server versions only after explicit retry confirmation", async () => {
     const { session, transport } = fixture();
     transport.cancel.mockRejectedValue(new Error("lost"));

@@ -37,10 +37,10 @@ export function createNativeParkingCancellation(
         selected.session?.sessionId === target.sessionId
       );
     },
-    onCancelled: () => {
+    onCancelled: (result) => {
       parking.clear();
       confirmation.clear();
-      void operations.refreshQueue(true);
+      void operations.retireTaskAfterTerminalMutation(result.taskId);
     },
   });
   operations.subscribe((current) => {

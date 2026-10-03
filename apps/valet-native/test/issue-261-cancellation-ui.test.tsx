@@ -8,6 +8,7 @@ import { employeePalettes } from "../src/appearance/employee-palette";
 import { getNativeParkingCancellationCopy } from "../src/parking/native-parking-cancellation-copy";
 import { detail } from "./native-parity-11-test-fixture";
 import { scope } from "./production-shell-test-fixture";
+import { EmployeeParkingCancellationSession } from "@valet/employee-client";
 
 const parking = {
   phase: "accepted",
@@ -160,5 +161,69 @@ describe("Issue #261 minimal pre-start cancellation UI", () => {
         ),
       );
     }
+  });
+  it("retires Task A success before Task B and leaves both pre-start actions available", async () => {
+    const onTerminal = vi.fn();
+    const cancellation = new EmployeeParkingCancellationSession({
+      isCurrent: () => true,
+      onCancelled: onTerminal,
+      transport: {
+        cancel: vi.fn().mockResolvedValue({
+          sessionId: "task-a-session",
+          taskId: "task-a",
+          sessionVersion: 2,
+          taskVersion: 4,
+          state: "CANCELLED",
+          taskStatus: "CANCELLED",
+          cancelledAt: "2026-10-03T10:00:00.000Z",
+        }),
+        status: vi.fn(),
+      },
+    });
+    cancellation.confirm({
+      identityGeneration: 7,
+      scope,
+      sessionId: "task-a-session",
+      taskId: "task-a",
+      expectedShiftId: scope.shiftId,
+      expectedSessionVersion: 1,
+      expectedTaskVersion: 3,
+    });
+    await cancellation.submit();
+    expect(cancellation.current().phase).toBe("cancelled");
+    expect(onTerminal).toHaveBeenCalledOnce();
+
+    cancellation.retireCancelled();
+    expect(cancellation.current()).toEqual({ phase: "idle", target: null });
+
+    const taskB = {
+      ...parking,
+      session: { ...parking.session, sessionId: "task-b-session" },
+      task: { ...parking.task, taskId: "task-b" },
+    };
+    const tree = appearanceRenderer("light").render(
+      "parking/native-parking-start-panel",
+      "NativeParkingStartPanel",
+      {
+        locale: "en",
+        onBack: vi.fn(),
+        onCancelled: vi.fn(),
+        operations: {
+          acceptTask: vi.fn(),
+          current: () => ({ mutation: { phase: "idle" } }),
+          refreshQueue: vi.fn(),
+        },
+        parking: { checkServerState: vi.fn(), startParking: vi.fn() },
+        snapshot: taskB,
+        cancellation,
+      },
+      false,
+      true,
+    );
+    const nodes = appearanceNodes(tree);
+    expect(button(nodes, "Start Parking").props.accessibilityState).toMatchObject({
+      disabled: false,
+    });
+    expect(button(nodes, "Cancel Service")).toBeDefined();
   });
 });

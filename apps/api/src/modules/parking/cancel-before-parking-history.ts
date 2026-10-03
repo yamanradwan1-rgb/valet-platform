@@ -22,19 +22,18 @@ export async function coherentParkingCancellation(
        AND a.actor_type='MEMBERSHIP' AND a.actor_membership_id=$4::uuid
        AND $5::int>1 AND $6::int>1
        AND a.metadata_json->>'fromTaskStatus' IN ('QUEUED','ASSIGNED','ACCEPTED')
-       AND ((a.metadata_json->>'fromTaskStatus'='QUEUED' AND $11::uuid IS NULL)
-         OR (a.metadata_json->>'fromTaskStatus' IN ('ASSIGNED','ACCEPTED') AND $11::uuid IS NOT NULL))
+       AND ((a.metadata_json->>'fromTaskStatus'='QUEUED' AND $9::uuid IS NULL)
+         OR (a.metadata_json->>'fromTaskStatus' IN ('ASSIGNED','ACCEPTED') AND $9::uuid IS NOT NULL))
        AND a.metadata_json=jsonb_build_object(
          'taskId',$7::uuid::text,'shiftId',$8::uuid::text,
          'fromSessionState','AWAITING_PARKING','toSessionState','CANCELLED',
          'fromSessionVersion',$5::int-1,'toSessionVersion',$5::int,
          'fromTaskStatus',a.metadata_json->>'fromTaskStatus','toTaskStatus','CANCELLED',
          'fromTaskVersion',$6::int-1,'toTaskVersion',$6::int)
-       AND a.occurred_at=$9::timestamptz AND a.occurred_at=$10::timestamptz
        AND (SELECT count(*)=1 AND bool_and(
          actor_membership_id=$4::uuid AND occurred_at=a.occurred_at
-         AND previous_assignee_membership_id IS NOT DISTINCT FROM $11::uuid
-         AND new_assignee_membership_id IS NOT DISTINCT FROM $11::uuid
+         AND previous_assignee_membership_id IS NOT DISTINCT FROM $9::uuid
+         AND new_assignee_membership_id IS NOT DISTINCT FROM $9::uuid
          AND reason IS NULL AND organization_id=$2::uuid AND location_id=$3::uuid
          AND valet_session_id=$1::uuid)
          FROM dispatch_events WHERE task_id=$7::uuid AND event_type='CANCELLED')
@@ -52,8 +51,6 @@ export async function coherentParkingCancellation(
       task.version,
       task.id,
       shiftId,
-      session.updated_at,
-      task.updated_at,
       task.current_assignee_membership_id,
     ],
   );

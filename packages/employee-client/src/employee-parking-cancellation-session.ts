@@ -109,6 +109,9 @@ export class EmployeeParkingCancellationSession {
     // An outstanding POST keeps its single-flight slot until it settles.
     this.publish({ phase: "idle", target: null });
   }
+  retireCancelled(): void {
+    if (this.snapshot.phase === "cancelled") this.clear();
+  }
   private currentTarget(target: Target, generation: number) {
     return (
       this.foreground &&
