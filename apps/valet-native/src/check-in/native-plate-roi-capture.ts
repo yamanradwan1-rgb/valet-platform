@@ -16,12 +16,15 @@ import {
   NATIVE_PLATE_FALLBACK_JPEG_QUALITY,
 } from "./native-plate-capture-policy";
 
+import type { NativePlateCameraTrace } from "./native-plate-camera-trace";
+
 export class CameraCaptureFailure extends Error {}
 
 export interface PlateRoiCapturePorts {
   readonly camera: CameraView;
   readonly geometry: PlateRoiGeometry;
   readonly preview: PlatePreviewMetadata;
+  readonly trace?: NativePlateCameraTrace;
   current(): boolean;
   render(
     uri: string,
@@ -49,6 +52,12 @@ export async function capturePlateRoi(
   let result: string | undefined;
   let failure: Error | undefined;
   const started = performance.now();
+  const owner = {
+    generation: ports.geometry.generation,
+    mountId: ports.geometry.mountId,
+    geometryRevision: ports.geometry.revision,
+    refId: ports.trace?.refId(ports.camera) ?? -1,
+  };
   try {
     assertCurrent();
     logNativePlateOcr("primary-capture-start", {
@@ -56,6 +65,7 @@ export async function capturePlateRoi(
     });
     let picture: Awaited<ReturnType<CameraView["takePictureAsync"]>>;
     try {
+      ports.trace?.record("native-capture-start", owner);
       // The installed JS camera forwards these opt-in fields to the patched native record.
       const options = {
         quality: NATIVE_PLATE_SOURCE_JPEG_QUALITY,
@@ -69,7 +79,18 @@ export async function capturePlateRoi(
         },
       };
       picture = await ports.camera.takePictureAsync(options);
+      ports.trace?.record("native-capture-success", {
+        ...owner,
+        current: ports.current(),
+        aborted: signal.aborted,
+      });
     } catch {
+      ports.trace?.record("native-capture-failure", {
+        ...owner,
+        current: ports.current(),
+        aborted: signal.aborted,
+        reason: "native",
+      });
       assertCurrent();
       logNativePlateOcr("capture-exception");
       throw new CameraCaptureFailure();

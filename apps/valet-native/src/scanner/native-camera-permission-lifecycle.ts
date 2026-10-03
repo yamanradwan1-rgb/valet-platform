@@ -35,6 +35,10 @@ class NativeCameraPermissionRequests {
 
 const nativeCameraPermissionRequests = new NativeCameraPermissionRequests();
 
+/** Read-only focus ownership for the opt-in plate lifecycle trace. */
+export const isNativeCameraPermissionRequestPending = () =>
+  nativeCameraPermissionRequests.current();
+
 /** Marks only the short-lived OS camera permission request as system-owned UI. */
 export function requestNativeCameraPermission<T>(
   request: () => Promise<T>,

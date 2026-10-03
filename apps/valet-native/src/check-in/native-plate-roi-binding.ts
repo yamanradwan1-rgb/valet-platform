@@ -38,6 +38,7 @@ export class NativePlateRoiBinding {
       this.validated = undefined;
       this.geometry = undefined;
       this.reading += 1;
+      this.traceState();
       this.listeners.forEach((listener) => listener());
     });
   }
@@ -64,6 +65,14 @@ export class NativePlateRoiBinding {
   }
 
   ref(value: CameraView | null, generation: number, mountId: number): void {
+    this.controller.trace.record(value ? "ref-attach" : "ref-detach", {
+      generation,
+      mountId,
+      refId: this.controller.trace.refId(
+        value ?? (this.isMount(generation, mountId) ? this.camera : null),
+      ),
+      current: this.isMount(generation, mountId),
+    });
     if (!this.isMount(generation, mountId)) return;
     if (this.camera !== value || this.cameraMount !== mountId) {
       this.validated = undefined;
@@ -72,6 +81,7 @@ export class NativePlateRoiBinding {
     }
     this.camera = value;
     this.cameraMount = mountId;
+    this.traceState();
   }
 
   layout(
@@ -80,6 +90,13 @@ export class NativePlateRoiBinding {
     width: number,
     height: number,
   ): void {
+    this.controller.trace.record("roi-layout", {
+      generation,
+      mountId,
+      width,
+      height,
+      current: this.isMount(generation, mountId),
+    });
     if (!this.isMount(generation, mountId)) return;
     if (
       this.geometry?.mountId === mountId &&
@@ -105,6 +122,7 @@ export class NativePlateRoiBinding {
       height,
       guide,
     };
+    this.traceState();
     this.listeners.forEach((listener) => listener());
     if (changedDuringPreview) {
       this.controller.geometryUnavailable(generation);
@@ -117,6 +135,7 @@ export class NativePlateRoiBinding {
     if (!this.isMount(generation, mountId) || this.cameraMount !== mountId)
       return;
     this.readyMount = mountId;
+    this.traceState();
     await this.validate();
   }
 
@@ -149,6 +168,14 @@ export class NativePlateRoiBinding {
     )
       return;
     const reading = ++this.reading;
+    const owner = {
+      generation: geometry.generation,
+      mountId: geometry.mountId,
+      geometryRevision: geometry.revision,
+      reading,
+      refId: this.controller.trace.refId(camera),
+    };
+    this.controller.trace.record("metadata-start", owner);
     try {
       const preview = await readPlatePreview(camera);
       if (
@@ -156,16 +183,46 @@ export class NativePlateRoiBinding {
         !this.isMount(geometry.generation, geometry.mountId) ||
         camera !== this.camera ||
         geometry !== this.geometry
-      )
+      ) {
+        this.controller.trace.record("metadata-discard", {
+          ...owner,
+          current: false,
+        });
         return;
+      }
       this.validated = { geometry, camera, preview };
+      this.controller.trace.record("metadata-success", {
+        ...owner,
+        current: true,
+      });
+      this.traceState();
       this.controller.ready(geometry.generation);
     } catch {
+      this.controller.trace.record("metadata-failure", {
+        ...owner,
+        current:
+          reading === this.reading &&
+          this.isMount(geometry.generation, geometry.mountId),
+        reason: "mapping",
+      });
       if (
         reading === this.reading &&
         this.isMount(geometry.generation, geometry.mountId)
       )
         this.controller.geometryUnavailable(geometry.generation);
     }
+  }
+
+  private traceState(): void {
+    this.controller.trace.record("roi-state", {
+      cameraMount: this.cameraMount,
+      readyMount: this.readyMount,
+      attached: this.camera !== null,
+      validated: this.validated !== undefined,
+      geometryRevision: this.geometry?.revision ?? -1,
+      bindingRevision: this.revision,
+      reading: this.reading,
+      refId: this.controller.trace.refId(this.camera),
+    });
   }
 }

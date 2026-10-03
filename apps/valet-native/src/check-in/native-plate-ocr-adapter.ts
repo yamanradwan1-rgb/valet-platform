@@ -22,6 +22,7 @@ import {
 } from "./native-plate-roi-capture";
 import { renderPlateRoi } from "./native-plate-roi-crop-adapter";
 import { inspectPlateFile, removePlateFile } from "./native-plate-roi-files";
+import { NativePlateCameraTrace } from "./native-plate-camera-trace";
 
 export type PlateRoiSource = Pick<
   NativePlateRoiBinding,
@@ -33,6 +34,9 @@ export function createNativePlateOcrBinding(
   auth: NativeAuthSession,
   session: EmployeeCheckInSession,
 ) {
+  const trace = new NativePlateCameraTrace(
+    session.current().identityGeneration ?? 0,
+  );
   const controller: NativePlateCameraController =
     new NativePlateCameraController(
       nativeCameraPermissions,
@@ -51,7 +55,9 @@ export function createNativePlateOcrBinding(
           capture: () => roi.capture(),
           isCurrent: (value) => roi.isCurrent(value),
         },
+        trace,
       ),
+      trace,
     );
   const roi = new NativePlateRoiBinding(controller);
   return {
@@ -69,9 +75,20 @@ export function createNativePlateOcrBinding(
       height: number,
     ) => roi.layout(generation, mountId, width, height),
     cameraError: (generation: number, mountId: number) => {
+      trace.record("native-error", {
+        generation,
+        mountId,
+        current: roi.isMount(generation, mountId),
+        reason: "native",
+      });
       if (roi.isMount(generation, mountId)) controller.fail(generation);
     },
     async cameraReady(generation: number, mountId: number) {
+      trace.record("ready-callback", {
+        generation,
+        mountId,
+        current: roi.isMount(generation, mountId),
+      });
       const current = controller.current();
       const camera = roi.cameraFor(generation, mountId);
       if (
@@ -85,7 +102,18 @@ export function createNativePlateOcrBinding(
         let selected: string | undefined;
         let fallback: string | undefined;
         try {
+          trace.record("size-query-start", {
+            generation,
+            mountId,
+            refId: trace.refId(camera),
+          });
           const supported = await camera.getAvailablePictureSizesAsync();
+          trace.record("size-query-complete", {
+            generation,
+            mountId,
+            count: supported.length,
+            refId: trace.refId(camera),
+          });
           logNativePlateOcr("picture-sizes-loaded", {
             count: supported.length,
           });
@@ -96,13 +124,30 @@ export function createNativePlateOcrBinding(
               selected,
             );
         } catch {
+          trace.record("size-query-failure", {
+            generation,
+            mountId,
+            reason: "native",
+          });
           selected = undefined;
         }
         if (
           !roi.isMount(generation, mountId) ||
           roi.cameraFor(generation, mountId) !== camera
-        )
+        ) {
+          trace.record("size-query-discard", {
+            generation,
+            mountId,
+            current: false,
+          });
           return;
+        }
+        trace.record("size-selection", {
+          generation,
+          mountId,
+          preferredPictureSize: selected,
+          fallbackPictureSize: fallback,
+        });
         if (selected)
           logNativePlateOcr("picture-size-selected", { value: selected });
         else logNativePlateOcr("picture-size-none");
@@ -129,6 +174,7 @@ export function createNativePlateOcrPorts(
   ) => Promise<boolean>,
   currentGeneration?: () => number,
   roi?: PlateRoiSource,
+  trace?: NativePlateCameraTrace,
 ): NativePlateOcrPorts {
   const capture = (signal: AbortSignal) => {
     const active = camera();
@@ -145,6 +191,7 @@ export function createNativePlateOcrPorts(
         render: renderPlateRoi,
         inspect: inspectPlateFile,
         remove: removePlateFile,
+        ...(trace === undefined ? {} : { trace }),
       },
       signal,
     );

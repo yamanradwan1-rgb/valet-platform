@@ -5,6 +5,8 @@ import {
   type NativePlateOcrPorts,
 } from "./native-plate-ocr-loop";
 import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
+import { NativePlateCameraTrace } from "./native-plate-camera-trace";
+import { recordPlateCameraPermission } from "./native-plate-camera-permission-trace";
 import {
   beginCameraReady,
   finishPhysicalMetric,
@@ -56,7 +58,9 @@ export class NativePlateCameraController {
   constructor(
     private readonly permissions: NativeCameraPermissionPort,
     ports?: NativePlateOcrPorts,
+    readonly trace = new NativePlateCameraTrace(),
   ) {
+    trace.bind(this.current);
     if (ports)
       this.ocr = new NativePlateOcrLoop(
         ports,
@@ -75,6 +79,7 @@ export class NativePlateCameraController {
               phase: result.status === "NO_MATCH" ? "no-match" : "unavailable",
             });
         },
+        trace,
       );
   }
 
@@ -85,6 +90,7 @@ export class NativePlateCameraController {
   };
 
   toggleTorch(generation: number, mountId: number): void {
+    this.trace.record("torch-request", { generation, mountId });
     if (
       !this.isCurrent(generation) ||
       this.snapshot.mountId !== mountId ||
@@ -98,6 +104,7 @@ export class NativePlateCameraController {
   }
 
   async open(): Promise<void> {
+    this.trace.record("open-request", { eligible: this.eligible });
     if (
       !this.eligible ||
       ["requesting", "starting", "preview"].includes(this.snapshot.phase)
@@ -106,13 +113,19 @@ export class NativePlateCameraController {
     const generation = this.snapshot.generation + 1;
     beginCameraReady();
     this.publish({ ...this.snapshot, generation, phase: "requesting" });
+    const owner = this.trace.owner();
     try {
+      this.trace.record("permission-read", owner);
       let permission = await this.permissions.get();
+      recordPlateCameraPermission(this.trace, owner, permission);
       if (!this.isCurrent(generation)) return;
-      if (!permission.granted && permission.canAskAgain)
+      if (!permission.granted && permission.canAskAgain) {
+        this.trace.record("permission-request", owner);
         permission = await requestNativeCameraPermission(() =>
           this.permissions.request(),
         );
+        recordPlateCameraPermission(this.trace, owner, permission);
+      }
       if (!this.isCurrent(generation)) return;
       this.publish({
         ...this.snapshot,
@@ -130,6 +143,10 @@ export class NativePlateCameraController {
           "camera-unavailable",
         );
     } catch {
+      this.trace.record("permission-failure", {
+        ...owner,
+        reason: "permission",
+      });
       this.fail(generation);
     }
   }
@@ -158,6 +175,12 @@ export class NativePlateCameraController {
       this.snapshot.pictureSize === pictureSize
     )
       return false;
+    this.trace.record("remount-request", {
+      generation,
+      reason: "preferred",
+      pictureSize,
+      fallbackPictureSize,
+    });
     this.publish({
       ...this.snapshot,
       pictureSize,
@@ -173,6 +196,10 @@ export class NativePlateCameraController {
     generation: number,
     signal: AbortSignal,
   ): Promise<boolean> {
+    this.trace.record("fallback-request", {
+      generation,
+      aborted: signal.aborted,
+    });
     const fallback = this.snapshot.fallbackPictureSize;
     if (
       signal.aborted ||
@@ -190,6 +217,10 @@ export class NativePlateCameraController {
       const aborted = () => this.resolveFallback(false);
       this.fallbackReady = { generation, signal, resolve, aborted };
       signal.addEventListener("abort", aborted, { once: true });
+      this.trace.record("fallback-wait", {
+        generation,
+        mountId: this.snapshot.mountId + 1,
+      });
       this.publish({
         ...this.snapshot,
         pictureSize: fallback,
@@ -221,6 +252,7 @@ export class NativePlateCameraController {
   }
 
   close(): void {
+    this.trace.record("controller-close");
     this.resolveFallback(false);
     this.ocr?.cancel();
     finishPhysicalMetric("camera_ready_ms", "failure", "cancelled");
@@ -233,6 +265,7 @@ export class NativePlateCameraController {
   }
 
   setEligible(eligible: boolean): void {
+    this.trace.record("eligibility", { eligible });
     this.eligible = eligible;
     if (!eligible) this.close();
   }
@@ -244,13 +277,18 @@ export class NativePlateCameraController {
   private resolveFallback(ready: boolean): void {
     const fallback = this.fallbackReady;
     if (!fallback) return;
+    this.trace.record(ready ? "fallback-ready" : "fallback-aborted", {
+      generation: fallback.generation,
+    });
     this.fallbackReady = undefined;
     fallback.signal.removeEventListener("abort", fallback.aborted);
     fallback.resolve(ready);
   }
 
   private publish(snapshot: NativePlateCameraSnapshot): void {
+    const previous = this.snapshot;
     this.snapshot = snapshot;
+    this.trace.transition(previous, snapshot);
     this.listeners.forEach((listener) => listener());
   }
 }
