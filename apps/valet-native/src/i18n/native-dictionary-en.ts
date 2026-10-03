@@ -4,6 +4,7 @@ import { nativeEmployeeEnglishScanHubDictionary } from "./native-dictionary-en-s
 import { nativeEmployeeEnglishScannerDictionary } from "./native-dictionary-en-scanner";
 import { nativeEmployeeEnglishShiftDictionary } from "./native-dictionary-en-shift";
 import { nativeEmployeeEnglishVehiclesDictionary } from "./native-dictionary-en-vehicles";
+import { nativeEmployeeEnglishParkingDictionary } from "./native-dictionary-en-parking";
 
 export const nativeEmployeeEnglishDictionary = {
   ...nativeEmployeeEnglishCheckInActionsDictionary,
@@ -12,6 +13,7 @@ export const nativeEmployeeEnglishDictionary = {
   ...nativeEmployeeEnglishScanHubDictionary,
   ...nativeEmployeeEnglishScannerDictionary,
   ...nativeEmployeeEnglishVehiclesDictionary,
+  ...nativeEmployeeEnglishParkingDictionary,
   abortHandoff: "Abort Handoff",
   acceptAndPark: "Accept & Park",
   acceptTask: "Accept Task",

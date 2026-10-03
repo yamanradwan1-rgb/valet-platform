@@ -34,7 +34,7 @@ describe("protected workflow background fences", () => {
   it("ignores a late Confirm Parked completion and never replays it", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     const result = deferred<ReturnType<typeof parkedResponse>>();
     transport.confirmResults.push(result.promise);
     const command = session.confirmParked();

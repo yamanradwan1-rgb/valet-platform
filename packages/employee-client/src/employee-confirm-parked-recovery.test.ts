@@ -22,7 +22,7 @@ describe("MOB-012B protected attempt and recovery", () => {
   it("coalesces rapid Confirm Parked taps and freezes candidate changes", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     const pending = deferred<ReturnType<typeof parkedResponse>>();
     transport.confirmResults.push(pending.promise);
 
@@ -46,7 +46,7 @@ describe("MOB-012B protected attempt and recovery", () => {
   it("returns an occupied Spot to Spot selection with no automatic resend", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     transport.confirmResults.push(
       Promise.reject(apiError("PARKING_SPOT_NOT_FOUND_OR_UNAVAILABLE", 409)),
     );
@@ -68,7 +68,7 @@ describe("MOB-012B protected attempt and recovery", () => {
   it("returns a lost Key Slot to Slot selection and preserves only the Spot", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     transport.confirmResults.push(
       Promise.reject(apiError("KEY_CUSTODY_NOT_READY", 409)),
     );
@@ -89,7 +89,7 @@ describe("MOB-012B protected attempt and recovery", () => {
   it("refreshes stale versions without replaying the protected command", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     transport.confirmResults.push(
       Promise.reject(apiError("VERSION_CONFLICT", 409)),
     );
@@ -109,7 +109,7 @@ describe("MOB-012B protected attempt and recovery", () => {
     await session.confirmParked();
     expect(session.current()).toMatchObject({
       conflict: "stale",
-      phase: "ready",
+      phase: "spot",
       session: { version: 4 },
       task: { version: 5 },
     });
@@ -119,7 +119,7 @@ describe("MOB-012B protected attempt and recovery", () => {
   it("adopts canonical PARKED after an ambiguous response without resending", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     transport.confirmResults.push(
       Promise.reject(apiError("GATEWAY_TIMEOUT", 504)),
     );
@@ -160,7 +160,7 @@ describe("MOB-012B protected attempt and recovery", () => {
   it("keeps unknown state ambiguous and Check Server State read-only", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     transport.confirmResults.push(
       Promise.reject(apiError("REQUEST_TIMEOUT", 408)),
     );
@@ -174,7 +174,7 @@ describe("MOB-012B protected attempt and recovery", () => {
     );
     transport.sessionResults.push(Promise.resolve(activeParkingDetail()));
     await session.checkServerState();
-    expect(session.current().phase).toBe("ready");
+    expect(session.current().phase).toBe("spot");
     expect(transport.confirmCalls).toHaveLength(1);
   });
 });

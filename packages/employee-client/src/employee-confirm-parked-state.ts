@@ -18,6 +18,11 @@ import type {
   EmployeeConfirmParkedSuccess,
 } from "./employee-confirm-parked-types";
 
+import {
+  hasCurrentParkingSpotValidation,
+  phaseAfterActiveRead,
+} from "./employee-confirm-parked-phase";
+
 export interface EmployeeConfirmParkedTarget {
   readonly identityGeneration: number;
   readonly locationId: string;
@@ -61,6 +66,8 @@ export function emptyConfirmParkedSnapshot(
     parked: null,
     parkingSpotCandidate: "",
     parkingSpotResourceId: null,
+    parkingSpotValidation: null,
+    parkingSpotValidationPending: false,
     phase,
     scope,
     session: null,
@@ -87,6 +94,8 @@ export function withConfirmParkingSpotCandidate(
     failure: null,
     keySlotCandidate: "",
     keySlotResourceId: null,
+    parkingSpotValidation: null,
+    parkingSpotValidationPending: false,
     parkingSpotCandidate: value.trim(),
     parkingSpotResourceId: resourceId,
   };
@@ -118,6 +127,8 @@ export function backToConfirmParkingSpot(
     keySlotCandidate: "",
     keySlotResourceId: null,
     phase: "spot",
+    parkingSpotValidation: null,
+    parkingSpotValidationPending: false,
   };
 }
 
@@ -193,19 +204,6 @@ export function recoveredParkedResult(
   };
 }
 
-export function phaseAfterActiveRead(
-  previous: EmployeeConfirmParkedPhase,
-  conflict: EmployeeConfirmParkedConflict | null,
-  spot: string,
-  slot: string,
-): EmployeeConfirmParkedPhase {
-  if (conflict === "spot") return "spot";
-  if (conflict === "slot") return "slot";
-  if (previous === "loading") return "spot";
-  if (spot === "") return "spot";
-  return slot === "" ? "slot" : "ready";
-}
-
 export function targetMatches(
   snapshot: EmployeeConfirmParkedSnapshot,
   target: EmployeeConfirmParkedTarget,
@@ -269,19 +267,22 @@ export function reconcileConfirmParkedSnapshot(
   const spot = conflict === "spot" ? "" : snapshot.parkingSpotCandidate;
   const slot =
     conflict === "spot" || conflict === "slot" ? "" : snapshot.keySlotCandidate;
+  const validated =
+    conflict !== "spot" &&
+    hasCurrentParkingSpotValidation(snapshot, task, session);
   return {
     ...snapshot,
     conflict,
-    keySlotCandidate: slot,
+    parkingSpotValidation: validated ? snapshot.parkingSpotValidation : null,
+    parkingSpotValidationPending: false,
+    keySlotCandidate: validated ? slot : "",
     keySlotResourceId:
-      conflict === "spot" || conflict === "slot"
-        ? null
-        : snapshot.keySlotResourceId,
+      !validated || conflict === "slot" ? null : snapshot.keySlotResourceId,
     parked: null,
     parkingSpotCandidate: spot,
     parkingSpotResourceId:
       conflict === "spot" ? null : snapshot.parkingSpotResourceId,
-    phase: phaseAfterActiveRead(previous, conflict, spot, slot),
+    phase: phaseAfterActiveRead(previous, conflict, validated, slot),
     session,
     task,
   };

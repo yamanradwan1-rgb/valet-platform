@@ -90,6 +90,8 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
         parked: null,
         parkingSpotCandidate: "",
         parkingSpotResourceId: null,
+        parkingSpotValidation: null,
+        parkingSpotValidationPending: false,
         phase: "inactive",
         scope: null,
         session: null,

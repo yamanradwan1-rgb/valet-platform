@@ -1,5 +1,7 @@
 import type {
   ConfirmParkedResponse,
+  ParkingSpotValidationQuery,
+  ParkingSpotValidationResponse,
   StaffTaskQueueItem,
   StaffValetSessionDetailResponse,
   TaskQueueResponse,
@@ -48,6 +50,8 @@ export interface EmployeeConfirmParkedSnapshot {
   readonly parked: EmployeeConfirmParkedSuccess | null;
   readonly parkingSpotCandidate: string;
   readonly parkingSpotResourceId: string | null;
+  readonly parkingSpotValidation: ParkingSpotValidationResponse | null;
+  readonly parkingSpotValidationPending: boolean;
   readonly phase: EmployeeConfirmParkedPhase;
   readonly scope: EmployeeOperationalScope | null;
   readonly session: StaffValetSessionDetailResponse | null;
@@ -55,6 +59,10 @@ export interface EmployeeConfirmParkedSnapshot {
 }
 
 export interface EmployeeConfirmParkedTransport {
+  validateParkingSpot(
+    sessionId: string,
+    input: ParkingSpotValidationQuery,
+  ): Promise<ParkingSpotValidationResponse>;
   confirmParked(
     sessionId: string,
     input: {

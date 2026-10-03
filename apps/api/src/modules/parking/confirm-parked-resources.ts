@@ -1,5 +1,12 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { ConfirmParkedError } from "./confirm-parked-errors";
+import {
+  assertParkingSpotAvailable,
+  parkingSpotOccupancyPredicate,
+  parkingSpotPredicate,
+  parkingZonePredicate,
+  requireCompatibleParkingSpot,
+} from "./parking-spot-availability";
 import type {
   LockedConfirmSession,
   LockedParkingSpot,
@@ -17,11 +24,9 @@ export async function lockConfirmParkingSpot(
   parkingSpotId?: string,
 ): Promise<LockedParkingSpot> {
   const spotResult = await transaction.query<LockedParkingSpot>(
-    `SELECT id::text, code, parking_zone_id::text
-     FROM parking_spots
-     WHERE organization_id = $1 AND location_id = $2 AND code = $3
-       AND ($4::uuid IS NULL OR id = $4::uuid)
-       AND status = 'ACTIVE' AND parking_zone_id IS NOT NULL
+    `SELECT spot.id::text, spot.code, spot.parking_zone_id::text
+     FROM parking_spots AS spot
+     WHERE ${parkingSpotPredicate}
      FOR UPDATE`,
     [
       session.organization_id,
@@ -30,29 +35,22 @@ export async function lockConfirmParkingSpot(
       parkingSpotId ?? null,
     ],
   );
-  const spot = spotResult.rows[0];
-  if (spot === undefined) unavailable();
-  if (
-    session.parking_zone_id !== null &&
-    session.parking_zone_id !== spot.parking_zone_id
-  ) {
-    unavailable();
-  }
+  const spot = requireCompatibleParkingSpot(session, spotResult.rows[0]);
   const zoneResult = await transaction.query<{ id: string }>(
-    `SELECT id::text FROM parking_zones
-     WHERE id = $1 AND organization_id = $2 AND location_id = $3
-       AND status = 'ACTIVE' FOR UPDATE`,
-    [spot.parking_zone_id, session.organization_id, session.location_id],
+    `SELECT zone.id::text FROM parking_zones AS zone
+     INNER JOIN parking_spots AS spot ON ${parkingZonePredicate}
+     WHERE spot.id = $1 AND spot.organization_id = $2 AND spot.location_id = $3
+     FOR UPDATE OF zone`,
+    [spot.id, session.organization_id, session.location_id],
   );
   if (zoneResult.rows[0] === undefined) unavailable();
   const occupancy = await transaction.query<{ id: string }>(
-    `SELECT id::text FROM valet_sessions
-     WHERE organization_id = $1 AND location_id = $2
-       AND parking_spot_id = $3 AND id <> $4
+    `SELECT occupant.id::text FROM valet_sessions AS occupant
+     WHERE ${parkingSpotOccupancyPredicate("$3", "$4")}
      LIMIT 1`,
     [session.organization_id, session.location_id, spot.id, session.id],
   );
-  if (occupancy.rows[0] !== undefined) unavailable();
+  assertParkingSpotAvailable(true, occupancy.rows[0] !== undefined);
   return spot;
 }
 
@@ -78,7 +76,9 @@ export async function lockConfirmParkingZone(
   return { parkingSpotCode: null, parkingSpotId: null, parkingZoneId };
 }
 
-export function parkingSpotTarget(spot: LockedParkingSpot): LockedParkingTarget {
+export function parkingSpotTarget(
+  spot: LockedParkingSpot,
+): LockedParkingTarget {
   return {
     parkingSpotCode: spot.code,
     parkingSpotId: spot.id,

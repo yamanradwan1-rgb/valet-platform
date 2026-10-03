@@ -49,7 +49,12 @@ export function NativeParkingConfirmPanel({
     snapshot.phase === "submitting";
   const back = inSlotStep
     ? () => confirmation.backToSpot()
-    : (onBack ?? onDone);
+    : snapshot.phase === "spot"
+      ? () => {
+          confirmation.backToSpot();
+          (onBack ?? onDone)();
+        }
+      : (onBack ?? onDone);
   const headerTitle = inSlotStep
     ? copy.keySlot
     : snapshot.phase === "spot"

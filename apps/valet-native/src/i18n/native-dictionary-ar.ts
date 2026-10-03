@@ -5,6 +5,7 @@ import { nativeEmployeeArabicScanHubDictionary } from "./native-dictionary-ar-sc
 import { nativeEmployeeArabicScannerDictionary } from "./native-dictionary-ar-scanner";
 import { nativeEmployeeArabicShiftDictionary } from "./native-dictionary-ar-shift";
 import { nativeEmployeeArabicVehiclesDictionary } from "./native-dictionary-ar-vehicles";
+import { nativeEmployeeArabicParkingDictionary } from "./native-dictionary-ar-parking";
 
 export const nativeEmployeeArabicDictionary: NativeEmployeeDictionary = {
   ...nativeEmployeeArabicCheckInActionsDictionary,
@@ -13,6 +14,7 @@ export const nativeEmployeeArabicDictionary: NativeEmployeeDictionary = {
   ...nativeEmployeeArabicShiftDictionary,
   ...nativeEmployeeArabicScannerDictionary,
   ...nativeEmployeeArabicVehiclesDictionary,
+  ...nativeEmployeeArabicParkingDictionary,
   abortHandoff: "إلغاء التسليم",
   acceptAndPark: "قبول وبدء الإيقاف",
   acceptTask: "قبول المهمة",

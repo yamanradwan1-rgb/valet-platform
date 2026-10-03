@@ -35,14 +35,18 @@ export function NativeParkingSpotStep({
   const destination = snapshot.session?.parking.parkingZoneCode
     ? `${copy.zone} ${snapshot.session.parking.parkingZoneCode}`
     : copy.parkingArea;
+  const feedback =
+    snapshot.conflict === "spot" || snapshot.failure != null ? (
+      <EmployeeErrorNotice textAlign={textAlign} title={copy.parkingSpot}>
+        {snapshot.conflict === "spot"
+          ? copy.spotConflict
+          : copy.validationRetry}
+      </EmployeeErrorNotice>
+    ) : null;
   if (!reviewing) {
     return (
       <>
-        {snapshot.conflict === "spot" ? (
-          <EmployeeErrorNotice textAlign={textAlign} title={copy.parkingSpot}>
-            {copy.spotConflict}
-          </EmployeeErrorNotice>
-        ) : null}
+        {feedback}
         <NativeParkingResourceCapture
           auth={auth}
           body={copy.spotBody}
@@ -68,6 +72,7 @@ export function NativeParkingSpotStep({
   }
   return (
     <>
+      {feedback}
       <NativeParkingResourceResult
         codeLabel={copy.spotCode}
         label={copy.location}
@@ -77,9 +82,14 @@ export function NativeParkingSpotStep({
         valueHero={destination}
       />
       <EmployeeButton
+        busy={snapshot.parkingSpotValidationPending}
         disabled={snapshot.parkingSpotCandidate.trim() === ""}
-        label={copy.continueLabel}
-        onPress={() => confirmation.continueToKeySlot()}
+        label={
+          snapshot.parkingSpotValidationPending
+            ? copy.validatingSpot
+            : copy.continueLabel
+        }
+        onPress={() => void confirmation.continueToKeySlot()}
         variant="success"
       />
       <EmployeeButton

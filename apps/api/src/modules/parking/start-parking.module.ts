@@ -10,18 +10,22 @@ import { StartParkingController } from "./start-parking.controller";
 import { StartParkingService } from "./start-parking.service";
 import { CancelBeforeParkingController } from "./cancel-before-parking.controller";
 import { CancelBeforeParkingService } from "./cancel-before-parking.service";
+import { ParkingSpotValidationController } from "./parking-spot-validation.controller";
+import { ParkingSpotValidationService } from "./parking-spot-validation.service";
 
 @Module({
   controllers: [
     StartParkingController,
     ConfirmParkedController,
     CancelBeforeParkingController,
+    ParkingSpotValidationController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
     StartParkingService,
     ConfirmParkedService,
     CancelBeforeParkingService,
+    ParkingSpotValidationService,
   ],
 })
 export class StartParkingModule implements NestModule {
@@ -32,6 +36,7 @@ export class StartParkingModule implements NestModule {
         StartParkingController,
         ConfirmParkedController,
         CancelBeforeParkingController,
+        ParkingSpotValidationController,
       );
   }
 }

@@ -7,12 +7,10 @@ import {
   confirmParkedAttemptMatches,
   createConfirmParkedAttempt,
   executeConfirmParkedOperation,
-  loadConfirmParkedCanonical,
   type EmployeeConfirmParkedAttempt as Attempt,
 } from "./employee-confirm-parked-operation";
 import {
   emptyConfirmParkedSnapshot,
-  hasConfirmParkedPendingWork,
   backToConfirmParkingSpot,
   classifyConfirmParkedFailure,
   confirmParkedScanCandidate,
@@ -24,13 +22,17 @@ import {
 import type {
   EmployeeConfirmParkedConflict,
   EmployeeConfirmParkedOptions,
-  EmployeeConfirmParkedPhase,
   EmployeeConfirmParkedSnapshot,
 } from "./employee-confirm-parked-types";
 import type { QrResourcePayload } from "./qr-resource-payload";
 import { confirmParkedTarget } from "./employee-confirm-parked-target";
 
+import { EmployeeParkingSpotValidation } from "./employee-parking-spot-validation";
+import { backgroundConfirmParkedSnapshot } from "./employee-confirm-parked-phase";
+import { executeConfirmParkedRead } from "./employee-confirm-parked-read";
+
 export class EmployeeConfirmParkedSession {
+  private readonly validation: EmployeeParkingSpotValidation;
   private activeCommand: Promise<void> | undefined;
   private activeRead: Promise<void> | undefined;
   private request = 0;
@@ -40,7 +42,14 @@ export class EmployeeConfirmParkedSession {
   >();
   private target: Target | null = null;
 
-  constructor(private readonly options: EmployeeConfirmParkedOptions) {}
+  constructor(private readonly options: EmployeeConfirmParkedOptions) {
+    this.validation = new EmployeeParkingSpotValidation({
+      current: () => this.snapshot,
+      target: () => this.target,
+      publish: (snapshot) => this.publish(snapshot),
+      transport: this.options.transport,
+    });
+  }
 
   current(): EmployeeConfirmParkedSnapshot {
     return this.snapshot;
@@ -58,10 +67,16 @@ export class EmployeeConfirmParkedSession {
     taskId: string,
     sessionId: string,
   ): Promise<void> {
+    this.validation.invalidate();
     this.request += 1;
     this.activeCommand = undefined;
     this.activeRead = undefined;
-    this.target = confirmParkedTarget(identityGeneration, scope, taskId, sessionId);
+    this.target = confirmParkedTarget(
+      identityGeneration,
+      scope,
+      taskId,
+      sessionId,
+    );
     this.publish(
       emptyConfirmParkedSnapshot(identityGeneration, scope, "loading"),
     );
@@ -70,6 +85,7 @@ export class EmployeeConfirmParkedSession {
 
   enterParkingSpot(value: string): void {
     if (this.snapshot.phase !== "spot") return;
+    this.validation.invalidate();
     this.publish(withConfirmParkingSpotCandidate(this.snapshot, value, null));
   }
 
@@ -83,6 +99,7 @@ export class EmployeeConfirmParkedSession {
     if (candidate.kind !== "parking-spot" || this.snapshot.phase !== "spot") {
       return false;
     }
+    this.validation.invalidate();
     this.publish(
       withConfirmParkingSpotCandidate(
         this.snapshot,
@@ -93,13 +110,8 @@ export class EmployeeConfirmParkedSession {
     return true;
   }
 
-  continueToKeySlot(): void {
-    if (
-      this.snapshot.phase !== "spot" ||
-      this.snapshot.parkingSpotCandidate === ""
-    )
-      return;
-    this.publish({ ...this.snapshot, conflict: null, phase: "slot" });
+  continueToKeySlot(): Promise<void> {
+    return this.validation.continueToKeySlot();
   }
 
   enterKeySlot(value: string): void {
@@ -132,8 +144,8 @@ export class EmployeeConfirmParkedSession {
   }
 
   backToSpot(): void {
-    if (this.snapshot.phase !== "slot" && this.snapshot.phase !== "ready")
-      return;
+    if (!["spot", "slot", "ready"].includes(this.snapshot.phase)) return;
+    this.validation.invalidate();
     this.publish(backToConfirmParkingSpot(this.snapshot));
   }
 
@@ -159,24 +171,29 @@ export class EmployeeConfirmParkedSession {
     if (this.target === null || this.snapshot.phase === "submitting") {
       return this.activeCommand ?? Promise.resolve();
     }
+    this.validation.invalidate();
+    this.publish({
+      ...this.snapshot,
+      parkingSpotValidation: null,
+      parkingSpotValidationPending: false,
+    });
     return this.reconcile("reconciling", this.snapshot.conflict);
   }
 
   suspendForBackground(): void {
-    if (!hasConfirmParkedPendingWork(
-      this.target !== null,
-      this.activeRead !== undefined,
-      this.activeCommand !== undefined,
-    )) return;
+    if (this.target === null) return;
     const protectedOutcome = this.activeCommand !== undefined;
+    this.validation.invalidate();
     this.request += 1;
     this.activeCommand = undefined;
     this.activeRead = undefined;
-    if (protectedOutcome)
-      this.publish({ ...this.snapshot, failure: null, phase: "ambiguous" });
+    this.publish(
+      backgroundConfirmParkedSnapshot(this.snapshot, protectedOutcome),
+    );
   }
 
   clear(): void {
+    this.validation.invalidate();
     this.request += 1;
     this.target = null;
     this.activeCommand = undefined;
@@ -244,43 +261,26 @@ export class EmployeeConfirmParkedSession {
     if (target === null) return Promise.resolve();
     const request = ++this.request;
     const previous = this.snapshot.phase;
-    this.publish({ ...this.snapshot, phase });
-    const operation = this.executeRead(
+    this.publish({
+      ...this.snapshot,
+      phase,
+      parkingSpotValidationPending: false,
+    });
+    this.validation.invalidate();
+    const operation = executeConfirmParkedRead({
+      transport: this.options.transport,
+      snapshot: this.snapshot,
       target,
-      request,
       previous,
       conflict,
-    ).finally(() => {
+      isCurrent: () => this.isCurrent(target, request),
+      current: () => this.snapshot,
+      publish: (snapshot) => this.publish(snapshot),
+    }).finally(() => {
       if (this.activeRead === operation) this.activeRead = undefined;
     });
     this.activeRead = operation;
     return operation;
-  }
-
-  private async executeRead(
-    target: Target,
-    request: number,
-    previous: EmployeeConfirmParkedPhase,
-    conflict: EmployeeConfirmParkedConflict | null,
-  ): Promise<void> {
-    try {
-      const next = await loadConfirmParkedCanonical(
-        this.options.transport,
-        this.snapshot,
-        target,
-        previous,
-        conflict,
-      );
-      if (!this.isCurrent(target, request)) return;
-      this.publish(next);
-    } catch (error) {
-      if (!this.isCurrent(target, request)) return;
-      this.publish({
-        ...this.snapshot,
-        failure: operationalFailure(error),
-        phase: previous === "ambiguous" ? "ambiguous" : "unavailable",
-      });
-    }
   }
 
   private isCurrent(target: Target, request?: number): boolean {

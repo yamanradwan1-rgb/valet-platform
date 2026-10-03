@@ -11,6 +11,7 @@ import {
   activeParkingTask,
   parkedDetail,
   parkedResponse,
+  validatedSpot,
 } from "./employee-confirm-parked-test-fixture";
 import {
   canonicalJourneyReads,
@@ -106,6 +107,7 @@ function confirmTransport(
 ) {
   return {
     ...canonicalJourneyReads(server),
+    validateParkingSpot: async () => validatedSpot(),
     confirmParked: async (): Promise<ConfirmParkedResponse> => {
       const operation = server.mutate(
         "confirm-parked",
@@ -206,7 +208,7 @@ describe("MOB-023B Parking process death through production owners", () => {
       });
     await processA.open(1, parkingStartScope, ids.task, ids.session);
     processA.enterParkingSpot("P-101");
-    processA.continueToKeySlot();
+    await processA.continueToKeySlot();
     processA.enterKeySlot("K-03");
     void processA.confirmParked();
     await cut.reached;

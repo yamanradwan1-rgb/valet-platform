@@ -1,6 +1,8 @@
 import {
   confirmParkedRequestSchema,
   confirmParkedResponseSchema,
+  parkingSpotValidationQuerySchema,
+  parkingSpotValidationResponseSchema,
   staffValetSessionDetailResponseSchema,
   taskQueueResponseSchema,
 } from "@valet/contracts";
@@ -31,6 +33,17 @@ export function createEmployeeConfirmParkedTransport(
   const client = () =>
     typeof clientOrFactory === "function" ? clientOrFactory() : clientOrFactory;
   return {
+    async validateParkingSpot(sessionId, input) {
+      const query = parkingSpotValidationQuerySchema.parse(input);
+      const value = await client().request<unknown>({
+        method: "GET",
+        params: Object.fromEntries(
+          Object.entries(query).map(([key, value]) => [key, String(value)]),
+        ),
+        path: `/v1/staff/valet-sessions/${sessionId}/parking-spot-validation`,
+      });
+      return parse(parkingSpotValidationResponseSchema, value);
+    },
     async confirmParked(sessionId, input) {
       const body = confirmParkedRequestSchema.parse(input);
       const value = await client().request<unknown>({

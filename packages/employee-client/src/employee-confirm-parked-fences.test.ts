@@ -31,7 +31,7 @@ describe("MOB-012B authority and late-result fences", () => {
       phase: "unavailable",
     });
     session.enterParkingSpot("P-101");
-    session.continueToKeySlot();
+    await session.continueToKeySlot();
     session.enterKeySlot("K-03");
     await session.confirmParked();
     expect(transport.confirmCalls).toHaveLength(0);
@@ -40,7 +40,7 @@ describe("MOB-012B authority and late-result fences", () => {
   it("treats a mismatched success response as ambiguous and never adopts it", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     transport.confirmResults.push(
       Promise.resolve(
         parkedResponse({
@@ -96,7 +96,7 @@ describe("MOB-012B authority and late-result fences", () => {
     async (_, generation, scope) => {
       const { session, transport } = confirmParkedHarness();
       await openConfirmParked(session, transport);
-      readyToConfirm(session);
+      await readyToConfirm(session);
       const command = deferred<ReturnType<typeof parkedResponse>>();
       const queue = deferred<{
         tasks: ReturnType<typeof activeParkingTask>[];
@@ -123,7 +123,7 @@ describe("MOB-012B authority and late-result fences", () => {
   it("ignores a late result after Task and session workflow replacement", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     const command = deferred<ReturnType<typeof parkedResponse>>();
     const queue = deferred<{ tasks: ReturnType<typeof activeParkingTask>[] }>();
     const detail = deferred<ReturnType<typeof activeParkingDetail>>();
@@ -146,7 +146,7 @@ describe("MOB-012B authority and late-result fences", () => {
   it("ignores a late command result after workflow purge", async () => {
     const { session, transport } = confirmParkedHarness();
     await openConfirmParked(session, transport);
-    readyToConfirm(session);
+    await readyToConfirm(session);
     const command = deferred<ReturnType<typeof parkedResponse>>();
     transport.confirmResults.push(command.promise);
     const submitted = session.confirmParked();

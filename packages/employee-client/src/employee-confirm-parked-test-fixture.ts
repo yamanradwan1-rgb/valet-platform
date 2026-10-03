@@ -1,5 +1,7 @@
 import type {
   ConfirmParkedResponse,
+  ParkingSpotValidationQuery,
+  ParkingSpotValidationResponse,
   StaffTaskQueueItem,
   StaffValetSessionDetailResponse,
   TaskQueueResponse,
@@ -70,6 +72,29 @@ export const parkedDetail = () =>
   });
 
 export class StubConfirmParkedTransport implements EmployeeConfirmParkedTransport {
+  readonly validationCalls: Array<{
+    sessionId: string;
+    input: ParkingSpotValidationQuery;
+  }> = [];
+  validationResults: Array<Promise<ParkingSpotValidationResponse>> = [];
+  validateParkingSpot(sessionId: string, input: ParkingSpotValidationQuery) {
+    this.validationCalls.push({ sessionId, input });
+    return (
+      this.validationResults.shift() ??
+      Promise.resolve(
+        validatedSpot({
+          sessionId,
+          taskId: input.taskId,
+          sessionVersion: input.expectedSessionVersion,
+          taskVersion: input.expectedTaskVersion,
+          parkingSpotCode: input.parkingSpotCode,
+          ...(input.parkingSpotId === undefined
+            ? {}
+            : { parkingSpotId: input.parkingSpotId }),
+        }),
+      )
+    );
+  }
   readonly confirmCalls: Array<{ sessionId: string; input: object }> = [];
   confirmResults: Array<Promise<ConfirmParkedResponse>> = [];
   queueResults: Array<Promise<TaskQueueResponse>> = [];
@@ -109,9 +134,9 @@ export async function openConfirmParked(
   await session.open(7, parkingStartScope, ids.task, ids.session);
 }
 
-export function readyToConfirm(session: EmployeeConfirmParkedSession) {
+export async function readyToConfirm(session: EmployeeConfirmParkedSession) {
   session.enterParkingSpot(" P-101 ");
-  session.continueToKeySlot();
+  await session.continueToKeySlot();
   session.enterKeySlot(" K-03 ");
 }
 
@@ -123,4 +148,20 @@ export function deferred<T>() {
     reject = no;
   });
   return { promise, reject, resolve };
+}
+
+export function validatedSpot(
+  overrides: Partial<ParkingSpotValidationResponse> = {},
+): ParkingSpotValidationResponse {
+  return {
+    available: true,
+    sessionId: ids.session,
+    taskId: ids.task,
+    sessionVersion: 3,
+    taskVersion: 4,
+    parkingSpotCode: "P-101",
+    parkingSpotId: "88888888-8888-4888-8888-888888888888",
+    parkingZoneId: "99999999-9999-4999-8999-999999999999",
+    ...overrides,
+  };
 }

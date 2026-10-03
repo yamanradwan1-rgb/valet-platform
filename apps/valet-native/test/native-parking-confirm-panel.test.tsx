@@ -228,7 +228,7 @@ describe("MOB-012B Native Confirm Parked", () => {
   });
 
   it.each([
-    ["spot", "spot", "The operation failed. Refresh and try again."],
+    ["spot", "spot", "Choose another spot."],
     ["slot", "slot", "This key slot is no longer available"],
   ] as const)(
     "renders truthful %s conflict recovery",

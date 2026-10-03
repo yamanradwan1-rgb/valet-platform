@@ -14,14 +14,14 @@ describe("MOB-012B Confirm Parked flow", () => {
     expect(session.current().phase).toBe("spot");
 
     session.enterKeySlot("K-03");
-    session.continueToKeySlot();
+    await session.continueToKeySlot();
     expect(session.current()).toMatchObject({
       keySlotCandidate: "",
       phase: "spot",
     });
 
     session.enterParkingSpot(" P-101 ");
-    session.continueToKeySlot();
+    await session.continueToKeySlot();
     expect(session.current()).toMatchObject({
       parkingSpotCandidate: "P-101",
       phase: "slot",
@@ -61,7 +61,7 @@ describe("MOB-012B Confirm Parked flow", () => {
     const manual = confirmParkedHarness();
     await openConfirmParked(manual.session, manual.transport);
     manual.session.enterParkingSpot(" P-101 ");
-    manual.session.continueToKeySlot();
+    await manual.session.continueToKeySlot();
     manual.session.enterKeySlot(" K-03 ");
 
     const scanned = confirmParkedHarness();
@@ -69,7 +69,7 @@ describe("MOB-012B Confirm Parked flow", () => {
     expect(scanned.session.scanParkingSpot(" vaylet:parking-spot:P-101 ")).toBe(
       true,
     );
-    scanned.session.continueToKeySlot();
+    await scanned.session.continueToKeySlot();
     expect(scanned.session.scanKeySlot("vaylet:key-slot:K-03")).toBe(true);
     expect(scanned.session.current()).toMatchObject({
       keySlotCandidate: manual.session.current().keySlotCandidate,
@@ -86,7 +86,7 @@ describe("MOB-012B Confirm Parked flow", () => {
     expect(session.scanParkingSpot("vaylet:key-slot:K-03")).toBe(false);
     expect(session.current().phase).toBe("spot");
     session.enterParkingSpot("P-101");
-    session.continueToKeySlot();
+    await session.continueToKeySlot();
     expect(session.scanKeySlot("vaylet:parking-spot:P-101")).toBe(false);
     expect(session.current().phase).toBe("slot");
   });
