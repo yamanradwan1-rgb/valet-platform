@@ -59,9 +59,9 @@ describe("UI-PARITY-08 Check-In Parking Task composition", () => {
       "en",
       "Parking",
       "Location tracking will activate for this parking task",
-      "Start Parking",
+      "Open Parking",
     ],
-    ["ar", "الركن", "سيتم تفعيل تتبع الموقع لمهمة الركن هذه", "بدء الإيقاف"],
+    ["ar", "الركن", "سيتم تفعيل تتبع الموقع لمهمة الركن هذه", "فتح مهمة الصف"],
   ] as const)(
     "matches Web composition in %s",
     (locale, badge, notice, action) => {
@@ -98,8 +98,7 @@ describe("UI-PARITY-08 Check-In Parking Task composition", () => {
   it("shows exact busy and failure states", () => {
     const busy = render("en", true).nodes;
     const action = busy.find(
-      (node) =>
-        node.type === "Pressable" && label(node) === "Starting Parking...",
+      (node) => node.type === "Pressable" && label(node) === "Opening Parking…",
     )!;
     expect(action.props.disabled).toBe(true);
     expect(action.props.accessibilityState).toMatchObject({

@@ -199,6 +199,7 @@ export function NativeProductionShell({
   }, [parking, runtime]);
 
   const navigate = (destination: ProductionDestination) => {
+    if (runtime?.parkingCancellation?.protected()) return;
     if (destination === "tasks") {
       beginPhysicalMetric("task_list_ready_ms", "task-screen");
       observeOperationalReady(authSnapshot, operations);

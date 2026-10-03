@@ -24,6 +24,11 @@ export function useNativeProductionBackHandler(
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        if (runtime?.parkingCancellation?.protected()) return true;
+        if (runtime?.parkingCancellation?.current().phase === "confirming") {
+          runtime.parkingCancellation.dismiss();
+          return true;
+        }
         if (onContextualBack()) return true;
         if (runtime !== undefined) {
           const shiftAction = nativeShiftEndBackAction(
@@ -75,6 +80,7 @@ export function useNativeProductionBackHandler(
           }
           runtime.confirmParking.clear();
           runtime.parking.clear();
+          runtime.parkingCancellation?.clear();
           void runtime.operations.refreshQueue();
         }
         if (runtime !== undefined && shell.destination === "retrieval") {

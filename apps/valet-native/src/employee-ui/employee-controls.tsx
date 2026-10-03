@@ -14,7 +14,7 @@ import {
   type AccessibilityRole,
   type AccessibilityState,
 } from "react-native";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 
 import {
   employeeButtonHeights,
@@ -96,6 +96,7 @@ export function EmployeeButton({
   height: heightOverride,
   leading,
   radius,
+  buttonRef,
 }: {
   readonly label: string;
   readonly onPress: () => void;
@@ -108,6 +109,7 @@ export function EmployeeButton({
   readonly height?: number | undefined;
   readonly leading?: ReactNode;
   readonly radius?: number | undefined;
+  readonly buttonRef?: Ref<View>;
 }) {
   const p = useEmployeePalette();
   const employeeControlStyles = useEmployeeStyles(employeeControlStylesTheme);
@@ -119,6 +121,7 @@ export function EmployeeButton({
   const isDisabled = disabled || busy;
   return (
     <Pressable
+      ref={buttonRef}
       accessibilityLabel={label}
       accessibilityRole={role}
       accessibilityState={{

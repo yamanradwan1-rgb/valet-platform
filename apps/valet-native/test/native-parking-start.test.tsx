@@ -1,5 +1,12 @@
 import type { EmployeeParkingStartSnapshot } from "@valet/employee-client";
 import { describe, expect, it, vi } from "vitest";
+vi.mock("react", () => ({
+  useState: (initial: unknown) => [
+    typeof initial === "function" ? (initial as () => unknown)() : initial,
+    vi.fn(),
+  ],
+  useEffect: vi.fn(),
+}));
 
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",

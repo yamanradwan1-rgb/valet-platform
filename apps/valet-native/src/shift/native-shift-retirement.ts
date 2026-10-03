@@ -19,6 +19,7 @@ export interface NativeShiftRetirementTargets {
   readonly incident: ClearableWorkflow;
   readonly operations: OperationalWorkflow;
   readonly parking: ClearableWorkflow;
+  readonly parkingCancellation?: ClearableWorkflow;
   readonly release: ClearableWorkflow;
   readonly retrieval: ClearableWorkflow;
   readonly shiftStart: ShiftStartWorkflow;
@@ -36,6 +37,7 @@ export function retireNativeShiftScope(
   targets.handoff.clear();
   targets.incident.clear();
   targets.parking.clear();
+  targets.parkingCancellation?.clear();
   targets.release.clear();
   targets.retrieval.clear();
   targets.shiftStart.clear();

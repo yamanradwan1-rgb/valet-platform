@@ -1032,7 +1032,7 @@ For vehicle-session protection, an active ValetSession means exactly:
 state <> COMPLETED
 ```
 
-The exact treatment of abandoned/invalid check-in cancellation must be finalized with the state-machine implementation; do not introduce arbitrary hard-delete behavior.
+Accepted DEC-097 defines incomplete-intake cancellation; DEC-098 defines completed-intake cancellation before physical Parking. Both retain history and reject physical-custody/resource facts; arbitrary hard-delete behavior remains forbidden.
 
 Required resource protections:
 
@@ -2494,3 +2494,13 @@ See Accepted DEC-081 and the T05-F implementation/evidence record.
 ## Issue #255 / DEC-097 terminal incomplete intake
 
 Forward migrations 055 and 056 add ValetSession CANCELLED, then replace active Vehicle/Location predicates and the Location blocker function after enum commit. CANCELLED enforces no physical progression/completion/current assignment, retains condition/Vehicle/financial/incident/contact history and guest credential columns, and uses existing version plus atomic AuditEvent for provenance. No new grants or cancellation columns. Non-null KeySlot/ParkingSpot uniqueness remains state-independent. See DEC-097.
+
+## Issue #261 / DEC-098 pre-custody terminal service attempt
+
+Forward migration 057 replaces the intake-only CANCELLED CHECK with the explicit
+incomplete-intake OR completed-intake predicate; both forbid all physical/current
+resource fields. Completed intake remains truthful and retained. No schema
+columns, enums, indexes or grants change. Exact Parking Task and session cancel
+atomically with dual version increments, Dispatch CANCELLED and custody audit
+VALET_SESSION_PRE_CUSTODY_CANCELLED. History proves exact actor/Shift/versions and
+time for reconciliation. DEC-097 stays narrow. See focused DEC-098.

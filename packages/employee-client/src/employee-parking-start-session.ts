@@ -8,6 +8,7 @@ import {
 import type { EmployeeOperationalScope } from "./employee-operational-types";
 import {
   classifyParkingStartCanonical,
+  assertParkingStartResultMatches,
   emptyParkingStartSnapshot,
   findParkingStartTask,
   isParkingStartTargetCurrent,
@@ -24,6 +25,7 @@ export class EmployeeParkingStartSession {
   private activeCommand: Promise<void> | undefined;
   private activeRead: Promise<void> | undefined;
   private request = 0;
+  private boundary = 0;
   private snapshot = emptyParkingStartSnapshot();
   private readonly subscribers = new Set<
     (snapshot: EmployeeParkingStartSnapshot) => void
@@ -32,6 +34,7 @@ export class EmployeeParkingStartSession {
 
   constructor(private readonly options: EmployeeParkingStartOptions) {}
   current = () => this.snapshot;
+  workflowRevision = () => this.boundary;
   subscribe(listener: (snapshot: EmployeeParkingStartSnapshot) => void) {
     this.subscribers.add(listener);
     listener(this.snapshot);
@@ -217,15 +220,7 @@ export class EmployeeParkingStartSession {
         task.version,
       );
       if (!this.isCurrent(target, request)) return;
-      if (
-        result.sessionId !== session.sessionId ||
-        result.taskId !== task.taskId
-      )
-        throw new EmployeeApiError({
-          code: "PARKING_START_RESPONSE_MISMATCH",
-          message: "The Parking Start result did not match the current work.",
-          status: 502,
-        });
+      assertParkingStartResultMatches(result, task, session);
       this.publish({
         ...this.snapshot,
         failure: null,
@@ -287,6 +282,7 @@ export class EmployeeParkingStartSession {
   }
 
   private fenceActiveWork(): void {
+    this.boundary += 1;
     this.request += 1;
     this.activeCommand = undefined;
     this.activeRead = undefined;

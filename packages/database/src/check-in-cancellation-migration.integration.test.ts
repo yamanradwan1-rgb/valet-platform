@@ -73,7 +73,7 @@ beforeAll(async () => {
     await client.connect();
     clients.push(client);
   }
-  for (const name of expectedMigrationDirectories.slice(0, -2))
+  for (const name of expectedMigrationDirectories.slice(0, 54))
     await apply(clients[0]!, name);
   for (const name of expectedMigrationDirectories)
     await apply(clients[1]!, name);
@@ -132,7 +132,7 @@ describe("Issue #255 fresh and forward migration from actual 054", () => {
         "SELECT proacl FROM pg_proc WHERE oid='public.management_location_has_blockers(uuid,uuid)'::regprocedure",
       )
     ).rows;
-    for (const name of expectedMigrationDirectories.slice(-2))
+    for (const name of expectedMigrationDirectories.slice(54))
       await apply(db, name);
     expect((await snapshot()).rows).toEqual(before);
     expect(await auditRequiredFieldCodes(db)).toEqual(baselineAuditValidation);

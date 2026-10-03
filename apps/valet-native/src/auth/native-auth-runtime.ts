@@ -1,4 +1,5 @@
 import { createNativeCheckInRuntime } from "./native-check-in-runtime";
+import { createNativeParkingCancellation } from "../parking/native-parking-cancellation-runtime";
 import type { NativeCheckInActions } from "../check-in/native-check-in-actions";
 import {
   createEmployeeConfirmParkedTransport,
@@ -12,6 +13,7 @@ import {
   EmployeeHandoffSession,
   EmployeeOperationalSession,
   EmployeeParkingStartSession,
+  type EmployeeParkingCancellationSession,
   EmployeeReleaseSession,
   EmployeeRetrievalSession,
   EmployeeVehicleDirectorySession,
@@ -55,6 +57,7 @@ export interface NativeEmployeeRuntime {
   readonly incident: NativeIncidentSession;
   readonly operations: EmployeeOperationalSession;
   readonly parking: EmployeeParkingStartSession;
+  readonly parkingCancellation: EmployeeParkingCancellationSession;
   readonly release: EmployeeReleaseSession;
   readonly retrieval: EmployeeRetrievalSession;
   readonly shiftEnd: EmployeeShiftEndSession;
@@ -152,6 +155,13 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  const parkingCancellation = createNativeParkingCancellation(
+    apiOrigin,
+    auth,
+    operations,
+    parking,
+    confirmParking,
+  );
   const handoff = new EmployeeHandoffSession({
     onStateChange: (snapshot) => {
       if (
@@ -220,6 +230,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
           handoff,
           operations,
           parking,
+          parkingCancellation,
           release,
           retrieval,
           shiftStart,
@@ -239,6 +250,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     guestAccess.clear();
     await incident.purgeRecovery();
     parking.clear();
+    parkingCancellation.clear();
     release.clear();
     retrieval.clear();
     shiftEnd.clear();
@@ -256,6 +268,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     guestAccess.clear();
     incident.clear();
     parking.clear();
+    parkingCancellation.clear();
     release.clear();
     retrieval.clear();
     shiftEnd.clear();
@@ -277,6 +290,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     incident,
     operations,
     parking,
+    parkingCancellation,
     release,
     retrieval,
     shiftEnd,

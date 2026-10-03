@@ -29,7 +29,7 @@ CANCELLED
 Terminal:
 
 - `COMPLETED`
-- `CANCELLED` — incomplete intake history only, per Accepted DEC-097.
+- `CANCELLED` — terminal pre-custody abandonment: incomplete intake (DEC-097) or completed intake before Parking (DEC-098).
 
 `READY` is the canonical MVP state for the Blueprint's `STAGED/READY` position. A staging zone/spot may be represented as parking/location data without adding a second session state unless a later accepted workflow requires it.
 
@@ -428,6 +428,7 @@ Rules:
 | CHECKING_IN | AWAITING_PARKING | complete-check-in |
 | CHECKING_IN | CANCELLED | cancel incomplete Check-In (DEC-097) |
 | AWAITING_PARKING | PARKING | start-parking |
+| AWAITING_PARKING | CANCELLED | cancel-before-parking, atomic Parking Task cancellation (DEC-098) |
 | PARKING | PARKED | confirm-parked |
 | PARKED | REQUESTED | request-retrieval |
 | REQUESTED | PARKED | cancel-retrieval-before-start |
@@ -470,7 +471,7 @@ Offline/retry behavior must preserve idempotency. Server-required payment/verifi
 Accepted DEC-097 defines the sole `CHECKING_IN -> CANCELLED` terminal abandonment
 command. It requires exact self-owned current operational authority/Shift, session
 version CAS, guarded state/invariants and atomic safe cancellation audit. Condition
-and Vehicle child history remains. CANCELLED never means completed Check-In,
+and Vehicle child history remains. DEC-097 cancellation never means completed Check-In,
 release, handoff or successful visit, and has no outgoing edge. No hard deletion,
 automatic expiry, override or hidden lifecycle flag is authorized. Unknown outcomes
 require exact authorized status reconciliation before explicit retry. Guest bearers
@@ -478,6 +479,13 @@ cannot resolve CANCELLED; stored credentials are retained rather than auto-revok
 See `docs/decisions/DEC-097_INCOMPLETE_CHECK_IN_CANCELLATION.md` for the full contract.
 
 ## API/domain command rule
+
+DEC-098 additionally permits completed-intake `AWAITING_PARKING -> CANCELLED`
+before physical Start Parking, atomically with exact Parking Task
+`QUEUED / ASSIGNED / ACCEPTED -> CANCELLED`. Opening/accepting is not custody.
+Retain completed intake; reject resource/custody facts requiring release.
+DEC-097 stays incomplete-intake/no-Task only. CANCELLED has no outgoing edge and
+never means release, completed service or successful visit. See focused DEC-098.
 
 Forbidden:
 

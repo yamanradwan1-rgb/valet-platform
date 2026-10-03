@@ -35,6 +35,7 @@ function setup(
 ) {
   let current: EmployeeOperationalSnapshot = {
     ...fixture("ready"),
+    identityGeneration: 7,
     tasks: [initial],
   };
   const acceptTask = vi.fn(async () => {
@@ -46,9 +47,8 @@ function setup(
       : initial.status === "ACCEPTED"
         ? "accepted"
         : "assigned";
-  let parkingSucceeds = true;
   const startParking = vi.fn(async () => {
-    if (parkingSucceeds) parkingPhase = "started";
+    parkingPhase = "started";
   });
   const openParking = vi.fn(async () => undefined);
   const checkParking = vi.fn(async () => {
@@ -62,7 +62,13 @@ function setup(
       operations: { acceptTask, current: () => current } as never,
       parking: {
         checkServerState: checkParking,
-        current: () => ({ phase: parkingPhase }),
+        current: () => ({
+          phase: parkingPhase,
+          identityGeneration: 7,
+          scope: current.scope,
+          session: { sessionId: initial.sessionId },
+          task: initial,
+        }),
         openQueueTask: openParking,
         startParking,
       } as never,
@@ -77,7 +83,7 @@ function setup(
       retrievalPhase = phase;
     },
     failParking: () => {
-      parkingSucceeds = false;
+      parkingPhase = "unavailable";
     },
     checkParking,
     openParking,
@@ -85,9 +91,9 @@ function setup(
   };
 }
 
-describe("Native Web-equivalent task action sequence", () => {
+describe("Native pre-custody task entry", () => {
   it.each(["QUEUED", "ASSIGNED"] as const)(
-    "accepts %s Parking work and starts Parking in the same action",
+    "accepts %s Parking work and opens explicit pre-start Parking",
     async (status) => {
       const initial = {
         ...task,
@@ -105,7 +111,7 @@ describe("Native Web-equivalent task action sequence", () => {
         context.acceptTask.mock.invocationCallOrder[0]!,
       );
       expect(context.checkParking).toHaveBeenCalledOnce();
-      expect(context.startParking).toHaveBeenCalledOnce();
+      expect(context.startParking).not.toHaveBeenCalled();
     },
   );
 
@@ -118,9 +124,7 @@ describe("Native Web-equivalent task action sequence", () => {
         kind: "navigate",
       });
       expect(context.acceptTask).not.toHaveBeenCalled();
-      expect(context.startParking).toHaveBeenCalledTimes(
-        status === "ACCEPTED" ? 1 : 0,
-      );
+      expect(context.startParking).not.toHaveBeenCalled();
     },
   );
 
@@ -168,7 +172,7 @@ describe("Native Web-equivalent task action sequence", () => {
     expect(context.startParking).not.toHaveBeenCalled();
   });
 
-  it("does not navigate when authoritative start does not reach started", async () => {
+  it("does not navigate when authoritative Parking detail is unavailable", async () => {
     const context = setup(task);
     context.failParking();
     await expect(executeNativeTaskAction(context.input)).resolves.toEqual({

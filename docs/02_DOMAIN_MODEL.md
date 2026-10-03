@@ -759,4 +759,14 @@ raw contact identity, per-employee staff breakdown, or route/GPS history.
 
 ## Incomplete Check-In terminal history — DEC-097
 
-ValetSession CANCELLED is retained, non-operational intake history with no outgoing transition. Only self-owned CHECKING_IN may cancel under current exact Location/Shift authority and lifecycle CAS. It is not a completed visit, release, revenue, handoff or rating target. Independent child facts remain. Guest credentials remain stored but cannot resolve a cancelled session. No Task is created.
+DEC-097 ValetSession CANCELLED is retained, non-operational incomplete-intake history with no outgoing transition. Its command permits only self-owned CHECKING_IN under current exact Location/Shift authority and lifecycle CAS. It is not a completed visit, release, revenue, handoff or rating target. Independent child facts remain. Guest credentials remain stored but cannot resolve a cancelled session. The DEC-097 command creates no Task; completed-intake abandonment follows DEC-098 below.
+
+## Pre-custody withdrawal (DEC-098)
+
+CANCELLED is a retained terminal service attempt before physical custody:
+incomplete CHECKING_IN under DEC-097, or completed AWAITING_PARKING with exact
+Parking Task QUEUED/ASSIGNED/ACCEPTED cancellation under DEC-098. Opening or
+accepting work is not custody; Start Parking remains explicit. Current resources
+and all physical history fail closed rather than being cleared. No successful
+visit, release, revenue success or rating is inferred. Active directory/queue
+exclude both terminals; positive COMPLETED visit predicates remain authoritative.

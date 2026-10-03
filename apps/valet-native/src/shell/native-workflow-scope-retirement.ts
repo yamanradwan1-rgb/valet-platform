@@ -9,6 +9,7 @@ type ScopeRuntime = Pick<
   | "handoff"
   | "incident"
   | "parking"
+  | "parkingCancellation"
   | "release"
   | "retrieval"
   | "shiftEnd"
@@ -25,6 +26,7 @@ export function retireNativeWorkflowScope(runtime: ScopeRuntime): void {
   runtime.handoff.clear();
   runtime.incident.clear();
   runtime.parking.clear();
+  runtime.parkingCancellation?.clear();
   runtime.retrieval.clear();
   runtime.release.clear();
   runtime.vehicleDirectory.clear();

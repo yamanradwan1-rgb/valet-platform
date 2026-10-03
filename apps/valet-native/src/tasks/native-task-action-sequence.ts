@@ -5,6 +5,7 @@ import type {
   EmployeeRetrievalSession,
   StaffTaskQueueItem,
 } from "@valet/employee-client";
+import { isSameEmployeeOperationalScope } from "@valet/employee-client";
 
 export type NativeTaskActionResult =
   | { readonly kind: "denied" }
@@ -22,6 +23,7 @@ export async function executeNativeTaskAction(input: {
   readonly scope: EmployeeOperationalScope;
   readonly task: StaffTaskQueueItem;
 }): Promise<NativeTaskActionResult> {
+  if (!hasCurrentAuthority(input)) return { kind: "denied" };
   const initial = currentTask(input.operations, input.task, false);
   if (initial === null || assignedToOther(initial, input.scope.membershipId)) {
     return { kind: "denied" };
@@ -63,15 +65,23 @@ async function executeParkingAction(
   input: Parameters<typeof executeNativeTaskAction>[0],
   initial: StaffTaskQueueItem,
 ): Promise<NativeTaskActionResult> {
-  await input.parking.openQueueTask(
+  const opening = input.parking.openQueueTask(
     input.identityGeneration,
     input.scope,
     initial.taskId,
     initial.sessionId,
   );
+  const revision = input.parking.workflowRevision?.();
+  await opening;
+  if (revision !== input.parking.workflowRevision?.())
+    return { kind: "failed" };
+  if (!hasCurrentAuthority(input)) return { kind: "failed" };
   if (initial.status === "QUEUED" || initial.status === "ASSIGNED") {
     if (input.parking.current().phase !== "assigned") return { kind: "failed" };
     await input.operations.acceptTask(initial.taskId);
+    if (revision !== input.parking.workflowRevision?.())
+      return { kind: "failed" };
+    if (!hasCurrentAuthority(input)) return { kind: "failed" };
     const accepted = currentTask(input.operations, initial);
     if (
       accepted === null ||
@@ -81,12 +91,31 @@ async function executeParkingAction(
       return { kind: "failed" };
     await input.parking.checkServerState();
   }
-  if (input.parking.current().phase === "accepted") {
-    await input.parking.startParking();
-  }
-  return input.parking.current().phase === "started"
+  const phase = input.parking.current().phase;
+  const parked = input.parking.current();
+  return revision === input.parking.workflowRevision?.() &&
+    hasCurrentAuthority(input) &&
+    parked.identityGeneration === input.identityGeneration &&
+    parked.session?.sessionId === initial.sessionId &&
+    parked.task?.taskId === initial.taskId &&
+    parked.scope !== null &&
+    isSameEmployeeOperationalScope(parked.scope, input.scope) &&
+    (phase === "accepted" || phase === "started")
     ? { kind: "navigate", destination: "parking" }
     : { kind: "failed" };
+}
+
+function hasCurrentAuthority(
+  input: Parameters<typeof executeNativeTaskAction>[0],
+) {
+  const current = input.operations.current();
+  return (
+    current.phase === "ready" &&
+    current.identityGeneration === input.identityGeneration &&
+    current.scope !== null &&
+    current.scope.role === input.scope.role &&
+    isSameEmployeeOperationalScope(current.scope, input.scope)
+  );
 }
 
 function currentTask(

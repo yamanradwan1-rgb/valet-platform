@@ -1,3 +1,4 @@
+import { getNativeParkingCancellationCopy } from "../parking/native-parking-cancellation-copy";
 import type { EmployeeLocale } from "@valet/employee-client";
 import { getNativeEmployeeDictionary } from "../i18n/native-employee-dictionary";
 
@@ -102,8 +103,8 @@ export function getNativeCheckInCopy(
     parkingState: d.parkingState,
     parkingStartFailed: d.operationFailed,
     parkingTask: d.parkingTask,
-    startParking: d.startParkingAction,
-    startingParking: d.startingParking,
+    startParking: getNativeParkingCancellationCopy(locale).openParking,
+    startingParking: getNativeParkingCancellationCopy(locale).openingParking,
     customerContact: d.customerContact,
     color: d.color,
     correctVehicleDetails: d.correctVehicleDetails,

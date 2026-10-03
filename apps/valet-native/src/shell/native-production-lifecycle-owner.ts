@@ -53,6 +53,7 @@ export class NativeProductionLifecycleOwner {
       this.runtime.handoff.suspendForBackground();
       this.runtime.confirmParking.suspendForBackground();
       this.runtime.parking.suspendForBackground();
+      this.runtime.parkingCancellation?.suspendForBackground();
       this.runtime.retrieval.suspendForBackground();
       this.runtime.guestAccess.suspendForBackground();
       this.runtime.incident.suspendForBackground();
@@ -181,6 +182,10 @@ export class NativeProductionLifecycleOwner {
 
   private async revalidateActiveWorkflow(): Promise<void> {
     const runtime = this.runtime;
+    const cancellationUnknown =
+      runtime.parkingCancellation?.current().phase === "uncertain";
+    await runtime.parkingCancellation?.resumeAfterAuthorityValidation();
+    if (cancellationUnknown) return;
     const cancelRefreshed = await runtime.checkInActions.reconcile();
     if (runtime.incident.current().target !== null) {
       await runtime.incident.revalidate();

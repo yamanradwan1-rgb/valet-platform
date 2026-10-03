@@ -1,6 +1,7 @@
 import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { ScrollView, Text } from "react-native";
 import type {
+  EmployeeParkingCancellationSession,
   EmployeeOperationalSession,
   EmployeeParkingStartSession,
   EmployeeParkingStartSnapshot,
@@ -19,6 +20,8 @@ import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingStartCopy } from "./native-parking-start-copy";
 import { nativeParkingStartStylesTheme as sTheme } from "./native-parking-start-styles";
+import { NativeParkingCancellationControls } from "./native-parking-cancellation-controls";
+import { useEffect, useState } from "react";
 
 export function NativeParkingStartPanel({
   locale,
@@ -26,20 +29,33 @@ export function NativeParkingStartPanel({
   operations,
   parking,
   snapshot,
+  cancellation,
+  onCancelled,
 }: {
   readonly locale: FoundationLocale;
   readonly onBack: () => void;
   readonly operations: EmployeeOperationalSession;
   readonly parking: EmployeeParkingStartSession;
   readonly snapshot: EmployeeParkingStartSnapshot;
+  readonly cancellation?: EmployeeParkingCancellationSession;
+  readonly onCancelled?: () => void;
 }) {
+  const [cancelPhase, setCancelPhase] = useState(
+    cancellation?.current().phase ?? "idle",
+  );
+  useEffect(
+    () => cancellation?.subscribe((value) => setCancelPhase(value.phase)),
+    [cancellation],
+  );
   const s = useEmployeeStyles(sTheme);
 
   const copy = getNativeParkingStartCopy(locale);
   const direction = locale === "ar" ? "rtl" : "ltr";
   const textAlign = locale === "ar" ? "right" : "left";
   const busy =
-    snapshot.phase === "submitting" || snapshot.phase === "reconciling";
+    snapshot.phase === "submitting" ||
+    snapshot.phase === "reconciling" ||
+    cancellation?.protected() === true;
   return (
     <>
       <EmployeeBackHeader
@@ -59,9 +75,21 @@ export function NativeParkingStartPanel({
             textAlign={textAlign}
           />
         ) : (
-          <ParkingContent
-            {...{ copy, onBack, operations, parking, snapshot, textAlign }}
-          />
+          <>
+            <ParkingContent
+              {...{ copy, onBack, operations, parking, snapshot, textAlign }}
+              cancellationActive={cancelPhase !== "idle"}
+            />
+            {cancellation ? (
+              <NativeParkingCancellationControls
+                session={cancellation}
+                parking={snapshot}
+                locale={locale}
+                onBack={onBack}
+                onCancelled={onCancelled ?? onBack}
+              />
+            ) : null}
+          </>
         )}
       </ScrollView>
     </>
@@ -75,6 +103,7 @@ function ParkingContent({
   parking,
   snapshot,
   textAlign,
+  cancellationActive,
 }: {
   readonly copy: ReturnType<typeof getNativeParkingStartCopy>;
   readonly onBack: () => void;
@@ -82,6 +111,7 @@ function ParkingContent({
   readonly parking: EmployeeParkingStartSession;
   readonly snapshot: EmployeeParkingStartSnapshot;
   readonly textAlign: "left" | "right";
+  readonly cancellationActive: boolean;
 }) {
   const s = useEmployeeStyles(sTheme);
 
@@ -192,7 +222,7 @@ function ParkingContent({
       {snapshot.phase === "assigned" ? (
         <EmployeeButton
           busy={accepting}
-          disabled={accepting}
+          disabled={accepting || cancellationActive}
           label={task?.status === "QUEUED" ? copy.claimTask : copy.acceptTask}
           onPress={() =>
             void acceptCurrentTask(operations, parking, task?.taskId)
@@ -200,6 +230,7 @@ function ParkingContent({
         />
       ) : snapshot.phase === "accepted" ? (
         <EmployeeButton
+          disabled={cancellationActive}
           label={copy.startParking}
           onPress={() => void parking.startParking()}
         />

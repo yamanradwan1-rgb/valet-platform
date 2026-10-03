@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   launchCompletedCheckInParking,
-  startCompletedCheckInParking,
+  openCompletedCheckInParking,
 } from "../src/parking/native-completed-check-in-parking";
 
-describe("Check-In Parking Task one-action continuation", () => {
+describe("Check-In pre-start Parking continuation", () => {
   it.each(["assigned", "accepted"] as const)(
-    "reaches started Parking from %s without another employee action",
+    "opens pre-start Parking from %s without starting physical custody",
     async (initialPhase) => {
       let phase: string = initialPhase;
       const task = { sessionId: "session-1", taskId: "task-1" };
@@ -20,12 +20,18 @@ describe("Check-In Parking Task one-action continuation", () => {
       const startParking = vi.fn(async () => {
         phase = "started";
       });
-      const started = await startCompletedCheckInParking({
+      const started = await openCompletedCheckInParking({
         identityGeneration: 7,
-        operations: { acceptTask, refreshQueue } as never,
+        operations: {
+          current: readyAuthority,
+          acceptTask,
+          refreshQueue,
+        } as never,
         parking: {
           checkServerState,
           current: () => ({
+            identityGeneration: 7,
+            scope: {},
             phase,
             session: { sessionId: "session-1" },
             task,
@@ -37,20 +43,20 @@ describe("Check-In Parking Task one-action continuation", () => {
         sessionId: "session-1",
       });
       expect(openCompletedCheckIn).toHaveBeenCalledOnce();
-      expect(startParking).toHaveBeenCalledOnce();
+      expect(startParking).not.toHaveBeenCalled();
       expect(acceptTask).toHaveBeenCalledTimes(
         initialPhase === "assigned" ? 1 : 0,
       );
-      expect(phase).toBe("started");
+      expect(phase).toBe("accepted");
       expect(started).toBe(true);
     },
   );
 
   it("does not start when authoritative reconciliation is unavailable", async () => {
     const startParking = vi.fn();
-    const started = await startCompletedCheckInParking({
+    const started = await openCompletedCheckInParking({
       identityGeneration: 7,
-      operations: {} as never,
+      operations: { current: readyAuthority } as never,
       parking: {
         current: () => ({ phase: "unavailable", task: null }),
         openCompletedCheckIn: vi.fn(async () => undefined),
@@ -66,9 +72,9 @@ describe("Check-In Parking Task one-action continuation", () => {
   it("reuses an already-started authoritative Parking session", async () => {
     const startParking = vi.fn();
     const openCompletedCheckIn = vi.fn(async () => undefined);
-    const result = await startCompletedCheckInParking({
+    const result = await openCompletedCheckInParking({
       identityGeneration: 7,
-      operations: {} as never,
+      operations: { current: readyAuthority } as never,
       parking: {
         current: () => ({
           identityGeneration: 7,
@@ -88,17 +94,22 @@ describe("Check-In Parking Task one-action continuation", () => {
     expect(startParking).not.toHaveBeenCalled();
   });
 
-  it("clears and navigates only after authoritative started state", async () => {
-    let phase = "accepted";
+  it("clears and navigates once after authoritative pre-start state", async () => {
+    let phase = "assigned";
     const clearCheckIn = vi.fn();
     const navigateParking = vi.fn();
     const parking = {
       current: () => ({
+        identityGeneration: 7,
+        scope: {},
         phase,
         session: { sessionId: "session-1" },
         task: { sessionId: "session-1", taskId: "task-1" },
       }),
       openCompletedCheckIn: vi.fn(async () => undefined),
+      checkServerState: vi.fn(async () => {
+        phase = "accepted";
+      }),
       startParking: vi.fn(async () => {
         phase = "started";
       }),
@@ -107,7 +118,11 @@ describe("Check-In Parking Task one-action continuation", () => {
       clearCheckIn,
       identityGeneration: 7,
       navigateParking,
-      operations: {} as never,
+      operations: {
+        current: readyAuthority,
+        refreshQueue: vi.fn(),
+        acceptTask: vi.fn(),
+      } as never,
       parking: parking as never,
       scope: {} as never,
       sessionId: "session-1",
@@ -119,7 +134,7 @@ describe("Check-In Parking Task one-action continuation", () => {
     expect(first).toBe(true);
     expect(second).toBe(true);
     expect(parking.openCompletedCheckIn).toHaveBeenCalledOnce();
-    expect(parking.startParking).toHaveBeenCalledOnce();
+    expect(parking.startParking).not.toHaveBeenCalled();
     expect(clearCheckIn).toHaveBeenCalledOnce();
     expect(navigateParking).toHaveBeenCalledOnce();
   });
@@ -131,7 +146,7 @@ describe("Check-In Parking Task one-action continuation", () => {
       clearCheckIn,
       identityGeneration: 7,
       navigateParking,
-      operations: {} as never,
+      operations: { current: readyAuthority } as never,
       parking: {
         current: () => ({ phase: "conflict", session: {}, task: {} }),
         openCompletedCheckIn: vi.fn(async () => undefined),
@@ -144,3 +159,7 @@ describe("Check-In Parking Task one-action continuation", () => {
     expect(navigateParking).not.toHaveBeenCalled();
   });
 });
+
+function readyAuthority() {
+  return { phase: "ready", identityGeneration: 7, scope: {} };
+}

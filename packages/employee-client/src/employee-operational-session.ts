@@ -101,8 +101,10 @@ export class EmployeeOperationalSession {
       : this.loadContext(generation);
   }
 
-  refreshQueue(): Promise<void> {
-    return this.queue.refresh();
+  refreshQueue(invalidatePending = false): Promise<void> {
+    return invalidatePending
+      ? this.queue.refreshAfterTerminalMutation()
+      : this.queue.refresh();
   }
 
   acceptTask(taskId: string): Promise<void> {

@@ -139,8 +139,11 @@ export function NativeProductionWorkspace({
             />
           ) : (
             <NativeParkingStartPanel
+              cancellation={runtime.parkingCancellation}
+              onCancelled={() => navigate("tasks")}
               locale={locale}
               onBack={() => {
+                runtime.parkingCancellation.clear();
                 runtime.confirmParking.clear();
                 runtime.parking.clear();
                 void runtime.operations.refreshQueue();

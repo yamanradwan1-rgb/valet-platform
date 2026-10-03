@@ -1,3 +1,5 @@
+import { EmployeeApiError } from "./api-error";
+import type { StartParkingResponse } from "@valet/contracts";
 import type {
   StaffTaskQueueItem,
   StaffValetSessionDetailResponse,
@@ -105,4 +107,17 @@ export function isParkingStartTargetCurrent(
     snapshot.scope.locationId === target.locationId &&
     snapshot.scope.shiftId === target.shiftId
   );
+}
+
+export function assertParkingStartResultMatches(
+  result: StartParkingResponse,
+  task: StaffTaskQueueItem,
+  session: StaffValetSessionDetailResponse,
+): void {
+  if (result.sessionId !== session.sessionId || result.taskId !== task.taskId)
+    throw new EmployeeApiError({
+      code: "PARKING_START_RESPONSE_MISMATCH",
+      message: "The Parking Start result did not match the current work.",
+      status: 502,
+    });
 }

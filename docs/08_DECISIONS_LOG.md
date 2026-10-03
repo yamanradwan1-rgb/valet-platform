@@ -2,6 +2,21 @@
 
 Important decisions must not live only in chat.
 
+## DEC-098 — Pre-custody Parking cancellation
+
+Status: Accepted
+Date: 2026-10-03
+Issue: #261
+
+Owner-approved U261-L/A/T: AWAITING_PARKING -> CANCELLED and exact Parking Task
+QUEUED/ASSIGNED/ACCEPTED -> CANCELLED atomically before explicit Start Parking.
+Original intake owner for QUEUED, current assignee otherwise, exact Shift and
+current eligibility, no override. Dual CAS, one Dispatch CANCELLED and focused
+custody audit, exact terminal status, no replay. Forward migration 057 broadens
+truthful terminal shape; DEC-097 stays narrow. Existing Native pre-start panel,
+minimal Cancel Service confirmation, UI freeze and legacy fail-closed boundary.
+Full contract: [DEC-098](decisions/DEC-098_PRE_CUSTODY_PARKING_CANCELLATION.md).
+
 ## Decision template
 
 ```text

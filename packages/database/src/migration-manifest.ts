@@ -55,4 +55,5 @@ export const expectedMigrationDirectories = [
   "20261002005400_mgt_240f_force_end_shift",
   "20261003005500_check_in_cancelled_enum",
   "20261003005600_check_in_cancelled_terminal",
+  "20261003005700_pre_custody_parking_cancellation",
 ] as const;

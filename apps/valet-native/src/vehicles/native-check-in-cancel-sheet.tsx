@@ -1,4 +1,5 @@
 import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import type { Ref } from "react";
 import {
   Modal,
   Pressable,
@@ -20,6 +21,8 @@ export function NativeCheckInCancelSheet({
   textAlign,
   title,
   variant,
+  focusRef,
+  onShow,
 }: {
   readonly body: string;
   readonly disabled: boolean;
@@ -30,13 +33,21 @@ export function NativeCheckInCancelSheet({
   readonly textAlign: "left" | "right";
   readonly title: string;
   readonly variant: "danger" | "primary";
+  readonly focusRef?: Ref<Text>;
+  readonly onShow?: () => void;
 }) {
   const s = useEmployeeStyles(sTheme);
 
   const { fontScale } = useWindowDimensions();
   const actionHeight = Math.ceil(64 * Math.max(1, fontScale));
   return (
-    <Modal animationType="slide" onRequestClose={onClose} transparent visible>
+    <Modal
+      animationType="slide"
+      onRequestClose={onClose}
+      onShow={onShow}
+      transparent
+      visible
+    >
       <View accessibilityViewIsModal style={s.sheetRoot}>
         <Pressable
           accessibilityLabel={cancel}
@@ -52,7 +63,12 @@ export function NativeCheckInCancelSheet({
             { direction: textAlign === "right" ? "rtl" : "ltr" },
           ]}
         >
-          <Text style={[s.cardTitle, employeeTextStyle("human", textAlign)]}>
+          <Text
+            ref={focusRef}
+            accessible={focusRef ? true : undefined}
+            accessibilityLabel={focusRef ? `${title}. ${body}` : undefined}
+            style={[s.cardTitle, employeeTextStyle("human", textAlign)]}
+          >
             {title}
           </Text>
           <Text style={[s.statusBody, employeeTextStyle("human", textAlign)]}>

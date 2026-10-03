@@ -137,6 +137,11 @@ export class EmployeeTaskQueueOwner {
     this.clear();
   }
 
+  refreshAfterTerminalMutation(): Promise<void> {
+    this.abortActive();
+    return this.refresh();
+  }
+
   private async load(
     target: NonNullable<EmployeeTaskQueueOwner["scope"]>,
     controller: AbortController,
