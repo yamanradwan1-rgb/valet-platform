@@ -17,6 +17,8 @@ export interface NativePlateCameraSnapshot {
   readonly preferredPictureSize?: string | undefined;
   readonly fallbackPictureSize?: string | undefined;
   readonly captureFallbackUsed: boolean;
+  /** Requested illumination only; Expo does not report hardware activation. */
+  readonly torchEnabled: boolean;
   readonly phase:
     | "idle"
     | "requesting"
@@ -38,6 +40,7 @@ export class NativePlateCameraController {
     phase: "idle",
     canAskAgain: true,
     captureFallbackUsed: false,
+    torchEnabled: false,
   };
   private fallbackReady:
     | {
@@ -80,6 +83,19 @@ export class NativePlateCameraController {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
+
+  toggleTorch(generation: number, mountId: number): void {
+    if (
+      !this.isCurrent(generation) ||
+      this.snapshot.mountId !== mountId ||
+      this.snapshot.phase !== "preview"
+    )
+      return;
+    this.publish({
+      ...this.snapshot,
+      torchEnabled: !this.snapshot.torchEnabled,
+    });
+  }
 
   async open(): Promise<void> {
     if (
@@ -194,6 +210,7 @@ export class NativePlateCameraController {
       ...this.snapshot,
       generation: generation + 1,
       phase: "error",
+      torchEnabled: false,
     });
   }
 
@@ -211,6 +228,7 @@ export class NativePlateCameraController {
       ...this.snapshot,
       generation: this.snapshot.generation + 1,
       phase: "idle",
+      torchEnabled: false,
     });
   }
 

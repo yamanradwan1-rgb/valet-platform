@@ -52,6 +52,7 @@ export function NativePlateRoiViewport({
         facing="back"
         mirror={false}
         mute
+        enableTorch={snapshot.torchEnabled}
         pictureSize={snapshot.pictureSize}
         style={styles.fill}
         accessible={false}

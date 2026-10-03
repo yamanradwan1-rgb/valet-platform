@@ -1,6 +1,7 @@
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { AppState, Linking, StyleSheet, Text, View } from "react-native";
 import { NativePlateRoiViewport } from "./native-plate-roi-viewport";
+import { NativePlateTorchControl } from "./native-plate-torch-control";
 import { useFocusEffect } from "expo-router";
 import type {
   EmployeeCheckInSession,
@@ -86,6 +87,15 @@ export function NativePlateCameraStep({
               snapshot={snapshot}
               binding={binding}
               geometry={geometry}
+            />
+          ) : null}
+          {snapshot.phase === "preview" ? (
+            <NativePlateTorchControl
+              enabled={snapshot.torchEnabled}
+              locale={locale}
+              onPress={() =>
+                controller.toggleTorch(snapshot.generation, snapshot.mountId)
+              }
             />
           ) : null}
           {snapshot.phase !== "preview" ? (

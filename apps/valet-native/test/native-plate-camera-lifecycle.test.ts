@@ -78,6 +78,33 @@ function setup() {
 }
 
 describe("Assistive plate camera lifecycle", () => {
+  it.each(["scope", "identity", "auth", "unmount", "inactive"])(
+    "retires an ON torch on %s",
+    async (exit) => {
+      const context = setup();
+      await context.controller.open();
+      const { generation, mountId } = context.controller.current();
+      context.controller.ready(generation);
+      context.controller.toggleTorch(generation, mountId);
+      expect(context.controller.current().torchEnabled).toBe(true);
+      if (exit === "scope") context.change({ phase: "confirm" });
+      if (exit === "identity") await context.identity.purge();
+      if (exit === "auth")
+        context.authChange({
+          phase: "anonymous",
+          authGeneration: 2,
+        } as NativeAuthSnapshot);
+      if (exit === "unmount") context.cleanup();
+      if (exit === "inactive") context.appChange("inactive");
+      context.controller.toggleTorch(generation, mountId);
+      context.controller.ready(generation);
+      expect(context.controller.current()).toMatchObject({
+        phase: "idle",
+        torchEnabled: false,
+      });
+      context.cleanup();
+    },
+  );
   it("requests camera permission explicitly, handles denial and never opens twice in flight", async () => {
     const context = setup();
     context.get.mockResolvedValue({ granted: false, canAskAgain: true });
@@ -167,9 +194,15 @@ describe("Assistive plate camera lifecycle", () => {
     await context.controller.open();
     context.controller.ready(context.controller.current().generation);
     expect(context.controller.current().phase).toBe("preview");
+    const { generation, mountId } = context.controller.current();
+    context.controller.toggleTorch(generation, mountId);
+    expect(context.controller.current().torchEnabled).toBe(true);
     context.appChange("background");
     context.appChange("active");
     expect(context.controller.current().phase).toBe("idle");
+    expect(context.controller.current().torchEnabled).toBe(false);
+    context.controller.toggleTorch(generation, mountId);
+    expect(context.controller.current().torchEnabled).toBe(false);
     expect(context.get).toHaveBeenCalledOnce();
   });
   it("preserves the original open across transient camera permission UI", async () => {

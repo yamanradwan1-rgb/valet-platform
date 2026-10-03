@@ -25,3 +25,4 @@ export type {
   EmployeeIconProps,
   EmployeeNavigationIconProps,
 } from "./employee-icon-types";
+export { EmployeeTorchIcon } from "./employee-torch-icon";

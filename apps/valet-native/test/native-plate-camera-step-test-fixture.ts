@@ -1,4 +1,5 @@
 import { NativePlateRoiViewport } from "../src/check-in/native-plate-roi-viewport";
+import { NativePlateTorchControl } from "../src/check-in/native-plate-torch-control";
 import { plateGuide } from "../src/check-in/native-plate-roi-geometry";
 import type { ReactElement } from "react";
 import { expect, vi } from "vitest";
@@ -74,6 +75,12 @@ export function cameraElements(value: unknown): CameraElement[] {
   if (Array.isArray(value)) return value.flatMap(cameraElements);
   if (!value || typeof value !== "object" || !("props" in value)) return [];
   const node = value as CameraElement;
+  if (node.type === NativePlateTorchControl)
+    return cameraElements(
+      NativePlateTorchControl(
+        node.props as unknown as Parameters<typeof NativePlateTorchControl>[0],
+      ),
+    );
   if (node.type === NativePlateRoiViewport)
     return cameraElements(
       NativePlateRoiViewport(
