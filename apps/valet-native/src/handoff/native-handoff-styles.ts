@@ -1,27 +1,24 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 
-export const nativeHandoffStyles = StyleSheet.create({
+export const nativeHandoffStylesTheme = createEmployeeStyles((p) => ({
   body: { gap: space.lg, padding: space.screen, paddingBottom: space.hero },
   camera: { height: 220 },
   eyebrow: {
     ...type.badge,
-    color: c.muted,
+    color: p.textMuted,
     letterSpacing: 1,
     textTransform: "uppercase",
   },
   input: {
     ...type.body,
-    backgroundColor: c.warm,
-    borderColor: c.border,
+    backgroundColor: p.appBackground,
+    borderColor: p.border,
     borderRadius: 12,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     height: 48,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
@@ -32,35 +29,36 @@ export const nativeHandoffStyles = StyleSheet.create({
     textAlign: "left",
     writingDirection: "ltr",
   },
-  fieldLabel: { ...type.body, color: c.navy, fontWeight: "700" },
+  fieldLabel: { ...type.body, color: p.textPrimary, fontWeight: "700" },
   ltr: { textAlign: "left", writingDirection: "ltr" },
   reason: { height: 80, textAlignVertical: "top" },
   abortReason: { height: 64, textAlignVertical: "top" },
   section: { gap: space.sm },
   card: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 16,
     borderWidth: 1,
     gap: 12,
     padding: 16,
   },
-  cardBody: { ...type.supporting, color: c.neutral, lineHeight: 19 },
+  cardBody: { ...type.supporting, color: p.textSecondary, lineHeight: 19 },
   warning: {
     ...type.supporting,
-    backgroundColor: "#FFFBEB",
-    borderColor: "#FCD34D",
+    backgroundColor: p.handoffWarningSurface,
+    borderColor: p.handoffWarningBorder,
     borderRadius: 12,
     borderWidth: 1,
-    color: "#92400E",
+    color: p.handoffWarningText,
     fontWeight: "600",
     padding: 12,
   },
   vehicle: {
     ...type.body,
-    color: c.navy,
+    color: p.textPrimary,
     fontFamily: "Space Grotesk",
     fontSize: 18,
     fontWeight: "700",
   },
-});
+}));
+export const nativeHandoffStyles = nativeHandoffStylesTheme.light;

@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState } from "react";
 import { Text, View } from "react-native";
 import type {
@@ -11,7 +12,7 @@ import { EmployeeErrorNotice } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
-import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import { nativeParkingConfirmStylesTheme as sTheme } from "./native-parking-confirm-styles";
 import {
   NativeParkingResourceCapture,
   NativeParkingResourceResult,
@@ -34,6 +35,8 @@ export function NativeParkingKeyReturnStep({
   readonly snapshot: EmployeeConfirmParkedSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const submitting = snapshot.phase === "submitting";
   const [reviewing, setReviewing] = useState(
     snapshot.keySlotCandidate.trim() !== "" || snapshot.conflict !== null,

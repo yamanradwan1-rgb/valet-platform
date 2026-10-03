@@ -1,23 +1,20 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 
-export const nativeActiveParkingStyles = StyleSheet.create({
+export const nativeActiveParkingStylesTheme = createEmployeeStyles((p) => ({
   body: { gap: space.lg, padding: space.screen, paddingBottom: space.hero },
   detailCard: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 16,
     borderWidth: 1,
   },
   elapsedCard: {
     alignItems: "center",
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 16,
     borderWidth: 1,
     gap: 4,
@@ -25,23 +22,24 @@ export const nativeActiveParkingStyles = StyleSheet.create({
   },
   elapsedLabel: {
     ...type.supporting,
-    color: c.muted,
+    color: p.textMuted,
     fontWeight: "600",
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-  elapsedValue: { ...type.plateHero, color: c.navy },
+  elapsedValue: { ...type.plateHero, color: p.textPrimary },
   header: {
-    backgroundColor: c.white,
-    borderBottomColor: c.border,
+    backgroundColor: p.surface,
+    borderBottomColor: p.border,
     borderBottomWidth: 1,
     gap: 8,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  heading: { ...type.pageTitle, color: c.navy },
+  heading: { ...type.pageTitle, color: p.textPrimary },
   row: { gap: 4, padding: 16 },
-  rowBorder: { borderTopColor: c.border, borderTopWidth: 1 },
-  rowLabel: { ...type.supporting, color: c.muted },
-  rowValue: { ...type.body, color: c.navy, fontWeight: "600" },
-});
+  rowBorder: { borderTopColor: p.border, borderTopWidth: 1 },
+  rowLabel: { ...type.supporting, color: p.textMuted },
+  rowValue: { ...type.body, color: p.textPrimary, fontWeight: "600" },
+}));
+export const nativeActiveParkingStyles = nativeActiveParkingStylesTheme.light;

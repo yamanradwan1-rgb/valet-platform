@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Text, TextInput, View } from "react-native";
 import {
   DYNAMIC_QR_PATTERN,
@@ -16,7 +17,7 @@ import {
 } from "./native-handoff-copy";
 import { NativeHandoffReasonAction } from "./native-handoff-reason-action";
 import { NativeHandoffScanner } from "./native-handoff-scanner";
-import { nativeHandoffStyles as s } from "./native-handoff-styles";
+import { nativeHandoffStylesTheme as sTheme } from "./native-handoff-styles";
 
 export function NativeHandoffPending({
   auth,
@@ -50,6 +51,8 @@ export function NativeHandoffPending({
   };
   readonly supervisor: boolean;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const submitCode = () => {
     state.setLastAction("proof");
     submitHandoffProof(state.pickupCode, state.setPickupCode, (proof) =>

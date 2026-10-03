@@ -1,9 +1,10 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type { EmployeeRetrievalSnapshot } from "@valet/employee-client";
 import { Text, View } from "react-native";
 
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { NativeRetrievalCopy } from "./native-retrieval-copy";
-import { nativeRetrievalStyles as s } from "./native-retrieval-styles";
+import { nativeRetrievalStylesTheme as sTheme } from "./native-retrieval-styles";
 
 export function retrievalVehicle(
   snapshot: EmployeeRetrievalSnapshot,
@@ -47,6 +48,8 @@ export function NativeRetrievalDetails({
   readonly snapshot: EmployeeRetrievalSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const vehicle = retrievalVehicle(snapshot, copy.vehicle);
   const location = retrievalLocation(snapshot, copy);
   const rows = [

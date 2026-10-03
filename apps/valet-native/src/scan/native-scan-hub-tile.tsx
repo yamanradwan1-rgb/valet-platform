@@ -1,10 +1,9 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import {
-  employeeColors as c,
-  employeeRadius,
-} from "../employee-ui/employee-tokens";
+import { employeeRadius } from "../employee-ui/employee-tokens";
 import {
   employeeFontFamilies,
   employeeFontWeights,
@@ -20,6 +19,8 @@ export function NativeScanHubTile(props: {
   readonly subtitle: string;
   readonly textAlign: "left" | "right";
 }) {
+  const styles = useEmployeeStyles(nativeScanHubTileStylesTheme);
+
   const human = employeeTextStyle("human", props.textAlign);
   return (
     <Pressable
@@ -45,7 +46,7 @@ export function NativeScanHubTile(props: {
   );
 }
 
-export const nativeScanHubTileStyles = StyleSheet.create({
+export const nativeScanHubTileStylesTheme = createEmployeeStyles((p) => ({
   disabled: { opacity: 0.5 },
   iconBlock: {
     alignItems: "center",
@@ -55,7 +56,7 @@ export const nativeScanHubTileStyles = StyleSheet.create({
     width: 44,
   },
   label: {
-    color: c.navy,
+    color: p.textPrimary,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 14,
     fontWeight: employeeFontWeights.semiBold,
@@ -63,15 +64,15 @@ export const nativeScanHubTileStyles = StyleSheet.create({
   },
   pressed: { transform: [{ scale: 0.97 }] },
   subtitle: {
-    color: c.muted,
+    color: p.textMuted,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 12,
     lineHeight: 16,
     marginTop: 4,
   },
   tile: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
     flexBasis: "45%",
@@ -80,6 +81,5 @@ export const nativeScanHubTileStyles = StyleSheet.create({
     minHeight: 132,
     padding: 16,
   },
-});
-
-const styles = nativeScanHubTileStyles;
+}));
+export const nativeScanHubTileStyles = nativeScanHubTileStylesTheme.light;

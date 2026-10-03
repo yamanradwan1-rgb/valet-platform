@@ -1,3 +1,5 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type {
   EmployeeLocale,
   EmployeeShiftStartSession,
@@ -5,7 +7,7 @@ import type {
   NativeAuthSession,
   NativeAuthSnapshot,
 } from "@valet/employee-client";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { getNativeAuthCopy } from "../auth/native-auth-copy";
 import { NativeAuthPanel } from "../auth/native-auth-panel";
@@ -16,7 +18,7 @@ import {
   NativeGateCard,
   NativeGateLocaleToggle,
   NativeGateSpinner,
-  nativeGateStyles,
+  nativeGateStylesTheme,
 } from "./native-gate-primitives";
 import { NativeGateShell } from "./native-gate-shell";
 import { getNativeShellCopy } from "./native-shell-copy";
@@ -37,6 +39,8 @@ export interface NativeShellGateProps {
 }
 
 export function NativeShellGate(props: NativeShellGateProps) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const textAlign = props.locale === "ar" ? "right" : "left";
   const direction = props.locale === "ar" ? "rtl" : "ltr";
   const copy = getNativeShellCopy(props.locale);
@@ -87,6 +91,8 @@ export function NativeShellGate(props: NativeShellGateProps) {
 }
 
 function LoadingGate({ label }: { readonly label: string }) {
+  const nativeGateStyles = useEmployeeStyles(nativeGateStylesTheme);
+
   return (
     <View style={nativeGateStyles.loadingStack} testID="native-gate-loading">
       <NativeGateSpinner label={label} />
@@ -104,6 +110,9 @@ function NoActiveShiftGate({
   shiftStartSnapshot,
   textAlign,
 }: NativeShellGateProps & { readonly textAlign: "left" | "right" }) {
+  const styles = useEmployeeStyles(stylesTheme);
+  const nativeGateStyles = useEmployeeStyles(nativeGateStylesTheme);
+
   const copy = getNativeShellCopy(locale);
   return (
     <>
@@ -171,6 +180,9 @@ function BlockingGate({
   >;
   readonly textAlign: "left" | "right";
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+  const nativeGateStyles = useEmployeeStyles(nativeGateStylesTheme);
+
   const copy = getNativeShellCopy(locale);
   const ambiguous =
     state.kind === "operational-error" &&
@@ -267,9 +279,9 @@ function blockingPresentation(
   };
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles(() => ({
   cardSpacing: { marginBottom: 24 },
   content: { width: "100%" },
   identifier: { writingDirection: "ltr" },
   localeAfterAction: { marginTop: 16 },
-});
+}));

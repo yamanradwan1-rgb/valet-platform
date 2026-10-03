@@ -1,9 +1,8 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
-import { employeeFieldStyles } from "../employee-ui/employee-fields";
-import { employeeFeedbackStyles } from "../employee-ui/employee-feedback";
+import { employeeFieldStylesTheme } from "../employee-ui/employee-fields";
+import { employeeFeedbackStylesTheme } from "../employee-ui/employee-feedback";
 import {
-  employeeColors as c,
   employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
@@ -12,19 +11,19 @@ import { employeeTypography as typography } from "../employee-ui/employee-typogr
 export { employeeColors as checkInColors } from "../employee-ui/employee-tokens";
 
 // Feature composition stays here; reusable visual rules belong to employee-ui.
-export const checkInStyles = StyleSheet.create({
+export const checkInStylesTheme = createEmployeeStyles((p) => ({
   body: { flexGrow: 1, gap: space.lg, padding: space.screen },
-  card: { ...employeeFeedbackStyles.card, gap: space.compact },
+  card: { ...employeeFeedbackStylesTheme[p.mode].card, gap: space.compact },
   eyebrow: {
     ...typography.badge,
-    color: c.neutral,
+    color: p.textSecondary,
     textTransform: "uppercase",
   },
-  fieldLabel: employeeFieldStyles.label,
+  fieldLabel: employeeFieldStylesTheme[p.mode].label,
   option: {
     alignItems: "center",
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 2,
     flexDirection: "row",
@@ -35,40 +34,47 @@ export const checkInStyles = StyleSheet.create({
   },
   optionCircle: {
     alignItems: "center",
-    borderColor: c.border,
+    borderColor: p.border,
     borderRadius: 12,
     borderWidth: 2,
     height: 24,
     justifyContent: "center",
     width: 24,
   },
-  optionCircleSelected: { backgroundColor: c.blue, borderColor: c.blue },
+  optionCircleSelected: {
+    backgroundColor: p.actionPrimary,
+    borderColor: p.linkPrimary,
+  },
   optionDisabled: { opacity: 0.4 },
-  optionLabel: { ...typography.body, color: c.navy, fontWeight: "600" },
-  optionLabelSelected: { color: c.blue },
-  optionSelected: { backgroundColor: c.ice, borderColor: c.blue },
+  optionLabel: { ...typography.body, color: p.textPrimary, fontWeight: "600" },
+  optionLabelSelected: { color: p.linkPrimary },
+  optionSelected: {
+    backgroundColor: p.selectedSurface,
+    borderColor: p.linkPrimary,
+  },
   options: { gap: space.compact },
   policyNotice: {
-    backgroundColor: "#F9FAFB",
-    borderColor: c.border,
+    backgroundColor: p.secondaryPressed,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     padding: space.md,
   },
   policyNoticeText: {
     ...typography.supporting,
-    color: c.muted,
+    color: p.textMuted,
     textAlign: "center",
   },
   recoverableCard: {
-    ...employeeFeedbackStyles.card,
+    ...employeeFeedbackStylesTheme[p.mode].card,
     elevation: 1,
     gap: space.compact,
-    shadowColor: c.navy,
+    shadowColor: p.shadow,
     shadowOffset: { height: 1, width: 0 },
     shadowOpacity: 0.08,
     shadowRadius: 2,
   },
-  text: employeeFeedbackStyles.status,
-  title: { ...typography.vehicle, color: c.navy },
-});
+  text: employeeFeedbackStylesTheme[p.mode].status,
+  title: { ...typography.vehicle, color: p.textPrimary },
+}));
+export const checkInStyles = checkInStylesTheme.light;

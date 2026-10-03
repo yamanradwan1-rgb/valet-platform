@@ -1,12 +1,15 @@
+import { useEmployeePalette } from "../appearance/employee-appearance-context";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import type { EmployeeIconProps } from "./employee-icon-types";
-import { employeeColors as c } from "./employee-tokens";
 
 export function EmployeeLocationPinIcon({
-  color = c.white,
+  color: colorOverride,
   size = 14,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.onAction;
+
   return (
     <Svg
       accessible={false}
@@ -27,9 +30,12 @@ export function EmployeeLocationPinIcon({
 }
 
 export function EmployeeKeyIcon({
-  color = c.white,
+  color: colorOverride,
   size = 14,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.onAction;
+
   return (
     <Svg
       accessible={false}
@@ -50,9 +56,12 @@ export function EmployeeKeyIcon({
 }
 
 export function EmployeeCameraSquareIcon({
-  color = c.navy,
+  color: colorOverride,
   size = 28,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.textPrimary;
+
   return (
     <Svg
       accessible={false}
@@ -73,9 +82,12 @@ export function EmployeeCameraSquareIcon({
 }
 
 export function EmployeeAlertIcon({
-  color = c.danger,
+  color: colorOverride,
   size = 32,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.danger;
+
   return (
     <Svg
       accessible={false}
@@ -101,9 +113,12 @@ export function EmployeeAlertIcon({
 }
 
 export function EmployeeSearchIcon({
-  color = c.muted,
+  color: colorOverride,
   size = 16,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.textMuted;
+
   return (
     <Svg
       accessible={false}

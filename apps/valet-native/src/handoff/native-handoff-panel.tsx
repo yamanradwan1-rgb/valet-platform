@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState } from "react";
 import { ScrollView } from "react-native";
 import type {
@@ -17,7 +18,7 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeHandoffCopy } from "./native-handoff-copy";
 import { NativeHandoffPending } from "./native-handoff-pending";
 import { useNativeHandoffPrivacy } from "./native-handoff-privacy";
-import { nativeHandoffStyles as s } from "./native-handoff-styles";
+import { nativeHandoffStylesTheme as sTheme } from "./native-handoff-styles";
 import { NativeHandoffVehicle } from "./native-handoff-vehicle";
 
 export function NativeHandoffPanel({
@@ -35,6 +36,8 @@ export function NativeHandoffPanel({
   readonly onReportIssue?: ((sessionId: string) => void) | undefined;
   readonly snapshot: EmployeeHandoffSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeHandoffCopy(locale);
   const [pickupCode, setPickupCode] = useState("");
   const [qrProof, setQrProof] = useState("");

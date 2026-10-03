@@ -1,21 +1,25 @@
+import { useEmployeePalette } from "../appearance/employee-appearance-context";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import type { EmployeeNavigationIconProps } from "./employee-icon-types";
-import { employeeColors as c } from "./employee-tokens";
 
-function navigationColor({
+function useNavigationColor({
   active = false,
   color,
   inverse = false,
 }: EmployeeNavigationIconProps) {
-  return color ?? (inverse ? c.white : active ? c.blue : c.neutral);
+  const p = useEmployeePalette();
+
+  return (
+    color ?? (inverse ? p.onAction : active ? p.linkPrimary : p.textSecondary)
+  );
 }
 
 export function EmployeeHomeIcon({
   size = 22,
   ...props
 }: EmployeeNavigationIconProps) {
-  const color = navigationColor(props);
+  const color = useNavigationColor(props);
   return (
     <Svg
       accessible={false}
@@ -45,7 +49,7 @@ export function EmployeeCarIcon({
   size = 22,
   ...props
 }: EmployeeNavigationIconProps) {
-  const color = navigationColor(props);
+  const color = useNavigationColor(props);
   return (
     <Svg
       accessible={false}
@@ -79,7 +83,7 @@ export function EmployeeScanIcon({
   size = 22,
   ...props
 }: EmployeeNavigationIconProps) {
-  const color = navigationColor(props);
+  const color = useNavigationColor(props);
   return (
     <Svg
       accessible={false}
@@ -108,7 +112,7 @@ export function EmployeeShiftIcon({
   size = 22,
   ...props
 }: EmployeeNavigationIconProps) {
-  const color = navigationColor(props);
+  const color = useNavigationColor(props);
   return (
     <Svg
       accessible={false}

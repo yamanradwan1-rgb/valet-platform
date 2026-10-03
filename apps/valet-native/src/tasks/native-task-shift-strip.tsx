@@ -1,10 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Text, View } from "react-native";
 import type { EmployeeOperationalScope } from "@valet/employee-client";
 
-import {
-  employeeColors as c,
-  employeeRadius,
-} from "../employee-ui/employee-tokens";
+import { employeeRadius } from "../employee-ui/employee-tokens";
 import {
   employeeTextStyle,
   employeeTypography as type,
@@ -13,25 +12,26 @@ import {
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { useNativeTaskShiftDuration } from "./use-native-task-shift-duration";
 
-export const nativeTaskShiftStripStyles = StyleSheet.create({
+export const nativeTaskShiftStripStylesTheme = createEmployeeStyles((p) => ({
   strip: {
     alignItems: "center",
-    backgroundColor: c.navy3,
+    backgroundColor: p.inverseRaised,
     flexDirection: "row",
     gap: 8,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
   indicator: {
-    backgroundColor: c.success,
+    backgroundColor: p.success,
     borderRadius: employeeRadius.pill,
     height: 8,
     width: 8,
   },
   line: { alignItems: "center", flex: 1, flexDirection: "row", minWidth: 0 },
-  primary: { ...type.supporting, color: c.white, fontWeight: "600" },
-  secondary: { ...type.supporting, color: c.muted, flexShrink: 1 },
-});
+  primary: { ...type.supporting, color: p.onAction, fontWeight: "600" },
+  secondary: { ...type.supporting, color: p.textMuted, flexShrink: 1 },
+}));
+export const nativeTaskShiftStripStyles = nativeTaskShiftStripStylesTheme.light;
 
 export function NativeTaskShiftStrip({
   activeLabel,
@@ -44,6 +44,10 @@ export function NativeTaskShiftStrip({
   readonly scope: EmployeeOperationalScope;
   readonly textAlign: EmployeeTextAlign;
 }) {
+  const nativeTaskShiftStripStyles = useEmployeeStyles(
+    nativeTaskShiftStripStylesTheme,
+  );
+
   const human = employeeTextStyle("human", textAlign);
   const duration = useNativeTaskShiftDuration(scope.shiftStartedAt, locale);
   return (

@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type {
   EmployeeRetrievalSession,
   EmployeeRetrievalSnapshot,
@@ -19,7 +20,7 @@ import {
   NativeRetrievalRecover,
   NativeRetrievalRetrieving,
 } from "./native-retrieval-stage-content";
-import { nativeRetrievalStyles as s } from "./native-retrieval-styles";
+import { nativeRetrievalStylesTheme as sTheme } from "./native-retrieval-styles";
 import { retrievalVehicle } from "./native-retrieval-details";
 
 /** MOB-013 ends at READY; handoff/release UI is intentionally absent. */
@@ -38,6 +39,8 @@ export function NativeRetrievalPanel({
   readonly retrieval: EmployeeRetrievalSession;
   readonly snapshot: EmployeeRetrievalSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeRetrievalCopy(locale);
   const direction = locale === "ar" ? "rtl" : "ltr";
   const textAlign = locale === "ar" ? "right" : "left";

@@ -1,23 +1,20 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 
-export const nativeRetrievalStyles = StyleSheet.create({
+export const nativeRetrievalStylesTheme = createEmployeeStyles((p) => ({
   body: { gap: space.lg, padding: space.screen, paddingBottom: space.hero },
   detailCard: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 16,
     borderWidth: 1,
   },
   elapsedCard: {
     alignItems: "center",
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 16,
     borderWidth: 1,
     gap: 4,
@@ -25,60 +22,60 @@ export const nativeRetrievalStyles = StyleSheet.create({
   },
   elapsedLabel: {
     ...type.supporting,
-    color: c.muted,
+    color: p.textMuted,
     fontWeight: "600",
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-  elapsedValue: { ...type.plateHero, color: c.navy, fontSize: 30 },
+  elapsedValue: { ...type.plateHero, color: p.textPrimary, fontSize: 30 },
   expectedKey: {
     fontFamily: "Space Grotesk",
     fontSize: 48,
     fontWeight: "700",
-    backgroundColor: c.ice,
+    backgroundColor: p.selectedSurface,
     borderRadius: 16,
-    color: c.navy,
+    color: p.textPrimary,
     lineHeight: 58,
     textAlign: "center",
     writingDirection: "ltr",
   },
   expectedKeyHero: {
     alignItems: "center",
-    backgroundColor: c.ice,
+    backgroundColor: p.selectedSurface,
     borderRadius: 16,
     gap: 8,
     padding: 24,
   },
   expectedKeyLabel: {
     ...type.supporting,
-    color: c.neutral,
+    color: p.textSecondary,
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   fieldLabel: {
     ...type.supporting,
-    color: c.neutral,
+    color: p.textSecondary,
     fontWeight: "600",
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   header: {
-    backgroundColor: c.white,
-    borderBottomColor: c.border,
+    backgroundColor: p.surface,
+    borderBottomColor: p.border,
     borderBottomWidth: 1,
     gap: 8,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  heading: { ...type.pageTitle, color: c.navy },
-  identifier: { ...type.header, color: c.navy },
+  heading: { ...type.pageTitle, color: p.textPrimary },
+  identifier: { ...type.header, color: p.textPrimary },
   keyInput: {
     ...type.operationalValue,
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 12,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     height: 48,
     minHeight: 48,
     textAlign: "center",
@@ -91,14 +88,19 @@ export const nativeRetrievalStyles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  rowBorder: { borderTopColor: c.border, borderTopWidth: 1 },
-  rowLabel: { ...type.supporting, color: c.neutral },
-  rowValue: { ...type.body, color: c.navy, flexShrink: 1, fontWeight: "600" },
+  rowBorder: { borderTopColor: p.border, borderTopWidth: 1 },
+  rowLabel: { ...type.supporting, color: p.textSecondary },
+  rowValue: {
+    ...type.body,
+    color: p.textPrimary,
+    flexShrink: 1,
+    fontWeight: "600",
+  },
   scannerSection: { paddingHorizontal: 20, paddingTop: 16 },
   successPanel: {
     alignItems: "center",
-    backgroundColor: "#EEFBF5",
-    borderColor: "#2F9B7833",
+    backgroundColor: p.successSurface,
+    borderColor: p.successBorder,
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
@@ -107,11 +109,12 @@ export const nativeRetrievalStyles = StyleSheet.create({
     padding: 16,
   },
   successDot: {
-    backgroundColor: c.success,
+    backgroundColor: p.success,
     borderRadius: 4,
     height: 8,
     width: 8,
   },
-  successText: { ...type.body, color: c.success, fontWeight: "600" },
-  title: { ...type.vehicle, color: c.navy },
-});
+  successText: { ...type.body, color: p.success, fontWeight: "600" },
+  title: { ...type.vehicle, color: p.textPrimary },
+}));
+export const nativeRetrievalStyles = nativeRetrievalStylesTheme.light;

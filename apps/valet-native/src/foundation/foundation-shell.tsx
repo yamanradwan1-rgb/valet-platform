@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useEffect, useState } from "react";
 import { AppState, Pressable, Text, View } from "react-native";
 import type {
@@ -19,7 +20,7 @@ import {
   type FoundationLocale,
   getFoundationPresentation,
 } from "./foundation-locale";
-import { styles } from "./foundation-styles";
+import { stylesTheme } from "./foundation-styles";
 import {
   EmployeeAppHeader,
   EmployeeFrame,
@@ -66,6 +67,8 @@ function createAuthBootstrap(): AuthBootstrap {
 }
 
 export function FoundationShell() {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const [locale, setLocale] = useState<FoundationLocale>("en");
   const [auth] = useState(createAuthBootstrap);
   const [snapshot, setSnapshot] = useState(auth.snapshot);
@@ -199,6 +202,8 @@ function LocaleButton({
   locale,
   onSelect,
 }: LocaleButtonProps) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}

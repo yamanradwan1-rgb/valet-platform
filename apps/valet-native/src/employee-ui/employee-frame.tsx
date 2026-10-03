@@ -1,24 +1,26 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import type { EmployeeOperationalScope } from "@valet/employee-client";
 
 import { EmployeeBrandLogo } from "./employee-brand-logo";
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "./employee-tokens";
+import { employeeSpacing as space } from "./employee-tokens";
 import {
   employeeTextStyle,
   employeeTypography as type,
 } from "./employee-typography";
 
-export const employeeFrameStyles = StyleSheet.create({
-  safeArea: { backgroundColor: c.navy3, flex: 1 },
+export const employeeFrameStylesTheme = createEmployeeStyles((p) => ({
+  safeArea: { backgroundColor: p.inverseRaised, flex: 1 },
   frame: {
     alignSelf: "center",
-    backgroundColor: c.warm,
+    backgroundColor: p.appBackground,
     flex: 1,
     maxWidth: 390,
     position: "relative",
@@ -27,8 +29,8 @@ export const employeeFrameStyles = StyleSheet.create({
   appHeader: {
     direction: "ltr",
     alignItems: "center",
-    backgroundColor: c.white,
-    borderBottomColor: c.border,
+    backgroundColor: p.surface,
+    borderBottomColor: p.border,
     borderBottomWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -48,14 +50,19 @@ export const employeeFrameStyles = StyleSheet.create({
     flexShrink: 1,
   },
   context: { flexShrink: 1, minWidth: 0 },
-  divider: { backgroundColor: c.border, height: 20, width: 1 },
+  divider: { backgroundColor: p.border, height: 20, width: 1 },
   locationCode: {
     ...type.small,
-    color: c.neutral,
+    color: p.textSecondary,
     fontSize: 11,
     lineHeight: 14,
   },
-  locationName: { ...type.label, color: c.navy, fontSize: 13, lineHeight: 16 },
+  locationName: {
+    ...type.label,
+    color: p.textPrimary,
+    fontSize: 13,
+    lineHeight: 16,
+  },
   headerUtilities: {
     direction: "ltr",
     alignItems: "center",
@@ -63,7 +70,8 @@ export const employeeFrameStyles = StyleSheet.create({
     flexShrink: 0,
     gap: space.sm,
   },
-});
+}));
+export const employeeFrameStyles = employeeFrameStylesTheme.light;
 
 export function EmployeeFrame({
   children,
@@ -72,6 +80,8 @@ export function EmployeeFrame({
   readonly children: ReactNode;
   readonly direction: "ltr" | "rtl";
 }) {
+  const employeeFrameStyles = useEmployeeStyles(employeeFrameStylesTheme);
+
   return (
     <SafeAreaView style={employeeFrameStyles.safeArea}>
       <StatusBar style="light" />
@@ -94,13 +104,21 @@ export function EmployeeAppHeader({
   readonly utilities: ReactNode;
   readonly textAlign: "left" | "right";
 }) {
+  const p = useEmployeePalette();
+  const employeeFrameStyles = useEmployeeStyles(employeeFrameStylesTheme);
+
   return (
     <View style={employeeFrameStyles.appHeader} testID="employee-app-header">
       <View style={employeeFrameStyles.brandContext}>
         <EmployeeBrandLogo
           height={28}
-          surface="light"
-          style={employeeFrameStyles.brandLogo}
+          surface={p.mode}
+          style={[
+            employeeFrameStyles.brandLogo,
+            // Keep the current header's Light bounding box for either official
+            // asset; contain preserves the Dark wordmark's intrinsic ratio.
+            p.mode === "dark" && { aspectRatio: 169 / 60 },
+          ]}
         />
         {scope ? <View style={employeeFrameStyles.divider} /> : null}
         {scope ? (

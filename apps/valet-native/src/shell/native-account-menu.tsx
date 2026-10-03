@@ -1,4 +1,13 @@
-import { useState, type ReactNode } from "react";
+import {
+  Section,
+  InfoRow,
+  LanguageChoice,
+} from "./native-account-menu-sections";
+import {
+  useEmployeeStyles,
+  useEmployeeAppearance,
+} from "../appearance/employee-appearance-context";
+import { useState } from "react";
 import type {
   EmployeeLocale,
   EmployeeOperationalScope,
@@ -14,15 +23,15 @@ import {
 
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import { EmployeeSettingsIcon } from "../employee-ui/employee-icons";
-import { employeeColors } from "../employee-ui/employee-tokens";
+
 import { NativePushPermissionStatus } from "../notifications/native-push-permission-status";
 import type { NativePushSnapshot } from "../notifications/native-push-types";
 import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
 import { nativeSupportDiagnosticsView } from "../telemetry/native-support-diagnostics";
 import { nativeAccountMenuCopy } from "./native-account-menu-copy";
 import {
-  nativeAccountAvatarStyles,
-  nativeAccountMenuStyles as styles,
+  nativeAccountAvatarStylesTheme,
+  nativeAccountMenuStylesTheme as stylesTheme,
 } from "./native-account-menu-styles";
 
 export function NativeAccountMenu({
@@ -38,6 +47,12 @@ export function NativeAccountMenu({
   readonly pushSnapshot: NativePushSnapshot;
   readonly scope: EmployeeOperationalScope;
 }) {
+  const { palette: p, select } = useEmployeeAppearance();
+  const nativeAccountAvatarStyles = useEmployeeStyles(
+    nativeAccountAvatarStylesTheme,
+  );
+  const styles = useEmployeeStyles(stylesTheme);
+
   const [open, setOpen] = useState(false);
   const copy = nativeAccountMenuCopy[locale];
   const textAlign = locale === "ar" ? "right" : "left";
@@ -73,7 +88,7 @@ export function NativeAccountMenu({
         ]}
         testID="native-role-avatar"
       >
-        <EmployeeSettingsIcon color={employeeColors.white} size={20} />
+        <EmployeeSettingsIcon color={p.onAction} size={20} />
       </Pressable>
       <Modal
         animationType="fade"
@@ -153,6 +168,25 @@ export function NativeAccountMenu({
                   />
                 </View>
               </Section>
+              <Section title={copy.appearance} textAlign={textAlign}>
+                <View
+                  accessibilityRole="radiogroup"
+                  accessibilityLabel={copy.appearance}
+                  style={styles.languages}
+                  testID="native-appearance-choices"
+                >
+                  <LanguageChoice
+                    label={copy.light}
+                    onPress={() => select("light")}
+                    selected={p.mode === "light"}
+                  />
+                  <LanguageChoice
+                    label={copy.dark}
+                    onPress={() => select("dark")}
+                    selected={p.mode === "dark"}
+                  />
+                </View>
+              </Section>
               <Section title={copy.about} textAlign={textAlign}>
                 <InfoRow
                   label={copy.appVersion}
@@ -170,76 +204,5 @@ export function NativeAccountMenu({
         </View>
       </Modal>
     </>
-  );
-}
-
-function Section({
-  children,
-  textAlign,
-  title,
-}: {
-  readonly children: ReactNode;
-  readonly textAlign: "left" | "right";
-  readonly title: string;
-}) {
-  return (
-    <View style={styles.section}>
-      <Text
-        style={[styles.sectionTitle, employeeTextStyle("human", textAlign)]}
-      >
-        {title}
-      </Text>
-      {children}
-    </View>
-  );
-}
-
-function InfoRow({
-  label,
-  textAlign,
-  value,
-}: {
-  readonly label: string;
-  readonly textAlign: "left" | "right";
-  readonly value: string;
-}) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={[styles.infoLabel, employeeTextStyle("human", textAlign)]}>
-        {label}
-      </Text>
-      <Text
-        numberOfLines={2}
-        style={[styles.infoValue, employeeTextStyle("human", textAlign)]}
-      >
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-function LanguageChoice({
-  label,
-  onPress,
-  selected,
-}: {
-  readonly label: string;
-  readonly onPress: () => void;
-  readonly selected: boolean;
-}) {
-  return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={[styles.language, selected && styles.languageSelected]}
-    >
-      <Text
-        style={[styles.languageText, selected && styles.languageTextSelected]}
-      >
-        {label}
-      </Text>
-    </Pressable>
   );
 }

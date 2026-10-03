@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { StaffVehicleDirectoryRow } from "@valet/employee-client";
@@ -10,7 +11,7 @@ import {
   nativeVehicleBadge,
   nativeVehicleTitle,
 } from "./native-vehicle-presentation";
-import { nativeVehicleRowStyles as s } from "./native-vehicle-row-styles";
+import { nativeVehicleRowStylesTheme as sTheme } from "./native-vehicle-row-styles";
 import type { NativeVehiclesCopy } from "./native-vehicles-copy";
 
 export function NativeVehicleRow(props: {
@@ -22,6 +23,8 @@ export function NativeVehicleRow(props: {
   readonly row: StaffVehicleDirectoryRow;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const { copy, expanded, locale, onToggle, row, textAlign } = props;
   const human = employeeTextStyle("human", textAlign);
   const identifier = employeeTextStyle("identifier", textAlign);
@@ -151,6 +154,8 @@ function Summary({
   readonly textAlign: "left" | "right";
   readonly value: string | null;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const missing = value === null;
   return (
     <View style={s.summaryCell}>
@@ -186,6 +191,8 @@ function Detail({
   readonly textAlign: "left" | "right";
   readonly value: string;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <View style={[s.detailRow, last && s.detailRowLast]}>
       <Text style={[s.detailLabel, employeeTextStyle("human", textAlign)]}>

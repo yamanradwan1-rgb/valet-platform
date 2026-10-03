@@ -1,3 +1,4 @@
+import { useEmployeePalette } from "../appearance/employee-appearance-context";
 import { View } from "react-native";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import type { FoundationLocale } from "../foundation/foundation-locale";
@@ -29,11 +30,13 @@ export function NativeContextualSurface({
   readonly route: NativeContextualRoute | null;
   readonly runtime: NativeEmployeeRuntime;
 }) {
+  const p = useEmployeePalette();
+
   const recoveryVisible = nativeIncidentRecoveryVisible(incident);
   if (route === null && !recoveryVisible) return null;
   return (
     <View
-      style={{ backgroundColor: "#FAFAF8", flex: 1 }}
+      style={{ backgroundColor: p.appBackground, flex: 1 }}
       testID="native-contextual-workflow"
     >
       {route?.kind === "incident" || recoveryVisible ? (

@@ -1,18 +1,17 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
 import {
   employeeButtonHeights,
-  employeeColors as c,
   employeeMinimumTouchTarget,
   employeeRadius,
   employeeSpacing,
 } from "../employee-ui/employee-tokens";
 import { employeeTypography } from "../employee-ui/employee-typography";
 
-export const styles = StyleSheet.create({
+export const stylesTheme = createEmployeeStyles((p) => ({
   actionButton: {
     alignItems: "center",
-    backgroundColor: c.blue,
+    backgroundColor: p.actionPrimary,
     borderRadius: employeeRadius.primary,
     justifyContent: "center",
     minHeight: employeeButtonHeights.large,
@@ -20,14 +19,14 @@ export const styles = StyleSheet.create({
   },
   actionLabel: {
     ...employeeTypography.button,
-    color: c.white,
+    color: p.onAction,
   },
   authPanel: {
     gap: employeeSpacing.lg,
   },
   devDiagnostics: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     gap: 2,
@@ -36,7 +35,7 @@ export const styles = StyleSheet.create({
   devDiagnosticsButton: {
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: c.ice,
+    backgroundColor: p.selectedSurface,
     borderRadius: employeeRadius.form,
     justifyContent: "center",
     minHeight: employeeMinimumTouchTarget,
@@ -44,51 +43,51 @@ export const styles = StyleSheet.create({
   },
   devDiagnosticsButtonLabel: {
     ...employeeTypography.small,
-    color: c.blue,
+    color: p.linkPrimary,
     fontWeight: "600",
   },
   devDiagnosticsFact: {
     ...employeeTypography.small,
-    color: c.neutral,
+    color: p.textSecondary,
     fontSize: 11,
     lineHeight: 15,
   },
   devDiagnosticsTitle: {
     ...employeeTypography.small,
-    color: c.navy,
+    color: p.textPrimary,
     fontWeight: "600",
   },
   disabledButton: {
     opacity: 0.45,
   },
   darkErrorText: {
-    color: "#FCA5A5",
+    color: p.gateErrorText,
   },
   darkInput: {
-    backgroundColor: "#FFFFFF14",
-    borderColor: "#FFFFFF26",
-    color: c.white,
+    backgroundColor: p.gateInputSurface,
+    borderColor: p.gateInputBorder,
+    color: p.onAction,
   },
   darkStatus: {
-    color: c.white,
+    color: p.onAction,
   },
   errorText: {
     ...employeeTypography.body,
-    color: c.danger,
+    color: p.danger,
   },
   input: {
     ...employeeTypography.header,
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     minHeight: employeeButtonHeights.large,
     paddingHorizontal: employeeSpacing.lg,
   },
   localeButton: {
     alignItems: "center",
-    backgroundColor: c.ice,
+    backgroundColor: p.selectedSurface,
     borderRadius: employeeRadius.form,
     justifyContent: "center",
     minHeight: employeeMinimumTouchTarget,
@@ -97,11 +96,11 @@ export const styles = StyleSheet.create({
   },
   localeLabel: {
     ...employeeTypography.small,
-    color: c.neutral,
+    color: p.textSecondary,
     fontWeight: "600",
   },
   safeArea: {
-    backgroundColor: c.warm,
+    backgroundColor: p.appBackground,
     flex: 1,
   },
   screen: {
@@ -112,7 +111,7 @@ export const styles = StyleSheet.create({
   },
   status: {
     ...employeeTypography.header,
-    color: c.navy,
+    color: p.textPrimary,
     fontSize: 20,
     fontWeight: "600",
     lineHeight: 28,
@@ -130,7 +129,7 @@ export const styles = StyleSheet.create({
   },
   taskHeading: {
     ...employeeTypography.header,
-    color: c.navy,
+    color: p.textPrimary,
     fontSize: 24,
     fontWeight: "700",
     lineHeight: 32,
@@ -141,15 +140,15 @@ export const styles = StyleSheet.create({
   },
   taskMeta: {
     ...employeeTypography.small,
-    color: c.neutral,
+    color: p.textSecondary,
   },
   taskStatus: {
     ...employeeTypography.body,
-    color: c.neutral,
+    color: p.textSecondary,
   },
   taskTitle: {
     ...employeeTypography.header,
-    color: c.navy,
+    color: p.textPrimary,
     fontWeight: "700",
   },
   tasksPanel: {
@@ -157,4 +156,5 @@ export const styles = StyleSheet.create({
     gap: employeeSpacing.md,
     minHeight: 0,
   },
-});
+}));
+export const styles = stylesTheme.light;

@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Pressable, Text, View } from "react-native";
 import type {
   EmployeeCheckInConditionSelection,
@@ -15,7 +16,7 @@ import {
   VehicleCard,
 } from "./native-check-in-primitives";
 import { checkInTextStyle } from "./native-check-in-presentation";
-import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
 import { EmployeeCheckIcon } from "../employee-ui/employee-icons";
 
 export interface ConditionStepProps {
@@ -51,6 +52,8 @@ export function NativeCheckInConditionStep({
   snapshot,
   textAlign,
 }: ConditionStepProps) {
+  const s = useEmployeeStyles(sTheme);
+
   const continuation = snapshot.continuation;
   const active = snapshot.active;
   if (active === null) return null;

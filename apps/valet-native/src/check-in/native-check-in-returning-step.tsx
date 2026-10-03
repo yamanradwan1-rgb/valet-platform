@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState } from "react";
 import { Text, View } from "react-native";
 import type {
@@ -13,7 +14,7 @@ import {
   VehicleCard,
 } from "./native-check-in-primitives";
 import { checkInTextStyle } from "./native-check-in-presentation";
-import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
 
 export function NativeReturningStep({
   copy,
@@ -26,6 +27,8 @@ export function NativeReturningStep({
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const vehicle = snapshot.recognizedVehicle;
   const [editing, setEditing] = useState(false);
   const [values, setValues] = useState({ color: "", make: "", model: "" });
@@ -126,6 +129,8 @@ export function NativeReturningVehicleEditor({
   readonly textAlign: NativeTextAlign;
   readonly values: { color: string; make: string; model: string };
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <>
       <View style={s.card}>

@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import {
   Modal,
   Pressable,
@@ -7,7 +8,7 @@ import {
 } from "react-native";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
-import { nativeGuestAccessStyles as s } from "../guest-access/native-guest-access-styles";
+import { nativeGuestAccessStylesTheme as sTheme } from "../guest-access/native-guest-access-styles";
 
 export function NativeCheckInCancelSheet({
   body,
@@ -30,6 +31,8 @@ export function NativeCheckInCancelSheet({
   readonly title: string;
   readonly variant: "danger" | "primary";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const { fontScale } = useWindowDimensions();
   const actionHeight = Math.ceil(64 * Math.max(1, fontScale));
   return (

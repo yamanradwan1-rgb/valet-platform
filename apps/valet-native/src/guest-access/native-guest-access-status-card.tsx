@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Text, View } from "react-native";
 import { EmployeeBadge } from "../employee-ui/employee-feedback";
 import { EmployeeButton } from "../employee-ui/employee-controls";
@@ -5,7 +6,7 @@ import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeGuestAccessCopy } from "./native-guest-access-copy";
 import { NativeGuestAccessQr } from "./native-guest-access-qr";
-import { nativeGuestAccessStyles as s } from "./native-guest-access-styles";
+import { nativeGuestAccessStylesTheme as sTheme } from "./native-guest-access-styles";
 import type { NativeGuestAccessSnapshot } from "./native-guest-access-types";
 
 export function NativeGuestAccessStatusCard({
@@ -23,6 +24,8 @@ export function NativeGuestAccessStatusCard({
   readonly snapshot: NativeGuestAccessSnapshot;
   readonly suppressCredentialSurfaces: boolean;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeGuestAccessCopy(locale);
   const align = locale === "ar" ? "right" : "left";
   if (snapshot.status === null) return null;
@@ -145,6 +148,8 @@ function DateRow({
   readonly locale: FoundationLocale;
   readonly value: string | null;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const formatted =
     value === null
       ? "—"

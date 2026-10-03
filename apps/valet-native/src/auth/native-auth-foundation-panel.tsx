@@ -1,3 +1,7 @@
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import type {
@@ -7,8 +11,8 @@ import type {
 
 import type { NativeAuthCopy } from "./native-auth-copy";
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import { employeeColors } from "../employee-ui/employee-tokens";
-import { styles } from "../foundation/foundation-styles";
+
+import { stylesTheme } from "../foundation/foundation-styles";
 
 export function NativeAuthFoundationPanel({
   busy,
@@ -27,6 +31,9 @@ export function NativeAuthFoundationPanel({
   readonly textAlign: "left" | "right";
   readonly tone?: "dark" | "light";
 }) {
+  const p = useEmployeePalette();
+  const styles = useEmployeeStyles(stylesTheme);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   if (snapshot.phase === "restoring")
@@ -87,7 +94,7 @@ export function NativeAuthFoundationPanel({
         keyboardType="email-address"
         onChangeText={setEmail}
         placeholder={copy.email}
-        placeholderTextColor={employeeColors.muted}
+        placeholderTextColor={p.textMuted}
         style={[
           styles.input,
           tone === "dark" && styles.darkInput,
@@ -101,7 +108,7 @@ export function NativeAuthFoundationPanel({
         autoComplete="current-password"
         onChangeText={setPassword}
         placeholder={copy.password}
-        placeholderTextColor={employeeColors.muted}
+        placeholderTextColor={p.textMuted}
         secureTextEntry
         style={[
           styles.input,
@@ -132,6 +139,8 @@ function StatusText({
   readonly textAlign: "left" | "right";
   readonly tone: "dark" | "light";
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <Text
       accessibilityLiveRegion="polite"

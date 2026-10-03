@@ -1,11 +1,14 @@
+import { useEmployeePalette } from "../appearance/employee-appearance-context";
 import Svg, { Path } from "react-native-svg";
 import type { EmployeeIconProps } from "./employee-icon-types";
-import { employeeColors } from "./employee-tokens";
 
 export function EmployeeTorchIcon({
-  color = employeeColors.navy,
+  color: colorOverride,
   size = 20,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.textPrimary;
+
   return (
     <Svg
       accessible={false}

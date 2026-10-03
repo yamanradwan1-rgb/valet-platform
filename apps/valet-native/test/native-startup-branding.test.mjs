@@ -131,12 +131,20 @@ describe("Native splash lifecycle", () => {
     expect(layout).toContain("SplashScreen.preventAutoHideAsync()");
   });
 
-  it("hides once from the first root layout without operational gates", () => {
+  it("hides once after layout and bounded appearance restore without operational gates", () => {
     const readyHandler = layout.match(
-      /const hideSplashWhenRootIsReady = useCallback\([\s\S]*?\n[ ]{2}\}, \[\]\);/,
+      /const hideSplashWhenRootIsReady = useCallback\([\s\S]*?\n[ ]{2}\}, \[ready\]\);/,
     )?.[0];
     expect(readyHandler).toBeDefined();
-    expect(layout).toContain("onLayout={hideSplashWhenRootIsReady}");
+    expect(layout).toContain("hasLaidOut.current = true");
+    expect(readyHandler).toContain(
+      "!ready || !hasLaidOut.current || hasHiddenSplash.current",
+    );
+    expect(layout).toContain('pointerEvents={ready ? "auto" : "none"}');
+    expect(layout).toContain("opacity: ready ? 1 : 0");
+    expect(layout).toContain("<EmployeeAppearanceProvider>");
+    expect(layout).toContain("<Stack screenOptions={{ headerShown: false }}>");
+    expect(layout).not.toMatch(/key=|if \(!ready\) return/);
     expect(readyHandler).toContain("hasHiddenSplash.current = true");
     expect(readyHandler).toContain("SplashScreen.hideAsync()");
     expect(layout.match(/SplashScreen\.hideAsync\(\)/g)).toHaveLength(1);

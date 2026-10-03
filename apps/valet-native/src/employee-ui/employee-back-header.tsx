@@ -1,18 +1,19 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Pressable, Text, View } from "react-native";
 
 import { EmployeeBackIcon } from "./employee-icons";
 import {
-  employeeColors as c,
   employeeMinimumTouchTarget,
   employeeSpacing as space,
 } from "./employee-tokens";
 import { employeeTypography as type } from "./employee-typography";
 
-export const employeeBackHeaderStyles = StyleSheet.create({
+export const employeeBackHeaderStylesTheme = createEmployeeStyles((p) => ({
   header: {
     alignItems: "center",
-    backgroundColor: c.warm,
-    borderBottomColor: c.border,
+    backgroundColor: p.appBackground,
+    borderBottomColor: p.border,
     borderBottomWidth: 1,
     flexDirection: "row",
     gap: space.sm,
@@ -29,11 +30,12 @@ export const employeeBackHeaderStyles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   title: {
     ...type.backHeaderTitle,
-    color: c.navy,
+    color: p.textPrimary,
     flex: 1,
     flexShrink: 1,
   },
-});
+}));
+export const employeeBackHeaderStyles = employeeBackHeaderStylesTheme.light;
 
 export function EmployeeBackHeader({
   accessibilityLabel,
@@ -50,6 +52,10 @@ export function EmployeeBackHeader({
   readonly textAlign: "left" | "right";
   readonly title: string;
 }) {
+  const employeeBackHeaderStyles = useEmployeeStyles(
+    employeeBackHeaderStylesTheme,
+  );
+
   return (
     <View style={employeeBackHeaderStyles.header}>
       <Pressable

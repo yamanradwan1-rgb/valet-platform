@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { AppState, Linking, TextInput, View } from "react-native";
 import { CameraView } from "expo-camera";
@@ -19,7 +20,7 @@ import { NativeQrController } from "../scanner/native-qr-controller";
 import { getNativeQrCopy } from "../scanner/native-qr-copy";
 import { bindNativeQrLifecycle } from "../scanner/native-qr-lifecycle";
 import type { NativeHandoffCopy } from "./native-handoff-copy";
-import { nativeHandoffStyles as s } from "./native-handoff-styles";
+import { nativeHandoffStylesTheme as sTheme } from "./native-handoff-styles";
 
 export function NativeHandoffScanner({
   auth,
@@ -38,6 +39,8 @@ export function NativeHandoffScanner({
   readonly value: string;
   readonly onChange: (proof: string) => void;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const [controller] = useState(
     () => new NativeQrController("dynamic-handoff", nativeCameraPermissions),
   );

@@ -2,6 +2,9 @@ import type { EmployeeLocale } from "@valet/employee-client";
 
 export const nativeAccountMenuCopy = {
   ar: {
+    appearance: "المظهر",
+    light: "فاتح",
+    dark: "داكن",
     about: "حول التطبيق",
     appBuild: "إصدار البناء",
     appVersion: "إصدار التطبيق",
@@ -22,6 +25,9 @@ export const nativeAccountMenuCopy = {
     title: "الحساب والإعدادات",
   },
   en: {
+    appearance: "Appearance",
+    light: "Light",
+    dark: "Dark",
     about: "About",
     appBuild: "App build",
     appVersion: "App version",

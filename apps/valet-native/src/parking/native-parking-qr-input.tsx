@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import {
   useCallback,
   useEffect,
@@ -39,7 +40,7 @@ import {
 import { NativeQrController } from "../scanner/native-qr-controller";
 import { getNativeQrCopy } from "../scanner/native-qr-copy";
 import { bindNativeQrLifecycle } from "../scanner/native-qr-lifecycle";
-import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import { nativeParkingConfirmStylesTheme as sTheme } from "./native-parking-confirm-styles";
 
 export function NativeParkingQrInput({
   auth,
@@ -88,6 +89,8 @@ export function NativeParkingQrInput({
   readonly hideIdleStatus?: boolean | undefined;
   readonly value: string;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const [controller] = useState(
     () => new NativeQrController(kind, nativeCameraPermissions),
   );

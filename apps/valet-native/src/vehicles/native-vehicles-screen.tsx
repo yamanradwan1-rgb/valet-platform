@@ -1,7 +1,9 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type { ReactNode } from "react";
 import type { StaffVehicleDirectoryRow } from "@valet/employee-client";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import type {
   EmployeeOperationalScope,
   EmployeeVehicleDirectorySession,
@@ -9,10 +11,7 @@ import type {
 } from "@valet/employee-client";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import {
-  employeeColors as c,
-  employeeRadius,
-} from "../employee-ui/employee-tokens";
+import { employeeRadius } from "../employee-ui/employee-tokens";
 import {
   employeeTextStyle,
   employeeTypography as type,
@@ -30,6 +29,8 @@ export function NativeVehiclesScreen(props: {
   readonly snapshot: EmployeeVehicleDirectorySnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(nativeVehiclesScreenStylesTheme);
+
   const { directory, locale, scope, snapshot, textAlign } = props;
   const copy = getNativeVehiclesCopy(locale);
   const human = employeeTextStyle("human", textAlign);
@@ -106,6 +107,8 @@ export function NativeVehiclesScreen(props: {
 }
 
 function VehicleSkeleton() {
+  const s = useEmployeeStyles(nativeVehiclesScreenStylesTheme);
+
   return (
     <View
       accessible={false}
@@ -118,48 +121,48 @@ function VehicleSkeleton() {
   );
 }
 
-export const nativeVehiclesScreenStyles = StyleSheet.create({
+export const nativeVehiclesScreenStylesTheme = createEmployeeStyles((p) => ({
   screen: { gap: 16, padding: 20 },
-  title: { ...type.pageTitle, color: c.navy },
-  subtitle: { ...type.body, color: c.neutral, marginTop: 4 },
+  title: { ...type.pageTitle, color: p.textPrimary },
+  subtitle: { ...type.body, color: p.textSecondary, marginTop: 4 },
   warning: {
     ...type.supporting,
-    backgroundColor: "#FFF4E0",
-    borderColor: "#D8943433",
+    backgroundColor: p.warningSurface,
+    borderColor: p.warningBorder,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.warning,
+    color: p.warning,
     fontWeight: "600",
     lineHeight: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  refreshing: { ...type.supporting, color: c.muted },
-  loading: { ...type.body, color: c.neutral },
+  refreshing: { ...type.supporting, color: p.textMuted },
+  loading: { ...type.body, color: p.textSecondary },
   stack: { gap: 12 },
   skeleton: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     gap: 8,
     padding: 16,
   },
   skeletonTitle: {
-    backgroundColor: "#E5E7EB",
+    backgroundColor: p.skeleton,
     borderRadius: 4,
     height: 16,
     width: "66.666%",
   },
   skeletonDetail: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: p.skeletonSoft,
     borderRadius: 4,
     height: 12,
     width: "33.333%",
   },
   stateCard: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
     gap: 12,
@@ -167,11 +170,10 @@ export const nativeVehiclesScreenStyles = StyleSheet.create({
   },
   stateTitle: {
     ...type.pageTitle,
-    color: c.navy,
+    color: p.textPrimary,
     fontFamily: type.vehicleIdentity.fontFamily,
     fontSize: 18,
   },
-  stateDetail: { ...type.supporting, color: c.neutral, lineHeight: 20 },
-});
-
-const s = nativeVehiclesScreenStyles;
+  stateDetail: { ...type.supporting, color: p.textSecondary, lineHeight: 20 },
+}));
+export const nativeVehiclesScreenStyles = nativeVehiclesScreenStylesTheme.light;

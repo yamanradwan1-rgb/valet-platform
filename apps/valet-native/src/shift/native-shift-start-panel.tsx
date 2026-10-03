@@ -1,10 +1,11 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type {
   EmployeeShiftStartSession,
   EmployeeShiftStartSnapshot,
 } from "@valet/employee-client";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { employeeColors as c } from "../employee-ui/employee-tokens";
 import {
   employeeFontFamilies,
   employeeFontWeights,
@@ -14,7 +15,7 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
   NativeGateButton,
   NativeGateCard,
-  nativeGateStyles,
+  nativeGateStylesTheme,
 } from "../shell/native-gate-primitives";
 import { getNativeShiftCopy } from "./native-shift-copy";
 
@@ -27,6 +28,8 @@ export function NativeShiftStartPanel({
   readonly session: EmployeeShiftStartSession;
   readonly snapshot: EmployeeShiftStartSnapshot;
 }) {
+  const styles = useEmployeeStyles(nativeShiftStartStylesTheme);
+
   const textAlign = locale === "ar" ? "right" : "left";
   const copy = getNativeShiftCopy(locale);
   const submitting = snapshot.phase === "submitting";
@@ -140,19 +143,19 @@ export function NativeShiftStartPanel({
   );
 }
 
-export const nativeShiftStartStyles = StyleSheet.create({
+export const nativeShiftStartStylesTheme = createEmployeeStyles((p) => ({
   body: {
-    ...nativeGateStyles.body,
+    ...nativeGateStylesTheme[p.mode].body,
   },
   error: {
-    color: "#FECACA",
+    color: p.gateErrorTitle,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 12,
     fontWeight: employeeFontWeights.semiBold,
     lineHeight: 16,
   },
   label: {
-    color: c.muted,
+    color: p.textMuted,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 12,
     fontWeight: employeeFontWeights.regular,
@@ -160,8 +163,8 @@ export const nativeShiftStartStyles = StyleSheet.create({
     textTransform: "uppercase",
   },
   location: {
-    backgroundColor: "#FFFFFF0A",
-    borderColor: "#FFFFFF1A",
+    backgroundColor: p.gateLocationSurface,
+    borderColor: p.gateCardBorder,
     borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 16,
@@ -169,34 +172,36 @@ export const nativeShiftStartStyles = StyleSheet.create({
     width: "100%",
   },
   locationCode: {
-    color: c.muted,
+    color: p.textMuted,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 12,
     lineHeight: 16,
     marginTop: 2,
   },
   locationName: {
-    color: c.white,
+    color: p.onAction,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 14,
     fontWeight: employeeFontWeights.semiBold,
     lineHeight: 20,
   },
-  locationSelected: { backgroundColor: "#176BFF33", borderColor: c.blue },
+  locationSelected: {
+    backgroundColor: p.gateSelectedSurface,
+    borderColor: p.linkPrimary,
+  },
   panelContent: { gap: 12, width: "100%" },
   supporting: {
-    color: c.muted,
+    color: p.textMuted,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 12,
     lineHeight: 19.5,
   },
   uncertainTitle: {
-    color: c.white,
+    color: p.onAction,
     fontFamily: employeeFontFamilies.display,
     fontSize: 18,
     fontWeight: employeeFontWeights.bold,
     lineHeight: 28,
   },
-});
-
-const styles = nativeShiftStartStyles;
+}));
+export const nativeShiftStartStyles = nativeShiftStartStylesTheme.light;

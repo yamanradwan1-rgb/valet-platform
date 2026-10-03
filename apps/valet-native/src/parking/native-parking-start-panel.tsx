@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { ScrollView, Text } from "react-native";
 import type {
   EmployeeOperationalSession,
@@ -17,7 +18,7 @@ import {
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingStartCopy } from "./native-parking-start-copy";
-import { nativeParkingStartStyles as s } from "./native-parking-start-styles";
+import { nativeParkingStartStylesTheme as sTheme } from "./native-parking-start-styles";
 
 export function NativeParkingStartPanel({
   locale,
@@ -32,6 +33,8 @@ export function NativeParkingStartPanel({
   readonly parking: EmployeeParkingStartSession;
   readonly snapshot: EmployeeParkingStartSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeParkingStartCopy(locale);
   const direction = locale === "ar" ? "rtl" : "ltr";
   const textAlign = locale === "ar" ? "right" : "left";
@@ -80,6 +83,8 @@ function ParkingContent({
   readonly snapshot: EmployeeParkingStartSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const task = snapshot.task;
   const vehicle = task?.vehicle;
   const vehicleName =

@@ -1,13 +1,17 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
 import type {
   EmployeeShiftEndSession,
   EmployeeShiftEndSnapshot,
 } from "@valet/employee-client";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ScrollView, Text, TextInput, View } from "react-native";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeCard } from "../employee-ui/employee-feedback";
 import {
-  employeeColors as c,
   employeeFieldHeights,
   employeeRadius,
   employeeSpacing as space,
@@ -38,6 +42,9 @@ export function NativeActiveShiftPanel({
   readonly snapshot: EmployeeShiftEndSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const p = useEmployeePalette();
+  const styles = useEmployeeStyles(stylesTheme);
+
   const copy = getNativeShiftCopy(locale);
   const authority = snapshot.authority;
   if (authority === null) return null;
@@ -118,7 +125,7 @@ export function NativeActiveShiftPanel({
             maxLength={15}
             onChangeText={(value) => session.setCashInput(value)}
             placeholder={copy.cashAmountPlaceholder}
-            placeholderTextColor={c.muted}
+            placeholderTextColor={p.textMuted}
             style={styles.cashInput}
             value={snapshot.cashInput}
           />
@@ -218,49 +225,49 @@ export function NativeActiveShiftPanel({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles((p) => ({
   blocked: { gap: space.sm },
   cashInput: {
     ...type.operationalValue,
-    backgroundColor: c.warm,
-    borderColor: c.border,
+    backgroundColor: p.appBackground,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     height: employeeFieldHeights.standard,
     paddingHorizontal: space.lg,
     textAlign: "center",
     writingDirection: "ltr",
   },
   confirm: { gap: space.sm },
-  confirmText: { ...type.body, color: c.navy, fontWeight: "600" },
+  confirmText: { ...type.body, color: p.textPrimary, fontWeight: "600" },
   container: { flex: 1 },
   endedTitle: {
     ...type.pageTitle,
-    color: c.navy,
+    color: p.textPrimary,
     fontFamily: "Space Grotesk",
     fontSize: 18,
   },
-  heading: { ...type.pageTitle, color: c.navy },
-  helper: { ...type.small, color: c.muted },
+  heading: { ...type.pageTitle, color: p.textPrimary },
+  helper: { ...type.small, color: p.textMuted },
   label: {
     ...type.small,
-    color: c.neutral,
+    color: p.textSecondary,
     fontWeight: "600",
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   screen: { gap: space.screen, padding: space.screen },
-  subheading: { ...type.body, color: c.neutral, marginTop: space.xs },
+  subheading: { ...type.body, color: p.textSecondary, marginTop: space.xs },
   uncertain: {
-    backgroundColor: c.ice,
-    borderColor: c.border,
+    backgroundColor: p.selectedSurface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     gap: space.sm,
     padding: space.md,
   },
-  uncertainText: { ...type.small, color: c.navy, fontWeight: "600" },
-  validation: { ...type.small, color: c.danger, fontWeight: "600" },
-  blockedText: { ...type.small, color: c.navy, fontWeight: "600" },
-});
+  uncertainText: { ...type.small, color: p.textPrimary, fontWeight: "600" },
+  validation: { ...type.small, color: p.danger, fontWeight: "600" },
+  blockedText: { ...type.small, color: p.textPrimary, fontWeight: "600" },
+}));

@@ -91,7 +91,7 @@ describe("Assistive plate camera lifecycle", () => {
       if (exit === "identity") await context.identity.purge();
       if (exit === "auth")
         context.authChange({
-          phase: "anonymous",
+          phase: "authenticated",
           authGeneration: 2,
         } as NativeAuthSnapshot);
       if (exit === "unmount") context.cleanup();

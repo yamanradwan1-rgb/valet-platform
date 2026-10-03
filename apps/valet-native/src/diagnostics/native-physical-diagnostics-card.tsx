@@ -1,11 +1,10 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState, useSyncExternalStore } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { EmployeeCard } from "../employee-ui/employee-feedback";
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 import { getPhysicalDiagnostics } from "./native-physical-diagnostics";
 import {
@@ -14,6 +13,8 @@ import {
 } from "./native-physical-diagnostics-model";
 
 export function NativePhysicalDiagnosticsCard() {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const owner = getPhysicalDiagnostics();
   const samples = useSyncExternalStore(owner.subscribe, owner.snapshot);
   const [expanded, setExpanded] = useState(false);
@@ -76,6 +77,8 @@ function Action({
   readonly label: string;
   readonly onPress: () => void;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -91,27 +94,27 @@ function show(value: number | null): string {
   return value === null ? "—" : `${value}ms`;
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles((p) => ({
   button: {
-    backgroundColor: c.navy,
+    backgroundColor: p.inverseSurface,
     borderRadius: 8,
     marginTop: space.sm,
     padding: space.md,
   },
-  buttonText: { color: c.white, textAlign: "center" },
+  buttonText: { color: p.onAction, textAlign: "center" },
   metric: {
-    borderTopColor: c.border,
+    borderTopColor: p.border,
     borderTopWidth: 1,
     gap: 2,
     paddingVertical: space.sm,
   },
-  metricName: { ...type.small, color: c.navy, fontWeight: "600" },
+  metricName: { ...type.small, color: p.textPrimary, fontWeight: "600" },
   title: {
     ...type.small,
-    color: c.navy,
+    color: p.textPrimary,
     fontWeight: "700",
     paddingBottom: space.sm,
   },
-  value: { ...type.small, color: c.neutral },
-  warning: { ...type.small, color: c.muted, paddingBottom: space.sm },
-});
+  value: { ...type.small, color: p.textSecondary },
+  warning: { ...type.small, color: p.textMuted, paddingBottom: space.sm },
+}));

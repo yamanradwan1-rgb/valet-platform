@@ -1,10 +1,9 @@
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Linking, Pressable, Text, View } from "react-native";
 import type { EmployeeLocale } from "@valet/employee-client";
 
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import {
   employeeTextStyle,
   employeeTypography as type,
@@ -18,6 +17,8 @@ export function NativePushPermissionStatus(props: {
   readonly snapshot: NativePushSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const copy = getNativePushCopy(props.locale);
   const presentation = nativePushStatusPresentation(props.snapshot, copy);
 
@@ -98,17 +99,17 @@ export function nativePushStatusPresentation(
   };
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles((p) => ({
   action: {
     alignItems: "center",
     minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: space.md,
   },
-  actionText: { ...type.small, color: c.blue, fontWeight: "700" },
+  actionText: { ...type.small, color: p.linkPrimary, fontWeight: "700" },
   container: {
     alignItems: "center",
-    backgroundColor: c.ice,
+    backgroundColor: p.selectedSurface,
     borderRadius: 12,
     flexDirection: "row",
     gap: space.sm,
@@ -116,8 +117,8 @@ const styles = StyleSheet.create({
   },
   message: {
     ...type.small,
-    color: c.neutral,
+    color: p.textSecondary,
     flex: 1,
     paddingVertical: space.sm,
   },
-});
+}));

@@ -1,5 +1,7 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useCallback, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   ReduceMotion,
@@ -11,7 +13,6 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import {
-  employeeColors as c,
   employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
@@ -37,6 +38,10 @@ interface NativeRetrievalAlertProps {
 }
 
 export function NativeRetrievalAttention(props: NativeRetrievalAlertProps) {
+  const attentionStyles = useEmployeeStyles(
+    nativeRetrievalAttentionStylesTheme,
+  );
+
   if (props.attention.length === 0) return null;
   return (
     <View
@@ -68,6 +73,10 @@ export function NativeRetrievalAlertBanner({
 }: Omit<NativeRetrievalAlertProps, "attention"> & {
   readonly item: NativeRetrievalAttentionItem;
 }) {
+  const attentionStyles = useEmployeeStyles(
+    nativeRetrievalAttentionStylesTheme,
+  );
+
   const [opening, setOpening] = useState(false);
   const openingRef = useRef(false);
   const translateY = useSharedValue(0);
@@ -164,49 +173,51 @@ export function NativeRetrievalAlertBanner({
   );
 }
 
-export const nativeRetrievalAttentionStyles = StyleSheet.create({
-  banner: {
-    alignItems: "center",
-    backgroundColor: c.white,
-    borderColor: "#176BFF40",
-    borderRadius: employeeRadius.primary,
-    borderWidth: 1,
-    elevation: 10,
-    flexDirection: "row",
-    shadowColor: c.navy,
-    shadowOffset: { height: 6, width: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    width: "100%",
-  },
-  body: { ...type.small, color: c.neutral, marginTop: 2 },
-  dismiss: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 44,
-    paddingHorizontal: space.md,
-  },
-  dismissLabel: { ...type.small, color: c.blue, fontWeight: "600" },
-  message: {
-    flex: 1,
-    minWidth: 0,
-    paddingHorizontal: space.lg,
-    paddingVertical: space.md,
-  },
-  stack: {
-    gap: space.sm,
-    left: space.lg,
-    position: "absolute",
-    right: space.lg,
-    top: 80,
-    zIndex: 30,
-  },
-  title: {
-    ...type.body,
-    color: c.navy,
-    fontFamily: employeeFontFamilies.display,
-    fontWeight: "700",
-  },
-});
-
-const attentionStyles = nativeRetrievalAttentionStyles;
+export const nativeRetrievalAttentionStylesTheme = createEmployeeStyles(
+  (p) => ({
+    banner: {
+      alignItems: "center",
+      backgroundColor: p.surface,
+      borderColor: p.attentionBorder,
+      borderRadius: employeeRadius.primary,
+      borderWidth: 1,
+      elevation: 10,
+      flexDirection: "row",
+      shadowColor: p.shadow,
+      shadowOffset: { height: 6, width: 0 },
+      shadowOpacity: 0.2,
+      shadowRadius: 12,
+      width: "100%",
+    },
+    body: { ...type.small, color: p.textSecondary, marginTop: 2 },
+    dismiss: {
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 44,
+      paddingHorizontal: space.md,
+    },
+    dismissLabel: { ...type.small, color: p.linkPrimary, fontWeight: "600" },
+    message: {
+      flex: 1,
+      minWidth: 0,
+      paddingHorizontal: space.lg,
+      paddingVertical: space.md,
+    },
+    stack: {
+      gap: space.sm,
+      left: space.lg,
+      position: "absolute",
+      right: space.lg,
+      top: 80,
+      zIndex: 30,
+    },
+    title: {
+      ...type.body,
+      color: p.textPrimary,
+      fontFamily: employeeFontFamilies.display,
+      fontWeight: "700",
+    },
+  }),
+);
+export const nativeRetrievalAttentionStyles =
+  nativeRetrievalAttentionStylesTheme.light;

@@ -1,7 +1,14 @@
 import {
+  createEmployeeStyles,
+  createEmployeeValues,
+} from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
+import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   View,
   type AccessibilityRole,
@@ -11,15 +18,13 @@ import type { ReactNode } from "react";
 
 import {
   employeeButtonHeights,
-  employeeColors as c,
-  employeeFeedbackColors,
   employeeMinimumTouchTarget,
   employeeRadius,
   employeeSpacing,
 } from "./employee-tokens";
 import { employeeTypography } from "./employee-typography";
 
-export const employeeControlStyles = StyleSheet.create({
+export const employeeControlStylesTheme = createEmployeeStyles((p) => ({
   button: {
     alignItems: "center",
     borderRadius: employeeRadius.primary,
@@ -33,38 +38,47 @@ export const employeeControlStyles = StyleSheet.create({
     textAlign: "center",
   },
   disabled: { opacity: 0.4 },
-  danger: { backgroundColor: c.danger },
+  danger: { backgroundColor: p.actionDanger },
   muted: { backgroundColor: "transparent" },
-  navy: { backgroundColor: c.navy },
-  primary: { backgroundColor: c.blue },
+  navy: { backgroundColor: p.inverseSurface },
+  primary: { backgroundColor: p.actionPrimary },
   secondary: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderWidth: 1,
   },
   ghost: { backgroundColor: "transparent" },
-  success: { backgroundColor: c.success },
-});
+  success: { backgroundColor: p.actionSuccess },
+}));
+export const employeeControlStyles = employeeControlStylesTheme.light;
 
 export type EmployeeButtonVariant =
   "danger" | "ghost" | "muted" | "navy" | "primary" | "secondary" | "success";
 export type EmployeeButtonSize = keyof typeof employeeButtonHeights;
 
-const labelColors = {
-  danger: c.white,
-  ghost: c.blue,
-  muted: c.muted,
-  navy: c.white,
-  primary: c.white,
-  secondary: c.navy,
-  success: c.white,
-} satisfies Record<EmployeeButtonVariant, string>;
-const pressedColors: Partial<Record<EmployeeButtonVariant, string>> = {
-  ghost: c.ice,
-  navy: c.navy3,
-  primary: employeeFeedbackColors.primaryPressed,
-  secondary: employeeFeedbackColors.secondaryPressed,
-};
+const labelColorsTheme = createEmployeeValues(
+  (p) =>
+    ({
+      danger: p.onAction,
+      ghost: p.linkPrimary,
+      muted: p.textMuted,
+      navy: p.onAction,
+      primary: p.onAction,
+      secondary: p.textPrimary,
+      success: p.onAction,
+    }) satisfies Record<EmployeeButtonVariant, string>,
+);
+const pressedColorsTheme = createEmployeeValues<
+  Partial<Record<EmployeeButtonVariant, string>>
+>(
+  (p) =>
+    ({
+      ghost: p.selectedSurface,
+      navy: p.inverseRaised,
+      primary: p.primaryPressed,
+      secondary: p.secondaryPressed,
+    }) satisfies Partial<Record<EmployeeButtonVariant, string>>,
+);
 
 export function EmployeeButton({
   label,
@@ -95,6 +109,11 @@ export function EmployeeButton({
   readonly leading?: ReactNode;
   readonly radius?: number | undefined;
 }) {
+  const p = useEmployeePalette();
+  const employeeControlStyles = useEmployeeStyles(employeeControlStylesTheme);
+  const labelColors = useEmployeeStyles(labelColorsTheme);
+  const pressedColors = useEmployeeStyles(pressedColorsTheme);
+
   const height = heightOverride ?? employeeButtonHeights[size];
   const hitExtension = Math.max(0, (employeeMinimumTouchTarget - height) / 2);
   const isDisabled = disabled || busy;
@@ -150,8 +169,8 @@ export function EmployeeButton({
               variant === "navy" ||
               variant === "danger" ||
               variant === "success"
-                ? c.white
-                : c.blue
+                ? p.onAction
+                : p.linkPrimary
             }
             size="small"
           />

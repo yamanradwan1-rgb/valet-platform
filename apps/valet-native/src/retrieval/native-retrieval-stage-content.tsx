@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type {
   EmployeeRetrievalSession,
   EmployeeRetrievalSnapshot,
@@ -21,7 +22,7 @@ import {
   keyCheckoutBoundary,
   presentRetrievalFailure,
 } from "./native-retrieval-presentation";
-import { nativeRetrievalStyles as s } from "./native-retrieval-styles";
+import { nativeRetrievalStylesTheme as sTheme } from "./native-retrieval-styles";
 
 interface StageProps {
   readonly copy: NativeRetrievalCopy;
@@ -41,6 +42,8 @@ export function NativeRetrievalKeyCheckout({
   readonly locale: FoundationLocale;
   readonly retrieval: EmployeeRetrievalSession;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const submitting = snapshot.phase === "submitting-start";
   const expectedKey = snapshot.session?.keySlot?.code ?? null;
   const boundary = keyCheckoutBoundary(
@@ -124,6 +127,8 @@ export function NativeRetrievalRetrieving({
   readonly retrieval: EmployeeRetrievalSession;
   readonly onReportIssue?: (() => void) | undefined;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const submitting = snapshot.phase === "submitting-ready";
   return (
     <>
@@ -193,6 +198,8 @@ export function NativeRetrievalReady({
 }
 
 function ElapsedValue({ startTimeIso }: { readonly startTimeIso: string }) {
+  const s = useEmployeeStyles(sTheme);
+
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1_000);

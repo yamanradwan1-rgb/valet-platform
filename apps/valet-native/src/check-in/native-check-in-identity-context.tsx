@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Text, View } from "react-native";
 import type { EmployeeCheckInSnapshot } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
@@ -9,7 +11,6 @@ import {
 import type { NativeTextAlign } from "./native-check-in-primitives";
 import { isPlateCountry } from "./native-plate-country-selector";
 import {
-  employeeColors as c,
   employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
@@ -29,6 +30,8 @@ export function NativeCheckInIdentityContext({
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
 }) {
+  const styles = useEmployeeStyles(nativeCheckInIdentityStylesTheme);
+
   const hasPlate = snapshot.vehicle.mode === "CONFIRMED_PLATE";
   const identity = checkInIdentityLabel(snapshot, copy.vehicle);
   const vehicle = snapshot.recognizedVehicle ?? snapshot.vehicle;
@@ -113,6 +116,8 @@ function CountryContext({
   readonly prefix: string;
   readonly textAlign: NativeTextAlign;
 }) {
+  const styles = useEmployeeStyles(nativeCheckInIdentityStylesTheme);
+
   const countryName = isPlateCountry(country)
     ? copy.countryNames[country]
     : country;
@@ -131,39 +136,39 @@ function CountryContext({
   );
 }
 
-export const nativeCheckInIdentityStyles = StyleSheet.create({
+export const nativeCheckInIdentityStylesTheme = createEmployeeStyles((p) => ({
   cardLabel: {
     ...type.small,
-    color: c.muted,
+    color: p.textMuted,
     fontWeight: "600",
     letterSpacing: 0.5,
   },
   code: { writingDirection: "ltr" },
-  context: { ...type.small, color: c.neutral, fontWeight: "600" },
+  context: { ...type.small, color: p.textSecondary, fontWeight: "600" },
   countryContext: {
     alignItems: "center",
     flexDirection: "row",
     gap: space.xs,
     justifyContent: "center",
   },
-  descriptor: { ...type.plate, color: c.navy },
+  descriptor: { ...type.plate, color: p.textPrimary },
   hero: {
     alignItems: "center",
-    backgroundColor: c.ice,
+    backgroundColor: p.selectedSurface,
     borderRadius: employeeRadius.primary,
     gap: space.sm,
     padding: space.hero,
   },
-  plate: { ...type.plate, color: c.navy, letterSpacing: 4 },
+  plate: { ...type.plate, color: p.textPrimary, letterSpacing: 4 },
   status: {
     ...type.small,
-    color: c.neutral,
+    color: p.textSecondary,
     fontWeight: "600",
     letterSpacing: 0.75,
   },
   vehicleCard: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
     gap: space.xs,
@@ -174,8 +179,8 @@ export const nativeCheckInIdentityStyles = StyleSheet.create({
     flexDirection: "row",
     gap: space.xs,
   },
-  vehicleDetail: { ...type.body, color: c.neutral },
-  vehicleName: { ...type.vehicleIdentity, color: c.navy },
-});
-
-const styles = nativeCheckInIdentityStyles;
+  vehicleDetail: { ...type.body, color: p.textSecondary },
+  vehicleName: { ...type.vehicleIdentity, color: p.textPrimary },
+}));
+export const nativeCheckInIdentityStyles =
+  nativeCheckInIdentityStylesTheme.light;

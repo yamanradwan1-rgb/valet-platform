@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { NativeAuthSnapshot } from "@valet/employee-client";
@@ -8,7 +9,7 @@ import {
   initialNativePocProbeSnapshot,
   runNativePocChecks,
 } from "./native-poc-probes";
-import { styles } from "../foundation/foundation-styles";
+import { stylesTheme } from "../foundation/foundation-styles";
 
 interface NativePocPanelProps {
   readonly apiOrigin: string | undefined;
@@ -16,6 +17,8 @@ interface NativePocPanelProps {
 }
 
 export function NativePocPanel({ apiOrigin, auth }: NativePocPanelProps) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const mounted = useRef(true);
   const [probes, setProbes] = useState(initialNativePocProbeSnapshot);
   const [busy, setBusy] = useState(false);
@@ -105,6 +108,8 @@ export function NativePocPanel({ apiOrigin, auth }: NativePocPanelProps) {
 }
 
 function Diagnostic({ label, value }: { label: string; value: string }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <Text style={styles.devDiagnosticsFact}>
       {label}: {value}

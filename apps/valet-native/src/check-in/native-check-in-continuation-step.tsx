@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Text } from "react-native";
 import type {
   EmployeeCheckInSession,
@@ -20,7 +21,7 @@ import {
   VehicleCard,
 } from "./native-check-in-primitives";
 import { checkInTextStyle } from "./native-check-in-presentation";
-import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
 import {
   EmployeeBadge,
   EmployeeCard,
@@ -149,6 +150,8 @@ function VehicleDetailsCard({
   readonly c: NativeCheckInContinuationCopy;
   readonly textAlign: NativeTextAlign;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <EmployeeCard>
       {(

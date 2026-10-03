@@ -1,7 +1,8 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Text, View, useWindowDimensions } from "react-native";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
-import { nativeVehicleRowStyles } from "./native-vehicle-row-styles";
+import { nativeVehicleRowStylesTheme } from "./native-vehicle-row-styles";
 import type { nativeCheckInActionsCopy } from "./native-check-in-actions-copy";
 import type { EmployeeCancelCheckInPhase } from "@valet/employee-client";
 
@@ -24,6 +25,8 @@ export function NativeVehicleCheckInActions({
   readonly onRetry: () => void;
   readonly textAlign: "left" | "right";
 }) {
+  const nativeVehicleRowStyles = useEmployeeStyles(nativeVehicleRowStylesTheme);
+
   const { fontScale } = useWindowDimensions();
   const actionHeight = Math.ceil(64 * Math.max(1, fontScale));
   const busy = ["preparing", "submitting", "reconciling", "confirm"].includes(

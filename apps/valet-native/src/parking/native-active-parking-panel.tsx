@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import type { EmployeeParkingStartSnapshot } from "@valet/employee-client";
@@ -7,7 +8,7 @@ import { EmployeeBadge } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeActiveParkingCopy } from "./native-active-parking-copy";
-import { nativeActiveParkingStyles as s } from "./native-active-parking-styles";
+import { nativeActiveParkingStylesTheme as sTheme } from "./native-active-parking-styles";
 
 export function NativeActiveParkingPanel({
   locale,
@@ -20,6 +21,8 @@ export function NativeActiveParkingPanel({
   readonly onReportIssue?: ((sessionId: string) => void) | undefined;
   readonly snapshot: EmployeeParkingStartSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeActiveParkingCopy(locale);
   const textAlign = locale === "ar" ? "right" : "left";
   const direction = locale === "ar" ? "rtl" : "ltr";
@@ -84,6 +87,8 @@ function VehicleInfoRow({
   readonly textAlign: "left" | "right";
   readonly vehicleName: string;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <View style={s.row}>
       <Text style={[s.rowLabel, employeeTextStyle("human", textAlign)]}>
@@ -116,6 +121,8 @@ function InfoRow({
   readonly label: string;
   readonly value: string;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <View style={[s.row, bordered && s.rowBorder]}>
       <Text style={s.rowLabel}>{label}</Text>
@@ -131,6 +138,8 @@ function ElapsedValue({
 }: {
   readonly startTimeIso: string | null;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1_000);

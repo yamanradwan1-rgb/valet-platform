@@ -1,13 +1,16 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
+import { employeeStatusPalette } from "../appearance/employee-palette";
 import type { ReactNode } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import {
   employeeCardPadding,
-  employeeColors as c,
-  employeeFeedbackColors,
   employeeRadius,
   employeeSpacing,
-  employeeStatusColors,
 } from "./employee-tokens";
 import {
   employeeTextStyle,
@@ -15,10 +18,10 @@ import {
   type EmployeeTextAlign,
 } from "./employee-typography";
 
-export const employeeFeedbackStyles = StyleSheet.create({
+export const employeeFeedbackStylesTheme = createEmployeeStyles((p) => ({
   card: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
   },
@@ -39,17 +42,17 @@ export const employeeFeedbackStyles = StyleSheet.create({
   badgeLabel: employeeTypography.badge,
   error: {
     ...employeeTypography.small,
-    backgroundColor: employeeFeedbackColors.errorSurface,
-    borderColor: employeeFeedbackColors.errorBorder,
+    backgroundColor: p.errorSurface,
+    borderColor: p.errorBorder,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.danger,
+    color: p.danger,
     padding: employeeSpacing.md,
   },
-  errorBody: { ...employeeTypography.small, color: c.danger },
+  errorBody: { ...employeeTypography.small, color: p.danger },
   errorNotice: {
-    backgroundColor: employeeFeedbackColors.errorSurface,
-    borderColor: employeeFeedbackColors.errorBorder,
+    backgroundColor: p.errorSurface,
+    borderColor: p.errorBorder,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     gap: employeeSpacing.xs,
@@ -57,12 +60,12 @@ export const employeeFeedbackStyles = StyleSheet.create({
   },
   errorTitle: {
     ...employeeTypography.body,
-    color: c.danger,
+    color: p.danger,
     fontWeight: "700",
   },
   successCard: {
-    backgroundColor: "#EEFBF5",
-    borderColor: "#2F9B7833",
+    backgroundColor: p.successSurface,
+    borderColor: p.successBorder,
   },
   progress: {
     alignItems: "center",
@@ -71,8 +74,9 @@ export const employeeFeedbackStyles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 320,
   },
-  status: { ...employeeTypography.body, color: c.neutral },
-});
+  status: { ...employeeTypography.body, color: p.textSecondary },
+}));
+export const employeeFeedbackStyles = employeeFeedbackStylesTheme.light;
 
 export function EmployeeCard({
   accessibilityLabel,
@@ -87,6 +91,8 @@ export function EmployeeCard({
   readonly padding?: keyof typeof employeeCardPadding;
   readonly variant?: "default" | "success";
 }) {
+  const employeeFeedbackStyles = useEmployeeStyles(employeeFeedbackStylesTheme);
+
   return (
     <View
       accessible={accessibilityLabel !== undefined}
@@ -114,9 +120,12 @@ export function EmployeeBadge({
 }: {
   readonly label: string;
   readonly showDot?: boolean;
-  readonly variant?: keyof typeof employeeStatusColors;
+  readonly variant?: keyof ReturnType<typeof employeeStatusPalette>;
   readonly textAlign: EmployeeTextAlign;
 }) {
+  const p = useEmployeePalette();
+  const employeeFeedbackStyles = useEmployeeStyles(employeeFeedbackStylesTheme);
+
   return (
     <View
       accessible
@@ -124,7 +133,7 @@ export function EmployeeBadge({
       style={[
         employeeFeedbackStyles.badge,
         {
-          backgroundColor: employeeStatusColors[variant].backgroundColor,
+          backgroundColor: employeeStatusPalette(p)[variant].backgroundColor,
         },
       ]}
     >
@@ -133,7 +142,7 @@ export function EmployeeBadge({
           accessible={false}
           style={[
             employeeFeedbackStyles.badgeDot,
-            { backgroundColor: employeeStatusColors[variant].dotColor },
+            { backgroundColor: employeeStatusPalette(p)[variant].dotColor },
           ]}
         />
       ) : null}
@@ -141,7 +150,7 @@ export function EmployeeBadge({
         accessible={false}
         style={[
           employeeFeedbackStyles.badgeLabel,
-          { color: employeeStatusColors[variant].color },
+          { color: employeeStatusPalette(p)[variant].color },
           employeeTextStyle("human", textAlign),
         ]}
       >
@@ -157,6 +166,8 @@ interface FeedbackProps {
 }
 
 export function EmployeeError({ children, textAlign }: FeedbackProps) {
+  const employeeFeedbackStyles = useEmployeeStyles(employeeFeedbackStylesTheme);
+
   return (
     <Text
       accessibilityLiveRegion="assertive"
@@ -178,6 +189,8 @@ export function EmployeeErrorNotice({
   readonly children: string;
   readonly title: string;
 }) {
+  const employeeFeedbackStyles = useEmployeeStyles(employeeFeedbackStylesTheme);
+
   return (
     <View
       accessible
@@ -207,6 +220,8 @@ export function EmployeeErrorNotice({
 }
 
 export function EmployeeStatus({ children, textAlign }: FeedbackProps) {
+  const employeeFeedbackStyles = useEmployeeStyles(employeeFeedbackStylesTheme);
+
   return (
     <Text
       accessibilityLiveRegion="polite"
@@ -228,6 +243,9 @@ export function EmployeeProgress({
   readonly label: string;
   readonly textAlign: EmployeeTextAlign;
 }) {
+  const p = useEmployeePalette();
+  const employeeFeedbackStyles = useEmployeeStyles(employeeFeedbackStylesTheme);
+
   return (
     <View
       accessible
@@ -237,11 +255,15 @@ export function EmployeeProgress({
       accessibilityState={{ busy: true }}
       style={employeeFeedbackStyles.progress}
     >
-      <ActivityIndicator accessible={false} color={c.blue} size="large" />
+      <ActivityIndicator
+        accessible={false}
+        color={p.linkPrimary}
+        size="large"
+      />
       <Text
         style={[
           employeeTypography.label,
-          { color: c.navy },
+          { color: p.textPrimary },
           employeeTextStyle("human", textAlign),
         ]}
       >

@@ -1,10 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Pressable, Text, View } from "react-native";
 
 import { EmployeePlusIcon } from "../employee-ui/employee-icons";
-import {
-  employeeColors as c,
-  employeeRadius,
-} from "../employee-ui/employee-tokens";
+import { employeeRadius } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 
 export function NativeNewVehicleButton({
@@ -14,6 +13,8 @@ export function NativeNewVehicleButton({
   readonly label: string;
   readonly onPress: () => void;
 }) {
+  const s = useEmployeeStyles(nativeNewVehicleButtonStylesTheme);
+
   return (
     <Pressable
       accessibilityLabel={label}
@@ -29,23 +30,23 @@ export function NativeNewVehicleButton({
   );
 }
 
-export const nativeNewVehicleButtonStyles = StyleSheet.create({
+export const nativeNewVehicleButtonStylesTheme = createEmployeeStyles((p) => ({
   button: {
     alignItems: "center",
-    backgroundColor: c.blue,
+    backgroundColor: p.actionPrimary,
     borderRadius: employeeRadius.form,
     elevation: 1,
     height: 36,
     justifyContent: "center",
     paddingHorizontal: 16,
-    shadowColor: c.navy,
+    shadowColor: p.shadow,
     shadowOffset: { height: 1, width: 0 },
     shadowOpacity: 0.08,
     shadowRadius: 2,
   },
   content: { alignItems: "center", flexDirection: "row", gap: 6 },
-  label: { ...type.body, color: c.white, fontWeight: "700" },
+  label: { ...type.body, color: p.onAction, fontWeight: "700" },
   pressed: { transform: [{ scale: 0.98 }] },
-});
-
-const s = nativeNewVehicleButtonStyles;
+}));
+export const nativeNewVehicleButtonStyles =
+  nativeNewVehicleButtonStylesTheme.light;

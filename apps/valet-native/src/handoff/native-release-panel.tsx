@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { ScrollView, Text, View } from "react-native";
 import type {
   EmployeeReleaseSession,
@@ -15,7 +16,7 @@ import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeReleaseCopy } from "./native-release-copy";
 import { nativeReleaseBackBlocked } from "./native-release-protection";
-import { nativeHandoffStyles as s } from "./native-handoff-styles";
+import { nativeHandoffStylesTheme as sTheme } from "./native-handoff-styles";
 import { NativeHandoffVehicle } from "./native-handoff-vehicle";
 
 export function NativeReleasePanel({
@@ -33,6 +34,8 @@ export function NativeReleasePanel({
   readonly release: EmployeeReleaseSession;
   readonly snapshot: EmployeeReleaseSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeReleaseCopy(locale);
   const textAlign = locale === "ar" ? "right" : "left";
   const direction = locale === "ar" ? "rtl" : "ltr";

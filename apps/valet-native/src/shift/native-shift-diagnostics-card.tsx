@@ -1,10 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Text, View } from "react-native";
 
 import { EmployeeCard } from "../employee-ui/employee-feedback";
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import {
   employeeFontFamilies,
   employeeTextStyle,
@@ -62,6 +61,8 @@ export function NativeShiftDiagnosticsCard({
   readonly locale: FoundationLocale;
   readonly textAlign: "left" | "right";
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   // Read-only observation of the ambient registry — never a mutation.
   const view = nativeSupportDiagnosticsView(
     getNativeTelemetry().snapshot(),
@@ -108,19 +109,19 @@ export function NativeShiftDiagnosticsCard({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles((p) => ({
   eventLine: {
     ...type.small,
-    color: c.neutral,
+    color: p.textSecondary,
     fontFamily: employeeFontFamilies.display,
   },
   events: { gap: 2, paddingTop: space.md },
   title: {
     ...type.small,
-    color: c.muted,
+    color: p.textMuted,
     fontWeight: "600",
     letterSpacing: 0.8,
     paddingBottom: space.sm,
     textTransform: "uppercase",
   },
-});
+}));

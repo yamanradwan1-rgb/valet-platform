@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Pressable, Text, View } from "react-native";
 import type {
   EmployeeOperationalSnapshot,
@@ -16,7 +17,7 @@ import {
   nativeTaskTypeLabel,
   nativeTaskVehicleLabel,
 } from "./native-task-presentation";
-import { nativeTaskCardStyles as s } from "./native-task-card-styles";
+import { nativeTaskCardStylesTheme as sTheme } from "./native-task-card-styles";
 import { NativeTaskActionButton } from "./native-task-action-button";
 import type { NativeTasksCopy } from "./native-tasks-copy";
 
@@ -39,6 +40,8 @@ export function NativeTaskCard({
   readonly task: StaffTaskQueueItem;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const human = employeeTextStyle("human", textAlign);
   const identifier = employeeTextStyle("identifier", textAlign);
   const assignedToOther =

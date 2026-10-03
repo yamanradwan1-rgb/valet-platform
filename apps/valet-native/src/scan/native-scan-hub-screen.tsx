@@ -1,6 +1,10 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
+import { ScrollView, Text, View } from "react-native";
 
-import { employeeColors as c } from "../employee-ui/employee-tokens";
 import {
   employeeTextStyle,
   employeeTypography as type,
@@ -28,6 +32,9 @@ export function NativeScanHubScreen(props: {
   readonly navigate: (destination: ProductionDestination) => void;
   readonly textAlign: "left" | "right";
 }) {
+  const p = useEmployeePalette();
+  const styles = useEmployeeStyles(nativeScanHubScreenStylesTheme);
+
   const copy = getNativeScanHubCopy(props.locale);
   const human = employeeTextStyle("human", props.textAlign);
   const launch = (tile: Parameters<typeof launchNativeScanHubTile>[0]) =>
@@ -43,7 +50,7 @@ export function NativeScanHubScreen(props: {
       <Text style={[styles.subtitle, human]}>{copy.subtitle}</Text>
       <View style={styles.grid} testID="native-scan-hub-grid">
         <NativeScanHubTile
-          accent={c.blue}
+          accent={p.actionPrimary}
           disabled={!props.gates.licensePlate.available}
           glyph={<NativeScanPlateIcon />}
           label={copy.licensePlate}
@@ -52,7 +59,7 @@ export function NativeScanHubScreen(props: {
           textAlign={props.textAlign}
         />
         <NativeScanHubTile
-          accent={c.navy3}
+          accent={p.inverseRaised}
           disabled
           glyph={<NativeScanKeyIcon />}
           label={copy.keySlot}
@@ -60,7 +67,7 @@ export function NativeScanHubScreen(props: {
           textAlign={props.textAlign}
         />
         <NativeScanHubTile
-          accent={c.warning}
+          accent={p.actionWarning}
           disabled={!props.gates.parkingSpot.available}
           glyph={<NativeScanSpotIcon />}
           label={copy.parkingSpot}
@@ -73,7 +80,7 @@ export function NativeScanHubScreen(props: {
           textAlign={props.textAlign}
         />
         <NativeScanHubTile
-          accent={c.success}
+          accent={p.actionSuccess}
           disabled={!props.gates.pickupHandoff.available}
           glyph={<NativeScanHandoffIcon />}
           label={copy.pickupHandoff}
@@ -90,7 +97,7 @@ export function NativeScanHubScreen(props: {
   );
 }
 
-export const nativeScanHubScreenStyles = StyleSheet.create({
+export const nativeScanHubScreenStylesTheme = createEmployeeStyles((p) => ({
   grid: {
     columnGap: 16,
     flexDirection: "row",
@@ -100,14 +107,13 @@ export const nativeScanHubScreenStyles = StyleSheet.create({
   screen: { padding: 20 },
   subtitle: {
     ...type.body,
-    color: c.neutral,
+    color: p.textSecondary,
     marginBottom: 24,
   },
   title: {
     ...type.pageTitle,
-    color: c.navy,
+    color: p.textPrimary,
     marginBottom: 4,
   },
-});
-
-const styles = nativeScanHubScreenStyles;
+}));
+export const nativeScanHubScreenStyles = nativeScanHubScreenStylesTheme.light;

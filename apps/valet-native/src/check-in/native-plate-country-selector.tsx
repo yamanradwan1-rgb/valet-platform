@@ -1,10 +1,11 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
 import type { NativeTextAlign } from "./native-check-in-primitives";
 import {
-  employeeColors as c,
   employeeFieldHeights,
   employeeMinimumTouchTarget,
   employeeRadius,
@@ -41,6 +42,8 @@ export function NativePlateCountrySelector({
   readonly textAlign: NativeTextAlign;
   readonly value: string;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const [open, setOpen] = useState(false);
   const selected = isPlateCountry(value) ? value : "OTHER";
   const close = () => setOpen(false);
@@ -132,6 +135,8 @@ function CountryLabel({
   readonly country: PlateCountry;
   readonly textAlign: NativeTextAlign;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <View accessible={false} style={styles.countryLabel}>
       <Text style={[styles.value, employeeTextStyle("human", textAlign)]}>
@@ -144,7 +149,7 @@ function CountryLabel({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles((p) => ({
   backdrop: {
     bottom: 0,
     left: 0,
@@ -152,9 +157,9 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
   },
-  check: { ...type.header, color: c.blue, writingDirection: "ltr" },
-  chevron: { color: c.neutral, fontSize: 16, writingDirection: "ltr" },
-  code: { color: c.neutral, writingDirection: "ltr" },
+  check: { ...type.header, color: p.linkPrimary, writingDirection: "ltr" },
+  chevron: { color: p.textSecondary, fontSize: 16, writingDirection: "ltr" },
+  code: { color: p.textSecondary, writingDirection: "ltr" },
   countryLabel: {
     alignItems: "center",
     flex: 1,
@@ -163,8 +168,8 @@ const styles = StyleSheet.create({
   },
   field: {
     alignItems: "center",
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     flexDirection: "row",
@@ -172,16 +177,16 @@ const styles = StyleSheet.create({
     minHeight: employeeFieldHeights.standard,
     paddingHorizontal: space.lg,
   },
-  label: { ...type.label, color: c.navy },
+  label: { ...type.label, color: p.textPrimary },
   modalRoot: {
-    backgroundColor: "rgba(7, 17, 31, 0.42)",
+    backgroundColor: p.pickerOverlay,
     flex: 1,
     justifyContent: "center",
     padding: space.screen,
   },
   option: {
     alignItems: "center",
-    borderBottomColor: c.border,
+    borderBottomColor: p.border,
     borderBottomWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -189,18 +194,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
   },
   optionCard: {
-    backgroundColor: c.white,
+    backgroundColor: p.surface,
     borderRadius: employeeRadius.primary,
     overflow: "hidden",
     padding: space.xs,
   },
   optionTitle: {
     ...type.header,
-    color: c.navy,
+    color: p.textPrimary,
     paddingHorizontal: space.md,
     paddingVertical: space.lg,
   },
-  pressed: { backgroundColor: c.ice },
-  selectedOption: { backgroundColor: c.ice },
-  value: { ...type.body, color: c.navy, flexShrink: 1 },
-});
+  pressed: { backgroundColor: p.selectedSurface },
+  selectedOption: { backgroundColor: p.selectedSurface },
+  value: { ...type.body, color: p.textPrimary, flexShrink: 1 },
+}));

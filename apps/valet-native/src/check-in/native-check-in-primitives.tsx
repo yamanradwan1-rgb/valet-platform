@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Pressable, Text } from "react-native";
 import type {
   EmployeeCheckInAuthoritativeSession,
@@ -6,7 +7,7 @@ import type {
   EmployeeCheckInVehicleDraft,
 } from "@valet/employee-client";
 
-import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
 import { checkInTextStyle } from "./native-check-in-presentation";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
@@ -123,6 +124,8 @@ export function VehicleCard({
     | EmployeeCheckInAuthoritativeSession["vehicle"]
     | EmployeeCheckInRecognizedVehicle;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const name =
     [vehicle.make, vehicle.model].filter(Boolean).join(" ") || fallback;
   const identifier =
@@ -165,6 +168,8 @@ export function DraftVehicleCard({
   readonly textAlign: NativeTextAlign;
   readonly vehicle: EmployeeCheckInVehicleDraft;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const hasPlate = vehicle.mode === "CONFIRMED_PLATE";
   const identifier = hasPlate
     ? vehicle.plateNumberRaw || fallback
@@ -199,6 +204,8 @@ export function RecoverableCard({
   readonly textAlign: NativeTextAlign;
   readonly vehicleFallback: string;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const vehicle = recoverable.value.vehicle;
   const name =
     [vehicle.make, vehicle.model].filter(Boolean).join(" ") || vehicleFallback;

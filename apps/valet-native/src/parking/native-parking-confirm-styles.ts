@@ -1,38 +1,35 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 
-export const nativeParkingConfirmStyles = StyleSheet.create({
+export const nativeParkingConfirmStylesTheme = createEmployeeStyles((p) => ({
   body: { gap: space.lg, padding: space.screen, paddingBottom: space.hero },
   identifier: {
     ...type.plateField,
-    color: c.navy,
+    color: p.textPrimary,
     fontWeight: "700",
     writingDirection: "ltr",
   },
   successSurface: {
     alignItems: "center",
-    backgroundColor: "#EEFBF5",
-    borderColor: "#2F9B7833",
+    backgroundColor: p.successSurface,
+    borderColor: p.successBorder,
     borderRadius: 16,
     borderWidth: 1,
     gap: 8,
     padding: 20,
   },
-  locationHero: { ...type.plateHero, color: c.navy, fontSize: 30 },
+  locationHero: { ...type.plateHero, color: p.textPrimary, fontSize: 30 },
   dangerDot: {
-    backgroundColor: c.danger,
+    backgroundColor: p.danger,
     borderRadius: 3,
     height: 6,
     width: 6,
   },
   offlinePanel: {
     alignItems: "center",
-    backgroundColor: c.ice,
+    backgroundColor: p.selectedSurface,
     borderRadius: 12,
     flexDirection: "row",
     gap: 10,
@@ -41,17 +38,17 @@ export const nativeParkingConfirmStyles = StyleSheet.create({
   },
   offlineText: {
     ...type.supporting,
-    color: c.danger,
+    color: p.danger,
     flex: 1,
     fontWeight: "600",
   },
   spotInput: {
     ...type.operationalValueStrong,
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 12,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     height: 48,
     paddingHorizontal: 16,
     textAlign: "center",
@@ -60,7 +57,7 @@ export const nativeParkingConfirmStyles = StyleSheet.create({
   },
   fieldLabel: {
     ...type.supporting,
-    color: c.neutral,
+    color: p.textSecondary,
     fontWeight: "600",
     letterSpacing: 0.5,
     textTransform: "uppercase",
@@ -68,7 +65,7 @@ export const nativeParkingConfirmStyles = StyleSheet.create({
   successWrap: { alignItems: "center", gap: 24, minHeight: 500 },
   successCircle: {
     alignItems: "center",
-    backgroundColor: c.success,
+    backgroundColor: p.actionSuccess,
     borderRadius: 40,
     height: 80,
     justifyContent: "center",
@@ -76,18 +73,18 @@ export const nativeParkingConfirmStyles = StyleSheet.create({
   },
   successHeading: {
     ...type.pageTitleLarge,
-    color: c.navy,
+    color: p.textPrimary,
     textAlign: "center",
   },
   successBody: {
     ...type.body,
-    color: c.success,
+    color: p.success,
     fontWeight: "600",
     textAlign: "center",
   },
   successDetails: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 16,
     borderWidth: 1,
     overflow: "hidden",
@@ -95,27 +92,28 @@ export const nativeParkingConfirmStyles = StyleSheet.create({
     width: "100%",
   },
   successIdentifier: { writingDirection: "ltr" },
-  successLabel: { ...type.body, color: c.neutral },
+  successLabel: { ...type.body, color: p.textSecondary },
   successRow: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 12,
   },
-  successRowDivider: { borderBottomColor: c.border, borderBottomWidth: 1 },
-  successValue: { ...type.body, color: c.navy, fontWeight: "600" },
+  successRowDivider: { borderBottomColor: p.border, borderBottomWidth: 1 },
+  successValue: { ...type.body, color: p.textPrimary, fontWeight: "600" },
   successVehicle: { alignItems: "center", flexDirection: "row", gap: 4 },
   input: {
     ...type.plateField,
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: 12,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     minHeight: 52,
     paddingHorizontal: space.md,
     textAlign: "left",
     writingDirection: "ltr",
   },
-  title: { ...type.vehicle, color: c.navy, fontWeight: "700" },
-});
+  title: { ...type.vehicle, color: p.textPrimary, fontWeight: "700" },
+}));
+export const nativeParkingConfirmStyles = nativeParkingConfirmStylesTheme.light;

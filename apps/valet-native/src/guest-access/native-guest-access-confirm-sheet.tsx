@@ -1,7 +1,8 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Modal, Pressable, Text, View } from "react-native";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
-import { nativeGuestAccessStyles as s } from "./native-guest-access-styles";
+import { nativeGuestAccessStylesTheme as sTheme } from "./native-guest-access-styles";
 
 export function NativeGuestAccessConfirmSheet({
   body,
@@ -22,6 +23,8 @@ export function NativeGuestAccessConfirmSheet({
   readonly title: string;
   readonly variant: "danger" | "primary";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <Modal animationType="slide" onRequestClose={onClose} transparent visible>
       <View accessibilityViewIsModal style={s.sheetRoot}>

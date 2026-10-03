@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import type { IncidentSeverity, IncidentType } from "@valet/employee-client";
@@ -10,7 +11,7 @@ import {
   presentNativeIncidentFailure,
 } from "./native-incident-copy";
 import type { NativeIncidentSession } from "./native-incident-session";
-import { nativeIncidentStyles as s } from "./native-incident-styles";
+import { nativeIncidentStylesTheme as sTheme } from "./native-incident-styles";
 import {
   nativeIncidentSeverities,
   nativeIncidentTypes,
@@ -27,6 +28,8 @@ export function NativeIncidentForm({
   readonly session: NativeIncidentSession;
   readonly snapshot: NativeIncidentSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeIncidentCopy(locale);
   const textAlign = locale === "ar" ? "right" : "left";
   const [type, setType] = useState<IncidentType | null>(null);
@@ -133,6 +136,8 @@ function Choice({
   readonly style: object;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <Pressable
       accessibilityLabel={label}

@@ -1,5 +1,7 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type { EmployeeLocale } from "@valet/employee-client";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import {
   EmployeeCarIcon,
@@ -7,10 +9,7 @@ import {
   EmployeeScanIcon,
   EmployeeShiftIcon,
 } from "../employee-ui/employee-icons";
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import {
   employeeFontFamilies,
   employeeFontWeights,
@@ -67,6 +66,8 @@ export function NativeProductionNavigation({
   readonly onNavigate: (destination: ProductionDestination) => void;
   readonly pinned: boolean;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const copy = getNativeShellCopy(locale);
   return (
     <View
@@ -122,12 +123,12 @@ export function NativeProductionNavigation({
   );
 }
 
-const styles = StyleSheet.create({
-  activeLabel: { color: c.blue },
+const stylesTheme = createEmployeeStyles((p) => ({
+  activeLabel: { color: p.linkPrimary },
   bar: {
     alignItems: "flex-end",
-    backgroundColor: c.white,
-    borderTopColor: c.border,
+    backgroundColor: p.surface,
+    borderTopColor: p.border,
     borderTopWidth: 1,
     flexDirection: "row",
     flexShrink: 0,
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     paddingTop: space.sm,
   },
   label: {
-    color: c.neutral,
+    color: p.textSecondary,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 10,
     fontWeight: employeeFontWeights.semiBold,
@@ -162,14 +163,15 @@ const styles = StyleSheet.create({
     width: 46,
   },
   scanIconSurface: {
-    backgroundColor: c.blue,
+    backgroundColor: p.actionPrimary,
     elevation: 8,
-    shadowColor: c.blue,
+    shadowColor: p.actionPrimary,
     shadowOffset: { height: 4, width: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   scanLabel: { marginTop: 2 },
-});
+}));
+const styles = stylesTheme.light;
 
 export const nativeProductionNavigationStyles = styles;

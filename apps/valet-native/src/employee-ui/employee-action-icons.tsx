@@ -1,12 +1,15 @@
+import { useEmployeePalette } from "../appearance/employee-appearance-context";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import type { EmployeeIconProps } from "./employee-icon-types";
-import { employeeColors as c } from "./employee-tokens";
 
 export function EmployeeSettingsIcon({
-  color = c.navy,
+  color: colorOverride,
   size = 24,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.textPrimary;
+
   return (
     <Svg
       accessible={false}
@@ -27,9 +30,12 @@ export function EmployeeSettingsIcon({
 }
 
 export function EmployeeChevronLeftIcon({
-  color = c.navy,
+  color: colorOverride,
   size = 24,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.textPrimary;
+
   return (
     <Svg
       accessible={false}
@@ -50,9 +56,12 @@ export function EmployeeChevronLeftIcon({
 }
 
 export function EmployeeChevronRightIcon({
-  color = c.muted,
+  color: colorOverride,
   size = 16,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.textMuted;
+
   return (
     <Svg
       accessible={false}
@@ -72,9 +81,12 @@ export function EmployeeChevronRightIcon({
 }
 
 export function EmployeePlusIcon({
-  color = c.white,
+  color: colorOverride,
   size = 14,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.onAction;
+
   return (
     <Svg
       accessible={false}
@@ -94,9 +106,12 @@ export function EmployeePlusIcon({
 }
 
 export function EmployeeCheckSmallIcon({
-  color = c.white,
+  color: colorOverride,
   size = 12,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.onAction;
+
   return (
     <Svg
       accessible={false}
@@ -117,9 +132,12 @@ export function EmployeeCheckSmallIcon({
 }
 
 export function EmployeeBigCheckIcon({
-  color = c.white,
+  color: colorOverride,
   size = 36,
 }: EmployeeIconProps = {}) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.onAction;
+
   return (
     <Svg
       accessible={false}
@@ -141,9 +159,12 @@ export function EmployeeBigCheckIcon({
 
 /** @deprecated Use EmployeeChevronLeftIcon for Web-authoritative direction. */
 export function EmployeeBackIcon({
-  color = c.navy,
+  color: colorOverride,
   size = 24,
 }: EmployeeIconProps & { readonly direction: "ltr" | "rtl" }) {
+  const p = useEmployeePalette();
+  const color = colorOverride ?? p.textPrimary;
+
   return <EmployeeChevronLeftIcon color={color} size={size} />;
 }
 
@@ -153,9 +174,11 @@ export function EmployeeCheckIcon({
   inverse = false,
   size = 12,
 }: EmployeeIconProps & { readonly inverse?: boolean } = {}) {
+  const p = useEmployeePalette();
+
   return (
     <EmployeeCheckSmallIcon
-      color={color ?? (inverse ? c.white : c.navy)}
+      color={color ?? (inverse ? p.onAction : p.textPrimary)}
       size={size}
     />
   );

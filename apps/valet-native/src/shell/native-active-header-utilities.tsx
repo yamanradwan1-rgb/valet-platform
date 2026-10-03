@@ -4,10 +4,10 @@ import type {
 } from "@valet/employee-client";
 import type { NativePushSnapshot } from "../notifications/native-push-types";
 import { NativeAccountMenu } from "./native-account-menu";
-import { nativeAccountAvatarStyles } from "./native-account-menu-styles";
+import { nativeAccountAvatarStylesTheme } from "./native-account-menu-styles";
 
 export { NativeAccountMenu } from "./native-account-menu";
-export const nativeActiveHeaderStyles = nativeAccountAvatarStyles;
+export const nativeActiveHeaderStyles = nativeAccountAvatarStylesTheme.light;
 
 export function NativeActiveHeaderUtilities({
   locale,

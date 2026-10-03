@@ -1,4 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Pressable, Text, View } from "react-native";
 import type { EmployeeCheckInSnapshot } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
@@ -10,7 +12,6 @@ import {
 } from "./native-check-in-primitives";
 import { EmployeeBadge } from "../employee-ui/employee-feedback";
 import {
-  employeeColors as c,
   employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
@@ -40,6 +41,8 @@ export function NativeCheckInParkingTaskStep({
   readonly starting: boolean;
   readonly textAlign: NativeTextAlign;
 }) {
+  const styles = useEmployeeStyles(nativeCheckInParkingTaskStylesTheme);
+
   const guestCopy = getNativeGuestAccessCopy(locale);
   const sessionId = snapshot.active?.sessionId;
   return (
@@ -99,38 +102,40 @@ export function NativeCheckInParkingTaskStep({
   );
 }
 
-export const nativeCheckInParkingTaskStyles = StyleSheet.create({
-  dot: {
-    backgroundColor: c.blue,
-    borderRadius: 3,
-    height: 6,
-    width: 6,
-  },
-  guestEntry: {
-    backgroundColor: c.white,
-    borderColor: c.border,
-    borderRadius: employeeRadius.primary,
-    borderWidth: 1,
-    gap: 2,
-    padding: space.lg,
-  },
-  guestHint: { ...type.supporting, color: c.muted },
-  guestTitle: { ...type.body, color: c.navy, fontWeight: "600" },
-  notice: {
-    alignItems: "center",
-    backgroundColor: c.ice,
-    borderRadius: employeeRadius.form,
-    flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: space.lg,
-    paddingVertical: space.md,
-  },
-  noticeText: {
-    ...type.supporting,
-    color: c.blue,
-    flex: 1,
-    fontWeight: "600",
-  },
-});
-
-const styles = nativeCheckInParkingTaskStyles;
+export const nativeCheckInParkingTaskStylesTheme = createEmployeeStyles(
+  (p) => ({
+    dot: {
+      backgroundColor: p.actionPrimary,
+      borderRadius: 3,
+      height: 6,
+      width: 6,
+    },
+    guestEntry: {
+      backgroundColor: p.surface,
+      borderColor: p.border,
+      borderRadius: employeeRadius.primary,
+      borderWidth: 1,
+      gap: 2,
+      padding: space.lg,
+    },
+    guestHint: { ...type.supporting, color: p.textMuted },
+    guestTitle: { ...type.body, color: p.textPrimary, fontWeight: "600" },
+    notice: {
+      alignItems: "center",
+      backgroundColor: p.selectedSurface,
+      borderRadius: employeeRadius.form,
+      flexDirection: "row",
+      gap: 10,
+      paddingHorizontal: space.lg,
+      paddingVertical: space.md,
+    },
+    noticeText: {
+      ...type.supporting,
+      color: p.linkPrimary,
+      flex: 1,
+      fontWeight: "600",
+    },
+  }),
+);
+export const nativeCheckInParkingTaskStyles =
+  nativeCheckInParkingTaskStylesTheme.light;

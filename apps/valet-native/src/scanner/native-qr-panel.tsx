@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import {
   AppState,
@@ -19,7 +20,7 @@ import type {
 } from "@valet/employee-client";
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
-import { styles } from "../foundation/foundation-styles";
+import { stylesTheme } from "../foundation/foundation-styles";
 import {
   nativeCameraPermissions,
   nativeQrCameraSettings,
@@ -72,6 +73,8 @@ function ScanWorkflow({
   readonly onKind: (kind: QrResourceKind) => void;
   readonly onExit: () => void;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const [controller] = useState(
     () => new NativeQrController(kind, nativeCameraPermissions),
   );
@@ -211,6 +214,8 @@ function ScanButton({
   readonly disabled?: boolean;
   readonly selected?: boolean;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <Pressable
       accessibilityRole={selected === undefined ? "button" : "tab"}

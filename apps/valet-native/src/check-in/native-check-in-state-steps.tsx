@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Text } from "react-native";
 import type {
   EmployeeCheckInSession,
@@ -15,7 +16,7 @@ import {
   RecoverableCard,
   VehicleCard,
 } from "./native-check-in-primitives";
-import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
 import { EmployeeProgress } from "../employee-ui/employee-feedback";
 import { NativeCheckInIdentityContext } from "./native-check-in-identity-context";
 import { NativeCheckInParkingTaskStep } from "./native-check-in-parking-task-step";
@@ -66,6 +67,8 @@ export function NativeRecoverablesStep({
   snapshot,
   textAlign,
 }: StateStepProps) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <>
       <Text style={[s.eyebrow, checkInTextStyle("human", textAlign)]}>

@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useEffect, useState } from "react";
 import type {
   EmployeeRetrievalSession,
@@ -13,7 +14,7 @@ import {
   initialKeyCandidate,
   updateKeyCandidate,
 } from "./native-retrieval-presentation";
-import { nativeRetrievalStyles as s } from "./native-retrieval-styles";
+import { nativeRetrievalStylesTheme as sTheme } from "./native-retrieval-styles";
 
 export function NativeRetrievalKeyInput({
   auth,
@@ -32,6 +33,8 @@ export function NativeRetrievalKeyInput({
   readonly snapshot: EmployeeRetrievalSnapshot;
   readonly submitting: boolean;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const [candidate, setCandidate] = useState(() =>
     initialKeyCandidate(expectedKey),
   );

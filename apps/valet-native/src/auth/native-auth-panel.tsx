@@ -1,5 +1,7 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import type {
   NativeAuthSession,
   NativeAuthSnapshot,
@@ -7,7 +9,7 @@ import type {
 
 import type { NativeAuthCopy } from "./native-auth-copy";
 import { EmployeeButton } from "../employee-ui/employee-controls";
-import { employeeColors as c } from "../employee-ui/employee-tokens";
+
 import {
   employeeFontFamilies,
   employeeFontWeights,
@@ -16,7 +18,7 @@ import {
 import {
   NativeGateButton,
   NativeGateCard,
-  nativeGateStyles,
+  nativeGateStylesTheme,
 } from "../shell/native-gate-primitives";
 import { NativeAuthFoundationPanel } from "./native-auth-foundation-panel";
 
@@ -68,6 +70,9 @@ function GateAuthPanel({
   readonly busy: boolean;
   readonly run: (action: () => Promise<unknown>) => Promise<void>;
 }) {
+  const gateStyles = useEmployeeStyles(nativeAuthGateStylesTheme);
+  const nativeGateStyles = useEmployeeStyles(nativeGateStylesTheme);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [focused, setFocused] = useState<"email" | "password" | null>(null);
@@ -190,13 +195,15 @@ function GateFieldLabel({
   readonly label: string;
   readonly textAlign: "left" | "right";
 }) {
+  const gateStyles = useEmployeeStyles(nativeAuthGateStylesTheme);
+
   return <Text style={[gateStyles.fieldLabel, { textAlign }]}>{label}</Text>;
 }
 
-export const nativeAuthGateStyles = StyleSheet.create({
+export const nativeAuthGateStylesTheme = createEmployeeStyles((p) => ({
   emailInput: { marginBottom: 16 },
   fieldLabel: {
-    color: c.muted,
+    color: p.textMuted,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 12,
     fontWeight: employeeFontWeights.bold,
@@ -206,28 +213,28 @@ export const nativeAuthGateStyles = StyleSheet.create({
     textTransform: "uppercase",
   },
   input: {
-    backgroundColor: "#FFFFFF14",
-    borderColor: "#FFFFFF26",
+    backgroundColor: p.gateInputSurface,
+    borderColor: p.gateInputBorder,
     borderRadius: 12,
     borderWidth: 1,
-    color: c.white,
+    color: p.onAction,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 14,
     height: 48,
     lineHeight: 20,
     paddingHorizontal: 16,
   },
-  inputFocused: { borderColor: c.blue },
+  inputFocused: { borderColor: p.linkPrimary },
   loginError: {
-    backgroundColor: "#EF44441A",
-    borderColor: "#F871714D",
+    backgroundColor: p.gateErrorSurface,
+    borderColor: p.gateErrorBorder,
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 16,
     padding: 12,
   },
   loginErrorText: {
-    color: "#FCA5A5",
+    color: p.gateErrorText,
     fontFamily: employeeFontFamilies.ui,
     fontSize: 12,
     lineHeight: 16,
@@ -235,6 +242,5 @@ export const nativeAuthGateStyles = StyleSheet.create({
   loginTitle: { marginBottom: 20 },
   cardSpacing: { marginBottom: 24 },
   stack: { width: "100%" },
-});
-
-const gateStyles = nativeAuthGateStyles;
+}));
+export const nativeAuthGateStyles = nativeAuthGateStylesTheme.light;

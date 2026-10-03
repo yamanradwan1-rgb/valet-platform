@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type {
   EmployeeHandoffSnapshot,
   EmployeeReleaseSnapshot,
@@ -6,7 +7,7 @@ import { Text } from "react-native";
 
 import { EmployeeCard } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
-import { nativeHandoffStyles as s } from "./native-handoff-styles";
+import { nativeHandoffStylesTheme as sTheme } from "./native-handoff-styles";
 
 export function NativeHandoffVehicle({
   eyebrow,
@@ -21,6 +22,8 @@ export function NativeHandoffVehicle({
   readonly snapshot: EmployeeHandoffSnapshot | EmployeeReleaseSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const vehicle = snapshot.task?.vehicle ?? snapshot.session?.vehicle;
   if (!vehicle) return null;
   const name =

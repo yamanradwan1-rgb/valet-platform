@@ -1,10 +1,14 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
 import { StatusBar } from "expo-status-bar";
 import { useState, type ReactNode } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   View,
   type LayoutChangeEvent,
 } from "react-native";
@@ -12,13 +16,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
 import { EmployeeBrandLogo } from "../employee-ui/employee-brand-logo";
-import { employeeColors as c } from "../employee-ui/employee-tokens";
 
 export function NativeGateShell({
   children,
 }: {
   readonly children: ReactNode;
 }) {
+  const nativeGateShellStyles = useEmployeeStyles(nativeGateShellStylesTheme);
+
   return (
     <SafeAreaView style={nativeGateShellStyles.safeArea}>
       <StatusBar style="light" />
@@ -44,6 +49,8 @@ export function NativeGateShell({
 }
 
 export function GateRadialBackground() {
+  const nativeGateShellStyles = useEmployeeStyles(nativeGateShellStylesTheme);
+
   const [size, setSize] = useState({ height: 0, width: 0 });
   const onLayout = ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
     setSize((current) =>
@@ -75,6 +82,8 @@ export function GateGradientSvg({
   readonly height: number;
   readonly width: number;
 }) {
+  const p = useEmployeePalette();
+
   const ellipse = employeeGateFarthestCornerEllipse(width, height);
   return (
     <Svg accessible={false} height={height} pointerEvents="none" width={width}>
@@ -89,9 +98,9 @@ export function GateGradientSvg({
           rx={ellipse.radiusX}
           ry={ellipse.radiusY}
         >
-          <Stop offset="0%" stopColor="#0B2D6E" />
-          <Stop offset="65%" stopColor={c.navy} />
-          <Stop offset="100%" stopColor={c.navy} />
+          <Stop offset="0%" stopColor={p.gateGradient} />
+          <Stop offset="65%" stopColor={p.inverseSurface} />
+          <Stop offset="100%" stopColor={p.inverseSurface} />
         </RadialGradient>
       </Defs>
       <Rect fill="url(#employeeGateGradient)" height="100%" width="100%" />
@@ -126,18 +135,19 @@ export function employeeGateFarthestCornerEllipse(
   };
 }
 
-export const nativeGateShellStyles = StyleSheet.create({
+export const nativeGateShellStylesTheme = createEmployeeStyles((p) => ({
   background: { bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
   flex: { flex: 1 },
   logo: {
     alignSelf: "center",
     marginBottom: 48,
   },
-  safeArea: { backgroundColor: c.navy, flex: 1 },
+  safeArea: { backgroundColor: p.inverseSurface, flex: 1 },
   screen: {
     flexGrow: 1,
     justifyContent: "center",
     paddingBottom: 40,
     paddingHorizontal: 24,
   },
-});
+}));
+export const nativeGateShellStyles = nativeGateShellStylesTheme.light;

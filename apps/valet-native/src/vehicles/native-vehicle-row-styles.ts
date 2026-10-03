@@ -1,23 +1,20 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
-import {
-  employeeColors as c,
-  employeeRadius,
-} from "../employee-ui/employee-tokens";
+import { employeeRadius } from "../employee-ui/employee-tokens";
 import { employeeTypography as type } from "../employee-ui/employee-typography";
 
-export const nativeVehicleRowStyles = StyleSheet.create({
+export const nativeVehicleRowStylesTheme = createEmployeeStyles((p) => ({
   card: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     overflow: "hidden",
   },
   collapsed: { padding: 16 },
   expanded: {
-    backgroundColor: c.warm,
-    borderTopColor: c.border,
+    backgroundColor: p.appBackground,
+    borderTopColor: p.border,
     borderTopWidth: 1,
     paddingBottom: 16,
     paddingHorizontal: 16,
@@ -32,17 +29,17 @@ export const nativeVehicleRowStyles = StyleSheet.create({
   },
   title: {
     ...type.label,
-    color: c.navy,
+    color: p.textPrimary,
     flex: 1,
     fontFamily: type.vehicleIdentity.fontFamily,
     fontSize: 15,
     fontWeight: "700",
     lineHeight: 19,
   },
-  vehicleMeta: { ...type.supporting, color: c.neutral },
+  vehicleMeta: { ...type.supporting, color: p.textSecondary },
   vehicleMetaRow: { flexDirection: "row", marginBottom: 12 },
   summary: {
-    borderTopColor: c.border,
+    borderTopColor: p.border,
     borderTopWidth: 1,
     flexDirection: "row",
     gap: 20,
@@ -51,20 +48,20 @@ export const nativeVehicleRowStyles = StyleSheet.create({
   summaryCell: { flex: 1, minWidth: 0 },
   summaryLabel: {
     ...type.badge,
-    color: c.muted,
+    color: p.textMuted,
     fontWeight: "400",
     textTransform: "uppercase",
   },
   summaryValue: {
     ...type.body,
-    color: c.navy,
+    color: p.textPrimary,
     fontWeight: "600",
     marginTop: 2,
   },
-  missing: { color: c.muted, fontWeight: "400" },
+  missing: { color: p.textMuted, fontWeight: "400" },
   detailRow: {
     alignItems: "center",
-    borderBottomColor: c.border,
+    borderBottomColor: p.border,
     borderBottomWidth: 1,
     flexDirection: "row",
     gap: 12,
@@ -72,7 +69,13 @@ export const nativeVehicleRowStyles = StyleSheet.create({
     paddingVertical: 12,
   },
   detailRowLast: { borderBottomWidth: 0 },
-  detailLabel: { ...type.supporting, color: c.neutral },
-  detailValue: { ...type.body, color: c.navy, fontWeight: "600" },
-  readOnly: { ...type.supporting, color: c.muted, fontSize: 11, paddingTop: 8 },
-});
+  detailLabel: { ...type.supporting, color: p.textSecondary },
+  detailValue: { ...type.body, color: p.textPrimary, fontWeight: "600" },
+  readOnly: {
+    ...type.supporting,
+    color: p.textMuted,
+    fontSize: 11,
+    paddingTop: 8,
+  },
+}));
+export const nativeVehicleRowStyles = nativeVehicleRowStylesTheme.light;

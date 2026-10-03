@@ -1,5 +1,7 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useRef, useState, type ReactNode } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import type {
   EmployeeOperationalSession,
   EmployeeOperationalSnapshot,
@@ -10,7 +12,7 @@ import {
   EmployeeError,
   EmployeeStatus,
 } from "../employee-ui/employee-feedback";
-import { employeeColors as c } from "../employee-ui/employee-tokens";
+
 import {
   employeeTextStyle,
   employeeTypography as type,
@@ -31,6 +33,8 @@ export function NativeTasksPanel(props: {
   readonly snapshot: EmployeeOperationalSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const screen = useEmployeeStyles(screenTheme);
+
   const {
     headerAction,
     heading,
@@ -164,7 +168,7 @@ export function NativeTasksPanel(props: {
   );
 }
 
-const screen = StyleSheet.create({
+const screenTheme = createEmployeeStyles((p) => ({
   root: { flex: 1, minHeight: 0 },
   main: {
     flex: 1,
@@ -178,15 +182,15 @@ const screen = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  heading: { ...type.pageTitleLarge, color: c.navy },
+  heading: { ...type.pageTitleLarge, color: p.textPrimary },
   queueLabel: {
     ...type.badge,
-    color: c.muted,
+    color: p.textMuted,
     letterSpacing: 1,
     textTransform: "uppercase",
   },
   list: { gap: 8, paddingBottom: 8 },
-});
+}));
 
 function statusForUnavailablePhase(
   snapshot: EmployeeOperationalSnapshot,

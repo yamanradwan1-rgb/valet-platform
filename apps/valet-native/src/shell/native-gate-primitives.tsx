@@ -1,21 +1,22 @@
+import { nativeGateControlStylesTheme } from "./native-gate-style-sheets";
+export {
+  nativeGateStyles,
+  nativeGateStylesTheme,
+  nativeGateControlStyles,
+  nativeGateControlStylesTheme,
+} from "./native-gate-style-sheets";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { BlurView } from "expo-blur";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Animated,
   Pressable,
-  StyleSheet,
   Text,
   View,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
 import type { EmployeeLocale } from "@valet/employee-client";
-
-import { employeeColors as c } from "../employee-ui/employee-tokens";
-import {
-  employeeFontFamilies,
-  employeeFontWeights,
-} from "../employee-ui/employee-typography";
 
 export function NativeGateCard({
   children,
@@ -28,6 +29,8 @@ export function NativeGateCard({
   readonly testID?: string;
   readonly tone?: "error" | "neutral";
 }) {
+  const styles = useEmployeeStyles(nativeGateControlStylesTheme);
+
   return (
     <View
       style={[styles.card, tone === "error" && styles.errorCard, style]}
@@ -62,6 +65,8 @@ export function NativeGateButton({
   readonly size?: "login" | "standard";
   readonly variant?: "primary" | "secondary";
 }) {
+  const styles = useEmployeeStyles(nativeGateControlStylesTheme);
+
   return (
     <Pressable
       accessibilityLabel={label}
@@ -101,6 +106,8 @@ export function NativeGateLocaleToggle({
   readonly locale: EmployeeLocale;
   readonly onSelectLocale: (locale: EmployeeLocale) => void;
 }) {
+  const styles = useEmployeeStyles(nativeGateControlStylesTheme);
+
   return (
     <View
       accessibilityRole="radiogroup"
@@ -135,6 +142,8 @@ function LocaleChoice({
   readonly onSelectLocale: (locale: EmployeeLocale) => void;
   readonly selected: boolean;
 }) {
+  const styles = useEmployeeStyles(nativeGateControlStylesTheme);
+
   return (
     <Pressable
       accessibilityLabel={label}
@@ -151,6 +160,8 @@ function LocaleChoice({
 }
 
 export function NativeGateSpinner({ label }: { readonly label: string }) {
+  const styles = useEmployeeStyles(nativeGateControlStylesTheme);
+
   const [rotation] = useState(() => new Animated.Value(0));
   useEffect(() => {
     const animation = Animated.loop(
@@ -184,105 +195,3 @@ export function NativeGateSpinner({ label }: { readonly label: string }) {
     />
   );
 }
-
-export const nativeGateStyles = StyleSheet.create({
-  actionStack: { gap: 12, width: "100%" },
-  body: {
-    color: c.muted,
-    fontFamily: employeeFontFamilies.ui,
-    fontSize: 14,
-    fontWeight: employeeFontWeights.regular,
-    lineHeight: 22.75,
-  },
-  errorBody: { color: "#FECACACC" },
-  errorTitle: { color: "#FECACA" },
-  loadingLabel: {
-    color: c.white,
-    fontFamily: employeeFontFamilies.ui,
-    fontSize: 14,
-    fontWeight: employeeFontWeights.semiBold,
-    lineHeight: 20,
-  },
-  loadingStack: { alignItems: "center", gap: 24 },
-  title: {
-    color: c.white,
-    fontFamily: employeeFontFamilies.display,
-    fontSize: 20,
-    fontWeight: employeeFontWeights.bold,
-    lineHeight: 28,
-    marginBottom: 8,
-  },
-});
-
-export const nativeGateControlStyles = StyleSheet.create({
-  button: {
-    alignItems: "center",
-    backgroundColor: c.blue,
-    borderRadius: 16,
-    justifyContent: "center",
-    shadowColor: c.blue,
-    shadowOffset: { height: 4, width: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    width: "100%",
-  },
-  buttonLabel: {
-    color: c.white,
-    fontFamily: employeeFontFamilies.ui,
-    fontSize: 14,
-    fontWeight: employeeFontWeights.bold,
-    lineHeight: 20,
-  },
-  blur: { bottom: 0, left: 0, position: "absolute", right: 0, top: 0 },
-  card: {
-    backgroundColor: "#FFFFFF0F",
-    borderColor: "#FFFFFF1A",
-    borderRadius: 24,
-    borderWidth: 1,
-    overflow: "hidden",
-    padding: 24,
-    width: "100%",
-  },
-  disabled: { opacity: 0.6 },
-  errorCard: { backgroundColor: "#EF44441A", borderColor: "#F871714D" },
-  localeSelected: {
-    color: c.blue,
-    fontFamily: employeeFontFamilies.ui,
-    fontSize: 12,
-    fontWeight: employeeFontWeights.extraBold,
-    lineHeight: 16,
-  },
-  localeToggle: {
-    alignItems: "center",
-    alignSelf: "center",
-    flexDirection: "row",
-    gap: 4,
-  },
-  localeUnselected: {
-    color: c.muted,
-    fontFamily: employeeFontFamilies.ui,
-    fontSize: 12,
-    fontWeight: employeeFontWeights.bold,
-    lineHeight: 16,
-  },
-  loginButton: { height: 56 },
-  loginButtonLabel: { fontSize: 16, lineHeight: 24 },
-  pressed: { transform: [{ scale: 0.98 }] },
-  secondaryButton: { backgroundColor: "transparent", shadowOpacity: 0 },
-  secondaryButtonHeight: { height: 44 },
-  secondaryButtonLabel: {
-    color: c.muted,
-    fontWeight: employeeFontWeights.semiBold,
-  },
-  spinner: {
-    borderColor: c.blue,
-    borderRadius: 16,
-    borderTopColor: "transparent",
-    borderWidth: 4,
-    height: 32,
-    width: 32,
-  },
-  standardButton: { height: 48 },
-});
-
-const styles = nativeGateControlStyles;

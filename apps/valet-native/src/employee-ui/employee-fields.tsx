@@ -1,7 +1,11 @@
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
+import { Text, TextInput, View } from "react-native";
 
 import {
-  employeeColors as c,
   employeeFieldHeights,
   employeeRadius,
   employeeSpacing,
@@ -13,19 +17,20 @@ import {
   type EmployeeTextKind,
 } from "./employee-typography";
 
-export const employeeFieldStyles = StyleSheet.create({
+export const employeeFieldStylesTheme = createEmployeeStyles((p) => ({
   field: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.inputSurface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     ...employeeTypography.body,
     paddingHorizontal: employeeSpacing.lg,
     paddingVertical: employeeSpacing.sm,
   },
-  label: { ...employeeTypography.label, color: c.navy },
-});
+  label: { ...employeeTypography.label, color: p.textPrimary },
+}));
+export const employeeFieldStyles = employeeFieldStylesTheme.light;
 
 export interface EmployeeFieldProps {
   readonly accessibilityLabel: string;
@@ -59,6 +64,9 @@ export function EmployeeField({
   visualRole = "standard",
   alignment,
 }: EmployeeFieldProps) {
+  const p = useEmployeePalette();
+  const employeeFieldStyles = useEmployeeStyles(employeeFieldStylesTheme);
+
   const resolvedSize = size ?? visualRole;
   const resolvedTextRole =
     textRole ??
@@ -110,7 +118,7 @@ export function EmployeeField({
           maxLength={maxLength}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor={c.muted}
+          placeholderTextColor={p.textMuted}
           style={[
             ...fieldStyle,
             { flex: 1 },

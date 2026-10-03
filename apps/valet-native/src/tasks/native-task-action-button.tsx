@@ -1,13 +1,16 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   type GestureResponderEvent,
 } from "react-native";
 
 import {
-  employeeColors as c,
   employeeMinimumTouchTarget,
   employeeRadius,
 } from "../employee-ui/employee-tokens";
@@ -15,10 +18,7 @@ import { employeeTypography as type } from "../employee-ui/employee-typography";
 
 type NativeTaskActionVariant = "danger" | "primary" | "success";
 
-const disabledBackground = "#D1D5DB";
-const disabledText = "#4B5563";
-
-export const nativeTaskActionButtonStyles = StyleSheet.create({
+export const nativeTaskActionButtonStylesTheme = createEmployeeStyles((p) => ({
   button: {
     alignItems: "center",
     borderRadius: employeeRadius.form,
@@ -26,15 +26,17 @@ export const nativeTaskActionButtonStyles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 16,
   },
-  danger: { backgroundColor: c.danger },
+  danger: { backgroundColor: p.actionDanger },
   compactButton: { height: 36, paddingHorizontal: 12 },
   compactLabel: { ...type.small, fontWeight: "700" },
-  disabled: { backgroundColor: disabledBackground },
-  label: { ...type.body, color: c.white, fontWeight: "700" },
-  labelDisabled: { color: disabledText },
-  primary: { backgroundColor: c.blue },
-  success: { backgroundColor: c.success },
-});
+  disabled: { backgroundColor: p.disabledSurface },
+  label: { ...type.body, color: p.onAction, fontWeight: "700" },
+  labelDisabled: { color: p.disabledText },
+  primary: { backgroundColor: p.actionPrimary },
+  success: { backgroundColor: p.actionSuccess },
+}));
+export const nativeTaskActionButtonStyles =
+  nativeTaskActionButtonStylesTheme.light;
 
 export function NativeTaskActionButton({
   busy,
@@ -51,6 +53,11 @@ export function NativeTaskActionButton({
   readonly size?: "compact" | "priority";
   readonly variant: NativeTaskActionVariant;
 }) {
+  const p = useEmployeePalette();
+  const nativeTaskActionButtonStyles = useEmployeeStyles(
+    nativeTaskActionButtonStylesTheme,
+  );
+
   const isDisabled = disabled || busy;
   const visibleHeight = size === "compact" ? 36 : 40;
   const hitExtension = Math.max(
@@ -83,7 +90,7 @@ export function NativeTaskActionButton({
       ]}
     >
       {busy ? (
-        <ActivityIndicator accessible={false} color={c.white} size="small" />
+        <ActivityIndicator accessible={false} color={p.onAction} size="small" />
       ) : (
         <Text
           style={[

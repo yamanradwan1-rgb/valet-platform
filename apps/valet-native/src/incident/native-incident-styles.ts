@@ -1,8 +1,6 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
 
 import {
-  employeeColors as c,
-  employeeFeedbackColors,
   employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
@@ -11,12 +9,12 @@ import {
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
 
-export const nativeIncidentStyles = StyleSheet.create({
+export const nativeIncidentStylesTheme = createEmployeeStyles((p) => ({
   body: { gap: space.lg, padding: space.screen },
   choice: {
     alignItems: "flex-start",
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 2,
     justifyContent: "center",
@@ -24,34 +22,34 @@ export const nativeIncidentStyles = StyleSheet.create({
     paddingHorizontal: space.md,
     paddingVertical: 10,
   },
-  choiceLabel: { ...type.small, color: c.navy, fontWeight: "600" },
+  choiceLabel: { ...type.small, color: p.textPrimary, fontWeight: "600" },
   choiceSelected: {
-    backgroundColor: "#FFF0F0",
-    borderColor: c.danger,
+    backgroundColor: p.dangerSurface,
+    borderColor: p.danger,
   },
-  choiceSelectedLabel: { color: c.danger },
+  choiceSelectedLabel: { color: p.danger },
   contextCard: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     gap: space.xs,
     padding: space.lg,
   },
-  contextSession: { ...type.small, color: c.neutral },
+  contextSession: { ...type.small, color: p.textSecondary },
   contextVehicle: {
     ...type.body,
-    color: c.navy,
+    color: p.textPrimary,
     fontFamily: employeeFontFamilies.display,
     fontWeight: "700",
   },
   description: {
     ...type.body,
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.navy,
+    color: p.textPrimary,
     minHeight: 108,
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
@@ -59,15 +57,15 @@ export const nativeIncidentStyles = StyleSheet.create({
   },
   error: {
     ...type.small,
-    backgroundColor: employeeFeedbackColors.errorSurface,
-    borderColor: employeeFeedbackColors.errorBorder,
+    backgroundColor: p.errorSurface,
+    borderColor: p.errorBorder,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.danger,
+    color: p.danger,
     padding: space.md,
   },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
-  label: { ...type.label, color: c.navy },
+  label: { ...type.label, color: p.textPrimary },
   loading: {
     alignItems: "center",
     gap: space.lg,
@@ -86,21 +84,30 @@ export const nativeIncidentStyles = StyleSheet.create({
   resultCard: { alignSelf: "stretch" },
   resultIcon: {
     alignItems: "center",
-    backgroundColor: "#FFF0F0",
+    backgroundColor: p.dangerSurface,
     borderRadius: 40,
     height: 80,
     justifyContent: "center",
     width: 80,
   },
-  resultReference: { ...type.body, color: c.neutral, marginTop: space.xs },
+  resultReference: {
+    ...type.body,
+    color: p.textSecondary,
+    marginTop: space.xs,
+  },
   resultSummary: {
     alignSelf: "stretch",
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
     overflow: "hidden",
   },
-  resultTitle: { ...type.pageTitleLarge, color: c.navy, textAlign: "center" },
+  resultTitle: {
+    ...type.pageTitleLarge,
+    color: p.textPrimary,
+    textAlign: "center",
+  },
   severityLabel: { textAlign: "center" },
-});
+}));
+export const nativeIncidentStyles = nativeIncidentStylesTheme.light;

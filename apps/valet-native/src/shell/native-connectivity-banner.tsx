@@ -1,5 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
-import { employeeColors as c } from "../employee-ui/employee-tokens";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
+import { Text, View } from "react-native";
+
 import {
   employeeTextStyle,
   employeeTypography as type,
@@ -15,6 +17,8 @@ export function NativeConnectivityBanner({
   readonly locale: FoundationLocale;
   readonly status: EmployeeConnectivityStatus;
 }) {
+  const styles = useEmployeeStyles(nativeConnectivityBannerStylesTheme);
+
   if (status !== "offline") return null;
   const textAlign = locale === "ar" ? "right" : "left";
   return (
@@ -31,19 +35,21 @@ export function NativeConnectivityBanner({
   );
 }
 
-export const nativeConnectivityBannerStyles = StyleSheet.create({
-  banner: {
-    backgroundColor: c.danger,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    width: "100%",
-  },
-  text: {
-    ...type.small,
-    color: c.white,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-});
-
-const styles = nativeConnectivityBannerStyles;
+export const nativeConnectivityBannerStylesTheme = createEmployeeStyles(
+  (p) => ({
+    banner: {
+      backgroundColor: p.actionDanger,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      width: "100%",
+    },
+    text: {
+      ...type.small,
+      color: p.onAction,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+  }),
+);
+export const nativeConnectivityBannerStyles =
+  nativeConnectivityBannerStylesTheme.light;

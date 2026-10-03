@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
@@ -7,7 +8,7 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeGuestAccessConfirmSheet } from "./native-guest-access-confirm-sheet";
 import { getNativeGuestAccessCopy } from "./native-guest-access-copy";
 import type { NativeGuestAccessSession } from "./native-guest-access-session";
-import { nativeGuestAccessStyles as s } from "./native-guest-access-styles";
+import { nativeGuestAccessStylesTheme as sTheme } from "./native-guest-access-styles";
 import { NativeGuestAccessStatusCard } from "./native-guest-access-status-card";
 import {
   nativeGuestAccessActions,
@@ -35,6 +36,8 @@ export function NativeGuestAccessScreen({
   readonly session: NativeGuestAccessSession;
   readonly snapshot: NativeGuestAccessSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const [confirm, setConfirm] = useState<"reissue" | "revoke" | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<"copied" | "failed" | null>(
     null,

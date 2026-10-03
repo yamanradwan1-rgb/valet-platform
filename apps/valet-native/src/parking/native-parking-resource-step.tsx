@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Text, TextInput, View } from "react-native";
 import type {
   NativeAuthSession,
@@ -10,7 +11,7 @@ import { EmployeeStatus } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeParkingQrInput } from "./native-parking-qr-input";
-import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import { nativeParkingConfirmStylesTheme as sTheme } from "./native-parking-confirm-styles";
 
 /** Shared open/closed scanner composition for Parking Spot and Key Slot. */
 export function NativeParkingResourceCapture(props: {
@@ -28,6 +29,8 @@ export function NativeParkingResourceCapture(props: {
   readonly title: string;
   readonly value: string;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <>
       <Text style={[s.title, employeeTextStyle("human", props.textAlign)]}>
@@ -65,6 +68,8 @@ export function NativeParkingResourceResult(props: {
   readonly value: string;
   readonly valueHero: string;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <View style={s.successSurface}>
       <Text style={s.fieldLabel}>{props.label}</Text>

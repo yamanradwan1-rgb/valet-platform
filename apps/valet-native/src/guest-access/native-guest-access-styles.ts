@@ -1,7 +1,6 @@
-import { StyleSheet } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+
 import {
-  employeeColors as c,
-  employeeFeedbackColors,
   employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
@@ -10,11 +9,11 @@ import {
   employeeTypography as type,
 } from "../employee-ui/employee-typography";
 
-export const nativeGuestAccessStyles = StyleSheet.create({
+export const nativeGuestAccessStylesTheme = createEmployeeStyles((p) => ({
   body: { gap: space.screen, padding: space.screen },
   card: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.primary,
     borderWidth: 1,
     gap: space.lg,
@@ -23,7 +22,7 @@ export const nativeGuestAccessStyles = StyleSheet.create({
   cardCompact: { gap: space.md },
   cardTitle: {
     ...type.pageTitle,
-    color: c.navy,
+    color: p.textPrimary,
     fontFamily: employeeFontFamilies.display,
     fontSize: 18,
     fontWeight: "700",
@@ -31,29 +30,29 @@ export const nativeGuestAccessStyles = StyleSheet.create({
   center: { alignItems: "center" },
   configError: {
     ...type.small,
-    backgroundColor: employeeFeedbackColors.errorSurface,
-    borderColor: employeeFeedbackColors.errorBorder,
+    backgroundColor: p.errorSurface,
+    borderColor: p.errorBorder,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
-    color: c.danger,
+    color: p.danger,
     padding: space.md,
   },
-  date: { ...type.body, color: c.navy, fontWeight: "600" },
+  date: { ...type.body, color: p.textPrimary, fontWeight: "600" },
   dividerRow: {
-    borderTopColor: c.border,
+    borderTopColor: p.border,
     borderTopWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     paddingTop: space.md,
   },
-  feedbackError: { ...type.small, color: c.danger, textAlign: "center" },
-  feedbackSuccess: { ...type.small, color: c.success, textAlign: "center" },
+  feedbackError: { ...type.small, color: p.danger, textAlign: "center" },
+  feedbackSuccess: { ...type.small, color: p.success, textAlign: "center" },
   loading: { alignItems: "center", justifyContent: "center", minHeight: 240 },
-  mutedCenter: { ...type.small, color: c.muted, textAlign: "center" },
+  mutedCenter: { ...type.small, color: p.textMuted, textAlign: "center" },
   qr: {
     alignSelf: "center",
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderRadius: employeeRadius.form,
     borderWidth: 1,
     height: 220,
@@ -63,16 +62,17 @@ export const nativeGuestAccessStyles = StyleSheet.create({
     width: 220,
   },
   sheet: {
-    backgroundColor: c.white,
-    borderColor: c.border,
+    backgroundColor: p.surface,
+    borderColor: p.border,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderTopWidth: 1,
     gap: space.lg,
     padding: space.screen,
   },
-  sheetBackdrop: { backgroundColor: "#07111F99", flex: 1 },
+  sheetBackdrop: { backgroundColor: p.sheetOverlay, flex: 1 },
   sheetRoot: { flex: 1, justifyContent: "flex-end" },
-  statusBody: { ...type.body, color: c.neutral },
+  statusBody: { ...type.body, color: p.textSecondary },
   statusRow: { alignItems: "center", gap: space.xs },
-});
+}));
+export const nativeGuestAccessStyles = nativeGuestAccessStylesTheme.light;

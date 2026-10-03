@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Pressable, Text, View } from "react-native";
 import type {
   EmployeeOperationalSnapshot,
@@ -18,7 +19,7 @@ import {
   nativeTaskVehicleIdentifier,
   nativeTaskVehicleLabel,
 } from "./native-task-presentation";
-import { nativeTaskQueueRowStyles as s } from "./native-task-queue-row-styles";
+import { nativeTaskQueueRowStylesTheme as sTheme } from "./native-task-queue-row-styles";
 import { NativeTaskActionButton } from "./native-task-action-button";
 import type { NativeTasksCopy } from "./native-tasks-copy";
 
@@ -32,6 +33,8 @@ export function NativeTaskQueueRow(props: {
   readonly task: StaffTaskQueueItem;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const {
     busy,
     copy,

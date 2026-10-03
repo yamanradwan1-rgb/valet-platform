@@ -1,12 +1,11 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import type { EmployeeShiftEndAuthority } from "@valet/employee-client";
 
 import { EmployeeBadge, EmployeeCard } from "../employee-ui/employee-feedback";
-import {
-  employeeColors as c,
-  employeeSpacing as space,
-} from "../employee-ui/employee-tokens";
+import { employeeSpacing as space } from "../employee-ui/employee-tokens";
 import {
   employeeFontFamilies,
   employeeTextStyle,
@@ -43,6 +42,8 @@ export function NativeShiftInfoRow({
   readonly value: string;
   readonly valueKind?: "human" | "identifier";
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <View style={styles.row}>
       <Text style={[styles.label, employeeTextStyle("human", textAlign)]}>
@@ -81,6 +82,8 @@ function NativeShiftElapsed({
   readonly startedAt: string;
   readonly textAlign: "left" | "right";
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const [value, setValue] = useState(() =>
     formatNativeShiftDuration(startedAt, locale),
   );
@@ -109,6 +112,8 @@ export function NativeShiftSummaryDetails({
   readonly locale: FoundationLocale;
   readonly textAlign: "left" | "right";
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const copy = getNativeShiftCopy(locale);
   const role =
     authority.role === "VALET_SUPERVISOR"
@@ -167,34 +172,38 @@ export function NativeShiftSummaryDetails({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles((p) => ({
   elapsed: {
     alignItems: "center",
-    borderTopColor: c.border,
+    borderTopColor: p.border,
     borderTopWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     paddingTop: space.md,
   },
-  elapsedLabel: { ...type.badge, color: c.muted, textTransform: "uppercase" },
+  elapsedLabel: {
+    ...type.badge,
+    color: p.textMuted,
+    textTransform: "uppercase",
+  },
   elapsedValue: {
     ...type.body,
-    color: c.navy,
+    color: p.textPrimary,
     fontFamily: employeeFontFamilies.display,
     fontWeight: "700",
   },
-  identifier: { ...type.small, color: c.neutral },
-  label: { ...type.body, color: c.neutral, flexShrink: 0 },
+  identifier: { ...type.small, color: p.textSecondary },
+  label: { ...type.body, color: p.textSecondary, flexShrink: 0 },
   row: {
     alignItems: "flex-start",
-    borderBottomColor: c.border,
+    borderBottomColor: p.border,
     borderBottomWidth: 1,
     flexDirection: "row",
     gap: space.md,
     justifyContent: "space-between",
     paddingVertical: space.md,
   },
-  value: { ...type.body, color: c.navy, fontWeight: "600" },
+  value: { ...type.body, color: p.textPrimary, fontWeight: "600" },
   valueGroup: { flex: 1, gap: 2 },
   topRow: {
     alignItems: "center",
@@ -202,5 +211,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingBottom: space.lg,
   },
-  activeLabel: { ...type.small, color: c.success, fontWeight: "600" },
-});
+  activeLabel: { ...type.small, color: p.success, fontWeight: "600" },
+}));

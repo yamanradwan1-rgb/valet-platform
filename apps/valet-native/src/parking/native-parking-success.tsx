@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 import type { EmployeeConfirmParkedSnapshot } from "@valet/employee-client";
@@ -6,7 +7,7 @@ import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeBigCheckIcon } from "../employee-ui/employee-icons";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
-import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import { nativeParkingConfirmStylesTheme as sTheme } from "./native-parking-confirm-styles";
 
 export function NativeParkingSuccess({
   copy,
@@ -19,6 +20,8 @@ export function NativeParkingSuccess({
   readonly snapshot: EmployeeConfirmParkedSnapshot;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const parked = snapshot.parked;
   if (parked === null) return null;
   const spot =
@@ -83,6 +86,8 @@ function SuccessInfoRow({
   readonly label: string;
   readonly textAlign: "left" | "right";
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   return (
     <View style={[s.successRow, bordered && s.successRowDivider]}>
       <Text style={[s.successLabel, employeeTextStyle("human", textAlign)]}>

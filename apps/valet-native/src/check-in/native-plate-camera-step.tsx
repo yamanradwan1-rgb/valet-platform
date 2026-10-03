@@ -1,5 +1,7 @@
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useCallback, useState, useSyncExternalStore } from "react";
-import { AppState, Linking, StyleSheet, Text, View } from "react-native";
+import { AppState, Linking, Text, View } from "react-native";
 import { NativePlateRoiViewport } from "./native-plate-roi-viewport";
 import { NativePlateTorchControl } from "./native-plate-torch-control";
 import { useFocusEffect } from "expo-router";
@@ -20,7 +22,6 @@ import {
   type NativeTextAlign,
 } from "./native-check-in-primitives";
 import {
-  employeeColors as c,
   employeeRadius,
   employeeSpacing as space,
 } from "../employee-ui/employee-tokens";
@@ -46,6 +47,8 @@ export function NativePlateCameraStep({
   readonly onNoPlate: () => void;
   readonly textAlign: NativeTextAlign;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   const [binding] = useState(() => createNativePlateOcrBinding(auth, session));
   const { controller } = binding;
   const geometry = useSyncExternalStore(
@@ -175,6 +178,8 @@ function CameraMessage({
   readonly message: string;
   readonly textAlign: NativeTextAlign;
 }) {
+  const styles = useEmployeeStyles(stylesTheme);
+
   return (
     <View style={styles.messagePosition}>
       <Text
@@ -190,12 +195,12 @@ function CameraMessage({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles((p) => ({
   message: {
     ...type.label,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    backgroundColor: p.cameraMessageSurface,
     borderRadius: employeeRadius.form,
-    color: c.navy,
+    color: p.textPrimary,
     maxWidth: 280,
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
@@ -212,9 +217,9 @@ const styles = StyleSheet.create({
     top: 0,
   },
   viewport: {
-    backgroundColor: c.navy2,
+    backgroundColor: p.inverseElevated,
     borderRadius: employeeRadius.primary,
     height: 260,
     overflow: "hidden",
   },
-});
+}));

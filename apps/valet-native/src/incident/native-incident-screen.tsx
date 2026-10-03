@@ -1,16 +1,20 @@
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 import { EmployeeBackHeader } from "../employee-ui/employee-back-header";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { EmployeeErrorNotice } from "../employee-ui/employee-feedback";
 import { EmployeeAlertIcon } from "../employee-ui/employee-icons";
-import { employeeColors as c } from "../employee-ui/employee-tokens";
+
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeIncidentCopy } from "./native-incident-copy";
 import { NativeIncidentForm } from "./native-incident-form";
 import type { NativeIncidentSession } from "./native-incident-session";
-import { nativeIncidentStyles as s } from "./native-incident-styles";
+import { nativeIncidentStylesTheme as sTheme } from "./native-incident-styles";
 import {
   nativeIncidentVehicleIdentity,
   type NativeIncidentSnapshot,
@@ -27,6 +31,9 @@ export function NativeIncidentScreen({
   readonly session: NativeIncidentSession;
   readonly snapshot: NativeIncidentSnapshot;
 }) {
+  const p = useEmployeePalette();
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeIncidentCopy(locale);
   const direction = locale === "ar" ? "rtl" : "ltr";
   const textAlign = locale === "ar" ? "right" : "left";
@@ -41,10 +48,11 @@ export function NativeIncidentScreen({
         accessibilityRole="progressbar"
         style={s.loading}
       >
-        <ActivityIndicator color={c.blue} size={32} />
+        <ActivityIndicator color={p.linkPrimary} size={32} />
         <Text
           style={[
             { fontSize: 14, fontWeight: "600" },
+            p.mode === "dark" && { color: p.textPrimary },
             employeeTextStyle("human", textAlign),
           ]}
         >
@@ -218,10 +226,12 @@ function ResultRow({
   readonly textAlign: "left" | "right";
   readonly value: string;
 }) {
+  const p = useEmployeePalette();
+
   return (
     <View
       style={{
-        borderBottomColor: c.border,
+        borderBottomColor: p.border,
         borderBottomWidth: divider ? 1 : 0,
         flexDirection: "row",
         gap: 16,
@@ -230,13 +240,16 @@ function ResultRow({
       }}
     >
       <Text
-        style={[{ color: c.neutral }, employeeTextStyle("human", textAlign)]}
+        style={[
+          { color: p.textSecondary },
+          employeeTextStyle("human", textAlign),
+        ]}
       >
         {label}
       </Text>
       <Text
         style={[
-          { color: c.navy, fontWeight: "600" },
+          { color: p.textPrimary, fontWeight: "600" },
           employeeTextStyle("human", textAlign),
         ]}
       >

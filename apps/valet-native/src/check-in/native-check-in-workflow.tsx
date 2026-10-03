@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { useEffect, useRef, useState } from "react";
 import { ScrollView } from "react-native";
 import type {
@@ -37,7 +38,7 @@ import {
   NativeLoadingStep,
   NativeRecoverablesStep,
 } from "./native-check-in-state-steps";
-import { checkInStyles as s } from "./native-check-in-styles";
+import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
 
 interface NativeCheckInWorkflowProps {
   readonly auth: NativeAuthSession;
@@ -59,6 +60,8 @@ export function NativeCheckInWorkflow({
   session,
   snapshot,
 }: NativeCheckInWorkflowProps) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeCheckInCopy(locale);
   const conditionCopy = getNativeCheckInConditionCopy(locale);
   const continuationCopy = getNativeCheckInContinuationCopy(locale);

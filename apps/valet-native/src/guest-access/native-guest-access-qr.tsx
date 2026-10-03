@@ -1,8 +1,9 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import QRCode from "qrcode";
 import { View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import { isCanonicalNativeGuestAccessUrl } from "./native-customer-app-origin";
-import { nativeGuestAccessStyles as s } from "./native-guest-access-styles";
+import { nativeGuestAccessStylesTheme as sTheme } from "./native-guest-access-styles";
 
 const QUIET_ZONE_MODULES = 4;
 
@@ -48,6 +49,8 @@ export function NativeGuestAccessQr({
   readonly alt: string;
   readonly credentialUrl: string | null;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const matrix = createNativeGuestAccessQrMatrix(credentialUrl);
   if (matrix === null) return null;
   const totalSize = matrix.size + QUIET_ZONE_MODULES * 2;

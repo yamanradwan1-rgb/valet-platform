@@ -1,8 +1,12 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { createEmployeeStyles } from "../appearance/employee-themed-styles";
+import {
+  useEmployeeStyles,
+  useEmployeePalette,
+} from "../appearance/employee-appearance-context";
+import { Pressable, Text } from "react-native";
 import type { EmployeeLocale } from "@valet/employee-client";
 import { EmployeeTorchIcon } from "../employee-ui/employee-icons";
 import {
-  employeeColors as c,
   employeeRadius,
   employeeSpacing,
   employeeMinimumTouchTarget,
@@ -26,8 +30,11 @@ export function NativePlateTorchControl({
   readonly locale: EmployeeLocale;
   readonly onPress: () => void;
 }) {
+  const p = useEmployeePalette();
+  const styles = useEmployeeStyles(stylesTheme);
+
   const copy = nativePlateTorchCopy[locale];
-  const color = enabled ? c.white : c.navy;
+  const color = enabled ? p.onAction : p.textPrimary;
   return (
     <Pressable
       testID="plate-torch"
@@ -38,7 +45,7 @@ export function NativePlateTorchControl({
       style={({ pressed }) => [
         styles.control,
         {
-          backgroundColor: enabled ? c.blue : c.white,
+          backgroundColor: enabled ? p.actionPrimary : p.surface,
           opacity: pressed ? 0.8 : 1,
         },
       ]}
@@ -61,7 +68,7 @@ export function NativePlateTorchControl({
   );
 }
 
-const styles = StyleSheet.create({
+const stylesTheme = createEmployeeStyles(() => ({
   control: {
     position: "absolute",
     top: employeeSpacing.sm,
@@ -74,4 +81,4 @@ const styles = StyleSheet.create({
     borderRadius: employeeRadius.form,
   },
   label: { ...employeeTypography.supporting },
-});
+}));

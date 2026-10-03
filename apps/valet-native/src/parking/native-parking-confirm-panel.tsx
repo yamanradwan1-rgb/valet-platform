@@ -1,3 +1,4 @@
+import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { ScrollView } from "react-native";
 import type {
   EmployeeConfirmParkedSession,
@@ -13,7 +14,7 @@ import {
 } from "../employee-ui/employee-feedback";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeParkingConfirmCopy } from "./native-parking-confirm-copy";
-import { nativeParkingConfirmStyles as s } from "./native-parking-confirm-styles";
+import { nativeParkingConfirmStylesTheme as sTheme } from "./native-parking-confirm-styles";
 import { NativeParkingKeyReturnStep } from "./native-parking-key-return-step";
 import { NativeParkingSuccess } from "./native-parking-success";
 import { NativeParkingSpotStep } from "./native-parking-spot-step";
@@ -35,6 +36,8 @@ export function NativeParkingConfirmPanel({
   readonly onDone: () => void;
   readonly snapshot: EmployeeConfirmParkedSnapshot;
 }) {
+  const s = useEmployeeStyles(sTheme);
+
   const copy = getNativeParkingConfirmCopy(locale);
   const direction = locale === "ar" ? "rtl" : "ltr";
   const textAlign = locale === "ar" ? "right" : "left";
