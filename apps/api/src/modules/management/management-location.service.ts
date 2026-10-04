@@ -12,7 +12,10 @@ import { Inject, Injectable } from "@nestjs/common";
 
 import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
 import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
-import type { PostgresPool, PostgresTransaction } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
@@ -20,13 +23,16 @@ import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeCompanyAdminManagement } from "./management-authorization";
 import { ManagementLocationError } from "./management-location-errors";
 import {
+  requirePresenceCompanyCreationReady,
+  activatePresenceReadyLocation,
+} from "./management-location-presence";
+import {
   isSupportedLocationCurrency,
   isValidLocationTimezone,
   locationCreateFingerprint,
 } from "./management-location-policy";
 import { locationLifecycleProjection } from "./management-location-projection";
 import {
-  activateLocation,
   correctLocationCurrency,
   correctLocationTimezone,
   createLocation,
@@ -38,7 +44,9 @@ type Actor = Awaited<ReturnType<typeof authorizeCompanyAdminManagement>>;
 
 @Injectable()
 export class ManagementLocationService {
-  constructor(@Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool) {}
+  constructor(
+    @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+  ) {}
 
   create(
     context: StaffSessionContext,
@@ -46,9 +54,17 @@ export class ManagementLocationService {
     request: ManagementLocationCreateRequest,
   ): Promise<ManagementLocationLifecycleResponse> {
     return inPostgresTransaction(this.pool, async (transaction) => {
+      await lockManagementSettingsOrganization(
+        transaction,
+        organizationId,
+        "EXCLUSIVE",
+      );
       const actor = await this.authorize(transaction, context, organizationId);
-      if (!isValidLocationTimezone(request.timezone) ||
-          !isSupportedLocationCurrency(request.currency)) {
+      await requirePresenceCompanyCreationReady(transaction, organizationId);
+      if (
+        !isValidLocationTimezone(request.timezone) ||
+        !isSupportedLocationCurrency(request.currency)
+      ) {
         throw new ManagementLocationError("CONFIGURATION_VALUE_INVALID");
       }
       const result = await createLocation(transaction, {
@@ -59,7 +75,9 @@ export class ManagementLocationService {
         request,
       });
       const projection = await locationLifecycleProjection(
-        transaction, organizationId, result.locationId,
+        transaction,
+        organizationId,
+        result.locationId,
       );
       await recordAdminActivityInTransaction(transaction, context);
       return projection;
@@ -71,8 +89,14 @@ export class ManagementLocationService {
     organizationId: string,
     locationId: string,
   ): Promise<ManagementLocationLifecycleResponse> {
-    return this.locationTransaction(context, organizationId, locationId, "SHARED",
-      (transaction) => locationLifecycleProjection(transaction, organizationId, locationId));
+    return this.locationTransaction(
+      context,
+      organizationId,
+      locationId,
+      "SHARED",
+      (transaction) =>
+        locationLifecycleProjection(transaction, organizationId, locationId),
+    );
   }
 
   activate(
@@ -81,8 +105,14 @@ export class ManagementLocationService {
     locationId: string,
     command: ManagementLocationLifecycleCommand,
   ) {
-    return this.locationMutation(context, organizationId, locationId, command,
-      activateLocation);
+    return this.locationMutation(
+      context,
+      organizationId,
+      locationId,
+      command,
+      activatePresenceReadyLocation,
+      true,
+    );
   }
 
   stopIntake(
@@ -91,8 +121,13 @@ export class ManagementLocationService {
     locationId: string,
     command: ManagementLocationLifecycleCommand,
   ) {
-    return this.locationMutation(context, organizationId, locationId, command,
-      stopLocationIntake);
+    return this.locationMutation(
+      context,
+      organizationId,
+      locationId,
+      command,
+      stopLocationIntake,
+    );
   }
 
   deactivate(
@@ -101,8 +136,13 @@ export class ManagementLocationService {
     locationId: string,
     command: ManagementLocationLifecycleCommand,
   ) {
-    return this.locationMutation(context, organizationId, locationId, command,
-      deactivateLocation);
+    return this.locationMutation(
+      context,
+      organizationId,
+      locationId,
+      command,
+      deactivateLocation,
+    );
   }
 
   correctCurrency(
@@ -114,8 +154,14 @@ export class ManagementLocationService {
     if (!isSupportedLocationCurrency(command.newCurrency)) {
       throw new ManagementLocationError("CONFIGURATION_VALUE_INVALID");
     }
-    return this.locationMutation(context, organizationId, locationId, command,
-      correctLocationCurrency, true);
+    return this.locationMutation(
+      context,
+      organizationId,
+      locationId,
+      command,
+      correctLocationCurrency,
+      true,
+    );
   }
 
   correctTimezone(
@@ -127,12 +173,29 @@ export class ManagementLocationService {
     if (!isValidLocationTimezone(command.newTimezone)) {
       throw new ManagementLocationError("CONFIGURATION_VALUE_INVALID");
     }
-    return this.locationTransaction(context, organizationId, locationId, "EXCLUSIVE",
+    return this.locationTransaction(
+      context,
+      organizationId,
+      locationId,
+      "EXCLUSIVE",
       async (transaction, actor) => {
-        const before = await locationLifecycleProjection(transaction, organizationId, locationId);
-        await correctLocationTimezone(transaction, actor.membershipId,
-          organizationId, locationId, command);
-        const location = await locationLifecycleProjection(transaction, organizationId, locationId);
+        const before = await locationLifecycleProjection(
+          transaction,
+          organizationId,
+          locationId,
+        );
+        await correctLocationTimezone(
+          transaction,
+          actor.membershipId,
+          organizationId,
+          locationId,
+          command,
+        );
+        const location = await locationLifecycleProjection(
+          transaction,
+          organizationId,
+          locationId,
+        );
         return {
           impact: {
             historicalReportFactsRewritten: false,
@@ -142,7 +205,8 @@ export class ManagementLocationService {
           },
           location,
         };
-      });
+      },
+    );
   }
 
   private authorize(
@@ -155,10 +219,12 @@ export class ManagementLocationService {
       assurance: "SENSITIVE",
       capability: "LOCATION_LIFECYCLE_MANAGE_ELIGIBLE",
       organizationId,
-      ...(locationId === undefined ? {} : {
-        requireActiveLocation: false,
-        targetLocationId: locationId,
-      }),
+      ...(locationId === undefined
+        ? {}
+        : {
+            requireActiveLocation: false,
+            targetLocationId: locationId,
+          }),
     });
   }
 
@@ -168,16 +234,35 @@ export class ManagementLocationService {
     locationId: string,
     command: T,
     mutation: (
-      transaction: PostgresTransaction, actorMembershipId: string,
-      organizationId: string, locationId: string, command: T,
+      transaction: PostgresTransaction,
+      actorMembershipId: string,
+      organizationId: string,
+      locationId: string,
+      command: T,
     ) => Promise<unknown>,
     lockSettings = false,
   ): Promise<ManagementLocationLifecycleResponse> {
-    return this.locationTransaction(context, organizationId, locationId, "EXCLUSIVE",
+    return this.locationTransaction(
+      context,
+      organizationId,
+      locationId,
+      "EXCLUSIVE",
       async (transaction, actor) => {
-        await mutation(transaction, actor.membershipId, organizationId, locationId, command);
-        return locationLifecycleProjection(transaction, organizationId, locationId);
-      }, lockSettings);
+        await mutation(
+          transaction,
+          actor.membershipId,
+          organizationId,
+          locationId,
+          command,
+        );
+        return locationLifecycleProjection(
+          transaction,
+          organizationId,
+          locationId,
+        );
+      },
+      lockSettings,
+    );
   }
 
   private locationTransaction<T>(
@@ -189,11 +274,20 @@ export class ManagementLocationService {
     settingsAlreadyLocked = false,
   ): Promise<T> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      await lockLocationLifecycle(transaction, locationId, mode);
       if (settingsAlreadyLocked) {
-        await lockManagementSettingsOrganization(transaction, organizationId, "EXCLUSIVE");
+        await lockManagementSettingsOrganization(
+          transaction,
+          organizationId,
+          "EXCLUSIVE",
+        );
       }
-      const actor = await this.authorize(transaction, context, organizationId, locationId);
+      await lockLocationLifecycle(transaction, locationId, mode);
+      const actor = await this.authorize(
+        transaction,
+        context,
+        organizationId,
+        locationId,
+      );
       const result = await operation(transaction, actor);
       await recordAdminActivityInTransaction(transaction, context);
       return result;

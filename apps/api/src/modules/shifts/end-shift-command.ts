@@ -2,6 +2,18 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
+import type { ShiftPresenceEvidence } from "@valet/contracts";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import {
+  guardPresenceShiftIntent,
+  presenceDatabaseError,
+  recheckPresenceShiftSession,
+} from "./shift-presence-security";
+import {
+  preparePresenceShiftAttempt,
+  recoverPresenceShiftAttempt,
+} from "./shift-presence-command";
+import { ShiftPresenceError } from "./shift-presence-errors";
 import { isCurrencyAmountRepresentable } from "../../common/financial/currency-minor-units";
 import { appendShiftAuditEvent } from "./shift-audit-event-writer";
 import { requireActiveShiftUser } from "./shift-authorization";
@@ -21,10 +33,13 @@ export interface EndShiftCommandRequest {
   readonly authenticatedUserId: string;
   readonly cashReported: string;
   readonly shiftId: string;
+  readonly presence?: ShiftPresenceEvidence;
+  readonly sessionContext?: StaffSessionContext;
 }
 
 interface EndShiftCommandOptions {
   readonly auditEventIdFactory?: () => string;
+  readonly presenceFingerprintKey?: Uint8Array;
 }
 
 interface OwnedShiftScope {
@@ -139,32 +154,69 @@ export function createEndShiftCommandExecutor(
   pool: PostgresPool,
   options: EndShiftCommandOptions = {},
 ): (request: EndShiftCommandRequest) => Promise<ShiftResult> {
-  return (request) =>
-    inShiftTransaction(pool, async (transaction) => {
-      await requireActiveShiftUser(transaction, request.authenticatedUserId);
-      const scope = await resolveOwnedShift(transaction, request);
-      const shift = await lockOwnedShift(transaction, request, scope);
-      if (shift.status === "ENDED") {
-        if (shift.cash_reported_at === null) {
-          throw new ShiftOperationError(
-            "SHIFT_CASH_RECONCILIATION_UNAVAILABLE",
-          );
-        }
-        return toShiftResult(shift);
-      }
-      const cashReported = parseShiftMoney(request.cashReported);
-      if (!isCurrencyAmountRepresentable(scope.currency, cashReported)) {
-        throw new ShiftOperationError("SHIFT_CASH_REPORT_INVALID");
-      }
-      await requireNoCanonicalOpenTasks(transaction, scope);
-      const operationTime = await loadShiftOperationTime(transaction);
-      const cashExpected = await deriveCashExpected(
-        transaction,
-        shift,
-        operationTime,
-      );
-      const result = await transaction.query<PersistedShiftRow>(
-        `UPDATE shifts
+  return async (request) => {
+    const outcome = await inShiftTransaction(pool, async (transaction) => {
+      const result = await endInTransaction(transaction, request, options);
+      await recheckPresenceShiftSession(transaction, request.sessionContext);
+      return result;
+    }).catch((error) => {
+      throw presenceDatabaseError(error);
+    });
+    if ("denied" in outcome) throw new ShiftPresenceError(outcome.denied);
+    return outcome;
+  };
+}
+
+async function endInTransaction(
+  transaction: PostgresTransaction,
+  request: EndShiftCommandRequest,
+  options: EndShiftCommandOptions,
+) {
+  await guardPresenceShiftIntent(transaction, request);
+  await requireActiveShiftUser(transaction, request.authenticatedUserId);
+  const scope = await resolveOwnedShift(transaction, request);
+  const shift = await lockOwnedShift(transaction, request, scope);
+  const attempt = {
+    userId: request.authenticatedUserId,
+    membershipId: scope.membership_id,
+    organizationId: scope.organization_id,
+    locationId: scope.location_id,
+    action: "END" as const,
+    shiftId: shift.id,
+    cashReported: request.cashReported,
+    ...(request.presence === undefined ? {} : { evidence: request.presence }),
+  };
+  const recovery = await recoverPresenceShiftAttempt(
+    transaction,
+    attempt,
+    options.presenceFingerprintKey,
+  );
+  if (recovery !== undefined) return recovery;
+  if (shift.status === "ENDED") {
+    if (shift.cash_reported_at === null) {
+      throw new ShiftOperationError("SHIFT_CASH_RECONCILIATION_UNAVAILABLE");
+    }
+    return toShiftResult(shift);
+  }
+  const cashReported = parseShiftMoney(request.cashReported);
+  if (!isCurrencyAmountRepresentable(scope.currency, cashReported)) {
+    throw new ShiftOperationError("SHIFT_CASH_REPORT_INVALID");
+  }
+  await requireNoCanonicalOpenTasks(transaction, scope);
+  const presence = await preparePresenceShiftAttempt(
+    transaction,
+    attempt,
+    options.presenceFingerprintKey,
+  );
+  if ("denied" in presence) return { denied: presence.denied! };
+  const operationTime = await loadShiftOperationTime(transaction);
+  const cashExpected = await deriveCashExpected(
+    transaction,
+    shift,
+    operationTime,
+  );
+  const result = await transaction.query<PersistedShiftRow>(
+    `UPDATE shifts
          SET status = 'ENDED', ended_at = $2,
              cash_expected = $3::numeric, cash_reported = $4::numeric,
              cash_variance = $5::numeric, cash_currency = $6,
@@ -172,32 +224,32 @@ export function createEndShiftCommandExecutor(
              cash_reported_by_membership_id = membership_id
          WHERE id = $1 AND status = 'ACTIVE'
          RETURNING ${shiftColumns}`,
-        [
-          shift.id,
-          operationTime,
-          formatShiftMoney(cashExpected),
-          formatShiftMoney(cashReported),
-          formatShiftMoney(cashReported - cashExpected),
-          scope.currency,
-        ],
-      );
-      const endedShift = result.rows[0];
-      if (endedShift === undefined) {
-        throw new Error("Locked Shift end mutation did not succeed.");
-      }
-      await appendShiftAuditEvent(
-        transaction,
-        {
-          cashReconciliation: toShiftResult(endedShift).cashReconciliation!,
-          eventType: "SHIFT_ENDED",
-          locationId: endedShift.location_id,
-          membershipId: endedShift.membership_id,
-          occurredAt: operationTime,
-          organizationId: endedShift.organization_id,
-          shiftId: endedShift.id,
-        },
-        options.auditEventIdFactory,
-      );
-      return toShiftResult(endedShift);
-    });
+    [
+      shift.id,
+      operationTime,
+      formatShiftMoney(cashExpected),
+      formatShiftMoney(cashReported),
+      formatShiftMoney(cashReported - cashExpected),
+      scope.currency,
+    ],
+  );
+  const endedShift = result.rows[0];
+  if (endedShift === undefined) {
+    throw new Error("Locked Shift end mutation did not succeed.");
+  }
+  await presence.commit(endedShift.id);
+  await appendShiftAuditEvent(
+    transaction,
+    {
+      cashReconciliation: toShiftResult(endedShift).cashReconciliation!,
+      eventType: "SHIFT_ENDED",
+      locationId: endedShift.location_id,
+      membershipId: endedShift.membership_id,
+      occurredAt: operationTime,
+      organizationId: endedShift.organization_id,
+      shiftId: endedShift.id,
+    },
+    options.auditEventIdFactory,
+  );
+  return toShiftResult(endedShift);
 }

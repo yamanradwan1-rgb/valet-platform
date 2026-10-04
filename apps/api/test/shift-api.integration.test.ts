@@ -19,7 +19,11 @@ import {
 } from "../src/modules/auth/staff-principal";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftService } from "../src/modules/shifts/shift.service";
-import { ShiftTestContext } from "./shift-test-context";
+import { PresenceServerTestContext } from "./shift-presence-server-test-context";
+import {
+  DatabaseStaffSessionContextResolver,
+  STAFF_SESSION_CONTEXT_RESOLVER,
+} from "../src/modules/auth/staff-session-context";
 
 interface HttpResult {
   readonly body: Record<string, unknown>;
@@ -27,7 +31,7 @@ interface HttpResult {
   readonly status: number;
 }
 
-const context = new ShiftTestContext("http");
+const context = new PresenceServerTestContext("http");
 const principals = new Map<string, string>();
 const principalResolver: StaffPrincipalResolver = {
   async resolve(authorization) {
@@ -49,6 +53,11 @@ let baseUrl: string;
     ShiftService,
     { provide: RUNTIME_POSTGRES_POOL, useFactory: () => context.runtimePool },
     { provide: STAFF_PRINCIPAL_RESOLVER, useValue: principalResolver },
+    {
+      provide: STAFF_SESSION_CONTEXT_RESOLVER,
+      useFactory: () =>
+        new DatabaseStaffSessionContextResolver(context.runtimePool),
+    },
   ],
 })
 class TestShiftModule implements NestModule {
@@ -82,7 +91,7 @@ async function request(
 
 async function fixtureWithToken() {
   const fixture = await context.createFixture();
-  const token = `shift-${randomUUID()}`;
+  const { token } = await context.session(fixture.userId);
   principals.set(`Bearer ${token}`, fixture.userId);
   return { fixture, token };
 }

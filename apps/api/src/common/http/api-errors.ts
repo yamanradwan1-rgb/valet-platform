@@ -3,6 +3,7 @@ import {
   HttpStatus,
   UnauthorizedException,
 } from "@nestjs/common";
+import { mapPresenceApiError } from "./presence-api-errors";
 
 export class ApiTransportValidationError extends Error {
   constructor() {
@@ -192,6 +193,8 @@ export function mapApiError(error: unknown): MappedApiError {
   }
   const coded = error as CodedError;
   const code = typeof coded.code === "string" ? coded.code : undefined;
+  const presenceError = mapPresenceApiError(code);
+  if (presenceError !== undefined) return presenceError;
   if (code !== undefined && statusByCode[code] !== undefined) {
     return {
       code,

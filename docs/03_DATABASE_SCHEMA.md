@@ -2413,7 +2413,7 @@ benchmark-retained read index:
 
 - `dispatch_events_org_location_occurred_at_company_reports_idx` on
   `dispatch_events (organization_id, location_id, occurred_at) INCLUDE (task_id,
-  event_type)`, measured at 109,568,000 bytes.
+event_type)`, measured at 109,568,000 bytes.
 
 The PostgreSQL 17.11 BE-11 benchmark represented 52 Locations overall and a
 target Organization with 40 Locations (30 `ACTIVE`, 10 `INACTIVE`) across eight
@@ -2535,13 +2535,13 @@ INVALID_CONFIGURATION/INVALID_FIX/INACCURATE_FIX/STALE_FIX/FUTURE_FIX), Band
 
 All five models use UUID identities and exact Organization/Location scope:
 
-| Model / SQL table | Dedicated fields beyond scope |
-| --- | --- |
-| ShiftPresenceZone / shift_presence_zones | code, label, latitude/longitude **configuration center**, radius_meters, state, revision, created_at, updated_at |
-| ShiftPresenceOperation / shift_presence_operations | user_id, membership_id, operation_id, action, shift_id, target_fingerprint, nullable one-time request_fingerprint, status, created_at, expires_at, terminal_at, result_shift_id, result_decision_id |
-| ShiftPresenceChallenge / shift_presence_challenges | user_id, membership_id, action, shift_id, unique operation_row_id, issued_at, expires_at, consumed_at, decision_id |
-| ShiftPresenceDecision / shift_presence_decisions | user_id, membership_id, action, shift_id, independent operation_id/challenge_id, policy_fingerprint, applied_mode, company_policy_revision, location_policy_revision, optional zone_id/zone_revision, classification, reason, accuracy_band, freshness_band, optional exception_id, decided_at |
-| ShiftPresenceException / shift_presence_exceptions | user_id, membership_id, action, shift_id, independent challenge_id, reason, status, revision, requested_at, expires_at, reviewed_at, reviewer_membership_id/reviewer_user_id, terminal_at, consumed_decision_id |
+| Model / SQL table                                  | Dedicated fields beyond scope                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ShiftPresenceZone / shift_presence_zones           | code, label, latitude/longitude **configuration center**, radius_meters, state, revision, created_at, updated_at                                                                                                                                                                               |
+| ShiftPresenceOperation / shift_presence_operations | user_id, membership_id, operation_id, action, shift_id, target_fingerprint, nullable one-time request_fingerprint, status, created_at, expires_at, terminal_at, result_shift_id, result_decision_id                                                                                            |
+| ShiftPresenceChallenge / shift_presence_challenges | user_id, membership_id, action, shift_id, unique operation_row_id, issued_at, expires_at, consumed_at, decision_id                                                                                                                                                                             |
+| ShiftPresenceDecision / shift_presence_decisions   | user_id, membership_id, action, shift_id, independent operation_id/challenge_id, policy_fingerprint, applied_mode, company_policy_revision, location_policy_revision, optional zone_id/zone_revision, classification, reason, accuracy_band, freshness_band, optional exception_id, decided_at |
+| ShiftPresenceException / shift_presence_exceptions | user_id, membership_id, action, shift_id, independent challenge_id, reason, status, revision, requested_at, expires_at, reviewed_at, reviewer_membership_id/reviewer_user_id, terminal_at, consumed_decision_id                                                                                |
 
 Decision retains independent operation/challenge IDs and historical result for
 24 months, never request_fingerprint, raw coordinates, captured_at,
@@ -2585,20 +2585,52 @@ employee fix, request JSON, note, secret or exact derived distance is stored.
 
 ### Accepted GPS-B forward boundary — DEC-100 / U-001
 
-DEC-100 requires early APPROVED -> EXPIRED when current original-approver
-authority is invalid at attempted consumption, atomically with exact Operation
-DENIED and a minimal recoverable controlled denial result. The five Exception
-statuses remain unchanged; original reviewer/review time and expiry deadline
-remain truthful, actual terminalAt controls retention, and no Shift/consumption
-effect occurs. This documentation task implements no database change.
+GPS-B forward work adds typed Operation `denial_reason` and Exception
+`expiry_cause` for the narrow APPROVER_AUTHORITY_REVOKED outcome. The expiry cause
+is not an Exception status. A private-provenance SECURITY DEFINER command alone
+can set the cause after exact authenticated requester/owned target proof and
+protected current original-approver authority checks. Ordinary timed expiry still
+requires terminal_at >= expires_at; early expiry requires preserved approval,
+actual terminal_at >= reviewed_at, no consumption, and exact atomic DENIED result.
+Runtime cannot directly write the expiry provenance column; revocation denied
+reason requires its exact early-expiry provenance in SQL. Existing five states,
+reviewer identity, expiry deadline, scope and positive revisions remain intact.
+Operation also stores a nullable one-time non-secret `request_policy_fingerprint`
+with its request digest so identical recovery survives later configuration edits;
+both share the Operation's existing retention and never enter long-lived history.
+Migration 060 follows 059; historical migration SQL remains immutable.
 
-Current migration 058's `shift_presence_exceptions_state_check` requires
-EXPIRED.terminal_at >= expires_at, so it cannot represent accepted early authority
-invalidation. GPS-B must add a new forward constraint/narrow-command provenance
-that admits the authorized invalidation path while preserving timed-expiry,
-revision/tenant/identity/one-way history and runtime least privilege. No fake
-terminalAt/expiresAt, weakened generic state setter, or historical migration edit.
-Operation's existing status/result linkage does not yet provide the complete
-controlled denial-reason reconstruction contract; GPS-B supplies the smallest
-typed result boundary and its schema/docs/fixtures/invariant tests. See DEC-100
-and the canonical GPS-A/B/#262/C/D plan; no raw GPS/security request blob is allowed.
+GPS-B migration 061 replaces the OFF-only CHECKs with server-owned closed strict
+CHECKs (OFF/WARN_ONLY only until a later approved release boundary). Runtime
+presence policy writes use one narrow SECURITY DEFINER entry point, retaining
+SELECT-only Organization/Location grants. It validates current exact-session
+sensitive MFA and current CA/exact active LM scope, performs positive presence CAS,
+changes one whitelisted typed column, and appends safe real-scope change audit
+atomically. No-op values retain their revision and append no change event.
+Management mutation UUID is the safe audit identity used for exact attribution;
+no request digest/body, zone labels/centers or employee fix enters that audit.
+
+Migration 062 adds owner-only `shift_presence_maintain(limit)` with bounded
+expiry/purge and SKIP LOCKED selection. The controlled operator runs
+`node packages/database/scripts/shift-presence-maintenance.mjs` using the approved
+migration connection/TLS boundary; no runtime EXECUTE/DELETE, queue or archive.
+Expired pending Operations explicitly terminalize with their pending/approved
+Exceptions before retention clocks run. Challenges purge independently, then
+90-day Operations, 24 UTC-calendar-month Decisions, then eligible unreferenced
+Exceptions. Counts only leave the operator; retained Decisions survive ephemeral
+purge. Exact result response recovery still stops at 14 days, not 90 days.
+
+Migration 063 adds `shift_presence_lock_management_entitlement` to protect the
+current subscription row through management commit without granting runtime
+UPDATE on the read-only commercial table. It verifies the exact active staff
+session/User and current CA/LM Organization membership before taking the narrow
+shared row lock. It returns only the existing dashboard entitlement Boolean.
+All four new definer functions have fixed search paths and no PUBLIC EXECUTE;
+runtime receives only the three operational/management functions, never purge.
+
+The former migration-058 early-expiry limitation is reconciled by migration 060;
+058/059 remain unchanged. Public schemas, operator prerequisites and local proof
+are recorded in [GPS-B contract](validation/GPS_B_PUBLIC_CONTRACT.md) and
+[GPS-B implementation report](validation/GPS_B_IMPLEMENTATION_REPORT.md).
+
+Retention maintenance also terminalizes expired PENDING/APPROVED Exceptions independently of Operation state and Challenge existence. This includes an unused approval after an OFF/WARN_ONLY committed action or a denied Operation. The bounded expiredExceptions aggregate exposes counts only; immutable approval history/deadline and independent Decision history are preserved.

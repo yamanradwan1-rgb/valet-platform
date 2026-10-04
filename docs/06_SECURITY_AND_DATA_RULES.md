@@ -720,7 +720,6 @@ plus a minimal encrypted device marker; it stores no durable command journal:
 - the 24-hour local marker deadline is presentation metadata; authoritative
   online recovery still resolves the exact outcome and never invents absence
 
-
 ## Secrets
 
 Use environment variables/secret manager.
@@ -1216,3 +1215,13 @@ GPS-B-owned forward constraints/result/audit proof; recording it is not enforcem
 ## Issue #255 — terminal intake authority
 
 DEC-097 requires current exact self-owned membership, Organization/Location/access/Shift eligibility before cancellation or status disclosure, including terminal convergence. Expected Shift and version are selectors, never authority. Both Guest resolvers reject CANCELLED before projection; locked staff token issuance fails with GUEST_ACCESS_INTENT_CONFLICT before any generation/write/audit. No automatic credential revocation. Cancellation audit contains only lifecycle state/version facts. Transient client intent is memory-only and fenced by full owner/generation/revision.
+
+## GPS-B server composition implementation parity
+
+Issue #257 GPS-B now composes exact-session Start/End, operational challenge/status/exception and separate CA/exact-LM management authority in caller-owned transactions. Settings guards precede lifecycle and authority/Shift guards. Configuration writers serialize exclusively; review/consumption protects current requester and original approver facts. Busy second-principal proof rolls back without inventing revocation. Sensitive freshness is rechecked against database wall time after waits and before commit. Approval's original browser/session/MFA age is not a consumption predicate.
+
+Forward migration 060 permits truthful early expiry with typed provenance and exact denied recovery; 061 keeps strict modes SQL-closed; 062 provides privileged bounded maintenance; 063 locks commercial entitlement without runtime UPDATE grants. Runtime still cannot DELETE presence history, directly change revocation provenance, or execute maintenance/trigger helpers. Original reviewer, review time and expiry deadline remain immutable.
+
+Start/End successful response shapes remain unchanged. Public reconciliation reauthenticates/re-authorizes exact targets, returns allowlisted projections and never automatically replays protected writes. Management mutation UUIDs correlate only to their own safe actor/target audit fact; equal values and no-op values do not establish attribution. Configured zone centers are configuration data; raw employee fixes, accuracy/distance/capture time, digests and generic request bodies are excluded from durable Decision/Exception history, audit, observer logs and public recovery.
+
+Deployment must supply a persistent protected base64 HMAC key of at least 32 bytes through SHIFT_PRESENCE_FINGERPRINT_KEY before enabling presence-dependent commands/WARN_ONLY. Rotation preserves old keys through the retained 90-day Operation horizon using SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS; keys never enter database rows, logs or responses. The operator executor uses the existing migration connection/TLS policy, emits aggregate counts only and is tested against a disposable real PostgreSQL database. Deployment scheduling and strict activation remain separate release gates. See [published contract](validation/GPS_B_PUBLIC_CONTRACT.md) and [evidence report](validation/GPS_B_IMPLEMENTATION_REPORT.md).

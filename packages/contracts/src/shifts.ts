@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { shiftPresenceEvidenceSchema } from "./shift-presence-public.js";
 
 const uuidSchema = z.string().uuid();
 const utcTimestampSchema = z.string().datetime({ offset: false });
@@ -30,11 +31,17 @@ export const shiftProjectionSchema = z
   .strict();
 
 export const startShiftRequestSchema = z
-  .object({ targetLocationId: uuidSchema })
+  .object({
+    targetLocationId: uuidSchema,
+    presence: shiftPresenceEvidenceSchema.optional(),
+  })
   .strict();
 
 export const endShiftRequestSchema = z
-  .object({ cashReported: shiftMoneySchema })
+  .object({
+    cashReported: shiftMoneySchema,
+    presence: shiftPresenceEvidenceSchema.optional(),
+  })
   .strict();
 
 export const activeShiftQuerySchema = z

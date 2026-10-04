@@ -31,6 +31,10 @@ import {
   type StaffPrincipalResolver,
 } from "../auth/staff-principal";
 import { ShiftService } from "./shift.service";
+import {
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContextResolver,
+} from "../auth/staff-session-context";
 import type { ShiftResult } from "./shift-types";
 
 interface ParseSchema<T> {
@@ -87,6 +91,8 @@ export class ShiftController {
     private readonly runner: ApiOperationRunner,
     @Inject(STAFF_PRINCIPAL_RESOLVER)
     private readonly principals: StaffPrincipalResolver,
+    @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
+    private readonly sessions: StaffSessionContextResolver,
   ) {}
 
   private async userId(
@@ -120,6 +126,8 @@ export class ShiftController {
       const shift = await this.service.executeStart({
         authenticatedUserId,
         targetLocationId: input.targetLocationId,
+        ...(input.presence === undefined ? {} : { presence: input.presence }),
+        sessionContext: await this.sessions.resolve(authorization),
       });
       return startShiftResponseSchema.parse(serializeShift(shift));
     });
@@ -140,6 +148,8 @@ export class ShiftController {
         authenticatedUserId,
         cashReported: input.cashReported,
         shiftId: parseUuid(shiftIdRaw),
+        ...(input.presence === undefined ? {} : { presence: input.presence }),
+        sessionContext: await this.sessions.resolve(authorization),
       });
       return endShiftResponseSchema.parse(serializeEndedShift(shift));
     });

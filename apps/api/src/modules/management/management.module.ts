@@ -37,9 +37,20 @@ import { StaffLocationAccessController } from "./staff-location-access.controlle
 import { StaffLocationAccessService } from "./staff-location-access.service";
 import { StaffManagementController } from "./staff-management.controller";
 import { StaffManagementMutationService } from "./staff-management-mutation.service";
+import { PresenceManagementService } from "./presence-management.service";
+import {
+  PresenceCompanyController,
+  PresenceCaPolicyController,
+  PresenceCaZoneController,
+  PresenceCaExceptionController,
+} from "./presence-management.controller";
 
 @Module({
   controllers: [
+    PresenceCompanyController,
+    PresenceCaPolicyController,
+    PresenceCaZoneController,
+    PresenceCaExceptionController,
     ManagementContextController,
     ManagementAuditController,
     StaffManagementController,
@@ -63,6 +74,7 @@ import { StaffManagementMutationService } from "./staff-management-mutation.serv
     HttpInfrastructureModule,
   ],
   providers: [
+    PresenceManagementService,
     ManagementContextService,
     ManagementAuditService,
     StaffDirectoryService,
@@ -88,6 +100,10 @@ export class ManagementModule implements NestModule {
     consumer
       .apply(RequestIdMiddleware)
       .forRoutes(
+        PresenceCompanyController,
+        PresenceCaPolicyController,
+        PresenceCaZoneController,
+        PresenceCaExceptionController,
         ManagementContextController,
         ManagementAuditController,
         StaffManagementController,

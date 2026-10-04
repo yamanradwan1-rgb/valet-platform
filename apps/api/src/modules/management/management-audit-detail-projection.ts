@@ -1,3 +1,4 @@
+import { projectPresenceAuditDetails } from "./management-audit-presence-projection";
 import type { ManagementAuditEventFamily } from "./management-audit-event-catalog";
 import { projectManagementShiftAuditDetails } from "./management-audit-shift-projection";
 
@@ -192,6 +193,7 @@ export function projectManagementAuditDetails(
       toVersion: positiveInteger(source.toVersion),
     });
   }
+  if (family === "PRESENCE") return projectPresenceAuditDetails(source);
   if (family === "TASK") {
     return compact({
       kind: "TASK",

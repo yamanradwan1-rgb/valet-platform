@@ -59,6 +59,8 @@ function projectEntity(row: ManagementAuditQueryRow) {
     LocationMapArea: "MAP_AREA",
     KeySlot: "KEY_SLOT",
     ParkingSpot: "PARKING_SPOT",
+    ShiftPresenceZone: "SHIFT_PRESENCE_ZONE",
+    ShiftPresenceException: "SHIFT_PRESENCE_EXCEPTION",
   } as const;
   const type = mapped[row.entityType as keyof typeof mapped];
   return type === undefined ? null : { id: row.entityId, type };

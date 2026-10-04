@@ -1,4 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
+import type { ShiftPresenceEvidence } from "@valet/contracts";
+import type { StaffSessionContext } from "../auth/staff-session-context";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
@@ -21,6 +23,8 @@ export class ShiftService {
   executeStart(request: {
     readonly authenticatedUserId: string;
     readonly targetLocationId: string;
+    readonly presence?: ShiftPresenceEvidence;
+    readonly sessionContext?: StaffSessionContext;
   }) {
     return this.startShift(request);
   }
@@ -29,6 +33,8 @@ export class ShiftService {
     readonly authenticatedUserId: string;
     readonly cashReported: string;
     readonly shiftId: string;
+    readonly presence?: ShiftPresenceEvidence;
+    readonly sessionContext?: StaffSessionContext;
   }) {
     return this.endShift(request);
   }

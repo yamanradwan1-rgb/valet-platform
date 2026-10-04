@@ -1,9 +1,11 @@
 import {
   managementAuditKnownEventTypes as contractKnownEventTypes,
+  managementPresenceAuditEvents,
   type ManagementAuditKnownEventType,
 } from "@valet/contracts";
 
 export type ManagementAuditEventFamily =
+  | "PRESENCE"
   | "CHECK_IN"
   | "CONFIGURATION"
   | "FINANCIAL"
@@ -19,7 +21,12 @@ export type ManagementAuditEventFamily =
 
 export const managementAuditKnownEventTypes = contractKnownEventTypes;
 
+const presenceFamilies = Object.fromEntries(
+  managementPresenceAuditEvents.map((event) => [event, "PRESENCE"]),
+) as Record<(typeof managementPresenceAuditEvents)[number], "PRESENCE">;
+
 const eventFamilies = {
+  ...presenceFamilies,
   VALET_SESSION_CREATED: "CHECK_IN",
   CHECK_IN_CONDITION_NOTE_RECORDED: "CHECK_IN",
   CHECK_IN_CONDITION_NOTE_CORRECTED: "CHECK_IN",

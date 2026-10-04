@@ -1,6 +1,20 @@
 import { randomUUID } from "node:crypto";
 
 import type { DatabaseError } from "pg";
+import type { ShiftPresenceEvidence } from "@valet/contracts";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import {
+  guardPresenceShiftIntent,
+  presenceDatabaseError,
+  recheckPresenceShiftSession,
+} from "./shift-presence-security";
+import { denyRevokedPresenceStart } from "./shift-presence-revoked-start";
+import {
+  preparePresenceShiftAttempt,
+  recoverPresenceShiftAttempt,
+  type PresenceDeniedResult,
+} from "./shift-presence-command";
+import { ShiftPresenceError } from "./shift-presence-errors";
 
 import type {
   PostgresPool,
@@ -25,11 +39,14 @@ import {
 export interface StartShiftCommandRequest {
   readonly authenticatedUserId: string;
   readonly targetLocationId: string;
+  readonly presence?: ShiftPresenceEvidence;
+  readonly sessionContext?: StaffSessionContext;
 }
 
 interface StartShiftCommandOptions {
   readonly auditEventIdFactory?: () => string;
   readonly shiftIdFactory?: () => string;
+  readonly presenceFingerprintKey?: Uint8Array;
 }
 
 const activeShiftConstraint = "shifts_one_active_per_membership_idx";
@@ -65,6 +82,7 @@ async function createShift(
   transaction: PostgresTransaction,
   scope: AuthorizedShiftStartScope,
   options: StartShiftCommandOptions,
+  presenceCommit: (shiftId: string) => Promise<void>,
 ): Promise<ShiftResult> {
   const operationTime = await loadShiftOperationTime(transaction);
   const shiftId = (options.shiftIdFactory ?? randomUUID)();
@@ -88,6 +106,7 @@ async function createShift(
   if (shift === undefined) {
     throw new Error("Shift creation did not return the persisted Shift.");
   }
+  await presenceCommit(shiftId);
   await appendShiftAuditEvent(
     transaction,
     {
@@ -107,17 +126,60 @@ async function attemptStart(
   pool: PostgresPool,
   request: StartShiftCommandRequest,
   options: StartShiftCommandOptions,
-): Promise<ShiftResult> {
+): Promise<ShiftResult | PresenceDeniedResult> {
   return inShiftTransaction(pool, async (transaction) => {
-    const scope = await authorizeShiftStart(transaction, request);
-    const activeShift = await loadActiveMembershipShift(
-      transaction,
-      scope.membershipId,
-    );
-    return activeShift === undefined
-      ? createShift(transaction, scope, options)
-      : classifyActiveShift(activeShift, scope.locationId);
+    const result = await startInTransaction(transaction, request, options);
+    await recheckPresenceShiftSession(transaction, request.sessionContext);
+    return result;
   });
+}
+
+async function startInTransaction(
+  transaction: PostgresTransaction,
+  request: StartShiftCommandRequest,
+  options: StartShiftCommandOptions,
+) {
+  await guardPresenceShiftIntent(transaction, request);
+  let scope: AuthorizedShiftStartScope;
+  try {
+    scope = await authorizeShiftStart(transaction, request);
+  } catch (error) {
+    if (!(error instanceof ShiftOperationError)) throw error;
+    const denied = await denyRevokedPresenceStart(
+      transaction,
+      request,
+      options.presenceFingerprintKey,
+    );
+    if (denied !== undefined) return denied;
+    throw error;
+  }
+  const attempt = {
+    ...scope,
+    userId: request.authenticatedUserId,
+    action: "START" as const,
+    shiftId: null,
+    cashReported: null,
+    ...(request.presence === undefined ? {} : { evidence: request.presence }),
+  };
+  const recovery = await recoverPresenceShiftAttempt(
+    transaction,
+    attempt,
+    options.presenceFingerprintKey,
+  );
+  if (recovery !== undefined) return recovery;
+  const activeShift = await loadActiveMembershipShift(
+    transaction,
+    scope.membershipId,
+  );
+  if (activeShift !== undefined)
+    return classifyActiveShift(activeShift, scope.locationId);
+  const presence = await preparePresenceShiftAttempt(
+    transaction,
+    attempt,
+    options.presenceFingerprintKey,
+  );
+  if ("denied" in presence) return { denied: presence.denied! };
+  return createShift(transaction, scope, options, presence.commit);
 }
 
 async function recoverConcurrentStart(
@@ -125,6 +187,7 @@ async function recoverConcurrentStart(
   request: StartShiftCommandRequest,
 ): Promise<ShiftResult> {
   return inShiftTransaction(pool, async (transaction) => {
+    await guardPresenceShiftIntent(transaction, request);
     const scope = await authorizeShiftStart(transaction, request);
     const activeShift = await loadActiveMembershipShift(
       transaction,
@@ -133,6 +196,7 @@ async function recoverConcurrentStart(
     if (activeShift === undefined) {
       throw new Error("Concurrent Shift start could not be recovered.");
     }
+    await recheckPresenceShiftSession(transaction, request.sessionContext);
     return classifyActiveShift(activeShift, scope.locationId);
   });
 }
@@ -151,9 +215,12 @@ export function createStartShiftCommandExecutor(
 ): (request: StartShiftCommandRequest) => Promise<ShiftResult> {
   return async (request) => {
     try {
-      return await attemptStart(pool, request, options);
+      const result = await attemptStart(pool, request, options);
+      if ("denied" in result) throw new ShiftPresenceError(result.denied);
+      return result;
     } catch (error) {
-      if (!isActiveShiftUniqueViolation(error)) throw error;
+      if (!isActiveShiftUniqueViolation(error))
+        throw presenceDatabaseError(error);
       // attemptStart already rolled back the failed transaction. Recovery and
       // authoritative classification therefore run in a fresh transaction.
       return recoverConcurrentStart(pool, request);

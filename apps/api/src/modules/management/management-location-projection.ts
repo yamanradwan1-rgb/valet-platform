@@ -21,6 +21,7 @@ interface LocationLifecycleRow {
   readonly status: "ACTIVE" | "INACTIVE";
   readonly timezone: string;
   readonly updatedAt: Date;
+  readonly strictPresenceConfigured: boolean;
 }
 
 export async function locationLifecycleProjection(
@@ -34,6 +35,8 @@ export async function locationLifecycleProjection(
             location.name,location.code,location.address_text AS "addressText",
             location.timezone,location.currency,location.status::text AS status,
             location.accepting_intake AS "acceptingIntake",location.updated_at AS "updatedAt",
+            (COALESCE(location.shift_start_presence_mode_override,organization.shift_start_presence_mode) IN ('REQUIRE','REQUIRE_OR_OVERRIDE')
+              OR COALESCE(location.shift_end_presence_mode_override,organization.shift_end_presence_mode) IN ('REQUIRE','REQUIRE_OR_OVERRIDE')) AS "strictPresenceConfigured",
             EXISTS(SELECT 1 FROM shifts WHERE organization_id=$1 AND location_id=$2
               AND status='ACTIVE') AS "activeShiftPresent",
             EXISTS(SELECT 1 FROM tasks WHERE organization_id=$1 AND location_id=$2
@@ -41,7 +44,7 @@ export async function locationLifecycleProjection(
               AS "nonTerminalTaskPresent",
             EXISTS(SELECT 1 FROM valet_sessions WHERE organization_id=$1 AND location_id=$2
               AND state NOT IN ('COMPLETED','CANCELLED')) AS "nonCompletedValetSessionPresent"
-       FROM locations AS location
+       FROM locations AS location JOIN organizations AS organization ON organization.id=location.organization_id
        WHERE location.organization_id=$1 AND location.id=$2`,
     [organizationId, locationId],
   );
@@ -69,7 +72,8 @@ export async function locationLifecycleProjection(
     organizationId: row.organizationId,
     readiness: {
       checks: { currencySupported, timezoneValid },
-      readyForActivation: currencySupported && timezoneValid,
+      readyForActivation:
+        currencySupported && timezoneValid && !row.strictPresenceConfigured,
     },
     status: row.status,
     timezone: row.timezone,

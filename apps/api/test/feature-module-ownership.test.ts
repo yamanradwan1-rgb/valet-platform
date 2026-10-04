@@ -73,6 +73,8 @@ import { MarkReadyService } from "../src/modules/retrieval/mark-ready.service";
 import { ShiftController } from "../src/modules/shifts/shift.controller";
 import { ShiftModule } from "../src/modules/shifts/shift.module";
 import { ShiftService } from "../src/modules/shifts/shift.service";
+import { ShiftPresenceController } from "../src/modules/shifts/shift-presence.controller";
+import { ShiftPresenceService } from "../src/modules/shifts/shift-presence.service";
 import { StaffCheckInContinuationsController } from "../src/modules/staff/staff-check-in-continuations.controller";
 import { StaffCheckInContinuationsService } from "../src/modules/staff/staff-check-in-continuations.service";
 import { StaffCheckInDraftsController } from "../src/modules/staff/staff-check-in-drafts.controller";
@@ -217,9 +219,11 @@ describe("accepted feature module ownership", () => {
   it("keeps Shift ownership focused", () => {
     expect(metadata(ShiftModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       ShiftController,
+      ShiftPresenceController,
     ]);
     expect(metadata(ShiftModule, MODULE_METADATA.PROVIDERS)).toEqual([
       ShiftService,
+      ShiftPresenceService,
     ]);
   });
 

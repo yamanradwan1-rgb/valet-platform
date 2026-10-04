@@ -1,3 +1,4 @@
+import { managementPresenceAuditEvents } from "./management-audit-presence.js";
 import { z } from "zod";
 
 export const managementAuditKnownEventTypes = [
@@ -94,6 +95,7 @@ export const managementAuditKnownEventTypes = [
   "KEY_SLOT_CREATED",
   "PARKING_SPOT_CREATED",
   "PARKING_ZONE_CREATED",
+  ...managementPresenceAuditEvents,
 ] as const;
 
 export const managementAuditKnownEventTypeSchema = z.enum(

@@ -1721,6 +1721,20 @@ enum ShiftPresenceOperationStatus {
   @@map("shift_presence_operation_status")
 }
 
+enum ShiftPresenceDenialReason {
+  APPROVER_AUTHORITY_REVOKED
+  PRESENCE_REQUIRED
+  PRESENCE_REJECTED
+
+  @@map("shift_presence_denial_reason")
+}
+
+enum ShiftPresenceExpiryCause {
+  APPROVER_AUTHORITY_REVOKED
+
+  @@map("shift_presence_expiry_cause")
+}
+
 enum ShiftPresenceClassification {
   CONFIDENT_INSIDE
   CONFIDENT_OUTSIDE
@@ -1805,6 +1819,8 @@ model ShiftPresenceOperation {
   operationId String @map("operation_id") @db.Uuid
   targetFingerprint String @map("target_fingerprint")
   requestFingerprint String? @map("request_fingerprint")
+  requestPolicyFingerprint String? @map("request_policy_fingerprint")
+  denialReason ShiftPresenceDenialReason? @map("denial_reason")
   status ShiftPresenceOperationStatus @default(PENDING)
   createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(3)
   expiresAt DateTime @default(dbgenerated("clock_timestamp() + interval '300 seconds'")) @map("expires_at") @db.Timestamptz(3)
@@ -1879,6 +1895,7 @@ model ShiftPresenceDecision {
 
 model ShiftPresenceException {
   id String @id @default(uuid()) @db.Uuid
+  expiryCause ShiftPresenceExpiryCause? @map("expiry_cause")
   organizationId String @map("organization_id") @db.Uuid
   locationId String @map("location_id") @db.Uuid
   userId String @map("user_id") @db.Uuid

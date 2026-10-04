@@ -6,14 +6,18 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { ShiftController } from "./shift.controller";
 import { ShiftService } from "./shift.service";
+import { ShiftPresenceService } from "./shift-presence.service";
+import { ShiftPresenceController } from "./shift-presence.controller";
 
 @Module({
-  controllers: [ShiftController],
+  controllers: [ShiftController, ShiftPresenceController],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
-  providers: [ShiftService],
+  providers: [ShiftService, ShiftPresenceService],
 })
 export class ShiftModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestIdMiddleware).forRoutes(ShiftController);
+    consumer
+      .apply(RequestIdMiddleware)
+      .forRoutes(ShiftController, ShiftPresenceController);
   }
 }

@@ -4167,3 +4167,7 @@ Settings/navigation/visual freeze remains binding. Owner decisions unresolved: 0
 
 Full contract:
 [DEC-100_SHIFT_PRESENCE_EXCEPTION_AUTHORITY.md](decisions/DEC-100_SHIFT_PRESENCE_EXCEPTION_AUTHORITY.md).
+
+### GPS-B implementation parity for Accepted DEC-099/100
+
+Issue #257 GPS-B implements the accepted backend contract on branch codex/native-257-presence-enforcement from verified fetched main 168da01e6822049ee0a45eebec4780c5b2b1fbd9. Forward migrations 060–063 supply early revocation expiry/minimal denial, narrow policy writes/closed strict gate, privileged retention execution, and protected commercial entitlement. Historical 058/059 and the Accepted Decision semantics are unchanged. Public transport U-002/U-003/U-004 is published in [GPS_B_PUBLIC_CONTRACT.md](validation/GPS_B_PUBLIC_CONTRACT.md); exact local/runtime/failure evidence and outstanding release gates are in [GPS_B_IMPLEMENTATION_REPORT.md](validation/GPS_B_IMPLEMENTATION_REPORT.md). This is implementation parity, not a new product decision, merge approval, strict activation or client-phase completion.

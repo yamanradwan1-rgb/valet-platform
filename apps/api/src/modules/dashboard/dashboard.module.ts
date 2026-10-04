@@ -18,9 +18,18 @@ import { PhysicalResourceController } from "./physical-resource.controller";
 import { PhysicalResourceReadService } from "./physical-resource-read.service";
 import { PhysicalResourceWriteController } from "./physical-resource-write.controller";
 import { PhysicalResourceWriteService } from "./physical-resource-write.service";
+import { PresenceManagementService } from "../management/presence-management.service";
+import {
+  PresenceLmPolicyController,
+  PresenceLmZoneController,
+  PresenceLmExceptionController,
+} from "./dashboard-presence.controller";
 
 @Module({
   controllers: [
+    PresenceLmPolicyController,
+    PresenceLmZoneController,
+    PresenceLmExceptionController,
     DashboardConfigurationController,
     DashboardOverviewController,
     DashboardAnalyticsController,
@@ -34,6 +43,7 @@ import { PhysicalResourceWriteService } from "./physical-resource-write.service"
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
+    PresenceManagementService,
     DashboardConfigurationService,
     DashboardFeatureAuthorityService,
     DashboardScopeDiscoveryService,
@@ -46,6 +56,9 @@ export class DashboardModule implements NestModule {
     consumer
       .apply(RequestIdMiddleware)
       .forRoutes(
+        PresenceLmPolicyController,
+        PresenceLmZoneController,
+        PresenceLmExceptionController,
         DashboardConfigurationController,
         DashboardOverviewController,
         DashboardAnalyticsController,

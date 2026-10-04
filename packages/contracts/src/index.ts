@@ -73,3 +73,9 @@ export * from "./cancel-before-parking.js";
 export * from "./parking-spot-validation";
 export * from "./shift-presence.js";
 export * from "./shift-presence-policy.js";
+export * from "./shift-presence-public.js";
+export * from "./shift-presence-management.js";
+export * from "./shift-presence-result.js";
+
+export * from "./management-audit-presence.js";
+export * from "./shift-presence-public-errors.js";
