@@ -770,3 +770,30 @@ accepting work is not custody; Start Parking remains explicit. Current resources
 and all physical history fail closed rather than being cleared. No successful
 visit, release, revenue success or rating is inferred. Active directory/queue
 exclude both terminals; positive COMPLETED visit predicates remain authoritative.
+
+## Shift Presence foundation — DEC-099 / GPS-A
+
+Shift attendance presence is separate from Parking/Retrieval Task tracking and
+from physical ValetSession custody. Company typed Start/End policies inherit
+through nullable per-Location overrides. All effective modes remain OFF in
+GPS-A; no Shift command, transition, authority or public configuration changes.
+
+ShiftPresenceZone is scoped circular attendance configuration (center, radius,
+code/label, ACTIVE/DISABLED and revision), not a ParkingZone or Task GPS point.
+ShiftPresenceOperation binds one User/operation identity to exact requester,
+Organization/Location, START intent or exact END Shift, intent digest and one
+final attempt digest. ShiftPresenceChallenge is one expiring, scoped non-secret
+selector per operation. Caller transactions own allocation and consumption.
+ShiftPresenceDecision is immutable evidence classification and applied policy/
+zone revision history; it does not itself mean a Shift action happened.
+ShiftPresenceException records controlled reason, exact requester/action/target,
+review actor, bounded expiry, revision and single consumption linkage. GPS-B
+owns current management authorization and atomic business-command composition.
+
+Employee measurements are transient only. Exact terminal-result recovery is
+limited to 14 days, minimal replay facts to 90 days, expired unconsumed challenges
+to purge eligibility after 24 hours, and Decision/terminal Exception history to
+24 calendar months. History carries independent non-secret operation/challenge
+identifiers so ephemeral purge cannot erase it. Privileged maintenance executes
+eligible purge; runtime has no DELETE authority and v1 has no cold archive.
+See the full Accepted DEC-099 for technical parameters and the lock graph.

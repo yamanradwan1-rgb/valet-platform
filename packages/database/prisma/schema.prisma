@@ -484,6 +484,11 @@ model Organization {
 
   onboardingInvitations StaffOnboardingInvitation[]
 
+  shiftStartPresenceMode ShiftPresenceMode @default(OFF) @map("shift_start_presence_mode")
+  shiftEndPresenceMode ShiftPresenceMode @default(OFF) @map("shift_end_presence_mode")
+  shiftPresenceMaxAccuracyMeters Int @default(50) @map("shift_presence_max_accuracy_meters")
+  shiftPresenceMaxFixAgeSeconds Int @default(30) @map("shift_presence_max_fix_age_seconds")
+  shiftPresenceRevision Int @default(1) @map("shift_presence_revision")
   @@map("organizations")
 }
 
@@ -541,6 +546,15 @@ model Location {
   staffPushIntents         StaffPushIntent[]
   operatingHoursOverrides  LocationOperatingHourOverride[]
 
+  shiftStartPresenceModeOverride ShiftPresenceMode? @map("shift_start_presence_mode_override")
+  shiftEndPresenceModeOverride ShiftPresenceMode? @map("shift_end_presence_mode_override")
+  shiftPresenceMaxAccuracyMetersOverride Int? @map("shift_presence_max_accuracy_meters_override")
+  shiftPresenceMaxFixAgeSecondsOverride Int? @map("shift_presence_max_fix_age_seconds_override")
+  shiftPresenceRevision Int @default(1) @map("shift_presence_revision")
+  shiftPresenceZones ShiftPresenceZone[]
+  shiftPresenceOperations ShiftPresenceOperation[]
+  shiftPresenceDecisions ShiftPresenceDecision[]
+  shiftPresenceExceptions ShiftPresenceException[]
   @@unique([organizationId, code], map: "locations_organization_id_code_key")
   @@unique([organizationId, id], map: "locations_organization_id_id_key")
   @@map("locations")
@@ -716,6 +730,10 @@ model OrganizationMembership {
   onboardingInvitations       StaffOnboardingInvitation[] @relation("OnboardingTarget")
   issuedOnboardingInvitations  StaffOnboardingInvitation[] @relation("OnboardingIssuer")
 
+  shiftPresenceOperations ShiftPresenceOperation[]
+  shiftPresenceDecisions ShiftPresenceDecision[]
+  shiftPresenceExceptions ShiftPresenceException[]
+  @@unique([organizationId, id, userId], map: "organization_memberships_presence_identity_key")
   @@map("organization_memberships")
 }
 
@@ -780,6 +798,7 @@ model Shift {
 
   @@unique([organizationId, id], map: "shifts_organization_id_id_key")
   @@index([locationId, status], map: "shifts_location_id_status_idx")
+  @@unique([organizationId, locationId, membershipId, id], map: "shifts_presence_scope_key")
   @@map("shifts")
 }
 
@@ -1669,3 +1688,225 @@ model OrganizationSubscription {
 
   @@map("organization_subscriptions")
 }
+
+enum ShiftPresenceMode {
+  OFF
+  WARN_ONLY
+  REQUIRE
+  REQUIRE_OR_OVERRIDE
+
+  @@map("shift_presence_mode")
+}
+
+enum ShiftPresenceAction {
+  START
+  END
+
+  @@map("shift_presence_action")
+}
+
+enum ShiftPresenceZoneState {
+  ACTIVE
+  DISABLED
+
+  @@map("shift_presence_zone_state")
+}
+
+enum ShiftPresenceOperationStatus {
+  PENDING
+  COMMITTED
+  DENIED
+  EXPIRED
+
+  @@map("shift_presence_operation_status")
+}
+
+enum ShiftPresenceClassification {
+  CONFIDENT_INSIDE
+  CONFIDENT_OUTSIDE
+  AMBIGUOUS_EDGE
+  CONFIGURATION_UNUSABLE
+  MEASUREMENT_UNUSABLE
+
+  @@map("shift_presence_classification")
+}
+
+enum ShiftPresenceReason {
+  INSIDE
+  OUTSIDE
+  EDGE
+  NO_ACTIVE_ZONE
+  INVALID_CONFIGURATION
+  INVALID_FIX
+  INACCURATE_FIX
+  STALE_FIX
+  FUTURE_FIX
+
+  @@map("shift_presence_reason")
+}
+
+enum ShiftPresenceBand {
+  ACCEPTABLE
+  UNUSABLE
+  NOT_EVALUATED
+
+  @@map("shift_presence_band")
+}
+
+enum ShiftPresenceExceptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  CONSUMED
+
+  @@map("shift_presence_exception_status")
+}
+
+enum ShiftPresenceExceptionReason {
+  LOCATION_UNAVAILABLE
+  GPS_UNAVAILABLE
+  OUTSIDE_ZONE
+  AMBIGUOUS_FIX
+
+  @@map("shift_presence_exception_reason")
+}
+
+model ShiftPresenceZone {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  code String
+  label String
+  latitude Float @db.DoublePrecision
+  longitude Float @db.DoublePrecision
+  radiusMeters Float @map("radius_meters") @db.DoublePrecision
+  state ShiftPresenceZoneState @default(ACTIVE)
+  revision Int @default(1)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("updated_at") @db.Timestamptz(3)
+
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_zones_location_fkey")
+
+  @@unique([organizationId, locationId, id], map: "shift_presence_zones_scope_key")
+  @@unique([locationId, code], map: "shift_presence_zones_code_key")
+  @@index([locationId, state], map: "shift_presence_zones_location_state_idx")
+  @@map("shift_presence_zones")
+}
+
+model ShiftPresenceOperation {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  membershipId String @map("membership_id") @db.Uuid
+  action ShiftPresenceAction
+  shiftId String? @map("shift_id") @db.Uuid
+  operationId String @map("operation_id") @db.Uuid
+  targetFingerprint String @map("target_fingerprint")
+  requestFingerprint String? @map("request_fingerprint")
+  status ShiftPresenceOperationStatus @default(PENDING)
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime @default(dbgenerated("clock_timestamp() + interval '300 seconds'")) @map("expires_at") @db.Timestamptz(3)
+  terminalAt DateTime? @map("terminal_at") @db.Timestamptz(3)
+  resultShiftId String? @map("result_shift_id") @db.Uuid
+  resultDecisionId String? @map("result_decision_id") @db.Uuid
+
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_operations_location_fkey")
+  member OrganizationMembership @relation(fields: [organizationId, membershipId, userId], references: [organizationId, id, userId], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_operations_member_fkey")
+  challenges ShiftPresenceChallenge[]
+
+  @@unique([organizationId, locationId, userId, membershipId, action, id], map: "shift_presence_operations_scope_key")
+  @@unique([userId, operationId], map: "shift_presence_operations_user_operation_key")
+  @@index([status, expiresAt], map: "shift_presence_operations_expiry_idx")
+  @@index([terminalAt], map: "shift_presence_operations_terminal_idx")
+  @@map("shift_presence_operations")
+}
+
+model ShiftPresenceChallenge {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  membershipId String @map("membership_id") @db.Uuid
+  action ShiftPresenceAction
+  shiftId String? @map("shift_id") @db.Uuid
+  operationRowId String @map("operation_row_id") @db.Uuid @unique
+  issuedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("issued_at") @db.Timestamptz(3)
+  expiresAt DateTime @default(dbgenerated("clock_timestamp() + interval '300 seconds'")) @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(3)
+  decisionId String? @map("decision_id") @db.Uuid
+
+  operation ShiftPresenceOperation @relation(fields: [organizationId, locationId, userId, membershipId, action, operationRowId], references: [organizationId, locationId, userId, membershipId, action, id], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_challenges_operation_fkey")
+
+  @@index([expiresAt], map: "shift_presence_challenges_expiry_idx")
+  @@map("shift_presence_challenges")
+}
+
+model ShiftPresenceDecision {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  membershipId String @map("membership_id") @db.Uuid
+  action ShiftPresenceAction
+  shiftId String? @map("shift_id") @db.Uuid
+  operationId String @map("operation_id") @db.Uuid
+  challengeId String @map("challenge_id") @db.Uuid
+  requestFingerprint String @map("request_fingerprint")
+  policyFingerprint String @map("policy_fingerprint")
+  appliedMode ShiftPresenceMode @map("applied_mode")
+  companyPolicyRevision Int @map("company_policy_revision")
+  locationPolicyRevision Int @map("location_policy_revision")
+  zoneId String? @map("zone_id") @db.Uuid
+  zoneRevision Int? @map("zone_revision")
+  classification ShiftPresenceClassification
+  reason ShiftPresenceReason
+  accuracyBand ShiftPresenceBand @map("accuracy_band")
+  freshnessBand ShiftPresenceBand @map("freshness_band")
+  exceptionId String? @map("exception_id") @db.Uuid
+  decidedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("decided_at") @db.Timestamptz(3)
+
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_decisions_location_fkey")
+  member OrganizationMembership @relation(fields: [organizationId, membershipId, userId], references: [organizationId, id, userId], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_decisions_member_fkey")
+
+  @@unique([organizationId, locationId, userId, membershipId, action, id], map: "shift_presence_decisions_scope_key")
+  @@unique([userId, operationId], map: "shift_presence_decisions_operation_key")
+  @@unique([challengeId], map: "shift_presence_decisions_challenge_key")
+  @@index([organizationId, locationId, decidedAt, id], map: "shift_presence_decisions_history_idx")
+  @@index([decidedAt], map: "shift_presence_decisions_retention_idx")
+  @@map("shift_presence_decisions")
+}
+
+model ShiftPresenceException {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  membershipId String @map("membership_id") @db.Uuid
+  action ShiftPresenceAction
+  shiftId String? @map("shift_id") @db.Uuid
+  challengeId String @map("challenge_id") @db.Uuid
+  reason ShiftPresenceExceptionReason
+  status ShiftPresenceExceptionStatus @default(PENDING)
+  revision Int @default(1)
+  requestedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("requested_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz(3)
+  reviewerMembershipId String? @map("reviewer_membership_id") @db.Uuid
+  reviewerUserId String? @map("reviewer_user_id") @db.Uuid
+  terminalAt DateTime? @map("terminal_at") @db.Timestamptz(3)
+  consumedDecisionId String? @map("consumed_decision_id") @db.Uuid
+
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_exceptions_location_fkey")
+  member OrganizationMembership @relation(fields: [organizationId, membershipId, userId], references: [organizationId, id, userId], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_exceptions_member_fkey")
+
+  @@unique([organizationId, locationId, userId, membershipId, action, id], map: "shift_presence_exceptions_scope_key")
+  @@unique([userId, challengeId], map: "shift_presence_exceptions_challenge_key")
+  @@index([organizationId, locationId, status, requestedAt, id], map: "shift_presence_exceptions_queue_idx")
+  @@index([terminalAt], map: "shift_presence_exceptions_terminal_idx")
+  @@map("shift_presence_exceptions")
+}
+
+// DEC-099: extra scoped Shift/zone/decision/reviewer FKs and CHECK/lifecycle
+// guards are SQL-owned in migration 058. History has no ephemeral-parent FK.

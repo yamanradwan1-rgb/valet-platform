@@ -1149,6 +1149,46 @@ and atomically writes pending-cash closure and audit. Unknown transport outcome
 uses the same operation identity only after fresh proof and explicit retry.
 No Force Start, impersonation, cash settlement or automatic Task/Session mutation.
 
+## Shift Presence privacy and authority — DEC-099 / GPS-A
+
+Attendance policy remains independently OFF for Start/End, with nullable Location
+overrides, outside public settings whitelists/projections and behind SQL OFF-only
+CHECKs. No presence routes or Start/End enforcement are registered in GPS-A.
+Task-scoped GPS policy and retention remain unchanged.
+
+Attendance-zone center coordinates are configuration. Employee Start/End fixes
+have **zero durable retention**: transient validation/geometry and keyed HMAC
+input only, never a Challenge, Operation/tombstone, Decision, Exception, AuditEvent,
+log, telemetry, analytics, guest payload or serialized request. Durable contracts
+are strict typed summaries without raw coordinates or generic metadata. Versioned
+HMAC-SHA256 uses caller-injected trusted server key material (at least 32 bytes);
+GPS-B owns provisioning/rotation compatibility and must never log inputs/keys.
+
+Internal helpers accept a caller transaction and **already authorized persisted
+scope**. UUIDs/digests/zone geometry are selectors, not authority. GPS-B must prove
+the current principal, exact requester membership/Location and existing Start or
+safe-own-End authority before allocation or writes, and reauthorize before status
+or recovery disclosure. Management uses existing Company Admin capability/MFA or
+exact Location Manager authority; no supervisor hierarchy or self-approval.
+SQL binds all operational relations to exact tenant/Location/member/User and
+rejects a requester User as reviewer even under another membership.
+
+Operation intent and final-attempt digests are bound once. Identical contention
+converges under locks; changed payload conflicts. Challenges expire by database
+time and consume once. Unknown outcome may be read using current authorized scope
+and opaque operation identity without retaining a GPS fix. No helper replays a
+protected mutation. GPS-B must atomically compose real Shift/audit/Decision/
+Exception consumption/terminal result within the existing command transaction.
+
+Exact result recovery ends at terminal_at+14 days. The remaining minimal tombstone
+protects replay identity until terminal_at+90 days and is not a mutation retry
+window. Expired unconsumed challenges are purge-eligible at expires_at+24 hours;
+consumed challenges keep only independent non-secret historical linkage.
+Immutable Decisions and terminal Exceptions retain 24 UTC calendar months, then
+become eligible for privileged purge. Ordinary runtime has no DELETE/TRUNCATE or
+immutable-history UPDATE authority. No cold archive or new retention scheduler
+exists; approved maintenance execution remains a later operational boundary.
+
 ## Issue #255 — terminal intake authority
 
 DEC-097 requires current exact self-owned membership, Organization/Location/access/Shift eligibility before cancellation or status disclosure, including terminal convergence. Expected Shift and version are selectors, never authority. Both Guest resolvers reject CANCELLED before projection; locked staff token issuance fails with GUEST_ACCESS_INTENT_CONFLICT before any generation/write/audit. No automatic credential revocation. Cancellation audit contains only lifecycle state/version facts. Transient client intent is memory-only and fenced by full owner/generation/revision.

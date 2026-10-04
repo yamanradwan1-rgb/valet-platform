@@ -2504,3 +2504,73 @@ columns, enums, indexes or grants change. Exact Parking Task and session cancel
 atomically with dual version increments, Dispatch CANCELLED and custody audit
 VALET_SESSION_PRE_CUSTODY_CANCELLED. History proves exact actor/Shift/versions and
 time for reconciliation. DEC-097 stays narrow. See focused DEC-098.
+
+## Issue #257 / DEC-099 Shift Presence foundation
+
+Forward migration `20261004005800_shift_presence_foundation` follows 057;
+no existing Shift/task GPS columns or historical migrations are rewritten.
+
+Organization adds typed `shift_start_presence_mode`, `shift_end_presence_mode`
+(OFF defaults), `shift_presence_max_accuracy_meters` (50),
+`shift_presence_max_fix_age_seconds` (30), `shift_presence_revision` (1).
+Location adds nullable `shift_start_presence_mode_override`,
+`shift_end_presence_mode_override`, `shift_presence_max_accuracy_meters_override`,
+`shift_presence_max_fix_age_seconds_override`, and its own revision (1).
+Each null inherits Company; actual presence-value changes increment the database
+revision once. SQL CHECKs currently permit Company OFF and Location OFF/null only;
+existing settings APIs neither accept nor project the new fields. GPS-B must
+explicitly replace this release gate in a forward, authorized change.
+
+Dedicated enum families are ShiftPresenceMode (OFF/WARN_ONLY/REQUIRE/
+REQUIRE_OR_OVERRIDE), Action (START/END), ZoneState (ACTIVE/DISABLED),
+OperationStatus (PENDING/COMMITTED/DENIED/EXPIRED), Classification
+(CONFIDENT_INSIDE/CONFIDENT_OUTSIDE/AMBIGUOUS_EDGE/CONFIGURATION_UNUSABLE/
+MEASUREMENT_UNUSABLE), Reason (INSIDE/OUTSIDE/EDGE/NO_ACTIVE_ZONE/
+INVALID_CONFIGURATION/INVALID_FIX/INACCURATE_FIX/STALE_FIX/FUTURE_FIX), Band
+(ACCEPTABLE/UNUSABLE/NOT_EVALUATED), ExceptionStatus
+(PENDING/APPROVED/REJECTED/EXPIRED/CONSUMED), and ExceptionReason
+(LOCATION_UNAVAILABLE/GPS_UNAVAILABLE/OUTSIDE_ZONE/AMBIGUOUS_FIX).
+
+All five models use UUID identities and exact Organization/Location scope:
+
+| Model / SQL table | Dedicated fields beyond scope |
+| --- | --- |
+| ShiftPresenceZone / shift_presence_zones | code, label, latitude/longitude **configuration center**, radius_meters, state, revision, created_at, updated_at |
+| ShiftPresenceOperation / shift_presence_operations | user_id, membership_id, operation_id, action, shift_id, target_fingerprint, nullable one-time request_fingerprint, status, created_at, expires_at, terminal_at, result_shift_id, result_decision_id |
+| ShiftPresenceChallenge / shift_presence_challenges | user_id, membership_id, action, shift_id, unique operation_row_id, issued_at, expires_at, consumed_at, decision_id |
+| ShiftPresenceDecision / shift_presence_decisions | user_id, membership_id, action, shift_id, independent operation_id/challenge_id, request_fingerprint, policy_fingerprint, applied_mode, company_policy_revision, location_policy_revision, optional zone_id/zone_revision, classification, reason, accuracy_band, freshness_band, optional exception_id, decided_at |
+| ShiftPresenceException / shift_presence_exceptions | user_id, membership_id, action, shift_id, independent challenge_id, reason, status, revision, requested_at, expires_at, reviewed_at, reviewer_membership_id/reviewer_user_id, terminal_at, consumed_decision_id |
+
+SQL-only invariants include positive revisions/threshold bounds, finite coordinate
+ranges/radius, bounded nonblank labels, action/Shift nullability, fingerprint
+syntax, reason/band agreement, expiry/timestamp ordering, and controlled one-way
+state/consumption. Unique indexes bind Location/code, User/operation, operation/
+challenge, User/challenge Exception, and one Decision per User/operation and
+challenge. Indexes support active zones, pending expiry, terminal retention,
+scoped history and scoped Exception queue order.
+
+Composite restrictive FKs bind Location to Organization, requester membership to
+its exact User/Organization, END/result Shift to exact Location/member, zone to
+exact Location, reviewer to same Organization/User/member, and decision/exception
+linkage to exact scope/action. Linkage triggers also verify challenge target,
+final digest, current applied mode, policy revisions and zone revision.
+Reviewer User cannot equal requester.
+Decision operation/challenge and Exception challenge selectors deliberately have
+no FK to ephemeral rows. Exception consumed-decision linkage is trigger-validated
+without a cyclic historical FK; eligible history purge removes Decision before
+its referenced Exception. Zone deletion is prohibited; disable instead.
+
+Runtime provisioning reconciles SELECT/INSERT and exact column UPDATE allowlists
+for zone configuration, operation attempt/result, challenge consumption and
+Exception lifecycle. Decisions have SELECT/INSERT only. Runtime/PUBLIC cannot
+DELETE/TRUNCATE/REFERENCES/TRIGGER or execute private trigger helpers; runtime
+cannot update identities, policy settings or immutable decision facts. SQL also
+rejects Decision UPDATE for the privileged owner and guards retention deletion.
+
+Server/database wall-clock timestamps govern 300-second pending/challenge expiry,
+14-day exact recovery and 90-day minimal terminal tombstone eligibility. Consumed
+challenges are immediately purge-eligible; unconsumed ones at expires_at+24 hours.
+Terminal Exceptions and Decisions become eligible at terminal_at/decided_at+24
+UTC calendar months. Pending records require explicit terminalization. Runtime
+has no purge grant, no new scheduler exists, and v1 has no cold archive. No raw
+employee fix, request JSON, note, secret or exact derived distance is stored.

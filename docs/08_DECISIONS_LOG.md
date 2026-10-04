@@ -4116,3 +4116,24 @@ Status: Accepted
 Date: 2026-10-03
 
 Issue #255 adopts terminal CHECKING_IN -> CANCELLED, exact self-owned Employee/Supervisor current authority and expected Shift fencing, lifecycle version CAS, atomic VALET_SESSION_CHECK_IN_CANCELLED audit, minimal protected reconciliation and no mutation replay. All terminal consumers are reconciled. Both Guest resolvers reject CANCELLED with GUEST_ACCESS_INVALID; staff issuance rejects it with GUEST_ACCESS_INTENT_CONFLICT under the session lock. Cancellation retains credential columns/history and does not auto-revoke. Vehicles stays one bounded list with negotiated minimal hints and frozen presentation. Physical Android closure remains batch-owned. Full contract: docs/decisions/DEC-097_INCOMPLETE_CHECK_IN_CANCELLATION.md.
+
+## DEC-099 — Shift Presence foundation
+
+Status: Accepted
+Date: 2026-10-04
+
+Issue #257 GPS-A records the owner-approved U257-P/D/A/R/H and U257-RETENTION
+contracts. Typed independent Start/End Company policy inherits per-field nullable
+Location overrides; effective data stays OFF and non-OFF activation is SQL-gated.
+Dedicated scoped Zone/Operation/Challenge/Decision/Exception models provide pure
+accuracy-aware circular evaluation, single intent/final-attempt binding, one-time
+challenge consumption, immutable minimized decisions and bounded Exception
+history. Raw employee coordinates have zero durable retention. Exact recovery is
+14 days; minimal terminal replay tombstones 90 days; expired unconsumed challenges
+become purge-eligible after 24 hours; Decisions and terminal Exceptions retain
+24 UTC calendar months, then privileged purge eligibility, with no cold archive.
+Ephemeral identifiers survive independently in history. Runtime grants are column
+scoped and deny deletion/immutable rewrites. Caller transaction/current authorized
+scope are mandatory; GPS-B owns HTTP, management authority, actual Shift/audit
+composition and activation. GPS-A changes no Shift/task lifecycle or client app.
+Full contract: [DEC-099_SHIFT_PRESENCE_FOUNDATION.md](decisions/DEC-099_SHIFT_PRESENCE_FOUNDATION.md).

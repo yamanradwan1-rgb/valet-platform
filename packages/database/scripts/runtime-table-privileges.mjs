@@ -8,6 +8,7 @@ import { provisionShiftForceEndPrivileges } from "./shift-force-end-runtime-priv
 import { revokeRuntimeStaffAuthority } from "./runtime-staff-authority-revokes.mjs";
 import { provisionManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
 import { provisionManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
+import { provisionShiftPresencePrivileges } from "./shift-presence-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -266,6 +267,7 @@ export async function provisionRuntimeTablePrivileges(
     executeFormatted,
     runtimeRole,
   );
+  await provisionShiftPresencePrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,
