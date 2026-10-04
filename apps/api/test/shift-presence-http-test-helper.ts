@@ -26,6 +26,8 @@ import {
   PresenceLmExceptionController,
 } from "../src/modules/dashboard/dashboard-presence.controller";
 import type { PresenceServerTestContext } from "./shift-presence-server-test-context";
+import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
+import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 
 export async function presenceHttp(
   db: PresenceServerTestContext,
@@ -49,6 +51,8 @@ export async function presenceHttp(
       ShiftService,
       ShiftPresenceService,
       PresenceManagementService,
+      AntiAbuseService,
+      AntiAbuseKeyDeriver,
       { provide: RUNTIME_POSTGRES_POOL, useFactory: () => pool },
       {
         provide: STAFF_SESSION_CONTEXT_RESOLVER,

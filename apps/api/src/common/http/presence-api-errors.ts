@@ -18,6 +18,12 @@ const conflicts = new Set([
 
 export function mapPresenceApiError(code: unknown): MappedApiError | undefined {
   if (typeof code !== "string") return undefined;
+  if (code === "SHIFT_PRESENCE_RATE_LIMITED")
+    return {
+      code,
+      status: 429,
+      message: "Too many requests. Try again later.",
+    };
   if (code === "PRESENCE_SCOPE_MISMATCH")
     return {
       code: "AUTHORIZATION_DENIED",

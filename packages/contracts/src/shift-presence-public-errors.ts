@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const shiftPresencePublicErrorCodeSchema = z.enum([
+  "SHIFT_PRESENCE_RATE_LIMITED",
   "PRESENCE_OPERATION_CONFLICT",
   "PRESENCE_OPERATION_EXPIRED",
   "PRESENCE_CHALLENGE_EXPIRED",

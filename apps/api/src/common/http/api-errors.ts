@@ -194,7 +194,16 @@ export function mapApiError(error: unknown): MappedApiError {
   const coded = error as CodedError;
   const code = typeof coded.code === "string" ? coded.code : undefined;
   const presenceError = mapPresenceApiError(code);
-  if (presenceError !== undefined) return presenceError;
+  if (presenceError !== undefined) {
+    const retryAfter = (coded as { retryAfter?: unknown }).retryAfter;
+    return {
+      ...presenceError,
+      ...(presenceError.status === HttpStatus.TOO_MANY_REQUESTS &&
+      typeof retryAfter === "number"
+        ? { retryAfter }
+        : {}),
+    };
+  }
   if (code !== undefined && statusByCode[code] !== undefined) {
     return {
       code,

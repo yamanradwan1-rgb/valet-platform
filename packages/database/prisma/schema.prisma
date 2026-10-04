@@ -420,6 +420,7 @@ enum MfaTotpFactorState {
 }
 
 model Organization {
+  shiftPresenceManagementResults ShiftPresenceManagementResult[]
   id                          String                      @id @default(uuid()) @db.Uuid
   name                        String
   status                      OrganizationStatus          @default(ACTIVE)
@@ -493,6 +494,7 @@ model Organization {
 }
 
 model Location {
+  shiftPresenceManagementResults ShiftPresenceManagementResult[]
   id                                  String                       @id @default(uuid()) @db.Uuid
   organizationId                      String                       @map("organization_id") @db.Uuid
   name                                String
@@ -685,6 +687,7 @@ model StaffRefreshCredential {
 }
 
 model OrganizationMembership {
+  shiftPresenceManagementResults ShiftPresenceManagementResult[]
   id             String           @id @default(uuid()) @db.Uuid
   organizationId String           @map("organization_id") @db.Uuid
   userId         String           @map("user_id") @db.Uuid
@@ -1612,6 +1615,7 @@ model StaffPushDelivery {
 }
 
 model AuditEvent {
+  shiftPresenceManagementResult ShiftPresenceManagementResult?
   id                    String          @id @default(uuid()) @db.Uuid
   organizationId        String          @map("organization_id") @db.Uuid
   locationId            String?         @map("location_id") @db.Uuid
@@ -1926,3 +1930,34 @@ model ShiftPresenceException {
 
 // DEC-099: extra scoped Shift/zone/decision/reviewer FKs and CHECK/lifecycle
 // guards are SQL-owned in migrations 058/059. History has no ephemeral-parent FK.
+
+enum ShiftPresenceManagementKind {
+  COMPANY_POLICY
+  LOCATION_POLICY
+  ZONE
+  EXCEPTION
+  @@map("shift_presence_management_kind")
+}
+enum ShiftPresenceManagementEffect {
+  CHANGED
+  NO_CHANGE
+  @@map("shift_presence_management_effect")
+}
+model ShiftPresenceManagementResult {
+  mutationId String @id @map("mutation_id") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String? @map("location_id") @db.Uuid
+  actorMembershipId String @map("actor_membership_id") @db.Uuid
+  actorUserId String @map("actor_user_id") @db.Uuid
+  kind ShiftPresenceManagementKind
+  entityId String @map("entity_id") @db.Uuid
+  revision Int
+  effect ShiftPresenceManagementEffect
+  auditEventId String? @unique @map("audit_event_id") @db.Uuid
+  completedAt DateTime @default(dbgenerated("clock_timestamp()")) @map("completed_at") @db.Timestamptz(3)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  location Location? @relation(fields: [organizationId,locationId], references: [organizationId,id], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_management_results_location_fkey")
+  actor OrganizationMembership @relation(fields: [organizationId,actorMembershipId,actorUserId], references: [organizationId,id,userId], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_management_results_actor_fkey")
+  audit AuditEvent? @relation(fields: [auditEventId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  @@map("shift_presence_management_results")
+}

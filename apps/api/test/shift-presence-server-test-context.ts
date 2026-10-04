@@ -20,6 +20,7 @@ export class PresenceServerTestContext extends ShiftTestContext {
   private readonly previousKey = process.env.SHIFT_PRESENCE_FINGERPRINT_KEY;
   private readonly previousKeys =
     process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS;
+  private readonly previousAbuseKey = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
   readonly key = randomBytes(32);
   presence!: ShiftPresenceService;
   management!: PresenceManagementService;
@@ -28,11 +29,16 @@ export class PresenceServerTestContext extends ShiftTestContext {
     await super.setup();
     process.env.SHIFT_PRESENCE_FINGERPRINT_KEY = this.key.toString("base64");
     delete process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS;
+    process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
+      randomBytes(32).toString("base64url");
     this.presence = new ShiftPresenceService(this.runtimePool);
     this.management = new PresenceManagementService(this.runtimePool);
   }
   override async teardown() {
     await super.teardown();
+    if (this.previousAbuseKey === undefined)
+      delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
+    else process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = this.previousAbuseKey;
     if (this.previousKey === undefined)
       delete process.env.SHIFT_PRESENCE_FINGERPRINT_KEY;
     else process.env.SHIFT_PRESENCE_FINGERPRINT_KEY = this.previousKey;

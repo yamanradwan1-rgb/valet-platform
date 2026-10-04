@@ -1,4 +1,5 @@
 export const shiftPresenceUpdates = {
+  shift_presence_management_results: [],
   shift_presence_zones: [
     "code",
     "label",
@@ -97,6 +98,7 @@ export async function provisionShiftPresencePrivileges(
     "shift_presence_guard_history",
     "shift_presence_guard_linkage",
     "shift_presence_guard_denial",
+    "shift_presence_guard_management_result",
   ]) {
     await executeFormatted(
       client,
@@ -173,6 +175,7 @@ export async function verifyShiftPresencePrivileges(client, runtimeRole) {
     "shift_presence_guard_history",
     "shift_presence_guard_linkage",
     "shift_presence_guard_denial",
+    "shift_presence_guard_management_result",
   ]) {
     const result = await client.query(
       `SELECT has_function_privilege($1,$2,'EXECUTE') AS allowed`,

@@ -1,3 +1,4 @@
+import { validPresenceManagementAttribution } from "./shift-presence-management-result.js";
 import { z } from "zod";
 
 import {
@@ -230,6 +231,7 @@ export const shiftPresenceManagementResultSchema = z
   .object({
     mutationId: uuid,
     attribution: z.enum(["COMMITTED", "UNKNOWN"]),
+    effect: z.enum(["CHANGED", "NO_CHANGE"]).nullable(),
     entityId: uuid.nullable(),
     revision: shiftPresenceRevisionSchema.nullable(),
     canonical: z.discriminatedUnion("kind", [
@@ -245,7 +247,9 @@ export const shiftPresenceManagementResultSchema = z
       z
         .object({
           kind: z.literal("ZONE"),
-          value: shiftPresenceZoneResponseSchema,
+          value: shiftPresenceZoneResponseSchema.extend({
+            zone: shiftPresenceZoneSchema.nullable(),
+          }),
         })
         .strict(),
       z
@@ -256,7 +260,11 @@ export const shiftPresenceManagementResultSchema = z
         .strict(),
     ]),
   })
-  .strict();
+  .strict()
+  .refine(validPresenceManagementAttribution, {
+    message: "Management result attribution facts are inconsistent.",
+  });
+
 export const shiftPresenceManagementResultQuerySchema = z.discriminatedUnion(
   "kind",
   [

@@ -25,6 +25,26 @@ import { appendPresenceManagementAudit } from "./presence-management-audit";
 const zoneColumns = `id::text,organization_id::text AS "organizationId",location_id::text AS "locationId",
   code,label,latitude,longitude,radius_meters AS "radiusMeters",state,revision`;
 
+/** Result scope is already authorized; foreign global selectors still conceal. */
+export async function readPresenceZoneResult(
+  transaction: PostgresTransaction,
+  actor: PresenceManagementActor,
+  zoneId: string,
+) {
+  const result = await transaction.query(
+    `SELECT ${zoneColumns} FROM shift_presence_zones WHERE id=$1`,
+    [zoneId],
+  );
+  const row = result.rows[0];
+  if (row === undefined) return null;
+  if (
+    row.organizationId !== actor.organizationId ||
+    row.locationId !== actor.locationId
+  )
+    throw new ManagementAccessDeniedError();
+  return shiftPresenceZoneSchema.parse(row);
+}
+
 export async function readPresenceZone(
   transaction: PostgresTransaction,
   actor: PresenceManagementActor,

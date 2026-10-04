@@ -56,6 +56,7 @@ export class AntiAbuseRateLimitError extends Error {
     readonly code:
       | "GUEST_ACCESS_RATE_LIMITED"
       | "STAFF_AUTHENTICATION_RATE_LIMITED"
+      | "SHIFT_PRESENCE_RATE_LIMITED"
       | "STAFF_ACTIVATION_RATE_LIMITED",
     readonly retryAfter: number,
   ) {

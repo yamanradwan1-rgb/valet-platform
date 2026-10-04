@@ -40,16 +40,13 @@ Shared strict schemas live in `packages/contracts/src/shift-presence-public.ts`,
 `shift-presence-public-errors.ts`. Transport rejects client authority/inside flags,
 generic states and free-text exception notes. Controlled reasons remain
 LOCATION_UNAVAILABLE/GPS_UNAVAILABLE/OUTSIDE_ZONE/AMBIGUOUS_FIX.
-The error catalog has 16 public presence codes; scope mismatch is concealed as
+The error catalog has 17 public presence codes; scope mismatch is concealed as
 404 AUTHORIZATION_DENIED. Legacy cash/work/auth errors retain their mappings.
 
 Operational recovery is PENDING, EXPIRED or a RECOVERABLE exact terminal result,
 with immutable Start or End response reconstruction and controlled denial reason.
 Changed evidence/cash/target under an existing identity conflicts. Management
-correlation uses the dispatched mutation UUID as safe audit identity and checks
-exact actor/tenant/Location/entity/type. COMMITTED proves that mutation's audit;
-UNKNOWN carries current authorized canonical state and null attribution facts.
-No-op/equal values cannot prove success. Reads never replay protected writes.
+correlation reserves the successful dispatched mutation UUID in a typed immutable receipt and checks exact actor/tenant/Location/entity/kind. COMMITTED proves successful completion with CHANGED or NO_CHANGE; existing exact pre-correction audits remain proof. UNKNOWN carries authorized current state and null attribution facts. Absent Zone create returns a null zone only after fresh scope authorization. No-op completion has no change audit; equal values alone prove nothing. Reads never replay protected writes.
 
 ## C. Database
 
@@ -74,7 +71,7 @@ table/column grant. All historical migration files remain unchanged.
 
 Fresh-database contexts run versioned Prisma migrate deploy and runtime provision.
 The representative upgrade test executes unchanged real SQL through 059, seeds
-existing OFF policy/Operation/Challenge/Exception, then executes 060–063 and
+existing OFF policy/Operation/Challenge/Exception, then executes 060–065 and
 checks preserved data, new nullable facts and closed strict constraints.
 
 ## D. Start
@@ -349,7 +346,7 @@ timeout, race assertion, privacy assertion, CI or ownership rule was weakened.
 
 | Evidence level         | Reached scope                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| IMPLEMENTED            | All GPS-B backend capabilities, four forward migrations, controlled operator executor.                                                                                                                                                                                                                                                                                                                                       |
+| IMPLEMENTED            | All GPS-B backend capabilities, six forward migrations, controlled operator executor.                                                                                                                                                                                                                                                                                                                                        |
 | STATIC VERIFIED        | Scoped lint/format/structure/imports/diff, three package typechecks, Prisma schema and API/contracts builds.                                                                                                                                                                                                                                                                                                                 |
 | LOCAL COMMAND VERIFIED | Focused contracts/API/database/regression commands and forward migrations above.                                                                                                                                                                                                                                                                                                                                             |
 | RUNTIME VERIFIED       | Disposable PostgreSQL 16, actual runtime grants, Nest HTTP routes, operator CLI and row/audit facts. Full production deployment was not exercised.                                                                                                                                                                                                                                                                           |
@@ -370,7 +367,7 @@ timeout, race assertion, privacy assertion, CI or ownership rule was weakened.
 | Old OFF behavior preserved?             | YES                                         |
 | Public presence routes added?           | YES                                         |
 | Management presence routes added?       | YES — backend only.                         |
-| New forward migration added?            | YES — 060–063.                              |
+| New forward migration added?            | YES — 060–065.                              |
 | Historical migration changed?           | NO                                          |
 | Raw employee GPS durable storage added? | NO                                          |
 | Strict production rollout enabled?      | NO                                          |
@@ -392,8 +389,7 @@ The retention review finding (Exception could remain nonterminal after a termina
 Operation/Challenge purge) is fixed and regression-tested. Grouped zone timeout
 was fixed by independent cases without increasing timeout or weakening barriers.
 Initial lint/schema environment/event count/aggregate ordering failures are resolved.
-No known substantive GPS-B authority, concurrency, privacy, reconciliation,
-retention, readiness or old-client bypass finding remains.
+The original reviewed commit overstated completeness: independent review found missing operational anti-abuse and absent Zone CREATE recovery, plus unsafe no-op correlation. The focused corrections below supersede that claim. Their runtime and failure evidence is recorded separately; unchanged prior evidence is historical, not represented as rerun.
 
 The broader existing feature-module-ownership test has **three unrelated stale
 baseline assertions**: it omits Cancellation/SpotValidation in Parking,
@@ -422,3 +418,95 @@ remains closed; GPS-C/D and physical #262 evidence are separate predecessor gate
 Merge verdict: **BLOCK MERGE** until independent review, required actual CI and the
 reported repository baseline gate are resolved. This handoff requests independent
 GPS-B review; it does not supply merge or production readiness approval.
+
+## Focused independent-review correction — current GPS-B handoff
+
+Previous reviewed SHA: `e0490de40c9de07a6130a33c1aeac5b2c73a691f`. Actual fetched HEAD and remote branch both matched it; main remained `168da01e6822049ee0a45eebec4780c5b2b1fbd9`; native working tree was clean. The read-only WSL skill preflight displayed its known CRLF status artifact; native Git and content comparisons were authoritative, and no unrelated files were reset. Work continues on the same existing `codex/native-257-presence-enforcement` branch. Final local/remote SHA and clean-tree verification accompany the final handoff.
+
+### Findings, root causes and final semantics
+
+1. **Anti-abuse:** the reviewed Shift module omitted the existing AntiAbuse module and the new operational routes had no quota. All five routes now authenticate first and invoke the existing PostgreSQL/HMAC limiter before allocation or selector lookup. Narrow User scopes (per rolling 15 minutes): `v1:shift-presence-challenge-user` 30, `v1:shift-presence-exception-user` 10, `v1:shift-presence-status-user` 180 shared by Operation/Challenge/Exception reads. No selector, session, membership or target creates another User bucket. Thresholds permit ordinary foreground retries/polling while bounding allocations. Published 429 `SHIFT_PRESENCE_RATE_LIMITED` preserves standard safe text, no-store and database Retry-After 1..900 through the actual HTTP exception mapper; secret/infrastructure failure is safe 503 `ANTI_ABUSE_UNAVAILABLE`. OFF Start/End do not call the new limiter. A blocked challenge creates zero new Operation/Challenge rows, proven by before/after counts and exact randomized UUID absence. AntiAbuse rows contain only existing HMAC/scope/time/state and cleanup eligibility remains one hour; no new limiter or fallback.
+
+2. **Zone CREATE recovery:** required ordinary Zone GET before audit proof made absent creates return concealed not-found. Result reads now use a focused nullable Zone projection after current exact scope authorization; ordinary Zone GET remains nonnullable/concealed. UNKNOWN has null effect/entity/revision and current readiness with zone=null when absent. Absence is neither rollback proof nor retry permission. In-flight configuration writes serialize result reads until the real transaction ends. Exact proven creates return COMMITTED/CHANGED and current exact Zone. Unrelated mutation identity or equal code/label proves nothing. Globally foreign tenant/Location Zone selectors and revoked LM scope remain concealed.
+
+3. **No-op identity within finding 2:** an audit-only design could not reserve a successful no-op identity or reconcile it safely. Forward 064 adds the smallest dedicated typed successful-command receipt, used only by presence management. Real actor/tenant/Location/entity/kind/revision/effect/audit linkage and database completion time are immutable. It stores no request/digest/label/coordinates. No-op has COMMITTED/NO_CHANGE, unchanged revision and zero change AuditEvent; all reuse of a committed UUID, identical or changed, conflicts. Recovery is GET-only. Global receipt uniqueness makes cross-Organization losers roll back effects/audits; commit, rollback and acknowledgement-loss outcomes are proven. Existing pre-correction change audits remain exact proof and reserve their IDs. Historical no-ops without receipts remain UNKNOWN; no invented backfill. Operational retention clocks are unchanged; receipts are minimal append-only management history alongside existing audit.
+
+Forward 065 extends only the existing SQL AntiAbuse scope allowlist with those three scopes and preserves all twelve earlier scopes, grants, indexes and cleanup. Prisma mirrors the receipt enums/model/relations. Runtime receipts permit SELECT/INSERT only and no UPDATE/DELETE/TRUNCATE or trigger helper execution. All earlier pushed migrations, including 058/059 and 060–063, are byte-equivalent after newline normalization to the reviewed commit.
+
+### Exact correction validation ledger
+
+The PostgreSQL prefix is the same owned harness from K with a new task-owned PostgreSQL 16 container `valet-gpsb-rereview`, label `valet.task=gps-b-rereview`, localhost 55439. `TEST_DATABASE_URL` was read from `C:/Users/LP/.codex/tmp/gpsb-rereview-url.txt` outside the repository without printing credentials. The existing unrelated PostgreSQL service was untouched.
+
+| Exact test arguments under `apps/api/test/`                                                                                                                                                                                                                     | Final observed result                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `shift-presence-anti-abuse.integration.test.ts shift-presence-zone-create-recovery.integration.test.ts shift-presence-management-result-database.integration.test.ts`                                                                                           | **3 files / 16 passed** (6 limiter, 6 Zone CREATE, 4 receipt integrity).                                                               |
+| `shift-presence-policy-noop-recovery.integration.test.ts shift-presence-forward-migration.integration.test.ts`                                                                                                                                                  | **2 files / 8 passed** (7 no-op/collision/legacy-proof, 1 unchanged SQL upgrade through 065).                                          |
+| `shift-presence-configuration-races.integration.test.ts shift-presence-authority-races.integration.test.ts`                                                                                                                                                     | **2 files / 27 passed**, retained commit/rollback/UNKNOWN and existing authority assertions.                                           |
+| `shift-presence-anti-abuse-privacy.integration.test.ts shift-presence-http.integration.test.ts shift-presence-management-http-recovery.integration.test.ts shift-presence-management-failure.integration.test.ts shift-presence-management.integration.test.ts` | **5 files / 21 passed** (3 privacy/auth/cleanup, 7 presence HTTP, 4 management response-loss, 3 actual audit rollback, 4 policy/zone). |
+
+These groups use `pnpm --filter @valet/api exec node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs` with literal `test/` prefixes on each argument. Standard and race project dispatch is performed by the existing harness, not guessed. Exact additional commands:
+
+```powershell
+pnpm --filter @valet/database exec node ../../scripts/test-harness/run-owned-tests.mjs database vitest.config.mjs src/shift-presence-runtime-role.integration.test.ts
+pnpm --filter @valet/contracts exec vitest run src/shift-presence-public.test.ts src/shift-presence.test.ts src/shift-presence-management-result.test.ts
+pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-non-postgres test/presence-api-errors.test.ts test/shift-presence-module-ownership.test.ts
+pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-non-postgres test/presence-api-errors.test.ts
+pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-non-postgres test/feature-module-ownership.test.ts -t "keeps Shift ownership focused"
+pnpm --filter @valet/api typecheck
+pnpm --filter @valet/contracts typecheck
+pnpm --filter @valet/database typecheck
+pnpm --filter @valet/contracts build
+pnpm --filter @valet/api build
+pnpm --filter @valet/database prisma:validate
+node scripts/gps-b-validation.mjs
+git diff --check
+```
+
+Database runtime-role: **1 file / 7 passed**. Contracts final: **3 files / 29 passed**, including **5 new strict result tests**. Error mapping/ownership first: **2 files / 20 passed**; final expanded error mapper: **1 file / 19 passed**, preserving Retry-After. Focused legacy Shift ownership: **1 passed / 12 not selected**, not claimed as passing. Prisma validation and three affected package typechecks passed; contracts/API builds passed. Final scoped structure/import/format/lint/diff validation passed for **106 authored files / 120 owned files**, with historical migrations unchanged and no forbidden Web source read. No structure baseline, timeout or assertion was weakened.
+
+New PostgreSQL suites contain **26 tests**: limiter 6; privacy/auth/cleanup 3; Zone CREATE 6; no-op recovery/collision 7; receipt integrity 4. Actual HTTP commit plus lost/malformed response, actual database termination before COMMIT, an in-flight barrier with rollback, exact receipt/audit cardinality, two tenants/Locations, current revoked access, and real runtime grants are exercised. Owner fixture timestamps seed windows/cleanup deterministically, without sleeps. Receipt INSERT failure after a real policy write proves whole-effect/audit rollback. No OS SIGKILL or production-deployment claim.
+
+Intermediate failures were exposed and fixed, not hidden: initial 23 passed/9 failed identified the missing SQL scope extension and a wrong fixture column; subsequent 20 passed/5 failed identified Retry-After lost by the presence mapper, existing concealed missing-Challenge semantics, and fixture/guard-order assertions. The race group in that run passed all 8. Final relevant groups above pass. An initially oversized abuse suite was split by privacy responsibility without compression; an erroneous generated import was corrected before its test ran. A temporary schema extraction caused a cyclic import failure (18 tests passed, 2 suites failed); replacing it with a dependency-free attribution predicate restored all 29 contract tests. No harness timeout recurred and none was raised.
+
+### Focused self-review and remaining gates
+
+Review target is the complete correction diff/new files against the reviewed SHA, using Accepted DEC-024/099/100, canonical U-003/anti-abuse requirements, schema/security/structure and actual reused infrastructure. All VAYLET review passes applied. Operational authentication precedes HMAC admission; domain authority still precedes Presence business allocation. Management current authority precedes identity checking/command/receipt; effect, required audit and receipt share one transaction, followed by exact-session/MFA recheck before commit. Result reads use that same fresh scope wrapper. Typed persistence grants, composite FKs, immutable trigger and failure/collision tests preserve tenant integrity. Shared result schema rejects contradictory attribution/effect facts and COMMITTED absent Zone. No generic limiter/mutation framework, fake audit or Shift Operation management journal was added.
+
+The three Parking/Auth/Check-In stale ownership assertions still exist unchanged; the complete feature-module-ownership file and those module declarations were compared to the reviewed commit. Their known failure is a separate merge gate, not an environment limitation or a new correction regression. Actual remote CI is **NOT OBSERVED**. Physical/Native work is not in scope. Merge verdict remains **BLOCK MERGE** pending independent review, actual required CI and that baseline gate. Strict rollout remains CLOSED. No raw employee GPS durable storage, Native, Dashboard UI, Employee Web read/change, #262, GPS-C/D, PR, merge or Issue closure.
+
+### Exact correction file inventory
+
+- `apps/api/src/common/http/api-errors.ts`
+- `apps/api/src/common/http/presence-api-errors.ts`
+- `apps/api/src/modules/anti-abuse/anti-abuse-key.ts`
+- `apps/api/src/modules/anti-abuse/anti-abuse.service.ts`
+- `apps/api/src/modules/management/presence-management-mutation.ts`
+- `apps/api/src/modules/management/presence-management-result.ts`
+- `apps/api/src/modules/management/presence-management-zone-command.ts`
+- `apps/api/src/modules/management/presence-management.service.ts`
+- `apps/api/src/modules/shifts/shift-presence-anti-abuse.ts`
+- `apps/api/src/modules/shifts/shift-presence.controller.ts`
+- `apps/api/src/modules/shifts/shift.module.ts`
+- `apps/api/test/presence-api-errors.test.ts`
+- `apps/api/test/shift-presence-anti-abuse-privacy.integration.test.ts`
+- `apps/api/test/shift-presence-anti-abuse.integration.test.ts`
+- `apps/api/test/shift-presence-forward-migration.integration.test.ts`
+- `apps/api/test/shift-presence-http-test-helper.ts`
+- `apps/api/test/shift-presence-management-result-database.integration.test.ts`
+- `apps/api/test/shift-presence-management.integration.test.ts`
+- `apps/api/test/shift-presence-module-ownership.test.ts`
+- `apps/api/test/shift-presence-policy-noop-recovery.integration.test.ts`
+- `apps/api/test/shift-presence-server-test-context.ts`
+- `apps/api/test/shift-presence-zone-create-recovery.integration.test.ts`
+- `docs/03_DATABASE_SCHEMA.md`
+- `docs/06_SECURITY_AND_DATA_RULES.md`
+- `docs/validation/GPS_B_IMPLEMENTATION_REPORT.md`
+- `docs/validation/GPS_B_PUBLIC_CONTRACT.md`
+- `packages/contracts/src/shift-presence-management-result.test.ts`
+- `packages/contracts/src/shift-presence-management-result.ts`
+- `packages/contracts/src/shift-presence-management.ts`
+- `packages/contracts/src/shift-presence-public-errors.ts`
+- `packages/database/prisma/migrations/20261004006400_shift_presence_management_results/migration.sql`
+- `packages/database/prisma/migrations/20261004006500_shift_presence_anti_abuse_scopes/migration.sql`
+- `packages/database/prisma/schema.prisma`
+- `packages/database/scripts/shift-presence-runtime-privileges.mjs`

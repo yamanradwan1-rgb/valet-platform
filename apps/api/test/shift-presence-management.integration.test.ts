@@ -62,9 +62,10 @@ describe("current CA and exact LM presence management", () => {
         unknown,
       ),
     ).toMatchObject({
-      attribution: "UNKNOWN",
-      entityId: null,
-      revision: null,
+      attribution: "COMMITTED",
+      effect: "NO_CHANGE",
+      entityId: f.organizationId,
+      revision: 2,
       canonical: { value: changed },
     });
     expect(

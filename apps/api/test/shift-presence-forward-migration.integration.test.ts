@@ -35,6 +35,11 @@ afterAll(() => db.teardown(), 60_000);
 describe("representative GPS-A data survives GPS-B forward migrations", () => {
   it("preserves OFF defaults, revisions, opaque intent and independent pending exception", async () => {
     const f = await db.createFixture();
+    await db.adminPool.query(
+      `INSERT INTO anti_abuse_events(scope,key_hash,state)
+      VALUES('v1:staff-login-identifier',$1,'COUNTED')`,
+      ["anti-abuse-hmac-sha256:v1:" + "b".repeat(64)],
+    );
     const op = {
       ...f,
       action: "START" as const,
@@ -53,6 +58,34 @@ describe("representative GPS-A data survives GPS-B forward migrations", () => {
         await readFile(resolve(root, name, "migration.sql"), "utf8"),
       );
     }
+    expect(
+      (await db.adminPool.query(`SELECT scope FROM anti_abuse_events`)).rows,
+    ).toEqual([{ scope: "v1:staff-login-identifier" }]);
+    for (const scope of [
+      "v1:shift-presence-challenge-user",
+      "v1:shift-presence-exception-user",
+      "v1:shift-presence-status-user",
+    ])
+      await db.adminPool.query(
+        `INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES($1,$2,'COUNTED')`,
+        [scope, "anti-abuse-hmac-sha256:v1:" + "c".repeat(64)],
+      );
+    await expect(
+      db.adminPool.query(
+        `INSERT INTO anti_abuse_events(scope,key_hash,state) VALUES('v1:arbitrary',$1,'COUNTED')`,
+        ["anti-abuse-hmac-sha256:v1:" + "d".repeat(64)],
+      ),
+    ).rejects.toMatchObject({
+      code: "23514",
+      constraint: "anti_abuse_events_scope_check",
+    });
+    expect(
+      (
+        await db.adminPool.query(
+          `SELECT count(*)::integer AS count FROM shift_presence_management_results`,
+        )
+      ).rows[0].count,
+    ).toBe(0);
     expect(
       (
         await db.adminPool.query(

@@ -1,4 +1,8 @@
 import { readPresenceManagementResult } from "./presence-management-result";
+import {
+  recordPresenceManagementMutation,
+  type PresenceMutationIdentity,
+} from "./presence-management-mutation";
 import { Inject, Injectable } from "@nestjs/common";
 import type {
   ShiftPresenceCompanySetRequest,
@@ -64,6 +68,9 @@ export class PresenceManagementService {
       transaction: PostgresTransaction,
       actor: PresenceManagementActor,
     ) => Promise<T>,
+    identity?: Omit<PresenceMutationIdentity, "entityId"> & {
+      readonly entityId?: string;
+    },
   ): Promise<T> {
     try {
       return await inPostgresTransaction(this.pool, async (transaction) => {
@@ -73,7 +80,21 @@ export class PresenceManagementService {
           target,
           { mutation, configurationWriter },
         );
-        const result = await operation(transaction, actor);
+        const result =
+          identity === undefined
+            ? await operation(transaction, actor)
+            : await recordPresenceManagementMutation(
+                transaction,
+                actor,
+                {
+                  ...identity,
+                  entityId:
+                    identity.entityId ??
+                    actor.locationId ??
+                    actor.organizationId,
+                },
+                () => operation(transaction, actor),
+              );
         if (
           (await lockAndRecheckStaffSessionContext(transaction, context)) ===
           undefined
@@ -122,8 +143,13 @@ export class PresenceManagementService {
     target: PresenceManagementTarget,
     command: ShiftPresenceCompanySetRequest,
   ) {
-    return this.run(context, target, true, true, (tx, actor) =>
-      setPresenceCompanyPolicy(tx, context, actor, command),
+    return this.run(
+      context,
+      target,
+      true,
+      true,
+      (tx, actor) => setPresenceCompanyPolicy(tx, context, actor, command),
+      { mutationId: command.mutationId, kind: "COMPANY_POLICY" },
     );
   }
   changeLocation(
@@ -132,8 +158,13 @@ export class PresenceManagementService {
     command:
       ShiftPresenceLocationSetRequest | ShiftPresenceLocationClearRequest,
   ) {
-    return this.run(context, target, true, true, (tx, actor) =>
-      changePresenceLocationPolicy(tx, context, actor, command),
+    return this.run(
+      context,
+      target,
+      true,
+      true,
+      (tx, actor) => changePresenceLocationPolicy(tx, context, actor, command),
+      { mutationId: command.mutationId, kind: "LOCATION_POLICY" },
     );
   }
   zones(
@@ -167,8 +198,17 @@ export class PresenceManagementService {
     command: ShiftPresenceZoneCreateRequest | ShiftPresenceZoneUpdateRequest,
     zoneId?: string,
   ) {
-    return this.run(context, target, true, true, (tx, actor) =>
-      writePresenceZone(tx, context, actor, command, zoneId),
+    return this.run(
+      context,
+      target,
+      true,
+      true,
+      (tx, actor) => writePresenceZone(tx, context, actor, command, zoneId),
+      {
+        mutationId: command.mutationId,
+        kind: "ZONE",
+        entityId: "zoneId" in command ? command.zoneId : zoneId!,
+      },
     );
   }
   exceptions(
@@ -200,15 +240,25 @@ export class PresenceManagementService {
     command: { expectedRevision: number; mutationId: string },
     action: "APPROVED" | "REJECTED",
   ) {
-    return this.run(context, target, true, false, (tx, actor) =>
-      reviewManagementPresenceException(
-        tx,
-        context,
-        actor,
-        exceptionId,
-        command,
-        action,
-      ),
+    return this.run(
+      context,
+      target,
+      true,
+      false,
+      (tx, actor) =>
+        reviewManagementPresenceException(
+          tx,
+          context,
+          actor,
+          exceptionId,
+          command,
+          action,
+        ),
+      {
+        mutationId: command.mutationId,
+        kind: "EXCEPTION",
+        entityId: exceptionId,
+      },
     );
   }
   result(

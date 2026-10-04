@@ -13,16 +13,16 @@ Shift remains ACTIVE -> ENDED. No ValetSession or Task/Dispatch transition chang
 No Native, Employee Web, employee-client or Dashboard presentation changes.
 Presence is approved MVP point-in-time attendance, with no durable employee fix.
 
-| Contract                             | Authority                       | Protected identity/persistence/concurrency                                                                                            |
-| ------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Modes, bounds, per-field inheritance | DEC-099 typed policy            | Organization/Location columns; positive revisions; existing settings guard                                                            |
-| Operational intent/evidence/recovery | DEC-099 durable operation       | User/operation unique identity; scoped target digest; Operation -> Challenge -> Exception locks; 14-day exact recovery                |
-| Original approver proof/early expiry | DEC-100                         | Current User/member/CA-or-exact-LM rows; existing invalidation guards; atomic EXPIRED + DENIED; immutable reviewer history            |
-| Protected management                 | canonical UI-F                  | Exact session, actor User/member, Organization/subscription, Location/access and MFA factor protected through commit                  |
-| Readiness and inherited context      | canonical Q/R01-R12             | Settings exclusive then sorted lifecycle guards; paired policy revisions plus active-zone fingerprint; complete inheritor set         |
-| Management reconciliation            | canonical U-003/UI-H            | Safe audit UUID identifies changed command; fresh authorization; no value-equality attribution; no-op/absent result remains uncertain |
-| Minimal audit/privacy                | DEC-079/099/100, canonical UI-F | Real Organization/Location scope; typed IDs/revisions/status only; atomic business effect and history                                 |
-| Maintenance                          | DEC-099 retention boundary      | Separate privileged operator execution; SQL clock; bounded purge; runtime has no DELETE                                               |
+| Contract                             | Authority                       | Protected identity/persistence/concurrency                                                                                      |
+| ------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Modes, bounds, per-field inheritance | DEC-099 typed policy            | Organization/Location columns; positive revisions; existing settings guard                                                      |
+| Operational intent/evidence/recovery | DEC-099 durable operation       | User/operation unique identity; scoped target digest; Operation -> Challenge -> Exception locks; 14-day exact recovery          |
+| Original approver proof/early expiry | DEC-100                         | Current User/member/CA-or-exact-LM rows; existing invalidation guards; atomic EXPIRED + DENIED; immutable reviewer history      |
+| Protected management                 | canonical UI-F                  | Exact session, actor User/member, Organization/subscription, Location/access and MFA factor protected through commit            |
+| Readiness and inherited context      | canonical Q/R01-R12             | Settings exclusive then sorted lifecycle guards; paired policy revisions plus active-zone fingerprint; complete inheritor set   |
+| Management reconciliation            | canonical U-003/UI-H            | Immutable successful receipt or legacy exact audit; fresh authorization; no equality attribution; absent create remains UNKNOWN |
+| Minimal audit/privacy                | DEC-079/099/100, canonical UI-F | Real Organization/Location scope; typed IDs/revisions/status only; atomic business effect and history                           |
+| Maintenance                          | DEC-099 retention boundary      | Separate privileged operator execution; SQL clock; bounded purge; runtime has no DELETE                                         |
 
 ## Operational routes
 
@@ -73,9 +73,7 @@ changed writes use a fresh mutationId as their audit identity. No blind retry.
 No delete or generic state setter is exposed.
 
 No-op policy values keep their revision and create no fictitious change audit.
-An exact result read returns COMMITTED only when that audit UUID and actor/target
-prove the dispatched command committed; otherwise UNKNOWN plus current canonical
-authorized state. Equal values/statuses never prove own success.
+An exact result read returns COMMITTED only when a scoped immutable management receipt (or an existing pre-correction change audit) proves the dispatched command committed; otherwise UNKNOWN plus current canonical authorized state. Equal values/statuses never prove own success.
 
 ## Readiness/release
 
@@ -127,9 +125,8 @@ the controlled mappings above. Authenticated projections set no-store headers.
 Location result GET defaults to POLICY when no query is supplied. Explicit queries
 are kind=POLICY, or kind=ZONE/EXCEPTION with exact entityId. Response canonical is
 a tagged POLICY, ZONE (zone plus current readiness), or EXCEPTION projection.
-The canonical state is freshly authorized current state; audit attribution
-COMMITTED names the exact mutation's entity/revision. UNKNOWN returns null
-attribution facts alongside canonical state. Company result GET selects Company
+The canonical state is freshly authorized current state; receipt or legacy-audit attribution
+COMMITTED names the exact mutation's entity/revision. UNKNOWN returns null effect/entity/revision facts alongside canonical state. ZONE canonical.value.zone is nullable only on result reads. Company result GET selects Company
 POLICY. Mutation UUIDs are command correlation identities, never bearer authority.
 
 START recovery reconstructs the original ACTIVE/endedAt=null result even after
@@ -151,7 +148,8 @@ PRESENCE_INHERITED_CONTEXT_CONFLICT, PRESENCE_NOT_READY,
 PRESENCE_STRICT_ROLLOUT_CLOSED, PRESENCE_MUTATION_CONFLICT,
 PRESENCE_REVIEW_CONFLICT, APPROVER_AUTHORITY_REVOKED.
 422: PRESENCE_REQUIRED, PRESENCE_REJECTED.
-503: PRESENCE_SECURITY_UNAVAILABLE.
+429: SHIFT_PRESENCE_RATE_LIMITED, with Retry-After 1..900 seconds.
+503: PRESENCE_SECURITY_UNAVAILABLE; existing ANTI_ABUSE_UNAVAILABLE applies to limiter failure.
 Internal PRESENCE_SCOPE_MISMATCH maps to concealed 404 AUTHORIZATION_DENIED.
 The retained denial reasons are APPROVER_AUTHORITY_REVOKED, PRESENCE_REQUIRED
 and PRESENCE_REJECTED; evaluated classification/reasons stay DEC-099 controlled
@@ -198,3 +196,11 @@ and verify protected key provisioning before a later strict release. GPS-B insta
 no scheduler/queue/archive and keeps strict activation closed in both SQL and
 public readiness. Tests remove strict CHECKs only in disposable owner fixtures
 to exercise enforcement; that fixture facility is not a production activation path.
+
+## GPS-B independent review corrections — authorized technical boundary
+
+The new operational routes authenticate the current Staff session, then count the authenticated User against existing HMAC-derived AntiAbuse scopes before any Presence allocation or selector lookup. The rolling window is the infrastructure’s 15 minutes: `v1:shift-presence-challenge-user` allows 30 requests, `v1:shift-presence-exception-user` allows 10 requests, and `v1:shift-presence-status-user` allows 180 requests shared across all three status/read routes. These technical ceilings permit ordinary retries and roughly one combined status read per five seconds while bounding allocation and polling. Random selectors, sessions, memberships or Locations do not create another User quota. Threshold rejection uses 429 `SHIFT_PRESENCE_RATE_LIMITED`, safe standard text, no-store and integer Retry-After 1..900 seconds. Missing/invalid limiter secret or infrastructure failure uses the existing 503 `ANTI_ABUSE_UNAVAILABLE`. Legacy OFF Start/End routes do not use this new boundary. AntiAbuse rows retain only the existing scope/HMAC/time/state fields and existing cleanup eligibility after one hour.
+
+Management correlation IDs are single-use successful-command identities, including no-ops. A dedicated typed append-only `ShiftPresenceManagementResult` receipt records mutation UUID, real actor/tenant/Location, controlled entity kind, entity UUID, positive completion revision, CHANGED or NO_CHANGE, optional exact change-audit linkage and database completion time. It contains no body, configuration text, raw evidence or digest. Each successful command appends its receipt atomically; a no-op has NO_CHANGE, unchanged policy revision and no fictitious change audit. Identical or changed reuse of a committed identity returns 409 PRESENCE_MUTATION_CONFLICT; callers recover by GET, never automatically replay a protected write. A failed/rolled-back command leaves no receipt. A unique receipt identity serializes collisions even across Organizations; loser effects/audit roll back. Existing reviewed change-audit identities remain recoverable and reserved. Historical no-ops without a receipt remain UNKNOWN; no completion history is invented or backfilled. Receipts are immutable minimized management history alongside existing append-only audit; the operational 14-day/90-day/24-month clocks remain unchanged.
+
+Result attribution remains COMMITTED or UNKNOWN; `effect` is CHANGED, NO_CHANGE or null when attribution is UNKNOWN. The canonical ZONE result retains readiness and has a nullable `zone`. Absent or still-unresolved create returns UNKNOWN, null effect/entityId/revision and canonical.zone=null only after fresh exact Organization/Location authority. Absence never proves rollback or authorizes another create. A globally existing Zone in another tenant/Location remains concealed, as does revoked result-scope authority. Existing entities without that exact mutation proof return UNKNOWN with the authorized current entity. Code/label/value equality never proves attribution. Ordinary Zone GET continues to conceal missing entities.

@@ -31,6 +31,11 @@ import {
 } from "../auth/staff-presence-http";
 import { requirePresenceUuid } from "../auth/staff-presence-http";
 import { ShiftPresenceService } from "./shift-presence.service";
+import { AntiAbuseService } from "../anti-abuse/anti-abuse.service";
+import {
+  admitPresenceRequest,
+  presenceAbuseLimits,
+} from "./shift-presence-anti-abuse";
 
 @Controller("v1/staff/shifts/presence")
 export class ShiftPresenceController {
@@ -39,7 +44,24 @@ export class ShiftPresenceController {
     private readonly runner: ApiOperationRunner,
     @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
     private readonly sessions: StaffSessionContextResolver,
+    private readonly limiter: AntiAbuseService,
   ) {}
+
+  private async context(
+    request: ApiRequest,
+    authorization: string | undefined,
+    response: HeaderResponse,
+    kind: keyof typeof presenceAbuseLimits,
+  ) {
+    const context = await presenceManagementHttpContext(
+      request,
+      authorization,
+      response,
+      this.sessions,
+    );
+    await admitPresenceRequest(this.limiter, context.userId, kind);
+    return context;
+  }
 
   @Post("challenges")
   @HttpCode(200)
@@ -52,12 +74,7 @@ export class ShiftPresenceController {
     return this.runner.run("PRESENCE_CHALLENGE_ISSUE", request, async () =>
       shiftPresenceChallengeResponseSchema.parse(
         await this.service.issue(
-          await presenceManagementHttpContext(
-            request,
-            authorization,
-            response,
-            this.sessions,
-          ),
+          await this.context(request, authorization, response, "CHALLENGE"),
           parsePresenceCommand(shiftPresenceChallengeIntentSchema, body),
         ),
       ),
@@ -73,12 +90,7 @@ export class ShiftPresenceController {
     return this.runner.run("PRESENCE_OPERATION_STATUS", request, async () =>
       shiftPresenceRecoveryResponseSchema.parse(
         await this.service.status(
-          await presenceManagementHttpContext(
-            request,
-            authorization,
-            response,
-            this.sessions,
-          ),
+          await this.context(request, authorization, response, "STATUS"),
           requirePresenceUuid(operationId),
         ),
       ),
@@ -94,12 +106,7 @@ export class ShiftPresenceController {
     return this.runner.run("PRESENCE_CHALLENGE_READ", request, async () =>
       shiftPresenceChallengeResponseSchema.parse(
         await this.service.challenge(
-          await presenceManagementHttpContext(
-            request,
-            authorization,
-            response,
-            this.sessions,
-          ),
+          await this.context(request, authorization, response, "STATUS"),
           requirePresenceUuid(operationId),
         ),
       ),
@@ -117,12 +124,7 @@ export class ShiftPresenceController {
     return this.runner.run("PRESENCE_EXCEPTION_REQUEST", request, async () =>
       shiftPresenceExceptionResponseSchema.parse(
         await this.service.requestException(
-          await presenceManagementHttpContext(
-            request,
-            authorization,
-            response,
-            this.sessions,
-          ),
+          await this.context(request, authorization, response, "EXCEPTION"),
           requirePresenceUuid(operationId),
           parsePresenceCommand(shiftPresenceExceptionCreateRequestSchema, body),
         ),
@@ -139,12 +141,7 @@ export class ShiftPresenceController {
     return this.runner.run("PRESENCE_EXCEPTION_STATUS", request, async () =>
       shiftPresenceExceptionResponseSchema.parse(
         await this.service.exception(
-          await presenceManagementHttpContext(
-            request,
-            authorization,
-            response,
-            this.sessions,
-          ),
+          await this.context(request, authorization, response, "STATUS"),
           requirePresenceUuid(exceptionId),
         ),
       ),
