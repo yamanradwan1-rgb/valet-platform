@@ -1,5 +1,31 @@
 # GPS-B public server contract
 
+## GPS-C mocked/simulated source signal correction — owner authorized
+
+Issue #257's focused correction extends the existing nested MEASURED measurement
+with `measurement.mocked?: boolean`. `true` means the platform reports a
+mocked/simulated source; `false` means it reports a non-mocked source; absence
+means the signal was not provided or supported. Absence never becomes false,
+and false is **not** proof of authentic coordinates. Both boolean values remain
+subject to the same authoritative geometry, accuracy and freshness evaluation.
+No source-based acceptance/rejection policy or classification is introduced;
+advanced U257-H attestation remains deferred.
+
+The strict measurement schema accepts only the optional boolean addition;
+strings, numbers, null and arbitrary unknown fields remain invalid. START and
+END keep their existing nested evidence and operation-selector equality rules;
+successful responses and minimized recovery summaries remain unchanged.
+
+MEASURED request HMAC identity distinguishes true, false and absent. A supplied
+boolean is appended to the existing canonical evidence tuple; absent preserves
+the exact legacy tuple and digest, including retained-key recovery. The target
+fingerprint and other evidence variants are unchanged. Only the HMAC is retained;
+no raw source signal, fix, generic body or history is stored or logged. No database
+migration, Native integration or rollout activation is part of this correction.
+
+Validation and compatibility evidence:
+[GPS_B_MOCKED_SIGNAL_CONTRACT_REPORT.md](GPS_B_MOCKED_SIGNAL_CONTRACT_REPORT.md).
+
 ## GPS-C evidence-free correlation correction — owner authorized
 
 Issue #257's 2026-10-04 correction adds optional top-level UUID `operationId`

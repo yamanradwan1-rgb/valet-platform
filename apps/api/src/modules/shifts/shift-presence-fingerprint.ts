@@ -80,6 +80,8 @@ export function fingerprintShiftPresenceRequest(
       fix.latitude,
       fix.longitude,
       fix.accuracyMeters,
+      // Preserve retained v1 digests for absent signals; false is explicit input.
+      ...(fix.mocked === undefined ? [] : [fix.mocked]),
     ];
   } else if (evidence.kind === "EXCEPTION") {
     uuid.parse(evidence.exceptionId);
