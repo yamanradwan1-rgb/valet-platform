@@ -39,6 +39,7 @@ import {
 export interface StartShiftCommandRequest {
   readonly authenticatedUserId: string;
   readonly targetLocationId: string;
+  readonly operationId?: string;
   readonly presence?: ShiftPresenceEvidence;
   readonly sessionContext?: StaffSessionContext;
 }
@@ -159,6 +160,9 @@ async function startInTransaction(
     action: "START" as const,
     shiftId: null,
     cashReported: null,
+    ...(request.operationId === undefined
+      ? {}
+      : { operationId: request.operationId }),
     ...(request.presence === undefined ? {} : { evidence: request.presence }),
   };
   const recovery = await recoverPresenceShiftAttempt(

@@ -1,5 +1,33 @@
 # GPS-B public server contract
 
+## GPS-C evidence-free correlation correction — owner authorized
+
+Issue #257's 2026-10-04 correction adds optional top-level UUID `operationId`
+to Start `{ targetLocationId, operationId?, presence? }` and End
+`{ cashReported, operationId?, presence? }`. When both selectors are supplied,
+`operationId` must equal `presence.operationId`; mismatch is transport-invalid.
+Success responses are unchanged. Legacy omission and existing evidence-only
+requests keep their prior behavior. No public MISSING evidence is introduced.
+
+An evidence-free correlated command resolves the existing owned Operation and
+Challenge, with exact action/target/canonical END cash and current authorization.
+It never allocates another operation. Current OFF commits the real Shift/audit
+and Operation with typed `OFF_NO_EVIDENCE` completion basis and no Decision.
+Current WARN_ONLY consumes the existing Challenge and journals truthful missing
+measurement on that same Operation. Current strict modes bind and terminalize
+that Operation as DENIED/PRESENCE_REQUIRED, summary null, with no Shift/Decision.
+Exact terminal recovery precedes ordinary state convergence and uses the stored
+policy fingerprint. Internal CORRELATED_MISSING fingerprints include operationId
+and require no retained Challenge for recovery. No raw request is retained.
+
+Migration 067 permits a missing result Decision only with explicit OFF provenance,
+bound request/policy, exact result Shift and live preallocated Challenge at
+completion. Evidence-backed results retain their Decision requirement. OFF leaves
+the unconsumed Challenge on its existing expiry+24h purge clock; its purge cannot
+destroy the independent 14-day Operation recovery result or 90-day tombstone.
+No 24-month attendance evaluation is fabricated. This is server correction only;
+GPS-C/GPS-D and strict activation remain unimplemented/closed respectively.
+
 ## GPS-C consumer correction — owner-authorized Issue #257
 
 Challenge ISSUE and exact challenge GET add `presence: { mode,

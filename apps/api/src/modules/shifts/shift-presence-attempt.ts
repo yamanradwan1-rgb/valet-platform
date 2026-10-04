@@ -25,6 +25,7 @@ export interface PresenceShiftAttempt {
   readonly shiftId: string | null;
   readonly cashReported: string | null;
   readonly evidence?: ShiftPresenceEvidence;
+  readonly operationId?: string;
 }
 
 export interface PresenceDeniedResult {
@@ -59,7 +60,7 @@ export function requestFingerprint(
   policyFingerprint: string,
   key: Uint8Array,
 ) {
-  const evidence = input.evidence!;
+  const evidence = input.evidence ?? { kind: "CORRELATED_MISSING" as const };
   return fingerprintShiftPresenceRequest(
     {
       ...operation,
@@ -77,11 +78,17 @@ export async function recoverPresenceShiftAttempt(
   input: PresenceShiftAttempt,
   keyInput?: Uint8Array,
 ): Promise<ShiftResult | PresenceDeniedResult | undefined> {
-  if (input.evidence === undefined) return undefined;
+  const operationId = input.operationId ?? input.evidence?.operationId;
+  if (operationId === undefined) return undefined;
+  if (
+    input.evidence !== undefined &&
+    input.evidence.operationId !== operationId
+  )
+    throw new ShiftPresenceError("PRESENCE_OPERATION_CONFLICT");
   const { key, operation } = await resolvePresenceOperation(
     transaction,
     input,
-    input.evidence.operationId,
+    operationId,
     keyInput,
   );
   const found = await transaction.query<
@@ -161,6 +168,12 @@ export async function resolvePresenceOperation(
     [input.userId, operationId],
   );
   const fingerprint = found.rows[0]?.target_fingerprint;
+  if (
+    fingerprint === undefined &&
+    input.operationId !== undefined &&
+    input.evidence === undefined
+  )
+    throw new ShiftPresenceError("PRESENCE_SCOPE_MISMATCH");
   const key =
     fingerprint === undefined
       ? keys[0]!

@@ -198,13 +198,21 @@ export async function completePresenceOperation(
     readonly status: "COMMITTED" | "DENIED" | "EXPIRED";
     readonly shiftId: string | null;
     readonly decisionId: string | null;
+    readonly completionBasis?: "OFF_NO_EVIDENCE";
   },
 ) {
   const row = await lockPresenceOperation(transaction, input);
   if (row.status !== "PENDING")
     throw new ShiftPresenceError("PRESENCE_OPERATION_CONFLICT");
   await transaction.query(
-    `UPDATE shift_presence_operations SET status=$2,terminal_at=clock_timestamp(),result_shift_id=$3,result_decision_id=$4 WHERE id=$1`,
-    [row.id, result.status, result.shiftId, result.decisionId],
+    `UPDATE shift_presence_operations SET status=$2,terminal_at=clock_timestamp(),
+      result_shift_id=$3,result_decision_id=$4,completion_basis=$5 WHERE id=$1`,
+    [
+      row.id,
+      result.status,
+      result.shiftId,
+      result.decisionId,
+      result.completionBasis ?? null,
+    ],
   );
 }

@@ -1,5 +1,20 @@
 # Database Schema — Logical Design
 
+## Issue #257 evidence-free result provenance — owner correction
+
+Forward migration 067 adds nullable typed Operation `completion_basis` with the
+single value `OFF_NO_EVIDENCE`. Null retains the existing COMMITTED requirement
+for a result Decision. Non-null is permitted only on COMMITTED with a real exact
+result Shift, null Decision, bound request and bound policy. Its insert/update
+guard requires PENDING-to-COMMITTED, a live unconsumed exact Challenge, current
+effective action mode OFF and no Decision for that operation. Terminal results,
+scope/intent and one-time bindings remain immutable for owner and runtime alike.
+Runtime receives only column-scoped completion-basis UPDATE; no broad UPDATE,
+history rewrite, DELETE or trigger execution. There is no backfill or fake
+evaluation. Existing FKs, indexes and 14d/90d/24m retention remain unchanged.
+OFF's unused Challenge follows ordinary expiresAt+24h purge; Operation result
+and no-evidence fingerprint recovery are independent of that ephemeral row.
+
 Status: Binding  
 Version: 0.7
 

@@ -33,16 +33,32 @@ export const shiftProjectionSchema = z
 export const startShiftRequestSchema = z
   .object({
     targetLocationId: uuidSchema,
+    operationId: uuidSchema.optional(),
     presence: shiftPresenceEvidenceSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (value) =>
+      value.operationId === undefined ||
+      value.presence === undefined ||
+      value.operationId === value.presence.operationId,
+    { message: "Operation selectors must match.", path: ["operationId"] },
+  );
 
 export const endShiftRequestSchema = z
   .object({
     cashReported: shiftMoneySchema,
+    operationId: uuidSchema.optional(),
     presence: shiftPresenceEvidenceSchema.optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (value) =>
+      value.operationId === undefined ||
+      value.presence === undefined ||
+      value.operationId === value.presence.operationId,
+    { message: "Operation selectors must match.", path: ["operationId"] },
+  );
 
 export const activeShiftQuerySchema = z
   .object({ locationId: uuidSchema })

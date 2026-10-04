@@ -29,7 +29,8 @@ export interface PresenceFingerprintInput {
         readonly challengeId: string;
         readonly exceptionId: string;
       }
-    | { readonly kind: "MISSING"; readonly challengeId: string };
+    | { readonly kind: "MISSING"; readonly challengeId: string }
+    | { readonly kind: "CORRELATED_MISSING" };
 }
 
 function canonicalCash(value: string | null): string | null {
@@ -62,10 +63,13 @@ export function fingerprintShiftPresenceRequest(
   }
   const evidence = input.evidence;
   const uuid = shiftPresenceScopeSchema.shape.userId;
-  uuid.parse(evidence.challengeId);
+  if (evidence.kind !== "CORRELATED_MISSING") uuid.parse(evidence.challengeId);
   shiftPresenceDigestSchema.parse(input.policyFingerprint);
   let evidenceIdentity: readonly unknown[];
-  if (evidence.kind === "MEASURED") {
+  if (evidence.kind === "CORRELATED_MISSING") {
+    // Independent of ephemeral Challenge retention; never a public evidence kind.
+    evidenceIdentity = [evidence.kind, identity.operationId];
+  } else if (evidence.kind === "MEASURED") {
     uuid.parse(evidence.clientSampleId);
     const fix = shiftPresenceMeasurementSchema.parse(evidence.measurement);
     evidenceIdentity = [

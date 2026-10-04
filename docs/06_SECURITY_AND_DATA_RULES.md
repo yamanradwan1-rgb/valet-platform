@@ -1,5 +1,19 @@
 # Security and Data Rules
 
+## Issue #257 evidence-free correlation correction
+
+Optional Shift `operationId` is a non-secret selector, never authorization or
+measurement. Shared strict validation rejects a differing evidence selector.
+Current authorized User/member/tenant/Location/action/END Shift/canonical cash
+must match the existing preallocated Operation before binding any attempt.
+Exact terminal recovery runs before generic Shift convergence. Correlated OFF
+has typed no-evidence completion provenance and no invented attendance Decision;
+WARN_ONLY keeps truthful missing-evidence evaluation. Strict missing evidence
+terminalizes the exact owned attempt as PRESENCE_REQUIRED without business effect.
+No public MISSING variant, payload retention, raw GPS, extra quota identity or
+automatic protected replay is introduced. Historical migrations and strict
+activation gates remain unchanged. See the evidence-free recovery report.
+
 DEC-029 provisioning is a controlled offline create-only boundary. It never
 accepts passwords from argv/environment, never reuses or reactivates an
 existing User, validates Organization and Location scope from persisted rows,

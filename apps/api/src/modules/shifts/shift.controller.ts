@@ -126,6 +126,9 @@ export class ShiftController {
       const shift = await this.service.executeStart({
         authenticatedUserId,
         targetLocationId: input.targetLocationId,
+        ...(input.operationId === undefined
+          ? {}
+          : { operationId: input.operationId }),
         ...(input.presence === undefined ? {} : { presence: input.presence }),
         sessionContext: await this.sessions.resolve(authorization),
       });
@@ -148,6 +151,9 @@ export class ShiftController {
         authenticatedUserId,
         cashReported: input.cashReported,
         shiftId: parseUuid(shiftIdRaw),
+        ...(input.operationId === undefined
+          ? {}
+          : { operationId: input.operationId }),
         ...(input.presence === undefined ? {} : { presence: input.presence }),
         sessionContext: await this.sessions.resolve(authorization),
       });

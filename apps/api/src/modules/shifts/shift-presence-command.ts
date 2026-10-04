@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { prepareCorrelatedNoEvidence } from "./shift-presence-no-evidence";
 
 import type {
   ShiftPresenceOperation,
@@ -45,6 +46,13 @@ export async function preparePresenceShiftAttempt(
     input.action === "START"
       ? configuration.policy.startMode
       : configuration.policy.endMode;
+  if (input.operationId !== undefined && input.evidence === undefined)
+    return prepareCorrelatedNoEvidence(
+      transaction,
+      input,
+      configuration,
+      keyInput,
+    );
   if (mode === "OFF" && input.evidence === undefined)
     return { commit: async () => {} };
   if (input.evidence === undefined && mode !== "WARN_ONLY")

@@ -23,6 +23,7 @@ export class ShiftService {
   executeStart(request: {
     readonly authenticatedUserId: string;
     readonly targetLocationId: string;
+    readonly operationId?: string;
     readonly presence?: ShiftPresenceEvidence;
     readonly sessionContext?: StaffSessionContext;
   }) {
@@ -33,6 +34,7 @@ export class ShiftService {
     readonly authenticatedUserId: string;
     readonly cashReported: string;
     readonly shiftId: string;
+    readonly operationId?: string;
     readonly presence?: ShiftPresenceEvidence;
     readonly sessionContext?: StaffSessionContext;
   }) {

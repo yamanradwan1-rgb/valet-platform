@@ -1,5 +1,18 @@
 # GPS-B consumer-contract correction — Issue #257
 
+## Follow-up: evidence-free exact recovery
+
+The subsequent owner-authorized correction adds optional top-level `operationId`
+to Start/End without changing public Presence evidence or response shapes.
+Matching evidence selectors remain compatible. Correlated OFF completion has no
+Decision and uses typed migration-067 provenance; WARN_ONLY missing evidence uses
+the known O; strict missing evidence recovers DENIED/PRESENCE_REQUIRED with null
+summary. The B1/B2/B3 contracts documented below are preserved. Current evidence
+and scope are in
+[GPS_B_NO_MEASUREMENT_RECOVERY_REPORT.md](GPS_B_NO_MEASUREMENT_RECOVERY_REPORT.md).
+This report's original base/branch/validation sections describe the prior 066
+correction, not the current 067 branch.
+
 Date: 2026-10-04. This is the owner-authorized server correction discovered when
 GPS-C correctly stopped before Native implementation. It provides B1/B2/B3;
 it does not implement GPS-C or activate production strict Presence.

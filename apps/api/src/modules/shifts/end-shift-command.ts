@@ -34,6 +34,7 @@ export interface EndShiftCommandRequest {
   readonly cashReported: string;
   readonly shiftId: string;
   readonly presence?: ShiftPresenceEvidence;
+  readonly operationId?: string;
   readonly sessionContext?: StaffSessionContext;
 }
 
@@ -184,6 +185,9 @@ async function endInTransaction(
     action: "END" as const,
     shiftId: shift.id,
     cashReported: request.cashReported,
+    ...(request.operationId === undefined
+      ? {}
+      : { operationId: request.operationId }),
     ...(request.presence === undefined ? {} : { evidence: request.presence }),
   };
   const recovery = await recoverPresenceShiftAttempt(

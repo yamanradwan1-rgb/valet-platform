@@ -1725,6 +1725,12 @@ enum ShiftPresenceOperationStatus {
   @@map("shift_presence_operation_status")
 }
 
+enum ShiftPresenceCompletionBasis {
+  OFF_NO_EVIDENCE
+
+  @@map("shift_presence_completion_basis")
+}
+
 enum ShiftPresenceDenialReason {
   APPROVER_AUTHORITY_REVOKED
   PRESENCE_REQUIRED
@@ -1833,6 +1839,7 @@ model ShiftPresenceOperation {
   terminalAt DateTime? @map("terminal_at") @db.Timestamptz(3)
   resultShiftId String? @map("result_shift_id") @db.Uuid
   resultDecisionId String? @map("result_decision_id") @db.Uuid
+  completionBasis ShiftPresenceCompletionBasis? @map("completion_basis")
 
   location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_operations_location_fkey")
   member OrganizationMembership @relation(fields: [organizationId, membershipId, userId], references: [organizationId, id, userId], onDelete: Restrict, onUpdate: Restrict, map: "shift_presence_operations_member_fkey")

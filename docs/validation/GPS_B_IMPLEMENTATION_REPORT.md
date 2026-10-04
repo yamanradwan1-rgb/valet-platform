@@ -1,5 +1,18 @@
 # GPS-B — Issue #257 implementation and evidence
 
+## Evidence-free exact recovery correction — 2026-10-04
+
+The final GPS-C blocker is corrected in the server/shared contracts: optional
+top-level `operationId` correlates evidence-free Start/End to the preallocated O.
+OFF uses explicit `OFF_NO_EVIDENCE` provenance with no Decision; WARN_ONLY uses
+the existing truthful missing-evidence Decision on O; strict modes terminalize O
+as DENIED/PRESENCE_REQUIRED. Forward migration 067 preserves existing rows and
+Decision-backed invariants. B1/B2/B3, legacy requests and strict rollout gates
+remain unchanged. See the current scope, recovery/race/upgrade proof and exact
+validation ledger in
+[GPS_B_NO_MEASUREMENT_RECOVERY_REPORT.md](GPS_B_NO_MEASUREMENT_RECOVERY_REPORT.md).
+Earlier sections below retain the historical implementation handoffs.
+
 ## GPS-C consumer-contract correction — owner-authorized Issue #257
 
 The Native integration stopped before implementation when it found missing
