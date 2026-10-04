@@ -136,6 +136,7 @@ function operationalContext() {
         currentLocation: {
           code: "LOC-CURRENT",
           currency: "JOD",
+          timezone: "Asia/Amman",
           locationId,
           name: "Current Location",
         },
@@ -143,6 +144,7 @@ function operationalContext() {
           {
             code: "LOC-CURRENT",
             currency: "JOD",
+            timezone: "Asia/Amman",
             locationId,
             name: "Current Location",
           },

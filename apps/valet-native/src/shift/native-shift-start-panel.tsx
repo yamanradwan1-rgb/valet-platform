@@ -18,6 +18,7 @@ import {
   nativeGateStylesTheme,
 } from "../shell/native-gate-primitives";
 import { getNativeShiftCopy } from "./native-shift-copy";
+import { NativeShiftPresenceStatus } from "./native-shift-presence-status";
 
 export function NativeShiftStartPanel({
   locale,
@@ -55,11 +56,19 @@ export function NativeShiftStartPanel({
             label={copy.retryStart}
             onPress={() => void session.retry()}
           />
-          <NativeGateButton
-            label={copy.dismiss}
-            onPress={() => session.dismissUncertain()}
-            variant="secondary"
+          <NativeShiftPresenceStatus
+            session={session.presence}
+            locale={locale}
+            onContinue={() => void session.retry()}
+            onCancel={() => session.suspendForBackground()}
           />
+          {session.presence === undefined ? (
+            <NativeGateButton
+              label={copy.dismiss}
+              onPress={() => session.dismissUncertain()}
+              variant="secondary"
+            />
+          ) : null}
         </View>
       </NativeGateCard>
     );
@@ -127,6 +136,16 @@ export function NativeShiftStartPanel({
             {failure}
           </Text>
         ) : null}
+        <NativeShiftPresenceStatus
+          session={session.presence}
+          locale={locale}
+          onCancel={() => session.suspendForBackground()}
+          onContinue={() =>
+            void (snapshot.phase === "uncertain"
+              ? session.retry()
+              : session.start())
+          }
+        />
         {snapshot.phase === "verifying" ? (
           <Text style={[styles.body, employeeTextStyle("human", textAlign)]}>
             {copy.verifying}

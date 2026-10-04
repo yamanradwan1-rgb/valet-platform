@@ -21,6 +21,7 @@ const endedAt = "2026-09-08T16:00:00.000Z";
 const location = {
   code: "AMM-1",
   currency: "JOD",
+  timezone: "Asia/Amman",
   locationId: ids.location,
   name: "Amman Hotel",
 };

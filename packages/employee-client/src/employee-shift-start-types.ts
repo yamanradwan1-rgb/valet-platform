@@ -5,6 +5,7 @@ import type {
 } from "@valet/contracts";
 
 import type { EmployeeOperationalFailure } from "./employee-operational-types";
+import type { EmployeeShiftPresenceSession } from "./employee-shift-presence-session";
 
 export type EmployeeShiftStartPhase =
   | "active"
@@ -31,6 +32,7 @@ export interface EmployeeShiftStartTransport {
 }
 
 export interface EmployeeShiftStartSessionOptions {
+  readonly presence?: EmployeeShiftPresenceSession;
   readonly onStateChange?:
     ((snapshot: EmployeeShiftStartSnapshot) => void) | undefined;
   readonly refreshOperationalContext: () => Promise<void>;

@@ -126,3 +126,6 @@ export * from "./employee-cancel-check-in-transport";
 export * from "./employee-parking-cancellation-types";
 export * from "./employee-parking-cancellation-transport";
 export * from "./employee-parking-cancellation-session";
+export * from "./employee-shift-presence-types";
+export * from "./employee-shift-presence-transport";
+export * from "./employee-shift-presence-session";

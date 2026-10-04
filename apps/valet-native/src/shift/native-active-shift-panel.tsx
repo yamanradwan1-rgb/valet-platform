@@ -24,6 +24,7 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeShiftDiagnosticsCard } from "./native-shift-diagnostics-card";
 import { NativePhysicalDiagnosticsCard } from "../diagnostics/native-physical-diagnostics-card";
 import { getNativeShiftCopy } from "./native-shift-copy";
+import { NativeShiftPresenceStatus } from "./native-shift-presence-status";
 import {
   NativeShiftInfoRow,
   NativeShiftSummaryDetails,
@@ -118,6 +119,9 @@ export function NativeActiveShiftPanel({
             {copy.cashReportedHelper}
           </Text>
           <TextInput
+            editable={["active", "blocked-open-work", "error"].includes(
+              snapshot.phase,
+            )}
             accessibilityHint={copy.cashReportedHelper}
             accessibilityLabel={`${copy.cashReported} ${authority.currency}`}
             inputMode="decimal"
@@ -185,6 +189,16 @@ export function NativeActiveShiftPanel({
               {copy.endShiftError}
             </Text>
           ) : null}
+          <NativeShiftPresenceStatus
+            session={session.presence}
+            locale={locale}
+            onCancel={() => session.suspendForBackground()}
+            onContinue={() =>
+              snapshot.phase === "uncertain"
+                ? void session.retry()
+                : session.requestConfirmation()
+            }
+          />
           {snapshot.phase === "confirming" ? (
             <View style={styles.confirm} testID="native-shift-end-confirmation">
               <Text

@@ -1,28 +1,19 @@
-import { EmployeeApiError } from "./api-error";
 import {
-  isAmbiguousMutationFailure,
-  operationalFailure,
-} from "./employee-operational-recovery";
+  executeEmployeeEndAttempt,
+  type EndAttempt,
+} from "./employee-shift-end-attempt";
 import {
   employeeShiftEndAuthorityKey,
   emptyEmployeeShiftEndSnapshot,
   isEmployeeShiftCashValid,
   normalizeEmployeeShiftCash,
   resolveEmployeeShiftEndAuthority,
-  validateEmployeeShiftEndResult,
 } from "./employee-shift-end-state";
 import type {
-  EmployeeShiftEndAuthority,
   EmployeeShiftEndSessionOptions,
   EmployeeShiftEndSnapshot,
 } from "./employee-shift-end-types";
 import type { StaffOperationalContextResponse } from "@valet/contracts";
-
-interface EndAttempt {
-  readonly authority: EmployeeShiftEndAuthority;
-  readonly cashReported: string;
-  readonly workflowGeneration: number;
-}
 
 export class EmployeeShiftEndSession {
   private activeSend: Promise<void> | undefined;
@@ -63,6 +54,29 @@ export class EmployeeShiftEndSession {
     this.reset(null);
   }
 
+  get presence() {
+    return this.options.presence;
+  }
+
+  resumePresenceRecovery(
+    authority: import("./employee-shift-end-types").EmployeeShiftEndAuthority,
+    cashReported: string,
+    restore: () => void = () => undefined,
+  ): Promise<void> {
+    this.publish({
+      ...this.snapshot,
+      authority,
+      cashInput: cashReported,
+      phase: "uncertain",
+    });
+    restore();
+    return this.send({
+      authority,
+      cashReported,
+      workflowGeneration: this.workflowGeneration,
+    });
+  }
+
   observeOperationalContext(
     identityGeneration: number,
     response: StaffOperationalContextResponse,
@@ -92,6 +106,7 @@ export class EmployeeShiftEndSession {
       return;
     }
     this.workflowGeneration += 1;
+    if (current !== null) this.options.presence?.clear();
     this.attempt = undefined;
     this.activeSend = undefined;
     this.endedPresentationAcknowledged = false;
@@ -114,6 +129,7 @@ export class EmployeeShiftEndSession {
   setCashInput(cashInput: string): void {
     if (!["active", "blocked-open-work", "error"].includes(this.snapshot.phase))
       return;
+    if (cashInput !== this.snapshot.cashInput) this.options.presence?.clear();
     this.publish({
       ...this.snapshot,
       cashInput,
@@ -146,6 +162,7 @@ export class EmployeeShiftEndSession {
 
   cancelConfirmation(): void {
     if (this.snapshot.phase !== "confirming") return;
+    this.options.presence?.cancel();
     this.publish({ ...this.snapshot, phase: "active" });
   }
 
@@ -179,10 +196,12 @@ export class EmployeeShiftEndSession {
   }
 
   suspendForBackground(): void {
+    this.options.presence?.suspend();
     this.fenceSubmittingAttempt();
   }
 
   fenceOperationalScope(): void {
+    this.options.presence?.suspend();
     this.fenceSubmittingAttempt();
   }
 
@@ -194,6 +213,7 @@ export class EmployeeShiftEndSession {
       ...this.attempt,
       workflowGeneration: this.workflowGeneration,
     };
+    this.activeSend = undefined;
     this.publish({
       ...this.snapshot,
       failure: {
@@ -226,42 +246,16 @@ export class EmployeeShiftEndSession {
   }
 
   private async execute(attempt: EndAttempt): Promise<void> {
-    try {
-      const result = await this.options.transport.endShift(
-        attempt.authority.shiftId,
-        attempt.cashReported,
-      );
-      if (!this.isCurrent(attempt)) return;
-      validateEmployeeShiftEndResult(
-        attempt.authority,
-        attempt.cashReported,
-        result,
-      );
-      this.attempt = undefined;
+    const outcome = await executeEmployeeEndAttempt(this.options, attempt);
+    if (!this.isCurrent(attempt)) return;
+    if (outcome.phase !== "uncertain") this.attempt = undefined;
+    if (outcome.result !== null) {
       this.endedPresentationAcknowledged = false;
       this.noActiveShiftObserved = false;
-      this.publish({ ...this.snapshot, phase: "ended", result });
-      this.options.onEnded?.(result);
-    } catch (error) {
-      if (!this.isCurrent(attempt)) return;
-      const failure = operationalFailure(error);
-      if (isAmbiguousMutationFailure(error)) {
-        this.publish({ ...this.snapshot, failure, phase: "uncertain" });
-        return;
-      }
-      this.attempt = undefined;
-      this.publish({
-        ...this.snapshot,
-        failure,
-        phase:
-          error instanceof EmployeeApiError &&
-          error.code === "OPEN_TASK_HANDOFF_REQUIRED"
-            ? "blocked-open-work"
-            : "error",
-      });
     }
+    this.publish({ ...this.snapshot, ...outcome });
+    if (outcome.result !== null) this.options.onEnded?.(outcome.result);
   }
-
   private isCurrent(attempt: EndAttempt): boolean {
     return (
       this.attempt === attempt &&
@@ -273,6 +267,7 @@ export class EmployeeShiftEndSession {
   }
 
   private reset(identityGeneration: number | null): void {
+    this.options.presence?.clear(this.snapshot.identityGeneration !== null);
     this.workflowGeneration += 1;
     this.attempt = undefined;
     this.activeSend = undefined;

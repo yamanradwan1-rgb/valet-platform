@@ -57,6 +57,19 @@
       ],
       "./plugins/with-native-push-backup-exclusion",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "VAYLET checks your location only when you start or end a Shift. It does not track you throughout your Shift. يتحقق VAYLET من موقعك فقط عند بدء الوردية أو إنهائها، ولا يتتبعك طوال الوردية.",
+          "locationAlwaysPermission": false,
+          "locationAlwaysAndWhenInUsePermission": false,
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false,
+          "isAndroidMotionActivityEnabled": false
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Allow VAYLET Employee to scan resource and handoff QR codes.",
@@ -65,6 +78,7 @@
           "barcodeScannerEnabled": true
         }
       ],
+      "./plugins/with-shift-presence-foreground-only",
       [
         "expo-font",
         {

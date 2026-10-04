@@ -245,6 +245,7 @@ function context(locationId: string, suffix: string) {
         currentLocation: {
           code: `LOC-${suffix}`,
           currency: "JOD",
+          timezone: "Asia/Amman",
           locationId,
           name: `Location ${suffix}`,
         },
@@ -252,6 +253,7 @@ function context(locationId: string, suffix: string) {
           {
             code: `LOC-${suffix}`,
             currency: "JOD",
+            timezone: "Asia/Amman",
             locationId,
             name: `Location ${suffix}`,
           },

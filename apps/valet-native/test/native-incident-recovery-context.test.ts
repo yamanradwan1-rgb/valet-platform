@@ -36,6 +36,7 @@ const response: StaffOperationalContextResponse = {
         {
           code: "AMM-1",
           currency: "JOD",
+          timezone: "Asia/Amman",
           locationId: ids.location,
           name: "Amman",
         },

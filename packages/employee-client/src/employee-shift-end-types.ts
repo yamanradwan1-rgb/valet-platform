@@ -5,6 +5,7 @@ import type {
 } from "@valet/contracts";
 
 import type { EmployeeOperationalFailure } from "./employee-operational-types";
+import type { EmployeeShiftPresenceSession } from "./employee-shift-presence-session";
 
 export interface EmployeeShiftEndAuthority {
   readonly currency: string;
@@ -46,6 +47,7 @@ export interface EmployeeShiftEndTransport {
 }
 
 export interface EmployeeShiftEndSessionOptions {
+  readonly presence?: EmployeeShiftPresenceSession;
   readonly initialOnline?: boolean | undefined;
   readonly onEnded?: ((result: EndShiftResponse) => void) | undefined;
   readonly onStateChange?:

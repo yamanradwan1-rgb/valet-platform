@@ -7,6 +7,7 @@ import {
   type EmployeeRevalidationBatch,
 } from "@valet/employee-client";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
+import { revalidateNativeShiftPresence } from "../shift/native-shift-presence-revalidate";
 import { retireNativeWorkflowScope } from "./native-workflow-scope-retirement";
 import {
   deriveProductionShellState,
@@ -133,6 +134,8 @@ export class NativeProductionLifecycleOwner {
       this.operationsForeground = true;
       await this.runtime.operations.setForeground(true);
     }
+    if (!this.canContinue(generation)) return;
+    await revalidateNativeShiftPresence(this.runtime);
     if (!this.canContinue(generation)) return;
     const current = this.runtime.operations.current();
     const shellState = deriveProductionShellState(auth, current);

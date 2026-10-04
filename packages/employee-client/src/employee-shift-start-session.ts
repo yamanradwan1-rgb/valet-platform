@@ -1,3 +1,14 @@
+import {
+  emptyShiftStartSnapshot,
+  resolveShiftStartPresentation,
+  pendingStartResolution,
+  shiftStartAuthorities,
+  suspendedShiftStartSnapshot,
+} from "./employee-shift-start-presentation";
+import {
+  startPresenceTarget,
+  matchesStartPresenceTarget,
+} from "./employee-shift-presence-target";
 import { EmployeeApiError } from "./api-error";
 import {
   employeeShiftStartAuthorityKey,
@@ -15,17 +26,6 @@ import type {
   EmployeeShiftStartSnapshot,
 } from "./employee-shift-start-types";
 import type { StaffOperationalContextResponse } from "@valet/contracts";
-
-function emptyShiftStartSnapshot(): EmployeeShiftStartSnapshot {
-  return {
-    failure: null,
-    identityGeneration: null,
-    phase: "inactive",
-    selectedLocationId: null,
-    startableLocations: [],
-    targetLocationId: null,
-  };
-}
 
 export class EmployeeShiftStartSession {
   private activeSend: Promise<void> | undefined;
@@ -61,6 +61,36 @@ export class EmployeeShiftStartSession {
     this.reset(null);
   }
 
+  get presence() {
+    return this.options.presence;
+  }
+
+  ownsPresenceTarget(
+    target: import("./employee-shift-presence-types").PresenceTarget,
+  ): boolean {
+    return (
+      this.snapshot.selectedLocationId === target.locationId &&
+      matchesStartPresenceTarget(
+        this.authorities.get(target.locationId),
+        target,
+      )
+    );
+  }
+
+  resumePresenceRecovery(
+    authority: EmployeeShiftStartAuthority,
+    restore: () => void = () => undefined,
+  ): Promise<void> {
+    this.selectedAuthorityKey = employeeShiftStartAuthorityKey(authority);
+    this.publish({
+      ...this.snapshot,
+      selectedLocationId: authority.location.locationId,
+      phase: "uncertain",
+    });
+    restore();
+    return this.send(authority);
+  }
+
   observeOperationalContext(
     identityGeneration: number,
     response: StaffOperationalContextResponse,
@@ -71,11 +101,9 @@ export class EmployeeShiftStartSession {
       response,
     );
     this.context = context;
-    this.authorities = new Map(
-      context.startable.map((authority) => [
-        authority.location.locationId,
-        authority,
-      ]),
+    this.authorities = shiftStartAuthorities(
+      context,
+      this.options.presence !== undefined,
     );
 
     if (this.pending !== undefined) {
@@ -90,6 +118,11 @@ export class EmployeeShiftStartSession {
       return;
     const authority = this.authorities.get(locationId);
     if (authority === undefined) return;
+    if (
+      locationId !== this.snapshot.selectedLocationId &&
+      this.options.presence?.descriptor() !== undefined
+    )
+      this.options.presence?.clear();
     this.selectedAuthorityKey = employeeShiftStartAuthorityKey(authority);
     this.publish({
       ...this.snapshot,
@@ -127,6 +160,7 @@ export class EmployeeShiftStartSession {
       current === undefined ||
       !isSameEmployeeShiftStartAuthority(current, attempt)
     ) {
+      this.options.presence?.clear();
       this.clearPending();
       this.publishContext(this.context);
       return Promise.resolve();
@@ -136,11 +170,13 @@ export class EmployeeShiftStartSession {
 
   dismissUncertain(): void {
     if (this.snapshot.phase !== "uncertain") return;
+    if (this.options.presence !== undefined) return;
     this.clearPending();
     this.publishContext(this.context);
   }
 
   suspendForBackground(): void {
+    this.options.presence?.suspend();
     if (
       this.pending === undefined ||
       (this.snapshot.phase !== "submitting" &&
@@ -149,14 +185,7 @@ export class EmployeeShiftStartSession {
       return;
     this.pending = { ...this.pending };
     this.activeSend = undefined;
-    this.publish({
-      ...this.snapshot,
-      failure: {
-        code: "SHIFT_START_RESULT_UNKNOWN",
-        message: "The Shift start result could not be confirmed.",
-      },
-      phase: "uncertain",
-    });
+    this.publish(suspendedShiftStartSnapshot(this.snapshot));
   }
 
   private send(attempt: EmployeeShiftStartAuthority): Promise<void> {
@@ -176,7 +205,9 @@ export class EmployeeShiftStartSession {
 
   private async execute(attempt: EmployeeShiftStartAuthority): Promise<void> {
     try {
-      await this.options.transport.startShift(attempt.location.locationId);
+      if (this.options.presence === undefined)
+        await this.options.transport.startShift(attempt.location.locationId);
+      else await this.options.presence.run(startPresenceTarget(attempt));
       if (this.pending !== attempt) return;
       this.publish({ ...this.snapshot, phase: "verifying" });
       await this.options.refreshOperationalContext();
@@ -206,12 +237,15 @@ export class EmployeeShiftStartSession {
 
   private reconcilePending(context: EmployeeShiftStartContext): void {
     const attempt = this.pending!;
-    const active = context.active.length === 1 ? context.active[0] : undefined;
-    if (
-      active !== undefined &&
-      active.location.locationId === attempt.location.locationId &&
-      isSameEmployeeShiftStartAuthority(active, attempt)
-    ) {
+    const resolution = pendingStartResolution(
+      context,
+      this.authorities.get(attempt.location.locationId),
+      attempt,
+      this.options.presence === undefined ||
+        this.options.presence.snapshot().phase === "confirmed",
+      this.options.presence !== undefined,
+    );
+    if (resolution === "confirmed") {
       this.clearPending();
       this.publish({
         ...emptyShiftStartSnapshot(),
@@ -220,11 +254,8 @@ export class EmployeeShiftStartSession {
       });
       return;
     }
-    const current = this.authorities.get(attempt.location.locationId);
-    if (
-      current === undefined ||
-      !isSameEmployeeShiftStartAuthority(current, attempt)
-    ) {
+    if (resolution === "retired") {
+      this.options.presence?.clear();
       this.clearPending();
       this.publishContext(context);
       return;
@@ -236,47 +267,23 @@ export class EmployeeShiftStartSession {
   }
 
   private publishContext(context: EmployeeShiftStartContext): void {
-    if (context.active.length > 0) {
-      this.selectedAuthorityKey = null;
-      this.publish({
-        ...emptyShiftStartSnapshot(),
-        identityGeneration: this.snapshot.identityGeneration,
-        phase: context.active.length === 1 ? "active" : "inactive",
-      });
-      return;
-    }
-    const previousSelection = this.snapshot.selectedLocationId;
-    const previousKey = this.selectedAuthorityKey;
-    const retained =
-      previousSelection === null
-        ? undefined
-        : this.authorities.get(previousSelection);
-    const selected =
-      retained !== undefined &&
-      employeeShiftStartAuthorityKey(retained) === previousKey
-        ? retained
-        : context.startable.length === 1
-          ? context.startable[0]
-          : undefined;
-    this.selectedAuthorityKey = selected
-      ? employeeShiftStartAuthorityKey(selected)
-      : null;
-    this.publish({
-      failure: null,
-      identityGeneration: this.snapshot.identityGeneration,
-      phase: "ready",
-      selectedLocationId: selected?.location.locationId ?? null,
-      startableLocations: context.startable.map(({ location }) => location),
-      targetLocationId: null,
-    });
+    const presentation = resolveShiftStartPresentation(
+      this.snapshot.identityGeneration,
+      context,
+      this.authorities,
+      this.snapshot.selectedLocationId,
+      this.selectedAuthorityKey,
+    );
+    this.selectedAuthorityKey = presentation.key;
+    this.publish(presentation.snapshot);
   }
-
   private clearPending(): void {
     this.pending = undefined;
     this.activeSend = undefined;
   }
 
   private reset(identityGeneration: number | null): void {
+    this.options.presence?.clear(this.snapshot.identityGeneration !== null);
     this.authorities.clear();
     this.context = { active: [], startable: [] };
     this.clearPending();
