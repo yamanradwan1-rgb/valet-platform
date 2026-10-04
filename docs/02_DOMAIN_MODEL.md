@@ -794,6 +794,9 @@ Employee measurements are transient only. Exact terminal-result recovery is
 limited to 14 days, minimal replay facts to 90 days, expired unconsumed challenges
 to purge eligibility after 24 hours, and Decision/terminal Exception history to
 24 calendar months. History carries independent non-secret operation/challenge
-identifiers so ephemeral purge cannot erase it. Privileged maintenance executes
+identifiers and historical result so ephemeral purge cannot erase it. Decision
+never retains requestFingerprint, raw coordinates, capturedAt, accuracyMeters,
+distance or generic request payload. Attempt/intent digests belong only to the
+90-day Operation. Privileged maintenance executes
 eligible purge; runtime has no DELETE authority and v1 has no cold archive.
 See the full Accepted DEC-099 for technical parameters and the lock graph.

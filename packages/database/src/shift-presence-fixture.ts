@@ -23,10 +23,10 @@ export async function presenceDecision(pool: Pool | PoolClient, f: PresenceFixtu
   const decisionId = randomUUID();
   await pool.query(`UPDATE shift_presence_operations SET request_fingerprint=$2 WHERE id=$1`, [allocation.operationRowId, "b".repeat(64)]);
   await pool.query(`INSERT INTO shift_presence_decisions
-    (id,organization_id,location_id,user_id,membership_id,action,operation_id,challenge_id,request_fingerprint,
+    (id,organization_id,location_id,user_id,membership_id,action,operation_id,challenge_id,
      policy_fingerprint,classification,reason,accuracy_band,freshness_band,applied_mode,company_policy_revision,location_policy_revision)
-    VALUES ($1,$2,$3,$4,$5,'START',$6,$7,$8,$9,'CONFIDENT_INSIDE','INSIDE','ACCEPTABLE','ACCEPTABLE','OFF',1,1)`,
-  [decisionId, f.organizationId, f.locationId, f.userId, f.membershipId, allocation.operationId, allocation.challengeId, "b".repeat(64), "c".repeat(64)]);
+    VALUES ($1,$2,$3,$4,$5,'START',$6,$7,$8,'CONFIDENT_INSIDE','INSIDE','ACCEPTABLE','ACCEPTABLE','OFF',1,1)`,
+  [decisionId, f.organizationId, f.locationId, f.userId, f.membershipId, allocation.operationId, allocation.challengeId, "c".repeat(64)]);
   await pool.query(`UPDATE shift_presence_challenges SET consumed_at=clock_timestamp(),decision_id=$2 WHERE id=$1`, [allocation.challengeId, decisionId]);
   return { ...allocation, decisionId };
 }
@@ -39,7 +39,8 @@ export async function backdatePresenceFixture(pool: Pool, table: "shift_presence
     await client.query(`ALTER TABLE ${table} DISABLE TRIGGER USER`);
     const changes = table === "shift_presence_decisions" ? `decided_at=t.at`
       : table === "shift_presence_challenges" ? `issued_at=t.at-interval '300 seconds',expires_at=t.at`
-        : table === "shift_presence_operations" ? `created_at=t.at-interval '301 seconds',expires_at=t.at-interval '1 second',status='EXPIRED',terminal_at=t.at`
+        : table === "shift_presence_operations" ? `created_at=t.at-interval '301 seconds',expires_at=t.at-interval '1 second',
+          status=CASE WHEN status='PENDING' THEN 'EXPIRED'::shift_presence_operation_status ELSE status END,terminal_at=t.at`
           : `requested_at=t.at-interval '301 seconds',expires_at=t.at-interval '1 second',reviewed_at=t.at,terminal_at=t.at`;
     await client.query(`WITH t AS MATERIALIZED (SELECT clock_timestamp()-$2::interval AS at)
       UPDATE ${table} SET ${changes} FROM t WHERE id=$1`, [id, age]);

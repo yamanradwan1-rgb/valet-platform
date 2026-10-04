@@ -4132,7 +4132,11 @@ history. Raw employee coordinates have zero durable retention. Exact recovery is
 14 days; minimal terminal replay tombstones 90 days; expired unconsumed challenges
 become purge-eligible after 24 hours; Decisions and terminal Exceptions retain
 24 UTC calendar months, then privileged purge eligibility, with no cold archive.
-Ephemeral identifiers survive independently in history. Runtime grants are column
+Ephemeral operationId/challengeId and historical result survive independently in
+Decision history, without requestFingerprint, raw coordinates, capturedAt,
+accuracyMeters, distance or generic request payload (owner clarification accepted
+2026-10-04; forward migration 059). Request/intent digests stay only on the 90-day
+Operation. Runtime grants are column
 scoped and deny deletion/immutable rewrites. Caller transaction/current authorized
 scope are mandatory; GPS-B owns HTTP, management authority, actual Shift/audit
 composition and activation. GPS-A changes no Shift/task lifecycle or client app.

@@ -53,7 +53,6 @@ export const shiftPresenceDecisionSchema = z.object({
   shiftId: uuid.nullable(),
   operationId: uuid,
   challengeId: uuid,
-  requestFingerprint: shiftPresenceDigestSchema,
   policyFingerprint: shiftPresenceDigestSchema,
   appliedMode: shiftPresenceModeSchema,
   companyPolicyRevision: shiftPresenceRevisionSchema,

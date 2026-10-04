@@ -45,7 +45,7 @@ export class PresenceTestContext {
     this.runtimeUrl = runtime.toString();
   }
 
-  async setup(beforeForwardMigration?: () => Promise<void>) {
+  async setup(beforeForwardMigration?: () => Promise<void>, forwardMigration = "20261004005800") {
     const bootstrap = new Pool({ connectionString: baseUrl });
     try { await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`); }
     finally { await bootstrap.end(); }
@@ -59,7 +59,7 @@ export class PresenceTestContext {
       await mkdir(migrations, { recursive: true });
       try {
         for (const entry of await readdir(join(packageRoot, "prisma", "migrations"))) {
-          if (entry.startsWith("20261004005800")) continue;
+          if (/^\d{14}_/.test(entry) && entry >= forwardMigration) continue;
           await cp(join(packageRoot, "prisma", "migrations", entry), join(migrations, entry), { recursive: true });
         }
         const config = join(staged, "prisma.config.mjs");

@@ -7,9 +7,10 @@ import { lockPresenceChallenge } from "./shift-presence-challenge";
 import { bindPresenceAttempt } from "./shift-presence-operation";
 import { ShiftPresenceError } from "./shift-presence-errors";
 
-/** Evaluated trusted decision only; no coordinate or generic JSON parameter exists. */
+/** Evaluated history only; attempt digest is bound separately on the ephemeral Operation. */
 export async function consumePresenceChallenge(
   transaction: PostgresTransaction, operation: ShiftPresenceOperation, input: ShiftPresenceDecision,
+  requestFingerprint: string,
 ): Promise<string> {
   const decision = shiftPresenceDecisionSchema.parse(input);
   if (decision.organizationId !== operation.organizationId || decision.locationId !== operation.locationId
@@ -23,17 +24,17 @@ export async function consumePresenceChallenge(
   if (challenge.consumed_at !== null) throw new ShiftPresenceError("PRESENCE_CHALLENGE_CONSUMED");
   const time = await transaction.query<{ now: Date }>(`SELECT clock_timestamp() AS now`);
   if (time.rows[0]!.now >= challenge.expires_at) throw new ShiftPresenceError("PRESENCE_CHALLENGE_EXPIRED");
-  await bindPresenceAttempt(transaction, operation, decision.requestFingerprint);
+  await bindPresenceAttempt(transaction, operation, requestFingerprint);
   const id = randomUUID();
   await transaction.query(
     `INSERT INTO shift_presence_decisions
       (id,organization_id,location_id,user_id,membership_id,action,shift_id,operation_id,challenge_id,
-       request_fingerprint,policy_fingerprint,zone_id,zone_revision,classification,reason,accuracy_band,freshness_band,exception_id,
+       policy_fingerprint,zone_id,zone_revision,classification,reason,accuracy_band,freshness_band,exception_id,
        applied_mode,company_policy_revision,location_policy_revision)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)`,
     [id, decision.organizationId, decision.locationId, decision.userId, decision.membershipId,
       decision.action, decision.shiftId, decision.operationId, decision.challengeId,
-      decision.requestFingerprint, decision.policyFingerprint, decision.zoneId, decision.zoneRevision,
+      decision.policyFingerprint, decision.zoneId, decision.zoneRevision,
       decision.classification, decision.reason, decision.accuracyBand, decision.freshnessBand, decision.exceptionId,
       decision.appliedMode, decision.companyPolicyRevision, decision.locationPolicyRevision],
   );

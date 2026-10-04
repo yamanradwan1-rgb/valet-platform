@@ -46,7 +46,7 @@ actions. Raw employee coordinates have zero durable retention.
 | Zone code / label | trimmed nonblank; 64 / 200 characters | Existing bounded configuration style, no arbitrary metadata |
 | Exception reason | LOCATION_UNAVAILABLE, GPS_UNAVAILABLE, OUTSIDE_ZONE, AMBIGUOUS_FIX | Narrow controlled reasons for the accepted fallback foundation |
 | Exception note | absent in v1 foundation | Optional note is not necessary to represent the accepted primitive |
-| Fingerprint | versioned HMAC-SHA256, 64 lower-case hex; injected key >=32 bytes | Repository keyed-digest convention; prevents low-entropy coordinate digest disclosure |
+| Request/intent fingerprint (Operation only) | versioned HMAC-SHA256, 64 lower-case hex; injected key >=32 bytes | Repository keyed-digest convention; prevents low-entropy coordinate digest disclosure; never retained in Decision |
 | END cash canonicalization | nonnegative decimal string, at most 11 integer / 3 fractional digits, insignificant zeros removed | Existing Shift Decimal(14,3) and End contract envelope; digest extension only, no cash behavior change |
 | Policy fingerprint | versioned SHA256 of persisted effective values, Company/Location revisions and sorted active zone IDs/revisions | Non-secret configuration; no employee measurement |
 | Persisted accuracy/freshness | ACCEPTABLE, UNUSABLE or NOT_EVALUATED, not exact meters/seconds/distances | Minimized truthful summary; an earlier validation failure never implies a later check passed |
@@ -135,12 +135,16 @@ is exclusive (`now < expiresAt`); a duplicate cannot create a second decision.
 Failed composition rolls back operation/challenge/decision with the caller.
 
 Decisions are immutable typed facts: scope, action, exact real Shift when
-available, operationId/fingerprint, non-secret challengeId, applied policy
+available, operationId, non-secret challengeId, applied policy
 fingerprint, applied mode and Company/Location policy revisions,
 optional scoped zone ID/revision, classification/reason,
 ACCEPTABLE/UNUSABLE/NOT_EVALUATED accuracy and freshness bands, server decidedAt and optional
 exception ID. No raw coordinates, exact distance, exact accuracy, capture time,
-generic metadata or serialized request. Decision outcome describes evidence;
+generic metadata, requestFingerprint or serialized request. Request/intent digests
+belong only to the 90-day Operation record, never the 24-month Decision. The caller
+passes the attempt digest separately for one-time Operation binding under lock;
+Decision linkage verifies the exact bound operation/challenge identity without
+copying that digest into history. Decision outcome describes evidence;
 it does not by itself assert a Shift started/ended. START decisions may have
 null Shift for a denied/not-yet-composed effect; END always has the exact Shift.
 SQL verifies the applied mode and both policy revisions against current persisted
@@ -222,5 +226,11 @@ GPS-C: foreground bounded Native acquisition/permissions/recovery, Android proof
 iOS portability; GPS-D: Dashboard forms and complete management/device acceptance.
 No automatic protected replay, whole-Shift tracking or physical proof is claimed.
 
-Forward migration 058 follows migration 057. Old migrations remain immutable.
+Owner retention clarification (2026-10-04, Accepted): after ephemeral purge,
+Decision retains operationId, challengeId and historical result for 24 months,
+without requestFingerprint, raw coordinates, capturedAt, accuracyMeters, distance
+or generic request payload. Non-secret policyFingerprint remains configuration
+history only. Forward migration 059 removes the Decision request digest from
+existing rows and updates linkage guards; it preserves all remaining history.
+Forward migration 058 follows migration 057; 059 follows 058. Old migrations remain immutable.
 Contracts, domain/schema/security docs and canonical decision log must agree.

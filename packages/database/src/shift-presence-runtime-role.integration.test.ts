@@ -31,9 +31,10 @@ describe("DEC-099 restricted runtime and privileged retention eligibility", () =
     await expect(context.runtime.query(`UPDATE shift_presence_challenges SET user_id=$2 WHERE id=$1`, [d.challengeId, randomUUID()])).rejects.toMatchObject({ code: "42501" });
     await expect(context.runtime.query(`UPDATE shift_presence_challenges SET consumed_at=NULL,decision_id=NULL WHERE id=$1`, [d.challengeId])).rejects.toMatchObject({ code: "23514" });
     const row = (await context.runtime.query(`SELECT * FROM shift_presence_decisions WHERE id=$1`, [d.decisionId])).rows[0];
-    expect(row).not.toHaveProperty("latitude");
-    expect(row).not.toHaveProperty("longitude");
-    expect(row).not.toHaveProperty("metadata_json");
+    for (const column of ["latitude", "longitude", "metadata_json", "request_fingerprint",
+      "captured_at", "accuracy_meters", "distance", "request_payload"]) {
+      expect(row).not.toHaveProperty(column);
+    }
   });
   it("purges consumed challenge and 90-day operation independently of 24-month decision history", async () => {
     const f = await context.fixture();
@@ -41,7 +42,13 @@ describe("DEC-099 restricted runtime and privileged retention eligibility", () =
     await context.admin.query(`DELETE FROM shift_presence_challenges WHERE id=$1`, [d.challengeId]);
     await backdatePresenceFixture(context.admin, "shift_presence_operations", d.operationRowId, "91 days");
     await context.admin.query(`DELETE FROM shift_presence_operations WHERE id=$1`, [d.operationRowId]);
-    expect((await context.runtime.query(`SELECT operation_id,challenge_id FROM shift_presence_decisions WHERE id=$1`, [d.decisionId])).rows[0]).toEqual({ operation_id: d.operationId, challenge_id: d.challengeId });
+    const history = (await context.runtime.query(`SELECT * FROM shift_presence_decisions WHERE id=$1`, [d.decisionId])).rows[0];
+    expect(history).toMatchObject({ operation_id: d.operationId, challenge_id: d.challengeId,
+      classification: "CONFIDENT_INSIDE", reason: "INSIDE", accuracy_band: "ACCEPTABLE", freshness_band: "ACCEPTABLE" });
+    for (const column of ["request_fingerprint", "latitude", "longitude", "captured_at",
+      "accuracy_meters", "distance", "request_payload", "metadata_json"]) {
+      expect(history).not.toHaveProperty(column);
+    }
     await backdatePresenceFixture(context.admin, "shift_presence_decisions", d.decisionId, "24 months 1 second");
     expect((await context.admin.query(`DELETE FROM shift_presence_decisions WHERE id=$1`, [d.decisionId])).rowCount).toBe(1);
   });
@@ -118,10 +125,10 @@ describe("DEC-099 restricted runtime and privileged retention eligibility", () =
     [exceptionId, f.organizationId, f.locationId, f.userId, f.membershipId, a.challengeId]);
     await context.runtime.query(`UPDATE shift_presence_operations SET request_fingerprint=$2 WHERE id=$1`, [a.operationRowId, "b".repeat(64)]);
     const insertDecision = () => context.runtime.query(`INSERT INTO shift_presence_decisions
-      (id,organization_id,location_id,user_id,membership_id,action,operation_id,challenge_id,request_fingerprint,
+      (id,organization_id,location_id,user_id,membership_id,action,operation_id,challenge_id,
        policy_fingerprint,applied_mode,company_policy_revision,location_policy_revision,classification,reason,accuracy_band,freshness_band,exception_id)
-      VALUES ($1,$2,$3,$4,$5,'START',$6,$7,$8,$9,'OFF',1,1,'MEASUREMENT_UNUSABLE','INVALID_FIX','UNUSABLE','UNUSABLE',$10)`,
-    [decisionId, f.organizationId, f.locationId, f.userId, f.membershipId, a.operationId, a.challengeId, "b".repeat(64), "c".repeat(64), exceptionId]);
+      VALUES ($1,$2,$3,$4,$5,'START',$6,$7,$8,'OFF',1,1,'MEASUREMENT_UNUSABLE','INVALID_FIX','UNUSABLE','UNUSABLE',$9)`,
+    [decisionId, f.organizationId, f.locationId, f.userId, f.membershipId, a.operationId, a.challengeId, "c".repeat(64), exceptionId]);
     await expect(insertDecision()).rejects.toMatchObject({ code: "23514" });
     await context.runtime.query(`UPDATE shift_presence_exceptions SET status='APPROVED',revision=revision+1,
       reviewed_at=clock_timestamp(),reviewer_user_id=$2,reviewer_membership_id=$3 WHERE id=$1 AND revision=1`,

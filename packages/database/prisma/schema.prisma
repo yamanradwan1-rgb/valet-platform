@@ -1853,7 +1853,6 @@ model ShiftPresenceDecision {
   shiftId String? @map("shift_id") @db.Uuid
   operationId String @map("operation_id") @db.Uuid
   challengeId String @map("challenge_id") @db.Uuid
-  requestFingerprint String @map("request_fingerprint")
   policyFingerprint String @map("policy_fingerprint")
   appliedMode ShiftPresenceMode @map("applied_mode")
   companyPolicyRevision Int @map("company_policy_revision")
@@ -1909,4 +1908,4 @@ model ShiftPresenceException {
 }
 
 // DEC-099: extra scoped Shift/zone/decision/reviewer FKs and CHECK/lifecycle
-// guards are SQL-owned in migration 058. History has no ephemeral-parent FK.
+// guards are SQL-owned in migrations 058/059. History has no ephemeral-parent FK.

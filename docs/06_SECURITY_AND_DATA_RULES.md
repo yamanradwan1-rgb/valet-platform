@@ -1184,6 +1184,10 @@ Exact result recovery ends at terminal_at+14 days. The remaining minimal tombsto
 protects replay identity until terminal_at+90 days and is not a mutation retry
 window. Expired unconsumed challenges are purge-eligible at expires_at+24 hours;
 consumed challenges keep only independent non-secret historical linkage.
+Decision retains operationId, challengeId and historical result independently,
+without requestFingerprint, raw coordinates, capturedAt, accuracyMeters, distance
+or generic request payload. Request/intent digests remain only on Operation until
+its 90-day terminal purge boundary; policyFingerprint is non-secret configuration.
 Immutable Decisions and terminal Exceptions retain 24 UTC calendar months, then
 become eligible for privileged purge. Ordinary runtime has no DELETE/TRUNCATE or
 immutable-history UPDATE authority. No cold archive or new retention scheduler

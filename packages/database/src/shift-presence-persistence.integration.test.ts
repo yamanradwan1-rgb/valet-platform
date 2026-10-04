@@ -71,6 +71,8 @@ describe("DEC-099 persistence and OFF release gate", () => {
     const coordinateColumns = rows.rows.filter((r) => /latitude|longitude/.test(r.column_name));
     expect(coordinateColumns.map((r) => r.table_name)).toEqual(["shift_presence_zones", "shift_presence_zones"]);
     expect(rows.rows.some((r) => /json/.test(r.data_type))).toBe(false);
+    expect(rows.rows.filter((r) => r.table_name === "shift_presence_decisions")
+      .some((r) => /request_fingerprint|target_fingerprint/.test(r.column_name))).toBe(false);
     expect(rows.rows.filter((r) => r.table_name !== "shift_presence_zones").some((r) => /captured_at|accuracy_meters|distance|note|token|verifier/.test(r.column_name))).toBe(false);
   });
   it("rejects exception allocation against a terminal intent even before challenge expiry", async () => {
@@ -87,11 +89,11 @@ describe("DEC-099 persistence and OFF release gate", () => {
     const a = await presenceAllocation(context.runtime, f);
     await context.runtime.query(`UPDATE shift_presence_operations SET request_fingerprint=$2 WHERE id=$1`, [a.operationRowId, "b".repeat(64)]);
     const insert = (mode: string, companyRevision: number, locationRevision: number) => context.runtime.query(`INSERT INTO shift_presence_decisions
-      (id,organization_id,location_id,user_id,membership_id,action,operation_id,challenge_id,request_fingerprint,
+      (id,organization_id,location_id,user_id,membership_id,action,operation_id,challenge_id,
        policy_fingerprint,applied_mode,company_policy_revision,location_policy_revision,classification,reason,accuracy_band,freshness_band)
-      VALUES ($1,$2,$3,$4,$5,'START',$6,$7,$8,$9,$10,$11,$12,'CONFIDENT_OUTSIDE','OUTSIDE','ACCEPTABLE','ACCEPTABLE')`,
+      VALUES ($1,$2,$3,$4,$5,'START',$6,$7,$8,$9,$10,$11,'CONFIDENT_OUTSIDE','OUTSIDE','ACCEPTABLE','ACCEPTABLE')`,
     [randomUUID(), f.organizationId, f.locationId, f.userId, f.membershipId, a.operationId, a.challengeId,
-      "b".repeat(64), "c".repeat(64), mode, companyRevision, locationRevision]);
+      "c".repeat(64), mode, companyRevision, locationRevision]);
     await expect(insert("REQUIRE", 1, 1)).rejects.toMatchObject({ code: "23514" });
     await expect(insert("OFF", 2, 1)).rejects.toMatchObject({ code: "23514" });
     await expect(insert("OFF", 1, 2)).rejects.toMatchObject({ code: "23514" });

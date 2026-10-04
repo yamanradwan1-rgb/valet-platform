@@ -2508,7 +2508,9 @@ time for reconciliation. DEC-097 stays narrow. See focused DEC-098.
 ## Issue #257 / DEC-099 Shift Presence foundation
 
 Forward migration `20261004005800_shift_presence_foundation` follows 057;
-no existing Shift/task GPS columns or historical migrations are rewritten.
+`20261004005900_shift_presence_decision_privacy` removes the Decision request digest
+from existing history and preserves exact identity linkage to a bound Operation.
+No existing Shift/task GPS columns or historical migrations are rewritten.
 
 Organization adds typed `shift_start_presence_mode`, `shift_end_presence_mode`
 (OFF defaults), `shift_presence_max_accuracy_meters` (50),
@@ -2538,8 +2540,13 @@ All five models use UUID identities and exact Organization/Location scope:
 | ShiftPresenceZone / shift_presence_zones | code, label, latitude/longitude **configuration center**, radius_meters, state, revision, created_at, updated_at |
 | ShiftPresenceOperation / shift_presence_operations | user_id, membership_id, operation_id, action, shift_id, target_fingerprint, nullable one-time request_fingerprint, status, created_at, expires_at, terminal_at, result_shift_id, result_decision_id |
 | ShiftPresenceChallenge / shift_presence_challenges | user_id, membership_id, action, shift_id, unique operation_row_id, issued_at, expires_at, consumed_at, decision_id |
-| ShiftPresenceDecision / shift_presence_decisions | user_id, membership_id, action, shift_id, independent operation_id/challenge_id, request_fingerprint, policy_fingerprint, applied_mode, company_policy_revision, location_policy_revision, optional zone_id/zone_revision, classification, reason, accuracy_band, freshness_band, optional exception_id, decided_at |
+| ShiftPresenceDecision / shift_presence_decisions | user_id, membership_id, action, shift_id, independent operation_id/challenge_id, policy_fingerprint, applied_mode, company_policy_revision, location_policy_revision, optional zone_id/zone_revision, classification, reason, accuracy_band, freshness_band, optional exception_id, decided_at |
 | ShiftPresenceException / shift_presence_exceptions | user_id, membership_id, action, shift_id, independent challenge_id, reason, status, revision, requested_at, expires_at, reviewed_at, reviewer_membership_id/reviewer_user_id, terminal_at, consumed_decision_id |
+
+Decision retains independent operation/challenge IDs and historical result for
+24 months, never request_fingerprint, raw coordinates, captured_at,
+accuracy_meters, distance or generic request payload. Request/intent digests exist
+only on Operation and share its 90-day terminal retention boundary.
 
 SQL-only invariants include positive revisions/threshold bounds, finite coordinate
 ranges/radius, bounded nonblank labels, action/Shift nullability, fingerprint
@@ -2553,7 +2560,8 @@ Composite restrictive FKs bind Location to Organization, requester membership to
 its exact User/Organization, END/result Shift to exact Location/member, zone to
 exact Location, reviewer to same Organization/User/member, and decision/exception
 linkage to exact scope/action. Linkage triggers also verify challenge target,
-final digest, current applied mode, policy revisions and zone revision.
+one-time attempt binding on Operation, current applied mode, policy revisions
+and zone revision; Decision never copies the request digest.
 Reviewer User cannot equal requester.
 Decision operation/challenge and Exception challenge selectors deliberately have
 no FK to ephemeral rows. Exception consumed-decision linkage is trigger-validated

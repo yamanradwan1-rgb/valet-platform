@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ShiftPresenceDecision, ShiftPresenceOperation } from "@valet/contracts";
 
 import { allocatePresenceChallenge } from "../src/modules/shifts/shift-presence-challenge";
-import { bindPresenceAttempt } from "../src/modules/shifts/shift-presence-operation";
+import { bindPresenceAttempt, completePresenceOperation, readPresenceRecovery } from "../src/modules/shifts/shift-presence-operation";
 import { consumePresenceChallenge } from "../src/modules/shifts/shift-presence-decision";
 import { lockShiftPresenceConfiguration } from "../src/modules/shifts/shift-presence-policy";
 import { createPresenceZone, updatePresenceZone } from "../src/modules/shifts/shift-presence-zone";
@@ -24,20 +24,40 @@ async function operation(): Promise<ShiftPresenceOperation> {
 function decision(op: ShiftPresenceOperation, challengeId: string): ShiftPresenceDecision {
   return { organizationId: op.organizationId, locationId: op.locationId, userId: op.userId,
     membershipId: op.membershipId, action: op.action, shiftId: op.shiftId, operationId: op.operationId,
-    challengeId, requestFingerprint: "b".repeat(64), policyFingerprint: "c".repeat(64),
+    challengeId, policyFingerprint: "c".repeat(64),
     appliedMode: "OFF", companyPolicyRevision: 1, locationPolicyRevision: 1,
     zoneId: null, zoneRevision: null, classification: "CONFIDENT_INSIDE", reason: "INSIDE",
     accuracyBand: "ACCEPTABLE", freshnessBand: "ACCEPTABLE", exceptionId: null };
 }
 
 describe("real PostgreSQL foundation races, synthetic evidence only", () => {
+  it("composes the result with a separately bound attempt digest and no digest in Decision", async () => {
+    const fixture = await context.createFixture();
+    const op: ShiftPresenceOperation = { ...fixture, operationId: randomUUID(), action: "START", shiftId: null,
+      targetFingerprint: "a".repeat(64) };
+    const shiftId = randomUUID();
+    await context.adminPool.query(`INSERT INTO shifts(id,organization_id,location_id,membership_id,status,started_at)
+      VALUES ($1,$2,$3,$4,'ACTIVE',now())`, [shiftId, fixture.organizationId, fixture.locationId, fixture.membershipId]);
+    await presenceTransaction(context.runtimePool, async (tx) => {
+      const challenge = await allocatePresenceChallenge(tx, op);
+      const fact = { ...decision(op, challenge.id), shiftId };
+      const id = await consumePresenceChallenge(tx, op, fact, "b".repeat(64));
+      await completePresenceOperation(tx, op, { status: "COMMITTED", shiftId, decisionId: id });
+      expect(await readPresenceRecovery(tx, op, "b".repeat(64))).toEqual({ state: "RECOVERABLE",
+        status: "COMMITTED", shiftId, decisionId: id });
+      expect((await tx.query(`SELECT * FROM shift_presence_decisions WHERE id=$1`, [id])).rows[0])
+        .not.toHaveProperty("request_fingerprint");
+    });
+    await expect(presenceTransaction(context.runtimePool, (tx) => readPresenceRecovery(tx, op, "d".repeat(64))))
+      .rejects.toMatchObject({ code: "PRESENCE_OPERATION_CONFLICT" });
+  });
   it("checks exact challenge identity before binding any attempted fingerprint", async () => {
     const op = await operation();
     const foreign = await operation();
     await presenceTransaction(context.runtimePool, (tx) => allocatePresenceChallenge(tx, op));
     const foreignChallenge = await presenceTransaction(context.runtimePool, (tx) => allocatePresenceChallenge(tx, foreign));
     await presenceTransaction(context.runtimePool, async (tx) => {
-      await expect(consumePresenceChallenge(tx, op, decision(op, foreignChallenge.id))).rejects.toMatchObject({ code: "PRESENCE_SCOPE_MISMATCH" });
+      await expect(consumePresenceChallenge(tx, op, decision(op, foreignChallenge.id), "b".repeat(64))).rejects.toMatchObject({ code: "PRESENCE_SCOPE_MISMATCH" });
       expect((await tx.query(`SELECT request_fingerprint FROM shift_presence_operations WHERE user_id=$1`, [op.userId])).rows[0].request_fingerprint).toBeNull();
     });
     expect((await context.adminPool.query(`SELECT count(*)::int AS count FROM shift_presence_decisions WHERE user_id=$1`, [op.userId])).rows[0].count).toBe(0);
@@ -120,8 +140,8 @@ describe("real PostgreSQL foundation races, synthetic evidence only", () => {
     try {
       await first.query("BEGIN"); await second.query("BEGIN");
       const pid = await waitForPresenceLock(context.adminPool, second);
-      const initial = await consumePresenceChallenge(first, op, decision(op, challenge.id));
-      const waiting = consumePresenceChallenge(second, op, decision(op, challenge.id)).catch((e: unknown) => e);
+      const initial = await consumePresenceChallenge(first, op, decision(op, challenge.id), "b".repeat(64));
+      const waiting = consumePresenceChallenge(second, op, decision(op, challenge.id), "b".repeat(64)).catch((e: unknown) => e);
       await observePresenceLock(context.adminPool, pid);
       await first.query(finish);
       const result = await waiting;

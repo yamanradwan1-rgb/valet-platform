@@ -52,12 +52,14 @@ describe("DEC-099 typed foundation", () => {
   it("makes employee coordinates and arbitrary metadata impossible in decision contracts", () => {
     const decision = { organizationId: id, locationId: id, userId: id, membershipId: id,
       action: "START", shiftId: null, operationId: id, challengeId: id,
-      requestFingerprint: "a".repeat(64), policyFingerprint: "b".repeat(64),
+      policyFingerprint: "b".repeat(64),
       appliedMode: "OFF", companyPolicyRevision: 1, locationPolicyRevision: 1,
       zoneId: null, zoneRevision: null, classification: "CONFIDENT_INSIDE", reason: "INSIDE",
       accuracyBand: "ACCEPTABLE", freshnessBand: "ACCEPTABLE", exceptionId: null };
     expect(shiftPresenceDecisionSchema.safeParse(decision).success).toBe(true);
-    for (const patch of [{ latitude: 1 }, { longitude: 2 }, { metadata: {} }, { accuracyMeters: 5 }]) {
+    for (const patch of [{ latitude: 1 }, { longitude: 2 }, { metadata: {} }, { accuracyMeters: 5 },
+      { requestFingerprint: "a".repeat(64) }, { capturedAt: "2026-10-04T00:00:00Z" },
+      { distance: 1 }, { requestPayload: {} }]) {
       expect(shiftPresenceDecisionSchema.safeParse({ ...decision, ...patch }).success).toBe(false);
     }
     expect(shiftPresenceDecisionSchema.safeParse({ ...decision, action: "END" }).success).toBe(false);
