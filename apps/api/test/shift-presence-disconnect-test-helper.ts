@@ -1,18 +1,21 @@
 import type { PresenceServerTestContext } from "./shift-presence-server-test-context";
 
-/** Terminate only this test's exact, verified runtime backend before COMMIT. */
+/** Terminate the verified protected Presence transaction, not the preceding limiter transaction. */
 export function disconnectBeforePresenceCommit(db: PresenceServerTestContext) {
   return new Proxy(db.runtimePool, {
     get(pool, key) {
       if (key === "connect")
         return async () => {
           const connection = await pool.connect();
+          let accessedOperation = false;
           connection.on("error", () => undefined);
           return new Proxy(connection, {
             get(client, property) {
               if (property === "query")
                 return async (sql: string, ...args: unknown[]) => {
-                  if (sql === "COMMIT") {
+                  if (sql.includes("shift_presence_operations"))
+                    accessedOperation = true;
+                  if (sql === "COMMIT" && accessedOperation) {
                     const pid = (
                       await client.query<{ pid: number }>(
                         `SELECT pg_backend_pid() AS pid`,

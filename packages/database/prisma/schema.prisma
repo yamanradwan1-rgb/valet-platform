@@ -1825,6 +1825,8 @@ model ShiftPresenceOperation {
   requestFingerprint String? @map("request_fingerprint")
   requestPolicyFingerprint String? @map("request_policy_fingerprint")
   denialReason ShiftPresenceDenialReason? @map("denial_reason")
+  denialClassification ShiftPresenceClassification? @map("denial_classification")
+  denialMeasurementReason ShiftPresenceReason? @map("denial_measurement_reason")
   status ShiftPresenceOperationStatus @default(PENDING)
   createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(3)
   expiresAt DateTime @default(dbgenerated("clock_timestamp() + interval '300 seconds'")) @map("expires_at") @db.Timestamptz(3)

@@ -79,3 +79,4 @@ export * from "./shift-presence-result.js";
 
 export * from "./management-audit-presence.js";
 export * from "./shift-presence-public-errors.js";
+export * from "./shift-presence-consumer.js";

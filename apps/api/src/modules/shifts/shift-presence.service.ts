@@ -20,7 +20,10 @@ import {
   presenceExceptionProjection,
 } from "./shift-presence-result-projection";
 import { requestPresenceException } from "./shift-presence-exception";
-import { lockShiftPresenceConfiguration } from "./shift-presence-policy";
+import {
+  readGuardedShiftPresenceConfiguration,
+  presenceActionPolicy,
+} from "./shift-presence-policy";
 import type { PresenceOperationRow } from "./shift-presence-operation";
 import { ShiftOperationError } from "./shift-errors";
 import { parseShiftMoney } from "./shift-money";
@@ -87,6 +90,10 @@ export class ShiftPresenceService {
       ) {
         throw new ShiftPresenceError("PRESENCE_OPERATION_EXPIRED");
       }
+      const configuration = await readGuardedShiftPresenceConfiguration(
+        tx,
+        scope,
+      );
       const { operation } = await resolvePresenceOperation(
         tx,
         {
@@ -109,6 +116,7 @@ export class ShiftPresenceService {
         shiftId: operation.shiftId,
         issuedAt: challenge.issued_at.toISOString(),
         expiresAt: challenge.expires_at.toISOString(),
+        presence: presenceActionPolicy(configuration, intent.action),
       };
     });
   }
@@ -117,6 +125,7 @@ export class ShiftPresenceService {
     tx: PostgresTransaction,
     context: StaffSessionContext,
     operationId: string,
+    withPolicy = false,
   ) {
     const found = await tx.query<PresenceOperationRow>(
       `SELECT * FROM shift_presence_operations WHERE user_id=$1 AND operation_id=$2`,
@@ -132,17 +141,20 @@ export class ShiftPresenceService {
     ) {
       throw new ShiftPresenceError("PRESENCE_SCOPE_MISMATCH");
     }
+    const configuration = withPolicy
+      ? await readGuardedShiftPresenceConfiguration(tx, scope)
+      : undefined;
     const current = await tx.query<PresenceOperationRow>(
       `SELECT * FROM shift_presence_operations
       WHERE user_id=$1 AND operation_id=$2 FOR UPDATE`,
       [context.userId, operationId],
     );
-    return current.rows[0];
+    return { row: current.rows[0]!, configuration };
   }
 
   status(context: StaffSessionContext, operationId: string) {
     return this.run(context, async (tx) => {
-      const row = await this.ownedOperation(tx, context, operationId);
+      const row = (await this.ownedOperation(tx, context, operationId))?.row;
       if (row === undefined) {
         // Authenticate even an absent/foreign selector; no mutation replay or existence disclosure.
         if (
@@ -157,7 +169,8 @@ export class ShiftPresenceService {
 
   challenge(context: StaffSessionContext, operationId: string) {
     return this.run(context, async (tx) => {
-      const row = await this.ownedOperation(tx, context, operationId);
+      const owned = await this.ownedOperation(tx, context, operationId, true);
+      const row = owned?.row;
       if (row === undefined || row.status !== "PENDING")
         throw new ShiftPresenceError("PRESENCE_OPERATION_EXPIRED");
       const found = await tx.query(
@@ -176,6 +189,7 @@ export class ShiftPresenceService {
         shiftId: row.shift_id,
         issuedAt: challenge.issued_at.toISOString(),
         expiresAt: challenge.expires_at.toISOString(),
+        presence: presenceActionPolicy(owned!.configuration!, row.action),
       };
     });
   }
@@ -186,13 +200,11 @@ export class ShiftPresenceService {
     command: { challengeId: string; reason: string },
   ) {
     return this.run(context, async (tx) => {
-      const row = await this.ownedOperation(tx, context, operationId);
+      const owned = await this.ownedOperation(tx, context, operationId, true);
+      const row = owned?.row;
       if (row === undefined)
         throw new ShiftPresenceError("PRESENCE_OPERATION_EXPIRED");
-      const configuration = await lockShiftPresenceConfiguration(tx, {
-        organizationId: row.organization_id,
-        locationId: row.location_id,
-      });
+      const configuration = owned!.configuration!;
       const mode =
         row.action === "START"
           ? configuration.policy.startMode

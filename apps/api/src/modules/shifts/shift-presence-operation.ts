@@ -7,6 +7,8 @@ import {
   type ShiftPresenceScope,
   type ShiftPresenceOperation,
   type ShiftPresenceDenialReason,
+  type ShiftPresenceClassification,
+  type ShiftPresenceReason,
 } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
@@ -26,6 +28,8 @@ export interface PresenceOperationRow {
   request_fingerprint: string | null;
   request_policy_fingerprint: string | null;
   denial_reason: ShiftPresenceDenialReason | null;
+  denial_classification: ShiftPresenceClassification | null;
+  denial_measurement_reason: ShiftPresenceReason | null;
   status: "PENDING" | "COMMITTED" | "DENIED" | "EXPIRED";
   expires_at: Date;
   terminal_at: Date | null;

@@ -11,11 +11,31 @@ export async function presenceOperationResultProjection(
   const { rows } = await transaction.query<{ now: Date }>(
     `SELECT clock_timestamp() AS now`,
   );
-  if (row.status === "PENDING")
+  if (row.status === "PENDING") {
+    if (row.expires_at <= rows[0]!.now)
+      return { operationId: row.operation_id, state: "EXPIRED" };
+    const exception = await transaction.query<{ id: string }>(
+      `SELECT e.id::text FROM shift_presence_exceptions e
+       JOIN shift_presence_challenges c ON c.id=e.challenge_id
+       WHERE c.operation_row_id=$1 AND e.user_id=$2 AND e.membership_id=$3
+         AND e.organization_id=$4 AND e.location_id=$5 AND e.action=$6
+         AND e.shift_id IS NOT DISTINCT FROM $7::uuid`,
+      [
+        row.id,
+        row.user_id,
+        row.membership_id,
+        row.organization_id,
+        row.location_id,
+        row.action,
+        row.shift_id,
+      ],
+    );
     return {
       operationId: row.operation_id,
-      state: row.expires_at > rows[0]!.now ? "PENDING" : "EXPIRED",
+      state: "PENDING",
+      exceptionId: exception.rows[0]?.id ?? null,
     };
+  }
   if (presenceRecoveryWindow(row.terminal_at, rows[0]!.now) !== "RECOVERABLE")
     return { operationId: row.operation_id, state: "EXPIRED" };
   let result: unknown = null;
@@ -63,6 +83,13 @@ export async function presenceOperationResultProjection(
     shiftId: row.result_shift_id,
     decisionId: row.result_decision_id,
     denialReason: row.denial_reason,
+    summary:
+      row.denial_classification === null
+        ? null
+        : {
+            classification: row.denial_classification,
+            reason: row.denial_measurement_reason,
+          },
     result,
   };
 }

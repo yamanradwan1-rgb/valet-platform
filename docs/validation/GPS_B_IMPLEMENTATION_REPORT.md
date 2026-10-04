@@ -1,5 +1,22 @@
 # GPS-B — Issue #257 implementation and evidence
 
+## GPS-C consumer-contract correction — owner-authorized Issue #257
+
+The Native integration stopped before implementation when it found missing
+action-policy guidance and exact measured-denial recovery. The focused correction
+adds current action `presence` guidance to challenge ISSUE/GET, nullable minimized
+terminal denial `summary`, and an exact pending `exceptionId` selector for GET-only
+recovery after lost exception acknowledgement. A denied measured operation stays
+immutable; approval uses explicit fresh Operation B bound to current target/cash.
+Forward migration 066 stores only two nullable enum result columns, with SQL pair/
+applicability constraints, existing terminal immutability and narrow runtime grants.
+No historical result backfill, raw GPS retention, Native implementation, Dashboard,
+Employee Web source read/change, #262 change or strict activation is included.
+
+The exact correction ledger, command results, failure/race evidence, self-review
+and remaining gates are recorded in
+[GPS_B_CONSUMER_CONTRACT_REPORT.md](GPS_B_CONSUMER_CONTRACT_REPORT.md).
+
 Independent review handoff, 2026-10-04. Authority: Accepted DEC-099/100 and
 `docs/NATIVE_261_262_264_257_IMPLEMENTATION_PLAN.md`. This report accompanies the
 GPS-B implementation commit; its final SHA and verified remote SHA are supplied

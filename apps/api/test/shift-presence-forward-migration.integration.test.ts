@@ -53,11 +53,38 @@ describe("representative GPS-A data survives GPS-B forward migrations", () => {
     const exception = await presenceTransaction(db.adminPool, (tx) =>
       requestPresenceException(tx, op, "GPS_UNAVAILABLE"),
     );
+    const historicalDenial = { ...op, operationId: randomUUID() };
     for (const name of migrations.filter((name) => name >= "20261004006000")) {
+      if (name.startsWith("20261004006600")) {
+        await presenceTransaction(db.adminPool, async (tx) => {
+          await allocatePresenceChallenge(tx, historicalDenial);
+          await tx.query(
+            `UPDATE shift_presence_operations SET status='DENIED',
+            request_fingerprint=$2,request_policy_fingerprint=$2,denial_reason='PRESENCE_REJECTED'
+            WHERE operation_id=$1`,
+            [historicalDenial.operationId, "b".repeat(64)],
+          );
+        });
+      }
       await db.adminPool.query(
         await readFile(resolve(root, name, "migration.sql"), "utf8"),
       );
     }
+    expect(
+      (
+        await db.adminPool.query(
+          `SELECT status,denial_reason,denial_classification,
+      denial_measurement_reason,request_fingerprint FROM shift_presence_operations WHERE operation_id=$1`,
+          [historicalDenial.operationId],
+        )
+      ).rows[0],
+    ).toEqual({
+      status: "DENIED",
+      denial_reason: "PRESENCE_REJECTED",
+      denial_classification: null,
+      denial_measurement_reason: null,
+      request_fingerprint: "b".repeat(64),
+    });
     expect(
       (await db.adminPool.query(`SELECT scope FROM anti_abuse_events`)).rows,
     ).toEqual([{ scope: "v1:staff-login-identifier" }]);

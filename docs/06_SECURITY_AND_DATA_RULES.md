@@ -1150,6 +1150,16 @@ No Force Start, impersonation, cash settlement or automatic Task/Session mutatio
 
 ## Shift Presence privacy and authority — DEC-099 / GPS-A
 
+The owner-authorized GPS-B consumer correction permits only typed nullable
+denial classification/reason on the short-lived Operation for exact recovery.
+Coordinates, accuracy, age, distance, capture time and request payload remain
+excluded. A challenge exposes current action mode and bounds only after exact
+employee authority; it grants neither final action authority nor override
+approval. A denied operation stays immutable. A fresh exception operation needs
+explicit employee intent, current REQUIRE_OR_OVERRIDE and exact target/cash;
+approval consumption continues to enforce DEC-100. No Native implementation or
+strict activation is authorized by this consumer-contract correction.
+
 Attendance policy remains independently OFF for Start/End, with nullable Location
 overrides, outside public settings whitelists/projections and behind SQL OFF-only
 CHECKs. No presence routes or Start/End enforcement are registered in GPS-A.

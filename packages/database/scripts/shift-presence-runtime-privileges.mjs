@@ -13,6 +13,8 @@ export const shiftPresenceUpdates = {
     "request_fingerprint",
     "request_policy_fingerprint",
     "denial_reason",
+    "denial_classification",
+    "denial_measurement_reason",
     "status",
     "terminal_at",
     "result_shift_id",

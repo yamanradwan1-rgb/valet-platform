@@ -9,7 +9,7 @@ export const shiftPresenceRecoveryResponseSchema = z.discriminatedUnion(
     shiftPresenceOperationStatusResponseSchema.options[0],
     shiftPresenceOperationStatusResponseSchema.options[1],
     shiftPresenceOperationStatusResponseSchema.options[2]
-      .extend({
+      .safeExtend({
         result: z
           .union([startShiftResponseSchema, endShiftResponseSchema])
           .nullable(),

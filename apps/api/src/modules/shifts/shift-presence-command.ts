@@ -12,6 +12,7 @@ import {
 } from "./shift-presence-challenge";
 import { consumePresenceChallenge } from "./shift-presence-decision";
 import { evaluateShiftPresence } from "./shift-presence-evaluator";
+import type { ShiftPresenceEvaluation } from "./shift-presence-evaluator";
 import { ShiftPresenceError } from "./shift-presence-errors";
 import { fingerprintShiftPresenceRequest } from "./shift-presence-fingerprint";
 import {
@@ -163,7 +164,7 @@ export async function preparePresenceShiftAttempt(
     exceptionId === null &&
     evaluation.classification !== "CONFIDENT_INSIDE"
   ) {
-    return deny(transaction, operation, "PRESENCE_REJECTED");
+    return deny(transaction, operation, "PRESENCE_REJECTED", evaluation);
   }
   return {
     commit: async (shiftId: string) => {
@@ -208,11 +209,19 @@ async function deny(
   transaction: PostgresTransaction,
   operation: ShiftPresenceOperation,
   reason: ShiftPresenceDenialReason,
+  summary?: ShiftPresenceEvaluation,
 ) {
   await transaction.query(
-    `UPDATE shift_presence_operations SET status='DENIED',terminal_at=clock_timestamp(),denial_reason=$2
+    `UPDATE shift_presence_operations SET status='DENIED',terminal_at=clock_timestamp(),denial_reason=$2,
+    denial_classification=$4,denial_measurement_reason=$5
     WHERE user_id=$1 AND operation_id=$3 AND status='PENDING'`,
-    [operation.userId, reason, operation.operationId],
+    [
+      operation.userId,
+      reason,
+      operation.operationId,
+      summary?.classification ?? null,
+      summary?.reason ?? null,
+    ],
   );
   return { denied: reason };
 }

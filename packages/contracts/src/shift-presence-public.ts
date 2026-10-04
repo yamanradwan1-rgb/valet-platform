@@ -8,7 +8,12 @@ import {
   shiftPresenceMeasurementSchema,
   shiftPresenceReasonSchema,
 } from "./shift-presence.js";
-import { shiftPresenceRevisionSchema } from "./shift-presence-policy.js";
+import {
+  shiftPresenceRevisionSchema,
+  shiftPresenceModeSchema,
+  shiftPresenceAccuracyThresholdSchema,
+  shiftPresenceAgeThresholdSchema,
+} from "./shift-presence-policy.js";
 
 const uuid = z.string().uuid();
 const timestamp = z.string().datetime({ offset: true });
@@ -63,6 +68,13 @@ export const shiftPresenceChallengeResponseSchema = z
     shiftId: uuid.nullable(),
     issuedAt: timestamp,
     expiresAt: timestamp,
+    presence: z
+      .object({
+        mode: shiftPresenceModeSchema,
+        maxAccuracyMeters: shiftPresenceAccuracyThresholdSchema,
+        maxFixAgeSeconds: shiftPresenceAgeThresholdSchema,
+      })
+      .strict(),
   })
   .strict();
 
@@ -72,10 +84,41 @@ export const shiftPresenceDenialReasonSchema = z.enum([
   "PRESENCE_REJECTED",
 ]);
 
+export const shiftPresenceSummarySchema = z
+  .object({
+    classification: shiftPresenceClassificationSchema,
+    reason: shiftPresenceReasonSchema,
+  })
+  .strict()
+  .refine(
+    ({ classification, reason }) => {
+      const reasons = {
+        CONFIDENT_INSIDE: ["INSIDE"],
+        CONFIDENT_OUTSIDE: ["OUTSIDE"],
+        AMBIGUOUS_EDGE: ["EDGE"],
+        CONFIGURATION_UNUSABLE: ["NO_ACTIVE_ZONE", "INVALID_CONFIGURATION"],
+        MEASUREMENT_UNUSABLE: [
+          "INVALID_FIX",
+          "INACCURATE_FIX",
+          "STALE_FIX",
+          "FUTURE_FIX",
+        ],
+      };
+      return reasons[classification].includes(reason);
+    },
+    { message: "Reason must match classification." },
+  );
+
 export const shiftPresenceOperationStatusResponseSchema = z.discriminatedUnion(
   "state",
   [
-    z.object({ state: z.literal("PENDING"), operationId: uuid }).strict(),
+    z
+      .object({
+        state: z.literal("PENDING"),
+        operationId: uuid,
+        exceptionId: uuid.nullable(),
+      })
+      .strict(),
     z.object({ state: z.literal("EXPIRED"), operationId: uuid }).strict(),
     z
       .object({
@@ -86,8 +129,17 @@ export const shiftPresenceOperationStatusResponseSchema = z.discriminatedUnion(
         shiftId: uuid.nullable(),
         decisionId: uuid.nullable(),
         denialReason: shiftPresenceDenialReasonSchema.nullable(),
+        summary: shiftPresenceSummarySchema.nullable(),
       })
-      .strict(),
+      .strict()
+      .refine(
+        (value) =>
+          value.summary === null ||
+          (value.status === "DENIED" &&
+            value.denialReason === "PRESENCE_REJECTED" &&
+            value.summary.classification !== "CONFIDENT_INSIDE"),
+        { message: "Summary requires a measured denial." },
+      ),
   ],
 );
 
@@ -111,13 +163,6 @@ export const shiftPresenceExceptionResponseSchema = z
     expiresAt: timestamp,
     reviewedAt: timestamp.nullable(),
     terminalAt: timestamp.nullable(),
-  })
-  .strict();
-
-export const shiftPresenceSummarySchema = z
-  .object({
-    classification: shiftPresenceClassificationSchema,
-    reason: shiftPresenceReasonSchema,
   })
   .strict();
 

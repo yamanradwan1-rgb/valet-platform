@@ -2507,6 +2507,16 @@ time for reconciliation. DEC-097 stays narrow. See focused DEC-098.
 
 ## Issue #257 / DEC-099 Shift Presence foundation
 
+Owner-authorized GPS-B consumer correction for GPS-C (Issue #257): forward
+migration 066 adds nullable enum `denial_classification` and
+`denial_measurement_reason` to `shift_presence_operations`. Both are null or a
+consistent accepted non-inside evaluator pair on DENIED/PRESENCE_REJECTED with a
+bound request. No summary is allowed on other outcomes; prior results stay null,
+with no backfill of unverifiable measurement facts. Existing immutable-terminal
+guards protect both columns. Runtime may update only these extra result columns;
+the table remains without broad UPDATE or DELETE authority. No index, entity,
+raw measurement retention, Decision history or retention-clock change is needed.
+
 Forward migration `20261004005800_shift_presence_foundation` follows 057;
 `20261004005900_shift_presence_decision_privacy` removes the Decision request digest
 from existing history and preserves exact identity linkage to a bound Operation.

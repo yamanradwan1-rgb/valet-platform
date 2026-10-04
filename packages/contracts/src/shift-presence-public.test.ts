@@ -173,6 +173,7 @@ describe("GPS-B transport freeze and legacy compatibility", () => {
       shiftId: null,
       decisionId: null,
       denialReason: "APPROVER_AUTHORITY_REVOKED",
+      summary: null,
     };
     expect(
       shiftPresenceOperationStatusResponseSchema.safeParse(status).success,

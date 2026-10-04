@@ -1,5 +1,49 @@
 # GPS-B public server contract
 
+## GPS-C consumer correction — owner-authorized Issue #257
+
+Challenge ISSUE and exact challenge GET add `presence: { mode,
+maxAccuracyMeters, maxFixAgeSeconds }`. Mode is the current effective mode for
+that exact START or END action, with independently inherited bounds (1..200 m,
+1..120 s). Both reads return current guidance, not an issuance snapshot. Settings
+and lifecycle guards precede current authority and Operation/Challenge locks;
+final Shift submission reevaluates current policy. No zones, management policy,
+override values, manager authority or fingerprint are projected. Legacy OFF
+commands require no challenge; successful Start/End shapes remain unchanged.
+
+Every RECOVERABLE result adds explicit nullable `summary`. Only a measured
+PRESENCE_REJECTED denial may carry `{ classification, reason }`, using the
+accepted consistent evaluator pair. Other denials, committed/expired results and
+historical denials without those retained facts return null. PENDING adds nullable
+`exceptionId`, the exact already-authorized operation's exception selector, so a
+lost exception acknowledgement recovers by GET without repeating its POST.
+EXPIRED outer responses retain their old shape. Forward migration 066 stores nullable
+typed `denial_classification`/`denial_measurement_reason` on the Operation, never
+raw measurement. No historical result is invented. Terminal facts and the
+14-day recovery/90-day tombstone clocks remain unchanged.
+
+Measured denial Operation A is terminal: reconcile it exactly before another
+intent. Explicit employee approval request allocates fresh Operation B and
+challenge B for the same current START Location, or exact current END Shift and
+current canonical cash. B must currently use REQUIRE_OR_OVERRIDE. Map
+CONFIDENT_OUTSIDE/OUTSIDE to OUTSIDE_ZONE; AMBIGUOUS_EDGE/EDGE to AMBIGUOUS_FIX;
+MEASUREMENT_UNUSABLE to GPS_UNAVAILABLE while displaying its exact safe reason.
+CONFIGURATION_UNUSABLE (NO_ACTIVE_ZONE/INVALID_CONFIGURATION) is a configuration
+failure, never OUTSIDE_ZONE. Local foreground permission failure uses
+LOCATION_UNAVAILABLE; disabled services/acquisition failure uses GPS_UNAVAILABLE.
+Shared `shiftPresenceMeasuredDenialExceptionReason` validates and maps only these
+server summaries; it returns null for configuration/inside outcomes, and grants
+neither permission to request approval nor local geometry authority.
+These local failures are not server geofence classifications. REQUIRE permits no
+override. After B is APPROVED the employee explicitly submits EXCEPTION evidence
+for B; current authority, exact target/cash, open work and DEC-100 still apply.
+Changed cash cannot reuse B's approval. No automatic B, exception request or Shift
+POST; no DENIED -> PENDING/COMMITTED transition and no mutation of A's evidence.
+Lost B allocation recovers exact challenge/status; lost exception response
+recovers its exceptionId through exact operation GET and then exact exception
+GET. No new operation or exception POST is needed. User quotas and Retry-After
+apply to B normally.
+
 Task: #257. Base: `168da01e6822049ee0a45eebec4780c5b2b1fbd9`.
 Authority: Accepted DEC-099/100 and the canonical implementation plan UI-F/Q.
 This publishes U-002/U-003/U-004 transport mechanics within the owner-authorized
