@@ -2582,3 +2582,23 @@ Terminal Exceptions and Decisions become eligible at terminal_at/decided_at+24
 UTC calendar months. Pending records require explicit terminalization. Runtime
 has no purge grant, no new scheduler exists, and v1 has no cold archive. No raw
 employee fix, request JSON, note, secret or exact derived distance is stored.
+
+### Accepted GPS-B forward boundary — DEC-100 / U-001
+
+DEC-100 requires early APPROVED -> EXPIRED when current original-approver
+authority is invalid at attempted consumption, atomically with exact Operation
+DENIED and a minimal recoverable controlled denial result. The five Exception
+statuses remain unchanged; original reviewer/review time and expiry deadline
+remain truthful, actual terminalAt controls retention, and no Shift/consumption
+effect occurs. This documentation task implements no database change.
+
+Current migration 058's `shift_presence_exceptions_state_check` requires
+EXPIRED.terminal_at >= expires_at, so it cannot represent accepted early authority
+invalidation. GPS-B must add a new forward constraint/narrow-command provenance
+that admits the authorized invalidation path while preserving timed-expiry,
+revision/tenant/identity/one-way history and runtime least privilege. No fake
+terminalAt/expiresAt, weakened generic state setter, or historical migration edit.
+Operation's existing status/result linkage does not yet provide the complete
+controlled denial-reason reconstruction contract; GPS-B supplies the smallest
+typed result boundary and its schema/docs/fixtures/invariant tests. See DEC-100
+and the canonical GPS-A/B/#262/C/D plan; no raw GPS/security request blob is allowed.

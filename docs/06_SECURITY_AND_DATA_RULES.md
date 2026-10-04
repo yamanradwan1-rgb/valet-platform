@@ -1193,6 +1193,26 @@ become eligible for privileged purge. Ordinary runtime has no DELETE/TRUNCATE or
 immutable-history UPDATE authority. No cold archive or new retention scheduler
 exists; approved maintenance execution remains a later operational boundary.
 
+### Accepted exception consumption authority — DEC-100 / U-001
+
+At approved-exception consumption, GPS-B protects current active requester
+User/member/exact Location access/action/END target, current active original
+approver User and CA-for-Organization OR exact-LM-for-Location capability,
+eligible Organization/Location, exact APPROVED/unconsumed/live exception and
+operation/challenge binding through one authoritative transaction. Exception-use
+END has these active requester predicates; ordinary safe-own-End is unchanged.
+
+MFA/current session is required at approval. The original approver browser,
+login/session and MFA freshness are not consumption prerequisites; logout/session
+expiry alone does not revoke approval. Real authority loss fails closed: no
+Shift/consumption/alternate approval/replay, atomic APPROVED -> EXPIRED plus exact
+Operation DENIED and controlled authorized reconciliation, with original valid
+review history preserved. Fresh attempt requires fresh operation/challenge/approval.
+Owned authenticated target proof precedes the narrow denied-result terminal write;
+it does not supply Shift authority or disclose foreign targets. No raw employee
+fix/security payload is retained/exposed. DEC-100 specifies current SQL gaps and
+GPS-B-owned forward constraints/result/audit proof; recording it is not enforcement.
+
 ## Issue #255 — terminal intake authority
 
 DEC-097 requires current exact self-owned membership, Organization/Location/access/Shift eligibility before cancellation or status disclosure, including terminal convergence. Expected Shift and version are selectors, never authority. Both Guest resolvers reject CANCELLED before projection; locked staff token issuance fails with GUEST_ACCESS_INTENT_CONFLICT before any generation/write/audit. No automatic credential revocation. Cancellation audit contains only lifecycle state/version facts. Transient client intent is memory-only and fenced by full owner/generation/revision.

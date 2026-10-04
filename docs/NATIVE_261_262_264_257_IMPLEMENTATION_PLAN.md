@@ -1,23 +1,24 @@
 # Native issues 261, 262, 264 and 257 — investigation and implementation plan
 
-Planning snapshot: 2026-10-03. Repository: veletpro0-lgtm/valet-platform.
+Current planning integration: 2026-10-04. Repository: veletpro0-lgtm/valet-platform. Historical investigation snapshot: 2026-10-03.
 
-This is the complete planning deliverable, not authorization to implement proposed product decisions. The owner's later instruction permits this document, its dedicated branch, commit and push; it supersedes the attachment's earlier blanket prohibition on documentation and Git changes for that purpose only. No implementation is part of this task. Employee Web source is excluded throughout.
+This is the single canonical implementation plan for GPS-A, GPS-B, the #262 physical causal-resolution gate, GPS-C and GPS-D, including the full binding Management UI contract. The owner has accepted the Shift Presence product/security/UI directions; documentation integration does not implement them. No production source is changed. Native and Employee Web source is not read by this integration task. Implementation and rollout remain predecessor/evidence gated.
 
 ## A. REPOSITORY BASELINE
 
 ### Repository facts discovered
 
-- Fetched origin before branching. Actual origin/main: **b4027750a91d0706e4ab969f099b3750e0fc530f**, subject **feat(native): add full-app dark theme**. This matches the expected snapshot.
-- Initial branch: main. Initial working tree: clean. Created docs/native-261-262-264-257-implementation-plan directly from that fetched origin/main. The only authored repository file in this planning task is this document.
+- Current integration baseline: fetched origin on 2026-10-04; actual origin/main and initial HEAD are **b086a14eec5d5085ac713e4ed22aaee431a5044e**. GPS-A is completed and merged at this SHA; its reviewed predecessor 7ed8babfc8c3b3198e4ecde590ba6b3ba0206d9b is contained in it. Working tree was clean; branch **docs/257-shift-presence-management-plan** was created directly from fetched origin/main. No GPS-A commit was rewritten.
+- Historical 2026-10-03 investigation baseline was b4027750a91d0706e4ab969f099b3750e0fc530f on docs/native-261-262-264-257-implementation-plan. Evidence E01–E23 below describes that investigation; it is not a claim that every earlier Native issue was re-audited during this documentation integration. Current Dashboard/management/foundation evidence is separately refreshed in UI-A.
 - Repository remote: https://github.com/veletpro0-lgtm/valet-platform.git. GitHub issue bodies were read through the GitHub connector because gh is unavailable in this environment. Issues [261](https://github.com/veletpro0-lgtm/valet-platform/issues/261), [262](https://github.com/veletpro0-lgtm/valet-platform/issues/262), [264](https://github.com/veletpro0-lgtm/valet-platform/issues/264), and [257](https://github.com/veletpro0-lgtm/valet-platform/issues/257) are the requirements sources. Historical issues [213](https://github.com/veletpro0-lgtm/valet-platform/issues/213) and [226](https://github.com/veletpro0-lgtm/valet-platform/issues/226) inform camera investigation, not causation.
 - apps/valet/** was not inspected, opened, read, searched, or modified. Conclusions about old-client bypass below derive from shared contracts/server behavior, not Employee Web implementation.
 - No build, migration, dependency installation, device experiment, broad test suite, or runtime modification was performed. Source/test inspection is evidence of implementation and coverage intent, not evidence that tests passed or a physical failure reproduced.
-- A later implementation branch must fetch main again. Its expected starting point is this SHA only if main has not moved. Sequential tasks must record their actual post-predecessor main SHA; an unknown future SHA is not fabricated here. Revalidate changed owned files and decisions, not the excluded Employee Web tree.
+- Every implementation branch must fetch current main again and record its actual post-predecessor SHA. No future SHA is fabricated. Revalidate owned source/Accepted Decisions, not the excluded Employee Web tree. This integration authors documentation only; current evidence is source/plan inspection, not test, device, runtime or CI execution.
+- Current controller evidence rechecked for this integration: `apps/api/src/modules/management/management-settings.controller.ts` declares `@Controller("v1/staff/management/organizations/:organizationId")`; `apps/api/src/modules/dashboard/dashboard-configuration.controller.ts` declares `@Controller("v1/staff/dashboard/locations/:locationId/configuration")`. These are distinct authority conventions, not permission to normalize a new presence route family. GPS-B publishes its exact route contract.
 
 ### Binding requirements
 
-Authority follows AGENTS.md: explicit owner instruction; Accepted focused DEC and canonical decision log; Blueprint bridge; scope; session state machine; database/domain/stack; structure/security/workflow. Relevant focused contracts include DEC-034, DEC-035, DEC-036, DEC-045, DEC-046, DEC-048, DEC-068, DEC-083, DEC-094, and DEC-097. Accepted decisions outrank issue proposals. DEC-097 is the complete existing cancellation contract; its narrower lifecycle is not silently generalized by #261.
+Authority follows AGENTS.md: explicit owner instruction; Accepted focused DEC and canonical decision log; Blueprint bridge; scope; session state machine; database/domain/stack; structure/security/workflow. Relevant focused contracts include DEC-034, DEC-035, DEC-036, DEC-045, DEC-046, DEC-048, DEC-068, DEC-083, DEC-094, DEC-097, DEC-098, DEC-099 and DEC-100. Accepted decisions outrank issue proposals. DEC-097 is the incomplete-intake cancellation contract; DEC-098 governs the separate pre-custody Parking cancellation boundary. Neither is silently generalized by Shift Presence.
 
 The modular monolith keeps commands in apps/api, shared Zod/public contracts in packages/contracts, workflow/session state in packages/employee-client, platform acquisition/rendering in apps/valet-native, persistence in packages/database, and management presentation in apps/dashboard. Backend commands own business state. Task lifecycle, physical ValetSession lifecycle, and Shift lifecycle remain separate. Protected mutation and required history commit together. No generic state setter, automatic protected POST replay, fake local completion, hard deletion, or second state machine is permitted.
 
@@ -73,7 +74,7 @@ Source inspection included relevant test implementations and focused test invent
 | 262: investigate full-white failure | Camera has several independently asynchronous lifecycles and custom ROI native metadata. | Physical event trace/classification and smallest proven recovery boundary are missing. Root cause remains unknown. | E13–E16 |
 | 262: preserve ROI, torch and UI | ROI crop/geometry and torch snapshot/control have explicit current implementations/tests. | Any fix must preserve both, without random delays/remount loops or redesign. | E13–E16, #213/#226 |
 | 264: validate before Key Slot | Continue accepts nonempty text locally; final server command is atomic but validates key first. | Add scoped read-only preflight and candidate-generation fencing; final command stays authoritative. | E10–E12 |
-| 257: presence gates Start/End | Server currently proves authority, Shift conflict/cash/open tasks, not physical presence. | A focused Accepted DEC and dedicated attendance contracts/persistence/evaluator are missing. | E17, #257 explicitly PROPOSED |
+| 257: presence gates Start/End | DEC-099 GPS-A foundation is now merged; existing Shift commands still have no presence enforcement. | GPS-B composes authoritative enforcement/recovery under DEC-099/100; SQL OFF-only gate stays until safe forward replacement. | Current GPS-A baseline; G and binding UI contract |
 | 257: management/defaults/readiness | Typed settings and Location lifecycle exist without presence fields/zones. | Extend both Company Admin and exact-Location Manager management paths; prevent half-enabled strict policy. | E19–E20, E23 |
 | 257: foreground location | Native has camera permissions but no location acquisition dependency/config. | Narrow foreground adapter and native rebuild proof; no continuous Shift tracking. | E15–E16 |
 | 257: no old-client bypass | Every client can reach existing Shift commands, whose strict schemas contain no presence fields. | Server enforcement must classify missing evidence consistently; Web UI changes require separate authorization. | E17–E18 |
@@ -108,7 +109,7 @@ D6. Source-level camera race candidates can direct experiments but cannot distin
 
 ### DECISION STATUS AFTER OWNER APPROVAL
 
-Owner approval recorded on 2026-10-03 locks the product-direction bundle below. Stable IDs are retained so the implementation sections and race matrices remain traceable. Remaining numeric bounds, persistence shapes, route names and retention windows are technical details to freeze in the focused DEC/contract before the corresponding code is written; they are not a reason to reopen an already-approved product choice unless implementation discovers a materially different product behavior.
+Owner approval recorded on 2026-10-03 locks the product-direction bundle below; DEC-099 now freezes foundation numeric/schema/fingerprint/revision/retention contracts. On 2026-10-04 the owner additionally accepts U-001 and the full Management UI contract, recorded in DEC-100 and the binding section here. Remaining public wire/SDK/acquisition details are implementation contracts, not unresolved owner product choices.
 
 | ID | Status | Locked direction / remaining technical detail |
 | --- | --- | --- |
@@ -117,10 +118,11 @@ Owner approval recorded on 2026-10-03 locks the product-direction bundle below. 
 | U261-T | **TECHNICAL CONTRACT LOCKED** | D's exact dual-version/Shift-bound atomic command, authorized terminal status read, no automatic mutation replay and append-only history are the implementation baseline. Change it only if current code proves a concrete contradiction, and preserve the same product semantics. |
 | U264-T | **TECHNICAL CONTRACT LOCKED** | F's narrow scoped read-only validation surface and shared Parking Spot rule boundary are the implementation baseline. No reservation, no preflight mutation and no weakening of final Confirm Parked locking. |
 | U262-E | **EVIDENCE GATE** | Execute E's physical protocol and select only the demonstrated causal branch. This is not an owner product decision. |
-| U257-P | **OWNER ACCEPTED PRODUCT SHAPE** | Use OFF / WARN_ONLY / REQUIRE / REQUIRE_OR_OVERRIDE, independently for Start and End; existing Locations default OFF; use dedicated circular attendance zones; checks are point-in-time on explicit Start/End only. Exact numeric accuracy/freshness/radius/future-skew/acquisition/challenge bounds remain focused-DEC technical parameterization and must be explicit before code/fixtures depend on them. |
-| U257-D | **OWNER ACCEPTED PRIVACY/DATA DIRECTION** | Dedicated attendance persistence is allowed; raw employee Start/End coordinates are transient and are not retained after the decision by default. Exact schema, fingerprints, safe summaries and retention windows are technical DEC details and must preserve this privacy rule. |
+| U257-P | **OWNER ACCEPTED PRODUCT SHAPE** | Use OFF / WARN_ONLY / REQUIRE / REQUIRE_OR_OVERRIDE, independently for Start and End; existing Locations default OFF; use dedicated circular attendance zones; checks are point-in-time on explicit Start/End only. Accuracy/freshness/radius/future-skew/challenge bounds are frozen by DEC-099; bounded Native acquisition parameters are GPS-C technical integration details. |
+| U257-D | **OWNER ACCEPTED PRIVACY/DATA DIRECTION** | Dedicated attendance persistence is allowed; raw employee Start/End coordinates are transient and are not retained after the decision by default. DEC-099 freezes exact foundation schema, fingerprints, minimized summaries and retention windows; raw employee coordinates have zero durable retention. |
 | U257-A | **OWNER ACCEPTED** | Company Admin and exact authorized Location Manager are the v1 approval authorities; no Valet Supervisor approval and no self-approval. Preserve ordinary stale-own-End recovery and the existing controlled force-end distinction. |
 | U257-R | **OWNER ACCEPTED ROLLOUT DIRECTION** | Server policy must prevent old-client bypass. Strict activation stays blocked until zones, recovery and supported workflows are ready. Android is the first implementation/physical-acceptance target. Employee Web UI work, if required for a usable fallback, remains separate owner-scope expansion. iOS portability/security semantics must be documented, and full cross-platform production-readiness remains blocked until a separate iOS physical acceptance gate is completed. |
+| U-001 | **OWNER ACCEPTED — DEC-100, 2026-10-04** | Current original-approver authority is required at consumption; original browser/session/login/MFA freshness is not. Real authority loss expires the exception and denies the exact Operation atomically, with no Shift effect/replay and fresh operation/challenge/approval required. |
 | U257-H | **OWNER ACCEPTED HARDENING DIRECTION** | Advanced mock/integrity attestation is deferred hardening. Core Shift Presence correctness must not depend exclusively on alpha/optional attestation and must never silently fail open. Positive, negative and unsupported integrity signals remain distinct. |
 
 No repository contradiction was established that authorizes changing an Accepted DEC silently. The implementation tasks must encode these accepted owner decisions in focused repository decisions/contracts before source changes that depend on them. If implementation discovers a genuinely product-changing choice outside this bundle, stop and return that new choice to the owner rather than guessing.
@@ -147,6 +149,8 @@ Native Shift controls → employee Shift sessions → operational HTTP → share
 
 ## D. #261 IMPLEMENTATION PLAN
 
+Historical investigation/plan retained from 2026-10-03, not a fresh implementation-status audit. The later Accepted DEC-098 is the full #261 contract and supersedes this section's pre-decision candidates. Its session lock is FOR NO KEY UPDATE, not FOR UPDATE; field 11 is synchronized below to prevent the historical proposal from overriding the accepted deadlock remedy. No #261 implementation or Native source review is performed here.
+
 ### Proposed implementation plan
 
 One task. U261-L and U261-A are owner-accepted and U261-T is the locked technical implementation baseline. The implementation begins by recording the focused lifecycle/contract amendment before source mutations.
@@ -161,7 +165,7 @@ One task. U261-L and U261-A are owner-accepted and U261-T is the locked technica
 8. **AUTHORITY MODEL:** Under owner-accepted U261-A: authenticate active staff, derive Organization/Location from persisted session/task, prove current active operational membership and exact Location access and current expectedShiftId. ASSIGNED/ACCEPTED require the current task owner; QUEUED requires no assignee and the original session intake owner. Supervisor self-work follows the same owner rules and receives no cross-employee override in v1. Deny other tenant/Location/employee before writing or revealing terminal detail. Re-prove authorization for status reads and already-terminal handling.
 9. **CONTRACT/API CHANGES:** Under locked U261-T, implement POST /v1/staff/valet-sessions/:sessionId/cancel-before-parking with strict {taskId, expectedSessionVersion, expectedTaskVersion, expectedShiftId}; all IDs UUID, versions positive integers. Persisted joins, not taskId, prove scope. Response strict {sessionId, sessionVersion, state:CANCELLED, taskId, taskVersion, taskStatus:CANCELLED, cancelledAt}. Candidate GET same session /parking-cancellation-status with taskId and expectedShiftId query, returning a tagged exact-target result: CANCELLED with committed versions/time, NOT_CANCELLED with authorized canonical pre-start/started state, or concealed unavailable. Unknown result is not success. Query schemas must parse HTTP strings deliberately. Candidate error classes: concealed target/authority denial, version conflict, no-longer-pre-custody, and unavailable reconciliation; use established HTTP/filter conventions and freeze literal codes in DEC/contracts rather than inventing them independently in UI. Identical stale POST after committed cancellation may converge only if exact terminal event/target/actor contract proves it; changed payload must not claim success. The client still never automatically replays it.
 10. **DATABASE/MIGRATION CHANGES:** Under owner-accepted U261-L, a new forward migration amends valet_sessions_cancelled_intake_only_check into explicit allowed terminal shapes: unchanged intake-only shape OR accepted completed-intake/no-start/no-later-custody shape. Do not erase checking_in_completed_at to satisfy old SQL. Keep active vehicle uniqueness excluding terminal states. No new Task enum is needed. Validate task/session terminal coherence transactionally; decide a durable cancellation operation record only if U261-T needs more identity than exact event/versions can prove. Update docs/03 and Accepted lifecycle/DEC/log during implementation, not in this planning task. Existing migrations remain immutable.
-11. **LOCKING/CAS/CONCURRENCY:** Under the locked decisions: derive scope without mutation; acquire Location lifecycle shared guard before contested work, then session FOR UPDATE, exact Parking task FOR UPDATE, current authority/Shift proof locks through commit, recheck both versions/statuses and pre-custody facts. Compare with start's session→task→eligibility path and dispatch's task→eligibility path before finalizing helper composition. Do not transplant intake cancellation's ordering blindly. Terminal reconciliation locks/reads the exact task including terminal rows, never an active-only lookup. Linearization is the guarded dual mutation plus transaction commit. Cancel-vs-start, accept, reassign, queue, End Shift and deactivation require two-connection barriers (L matrix). No protected update as authorization probe.
+11. **LOCKING/CAS/CONCURRENCY:** Under Accepted DEC-098, Locks and atomicity: derive scope without mutation; acquire Location lifecycle SHARED guard before contested work, then session FOR NO KEY UPDATE, exact Parking Task FOR UPDATE, current eligibility FOR SHARE proof through commit; recheck both versions/statuses and pre-custody facts before writing. DEC-098 records why the stronger session FOR UPDATE causes the Dispatch foreign-key lock cycle; do not restore that superseded proposal. Preserve start's session→Task→eligibility and dispatch's Task→eligibility compatibility. Terminal reconciliation reads the exact Task including terminal rows, never an active-only lookup. Linearization is the guarded dual mutation plus transaction commit. Cancel-vs-start, accept, reassign, queue, End Shift and deactivation require two-connection barriers (L matrix). No protected update as authorization probe.
 12. **UNKNOWN OUTCOME / RETRY:** One local in-flight cancellation. Lost response enters uncertain; perform exact authorized status read. Both terminal rows plus matching atomic event prove success. Queue absence, non-active detail, or an unrelated cancellation does not. If read says still pre-start, offer explicit retry with fresh versions after confirmation. If start won, show authoritative started state, no cancellation. If authority/Shift replaced, retire the old target; do not reveal or resume it under new scope. Process restart uses canonical server state, not local terminal flag.
 13. **NATIVE SESSION/STATE CHANGES:** Change entry functions to stop after open/claim/accept/reconcile and navigate to the existing pre-start panel when accepted. Keep existing already-started reopen behavior without another POST. Change completed Check-In entry copy minimally so it does not promise physical start before that button. Clear intake only after correct handoff into its authoritative Parking workflow, preserving single-flight and mismatch checks. Add a narrow cancellation session/controller with confirming/submitting/uncertain/reconciled phases, not Task business states. On proven success retire Parking/confirmation target, navigate through existing route, refresh queue once; fence old reads so the task cannot repaint.
 14. **BACKGROUND / FOREGROUND:** Background increments workflow/request fence, invalidates pending UI callbacks, and retains only safe uncertain target identity if mutation may have reached server. Foreground first revalidates auth/scope/Shift then status; never POST. Scope A→B→A must create a new target generation. Back during submit uses existing protected-operation behavior; cancelling the confirmation dialog has no server effect.
@@ -307,11 +311,11 @@ Falsification examples: if metadata/ready completes with current ref and generat
 
 ## G. #257 DECISION LOCK
 
-### Already required versus still proposed
+### Accepted contracts and completed foundation
 
-Issue #257 was originally recorded as PROPOSED / DECISION REQUIRED rather than an Accepted schema/security DEC. The owner has now accepted the product-direction bundle recorded in the decision-status table: four modes, independent Start/End policy, default OFF, dedicated circular attendance zones, point-in-time Start/End checks only, CA/exact-LM approval authority with no Supervisor/self-approval in v1, transient raw employee coordinates, deferred advanced attestation, and Android-first rollout with a separate iOS cross-platform acceptance gate.
+Issue #257 began as proposed; its product direction is now accepted. DEC-099 freezes the completed GPS-A foundation; DEC-100 accepts U-001 consumption-time authority and denial behavior. The full Management UI section below is binding for GPS-B/GPS-D, not optional or independently redesignable. Owner product decisions unresolved: **0**.
 
-The focused DEC still must freeze exact numeric bounds, formula implementation details, persistence columns/fingerprints, retention windows, route/error names and policy revision behavior before code relies on them. Those are technical contract details, not permission to change the accepted product behavior. The implementation does not reuse movement tracking, does not create a Shift before verification, and does not enable strict policy merely because schema support exists. The four implementation tasks below are the approved safe split.
+DEC-099 already freezes numeric accuracy/freshness/radius/skew/challenge bounds, geometry, persistence/fingerprints, revisions and retention. GPS-B publishes public transport/audit/recovery/readiness contracts; GPS-C freezes bounded foreground acquisition details; GPS-D integrates the accepted Google provider behind a narrow adapter. These details do not reopen modes/privacy/authority/placement or permit early strict activation.
 
 ### Current command behavior that must be preserved
 
@@ -323,48 +327,62 @@ lockShiftOperationalEligibility holds FOR SHARE on membership, user, Organizatio
 
 ### Owner-accepted v1 policy shape — exact technical bounds frozen in focused DEC
 
-Typed Company defaults with nullable Location overrides: independent shiftStartPresenceMode, shiftEndPresenceMode, shiftPresenceMaxAccuracyMeters, shiftPresenceMaxFixAgeSeconds. Existing customers default OFF; null override means inherit, not OFF. Effective projection includes Company value, override and effective value/revision. No generic JSON bag. Numeric accuracy/freshness/radius/clock-skew/acquisition/challenge/exception/retention bounds must be listed in the Accepted DEC before schemas or fixtures choose numbers.
+Typed Company defaults with nullable Location overrides: independent shiftStartPresenceMode, shiftEndPresenceMode, shiftPresenceMaxAccuracyMeters, shiftPresenceMaxFixAgeSeconds. Existing customers default OFF; null override means inherit, not OFF. Effective projection includes Company value, override and effective value/revision. No generic JSON bag. DEC-099 lists all foundation numeric/retention values; UI-D below repeats the configuration bounds. GPS-C acquisition parameters remain a bounded technical contract, not a new owner policy question.
 
-Candidate mode semantics:
+Accepted mode semantics:
 
 | Mode | Valid evidence | Missing/unsupported/inaccurate/outside evidence | Old/non-capable client |
 | --- | --- | --- | --- |
 | OFF | No presence acquisition needed | Does not affect existing command | Existing request/response behavior retained. |
 | WARN_ONLY | Evaluate, retain minimal safe classification | Permit Shift action after ordinary guards, record unverified/warn; malformed transport still rejected | Missing evidence classified UNVERIFIED, not fabricated INSIDE; ordinary action allowed. |
 | REQUIRE | Permit only accepted server classification | Deny ordinary action; manager force-end remains a distinct existing recovery operation if authorized | Missing evidence is denied by same server command; no User-Agent/header bypass. |
-| REQUIRE_OR_OVERRIDE | Permit accepted evidence | Permit only exact still-valid approved exception, otherwise deny/request approval | A server-approved exact fallback can authorize only if accepted contract permits it; client cannot assert approval. UI to obtain/use it is a separate compatibility dependency. |
+| REQUIRE_OR_OVERRIDE | Permit accepted evidence | Permit only exact still-valid approved exception, otherwise deny/request approval | A server-approved exact fallback can authorize only while DEC-100 consumption predicates hold; client cannot assert approval. UI to obtain/use it is a separate compatibility dependency. |
 
-Candidate distance uses a tested spherical distance implementation with finite latitude/longitude inputs, stable handling at poles/dateline and no PostGIS dependency. Validate measurement before geometry: finite latitude in [-90,90], longitude in [-180,180], positive finite horizontal accuracy, not above accepted threshold; capturedAt inside accepted server-time freshness and future-skew window; issued challenge appropriate to capture interval. Candidate zone classification: confidently inside if d+a≤R; confidently outside if d−a>R; otherwise ambiguous. Multiple active zones: inside any passes; outside all means outside; otherwise ambiguous. Unusable configuration is distinct from outside. No rounding a boundary case into acceptance or treating negative/NaN accuracy as precise.
+DEC-099 distance uses Haversine with mean Earth radius 6371008.8 meters and a tested spherical distance implementation with finite latitude/longitude inputs, stable handling at poles/dateline and no PostGIS dependency. Validate measurement before geometry: finite latitude in [-90,90], longitude in [-180,180], positive finite horizontal accuracy, not above accepted threshold; capturedAt inside accepted server-time freshness and future-skew window; issued challenge appropriate to capture interval. Accepted zone classification: confidently inside if d+a≤R; confidently outside if d−a>R; otherwise ambiguous. Multiple active zones: inside any passes; outside all means outside; otherwise ambiguous. Unusable configuration is distinct from outside. No rounding a boundary case into acceptance or treating negative/NaN accuracy as precise.
 
-Recommended policy timing: evaluate current effective policy/zone revision at each action and record the applied revision; a fix captured under obsolete policy is reevaluated, not grandfathered silently. End must retain safe recovery for mid-Shift policy tightening. An alternative “snapshot at Start governs End” is possible only if U257-P chooses and specifies it. Tests must follow the chosen rule, not both opportunistically.
+Accepted policy timing under DEC-099: evaluate current effective policy/zone snapshot under configuration guards at each action and record its applied revisions. Reevaluate evidence against current configuration; no captured Start-policy alternative governs End. Preserve ordinary End recovery, cash/open-work and rollout safeguards; exception-assisted End additionally requires DEC-100 active requester/access predicates.
 
-### Technical persistence contract under the owner-approved privacy/data direction
+### Implemented GPS-A persistence contract — DEC-099
 
-| Record | Proposed fields and enforced relations | Constraints/indexes/retention |
+The following is merged foundation, not new GPS-A work or public enforcement.
+
+| Record | Accepted persisted identity / facts | Integrity / lifetime |
 | --- | --- | --- |
-| ShiftPresenceZone | id, organization_id, location_id, code, label, latitude, longitude, radius_meters, controlled ACTIVE/DISABLED state, created_at, updated_at | Composite Organization/Location FK; scoped ID key for references; unique (location_id, code); finite/range coordinate checks and positive accepted radius bounds; bounded nonblank code/label; index (location_id, state); expectedUpdatedAt CAS on edit/disable. Disable rather than history deletion. Zone centers are configuration, not employee raw fixes. |
-| ShiftPresenceChallenge | random opaque identity/token hash as chosen, actor user + membership + Organization + Location, START/END, exact shift_id for END, issued/expires time, operation/attempt identity, consumed/result linkage | Composite FKs prevent cross-tenant/Location/member/Shift mismatch; action/Shift nullability check; unique operation identity within accepted actor scope; bounded expiry; one successful consumption using row lock/CAS; indexes scope+expiry and operation lookup. Store no raw fix. |
-| ShiftPresenceDecision | id, exact scope/action/Shift (Start linked to created or existing target only as accepted), challenge/attempt, policy and zone revision, controlled outcome/reason, verification time, approved safe accuracy/freshness categories, override linkage | Unique committed effect per operation/challenge; immutable decision facts, runtime grants reject update/delete except separately approved retention mechanism. No raw latitude/longitude or route history. Exact retention and precision of persisted metrics require DEC. |
-| ShiftPresenceException | id, requesting actor/member/scope/action/exact END Shift, requested time, controlled reason, optional bounded note, approval/rejection actor/time, expiry, status and consumption linkage | Scope FKs, positive expiry ordering, one terminal decision/consumption; CAS/revision for pending action; queue index (organization_id, location_id, status, requested_at, id); no transfer between employees/actions/Shifts. Append decision history rather than rewrite audit. |
+| ShiftPresenceZone | Exact Organization/Location, code/label, configured latitude/longitude/radius, ACTIVE/DISABLED, positive revision | Location/code unique; geometry/text bounds; scoped revision CAS; disable, no historical deletion |
+| ShiftPresenceOperation | User/operation identity, exact member/Organization/Location/action/END Shift, intent digest and once-bound attempt digest, controlled terminal status/minimal result | START never fabricates Shift; exact recovery 14 days, replay tombstone 90 days; digests only here, no raw payload |
+| ShiftPresenceChallenge | One non-secret challenge UUID per Operation, exact target/scope, database expiry and one decision/consumption link | Max 300 seconds capped by Operation; consumed purge eligible immediately, expired unconsumed after 24h; UUID is not bearer authority |
+| ShiftPresenceDecision | Immutable scope/action/result/applied policy and optional zone revision, classification/reason, safe accuracy/freshness bands, independent operation/challenge IDs | 24 UTC calendar months; no request fingerprint, raw coordinates, capturedAt, exact accuracy/distance or generic metadata; historical identity survives ephemeral purge |
+| ShiftPresenceException | Exact requester/action/target/challenge, four controlled reasons, five states, positive revision, reviewer User/member/time, expiry/terminal/consumption linkage | No note; different reviewer/requester Users; one-way transitions; terminal history 24 calendar months; scoped queue/index/FKs |
 
-If a separate operation journal is necessary for Start before a Shift exists, define it explicitly with the same durable attempt identity; do not use fabricated Shift UUIDs or nullable-scope escape hatches. Fingerprinting must include canonical action/target/cash and evidence identity to reject same-key changed payload. Store only an accepted digest/minimal identifiers, not coordinates embedded in JSON. Retention for unresolved attempts must outlive the accepted reconciliation window; expired challenges may not erase committed-result identity prematurely. Existing task GPS retention (30-day raw movement policy) is not attendance retention authority.
+Typed Company default and nullable per-field Location overrides each have their
+own positive presence revision; actual value changes advance once, no-op does not.
+Zone revision is separate; zone changes do not automatically bump Location policy
+revision. Migration 058 supplies foundation; 059 removes Decision request digest.
+Runtime is column-scoped, Decisions immutable and DELETE unavailable; ordinary
+settings whitelists/projections exclude presence and SQL restricts modes to OFF.
+No archive/scheduler or task-GPS retention substitution. Actual privileged
+maintenance and exact public result reconstruction are GPS-B activation gates.
 
-Migrations must include SQL-only constraints/indexes, runtime grant boundaries and any security-definer function updates, not just Prisma models. Existing SQL functions for typed settings and Location activation require forward replacements where their whitelist/readiness contract changes. No public UPDATE grant to immutable attendance history; no hard deletion of operational/audit history.
+DEC-100 newly requires early APPROVED -> EXPIRED on real approver-authority loss.
+Current migration 058's EXPIRED terminal_at >= expires_at CHECK does not implement
+it; GPS-B owns a new forward constraint/narrow command and minimal durable denied
+result. Preserve actual timestamps and reviewer history; never edit 058/059 or
+pretend the new path already works. Full consumption/denial contract is U-001.
 
 ### Technical public transport baseline under the owner-approved authority/rollout direction
 
 This is a reviewable candidate, not an assertion that these routes already exist. Keep all schemas shared in packages/contracts.
 
-- POST /v1/staff/shifts/presence-challenges: strict discriminated START {action:START,targetLocationId,operationId} or END {action:END,shiftId,operationId}. Resolve own scope on server; END uses own-Shift cleanup authority. Return challengeId, expiresAt, action, scoped target identity, effective policy/revision and accepted acquisition bounds; no internal admin or other employee data. OFF may return a tagged NOT_REQUIRED result without making a challenge mandatory for old requests.
+- Required challenge capability, with literal route/wire schema owned by GPS-B: strict discriminated START intent bound to exact Location and operation identity, or END intent bound to exact Shift, operation identity and canonical cash intent as required by DEC-099's pre-acquisition target digest. Resolve own scope on server; preserve ordinary own-Shift cleanup authority, with DEC-100 active predicates required before exception use. Return safe challenge selector/expiry/action/target/current policy context and accepted bounds; no admin/other employee/security data. OFF does not make a challenge mandatory for legacy requests. Do not freeze an END challenge body that omits cash intent while claiming its digest already binds cash.
 - Existing POST /v1/staff/shifts/start retains targetLocationId; existing POST /v1/staff/shifts/:shiftId/end retains cashReported. Add optional presence union and operationId as accepted: measured {challengeId,clientSampleId,capturedAt,latitude,longitude,accuracyMeters,mocked?}; or approved {challengeId,exceptionId}. The client never submits authoritative member/Organization, zone, inside boolean or policy. Validate strict union so evidence and override cannot ambiguously select different paths. A hardening token is a separate optional adapter field only after U257-H.
-- GET /v1/staff/shifts/presence-attempts/:operationId returns exact authorized attempt outcome: committed action/result/Shift or not committed/expired/pending, with no raw fix. It must distinguish “not observed committed” from a still-running request; do not allow a fresh operation to race an unresolved in-flight one solely because a read saw no row. Durable attempt registration and locking address that distinction under U257-D.
-- POST /v1/staff/shifts/presence-exceptions requests an exact challenge/action exception with controlled reason and bounded optional note. It does not approve itself or mutate Shift. GET its exact status for the requesting employee; rate-limit request/polling with existing infrastructure and scoped safe keys.
-- Candidate management routes within existing management authority conventions: GET /v1/management/organizations/:organizationId/locations/:locationId/shift-presence; POST the same prefix /zones; POST /zones/:zoneId/update and /zones/:zoneId/disable with expectedUpdatedAt; GET /exceptions; POST /exceptions/:exceptionId/approve or /reject with expectedUpdatedAt and reason. Organization path is a selector checked against membership, never authority. CA and LM capabilities must be routed through their proper authorizers; do not route LM through a CA-only service. Existing typed settings routes carry policy set/clear; no generic state PATCH.
+- Required exact-attempt read capability, with literal route/wire schema owned by GPS-B: freshly authorize requester/owned scope and return exact committed action/result/Shift, DENIED/EXPIRED/PENDING or truthfully unresolved state, without a raw fix. Distinguish a terminal denied result from not-yet-observed or still-running work; missing row never invites a second operation/replay. DEC-100's authority-revoked denied reason needs its minimal typed recovery boundary. Exact committed retry does not reconsume proof.
+- Required exception request/status capability, with literal route/wire schema owned by GPS-B: exact challenge/action/target and one of four controlled reasons, no note; no self approval or Shift mutation. Freshly authorize employee exact-status reads and management queue/history/review; rate-limit request/read abuse with existing infrastructure and scoped safe keys.
+- Management capability families: Company policy read/set; exact Location inherited/effective read/set/clear/readiness; bounded zone list/create/update/enable/disable/exact reread; bounded exception queue/history/exact status/approve/reject; exact unknown-result reconciliation. GPS-B selects literal routes within current v1/staff/management/organizations/:organizationId and v1/staff/dashboard/locations/:locationId/configuration authority conventions, publishes shared strict schemas and preserves separate CA/LM authorization. UI-F defines complete required data/commands; positive expectedRevision applies to presence, never legacy expectedUpdatedAt. No invented normalized /v1/management family or generic state PATCH.
 - Preserve existing successful Shift response shape for old strict parsers. Deliver presence status/recovery through the new versioned/optional contract surface only as accepted; adding unrecognized response properties can break strict Zod clients. Reconciliation returns existing ShiftResult including ordinary cash snapshot or distinct force-end outcome, not a fabricated success payload.
 
 Exact controlled public codes and HTTP mappings remain U257-D. Candidate meanings: presence required/unverified, inaccurate, stale, ambiguous, outside, challenge invalid/expired, exception required/expired/used, configuration invalid, evidence/integrity rejected. Separate transport invalid (400), unauthenticated (401), concealed unauthorized target, state/CAS conflict (409), and temporary service failure according to existing exception filter. Do not return detailed foreign zone/manager/existence information. Local permission/services/precise-fix failures are not proof of an authoritative server denial until a server attempt exists.
 
-### Conditional transaction and override rules — IF U257-P/D/A/R accepted
+### Accepted transaction and override rules — DEC-099 / DEC-100
 
 Authenticate principal first; resolve persisted scope; take policy/lifecycle guards before lower-level locks in the agreed order; prove operation-specific authority; protect that proof through write. Do no external GPS or attestation-provider network request while SQL locks are held. Pre-verify provider material outside the transaction if needed, then bind result to exact request digest/challenge and recheck expiry/policy/authority under locks.
 
@@ -372,15 +390,15 @@ Start: preserve current active-user/member/Location/access/role proof and same-m
 
 End: resolve own exact Shift and lock it; already ENDED recovery precedes new evidence consumption. For ACTIVE, validate cash representation and require no canonical open work **before consuming** any challenge or exception. Then evaluate presence, derive cash, update Shift + consume evidence/exception + decision + SHIFT_ENDED atomically. A later failure rolls back consumption and all financial/session effects. An optional preflight may spare a GPS request but cannot replace final cash/open-work checks. Changing cash under the same operation ID is rejected per accepted fingerprint even though old non-presence End replay historically returns stored result; old contract behavior must stay explicitly compatible.
 
-Recommended exception authority: active Company Admin with current management capability/assurance or active Location Manager with exact persisted Location authority, never a generic operational supervisor by role hierarchy. No self-approval even if manager has an operational membership elsewhere. Approve/reject rechecks requester target, reason, pending revision and exact scope; consume rechecks employee authority, action, END Shift, expiry and accepted approver-revocation policy. If approver loses authority after approval, candidate v1 invalidates unconsumed approval; U257-A must accept that rule. No shared PIN or employee Ignore GPS button. Existing force-end remains independently reasoned/audited with its own no-open-work rules and PENDING cash semantics; it must not be used as a hidden ordinary End success.
+Accepted review authority: current active Company Admin capability/assurance or exact active Location Manager capability/assurance, never Supervisor or the requester User. Review rechecks exact requester/action/target/reason/PENDING revision/expiry and scope; approval does not mutate Shift. Consumption implements DEC-100/U-001 current requester/original-approver predicates and revocation denial, without requiring original approver session/MFA freshness. Ordinary safe-own-End and controlled force-end remain separate; neither is disguised as an approved exception.
 
-### Strict activation and old-client safety — IF U257-R accepted
+### Accepted strict activation and old-client safety
 
 The actual server Start/End command checks effective policy for every caller. Missing optional presence fields cannot bypass REQUIRE or REQUIRE_OR_OVERRIDE. User-Agent, client version, a claimed “Web” flag or a claimed unsupported device does not grant fallback authority. WARN_ONLY records unknown assurance truthfully; OFF remains compatible.
 
 Readiness must protect both activating an inactive Location and editing effective policy on an already ACTIVE one. It must also protect disabling/moving the last usable zone, clearing overrides to inherit strict Company defaults, and changing Company defaults across all inheriting Locations. One transaction/guarded configuration revision must either keep all affected strict Locations usable or reject the change; checking only the selected Dashboard Location is insufficient. Preserve existing currency/timezone/drain rules.
 
-Safe staged delivery recommendation: GPS-A exposes no activation of non-OFF policy; GPS-B implements enforcement and recovery but retains a server-enforced release-readiness gate; GPS-C adds supported Native acquisition; GPS-D proves management/recovery and enables rollout only through the accepted gate. This gate is a required decision U257-R, not a silently invented arbitrary environment flag. If owner declines such a gate, the dependent server/native/management changes must remain undeployed together until complete. Delay of later tasks must never leave an activatable unusable strict Location.
+Accepted staged delivery: merged GPS-A remains SQL-gated OFF; GPS-B implements server enforcement/management/recovery and retains the server release-readiness gate; #262 physical causal resolution/fix precedes GPS-C; GPS-C proves supported acquisition/recovery; GPS-D implements the full binding UI and complete acceptance. No strict activation until zones, retention execution, recovery and supported workflows are proven. No new arbitrary environment flag or owner-choice alternative is selected.
 
 Employee Web-specific UI acquisition/approval/recovery remains **OWNER-SCOPE EXPANSION REQUIRED**. No Web source plan or file list is provided. Server contract tests can prove no bypass without reading Web. Strict pilot is blocked wherever a required operational fallback is not demonstrably usable. A policy downgrade or controlled force-end may be an accepted management recovery option, but neither is an excuse to omit the fallback decision.
 
@@ -390,25 +408,713 @@ Repository evidence: Expo SDK 57 and no installed foreground location or integri
 
 Issue #257 describes Expo App Integrity as alpha; the Location documentation navigation also labels AppIntegrity ALPHA, but full integrity API behavior was not verified here. Core correctness must not rely on an assumed API. If hardening is accepted, inspect current official provider/Expo docs in that task, bind attestation to exact challenge/action/request, distinguish unavailable from failed, and define outage policy under U257-H. GPS + challenge prevents some accidental/replayed request misuse; it does not prove physical coordinates cannot be forged. Client mocked=false is not proof. Positive mock/simulated signals, absent platform support and provider failure need distinct controlled classifications. No claim of spoof-proof attendance is justified.
 
+## Shift Presence Management Functional UI Contract — Binding for GPS-B / GPS-D
+
+Owner accepted: 2026-10-04. This entire section is part of the canonical Issue
+#257 implementation contract. GPS-B must supply its backend capabilities; GPS-D
+must implement its Settings UI. It is not an optional appendix. Repository
+Accepted Decisions remain authoritative; no external planning file is required.
+
+### UI-A. CURRENT CODE FINDINGS
+
+#### Repository facts discovered
+
+Current integration fetched origin/main `b086a14eec5d5085ac713e4ed22aaee431a5044e` on 2026-10-04, confirmed clean
+tree, then created `docs/257-shift-presence-management-plan`. GPS-A is completed
+and merged, including reviewed SHA 7ed8babfc8c3b3198e4ecde590ba6b3ba0206d9b and
+the follow-up operation-retention fingerprint fix. The Dashboard/API/foundation
+evidence below was rechecked on that actual main; Native/Employee Web was not
+read or modified in this documentation task. No test/build/device/CI proof is
+claimed. Source paths are repository-relative, not machine-specific dependencies.
+
+#### Binding requirements
+
+The latest owner request accepts the full Settings placement, shared CA/LM composition, no new navigation, visual freeze, map/manual fallback, management actions and privacy. DEC-099 is merged with its canonical log; numeric/retention/revision questions are closed. DEC-100 accepts U-001 current-approver lifetime and early denial behavior. This binding contract governs GPS-B backend capabilities and GPS-D implementation; no production execution occurs in this docs integration.
+
+Affected configuration entities: Organization, Location, ShiftPresenceZone, ShiftPresenceException and safe tenant AuditEvent facts. User and OrganizationMembership supply requester/reviewer identity and authority; Shift is the exact END target. Operation/Challenge/Decision are GPS-B's operational and recovery boundaries, not a new Dashboard state machine. This UI performs no Shift, ValetSession or Task/Dispatch transition. Company-default/per-field Location inheritance is sellable-MVP Configuration First behavior.
+
+Existing schema support includes positive presence revisions; bounded modes/thresholds/zone geometry; exact composite tenant/Location/member/User foreign keys; Location/code uniqueness; scoped zone-state and exception-queue indexes; requester-User/reviewer-User inequality; controlled exception transitions; and deletion/history guards. GPS-B owns any forward management-function, activation-gate, audit-catalog or reconciliation persistence changes. This plan authorizes none. Presence settings stay separate from task-tracking enablement and raw task-GPS retention.
+
+#### Existing implementation patterns
+
+All source paths below are repository-relative; Markdown links resolve from docs/. Evidence types distinguish implemented capability/convention from accepted new-task policy.
+
+| ID | Inspected source / concrete symbol | Evidence / consequence |
+| --- | --- | --- |
+| UI-E01 | [settings-page.tsx](../apps/dashboard/src/features/administration/settings/settings-page.tsx), `SettingsPage` | CURRENT POLICY/CONVENTION: existing `/policies` page, frozen title/subtitle/card. CA tabs are Company defaults, Location overrides, Service Status. LM renders Location configuration without CA tabs. CA All Locations cannot load a Location override. Unsupported authorities return no Settings content. |
+| UI-E02 | [company-settings-panel.tsx](../apps/dashboard/src/features/administration/settings/company-settings-panel.tsx), [management-location-settings-panel.tsx](../apps/dashboard/src/features/administration/settings/management-location-settings-panel.tsx), [location-manager-settings-panel.tsx](../apps/dashboard/src/features/administration/settings/location-manager-settings-panel.tsx) | CAPABILITY: CA default/Location projections differ from LM's configuration array. LM renders only `legacyLocationKeys`; adding presence to the CA catalog alone cannot give LM a usable UI. Panels save one field at a time and refresh canonical reads. |
+| UI-E03 | [setting-row.tsx](../apps/dashboard/src/features/administration/settings/setting-row.tsx), `SettingRow`; [setting-definitions.ts](../apps/dashboard/src/features/administration/settings/setting-definitions.ts), `SettingDefinition`; [settings-copy.ts](../apps/dashboard/src/features/administration/settings/settings-copy.ts) | CAPABILITY: inherited/overridden/effective + Company defaults + Save/Clear UI exists. But definition keys are `ManagementSettingKey`; presence keys are absent, mode translations/units/descriptions/field-error support are absent, and draft initialization relies on remount. Direct reuse would need typed changes or unsafe casts. |
+| UI-E04 | [settings-api.ts](../apps/dashboard/src/features/administration/settings/settings-api.ts), `orgBase`, `lmBase`; [management-settings.ts](../packages/contracts/src/management-settings.ts), exported schemas | CONVENTION: CA settings live under management Organization routes; LM under exact dashboard Location configuration. Existing scalar writes use `expectedUpdatedAt`; CA returns full settings projection, LM returns changed setting + token. Neither public whitelist contains presence. |
+| UI-E05 | [use-sensitive-mutation.ts](../apps/dashboard/src/features/administration/use-sensitive-mutation.ts), `useSensitiveMutation`; [sensitive-mutation-executor.ts](../apps/dashboard/src/features/administration/sensitive-mutation-executor.ts), `executeSensitiveMutation`; [sensitive-mfa-dialog.tsx](../apps/dashboard/src/features/administration/sensitive-mfa-dialog.tsx) | CAPABILITY: single flight, full scope-key callback suppression, conflict callback, MFA dialog, explicit retry after assurance. It does not automatically reread every unknown result, and returns no rich result classification. Reuse fencing/MFA conventions; add feature-owned reconciliation. |
+| UI-E06 | [administration-scope.ts](../apps/dashboard/src/features/administration/administration-scope.ts), `administrationScopeKey`; [use-authoritative-read.ts](../apps/dashboard/src/features/administration/use-authoritative-read.ts); [scope-generation.ts](../apps/dashboard/src/lib/scope/scope-generation.ts), `ScopeGenerationGuard` | CAPABILITY: identityGeneration + sessionGeneration + selectionRevision + authoritative scope; shared reads/abort/generation filtering. Abort is best-effort, generations establish correctness. Same-scope refresh may retain old data while loading; replacement-scope data is hidden. |
+| UI-E07 | [dashboard-api-client.ts](../apps/dashboard/src/lib/api/dashboard-api-client.ts), `DashboardApiClient.request` | CURRENT POLICY: GET may refresh/retry once after 401; protected non-GET is not replayed after 401. It reconciles auth then throws `AUTH_RECONCILED_RETRY_REQUIRED`. Pre-dispatch refresh is asynchronous: feature intent must be checked again after it, not only at callback publication. |
+| UI-E08 | [management-settings.service.ts](../apps/api/src/modules/management/management-settings.service.ts), transaction methods; [management-authorization.ts](../apps/api/src/modules/management/management-authorization.ts), `authorizeCompanyAdminManagement`; [management-settings-mutation-repository.ts](../apps/api/src/modules/management/management-settings-mutation-repository.ts) | CAPABILITY/CURRENT POLICY: transaction + Organization settings guard + persisted CA capability/entitlements + exact session MFA; narrow SQL functions revalidate actor and enforce configuration writes. CA Location settings currently permit same-Organization INACTIVE targets (`requireActiveLocation:false`). Do not import a Location-active assumption from operational commands. |
+| UI-E09 | [dashboard-configuration.controller.ts](../apps/api/src/modules/dashboard/dashboard-configuration.controller.ts), [dashboard-configuration-command.ts](../apps/api/src/modules/dashboard/dashboard-configuration-command.ts), [dashboard-location-authorization.ts](../apps/api/src/modules/dashboard/dashboard-location-authorization.ts), `authorizeDashboardLocation` | CURRENT POLICY: active User/LM membership/Organization/exact ACTIVE Location + persisted Location access + dashboard entitlement, no Shift. Legacy configuration uses principal identity and narrow SECURITY DEFINER functions; it does not itself demand sensitive MFA. Do not mechanically route new sensitive presence writes through this old resolver. |
+| UI-E10 | [mfa-session-repository.ts](../apps/api/src/modules/auth/mfa/mfa-session-repository.ts), `requireManagementMfaEligibility`, `lockAndRecheckMfaSession`; [mfa-assurance-policy.ts](../apps/api/src/modules/auth/mfa/mfa-assurance-policy.ts), `requireMfaAssuranceInTransaction`; DEC-078 / DEC-081 | CAPABILITY/CURRENT POLICY: current ceremonies support active CA and LM; exact session assurance, server time, 8h maximum/30m inactivity/5m sensitive freshness. MFA eligibility does not confer CA authority. Presence should use the existing sensitive ceremony, including LM, as requested; do not change unrelated legacy Settings assurance. |
+| UI-E11 | [maps-page.tsx](../apps/dashboard/src/features/operations/maps/maps-page.tsx), `MapsPage`; [map-setup-panel.tsx](../apps/dashboard/src/features/operations/maps/map-setup-panel.tsx); [coordinate-canvas.tsx](../apps/dashboard/src/features/operations/maps/coordinate-canvas.tsx), `projector` | CAPABILITY: Operational Maps reads task/vehicle live projections. Setup is LM-only. CoordinateCanvas derives min/max bounds and draws SVG points/polygons; it has no streets, tile/geocoding/provider, geographic zoom or editable center/radius. Attendance must not consume these task positions or polygon persistence. |
+| UI-E12 | [map-setup-dialog.tsx](../apps/dashboard/src/features/operations/maps/map-setup-dialog.tsx), `MapSetupDialog`; [point-editor-dialog.tsx](../apps/dashboard/src/features/operations/maps/point-editor-dialog.tsx); [area-editor-dialog.tsx](../apps/dashboard/src/features/operations/maps/area-editor-dialog.tsx); [maps-reference.module.css](../apps/dashboard/src/features/operations/maps/maps-reference.module.css); [operations-ui.tsx](../apps/dashboard/src/features/operations/operations-ui.tsx); [operations.module.css](../apps/dashboard/src/features/operations/operations.module.css) | CONVENTION: existing modal header/body/footer, label/form grid, LTR coordinates, narrow stacking, theme controls and text badges provide visual language. Existing editors use operational DTOs and timestamp CAS; empty coordinate text is converted by `Number`, so they are not a validation template. MapSetupDialog's document-wide Escape/Tab handler is not nested-modal-aware. |
+| UI-E13 | [focus-dialog.tsx](../apps/dashboard/src/components/presentation/focus-dialog.tsx), `FocusDialog` | CAPABILITY: topmost modal handling, nested focus restoration, asynchronous MFA focus. Prefer this focus ownership for the new dialog; reuse MapSetupDialog's visual composition without importing its operational domain or nested-modal shortcomings. |
+| UI-E14 | [package.json](../apps/dashboard/package.json); Dashboard source/provider search; [DEC-045](decisions/DEC-045_PHASE5_MAPS_TRACKING_POLICY.md), section 1 | CAPABILITY: no Google/Mapbox/Leaflet/MapLibre geographic SDK or implemented provider found in Dashboard/config. NEW TASK POLICY: the first deployed product map provider is already Google Maps Platform, behind an adapter. Missing SDK is not an unresolved first-provider choice. Recommend this accepted provider for AttendanceZoneMap. |
+| UI-E15 | [DEC-099](decisions/DEC-099_SHIFT_PRESENCE_FOUNDATION.md); [shift-presence-policy.ts](../packages/contracts/src/shift-presence-policy.ts), `resolveShiftPresencePolicy`; [shift-presence.ts](../packages/contracts/src/shift-presence.ts); [index.ts](../packages/contracts/src/index.ts) | NEW TASK POLICY/CAPABILITY: four independent modes, OFF defaults; accuracy integer 1–200m/default50; age integer 1–120s/default30; radius finite 5–1000m; positive integer revisions; zone trimmed code1–64/label1–200; ACTIVE/DISABLED; four coded exception reasons and five statuses. Schemas/types/resolver are publicly exported. Public presence management projections/requests/readiness are not yet implemented. |
+| UI-E16 | [shift-presence-policy.ts](../apps/api/src/modules/shifts/shift-presence-policy.ts), `lockShiftPresenceConfiguration`; [shift-presence-zone.ts](../apps/api/src/modules/shifts/shift-presence-zone.ts), `createPresenceZone`, `updatePresenceZone`; [shift-presence-exception.ts](../apps/api/src/modules/shifts/shift-presence-exception.ts), `requestPresenceException`; migrations [058](../packages/database/prisma/migrations/20261004005800_shift_presence_foundation/migration.sql) / [059](../packages/database/prisma/migrations/20261004005900_shift_presence_decision_privacy/migration.sql) | CAPABILITY/NEW TASK POLICY: internal caller-transaction primitives, shared configuration/lifecycle guards, exclusive Organization settings guard for zone writes and zone revision CAS. They assume preauthorized persisted scope, provide no public CA/LM command or approval command, and do not prove readiness enforcement. SQL blocks non-OFF policies in GPS-A. Location presence revision tracks policy changes, not an assumed zone collection revision. |
+| UI-E17 | [management-location-projection.ts](../apps/api/src/modules/management/management-location-projection.ts), `locationLifecycleProjection`; [management-location-lifecycle.ts](../packages/contracts/src/management-location-lifecycle.ts); DEC-094 | CAPABILITY: current activation readiness checks currency/timezone, with separate drain facts. No attendance readiness exists. Location contract exposes address text, not a geographic center. Do not invent geocoded Location coordinates or replace readiness/drain. |
+| UI-E18 | [staff-management.ts](../packages/contracts/src/staff-management.ts), `staffManagementIdentitySchema`, exported `staffManagementDisplayName`; [management-audit-events.ts](../packages/contracts/src/management-audit-events.ts) | CAPABILITY: name when both names exist, otherwise real email, with email retained for named staff. Audit catalog is controlled; presence event names/metadata need GPS-B contract work. No raw exception request or internal Operation schema is an appropriate management response. |
+| UI-E19 | [management.module.ts](../apps/api/src/modules/management/management.module.ts); [dashboard.module.ts](../apps/api/src/modules/dashboard/dashboard.module.ts) | CONVENTION: existing modules own controllers/services, import AuthModule/RuntimeDatabaseModule/HttpInfrastructureModule; Management also imports AntiAbuseModule/PaymentsModule; RequestIdMiddleware and ApiOperationRunner provide current HTTP/error/observability infrastructure. No new Nest module, database pool, or global filter is justified by this UI plan. |
+| UI-E20 | This canonical plan, U257 bundle, G/H/GPS-D and U-001; [DEC-100](decisions/DEC-100_SHIFT_PRESENCE_EXCEPTION_AUTHORITY.md) | NEW TASK POLICY: CA/exact-LM/no-self review, point-in-time presence, zero raw-fix retention, readiness fanout/no replay/strict rollout are accepted. U-001 is now explicitly accepted: current original-approver authority at consumption, not old session/MFA freshness; real revocation expires/denies with no Shift effect. Persistence capability alone did not choose it; the owner's 2026-10-04 acceptance did. |
+| UI-E21 | [DEC-080](decisions/DEC-080_COMPANY_ADMIN_AUTHORITY.md), Company Admin Management authority; [DEC-079](decisions/DEC-079_MANAGEMENT_AUDIT_SCOPES.md), three audit scopes; [DEC-082](decisions/DEC-082_MANAGEMENT_AUDIT_VISIBILITY.md), safe bounded audit; [shift-audit-event-writer.ts](../apps/api/src/modules/shifts/shift-audit-event-writer.ts), `appendShiftAuditEvent` | CURRENT POLICY/CAPABILITY: CA Management never implies field authority; Company configuration audit uses the real Organization with null Location, Location configuration uses real Location, account-security remains separate. The Shift writer only accepts SHIFT_STARTED/SHIFT_ENDED with a real Shift, so cannot represent a policy/zone/exception review. GPS-B needs a compatible typed management audit boundary, not a fake Shift/session. |
+| UI-E22 | [management-settings-lock.ts](../apps/api/src/common/database/management-settings-lock.ts), exported `lockManagementSettingsOrganization`; [location-lifecycle-lock.ts](../apps/api/src/common/database/location-lifecycle-lock.ts), exported `lockLocationLifecycle` | CAPABILITY: transaction-scoped shared/exclusive advisory guards with keys `management-settings-org:<Organization ID>` and `location-lifecycle:<Location ID>`. DEC-099 §Lock graph and runtime boundary explicitly fixes settings before lifecycle, exclusive settings for both policy and zone writers. Neither guard alone authenticates an actor. |
+| UI-E23 | [force-end migration 054](../packages/database/prisma/migrations/20261002005400_mgt_240f_force_end_shift/migration.sql#L105), `staff_shift_force_end`; [staff-management-mutation-repository.ts](../apps/api/src/modules/management/staff-management-mutation-repository.ts) | CAPABILITY/PATTERN: force-end locks exact session and active User, takes `staff-management-org:<Organization ID>`, locks active CA/LM membership, active Organization/subscription/factor, and exact active LM access/Location before target/replay/write. Reuse its authority protection pattern, never its force-end behavior or staff complete-grant-set authority. SQL staff mutation functions use the same staff-management guard and membership/target locks for role/status/access invalidation. |
+| UI-E24 | [management-location.service.ts](../apps/api/src/modules/management/management-location.service.ts#L184), `locationTransaction`, `correctCurrency` | VERIFIED IMPLEMENTATION GAP: `locationTransaction` currently takes lifecycle first, then settings when the flag is true; currency correction passes true. This can invert the DEC-099 configuration guard graph. Activation currently lacks the presence settings/readiness guard. GPS-B must coordinate these touched paths to settings→lifecycle before adding presence, and prove the combined graph; this plan makes no source change. |
+| UI-E25 | [mfa-session-repository.ts](../apps/api/src/modules/auth/mfa/mfa-session-repository.ts#L17), `lockAndRecheckMfaSession`; [mfa-assurance-policy.ts](../apps/api/src/modules/auth/mfa/mfa-assurance-policy.ts), `requireMfaAssuranceInTransaction`, `recordAdminActivityInTransaction`; [shift-authorization.ts](../apps/api/src/modules/shifts/shift-authorization.ts), `requireActiveShiftUser`, `authorizeShiftStart`; [end-shift-command.ts](../apps/api/src/modules/shifts/end-shift-command.ts), `createEndShiftCommandExecutor` | CAPABILITY/LIMIT: exact session/User are locked through transaction, but generic MFA factor existence is a plain read; retain factor protection as in UI-E23. Start and safe-own-End have different requester predicates and explicit command executors; End permits cleanup without active membership/Location/grant. These are requester-action patterns, never manager authorization. Multi-principal review needs a bounded lock acquisition strategy, specified in UI-F, rather than assuming either helper already protects a review. |
+| UI-E26 | [staff-session-revalidation.ts](../apps/api/src/modules/auth/staff-session-revalidation.ts#L11), exported `lockAndRecheckStaffSessionContext`; [staff-user-security-lock.ts](../apps/api/src/modules/auth/staff-user-security-lock.ts#L8), exported `lockStaffUserSecurityBoundary` | CAPABILITY: existing exact-context recheck takes `staff-user-security:<User ID>` before session lock and validates session ID/User/access hash/createdAt/revocation/database-clock expiry/active User. Login/refresh share the User security boundary. GPS-B takes it before actor session/User locks; never acquires it late after those rows. It complements sensitive MFA/current management authority, not a replacement for either. |
+
+Literal controller prefixes verified: `ManagementSettingsController @Controller("v1/staff/management/organizations/:organizationId")` and `DashboardConfigurationController @Controller("v1/staff/dashboard/locations/:locationId/configuration")`. They differ. This plan does not invent one normalized presence route family or final route literals.
+
+#### Candidate requirement classification
+
+| ID | Proposition retained | Classification | Evidence and falsification search |
+| --- | --- | --- | --- |
+| UI-C01 | Shift Presence belongs within existing Settings, without new tabs/sidebar/shell redesign | LOCKED | Latest task; UI-E01/UI-E20. Checked current page and GPS-D placement for a conflicting dedicated route; none. |
+| UI-C02 | Company defaults inherit per field into nullable Location overrides | LOCKED | DEC-099/UI-E15; UI-E03/UI-E04. Checked resolver and SQL for whole-object inheritance; per-field null is authoritative. |
+| UI-C03 | The four modes and exact bounds/defaults are settled | LOCKED | DEC-099/UI-E15. Checked focused DEC, schema, migration and log mirror; no material conflict found. |
+| UI-C04 | One Location composition serves CA and exact LM while preserving separate authority | LOCKED | Owner's accepted integration task 5A/8; UI-C01 + UI-E01/UI-E02/UI-E08/UI-E09. Checked LM catalog/CA response shape; transport normalization is needed, authority cannot be conflated. |
+| UI-C05 | Focused presence policy rows are cleaner than directly casting presence into SettingRow | DERIVED | UI-E03/UI-E15. Checked `ManagementSettingKey` export/current union; presence keys and mode copy are absent. No cast is justified. |
+| UI-C06 | Existing CoordinateCanvas is a geographic attendance-zone picker | CONTRADICTED | Latest task/UI-E11; inspected projector/render and dependencies: SVG operational projection only. |
+| UI-C07 | Google Maps Platform is the accepted first deployed map provider | LOCKED | DEC-045 section1/UI-E14; checked relevant maps decisions and Dashboard package. No later accepted replacement found in inspected sources. |
+| UI-C08 | Manager exception review is CA/exact LM only, with no self-approval by the same User | LOCKED | UI-E15/UI-E20 and SQL reviewer check; checked role authority and requester/reviewer composite identity. Different memberships do not bypass same-User prohibition. |
+| UI-C09 | Raw employee GPS/internal challenge/fingerprint material must stay out of management responses/UI | LOCKED | Latest task, DEC-099/security docs/UI-E15/UI-E18/UI-E20. Checked typed history and privacy migration059; zone configuration centers are distinct permitted configuration. |
+| UI-C10 | Server readiness and CAS must govern configuration races, including Company fanout | LOCKED | Latest task, UI-E16/UI-E17/UI-E20. Checked current readiness/functions: presence enforcement is missing and belongs to GPS-B, not Dashboard computation. |
+| UI-C11 | Unknown results and replaced scopes require reread/fencing, never automatic protected replay | LOCKED | Latest task/UI-E05–UI-E07/UI-E20. Checked executor and client for an assumed generic reconciliation capability; it is incomplete and requires presence-specific handling. |
+| UI-C12 | Sensitive presence actions can reuse exact-session CA/LM MFA ceremonies without adding a new authentication system | DERIVED | Latest task/UI-E05/UI-E10/DEC-081. Checked `requireManagementMfaEligibility` and LM ceremony tests; LM eligibility exists, legacy LM Settings writes are not automatically MFA-enforced. |
+
+Falsification coverage: 11 / 11 LOCKED+DERIVED grouped conclusions checked against the listed likely falsifiers. UI-C06 was evaluated separately as CONTRADICTED. This count covers these propositions, not every future wire field or runtime invariant. No tests were run as proof of the future feature.
+
+#### LOCKED decisions
+
+UI-C01, UI-C02, UI-C03, UI-C04, UI-C07, UI-C08, UI-C09, UI-C10 and UI-C11 are nine locked grouped propositions above. Their evidence establishes placement/shared composition, inheritance, typed bounds/modes, first provider, review/privacy authority, server readiness and replay/fencing invariants. They do not authorize production changes in this documentation task.
+
+#### DERIVED conclusions
+
+UI-C05 and UI-C12 are two derived grouped propositions above: focused compatible policy-row implementation and existing CA/LM sensitive MFA ceremony reuse. They are grounded in current capability without changing legacy Settings contracts. Shared CA/LM Location presentation itself is explicitly owner-locked in UI-C04. The register accounts for 11 / 11 supported UI conclusions and their falsification checks; no runtime proof is inferred.
+
+#### Accepted owner decision — U-001
+
+Stable identifiers preserve traceability. Product/security semantics are fixed:
+
+- **U-001 — ACCEPTED owner/security, DEC-100:** consumption requires current original-approver CA-for-Organization OR exact-LM-for-Location capability plus the active requester/action/target/lifetime predicates below. Old approver browser/session/login/MFA freshness is not required. Real revocation atomically expires the exception and denies the Operation, with no Shift mutation/replay. Owner product decisions unresolved = 0.
+
+#### UNRESOLVED decisions
+
+The following four items are **technical contract publication/integration work**,
+not unresolved owner product choices. They retain the earlier stable U-IDs so
+wire/SDK-dependent predictions stay publication-gated. They may not reinterpret
+the settled authority, privacy, strict-readiness, provider or UI contract.
+
+- **U-002 — GPS-B technical contract:** literal routes, public request/response schemas, capability wiring, safe error/reason names, audit catalog/metadata, bounded history pagination and CA/LM read assurance. Required capabilities/data are frozen below; wire signatures are not fabricated. Apply existing sensitive MFA conventions to presence writes, and do not expand unrelated legacy LM Settings.
+- **U-003 — GPS-B technical contract:** exact correlation/reconciliation identity for management creates/writes, and management no-op/retry results. ShiftPresenceOperation only supports START/END and cannot be reused as a configuration/approval journal without a separately accepted extension. Entity reread alone must not claim an uncertain request committed. Choose the smallest compatible management result boundary before freezing transport.
+- **U-004 — GPS-B technical contract:** public readiness vocabulary and binding to policy/zone snapshot, all-Location fanout outcome, server release-gate representation, expiry terminalization. Accepted invariants and lock order are settled; no client rollout toggle or new environment flag is selected here.
+- **U-005 — GPS-D technical integration:** Google Maps adapter/SDK-loading choice, credential restrictions/deployment provisioning, approved initial viewport when no center exists, map loading/error and attribution details. First provider is settled. Any alternative provider would need an accepted amendment to DEC-045. No dependency is installed now.
+
+#### Decision firewall
+
+U-001 is Accepted in DEC-100 and must not remain conditional. Current management authorization, CAS/guard graph, serialized strict readiness, canonical result display and no replay are binding. U-002–U-005 are technical unpublished API/result/readiness/SDK contracts; dependent signatures/data transports remain publication-gated, not four owner choices. Neither the earlier candidate nor an old race-row label overrides the newly recorded complete accepted rule.
+
+### UI-B. RECOMMENDED INFORMATION ARCHITECTURE
+
+Keep the existing `Policies & Settings` page title/subtitle and existing card. Add Shift Presence after existing settings within each applicable panel, using a subsection heading and the same spacing/forms/table language. Company tab retains existing settings and then four presence rows. Location tab retains existing settings and then one shared Location presence section: readiness summary, four inherited/override rows, Attendance Zones, Presence Exceptions. Service Status remains unchanged.
+
+**VISUAL PARITY IS A HARD ACCEPTANCE GATE.**
+
+Any unnecessary change to existing Dashboard shell geometry, sidebar, topbar, Settings tabs, card structure, spacing, typography, colors, button language, form language, dialog language or responsive behavior is a failure. New Shift Presence UI must look native to the existing Dashboard. Do not redesign Settings. Do not redesign Maps & Zones. Do not create a new navigation concept. New subsection content uses existing design language and the already frozen composition; it does not authorize restyling untouched regions.
+
+LM gets the exact same Location presence section after its existing Location settings, with no second LM-only layout or Company editor. Its inherited Company values are read-only policy context returned by the authorized Location projection, not access to the CA Company route. CA can configure same-Organization inactive Locations for setup; LM remains limited to its current ACTIVE granted Location. Current capability/server response determines each enabled action.
+
+Use the recommended **B: focused `ShiftPresencePolicyRows` implementation composition**, derived from the inspected component limits and adopted by this plan. Its public wire/signature depends on GPS-B publication; Settings placement/shared CA-LM presentation are owner-locked. Match SettingRow's three columns, labels, inherited/overridden/effective text, Company defaults and Save/Clear actions. Keep dedicated presence keys, localized mode descriptions, units, bounds and field errors; do not extend `settingDefinitions`/`legacyLocationKeys` or bypass contracts with casts. Reuse administration styles, reads, scope guards and MFA presentation. This preserves untouched settings and uses positive presence revisions rather than legacy timestamp CAS.
+
+No Company zone editor or Organization-wide exception queue. Under CA All Locations, Company defaults work; Location section asks for an exact Location. No local effective-policy calculation used as saved/server truth.
+
+### UI-C. TEXT WIREFRAMES
+
+Illustrative data below is synthetic and describes layout, not current runtime data.
+
+#### Company Shift Presence — desktop
+
+```text
+Policies & Settings                         [existing scope/topbar]
+Manage typed operational configuration.
+[ Company defaults ] [ Location overrides ] [ Service Status ]
+┌ existing settings, unchanged ────────────────────────────────────┐
+│ Shift Presence                                                  │
+│ Defaults for Locations without an explicit override             │
+│ Setting                           Value                  Action  │
+│ Start Shift presence              [Off                 v] [Save] │
+│   Effective: Off                                                │
+│ End Shift presence                [Off                 v] [Save] │
+│ Maximum GPS accuracy (meters)      [50                   ] [Save] │
+│   Whole number: 1–200 m                                          │
+│ Maximum GPS fix age (seconds)      [30                   ] [Save] │
+│   Whole number: 1–120 s                                          │
+│ [server result / validation / conflict / release-block message]  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Location Shift Presence — desktop; shared CA/LM
+
+```text
+┌ existing Location settings, unchanged ───────────────────────────┐
+│ Shift Presence — Main Garage                         [Refresh]  │
+│ Not ready for strict presence                                   │
+│ Start: Off · End: Off · Active attendance zones: 0                │
+│ Server reason: Configure an active attendance zone               │
+│ Location policy revision: 3                                     │
+│ Setting / source                  Value                 Actions │
+│ Start Shift — Inherited: Off      [Off v]        [Save] [Clear*] │
+│   Company default: Off                                          │
+│ End Shift — Overridden: Warn only [Warn only v]  [Save] [Clear ] │
+│   Company default: Off                                          │
+│ Maximum accuracy — Inherited      [50 m]         [Save] [Clear*] │
+│ Maximum fix age — Inherited       [30 s]         [Save] [Clear*] │
+│ Attendance Zones                     [Add zone] [Refresh]       │
+│ Presence Exceptions                  [Pending] [History]        │
+└─────────────────────────────────────────────────────────────────┘
+* disabled when that field has no override
+```
+
+The illustrative server reason is shown only if GPS-B actually returns it. OFF normally displays Not applicable for the current policy; the separate server strict-eligibility result may explain why a future strict setting is blocked. Do not conflate these two statements.
+
+#### Attendance Zones — desktop
+
+```text
+Attendance Zones                                  [Add zone] [Refresh]
+Label              Code         Status      Radius       Actions
+Main entrance      ENTRY-A      Active      75 m         [Edit] [Disable]
+Service entrance   SERVICE      Disabled    50 m         [Edit] [Enable]
+[current bounded page / Next / Previous only if supplied by GPS-B]
+Empty: No attendance zones configured. [Add zone]
+```
+
+No employee markers, task tracks, ParkingZone links, delete, export or timeline. Editing opens the same dialog used to change the center/radius/code/label/state.
+
+#### Add / Edit Zone — desktop
+
+```text
+┌ Edit Attendance Zone                                        [×] ┐
+│ Label [Main entrance                    ]                      │
+│ Code  [ENTRY-A                          ]                      │
+│ Center — map interaction or manual coordinates                 │
+│ ┌ geographic streets + one pin + circular radius overlay ────┐  │
+│ │ pan / zoom / tap to choose center; geographic north stays up│  │
+│ └────────────────────────────────────────────────────────────┘  │
+│ Latitude  [-90..90 ]       Longitude [-180..180 ]   (LTR inputs)│
+│ Radius (meters) [75 ]      State [Active v]                      │
+│ Edit uses exact zone identity and last-read revision            │
+│ [field errors / conflict / uncertain outcome / reload result]   │
+│                                              [Cancel] [Save]   │
+└────────────────────────────────────────────────────────────────┘
+```
+
+#### Presence Exceptions — desktop
+
+```text
+Presence Exceptions                    [Pending] [History] [Refresh]
+Employee              Action  Location     Reason       Requested / Expires
+Maya Haddad           Start   Main Garage  GPS unavailable   09:10 / 09:15
+maya@example.test     Pending                              [Review]
+
+┌ Review presence exception                                  [×] ┐
+│ Maya Haddad · maya@example.test · Main Garage                   │
+│ Action: Start Shift · Reason: GPS unavailable                   │
+│ Requested: [Location time] · Expires: [Location time]            │
+│ Status: Pending                                                │
+│ Approval permits the requester's exact action until expiry.     │
+│ The employee must complete that action separately.              │
+│ [server denial/conflict/expiry/current-state message]            │
+│                                  [Cancel] [Reject] [Approve]   │
+└────────────────────────────────────────────────────────────────┘
+History: Approved / Rejected / Expired / Consumed, read-only.
+```
+
+Narrow: stack field groups and list facts; use existing controlled table scroll for policy rows if needed; keep actions reachable and no page-level horizontal overflow. Modal body scrolls within the viewport with footer reachable. Arabic: use logical layout direction, natural right-aligned text and localized actions; keep latitude/longitude/code/email isolated LTR. Do not mirror geographic geometry, map tiles or numeric signs.
+
+### UI-D. FUNCTIONAL UI CONTRACT
+
+#### Policy fields and mode meanings
+
+| Field | Editor / validation | Persisted current value |
+| --- | --- | --- |
+| Start Shift Presence Mode | Select: OFF, WARN_ONLY, REQUIRE, REQUIRE_OR_OVERRIDE | Company typed value or Location per-field override/effective projection |
+| End Shift Presence Mode | Independent select with same four modes | Independent Company/Location value; changing Start never silently changes End |
+| Maximum accepted GPS accuracy | Keyboard numeric input, integer 1–200 inclusive, meters; smaller maximum is stricter | Default50; threshold is inert while OFF, not pilot GPS proof |
+| Maximum GPS fix age | Keyboard numeric input, integer 1–120 inclusive, seconds | Default30; no extra Native acquisition timeout setting |
+
+Localized mode descriptions: Off = no presence gate; Warn only = warn without making presence failure a hard Shift block; Require = valid presence required; Require or override = valid presence or an exact approved exception. These labels describe accepted intent, not a frontend evaluator or override bypass. GPS-B freezes exact operational mapping/public messages.
+
+Each row always distinguishes canonical saved value from editable draft. Save is disabled for unchanged drafts, local invalid input, no capability, saving or unresolved reconciliation. Validate shared schemas before sending; reject blank numeric strings before `Number`, nonfinite values, fractions for integer settings, and bounds. No writes on local errors. Field descriptions/units remain visible. One row Save sets that one field. No bulk Save or Set-null clear.
+
+Company defaults: show saved value; no Clear Override action. Save uses last-read Company presence revision. GPS-B must validate all affected inherited Locations and rollout constraints before commit. A selected Location's readiness cannot authorize a Company strict default. Show safe aggregate rejection context without fetching every Location or disclosing inaccessible data.
+
+Location: show Company value, actual override when present, effective value and textual source for every field. An explicit OFF override is an override, never absence. Editing an inherited value then Save makes an explicit override. Clear Override removes only that field's override and resolves the then-current Company default on the server. Disable Clear when absent. Display Location policy revision as read-only configuration context; use it as CAS, not as a zone collection token. Location writes must carry enough last-read Company/Location context for GPS-B to detect a stale inherited preview (U-002/U-004), then return the evaluated canonical pair and effective values. Do not reuse `updatedAt` as the sole presence CAS token.
+
+Policy write flow: validate → capture immutable scope/intent/revisions → one sensitive mutation → consume canonical response → authoritative reread of affected projection/readiness. Show Saved only after commit proof. A confirmed write followed by failed reread displays Saved; refresh failed, without claiming readiness. No-op revision behavior follows DEC-099 for policy values: unchanged presence values do not fabricate a new presence revision. Management no-op response/audit details remain U-003.
+
+MFA: use SensitiveMfaDialog for required exact-session assurance. A step-up does not save automatically. On assurance, re-read target/context, let the manager inspect changed state, and require an explicit Save/Approve/Reject. After auth reconciliation, stale scope is retired; no protected replay. Lost response is uncertain until canonical/result reconciliation as described in H/F.
+
+CAS conflict: show a conflict message, read current canonical target/readiness, retain the draft only in the same surviving scope for comparison. Show old versus new saved values as text; require explicit adoption/reapply after review. Never silently put a new token on the old request and send it. Changed scope discards all old drafts/dialogs.
+
+#### Readiness
+
+A compact read-only section at the top of Location Shift Presence shows server effective Start/End modes, source per field, active-zone count, strict-activation eligibility, current-policy applicability/readiness, reasons and evaluated policy/zone context. Server-observed time/context makes refresh truth clear. GPS-B must distinguish presence readiness from existing currency/timezone activation readiness and operational drain.
+
+UI presentation states (not invented wire enum): **Ready**, **Not ready**, **Not applicable — both modes Off**, **Loading**, **Error**. Any exact public readiness enum is U-004. Mixed OFF/non-OFF is not globally Not applicable. OFF does not prove strict activation is safe. WARN_ONLY may warn about unusable configuration without inventing a strict denial. Strict requires the server's usable-zone + supported-workflow/recovery/release checks. Display every returned safe blocking reason as text, with icon/color only supplemental. A successful zone save or a locally drawn circle never turns readiness green locally. Missing readiness data means unavailable, not Ready. Provide Refresh/Retry.
+
+#### Attendance Zones
+
+Location-only list contains label, code, ACTIVE/DISABLED textual status, radius in meters; optional center text is configuration only. Render text safely, not HTML. Show active count from server readiness, not returned-page length. List no employee evidence. Add/Edit/Enable/Disable require current capability and sensitive mutation handling. Disable means a state update; no ordinary permanent deletion. Disabled codes remain reserved by Location/code uniqueness; do not promise code reuse or uppercase/case-insensitive normalization absent the contract.
+
+Add opens blank code/label/coordinates with no fake Location center or default zone. Require an explicit radius and state before Save; a neutral state prompt avoids implying activation. Edit initializes from the exact zone ID/revision; state changes in editor and quick Enable/Disable invoke the same authoritative update capability. Changing center, radius, code and label retains zone identity and advances its revision as the server specifies. Save unchanged edit is disabled; existing zone helper would increment on an update, so do not assume policy no-op behavior extends to zones.
+
+Disable confirmation names the zone and explains possible strict-readiness impact. Current UI may prewarn using server facts, but GPS-B decides whether the change is allowed. Edit/move/shrink of the only usable zone needs the same invariant protection as Disable. Never optimistically remove/update a list row or adjust readiness as committed. Successful state change refreshes zone listing and Location policy/readiness context; policy writes may also invalidate zone usability/readiness. Add cannot be blindly retried after a lost result (U-003).
+
+#### Zone editor
+
+- Label: trimmed nonblank, 1–200 characters; code: trimmed nonblank, 1–64, unique in exact Location. Preserve accepted Unicode semantics; no invented slug regex or forced uppercase.
+- Center: finite latitude −90..90 and longitude −180..180 inclusive. Manual inputs are always keyboard-accessible and `dir=ltr`; reject blank before numeric conversion. Zero is valid, absence is not zero. Explain latitude/longitude; decimal radius is allowed within the shared schema.
+- Radius: finite 5–1000 meters inclusive, editable by keyboard. Overlay is a preview of the configured circle; it never evaluates employee eligibility.
+- State: ACTIVE or DISABLED, with localized text. Busy disables draft-changing controls/map center changes and Save; editable canonical zone identity/revision remains internal target context, never manager-editable.
+- Map pin movement updates the same draft latitude/longitude fields; valid manual coordinate/radius changes update the same preview. Invalid/partial manual input keeps a clearly labeled last valid preview or clears it; never silently substitute it into Save.
+- Loading/offline/key/provider failure: show textual map-unavailable/Retry. Manual center/radius editing and valid Save remain available under authoritative management permissions. Do not show a coordinate SVG as if geographic map loaded.
+- Success: close on confirmed canonical commit, restore focus to surviving Add/Edit opener, announce save. If refresh fails, show committed success separately from refresh failure. CAS/server rejection keeps a same-scope editable draft for review. Unknown outcome retains an uncertainty message and disables resubmit until reconciled; no fabricated success.
+- Cancel/X/Escape close the editor and discard local edits. While a request is already dispatched, closing only dismisses UI; it does not cancel server commit. Feature-level pending/unknown state survives dismissal in the current scope and blocks duplicate writes. On returning, reread target/result before another action. Scope replacement retires old UI and does not start old-scope recovery in the new scope.
+- Focus: use existing FocusDialog focus ownership, with label as first focusable field; topmost MFA gets focus, Escape first closes MFA, then the zone editor. Restore to the original same-scope control when connected; otherwise focus the current section heading. On validation focus the first invalid field; on conflict/unknown announce and focus its recovery summary. Preserve existing MapSetupDialog header/body/footer visual language through feature-local composition.
+
+#### Presence Exceptions
+
+Default Pending list; History contains non-pending accepted statuses, including Approved awaiting use. Server-bounded pagination, explicit Refresh/Previous/Next as provided (U-002). Loading/error/empty are independent from zones/policy. Pending empty says No pending presence exceptions; it does not imply policy is ready.
+
+Display safe structured identity via `staffManagementDisplayName` and visible real email, localized START/END, authorized Location label, controlled reason, requestedAt/expiresAt in authoritative Location timezone, canonical status. Reasons are LOCATION_UNAVAILABLE, GPS_UNAVAILABLE, OUTSIDE_ZONE, AMBIGUOUS_FIX. No employee coordinates, accuracy number, capture time, fingerprint, challenge, verifier or security metadata. No free-text request/rejection note is added; DEC-099 has no exception note.
+
+Review opens exact immutable requester/action/Location/END Shift context and canonical revision. Show plain confirmation meaning: approval does not start/end Shift, change cash or bypass unrelated command blockers. Approve/Reject are offered only for current server-actionable PENDING requests, not already expired, self-target or denied capability; server rechecks regardless of visibility. Approved, Rejected, Expired, Consumed are read-only. Expiry countdown is advisory; server database time decides transitions. At displayed expiry disable review action and refresh; do not locally persist or announce canonical EXPIRED until server confirms it. No per-row polling; explicit refresh and one list-level refresh on foreground/expiry boundary, with single flight.
+
+One click opens review; explicit Approve/Reject sends one target/revision-sensitive mutation. No optimistic approval. Canonical commit/refresh removes Pending and shows history. Current manager revocation before review commit denies without success audit. Requester review eligibility preserves ordinary Start/safe-own-End rules; at actual approved-exception consumption DEC-100 additionally requires active requester membership/exact access/action/target and current original-approver authority. Later real revocation expires/denies under U-001; original approver logout/session expiry alone does not. UI only displays canonical status and controlled result.
+
+### UI-E. AUTHORITY MATRIX
+
+This matrix is the required presence capability envelope from the latest task/U257/DEC-099, not a claim that GPS-B routes already implement it. Every read/write independently derives persisted target scope and current authority.
+
+| Capability | Company Admin / ORG_ADMIN | Location Manager | VALET_SUPERVISOR | VALET_EMPLOYEE |
+| --- | --- | --- | --- | --- |
+| Company default read/edit | Yes, exact active Organization/capability, applicable standard read assurance; sensitive writes | No Company endpoint/editor; inherited values only inside authorized Location projection | No | No |
+| Location overrides read/set/clear | Same-Organization exact Location; preserve CA setup access to inactive Locations | Exact current ACTIVE Location with current persisted grant/capability only | No | No |
+| Zones list/create/edit/enable/disable | Same exact authorized Location; configure inactive Location before activation | Same exact active granted Location | No | No |
+| Presence readiness read | Exact permitted Location | Exact active granted Location | No | No |
+| Exception queue/history/review | Same-Organization exact Location; current applicable review capability | Exact active granted Location only | No, no inferred approval | No Management UI |
+| Approve/reject own User's request | No, even through another membership | No, even through another membership | No | No |
+| Approve/reject another request | Current target authority, pending revision/unexpired; sensitive exact-session MFA | Same exact authority and existing sensitive MFA ceremony | No | No |
+
+No active Shift is required for management. Role names do not imply a hierarchy. Staff complete-grant-set management authority is not the same as exact-Location presence review authority; do not reuse T05-B staff-mutation coverage as its rule. Subscription-only/grant-set scope does not become an exact Settings scope. Capability visibility does not authorize a command; stale labels/UUIDs do not establish ownership.
+
+CA standard/sensitive and LM read-assurance wire behavior must be documented by GPS-B (U-002). Existing LM sensitive MFA infrastructure is usable, but do not silently retrofit old unrelated settings or extend Supervisor/Employee MFA eligibility.
+
+### UI-F. GPS-B API CONTRACT REQUIREMENTS
+
+Freeze logical capabilities and minimum safe data now; GPS-B must export shared strict schemas from `packages/contracts`, choose literal routes within existing verified route/authority conventions, and publish exact fixtures before GPS-D implementation. Public DTO names/status mappings/event names remain U-002. Never return internal Operation/Exception request schemas wholesale.
+
+| UI feature | Required read capability/data | Required write capability/data | Canonical post-write result |
+| --- | --- | --- | --- |
+| Company policy | Exact Organization identity; four typed saved values; Company presence revision; safe edit capability/release restrictions | Set one typed default, last-read presence revision; fresh authority/MFA; all affected per-field inheriting Locations readiness | Updated Company projection/revision; canonical management result identity if U-003 provides it; safe fanout outcome, not an unbounded all-Location collection |
+| Location policy | Exact Organization/Location identity and timezone; per-field Company default, override presence/value, effective value; Company and Location presence revisions; safe capabilities | Set one override; clear one override as explicit command; expected Location revision and sufficient inherited-context identity per U-002/U-004 | Updated full Location policy projection, paired revisions and evaluated readiness/context |
+| Readiness | Server effective modes, applicability/current readiness, strict-activation permission, active-zone count, controlled safe blocking reasons, evaluated policy/zone context and observed server time | No client-set Ready/override endpoint | Returned with changed Location configuration where practical; otherwise authoritative invalidation+reread using the same scope/context |
+| Zones | Bounded Location listing including ACTIVE/DISABLED; immutable ID/scope, code/label/center/radius/state/revision; collection cursor/context if needed; exact authorized entity/result reread | Create explicit zone; update exact zone; enable/disable through state change; expected zone revision for edits; stable create correlation per U-003; forbid delete | Updated canonical zone/revision + Location readiness/projection context. Reread/invalidate bounded collection; do not require a full unbounded list in every response |
+| Exceptions | Pending and accepted history lists, exact target reread, structured identity/Location/timezone, action/controlled reason/status/revision/times; safe actionability and expiry/current state | Approve or reject exact exception + expectedRevision; current reviewer/requester authority, sensitive MFA, no self approval; U-003 exact reconciliation boundary | Canonical exception/revision/status/review time plus result identity when supported. Invalidate pending/history pages; readiness/policy need not reload for a review that does not change configuration |
+| Unknown management result | Freshly authorized exact target/result lookup correlated with dispatched command, no employee GPS | No automatic retry endpoint/replay | Canonical state plus truthful attribution if available. If attribution is unavailable, report current state and uncertainty rather than own success |
+
+Keep per-resource CAS explicit: Company policy revision, Location policy revision + viewed inherited context, zone revision, exception revision. A zone change does not mechanically increment Location policy revision in GPS-A; return/validate a configuration snapshot that includes relevant active zone identities/revisions. Do not invent a second global mutable revision just for the frontend.
+
+Readiness must guard both active-Location policy changes and inactive-Location activation; Company defaults must consider the full relevant inheriting set, not the displayed page. Last-zone Disable/center/radius changes and Clear to strict inherited defaults must serialize with these checks. Existing currency/timezone/drain constraints remain intact. SQL OFF-only gate is replaced only by GPS-B's forward, enforced release/readiness boundary; UI must not send non-OFF to current GPS-A routes or widen old whitelists itself.
+
+Architecture: consume internal GPS-A helpers only after operation-specific authority; follow existing thin HTTP/service transaction patterns with focused command/query helpers. Keep shared HTTP runner/request-ID/no-store/error infrastructure, runtime database and auth modules; no new unrelated module layer. Do not broaden custody/Shift audit helpers using fake session/Shift IDs. GPS-B must verify the selected audit boundary's actual allowed entities/metadata and add typed management events where needed. U-002 settles exact names.
+
+#### Authorization-before-mutation proof
+
+For each protected mutation, authentication and target authorization are separate. The first protected business write occurs only after the following proof; acquiring a read/lock is not authorization and does not itself mutate business state.
+
+| Operation | Persisted target and proof before first write | Concurrency/precondition boundary | First protected write / atomic history |
+| --- | --- | --- | --- |
+| Company field SET | Authenticate exact current Staff session/User; resolve Organization; prove active CA membership/Organization, setting capability/entitlement and sensitive MFA | Accepted exclusive Organization settings guard; authoritative Company revision; affected inherited Location readiness/lifecycle checks | Typed default update; database-owned revision change; required safe management audit in same transaction |
+| Location field SET/CLEAR | Authenticate; resolve Location→Organization; CA scope or exact current LM grant/role/active boundary; operation capability + sensitive MFA | Organization settings exclusive guard, lifecycle guard, current policy/inherited context comparison, resulting strict readiness | Typed one-field override set/remove; canonical effective reread; safe management audit |
+| Zone create/edit/enable/disable | Authenticate; resolve persisted Location; for existing zone load exact zone→Location/Organization; prove CA/exact-LM operation authority + sensitive MFA before helper INSERT/UPDATE | DEC-099 Organization settings exclusive→lifecycle→scoped zone CAS; resulting usable-zone/readiness proof | INSERT/update exact zone; safe zone audit; no generic ownership-changing write |
+| Exception approve/reject | Authenticate; resolve exception→exact requester/Organization/Location/action/END Shift; prove current reviewer scope/capability/MFA and reviewer User ≠ requester User; evaluate current requester action eligibility | Preserve DEC-099 configuration→lifecycle→current authority/Shift→operation→challenge→exception order; pending revision/unconsumed/live challenge/server expiry | Guarded review transition + reviewer/time/revision; safe management audit; no Shift write |
+
+Then: execute write → append required audit → build authorized canonical projection/result under the same transaction → commit → return committed result. Rollback means no configuration/review or success audit. All retry/no-op/result fallback reads authenticate again and re-prove ownership/tenant/Location/capability before protected disclosure. An old success or target ID is never authorization. Do not use UPDATE/RETURNING as the first ownership probe, or rely on rollback to excuse an unauthorized write attempt.
+
+#### GPS-B authoritative management transaction contract
+
+This contract applies to every Company/Location policy SET/CLEAR, zone CREATE/UPDATE/ENABLE/DISABLE and exception APPROVE/REJECT. It also applies to any future sensitive presence management write admitted by the same accepted scope. The backend owns the entire check-use interval in one caller transaction, without external map/GPS/geocoding/provider calls. Authentication preflight and capability display are useful inputs, not mutation authority.
+
+1. Resolve the current authenticated Staff session and persisted target relationships without trusting client Organization/Location/member IDs. A preliminary target read establishes which guards to acquire, never permission or protected target disclosure. Under the guards, resolve it again and reject a mismatch before any business write.
+2. Take `lockManagementSettingsOrganization(tx, organizationId, "EXCLUSIVE")` for configuration writers, or `"SHARED"` for exception review/current-configuration consumers. Acquire `lockLocationLifecycle(tx, locationId, "SHARED")` next; lifecycle activation/deactivation uses `"EXCLUSIVE"` after the same Organization settings boundary. For Company fanout, resolve the complete affected inheriting set under the Organization guard, acquire lifecycle guards in ascending persisted Location-ID order, and recheck the set before commit. All Location creation/activation paths that can introduce an effective strict inheritor must join this guard; no page-sized fanout or phantom new inheritor may escape it.
+3. Call exported `lockAndRecheckStaffSessionContext` first at this actor stage: it takes `lockStaffUserSecurityBoundary` before exact session lock and returns undefined for stale context; the caller must explicitly deny that result. Then lock/recheck exact actor session/User with exported `lockAndRecheckMfaSession`, and take the existing transaction-scoped `staff-management-org:<Organization ID>` advisory guard before actor/target membership locks. Preserve the force-end authority pattern in UI-E23: actor membership `FOR UPDATE`; current Organization and entitlement/subscription rows `FOR SHARE`; exact referenced active MFA factor `FOR SHARE`; exact persisted Location and, for LM, its access row `FOR SHARE`. Evaluate the current principal, role, active statuses, entitlement and operation-specific capability from these protected facts. CA Location setup retains its accepted inactive-target allowance; LM requires exact ACTIVE Location and grant. Never reuse staff complete-grant-set coverage or an operational Supervisor predicate as manager authority. The resulting outer order is settings→lifecycle→actor security boundary→actor session/User→staff-management Organization→actor/target facts→operation→challenge→exception; requester proof uses the nonblocking acquisition below.
+4. Call the existing sensitive assurance evaluator on the protected exact session/factor. Re-evaluate expiry and the 5-minute sensitive window using database wall-clock immediately before the protected write, after any wait; transaction-start time and a preflight success are insufficient. Keep session/User/member/access/Organization/entitlement/factor and lifecycle protection through audit and commit. `recordAdminActivityInTransaction` remains the exact-session final activity check; it does not replace the sensitive freshness recheck. Reject or roll back if a current predicate fails, without a success audit or business effect.
+5. For exception review, re-resolve requester User/member/action/scope and the exact END Shift, prove different reviewer/requester Users, and protect the requester action's actual accepted predicates. START uses current active operational authority; END uses the existing safe-own-End ownership/role rules and never silently imports START's active-membership/grant requirements. Keep these facts until the review write/commit. Then lock operation→challenge→exception in DEC-099 order, recheck PENDING operation/live challenge/PENDING exception/revision/current expiry, and execute one review with its atomic safe audit. Approval never mutates Shift.
+6. For configuration writes, execute sequence Q in I: authoritative revisions, proposed resulting persisted policy/zone snapshot, server readiness, guarded write and atomic audit, verified canonical projection, commit. Return only committed authorized facts. All identical/no-op/recovery reads reauthorize before disclosure; U-003 controls exact own-result attribution, not whether authorization is required.
+
+**Required extension, not existing proof:** `authorizeDashboardLocation` is a plain joined SELECT and cannot be the sole writer authorizer. `authorizeCompanyAdminManagement` supplies current CA checks/session/membership locks but does not alone prove every factor/Organization/entitlement row remains protected. GPS-B must compose a focused presence write-authority boundary using UI-E22/UI-E23/UI-E25, retaining the missing row protection and target checks in the same transaction. The force-end SQL command is a pattern reference only, not a presence command to call. Internal `createPresenceZone`/`updatePresenceZone` accept a preauthorized caller transaction; invoke them only after this proof, retain their scoped CAS, and add authoritative readiness and management audit around them. No new public helper signature or route is frozen before U-002.
+
+**Multi-principal lock acquisition (DERIVED technical mechanism):** actor session/User ordering stays compatible with existing management commands. Requester rows acquired afterward must not introduce a blocking opposite-User/member/Shift lock chain. Use scoped nonblocking `FOR SHARE NOWAIT` for requester proof and exact END-target protection at review (or the stronger lock mode required by that existing target predicate), in established requester order, before operation/challenge/exception. If any is contended, roll back the complete attempt before review/configuration success and expose a safe busy/reload outcome whose wire name is U-002; reread and retry are explicit. This avoids waiting while another principal holds the inverse chain; it does not grant authority on contention or auto-replay. It is a proposed compatible SQL acquisition mechanism, not a new product choice or an Accepted literal. Existing unmodified requester helpers cannot be claimed to supply this nonblocking composition. GPS-B must verify real conflicting actor/requester and employee-action schedules before handoff; no deadlock-free runtime claim is made here.
+
+**Existing guard inversion to repair in GPS-B:** UI-E24 currency correction currently takes lifecycle→settings. A presence writer can hold settings while waiting for lifecycle; currency can hold lifecycle while waiting for settings. The required coordinator change is to acquire settings first whenever both guards are needed, followed by lifecycle, before invoking current authorization/mutation helpers; activation must enter the same configuration/readiness boundary. Do not acquire settings late from an already lifecycle/Shift/attempt-locked caller. Add a barrier test running currency correction and presence configuration plus activation/strict-default fanout in both acquisition schedules. This is a concrete prerequisite under the Accepted graph, not an owner uncertainty or a hidden GPS-D backend edit.
+
+Current management authorization at commit and DEC-100 consumption-time authority are mandatory. The separate consumption contract below never requires old approver session/MFA assurance. UI owns neither locks nor locally decided validity.
+
+### U-001. APPROVED EXCEPTION CONSUMPTION — ACCEPTED DEC-100
+
+Status: Accepted; owner: VAYLET product owner; date: 2026-10-04; GPS-B owns server
+composition, with GPS-C/D consuming/displaying its canonical results. This is
+binding product/security behavior, not an optional suggestion.
+
+At consumption, in one authoritative transaction, revalidate/protect active
+requester User and membership, current exact Location access/action authority,
+exact valid END Shift when applicable, active original approver User and current
+CA-for-this-Organization OR exact-LM-for-this-Location approval capability,
+eligible Organization/Location lifecycle, APPROVED/unconsumed exception and its
+accepted lifetime plus exact operation/challenge/action/target binding. Original
+reviewer identity is immutable; current persisted capability, not captured role
+text, supplies authority. Successful use never bypasses cash/open-work/Shift guards.
+
+The requester active-member/access requirements apply to exception use for both
+START and END. Ordinary safe-own-End still preserves stale-cleanup behavior; no
+new Start-only predicate is silently applied to all End paths. Rollout cannot
+bypass the exception conditions to repair an unavailable recovery workflow.
+
+Original approver browser, login, HTTP session and MFA freshness need not survive.
+MFA/current session is point-in-time at approval; current authority is checked at
+use. **Logout/session expiry alone does not invalidate approval.** Real loss of
+approver User/member/CA/exact-LM access or target eligibility does invalidate use.
+
+For real invalidation, fail closed with NO Start/End/consumption effect, NO
+alternate approval and NO automatic replay. Atomically transition exact exception
+APPROVED→EXPIRED and exact Operation→DENIED with controlled recoverable reason
+semantically APPROVER_AUTHORITY_REVOKED, preserve original valid approval facts,
+then return/reconcile the committed denial. Do not throw through a wrapper that
+rolls these required terminal results back. Another attempt needs a fresh
+operation/challenge and fresh authorized approval. No REVOCATED enum or rewritten
+review/expiry time. Current authenticated requester/immutable owned target proof
+must precede this narrow terminal-result write/disclosure; it never authorizes a
+Shift mutation. If identity/account cannot authorize the owned-result boundary,
+conceal/deny to that caller and retain approved privileged maintenance ownership.
+
+Existing terminal Operation/Exception recovery is classified before a new use:
+return the exact authorized committed/denied/expired result without reconsuming
+or rewriting a terminal row. The revocation terminalization branch operates on
+the exact still-pending Operation and APPROVED/unconsumed exception; timed expiry
+and an already completed result retain their canonical accepted classification.
+
+Take DEC-099 settings shared→lifecycle shared, then existing security/authority
+boundaries and `staff-management-org` before requester/approver member/Shift locks,
+then operation→challenge→exception. Protect current requester/approver User/member/
+exact access/Organization/Location/entitlement predicates through commit. The
+original approver session/MFA row is deliberately not an authority dependency.
+Use bounded nonblocking second-principal proof to avoid opposite-User lock chains;
+contention rolls back as busy with explicit refresh/retry, not revoked authority.
+Recheck database clock after waits; no provider/network request under locks.
+
+Revocation commits first: exception expires, Operation denied, zero Shift effect.
+Valid consumption commits first: one action/decision/consumption/audit; later
+revocation affects future attempts, not past consumed history. Competing rollback
+leaves no ghost state/audit; lost response reads exact committed result under fresh
+authorization. Exercise both schedules and approver logout/MFA-age controls with
+real PostgreSQL/HTTP barriers before GPS-B handoff.
+
+**Known implementation gap:** migration 058's existing EXPIRED CHECK requires
+terminal_at≥expires_at, so early authority invalidation is not currently supported.
+GPS-B adds a forward narrow command/constraint provenance and minimal typed denied
+result needed for exact reason recovery. Never fake terminalAt, modify expiresAt,
+wait to enforce revocation, rewrite 058/059 or allow arbitrary status changes.
+Exact storage/HTTP names are technical contracts to publish, not owner questions.
+Use existing statuses, actual terminal time and DEC-099 retention/privacy.
+
+### UI-G. GEOGRAPHIC MAP BOUNDARY / ADDRESS SEARCH
+
+`AttendanceZoneMap` is a conceptual feature boundary, with no final TypeScript signature selected before U-005. It accepts safe configuration center/radius/editability/locale/theme and emits proposed center changes. It displays a real geographic base map, one editable pin and metric circular overlay, supports pan/zoom and click/tap center selection, and exposes loading/error/ready presentation. Pin drag may be a convenience, never the only control. It owns no capability, tenant selection, policy/readiness, zone persistence or employee fixes.
+
+The parent editor owns the single draft and manual keyboard fallback. Preview uses actual geographic meters, not operational min/max SVG scaling. Map and input edits agree on one valid draft. Do not flip geographic east/west for RTL. Detach map listeners/adapters on dialog/scope teardown; delayed SDK callbacks cannot update retired drafts. Maps API calls happen outside protected database transactions. Do not ask for manager device geolocation to create a zone.
+
+Edit centers on the persisted zone. Add may use only a server-provided configured center if one exists in the eventual accepted contract. Current Location projection provides address text without coordinates, so do not claim automatic Location centering. U-005 must set a neutral initial viewport/manual-first behavior until the manager chooses a center; no implicit zone, guessed geocode or saved camera viewport.
+
+**Provider decision before GPS-B: NO.** Backend geometry/policy/readiness/authority are provider-neutral. **New provider decision before GPS-D: NO**, because DEC-045 already selects Google Maps Platform. GPS-D's actual SDK/loading/key/deployment integration must be resolved and verified before its map integration step (U-005). Google versus Mapbox is not a fresh equal-option decision. No SDK, dependency, lockfile or key configuration changes occur in this planning task. Provider deployment details and any new service/cost scope still require normal task approval if material.
+
+**Address/place search: B — Optional GPS-D enhancement.** The required v1 baseline is geographic pin adjustment plus keyboard latitude/longitude. Map-only and coordinates-only each fail the task's combined center requirement. Current address text does not establish a geocoding contract, and DEC-045's map-provider selection does not automatically authorize Places/search APIs, billing or storage. Therefore v1 should ship without search unless a focused approved provider/cost/privacy contract is available during GPS-D; it is not a GPS-B dependency. If that optional enhancement is approved, search results only propose a center that the manager adjusts/confirms; they do not save zones or decide readiness. No Places ID, address snapshot or geocoding schema is added by this plan.
+
+### UI-H. STATE / ERROR MATRIX
+
+| State | Visible UI / enabled action | Canonical refresh / replay rule |
+| --- | --- | --- |
+| Loading | Section loading/status text; no stale-scope values; affected writes disabled | Current-generation read only; unaffected existing Settings remain usable |
+| Empty | Empty zones/Pending/history wording + permitted Add/Refresh | Empty list ≠ missing permission or Ready |
+| Editing | Saved/current value and separate draft; dirty Save | Local changes never alter canonical readiness/list |
+| Saving | Saving status/aria-busy, one flight, disabled draft-changing/duplicate controls | Exactly one protected request per explicit action |
+| Success | Canonical saved value/status/revision; status announcement | Refresh only dependencies. Confirmed commit + refresh failure stays Saved; refresh failed |
+| Local validation | Field error + alert summary + first-invalid focus; draft preserved | No mutation issued |
+| Server validation/readiness rejection | Safe localized rejection; no optimistic change | Reload policy/readiness if context may have changed; resubmit only after explicit correction |
+| MFA required | Existing exact-session step-up/enrollment dialog | No automatic protected replay; re-read and explicit submit after assurance |
+| CAS conflict | Another change occurred; current saved record + preserved same-scope draft | Authoritative target/projection/readiness reload; explicit review/reapply, never auto-token swap |
+| Authority denial | Concealed denied/unavailable state; clear protected cached content/draft/dialog for denied target | Revalidate current scope/capability; no foreign details, no automatic write retry |
+| Network read error | Read failed + Retry | GET retry is explicit except accepted auth refresh behavior |
+| Mutation response unknown | Outcome unknown; checking current result; block resubmit | Authenticate/re-authorize exact target/result lookup, not replay. Pending/not-found alone ≠ rollback. Canonical state is shown even if own attribution stays unknown |
+| Reconciliation read fails | Outcome still unknown + Retry refresh | Preserve uncertainty and prevent duplicate create/review; no success/error-as-rollback fiction |
+| Auth reconciled retry required | Reconciliation/current-authority notice | Re-read exact target; new explicit action only after resolved context |
+| Expired exception | Server-confirmed Expired; read-only | Local clock disables risky action + refresh, never invents a committed transition |
+| Map loading/error | Text status/error + map Retry; manual inputs available | Provider recovery changes preview only; no mutation replay |
+| Scope/session replacement | Remove old values/dialogs/drafts/cursors/MFA notices immediately | Invalidate all old tickets; do not reload/publish old results into replacement scope |
+
+Unknown exception response sequence: mutation sent → response unknown → freshly authorized exact exception/result refresh → display the status returned by the canonical server projection → no automatic replay. The source of authority is that exact freshly authorized persisted projection, never a local decision or the uncertain click. If it returns APPROVED, display that historical state without claiming this request caused it or that the approval remains consumable after a later authority change. This settled sequence is required by the binding implementation plan §H / GPS-D item 12 (lost management response, exact record/operation read, unrelated change is not own success); DEC-099 §Exception foundation fixes the status vocabulary and states approval performs no Shift mutation. UI-E05's executor supplies fencing/MFA but does not implement the missing reconciliation read; UI-E07 forbids protected 401 replay. GPS-D must supply feature-owned reconciliation after U-002/U-003 publish the authorized lookup contract. U-003 remains conditional solely for command correlation/own-commit proof; DEC-100 fixes later consumption; displaying historical APPROVED does not independently authorize it. If no published identity proves attribution, show current state and “outcome of your request unknown”, blocking duplicate submission until safe reconciliation. Equality of values, matching label/code or disappearance from Pending is insufficient own-commit proof.
+
+### UI-I. RACE / FENCING MATRIX
+
+#### Scope and identity fencing
+
+Bind each read/write/draft/dialog/cursor/map callback/MFA continuation to `identityGeneration + sessionGeneration + selectionRevision + authoritative Organization/Location/authority + resource/intent generation`. Capture immutable IDs/revisions at submit, never read a newly selected scope inside an old closure. Key the shared Location composition by full scope key, not Location ID alone. Company scope still includes Organization and session generations.
+
+Organization A→B, Location A→B, LM exact switch, logout, Staff-session replacement and A→B→A all invalidate the old generation, abort reads best-effort, remove protected old presentation and close old dialogs. A old response cannot repaint a later A selection with a newer selectionRevision. Cursor/filter/read-key state resets to first page. Locale/theme changes may rerender labels but cannot change operation target; scope replacement always clears drafts.
+
+Check scope ticket before dispatch and after every awaited preparatory step, including API pre-dispatch auth refresh and MFA state/assurance. Use the client's reconciliation hook/abort signal with current intent guards; do not send an old pending closure under a replacement User/session. After sending, a server commit may finish in the original authorized scope: generation fencing suppresses its callbacks and follow-up reads; it does not undo commit. It must never mutate the replacement target. Returning to the original scope starts a fresh authoritative read, not continuation of the retired request.
+
+MFA completing after scope replacement must not invoke saved operation/onAssured or reopen old UI. Mount its owner by full scope+intent and gate callbacks. Reusing a generic dialog alone is not enough. Disablement/grant loss refreshes authority and wipes forbidden data; aborting fetch is not the only proof.
+
+#### Server race envelope
+
+All rows below name Transaction A/Transaction B, resources, unsafe interleaving, known protection, missing GPS-B composition, possible linearization point, loser behavior and owning slice. These are invariants/planned proof, not observed passing races. Exact HTTP errors/result DTOs remain U-002/U-003; U-001 outcomes follow Accepted DEC-100.
+
+Common configuration sequence **Q** (settled boundary, DERIVED wrapper composition): persisted target resolution → `lockManagementSettingsOrganization` EXCLUSIVE → relevant `lockLocationLifecycle` guards in ascending Location-ID order → F's current protected session/principal/member/grant/lifecycle/MFA proof → compare expected revision for the entity being edited and applicable inherited-preview context → derive the complete proposed resulting configuration from current persisted Company defaults, per-field overrides and usable ACTIVE zones → server readiness for every affected effective-strict Location → exact guarded write/CAS + atomic audit → verify resulting projection/readiness under the same guards → commit. No readiness/network await outside this protected snapshot can authorize the write. Keep the Organization guard through commit; activation and any concurrent creator introducing an inheritor must use the same boundary. A denial rolls back all changed rows/revisions/audit. Unchanged policy values retain DEC-099 no-op revision behavior; exact public no-op result/audit remains U-003.
+
+**NO committed state may become strict/effective-strict unless authoritative readiness for that exact persisted configuration is valid in the same serialized transaction.** No existing effective-strict Location may be made unusable by a committed zone/policy/override change. Include all affected inheritors, not just ACTIVE or currently displayed Locations; inactive setup capability is not permission to persist an unusable strict configuration. Company fanout validates the new effective policy at each affected Location under its lifecycle guard. Strict readiness is server-derived configuration validity/usability, not UI active-zone count and not evidence that a particular employee will be inside. Preserve separate currency/timezone/drain and server rollout/recovery gates. No implicit downgrade, fallback toggle, or saved “Ready” bit is introduced. U-004 controls public vocabulary/context representation only; it does not make this invariant optional.
+
+GPS-B extends the *composition* around the existing Organization settings guard, not a new competing lock key: route policy writers, zone helpers, clear-override commands and lifecycle activation through Q/F; add resulting readiness before commit and fix UI-E24's inverse acquisition. Read-only displays may become stale and must be labelled/refreshed, but stale UI readiness never authorizes a command.
+
+| Race / status | Transaction A vs Transaction B; resources / unsafe interleaving | Existing protection / required sequence and linearization | Loser UI / reread / explicit retry / owner |
+| --- | --- | --- | --- |
+| R01 two policy tabs — LOCKED | A saves field; B saves same or another presence field from same Company/Location revision. Both reading r then overwriting loses update | Positive policy revision + settings guards exist; GPS-B Q must compare relevant revision(s) and commit update/audit together. Linearization: guarded accepted update/commit, no manufactured policy revision for unchanged values | Changing stale writer conflicts; canonical refresh and draft review; explicit reapply only. Identical/no-op classification is U-003. GPS-B server; GPS-D presentation |
+| R02 same zone — LOCKED property; mechanism provenance explicit | A changes center/radius; B renames/disables same exact scoped zone from revision r. An unguarded second write would overwrite A | Accepted DEC-099 §Lock graph and runtime boundary explicitly requires exclusive Organization settings→lifecycle→scoped zone CAS; internal `updatePresenceZone` implements exact Organization/Location/zone/revision WHERE and revision increment. UI-F/Q add protected current authority, resulting readiness and atomic audit. The first valid guarded update/commit wins; the waiter rereads r+1 and cannot write with r | Stale second writer changes no zone/revision/success audit; authorized latest zone/readiness replaces canonical data, same-scope draft remains for review; explicit retry with a freshly reviewed revision. No decision about U-001 consumption is made. GPS-B/D |
+| R03 edit versus disable — LOCKED | A edits center/radius and B disables same zone at r | Q settings-exclusive→lifecycle→protected authority→same zone expectedRevision CAS and resulting readiness. First valid commit wins r+1; stale competitor cannot overwrite or restore state. Last-unusable disable is rejected under effective strict policy | Exact zone/readiness reread, preserved same-scope draft; explicit reviewed retry only. Schedule B below supplies both orderings. GPS-B/D |
+| R04 disable versus strict activation — LOCKED | A disables usable zone; B sets strict mode or activates inactive strict Location; shared Location/Organization/zone snapshot. B reads zone before A removes it, then activates unusable configuration | Existing exclusive settings guard and lifecycle guards provide usable serialization mechanism; readiness checks are missing. Both Q must evaluate state after earlier commit; lifecycle activation must join same configuration guard protocol. Linearization is valid resulting snapshot write+commit | Earlier valid change may win; later invalid change rejected or blocked by readiness, not assumed CAS-only error. Reload zones+policy+readiness; explicit correction/retry. GPS-B |
+| R12 last usable zone removed/moved/shrunk — LOCKED | A removes/changes one zone; B removes/changes another or tightens inherited policy. Counting pre-write zones independently can leave strict policy unusable | Zone uniqueness/revisions do not protect aggregate count/usability. Q must validate resulting usable set under exclusive Organization guard; current lifecycle readiness checks alone are insufficient | Reject last-unusable result without change/audit, unless prior committed policy change made result valid. Canonical refresh; add/enable usable zone or explicit policy change, no implicit downgrade. GPS-B/D |
+| R05 Company change versus inherited Location — LOCKED | A changes Company value; B reads or edits inheriting Location / evaluates Start/End. B can use obsolete default with new zone/Location facts | Internal `lockShiftPresenceConfiguration` holds shared settings/lifecycle and row guards. A Q must include every affected per-field inheritor; read/mutation projection must bind Company+Location+zone context | Read returns coherent before/after snapshot; stale write context surfaced per U-002/U-004; no selected-Location-only approval. Refresh effective values/readiness. GPS-B |
+| R06 Clear Override versus Company change — LOCKED | A clears Location override; B changes inherited Company mode/threshold. Old preview can expose strict unusable effective policy | Q serializes both writers. Clear resolves current Company under guard; inherited-context freshness/rejection response is U-002/U-004. Atomic resulting readiness blocks invalid state | Show actual inherited value; stale preview requires review per contract. Never silently SET-null or replay old Clear. Explicit retry only after reread. GPS-B/D |
+| R07 approve versus reject — LOCKED | A approves; B rejects same exception r; same request/challenge/operation/reviewer authority. Unsafe interleaving: both pending reads precede either review write, so both clients act on stale pending state | SQL one-way transitions, revision and reviewer identity constraints exist. GPS-B obtains accepted authority/operation/challenge/exception locks, checks PENDING+r+time, writes review/audit atomically; guarded transition/commit is point | One canonical review; stale/conflicting other action denied/conflicted without second review audit. Refresh exact target/list; no action after terminal review. Identical retry semantics U-003. GPS-B/D |
+| R08 approve versus expiry — LOCKED | A approves near deadline; B terminalizes expiry, or database time passes while A waits. Client countdown/read time may be stale | SQL requires review time before expiry; challenge-bound expiry/guarded transitions exist. GPS-B reevaluates database clock after locks and serializes expiry/review; accepted review update before deadline is point | Expiry wins or late review cannot approve; render canonical state. No extending deadline or retrying expired approval. Expiry terminalization details U-004. GPS-B/D |
+| R09 review versus authority revoke — LOCKED | A reviews; B revokes reviewer/requester member/grant, disables User/Organization/Location, or replaces session/factor. A's preflight true becomes false before write | Existing session/management/staff/lifecycle locks cover neighboring commands; GPS-A helper/LM SELECT is not sufficient. GPS-B must join these invalidators with current authority locks/guarded recheck before review commit, with existing safe-own-END rules for requester | If review legitimately commits first, historical review remains truthful; if relevant revoke wins, no newly unauthorized review. Concealed denial + scope revalidation; no blind retry. GPS-B |
+| R11 approved use versus later reviewer revoke — LOCKED | A consumes approved exception; B revokes original approver User/member/CA or exact LM grant/Organization/Location eligibility. Old-session validity is not the predicate | DEC-100: shared settings/lifecycle, protected current requester/approver facts joined to invalidators before membership/Shift, then operation→challenge→exception, database time. Revocation first invalidates: exact exception APPROVED→EXPIRED and Operation DENIED commit without Shift/consumption. Valid consumption first commits one effect; later revoke cannot rewrite consumed history. GPS-B forward constraint/result work is required | Fresh exact authorized result shows controlled denial/canonical status; no alternate approval or replay. New attempt needs fresh operation/challenge/approval. Logout/session expiry/MFA age alone leaves live currently authorized approval usable. GPS-B server; GPS-C/D consume/display |
+| R10 response versus scope/session replacement — LOCKED | A original-scope read/write/MFA/map callback in flight; B replaces scope/session in browser. Comparing Location UUID alone allows old A to repaint new A | Existing generation keys/tickets and API session fences. GPS-D checks full ticket at dispatch/post-preparation/publication; no replacement IDs in old body. Server original request still independently authorized. UI linearization is new selection/session generation | Drop all old callbacks and follow-up reads, no old approval/zone success in B; fresh load only. Explicit new action in current scope. GPS-D |
+
+#### Exact configuration schedules A–E
+
+Every row uses Q's exclusive Organization settings boundary held through commit. Entity CAS remains independent of aggregate readiness: a fresh entity revision cannot permit an invalid effective-strict snapshot. “Winner” means the first *valid committed* transaction; lock acquisition followed by rollback is not a winner. Exercise both acquisition orders and inspect rows/revisions/audit, not just HTTP responses.
+
+| Case | Serialization point and first valid winner | Waiting loser / alternative order | Canonical UI and retry |
+| --- | --- | --- | --- |
+| A — two edits of one zone | A and B submit the same scoped zone revision r. Settings exclusive serializes them; first current-authorized, ready, CAS(r) write commits revision r+1 | Second still expects r and fails CAS without zone change or success audit. If first rolls back, r remains and the waiter can win after current proof | Authorized latest zone/readiness plus preserved same-scope draft; explicit review/reapply only. U-003 does not turn value equality into own success |
+| B — disable versus center/radius edit | Both edit the same r. If Disable passes resulting readiness and commits first, state/revision become DISABLED/r+1; a valid geometry edit first instead produces its new geometry/r+1 | The other stale writer cannot re-enable, disable or overwrite by carrying r. If Disable would remove last usability under current strict policy it is rejected/rolled back, allowing the geometry edit only if that edit also preserves readiness | Fresh exact zone and readiness; show conflict versus readiness rejection faithfully under U-002. No silent state restoration; explicit new action after review |
+| C — last ACTIVE zone disable versus strict activation | With non-strict current policy, Disable may commit first. Strict SET or inactive-Location ACTIVATE then reads zero usable zones under Q and fails readiness. If strict activation commits first while the zone is usable, it is the winner | Disable then evaluates the persisted strict policy and cannot commit an unusable result, even with a fresh zone CAS token. Location ACTIVATE requires settings before lifecycle EXCLUSIVE and preserves existing activation/drain requirements | Reload policy/zones/readiness; show exact server rejection, correct zone/policy explicitly, retry only after fresh authorization. Never downgrade policy or undo winner locally |
+| D — Company strict default versus an inheritor's zone becoming unusable | Same Organization exclusive guard serializes Company SET and inheritor zone change. A valid zone change first under non-strict policy may commit; Company then evaluates every affected inheritor and rejects any now unusable strict result | Company strict first may commit only if every affected inheritor is ready; later disable/move/shrink that makes one unusable is rejected. Company revision CAS alone cannot replace fanout. Relevant creator/activation joins Q, preventing an unchecked inheritor | Show canonical Company/Location context and bounded authorized blocking summary; exact Location correction or explicit policy change/retry. No selected-page-only success and no cross-tenant enrichment |
+| E — override CLEAR versus Company SET | CLEAR always compares the last-viewed Location revision and Company revision/context, then resolves current Company default under Q. Company SET compares its own revision and resulting full fanout | Company first changes inherited context: stale CLEAR is rejected for context refresh, even if Location revision is unchanged. CLEAR first commits only with ready resulting inheritance; subsequent Company SET includes this newly inheriting Location and either commits a valid result or fails readiness | Display actual inherited Company/default/effective values after reread; preserve same-scope draft for explicit review. Do not silently accept a new inheritance preview or replay CLEAR. U-002/U-004 publish the wire representation of these fixed logical preconditions |
+
+#### Exact current-authority schedules
+
+These are independent of U-001's later approval lifetime. Use real SQL/HTTP barriers around the named guards/rows, and run each with commit, rollback and unknown-response branches. Busy from the nonblocking requester proof rolls back safely and requires explicit refresh/retry; it is not treated as revocation or success.
+
+| Required race | Serialization point | Winner / loser | Canonical UI / explicit retry |
+| --- | --- | --- | --- |
+| LM authority revoked while zone update pending | F's staff-management Organization guard plus actor membership lock, exact access/Location protection and zone CAS; role/status/access invalidators use conflicting guard/row writes | Revocation first: zone command observes invalid current role/member/grant and denies before zone write/audit. Zone first: authorized zone+audit commits before revocation, which then governs later actions | If current authority survives, reread exact zone; if revoked, clear forbidden target/draft/dialog and revalidate scope without target disclosure. No stale success callback after authority generation changes. Retry only a new explicit currently authorized action |
+| Location access revoked while exception approval pending | Same staff-management guard and exact LM access row protected through pending exception transition/commit | Grant removal first: review cannot approve/reject. Review first: one authorized review/audit commits; later removal does not rewrite that history. Later consumption follows Accepted DEC-100 current-authority predicates | Fresh authorized exception state only when still permitted; otherwise denied scope with protected content cleared. Never convert APPROVED to REJECTED locally. Explicit retry only if authority is newly valid and canonical request remains actionable |
+| Membership deactivated while policy write pending | Existing staff-management guard, actor membership `FOR UPDATE`, session/User and resulting configuration guard Q | Deactivation first: current active-member predicate fails; no policy/revision/success audit. Policy first: valid policy/audit commits before deactivation, then future writes deny. Rollback by either contender leaves no ghost revision/history | Canonical policy if current scope still authorized, otherwise wipe denied presentation and resolve scope. A stale revision or reactivated membership never resumes the old action; fresh explicit submission only |
+| Session/identity replacement while mutation response pending | Server exact session/User locks serialize actual token rotation/revocation versus the original write. Browser identity/session/selection/intent generation change independently linearizes presentation | Server revocation/rotation first: old-session command denies. Original valid write first: it may commit for the original target; replacement cannot retarget it. Browser replacement always invalidates the old ticket regardless of server winner | Drop old success/error/MFA callbacks and old-scope reconciliation reads. Load only replacement-authorized scope; returning to original scope requires a fresh read. No automatic replay under new credentials; explicit new action after canonical reconciliation |
+| Location lifecycle changes while configuration pending | Q settings guard before lifecycle; configuration takes lifecycle SHARED, transition EXCLUSIVE, exact persisted lifecycle row is rechecked under F | Lifecycle first: queued LM write denies if target is inactive; CA setup may proceed only under its accepted inactive permission and full strict readiness. Configuration first: authorized ready change commits, then lifecycle transition re-evaluates current configuration/activation/drain | Current permitted lifecycle/policy/readiness, or scope denial with protected content removed. No assumed all-role failure and no new active-location rule for CA. Fix current blockers then explicitly retry; activation never consumes a stale readiness display |
+
+For each DB race run **three branches**: competing transaction commits; it rolls back; caller disconnects/times out with outcome unknown. On commit, waiters re-read then apply current CAS/readiness/authority/state; do not promise every waiter gets the same conflict. On rollback, waiters may proceed if fresh preconditions still hold, with no ghost revision/audit. On disconnect, neither assume rollback nor replay: resolve exact canonical target/result under new current authorization. Exercise both lock acquisition orders, deadlock prevention and expiry advancing while blocked. Configuration integrity and caller-visible result attribution are distinct.
+
+### UI-J. ACCESSIBILITY CONTRACT
+
+Use visible labels with programmatic association, descriptions with units and inclusive bounds, localized field-specific errors with aria-invalid/aria-describedby. Radius and center must have a complete keyboard path. Numeric fields keep LTR direction; do not substitute placeholder-only labels. Use existing select/button/focus styling and native keyboard semantics.
+
+Dialogs have accessible title, aria-modal, focus trap, stable initial label/review focus, topmost-modal Escape, Cancel/X, and restoration to the surviving trigger or section heading. Background controls must not receive dialog focus. Validate focus entry/restoration after asynchronous MFA controls appear. Map pan/zoom needs labeled controls and must not trap Tab; a keyboard user can bypass map and complete all center/radius actions manually.
+
+Use role=alert for validation/server/authority/conflict/uncertainty errors; role=status for loading/save/refresh/expiry notices; aria-busy for affected section/form. Avoid repeated live-region announcements on every countdown tick. Saving controls expose disabled state and localized progress; no hover-only actions. Readiness/state shows text, never color alone. Ensure touch targets/focus rings and contrast using existing theme rules; no dialog footer clipped at 480×900 or browser zoom.
+
+### UI-K. EN/AR / RTL CONTRACT AND VISUAL MATRIX
+
+Use current `DashboardLocale`/locale-provider and small feature copy module, not a parallel i18n stack. Localize all modes, sources, units, descriptions, readiness/reasons, statuses, action labels and retry/conflict/unknown/MFA text. Literal backend enum codes remain contracts, not primary human labels. Recommended feature title: Shift Presence / الحضور عند بدء وإنهاء الوردية; Attendance Zones / مناطق الحضور; Presence Exceptions / استثناءات الحضور. Use a consistent reviewed glossary for Start/End and warning/require/override explanations.
+
+Coordinates, codes and email stay LTR/bidi-isolated. Preserve signs and decimal precision; parse numeric form text using a defined shared convention, never silently reinterpret locale punctuation. Arabic formatting is for display; wire numeric values retain their shared schema. Times use server UTC instants formatted in the authoritative Location timezone with locale; unknown timezone gets explicit unavailable text, not browser-local guessing. Company threshold rows do not need an invented Location timezone.
+
+Exact acceptance matrix is **8 combinations**:
+
+| Locale/direction | 1440×900 Light | 1440×900 Dark | 480×900 Light | 480×900 Dark |
+| --- | --- | --- | --- | --- |
+| EN / LTR | Required | Required | Required | Required |
+| AR / RTL | Required | Required | Required | Required |
+
+Cover Company subsection, shared CA Location subsection, LM Location subsection, empty/populated zones, Add/Edit dialog, pending/history/review and visible error/MFA states. This includes the task's four minimum cases and both themes for Arabic. Freeze before/after untouched Settings shell, sidebar/topbar, title/subtitle, tabs, existing row geometry/card/typography/form controls and Service Status. New subsection legitimately adds content below old settings; compare untouched regions, not force an identical whole-page height. Operational Maps & Zones must retain its current visual/behavior tests. No default screenshot updates to mask unrelated changes.
+
+Use deterministic synthetic fixtures for visual comparisons; actual geographic adapter needs a separate real browser integration/failure gate. Deterministic map test stubs do not prove live streets, SDK readiness or deployment keys work.
+
+### UI-L. FILE OWNERSHIP PLAN
+
+#### Files expected to change
+
+No listed file is edited by this task. These are likely GPS-D files conditional on stable GPS-B public contracts; names are proposals, not fabricated existing exports. Every authored implementation/test file must remain ≤300 physical lines under `docs/17_AGENT_CODE_STRUCTURE_RULES.md`. CSS additions are feature-local and reuse tokens; no compressed line-count workaround.
+
+#### DEFINITELY RELEVANT current areas
+
+| Current file | Lines inspected | Small expected GPS-D change |
+| --- | ---: | --- |
+| `apps\dashboard\src\features\administration\settings\settings-page.tsx` | 241 | Compose one Company and one shared Location subsection after existing panels; pass full scope/capability context. Keep new forms/read orchestration out of this near-ceiling page |
+| Same directory `company-settings-panel.tsx` | 108 | Existing Company Settings remains frozen; prefer page sibling composition rather than new presence logic inside it |
+| Same directory `management-location-settings-panel.tsx` | 141 | Existing CA override rendering remains frozen; sibling presence composition consumes exact Location context |
+| Same directory `location-manager-settings-panel.tsx` | 111 | Existing legacy LM rendering remains frozen; reuse same sibling Location presence composition |
+| Same directory `setting-row.tsx` / `setting-definitions.ts` / `settings-copy.ts` / `settings-api.ts` | 125 / inspected / 86 / inspected | Reuse visual conventions and transport examples; **no required edit** under focused policy-row recommendation |
+
+Recommendation: modify only `settings-page.tsx` for production placement if contract composition permits. Current Company/CA/LM panels need not all be modified merely because the task lists them. If wiring approaches 300 lines, extract a focused Settings scope-section composer first; no unrelated shell or Settings redesign.
+
+#### CONDITIONAL ON stable GPS-B contract / U-002–U-005
+
+All proposed Dashboard additions are beneath `apps\dashboard\src\features\administration\settings\`:
+
+| Likely new file | Responsibility |
+| --- | --- |
+| `shift-presence-settings.tsx` | Small Company/Location composition exports; one shared Location component used by CA and LM; independent section read states |
+| `shift-presence-policy.tsx` | Four focused policy rows, inherited/saved/draft presentation and local field errors; no zone/review SQL or map code |
+| `shift-presence-readiness.tsx` | Compact text-based server projection; no local readiness algorithm |
+| `shift-presence-zones.tsx` | Safe bounded list, Add/Edit/state-confirm triggers and refresh |
+| `shift-presence-zone-dialog.tsx` | Single Add/Edit form, canonical ID/revision, validation, controls/map composition/focus |
+| `shift-presence-exceptions.tsx` | Pending/history bounded list and canonical state/identity presentation |
+| `shift-presence-exception-dialog.tsx` | Exact review details/Approve/Reject confirmation with MFA and pending state |
+| `shift-presence-api.ts` | Shared-schema parsing and CA/LM adapter selection, immutable scoped targets, no domain authority decisions |
+| `shift-presence-copy.ts` | Feature EN/AR modes/units/reasons/state/error/confirmation copy |
+| `use-shift-presence-mutation.ts` | Only necessary feature-specific result/unknown/reconciliation coordination around existing guards/MFA; do not clone a second general mutation framework |
+| `attendance-zone-map.tsx` | Provider-neutral editor-facing configuration map boundary; no operational map DTOs |
+| `attendance-zone-google-map.tsx` | U-005-selected narrow Google SDK adapter/loading/disposal; no multi-provider factory |
+| `shift-presence.module.css` | Only necessary scoped subsection/modal/map composition using frozen spacing/colors; no global overrides |
+
+Prefer colocated focused `.test.ts`/`.test.tsx` files split policy, dialog, API, result recovery and scope. Proposed e2e additions under `apps\dashboard\e2e\`: `shift-presence-settings.spec.ts`, `shift-presence-zones.spec.ts`, `shift-presence-exceptions.spec.ts`, `shift-presence-scope-races.spec.ts`, `shift-presence-visual.spec.ts`; split before any exceeds 300 lines. Fixture projections belong in a focused support file, not growing the main fixture beyond its structure budget.
+
+GPS-B contract/source areas are existing `packages/contracts/src/shift-presence*.ts`, index/error/audit/capability catalogs, `apps/api/src/modules/shifts/shift-presence-*.ts`, management/dashboard authorized entrypoints, readiness projection/lifecycle functions and forward database migrations/grants if required. Exact new backend filenames are GPS-B-owned conditional predictions, not an instruction to implement routes in this UI task. No new persistence layer/module is selected here.
+
+#### NOT TO TOUCH / NOT JUSTIFIED YET
+
+Do not read/edit `apps/valet/**`; do not edit Native or employee-client, Start/End commands, production source, dependencies/lockfiles, API routes or migrations in this docs integration. Only the explicitly owned canonical planning/decision/domain/schema/security docs may change. Do not change Dashboard shell/sidebar/topbar/navigation, tabs, MapsPage/CoordinateCanvas/operational editors/styles, unrelated Settings catalogs, Task/Dispatch/tracking, employee GPS history, force-end UI or report/export surfaces. Operational dialogs are visual references; do not broaden their domain. No generic map-provider registry, geocoding persistence, new queue/scheduler, PostGIS, duplicate LM UI, arbitrary status endpoint, PR/merge/issue closure.
+
+### UI-M. TEST PLAN
+
+#### Test matrix
+
+Current evidence inspected, **not executed in this planning task**:
+
+- `apps\api\test\management-settings.integration.test.ts`: actual HTTP/default/override/CAS/MFA/no-op/audit patterns.
+- Same directory `management-settings-concurrency.integration.test.ts`: real queued Organization advisory-lock races and database/audit assertions; use barriers, not timing guesses.
+- Same directory `dashboard-configuration-api.integration.test.ts`, `dashboard-configuration-mutation.integration.test.ts`, `dashboard-configuration-resolution.integration.test.ts`: LM exact authority, explicit false versus clear, stale tokens, validation and canonical resolution.
+- Same directory `staff-mfa-assurance.integration.test.ts`, `staff-mfa-authority-races.integration.test.ts`, `staff-mfa-lm-closure.integration.test.ts`: assurance/session/revocation/LM ceremony contracts were inspected as relevant coverage sources.
+- `apps\dashboard\src\features\administration\use-sensitive-mutation.test.ts`: suppress stale success/conflict/no protected replay.
+- `apps\dashboard\src\features\operations\maps\use-map-setup-mutation.test.ts`: committed save versus refresh failure/definite denial/stale scope result.
+- `apps\dashboard\e2e\administration-settings.spec.ts`, `administration-settings-validation.spec.ts`, `administration-visual-freeze.spec.ts`: inherited/override distinction, client validation/no write, frozen hierarchy/themes.
+- Same directory `md-r07-map-visual.spec.ts`, `md-r07-map-races.spec.ts`, `md-r07-map-privacy-budget.spec.ts`, `operations-map-outcomes.spec.ts`, `task01-map-async-race.spec.ts`, `task01-mfa-session-race.spec.ts`: 1440/480, dark/Arabic, A→B→A, cursor/logout/pending mutation/MFA and request-budget/privacy proof.
+
+#### Unit / component
+
+Validate exact accepted enums/bounds (inclusive endpoints, invalid blank/nonfinite/fraction); separate explicit OFF override from inherit; text default/override/effective/source/revisions; no local READY calculation; no same-scope refresh losing draft invisibly; no old-scope draft retention. Test numeric precision, signed/zero coordinates, radius decimals, long/Unicode labels/code, duplicate-code server rejection and safe text rendering. Verify map/manual single draft synchronization and provider failure/manual fallback. Component-test keyboard flow/focus/MFA nesting/Escape/restoration, busy and status/alert states, all exception statuses, no raw-fix/internal field display and no self controls across memberships of one User.
+
+#### Mutation retry / concurrency matrix
+
+| Mutation family | First valid execution | Identical retry / retry after success | Concurrent identical | Conflicting concurrent |
+| --- | --- | --- | --- | --- |
+| Company SET / Location SET / CLEAR | Fresh authority/MFA/context, valid resulting readiness, canonical projection and atomic safe audit | UI always reconciles before explicit retry. Policy unchanged values do not advance presence revision; exact public no-op/audit result frozen by U-003 | Test convergence/conflict against U-003; never two success audits for one logical accepted result if that result is selected | Test R01/R05/R06 with actual transaction barriers, coherent inherited projection and no invalid fanout |
+| Zone CREATE | Explicit geometry/state, exact Location authority, accepted unique code, stable correlation | Lost create response must resolve U-003 identity before another create; do not infer by code/label alone or allocate a new duplicate intent | Outcome follows U-003 selected create identity; DB Location/code uniqueness remains enforced | Same code/distinct creates, or scope swap, fail safely without disclosing foreign resource; canonical result proof |
+| Zone UPDATE / ENABLE / DISABLE | Fresh zone revision, authority/MFA and resulting readiness; canonical updated zone | Reread exact entity/result before explicit action; unchanged editor sends no write; do not assume idempotent zone audit/token semantics | Existing zone revision CAS can reject duplicate stale write; U-003 freezes attribution/result handling | R02–R12, including shrink/move last usable zone and lifecycle activation |
+| Exception APPROVE / REJECT | Fresh reviewer/requester proof, no self, PENDING revision, live challenge/unexpired server clock, atomic review/audit | Reread exact exception/result; cannot reverse canonical review or replay after expiry; identical-result response policy U-003 | One accepted review with conditional no-op/conflict classification per U-003, no double consumption | R07–R09; DEC-100 consumption/revocation/logout tests are mandatory |
+
+Each family must test first execution, identical retry, concurrent identical execution, conflicting concurrent execution and retry after success. Include definite denial/local validation (zero write), audit failure rollback, successful commit/lost response, transaction rollback/lost response, malformed success body after possible commit and reconciliation GET failure. An HTTP conflict alone does not prove no database/audit mutation; inspect rows/revisions/history after winners and losers.
+
+#### GPS-B real HTTP/PostgreSQL prerequisites
+
+Use runtime-role disposable PostgreSQL with versioned forward migrations on empty and representative existing data, not schema synchronization. Verify grants/function whitelists, OFF compatibility, server non-OFF release gating and two-principal IDOR tests: authenticated B cannot read/mutate A's Company/Location/zone/exception; wrong Location, disabled grant/member/User/Organization, inactive-LM targets, stale session and cross-membership self review all deny without mutation/disclosure. CA inactive setup remains covered. Test R01–R11, configuration schedules A–E and all five exact current-authority schedules with real barriers and commit/rollback/unknown branches. Include currency-versus-presence lock inversion, activation/new-inheritor fanout, actor/requester cross-User contention and token rotation under the existing User-security boundary. DEC-100 tests distinguish real authority revocation from old approver logout/session expiry/MFA age; verify early expiry + Operation DENIED with zero Shift/consumption and exact recovery. Failed ordinary cash/open-work checks roll back consumption; accepted revocation denial deliberately commits terminal result without Shift effect. Current-authority revocation-before-review proof remains mandatory.
+
+Use controlled HTTP response loss after real database commit, server termination/disconnect before commit and retry/status lookup on restart to prove result recovery; frontend mocks alone are insufficient. No new worker/queue lease model is introduced by this request. Keep policy/readiness/AuditEvent projections consistent, minimize responses and assert employee measurement/internal security data absent from DB history/logs/API/UI. GPS-B integration changes to Start/End are owned and tested there, never made by this planning task or hidden inside GPS-D.
+
+#### GPS-D browser / visual / failure
+
+Test CA Company and Location vs LM exact Location with the same Location component; All Locations selection; controls/capability denial; local validation no writes; Set/Clear semantics; zero zones; explicit ACTIVE/DISABLED; duplicate code; confirmed/unknown/conflict/error/expired/consumed review. Delay success *and error* for read, zone write, review and MFA across Organization switch, Location switch, LM switch, logout, session replacement and A→B→A. Count requests to prove no protected replay, no per-row enrichment/polling, bounded pagination and no replacement-scope follow-up reads. Test identity replacement during pre-dispatch auth refresh, not only after server response.
+
+Execute all eight visual combinations in K; freeze untouched Settings regions and run existing operational map regression tests. Real map integration must prove geographic streets, pin/radius/manual consistency, lifecycle disposal, SDK/key/network failure and keyboard fallback. Validate real Dashboard/API with MFA bypass OFF separately from synthetic fixture browsers. GPS-D complete rollout proof uses the already implemented GPS-C Android build for manager exception→employee explicit action and unknown/expiry recovery, without Native edits. Physical Android evidence and later iOS acceptance are distinct from browser/API proof.
+
+#### Verification commands / evidence levels
+
+For future GPS-D use current scripts: `pnpm --filter @valet/dashboard test`, `typecheck`, `lint`, focused `exec playwright test` / runtime config selection, and a configured `build` when required. New exact test paths are selected after creation; do not claim these commands passed here. Run appropriate structure/format/diff and observed remote CI checks on the implementation branch. If the Employee Web exclusion persists, do not silently run repository-wide scanners that inspect it; agree a scoped/CI evidence boundary and report the gap.
+
+Report separately: IMPLEMENTED source presence; STATIC VERIFIED lint/typecheck; LOCAL COMMAND VERIFIED tests/build/migrations; RUNTIME VERIFIED real API/Dashboard/MFA/map; FAILURE VERIFIED induced response/SDK/process losses; CI VERIFIED observed remote run; PRODUCTION-READY only after accepted rollout/recovery/key/maintenance and physical-device conditions. This plan supplies source-inspection evidence only, plus its separate plan-consistency audit; no test/build/runtime/CI/device success is claimed.
+
+### UI-N. IMPLEMENTATION ORDER
+
+#### Proposed implementation plan
+
+This is a decision-dependent implementation envelope only where technical U-002–U-005 publication applies. Settled layout/privacy/current management authority/CAS/readiness/no-replay invariants stay definitive. DEC-099's guard graph and existing helpers are mandatory references; F's focused row-protection wrapper and nonblocking multi-principal acquisition are explicitly DERIVED technical composition, not an invented Accepted literal. DEC-100 defines later-approval lifetime; no unpublished U-002–U-005 wire/SDK contract is treated as an existing capability.
+
+1. **GPS-B prerequisites:** start on its authorized own branch from actual main containing GPS-A; record SHA/clean status/live issue/Accepted DEC. Consume Accepted DEC-100 U-001; freeze U-002/U-003/U-004 technical public contracts without reopening modes/bounds/retention/provider. Preserve current Start/safe-own-End/cash/open-work behavior in GPS-B, outside this task.
+2. **GPS-B authority / management composition — conditional on published U-002/U-003:** implement authorized Company policy, exact CA/LM Location projection, one-field set/clear, zone/list/update/state and exception query/review with UI-F's one-transaction protected-authority contract. Current review authority and DEC-100 later-consumption branch are fixed. Publish exact result/recovery identity under U-003 before GPS-D can retry uncertain creates/writes. Internal helper inputs never become public authority.
+3. **GPS-B readiness / release safety — wire representation conditional on U-004:** implement Q and schedules A–E across policy/zone/clear/Company fanout/creator/activation. Fix UI-E24 settings/lifecycle inversion in the coordinated GPS-B scope before composition; add missing authority row protection and real barrier proof. Preserve drain/currency/timezone and the accepted server recovery gate. No gate removal before supported recovery/client proof. Real HTTP/DB authority/race/privacy/runtime-role proof plus stable fixtures precedes UI implementation.
+4. **GPS-C predecessor availability:** stable supported Android workflow/reconciliation/fallback evidence is an input to GPS-D complete acceptance, not an implementation subtask of this plan. Do not inspect or modify Native/Employee Web here. Any required Employee Web expansion returns to the owner separately; no source read is authorized here.
+5. **GPS-D composition first:** confirm actual authorized branch/predecessor contracts; add tiny Settings placement and focused policy/readiness presentation with full scope/session fencing; no new tab/sidebar. Unit/component proof of fields/inheritance/authority/MFA/CAS before zones.
+6. **GPS-D zones / U-005 integration:** implement safe list and single dialog with manual coordinates/radius first; integrate accepted Google adapter behind AttendanceZoneMap after deployment/loading details are resolved. Verify actual base map, failure fallback and disposal; manual-first development does not by itself satisfy the completed geographic-map acceptance requirement.
+7. **GPS-D exceptions / reconciliation — conditional on U-002/U-003 fixtures:** add the frozen safe pending/history layout and exact review confirmation; compose feature result coordinator with current sensitive guards/MFA and canonical refresh for conflict/unknown states. Canonical status display is definitive; transport/result attribution waits for U-002/U-003. Consuming-action acceptance follows DEC-100 in GPS-B/C; no UI lifetime decision or unobserved test result is assumed.
+8. **GPS-D acceptance:** execute full current-scope/read/write/MFA/map races, eight-case visual freeze, accessibility, real API/MFA/map failures and complete GPS-C Android-manager workflow. Review actual CI and release/readiness conditions. Do not enable strict pilot from a UI-only check, fixture pass or unavailable recovery path.
+
+Reusable downstream boundary for GPS-B/D: shared typed policy/zone schemas and authenticated Location policy+readiness projection; precise target/revision-safe management commands; safe exception projection/review/result read; feature-neutral application configuration guard/audit boundary. AttendanceZoneMap consumes only configuration drafts. These are capability requirements, not frozen U-002/U-003 function signatures. A read-only eligibility helper never proves a later protected write; GPS-B owns the consumer transaction and invalidation serialization.
+
+#### Risks / boundary violations
+
+Do not equate GPS-A persistence with public UI support, assume a map SDK exists because Google is accepted, treat a read authorizer as revocation-safe write authority, reuse operational task positions/polygons or Shift operations for management recovery, infer readiness from active count alone, silently impose legacy timestamp CAS on positive presence revisions, identify uncertain own writes by value equality, or treat MFA completion as Save authorization after scope replacement. Do not retain operator free-text in append-only audit simply because the key is safe: code/label are bounded configuration strings and could contain secrets/PII; render as text, avoid copy into generic logs/audit unless the approved U-002 catalog explicitly justifies sanitized bounded values. No note field is needed. Provider keys and internal request/fingerprint material stay outside tenant Settings/responses.
+
+#### Explicitly out of scope
+
+Production implementation in this documentation integration; Native/Employee Web inspection or edits; Start/End changes; dependencies/lockfiles/map SDK installation; migrations/DB execution; server route implementation; rollout activation; shell/Settings/Maps redesign; background or continuous attendance tracking; raw-fix maps/history; advanced attestation; geocoding without approval; reports/analytics/exports; new infrastructure; PR/merge/issue closure. The focused documentation branch commit/push is explicitly authorized by the current owner task.
+
+### UI-O. ACCEPTED DECISIONS / PUBLICATION AND EVIDENCE GATES
+
+**Owner product decisions unresolved: 0.** U-001 is Accepted in DEC-100. Current
+authority, later-consumption revocation denial, privacy, strict readiness and UI
+geometry/navigation semantics have no remaining ambiguity. U-002/003/004/005 are
+GPS-B/D API/result/readiness/SDK publication gates, not owner product questions.
+Google is fixed by DEC-045; search/geocoding remains optional/deferred for v1;
+history lives within the existing Location subsection with bounded server paging.
+No new tab/sidebar/page or setting paradigm is introduced.
+
+#### Ready-to-implement verdict
+
+Binding plan accepted; implementation remains predecessor/evidence gated under
+GPS-A → GPS-B → #262 physical causal resolution/fix → GPS-C → GPS-D. Required
+current SQL/authorizer/readiness/early-denial/retention gaps belong to GPS-B;
+provider deployment and client/physical proof are later gates. This document
+does not claim those capabilities are implemented or tested.
+
 ## H. #257 SAFE IMPLEMENTATION SPLIT
 
 Four tasks are selected rather than compressing into three: schema/evaluator foundations, Shift-command/management enforcement, Native platform acquisition, and Dashboard/rollout acceptance are distinct review and deployment boundaries. Combining the first two would join migration/grants/configuration, money/Shift concurrency, override authority and durable retry into one unusually broad review. Combining Native with Dashboard would mix different authorization and platform evidence. Four is the permitted maximum; no additional independent implementation slices are implied by tests or hardening subtasks.
 
-All four tasks depend on acceptance of U257 decisions that govern them. Each starts from an explicit recorded current main SHA. Initial reference is b4027750a91d0706e4ab969f099b3750e0fc530f; GPS-B/C/D must use actual main containing their merged predecessor(s), not the stale initial SHA. No task may set strict production policy on its own merely because its tests pass.
+The four GPS units consume already Accepted decisions. GPS-A is complete/merged at b086a14eec5d5085ac713e4ed22aaee431a5044e; GPS-B is next. Master order is GPS-A → GPS-B → #262 physical causal resolution/fix → GPS-C → GPS-D. Each future unit uses actual main containing its predecessor(s), records that SHA and does not enable strict production policy alone.
 
-### GPS-A — accepted decision, persistence, typed policy and evaluator foundation
+### GPS-A — completed and merged foundation record
+
+**Status: COMPLETED / MERGED.** Verified fetched main: `b086a14eec5d5085ac713e4ed22aaee431a5044e`. The following records scope and handoff, not permission to restart GPS-A. No fresh test/device claim is made by this docs task.
 
 1. **NAME:** Shift Presence foundation (GPS-A).
-2. **BASELINE:** Initial expected main b4027750a91d0706e4ab969f099b3750e0fc530f, updated to actual main after prior issues; branch codex/native-257-presence-foundation. Record SHA and migration head before allocating names.
-3. **GOAL:** Implement only the accepted dedicated persistence, typed inherited policy, pure evaluator and scoped challenge/decision primitives so later commands can compose them safely.
+2. **BASELINE:** Foundation base in DEC-099: 057b271a7f8f6d46f8e88a94035a9aa7e8763ef7; merged result b086a14eec5d5085ac713e4ed22aaee431a5044e. Original implementation branch codex/native-257-presence-foundation; current documentation branch is separate.
+3. **GOAL:** Completed dedicated persistence, typed inherited policy, pure evaluator and scoped operation/challenge/decision/exception primitives for later caller-transaction composition.
 4. **NON-GOALS:** Enabling strict operations, changing Start/End effects, Native GPS, Dashboard rendering, task tracking reuse, attestation dependency or generic settings blob.
-5. **CURRENT CODE FINDINGS:** E17/E19–E22 and G. No attendance model. Typed settings whitelist and SQL mutation functions exist; projection helpers are partially private. Existing map polygons and tracking FKs require task/session scope. Existing grants/audit constraints must be extended intentionally, not bypassed through raw broad grants.
-6. **DECISION LOCK:** L5/L6 and the owner-approved U257 product bundle apply. GPS-A begins by recording the focused DEC with exact technical bounds, persistence/retention and contract details before source code. Do not alter the accepted modes, default OFF, circular-zone, privacy, authority or Android-first rollout choices while filling those technical details.
-7. **STATE TRANSITIONS:** No Shift or task/session transitions in GPS-A. Candidate zone ACTIVE/DISABLED and challenge/decision lifecycle only as accepted in G; durable records are not a second Shift machine.
+5. **CURRENT CODE FINDINGS:** Five attendance models, shared typed schemas, pure evaluator, scoped transaction primitives, positive revisions, privacy/retention guards and forward migrations 058/059 are merged. No public presence route or Shift enforcement; existing public settings exclude presence.
+6. **DECISION LOCK:** Accepted DEC-099 freezes the foundation. DEC-100 is later GPS-B semantics, not a GPS-A redo. Modes/default OFF/circular zones/zero raw retention/CA-exactLM authority remain fixed.
+7. **STATE TRANSITIONS:** No Shift, ValetSession or Task transition change. Internal controlled zone/operation/challenge/exception lifecycle only; no second Shift machine.
 8. **AUTHORITY MODEL:** Internal functions accept authenticated/derived scope and caller transaction; no public unguarded evaluator endpoint. Configuration CA/LM authority is explicit and separate. Candidate challenge creation proves Start or safe-own-End scope before allocation; if public issuance is deferred to GPS-B, keep primitives unexposed.
-9. **CONTRACT/API CHANGES:** Under the owner-approved direction and focused technical DEC, add shared policy/zone/evidence/attempt/decision schemas and typed settings projection extensions. Keep external issuance/mutation routes unregistered until GPS-B has enforcement. Reject non-OFF activation until release gate accepted/implemented. Do not change existing successful Shift shape in this task.
-10. **DATABASE/MIGRATION CHANGES:** Under the owner-approved direction and focused technical DEC: forward migration(s) for G's models, composite FKs, CHECKs, uniqueness, CAS columns, expiry/read indexes and runtime grants. Extend typed Company/Location fields default OFF/null override. Separate enum addition if PostgreSQL transactional use requires it. Update docs/03, domain/config/decision documentation and fixtures. Immutable applied migrations untouched.
-11. **LOCKING/CAS/CONCURRENCY:** Design internal helpers to run in caller transaction. Reuse management settings Organization shared/exclusive guard for policy stability where compatible; define lock graph in accepted DEC. Challenge consume is guarded against concurrent use; operation identity has DB uniqueness, not in-memory map. Zone edits expectedUpdatedAt and scope. Pure evaluator has no hidden DB calls.
+9. **CONTRACT/API CHANGES:** Merged shared foundation types/resolver/evaluator. No public management projection or activation/challenge/review routes. Do not broaden old whitelists or successful Shift responses from GPS-A.
+10. **DATABASE/MIGRATION CHANGES:** Completed migrations 058 and 059 with typed Company/Location fields, exact scoped models/FKs/checks/indexes/revisions/grants/privacy/retention. Historical migrations remain immutable. New DEC-100 forward work belongs exclusively to GPS-B.
+11. **LOCKING/CAS/CONCURRENCY:** DEC-099 settings shared→lifecycle shared→existing authority/Shift→operation→challenge→exception; zone/policy writers settings exclusive first. Presence CAS is positive expectedRevision, not timestamp. Helpers use the caller transaction and preauthorized scope.
 12. **UNKNOWN OUTCOME / RETRY:** Foundation stores exact durable operation/result linkage under accepted semantics; same-key changed fingerprint conflicts. Unknown create/consume is resolved by exact authorized operation read in GPS-B. Do not turn arbitrary DB uniqueness into a user-visible idempotency promise. OFF legacy calls remain untouched.
 13. **NATIVE SESSION/STATE CHANGES:** NONE. Define types consumed later without partially wiring a button or permission request.
 14. **BACKGROUND / FOREGROUND:** No Native behavior change. Challenges have server expiry and durable identity so client process lifetime cannot define validity.
@@ -416,33 +1122,33 @@ All four tasks depend on acceptance of U257 decisions that govern them. Each sta
 16. **UI FREEZE:** All Native/Dashboard surfaces unchanged. No partial controls suggesting strict presence already works.
 17. **EN/AR + RTL:** Controlled reason keys may be introduced in shared schemas; no unfinished English-only visible UI. Translation work belongs to consumers.
 18. **ACCESSIBILITY:** No new surface. Contracts must support meaningful reason/state labels rather than color-only interpretation later.
-19. **PRIVACY / SECURITY:** No raw fix in persisted records/logs/audit; finite/bounded evidence schemas; scoped grants and no tenantless decision rows. Exception notes bounded and rendered as text; not copied into normal telemetry. Cleanup policy requires accepted retention, not task GPS's retention borrowed by analogy.
+19. **PRIVACY / SECURITY:** Zero durable raw employee fix; no Decision request fingerprint; safe categorical summaries and exact scoped grants. Exception note absent. Retention values are fixed by DEC-099, separate from task GPS.
 20. **AUDIT / HISTORY:** Accepted safe configuration/zone history atomically appended where mutation exposed; no custody writer with fake ValetSession ID. Decision facts immutable. New event names and allowed metadata are U257-D, not inferred from schema nullability.
-21. **EXACT FILES TO MODIFY:** Conditional: packages/database/prisma/schema.prisma; packages/contracts/src/management-settings.ts and index.ts; apps/api/src/modules/management/management-settings-projection.ts and management-settings-mutation-repository.ts only accepted typed extensions; docs/03_DATABASE_SCHEMA.md, docs/02_DOMAIN_MODEL.md, docs/06_SECURITY_AND_DATA_RULES.md, docs/08_DECISIONS_LOG.md and task-specific focused DEC. Runtime provisioning source only if actual grant mechanism requires explicit registration; no unrelated package edits.
-22. **EXACT FILES TO ADD:** Conditional: packages/contracts/src/shift-presence.ts, shift-presence-policy.ts, shift-presence-management.ts and corresponding .test.ts; apps/api/src/modules/shifts/shift-presence-evaluator.ts, shift-presence-policy.ts, shift-presence-challenge.ts, shift-presence-persistence.ts, shift-presence-types.ts, shift-presence-errors.ts; evaluator .test.ts; packages/database/src/shift-presence-persistence.integration.test.ts, shift-presence-runtime-role.integration.test.ts; apps/api/test/shift-presence-foundation.integration.test.ts. Allocate actual migration and DEC filenames from main. Do not register placeholder routes.
+21. **EXACT FILES TO MODIFY:** Historical implemented areas: database schema/runtime provisioning, shared foundation exports and domain/schema/security/DEC-099 documentation. This is not a new edit list; inspect the merged GPS-A diff for exact authored scope.
+22. **EXACT FILES TO ADD:** Historical additions include migrations 058/059, shared shift-presence and policy types, API pure evaluator and scoped operation/challenge/decision/exception/zone primitives and focused foundation tests. No placeholder HTTP or client surfaces.
 23. **FILE-SIZE / 300-LINE PLAN:** management-settings contract 227 lines: separate new attendance schema and compose it. Keep evaluator pure, geometry helper separate if justified by tested complexity, SQL persistence separate from authority. Split schema/grant/retention tests. No massive generic presence service.
 24. **TEST MATRIX:** Geometry exact edge/inside/outside/ambiguous/multiple zones/dateline/poles; finite/bounds/accuracy/freshness/future timestamps; Company inherit/override/clear; DB cross-scope FKs, unique operation, end action requires exact Shift, CAS, expiry, append-only runtime permissions, raw-coordinate absence, default OFF migration/backfill and strict activation unavailable.
 25. **VALIDATION COMMANDS:** M contracts/evaluator/database focused tests; prisma:validate; forward migration deploy on disposable test DB and runtime:provision; migration/runtime-role integration; API/contracts typecheck/lint and structure. No production migration execution as test.
 26. **PHYSICAL PROOF:** None required for pure server foundation; explicitly not evidence of usable GPS. Use reproducible synthetic coordinate fixtures, no real employee route. Physical acceptance remains GPS-C/D.
 27. **RACE PROOF:** Foundation double operation/challenge allocation and CAS zone/policy edits use real PostgreSQL barriers. Locking behavior documented for caller composition, not “tested” only with mocks.
 28. **REGRESSION SURFACES:** Existing settings/MFA/CAS; Location activation/defaults; task GPS lifecycle and retention; old Shift requests unchanged; migration grants/fixtures.
-29. **DEPENDENCIES:** Record the focused U257 DEC/technical parameter lock first; single migration ownership after #261. Supplies stable contracts and internal primitives to GPS-B.
-30. **DONE CRITERIA:** Accepted docs/schema parity, tested pure evaluator and persistence constraints/grants, OFF baseline unchanged, no exposed half-enabled strict path, package/structure checks. Completion does not authorize rollout.
-31. **IMPLEMENTATION AGENT HANDOFF:** Accept DEC → freeze exact values/contracts → failing evaluator and DB tests → forward schema/grants/defaults → typed projections/internal primitives → migration + old-mode regression → publish stable handoff to GPS-B with actual SHA and strict activation still blocked.
+29. **DEPENDENCIES:** Completed foundation is the prerequisite for GPS-B. Coordinate future forward migrations under GPS-B; do not reopen GPS-A or overlap migration owners.
+30. **DONE CRITERIA:** Merged foundation scope is complete; OFF gate and no enforcement/client changes remain. This planning integration verifies ancestry/source only, not fresh local/remote runtime tests or pilot readiness.
+31. **IMPLEMENTATION AGENT HANDOFF:** Consume merged DEC-099 primitives from current main; GPS-B owns enforcement, authorizers, readiness, audit/recovery/retention activation and DEC-100 forward work. No new GPS-A execution is authorized.
 
 ### GPS-B — authoritative Shift enforcement, exceptions, readiness and reconciliation
 
 1. **NAME:** Shift Presence server composition (GPS-B).
 2. **BASELINE:** Actual main containing GPS-A; initial reference SHA above is not the future base. Branch codex/native-257-presence-enforcement; record exact main SHA in implementation report.
 3. **GOAL:** Compose accepted presence into existing Start/End, safe exceptions and exact recovery for every client, with complete backend management/readiness rules.
-4. **NON-GOALS:** Native sensors, Dashboard presentation, continuous tracking, cash bypass, supervisor approval unless accepted, alternate Shift machine, silent release-gate activation.
+4. **NON-GOALS:** Native sensors, Dashboard UI, Employee Web work, continuous tracking, cash/open-work bypass, Supervisor approval, alternate Shift machine or automatic release-gate activation.
 5. **CURRENT CODE FINDINGS:** G describes exact Start/End ordering. Shift audit writer only accepts SHIFT_STARTED/SHIFT_ENDED and entity Shift. Company management authorizer checks capability/MFA/current membership and scope; Location Manager dashboard configuration is separate. Existing force-end has operation fingerprint and PENDING cash result, not ordinary End reconciliation.
-6. **DECISION LOCK:** The owner-approved U257-P/D/A/R/H product directions apply. Preserve L5/L6 and G's explicit ordinary End cleanup. GPS-B consumes the focused DEC produced by GPS-A; any newly discovered product-changing conflict with current cleanup must return to the owner rather than being guessed in code.
-7. **STATE TRANSITIONS:** Existing new ACTIVE Shift and ACTIVE→ENDED only. Presence may permit/deny an explicit command, never auto-start/end. Exception request→approved/rejected/expired and approved→consumed only as accepted; no approval itself ends Shift. Configuration/readiness state changes do not alter existing task/session physical state.
-8. **AUTHORITY MODEL:** Existing Start proof; exact own Shift End proof, including stale cleanup distinction. Challenge/status/exception reads independently authorize target. Management CA and exact LM paths prove their own capabilities/MFA and revalidate through write. No self-approval or supervisor inference. Consumption rechecks exact employee/action/Shift and accepted approver validity.
-9. **CONTRACT/API CHANGES:** Under the focused DEC, register G's challenge/attempt/exception routes and extend existing Shift request schemas with optional accepted evidence/operation fields. Complete management policy/zone/exception APIs using existing sensitive command style. Keep legacy response schema under OFF compatible; publish strict typed reason mapping once. Authentication recovery may refresh credentials but must not automatically replay protected mutations.
-10. **DATABASE/MIGRATION CHANGES:** Under the focused DEC, forward replacements for Location activation/readiness and typed-setting mutation functions, accepted audit catalogs/guards and any primitive omissions discovered against GPS-A (coordinate with migration owner, no old edits). No second active-Shift index or tracking table change. Prefer GPS-A's stable record design rather than add ad-hoc fields mid-command.
-11. **LOCKING/CAS/CONCURRENCY:** Use G's protected ordering and L257 lock graph. Policy guard before settings-dependent lower row locks; lifecycle guard compatible with existing management lifecycle. Preserve membership/Shift serialization and task eligibility locks. Acquire exact attempt/challenge/exception rows once in deterministic order; consumed update plus Shift/decision/audit atomic. Company default changes serialize affected effective policy; zone disable cannot race strict activation unchecked. No external provider calls under locks. Map only known PostgreSQL constraint violations.
+6. **DECISION LOCK:** Accepted DEC-099/100 and the full binding Management UI contract below apply. U-001 is accepted; owner product decisions unresolved = 0. Ordinary End cleanup remains unchanged; approved-exception End additionally requires active requester/member/access under DEC-100.
+7. **STATE TRANSITIONS:** Existing explicit new ACTIVE Shift / ACTIVE→ENDED only on accepted successful commands. Exceptions PENDING→APPROVED/REJECTED/EXPIRED; APPROVED→CONSUMED on valid use or →EXPIRED on timed expiry/accepted authority invalidation. Revoked authority commits exact Operation DENIED atomically without Shift effect; approval itself never mutates Shift.
+8. **AUTHORITY MODEL:** Current requester/session/target proof and protected current manager review authority; different requester/reviewer Users. At approved use revalidate DEC-100 active requester/member/access/action/END Shift plus current original-approver CA or exact-LM capability/Organization/Location/lifetime. No original approver browser/session/MFA freshness requirement. UI-F and U-001 specify check-use and denial boundaries.
+9. **CONTRACT/API CHANGES:** Own every UI-F capability/data shape: Company read/set; exact Location read/effective/override set/clear/readiness; bounded zones/create/edit/enable/disable/status; exception request/status/queue/history/approve/reject/expiry; exact operation/result recovery and unknown-response reconciliation. Publish strict shared schemas/routes/revisions/capabilities/reasons/audit under existing separate CA/LM conventions before GPS-D. Also compose authoritative Start/End for all clients with compatible OFF response shape and no protected auth replay.
+10. **DATABASE/MIGRATION CHANGES:** Forward-replace public settings functions/readiness/activation and OFF-only CHECK gate only when safe; typed minimal denied result and DEC-100 early APPROVED→EXPIRED constraint/command provenance are required (058 currently prevents terminalAt<expiresAt). Do not fake dates, change lifecycle enums or edit historical migrations. Coordinate docs/fixtures/runtime grants/invariant tests; retention operational execution is required before activation.
+11. **LOCKING/CAS/CONCURRENCY:** DEC-099 graph plus UI-F/Q protected same-transaction authority, sensitive review MFA, positive per-entity CAS, viewed inherited context and exact serialized readiness across all affected inheritors. Join staff-management invalidation before membership/Shift locks; nonblocking second-principal proof fails busy/rolls back, never counts as revocation. Fix current currency lifecycle→settings inversion before composition and extend creator/activation guards. Current original-approver authority is locked through consumption, not old session assurance. No provider/network calls under locks.
 12. **UNKNOWN OUTCOME / RETRY:** Durable attempt status distinguishes committed exact action from another active Shift or old End. Identical retry returns same accepted committed result under fresh authorization without re-consuming expired proof; changed payload conflicts. Concurrent identical attempts produce one effect. Conflicting Start Locations retain membership conflict. End already-ended cash behavior and force-end classification preserved. If request may still be running, status/pending does not invite a second fresh operation.
 13. **NATIVE SESSION/STATE CHANGES:** NONE in this server unit; provide stable contracts and fixtures for GPS-C. Existing old clients under OFF still work. Strict-mode old requests are server-denied in tests; no Native-only enforcement.
 14. **BACKGROUND / FOREGROUND:** Server is client-lifecycle independent. Challenge expiry and operation outcome survive disconnect/process death. Reconciliation authorization remains valid only under accepted own-scope contract; no stale cached manager approval.
@@ -450,12 +1156,12 @@ All four tasks depend on acceptance of U257 decisions that govern them. Each sta
 16. **UI FREEZE:** No Native or Dashboard component edits. Existing response shapes must not accidentally break rendering.
 17. **EN/AR + RTL:** Shared reason enums are stable; no server-generated English prose becomes the only visible contract. Native/Dashboard translate in subsequent tasks.
 18. **ACCESSIBILITY:** No view changes; return enough controlled state for accessible recovery messaging rather than ambiguous generic success.
-19. **PRIVACY / SECURITY:** Rate limits on challenge/exception/status abuse, bounded request sizes, no raw evidence logging including validation exceptions/traces; response allowlists; foreign target concealment; exact-scope SQL FKs and authorization-before-write. Manager notes are untrusted bounded text; prevent control characters and render safely; no logs of whole command.
-20. **AUDIT / HISTORY:** Existing SHIFT_STARTED/SHIFT_ENDED remain exactly once for real effects. Under the focused DEC, add dedicated safe presence/exception/configuration events and summaries without coordinates; audit and consumption commit with success. Failed cash/open-task checks consume nothing and emit no false ended/approved-use event. Force-end history remains distinct.
+19. **PRIVACY / SECURITY:** Bound request/status abuse and strict response allowlists; no raw employee evidence, fingerprints/security internals or generic command logging. No exception request/reject note in v1. Preserve exact tenant/Location/User ownership and authorization-before-write/disclosure.
+20. **AUDIT / HISTORY:** Existing SHIFT_STARTED/SHIFT_ENDED remain exactly once for real effects. Add dedicated safe presence/exception/configuration events and summaries without coordinates; required history commits atomically with its protected effect. DEC-100 authority-revoked terminal denial commits safe denied/expired history without a Shift event or consumption. Failed cash/open-task checks consume nothing and emit no false ended/approved-use event. Force-end history remains distinct; no fake Shift/session represents management configuration/review.
 21. **EXACT FILES TO MODIFY:** Conditional: packages/contracts/src/shifts.ts and index.ts; apps/api/src/modules/shifts/start-shift-command.ts, end-shift-command.ts, shift.controller.ts, shift.service.ts, shift.module.ts, shift-audit-event-writer.ts, shift-errors.ts; apps/api/src/modules/management/management-settings.service.ts, management-settings-projection.ts, management-location-projection.ts, management-location.service.ts, management-audit-event-catalog.ts, management-audit-detail-projection.ts and module registration; apps/api/src/modules/dashboard/dashboard-configuration-command.ts and dashboard-configuration-projection.ts if accepted LM typed policy extension uses that path; docs/03 and accepted DEC/log as required.
 22. **EXACT FILES TO ADD:** Conditional: apps/api/src/modules/shifts/shift-presence-command.ts, shift-presence-authorization.ts, shift-presence-attempt-query.ts, shift-presence.controller.ts, shift-presence.service.ts, shift-presence-audit.ts; apps/api/src/modules/management/shift-presence-management.controller.ts, shift-presence-management.service.ts, shift-presence-zone-command.ts, shift-presence-exception-command.ts, shift-presence-readiness.ts; apps/api/test/shift-presence-start.integration.test.ts, shift-presence-end.integration.test.ts, shift-presence-authority.integration.test.ts, shift-presence-replay-races.integration.test.ts, shift-presence-policy-races.integration.test.ts, shift-presence-override.integration.test.ts, shift-presence-old-client.integration.test.ts. New migrations only with actual allocated names.
-23. **FILE-SIZE / 300-LINE PLAN:** Extract presence composition out of existing commands; keep their current orchestration readable. Separate manager zone/config/exception scopes and tests; do not put all routes or policy error mapping in one growing file. Audit writer widening must remain typed to Shift/presence, not arbitrary entities.
-24. **TEST MATRIX:** Four modes × Start/End × evidence outcomes; old omitted fields; exact replay and changed fingerprint; challenge cross actor/Location/action/Shift; expiry/consumption; current vs stale authority; no self/foreign/supervisor approval; manager revocation; cash/open-task-first; atomic rollback; policy/zone/readiness races; Company fanout; force-end distinction; logs/DB privacy; rate-limit behavior and strict schema response compatibility.
+23. **FILE-SIZE / 300-LINE PLAN:** Extract presence composition out of existing commands; keep their current orchestration readable. Separate manager zone/config/exception scopes and tests; do not put all routes or policy error mapping in one growing file. Preserve the existing real-Shift writer; use a separately verified typed compatible management audit boundary for configuration/review, with no generic arbitrary-entity widening.
+24. **TEST MATRIX:** Full mode/action/evidence/old-client/replay/CAS matrix plus UI-M: policy/zone strict-readiness races, all-inheritor fanout, current manager/session/member/grant/lifecycle races, requester/approver authority under DEC-100, logout/expiry alone permits live approval, real revocation expires/denies with zero Shift effect, consume-vs-revoke winner/rollback/unknown result, early terminalAt CHECK forward migration and runtime least privilege/privacy/retention proof.
 25. **VALIDATION COMMANDS:** M API selected shift-presence suites plus shift-start/end/eligibility/cash/API, staff-force-end authority/replay/work races, management-settings/lifecycle; contracts/DB grant checks; package lint/typecheck and architecture. Use real disposable PostgreSQL concurrency barriers.
 26. **PHYSICAL PROOF:** No sensor proof yet. Exercise real API with synthetic evidence and old request bodies under each mode in an isolated environment. Native/device acceptance is explicitly still pending GPS-C/D; release gate remains closed.
 27. **RACE PROOF:** L257-1 through L257-10, including member/access/Shift eligibility check-use races. Capture winner/loser, durable result and exact event count, not just exception type. Test DB error rollback at every consume/write stage.
@@ -504,26 +1210,26 @@ All four tasks depend on acceptance of U257 decisions that govern them. Each sta
 2. **BASELINE:** Actual main containing GPS-B/C; branch codex/native-257-presence-management. Record actual SHA; original investigation reference is b4027750a91d0706e4ab969f099b3750e0fc530f.
 3. **GOAL:** Make accepted typed policy, zones, readiness and exact exceptions manageable through existing Dashboard patterns and prove the complete feature can safely be piloted.
 4. **NON-GOALS:** Dashboard redesign, new navigation system, BI/attendance analytics, raw employee location map, task tracking changes, unapproved Web implementation, new force-end workflow or unrelated hardening.
-5. **CURRENT CODE FINDINGS:** E19/E20/E23. Settings page has Company/Location/service compositions; CA and LM panels use different APIs. Existing SettingRow/inherited/effective presentation and sensitive confirmation are reusable. Map setup primitives may help zone center input, but map-area persistence/LM-only authorizer are not interchangeable with attendance or CA authority.
-6. **DECISION LOCK:** The owner-approved U257 product directions and stable GPS-B/C contracts apply. Advanced attestation remains deferred hardening unless separately brought into scope. UI L1 is frozen. Strict activation gate must be explicitly satisfied, not bypassed by hiding controls.
+5. **CURRENT CODE FINDINGS:** Refreshed UI-E01–UI-E26 controls this unit. CA/LM panels use different APIs; existing SettingRow inheritance/effective visuals and sensitive confirmation are conventions, not a presence-key transport. Operational map dialogs supply visual language only; CoordinateCanvas is not a geographic editor, operational DTOs/persistence/LM-only authorizers cannot serve attendance or CA authority.
+6. **DECISION LOCK:** DEC-099/100 and the complete embedded binding Management UI section are mandatory. No new sidebar/top-level page/Settings tab, no shell/Settings/Maps redesign. Google Maps Platform is the accepted first provider under DEC-045; technical adapter/key deployment stays GPS-D.
 7. **STATE TRANSITIONS:** Typed policy set/clear, zone create/update/disable, exception approve/reject through explicit server commands. No client Shift mutation on manager approval. Readiness display reflects canonical server result; local form success does not activate policy.
-8. **AUTHORITY MODEL:** Show controls based on capability, but server reauthorizes every request. CA Company defaults and allowed Location edits; exact LM only accepted Location capabilities. Sensitive MFA and expectedUpdatedAt required as server specifies. No shared PIN/self-approval or optimistic approval of another tenant's request.
-9. **CONTRACT/API CHANGES:** Consume GPS-B management routes and shared contracts. Existing settings-api dispatches typed policy set/clear; separate small presence API for zones/exceptions. No client-calculated effective policy or readiness as authority. If server field is missing, stop and resolve GPS-B dependency rather than send untyped payload.
+8. **AUTHORITY MODEL:** Current server capabilities render controls; every protected read/write reauthorizes. CA Company/default/exact Location, exact granted ACTIVE LM Location only; Supervisor/Employee Management UI denied, no self approval. Sensitive write MFA and positive presence expectedRevision/context as GPS-B specifies; legacy unrelated settings keep existing timestamp CAS.
+9. **CONTRACT/API CHANGES:** Consume published GPS-B routes/shared contracts through the focused presence API adapter for policy/readiness/zones/exceptions/results, preserving distinct CA/LM authority conventions. Existing settings-api is a convention reference and has no presence whitelist. No client-calculated effective policy/readiness as authority; resolve a missing GPS-B contract before sending any untyped payload.
 10. **DATABASE/MIGRATION CHANGES:** NONE expected in this consumer task. Any accepted release-gate forward change must be separately identified and coordinated, not hidden in UI delivery. Do not edit GPS-A/B applied migrations.
-11. **LOCKING/CAS/CONCURRENCY:** Forms retain expectedUpdatedAt; conflict refreshes canonical record with user edits preserved for review, no silent overwrite. Single-flight approval button; stale Location/Organization/MFA responses fenced. Server enforces all actual races; UI never removes last zone optimistically as final truth.
+11. **LOCKING/CAS/CONCURRENCY:** Positive Company/Location/zone/exception presence revisions with authoritative conflict reread and preserved same-scope draft; never auto-swap token or overwrite. Full scope/session/selection/intent fences, canonical unknown-result reconciliation and explicit retry. Server UI-F/Q/DEC-100 enforce all races; UI does not compute readiness or validity.
 12. **UNKNOWN OUTCOME / RETRY:** Lost management mutation response triggers authoritative record/operation read using accepted identity, not blind retry. Exact approval/zone status and version determines result; unrelated record update is not own success. Refresh preserves error/uncertain state until proof; same-key changed form payload requires new intent after reconciliation.
 13. **NATIVE SESSION/STATE CHANGES:** NONE. End-to-end proof uses GPS-C; do not redesign Native while adding Dashboard. Approval status is consumed by existing Native presence coordinator.
 14. **BACKGROUND / FOREGROUND:** Dashboard tab return refreshes authority/current record and fences stale request tokens. No automatic approve/activate on refocus. Native foreground/recovery behavior tested end-to-end, not modified incidentally.
-15. **UI DELTA:** Small Shift Presence subsection inside existing Settings Company/Location panels: Start/End modes, inherit/effective values, accuracy/freshness, zone list/editor, readiness and scoped exception review/approve/reject. Reuse existing form/dialog/map primitives where compatible. Zone center controls configure work areas, not employee position. Exact placement follows current panel hierarchy, no new top-level nav.
-16. **UI FREEZE:** Dashboard shell/nav, cards, typography, spacing, theme, unrelated settings, staff lists and maps remain unchanged. Native UI entirely unchanged. No discretionary restyling of reused components.
+15. **UI DELTA:** Implement the complete binding UI-B–UI-N contract: Company subsection with four fields; shared CA/LM exact-Location subsection with inherited/effective/set/clear policy, textual readiness, Attendance Zones and Presence Exceptions. Use focused compatible rows, geographic pin/circle plus keyboard latitude/longitude/radius, bounded pending/history and exact review dialog. No new navigation or reinterpretation as an optional appendix.
+16. **UI FREEZE:** VISUAL PARITY IS A HARD ACCEPTANCE GATE. Shell/sidebar/topbar/tabs/cards/forms/type/spacing/colors/buttons/dialogs/responsive language stay native to existing Dashboard; no discretionary redesign. EN/AR/RTL × Light/Dark × 1440×900/480×900 matrix is mandatory.
 17. **EN/AR + RTL:** Use current Dashboard localization conventions for all new controls, reason labels/readiness and confirmation text; verify Arabic/RTL where supported by current product contract. Do not introduce a separate localization system. Keep codes/numeric coordinate input appropriately formatted without confusing directionality.
 18. **ACCESSIBILITY:** Form labels/units, keyboard-operable zone input fallback to map interaction, focus-managed dialogs, conflict/error announcements, disabled/busy controls and textual readiness. No map-only required operation or color-only zone/approval state.
-19. **PRIVACY / SECURITY:** Never display raw attendance fixes. Show only accepted minimal reason/decision/time and exact employee scope. Sanitize/render notes as text; no HTML. Do not add coordinate analytics, logs or exports. Configuration zone coordinates are distinct from employee evidence. Verify network/devtools evidence is synthetic/redacted.
+19. **PRIVACY / SECURITY:** Never expose raw attendance fixes, fingerprints, challenge security internals or generic request payload. Render safe structured identity/action/Location/reasons/times/status. Zone centers are configuration, separate from employee evidence. No note field, employee GPS history, per-row enrichment/polling or analytics/export.
 20. **AUDIT / HISTORY:** Display safe server events/decision summaries through existing management audit pattern. Configuration and exception mutations remain atomically audited by server; UI does not manufacture audit history or mark declined requests approved locally.
-21. **EXACT FILES TO MODIFY:** Conditional: apps/dashboard/src/features/administration/settings/settings-page.tsx, company-settings-panel.tsx, management-location-settings-panel.tsx, location-manager-settings-panel.tsx, setting-definitions.ts, settings-copy.ts, settings-api.ts. Existing map primitives inspected/reused, not restyled. Accepted rollout documentation/DEC mirror updated as necessary; server changes require explicit GPS-B ownership handoff.
-22. **EXACT FILES TO ADD:** Conditional under apps/dashboard/src/features/administration/settings/: shift-presence-settings.tsx, shift-presence-zones.tsx, shift-presence-zone-dialog.tsx, shift-presence-exceptions.tsx, shift-presence-api.ts, shift-presence-copy.ts and focused .test.ts/.test.tsx files. Add one focused implementation evidence document only if separately authorized in that implementation task; this planning task authors no such file.
+21. **EXACT FILES TO MODIFY:** UI-L is the definitive ownership plan: settings-page.tsx supplies small sibling placement; extract a focused scope-section composer only if needed below 300 lines. Existing Company/CA/LM panels remain frozen unless necessary wiring proves a small owned change. No required edit to setting-definitions/legacyLocationKeys/settings-copy/settings-api or operational map files. Rollout documentation updates are coordinated; backend changes require GPS-B ownership.
+22. **EXACT FILES TO ADD:** UI-L enumerates conditional feature-local policy/readiness/zone/exception components, exact dialogs, API/copy/mutation coordinator, AttendanceZoneMap and narrow Google adapter, scoped styles and split unit/e2e coverage. Publish U-002–U-005 before freezing their signatures. No second general framework, provider registry or duplicated CA/LM composition; this docs task creates no implementation evidence artifact.
 23. **FILE-SIZE / 300-LINE PLAN:** settings-page is 241 lines: compose subsection instead of inline forms. Separate zones, exception list/dialog and API. Reuse existing controls; no cloned monolithic map editor. Tests split rendering, authority/CAS and transport.
-24. **TEST MATRIX:** CA/LM/unauthorized controls and server denial; Company inherit/Location override/clear; numeric bounds; zone CRUD/disable/CAS; strict readiness/last-zone protection/fanout; expired/rejected/consumed/self exception; stale scope responses and lost result; EN/AR/RTL/keyboard/style snapshots; full Native/server/management mode matrix; no raw coordinate history; old-client strict behavior.
+24. **TEST MATRIX:** Complete UI-M matrix: CA/LM/shared Location composition, all four modes and inheritance/set/clear/validation/MFA/revision conflicts; geographic map/manual sync and key/SDK/network fallback; bounded exceptions/all five states/unknown results; full read/write/MFA/scope races; eight visual cases, keyboard/RTL/theme/focus, real Dashboard/API/device manager-employee evidence and DEC-100 denial/logout distinction.
 25. **VALIDATION COMMANDS:** M Dashboard focused tests, typecheck/lint; API management presence/readiness and old-client regressions; structure checks; production build only when required by changed frontend surface. Run complete required repository CI before merge; do not increase timeout or skip a gate for a slow test.
 26. **PHYSICAL PROOF:** Manager configures synthetic Location/zone, employee performs Start/End under each mode, outside employee requests exception, exact authorized manager approves, employee consumes once; expiry/revocation/other Location fail. Android and real Dashboard browser evidence with unchanged shells. Demonstrate existing controlled closure and old-client denial; record absent Web UX as rollout blocker if needed. This closes the Android-first acceptance path only; full cross-platform production-readiness remains blocked until the separately tracked iOS physical permission/accuracy/simulated-source/lifecycle gate is completed.
 27. **RACE PROOF:** CAS edits from two management tabs, approval-vs-rejection, approve-vs-expiry/revocation, zone disable/default-policy change during employee action; canonical server winner visible after refresh. L257 applies in full.
@@ -534,13 +1240,32 @@ All four tasks depend on acceptance of U257 decisions that govern them. Each sta
 
 ## I. IMPLEMENTATION ORDER
 
-1. Owner product decisions for #261 and the #257 bundle are now locked, and U264-T is technically locked. Each implementation records the corresponding focused DEC/contract details before source changes that depend on them; GPS-A freezes the remaining technical numeric/retention parameters. This decision-record work may proceed while physical camera evidence is collected, without concurrent edits to shared files.
-2. Execute #262 as one investigation-plus-evidence-selected-fix task first. It establishes a stable Native lifecycle baseline for GPS-C. If device evidence is unavailable, record that blocker and proceed with independent backend tasks; do not fabricate a camera fix or declare it complete.
-3. Execute #261 as one task. Establish explicit pre-start/terminal behavior and consumer regressions.
-4. Execute #264 as one task on the resulting Parking flow. Verify terminal #261 targets cannot enter confirmation.
-5. GPS-A → GPS-B → GPS-C → GPS-D, with each actual main SHA recorded after predecessor integration. Camera closure is required before GPS-C touches shared lifecycle. GPS-A migration work cannot overlap #261 migration ownership.
+The accepted Shift Presence master execution order is:
 
-This is seven implementation units total, not seven GPS slices. No two agents edit one working tree. High-contention docs/schema/migrations/exports/config require explicit coordination. Each branch is reviewed independently; no merge is authorized by this planning task.
+```text
+GPS-A — COMPLETED / MERGED (b086a14eec5d5085ac713e4ed22aaee431a5044e)
+  ↓
+GPS-B — authoritative server/management/recovery/forward constraints
+  ↓
+#262 — physical causal resolution / smallest evidence-selected fix
+  ↓
+GPS-C — Native foreground acquisition / lifecycle / physical Android proof
+  ↓
+GPS-D — complete binding Settings Management UI / rollout acceptance
+```
+
+GPS-B is independent backend work and may proceed while camera evidence is
+collected. GPS-C remains blocked until GPS-B lands AND #262 physical causal
+resolution/fix proof establishes a stable lifecycle baseline. #262 is one task
+with investigation and conditional fix, not a speculative extra GPS slice.
+GPS-D starts only from stable predecessor contracts/evidence. Record actual
+current main SHA for every unit; no new GPS-A work or early strict activation.
+
+The earlier #261 then #264 Parking sequence remains its own historical/current
+issue handoff; this docs task does not re-audit or implement it. Preserve #261
+terminal exclusions and #264 final resource guards where later GPS work consumes
+those flows. No two agents edit one tree; migration/high-contention ownership is
+coordinated. Every branch receives external review/required CI; no merge here.
 
 ## J. UI FREEZE MATRIX
 
@@ -567,7 +1292,7 @@ Exact proposed owned files are enumerated in fields 21/22 for all seven units. T
 | 261 | Forward CANCELLED check amendment if U261-L accepted; optional operation representation only if U261-T requires | New cancel/status candidate; existing start contract unchanged unless a separately accepted exact-Shift extension is needed | None expected | Audit catalog compatibility only | Existing Dispatch CANCELLED plus accepted new custody event |
 | 262 | None within scoped envelope | No public change expected; native metadata patch only if proven | No dependency change by default; native patch proof conditional | None | No domain audit |
 | 264 | None appears needed for accepted read-only semantics | New scoped validation read; final command contract preserved | None expected | None | No preflight audit; final history unchanged |
-| GPS-A | Dedicated typed fields/records/constraints/grants, all conditional | Foundation schemas/internal boundary, non-OFF not activatable | None | No visible UI | Accepted config/decision history boundary |
+| GPS-A | Completed migrations 058/059, typed fields/records/constraints/grants under DEC-099; no reopening | Merged foundation schemas/internal primitives; public settings exclude presence, non-OFF SQL-gated | None | None | Minimized immutable Decision/Exception foundation; public mutation/audit composition belongs to GPS-B |
 | GPS-B | Forward SQL function/readiness/audit extension where needed | Existing Start/End extensions; challenge/status/exception/management surfaces | None | Backend management support | Atomic Shift/decision/exception/config events |
 | GPS-C | None | Consume accepted contracts; client coordinator/transport | SDK-compatible expo-location, foreground permissions/plugin, lockfile; rebuild | None | Server-owned only |
 | GPS-D | None expected; release-gate correction explicitly coordinated | Consume stable management APIs | None | Minimal accepted Settings functionality | Safe existing audit presentation |
@@ -576,13 +1301,13 @@ Schema/doc parity, runtime privileges and disposable-database migration tests ar
 
 ## L. RACE / FAILURE MATRIX
 
-The rows specify adversaries, serialization/proof and winning outcomes. All proposed new behavior remains conditional on its U-ID acceptance. A row's expected result is not evidence that the baseline already implements it.
+The rows specify adversaries, serialization/proof and winning outcomes under the Accepted decisions. Only unpublished technical signatures/mechanisms remain conditional on their contract; no owner approval is missing for U-001. A row's expected result is not evidence that the baseline already implements it.
 
 ### Transaction lock graph and authorization proof
 
 Existing relevant orders: Start Parking session→settings shared→task→eligibility; dispatch task→eligibility; Start Shift active-user→Location lifecycle→Location/Organization→membership→access→active Shift; End Shift active-user→owned membership/Location→Shift→open-task read; management settings Organization settings guard→management authorization/MFA/staff-management guard→target row. Location lifecycle commands combine settings/lifecycle guards and management proof. These are not interchangeable single “global lock order” helpers.
 
-For new presence composition, agree a graph before coding: obtain effective-policy guard before acquiring locks that a settings writer needs; take compatible lifecycle protection before contested Location/Shift mutation; preserve existing membership/Shift serialization; then exact attempt/challenge/exception rows in fixed order. A caller must never acquire an exclusive settings guard after holding a Shift row while another path holds settings and waits on that Shift. If integrating the guards creates a cycle with existing management functions, extract/reorder only the affected owned paths with explicit review; do not label an untested order safe. No helper commits between eligibility proof and protected write. PostgreSQL deadlock retry must not auto-replay a non-idempotent public intent; accepted operation identity and fresh authorization govern any internal retry.
+Presence composition follows the accepted DEC-099 guard graph and UI-F/Q: settings before lifecycle/authority/Shift, then operation→challenge→exception. Configuration writers use exclusive Organization settings; command/review consumers shared. The integrated contract identifies concrete authorizer gaps and currency guard inversion, with GPS-B-owned extension/reordering before handoff. Never acquire settings/staff-management guards late after Shift/member/attempt locks. Nonblocking contended second-principal proof rolls back safely; no automatic public replay. Real barrier proof remains required, not implied by a plan.
 
 | Protected operation | Authenticate / resolve / authorize | Protect proof / mutation / audit | Retry proof |
 | --- | --- | --- | --- |
@@ -617,7 +1342,7 @@ For new presence composition, agree a graph before coding: obtain effective-poli
 | L257-3 | End versus task assignment/accept/start | End succeeds while eligible assignment slips through | Shift lock conflicts with eligibility FOR SHARE held through task write. Assignment first creates blocker; End first makes eligibility false. Never release proof before write. |
 | L257-4 | Challenge consume versus duplicate/replay/expiry | Same challenge authorizes two effects | Exact row lock/CAS + operation unique key + server time. First commit consumes; identical committed recovery returns result; altered actor/action/Shift/payload denied. Expiry checked at accepted linearization time. |
 | L257-5 | Exception approve versus reject/expire | Both final statuses or approval after expiry | Pending CAS/lock, one state winner; immutable audit records. Server expiry, not browser clock. |
-| L257-6 | Exception consume versus approver/employee revoke | Stale approval bypasses current authority | Accepted retained authority guards/recheck through commit. Revocation first invalidates; consumption first records then revocation affects future actions. Test exact management lock interaction. |
+| L257-6 | Exception consume versus real approver/requester authority revoke | Stale approval bypasses current authority | DEC-100 current authority protected through commit. Real approver revoke first: APPROVED→EXPIRED + exact Operation DENIED, no Shift effect; valid consumption first commits once, later revoke does not rewrite history. Original approver logout/session expiry/MFA age alone is not revocation. Test commit/rollback/unknown and early-expiry forward constraint. |
 | L257-7 | Presence command versus policy edit/zone disable | Decision mixes old mode and new zones; strict with no zones | Settings/lifecycle/revision guard gives coherent effective configuration. Record applied revision. Writer waits or command reevaluates; no mixed snapshot. |
 | L257-8 | Company strict default versus Location override clear/activation | Inheriting Location becomes unusable | Shared configuration serialization plus all affected Locations readiness. Atomic reject or valid complete change; no Dashboard-only guard. |
 | L257-9 | Invalid cash/open tasks versus approved exception consumption | Failed End burns approval or emits ended audit | Earlier ordinary checks before consumption; any later failure rolls back challenge/exception/decision/Shift/audit together. |
@@ -709,7 +1434,7 @@ Every unit begins: read actual issue and Accepted DEC at actual main; confirm cl
 | 261 | Accept U261 → forward terminal predicate/docs → exact atomic cancel/status → preserve start/dispatch authority → remove both entry auto-start chains → existing pre-start cancel UX → races/consumer regressions/device | Lifecycle/actor/legacy resource treatment unresolved, inconsistent terminal pair, or start can still win without blocking cancellation |
 | 262 | Safe instrumentation → physical reproduction/classification → recovery ladder → falsify alternatives → narrow cause fix → deterministic regression → same-device repeat and ROI/torch/UI proof | No demonstrated causal boundary; never ship all hypotheses |
 | 264 | Approve transport → shared spot rule → scoped no-write query → monotonic candidate fence → current success-only advance → final race recovery → bilingual/device proof | Reservation introduced, final locks weakened, or stale/unknown read advances |
-| GPS-A | Accept focused DEC → typed schemas/defaults → dedicated constraints/grants → pure evaluator and operation primitives → migration/privacy tests | Thresholds/retention/authority still invented or strict can activate early |
+| GPS-A | COMPLETED / MERGED at verified main; consume DEC-099 foundation without reopening it | Do not turn foundation into public activation, Shift enforcement or client changes; no historical migration rewrite |
 | GPS-B | Preserve Start/End proof/order → transaction composition → exact status/retry → scoped management/exception/readiness → old-client/race/rollback/privacy proof | Cash/open-work bypass, stale-own-End regression, missing fallback or lock cycle |
 | GPS-C | Compatible foreground package/config → bounded adapter → extracted client coordinator → action/lifecycle/recovery wiring → minimal copy → prebuild/device | Continuous/background acquisition, local success, stale fix, or camera regression |
 | GPS-D | Existing Settings composition → typed CAS/MFA forms → zones/readiness/exceptions → browser/native complete proof → accepted rollout readiness | Unusable fallback, shell redesign, raw employee coordinates or premature strict activation |
@@ -731,7 +1456,7 @@ The owner approved the proposed product-direction bundle on 2026-10-03. No addit
 Remaining gates are implementation/evidence gates:
 
 1. **U262-E:** Physical reproduction must identify the causal camera boundary before selecting a #262 fix. No speculative fix is authorized.
-2. **GPS technical DEC parameters:** GPS-A must freeze exact numeric accuracy/freshness/radius/future-skew/acquisition/challenge bounds, persistence fingerprints and retention windows while preserving the owner-approved modes, circular-zone model, default OFF and privacy direction. These are technical contract details; if they would materially change product behavior, return only that new choice to the owner.
+2. **Technical contracts/evidence:** DEC-099 already freezes GPS-A geometry/numeric/persistence/fingerprint/revision/retention. DEC-100 accepts U-001. GPS-B publishes U-002/U-003/U-004 public authority/readiness/audit/result contracts and forward constraints; GPS-C bounded acquisition and GPS-D U-005 Google adapter/loading/key deployment remain technical implementation prerequisites. No unresolved owner product choice is implied.
 3. **Employee Web compatibility:** Server enforcement must prevent bypass. If a usable strict-mode fallback requires Employee Web UI work, that remains **OWNER-SCOPE EXPANSION REQUIRED** because apps/valet/** was intentionally excluded.
 4. **iOS acceptance:** Android is the first implementation/physical-acceptance target. iOS portability/security semantics must be documented during GPS-C, and a separate iOS physical permission/accuracy/simulated-source/lifecycle gate is required before any full cross-platform production-ready claim.
 5. **Legacy false starts:** Existing PARKING/IN_PROGRESS rows created by the old auto-start behavior require controlled audited remediation after real-world custody confirmation; they are not made generally employee-cancellable by #261.
@@ -742,11 +1467,102 @@ U261-T and U264-T are now technical implementation locks, not owner questions. U
 
 | Unit | Verdict | Meaning |
 | --- | --- | --- |
-| 261 | **READY TO IMPLEMENT** | Owner accepted AWAITING_PARKING→CANCELLED before physical start and the exact actor matrix; U261-T is technically locked. Begin by recording the focused lifecycle/contract amendment. |
-| 262 investigation phase | **READY TO IMPLEMENT — FIRST** | Safe instrumentation and physical protocol are defined; no root cause is claimed. |
+| 261 | **HISTORICAL PLAN / DEC-098 CONTROLS** | The original readiness assessment is retained in D; the later Accepted DEC-098 is authoritative, including its deadlock remedy. This integration does not re-audit implementation/device status or reopen #261. |
+| 262 investigation phase | **READY TO INVESTIGATE / GATE BEFORE GPS-C** | Safe instrumentation and physical protocol are defined; no root cause is claimed. |
 | 262 selected fix | **EVIDENCE GATED** | U262-E must identify the causal boundary before selecting and coding the conditional fix. |
 | 264 | **READY TO IMPLEMENT** | Product semantics and U264-T technical transport/rule boundary are locked; no schema change appears needed. |
-| GPS-A | **READY TO START AFTER PRIOR PARKING/CAMERA ORDER** | Owner product direction is locked. GPS-A begins by freezing technical parameters in the focused DEC while strict policy remains OFF. |
-| GPS-B/C/D | **PREDECESSOR GATED** | Execute only after the preceding GPS task lands and its server/device evidence is stable; no new owner decision is implied unless implementation discovers a product-changing choice. |
+| GPS-A | **COMPLETED / MERGED** | Verified fetched main b086a14eec5d5085ac713e4ed22aaee431a5044e; DEC-099 foundation only, SQL OFF-gated, no Shift enforcement or client changes. No reopening. |
+| GPS-B | **NEXT / IMPLEMENTATION GATED** | Consume current main with merged GPS-A; implement DEC-099/100 and complete UI backend capabilities; no UI or strict activation without proof. |
+| GPS-C | **GPS-B + #262 GATED** | Stable server and physical causal camera closure required; Native scope unchanged. |
+| GPS-D | **PREDECESSOR GATED / BINDING UI** | Implement the complete embedded contract after stable predecessors; no composition choice or redesign authority remains. |
 
-Planning deliverable complete: full source-grounded report, conditional implementation envelopes, UI freezes, migration/contract and race/test matrices, and handoffs are recorded here. Only this planning document is authored by the current task; no implementation readiness or physical/test success is falsely claimed. Commit/push verification is reported in the task's final response after it occurs.
+Owner product decisions unresolved for Shift Presence: **0**. Authority/concurrency/privacy/UI-navigation policy ambiguities: **0** under DEC-099/100 and the binding UI contract. Implementation/physical/runtime/CI/retention/map deployment/rollout proof remains gated, not claimed here. This documentation integration changes only canonical planning/decision/domain/schema/security documentation and commits/pushes the focused docs branch for review; no implementation, merge or issue closure.
+
+## P. DOCUMENTATION AUDIT AND MANUAL DISPOSITION
+
+Audit performed on the integrated repository plan on 2026-10-04 with the unchanged
+VAYLET planning-guardian `scripts/audit_plan.py` v1.5:
+
+```text
+python -X utf8 .agents/skills/vaylet-planning-guardian/scripts/audit_plan.py docs/NATIVE_261_262_264_257_IMPLEMENTATION_PLAN.md
+exit code: 1
+warnings: 5
+```
+
+Audit script SHA-256:
+`8FC7E822BE5BCF4BC5EE7256D54F9AA9BF8F0309149A55A1FF90EB1D18008E16`.
+No audit rule, script, classification heading or stable identifier was suppressed
+to obtain a pass. The five remaining warnings are heuristic false positives,
+manually evaluated below; exit 1 is reported rather than called an automated pass.
+
+**Warning 1 — identifier leakage, START, UI-F transaction step 5.** The exact
+proposition is to re-resolve and protect the exception requester's actual
+action/target predicates, with distinct reviewer/requester Users. U-003 mentions
+START/END only to state that the existing Operation cannot be reused as a
+management journal; unresolved management correlation does not make those action
+values or authority rules undecided. Accepted sources: [DEC-099](decisions/DEC-099_SHIFT_PRESENCE_FOUNDATION.md),
+Durable operation, challenge and decision / Exception foundation / Lock graph and
+runtime boundary; this plan's U257-A; and UI-E25's current Start/safe-own-End
+executor evidence. Review preserves ordinary safe-own-End predicates; actual
+exception use separately applies [DEC-100](decisions/DEC-100_SHIFT_PRESENCE_EXCEPTION_AUTHORITY.md),
+Authoritative consumption-time predicates. The checker intersects shared tokens
+without distinguishing the unpublished management-result boundary from accepted
+action authority. No owner decision leaks; U-003 result attribution stays gated.
+
+**Warning 2 — identifier leakage, START, GPS-C field 8.** The exact proposition
+binds one explicit action intent to auth generation, User/member, Organization,
+Location, START/END, exact END Shift and operation identity; target changes retire
+evidence. Accepted sources: DEC-099, Durable operation, challenge and decision,
+and the accepted U257-P/D/R direction plus GPS-C's existing identity/target
+fencing contract. U-003 concerns management creates/writes only and cannot change
+Native operation ownership or action binding. Reuse of the token START is the
+heuristic match, not selection of an unresolved management journal/route. The
+original GPS-C scope remains unchanged and predecessor/physical proof stays gated.
+
+**Warning 3 — semantic locking leakage, UI-F transaction step 3.** The exact
+proposition calls the exported current Staff-context recheck at its established
+User-security-before-session stage, explicitly denies an undefined context, and
+protects manager authority using the existing invalidation boundaries before
+member/target/attempt locks. Accepted sources: DEC-099, Lock graph and runtime
+boundary; DEC-100, Serialization and failure proof; the owner's current-sensitive-
+authority requirement. Literal compatible helper/row composition is DERIVED from
+UI-E22/UI-E23/UI-E25/UI-E26, not a claim that a read-only LM authorizer is safe or
+that the owner selected every SQL mode. The audit activates the broad locking
+concept because technical U-004 says accepted invariants/lock order are already
+settled; it does not model that polarity or separate public readiness vocabulary
+from transaction semantics. Wire publication and real barrier proof remain gated.
+
+**Warning 4 — semantic locking leakage, historical #261 field 11.** The exact
+proposition now follows the later Accepted [DEC-098](decisions/DEC-098_PRE_CUSTODY_PARKING_CANCELLATION.md),
+Locks and atomicity: lifecycle SHARED, session FOR NO KEY UPDATE, exact Parking
+Task FOR UPDATE, eligibility FOR SHARE, with recheck and atomic dual mutation.
+DEC-098 explicitly records the foreign-key deadlock reason for avoiding the old
+session FOR UPDATE proposal. This document corrected that stale literal and
+marked D as historical; it does not reimplement or re-audit #261. The checker
+applies U-004's broad locking concept to the first generic Proposed implementation
+plan heading, which belongs to #261, ignoring issue ownership and the now exact
+Accepted lock source. No Shift Presence technical uncertainty governs that command.
+
+**Warning 5 — exact concurrency primitive allegedly owner-locked.** Inspected
+the checker's `requirement_row_blocks` output: its U257-H block extends across
+later sections until R01, and its R10 block extends into the following configuration
+and authority schedules. It does not end blocks at Markdown table/section edges.
+The actual U257-H proposition only defers advanced attestation and forbids sole
+dependence/fail-open; its accepted source is the owner-approved U257-H bundle.
+The actual R10 proposition only fences replaced browser scope/session using full
+generations; its accepted source is the owner's scope-fencing requirement/UI-C11,
+with inspected UI-E05/UI-E06/UI-E07 generation mechanisms. Neither actual row
+contains or owner-locks a SQL primitive. SQL literals in unrelated later text
+have their own provenance: DEC-099/098 accepted guard/command graphs or UI-F's
+explicitly DERIVED row-protection/nonblocking composition. This is cross-block
+attribution, not a missing owner choice; implementation compatibility still needs
+the specified real SQL/HTTP proof.
+
+Manual substantive gates after integration: owner product decisions unresolved
+**0**; authority ambiguity **NO**; concurrency ambiguity **NO**; privacy ambiguity
+**NO**; UI/navigation ambiguity **NO**. U-002–U-005 are bounded technical publication
+work, not owner questions. Full diff review covers the complete embedded UI-A–UI-O
+contract, current GPS-A/B/C/D/order and decision/domain/schema/security mirrors;
+only seven documentation files are authored. No temporary external UI file is a
+future source of truth. Documentation whitespace/scope checks are separate from
+the unchanged audit, and neither provides implementation, runtime, device or CI proof.

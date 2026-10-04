@@ -4141,3 +4141,29 @@ scoped and deny deletion/immutable rewrites. Caller transaction/current authoriz
 scope are mandatory; GPS-B owns HTTP, management authority, actual Shift/audit
 composition and activation. GPS-A changes no Shift/task lifecycle or client app.
 Full contract: [DEC-099_SHIFT_PRESENCE_FOUNDATION.md](decisions/DEC-099_SHIFT_PRESENCE_FOUNDATION.md).
+
+## DEC-100 — Shift Presence exception authority at consumption
+
+Status: Accepted
+Date: 2026-10-04
+Owner: VAYLET product owner
+
+Accepted U-001 extends DEC-099 for GPS-B. Consumption revalidates active requester
+User/membership/exact Location access/action/END Shift and current original
+approver User plus CA-for-Organization OR exact-LM-for-Location approval capability,
+eligible Organization/Location and live APPROVED/unconsumed exception. The active
+requester requirements apply to exception use, not ordinary stale-own-End cleanup.
+MFA is required at approval; old approver browser/session/login/MFA freshness is
+not required at consumption. Logout/session expiry alone does not revoke approval.
+Real authority loss fails closed: no Start/End or consumption; atomically expire
+the approved exception, deny its exact Operation with controlled recoverable
+authority-revocation reason, preserve truthful approval history, and require fresh
+operation/challenge/approval without automatic replay or alternate approval.
+Existing EXPIRED is used; no revocation enum. GPS-B must forward-reconcile GPS-A's
+timed-expiry CHECK and minimal denial result before enforcement; no migration or
+production implementation is performed by this documentation decision. Full
+Management UI contract is embedded in the canonical GPS-A/B/#262/C/D master plan;
+Settings/navigation/visual freeze remains binding. Owner decisions unresolved: 0.
+
+Full contract:
+[DEC-100_SHIFT_PRESENCE_EXCEPTION_AUTHORITY.md](decisions/DEC-100_SHIFT_PRESENCE_EXCEPTION_AUTHORITY.md).

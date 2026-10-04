@@ -182,6 +182,13 @@ months. GPS-A exposes no approval command. GPS-B owns current CA/exact-LM
 capability/MFA, requester/approver revocation proof, semantic approval/consumption
 and atomic final business events. Supervisor authority is not inferred.
 
+Accepted 2026-10-04 follow-on U-001 is recorded in
+[DEC-100](DEC-100_SHIFT_PRESENCE_EXCEPTION_AUTHORITY.md): consumption requires
+current original-approver authority, not the old browser/session/MFA freshness;
+real revocation fails closed with APPROVED -> EXPIRED and Operation DENIED.
+GPS-B owns its forward constraint/result work. This does not claim GPS-A enforces
+the new semantics or reopen its completed foundation scope.
+
 ## Lock graph and runtime boundary
 
 Every helper accepts the caller PostgresTransaction; it never begins/commits a

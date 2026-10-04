@@ -800,3 +800,16 @@ distance or generic request payload. Attempt/intent digests belong only to the
 90-day Operation. Privileged maintenance executes
 eligible purge; runtime has no DELETE authority and v1 has no cold archive.
 See the full Accepted DEC-099 for technical parameters and the lock graph.
+
+Accepted DEC-100 (2026-10-04 / U-001) adds GPS-B consumption semantics: approved
+exceptions require active requester User/member/exact access/action/END target
+and current original-approver CA-for-Organization OR exact-LM-for-Location
+capability with eligible Organization/Location and live unconsumed approval.
+Original approver logout/session expiry/MFA age alone is not authority loss.
+Real authority loss atomically changes APPROVED -> EXPIRED and related Operation
+to DENIED, without Shift/consumption effect, preserving truthful review history.
+A new attempt needs fresh operation/challenge/approval; no automatic replay or
+alternate approval. These predicates govern exception-assisted END, without
+rewriting ordinary safe-own-End. GPS-B must forward-reconcile early expiry and
+minimal denied-result storage; this is accepted planned behavior, not GPS-A
+enforcement. Full UI/backend contract is inside the canonical implementation plan.
