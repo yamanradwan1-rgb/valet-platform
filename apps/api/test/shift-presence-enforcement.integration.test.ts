@@ -83,7 +83,7 @@ describe("authoritative presence composition with real forward-migrated PostgreS
       result: { status: "ACTIVE", shiftId: first.shiftId },
     });
   });
-  it("same-Location ACTIVE recovery leaves a new presence operation and challenge untouched", async () => {
+  it("same-Location ACTIVE recovery records a no-effect result and leaves its challenge untouched", async () => {
     const fixture = await db.createFixture();
     const first = await db.start(fixture);
     const { context } = await db.session(fixture.userId);
@@ -94,7 +94,27 @@ describe("authoritative presence composition with real forward-migrated PostgreS
     );
     expect(
       await db.presence.status(context, challenge.operationId),
-    ).toMatchObject({ state: "PENDING" });
+    ).toMatchObject({
+      state: "RECOVERABLE",
+      status: "COMMITTED",
+      decisionId: null,
+      summary: null,
+      result: { shiftId: first.shiftId, status: "ACTIVE" },
+    });
+    expect(
+      (
+        await db.adminPool.query(
+          `SELECT o.completion_basis,c.consumed_at,c.decision_id
+           FROM shift_presence_operations o JOIN shift_presence_challenges c ON c.operation_row_id=o.id
+           WHERE o.operation_id=$1`,
+          [challenge.operationId],
+        )
+      ).rows[0],
+    ).toEqual({
+      completion_basis: "NO_EFFECT_CONVERGENCE",
+      consumed_at: null,
+      decision_id: null,
+    });
     expect(await db.facts(fixture)).toEqual({
       shifts: 1,
       decisions: 0,

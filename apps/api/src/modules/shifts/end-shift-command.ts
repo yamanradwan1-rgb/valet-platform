@@ -14,6 +14,7 @@ import {
   recoverPresenceShiftAttempt,
 } from "./shift-presence-command";
 import { ShiftPresenceError } from "./shift-presence-errors";
+import { convergePresenceShiftAttempt } from "./shift-presence-convergence";
 import { isCurrencyAmountRepresentable } from "../../common/financial/currency-minor-units";
 import { appendShiftAuditEvent } from "./shift-audit-event-writer";
 import { requireActiveShiftUser } from "./shift-authorization";
@@ -200,6 +201,12 @@ async function endInTransaction(
     if (shift.cash_reported_at === null) {
       throw new ShiftOperationError("SHIFT_CASH_RECONCILIATION_UNAVAILABLE");
     }
+    await convergePresenceShiftAttempt(
+      transaction,
+      attempt,
+      shift,
+      options.presenceFingerprintKey,
+    );
     return toShiftResult(shift);
   }
   const cashReported = parseShiftMoney(request.cashReported);

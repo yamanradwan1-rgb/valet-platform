@@ -11,11 +11,13 @@ requests keep their prior behavior. No public MISSING evidence is introduced.
 
 An evidence-free correlated command resolves the existing owned Operation and
 Challenge, with exact action/target/canonical END cash and current authorization.
-It never allocates another operation. Current OFF commits the real Shift/audit
-and Operation with typed `OFF_NO_EVIDENCE` completion basis and no Decision.
-Current WARN_ONLY consumes the existing Challenge and journals truthful missing
-measurement on that same Operation. Current strict modes bind and terminalize
-that Operation as DENIED/PRESENCE_REQUIRED, summary null, with no Shift/Decision.
+It never allocates another operation. When a new effect is needed, current OFF
+commits the real Shift/audit and Operation with typed `OFF_NO_EVIDENCE` completion
+basis and no Decision; current WARN_ONLY consumes the existing Challenge and
+journals truthful missing measurement on that same Operation; current strict
+modes bind and terminalize that Operation as DENIED/PRESENCE_REQUIRED, summary
+null, with no Shift/Decision. Already-satisfied outcomes use the distinct
+no-effect convergence contract below.
 Exact terminal recovery precedes ordinary state convergence and uses the stored
 policy fingerprint. Internal CORRELATED_MISSING fingerprints include operationId
 and require no retained Challenge for recovery. No raw request is retained.
@@ -276,3 +278,16 @@ The new operational routes authenticate the current Staff session, then count th
 Management correlation IDs are single-use successful-command identities, including no-ops. A dedicated typed append-only `ShiftPresenceManagementResult` receipt records mutation UUID, real actor/tenant/Location, controlled entity kind, entity UUID, positive completion revision, CHANGED or NO_CHANGE, optional exact change-audit linkage and database completion time. It contains no body, configuration text, raw evidence or digest. Each successful command appends its receipt atomically; a no-op has NO_CHANGE, unchanged policy revision and no fictitious change audit. Identical or changed reuse of a committed identity returns 409 PRESENCE_MUTATION_CONFLICT; callers recover by GET, never automatically replay a protected write. A failed/rolled-back command leaves no receipt. A unique receipt identity serializes collisions even across Organizations; loser effects/audit roll back. Existing reviewed change-audit identities remain recoverable and reserved. Historical no-ops without a receipt remain UNKNOWN; no completion history is invented or backfilled. Receipts are immutable minimized management history alongside existing append-only audit; the operational 14-day/90-day/24-month clocks remain unchanged.
 
 Result attribution remains COMMITTED or UNKNOWN; `effect` is CHANGED, NO_CHANGE or null when attribution is UNKNOWN. The canonical ZONE result retains readiness and has a nullable `zone`. Absent or still-unresolved create returns UNKNOWN, null effect/entityId/revision and canonical.zone=null only after fresh exact Organization/Location authority. Absence never proves rollback or authorizes another create. A globally existing Zone in another tenant/Location remains concealed, as does revoked result-scope authority. Existing entities without that exact mutation proof return UNKNOWN with the authorized current entity. Code/label/value equality never proves attribution. Ordinary Zone GET continues to conceal missing entities.
+
+## Distinct-operation no-effect convergence — owner follow-up
+
+For a valid owned correlated request, same-Location existing ACTIVE Start and
+exact already-ENDED End with compatible canonical cash durably record the
+caller's own O as COMMITTED with internal `NO_EFFECT_CONVERGENCE`. COMMITTED
+means the successful result was recorded, not that this O mutated the Shift.
+No new Shift/audit/Decision, copied Decision or challenge/exception consumption
+occurs. GET O recovers the exact returned result, including after response loss;
+success and recovery response shapes remain unchanged with decisionId null.
+Different-Location Start and changed correlated END cash conflict. Force-ended
+missing cash remains unavailable. Legacy omission and prior effect-backed paths
+remain unchanged. Forward migration 068 adds only narrow typed provenance.

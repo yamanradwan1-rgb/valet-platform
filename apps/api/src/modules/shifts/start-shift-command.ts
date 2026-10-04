@@ -15,6 +15,7 @@ import {
   type PresenceDeniedResult,
 } from "./shift-presence-command";
 import { ShiftPresenceError } from "./shift-presence-errors";
+import { convergePresenceShiftAttempt } from "./shift-presence-convergence";
 
 import type {
   PostgresPool,
@@ -51,6 +52,23 @@ interface StartShiftCommandOptions {
 }
 
 const activeShiftConstraint = "shifts_one_active_per_membership_idx";
+
+function startPresenceAttempt(
+  scope: AuthorizedShiftStartScope,
+  request: StartShiftCommandRequest,
+) {
+  return {
+    ...scope,
+    userId: request.authenticatedUserId,
+    action: "START" as const,
+    shiftId: null,
+    cashReported: null,
+    ...(request.operationId === undefined
+      ? {}
+      : { operationId: request.operationId }),
+    ...(request.presence === undefined ? {} : { evidence: request.presence }),
+  };
+}
 
 async function loadActiveMembershipShift(
   transaction: PostgresTransaction,
@@ -154,17 +172,7 @@ async function startInTransaction(
     if (denied !== undefined) return denied;
     throw error;
   }
-  const attempt = {
-    ...scope,
-    userId: request.authenticatedUserId,
-    action: "START" as const,
-    shiftId: null,
-    cashReported: null,
-    ...(request.operationId === undefined
-      ? {}
-      : { operationId: request.operationId }),
-    ...(request.presence === undefined ? {} : { evidence: request.presence }),
-  };
+  const attempt = startPresenceAttempt(scope, request);
   const recovery = await recoverPresenceShiftAttempt(
     transaction,
     attempt,
@@ -175,8 +183,16 @@ async function startInTransaction(
     transaction,
     scope.membershipId,
   );
-  if (activeShift !== undefined)
-    return classifyActiveShift(activeShift, scope.locationId);
+  if (activeShift !== undefined) {
+    const result = classifyActiveShift(activeShift, scope.locationId);
+    await convergePresenceShiftAttempt(
+      transaction,
+      attempt,
+      activeShift,
+      options.presenceFingerprintKey,
+    );
+    return result;
+  }
   const presence = await preparePresenceShiftAttempt(
     transaction,
     attempt,
@@ -189,10 +205,21 @@ async function startInTransaction(
 async function recoverConcurrentStart(
   pool: PostgresPool,
   request: StartShiftCommandRequest,
-): Promise<ShiftResult> {
+  options: StartShiftCommandOptions,
+): Promise<ShiftResult | PresenceDeniedResult> {
   return inShiftTransaction(pool, async (transaction) => {
     await guardPresenceShiftIntent(transaction, request);
     const scope = await authorizeShiftStart(transaction, request);
+    const attempt = startPresenceAttempt(scope, request);
+    const exact = await recoverPresenceShiftAttempt(
+      transaction,
+      attempt,
+      options.presenceFingerprintKey,
+    );
+    if (exact !== undefined) {
+      await recheckPresenceShiftSession(transaction, request.sessionContext);
+      return exact;
+    }
     const activeShift = await loadActiveMembershipShift(
       transaction,
       scope.membershipId,
@@ -200,8 +227,15 @@ async function recoverConcurrentStart(
     if (activeShift === undefined) {
       throw new Error("Concurrent Shift start could not be recovered.");
     }
+    const result = classifyActiveShift(activeShift, scope.locationId);
+    await convergePresenceShiftAttempt(
+      transaction,
+      attempt,
+      activeShift,
+      options.presenceFingerprintKey,
+    );
     await recheckPresenceShiftSession(transaction, request.sessionContext);
-    return classifyActiveShift(activeShift, scope.locationId);
+    return result;
   });
 }
 
@@ -227,7 +261,14 @@ export function createStartShiftCommandExecutor(
         throw presenceDatabaseError(error);
       // attemptStart already rolled back the failed transaction. Recovery and
       // authoritative classification therefore run in a fresh transaction.
-      return recoverConcurrentStart(pool, request);
+      try {
+        const recovered = await recoverConcurrentStart(pool, request, options);
+        if ("denied" in recovered)
+          throw new ShiftPresenceError(recovered.denied);
+        return recovered;
+      } catch (recoveryError) {
+        throw presenceDatabaseError(recoveryError);
+      }
     }
   };
 }

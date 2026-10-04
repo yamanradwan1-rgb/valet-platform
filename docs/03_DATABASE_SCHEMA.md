@@ -2,12 +2,15 @@
 
 ## Issue #257 evidence-free result provenance — owner correction
 
-Forward migration 067 adds nullable typed Operation `completion_basis` with the
-single value `OFF_NO_EVIDENCE`. Null retains the existing COMMITTED requirement
+Forward migration 067 initially adds nullable typed Operation `completion_basis`
+with `OFF_NO_EVIDENCE`; forward 068 extends it with `NO_EFFECT_CONVERGENCE` as
+documented in this file. Null retains the existing COMMITTED requirement
 for a result Decision. Non-null is permitted only on COMMITTED with a real exact
-result Shift, null Decision, bound request and bound policy. Its insert/update
-guard requires PENDING-to-COMMITTED, a live unconsumed exact Challenge, current
-effective action mode OFF and no Decision for that operation. Terminal results,
+result Shift, null Decision, bound request and bound policy. The insert/update
+guard requires PENDING-to-COMMITTED, a live unconsumed exact Challenge and no
+Decision for that operation. OFF_NO_EVIDENCE additionally requires current
+effective action mode OFF; NO_EFFECT_CONVERGENCE records an already-satisfied
+outcome without performing a new policy-gated effect. Terminal results,
 scope/intent and one-time bindings remain immutable for owner and runtime alike.
 Runtime receives only column-scoped completion-basis UPDATE; no broad UPDATE,
 history rewrite, DELETE or trigger execution. There is no backfill or fake
@@ -2665,3 +2668,14 @@ Retention maintenance also terminalizes expired PENDING/APPROVED Exceptions inde
 `shift_presence_management_results` stores only successful-command terminal receipts: globally unique mutation UUID, enforced Organization/optional Location, exact actor membership/User, controlled COMPANY_POLICY/LOCATION_POLICY/ZONE/EXCEPTION kind, entity UUID, positive revision, CHANGED/NO_CHANGE effect, nullable unique audit-event linkage and server completion time. Composite FKs enforce actor and Location tenant consistency; CHECKs restrict entity scope and NO_CHANGE to policies. The immutable trigger validates exact changed-audit scope/entity/revision and rejects UPDATE/DELETE; runtime gets only SELECT/INSERT, never trigger execution. No request blob, label, code, coordinate, cash, token or fingerprint is stored. No-op receipts reserve identity without fabricating a change AuditEvent. Receipts commit with business effect/audit; collisions roll back the whole losing command. Existing audits still reserve their identities. Receipts remain minimized append-only management history, with no request payload/digest and no operational-parent FK or runtime purge; they preserve terminal identity alongside the existing audit history. No old migration is edited; operational retention values and executor stay unchanged.
 
 Forward migration 065 extends only the existing `anti_abuse_events_scope_check` with three Shift Presence User scopes; all twelve earlier scopes, indexes, grants and cleanup clocks remain intact. This is necessary because TypeScript scope publication alone cannot authorize durable limiter INSERTs.
+
+## Shift Presence convergence completion — owner follow-up 068
+
+Migration 068 extends the existing typed `shift_presence_completion_basis` with
+`NO_EFFECT_CONVERGENCE`. A bound owned operation may record its exact already
+satisfied Shift outcome with no new business effect or Presence Decision. This
+basis is separate from Decision-backed mutation and OFF_NO_EVIDENCE mutation.
+Pending allocation cannot carry it; exact result scope/action, current request
+binding and no Decision/challenge consumption remain enforced. END requires its
+exact stored cash result. Historical 067 and earlier migrations are unchanged.
+No generic payload, new audit/event, configuration or index is introduced.

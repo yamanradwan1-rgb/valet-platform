@@ -190,7 +190,7 @@ async function recoveryProjection(
   };
 }
 
-/** GPS-B calls only after its real protected mutation in this same transaction. */
+/** Records the protected effect or explicitly typed no-effect outcome in the caller's transaction. */
 export async function completePresenceOperation(
   transaction: PostgresTransaction,
   input: ShiftPresenceOperation,
@@ -198,7 +198,7 @@ export async function completePresenceOperation(
     readonly status: "COMMITTED" | "DENIED" | "EXPIRED";
     readonly shiftId: string | null;
     readonly decisionId: string | null;
-    readonly completionBasis?: "OFF_NO_EVIDENCE";
+    readonly completionBasis?: "OFF_NO_EVIDENCE" | "NO_EFFECT_CONVERGENCE";
   },
 ) {
   const row = await lockPresenceOperation(transaction, input);

@@ -1,5 +1,14 @@
 # GPS-B — Issue #257 implementation and evidence
 
+## Distinct-operation convergence correction — forward 068
+
+An independently reproduced review finding showed that a successful already
+satisfied Start/End could leave a distinct caller O pending. Migration 068 adds
+typed `NO_EFFECT_CONVERGENCE`; both ordinary convergence and Start's INSERT-loser
+recovery record the exact O result with no second Shift/audit/Decision or proof
+consumption. Current reproduction, tests and review are in
+[GPS_B_CONVERGENCE_RECOVERY_REPORT.md](GPS_B_CONVERGENCE_RECOVERY_REPORT.md).
+
 ## Evidence-free exact recovery correction — 2026-10-04
 
 The final GPS-C blocker is corrected in the server/shared contracts: optional

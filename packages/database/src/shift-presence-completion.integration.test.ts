@@ -78,10 +78,13 @@ describe("real 066→067 upgrade and narrow OFF completion integrity", () => {
     expect(
       (
         await db.admin.query(
-          `SELECT enumlabel FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid WHERE t.typname='shift_presence_completion_basis'`,
+          `SELECT enumlabel FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid WHERE t.typname='shift_presence_completion_basis' ORDER BY e.enumsortorder`,
         )
       ).rows,
-    ).toEqual([{ enumlabel: "OFF_NO_EVIDENCE" }]);
+    ).toEqual([
+      { enumlabel: "OFF_NO_EVIDENCE" },
+      { enumlabel: "NO_EFFECT_CONVERGENCE" },
+    ]);
   });
 
   it("extends only completion UPDATE and guards provenance under the existing allocation grant", async () => {

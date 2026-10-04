@@ -8,8 +8,11 @@ Current authorized User/member/tenant/Location/action/END Shift/canonical cash
 must match the existing preallocated Operation before binding any attempt.
 Exact terminal recovery runs before generic Shift convergence. Correlated OFF
 has typed no-evidence completion provenance and no invented attendance Decision;
-WARN_ONLY keeps truthful missing-evidence evaluation. Strict missing evidence
-terminalizes the exact owned attempt as PRESENCE_REQUIRED without business effect.
+WARN_ONLY keeps truthful missing-evidence evaluation. When a new Shift effect is
+needed, strict missing evidence terminalizes the exact owned attempt as
+PRESENCE_REQUIRED without business effect. An already-satisfied exact Shift result
+instead records typed NO_EFFECT_CONVERGENCE on the owned Operation, without a
+new Shift/audit/Decision or consuming proof; correlated END cash must match.
 No public MISSING variant, payload retention, raw GPS, extra quota identity or
 automatic protected replay is introduced. Historical migrations and strict
 activation gates remain unchanged. See the evidence-free recovery report.

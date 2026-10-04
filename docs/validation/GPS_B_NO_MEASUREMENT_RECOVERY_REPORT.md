@@ -1,5 +1,14 @@
 # GPS-B evidence-free recovery correction — Issue #257
 
+## Independent review follow-up
+
+The original "no remaining known gap" conclusion below was disproved at this
+report's commit by distinct-operation convergence: O2 could return success yet
+remain PENDING. The owner-authorized forward 068 correction preserves this work
+and records a truthful no-effect result for O2. Reproduction and current evidence
+are in [GPS_B_CONVERGENCE_RECOVERY_REPORT.md](GPS_B_CONVERGENCE_RECOVERY_REPORT.md).
+The original 067 validation ledger below remains historical evidence.
+
 Date: 2026-10-04. Actual fetched origin/main:
 `fa178f1a6697e48ef85bccb5b82797bfd0aedb3f`.
 Branch: `fix/257-gps-c-no-measurement-recovery`, clean before work and created
