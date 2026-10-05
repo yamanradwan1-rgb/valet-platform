@@ -2,7 +2,74 @@
 
 Date: 2026-10-05. Repository: veletpro0-lgtm/valet-platform.
 
-## Focused correction contract (owner continuation)
+## Latest auth-refresh closure audit — DECISION REQUIRED
+
+Reviewed HEAD: `a14856c16f7bc3c8c1795cf8ac635056b1ec9ecb`, same branch
+`codex/native-257-presence-management`. The remaining major defect is confirmed:
+retained reconciliation identity is currently cleared on successful access-token
+refresh because `PresenceIntentLifetime` fences on `sessionGeneration`, which
+increments for every successful refresh.
+
+The owner's continuation explicitly requires: “If the current public auth state
+exposes no safe way to distinguish A from B, STOP and report the exact missing
+contract instead of guessing.” Implementation is stopped under that condition.
+
+### Verified contract evidence
+
+- `packages/contracts/src/staff-auth.ts:32` and
+  `apps/api/src/modules/auth/staff-auth.transport.ts:46`: the strict public web
+  response contains only `accessToken`, `tokenType`, `accessExpiresAt` and
+  `sessionExpiresAt`. It exposes neither a logical-session identifier nor a
+  principal identity/authoritative continuity signal.
+- `apps/api/src/modules/auth/staff-auth.service.ts:93`: login creates a random
+  session UUID. The persisted absolute expiry is database time plus 720 hours;
+  it is a deadline, not an identity. Neither the session UUID nor user ID is
+  included in the web auth response.
+- `apps/api/src/modules/auth/staff-auth.service.ts:194` and `:264`: refresh
+  resolves the HTTP-only refresh credential's actual persisted session, rotates
+  credentials on that same row and leaves `absolute_expires_at` unchanged.
+  `apps/api/test/staff-auth.integration.test.ts:610` explicitly asserts unchanged
+  `sessionExpiresAt` on ordinary refresh. This proves stability for ordinary
+  refresh, not uniqueness or guaranteed change for session replacement.
+- `packages/database/prisma/schema.prisma:612` and
+  `packages/database/prisma/migrations/20260810001700_staff_authentication/migration.sql:1`:
+  the session UUID and current access-token hash have unique constraints.
+  `absolute_expires_at` has millisecond precision and no uniqueness constraint.
+  Distinct sessions are permitted to share the same exported expiry; treating
+  that deadline as a session identifier would invent a contract.
+- `apps/dashboard/src/lib/auth/staff-auth-client.ts:149` and `:189`:
+  `performRefresh()` preserves `identityGeneration` whenever an in-memory session
+  already exists, then increments `sessionGeneration`. Logout, explicit local
+  login and definitive auth loss are detectable, but a changed HTTP-only cookie
+  can select another logical session/principal without the refresh response
+  allowing the client to prove continuity. Checking only `identityGeneration`
+  or the local method name would weaken the required replacement fence.
+- `apps/api/src/modules/auth/staff-auth-credential.ts:7`: access credentials are
+  random opaque values, not tokens carrying a readable session/principal claim.
+  Credential rotation cannot supply the missing non-secret continuity fact.
+
+### Exact missing contract and disposition
+
+Dashboard needs an authoritative, non-credential logical-session continuity fact
+that is stable on ordinary credential refresh and distinguishes actual logical
+session/principal replacement. The current public auth state provides no such
+fact. An accepted auth/transport contract and its invariants are required before
+the feature can safely rebind retained descriptors and perform the requested
+fresh-auth exact GET. No new response field, expiry heuristic, ignored generation
+change or broad auth framework is introduced by this audit.
+
+The desired UNKNOWN → ordinary refresh → exact GET behavior is **not fixed or
+verified**. No code/test/map/#266/auth/API/contracts/database/baseline file is
+changed. The only changed file in this continuation is this report. No closure
+unit/browser/typecheck/lint/build pass is claimed for the unresolved fix; the
+previous evidence below is historical and does not prove auth-refresh safety.
+The documentation is formatted and checked with `git diff --check` before its
+authorized same-branch commit/push. No PR or merge is created. The final chat
+handoff supplies the report-only commit SHA and clean/remote status.
+
+**BLOCKED — GPS-D auth-refresh closure. Not ready for final review.**
+
+## Historical focused correction contract (previous owner continuation)
 
 Continue from `12e307aef0320ae0936e036ec6f59d7b50cd3ddc` on the same branch.
 Retain only exact reconciliation identity in feature-owned memory across UI
@@ -19,7 +86,8 @@ clears device feedback and retires acquisition callbacks; radius-only editing
 preserves informational accuracy. No API, DB, authority or domain transition
 changes are needed. Correction validation evidence follows after implementation.
 
-**READY FOR CHATGPT RE-REVIEW — GPS-D** for the focused corrections.
+Historical re-review handoff for the previous three corrections; superseded by
+the auth-refresh blocker above.
 
 The owner continuation authorizes three focused corrections and preserves the
 independently confirmed unrelated baseline failures. Current correction evidence
@@ -27,7 +95,7 @@ is recorded separately below. The initial implementation's broad gate failures
 remain historical evidence, without suppression or out-of-scope repairs. This is
 an implementation handoff for independent review, not merge/deployment approval.
 
-## Correction mechanics and regression evidence
+## Historical correction mechanics and regression evidence
 
 - **Unknown/unmount:** a feature-owned `WeakMap` keyed by the existing staff auth
   client holds one generation-bound lifetime. Descriptors are partitioned by
