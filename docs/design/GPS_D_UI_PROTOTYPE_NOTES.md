@@ -1,6 +1,14 @@
 # GPS-D Shift Presence composition spike
 
-Status: **Design only — owner composition selection required before GPS-D implementation.**
+Status: **Variant A owner-selected for GPS-D production reference (2026-10-05).**
+
+The owner froze Variant A: Readiness → Policy → Attendance Zones → Presence
+Exceptions, in one subsection of existing Policies & Settings. Company uses the
+reduced four-default form; CA and LM share the exact-Location composition.
+No new page/tab/sidebar or rejected variant composition is authorized. The HTML
+remains a visual reference only; production reuses existing Dashboard patterns.
+Issue #266's optional explicit one-shot draft-center action is accepted and is
+now synchronized narrowly into canonical UI-G. Strict rollout remains closed.
 
 ## Baseline and scope
 
@@ -176,4 +184,4 @@ The single self-contained documentation artifact is expressly requested by the o
 
 ## Owner handoff
 
-Select A, B, C or D using the common fixtures and failure previews. Selection approves composition only. Then synchronize/freeze the canonical plan, including #266, before separately authorizing GPS-D production implementation. Existing rollout, server authority, security, audit and physical evidence gates remain binding.
+The owner selected Variant A and authorized GPS-D production implementation. The canonical plan now freezes that composition and the narrow optional #266 draft-location behavior. Existing rollout, server authority, security, audit and physical evidence gates remain binding.

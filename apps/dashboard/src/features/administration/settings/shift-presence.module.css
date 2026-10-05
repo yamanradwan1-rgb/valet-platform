@@ -1,0 +1,27 @@
+.section {
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+.mapRegion {
+  min-width: 0;
+}
+.map {
+  height: 15rem;
+  width: 100%;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+.dialogBody {
+  display: grid;
+  gap: 1rem;
+  max-height: min(calc(80dvh - 12rem), 30rem);
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+.dialogBody p {
+  margin: 0;
+}
+.comparison {
+  overflow-wrap: anywhere;
+}

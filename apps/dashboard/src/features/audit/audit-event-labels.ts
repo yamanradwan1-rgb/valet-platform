@@ -17,6 +17,8 @@ const entities = {
   CUSTOMER: ["Visit contact", "جهة اتصال الزيارة"],
   TASK: ["Task", "مهمة"],
   SHIFT: ["Shift", "وردية"],
+  SHIFT_PRESENCE_ZONE: ["Attendance zone", "منطقة حضور"],
+  SHIFT_PRESENCE_EXCEPTION: ["Presence exception", "استثناء حضور"],
   INCIDENT: ["Incident", "حادث"],
   PAYMENT: ["Payment", "دفعة"],
   VALIDATION: ["Validation", "إعفاء"],

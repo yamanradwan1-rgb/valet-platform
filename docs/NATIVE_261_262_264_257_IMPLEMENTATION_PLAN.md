@@ -2,7 +2,26 @@
 
 Current planning integration: 2026-10-04. Repository: veletpro0-lgtm/valet-platform. Historical investigation snapshot: 2026-10-03.
 
-This is the single canonical implementation plan for GPS-A, GPS-B, the #262 physical causal-resolution gate, GPS-C and GPS-D, including the full binding Management UI contract. The owner has accepted the Shift Presence product/security/UI directions; documentation integration does not implement them. No production source is changed. Native and Employee Web source is not read by this integration task. Implementation and rollout remain predecessor/evidence gated.
+GPS-D execution update (2026-10-05): GPS-B and GPS-C are merged into verified
+production main `de617b363d3c2c9325cebde35137f419bec76eb7`; GPS-D is active on
+`codex/native-257-presence-management`, starting from the docs-only design commit
+`5e341361957c93ac8e9ae7dd99c9d361de2246a6` (one commit ahead, zero behind main).
+The owner selected **Variant A** in `docs/design/gps-d-shift-presence-prototypes.html`.
+`docs/design/GPS_D_UI_PROTOTYPE_NOTES.md` records this production reference.
+The exact-Location order is **Readiness → Policy → Attendance Zones → Presence
+Exceptions**, embedded inside existing Policies & Settings. Company exposes only
+four defaults. No new page, tab or sidebar entry is authorized. Strict rollout
+remains closed; #262 physical causation and device evidence are separate gates.
+U-002/U-003/U-004 are published in `docs/validation/GPS_B_PUBLIC_CONTRACT.md`.
+
+Current execution status supersedes the historical predecessor assessment below:
+GPS-B **merged**, GPS-C **merged with device evidence limitations recorded in its
+report**, GPS-D **implemented / independent review required; full Dashboard
+baseline gates blocked**. GPS-D evidence
+is recorded in [GPS_D_IMPLEMENTATION_REPORT.md](validation/GPS_D_IMPLEMENTATION_REPORT.md).
+This does not close the separate #262 causal gate or authorize strict activation.
+
+This is the single canonical implementation plan for GPS-A, GPS-B, the #262 physical causal-resolution gate, GPS-C and GPS-D, including the full binding Management UI contract. The owner has accepted the Shift Presence product/security/UI directions. The original documentation integration did not implement them or change production source; its historical task did not read Native or Employee Web source. The execution update above supersedes historical GPS-B/C/D predecessor status; independent review and rollout evidence gates remain.
 
 ## A. REPOSITORY BASELINE
 
@@ -837,7 +856,18 @@ Use existing statuses, actual terminal time and DEC-099 retention/privacy.
 
 `AttendanceZoneMap` is a conceptual feature boundary, with no final TypeScript signature selected before U-005. It accepts safe configuration center/radius/editability/locale/theme and emits proposed center changes. It displays a real geographic base map, one editable pin and metric circular overlay, supports pan/zoom and click/tap center selection, and exposes loading/error/ready presentation. Pin drag may be a convenience, never the only control. It owns no capability, tenant selection, policy/readiness, zone persistence or employee fixes.
 
-The parent editor owns the single draft and manual keyboard fallback. Preview uses actual geographic meters, not operational min/max SVG scaling. Map and input edits agree on one valid draft. Do not flip geographic east/west for RTL. Detach map listeners/adapters on dialog/scope teardown; delayed SDK callbacks cannot update retired drafts. Maps API calls happen outside protected database transactions. Do not ask for manager device geolocation to create a zone.
+The parent editor owns the single draft and manual keyboard fallback. Preview uses actual geographic meters, not operational min/max SVG scaling. Map and input edits agree on one valid draft. Do not flip geographic east/west for RTL. Detach map listeners/adapters on dialog/scope teardown; delayed SDK callbacks cannot update retired drafts. Maps API calls happen outside protected database transactions.
+
+Issue #266's owner-approved narrow exception supersedes the earlier manager
+geolocation prohibition only inside Add/Edit Attendance Zone: **Use my current
+location** may request optional foreground one-shot browser geolocation after
+explicit activation. It changes the current draft center only, never radius,
+Location authority, employee attendance evidence, readiness or persistence.
+No automatic acquisition, watch/background tracking, automatic Save, separate
+manager location history, coordinate logging or telemetry is permitted. Manual
+map/latitude/longitude/radius editing remains fully usable, including when the
+permission/provider is unavailable. Accuracy is informational only. Fence late
+results by full scope/session/selection and dialog generation, including A→B→A.
 
 Edit centers on the persisted zone. Add may use only a server-provided configured center if one exists in the eventual accepted contract. Current Location projection provides address text without coordinates, so do not claim automatic Location centering. U-005 must set a neutral initial viewport/manual-first behavior until the manager chooses a center; no implicit zone, guessed geocode or saved camera viewport.
 
@@ -1086,7 +1116,7 @@ Google is fixed by DEC-045; search/geocoding remains optional/deferred for v1;
 history lives within the existing Location subsection with bounded server paging.
 No new tab/sidebar/page or setting paradigm is introduced.
 
-#### Ready-to-implement verdict
+#### Historical ready-to-implement verdict (superseded for GPS-B/C/D)
 
 Binding plan accepted; implementation remains predecessor/evidence gated under
 GPS-A → GPS-B → #262 physical causal resolution/fix → GPS-C → GPS-D. Required
@@ -1254,7 +1284,7 @@ GPS-C — Native foreground acquisition / lifecycle / physical Android proof
 GPS-D — complete binding Settings Management UI / rollout acceptance
 ```
 
-GPS-B is independent backend work and may proceed while camera evidence is
+Historical sequencing assessment: GPS-B is independent backend work and may proceed while camera evidence is
 collected. GPS-C remains blocked until GPS-B lands AND #262 physical causal
 resolution/fix proof establishes a stable lifecycle baseline. #262 is one task
 with investigation and conditional fix, not a speculative extra GPS slice.
@@ -1463,7 +1493,7 @@ Remaining gates are implementation/evidence gates:
 
 U261-T and U264-T are now technical implementation locks, not owner questions. U257 advanced attestation is deferred hardening and must not block core correctness or silently fail open.
 
-### Ready-to-implement verdict
+### Historical ready-to-implement verdict (superseded for GPS-B/C/D)
 
 | Unit                    | Verdict                                      | Meaning                                                                                                                                                                                                                                                                                                    |
 | ----------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1571,4 +1601,4 @@ the unchanged audit, and neither provides implementation, runtime, device or CI 
 
 GPS-B implements the accepted backend work only: strict shared contracts and separate CA/LM management routes, exact intent/status/result recovery, Start/End atomic enforcement, DEC-100 original approver authority/early expiry, typed safe audit, readiness/fanout/zone serialization and privileged retention execution. Literal U-002/U-003/U-004 contracts are published in [GPS_B_PUBLIC_CONTRACT.md](validation/GPS_B_PUBLIC_CONTRACT.md); A–M evidence and race outcomes are in [GPS_B_IMPLEMENTATION_REPORT.md](validation/GPS_B_IMPLEMENTATION_REPORT.md).
 
-The prior documentation-only integration statement describes that historical task. This backend branch is based on fetched main 168da01e6822049ee0a45eebec4780c5b2b1fbd9 and awaits independent review. No merge, Issue closure, Native/Employee Web/Dashboard UI implementation, #262 causal fix, GPS-C/D start, physical proof or strict production rollout is claimed. Actual remote CI is unverified; deployment key provisioning and retention cadence remain release prerequisites.
+The prior documentation-only integration statement and backend review status describe that historical task. GPS-B and GPS-C are now on verified main `de617b363d3c2c9325cebde35137f419bec76eb7`; GPS-D execution is authorized on the owner-selected Variant A design reference. See the GPS-D execution update at the beginning and [GPS_D_IMPLEMENTATION_REPORT.md](validation/GPS_D_IMPLEMENTATION_REPORT.md) for current implementation evidence. The backend branch was based on fetched main 168da01e6822049ee0a45eebec4780c5b2b1fbd9. That historical backend handoff did not claim merge, Issue closure, client implementation, #262 causal fix, physical proof or strict production rollout. Current GPS-D does not close #262, prove devices or enable strict rollout. Actual remote CI is unverified; deployment key provisioning and retention cadence remain release prerequisites.

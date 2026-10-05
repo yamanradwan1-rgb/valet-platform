@@ -19,6 +19,7 @@ import { CompanySettingsPanel } from "./company-settings-panel";
 import { LocationManagerSettingsPanel } from "./location-manager-settings-panel";
 import { ManagementLocationSettingsPanel } from "./management-location-settings-panel";
 import { settingsTableCopy } from "./settings-copy";
+import { ShiftPresenceSettings } from "./shift-presence-settings";
 import {
   readCompanySettings,
   readLocationManagerSettings,
@@ -177,6 +178,7 @@ export function SettingsPage({
                 />
               ) : null}
             </SettingsReadState>
+            <ShiftPresenceSettings company />
           </div>
         ) : null}
         {companyAdmin && activeTab === "location" ? (
@@ -188,52 +190,60 @@ export function SettingsPage({
             {scope.locationId === null ? (
               <div className={styles.empty}>{t.selectLocation}</div>
             ) : (
-              <SettingsReadState
-                error={
-                  managementLocation.error
-                    ? new Error(
-                        administrationErrorMessage(managementLocation.error),
-                      )
-                    : null
-                }
-                loading={managementLocation.loading}
-                loadingLabel={t.loading}
-                onRetry={managementLocation.refresh}
-                retryLabel={t.retry}
-              >
-                {managementLocation.data ? (
-                  <ManagementLocationSettingsPanel
-                    api={dashboard.api}
-                    data={managementLocation.data}
-                    key={managementLocation.data.updatedAt}
-                    locale={locale}
-                    onReload={managementLocation.refresh}
-                  />
-                ) : null}
-              </SettingsReadState>
+              <>
+                <SettingsReadState
+                  error={
+                    managementLocation.error
+                      ? new Error(
+                          administrationErrorMessage(managementLocation.error),
+                        )
+                      : null
+                  }
+                  loading={managementLocation.loading}
+                  loadingLabel={t.loading}
+                  onRetry={managementLocation.refresh}
+                  retryLabel={t.retry}
+                >
+                  {managementLocation.data ? (
+                    <ManagementLocationSettingsPanel
+                      api={dashboard.api}
+                      data={managementLocation.data}
+                      key={managementLocation.data.updatedAt}
+                      locale={locale}
+                      onReload={managementLocation.refresh}
+                    />
+                  ) : null}
+                </SettingsReadState>
+                <ShiftPresenceSettings />
+              </>
             )}
           </div>
         ) : null}
         {locationManager ? (
-          <SettingsReadState
-            error={
-              lm.error ? new Error(administrationErrorMessage(lm.error)) : null
-            }
-            loading={lm.loading}
-            loadingLabel={t.loading}
-            onRetry={lm.refresh}
-            retryLabel={t.retry}
-          >
-            {lm.data ? (
-              <LocationManagerSettingsPanel
-                api={dashboard.api}
-                data={lm.data}
-                key={lm.data.updatedAt}
-                locale={locale}
-                onReload={lm.refresh}
-              />
-            ) : null}
-          </SettingsReadState>
+          <>
+            <SettingsReadState
+              error={
+                lm.error
+                  ? new Error(administrationErrorMessage(lm.error))
+                  : null
+              }
+              loading={lm.loading}
+              loadingLabel={t.loading}
+              onRetry={lm.refresh}
+              retryLabel={t.retry}
+            >
+              {lm.data ? (
+                <LocationManagerSettingsPanel
+                  api={dashboard.api}
+                  data={lm.data}
+                  key={lm.data.updatedAt}
+                  locale={locale}
+                  onReload={lm.refresh}
+                />
+              ) : null}
+            </SettingsReadState>
+            <ShiftPresenceSettings />
+          </>
         ) : null}
       </div>
     </AdministrationPage>

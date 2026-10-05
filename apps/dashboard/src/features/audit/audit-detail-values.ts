@@ -12,6 +12,7 @@ const kinds: Record<Kind, readonly [string, string]> = {
   KEY: ["Key", "المفتاح"],
   TASK: ["Task", "المهمة"],
   SHIFT: ["Shift", "الوردية"],
+  PRESENCE: ["Shift presence", "التحقق من حضور المناوبة"],
   SESSION: ["Valet session", "جلسة صف المركبة"],
   INCIDENT: ["Incident", "الحادث"],
   FINANCIAL: ["Financial", "المالية"],

@@ -3,6 +3,28 @@ import type { DashboardLocale } from "../../lib/i18n/locale";
 
 // Public event catalog only. Labels describe the recorded fact, not a new workflow.
 const events = {
+  SHIFT_PRESENCE_COMPANY_POLICY_CHANGED: [
+    "Company presence policy changed",
+    "تغيير سياسة حضور الشركة",
+  ],
+  SHIFT_PRESENCE_LOCATION_POLICY_CHANGED: [
+    "Location presence policy changed",
+    "تغيير سياسة حضور الموقع",
+  ],
+  SHIFT_PRESENCE_ZONE_CREATED: ["Attendance zone created", "إنشاء منطقة حضور"],
+  SHIFT_PRESENCE_ZONE_UPDATED: ["Attendance zone updated", "تحديث منطقة حضور"],
+  SHIFT_PRESENCE_EXCEPTION_APPROVED: [
+    "Presence exception approved",
+    "الموافقة على استثناء حضور",
+  ],
+  SHIFT_PRESENCE_EXCEPTION_REJECTED: [
+    "Presence exception rejected",
+    "رفض استثناء حضور",
+  ],
+  SHIFT_PRESENCE_APPROVAL_EXPIRED: [
+    "Presence approval expired",
+    "انتهاء صلاحية موافقة الحضور",
+  ],
   VALET_SESSION_CREATED: ["Valet session created", "إنشاء جلسة صف المركبة"],
   CHECK_IN_CONDITION_NOTE_RECORDED: [
     "Check-in condition note recorded",
