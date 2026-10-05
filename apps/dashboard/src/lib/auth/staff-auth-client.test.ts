@@ -9,6 +9,7 @@ const authPayload = (character: string) => ({
   tokenType: "Bearer" as const,
   accessExpiresAt: "2099-01-01T00:00:00.000Z",
   sessionExpiresAt: "2099-02-01T00:00:00.000Z",
+  staffAuthSessionId: "88888888-8888-4888-8888-888888888888",
 });
 
 const storageValues = new Map<string, string>();

@@ -231,13 +231,20 @@ export class PresenceApi {
       )
       .then((value) => requirePresenceException(this.target, value, id));
   }
-  async result(mutationId: string, query: ShiftPresenceManagementResultQuery) {
+  async result(
+    mutationId: string,
+    query: ShiftPresenceManagementResultQuery,
+    recoveryOptions?: Pick<
+      DashboardApiRequestOptions,
+      "signal" | "onAuthReconciled"
+    >,
+  ) {
     shiftPresenceManagementResultQuerySchema.parse(query);
     const result = await this.api.request(
       `${this.base}/results/${mutationId}`,
       shiftPresenceManagementResultSchema,
       {
-        ...this.options(),
+        ...(recoveryOptions ?? this.options()),
         ...(this.target.locationId ? { query } : {}),
       },
     );

@@ -35,6 +35,7 @@ export const staffAuthAccessResponseSchema = z
     tokenType: z.literal("Bearer"),
     accessExpiresAt: z.string().datetime({ offset: true }),
     sessionExpiresAt: z.string().datetime({ offset: true }),
+    staffAuthSessionId: z.string().uuid(),
   })
   .strict();
 

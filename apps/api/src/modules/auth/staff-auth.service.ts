@@ -118,7 +118,7 @@ export class StaffAuthService {
            $4::timestamptz + INTERVAL '720 hours',
            $4::timestamptz, $4::timestamptz
          )
-         RETURNING access_expires_at, absolute_expires_at,
+         RETURNING id, access_expires_at, absolute_expires_at,
                    2592000 AS refresh_cookie_max_age_seconds`,
         [
           sessionId,
@@ -269,7 +269,7 @@ export class StaffAuthService {
              ),
              last_rotated_at = $3::timestamptz
          WHERE id = $2
-         RETURNING access_expires_at, absolute_expires_at,
+         RETURNING id, access_expires_at, absolute_expires_at,
                    GREATEST(
                      0,
                      FLOOR(EXTRACT(EPOCH FROM (absolute_expires_at - $3::timestamptz)))::integer

@@ -1,7 +1,7 @@
 import type { Page, Request, Route } from "@playwright/test";
+import { DashboardAuthFixture } from "./dashboard-auth-fixture";
 
 import {
-  authPayload,
   E2E_IDS,
   enrollmentPayload,
   LOCATION_A,
@@ -21,8 +21,6 @@ export {
   RECOVERY_CODE,
 } from "./fixture-data";
 
-const COOKIE_NAME = "vaylet_e2e_refresh";
-const COOKIE_VALUE = "fixture";
 type MfaState =
   "ENROLLMENT_REQUIRED" | "ENROLLMENT_PENDING" | "STEP_UP_REQUIRED" | "ASSURED";
 
@@ -51,6 +49,7 @@ export interface DashboardFixtureOptions {
 }
 
 export class DashboardApiFixture {
+  readonly auth = new DashboardAuthFixture();
   readonly counts = new Map<string, number>();
   readonly loginBodies: unknown[] = [];
   refreshCookieSeen = false;
@@ -85,29 +84,15 @@ export class DashboardApiFixture {
   private defaultReply(path: string, url: URL, request: Request): FixtureReply {
     if (path === "/v1/staff/auth/login") {
       this.loginBodies.push(request.postDataJSON());
-      return {
-        body: authPayload("A"),
-        headers: {
-          "set-cookie": `${COOKIE_NAME}=${COOKIE_VALUE}; Path=/; HttpOnly; SameSite=Lax`,
-        },
-      };
+      return this.auth.login();
     }
     if (path === "/v1/staff/auth/refresh") {
-      const hasCookie =
-        request.headers().cookie?.includes(`${COOKIE_NAME}=${COOKIE_VALUE}`) ===
-        true;
+      const hasCookie = this.auth.hasCookie(request);
       this.refreshCookieSeen ||= hasCookie;
-      return hasCookie
-        ? { body: authPayload("B") }
-        : errorReply(401, "STAFF_AUTHENTICATION_REQUIRED");
+      return this.auth.refresh(request);
     }
     if (path === "/v1/staff/auth/logout") {
-      return {
-        body: {},
-        headers: {
-          "set-cookie": `${COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`,
-        },
-      };
+      return this.auth.logout();
     }
     if (path === "/v1/staff/auth/mfa/state")
       return { body: { state: this.mfaState } };
@@ -246,7 +231,8 @@ export function supervisorContext() {
     code: LOCATION_A.code,
     currency: LOCATION_A.currency,
     locationId: LOCATION_A.locationId,
-    name: LOCATION_A.name, timezone: LOCATION_A.timezone,
+    name: LOCATION_A.name,
+    timezone: LOCATION_A.timezone,
   };
   return {
     activeShift: {

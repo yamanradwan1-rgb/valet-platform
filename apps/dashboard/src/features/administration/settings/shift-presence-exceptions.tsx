@@ -20,6 +20,7 @@ export function ShiftPresenceExceptions(props: {
   readonly epoch: number;
   readonly locale: DashboardLocale;
   readonly locationName: string;
+  readonly blocked: boolean;
   readonly onOpen: (id: string) => void;
 }) {
   const t = presenceCopy(props.locale);
@@ -137,7 +138,13 @@ function ExceptionPage(
                       <td>
                         <button
                           className={styles.secondary}
-                          disabled={read.loading}
+                          disabled={
+                            read.loading ||
+                            (props.blocked &&
+                              e.canReview &&
+                              e.status === "PENDING" &&
+                              Date.parse(e.expiresAt) > now)
+                          }
                           onClick={() => props.onOpen(e.exceptionId)}
                         >
                           {t(

@@ -62,6 +62,10 @@ export class StaffAuthClient {
     return this.session?.accessToken ?? null;
   }
 
+  getStaffAuthSessionId(): string | null {
+    return this.session?.staffAuthSessionId ?? null;
+  }
+
   getSessionGeneration(): number {
     return this.sessionGeneration;
   }
@@ -73,7 +77,9 @@ export class StaffAuthClient {
   hasUnconfirmedLogout(): boolean {
     if (this.logoutUnconfirmed) return true;
     try {
-      return globalThis.localStorage?.getItem(STAFF_LOGOUT_UNCONFIRMED_KEY) === "1";
+      return (
+        globalThis.localStorage?.getItem(STAFF_LOGOUT_UNCONFIRMED_KEY) === "1"
+      );
     } catch {
       return false;
     }
@@ -81,7 +87,10 @@ export class StaffAuthClient {
 
   isTokenFresh(bufferSeconds = 30): boolean {
     if (this.session === null) return false;
-    return Date.parse(this.session.accessExpiresAt) - Date.now() > bufferSeconds * 1000;
+    return (
+      Date.parse(this.session.accessExpiresAt) - Date.now() >
+      bufferSeconds * 1000
+    );
   }
 
   subscribe(listener: SessionListener): () => void {
@@ -96,10 +105,12 @@ export class StaffAuthClient {
     const body = staffLoginRequestSchema.parse(credentials);
     const identityFence = this.identityGeneration;
     const response = await this.fetchJson("/v1/staff/auth/login", body, signal);
-    if (!response.ok) throw dashboardApiErrorFromResponse(response.status, response.payload);
+    if (!response.ok)
+      throw dashboardApiErrorFromResponse(response.status, response.payload);
     const parsed = staffAuthAccessResponseSchema.safeParse(response.payload);
     if (!parsed.success) throw dashboardMalformedError(parsed.error);
-    if (identityFence !== this.identityGeneration) throw dashboardAuthBoundaryError();
+    if (identityFence !== this.identityGeneration)
+      throw dashboardAuthBoundaryError();
     this.clearLogoutUnconfirmed();
     this.applySession(parsed.data, true);
     return parsed.data;
@@ -124,33 +135,52 @@ export class StaffAuthClient {
     this.markLogoutUnconfirmed();
     this.clearIdentityBoundary();
     const response = await this.fetchJson("/v1/staff/auth/logout", {}, signal);
-    if (!response.ok) throw dashboardApiErrorFromResponse(response.status, response.payload);
+    if (!response.ok)
+      throw dashboardApiErrorFromResponse(response.status, response.payload);
     this.clearLogoutUnconfirmed();
   }
 
-  private async performRefresh(identityFence: number): Promise<StaffAuthAccessResponse> {
+  private async performRefresh(
+    identityFence: number,
+  ): Promise<StaffAuthAccessResponse> {
     try {
       const response = await this.fetchJson("/v1/staff/auth/refresh", {});
       if (!response.ok) {
-        const apiError = dashboardApiErrorFromResponse(response.status, response.payload);
-        const kind: StaffRefreshFailureKind = apiError.kind === "auth" ? "definitive" : "transient";
-        if (kind === "definitive" && identityFence === this.identityGeneration) {
+        const apiError = dashboardApiErrorFromResponse(
+          response.status,
+          response.payload,
+        );
+        const kind: StaffRefreshFailureKind =
+          apiError.kind === "auth" ? "definitive" : "transient";
+        if (
+          kind === "definitive" &&
+          identityFence === this.identityGeneration
+        ) {
           this.clearIdentityBoundary();
         }
         throw new StaffAuthRefreshError(kind, apiError);
       }
       const parsed = staffAuthAccessResponseSchema.safeParse(response.payload);
       if (!parsed.success) {
-        throw new StaffAuthRefreshError("transient", dashboardMalformedError(parsed.error));
+        throw new StaffAuthRefreshError(
+          "transient",
+          dashboardMalformedError(parsed.error),
+        );
       }
       if (identityFence !== this.identityGeneration) {
-        throw new StaffAuthRefreshError("definitive", dashboardAuthBoundaryError());
+        throw new StaffAuthRefreshError(
+          "definitive",
+          dashboardAuthBoundaryError(),
+        );
       }
       this.applySession(parsed.data, this.session === null);
       return parsed.data;
     } catch (error: unknown) {
       if (error instanceof StaffAuthRefreshError) throw error;
-      const apiError = error instanceof DashboardApiError ? error : dashboardNetworkError(error);
+      const apiError =
+        error instanceof DashboardApiError
+          ? error
+          : dashboardNetworkError(error);
       throw new StaffAuthRefreshError("transient", apiError);
     }
   }
@@ -159,12 +189,19 @@ export class StaffAuthClient {
     path: string,
     body: unknown,
     signal?: AbortSignal,
-  ): Promise<{ readonly ok: boolean; readonly status: number; readonly payload: unknown }> {
+  ): Promise<{
+    readonly ok: boolean;
+    readonly status: number;
+    readonly payload: unknown;
+  }> {
     let response: Response;
     try {
       response = await this.fetcher(`${this.baseUrl}${path}`, {
         method: "POST",
-        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(body),
         cache: "no-store",
         credentials: "include",
@@ -186,10 +223,16 @@ export class StaffAuthClient {
     return { ok: response.ok, status: response.status, payload };
   }
 
-  private applySession(session: StaffAuthSession, identityChanged: boolean): void {
+  private applySession(
+    session: StaffAuthSession,
+    identityChanged: boolean,
+  ): void {
+    const replaced =
+      this.session !== null &&
+      this.session.staffAuthSessionId !== session.staffAuthSessionId;
     this.session = session;
     this.sessionGeneration += 1;
-    if (identityChanged) this.identityGeneration += 1;
+    if (identityChanged || replaced) this.identityGeneration += 1;
     this.emit();
   }
 
@@ -230,10 +273,16 @@ export class StaffAuthClient {
 }
 
 function abortReason(signal: AbortSignal): unknown {
-  return signal.reason ?? new DOMException("The operation was aborted.", "AbortError");
+  return (
+    signal.reason ??
+    new DOMException("The operation was aborted.", "AbortError")
+  );
 }
 
-function awaitWithAbort<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+function awaitWithAbort<T>(
+  promise: Promise<T>,
+  signal: AbortSignal,
+): Promise<T> {
   return new Promise((resolve, reject) => {
     const abort = () => reject(abortReason(signal));
     signal.addEventListener("abort", abort, { once: true });

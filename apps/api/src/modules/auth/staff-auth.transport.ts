@@ -50,6 +50,7 @@ export function webAccessResponse(
     accessExpiresAt: tokens.accessExpiresAt.toISOString(),
     accessToken: tokens.accessToken,
     sessionExpiresAt: tokens.sessionExpiresAt.toISOString(),
+    staffAuthSessionId: tokens.staffAuthSessionId,
     tokenType: "Bearer",
   });
 }

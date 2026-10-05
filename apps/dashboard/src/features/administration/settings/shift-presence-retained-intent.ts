@@ -16,11 +16,12 @@ export class PresenceIntentLifetime {
   constructor(
     private readonly client: StaffAuthClient,
     readonly identityGeneration: number,
-    readonly sessionGeneration: number,
+    readonly staffAuthSessionId: string | null,
   ) {}
   isCurrent = () =>
     this.client.getIdentityGeneration() === this.identityGeneration &&
-    this.client.getSessionGeneration() === this.sessionGeneration;
+    this.staffAuthSessionId !== null &&
+    this.client.getStaffAuthSessionId() === this.staffAuthSessionId;
 
   // Remains attached across subsection/route unmount, until auth replacement.
   watch() {
@@ -72,18 +73,18 @@ const lifetimes = new WeakMap<StaffAuthClient, PresenceIntentLifetime>();
 export function presenceIntentLifetime(
   client: StaffAuthClient,
   identityGeneration: number,
-  sessionGeneration: number,
+  staffAuthSessionId: string | null,
 ) {
   const prior = lifetimes.get(client);
   if (
     prior?.identityGeneration === identityGeneration &&
-    prior.sessionGeneration === sessionGeneration
+    prior.staffAuthSessionId === staffAuthSessionId
   )
     return prior;
   const lifetime = new PresenceIntentLifetime(
     client,
     identityGeneration,
-    sessionGeneration,
+    staffAuthSessionId,
   );
   lifetimes.set(client, lifetime);
   return lifetime;

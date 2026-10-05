@@ -62,9 +62,12 @@ export function useShiftPresenceMutation(
   }
   async function reconcileExact(
     intent: Intent,
+    explicit = false,
   ): Promise<PresenceCanonical | null> {
     try {
-      const result = await api.result(intent.mutationId, intent.query);
+      const result = explicit
+        ? await retained.recover(api, intent)
+        : await api.result(intent.mutationId, intent.query);
       if (!alive.current || !retained.current()) return null;
       publish(result.canonical);
       const committed = result.attribution === "COMMITTED";
@@ -193,7 +196,7 @@ export function useShiftPresenceMutation(
     flight.current = true;
     setState((value) => ({ ...value, busy: true, message: "reconciling" }));
     try {
-      await reconcileExact(intent);
+      await reconcileExact(intent, true);
     } finally {
       flight.current = false;
       if (alive.current) setState((value) => ({ ...value, busy: false }));

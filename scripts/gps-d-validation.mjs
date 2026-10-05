@@ -23,8 +23,51 @@ const inventory = [
 ].filter(Boolean);
 const allowed =
   /^(\.env\.example$|apps\/dashboard\/src\/features\/administration\/settings\/(settings-page\.tsx|(?:shift-presence|use-presence|use-shift-presence|use-attendance-zone|attendance-zone)[^/]+)$|apps\/dashboard\/src\/features\/audit\/(audit-detail-values|audit-event-copy|audit-event-labels|audit-safe-details)\.ts$|apps\/dashboard\/e2e\/(?:shift-presence[^/]+|administration-settings-validation)\.spec\.ts$|apps\/dashboard\/e2e\/support\/presence-(data|fixtures|map-mock)\.ts$|docs\/(NATIVE_261_262_264_257_IMPLEMENTATION_PLAN\.md|design\/GPS_D_UI_PROTOTYPE_NOTES\.md|validation\/GPS_D_IMPLEMENTATION_REPORT\.md)$|scripts\/gps-d-validation\.mjs$)/;
+// Owner's 2026-10-05 continuity correction: exact auth files, no broader traversal.
+const continuityFiles = new Set([
+  "packages/contracts/src/staff-auth.ts",
+  "packages/contracts/src/staff-auth.test.ts",
+  "packages/contracts/src/index.test.ts",
+  "apps/api/src/modules/auth/staff-auth-types.ts",
+  "apps/api/src/modules/auth/staff-auth-token-result.ts",
+  "apps/api/src/modules/auth/staff-auth.service.ts",
+  "apps/api/src/modules/auth/staff-auth.transport.ts",
+  "apps/api/test/staff-auth-continuity.integration.test.ts",
+  "apps/api/test/staff-auth-native.integration.test.ts",
+  "apps/dashboard/src/lib/auth/staff-auth-client.ts",
+  "apps/dashboard/src/lib/auth/staff-auth-client.test.ts",
+  "apps/dashboard/src/lib/auth/staff-auth-continuity.test.ts",
+  "apps/dashboard/src/lib/api/dashboard-api-client.test.ts",
+  "apps/dashboard/src/lib/api/dashboard-api-client-binary.test.ts",
+  "apps/dashboard/e2e/support/dashboard-api-fixture.ts",
+  "apps/dashboard/e2e/support/dashboard-auth-fixture.ts",
+  "apps/dashboard/e2e/support/fixture-data.ts",
+  "apps/dashboard/e2e/support/presence-continuity-fixture.ts",
+  "apps/valet-native/test/native-auth-http.test.ts",
+  "apps/valet-native/test/native-telemetry-auth-correlation.test.ts",
+  "packages/employee-client/src/native-auth-test-fixture.ts",
+]);
+const isOwned = (path) => allowed.test(path) || continuityFiles.has(path);
+// These pre-existing fixtures have legacy formatting. Permit only the required
+// UUID literal insertion; any other edit still requires normal formatting.
+const minimalAuthFixtures = new Set([
+  "apps/dashboard/src/lib/auth/staff-auth-client.test.ts",
+  "apps/dashboard/src/lib/api/dashboard-api-client.test.ts",
+  "apps/dashboard/src/lib/api/dashboard-api-client-binary.test.ts",
+]);
+function unchangedExceptAuthFixture(path) {
+  if (!minimalAuthFixtures.has(path)) return false;
+  const before = git("show", `${base}:${path}`).replaceAll("\r\n", "\n");
+  const after = readFileSync(path, "utf8")
+    .replaceAll("\r\n", "\n")
+    .replace(
+      /^\s*staffAuthSessionId: "88888888-8888-4888-8888-888888888888",\n/gm,
+      "",
+    );
+  return before === after;
+}
 const failures = inventory
-  .filter((path) => !allowed.test(path))
+  .filter((path) => !isOwned(path))
   .map((path) => `Outside GPS-D ownership: ${path}`);
 const roots = new Map(
   ["contracts", "database", "config", "ui", "testing", "employee-client"].map(
@@ -32,7 +75,7 @@ const roots = new Map(
   ),
 );
 const code = inventory.filter(
-  (path) => allowed.test(path) && /\.(ts|tsx|js|mjs)$/.test(path),
+  (path) => isOwned(path) && /\.(ts|tsx|js|mjs)$/.test(path),
 );
 for (const path of code) {
   const source = readFileSync(path, "utf8");
@@ -67,13 +110,14 @@ for (const path of [
     failures.push(`${path}: frozen legacy source changed`);
 }
 for (const path of inventory.filter(
-  (path) => allowed.test(path) && /\.(ts|tsx|js|mjs|css|md)$/.test(path),
+  (path) => isOwned(path) && /\.(ts|tsx|js|mjs|css|md)$/.test(path),
 )) {
   if (
     !(await prettier.check(readFileSync(path, "utf8"), {
       ...(await prettier.resolveConfig(path)),
       filepath: path,
-    }))
+    })) &&
+    !unchangedExceptAuthFixture(path)
   )
     failures.push(`${path}: formatting differs`);
 }

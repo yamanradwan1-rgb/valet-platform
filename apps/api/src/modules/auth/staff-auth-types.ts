@@ -5,6 +5,7 @@ export interface UserAuthenticationRow {
 }
 
 export interface LoginSessionRow {
+  readonly id: string;
   readonly access_expires_at: Date;
   readonly absolute_expires_at: Date;
   readonly refresh_cookie_max_age_seconds: number;
@@ -30,6 +31,7 @@ export interface StaffPasswordVerifier {
 }
 
 export interface StaffAuthTokens {
+  readonly staffAuthSessionId: string;
   readonly accessExpiresAt: Date;
   readonly accessToken: string;
   readonly refreshToken: string;

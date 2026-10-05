@@ -31,6 +31,7 @@ describe("Native Staff authentication transport", () => {
       "accessToken",
       "refreshToken",
       "sessionExpiresAt",
+      "staffAuthSessionId",
       "tokenType",
     ]);
     expect(result.body?.tokenType).toBe("Bearer");

@@ -6,6 +6,7 @@ export function staffAuthTokenResult(
   refreshToken: string,
 ): StaffAuthTokens {
   return {
+    staffAuthSessionId: session.id,
     accessExpiresAt: session.access_expires_at,
     accessToken,
     refreshToken,

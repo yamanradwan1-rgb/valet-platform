@@ -176,6 +176,7 @@ function PresenceScope({ company }: { readonly company: boolean }) {
               />
               <ShiftPresenceExceptions
                 api={api}
+                blocked={mutation.blocked}
                 scopeKey={scopeKey}
                 epoch={epoch}
                 locale={locale}

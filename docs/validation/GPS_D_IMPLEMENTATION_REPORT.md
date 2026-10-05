@@ -2,7 +2,191 @@
 
 Date: 2026-10-05. Repository: veletpro0-lgtm/valet-platform.
 
-## Latest auth-refresh closure audit — DECISION REQUIRED
+## Owner accepted auth continuity closure — VERIFIED
+
+Starting HEAD: `2cf71a15f574e3e04d65ac69c03027ba56e70bfe`, owned branch
+`codex/native-257-presence-management`. The owner technical decision on
+2026-10-05 resolves the missing contract. This section supersedes all historical
+BLOCKED/DECISION REQUIRED statuses below. No PR or merge is created.
+
+### Public auth contract and authoritative source
+
+Strict Web response: `{ accessToken, tokenType: "Bearer", accessExpiresAt,
+sessionExpiresAt, staffAuthSessionId: UUID }`. Native extends this exact response
+with `refreshToken`. The new required ID is the persisted `staff_auth_sessions.id`.
+Login INSERT returns its new row ID; refresh UPDATE returns the ID of the exact
+session locked through the credential lookup. Ordinary refresh creates no new
+session. The ID is public, non-credential and non-authority. No request accepts
+it as authority, no User ID is added and expiry is never used as identity.
+
+Affected entities: StaffAuthSession and the safe feature-owned GPS-D receipt
+descriptor. No ValetSession or Task/Dispatch transition changes. Existing
+persisted principal/tenant/Location authorization and backend ownership remain
+unchanged. No policy precedence, DB constraint/index, migration or Prisma change.
+This is the explicitly accepted GPS-D MVP correction.
+
+### Dashboard continuity and exact recovery
+
+StaffAuthClient exposes `getStaffAuthSessionId()`. Every successful refresh still
+advances sessionGeneration. Same-ID refresh preserves identityGeneration;
+confirmed ID replacement advances identityGeneration and retires old requests.
+Logout and definitive auth loss remove continuity normally.
+
+PresenceIntentLifetime fences identityGeneration plus non-null session ID,
+partitioned by authority, Organization and exact Company/Location surface.
+The descriptor remains an explicit allowlist of mutationId, result kind,
+entityId when applicable and safe create metadata. No request body, coordinates,
+accuracy, employee evidence, credentials, MFA codes or exception payload is
+retained; no browser persistence is added. Old UI callbacks additionally retain
+the captured sessionGeneration and mounted-lifetime checks.
+
+Only explicit Retry uses the new feature-owned recovery function. Its abort
+controller survives ordinary same-session UI remount, listens for logical auth
+replacement and refreshes stale credentials before the exact result GET.
+PresenceApi permits this narrow signal/auth-reconciliation override only on its
+fixed GET receipt method. The existing shared DashboardApiClient, protected
+context, scope key and ordinary usePresenceApi fences remain unchanged.
+Existing result validators check mutation, kind, entity and canonical scope.
+COMMITTED clears only the matching descriptor. UNKNOWN, transient GET failure
+or stale request rejection leaves it blocked. No protected POST/PUT replay.
+Current actionable Review openers now honor the same mutation block as Add and
+Save; read-only details and exception/domain/MFA semantics stay unchanged.
+
+Structure: focused recovery, auth continuity tests and browser fixture modules.
+The 300-line Dashboard API fixture extracted auth-response handling before new
+per-login session UUID behavior. All owned authored files are at most 300 lines.
+The scoped validator explicitly owns only the approved auth files. Three
+pre-existing auth test files retain their original formatting only when a
+byte-comparison proves the sole change is insertion of the required UUID fixture
+literal; other edits still require formatting. No architecture baseline changed.
+
+### Observed proofs
+
+Real Nest HTTP + isolated PostgreSQL: login UUID matches the actual persisted row;
+ordinary refresh returns the same UUID with different access token and one session;
+same-User independent logins yield different UUIDs. Cookie B refresh reports B
+when both persisted absolute expiries are deliberately equal. Native login/refresh
+shares UUID meaning and preserves credential rotation. This is runtime evidence
+for auth transport, not a new object-authorization/production/remote CI claim.
+
+Chromium with deterministic mocked management/auth fixtures: UNKNOWN zone create,
+then stale token at a fixed clock, explicit Retry, same-ID refresh and fresh-Bearer
+exact GET COMMITTED clears the block. Exact GET UNKNOWN or HTTP 503 preserves
+UNKNOWN, Add/Save/Review blocking and Retry. Every scenario has one protected
+write and two exact GETs (initial reconciliation plus explicit Retry). A different
+UUID during refresh purges without sending the old second receipt GET. A barrier
+holds a refreshed exact GET through logout/new login for the same User: login IDs
+differ, old completion does not enter new UI and no write replays. Ordinary refresh
+incrementing sessionGeneration while UUID/descriptor remain stable is also unit
+proved. Existing unmount, authority/lifetime, CAS and MFA race coverage passed.
+No sleeps, timeout increases, skipped tests or weakened assertions.
+
+Initial verification corrections: the first server invocation lacked the root
+.env and failed database authentication; loading configured environment fixed it.
+The initial new browser fixture improperly allowed cookie-free bootstrap refresh;
+it now requires the established fixture cookie. The new Review-block assertion
+exposed its opener gap, now fixed. API test cookie typing was corrected without
+changing valid-cookie behavior. Build requires explicit API_ORIGIN; the configured
+production build below passed. These failed attempts are not reported as passes.
+
+### Executed validation
+
+| Command / scope                                                                                                | Observed result                                                                   |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Git Bash guardian preflight                                                                                    | PASS, clean expected owned branch/HEAD                                            |
+| Dashboard vitest: auth client/continuity, API client/binary, presence ID/API/validation/retained (8 files)     | PASS: 93 tests                                                                    |
+| contracts vitest: staff-auth.test.ts, index.test.ts                                                            | PASS: 20 tests                                                                    |
+| API owned harness: staff-auth.service.test.ts                                                                  | PASS: 5 tests                                                                     |
+| API owned PostgreSQL harness: staff-auth-continuity.integration.test.ts, staff-auth-native.integration.test.ts | PASS: 14 tests                                                                    |
+| Native vitest: native-auth-http.test.ts, native-telemetry-auth-correlation.test.ts                             | PASS: 11 tests                                                                    |
+| employee-client vitest: native-auth-login/restore/logout/storage-matrix.test.ts                                | PASS: 38 tests                                                                    |
+| Dashboard Playwright: auth-continuity, unmount, auth-races, recovery                                           | PASS: 20 tests                                                                    |
+| Final Playwright after restricting the Review block to actionable rows: auth-continuity + recovery             | PASS: 10 tests                                                                    |
+| Dashboard / contracts / API typecheck                                                                          | PASS, each exit 0                                                                 |
+| Scoped ESLint --max-warnings=0                                                                                 | PASS; full owned-file ESLint also passes in validator                             |
+| node scripts/gps-d-validation.mjs                                                                              | PASS: 78 authored / 83 owned, maximum 300 physical lines; frozen sources verified |
+| Dashboard production build, API_ORIGIN=http://127.0.0.1:3000                                                   | PASS: optimized compilation, TypeScript and all 26 pages                          |
+| git diff --check                                                                                               | PASS                                                                              |
+
+Exact focused commands (from repository root except the explicitly noted API cwd):
+
+```powershell
+pnpm --filter @valet/contracts build
+pnpm --filter @valet/dashboard exec vitest run src/features/administration/settings/shift-presence-id.test.ts src/features/administration/settings/shift-presence-api.test.ts src/features/administration/settings/shift-presence-validation.test.tsx src/features/administration/settings/shift-presence-retained-intent.test.ts src/lib/auth/staff-auth-client.test.ts src/lib/auth/staff-auth-continuity.test.ts src/lib/api/dashboard-api-client.test.ts src/lib/api/dashboard-api-client-binary.test.ts
+pnpm --filter @valet/contracts exec vitest run src/staff-auth.test.ts src/index.test.ts
+# cwd apps/api; final configured invocation passed both projects (14 + 5 tests):
+pnpm exec node --env-file=../../.env ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/staff-auth-continuity.integration.test.ts test/staff-auth-native.integration.test.ts test/staff-auth.service.test.ts
+pnpm --filter @valet/valet-native exec vitest run test/native-auth-http.test.ts test/native-telemetry-auth-correlation.test.ts
+pnpm --filter @valet/employee-client exec vitest run src/native-auth-login.test.ts src/native-auth-restore.test.ts src/native-auth-logout.test.ts src/native-auth-storage-matrix.test.ts
+pnpm --filter @valet/dashboard exec playwright test e2e/shift-presence-auth-continuity.spec.ts e2e/shift-presence-unmount.spec.ts e2e/shift-presence-auth-races.spec.ts e2e/shift-presence-recovery.spec.ts
+pnpm --filter @valet/dashboard exec playwright test e2e/shift-presence-auth-continuity.spec.ts e2e/shift-presence-recovery.spec.ts
+pnpm --filter @valet/dashboard typecheck
+pnpm --filter @valet/contracts typecheck
+pnpm --filter @valet/api typecheck
+pnpm exec eslint apps/api/src/modules/auth/staff-auth-types.ts apps/api/src/modules/auth/staff-auth-token-result.ts apps/api/src/modules/auth/staff-auth.service.ts apps/api/src/modules/auth/staff-auth.transport.ts apps/api/test/staff-auth-continuity.integration.test.ts apps/api/test/staff-auth-native.integration.test.ts apps/dashboard/src/lib/auth/staff-auth-client.ts apps/dashboard/src/lib/auth/staff-auth-continuity.test.ts apps/dashboard/src/features/administration/settings/shift-presence-recovery.ts --max-warnings=0
+node scripts/gps-d-validation.mjs
+$env:API_ORIGIN='http://127.0.0.1:3000'; pnpm --filter @valet/dashboard build
+git diff --check
+```
+
+### Scope, review and delivery
+
+VAYLET adversarial self-review inspected the actual diff, authoritative login/
+refresh call paths, strict response/request schemas, scope/result validators,
+retirement and callback gates, safe descriptor allowlist and compatibility tests.
+No unresolved owner behavior or broad request-fencing removal was found. Auth
+security locks/transactions, credential protections and management authorization
+are unchanged; no audit/history writer or data deletion is added.
+
+New migrations: **0**. Prisma changed: **no**. Dependencies/lockfile changed: **no**.
+Native production auth behavior redesign: **no**; shared Native response transport
+contract changed: **yes**, the accepted additional UUID, with minimal required
+response fixtures. No Native production source changed. Employee Web, GPS-C,
+#266, maps and camera #262 remain untouched in this continuation. Baseline lint
+and two Operations presentation failures are **unchanged**, not fixed or claimed
+to pass. Broad/root scanner and unrelated suites were not run, per owner scope.
+Real Google Maps runtime: **NOT VERIFIED**, historical mock-only status unchanged.
+No new CI/deployment/physical-device evidence is claimed. Browser artifacts were
+preserved outside Git; generated next-env path changes restored to the original.
+Commit/new HEAD/push and final clean Git status are supplied in the final handoff.
+
+### Exact files changed in this continuation (33)
+
+- `apps/api/src/modules/auth/staff-auth-token-result.ts`
+- `apps/api/src/modules/auth/staff-auth-types.ts`
+- `apps/api/src/modules/auth/staff-auth.service.ts`
+- `apps/api/src/modules/auth/staff-auth.transport.ts`
+- `apps/api/test/staff-auth-continuity.integration.test.ts`
+- `apps/api/test/staff-auth-native.integration.test.ts`
+- `apps/dashboard/e2e/shift-presence-auth-continuity.spec.ts`
+- `apps/dashboard/e2e/support/dashboard-api-fixture.ts`
+- `apps/dashboard/e2e/support/dashboard-auth-fixture.ts`
+- `apps/dashboard/e2e/support/fixture-data.ts`
+- `apps/dashboard/e2e/support/presence-continuity-fixture.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-api.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-exceptions.tsx`
+- `apps/dashboard/src/features/administration/settings/shift-presence-recovery.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.test.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx`
+- `apps/dashboard/src/features/administration/settings/use-presence-retained-intent.ts`
+- `apps/dashboard/src/features/administration/settings/use-shift-presence-mutation.ts`
+- `apps/dashboard/src/lib/api/dashboard-api-client-binary.test.ts`
+- `apps/dashboard/src/lib/api/dashboard-api-client.test.ts`
+- `apps/dashboard/src/lib/auth/staff-auth-client.test.ts`
+- `apps/dashboard/src/lib/auth/staff-auth-client.ts`
+- `apps/dashboard/src/lib/auth/staff-auth-continuity.test.ts`
+- `apps/valet-native/test/native-auth-http.test.ts`
+- `apps/valet-native/test/native-telemetry-auth-correlation.test.ts`
+- `docs/NATIVE_261_262_264_257_IMPLEMENTATION_PLAN.md`
+- `docs/validation/GPS_D_IMPLEMENTATION_REPORT.md`
+- `packages/contracts/src/index.test.ts`
+- `packages/contracts/src/staff-auth.test.ts`
+- `packages/contracts/src/staff-auth.ts`
+- `packages/employee-client/src/native-auth-test-fixture.ts`
+- `scripts/gps-d-validation.mjs`
+
+## Historical auth-refresh closure audit — DECISION REQUIRED
 
 Reviewed HEAD: `a14856c16f7bc3c8c1795cf8ac635056b1ec9ecb`, same branch
 `codex/native-257-presence-management`. The remaining major defect is confirmed:

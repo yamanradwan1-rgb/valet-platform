@@ -9,17 +9,19 @@ import {
 function fixture() {
   let identity = 1;
   let session = 1;
+  let sessionId: string | null = "session-a";
   let changed = () => {};
   const unsubscribe = vi.fn();
   const client = {
     getIdentityGeneration: () => identity,
     getSessionGeneration: () => session,
+    getStaffAuthSessionId: () => sessionId,
     subscribe: (listener: () => void) => {
       changed = listener;
       return unsubscribe;
     },
   } as unknown as StaffAuthClient;
-  const lifetime = presenceIntentLifetime(client, identity, session);
+  const lifetime = presenceIntentLifetime(client, identity, sessionId);
   lifetime.watch();
   return {
     client,
@@ -27,7 +29,18 @@ function fixture() {
     unsubscribe,
     replace: (identityChanged: boolean) => {
       session++;
+      sessionId = "session-b";
       if (identityChanged) identity++;
+      changed();
+    },
+    refresh: () => {
+      session++;
+      changed();
+    },
+    lose: () => {
+      sessionId = null;
+      identity++;
+      session++;
       changed();
     },
   };
@@ -57,7 +70,7 @@ describe("feature-owned safe presence reconciliation lifetime", () => {
       credentials: "private",
     } as PresenceIntent);
     unsubscribe();
-    const returning = presenceIntentLifetime(client, 1, 1);
+    const returning = presenceIntentLifetime(client, 1, "session-a");
     expect(returning).toBe(lifetime);
     expect(returning.get(key)).toEqual(intent);
     expect(Object.keys(returning.get(key)!)).toEqual([
@@ -94,7 +107,7 @@ describe("feature-owned safe presence reconciliation lifetime", () => {
       const replacement = presenceIntentLifetime(
         client,
         client.getIdentityGeneration(),
-        client.getSessionGeneration(),
+        client.getStaffAuthSessionId(),
       );
       replacement.watch();
       expect(replacement.get(key)).toBeNull();
@@ -113,5 +126,23 @@ describe("feature-owned safe presence reconciliation lifetime", () => {
     lifetime.retain(key, { ...intent, mutationId: "next" });
     lifetime.clear(key, intent.mutationId);
     expect(lifetime.get(key)?.mutationId).toBe("next");
+  });
+  it("ordinary refresh advances credential generation but preserves exact descriptor", () => {
+    const { client, lifetime, refresh, unsubscribe } = fixture();
+    lifetime.retain(key, intent);
+    refresh();
+    expect(client.getSessionGeneration()).toBe(2);
+    expect(client.getStaffAuthSessionId()).toBe("session-a");
+    expect(presenceIntentLifetime(client, 1, "session-a")).toBe(lifetime);
+    expect(lifetime.get(key)).toEqual(intent);
+    expect(unsubscribe).not.toHaveBeenCalled();
+  });
+  it("logout or definitive auth loss retires continuity and safe descriptors", () => {
+    const { lifetime, lose } = fixture();
+    lifetime.retain(key, intent);
+    lose();
+    expect(lifetime.isCurrent()).toBe(false);
+    expect(lifetime.get(key)).toBeNull();
+    expect(lifetime.retain(key, intent)).toBe(false);
   });
 });
