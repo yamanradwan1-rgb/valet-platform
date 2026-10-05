@@ -34,7 +34,9 @@ async function changeLocation(page: Page, locationName: string) {
     .locator(".topbar")
     .getByRole("button", { name: "Change scope" })
     .click();
-  await chooseLocation(page, locationName);
+  const listbox = page.getByRole("listbox", { name: "Select location" });
+  await expect(listbox).toBeVisible();
+  await page.getByRole("option", { name: locationName }).click();
 }
 
 test("first-A map setup write cannot reconcile after A to B to A", async ({

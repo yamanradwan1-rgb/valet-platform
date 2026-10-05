@@ -39,7 +39,9 @@ async function chooseLocation(page: Page, locationName: string) {
 
 async function changeLocation(page: Page, locationName: string) {
   await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
-  await chooseLocation(page, locationName);
+  const listbox = page.getByRole("listbox", { name: "Select location" });
+  await expect(listbox).toBeVisible();
+  await page.getByRole("option", { name: locationName }).click();
 }
 
 async function openMaps(page: Page, email = "admin@example.com") {

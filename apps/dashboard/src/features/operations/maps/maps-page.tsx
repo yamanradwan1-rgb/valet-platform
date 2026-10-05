@@ -8,6 +8,7 @@ import type { SelectedDashboardScope } from "../../../components/scope";
 import { DashboardApiError } from "../../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { readLocationManagerSubscription } from "../../../lib/scope/dashboard-scope";
+import { useDashboardTheme } from "../../../lib/theme/theme-provider";
 import { readLiveMap } from "../operations-api";
 import { operationsCopy } from "../operations-copy";
 import { formatOperationsTime } from "../operations-presentation";
@@ -15,10 +16,10 @@ import { OperationsPage, styles } from "../operations-ui";
 import { useCursorPage } from "../use-cursor-page";
 import { useOperationsContext } from "../use-operations-context";
 import { useOperationsRead } from "../use-operations-read";
-import { CoordinateCanvas } from "./coordinate-canvas";
 import { LiveMapPanel } from "./live-map-panel";
 import { MapSetupPanel } from "./map-setup-panel";
 import reference from "./maps-reference.module.css";
+import { OperationalGoogleMap } from "./operational-google-map";
 import { useMapSetupState } from "./use-map-setup-state";
 
 type MapMode = "LIVE" | "SETUP";
@@ -32,6 +33,7 @@ export function MapsPage() {
 function MapsContent() {
   const { dashboard, exactLocation, scope, scopeKey } = useOperationsContext();
   const { locale } = useDashboardLocale();
+  const { theme } = useDashboardTheme();
   const t = operationsCopy(locale);
   const page = useCursorPage();
   const [mode, setMode] = useState<MapMode>("LIVE");
@@ -162,10 +164,18 @@ function MapsContent() {
                 <span>{t.providerNeutralMap}</span>
               </div>
             </div>
-            <CoordinateCanvas
-              areas={locationManager ? setup.areas : undefined}
+            <OperationalGoogleMap
+              areas={locationManager ? setup.areas : []}
+              cameraKey={`${scopeKey}:maps:${setupMode ? "setup" : "live"}:${setupMode ? "setup" : page.cursor ?? "first"}`}
               items={setupMode ? [] : liveItems}
-              points={locationManager ? setup.points : undefined}
+              loading={
+                setupMode
+                  ? setup.loading
+                  : (locationManager && (subscription.loading || setup.loading)) || live.loading
+              }
+              locale={locale}
+              points={locationManager ? setup.points : []}
+              theme={theme}
               timezone={location.timezone}
             />
             <div className={reference.surfaceLegend} aria-label={t.providerNeutralMap}>

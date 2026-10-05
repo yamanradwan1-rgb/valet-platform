@@ -41,6 +41,32 @@
 .surfaceMeta { gap:.5rem; min-width:0; }
 .surfaceMeta strong { color:#0f172a; font-weight:700; }
 .surfaceMeta span { overflow-wrap:anywhere; }
+.mapViewport {
+  position:relative; min-height:31.875rem; height:31.875rem; overflow:hidden; background:#eaeff5; direction:ltr;
+}
+.googleMapHost { position:absolute; inset:0; }
+.providerFallback { position:absolute; inset:0; }
+.providerStatus {
+  position:absolute; inset-inline:.875rem; bottom:.875rem; z-index:4; display:flex; align-items:center; justify-content:space-between;
+  gap:.5rem; padding:.55rem .7rem; border:1px solid #e2e8f0; border-radius:.65rem; background:rgba(255,255,255,.94);
+  color:#475569; font-size:.7rem;
+}
+.providerStatus button {
+  min-height:1.75rem; padding:.25rem .55rem; border:1px solid #cbd5e1; border-radius:.45rem; background:#fff; color:#334155;
+  font:inherit; font-weight:700; cursor:pointer;
+}
+.providerStatus button:focus-visible { outline:2px solid #1e60f0; outline-offset:1px; }
+.mapViewport :global(.vaylet-operational-live-marker),
+.mapViewport :global(.vaylet-operational-point-marker) {
+  display:grid; place-items:center; box-sizing:border-box; box-shadow:0 1px 3px rgba(15,23,42,.25); pointer-events:none;
+}
+.mapViewport :global(.vaylet-operational-live-marker) { width:1.125rem; height:1.125rem; border-radius:999px; }
+.mapViewport :global(.vaylet-operational-live-marker[data-freshness="LIVE"]) { border:.1875rem solid #fff; background:#059669; }
+.mapViewport :global(.vaylet-operational-live-marker[data-freshness="STALE"]) { border:.1875rem dashed #d97706; background:#fff; }
+.mapViewport :global(.vaylet-operational-point-marker) {
+  width:.875rem; height:.875rem; transform:rotate(45deg); border:.125rem solid #fff; border-radius:.125rem; background:#1e60f0;
+}
+.mapViewport :global(.vaylet-operational-point-marker[data-active="false"]) { border:.125rem dashed #94a3b8; background:#fff; }
 .surface :global([data-testid="coordinate-canvas"]) {
   min-height:31.875rem; border:0; border-radius:0; background:#eaeff5;
 }
@@ -98,6 +124,13 @@
 :global([data-theme="dark"]) .surfaceLegend {
   background:rgba(7,12,24,.8); border-color:#172346; color:#94a3b8;
 }
+:global([data-theme="dark"]) .mapViewport { background:#0a1020; }
+:global([data-theme="dark"]) .providerStatus {
+  background:rgba(9,16,36,.94); border-color:#172346; color:#cbd5e1;
+}
+:global([data-theme="dark"]) .providerStatus button { background:#131e3d; border-color:#1e293b; color:#e2e8f0; }
+:global([data-theme="dark"]) .mapViewport :global(.vaylet-operational-live-marker[data-freshness="STALE"]),
+:global([data-theme="dark"]) .mapViewport :global(.vaylet-operational-point-marker[data-active="false"]) { background:#0a1020; }
 :global([data-theme="dark"]) .surface :global([data-testid="coordinate-canvas"]) { background:#0a1020; }
 :global([data-theme="dark"]) .surfaceMeta strong,
 :global([data-theme="dark"]) .panelHeader h2 { color:#fff; }
@@ -121,6 +154,7 @@
   .scopeControl,.levelControl { max-width:none; flex:1 1 10rem; }
   .refreshButton { width:100%; }
   .surfaceBar { align-items:flex-start; flex-direction:column; }
+  .mapViewport { min-height:26rem; height:26rem; }
   .surface :global([data-testid="coordinate-canvas"]),
   .surface :global([data-testid="coordinate-canvas"] svg) { min-height:26rem; height:26rem; }
 }

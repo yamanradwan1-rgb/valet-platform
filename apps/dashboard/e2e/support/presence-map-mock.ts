@@ -76,7 +76,7 @@ export async function mockPresenceMap(page: Page) {
     async (route) => {
       const params = new URL(route.request().url()).searchParams;
       const callback = params.get("callback")!;
-      expect(callback).toMatch(/^vayletAttendanceCallbacks\.ready\d+$/);
+      expect(callback).toMatch(/^vayletGoogleMapsCallbacks\.ready\d+$/);
       languages.push(params.get("language")!);
       await route.fulfill({
         contentType: "text/javascript",

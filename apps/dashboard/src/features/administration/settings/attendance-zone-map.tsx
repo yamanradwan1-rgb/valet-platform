@@ -7,18 +7,18 @@ import { presenceCopy } from "./shift-presence-copy";
 import { styles } from "../administration-ui";
 import feature from "./shift-presence.module.css";
 import {
-  loadAttendanceGoogleSdk,
-  attendanceMapLanguage,
-  onAttendanceMapFailure,
-  type AttendanceGoogleSdk,
+  loadGoogleMapsSdk,
+  googleMapsLanguage,
+  onGoogleMapsFailure,
+  type GoogleMapsSdk,
   type GeoCenter,
-} from "./attendance-zone-google-sdk";
+} from "../../../lib/maps/google-maps-sdk";
 
 interface MapRuntime {
-  sdk: AttendanceGoogleSdk;
-  map: InstanceType<AttendanceGoogleSdk["Map"]>;
-  circle: InstanceType<AttendanceGoogleSdk["Circle"]>;
-  pin: InstanceType<AttendanceGoogleSdk["marker"]["AdvancedMarkerElement"]>;
+  sdk: GoogleMapsSdk;
+  map: InstanceType<GoogleMapsSdk["Map"]>;
+  circle: InstanceType<GoogleMapsSdk["Circle"]>;
+  pin: InstanceType<GoogleMapsSdk["marker"]["AdvancedMarkerElement"]>;
 }
 export function AttendanceZoneMap(props: {
   readonly center: GeoCenter | null;
@@ -43,13 +43,13 @@ export function AttendanceZoneMap(props: {
   useEffect(() => {
     let disposed = false;
     let teardown: (() => void) | undefined;
-    const detachFailure = onAttendanceMapFailure(() => {
+    const detachFailure = onGoogleMapsFailure(() => {
       if (!disposed) {
         teardown?.();
         setStatus("failed");
       }
     });
-    void loadAttendanceGoogleSdk(
+    void loadGoogleMapsSdk(
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
       current.current.locale,
     ).then(
@@ -105,7 +105,7 @@ export function AttendanceZoneMap(props: {
             });
           });
           runtime.current = { sdk, map, circle, pin };
-          setSdkLocale(attendanceMapLanguage());
+          setSdkLocale(googleMapsLanguage());
           setStatus("ready");
         } catch {
           teardown?.();
