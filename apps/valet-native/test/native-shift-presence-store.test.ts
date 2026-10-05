@@ -37,6 +37,7 @@ const id = "11111111-1111-4111-8111-111111111111";
 const descriptor: PresenceDescriptor = {
   version: 1,
   operationId: id,
+  stage: "LOCAL",
   target: {
     action: "START",
     identityGeneration: 1,
@@ -52,6 +53,31 @@ beforeEach(() => {
   storage.blocked = false;
   storage.generation = "installation-generation-0001";
   vi.clearAllMocks();
+});
+
+it.each(["LOCAL", "SHIFT_MAY_HAVE_LEFT", "EXCEPTION_MAY_HAVE_LEFT"] as const)(
+  "persists only controlled %s recovery stage",
+  async (stage) => {
+    const value = { ...descriptor, stage };
+    const store = new ExpoShiftPresenceStore("START");
+    await store.write(value);
+    expect(await store.read()).toEqual(value);
+    expect(Object.keys(JSON.parse(storage.raw!).descriptor).sort()).toEqual([
+      "operationId",
+      "stage",
+      "target",
+      "version",
+    ]);
+  },
+);
+
+it("legacy stage-less recovery stays readable and arbitrary stage is rejected", () => {
+  const legacy = { ...descriptor };
+  delete legacy.stage;
+  expect(parseNativePresenceDescriptor(legacy)).toEqual(legacy);
+  expect(
+    parseNativePresenceDescriptor({ ...descriptor, stage: "GPS_CAPTURED" }),
+  ).toBeUndefined();
 });
 
 it("restart reads only an opaque installation-bound descriptor", async () => {

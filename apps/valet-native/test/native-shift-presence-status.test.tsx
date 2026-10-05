@@ -41,7 +41,12 @@ function render(
     mode,
     reason: null,
     summary: null,
-    overrideReason: phase === "unavailable" ? "GPS_UNAVAILABLE" : null,
+    overrideReason:
+      phase === "unavailable"
+        ? "GPS_UNAVAILABLE"
+        : phase === "denied"
+          ? "OUTSIDE_ZONE"
+          : null,
     retryAfter: null,
   };
   const owner = {
@@ -142,3 +147,17 @@ it("pre-POST Cancel retires parent presentation and acquisition", () => {
     ),
   ).toBe(false);
 });
+
+it.each(["en", "ar"] as const)(
+  "recovered denial with unknown current mode offers an explicit manager choice in %s",
+  (locale) => {
+    const recovered = render("denied", locale, null);
+    const manager = recovered.nodes.find(
+      (node) => node.props.label === getNativePresenceCopy(locale).manager,
+    )!;
+    expect(manager).toBeDefined();
+    expect(recovered.owner.requestManager).not.toHaveBeenCalled();
+    (manager.props.onPress as () => void)();
+    expect(recovered.owner.requestManager).toHaveBeenCalledOnce();
+  },
+);

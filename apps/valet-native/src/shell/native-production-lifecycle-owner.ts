@@ -91,11 +91,13 @@ export class NativeProductionLifecycleOwner {
     status: EmployeeConnectivityStatus,
     recovered: boolean,
   ): void {
-    this.runtime.shiftEnd.setOnline(status !== "offline");
     if (status === "offline") {
+      this.runtime.shiftStart.suspendForBackground();
+      this.runtime.shiftEnd.suspendForBackground();
       this.operationsForeground = false;
       void this.runtime.operations.setForeground(false);
     }
+    this.runtime.shiftEnd.setOnline(status !== "offline");
     if (recovered) this.revalidation.request("network-recovery");
   }
 

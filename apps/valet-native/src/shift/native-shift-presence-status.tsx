@@ -83,7 +83,8 @@ export function NativeShiftPresenceStatus({
         </Text>
       ) : null}
       {snapshot.overrideReason !== null &&
-      snapshot.mode === "REQUIRE_OR_OVERRIDE" &&
+      (snapshot.mode === "REQUIRE_OR_OVERRIDE" ||
+        (snapshot.mode === null && snapshot.phase === "denied")) &&
       ["unavailable", "denied"].includes(snapshot.phase) ? (
         <EmployeeButton
           label={copy.manager}

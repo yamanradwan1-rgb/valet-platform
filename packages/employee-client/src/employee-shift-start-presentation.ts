@@ -1,3 +1,5 @@
+import { EmployeeApiError } from "./api-error";
+import { operationalFailure } from "./employee-operational-recovery";
 import {
   employeeShiftStartAuthorityKey,
   isSameEmployeeShiftStartAuthority,
@@ -102,5 +104,24 @@ export function resolveShiftStartPresentation(
       startableLocations: context.startable.map(({ location }) => location),
       targetLocationId: null,
     },
+  };
+}
+
+export function failedStartSnapshot(
+  snapshot: EmployeeShiftStartSnapshot,
+  error: unknown,
+): EmployeeShiftStartSnapshot {
+  return {
+    ...snapshot,
+    failure: operationalFailure(error),
+    phase:
+      error instanceof EmployeeApiError &&
+      error.code === "ACTIVE_SHIFT_CONFLICT"
+        ? "conflict"
+        : error instanceof EmployeeApiError &&
+            [401, 403, 404].includes(error.status)
+          ? "denied"
+          : "error",
+    targetLocationId: null,
   };
 }

@@ -8,6 +8,7 @@ import type {
   PresenceException,
   PresenceRecovery,
   PresenceResult,
+  PresenceStore,
 } from "./employee-shift-presence-types";
 
 export const presenceIds = {
@@ -31,9 +32,11 @@ export async function settlePresence() {
 export function presenceFixture(
   mode: PresenceChallenge["presence"]["mode"] = "OFF",
   action: "START" | "END" = "START",
+  initialSequence = 0,
 ) {
-  let sequence = 0;
+  let sequence = initialSequence;
   let authorized = true;
+  let online = true;
   const target: PresenceTarget = {
     identityGeneration: 1,
     membershipId: "member",
@@ -130,8 +133,8 @@ export function presenceFixture(
     openSettings: vi.fn(async () => undefined),
   };
   const store = {
-    write: vi.fn(async () => undefined),
-    delete: vi.fn(async () => undefined),
+    write: vi.fn<PresenceStore["write"]>(async () => undefined),
+    delete: vi.fn<PresenceStore["delete"]>(async () => undefined),
   };
   const session = new EmployeeShiftPresenceSession({
     transport: transport as never,
@@ -140,6 +143,7 @@ export function presenceFixture(
     createId: () =>
       `00000000-0000-4000-8000-${String(++sequence).padStart(12, "0")}`,
     isAuthorized: () => authorized,
+    isAvailable: () => online,
   });
   return {
     session,
@@ -152,6 +156,9 @@ export function presenceFixture(
     exception,
     result,
     fail: employeeNetworkError,
+    setOnline: (value: boolean) => {
+      online = value;
+    },
     revoke: () => {
       authorized = false;
     },

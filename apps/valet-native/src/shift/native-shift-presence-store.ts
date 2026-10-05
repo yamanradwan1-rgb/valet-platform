@@ -21,7 +21,14 @@ export function parseNativePresenceDescriptor(
   if (value === null || typeof value !== "object") return;
   const candidate = value as PresenceDescriptor;
   if (
-    Object.keys(candidate).sort().join() !== "operationId,target,version" ||
+    Object.keys(candidate).sort().join() !==
+      (candidate.stage === undefined
+        ? "operationId,target,version"
+        : "operationId,stage,target,version") ||
+    (candidate.stage !== undefined &&
+      !["LOCAL", "SHIFT_MAY_HAVE_LEFT", "EXCEPTION_MAY_HAVE_LEFT"].includes(
+        candidate.stage,
+      )) ||
     candidate.version !== 1 ||
     candidate.target === null ||
     typeof candidate.target !== "object"

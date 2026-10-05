@@ -1,5 +1,7 @@
+import { suspendedStartAttempt } from "./employee-shift-presence-parent-fence";
 import {
   emptyShiftStartSnapshot,
+  failedStartSnapshot,
   resolveShiftStartPresentation,
   pendingStartResolution,
   shiftStartAuthorities,
@@ -9,7 +11,6 @@ import {
   startPresenceTarget,
   matchesStartPresenceTarget,
 } from "./employee-shift-presence-target";
-import { EmployeeApiError } from "./api-error";
 import {
   employeeShiftStartAuthorityKey,
   isSameEmployeeShiftStartAuthority,
@@ -114,6 +115,7 @@ export class EmployeeShiftStartSession {
   }
 
   selectLocation(locationId: string): void {
+    if (this.options.presence?.snapshot().phase === "uncertain") return;
     if (!["conflict", "denied", "error", "ready"].includes(this.snapshot.phase))
       return;
     const authority = this.authorities.get(locationId);
@@ -134,6 +136,8 @@ export class EmployeeShiftStartSession {
   }
 
   start(): Promise<void> {
+    if (this.options.presence?.snapshot().phase === "uncertain")
+      return this.retry();
     if (this.activeSend !== undefined) return this.activeSend;
     if (!["conflict", "denied", "error", "ready"].includes(this.snapshot.phase))
       return Promise.resolve();
@@ -177,13 +181,14 @@ export class EmployeeShiftStartSession {
 
   suspendForBackground(): void {
     this.options.presence?.suspend();
-    if (
-      this.pending === undefined ||
-      (this.snapshot.phase !== "submitting" &&
-        this.snapshot.phase !== "verifying")
-    )
-      return;
-    this.pending = { ...this.pending };
+    const pending = suspendedStartAttempt(
+      this.options.presence,
+      this.pending,
+      this.authorities,
+      this.snapshot.phase,
+    );
+    if (pending === undefined) return;
+    this.pending = pending;
     this.activeSend = undefined;
     this.publish(suspendedShiftStartSnapshot(this.snapshot));
   }
@@ -219,19 +224,7 @@ export class EmployeeShiftStartSession {
         return;
       }
       this.pending = undefined;
-      this.publish({
-        ...this.snapshot,
-        failure,
-        phase:
-          error instanceof EmployeeApiError &&
-          error.code === "ACTIVE_SHIFT_CONFLICT"
-            ? "conflict"
-            : error instanceof EmployeeApiError &&
-                [401, 403, 404].includes(error.status)
-              ? "denied"
-              : "error",
-        targetLocationId: null,
-      });
+      this.publish(failedStartSnapshot(this.snapshot, error));
     }
   }
 

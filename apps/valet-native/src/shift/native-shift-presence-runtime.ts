@@ -30,7 +30,6 @@ export function createNativeShiftPresenceRuntime(
   const authorized = (target: PresenceTarget) => {
     const identity = auth.current();
     if (
-      !online() ||
       identity.phase !== "authenticated" ||
       identity.authGeneration !== target.identityGeneration
     )
@@ -58,6 +57,7 @@ export function createNativeShiftPresenceRuntime(
     acquisition,
     createId: uuid,
     isAuthorized: authorized,
+    isAvailable: online,
   });
   const end = new EmployeeShiftPresenceSession({
     transport,
@@ -65,6 +65,7 @@ export function createNativeShiftPresenceRuntime(
     acquisition,
     createId: uuid,
     isAuthorized: authorized,
+    isAvailable: online,
   });
   let restored = -1;
   let restoreGeneration = 0;

@@ -1,4 +1,8 @@
-import { recordPresenceFailure } from "./employee-shift-presence-failure";
+import { dispatchPresenceShift } from "./employee-shift-presence-dispatch";
+import {
+  classifyPresenceSubmissionFailure,
+  recordPresenceFailure,
+} from "./employee-shift-presence-failure";
 import { acquirePresenceEvidence } from "./employee-shift-presence-evidence";
 import { EmployeeApiError } from "./api-error";
 import type {
@@ -16,7 +20,6 @@ import {
   recoverPresence,
 } from "./employee-shift-presence-recovery";
 import {
-  assertCurrent,
   emptyPresenceSnapshot,
   presenceFailure,
   type PresenceAttempt,
@@ -41,6 +44,7 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
       acquisition: PresenceAcquisition;
       createId: () => string;
       isAuthorized: (target: PresenceTarget) => boolean;
+      isAvailable?: () => boolean;
       now?: () => number;
     },
   ) {
@@ -65,6 +69,9 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
       !attempt.controller.signal.aborted &&
       this.options.isAuthorized(attempt.descriptor.target)
     );
+  }
+  available(): boolean {
+    return this.options.isAvailable?.() ?? true;
   }
   descriptor(): PresenceDescriptor | undefined {
     return this.attempt?.descriptor;
@@ -95,10 +102,11 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
       generation: this.generation,
       controller: new AbortController(),
     };
-    this.publish({
-      phase: old.sent || old.exceptionSent ? "uncertain" : "unavailable",
-      reason: "LOCATION_CANCELLED",
-    });
+    if (!old.terminal || this.state.phase === "submitting")
+      this.publish({
+        phase: old.sent || old.exceptionSent ? "uncertain" : "unavailable",
+        reason: "LOCATION_CANCELLED",
+      });
   }
   cancel(): void {
     if (this.attempt?.sent || this.attempt?.exceptionSent) this.suspend();
@@ -116,11 +124,17 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
     )
       return;
     this.allocate(descriptor.target, descriptor.operationId);
-    this.attempt!.sent = true; // Conservative: restart never authorizes a POST.
+    this.attempt!.descriptor = descriptor;
+    this.attempt!.sent =
+      descriptor.stage === undefined ||
+      descriptor.stage === "SHIFT_MAY_HAVE_LEFT";
+    this.attempt!.exceptionSent =
+      descriptor.stage === "EXCEPTION_MAY_HAVE_LEFT";
     this.publish({ phase: "uncertain" });
   }
 
   run(target: PresenceTarget): Promise<PresenceResult> {
+    if (!this.available()) return Promise.reject(presenceFailure());
     this.observeTarget(target);
     if (this.active !== undefined)
       return this.active as Promise<PresenceResult>;
@@ -144,9 +158,15 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
     if ((this.options.now ?? Date.now)() < this.notBefore) return;
     if (this.active !== undefined || this.attempt === undefined) return;
     const reason = this.state.overrideReason;
-    if (reason === null || this.state.mode !== "REQUIRE_OR_OVERRIDE") return;
+    if (
+      !this.available() ||
+      reason === null ||
+      (this.state.mode !== "REQUIRE_OR_OVERRIDE" &&
+        !(this.state.mode === null && this.attempt.terminal))
+    )
+      return;
     const old = this.attempt;
-    if (old.sent && !old.terminal) return;
+    if ((old.sent || old.exceptionSent) && !old.terminal) return;
     let attempt = old;
     const operation = (async () => {
       if (old.terminal) attempt = this.allocate(old.descriptor.target);
@@ -184,7 +204,7 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
     this.retire();
     const attempt: PresenceAttempt = {
       generation: this.generation,
-      descriptor: { version: 1, operationId, target },
+      descriptor: { version: 1, operationId, target, stage: "LOCAL" },
       controller: new AbortController(),
       challenge: undefined,
       exception: undefined,
@@ -199,9 +219,9 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
 
   private async execute(target: PresenceTarget): Promise<PresenceResult> {
     let attempt = this.attempt;
-    if (attempt?.result !== undefined) return attempt.result;
     if (attempt !== undefined && this.state.phase === "uncertain")
       return this.recover(attempt);
+    if (attempt?.result !== undefined) return attempt.result;
     if (
       attempt !== undefined &&
       !attempt.terminal &&
@@ -220,56 +240,12 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
         this.options.acquisition,
         this.options.createId,
       );
-      assertCurrent(this, attempt);
-      this.publish({ phase: "submitting" });
-      attempt.sent = true;
-      const sent = this.transport.submit(
-        target,
-        attempt.descriptor.operationId,
-        evidence,
-      );
+      const dispatch = dispatchPresenceShift(this, attempt, target, evidence);
       evidence = undefined;
-      const result = await sent;
-      assertCurrent(this, attempt);
-      if (
-        result.locationId !== target.locationId ||
-        (target.action === "END" && result.shiftId !== target.shiftId)
-      )
-        throw presenceFailure("PRESENCE_RESPONSE_MISMATCH");
-      attempt.terminal = true;
-      attempt.result = result;
-      await this.store.delete();
-      assertCurrent(this, attempt);
-      this.publish({ phase: "confirmed", overrideReason: null });
-      return result;
+      return await dispatch;
     } catch (error) {
-      if (!this.current(attempt))
-        throw presenceFailure("PRESENCE_RETIRED", 409);
-      if (
-        error instanceof EmployeeApiError &&
-        [
-          "PRESENCE_REJECTED",
-          "PRESENCE_REQUIRED",
-          "APPROVER_AUTHORITY_REVOKED",
-        ].includes(error.code)
-      ) {
-        this.publish({ phase: "uncertain" });
+      if (classifyPresenceSubmissionFailure(this, attempt, error) === "recover")
         return this.recover(attempt);
-      }
-      if (
-        error instanceof EmployeeApiError &&
-        !error.isNetworkError &&
-        error.status < 500 &&
-        error.status !== 408 &&
-        this.state.phase !== "unavailable"
-      ) {
-        attempt.sent = false;
-        this.publish({
-          phase: "unavailable",
-          reason: error.code,
-          overrideReason: null,
-        });
-      }
       this.handleFailure(error);
       throw error instanceof EmployeeApiError ? error : presenceFailure();
     }

@@ -1,4 +1,8 @@
 import {
+  suspendedEndAttempt,
+  suspendedEndSnapshot,
+} from "./employee-shift-presence-parent-fence";
+import {
   executeEmployeeEndAttempt,
   type EndAttempt,
 } from "./employee-shift-end-attempt";
@@ -127,6 +131,7 @@ export class EmployeeShiftEndSession {
   }
 
   setCashInput(cashInput: string): void {
+    if (this.options.presence?.snapshot().phase === "uncertain") return;
     if (!["active", "blocked-open-work", "error"].includes(this.snapshot.phase))
       return;
     if (cashInput !== this.snapshot.cashInput) this.options.presence?.clear();
@@ -144,6 +149,7 @@ export class EmployeeShiftEndSession {
   requestConfirmation(): void {
     if (
       !this.snapshot.online ||
+      this.options.presence?.snapshot().phase === "uncertain" ||
       this.snapshot.authority === null ||
       !["active", "blocked-open-work", "error"].includes(this.snapshot.phase)
     )
@@ -206,22 +212,17 @@ export class EmployeeShiftEndSession {
   }
 
   private fenceSubmittingAttempt(): void {
-    if (this.snapshot.phase !== "submitting" || this.attempt === undefined)
-      return;
+    const attempt = suspendedEndAttempt(
+      this.options.presence,
+      this.attempt,
+      this.snapshot,
+      this.workflowGeneration + 1,
+    );
+    if (attempt === undefined) return;
     this.workflowGeneration += 1;
-    this.attempt = {
-      ...this.attempt,
-      workflowGeneration: this.workflowGeneration,
-    };
+    this.attempt = attempt;
     this.activeSend = undefined;
-    this.publish({
-      ...this.snapshot,
-      failure: {
-        code: "SHIFT_END_RESULT_UNKNOWN",
-        message: "The Shift end result could not be confirmed.",
-      },
-      phase: "uncertain",
-    });
+    this.publish(suspendedEndSnapshot(this.snapshot));
   }
 
   finish(): void {

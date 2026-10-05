@@ -391,3 +391,36 @@ Remaining implementation gap: NONE identified in reviewed GPS-C client scope. Fa
 | scripts/gps-c-validation.mjs                                            |                                  103 |
 
 Scoped lint treats the new Expo config plugin as CommonJS and permits only its required Expo SDK import through a per-file rule allowlist. All TypeScript rules remain unchanged; no source lint suppression or global ESLint-policy modification was added. Native package lint does not otherwise include config plugins. Report formatting explicitly uses the repository .gitignore because .prettierignore excludes docs.
+
+## T. Authorized recovery corrections (2026-10-05)
+
+Continuation base: `07e10687f7bac8c781ecc9039b330a28fb2058f1`, on the existing `codex/native-257-presence-native` branch. The owner authorized only the two independent-review recovery findings and focused checks, with APK assembly still deferred.
+
+Affected entities are the Native recovery descriptor and transient Shift Presence attempt, Shift Start/End presentation, and existing Operation/Exception status consumers. There are no ValetSession or Task/Dispatch transitions, server routes, database constraints/indexes, policy schema, or Company/Location precedence changes. Existing authenticated User/member/Organization/Location boundaries and safe own-End remain binding under DEC-099/100.
+
+Connectivity is availability rather than authority. Offline lifecycle fencing must retain an unresolved protected Shift or Exception operation as uncertain, with locked target/cash and exact-O GET recovery after fresh authority validation. Pre-dispatch acquisition can be cancelled safely. Late responses cannot settle a fenced parent attempt.
+
+The allowlisted descriptor will add only a controlled dispatch stage: local/challenge work, Shift may have left, or Exception may have left. Each protected dispatch requires its durable stage write first. Old stage-less descriptors remain conservatively recoverable as Shift may have left. No coordinates, mock signal, challenge/evidence body, credentials, or raw request are retained. Local-only restart reconciles authoritative status before permitting an explicit fresh action. Recovered measured denial permits explicit fresh B, whose current challenge mode gates Exception creation.
+
+Structure plan: extract protected Shift dispatch from the near-ceiling coordinator and keep parent fencing helpers focused. Tests will cover deferred offline late success/failure, both parent locks, local/protected restart stages, current-B mode gates, persistence failure and privacy/purge. Validation and final evidence follow after implementation; no physical device, APK, or remote CI proof is implied.
+
+### Correction evidence and review
+
+Both findings are implemented. Native availability is separate from authenticated identity/scope; offline fencing runs before End's online presentation update. Parent fencing also reconstructs the exact pending target after manager Exception dispatch from a local-error presentation. Uncertain target/cash changes are guarded. Late success and failure retain O; reconnect validates context before exact GET. Already-confirmed results remain settled, while fencing during success cleanup still requires exact GET. An unresolved Exception request cannot be posted again by another manager action.
+
+New writes contain `LOCAL`, `SHIFT_MAY_HAVE_LEFT`, or `EXCEPTION_MAY_HAVE_LEFT`; the latter two must be stored before their POST. Legacy descriptors without stage stay conservatively recoverable. Local-only restart reads O and, where still pending, its current challenge; it returns an explicit-retry state and offers manager choice under current REQUIRE_OR_OVERRIDE guidance. Recovered terminal measured denial clears A's historical mode, permits an explicit fresh B, and re-reads B's current mode before any Exception POST. No raw fix/mock flag/challenge/evidence/credential/request was added to storage. Transient evidence is released after dispatch.
+
+| Focused gate                                            | Current local evidence                                                          |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Shared presence/Start/End tests                         | 134 passed, 15 files                                                            |
+| Native presence/Shift/lifecycle tests                   | 94 passed, 13 files                                                             |
+| Employee client, contracts, Native typechecks           | Passed                                                                          |
+| Native package lint                                     | Passed                                                                          |
+| GPS-C scoped structure/import/format/lint/diff/geometry | Passed: 48 authored files, 52 owned files; every code file <=300 physical lines |
+| `git diff --check`                                      | Passed                                                                          |
+
+The final focused tests total **228 across 28 files**. Native coverage includes presence adapter/store/status/runtime/connectivity, Shift retirement/protection/Start/active panels/End HTTP/detached lifecycle repair, and lifecycle owner/authority. Shared coverage includes all existing presence/Start/End tests plus stage and restart tests. Initial six stage regressions failed against the reviewed implementation before correction. Deferred tests cover both late outcomes for Shift and Exception POST, pre-dispatch offline cancellation, locked Location/cash, exact GET after reconnect, all four current B modes, stage-write failures, and descriptor purge. Restart tests simulate process loss through fresh coordinators/runtime and persisted descriptors; they are not physical process-kill proof.
+
+Self-review used the VAYLET code-review skill against the actual correction diff from `07e10687f7bac8c781ecc9039b330a28fb2058f1`, DEC-099/100, the binding structure/security/Definition-of-Done contracts, and the owner's two authorized findings. No unresolved code finding was identified in this correction scope. Scope/contract, identity/tenant/Location, retry/persistence, abstraction/downstream, privacy, structure, and focused-test passes are locally verified. Server authorization, database integrity and atomic audit remain existing GPS-B responsibilities; no server/schema/route/policy/dependency change is included. The geometry gate remains green; camera source is unchanged and camera tests were not rerun in this focused continuation.
+
+Review merge verdict: **BLOCK MERGE** pending the requested independent re-review and repository merge gates. The owner requested commit/push only. APK assembly was not retried; all prior physical-device, iOS, APK, actual remote CI and rollout limitations remain. This correction is ready for code re-review, not a claim of physical or production readiness.

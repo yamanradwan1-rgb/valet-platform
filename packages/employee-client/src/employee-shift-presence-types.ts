@@ -46,6 +46,8 @@ export interface PresenceDescriptor {
   readonly version: 1;
   readonly operationId: string;
   readonly target: PresenceTarget;
+  /** Absent only for legacy descriptors, recovered conservatively. */
+  readonly stage?: "LOCAL" | "SHIFT_MAY_HAVE_LEFT" | "EXCEPTION_MAY_HAVE_LEFT";
 }
 
 export interface PresenceStore {

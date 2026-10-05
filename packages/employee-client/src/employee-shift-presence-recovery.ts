@@ -6,6 +6,8 @@ import type {
 import { presenceIntent } from "./employee-shift-presence-types";
 import {
   assertCurrent,
+  assertAvailable,
+  persistPresenceDispatch,
   presenceFailure,
   verifyChallenge,
   verifyException,
@@ -17,6 +19,7 @@ export async function recoverPresence(
   workflow: PresenceWorkflow,
   attempt: PresenceAttempt,
 ): Promise<PresenceResult> {
+  assertAvailable(workflow);
   const { operationId, target } = attempt.descriptor;
   const status = await workflow.transport.recover(operationId);
   assertCurrent(workflow, attempt);
@@ -51,6 +54,7 @@ export async function recoverPresence(
     attempt.terminal = true;
     workflow.publish({
       phase: status.status === "DENIED" ? "denied" : "expired",
+      mode: null, // A's historical policy cannot authorize a new manager operation B.
       reason: status.denialReason,
       summary: status.summary,
       overrideReason:
@@ -117,7 +121,12 @@ export async function recoverPresence(
       phase: "unavailable",
       mode: challenge.presence.mode,
       reason: "EXPLICIT_RETRY_REQUIRED",
+      overrideReason:
+        challenge.presence.mode === "REQUIRE_OR_OVERRIDE"
+          ? "GPS_UNAVAILABLE"
+          : null,
     });
+    throw presenceFailure("EXPLICIT_RETRY_REQUIRED", 422);
   } else workflow.publish({ phase: "uncertain" });
   throw presenceFailure();
 }
@@ -127,6 +136,7 @@ export async function createPresenceException(
   attempt: PresenceAttempt,
   reason: PresenceReason,
 ): Promise<void> {
+  assertAvailable(workflow);
   const { operationId, target } = attempt.descriptor;
   if (attempt.challenge === undefined) {
     await workflow.store.write(attempt.descriptor);
@@ -147,6 +157,7 @@ export async function createPresenceException(
     workflow.publish({ mode: challenge.presence.mode, overrideReason: null });
     throw presenceFailure("PRESENCE_REQUIRED", 422);
   }
+  await persistPresenceDispatch(workflow, attempt, "EXCEPTION_MAY_HAVE_LEFT");
   attempt.exceptionSent = true;
   workflow.publish({ phase: "submitting", mode: challenge.presence.mode });
   const exception = await workflow.transport.requestException(
@@ -155,6 +166,7 @@ export async function createPresenceException(
     reason,
   );
   assertCurrent(workflow, attempt);
+  assertAvailable(workflow);
   verifyException(exception, target);
   attempt.exception = exception;
   workflow.publish({ phase: "pending", reason: exception.status });

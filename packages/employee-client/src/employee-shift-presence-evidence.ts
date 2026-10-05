@@ -9,6 +9,7 @@ import {
 } from "./employee-shift-presence-types";
 import {
   assertCurrent,
+  assertAvailable,
   presenceFailure,
   verifyChallenge,
   type PresenceAttempt,
@@ -36,10 +37,12 @@ export async function acquirePresenceEvidence(
   workflow.publish({ phase: "discovering" });
   await workflow.store.write(attempt.descriptor);
   assertCurrent(workflow, attempt);
+  assertAvailable(workflow);
   const challenge = await workflow.transport.challenge(
     presenceIntent(attempt.descriptor.target, attempt.descriptor.operationId),
   );
   assertCurrent(workflow, attempt);
+  assertAvailable(workflow);
   verifyChallenge(challenge, attempt.descriptor);
   attempt.challenge = challenge;
   workflow.publish({ mode: challenge.presence.mode });

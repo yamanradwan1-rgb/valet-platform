@@ -12,7 +12,7 @@ import type {
 
 export interface PresenceAttempt {
   readonly generation: number;
-  readonly descriptor: PresenceDescriptor;
+  descriptor: PresenceDescriptor;
   readonly controller: AbortController;
   challenge: PresenceChallenge | undefined;
   exception: PresenceException | undefined;
@@ -26,6 +26,7 @@ export interface PresenceWorkflow {
   readonly transport: PresenceTransport;
   readonly store: PresenceStore;
   current(attempt: PresenceAttempt): boolean;
+  available(): boolean;
   publish(patch: Partial<PresenceSnapshot>): void;
   snapshot(): PresenceSnapshot;
 }
@@ -46,7 +47,27 @@ export function assertCurrent(
   attempt: PresenceAttempt,
 ): void {
   if (!workflow.current(attempt))
-    throw presenceFailure("PRESENCE_RETIRED", 409);
+    throw !workflow.available() && (attempt.sent || attempt.exceptionSent)
+      ? presenceFailure()
+      : presenceFailure("PRESENCE_RETIRED", 409);
+}
+
+export function assertAvailable(workflow: PresenceWorkflow): void {
+  if (!workflow.available()) throw presenceFailure();
+}
+
+export async function persistPresenceDispatch(
+  workflow: PresenceWorkflow,
+  attempt: PresenceAttempt,
+  stage: "SHIFT_MAY_HAVE_LEFT" | "EXCEPTION_MAY_HAVE_LEFT",
+): Promise<void> {
+  assertCurrent(workflow, attempt);
+  assertAvailable(workflow);
+  const descriptor = { ...attempt.descriptor, stage };
+  await workflow.store.write(descriptor);
+  assertCurrent(workflow, attempt);
+  assertAvailable(workflow);
+  attempt.descriptor = descriptor;
 }
 
 export function verifyChallenge(
