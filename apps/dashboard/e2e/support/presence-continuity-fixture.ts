@@ -14,6 +14,7 @@ export function continuityFixture() {
   let outcome: ReceiptOutcome = "UNKNOWN";
   let refreshed = false;
   let replaceSession = false;
+  let metadata: string | null | undefined;
   let holdResult: (() => Promise<void>) | null = null;
   const f = new PresenceFixture("CA", async (path, request, state) => {
     if (path === "/v1/staff/auth/refresh") {
@@ -21,14 +22,17 @@ export function continuityFixture() {
       refreshed = true;
       return {
         body: {
-          ...authPayload(
-            "B",
-            replaceSession
-              ? "99999999-9999-4999-8999-999999999999"
-              : state.fixture.auth.staffAuthSessionId,
-          ),
+          ...authPayload("B"),
           accessExpiresAt: "2101-01-01T00:00:00.000Z",
         },
+        headers:
+          metadata === null
+            ? {}
+            : {
+                "X-Vaylet-Staff-Auth-Session-Id": replaceSession
+                  ? "99999999-9999-4999-8999-999999999999"
+                  : (metadata ?? state.fixture.auth.staffAuthSessionId),
+              },
       };
     }
     if (path === `${caBase}/zones` && request.method() === "POST") {
@@ -92,6 +96,9 @@ export function continuityFixture() {
     },
     replace: () => {
       replaceSession = true;
+    },
+    metadata: (value: string | null) => {
+      metadata = value;
     },
     hold: (value: () => Promise<void>) => {
       holdResult = value;

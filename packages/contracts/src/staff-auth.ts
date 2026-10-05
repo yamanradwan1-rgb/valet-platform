@@ -35,9 +35,12 @@ export const staffAuthAccessResponseSchema = z
     tokenType: z.literal("Bearer"),
     accessExpiresAt: z.string().datetime({ offset: true }),
     sessionExpiresAt: z.string().datetime({ offset: true }),
-    staffAuthSessionId: z.string().uuid(),
   })
   .strict();
+
+export const STAFF_AUTH_SESSION_CONTINUITY_HEADER =
+  "X-Vaylet-Staff-Auth-Session-Id";
+export const staffAuthSessionContinuitySchema = z.string().uuid();
 
 export const staffNativeAuthResponseSchema = staffAuthAccessResponseSchema
   .extend({

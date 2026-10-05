@@ -31,6 +31,7 @@ import {
   requireAuthJson,
   requireEmptyAuthQuery,
   setPrivateAuthHeaders,
+  setStaffAuthContinuityHeader,
   webAccessResponse,
 } from "./staff-auth.transport";
 
@@ -114,6 +115,7 @@ export class StaffAuthController {
       );
       const tokens = await this.loginService.login(body, request);
       const result = webAccessResponse(tokens);
+      setStaffAuthContinuityHeader(response, tokens);
       response.setHeader(
         "Set-Cookie",
         refreshCookie(tokens.refreshToken, initialSessionMaxAgeSeconds),
@@ -146,6 +148,7 @@ export class StaffAuthController {
         }
         const tokens = await this.authService.refresh(refreshToken);
         const result = webAccessResponse(tokens);
+        setStaffAuthContinuityHeader(response, tokens);
         response.setHeader(
           "Set-Cookie",
           refreshCookie(tokens.refreshToken, tokens.refreshCookieMaxAgeSeconds),

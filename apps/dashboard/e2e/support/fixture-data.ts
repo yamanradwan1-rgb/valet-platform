@@ -40,16 +40,12 @@ export const LOCATION_B = {
 
 export const RECOVERY_CODE = `vmr1-${"a".repeat(11)}-${"b".repeat(27)}`;
 
-export function authPayload(
-  character: string,
-  staffAuthSessionId = "88888888-8888-4888-8888-888888888888",
-) {
+export function authPayload(character: string) {
   return {
     accessToken: `vsa1.${character.repeat(43)}`,
     tokenType: "Bearer",
     accessExpiresAt: "2099-01-01T00:00:00.000Z",
     sessionExpiresAt: "2099-01-02T00:00:00.000Z",
-    staffAuthSessionId,
   };
 }
 

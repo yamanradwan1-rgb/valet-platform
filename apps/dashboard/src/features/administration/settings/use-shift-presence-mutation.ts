@@ -210,15 +210,20 @@ export function useShiftPresenceMutation(
   return {
     ...state,
     pending: retained.pending,
-    message:
-      retained.pending && !state.busy && !state.denied
+    message: !retained.continuityAvailable
+      ? ("continuityUnavailable" as const)
+      : retained.pending && !state.busy && !state.denied
         ? ("unknown" as const)
         : state.message,
     run,
     reconcile,
     onAssured,
     blocked:
-      state.busy || retained.pending !== null || state.denied || state.mfaOpen,
+      !retained.continuityAvailable ||
+      state.busy ||
+      retained.pending !== null ||
+      state.denied ||
+      state.mfaOpen,
     closeMfa: () => {
       if (alive.current) setState((value) => ({ ...value, mfaOpen: false }));
     },

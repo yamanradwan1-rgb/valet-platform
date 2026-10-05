@@ -1,6 +1,10 @@
 import type { DashboardLocale } from "../../../lib/i18n/locale";
 
 const messages = {
+  continuityUnavailable: [
+    "Presence changes are unavailable for this sign-in. Sign in again or contact your administrator.",
+    "تغييرات التحقق من الحضور غير متاحة لتسجيل الدخول هذا. سجّل الدخول مجددًا أو تواصل مع المسؤول.",
+  ],
   mapLanguageReload: [
     "Map labels keep the language used when the map first loaded. Reload the page to change map labels; resolve any uncertain save first.",
     "تحتفظ تسميات الخريطة باللغة المستخدمة عند تحميلها أول مرة. أعد تحميل الصفحة لتغيير التسميات؛ تحقّق من أي حفظ غير مؤكّد أولًا.",

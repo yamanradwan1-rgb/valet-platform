@@ -12,8 +12,9 @@ export class DashboardAuthFixture {
   login(): FixtureReply {
     this.staffAuthSessionId = randomUUID();
     return {
-      body: authPayload("A", this.staffAuthSessionId),
+      body: authPayload("A"),
       headers: {
+        "X-Vaylet-Staff-Auth-Session-Id": this.staffAuthSessionId,
         "set-cookie": `${cookieName}=${cookieValue}; Path=/; HttpOnly; SameSite=Lax`,
       },
     };
@@ -26,7 +27,12 @@ export class DashboardAuthFixture {
   }
   refresh(request: Request): FixtureReply {
     return this.hasCookie(request)
-      ? { body: authPayload("B", this.staffAuthSessionId) }
+      ? {
+          body: authPayload("B"),
+          headers: {
+            "X-Vaylet-Staff-Auth-Session-Id": this.staffAuthSessionId,
+          },
+        }
       : {
           status: 401,
           body: {

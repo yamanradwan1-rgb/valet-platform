@@ -183,7 +183,6 @@ describe("staff authentication contracts", () => {
         accessExpiresAt: "2026-08-10T12:15:00.000Z",
         accessToken: `vsa1.${"a".repeat(43)}`,
         sessionExpiresAt: "2026-09-09T12:00:00.000Z",
-        staffAuthSessionId: "88888888-8888-4888-8888-888888888888",
         tokenType: "Bearer",
       }),
     ).toBeDefined();

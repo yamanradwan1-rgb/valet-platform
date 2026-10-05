@@ -60,7 +60,6 @@ function authPayload(): Record<string, string> {
     accessToken: `vsa1.${"a".repeat(43)}`,
     refreshToken,
     sessionExpiresAt: "2026-10-03T12:00:00.000Z",
-    staffAuthSessionId: "88888888-8888-4888-8888-888888888888",
     tokenType: "Bearer",
   };
 }

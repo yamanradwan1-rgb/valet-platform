@@ -2,6 +2,8 @@ import {
   emptyRequestSchema,
   staffAuthAccessResponseSchema,
   staffNativeAuthResponseSchema,
+  STAFF_AUTH_SESSION_CONTINUITY_HEADER,
+  staffAuthSessionContinuitySchema,
   type StaffAuthAccessResponse,
   type StaffNativeAuthResponse,
 } from "@valet/contracts";
@@ -50,9 +52,18 @@ export function webAccessResponse(
     accessExpiresAt: tokens.accessExpiresAt.toISOString(),
     accessToken: tokens.accessToken,
     sessionExpiresAt: tokens.sessionExpiresAt.toISOString(),
-    staffAuthSessionId: tokens.staffAuthSessionId,
     tokenType: "Bearer",
   });
+}
+
+export function setStaffAuthContinuityHeader(
+  response: AuthResponse,
+  tokens: StaffAuthTokens,
+): void {
+  response.setHeader(
+    STAFF_AUTH_SESSION_CONTINUITY_HEADER,
+    staffAuthSessionContinuitySchema.parse(tokens.staffAuthSessionId),
+  );
 }
 
 export function nativeAccessResponse(

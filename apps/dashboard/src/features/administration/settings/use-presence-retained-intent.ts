@@ -37,6 +37,7 @@ export function usePresenceRetainedIntent(target: PresenceTarget) {
   }, [lifetime]);
   return {
     pending,
+    continuityAvailable: lifetime.isCurrent(),
     current: () =>
       lifetime.isCurrent() &&
       client.getSessionGeneration() === sessionGeneration,

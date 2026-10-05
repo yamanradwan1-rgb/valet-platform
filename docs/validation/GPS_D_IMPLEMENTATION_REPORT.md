@@ -2,7 +2,161 @@
 
 Date: 2026-10-05. Repository: veletpro0-lgtm/valet-platform.
 
-## Owner accepted auth continuity closure — VERIFIED
+## Final release-compatible auth continuity closure — verified locally
+
+Starting HEAD: `15ff8533e0aba1946236aa7156ef601a4176001a`. The latest owner
+decision supersedes the body-field transport below: retain the exact legacy
+strict Web and Native JSON, return persisted continuity through successful Web
+login/refresh response header `X-Vaylet-Staff-Auth-Session-Id: UUID`.
+API-first, Dashboard-second rollout requires no Native upgrade. Dashboard's
+default StaffAuthClient base URL is empty and Next rewrites `/v1/staff/**` to
+API_ORIGIN; browser requests/responses are same-origin. API bootstrap enables
+no direct-browser CORS path; no expose-header change is required or introduced.
+Missing/malformed metadata permits ordinary auth but fails closed for GPS-D
+writes/recovery, with no expiry/token/cookie identity heuristic.
+
+Final Web JSON is exactly `{ accessToken, tokenType: "Bearer", accessExpiresAt,
+sessionExpiresAt }`; Native JSON is exactly the same four keys plus
+`refreshToken`. Neither contains `staffAuthSessionId`. Shared response schemas
+remain strict. A separate shared UUID schema validates header metadata.
+Only successful Web login/refresh emits the header; Native endpoints/runtime do
+not consume or emit it. Old strict Dashboard/Native parsers ignore metadata and
+continue parsing the unchanged body. No Native upgrade or secure-storage change
+is required. Deploy API header support first, then the consuming Dashboard.
+
+Dashboard retains the validated UUID separately from its parsed public session.
+Same UUID refresh preserves identityGeneration; changed UUID or loss of an
+established UUID advances it. Every successful refresh still advances
+sessionGeneration. Logout clears the UUID. Missing/invalid/multi-value metadata
+does not reject valid token auth and never synthesizes identity. Ordinary reads
+remain available; GPS-D writes and recovery are disabled with localized feedback.
+An established UNKNOWN descriptor is purged when metadata disappears or changes.
+Existing generic request/token fencing and the feature-owned safe descriptor
+allowlist are unchanged. The existing abort waiter was extracted into a focused
+helper to keep StaffAuthClient within 300 physical lines.
+
+Affected entities remain StaffAuthSession and the safe GPS-D receipt descriptor;
+no ValetSession or Task/Dispatch transition, tenant/Location authorization,
+configuration precedence, DB constraint/index, migration or Prisma changes.
+Login INSERT and refresh UPDATE still return the actual persisted session ID;
+refresh does not create another row. The UUID is non-credential, non-authority,
+never accepted as caller authorization. No domain SQL, map/#266, dependency,
+lockfile, architecture baseline, Native production source or storage was changed.
+Migration count added: **0**. Prisma changed: **no**. Native runtime behavior
+changed: **no**. Existing unrelated baseline failures are unchanged.
+
+### Current verification evidence
+
+- Shared Staff contracts: **19 passed** across `staff-auth.test.ts` and
+  `index.test.ts`. Frozen previous-shape strict Web/Native schemas independently
+  parse current bodies; response key assertions exclude UUID, and unknown
+  authority/device fields remain rejected.
+- Real Nest HTTP + isolated PostgreSQL harness: **14 passed** across
+  `staff-auth-continuity.integration.test.ts` and
+  `staff-auth-native.integration.test.ts`. Real Web login/refresh returns exactly
+  four keys and header UUID A matching the persisted row. Credential rotation
+  retains A and one row. Independent same-User login returns B, A != B;
+  deliberately equalized persisted expiries do not affect truthful cookie-B
+  refresh/header-B selection. Native login/refresh returns exactly five keys,
+  parses the explicit previous-shape strict schema and rotates credentials.
+- Dashboard StaffAuthClient/API client/retained intent units: **62 passed** across
+  five owned files. Header parsing, same/different UUID, missing/malformed
+  metadata, logout and existing request/session fencing are covered.
+- Native HTTP/telemetry auth tests: **11 passed**. Employee-client Native auth
+  tests: **38 passed** across login/restore/logout/storage matrix files.
+- Browser continuity suite alone: **9 passed**. Final combined Chromium
+  continuity/auth-race/unmount suite: **19 passed (55.9s)**. UNKNOWN -> stale
+  access -> same-header refresh -> fresh-Bearer exact result GET is verified for
+  COMMITTED/UNKNOWN/503, with write count exactly **1**. Changed header retires
+  the old descriptor; delayed old GET cannot publish after same-User new login.
+  Missing/malformed header preserves auth/reads but prevents writes and old
+  exact recovery. The first combined run had one timeout in the unchanged
+  Settings leave/return case; the final complete rerun passed without changing
+  the test, increasing timeouts or skipping assertions.
+- Dashboard/contracts/API and touched Native/employee-client typechecks: **PASS**.
+- Scoped ESLint with `--max-warnings=0`: **PASS**.
+- `node scripts/gps-d-validation.mjs`: **PASS**, 72 authored files / 77 owned
+  files across cumulative GPS-D scope. Structure/import/format/zero-warning
+  lint/diff/frozen-source checks passed; root scanner was not invoked. Current
+  StaffAuthClient is **292** physical lines; new continuity/abort helpers are
+  **12/26** lines. `git diff --check`: **PASS**. Exact closure inventory is
+  **27** files; no generated browser/build artifacts are included.
+- Dashboard production build with local `API_ORIGIN`: **PASS**, all 26 pages
+  generated. No deployment, remote CI, live Google Maps or production readiness
+  claim is made. Browser coverage uses the existing controlled fixtures.
+
+Commands run from repository root unless noted:
+
+```text
+pnpm --filter @valet/contracts build
+pnpm --filter @valet/contracts exec vitest run src/staff-auth.test.ts src/index.test.ts
+pnpm --filter @valet/dashboard exec vitest run src/lib/auth/staff-auth-client.test.ts src/lib/auth/staff-auth-continuity.test.ts src/lib/api/dashboard-api-client.test.ts src/lib/api/dashboard-api-client-binary.test.ts src/features/administration/settings/shift-presence-retained-intent.test.ts
+# cwd apps/api; existing isolated DB harness, no secrets printed
+pnpm exec node --env-file=../../.env ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/staff-auth-continuity.integration.test.ts test/staff-auth-native.integration.test.ts
+pnpm --filter @valet/valet-native exec vitest run test/native-auth-http.test.ts test/native-telemetry-auth-correlation.test.ts
+pnpm --filter @valet/employee-client exec vitest run src/native-auth-login.test.ts src/native-auth-restore.test.ts src/native-auth-logout.test.ts src/native-auth-storage-matrix.test.ts
+pnpm --filter @valet/dashboard exec playwright test e2e/shift-presence-auth-continuity.spec.ts
+pnpm --filter @valet/dashboard exec playwright test e2e/shift-presence-auth-continuity.spec.ts e2e/shift-presence-auth-races.spec.ts e2e/shift-presence-unmount.spec.ts
+pnpm --filter @valet/dashboard --filter @valet/contracts --filter @valet/api typecheck
+pnpm --filter @valet/valet-native --filter @valet/employee-client typecheck
+# API_ORIGIN=http://127.0.0.1:3000
+pnpm --filter @valet/dashboard build
+node scripts/gps-d-validation.mjs
+git diff --check
+```
+
+### Exact closure file inventory relative to starting HEAD
+
+```text
+apps/api/src/modules/auth/staff-auth.controller.ts
+apps/api/src/modules/auth/staff-auth.transport.ts
+apps/api/test/staff-auth-continuity.integration.test.ts
+apps/api/test/staff-auth-native.integration.test.ts
+apps/dashboard/e2e/shift-presence-auth-continuity.spec.ts
+apps/dashboard/e2e/support/dashboard-auth-fixture.ts
+apps/dashboard/e2e/support/fixture-data.ts
+apps/dashboard/e2e/support/presence-continuity-fixture.ts
+apps/dashboard/src/features/administration/settings/shift-presence-copy.ts
+apps/dashboard/src/features/administration/settings/use-presence-retained-intent.ts
+apps/dashboard/src/features/administration/settings/use-shift-presence-mutation.ts
+apps/dashboard/src/lib/api/dashboard-api-client-binary.test.ts
+apps/dashboard/src/lib/api/dashboard-api-client.test.ts
+apps/dashboard/src/lib/auth/staff-auth-abort.ts
+apps/dashboard/src/lib/auth/staff-auth-client.test.ts
+apps/dashboard/src/lib/auth/staff-auth-client.ts
+apps/dashboard/src/lib/auth/staff-auth-continuity.test.ts
+apps/dashboard/src/lib/auth/staff-auth-continuity.ts
+apps/valet-native/test/native-auth-http.test.ts
+apps/valet-native/test/native-telemetry-auth-correlation.test.ts
+docs/NATIVE_261_262_264_257_IMPLEMENTATION_PLAN.md
+docs/validation/GPS_D_IMPLEMENTATION_REPORT.md
+packages/contracts/src/index.test.ts
+packages/contracts/src/staff-auth.test.ts
+packages/contracts/src/staff-auth.ts
+packages/employee-client/src/native-auth-test-fixture.ts
+scripts/gps-d-validation.mjs
+```
+
+### Final scoped review
+
+Review target: local closure diff against `15ff8533` on the existing owned branch;
+latest owner compatibility decision, canonical GPS-D plan, security/DoD/structure
+contracts and VAYLET review matrices checked. Findings: none identified within
+this closure. Security/tenant/Location: existing persisted authorization remains
+unchanged; UUID is response metadata only. Retry/concurrency/DB: existing
+session locks/rotation and exact receipt reconciliation remain unchanged.
+Abstraction compatibility: legacy strict public bodies preserved, separate
+header parser and existing abort helper remain narrow. Audit/privacy: no new
+audit payload, private evidence or browser persistence. Downstream boundary:
+Native consumers require no continuity support. Architecture: focused helpers,
+no baseline expansion. Test adequacy: actual API+DB body/header proof and browser
+identity/UNKNOWN negative cases exercised. Scope leakage: none identified.
+Gate evidence is local only; remote CI/cross-human approval remains required
+before any future merge. Closure code review verdict: **CLEAN TO MERGE** within
+the reviewed scope, subject to repository CI/cross-review workflow. No PR or
+merge is created by this task.
+
+## Historical body-field auth continuity closure — superseded transport
 
 Starting HEAD: `2cf71a15f574e3e04d65ac69c03027ba56e70bfe`, owned branch
 `codex/native-257-presence-management`. The owner technical decision on

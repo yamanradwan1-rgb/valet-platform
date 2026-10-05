@@ -1,3 +1,5 @@
+import { abortReason, awaitWithAbort } from "./staff-auth-abort";
+import { readStaffAuthContinuity } from "./staff-auth-continuity";
 import {
   staffAuthAccessResponseSchema,
   staffLoginRequestSchema,
@@ -43,6 +45,7 @@ export class StaffAuthClient {
   private readonly baseUrl: string;
   private readonly fetcher: typeof globalThis.fetch;
   private session: StaffAuthSession | null = null;
+  private staffAuthSessionId: string | null = null;
   private sessionGeneration = 0;
   private identityGeneration = 0;
   private logoutUnconfirmed = false;
@@ -63,7 +66,7 @@ export class StaffAuthClient {
   }
 
   getStaffAuthSessionId(): string | null {
-    return this.session?.staffAuthSessionId ?? null;
+    return this.staffAuthSessionId;
   }
 
   getSessionGeneration(): number {
@@ -112,7 +115,11 @@ export class StaffAuthClient {
     if (identityFence !== this.identityGeneration)
       throw dashboardAuthBoundaryError();
     this.clearLogoutUnconfirmed();
-    this.applySession(parsed.data, true);
+    this.applySession(
+      parsed.data,
+      true,
+      readStaffAuthContinuity(response.headers),
+    );
     return parsed.data;
   }
 
@@ -173,7 +180,11 @@ export class StaffAuthClient {
           dashboardAuthBoundaryError(),
         );
       }
-      this.applySession(parsed.data, this.session === null);
+      this.applySession(
+        parsed.data,
+        this.session === null,
+        readStaffAuthContinuity(response.headers),
+      );
       return parsed.data;
     } catch (error: unknown) {
       if (error instanceof StaffAuthRefreshError) throw error;
@@ -193,6 +204,7 @@ export class StaffAuthClient {
     readonly ok: boolean;
     readonly status: number;
     readonly payload: unknown;
+    readonly headers: Headers;
   }> {
     let response: Response;
     try {
@@ -220,17 +232,23 @@ export class StaffAuthClient {
         payload = text;
       }
     }
-    return { ok: response.ok, status: response.status, payload };
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload,
+      headers: response.headers,
+    };
   }
 
   private applySession(
     session: StaffAuthSession,
     identityChanged: boolean,
+    staffAuthSessionId: string | null,
   ): void {
     const replaced =
-      this.session !== null &&
-      this.session.staffAuthSessionId !== session.staffAuthSessionId;
+      this.session !== null && this.staffAuthSessionId !== staffAuthSessionId;
     this.session = session;
+    this.staffAuthSessionId = staffAuthSessionId;
     this.sessionGeneration += 1;
     if (identityChanged || replaced) this.identityGeneration += 1;
     this.emit();
@@ -238,6 +256,7 @@ export class StaffAuthClient {
 
   private clearIdentityBoundary(): void {
     this.session = null;
+    this.staffAuthSessionId = null;
     this.sessionGeneration += 1;
     this.identityGeneration += 1;
     this.emit();
@@ -270,31 +289,4 @@ export class StaffAuthClient {
       }
     }
   }
-}
-
-function abortReason(signal: AbortSignal): unknown {
-  return (
-    signal.reason ??
-    new DOMException("The operation was aborted.", "AbortError")
-  );
-}
-
-function awaitWithAbort<T>(
-  promise: Promise<T>,
-  signal: AbortSignal,
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const abort = () => reject(abortReason(signal));
-    signal.addEventListener("abort", abort, { once: true });
-    promise.then(
-      (value) => {
-        signal.removeEventListener("abort", abort);
-        resolve(value);
-      },
-      (error) => {
-        signal.removeEventListener("abort", abort);
-        reject(error);
-      },
-    );
-  });
 }
