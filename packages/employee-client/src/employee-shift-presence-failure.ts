@@ -27,11 +27,11 @@ export function recordPresenceFailure(
   return retryAfter;
 }
 
-export function classifyPresenceSubmissionFailure(
+export async function classifyPresenceSubmissionFailure(
   workflow: PresenceWorkflow,
   attempt: PresenceAttempt,
   error: unknown,
-): "recover" | "throw" {
+): Promise<"recover" | "throw"> {
   if (!workflow.available() && (attempt.sent || attempt.exceptionSent)) {
     if (workflow.current(attempt)) workflow.publish({ phase: "uncertain" });
     throw presenceFailure();
@@ -57,6 +57,17 @@ export function classifyPresenceSubmissionFailure(
     error.status !== 408 &&
     workflow.snapshot().phase !== "unavailable"
   ) {
+    if (attempt.sent) {
+      try {
+        await workflow.store.delete();
+      } catch {
+        if (workflow.current(attempt)) workflow.publish({ phase: "uncertain" });
+        throw presenceFailure();
+      }
+      assertCurrent(workflow, attempt);
+      const { version, operationId, target } = attempt.descriptor;
+      attempt.descriptor = { version, operationId, target, stage: "LOCAL" };
+    }
     attempt.sent = false;
     workflow.publish({
       phase: "unavailable",

@@ -48,6 +48,32 @@ const descriptor: PresenceDescriptor = {
     cashReported: null,
   },
 };
+
+it.each(["LOCATION_UNAVAILABLE", "GPS_UNAVAILABLE"] as const)(
+  "persists only controlled observed %s provenance in LOCAL",
+  async (localFailure) => {
+    const value: PresenceDescriptor = { ...descriptor, localFailure };
+    const store = new ExpoShiftPresenceStore("START");
+    await store.write(value);
+    expect(await store.read()).toEqual(value);
+    expect(Object.keys(JSON.parse(storage.raw!).descriptor).sort()).toEqual([
+      "localFailure",
+      "operationId",
+      "stage",
+      "target",
+      "version",
+    ]);
+    expect(
+      parseNativePresenceDescriptor({ ...value, stage: "SHIFT_MAY_HAVE_LEFT" }),
+    ).toBeUndefined();
+    expect(
+      parseNativePresenceDescriptor({
+        ...value,
+        localFailure: "UNKNOWN_FAILURE",
+      }),
+    ).toBeUndefined();
+  },
+);
 beforeEach(() => {
   storage.raw = null;
   storage.blocked = false;

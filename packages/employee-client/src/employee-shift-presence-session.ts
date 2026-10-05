@@ -244,7 +244,10 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
       evidence = undefined;
       return await dispatch;
     } catch (error) {
-      if (classifyPresenceSubmissionFailure(this, attempt, error) === "recover")
+      if (
+        (await classifyPresenceSubmissionFailure(this, attempt, error)) ===
+        "recover"
+      )
         return this.recover(attempt);
       this.handleFailure(error);
       throw error instanceof EmployeeApiError ? error : presenceFailure();

@@ -63,7 +63,8 @@ export async function persistPresenceDispatch(
 ): Promise<void> {
   assertCurrent(workflow, attempt);
   assertAvailable(workflow);
-  const descriptor = { ...attempt.descriptor, stage };
+  const { version, operationId, target } = attempt.descriptor;
+  const descriptor = { version, operationId, target, stage };
   await workflow.store.write(descriptor);
   assertCurrent(workflow, attempt);
   assertAvailable(workflow);

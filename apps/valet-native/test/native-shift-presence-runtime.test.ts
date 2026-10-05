@@ -18,10 +18,19 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-it.each(["START", "END"] as const)(
-  "local-only %s restart revalidates challenge and allows explicit manager choice",
-  async (action) => {
-    const descriptor = { ...marker(action), stage: "LOCAL" as const };
+it.each([
+  ["START", undefined],
+  ["END", undefined],
+  ["START", "GPS_UNAVAILABLE"],
+  ["END", "LOCATION_UNAVAILABLE"],
+] as const)(
+  "local-only %s restart offers manager choice only for observed %s",
+  async (action, localFailure) => {
+    const descriptor = {
+      ...marker(action),
+      stage: "LOCAL" as const,
+      ...(localFailure === undefined ? {} : { localFailure }),
+    };
     ports.descriptors.set(action, descriptor);
     ports.recover.mockResolvedValue({
       state: "PENDING",
@@ -58,21 +67,21 @@ it.each(["START", "END"] as const)(
     expect(parent.current().phase).toBe("error");
     expect(coordinator.snapshot()).toMatchObject({
       phase: "unavailable",
-      overrideReason: "GPS_UNAVAILABLE",
+      overrideReason: localFailure ?? null,
     });
     expect(ports.recover).toHaveBeenCalledExactlyOnceWith(id);
     expect(ports.submit).not.toHaveBeenCalled();
     expect(ports.acquire).not.toHaveBeenCalled();
     await coordinator.requestManager();
-    expect(ports.readChallenge).toHaveBeenCalledTimes(2);
-    expect(ports.requestException).toHaveBeenCalledExactlyOnceWith(
-      id,
-      id,
-      "GPS_UNAVAILABLE",
-    );
+    expect(ports.readChallenge).toHaveBeenCalledTimes(localFailure ? 2 : 1);
+    expect(ports.requestException).toHaveBeenCalledTimes(localFailure ? 1 : 0);
+    if (localFailure)
+      expect(ports.requestException).toHaveBeenCalledWith(id, id, localFailure);
     expect(ports.descriptors.get(action)?.stage).toBe(
-      "EXCEPTION_MAY_HAVE_LEFT",
+      localFailure ? "EXCEPTION_MAY_HAVE_LEFT" : "LOCAL",
     );
+    if (localFailure)
+      expect(ports.descriptors.get(action)).not.toHaveProperty("localFailure");
   },
 );
 

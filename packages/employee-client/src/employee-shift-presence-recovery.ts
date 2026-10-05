@@ -120,10 +120,10 @@ export async function recoverPresence(
     workflow.publish({
       phase: "unavailable",
       mode: challenge.presence.mode,
-      reason: "EXPLICIT_RETRY_REQUIRED",
+      reason: attempt.descriptor.localFailure ?? "EXPLICIT_RETRY_REQUIRED",
       overrideReason:
         challenge.presence.mode === "REQUIRE_OR_OVERRIDE"
-          ? "GPS_UNAVAILABLE"
+          ? (attempt.descriptor.localFailure ?? null)
           : null,
     });
     throw presenceFailure("EXPLICIT_RETRY_REQUIRED", 422);

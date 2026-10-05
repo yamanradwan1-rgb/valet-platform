@@ -48,6 +48,8 @@ export interface PresenceDescriptor {
   readonly target: PresenceTarget;
   /** Absent only for legacy descriptors, recovered conservatively. */
   readonly stage?: "LOCAL" | "SHIFT_MAY_HAVE_LEFT" | "EXCEPTION_MAY_HAVE_LEFT";
+  /** Only an actually observed acquisition failure; never inferred from LOCAL. */
+  readonly localFailure?: "LOCATION_UNAVAILABLE" | "GPS_UNAVAILABLE";
 }
 
 export interface PresenceStore {

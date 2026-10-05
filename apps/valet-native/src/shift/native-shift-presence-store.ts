@@ -22,13 +22,24 @@ export function parseNativePresenceDescriptor(
   const candidate = value as PresenceDescriptor;
   if (
     Object.keys(candidate).sort().join() !==
-      (candidate.stage === undefined
-        ? "operationId,target,version"
-        : "operationId,stage,target,version") ||
+      [
+        "operationId",
+        "target",
+        "version",
+        ...(candidate.stage === undefined ? [] : ["stage"]),
+        ...(candidate.localFailure === undefined ? [] : ["localFailure"]),
+      ]
+        .sort()
+        .join() ||
     (candidate.stage !== undefined &&
       !["LOCAL", "SHIFT_MAY_HAVE_LEFT", "EXCEPTION_MAY_HAVE_LEFT"].includes(
         candidate.stage,
       )) ||
+    (candidate.localFailure !== undefined &&
+      (candidate.stage !== "LOCAL" ||
+        !["LOCATION_UNAVAILABLE", "GPS_UNAVAILABLE"].includes(
+          candidate.localFailure,
+        ))) ||
     candidate.version !== 1 ||
     candidate.target === null ||
     typeof candidate.target !== "object"

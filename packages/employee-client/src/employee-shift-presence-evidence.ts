@@ -48,11 +48,13 @@ export async function acquirePresenceEvidence(
   workflow.publish({ mode: challenge.presence.mode });
   if (challenge.presence.mode === "OFF") return undefined;
   workflow.publish({ phase: "acquiring" });
+  let acquisitionCompleted = false;
   try {
     const measurement = await acquisition.acquire(
       challenge,
       attempt.controller.signal,
     );
+    acquisitionCompleted = true;
     assertCurrent(workflow, attempt);
     return shiftPresenceEvidenceSchema.parse({
       kind: "MEASURED",
@@ -64,19 +66,23 @@ export async function acquirePresenceEvidence(
   } catch (error) {
     assertCurrent(workflow, attempt);
     if (challenge.presence.mode === "WARN_ONLY") return undefined;
+    if (acquisitionCompleted) throw error;
     const permission =
       error instanceof EmployeeApiError &&
       error.code === "LOCATION_UNAVAILABLE";
+    const localFailure = permission
+      ? "LOCATION_UNAVAILABLE"
+      : "GPS_UNAVAILABLE";
+    const descriptor = { ...attempt.descriptor, localFailure } as const;
+    await workflow.store.write(descriptor);
+    assertCurrent(workflow, attempt);
+    attempt.descriptor = descriptor;
     workflow.publish({
       phase: "unavailable",
       reason:
         error instanceof EmployeeApiError ? error.code : "GPS_UNAVAILABLE",
       overrideReason:
-        challenge.presence.mode === "REQUIRE_OR_OVERRIDE"
-          ? permission
-            ? "LOCATION_UNAVAILABLE"
-            : "GPS_UNAVAILABLE"
-          : null,
+        challenge.presence.mode === "REQUIRE_OR_OVERRIDE" ? localFailure : null,
     });
     throw presenceFailure("GPS_UNAVAILABLE", 422);
   }
