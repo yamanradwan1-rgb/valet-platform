@@ -1,6 +1,10 @@
 import type { DashboardLocale } from "../../../lib/i18n/locale";
 
 const messages = {
+  mapLanguageReload: [
+    "Map labels keep the language used when the map first loaded. Reload the page to change map labels; resolve any uncertain save first.",
+    "تحتفظ تسميات الخريطة باللغة المستخدمة عند تحميلها أول مرة. أعد تحميل الصفحة لتغيير التسميات؛ تحقّق من أي حفظ غير مؤكّد أولًا.",
+  ],
   title: ["Shift Presence", "التحقق من الحضور للمناوبة"],
   action: ["Action", "الإجراء"],
   defaults: [

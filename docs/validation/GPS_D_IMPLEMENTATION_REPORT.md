@@ -2,11 +2,156 @@
 
 Date: 2026-10-05. Repository: veletpro0-lgtm/valet-platform.
 
-**BLOCKED — GPS-D**: the required full Dashboard lint gate fails with 9 errors
-and 3 warnings in unchanged shell/scope files; the full Dashboard unit suite
-fails two unchanged Operations presentation tests. Baseline reproduction is
-recorded below. These failures were not suppressed or repaired outside GPS-D.
-This is an implementation handoff requiring independent review, not approval.
+## Focused correction contract (owner continuation)
+
+Continue from `12e307aef0320ae0936e036ec6f59d7b50cd3ddc` on the same branch.
+Retain only exact reconciliation identity in feature-owned memory across UI
+unmounts, fenced by staff client identity/session generations and exact authority,
+Organization and Company/Location surface. No request body, coordinates, device
+accuracy, exception data or credentials enter that memory. Definite rejection
+clears the descriptor; uncertain writes require an exact receipt, without replay.
+
+Use the existing Dashboard theme for explicit Google color scheme initialization
+and rebuild only the map on theme changes. Keep the zone draft. The first SDK
+language remains fixed for the page; display a localized reload limitation when
+controls switch language, retaining LTR geography. Manual/map center replacement
+clears device feedback and retires acquisition callbacks; radius-only editing
+preserves informational accuracy. No API, DB, authority or domain transition
+changes are needed. Correction validation evidence follows after implementation.
+
+**READY FOR CHATGPT RE-REVIEW — GPS-D** for the focused corrections.
+
+The owner continuation authorizes three focused corrections and preserves the
+independently confirmed unrelated baseline failures. Current correction evidence
+is recorded separately below. The initial implementation's broad gate failures
+remain historical evidence, without suppression or out-of-scope repairs. This is
+an implementation handoff for independent review, not merge/deployment approval.
+
+## Correction mechanics and regression evidence
+
+- **Unknown/unmount:** a feature-owned `WeakMap` keyed by the existing staff auth
+  client holds one generation-bound lifetime. Descriptors are partitioned by
+  authority, Organization, exact Location and Company/Location Settings surface.
+  An explicit allowlist copies only mutation ID, result kind/entity ID and create
+  flag; generations and target key supply full identity. No draft/body, coordinates,
+  accuracy, exception data, credential, storage, callback action or canonical
+  payload survives UI unmount. React subscribes to descriptor changes; returning
+  scopes immediately block writes and offer explicit exact-result reconciliation.
+  Registration precedes the protected request. Pre-dispatch auth refresh runs
+  before registration, so refresh failure cannot manufacture UNKNOWN. Known
+  rejections clear the matching descriptor even if the UI retired. An aborted or
+  uncertain dispatched write retains it. Only a current direct success or exact
+  COMMITTED receipt clears uncertainty; canonical equality never does. Old UI
+  callbacks stay retired through A→B→A. Auth generation changes purge all retained
+  descriptors, unsubscribe the lifetime watcher and reject retired store writes.
+- **Theme/locale:** the form reads `useDashboardTheme` and passes theme to the map.
+  Initialization explicitly uses `LIGHT` or `DARK`. Theme changes dispose click
+  listeners, pin/circle attachments and instance listeners before rebuilding the
+  map from the current unsaved draft. Google documents that color scheme is an
+  initialization option that cannot be changed afterward:
+  [Google color scheme](https://developers.google.com/maps/documentation/javascript/mapcolorscheme).
+  Locale is passed explicitly into the first SDK load and retained as its language.
+  Subsequent EN↔AR switches update all product copy and show a localized statement
+  that provider labels retain the initial language until page reload. Reload is
+  never automatic; the notice asks managers to resolve uncertain saves first.
+  Geography stays `dir="ltr"`. Google's language is selected on the SDK script:
+  [Google localization](https://developers.google.com/maps/documentation/javascript/localization).
+- **Device feedback:** retirement always invalidates outstanding device callbacks.
+  Manual latitude/longitude and map-center edits also clear accuracy/error/status;
+  label, state and radius changes retire pending callbacks while preserving
+  informational accuracy for an unchanged center. Save retires feedback and
+  reopen initializes clean state. Radius is never derived from accuracy and no
+  proposal automatically writes configuration.
+
+New browser cases cover tab unmount with exact COMMITTED recovery and one POST;
+route re-entry with one POST; logout/replacement after retained UNKNOWN with no
+old result request/publication; definite rejection; expired-token refresh failure
+before dispatch with zero writes; both initial map themes and theme rebuild with
+unchanged draft; deliberately invoked retired map callbacks after rebuild/close;
+Arabic-first → English SDK limitation and LTR geography; device ±12 m followed by
+latitude, longitude or map replacement; radius-only preservation; reopen clearing;
+and stale device error removal without autosave. The existing in-flight A→B→A
+case now asserts retained UNKNOWN/write blocking, exact COMMITTED recovery, then
+a new draft that the delayed original response cannot close or repaint. Its
+original fresh-draft assertions are preserved. After this test strengthening,
+`pnpm --filter @valet/dashboard exec playwright test e2e/shift-presence-scope.spec.ts`
+with the same temporary server passes all four cases again (exit 0, 8.8 seconds).
+The existing map case additionally proves English-first → Arabic limitation.
+
+New unit coverage proves descriptor allowlisting, UI unsubscribe/re-entry,
+authority/Organization/Location/surface separation, session-only and identity
+replacement purge, exact-ID clearing, retired-writer rejection, and both first
+SDK languages staying fixed without duplicate SDK loads. Existing MFA/CAS,
+foreground, authorization, bounded paging and visual assertions remain active.
+
+All correction gates below passed (exit 0). The first 65-case browser attempt
+had 64 passes and one unavailable-map fixture failure: its old test depended on
+an absent key, while this run supplied an adapter fixture key. The test now
+explicitly aborts the SDK request, preserves every assertion and passes in the
+clean 65-case rerun. No timeout, skip, baseline or production behavior was changed
+for that test.
+
+| Current correction command                                                     | Result                                                     |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| Focused Vitest command below                                                   | PASS: 5 files, 48 tests                                    |
+| Consolidated Playwright command below                                          | PASS: 65 tests, Chromium, one worker, 2.1 minutes          |
+| Changed-file ESLint command below, `--max-warnings=0`                          | PASS: zero errors/warnings                                 |
+| `pnpm --filter @valet/dashboard typecheck`                                     | PASS                                                       |
+| `pnpm --filter @valet/contracts typecheck`                                     | PASS                                                       |
+| `pnpm exec node scripts/gps-d-validation.mjs`                                  | PASS: 55 authored / 60 owned files, max 287 physical lines |
+| `pnpm --filter @valet/dashboard build` with `API_ORIGIN=http://localhost:3001` | PASS: optimized compilation, TypeScript and all 26 pages   |
+| `git diff --check`                                                             | PASS                                                       |
+
+Exact commands (PowerShell; temporary dev server on port 3005 used
+`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=gps-d-adapter-fixture-only`; real-map adapter
+cases intercept the SDK and unavailable-map case aborts it):
+
+```powershell
+pnpm --filter @valet/dashboard exec vitest run src/features/administration/settings/shift-presence-id.test.ts src/features/administration/settings/shift-presence-api.test.ts src/features/administration/settings/shift-presence-validation.test.tsx src/features/administration/settings/attendance-zone-google-sdk.test.ts src/features/administration/settings/shift-presence-retained-intent.test.ts
+$env:E2E_BASE_URL='http://localhost:3005'
+pnpm --filter @valet/dashboard exec playwright test e2e/shift-presence-settings.spec.ts e2e/shift-presence-recovery.spec.ts e2e/shift-presence-geolocation.spec.ts e2e/shift-presence-scope.spec.ts e2e/shift-presence-lists.spec.ts e2e/shift-presence-organization.spec.ts e2e/shift-presence-auth-races.spec.ts e2e/shift-presence-visual.spec.ts e2e/administration-settings.spec.ts e2e/administration-settings-validation.spec.ts e2e/mfa.spec.ts e2e/operations-maps.spec.ts e2e/shift-presence-map.spec.ts e2e/shift-presence-map-lifecycle.spec.ts e2e/shift-presence-location-feedback.spec.ts e2e/shift-presence-unmount.spec.ts
+$files = @(git diff --name-only -- '*.ts' '*.tsx' '*.mjs' | Where-Object { $_ -ne 'apps/dashboard/next-env.d.ts' })
+$newFiles = @(git ls-files --others --exclude-standard -- '*.ts' '*.tsx')
+pnpm exec eslint @files @newFiles --max-warnings=0
+```
+
+The safe adapter now classifies shared-schema write validation failures as
+`DashboardApiError` validation failures before dispatch, without copying raw Zod
+issues. Five additional tests cover invalid create/update/set/clear/review inputs,
+zero network calls and no UNKNOWN classification.
+
+## Exact correction files relative to reviewed HEAD
+
+- `apps/dashboard/e2e/shift-presence-location-feedback.spec.ts`
+- `apps/dashboard/e2e/shift-presence-map-lifecycle.spec.ts`
+- `apps/dashboard/e2e/shift-presence-map.spec.ts`
+- `apps/dashboard/e2e/shift-presence-scope.spec.ts`
+- `apps/dashboard/e2e/shift-presence-settings.spec.ts`
+- `apps/dashboard/e2e/shift-presence-unmount.spec.ts`
+- `apps/dashboard/e2e/support/presence-map-mock.ts`
+- `apps/dashboard/src/features/administration/settings/attendance-zone-google-sdk.test.ts`
+- `apps/dashboard/src/features/administration/settings/attendance-zone-google-sdk.ts`
+- `apps/dashboard/src/features/administration/settings/attendance-zone-map.tsx`
+- `apps/dashboard/src/features/administration/settings/shift-presence-api.test.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-api.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-copy.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.test.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.ts`
+- `apps/dashboard/src/features/administration/settings/shift-presence-zone-form.tsx`
+- `apps/dashboard/src/features/administration/settings/use-attendance-zone-location.ts`
+- `apps/dashboard/src/features/administration/settings/use-presence-retained-intent.ts`
+- `apps/dashboard/src/features/administration/settings/use-shift-presence-mutation.ts`
+- `docs/validation/GPS_D_IMPLEMENTATION_REPORT.md`
+- `scripts/gps-d-validation.mjs`
+
+The correction changes 21 files. The complete GPS-D inventory below remains
+relative to the accepted design reference. Both inventory counts include the
+validation report. Current checks enforce the unchanged 300-line ceiling. Final diff review found no out-of-scope change, persistent private data, weakened authority, automatic mutation replay, timeout increase, skipped assertion, dependency or lockfile change. Independent acceptance and remote CI remain unobserved.
+
+**REAL GOOGLE MAPS RUNTIME NOT VERIFIED**: temporary fixture key and intercepted
+SDK adapter only; no live billing/key, physical device or provider proof is claimed.
+Unrelated baseline lint files and Operations presentation tests/modules remain
+byte-identical to the reviewed HEAD. Broad failing gates are not rerun or repaired.
 
 ## Git and accepted reference
 
@@ -156,7 +301,7 @@ is displayed/logged/persisted by this feature. Payloads contain only intentional
 zone configuration and accepted correlation/CAS fields.
 No localStorage/sessionStorage, analytics or telemetry is added for coordinates.
 
-## Validation commands and exact results
+## Historical initial implementation validation commands and exact results
 
 | Command / evidence                                                                                                           | Exact result                                                                                             |
 | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -305,63 +450,70 @@ already in branch history and unchanged by GPS-D. Counts include blank/comment
 lines, using the repository physical-line helper; all authored source/tests/tools
 are at most 300 lines.
 
-Final geolocation retirement refinement: Dashboard typecheck passes and the
+Historical initial geolocation retirement refinement: Dashboard typecheck passes and the
 8-test geolocation browser file passes again. The final production build is
 repeated after this refinement and passes (exit 0). Generated Next type references and Playwright
 outputs are restored/moved outside the repository before staging.
 
-| File                                                                                     | Physical lines |
-| ---------------------------------------------------------------------------------------- | -------------: |
-| `.env.example`                                                                           |             87 |
-| `apps/dashboard/e2e/administration-settings-validation.spec.ts`                          |            190 |
-| `apps/dashboard/e2e/shift-presence-auth-races.spec.ts`                                   |            173 |
-| `apps/dashboard/e2e/shift-presence-geolocation.spec.ts`                                  |            232 |
-| `apps/dashboard/e2e/shift-presence-lists.spec.ts`                                        |            175 |
-| `apps/dashboard/e2e/shift-presence-map.spec.ts`                                          |            106 |
-| `apps/dashboard/e2e/shift-presence-organization.spec.ts`                                 |             88 |
-| `apps/dashboard/e2e/shift-presence-recovery.spec.ts`                                     |            232 |
-| `apps/dashboard/e2e/shift-presence-scope.spec.ts`                                        |            232 |
-| `apps/dashboard/e2e/shift-presence-settings.spec.ts`                                     |            165 |
-| `apps/dashboard/e2e/shift-presence-visual.spec.ts`                                       |            148 |
-| `apps/dashboard/e2e/support/presence-data.ts`                                            |             97 |
-| `apps/dashboard/e2e/support/presence-fixtures.ts`                                        |            211 |
-| `apps/dashboard/src/features/administration/settings/attendance-zone-google-sdk.test.ts` |            114 |
-| `apps/dashboard/src/features/administration/settings/attendance-zone-google-sdk.ts`      |            110 |
-| `apps/dashboard/src/features/administration/settings/attendance-zone-map.tsx`            |            173 |
-| `apps/dashboard/src/features/administration/settings/settings-page.tsx`                  |            251 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-api.test.ts`         |            202 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-api.ts`              |            232 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-copy.ts`             |            223 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-errors.ts`           |             39 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-exception-facts.tsx` |             46 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-exceptions.tsx`      |            173 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-feedback.tsx`        |             35 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-id.test.ts`          |             16 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-id.ts`               |             17 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-list-ui.tsx`         |             70 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-policy-fields.ts`    |             64 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-policy.tsx`          |            248 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-readiness.tsx`       |             55 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-response-scope.ts`   |             82 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-review-dialog.tsx`   |            165 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx`        |            235 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-validation.test.tsx` |            126 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-zone-dialog.tsx`     |             93 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-zone-draft.ts`       |             58 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-zone-form.tsx`       |            284 |
-| `apps/dashboard/src/features/administration/settings/shift-presence-zones.tsx`           |            140 |
-| `apps/dashboard/src/features/administration/settings/shift-presence.module.css`          |             27 |
-| `apps/dashboard/src/features/administration/settings/use-attendance-zone-location.ts`    |            108 |
-| `apps/dashboard/src/features/administration/settings/use-presence-api.ts`                |             74 |
-| `apps/dashboard/src/features/administration/settings/use-presence-dialog-focus.ts`       |             33 |
-| `apps/dashboard/src/features/administration/settings/use-presence-expiry.ts`             |             47 |
-| `apps/dashboard/src/features/administration/settings/use-presence-foreground.ts`         |             18 |
-| `apps/dashboard/src/features/administration/settings/use-shift-presence-mutation.ts`     |            218 |
-| `apps/dashboard/src/features/audit/audit-detail-values.ts`                               |            103 |
-| `apps/dashboard/src/features/audit/audit-event-copy.ts`                                  |            277 |
-| `apps/dashboard/src/features/audit/audit-event-labels.ts`                                |             60 |
-| `apps/dashboard/src/features/audit/audit-safe-details.ts`                                |            105 |
-| `docs/design/GPS_D_UI_PROTOTYPE_NOTES.md`                                                |  documentation |
-| `docs/NATIVE_261_262_264_257_IMPLEMENTATION_PLAN.md`                                     |  documentation |
-| `docs/validation/GPS_D_IMPLEMENTATION_REPORT.md`                                         |  documentation |
-| `scripts/gps-d-validation.mjs`                                                           |             90 |
+| File                                                                                         | Physical lines |
+| -------------------------------------------------------------------------------------------- | -------------: |
+| `.env.example`                                                                               |             87 |
+| `apps/dashboard/e2e/administration-settings-validation.spec.ts`                              |            190 |
+| `apps/dashboard/e2e/shift-presence-auth-races.spec.ts`                                       |            173 |
+| `apps/dashboard/e2e/shift-presence-geolocation.spec.ts`                                      |            232 |
+| `apps/dashboard/e2e/shift-presence-lists.spec.ts`                                            |            175 |
+| `apps/dashboard/e2e/shift-presence-location-feedback.spec.ts`                                |             68 |
+| `apps/dashboard/e2e/shift-presence-map-lifecycle.spec.ts`                                    |            103 |
+| `apps/dashboard/e2e/shift-presence-map.spec.ts`                                              |             60 |
+| `apps/dashboard/e2e/shift-presence-organization.spec.ts`                                     |             88 |
+| `apps/dashboard/e2e/shift-presence-recovery.spec.ts`                                         |            232 |
+| `apps/dashboard/e2e/shift-presence-scope.spec.ts`                                            |            280 |
+| `apps/dashboard/e2e/shift-presence-settings.spec.ts`                                         |            168 |
+| `apps/dashboard/e2e/shift-presence-unmount.spec.ts`                                          |            237 |
+| `apps/dashboard/e2e/shift-presence-visual.spec.ts`                                           |            148 |
+| `apps/dashboard/e2e/support/presence-data.ts`                                                |             97 |
+| `apps/dashboard/e2e/support/presence-fixtures.ts`                                            |            211 |
+| `apps/dashboard/e2e/support/presence-map-mock.ts`                                            |            118 |
+| `apps/dashboard/src/features/administration/settings/attendance-zone-google-sdk.test.ts`     |            132 |
+| `apps/dashboard/src/features/administration/settings/attendance-zone-google-sdk.ts`          |            120 |
+| `apps/dashboard/src/features/administration/settings/attendance-zone-map.tsx`                |            189 |
+| `apps/dashboard/src/features/administration/settings/settings-page.tsx`                      |            251 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-api.test.ts`             |            222 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-api.ts`                  |            246 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-copy.ts`                 |            227 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-errors.ts`               |             39 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-exception-facts.tsx`     |             46 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-exceptions.tsx`          |            173 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-feedback.tsx`            |             35 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-id.test.ts`              |             16 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-id.ts`                   |             17 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-list-ui.tsx`             |             70 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-policy-fields.ts`        |             64 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-policy.tsx`              |            248 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-readiness.tsx`           |             55 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-response-scope.ts`       |             82 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.test.ts` |            117 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.ts`      |             99 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-review-dialog.tsx`       |            165 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx`            |            235 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-validation.test.tsx`     |            126 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-zone-dialog.tsx`         |             93 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-zone-draft.ts`           |             58 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-zone-form.tsx`           |            287 |
+| `apps/dashboard/src/features/administration/settings/shift-presence-zones.tsx`               |            140 |
+| `apps/dashboard/src/features/administration/settings/shift-presence.module.css`              |             27 |
+| `apps/dashboard/src/features/administration/settings/use-attendance-zone-location.ts`        |            112 |
+| `apps/dashboard/src/features/administration/settings/use-presence-api.ts`                    |             74 |
+| `apps/dashboard/src/features/administration/settings/use-presence-dialog-focus.ts`           |             33 |
+| `apps/dashboard/src/features/administration/settings/use-presence-expiry.ts`                 |             47 |
+| `apps/dashboard/src/features/administration/settings/use-presence-foreground.ts`             |             18 |
+| `apps/dashboard/src/features/administration/settings/use-presence-retained-intent.ts`        |             45 |
+| `apps/dashboard/src/features/administration/settings/use-shift-presence-mutation.ts`         |            224 |
+| `apps/dashboard/src/features/audit/audit-detail-values.ts`                                   |            103 |
+| `apps/dashboard/src/features/audit/audit-event-copy.ts`                                      |            277 |
+| `apps/dashboard/src/features/audit/audit-event-labels.ts`                                    |             60 |
+| `apps/dashboard/src/features/audit/audit-safe-details.ts`                                    |            105 |
+| `docs/NATIVE_261_262_264_257_IMPLEMENTATION_PLAN.md`                                         |  documentation |
+| `docs/design/GPS_D_UI_PROTOTYPE_NOTES.md`                                                    |  documentation |
+| `docs/validation/GPS_D_IMPLEMENTATION_REPORT.md`                                             |  documentation |
+| `scripts/gps-d-validation.mjs`                                                               |             90 |

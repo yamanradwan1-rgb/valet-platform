@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { PresenceApi, presenceBase } from "./shift-presence-api";
+import { presenceOutcomeUnknown } from "./shift-presence-errors";
 import {
   attendanceZone,
   companyPolicy,
@@ -37,6 +38,25 @@ function setup(
   return { api, fetcher, auth, client };
 }
 describe("Presence exact public routes and receipts", () => {
+  it.each(["create", "update", "set", "clear", "review"] as const)(
+    "invalid %s input is a definite pre-dispatch failure without UNKNOWN",
+    (operation) => {
+      const { api, fetcher } = setup(locationPolicy());
+      let error: unknown;
+      try {
+        if (operation === "create" || operation === "update")
+          api.saveZone(ZONE_ID, {}, operation === "create");
+        else if (operation === "set") api.setPolicy({});
+        else if (operation === "clear") api.clearPolicy({});
+        else api.review(ZONE_ID, "approve", {});
+      } catch (failure) {
+        error = failure;
+      }
+      expect(error).toMatchObject({ kind: "validation" });
+      expect(presenceOutcomeUnknown(error)).toBe(false);
+      expect(fetcher).not.toHaveBeenCalled();
+    },
+  );
   it("requires exact Location for LM and uses separate route authority", () => {
     expect(() =>
       presenceBase({

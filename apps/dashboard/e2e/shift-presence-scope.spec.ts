@@ -133,14 +133,17 @@ test("foreground exact-zone refresh retains draft and blocks writes until curren
   });
 });
 
-test("retired write cannot close or repaint a new same-Location zone draft", async ({
+test("in-flight write survives A-B-A as UNKNOWN without resurrecting its stale callback", async ({
   page,
 }) => {
   const pending = gate();
   const started = gate();
+  let mutationId = "";
+  let zoneId = "";
   const f = new PresenceFixture("LM", async (path, request, state) => {
     if (path === `${lmBase}/zones` && request.method() === "POST") {
       const body = request.postDataJSON();
+      ({ mutationId, zoneId } = body);
       started.release();
       await pending.promise;
       return {
@@ -151,6 +154,26 @@ test("retired write cannot close or repaint a new same-Location zone draft", asy
             label: "Retired success",
           },
           readiness: state.policy.readiness,
+        },
+      };
+    }
+    if (path.includes("/results/")) {
+      expect(path).toBe(`${lmBase}/results/${mutationId}`);
+      expect(new URL(request.url()).searchParams.get("entityId")).toBe(zoneId);
+      return {
+        body: {
+          mutationId,
+          attribution: "COMMITTED",
+          effect: "CHANGED",
+          entityId: zoneId,
+          revision: 1,
+          canonical: {
+            kind: "ZONE",
+            value: {
+              zone: { ...attendanceZone(), id: zoneId },
+              readiness: state.policy.readiness,
+            },
+          },
         },
       };
     }
@@ -171,7 +194,32 @@ test("retired write cannot close or repaint a new same-Location zone draft", asy
   await expect(
     page.locator("#presence-shiftPresenceMaxAccuracyMeters"),
   ).toHaveValue("50");
+  await expect(
+    page.getByRole("button", { name: "Add zone", exact: true }),
+  ).toBeEnabled();
   await changeLocation(page);
+  await expect(
+    page.getByRole("button", { name: "Add zone", exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByTestId("shift-presence")).toContainText(
+    "outcome of your request is unknown",
+  );
+  await expect(
+    page.getByRole("button", { name: "Retry reconciliation", exact: true }),
+  ).toBeEnabled();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByTestId("shift-presence")).not.toContainText(
+    "Retired success",
+  );
+  await expect(
+    page.getByRole("button", { name: "Add zone", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Retry reconciliation", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Add zone", exact: true }),
+  ).toBeEnabled();
   await page.getByRole("button", { name: "Add zone", exact: true }).click();
   const fresh = page.getByRole("dialog");
   await fresh.getByLabel("Label", { exact: true }).fill("New draft");

@@ -1,7 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import type { ShiftPresenceManagementResultQuery } from "@valet/contracts";
+import type { PresenceIntent as Intent } from "./shift-presence-retained-intent";
+import { usePresenceRetainedIntent } from "./use-presence-retained-intent";
 import { executeSensitiveMutation } from "../sensitive-mutation-executor";
 import type { PresenceApi, PresenceCanonical } from "./shift-presence-api";
 import {
@@ -11,14 +12,8 @@ import {
 } from "./shift-presence-errors";
 import type { PresenceCopyKey } from "./shift-presence-copy";
 
-interface Intent {
-  readonly mutationId: string;
-  readonly query: ShiftPresenceManagementResultQuery;
-  readonly create?: boolean;
-}
 interface MutationState {
   readonly busy: boolean;
-  readonly pending: Intent | null;
   readonly message: PresenceCopyKey | null;
   readonly mfaOpen: boolean;
   readonly denied: boolean;
@@ -44,11 +39,10 @@ export function useShiftPresenceMutation(
 ) {
   const alive = useRef(false);
   const flight = useRef(false);
-  const pending = useRef<Intent | null>(null);
+  const retained = usePresenceRetainedIntent(api.target);
   const lastIntent = useRef<Intent | null>(null);
   const [state, setState] = useState<MutationState>({
     busy: false,
-    pending: null,
     message: null,
     mfaOpen: false,
     denied: false,
@@ -71,23 +65,21 @@ export function useShiftPresenceMutation(
   ): Promise<PresenceCanonical | null> {
     try {
       const result = await api.result(intent.mutationId, intent.query);
-      if (!alive.current) return null;
+      if (!alive.current || !retained.current()) return null;
       publish(result.canonical);
       const committed = result.attribution === "COMMITTED";
-      if (committed) pending.current = null;
+      if (committed) retained.clear(intent);
       setState((value) => ({
         ...value,
-        pending: committed ? null : intent,
         message: committed ? "saved" : "unknown",
       }));
       onRefresh();
       return committed ? result.canonical : null;
     } catch (error) {
-      if (!alive.current) return null;
+      if (!alive.current || !retained.current()) return null;
       const denied = isPresenceDenied(error);
       setState((value) => ({
         ...value,
-        pending: intent,
         message: denied ? "denied" : "unknown",
         denied,
         canonical: denied ? null : value.canonical,
@@ -102,7 +94,8 @@ export function useShiftPresenceMutation(
     if (
       !alive.current ||
       flight.current ||
-      pending.current ||
+      retained.read() ||
+      !retained.current() ||
       state.denied ||
       state.mfaOpen
     )
@@ -115,15 +108,22 @@ export function useShiftPresenceMutation(
     try {
       await executeSensitiveMutation(
         async () => {
+          await retained.prepare();
+          if (!alive.current || !retained.current()) return null;
+          // Register before the write can yield/unmount; no payload enters memory.
+          if (!retained.retain(intent)) return null;
           try {
-            return await operation();
+            const canonical = await operation();
+            if (alive.current) retained.clear(intent);
+            return canonical;
           } catch (error) {
-            if (!alive.current) throw error;
-            if (!presenceOutcomeUnknown(error)) throw error;
-            pending.current = intent;
+            if (!presenceOutcomeUnknown(error)) {
+              retained.clear(intent);
+              throw error;
+            }
+            if (!alive.current || !retained.current()) throw error;
             setState((value) => ({
               ...value,
-              pending: intent,
               message: "reconciling",
             }));
             completed = await reconcileExact(intent);
@@ -131,7 +131,7 @@ export function useShiftPresenceMutation(
           }
         },
         {
-          isCurrent: () => alive.current,
+          isCurrent: () => alive.current && retained.current(),
           onSuccess: (canonical) => {
             if (canonical === null) return;
             completed = canonical;
@@ -188,11 +188,12 @@ export function useShiftPresenceMutation(
     }
   }
   async function reconcile() {
-    if (!alive.current || flight.current || !pending.current) return;
+    const intent = retained.read();
+    if (!alive.current || flight.current || !intent) return;
     flight.current = true;
     setState((value) => ({ ...value, busy: true, message: "reconciling" }));
     try {
-      await reconcileExact(pending.current);
+      await reconcileExact(intent);
     } finally {
       flight.current = false;
       if (alive.current) setState((value) => ({ ...value, busy: false }));
@@ -205,11 +206,16 @@ export function useShiftPresenceMutation(
   }
   return {
     ...state,
+    pending: retained.pending,
+    message:
+      retained.pending && !state.busy && !state.denied
+        ? ("unknown" as const)
+        : state.message,
     run,
     reconcile,
     onAssured,
     blocked:
-      state.busy || state.pending !== null || state.denied || state.mfaOpen,
+      state.busy || retained.pending !== null || state.denied || state.mfaOpen,
     closeMfa: () => {
       if (alive.current) setState((value) => ({ ...value, mfaOpen: false }));
     },

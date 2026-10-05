@@ -2,11 +2,13 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import type { DashboardTheme } from "../../../lib/theme/theme";
 import { presenceCopy } from "./shift-presence-copy";
 import { styles } from "../administration-ui";
 import feature from "./shift-presence.module.css";
 import {
   loadAttendanceGoogleSdk,
+  attendanceMapLanguage,
   onAttendanceMapFailure,
   type AttendanceGoogleSdk,
   type GeoCenter,
@@ -23,6 +25,7 @@ export function AttendanceZoneMap(props: {
   readonly radius: number | null;
   readonly disabled: boolean;
   readonly locale: DashboardLocale;
+  readonly theme: DashboardTheme;
   readonly onCenter: (center: GeoCenter) => void;
 }) {
   const t = presenceCopy(props.locale);
@@ -33,6 +36,7 @@ export function AttendanceZoneMap(props: {
     current.current = props;
   }, [props]);
   const [attempt, setAttempt] = useState(0);
+  const [sdkLocale, setSdkLocale] = useState<DashboardLocale | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "failed">(
     "loading",
   );
@@ -47,6 +51,7 @@ export function AttendanceZoneMap(props: {
     });
     void loadAttendanceGoogleSdk(
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
+      current.current.locale,
     ).then(
       (sdk) => {
         if (disposed || !node.current) return;
@@ -57,6 +62,7 @@ export function AttendanceZoneMap(props: {
             center: center ?? { lat: 0, lng: 0 },
             zoom: center ? 17 : 2,
             mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID",
+            colorScheme: current.current.theme === "dark" ? "DARK" : "LIGHT",
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: false,
@@ -99,6 +105,7 @@ export function AttendanceZoneMap(props: {
             });
           });
           runtime.current = { sdk, map, circle, pin };
+          setSdkLocale(attendanceMapLanguage());
           setStatus("ready");
         } catch {
           teardown?.();
@@ -114,7 +121,7 @@ export function AttendanceZoneMap(props: {
       detachFailure();
       teardown?.();
     };
-  }, [attempt]);
+  }, [attempt, props.theme]);
   const latitude = props.center?.lat;
   const longitude = props.center?.lng;
   const radius = props.radius;
@@ -168,6 +175,15 @@ export function AttendanceZoneMap(props: {
       <p className={styles.muted} dir={props.locale === "ar" ? "rtl" : "ltr"}>
         {t("mapHelp")}
       </p>
+      {status === "ready" && sdkLocale !== props.locale ? (
+        <p
+          role="status"
+          className={styles.muted}
+          dir={props.locale === "ar" ? "rtl" : "ltr"}
+        >
+          {t("mapLanguageReload")}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -46,6 +46,24 @@ it("missing key loads nothing and yields unavailable manual fallback", async () 
   await expect(loadAttendanceGoogleSdk("")).rejects.toThrow("Map unavailable");
   expect(scripts).toHaveLength(0);
 });
+it.each(["en", "ar"] as const)(
+  "first SDK language %s stays fixed across locale changes",
+  async (locale) => {
+    const { loadAttendanceGoogleSdk, attendanceMapLanguage } =
+      await import("./attendance-zone-google-sdk");
+    const first = loadAttendanceGoogleSdk("fixture-only", locale);
+    expect(new URL(scripts[0]!.src).searchParams.get("language")).toBe(locale);
+    host.google = { maps: { marker: {} } };
+    Object.values(host.vayletAttendanceCallbacks!)[0]!();
+    await first;
+    await loadAttendanceGoogleSdk(
+      "fixture-only",
+      locale === "en" ? "ar" : "en",
+    );
+    expect(attendanceMapLanguage()).toBe(locale);
+    expect(scripts).toHaveLength(1);
+  },
+);
 it("lazy official SDK is single-flight, async, nonce preserving and marker-only", async () => {
   const { loadAttendanceGoogleSdk } =
     await import("./attendance-zone-google-sdk");

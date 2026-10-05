@@ -99,10 +99,14 @@ export function useAttendanceZoneLocation(
       setState({ locating: false, accuracy: null, message: "geoUnavailable" });
     }
   }
-  function retire() {
+  function retire(clearFeedback = true) {
     generation.current.ticket++;
     busy.current = false;
-    setState((value) => ({ ...value, locating: false }));
+    setState((value) =>
+      clearFeedback
+        ? { locating: false, accuracy: null, message: null }
+        : { ...value, locating: false },
+    );
   }
   return { ...state, locate, retire };
 }

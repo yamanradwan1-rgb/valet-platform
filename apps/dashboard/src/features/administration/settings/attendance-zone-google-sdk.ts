@@ -1,3 +1,5 @@
+import type { DashboardLocale } from "../../../lib/i18n/locale";
+
 export interface GeoCenter {
   readonly lat: number;
   readonly lng: number;
@@ -40,6 +42,10 @@ type GoogleWindow = Window & {
 let loading: Promise<AttendanceGoogleSdk> | null = null;
 let authFailed = false;
 let generation = 0;
+let language: DashboardLocale | null = null;
+export function attendanceMapLanguage() {
+  return language;
+}
 const failures = new Set<() => void>();
 export function onAttendanceMapFailure(callback: () => void) {
   failures.add(callback);
@@ -51,12 +57,15 @@ export function onAttendanceMapFailure(callback: () => void) {
 /** Official direct async loading, once and only when a zone editor needs it. */
 export function loadAttendanceGoogleSdk(
   key: string,
+  locale?: DashboardLocale,
 ): Promise<AttendanceGoogleSdk> {
   if (!key.trim()) return Promise.reject(new Error("Map unavailable"));
   if (authFailed) return Promise.reject(new Error("Map unavailable"));
   const host = window as GoogleWindow;
   if (host.google?.maps.marker) return Promise.resolve(host.google.maps);
   if (loading) return loading;
+  const requestedLanguage =
+    locale ?? (document.documentElement?.lang === "ar" ? "ar" : "en");
   loading = new Promise((resolve, reject) => {
     const callbackName = `ready${++generation}`;
     const callback = `vayletAttendanceCallbacks.${callbackName}`;
@@ -89,6 +98,7 @@ export function loadAttendanceGoogleSdk(
       }
       settled = true;
       delete callbacks[callbackName];
+      language = requestedLanguage;
       resolve(host.google.maps);
     };
     const params = new URLSearchParams({
@@ -97,7 +107,7 @@ export function loadAttendanceGoogleSdk(
       callback,
       v: "quarterly",
       libraries: "marker",
-      language: document.documentElement?.lang === "ar" ? "ar" : "en",
+      language: requestedLanguage,
     });
     script.src = `https://maps.googleapis.com/maps/api/js?${params}`;
     script.async = true;

@@ -22,7 +22,7 @@ const inventory = [
   ),
 ].filter(Boolean);
 const allowed =
-  /^(\.env\.example$|apps\/dashboard\/src\/features\/administration\/settings\/(settings-page\.tsx|(?:shift-presence|use-presence|use-shift-presence|use-attendance-zone|attendance-zone)[^/]+)$|apps\/dashboard\/src\/features\/audit\/(audit-detail-values|audit-event-copy|audit-event-labels|audit-safe-details)\.ts$|apps\/dashboard\/e2e\/(?:shift-presence[^/]+|administration-settings-validation)\.spec\.ts$|apps\/dashboard\/e2e\/support\/presence-(data|fixtures)\.ts$|docs\/(NATIVE_261_262_264_257_IMPLEMENTATION_PLAN\.md|design\/GPS_D_UI_PROTOTYPE_NOTES\.md|validation\/GPS_D_IMPLEMENTATION_REPORT\.md)$|scripts\/gps-d-validation\.mjs$)/;
+  /^(\.env\.example$|apps\/dashboard\/src\/features\/administration\/settings\/(settings-page\.tsx|(?:shift-presence|use-presence|use-shift-presence|use-attendance-zone|attendance-zone)[^/]+)$|apps\/dashboard\/src\/features\/audit\/(audit-detail-values|audit-event-copy|audit-event-labels|audit-safe-details)\.ts$|apps\/dashboard\/e2e\/(?:shift-presence[^/]+|administration-settings-validation)\.spec\.ts$|apps\/dashboard\/e2e\/support\/presence-(data|fixtures|map-mock)\.ts$|docs\/(NATIVE_261_262_264_257_IMPLEMENTATION_PLAN\.md|design\/GPS_D_UI_PROTOTYPE_NOTES\.md|validation\/GPS_D_IMPLEMENTATION_REPORT\.md)$|scripts\/gps-d-validation\.mjs$)/;
 const failures = inventory
   .filter((path) => !allowed.test(path))
   .map((path) => `Outside GPS-D ownership: ${path}`);

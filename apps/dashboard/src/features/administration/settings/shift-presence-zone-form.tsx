@@ -4,6 +4,7 @@ import { presenceId } from "./shift-presence-id";
 import { useLayoutEffect, useRef, useState } from "react";
 import { type ShiftPresenceZone } from "@valet/contracts";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import { useDashboardTheme } from "../../../lib/theme/theme-provider";
 import { styles } from "../administration-ui";
 import { presenceCopy, type PresenceCopyKey } from "./shift-presence-copy";
 import {
@@ -38,6 +39,7 @@ export function ShiftPresenceZoneForm(props: {
   readonly onClose: () => void;
 }) {
   const t = presenceCopy(props.locale);
+  const { theme } = useDashboardTheme();
   const canonical = props.mutation.canonical;
   const currentZone =
     canonical?.kind === "ZONE" &&
@@ -88,7 +90,7 @@ export function ShiftPresenceZoneForm(props: {
       ));
   const blocked = props.disabled;
   function edit(key: keyof ZoneDraft, value: string) {
-    location.retire();
+    location.retire(key === "latitude" || key === "longitude");
     setDraft((current) => ({ ...current, [key]: value }));
   }
   async function submit() {
@@ -221,6 +223,7 @@ export function ShiftPresenceZoneForm(props: {
                   : null
               }
               locale={props.locale}
+              theme={theme}
               disabled={blocked}
               onCenter={(point) => {
                 location.retire();

@@ -24,8 +24,22 @@ import {
 import type {
   DashboardApiClient,
   DashboardApiRequestOptions,
+  RuntimeSchema,
 } from "../../../lib/api/dashboard-api-client";
-import { dashboardAuthBoundaryError } from "../../../lib/api/dashboard-api-error";
+import {
+  DashboardApiError,
+  dashboardAuthBoundaryError,
+} from "../../../lib/api/dashboard-api-error";
+
+function parseWrite<T>(schema: RuntimeSchema<T>, input: unknown): T {
+  const result = schema.safeParse(input);
+  if (!result.success)
+    throw new DashboardApiError({
+      kind: "validation",
+      message: "Invalid presence mutation input.",
+    });
+  return result.data;
+}
 
 export type PresenceCompany = ReturnType<
   typeof shiftPresenceCompanyResponseSchema.parse
@@ -99,7 +113,7 @@ export class PresenceApi {
           {
             ...this.options(),
             method: "PUT",
-            body: shiftPresenceLocationSetRequestSchema.parse(input),
+            body: parseWrite(shiftPresenceLocationSetRequestSchema, input),
           },
         )
         .then((value) => requirePresencePolicy(this.target, value));
@@ -111,7 +125,7 @@ export class PresenceApi {
         {
           ...this.options(),
           method: "PUT",
-          body: shiftPresenceCompanySetRequestSchema.parse(input),
+          body: parseWrite(shiftPresenceCompanySetRequestSchema, input),
         },
       )
       .then((value) => requirePresencePolicy(this.target, value));
@@ -124,7 +138,7 @@ export class PresenceApi {
         {
           ...this.options(),
           method: "POST",
-          body: shiftPresenceLocationClearRequestSchema.parse(input),
+          body: parseWrite(shiftPresenceLocationClearRequestSchema, input),
         },
       )
       .then((value) => requirePresencePolicy(this.target, value));
@@ -161,8 +175,8 @@ export class PresenceApi {
           ...this.options(),
           method: create ? "POST" : "PUT",
           body: create
-            ? shiftPresenceZoneCreateRequestSchema.parse(input)
-            : shiftPresenceZoneUpdateRequestSchema.parse(input),
+            ? parseWrite(shiftPresenceZoneCreateRequestSchema, input)
+            : parseWrite(shiftPresenceZoneUpdateRequestSchema, input),
         },
       )
       .then((value) => {
@@ -212,7 +226,7 @@ export class PresenceApi {
         {
           ...this.options(),
           method: "POST",
-          body: shiftPresenceExceptionReviewRequestSchema.parse(input),
+          body: parseWrite(shiftPresenceExceptionReviewRequestSchema, input),
         },
       )
       .then((value) => requirePresenceException(this.target, value, id));

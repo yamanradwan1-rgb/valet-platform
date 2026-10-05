@@ -78,6 +78,9 @@ for (const authority of ["CA", "LM"] as const) {
 test("manual zone saves decimal radius and zero center while map unavailable", async ({
   page,
 }) => {
+  await page.route("https://maps.googleapis.com/maps/api/js?**", (route) =>
+    route.abort("failed"),
+  );
   const f = new PresenceFixture();
   await f.open(page);
   await page.getByRole("button", { name: "Add zone", exact: true }).click();
