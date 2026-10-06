@@ -209,6 +209,11 @@ function statusForUnavailablePhase(
     !(snapshot.phase === "loading-context" && snapshot.tasks.length > 0)
   )
     return copy.error;
+  if (
+    snapshot.tasks.length === 0 &&
+    snapshot.successfulQueueSnapshotCount === 0
+  )
+    return copy.loading;
   if (snapshot.queueLoading && snapshot.tasks.length === 0) return copy.loading;
   return null;
 }

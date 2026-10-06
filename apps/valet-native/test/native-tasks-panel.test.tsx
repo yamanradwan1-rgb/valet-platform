@@ -139,6 +139,58 @@ describe("Web-authoritative Native Tasks screen", () => {
     );
   });
 
+  it.each(["en", "ar"] as const)(
+    "treats zero successful queue snapshots as loading in %s",
+    (locale) => {
+      const copy = getNativeTasksCopy(locale);
+      const nodes = taskElements(
+        NativeTasksPanel({
+          locale,
+          operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+          snapshot: {
+            ...tasksOperationsFixture("ready"),
+            queueFailure: { code: "NETWORK_ERROR", message: "Offline" },
+            queueLoading: false,
+            queueRefreshing: false,
+            successfulQueueSnapshotCount: 0,
+            tasks: [],
+          },
+          textAlign: locale === "ar" ? "right" : "left",
+        }),
+      );
+      expect(nodes.some((node) => node.type === "FlatList")).toBe(false);
+      expect(nodes.some((node) => node.props.children === copy.loading)).toBe(
+        true,
+      );
+      expect(nodes.some((node) => node.props.children === copy.empty)).toBe(
+        false,
+      );
+    },
+  );
+
+  it.each(["en", "ar"] as const)(
+    "renders confirmed empty after a successful queue snapshot in %s",
+    (locale) => {
+      const copy = getNativeTasksCopy(locale);
+      const nodes = taskElements(
+        NativeTasksPanel({
+          locale,
+          operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
+          snapshot: {
+            ...tasksOperationsFixture("ready"),
+            successfulQueueSnapshotCount: 1,
+            tasks: [],
+          },
+          textAlign: locale === "ar" ? "right" : "left",
+        }),
+      );
+      const list = nodes.find((node) => node.type === "FlatList")!;
+      const empty = list.props.ListEmptyComponent as TasksElement;
+      expect(empty.type).toBe(EmployeeStatus);
+      expect(empty.props.children).toBe(copy.empty);
+    },
+  );
+
   it("retains a verified queue during same-authority refresh", () => {
     const nodes = taskElements(
       NativeTasksPanel({
@@ -147,6 +199,7 @@ describe("Web-authoritative Native Tasks screen", () => {
         snapshot: {
           ...tasksOperationsFixture("ready"),
           queueRefreshing: true,
+          successfulQueueSnapshotCount: 1,
           tasks: [taskPanelRow],
         },
         textAlign: "left",

@@ -29,6 +29,7 @@ describe("Employee operational identity generation", () => {
     expect(session.current()).toMatchObject({
       identityGeneration: 2,
       phase: "no-active-shift",
+      successfulQueueSnapshotCount: 0,
       tasks: [],
     });
   });
@@ -53,6 +54,7 @@ describe("Employee operational identity generation", () => {
     expect(session.current()).toMatchObject({
       identityGeneration: 2,
       phase: "no-active-shift",
+      successfulQueueSnapshotCount: 0,
       tasks: [],
     });
   });

@@ -1,5 +1,5 @@
 export type EmployeeRevalidationReason =
-  "foreground" | "network-recovery" | "push-attention";
+  "auth-ready" | "foreground" | "network-recovery" | "push-attention";
 
 export interface EmployeeRevalidationBatch {
   readonly reasons: ReadonlySet<EmployeeRevalidationReason>;

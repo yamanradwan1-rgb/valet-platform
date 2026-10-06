@@ -42,6 +42,9 @@ export function useNativeProductionLifecycle(
     if (runtime === undefined) return;
     const owner = new NativeProductionLifecycleOwner(runtime);
     let lastStatus: EmployeeConnectivityStatus | undefined;
+    const unsubscribeAuth = runtime.auth.subscribe((snapshot) => {
+      owner.observeAuth(snapshot);
+    });
     const unsubscribe = runtime.connectivity.subscribe((status) => {
       setConnectivity(status);
       // Record only on CHANGE — never on every subscription tick.
@@ -69,6 +72,7 @@ export function useNativeProductionLifecycle(
       },
     );
     return () => {
+      unsubscribeAuth();
       unsubscribe();
       disposeAppState();
       owner.dispose();

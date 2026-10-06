@@ -84,6 +84,7 @@ describe("Employee task action authority fencing", () => {
     expect(session.current()).toMatchObject({
       mutation: { phase: "idle" },
       scope: { locationId: nextLocationId },
+      successfulQueueSnapshotCount: 1,
       tasks: [],
     });
     expect(transport.queueCalls).toEqual([

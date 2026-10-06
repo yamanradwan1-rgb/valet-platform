@@ -72,7 +72,11 @@ export function renderTasksPanel(tasks = [taskPanelRow]) {
     NativeTasksPanel({
       locale: "en",
       operations: { acceptTask: vi.fn(), refresh: vi.fn() } as never,
-      snapshot: { ...tasksOperationsFixture("ready"), tasks },
+      snapshot: {
+        ...tasksOperationsFixture("ready"),
+        successfulQueueSnapshotCount: 1,
+        tasks,
+      },
       textAlign: "left",
     }),
   );

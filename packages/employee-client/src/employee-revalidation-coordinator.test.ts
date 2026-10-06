@@ -9,11 +9,12 @@ describe("EmployeeRevalidationCoordinator", () => {
     });
     owner.request("network-recovery");
     owner.setForeground(true);
+    owner.request("auth-ready");
     owner.request("push-attention");
     await Promise.resolve();
     await owner.whenIdle();
     expect(batches).toEqual([
-      ["foreground", "network-recovery", "push-attention"],
+      ["auth-ready", "foreground", "network-recovery", "push-attention"],
     ]);
     owner.setForeground(true);
     await Promise.resolve();
@@ -54,6 +55,25 @@ describe("EmployeeRevalidationCoordinator", () => {
       ["foreground"],
       ["network-recovery", "push-attention"],
     ]);
+  });
+
+  it("retains auth-ready when it arrives during the active batch", async () => {
+    let release!: () => void;
+    const batches: string[][] = [];
+    const owner = new EmployeeRevalidationCoordinator(async ({ reasons }) => {
+      batches.push([...reasons].sort());
+      if (batches.length === 1)
+        await new Promise<void>((resolve) => (release = resolve));
+    });
+    owner.setForeground(true);
+    await Promise.resolve();
+    owner.request("auth-ready");
+    owner.request("auth-ready");
+    release();
+    await owner.whenIdle();
+    await Promise.resolve();
+    await owner.whenIdle();
+    expect(batches).toEqual([["foreground"], ["auth-ready"]]);
   });
 
   it("contains a read failure and accepts a later bounded request", async () => {

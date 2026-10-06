@@ -32,10 +32,12 @@ describe("Employee foreground queue lifecycle", () => {
     expect(session.current()).toMatchObject({
       phase: "ready",
       queueLoading: false,
+      successfulQueueSnapshotCount: 0,
     });
 
     await session.setForeground(true);
     expect(transport.queueCalls).toHaveLength(1);
+    expect(session.current().successfulQueueSnapshotCount).toBe(1);
   });
 
   it("runs one five-second foreground timer and stops it in background", async () => {
@@ -124,6 +126,7 @@ describe("Employee foreground queue lifecycle", () => {
       queueHardStopped: false,
       queueLoading: false,
       queueRefreshing: false,
+      successfulQueueSnapshotCount: 1,
       tasks: [{ version: 2 }],
     });
     expect(session.current().queueFailure?.code).toBe("NETWORK_ERROR");
@@ -257,6 +260,7 @@ describe("Employee foreground queue lifecycle", () => {
     await oldRefresh;
 
     expect(session.current().scope?.shiftId).toBe(newShiftId);
+    expect(session.current().successfulQueueSnapshotCount).toBe(1);
     expect(session.current().tasks[0]?.version).toBe(9);
     expect(transport.queueCalls).toEqual([
       ids.location,

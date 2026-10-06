@@ -5,6 +5,7 @@ import {
   type EmployeeConnectivityStatus,
   type EmployeeOperationalScope,
   type EmployeeRevalidationBatch,
+  type NativeAuthSnapshot,
 } from "@valet/employee-client";
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import { revalidateNativeShiftPresence } from "../shift/native-shift-presence-revalidate";
@@ -25,6 +26,8 @@ interface ConfirmedOperationalAuthority {
 
 export class NativeProductionLifecycleOwner {
   private connectivity: EmployeeConnectivityStatus;
+  private authGeneration: number | undefined;
+  private authPhase: NativeAuthSnapshot["phase"] | undefined;
   private confirmedAuthority: ConfirmedOperationalAuthority | undefined;
   private disposed = false;
   private foreground = false;
@@ -59,6 +62,19 @@ export class NativeProductionLifecycleOwner {
       this.runtime.guestAccess.suspendForBackground();
       this.runtime.incident.suspendForBackground();
       this.runtime.vehicleDirectory.suspendForBackground();
+    }
+  }
+
+  observeAuth(snapshot: NativeAuthSnapshot): void {
+    if (this.disposed) return;
+    const becameAuthenticated =
+      snapshot.phase === "authenticated" &&
+      (this.authPhase !== "authenticated" ||
+        this.authGeneration !== snapshot.authGeneration);
+    this.authGeneration = snapshot.authGeneration;
+    this.authPhase = snapshot.phase;
+    if (becameAuthenticated && this.foreground) {
+      this.revalidation.request("auth-ready");
     }
   }
 
