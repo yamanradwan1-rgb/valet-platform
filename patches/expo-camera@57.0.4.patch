@@ -120,6 +120,27 @@ index 21ade0761ce67de7786c21a53bbdef8a430c9fd5..011e1748c79b1874f05c83e2ea50c00c
  ) : Record
  
  @OptimizedRecord
+diff --git a/android/src/main/java/expo/modules/camera/PlateRoiExifOrientation.kt b/android/src/main/java/expo/modules/camera/PlateRoiExifOrientation.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..172f50db7fe24960c27c1463fcffa212ce84c714
+--- /dev/null
++++ b/android/src/main/java/expo/modules/camera/PlateRoiExifOrientation.kt
+@@ -0,0 +1,15 @@
++package expo.modules.camera
++
++import androidx.exifinterface.media.ExifInterface
++
++internal fun isPlateRoiSupportedExifOrientation(
++  orientation: Int,
++  orientationTagPresent: Boolean
++): Boolean = when (orientation) {
++  ExifInterface.ORIENTATION_NORMAL,
++  ExifInterface.ORIENTATION_ROTATE_90,
++  ExifInterface.ORIENTATION_ROTATE_180,
++  ExifInterface.ORIENTATION_ROTATE_270 -> true
++  ExifInterface.ORIENTATION_UNDEFINED -> orientationTagPresent
++  else -> false
++}
 diff --git a/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt b/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt
 new file mode 100644
 index 0000000000000000000000000000000000000000..8341ad1880da66aa7a2c08f87962ce98981ce261
@@ -352,10 +373,10 @@ index 0000000000000000000000000000000000000000..8341ad1880da66aa7a2c08f87962ce98
 +  }
 +}
 diff --git a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
-index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb22d00242d 100644
+index 212b0ef19add03308e864d75ae7ca0adc52d0a27..d2179615a1a31709230b1330261e5e7c00d2ae55 100644
 --- a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
 +++ b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
-@@ -7,11 +7,20 @@ import android.graphics.Matrix
+@@ -7,11 +7,21 @@ import android.graphics.Matrix
  import android.net.Uri
  import android.os.Bundle
  import android.util.Base64
@@ -371,12 +392,13 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb2
 +import expo.modules.camera.PlateRoiMetadata
 +import expo.modules.camera.PlateRoiFailure
 +import expo.modules.camera.PlateRoiDiagnosticFlag
++import expo.modules.camera.isPlateRoiSupportedExifOrientation
 +import expo.modules.camera.PlateRoiRotationDiagnostic
 +import expo.modules.camera.PlateRoiRotationFailureSite
  import expo.modules.camera.utils.CameraViewHelper.addExifData
  import expo.modules.camera.utils.CameraViewHelper.getExifData
  import expo.modules.camera.utils.CameraViewHelper.setExifData
-@@ -64,6 +73,7 @@ class ResolveTakenPicture(
+@@ -64,6 +74,7 @@ class ResolveTakenPicture(
    private var mirror: Boolean,
    private val runtimeContext: RuntimeContext,
    private val directory: File,
@@ -384,15 +406,13 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb2
    private var pictureSavedDelegate: PictureSavedDelegate
  ) {
    private val quality: Int
-@@ -127,6 +137,50 @@ class ResolveTakenPicture(
+@@ -127,6 +138,48 @@ class ResolveTakenPicture(
            return null
          }
  
 +        if (options.plateRoiMetadata != null) {
-+          val supportedOrientation = orientation in listOf(
-+            ExifInterface.ORIENTATION_NORMAL, ExifInterface.ORIENTATION_ROTATE_90,
-+            ExifInterface.ORIENTATION_ROTATE_180, ExifInterface.ORIENTATION_ROTATE_270
-+          )
++          val orientationTagPresent = exifInterface.hasAttribute(ExifInterface.TAG_ORIENTATION)
++          val supportedOrientation = isPlateRoiSupportedExifOrientation(orientation, orientationTagPresent)
 +          val preconditionFailure = when {
 +            options.exif || mirror || options.additionalExif != null -> PlateRoiFailure.PROCESSING_GUARD_REJECTED
 +            bitmapOptions.inSampleSize != 1 -> PlateRoiFailure.PROCESSING_OOM
@@ -435,7 +455,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb2
          // Write Exif data to the response if requested
          if (options.exif) {
            val exifData = getExifData(exifInterface)
-@@ -176,7 +230,7 @@ class ResolveTakenPicture(
+@@ -176,7 +229,7 @@ class ResolveTakenPicture(
          is WriteImageException -> promise.reject(e)
          else -> promise.reject(ERROR_TAG, UNKNOWN_EXCEPTION_MSG, e)
        }
@@ -444,7 +464,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb2
      }
      // An exception had to occur, promise has already been rejected. Do not try to resolve it again.
      return null
-@@ -215,10 +269,10 @@ class ResolveTakenPicture(
+@@ -215,10 +268,10 @@ class ResolveTakenPicture(
        }
      } catch (e: IOException) {
        promise.reject(ERROR_TAG, UNKNOWN_IO_EXCEPTION_MSG, e)
@@ -457,7 +477,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb2
      }
      // error occurred
      return null
-@@ -271,10 +325,71 @@ class ResolveTakenPicture(
+@@ -271,10 +324,71 @@ class ResolveTakenPicture(
        }
        transformed
      } catch (e: OutOfMemoryError) {
@@ -529,6 +549,110 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb2
    // Get rotation degrees from Exif orientation enum
    private fun getImageRotation(orientation: Int) = when (orientation) {
      ExifInterface.ORIENTATION_ROTATE_90 -> 90
+diff --git a/android/src/test/java/expo/modules/camera/PlateRoiExifOrientationTest.kt b/android/src/test/java/expo/modules/camera/PlateRoiExifOrientationTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..93158c26a54a9d22d76c4efb300845b84f425624
+--- /dev/null
++++ b/android/src/test/java/expo/modules/camera/PlateRoiExifOrientationTest.kt
+@@ -0,0 +1,98 @@
++package expo.modules.camera
++
++import android.graphics.Matrix
++import androidx.exifinterface.media.ExifInterface
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertNotNull
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import org.junit.runner.RunWith
++import org.robolectric.RobolectricTestRunner
++import org.robolectric.annotation.Config
++
++@RunWith(RobolectricTestRunner::class)
++@Config(sdk = [29], manifest = Config.NONE)
++class PlateRoiExifOrientationTest {
++  @Test fun acceptsOnlySupportedRotationOrientationsAndExplicitUndefined() {
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_NORMAL, false))
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_ROTATE_90, true))
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_ROTATE_180, true))
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_ROTATE_270, true))
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_UNDEFINED, true))
++    assertFalse(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_UNDEFINED, false))
++    assertFalse(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_FLIP_HORIZONTAL, true))
++    assertFalse(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_FLIP_VERTICAL, true))
++    assertFalse(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_TRANSPOSE, true))
++    assertFalse(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_TRANSVERSE, true))
++    assertFalse(isPlateRoiSupportedExifOrientation(9, true))
++    assertFalse(isPlateRoiSupportedExifOrientation(-1, true))
++  }
++
++  @Test fun explicitUndefinedPhysicalCaseContinuesThroughExistingValidation() {
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_UNDEFINED, true))
++
++    val result = metadata(rotation = 0).processedResult(
++      rawWidth = 960,
++      rawHeight = 720,
++      appliedRotation = 0,
++      outputWidth = 960,
++      outputHeight = 720
++    )
++
++    assertNull(result.failure)
++    assertNull(result.rotationFailureSite)
++    assertNotNull(result.metadata)
++    assertEquals(960, result.metadata!!.getInt("imageWidth"))
++    assertEquals(720, result.metadata!!.getInt("imageHeight"))
++  }
++
++  @Test fun explicitUndefinedDoesNotBypassRotationEquality() {
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_UNDEFINED, true))
++
++    val result = metadata(rotation = 90).processedResult(
++      rawWidth = 960,
++      rawHeight = 720,
++      appliedRotation = 0,
++      outputWidth = 720,
++      outputHeight = 960
++    )
++
++    assertEquals(PlateRoiFailure.ROTATION_MISMATCH, result.failure)
++    assertEquals(PlateRoiRotationFailureSite.ROTATION_EQUALITY, result.rotationFailureSite)
++    assertNull(result.metadata)
++  }
++
++  @Test fun explicitUndefinedDoesNotBypassDimensionValidation() {
++    assertTrue(isPlateRoiSupportedExifOrientation(ExifInterface.ORIENTATION_UNDEFINED, true))
++
++    val rawMismatch = metadata(rotation = 0).processedResult(959, 720, 0, 960, 720)
++    assertEquals(PlateRoiFailure.RAW_SIZE_MISMATCH, rawMismatch.failure)
++
++    val outputMismatch = metadata(rotation = 0).processedResult(960, 720, 0, 959, 720)
++    assertEquals(PlateRoiFailure.OUTPUT_SIZE_MISMATCH, outputMismatch.failure)
++  }
++
++  @Test fun mirroredExifOrientationsRemainRejectedAtGuard() {
++    val mirrored = listOf(
++      ExifInterface.ORIENTATION_FLIP_HORIZONTAL,
++      ExifInterface.ORIENTATION_FLIP_VERTICAL,
++      ExifInterface.ORIENTATION_TRANSPOSE,
++      ExifInterface.ORIENTATION_TRANSVERSE
++    )
++    mirrored.forEach { orientation ->
++      assertFalse(isPlateRoiSupportedExifOrientation(orientation, true))
++    }
++  }
++
++  private fun metadata(rotation: Int): PlateRoiMetadata = PlateRoiMetadata(
++    PlateRoiRequest(5, 7, 9),
++    360,
++    260,
++    960,
++    720,
++    rotation,
++    Matrix()
++  )
++}
 diff --git a/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt b/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt
 new file mode 100644
 index 0000000000000000000000000000000000000000..cd245d41fe00284088ec0066cb94b4abf94977aa
