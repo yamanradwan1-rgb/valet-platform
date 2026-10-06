@@ -87,6 +87,9 @@ describe("Employee production frame", () => {
       (node) => node.props.testID === "employee-app-header",
     )!;
     const logo = nodes.find((node) => node.type === EmployeeBrandLogo)!;
+    const logoSlot = nodes.find(
+      (node) => node.props.testID === "employee-header-logo-slot",
+    )!;
 
     expect(style(header.props.style)).toMatchObject({
       backgroundColor: employeeColors.white,
@@ -97,8 +100,17 @@ describe("Employee production frame", () => {
     });
     expect(employeeFrameStyles.appHeader).not.toHaveProperty("minHeight");
     expect(employeeFrameStyles.brandContext.minWidth).toBe(0);
-    expect(employeeFrameStyles.brandLogo.flexShrink).toBe(1);
-    expect(logo.props).toMatchObject({ height: 28, surface: "light" });
+    expect(employeeFrameStyles.brandLogo).toEqual({ flexShrink: 1 });
+    expect(style(logoSlot.props.style)).toEqual({
+      flexShrink: 1,
+      height: 28,
+      width: (28 * 169) / 60,
+    });
+    expect(logo.props).toMatchObject({
+      fill: true,
+      height: 28,
+      surface: "light",
+    });
     expect(employeeFrameStyles.divider).toMatchObject({ height: 20, width: 1 });
     expect(employeeFrameStyles.locationName).toMatchObject({
       fontSize: 13,
@@ -117,8 +129,8 @@ describe("Employee production frame", () => {
     expect(image.props.fadeDuration).toBe(0);
     expect(image.props.source).toBeTruthy();
     expect(style(image.props.style)).toMatchObject({
-      aspectRatio: 169 / 60,
       height: 28,
+      width: "100%",
     });
     expect(style(image.props.style).transform).toBeUndefined();
     expect(nodes.some((node) => node.props.children === "Amman Hotel")).toBe(

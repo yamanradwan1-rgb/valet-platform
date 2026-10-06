@@ -9,15 +9,17 @@ const logoMetrics = {
 } as const;
 
 /**
- * One native renderer for the official VAYLET wordmark. Disabling Android's
- * image fade and sizing from the source aspect ratio avoids the transient
- * soft edge / stretched treatment previously seen between gate and header.
+ * One native renderer for the official VAYLET wordmark. Standalone surfaces
+ * size from the source ratio; `fill` lets a parent layout box own geometry.
+ * Contain sizing preserves the artwork ratio in either case.
  */
 export function EmployeeBrandLogo({
+  fill,
   height,
   surface,
   style,
 }: {
+  readonly fill?: boolean;
   readonly height: number;
   readonly surface: keyof typeof logoMetrics;
   readonly style?: StyleProp<ImageStyle>;
@@ -30,7 +32,12 @@ export function EmployeeBrandLogo({
       resizeMethod="resize"
       resizeMode="contain"
       source={asset.source}
-      style={[{ aspectRatio: asset.aspectRatio, height }, style]}
+      style={[
+        fill
+          ? { height, width: "100%" }
+          : { aspectRatio: asset.aspectRatio, height },
+        style,
+      ]}
     />
   );
 }

@@ -223,9 +223,19 @@ describe("Native active Employee header utilities", () => {
         flexDirection: "row",
         gap: 12,
       });
-      const [logo, divider, context] = brand!.props.children as Element[];
-      expect(logo!.type).toBe(EmployeeBrandLogo);
-      expect(logo!.props).toMatchObject({ height: 28, surface: "light" });
+      const [logoSlot, divider, context] = brand!.props.children as Element[];
+      expect(style(logoSlot!.props.style)).toMatchObject({
+        flexShrink: 1,
+        height: 28,
+        width: (28 * 169) / 60,
+      });
+      const logo = logoSlot!.props.children as Element;
+      expect(logo.type).toBe(EmployeeBrandLogo);
+      expect(logo.props).toMatchObject({
+        fill: true,
+        height: 28,
+        surface: "light",
+      });
       expect(style(divider!.props.style)).toEqual({
         backgroundColor: employeeColors.border,
         height: 20,

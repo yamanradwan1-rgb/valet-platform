@@ -72,6 +72,10 @@ export const employeeFrameStylesTheme = createEmployeeStyles((p) => ({
   },
 }));
 export const employeeFrameStyles = employeeFrameStylesTheme.light;
+const employeeHeaderLogoSlotStyle = {
+  height: 28,
+  width: (28 * 169) / 60,
+} as const;
 
 export function EmployeeFrame({
   children,
@@ -110,16 +114,12 @@ export function EmployeeAppHeader({
   return (
     <View style={employeeFrameStyles.appHeader} testID="employee-app-header">
       <View style={employeeFrameStyles.brandContext}>
-        <EmployeeBrandLogo
-          height={28}
-          surface={p.mode}
-          style={[
-            employeeFrameStyles.brandLogo,
-            // Keep the current header's Light bounding box for either official
-            // asset; contain preserves the Dark wordmark's intrinsic ratio.
-            p.mode === "dark" && { aspectRatio: 169 / 60 },
-          ]}
-        />
+        <View
+          style={[employeeFrameStyles.brandLogo, employeeHeaderLogoSlotStyle]}
+          testID="employee-header-logo-slot"
+        >
+          <EmployeeBrandLogo fill height={28} surface={p.mode} />
+        </View>
         {scope ? <View style={employeeFrameStyles.divider} /> : null}
         {scope ? (
           <View style={employeeFrameStyles.context}>
