@@ -7,21 +7,38 @@ import {
 } from "./support/dashboard-api-fixture";
 import { openLocationManagerWorkspace, signIn } from "./support/foundation-ui";
 
-test("login uses the Staff transport and cookie refresh restores after reload", async ({
+test("cookie refresh restores the selected Location on the same route after reload", async ({
   page,
 }) => {
-  const fixture = new DashboardApiFixture();
+  const fixture = new DashboardApiFixture({
+    locationManagerOrganizations: [ORG_A],
+    locationManagerLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+  });
   await fixture.install(page);
 
-  await signIn(page, "Admin@Example.com");
+  await signIn(page, "manager@example.com");
   expect(fixture.loginBodies).toEqual([
-    { email: "admin@example.com", password: "fixture-password" },
+    { email: "manager@example.com", password: "fixture-password" },
   ]);
+  await page.getByRole("button", { name: ORG_A.name }).click();
+  await page.getByRole("button", { name: LOCATION_A.name }).click();
+  await page.getByRole("link", { name: "Help" }).click();
+  await expect(page).toHaveURL(/\/help$/u);
+  await expect(
+    page.getByRole("heading", { name: "Help and product guidance" }),
+  ).toBeVisible();
+  await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toBeVisible();
 
   await page.reload();
+  await expect(page).toHaveURL(/\/help$/u);
+  await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toBeVisible();
+  await expect(page.locator(".sidebar").getByText(ORG_A.name)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Help and product guidance" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Choose your authorized workspace" }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Sign in" })).toHaveCount(0);
   expect(fixture.refreshCookieSeen).toBe(true);
 });

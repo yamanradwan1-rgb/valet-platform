@@ -199,6 +199,8 @@ describe("navigation authority generations", () => {
   it("increments selection revision for select, retry/reselect, clear, and identity change", () => {
     const initial: SelectedScopeState = {
       identityGeneration: 1,
+      persistence: "sync",
+      restorationStatus: "settled",
       selectedScope: null,
       selectionRevision: 0,
     };
@@ -216,6 +218,8 @@ describe("navigation authority generations", () => {
     const first = advanceSelectedScopeState(
       {
         identityGeneration: 1,
+        persistence: "sync",
+        restorationStatus: "settled",
         selectedScope: null,
         selectionRevision: 0,
       },

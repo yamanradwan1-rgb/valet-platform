@@ -29,7 +29,7 @@ export function ManagementFoundationApp({
   const currentPath = usePathname();
   const auth = useStaffAuth();
   const { t } = useDashboardLocale();
-  const { selectedScope } = useSelectedScope();
+  const { restorationStatus, selectedScope } = useSelectedScope();
   const [loginPending, setLoginPending] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const api = useMemo(
@@ -94,6 +94,10 @@ export function ManagementFoundationApp({
         sessionGeneration={auth.sessionGeneration}
       />
     );
+  }
+
+  if (restorationStatus === "checking") {
+    return <FoundationState title="VAYLET" message={t("loading")} />;
   }
 
   if (selectedScope === null) {
