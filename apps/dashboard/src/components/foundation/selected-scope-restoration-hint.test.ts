@@ -14,6 +14,7 @@ import {
 const sessionId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const organizationId = "11111111-1111-4111-8111-111111111111";
 const locationId = "22222222-2222-4222-8222-222222222222";
+const locationBId = "55555555-5555-4555-8555-555555555555";
 const membershipId = "33333333-3333-4333-8333-333333333333";
 const shiftId = "44444444-4444-4444-8444-444444444444";
 const organization = { organizationId, name: "Org", timezone: "Asia/Amman" };
@@ -142,6 +143,41 @@ describe("selected scope restoration hint", () => {
     expect(storage.values.has(SELECTED_SCOPE_RESTORATION_KEY)).toBe(true);
     expect(readSelectedScopeRestorationHint(storage)).toEqual({ kind: "valid", hint });
     expect(removeSelectedScopeRestorationHint(storage)).toBe(true);
+    expect(readSelectedScopeRestorationHint(storage)).toEqual({ kind: "missing" });
+  });
+
+  it("successfully replaces accepted hint A with accepted hint B", () => {
+    const storage = memoryStorage();
+    const hintA = restorationHintFromScope(scope("LOCATION_MANAGER"), sessionId)!;
+    const hintB = {
+      ...hintA,
+      locationId: locationBId,
+    };
+    expect(writeSelectedScopeRestorationHint(hintA, storage)).toBe(true);
+    expect(readSelectedScopeRestorationHint(storage)).toEqual({ kind: "valid", hint: hintA });
+
+    expect(writeSelectedScopeRestorationHint(hintB, storage)).toBe(true);
+
+    expect(readSelectedScopeRestorationHint(storage)).toEqual({ kind: "valid", hint: hintB });
+  });
+
+  it("retires accepted hint A when replacement write for hint B throws", () => {
+    const storage = memoryStorage();
+    const hintA = restorationHintFromScope(scope("LOCATION_MANAGER"), sessionId)!;
+    const hintB = {
+      ...hintA,
+      locationId: locationBId,
+    };
+    expect(writeSelectedScopeRestorationHint(hintA, storage)).toBe(true);
+    expect(readSelectedScopeRestorationHint(storage)).toEqual({ kind: "valid", hint: hintA });
+    const setItem = storage.setItem.bind(storage);
+    storage.setItem = (key, value) => {
+      if (value.includes(locationBId)) throw new Error("replacement write blocked");
+      setItem(key, value);
+    };
+
+    expect(writeSelectedScopeRestorationHint(hintB, storage)).toBe(false);
+
     expect(readSelectedScopeRestorationHint(storage)).toEqual({ kind: "missing" });
   });
 

@@ -95,10 +95,12 @@ export function writeSelectedScopeRestorationHint(
   storage: ScopeRestorationStorage | null = browserSessionStorage(),
 ): boolean {
   if (storage === null) return false;
+  if (!removeSelectedScopeRestorationHint(storage)) return false;
   try {
     storage.setItem(SELECTED_SCOPE_RESTORATION_KEY, JSON.stringify(hint));
     return true;
   } catch {
+    removeSelectedScopeRestorationHint(storage);
     return false;
   }
 }
