@@ -7,7 +7,6 @@ import { PresenceServerTestContext } from "./shift-presence-server-test-context"
 const db = new PresenceServerTestContext("presence-enforcement");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 

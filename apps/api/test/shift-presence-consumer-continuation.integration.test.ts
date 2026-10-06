@@ -11,7 +11,6 @@ let http: Awaited<ReturnType<typeof presenceHttp>>;
 const prefix = "/v1/staff/shifts/presence";
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
   http = await presenceHttp(db);
 }, 120_000);
 afterAll(async () => {

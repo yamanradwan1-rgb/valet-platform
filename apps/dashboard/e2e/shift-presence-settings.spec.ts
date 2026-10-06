@@ -104,21 +104,10 @@ test("manual zone saves decimal radius and zero center while map unavailable", a
   ).toBeFocused();
 });
 
-test("invalid numeric drafts do not dispatch; strict rejection uses server feedback", async ({
+test("invalid numeric drafts do not dispatch; ready strict save persists", async ({
   page,
 }) => {
-  const f = new PresenceFixture("LM", (path, request) =>
-    request.method() !== "GET" && path.includes("/policy/")
-      ? {
-          status: 409,
-          body: {
-            code: "PRESENCE_STRICT_ROLLOUT_CLOSED",
-            message: "closed",
-            requestId: "fixture",
-          },
-        }
-      : undefined,
-  );
+  const f = new PresenceFixture("LM");
   await f.open(page);
   const accuracy = page.locator(
     '[data-presence-field="shiftPresenceMaxAccuracyMeters"]',
@@ -133,10 +122,42 @@ test("invalid numeric drafts do not dispatch; strict rejection uses server feedb
   const row = page.locator('[data-presence-field="shiftStartPresenceMode"]');
   await row.getByRole("combobox").selectOption("REQUIRE");
   await row.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByTestId("shift-presence")).toContainText(
-    "Strict rollout remains closed",
-  );
   expect(f.writes).toHaveLength(1);
+  expect(f.policy.effective.startMode).toBe("REQUIRE");
+  expect(f.policy.readiness).toMatchObject({
+    applicability: "STRICT",
+    configurationUsable: true,
+    strictActivationAllowed: true,
+    blockers: [],
+  });
+  await expect(row).toContainText("Overridden");
+  await expect(page.getByTestId("shift-presence")).toContainText(
+    "Readiness: Ready",
+  );
+});
+
+test("strict save shows authoritative not-ready rejection", async ({
+  page,
+}) => {
+  const f = new PresenceFixture("LM", (path, request) =>
+    request.method() !== "GET" && path.includes("/policy/")
+      ? {
+          status: 409,
+          body: {
+            code: "PRESENCE_NOT_READY",
+            message: "not ready",
+            requestId: "fixture",
+          },
+        }
+      : undefined,
+  );
+  await f.open(page);
+  const row = page.locator('[data-presence-field="shiftStartPresenceMode"]');
+  await row.getByRole("combobox").selectOption("REQUIRE");
+  await row.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByTestId("shift-presence")).toContainText(
+    "Server readiness blocks this configuration.",
+  );
   expect(f.policy.effective.startMode).toBe("OFF");
 });
 

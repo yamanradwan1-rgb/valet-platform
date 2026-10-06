@@ -98,13 +98,10 @@ export function presenceReadiness(
   );
   const warning = [policy.startMode, policy.endMode].includes("WARN_ONLY");
   const blockers: Array<
-    | "INVALID_PRESENCE_CONFIGURATION"
-    | "NO_USABLE_ATTENDANCE_ZONE"
-    | "STRICT_ROLLOUT_CLOSED"
+    "INVALID_PRESENCE_CONFIGURATION" | "NO_USABLE_ATTENDANCE_ZONE"
   > = [];
   if (invalid) blockers.push("INVALID_PRESENCE_CONFIGURATION");
   if (active.length === 0) blockers.push("NO_USABLE_ATTENDANCE_ZONE");
-  blockers.push("STRICT_ROLLOUT_CLOSED");
   return {
     applicability: strict
       ? ("STRICT" as const)
@@ -112,7 +109,7 @@ export function presenceReadiness(
         ? ("WARNING" as const)
         : ("NOT_APPLICABLE" as const),
     configurationUsable: !invalid && active.length > 0,
-    strictActivationAllowed: false as const,
+    strictActivationAllowed: true as const,
     activeZoneCount: active.length,
     blockers,
     ...context,

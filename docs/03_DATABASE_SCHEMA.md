@@ -2547,9 +2547,14 @@ Location adds nullable `shift_start_presence_mode_override`,
 `shift_end_presence_mode_override`, `shift_presence_max_accuracy_meters_override`,
 `shift_presence_max_fix_age_seconds_override`, and its own revision (1).
 Each null inherits Company; actual presence-value changes increment the database
-revision once. SQL CHECKs currently permit Company OFF and Location OFF/null only;
-existing settings APIs neither accept nor project the new fields. GPS-B must
-explicitly replace this release gate in a forward, authorized change.
+revision once. Forward migration
+`20261007006900_shift_presence_strict_rollout_activation` removes only the
+release-closed Company/Location CHECKs. The existing enum remains the mode-domain
+constraint, so OFF, WARN_ONLY, REQUIRE and REQUIRE_OR_OVERRIDE are persistable
+without changing any existing Organization or Location policy row. The same
+forward migration replaces `shift_presence_set_policy` in place so its explicit
+mode allowlist accepts all four enum values while preserving authority, MFA,
+revisions, audit/no-op semantics, function identity and least-privilege grants.
 
 Dedicated enum families are ShiftPresenceMode (OFF/WARN_ONLY/REQUIRE/
 REQUIRE_OR_OVERRIDE), Action (START/END), ZoneState (ACTIVE/DISABLED),

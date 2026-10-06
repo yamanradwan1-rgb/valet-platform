@@ -5,7 +5,6 @@ import { pendingPresenceException } from "./shift-presence-exception-test-helper
 const db = new PresenceServerTestContext("presence-approver");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 

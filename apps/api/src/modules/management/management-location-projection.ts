@@ -18,10 +18,11 @@ interface LocationLifecycleRow {
   readonly nonCompletedValetSessionPresent: boolean;
   readonly nonTerminalTaskPresent: boolean;
   readonly organizationId: string;
+  readonly strictPresenceConfigured: boolean;
+  readonly usablePresenceConfigured: boolean;
   readonly status: "ACTIVE" | "INACTIVE";
   readonly timezone: string;
   readonly updatedAt: Date;
-  readonly strictPresenceConfigured: boolean;
 }
 
 export async function locationLifecycleProjection(
@@ -35,16 +36,22 @@ export async function locationLifecycleProjection(
             location.name,location.code,location.address_text AS "addressText",
             location.timezone,location.currency,location.status::text AS status,
             location.accepting_intake AS "acceptingIntake",location.updated_at AS "updatedAt",
-            (COALESCE(location.shift_start_presence_mode_override,organization.shift_start_presence_mode) IN ('REQUIRE','REQUIRE_OR_OVERRIDE')
-              OR COALESCE(location.shift_end_presence_mode_override,organization.shift_end_presence_mode) IN ('REQUIRE','REQUIRE_OR_OVERRIDE')) AS "strictPresenceConfigured",
             EXISTS(SELECT 1 FROM shifts WHERE organization_id=$1 AND location_id=$2
               AND status='ACTIVE') AS "activeShiftPresent",
             EXISTS(SELECT 1 FROM tasks WHERE organization_id=$1 AND location_id=$2
               AND status IN ('QUEUED','ASSIGNED','ACCEPTED','IN_PROGRESS'))
               AS "nonTerminalTaskPresent",
             EXISTS(SELECT 1 FROM valet_sessions WHERE organization_id=$1 AND location_id=$2
-              AND state NOT IN ('COMPLETED','CANCELLED')) AS "nonCompletedValetSessionPresent"
-       FROM locations AS location JOIN organizations AS organization ON organization.id=location.organization_id
+              AND state NOT IN ('COMPLETED','CANCELLED')) AS "nonCompletedValetSessionPresent",
+            (COALESCE(location.shift_start_presence_mode_override,organization.shift_start_presence_mode)
+              IN ('REQUIRE','REQUIRE_OR_OVERRIDE')
+              OR COALESCE(location.shift_end_presence_mode_override,organization.shift_end_presence_mode)
+              IN ('REQUIRE','REQUIRE_OR_OVERRIDE')) AS "strictPresenceConfigured",
+            EXISTS(SELECT 1 FROM shift_presence_zones
+              WHERE organization_id=$1 AND location_id=$2 AND state='ACTIVE')
+              AS "usablePresenceConfigured"
+       FROM locations AS location
+       JOIN organizations AS organization ON organization.id=location.organization_id
        WHERE location.organization_id=$1 AND location.id=$2`,
     [organizationId, locationId],
   );
@@ -52,6 +59,8 @@ export async function locationLifecycleProjection(
   if (row === undefined) throw new ManagementAccessDeniedError();
   const currencySupported = isSupportedLocationCurrency(row.currency);
   const timezoneValid = isValidLocationTimezone(row.timezone);
+  const presenceReady =
+    !row.strictPresenceConfigured || row.usablePresenceConfigured;
   const blocked =
     row.activeShiftPresent ||
     row.nonTerminalTaskPresent ||
@@ -72,8 +81,7 @@ export async function locationLifecycleProjection(
     organizationId: row.organizationId,
     readiness: {
       checks: { currencySupported, timezoneValid },
-      readyForActivation:
-        currencySupported && timezoneValid && !row.strictPresenceConfigured,
+      readyForActivation: currencySupported && timezoneValid && presenceReady,
     },
     status: row.status,
     timezone: row.timezone,

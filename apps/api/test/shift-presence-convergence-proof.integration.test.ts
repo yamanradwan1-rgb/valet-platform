@@ -15,7 +15,6 @@ import { presenceTransaction } from "./shift-presence-test-helpers";
 const db = new PresenceServerTestContext("presence-convergence-proof");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterEach(abortPresenceCommitBarriers);
 afterAll(() => db.teardown(), 60_000);

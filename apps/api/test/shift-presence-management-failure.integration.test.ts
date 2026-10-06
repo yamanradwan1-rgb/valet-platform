@@ -6,7 +6,6 @@ import { pendingPresenceException } from "./shift-presence-exception-test-helper
 const db = new PresenceServerTestContext("presence-management-failure");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
   await db.adminPool
     .query(`CREATE FUNCTION gpsb_fail_presence_audit() RETURNS trigger LANGUAGE plpgsql AS $$
     BEGIN IF NEW.id::text=current_setting('gpsb.failed_audit',true) THEN

@@ -13,7 +13,6 @@ import {
 const db = new PresenceServerTestContext("presence-expiry-races");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 

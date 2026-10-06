@@ -33,7 +33,6 @@ const overrideKeys = {
 export function requirePresenceResultReady(
   policy: ShiftPresenceEffectivePolicy,
   usable: boolean,
-  release = true,
 ) {
   if (
     ![policy.startMode, policy.endMode].some(
@@ -42,8 +41,6 @@ export function requirePresenceResultReady(
   )
     return;
   if (!usable) throw new PresenceManagementError("PRESENCE_NOT_READY");
-  if (release)
-    throw new PresenceManagementError("PRESENCE_STRICT_ROLLOUT_CLOSED");
 }
 
 async function writePolicy(
@@ -102,7 +99,6 @@ export async function setPresenceCompanyPolicy(
     `SELECT id::text FROM locations WHERE organization_id=$1 ORDER BY id`,
     [actor.organizationId],
   );
-  let strict = false;
   for (const location of locations.rows) {
     const projection = await presenceLocationPolicy(
       transaction,
@@ -116,19 +112,7 @@ export async function setPresenceCompanyPolicy(
     requirePresenceResultReady(
       resulting,
       projection.readiness.configurationUsable,
-      false,
     );
-    strict ||= [resulting.startMode, resulting.endMode].some(
-      (mode) => mode === "REQUIRE" || mode === "REQUIRE_OR_OVERRIDE",
-    );
-  }
-  if (
-    strict ||
-    [candidate.startMode, candidate.endMode].some(
-      (mode) => mode === "REQUIRE" || mode === "REQUIRE_OR_OVERRIDE",
-    )
-  ) {
-    throw new PresenceManagementError("PRESENCE_STRICT_ROLLOUT_CLOSED");
   }
   await writePolicy(
     transaction,
@@ -141,7 +125,7 @@ export async function setPresenceCompanyPolicy(
   return {
     organizationId: actor.organizationId,
     policy: await presenceCompanyPolicy(transaction, actor.organizationId),
-    capabilities: { canEdit: true, strictActivationAllowed: false as const },
+    capabilities: { canEdit: true, strictActivationAllowed: true as const },
   };
 }
 

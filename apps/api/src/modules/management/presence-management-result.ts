@@ -54,7 +54,7 @@ export async function readPresenceManagementResult(
                     ),
                     capabilities: {
                       canEdit: true,
-                      strictActivationAllowed: false as const,
+                      strictActivationAllowed: true as const,
                     },
                   }
                 : await presenceLocationPolicy(

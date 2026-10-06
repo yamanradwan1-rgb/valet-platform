@@ -20,7 +20,7 @@ export function companyPolicy(): PresenceCompany {
       maxFixAgeSeconds: 30,
       revision: 1,
     },
-    capabilities: { canEdit: true, strictActivationAllowed: false },
+    capabilities: { canEdit: true, strictActivationAllowed: true },
   };
 }
 export function locationPolicy(): PresenceLocation {
@@ -46,7 +46,7 @@ export function locationPolicy(): PresenceLocation {
     readiness: {
       applicability: "NOT_APPLICABLE",
       configurationUsable: true,
-      strictActivationAllowed: false,
+      strictActivationAllowed: true,
       activeZoneCount: 1,
       blockers: [],
       companyRevision: 1,

@@ -12,7 +12,6 @@ import {
 const db = new PresenceServerTestContext("presence-consumer-policy-races");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterEach(abortPresenceCommitBarriers);
 afterAll(() => db.teardown(), 60_000);

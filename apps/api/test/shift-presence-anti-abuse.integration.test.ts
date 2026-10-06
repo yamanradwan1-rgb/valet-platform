@@ -99,7 +99,6 @@ describe("existing durable AntiAbuse bounds new presence routes by authenticated
     });
   });
   it("bounds exception requests before foreign/random operation disclosure or exception allocation", async () => {
-    await db.permitStrictFixtures();
     const f = await db.createFixture();
     await db.policy(f, "REQUIRE_OR_OVERRIDE");
     const auth = await db.session(f.userId);

@@ -13,7 +13,6 @@ const db = new PresenceServerTestContext("presence-http");
 let http: Awaited<ReturnType<typeof presenceHttp>>;
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
   http = await presenceHttp(db);
 }, 120_000);
 afterAll(async () => {
@@ -102,7 +101,7 @@ describe("real presence HTTP and fresh result reconciliation", () => {
         shiftPresenceLocationResponseSchema.parse(read.body),
       ).toMatchObject({
         locationId: f.locationId,
-        readiness: { strictActivationAllowed: false },
+        readiness: { strictActivationAllowed: true },
       });
       expect(
         (await http.request("GET", `${path}/zones?limit=1`, token)).body,

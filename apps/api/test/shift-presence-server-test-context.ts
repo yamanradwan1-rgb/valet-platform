@@ -47,12 +47,6 @@ export class PresenceServerTestContext extends ShiftTestContext {
     else
       process.env.SHIFT_PRESENCE_PREVIOUS_FINGERPRINT_KEYS = this.previousKeys;
   }
-  /** Owner-only disposable fixture. Production migrations retain both closed gates. */
-  async permitStrictFixtures() {
-    await this.adminPool
-      .query(`ALTER TABLE organizations DROP CONSTRAINT IF EXISTS organizations_presence_strict_release_closed;
-      ALTER TABLE locations DROP CONSTRAINT IF EXISTS locations_presence_strict_release_closed`);
-  }
   async policy(
     fixture: ShiftFixture,
     start: ShiftPresenceMode,

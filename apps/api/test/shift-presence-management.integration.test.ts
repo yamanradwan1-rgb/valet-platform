@@ -185,40 +185,56 @@ describe("current CA and exact LM presence management", () => {
       (await db.management.zone(m.context, m.target, zoneId)).zone,
     ).toMatchObject({ revision: 2, state: "DISABLED" });
   });
-  it("strict policy remains SQL and public release gated, and failure changes no revision/audit", async () => {
+  it("strict Company policy is not-ready without a zone and persists once ready", async () => {
     const f = await db.createFixture();
     const m = await db.manager(f);
+    const rejectedMutation = randomUUID();
     await expect(
       db.management.setCompany(m.context, m.companyTarget, {
-        mutationId: randomUUID(),
+        mutationId: rejectedMutation,
         expectedRevision: 1,
         field: "shiftStartPresenceMode",
         value: "REQUIRE",
       }),
     ).rejects.toMatchObject({ code: "PRESENCE_NOT_READY" });
-    await db.zone(f);
-    await expect(
-      db.management.setCompany(m.context, m.companyTarget, {
-        mutationId: randomUUID(),
-        expectedRevision: 1,
-        field: "shiftStartPresenceMode",
-        value: "REQUIRE",
-      }),
-    ).rejects.toMatchObject({ code: "PRESENCE_STRICT_ROLLOUT_CLOSED" });
-    await expect(db.policy(f, "REQUIRE")).rejects.toMatchObject({
-      code: "23514",
-      constraint: "organizations_presence_strict_release_closed",
-    });
     expect(
       (await db.management.company(m.context, m.companyTarget)).policy.revision,
     ).toBe(1);
     expect(
       (
         await db.adminPool.query(
-          `SELECT count(*)::int AS count FROM audit_events WHERE organization_id=$1`,
-          [f.organizationId],
+          `SELECT count(*)::int AS count FROM audit_events WHERE id=$1`,
+          [rejectedMutation],
         )
       ).rows[0].count,
     ).toBe(0);
+    await db.zone(f);
+    const mutationId = randomUUID();
+    const changed = await db.management.setCompany(m.context, m.companyTarget, {
+      mutationId,
+      expectedRevision: 1,
+      field: "shiftStartPresenceMode",
+      value: "REQUIRE",
+    });
+    expect(changed).toMatchObject({
+      policy: { startMode: "REQUIRE", revision: 2 },
+      capabilities: { canEdit: true, strictActivationAllowed: true },
+    });
+    const location = await db.management.location(m.context, m.target);
+    expect(location.readiness).toMatchObject({
+      applicability: "STRICT",
+      configurationUsable: true,
+      strictActivationAllowed: true,
+    });
+    expect(location.readiness.blockers).not.toContain("STRICT_ROLLOUT_CLOSED");
+    expect(
+      (
+        await db.adminPool.query(
+          `SELECT count(*)::int AS count FROM audit_events
+           WHERE id=$1 AND event_type='SHIFT_PRESENCE_COMPANY_POLICY_CHANGED'`,
+          [mutationId],
+        )
+      ).rows[0].count,
+    ).toBe(1);
   });
 });

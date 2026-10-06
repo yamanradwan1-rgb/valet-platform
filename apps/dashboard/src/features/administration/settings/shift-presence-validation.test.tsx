@@ -78,6 +78,7 @@ describe("Presence validated drafts and safe projections", () => {
     data.readiness = {
       ...data.readiness,
       applicability: "STRICT",
+      strictActivationAllowed: false,
       activeZoneCount: 20,
       blockers: ["STRICT_ROLLOUT_CLOSED"],
     };
@@ -86,6 +87,22 @@ describe("Presence validated drafts and safe projections", () => {
     );
     expect(html).toContain("Not ready");
     expect(html).toContain("Strict rollout remains closed");
+    expect(html).not.toContain(data.readiness.configurationFingerprint);
+  });
+  it("renders strict configuration ready when the server opens activation", () => {
+    const data = locationPolicy();
+    data.effective.startMode = "REQUIRE";
+    data.readiness = {
+      ...data.readiness,
+      applicability: "STRICT",
+      configurationUsable: true,
+      strictActivationAllowed: true,
+      blockers: [],
+    };
+    const html = renderToStaticMarkup(
+      <ShiftPresenceReadiness data={data} locale="en" />,
+    );
+    expect(html).toContain("Readiness: Ready");
     expect(html).not.toContain(data.readiness.configurationFingerprint);
   });
   it("renders only safe review facts in EN/AR and preserves LTR email", () => {

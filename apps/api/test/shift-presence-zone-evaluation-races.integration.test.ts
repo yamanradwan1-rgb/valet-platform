@@ -13,7 +13,6 @@ import {
 const db = new PresenceServerTestContext("presence-zone-evaluation-races");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 afterEach(() => abortPresenceCommitBarriers());
@@ -75,7 +74,7 @@ describe("R12 zone replacement remains coherent with strict evaluation", () => {
       expect(readiness).toMatchObject({
         activeZoneCount: 1,
         configurationUsable: true,
-        strictActivationAllowed: false,
+        strictActivationAllowed: true,
       });
       expect(
         await mutationAuditCount(

@@ -130,7 +130,7 @@ export class PresenceManagementService {
     return this.run(context, target, false, false, async (tx, actor) => ({
       organizationId: actor.organizationId,
       policy: await presenceCompanyPolicy(tx, actor.organizationId),
-      capabilities: { canEdit: true, strictActivationAllowed: false as const },
+      capabilities: { canEdit: true, strictActivationAllowed: true as const },
     }));
   }
   location(context: StaffSessionContext, target: PresenceManagementTarget) {

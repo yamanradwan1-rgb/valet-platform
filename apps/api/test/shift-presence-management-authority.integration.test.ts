@@ -56,7 +56,7 @@ describe("presence management current authority", () => {
           mutationId: randomUUID(),
           expectedRevision: 1,
           field: "shiftStartPresenceMode",
-          value: "WARN_ONLY",
+          value: "REQUIRE",
         }),
       ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
     },
@@ -64,11 +64,12 @@ describe("presence management current authority", () => {
   it("stale session and stale sensitive MFA never mutate", async () => {
     const f = await db.createFixture();
     const m = await db.manager(f);
+    await db.zone(f);
     const command = {
       mutationId: randomUUID(),
       expectedRevision: 1,
       field: "shiftStartPresenceMode" as const,
-      value: "WARN_ONLY" as const,
+      value: "REQUIRE" as const,
     };
     await db.adminPool.query(
       `UPDATE staff_auth_sessions SET created_at=clock_timestamp()-interval '7 minutes',mfa_authenticated_at=clock_timestamp()-interval '6 minutes' WHERE id=$1`,

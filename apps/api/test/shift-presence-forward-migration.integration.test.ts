@@ -158,14 +158,17 @@ describe("representative GPS-A data survives GPS-B forward migrations", () => {
         )
       ).rows[0],
     ).toEqual({ status: "PENDING", revision: 1, expiry_cause: null });
-    await expect(
-      db.adminPool.query(
-        `UPDATE organizations SET shift_start_presence_mode='REQUIRE' WHERE id=$1`,
-        [f.organizationId],
-      ),
-    ).rejects.toMatchObject({
-      code: "23514",
-      constraint: "organizations_presence_strict_release_closed",
+    expect(
+      (
+        await db.adminPool.query(
+          `UPDATE organizations SET shift_start_presence_mode='REQUIRE' WHERE id=$1
+           RETURNING shift_start_presence_mode,shift_presence_revision`,
+          [f.organizationId],
+        )
+      ).rows[0],
+    ).toEqual({
+      shift_start_presence_mode: "REQUIRE",
+      shift_presence_revision: 2,
     });
   });
 });

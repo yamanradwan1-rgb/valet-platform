@@ -1177,10 +1177,18 @@ explicit employee intent, current REQUIRE_OR_OVERRIDE and exact target/cash;
 approval consumption continues to enforce DEC-100. No Native implementation or
 strict activation is authorized by this consumer-contract correction.
 
-Attendance policy remains independently OFF for Start/End, with nullable Location
-overrides, outside public settings whitelists/projections and behind SQL OFF-only
-CHECKs. No presence routes or Start/End enforcement are registered in GPS-A.
-Task-scoped GPS policy and retention remain unchanged.
+At the GPS-A milestone, Attendance policy remained independently OFF for
+Start/End, with nullable Location overrides, outside public settings
+whitelists/projections and behind SQL OFF-only CHECKs. No presence routes or
+Start/End enforcement were registered in GPS-A. Task-scoped GPS policy and
+retention remain unchanged.
+
+Issue #267 strict-rollout activation is a later explicit owner authorization:
+the release-only SQL/application gates are open, while strict policy still
+requires an explicit authorized typed Management mutation, sensitive MFA, current
+CAS/context and usable effective Location configuration. Deployment does not
+convert existing OFF/WARN_ONLY values to strict modes and does not change
+point-in-time Start/End privacy or task-scoped GPS boundaries.
 
 Attendance-zone center coordinates are configuration. Employee Start/End fixes
 have **zero durable retention**: transient validation/geometry and keyed HMAC

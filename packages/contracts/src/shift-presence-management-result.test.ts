@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   shiftPresenceManagementResultSchema,
+  shiftPresenceReadinessSchema,
   shiftPresenceZoneResponseSchema,
 } from "./shift-presence-management.js";
 import { shiftPresencePublicErrorCodeSchema } from "./shift-presence-public-errors.js";
@@ -64,6 +65,54 @@ describe("revised GPS-B strict management result contract", () => {
       shiftPresenceManagementResultSchema.safeParse({ ...result, revision: 0 })
         .success,
     ).toBe(false);
+  });
+  it("accepts both rollout capability states for rolling deployment compatibility", () => {
+    for (const strictActivationAllowed of [false, true])
+      expect(
+        shiftPresenceReadinessSchema.safeParse({
+          ...readiness,
+          strictActivationAllowed,
+        }).success,
+      ).toBe(true);
+    const result = {
+      mutationId: id,
+      attribution: "COMMITTED",
+      effect: "NO_CHANGE",
+      entityId: id,
+      revision: 1,
+      canonical: {
+        kind: "POLICY",
+        value: {
+          organizationId: id,
+          policy: {
+            startMode: "OFF",
+            endMode: "OFF",
+            maxAccuracyMeters: 50,
+            maxFixAgeSeconds: 30,
+            revision: 1,
+          },
+          capabilities: { canEdit: true, strictActivationAllowed: true },
+        },
+      },
+    };
+    expect(shiftPresenceManagementResultSchema.safeParse(result).success).toBe(
+      true,
+    );
+    expect(
+      shiftPresenceManagementResultSchema.safeParse({
+        ...result,
+        canonical: {
+          ...result.canonical,
+          value: {
+            ...result.canonical.value,
+            capabilities: {
+              canEdit: true,
+              strictActivationAllowed: false,
+            },
+          },
+        },
+      }).success,
+    ).toBe(true);
   });
   it("rejects raw request material, untyped effects and generic absent states", () => {
     for (const result of [

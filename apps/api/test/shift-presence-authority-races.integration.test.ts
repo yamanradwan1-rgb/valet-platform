@@ -14,7 +14,6 @@ import {
 const db = new PresenceServerTestContext("presence-authority-races");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 afterEach(() => abortPresenceCommitBarriers());

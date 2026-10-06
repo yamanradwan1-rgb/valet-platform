@@ -14,12 +14,11 @@ import {
 const db = new PresenceServerTestContext("presence-readiness-races");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 afterEach(() => abortPresenceCommitBarriers());
 
-describe("R04/R05 fanout, phantoms and release-closed readiness", () => {
+describe("R04/R05 fanout, phantoms and strict readiness", () => {
   it.each(["COMMIT", "ROLLBACK", "UNKNOWN"] as const)(
     "R04 disabling last zone vs strict Company entry, zone %s",
     async (outcome) => {
@@ -56,15 +55,19 @@ describe("R04/R05 fanout, phantoms and release-closed readiness", () => {
       await observePresenceCommandWait(db);
       gate.finish(outcome);
       await first;
-      expect(await strict).toMatchObject({
-        code:
-          outcome === "ROLLBACK"
-            ? "PRESENCE_STRICT_ROLLOUT_CLOSED"
-            : "PRESENCE_NOT_READY",
-      });
+      const strictResult = await strict;
+      if (outcome === "ROLLBACK")
+        expect(strictResult.policy).toMatchObject({
+          startMode: "REQUIRE",
+          revision: 2,
+        });
+      else expect(strictResult).toMatchObject({ code: "PRESENCE_NOT_READY" });
       expect(
         (await db.management.company(m.context, m.companyTarget)).policy,
-      ).toMatchObject({ startMode: "OFF", revision: 1 });
+      ).toMatchObject({
+        startMode: outcome === "ROLLBACK" ? "REQUIRE" : "OFF",
+        revision: outcome === "ROLLBACK" ? 2 : 1,
+      });
       expect(
         (await db.management.zone(m.context, m.target, id)).zone,
       ).toMatchObject({
@@ -77,7 +80,7 @@ describe("R04/R05 fanout, phantoms and release-closed readiness", () => {
           f.organizationId,
           "SHIFT_PRESENCE_COMPANY_POLICY_CHANGED",
         ),
-      ).toBe(0);
+      ).toBe(outcome === "ROLLBACK" ? 1 : 0);
     },
   );
   it.each(["COMMIT", "ROLLBACK", "UNKNOWN"] as const)(
@@ -109,12 +112,13 @@ describe("R04/R05 fanout, phantoms and release-closed readiness", () => {
       await observePresenceCommandWait(db);
       gate.finish(outcome);
       await first;
-      expect(await strict).toMatchObject({
-        code:
-          outcome === "ROLLBACK"
-            ? "PRESENCE_STRICT_ROLLOUT_CLOSED"
-            : "PRESENCE_NOT_READY",
-      });
+      const strictResult = await strict;
+      if (outcome === "ROLLBACK")
+        expect(strictResult.policy).toMatchObject({
+          startMode: "REQUIRE",
+          revision: 2,
+        });
+      else expect(strictResult).toMatchObject({ code: "PRESENCE_NOT_READY" });
       expect(
         (
           await db.adminPool.query(
@@ -124,9 +128,11 @@ describe("R04/R05 fanout, phantoms and release-closed readiness", () => {
         ).rows[0].count,
       ).toBe(outcome === "ROLLBACK" ? 1 : 2);
       expect(
-        (await db.management.company(m.context, m.companyTarget)).policy
-          .revision,
-      ).toBe(1);
+        (await db.management.company(m.context, m.companyTarget)).policy,
+      ).toMatchObject({
+        startMode: outcome === "ROLLBACK" ? "REQUIRE" : "OFF",
+        revision: outcome === "ROLLBACK" ? 2 : 1,
+      });
       expect(
         await mutationAuditCount(db, f.organizationId, "LOCATION_CREATED"),
       ).toBe(outcome === "ROLLBACK" ? 0 : 1);
@@ -136,7 +142,7 @@ describe("R04/R05 fanout, phantoms and release-closed readiness", () => {
           f.organizationId,
           "SHIFT_PRESENCE_COMPANY_POLICY_CHANGED",
         ),
-      ).toBe(0);
+      ).toBe(outcome === "ROLLBACK" ? 1 : 0);
     },
   );
   it.each(["COMMIT", "ROLLBACK", "UNKNOWN"] as const)(

@@ -120,7 +120,7 @@ export const shiftPresenceReadinessSchema = z
   .object({
     applicability: z.enum(["NOT_APPLICABLE", "WARNING", "STRICT"]),
     configurationUsable: z.boolean(),
-    strictActivationAllowed: z.literal(false),
+    strictActivationAllowed: z.boolean(),
     activeZoneCount: z.number().int().nonnegative(),
     blockers: z.array(
       z.enum([
@@ -143,7 +143,7 @@ export const shiftPresenceCompanyResponseSchema = z
     capabilities: z
       .object({
         canEdit: z.boolean(),
-        strictActivationAllowed: z.literal(false),
+        strictActivationAllowed: z.boolean(),
       })
       .strict(),
   })

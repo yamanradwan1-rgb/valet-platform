@@ -141,11 +141,7 @@ export async function writePresenceZone(
     configurationFingerprint: configuration.fingerprint,
     observedAt: clock.rows[0]!.now.toISOString(),
   });
-  requirePresenceResultReady(
-    configuration.policy,
-    ready.configurationUsable,
-    false,
-  );
+  requirePresenceResultReady(configuration.policy, ready.configurationUsable);
   await requireMfaAssuranceInTransaction(transaction, context, {
     sensitive: true,
   });

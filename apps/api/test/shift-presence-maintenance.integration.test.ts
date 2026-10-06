@@ -9,7 +9,6 @@ import { presenceTransaction } from "./shift-presence-test-helpers";
 const db = new PresenceServerTestContext("presence-maintenance");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 

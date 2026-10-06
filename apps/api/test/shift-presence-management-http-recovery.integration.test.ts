@@ -9,7 +9,6 @@ const db = new PresenceServerTestContext("presence-management-http-recovery");
 let http: Awaited<ReturnType<typeof presenceHttp>>;
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
   http = await presenceHttp(db);
 }, 120_000);
 afterAll(async () => {

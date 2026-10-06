@@ -157,6 +157,17 @@ export class PresenceFixture {
         return { body: this.company };
       }
       const clear = path.endsWith("/clear");
+      const effective = {
+        ...this.policy.effective,
+        [keys[0]]: clear ? this.policy.company[keys[0]] : body.value,
+      };
+      const modes = [effective.startMode, effective.endMode];
+      const strict = modes.some(
+        (mode) => mode === "REQUIRE" || mode === "REQUIRE_OR_OVERRIDE",
+      );
+      const activeZoneCount = this.zones.filter(
+        (zone) => zone.state === "ACTIVE",
+      ).length;
       this.policy = {
         ...this.policy,
         overrides: {
@@ -164,12 +175,17 @@ export class PresenceFixture {
           [keys[1]]: clear ? null : body.value,
           revision: this.policy.overrides.revision + 1,
         },
-        effective: {
-          ...this.policy.effective,
-          [keys[0]]: clear ? this.policy.company[keys[0]] : body.value,
-        },
+        effective,
         readiness: {
           ...this.policy.readiness,
+          applicability: strict
+            ? "STRICT"
+            : modes.includes("WARN_ONLY")
+              ? "WARNING"
+              : "NOT_APPLICABLE",
+          configurationUsable: activeZoneCount > 0,
+          activeZoneCount,
+          blockers: activeZoneCount > 0 ? [] : ["NO_USABLE_ATTENDANCE_ZONE"],
           locationRevision: this.policy.overrides.revision + 1,
           configurationFingerprint: "b".repeat(64),
         },

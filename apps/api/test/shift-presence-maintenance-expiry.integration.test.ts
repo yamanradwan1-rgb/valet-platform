@@ -6,7 +6,6 @@ import { presenceTransaction } from "./shift-presence-test-helpers";
 const db = new PresenceServerTestContext("presence-maintenance-expiry");
 beforeAll(async () => {
   await db.setup();
-  await db.permitStrictFixtures();
 }, 120_000);
 afterAll(() => db.teardown(), 60_000);
 const maintain = async (limit = 1000) =>
