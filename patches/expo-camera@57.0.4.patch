@@ -29,10 +29,10 @@ index 21382f81b3f42889193c6583a5439690a39f2a64..c613a9bd14651ae0057ecf3b635435d3
          return@AsyncFunction view.getAvailablePictureSizes()
        }
 diff --git a/android/src/main/java/expo/modules/camera/ExpoCameraView.kt b/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
-index 999a22c6a679042e144acb6caa764c9929103966..2139cfb17fd35592d7d9e6ef58318e5e622711ce 100644
+index 999a22c6a679042e144acb6caa764c9929103966..82796cdda09982c8101433e09ffececfc7805179 100644
 --- a/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
 +++ b/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
-@@ -278,11 +278,22 @@ class ExpoCameraView(
+@@ -278,11 +278,35 @@ class ExpoCameraView(
      addView(previewView, 0)
    }
  
@@ -44,30 +44,60 @@ index 999a22c6a679042e144acb6caa764c9929103966..2139cfb17fd35592d7d9e6ef58318e5e
      val volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
      val hasShutterSound = options.shutterSound
  
-+    val roiPreview = if (options.plateRoiMetadata != null && lensFacing == CameraType.BACK)
-+      PlateRoiPreview.snapshot(previewView) else null
++    val roiRequested = options.plateRoiMetadata != null
++    if (roiRequested && lensFacing != CameraType.BACK) {
++      promise.reject(PlateRoiFailure.REAR_CAMERA_MISMATCH.code, "Plate ROI metadata unavailable", null)
++      return
++    }
++    if (roiRequested && (options.fastMode || options.skipProcessing || options.pictureRef || options.exif ||
++        options.additionalExif != null)) {
++      promise.reject(PlateRoiFailure.PROCESSING_GUARD_REJECTED.code, "Plate ROI metadata unavailable", null)
++      return
++    }
++    val roiPreview = if (roiRequested) PlateRoiPreview.snapshot(previewView) else null
 +    val roiCamera = camera
 +    val roiCapture = imageCaptureUseCase
-+    if (options.plateRoiMetadata != null && (roiPreview == null || roiCapture == null)) {
-+      promise.reject(CameraExceptions.ImageCaptureFailed())
++    if (roiRequested && roiPreview == null) {
++      promise.reject(PlateRoiFailure.PREVIEW_METADATA_MISSING.code, "Plate ROI metadata unavailable", null)
++      return
++    }
++    if (roiRequested && roiCapture == null) {
++      promise.reject(PlateRoiFailure.CAPTURE_USE_CASE_MISSING.code, "Plate ROI metadata unavailable", null)
 +      return
 +    }
      imageCaptureUseCase?.takePicture(
        ContextCompat.getMainExecutor(context),
        object : ImageCapture.OnImageCapturedCallback() {
-@@ -303,6 +314,11 @@ class ExpoCameraView(
+@@ -303,6 +327,28 @@ class ExpoCameraView(
          }
  
          override fun onCaptureSuccess(image: ImageProxy) {
 +          val roi = options.plateRoiMetadata?.let { request ->
-+            if (roiCamera === camera && roiCapture === imageCaptureUseCase &&
-+              roiPreview?.matches(PlateRoiPreview.snapshot(previewView)) == true)
-+              roiPreview.capture(image, request) else null
++            val currentPreview = PlateRoiPreview.snapshot(previewView)
++            val failure = when {
++              roiCamera !== camera -> PlateRoiFailure.CAMERA_CHANGED
++              roiCapture !== imageCaptureUseCase -> PlateRoiFailure.CAPTURE_USE_CASE_CHANGED
++              currentPreview == null -> PlateRoiFailure.PREVIEW_METADATA_MISSING
++              roiPreview?.matches(currentPreview) != true -> PlateRoiFailure.PREVIEW_CHANGED
++              else -> null
++            }
++            if (failure != null) {
++              image.close()
++              promise.reject(failure.code, "Plate ROI metadata unavailable", null)
++              return
++            }
++            val captured = roiPreview!!.capture(image, request)
++            if (captured.failure != null) {
++              image.close()
++              promise.reject(captured.failure.code, "Plate ROI metadata unavailable", null)
++              return
++            }
++            captured.metadata
 +          }
            val data = image.planes.toByteArray()
  
            if (options.fastMode) {
-@@ -312,7 +328,7 @@ class ExpoCameraView(
+@@ -312,7 +358,7 @@ class ExpoCameraView(
            cacheDirectory.let {
              scope.launch {
                val shouldMirror = mirror && lensFacing == CameraType.FRONT
@@ -92,10 +122,10 @@ index 21ade0761ce67de7786c21a53bbdef8a430c9fd5..011e1748c79b1874f05c83e2ea50c00c
  @OptimizedRecord
 diff --git a/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt b/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt
 new file mode 100644
-index 0000000000000000000000000000000000000000..cfc77b5c88a810ab8340652e03adf5a4173700fe
+index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b54ff3891
 --- /dev/null
 +++ b/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,150 @@
 +package expo.modules.camera
 +
 +import android.graphics.Matrix
@@ -112,6 +142,33 @@ index 0000000000000000000000000000000000000000..cfc77b5c88a810ab8340652e03adf5a4
 +  @Field val revision: Int = 0
 +) : Record
 +
++enum class PlateRoiFailure(val code: String) {
++  REAR_CAMERA_MISMATCH("OCR_CAPTURE_METADATA_REAR_CAMERA_MISMATCH"),
++  PREVIEW_METADATA_MISSING("OCR_CAPTURE_METADATA_PREVIEW_METADATA_MISSING"),
++  CAPTURE_USE_CASE_MISSING("OCR_CAPTURE_METADATA_CAPTURE_USE_CASE_MISSING"),
++  CAMERA_CHANGED("OCR_CAPTURE_METADATA_CAMERA_CHANGED"),
++  CAPTURE_USE_CASE_CHANGED("OCR_CAPTURE_METADATA_CAPTURE_USE_CASE_CHANGED"),
++  PREVIEW_CHANGED("OCR_CAPTURE_METADATA_PREVIEW_CHANGED"),
++  PREVIEW_TO_BUFFER_INVALID("OCR_CAPTURE_METADATA_PREVIEW_TO_BUFFER_INVALID"),
++  PROCESSING_GUARD_REJECTED("OCR_CAPTURE_METADATA_PROCESSING_GUARD_REJECTED"),
++  RAW_SIZE_MISMATCH("OCR_CAPTURE_METADATA_RAW_SIZE_MISMATCH"),
++  ROTATION_MISMATCH("OCR_CAPTURE_METADATA_ROTATION_MISMATCH"),
++  OUTPUT_SIZE_MISMATCH("OCR_CAPTURE_METADATA_OUTPUT_SIZE_MISMATCH"),
++  PROCESSED_MATRIX_INVALID("OCR_CAPTURE_METADATA_PROCESSED_MATRIX_INVALID"),
++  PROCESSING_OOM("OCR_CAPTURE_METADATA_PROCESSING_OOM"),
++  CAPTURE_METADATA_MISSING("OCR_CAPTURE_METADATA_CAPTURE_METADATA_MISSING")
++}
++
++data class PlateRoiCaptureResult(
++  val metadata: PlateRoiMetadata? = null,
++  val failure: PlateRoiFailure? = null
++)
++
++data class PlateRoiProcessedResult(
++  val metadata: Bundle? = null,
++  val failure: PlateRoiFailure? = null
++)
++
 +class PlateRoiPreview private constructor(
 +  val width: Int,
 +  val height: Int,
@@ -127,16 +184,20 @@ index 0000000000000000000000000000000000000000..cfc77b5c88a810ab8340652e03adf5a4
 +    putDoubleArray("sensorToView", values(sensorToView).map { it.toDouble() }.toDoubleArray())
 +  }
 +
-+  fun capture(image: ImageProxy, request: PlateRoiRequest): PlateRoiMetadata? {
++  fun capture(image: ImageProxy, request: PlateRoiRequest): PlateRoiCaptureResult {
 +    val inverse = Matrix()
-+    if (!sensorToView.invert(inverse)) return null
++    if (!sensorToView.invert(inverse))
++      return PlateRoiCaptureResult(failure = PlateRoiFailure.PREVIEW_TO_BUFFER_INVALID)
 +    val previewToBuffer = Matrix().apply {
 +      setConcat(image.imageInfo.sensorToBufferTransformMatrix, inverse)
 +    }
-+    if (!valid(previewToBuffer)) return null
-+    return PlateRoiMetadata(
-+      request, width, height, image.width, image.height,
-+      image.imageInfo.rotationDegrees, previewToBuffer
++    if (!valid(previewToBuffer))
++      return PlateRoiCaptureResult(failure = PlateRoiFailure.PREVIEW_TO_BUFFER_INVALID)
++    return PlateRoiCaptureResult(
++      metadata = PlateRoiMetadata(
++        request, width, height, image.width, image.height,
++        image.imageInfo.rotationDegrees, previewToBuffer
++      )
 +    )
 +  }
 +
@@ -171,48 +232,64 @@ index 0000000000000000000000000000000000000000..cfc77b5c88a810ab8340652e03adf5a4
 +  fun processed(
 +    rawWidth: Int, rawHeight: Int, appliedRotation: Int,
 +    outputWidth: Int, outputHeight: Int
-+  ): Bundle? {
-+    if (!processingValid || rawWidth != bufferWidth || rawHeight != bufferHeight ||
-+      appliedRotation != rotation || bufferWidth <= 0 || bufferHeight <= 0) return null
++  ): Bundle? = processedResult(
++    rawWidth, rawHeight, appliedRotation, outputWidth, outputHeight
++  ).metadata
++
++  fun processedResult(
++    rawWidth: Int, rawHeight: Int, appliedRotation: Int,
++    outputWidth: Int, outputHeight: Int
++  ): PlateRoiProcessedResult {
++    if (!processingValid)
++      return PlateRoiProcessedResult(failure = PlateRoiFailure.PROCESSING_OOM)
++    if (rawWidth != bufferWidth || rawHeight != bufferHeight || bufferWidth <= 0 || bufferHeight <= 0)
++      return PlateRoiProcessedResult(failure = PlateRoiFailure.RAW_SIZE_MISMATCH)
++    if (appliedRotation != rotation)
++      return PlateRoiProcessedResult(failure = PlateRoiFailure.ROTATION_MISMATCH)
 +    val quarterTurn = rotation == 90 || rotation == 270
 +    val expectedWidth = if (quarterTurn) bufferHeight else bufferWidth
 +    val expectedHeight = if (quarterTurn) bufferWidth else bufferHeight
-+    if (outputWidth != expectedWidth || outputHeight != expectedHeight) return null
++    if (outputWidth != expectedWidth || outputHeight != expectedHeight)
++      return PlateRoiProcessedResult(failure = PlateRoiFailure.OUTPUT_SIZE_MISMATCH)
 +    val rotationValues = when (rotation) {
 +      0 -> floatArrayOf(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
 +      90 -> floatArrayOf(0f, -1f, bufferHeight.toFloat(), 1f, 0f, 0f, 0f, 0f, 1f)
 +      180 -> floatArrayOf(-1f, 0f, bufferWidth.toFloat(), 0f, -1f, bufferHeight.toFloat(), 0f, 0f, 1f)
 +      270 -> floatArrayOf(0f, 1f, 0f, -1f, 0f, bufferWidth.toFloat(), 0f, 0f, 1f)
-+      else -> return null
++      else -> return PlateRoiProcessedResult(failure = PlateRoiFailure.ROTATION_MISMATCH)
 +    }
 +    val upright = Matrix().apply { setValues(rotationValues) }
 +    val mapping = Matrix().apply { setConcat(upright, previewToBuffer) }
-+    if (!PlateRoiPreview.valid(mapping)) return null
-+    return Bundle().apply {
-+      putInt("generation", request.generation)
-+      putInt("mountId", request.mountId)
-+      putInt("revision", request.revision)
-+      putInt("previewWidth", previewWidth)
-+      putInt("previewHeight", previewHeight)
-+      putInt("imageWidth", outputWidth)
-+      putInt("imageHeight", outputHeight)
-+      putDoubleArray("previewToImage", PlateRoiPreview.values(mapping).map { it.toDouble() }.toDoubleArray())
-+    }
++    if (!PlateRoiPreview.valid(mapping))
++      return PlateRoiProcessedResult(failure = PlateRoiFailure.PROCESSED_MATRIX_INVALID)
++    return PlateRoiProcessedResult(
++      metadata = Bundle().apply {
++        putInt("generation", request.generation)
++        putInt("mountId", request.mountId)
++        putInt("revision", request.revision)
++        putInt("previewWidth", previewWidth)
++        putInt("previewHeight", previewHeight)
++        putInt("imageWidth", outputWidth)
++        putInt("imageHeight", outputHeight)
++        putDoubleArray("previewToImage", PlateRoiPreview.values(mapping).map { it.toDouble() }.toDoubleArray())
++      }
++    )
 +  }
 +}
 diff --git a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
-index 212b0ef19add03308e864d75ae7ca0adc52d0a27..65446e5ff9fded1a6c800e6a1c256c6bbe5ab228 100644
+index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0959f0487 100644
 --- a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
 +++ b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
-@@ -12,6 +12,7 @@ import expo.modules.camera.CameraExceptions.WriteImageException
+@@ -12,6 +12,8 @@ import expo.modules.camera.CameraExceptions.WriteImageException
  import expo.modules.camera.PictureFormat
  import expo.modules.camera.PictureOptions
  import expo.modules.camera.PictureRef
 +import expo.modules.camera.PlateRoiMetadata
++import expo.modules.camera.PlateRoiFailure
  import expo.modules.camera.utils.CameraViewHelper.addExifData
  import expo.modules.camera.utils.CameraViewHelper.getExifData
  import expo.modules.camera.utils.CameraViewHelper.setExifData
-@@ -64,6 +65,7 @@ class ResolveTakenPicture(
+@@ -64,6 +66,7 @@ class ResolveTakenPicture(
    private var mirror: Boolean,
    private val runtimeContext: RuntimeContext,
    private val directory: File,
@@ -220,24 +297,45 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..65446e5ff9fded1a6c800e6a1c256c6b
    private var pictureSavedDelegate: PictureSavedDelegate
  ) {
    private val quality: Int
-@@ -127,6 +129,16 @@ class ResolveTakenPicture(
+@@ -127,6 +130,37 @@ class ResolveTakenPicture(
            return null
          }
  
-+        if (options.plateRoiMetadata != null && !options.exif && !mirror &&
-+          options.additionalExif == null && bitmapOptions.inSampleSize == 1 &&
-+          orientation in listOf(ExifInterface.ORIENTATION_NORMAL, ExifInterface.ORIENTATION_ROTATE_90,
-+            ExifInterface.ORIENTATION_ROTATE_180, ExifInterface.ORIENTATION_ROTATE_270)) {
++        if (options.plateRoiMetadata != null) {
++          val supportedOrientation = orientation in listOf(
++            ExifInterface.ORIENTATION_NORMAL, ExifInterface.ORIENTATION_ROTATE_90,
++            ExifInterface.ORIENTATION_ROTATE_180, ExifInterface.ORIENTATION_ROTATE_270
++          )
++          val preconditionFailure = when {
++            options.exif || mirror || options.additionalExif != null -> PlateRoiFailure.PROCESSING_GUARD_REJECTED
++            bitmapOptions.inSampleSize != 1 -> PlateRoiFailure.PROCESSING_OOM
++            !supportedOrientation -> PlateRoiFailure.ROTATION_MISMATCH
++            plateRoiMetadata == null -> PlateRoiFailure.CAPTURE_METADATA_MISSING
++            else -> null
++          }
++          if (preconditionFailure != null) {
++            bitmap.recycle()
++            promise.reject(preconditionFailure.code, "Plate ROI metadata unavailable", null)
++            return null
++          }
 +          val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
 +          BitmapFactory.decodeByteArray(imageData, 0, imageData.size, bounds)
-+          plateRoiMetadata?.processed(bounds.outWidth, bounds.outHeight, getImageRotation(orientation),
-+            bitmap.width, bitmap.height)?.let { response.putBundle("plateRoiMetadata", it) }
++          val processed = plateRoiMetadata!!.processedResult(
++            bounds.outWidth, bounds.outHeight, getImageRotation(orientation), bitmap.width, bitmap.height
++          )
++          if (processed.failure != null || processed.metadata == null) {
++            bitmap.recycle()
++            val failure = processed.failure ?: PlateRoiFailure.CAPTURE_METADATA_MISSING
++            promise.reject(failure.code, "Plate ROI metadata unavailable", null)
++            return null
++          }
++          response.putBundle("plateRoiMetadata", processed.metadata)
 +        }
 +
          // Write Exif data to the response if requested
          if (options.exif) {
            val exifData = getExifData(exifInterface)
-@@ -176,7 +188,7 @@ class ResolveTakenPicture(
+@@ -176,7 +210,7 @@ class ResolveTakenPicture(
          is WriteImageException -> promise.reject(e)
          else -> promise.reject(ERROR_TAG, UNKNOWN_EXCEPTION_MSG, e)
        }
@@ -246,7 +344,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..65446e5ff9fded1a6c800e6a1c256c6b
      }
      // An exception had to occur, promise has already been rejected. Do not try to resolve it again.
      return null
-@@ -215,10 +227,10 @@ class ResolveTakenPicture(
+@@ -215,10 +249,10 @@ class ResolveTakenPicture(
        }
      } catch (e: IOException) {
        promise.reject(ERROR_TAG, UNKNOWN_IO_EXCEPTION_MSG, e)
@@ -259,7 +357,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..65446e5ff9fded1a6c800e6a1c256c6b
      }
      // error occurred
      return null
-@@ -271,6 +283,7 @@ class ResolveTakenPicture(
+@@ -271,6 +305,7 @@ class ResolveTakenPicture(
        }
        transformed
      } catch (e: OutOfMemoryError) {
@@ -269,10 +367,10 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..65446e5ff9fded1a6c800e6a1c256c6b
    }
 diff --git a/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt b/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt
 new file mode 100644
-index 0000000000000000000000000000000000000000..2962b1db701fe5eb148740fe63c7c56b63bd9540
+index 0000000000000000000000000000000000000000..dd5fcdb58ad81c374762bc32616cb2371db8b18f
 --- /dev/null
 +++ b/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,127 @@
 +package expo.modules.camera
 +
 +import android.graphics.Matrix
@@ -322,6 +420,19 @@ index 0000000000000000000000000000000000000000..2962b1db701fe5eb148740fe63c7c56b
 +    assertNull(failed.processed(1000, 800, 180, 1000, 800))
 +  }
 +
++  @Test fun reportsBoundedProcessingFailureReasons() {
++    assertEquals(PlateRoiFailure.RAW_SIZE_MISMATCH,
++      metadata().processedResult(999, 800, 0, 1000, 800).failure)
++    assertEquals(PlateRoiFailure.ROTATION_MISMATCH,
++      metadata(90).processedResult(1000, 800, 0, 800, 1000).failure)
++    assertEquals(PlateRoiFailure.OUTPUT_SIZE_MISMATCH,
++      metadata(90).processedResult(1000, 800, 90, 1000, 800).failure)
++    val failed = metadata(180)
++    failed.rejectProcessing()
++    assertEquals(PlateRoiFailure.PROCESSING_OOM,
++      failed.processedResult(1000, 800, 180, 1000, 800).failure)
++  }
++
 +  @Test fun singularOrNonFiniteMatricesAreRejected() {
 +    assertFalse(PlateRoiPreview.valid(Matrix().apply { setScale(0f, 1f) }))
 +    assertFalse(PlateRoiPreview.valid(Matrix().apply { setScale(Float.NaN, 1f) }))
@@ -356,8 +467,9 @@ index 0000000000000000000000000000000000000000..2962b1db701fe5eb148740fe63c7c56b
 +        else -> error("Unexpected image-buffer access")
 +      }
 +    } as ImageProxy
-+    val result = preview.capture(image, PlateRoiRequest(5, 7, 9))!!
-+      .processed(1000, 800, 0, 1000, 800)!!
++    val captured = preview.capture(image, PlateRoiRequest(5, 7, 9))
++    assertNull(captured.failure)
++    val result = captured.metadata!!.processed(1000, 800, 0, 1000, 800)!!
 +    val matrix = Matrix().apply {
 +      setValues(result.getDoubleArray("previewToImage")!!.map { it.toFloat() }.toFloatArray())
 +    }
@@ -368,6 +480,21 @@ index 0000000000000000000000000000000000000000..2962b1db701fe5eb148740fe63c7c56b
 +    assertFalse(preview.matches(constructor.newInstance(361, 260, sensorToView)))
 +    assertFalse(preview.matches(constructor.newInstance(360, 260, sensorToBuffer)))
 +    assertFalse(preview.matches(null))
++  }
++
++  @Test fun previewMatchingUsesExactFloatContent() {
++    val constructor = PlateRoiPreview::class.java.getDeclaredConstructor(
++      Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Matrix::class.java
++    ).apply { isAccessible = true }
++    val baseline = Matrix().apply { setScale(1f, 1f) }
++    val changed = Matrix(baseline).apply {
++      val values = PlateRoiPreview.values(this)
++      values[2] = Math.nextUp(values[2])
++      setValues(values)
++    }
++    val first = constructor.newInstance(360, 260, baseline)
++    val second = constructor.newInstance(360, 260, changed)
++    assertFalse(first.matches(second))
 +  }
 +
 +}

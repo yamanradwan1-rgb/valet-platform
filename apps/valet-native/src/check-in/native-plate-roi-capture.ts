@@ -17,8 +17,20 @@ import {
 } from "./native-plate-capture-policy";
 
 import type { NativePlateCameraTrace } from "./native-plate-camera-trace";
+import {
+  nativePlateRoiFailureReason,
+  PlateRoiCaptureDiagnosticError,
+  type PlateRoiCaptureFailureReason,
+} from "./native-plate-roi-failure";
 
-export class CameraCaptureFailure extends Error {}
+export class CameraCaptureFailure extends PlateRoiCaptureDiagnosticError {
+  constructor(
+    reason: PlateRoiCaptureFailureReason = "NATIVE_CAPTURE_FAILED",
+  ) {
+    super(reason);
+    this.name = "CameraCaptureFailure";
+  }
+}
 
 export interface PlateRoiCapturePorts {
   readonly camera: CameraView;
@@ -84,7 +96,7 @@ export async function capturePlateRoi(
         current: ports.current(),
         aborted: signal.aborted,
       });
-    } catch {
+    } catch (error) {
       ports.trace?.record("native-capture-failure", {
         ...owner,
         current: ports.current(),
@@ -93,7 +105,9 @@ export async function capturePlateRoi(
       });
       assertCurrent();
       logNativePlateOcr("capture-exception");
-      throw new CameraCaptureFailure();
+      throw new CameraCaptureFailure(
+        nativePlateRoiFailureReason(error) ?? "NATIVE_CAPTURE_FAILED",
+      );
     }
     if (!picture?.uri) {
       logNativePlateOcr("primary-capture-no-uri");
@@ -104,10 +118,18 @@ export async function capturePlateRoi(
     logNativePlateOcr("primary-capture-success");
     const metadata = readPlateCaptureMetadata(picture);
     if (
+      metadata.generation !== ports.geometry.generation ||
+      metadata.mountId !== ports.geometry.mountId ||
+      metadata.revision !== ports.geometry.revision
+    )
+      throw new PlateRoiCaptureDiagnosticError(
+        "CAPTURE_METADATA_IDENTITY_MISMATCH",
+      );
+    if (
       metadata.previewWidth !== ports.preview.width ||
       metadata.previewHeight !== ports.preview.height
     )
-      throw new Error("Plate mapping expired.");
+      throw new PlateRoiCaptureDiagnosticError("PREVIEW_SIZE_MISMATCH");
     const crop = plateRoiCrop(ports.geometry, metadata, picture);
     logNativePlateOcr("roi-mapped", {
       width: picture.width,
@@ -177,7 +199,7 @@ export async function capturePlateRoi(
       logNativePlateOcr("capture-aborted");
     else logNativePlateOcr("roi-unavailable");
     failure =
-      error instanceof CameraCaptureFailure
+      error instanceof PlateRoiCaptureDiagnosticError
         ? error
         : new Error("Automatic plate reading is unavailable.");
   }

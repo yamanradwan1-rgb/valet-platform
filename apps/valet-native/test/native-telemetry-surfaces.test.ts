@@ -241,6 +241,7 @@ describe("Native OCR telemetry mapping", () => {
     recordNativePlateOcrTelemetry("UNAVAILABLE");
     recordNativePlateOcrTelemetry("aborted");
     recordNativePlateOcrTelemetry("capture-unavailable");
+    recordNativePlateOcrTelemetry("capture-unavailable", "PREVIEW_CHANGED");
     expect(recorded()).toEqual([
       { classification: "match", outcome: "success", source: "ocr" },
       { classification: "no-match", outcome: "success", source: "ocr" },
@@ -252,6 +253,12 @@ describe("Native OCR telemetry mapping", () => {
       { classification: "aborted", outcome: "error", source: "ocr" },
       {
         classification: "capture-unavailable",
+        outcome: "error",
+        source: "ocr",
+      },
+      {
+        classification: "capture-unavailable",
+        errorCode: "OCR_CAPTURE_METADATA_PREVIEW_CHANGED",
         outcome: "error",
         source: "ocr",
       },

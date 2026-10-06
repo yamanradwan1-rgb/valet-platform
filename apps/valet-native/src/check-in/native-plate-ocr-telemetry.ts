@@ -14,6 +14,10 @@ import {
 } from "@valet/employee-client";
 
 import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
+import {
+  plateRoiCaptureDiagnosticCode,
+  type PlateRoiCaptureFailureReason,
+} from "./native-plate-roi-failure";
 
 /** Loop-internal transitions that are not provider statuses. */
 export type NativeOcrTelemetryTransition = "aborted" | "capture-unavailable";
@@ -38,8 +42,9 @@ const OCR_CLASSIFICATIONS: Readonly<Record<NativeOcrTelemetryOutcome, string>> =
  */
 export function recordNativePlateOcrTelemetry(
   outcome: NativeOcrTelemetryOutcome,
+  captureFailureReason?: PlateRoiCaptureFailureReason,
 ): void {
-  const event = mapNativePlateOcrEvent(outcome);
+  const event = mapNativePlateOcrEvent(outcome, captureFailureReason);
   if (event === undefined) return;
   getNativeTelemetry().record(event);
 }
@@ -47,6 +52,7 @@ export function recordNativePlateOcrTelemetry(
 /** Pure mapper: discriminator -> sanitized event, or undefined when unknown. */
 export function mapNativePlateOcrEvent(
   outcome: NativeOcrTelemetryOutcome,
+  captureFailureReason?: PlateRoiCaptureFailureReason,
 ): EmployeeTelemetryEvent | undefined {
   const classification = OCR_CLASSIFICATIONS[outcome];
   if (classification === undefined) return undefined;
@@ -56,5 +62,9 @@ export function mapNativePlateOcrEvent(
     outcome:
       outcome === "MATCH" || outcome === "NO_MATCH" ? "success" : "error",
     source: "ocr",
+    errorCode:
+      outcome === "capture-unavailable" && captureFailureReason !== undefined
+        ? plateRoiCaptureDiagnosticCode(captureFailureReason)
+        : undefined,
   });
 }

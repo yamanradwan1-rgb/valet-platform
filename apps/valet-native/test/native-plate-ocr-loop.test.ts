@@ -119,6 +119,16 @@ describe("DEC-074 automatic bounded Native OCR invariant", () => {
     expect(c.controller.current().phase).toBe("unavailable");
   });
 
+  it("a capture failure dispatches no recognition and creates no retry", async () => {
+    const c = setup();
+    c.capture.mockRejectedValueOnce(new Error("capture failed"));
+    await c.open();
+    await vi.advanceTimersByTimeAsync(NATIVE_PLATE_OCR_INTERVAL_MS * 10);
+    expect(c.capture).toHaveBeenCalledOnce();
+    expect(c.recognize).not.toHaveBeenCalled();
+    expect(c.controller.current().phase).toBe("unavailable");
+  });
+
   it("close cancels a pending timer", async () => {
     const c = setup();
     await c.open();

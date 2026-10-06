@@ -1,6 +1,7 @@
 import type { PlateOcrResponse } from "@valet/employee-client";
 import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 import { recordNativePlateOcrTelemetry } from "./native-plate-ocr-telemetry";
+import { plateRoiCaptureFailureReason } from "./native-plate-roi-failure";
 import type {
   NativePlateCameraTrace,
   PlateCameraTraceDetails,
@@ -107,6 +108,7 @@ export class NativePlateOcrLoop {
     this.trace?.record("capture-start", operation.owner);
     this.operation = operation;
     let result: PlateOcrResponse = { status: "UNAVAILABLE" };
+    let captureChainFailed = false;
     try {
       operation.uri = await this.ports.capture(operation.abort.signal);
       this.trace?.record("capture-success", {
@@ -120,7 +122,7 @@ export class NativePlateOcrLoop {
           operation.abort.signal,
         );
       }
-    } catch {
+    } catch (error) {
       this.trace?.record("capture-failure", {
         ...operation.owner,
         current: this.current(generation),
@@ -129,7 +131,11 @@ export class NativePlateOcrLoop {
       // Telemetry: the capture/recognize chain itself failed before a
       // provider answer existed — that is a capture unavailability, not a
       // provider "UNAVAILABLE" answer.
-      recordNativePlateOcrTelemetry("capture-unavailable");
+      captureChainFailed = true;
+      recordNativePlateOcrTelemetry(
+        "capture-unavailable",
+        plateRoiCaptureFailureReason(error),
+      );
       result = { status: "UNAVAILABLE" };
     } finally {
       try {
@@ -159,7 +165,7 @@ export class NativePlateOcrLoop {
     logNativePlateOcr("loop-finish", { status: result.status });
     this.trace?.record("ocr-finished", operation.owner);
     // Production telemetry: the definitive provider answer for this loop.
-    recordNativePlateOcrTelemetry(result.status);
+    if (!captureChainFailed) recordNativePlateOcrTelemetry(result.status);
     this.finish(generation, result);
   }
 }

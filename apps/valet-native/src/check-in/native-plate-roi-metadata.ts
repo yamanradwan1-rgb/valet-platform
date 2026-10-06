@@ -3,6 +3,7 @@ import {
   validPlateMatrix,
   type PlateRoiMetadata,
 } from "./native-plate-roi-geometry";
+import { PlateRoiCaptureDiagnosticError } from "./native-plate-roi-failure";
 
 export interface PlatePreviewMetadata {
   readonly width: number;
@@ -36,15 +37,21 @@ export async function readPlatePreview(
 export function readPlateCaptureMetadata(picture: unknown): PlateRoiMetadata {
   const value = (picture as { plateRoiMetadata?: unknown })?.plateRoiMetadata;
   if (!value || typeof value !== "object")
-    throw new Error("Plate mapping unavailable.");
+    throw new PlateRoiCaptureDiagnosticError("CAPTURE_METADATA_MISSING");
   const data = value as PlateRoiMetadata;
   if (
     ![data.generation, data.mountId, data.revision].every(
       Number.isSafeInteger,
     ) ||
+    ![
+      data.previewWidth,
+      data.previewHeight,
+      data.imageWidth,
+      data.imageHeight,
+    ].every((dimension) => Number.isSafeInteger(dimension) && dimension > 0) ||
     !Array.isArray(data.previewToImage) ||
     !validPlateMatrix(data.previewToImage)
   )
-    throw new Error("Plate mapping unavailable.");
+    throw new PlateRoiCaptureDiagnosticError("CAPTURE_METADATA_INVALID");
   return data;
 }
