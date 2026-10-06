@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { EmployeeTelemetryEvent, PlateOcrResponse } from "@valet/employee-client";
+import type {
+  EmployeeTelemetryEvent,
+  PlateOcrResponse,
+} from "@valet/employee-client";
 import {
   NATIVE_PLATE_OCR_INTERVAL_MS,
   NATIVE_PLATE_OCR_MAX_ATTEMPTS,
@@ -17,6 +20,9 @@ const match: PlateOcrResponse = {
   status: "MATCH",
   candidate: { plateNumberRaw: "12-34567", confidence: 1 },
 };
+
+const detailedRotationCode =
+  "OCR_CAPTURE_METADATA_ROTATION_MISMATCH_SEQ_PR90_EO6_ET1_ER0_CX90_P4032x3024_J4032x3024_O4032x3024_RQ0_JQ1";
 
 function setup() {
   const telemetry = new BoundedTelemetryBuffer();
@@ -79,6 +85,69 @@ describe("Native OCR telemetry stage ownership", () => {
     ]);
   });
 
+  it("keeps a detailed rotation rejection in the capture stage and never calls recognize", async () => {
+    const c = setup();
+    c.capture.mockRejectedValueOnce(
+      new PlateRoiCaptureDiagnosticError(
+        "ROTATION_MISMATCH",
+        detailedRotationCode,
+      ),
+    );
+
+    await runOne(c.loop);
+
+    expect(c.recognize).not.toHaveBeenCalled();
+    expect(c.remove).not.toHaveBeenCalled();
+    expect(c.events()).toEqual([
+      {
+        classification: "capture-unavailable",
+        errorCode: detailedRotationCode,
+        outcome: "error",
+        source: "ocr",
+      },
+    ]);
+  });
+
+  it("falls back to the legacy rotation code when detailed data is malformed", async () => {
+    const c = setup();
+    c.capture.mockRejectedValueOnce(
+      new PlateRoiCaptureDiagnosticError(
+        "ROTATION_MISMATCH",
+        `${detailedRotationCode}_plate-secret`,
+      ),
+    );
+
+    await runOne(c.loop);
+
+    expect(c.recognize).not.toHaveBeenCalled();
+    expect(c.events()).toEqual([
+      {
+        classification: "capture-unavailable",
+        errorCode: "OCR_CAPTURE_METADATA_ROTATION_MISMATCH",
+        outcome: "error",
+        source: "ocr",
+      },
+    ]);
+  });
+
+  it("never reclassifies a post-capture failure carrying a rotation-looking code", async () => {
+    const c = setup();
+    c.recognize.mockRejectedValueOnce({ code: detailedRotationCode });
+
+    await runOne(c.loop);
+
+    expect(c.capture).toHaveBeenCalledOnce();
+    expect(c.recognize).toHaveBeenCalledOnce();
+    expect(c.remove).toHaveBeenCalledExactlyOnceWith("cache://cropped-roi.jpg");
+    expect(c.events()).toEqual([
+      {
+        classification: "provider-unavailable",
+        outcome: "error",
+        source: "ocr",
+      },
+    ]);
+  });
+
   it("records generic capture-unavailable without fabricating provider-unavailable", async () => {
     const c = setup();
     c.capture.mockRejectedValueOnce(new Error("camera failed"));
@@ -88,7 +157,11 @@ describe("Native OCR telemetry stage ownership", () => {
     expect(c.recognize).not.toHaveBeenCalled();
     expect(c.remove).not.toHaveBeenCalled();
     expect(c.events()).toEqual([
-      { classification: "capture-unavailable", outcome: "error", source: "ocr" },
+      {
+        classification: "capture-unavailable",
+        outcome: "error",
+        source: "ocr",
+      },
     ]);
   });
 
@@ -105,7 +178,11 @@ describe("Native OCR telemetry stage ownership", () => {
     );
     expect(c.remove).toHaveBeenCalledExactlyOnceWith("cache://cropped-roi.jpg");
     expect(c.events()).toEqual([
-      { classification: "provider-unavailable", outcome: "error", source: "ocr" },
+      {
+        classification: "provider-unavailable",
+        outcome: "error",
+        source: "ocr",
+      },
     ]);
   });
 
@@ -117,7 +194,11 @@ describe("Native OCR telemetry stage ownership", () => {
 
     expect(c.remove).toHaveBeenCalledExactlyOnceWith("cache://cropped-roi.jpg");
     expect(c.events()).toEqual([
-      { classification: "provider-unavailable", outcome: "error", source: "ocr" },
+      {
+        classification: "provider-unavailable",
+        outcome: "error",
+        source: "ocr",
+      },
     ]);
   });
 
@@ -135,8 +216,12 @@ describe("Native OCR telemetry stage ownership", () => {
     await vi.advanceTimersByTimeAsync(
       NATIVE_PLATE_OCR_INTERVAL_MS * NATIVE_PLATE_OCR_MAX_ATTEMPTS,
     );
-    expect(noMatch.capture).toHaveBeenCalledTimes(NATIVE_PLATE_OCR_MAX_ATTEMPTS);
-    expect(noMatch.recognize).toHaveBeenCalledTimes(NATIVE_PLATE_OCR_MAX_ATTEMPTS);
+    expect(noMatch.capture).toHaveBeenCalledTimes(
+      NATIVE_PLATE_OCR_MAX_ATTEMPTS,
+    );
+    expect(noMatch.recognize).toHaveBeenCalledTimes(
+      NATIVE_PLATE_OCR_MAX_ATTEMPTS,
+    );
     expect(noMatch.remove).toHaveBeenCalledTimes(NATIVE_PLATE_OCR_MAX_ATTEMPTS);
     expect(noMatch.events()).toEqual([
       { classification: "no-match", outcome: "success", source: "ocr" },

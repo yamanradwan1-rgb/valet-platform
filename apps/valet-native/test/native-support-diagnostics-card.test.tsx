@@ -36,6 +36,9 @@ const provenance = {
   platform: "android",
 } as const;
 
+const detailedRotationCode =
+  "OCR_CAPTURE_METADATA_ROTATION_MISMATCH_SEQ_PR90_EO6_ET1_ER0_CX90_P4032x3024_J4032x3024_O4032x3024_RQ0_JQ1";
+
 type Element = ReactElement<Record<string, unknown>>;
 
 function elements(value: unknown): Element[] {
@@ -120,6 +123,23 @@ describe("shift diagnostics card", () => {
       ),
     ).toBe(false);
     expect(text).not.toContain("undefined");
+  });
+
+  it("renders the complete bounded one-shot rotation diagnostic on one event line", () => {
+    wiredRing();
+    getNativeTelemetry().record({
+      classification: "capture-unavailable",
+      errorCode: detailedRotationCode,
+      outcome: "error",
+      source: "ocr",
+    });
+
+    const nodes = elements(
+      NativeShiftDiagnosticsCard({ locale: "en", textAlign: "left" }),
+    );
+    expect(visibleText(nodes[0])).toContain(
+      `ocr capture-unavailable error ${detailedRotationCode}`,
+    );
   });
 
   it("is read-only: rendering records no telemetry and mutates no ring", () => {

@@ -122,10 +122,10 @@ index 21ade0761ce67de7786c21a53bbdef8a430c9fd5..011e1748c79b1874f05c83e2ea50c00c
  @OptimizedRecord
 diff --git a/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt b/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt
 new file mode 100644
-index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b54ff3891
+index 0000000000000000000000000000000000000000..8341ad1880da66aa7a2c08f87962ce98981ce261
 --- /dev/null
 +++ b/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt
-@@ -0,0 +1,150 @@
+@@ -0,0 +1,225 @@
 +package expo.modules.camera
 +
 +import android.graphics.Matrix
@@ -159,6 +159,56 @@ index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b
 +  CAPTURE_METADATA_MISSING("OCR_CAPTURE_METADATA_CAPTURE_METADATA_MISSING")
 +}
 +
++enum class PlateRoiRotationFailureSite(val token: String) {
++  EXIF_GUARD("EG"),
++  ROTATION_EQUALITY("EQ"),
++  ROTATION_DOMAIN("RD")
++}
++
++enum class PlateRoiDiagnosticFlag(val token: String) {
++  NO("0"),
++  YES("1"),
++  UNKNOWN("U");
++
++  companion object {
++    fun from(value: Boolean): PlateRoiDiagnosticFlag = if (value) YES else NO
++  }
++}
++
++data class PlateRoiRotationDiagnostic(
++  val site: PlateRoiRotationFailureSite,
++  val proxyRotation: Int?,
++  val exifOrientation: Int,
++  val exifTagPresent: Boolean,
++  val expoRotation: Int,
++  val cameraXRotation: Int?,
++  val proxyWidth: Int?,
++  val proxyHeight: Int?,
++  val jpegWidth: Int,
++  val jpegHeight: Int,
++  val outputWidth: Int,
++  val outputHeight: Int,
++  val rotationQuirk: PlateRoiDiagnosticFlag,
++  val jpegMetadataQuirk: PlateRoiDiagnosticFlag
++) {
++  fun code(): String = "OCR_CAPTURE_METADATA_ROTATION_MISMATCH" +
++    "_S${site.token}_PR${rotationToken(proxyRotation)}" +
++    "_EO${exifToken(exifOrientation)}_ET${if (exifTagPresent) 1 else 0}" +
++    "_ER${rotationToken(expoRotation)}_CX${cameraXToken(cameraXRotation)}" +
++    "_P${dimensions(proxyWidth, proxyHeight)}_J${dimensions(jpegWidth, jpegHeight)}" +
++    "_O${dimensions(outputWidth, outputHeight)}_RQ${rotationQuirk.token}_JQ${jpegMetadataQuirk.token}"
++
++  companion object {
++    private val rotations = setOf(0, 90, 180, 270)
++
++    fun rotationToken(value: Int?): String = if (value in rotations) value.toString() else "X"
++    fun cameraXToken(value: Int?): String = if (value == null) "U" else rotationToken(value)
++    fun exifToken(value: Int): String = if (value in 0..8) value.toString() else "X"
++    fun dimensions(width: Int?, height: Int?): String =
++      if (width != null && height != null && width in 1..99999 && height in 1..99999) "${width}x${height}" else "NA"
++  }
++}
++
 +data class PlateRoiCaptureResult(
 +  val metadata: PlateRoiMetadata? = null,
 +  val failure: PlateRoiFailure? = null
@@ -166,7 +216,8 @@ index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b
 +
 +data class PlateRoiProcessedResult(
 +  val metadata: Bundle? = null,
-+  val failure: PlateRoiFailure? = null
++  val failure: PlateRoiFailure? = null,
++  val rotationFailureSite: PlateRoiRotationFailureSite? = null
 +)
 +
 +class PlateRoiPreview private constructor(
@@ -229,6 +280,24 @@ index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b
 +
 +  fun rejectProcessing() { processingValid = false }
 +
++  fun rotationDiagnostic(
++    site: PlateRoiRotationFailureSite,
++    exifOrientation: Int,
++    exifTagPresent: Boolean,
++    expoRotation: Int,
++    cameraXRotation: Int?,
++    jpegWidth: Int,
++    jpegHeight: Int,
++    outputWidth: Int,
++    outputHeight: Int,
++    rotationQuirk: PlateRoiDiagnosticFlag,
++    jpegMetadataQuirk: PlateRoiDiagnosticFlag
++  ): String = PlateRoiRotationDiagnostic(
++    site, rotation, exifOrientation, exifTagPresent, expoRotation, cameraXRotation,
++    bufferWidth, bufferHeight, jpegWidth, jpegHeight, outputWidth, outputHeight,
++    rotationQuirk, jpegMetadataQuirk
++  ).code()
++
 +  fun processed(
 +    rawWidth: Int, rawHeight: Int, appliedRotation: Int,
 +    outputWidth: Int, outputHeight: Int
@@ -245,7 +314,10 @@ index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b
 +    if (rawWidth != bufferWidth || rawHeight != bufferHeight || bufferWidth <= 0 || bufferHeight <= 0)
 +      return PlateRoiProcessedResult(failure = PlateRoiFailure.RAW_SIZE_MISMATCH)
 +    if (appliedRotation != rotation)
-+      return PlateRoiProcessedResult(failure = PlateRoiFailure.ROTATION_MISMATCH)
++      return PlateRoiProcessedResult(
++        failure = PlateRoiFailure.ROTATION_MISMATCH,
++        rotationFailureSite = PlateRoiRotationFailureSite.ROTATION_EQUALITY
++      )
 +    val quarterTurn = rotation == 90 || rotation == 270
 +    val expectedWidth = if (quarterTurn) bufferHeight else bufferWidth
 +    val expectedHeight = if (quarterTurn) bufferWidth else bufferHeight
@@ -256,7 +328,10 @@ index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b
 +      90 -> floatArrayOf(0f, -1f, bufferHeight.toFloat(), 1f, 0f, 0f, 0f, 0f, 1f)
 +      180 -> floatArrayOf(-1f, 0f, bufferWidth.toFloat(), 0f, -1f, bufferHeight.toFloat(), 0f, 0f, 1f)
 +      270 -> floatArrayOf(0f, 1f, 0f, -1f, 0f, bufferWidth.toFloat(), 0f, 0f, 1f)
-+      else -> return PlateRoiProcessedResult(failure = PlateRoiFailure.ROTATION_MISMATCH)
++      else -> return PlateRoiProcessedResult(
++        failure = PlateRoiFailure.ROTATION_MISMATCH,
++        rotationFailureSite = PlateRoiRotationFailureSite.ROTATION_DOMAIN
++      )
 +    }
 +    val upright = Matrix().apply { setValues(rotationValues) }
 +    val mapping = Matrix().apply { setConcat(upright, previewToBuffer) }
@@ -277,19 +352,31 @@ index 0000000000000000000000000000000000000000..2882a61744b1de4f30ea71724c49f78b
 +  }
 +}
 diff --git a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
-index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0959f0487 100644
+index 212b0ef19add03308e864d75ae7ca0adc52d0a27..c244fdc69290dd9add45ebcc56f6beb22d00242d 100644
 --- a/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
 +++ b/android/src/main/java/expo/modules/camera/tasks/ResolveTakenPicture.kt
-@@ -12,6 +12,8 @@ import expo.modules.camera.CameraExceptions.WriteImageException
+@@ -7,11 +7,20 @@ import android.graphics.Matrix
+ import android.net.Uri
+ import android.os.Bundle
+ import android.util.Base64
++import androidx.camera.core.impl.utils.Exif
++import androidx.camera.core.internal.compat.quirk.DeviceQuirks
++import androidx.camera.core.internal.compat.quirk.ImageCaptureRotationOptionQuirk
++import androidx.camera.core.internal.compat.quirk.IncorrectJpegMetadataQuirk
+ import androidx.exifinterface.media.ExifInterface
+ import expo.modules.camera.CameraExceptions.WriteImageException
  import expo.modules.camera.PictureFormat
  import expo.modules.camera.PictureOptions
  import expo.modules.camera.PictureRef
 +import expo.modules.camera.PlateRoiMetadata
 +import expo.modules.camera.PlateRoiFailure
++import expo.modules.camera.PlateRoiDiagnosticFlag
++import expo.modules.camera.PlateRoiRotationDiagnostic
++import expo.modules.camera.PlateRoiRotationFailureSite
  import expo.modules.camera.utils.CameraViewHelper.addExifData
  import expo.modules.camera.utils.CameraViewHelper.getExifData
  import expo.modules.camera.utils.CameraViewHelper.setExifData
-@@ -64,6 +66,7 @@ class ResolveTakenPicture(
+@@ -64,6 +73,7 @@ class ResolveTakenPicture(
    private var mirror: Boolean,
    private val runtimeContext: RuntimeContext,
    private val directory: File,
@@ -297,7 +384,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0
    private var pictureSavedDelegate: PictureSavedDelegate
  ) {
    private val quality: Int
-@@ -127,6 +130,37 @@ class ResolveTakenPicture(
+@@ -127,6 +137,50 @@ class ResolveTakenPicture(
            return null
          }
  
@@ -314,19 +401,32 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0
 +            else -> null
 +          }
 +          if (preconditionFailure != null) {
++            val failureCode = if (preconditionFailure == PlateRoiFailure.ROTATION_MISMATCH) {
++              val bounds = jpegBounds()
++              rotationDiagnosticCode(
++                PlateRoiRotationFailureSite.EXIF_GUARD, exifInterface, orientation, bounds, bitmap
++              )
++            } else {
++              preconditionFailure.code
++            }
 +            bitmap.recycle()
-+            promise.reject(preconditionFailure.code, "Plate ROI metadata unavailable", null)
++            promise.reject(failureCode, "Plate ROI metadata unavailable", null)
 +            return null
 +          }
-+          val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-+          BitmapFactory.decodeByteArray(imageData, 0, imageData.size, bounds)
++          val bounds = jpegBounds()
++          val expoRotation = getImageRotation(orientation)
 +          val processed = plateRoiMetadata!!.processedResult(
-+            bounds.outWidth, bounds.outHeight, getImageRotation(orientation), bitmap.width, bitmap.height
++            bounds.outWidth, bounds.outHeight, expoRotation, bitmap.width, bitmap.height
 +          )
 +          if (processed.failure != null || processed.metadata == null) {
-+            bitmap.recycle()
 +            val failure = processed.failure ?: PlateRoiFailure.CAPTURE_METADATA_MISSING
-+            promise.reject(failure.code, "Plate ROI metadata unavailable", null)
++            val failureCode = processed.rotationFailureSite?.let { site ->
++              rotationDiagnosticCode(
++                site, exifInterface, orientation, bounds, bitmap, expoRotation
++              )
++            } ?: failure.code
++            bitmap.recycle()
++            promise.reject(failureCode, "Plate ROI metadata unavailable", null)
 +            return null
 +          }
 +          response.putBundle("plateRoiMetadata", processed.metadata)
@@ -335,7 +435,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0
          // Write Exif data to the response if requested
          if (options.exif) {
            val exifData = getExifData(exifInterface)
-@@ -176,7 +210,7 @@ class ResolveTakenPicture(
+@@ -176,7 +230,7 @@ class ResolveTakenPicture(
          is WriteImageException -> promise.reject(e)
          else -> promise.reject(ERROR_TAG, UNKNOWN_EXCEPTION_MSG, e)
        }
@@ -344,7 +444,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0
      }
      // An exception had to occur, promise has already been rejected. Do not try to resolve it again.
      return null
-@@ -215,10 +249,10 @@ class ResolveTakenPicture(
+@@ -215,10 +269,10 @@ class ResolveTakenPicture(
        }
      } catch (e: IOException) {
        promise.reject(ERROR_TAG, UNKNOWN_IO_EXCEPTION_MSG, e)
@@ -357,7 +457,7 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0
      }
      // error occurred
      return null
-@@ -271,6 +305,7 @@ class ResolveTakenPicture(
+@@ -271,10 +325,71 @@ class ResolveTakenPicture(
        }
        transformed
      } catch (e: OutOfMemoryError) {
@@ -365,12 +465,76 @@ index 212b0ef19add03308e864d75ae7ca0adc52d0a27..1158d0f7214aca050275128a89eca3c0
        source
      }
    }
+
++  private fun rotationDiagnosticCode(
++    site: PlateRoiRotationFailureSite,
++    exifInterface: ExifInterface,
++    validationOrientation: Int,
++    bounds: BitmapFactory.Options,
++    bitmap: Bitmap,
++    expoRotation: Int = getImageRotation(validationOrientation)
++  ): String = try {
++    val exifTagPresent = exifInterface.hasAttribute(ExifInterface.TAG_ORIENTATION)
++    val exifOrientation = if (exifTagPresent) {
++      exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
++    } else {
++      ExifInterface.ORIENTATION_UNDEFINED
++    }
++    val cameraXRotation = try {
++      ByteArrayInputStream(imageData).use { Exif.createFromInputStream(it).rotation }
++    } catch (_: Exception) {
++      null
++    } catch (_: LinkageError) {
++      null
++    }
++    val rotationQuirk = diagnosticQuirkFlag {
++      DeviceQuirks.get(ImageCaptureRotationOptionQuirk::class.java) != null
++    }
++    val jpegMetadataQuirk = diagnosticQuirkFlag {
++      DeviceQuirks.get(IncorrectJpegMetadataQuirk::class.java) != null
++    }
++    plateRoiMetadata?.rotationDiagnostic(
++      site, exifOrientation, exifTagPresent, expoRotation, cameraXRotation,
++      bounds.outWidth, bounds.outHeight, bitmap.width, bitmap.height,
++      rotationQuirk, jpegMetadataQuirk
++    ) ?: PlateRoiRotationDiagnostic(
++      site, null, exifOrientation, exifTagPresent, expoRotation, cameraXRotation,
++      null, null, bounds.outWidth, bounds.outHeight, bitmap.width, bitmap.height,
++      rotationQuirk, jpegMetadataQuirk
++    ).code()
++  } catch (_: Exception) {
++    PlateRoiFailure.ROTATION_MISMATCH.code
++  } catch (_: LinkageError) {
++    PlateRoiFailure.ROTATION_MISMATCH.code
++  }
++
++  private fun jpegBounds(): BitmapFactory.Options = BitmapFactory.Options().apply {
++    inJustDecodeBounds = true
++    try {
++      BitmapFactory.decodeByteArray(imageData, 0, imageData.size, this)
++    } catch (_: Exception) {
++      outWidth = 0
++      outHeight = 0
++    }
++  }
++
++  private fun diagnosticQuirkFlag(read: () -> Boolean): PlateRoiDiagnosticFlag = try {
++    PlateRoiDiagnosticFlag.from(read())
++  } catch (_: Exception) {
++    PlateRoiDiagnosticFlag.UNKNOWN
++  } catch (_: LinkageError) {
++    PlateRoiDiagnosticFlag.UNKNOWN
++  }
++
+   // Get rotation degrees from Exif orientation enum
+   private fun getImageRotation(orientation: Int) = when (orientation) {
+     ExifInterface.ORIENTATION_ROTATE_90 -> 90
 diff --git a/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt b/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt
 new file mode 100644
-index 0000000000000000000000000000000000000000..dd5fcdb58ad81c374762bc32616cb2371db8b18f
+index 0000000000000000000000000000000000000000..cd245d41fe00284088ec0066cb94b4abf94977aa
 --- /dev/null
 +++ b/android/src/test/java/expo/modules/camera/PlateRoiMetadataTest.kt
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,247 @@
 +package expo.modules.camera
 +
 +import android.graphics.Matrix
@@ -431,6 +595,105 @@ index 0000000000000000000000000000000000000000..dd5fcdb58ad81c374762bc32616cb237
 +    failed.rejectProcessing()
 +    assertEquals(PlateRoiFailure.PROCESSING_OOM,
 +      failed.processedResult(1000, 800, 180, 1000, 800).failure)
++  }
++
++  @Test fun distinguishesRotationFailureSitesWithoutChangingRejection() {
++    val equality = metadata(90).processedResult(1000, 800, 0, 800, 1000)
++    assertEquals(PlateRoiFailure.ROTATION_MISMATCH, equality.failure)
++    assertEquals(PlateRoiRotationFailureSite.ROTATION_EQUALITY, equality.rotationFailureSite)
++
++    val domain = metadata(45).processedResult(1000, 800, 45, 1000, 800)
++    assertEquals(PlateRoiFailure.ROTATION_MISMATCH, domain.failure)
++    assertEquals(PlateRoiRotationFailureSite.ROTATION_DOMAIN, domain.rotationFailureSite)
++
++    val success = metadata(90).processedResult(1000, 800, 90, 800, 1000)
++    assertNull(success.failure)
++    assertNull(success.rotationFailureSite)
++    assertEquals(5, success.metadata!!.getInt("generation"))
++    assertEquals(800, success.metadata!!.getInt("imageWidth"))
++    assertEquals(1000, success.metadata!!.getInt("imageHeight"))
++  }
++
++  @Test fun buildsExactExifGuardDiagnostic() {
++    val code = diagnostic(
++      PlateRoiRotationFailureSite.EXIF_GUARD,
++      proxyRotation = 90,
++      exifOrientation = 2,
++      exifTagPresent = true,
++      expoRotation = 0,
++      cameraXRotation = 0,
++      rotationQuirk = PlateRoiDiagnosticFlag.NO,
++      jpegMetadataQuirk = PlateRoiDiagnosticFlag.UNKNOWN
++    ).code()
++    assertEquals(
++      "OCR_CAPTURE_METADATA_ROTATION_MISMATCH_SEG_PR90_EO2_ET1_ER0_CX0_" +
++        "P1000x800_J1000x800_O1000x800_RQ0_JQU",
++      code
++    )
++    val missing = diagnostic(
++      PlateRoiRotationFailureSite.EXIF_GUARD,
++      exifOrientation = 0,
++      exifTagPresent = false
++    ).code()
++    val explicitUndefined = diagnostic(
++      PlateRoiRotationFailureSite.EXIF_GUARD,
++      exifOrientation = 0,
++      exifTagPresent = true
++    ).code()
++    assertTrue(missing.contains("_EO0_ET0_"))
++    assertTrue(explicitUndefined.contains("_EO0_ET1_"))
++  }
++
++  @Test fun buildsExactRotationEqualityDiagnostic() {
++    val code = metadata(90).rotationDiagnostic(
++      PlateRoiRotationFailureSite.ROTATION_EQUALITY,
++      1, true, 0, 0, 1000, 800, 800, 1000,
++      PlateRoiDiagnosticFlag.YES, PlateRoiDiagnosticFlag.NO
++    )
++    assertEquals(
++      "OCR_CAPTURE_METADATA_ROTATION_MISMATCH_SEQ_PR90_EO1_ET1_ER0_CX0_" +
++        "P1000x800_J1000x800_O800x1000_RQ1_JQ0",
++      code
++    )
++  }
++
++  @Test fun boundsRotationDomainAndDimensionTokens() {
++    val code = PlateRoiRotationDiagnostic(
++      PlateRoiRotationFailureSite.ROTATION_DOMAIN,
++      45, 9, false, 45, null,
++      100000, 800, 0, -1, 99999, 99999,
++      PlateRoiDiagnosticFlag.UNKNOWN, PlateRoiDiagnosticFlag.UNKNOWN
++    ).code()
++    assertEquals(
++      "OCR_CAPTURE_METADATA_ROTATION_MISMATCH_SRD_PRX_EOX_ET0_ERX_CXU_" +
++        "PNA_JNA_O99999x99999_RQU_JQU",
++      code
++    )
++  }
++
++  @Test fun diagnosticGrammarIsSafeAndWithinTelemetryLimit() {
++    val longest = diagnostic(
++      PlateRoiRotationFailureSite.ROTATION_EQUALITY,
++      proxyRotation = 270,
++      exifOrientation = 8,
++      exifTagPresent = true,
++      expoRotation = 270,
++      cameraXRotation = 270,
++      proxyWidth = 99999,
++      proxyHeight = 99999,
++      jpegWidth = 99999,
++      jpegHeight = 99999,
++      outputWidth = 99999,
++      outputHeight = 99999,
++      rotationQuirk = PlateRoiDiagnosticFlag.UNKNOWN,
++      jpegMetadataQuirk = PlateRoiDiagnosticFlag.UNKNOWN
++    ).code()
++    assertEquals(115, longest.length)
++    assertTrue(longest.length <= 128)
++    assertTrue(longest.matches(Regex("^[A-Za-z0-9._-]{1,128}$")))
++    assertEquals(setOf("0", "1", "U"), PlateRoiDiagnosticFlag.values().map { it.token }.toSet())
++    assertFalse(longest.contains("plate"))
++    assertFalse(longest.contains("file:"))
 +  }
 +
 +  @Test fun singularOrNonFiniteMatricesAreRejected() {
@@ -496,6 +759,27 @@ index 0000000000000000000000000000000000000000..dd5fcdb58ad81c374762bc32616cb237
 +    val second = constructor.newInstance(360, 260, changed)
 +    assertFalse(first.matches(second))
 +  }
++
++  private fun diagnostic(
++    site: PlateRoiRotationFailureSite,
++    proxyRotation: Int? = 0,
++    exifOrientation: Int = 1,
++    exifTagPresent: Boolean = true,
++    expoRotation: Int = 0,
++    cameraXRotation: Int? = 0,
++    proxyWidth: Int? = 1000,
++    proxyHeight: Int? = 800,
++    jpegWidth: Int = 1000,
++    jpegHeight: Int = 800,
++    outputWidth: Int = 1000,
++    outputHeight: Int = 800,
++    rotationQuirk: PlateRoiDiagnosticFlag = PlateRoiDiagnosticFlag.NO,
++    jpegMetadataQuirk: PlateRoiDiagnosticFlag = PlateRoiDiagnosticFlag.NO
++  ) = PlateRoiRotationDiagnostic(
++    site, proxyRotation, exifOrientation, exifTagPresent, expoRotation, cameraXRotation,
++    proxyWidth, proxyHeight, jpegWidth, jpegHeight, outputWidth, outputHeight,
++    rotationQuirk, jpegMetadataQuirk
++  )
 +
 +}
 diff --git a/build/Camera.types.d.ts b/build/Camera.types.d.ts

@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   expo-camera@57.0.4:
-    hash: 498bde9c8312ddb501cf5934f18f741ab21b6b6611aa8ff6561acc7570eb16a6
+    hash: 20e81ac0c192bc59bc2d98cb73b8906a25422dbd2b7a0017feb61d9fa4270e7c
     path: patches/expo-camera@57.0.4.patch
 
 importers:
@@ -283,7 +283,7 @@ importers:
         version: 57.0.16(expo@57.0.19)
       expo-camera:
         specifier: ~57.0.4
-        version: 57.0.4(patch_hash=498bde9c8312ddb501cf5934f18f741ab21b6b6611aa8ff6561acc7570eb16a6)(@types/emscripten@1.41.6)(expo@57.0.19)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+        version: 57.0.4(patch_hash=20e81ac0c192bc59bc2d98cb73b8906a25422dbd2b7a0017feb61d9fa4270e7c)(@types/emscripten@1.41.6)(expo@57.0.19)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       expo-clipboard:
         specifier: ~57.0.1
         version: 57.0.1(expo@57.0.19)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -8706,7 +8706,7 @@ snapshots:
       resolve-from: 5.0.0
       semver: 7.8.5
 
-  expo-camera@57.0.4(patch_hash=498bde9c8312ddb501cf5934f18f741ab21b6b6611aa8ff6561acc7570eb16a6)(@types/emscripten@1.41.6)(expo@57.0.19)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
+  expo-camera@57.0.4(patch_hash=20e81ac0c192bc59bc2d98cb73b8906a25422dbd2b7a0017feb61d9fa4270e7c)(@types/emscripten@1.41.6)(expo@57.0.19)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3):
     dependencies:
       barcode-detector: 3.2.2(@types/emscripten@1.41.6)
       expo: 57.0.19(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.15)(expo-router@57.0.18)(react-dom@19.2.8(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)

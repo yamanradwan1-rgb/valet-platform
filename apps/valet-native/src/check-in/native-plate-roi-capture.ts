@@ -19,6 +19,7 @@ import {
 import type { NativePlateCameraTrace } from "./native-plate-camera-trace";
 import {
   nativePlateRoiFailureReason,
+  nativePlateRoiRotationDiagnosticCode,
   PlateRoiCaptureDiagnosticError,
   type PlateRoiCaptureFailureReason,
 } from "./native-plate-roi-failure";
@@ -26,8 +27,9 @@ import {
 export class CameraCaptureFailure extends PlateRoiCaptureDiagnosticError {
   constructor(
     reason: PlateRoiCaptureFailureReason = "NATIVE_CAPTURE_FAILED",
+    diagnosticCode?: string,
   ) {
-    super(reason);
+    super(reason, diagnosticCode);
     this.name = "CameraCaptureFailure";
   }
 }
@@ -107,6 +109,7 @@ export async function capturePlateRoi(
       logNativePlateOcr("capture-exception");
       throw new CameraCaptureFailure(
         nativePlateRoiFailureReason(error) ?? "NATIVE_CAPTURE_FAILED",
+        nativePlateRoiRotationDiagnosticCode(error),
       );
     }
     if (!picture?.uri) {

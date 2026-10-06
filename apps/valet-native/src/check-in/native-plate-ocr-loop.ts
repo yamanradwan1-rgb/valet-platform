@@ -1,7 +1,10 @@
 import type { PlateOcrResponse } from "@valet/employee-client";
 import { logNativePlateOcr } from "./native-plate-ocr-diagnostics";
 import { recordNativePlateOcrTelemetry } from "./native-plate-ocr-telemetry";
-import { plateRoiCaptureFailureReason } from "./native-plate-roi-failure";
+import {
+  plateRoiCaptureFailureReason,
+  plateRoiCaptureRotationDiagnosticCode,
+} from "./native-plate-roi-failure";
 import type {
   NativePlateCameraTrace,
   PlateCameraTraceDetails,
@@ -135,6 +138,7 @@ export class NativePlateOcrLoop {
         recordNativePlateOcrTelemetry(
           "capture-unavailable",
           plateRoiCaptureFailureReason(error),
+          plateRoiCaptureRotationDiagnosticCode(error),
         );
       }
       result = { status: "UNAVAILABLE" };

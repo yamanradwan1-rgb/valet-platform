@@ -18,6 +18,7 @@ import {
   plateRoiCaptureDiagnosticCode,
   type PlateRoiCaptureFailureReason,
 } from "./native-plate-roi-failure";
+import { isPlateRoiRotationDiagnosticCode } from "./native-plate-roi-rotation-diagnostic";
 
 /** Loop-internal transitions that are not provider statuses. */
 export type NativeOcrTelemetryTransition = "aborted" | "capture-unavailable";
@@ -43,8 +44,13 @@ const OCR_CLASSIFICATIONS: Readonly<Record<NativeOcrTelemetryOutcome, string>> =
 export function recordNativePlateOcrTelemetry(
   outcome: NativeOcrTelemetryOutcome,
   captureFailureReason?: PlateRoiCaptureFailureReason,
+  rotationDiagnosticCode?: string,
 ): void {
-  const event = mapNativePlateOcrEvent(outcome, captureFailureReason);
+  const event = mapNativePlateOcrEvent(
+    outcome,
+    captureFailureReason,
+    rotationDiagnosticCode,
+  );
   if (event === undefined) return;
   getNativeTelemetry().record(event);
 }
@@ -53,6 +59,7 @@ export function recordNativePlateOcrTelemetry(
 export function mapNativePlateOcrEvent(
   outcome: NativeOcrTelemetryOutcome,
   captureFailureReason?: PlateRoiCaptureFailureReason,
+  rotationDiagnosticCode?: string,
 ): EmployeeTelemetryEvent | undefined {
   const classification = OCR_CLASSIFICATIONS[outcome];
   if (classification === undefined) return undefined;
@@ -64,7 +71,10 @@ export function mapNativePlateOcrEvent(
     source: "ocr",
     errorCode:
       outcome === "capture-unavailable" && captureFailureReason !== undefined
-        ? plateRoiCaptureDiagnosticCode(captureFailureReason)
+        ? captureFailureReason === "ROTATION_MISMATCH" &&
+          isPlateRoiRotationDiagnosticCode(rotationDiagnosticCode)
+          ? rotationDiagnosticCode
+          : plateRoiCaptureDiagnosticCode(captureFailureReason)
         : undefined,
   });
 }
