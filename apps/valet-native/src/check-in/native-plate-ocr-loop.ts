@@ -108,7 +108,7 @@ export class NativePlateOcrLoop {
     this.trace?.record("capture-start", operation.owner);
     this.operation = operation;
     let result: PlateOcrResponse = { status: "UNAVAILABLE" };
-    let captureChainFailed = false;
+    let captureFailed = false;
     try {
       operation.uri = await this.ports.capture(operation.abort.signal);
       this.trace?.record("capture-success", {
@@ -123,19 +123,20 @@ export class NativePlateOcrLoop {
         );
       }
     } catch (error) {
-      this.trace?.record("capture-failure", {
-        ...operation.owner,
-        current: this.current(generation),
-        aborted: operation.abort.signal.aborted,
-      });
-      // Telemetry: the capture/recognize chain itself failed before a
-      // provider answer existed — that is a capture unavailability, not a
-      // provider "UNAVAILABLE" answer.
-      captureChainFailed = true;
-      recordNativePlateOcrTelemetry(
-        "capture-unavailable",
-        plateRoiCaptureFailureReason(error),
-      );
+      captureFailed = operation.uri === undefined;
+      if (captureFailed) {
+        this.trace?.record("capture-failure", {
+          ...operation.owner,
+          current: this.current(generation),
+          aborted: operation.abort.signal.aborted,
+        });
+        // Only a rejection before capture hands off its URI belongs to the
+        // capture stage. Recognition failures are post-capture unavailable.
+        recordNativePlateOcrTelemetry(
+          "capture-unavailable",
+          plateRoiCaptureFailureReason(error),
+        );
+      }
       result = { status: "UNAVAILABLE" };
     } finally {
       try {
@@ -165,7 +166,7 @@ export class NativePlateOcrLoop {
     logNativePlateOcr("loop-finish", { status: result.status });
     this.trace?.record("ocr-finished", operation.owner);
     // Production telemetry: the definitive provider answer for this loop.
-    if (!captureChainFailed) recordNativePlateOcrTelemetry(result.status);
+    if (!captureFailed) recordNativePlateOcrTelemetry(result.status);
     this.finish(generation, result);
   }
 }

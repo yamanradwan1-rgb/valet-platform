@@ -91,10 +91,12 @@ run can now distinguish this candidate through `OCR_CAPTURE_METADATA_PREVIEW_CHA
 Before this change, an exception in the capture/recognize chain recorded
 `capture-unavailable`, converted the local result to `UNAVAILABLE`, and then
 recorded that terminal result as `provider-unavailable`. The latter did not prove
-that an OCR HTTP request was dispatched. Capture-chain failure now records its
-single capture-unavailable event; ROI diagnostic failures attach a bounded
-`OCR_CAPTURE_METADATA_*` errorCode that the existing Support Diagnostics view
-already renders.
+that an OCR HTTP request was dispatched. Stage ownership is now explicit at the
+URI handoff: a rejection before capture returns its URI records one
+`capture-unavailable` event, while a rejection after the URI exists remains a
+post-capture `provider-unavailable` outcome. ROI capture failures may attach a
+bounded `OCR_CAPTURE_METADATA_*` errorCode that the existing Support Diagnostics
+view already renders; recognition failures never receive an ROI metadata code.
 
 No diagnostic reason contains plate text, customer data, image bytes, image
 URI/path, provider payload, auth/session tokens, matrix values, exception text,
