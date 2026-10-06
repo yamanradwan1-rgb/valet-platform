@@ -1,0 +1,125 @@
+name: Native Diagnostic APK #269
+
+on:
+  push:
+    branches:
+      - build/issue-269-diagnostic-apk-4
+    paths:
+      - .github/workflows/native-issue-269-apk.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    name: build-android-diagnostic-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EXPO_NO_TELEMETRY: "1"
+      NODE_ENV: production
+      VAYLET_NATIVE_BUILD_MODE: release
+      VAYLET_NATIVE_DEV_ENABLED: "false"
+      VAYLET_NATIVE_JS_MODE: production
+      EXPO_PUBLIC_CUSTOMER_APP_ORIGIN: https://diagnostic.invalid
+
+    steps:
+      - name: Checkout exact approved main commit
+        uses: actions/checkout@v4
+        with:
+          ref: c379b54cbf6b738f38035367cdac448f098547fc
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify patched expo-camera is active
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROI_FILE="apps/valet-native/node_modules/expo-camera/android/src/main/java/expo/modules/camera/PlateRoiMetadata.kt"
+          VIEW_FILE="apps/valet-native/node_modules/expo-camera/android/src/main/java/expo/modules/camera/ExpoCameraView.kt"
+          test -f "$ROI_FILE"
+          grep -q "OCR_CAPTURE_METADATA_PREVIEW_CHANGED" "$ROI_FILE"
+          grep -q "plateRoiMetadata" "$VIEW_FILE"
+          echo "Patched expo-camera ROI bridge verified before Android generation."
+
+      - name: Build workspace contracts
+        run: pnpm --filter @valet/contracts build
+
+      - name: Stamp diagnostic build metadata
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const path = "apps/valet-native/app.json";
+          const data = JSON.parse(fs.readFileSync(path, "utf8"));
+          data.expo.version = "1.0.3-diagnostic";
+          data.expo.android = data.expo.android || {};
+          data.expo.android.versionCode = 4;
+          fs.writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+          NODE
+          node -e "const x=require('./apps/valet-native/app.json'); console.log(x.expo.version, x.expo.android.versionCode)"
+
+      - name: Generate Android project
+        run: pnpm --filter @valet/valet-native prebuild:android
+
+      - name: Verify generated diagnostic metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -R "versionName" apps/valet-native/android/app/build.gradle
+          grep -R "versionCode" apps/valet-native/android/app/build.gradle
+
+      - name: Build standalone release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd apps/valet-native/android
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Stage APK and checksum
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          APK="$(find apps/valet-native/android/app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          OUT="artifact/VAYLET-Employee-1.0.3-diagnostic-build4-c379b54.apk"
+          cp "$APK" "$OUT"
+          sha256sum "$OUT" > "$OUT.sha256.txt"
+          ls -lh artifact
+          cat "$OUT.sha256.txt"
+
+      - name: Upload diagnostic APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAYLET-Employee-issue269-build4
+          path: artifact/*
+          if-no-files-found: error
+          retention-days: 14
