@@ -22,20 +22,15 @@ test("cookie refresh restores the selected Location on the same route after relo
   ]);
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
-  await page.getByRole("link", { name: "Help" }).click();
-  await expect(page).toHaveURL(/\/help$/u);
-  await expect(
-    page.getByRole("heading", { name: "Help and product guidance" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/overview$/u);
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toBeVisible();
 
   await page.reload();
-  await expect(page).toHaveURL(/\/help$/u);
+  await expect(page).toHaveURL(/\/overview$/u);
   await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toBeVisible();
   await expect(page.locator(".sidebar").getByText(ORG_A.name)).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Help and product guidance" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Choose your authorized workspace" }),
   ).toHaveCount(0);

@@ -42,14 +42,15 @@ test("Company Admin exact active Location survives refresh on the same route", a
   await signIn(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
-  await openHelp(page);
+  await expect(page).toHaveURL(/\/overview$/u);
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   await page.reload();
 
-  await expect(page).toHaveURL(/\/help$/u);
+  await expect(page).toHaveURL(/\/overview$/u);
   await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toBeVisible();
   await expect(page.locator(".sidebar").getByText(ORG_A.name)).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Help and product guidance" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Choose your authorized workspace" })).toHaveCount(0);
 });
 
@@ -60,14 +61,15 @@ test("Location Manager restores exact Location B instead of first eligible Locat
   });
   await fixture.install(page);
   await selectLocationManagerScope(page, LOCATION_B.name);
-  await openHelp(page);
+  await expect(page).toHaveURL(/\/overview$/u);
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
   await page.reload();
 
-  await expect(page).toHaveURL(/\/help$/u);
+  await expect(page).toHaveURL(/\/overview$/u);
   await expect(page.locator(".topbar").getByText(LOCATION_B.name)).toBeVisible();
   await expect(page.locator(".topbar").getByText(LOCATION_A.name)).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Help and product guidance" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 });
 
 test("Supervisor restores only the same active membership Location and Shift", async ({ page }) => {
