@@ -402,12 +402,37 @@ enrollment rows; valid or exchanged/recovery rows are never deleted. New Browser
 enrollment remains rollout-disabled until the approved T3/T4 gates, while
 servers must continue resolving Browser Sessions that already exist.
 
-U-03 also forbids silent same-browser context replacement. If a new Guest link is
-opened while the browser still has valid `ACTIVE` or `POST_VISIT` authority, the
-current server behavior preserves that authority and refuses automatic
-replacement. A usable context-conflict/end-access choice is **UI-FROZEN SAFE
-DELTA REQUIRED** and needs explicit Owner approval; T1 does not silently end the
-old Browser Session or exchange the new bearer.
+U-03 also forbids silent same-browser context replacement. The Owner-approved
+T1 delta compares a scrubbed transient target bearer with the authoritative
+current Browser Session only through the dedicated prepare/switch transport. A
+same-visit match is a no-op. A verified different visit retains the current
+`ACTIVE` or `POST_VISIT` Browser Session while an existing premium `BottomSheet`
+asks the user to Continue Current or Open New. Continue drops only the pending
+bearer from Customer memory. Open New executes one database transaction: resolve
+source/target from persisted verifiers, lock distinct ValetSessions in stable UUID
+order, then the exact source-bound transition and Browser Session, recheck current
+generations/revocation/lifecycle/expiry, create/bind the target Browser Session,
+consume the target bootstrap, and revoke only the source Browser Session before
+commit. Rollback therefore leaves the source authoritative. The same exact
+transition can reconcile a committed/lost response without granting a second
+authority or reviving an old generation. Fresh switch rechecks the short-lived
+prepared enrollment expiry with database wall time after authority locks; an
+expired uncommitted transition cannot switch. Exact committed recovery does not
+reuse that pre-commit TTL as an authority cutoff because it instead re-proves the
+already-created target Browser Session and current target generation.
+
+Normal Guest business endpoints still reject bearer-plus-cookie mixed authority.
+The dual-source exception exists only for context preparation/explicit switch and
+accepts no caller-supplied session/tenant authority. Cross-Organization switches
+fail closed. Preparation never replaces the primary Browser Session cookie: it
+uses a separate short-lived `__Host-vaylet_guest_pending_browser` HttpOnly cookie
+and the existing enrollment cookie. The target bearer remains memory-only after
+fragment scrubbing. Successful switch promotes that pending secret to the sole
+primary Browser Session and clears transition cookies. A separate non-HttpOnly
+`__Host-vaylet_guest_context` marker contains no secret or authorization value;
+it exists only to fence stale Customer client instances before/after requests so
+old responses cannot overwrite the promoted context and old-tab mutations cannot
+silently execute against the new visit.
 
 Limiter keys are versioned HMAC-SHA-256 values derived from a separate 32-byte secret with explicit scope separation. Raw/normalized email, raw/canonical address, guest bearer, password and Authorization never enter limiter persistence, AuditEvent or normal telemetry. Socket peer authority is used directly unless the immediate peer is inside an explicitly configured trusted CIDR; only then is one unambiguous `X-Forwarded-For` chain walked right-to-left. Limiter failure never falls back to unlimited access or process memory.
 

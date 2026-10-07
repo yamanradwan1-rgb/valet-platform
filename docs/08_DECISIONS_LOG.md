@@ -3209,9 +3209,19 @@ rows are reclaimed in bounded database-time batches, while exchanged recovery
 state is retained. Rolling pre-T1 writers are generation-bridged in the database,
 and generation changes invalidate stale Browser Sessions transactionally. New
 enrollment stays rollout-disabled until T3/T4 production gates. A same-browser
-second-link conflict never switches `ACTIVE` or `POST_VISIT` authority silently;
-usable context switching remains **UI-FROZEN SAFE DELTA REQUIRED** pending an
-explicit Owner-approved user decision/control.
+second-link conflict never switches `ACTIVE` or `POST_VISIT` authority silently.
+The Owner-approved UI-frozen delta uses only the existing `BottomSheet` and `Btn`
+primitives with approved EN/AR copy to choose Continue Current or Open New. Same-
+visit entry is a no-op. Different-visit preparation preserves the primary Browser
+Session and keeps the raw new bearer memory-only; explicit Open New executes one
+source/target database transaction that establishes the target Browser Session,
+consumes its bootstrap and revokes the source browser only at the same commit.
+Rollback preserves the source, POST_VISIT remains valid until commit, and an
+exact committed transition is recoverable after lost response without duplicate
+authority. Normal Guest routes remain mixed-source fail-closed; only prepare/
+switch may deliberately inspect both current cookie and target bearer. A random
+non-authoritative browser-context marker fences stale Customer responses/tabs
+after the shared cookie context changes.
 
 Every Employee shareable surface (QR, copied link, dev/test Open Guest App)
 builds from one centrally validated canonical origin,

@@ -26,6 +26,10 @@ import {
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import { GuestBrowserSessionService } from "./guest-browser-session.service";
 import {
+  clearBrowserContextCookie,
+  clearPendingBrowserCookie,
+} from "./guest-browser-context-transport";
+import {
   GuestAuthOriginPolicy,
   browserCookie,
   clearBrowserCookie,
@@ -229,7 +233,9 @@ export class GuestBrowserSessionController {
       }
       response.setHeader("Set-Cookie", [
         clearBrowserCookie(),
+        clearBrowserContextCookie(),
         clearEnrollmentCookie(),
+        clearPendingBrowserCookie(),
       ]);
     });
   }

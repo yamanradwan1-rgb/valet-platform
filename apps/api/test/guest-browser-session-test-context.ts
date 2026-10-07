@@ -1,29 +1,16 @@
 import { randomBytes } from "node:crypto";
 
-import {
-  MiddlewareConsumer,
-  Module,
-  type INestApplication,
-  type NestModule,
-} from "@nestjs/common";
+import type { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 
-import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
-import { RequestIdMiddleware } from "../src/common/http/api-request";
-import { HttpInfrastructureModule } from "../src/common/http/http-infrastructure.module";
-import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
-import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
-import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
-import { GuestAccessController } from "../src/modules/guest-access/guest-access.controller";
-import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
-import { GuestBrowserSessionController } from "../src/modules/guest-access/guest-browser-session.controller";
-import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
 import {
   GUEST_BROWSER_COOKIE,
   GUEST_ENROLLMENT_COOKIE,
-  GuestAuthOriginPolicy,
 } from "../src/modules/guest-access/guest-browser-transport";
-import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
+import {
+  GUEST_CONTEXT_COOKIE,
+  GUEST_PENDING_BROWSER_COOKIE,
+} from "../src/modules/guest-access/guest-browser-context-transport";
 import {
   createIssueGuestAccessCommandExecutor,
   createRevokeGuestAccessCommandExecutor,
@@ -33,6 +20,7 @@ import {
   createVehicleHelper,
 } from "./staff-valet-session-fixture-helpers";
 import { ShiftTestContext, type ShiftFixture } from "./shift-test-context";
+import { createGuestBrowserTestModule } from "./guest-browser-session-test-module";
 
 export const guestOrigin = "https://customer.example.test";
 export const mutationHeaders = {
@@ -88,29 +76,7 @@ export class GuestBrowserSessionTestContext extends ShiftTestContext {
     process.env.GUEST_AUTH_ALLOWED_ORIGINS = guestOrigin;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
-    const runtimePool = this.runtimePool;
-
-    @Module({
-      controllers: [GuestAccessController, GuestBrowserSessionController],
-      imports: [HttpInfrastructureModule],
-      providers: [
-        AntiAbuseKeyDeriver,
-        AntiAbuseService,
-        GuestAccessService,
-        GuestAuthOriginPolicy,
-        GuestBrowserSessionService,
-        GuestCredentialAuthorizer,
-        TrustedClientAddressResolver,
-        { provide: RUNTIME_POSTGRES_POOL, useValue: runtimePool },
-      ],
-    })
-    class GuestBrowserTestModule implements NestModule {
-      configure(consumer: MiddlewareConsumer): void {
-        consumer
-          .apply(RequestIdMiddleware)
-          .forRoutes(GuestAccessController, GuestBrowserSessionController);
-      }
-    }
+    const GuestBrowserTestModule = createGuestBrowserTestModule(this.runtimePool);
 
     this.app = await NestFactory.create(GuestBrowserTestModule, {
       logger: false,
@@ -138,6 +104,20 @@ export class GuestBrowserSessionTestContext extends ShiftTestContext {
 
   async createVisit(state = "PARKED"): Promise<GuestVisit> {
     const fixture = await this.createFixture();
+    return this.createVisitForFixture(fixture, state);
+  }
+
+  async createSiblingVisit(
+    visit: GuestVisit,
+    state = "PARKED",
+  ): Promise<GuestVisit> {
+    return this.createVisitForFixture(visit.fixture, state);
+  }
+
+  private async createVisitForFixture(
+    fixture: ShiftFixture,
+    state = "PARKED",
+  ): Promise<GuestVisit> {
     const vehicleId = await createVehicleHelper(this, fixture, {
       color: "Black",
       make: "Toyota",
@@ -287,6 +267,14 @@ export class GuestBrowserSessionTestContext extends ShiftTestContext {
 
   enrollmentCookie(value: string): string {
     return `${GUEST_ENROLLMENT_COOKIE}=${value}`;
+  }
+
+  pendingBrowserCookie(value: string): string {
+    return `${GUEST_PENDING_BROWSER_COOKIE}=${value}`;
+  }
+
+  contextCookie(value: string): string {
+    return `${GUEST_CONTEXT_COOKIE}=${value}`;
   }
 
   private restoreEnvironment(name: string, value: string | undefined): void {

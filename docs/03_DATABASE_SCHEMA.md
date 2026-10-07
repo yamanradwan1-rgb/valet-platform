@@ -1031,7 +1031,10 @@ Customer-access rules:
 DEC-064 T1 adds durable Browser Session continuity without storing any raw Guest
 credential. `guest_browser_enrollments` stores the server-side verifier state for
 one short-lived pre-exchange browser enrollment and its independently minted
-pending Browser Session verifier. `guest_browser_sessions` stores only the
+pending Browser Session verifier. It also carries a nullable
+`source_browser_session_id` for the Owner-approved explicit same-browser context
+transfer and a random non-authoritative `browser_context_marker` used only for
+Customer stale-client fencing. `guest_browser_sessions` stores only the
 authorized Browser Session verifier plus its exact ValetSession and credential
 generation binding.
 
@@ -1044,14 +1047,24 @@ Rules:
   Guest client-address limiter slot as T1's bounded safety floor until T3 owns the
   final request-class policy; no new T1 limiter scope/threshold is introduced;
 - enrollment creation reclaims at most a bounded batch of rows whose database-
-  authored expiry has passed and which remain strictly unexchanged, unbound and
-  unreferenced by any Browser Session. Live enrollments and every exchanged row
-  remain retained because committed-exchange recovery can outlive enrollment TTL;
+  authored expiry has passed, remain unexchanged and are unreferenced by any
+  Browser Session. This includes an abandoned source-bound context-switch
+  preparation; live enrollments and every exchanged row remain retained because
+  committed exchange/switch recovery can outlive enrollment TTL;
 - successful exchange locks the exact ValetSession before enrollment/session
   rows, re-samples database wall time after authority locks, consumes the current
   bearer generation, and binds one Browser Session;
 - `(valet_session_id, credential_generation)` permits one primary Browser
   Session for that visit generation while same-browser tabs share its cookie;
+- a different-visit same-browser prepare may bind the enrollment to the exact
+  source Browser Session plus server-derived target visit/generation without
+  creating target authority. Explicit switch locks both parent ValetSessions in
+  deterministic UUID order before the enrollment/browser rows, inserts the target
+  Browser Session, consumes target bootstrap and revokes the source Browser
+  Session in one transaction. Rollback cannot strand the browser between visits;
+- `browser_context_marker` is random presentation/reconciliation metadata, not a
+  verifier and never authorization. The HttpOnly Browser Session secret remains
+  the sole browser credential;
 - Browser Session lookup is backed by a unique verifier index and never scans;
 - active Browser Session authority derives from the persisted non-terminal
   ValetSession plus current generation and revocation state, not a fixed 24-hour

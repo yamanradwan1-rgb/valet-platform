@@ -162,6 +162,9 @@ describe("DEC-064 T1 runtime database authority", () => {
        WHERE function.oid IN (
          to_regprocedure('public.guest_browser_enroll(text,text)'),
          to_regprocedure('public.guest_browser_exchange(text,text,text)'),
+         to_regprocedure('public.guest_browser_prepare_context(text,text,text,text)'),
+         to_regprocedure('public.guest_browser_switch_context(text,text,text,text)'),
+         to_regprocedure('public.guest_browser_reconcile_switch(text,text,text)'),
          to_regprocedure('public.guest_browser_resolve(text,boolean)'),
          to_regprocedure('public.guest_browser_end(text)'),
          to_regprocedure('public.guest_browser_bridge_legacy_generation()'),
@@ -185,8 +188,11 @@ describe("DEC-064 T1 runtime database authority", () => {
       ["guest_browser_exchange", true, true],
       ["guest_browser_hash_secret", false, false],
       ["guest_browser_invalidate_on_generation_change", false, true],
+      ["guest_browser_prepare_context", true, true],
       ["guest_browser_rating_submit", true, true],
+      ["guest_browser_reconcile_switch", true, true],
       ["guest_browser_resolve", true, true],
+      ["guest_browser_switch_context", true, true],
       ["guest_rating_submit", true, true],
     ]);
     for (const row of result.rows) {

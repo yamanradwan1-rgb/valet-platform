@@ -161,6 +161,15 @@ export const enTranslations: TranslationDictionary = {
   'system.requestErrorTitle': 'Request could not be sent',
   'system.requestErrorDefault': 'Please try again or contact the valet desk.',
 
+  // Same-browser Guest visit context conflict
+  'contextConflict.title': 'You already have an open visit',
+  'contextConflict.activeBody':
+    'This browser is connected to another visit. Choose which visit you want to continue.',
+  'contextConflict.postVisitBody':
+    'You still have access to your previous visit. Opening the new visit will move this browser to it.',
+  'contextConflict.continueCurrent': 'Continue current visit',
+  'contextConflict.openNew': 'Open new visit',
+
   // API & Runtime Errors
   'errors.ANTI_ABUSE_UNAVAILABLE':
     'Service temporarily unavailable. Please try again in a few moments.',

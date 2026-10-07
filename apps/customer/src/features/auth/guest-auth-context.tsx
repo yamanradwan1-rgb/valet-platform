@@ -9,137 +9,51 @@ import React, {
   useState,
 } from 'react';
 
-import { GuestApiClient } from '../../lib/api/guest-api-client';
-import { GuestApiError } from '../../lib/api/api-error';
+import {
+  GUEST_CONTEXT_CHANGED_EVENT,
+  GuestApiClient,
+} from '../../lib/api/guest-api-client';
+import {
+  beginGuestContextSwitchState,
+  completedBootstrapState,
+  continueCurrentGuestVisitState,
+  failedBootstrapState,
+  failedGuestContextSwitchState,
+  retryGuestAuthBootstrapTransport,
+  runGuestAuthBootstrap,
+  switchGuestBrowserContextTransport,
+  type GuestAuthBootstrapStage,
+  type GuestContextConflictScope,
+  type GuestTokenBootstrapState,
+} from './guest-auth-bootstrap';
 import { extractGuestFragmentToken } from './guest-token-adapter';
+
+export {
+  beginGuestContextSwitchState,
+  bootstrapGuestAuthTransport,
+  continueCurrentGuestVisitState,
+  failedGuestContextSwitchState,
+  isRetryableGuestAuthBootstrapFailure,
+  retryGuestAuthBootstrapTransport,
+  switchGuestBrowserContextTransport,
+} from './guest-auth-bootstrap';
+export type { GuestContextConflictScope, GuestTokenBootstrapState } from './guest-auth-bootstrap';
 
 interface GuestAuthContextValue {
   readonly token: string | null;
   readonly client: GuestApiClient | null;
+  readonly contextConflictScope: GuestContextConflictScope | null;
   readonly isTokenBootstrapComplete: boolean;
   readonly isBootstrapTemporarilyUnavailable: boolean;
+  readonly isContextSwitching: boolean;
+  readonly isContextSwitchOutcomeAmbiguous: boolean;
+  readonly continueCurrentVisit: () => void;
+  readonly openNewVisit: () => Promise<void>;
   readonly retryBootstrap: () => Promise<void>;
   readonly setToken: (token: string | null) => void;
 }
 
 const GuestAuthContext = createContext<GuestAuthContextValue | null>(null);
-
-interface GuestTokenBootstrapState {
-  readonly token: string | null;
-  readonly client: GuestApiClient | null;
-  readonly isComplete: boolean;
-  readonly isTemporarilyUnavailable: boolean;
-  readonly retryStage: GuestAuthBootstrapStage | null;
-}
-
-interface GuestAuthBootstrapResult {
-  readonly token: string | null;
-  readonly client: GuestApiClient;
-}
-
-type GuestAuthBootstrapStage = 'ENROLL' | 'EXCHANGE';
-
-export function isRetryableGuestAuthBootstrapFailure(error: unknown): boolean {
-  return (
-    error instanceof GuestApiError &&
-    (error.isNetworkError ||
-      (error.status >= 500 && error.status <= 599))
-  );
-}
-
-function isTerminalGuestAuthBootstrapFailure(error: unknown): boolean {
-  return error instanceof GuestApiError && error.code === 'GUEST_ACCESS_INVALID';
-}
-
-function isAmbiguousExchangeFailure(error: unknown): boolean {
-  return (
-    error instanceof GuestApiError &&
-    (error.isNetworkError || (error.status >= 500 && error.status <= 599))
-  );
-}
-
-async function exchangeBrowserSessionWithRecovery(
-  bootstrapClient: GuestApiClient,
-): Promise<void> {
-  try {
-    await bootstrapClient.exchangeBrowserSession();
-  } catch (error) {
-    if (!isAmbiguousExchangeFailure(error)) throw error;
-    await bootstrapClient.exchangeBrowserSession();
-  }
-}
-
-async function runGuestAuthBootstrap(
-  fragmentToken: string | null,
-  enrollmentEnabled: boolean,
-  onStage?: (stage: GuestAuthBootstrapStage) => void,
-): Promise<GuestAuthBootstrapResult> {
-  if (fragmentToken === null) {
-    return { token: null, client: GuestApiClient.browserSession() };
-  }
-
-  if (!enrollmentEnabled) {
-    return { token: fragmentToken, client: new GuestApiClient(fragmentToken) };
-  }
-
-  const bootstrapClient = new GuestApiClient(fragmentToken);
-  onStage?.('ENROLL');
-  await bootstrapClient.enrollBrowserSession();
-  onStage?.('EXCHANGE');
-  await exchangeBrowserSessionWithRecovery(bootstrapClient);
-
-  return { token: null, client: GuestApiClient.browserSession() };
-}
-
-export async function bootstrapGuestAuthTransport(
-  fragmentToken: string | null,
-  enrollmentEnabled: boolean,
-): Promise<GuestAuthBootstrapResult> {
-  return runGuestAuthBootstrap(fragmentToken, enrollmentEnabled);
-}
-
-export async function retryGuestAuthBootstrapTransport(
-  fragmentToken: string,
-  enrollmentEnabled: boolean,
-  retryStage: GuestAuthBootstrapStage,
-  onStage?: (stage: GuestAuthBootstrapStage) => void,
-): Promise<GuestAuthBootstrapResult> {
-  if (enrollmentEnabled && retryStage === 'EXCHANGE') {
-    const bootstrapClient = new GuestApiClient(fragmentToken);
-    await exchangeBrowserSessionWithRecovery(bootstrapClient);
-    return { token: null, client: GuestApiClient.browserSession() };
-  }
-  return runGuestAuthBootstrap(fragmentToken, enrollmentEnabled, onStage);
-}
-
-function failedBootstrapState(
-  fragmentToken: string | null,
-  enrollmentEnabled: boolean,
-  error: unknown,
-  retryStage: GuestAuthBootstrapStage,
-): GuestTokenBootstrapState {
-  if (
-    enrollmentEnabled &&
-    fragmentToken !== null &&
-    !isTerminalGuestAuthBootstrapFailure(error)
-  ) {
-    const retryable = isRetryableGuestAuthBootstrapFailure(error);
-    return {
-      token: fragmentToken,
-      client: null,
-      isComplete: true,
-      isTemporarilyUnavailable: retryable,
-      retryStage: retryable ? retryStage : null,
-    };
-  }
-  return {
-    token: null,
-    client: null,
-    isComplete: true,
-    isTemporarilyUnavailable: false,
-    retryStage: null,
-  };
-}
 
 export function GuestAuthProvider({
   children,
@@ -154,7 +68,10 @@ export function GuestAuthProvider({
       initialToken === undefined || initialToken === null
         ? null
         : new GuestApiClient(initialToken),
+    contextConflictScope: null,
     isComplete: initialToken !== undefined,
+    isContextSwitching: false,
+    isSwitchOutcomeAmbiguous: false,
     isTemporarilyUnavailable: false,
     retryStage: null,
   }));
@@ -168,7 +85,8 @@ export function GuestAuthProvider({
       const fragmentToken = extractGuestFragmentToken();
       const enrollmentEnabled =
         process.env.NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED === 'true';
-      let retryStage: GuestAuthBootstrapStage = 'ENROLL';
+      let retryStage: GuestAuthBootstrapStage =
+        fragmentToken === null ? 'RECONCILE_SWITCH' : 'PREPARE';
       try {
         const result = await runGuestAuthBootstrap(
           fragmentToken,
@@ -178,12 +96,7 @@ export function GuestAuthProvider({
           },
         );
         if (!isActive) return;
-        setBootstrap({
-          ...result,
-          isComplete: true,
-          isTemporarilyUnavailable: false,
-          retryStage: null,
-        });
+        setBootstrap(completedBootstrapState(result));
       } catch (error) {
         if (!isActive) return;
         setBootstrap(
@@ -202,14 +115,27 @@ export function GuestAuthProvider({
     };
   }, [initialToken]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onContextChanged = () => {
+      setBootstrap((current) => ({
+        ...current,
+        token: null,
+        client: GuestApiClient.browserSession(),
+        contextConflictScope: null,
+        isComplete: true,
+        isContextSwitching: false,
+        isSwitchOutcomeAmbiguous: false,
+        isTemporarilyUnavailable: false,
+        retryStage: null,
+      }));
+    };
+    window.addEventListener(GUEST_CONTEXT_CHANGED_EVENT, onContextChanged);
+    return () => window.removeEventListener(GUEST_CONTEXT_CHANGED_EVENT, onContextChanged);
+  }, []);
+
   const retryBootstrap = useCallback(async () => {
-    if (
-      !bootstrap.isTemporarilyUnavailable ||
-      bootstrap.token === null ||
-      bootstrap.retryStage === null
-    ) {
-      return;
-    }
+    if (!bootstrap.isTemporarilyUnavailable || bootstrap.retryStage === null) return;
 
     const fragmentToken = bootstrap.token;
     const enrollmentEnabled =
@@ -226,12 +152,7 @@ export function GuestAuthProvider({
           retryStage = stage;
         },
       );
-      setBootstrap({
-        ...result,
-        isComplete: true,
-        isTemporarilyUnavailable: false,
-        retryStage: null,
-      });
+      setBootstrap(completedBootstrapState(result));
     } catch (error) {
       setBootstrap(
         failedBootstrapState(
@@ -244,11 +165,42 @@ export function GuestAuthProvider({
     }
   }, [bootstrap]);
 
+  const continueCurrentVisit = useCallback(() => {
+    setBootstrap(continueCurrentGuestVisitState);
+  }, []);
+
+  const openNewVisit = useCallback(async () => {
+    if (
+      bootstrap.contextConflictScope === null ||
+      bootstrap.token === null ||
+      bootstrap.isContextSwitching
+    ) {
+      return;
+    }
+    const fragmentToken = bootstrap.token;
+    setBootstrap(beginGuestContextSwitchState(bootstrap));
+    try {
+      await switchGuestBrowserContextTransport(new GuestApiClient(fragmentToken));
+      setBootstrap(
+        completedBootstrapState({
+          token: null,
+          client: GuestApiClient.browserSession(),
+          contextConflictScope: null,
+        }),
+      );
+    } catch (error) {
+      setBootstrap(failedGuestContextSwitchState(bootstrap, error));
+    }
+  }, [bootstrap]);
+
   const setToken = useCallback((token: string | null) => {
     setBootstrap({
       token,
       client: token === null ? null : new GuestApiClient(token),
+      contextConflictScope: null,
       isComplete: true,
+      isContextSwitching: false,
+      isSwitchOutcomeAmbiguous: false,
       isTemporarilyUnavailable: false,
       retryStage: null,
     });
@@ -257,7 +209,10 @@ export function GuestAuthProvider({
   const {
     token,
     client,
+    contextConflictScope,
     isComplete: isTokenBootstrapComplete,
+    isContextSwitching,
+    isSwitchOutcomeAmbiguous: isContextSwitchOutcomeAmbiguous,
     isTemporarilyUnavailable: isBootstrapTemporarilyUnavailable,
   } = bootstrap;
 
@@ -265,16 +220,26 @@ export function GuestAuthProvider({
     () => ({
       token,
       client,
+      contextConflictScope,
       isTokenBootstrapComplete,
       isBootstrapTemporarilyUnavailable,
+      isContextSwitching,
+      isContextSwitchOutcomeAmbiguous,
+      continueCurrentVisit,
+      openNewVisit,
       retryBootstrap,
       setToken,
     }),
     [
       token,
       client,
+      contextConflictScope,
       isTokenBootstrapComplete,
       isBootstrapTemporarilyUnavailable,
+      isContextSwitching,
+      isContextSwitchOutcomeAmbiguous,
+      continueCurrentVisit,
+      openNewVisit,
       retryBootstrap,
       setToken,
     ],

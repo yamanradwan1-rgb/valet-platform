@@ -1,6 +1,9 @@
 export const runtimeGuestBrowserFunctions = [
   "public.guest_browser_enroll(text,text)",
   "public.guest_browser_exchange(text,text,text)",
+  "public.guest_browser_prepare_context(text,text,text,text)",
+  "public.guest_browser_switch_context(text,text,text,text)",
+  "public.guest_browser_reconcile_switch(text,text,text)",
   "public.guest_browser_resolve(text,boolean)",
   "public.guest_browser_end(text)",
   "public.guest_browser_rating_submit(text,integer)",

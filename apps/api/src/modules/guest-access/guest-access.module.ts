@@ -14,6 +14,9 @@ import { GuestRatingController } from "./guest-rating.controller";
 import { GuestRatingService } from "./guest-rating.service";
 import { GuestBrowserSessionService } from "./guest-browser-session.service";
 import { GuestBrowserSessionController } from "./guest-browser-session.controller";
+import { GuestBrowserContextController } from "./guest-browser-context.controller";
+import { GuestBrowserContextService } from "./guest-browser-context.service";
+import { GuestBrowserLimiter } from "./guest-browser-limiter";
 import { GuestAuthOriginPolicy } from "./guest-browser-transport";
 import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
 
@@ -23,6 +26,7 @@ import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
     GuestAccessController,
     GuestRatingController,
     GuestBrowserSessionController,
+    GuestBrowserContextController,
   ],
   imports: [
     AuthModule,
@@ -33,6 +37,8 @@ import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
   providers: [
     GuestAccessService,
     GuestBrowserSessionService,
+    GuestBrowserContextService,
+    GuestBrowserLimiter,
     GuestAuthOriginPolicy,
     GuestCredentialAuthorizer,
     GuestRatingService,
@@ -53,6 +59,7 @@ export class GuestAccessModule implements NestModule {
         GuestAccessController,
         GuestRatingController,
         GuestBrowserSessionController,
+        GuestBrowserContextController,
       );
   }
 }

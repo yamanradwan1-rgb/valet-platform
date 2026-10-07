@@ -13,18 +13,18 @@ export const GUEST_BROWSER_COOKIE = "__Host-vaylet_guest_browser";
 export const GUEST_ENROLLMENT_COOKIE = "__Host-vaylet_guest_enrollment";
 export const GUEST_AUTH_ALLOWED_ORIGINS_ENV = "GUEST_AUTH_ALLOWED_ORIGINS";
 
-const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
-const browserPattern = /^vgb1\.[A-Za-z0-9_-]{43}$/;
-const enrollmentPattern = /^vge1\.[A-Za-z0-9_-]{43}$/;
-const browserCookieMaxAgeSeconds = 34_560_000;
-const enrollmentCookieMaxAgeSeconds = 900;
+export const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
+export const browserPattern = /^vgb1\.[A-Za-z0-9_-]{43}$/;
+export const enrollmentPattern = /^vge1\.[A-Za-z0-9_-]{43}$/;
+export const browserCookieMaxAgeSeconds = 34_560_000;
+export const enrollmentCookieMaxAgeSeconds = 900;
 
 interface CookieValue {
   readonly present: boolean;
   readonly value?: string;
 }
 
-function rawHeaderValues(request: ApiRequest, name: string): readonly string[] {
+export function rawHeaderValues(request: ApiRequest, name: string): readonly string[] {
   const rawHeaders = request.rawHeaders;
   if (rawHeaders !== undefined && rawHeaders.length % 2 === 0) {
     const values: string[] = [];
@@ -50,7 +50,7 @@ function singleHeader(request: ApiRequest, name: string): string | undefined {
   return values.length === 1 ? values[0] : undefined;
 }
 
-function cookieValue(request: ApiRequest, name: string): CookieValue {
+export function cookieValue(request: ApiRequest, name: string): CookieValue {
   const matches: string[] = [];
   for (const header of rawHeaderValues(request, "cookie")) {
     for (const part of header.split(";")) {
@@ -128,13 +128,14 @@ export function hasInvalidBrowserCookieTarget(request: ApiRequest): boolean {
   );
 }
 
-function serializeGuestCookie(
+export function serializeGuestCookie(
   name: string,
   value: string,
   maxAge: number,
+  httpOnly = true,
 ): string {
   return serializeCookie(name, value, {
-    httpOnly: true,
+    httpOnly,
     maxAge,
     path: "/",
     sameSite: "lax",

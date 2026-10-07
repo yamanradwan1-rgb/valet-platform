@@ -3,12 +3,14 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import {
   applyBaselineMigrations,
+  applyGuestBrowserContextMigrations,
   applyMigration,
   createDisposableDatabase,
   dropDisposableDatabase,
   guestBrowserT1Migration,
   hashGuestSecret,
   seedT1Session,
+  seedT1SiblingSession,
 } from "./guest-browser-session-test-fixture.js";
 
 const liveEnrollment = `vge1.${"L".repeat(43)}`;
@@ -41,6 +43,7 @@ beforeAll(async () => {
   await client.connect();
   await applyBaselineMigrations(client);
   await applyMigration(client, guestBrowserT1Migration);
+  await applyGuestBrowserContextMigrations(client);
 }, 120_000);
 
 beforeEach(async () => {
@@ -206,5 +209,63 @@ describe("DEC-064 T1 expired enrollment retention", () => {
        WHERE expires_at <= clock_timestamp() AND exchanged_at IS NULL`,
     );
     expect(afterTwo.rows[0]?.count).toBe(0);
+  });
+
+  it("reclaims an expired abandoned source-bound context-switch preparation without touching source authority", async () => {
+    const sourceToken = "O".repeat(43);
+    const targetToken = "P".repeat(43);
+    const sourceVisit = await seedT1Session(client, "cleanup-switch-source", sourceToken, {
+      state: "PARKED",
+    });
+    await seedT1SiblingSession(
+      client,
+      "cleanup-switch-target",
+      targetToken,
+      sourceVisit,
+      { state: "PARKED" },
+    );
+    const sourceEnrollment = `vge1.${"Q".repeat(43)}`;
+    const sourceBrowser = `vgb1.${"R".repeat(43)}`;
+    expect(await enroll(client, sourceEnrollment, sourceBrowser)).toBe("OK");
+    const exchanged = await client.query<{ result_code: string }>(
+      "SELECT result_code FROM guest_browser_exchange($1,$2,$3)",
+      [sourceToken, sourceEnrollment, sourceBrowser],
+    );
+    expect(exchanged.rows[0]?.result_code).toBe("AUTHORIZED");
+
+    const switchEnrollment = `vge1.${"S".repeat(43)}`;
+    const switchBrowser = `vgb1.${"T".repeat(43)}`;
+    const prepared = await client.query<{ result_code: string }>(
+      `SELECT result_code
+       FROM guest_browser_prepare_context($1,$2,$3,$4)`,
+      [targetToken, sourceBrowser, switchEnrollment, switchBrowser],
+    );
+    expect(prepared.rows[0]?.result_code).toBe("CONTEXT_CONFLICT");
+    await client.query(
+      `UPDATE guest_browser_enrollments
+       SET created_at=clock_timestamp()-interval '30 minutes',
+           expires_at=clock_timestamp()-interval '15 minutes'
+       WHERE enrollment_token_hash=$1`,
+      [hashGuestSecret(switchEnrollment)],
+    );
+
+    expect(
+      await enroll(
+        client,
+        `vge1.${"U".repeat(43)}`,
+        `vgb1.${"V".repeat(43)}`,
+      ),
+    ).toBe("OK");
+    const abandoned = await client.query<{ count: number }>(
+      `SELECT count(*)::int AS count FROM guest_browser_enrollments
+       WHERE enrollment_token_hash=$1`,
+      [hashGuestSecret(switchEnrollment)],
+    );
+    expect(abandoned.rows[0]?.count).toBe(0);
+    const source = await client.query<{ result_code: string }>(
+      "SELECT result_code FROM guest_browser_resolve($1,TRUE)",
+      [sourceBrowser],
+    );
+    expect(source.rows[0]?.result_code).toBe("OK");
   });
 });

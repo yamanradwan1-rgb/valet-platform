@@ -161,6 +161,15 @@ export const arTranslations: TranslationDictionary = {
   'system.requestErrorTitle': 'تعذر إرسال الطلب',
   'system.requestErrorDefault': 'يرجى المحاولة مرة أخرى أو مراجعة مكتب خدمة الاصطفاف.',
 
+  // تعارض سياق زيارة الضيف في المتصفح نفسه
+  'contextConflict.title': 'لديك زيارة مفتوحة',
+  'contextConflict.activeBody':
+    'هذا المتصفح مرتبط بزيارة أخرى. اختر الزيارة التي تريد المتابعة بها.',
+  'contextConflict.postVisitBody':
+    'لا يزال لديك وصول إلى زيارتك السابقة. فتح الزيارة الجديدة سينقل هذا المتصفح إليها.',
+  'contextConflict.continueCurrent': 'متابعة الزيارة الحالية',
+  'contextConflict.openNew': 'فتح الزيارة الجديدة',
+
   // API & Runtime Errors
   'errors.ANTI_ABUSE_UNAVAILABLE':
     'الخدمة غير متوفرة مؤقتاً. يرجى إعادة المحاولة بعد قليل.',

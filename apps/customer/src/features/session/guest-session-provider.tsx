@@ -35,7 +35,7 @@ export function GuestSessionProvider({
   readonly initialSession?: GuestSafeSession | null | undefined;
 }) {
   const { t } = useTranslation();
-  const { client } = useGuestAuth();
+  const { client, isContextSwitchOutcomeAmbiguous } = useGuestAuth();
   const [sessionEnvelope, setSessionEnvelope] = useState<ClientBoundSession>(
     () => ({
       client,
@@ -67,6 +67,9 @@ export function GuestSessionProvider({
   useEffect(() => {
     if (activeClientRef.current !== client) {
       resetGuestReadyAlertTracker(readyTrackerRef.current);
+      setError(null);
+      setIsExpired(false);
+      setIsNetworkError(false);
     }
     activeClientRef.current = client;
     sessionStateRef.current = session?.state;
@@ -193,7 +196,7 @@ export function GuestSessionProvider({
     isLoading: isLoading || Boolean(client && !session && !error),
     error,
     isNetworkError,
-    isExpired,
+    isExpired: isContextSwitchOutcomeAmbiguous && session !== null ? false : isExpired,
     refreshSession,
     updateSession,
   };

@@ -1000,16 +1000,20 @@ model GuestBrowserEnrollment {
   id                      String   @id @default(uuid()) @db.Uuid
   enrollmentTokenHash     String   @unique(map: "guest_browser_enrollments_enrollment_token_hash_key") @map("enrollment_token_hash")
   browserSessionTokenHash String   @unique(map: "guest_browser_enrollments_browser_session_token_hash_key") @map("browser_session_token_hash")
+  browserContextMarker    String   @unique(map: "guest_browser_enrollments_browser_context_marker_key") @default(dbgenerated("'vgc1.' || replace(gen_random_uuid()::text, '-', '')")) @map("browser_context_marker")
   createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   expiresAt               DateTime @map("expires_at") @db.Timestamptz(3)
   valetSessionId          String?  @map("valet_session_id") @db.Uuid
   credentialGeneration    Int?     @map("credential_generation")
+  sourceBrowserSessionId  String?  @map("source_browser_session_id") @db.Uuid
   exchangedAt             DateTime? @map("exchanged_at") @db.Timestamptz(3)
 
-  valetSession   ValetSession?       @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  browserSession GuestBrowserSession?
+  valetSession         ValetSession?        @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  browserSession       GuestBrowserSession? @relation("GuestBrowserEnrollmentTarget")
+  sourceBrowserSession GuestBrowserSession? @relation("GuestBrowserEnrollmentSource", fields: [sourceBrowserSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([expiresAt], map: "guest_browser_enrollments_expires_at_idx")
+  @@index([sourceBrowserSessionId], map: "guest_browser_enrollments_source_browser_session_id_idx")
   @@map("guest_browser_enrollments")
 }
 
@@ -1022,8 +1026,9 @@ model GuestBrowserSession {
   createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   revokedAt            DateTime? @map("revoked_at") @db.Timestamptz(3)
 
-  valetSession ValetSession          @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  enrollment   GuestBrowserEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  valetSession      ValetSession             @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  enrollment        GuestBrowserEnrollment    @relation("GuestBrowserEnrollmentTarget", fields: [enrollmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  sourceEnrollments GuestBrowserEnrollment[]  @relation("GuestBrowserEnrollmentSource")
 
   @@unique([valetSessionId, credentialGeneration], map: "guest_browser_sessions_session_generation_key")
   @@index([valetSessionId, revokedAt], map: "guest_browser_sessions_session_revoked_idx")

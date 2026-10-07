@@ -14,6 +14,13 @@ import {
 
 const VALID_TOKEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef012345678-_';
 
+function prepareReadyResponse(): Response {
+  return new Response(JSON.stringify({ result: 'ENROLLMENT_READY' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 function AuthStateProbe() {
   const { token, isTokenBootstrapComplete } = useGuestAuth();
   return <span>{`${isTokenBootstrapComplete ? 'ready' : 'bootstrapping'}:${token ?? 'none'}`}</span>;
@@ -75,7 +82,7 @@ describe('GuestAuthProvider bootstrap', () => {
     const validUuid = '123e4567-e89b-12d3-a456-426614174000';
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(prepareReadyResponse())
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockResolvedValueOnce(
         new Response(
@@ -165,13 +172,13 @@ describe('GuestAuthProvider bootstrap', () => {
       code: 'GUEST_ACCESS_INVALID',
     });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy.mock.calls[0]?.[0]).toContain('/v1/guest/browser-session/enroll');
+    expect(fetchSpy.mock.calls[0]?.[0]).toContain('/v1/guest/browser-session/prepare');
   });
 
   it('retries the same exchange once after an ambiguous network failure', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(prepareReadyResponse())
       .mockRejectedValueOnce(new TypeError('Failed to fetch'))
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
 
@@ -186,7 +193,7 @@ describe('GuestAuthProvider bootstrap', () => {
   it('retries the same exchange once after an ambiguous 5xx response', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(prepareReadyResponse())
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({ code: 'SERVICE_UNAVAILABLE', message: 'Temporary failure' }),
@@ -206,7 +213,7 @@ describe('GuestAuthProvider bootstrap', () => {
   it.each([400, 401, 429])('does not retry exchange after HTTP %s', async (status) => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(prepareReadyResponse())
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({ code: 'GUEST_ACCESS_INVALID', message: 'Denied' }),
@@ -223,7 +230,7 @@ describe('GuestAuthProvider bootstrap', () => {
   it('stops after exactly one retry when the ambiguous exchange remains unresolved', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(prepareReadyResponse())
       .mockResolvedValueOnce(
         new Response(null, { status: 502 }),
       )
@@ -255,7 +262,7 @@ describe('GuestAuthProvider bootstrap', () => {
 
   it('fails closed without cookie or legacy fallback after exchange denial', async () => {
     vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(prepareReadyResponse())
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({ code: 'GUEST_ACCESS_INVALID', message: 'Guest access is invalid.' }),
@@ -272,4 +279,5 @@ describe('GuestAuthProvider bootstrap', () => {
     expect(caught).toMatchObject({ code: 'GUEST_ACCESS_INVALID' });
     expect(isRetryableGuestAuthBootstrapFailure(caught)).toBe(false);
   });
+
 });

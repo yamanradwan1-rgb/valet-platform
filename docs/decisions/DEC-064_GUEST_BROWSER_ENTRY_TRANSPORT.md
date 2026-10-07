@@ -93,11 +93,43 @@ assumption that the fragment bearer remains the browser's normal authority.
     transfer mechanism. IP addresses and browser/device fingerprints are not
     authentication bindings. A same-browser second Guest-link intent while an
     `ACTIVE` or `POST_VISIT` Browser Session is still authoritative must not
-    silently replace or discard either context. T1 therefore keeps the existing
-    authority unchanged and treats usable same-browser context switching as
-    **UI-FROZEN SAFE DELTA REQUIRED**: an explicit Owner-approved user decision
-    is required before any end-access/exchange action. No automatic switch is
-    approved by this amendment.
+    silently replace or discard either context. The Owner-approved T1 safe delta
+    uses the existing Customer `BottomSheet` and `Btn` primitives to require an
+    explicit choice between continuing the current visit and opening the new
+    visit. A same-visit link is a no-op continuity path and never displays the
+    sheet. A verified different visit is prepared without replacing the primary
+    Browser Session; choosing Continue discards only the in-memory bearer intent.
+    Choosing Open New performs the source-to-target browser-context transfer in
+    one authoritative database transaction. `POST_VISIT` keeps its approved
+    24-hour read/rating/receipt authority until that transaction commits.
+
+    The transition endpoints are the only T1 exception to normal mixed-source
+    rejection: preparation may compare the transient target bearer with the
+    current Browser Session cookie, and explicit switch may re-present both plus
+    the exact source-bound transition cookies. These inputs are comparison/
+    transition proofs only; no client session/tenant identifier grants authority.
+    The server derives source and target from persisted credential verifiers.
+    The primary Browser Session cookie remains unchanged during preparation.
+    A separate short-lived HttpOnly pending-browser cookie plus enrollment cookie
+    carries server-minted transition material. The raw target bearer remains
+    memory-only after fragment scrubbing.
+
+    Atomic switch locks the distinct source/target ValetSessions in deterministic
+    UUID order, then the exact enrollment and source Browser Session, rechecks
+    generation/revocation/lifecycle/expiry with database wall time, creates the
+    target Browser Session, consumes the target generation and revokes only the
+    source Browser Session in the same transaction. Any rollback leaves the old
+    Browser Session and target bearer unchanged. An already-committed exact
+    transition is retry-safe and can be reconciled after response loss without
+    the bearer; recovery never creates a second authority. A fresh prepared
+    transition remains subject to its database-authored short enrollment expiry,
+    which is rechecked after authority locks. Once the switch commits, that
+    pre-commit TTL no longer invalidates exact recovery because recovery proves
+    the persisted target Browser Session/current generation rather than granting
+    fresh authority. A non-authoritative
+    browser-context marker fences stale Customer client instances/responses after
+    cookie promotion. Old copied source secrets fail after commit; same-cookie
+    tabs converge on the promoted context on their next authoritative request.
 
 12. Staff rotate/reissue/revoke remains the authoritative generation boundary.
     A generation change invalidates Browser Sessions derived from the previous
@@ -138,11 +170,12 @@ assumption that the fragment bearer remains the browser's normal authority.
     one slot from the existing durable `v1:guest-client-address` 60/15-minute
     window. This is a pre-rollout resource-allocation safety floor; successful
     authenticated Guest resolution remains `IGNORED` under DEC-024. Expired
-    strictly-unexchanged enrollment rows are retention state, not business/audit
-    history: enrollment creation reclaims a bounded batch using database time,
-    only when `exchanged_at`, ValetSession/generation binding and Browser Session
-    reference are all absent. Valid pending or exchanged/recovery rows are never
-    cleanup candidates. New enrollment remains rollout-gated off until the later
+    expired unexchanged enrollment rows (including an abandoned source-bound
+    context transition) are retention state, not business/audit history:
+    enrollment creation reclaims a bounded batch using database time only when
+    no Browser Session references the row. A still-valid pending enrollment and
+    every exchanged/recovery row are never cleanup candidates. New enrollment
+    remains rollout-gated off until the later
     T3/T4 production gates are satisfied, while servers must continue resolving
     already-created Browser Sessions.
 

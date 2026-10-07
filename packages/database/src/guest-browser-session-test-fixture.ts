@@ -6,6 +6,13 @@ import { Client } from "pg";
 export const guestBrowserT1Migration =
   "20261007007000_guest_browser_session_continuity";
 
+export const guestBrowserContextMigrations = [
+  "20261008007100_guest_browser_context_schema",
+  "20261008007200_guest_browser_context_prepare",
+  "20261008007300_guest_browser_context_switch",
+  "20261008007400_guest_browser_context_reconcile",
+] as const;
+
 export const databaseAdminUrl =
   process.env.TEST_DATABASE_URL ??
   process.env.MIGRATION_DATABASE_URL ??
@@ -82,6 +89,14 @@ export async function applyMigration(
     "utf8",
   );
   await client.query(sql);
+}
+
+export async function applyGuestBrowserContextMigrations(
+  client: Client,
+): Promise<void> {
+  for (const name of guestBrowserContextMigrations) {
+    await applyMigration(client, name);
+  }
 }
 
 export async function applyBaselineMigrations(client: Client): Promise<void> {
@@ -195,4 +210,51 @@ export async function seedT1Session(
     ],
   );
   return ids;
+}
+
+export async function seedT1SiblingSession(
+  client: Client,
+  label: string,
+  rawToken: string,
+  parent: SeededSession,
+  options: T1SessionOptions = {},
+): Promise<SeededSession> {
+  const vehicleId = randomUUID();
+  const sessionId = randomUUID();
+  const state = options.state ?? "PARKED";
+  await client.query(
+    `INSERT INTO vehicles(id,organization_id,temporary_descriptor,updated_at)
+     VALUES($1,$2,$3,clock_timestamp())`,
+    [vehicleId, parent.organizationId, `T1 ${label}`],
+  );
+  await client.query(
+    `INSERT INTO valet_sessions(
+       id,customer_access_token_hash,customer_access_expires_at,
+       customer_access_revoked_at,customer_access_generation,customer_access_consumed_at,
+       organization_id,location_id,vehicle_id,state,checked_in_by_membership_id,
+       completed_at,updated_at)
+     VALUES($1,$2,clock_timestamp()+$3::interval,$4,$5,$6,$7,$8,$9,$10,$11,$12,
+            clock_timestamp())`,
+    [
+      sessionId,
+      hashGuestSecret(rawToken),
+      options.expiresIn ?? "1 hour",
+      options.revoked ? new Date() : null,
+      options.generation ?? 1,
+      options.consumed ? new Date() : null,
+      parent.organizationId,
+      parent.locationId,
+      vehicleId,
+      state,
+      parent.membershipId,
+      state === "COMPLETED" ? new Date() : null,
+    ],
+  );
+  return {
+    locationId: parent.locationId,
+    membershipId: parent.membershipId,
+    organizationId: parent.organizationId,
+    sessionId,
+    vehicleId,
+  };
 }

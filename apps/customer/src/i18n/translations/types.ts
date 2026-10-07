@@ -155,6 +155,13 @@ export interface TranslationDictionary {
   'system.requestErrorTitle': string;
   'system.requestErrorDefault': string;
 
+  // Same-browser Guest visit context conflict
+  'contextConflict.title': string;
+  'contextConflict.activeBody': string;
+  'contextConflict.postVisitBody': string;
+  'contextConflict.continueCurrent': string;
+  'contextConflict.openNew': string;
+
   // API & Runtime Errors
   'errors.ANTI_ABUSE_UNAVAILABLE': string;
   'errors.GUEST_ACCESS_INVALID': string;

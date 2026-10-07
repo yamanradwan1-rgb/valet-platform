@@ -1,13 +1,23 @@
 import {
   GUEST_BROWSER_CSRF_HEADER,
   GUEST_BROWSER_CSRF_VALUE,
+  guestBrowserPrepareResponseSchema,
+  guestBrowserSwitchReconcileResponseSchema,
+  guestBrowserSwitchResponseSchema,
   guestHandoffMaterialResponseSchema,
   guestSafeSessionResponseSchema,
   guestSessionReadResponseSchema,
+  type GuestBrowserPrepareResponse,
+  type GuestBrowserSwitchReconcileResponse,
+  type GuestBrowserSwitchResponse,
 } from "@valet/contracts";
 
 import { getGuestApiBaseUrl } from "./api-config";
 import { GuestApiError, mapToGuestSafeMessage } from "./api-error";
+import {
+  announceBrowserContextChange,
+  readBrowserContextMarker,
+} from "./guest-browser-context-marker";
 import type {
   GuestHandoffMaterial,
   GuestSafeSession,
@@ -20,7 +30,10 @@ interface RequestOptions {
   signal?: AbortSignal | undefined;
   omitAuthorization?: boolean | undefined;
   requireBrowserCsrf?: boolean | undefined;
+  allowBrowserContextChange?: boolean | undefined;
 }
+
+export { GUEST_CONTEXT_CHANGED_EVENT } from "./guest-browser-context-marker";
 
 const customerSessionReadSchema = guestSessionReadResponseSchema.extend({
   branding: guestSessionReadResponseSchema.shape.branding
@@ -31,6 +44,7 @@ const customerSessionReadSchema = guestSessionReadResponseSchema.extend({
 export class GuestApiClient {
   private readonly baseUrl: string;
   private readonly bearerToken: string | null;
+  private readonly browserContextMarker: string | null;
 
   constructor(
     bearerToken: string | null,
@@ -38,6 +52,8 @@ export class GuestApiClient {
   ) {
     this.bearerToken = bearerToken;
     this.baseUrl = customBaseUrl ?? getGuestApiBaseUrl();
+    this.browserContextMarker =
+      bearerToken === null ? readBrowserContextMarker() : null;
   }
 
   static browserSession(customBaseUrl?: string | undefined): GuestApiClient {
@@ -54,7 +70,11 @@ export class GuestApiClient {
       signal,
       omitAuthorization = false,
       requireBrowserCsrf = false,
+      allowBrowserContextChange = false,
     } = options;
+    if (this.bearerToken === null && !allowBrowserContextChange) {
+      this.assertBrowserContextCurrent();
+    }
     const url = `${this.baseUrl}${path}`;
 
     const headers: Record<string, string> = {
@@ -102,6 +122,10 @@ export class GuestApiClient {
       });
     }
 
+    if (this.bearerToken === null && !allowBrowserContextChange) {
+      this.assertBrowserContextCurrent();
+    }
+
     const text = await response.text();
     let payload: unknown;
     if (text.length > 0) {
@@ -123,6 +147,31 @@ export class GuestApiClient {
     }
 
     return payload as T;
+  }
+
+  private assertBrowserContextCurrent(): void {
+    if (this.browserContextMarker === readBrowserContextMarker()) return;
+    announceBrowserContextChange();
+    throw new GuestApiError({
+      status: 409,
+      code: "GUEST_CONTEXT_CHANGED",
+      message: "The guest browser context changed.",
+    });
+  }
+
+  async prepareBrowserSession(
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestBrowserPrepareResponse> {
+    if (this.bearerToken === null) {
+      throw new Error("Guest browser-session prepare requires a bootstrap bearer.");
+    }
+    const raw = await this.request<unknown>("/browser-session/prepare", {
+      method: "POST",
+      body: {},
+      signal,
+      requireBrowserCsrf: true,
+    });
+    return guestBrowserPrepareResponseSchema.parse(raw);
   }
 
   async enrollBrowserSession(
@@ -149,6 +198,37 @@ export class GuestApiClient {
       signal,
       requireBrowserCsrf: true,
     });
+  }
+
+  async switchBrowserContext(
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestBrowserSwitchResponse> {
+    if (this.bearerToken === null) {
+      throw new Error("Guest browser context switch requires a bootstrap bearer.");
+    }
+    const raw = await this.request<unknown>("/browser-session/switch", {
+      method: "POST",
+      body: {},
+      signal,
+      requireBrowserCsrf: true,
+    });
+    return guestBrowserSwitchResponseSchema.parse(raw);
+  }
+
+  async reconcileBrowserContextSwitch(
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestBrowserSwitchReconcileResponse> {
+    if (this.bearerToken !== null) {
+      throw new Error("Guest browser switch reconciliation requires cookie authority.");
+    }
+    const raw = await this.request<unknown>("/browser-session/switch/reconcile", {
+      method: "POST",
+      body: {},
+      signal,
+      requireBrowserCsrf: true,
+      allowBrowserContextChange: true,
+    });
+    return guestBrowserSwitchReconcileResponseSchema.parse(raw);
   }
 
   async loadSession(

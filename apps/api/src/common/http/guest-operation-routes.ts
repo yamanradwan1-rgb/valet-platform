@@ -12,6 +12,21 @@ export const guestOperationRoutes = [
   },
   {
     method: "POST",
+    operation: "GUEST_BROWSER_SESSION_PREPARE_CONTEXT",
+    path: /^\/v1\/guest\/browser-session\/prepare$/,
+  },
+  {
+    method: "POST",
+    operation: "GUEST_BROWSER_SESSION_SWITCH_CONTEXT",
+    path: /^\/v1\/guest\/browser-session\/switch$/,
+  },
+  {
+    method: "POST",
+    operation: "GUEST_BROWSER_SESSION_RECONCILE_SWITCH",
+    path: /^\/v1\/guest\/browser-session\/switch\/reconcile$/,
+  },
+  {
+    method: "POST",
     operation: "GUEST_BROWSER_SESSION_END",
     path: /^\/v1\/guest\/browser-session\/end$/,
   },
