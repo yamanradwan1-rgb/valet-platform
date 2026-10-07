@@ -18,6 +18,10 @@ import { operationsCopy } from "../operations-copy";
 import { CoordinateCanvas } from "./coordinate-canvas";
 import { hasOperationalGoogleMapConfig } from "./operational-google-map-config";
 import {
+  recordOperationalMapCameraFit,
+  shouldRefitOperationalMapCamera,
+} from "./operational-map-camera-fit";
+import {
   createOperationalGoogleMapRuntime,
   type OperationalGoogleMapRuntime,
 } from "./operational-google-map-runtime";
@@ -43,6 +47,7 @@ export function OperationalGoogleMap(props: {
   const configured = hasOperationalGoogleMapConfig(googleApiKey, googleMapId);
   const node = useRef<HTMLDivElement>(null);
   const runtime = useRef<OperationalGoogleMapRuntime | null>(null);
+  const fallbackCameraKey = useRef<string | null>(null);
   const initializedCameraKey = useRef<string | null>(null);
   const preservedCamera = useRef<{
     readonly key: string;
@@ -115,12 +120,27 @@ export function OperationalGoogleMap(props: {
           });
           runtime.current = next;
           const refit =
-            camera === null &&
             !current.current.loading &&
-            initializedCameraKey.current !== current.current.cameraKey;
+            shouldRefitOperationalMapCamera(
+              current.current.model.camera,
+              current.current.cameraKey,
+              {
+                fallbackCameraKey: fallbackCameraKey.current,
+                usableCameraKey: initializedCameraKey.current,
+              },
+            );
           next.sync(current.current.model, refit);
-          if (!current.current.loading) {
-            initializedCameraKey.current = current.current.cameraKey;
+          if (!current.current.loading && refit) {
+            const fit = recordOperationalMapCameraFit(
+              current.current.model.camera,
+              current.current.cameraKey,
+              {
+                fallbackCameraKey: fallbackCameraKey.current,
+                usableCameraKey: initializedCameraKey.current,
+              },
+            );
+            fallbackCameraKey.current = fit.fallbackCameraKey;
+            initializedCameraKey.current = fit.usableCameraKey;
           }
           preservedCamera.current = null;
           setSdkLocale(googleMapsLanguage());
@@ -145,7 +165,12 @@ export function OperationalGoogleMap(props: {
   useEffect(() => {
     const active = runtime.current;
     if (!active || status !== "ready") return;
-    const refit = !props.loading && initializedCameraKey.current !== props.cameraKey;
+    const refit =
+      !props.loading &&
+      shouldRefitOperationalMapCamera(model.camera, props.cameraKey, {
+        fallbackCameraKey: fallbackCameraKey.current,
+        usableCameraKey: initializedCameraKey.current,
+      });
     try {
       active.sync(model, refit);
     } catch {
@@ -168,7 +193,14 @@ export function OperationalGoogleMap(props: {
       });
       return;
     }
-    if (!props.loading) initializedCameraKey.current = props.cameraKey;
+    if (!props.loading && refit) {
+      const fit = recordOperationalMapCameraFit(model.camera, props.cameraKey, {
+        fallbackCameraKey: fallbackCameraKey.current,
+        usableCameraKey: initializedCameraKey.current,
+      });
+      fallbackCameraKey.current = fit.fallbackCameraKey;
+      initializedCameraKey.current = fit.usableCameraKey;
+    }
   }, [model, props.cameraKey, props.loading, status]);
 
   const effectiveStatus = configured ? status : "failed";

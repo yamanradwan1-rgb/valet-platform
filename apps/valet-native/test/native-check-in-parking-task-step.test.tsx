@@ -58,10 +58,10 @@ describe("UI-PARITY-08 Check-In Parking Task composition", () => {
     [
       "en",
       "Parking",
-      "Location tracking will activate for this parking task",
+      "Foreground location tracking may run only while this Parking movement is active",
       "Open Parking",
     ],
-    ["ar", "الركن", "سيتم تفعيل تتبع الموقع لمهمة الركن هذه", "فتح مهمة الصف"],
+    ["ar", "الركن", "قد يعمل تتبّع الموقع في الواجهة الأمامية فقط", "فتح مهمة الصف"],
   ] as const)(
     "matches Web composition in %s",
     (locale, badge, notice, action) => {

@@ -262,7 +262,7 @@ export const localeStateCases: MatrixCase[] = [
   {
     name: "continuation",
     state: base({ active, phase: "continuation" }),
-    en: ["Parking Task", "Location tracking will activate"],
-    ar: ["مهمة الإيقاف", "سيتم تفعيل تتبع الموقع"],
+    en: ["Parking Task", "Foreground location tracking may run only"],
+    ar: ["مهمة الإيقاف", "قد يعمل تتبّع الموقع في الواجهة الأمامية فقط"],
   },
 ];

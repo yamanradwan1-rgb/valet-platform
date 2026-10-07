@@ -40,6 +40,7 @@ function contextResponse() {
           currency: "JOD",
           locationId: ids.location,
           name: "Amman Hotel",
+          timezone: "Asia/Amman",
         },
         eligibleLocations: [],
         membershipId: ids.membership,
@@ -144,7 +145,7 @@ describe("Native operational HTTP transport", () => {
         return Response.json(
           String(url).includes("operational-context")
             ? contextResponse()
-            : { tasks: [] },
+            : { tasks: [], tracking: { status: "NONE" } },
         );
       }),
     );
@@ -158,7 +159,7 @@ describe("Native operational HTTP transport", () => {
 
     expect(requests.map(({ url }) => url)).toEqual([
       "https://api.example.com/v1/staff/operational-context",
-      `https://api.example.com/v1/staff/tasks/queue?locationId=${ids.location}`,
+      `https://api.example.com/v1/staff/tasks/queue?includeTracking=true&locationId=${ids.location}`,
     ]);
     expect(requests[0]?.init?.headers).toMatchObject({
       Accept: "application/json",

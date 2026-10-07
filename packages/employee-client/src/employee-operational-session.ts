@@ -73,6 +73,7 @@ export class EmployeeOperationalSession {
       this.activeContext = undefined;
       this.action.suspendForBackground();
       this.queue.setForeground(false);
+      this.publish({ ...this.snapshot, taskTracking: null });
       return Promise.resolve();
     }
 
@@ -110,6 +111,7 @@ export class EmployeeOperationalSession {
   retireTaskAfterTerminalMutation(taskId: string): Promise<void> {
     this.publish({
       ...this.snapshot,
+      taskTracking: null,
       tasks: this.snapshot.tasks.filter((task) => task.taskId !== taskId),
     });
     return this.queue.refreshAfterTerminalMutation();

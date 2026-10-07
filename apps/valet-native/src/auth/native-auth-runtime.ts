@@ -41,7 +41,7 @@ import { ExpoIncidentRecoveryStore } from "../incident/native-incident-recovery-
 import { resolveNativeIncidentRecoveryContext } from "../incident/native-incident-recovery-context";
 import { NativeGuestAccessSession } from "../guest-access/native-guest-access-session";
 import { ExpoNativeConnectivityAdapter } from "../shell/expo-native-connectivity-adapter";
-
+import { createNativeTaskTrackingRuntime, type NativeTaskTrackingRuntime } from "../tracking/native-task-tracking-runtime";
 export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
   readonly auth: NativeAuthSession;
@@ -60,9 +60,9 @@ export interface NativeEmployeeRuntime {
   readonly retrieval: EmployeeRetrievalSession;
   readonly shiftEnd: EmployeeShiftEndSession;
   readonly shiftStart: EmployeeShiftStartSession;
+  readonly taskTracking: NativeTaskTrackingRuntime;
   readonly vehicleDirectory: EmployeeVehicleDirectorySession;
 }
-
 function installationGeneration(): string {
   const randomPart = Array.from({ length: 4 }, () =>
     Math.random().toString(36).slice(2),
@@ -136,6 +136,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     },
     transport: createNativeOperationalTransport(apiOrigin, auth),
   });
+  const taskTracking = createNativeTaskTrackingRuntime(apiOrigin, auth, operations);
   const { shiftStart, shiftEnd, presence } = createNativeShiftRuntime(
     apiOrigin,
     auth,
@@ -154,6 +155,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       release,
       retrieval,
       shiftStart,
+      taskTracking,
       vehicleDirectory,
     }),
   );
@@ -223,6 +225,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
       createNativeEmployeeClient(apiOrigin, auth),
     ),
   });
+  taskTracking.bindMovementCompletion(confirmParking, retrieval);
   const { checkIn, vehicleDirectory, checkInActions } =
     createNativeCheckInRuntime(
       apiOrigin,
@@ -254,6 +257,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   });
   const dispose = () => {
     unregisterIdentityPurge();
+    taskTracking.dispose();
     connectivity.dispose();
     operations.dispose();
     confirmParking.clear();
@@ -288,6 +292,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     retrieval,
     shiftEnd,
     shiftStart,
+    taskTracking,
     vehicleDirectory,
   };
 }

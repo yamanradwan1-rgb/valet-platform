@@ -59,7 +59,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "VAYLET checks your location only when you start or end a Shift. It does not track you throughout your Shift. يتحقق VAYLET من موقعك فقط عند بدء الوردية أو إنهائها، ولا يتتبعك طوال الوردية.",
+          "locationWhenInUsePermission": "VAYLET uses your location for point-in-time Start/End Shift checks and, while the app is open, for active Parking or Retrieval movements. It does not track you continuously throughout your Shift or in the background. يستخدم VAYLET موقعك للتحقق اللحظي عند بدء/إنهاء الوردية، وأثناء بقاء التطبيق مفتوحًا لحركات الاصطفاف أو الاسترجاع الفعّالة. ولا يتتبعك باستمرار طوال الوردية أو في الخلفية.",
           "locationAlwaysPermission": false,
           "locationAlwaysAndWhenInUsePermission": false,
           "motionUsagePermission": false,

@@ -91,7 +91,7 @@ describe("MOB-011B Native completion continuation", () => {
       ),
     ).toHaveLength(1);
     expect(content(nodes)).toContain(
-      "Location tracking will activate for this parking task",
+      "Foreground location tracking may run only while this Parking movement is active",
     );
     expect(content(nodes)).toContain("12-34567");
     expect(content(nodes)).toContain("Start Parking");
@@ -107,7 +107,7 @@ describe("MOB-011B Native completion continuation", () => {
           node.props.children === "مهمة الإيقاف",
       ),
     ).toHaveLength(1);
-    expect(content(nodes)).toContain("سيتم تفعيل تتبع الموقع لمهمة الركن هذه");
+    expect(content(nodes)).toContain("قد يعمل تتبّع الموقع في الواجهة الأمامية فقط");
     expect(content(nodes)).toContain("بدء الإيقاف");
   });
 

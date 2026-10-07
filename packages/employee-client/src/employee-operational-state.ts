@@ -20,6 +20,7 @@ export function emptyEmployeeOperationalSnapshot(): EmployeeOperationalSnapshot 
     queueRefreshing: false,
     successfulQueueSnapshotCount: 0,
     scope: null,
+    taskTracking: null,
     tasks: [],
   };
 }
@@ -75,6 +76,12 @@ export function applyEmployeeQueueEvent(
     queueRefreshing:
       event.refreshing || (event.loading && current.tasks.length > 0),
     successfulQueueSnapshotCount: event.successfulSnapshotCount,
+    taskTracking:
+      event.failure !== null || event.hardStopped
+        ? null
+        : event.taskTracking === undefined
+          ? current.taskTracking
+          : event.taskTracking,
     tasks: event.hardStopped ? [] : (event.tasks ?? current.tasks),
   };
 }

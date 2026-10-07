@@ -55,6 +55,7 @@ function snapshot(
     queueLoading: false,
     queueRefreshing: false,
     successfulQueueSnapshotCount: 1,
+    taskTracking: null,
     scope: {
       locationCode: "AMM-1",
       locationId: "11111111-1111-4111-8111-111111111111",

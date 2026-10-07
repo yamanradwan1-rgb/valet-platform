@@ -74,6 +74,7 @@ function fixture(action: "START" | "END", mode = "OFF") {
     retrieval: noop(),
     guestAccess: noop(),
     incident: noop(),
+    taskTracking: { clear: vi.fn(), setForeground: vi.fn(), setOnline: vi.fn() },
     vehicleDirectory: noop(),
   } as unknown as NativeEmployeeRuntime;
   ports.challenge.mockImplementation(async (intent) => ({

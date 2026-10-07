@@ -65,6 +65,7 @@ describe("shell-contained contextual workflow repair", () => {
       release: clear(),
       retrieval: clear(),
       shiftEnd: { fenceOperationalScope: vi.fn() },
+      taskTracking: clear(),
       vehicleDirectory: clear(),
     };
     retireNativeWorkflowScope(runtime as never);

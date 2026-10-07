@@ -48,6 +48,7 @@ function fixture(status: "offline" | "online" | "unknown" = "unknown") {
     retrieval: workflow(),
     shiftStart: { suspendForBackground: vi.fn() },
     shiftEnd: { setOnline: vi.fn(), suspendForBackground: vi.fn() },
+    taskTracking: { clear: vi.fn(), setForeground: vi.fn(), setOnline: vi.fn() },
     vehicleDirectory: {
       current: vi.fn(() => ({ phase: "inactive" })),
       refresh: vi.fn(async () => undefined),

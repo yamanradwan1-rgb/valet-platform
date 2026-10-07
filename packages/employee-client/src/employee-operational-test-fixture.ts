@@ -3,6 +3,7 @@ import type {
   AssignTaskResponse,
   StaffTaskQueueItem,
   TaskQueueResponse,
+  TaskQueueWithTrackingResponse,
 } from "@valet/contracts";
 import type { StaffOperationalContextResponse } from "@valet/contracts/staff-context";
 
@@ -107,7 +108,7 @@ export class StubOperationalTransport implements EmployeeOperationalTransport {
   assignResults: Array<Promise<AssignTaskResponse>> = [];
   contextResults: Array<Promise<StaffOperationalContextResponse>> = [];
   readonly queueCalls: string[] = [];
-  queueResults: Array<Promise<TaskQueueResponse>> = [];
+  queueResults: Array<Promise<TaskQueueResponse | TaskQueueWithTrackingResponse>> = [];
 
   acceptTask(taskId: string, expectedVersion: number) {
     this.acceptCalls.push({ expectedVersion, taskId });

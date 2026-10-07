@@ -46,6 +46,7 @@ export function routeSnapshot(
     queueRefreshing: false,
     successfulQueueSnapshotCount: options.count ?? 0,
     scope: activeScope,
+    taskTracking: null,
     tasks: [],
   };
 }

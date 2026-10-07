@@ -117,6 +117,7 @@ export function createNativeProductionBootstrap(): NativeProductionBootstrap {
         queueRefreshing: false,
         scope: null,
         successfulQueueSnapshotCount: 0,
+        taskTracking: null,
         tasks: [],
       },
       parking: {

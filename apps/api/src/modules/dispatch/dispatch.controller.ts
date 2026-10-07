@@ -24,6 +24,7 @@ import {
   reassignTaskResponseSchema,
   taskQueueQuerySchema,
   taskQueueResponseSchema,
+  taskQueueWithTrackingResponseSchema,
   type AssignTaskRequest,
   type DeclineTaskRequest,
   type ReassignTaskRequest,
@@ -110,6 +111,15 @@ export class DispatchController {
     return this.runner.run("TASK_QUEUE_READ", request, async () => {
       const authenticatedUserId = await this.userId(request, authorization);
       const input = parse<TaskQueueQuery>(taskQueueQuerySchema, query);
+      const includeTracking = input.includeTracking === "true";
+      if (includeTracking) {
+        return taskQueueWithTrackingResponseSchema.parse(
+          await this.service.loadQueueWithTracking({
+            authenticatedUserId,
+            locationId: input.locationId,
+          }),
+        );
+      }
       return taskQueueResponseSchema.parse({
         tasks: await this.service.loadQueue({
           authenticatedUserId,

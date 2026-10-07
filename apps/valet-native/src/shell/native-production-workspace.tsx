@@ -34,6 +34,7 @@ import { nativeContextualNavigationPinned } from "./native-contextual-route";
 import { NativeConnectivityBanner } from "./native-connectivity-banner";
 import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
 import { nativeIncidentRecoveryVisible } from "../incident/native-incident-types";
+import { NativeTaskTrackingStatus } from "../tracking/native-task-tracking-status";
 
 export function NativeProductionWorkspace({
   authSnapshot,
@@ -62,6 +63,7 @@ export function NativeProductionWorkspace({
   return (
     <EmployeeFrame direction={presentation.direction}>
       <NativeConnectivityBanner locale={locale} status={connectivity} />
+      <NativeTaskTrackingStatus locale={locale} runtime={runtime.taskTracking} />
       <EmployeeAppHeader
         scope={shell.scope}
         textAlign={presentation.textAlign}

@@ -5,11 +5,14 @@ export type {
   StaffVehicleDirectoryRow,
   StaffTaskQueueItem,
   TaskQueueResponse,
+  TaskQueueTrackingProjection,
+  TaskQueueWithTrackingResponse,
 } from "@valet/contracts";
 export {
   acceptTaskResponseSchema,
   assignTaskResponseSchema,
   taskQueueResponseSchema,
+  taskQueueWithTrackingResponseSchema,
 } from "@valet/contracts";
 export {
   staffNativeAuthResponseSchema,
@@ -71,6 +74,8 @@ export * from "./employee-confirm-parked-operation";
 export * from "./employee-confirm-parked-state";
 export * from "./employee-confirm-parked-transport";
 export * from "./employee-confirm-parked-types";
+export * from "./employee-gps-ingestion-transport";
+export * from "./employee-gps-sample-buffer";
 export * from "./employee-handoff-flow-session";
 export * from "./employee-handoff-flow-command";
 export * from "./employee-handoff-flow-state";

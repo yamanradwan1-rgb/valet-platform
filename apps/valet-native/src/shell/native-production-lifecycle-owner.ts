@@ -45,6 +45,7 @@ export class NativeProductionLifecycleOwner {
   setAppActive(active: boolean): void {
     if (this.disposed || this.foreground === active) return;
     this.foreground = active;
+    this.runtime.taskTracking.setForeground(active);
     this.revalidation.setForeground(active);
     if (!active) {
       this.operationsForeground = false;
@@ -95,6 +96,7 @@ export class NativeProductionLifecycleOwner {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.runtime.taskTracking.setForeground(false);
     this.revalidation.dispose();
     void this.runtime.operations.setForeground(false);
   }
@@ -107,6 +109,7 @@ export class NativeProductionLifecycleOwner {
     status: EmployeeConnectivityStatus,
     recovered: boolean,
   ): void {
+    this.runtime.taskTracking.setOnline(status !== "offline");
     if (status === "offline") {
       this.runtime.shiftStart.suspendForBackground();
       this.runtime.shiftEnd.suspendForBackground();

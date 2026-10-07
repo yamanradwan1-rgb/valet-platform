@@ -10,6 +10,8 @@ import {
   taskProjectionSchema,
   taskQueueQuerySchema,
   taskQueueResponseSchema,
+  taskQueueTrackingProjectionSchema,
+  taskQueueWithTrackingResponseSchema,
 } from "./dispatch.js";
 
 const id = "00000000-0000-4000-8000-000000000001";
@@ -153,6 +155,43 @@ describe("VAL-005E strict shared contracts", () => {
       staffTaskQueueItemSchema.safeParse({
         ...item,
         slaDeadline: "2026-08-12T00:15:00.000Z",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("keeps tracking opt-in backward compatible and strict", () => {
+    expect(
+      taskQueueQuerySchema.parse({ locationId: id, includeTracking: "true" }),
+    ).toEqual({ locationId: id, includeTracking: "true" });
+    expect(
+      taskQueueQuerySchema.safeParse({ locationId: id, includeTracking: "false" })
+        .success,
+    ).toBe(false);
+
+    expect(
+      taskQueueResponseSchema.safeParse({ tasks: [], tracking: { status: "NONE" } })
+        .success,
+    ).toBe(false);
+    expect(
+      taskQueueWithTrackingResponseSchema.parse({
+        tasks: [],
+        tracking: { status: "NONE" },
+      }).tracking.status,
+    ).toBe("NONE");
+    expect(
+      taskQueueTrackingProjectionSchema.parse({ status: "AMBIGUOUS" }),
+    ).toEqual({ status: "AMBIGUOUS" });
+    expect(
+      taskQueueTrackingProjectionSchema.safeParse({
+        movement: {
+          sessionId: id,
+          taskId: id,
+          taskType: "PARKING",
+          trackingSessionId: id,
+          trackingStartedAt: "2026-10-07T00:00:00.000Z",
+          organizationId: id,
+        },
+        status: "ELIGIBLE",
       }).success,
     ).toBe(false);
   });

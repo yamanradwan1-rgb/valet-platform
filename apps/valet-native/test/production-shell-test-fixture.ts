@@ -46,6 +46,7 @@ export function operations(
     queueLoading: false,
     queueRefreshing: false,
     successfulQueueSnapshotCount: 0,
+    taskTracking: null,
     scope:
       options.retainedScope === undefined
         ? phase === "ready"

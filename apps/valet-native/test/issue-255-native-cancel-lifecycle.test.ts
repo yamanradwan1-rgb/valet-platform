@@ -73,6 +73,7 @@ async function fixture() {
       suspendForBackground: vi.fn(),
       fenceOperationalScope: vi.fn(),
     },
+    taskTracking: { clear: vi.fn(), setForeground: vi.fn(), setOnline: vi.fn() },
   } as unknown as NativeEmployeeRuntime;
   cancel.bind(auth("authenticated").authGeneration, scope);
   await cancel.prepare("target");

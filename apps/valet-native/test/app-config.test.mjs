@@ -14,6 +14,9 @@ const cameraPlugin = expo.plugins.find(
 const notificationsPlugin = expo.plugins.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === "expo-notifications",
 );
+const locationPlugin = expo.plugins.find(
+  (plugin) => Array.isArray(plugin) && plugin[0] === "expo-location",
+);
 const splashPlugins = expo.plugins.filter(
   (plugin) => Array.isArray(plugin) && plugin[0] === "expo-splash-screen",
 );
@@ -117,6 +120,20 @@ describe("Expo application configuration", () => {
         barcodeScannerEnabled: true,
       },
     ]);
+  });
+
+  it("discloses point-in-time Shift checks and foreground task tracking without background location", () => {
+    const permission = locationPlugin[1].locationWhenInUsePermission;
+    expect(permission).toContain("Start/End Shift");
+    expect(permission).toContain("Parking or Retrieval");
+    expect(permission).toContain("background");
+    expect(locationPlugin[1]).toMatchObject({
+      isAndroidBackgroundLocationEnabled: false,
+      isAndroidForegroundServiceEnabled: false,
+      isIosBackgroundLocationEnabled: false,
+      locationAlwaysAndWhenInUsePermission: false,
+      locationAlwaysPermission: false,
+    });
   });
 
   it("does not configure OTA, EAS, or production credentials", () => {

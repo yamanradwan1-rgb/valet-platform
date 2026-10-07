@@ -71,6 +71,7 @@ function fixture(responses: EmployeeOperationalSnapshot[]) {
       setOnline: vi.fn(),
       suspendForBackground: vi.fn(),
     },
+    taskTracking: { clear: vi.fn(), setForeground: vi.fn(), setOnline: vi.fn() },
     vehicleDirectory: {
       ...workflow(),
       refresh: vi.fn(async () => undefined),

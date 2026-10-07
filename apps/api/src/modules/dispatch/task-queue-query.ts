@@ -1,18 +1,28 @@
-import type { StaffTaskQueueItem } from "@valet/contracts";
+import type {
+  StaffTaskQueueItem,
+  TaskQueueWithTrackingResponse,
+} from "@valet/contracts";
 
-import type { PostgresPool } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 import { DispatchOperationError } from "./dispatch-errors";
 import { inDispatchTransaction } from "./dispatch-transaction";
+import { loadEmployeeTaskTrackingProjection } from "./employee-task-tracking-projection";
 import type { StaffTaskQueueItemRow } from "./dispatch-types";
 import { toStaffTaskQueueItem } from "./dispatch-types";
 
-export function createTaskQueueQuery(pool: PostgresPool) {
-  return (request: {
-    readonly authenticatedUserId: string;
-    readonly locationId: string;
-  }): Promise<StaffTaskQueueItem[]> =>
-    inDispatchTransaction(pool, async (transaction) => {
+interface TaskQueueReadRequest {
+  readonly authenticatedUserId: string;
+  readonly locationId: string;
+}
+
+async function authorizeQueueActor(
+  transaction: PostgresTransaction,
+  request: TaskQueueReadRequest,
+): Promise<string> {
       const actor = await transaction.query<{ membership_id: string }>(
         `SELECT membership.id::text AS membership_id
          FROM locations AS location
@@ -32,6 +42,13 @@ export function createTaskQueueQuery(pool: PostgresPool) {
       ) {
         throw new DispatchOperationError("TASK_NOT_FOUND_OR_FORBIDDEN");
       }
+  return membershipId;
+}
+
+async function loadQueueItems(
+  transaction: PostgresTransaction,
+  locationId: string,
+): Promise<StaffTaskQueueItem[]> {
       const tasks = await transaction.query<StaffTaskQueueItemRow>(
         `SELECT
            task.id::text AS id,
@@ -85,8 +102,30 @@ export function createTaskQueueQuery(pool: PostgresPool) {
            AND task.task_type IN ('PARKING', 'RETRIEVAL')
            AND task.status IN ('QUEUED', 'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS')
          ORDER BY task.created_at, task.id`,
-        [request.locationId],
+        [locationId],
       );
-      return tasks.rows.map(toStaffTaskQueueItem);
+  return tasks.rows.map(toStaffTaskQueueItem);
+}
+
+export function createTaskQueueQuery(pool: PostgresPool) {
+  return (request: TaskQueueReadRequest): Promise<StaffTaskQueueItem[]> =>
+    inDispatchTransaction(pool, async (transaction) => {
+      await authorizeQueueActor(transaction, request);
+      return loadQueueItems(transaction, request.locationId);
+    });
+}
+
+export function createTaskQueueWithTrackingQuery(pool: PostgresPool) {
+  return (request: TaskQueueReadRequest): Promise<TaskQueueWithTrackingResponse> =>
+    inDispatchTransaction(pool, async (transaction) => {
+      const membershipId = await authorizeQueueActor(transaction, request);
+      const items = await loadQueueItems(transaction, request.locationId);
+      return {
+        tasks: items,
+        tracking: await loadEmployeeTaskTrackingProjection(transaction, {
+          locationId: request.locationId,
+          membershipId,
+        }),
+      };
     });
 }

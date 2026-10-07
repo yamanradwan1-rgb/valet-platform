@@ -53,10 +53,41 @@ export const staffTaskQueueItemSchema = z
   .strict();
 
 export const taskQueueQuerySchema = z
-  .object({ locationId: uuidSchema })
+  .object({
+    includeTracking: z.literal("true").optional(),
+    locationId: uuidSchema,
+  })
   .strict();
 export const taskQueueResponseSchema = z
   .object({ tasks: z.array(staffTaskQueueItemSchema) })
+  .strict();
+
+const taskTrackingMovementSchema = z
+  .object({
+    sessionId: uuidSchema,
+    taskId: uuidSchema,
+    taskType: z.enum(["PARKING", "RETRIEVAL"]),
+    trackingSessionId: uuidSchema,
+    trackingStartedAt: z.string().datetime({ offset: false }),
+  })
+  .strict();
+
+export const taskQueueTrackingProjectionSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("NONE") }).strict(),
+  z
+    .object({
+      movement: taskTrackingMovementSchema,
+      status: z.literal("ELIGIBLE"),
+    })
+    .strict(),
+  z.object({ status: z.literal("AMBIGUOUS") }).strict(),
+]);
+
+export const taskQueueWithTrackingResponseSchema = z
+  .object({
+    tasks: z.array(staffTaskQueueItemSchema),
+    tracking: taskQueueTrackingProjectionSchema,
+  })
   .strict();
 
 export const assignTaskRequestSchema = z
@@ -106,6 +137,12 @@ export type StaffTaskQueueItemVehicle = z.infer<
 >;
 export type TaskQueueQuery = z.infer<typeof taskQueueQuerySchema>;
 export type TaskQueueResponse = z.infer<typeof taskQueueResponseSchema>;
+export type TaskQueueTrackingProjection = z.infer<
+  typeof taskQueueTrackingProjectionSchema
+>;
+export type TaskQueueWithTrackingResponse = z.infer<
+  typeof taskQueueWithTrackingResponseSchema
+>;
 export type ParkingTaskQueueResponse = z.infer<
   typeof parkingTaskQueueResponseSchema
 >;

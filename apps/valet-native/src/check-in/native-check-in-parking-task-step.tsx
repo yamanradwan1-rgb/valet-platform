@@ -21,6 +21,7 @@ import {
 } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeGuestAccessCopy } from "../guest-access/native-guest-access-copy";
+import { getNativeTaskTrackingCopy } from "../tracking/native-task-tracking-copy";
 
 export function NativeCheckInParkingTaskStep({
   copy,
@@ -44,6 +45,7 @@ export function NativeCheckInParkingTaskStep({
   const styles = useEmployeeStyles(nativeCheckInParkingTaskStylesTheme);
 
   const guestCopy = getNativeGuestAccessCopy(locale);
+  const trackingCopy = getNativeTaskTrackingCopy(locale);
   const sessionId = snapshot.active?.sessionId;
   return (
     <>
@@ -70,7 +72,7 @@ export function NativeCheckInParkingTaskStep({
         <Text
           style={[styles.noticeText, employeeTextStyle("human", textAlign)]}
         >
-          {copy.locationTrackingParking}
+          {trackingCopy.parkingConditional}
         </Text>
       </View>
       <CheckInButton

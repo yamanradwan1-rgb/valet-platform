@@ -54,6 +54,7 @@ function createAuthBootstrap(): AuthBootstrap {
         queueRefreshing: false,
         successfulQueueSnapshotCount: 0,
         scope: null,
+        taskTracking: null,
         tasks: [],
       },
       runtime: undefined,

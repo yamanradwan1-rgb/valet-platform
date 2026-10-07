@@ -2,7 +2,9 @@ import type {
   AcceptTaskResponse,
   AssignTaskResponse,
   StaffTaskQueueItem,
+  TaskQueueTrackingProjection,
   TaskQueueResponse,
+  TaskQueueWithTrackingResponse,
 } from "@valet/contracts";
 import type {
   StaffOperationalContextResponse,
@@ -78,6 +80,7 @@ export interface EmployeeOperationalSnapshot {
   readonly queueRefreshing: boolean;
   readonly successfulQueueSnapshotCount: number;
   readonly scope: EmployeeOperationalScope | null;
+  readonly taskTracking: TaskQueueTrackingProjection | null;
   readonly tasks: readonly StaffTaskQueueItem[];
 }
 
@@ -94,7 +97,7 @@ export interface EmployeeOperationalTransport {
   loadTaskQueue(
     locationId: string,
     signal?: AbortSignal,
-  ): Promise<TaskQueueResponse>;
+  ): Promise<TaskQueueResponse | TaskQueueWithTrackingResponse>;
 }
 
 export interface EmployeeOperationalSessionOptions {

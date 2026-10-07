@@ -13,9 +13,8 @@ import {
   type NativeAuthSession,
   startShiftResponseSchema,
   staffOperationalContextResponseSchema,
-  taskQueueResponseSchema,
+  taskQueueWithTrackingResponseSchema,
   type AssignTaskResponse,
-  type TaskQueueResponse,
   type EmployeeShiftStartTransport,
   type EmployeeShiftEndTransport,
 } from "@valet/employee-client";
@@ -207,14 +206,14 @@ export function createNativeOperationalTransport(
       const value = await request<unknown>(
         {
           method: "GET",
-          params: { locationId },
+          params: { includeTracking: "true", locationId },
           path: "/v1/staff/tasks/queue",
         },
         signal,
       );
-      const parsed = taskQueueResponseSchema.safeParse(value);
+      const parsed = taskQueueWithTrackingResponseSchema.safeParse(value);
       if (!parsed.success) throw invalidResponse();
-      return parsed.data as TaskQueueResponse;
+      return parsed.data;
     },
   };
 }

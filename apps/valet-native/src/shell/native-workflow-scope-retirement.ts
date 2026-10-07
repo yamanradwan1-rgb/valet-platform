@@ -13,11 +13,13 @@ type ScopeRuntime = Pick<
   | "release"
   | "retrieval"
   | "shiftEnd"
+  | "taskTracking"
   | "vehicleDirectory"
 >;
 
 /** Purges workflow state when the shell retires or changes authority scope. */
 export function retireNativeWorkflowScope(runtime: ScopeRuntime): void {
+  runtime.taskTracking.clear();
   runtime.shiftEnd.fenceOperationalScope();
   runtime.checkIn.clear();
   runtime.checkInActions.clear();

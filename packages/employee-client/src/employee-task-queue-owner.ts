@@ -6,6 +6,7 @@ import type {
   EmployeeOperationalTransport,
 } from "./employee-operational-types";
 import type { StaffTaskQueueItem } from "@valet/contracts";
+import type { TaskQueueTrackingProjection } from "@valet/contracts";
 
 export interface EmployeeQueueSnapshotEvent {
   readonly failure: EmployeeOperationalFailure | null;
@@ -14,6 +15,7 @@ export interface EmployeeQueueSnapshotEvent {
   readonly refreshing: boolean;
   readonly scope: EmployeeOperationalScope;
   readonly successfulSnapshotCount: number;
+  readonly taskTracking?: TaskQueueTrackingProjection | null | undefined;
   readonly tasks?: readonly StaffTaskQueueItem[] | undefined;
 }
 
@@ -171,6 +173,8 @@ export class EmployeeTaskQueueOwner {
         refreshing: false,
         scope: target.value,
         successfulSnapshotCount: this.successfulSnapshotCount,
+        taskTracking:
+          "tracking" in response ? response.tracking : null,
         tasks: response.tasks,
       });
     } catch (error) {
@@ -188,6 +192,7 @@ export class EmployeeTaskQueueOwner {
         refreshing: false,
         scope: target.value,
         successfulSnapshotCount: this.successfulSnapshotCount,
+        taskTracking: null,
       });
     } finally {
       if (this.abortController === controller) {

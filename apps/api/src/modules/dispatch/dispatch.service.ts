@@ -7,7 +7,10 @@ import { createAssignTaskCommandExecutor } from "./assign-task-command";
 import { createDeclineTaskCommandExecutor } from "./decline-task-command";
 import { createQueueParkingTaskCommandExecutor } from "./queue-parking-task-command";
 import { createReassignTaskCommandExecutor } from "./reassign-task-command";
-import { createTaskQueueQuery } from "./task-queue-query";
+import {
+  createTaskQueueQuery,
+  createTaskQueueWithTrackingQuery,
+} from "./task-queue-query";
 
 @Injectable()
 export class DispatchService {
@@ -16,6 +19,7 @@ export class DispatchService {
   private readonly declineTask;
   private readonly queueParkingTask;
   private readonly readQueue;
+  private readonly readQueueWithTracking;
   private readonly reassignTask;
 
   constructor(@Inject(RUNTIME_POSTGRES_POOL) pool: PostgresPool) {
@@ -24,6 +28,7 @@ export class DispatchService {
     this.declineTask = createDeclineTaskCommandExecutor(pool);
     this.queueParkingTask = createQueueParkingTaskCommandExecutor(pool);
     this.readQueue = createTaskQueueQuery(pool);
+    this.readQueueWithTracking = createTaskQueueWithTrackingQuery(pool);
     this.reassignTask = createReassignTaskCommandExecutor(pool);
   }
 
@@ -49,5 +54,9 @@ export class DispatchService {
 
   loadQueue(request: Parameters<typeof this.readQueue>[0]) {
     return this.readQueue(request);
+  }
+
+  loadQueueWithTracking(request: Parameters<typeof this.readQueueWithTracking>[0]) {
+    return this.readQueueWithTracking(request);
   }
 }

@@ -20,6 +20,7 @@ import { LiveMapPanel } from "./live-map-panel";
 import { MapSetupPanel } from "./map-setup-panel";
 import reference from "./maps-reference.module.css";
 import { OperationalGoogleMap } from "./operational-google-map";
+import { useLiveMapRead } from "./use-live-map-read";
 import { useMapSetupState } from "./use-map-setup-state";
 
 type MapMode = "LIVE" | "SETUP";
@@ -58,28 +59,29 @@ function MapsContent() {
   const liveEnabled = routeEligible && (
     companyAdmin || supervisor || (locationManager && lmDashboardAccess)
   );
-  const loadLive = useCallback(
-    (signal: AbortSignal) => readLiveMap(dashboard.api, locationId, page.cursor, signal),
-    [dashboard.api, locationId, page.cursor],
-  );
-  const live = useOperationsRead(
-    `${scopeKey}:maps:live:${page.cursor ?? "first"}`,
-    loadLive,
-    liveEnabled,
-  );
   const setup = useMapSetupState(
     dashboard.api,
     locationId,
     locationManager,
     scopeKey,
   );
-  const liveError = live.error ? liveErrorMessage(live.error, t.liveMapDenied) : null;
-  const liveItems = live.data?.items ?? [];
-  const levels = returnedLevels(liveItems, setup.points, setup.areas);
   const setupForced = locationManager &&
     !subscription.loading &&
     !subscription.error &&
     !lmDashboardAccess;
+  const setupMode = locationManager && (mode === "SETUP" || setupForced);
+  const loadLive = useCallback(
+    (signal: AbortSignal) => readLiveMap(dashboard.api, locationId, page.cursor, signal),
+    [dashboard.api, locationId, page.cursor],
+  );
+  const live = useLiveMapRead(
+    `${scopeKey}:maps:live:${page.cursor ?? "first"}`,
+    loadLive,
+    liveEnabled && !setupMode,
+  );
+  const liveError = live.error ? liveErrorMessage(live.error, t.liveMapDenied) : null;
+  const liveItems = live.data?.items ?? [];
+  const levels = returnedLevels(liveItems, setup.points, setup.areas);
 
   if (!routeEligible) {
     return (
@@ -89,7 +91,6 @@ function MapsContent() {
     );
   }
 
-  const setupMode = locationManager && (mode === "SETUP" || setupForced);
   const observed = live.data && location.timezone
     ? formatOperationsTime(live.data.observedAt, location.timezone, locale)
     : live.data ? t.timeUnavailable : null;
